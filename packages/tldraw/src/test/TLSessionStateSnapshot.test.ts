@@ -108,6 +108,21 @@ describe(loadSessionStateSnapshotIntoStore, () => {
 		})
 	})
 
+	it('does not crash when currentPageId is undefined', () => {
+		const snapshot = createSessionStateSnapshotSignal(editor.store).get()
+		if (!snapshot) throw new Error('snapshot is null')
+
+		const currentPageId = editor.getCurrentPageId()
+
+		// Strip currentPageId to simulate what TlaEditor does for deep links
+		const { currentPageId: _, ...snapshotWithoutPageId } = snapshot
+
+		loadSessionStateSnapshotIntoStore(editor.store, snapshotWithoutPageId as TLSessionStateSnapshot)
+
+		// Should preserve the existing currentPageId
+		expect(editor.getCurrentPageId()).toBe(currentPageId)
+	})
+
 	it('overrides existing UI flags if you say so', () => {
 		expect(editor.getInstanceState()).toMatchObject({
 			isGridMode: false,

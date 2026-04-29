@@ -106,7 +106,7 @@ export function createMigrationIds<const ID extends string, const Versions exten
 };
 
 // @public
-export function createMigrationSequence({ sequence, sequenceId, retroactive, }: {
+export function createMigrationSequence({ sequence, sequenceId, retroactive }: {
     retroactive?: boolean;
     sequence: Array<Migration | StandaloneDependsOn>;
     sequenceId: string;
@@ -209,20 +209,33 @@ export type Migration = {
     readonly up: (storage: SynchronousRecordStorage<UnknownRecord>) => void;
 });
 
-// @public
-export enum MigrationFailureReason {
+// @public (undocumented)
+export const MigrationFailureReason: {
+    readonly IncompatibleSubtype: "incompatible-subtype";
+    readonly MigrationError: "migration-error";
+    readonly TargetVersionTooNew: "target-version-too-new";
+    readonly TargetVersionTooOld: "target-version-too-old";
+    readonly UnknownType: "unknown-type";
+    readonly UnrecognizedSubtype: "unrecognized-subtype";
+};
+
+// @public (undocumented)
+export type MigrationFailureReason = (typeof MigrationFailureReason)[keyof typeof MigrationFailureReason];
+
+// @public (undocumented)
+export namespace MigrationFailureReason {
     // (undocumented)
-    IncompatibleSubtype = "incompatible-subtype",
+    export type IncompatibleSubtype = typeof MigrationFailureReason.IncompatibleSubtype;
     // (undocumented)
-    MigrationError = "migration-error",
+    export type MigrationError = typeof MigrationFailureReason.MigrationError;
     // (undocumented)
-    TargetVersionTooNew = "target-version-too-new",
+    export type TargetVersionTooNew = typeof MigrationFailureReason.TargetVersionTooNew;
     // (undocumented)
-    TargetVersionTooOld = "target-version-too-old",
+    export type TargetVersionTooOld = typeof MigrationFailureReason.TargetVersionTooOld;
     // (undocumented)
-    UnknownType = "unknown-type",
+    export type UnknownType = typeof MigrationFailureReason.UnknownType;
     // (undocumented)
-    UnrecognizedSubtype = "unrecognized-subtype"
+    export type UnrecognizedSubtype = typeof MigrationFailureReason.UnrecognizedSubtype;
 }
 
 // @public
@@ -380,7 +393,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
     allRecords(): R[];
     // (undocumented)
-    applyDiff(diff: RecordsDiff<R>, { runCallbacks, ignoreEphemeralKeys, }?: {
+    applyDiff(diff: RecordsDiff<R>, { runCallbacks, ignoreEphemeralKeys }?: {
         ignoreEphemeralKeys?: boolean;
         runCallbacks?: boolean;
     }): void;
@@ -399,7 +412,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope): {
         added: { [K in IdOf<R>]: R; };
         removed: { [K in IdOf<R>]: R; };
-        updated: { [K_1 in IdOf<R>]: [from: R, to: R]; };
+        updated: { [K in IdOf<R>]: [from: R, to: R]; };
     } | null;
     // (undocumented)
     _flushHistory(): void;

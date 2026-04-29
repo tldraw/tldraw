@@ -8,6 +8,7 @@ import { useHandleUiEvents } from '../utils/analytics'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { getScratchPersistenceKey } from '../utils/scratch-persistence-key'
+import { SneakyMermaidHandler } from './SneakyMermaidHandler/SneakyMermaidHandler'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
@@ -51,6 +52,7 @@ export function LocalEditor({
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<SneakyToolSwitcher />
+				<SneakyMermaidHandler />
 				<ThemeUpdater />
 				{children}
 			</Tldraw>

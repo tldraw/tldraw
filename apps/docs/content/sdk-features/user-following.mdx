@@ -17,7 +17,7 @@ accuracy: 9
 notes: Could use more question-style transitions per voice guide.
 ---
 
-User following lets you track a collaborator's viewport in real-time. When you follow someone, your [camera](/docs/camera) automatically moves to match their view, including page changes and zoom level. The editor handles follow chains (A follows B who follows C) and smoothly interpolates your viewport toward the target on each frame.
+User following lets you track a collaborator's viewport in real-time. When you follow someone, your [camera](/sdk-features/camera) automatically moves to match their view, including page changes and zoom level. The editor handles follow chains (A follows B who follows C) and smoothly interpolates your viewport toward the target on each frame.
 
 Following works with the [collaboration](/docs/collaboration) presence system to track collaborators. It stops automatically when you interact with the canvas or when the followed user disconnects.
 
@@ -37,7 +37,7 @@ The interpolation uses `lerp` on viewport bounds rather than camera values direc
 
 ### Page synchronization
 
-Page changes happen separately from camera movement. A reactive effect watches the followed user's `currentPageId` and immediately switches [pages](/docs/pages) when it changes. The page switch uses a direct store update rather than `setCurrentPage()` to avoid triggering the automatic follow-stopping behavior that occurs on manual page changes.
+Page changes happen separately from camera movement. A reactive effect watches the followed user's `currentPageId` and immediately switches [pages](/sdk-features/pages) when it changes. The page switch uses a direct store update rather than `setCurrentPage()` to avoid triggering the automatic follow-stopping behavior that occurs on manual page changes.
 
 When switching pages to follow a user, the editor sets an internal `_isLockedOnFollowingUser` flag to prevent camera interpolation from running until the page switch completes. This avoids jarring camera movements during page transitions.
 
@@ -114,7 +114,7 @@ function FollowingIndicatorInner({ userId }: { userId: string }) {
 }
 ```
 
-You can override this component through the [UI customization](/docs/ui-components) system to change its appearance or add the followed user's name.
+You can override this component through the [UI customization](/sdk-features/ui-components) system to change its appearance or add the followed user's name.
 
 ### Follow state detection
 
@@ -131,7 +131,7 @@ The presence records from [Editor#getCollaborators](?) include each user's `foll
 
 ## Related
 
-- [Camera](/docs/camera) - Learn about viewport and camera control
+- [Camera](/sdk-features/camera) - Learn about viewport and camera control
 - [Collaboration](/docs/collaboration) - Set up multiplayer presence and sync
-- [Pages](/docs/pages) - Understand page management
-- [UI components](/docs/ui-components) - Customize UI elements like the following indicator
+- [Pages](/sdk-features/pages) - Understand page management
+- [UI components](/sdk-features/ui-components) - Customize UI elements like the following indicator

@@ -1,5 +1,5 @@
-import type { AgentAction } from '../../shared/types/AgentAction'
 import { getActionMeta } from '../../shared/types/AgentAction'
+import type { AgentAction } from '../../shared/types/AgentAction'
 import type { PromptPart } from '../../shared/types/PromptPart'
 import type { SystemPromptCategory } from '../../shared/types/SystemPromptCategory'
 

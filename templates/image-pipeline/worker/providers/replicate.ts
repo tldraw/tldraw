@@ -1,3 +1,4 @@
+import { resolveImage } from './types'
 import type {
 	GenerateParams,
 	GenerateResult,
@@ -5,7 +6,6 @@ import type {
 	UpscaleParams,
 	UpscaleResult,
 } from './types'
-import { resolveImage } from './types'
 
 /** Maps ControlNet mode IDs to Flux ControlNet model identifiers. */
 const CONTROLNET_MODELS: Record<string, string> = {

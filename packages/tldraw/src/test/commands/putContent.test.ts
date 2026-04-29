@@ -39,6 +39,45 @@ describe('Migrations', () => {
 	})
 })
 
+describe('Post-positioning reparent into frame', () => {
+	it('reparents shapes into a frame when they land inside it without an explicit point', () => {
+		const frameId = createShapeId('frame')
+		const childId = createShapeId('child')
+
+		// Create a frame centered at the viewport center
+		const viewportCenter = editor.getViewportPageBounds().center
+		const frameW = 400
+		const frameH = 400
+		editor.createShapes([
+			{
+				id: frameId,
+				type: 'frame',
+				x: viewportCenter.x - frameW / 2,
+				y: viewportCenter.y - frameH / 2,
+				props: { w: frameW, h: frameH },
+			},
+			{
+				id: childId,
+				type: 'geo',
+				x: -500,
+				y: -500,
+				props: { w: 10, h: 10 },
+			},
+		])
+
+		editor.select(childId)
+		editor.copy()
+		editor.deleteShapes([childId])
+		editor.selectNone()
+
+		// Paste without a point — shapes should land at viewport center, inside the frame
+		editor.putContentOntoCurrentPage(editor.getClipboard()!, { select: true })
+
+		const [pastedId] = editor.getSelectedShapeIds()
+		expect(editor.getShape(pastedId)?.parentId).toBe(frameId)
+	})
+})
+
 describe('Paste parent selection with explicit point', () => {
 	it('falls back to the page when the cursor is outside the original parent', () => {
 		const frameId = createShapeId('frame')
@@ -65,7 +104,7 @@ describe('Paste parent selection with explicit point', () => {
 		editor.select(childId)
 		editor.copy()
 
-		editor.putContentOntoCurrentPage(editor.clipboard!, {
+		editor.putContentOntoCurrentPage(editor.getClipboard()!, {
 			point: { x: 500, y: 500 },
 			select: true,
 		})
@@ -107,7 +146,7 @@ describe('Paste parent selection with explicit point', () => {
 		editor.select(childId)
 		editor.copy()
 
-		editor.putContentOntoCurrentPage(editor.clipboard!, {
+		editor.putContentOntoCurrentPage(editor.getClipboard()!, {
 			point: { x: 450, y: 50 },
 			select: true,
 		})

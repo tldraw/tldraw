@@ -260,6 +260,25 @@ describe('json unchunker', () => {
 		expect(unchunker.handleMessage('{"ok": true}')).toMatchObject({ data: { ok: true } })
 	})
 
+	it('handles unicode line separators U+2028 and U+2029 in chunks', () => {
+		// These characters are common when copy/pasting from Microsoft Word
+		// and are valid JSON string content but act as line terminators in JS
+		const unchunker = new JsonChunkAssembler()
+
+		// Test U+2028 (Line Separator) and U+2029 (Paragraph Separator)
+		const jsonWithLineSeparators = '{"text": "hello\u2028world\u2029end"}'
+		const chunks = chunk(jsonWithLineSeparators, 10)
+
+		for (const c of chunks.slice(0, -1)) {
+			expect(unchunker.handleMessage(c)).toBeNull()
+		}
+
+		const result = unchunker.handleMessage(chunks[chunks.length - 1])
+		expect(result).toMatchObject({
+			data: { text: 'hello\u2028world\u2029end' },
+		})
+	})
+
 	it('handles duplicate or out-of-order chunk numbers', () => {
 		const unchunker = new JsonChunkAssembler()
 

@@ -1,8 +1,8 @@
 import { computed } from '@tldraw/state'
 import { RecordId, Store, StoreSchema, UnknownRecord, createRecordType } from '@tldraw/store'
 import { vi } from 'vitest'
-import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import { RecordOpType } from '../lib/diff'
+import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
 

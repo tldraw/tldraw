@@ -1,0 +1,19 @@
+{
+	"name": "tldraw",
+	"owner": {
+		"name": "tldraw",
+		"email": "tim@tldraw.com"
+	},
+	"metadata": {
+		"description": "Draw and visually collaborate with your agents inside Cursor",
+		"version": "0.1.0",
+		"pluginRoot": "apps/mcp-app/plugins"
+	},
+	"plugins": [
+		{
+			"name": "tldraw",
+			"source": "tldraw-mcp",
+			"description": "Draw and visually collaborate with your agents inside Cursor"
+		}
+	]
+}

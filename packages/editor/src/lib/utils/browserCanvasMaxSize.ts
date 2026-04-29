@@ -1,3 +1,5 @@
+import { getGlobalDocument } from './dom'
+
 /** @internal */
 export interface CanvasMaxSize {
 	maxWidth: number
@@ -90,9 +92,11 @@ const TEST_SIZES = {
 /**
  * Tests ability to read pixel data from canvas elements of various dimensions
  * by decreasing canvas height and/or width until a test succeeds.
+ * @param dimension - The dimension to test.
+ * @returns The maximum size of the canvas for the given dimension.
  */
-export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
-	const cropCvs = document.createElement('canvas')
+function getCanvasSize(dimension: 'width' | 'height' | 'area'): number {
+	const cropCvs = getGlobalDocument().createElement('canvas')
 	cropCvs.width = 1
 	cropCvs.height = 1
 	const cropCtx = cropCvs.getContext('2d')!
@@ -101,7 +105,7 @@ export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
 		const w = dimension === 'height' ? 1 : size
 		const h = dimension === 'width' ? 1 : size
 
-		const testCvs = document.createElement('canvas')
+		const testCvs = getGlobalDocument().createElement('canvas')
 		testCvs.width = w
 		testCvs.height = h
 		const testCtx = testCvs.getContext('2d')!
@@ -135,7 +139,7 @@ export function getCanvasSize(dimension: 'width' | 'height' | 'area') {
 }
 
 /** @internal */
-export function clampToBrowserMaxCanvasSize(width: number, height: number) {
+export function clampToBrowserMaxCanvasSize(width: number, height: number): [number, number] {
 	if (
 		width <= MAX_SAFE_CANVAS_DIMENSION &&
 		height <= MAX_SAFE_CANVAS_DIMENSION &&

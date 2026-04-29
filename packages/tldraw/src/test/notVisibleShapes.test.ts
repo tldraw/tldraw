@@ -52,10 +52,12 @@ class TestShape extends ShapeUtil<ITestShape> {
 	override canCull(shape: ITestShape): boolean {
 		return shape.props.canCull
 	}
-	override canEdit() {
+	override canEdit(shape: ITestShape) {
 		return true
 	}
-	indicator() {}
+	getIndicatorPath() {
+		return undefined
+	}
 	component() {}
 }
 

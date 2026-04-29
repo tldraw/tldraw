@@ -16,11 +16,15 @@ When we release a new version of the SDK, this project is deployed to [examples.
 
 ## What is an example?
 
-Each example in this project is located in its own folder in `apps/examples/src/examples`.
+Each example in this project is located in its own folder under `apps/examples/src/examples/<category>`.
+
+For categories that include a slash (for example `shapes/tools` or `data/assets`), create nested folders:
+`apps/examples/src/examples/shapes/tools/<example-slug>`.
 
 ### Folder name
 
-The name of the folder is used as the url or the example and should be in lowercase kebab case (e.g. something-like-this).
+The final folder name (the example slug) is used as the url for the example and should be in lowercase kebab
+case (e.g. something-like-this).
 
 ### README.md
 
@@ -30,7 +34,6 @@ Each example requires a `README.md` file. The file should follow this format:
 ---
 title: Example
 component: ./ExampleFile.tsx
-category: category
 priority: { priority }
 keywords: { keywords }
 ---
@@ -44,15 +47,14 @@ keywords: { keywords }
 
 Here is a breakdown of the different properties:
 
-| Property         | Description                                                                                                                                                                                                                                        |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| title            | The title of the example in sentence case. It should correspond (at least partly) with the file name chosen for the example's folder.                                                                                                              |
-| component        | The relative path to the example file.                                                                                                                                                                                                             |
-| category         | The id of the category in which to place the example.                                                                                                                                                                                              |
-| priority         | A number that determines the display order of the example within its category. Valid category ids are: 'getting-started', 'configuration', 'editor-api', 'ui', 'layout', 'events', 'shapes/tools', 'collaboration, 'data/assets', and 'use-cases'. |
-| keywords         | An array of keywords associated with this example. Avoid any obvious terms (like `tldraw`) and focus instead of terms that would help a user discover this example through search.                                                                 |
-| One-line summary | A one line summary of the example.                                                                                                                                                                                                                 |
-| detailed summary | A more detailed piece of text that accompanies the example. While the example itself should contain all of the relevant code, if there are snippets or other code examples that make sense to include, then they should be included here.          |
+| Property         | Description                                                                                                                                                                                                                                                                                   |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| title            | The title of the example in sentence case. It should correspond (at least partly) with the file name chosen for the example's folder.                                                                                                                                                         |
+| component        | The relative path to the example file.                                                                                                                                                                                                                                                        |
+| priority         | A number that determines the display order of the example within its category. Category is derived from the folder path; valid category ids are: 'getting-started', 'configuration', 'editor-api', 'ui', 'layout', 'events', 'shapes/tools', 'collaboration', 'data/assets', and 'use-cases'. |
+| keywords         | An array of keywords associated with this example. Avoid any obvious terms (like `tldraw`) and focus instead of terms that would help a user discover this example through search.                                                                                                            |
+| One-line summary | A one line summary of the example.                                                                                                                                                                                                                                                            |
+| detailed summary | A more detailed piece of text that accompanies the example. While the example itself should contain all of the relevant code, if there are snippets or other code examples that make sense to include, then they should be included here.                                                     |
 
 ### Example file
 

@@ -1,7 +1,6 @@
 import { PageRecordType, TLDeepLink, createDeepLinkString, createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
 
 vi.useFakeTimers()
 
@@ -92,7 +91,9 @@ describe('type: page', () => {
 		const pageId = PageRecordType.createId('foo')
 		editor.createPage({ id: pageId })
 		editor.setCurrentPage(pageId)
-		editor.createShapesFromJsx([<TL.geo x={200} y={200} w={100} h={100} />])
+		editor.createShapes([
+			{ id: createShapeId(), type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+		])
 		editor.setCurrentPage(initialPageId)
 
 		const url = makeUrl({ type: 'page', pageId })
@@ -109,7 +110,9 @@ describe('type: page', () => {
 	it('wont switch page if the page does not exist, but will still center the content', () => {
 		const initialPageId = editor.getCurrentPageId()
 		const pageId = PageRecordType.createId('foo')
-		editor.createShapesFromJsx([<TL.geo x={200} y={200} w={100} h={100} />])
+		editor.createShapes([
+			{ id: createShapeId(), type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+		])
 
 		const url = makeUrl({ type: 'page', pageId })
 
@@ -128,10 +131,10 @@ describe('type: shapes', () => {
 		const boxA = createShapeId()
 		const boxB = createShapeId()
 		const boxC = createShapeId()
-		editor.createShapesFromJsx([
-			<TL.geo id={boxA} x={100} y={100} w={100} h={100} />,
-			<TL.geo id={boxB} x={-200} y={-200} w={100} h={100} />,
-			<TL.geo id={boxC} x={300} y={300} w={100} h={100} />,
+		editor.createShapes([
+			{ id: boxA, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			{ id: boxB, type: 'geo', x: -200, y: -200, props: { w: 100, h: 100 } },
+			{ id: boxC, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
 		])
 
 		const url = makeUrl({ type: 'shapes', shapeIds: [boxA, boxB] })
@@ -149,10 +152,10 @@ describe('type: shapes', () => {
 		const boxA = createShapeId()
 		const boxB = createShapeId()
 		const boxC = createShapeId()
-		editor.createShapesFromJsx([
-			<TL.geo id={boxA} x={500} y={500} w={100} h={100} />,
-			<TL.geo id={boxB} x={-500} y={-500} w={100} h={100} />,
-			<TL.geo id={boxC} x={1300} y={1300} w={100} h={100} />,
+		editor.createShapes([
+			{ id: boxA, type: 'geo', x: 500, y: 500, props: { w: 100, h: 100 } },
+			{ id: boxB, type: 'geo', x: -500, y: -500, props: { w: 100, h: 100 } },
+			{ id: boxC, type: 'geo', x: 1300, y: 1300, props: { w: 100, h: 100 } },
 		])
 
 		const url = makeUrl({ type: 'shapes', shapeIds: [boxA, boxB] })
@@ -172,12 +175,12 @@ describe('type: shapes', () => {
 		const boxA = createShapeId()
 		const boxB = createShapeId()
 		const boxC = createShapeId()
-		editor.createShapesFromJsx([<TL.geo id={boxA} x={500} y={500} w={100} h={100} />])
+		editor.createShapes([{ id: boxA, type: 'geo', x: 500, y: 500, props: { w: 100, h: 100 } }])
 		editor.createPage({ id: otherPageId })
 		editor.setCurrentPage(otherPageId)
-		editor.createShapesFromJsx([
-			<TL.geo id={boxB} x={-500} y={-500} w={100} h={100} />,
-			<TL.geo id={boxC} x={1300} y={1300} w={100} h={100} />,
+		editor.createShapes([
+			{ id: boxB, type: 'geo', x: -500, y: -500, props: { w: 100, h: 100 } },
+			{ id: boxC, type: 'geo', x: 1300, y: 1300, props: { w: 100, h: 100 } },
 		])
 		editor.setCurrentPage(initialPageId)
 

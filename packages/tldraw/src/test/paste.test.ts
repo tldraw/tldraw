@@ -124,6 +124,8 @@ it('Gets pasted shapes correctly', () => {
 
 	shapes = getShapes()
 
+	// The pasted frame (at 0,0) merely touches frame2's edge (at 0,100),
+	// so it stays at the page level rather than being reparented.
 	expect(editor.getCurrentPageShapesSorted().map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
@@ -489,5 +491,177 @@ describe('When pasting into frames...', () => {
 
 		expect(approximately(framePageCenter.x, boxPageCenter.x)).toBe(true)
 		expect(approximately(framePageCenter.y, boxPageCenter.y)).toBe(true)
+	})
+
+	it('Reparents pasted shapes into a frame at the viewport center when nothing is selected', () => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		// Create a frame centered in the viewport
+		const viewportCenter = editor.getViewportPageBounds().center
+		const frameW = 400
+		const frameH = 400
+		editor.createShapes([
+			{
+				id: ids.frame1,
+				type: 'frame',
+				x: viewportCenter.x - frameW / 2,
+				y: viewportCenter.y - frameH / 2,
+				props: { w: frameW, h: frameH },
+			},
+		])
+
+		// Create a small shape outside the frame, copy it, then delete it
+		editor.createShapes([
+			{
+				id: ids.box1,
+				type: 'geo',
+				x: -500,
+				y: -500,
+				props: { w: 10, h: 10 },
+			},
+		])
+		editor.select(ids.box1).copy()
+		editor.deleteShapes([ids.box1])
+		editor.selectNone()
+
+		// Paste with nothing selected — should land in viewport center, inside the frame
+		editor.paste()
+
+		const pastedShape = editor
+			.getCurrentPageShapes()
+			.find((s) => s.type === 'geo' && s.id !== ids.box1)!
+		expect(pastedShape.parentId).toBe(ids.frame1)
+	})
+
+	it('Does not reparent pasted shapes when they land outside any frame', () => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		// Create a frame far from the viewport center
+		editor.createShapes([
+			{
+				id: ids.frame1,
+				type: 'frame',
+				x: 5000,
+				y: 5000,
+				props: { w: 100, h: 100 },
+			},
+		])
+
+		// Create a small shape, copy it, then delete it
+		editor.createShapes([
+			{
+				id: ids.box1,
+				type: 'geo',
+				x: -500,
+				y: -500,
+				props: { w: 10, h: 10 },
+			},
+		])
+		editor.select(ids.box1).copy()
+		editor.deleteShapes([ids.box1])
+		editor.selectNone()
+
+		// Paste — should land at viewport center, which is NOT inside the frame
+		editor.paste()
+
+		const pastedShape = editor
+			.getCurrentPageShapes()
+			.find((s) => s.type === 'geo' && s.id !== ids.box1)!
+		expect(pastedShape.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('Reparents pasted shapes into a frame when preservePosition places them inside it', () => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		// Create a frame at the origin
+		editor.createShapes([
+			{
+				id: ids.frame1,
+				type: 'frame',
+				x: 0,
+				y: 0,
+				props: { w: 400, h: 400 },
+			},
+		])
+
+		// Create a small shape inside the frame bounds, copy it, then delete it
+		editor.createShapes([
+			{
+				id: ids.box1,
+				type: 'geo',
+				x: 150,
+				y: 150,
+				props: { w: 10, h: 10 },
+			},
+		])
+		editor.select(ids.box1).copy()
+		editor.deleteShapes([ids.box1])
+		editor.selectNone()
+
+		// Set camera so that the original position is in the viewport
+		editor.setCamera({ x: 0, y: 0, z: 1 })
+
+		// Paste with preservePosition — shape should land at original position, inside the frame
+		editor.putContentOntoCurrentPage(editor.getClipboard()!, {
+			preservePosition: true,
+			select: true,
+		})
+
+		const [pastedId] = editor.getSelectedShapeIds()
+		expect(editor.getShape(pastedId)?.parentId).toBe(ids.frame1)
+	})
+
+	it('Kicks out pasted shapes that do not overlap with the paste-parent frame', () => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		// Create three 100x100 rectangles spaced 200px apart (200px gap between edges)
+		// rect1: x=0..100, rect2: x=300..400, rect3: x=600..700
+		// All at y=0, so selection bounds = 700x100, center = (350, 50)
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: ids.box2, type: 'geo', x: 300, y: 0, props: { w: 100, h: 100 } },
+			{ id: ids.box3, type: 'geo', x: 600, y: 0, props: { w: 100, h: 100 } },
+		])
+
+		editor.select(ids.box1, ids.box2, ids.box3)
+		editor.copy()
+
+		// Delete the originals and create a 150x150 frame centered in the viewport
+		editor.deleteShapes([ids.box1, ids.box2, ids.box3])
+		const viewportCenter = editor.getViewportPageBounds().center
+		editor.createShapes([
+			{
+				id: ids.frame1,
+				type: 'frame',
+				x: viewportCenter.x - 75,
+				y: viewportCenter.y - 75,
+				props: { w: 150, h: 150 },
+			},
+		])
+
+		// Select the frame and paste
+		editor.select(ids.frame1)
+		editor.paste()
+
+		// Find the three pasted geo shapes (the new ones, not the originals which were deleted)
+		const pastedGeos = editor
+			.getCurrentPageShapes()
+			.filter((s) => s.type === 'geo')
+			.sort((a, b) => {
+				const aBounds = editor.getShapePageBounds(a)!
+				const bBounds = editor.getShapePageBounds(b)!
+				return aBounds.x - bBounds.x
+			})
+
+		expect(pastedGeos).toHaveLength(3)
+
+		const [left, middle, right] = pastedGeos
+
+		// The middle shape's center lands at the frame center → stays as child of the frame
+		expect(middle.parentId).toBe(ids.frame1)
+
+		// The left and right shapes are far outside the frame → kicked out to page
+		expect(left.parentId).toBe(editor.getCurrentPageId())
+		expect(right.parentId).toBe(editor.getCurrentPageId())
 	})
 })

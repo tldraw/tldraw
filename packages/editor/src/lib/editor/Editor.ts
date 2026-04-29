@@ -34,7 +34,6 @@ import {
 	TLCursorType,
 	TLDOCUMENT_ID,
 	TLDocument,
-	TLFrameShape,
 	TLGroupShape,
 	TLHandle,
 	TLINSTANCE_ID,
@@ -51,9 +50,16 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
+	TLTheme,
+	TLThemeId,
+	TLThemes,
+	TLUser,
+	TLUserId,
 	TLVideoAsset,
+	UserRecordType,
 	createBindingId,
 	createShapeId,
+	createUserId,
 	getShapePropKeysByStyle,
 	isPageId,
 	isShapeId,
@@ -83,7 +89,6 @@ import {
 	hasOwnProperty,
 	last,
 	lerp,
-	maxBy,
 	minBy,
 	sortById,
 	sortByIndex,
@@ -91,15 +96,16 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
+import { TLCurrentUser, createTLCurrentUser } from '../config/createTLCurrentUser'
+import { TLAnyAssetUtilConstructor, checkAssets } from '../config/defaultAssets'
+import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
+import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	TLEditorSnapshot,
 	TLLoadSnapshotOptions,
 	getSnapshot,
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
-import { TLUser, createTLUser } from '../config/createTLUser'
-import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
-import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
@@ -109,20 +115,20 @@ import {
 	RIGHT_MOUSE_BUTTON,
 	STYLUS_ERASER_BUTTON,
 } from '../constants'
+import { getOwnerWindow } from '../exports/domUtils'
 import { exportToSvg } from '../exports/exportToSvg'
-import { getSvgAsImage } from '../exports/getSvgAsImage'
+import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsImage'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
-import { Mat, MatLike } from '../primitives/Mat'
-import { Vec, VecLike } from '../primitives/Vec'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
+import { Mat, MatLike } from '../primitives/Mat'
 import { PI, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
-import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
+import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
@@ -134,30 +140,39 @@ import {
 } from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
+import { getDroppedShapesToNewParents, kickoutOccludedShapes } from '../utils/reparenting'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
+import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
+import { AssetUtil } from './assets/AssetUtil'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager/ClickManager'
+import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
 import { FocusManager } from './managers/FocusManager/FocusManager'
 import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
+import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
+import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
+import { OverlayManager } from './overlays/OverlayManager'
+import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
 import {
 	ShapeUtil,
 	TLEditStartInfo,
 	TLGeometryOpts,
 	TLResizeMode,
+	TLShapeUtilCanBeLaidOutOpts,
 	TLShapeUtilCanBindOpts,
 } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
@@ -208,18 +223,22 @@ export interface TLEditorOptions {
 	 */
 	bindingUtils: readonly TLAnyBindingUtilConstructor[]
 	/**
+	 * An array of asset utils to use in the editor. These will be used to handle asset-type-specific behavior.
+	 */
+	assetUtils?: readonly TLAnyAssetUtilConstructor[]
+	/**
+	 * An array of overlay utils to use in the editor. These define canvas overlay UI elements
+	 * like selection handles, rotation corners, shape handles, etc.
+	 */
+	overlayUtils?: readonly TLAnyOverlayUtilConstructor[]
+	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
 	tools: readonly TLStateNodeConstructor[]
 	/**
-	 * Should return a containing html element which has all the styles applied to the editor. If not
-	 * given, the body element will be used.
-	 */
-	getContainer(): HTMLElement
-	/**
 	 * A user defined externally to replace the default user.
 	 */
-	user?: TLUser
+	user?: TLCurrentUser
 	/**
 	 * The editor's initial active tool (or other state node id).
 	 */
@@ -228,25 +247,13 @@ export interface TLEditorOptions {
 	 * Whether to automatically focus the editor when it mounts.
 	 */
 	autoFocus?: boolean
-	/**
-	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
-	 */
-	inferDarkMode?: boolean
-	/**
-	 * Options for the editor's camera.
-	 *
-	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
-	 */
-	cameraOptions?: Partial<TLCameraOptions>
-	options?: Partial<TldrawOptions>
-	/**
-	 * Text options for the editor.
-	 *
-	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
-	 */
-	textOptions?: TLTextOptions
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
+	/**
+	 * Should return a containing html element which has all the styles applied to the editor. If not
+	 * given, the body element will be used.
+	 */
+	getContainer(): HTMLElement
 	/**
 	 * Provides a way to hide shapes.
 	 *
@@ -266,6 +273,41 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+	/**
+	 * Named theme definitions for the editor. Each theme contains shared
+	 * properties (font size, line height, stroke width) and color palettes
+	 * for both light and dark modes.
+	 */
+	themes?: Partial<TLThemes>
+	/**
+	 * The id of the initially active theme. Defaults to `'default'`.
+	 */
+	initialTheme?: TLThemeId
+	/**
+	 * The editor's color scheme preference, controls the default color mode. Defaults to `'light'`.
+	 *
+	 * - `'light'` - Always use light mode.
+	 * - `'dark'` - Always use dark mode.
+	 * - `'system'` - Follow the OS color scheme preference.
+	 */
+	colorScheme?: 'light' | 'dark' | 'system'
+	/**
+	 * Additional configuration options for the tldraw editor.
+	 */
+	options?: Partial<TldrawOptions>
+	// --- Deprecated ----
+	/**
+	 * Options for the editor's camera.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
+	 */
+	cameraOptions?: Partial<TLCameraOptions>
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 }
 
 /**
@@ -294,6 +336,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		user,
 		shapeUtils,
 		bindingUtils,
+		assetUtils: assetUtilConstructors,
+		overlayUtils: overlayUtilConstructors,
 		tools,
 		getContainer,
 		// needs to be here for backwards compatibility with TldrawEditor
@@ -301,13 +345,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		cameraOptions,
 		initialState,
 		autoFocus,
-		inferDarkMode,
 		options: _options,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		colorScheme,
 		fontAssetUrls,
+		themes,
+		initialTheme,
 	}: TLEditorOptions) {
 		super()
 
@@ -342,21 +388,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...options?.camera,
 		})
 
+		this.getContainer = getContainer
+
 		this._textOptions = atom('text options', options?.text ?? null)
 
-		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
+		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
 		this.disposables.add(() => this.user.dispose())
-
-		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
 		this.disposables.add(() => this.textMeasure.dispose())
 
-		this.fonts = new FontManager(this, fontAssetUrls)
+		this._themeManager = new ThemeManager(this, {
+			themes: resolveThemes(themes),
+			initial: initialTheme ?? 'default',
+		})
+		this.disposables.add(() => this._themeManager.dispose())
 
 		this._tickManager = new TickManager(this)
+		this.disposables.add(() => this._tickManager.dispose())
+		this.disposables.add(() => {
+			// Reset camera state to 'idle' so the store isn't left stuck at 'moving'
+			// when tick events stop (e.g. React strict mode disposes while camera is moving)
+			this.off('tick', this._decayCameraStateTimeout)
+			this._setCameraState('idle')
+		})
+
+		this.fonts = new FontManager(this, fontAssetUrls)
 
 		this.inputs = new InputsManager(this)
+		this.performance = new PerformanceManager(this)
+		this.disposables.add(() => this.performance.dispose())
+		this.collaborators = new CollaboratorsManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -394,6 +456,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.shapeUtils = _shapeUtils
 		this.styleProps = _styleProps
 
+		const _shapeUtilsByAssetType = {} as Record<string, ShapeUtil<any>>
+		for (const Util of allShapeUtils) {
+			const assetTypes = Util.handledAssetTypes
+			if (assetTypes) {
+				for (const assetType of assetTypes) {
+					_shapeUtilsByAssetType[assetType] = _shapeUtils[Util.type]
+				}
+			}
+		}
+		this._shapeUtilsByAssetType = _shapeUtilsByAssetType
+
 		const allBindingUtils = checkBindings(bindingUtils)
 		const _bindingUtils = {} as Record<string, BindingUtil<any>>
 		for (const Util of allBindingUtils) {
@@ -401,6 +474,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 			_bindingUtils[Util.type] = util
 		}
 		this.bindingUtils = _bindingUtils
+
+		// Asset utils
+		if (assetUtilConstructors) {
+			const allAssetUtils = checkAssets(assetUtilConstructors)
+			const _assetUtils = {} as Record<string, AssetUtil<any>>
+			for (const Util of allAssetUtils) {
+				const util = new Util(this)
+				_assetUtils[Util.type] = util
+			}
+			this.assetUtils = _assetUtils
+		}
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
@@ -413,6 +497,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.scribbles = new ScribbleManager(this)
+
+		// Overlay utils
+		this.overlays = new OverlayManager(this)
+		if (overlayUtilConstructors) {
+			for (const Util of overlayUtilConstructors) {
+				const util = new Util(this)
+				this.overlays.registerUtil(util)
+			}
+		}
 
 		// Cleanup
 
@@ -818,9 +911,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 				})
 			)
 		}
+
+		this.disposables.add(
+			react('sync current user record', () => {
+				const user = this.store.props.users.currentUser.get()
+				if (user) {
+					this._ensureUserRecord(user)
+				}
+			})
+		)
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
+
 	@computed
 	private getIsShapeHiddenCache() {
 		if (!this._getShapeVisibility) return null
@@ -926,6 +1029,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly snaps: SnapManager
 
+	/**
+	 * A manager for performance measurement hooks.
+	 *
+	 * @public
+	 */
+	readonly performance: PerformanceManager
+
+	/**
+	 * A manager for the spatial index, tracking where shapes exist on the canvas.
+	 *
+	 * @internal
+	 */
 	private readonly _spatialIndex: SpatialIndexManager
 
 	/**
@@ -937,11 +1052,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly timers = tltime.forContext(this.contextId)
 
 	/**
+	 * A manager for remote peer collaborators connected to this editor.
+	 *
+	 * @public
+	 */
+	readonly collaborators: CollaboratorsManager
+
+	/**
 	 * A manager for the user and their preferences.
 	 *
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
+
+	/**
+	 * A manager for the editor's themes.
+	 *
+	 * @internal
+	 */
+	private readonly _themeManager: ThemeManager
 
 	/**
 	 * A helper for measuring text.
@@ -963,6 +1092,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly scribbles: ScribbleManager
+
+	/**
+	 * A manager for canvas overlay UI elements (selection handles, shape handles, etc.).
+	 *
+	 * @public
+	 */
+	readonly overlays: OverlayManager
 
 	/**
 	 * A manager for side effects and correct state enforcement. See {@link @tldraw/store#StoreSideEffects} for details.
@@ -998,16 +1134,157 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getContainer: () => HTMLElement
 
 	/**
+	 * The document that the editor's container element belongs to.
+	 * Use this instead of the global `document` to support cross-window embedding.
+	 *
+	 * @internal
+	 */
+	getContainerDocument(): Document {
+		return this.getContainer().ownerDocument
+	}
+
+	/**
+	 * The window that the editor's container element belongs to.
+	 * Use this instead of the global `window` to support cross-window embedding.
+	 *
+	 * @internal
+	 */
+	getContainerWindow(): Window & typeof globalThis {
+		return getOwnerWindow(this.getContainer())
+	}
+
+	/**
 	 * Dispose the editor.
 	 *
 	 * @public
 	 */
 	dispose() {
+		// Stop any in-progress camera animations and following before
+		// running disposables, so their cleanup listeners fire first
+		this.stopCameraAnimation()
+		if (this.getInstanceState().followingUserId) {
+			this.stopFollowingUser()
+		}
+
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
+
+		// Clear any open menus for this editor's context
+		this.menus.clearOpenMenus()
+
 		this.store.dispose()
 		this.isDisposed = true
 		this.emit('dispose')
+	}
+
+	/* ------------------ Themes (shadowing the theme manager) ------------------ */
+
+	/**
+	 * Get the current color mode (`'light'` or `'dark'`), based on the user's dark mode preference.
+	 *
+	 * @public
+	 */
+	getColorMode(): 'light' | 'dark' {
+		return this._themeManager.getColorMode()
+	}
+
+	/**
+	 * Set the color mode. Note that this is a convenience method that passes the mode to
+	 * `user.updateUserPreferences`, which is the source of truth for the user's color mode preference.
+	 *
+	 * @public
+	 */
+	setColorMode(mode: 'light' | 'dark') {
+		this.user.updateUserPreferences({ colorScheme: mode })
+		return this
+	}
+
+	/**
+	 * Get the id of the current theme.
+	 *
+	 * @public
+	 */
+	getCurrentThemeId(): TLThemeId {
+		return this._themeManager.getCurrentThemeId()
+	}
+
+	/**
+	 * Get the current theme definition.
+	 *
+	 * @public
+	 */
+	getCurrentTheme(): TLTheme {
+		return this._themeManager.getCurrentTheme()
+	}
+
+	/**
+	 * Set the current theme by id.
+	 *
+	 * @public
+	 */
+	setCurrentTheme(id: TLThemeId) {
+		this._themeManager.setCurrentTheme(id)
+		return this
+	}
+
+	/**
+	 * Get all registered theme definitions.
+	 *
+	 * @public
+	 */
+	getThemes(): TLThemes {
+		return this._themeManager.getThemes()
+	}
+
+	/**
+	 * Get a single theme definition by id.
+	 *
+	 * @public
+	 */
+	getTheme(id: TLThemeId): TLTheme | undefined {
+		return this._themeManager.getTheme(id)
+	}
+
+	/**
+	 * Replace all theme definitions, or update them via a callback that receives a deep copy.
+	 * The `'default'` theme must always be present in the result.
+	 *
+	 * @example
+	 * ```ts
+	 * // Replace all themes
+	 * editor.updateThemes({ default: myDefaultTheme, ocean: myOceanTheme })
+	 *
+	 * // Update via callback
+	 * editor.updateThemes((themes) => {
+	 *   delete themes.ocean
+	 *   return themes
+	 * })
+	 * ```
+	 *
+	 * @public
+	 */
+	updateThemes(themes: TLThemes | ((themes: TLThemes) => TLThemes)) {
+		this._themeManager.updateThemes(themes)
+		return this
+	}
+
+	/**
+	 * Register or update a single theme definition. The theme is keyed by its `id` property.
+	 *
+	 * @example
+	 * ```ts
+	 * // Override a property on the default theme
+	 * editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 24 })
+	 *
+	 * // Register a new theme
+	 * editor.updateTheme({ id: 'ocean', ...myOceanTheme })
+	 * ```
+	 *
+	 * @public
+	 */
+	updateTheme(theme: TLTheme) {
+		this._themeManager.updateTheme(theme)
+		return this
 	}
 
 	/* ------------------- Shape Utils ------------------ */
@@ -1018,6 +1295,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	shapeUtils: { readonly [K in string]?: ShapeUtil<TLShape> }
+
+	/** @internal */
+	private _shapeUtilsByAssetType: { readonly [K in string]?: ShapeUtil<TLShape> } = {}
 
 	styleProps: { [key: string]: Map<StyleProp<any>, string> }
 
@@ -1061,6 +1341,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return hasOwnProperty(this.shapeUtils, type)
 	}
 
+	/**
+	 * Get the shape util that handles the given asset type.
+	 * Returns the shape util whose {@link ShapeUtil.handledAssetTypes} includes
+	 * the given asset type, or undefined if none matches.
+	 *
+	 * @param assetType - The asset type string.
+	 * @public
+	 */
+	getShapeUtilForAssetType(assetType: string): ShapeUtil | undefined {
+		return getOwnProperty(this._shapeUtilsByAssetType, assetType)
+	}
+
 	/* ------------------- Binding Utils ------------------ */
 	/**
 	 * A map of shape utility classes (TLShapeUtils) by shape type.
@@ -1096,6 +1388,56 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return bindingUtil
 	}
 
+	/* ------------------- Asset Utils ------------------ */
+
+	/**
+	 * A map of asset utility classes by asset type.
+	 *
+	 * @public
+	 */
+	assetUtils: { readonly [K in string]?: AssetUtil<TLAsset> } = {}
+
+	/**
+	 * Get an asset util from an asset or asset type.
+	 *
+	 * @param arg - An asset, asset type string, or object with type.
+	 *
+	 * @public
+	 */
+	getAssetUtil<S extends TLAsset>(asset: S | { type: S['type'] }): AssetUtil<S>
+	getAssetUtil(type: string): AssetUtil
+	getAssetUtil(arg: string | { type: string }) {
+		const type = typeof arg === 'string' ? arg : arg.type
+		const assetUtil = getOwnProperty(this.assetUtils, type)
+		assert(assetUtil, `No asset util found for type "${type}"`)
+		return assetUtil
+	}
+
+	/**
+	 * Returns true if the editor has an asset util for the given asset type.
+	 *
+	 * @public
+	 */
+	hasAssetUtil(arg: string | { type: string }): boolean {
+		const type = typeof arg === 'string' ? arg : arg.type
+		return hasOwnProperty(this.assetUtils, type)
+	}
+
+	/**
+	 * Get the asset util that accepts the given MIME type.
+	 * Returns null if no registered asset util accepts the MIME type.
+	 *
+	 * @public
+	 */
+	getAssetUtilForMimeType(mimeType: string): AssetUtil | null {
+		for (const util of Object.values(this.assetUtils)) {
+			if (util && util.acceptsMimeType(mimeType)) {
+				return util
+			}
+		}
+		return null
+	}
+
 	/* --------------------- History -------------------- */
 
 	/**
@@ -1119,6 +1461,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.undo()
+		this.performance._notifyUndoRedo('undo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
 
@@ -1149,6 +1492,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.redo()
+		this.performance._notifyUndoRedo('redo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
 
@@ -1600,11 +1944,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Set the cursor.
 	 *
+	 * No-op when the partial wouldn't change the current cursor — `setCursor`
+	 * is called from pointer-move hot paths (see `updateHoveredOverlayId`,
+	 * various tool states) and skipping redundant writes avoids needlessly
+	 * dirtying instance state.
+	 *
 	 * @param cursor - The cursor to set.
 	 * @public
 	 */
 	setCursor(cursor: Partial<TLCursor>) {
-		this.updateInstanceState({ cursor: { ...this.getInstanceState().cursor, ...cursor } })
+		const current = this.getInstanceState().cursor
+		if (
+			(cursor.type === undefined || cursor.type === current.type) &&
+			(cursor.rotation === undefined || cursor.rotation === current.rotation)
+		) {
+			return this
+		}
+		this.updateInstanceState({ cursor: { ...current, ...cursor } })
 		return this
 	}
 
@@ -2770,6 +3126,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCamera().z
 	}
 
+	/**
+	 * Get the scale factor used when creating or resizing shapes in dynamic size mode.
+	 *
+	 * @public
+	 */
+	@computed getResizeScaleFactor() {
+		return this.user.getIsDynamicResizeMode() ? 1 / this.getZoomLevel() : 1
+	}
+
 	private _debouncedZoomLevel = atom('debounced zoom level', 1)
 
 	/**
@@ -3763,13 +4128,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			screenBounds.height = Math.max(screenBounds.height, 1)
 		}
 
+		const doc = this.getContainerDocument()
 		const insets = [
 			// top
 			screenBounds.minY !== 0,
 			// right
-			!approximately(document.body.scrollWidth, screenBounds.maxX, 1),
+			!approximately(doc.body.scrollWidth, screenBounds.maxX, 1),
 			// bottom
-			!approximately(document.body.scrollHeight, screenBounds.maxY, 1),
+			!approximately(doc.body.scrollHeight, screenBounds.maxY, 1),
 			// left
 			screenBounds.minX !== 0,
 		]
@@ -3900,43 +4266,143 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	// Collaborators
 
-	@computed
-	private _getCollaboratorsQuery() {
-		return this.store.query.records('instance_presence', () => ({
-			userId: { neq: this.user.getId() },
-		}))
-	}
-
 	/**
 	 * Returns a list of presence records for all peer collaborators.
 	 * This will return the latest presence record for each connected user.
 	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getCollaborators}.
+	 *
 	 * @public
 	 */
-	@computed
 	getCollaborators() {
-		const allPresenceRecords = this._getCollaboratorsQuery().get()
-		if (!allPresenceRecords.length) return EMPTY_ARRAY
-		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
-		return userIds.map((id) => {
-			const latestPresence = maxBy(
-				allPresenceRecords.filter((c) => c.userId === id),
-				(p) => p.lastActivityTimestamp ?? 0
-			)
-			return latestPresence!
-		})
+		return this.collaborators.getCollaborators()
 	}
 
 	/**
 	 * Returns a list of presence records for all peer collaborators on the current page.
 	 * This will return the latest presence record for each connected user.
 	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getCollaboratorsOnCurrentPage}.
+	 *
 	 * @public
 	 */
-	@computed
 	getCollaboratorsOnCurrentPage() {
-		const currentPageId = this.getCurrentPageId()
-		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
+		return this.collaborators.getCollaboratorsOnCurrentPage()
+	}
+
+	/**
+	 * Returns a list of presence records for peer collaborators who should currently be
+	 * shown in the UI. Filters {@link Editor.getCollaborators} by activity state
+	 * (active / idle / inactive) and visibility rules such as following and highlighted
+	 * users. Re-evaluates on the collaborator visibility clock, so callers don't need to
+	 * drive their own activity timer.
+	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getVisibleCollaborators}.
+	 *
+	 * @public
+	 */
+	getVisibleCollaborators() {
+		return this.collaborators.getVisibleCollaborators()
+	}
+
+	/**
+	 * Returns a list of presence records for peer collaborators who should currently be
+	 * shown in the UI, filtered to those on the current page.
+	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getVisibleCollaboratorsOnCurrentPage}.
+	 *
+	 * @public
+	 */
+	getVisibleCollaboratorsOnCurrentPage() {
+		return this.collaborators.getVisibleCollaboratorsOnCurrentPage()
+	}
+
+	// Attribution
+
+	/**
+	 * Get the current user's ID for attribution purposes.
+	 * Also ensures a `user:` record exists in the store for the current user.
+	 * Returns `null` when the user store has no current user.
+	 *
+	 * @public
+	 */
+	getAttributionUserId(): string | null {
+		const user = this.store.props.users.currentUser.get()
+		if (!user) return null
+		this._ensureUserRecord(user)
+		return UserRecordType.parseId(user.id)
+	}
+
+	/**
+	 * Ensure a user record exists in the store for the given user,
+	 * updating it if the data has changed.
+	 *
+	 * @internal
+	 */
+	_ensureUserRecord(user: TLUser): void {
+		const existing = this.store.get(user.id)
+		if (
+			existing &&
+			existing.name === user.name &&
+			existing.color === user.color &&
+			existing.imageUrl === user.imageUrl &&
+			existing.meta === user.meta
+		) {
+			return
+		}
+		this.run(
+			() => {
+				this.store.put([user])
+			},
+			{ history: 'ignore' }
+		)
+	}
+
+	/**
+	 * Resolve a display name for a user ID. Asks the
+	 * {@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),
+	 * falling back to the `user:` record in the store.
+	 *
+	 * @public
+	 */
+	getAttributionDisplayName(userId: string | null): string | null {
+		if (!userId) return null
+		return (
+			this.store.props.users.resolve(userId).get()?.name ??
+			this.store.get(createUserId(userId))?.name ??
+			null
+		)
+	}
+
+	/**
+	 * Resolve a user record by ID. Asks the
+	 * {@link @tldraw/tlschema#TLUserStore} first (the app's source of truth),
+	 * falling back to the `user:` record in the store.
+	 *
+	 * @public
+	 */
+	getAttributionUser(userId: string | null): TLUser | null {
+		if (!userId) return null
+		return (
+			this.store.props.users.resolve(userId).get() ?? this.store.get(createUserId(userId)) ?? null
+		)
+	}
+
+	/**
+	 * Collect user IDs referenced by a set of shapes via shape-specific props
+	 * (e.g. `textFirstEditedBy` on notes).
+	 *
+	 * @internal
+	 */
+	_getReferencedUserIds(shapes: TLShape[]): Set<string> {
+		const userIds = new Set<string>()
+		for (const shape of shapes) {
+			const util = this.getShapeUtil(shape)
+			for (const id of util.getReferencedUserIds(shape)) {
+				userIds.add(id)
+			}
+		}
+		return userIds
 	}
 
 	// Following
@@ -4702,7 +5168,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
 		const steppedScreenScale = zoomStepFunction(screenScale)
 		const networkEffectiveType: string | null =
-			'connection' in navigator ? (navigator as any).connection.effectiveType : null
+			'connection' in navigator ? ((navigator as any).connection?.effectiveType ?? null) : null
 
 		return await this.store.props.assets.resolve(asset, {
 			screenScale: screenScale || 1,
@@ -5293,8 +5759,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
-			// Frames have labels positioned above the shape (outside bounds), so always include them
-			if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+			// Frame-like shapes have labels positioned above the shape (outside bounds), so always include them
+			if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) return false
 
 			if (
 				(shape.isLocked && !hitLocked) ||
@@ -5316,12 +5782,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const pointInShapeSpace = this.getPointInShapeSpace(shape, point)
 
 			// Check labels first
+			const shapeUtil = this.getShapeUtil(shape)
+			const isShapeFrameLike = this.isShapeFrameLike(shape)
 			if (
-				this.isShapeOfType(shape, 'frame') ||
+				isShapeFrameLike ||
 				((this.isShapeOfType(shape, 'note') ||
 					this.isShapeOfType(shape, 'arrow') ||
 					(this.isShapeOfType(shape, 'geo') && shape.props.fill === 'none')) &&
-					this.getShapeUtil(shape).getText(shape)?.trim())
+					shapeUtil.getText(shape)?.trim())
 			) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
@@ -5330,8 +5798,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			if (this.isShapeOfType(shape, 'frame')) {
-				// On the rare case that we've hit a frame (not its label), test again hitInside to be forced true;
+			if (isShapeFrameLike) {
+				// On the rare case that we've hit a frame-like shape (not its label), test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
 				// If the hit is within the frame's outer margin, then select the frame
@@ -5402,6 +5870,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Are we close to the shape's edge?
 				if (distance <= outerMargin || (hitInside && distance <= 0 && distance > -innerMargin)) {
 					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
+						// If the geometry rejects this hit (e.g. transparent image pixel),
+						// skip this shape and check shapes behind it.
+						if (geometry.ignoreHit(pointInShapeSpace)) {
+							continue
+						}
 						// If the shape is filled, then it's a hit. Remember, we're
 						// starting from the TOP-MOST shape in z-index order, so any
 						// other hits would be occluded by the shape.
@@ -5485,11 +5958,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, margin)
 
 		// Get all page shapes in z-index order and filter to candidates that pass isPointInShape
-		// Frames are always checked because their labels can be outside their bounds
+		// Frame-like shapes are always checked because their labels can be outside their bounds
 		return this.getCurrentPageShapesSorted()
 			.filter((shape) => {
 				if (this.isShapeHidden(shape)) return false
-				if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+				if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) return false
 				return this.isPointInShape(shape, point, opts)
 			})
 			.reverse()
@@ -5662,6 +6135,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
 		if (!shape) return false
 		return shape.type === type
+	}
+
+	/**
+	 * Get whether a shape behaves like a frame — a container that has child
+	 * shapes, requires full-brush selection, blocks erasure from inside, etc.
+	 *
+	 * @example
+	 * ```ts
+	 * const isFrameLike = editor.isShapeFrameLike(someShape)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to test.
+	 *
+	 * @public
+	 */
+	isShapeFrameLike(shape: TLShape | TLShapeId): boolean {
+		const _shape = typeof shape === 'string' ? this.getShape(shape) : shape
+		if (!_shape) return false
+		return this.getShapeUtil(_shape).isFrameLike(_shape)
 	}
 
 	/**
@@ -6766,6 +7258,77 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Shared clustering logic for layout methods. Resolves shapes, optionally filters to
+	 * axis-aligned shapes, checks canBeLaidOut, and groups shapes into clusters via arrow bindings.
+	 *
+	 * @internal
+	 */
+	private getShapeClusters(
+		shapes: TLShapeId[] | TLShape[],
+		type: TLShapeUtilCanBeLaidOutOpts['type'],
+		opts?: { filterAxisAligned?: boolean }
+	): { clusters: { shapes: TLShape[]; pageBounds: Box }[]; allBounds: Box[] } {
+		const ids =
+			typeof shapes[0] === 'string'
+				? (shapes as TLShapeId[])
+				: (shapes as TLShape[]).map((s) => s.id)
+
+		// always fresh shapes
+		let freshShapes = compact(ids.map((id) => this.getShape(id)))
+
+		// optionally filter to axis-aligned shapes (rotation is a multiple of 90 degrees)
+		if (opts?.filterAxisAligned) {
+			freshShapes = freshShapes.filter(
+				(s) => this.getShapePageTransform(s)?.rotation() % (PI / 2) === 0
+			)
+		}
+
+		const clusters: { shapes: TLShape[]; pageBounds: Box }[] = []
+		const allBounds: Box[] = []
+		const visited = new Set<TLShapeId>()
+
+		for (const shape of freshShapes) {
+			if (visited.has(shape.id)) continue
+			visited.add(shape.id)
+
+			const shapePageBounds = this.getShapePageBounds(shape)
+			if (!shapePageBounds) continue
+
+			if (
+				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
+					type,
+					shapes: freshShapes,
+				})
+			) {
+				continue
+			}
+
+			const shapesMovingTogether = [shape]
+			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
+
+			this.collectShapesViaArrowBindings({
+				bindings: this.getBindingsToShape(shape.id, 'arrow'),
+				initialShapes: freshShapes,
+				resultShapes: shapesMovingTogether,
+				resultBounds: boundsOfShapesMovingTogether,
+				visited,
+			})
+
+			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
+			if (!commonPageBounds) continue
+
+			clusters.push({
+				shapes: shapesMovingTogether,
+				pageBounds: commonPageBounds,
+			})
+
+			allBounds.push(commonPageBounds)
+		}
+
+		return { clusters, allBounds }
+	}
+
+	/**
 	 * @internal
 	 */
 	private collectShapesViaArrowBindings(info: {
@@ -6910,61 +7473,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		gap?: number
 	): this {
 		const _gap = gap ?? this.options.adjacentShapeMargin
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
 		if (this.getIsReadonly()) return this
 
 		// todo: this has a lot of extra code to handle stacking with custom gaps or auto gaps or other things like that. I don't think anyone has ever used this stuff.
 
-		// always fresh shapes
-		const shapesToStackFirstPass = compact(ids.map((id) => this.getShape(id)))
-
-		const shapeClustersToStack: {
-			shapes: TLShape[]
-			pageBounds: Box
-		}[] = []
-		const allBounds: Box[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of shapesToStackFirstPass) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type: 'stack',
-					shapes: shapesToStackFirstPass,
-				})
-			) {
-				continue
-			}
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
-				initialShapes: shapesToStackFirstPass,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			shapeClustersToStack.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-			})
-
-			allBounds.push(commonPageBounds)
-		}
+		const { clusters: shapeClustersToStack } = this.getShapeClusters(shapes, 'stack')
 
 		const len = shapeClustersToStack.length
 		if ((_gap === 0 && len < 3) || len < 2) return this
@@ -7080,61 +7593,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const gap = _gap ?? this.options.adjacentShapeMargin
 
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const { clusters, allBounds } = this.getShapeClusters(shapes, 'pack')
 
-		// Always fresh shapes
-		const shapesToPackFirstPass = compact(ids.map((id) => this.getShape(id)))
-
-		const shapeClustersToPack: {
-			shapes: TLShape[]
-			pageBounds: Box
-			nextPageBounds: Box
-		}[] = []
-
-		const allBounds: Box[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of shapesToPackFirstPass) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type: 'pack',
-					shapes: shapesToPackFirstPass,
-				})
-			) {
-				continue
-			}
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
-				initialShapes: shapesToPackFirstPass,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			shapeClustersToPack.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-				nextPageBounds: commonPageBounds.clone(),
-			})
-
-			allBounds.push(commonPageBounds)
-		}
+		const shapeClustersToPack = clusters.map((cluster) => ({
+			...cluster,
+			nextPageBounds: cluster.pageBounds.clone(),
+		}))
 
 		if (shapeClustersToPack.length < 2) return this
 
@@ -7256,63 +7720,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	): this {
 		if (this.getIsReadonly()) return this
 
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
-
-		// Always get fresh shapes
-		const shapesToAlignFirstPass = compact(ids.map((id) => this.getShape(id)))
-
-		const shapeClustersToAlign: {
-			shapes: TLShape[]
-			pageBounds: Box
-		}[] = []
-		const allBounds: Box[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of shapesToAlignFirstPass) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type: 'align',
-					shapes: shapesToAlignFirstPass,
-				})
-			) {
-				continue
-			}
-
-			// In this implementation, we want to create psuedo-groups out of shapes that
-			// are moving together. At the moment shapes only move together if they're connected
-			// by arrows. So let's say A -> B -> C -> D and A, B, and C are selected. If we're
-			// aligning A, B, and C, then we want these to move together as one unit.
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
-				initialShapes: shapesToAlignFirstPass,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			shapeClustersToAlign.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-			})
-
-			allBounds.push(commonPageBounds)
-		}
+		const { clusters: shapeClustersToAlign, allBounds } = this.getShapeClusters(shapes, 'align')
 
 		if (shapeClustersToAlign.length < 2) return this
 
@@ -7387,59 +7795,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	distributeShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
 		if (this.getIsReadonly()) return this
 
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
-
-		// always fresh shapes
-		const shapesToDistributeFirstPass = compact(ids.map((id) => this.getShape(id)))
-
-		const shapeClustersToDistribute: {
-			shapes: TLShape[]
-			pageBounds: Box
-		}[] = []
-
-		const allBounds: Box[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of shapesToDistributeFirstPass) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type: 'distribute',
-					shapes: shapesToDistributeFirstPass,
-				})
-			) {
-				continue
-			}
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
-				initialShapes: shapesToDistributeFirstPass,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			shapeClustersToDistribute.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-			})
-
-			allBounds.push(commonPageBounds)
-		}
+		const { clusters: shapeClustersToDistribute } = this.getShapeClusters(shapes, 'distribute')
 
 		if (shapeClustersToDistribute.length < 3) return this
 
@@ -7467,6 +7823,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If the first shape group is also the last shape group, distribute without it
 		if (first === last) {
 			const excludedShapeIds = new Set(first.shapes.map((s) => s.id))
+			const ids =
+				typeof shapes[0] === 'string'
+					? (shapes as TLShapeId[])
+					: (shapes as TLShape[]).map((s) => s.id)
 			return this.distributeShapes(
 				ids.filter((id) => !excludedShapeIds.has(id)),
 				operation
@@ -7536,62 +7896,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stretchShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
-
 		if (this.getIsReadonly()) return this
 
-		// always fresh shapes, skip anything that isn't rotated 90 deg
-		const shapesToStretchFirstPass = compact(ids.map((id) => this.getShape(id))).filter(
-			(s) => this.getShapePageTransform(s)?.rotation() % (PI / 2) === 0
+		const { clusters: shapeClustersToStretch, allBounds } = this.getShapeClusters(
+			shapes,
+			'stretch',
+			{ filterAxisAligned: true }
 		)
-
-		const shapeClustersToStretch: {
-			shapes: TLShape[]
-			pageBounds: Box
-		}[] = []
-
-		const allBounds: Box[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of shapesToStretchFirstPass) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type: 'stretch',
-				})
-			) {
-				continue
-			}
-
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsToShape(shape.id, 'arrow'),
-				initialShapes: shapesToStretchFirstPass,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			shapeClustersToStretch.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-			})
-
-			allBounds.push(commonPageBounds)
-		}
 
 		if (shapeClustersToStretch.length < 2) return this
 
@@ -7625,7 +7936,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// First translate
 					const shapeLocalOffset = localOffset.clone()
 					const parentTransform = this.getShapeParentTransform(shape)
-					if (parentTransform) localOffset.rot(-parentTransform.rotation())
+					if (parentTransform) shapeLocalOffset.rot(-parentTransform.rotation())
 					shapeLocalOffset.add(shape)
 					const changes = this.getChangesToTranslateShape(shape, shapeLocalOffset)
 					this.updateShape(changes)
@@ -7639,6 +7950,77 @@ export class Editor extends EventEmitter<TLEventMap> {
 					})
 				}
 			})
+		})
+
+		return this
+	}
+
+	/**
+	 * Resize and reposition a set of shapes so that their combined page bounds matches the given
+	 * target bounds.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.resizeToBounds([box1, box2], { x: 0, y: 0, w: 500, h: 500 })
+	 * editor.resizeToBounds(editor.getSelectedShapeIds(), new Box(0, 0, 500, 500))
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to resize.
+	 * @param bounds - The target bounding box.
+	 *
+	 * @public
+	 */
+	resizeToBounds(shapes: TLShapeId[] | TLShape[], bounds: BoxLike): this {
+		if (this.getIsReadonly()) return this
+
+		const targetBounds = Box.From(bounds)
+
+		const { clusters: shapeClusters, allBounds } = this.getShapeClusters(
+			shapes,
+			'resize_to_bounds',
+			{ filterAxisAligned: true }
+		)
+
+		if (shapeClusters.length === 0) return this
+
+		const commonBounds = Box.Common(allBounds)
+		if (!commonBounds) return this
+		if (commonBounds.width === 0 || commonBounds.height === 0) return this
+
+		const scaleX = targetBounds.width / commonBounds.width
+		const scaleY = targetBounds.height / commonBounds.height
+		const scale = new Vec(scaleX, scaleY)
+
+		shapeClusters.forEach(({ shapes, pageBounds }) => {
+			const localOffset = new Vec(
+				targetBounds.minX -
+					commonBounds.minX +
+					(pageBounds.minX - commonBounds.minX) * (scaleX - 1),
+				targetBounds.minY - commonBounds.minY + (pageBounds.minY - commonBounds.minY) * (scaleY - 1)
+			)
+
+			const scaleOrigin = new Vec(
+				targetBounds.minX + (pageBounds.minX - commonBounds.minX) * scaleX,
+				targetBounds.minY + (pageBounds.minY - commonBounds.minY) * scaleY
+			)
+
+			for (const shape of shapes) {
+				// First translate
+				const shapeLocalOffset = localOffset.clone()
+				const parentTransform = this.getShapeParentTransform(shape)
+				if (parentTransform) shapeLocalOffset.rot(-parentTransform.rotation())
+				shapeLocalOffset.add(shape)
+				const changes = this.getChangesToTranslateShape(shape, shapeLocalOffset)
+				this.updateShape(changes)
+
+				// Then resize
+				this.resizeShape(shape.id, scale, {
+					initialBounds: this.getShapeGeometry(shape).bounds,
+					scaleOrigin,
+					isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
+					scaleAxisRotation: 0,
+				})
+			}
 		})
 
 		return this
@@ -9143,6 +9525,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
@@ -9228,12 +9611,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 				assets.push(asset)
 			}
 
+			const users: TLUser[] = []
+			const seenUserIds = new Set<TLUserId>()
+			for (const userId of this._getReferencedUserIds(shapes)) {
+				const recordId = createUserId(userId)
+				if (seenUserIds.has(recordId)) continue
+				seenUserIds.add(recordId)
+				const user = this.store.get(recordId)
+				if (user) users.push(user)
+			}
+
 			return {
 				schema: this.store.schema.serialize(),
 				shapes,
 				rootShapeIds,
 				bindings,
 				assets,
+				users,
 			}
 		})
 	}
@@ -9309,6 +9703,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const assets: TLAsset[] = []
 		const shapes: TLShape[] = []
 		const bindings: TLBinding[] = []
+		const users: TLUser[] = []
 
 		// Let's treat the content as a store, and then migrate that store.
 		const store: StoreSnapshot<TLRecord> = {
@@ -9318,6 +9713,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				...Object.fromEntries(
 					content.bindings?.map((bindings) => [bindings.id, bindings] as const) ?? []
 				),
+				...Object.fromEntries(content.users?.map((user) => [user.id, user] as const) ?? []),
 			},
 			schema: content.schema,
 		}
@@ -9339,6 +9735,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 					bindings.push(record)
 					break
 				}
+				case 'user': {
+					users.push(record)
+					break
+				}
+			}
+		}
+
+		if (users.length > 0) {
+			const existingUserIds = new Set(
+				this.store
+					.allRecords()
+					.filter((r): r is TLUser => r.typeName === 'user')
+					.map((r) => r.id)
+			)
+			const usersToCreate = users.filter((u) => !existingUserIds.has(u.id))
+			if (usersToCreate.length > 0) {
+				this.store.put(usersToCreate)
 			}
 		}
 
@@ -9354,46 +9767,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: bindings.map((binding) => [binding.id, createBindingId()])
 		)
 
-		// By default, the paste parent will be the current page.
-		let pasteParentId = this.getCurrentPageId() as TLPageId | TLShapeId
-		let lowestDepth = Infinity
-		let lowestAncestors: TLShape[] = []
+		let pasteParentId: TLPageId | TLShapeId = currentPageId
 
-		// Among the selected shapes, find the shape with the fewest ancestors and use its first ancestor.
-		for (const shape of this.getSelectedShapes()) {
-			if (lowestDepth === 0) break
-
-			const isFrame = this.isShapeOfType(shape, 'frame')
-			const ancestors = this.getShapeAncestors(shape)
-			if (isFrame) ancestors.push(shape)
-
-			const depth = isFrame ? ancestors.length + 1 : ancestors.length
-
-			if (depth < lowestDepth) {
-				lowestDepth = depth
-				lowestAncestors = ancestors
-				pasteParentId = isFrame ? shape.id : shape.parentId
-			} else if (depth === lowestDepth) {
-				if (lowestAncestors.length !== ancestors.length) {
-					throw Error(`Ancestors: ${lowestAncestors.length} !== ${ancestors.length}`)
-				}
-
-				if (lowestAncestors.length === 0) {
-					pasteParentId = currentPageId
-					break
-				} else {
-					pasteParentId = currentPageId
-					for (let i = 0; i < lowestAncestors.length; i++) {
-						if (ancestors[i] !== lowestAncestors[i]) break
-						pasteParentId = ancestors[i].id
-					}
-				}
-			}
-		}
+		const shapesById = new Map(shapes.map((s) => [s.id, s]))
+		const rootShapesFromContent = compact(rootShapeIds.map((id) => shapesById.get(id)))
 
 		if (point) {
-			const shapesById = new Map<TLShapeId, TLShape>(shapes.map((shape) => [shape.id, shape]))
-			const rootShapesFromContent = compact(rootShapeIds.map((id) => shapesById.get(id)))
+			// PASTE AT CURSOR: find the deepest accepts-children shape under the cursor
 			if (rootShapesFromContent.length > 0) {
 				const targetParent = this.getShapeAtPoint(point, {
 					hitInside: true,
@@ -9401,51 +9781,72 @@ export class Editor extends EventEmitter<TLEventMap> {
 					hitLocked: true,
 					filter: (shape) => {
 						const util = this.getShapeUtil(shape)
-						if (!util.canReceiveNewChildrenOfType) return false
 						return rootShapesFromContent.every((rootShape) =>
-							util.canReceiveNewChildrenOfType!(shape, rootShape.type)
+							util.canReceiveNewChildrenOfType?.(shape, rootShape.type)
 						)
 					},
 				})
-
-				// When pasting at a specific point (e.g. paste-at-cursor) prefer the
-				// parent under the pointer so that we don't keep using the original
-				// selection's parent (which can keep shapes clipped inside frames).
-				pasteParentId = targetParent ? targetParent.id : currentPageId
+				pasteParentId = targetParent?.id ?? currentPageId
 			}
-		}
+		} else if (!preservePosition) {
+			// STANDARD PASTE: check if a selected shape (or its ancestor) accepts children
+			const selectedShapes = this.getSelectedShapes()
+			let selectedParent: TLShape | null = null
 
-		let isDuplicating = false
+			const canAcceptAll = (candidate: TLShape) => {
+				const util = this.getShapeUtil(candidate)
+				return rootShapesFromContent.every((rs) =>
+					util.canReceiveNewChildrenOfType?.(candidate, rs.type)
+				)
+			}
 
-		if (!isPageId(pasteParentId)) {
-			const parent = this.getShape(pasteParentId)
-			if (parent) {
-				if (!this.getViewportPageBounds().includes(this.getShapePageBounds(parent)!)) {
-					pasteParentId = currentPageId
-				} else {
-					if (rootShapeIds.length === 1) {
-						const rootShape = shapes.find((s) => s.id === rootShapeIds[0])!
-						if (
-							this.isShapeOfType(parent, 'frame') &&
-							this.isShapeOfType(rootShape, 'frame') &&
-							rootShape.props.w === parent?.props.w &&
-							rootShape.props.h === parent?.props.h
-						) {
-							isDuplicating = true
+			for (const shape of selectedShapes) {
+				// Find the nearest container: the shape itself if it can accept,
+				// an accepting ancestor, or fall back to the shape's parent
+				// (handles groups and other non-frame containers)
+				const candidate = canAcceptAll(shape)
+					? shape
+					: (this.findShapeAncestor(shape, canAcceptAll) ??
+						(isShapeId(shape.parentId) ? this.getShape(shape.parentId)! : null))
+
+				if (!candidate) {
+					selectedParent = null
+					break
+				}
+				if (!selectedParent) {
+					selectedParent = candidate
+				} else if (selectedParent.id !== candidate.id) {
+					// Different candidates — find the deepest common accepting ancestor
+					const spAncestors = this.getShapeAncestors(selectedParent)
+					if (canAcceptAll(selectedParent)) spAncestors.push(selectedParent)
+					const acceptingAncestors = spAncestors.filter(canAcceptAll)
+
+					const candidateAncestorIds = new Set([
+						candidate.id,
+						...this.getShapeAncestors(candidate).map((a) => a.id),
+					])
+
+					let common: TLShape | null = null
+					for (let i = acceptingAncestors.length - 1; i >= 0; i--) {
+						if (candidateAncestorIds.has(acceptingAncestors[i].id)) {
+							common = acceptingAncestors[i]
+							break
 						}
 					}
+
+					selectedParent = common
+					if (!selectedParent) break
 				}
-			} else {
-				pasteParentId = currentPageId
 			}
-		}
 
-		if (!isDuplicating) {
-			isDuplicating = shapeIdMap.has(pasteParentId)
-		}
+			// Don't paste a shape into itself (the duplicating-a-frame case)
+			if (selectedParent && shapeIdMap.has(selectedParent.id)) {
+				selectedParent = null
+			}
 
-		if (isDuplicating) {
-			pasteParentId = this.getShape(pasteParentId)!.parentId
+			if (selectedParent) {
+				pasteParentId = selectedParent.id
+			}
 		}
 
 		let index = this.getHighestIndexForParent(pasteParentId) // todo: requires that the putting page is the current page
@@ -9553,20 +9954,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 
 		this.run(() => {
-			// Create any assets that need to be created
-			if (assetsToCreate.length > 0) {
-				this.createAssets(assetsToCreate)
-			}
-
-			// Create the shapes with root shapes as children of the page
+			if (assetsToCreate.length > 0) this.createAssets(assetsToCreate)
 			this.createShapes(newShapes)
 			this.createBindings(newBindings)
+			if (select) this.select(...rootShapes.map((s) => s.id))
 
-			if (select) {
-				this.select(...rootShapes.map((s) => s.id))
-			}
-
-			// And then, if needed, reparent the root shapes to the paste parent
+			// Reparent root shapes to paste parent if not page
 			if (pasteParentId !== currentPageId) {
 				this.reparentShapes(
 					rootShapes.map((s) => s.id),
@@ -9574,63 +9967,92 @@ export class Editor extends EventEmitter<TLEventMap> {
 				)
 			}
 
-			const newCreatedShapes = newShapes.map((s) => this.getShape(s.id)!)
-			const bounds = Box.Common(newCreatedShapes.map((s) => this.getShapePageBounds(s)!))
+			// --- POSITIONING ---
+			const rootBounds = Box.Common(compact(rootShapes.map((s) => this.getShapePageBounds(s.id))))
 
 			if (point === undefined) {
 				if (!isPageId(pasteParentId)) {
-					// Put the shapes in the middle of the (on screen) parent
+					// Paste into selected parent → center in that shape
 					const shape = this.getShape(pasteParentId)!
 					point = Mat.applyToPoint(
 						this.getShapePageTransform(shape),
 						this.getShapeGeometry(shape).bounds.center
 					)
+				} else if (preservePosition) {
+					// preservePosition (page duplication) → keep original coords
+					point = rootBounds.center
 				} else {
+					// Standard paste to page: check viewport overlap
 					const viewportPageBounds = this.getViewportPageBounds()
-					if (preservePosition || viewportPageBounds.includes(Box.From(bounds))) {
-						// Otherwise, put shapes where they used to be
-						point = bounds.center
-					} else {
-						// If the old bounds are outside of the viewport...
-						// put the shapes in the middle of the viewport
-						point = viewportPageBounds.center
-					}
+					const anyOverlap = rootShapes.some((s) => {
+						const b = this.getShapePageBounds(s.id)
+						return b && viewportPageBounds.collides(b)
+					})
+					point = anyOverlap ? rootBounds.center : viewportPageBounds.center
 				}
 			}
 
-			if (rootShapes.length === 1) {
-				const onlyRoot = rootShapes[0] as TLFrameShape
-				// If the old bounds are in the viewport...
-				// todo: replace frame references with shapes that can accept children
-				if (this.isShapeOfType(onlyRoot, 'frame')) {
-					while (
-						this.getShapesAtPoint(point).some(
-							(shape) =>
-								this.isShapeOfType(shape, 'frame') &&
-								shape.props.w === onlyRoot.props.w &&
-								shape.props.h === onlyRoot.props.h
-						)
-					) {
-						point.x += bounds.w + 16
-					}
-				}
-			}
-
+			// Apply offset to move shapes to target point
 			const pageCenter = Box.Common(
 				compact(rootShapes.map(({ id }) => this.getShapePageBounds(id)))
 			).center
-
 			const offset = Vec.Sub(point, pageCenter)
 
-			this.updateShapes(
-				rootShapes.map(({ id }) => {
-					const s = this.getShape(id)!
-					const localRotation = this.getShapeParentTransform(id).decompose().rotation
-					const localDelta = Vec.Rot(offset, -localRotation)
+			if (offset.x !== 0 || offset.y !== 0) {
+				this.updateShapes(
+					rootShapes.map(({ id }) => {
+						const s = this.getShape(id)!
+						const localRotation = this.getShapeParentTransform(id).decompose().rotation
+						const localDelta = Vec.Rot(offset, -localRotation)
+						return { id: s.id, type: s.type, x: s.x + localDelta.x, y: s.y + localDelta.y }
+					})
+				)
+			}
 
-					return { id: s.id, type: s.type, x: s.x + localDelta.x, y: s.y + localDelta.y }
+			// Auto-reparent into frames when pasted to page level
+			if (isPageId(pasteParentId)) {
+				const currentRootShapes = compact(rootShapes.map((s) => this.getShape(s.id)))
+				// Don't reparent into source shapes (prevents a duplicate frame
+				// from being swallowed by its original), and require the shape's
+				// center to be inside the parent (filters out edge-only overlaps)
+				const { reparenting } = getDroppedShapesToNewParents(
+					this,
+					currentRootShapes,
+					(shape, parent) => {
+						if (shapeIdMap.has(parent.id)) return false
+						const shapeBounds = this.getShapePageBounds(shape)
+						const parentBounds = this.getShapePageBounds(parent)
+						if (!shapeBounds || !parentBounds) return false
+						return parentBounds.containsPoint(shapeBounds.center)
+					}
+				)
+				reparenting.forEach((childrenToReparent, newParentId) => {
+					if (childrenToReparent.length === 0) return
+					this.reparentShapes(
+						childrenToReparent.map((s) => s.id),
+						newParentId
+					)
 				})
-			)
+			}
+
+			// Kick out any pasted root shapes that ended up outside their parent container
+			const newShapeIdSet = new Set(newShapes.map((s) => s.id))
+			const shapesToKickout = rootShapes
+				.map((s) => s.id)
+				.filter((id) => {
+					const shape = this.getShape(id)
+					if (!shape) return false
+					// Only check shapes that are children of a shape (not page)
+					if (isPageId(shape.parentId)) return false
+					// Don't check containers with pasted children (preserves intentional
+					// parent-child relationships from the copied content)
+					const children = this.getSortedChildIdsForParent(id)
+					return !children.some((childId) => newShapeIdSet.has(childId))
+				})
+
+			if (shapesToKickout.length > 0) {
+				kickoutOccludedShapes(this, shapesToKickout)
+			}
 		})
 
 		return this
@@ -9678,6 +10100,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			svg: serializer.serializeToString(result.svg),
 			width: result.width,
 			height: result.height,
+			trimPadding: result.trimPadding,
 		}
 	}
 
@@ -9701,30 +10124,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!result) throw new Error('Could not create SVG')
 
 		switch (withDefaults.format) {
-			case 'svg':
-				return {
-					blob: new Blob([result.svg], { type: 'image/svg+xml' }),
-					width: result.width,
-					height: result.height,
+			case 'svg': {
+				let svg = result.svg
+				let w = result.width
+				let h = result.height
+				if (result.trimPadding > 0) {
+					const trimmed = await trimSvgToContent(svg, {
+						width: w,
+						height: h,
+						trimPadding: result.trimPadding,
+						scale: withDefaults.scale,
+					})
+					if (trimmed) {
+						svg = trimmed.svg
+						w = trimmed.width
+						h = trimmed.height
+					}
 				}
+				return {
+					blob: new Blob([svg], { type: 'image/svg+xml' }),
+					width: w,
+					height: h,
+				}
+			}
 			case 'jpeg':
 			case 'png':
 			case 'webp': {
-				const blob = await getSvgAsImage(result.svg, {
+				const imageResult = await getSvgAsImageWithOptions(result.svg, {
 					type: withDefaults.format,
 					quality: withDefaults.quality,
 					pixelRatio: withDefaults.pixelRatio,
 					width: result.width,
 					height: result.height,
+					trimPadding: result.trimPadding,
+					scale: withDefaults.scale,
 				})
-				if (!blob) {
+				if (!imageResult) {
 					throw new Error('Could not construct image.')
 				}
-				return {
-					blob,
-					width: result.width,
-					height: result.height,
-				}
+				return imageResult
 			}
 			default: {
 				exhaustiveSwitchError(withDefaults.format)
@@ -10163,7 +10601,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					to: opts?.getTarget?.(this),
 				})
 
-				window.history.replaceState({}, document.title, url.toString())
+				window.history.replaceState({}, this.getContainerDocument().title, url.toString())
 			})
 
 		const scheduleEffect = debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500)
@@ -10504,6 +10942,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							{ immediate: true }
 						)
 
+						this.performance._notifyCameraOperation('zooming')
 						this.emit('event', info)
 						return // Stop here!
 					}
@@ -10596,6 +11035,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Zooming')
+							this.performance._notifyCameraOperation('zooming')
 							this.root.handleEvent(info)
 							this.emit('event', info)
 							return
@@ -10606,6 +11046,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							this.performance._notifyCameraOperation('panning')
 							this.root.handleEvent(info)
 							this.emit('event', info)
 							return
@@ -10672,6 +11113,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 							this.inputs.setIsPanning(true)
 							clearTimeout(this._longPressTimeout)
+						} else if (info.button === RIGHT_MOUSE_BUTTON && this.options.rightClickPanning) {
+							this.inputs.setIsRightPointing(true)
+							clearTimeout(this._longPressTimeout)
+							return this
 						}
 
 						// We might be panning because we did a middle mouse click, or because we're holding spacebar and started a regular click
@@ -10690,9 +11135,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
+						// Right-click pointing: waiting to see if this becomes a drag
+						if (this.inputs.getIsRightPointing() && !this.inputs.getIsPanning()) {
+							const currentScreenPoint = this.inputs.getCurrentScreenPoint()
+							const originScreenPoint = this.inputs.getOriginScreenPoint()
+							if (
+								Vec.Dist2(originScreenPoint, currentScreenPoint) > this.options.dragDistanceSquared
+							) {
+								// Passed the drag threshold—transition to panning
+								this._prevCursor = this.getInstanceState().cursor.type
+								this.inputs.setIsPanning(true)
+								this.setCursor({ type: 'grabbing', rotation: 0 })
+								this.stopCameraAnimation()
+								// Apply the initial delta from the pointer down origin
+								const offset = Vec.Sub(currentScreenPoint, originScreenPoint)
+								this.setCamera(new Vec(cx + offset.x / cz, cy + offset.y / cz, cz), {
+									immediate: true,
+								})
+								this.maybeTrackPerformance('Panning')
+							}
+							return
+						}
+
 						// If we've started panning, then clear any long press timeout
 						if (this.inputs.getIsPanning() && this.inputs.getIsPointing()) {
-							// Handle spacebar / middle mouse button panning
+							// Handle spacebar / middle mouse button / right-click panning
 							const currentScreenPoint = this.inputs.getCurrentScreenPoint()
 							const previousScreenPoint = this.inputs.getPreviousScreenPoint()
 							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
@@ -10700,6 +11167,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							this.performance._notifyCameraOperation('panning')
 							return
 						}
 
@@ -10724,12 +11192,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.setIsDragging(false)
 						inputs.setIsPointing(false)
 						clearTimeout(this._longPressTimeout)
-
 						// Remove the button from the buttons set
 						inputs.buttons.delete(info.button)
 
 						// If we're in pen mode and we're not using a pen, stop here
 						if (instanceState.isPenMode && !isPen) return
+
+						// Right-click pointing ended without dragging—this is a static
+						// right-click, so let it through to the state chart as right_click.
+						// Check isPanning first: if we transitioned to panning, isRightPointing
+						// is still true but we want the panning cleanup path instead.
+						if (this.inputs.getIsRightPointing() && !this.inputs.getIsPanning()) {
+							this.inputs.setIsRightPointing(false)
+							this._selectedShapeIdsAtPointerDown = []
+							break // fall through to state chart dispatch as right_click
+						}
+
+						this.inputs.setIsRightPointing(false)
 
 						// Firefox bug fix...
 						// If it's the same pointer that we stored earlier...
@@ -10753,11 +11232,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 									break
 								}
 								case MIDDLE_MOUSE_BUTTON: {
-									if (this.inputs.keys.has(' ')) {
+									if (this.inputs.keys.has('Space')) {
 										this.setCursor({ type: 'grab', rotation: 0 })
 									} else {
 										this.setCursor({ type: this._prevCursor, rotation: 0 })
 									}
+									break
+								}
+								case RIGHT_MOUSE_BUTTON: {
+									if (this.inputs.keys.has('Space')) {
+										this.setCursor({ type: 'grab', rotation: 0 })
+									} else {
+										this.setCursor({ type: this._prevCursor, rotation: 0 })
+									}
+									// Don't pass right-click panning events to the state chart
+									// as it causes unintended shape selection on release
+									if (slideSpeed > 0) {
+										this.slideCamera({ speed: slideSpeed, direction: slideDirection })
+									}
+									this._selectedShapeIdsAtPointerDown = []
+									return this
 								}
 							}
 

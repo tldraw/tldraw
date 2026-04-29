@@ -47,7 +47,9 @@ export function chunk(msg: string, maxSafeMessageSize = MAX_SAFE_MESSAGE_SIZE) {
 	}
 }
 
-const chunkRe = /^(\d+)_(.*)$/
+// The 's' flag (dotAll) makes '.' match any character including line terminators
+// like U+2028 and U+2029, which are commonly introduced via copy/paste from Word
+const chunkRe = /^(\d+)_(.*)$/s
 
 /**
  * Assembles chunked JSON messages back into complete objects.

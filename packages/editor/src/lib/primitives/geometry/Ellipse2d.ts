@@ -1,9 +1,9 @@
 import { Box } from '../Box'
+import { PI, PI2, clamp, perimeterOfEllipse, pointInPolygon } from '../utils'
 import { Vec, VecLike } from '../Vec'
-import { PI, PI2, clamp, perimeterOfEllipse } from '../utils'
 import { Edge2d } from './Edge2d'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForArcLength } from './geometry-constants'
+import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Ellipse2d extends Geometry2d {
@@ -23,7 +23,7 @@ export class Ellipse2d extends Geometry2d {
 		this._h = height
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get edges() {
 		if (!this._edges) {
 			const { vertices } = this
@@ -87,6 +87,19 @@ export class Ellipse2d extends Geometry2d {
 		}
 		if (!nearest) throw Error('nearest point not found')
 		return nearest
+	}
+
+	override distanceToPoint(point: VecLike, hitInside = false): number {
+		const { edges } = this
+		let minDist = Infinity
+		for (let i = 0; i < edges.length; i++) {
+			const d = edges[i].distanceToPoint(point)
+			if (d < minDist) minDist = d
+		}
+		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
+			return -minDist
+		}
+		return minDist
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike): boolean {

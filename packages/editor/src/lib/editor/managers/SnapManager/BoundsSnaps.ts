@@ -10,10 +10,10 @@ import {
 	isSelectionCorner,
 } from '../../../primitives/Box'
 import { Mat } from '../../../primitives/Mat'
-import { Vec } from '../../../primitives/Vec'
 import { rangeIntersection, rangesOverlap } from '../../../primitives/utils'
-import { Editor } from '../../Editor'
-import {
+import { Vec } from '../../../primitives/Vec'
+import type { Editor } from '../../Editor'
+import type {
 	GapsSnapIndicator,
 	PointsSnapIndicator,
 	SnapData,

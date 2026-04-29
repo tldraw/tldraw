@@ -1,4 +1,4 @@
-import { TLImageShape, Vec, createShapeId } from '@tldraw/editor'
+import { T, TLImageShape, Vec, createShapeId } from '@tldraw/editor'
 import {
 	getCropBox,
 	getCroppedImageDataForAspectRatio,
@@ -363,6 +363,81 @@ describe('Circle crop preservation during resize', () => {
 		})
 
 		expect(results?.props.crop?.isCircle).toBe(false)
+	})
+
+	it('does not add isCircle when input crop has no isCircle property', () => {
+		const cropWithoutCircle = {
+			topLeft: { x: 0.2, y: 0.2 },
+			bottomRight: { x: 0.8, y: 0.8 },
+		}
+
+		const results = getCropBox(shape, {
+			handle: 'bottom_right',
+			change: new Vec(-10, -15),
+			crop: cropWithoutCircle,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: false,
+		})
+
+		expect(results).toBeDefined()
+		// isCircle should NOT be present on the result crop when it was not
+		// present on the input crop. If it is present (even as undefined),
+		// custom shape validators that don't include isCircle in their crop
+		// schema will throw an "Unexpected property" validation error.
+		expect('isCircle' in results!.props.crop!).toBe(false)
+	})
+
+	it('does not add isCircle when input crop has isCircle set to undefined', () => {
+		const cropWithUndefinedCircle = {
+			topLeft: { x: 0.2, y: 0.2 },
+			bottomRight: { x: 0.8, y: 0.8 },
+			isCircle: undefined,
+		}
+
+		const results = getCropBox(shape, {
+			handle: 'top_left',
+			change: new Vec(10, 10),
+			crop: cropWithUndefinedCircle,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: false,
+		})
+
+		expect(results).toBeDefined()
+		// isCircle should NOT be present when it was undefined
+		expect('isCircle' in results!.props.crop!).toBe(false)
+	})
+
+	it('result crop passes validation for a custom crop schema without isCircle', () => {
+		// This test reproduces the actual bug from #7927: custom croppable shapes
+		// that define their own crop validator without isCircle would crash when
+		// getCropBox added `isCircle: undefined` to the result crop object.
+		const vecValidator = T.object({ x: T.number, y: T.number })
+		const customCropValidator = T.object({
+			topLeft: vecValidator,
+			bottomRight: vecValidator,
+			// Note: no isCircle field — this is valid for custom shapes
+		})
+
+		const cropWithoutCircle = {
+			topLeft: { x: 0.2, y: 0.2 },
+			bottomRight: { x: 0.8, y: 0.8 },
+		}
+
+		const results = getCropBox(shape, {
+			handle: 'bottom_right',
+			change: new Vec(-10, -15),
+			crop: cropWithoutCircle,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: false,
+		})
+
+		// The result crop should pass validation against a custom crop schema
+		// that does not include isCircle. Before the fix, this would throw
+		// "Unexpected property" because isCircle was set to undefined.
+		expect(() => customCropValidator.validate(results!.props.crop)).not.toThrow()
 	})
 })
 

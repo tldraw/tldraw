@@ -1,5 +1,5 @@
 import { FormEvent, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
-import { DefaultSpinner, TldrawUiTooltip } from 'tldraw'
+import { DefaultSpinner } from 'tldraw'
 import { useChatInputState } from '../hooks/useChatInputState'
 import { ChatInputImage } from './ChatInputImage'
 import { ImageIcon } from './icons/ImageIcon'
@@ -179,40 +179,37 @@ export function ChatInput({
 			{/* below the input we have several controls: */}
 			<div className="chat-input-bottom">
 				{/* a button to upload an image */}
-				<TldrawUiTooltip content="Upload an image">
-					<button
-						type="button"
-						aria-label="Upload an image"
-						className="icon-button"
-						disabled={disabled}
-						onClick={handleImageUpload}
-					>
-						<ImageIcon />
-					</button>
-				</TldrawUiTooltip>
+				<button
+					type="button"
+					aria-label="Upload an image"
+					title="Upload an image"
+					className="icon-button"
+					disabled={disabled}
+					onClick={handleImageUpload}
+				>
+					<ImageIcon />
+				</button>
 				{/* a button to open the whiteboard modal */}
-				<TldrawUiTooltip content="Draw a sketch">
-					<button
-						type="button"
-						aria-label="Draw a sketch"
-						className="icon-button"
-						disabled={disabled}
-						onClick={() => dispatch({ type: 'openWhiteboard' })}
-					>
-						<WhiteboardIcon />
-					</button>
-				</TldrawUiTooltip>
+				<button
+					type="button"
+					aria-label="Draw a sketch"
+					title="Draw a sketch"
+					className="icon-button"
+					disabled={disabled}
+					onClick={() => dispatch({ type: 'openWhiteboard' })}
+				>
+					<WhiteboardIcon />
+				</button>
 				{/* a button to send the message */}
-				<TldrawUiTooltip content="Send message">
-					<button
-						type="submit"
-						disabled={!canSend || disabled}
-						className="icon-button"
-						aria-label="Send message"
-					>
-						<SendIcon />
-					</button>
-				</TldrawUiTooltip>
+				<button
+					type="submit"
+					disabled={!canSend || disabled}
+					className="icon-button"
+					aria-label="Send message"
+					title="Send message"
+				>
+					<SendIcon />
+				</button>
 			</div>
 
 			{/* if the user has opened the whiteboard modal, we show it. */}

@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { Content } from '@/components/content'
 import { StarterKitEmbed } from '@/components/content/embed'
 import { Example } from '@/components/content/example'
@@ -9,11 +11,16 @@ import { DocsSidebar } from '@/components/docs/docs-sidebar'
 import { DocsStarterSidebar } from '@/components/docs/docs-starter-sidebar'
 import { DocsTableOfContents } from '@/components/docs/docs-table-of-contents'
 import { SearchButton } from '@/components/search/SearchButton'
-import { db } from '@/utils/ContentDatabase'
 import { cn } from '@/utils/cn'
+import { db } from '@/utils/ContentDatabase'
 import { parseMarkdown } from '@/utils/parse-markdown'
-import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+
+export async function generateStaticParams() {
+	const paths = await db.getAllPaths()
+	return paths.map((path) => ({ slug: path.replace(/^\//, '').split('/') }))
+}
+
+export const dynamicParams = false
 
 export async function generateMetadata(props: {
 	params: Promise<{ slug: string | string[] }>
@@ -31,13 +38,6 @@ export async function generateMetadata(props: {
 		if (initialContentText) metadata.description = initialContentText
 	}
 	return metadata
-}
-const nonDocsPaths = ['/blog/', '/legal/']
-export async function generateStaticParams() {
-	const paths = await db.getAllPaths()
-	return paths
-		.filter((path) => !nonDocsPaths.some((nonDocsPath) => path.startsWith(nonDocsPath)))
-		.map((path) => ({ slug: path.slice(1).split('/') }))
 }
 
 export default async function Page(props: { params: Promise<{ slug: string | string[] }> }) {
@@ -95,7 +95,13 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 							'prose-h1:scroll-mt-20 prose-h2:scroll-mt-20 prose-h3:scroll-mt-20 prose-h4:scroll-mt-20 prose-h5:scroll-mt-20'
 						)}
 					>
-						<p>{content.article.description}</p>
+						{content.article.description && (
+							<Content
+								mdx={content.article.description}
+								type={content.article.sectionId}
+								className="mb-6"
+							/>
+						)}
 						<StarterKitEmbed id={content.article.embed ?? content.article.id} />
 					</div>
 					<div className="flex flex-col xl:flex-row gap-6 relative">

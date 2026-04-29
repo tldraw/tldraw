@@ -7,6 +7,7 @@ import {
 	createShapeId,
 	maybeSnapToGrid,
 } from '@tldraw/editor'
+import { GeoShapeUtil } from '../GeoShapeUtil'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -34,7 +35,7 @@ export class Pointing extends StateNode {
 							w: 1,
 							h: 1,
 							geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
-							scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
+							scale: this.editor.getResizeScaleFactor(),
 						},
 					},
 				])
@@ -77,16 +78,18 @@ export class Pointing extends StateNode {
 
 		this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
 
-		const scale = this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
+		const scale = this.editor.getResizeScaleFactor()
 
 		const geo = this.editor.getStyleForNextShape(GeoShapeGeoStyle)
+		const geoShapeUtil = this.editor.getShapeUtil('geo') as GeoShapeUtil
 
+		const customType = geoShapeUtil.options.customGeoStyles?.[geo]
 		const size =
 			geo === 'star'
 				? { w: 200, h: 190 }
 				: geo === 'cloud'
 					? { w: 300, h: 180 }
-					: { w: 200, h: 200 }
+					: (customType?.defaultSize ?? { w: 200, h: 200 })
 
 		this.editor.createShapes([
 			{

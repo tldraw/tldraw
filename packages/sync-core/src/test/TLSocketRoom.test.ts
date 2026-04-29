@@ -21,7 +21,7 @@ import { getTlsyncProtocolVersion } from '../lib/protocol'
 import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
 import { TLSocketRoom, TLSyncLog } from '../lib/TLSocketRoom'
 import { TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
-import { RoomSnapshot } from '../lib/TLSyncRoom'
+import { TLSyncRoom, type RoomSnapshot } from '../lib/TLSyncRoom'
 
 function getStore() {
 	const schema = createTLSchema()
@@ -805,6 +805,524 @@ describe(TLSocketRoom, () => {
 	})
 })
 
+describe('Hibernation support', () => {
+	function connectSession(room: TLSocketRoom, sessionId: string, socket: WebSocketMinimal) {
+		room.handleSocketConnect({ sessionId, socket })
+		const connectRequest = {
+			type: 'connect' as const,
+			connectRequestId: `connect-${sessionId}`,
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: createTLSchema().serialize(),
+		}
+		room.handleSocketMessage(sessionId, JSON.stringify(connectRequest))
+	}
+
+	describe('getSessionSnapshot', () => {
+		it('returns null for unknown session', () => {
+			const room = new TLSocketRoom({})
+			expect(room.getSessionSnapshot('nonexistent')).toBeNull()
+		})
+
+		it('returns null for session not yet connected', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+			room.handleSocketConnect({ sessionId: 'test', socket })
+			expect(room.getSessionSnapshot('test')).toBeNull()
+		})
+
+		it('returns snapshot for connected session', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+			connectSession(room, 'test', socket)
+
+			const snapshot = room.getSessionSnapshot('test')
+			expect(snapshot).not.toBeNull()
+			expect(snapshot!.serializedSchema).toBeDefined()
+			expect(snapshot!.isReadonly).toBe(false)
+			expect(snapshot!.presenceId).toBeDefined()
+			expect(snapshot!.requiresLegacyRejection).toBe(false)
+			expect(snapshot!.supportsStringAppend).toBe(true)
+		})
+
+		it('includes presence record when present', () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({ initialSnapshot: store.getStoreSnapshot() })
+			const socket = createMockSocket()
+			connectSession(room, 'test', socket)
+
+			const presence = InstancePresenceRecordType.create({
+				id: InstancePresenceRecordType.createId('p1'),
+				userId: 'user1',
+				userName: 'User 1',
+				currentPageId: PageRecordType.createId('page'),
+			})
+			const pushRequest = {
+				type: 'push' as const,
+				clientClock: 1,
+				presence: [RecordOpType.Put, presence] as [typeof RecordOpType.Put, typeof presence],
+			}
+			room.handleSocketMessage('test', JSON.stringify(pushRequest))
+
+			const snapshot = room.getSessionSnapshot('test')
+			expect(snapshot).not.toBeNull()
+			expect(snapshot!.presenceRecord).not.toBeNull()
+			expect((snapshot!.presenceRecord as any).userId).toBe('user1')
+		})
+	})
+
+	describe('handleSocketResume', () => {
+		it('creates a connected session that handles pings', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+
+			connectSession(room, 'original', socket)
+			const snapshot = room.getSessionSnapshot('original')!
+
+			// Simulate hibernation: create a new room
+			const room2 = new TLSocketRoom({})
+			const socket2 = createMockSocket()
+			room2.handleSocketResume({
+				sessionId: 'original',
+				socket: socket2,
+				snapshot,
+			})
+
+			expect(room2.getNumActiveSessions()).toBe(1)
+			expect(room2.getSessions()[0].isConnected).toBe(true)
+
+			// Should handle pings (pong is sent)
+			room2.handleSocketMessage('original', JSON.stringify({ type: 'ping' }))
+			expect(socket2.send).toHaveBeenCalledWith(JSON.stringify({ type: 'pong' }))
+		})
+
+		it('creates a connected session that handles pushes', () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({ initialSnapshot: store.getStoreSnapshot() })
+			const socket = createMockSocket()
+			connectSession(room, 'original', socket)
+			const snapshot = room.getSessionSnapshot('original')!
+
+			// Simulate hibernation: new room with same storage
+			const room2 = new TLSocketRoom({ initialSnapshot: store.getStoreSnapshot() })
+			const socket2 = createMockSocket()
+			room2.handleSocketResume({
+				sessionId: 'original',
+				socket: socket2,
+				snapshot,
+			})
+
+			// Send a push with a new page
+			const pageId = PageRecordType.createId('new-page')
+			const pushRequest = {
+				type: 'push' as const,
+				clientClock: 1,
+				diff: {
+					[pageId]: [
+						RecordOpType.Put,
+						PageRecordType.create({ id: pageId, name: 'New Page', index: 'a2' as any }),
+					],
+				},
+			}
+			room2.handleSocketMessage('original', JSON.stringify(pushRequest))
+
+			// Should have processed the push (record exists)
+			const record = room2.getRecord(pageId)
+			expect(record).toBeDefined()
+			expect((record as TLPage).name).toBe('New Page')
+		})
+
+		it('restores presence into the presence store', () => {
+			const store = getStore()
+			store.ensureStoreIsUsable()
+			const room = new TLSocketRoom({ initialSnapshot: store.getStoreSnapshot() })
+			const socket = createMockSocket()
+			connectSession(room, 'test', socket)
+
+			// Push presence
+			const presence = InstancePresenceRecordType.create({
+				id: InstancePresenceRecordType.createId('p1'),
+				userId: 'user1',
+				userName: 'User 1',
+				currentPageId: PageRecordType.createId('page'),
+			})
+			room.handleSocketMessage(
+				'test',
+				JSON.stringify({
+					type: 'push',
+					clientClock: 1,
+					presence: [RecordOpType.Put, presence],
+				})
+			)
+
+			const snapshot = room.getSessionSnapshot('test')!
+			expect(snapshot.presenceRecord).not.toBeNull()
+
+			// Resume in a new room
+			const room2 = new TLSocketRoom({ initialSnapshot: store.getStoreSnapshot() })
+			const socket2 = createMockSocket()
+			room2.handleSocketResume({
+				sessionId: 'test',
+				socket: socket2,
+				snapshot,
+			})
+
+			// Presence should be restored
+			const presenceRecords = room2.getPresenceRecords()
+			expect(Object.keys(presenceRecords)).toHaveLength(1)
+			const restored = Object.values(presenceRecords)[0]
+			expect((restored as any).userId).toBe('user1')
+		})
+
+		it('does not attach event listeners', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+			connectSession(room, 'test', socket)
+			const snapshot = room.getSessionSnapshot('test')!
+
+			const room2 = new TLSocketRoom({})
+			const socket2 = createMockSocket()
+			room2.handleSocketResume({
+				sessionId: 'test',
+				socket: socket2,
+				snapshot,
+			})
+
+			// addEventListener should NOT have been called on the resumed socket
+			expect(socket2.addEventListener).not.toHaveBeenCalled()
+		})
+
+		it('supports session metadata', () => {
+			const room = new TLSocketRoom<TLRecord, TestSessionMeta>({})
+			const socket = createMockSocket()
+			const snapshot = {
+				serializedSchema: createTLSchema().serialize(),
+				isReadonly: false,
+				presenceId: null,
+				presenceRecord: null,
+				requiresLegacyRejection: false,
+				supportsStringAppend: true,
+			}
+
+			room.handleSocketResume({
+				sessionId: 'test',
+				socket,
+				snapshot,
+				meta: { userId: 'user1', userName: 'Alice' },
+			})
+
+			const sessions = room.getSessions()
+			expect(sessions[0].meta).toEqual({ userId: 'user1', userName: 'Alice' })
+		})
+
+		it('handles readonly sessions', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+			const snapshot = {
+				serializedSchema: createTLSchema().serialize(),
+				isReadonly: true,
+				presenceId: null,
+				presenceRecord: null,
+				requiresLegacyRejection: false,
+				supportsStringAppend: true,
+			}
+
+			room.handleSocketResume({
+				sessionId: 'test',
+				socket,
+				snapshot,
+			})
+
+			expect(room.getSessions()[0].isReadonly).toBe(true)
+		})
+	})
+
+	describe('clientTimeout', () => {
+		it('uses default idle timeout when not specified', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+			connectSession(room, 'test', socket)
+
+			expect(room.getNumActiveSessions()).toBe(1)
+		})
+
+		it('accepts Infinity as clientTimeout', () => {
+			const room = new TLSocketRoom({ clientTimeout: Infinity })
+			const socket = createMockSocket()
+			connectSession(room, 'test', socket)
+
+			expect(room.getNumActiveSessions()).toBe(1)
+		})
+
+		it('accepts custom clientTimeout value', () => {
+			const room = new TLSocketRoom({ clientTimeout: 60000 })
+			expect(room.opts.clientTimeout).toBe(60000)
+		})
+	})
+
+	describe('onSessionSnapshot', () => {
+		it('calls onSessionSnapshot after debounce on message receipt', () => {
+			vi.useFakeTimers()
+			try {
+				const onSessionSnapshot = vi.fn()
+				const room = new TLSocketRoom({ onSessionSnapshot })
+				const socket = createMockSocket()
+				connectSession(room, 'test', socket)
+
+				// Send a ping to trigger the debounce
+				room.handleSocketMessage('test', JSON.stringify({ type: 'ping' }))
+
+				// Not called immediately
+				expect(onSessionSnapshot).not.toHaveBeenCalled()
+
+				// Advance past the 5s debounce
+				vi.advanceTimersByTime(5100)
+
+				expect(onSessionSnapshot).toHaveBeenCalledTimes(1)
+				expect(onSessionSnapshot).toHaveBeenCalledWith(
+					'test',
+					expect.objectContaining({
+						serializedSchema: expect.anything(),
+						isReadonly: false,
+					})
+				)
+
+				room.close()
+			} finally {
+				vi.useRealTimers()
+			}
+		})
+
+		it('does not call onSessionSnapshot after socket close (timer cleared)', () => {
+			vi.useFakeTimers()
+			try {
+				const onSessionSnapshot = vi.fn()
+				const room = new TLSocketRoom({ onSessionSnapshot })
+				const socket = createMockSocket()
+				connectSession(room, 'test', socket)
+
+				// Send a message to start the debounce
+				room.handleSocketMessage('test', JSON.stringify({ type: 'ping' }))
+
+				// Close the socket before the debounce fires
+				room.handleSocketClose('test')
+
+				// Advance past the 5s debounce
+				vi.advanceTimersByTime(5100)
+
+				// Should never have been called - timer was cleared on close
+				expect(onSessionSnapshot).not.toHaveBeenCalled()
+
+				room.close()
+			} finally {
+				vi.useRealTimers()
+			}
+		})
+
+		it('resets the debounce on subsequent messages', () => {
+			vi.useFakeTimers()
+			try {
+				const onSessionSnapshot = vi.fn()
+				const room = new TLSocketRoom({ onSessionSnapshot })
+				const socket = createMockSocket()
+				connectSession(room, 'test', socket)
+
+				// Send first message
+				room.handleSocketMessage('test', JSON.stringify({ type: 'ping' }))
+
+				// Advance 3s (within the 5s window)
+				vi.advanceTimersByTime(3000)
+				expect(onSessionSnapshot).not.toHaveBeenCalled()
+
+				// Send another message, resetting the debounce
+				room.handleSocketMessage('test', JSON.stringify({ type: 'ping' }))
+
+				// Advance another 3s (6s total, but only 3s since last message)
+				vi.advanceTimersByTime(3000)
+				expect(onSessionSnapshot).not.toHaveBeenCalled()
+
+				// Advance past the new debounce window
+				vi.advanceTimersByTime(2100)
+				expect(onSessionSnapshot).toHaveBeenCalledTimes(1)
+
+				room.close()
+			} finally {
+				vi.useRealTimers()
+			}
+		})
+	})
+
+	describe('resume-then-close (presence cleanup)', () => {
+		it('removes presence when a resumed session is immediately closed', () => {
+			vi.useFakeTimers()
+			try {
+				const store = getStore()
+				store.ensureStoreIsUsable()
+				const room = new TLSocketRoom({ initialSnapshot: store.getStoreSnapshot() })
+				const socket = createMockSocket()
+				connectSession(room, 'test', socket)
+
+				// Push presence
+				const presence = InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId('p1'),
+					userId: 'user1',
+					userName: 'User 1',
+					currentPageId: PageRecordType.createId('page'),
+				})
+				room.handleSocketMessage(
+					'test',
+					JSON.stringify({
+						type: 'push',
+						clientClock: 1,
+						presence: [RecordOpType.Put, presence],
+					})
+				)
+
+				const snapshot = room.getSessionSnapshot('test')!
+				expect(snapshot.presenceRecord).not.toBeNull()
+
+				// Simulate hibernation: new room with a second connected client
+				const room2 = new TLSocketRoom({ initialSnapshot: store.getStoreSnapshot() })
+				const observerSocket = createMockSocket()
+				connectSession(room2, 'observer', observerSocket)
+				vi.mocked(observerSocket.send).mockClear()
+
+				// Resume the session that's about to disconnect
+				const closingSocket = createMockSocket()
+				room2.handleSocketResume({
+					sessionId: 'test',
+					socket: closingSocket,
+					snapshot,
+				})
+
+				// Presence should be restored (only the resumed session has presence)
+				expect(Object.keys(room2.getPresenceRecords())).toHaveLength(1)
+
+				// Clear any messages from resume so we only see what happens after close
+				vi.mocked(observerSocket.send).mockClear()
+
+				// Now immediately close it (simulating webSocketClose after hibernation)
+				room2.handleSocketClose('test')
+
+				// Advance past SESSION_REMOVAL_WAIT_TIME (5s) + buffer (100ms) + throttle (1s)
+				vi.advanceTimersByTime(6200)
+
+				// Presence should be gone
+				expect(Object.keys(room2.getPresenceRecords())).toHaveLength(0)
+
+				// The observer should have received a presence removal broadcast.
+				// Messages are wrapped in a { type: 'data', data: [...] } envelope.
+				const sentMessages = vi.mocked(observerSocket.send).mock.calls.map((c) => JSON.parse(c[0]))
+				const hasPresenceRemoval = sentMessages.some(
+					(msg: {
+						type: string
+						data?: Array<{ type: string; diff?: Record<string, [string]> }>
+					}) =>
+						msg.type === 'data' &&
+						msg.data?.some(
+							(inner) =>
+								inner.type === 'patch' &&
+								inner.diff &&
+								Object.values(inner.diff).some((op) => op[0] === 'remove')
+						)
+				)
+				expect(hasPresenceRemoval).toBe(true)
+
+				room2.close()
+			} finally {
+				vi.useRealTimers()
+			}
+		})
+	})
+
+	describe('on-demand session pruning', () => {
+		it('prunes timed-out sessions during handleSocketMessage', async () => {
+			const room = new TLSocketRoom({
+				clientTimeout: 1,
+			})
+			const socket = createMockSocket()
+			connectSession(room, 'test', socket)
+			expect(room.getNumActiveSessions()).toBe(1)
+
+			// Wait for both the client timeout and the prune throttle window (1s) to expire
+			await new Promise((r) => setTimeout(r, 1100))
+
+			// Connect a second session and send a message to trigger pruning
+			const socket2 = createMockSocket()
+			connectSession(room, 'test2', socket2)
+
+			// The timed-out socket should have been closed
+			expect(socket.close).toHaveBeenCalled()
+
+			room.close()
+		})
+
+		it('runs prune after handleMessage so the sender is not evicted by their own message', () => {
+			// If prune ran before handleMessage, an idle client's message would trigger
+			// prune first and cancel them before lastInteractionTime is updated. Verify
+			// order: handleMessage must run before pruneSessions.
+			const room = new TLSocketRoom({})
+			const syncRoom = (room as unknown as { room: TLSyncRoom<TLRecord, void> }).room
+			const socket = createMockSocket()
+			connectSession(room, 'test', socket)
+
+			const callOrder: string[] = []
+			const realHandleMessage = syncRoom.handleMessage.bind(syncRoom)
+			vi.spyOn(syncRoom, 'handleMessage').mockImplementation((sessionId, message) => {
+				callOrder.push('handleMessage')
+				return realHandleMessage(sessionId, message)
+			})
+			const originalPrune = syncRoom.pruneSessions
+			const wrappedPrune = function (this: typeof syncRoom) {
+				callOrder.push('prune')
+				return originalPrune.call(this)
+			}
+			wrappedPrune.cancel = originalPrune.cancel?.bind(originalPrune)
+			syncRoom.pruneSessions = wrappedPrune as typeof originalPrune
+
+			room.handleSocketMessage('test', JSON.stringify({ type: 'ping' }))
+
+			expect(callOrder).toEqual(['handleMessage', 'prune'])
+			vi.restoreAllMocks()
+			room.close()
+		})
+
+		it('fully removes sessions after disconnect even with no further messages', () => {
+			vi.useFakeTimers()
+			try {
+				const onSessionRemoved = vi.fn()
+				const room = new TLSocketRoom({ onSessionRemoved })
+				const socket = createMockSocket()
+				connectSession(room, 'test', socket)
+				expect(room.getNumActiveSessions()).toBe(1)
+
+				// Disconnect the only client
+				room.handleSocketClose('test')
+
+				// Session should be in AwaitingRemoval, not yet fully removed
+				expect(room.getNumActiveSessions()).toBe(1)
+				expect(onSessionRemoved).not.toHaveBeenCalled()
+
+				// Advance past SESSION_REMOVAL_WAIT_TIME (5s) + buffer (100ms) + throttle (1s)
+				vi.advanceTimersByTime(6200)
+
+				// Session should now be fully removed via the scheduled follow-up prune
+				expect(room.getNumActiveSessions()).toBe(0)
+				expect(onSessionRemoved).toHaveBeenCalledWith(
+					room,
+					expect.objectContaining({ sessionId: 'test', numSessionsRemaining: 0 })
+				)
+
+				room.close()
+			} finally {
+				vi.useRealTimers()
+			}
+		})
+	})
+})
+
 describe('TLSocketRoom.updateStore', () => {
 	let storage = new InMemorySyncStorage<TLRecord>({ snapshot: DEFAULT_INITIAL_SNAPSHOT })
 
@@ -826,12 +1344,10 @@ describe('TLSocketRoom.updateStore', () => {
 			document.name = 'My lovely document'
 			store.put(document)
 		})
-		expect(
-			(
-				storage.getSnapshot().documents.find((r) => r.state.id === 'document:document')
-					?.state as any
-			).name
-		).toBe('My lovely document')
+		const docRecord = storage
+			.getSnapshot()
+			.documents.find((r) => r.state.id === 'document:document') as any
+		expect(docRecord.state.name).toBe('My lovely document')
 		expect(clock).toBeLessThan(storage.getClock())
 	})
 
@@ -841,12 +1357,10 @@ describe('TLSocketRoom.updateStore', () => {
 			const document = store.get('document:document') as TLDocument
 			document.name = 'My lovely document'
 		})
-		expect(
-			(
-				storage.getSnapshot().documents.find((r) => r.state.id === 'document:document')
-					?.state as any
-			).name
-		).toBe('')
+		const docRecord = storage
+			.getSnapshot()
+			.documents.find((r) => r.state.id === 'document:document') as any
+		expect(docRecord.state.name).toBe('')
 		expect(clock).toBe(storage.getClock())
 	})
 

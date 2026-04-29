@@ -21,6 +21,7 @@ import {
 } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { tlenv } from '../globals/environment'
+import { getGlobalDocument, getGlobalWindow } from '../utils/dom'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const
 
@@ -38,10 +39,10 @@ function iOS() {
 	return (
 		['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			window.navigator.platform
+			getGlobalWindow().navigator.platform
 		) ||
 		// iPad on iOS 13 detection
-		(tlenv.isDarwin && 'ontouchend' in document)
+		(tlenv.isDarwin && 'ontouchend' in getGlobalDocument())
 	)
 }
 
@@ -69,9 +70,11 @@ if (window) {
 	}
 }
 
-window?.addEventListener('beforeunload', () => {
-	setInSessionStorage(tabIdKey, TAB_ID)
-})
+if (typeof window !== 'undefined') {
+	getGlobalWindow().addEventListener('beforeunload', () => {
+		setInSessionStorage(tabIdKey, TAB_ID)
+	})
+}
 
 const Versions = {
 	Initial: 0,
@@ -230,7 +233,8 @@ export function loadSessionStateSnapshotIntoStore(
 	const res = migrateAndValidateSessionStateSnapshot(snapshot)
 	if (!res) return
 
-	const preserved = pluckPreservingValues(store.get(TLINSTANCE_ID))
+	const existingInstance = store.get(TLINSTANCE_ID)
+	const preserved = pluckPreservingValues(existingInstance)
 	const primary = opts?.forceOverwrite ? res : preserved
 	const secondary = opts?.forceOverwrite ? preserved : res
 
@@ -238,7 +242,7 @@ export function loadSessionStateSnapshotIntoStore(
 		id: TLINSTANCE_ID,
 		...preserved,
 		// the integrity checker will ensure that the currentPageId is valid
-		currentPageId: res.currentPageId,
+		currentPageId: res.currentPageId ?? existingInstance?.currentPageId,
 		isDebugMode: primary?.isDebugMode ?? secondary?.isDebugMode,
 		isFocusMode: primary?.isFocusMode ?? secondary?.isFocusMode,
 		isToolLocked: primary?.isToolLocked ?? secondary?.isToolLocked,

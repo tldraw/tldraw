@@ -1,3 +1,5 @@
+import type { Awaitable } from './types'
+
 /**
  * Create a debounced version of a function that delays execution until after a specified wait time.
  *
@@ -36,12 +38,13 @@
  * @see source - https://gist.github.com/ca0v/73a31f57b397606c9813472f7493a940
  */
 export function debounce<T extends unknown[], U>(
-	callback: (...args: T) => PromiseLike<U> | U,
+	callback: (...args: T) => Awaitable<U>,
 	wait: number
 ) {
 	let state:
 		| undefined
 		| {
+				// eslint-disable-next-line no-restricted-globals
 				timeout: ReturnType<typeof setTimeout>
 				promise: Promise<U>
 				resolve(value: U | PromiseLike<U>): void
@@ -76,6 +79,7 @@ export function debounce<T extends unknown[], U>(
 	fn.cancel = () => {
 		if (!state) return
 		clearTimeout(state.timeout)
+		state = undefined
 	}
 	return fn
 }

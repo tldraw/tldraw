@@ -1,6 +1,6 @@
 import { isShapeId, TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { compact } from '@tldraw/utils'
-import { Editor } from '../editor/Editor'
+import type { Editor } from '../editor/Editor'
 import { Mat } from '../primitives/Mat'
 import { canonicalizeRotation } from '../primitives/utils'
 import { Vec, VecLike } from '../primitives/Vec'

@@ -38,7 +38,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 
 The `isFilled` property controls hit testing behavior. A filled geometry registers hits inside its area. An unfilled geometry only responds to hits on its outline—useful for shapes like frames where you want to click through the middle.
 
-Geometry also powers [snapping](/docs/snapping). When you drag shapes, the snapping system uses geometry to find edges, centers, and corners to align to. Custom shapes can provide additional snap points by implementing [ShapeUtil#getBoundsSnapGeometry](?).
+Geometry also powers [snapping](/sdk-features/snapping). When you drag shapes, the snapping system uses geometry to find edges, centers, and corners to align to. Custom shapes can provide additional snap points by implementing [ShapeUtil#getBoundsSnapGeometry](?).
 
 ## Geometry primitives
 
@@ -514,6 +514,6 @@ All operations on the transformed geometry apply the transformation automaticall
 
 ## Related examples
 
-- **[Custom shape geometry](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shape-with-geometry)** - A house-shaped custom shape using Polygon2d and Group2d geometry.
-- **[Cubic bezier curve shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/cubic-bezier-shape)** - Interactive bezier curve editing with CubicBezier2d geometry and custom handles.
-- **[Custom bounds snapping](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/bounds-snapping-shape)** - Playing card shapes with custom snap geometry so they stack with visible icons.
+- **[Custom shape geometry](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/shape-with-geometry)** - A house-shaped custom shape using Polygon2d and Group2d geometry.
+- **[Cubic bezier curve shape](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/cubic-bezier-shape)** - Interactive bezier curve editing with CubicBezier2d geometry and custom handles.
+- **[Custom bounds snapping](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/bounds-snapping-shape)** - Playing card shapes with custom snap geometry so they stack with visible icons.

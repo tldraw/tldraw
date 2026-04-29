@@ -22,7 +22,7 @@ For the complete guide to working with assets, see the [Assets](/sdk-features/as
 [`TLAssetStore`](?) controls how assets are stored and retrieved. The default behavior depends on your store setup:
 
 - **In-memory only** (default): [`inlineBase64AssetStore`](?) converts images to data URLs
-- **With [`persistenceKey`](/docs/persistence#The-persistenceKey-prop)**: Assets are stored in the browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
+- **With [`persistenceKey`](/sdk-features/persistence)**: Assets are stored in the browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
 - **With a [sync server](/docs/sync)**: Implement `TLAssetStore` to upload to a storage service like S3
 
 ## Examples

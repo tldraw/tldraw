@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BaseRecord, RecordId } from './BaseRecord'
+import { createMigrationSequence } from './migrate'
 import { createRecordType } from './RecordType'
 import { Store } from './Store'
 import { StoreSchema } from './StoreSchema'
-import { createMigrationSequence } from './migrate'
 
 // Test record types
 interface Book extends BaseRecord<'book', RecordId<Book>> {

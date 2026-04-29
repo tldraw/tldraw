@@ -1,0 +1,62 @@
+.reactive-inputs-panel {
+	padding: 6px;
+	border: 1px solid #ccc;
+	box-shadow: none;
+	pointer-events: all;
+}
+
+.reactive-inputs-content {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+.input-group {
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+	padding: 2px 8px;
+	background: #fff;
+	border: 1px solid #ccc;
+}
+
+.input-label {
+	font-size: 12px;
+	color: #333;
+	white-space: nowrap;
+}
+
+.input-value {
+	font-size: 10px;
+	color: #111;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+	min-width: 80px;
+}
+
+.input-hint {
+	font-size: 11px;
+	color: #666;
+}
+
+.modifier-keys {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.modifier-key {
+	display: inline-block;
+	padding: 2px 6px;
+	font-size: 11px;
+	background: #e0e0e0;
+	color: #666;
+	border: 1px solid #ccc;
+}
+
+.modifier-key[data-active='true'] {
+	background: #333;
+	color: #fff;
+	border-color: #333;
+}

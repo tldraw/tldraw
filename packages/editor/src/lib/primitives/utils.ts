@@ -317,19 +317,19 @@ function cross(x: VecLike, y: VecLike, z: VecLike): number {
  * @public
  */
 export function pointInPolygon(A: VecLike, points: VecLike[]): boolean {
+	// Uses winding number algorithm. Previously also had a per-edge check:
+	//   if (Vec.Dist(A, a) + Vec.Dist(A, b) === Vec.Dist(a, b)) return true
+	// which tested if A lies exactly on edge (a, b). Removed because it cost 3 sqrts per vertex
+	// and exact float equality with sqrt results essentially never fires in practice.
 	let windingNumber = 0
 	let a: VecLike
 	let b: VecLike
 
 	for (let i = 0; i < points.length; i++) {
 		a = points[i]
-		// Point is the same as one of the corners of the polygon
 		if (a.x === A.x && a.y === A.y) return true
 
 		b = points[(i + 1) % points.length]
-
-		// Point is on the polygon edge
-		if (Vec.Dist(A, a) + Vec.Dist(A, b) === Vec.Dist(a, b)) return true
 
 		if (a.y <= A.y) {
 			if (b.y > A.y && cross(a, b, A) > 0) {

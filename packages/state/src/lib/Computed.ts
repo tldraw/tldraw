@@ -1,10 +1,10 @@
 /* eslint-disable prefer-rest-params */
 import { assert } from '@tldraw/utils'
 import { ArraySet } from './ArraySet'
-import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
 import { EMPTY_ARRAY, equals, haveParentsChanged, singleton } from './helpers'
+import { HistoryBuffer } from './HistoryBuffer'
 import { getGlobalEpoch, getIsReacting, getReactionEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 import { logComputedGetterWarning } from './warnings'
@@ -210,6 +210,7 @@ export interface Computed<Value, Diff = unknown> extends Signal<Value, Diff> {
  * @internal
  */
 class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
+	readonly __isComputed = true as const
 	lastChangedEpoch = GLOBAL_START_EPOCH
 	lastTraversedEpoch = GLOBAL_START_EPOCH
 
@@ -226,7 +227,7 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 
 	children = new ArraySet<Child>()
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get isActivelyListening(): boolean {
 		return !this.children.isEmpty
 	}
@@ -670,23 +671,12 @@ export function computed() {
 	}
 }
 
+import { isComputed as _isComputed } from './isComputed'
+
 /**
  * Returns true if the given value is a computed signal.
- * This is a type guard function that can be used to check if a value is a computed signal instance.
- *
- * @example
- * ```ts
- * const count = atom('count', 0)
- * const double = computed('double', () => count.get() * 2)
- *
- * console.log(isComputed(count))  // false
- * console.log(isComputed(double)) // true
- * ```
- *
- * @param value - The value to check
- * @returns True if the value is a computed signal, false otherwise
  * @public
  */
 export function isComputed(value: any): value is Computed<any> {
-	return !!(value && value instanceof _Computed)
+	return _isComputed(value)
 }

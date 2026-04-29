@@ -1,8 +1,49 @@
+import { Awaitable } from '@tldraw/utils'
 import { ComponentType, Fragment } from 'react'
 import { DEFAULT_CAMERA_OPTIONS } from './constants'
+import type { Editor } from './editor/Editor'
+import { TLContent } from './editor/types/clipboard-types'
+import { TLExternalContent } from './editor/types/external-content'
 import { TLCameraOptions } from './editor/types/misc-types'
+import { VecLike } from './primitives/Vec'
 import { TLDeepLinkOptions } from './utils/deepLinks'
 import { TLTextOptions } from './utils/richText'
+
+/**
+ * Identifies how a clipboard write was triggered (copy vs cut, keyboard vs menu).
+ *
+ * @public
+ */
+export interface TLClipboardWriteInfo {
+	readonly operation: 'copy' | 'cut'
+	readonly source: 'native' | 'menu'
+}
+
+/**
+ * Raw clipboard paste payload, before tldraw parses clipboard contents into {@link TLExternalContent}.
+ *
+ * - `native-event`: from the `paste` event — `clipboardData` is available synchronously (unlike async
+ *   `navigator.clipboard.read()`).
+ * - `clipboard-read`: from an explicit `navigator.clipboard.read()` call — only `ClipboardItem[]`
+ *   exists
+ *   (no `DataTransfer`).
+ *
+ * @public
+ */
+export type TLClipboardPasteRawInfo =
+	| {
+			readonly editor: Editor
+			readonly source: 'native-event'
+			readonly event: ClipboardEvent
+			readonly clipboardData: DataTransfer | null
+			readonly point: VecLike | undefined
+	  }
+	| {
+			readonly editor: Editor
+			readonly source: 'clipboard-read'
+			readonly clipboardItems: readonly ClipboardItem[]
+			readonly point: VecLike | undefined
+	  }
 
 /**
  * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
@@ -114,6 +155,12 @@ export interface TldrawOptions {
 	 */
 	readonly spacebarPanning: boolean
 	/**
+	 * Whether to allow right-click + drag to pan the camera. When true, right-click + drag pans the
+	 * camera and a static right-click opens the context menu at the release position. When false,
+	 * right-click opens the context menu on press (no drag-to-pan).
+	 */
+	readonly rightClickPanning: boolean
+	/**
 	 * The default padding (in pixels) used when zooming to fit content in the viewport.
 	 * This affects methods like `zoomToFit()`, `zoomToSelection()`, and `zoomToBounds()`.
 	 * The actual padding used is the minimum of this value and 28% of the viewport width.
@@ -155,6 +202,80 @@ export interface TldrawOptions {
 	 * viewport's page dimensions regardless of overview zoom changes.
 	 */
 	readonly quickZoomPreservesScreenBounds: boolean
+	/**
+	 * Called before content is written to the clipboard during a copy or cut operation.
+	 * Receives the serialized content (shapes, bindings, assets) and can filter or transform
+	 * it before it reaches the clipboard.
+	 *
+	 * Return a modified `TLContent` object to change what is copied or cut. Return `false` to
+	 * cancel the clipboard write (for cut, the selected shapes are not removed). Return `void`
+	 * (or `undefined`) to pass through unchanged. You may return a `Promise` of those values if
+	 * the hook is async.
+	 *
+	 * @example
+	 * ```tsx
+	 * // Filter out "locked" shapes from copy
+	 * onBeforeCopyToClipboard({ content, operation }) {
+	 *     return {
+	 *         ...content,
+	 *         shapes: content.shapes.filter(s => !s.meta.locked),
+	 *         rootShapeIds: content.rootShapeIds.filter(id =>
+	 *             content.shapes.find(s => s.id === id && !s.meta.locked)
+	 *         ),
+	 *     }
+	 * }
+	 * ```
+	 */
+	onBeforeCopyToClipboard?(
+		info: { editor: Editor; content: TLContent } & TLClipboardWriteInfo
+	): Awaitable<TLContent | false | void>
+	/**
+	 * Called before pasted content is processed and shapes are created. Receives the parsed
+	 * external content from the clipboard and can filter, transform, or cancel it.
+	 *
+	 * Return `false` to cancel the paste. Return a modified content object to transform it.
+	 * Return `void` (or `undefined`) to pass through unchanged. You may return a `Promise` of
+	 * those values if the hook is async.
+	 *
+	 * This only fires for clipboard paste operations (keyboard shortcuts and menu actions),
+	 * not for file drops or programmatic `putExternalContent` calls.
+	 *
+	 * @example
+	 * ```tsx
+	 * // Block pasting of image files
+	 * onBeforePasteFromClipboard({ content }) {
+	 *     if (content.type === 'files') {
+	 *         const nonImages = content.files.filter(f => !f.type.startsWith('image/'))
+	 *         if (nonImages.length === 0) return false
+	 *         return { ...content, files: nonImages }
+	 *     }
+	 * }
+	 * ```
+	 */
+	onBeforePasteFromClipboard?(info: {
+		editor: Editor
+		content: TLExternalContent<unknown>
+		source: 'native-event' | 'clipboard-read'
+		point?: VecLike
+	}): Awaitable<TLExternalContent<unknown> | false | void>
+	/**
+	 * Called first for keyboard and menu paste, **before** tldraw handles or parses clipboard data
+	 * (and before {@link TldrawOptions.onBeforePasteFromClipboard}).
+	 *
+	 * Return `false` to cancel tldraw's default paste handling for this gesture (same convention as
+	 * {@link TldrawOptions.onBeforePasteFromClipboard}). Use this when you handle paste yourself from
+	 * raw clipboard data, or to block the gesture entirely. Return `void` (or `undefined`) to continue.
+	 */
+	onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void
+	/**
+	 * Called when content is dropped on the canvas. Provides the page position
+	 * where the drop occurred and the underlying drag event object.
+	 * Return true to prevent default drop handling (files, URLs, etc.)
+	 */
+	experimental__onDropOnCanvas?(options: {
+		point: VecLike
+		event: React.DragEvent<Element>
+	}): boolean
 }
 
 /** @public */
@@ -211,10 +332,15 @@ export const defaultTldrawOptions = {
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
+	rightClickPanning: true,
 	zoomToFitPadding: 128,
 	snapThreshold: 8,
 	camera: DEFAULT_CAMERA_OPTIONS,
 	text: {},
 	deepLinks: undefined,
 	quickZoomPreservesScreenBounds: true,
+	onBeforeCopyToClipboard: undefined,
+	onBeforePasteFromClipboard: undefined,
+	onClipboardPasteRaw: undefined,
+	experimental__onDropOnCanvas: undefined,
 } as const satisfies TldrawOptions

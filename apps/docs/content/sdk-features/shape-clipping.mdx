@@ -57,8 +57,10 @@ class MyClipShapeUtil extends ShapeUtil<MyClipShape> {
 		return <rect width={shape.props.w} height={shape.props.h} fill="transparent" stroke="black" />
 	}
 
-	override indicator(shape: MyClipShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	override getIndicatorPath(shape: MyClipShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	override getClipPath(shape: MyClipShape): Vec[] | undefined {

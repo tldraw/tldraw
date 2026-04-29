@@ -134,22 +134,24 @@ export interface Article extends ContentPage {
 	githubLink: string | null
 }
 
-export enum ArticleStatus {
-	Draft = 'draft',
-	Published = 'published',
-	Unlisted = 'unlisted',
-}
+export const ArticleStatus = {
+	Draft: 'draft',
+	Published: 'published',
+	Unlisted: 'unlisted',
+} as const
+export type ArticleStatus = (typeof ArticleStatus)[keyof typeof ArticleStatus]
 
-export enum APIGroup {
-	Class = 'Class',
-	Function = 'Function',
-	Variable = 'Variable',
-	Enum = 'Enum',
-	Interface = 'Interface',
-	TypeAlias = 'TypeAlias',
-	Namespace = 'Namespace',
-	Component = 'Component',
-}
+export const APIGroup = {
+	Class: 'Class',
+	Function: 'Function',
+	Variable: 'Variable',
+	Enum: 'Enum',
+	Interface: 'Interface',
+	TypeAlias: 'TypeAlias',
+	Namespace: 'Namespace',
+	Component: 'Component',
+} as const
+export type APIGroup = (typeof APIGroup)[keyof typeof APIGroup]
 
 /* ---------------- Article Headings ---------------- */
 

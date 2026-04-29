@@ -40,9 +40,15 @@ export interface TLSvgExportOptions {
 	background?: boolean
 
 	/**
-	 * How much padding to include around the bounds of exports? Defaults to 32px.
+	 * How much padding to include around the bounds of exports.
+	 *
+	 * - `'auto'` (default) — trim to visual content bounds, capturing overflow (like thick
+	 *    strokes or arrowheads) without extra whitespace.
+	 * - `number` (e.g. `32`) — fixed padding in px. No trimming; overflow beyond the padding
+	 *    region is clipped.
+	 * - `0` — no padding, no trimming, overflow is clipped.
 	 */
-	padding?: number
+	padding?: number | 'auto'
 
 	/**
 	 * Should the export be rendered in dark mode (true) or light mode (false)? Defaults to the

@@ -19,6 +19,7 @@ import {
 	isAccelKey,
 	kickoutOccludedShapes,
 } from '@tldraw/editor'
+import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
 
 export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -32,6 +33,7 @@ export type ResizingInfo = TLPointerEventInfo & {
 
 export class Resizing extends StateNode {
 	static override id = 'resizing'
+	static override trackPerformance = true
 
 	info = {} as ResizingInfo
 
@@ -363,6 +365,18 @@ export class Resizing extends StateNode {
 			})
 		}
 
+		// Batch-measure geo shape labels to avoid layout thrashing (only worth it for multiple shapes).
+		if (shapeSnapshots.size > 1) {
+			batchMeasureGeoLabels(
+				this.editor,
+				shapeSnapshots,
+				scale,
+				selectionRotation,
+				isAspectRatioLocked
+			)
+		}
+
+		// Resize all shapes (onResize will use the batch cache for geo shapes when available)
 		for (const id of shapeSnapshots.keys()) {
 			const snapshot = shapeSnapshots.get(id)!
 
@@ -471,6 +485,7 @@ export class Resizing extends StateNode {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
+		setBatchLabelSizeCache(this.editor, null)
 	}
 
 	private _createSnapshot() {
@@ -527,7 +542,7 @@ export class Resizing extends StateNode {
 			// descendants (easy) but also flagging with behavior like "resize" or "keep absolute position" or "reposition only with accel key",
 			// though I'm not sure where that would be defined; perhaps better handled with onResizeStart / onResize callbacks on the util, and
 			// pass `accelKeyIsPressed` as well as `accelKeyWasPressed`?
-			if (editor.isShapeOfType(shape, 'frame')) {
+			if (editor.isShapeFrameLike(shape)) {
 				frames.push({
 					id: shape.id,
 					children: compact(
@@ -538,6 +553,8 @@ export class Resizing extends StateNode {
 
 			// This will stop the traversal of descendants
 			if (!util.canResizeChildren(shape)) return false
+
+			return undefined
 		}
 
 		selectedShapeIds.forEach((shapeId) => {

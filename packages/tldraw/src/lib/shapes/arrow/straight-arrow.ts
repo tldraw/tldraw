@@ -1,11 +1,12 @@
 import { Editor, Mat, MatModel, TLArrowShape, Vec, VecLike } from '@tldraw/editor'
+import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
 	BoundShapeInfo,
 	MIN_ARROW_LENGTH,
-	STROKE_SIZES,
 	TLArrowBindings,
+	clampArrowTerminalToMask,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
 	getBoundShapeRelationships,
@@ -14,7 +15,8 @@ import {
 export function getStraightArrowInfo(
 	editor: Editor,
 	shape: TLArrowShape,
-	bindings: TLArrowBindings
+	bindings: TLArrowBindings,
+	arrowStrokeWidth?: number
 ): TLArrowInfo {
 	const { arrowheadStart, arrowheadEnd } = shape.props
 
@@ -69,11 +71,24 @@ export function getStraightArrowInfo(
 		startShapeInfo
 	)
 
+	// Clamp terminals to mask boundaries if the bound shape is clipped (e.g. by a frame)
+	clampArrowTerminalToMask(editor, b, terminalsInArrowSpace.end, arrowPageTransform, endShapeInfo)
+	clampArrowTerminalToMask(
+		editor,
+		a,
+		terminalsInArrowSpace.start,
+		arrowPageTransform,
+		startShapeInfo
+	)
+
 	let offsetA = 0
 	let offsetB = 0
 	let strokeOffsetA = 0
 	let strokeOffsetB = 0
 	let minLength = MIN_ARROW_LENGTH * shape.props.scale
+
+	const theme = editor.getCurrentTheme()
+	const arrowSW = arrowStrokeWidth ?? theme.strokeWidth * STROKE_SIZES[shape.props.size]
 
 	const isSelfIntersection =
 		startShapeInfo && endShapeInfo && startShapeInfo.shape === endShapeInfo.shape
@@ -122,9 +137,9 @@ export function getStraightArrowInfo(
 			!startShapeInfo.isExact
 		) {
 			strokeOffsetA =
-				STROKE_SIZES[shape.props.size] / 2 +
+				arrowSW / 2 +
 				('size' in startShapeInfo.shape.props
-					? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
+					? (theme.strokeWidth * STROKE_SIZES[startShapeInfo.shape.props.size]) / 2
 					: 0)
 			offsetA = (BOUND_ARROW_OFFSET + strokeOffsetA) * shape.props.scale
 			minLength += strokeOffsetA * shape.props.scale
@@ -139,8 +154,10 @@ export function getStraightArrowInfo(
 			!endShapeInfo.isExact
 		) {
 			strokeOffsetB =
-				STROKE_SIZES[shape.props.size] / 2 +
-				('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
+				arrowSW / 2 +
+				('size' in endShapeInfo.shape.props
+					? (theme.strokeWidth * STROKE_SIZES[endShapeInfo.shape.props.size]) / 2
+					: 0)
 			offsetB = (BOUND_ARROW_OFFSET + strokeOffsetB) * shape.props.scale
 			minLength += strokeOffsetB * shape.props.scale
 		}

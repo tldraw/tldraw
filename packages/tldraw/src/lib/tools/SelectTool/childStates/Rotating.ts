@@ -16,6 +16,7 @@ const ONE_DEGREE = Math.PI / 180
 
 export class Rotating extends StateNode {
 	static override id = 'rotating'
+	static override trackPerformance = true
 
 	snapshot = {} as TLRotationSnapshot
 
@@ -40,7 +41,10 @@ export class Rotating extends StateNode {
 			editor: this.editor,
 			ids: this.editor.getSelectedShapeIds(),
 		})
-		if (!snapshot) return this.parent.transition('idle', this.info)
+		if (!snapshot) {
+			this.parent.transition('idle', this.info)
+			return
+		}
 		this.snapshot = snapshot
 
 		// Trigger a pointer move

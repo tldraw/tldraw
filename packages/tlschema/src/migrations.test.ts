@@ -15,6 +15,7 @@ import { instancePageStateVersions } from './records/TLPageState'
 import { pointerVersions } from './records/TLPointer'
 import { instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeVersions } from './records/TLShape'
+import { userVersions } from './records/TLUser'
 import { arrowShapeVersions } from './shapes/TLArrowShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
 import { drawShapeVersions } from './shapes/TLDrawShape'
@@ -1748,6 +1749,28 @@ describe('Add font size adjustment to notes', () => {
 	})
 })
 
+describe('Make font size adjustment a ratio on notes', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.MakeFontSizeAdjustmentRatio)
+
+	test('up converts zero to 1 (no adjustment)', () => {
+		expect(up({ props: { fontSizeAdjustment: 0 } })).toEqual({
+			props: { fontSizeAdjustment: 1 },
+		})
+	})
+
+	test('up converts non-zero to null (needs recomputation)', () => {
+		expect(up({ props: { fontSizeAdjustment: 18 } })).toEqual({
+			props: { fontSizeAdjustment: null },
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { fontSizeAdjustment: null } })).toEqual({
+			props: { fontSizeAdjustment: 0 },
+		})
+	})
+})
+
 describe('removes can move camera', () => {
 	const { up, down } = getTestMigration(instanceVersions.RemoveCanMoveCamera)
 
@@ -2099,6 +2122,21 @@ describe('Make image asset file size optional', () => {
 		expect(down({ props: {} })).toEqual({ props: { fileSize: -1 } })
 		expect(down({ props: { fileSize: 0 } })).toEqual({ props: { fileSize: 0 } })
 		expect(down({ props: { fileSize: 1 } })).toEqual({ props: { fileSize: 1 } })
+	})
+})
+
+describe('Add pixelRatio to image asset', () => {
+	const { up, down } = getTestMigration(imageAssetVersions.AddPixelRatio)
+
+	test('up works as expected', () => {
+		expect(up({ props: { w: 100, h: 100 } })).toEqual({ props: { w: 100, h: 100 } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { w: 100, h: 100, pixelRatio: 2 } })).toEqual({
+			props: { w: 100, h: 100 },
+		})
+		expect(down({ props: { w: 100, h: 100 } })).toEqual({ props: { w: 100, h: 100 } })
 	})
 })
 
@@ -2585,6 +2623,27 @@ describe('LegacyPointsConversion migration for highlight shape', () => {
 
 		// LegacyPointsConversion.down is a no-op; Base64.down handles the conversion
 		expect(result.props.segments[0].path).toBe(deltaPath)
+	})
+})
+
+describe('Adding textFirstEditedBy to note shape', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.AddFirstEditedBy)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { textFirstEditedBy: null } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { textFirstEditedBy: null } })).toEqual({ props: {} })
+	})
+})
+
+describe('TLUser initial migration', () => {
+	const { up } = getTestMigration(userVersions.Initial)
+
+	test('up is a no-op', () => {
+		const record = { id: 'user:123', name: 'Test', color: '#000', imageUrl: '', meta: {} }
+		expect(up(record)).toEqual(record)
 	})
 })
 

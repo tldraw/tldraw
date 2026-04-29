@@ -1,5 +1,5 @@
 import * as github from '@actions/github'
-import { ECSClient, ListClustersCommand } from '@aws-sdk/client-ecs'
+import { DeleteObjectsCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
@@ -10,8 +10,12 @@ const env = makeEnv([
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
 	'GH_TOKEN',
-	'NEON_API_KEY',
-	'NEON_PROJECT_ID',
+	'SUPABASE_ACCESS_TOKEN',
+	'SUPABASE_PREVIEW_PROJECT_ID',
+	'ZERO_R2_ENDPOINT',
+	'ZERO_R2_BUCKET_NAME',
+	'ZERO_R2_ACCESS_KEY_ID',
+	'ZERO_R2_SECRET_ACCESS_KEY',
 ])
 
 interface ListWorkersResult {
@@ -125,42 +129,24 @@ async function deletePreviewWorkerDeployment(id: string) {
 	}
 }
 
-const neonHeaders = {
-	Authorization: `Bearer ${env.NEON_API_KEY}`,
-}
-
-async function getBranchId(branchName: string) {
-	const url = `https://console.neon.tech/api/v2/projects/${env.NEON_PROJECT_ID}/branches?search=${branchName}`
-	nicelog('GET', url)
-	const res = await fetch(url, {
-		headers: neonHeaders,
-	})
-
-	if (!res.ok) {
-		throw new Error('Failed to list branches ' + JSON.stringify(await res.json()))
-	}
-
-	const data = (await res.json()) as { branches: { id: string; name: string }[] }
-
-	return data.branches.find((b) => b.name === branchName)?.id
+const supabaseHeaders = {
+	Authorization: `Bearer ${env.SUPABASE_ACCESS_TOKEN}`,
 }
 
 async function deletePreviewDatabase(branchName: string) {
-	const id = await getBranchId(branchName)
-	if (!id) {
-		nicelog(`Branch ${branchName} not found`)
+	const branchId = _supabaseBranchCache.get(branchName)
+	if (!branchId) {
+		nicelog(`Branch ${branchName} not found in cache`)
 		return
 	}
-
-	const url = `https://console.neon.tech/api/v2/projects/${env.NEON_PROJECT_ID}/branches/${id}`
+	const url = `https://api.supabase.com/v1/branches/${branchId}`
 	nicelog('DELETE', url)
-	const res = await fetch(url, {
-		method: 'DELETE',
-		headers: {
-			Authorization: `Bearer ${env.NEON_API_KEY}`,
-		},
-	})
-	nicelog('status', res.status)
+	const res = await fetch(url, { method: 'DELETE', headers: supabaseHeaders })
+	if (!res.ok) {
+		throw new Error(
+			`Failed to delete Supabase branch ${branchName}: ${res.status} ${res.statusText}`
+		)
+	}
 }
 
 async function deleteFlyioPreviewApp(appName: string) {
@@ -170,21 +156,20 @@ async function deleteFlyioPreviewApp(appName: string) {
 	}
 }
 
-const NEON_PREVIEW_DB_REGEX = /^pr-\d+$/
+const PREVIEW_DB_REGEX = /^pr-\d+$/
+const _supabaseBranchCache = new Map<string, string>()
 async function listPreviewDatabases() {
-	const url = `https://console.neon.tech/api/v2/projects/${env.NEON_PROJECT_ID}/branches`
-	const res = await fetch(url, {
-		headers: {
-			method: 'GET',
-			Authorization: `Bearer ${env.NEON_API_KEY}`,
-		},
-	})
+	const url = `https://api.supabase.com/v1/projects/${env.SUPABASE_PREVIEW_PROJECT_ID}/branches`
+	const res = await fetch(url, { headers: supabaseHeaders })
 	if (!res.ok) {
-		return []
+		throw new Error(`Failed to list Supabase branches: ${res.status} ${res.statusText}`)
 	}
-	return ((await res.json()) as { branches: { name: string }[] }).branches
-		.filter((b) => NEON_PREVIEW_DB_REGEX.test(b.name))
-		.map((b) => b.name)
+	const branches = (await res.json()) as { id: string; name: string }[]
+	const preview = branches.filter((b) => PREVIEW_DB_REGEX.test(b.name))
+	for (const b of preview) {
+		_supabaseBranchCache.set(b.name, b.id)
+	}
+	return preview.map((b) => b.name)
 }
 const ZERO_CACHE_APP_REGEX = /^pr-\d+-zero-cache$/
 async function listFlyioPreviewApps() {
@@ -204,24 +189,58 @@ async function listFlyioPreviewApps() {
 	return appNames.filter((name) => ZERO_CACHE_APP_REGEX.test(name))
 }
 
-async function listAmazonClusters() {
-	const client = new ECSClient({ region: 'eu-north-1' })
-	const data = await client.send(new ListClustersCommand({}))
-	if (!data.clusterArns) {
-		return []
-	}
-	const names = []
-	for (const arn of data.clusterArns) {
-		const match = arn.match(/tldraw-(pr-\d+)-/)
-		if (match) {
-			names.push(match[1])
+const R2 = new S3Client({
+	region: 'auto',
+	endpoint: env.ZERO_R2_ENDPOINT,
+	credentials: {
+		accessKeyId: env.ZERO_R2_ACCESS_KEY_ID,
+		secretAccessKey: env.ZERO_R2_SECRET_ACCESS_KEY,
+	},
+})
+
+async function listR2BackupPrefixes(): Promise<string[]> {
+	const prefixes: string[] = []
+	let continuationToken: string | undefined
+	do {
+		const res = await R2.send(
+			new ListObjectsV2Command({
+				Bucket: env.ZERO_R2_BUCKET_NAME,
+				Prefix: 'pr-',
+				Delimiter: '/',
+				ContinuationToken: continuationToken,
+			})
+		)
+		for (const prefix of res.CommonPrefixes ?? []) {
+			if (prefix.Prefix) prefixes.push(prefix.Prefix)
 		}
-	}
-	return names
+		continuationToken = res.IsTruncated ? res.NextContinuationToken : undefined
+	} while (continuationToken)
+	return prefixes
 }
 
-async function deleteSstPreviewApp(stage: string) {
-	await exec('yarn', ['sst', 'remove', '--stage', stage])
+async function deleteR2Backup(prefix: string) {
+	nicelog('Deleting R2 backup data:', prefix)
+	while (true) {
+		const list = await R2.send(
+			new ListObjectsV2Command({
+				Bucket: env.ZERO_R2_BUCKET_NAME,
+				Prefix: prefix,
+			})
+		)
+		const objects = list.Contents
+		if (!objects || objects.length === 0) break
+		const result = await R2.send(
+			new DeleteObjectsCommand({
+				Bucket: env.ZERO_R2_BUCKET_NAME,
+				Delete: { Objects: objects.map((o) => ({ Key: o.Key })) },
+			})
+		)
+		if (result.Errors && result.Errors.length > 0) {
+			throw new Error(
+				`Failed to delete ${result.Errors.length} objects: ${JSON.stringify(result.Errors)}`
+			)
+		}
+	}
 }
 
 const deletionErrors: string[] = []
@@ -229,12 +248,12 @@ const deletionErrors: string[] = []
 async function main() {
 	nicelog('Getting queues information')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
-	nicelog('\nPruning preview databases')
+	nicelog('\nPruning Supabase preview databases')
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
 	nicelog('\nPruning fly.io preview apps')
 	await processItems(listFlyioPreviewApps, deleteFlyioPreviewApp)
-	nicelog('\nPruning sst preview stages')
-	await processItems(listAmazonClusters, deleteSstPreviewApp)
+	nicelog('\nPruning R2 litestream backups')
+	await processItems(listR2BackupPrefixes, deleteR2Backup)
 	nicelog('\nDone')
 	if (deletionErrors.length > 0) {
 		nicelog('\nDeletion errors:')

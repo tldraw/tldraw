@@ -2,7 +2,7 @@ import { VecModel } from '@tldraw/tlschema'
 import { Box } from '../../../primitives/Box'
 import { Vec } from '../../../primitives/Vec'
 import { TLResizeHandle } from '../../types/selection-types'
-import { TLBaseBoxShape } from '../BaseBoxShapeUtil'
+import type { TLBaseBoxShape } from '../BaseBoxShapeUtil'
 import { TLResizeMode } from '../ShapeUtil'
 
 /** @public */

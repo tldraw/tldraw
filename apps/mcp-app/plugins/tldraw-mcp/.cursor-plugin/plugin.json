@@ -1,0 +1,10 @@
+{
+	"name": "tldraw",
+	"displayName": "tldraw",
+	"version": "0.1.0",
+	"description": "Draw and visually collaborate with your agents inside Cursor",
+	"author": {
+		"name": "tldraw"
+	},
+	"logo": "assets/logo.svg"
+}

@@ -1,0 +1,12 @@
+---
+title: Create a video shape
+component: ./LocalVideosExample.tsx
+priority: 2
+keywords: [video, asset, assetrecordtype, createassets, local, static, mp4, videoshape]
+---
+
+Create a video shape using a local asset.
+
+---
+
+This example shows how to create a `TLVideoAsset` for a video file that's hosted locally and add a `VideoShape` referencing that asset to the canvas.

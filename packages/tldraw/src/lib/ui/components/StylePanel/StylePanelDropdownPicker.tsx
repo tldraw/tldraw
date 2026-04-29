@@ -6,13 +6,13 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
-import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { useStylePanelContext } from './StylePanelContext'
 
 /** @public */

@@ -3,10 +3,11 @@ import { noop } from '@tldraw/utils'
 import classNames from 'classnames'
 import { ComponentType, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Editor } from '../../editor/Editor'
+import { getOwnerDocument } from '../../exports/domUtils'
+import { useEditorComponents } from '../../hooks/EditorComponentsContext'
 import { EditorProvider } from '../../hooks/useEditor'
-import { useEditorComponents } from '../../hooks/useEditorComponents'
-import { hardResetEditor } from '../../utils/hardResetEditor'
-import { refreshPage } from '../../utils/refreshPage'
+import { getGlobalWindow } from '../../utils/dom'
+import { hardResetEditor, refreshPage } from '../../utils/runtime'
 import { ErrorBoundary } from '../ErrorBoundary'
 
 const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
@@ -23,6 +24,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 
 	let Canvas: React.ComponentType | null = null
 	try {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const components = useEditorComponents()
 		Canvas = components.Canvas ?? null
 	} catch {
@@ -75,8 +77,8 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 
 		// if we can't find a theme class from the app or from a parent, we have
 		// to fall back on using a media query:
-		if (typeof window !== 'undefined' && window.matchMedia) {
-			setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches)
+		if (typeof window !== 'undefined' && getGlobalWindow().matchMedia) {
+			setIsDarkMode(getGlobalWindow().matchMedia('(prefers-color-scheme: dark)').matches)
 		}
 	}, [isDarkModeFromApp])
 
@@ -90,12 +92,13 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 	}, [didCopy, editor])
 
 	const copyError = () => {
-		const textarea = document.createElement('textarea')
+		const doc = getOwnerDocument(containerRef.current)
+		const textarea = doc.createElement('textarea')
 		textarea.value = errorStack ?? errorMessage
-		document.body.appendChild(textarea)
+		doc.body.appendChild(textarea)
 		textarea.select()
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		document.execCommand('copy')
+		doc.execCommand('copy')
 		textarea.remove()
 		setDidCopy(true)
 	}

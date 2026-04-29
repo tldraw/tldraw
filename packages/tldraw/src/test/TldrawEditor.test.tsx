@@ -18,8 +18,8 @@ import { StrictMode } from 'react'
 import { vi } from 'vitest'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'
+import { createDrawSegments } from '../lib/utils/test-helpers'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
-import { createDrawSegments } from './test-jsx'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
@@ -255,8 +255,8 @@ describe('<TldrawEditor />', () => {
 			shapeTypesToTest.length
 		)
 
-		// Check that the canvas indicators element is present
-		expect(document.querySelector('.tl-canvas-indicators')).toBeTruthy()
+		// Check that the canvas overlays element is present (indicators render here too)
+		expect(document.querySelector('.tl-canvas-overlays')).toBeTruthy()
 
 		// Select one of the shapes (the note shape)
 		const noteShapeId = shapeIds[9] // note is at index 9
@@ -270,6 +270,71 @@ describe('<TldrawEditor />', () => {
 
 		// Is the editor's current tool correct?
 		expect(editor.getCurrentToolId()).toBe('eraser')
+	})
+
+	it('Renders selection overlays without TldrawUiContextProvider', async () => {
+		// Unmock useTranslation so we test the real implementation.
+		// (setupVitest.js globally mocks it to prevent errors in other tests)
+		const actual = await vi.importActual<
+			typeof import('../lib/ui/hooks/useTranslation/useTranslation')
+		>('../lib/ui/hooks/useTranslation/useTranslation')
+		const translationModule = await import('../lib/ui/hooks/useTranslation/useTranslation')
+		const spy = vi
+			.spyOn(translationModule, 'useTranslation')
+			.mockImplementation(actual.useTranslation)
+
+		const errors: unknown[] = []
+		let editor = {} as Editor
+		await renderTldrawComponent(
+			<TldrawEditor
+				shapeUtils={defaultShapeUtils}
+				initialState="select"
+				tools={defaultTools}
+				components={{
+					// Use a custom error fallback to detect errors that would
+					// otherwise be silently caught by the default error boundary
+					ErrorFallback: ({ error }) => {
+						errors.push(error)
+						return <div data-testid="test-error-fallback" />
+					},
+				}}
+				onMount={(editorApp) => {
+					editor = editorApp
+				}}
+				options={options}
+			/>,
+			{ waitForPatterns: false }
+		)
+
+		await act(async () => {
+			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } })
+		})
+
+		const id = createShapeId()
+		await act(async () => {
+			editor.createShapes([
+				{
+					id,
+					type: 'geo',
+					props: { w: 100, h: 100 },
+				},
+			])
+		})
+
+		// Select the shape — this triggers the selection foreground to render
+		// with resize/rotate handles that use useTranslation()
+		await act(async () => editor.select(id))
+
+		expect(editor.getSelectedShapeIds()).toHaveLength(1)
+		// Verify no errors were caught by the error boundary
+		// (useTranslation would throw without the fix, which the error boundary catches)
+		expect(errors).toHaveLength(0)
+		expect(document.querySelector('[data-testid="test-error-fallback"]')).toBeNull()
+		// Selection foreground is now rendered via the OverlayUtil canvas system,
+		// so we verify via the canvas-overlays element instead of the old SVG element
+		expect(document.querySelector('.tl-canvas-overlays')).toBeTruthy()
+
+		spy.mockRestore()
 	})
 
 	it('renders correctly in strict mode', async () => {
@@ -472,10 +537,10 @@ describe('Custom shapes', () => {
 	class CardUtil extends BaseBoxShapeUtil<CardShape> {
 		static override type = CARD_TYPE
 
-		override isAspectRatioLocked(_shape: CardShape) {
+		override isAspectRatioLocked(shape: CardShape) {
 			return false
 		}
-		override canResize(_shape: CardShape) {
+		override canResize(shape: CardShape) {
 			return true
 		}
 
@@ -504,8 +569,10 @@ describe('Custom shapes', () => {
 			)
 		}
 
-		indicator(shape: CardShape) {
-			return <rect data-testid="card-indicator" width={shape.props.w} height={shape.props.h} />
+		getIndicatorPath(shape: CardShape) {
+			const path = new Path2D()
+			path.rect(0, 0, shape.props.w, shape.props.h)
+			return path
 		}
 	}
 
@@ -568,8 +635,9 @@ describe('Custom shapes', () => {
 		// Select the shape
 		await act(async () => editor.select(id))
 
-		// Is the shape's component rendering?
-		expect(await screen.findByTestId('card-indicator')).toBeTruthy()
+		// Indicators are now rendered via the canvas overlay system (not DOM),
+		// so we verify selection state instead of a DOM element
+		expect(editor.getSelectedShapeIds()).toEqual([id])
 
 		// Select the tool...
 		await act(async () => editor.setCurrentTool('card'))

@@ -1,0 +1,24 @@
+---
+title: Store events
+component: ./StoreEventsExample.tsx
+priority: 1
+keywords:
+  [
+    store,
+    events,
+    listen,
+    changes,
+    transactions,
+    added,
+    updated,
+    removed,
+    tleventmaphandler,
+    subscribe,
+  ]
+---
+
+Listen to changes from tldraw's store.
+
+---
+
+This example listens to changes from tldraw's store and shows them on the right-hand-side. Try creating & deleting shapes, or switching pages. The changes will be logged next to the canvas.

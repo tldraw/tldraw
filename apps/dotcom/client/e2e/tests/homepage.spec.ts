@@ -113,6 +113,7 @@ test.describe('sidebar actions', () => {
 			const input = page.getByRole('textbox')
 			await input?.fill(newName)
 			await page.keyboard.press('Enter')
+			await sidebar.mutationResolution()
 		})
 
 		await test.step('verify the name change', async () => {

@@ -103,6 +103,57 @@ describe('Editor.deleteShapes', () => {
 		expect(editor.getShape(ids.box3)).toBeUndefined()
 		expect(editor.getShape(ids.box4)).toBeUndefined()
 	})
+
+	it('does not crash when deleting a bent arrow and two adjacent bound shapes', () => {
+		const leftId = createShapeId('left')
+		const rightId = createShapeId('right')
+		const bentArrowId = createShapeId('bent-arrow')
+
+		editor.createShapes([
+			{ id: leftId, type: 'geo', x: 500, y: 500, props: { w: 100, h: 100 } },
+			{ id: rightId, type: 'geo', x: 600, y: 500, props: { w: 100, h: 100 } },
+			{
+				id: bentArrowId,
+				type: 'arrow',
+				x: 550,
+				y: 550,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+					bend: -120,
+				},
+			},
+		])
+
+		editor.createBindings([
+			{
+				id: createBindingId(),
+				fromId: bentArrowId,
+				toId: leftId,
+				type: 'arrow',
+				props: {
+					terminal: 'start',
+					isExact: false,
+					normalizedAnchor: { x: 1, y: 0.5 },
+					isPrecise: false,
+				},
+			},
+			{
+				id: createBindingId(),
+				fromId: bentArrowId,
+				toId: rightId,
+				type: 'arrow',
+				props: {
+					terminal: 'end',
+					isExact: false,
+					normalizedAnchor: { x: 0, y: 0.5 },
+					isPrecise: false,
+				},
+			},
+		])
+
+		expect(() => editor.deleteShapes([leftId, bentArrowId, rightId])).not.toThrow()
+	})
 })
 
 describe('When deleting arrows', () => {

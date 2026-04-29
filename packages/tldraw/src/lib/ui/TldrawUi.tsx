@@ -1,23 +1,23 @@
-import { tlenv, useEditor, useReactor, useValue } from '@tldraw/editor'
+import { tlenv, useContainer, useEditor, useReactor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
-import React, { ReactNode, useMemo, useRef, useState } from 'react'
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
 import { SkipToMainContent } from './components/A11y'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
 import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from './constants'
+import { useActions } from './context/actions'
+import { useBreakpoint } from './context/breakpoints'
+import { TLUiComponents, useTldrawUiComponents } from './context/components'
 import {
 	TLUiContextProviderProps,
 	TldrawUiContextProvider,
 } from './context/TldrawUiContextProvider'
-import { useActions } from './context/actions'
-import { useBreakpoint } from './context/breakpoints'
-import { TLUiComponents, useTldrawUiComponents } from './context/components'
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useReadonly } from './hooks/useReadonly'
-import { useTranslation } from './hooks/useTranslation/useTranslation'
+import { useDirection, useTranslation } from './hooks/useTranslation/useTranslation'
 
 /** @public */
 export interface TldrawUiProps extends TLUiContextProviderProps {
@@ -101,6 +101,14 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	const isReadonlyMode = useReadonly()
 	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
+
+	const container = useContainer()
+	const dir = useDirection()
+	const locale = useValue('locale', () => editor.user.getLocale(), [editor])
+	useEffect(() => {
+		container.dir = dir
+		container.lang = locale
+	}, [container, dir, locale])
 
 	const {
 		SharePanel,

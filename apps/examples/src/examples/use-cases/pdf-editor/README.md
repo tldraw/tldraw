@@ -1,0 +1,25 @@
+---
+title: PDF editor
+component: ./PdfEditorExample.tsx
+priority: 1
+keywords:
+  [
+    pdf,
+    annotation,
+    camera options,
+    constraints,
+    zoom,
+    pan,
+    camera bounds,
+    pan speed,
+    zoom speed,
+    scroll,
+    document viewer,
+  ]
+---
+
+A very basic PDF editor built with tldraw.
+
+---
+
+This example shows how you might want to configure `cameraOptions` to make a PDF editor.

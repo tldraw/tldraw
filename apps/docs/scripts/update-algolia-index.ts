@@ -1,16 +1,16 @@
-import { db } from '@/utils/ContentDatabase'
+import console from 'console'
+import { assertExists, groupBy, objectMapEntries } from '@tldraw/utils'
+import algoliasearch from 'algoliasearch'
+import { config } from 'dotenv'
 import {
 	SearchEntry,
 	SearchEntryWithIndex,
 	SearchIndexName,
 	getSearchIndexName,
 } from '@/utils/algolia'
+import { db } from '@/utils/ContentDatabase'
 import { nicelog } from '@/utils/nicelog'
 import { parseMarkdown } from '@/utils/parse-markdown'
-import { assertExists, groupBy, objectMapEntries } from '@tldraw/utils'
-import algoliasearch from 'algoliasearch'
-import console from 'console'
-import { config } from 'dotenv'
 
 config()
 

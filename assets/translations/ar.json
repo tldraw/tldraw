@@ -35,6 +35,8 @@
 	"action.convert-to-bookmark": "تحويل إلى إشارة مرجعية",
 	"action.convert-to-embed": "تحويل إلى تضمين",
 	"action.copy": "نسخ",
+	"action.copy-as-json": "نسخ بصيغة JSON",
+	"action.copy-as-json.short": "JSON",
 	"action.copy-as-png": "نسخ بصيغة PNG",
 	"action.copy-as-png.short": "صيغة PNG",
 	"action.copy-as-svg": "نسخ بصيغة SVG",

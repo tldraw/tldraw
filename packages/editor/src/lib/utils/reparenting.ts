@@ -6,7 +6,6 @@ import { intersectPolygonPolygon } from '../primitives/intersect'
 
 /**
  * Reparents shapes that are no longer contained within their parent shapes.
- * todo: rename me to something more descriptive, like `reparentOccludedShapes` or `reparentAutoDroppedShapes`
  *
  * @param editor - The editor instance.
  * @param shapeIds - The IDs of the shapes to reparent.
@@ -62,9 +61,6 @@ export function kickoutOccludedShapes(
 	for (const [prevParent, lostChildrenIds] of parentsToLostChildren) {
 		const lostChildren = compact(lostChildrenIds.map((id) => editor.getShape(id)))
 
-		// Don't fall "up" into frames in front of the shape
-		// if (pageShapes.indexOf(shape) < frameSortPosition) continue shapeCheck
-
 		// Otherwise, we have no next dropping shape under the cursor, so go find
 		// all the frames on the page where the moving shapes will fall into
 		const { reparenting, remainingShapesToReparent } = getDroppedShapesToNewParents(
@@ -107,9 +103,13 @@ export function kickoutOccludedShapes(
 					if (oldParentIndex > -1) {
 						// If the old parent is a direct child of the new parent, then we'll add them above the old parent but below the next sibling.
 						const siblingsIndexAbove = oldParentSiblingIds[oldParentIndex + 1]
-						const indexKeyAbove = siblingsIndexAbove
+						const siblingAboveIndex = siblingsIndexAbove
 							? editor.getShape(siblingsIndexAbove)!.index
-							: getIndexAbove(prevParent.index)
+							: undefined
+						const indexKeyAbove =
+							siblingAboveIndex && siblingAboveIndex > prevParent.index
+								? siblingAboveIndex
+								: getIndexAbove(prevParent.index)
 						insertIndexKey = getIndexBetween(prevParent.index, indexKeyAbove)
 					} else {
 						// If the old parent is not a direct child of the new parent, then we'll add them to the "top" of the new parent's children.
@@ -158,17 +158,16 @@ function getOverlappingShapes<T extends TLShape[] | TLShapeId[]>(
 	const parentPageBounds = editor.getShapePageBounds(shape)
 	if (!parentPageBounds) return EMPTY_ARRAY
 
+	const _shape = editor.getShape(shape)
+	if (!_shape) return EMPTY_ARRAY
+
 	const parentGeometry = editor.getShapeGeometry(shape)
 	const parentPageTransform = editor.getShapePageTransform(shape)
 	const parentPageCorners = parentPageTransform.applyToPoints(parentGeometry.vertices)
 
-	const _shape = editor.getShape(shape)
-	if (!_shape) return EMPTY_ARRAY
-
-	const pageTransform = editor.getShapePageTransform(shape)
 	const clipPath = editor.getShapeUtil(_shape.type).getClipPath?.(_shape)
 
-	const parentPageMaskVertices = clipPath ? pageTransform.applyToPoints(clipPath) : undefined
+	const parentPageMaskVertices = clipPath ? parentPageTransform.applyToPoints(clipPath) : undefined
 	const parentPagePolygon = parentPageMaskVertices
 		? intersectPolygonPolygon(parentPageMaskVertices, parentPageCorners)
 		: parentPageCorners
@@ -283,7 +282,7 @@ export function getDroppedShapesToNewParents(
 			// Are the shape and the parent part of different groups?
 			if (shapeGroupId !== parentShapeContainingGroupId) continue shapeCheck
 
-			// Is the shape is actually the ancestor of the parent?
+			// Is the shape actually the ancestor of the parent?
 			if (editor.findShapeAncestor(parentShape, (s) => shape.id === s.id)) continue shapeCheck
 
 			// Convert the parent polygon to the shape's space

@@ -29,10 +29,6 @@ import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
-import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
-import { TlaLogo } from '../TlaLogo/TlaLogo'
-import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import {
 	CookieConsentMenuItem,
@@ -40,6 +36,10 @@ import {
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
 } from '../menu-items/menu-items'
+import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TlaLogo } from '../TlaLogo/TlaLogo'
+import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
@@ -119,13 +119,15 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 					<TldrawUiDropdownMenuTrigger>
-						<button
+						<TldrawUiButton
+							type="icon"
 							className={styles.topLeftMainMenuTrigger}
+							tooltip={pageMenuLbl}
 							title={pageMenuLbl}
 							data-testid="tla-main-menu"
 						>
 							<TlaIcon icon="dots-vertical-strong" />
-						</button>
+						</TldrawUiButton>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 						<TldrawUiMenuGroup id="basic">
@@ -233,13 +235,15 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
-					<button
+					<TldrawUiButton
+						type="icon"
 						className={styles.topLeftMainMenuTrigger}
+						tooltip={pageMenuLbl}
 						title={pageMenuLbl}
 						data-testid="tla-main-menu"
 					>
 						<TlaIcon icon="dots-vertical-strong" />
-					</button>
+					</TldrawUiButton>
 				}
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
@@ -255,7 +259,6 @@ export function TlaEditorTopLeftPanelSignedIn() {
 					<ViewSubmenu />
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
-					<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="preferences">
 					<PreferencesGroup />

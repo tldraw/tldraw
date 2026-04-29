@@ -15,7 +15,7 @@ export class CubicSpline2d extends Geometry2d {
 
 	private _segments?: CubicBezier2d[]
 
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get segments() {
 		if (!this._segments) {
 			this._segments = []
@@ -73,6 +73,16 @@ export class CubicSpline2d extends Geometry2d {
 		}
 		if (!nearest) throw Error('nearest point not found')
 		return nearest
+	}
+
+	override distanceToPoint(point: VecLike, _hitInside = false): number {
+		const { segments } = this
+		let minDist = Infinity
+		for (let i = 0; i < segments.length; i++) {
+			const d = segments[i].distanceToPoint(point)
+			if (d < minDist) minDist = d
+		}
+		return minDist
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike): boolean {

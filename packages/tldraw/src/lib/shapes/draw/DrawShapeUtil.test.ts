@@ -118,6 +118,56 @@ describe('DrawShapeUtil dot detection', () => {
 		})
 	})
 
+	describe('onResize prevents zero scale', () => {
+		it('is a no-op when resized to zero width', () => {
+			const shape = createDrawShape(
+				createDrawSegments([
+					[
+						{ x: 0, y: 0, z: 0.5 },
+						{ x: 50, y: 50, z: 0.5 },
+					],
+				])
+			)
+
+			editor.resizeShape(shape.id, { x: 0, y: 1 })
+			const resized = editor.getShape<TLDrawShape>(shapeId)!
+			expect(resized.props.scaleX).toBe(1)
+			expect(resized.props.scaleY).toBe(1)
+		})
+
+		it('is a no-op when resized to zero height', () => {
+			const shape = createDrawShape(
+				createDrawSegments([
+					[
+						{ x: 0, y: 0, z: 0.5 },
+						{ x: 50, y: 50, z: 0.5 },
+					],
+				])
+			)
+
+			editor.resizeShape(shape.id, { x: 1, y: 0 })
+			const resized = editor.getShape<TLDrawShape>(shapeId)!
+			expect(resized.props.scaleX).toBe(1)
+			expect(resized.props.scaleY).toBe(1)
+		})
+
+		it('preserves sign when resizing with negative scale (flipping)', () => {
+			const shape = createDrawShape(
+				createDrawSegments([
+					[
+						{ x: 0, y: 0, z: 0.5 },
+						{ x: 50, y: 50, z: 0.5 },
+					],
+				])
+			)
+
+			editor.resizeShape(shape.id, { x: -1, y: -1 })
+			const resized = editor.getShape<TLDrawShape>(shapeId)!
+			expect(resized.props.scaleX).toBe(-1)
+			expect(resized.props.scaleY).toBe(-1)
+		})
+	})
+
 	describe('base64 encoding boundary conditions', () => {
 		it('correctly handles the boundary at exactly 24 base64 characters (2 points)', () => {
 			// First point is 16 base64 chars (Float32), delta points are 8 chars each (Float16)

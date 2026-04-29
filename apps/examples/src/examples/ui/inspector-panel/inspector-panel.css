@@ -1,0 +1,218 @@
+.example-container {
+	display: flex;
+	height: 100vh;
+	width: 100%;
+}
+
+.canvas-container {
+	flex: 1;
+	height: 100vh;
+}
+
+/* Theme variables */
+.tl-theme__light .inspector-panel {
+	--inspector-bg: white;
+	--inspector-border: #ccc;
+	--inspector-text: inherit;
+	--inspector-heading: #666;
+	--inspector-muted: #666;
+	--inspector-value: #333;
+	--inspector-btn-bg: #e0e0e0;
+	--inspector-btn-border: #ccc;
+	--inspector-btn-text: inherit;
+	--inspector-btn-hover: #d0d0d0;
+	--inspector-btn-active: #c0c0c0;
+	--inspector-json-bg: #f8f8f8;
+	--inspector-json-border: #e0e0e0;
+	--inspector-json-text: #444;
+	--inspector-binding-bg: #f9f9f9;
+	--inspector-binding-border: #007acc;
+	--inspector-binding-type: #007acc;
+	--inspector-binding-dir-bg: #e0e0e0;
+	--inspector-binding-dir-text: #666;
+}
+
+.tl-theme__dark .inspector-panel {
+	--inspector-bg: #2a2a2a;
+	--inspector-border: #555;
+	--inspector-text: #e0e0e0;
+	--inspector-heading: #aaa;
+	--inspector-muted: #aaa;
+	--inspector-value: #ddd;
+	--inspector-btn-bg: #555;
+	--inspector-btn-border: #666;
+	--inspector-btn-text: #e0e0e0;
+	--inspector-btn-hover: #666;
+	--inspector-btn-active: #777;
+	--inspector-json-bg: #1e1e1e;
+	--inspector-json-border: #555;
+	--inspector-json-text: #ddd;
+	--inspector-binding-bg: #333;
+	--inspector-binding-border: #4da6ff;
+	--inspector-binding-type: #4da6ff;
+	--inspector-binding-dir-bg: #555;
+	--inspector-binding-dir-text: #ccc;
+}
+
+.inspector-panel {
+	width: 300px;
+	background: var(--inspector-bg);
+	border-left: 1px solid var(--inspector-border);
+	color: var(--inspector-text);
+	padding: 16px;
+	font-family: monospace;
+	font-size: 12px;
+	overflow-y: auto;
+}
+
+.inspector-panel h3 {
+	margin: 0 0 16px 0;
+	font-size: 14px;
+	font-weight: bold;
+}
+
+.inspector-panel h4 {
+	margin: 16px 0 8px 0;
+	font-size: 12px;
+	font-weight: bold;
+	color: var(--inspector-heading);
+	text-transform: uppercase;
+}
+
+.inspector-panel h4:first-child {
+	margin-top: 0;
+}
+
+.inspector-panel p {
+	margin: 0;
+	color: var(--inspector-muted);
+	font-style: italic;
+}
+
+.inspector-section {
+	margin-bottom: 16px;
+}
+
+.inspector-section:last-child {
+	margin-bottom: 0;
+}
+
+.property-row {
+	margin-bottom: 4px;
+	line-height: 1.4;
+}
+
+.property-row-header {
+	display: flex;
+	align-items: center;
+}
+
+.property-name {
+	flex: 0 0 1;
+	font-weight: bold;
+	margin-right: 8px;
+}
+
+.property-value {
+	flex: 1;
+	word-break: break-all;
+	color: var(--inspector-value);
+}
+
+/* Shared style indicators */
+.shared-style {
+	color: #0066cc;
+}
+
+.mixed-style {
+	color: #ff6600;
+	font-style: italic;
+}
+
+.toggle-button {
+	background: var(--inspector-btn-bg);
+	border: 1px solid var(--inspector-btn-border);
+	color: var(--inspector-btn-text);
+	border-radius: 2px;
+	width: 18px;
+	height: 18px;
+	font-size: 12px;
+	font-weight: bold;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	line-height: 1;
+	margin-right: 8px;
+}
+
+.toggle-button:hover {
+	background: var(--inspector-btn-hover);
+}
+
+.toggle-button:active {
+	background: var(--inspector-btn-active);
+}
+
+.property-json {
+	margin-top: 4px;
+	margin-left: 8px;
+	background: var(--inspector-json-bg);
+	border: 1px solid var(--inspector-json-border);
+	border-radius: 4px;
+	padding: 8px;
+	overflow-x: auto;
+}
+
+.property-json pre {
+	margin: 0;
+	font-size: 11px;
+	line-height: 1.3;
+	color: var(--inspector-json-text);
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+/* Binding-specific styles */
+.binding-row {
+	margin-bottom: 12px;
+	padding: 8px;
+	background: var(--inspector-binding-bg);
+	border-radius: 4px;
+	border-left: 3px solid var(--inspector-binding-border);
+}
+
+.binding-header {
+	display: flex;
+	align-items: center;
+	margin-bottom: 4px;
+	gap: 8px;
+}
+
+.binding-type {
+	font-weight: bold;
+	color: var(--inspector-binding-type);
+	text-transform: uppercase;
+	font-size: 11px;
+}
+
+.binding-direction {
+	font-size: 10px;
+	color: var(--inspector-binding-dir-text);
+	background: var(--inspector-binding-dir-bg);
+	padding: 2px 6px;
+	border-radius: 2px;
+}
+
+.binding-props {
+	margin-top: 4px;
+}
+
+.binding-prop {
+	margin-left: 8px;
+}
+
+.binding-row:last-child {
+	margin-bottom: 0;
+}

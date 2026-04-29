@@ -1,5 +1,5 @@
-import react from '@vitejs/plugin-react-swc'
 import path from 'path'
+import react from '@vitejs/plugin-react'
 import { Plugin, PluginOption, defineConfig } from 'vite'
 
 /**
@@ -73,7 +73,7 @@ const TLDRAW_BEMO_URL_STRING =
 				: undefined
 
 export default defineConfig(({ mode }) => ({
-	plugins: [spaFallbackPlugin(), react({ tsDecorators: true }), exampleReadmePlugin()],
+	plugins: [spaFallbackPlugin(), react(), exampleReadmePlugin()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {
@@ -82,7 +82,7 @@ export default defineConfig(({ mode }) => ({
 		target: 'es2022',
 		minify: false,
 	},
-	esbuild: {
+	oxc: {
 		target: 'es2022',
 	},
 	server: {
@@ -95,9 +95,6 @@ export default defineConfig(({ mode }) => ({
 	clearScreen: false,
 	optimizeDeps: {
 		exclude: ['@tldraw/assets'],
-		esbuildOptions: {
-			target: 'es2022',
-		},
 	},
 	define: {
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),
@@ -117,45 +114,75 @@ function exampleReadmePlugin(): PluginOption {
 	return {
 		name: 'example-readme',
 		async transform(src, id) {
-			const match = id.match(/examples\/src\/examples\/(.*)\/README.md$/)
+			const [filePath, query] = id.split('?')
+			const isContentQuery = query?.split('&').includes('content')
+			const match = filePath.match(/examples\/src\/examples\/(.+)\/README.md$/)
 			if (!match) return
+
+			const separator = '\n<hr>\n'
+			const relativePath = match[1]
+			const segments = relativePath.split('/')
+			const slug = segments[segments.length - 1]
+			const category = segments.slice(0, -1).join('/')
+			if (!category) {
+				throw new Error(`Example category folder missing for ${filePath}`)
+			}
+			const path = `/${slug}`
+			const codeUrl = `https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/${relativePath}`
+
+			if (isContentQuery) {
+				const remark = (await import('remark')).remark
+				const remarkFrontmatter = (await import('remark-frontmatter')).default
+				const remarkHtml = (await import('remark-html')).default
+				const matter = (await import('vfile-matter')).matter
+
+				const file = await remark()
+					.use(remarkFrontmatter)
+					.use(remarkHtml)
+					.use(() => (_, file) => matter(file))
+					.process(src)
+
+				const parts = String(file).split(separator)
+				const description = parts[0]
+				const details = parts.slice(1).join(separator)
+
+				const result = [
+					`export const description = ${JSON.stringify(description)};`,
+					`export const details = ${JSON.stringify(details)};`,
+				]
+
+				return result.join('\n')
+			}
 
 			const remark = (await import('remark')).remark
 			const remarkFrontmatter = (await import('remark-frontmatter')).default
-			const remarkHtml = (await import('remark-html')).default
 			const matter = (await import('vfile-matter')).matter
 
 			const file = await remark()
 				.use(remarkFrontmatter)
-				.use(remarkHtml)
 				.use(() => (_, file) => matter(file))
 				.process(src)
 
-			const frontmatter = parseFrontMatter(file.data.matter, id)
+			const frontmatter = parseFrontMatter(file.data.matter, filePath)
 
-			const separator = '\n<hr>\n'
-			const parts = String(file).split(separator)
-			const description = parts[0]
-			const details = parts.slice(1).join(separator)
-			const path = `/${match[1]}`
-			const codeUrl = `https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples${path}`
+			const meta = {
+				title: frontmatter.title,
+				priority: frontmatter.priority,
+				category,
+				multiplayer: frontmatter.multiplayer,
+				keywords: frontmatter.keywords,
+				codeUrl,
+				path,
+			}
 
 			const result = [
-				`export const title = ${JSON.stringify(frontmatter.title)};`,
-				`export const priority = ${JSON.stringify(frontmatter.priority ?? '100000')};`,
-				`export const category = ${JSON.stringify(frontmatter.category)};`,
-				`export const hide = ${JSON.stringify(frontmatter.hide)};`,
-				`export const multiplayer = ${JSON.stringify(frontmatter.multiplayer)};`,
-				`export const description = ${JSON.stringify(description)};`,
-				`export const details = ${JSON.stringify(details)};`,
-				`export const codeUrl = ${JSON.stringify(codeUrl)};`,
-				`export const path = ${JSON.stringify(path)};`,
-				`export const componentFile = ${JSON.stringify(frontmatter.component)};`,
-				`import {lazy} from 'react';`,
+				`export const meta = ${JSON.stringify(meta)};`,
 				`export const loadComponent = async () => {`,
 				`    return (await import(${JSON.stringify(frontmatter.component)})).default;`,
 				`};`,
-				`export const keywords = ${JSON.stringify(frontmatter.keywords)};`,
+				`export const loadContent = async () => {`,
+				`    return await import(${JSON.stringify(filePath + '?content')});`,
+				`};`,
 			]
 
 			return result.join('\n')
@@ -181,16 +208,6 @@ function parseFrontMatter(data: unknown, fileName: string) {
 		throw new Error(`Frontmatter key 'priority' must be number in ${fileName}`)
 	}
 
-	const category = 'category' in data ? data.category : null
-	if (typeof category !== 'string') {
-		throw new Error(`Frontmatter key 'category' must be string in ${fileName}`)
-	}
-
-	const hide = 'hide' in data ? data.hide : false
-	if (hide !== false && hide !== true) {
-		throw new Error(`Frontmatter key 'hide' must be boolean in ${fileName}`)
-	}
-
 	const keywords = 'keywords' in data ? data.keywords : []
 	if (!Array.isArray(keywords)) {
 		throw new Error(`Frontmatter key 'keywords' must be array in ${fileName}`)
@@ -205,8 +222,6 @@ function parseFrontMatter(data: unknown, fileName: string) {
 		title: data.title,
 		component: data.component,
 		priority,
-		category,
-		hide,
 		keywords,
 		multiplayer,
 	}

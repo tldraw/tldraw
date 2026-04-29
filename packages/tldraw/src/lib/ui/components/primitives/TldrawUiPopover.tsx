@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import { Popover as _Popover } from 'radix-ui'
 import React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useDirection } from '../../hooks/useTranslation/useTranslation'
 
 /** @public */
 export interface TLUiPopoverProps {
@@ -31,8 +32,9 @@ export interface TLUiPopoverTriggerProps {
 
 /** @public @react */
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps) {
+	const dir = useDirection()
 	return (
-		<_Popover.Trigger asChild dir="ltr">
+		<_Popover.Trigger asChild dir={dir}>
 			{children}
 		</_Popover.Trigger>
 	)
@@ -60,6 +62,7 @@ export function TldrawUiPopoverContent({
 	autoFocusFirstButton = true,
 }: TLUiPopoverContentProps) {
 	const container = useContainer()
+	const dir = useDirection()
 	const ref = React.useRef<HTMLDivElement>(null)
 
 	const handleOpenAutoFocus = React.useCallback(() => {
@@ -80,7 +83,7 @@ export function TldrawUiPopoverContent({
 				sideOffset={sideOffset}
 				align={align}
 				alignOffset={alignOffset}
-				dir="ltr"
+				dir={dir}
 				ref={ref}
 				onOpenAutoFocus={handleOpenAutoFocus}
 				onEscapeKeyDown={(e) => disableEscapeKeyDown && e.preventDefault()}

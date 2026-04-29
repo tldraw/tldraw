@@ -36,7 +36,7 @@ export class MultiplyNodeDefinition extends NodeDefinition<MultiplyNode> {
 	static validator = MultiplyNode
 	title = 'Multiply'
 	heading = 'Multiply'
-	icon = (<MultiplyIcon />)
+	icon = <MultiplyIcon />
 	getDefault(): MultiplyNode {
 		return {
 			type: 'multiply',

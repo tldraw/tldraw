@@ -113,7 +113,7 @@ describe('multiplayerAssetStore.resolve', () => {
 		).toBe('http://assets.tldraw.dev/animated.gif')
 	})
 
-	it('should sanitize vector images via cdn-cgi without resizing', async () => {
+	it('should serve vector images directly without cdn-cgi transformation', async () => {
 		const asset = {
 			type: 'image',
 			props: {
@@ -131,7 +131,7 @@ describe('multiplayerAssetStore.resolve', () => {
 				networkEffectiveType: '4g',
 				shouldResolveToOriginal: false,
 			})
-		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/vector.svg')
+		).toBe('https://tldrawusercontent.com/vector.svg')
 	})
 
 	it("should return null if the asset type is not 'image'", async () => {

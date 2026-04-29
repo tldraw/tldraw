@@ -26,6 +26,9 @@ export { assert_2 as assert }
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
 // @public
+export type Awaitable<T> = PromiseLike<T> | T;
+
+// @public
 export function bind<T extends (...args: any[]) => any>(target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T>;
 
 // @public
@@ -41,9 +44,9 @@ export function clearSessionStorage(): void;
 export function compact<T>(arr: T[]): NonNullable<T>[];
 
 // @public
-export function debounce<T extends unknown[], U>(callback: (...args: T) => PromiseLike<U> | U, wait: number): {
+export function debounce<T extends unknown[], U>(callback: (...args: T) => Awaitable<U>, wait: number): {
     (...args: T): Promise<U>;
-    cancel(): void;
+    cancel: () => void;
 };
 
 // @public
@@ -207,7 +210,7 @@ export function groupBy<K extends string, V>(array: ReadonlyArray<V>, keySelecto
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @internal
-const Image_2: (width?: number, height?: number) => HTMLImageElement;
+const Image_2: (width?: number | undefined, height?: number | undefined) => HTMLImageElement;
 export { Image_2 as Image }
 
 // @public
@@ -262,6 +265,19 @@ export function lerp(a: number, b: number, t: number): number;
 export function lns(str: string): string;
 
 // @public
+export class LruCache<K, V> {
+    constructor(maxSize: number);
+    // (undocumented)
+    get(key: K): undefined | V;
+    // (undocumented)
+    has(key: K): boolean;
+    // (undocumented)
+    set(key: K, value: V): void;
+    // (undocumented)
+    get size(): number;
+}
+
+// @public
 export type MakeUndefinedOptional<T extends object> = Expand<{
     [P in {
         [K in keyof T]: undefined extends T[K] ? never : K;
@@ -293,17 +309,18 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 
 // @public
 export class MediaHelpers {
-    static getImageAndDimensions(src: string): Promise<{
+    static getImageAndDimensions(src: string, doc?: Document): Promise<{
         h: number;
         image: HTMLImageElement;
         w: number;
     }>;
-    static getImageSize(blob: Blob): Promise<{
+    static getImageSize(blob: Blob, doc?: Document): Promise<{
         h: number;
+        pixelRatio: number;
         w: number;
     }>;
     static getVideoFrameAsDataUrl(video: HTMLVideoElement, time?: number): Promise<string>;
-    static getVideoSize(blob: Blob): Promise<{
+    static getVideoSize(blob: Blob, doc?: Document): Promise<{
         h: number;
         w: number;
     }>;
@@ -312,7 +329,7 @@ export class MediaHelpers {
     static isImageType(mimeType: string): boolean;
     static isStaticImageType(mimeType: null | string): boolean;
     static isVectorImageType(mimeType: null | string): boolean;
-    static loadVideo(src: string): Promise<HTMLVideoElement>;
+    static loadVideo(src: string, doc?: Document): Promise<HTMLVideoElement>;
     static usingObjectURL<T>(blob: Blob, fn: (url: string) => Promise<T>): Promise<T>;
 }
 
@@ -441,7 +458,7 @@ export function retry<T>(fn: (args: {
     attempt: number;
     remaining: number;
     total: number;
-}) => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
+}) => Promise<T>, { attempts, waitDuration, abortSignal, matchError }?: {
     abortSignal?: AbortSignal;
     attempts?: number;
     matchError?(error: unknown): boolean;
@@ -455,7 +472,7 @@ export function rng(seed?: string): () => number;
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
 // @public
-export const safeParseUrl: (url: string, baseUrl?: string | URL) => undefined | URL;
+export const safeParseUrl: (url: string, baseUrl?: string | undefined | URL) => undefined | URL;
 
 // @internal
 export function setInLocalStorage(key: string, value: string): void;
@@ -506,8 +523,8 @@ export class Timers {
     forContext(contextId: string): {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
-        setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
-        setTimeout: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+        setInterval: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
+        setTimeout: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
     };
     requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number;
     setInterval(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;

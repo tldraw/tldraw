@@ -87,7 +87,7 @@ export class RecordType<
 		 */
 		public readonly typeName: R['typeName'],
 		config: {
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
+			// eslint-disable-next-line tldraw/method-signature-style
 			readonly createDefaultProperties: () => Exclude<
 				Omit<R, 'id' | 'typeName'>,
 				RequiredProperties

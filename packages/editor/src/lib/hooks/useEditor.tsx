@@ -1,5 +1,5 @@
 import React, { createContext } from 'react'
-import { Editor } from '../editor/Editor'
+import type { Editor } from '../editor/Editor'
 import { IdProvider } from './useSafeId'
 
 /** @public */

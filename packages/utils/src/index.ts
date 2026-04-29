@@ -35,6 +35,7 @@ export { noop, omitFromStackTrace } from './lib/function'
 export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'
 export { mockUniqueId, restoreUniqueId, uniqueId } from './lib/id'
 export { getFirstFromIterable } from './lib/iterable'
+export { LruCache } from './lib/LruCache'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
 export {
 	DEFAULT_SUPPORT_VIDEO_TYPES,
@@ -94,6 +95,7 @@ export { stringEnum } from './lib/stringEnum'
 export { FpsScheduler, fpsThrottle, throttleToNextFrame } from './lib/throttle'
 export { Timers } from './lib/timers'
 export {
+	type Awaitable,
 	type Expand,
 	type MakeUndefinedOptional,
 	type RecursivePartial,

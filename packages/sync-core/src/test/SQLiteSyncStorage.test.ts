@@ -1,3 +1,4 @@
+import { DatabaseSync } from 'node:sqlite'
 import {
 	BaseRecord,
 	createMigrationSequence,
@@ -13,7 +14,6 @@ import {
 	TLRecord,
 } from '@tldraw/tlschema'
 import { IndexKey, ZERO_INDEX_KEY } from '@tldraw/utils'
-import { DatabaseSync } from 'node:sqlite'
 import { vi } from 'vitest'
 import { MAX_TOMBSTONES, TOMBSTONE_PRUNE_BUFFER_SIZE } from '../lib/InMemorySyncStorage'
 import { NodeSqliteWrapper } from '../lib/NodeSqliteWrapper'
@@ -666,9 +666,10 @@ describe('SQLiteSyncStorage', () => {
 				const changes = txn.getChangesSince(5)! // 5 < 10
 
 				expect(changes.wipeAll).toBe(true)
-				// When wipeAll is true, all documents are returned
+				// When wipeAll is true, all documents are returned and deletes are omitted (redundant)
 				const puts = Object.values(changes.diff.puts)
 				expect(puts.length).toBe(2)
+				expect(changes.diff.deletes).toEqual([])
 			})
 		})
 

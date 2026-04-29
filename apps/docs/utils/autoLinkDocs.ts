@@ -1,7 +1,7 @@
-/* eslint-disable no-useless-escape */
-import { Article } from '@/types/content-types'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
+/* eslint-disable no-useless-escape */
+import { Article } from '@/types/content-types'
 
 export async function autoLinkDocs(db: Database<sqlite3.Database, sqlite3.Statement>) {
 	// replace [TLEditor](?) with [TLEditor](/reference/editor/TLEditor)?
@@ -31,7 +31,7 @@ export async function autoLinkDocsForArticle(
 		const [hit, _title] = match
 		const [title, heading] = _title.split('#')
 		const article = await db.get(
-			'SELECT id, sectionId, categoryId FROM articles WHERE title = ? AND sectionId = ?',
+			'SELECT id FROM articles WHERE title = ? AND sectionId = ?',
 			title,
 			'reference'
 		)
@@ -53,9 +53,9 @@ export async function autoLinkDocsForArticle(
 		if (heading) {
 			const headingRow = await db.get('SELECT slug FROM headings WHERE slug = ?', heading)
 			if (!headingRow) throw Error(`Could not find heading for ${_title} (${heading}) in ${id}`)
-			str = `[\`${title}.${heading}\`](/${article.sectionId}/${article.categoryId}/${article.id}#${headingRow.slug})`
+			str = `[\`${title}.${heading}\`](/${article.id}#${headingRow.slug})`
 		} else {
-			str = `[\`${title}\`](/${article.sectionId}/${article.categoryId}/${article.id})`
+			str = `[\`${title}\`](/${article.id})`
 		}
 
 		result = result.replaceAll(hit, str)

@@ -20,7 +20,7 @@ jobs:
     name: Publish patch release
     environment: npm deploy
     timeout-minutes: 60
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest-16-cores-arm-open
     outputs:
       is_latest_version: ${{ steps.publish_step.outputs.is_latest_version }}
 
@@ -33,9 +33,13 @@ jobs:
           private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
 
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
+          persist-credentials: false
           token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Configure git credentials
+        run: git config --global url."https://x-access-token:${{ steps.generate_token.outputs.token }}@github.com/".insteadOf "https://github.com/"
 
       - name: Prepare repository
         # Fetch full git history and tags for auto

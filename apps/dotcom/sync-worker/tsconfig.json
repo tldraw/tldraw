@@ -2,7 +2,11 @@
 	"extends": "../../../internal/config/tsconfig.base.json",
 	"include": ["src", "scripts"],
 	"exclude": ["node_modules", "dist", ".tsbuild*"],
-	"compilerOptions": { "noEmit": true, "emitDeclarationOnly": false },
+	"compilerOptions": {
+		"noEmit": true,
+		"emitDeclarationOnly": false,
+		"moduleResolution": "bundler"
+	},
 	"references": [
 		{ "path": "../../../packages/dotcom-shared" },
 		{ "path": "../../../packages/state" },

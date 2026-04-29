@@ -1,8 +1,15 @@
-import { TLParentId, TLShape, TLShapeId, createShapeId, toRichText } from '@tldraw/tlschema'
+import {
+	TLFontFace,
+	TLParentId,
+	TLShape,
+	TLShapeId,
+	createShapeId,
+	toRichText,
+} from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { Mock, Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
-import { FontManager, TLFontFace } from './FontManager'
+import { FontManager } from './FontManager'
 
 // Mock the Editor class
 vi.mock('../../Editor')
@@ -85,6 +92,7 @@ describe('FontManager', () => {
 			getShapeUtil: vi.fn(() => mockShapeUtil),
 			getCurrentPageShapeIds: vi.fn(() => new Set()),
 			getShape: vi.fn(),
+			getContainerDocument: vi.fn(() => document),
 			isDisposed: false,
 		} as any
 

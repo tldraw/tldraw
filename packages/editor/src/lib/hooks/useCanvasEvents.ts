@@ -1,14 +1,18 @@
 import { useValue } from '@tldraw/state-react'
 import React, { useEffect, useMemo } from 'react'
-import { RIGHT_MOUSE_BUTTON } from '../constants'
 import { tlenv } from '../globals/environment'
-import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
+import {
+	elementShouldCaptureKeys,
+	preventDefault,
+	releasePointerCapture,
+	setPointerCapture,
+} from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
 	const editor = useEditor()
-	const ownerDocument = editor.getContainer().ownerDocument
+	const ownerDocument = editor.getContainerDocument()
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
 	const events = useMemo(
@@ -16,7 +20,9 @@ export function useCanvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 
-				if (e.button === RIGHT_MOUSE_BUTTON) {
+				// With right-click panning disabled, fire right_click on press and let the
+				// native contextmenu through so the menu opens at the pointer-down location.
+				if (e.button === 2 && !editor.options.rightClickPanning) {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',
@@ -26,7 +32,7 @@ export function useCanvasEvents() {
 					return
 				}
 
-				if (e.button !== 0 && e.button !== 1 && e.button !== 5) return
+				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
 				setPointerCapture(e.currentTarget, e)
 
@@ -42,6 +48,11 @@ export function useCanvasEvents() {
 				if (editor.wasEventAlreadyHandled(e)) return
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
+				const rightClickPanning = editor.options.rightClickPanning
+				// Check before dispatch (which resets isPanning)
+				const wasRightClickPanning =
+					rightClickPanning && e.button === 2 && editor.inputs.getIsPanning()
+
 				releasePointerCapture(e.currentTarget, e)
 
 				editor.dispatch({
@@ -50,6 +61,21 @@ export function useCanvasEvents() {
 					name: 'pointer_up',
 					...getPointerInfo(editor, e),
 				})
+
+				// Static right-click: fire contextmenu at the pointer-up location
+				if (rightClickPanning && e.button === 2 && !wasRightClickPanning) {
+					const contextMenuEvent = new PointerEvent('contextmenu', {
+						bubbles: true,
+						clientX: e.clientX,
+						clientY: e.clientY,
+						button: 2,
+						buttons: 0,
+						pointerId: e.pointerId,
+						pointerType: e.pointerType,
+						isPrimary: e.isPrimary,
+					})
+					e.currentTarget.dispatchEvent(contextMenuEvent)
+				}
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
@@ -75,18 +101,16 @@ export function useCanvasEvents() {
 			function onTouchEnd(e: React.TouchEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 				editor.markEventAsHandled(e)
-				// check that e.target is an HTMLElement
-				if (!(e.target instanceof HTMLElement)) return
+				if (!(e.target instanceof editor.getContainerWindow().HTMLElement)) return
 
-				const editingShapeId = editor.getEditingShape()?.id
+				const editingShapeId = editor.getEditingShapeId()
 				if (
 					// if the target is not inside the editing shape
 					!(editingShapeId && e.target.closest(`[data-shape-id="${editingShapeId}"]`)) &&
 					// and the target is not an clickable element
 					e.target.tagName !== 'A' &&
-					// or a TextArea.tsx ?
-					e.target.tagName !== 'TEXTAREA' &&
-					!e.target.isContentEditable
+					// and the target is not an editable element
+					!elementShouldCaptureKeys(e.target, false)
 				) {
 					preventDefault(e)
 				}
@@ -102,13 +126,24 @@ export function useCanvasEvents() {
 				preventDefault(e)
 				e.stopPropagation()
 
+				const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
+
+				// Call the custom onDropOnCanvas callback if provided
+				if (editor.options.experimental__onDropOnCanvas) {
+					const handled = editor.options.experimental__onDropOnCanvas({
+						point: pagePoint,
+						event: e,
+					})
+					if (handled) return
+				}
+
 				if (e.dataTransfer?.files?.length) {
 					const files = Array.from(e.dataTransfer.files)
 
 					await editor.putExternalContent({
 						type: 'files',
 						files,
-						point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
+						point: pagePoint,
 					})
 					return
 				}
@@ -118,7 +153,7 @@ export function useCanvasEvents() {
 					await editor.putExternalContent({
 						type: 'url',
 						url,
-						point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
+						point: pagePoint,
 					})
 					return
 				}
@@ -127,6 +162,21 @@ export function useCanvasEvents() {
 			function onClick(e: React.MouseEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 				e.stopPropagation()
+			}
+
+			function onContextMenu(e: React.MouseEvent) {
+				// With right-click panning disabled, let the native contextmenu through so the
+				// menu opens on press.
+				if (!editor.options.rightClickPanning) return
+				// Synthetic events — our own dispatch from onPointerUp, or tests using
+				// fireEvent.contextMenu — pass through so Radix can open the menu. The real
+				// browser contextmenu is always suppressed: right-click behavior has
+				// already been decided by our pointer handling (either we dispatched a
+				// synthetic to open the menu at the release position, or we panned and
+				// don't want a menu at all).
+				if (e.nativeEvent.isTrusted) {
+					preventDefault(e)
+				}
 			}
 
 			return {
@@ -139,6 +189,7 @@ export function useCanvasEvents() {
 				onTouchStart,
 				onTouchEnd,
 				onClick,
+				onContextMenu,
 			}
 		},
 		[editor]

@@ -191,6 +191,16 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	height: 32px;
 }
 
+.tl-container[dir='rtl'] .${className} {
+	right: auto;
+	left: max(var(--tl-space-2), env(safe-area-inset-left));
+}
+
+.tl-container[dir='rtl'] .${className}[data-mobile='true'] {
+	border-radius: 0px 4px 4px 0px;
+	left: max(-2px, calc(env(safe-area-inset-left) - 2px));
+}
+
 .${className}[data-unlicensed='true'] > button {
 	font-size: 100px;
 	position: absolute;

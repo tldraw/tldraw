@@ -1,6 +1,36 @@
-import { R2Bucket } from '@cloudflare/workers-types'
+import { retry } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { notFound } from './errors'
+
+function isTransientWorkerError(error: unknown): boolean {
+	const msg = String(error)
+	return /internal error|connectivity|network connection lost|service temporarily unavailable|proxy request failed|unspecified error|connection (refused|reset|timed?\s?out)/i.test(
+		msg
+	)
+}
+
+export const TRANSIENT_RETRY_OPTIONS = {
+	attempts: 3,
+	waitDuration: 500,
+	matchError: isTransientWorkerError,
+} as const
+
+// Minimal interface for R2Bucket operations used in this file
+// This avoids type conflicts between ambient and imported Cloudflare types
+// Using 'any' for return types to allow compatibility with different R2Bucket type definitions
+export interface R2BucketLike {
+	head(key: string): Promise<any>
+	get(key: string, options?: any): Promise<any>
+	put(key: string, value: any, options?: any): Promise<any>
+}
+
+// Cloudflare's caches global has a 'default' property for the default cache
+declare const caches: {
+	default: {
+		match(request: unknown): Promise<Response | undefined>
+		put(request: unknown, response: Response): Promise<void>
+	}
+}
 
 /**
  * Handles asset upload requests to Cloudflare R2 storage with conflict detection.
@@ -37,17 +67,22 @@ export async function handleUserAssetUpload({
 	objectName,
 }: {
 	objectName: string
-	bucket: R2Bucket
+	bucket: R2BucketLike
 	body: ReadableStream | null
 	headers: Headers
 }): Promise<Response> {
-	if (await bucket.head(objectName)) {
+	const existing = await retry(() => bucket.head(objectName), TRANSIENT_RETRY_OPTIONS)
+	if (existing) {
 		return Response.json({ error: 'Asset already exists' }, { status: 409 })
 	}
 
-	const object = await bucket.put(objectName, body, {
-		httpMetadata: headers,
-	})
+	// Buffer body so retries can re-send (ReadableStream is single-use)
+	const buffer = body ? await new Response(body).arrayBuffer() : null
+
+	const object = await retry(
+		() => bucket.put(objectName, buffer, { httpMetadata: headers }),
+		TRANSIENT_RETRY_OPTIONS
+	)
 
 	return Response.json({ object: objectName }, { headers: { etag: object.httpEtag } })
 }
@@ -88,7 +123,7 @@ export async function handleUserAssetGet({
 	context,
 }: {
 	request: IRequest
-	bucket: R2Bucket
+	bucket: R2BucketLike
 	objectName: string
 	context: ExecutionContext
 }): Promise<Response> {
@@ -99,10 +134,10 @@ export async function handleUserAssetGet({
 		return cachedResponse
 	}
 
-	const object = await bucket.get(objectName, {
-		range: request.headers,
-		onlyIf: request.headers,
-	})
+	const object = await retry(
+		() => bucket.get(objectName, { range: request.headers, onlyIf: request.headers }),
+		TRANSIENT_RETRY_OPTIONS
+	)
 
 	if (!object) {
 		return notFound()
@@ -152,9 +187,11 @@ export async function handleUserAssetGet({
 	if (status === 200) {
 		const [cacheBody, responseBody] = body!.tee()
 		// cache the response
-		context.waitUntil(caches.default.put(cacheKey, new Response(cacheBody, { headers, status })))
-		return new Response(responseBody, { headers, status })
+		context.waitUntil(
+			caches.default.put(cacheKey, new Response(cacheBody as BodyInit, { headers, status }))
+		)
+		return new Response(responseBody as BodyInit, { headers, status })
 	}
 
-	return new Response(body, { headers, status })
+	return new Response(body as BodyInit | null, { headers, status })
 }

@@ -61,7 +61,7 @@ function ContextualToolbarInner({
 
 	return (
 		<TldrawUiContextualToolbar
-			className="tlui-video__toolbar"
+			className="tlui-media__toolbar tlui-video__toolbar"
 			getSelectionBounds={getSelectionBounds}
 			label={msg('tool.video-toolbar-title')}
 		>

@@ -123,6 +123,32 @@ test.describe('Rich text behaviour', () => {
 		expect(isLinkRemoved).toBe(true)
 	})
 
+	test('clicking outside the link editor saves the link', async ({
+		page,
+		toolbar,
+		richTextToolbar,
+		isMobile,
+	}) => {
+		// TODO: the mobile e2e test doesn't have the virtual keyboard at the moment.
+		if (isMobile) return
+
+		const { rectangle } = toolbar.tools
+		await richTextToolbar.clickTool(richTextToolbar.tools.link)
+		await page.keyboard.type('example.com')
+
+		// Click away to blur the link input (instead of pressing Enter)
+		await page.mouse.click(150, 400)
+		await rectangle.click()
+		await page.mouse.click(150, 400)
+		await page.waitForTimeout(150)
+
+		// Check the link has been saved despite not pressing Enter
+		const isLinkSet = await page.evaluate(async () => {
+			return !!document.querySelector('.tl-rich-text a[href="https://example.com"]')
+		})
+		expect(isLinkSet).toBe(true)
+	})
+
 	// Text selection (the auto select all) doesn't seem to be working in our playwright tests
 	test('shows the toolbar when double clicking a shape to select all', async ({
 		page,
