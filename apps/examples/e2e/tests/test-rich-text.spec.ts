@@ -25,8 +25,8 @@ test.describe('more rich text', () => {
 		await page.keyboard.type('Live in a big white house in the forest')
 		expect(page.getByTestId('rich-text-area')).toHaveText('Live in a big white house in the forest')
 
-		// expect canvas indicator to be visible (since the shape is editing)
-		const canvasIndicator = page.locator('.tl-canvas-indicators')
+		// expect canvas overlays to be visible (indicators render there when editing)
+		const canvasIndicator = page.locator('.tl-canvas-overlays')
 		await expect(canvasIndicator).toBeVisible()
 	})
 
@@ -46,8 +46,8 @@ test.describe('more rich text', () => {
 			'Drink gin and tonic and play a grand piano'
 		)
 
-		// expect canvas indicator to be visible (since the shape is editing)
-		const canvasIndicator = page.locator('.tl-canvas-indicators')
+		// expect canvas overlays to be visible (indicators render there when editing)
+		const canvasIndicator = page.locator('.tl-canvas-overlays')
 		await expect(canvasIndicator).toBeVisible()
 	})
 })

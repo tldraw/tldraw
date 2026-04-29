@@ -192,8 +192,7 @@ const components: TLComponents = {
 	Background: YourCustomBackground,
 	Cursor: YourCustomCursor,
 	Grid: YourCustomGrid,
-	SelectionForeground: YourCustomSelectionForeground,
-	SnapIndicator: YourCustomSnapIndicator,
+	SelectionBackground: YourCustomSelectionBackground,
 
 	// UI components
 	Toolbar: YourCustomToolbar,
@@ -204,6 +203,8 @@ const components: TLComponents = {
 
 <Tldraw components={components} />
 ```
+
+Canvas overlay elements like the selection foreground, brush, snap indicators, and scribble are rendered via the [OverlayUtil](?) system rather than React components. You can customize them by extending the built-in overlay utils and passing them via the `overlayUtils` prop.
 
 See the [TLEditorComponents](?) and [TLUiComponents](?) type definitions for the complete list of customizable components.
 

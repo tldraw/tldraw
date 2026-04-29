@@ -147,7 +147,7 @@ editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next
 
 ## Visual rendering
 
-Both hover and hint indicators use the same selection color (`--tl-color-selected` CSS variable). The editor renders them using either SVG or canvas depending on the shape's indicator implementation.
+Both hover and hint indicators use the same selection color (`--tl-color-selected` CSS variable). The editor renders them on the canvas using the shape's `getIndicatorPath` implementation.
 
 | State    | Stroke width | Condition                          |
 | -------- | ------------ | ---------------------------------- |

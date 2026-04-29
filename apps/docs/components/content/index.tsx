@@ -24,7 +24,15 @@ import { YouTube } from '@/components/content/youtube'
 import { cn } from '@/utils/cn'
 import { TldrawLink } from '../common/tldraw-link'
 
-export function Content({ mdx, type }: { mdx: string; type?: string }) {
+export function Content({
+	mdx,
+	type,
+	className,
+}: {
+	mdx: string
+	type?: string
+	className?: string
+}) {
 	return (
 		<section
 			className={cn(
@@ -38,7 +46,8 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 				'prose-tr:border-t prose-tr:border-white dark:prose-tr:border-zinc-950',
 				'prose-td:border-l first:prose-td:border-l-0 prose-td:border-white dark:prose-td:border-zinc-950 prose-td:py-3 prose-td:px-4',
 				'prose-hr:border-zinc-100 dark:prose-hr:border-zinc-800',
-				'prose-h1:scroll-mt-20 prose-h2:scroll-mt-20 prose-h3:scroll-mt-20 prose-h4:scroll-mt-20 prose-h5:scroll-mt-20'
+				'prose-h1:scroll-mt-20 prose-h2:scroll-mt-20 prose-h3:scroll-mt-20 prose-h4:scroll-mt-20 prose-h5:scroll-mt-20',
+				className
 			)}
 		>
 			<MDXRemote

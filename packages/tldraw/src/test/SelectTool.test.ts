@@ -443,6 +443,24 @@ describe('When double clicking the selection edge', () => {
 
 		expect(editor.getEditingShapeId()).toBe(id)
 	})
+
+	it('Resets the cursor to default when entering editing mode from a resize handle', () => {
+		const id = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([{ id, type: 'geo' }])
+			.select(id)
+
+		editor.setCursor({ type: 'ew-resize', rotation: 0 })
+		expect(editor.getInstanceState().cursor.type).toBe('ew-resize')
+
+		editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
+
+		expect(editor.getEditingShapeId()).toBe(id)
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
 })
 
 describe('When editing shapes', () => {

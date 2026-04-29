@@ -83,7 +83,7 @@ export class Pointing extends StateNode {
 		const geo = this.editor.getStyleForNextShape(GeoShapeGeoStyle)
 		const geoShapeUtil = this.editor.getShapeUtil('geo') as GeoShapeUtil
 
-		const customType = geoShapeUtil.options.customGeoStyles?.[geo]
+		const customType = geoShapeUtil.options.customGeoTypes?.[geo]
 		const size =
 			geo === 'star'
 				? { w: 200, h: 190 }

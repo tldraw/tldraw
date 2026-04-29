@@ -78,8 +78,10 @@ class MyShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		)
 	}
 
-	indicator(shape: IMyShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: IMyShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 

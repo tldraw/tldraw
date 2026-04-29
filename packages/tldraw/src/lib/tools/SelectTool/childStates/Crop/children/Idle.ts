@@ -7,6 +7,7 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
+import { updateHoveredOverlayId } from '../../../../selection-logic/updateHoveredOverlayId'
 import { getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
@@ -20,10 +21,16 @@ export class Idle extends StateNode {
 		if (onlySelectedShape) {
 			this.editor.setCroppingShape(onlySelectedShape.id)
 		}
+
+		updateHoveredOverlayId(this.editor)
 	}
 
 	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
+	}
+
+	override onPointerMove() {
+		updateHoveredOverlayId(this.editor)
 	}
 
 	override onCancel() {
@@ -41,6 +48,28 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
+				// Check overlays first — if we hit a crop/resize handle, re-dispatch
+				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
+				const hitOverlay = this.editor.overlays.getOverlayAtPoint(
+					currentPagePoint,
+					this.editor.options.hitTestMargin / this.editor.getZoomLevel()
+				)
+				if (hitOverlay) {
+					const overlayType = hitOverlay.props.overlayType as string | undefined
+					if (
+						overlayType === 'resize_handle' ||
+						overlayType === 'rotate_handle' ||
+						overlayType === 'mobile_rotate'
+					) {
+						this.onPointerDown({
+							...info,
+							target: 'selection',
+							handle: hitOverlay.props.handle as any,
+						})
+						return
+					}
+				}
+
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
 				if (hitShape && !this.editor.isShapeOfType(hitShape, 'group')) {
 					this.onPointerDown({

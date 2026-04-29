@@ -646,27 +646,14 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		return <GlobShape shape={shape} showControlLines={showControlLines} />
 	}
 
-	override indicator(shape: GlobShape) {
-		const zoomLevel = this.editor.getZoomLevel()
-
+	override getIndicatorPath(shape: GlobShape) {
 		const globPoints = getGlobInfo(this.editor, shape)
-		if (!globPoints) return null
+		if (!globPoints) return undefined
 
 		const pathBuilder = buildGlobPath(globPoints)
-		if (!pathBuilder) return null
+		if (!pathBuilder) return undefined
 
-		return (
-			<SVGContainer>
-				<path
-					pointerEvents="none"
-					d={pathBuilder.toD()}
-					stroke="black"
-					strokeWidth={2 / zoomLevel}
-					opacity={0.25}
-					fill="blue"
-				/>
-			</SVGContainer>
-		)
+		return new Path2D(pathBuilder.toD())
 	}
 
 	override toSvg(shape: GlobShape) {
@@ -911,6 +898,12 @@ export const GlobShape = track(function GlobShape({
 	// Use reactive inputs to track if space key is pressed
 	const fillGlob = useValue('space key pressed', () => editor.inputs.keys.has('Space'), [editor])
 
+	const isSelected = useValue(
+		'is glob selected',
+		() => editor.getSelectedShapeIds().includes(shape.id),
+		[editor, shape.id]
+	)
+
 	const globPoints = getGlobInfo(editor, shape)
 	if (!globPoints) return null
 
@@ -949,6 +942,7 @@ export const GlobShape = track(function GlobShape({
 				opacity={fillGlob ? 1 : 0.75}
 				strokeWidth={2 / zoomLevel}
 			/>
+			{isSelected && <path d={pathBuilder.toD()} pointerEvents="none" fill="blue" opacity={0.25} />}
 		</SVGContainer>
 	)
 })

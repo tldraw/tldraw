@@ -14,7 +14,7 @@ import 'tldraw/tldraw.css'
 
 // [1]
 const CustomGeoShapeUtil = GeoShapeUtil.configure({
-	customGeoStyles: {
+	customGeoTypes: {
 		'rounded-rect': {
 			getPath(w, h, shape) {
 				// `isFilled` is used by the path builder to determine whether the
@@ -158,8 +158,8 @@ export default function CustomGeoTypesExample() {
 
 /*
 [1]
-Use GeoShapeUtil.configure() with a customGeoStyles map. Each entry
-defines a new geo style with:
+Use GeoShapeUtil.configure() with a customGeoTypes map. Each entry
+defines a new geo type with:
 - getPath: returns a PathBuilder describing the shape outline
 - snapType: 'polygon' (snap to vertices + center) or 'blobby' (center only)
 - icon: icon name for the style panel picker
@@ -167,25 +167,25 @@ defines a new geo style with:
 
 [2]
 Pass the configured shape util in an array. It replaces the default
-GeoShapeUtil but keeps all built-in geo styles alongside your custom ones.
+GeoShapeUtil but keeps all built-in geo types alongside your custom ones.
 
 [3]
-Provide custom icon SVGs for your geo styles via assetUrls. The icon key
-must be 'geo-' followed by the geo style name (e.g., 'geo-rounded-rect').
+Provide custom icon SVGs for your geo types via assetUrls. The icon key
+must be 'geo-' followed by the geo type name (e.g., 'geo-rounded-rect').
 
 [4]
 Provide translations for the tool labels so that the tooltips in the
 toolbar show the right name. The translation keys are 'tool.' followed
-by the geo style name (e.g., 'tool.rounded-rect').
+by the geo type name (e.g., 'tool.rounded-rect').
 
 [5]
 Override the Toolbar component to add ToolbarItems for your custom geo
-styles. The tool ID matches the key in your customGeoStyles map. Custom
-geo styles are automatically registered as tools, so you just need to
+types. The tool ID matches the key in your customGeoTypes map. Custom
+geo types are automatically registered as tools, so you just need to
 reference them by name.
 
 [6]
-Custom geo styles appear in the geo style panel picker. They support all
+Custom geo types appear in the geo style panel picker. They support all
 standard geo features: labels, fill/dash/color styles, resizing, SVG
 export, and snap points.
 */

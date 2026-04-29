@@ -236,9 +236,9 @@ class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		)
 	}
 
-	indicator(shape: SpeechBubbleShape) {
+	getIndicatorPath(shape: SpeechBubbleShape) {
 		const geometry = this.getGeometry(shape)
-		return <path d={geometry.getSvgPathData()} />
+		return new Path2D(geometry.getSvgPathData())
 	}
 }
 ```
