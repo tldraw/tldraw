@@ -5,18 +5,14 @@ kill_timeout = "__KILL_TIMEOUT"
 [build]
 image = "registry.hub.docker.com/rocicorp/zero:__ZERO_VERSION"
 
-[http_service]
-internal_port = 4849
-force_https = false
-auto_stop_machines = "off"
-min_machines_running = 1
-
-[[http_service.checks]]
-grace_period = "30s"
-interval = "5s"
-method = "GET"
-timeout = "5s"
-path = "/keepalive"
+[checks]
+  [checks.keepalive]
+  type = "http"
+  port = 4849
+  grace_period = "30s"
+  interval = "5s"
+  timeout = "5s"
+  path = "/keepalive"
 
 [[restart]]
 policy = "always"
