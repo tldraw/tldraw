@@ -141,8 +141,10 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		const dist = Vec.Dist(handle, point)
 
 		// Stop the dashed stub at the marker's outer edge so it doesn't pass
-		// through the dot/cross.
-		const markerRadius = (isPrecise ? this.options.crossSize / 2 : this.options.dotRadius) / zoom
+		// through the dot/cross. The cross's corners (leg endpoints) sit at
+		// half the diagonal of its bounding square, not half its side.
+		const markerRadius =
+			(isPrecise ? (this.options.crossSize / 2) * Math.SQRT2 : this.options.dotRadius) / zoom
 
 		if (dist > markerRadius + 0.5) {
 			const visibleDist = dist - markerRadius
