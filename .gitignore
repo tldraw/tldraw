@@ -123,6 +123,9 @@ license-report.md
 .eslintcache
 opencode.json
 
+# Fallow cache
+.fallow
+
 # PR walkthrough intermediate files
 .claude/worktrees
 .claude/settings.local.json
