@@ -1,7 +1,8 @@
+import { useUser } from '@clerk/clerk-react'
 import { FEATURE_FLAG_KEYS } from '@tldraw/dotcom-shared'
 import posthog, { PostHogConfig, Properties } from 'posthog-js'
 import 'posthog-js/dist/web-vitals'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import ReactGA from 'react-ga4'
 import { useLocation } from 'react-router-dom'
 import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce } from 'tldraw'
@@ -319,10 +320,51 @@ export function trackEvent(name: string, data?: { [key: string]: any }) {
 			})
 		}
 	}
+
+	// Track signups in GA4 for Google Ads conversion imports
+	if (name === 'sign_up') {
+		if (getGA4()) {
+			ReactGA.gtag('event', 'sign_up', {
+				method: data?.method ?? 'unknown',
+			})
+		}
+	}
 }
 
 export function useHandleUiEvents() {
 	return trackEvent
+}
+
+export function useTrackSignUp(analyticsEnabled: boolean) {
+	const { user, isSignedIn } = useUser()
+	const fired = useRef(false)
+
+	useEffect(() => {
+		if (!analyticsEnabled || !isSignedIn || !user || fired.current) return
+
+		const createdAt = new Date(user.createdAt ?? 0).getTime()
+		const ageMs = Date.now() - createdAt
+		if (!Number.isFinite(ageMs) || ageMs > 30_000) return
+		if (user.unsafeMetadata?.signupTracked) return
+
+		fired.current = true
+		const provider = user.externalAccounts?.[0]?.provider
+		const method = provider ? provider.replace(/^oauth_/, '') : 'email'
+
+		trackEvent('sign_up', { method })
+
+		void user
+			.update({
+				unsafeMetadata: {
+					...user.unsafeMetadata,
+					signupTracked: true,
+				},
+			} as any)
+			.then(() => user.reload())
+			.catch((error) => {
+				console.error('Failed to mark signup event as tracked:', error)
+			})
+	}, [analyticsEnabled, isSignedIn, user])
 }
 
 export function SignedOutAnalytics() {
@@ -374,10 +416,10 @@ export function SignedInAnalytics() {
 	const app = useApp()
 	const user = useValue('userData', () => app.getUser(), [app])
 	const storedConsent = useAnalyticsConsentValue()
+	const userConsent = user.allowAnalyticsCookie
+	const finalConsent = userConsent !== null ? userConsent : storedConsent === true
 
 	useEffect(() => {
-		const userConsent = user.allowAnalyticsCookie
-
 		// If user has no preference in database but has one in atom/localStorage, sync it
 		if (userConsent === null && storedConsent !== null) {
 			app.updateUser({ id: user.id, allowAnalyticsCookie: storedConsent })
@@ -389,12 +431,10 @@ export function SignedInAnalytics() {
 			setStoredAnalyticsConsent(userConsent)
 		}
 
-		// Use user's database preference if available, otherwise fall back to stored consent
-		const finalConsent = userConsent !== null ? userConsent : storedConsent === true
-
 		configureAnalytics(finalConsent, { id: user.id, name: user.name, email: user.email })
-	}, [user.allowAnalyticsCookie, user.email, user.id, user.name, app, storedConsent])
+	}, [userConsent, user.email, user.id, user.name, app, storedConsent, finalConsent])
 
+	useTrackSignUp(finalConsent)
 	useTrackPageViews()
 
 	return null
