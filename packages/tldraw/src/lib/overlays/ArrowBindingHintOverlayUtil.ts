@@ -35,7 +35,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		dashLengthRatio: 2.5,
 		dotRadius: 4,
 		crossSize: 6,
-		dashScaleZoomFloor: 0.25,
+		dashedMinZoom: 0.25,
 	}
 
 	override isActive(): boolean {
@@ -92,11 +92,6 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		const zoom = editor.getZoomLevel()
 		const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
 		const strokeWidth = this.options.strokeWidth / zoom
-		// Below the floor zoom, freeze the dash sizing's world-space scale so
-		// the dashes shrink linearly with zoom on screen (e.g. half-size at
-		// half the floor zoom). Line width keeps its screen-constant behavior.
-		const dashStrokeWidth =
-			this.options.strokeWidth / Math.max(zoom, this.options.dashScaleZoomFloor)
 
 		ctx.save()
 		ctx.transform(
@@ -122,7 +117,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 				'start',
 				bindings.start.props.isExact,
 				bindings.start.props.isPrecise,
-				dashStrokeWidth,
+				strokeWidth,
 				zoom
 			)
 		}
@@ -133,7 +128,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 				'end',
 				bindings.end.props.isExact,
 				bindings.end.props.isPrecise,
-				dashStrokeWidth,
+				strokeWidth,
 				zoom
 			)
 		}
@@ -147,7 +142,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		side: 'start' | 'end',
 		isExact: boolean,
 		isPrecise: boolean,
-		dashStrokeWidth: number,
+		strokeWidth: number,
 		zoom: number
 	) {
 		const handle = info[side].handle
@@ -200,20 +195,20 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 				ctx.lineTo(point.x, point.y)
 			}
 
-			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-				pathLength,
-				dashStrokeWidth,
-				{
+			// Below the dash threshold the dashes get too small to read, so
+			// fall back to a solid stub.
+			if (zoom >= this.options.dashedMinZoom) {
+				const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(pathLength, strokeWidth, {
 					style: 'dashed',
 					end: 'skip',
 					start: 'skip',
-				}
-			)
+				})
 
-			if (strokeDasharray !== 'none') {
-				const [dashLength, gapLength] = strokeDasharray.split(' ').map(Number)
-				ctx.setLineDash([dashLength, gapLength])
-				ctx.lineDashOffset = Number(strokeDashoffset)
+				if (strokeDasharray !== 'none') {
+					const [dashLength, gapLength] = strokeDasharray.split(' ').map(Number)
+					ctx.setLineDash([dashLength, gapLength])
+					ctx.lineDashOffset = Number(strokeDashoffset)
+				}
 			}
 
 			ctx.stroke()
