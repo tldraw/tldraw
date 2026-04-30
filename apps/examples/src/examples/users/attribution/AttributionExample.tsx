@@ -155,6 +155,8 @@ function attributionSummary(editor: { store: { props: { users: TLUserStore } } }
 }
 
 // [6]
+const ALLOWED_TOOLS = new Set(['select', 'note'])
+
 export default function AttributionExample() {
 	return (
 		<div className="tldraw__editor">
@@ -164,6 +166,14 @@ export default function AttributionExample() {
 				components={{
 					TopPanel: UserSwitcher,
 					SharePanel: AttributionPanel,
+				}}
+				overrides={{
+					tools: (_editor, tools) => {
+						for (const id of Object.keys(tools)) {
+							if (!ALLOWED_TOOLS.has(id)) delete tools[id]
+						}
+						return tools
+					},
 				}}
 			/>
 		</div>
