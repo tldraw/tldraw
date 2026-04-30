@@ -1,4 +1,12 @@
-import { OverlayUtil, PI2, TLArrowShape, TLOverlay, TLShapeId, Vec } from '@tldraw/editor'
+import {
+	getPerfectDashProps,
+	OverlayUtil,
+	PI2,
+	TLArrowShape,
+	TLOverlay,
+	TLShapeId,
+	Vec,
+} from '@tldraw/editor'
 import { TLArrowInfo } from '../shapes/arrow/arrow-types'
 import { getArrowInfo } from '../shapes/arrow/getArrowInfo'
 import { getArrowBindings } from '../shapes/arrow/shared'
@@ -27,6 +35,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		dashLengthRatio: 2.5,
 		dotRadius: 4,
 		crossSize: 6,
+		dashScaleZoomFloor: 0.25,
 	}
 
 	override isActive(): boolean {
@@ -83,6 +92,11 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		const zoom = editor.getZoomLevel()
 		const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
 		const strokeWidth = this.options.strokeWidth / zoom
+		// Below the floor zoom, freeze the dash sizing's world-space scale so
+		// the dashes shrink linearly with zoom on screen (e.g. half-size at
+		// half the floor zoom). Line width keeps its screen-constant behavior.
+		const dashStrokeWidth =
+			this.options.strokeWidth / Math.max(zoom, this.options.dashScaleZoomFloor)
 
 		ctx.save()
 		ctx.transform(
@@ -108,7 +122,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 				'start',
 				bindings.start.props.isExact,
 				bindings.start.props.isPrecise,
-				strokeWidth,
+				dashStrokeWidth,
 				zoom
 			)
 		}
@@ -119,7 +133,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 				'end',
 				bindings.end.props.isExact,
 				bindings.end.props.isPrecise,
-				strokeWidth,
+				dashStrokeWidth,
 				zoom
 			)
 		}
@@ -133,7 +147,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		side: 'start' | 'end',
 		isExact: boolean,
 		isPrecise: boolean,
-		strokeWidth: number,
+		dashStrokeWidth: number,
 		zoom: number
 	) {
 		const handle = info[side].handle
@@ -147,12 +161,10 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 			(isPrecise ? (this.options.crossSize / 2) * Math.SQRT2 : this.options.dotRadius) / zoom
 
 		if (dist > markerRadius + 0.5) {
-			const visibleDist = dist - markerRadius
-			const dashLength = Math.min(strokeWidth * this.options.dashLengthRatio, visibleDist / 2)
 			ctx.save()
-			ctx.setLineDash([dashLength, dashLength])
-			ctx.lineDashOffset = -dashLength / 2
 			ctx.beginPath()
+
+			let pathLength: number
 
 			if (info.type === 'arc') {
 				// Render along the body arc so the stub sits on the same circle as
@@ -163,12 +175,22 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 				const anticlockwise = !sweepFlag
 				const sign = (sweepFlag ? 1 : -1) * (side === 'start' ? 1 : -1)
 				const trimmedHandleAngle = handleAngle + sign * (markerRadius / radius)
+
+				// Handle and point are close points on the same circle, so the
+				// stub follows the short arc between them. Use the shortest signed
+				// angular distance to get the arc length, then trim the marker.
+				let handleToPointSweep = pointAngle - handleAngle
+				if (handleToPointSweep > Math.PI) handleToPointSweep -= PI2
+				else if (handleToPointSweep < -Math.PI) handleToPointSweep += PI2
+				pathLength = Math.max(0, radius * Math.abs(handleToPointSweep) - markerRadius)
+
 				if (side === 'start') {
 					ctx.arc(center.x, center.y, radius, trimmedHandleAngle, pointAngle, anticlockwise)
 				} else {
 					ctx.arc(center.x, center.y, radius, pointAngle, trimmedHandleAngle, anticlockwise)
 				}
 			} else {
+				pathLength = dist - markerRadius
 				const t = markerRadius / dist
 				const trimmedHandle = {
 					x: handle.x + (point.x - handle.x) * t,
@@ -176,6 +198,22 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 				}
 				ctx.moveTo(trimmedHandle.x, trimmedHandle.y)
 				ctx.lineTo(point.x, point.y)
+			}
+
+			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+				pathLength,
+				dashStrokeWidth,
+				{
+					style: 'dashed',
+					end: 'skip',
+					start: 'skip',
+				}
+			)
+
+			if (strokeDasharray !== 'none') {
+				const [dashLength, gapLength] = strokeDasharray.split(' ').map(Number)
+				ctx.setLineDash([dashLength, gapLength])
+				ctx.lineDashOffset = Number(strokeDashoffset)
 			}
 
 			ctx.stroke()
