@@ -79,11 +79,11 @@ import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
 
-export interface DragGroupOperation {
+interface DragGroupOperation {
 	reorder?: DragReorderOperation
 }
 
-export type DragState =
+type DragState =
 	| null
 	| {
 			type: 'file'

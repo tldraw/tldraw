@@ -5,7 +5,7 @@ import { useHasFlag } from '../../../hooks/useHasFlag'
 import { pinIcon } from './pinIcon'
 import styles from '../sidebar.module.css'
 
-export interface TlaSidebarInlineInputProps {
+interface TlaSidebarInlineInputProps {
 	defaultValue?: string
 	placeholder?: string
 	onComplete(value: string): void
