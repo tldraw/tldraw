@@ -3,8 +3,8 @@ import { OverlayUtil, strokeShapeIndicators, TLOverlay, TLShapeId } from '@tldra
 /** @public */
 export interface TLCollaboratorShapeIndicatorOverlay extends TLOverlay {
 	props: {
-		// One entry per color, batching the selected shape IDs so the renderer
-		// can issue a single stroke call per color.
+		// One entry per peer, batching the shape IDs they have selected so the
+		// renderer can issue a single stroke call per collaborator.
 		indicators: Array<{ color: string; shapeIds: TLShapeId[] }>
 	}
 }
@@ -39,29 +39,22 @@ export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollabo
 
 		const renderingShapeIds = new Set(editor.getRenderingShapes().map((s) => s.id))
 
-		const indicatorsByColor = new Map<string, TLShapeId[]>()
+		const indicators: TLCollaboratorShapeIndicatorOverlay['props']['indicators'] = []
 		for (const presence of selectedPresences) {
 			const visibleShapeIds = presence.selectedShapeIds.filter(
 				(id) => renderingShapeIds.has(id) && !editor.isShapeHidden(id)
 			)
 			if (visibleShapeIds.length === 0) continue
-			const existing = indicatorsByColor.get(presence.color)
-			if (existing) {
-				existing.push(...visibleShapeIds)
-			} else {
-				indicatorsByColor.set(presence.color, visibleShapeIds)
-			}
+			indicators.push({ color: presence.color, shapeIds: visibleShapeIds })
 		}
 
-		if (indicatorsByColor.size === 0) return []
+		if (indicators.length === 0) return []
 
 		return [
 			{
 				id: 'collaborator_shape_indicator',
 				type: 'collaborator_shape_indicator',
-				props: {
-					indicators: Array.from(indicatorsByColor, ([color, shapeIds]) => ({ color, shapeIds })),
-				},
+				props: { indicators },
 			},
 		]
 	}
@@ -81,7 +74,7 @@ export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollabo
 		ctx.lineWidth = this.options.lineWidth / zoom
 		ctx.globalAlpha = this.options.alpha
 
-		// One stroke call per unique color.
+		// One stroke call per collaborator.
 		for (const { color, shapeIds } of overlay.props.indicators) {
 			ctx.strokeStyle = color
 			strokeShapeIndicators(editor, ctx, shapeIds)

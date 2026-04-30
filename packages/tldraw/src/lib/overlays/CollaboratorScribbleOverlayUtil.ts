@@ -11,7 +11,6 @@ export interface TLCollaboratorScribbleOverlay extends TLOverlay {
 
 // Cache Path2D results for collaborator scribbles similarly to local scribbles
 interface CollaboratorScribbleCacheEntry {
-	points: TLScribble['points']
 	len: number
 	lastX: number
 	lastY: number
@@ -72,7 +71,6 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
 			let path: Path2D
 			if (
 				cached &&
-				cached.points === scribble.points &&
 				cached.len === ptsLen &&
 				cached.lastX === last.x &&
 				cached.lastY === last.y &&
@@ -102,7 +100,6 @@ export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorS
 
 				path = new Path2D(d)
 				this._collabScribblePathCache.set(cacheKey, {
-					points: scribble.points,
 					len: ptsLen,
 					lastX: last.x,
 					lastY: last.y,
