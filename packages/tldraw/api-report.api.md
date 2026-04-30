@@ -43,6 +43,7 @@ import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
+import { OverlayOptionsWithDisplayValues } from '@tldraw/editor';
 import { OverlayUtil } from '@tldraw/editor';
 import { PerfectDashTerminal } from '@tldraw/editor';
 import { PointerEvent as PointerEvent_2 } from 'react';
@@ -124,7 +125,6 @@ import { TLImageAsset } from '@tldraw/editor';
 import { TLImageExportOptions } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLImageShapeProps } from '@tldraw/editor';
-import { TLIndicatorPath } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
@@ -260,8 +260,6 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
     };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLArrowHintOverlay[]): void;
-    // @internal (undocumented)
-    _renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLIndicatorPath): void;
     // (undocumented)
     static type: string;
 }
@@ -616,16 +614,29 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
-    options: {
-        lineWidth: number;
-        zIndex: number;
-    };
+    options: BrushOverlayUtilOptions;
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[]): void;
     // (undocumented)
     renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[], zoom: number): void;
     // (undocumented)
     static type: string;
+}
+
+// @public (undocumented)
+export interface BrushOverlayUtilDisplayValues {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    lineWidth: number;
+    // (undocumented)
+    strokeColor: string;
+}
+
+// @public (undocumented)
+export interface BrushOverlayUtilOptions extends OverlayOptionsWithDisplayValues<TLBrushOverlay, BrushOverlayUtilDisplayValues> {
+    // (undocumented)
+    zIndex: number;
 }
 
 // @internal (undocumented)
@@ -711,16 +722,6 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
     getOverlays(): TLCollaboratorHintOverlay[];
     // (undocumented)
     isActive(): boolean;
-    // @internal (undocumented)
-    _isCursorInViewport(cursor: {
-        x: number;
-        y: number;
-    }, viewport: {
-        maxX: number;
-        maxY: number;
-        minX: number;
-        minY: number;
-    }, zoom: number): boolean;
     // (undocumented)
     options: {
         lineWidth: number;

@@ -19,6 +19,7 @@ export interface TLScribbleOverlay extends TLOverlay {
 // Cache Path2D results for scribbles when inputs have not changed.
 // Keyed by scribble id; invalidated when points length/last point/zoom/size/taper/state change.
 interface ScribbleCacheEntry {
+	points: TLScribble['points']
 	len: number
 	lastX: number
 	lastY: number
@@ -72,6 +73,7 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 			let path: Path2D
 			if (
 				cached &&
+				cached.points === scribble.points &&
 				cached.len === ptsLen &&
 				cached.lastX === last.x &&
 				cached.lastY === last.y &&
@@ -101,6 +103,7 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 
 				path = new Path2D(d)
 				this._scribblePathCache.set(scribble.id, {
+					points: scribble.points,
 					len: ptsLen,
 					lastX: last.x,
 					lastY: last.y,

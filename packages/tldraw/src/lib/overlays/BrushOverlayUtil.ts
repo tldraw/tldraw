@@ -1,4 +1,9 @@
-import { OverlayUtil, TLOverlay } from '@tldraw/editor'
+import {
+	getOverlayDisplayValues,
+	OverlayOptionsWithDisplayValues,
+	OverlayUtil,
+	TLOverlay,
+} from '@tldraw/editor'
 
 /** @public */
 export interface TLBrushOverlay extends TLOverlay {
@@ -10,6 +15,21 @@ export interface TLBrushOverlay extends TLOverlay {
 	}
 }
 
+/** @public */
+export interface BrushOverlayUtilDisplayValues {
+	fillColor: string
+	strokeColor: string
+	lineWidth: number
+}
+
+/** @public */
+export interface BrushOverlayUtilOptions extends OverlayOptionsWithDisplayValues<
+	TLBrushOverlay,
+	BrushOverlayUtilDisplayValues
+> {
+	zIndex: number
+}
+
 /**
  * Overlay util for the selection brush rectangle.
  *
@@ -17,7 +37,20 @@ export interface TLBrushOverlay extends TLOverlay {
  */
 export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
 	static override type = 'brush'
-	override options = { zIndex: 300, lineWidth: 1 }
+	override options: BrushOverlayUtilOptions = {
+		zIndex: 300,
+		getDefaultDisplayValues(editor, _overlay, theme, colorMode): BrushOverlayUtilDisplayValues {
+			const colors = theme.colors[colorMode]
+			return {
+				fillColor: colors.brushFill,
+				strokeColor: colors.brushStroke,
+				lineWidth: 1,
+			}
+		},
+		getCustomDisplayValues(): Partial<BrushOverlayUtilDisplayValues> {
+			return {}
+		},
+	}
 
 	override isActive(): boolean {
 		return this.editor.getInstanceState().brush !== null
@@ -46,14 +79,14 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
 
 		const { x, y, w, h } = overlay.props
 		const zoom = this.editor.getZoomLevel()
-		const colors = this.editor.getCurrentTheme().colors[this.editor.getColorMode()]
+		const dv = getOverlayDisplayValues(this, overlay)
 
 		// Use fillRect / strokeRect to avoid path construction overhead
-		ctx.fillStyle = colors.brushFill
+		ctx.fillStyle = dv.fillColor
 		ctx.fillRect(x, y, w, h)
 
-		ctx.lineWidth = this.options.lineWidth / zoom
-		ctx.strokeStyle = colors.brushStroke
+		ctx.lineWidth = dv.lineWidth / zoom
+		ctx.strokeStyle = dv.strokeColor
 		ctx.strokeRect(x, y, w, h)
 	}
 
@@ -65,11 +98,11 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
 		const overlay = overlays[0]
 		if (!overlay) return
 		const { x, y, w, h } = overlay.props
-		const colors = this.editor.getCurrentTheme().colors[this.editor.getColorMode()]
-		ctx.fillStyle = colors.brushFill
+		const dv = getOverlayDisplayValues(this, overlay)
+		ctx.fillStyle = dv.fillColor
 		ctx.fillRect(x, y, w, h)
-		ctx.lineWidth = this.options.lineWidth / zoom
-		ctx.strokeStyle = colors.brushStroke
+		ctx.lineWidth = dv.lineWidth / zoom
+		ctx.strokeStyle = dv.strokeColor
 		ctx.strokeRect(x, y, w, h)
 	}
 }
