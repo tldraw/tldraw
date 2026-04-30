@@ -35,7 +35,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		dashLengthRatio: 2.5,
 		dotRadius: 4,
 		crossSize: 6,
-		dashedMinZoom: 0.25,
+		dashedMinZoom: 0.2,
 	}
 
 	override isActive(): boolean {
