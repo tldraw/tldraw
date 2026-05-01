@@ -85,6 +85,13 @@ const GEO_SHAPE_VERTICAL_ALIGNS = Object.freeze({
 
 const GEO_SHAPE_EMPTY_LABEL_SIZE = Object.freeze({ w: 0, h: 0 })
 
+// Snapshot the built-in geo types at module init so that collision detection
+// in `configure()` only fires against the built-ins, not against keys added
+// by previous `configure()` calls. This lets repeat `configure()` calls reuse
+// the same custom key (e.g. when wrapping/extending the util) without having
+// the entry stripped from `options.customGeoTypes`.
+const BUILTIN_GEO_TYPES: ReadonlySet<string> = new Set(GeoShapeGeoStyle.values)
+
 /** @public */
 export interface GeoShapeUtilDisplayValues {
 	strokeColor: string
@@ -148,10 +155,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	): T {
 		const opts = options as Partial<GeoShapeOptions>
 		if (opts.customGeoTypes) {
-			const existingValues = new Set<string>(GeoShapeGeoStyle.values)
 			const validEntries: Array<[string, GeoTypeDefinition]> = []
 			for (const [key, def] of Object.entries(opts.customGeoTypes)) {
-				if (existingValues.has(key)) {
+				if (BUILTIN_GEO_TYPES.has(key)) {
 					if (process.env.NODE_ENV !== 'production') {
 						console.warn(
 							`[GeoShapeUtil.configure] customGeoTypes key "${key}" collides with a built-in geo type and will be ignored. Please use a unique name.`
