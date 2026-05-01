@@ -229,7 +229,7 @@ A new `Cmd+Shift+V` / `Ctrl+Shift+V` shortcut pastes clipboard content as plain 
 
 Note: `Cmd+Shift+V` previously toggled paste-at-cursor positioning. Since the "Paste at cursor" preference now covers that use case, this shortcut has been repurposed for plain text paste. Users who relied on `Cmd+Shift+V` for paste-at-cursor should use the preference toggle instead.
 
-### 💥 Canvas overlay system ([overlay utils](/sdk-features/overlay-utils))
+### 💥 Canvas overlay system ([#8633](https://github.com/tldraw/tldraw/pull/8633), [overlay utils](/sdk-features/overlay-utils))
 
 Canvas overlay UI — the selection foreground, brush rectangles, snap indicators, shape indicators, shape handles, scribbles, arrow hints, and collaborator presence visuals — is now rendered via a new `OverlayUtil` system instead of React components. Overlays draw directly to a `<canvas>` element using the Canvas 2D API, with optional hit-test geometry for pointer interactions.
 
@@ -378,14 +378,14 @@ This is enabled by default through a new `rightClickPanning` option on `TldrawOp
 - Add Canva to `DEFAULT_EMBED_DEFINITIONS` as a supported embed type. ([#8459](https://github.com/tldraw/tldraw/pull/8459))
 - Add `PeopleMenu`, `PeopleMenuItem`, `PeopleMenuFacePile`, and `UserPresenceEditor` to the overridable `TldrawUiComponents`. ([#8346](https://github.com/tldraw/tldraw/pull/8346)) (contributed by [@kaneel](https://github.com/kaneel))
 - Add `defaultHandleExternalFileReplaceContent` to public exports. ([#8579](https://github.com/tldraw/tldraw/pull/8579)) (contributed by [@angrycaptain19](https://github.com/angrycaptain19))
-- 💥 Remove `Brush`, `CollaboratorBrush`, `CollaboratorCursor`, `CollaboratorHint`, `CollaboratorScribble`, `CollaboratorShapeIndicator`, `Cursor`, `Handle`, `Handles`, `Overlays`, `Scribble`, `SelectionForeground`, `ShapeIndicator`, `ShapeIndicatorErrorFallback`, `ShapeIndicators`, `SnapIndicator`, and `ZoomBrush` from `TLEditorComponents`. Remove their default implementations and prop types. These are now rendered via the `OverlayUtil` system.
-- 💥 Remove `TldrawArrowHints`, `TldrawCropHandles`, `TldrawCropHandlesProps`, `TldrawHandles`, `TldrawOverlays`, `TldrawScribble`, `TldrawSelectionForeground`, and `TldrawShapeIndicators` from `tldraw`.
-- 💥 Change shape indicators from SVG to canvas paths: `ShapeUtil.getIndicatorPath()` is now abstract, `ShapeUtil.indicator()` is deprecated and no longer rendered, and `ShapeUtil.useLegacyIndicator()` has been removed.
-- 💥 Remove `TldrawOptions.useCanvasIndicators`.
-- 💥 Add `snap`, `selectionStroke`, `selectionFill`, `brushFill`, `brushStroke`, `selectedContrast`, and `laser` to the required `TLThemeDefaultColors` / `TLThemeUiColorKeys` UI color keys.
-- Add `OverlayUtil` base class, `OverlayManager`, `TLOverlay`, `TLOverlayEntry`, `TLOverlayUtilConstructor`, and `TLAnyOverlayUtilConstructor` to `@tldraw/editor`. Add `overlayUtils` prop to `<Tldraw>` and `<TldrawEditor>`. Add `Editor.overlays` (`OverlayManager`) with `getOverlayUtil()`, `getOverlayUtilsInZOrder()`, `getActiveOverlayEntries()`, `getCurrentOverlays()`, `getOverlayGeometry()`, `getOverlayAtPoint()`, `getHoveredOverlayId()`, `getHoveredOverlay()`, and `setHoveredOverlay()`.
-- Add `ShapeIndicatorOverlayUtil`, `BrushOverlayUtil`, `ZoomBrushOverlayUtil`, `ScribbleOverlayUtil`, `CollaboratorBrushOverlayUtil`, `CollaboratorCursorOverlayUtil`, `CollaboratorScribbleOverlayUtil`, `CollaboratorHintOverlayUtil`, `ShapeHandleOverlayUtil`, `SelectionForegroundOverlayUtil`, `SnapIndicatorOverlayUtil`, `ArrowHintOverlayUtil`, `ArrowBindingHintOverlayUtil`, their overlay types, and `defaultOverlayUtils` to `tldraw`.
-- Add `Vec.IsFinite()` static method for checking whether a vector has finite coordinates. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
+- 💥 Remove `Brush`, `CollaboratorBrush`, `CollaboratorCursor`, `CollaboratorHint`, `CollaboratorScribble`, `CollaboratorShapeIndicator`, `Cursor`, `Handle`, `Handles`, `Overlays`, `Scribble`, `SelectionForeground`, `ShapeIndicator`, `ShapeIndicatorErrorFallback`, `ShapeIndicators`, `SnapIndicator`, and `ZoomBrush` from `TLEditorComponents`. Remove their default implementations and prop types. These are now rendered via the `OverlayUtil` system. ([#8633](https://github.com/tldraw/tldraw/pull/8633))
+- 💥 Remove `TldrawArrowHints`, `TldrawCropHandles`, `TldrawCropHandlesProps`, `TldrawHandles`, `TldrawOverlays`, `TldrawScribble`, `TldrawSelectionForeground`, and `TldrawShapeIndicators` from `tldraw`. ([#8633](https://github.com/tldraw/tldraw/pull/8633))
+- 💥 Change shape indicators from SVG to canvas paths: `ShapeUtil.getIndicatorPath()` is now abstract, `ShapeUtil.indicator()` is deprecated and no longer rendered, and `ShapeUtil.useLegacyIndicator()` has been removed. ([#8633](https://github.com/tldraw/tldraw/pull/8633))
+- 💥 Remove `TldrawOptions.useCanvasIndicators`. ([#8633](https://github.com/tldraw/tldraw/pull/8633))
+- 💥 Add `snap`, `selectionStroke`, `selectionFill`, `brushFill`, `brushStroke`, `selectedContrast`, and `laser` to the required `TLThemeDefaultColors` / `TLThemeUiColorKeys` UI color keys. ([#8633](https://github.com/tldraw/tldraw/pull/8633))
+- Add `OverlayUtil` base class, `OverlayManager`, `TLOverlay`, `TLOverlayEntry`, `TLOverlayUtilConstructor`, and `TLAnyOverlayUtilConstructor` to `@tldraw/editor`. Add `overlayUtils` prop to `<Tldraw>` and `<TldrawEditor>`. Add `Editor.overlays` (`OverlayManager`) with `getOverlayUtil()`, `getOverlayUtilsInZOrder()`, `getActiveOverlayEntries()`, `getCurrentOverlays()`, `getOverlayGeometry()`, `getOverlayAtPoint()`, `getHoveredOverlayId()`, `getHoveredOverlay()`, and `setHoveredOverlay()`. ([#8633](https://github.com/tldraw/tldraw/pull/8633))
+- Add `ShapeIndicatorOverlayUtil`, `BrushOverlayUtil`, `ZoomBrushOverlayUtil`, `ScribbleOverlayUtil`, `CollaboratorBrushOverlayUtil`, `CollaboratorCursorOverlayUtil`, `CollaboratorScribbleOverlayUtil`, `CollaboratorHintOverlayUtil`, `ShapeHandleOverlayUtil`, `SelectionForegroundOverlayUtil`, `SnapIndicatorOverlayUtil`, `ArrowHintOverlayUtil`, `ArrowBindingHintOverlayUtil`, their overlay types, and `defaultOverlayUtils` to `tldraw`. ([#8633](https://github.com/tldraw/tldraw/pull/8633))
+- Add `editor.collaborators` (`CollaboratorsManager`) with `getCollaborators()`, `getCollaboratorsByLastActivity()`, `getCollaboratorsOnCurrentPage()`, `getCollaboratorsOnCurrentPageOrdered()`. Add `CollaboratorShapeIndicatorOverlayUtil` to `tldraw`. Export `strokeShapeIndicators` helper from `@tldraw/editor`. ([#8648](https://github.com/tldraw/tldraw/pull/8648))
 
 ## Improvements
 
@@ -397,6 +397,8 @@ This is enabled by default through a new `rightClickPanning` option on `TldrawOp
 - Replace `@use-gesture/react` dependency with custom gesture handling, reducing bundle size and eliminating a stale dependency. ([#8392](https://github.com/tldraw/tldraw/pull/8392))
 - Tighten iframe referrer policy for embeds to send only the origin instead of the full URL to third-party embed providers. ([#8412](https://github.com/tldraw/tldraw/pull/8412))
 - Move the debug mode toggle into the preferences submenu. ([#8259](https://github.com/tldraw/tldraw/pull/8259))
+- Add hold-to-erase: holding `Cmd` (macOS) or `Ctrl` (Windows/Linux) and clicking while in the draw or highlight tool now temporarily switches to the eraser, returning to the originating tool when the key is released. ([#8651](https://github.com/tldraw/tldraw/pull/8651))
+- Reduce canvas re-renders: editing and selection state changes no longer re-render the entire canvas, and the grid wrapper is skipped when grid mode is off. ([#8647](https://github.com/tldraw/tldraw/pull/8647), [#8644](https://github.com/tldraw/tldraw/pull/8644))
 
 ## Bug fixes
 
@@ -418,7 +420,6 @@ This is enabled by default through a new `rightClickPanning` option on `TldrawOp
 - Fix crash from duplicate fractional index keys in `kickoutOccludedShapes` during multiplayer sync. ([#8448](https://github.com/tldraw/tldraw/pull/8448))
 - Fix spiky artifacts on draw-style geometric shapes by using a circular random offset distribution instead of a square one. ([#8466](https://github.com/tldraw/tldraw/pull/8466))
 - Fix opacity slider drag not working on Safari due to `stopPropagation` blocking pointer events. ([#8519](https://github.com/tldraw/tldraw/pull/8519))
-- Fix crash when isolating curved arrows whose geometry became degenerate (e.g., during shape deletion). ([#8176](https://github.com/tldraw/tldraw/pull/8176))
 - Fix `Cmd+Shift+V` doing nothing when the clipboard contains an image; the shortcut now falls back to the regular paste flow when there is no plain-text payload. ([#8490](https://github.com/tldraw/tldraw/pull/8490))
 - Fix a memory leak where `Editor` instances were retained after unmount via the `window.__tldraw__hardReset` global. ([#8476](https://github.com/tldraw/tldraw/pull/8476))
 - Fix crash in browsers without `OffscreenCanvas` support (e.g. older Safari) when interacting with image shapes. ([#8582](https://github.com/tldraw/tldraw/pull/8582))
@@ -433,3 +434,8 @@ This is enabled by default through a new `rightClickPanning` option on `TldrawOp
 - Fix style keyboard shortcuts not setting `isChangingStyle`, so consecutive style changes weren't grouped correctly. ([#8599](https://github.com/tldraw/tldraw/pull/8599)) (contributed by [@danieljamesross](https://github.com/danieljamesross))
 - Fix note author attribution overflowing the sticky note width in SVG and PNG exports. ([#8664](https://github.com/tldraw/tldraw/pull/8664))
 - Fix keyboard shortcuts not matching on alternative Latin keyboard layouts (Dvorak, Colemak, AZERTY) by replacing the `hotkeys-js` library with a small layout-aware native event matcher. ([#8669](https://github.com/tldraw/tldraw/pull/8669))
+- Fix module-level state leaks (debounced functions, bookmark caches, unbounded caches, and `window.tlsync`) that retained `Editor` and `Store` instances after unmount. ([#8604](https://github.com/tldraw/tldraw/pull/8604))
+- Fix a crash in asset URL resolution on browsers where `navigator.connection` is defined but `null`. ([#8662](https://github.com/tldraw/tldraw/pull/8662))
+- Fix sticky notes rendering a solid bottom edge instead of the box-shadow in non-default dark mode themes. ([#8698](https://github.com/tldraw/tldraw/pull/8698))
+- Fix the minimap getting stuck in a dragging state when right-clicked or when the pointer is cancelled mid-drag. ([#8700](https://github.com/tldraw/tldraw/pull/8700))
+- Fix comma-key clicks registering at the wrong position (and sometimes as drags) when the editor's `screenBounds` had a non-zero offset from the window. ([#8704](https://github.com/tldraw/tldraw/pull/8704))
