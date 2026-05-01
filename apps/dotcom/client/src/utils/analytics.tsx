@@ -41,7 +41,7 @@ export function useAnalyticsConsentValue(): boolean | null {
 	])
 }
 
-export type AnalyticsOptions =
+type AnalyticsOptions =
 	| {
 			optedIn: true
 			user:

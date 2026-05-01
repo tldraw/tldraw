@@ -30,8 +30,7 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 
 	override isActive(): boolean {
 		const editor = this.editor
-		const { isReadonly, isChangingStyle } = editor.getInstanceState()
-		if (isReadonly || isChangingStyle) return false
+		if (editor.getIsReadonly() || editor.getInstanceState().isChangingStyle) return false
 
 		const onlySelectedShape = editor.getOnlySelectedShape()
 		if (!onlySelectedShape) return false
@@ -65,21 +64,32 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		const minDist =
 			((isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoom) * 2
 
+		const vertexHandles = handles.filter((handle) => handle.type === 'vertex')
+		const vertexHandlesForHitTest: TLHandle[] = []
+		const otherHandlesForHitTest: TLHandle[] = []
+
 		// Vertex handles come first so they win hit-testing against overlapping
 		// virtual/create handles (e.g., a line's midpoint create handle that
 		// coincides with its endpoint vertices when a segment is very short).
 		// `render` iterates this array in reverse so the painted order puts
 		// vertex handles on top visually, matching the main branch's paint
 		// order where vertex handles were sorted last.
-		const filtered = handles
-			.filter(
-				(handle) =>
-					handle.type !== 'virtual' ||
-					!handles.some((h) => h !== handle && h.type === 'vertex' && Vec.Dist(handle, h) < minDist)
-			)
-			.sort((a) => (a.type === 'vertex' ? -1 : 1))
+		for (const handle of handles) {
+			if (
+				handle.type === 'virtual' &&
+				vertexHandles.some((vertexHandle) => Vec.Dist(handle, vertexHandle) < minDist)
+			) {
+				continue
+			}
 
-		return filtered.map((handle) => ({
+			if (handle.type === 'vertex') {
+				vertexHandlesForHitTest.push(handle)
+			} else {
+				otherHandlesForHitTest.push(handle)
+			}
+		}
+
+		return vertexHandlesForHitTest.concat(otherHandlesForHitTest).map((handle) => ({
 			id: `handle:${onlySelectedShape.id}:${handle.id}`,
 			type: 'shape_handle',
 			props: {

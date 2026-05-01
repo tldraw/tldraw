@@ -1,4 +1,12 @@
-import { OverlayUtil, PI2, TLArrowShape, TLOverlay, TLShapeId, Vec } from '@tldraw/editor'
+import {
+	getPerfectDashProps,
+	OverlayUtil,
+	PI2,
+	TLArrowShape,
+	TLOverlay,
+	TLShapeId,
+	Vec,
+} from '@tldraw/editor'
 import { TLArrowInfo } from '../shapes/arrow/arrow-types'
 import { getArrowInfo } from '../shapes/arrow/getArrowInfo'
 import { getArrowBindings } from '../shapes/arrow/shared'
@@ -27,6 +35,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		dashLengthRatio: 2.5,
 		dotRadius: 4,
 		crossSize: 6,
+		dashedMinZoom: 0.2,
 	}
 
 	override isActive(): boolean {
@@ -141,16 +150,16 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		const dist = Vec.Dist(handle, point)
 
 		// Stop the dashed stub at the marker's outer edge so it doesn't pass
-		// through the dot/cross.
-		const markerRadius = (isPrecise ? this.options.crossSize / 2 : this.options.dotRadius) / zoom
+		// through the dot/cross. The cross's corners (leg endpoints) sit at
+		// half the diagonal of its bounding square, not half its side.
+		const markerRadius =
+			(isPrecise ? (this.options.crossSize / 2) * Math.SQRT2 : this.options.dotRadius) / zoom
 
 		if (dist > markerRadius + 0.5) {
-			const visibleDist = dist - markerRadius
-			const dashLength = Math.min(strokeWidth * this.options.dashLengthRatio, visibleDist / 2)
 			ctx.save()
-			ctx.setLineDash([dashLength, dashLength])
-			ctx.lineDashOffset = -dashLength / 2
 			ctx.beginPath()
+
+			let pathLength: number
 
 			if (info.type === 'arc') {
 				// Render along the body arc so the stub sits on the same circle as
@@ -161,12 +170,22 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 				const anticlockwise = !sweepFlag
 				const sign = (sweepFlag ? 1 : -1) * (side === 'start' ? 1 : -1)
 				const trimmedHandleAngle = handleAngle + sign * (markerRadius / radius)
+
+				// Handle and point are close points on the same circle, so the
+				// stub follows the short arc between them. Use the shortest signed
+				// angular distance to get the arc length, then trim the marker.
+				let handleToPointSweep = pointAngle - handleAngle
+				if (handleToPointSweep > Math.PI) handleToPointSweep -= PI2
+				else if (handleToPointSweep < -Math.PI) handleToPointSweep += PI2
+				pathLength = Math.max(0, radius * Math.abs(handleToPointSweep) - markerRadius)
+
 				if (side === 'start') {
 					ctx.arc(center.x, center.y, radius, trimmedHandleAngle, pointAngle, anticlockwise)
 				} else {
 					ctx.arc(center.x, center.y, radius, pointAngle, trimmedHandleAngle, anticlockwise)
 				}
 			} else {
+				pathLength = dist - markerRadius
 				const t = markerRadius / dist
 				const trimmedHandle = {
 					x: handle.x + (point.x - handle.x) * t,
@@ -174,6 +193,22 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 				}
 				ctx.moveTo(trimmedHandle.x, trimmedHandle.y)
 				ctx.lineTo(point.x, point.y)
+			}
+
+			// Below the dash threshold the dashes get too small to read, so
+			// fall back to a solid stub.
+			if (zoom >= this.options.dashedMinZoom) {
+				const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(pathLength, strokeWidth, {
+					style: 'dashed',
+					end: 'skip',
+					start: 'skip',
+				})
+
+				if (strokeDasharray !== 'none') {
+					const [dashLength, gapLength] = strokeDasharray.split(' ').map(Number)
+					ctx.setLineDash([dashLength, gapLength])
+					ctx.lineDashOffset = Number(strokeDashoffset)
+				}
 			}
 
 			ctx.stroke()

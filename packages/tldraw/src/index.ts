@@ -64,7 +64,12 @@ export {
 } from './lib/overlays/ArrowBindingHintOverlayUtil'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
 export { ArrowHintOverlayUtil, type TLArrowHintOverlay } from './lib/overlays/ArrowHintOverlayUtil'
-export { BrushOverlayUtil, type TLBrushOverlay } from './lib/overlays/BrushOverlayUtil'
+export {
+	BrushOverlayUtil,
+	type BrushOverlayUtilDisplayValues,
+	type BrushOverlayUtilOptions,
+	type TLBrushOverlay,
+} from './lib/overlays/BrushOverlayUtil'
 export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
 export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
 export {

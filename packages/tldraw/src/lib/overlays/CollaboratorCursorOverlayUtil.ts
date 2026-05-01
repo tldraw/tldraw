@@ -73,7 +73,7 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 	private _truncateCache = new Map<string, string>()
 
 	override isActive(): boolean {
-		return this.getOverlays().length > 0
+		return this.editor.getVisibleCollaboratorsOnCurrentPage().some((presence) => !!presence.cursor)
 	}
 
 	override getOverlays(): TLCollaboratorCursorOverlay[] {
@@ -105,10 +105,13 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		const zoom = this.editor.getZoomLevel()
 		const scale = 1 / zoom
 		const viewport = this.editor.getViewportPageBounds()
+		const viewportMarginX = 12 / zoom
+		const viewportMarginY = 16 / zoom
 		const labelFontFamily = getLabelFontFamily(
 			this.editor.getContainer(),
 			this.editor.getContainerWindow()
 		)
+		let paths: ReturnType<typeof getCursorPaths> | null = null
 
 		for (const overlay of overlays) {
 			const { x, y, color, name, chatMessage } = overlay.props
@@ -117,10 +120,10 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 			// the cursor glyph). Off-screen cursors still show on the minimap
 			// via `renderMinimap`.
 			if (
-				x < viewport.minX - 12 / zoom ||
-				y < viewport.minY - 16 / zoom ||
-				x > viewport.maxX - 12 / zoom ||
-				y > viewport.maxY - 16 / zoom
+				x < viewport.minX - viewportMarginX ||
+				y < viewport.minY - viewportMarginY ||
+				x > viewport.maxX - viewportMarginX ||
+				y > viewport.maxY - viewportMarginY
 			) {
 				continue
 			}
@@ -130,7 +133,7 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 			ctx.scale(scale, scale)
 
 			// Draw cursor arrow
-			const paths = getCursorPaths()
+			paths ??= getCursorPaths()
 
 			// Shadow
 			ctx.fillStyle = 'rgba(0,0,0,0.2)'
@@ -199,7 +202,9 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		color: string,
 		fontFamily: string
 	) {
-		ctx.font = `${this.options.fontSize}px ${fontFamily}`
+		const { fontSize, nameMaxWidth } = this.options
+		ctx.font = `${fontSize}px ${fontFamily}`
+		const text = this._truncateText(ctx, name, nameMaxWidth)
 		const x = 13
 		const y = -2
 
@@ -208,11 +213,11 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		ctx.lineWidth = 3
 		ctx.lineJoin = 'round'
 		ctx.textBaseline = 'top'
-		ctx.strokeText(name, x, y)
+		ctx.strokeText(text, x, y)
 
 		// Text fill
 		ctx.fillStyle = color
-		ctx.fillText(name, x, y)
+		ctx.fillText(text, x, y)
 	}
 
 	/** Chat bubble - colored background with white text */
@@ -265,20 +270,31 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 	}
 
 	private _truncateText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
-		const key = `${maxWidth}|${text}`
+		const key = `${ctx.font}|${maxWidth}|${text}`
 		const cached = this._truncateCache.get(key)
-		if (cached) return cached
+		if (cached !== undefined) return cached
+
 		if (ctx.measureText(text).width <= maxWidth) {
-			if (this._truncateCache.size > TRUNCATE_CACHE_MAX) this._truncateCache.clear()
-			this._truncateCache.set(key, text)
-			return text
+			return this._setTruncatedTextCache(key, text)
 		}
-		let truncated = text
-		while (truncated.length > 0 && ctx.measureText(truncated + '…').width > maxWidth) {
-			truncated = truncated.slice(0, -1)
+
+		const ellipsis = '…'
+		let low = 0
+		let high = text.length
+		while (low < high) {
+			const mid = Math.ceil((low + high) / 2)
+			if (ctx.measureText(text.slice(0, mid) + ellipsis).width <= maxWidth) {
+				low = mid
+			} else {
+				high = mid - 1
+			}
 		}
-		const result = truncated + '…'
-		if (this._truncateCache.size > TRUNCATE_CACHE_MAX) this._truncateCache.clear()
+
+		return this._setTruncatedTextCache(key, text.slice(0, low) + ellipsis)
+	}
+
+	private _setTruncatedTextCache(key: string, result: string): string {
+		if (this._truncateCache.size >= TRUNCATE_CACHE_MAX) this._truncateCache.clear()
 		this._truncateCache.set(key, result)
 		return result
 	}

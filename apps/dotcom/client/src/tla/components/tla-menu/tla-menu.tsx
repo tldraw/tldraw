@@ -194,7 +194,7 @@ export function TlaMenuSelect<T extends string>({
 
 /* --------------------- Switch --------------------- */
 
-export interface TlaMenuSwitchProps extends Omit<HTMLAttributes<HTMLInputElement>, 'onChange'> {
+interface TlaMenuSwitchProps extends Omit<HTMLAttributes<HTMLInputElement>, 'onChange'> {
 	id: string
 	checked: boolean
 	onChange?(checked: boolean): void
