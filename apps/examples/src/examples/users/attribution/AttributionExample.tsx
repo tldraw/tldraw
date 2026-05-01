@@ -177,12 +177,11 @@ export default function AttributionExample() {
 				onMount={(editor) => {
 					const stampWithCurrentUser = (shape: TLShape) => {
 						if (typeof shape.meta.createdBy === 'string') return shape
-						const currentUser = editor.store.props.users.currentUser.get()
-						if (!currentUser) return shape
-						return { ...shape, meta: { ...shape.meta, createdBy: currentUser.id } }
+						const userId = editor.getAttributionUserId()
+						if (!userId) return shape
+						return { ...shape, meta: { ...shape.meta, createdBy: userId } }
 					}
 
-					// Backfill any persisted shapes that pre-date the side effect below.
 					const toBackfill = editor
 						.getCurrentPageShapes()
 						.filter((s) => typeof s.meta.createdBy !== 'string')
