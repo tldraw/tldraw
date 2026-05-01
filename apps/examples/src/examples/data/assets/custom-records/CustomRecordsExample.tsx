@@ -154,6 +154,7 @@ const MarkerOverlay = track(function MarkerOverlay() {
 					background: 'white',
 					cursor: 'pointer',
 					fontSize: 14,
+					pointerEvents: 'all',
 				}}
 			>
 				+ Add marker
