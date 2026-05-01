@@ -130,4 +130,4 @@ useEffect(() => {
 
 ### Trying deep links in this demo
 
-Create a shape on the canvas then pan or zoom. The `d` param in the URL will be updated. You will be able to use that deep link to return to your current view.
+Create a shape on the canvas then pan or zoom. The `d` param in the URL updates as you go. Copy that URL into a new tab to return to the same view later.
