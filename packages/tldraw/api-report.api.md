@@ -1149,6 +1149,118 @@ export function DefaultFollowingIndicator(): JSX.Element | null;
 // @public (undocumented)
 export const DefaultFontFaces: TLDefaultFonts;
 
+// @public
+export const defaultGeoTypeDefinitions: {
+    readonly 'arrow-down': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-down";
+        readonly snapType: "polygon";
+    };
+    readonly 'arrow-left': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-left";
+        readonly snapType: "polygon";
+    };
+    readonly 'arrow-right': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-right";
+        readonly snapType: "polygon";
+    };
+    readonly 'arrow-up': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-up";
+        readonly snapType: "polygon";
+    };
+    readonly 'check-box': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-check-box";
+        readonly snapType: "polygon";
+    };
+    readonly 'rhombus-2': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-rhombus-2";
+        readonly snapType: "polygon";
+    };
+    readonly 'x-box': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape, strokeWidth: number) => PathBuilder;
+        readonly icon: "geo-x-box";
+        readonly snapType: "polygon";
+    };
+    readonly cloud: {
+        readonly defaultSize: {
+            readonly h: 180;
+            readonly w: 300;
+        };
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-cloud";
+        readonly snapType: "blobby";
+    };
+    readonly diamond: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-diamond";
+        readonly snapType: "polygon";
+    };
+    readonly ellipse: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-ellipse";
+        readonly snapType: "blobby";
+    };
+    readonly heart: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-heart";
+        readonly snapType: "blobby";
+    };
+    readonly hexagon: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-hexagon";
+        readonly snapType: "polygon";
+    };
+    readonly octagon: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-octagon";
+        readonly snapType: "polygon";
+    };
+    readonly oval: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-oval";
+        readonly snapType: "blobby";
+    };
+    readonly pentagon: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-pentagon";
+        readonly snapType: "polygon";
+    };
+    readonly rectangle: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-rectangle";
+        readonly snapType: "polygon";
+    };
+    readonly rhombus: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-rhombus";
+        readonly snapType: "polygon";
+    };
+    readonly star: {
+        readonly defaultSize: {
+            readonly h: 190;
+            readonly w: 200;
+        };
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-star";
+        readonly snapType: "polygon";
+    };
+    readonly trapezoid: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-trapezoid";
+        readonly snapType: "polygon";
+    };
+    readonly triangle: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-triangle";
+        readonly snapType: "polygon";
+    };
+};
+
 // @public (undocumented)
 export function defaultHandleExternalEmbedContent<T>(editor: Editor, { point, url, embed }: {
     embed: T;
@@ -2239,6 +2351,9 @@ export function getFontFamily(theme: TLTheme, font: string): string;
 
 // @public
 export function getFontStyleItems(theme: TLTheme): StyleValuesForUi<string>;
+
+// @public
+export function getGeoTypeDefinition(name: string, customGeoTypes?: Record<string, GeoTypeDefinition>): GeoTypeDefinition | undefined;
 
 // @public (undocumented)
 export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boolean): TLShape | undefined;

@@ -55,7 +55,12 @@ import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { GeoShapeBody } from './GeoShapeBody'
-import { type GeoTypeDefinition, getCustomGeoType, getGeoShapePath } from './getGeoShapePath'
+import {
+	defaultGeoTypeDefinitions,
+	type GeoTypeDefinition,
+	getGeoShapePath,
+	getGeoTypeDefinition,
+} from './getGeoShapePath'
 
 // imperfect but good enough, should be the width of the W in the font / size combo
 const GEO_SHAPE_MIN_WIDTHS = Object.freeze({
@@ -90,7 +95,7 @@ const GEO_SHAPE_EMPTY_LABEL_SIZE = Object.freeze({ w: 0, h: 0 })
 // by previous `configure()` calls. This lets repeat `configure()` calls reuse
 // the same custom key (e.g. when wrapping/extending the util) without having
 // the entry stripped from `options.customGeoTypes`.
-const BUILTIN_GEO_TYPES: ReadonlySet<string> = new Set(GeoShapeGeoStyle.values)
+const BUILTIN_GEO_TYPES: ReadonlySet<string> = new Set(Object.keys(defaultGeoTypeDefinitions))
 
 /** @public */
 export interface GeoShapeUtilDisplayValues {
@@ -326,42 +331,15 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const geometry = this.getGeometry(shape)
 		// we only want to snap handles to the outline of the shape - not to its label etc.
 		const outline = geometry.children[0]
-		switch (shape.props.geo) {
-			case 'arrow-down':
-			case 'arrow-left':
-			case 'arrow-right':
-			case 'arrow-up':
-			case 'check-box':
-			case 'diamond':
-			case 'hexagon':
-			case 'octagon':
-			case 'pentagon':
-			case 'rectangle':
-			case 'rhombus':
-			case 'rhombus-2':
-			case 'star':
-			case 'trapezoid':
-			case 'triangle':
-			case 'x-box':
-				// poly-line type shapes hand snap points for each vertex & the center
-				return { outline: outline, points: [...outline.vertices, geometry.bounds.center] }
-			case 'cloud':
-			case 'ellipse':
-			case 'heart':
-			case 'oval':
-				// blobby shapes only have a snap point in their center
-				return { outline: outline, points: [geometry.bounds.center] }
-			default: {
-				const customType = getCustomGeoType(shape.props.geo, this.options.customGeoTypes)
-				if (customType) {
-					if (customType.snapType === 'blobby') {
-						return { outline: outline, points: [geometry.bounds.center] }
-					}
-					return { outline: outline, points: [...outline.vertices, geometry.bounds.center] }
-				}
-				throw new Error(`Unknown geo type: ${shape.props.geo}`)
-			}
+		const def = getGeoTypeDefinition(shape.props.geo, this.options.customGeoTypes)
+		if (!def) {
+			throw new Error(`Unknown geo type: ${shape.props.geo}`)
 		}
+		// blobby shapes only snap to the center; polygon shapes snap to vertices + center.
+		if (def.snapType === 'blobby') {
+			return { outline: outline, points: [geometry.bounds.center] }
+		}
+		return { outline: outline, points: [...outline.vertices, geometry.bounds.center] }
 	}
 
 	override getText(shape: TLGeoShape) {
@@ -738,9 +716,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 		}
 
-		const customType = getCustomGeoType(shape.props.geo, this.options.customGeoTypes)
-		if (customType?.onDoubleClick) {
-			const result = customType.onDoubleClick(shape)
+		const def = getGeoTypeDefinition(shape.props.geo, this.options.customGeoTypes)
+		if (def?.onDoubleClick) {
+			const result = def.onDoubleClick(shape)
 			if (result) {
 				return { ...shape, props: { ...shape.props, ...result.props } }
 			}
