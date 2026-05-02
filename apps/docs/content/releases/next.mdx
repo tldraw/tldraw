@@ -2,10 +2,10 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 05/01/2026
+date: 05/02/2026
 order: 0
 status: published
-last_version: v4.5.10
+last_version: v4.5.11
 ---
 
 This major release introduces a first-class theme system with display values, a new `OverlayUtil` system for canvas overlays, and extensibility APIs for custom record types, asset types, geo shapes, and frame-like shapes. Two new packages ship alongside it: `@tldraw/driver` for imperative editor control and `@tldraw/mermaid` for converting Mermaid diagrams into native shapes. It also adds a shape attribution system with the `TLUserStore` provider, clipboard and performance-measurement hooks, WebSocket hibernation in tlsync, RTL support, cross-window embedding, and various other improvements and bug fixes.
@@ -473,3 +473,6 @@ New APIs include `handleSocketResume()` for restoring sessions from snapshots, `
 - Fix note author attribution overflowing the sticky note width in SVG and PNG exports. ([#8664](https://github.com/tldraw/tldraw/pull/8664))
 - Fix keyboard shortcuts not matching on alternative Latin keyboard layouts (Dvorak, Colemak, AZERTY) by replacing the `hotkeys-js` library with a small layout-aware native event matcher. ([#8669](https://github.com/tldraw/tldraw/pull/8669))
 - Fix TypeScript signature mismatch on `ShapeUtil` base-class methods so overrides that need a `shape` parameter can declare it without errors. ([#8521](https://github.com/tldraw/tldraw/pull/8521))
+- Fix the minimap getting stuck in a dragging state when right-clicked or when the pointer is cancelled during a drag. ([#8700](https://github.com/tldraw/tldraw/pull/8700))
+- Fix the comma-key click shortcut landing at the wrong position on hosts with a non-zero canvas offset (e.g. tldraw.com with the sidebar open). ([#8704](https://github.com/tldraw/tldraw/pull/8704)) (contributed by [@danieljamesross](https://github.com/danieljamesross))
+- Fix toolbar group dividers referencing the wrong CSS variable, so dividers now render correctly. ([#8734](https://github.com/tldraw/tldraw/pull/8734))
