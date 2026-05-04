@@ -16,6 +16,8 @@ const env = makeEnv([
 	'ZERO_R2_BUCKET_NAME',
 	'ZERO_R2_ACCESS_KEY_ID',
 	'ZERO_R2_SECRET_ACCESS_KEY',
+	'R2_ACCESS_KEY_ID',
+	'R2_ACCESS_KEY_SECRET',
 ])
 
 interface ListWorkersResult {
@@ -189,22 +191,19 @@ async function listFlyioPreviewApps() {
 	return appNames.filter((name) => ZERO_CACHE_APP_REGEX.test(name))
 }
 
-const R2 = new S3Client({
-	region: 'auto',
-	endpoint: env.ZERO_R2_ENDPOINT,
-	credentials: {
-		accessKeyId: env.ZERO_R2_ACCESS_KEY_ID,
-		secretAccessKey: env.ZERO_R2_SECRET_ACCESS_KEY,
-	},
-})
+interface R2BucketRef {
+	client: S3Client
+	bucket: string
+	label: string
+}
 
-async function listR2BackupPrefixes(): Promise<string[]> {
+async function listR2PrPrefixes({ client, bucket }: R2BucketRef): Promise<string[]> {
 	const prefixes: string[] = []
 	let continuationToken: string | undefined
 	do {
-		const res = await R2.send(
+		const res = await client.send(
 			new ListObjectsV2Command({
-				Bucket: env.ZERO_R2_BUCKET_NAME,
+				Bucket: bucket,
 				Prefix: 'pr-',
 				Delimiter: '/',
 				ContinuationToken: continuationToken,
@@ -218,20 +217,15 @@ async function listR2BackupPrefixes(): Promise<string[]> {
 	return prefixes
 }
 
-async function deleteR2Backup(prefix: string) {
-	nicelog('Deleting R2 backup data:', prefix)
+async function deleteR2Prefix({ client, bucket, label }: R2BucketRef, prefix: string) {
+	nicelog(`Deleting ${label}:`, prefix)
 	while (true) {
-		const list = await R2.send(
-			new ListObjectsV2Command({
-				Bucket: env.ZERO_R2_BUCKET_NAME,
-				Prefix: prefix,
-			})
-		)
+		const list = await client.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: prefix }))
 		const objects = list.Contents
 		if (!objects || objects.length === 0) break
-		const result = await R2.send(
+		const result = await client.send(
 			new DeleteObjectsCommand({
-				Bucket: env.ZERO_R2_BUCKET_NAME,
+				Bucket: bucket,
 				Delete: { Objects: objects.map((o) => ({ Key: o.Key })) },
 			})
 		)
@@ -243,6 +237,33 @@ async function deleteR2Backup(prefix: string) {
 	}
 }
 
+const zeroBackups: R2BucketRef = {
+	client: new S3Client({
+		region: 'auto',
+		endpoint: env.ZERO_R2_ENDPOINT,
+		credentials: {
+			accessKeyId: env.ZERO_R2_ACCESS_KEY_ID,
+			secretAccessKey: env.ZERO_R2_SECRET_ACCESS_KEY,
+		},
+	}),
+	bucket: env.ZERO_R2_BUCKET_NAME,
+	label: 'Zero litestream backup',
+}
+
+// Matches the bucket / endpoint used by `coalesceWithPreviousAssets` in deploy-dotcom.ts.
+const dotcomAssetsCache: R2BucketRef = {
+	client: new S3Client({
+		region: 'auto',
+		endpoint: 'https://c34edc4e76350954b63adebde86d5eb1.r2.cloudflarestorage.com',
+		credentials: {
+			accessKeyId: env.R2_ACCESS_KEY_ID,
+			secretAccessKey: env.R2_ACCESS_KEY_SECRET,
+		},
+	}),
+	bucket: 'dotcom-deploy-assets-cache',
+	label: 'dotcom deploy assets cache',
+}
+
 const deletionErrors: string[] = []
 
 async function main() {
@@ -252,8 +273,13 @@ async function main() {
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
 	nicelog('\nPruning fly.io preview apps')
 	await processItems(listFlyioPreviewApps, deleteFlyioPreviewApp)
-	nicelog('\nPruning R2 litestream backups')
-	await processItems(listR2BackupPrefixes, deleteR2Backup)
+	for (const r2 of [zeroBackups, dotcomAssetsCache]) {
+		nicelog(`\nPruning ${r2.label}`)
+		await processItems(
+			() => listR2PrPrefixes(r2),
+			(prefix) => deleteR2Prefix(r2, prefix)
+		)
+	}
 	nicelog('\nDone')
 	if (deletionErrors.length > 0) {
 		nicelog('\nDeletion errors:')
