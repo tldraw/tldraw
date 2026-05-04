@@ -42,7 +42,6 @@ export class ResizableShapeUtil extends BaseBoxShapeUtil<ResizableShape> {
 
 	// [2]
 	override onDoubleClickEdge(shape: ResizableShape): TLShapePartial<ResizableShape> | void {
-		console.log('hello')
 		const isAtSmallSize = shape.props.w === 200 && shape.props.h === 200
 		return {
 			id: shape.id,
