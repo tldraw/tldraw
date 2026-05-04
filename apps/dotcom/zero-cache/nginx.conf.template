@@ -24,9 +24,24 @@ http {
                 set $check_replay "${check_replay}_replayed";
             }
 
-            # Case: cookie exists, differs, NOT a replay → tell Fly to route to correct machine
+            # Fly already fell back from a dead/unreachable preferred instance — do not
+            # fly-replay again to the cookie ID (would loop). Fall through and refresh cookie.
+            set $prefer_instance_unavailable "";
+            if ($http_fly_preferred_instance_unavailable != "") {
+                set $prefer_instance_unavailable "1";
+            }
+
+            # Case: cookie exists, differs, NOT a replay → ask Fly to prefer the cookie machine
+            # (prefer_instance avoids strict replay to a destroyed machine; see Fly fly-replay docs)
+            set $issue_fly_replay "0";
             if ($check_replay = "has_cookie_different") {
-                add_header fly-replay "instance=$cookie_fly_machine_id" always;
+                set $issue_fly_replay "1";
+            }
+            if ($prefer_instance_unavailable = "1") {
+                set $issue_fly_replay "0";
+            }
+            if ($issue_fly_replay = "1") {
+                add_header fly-replay "prefer_instance=$cookie_fly_machine_id" always;
                 return 307;
             }
 
