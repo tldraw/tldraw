@@ -27,8 +27,6 @@ import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
-import { PointerEvent as PointerEvent_2 } from 'react';
-import { PointerEventHandler } from 'react';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
@@ -5128,13 +5126,6 @@ export class UserPreferencesManager {
 
 // @public (undocumented)
 export const userTypeValidator: T.Validator<TLUserPreferences>;
-
-// @public (undocumented)
-export function useSelectionEvents(handle: TLSelectionHandle): {
-    onPointerDown: PointerEventHandler<Element>;
-    onPointerMove: (e: PointerEvent_2<Element>) => void;
-    onPointerUp: PointerEventHandler<Element>;
-};
 
 // @internal (undocumented)
 export function useShallowArrayIdentity<T extends null | readonly any[] | undefined>(arr: T): T;
