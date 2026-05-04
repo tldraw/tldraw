@@ -1,4 +1,4 @@
-import { IndexKey, createShapeId, toRichText } from '@tldraw/editor'
+import { IndexKey, ShapeUtil, TLFrameShape, createShapeId, toRichText } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { defaultOverlayUtils } from '../lib/defaultOverlayUtils'
 import { TestEditor } from './TestEditor'
@@ -476,7 +476,10 @@ describe('When double clicking a selection handle that registers as a canvas eve
 			.createShapes([{ id, type: 'frame', x: 100, y: 100, props: { w: 200, h: 200 } }])
 			.select(id)
 
-		const spy = vi.spyOn(overlayEditor.getShapeUtil('frame') as any, 'onDoubleClickEdge')
+		const spy = vi.spyOn(
+			overlayEditor.getShapeUtil('frame') as Required<ShapeUtil<TLFrameShape>>,
+			'onDoubleClickEdge'
+		)
 		const bounds = overlayEditor.getSelectionPageBounds()!
 
 		// Double-click on the right edge handle without specifying target — defaults
@@ -485,9 +488,7 @@ describe('When double clicking a selection handle that registers as a canvas eve
 		overlayEditor.doubleClick(bounds.maxX, bounds.midY)
 
 		expect(spy).toHaveBeenCalledTimes(1)
-		const info = spy.mock.calls[0][1] as { target: string; handle: string }
-		expect(info.target).toBe('selection')
-		expect(info.handle).toBe('right')
+		expect(spy.mock.calls[0][1]).toMatchObject({ target: 'selection', handle: 'right' })
 	})
 
 	it('Routes a canvas-targeted double-click on a resize corner handle to onDoubleClickCorner', () => {
@@ -496,15 +497,16 @@ describe('When double clicking a selection handle that registers as a canvas eve
 			.createShapes([{ id, type: 'frame', x: 100, y: 100, props: { w: 200, h: 200 } }])
 			.select(id)
 
-		const spy = vi.spyOn(overlayEditor.getShapeUtil('frame') as any, 'onDoubleClickCorner')
+		const spy = vi.spyOn(
+			overlayEditor.getShapeUtil('frame') as Required<ShapeUtil<TLFrameShape>>,
+			'onDoubleClickCorner'
+		)
 		const bounds = overlayEditor.getSelectionPageBounds()!
 
 		overlayEditor.doubleClick(bounds.maxX, bounds.maxY)
 
 		expect(spy).toHaveBeenCalledTimes(1)
-		const info = spy.mock.calls[0][1] as { target: string; handle: string }
-		expect(info.target).toBe('selection')
-		expect(info.handle).toBe('bottom_right')
+		expect(spy.mock.calls[0][1]).toMatchObject({ target: 'selection', handle: 'bottom_right' })
 	})
 })
 
