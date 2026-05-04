@@ -268,6 +268,30 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
+				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
+
+				// Check overlays first — if we hit a resize/rotate handle, re-dispatch
+				// as a selection event so onDoubleClickEdge / onDoubleClickCorner fire.
+				const hitOverlay = this.editor.overlays.getOverlayAtPoint(
+					currentPagePoint,
+					this.editor.options.hitTestMargin / this.editor.getZoomLevel()
+				)
+				if (hitOverlay) {
+					const overlayType = hitOverlay.props.overlayType as string | undefined
+					if (
+						overlayType === 'resize_handle' ||
+						overlayType === 'rotate_handle' ||
+						overlayType === 'mobile_rotate'
+					) {
+						this.onDoubleClick({
+							...info,
+							target: 'selection',
+							handle: hitOverlay.props.handle as any,
+						})
+						return
+					}
+				}
+
 				const hoveredShape = this.editor.getHoveredShape()
 
 				// todo
@@ -277,7 +301,6 @@ export class Idle extends StateNode {
 				// of the shape yet because that also creates text shapes, and can produce
 				// unexpected results when working "inside of" a hollow shape.
 
-				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
 						? hoveredShape
@@ -286,8 +309,6 @@ export class Idle extends StateNode {
 								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
 							}))
-
-				const focusedGroupId = this.editor.getFocusedGroupId()
 
 				if (hitShape) {
 					if (this.editor.isShapeOfType(hitShape, 'group')) {
@@ -298,13 +319,14 @@ export class Idle extends StateNode {
 						const parent = this.editor.getShape(hitShape.parentId)
 						if (parent && this.editor.isShapeOfType(parent, 'group')) {
 							// The shape is the direct child of a group. If the group is
-							// selected, then we can select the shape. If the group is the
-							// focus layer id, then we can double click into it as usual.
+							// selected, then we can select the shape.
+							const focusedGroupId = this.editor.getFocusedGroupId()
 							if (focusedGroupId && parent.id === focusedGroupId) {
-								// noop, double click on the shape as normal below
+								// If the group is the focus layer id, then we can double click into it as usual.
+								// So here's a noop, double click on the shape as normal below
 							} else {
 								// The shape is the child of some group other than our current
-								// focus layer. We should probably select the group instead.
+								// focus layer (ie the canvas or some other group). We should probably select the group instead.
 								selectOnCanvasPointerUp(this.editor, info)
 								return
 							}
@@ -323,6 +345,7 @@ export class Idle extends StateNode {
 					return
 				}
 
+				// No hit shape, so double click on the canvas instead
 				if (!this.editor.inputs.getShiftKey()) {
 					this.handleDoubleClickOnCanvas(info)
 				}
