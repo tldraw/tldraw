@@ -243,7 +243,7 @@
 	"file-system.shared-document-file-open-error.description": "فتح الملفات من المشاريع المشتركة غير مدعوم.",
 	"file-system.shared-document-file-open-error.title": "تعذر فتح الملف",
 	"fill-style.fill": "ملء",
-	"fill-style.lined-fill": "حشوة مبطنة",
+	"fill-style.lined-fill": "تعبئة بخطوط",
 	"fill-style.none": "لا يوجد",
 	"fill-style.pattern": "نمط",
 	"fill-style.semi": "شبه",

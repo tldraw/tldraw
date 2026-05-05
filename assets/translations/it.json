@@ -243,7 +243,7 @@
 	"file-system.shared-document-file-open-error.description": "L'apertura di file da progetti condivisi non è supportata",
 	"file-system.shared-document-file-open-error.title": "Impossibile aprire il file",
 	"fill-style.fill": "Riempi",
-	"fill-style.lined-fill": "Imbottitura foderata",
+	"fill-style.lined-fill": "Riempimento lineato",
 	"fill-style.none": "Nessuno",
 	"fill-style.pattern": "Modello",
 	"fill-style.semi": "Semi",

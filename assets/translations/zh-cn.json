@@ -243,7 +243,7 @@
 	"file-system.shared-document-file-open-error.description": "不支持从共享项目中打开文件。",
 	"file-system.shared-document-file-open-error.title": "无法打开文件",
 	"fill-style.fill": "填充",
-	"fill-style.lined-fill": "衬里填充",
+	"fill-style.lined-fill": "线条填充",
 	"fill-style.none": "无",
 	"fill-style.pattern": "图案",
 	"fill-style.semi": "半填充",

@@ -243,7 +243,7 @@
 	"file-system.shared-document-file-open-error.description": "Mở tệp từ các dự án được chia sẻ hiện tại không được hỗ trợ.",
 	"file-system.shared-document-file-open-error.title": "Không thể mở tệp",
 	"fill-style.fill": "Tô",
-	"fill-style.lined-fill": "Điền đầy",
+	"fill-style.lined-fill": "Tô có viền",
 	"fill-style.none": "Không",
 	"fill-style.pattern": "Mẫu",
 	"fill-style.semi": "Một nữa",

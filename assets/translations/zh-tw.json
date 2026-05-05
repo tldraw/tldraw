@@ -243,7 +243,7 @@
 	"file-system.shared-document-file-open-error.description": "不支援從共享專案開啟檔案。",
 	"file-system.shared-document-file-open-error.title": "無法開啟檔案",
 	"fill-style.fill": "充滿",
-	"fill-style.lined-fill": "襯裡填充",
+	"fill-style.lined-fill": "線條填充",
 	"fill-style.none": "無",
 	"fill-style.pattern": "圖案",
 	"fill-style.semi": "半填滿",

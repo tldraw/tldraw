@@ -243,7 +243,7 @@
 	"file-system.shared-document-file-open-error.description": "共有プロジェクトからファイルを開く操作は受け付けていません",
 	"file-system.shared-document-file-open-error.title": "ファイルを開くことができません",
 	"fill-style.fill": "塗りつぶし",
-	"fill-style.lined-fill": "裏地付き充填材",
+	"fill-style.lined-fill": "ライン入り塗りつぶし",
 	"fill-style.none": "なし",
 	"fill-style.pattern": "パターン",
 	"fill-style.semi": "セミ",
