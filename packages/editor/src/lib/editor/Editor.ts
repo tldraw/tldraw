@@ -6656,6 +6656,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]) {
 		const bindings: TLBinding[] = []
+		const seenInBatch = new Set<string>()
 		for (const partial of partials) {
 			const fromShape = this.getShape(partial.fromId)
 			const toShape = this.getShape(partial.toId)
@@ -6672,6 +6673,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 					...partial.props,
 				},
 			}) as TLBinding
+
+			if (process.env.NODE_ENV !== 'production') {
+				const dedupeKey = `${binding.fromId}|${binding.toId}|${binding.type}`
+				if (seenInBatch.has(dedupeKey)) {
+					console.warn(
+						`Duplicate ${binding.type} binding from ${binding.fromId} to ${binding.toId} created in the same createBindings call. Duplicate bindings can cause unexpected behavior.`
+					)
+				} else {
+					const existing = this.getBindingsFromShape(binding.fromId, binding.type).find(
+						(b) => b.toId === binding.toId && b.id !== binding.id
+					)
+					if (existing) {
+						console.warn(
+							`Duplicate ${binding.type} binding from ${binding.fromId} to ${binding.toId} (a binding with these endpoints already exists: ${existing.id}). Duplicate bindings can cause unexpected behavior.`
+						)
+					}
+				}
+				seenInBatch.add(dedupeKey)
+			}
 
 			bindings.push(binding)
 		}
