@@ -109,5 +109,6 @@ The component renders the click count. We don't add any React event handlers her
 click handling is done entirely through ShapeUtil.onClick above.
 
 [5]
-The indicator is the blue outline shown when the shape is selected.
+getIndicatorPath returns a Path2D that tldraw strokes onto the canvas overlay as the
+blue outline when the shape is selected.
 */

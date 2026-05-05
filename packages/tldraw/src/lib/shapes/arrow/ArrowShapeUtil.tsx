@@ -88,6 +88,40 @@ const ArrowHandles = {
 } as const
 type ArrowHandles = (typeof ArrowHandles)[keyof typeof ArrowHandles]
 
+function addRoundedRectPath(path: Path2D, bounds: Box, radius: number, counterClockwise = false) {
+	const r = Math.max(0, Math.min(radius, bounds.w / 2, bounds.h / 2))
+
+	if (r === 0) {
+		path.rect(bounds.x, bounds.y, bounds.w, bounds.h)
+		return
+	}
+
+	if (counterClockwise) {
+		path.moveTo(bounds.x, bounds.y + r)
+		path.lineTo(bounds.x, bounds.maxY - r)
+		path.arcTo(bounds.x, bounds.maxY, bounds.x + r, bounds.maxY, r)
+		path.lineTo(bounds.maxX - r, bounds.maxY)
+		path.arcTo(bounds.maxX, bounds.maxY, bounds.maxX, bounds.maxY - r, r)
+		path.lineTo(bounds.maxX, bounds.y + r)
+		path.arcTo(bounds.maxX, bounds.y, bounds.maxX - r, bounds.y, r)
+		path.lineTo(bounds.x + r, bounds.y)
+		path.arcTo(bounds.x, bounds.y, bounds.x, bounds.y + r, r)
+		path.closePath()
+		return
+	}
+
+	path.moveTo(bounds.x + r, bounds.y)
+	path.lineTo(bounds.maxX - r, bounds.y)
+	path.arcTo(bounds.maxX, bounds.y, bounds.maxX, bounds.y + r, r)
+	path.lineTo(bounds.maxX, bounds.maxY - r)
+	path.arcTo(bounds.maxX, bounds.maxY, bounds.maxX - r, bounds.maxY, r)
+	path.lineTo(bounds.x + r, bounds.maxY)
+	path.arcTo(bounds.x, bounds.maxY, bounds.x, bounds.maxY - r, r)
+	path.lineTo(bounds.x, bounds.y + r)
+	path.arcTo(bounds.x, bounds.y, bounds.x + r, bounds.y, r)
+	path.closePath()
+}
+
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override type = 'arrow' as const
@@ -867,13 +901,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (isEditing && labelGeometry) {
 			const labelBounds = labelGeometry.getBounds()
 			const path = new Path2D()
-			path.roundRect(
-				labelBounds.x,
-				labelBounds.y,
-				labelBounds.w,
-				labelBounds.h,
-				dv.labelBorderRadius * shape.props.scale
-			)
+			addRoundedRectPath(path, labelBounds, dv.labelBorderRadius * shape.props.scale)
 			return path
 		}
 
@@ -910,23 +938,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			// Outer rectangle (clockwise) - defines the area to keep
 			clipPath.rect(bounds.minX - 100, bounds.minY - 100, bounds.width + 200, bounds.height + 200)
 
-			// Label cutout (counter-clockwise via roundRect's default winding)
+			// Label cutout (counter-clockwise)
 			if (labelGeometry) {
 				const labelBounds = labelGeometry.getBounds()
-				const radius = dv.labelBorderRadius * shape.props.scale
-				// Create counter-clockwise rounded rect to cut out the label area
-				// We need to manually create the path in reverse winding order
-				const lb = labelBounds
-				clipPath.moveTo(lb.x, lb.y + radius)
-				clipPath.lineTo(lb.x, lb.maxY - radius)
-				clipPath.arcTo(lb.x, lb.maxY, lb.x + radius, lb.maxY, radius)
-				clipPath.lineTo(lb.maxX - radius, lb.maxY)
-				clipPath.arcTo(lb.maxX, lb.maxY, lb.maxX, lb.maxY - radius, radius)
-				clipPath.lineTo(lb.maxX, lb.y + radius)
-				clipPath.arcTo(lb.maxX, lb.y, lb.maxX - radius, lb.y, radius)
-				clipPath.lineTo(lb.x + radius, lb.y)
-				clipPath.arcTo(lb.x, lb.y, lb.x, lb.y + radius, radius)
-				clipPath.closePath()
+				addRoundedRectPath(clipPath, labelBounds, dv.labelBorderRadius * shape.props.scale, true)
 			}
 
 			// Add arrowhead paths to clip path if needed
@@ -944,13 +959,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			if (labelGeometry) {
 				const labelBounds = labelGeometry.getBounds()
 				const labelPath = new Path2D()
-				labelPath.roundRect(
-					labelBounds.x,
-					labelBounds.y,
-					labelBounds.w,
-					labelBounds.h,
-					dv.labelBorderRadius * shape.props.scale
-				)
+				addRoundedRectPath(labelPath, labelBounds, dv.labelBorderRadius * shape.props.scale)
 				additionalPaths.push(labelPath)
 			}
 

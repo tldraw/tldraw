@@ -96,7 +96,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 	override getIndicatorPath(shape: TLBookmarkShape): Path2D {
 		const path = new Path2D()
-		path.roundRect(0, 0, shape.props.w, shape.props.h, 6)
+		path.rect(0, 0, shape.props.w, shape.props.h)
 		return path
 	}
 

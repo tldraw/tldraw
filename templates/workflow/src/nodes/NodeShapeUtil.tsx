@@ -112,7 +112,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 	getIndicatorPath(shape: NodeShape) {
 		const height = getNodeHeightPx(this.editor, shape)
 		const path = new Path2D()
-		path.roundRect(0, 0, NODE_WIDTH_PX, height, 9)
+		path.rect(0, 0, NODE_WIDTH_PX, height)
 		const ports = Object.values(getNodePorts(this.editor, shape))
 		for (const port of ports) {
 			path.moveTo(port.x + PORT_RADIUS_PX, port.y)

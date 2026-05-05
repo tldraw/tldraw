@@ -14,7 +14,7 @@
 	padding: 0px 16px;
 	font-size: 12px;
 	font-weight: 600;
-	color: #ffffff;
+	color: var(--tla-color-contrast);
 	border: none;
 	cursor: pointer;
 }
@@ -39,7 +39,7 @@
 	content: '';
 	position: absolute;
 	inset: 0px;
-	color: #ffffff;
+	color: var(--tla-color-contrast);
 	background-color: var(--tla-color-cta);
 	border-radius: 6px;
 	z-index: 2;

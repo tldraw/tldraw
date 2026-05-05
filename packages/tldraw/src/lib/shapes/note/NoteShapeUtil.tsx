@@ -3,6 +3,7 @@ import {
 	Box,
 	DefaultFontFamilies,
 	EMPTY_ARRAY,
+	Editor,
 	Group2d,
 	IndexKey,
 	Rectangle2d,
@@ -334,9 +335,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const nw = dv.noteWidth * scale
 		const nh = getNoteHeight(shape, dv.noteHeight)
 
-		// Shadows are hidden when zoomed out far enough or in dark mode
-		let hideShadows = useEfficientZoomThreshold(0.25 / scale)
-		if (colorMode === 'dark') hideShadows = true
+		// Shadows are hidden when zoomed out far enough; the cheap borderBottom takes over.
+		const hideShadows = useEfficientZoomThreshold(0.25 / scale)
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
@@ -423,7 +423,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const { scale } = shape.props
 		const dv = getDisplayValues(this, shape)
 		const path = new Path2D()
-		path.roundRect(0, 0, dv.noteWidth * scale, getNoteHeight(shape, dv.noteHeight), scale)
+		path.rect(0, 0, dv.noteWidth * scale, getNoteHeight(shape, dv.noteHeight))
 		return path
 	}
 
@@ -459,10 +459,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		})
 
 		const { textFirstEditedBy } = shape.props
-		const attributionName =
+		const attributionFirstName =
 			textFirstEditedBy && !isEmptyRichText(shape.props.richText)
 				? this.editor.getAttributionDisplayName(textFirstEditedBy)?.split(' ')[0]
 				: null
+		const attributionName = attributionFirstName
+			? truncateAttributionForSvg(this.editor, attributionFirstName, dv.noteWidth)
+			: null
 
 		return (
 			<>
@@ -722,6 +725,27 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 function getNoteHeight(shape: TLNoteShape, noteHeight: number) {
 	return (noteHeight + shape.props.growY) * shape.props.scale
+}
+
+// Matches `.tl-note__attribution { max-width: 60% }` so SVG export truncates the same way.
+const ATTRIBUTION_MAX_WIDTH_RATIO = 0.6
+
+function truncateAttributionForSvg(editor: Editor, name: string, noteWidth: number) {
+	if (process.env.NODE_ENV === 'test') return name
+	const spans = editor.textMeasure.measureTextSpans(name, {
+		fontSize: 11,
+		fontFamily: DefaultFontFamilies['sans'],
+		textAlign: 'end',
+		width: noteWidth * ATTRIBUTION_MAX_WIDTH_RATIO,
+		height: 16,
+		padding: 0,
+		lineHeight: 1,
+		fontStyle: 'normal',
+		fontWeight: 'normal',
+		overflow: 'truncate-ellipsis',
+	})
+	if (spans.length === 0) return name
+	return spans.map((s) => s.text).join('')
 }
 
 function getNoteShadow(id: string, rotation: number, scale: number) {

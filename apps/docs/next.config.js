@@ -186,6 +186,11 @@ const nextConfig = {
 				destination: '/starter-kits/overview',
 				permanent: true,
 			},
+			{
+				source: '/discord',
+				destination: 'https://discord.com/invite/s4FXZ6fppJ',
+				permanent: false,
+			},
 		]
 	},
 	async rewrites() {

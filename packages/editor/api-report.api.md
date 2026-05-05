@@ -27,8 +27,6 @@ import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
-import { PointerEvent as PointerEvent_2 } from 'react';
-import { PointerEventHandler } from 'react';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
@@ -534,6 +532,15 @@ export class ClickManager {
 // @public
 export function clockwiseAngleDist(a0: number, a1: number): number;
 
+// @public
+export class CollaboratorsManager {
+    constructor(editor: Editor);
+    getCollaborators(): TLInstancePresence[];
+    getCollaboratorsOnCurrentPage(): TLInstancePresence[];
+    getVisibleCollaborators(): TLInstancePresence[];
+    getVisibleCollaboratorsOnCurrentPage(): TLInstancePresence[];
+}
+
 // @public (undocumented)
 export function ContainerProvider({ container, children }: ContainerProviderProps): JSX.Element;
 
@@ -911,8 +918,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     clearHistory(): this;
     // @internal
     protected _clickManager: ClickManager;
-    // @internal (undocumented)
-    readonly _collaboratorVisibilityClock: Atom<number, unknown>;
+    readonly collaborators: CollaboratorsManager;
     complete(): this;
     // (undocumented)
     readonly contextId: string;
@@ -1920,6 +1926,12 @@ export function getGlobalWindow(): Window & typeof globalThis;
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
+// @public
+export function getOverlayDisplayValues<Overlay extends TLOverlay, DisplayValues extends object>(util: {
+    editor: Editor;
+    options: OverlayOptionsWithDisplayValues<Overlay, DisplayValues>;
+}, overlay: Overlay, colorMode?: 'dark' | 'light'): DisplayValues;
+
 // @internal (undocumented)
 export function getOwnerDocument(nodeOrDocument: Document | Node | null | undefined): Document;
 
@@ -2618,6 +2630,14 @@ export class OverlayManager {
     setHoveredOverlay(id: null | string): void;
 }
 
+// @public (undocumented)
+export interface OverlayOptionsWithDisplayValues<Overlay extends TLOverlay, DisplayValues extends object> {
+    // (undocumented)
+    getCustomDisplayValues(editor: Editor, overlay: Overlay, theme: TLTheme, colorMode: 'dark' | 'light'): Partial<DisplayValues>;
+    // (undocumented)
+    getDefaultDisplayValues(editor: Editor, overlay: Overlay, theme: TLTheme, colorMode: 'dark' | 'light'): DisplayValues;
+}
+
 // @public
 export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     constructor(editor: Editor);
@@ -3260,6 +3280,9 @@ export const stopEventPropagation: (e: any) => any;
 
 // @internal (undocumented)
 export type StoreName = (typeof Table)[keyof typeof Table];
+
+// @public
+export function strokeShapeIndicators(editor: Editor, ctx: CanvasRenderingContext2D, shapeIds: TLShapeId[]): void;
 
 // @public (undocumented)
 export function suffixSafeId(id: SafeId, suffix: string): SafeId;
@@ -4600,10 +4623,6 @@ export type TLShapeErrorFallbackComponent = ComponentType<{
 export interface TLShapeIndicatorOverlay extends TLOverlay {
     // (undocumented)
     props: {
-        collaboratorIndicators: Array<{
-            color: string;
-            shapeIds: TLShapeId[];
-        }>;
         hintingShapeIds: TLShapeId[];
         idsToDisplay: TLShapeId[];
     };
@@ -5107,13 +5126,6 @@ export class UserPreferencesManager {
 
 // @public (undocumented)
 export const userTypeValidator: T.Validator<TLUserPreferences>;
-
-// @public (undocumented)
-export function useSelectionEvents(handle: TLSelectionHandle): {
-    onPointerDown: PointerEventHandler<Element>;
-    onPointerMove: (e: PointerEvent_2<Element>) => void;
-    onPointerUp: PointerEventHandler<Element>;
-};
 
 // @internal (undocumented)
 export function useShallowArrayIdentity<T extends null | readonly any[] | undefined>(arr: T): T;

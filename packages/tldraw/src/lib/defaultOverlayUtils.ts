@@ -6,6 +6,7 @@ import { CollaboratorBrushOverlayUtil } from './overlays/CollaboratorBrushOverla
 import { CollaboratorCursorOverlayUtil } from './overlays/CollaboratorCursorOverlayUtil'
 import { CollaboratorHintOverlayUtil } from './overlays/CollaboratorHintOverlayUtil'
 import { CollaboratorScribbleOverlayUtil } from './overlays/CollaboratorScribbleOverlayUtil'
+import { CollaboratorShapeIndicatorOverlayUtil } from './overlays/CollaboratorShapeIndicatorOverlayUtil'
 import { ScribbleOverlayUtil } from './overlays/ScribbleOverlayUtil'
 import { SelectionForegroundOverlayUtil } from './overlays/SelectionForegroundOverlayUtil'
 import { ShapeHandleOverlayUtil } from './overlays/ShapeHandleOverlayUtil'
@@ -14,6 +15,7 @@ import { ZoomBrushOverlayUtil } from './overlays/ZoomBrushOverlayUtil'
 
 /** @public */
 export const defaultOverlayUtils = [
+	CollaboratorShapeIndicatorOverlayUtil,
 	ShapeIndicatorOverlayUtil,
 	SelectionForegroundOverlayUtil,
 	ShapeHandleOverlayUtil,
