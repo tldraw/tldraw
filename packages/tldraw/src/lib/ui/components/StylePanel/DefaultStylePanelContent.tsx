@@ -330,7 +330,7 @@ export function StylePanelGeoShapePicker() {
 	const geo = styles.get(GeoShapeGeoStyle)
 	if (geo === undefined) return null
 
-	const customGeoTypes = (editor.getShapeUtil('geo') as GeoShapeUtil).options.customGeoTypes
+	const customGeoTypes = editor.getShapeUtil<GeoShapeUtil>('geo').options.customGeoTypes
 	const merged: Record<string, GeoTypeDefinition> = {
 		...defaultGeoTypeDefinitions,
 		...customGeoTypes,
