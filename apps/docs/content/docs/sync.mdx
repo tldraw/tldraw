@@ -37,8 +37,8 @@ The best way to get started hosting your own backend is to clone and deploy [our
 
 It uses:
 
-- [Durable Objects](https://developers.cloudflare.com/durable-objects/) to provide a unique WebSocket server per room.
-- [R2](https://developers.cloudflare.com/r2/) to persist document snapshots and store large binary assets like images and videos.
+- [Durable Objects](https://developers.cloudflare.com/durable-objects/) to provide a unique WebSocket server per room. Room state is persisted automatically to the durable object's built-in SQLite storage.
+- [R2](https://developers.cloudflare.com/r2/) to store large binary assets like images and videos.
 
 There are some features that we have not provided and you might want to add yourself, such as authentication and authorization, rate limiting and size limiting for asset uploads, storing snapshots of documents over time for long-term history, and listing and searching for rooms.
 
