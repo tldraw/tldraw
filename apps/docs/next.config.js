@@ -5,6 +5,7 @@ const REWRITE_DOMAIN = 'tldrawdotdev.framer.website'
 
 const nextConfig = {
 	reactStrictMode: true,
+	assetPrefix: process.env.ASSET_PREFIX || undefined,
 	experimental: {
 		scrollRestoration: true,
 	},
