@@ -82,7 +82,7 @@ export class Pointing extends StateNode {
 		const scale = this.editor.getResizeScaleFactor()
 
 		const geo = this.editor.getStyleForNextShape(GeoShapeGeoStyle)
-		const geoShapeUtil = this.editor.getShapeUtil('geo') as GeoShapeUtil
+		const geoShapeUtil = this.editor.getShapeUtil<GeoShapeUtil>('geo')
 
 		const def = getGeoTypeDefinition(geo, geoShapeUtil.options.customGeoTypes)
 		const size = def?.defaultSize ?? { w: 200, h: 200 }
