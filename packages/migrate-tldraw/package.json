@@ -1,0 +1,49 @@
+{
+	"name": "@tldraw/migrate",
+	"description": "tldraw infinite canvas SDK migration CLI.",
+	"version": "4.5.10",
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"sdk",
+		"migrate",
+		"upgrade",
+		"codemod"
+	],
+	"bin": {
+		"tldraw-migrate": "./cli.cjs"
+	},
+	"files": [
+		"dist-cjs",
+		"./cli.cjs",
+		"skills"
+	],
+	"scripts": {
+		"dev": "./scripts/dev.sh",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"prebuild": "yarn run -T tsx ./scripts/generate-skills.ts",
+		"build": "./scripts/build.sh",
+		"prepack": "yarn build",
+		"pack-tarball": "yarn pack",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"devDependencies": {
+		"esbuild": "^0.28.0",
+		"lazyrepo": "0.0.0-alpha.27"
+	},
+	"// because this is bundled, all dependencies should be dev dependencies.": null
+}

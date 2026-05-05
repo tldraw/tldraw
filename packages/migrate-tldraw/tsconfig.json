@@ -1,0 +1,7 @@
+{
+	"extends": "../../internal/config/tsconfig.base.json",
+	"include": ["src", "scripts"],
+	"exclude": ["node_modules", "dist", "dist-cjs", ".tsbuild*", "src/transforms/**/sections/**/*"],
+	"compilerOptions": { "outDir": "./.tsbuild" },
+	"references": []
+}

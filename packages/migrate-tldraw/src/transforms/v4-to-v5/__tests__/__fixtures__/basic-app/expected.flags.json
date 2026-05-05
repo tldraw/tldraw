@@ -1,0 +1,8 @@
+{
+	"App.tsx": [
+		"infer-dark-mode-expr",
+		"infer-dark-mode-expr",
+		"use-is-dark-mode",
+		"get-default-color-theme"
+	]
+}

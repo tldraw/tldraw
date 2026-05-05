@@ -1,0 +1,3 @@
+{
+	"Overlays.tsx": ["slot-brush", "slot-scribble", "slot-selection-foreground"]
+}

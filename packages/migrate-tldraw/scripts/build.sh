@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eux
+
+esbuild src/main.ts \
+    --bundle \
+    --outfile=dist-cjs/main.cjs \
+    --platform=node \
+    --target=node20 \
+    --sourcemap

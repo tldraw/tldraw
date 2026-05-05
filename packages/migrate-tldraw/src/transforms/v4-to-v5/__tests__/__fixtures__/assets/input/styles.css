@@ -1,0 +1,15 @@
+.my-app {
+	color: var(--tl-color-snap);
+}
+
+.tl-brush {
+	display: none;
+}
+
+.tl-scribble {
+	stroke: var(--tl-color-laser);
+}
+
+.unrelated-class {
+	background: red;
+}

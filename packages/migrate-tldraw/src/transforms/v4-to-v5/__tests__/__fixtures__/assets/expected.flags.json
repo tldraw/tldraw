@@ -1,0 +1,14 @@
+{
+	"CustomAsset.ts": [
+		"asset-validator",
+		"get-media-asset-info-partial",
+		"notify-if-file-not-allowed",
+		"get-asset-info"
+	],
+	"styles.css": [
+		"css-var-color-snap",
+		"css-var-color-laser",
+		"css-selector-brush",
+		"css-selector-scribble"
+	]
+}

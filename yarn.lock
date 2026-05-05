@@ -11568,6 +11568,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/migrate@workspace:packages/migrate-tldraw":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/migrate@workspace:packages/migrate-tldraw"
+  dependencies:
+    esbuild: "npm:^0.28.0"
+    lazyrepo: "npm:0.0.0-alpha.27"
+  bin:
+    tldraw-migrate: ./cli.cjs
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/monorepo@workspace:.":
   version: 0.0.0-use.local
   resolution: "@tldraw/monorepo@workspace:."
