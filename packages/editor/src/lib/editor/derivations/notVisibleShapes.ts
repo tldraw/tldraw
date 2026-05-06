@@ -12,42 +12,45 @@ export function notVisibleShapes(editor: Editor) {
 	const emptySet = new Set<TLShapeId>()
 
 	return computed<Set<TLShapeId>>('notVisibleShapes', function (prevValue) {
-		const allShapes = editor.getCurrentPageShapes()
+		// Subscribed deps:
+		//  - getCurrentPageShapeIds: incremental, only invalidates on add/remove/reparent
+		//  - getViewportPageBounds: invalidates on pan/zoom
+		//  - getShapeIdsInsideBounds: subscribes to the spatial index epoch,
+		//    which only ticks when a shape's bounds actually change
+		// We deliberately do NOT subscribe to getCurrentPageShapes() — its
+		// invalidation on every prop change would re-run this derivation per
+		// pointer move during drawing.
+		const allShapeIds = editor.getCurrentPageShapeIds()
 		const viewportPageBounds = editor.getViewportPageBounds()
 		const visibleIds = editor.getShapeIdsInsideBounds(viewportPageBounds)
 
-		let shape: TLShape | undefined
-
-		// Fast path: if all shapes are visible, return empty set
-		if (visibleIds.size === allShapes.length) {
+		// Fast path: if all shapes are visible, return empty set.
+		if (visibleIds.size === allShapeIds.size) {
 			if (isUninitialized(prevValue) || prevValue.size > 0) {
 				return emptySet
 			}
 			return prevValue
 		}
 
-		// First run: compute from scratch
-		if (isUninitialized(prevValue)) {
-			const nextValue = new Set<TLShapeId>()
-			for (let i = 0; i < allShapes.length; i++) {
-				shape = allShapes[i]
-				if (visibleIds.has(shape.id)) continue
-				if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
-				nextValue.add(shape.id)
-			}
-			return nextValue
-		}
-
-		// Subsequent runs: single pass to collect IDs and detect changes
+		// Slow path: collect not-visible ids, checking canCull per shape.
+		// We read shapes via store.unsafeGetWithoutCapture so the derivation
+		// doesn't subscribe to per-shape props.
 		const notVisibleIds: TLShapeId[] = []
-		for (let i = 0; i < allShapes.length; i++) {
-			shape = allShapes[i]
-			if (visibleIds.has(shape.id)) continue
+		let shape: TLShape | undefined
+		for (const id of allShapeIds) {
+			if (visibleIds.has(id)) continue
+			shape = editor.store.unsafeGetWithoutCapture(id) as TLShape | undefined
+			if (!shape) continue
 			if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
-			notVisibleIds.push(shape.id)
+			notVisibleIds.push(id)
 		}
 
-		// Check if the result changed
+		// First run: build from scratch.
+		if (isUninitialized(prevValue)) {
+			return new Set(notVisibleIds)
+		}
+
+		// Subsequent runs: only allocate a new Set when the contents differ.
 		if (notVisibleIds.length === prevValue.size) {
 			let same = true
 			for (let i = 0; i < notVisibleIds.length; i++) {
