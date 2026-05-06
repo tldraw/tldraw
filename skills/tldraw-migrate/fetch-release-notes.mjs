@@ -133,6 +133,7 @@ if (relevant.length === 0) {
 }
 
 const sections = ['# tldraw SDK releases', '', '--------', '']
+const failed = []
 
 for (const file of relevant) {
 	const text = await fetch(file.url, { headers: { 'User-Agent': 'tldraw-migrate-skill' } })
@@ -142,6 +143,7 @@ for (const file of relevant) {
 		})
 		.catch((err) => {
 			process.stderr.write(`Warning: failed to fetch ${file.name}: ${err.message}\n`)
+			failed.push(file.name)
 			return null
 		})
 	if (text === null) continue
@@ -151,3 +153,11 @@ for (const file of relevant) {
 }
 
 process.stdout.write(sections.join('\n'))
+
+if (failed.length > 0) {
+	process.stderr.write(
+		`\nERROR: ${failed.length} of ${relevant.length} release files failed to fetch (${failed.join(', ')}). ` +
+			`Output is incomplete — re-run, or set GITHUB_TOKEN to avoid the unauthenticated rate limit.\n`
+	)
+	process.exit(2)
+}

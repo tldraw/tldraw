@@ -13,15 +13,15 @@ Throughout this skill, `${SKILL_DIR}` refers to this skill's own directory (wher
 
 **Arguments**: `/tldraw-migrate [from-version] [target]`. Both optional. `from-version` defaults to the previous tldraw version detected from git history. `target` defaults to `latest` (the latest stable release on npm); pass a dist-tag (`canary`, `next`, `beta`) or a pre-release semver (e.g. `4.6.0-canary.abc123`) to migrate to a pre-release.
 
-Resolved migration: !`SKILL_DIR="${SKILL_DIR:-$(for d in .claude/skills/tldraw-migrate .agents/skills/tldraw-migrate .codex/skills/tldraw-migrate .cursor/skills/tldraw-migrate skills/tldraw-migrate; do [ -d "$d" ] && printf %s "$d" && break; done)}" && FROM=$(node "$SKILL_DIR/detect-versions.mjs" $ARGUMENTS) && TARGET=$(node "$SKILL_DIR/detect-target.mjs" $ARGUMENTS) && echo "from $FROM → target $TARGET"`
+Resolved migration: !`SKILL_DIR="${SKILL_DIR:-$(for d in .claude/skills/tldraw-migrate .agents/skills/tldraw-migrate .codex/skills/tldraw-migrate .cursor/skills/tldraw-migrate skills/tldraw-migrate; do [ -d "$d" ] && printf %s "$d" && break; done)}" && FROM=$(node "$SKILL_DIR/detect-versions.mjs" $ARGUMENTS || true) && TARGET=$(node "$SKILL_DIR/detect-target.mjs" $ARGUMENTS) && if [ -z "$FROM" ]; then echo "ERROR: could not detect previous tldraw version. Pass it explicitly: /tldraw-migrate <from-version> [target]" >&2; else echo "from $FROM → target $TARGET"; fi`
 
 ## Resources (auto-fetched on invocation)
 
 The three blocks below are written for Claude Code's `!`-prefix auto-execute syntax. **If you are an agent that doesn't auto-run these (Cursor, Codex, plain Claude, etc.), execute each one as a shell command before continuing** — they download the changelog, full docs, and (for pre-release targets) next-release notes that the rest of the workflow depends on.
 
-!`SKILL_DIR="${SKILL_DIR:-$(for d in .claude/skills/tldraw-migrate .agents/skills/tldraw-migrate .codex/skills/tldraw-migrate .cursor/skills/tldraw-migrate skills/tldraw-migrate; do [ -d "$d" ] && printf %s "$d" && break; done)}" && mkdir -p "$SKILL_DIR/references" && CHANGELOG="$SKILL_DIR/references/tldraw-releases.txt" && PREV=$(node "$SKILL_DIR/detect-versions.mjs" $ARGUMENTS) && [ -n "$PREV" ] && node "$SKILL_DIR/fetch-release-notes.mjs" "$PREV" > "$CHANGELOG" && echo "Saved changelog (from $PREV, sourced from github.com/tldraw/tldraw) to $CHANGELOG ($(wc -l < "$CHANGELOG") lines)"`
+!`SKILL_DIR="${SKILL_DIR:-$(for d in .claude/skills/tldraw-migrate .agents/skills/tldraw-migrate .codex/skills/tldraw-migrate .cursor/skills/tldraw-migrate skills/tldraw-migrate; do [ -d "$d" ] && printf %s "$d" && break; done)}" && mkdir -p "$SKILL_DIR/references" && CHANGELOG="$SKILL_DIR/references/tldraw-releases.txt" && PREV=$(node "$SKILL_DIR/detect-versions.mjs" $ARGUMENTS || true) && if [ -z "$PREV" ]; then echo "ERROR: could not detect previous tldraw version — skipping changelog fetch. Pass it explicitly: /tldraw-migrate <from-version> [target]" >&2; else node "$SKILL_DIR/fetch-release-notes.mjs" "$PREV" > "$CHANGELOG" && echo "Saved changelog (from $PREV, sourced from github.com/tldraw/tldraw) to $CHANGELOG ($(wc -l < "$CHANGELOG") lines)"; fi`
 
-!`SKILL_DIR="${SKILL_DIR:-$(for d in .claude/skills/tldraw-migrate .agents/skills/tldraw-migrate .codex/skills/tldraw-migrate .cursor/skills/tldraw-migrate skills/tldraw-migrate; do [ -d "$d" ] && printf %s "$d" && break; done)}" && DOCS="$SKILL_DIR/references/tldraw-full-docs.txt" && if [ -s "$DOCS" ]; then echo "Using cached full docs at $DOCS ($(wc -l < "$DOCS") lines) — delete the file to refresh"; else curl --fail -sS https://tldraw.dev/llms-full.txt -o "$DOCS" && echo "Saved full docs to $DOCS ($(wc -l < "$DOCS") lines)"; fi`
+!`SKILL_DIR="${SKILL_DIR:-$(for d in .claude/skills/tldraw-migrate .agents/skills/tldraw-migrate .codex/skills/tldraw-migrate .cursor/skills/tldraw-migrate skills/tldraw-migrate; do [ -d "$d" ] && printf %s "$d" && break; done)}" && DOCS="$SKILL_DIR/references/tldraw-full-docs.txt" && STALE=$(find "$DOCS" -mtime +30 2>/dev/null) && if [ -s "$DOCS" ] && [ -z "$STALE" ]; then echo "Using cached full docs at $DOCS ($(wc -l < "$DOCS") lines) — delete the file or wait 30 days to refresh"; else curl --fail -sS https://tldraw.dev/llms-full.txt -o "$DOCS" && echo "Saved full docs to $DOCS ($(wc -l < "$DOCS") lines)"; fi`
 
 !`SKILL_DIR="${SKILL_DIR:-$(for d in .claude/skills/tldraw-migrate .agents/skills/tldraw-migrate .codex/skills/tldraw-migrate .cursor/skills/tldraw-migrate skills/tldraw-migrate; do [ -d "$d" ] && printf %s "$d" && break; done)}" && mkdir -p "$SKILL_DIR/references" && TARGET=$(node "$SKILL_DIR/detect-target.mjs" $ARGUMENTS) && case "$TARGET" in canary|next|beta|alpha|rc|*-canary*|*-next*|*-beta*|*-alpha*|*-rc*) NEXT="$SKILL_DIR/references/tldraw-next.mdx" && curl --fail -sS https://raw.githubusercontent.com/tldraw/tldraw/main/apps/docs/content/releases/next.mdx -o "$NEXT" && echo "Pre-release target ($TARGET) — saved next-release notes to $NEXT ($(wc -l < "$NEXT") lines)" ;; *) echo "Stable target ($TARGET) — skipping next-release notes" ;; esac`
 
@@ -31,12 +31,14 @@ The three blocks below are written for Claude Code's `!`-prefix auto-execute syn
 
 **Searching for migration recipes:**
 
+Always grep *both* the stable changelog and `next.mdx` (the latter only exists for pre-release targets — `2>/dev/null` swallows the missing-file warning). Migration blocks routinely run 40–80 lines, so use `-A60` as the default after-context.
+
 ```sh
 # List every breaking change with a migration block
-grep -nE '💥|<summary>Migration guide' ${SKILL_DIR}/references/tldraw-next.mdx
+grep -nE '💥|<summary>Migration guide' ${SKILL_DIR}/references/tldraw-releases.txt ${SKILL_DIR}/references/tldraw-next.mdx 2>/dev/null
 
 # Find the migration recipe for a specific symbol
-grep -n -B2 -A20 'getIndicatorPath\|TLUserStore\|EmbedShapeUtil' ${SKILL_DIR}/references/tldraw-next.mdx
+grep -n -B2 -A60 'getIndicatorPath\|TLUserStore\|EmbedShapeUtil' ${SKILL_DIR}/references/tldraw-releases.txt ${SKILL_DIR}/references/tldraw-next.mdx 2>/dev/null
 ```
 
 ## Step 1: Understand the environment
@@ -58,6 +60,8 @@ Using the detected package manager, upgrade all tldraw packages that are already
 
 - For a stable target (`latest` or a stable semver): install at that tag/version, e.g. `yarn add tldraw@latest` or `npm install tldraw@4.5.10`.
 - For a pre-release target (`canary`, `next`, `beta`, or a pre-release semver): install at that tag/version, e.g. `yarn add tldraw@canary`. If multiple `@tldraw/*` packages are listed, pin them all to the same target to avoid version skew.
+
+**Commit the version bump on its own.** Stage and commit only `package.json` and the lockfile before fixing types. Source-code changes from later steps stay in their own commit, so the eventual `git diff` is reviewable as "what the migration touched" rather than mixed with the dependency change.
 
 ## Step 3: Identify all TypeScript errors
 
@@ -83,7 +87,7 @@ Fix in this order (each fix eliminates many downstream errors). After each sub-s
 
 If you see TS2786 "bigint not assignable to ReactNode" errors, upgrade `@types/react` AND `@types/react-dom` together to match tldraw's bundled version. Bumping only `@types/react` will leave a transitive dependency on the old `@types/react-dom` and the same errors will reappear from a different path (e.g. inside `TldrawUiToolbarButton`).
 
-**Verify**: re-run typecheck — TS2786 errors should be gone.
+**Verify**: re-run typecheck — TS2786 errors caused by `bigint not assignable to ReactNode` should be gone. (TS2786 can also fire from genuine JSX usage problems unrelated to types skew; those remain for later sub-steps.)
 
 ### 4b. Register custom shapes and bindings
 
@@ -106,7 +110,7 @@ This is where the version-specific work happens, and it's driven entirely by the
 For each TS2305 / TS2724 / TS2339 / TS2515 error:
 
 1. Pull the symbol name out of the error.
-2. Grep the migration blocks for it: `grep -n -B2 -A20 'SymbolName' ${SKILL_DIR}/references/tldraw-releases.txt ${SKILL_DIR}/references/tldraw-next.mdx`.
+2. Grep the migration blocks for it: `grep -n -B2 -A60 'SymbolName' ${SKILL_DIR}/references/tldraw-releases.txt ${SKILL_DIR}/references/tldraw-next.mdx 2>/dev/null` (the `2>/dev/null` swallows the missing-file warning when `next.mdx` isn't present for stable targets).
 3. Apply the recipe shown in the matching `Migration guide` block. Migration blocks contain before/after code snippets; copy the structure.
 
 If the symbol isn't in any migration block:
@@ -202,11 +206,24 @@ After all errors are resolved, do a quick audit:
 3. **Audit module augmentations.** Module augmentation is correct for `TLGlobalShapePropsMap` / `TLGlobalBindingPropsMap` registration and for adding genuinely-missing public types. It is **not** correct for re-exposing symbols that the SDK demoted to `@internal` — that's a workaround, not a fix. Find the public replacement instead (the migration block usually names it).
 4. **Verify no stubs or dead code**: If you stubbed out removed APIs (e.g., replaced a removed function with a no-op), make sure the calling code doesn't depend on the return value. If it does, find the proper replacement in the migration blocks or docs.
 
+## Step 7: Report
+
+End the migration with a single summary message to the user. Don't pad it — just the facts:
+
+- **From → target version**, and the resolved target version if it was a tag (`canary` → `4.7.0-canary.abc123`).
+- **Files modified** (count, plus the list if it's small).
+- **TypeScript errors fixed**, broken down by code (e.g., `TS2786 ×12, TS2344 ×3, TS2305 ×1`). Use the before/after counts you collected during Step 4.
+- **Typed `as` casts added** (count and one-line rationale per cast — should be zero or close to it; flag any you weren't sure about).
+- **Module augmentations added** (what they cover — `TLGlobalShapePropsMap`, `TLGlobalBindingPropsMap`, `@tiptap/core` chain commands, etc.).
+- **Deprecations migrated** (count and the symbols).
+- **Anything flagged as undocumented** — symbols you couldn't find in any migration block, gaps in the changelog, or recipes that didn't match the actual API surface. These are worth filing back to the tldraw team.
+- **Anything skipped or deferred** — if you punted on a hard rename or left a `TODO`, say so explicitly so the user knows what's still on them.
+
 ## Quality checks
 
 - **Type safety is paramount.** The goal is a migration that is as type-safe as the original code. Do NOT add `as any`, `as unknown`, or broad type casts. Do NOT add `@ts-ignore` or `@ts-expect-error`. These are never acceptable — if you can't make the types work, you don't understand the new API yet. Stop and read the changelog and type definitions before continuing.
 - **Prefer TypeScript's narrowing features over casts.** Use `as const` for literal types, `satisfies` for type-checking without widening, generic parameters for call sites, and module augmentation for extending interfaces. These are the right tools for a migration — `as` casts are not.
-- Use parallel agents for fixing large batches of files with the same pattern.
+- **Use parallel agents for large batches with the same pattern.** Apply the recipe to one file by hand first to confirm it works, then spawn one Agent per remaining file in a single message (multiple Agent tool calls in parallel). Pass each agent: (1) the path of the file to migrate, (2) the before/after diff from your template file, (3) the relevant migration block from `tldraw-releases.txt`. This is most useful in 4b (mechanical `TLBaseShape` → `TLGlobalShapePropsMap` migration across many shape files) and 4c (one symbol rename rippling across the project).
 - **Don't just make errors go away — understand the new API.** When a method signature changes (e.g., new parameters added, property renamed to a richer type), read the changelog AND the current type definitions to understand _why_ it changed. A fix that compiles but passes hardcoded/dummy values where the new API expects real data is worse than a type error — it silently degrades behavior. For example, if a function gains new required parameters, check what shape props or editor state should feed those parameters rather than passing `0` or `1`.
 - **When unsure about an API pattern**, grep the full docs (`${SKILL_DIR}/references/tldraw-full-docs.txt`) for usage examples of that specific API. The docs contain code samples that show the canonical way to use each API.
 
