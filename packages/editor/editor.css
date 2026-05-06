@@ -317,26 +317,6 @@ input,
 	z-index: var(--tl-layer-canvas-shapes);
 }
 
-.tl-overlays {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	height: 100%;
-	width: 100%;
-	contain: strict;
-	pointer-events: none;
-	z-index: var(--tl-layer-canvas-overlays);
-}
-
-.tl-overlays__item {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	overflow: visible;
-	pointer-events: none;
-	transform-origin: top left;
-}
-
 .tl-svg-context {
 	position: absolute;
 	top: 0px;
@@ -963,6 +943,7 @@ input,
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
+	z-index: var(--tl-layer-canvas-overlays);
 }
 
 /* ---------------------- Shape --------------------- */
