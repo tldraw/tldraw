@@ -1,4 +1,5 @@
 import { useUser } from '@clerk/clerk-react'
+import type { UserResource } from '@clerk/types'
 import { FEATURE_FLAG_KEYS } from '@tldraw/dotcom-shared'
 import posthog, { PostHogConfig, Properties } from 'posthog-js'
 import 'posthog-js/dist/web-vitals'
@@ -7,6 +8,7 @@ import ReactGA from 'react-ga4'
 import { useLocation } from 'react-router-dom'
 import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
+import { hasNotAcceptedLegal } from '../tla/utils/auth'
 import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/FeatureFlagPoller'
 
 // Local storage key for cookie consent
@@ -71,6 +73,7 @@ const GA4_MEASUREMENT_ID: string | undefined = import.meta.env.VITE_GA4_MEASUREM
 const shouldUseGA4 = GA4_MEASUREMENT_ID !== undefined
 
 const PROPERTIES_TO_REDACT = ['url', 'href', 'pathname']
+const SIGNUP_TRACKING_WINDOW_MS = 30_000
 
 // Match property names against the defined list
 function filterProperties(value: { [key: string]: any }) {
@@ -323,16 +326,28 @@ export function trackEvent(name: string, data?: { [key: string]: any }) {
 
 	// Track signups in GA4 for Google Ads conversion imports
 	if (name === 'sign_up') {
-		if (getGA4()) {
-			ReactGA.gtag('event', 'sign_up', {
-				method: data?.method ?? 'unknown',
-			})
-		}
+		getGA4()?.event('sign_up', {
+			method: data?.method ?? 'unknown',
+		})
 	}
 }
 
 export function useHandleUiEvents() {
 	return trackEvent
+}
+
+export function getSignUpTrackingInfo(
+	user: Pick<UserResource, 'createdAt' | 'externalAccounts' | 'unsafeMetadata'>
+) {
+	const createdAt = new Date(user.createdAt ?? 0).getTime()
+	const ageMs = Date.now() - createdAt
+	if (!Number.isFinite(ageMs) || ageMs > SIGNUP_TRACKING_WINDOW_MS) return null
+	if (user.unsafeMetadata?.signupTracked) return null
+
+	const provider = user.externalAccounts?.[0]?.provider
+	return {
+		method: provider ? provider.replace(/^oauth_/, '') : 'email',
+	}
 }
 
 export function useTrackSignUp(analyticsEnabled: boolean) {
@@ -341,17 +356,14 @@ export function useTrackSignUp(analyticsEnabled: boolean) {
 
 	useEffect(() => {
 		if (!analyticsEnabled || !isSignedIn || !user || fired.current) return
+		if (hasNotAcceptedLegal(user)) return
 
-		const createdAt = new Date(user.createdAt ?? 0).getTime()
-		const ageMs = Date.now() - createdAt
-		if (!Number.isFinite(ageMs) || ageMs > 30_000) return
-		if (user.unsafeMetadata?.signupTracked) return
+		const signUpTrackingInfo = getSignUpTrackingInfo(user)
+		if (!signUpTrackingInfo) return
 
 		fired.current = true
-		const provider = user.externalAccounts?.[0]?.provider
-		const method = provider ? provider.replace(/^oauth_/, '') : 'email'
 
-		trackEvent('sign_up', { method })
+		trackEvent('sign_up', signUpTrackingInfo)
 
 		void user
 			.update({

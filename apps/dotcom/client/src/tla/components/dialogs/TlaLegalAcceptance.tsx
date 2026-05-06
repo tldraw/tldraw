@@ -2,6 +2,7 @@ import { useUser } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import { TldrawUiDialogBody, TldrawUiDialogHeader, TldrawUiDialogTitle } from 'tldraw'
+import { getSignUpTrackingInfo, trackEvent } from '../../../utils/analytics'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
 import { TlaMenuSwitch } from '../tla-menu/tla-menu'
@@ -28,9 +29,15 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 		try {
 			if (!user) return
 
+			const signUpTrackingInfo = analyticsOptIn === true ? getSignUpTrackingInfo(user) : null
+
 			// Persist analytics choice before redirecting
 			if (analyticsOptIn !== null) {
 				updateAnalyticsConsent(analyticsOptIn)
+			}
+
+			if (signUpTrackingInfo) {
+				trackEvent('sign_up', signUpTrackingInfo)
 			}
 
 			// Store acceptance in user metadata
@@ -38,6 +45,7 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 				unsafeMetadata: {
 					...user.unsafeMetadata,
 					legal_accepted_at: new Date().toISOString(),
+					...(signUpTrackingInfo ? { signupTracked: true } : {}),
 				},
 			} as any)
 			await user.reload()
