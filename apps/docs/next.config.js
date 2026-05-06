@@ -3,12 +3,19 @@
 // Configurable domain for rewrites
 const REWRITE_DOMAIN = 'tldrawdotdev.framer.website'
 
+/** Keep in sync with `utils/asset-url.ts` (`resolveAssetOrigin`). */
 function resolveAssetOrigin() {
-	const explicit = process.env.ASSET_PREFIX?.trim()
+	const explicit =
+		process.env.ASSET_PREFIX?.trim() ||
+		process.env.NEXT_PUBLIC_ASSET_PREFIX?.trim() ||
+		process.env.NEXT_PUBLIC_DOCS_ASSET_PREFIX?.trim()
 	if (explicit) return explicit.replace(/\/$/, '')
 
-	const vercelUrl = process.env.VERCEL_URL?.trim()
-	if (vercelUrl) return `https://${vercelUrl}`
+	const vercelUrl = process.env.VERCEL_URL?.trim() || process.env.NEXT_PUBLIC_VERCEL_URL?.trim()
+	if (vercelUrl) {
+		const host = vercelUrl.replace(/^https?:\/\//, '')
+		return `https://${host}`
+	}
 
 	return undefined
 }

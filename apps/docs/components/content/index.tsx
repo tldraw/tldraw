@@ -12,6 +12,7 @@ import { Code, CodeLinks, FocusLines } from '@/components/content/code'
 import { Embed, StarterKitEmbed } from '@/components/content/embed'
 import { Feature } from '@/components/content/feature'
 import { Image } from '@/components/content/image'
+import { MaskedArticleImage } from '@/components/content/masked-article-image'
 import { ParametersTable } from '@/components/content/parameters-table'
 import { ParametersTableDescription } from '@/components/content/parameters-table-description'
 import { ParametersTableName } from '@/components/content/parameters-table-name'
@@ -58,8 +59,10 @@ export function Content({
 					StarterKitEmbed,
 					pre: Pre,
 					code: Code,
+					// Markdown images and `<Image />` — both resolve `/…` static URLs via `assetUrl` in `image.tsx`.
 					Image,
 					img: Image,
+					MaskedArticleImage,
 					ApiHeading,
 					StarterKitBento,
 					Feature,
