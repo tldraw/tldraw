@@ -58,6 +58,7 @@ export function Content({
 					StarterKitEmbed,
 					pre: Pre,
 					code: Code,
+					// Markdown images and `<Image />` — both resolve `/…` static URLs via `assetUrl` in `image.tsx`.
 					Image,
 					img: Image,
 					ApiHeading,
