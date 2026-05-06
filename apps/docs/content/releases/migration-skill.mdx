@@ -54,7 +54,13 @@ The easiest way to set up the skill is to take your agent of choice and tell it:
 
 "Using the instructions in the README file at https://github.com/tldraw/tldraw/blob/main/skills/tldraw-migrate/README.md upgrade my project to the latest version of tldraw using the migration skill"
 
-Alternatively you can manually install it using with the options below. 
+Alternatively you can manually install it using with the options below under manual installation.
+
+## How to use it
+
+Once the skill is in place, ask your agent to migrate you to the latest version of tldraw. It will auto-detect your current version, review the SDK changes, and propose changes accordingly.
+
+## Manual installation
 
 Copy the entire `tldraw-migrate/` folder into one of the locations the skill probes, relative to your project root. The skill checks them in this order and uses the first one it finds:
 
@@ -100,6 +106,3 @@ The auto-fetch blocks and internal grep examples in `SKILL.md` honor this variab
 - **`git`** is optional but improves from-version detection (the skill compares `main`, `HEAD~1`, and the working tree).
 - **`GITHUB_TOKEN`** is optional; setting it raises GitHub's unauthenticated API rate limit (60/hr) so re-runs and long version ranges don't hit the cap.
 
-## How to use it
-
-Once the skill is in place, ask your agent to migrate you to the latest version of tldraw. It will auto-detect your current version, review the SDK changes, and propose changes accordingly.
