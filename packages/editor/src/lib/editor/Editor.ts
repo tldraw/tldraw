@@ -6516,15 +6516,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shapeUtil.onDragShapesOut ||
 				shapeUtil.onDropShapesOver
 			) {
-				if (
-					shapeUtil.canReceiveNewChildrenOfType !==
-						ShapeUtil.prototype.canReceiveNewChildrenOfType &&
-					!draggingShapes.some((shape) =>
-						shapeUtil.canReceiveNewChildrenOfType(maybeDraggingOverShape, shape.type)
-					)
-				) {
-					continue
-				}
 				return maybeDraggingOverShape
 			}
 		}

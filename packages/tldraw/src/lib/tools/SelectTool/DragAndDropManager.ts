@@ -1,7 +1,6 @@
 import {
 	Editor,
 	IndexKey,
-	ShapeUtil,
 	TLGroupShape,
 	TLParentId,
 	TLShape,
@@ -114,14 +113,11 @@ export class DragAndDropManager {
 
 		if (draggingOverShape) {
 			const util = editor.getShapeUtil(draggingOverShape)
-			const droppableShapes = getDroppableShapesForTarget(editor, draggingOverShape, shapes)
-			if (droppableShapes.length > 0) {
-				util.onDropShapesOver?.(draggingOverShape, droppableShapes, {
-					initialDraggingOverShapeId: this.initialDraggingOverShape?.id ?? null,
-					initialParentIds: this.initialParentIds,
-					initialIndices: this.initialIndices,
-				})
-			}
+			util.onDropShapesOver?.(draggingOverShape, shapes, {
+				initialDraggingOverShapeId: this.initialDraggingOverShape?.id ?? null,
+				initialParentIds: this.initialParentIds,
+				initialIndices: this.initialIndices,
+			})
 		}
 
 		this.dispose()
@@ -169,18 +165,11 @@ export class DragAndDropManager {
 				) {
 					// If the cursor moved, call onDragShapesOver for the previous dragging over shape
 					const util = editor.getShapeUtil(nextDraggingOverShape)
-					const droppableShapes = getDroppableShapesForTarget(
-						editor,
-						nextDraggingOverShape,
-						draggingShapes
-					)
-					if (droppableShapes.length > 0) {
-						util.onDragShapesOver?.(nextDraggingOverShape, droppableShapes, {
-							initialDraggingOverShapeId: this.initialDraggingOverShape?.id ?? null,
-							initialParentIds: this.initialParentIds,
-							initialIndices: this.initialIndices,
-						})
-					}
+					util.onDragShapesOver?.(nextDraggingOverShape, draggingShapes, {
+						initialDraggingOverShapeId: this.initialDraggingOverShape?.id ?? null,
+						initialParentIds: this.initialParentIds,
+						initialIndices: this.initialIndices,
+					})
 				}
 				return
 			}
@@ -237,9 +226,5 @@ function getDroppableShapesForTarget(
 	draggingShapes: TLShape[]
 ) {
 	const util = editor.getShapeUtil(targetShape)
-	if (util.canReceiveNewChildrenOfType === ShapeUtil.prototype.canReceiveNewChildrenOfType) {
-		return draggingShapes
-	}
-
 	return draggingShapes.filter((shape) => util.canReceiveNewChildrenOfType(targetShape, shape.type))
 }
