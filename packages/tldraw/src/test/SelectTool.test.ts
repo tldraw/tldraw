@@ -1,5 +1,6 @@
-import { IndexKey, createShapeId, toRichText } from '@tldraw/editor'
+import { IndexKey, ShapeUtil, TLFrameShape, createShapeId, toRichText } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { defaultOverlayUtils } from '../lib/defaultOverlayUtils'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -442,6 +443,70 @@ describe('When double clicking the selection edge', () => {
 		editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 
 		expect(editor.getEditingShapeId()).toBe(id)
+	})
+
+	it('Resets the cursor to default when entering editing mode from a resize handle', () => {
+		const id = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([{ id, type: 'geo' }])
+			.select(id)
+
+		editor.setCursor({ type: 'ew-resize', rotation: 0 })
+		expect(editor.getInstanceState().cursor.type).toBe('ew-resize')
+
+		editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
+
+		expect(editor.getEditingShapeId()).toBe(id)
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
+})
+
+describe('When double clicking a selection handle that registers as a canvas event', () => {
+	let overlayEditor: TestEditor
+	beforeEach(() => {
+		overlayEditor = new TestEditor({ overlayUtils: defaultOverlayUtils })
+	})
+
+	it('Routes a canvas-targeted double-click on a resize edge handle to onDoubleClickEdge', () => {
+		const id = createShapeId()
+		overlayEditor
+			.createShapes([{ id, type: 'frame', x: 100, y: 100, props: { w: 200, h: 200 } }])
+			.select(id)
+
+		const spy = vi.spyOn(
+			overlayEditor.getShapeUtil('frame') as Required<ShapeUtil<TLFrameShape>>,
+			'onDoubleClickEdge'
+		)
+		const bounds = overlayEditor.getSelectionPageBounds()!
+
+		// Double-click on the right edge handle without specifying target — defaults
+		// to target: 'canvas', the same payload a real DOM double-click produces when
+		// the press lands on the overlay layer rather than a shape.
+		overlayEditor.doubleClick(bounds.maxX, bounds.midY)
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		expect(spy.mock.calls[0][1]).toMatchObject({ target: 'selection', handle: 'right' })
+	})
+
+	it('Routes a canvas-targeted double-click on a resize corner handle to onDoubleClickCorner', () => {
+		const id = createShapeId()
+		overlayEditor
+			.createShapes([{ id, type: 'frame', x: 100, y: 100, props: { w: 200, h: 200 } }])
+			.select(id)
+
+		const spy = vi.spyOn(
+			overlayEditor.getShapeUtil('frame') as Required<ShapeUtil<TLFrameShape>>,
+			'onDoubleClickCorner'
+		)
+		const bounds = overlayEditor.getSelectionPageBounds()!
+
+		overlayEditor.doubleClick(bounds.maxX, bounds.maxY)
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		expect(spy.mock.calls[0][1]).toMatchObject({ target: 'selection', handle: 'bottom_right' })
 	})
 })
 

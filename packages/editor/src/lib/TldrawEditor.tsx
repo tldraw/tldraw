@@ -33,6 +33,7 @@ import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { Editor } from './editor/Editor'
 import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
+import { TLAnyOverlayUtilConstructor } from './editor/overlays/OverlayUtil'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { useEditorComponents } from './hooks/EditorComponentsContext'
@@ -136,6 +137,11 @@ export interface TldrawEditorBaseProps {
 	 * An array of asset utils to use in the editor.
 	 */
 	assetUtils?: readonly TLAnyAssetUtilConstructor[]
+
+	/**
+	 * An array of overlay utils to use in the editor for canvas overlay UI elements.
+	 */
+	overlayUtils?: readonly TLAnyOverlayUtilConstructor[]
 
 	/**
 	 * An array of tools to add to the editor's state chart.
@@ -461,6 +467,7 @@ function TldrawEditorWithReadyStore({
 	shapeUtils,
 	bindingUtils,
 	assetUtils,
+	overlayUtils,
 	user,
 	initialState,
 	autoFocus = true,
@@ -532,6 +539,7 @@ function TldrawEditorWithReadyStore({
 				shapeUtils,
 				bindingUtils,
 				assetUtils,
+				overlayUtils,
 				tools,
 				getContainer: () => container,
 				user,
@@ -575,6 +583,7 @@ function TldrawEditorWithReadyStore({
 			colorScheme,
 			container,
 			options,
+			overlayUtils,
 			shapeUtils,
 			store,
 			tools,

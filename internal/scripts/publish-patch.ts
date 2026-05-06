@@ -61,15 +61,17 @@ async function main() {
 		appendFileSync(process.env.GITHUB_OUTPUT, `is_latest_version=${isLatestVersion}\n`)
 	}
 
+	// Capture the previous tag BEFORE calling .inc(): semver's SemVer.prototype.inc()
+	// mutates the instance in place, so reading latestVersionInBranch.format() afterwards
+	// would return the new version and leave prevTag === tag, producing an empty changelog.
+	const prevTag = `v${latestVersionInBranch.format()}`
+
 	const nextVersion = latestVersionInBranch.inc('patch').format()
 	nicelog('Releasing version', nextVersion)
 
 	await setAllVersions(nextVersion, { stageChanges: true })
 
 	const tag = `v${nextVersion}`
-
-	// Get the previous tag for changelog generation
-	const prevTag = `v${latestVersionInBranch.format()}`
 
 	// create and push a new tag
 	await exec('git', ['commit', '-m', `${tag} [skip ci]`])

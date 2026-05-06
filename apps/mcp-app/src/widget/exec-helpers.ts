@@ -144,7 +144,7 @@ export function createExecHelpers(editor: Editor) {
 	return helpers
 }
 
-export type ExecHelpers = ReturnType<typeof createExecHelpers>
+type ExecHelpers = ReturnType<typeof createExecHelpers>
 
 const EXEC_TIMEOUT_MS = 10_000
 

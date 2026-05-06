@@ -1,5 +1,5 @@
 import path from 'path'
-import glob from 'glob'
+import { glob } from 'glob'
 import { REPO_ROOT, readJsonIfExists } from './file'
 import { PackageJson } from './types'
 

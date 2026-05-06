@@ -23,7 +23,7 @@ Deep Links are URLs which point to a specific part of a document. We provide a c
 
 ## The `deepLinks` option
 
-The highest-level API for managing deep links is the `deepLinks` option on the `<Tldraw />` component. This option is designed for manipulating `window.location` to add a search param which tldraw can use to navigate to a specific part of the document.
+The highest-level API for managing deep links is the `deepLinks` option on the `<Tldraw />` component's `options` prop. This option is designed for manipulating `window.location` to add a search param which tldraw can use to navigate to a specific part of the document.
 
 e.g. `https://my-app.com/document-name?d=v1234.-234.3.21`
 
@@ -32,7 +32,7 @@ If you set `deepLinks` to `true` e.g. `<Tldraw options={{ deepLinks: true }} />`
 1. When the editor initializes, before the initial render, it will check the current `window.location` for a search param called `d`. If found, it will try to parse the value of this param as a deep link and navigate to that part of the document.
 2. 500 milliseconds after every time the editor finishes navigating to a new part of the document, it will update `window.location` to add the latest version of the `d` param.
 
-You can customize this behavior by passing a configuration object. e.g.
+You can customize this behavior by passing a configuration object as the `deepLinks` option. e.g.
 
 ```tsx
 <Tldraw
@@ -127,3 +127,7 @@ useEffect(() => {
 	}
 }, [])
 ```
+
+### Trying deep links in this demo
+
+Create a shape on the canvas then pan or zoom. The `d` param in the URL updates as you go. Copy that URL into a new tab to return to the same view later.

@@ -10,9 +10,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	rum_enabled: { enabled: false },
 }
 
-let flagsPromise: Promise<FeatureFlags> | null = null
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }
+let flagsPromise: Promise<FeatureFlags> | null = null
 let _wasAuthenticated = false
+let _hasResolvedOnce = false
 
 export function fetchFeatureFlags(): Promise<FeatureFlags> {
 	if (!flagsPromise) {
@@ -25,14 +26,16 @@ export function fetchFeatureFlags(): Promise<FeatureFlags> {
 					// Allow subsequent callers to refetch once auth is available
 					flagsPromise = null
 				}
-				const flags = await r.json()
+				const flags = (await r.json()) as FeatureFlags
 				currentFlags = flags
-				return flags as FeatureFlags
+				_hasResolvedOnce = true
+				return flags
 			} catch (err) {
 				console.error('[FeatureFlags] fetch failed:', err)
 				flagsPromise = null
 				_wasAuthenticated = false
 				currentFlags = { ...DEFAULT_FLAGS }
+				_hasResolvedOnce = true
 				return { ...DEFAULT_FLAGS }
 			}
 		})()
@@ -42,6 +45,20 @@ export function fetchFeatureFlags(): Promise<FeatureFlags> {
 
 export function wasAuthenticated(): boolean {
 	return _wasAuthenticated
+}
+
+export function getCurrentFlags(): FeatureFlags {
+	return currentFlags
+}
+
+/**
+ * Whether the feature flag fetch has settled at least once (either
+ * successfully or by falling back to defaults). Used by the A/B hook to
+ * decide whether the values returned by `getCurrentFlags()` are meaningful
+ * yet, or whether we should wait.
+ */
+export function hasResolvedFlagsOnce(): boolean {
+	return _hasResolvedOnce
 }
 
 // Start fetching immediately — fast path for returning users with valid cookies.
@@ -79,7 +96,7 @@ export function FeatureFlagPoller() {
 			try {
 				const response = await fetch('/api/app/feature-flags')
 				if (!response.ok) return
-				const data = await response.json()
+				const data = (await response.json()) as FeatureFlags
 				if (!mounted) return
 
 				if (shouldReloadForFlagChange(prevFlags, data)) {

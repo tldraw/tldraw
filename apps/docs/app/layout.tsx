@@ -5,6 +5,7 @@ import localFont from 'next/font/local'
 import AutoRefresh from '@/components/common/autorefresh'
 import { Footer } from '@/components/navigation/footer'
 import { Header } from '@/components/navigation/header'
+import { assetUrl } from '@/utils/asset-url'
 import { cn } from '@/utils/cn'
 import Analytics from './analytics'
 import './github-dark.css'
@@ -37,13 +38,13 @@ export const metadata: Metadata = {
 		statusBarStyle: 'black',
 	},
 	icons: [
-		{ rel: 'shortcut icon', url: '/favicon.svg' },
-		{ rel: 'icon', url: '/favicon-32x32.svg', sizes: '32x32' },
-		{ rel: 'icon', url: '/favicon-16x16.svg', sizes: '16x16' },
-		{ rel: 'apple-touch-icon', url: '/apple-touch-icon.png' },
-		{ rel: 'apple-touch-icon', url: '/apple-touch-icon-152x152.svg', sizes: '152x152' },
-		{ rel: 'apple-touch-icon', url: '/apple-touch-icon-180x180.svg', sizes: '180x180' },
-		{ rel: 'apple-touch-icon', url: '/apple-touch-icon-167x167.svg', sizes: '167x167' },
+		{ rel: 'shortcut icon', url: assetUrl('/favicon.svg') },
+		{ rel: 'icon', url: assetUrl('/favicon-32x32.svg'), sizes: '32x32' },
+		{ rel: 'icon', url: assetUrl('/favicon-16x16.svg'), sizes: '16x16' },
+		{ rel: 'apple-touch-icon', url: assetUrl('/apple-touch-icon.png') },
+		{ rel: 'apple-touch-icon', url: assetUrl('/apple-touch-icon-152x152.svg'), sizes: '152x152' },
+		{ rel: 'apple-touch-icon', url: assetUrl('/apple-touch-icon-180x180.svg'), sizes: '180x180' },
+		{ rel: 'apple-touch-icon', url: assetUrl('/apple-touch-icon-167x167.svg'), sizes: '167x167' },
 	],
 }
 

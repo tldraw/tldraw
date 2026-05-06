@@ -100,8 +100,10 @@ export class PlayingCardUtil extends BaseBoxShapeUtil<IPlayingCard> {
 	}
 
 	// [8]
-	indicator(shape: IPlayingCard) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: IPlayingCard) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 
@@ -144,8 +146,9 @@ the suit in the top left. The HTMLContainer component is a helpful wrapper that 
 exports, it's a div that comes with a css class.
 
 [8]
-The indicator is the blue box that appears around the shape when it's selected. We're just returning
-a rectangle with the same width and height as the shape here.
+getIndicatorPath returns a Path2D for the blue box that appears around the shape when it's selected.
+We're just returning a rectangle with the same width and height as the shape; tldraw strokes it onto
+the canvas overlay.
 
 
 */

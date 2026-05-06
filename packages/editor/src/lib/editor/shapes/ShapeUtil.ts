@@ -218,42 +218,32 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	abstract component(shape: Shape): any
 
 	/**
-	 * Get JSX describing the shape's indicator (as an SVG element).
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	abstract indicator(shape: Shape): any
-
-	/**
-	 * Whether to use the legacy React-based indicator rendering.
-	 *
-	 * Override this to return `false` if your shape implements {@link ShapeUtil.getIndicatorPath}
-	 * for canvas-based indicator rendering.
-	 *
-	 * @returns `true` to use SVG indicators (default), `false` to use canvas indicators.
-	 * @public
-	 */
-	useLegacyIndicator(): boolean {
-		return true
-	}
-
-	/**
-	 * Get a Path2D for rendering the shape's indicator on the canvas.
-	 *
-	 * When implemented, this is used instead of {@link ShapeUtil.indicator} for more
-	 * efficient canvas-based indicator rendering. Shapes that return `undefined` will
-	 * fall back to SVG-based rendering via {@link ShapeUtil.indicator}.
+	 * Get a Path2D (or a richer object with clip/additional paths) for rendering the
+	 * shape's indicator on the canvas. Shapes that return `undefined` will not render
+	 * an indicator.
 	 *
 	 * For complex indicators that need clipping (e.g., arrows with labels), return an
 	 * object with `path`, `clipPath`, and `additionalPaths` properties.
 	 *
 	 * @param shape - The shape.
-	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to use SVG fallback.
+	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to skip.
 	 * @public
 	 */
-	getIndicatorPath(shape: Shape): TLIndicatorPath | undefined {
-		return undefined
+	abstract getIndicatorPath(shape: Shape): TLIndicatorPath | undefined
+
+	/**
+	 * Get JSX describing the shape's indicator (as an SVG element).
+	 *
+	 * @deprecated SVG indicators are no longer rendered. Override
+	 * {@link ShapeUtil.getIndicatorPath} instead. This stub is retained so legacy
+	 * subclasses that still call `super.indicator()` keep type-checking; new shapes
+	 * should not implement it.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	indicator(_shape: Shape): any {
+		return null
 	}
 
 	/**
@@ -489,6 +479,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @public
 	 */
 	isAspectRatioLocked(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape behaves like a frame — a container that has child shapes,
+	 * requires full-brush selection, blocks erasure from inside, etc.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	isFrameLike(_shape: Shape): boolean {
 		return false
 	}
 

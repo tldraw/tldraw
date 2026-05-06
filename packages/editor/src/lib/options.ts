@@ -155,6 +155,12 @@ export interface TldrawOptions {
 	 */
 	readonly spacebarPanning: boolean
 	/**
+	 * Whether to allow right-click + drag to pan the camera. When true, right-click + drag pans the
+	 * camera and a static right-click opens the context menu at the release position. When false,
+	 * right-click opens the context menu on press (no drag-to-pan).
+	 */
+	readonly rightClickPanning: boolean
+	/**
 	 * The default padding (in pixels) used when zooming to fit content in the viewport.
 	 * This affects methods like `zoomToFit()`, `zoomToSelection()`, and `zoomToBounds()`.
 	 * The actual padding used is the minimum of this value and 28% of the viewport width.
@@ -326,6 +332,7 @@ export const defaultTldrawOptions = {
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
+	rightClickPanning: true,
 	zoomToFitPadding: 128,
 	snapThreshold: 8,
 	camera: DEFAULT_CAMERA_OPTIONS,

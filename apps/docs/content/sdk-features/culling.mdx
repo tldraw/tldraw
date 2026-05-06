@@ -97,8 +97,10 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 		return <div style={{ width: shape.props.w, height: shape.props.h }} />
 	}
 
-	indicator(shape: MyShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: MyShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 ```

@@ -313,17 +313,29 @@ const handlePasteFromClipboardApi = async ({
 	const things: ClipboardThing[] = []
 
 	for (const item of clipboardItems) {
-		for (const type of expectedPasteFileMimeTypes) {
-			if (item.types.includes(type)) {
-				const blobPromise = item
-					.getType(type)
-					.then((blob) => FileHelpers.rewriteMimeType(blob, getCanonicalClipboardReadType(type)))
-				things.push({
-					type: 'blob',
-					source: blobPromise,
-				})
-				break
-			}
+		const matchingTypes = expectedPasteFileMimeTypes.filter((t) => item.types.includes(t))
+		if (matchingTypes.length > 0) {
+			things.push({
+				type: 'blob',
+				source: (async () => {
+					for (const type of matchingTypes) {
+						const blob = await item.getType(type)
+						// Chrome 147 stable regression: web custom-format blobs come back as
+						// 0 bytes when clipboard.read() runs inside a paste event. Fixed in
+						// Chrome Canary; expected to ship to stable in a later release. Until
+						// then, skip empty payloads and fall back to the next preferred type
+						// (usually image/png, which means Cmd+V paste of a tldraw-copied PNG
+						// loses the pHYs DPI chunk and pastes at 2x size on affected Chrome
+						// stable versions). Right-click Paste continues to work at 1x because
+						// that path calls clipboard.read() from a click handler, not a paste
+						// event. Remove this workaround when the fix ships to stable.
+						// https://issues.chromium.org/issues/505045934
+						if (blob.size === 0) continue
+						return FileHelpers.rewriteMimeType(blob, getCanonicalClipboardReadType(type))
+					}
+					return null
+				})(),
+			})
 		}
 
 		if (item.types.includes('text/html')) {

@@ -6,6 +6,7 @@ import {
 	StyleProp,
 	TLDefaultColorStyle,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import { memo, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
@@ -61,7 +62,11 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		onHistoryMark = ctx.onHistoryMark,
 	} = props
 	const editor = useEditor()
-	const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
+	const colors = useValue(
+		'style panel button picker colors',
+		() => editor.getCurrentTheme().colors[editor.getColorMode()],
+		[editor]
+	)
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 

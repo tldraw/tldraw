@@ -265,6 +265,19 @@ export function lerp(a: number, b: number, t: number): number;
 export function lns(str: string): string;
 
 // @public
+export class LruCache<K, V> {
+    constructor(maxSize: number);
+    // (undocumented)
+    get(key: K): undefined | V;
+    // (undocumented)
+    has(key: K): boolean;
+    // (undocumented)
+    set(key: K, value: V): void;
+    // (undocumented)
+    get size(): number;
+}
+
+// @public
 export type MakeUndefinedOptional<T extends object> = Expand<{
     [P in {
         [K in keyof T]: undefined extends T[K] ? never : K;

@@ -15,6 +15,26 @@
 	background-color: var(--tla-color-panel);
 }
 
+.adminReleaseMeta {
+	margin: 10px 0 0 0;
+	font-size: 12px;
+	line-height: 1.4;
+	color: var(--tla-color-text-3);
+}
+
+.adminReleaseLabel {
+	font-weight: 500;
+	margin-right: 4px;
+}
+
+.adminReleaseValue {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 11px;
+	font-weight: 500;
+	color: var(--tla-color-text-2);
+	word-break: break-all;
+}
+
 .adminContent {
 	flex: 1;
 	padding: 24px 32px;

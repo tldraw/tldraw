@@ -61,17 +61,21 @@ export interface TLExternalContentProps {
 	 */
 	maxAssetSize?: number
 	/**
-	 * The mime types of images that are allowed to be handled. When using the
-	 * `Tldraw` component, defaults to `DEFAULT_SUPPORTED_IMAGE_TYPES`. If neither
-	 * this nor `acceptedVideoMimeTypes` is provided, the registered asset utils
-	 * determine which MIME types are allowed.
+	 * The mime types of images that are allowed to be handled. When passed to
+	 * the `Tldraw` component, this also reconfigures the default `ImageAssetUtil`
+	 * to only accept files matching these types. If you only want to accept a
+	 * subset of image types and want to additionally block videos, pass
+	 * `acceptedVideoMimeTypes={[]}`. A file is accepted if its MIME type is in
+	 * this list, in `acceptedVideoMimeTypes`, or if any registered asset util
+	 * accepts it.
 	 */
 	acceptedImageMimeTypes?: readonly string[]
 	/**
-	 * The mime types of videos that are allowed to be handled. When using the
-	 * `Tldraw` component, defaults to `DEFAULT_SUPPORT_VIDEO_TYPES`. If neither
-	 * this nor `acceptedImageMimeTypes` is provided, the registered asset utils
-	 * determine which MIME types are allowed.
+	 * The mime types of videos that are allowed to be handled. When passed to
+	 * the `Tldraw` component, this also reconfigures the default `VideoAssetUtil`
+	 * to only accept files matching these types. A file is accepted if its MIME
+	 * type is in this list, in `acceptedImageMimeTypes`, or if any registered
+	 * asset util accepts it.
 	 */
 	acceptedVideoMimeTypes?: readonly string[]
 }
@@ -826,11 +830,17 @@ export function notifyIfFileNotAllowed(
 		msg,
 	} = options
 
+	// Allow if any registered asset util accepts the MIME type, or if it matches
+	// an explicit allow-list. The asset-util branch lets custom AssetUtils
+	// (e.g. for PDFs) extend the default media handling — without it, files
+	// registered via `assetUtils` would be rejected because <Tldraw> forwards
+	// `DEFAULT_SUPPORTED_IMAGE_TYPES` / `DEFAULT_SUPPORT_VIDEO_TYPES` here, and
+	// custom MIME types aren't in those lists. The explicit-list branch supports
+	// callers that pass these props directly to restrict allowed types.
 	const isFileTypeAllowed =
-		acceptedImageMimeTypes || acceptedVideoMimeTypes
-			? (acceptedImageMimeTypes ?? []).includes(file.type) ||
-				(acceptedVideoMimeTypes ?? []).includes(file.type)
-			: !!editor.getAssetUtilForMimeType(file.type)
+		!!editor.getAssetUtilForMimeType(file.type) ||
+		(acceptedImageMimeTypes?.includes(file.type) ?? false) ||
+		(acceptedVideoMimeTypes?.includes(file.type) ?? false)
 	if (!isFileTypeAllowed) {
 		toasts.addToast({
 			title: msg('assets.files.type-not-allowed'),
