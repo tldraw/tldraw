@@ -42,10 +42,17 @@ export function kickoutOccludedShapes(
 		} else {
 			const overlappingChildren = getOverlappingShapes(editor, parent.id, childIds)
 			if (overlappingChildren.length < childIds.length) {
-				parentsToLostChildren.set(
-					parent,
-					childIds.filter((id) => !overlappingChildren.includes(id))
-				)
+				const parentUtil = editor.getShapeUtil(parent)
+				const lostChildIds = childIds.filter((id) => {
+					if (overlappingChildren.includes(id)) return false
+					const child = editor.getShape(id)
+					if (!child) return false
+					// Respect the parent's removal gate: if it pins this child type, don't kick it out.
+					return parentUtil.canRemoveChildrenOfType(parent, child.type)
+				})
+				if (lostChildIds.length > 0) {
+					parentsToLostChildren.set(parent, lostChildIds)
+				}
 			}
 		}
 	}

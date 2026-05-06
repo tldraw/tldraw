@@ -229,7 +229,7 @@ class AudioAssetUtil extends AssetUtil<TLAudioAsset> {
 
 Custom shapes can now opt into frame-like behavior: clipping children, acting as a parent on paste and drag-in, blocking erasure from inside, and supporting full-brush selection. Previously, frame behavior was hardcoded to the built-in `frame` type; the editor and tools now route frame checks through `editor.getShapeUtil(shape).isFrameLike(shape)`.
 
-The easiest way to build one is to extend the new `BaseFrameLikeShapeUtil` abstract class, which provides sensible defaults for `isFrameLike`, `providesBackgroundForChildren`, `canReceiveNewChildrenOfType`, `getClipPath`, `onDragShapesIn`, and `onDragShapesOut`:
+The easiest way to build one is to extend the new `BaseFrameLikeShapeUtil` abstract class, which provides sensible defaults for `isFrameLike`, `providesBackgroundForChildren`, `canReceiveNewChildrenOfType`, `canRemoveChildrenOfType`, `getClipPath`, `onDragShapesIn`, and `onDragShapesOut`:
 
 ```tsx
 import { BaseFrameLikeShapeUtil, SVGContainer } from '@tldraw/editor'

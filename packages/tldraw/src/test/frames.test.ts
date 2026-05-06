@@ -38,6 +38,14 @@ class GeoRejectingFrameShapeUtil extends FrameShapeUtil {
 	}
 }
 
+class GeoPinningFrameShapeUtil extends FrameShapeUtil {
+	static override type = 'frame' as const
+
+	override canRemoveChildrenOfType(_shape: TLFrameShape, type: TLShape['type']) {
+		return type !== 'geo'
+	}
+}
+
 describe('creating frames', () => {
 	it('can be done', () => {
 		editor.setCurrentTool('frame')
@@ -476,6 +484,26 @@ describe('frame shapes', () => {
 
 		expect(editor.getShape(ids.boxA)!.parentId).toBe(editor.getCurrentPageId())
 		expect(editor.getShape(frameId)!.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it("doesn't drag shapes out of a frame that pins their type", () => {
+		editor.dispose()
+		editor = new TestEditor({ shapeUtils: [GeoPinningFrameShapeUtil] })
+
+		// Create a frame and a geo shape that extends partially outside the frame so we
+		// can grab it by its outside portion (clicking inside the frame would select the frame).
+		const frameId = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		const rectId = dragCreateRect({ down: [80, 50], move: [120, 60], up: [120, 60] })
+		expect(editor.getShape(rectId)!.parentId).toBe(frameId)
+
+		// Drag the rect entirely out of the frame by clicking on the part that's outside
+		editor.pointerDown(110, 50)
+		editor.pointerMove(140, 50)
+		expect(editor.getShape(rectId)!.parentId).toBe(frameId)
+		editor.pointerUp(140, 50)
+
+		// The rect should still be parented to the frame because the frame pins geo shapes
+		expect(editor.getShape(rectId)!.parentId).toBe(frameId)
 	})
 
 	it('can be snapped to when dragging other shapes', () => {
