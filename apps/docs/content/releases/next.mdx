@@ -122,7 +122,25 @@ The following slots have been removed from `TLEditorComponents`. Subclass the ma
 
 The corresponding `Default*` exports and `LiveCollaborators` have also been removed.
 
-Customizing shape indicators — `ShapeIndicator`, `ShapeIndicators`, and `ShapeIndicatorErrorFallback` are gone. Indicators now render through each shape util's `getIndicatorPath()`. Override it to change how a shape's indicator is drawn.
+**`ShapeUtil.indicator()` → `ShapeUtil.getIndicatorPath()`.** The shape util method that draws a shape's selection indicator no longer returns JSX. It now returns a `Path2D` (or a `TLIndicatorPath`) and is composited onto the canvas overlay layer. Every custom `ShapeUtil` that overrides `indicator` needs to migrate:
+
+```tsx
+// Before
+override indicator(shape: MyShape) {
+	return <rect width={shape.props.w} height={shape.props.h} />
+}
+
+// After
+override getIndicatorPath(shape: MyShape): Path2D {
+	const path = new Path2D()
+	path.rect(0, 0, shape.props.w, shape.props.h)
+	return path
+}
+```
+
+For shapes whose indicator should match the shape's geometry, return `path` built from the same primitives. For placeholder shapes (e.g. an `ErrorShape`), return an empty `new Path2D()` and declare the return type explicitly so TypeScript doesn't infer `never`.
+
+The React component slots `ShapeIndicator`, `ShapeIndicators`, and `ShapeIndicatorErrorFallback` are also removed from `TLEditorComponents` — there is no replacement React slot, since indicators now render through `getIndicatorPath()`.
 
 Overlays cannot render React; they draw into a 2D canvas context. For React-based overlays, render an HTML layer above the canvas via a regular `TLEditorComponents` slot like `InFrontOfTheCanvas`.
 
@@ -131,6 +149,57 @@ Overlay colors come from `TLTheme`, not CSS variables. Read them inside `render(
 These CSS variables have been removed: `--tl-color-snap`, `--tl-color-brush-fill`, `--tl-color-brush-stroke`, `--tl-color-laser`, `--tl-layer-overlays-custom`.
 
 Overriding them (or the removed selectors `.tl-brush`, `.tl-scribble`, `.tl-snap-indicator`, `.tl-handle*`, `.tl-selection__fg__outline`, `.tl-corner-handle`, `.tl-text-handle`, `.tl-corner-crop-handle`, `.tl-mobile-rotate__*`) no longer has any effect. Port these to `TLTheme` entries or to the overlay util's `render()`.
+
+</details>
+
+### 💥 Tldraw component options
+
+Several `<Tldraw>` props that previously lived at the top level have been consolidated under the `options` prop, and a few extension points moved off the component entirely.
+
+<details>
+<summary>Migration guide</summary>
+
+**`cameraOptions`, `textOptions`, and `deepLinks` props moved into `options`:**
+
+```tsx
+// Before
+<Tldraw cameraOptions={camOpts} textOptions={txtOpts} deepLinks />
+
+// After
+<Tldraw options={{ camera: camOpts, text: txtOpts, deepLinks: true }} />
+```
+
+**`embeds` prop removed; configure embed definitions on `EmbedShapeUtil`:**
+
+```tsx
+// Before
+<Tldraw embeds={[...DEFAULT_EMBED_DEFINITIONS, customEmbed]} />
+
+// After
+import { EmbedShapeUtil } from 'tldraw'
+const ConfiguredEmbedShapeUtil = EmbedShapeUtil.configure({
+	embedDefinitions: [...DEFAULT_EMBED_DEFINITIONS, customEmbed],
+})
+<Tldraw shapeUtils={[ConfiguredEmbedShapeUtil]} />
+```
+
+This silently compiles in some setups (the prop is unknown but JSX won't always reject it), so this is the kind of change that the typecheck won't always catch — search the source for `embeds=` and migrate any matches.
+
+**`setDefaultEditorAssetUrls()` and `setDefaultUiAssetUrls()` are no longer part of the public API.** They still exist at runtime for now, but they're marked `@internal` and should not be relied on. Pass `assetUrls` to each `<Tldraw>` instead:
+
+```tsx
+// Before
+import { setDefaultEditorAssetUrls, setDefaultUiAssetUrls } from 'tldraw'
+setDefaultEditorAssetUrls(assetUrls)
+setDefaultUiAssetUrls(assetUrls)
+
+<Tldraw />
+
+// After
+<Tldraw assetUrls={assetUrls} />
+```
+
+Do not reach for module augmentation to re-expose the old globals — find each `<Tldraw>` mount point and pass `assetUrls` directly.
 
 </details>
 
@@ -282,6 +351,33 @@ const schema = createTLSchema({
 
 Note shapes now track and display a "first edited by" attribution label in the bottom-right corner, showing who first added text to the note.
 
+<details>
+<summary>Migration guide</summary>
+
+**`useTldrawUser` has been removed.** Previously it bundled user *preferences* (color, color scheme) and user *identity* (id, name) into a single object. These are now separate concerns:
+
+- **Preferences** (color, color scheme, snap mode, etc.) are managed via `TLUserPreferences`. Set them with the editor's user-preferences API directly.
+- **Identity** for attribution comes from a `TLUserStore` provider passed to the new `users` prop on `<Tldraw>`.
+
+```tsx
+// Before
+const user = useTldrawUser({ userPreferences, setUserPreferences })
+<Tldraw user={user} />
+
+// After
+<Tldraw
+	users={{
+		getCurrentUser: () => currentUserSignal,
+		resolve: (userId) => resolvedUserSignal(userId),
+	}}
+	colorScheme={userPreferences.colorScheme}
+/>
+```
+
+If you only need preferences (no custom identity), pass `colorScheme` directly and seed preferences imperatively after mount; if you only need identity, pass `users`. Most apps want both.
+
+</details>
+
 ### @tldraw/driver ([#7952](https://github.com/tldraw/tldraw/pull/7952))
 
 A new `@tldraw/driver` package provides an imperative API for driving the tldraw editor programmatically. `Driver` wraps an `Editor` instance and exposes event dispatch, selection transforms, clipboard operations, and shape queries with fluent chaining.
@@ -387,6 +483,14 @@ New APIs include `handleSocketResume()` for restoring sessions from snapshots, `
 - 💥 Change `notifyIfFileNotAllowed` signature from `(file, options)` to `(editor, file, options)`. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
 - 💥 Change `getAssetInfo` signature from `(file, options, assetId?)` to `(editor, file, assetId?)` and return `TLAsset | null` instead of throwing. ([#8031](https://github.com/tldraw/tldraw/pull/8031))
 - 💥 Move the `Cmd+Shift+C` / `Ctrl+Shift+C` shortcut from "Copy as SVG" to "Copy as PNG". ([#8532](https://github.com/tldraw/tldraw/pull/8532))
+- 💥 Replace `ShapeUtil.indicator()` (returned JSX) with `ShapeUtil.getIndicatorPath()` (returns `Path2D | TLIndicatorPath | undefined`). Indicators now render to the canvas overlay layer instead of as React elements. ([#8469](https://github.com/tldraw/tldraw/pull/8469))
+- 💥 Move `cameraOptions`, `textOptions`, and `deepLinks` from top-level `<Tldraw>` props into the `options` prop (e.g. `options={{ camera, text, deepLinks }}`).
+- 💥 Remove the `embeds` prop from `<Tldraw>`. Configure embed definitions via `EmbedShapeUtil.configure({ embedDefinitions })` and pass the configured util through `shapeUtils`.
+- 💥 Demote `setDefaultEditorAssetUrls()` and `setDefaultUiAssetUrls()` to `@internal`. Pass `assetUrls` to each `<Tldraw>` instead.
+- 💥 Remove `useTldrawUser`. Use the new `users` prop (`TLUserStore`) for identity and `TLUserPreferences` for preferences.
+- 💥 Replace `TLDrawShapeSegment.points` with the helper `getPointsFromDrawSegment(segment, scaleX, scaleY)` so segment points respect the shape's current scale.
+- 💥 Change `BindingUtil` hook params: `fromShapeType`/`toShapeType` are removed in favor of full `fromShape`/`toShape` records (read `fromShape.type` / `toShape.type` directly).
+- 💥 Add `'middle-legacy'` (and other legacy values) to the `align` union resolved by `PlainTextLabel`/`RichTextLabel`. If your code maps `align` into `PlainTextLabel.textAlign`, narrow legacy values to one of `'start' | 'center' | 'end'` before passing them through.
 - Add `TLTheme`, `TLThemeId`, `TLThemes`, `TLThemeDefaultColors`, `TLThemeColors`, `TLRemovedDefaultThemeColors`, `ThemeManager`, `getDisplayValues()`, `getColorValue()`, and `DEFAULT_THEME` for the new theme system. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
 - Add `themes` and `initialTheme` props to `<Tldraw>` and `<TldrawEditor>`. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
 - Add `getCurrentTheme()`, `setCurrentTheme()`, `getThemes()`, `getTheme()`, `updateTheme()`, `updateThemes()`, and `getColorMode()` to the editor. ([#8410](https://github.com/tldraw/tldraw/pull/8410))
