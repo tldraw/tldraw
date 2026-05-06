@@ -210,6 +210,10 @@ export class DragAndDropManager {
 						initialIndices: this.initialIndices,
 					})
 					editor.setHintingShapes([nextDraggingOverShape.id])
+				} else if (this.prevDraggingOverShape) {
+					// The new target won't accept anything; clear any stale hint left on the
+					// previous target.
+					editor.setHintingShapes([])
 				}
 			} else if (this.prevDraggingOverShape) {
 				editor.setHintingShapes([])

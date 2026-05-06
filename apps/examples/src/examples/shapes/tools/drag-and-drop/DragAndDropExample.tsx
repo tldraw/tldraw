@@ -4,7 +4,6 @@ import {
 	HTMLContainer,
 	Rectangle2d,
 	ShapeUtil,
-	TLDragShapesOutInfo,
 	TLShape,
 	Tldraw,
 	Vec,
@@ -107,16 +106,6 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 	}
 
 	// [8]
-	override onDragShapesOut(
-		_shape: MyGridShape,
-		draggingShapes: TLShape[],
-		_info: TLDragShapesOutInfo
-	) {
-		const { editor } = this
-		editor.reparentShapes(draggingShapes, editor.getCurrentPageId())
-	}
-
-	// [9]
 	override getClipPath(_shape: MyGridShape): Vec[] {
 		return [
 			new Vec(0, 0),
@@ -200,12 +189,8 @@ Override onDragShapesIn to reparent incoming shapes so they become children of t
 filter by type — canReceiveNewChildrenOfType already did.
 
 [8]
-Override onDragShapesOut to reparent outgoing shapes back to the page. We don't need to filter by type —
-canRemoveChildrenOfType already did.
-
-[9]
 Override getClipPath so children are visually clipped to the grid's bounds while they're parented to it.
 This is independent of the drag-and-drop callbacks above; it just makes it visually obvious that a counter
-"belongs" to the grid while it's a child. As soon as onDragShapesOut reparents a counter back to the page
-the clip stops applying and it appears whole again.
+"belongs" to the grid while it's a child. Try dragging a counter outside the grid — because counters are
+pinned, the counter stays a child of the grid and the clip path keeps it inside.
 */

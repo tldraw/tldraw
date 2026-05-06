@@ -561,7 +561,10 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	/**
 	 * Get whether children of a given type can be removed from this shape. Used by the drag and
 	 * drop system to decide whether {@link ShapeUtil.onDragShapesOut} should fire when a child of
-	 * the given type is dragged out of this shape. Defaults to `true`.
+	 * the given type is dragged out of this shape, and by `kickoutOccludedShapes` to decide
+	 * whether to auto-reparent a child of the given type when it has moved outside this shape's
+	 * geometry. Returning `false` therefore "pins" matching children — they stay parented to this
+	 * shape even when dragged or moved outside it. Defaults to `true`.
 	 *
 	 * @param shape - The shape.
 	 * @param type - The shape type.
