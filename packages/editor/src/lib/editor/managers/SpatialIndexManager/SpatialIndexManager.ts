@@ -161,6 +161,12 @@ export class SpatialIndexManager {
 			}
 		}
 
+		// If step 1 found no real bounds changes, no shape's bounds can have
+		// changed transitively either: a dependent's geometry only invalidates
+		// when one of its inputs (another shape's bounds) changed. Skip the
+		// all-shapes sweep entirely.
+		if (!changed) return false
+
 		// 2. Check remaining shapes in index for bounds changes
 		// This handles shapes with computed bounds (arrows bound to moved shapes, groups with moved children, etc.)
 		const allShapeIds = this.rbush.getAllShapeIds()
@@ -177,7 +183,6 @@ export class SpatialIndexManager {
 				} else {
 					this.rbush.remove(shapeId)
 				}
-				changed = true
 			}
 		}
 
