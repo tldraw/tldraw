@@ -174,6 +174,10 @@ export {
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
 } from './lib/editor/shapes/ShapeUtil'
+export {
+	getOverlayDisplayValues,
+	type OverlayOptionsWithDisplayValues,
+} from './lib/editor/overlays/getOverlayDisplayValues'
 export { OverlayManager, type TLOverlayEntry } from './lib/editor/overlays/OverlayManager'
 export {
 	OverlayUtil,

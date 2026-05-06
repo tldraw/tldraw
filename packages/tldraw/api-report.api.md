@@ -43,6 +43,7 @@ import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
+import { OverlayOptionsWithDisplayValues } from '@tldraw/editor';
 import { OverlayUtil } from '@tldraw/editor';
 import { PerfectDashTerminal } from '@tldraw/editor';
 import { PointerEvent as PointerEvent_2 } from 'react';
@@ -124,7 +125,6 @@ import { TLImageAsset } from '@tldraw/editor';
 import { TLImageExportOptions } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLImageShapeProps } from '@tldraw/editor';
-import { TLIndicatorPath } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
@@ -207,6 +207,7 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
     // (undocumented)
     options: {
         crossSize: number;
+        dashedMinZoom: number;
         dashLengthRatio: number;
         dotRadius: number;
         opacity: number;
@@ -260,8 +261,6 @@ export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
     };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLArrowHintOverlay[]): void;
-    // @internal (undocumented)
-    _renderIndicatorPath(ctx: CanvasRenderingContext2D, indicatorPath: TLIndicatorPath): void;
     // (undocumented)
     static type: string;
 }
@@ -616,16 +615,29 @@ export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
-    options: {
-        lineWidth: number;
-        zIndex: number;
-    };
+    options: BrushOverlayUtilOptions;
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[]): void;
     // (undocumented)
     renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[], zoom: number): void;
     // (undocumented)
     static type: string;
+}
+
+// @public (undocumented)
+export interface BrushOverlayUtilDisplayValues {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    lineWidth: number;
+    // (undocumented)
+    strokeColor: string;
+}
+
+// @public (undocumented)
+export interface BrushOverlayUtilOptions extends OverlayOptionsWithDisplayValues<TLBrushOverlay, BrushOverlayUtilDisplayValues> {
+    // (undocumented)
+    zIndex: number;
 }
 
 // @internal (undocumented)
@@ -711,16 +723,6 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
     getOverlays(): TLCollaboratorHintOverlay[];
     // (undocumented)
     isActive(): boolean;
-    // @internal (undocumented)
-    _isCursorInViewport(cursor: {
-        x: number;
-        y: number;
-    }, viewport: {
-        maxX: number;
-        maxY: number;
-        minX: number;
-        minY: number;
-    }, zoom: number): boolean;
     // (undocumented)
     options: {
         lineWidth: number;
@@ -1146,6 +1148,118 @@ export function DefaultFollowingIndicator(): JSX.Element | null;
 
 // @public (undocumented)
 export const DefaultFontFaces: TLDefaultFonts;
+
+// @public
+export const defaultGeoTypeDefinitions: {
+    readonly 'arrow-down': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-down";
+        readonly snapType: "polygon";
+    };
+    readonly 'arrow-left': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-left";
+        readonly snapType: "polygon";
+    };
+    readonly 'arrow-right': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-right";
+        readonly snapType: "polygon";
+    };
+    readonly 'arrow-up': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-up";
+        readonly snapType: "polygon";
+    };
+    readonly 'check-box': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-check-box";
+        readonly snapType: "polygon";
+    };
+    readonly 'rhombus-2': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-rhombus-2";
+        readonly snapType: "polygon";
+    };
+    readonly 'x-box': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape, strokeWidth: number) => PathBuilder;
+        readonly icon: "geo-x-box";
+        readonly snapType: "polygon";
+    };
+    readonly cloud: {
+        readonly defaultSize: {
+            readonly h: 180;
+            readonly w: 300;
+        };
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-cloud";
+        readonly snapType: "blobby";
+    };
+    readonly diamond: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-diamond";
+        readonly snapType: "polygon";
+    };
+    readonly ellipse: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-ellipse";
+        readonly snapType: "blobby";
+    };
+    readonly heart: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-heart";
+        readonly snapType: "blobby";
+    };
+    readonly hexagon: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-hexagon";
+        readonly snapType: "polygon";
+    };
+    readonly octagon: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-octagon";
+        readonly snapType: "polygon";
+    };
+    readonly oval: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-oval";
+        readonly snapType: "blobby";
+    };
+    readonly pentagon: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-pentagon";
+        readonly snapType: "polygon";
+    };
+    readonly rectangle: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-rectangle";
+        readonly snapType: "polygon";
+    };
+    readonly rhombus: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-rhombus";
+        readonly snapType: "polygon";
+    };
+    readonly star: {
+        readonly defaultSize: {
+            readonly h: 190;
+            readonly w: 200;
+        };
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-star";
+        readonly snapType: "polygon";
+    };
+    readonly trapezoid: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-trapezoid";
+        readonly snapType: "polygon";
+    };
+    readonly triangle: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-triangle";
+        readonly snapType: "polygon";
+    };
+};
 
 // @public (undocumented)
 export function defaultHandleExternalEmbedContent<T>(editor: Editor, { point, url, embed }: {
@@ -2238,6 +2352,9 @@ export function getFontFamily(theme: TLTheme, font: string): string;
 // @public
 export function getFontStyleItems(theme: TLTheme): StyleValuesForUi<string>;
 
+// @public
+export function getGeoTypeDefinition(name: string, customGeoTypes?: Record<string, GeoTypeDefinition>): GeoTypeDefinition | undefined;
+
 // @public (undocumented)
 export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boolean): TLShape | undefined;
 
@@ -2466,6 +2583,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 // @public (undocumented)
 export interface ImageShapeUtilDisplayValues {
 }
+
+// @public (undocumented)
+export function InputModeMenu(): JSX.Element;
 
 // @public (undocumented)
 export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
@@ -3965,6 +4085,7 @@ export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, T
     components?: TLComponents;
     // @deprecated
     embeds?: TLEmbedDefinition[];
+    locale?: string;
     // @deprecated
     textOptions?: TLTextOptions;
 }

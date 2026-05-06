@@ -155,7 +155,8 @@ method is called when the shape needs to be drawn on the canvas. The tl-svg-cont
 class contains some helpful styles for rendering the svg correctly.
 
 [3]
-The indicator method renders the same path as a thin blue line when the shape is selected.
+The getIndicatorPath method returns a Path2D for the same outline; tldraw strokes it
+onto the canvas overlay as a thin blue line when the shape is selected.
 
 [4]
 The getHouseVertices function calculates the vertices for both the house body and the door

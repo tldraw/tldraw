@@ -123,6 +123,7 @@ Control camera movement and viewport behavior:
 | `cameraMovingTimeoutMs`   | 64      | Time before camera is considered stopped          |
 | `followChaseViewportSnap` | 2       | Snap threshold when following collaborators       |
 | `spacebarPanning`         | true    | Enable spacebar to activate pan mode              |
+| `rightClickPanning`       | true    | Enable right-click and drag to pan the camera     |
 | `zoomToFitPadding`        | 128     | Padding around content when zooming to fit bounds |
 
 ### Snapping
@@ -198,6 +199,8 @@ When `debouncedZoom` is enabled and the page has more shapes than `debouncedZoom
 | `actionShortcutsLocation`        | 'swap'    | Where to show keyboard shortcuts in menus      |
 | `tooltipDelayMs`                 | 700       | Delay before showing tooltips                  |
 | `laserDelayMs`                   | 1200      | Duration laser pointer remains visible         |
+| `laserFadeoutMs`                 | 500       | Duration for laser pointer fadeout animation   |
+| `quickZoomPreservesScreenBounds` | true      | Whether quick zoom brush keeps viewport scale  |
 | `branding`                       | undefined | App name for accessibility labels              |
 | `nonce`                          | undefined | CSP nonce for inline styles                    |
 
@@ -213,6 +216,24 @@ The `actionShortcutsLocation` option controls where keyboard shortcuts appear:
 | --------------------------------- | ------- | ------------------------------------------------- |
 | `temporaryAssetPreviewLifetimeMs` | 180000  | How long temporary asset previews persist (3 min) |
 | `adjacentShapeMargin`             | 10      | Margin between auto-positioned shapes             |
+
+### Clipboard hooks
+
+These callbacks let you intercept and customize clipboard operations:
+
+| Option                       | Description                                                                                                                                                                                          |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `onBeforeCopyToClipboard`    | Called before content is written to the clipboard during copy or cut. Return modified `TLContent` to transform, `false` to cancel, or `void` to pass through.                                        |
+| `onBeforePasteFromClipboard` | Called before pasted content is processed and shapes are created. Return `false` to cancel, a modified content object to transform, or `void` to pass through. Only fires for paste, not file drops. |
+| `onClipboardPasteRaw`        | Called first for keyboard and menu paste, before tldraw parses clipboard data. Return `false` to cancel default paste handling, or `void` to continue.                                               |
+
+See [Clipboard](/sdk-features/clipboard) for more details on clipboard operations.
+
+### Drop handling
+
+| Option                         | Description                                                                                                                              |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `experimental__onDropOnCanvas` | Called when content is dropped on the canvas. Receives the page position and drag event. Return `true` to prevent default drop handling. |
 
 ## Default values
 
@@ -285,28 +306,35 @@ function App() {
 
 ### Embeds
 
-The `embeds` prop customizes which embed types the editor recognizes:
+Customize which embed types the editor recognizes using `EmbedShapeUtil.configure()`:
 
 ```tsx
-import { Tldraw, TLEmbedDefinition } from 'tldraw'
+import { Tldraw, EmbedShapeUtil, DEFAULT_EMBED_DEFINITIONS } from 'tldraw'
 
-const customEmbeds: TLEmbedDefinition[] = [
-	{
-		type: 'custom-video',
-		title: 'Custom Video',
-		hostnames: ['videos.example.com'],
-		width: 560,
-		height: 315,
-		doesResize: true,
-		toEmbedUrl: (url) => url.replace('/watch/', '/embed/'),
-		fromEmbedUrl: (url) => url.replace('/embed/', '/watch/'),
-	},
+const shapeUtils = [
+	EmbedShapeUtil.configure({
+		embedDefinitions: [
+			...DEFAULT_EMBED_DEFINITIONS,
+			{
+				type: 'custom-video',
+				title: 'Custom Video',
+				hostnames: ['videos.example.com'],
+				width: 560,
+				height: 315,
+				doesResize: true,
+				toEmbedUrl: (url) => url.replace('/watch/', '/embed/'),
+				fromEmbedUrl: (url) => url.replace('/embed/', '/watch/'),
+			},
+		],
+	}),
 ]
 
 function App() {
-	return <Tldraw embeds={customEmbeds} />
+	return <Tldraw shapeUtils={shapeUtils} />
 }
 ```
+
+See [Embed shape](/sdk-features/embed-shape#custom-embed-definitions) for the full embed definition API.
 
 ### Editor setup
 

@@ -60,12 +60,24 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 
 		const l = 2.5 / zoom
 
-		const minX = points.reduce((acc, p) => Math.min(acc, p.x), Infinity)
-		const maxX = points.reduce((acc, p) => Math.max(acc, p.x), -Infinity)
-		const minY = points.reduce((acc, p) => Math.min(acc, p.y), Infinity)
-		const maxY = points.reduce((acc, p) => Math.max(acc, p.y), -Infinity)
+		let minX = Infinity
+		let maxX = -Infinity
+		let minY = Infinity
+		let maxY = -Infinity
+		for (const point of points) {
+			if (point.x < minX) minX = point.x
+			if (point.x > maxX) maxX = point.x
+			if (point.y < minY) minY = point.y
+			if (point.y > maxY) maxY = point.y
+		}
 
-		const useNWtoSEdirection = points.some((p) => p.x === minX && p.y === minY)
+		let useNWtoSEdirection = false
+		for (const point of points) {
+			if (point.x === minX && point.y === minY) {
+				useNWtoSEdirection = true
+				break
+			}
+		}
 		let firstX: number, firstY: number, secondX: number, secondY: number
 		if (useNWtoSEdirection) {
 			firstX = minX
@@ -106,7 +118,10 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 		color: string
 	): void {
 		const { gaps, direction } = indicator
+		if (gaps.length === 0) return
+
 		const l = 3.5 / zoom
+		const tickLength = 2 * l
 		const horizontal = direction === 'horizontal'
 
 		let edgeIntersection: number[] = [-Infinity, +Infinity]
@@ -147,11 +162,11 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 		for (const { startEdge, endEdge } of gaps) {
 			if (horizontal) {
 				// Start edge tick
-				ctx.moveTo(startEdge[0].x, midPoint - 2 * l)
-				ctx.lineTo(startEdge[1].x, midPoint + 2 * l)
+				ctx.moveTo(startEdge[0].x, midPoint - tickLength)
+				ctx.lineTo(startEdge[1].x, midPoint + tickLength)
 				// End edge tick
-				ctx.moveTo(endEdge[0].x, midPoint - 2 * l)
-				ctx.lineTo(endEdge[1].x, midPoint + 2 * l)
+				ctx.moveTo(endEdge[0].x, midPoint - tickLength)
+				ctx.lineTo(endEdge[1].x, midPoint + tickLength)
 				// Joining line
 				ctx.moveTo(startEdge[0].x, midPoint)
 				ctx.lineTo(endEdge[0].x, midPoint)
@@ -161,11 +176,11 @@ export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay
 				ctx.lineTo(cx, midPoint + l)
 			} else {
 				// Start edge tick
-				ctx.moveTo(midPoint - 2 * l, startEdge[0].y)
-				ctx.lineTo(midPoint + 2 * l, startEdge[1].y)
+				ctx.moveTo(midPoint - tickLength, startEdge[0].y)
+				ctx.lineTo(midPoint + tickLength, startEdge[1].y)
 				// End edge tick
-				ctx.moveTo(midPoint - 2 * l, endEdge[0].y)
-				ctx.lineTo(midPoint + 2 * l, endEdge[1].y)
+				ctx.moveTo(midPoint - tickLength, endEdge[0].y)
+				ctx.lineTo(midPoint + tickLength, endEdge[1].y)
 				// Joining line
 				ctx.moveTo(midPoint, startEdge[0].y)
 				ctx.lineTo(midPoint, endEdge[0].y)

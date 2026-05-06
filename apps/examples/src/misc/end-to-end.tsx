@@ -30,7 +30,7 @@ declare module 'tldraw' {
 	}
 }
 
-export type HtmlCssShape = TLShape<typeof HTML_TYPE>
+type HtmlCssShape = TLShape<typeof HTML_TYPE>
 class HtmlCssShapeUtil extends BaseBoxShapeUtil<HtmlCssShape> {
 	static override type = HTML_TYPE
 

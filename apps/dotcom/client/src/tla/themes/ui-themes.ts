@@ -11,7 +11,7 @@ export interface UIThemeVariant {
 	tla: Record<string, string>
 }
 
-export interface UITheme {
+interface UITheme {
 	id: string
 	name: string
 	lightBackground: string

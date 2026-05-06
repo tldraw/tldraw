@@ -20,6 +20,7 @@ import {
 } from '@tldraw/editor'
 import React from 'react'
 import { GeoShapeUtil } from '../../../shapes/geo/GeoShapeUtil'
+import { defaultGeoTypeDefinitions, GeoTypeDefinition } from '../../../shapes/geo/getGeoShapePath'
 import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -329,14 +330,12 @@ export function StylePanelGeoShapePicker() {
 	const geo = styles.get(GeoShapeGeoStyle)
 	if (geo === undefined) return null
 
-	const customGeoTypes = (editor.getShapeUtil('geo') as GeoShapeUtil).options.customGeoTypes
-	const customItems = customGeoTypes
-		? Object.entries(customGeoTypes).map(([value, def]) => ({ value, icon: def.icon }))
-		: []
-	const items =
-		customItems.length > 0
-			? [...STYLES.geo.filter((item) => !customGeoTypes?.[item.value]), ...customItems]
-			: STYLES.geo
+	const customGeoTypes = editor.getShapeUtil<GeoShapeUtil>('geo').options.customGeoTypes
+	const merged: Record<string, GeoTypeDefinition> = {
+		...defaultGeoTypeDefinitions,
+		...customGeoTypes,
+	}
+	const items = Object.entries(merged).map(([value, def]) => ({ value, icon: def.icon }))
 
 	return (
 		<StylePanelDropdownPicker

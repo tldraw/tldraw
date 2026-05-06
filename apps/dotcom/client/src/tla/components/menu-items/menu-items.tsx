@@ -50,6 +50,9 @@ const messages = defineMessages({
 	manageCookies: { defaultMessage: 'Manage cookies' },
 	about: { defaultMessage: 'About tldraw' },
 	submitFeedback: { defaultMessage: 'Send feedback' },
+	// color theme
+	colorTheme: { defaultMessage: 'Color theme' },
+	colorThemeDefault: { defaultMessage: 'Default' },
 	// debug
 	appDebugFlags: { defaultMessage: 'App debug flags' },
 	langAccented: { defaultMessage: 'i18n: Accented' },
@@ -90,10 +93,9 @@ export function ColorThemeSubmenu() {
 	return <ColorSchemeMenu />
 }
 
-const THEME_NAMES: Record<string, string> = {
-	default: 'Default',
-	...Object.fromEntries(UI_THEMES.map(({ id, name }) => [id, name])),
-}
+const THEME_NAMES: Record<string, string> = Object.fromEntries(
+	UI_THEMES.map(({ id, name }) => [id, name])
+)
 
 function UIThemeMenuCheckboxItem({
 	checked,
@@ -140,6 +142,8 @@ export function UIThemeSubmenu() {
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 	const trackEvent = useTldrawAppUiEvents()
 	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
+	const colorThemeLabel = useMsg(messages.colorTheme)
+	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
 
 	const themeIds = useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [
 		editor,
@@ -150,7 +154,7 @@ export function UIThemeSubmenu() {
 	if (!editor || themeIds.length === 0) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="ui-theme" label="menu.color-theme">
+		<TldrawUiMenuSubmenu id="ui-theme" label={colorThemeLabel}>
 			<div
 				className="tlui-menu__group"
 				onPointerCancel={clearThemePreview}
@@ -159,7 +163,7 @@ export function UIThemeSubmenu() {
 				{themeIds.map((id) => (
 					<UIThemeMenuCheckboxItem
 						key={id}
-						label={THEME_NAMES[id] ?? id}
+						label={id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id)}
 						checked={colorTheme === id}
 						onPreview={() => setColorThemePreview(id)}
 						onSelect={() => {

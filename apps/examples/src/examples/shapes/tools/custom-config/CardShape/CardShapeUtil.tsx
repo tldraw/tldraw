@@ -143,7 +143,8 @@ and button. We can get the shape's bounds using our own getGeometry method.
 	   think you're trying to select drag the shape.
 
 [7]
-Indicator — used when hovering over a shape or when it's selected; must return only SVG elements here
+getIndicatorPath — returns a Path2D used when hovering over the shape or when it's selected.
+The path is stroked onto the canvas overlay.
 
 [8]
 Resize handler — called when the shape is resized. Sometimes you'll want to do some
