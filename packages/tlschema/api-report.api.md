@@ -74,10 +74,12 @@ export const AssetRecordType: RecordType<TLAsset<"bookmark" | "image" | "video">
 
 // @public
 export class b64Vecs {
+    static appendDecodedSuffix(points: VecModel[], prevB64: string, newB64: string): void;
     static decodeFirstPoint(b64Points: string): null | VecModel;
     static decodeLastPoint(b64Points: string): null | VecModel;
     static decodePoints(base64: string): VecModel[];
     static encodePoints(points: VecModel[]): string;
+    static encodePointsAppend(prevB64: string, newPoint: VecModel, prevPoint: null | VecModel): string;
     // @internal
     static _legacyDecodePoints(base64: string): VecModel[];
     // @internal

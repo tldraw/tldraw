@@ -259,6 +259,114 @@ describe('b64Vecs delta encoding', () => {
 			expect(decoded[2]).toEqual({ x: 100, y: 100, z: 0.5 })
 		})
 	})
+
+	describe('encodePointsAppend', () => {
+		it('encodes a single point identically to encodePoints when prevB64 is empty', () => {
+			const p: VecModel = { x: 12.5, y: -3.25, z: 0.75 }
+			expect(b64Vecs.encodePointsAppend('', p, null)).toBe(b64Vecs.encodePoints([p]))
+		})
+
+		it('treats null prevPoint the same as empty prevB64', () => {
+			const p: VecModel = { x: 1, y: 2, z: 0.5 }
+			expect(b64Vecs.encodePointsAppend('', p, null)).toBe(
+				b64Vecs.encodePointsAppend('garbage-ignored-when-prev-is-null', p, null)
+			)
+		})
+
+		it('appending one delta produces the same bytes as encodePoints([prev, next])', () => {
+			const a: VecModel = { x: 100, y: 200, z: 0.5 }
+			const b: VecModel = { x: 101.5, y: 199.25, z: 0.6 }
+			const append = b64Vecs.encodePointsAppend(b64Vecs.encodePoints([a]), b, a)
+			expect(append).toBe(b64Vecs.encodePoints([a, b]))
+		})
+
+		it('streaming append over a long stroke matches encodePoints over the same array', () => {
+			const points: VecModel[] = []
+			let x = 50
+			let y = 50
+			for (let i = 0; i < 500; i++) {
+				x += Math.sin(i * 0.13) * 2
+				y += Math.cos(i * 0.17) * 2
+				points.push({ x, y, z: 0.5 + (i % 7) * 0.01 })
+			}
+
+			let acc = ''
+			let prev: VecModel | null = null
+			for (const p of points) {
+				acc = b64Vecs.encodePointsAppend(acc, p, prev)
+				prev = p
+			}
+
+			expect(acc).toBe(b64Vecs.encodePoints(points))
+			// And the round-trip recovers the original positions.
+			const decoded = b64Vecs.decodePoints(acc)
+			expect(decoded.length).toBe(points.length)
+			expect(decoded[0]).toEqual(points[0])
+			expect(decoded[points.length - 1].x).toBeCloseTo(points[points.length - 1].x, 1)
+			expect(decoded[points.length - 1].y).toBeCloseTo(points[points.length - 1].y, 1)
+		})
+
+		it('defaults missing z to 0.5 like encodePoints', () => {
+			const a: VecModel = { x: 0, y: 0 } as VecModel
+			const b: VecModel = { x: 1, y: 1 } as VecModel
+			const append = b64Vecs.encodePointsAppend(b64Vecs.encodePoints([a]), b, a)
+			expect(append).toBe(b64Vecs.encodePoints([a, b]))
+		})
+	})
+
+	describe('appendDecodedSuffix', () => {
+		it('extends a cached decode in place to match a full decode of the new path', () => {
+			const points: VecModel[] = [
+				{ x: 100, y: 100, z: 0.5 },
+				{ x: 101, y: 100.5, z: 0.5 },
+				{ x: 102, y: 101, z: 0.5 },
+			]
+			const prevB64 = b64Vecs.encodePoints(points)
+			const decoded = b64Vecs.decodePoints(prevB64)
+
+			// Append two more points using the streaming encoder.
+			const newA: VecModel = { x: 102.5, y: 102, z: 0.5 }
+			const newB: VecModel = { x: 103, y: 103.25, z: 0.5 }
+			const stepB64 = b64Vecs.encodePointsAppend(prevB64, newA, points[points.length - 1])
+			const newB64 = b64Vecs.encodePointsAppend(stepB64, newB, newA)
+
+			b64Vecs.appendDecodedSuffix(decoded, prevB64, newB64)
+
+			expect(decoded.length).toBe(5)
+			expect(decoded).toEqual(b64Vecs.decodePoints(newB64))
+		})
+
+		it('is a no-op when newB64 equals prevB64', () => {
+			const points: VecModel[] = [
+				{ x: 0, y: 0, z: 0.5 },
+				{ x: 1, y: 1, z: 0.5 },
+			]
+			const path = b64Vecs.encodePoints(points)
+			const decoded = b64Vecs.decodePoints(path)
+			const before = decoded.slice()
+
+			b64Vecs.appendDecodedSuffix(decoded, path, path)
+
+			expect(decoded).toEqual(before)
+		})
+
+		it('handles single-point appends repeatedly', () => {
+			let path = b64Vecs.encodePoints([{ x: 10, y: 10, z: 0.5 }])
+			const decoded = b64Vecs.decodePoints(path)
+			let prev: VecModel = { x: 10, y: 10, z: 0.5 }
+
+			for (let i = 1; i <= 20; i++) {
+				const next: VecModel = { x: 10 + i, y: 10 + i * 0.5, z: 0.5 }
+				const newPath = b64Vecs.encodePointsAppend(path, next, prev)
+				b64Vecs.appendDecodedSuffix(decoded, path, newPath)
+				path = newPath
+				prev = next
+			}
+
+			expect(decoded.length).toBe(21)
+			expect(decoded).toEqual(b64Vecs.decodePoints(path))
+		})
+	})
 })
 
 describe('native/fallback interoperability', () => {

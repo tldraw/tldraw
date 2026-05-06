@@ -56,6 +56,11 @@ export class Drawing extends StateNode {
 	// Cache for current segment's points to avoid repeated b64 decode/encode
 	currentSegmentPoints: Vec[] = []
 
+	// Delta-encoded base64 path for the current free segment, kept in sync with
+	// currentSegmentPoints so we can append in O(1) per pointer move instead of
+	// re-encoding the entire stroke.
+	currentSegmentB64 = ''
+
 	markId = null as null | string
 
 	override onEnter(info: TLPointerEventInfo) {
@@ -275,6 +280,7 @@ export class Drawing extends StateNode {
 		// Initialize the segment points cache
 		const initialPoint = new Vec(0, 0, +pressure.toFixed(2))
 		this.currentSegmentPoints = [initialPoint]
+		this.currentSegmentB64 = b64Vecs.encodePoints([initialPoint])
 
 		// Allow this to trigger the max shapes reached alert
 		this.editor.createShape({
@@ -435,10 +441,11 @@ export class Drawing extends StateNode {
 					)
 					// Initialize cache for the new free segment
 					this.currentSegmentPoints = interpolatedPoints
+					this.currentSegmentB64 = b64Vecs.encodePoints(interpolatedPoints)
 
 					const newFreeSegment: TLDrawShapeSegment = {
 						type: 'free',
-						path: b64Vecs.encodePoints(interpolatedPoints),
+						path: this.currentSegmentB64,
 					}
 
 					const finalSegments = [...newSegments, newFreeSegment]
@@ -629,20 +636,26 @@ export class Drawing extends StateNode {
 					lastPoint.x = newPoint.x
 					lastPoint.y = newPoint.y
 					lastPoint.z = lastPoint.z ? Math.max(lastPoint.z, newPoint.z) : newPoint.z
-					// Note: we could recompute the line length here, but it's not really necessary
-					// this.currentLineLength = this.getLineLength(newSegments)
+					// Merging mutates the last point, so we must rebuild the b64 path.
+					// This case is rare (pen/stylus dwell), so the full re-encode is fine.
+					this.currentSegmentB64 = b64Vecs.encodePoints(cachedPoints)
 				} else {
-					this.currentLineLength += cachedPoints.length
-						? Vec.Dist(cachedPoints[cachedPoints.length - 1], newPoint)
-						: 0
-					cachedPoints.push(new Vec(newPoint.x, newPoint.y, newPoint.z))
+					const prevPoint = cachedPoints.length ? cachedPoints[cachedPoints.length - 1] : null
+					this.currentLineLength += prevPoint ? Vec.Dist(prevPoint, newPoint) : 0
+					const appended = new Vec(newPoint.x, newPoint.y, newPoint.z)
+					cachedPoints.push(appended)
+					this.currentSegmentB64 = b64Vecs.encodePointsAppend(
+						this.currentSegmentB64,
+						appended,
+						prevPoint
+					)
 				}
 
 				const newSegments = segments.slice()
 				const newSegment = newSegments[newSegments.length - 1]
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
-					path: b64Vecs.encodePoints(cachedPoints),
+					path: this.currentSegmentB64,
 				}
 
 				const dvStrokeWidth = (getDisplayValues(this.util as any, shape) as { strokeWidth: number })
@@ -683,6 +696,7 @@ export class Drawing extends StateNode {
 					// Reset cache for the new shape's segment
 					const initialPoint = new Vec(0, 0, this.isPenOrStylus ? +(z! * 1.25).toFixed() : 0.5)
 					this.currentSegmentPoints = [initialPoint]
+					this.currentSegmentB64 = b64Vecs.encodePoints([initialPoint])
 
 					this.editor.createShape({
 						id: newShapeId,
@@ -695,7 +709,7 @@ export class Drawing extends StateNode {
 							segments: [
 								{
 									type: 'free',
-									path: b64Vecs.encodePoints([initialPoint]),
+									path: this.currentSegmentB64,
 								},
 							],
 						},
