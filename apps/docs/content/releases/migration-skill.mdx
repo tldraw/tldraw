@@ -26,9 +26,9 @@ The `tldraw-migrate` skill is an agent skill that helps you migrate a project to
 
 The skill packages our migration workflow into a single command so an agent can apply it to your codebase:
 
-- Detects the tldraw version your project is migrating from (using git history) and the target you're migrating to (`latest` by default; pre-release tags like `canary`, `next`, `beta`, or a pinned semver are also supported).
+- Detects the tldraw version your project is migrating from and the target you're migrating to.
 - Fetches the public release notes between those two versions and caches them next to the skill, along with the full SDK docs for ad-hoc lookup.
-- Inspects your project to figure out the package manager, which tldraw packages are installed, which import style you use (`'tldraw'` vs `'@tldraw/editor'`), and how your typecheck and build scripts are configured.
+- Inspects your project to figure out the package manager, which tldraw packages are installed, which import style you use, and how your typecheck and build scripts are configured.
 - Upgrades every tldraw package already in `package.json` to the resolved target.
 - Categorizes the resulting TypeScript errors by code, then fixes them in order of impact: React types first, then custom shape and binding registration, then API renames and removals, then TipTap, then anything left over.
 - Sweeps the project for `@deprecated` API usage and applies the recommended replacements.
@@ -52,7 +52,9 @@ GitHub is the deliberate source of truth: sourcing release notes from `main` rat
 
 The easiest way to set up the skill is to take your agent of choice and tell it:
 
-"Using the instructions in the README file at https://github.com/tldraw/tldraw/blob/main/skills/tldraw-migrate/README.md upgrade my project to the latest version of tldraw using the migration skill"
+```
+Using the instructions in the README file at https://github.com/tldraw/tldraw/blob/main/skills/tldraw-migrate/README.md upgrade my project to the latest version of tldraw using the migration skill
+```
 
 Alternatively you can manually install it using with the options below under manual installation.
 
