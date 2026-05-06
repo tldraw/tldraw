@@ -16,10 +16,7 @@ date: 5/6/2026
 The frame shape is a container with a labeled header that holds other shapes. Children of a frame are clipped to its bounds, follow the frame when it moves, and export together as a single image. Frames are useful for laying out artboards, screen mockups, slides, and any visual region that should travel as one unit.
 
 ```tsx
-import { createShapeId } from 'tldraw'
-
 editor.createShape({
-	id: createShapeId(),
 	type: 'frame',
 	x: 100,
 	y: 100,
@@ -36,21 +33,11 @@ editor.createShape({
 
 You can create a frame programmatically with `editor.createShape`, or interactively with the frame tool. The frame tool ships in the default toolbar; users can also press `F` to switch to it.
 
-When the user drags a frame around existing shapes, the frame tool reparents any sibling shapes that fall fully inside the frame's bounds. Locked shapes and the frame's ancestors are skipped to avoid creating cycles. This is what makes "draw a frame around the things I want to group" work as a single gesture.
-
-```tsx
-// Programmatic: create an empty frame at a specific position
-editor.createShape({
-	type: 'frame',
-	x: 0,
-	y: 0,
-	props: { w: 1024, h: 768, name: 'Page 1', color: 'black' },
-})
-```
+When the user drags a frame around existing shapes, the frame tool reparents any sibling shapes that fall fully inside the frame's bounds. Locked shapes are skipped. This is what makes "draw a frame around the things I want to group" work as a single gesture.
 
 Children inside a frame use coordinates relative to the frame's origin. Moving the frame moves every descendant; rotating the frame rotates them too.
 
-## The frame header
+## Frame header
 
 Every frame renders a heading above its top edge that displays the frame's `name` property. The heading also acts as the frame's editing handle:
 
@@ -64,6 +51,15 @@ Empty names render as `Frame` in exports so unnamed frames still get a label. Th
 Frames clip their children to the frame's rectangle during rendering. A shape that extends past the frame edge is rendered up to the boundary and then cut off. Clipping is purely visual — the shape's geometry, hit testing, and bounds are unchanged.
 
 The `BaseFrameLikeShapeUtil` base class implements clipping via `getClipPath`. If you need clipping for a custom container shape, see the [Frames](/sdk-features/shapes#frames) section in the Shapes guide for the extension API.
+
+## Shape properties
+
+| Property | Type                  | Description                                          |
+| -------- | --------------------- | ---------------------------------------------------- |
+| `w`      | `number`              | Frame width in pixels (default: `320`)               |
+| `h`      | `number`              | Frame height in pixels (default: `180`)              |
+| `name`   | `string`              | Label displayed in the frame header                  |
+| `color`  | `TLDefaultColorStyle` | Color for the border and heading (when `showColors`) |
 
 ## Configuration options
 
@@ -123,7 +119,7 @@ fitFrameToContent(editor, frameId, { padding: 24 })
 
 ### Removing a frame
 
-`removeFrame` deletes a frame but keeps its children, reparenting them to the page so they survive:
+`removeFrame` deletes a frame but preserves its children — they're moved out of the frame and reselected so they survive:
 
 ```tsx
 import { removeFrame } from 'tldraw'
@@ -139,27 +135,18 @@ Frames are export bounds containers — `FrameShapeUtil.isExportBoundsContainer(
 
 This makes frames ideal for mockup-style workflows where you need pixel-perfect exports at a specific aspect ratio — design the frame, drop content inside, export.
 
-## Properties
-
-| Property | Type                  | Description                                          |
-| -------- | --------------------- | ---------------------------------------------------- |
-| `w`      | `number`              | Frame width in pixels (default: `320`)               |
-| `h`      | `number`              | Frame height in pixels (default: `180`)              |
-| `name`   | `string`              | Label displayed in the frame header                  |
-| `color`  | `TLDefaultColorStyle` | Color for the border and heading (when `showColors`) |
-
 ## Frames vs. groups
 
 Frames and groups both contain other shapes, but they solve different problems:
 
-|                              | Frame                                     | Group                            |
-| ---------------------------- | ----------------------------------------- | -------------------------------- |
-| Visible on the canvas        | Yes — bordered rectangle with a heading   | No — no visual representation    |
-| Clips children to its bounds | Yes                                       | No                               |
-| Has a fixed size and shape   | Yes (`w`, `h`, position)                  | No (geometry follows children)   |
-| Used for export bounds       | Yes                                       | No                               |
-| Auto-deletes when empty      | No                                        | Yes (when last child is removed) |
-| Created by                   | Frame tool, drag-around, or `createShape` | `editor.groupShapes(...)`        |
+|                              | Frame                                   | Group                            |
+| ---------------------------- | --------------------------------------- | -------------------------------- |
+| Visible on the canvas        | Yes — bordered rectangle with a heading | No — no visual representation    |
+| Clips children to its bounds | Yes                                     | No                               |
+| Has a fixed size and shape   | Yes (`w`, `h`, position)                | No (geometry follows children)   |
+| Used for export bounds       | Yes                                     | No                               |
+| Auto-deletes when empty      | No                                      | Yes (when last child is removed) |
+| Created by                   | Frame tool or `editor.createShape`      | `editor.groupShapes(...)`        |
 
 Reach for a frame when you want a labeled, bounded region — a slide, a screen, an artboard. Reach for a group when you just need to move several shapes together without changing their visual layout.
 
