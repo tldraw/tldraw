@@ -189,7 +189,8 @@ receive dragged shapes must override this. Here we accept counter shapes only.
 [6]
 Override canRemoveChildrenOfType to gate which child shape types are allowed to be dragged out. The editor
 only fires onDragShapesOut for shapes that pass this check, and it also won't auto-reparent ("kick out") a
-child of a blocked type when it's moved outside the parent's geometry. The default is true.
+child of a blocked type when it's moved outside the parent's geometry. The default is true. Here, we don't 
+allow any child counter shapes to be dragged out.
 
 [7]
 Override getClipPath so children are visually clipped to the grid's bounds while they're parented to it.
