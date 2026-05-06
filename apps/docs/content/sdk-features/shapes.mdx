@@ -66,7 +66,7 @@ A ShapeUtil class defines how a shape type behaves. The editor maintains one Sha
 
 ### Required methods
 
-Every ShapeUtil must implement four methods: `getDefaultProps` returns default property values for new shapes, `getGeometry` returns a mathematical representation for hit testing and bounds calculation, `component` returns a React component that renders the shape, and `indicator` returns an SVG element for the selection outline.
+Every ShapeUtil must implement four methods: `getDefaultProps` returns default property values for new shapes, `getGeometry` returns a mathematical representation for hit testing and bounds calculation, `component` returns a React component that renders the shape, and `getIndicatorPath` returns paths for the selection outline.
 
 ```typescript
 class MyShapeUtil extends ShapeUtil<MyShape> {
@@ -88,8 +88,10 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 		return <div style={{ width: shape.props.w, height: shape.props.h }} />
 	}
 
-	indicator(shape: MyShape): JSX.Element {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: MyShape): Path2D | undefined {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 ```
@@ -184,7 +186,7 @@ The editor caches geometry computations to avoid recalculating bounds and hit te
 
 ## Shape rendering
 
-The editor renders shapes through a React component hierarchy. Each shape is wrapped in a container that handles positioning, transforms, and culling. When a shape renders, the editor computes the shape's page transform by combining its local position and rotation with all ancestor transforms, extracts bounds from the shape's geometry, skips rendering if the shape is outside the viewport and supports culling, renders the shape's visual content through the ShapeUtil's `component` method, and if selected, renders the selection outline through the `indicator` method.
+The editor renders shapes through a React component hierarchy. Each shape is wrapped in a container that handles positioning, transforms, and culling. When a shape renders, the editor computes the shape's page transform by combining its local position and rotation with all ancestor transforms, extracts bounds from the shape's geometry, skips rendering if the shape is outside the viewport and supports culling, renders the shape's visual content through the ShapeUtil's `component` method, and if selected, renders the selection outline through the `getIndicatorPath` method.
 
 ### Transform composition
 
