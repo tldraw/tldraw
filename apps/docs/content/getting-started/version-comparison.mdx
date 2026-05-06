@@ -1,0 +1,109 @@
+---
+title: Version comparison
+description: Compare features across tldraw SDK versions 3.x, 4.x, and 5.0
+status: published
+author: tldraw
+order: 2
+---
+
+The tldraw SDK has evolved across three major versions. This page summarises what each one can do, so you can pick the right one for a new project — or plan an upgrade for an existing one. Most users should start with **5.0**, which has the broadest extensibility surface and is where new features land. **3.x is no longer supported**: we recommend that anyone still on 3.x upgrade to 5.0. **4.x** continues to receive critical fixes only.
+
+For full details on what shipped in each release, see the [release notes index](/getting-started/releases).
+
+## Support status
+
+| Version | Status           | What it gets                                        |
+| ------- | ---------------- | --------------------------------------------------- |
+| **3.x** | End of life      | No further updates. Upgrade recommended.            |
+| **4.x** | Maintenance only | Critical fixes. No new features.                    |
+| **5.0** | Active           | New features, fixes, and improvements. Recommended. |
+
+## Customization
+
+| Feature                              | 3.x | 4.x | 5.0 |
+| ------------------------------------ | :-: | :-: | :-: |
+| First-class theme system             |  ✗  |  ✗  |  ✓  |
+| Display values for default shapes    |  ✗  |  ✗  |  ✓  |
+| Canvas overlays (`OverlayUtil`)      |  ✗  |  ✗  |  ✓  |
+| Extensible asset types (`AssetUtil`) |  ✗  |  ✗  |  ✓  |
+| Extensible geo shape types           |  ✗  |  ✗  |  ✓  |
+| Frame-like custom shapes             |  ✗  |  ✗  |  ✓  |
+| Custom shape clipping                |  ✗  |  ✓  |  ✓  |
+| Custom embeds API                    |  ✓  |  ✓  |  ✓  |
+| Arbitrary iframe embeds              |  ✗  |  ✗  |  ✓  |
+
+## Editor and UI
+
+| Feature                   |    3.x    | 4.x | 5.0 |
+| ------------------------- | :-------: | :-: | :-: |
+| Rich text labels          | ✓ (3.10+) |  ✓  |  ✓  |
+| Contextual toolbars       | ✓ (3.14+) |  ✓  |  ✓  |
+| Elbow arrows              | ✓ (3.13+) |  ✓  |  ✓  |
+| Drag from toolbar         |     ✗     |  ✓  |  ✓  |
+| Vertical toolbar          |     ✗     |  ✓  |  ✓  |
+| WCAG 2.2 AA accessibility |     ✗     |  ✓  |  ✓  |
+| RTL language support      |     ✗     |  ✗  |  ✓  |
+| Right-click drag to pan   |     ✗     |  ✗  |  ✓  |
+
+## Editor APIs
+
+| Feature                             | 3.x |   4.x    | 5.0 |
+| ----------------------------------- | :-: | :------: | :-: |
+| Deep links                          |  ✓  |    ✓     |  ✓  |
+| Text search via `getText`           |  ✓  |    ✓     |  ✓  |
+| Configurable embed definitions      |  ✗  | ✓ (4.5+) |  ✓  |
+| Clipboard hooks                     |  ✗  |    ✗     |  ✓  |
+| Cross-window embedding              |  ✗  |    ✗     |  ✓  |
+| Shape attribution and `TLUserStore` |  ✗  |    ✗     |  ✓  |
+| Custom record types in the store    |  ✗  |    ✗     |  ✓  |
+
+## Sync and multiplayer
+
+| Feature                       |   3.x    |   4.x    | 5.0 |
+| ----------------------------- | :------: | :------: | :-: |
+| tldraw sync                   |    ✓     |    ✓     |  ✓  |
+| Presence sync customization   | ✓ (3.7+) |    ✓     |  ✓  |
+| Custom socket implementations |    ✗     | ✓ (4.2+) |  ✓  |
+| SQLite sync storage           |    ✗     | ✓ (4.3+) |  ✓  |
+| WebSocket hibernation         |    ✗     |    ✗     |  ✓  |
+
+## Performance
+
+| Feature                                  | 3.x |   4.x    | 5.0 |
+| ---------------------------------------- | :-: | :------: | :-: |
+| Debounced zoom (`getDebouncedZoomLevel`) |  ✗  | ✓ (4.3+) |  ✓  |
+| 2D canvas shape indicator rendering      |  ✗  | ✓ (4.4+) |  ✓  |
+| R-tree spatial indexing                  |  ✗  | ✓ (4.4+) |  ✓  |
+| Finer-grained arrow reactivity           |  ✗  | ✓ (4.5+) |  ✓  |
+| Performance measurement hooks            |  ✗  |    ✗     |  ✓  |
+
+## Adjacent packages
+
+| Package                                      | 3.x | 4.x | 5.0 |
+| -------------------------------------------- | :-: | :-: | :-: |
+| `@tldraw/sync`                               |  ✓  |  ✓  |  ✓  |
+| `@tldraw/driver` (imperative editor control) |  ✗  |  ✗  |  ✓  |
+| `@tldraw/mermaid` (Mermaid → native shapes)  |  ✗  |  ✗  |  ✓  |
+
+## Starter kits and tooling
+
+The starter kits are a 4.x story: `npm create tldraw` arrived late in 3.x, but the kits themselves and most of the templates landed in 4.0 and later. All of these are available with 5.0.
+
+| Feature                    |    3.x    |   4.x    | 5.0 |
+| -------------------------- | :-------: | :------: | :-: |
+| `npm create tldraw` CLI    | ✓ (3.15+) |    ✓     |  ✓  |
+| Agent starter kit          |     ✗     | ✓ (4.0+) |  ✓  |
+| Workflow starter kit       |     ✗     | ✓ (4.0+) |  ✓  |
+| Branching-chat starter kit |     ✗     | ✓ (4.0+) |  ✓  |
+| Chat starter kit           |     ✗     | ✓ (4.0+) |  ✓  |
+| Multiplayer starter kit    |     ✗     | ✓ (4.0+) |  ✓  |
+| Shader starter kit         |     ✗     | ✓ (4.1+) |  ✓  |
+| Image pipeline starter kit |     ✗     | ✓ (4.4+) |  ✓  |
+
+## Where to go next
+
+- [v5.0 release notes](/releases/v5.0.0) — full list of features, breaking changes, and migration notes.
+- [v4.x release notes](/releases/v4.0.0) — the 4.x line of releases.
+- [v3.x release notes](/releases/v3.0.0) — historical reference for 3.x users planning an upgrade.
+- [Starter kits](/starter-kits) — pre-built templates for common canvas applications.
+- [SDK features](/sdk-features) — feature guides covering customization, sync, and editor APIs.

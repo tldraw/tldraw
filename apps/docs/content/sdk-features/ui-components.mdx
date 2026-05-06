@@ -62,7 +62,7 @@ The UI defines several component slots you can override or hide.
 
 The **Toolbar** contains the primary tool selector with buttons for each available tool (select, draw, shapes, etc.). On mobile, it hides automatically when editing text to make room for the virtual keyboard.
 
-The **TopPanel** is an empty slot available for custom content. It renders nothing by default. Use it to place your own UI in the top-center area of the editor.
+The **TopPanel** displays the page name and collaboration indicators when multiplayer features are enabled. It's hidden in single-player mode.
 
 The **StylePanel** shows style controls for selected shapes: color, fill, stroke, size, opacity. It appears in the top-right on desktop and as a modal on mobile.
 
@@ -330,7 +330,7 @@ Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShape
 ## Related examples
 
 - [Replace the entire UI](/examples/ui/custom-ui) - Build a completely custom toolbar UI while using the editor's functionality
-- [Custom canvas components](/examples/ui/custom-components) - Override individual canvas components like the brush selection box and scribble
+- [Custom canvas components](/examples/ui/custom-components) - Override individual canvas components like the background and grid
 - [Hide the entire UI](/examples/ui/hide-ui) - Use hideUi to hide the entire default interface
 - [Hide UI components](/examples/ui/ui-components-hidden) - Selectively hide specific UI components
 - [Changing menus](/examples/ui/custom-menus) - Create custom menus using tldraw's menu system
