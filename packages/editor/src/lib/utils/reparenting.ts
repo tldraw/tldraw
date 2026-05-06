@@ -238,11 +238,17 @@ export function getDroppedShapesToNewParents(
 	const potentialParentShapes = editor
 		.getCurrentPageShapesSorted()
 		// filter out any shapes that aren't frames or that are included among the provided shapes
-		.filter(
-			(s) =>
-				editor.getShapeUtil(s).canReceiveNewChildrenOfType?.(s, s.type) &&
-				!remainingShapesToReparent.has(s)
-		)
+		.filter((parentShape) => {
+			if (remainingShapesToReparent.has(parentShape)) return false
+
+			const parentUtil = editor.getShapeUtil(parentShape)
+			for (const childShape of remainingShapesToReparent) {
+				if (parentUtil.canReceiveNewChildrenOfType(parentShape, childShape.type)) {
+					return true
+				}
+			}
+			return false
+		})
 
 	parentCheck: for (let i = potentialParentShapes.length - 1; i >= 0; i--) {
 		const parentShape = potentialParentShapes[i]

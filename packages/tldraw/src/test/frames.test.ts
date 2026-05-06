@@ -4,6 +4,7 @@ import {
 	TLArrowShape,
 	TLFrameShape,
 	TLGeoShape,
+	TLShape,
 	TLShapeId,
 	createShapeId,
 	toRichText,
@@ -27,6 +28,14 @@ afterEach(() => {
 
 const ids = {
 	boxA: createShapeId('boxA'),
+}
+
+class GeoRejectingFrameShapeUtil extends FrameShapeUtil {
+	static override type = 'frame' as const
+
+	override canReceiveNewChildrenOfType(_shape: TLFrameShape, type: TLShape['type']) {
+		return type !== 'geo'
+	}
 }
 
 describe('creating frames', () => {
@@ -442,6 +451,31 @@ describe('frame shapes', () => {
 		// On pointer up, the shape should be dropped into the frame
 		editor.pointerUp()
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
+	})
+
+	it("doesn't drag shapes into a frame that rejects their type", () => {
+		editor.dispose()
+		editor = new TestEditor({ shapeUtils: [GeoRejectingFrameShapeUtil] })
+
+		const frameId = dragCreateFrame({ down: [0, 0], move: [200, 200], up: [200, 200] })
+
+		editor.createShapes([
+			{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50, fill: 'solid' } },
+		])
+
+		expect(editor.getShape(ids.boxA)!.parentId).toBe(editor.getCurrentPageId())
+
+		editor.setCurrentTool('select')
+		editor.pointerDown(275, 275, ids.boxA).pointerMove(100, 100)
+		vi.advanceTimersByTime(300)
+
+		expect(editor.getShape(ids.boxA)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+
+		editor.pointerUp(100, 100)
+
+		expect(editor.getShape(ids.boxA)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShape(frameId)!.parentId).toBe(editor.getCurrentPageId())
 	})
 
 	it('can be snapped to when dragging other shapes', () => {
