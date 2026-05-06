@@ -1,9 +1,12 @@
 import {
+	BaseFrameLikeShapeUtil,
 	Circle2d,
 	Geometry2d,
+	Group2d,
 	HTMLContainer,
 	Rectangle2d,
 	ShapeUtil,
+	TLBaseBoxShape,
 	TLShape,
 	Tldraw,
 	Vec,
@@ -16,13 +19,15 @@ const MY_COUNTER_SHAPE_TYPE = 'my-counter-shape'
 // [1]
 declare module 'tldraw' {
 	export interface TLGlobalShapePropsMap {
-		[MY_GRID_SHAPE_TYPE]: Record<string, never>
+		[MY_GRID_SHAPE_TYPE]: { w: number; h: number }
 		[MY_COUNTER_SHAPE_TYPE]: Record<string, never>
 	}
 }
 
 // [2]
-type MyGridShape = TLShape<typeof MY_GRID_SHAPE_TYPE>
+type MyGridShape = TLBaseBoxShape & {
+	type: typeof MY_GRID_SHAPE_TYPE
+}
 type MyCounterShape = TLShape<typeof MY_COUNTER_SHAPE_TYPE>
 
 // [3]
@@ -65,25 +70,33 @@ class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 }
 
 // [4]
-class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
+class MyGridShapeUtil extends BaseFrameLikeShapeUtil<MyGridShape> {
 	static override type = MY_GRID_SHAPE_TYPE
 
 	getDefaultProps(): MyGridShape['props'] {
-		return {}
+		return {
+			w: SLOT_SIZE * 5,
+			h: SLOT_SIZE * 2,
+		}
 	}
 
-	getGeometry(): Geometry2d {
-		return new Rectangle2d({
-			width: SLOT_SIZE * 5,
-			height: SLOT_SIZE * 2,
-			isFilled: true,
+	override getGeometry(shape: MyGridShape): Geometry2d {
+		return new Group2d({
+			children: [
+				new Rectangle2d({
+					width: shape.props.w,
+					height: shape.props.h,
+					isFilled: true,
+				}),
+			],
 		})
 	}
 
-	override canResize(shape: MyGridShape) {
+	override canResize(_shape: MyGridShape) {
 		return false
 	}
-	override hideResizeHandles(shape: MyGridShape) {
+
+	override hideResizeHandles(_shape: MyGridShape) {
 		return true
 	}
 
@@ -98,14 +111,6 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 	}
 
 	// [7]
-	override onDragShapesIn(shape: MyGridShape, draggingShapes: TLShape[]): void {
-		const { editor } = this
-		const reparentingShapes = draggingShapes.filter((s) => s.parentId !== shape.id)
-		if (reparentingShapes.length === 0) return
-		editor.reparentShapes(reparentingShapes, shape.id)
-	}
-
-	// [8]
 	override getClipPath(_shape: MyGridShape): Vec[] {
 		return [
 			new Vec(0, 0),
@@ -115,7 +120,7 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 		]
 	}
 
-	component() {
+	component(shape: MyGridShape) {
 		return (
 			<HTMLContainer
 				style={{
@@ -123,6 +128,8 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 					borderRight: '1px solid #ccc',
 					borderBottom: '1px solid #ccc',
 					backgroundSize: `${SLOT_SIZE}px ${SLOT_SIZE}px`,
+					width: shape.props.w,
+					height: shape.props.h,
 					backgroundImage: `
 						linear-gradient(to right, #ccc 1px, transparent 1px),
 						linear-gradient(to bottom, #ccc 1px, transparent 1px)
@@ -132,9 +139,9 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 		)
 	}
 
-	getIndicatorPath() {
+	override getIndicatorPath(shape: MyGridShape) {
 		const path = new Path2D()
-		path.rect(0, 0, SLOT_SIZE * 5, SLOT_SIZE * 2)
+		path.rect(0, 0, shape.props.w, shape.props.h)
 		return path
 	}
 }
@@ -185,10 +192,6 @@ only fires onDragShapesOut for shapes that pass this check, and it also won't au
 child of a blocked type when it's moved outside the parent's geometry. The default is true.
 
 [7]
-Override onDragShapesIn to reparent incoming shapes so they become children of the grid. We don't need to
-filter by type — canReceiveNewChildrenOfType already did.
-
-[8]
 Override getClipPath so children are visually clipped to the grid's bounds while they're parented to it.
 This is independent of the drag-and-drop callbacks above; it just makes it visually obvious that a counter
 "belongs" to the grid while it's a child. Try dragging a counter outside the grid — because counters are
