@@ -123,6 +123,12 @@ function AttributionPanel() {
 						<span className="attribution-label">Type</span>
 						<span>{info.type}</span>
 					</div>
+					{info.createdByName && (
+						<div className="attribution-row">
+							<span className="attribution-label">Created by</span>
+							<span style={{ color: info.createdByColor }}>{info.createdByName}</span>
+						</div>
+					)}
 					{info.textFirstEditedByName && (
 						<div className="attribution-row">
 							<span className="attribution-label">Text first edited by</span>
@@ -141,6 +147,11 @@ function AttributionPanel() {
 
 // [5]
 function attributionSummary(editor: { store: { props: { users: TLUserStore } } }, shape: TLShape) {
+	const createdBy = typeof shape.meta.createdBy === 'string' ? shape.meta.createdBy : null
+	const createdByUser = createdBy
+		? (editor.store.props.users.resolve?.(createdBy).get() ?? null)
+		: null
+
 	const noteProps = shape.type === 'note' ? (shape as TLNoteShape).props : null
 	const textFirstEditedBy = noteProps?.textFirstEditedBy ?? null
 	const textFirstEditedByUser = textFirstEditedBy
@@ -149,6 +160,8 @@ function attributionSummary(editor: { store: { props: { users: TLUserStore } } }
 
 	return {
 		type: shape.type,
+		createdByName: createdByUser?.name ?? null,
+		createdByColor: createdByUser?.color,
 		textFirstEditedByName: textFirstEditedByUser?.name ?? null,
 		textFirstEditedByColor: textFirstEditedByUser?.color,
 	}
@@ -161,6 +174,24 @@ export default function AttributionExample() {
 			<Tldraw
 				persistenceKey="attribution-example"
 				users={users}
+				onMount={(editor) => {
+					const stampWithCurrentUser = (shape: TLShape) => {
+						if (typeof shape.meta.createdBy === 'string') return shape
+						const userId = editor.getAttributionUserId()
+						if (!userId) return shape
+						return { ...shape, meta: { ...shape.meta, createdBy: userId } }
+					}
+
+					const toBackfill = editor
+						.getCurrentPageShapes()
+						.filter((s) => typeof s.meta.createdBy !== 'string')
+						.map(stampWithCurrentUser)
+					if (toBackfill.length) {
+						editor.run(() => editor.updateShapes(toBackfill), { history: 'ignore' })
+					}
+
+					editor.sideEffects.registerBeforeCreateHandler('shape', stampWithCurrentUser)
+				}}
 				components={{
 					TopPanel: UserSwitcher,
 					SharePanel: AttributionPanel,
@@ -185,21 +216,24 @@ signals will re-evaluate when the underlying data changes.
 [3]
 The top panel lets you switch which user is "logged in" and edit the active
 user's name. Try drawing a shape as Alice, then renaming her — the attribution
-panel updates live. Switch to Bob and create a note with text to see
-"Text first edited by" appear.
+panel updates live. Switch to Bob, create a note with text, and you'll also
+see the built-in "Text first edited by" appear.
 
 [4]
 The panel reads `editor.store.props.users.currentUser.get()` to show who is
-active, and reads shape-specific props (like `textFirstEditedBy` on notes) for
-per-shape attribution. Each attribution field is a user ID string — we call
-`resolve(userId).get()` to get live display data.
+active, and resolves both `meta.createdBy` (set by our own side effect) and
+`textFirstEditedBy` (built-in on notes) for the selected shape. Each attribution
+field is a user id string — we call `resolve(userId).get()` to get live display
+data, so renames flow through automatically.
 
 [5]
-Extracts attribution info from a shape. Note shapes have a `textFirstEditedBy`
-prop that tracks who first edited the note text.
+Extracts attribution info from a shape. We read `meta.createdBy` for any
+shape, and additionally read the built-in `textFirstEditedBy` prop for note
+shapes.
 
 [6]
-We pass the custom user store as the `users` prop on the Tldraw component.
-The TopPanel shows the user-switcher with name editing, and the SharePanel
-shows the attribution inspector.
+We pass the custom user store as the `users` prop on the Tldraw component,
+and use a `beforeCreate` side effect to stamp the current user's id onto
+every new shape's `meta.createdBy`. Storing attribution in `meta` keeps the
+data with the shape and lets you attribute any shape type, not just notes.
 */

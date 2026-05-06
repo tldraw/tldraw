@@ -1781,8 +1781,7 @@ describe('right clicking', () => {
 		editor.createShapes([{ id: ids.box1, type: 'geo' }])
 		expect(editor.getSelectedShapeIds()).toEqual([])
 		editor.pointerMove(4, 4)
-		editor.pointerDown(4, 4, { target: 'canvas', button: 2 })
-		editor.pointerUp()
+		editor.rightClick(4, 4)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 	})
 
@@ -1835,8 +1834,7 @@ describe('right clicking', () => {
 		// Not inside of the shape but inside of the selection bounds
 		editor.pointerMove(510, 590)
 		expect(editor.getHoveredShapeId()).toBe(null)
-		editor.pointerDown(30, 30, { target: 'canvas', button: 2 })
-		editor.pointerUp()
+		editor.rightClick(30, 30)
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 })

@@ -14,62 +14,24 @@ export * from '@tldraw/utils'
 export * from '@tldraw/validate'
 
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
-export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'
 export {
 	DefaultCanvas,
 	type TLCanvasComponentProps,
 } from './lib/components/default-components/DefaultCanvas'
-export {
-	DefaultCollaboratorHint,
-	type TLCollaboratorHintProps,
-} from './lib/components/default-components/DefaultCollaboratorHint'
-export {
-	DefaultCursor,
-	type TLCursorProps,
-} from './lib/components/default-components/DefaultCursor'
 export {
 	DefaultErrorFallback,
 	type TLErrorFallbackComponent,
 } from './lib/components/default-components/DefaultErrorFallback'
 export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
 export {
-	DefaultHandle,
-	type TLHandleProps,
-} from './lib/components/default-components/DefaultHandle'
-export {
-	DefaultHandles,
-	type TLHandlesProps,
-} from './lib/components/default-components/DefaultHandles'
-export {
-	DefaultScribble,
-	type TLScribbleProps,
-} from './lib/components/default-components/DefaultScribble'
-export {
 	DefaultSelectionBackground,
 	type TLSelectionBackgroundProps,
 } from './lib/components/default-components/DefaultSelectionBackground'
-export {
-	DefaultSelectionForeground,
-	type TLSelectionForegroundProps,
-} from './lib/components/default-components/DefaultSelectionForeground'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
-export {
-	DefaultShapeIndicator,
-	type TLShapeIndicatorProps,
-} from './lib/components/default-components/DefaultShapeIndicator'
-export { type TLShapeIndicatorErrorFallbackComponent } from './lib/components/default-components/DefaultShapeIndicatorErrorFallback'
-export {
-	DefaultShapeIndicators,
-	type TLShapeIndicatorsProps,
-} from './lib/components/default-components/DefaultShapeIndicators'
 export {
 	DefaultShapeWrapper,
 	type TLShapeWrapperProps,
 } from './lib/components/default-components/DefaultShapeWrapper'
-export {
-	DefaultSnapIndicator,
-	type TLSnapIndicatorProps,
-} from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
 export {
@@ -174,6 +136,7 @@ export {
 export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
 export { ThemeManager, resolveThemes } from './lib/editor/managers/ThemeManager/ThemeManager'
 export { TickManager } from './lib/editor/managers/TickManager/TickManager'
+export { CollaboratorsManager } from './lib/editor/managers/CollaboratorsManager/CollaboratorsManager'
 export { PerformanceApiAdapter } from './lib/editor/managers/PerformanceManager/PerformanceApiAdapter'
 export { PerformanceManager } from './lib/editor/managers/PerformanceManager/PerformanceManager'
 export {
@@ -191,6 +154,7 @@ export {
 } from './lib/editor/managers/PerformanceManager/perf-types'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
+export { BaseFrameLikeShapeUtil } from './lib/editor/shapes/BaseFrameLikeShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export {
 	ShapeUtil,
@@ -210,6 +174,22 @@ export {
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
 } from './lib/editor/shapes/ShapeUtil'
+export {
+	getOverlayDisplayValues,
+	type OverlayOptionsWithDisplayValues,
+} from './lib/editor/overlays/getOverlayDisplayValues'
+export { OverlayManager, type TLOverlayEntry } from './lib/editor/overlays/OverlayManager'
+export {
+	OverlayUtil,
+	type TLAnyOverlayUtilConstructor,
+	type TLOverlay,
+	type TLOverlayUtilConstructor,
+} from './lib/editor/overlays/OverlayUtil'
+export {
+	ShapeIndicatorOverlayUtil,
+	strokeShapeIndicators,
+	type TLShapeIndicatorOverlay,
+} from './lib/editor/overlays/ShapeIndicatorOverlayUtil'
 export {
 	getPerfectDashProps,
 	type PerfectDashTerminal,
@@ -344,7 +324,6 @@ export {
 	useUniqueSafeId,
 	type SafeId,
 } from './lib/hooks/useSafeId'
-export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'

@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "4.5.9",
+	"version": "4.5.10",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -63,7 +63,6 @@
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"classnames": "^2.5.1",
-		"hotkeys-js": "^4.0.2",
 		"idb": "^7.1.1",
 		"lz-string": "^1.5.0",
 		"radix-ui": "^1.4.2"

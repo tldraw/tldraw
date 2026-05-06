@@ -20,7 +20,10 @@
 		}
 	},
 	"ignorePatterns": [
+		"skills/**/*",
 		".claude/**/*",
+		".agents/**/*",
+		".cursor/**/*",
 		"**/node_modules/*",
 		"**/out/*",
 		"**/dist/*",
@@ -219,10 +222,12 @@
 		"tldraw/no-tiptap-default-import": "error",
 		"tldraw/no-setter-getter": "error",
 		"tldraw/no-direct-storage": "error",
+		"tldraw/no-path2d-roundrect": "error",
 		"tldraw/no-exported-arrow-const": "error",
 		"tldraw/no-focused-tests": "error",
 		"tldraw/enforce-default-message": ["error", "literal"],
-		"tldraw/method-signature-style": "error"
+		"tldraw/method-signature-style": "error",
+		"tldraw/claude-agents-pairing": "error"
 	},
 	"overrides": [
 		{

@@ -25,11 +25,8 @@ import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
-import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
-import { PointerEvent as PointerEvent_2 } from 'react';
-import { PointerEventHandler } from 'react';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
@@ -192,6 +189,22 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     getInterpolatedProps(startShape: Shape, endShape: Shape, t: number): Shape['props'];
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): any;
+}
+
+// @public
+export abstract class BaseFrameLikeShapeUtil<Shape extends TLBaseBoxShape> extends BaseBoxShapeUtil<Shape> {
+    // (undocumented)
+    canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']): boolean;
+    // (undocumented)
+    getClipPath(shape: Shape): undefined | Vec[];
+    // (undocumented)
+    isFrameLike(_shape: Shape): boolean;
+    // (undocumented)
+    onDragShapesIn(shape: Shape, draggingShapes: TLShape[], { initialParentIds, initialIndices }: TLDragShapesInInfo): void;
+    // (undocumented)
+    onDragShapesOut(shape: Shape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
+    // (undocumented)
+    providesBackgroundForChildren(): boolean;
 }
 
 // @public (undocumented)
@@ -519,6 +532,15 @@ export class ClickManager {
 // @public
 export function clockwiseAngleDist(a0: number, a1: number): number;
 
+// @public
+export class CollaboratorsManager {
+    constructor(editor: Editor);
+    getCollaborators(): TLInstancePresence[];
+    getCollaboratorsOnCurrentPage(): TLInstancePresence[];
+    getVisibleCollaborators(): TLInstancePresence[];
+    getVisibleCollaboratorsOnCurrentPage(): TLInstancePresence[];
+}
+
 // @public (undocumented)
 export function ContainerProvider({ container, children }: ContainerProviderProps): JSX.Element;
 
@@ -670,16 +692,7 @@ export const DEFAULT_THEME: TLTheme;
 export function DefaultBackground(): JSX.Element;
 
 // @public (undocumented)
-export const DefaultBrush: ({ brush, color, opacity, className }: TLBrushProps) => JSX.Element;
-
-// @public (undocumented)
 export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Element;
-
-// @public (undocumented)
-export function DefaultCollaboratorHint({ className, zoom, point, color, viewport, opacity }: TLCollaboratorHintProps): JSX.Element;
-
-// @public (undocumented)
-export const DefaultCursor: NamedExoticComponent<TLCursorProps>;
 
 // @public (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
@@ -688,31 +701,10 @@ export const DefaultErrorFallback: TLErrorFallbackComponent;
 export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultHandle({ handle, isCoarse, className, zoom }: TLHandleProps): JSX.Element;
-
-// @public (undocumented)
-export const DefaultHandles: ({ children }: TLHandlesProps) => JSX.Element;
-
-// @public (undocumented)
-export function DefaultScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX.Element | null;
-
-// @public (undocumented)
 export function DefaultSelectionBackground({ bounds, rotation }: TLSelectionBackgroundProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionForegroundProps): JSX.Element;
-
-// @public (undocumented)
-export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
-
-// @public (undocumented)
-export const DefaultShapeIndicators: NamedExoticComponent<TLShapeIndicatorsProps>;
-
-// @public (undocumented)
 export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps & RefAttributes<HTMLDivElement>>;
-
-// @public (undocumented)
-export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX.Element;
 
 // @public (undocumented)
 export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX.Element;
@@ -784,6 +776,7 @@ export const defaultTldrawOptions: {
     readonly onBeforePasteFromClipboard: undefined;
     readonly onClipboardPasteRaw: undefined;
     readonly quickZoomPreservesScreenBounds: true;
+    readonly rightClickPanning: true;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
@@ -872,7 +865,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -925,6 +918,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     clearHistory(): this;
     // @internal
     protected _clickManager: ClickManager;
+    readonly collaborators: CollaboratorsManager;
     complete(): this;
     // (undocumented)
     readonly contextId: string;
@@ -1424,6 +1418,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getViewportPageBounds(): Box;
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
+    getVisibleCollaborators(): TLInstancePresence[];
+    getVisibleCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getZoomLevel(): number;
     groupShapes(shapes: TLShape[], opts?: Partial<{
         groupId: TLShapeId;
@@ -1458,6 +1454,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): boolean;
+    isShapeFrameLike(shape: TLShape | TLShapeId): boolean;
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
@@ -1494,6 +1491,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
     readonly options: TldrawOptions;
+    readonly overlays: OverlayManager;
     packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): this;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
@@ -1928,6 +1926,12 @@ export function getGlobalWindow(): Window & typeof globalThis;
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
+// @public
+export function getOverlayDisplayValues<Overlay extends TLOverlay, DisplayValues extends object>(util: {
+    editor: Editor;
+    options: OverlayOptionsWithDisplayValues<Overlay, DisplayValues>;
+}, overlay: Overlay, colorMode?: 'dark' | 'light'): DisplayValues;
+
 // @internal (undocumented)
 export function getOwnerDocument(nodeOrDocument: Document | Node | null | undefined): Document;
 
@@ -2066,9 +2070,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     getGeometry(shape: TLGroupShape): Geometry2d;
     // (undocumented)
-    hideSelectionBoundsFg(shape: TLGroupShape): boolean;
+    getIndicatorPath(shape: TLGroupShape): Path2D;
     // (undocumented)
-    indicator(shape: TLGroupShape): JSX.Element;
+    hideSelectionBoundsFg(shape: TLGroupShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -2197,6 +2201,7 @@ export class InputsManager {
     getIsPen(): boolean;
     getIsPinching(): boolean;
     getIsPointing(): boolean;
+    getIsRightPointing(): boolean;
     getIsSpacebarPanning(): boolean;
     getMetaKey(): boolean;
     getOriginPagePoint(): Vec;
@@ -2255,6 +2260,8 @@ export class InputsManager {
     setIsPinching(isPinching: boolean): void;
     // @internal (undocumented)
     setIsPointing(isPointing: boolean): void;
+    // @internal (undocumented)
+    setIsRightPointing(isRightPointing: boolean): void;
     // @internal (undocumented)
     setIsSpacebarPanning(isSpacebarPanning: boolean): void;
     // @internal (undocumented)
@@ -2598,6 +2605,61 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLE
 // @public (undocumented)
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
+// @public (undocumented)
+export class OverlayManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    readonly editor: Editor;
+    getActiveOverlayEntries(): TLOverlayEntry[];
+    getCurrentOverlays(): TLOverlay[];
+    // (undocumented)
+    getHoveredOverlay(): null | TLOverlay;
+    // (undocumented)
+    getHoveredOverlayId(): null | string;
+    getOverlayAtPoint(point: VecLike, margin?: number): null | TLOverlay;
+    getOverlayGeometry(overlay: TLOverlay): Geometry2d | null;
+    getOverlayUtil<T extends OverlayUtil>(type: T extends OverlayUtil<infer O> ? O['type'] : string): T;
+    // (undocumented)
+    getOverlayUtil<O extends TLOverlay>(overlay: O): OverlayUtil<O>;
+    getOverlayUtilsInZOrder(): OverlayUtil[];
+    // @internal (undocumented)
+    readonly _overlayUtils: Map<string, OverlayUtil<TLOverlay<Record<string, unknown>>>>;
+    // @internal
+    registerUtil(util: OverlayUtil): void;
+    // (undocumented)
+    setHoveredOverlay(id: null | string): void;
+}
+
+// @public (undocumented)
+export interface OverlayOptionsWithDisplayValues<Overlay extends TLOverlay, DisplayValues extends object> {
+    // (undocumented)
+    getCustomDisplayValues(editor: Editor, overlay: Overlay, theme: TLTheme, colorMode: 'dark' | 'light'): Partial<DisplayValues>;
+    // (undocumented)
+    getDefaultDisplayValues(editor: Editor, overlay: Overlay, theme: TLTheme, colorMode: 'dark' | 'light'): DisplayValues;
+}
+
+// @public
+export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
+    constructor(editor: Editor);
+    static configure<T extends TLOverlayUtilConstructor<any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
+    // (undocumented)
+    editor: Editor;
+    getCursor(_overlay: T): TLCursorType | undefined;
+    getGeometry(_overlay: T): Geometry2d | null;
+    abstract getOverlays(): T[];
+    abstract isActive(): boolean;
+    onPointerDown?(overlay: T, info: TLPointerEventInfo): boolean | void;
+    options: {
+        zIndex?: number;
+    };
+    render(_ctx: CanvasRenderingContext2D, _overlays: T[]): void;
+    renderMinimap(_ctx: CanvasRenderingContext2D, _overlays: T[], _zoom: number): void;
+    // (undocumented)
+    static type: string;
+}
+
 // @public
 export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
 
@@ -2903,6 +2965,24 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 // @public (undocumented)
 export function setUserPreferences(user: TLUserPreferences): void;
 
+// @public
+export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverlay> {
+    // (undocumented)
+    getOverlays(): TLShapeIndicatorOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        hintedLineWidth: number;
+        lineWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLShapeIndicatorOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
 // @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     constructor(editor: Editor);
@@ -2940,7 +3020,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
-    getIndicatorPath(shape: Shape): TLIndicatorPath | undefined;
+    abstract getIndicatorPath(shape: Shape): TLIndicatorPath | undefined;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
     getReferencedUserIds(shape: Shape): string[];
     // (undocumented)
@@ -2951,9 +3031,11 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     hideRotateHandle(shape: Shape): boolean;
     hideSelectionBoundsBg(shape: Shape): boolean;
     hideSelectionBoundsFg(shape: Shape): boolean;
-    abstract indicator(shape: Shape): any;
+    // @deprecated
+    indicator(_shape: Shape): any;
     isAspectRatioLocked(shape: Shape): boolean;
     isExportBoundsContainer(shape: Shape): boolean;
+    isFrameLike(_shape: Shape): boolean;
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     onBeforeCreate?(next: Shape): Shape | void;
     onBeforeUpdate?(prev: Shape, next: Shape): Shape | void;
@@ -2996,7 +3078,6 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;
-    useLegacyIndicator(): boolean;
 }
 
 // @public
@@ -3200,6 +3281,9 @@ export const stopEventPropagation: (e: any) => any;
 // @internal (undocumented)
 export type StoreName = (typeof Table)[keyof typeof Table];
 
+// @public
+export function strokeShapeIndicators(editor: Editor, ctx: CanvasRenderingContext2D, shapeIds: TLShapeId[]): void;
+
 // @public (undocumented)
 export function suffixSafeId(id: SafeId, suffix: string): SafeId;
 
@@ -3320,6 +3404,9 @@ export type TLAnyAssetUtilConstructor = TLAssetUtilConstructor<any>;
 export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 
 // @public (undocumented)
+export type TLAnyOverlayUtilConstructor = TLOverlayUtilConstructor<any>;
+
+// @public (undocumented)
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 
 // @public (undocumented)
@@ -3372,20 +3459,6 @@ export interface TLBindingUtilConstructor<T extends TLBinding, U extends Binding
     props?: RecordProps<T>;
     // (undocumented)
     type: T['type'];
-}
-
-// @public (undocumented)
-export interface TLBrushProps {
-    // (undocumented)
-    brush: BoxModel;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    color?: string;
-    // (undocumented)
-    opacity?: number;
-    // (undocumented)
-    userId?: string;
 }
 
 // @public (undocumented)
@@ -3499,24 +3572,6 @@ export interface TLClipboardWriteInfo {
 }
 
 // @public (undocumented)
-export interface TLCollaboratorHintProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    color: string;
-    // (undocumented)
-    opacity?: number;
-    // (undocumented)
-    point: VecModel;
-    // (undocumented)
-    userId: string;
-    // (undocumented)
-    viewport: Box;
-    // (undocumented)
-    zoom: number;
-}
-
-// @public (undocumented)
 export type TLCompleteEvent = (info: TLCompleteEventInfo) => void;
 
 // @public (undocumented)
@@ -3568,24 +3623,6 @@ export interface TLCurrentUser {
     readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
     // (undocumented)
     readonly userPreferences: Signal<TLUserPreferences>;
-}
-
-// @public (undocumented)
-export interface TLCursorProps {
-    // (undocumented)
-    chatMessage: string;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    color?: string;
-    // (undocumented)
-    name: null | string;
-    // (undocumented)
-    point: null | VecModel;
-    // (undocumented)
-    userId: string;
-    // (undocumented)
-    zoom: number;
 }
 
 // @public (undocumented)
@@ -3671,6 +3708,7 @@ export interface TldrawEditorBaseProps {
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
+    overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     // @deprecated
     textOptions?: TLTextOptions;
@@ -3799,6 +3837,7 @@ export interface TldrawOptions {
     }): Awaitable<false | TLExternalContent<unknown> | void>;
     onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void;
     readonly quickZoomPreservesScreenBounds: boolean;
+    readonly rightClickPanning: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
     readonly temporaryAssetPreviewLifetimeMs: number;
@@ -3829,29 +3868,11 @@ export interface TLEditorComponents {
     // (undocumented)
     Background?: ComponentType | null;
     // (undocumented)
-    Brush?: ComponentType<TLBrushProps> | null;
-    // (undocumented)
     Canvas?: ComponentType<TLCanvasComponentProps> | null;
-    // (undocumented)
-    CollaboratorBrush?: ComponentType<TLBrushProps> | null;
-    // (undocumented)
-    CollaboratorCursor?: ComponentType<TLCursorProps> | null;
-    // (undocumented)
-    CollaboratorHint?: ComponentType<TLCollaboratorHintProps> | null;
-    // (undocumented)
-    CollaboratorScribble?: ComponentType<TLScribbleProps> | null;
-    // (undocumented)
-    CollaboratorShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null;
-    // (undocumented)
-    Cursor?: ComponentType<TLCursorProps> | null;
     // (undocumented)
     ErrorFallback?: TLErrorFallbackComponent;
     // (undocumented)
     Grid?: ComponentType<TLGridProps> | null;
-    // (undocumented)
-    Handle?: ComponentType<TLHandleProps> | null;
-    // (undocumented)
-    Handles?: ComponentType<TLHandlesProps> | null;
     // (undocumented)
     InFrontOfTheCanvas?: ComponentType | null;
     // (undocumented)
@@ -3859,31 +3880,15 @@ export interface TLEditorComponents {
     // (undocumented)
     OnTheCanvas?: ComponentType | null;
     // (undocumented)
-    Overlays?: ComponentType | null;
-    // (undocumented)
-    Scribble?: ComponentType<TLScribbleProps> | null;
-    // (undocumented)
     SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null;
-    // (undocumented)
-    SelectionForeground?: ComponentType<TLSelectionForegroundProps> | null;
     // (undocumented)
     ShapeErrorFallback?: TLShapeErrorFallbackComponent;
     // (undocumented)
-    ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null;
-    // (undocumented)
-    ShapeIndicatorErrorFallback?: TLShapeIndicatorErrorFallbackComponent;
-    // (undocumented)
-    ShapeIndicators?: ComponentType | null;
-    // (undocumented)
     ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null;
-    // (undocumented)
-    SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null;
     // (undocumented)
     Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null;
     // (undocumented)
     SvgDefs?: ComponentType | null;
-    // (undocumented)
-    ZoomBrush?: ComponentType<TLBrushProps> | null;
 }
 
 // @public (undocumented)
@@ -3905,6 +3910,7 @@ export interface TLEditorOptions {
     // (undocumented)
     licenseKey?: string;
     options?: Partial<TldrawOptions>;
+    overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     // @deprecated
@@ -4206,26 +4212,6 @@ export interface TLHandleDragInfo<T extends TLShape> {
 }
 
 // @public (undocumented)
-export interface TLHandleProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    handle: TLHandle;
-    // (undocumented)
-    isCoarse: boolean;
-    // (undocumented)
-    shapeId: TLShapeId;
-    // (undocumented)
-    zoom: number;
-}
-
-// @public (undocumented)
-export interface TLHandlesProps {
-    // (undocumented)
-    children: ReactNode;
-}
-
-// @public (undocumented)
 export interface TLHistoryBatchOptions {
     history?: 'ignore' | 'record-preserveRedoStack' | 'record';
 }
@@ -4398,6 +4384,33 @@ export const tlmenus: {
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
 
+// @public (undocumented)
+export interface TLOverlay<Props = Record<string, unknown>> {
+    id: string;
+    props: Props;
+    type: string;
+}
+
+// @public
+export interface TLOverlayEntry {
+    // (undocumented)
+    overlays: TLOverlay[];
+    // (undocumented)
+    util: OverlayUtil;
+}
+
+// @public (undocumented)
+export interface TLOverlayUtilConstructor<U extends OverlayUtil = OverlayUtil> {
+    // (undocumented)
+    new (editor: Editor): U;
+    // (undocumented)
+    configure<T extends TLOverlayUtilConstructor<any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
+    // (undocumented)
+    type: string;
+}
+
 // @public
 export interface TLPerfEventMap {
     'camera-end': [TLCameraEndPerfEvent];
@@ -4482,6 +4495,10 @@ export type TLPointerEventTarget = {
     shape?: undefined;
     target: 'selection';
 } | {
+    overlay: TLOverlay;
+    shape?: undefined;
+    target: 'overlay';
+} | {
     shape: TLShape;
     target: 'shape';
 } | {
@@ -4558,31 +4575,7 @@ export interface TLRotationSnapshot {
 }
 
 // @public (undocumented)
-export interface TLScribbleProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    color?: string;
-    // (undocumented)
-    opacity?: number;
-    // (undocumented)
-    scribble: TLScribble;
-    // (undocumented)
-    userId?: string;
-    // (undocumented)
-    zoom: number;
-}
-
-// @public (undocumented)
 export interface TLSelectionBackgroundProps {
-    // (undocumented)
-    bounds: Box;
-    // (undocumented)
-    rotation: number;
-}
-
-// @public (undocumented)
-export interface TLSelectionForegroundProps {
     // (undocumented)
     bounds: Box;
     // (undocumented)
@@ -4627,30 +4620,12 @@ export type TLShapeErrorFallbackComponent = ComponentType<{
 }>;
 
 // @public (undocumented)
-export type TLShapeIndicatorErrorFallbackComponent = ComponentType<{
-    error: unknown;
-}>;
-
-// @public (undocumented)
-export interface TLShapeIndicatorProps {
+export interface TLShapeIndicatorOverlay extends TLOverlay {
     // (undocumented)
-    className?: string;
-    // (undocumented)
-    color?: string | undefined;
-    // (undocumented)
-    hidden?: boolean;
-    // (undocumented)
-    opacity?: number;
-    // (undocumented)
-    shapeId: TLShapeId;
-    // (undocumented)
-    userId?: string;
-}
-
-// @public (undocumented)
-export interface TLShapeIndicatorsProps {
-    hideAll?: boolean;
-    showAll?: boolean;
+    props: {
+        hintingShapeIds: TLShapeId[];
+        idsToDisplay: TLShapeId[];
+    };
 }
 
 // @public
@@ -4709,16 +4684,6 @@ export interface TLShapeWrapperProps extends React.HTMLAttributes<HTMLDivElement
     children: ReactNode;
     isBackground: boolean;
     shape: TLShape;
-}
-
-// @public (undocumented)
-export interface TLSnapIndicatorProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    line: SnapIndicator;
-    // (undocumented)
-    zoom: number;
 }
 
 // @public (undocumented)
@@ -5085,7 +5050,7 @@ export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement | null>
 // @public (undocumented)
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement | null>): void;
 
-// @public (undocumented)
+// @public
 export function usePeerIds(): string[];
 
 // @public (undocumented)
@@ -5161,13 +5126,6 @@ export class UserPreferencesManager {
 
 // @public (undocumented)
 export const userTypeValidator: T.Validator<TLUserPreferences>;
-
-// @public (undocumented)
-export function useSelectionEvents(handle: TLSelectionHandle): {
-    onPointerDown: PointerEventHandler<Element>;
-    onPointerMove: (e: PointerEvent_2<Element>) => void;
-    onPointerUp: PointerEventHandler<Element>;
-};
 
 // @internal (undocumented)
 export function useShallowArrayIdentity<T extends null | readonly any[] | undefined>(arr: T): T;

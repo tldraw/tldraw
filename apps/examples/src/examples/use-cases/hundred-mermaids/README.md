@@ -5,8 +5,8 @@ priority: 10
 keywords: [mermaid, diagram]
 ---
 
-A use case of all the supported and tested mermaid diagrams our tldraw/mermaid package can support so far.
+Render Mermaid flowcharts, state diagrams, mind maps, and sequence diagrams as tldraw shapes.
 
 ---
 
-This example shows how to import mermaid diagrams and translate them to tldraw shapes
+This example shows how to take mermaid diagrams and translate them to tldraw shapes.

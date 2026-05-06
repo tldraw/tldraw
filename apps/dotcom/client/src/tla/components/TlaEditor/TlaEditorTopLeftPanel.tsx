@@ -2,13 +2,27 @@ import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
+	AccessibilityMenu,
+	ColorSchemeMenu,
 	DefaultPageMenu,
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	InputModeMenu,
+	KeyboardShortcutsMenuItem,
+	LanguageMenu,
 	PreferencesGroup,
+	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
+	ToggleEdgeScrollingItem,
+	ToggleFocusModeItem,
+	ToggleGridItem,
+	TogglePasteAtCursorItem,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
+	ToggleSnapModeItem,
+	ToggleToolLockItem,
+	ToggleWrapModeItem,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -35,6 +49,7 @@ import {
 	GiveUsFeedbackMenuItem,
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
+	UIThemeSubmenu,
 } from '../menu-items/menu-items'
 import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -138,7 +153,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 							{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
 						</TldrawUiMenuGroup>
-						<PreferencesGroup />
+						<TlaPreferencesGroup />
 						<TldrawUiMenuGroup id="misc">
 							<UserManualMenuItem />
 							<GiveUsFeedbackMenuItem />
@@ -413,5 +428,35 @@ function SignInMenuItem() {
 			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
 			<TlaIcon icon="sign-in" />
 		</TldrawUiButton>
+	)
+}
+
+function TlaPreferencesGroup() {
+	return (
+		<TldrawUiMenuGroup id="preferences">
+			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
+				<TldrawUiMenuGroup id="preferences-actions">
+					<ToggleSnapModeItem />
+					<ToggleToolLockItem />
+					<ToggleGridItem />
+					<ToggleWrapModeItem />
+					<ToggleFocusModeItem />
+					<ToggleEdgeScrollingItem />
+					<ToggleDynamicSizeModeItem />
+					<TogglePasteAtCursorItem />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="user-interface-submenus">
+					<ColorSchemeMenu />
+					<UIThemeSubmenu />
+					<AccessibilityMenu />
+					<InputModeMenu />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="debug">
+					<ToggleDebugModeItem />
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuSubmenu>
+			<LanguageMenu />
+			<KeyboardShortcutsMenuItem />
+		</TldrawUiMenuGroup>
 	)
 }

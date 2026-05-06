@@ -1,11 +1,4 @@
-import {
-	Box,
-	StateNode,
-	TLPointerEventInfo,
-	TLShapeId,
-	isAccelKey,
-	pointInPolygon,
-} from '@tldraw/editor'
+import { Box, StateNode, TLPointerEventInfo, TLShapeId, pointInPolygon } from '@tldraw/editor'
 
 export class Erasing extends StateNode {
 	static override id = 'erasing'
@@ -16,15 +9,9 @@ export class Erasing extends StateNode {
 	private markId = ''
 	private excludedShapeIds = new Set<TLShapeId>()
 
-	_isHoldingAccelKey = false
-	_firstErasingShapeId: TLShapeId | null = null
 	_erasingShapeIds: TLShapeId[] = []
 
 	override onEnter(info: TLPointerEventInfo) {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
-		this._firstErasingShapeId = this.editor.getErasingShapeIds()[0] // the first one should be the first one we hit... is it?
-		this._erasingShapeIds = this.editor.getErasingShapeIds()
-
 		this.markId = this.editor.markHistoryStoppingPoint('erase scribble begin')
 		this.info = info
 
@@ -35,11 +22,8 @@ export class Erasing extends StateNode {
 				.filter((shape) => {
 					//If the shape is locked, we shouldn't erase it
 					if (this.editor.isShapeOrAncestorLocked(shape)) return true
-					//If the shape is a group or frame, check we're inside it when we start erasing
-					if (
-						this.editor.isShapeOfType(shape, 'group') ||
-						this.editor.isShapeOfType(shape, 'frame')
-					) {
+					//If the shape is a group or frame-like, check we're inside it when we start erasing
+					if (this.editor.isShapeOfType(shape, 'group') || this.editor.isShapeFrameLike(shape)) {
 						const pointInShapeShape = this.editor.getPointInShapeSpace(shape, originPagePoint)
 						const geometry = this.editor.getShapeGeometry(shape)
 						return geometry.bounds.containsPoint(pointInShapeShape)
@@ -49,6 +33,15 @@ export class Erasing extends StateNode {
 				})
 				.map((shape) => shape.id)
 		)
+
+		this._erasingShapeIds = this.editor
+			.getShapesAtPoint(originPagePoint)
+			.filter((s) => !this.excludedShapeIds.has(s.id))
+			.map((s) => s.id)
+
+		this.editor.setErasingShapes([
+			...new Set([...this.editor.getErasingShapeIds(), ...this._erasingShapeIds]),
+		])
 
 		const scribble = this.editor.scribbles.addScribble({
 			color: 'muted-1',
@@ -73,8 +66,8 @@ export class Erasing extends StateNode {
 		this.update()
 	}
 
-	override onPointerUp() {
-		this.complete()
+	override onPointerUp(info: TLPointerEventInfo) {
+		this.complete(info)
 	}
 
 	override onCancel() {
@@ -83,16 +76,6 @@ export class Erasing extends StateNode {
 
 	override onComplete() {
 		this.complete()
-	}
-
-	override onKeyUp() {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
-		this.update()
-	}
-
-	override onKeyDown() {
-		this._isHoldingAccelKey = isAccelKey(this.editor.inputs)
-		this.update()
 	}
 
 	update() {
@@ -165,27 +148,17 @@ export class Erasing extends StateNode {
 			this._erasingShapeIds = [...erasing]
 		}
 
-		// If the user is holding the meta / ctrl key, we should only erase the first shape we hit
-		if (this._isHoldingAccelKey && this._firstErasingShapeId) {
-			const erasingShapeId = this._firstErasingShapeId
-			if (erasingShapeId && this.editor.getShape(erasingShapeId)) {
-				editor.setErasingShapes([erasingShapeId])
-			}
-			return
-		}
-
 		// Remove the hit shapes, except if they're in the list of excluded shapes
 		// (these excluded shapes will be any frames or groups the pointer was inside of
 		// when the user started erasing)
 		this.editor.setErasingShapes(this._erasingShapeIds.filter((id) => !excludedShapeIds.has(id)))
 	}
 
-	complete() {
+	complete(info?: TLPointerEventInfo) {
 		const { editor } = this
 		editor.deleteShapes(editor.getCurrentPageState().erasingShapeIds)
-		this.parent.transition('idle')
+		this.parent.transition('idle', info)
 		this._erasingShapeIds = []
-		this._firstErasingShapeId = null
 	}
 
 	cancel() {

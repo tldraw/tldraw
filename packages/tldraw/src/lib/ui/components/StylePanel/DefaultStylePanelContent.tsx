@@ -19,6 +19,8 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
+import { GeoShapeUtil } from '../../../shapes/geo/GeoShapeUtil'
+import { defaultGeoTypeDefinitions, GeoTypeDefinition } from '../../../shapes/geo/getGeoShapePath'
 import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -74,11 +76,14 @@ export function StylePanelSection({ children }: StylePanelSectionProps) {
 /** @public @react */
 export function StylePanelColorPicker() {
 	const editor = useEditor()
-	const theme = editor.getCurrentTheme()
-	const colorMode = editor.getColorMode()
 	const { styles } = useStylePanelContext()
 	const msg = useTranslation()
 	const color = styles.get(DefaultColorStyle)
+	const items = useValue(
+		'style panel color items',
+		() => getColorStyleItems(editor.getCurrentTheme().colors[editor.getColorMode()]),
+		[editor]
+	)
 	if (color === undefined) return null
 
 	return (
@@ -86,7 +91,7 @@ export function StylePanelColorPicker() {
 			title={msg('style-panel.color')}
 			uiType="color"
 			style={DefaultColorStyle}
-			items={getColorStyleItems(theme.colors[colorMode])}
+			items={items}
 			value={color}
 		/>
 	)
@@ -220,10 +225,14 @@ export function StylePanelSizePicker() {
 /** @public @react */
 export function StylePanelFontPicker() {
 	const editor = useEditor()
-	const theme = editor.getCurrentTheme()
 	const { styles } = useStylePanelContext()
 	const msg = useTranslation()
 	const font = styles.get(DefaultFontStyle)
+	const items = useValue(
+		'style panel font items',
+		() => getFontStyleItems(editor.getCurrentTheme()),
+		[editor]
+	)
 	if (font === undefined) return null
 
 	return (
@@ -231,7 +240,7 @@ export function StylePanelFontPicker() {
 			title={msg('style-panel.font')}
 			uiType="font"
 			style={DefaultFontStyle}
-			items={getFontStyleItems(theme)}
+			items={items}
 			value={font}
 		/>
 	)
@@ -316,9 +325,17 @@ export function StylePanelLabelAlignPicker() {
 
 /** @public @react */
 export function StylePanelGeoShapePicker() {
+	const editor = useEditor()
 	const { styles } = useStylePanelContext()
 	const geo = styles.get(GeoShapeGeoStyle)
 	if (geo === undefined) return null
+
+	const customGeoTypes = editor.getShapeUtil<GeoShapeUtil>('geo').options.customGeoTypes
+	const merged: Record<string, GeoTypeDefinition> = {
+		...defaultGeoTypeDefinitions,
+		...customGeoTypes,
+	}
+	const items = Object.entries(merged).map(([value, def]) => ({ value, icon: def.icon }))
 
 	return (
 		<StylePanelDropdownPicker
@@ -328,7 +345,7 @@ export function StylePanelGeoShapePicker() {
 			uiType="geo"
 			stylePanelType="geo"
 			style={GeoShapeGeoStyle}
-			items={STYLES.geo}
+			items={items}
 			value={geo}
 		/>
 	)

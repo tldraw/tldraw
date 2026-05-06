@@ -57,8 +57,10 @@ class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 		)
 	}
 
-	indicator() {
-		return <circle r={SLOT_SIZE / 2 - 10} cx={SLOT_SIZE / 2 - 10} cy={SLOT_SIZE / 2 - 10} />
+	getIndicatorPath() {
+		const path = new Path2D()
+		path.arc(SLOT_SIZE / 2 - 10, SLOT_SIZE / 2 - 10, SLOT_SIZE / 2 - 10, 0, Math.PI * 2)
+		return path
 	}
 }
 
@@ -125,8 +127,10 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 		)
 	}
 
-	indicator() {
-		return <rect width={SLOT_SIZE * 5} height={SLOT_SIZE * 2} />
+	getIndicatorPath() {
+		const path = new Path2D()
+		path.rect(0, 0, SLOT_SIZE * 5, SLOT_SIZE * 2)
+		return path
 	}
 }
 

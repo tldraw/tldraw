@@ -95,7 +95,13 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 							'prose-h1:scroll-mt-20 prose-h2:scroll-mt-20 prose-h3:scroll-mt-20 prose-h4:scroll-mt-20 prose-h5:scroll-mt-20'
 						)}
 					>
-						<p>{content.article.description}</p>
+						{content.article.description && (
+							<Content
+								mdx={content.article.description}
+								type={content.article.sectionId}
+								className="mb-6"
+							/>
+						)}
 						<StarterKitEmbed id={content.article.embed ?? content.article.id} />
 					</div>
 					<div className="flex flex-col xl:flex-row gap-6 relative">

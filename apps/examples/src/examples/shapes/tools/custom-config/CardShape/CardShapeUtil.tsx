@@ -97,8 +97,10 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	}
 
 	// [7]
-	indicator(shape: ICardShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: ICardShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	// [8]
@@ -141,7 +143,8 @@ and button. We can get the shape's bounds using our own getGeometry method.
 	   think you're trying to select drag the shape.
 
 [7]
-Indicator — used when hovering over a shape or when it's selected; must return only SVG elements here
+getIndicatorPath — returns a Path2D used when hovering over the shape or when it's selected.
+The path is stroked onto the canvas overlay.
 
 [8]
 Resize handler — called when the shape is resized. Sometimes you'll want to do some

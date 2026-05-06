@@ -3,8 +3,19 @@
 // Configurable domain for rewrites
 const REWRITE_DOMAIN = 'tldrawdotdev.framer.website'
 
+function resolveAssetOrigin() {
+	const explicit = process.env.ASSET_PREFIX?.trim()
+	if (explicit) return explicit.replace(/\/$/, '')
+
+	const vercelUrl = process.env.VERCEL_URL?.trim()
+	if (vercelUrl) return `https://${vercelUrl}`
+
+	return undefined
+}
+
 const nextConfig = {
 	reactStrictMode: true,
+	assetPrefix: resolveAssetOrigin(),
 	experimental: {
 		scrollRestoration: true,
 	},
@@ -185,6 +196,11 @@ const nextConfig = {
 				source: '/starter-kits',
 				destination: '/starter-kits/overview',
 				permanent: true,
+			},
+			{
+				source: '/discord',
+				destination: 'https://discord.com/invite/s4FXZ6fppJ',
+				permanent: false,
 			},
 		]
 	},

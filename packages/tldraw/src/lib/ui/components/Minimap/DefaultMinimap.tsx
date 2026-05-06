@@ -5,11 +5,11 @@ import {
 	getPointerInfo,
 	isAccelKey,
 	normalizeWheel,
-	releasePointerCapture,
 	setPointerCapture,
 	useContainer,
 	useColorMode,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -23,6 +23,7 @@ export function DefaultMinimap() {
 
 	const rCanvas = React.useRef<HTMLCanvasElement>(null!)
 	const rPointing = React.useRef(false)
+	const rActivePointerId = React.useRef<number | null>(null)
 
 	const minimapRef = React.useRef<MinimapManager | undefined>(undefined)
 
@@ -73,11 +74,14 @@ export function DefaultMinimap() {
 	const onPointerDown = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
 			if (!minimapRef.current) return
+			if (e.button !== 0) return
+
 			const elm = e.currentTarget
 			setPointerCapture(elm, e)
 			if (!editor.getCurrentPageShapeIds().size) return
 
 			rPointing.current = true
+			rActivePointerId.current = e.pointerId
 
 			minimapRef.current.isInViewport = false
 
@@ -117,16 +121,32 @@ export function DefaultMinimap() {
 				minimapRef.current.originPageCenter.setTo(_vpPageBounds.center)
 			}
 
-			const body = editor.getContainerDocument().body
-			function release(e: PointerEvent) {
-				if (elm) {
-					releasePointerCapture(elm, e)
+			function endDrag() {
+				if (rActivePointerId.current !== null && elm.hasPointerCapture(rActivePointerId.current)) {
+					elm.releasePointerCapture(rActivePointerId.current)
 				}
+
 				rPointing.current = false
-				body.removeEventListener('pointerup', release)
+				rActivePointerId.current = null
+				body.removeEventListener('pointerup', onPointerUp)
+				body.removeEventListener('pointercancel', onPointerCancel)
+				body.removeEventListener('contextmenu', onContextMenu, true)
 			}
 
-			body.addEventListener('pointerup', release)
+			function onPointerUp() {
+				endDrag()
+			}
+			function onPointerCancel() {
+				endDrag()
+			}
+			function onContextMenu() {
+				endDrag()
+			}
+
+			const body = editor.getContainerDocument().body
+			body.addEventListener('pointerup', onPointerUp)
+			body.addEventListener('pointercancel', onPointerCancel)
+			body.addEventListener('contextmenu', onContextMenu, true)
 		},
 		[editor]
 	)
@@ -191,6 +211,7 @@ export function DefaultMinimap() {
 	)
 
 	const colorMode = useColorMode()
+	const currentThemeId = useValue('current theme id', () => editor.getCurrentThemeId(), [editor])
 
 	React.useEffect(() => {
 		// need to wait a tick for next theme css to be applied
@@ -199,7 +220,7 @@ export function DefaultMinimap() {
 			minimapRef.current?.updateColors()
 			minimapRef.current?.render()
 		})
-	}, [colorMode, editor])
+	}, [colorMode, currentThemeId, editor])
 
 	return (
 		<div className="tlui-minimap">

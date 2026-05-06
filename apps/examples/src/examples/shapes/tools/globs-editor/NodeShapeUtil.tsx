@@ -1,7 +1,6 @@
 import {
 	Circle2d,
 	Editor,
-	getColorValue,
 	getIndicesAbove,
 	RecordProps,
 	ShapeUtil,
@@ -120,14 +119,10 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		}
 	}
 
-	override indicator(shape: NodeShape) {
-		const zoom = this.editor.getZoomLevel()
-
-		const theme = this.editor.getCurrentTheme()
-		const colors = theme.colors[this.editor.getColorMode()]
-		const blue = getColorValue(colors, 'blue', 'solid')
-
-		return <circle r={shape.props.radius} strokeWidth={1 / zoom} stroke={blue} fill="none" />
+	override getIndicatorPath(shape: NodeShape) {
+		const path = new Path2D()
+		path.arc(0, 0, shape.props.radius, 0, Math.PI * 2)
+		return path
 	}
 
 	override component(shape: NodeShape) {
