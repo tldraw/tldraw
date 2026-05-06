@@ -177,7 +177,11 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 		return () => scheduler.detach()
 	}, [editor])
 
-	return <canvas ref={canvasRef} className="tl-canvas-overlays" />
+	return (
+		<div className="tl-overlays">
+			<canvas ref={canvasRef} className="tl-canvas-overlays" />
+		</div>
+	)
 })
 
 function drawGeometryStroke(ctx: CanvasRenderingContext2D, geometry: Geometry2d) {
