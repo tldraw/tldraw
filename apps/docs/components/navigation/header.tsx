@@ -39,19 +39,17 @@ export function Header() {
 				<Link href="/" className="w-28">
 					<Logo className="h-6" />
 				</Link>
-				<div className="hidden sm:flex items-center justify-end">
-					<motion.ul
-						style={{ opacity: socialsOpacityEffect ? navOpacity : 1 }}
-						className="flex gap-4 justify-end xl:!opacity-100"
-					>
-						{socialLinks.map((item, index) => (
-							<li key={index}>
-								<SocialLink {...item} />
-							</li>
-						))}
-					</motion.ul>
+				<motion.ul
+					style={{ opacity: socialsOpacityEffect ? navOpacity : 1 }}
+					className="hidden sm:flex w-28 gap-4 justify-end xl:!opacity-100"
+				>
+					{socialLinks.map((item, index) => (
+						<li key={index}>
+							<SocialLink {...item} />
+						</li>
+					))}
 					<ThemeSwitch />
-				</div>
+				</motion.ul>
 				<div className="flex items-center sm:hidden -mr-2">
 					{!pathname?.startsWith('/search') && (
 						<SearchButton type={pathname?.startsWith('/blog') ? 'blog' : 'docs'} layout="mobile" />
