@@ -1,0 +1,109 @@
+---
+title: Migration skill
+description: Guide to using the tldraw-migrate agent skill to upgrade your project to a newer tldraw SDK version
+author: tldraw
+date: 05/06/2026
+order: 0
+status: published
+keywords:
+  - migration
+  - skill
+  - upgrade
+  - agent
+  - claude
+  - cursor
+---
+
+The `tldraw-migrate` skill is an agent skill that helps you migrate a project to a newer version of the tldraw SDK. You point your coding agent at it, and it detects the previous version, fetches the release notes for everything between then and now, upgrades the packages, and works through any TypeScript errors using the migration guides published in our release notes.
+
+<Callout type="info">
+	This skill is experimental. It is designed to guide your migration, not to run it unattended. Treat its output as a starting point. Review the diff, run your own tests, and watch for changes the skill missed or got wrong.
+</Callout>
+
+## What it does
+
+The skill packages our migration workflow into a single command so an agent can apply it to your codebase:
+
+- Detects the tldraw version your project is migrating from and the target you're migrating to.
+- Fetches the public release notes between those two versions and caches them next to the skill, along with the full SDK docs for ad-hoc lookup.
+- Inspects your project to figure out the package manager, which tldraw packages are installed, which import style you use, and how your typecheck and build scripts are configured.
+- Upgrades every tldraw package already in `package.json` to the resolved target.
+- Categorizes the resulting TypeScript errors by code, then fixes them in order of impact: React types first, then custom shape and binding registration, then API renames and removals, then TipTap, then anything left over.
+- Sweeps the project for `@deprecated` API usage and applies the recommended replacements.
+- Verifies with the project's typecheck and build, and audits the diff for new `as` casts or unsafe module augmentations.
+
+The version-specific recipes come from the `<details><summary>Migration guide</summary>` blocks in our release notes. The skill doesn't carry its own copy of these recipes; it reads the release notes at run time, so a single skill works across releases.
+
+## Adding the skill to your project
+
+The easiest way to install the skill is to ask your agent:
+
+```
+Using the instructions in the README file at https://github.com/tldraw/tldraw/blob/main/skills/tldraw-migrate/README.md upgrade my project to the latest version of tldraw using the migration skill
+```
+
+For more control, see the [manual installation](#manual-installation) options below.
+
+## How to use it
+
+Once the skill is installed, ask your agent to migrate your project. It auto-detects your current version, reviews the SDK changes between then and the target, and proposes updates.
+
+## Manual installation
+
+Copy the entire `tldraw-migrate/` folder into one of the locations the skill probes, relative to your project root. The skill checks them in this order and uses the first one it finds:
+
+| Path                             | Harness                              |
+| -------------------------------- | ------------------------------------ |
+| `.claude/skills/tldraw-migrate/` | Claude Code                          |
+| `.agents/skills/tldraw-migrate/` | Generic / open agent-skills spec     |
+| `.codex/skills/tldraw-migrate/`  | OpenAI Codex                         |
+| `.cursor/skills/tldraw-migrate/` | Cursor                               |
+| `skills/tldraw-migrate/`         | Fallback / vendored alongside source |
+
+If multiple harnesses share a project, install once and symlink the others to the same folder.
+
+### One-shot install from GitHub
+
+```sh
+DEST=.claude/skills/tldraw-migrate   # or .agents/skills/..., .codex/skills/..., .cursor/skills/..., etc.
+mkdir -p "$DEST"
+curl -fsSL https://github.com/tldraw/tldraw/archive/refs/heads/main.tar.gz \
+  | tar -xz --strip-components=3 -C "$DEST" tldraw-main/skills/tldraw-migrate
+```
+
+To install from a local checkout of the tldraw monorepo, copy `skills/tldraw-migrate/` into one of the paths above directly.
+
+### Updating an installed copy
+
+Re-run the one-shot install above to overwrite `SKILL.md` and the helper scripts. The skill's content (release notes and docs) is auto-refreshed on every invocation, so you only need to update `SKILL.md` when the workflow changes.
+
+### Custom install location
+
+If you keep the skill somewhere outside the probed paths, export `SKILL_DIR` before invocation:
+
+```sh
+SKILL_DIR=/abs/path/to/tldraw-migrate
+```
+
+The auto-fetch blocks and internal grep examples in `SKILL.md` honor this variable.
+
+## Where to find it
+
+The canonical source is [`skills/tldraw-migrate/`](https://github.com/tldraw/tldraw/tree/main/skills/tldraw-migrate) in the [tldraw](https://github.com/tldraw/tldraw) monorepo. The folder is self-contained:
+
+- `SKILL.md` — the workflow the agent follows.
+- `detect-versions.mjs` — resolves the "from" version.
+- `detect-target.mjs` — resolves the "to" version (defaults to `latest` but can take a tag like `canary`/`next`/`beta`, or a pre-release semver).
+- `fetch-release-notes.mjs` — pulls release notes from the docs markdown files in the tldraw repo.
+- `references/` — auto-populated cache of fetched release notes and docs (created on first run; safe to gitignore).
+
+GitHub is the deliberate source of truth: sourcing release notes from `main` rather than from a deployed docs site means migration recipes for unreleased versions are available to the skill the moment they land.
+
+## Requirements
+
+| Requirement    | Purpose                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Node ≥ 20      | Required for the helper scripts. They are zero-dependency ES modules.                                                  |
+| `curl`         | Required for the docs fetch.                                                                                           |
+| `git`          | Optional. Improves from-version detection (the skill compares `main`, `HEAD~1`, and the working tree).                 |
+| `GITHUB_TOKEN` | Optional. Raises GitHub's unauthenticated API rate limit (60/hr) so re-runs and long version ranges don't hit the cap. |
