@@ -4730,8 +4730,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// drain. By always sorting by 'id' we keep the shapes always in the
 		// same order; but we later use index to set the element's 'z-index'
 		// to change the "rendered" position in z-space.
-		return renderingShapes.sort(sortById)
+
+		// Sort permutation cache: when the set of ids on the page doesn't
+		// change (e.g. while drawing a stroke, only props change), we can
+		// reuse the previous sorted order and place each entry at its known
+		// sorted position in O(N) instead of running Array.sort O(N log N).
+		const cache = this._renderingShapesSortCache
+		if (cache !== null && cache.size === renderingShapes.length) {
+			const sorted = new Array<TLRenderingShape>(renderingShapes.length)
+			let allMatched = true
+			for (let i = 0; i < renderingShapes.length; i++) {
+				const entry = renderingShapes[i]
+				const pos = cache.get(entry.id)
+				if (pos === undefined) {
+					allMatched = false
+					break
+				}
+				sorted[pos] = entry
+			}
+			if (allMatched) return sorted
+		}
+
+		// Slow path: full sort, then cache the permutation by id.
+		renderingShapes.sort(sortById)
+		const positionById = new Map<TLShapeId, number>()
+		for (let i = 0; i < renderingShapes.length; i++) {
+			positionById.set(renderingShapes[i].id, i)
+		}
+		this._renderingShapesSortCache = positionById
+		return renderingShapes
 	}
+
+	private _renderingShapesSortCache: Map<TLShapeId, number> | null = null
 
 	/* --------------------- Pages ---------------------- */
 
