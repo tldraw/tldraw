@@ -7,6 +7,11 @@ type UiAssetUrlsContextType = TLUiAssetUrls | null
 
 const AssetUrlsContext = createContext<UiAssetUrlsContextType>(null)
 
+function noop() {
+	// Swallow image.decode() rejections (e.g. EncodingError) from icon preload —
+	// preload is best-effort and any real load failure surfaces where the icon is used.
+}
+
 /** @internal */
 export function AssetUrlsProvider({
 	assetUrls,
@@ -22,7 +27,7 @@ export function AssetUrlsProvider({
 			const image = Image()
 			image.crossOrigin = 'anonymous'
 			image.src = src
-			image.decode()
+			image.decode().catch(noop)
 		}
 		for (const src of Object.values(assetUrls.embedIcons)) {
 			if (!src) continue
@@ -30,7 +35,7 @@ export function AssetUrlsProvider({
 			const image = Image()
 			image.crossOrigin = 'anonymous'
 			image.src = src
-			image.decode()
+			image.decode().catch(noop)
 		}
 	}, [assetUrls])
 
