@@ -8,6 +8,7 @@ import {
 	T,
 	TLShape,
 	createShapeId,
+	react,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
@@ -189,6 +190,169 @@ describe('notVisibleShapes - canCull behavior', () => {
 		expect(notVisible.has(nonCullableId)).toBe(false)
 
 		testEditor.dispose()
+	})
+})
+
+describe('notVisibleShapes - prop-only updates', () => {
+	function trackInvalidations(target: TestEditor) {
+		let count = 0
+		const stop = react('count notVisibleShapes invalidations', () => {
+			target.getNotVisibleShapes()
+			count++
+		})
+		// Drop the initial subscribing run from the count.
+		const baseline = count
+		return {
+			get delta() {
+				return count - baseline
+			},
+			stop,
+		}
+	}
+
+	it('should respond to canCull flips driven by prop changes without bounds change', () => {
+		const testEditor = new TestEditor({ shapeUtils: [TestShape] })
+		testEditor.updateViewportScreenBounds(new Box(0, 0, 1000, 1000))
+		testEditor.setCamera({ x: 0, y: 0, z: 1 })
+
+		const id = createShapeId('flipping-cull')
+		testEditor.createShapes([
+			{
+				id,
+				type: 'not-visible-test-shape',
+				x: 2000,
+				y: 2000,
+				props: { canCull: true },
+			},
+		])
+
+		expect(testEditor.getNotVisibleShapes().has(id)).toBe(true)
+
+		// Prop-only update: bounds unchanged, but canCull now returns false.
+		testEditor.updateShapes([{ id, type: 'not-visible-test-shape', props: { canCull: false } }])
+		expect(testEditor.getNotVisibleShapes().has(id)).toBe(false)
+
+		// Flip back; shape should re-enter the set.
+		testEditor.updateShapes([{ id, type: 'not-visible-test-shape', props: { canCull: true } }])
+		expect(testEditor.getNotVisibleShapes().has(id)).toBe(true)
+
+		testEditor.dispose()
+	})
+
+	it('should not invalidate notVisibleShapes when an onscreen shape prop changes without affecting bounds', () => {
+		const id = createShapeId('onscreen')
+		editor.createShapes([
+			{ id, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100, color: 'black' } },
+		])
+
+		const tracker = trackInvalidations(editor)
+
+		// Prop-only update on a visible shape — bounds unchanged. Onscreen
+		// shapes are short-circuited out of the slow path so the derivation
+		// has no per-shape subscription to them; combined with the spatial
+		// index epoch holding steady, this must not invalidate at all.
+		editor.updateShapes([{ id, type: 'geo', props: { color: 'red' } }])
+
+		expect(tracker.delta).toBe(0)
+		tracker.stop()
+	})
+
+	it('should keep cached Set when an offscreen shape prop changes without affecting canCull or bounds', () => {
+		// Offscreen shapes are subscribed to per-shape via the slow path, so
+		// the derivation re-runs on prop changes — but contents are unchanged
+		// so the prevValue Set is reused. This test asserts that output
+		// stability contract for downstream consumers.
+		const id = createShapeId('offscreen')
+		editor.createShapes([
+			{ id, type: 'geo', x: 2000, y: 2000, props: { w: 100, h: 100, color: 'black' } },
+		])
+
+		const notVisible1 = editor.getNotVisibleShapes()
+		expect(notVisible1.has(id)).toBe(true)
+
+		editor.updateShapes([{ id, type: 'geo', props: { color: 'red' } }])
+
+		expect(editor.getNotVisibleShapes()).toBe(notVisible1)
+	})
+
+	it('should not invalidate notVisibleShapes when removing a shape that lives on a different page', () => {
+		const page1 = editor.getCurrentPageId()
+		const offscreenId = createShapeId('page1-offscreen')
+		editor.createShapes([{ id: offscreenId, type: 'geo', x: 2000, y: 2000 }])
+
+		// Stage a shape on a different page; it never enters page1's index.
+		const page2 = PageRecordType.createId('page2-remove')
+		editor.createPage({ name: 'page2-remove', id: page2 })
+		editor.setCurrentPage(page2)
+		const ghostId = createShapeId('page2-ghost')
+		editor.createShapes([{ id: ghostId, type: 'geo', x: 100, y: 100 }])
+		editor.setCurrentPage(page1)
+
+		const tracker = trackInvalidations(editor)
+
+		// Deleting the off-page shape produces a diff entry but the id wasn't
+		// indexed in page1's rbush, so the bounds epoch must not bump and
+		// notVisibleShapes must not invalidate.
+		editor.deleteShape(ghostId)
+
+		expect(tracker.delta).toBe(0)
+		tracker.stop()
+	})
+
+	it('should refresh arrow bounds when a bound geo shape changes outline without changing AABB', () => {
+		// Regression: a geo shape's `props.geo` flip from rectangle to ellipse
+		// keeps its axis-aligned bounds but moves the outline. An arrow bound
+		// to it intersects that outline, so its endpoint shifts and its AABB
+		// changes — the spatial index must still update the arrow even though
+		// the geo's own step-1 bounds check showed no change.
+		const targetId = createShapeId('outline-target')
+		editor.createShapes([
+			{
+				id: targetId,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: { w: 100, h: 100, geo: 'rectangle' },
+			},
+		])
+
+		// Draw an arrow from off-corner toward the target so the bound
+		// endpoint lands at a place where rectangle and inscribed ellipse
+		// disagree (rect: corner, ellipse: ~14px inside).
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(-100, -100)
+		editor.pointerMove(50, 50)
+		editor.pointerUp(50, 50)
+		editor.selectNone()
+
+		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow')!
+		expect(arrow).toBeDefined()
+
+		const arrowBoundsBefore = editor.getShapePageBounds(arrow.id)!
+		expect(arrowBoundsBefore).toBeDefined()
+
+		// Flip target geometry without changing its AABB.
+		editor.updateShapes([{ id: targetId, type: 'geo', props: { geo: 'ellipse' } }])
+
+		// Geo's own bounds are unchanged.
+		const targetBoundsBefore = new Box(0, 0, 100, 100)
+		const targetBoundsAfter = editor.getShapePageBounds(targetId)!
+		expect(targetBoundsAfter.equals(targetBoundsBefore)).toBe(true)
+
+		// Arrow's actual page bounds shifted because the bound endpoint moved.
+		const arrowBoundsAfter = editor.getShapePageBounds(arrow.id)!
+		expect(arrowBoundsAfter.equals(arrowBoundsBefore)).toBe(false)
+
+		// Spatial index must reflect the new arrow bounds. Query a small box
+		// inside the new bounds but outside the old; the arrow must be found.
+		const probe = new Box(
+			Math.max(arrowBoundsAfter.maxX - 2, arrowBoundsBefore.maxX + 0.01),
+			Math.max(arrowBoundsAfter.maxY - 2, arrowBoundsBefore.maxY + 0.01),
+			1,
+			1
+		)
+		const hits = editor.getShapeIdsInsideBounds(probe)
+		expect(hits.has(arrow.id)).toBe(true)
 	})
 })
 

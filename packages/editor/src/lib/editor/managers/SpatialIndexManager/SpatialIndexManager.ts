@@ -11,12 +11,16 @@ import { RBushIndex, type SpatialElement } from './RBushIndex'
  * Manages spatial indexing for efficient shape location queries.
  *
  * Uses an R-tree (via RBush) to enable O(log n) spatial queries instead of O(n) iteration.
- * Handles shapes with computed bounds (arrows, groups, custom shapes) by checking all shapes'
- * bounds on each update using the reactive bounds cache.
+ * Handles shapes with computed bounds (arrows, groups, custom shapes) by re-checking
+ * indexed shapes' bounds on every incremental update.
  *
  * Key features:
  * - Incremental updates using filterHistory pattern
- * - Leverages existing bounds cache reactivity for dependency tracking
+ * - Exposes a `_boundsEpoch` that ticks only when the rbush actually changes,
+ *   so downstream computeds (e.g. notVisibleShapes) can skip work on prop-only
+ *   shape changes that don't move any bounds
+ * - Step-1 upserts compare against the indexed bounds and skip rbush mutation
+ *   when bounds are unchanged, so prop-only updates are cheap
  * - Works with any custom shape type with computed bounds
  * - Per-page index (rebuilds on page change)
  * - Optimized for viewport culling queries
@@ -123,11 +127,16 @@ export class SpatialIndexManager {
 				}
 			}
 
-			// Handle removals
+			// Handle removals. Only mark changed when the shape was actually in
+			// the rbush — removed shapes from other pages, or shapes that were
+			// never indexed (invalid bounds at insert time), are no-ops here
+			// and shouldn't bump the bounds epoch.
 			for (const shape of objectMapValues(changes.removed) as TLShape[]) {
 				if (isShape(shape)) {
-					this.rbush.remove(shape.id)
-					changed = true
+					if (this.rbush.getBounds(shape.id) !== undefined) {
+						this.rbush.remove(shape.id)
+						changed = true
+					}
 					processedShapeIds.add(shape.id)
 				}
 			}
@@ -161,14 +170,14 @@ export class SpatialIndexManager {
 			}
 		}
 
-		// If step 1 found no real bounds changes, no shape's bounds can have
-		// changed transitively either: a dependent's geometry only invalidates
-		// when one of its inputs (another shape's bounds) changed. Skip the
-		// all-shapes sweep entirely.
-		if (!changed) return false
-
-		// 2. Check remaining shapes in index for bounds changes
-		// This handles shapes with computed bounds (arrows bound to moved shapes, groups with moved children, etc.)
+		// 2. Check remaining indexed shapes for bounds changes. This handles
+		// shapes whose bounds derive from other shapes (arrows bound to moved
+		// shapes, groups with moved children) — and importantly also catches
+		// cases where a shape's *outline* changed without its axis-aligned
+		// bounds changing (e.g. geo `rectangle` → `ellipse` at the same w/h),
+		// which can shift a bound arrow's intersection points and therefore
+		// its bounds. A diff with only such updates leaves `changed` false
+		// after step 1, so we can't skip this pass on that signal alone.
 		const allShapeIds = this.rbush.getAllShapeIds()
 
 		for (const shapeId of allShapeIds) {
@@ -183,6 +192,7 @@ export class SpatialIndexManager {
 				} else {
 					this.rbush.remove(shapeId)
 				}
+				changed = true
 			}
 		}
 

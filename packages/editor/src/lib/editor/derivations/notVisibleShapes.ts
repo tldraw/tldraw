@@ -17,6 +17,11 @@ export function notVisibleShapes(editor: Editor) {
 		//  - getViewportPageBounds: invalidates on pan/zoom
 		//  - getShapeIdsInsideBounds: subscribes to the spatial index epoch,
 		//    which only ticks when a shape's bounds actually change
+		//  - editor.getShape(id) in the slow path below: per-shape subscription,
+		//    only for offscreen shapes — needed so canCull() flips driven by
+		//    prop changes (e.g. a shape with `preventCulling`) re-run this
+		//    derivation. The active draw shape is onscreen and short-circuited
+		//    out before we read it, so drawing pointer-moves don't re-subscribe.
 		// We deliberately do NOT subscribe to getCurrentPageShapes() — its
 		// invalidation on every prop change would re-run this derivation per
 		// pointer move during drawing.
@@ -33,13 +38,15 @@ export function notVisibleShapes(editor: Editor) {
 		}
 
 		// Slow path: collect not-visible ids, checking canCull per shape.
-		// We read shapes via store.unsafeGetWithoutCapture so the derivation
-		// doesn't subscribe to per-shape props.
+		// editor.getShape subscribes per-shape — required so prop-driven
+		// canCull overrides invalidate this derivation. We only reach this
+		// path for offscreen shapes, so the active draw shape (which is
+		// onscreen) is never subscribed to here.
 		const notVisibleIds: TLShapeId[] = []
 		let shape: TLShape | undefined
 		for (const id of allShapeIds) {
 			if (visibleIds.has(id)) continue
-			shape = editor.store.unsafeGetWithoutCapture(id) as TLShape | undefined
+			shape = editor.getShape(id)
 			if (!shape) continue
 			if (!editor.getShapeUtil(shape.type).canCull(shape)) continue
 			notVisibleIds.push(id)
