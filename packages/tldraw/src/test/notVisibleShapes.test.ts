@@ -299,12 +299,13 @@ describe('notVisibleShapes - prop-only updates', () => {
 		tracker.stop()
 	})
 
-	it('should refresh arrow bounds when a bound geo shape changes outline without changing AABB', () => {
+	it('should refresh arrow bounds when a bound geo shape changes outline without changing axis-aligned bounds', () => {
 		// Regression: a geo shape's `props.geo` flip from rectangle to ellipse
 		// keeps its axis-aligned bounds but moves the outline. An arrow bound
-		// to it intersects that outline, so its endpoint shifts and its AABB
-		// changes — the spatial index must still update the arrow even though
-		// the geo's own step-1 bounds check showed no change.
+		// to it intersects that outline, so its endpoint shifts and its
+		// axis-aligned bounds change — the spatial index must still update
+		// the arrow even though the geo's own step-1 bounds check showed no
+		// change.
 		const targetId = createShapeId('outline-target')
 		editor.createShapes([
 			{
@@ -316,9 +317,12 @@ describe('notVisibleShapes - prop-only updates', () => {
 			},
 		])
 
-		// Draw an arrow from off-corner toward the target so the bound
-		// endpoint lands at a place where rectangle and inscribed ellipse
-		// disagree (rect: corner, ellipse: ~14px inside).
+		const targetBoundsBefore = editor.getShapePageBounds(targetId)!
+		expect(targetBoundsBefore).toBeDefined()
+
+		// Draw an arrow toward the target from a non-axis-aligned direction
+		// so the bound endpoint lands somewhere rectangle and inscribed
+		// ellipse disagree.
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(-100, -100)
 		editor.pointerMove(50, 50)
@@ -331,11 +335,10 @@ describe('notVisibleShapes - prop-only updates', () => {
 		const arrowBoundsBefore = editor.getShapePageBounds(arrow.id)!
 		expect(arrowBoundsBefore).toBeDefined()
 
-		// Flip target geometry without changing its AABB.
+		// Flip target geometry without changing its axis-aligned bounds.
 		editor.updateShapes([{ id: targetId, type: 'geo', props: { geo: 'ellipse' } }])
 
-		// Geo's own bounds are unchanged.
-		const targetBoundsBefore = new Box(0, 0, 100, 100)
+		// Geo's own bounds must be unchanged.
 		const targetBoundsAfter = editor.getShapePageBounds(targetId)!
 		expect(targetBoundsAfter.equals(targetBoundsBefore)).toBe(true)
 
@@ -343,18 +346,46 @@ describe('notVisibleShapes - prop-only updates', () => {
 		const arrowBoundsAfter = editor.getShapePageBounds(arrow.id)!
 		expect(arrowBoundsAfter.equals(arrowBoundsBefore)).toBe(false)
 
-		// Spatial index must reflect the new arrow bounds. Query a small box
-		// inside the new bounds but outside the old; the arrow must be found.
-		const probe = new Box(
-			Math.max(arrowBoundsAfter.maxX - 2, arrowBoundsBefore.maxX + 0.01),
-			Math.max(arrowBoundsAfter.maxY - 2, arrowBoundsBefore.maxY + 0.01),
-			1,
-			1
-		)
+		// Spatial index must reflect the new arrow bounds. Build a probe
+		// inside the symmetric difference of before/after — pick whichever
+		// edge expanded and put a thin strip just outside the old edge but
+		// inside the new one. If the rbush still has the old bounds, the
+		// probe won't intersect them and the assertion fails.
+		const probe = probeOnlyInAfter(arrowBoundsBefore, arrowBoundsAfter)
 		const hits = editor.getShapeIdsInsideBounds(probe)
 		expect(hits.has(arrow.id)).toBe(true)
 	})
 })
+
+function probeOnlyInAfter(before: Box, after: Box): Box {
+	const eps = 0.01
+	const thickness = 1
+	if (after.maxX > before.maxX + eps) {
+		const x = before.maxX + eps
+		return new Box(x, after.minY, Math.min(thickness, after.maxX - x), Math.max(after.h, eps))
+	}
+	if (after.maxY > before.maxY + eps) {
+		const y = before.maxY + eps
+		return new Box(after.minX, y, Math.max(after.w, eps), Math.min(thickness, after.maxY - y))
+	}
+	if (after.minX < before.minX - eps) {
+		return new Box(
+			after.minX,
+			after.minY,
+			Math.min(thickness, before.minX - after.minX - eps),
+			Math.max(after.h, eps)
+		)
+	}
+	if (after.minY < before.minY - eps) {
+		return new Box(
+			after.minX,
+			after.minY,
+			Math.max(after.w, eps),
+			Math.min(thickness, before.minY - after.minY - eps)
+		)
+	}
+	throw new Error('expected after-bounds to extend past before-bounds on at least one edge')
+}
 
 describe('notVisibleShapes - selected shapes', () => {
 	it('should not cull selected shapes even if outside viewport', () => {

@@ -32,10 +32,12 @@ export class SpatialIndexManager {
 	private spatialIndexComputed: Computed<number>
 	private lastPageId: TLPageId | null = null
 
-	// Increments only when the rbush actually changes (a bounds was added,
-	// removed, or moved). Consumers downstream (e.g. notVisibleShapes) depend on
-	// this value rather than the store epoch, so they don't re-run when shape
-	// props change without affecting bounds.
+	// Tick that bumps when the rbush content may have changed. On full
+	// rebuild paths (init, history reset, page switch) we bump unconditionally;
+	// on incremental updates we bump only when an add/remove/upsert actually
+	// happened. Consumers downstream (e.g. notVisibleShapes) depend on this
+	// value rather than the store epoch, so prop-only diffs that don't move
+	// any bounds don't re-trigger them.
 	private _boundsEpoch = 0
 
 	constructor(public readonly editor: Editor) {
