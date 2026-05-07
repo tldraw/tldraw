@@ -65,4 +65,11 @@ export const TEMPLATES: Template[] = [
 		order: 8,
 		repo: 'tldraw/shader-starter-kit',
 	},
+	{
+		name: 'Make real',
+		description: 'Turn sketches and wireframes into working HTML with AI.',
+		shortDescription: 'AI-powered sketch to HTML converter.',
+		order: 9,
+		repo: 'tldraw/make-real-template',
+	},
 ]

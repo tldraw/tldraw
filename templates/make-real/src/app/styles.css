@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
+
+:root {
+	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+	line-height: 1.5;
+	font-weight: 400;
+
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	overscroll-behavior: none;
+}
+
+.editor {
+	position: fixed;
+	inset: 0;
+	overflow: hidden;
+}
+
+.tlui-help-menu {
+	display: none !important;
+}
+
+.tlui-debug-panel {
+	display: none !important;
+}
+
+.makeRealButton {
+	background: var(--color-primary);
+	color: white;
+	border: none;
+	font: inherit;
+	font-weight: 600;
+	padding: var(--space-3) var(--space-4);
+	border-radius: var(--radius-2);
+	margin: var(--space-3);
+	cursor: pointer;
+	pointer-events: all;
+}
+
+.makeRealButton:hover {
+	opacity: 0.95;
+}

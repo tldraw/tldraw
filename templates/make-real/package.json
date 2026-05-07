@@ -1,0 +1,42 @@
+{
+	"name": "tldraw-make-real-app-example",
+	"version": "0.1.0",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "MIT",
+	"tldraw_template": {
+		"repo": "tldraw/make-real-template",
+		"cli": {
+			"name": "Make real",
+			"description": "Turn sketches and wireframes into working HTML with AI.",
+			"shortDescription": "AI-powered sketch to HTML converter.",
+			"order": 9
+		},
+		"scripts": {
+			"lint": null
+		}
+	},
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"dependencies": {
+		"@ai-sdk/anthropic": "^2.0.20",
+		"@ai-sdk/google": "^2.0.14",
+		"@ai-sdk/openai": "^2.0.30",
+		"@types/node": "^22.15.31",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"ai": "^5.0.63",
+		"next": "^16.2.4",
+		"tldraw": "workspace:*",
+		"typescript": "^5.8.3",
+		"zod": "^4.1.8"
+	}
+}
