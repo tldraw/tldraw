@@ -12,19 +12,23 @@ export function notVisibleShapes(editor: Editor) {
 	const emptySet = new Set<TLShapeId>()
 
 	return computed<Set<TLShapeId>>('notVisibleShapes', function (prevValue) {
-		// Subscribed deps:
-		//  - getCurrentPageShapeIds: incremental, only invalidates on add/remove/reparent
+		// Subscribed deps (rebuilt on each run by the signals tracker):
+		//  - getCurrentPageShapeIds: incremental, only invalidates on
+		//    add/remove/reparent
 		//  - getViewportPageBounds: invalidates on pan/zoom
 		//  - getShapeIdsInsideBounds: subscribes to the spatial index epoch,
 		//    which only ticks when a shape's bounds actually change
-		//  - editor.getShape(id) in the slow path below: per-shape subscription,
-		//    only for offscreen shapes — needed so canCull() flips driven by
-		//    prop changes (e.g. a shape with `preventCulling`) re-run this
-		//    derivation. The active draw shape is onscreen and short-circuited
-		//    out before we read it, so drawing pointer-moves don't re-subscribe.
+		//  - editor.getShape(id) in the slow path below: per-shape
+		//    subscription, but only for shapes that are read there — i.e.
+		//    offscreen ones. This is required so canCull() overrides driven
+		//    by prop changes (e.g. a shape with `preventCulling`) re-run
+		//    this derivation. Onscreen shapes are short-circuited out
+		//    before the read, so the current run never subscribes to them
+		//    and their prop changes don't invalidate the derivation.
 		// We deliberately do NOT subscribe to getCurrentPageShapes() — its
-		// invalidation on every prop change would re-run this derivation per
-		// pointer move during drawing.
+		// invalidation on every shape prop change would re-run this
+		// derivation any time any shape's props changed, including the many
+		// onscreen ones.
 		const allShapeIds = editor.getCurrentPageShapeIds()
 		const viewportPageBounds = editor.getViewportPageBounds()
 		const visibleIds = editor.getShapeIdsInsideBounds(viewportPageBounds)
