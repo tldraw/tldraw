@@ -51,16 +51,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/gateway@npm:2.0.85":
-  version: 2.0.85
-  resolution: "@ai-sdk/gateway@npm:2.0.85"
+"@ai-sdk/gateway@npm:2.0.86":
+  version: 2.0.86
+  resolution: "@ai-sdk/gateway@npm:2.0.86"
   dependencies:
     "@ai-sdk/provider": "npm:2.0.3"
     "@ai-sdk/provider-utils": "npm:3.0.25"
     "@vercel/oidc": "npm:3.1.0"
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
-  checksum: 10/87e58c8e6781a48dbb71fe7395a388cc62e0c9a0198473ccc6d297f32cfb4d86f0c5cc706a913510a9b37a6b59fcd9859aec6c0da518febdbd17ba84a90f56e1
+  checksum: 10/687446eb53e2255469340f80dfe7e1f93dbd03fc31bea97544dc034f167789c479a37b80fd128a3302830612ecda6a53d6e4cf08847cf5c3eee745cbd093a5b7
   languageName: node
   linkType: hard
 
@@ -15058,16 +15058,16 @@ __metadata:
   linkType: hard
 
 "ai@npm:^5.0.63":
-  version: 5.0.182
-  resolution: "ai@npm:5.0.182"
+  version: 5.0.183
+  resolution: "ai@npm:5.0.183"
   dependencies:
-    "@ai-sdk/gateway": "npm:2.0.85"
+    "@ai-sdk/gateway": "npm:2.0.86"
     "@ai-sdk/provider": "npm:2.0.3"
     "@ai-sdk/provider-utils": "npm:3.0.25"
     "@opentelemetry/api": "npm:1.9.0"
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
-  checksum: 10/c9869544d159ebbdfd02ec861c47813f34a9599107791d4d47db63d5862c8f552d2be7bf83b375e02779b1bd844b50a1d9b5a3191b7bf1e1e055157dbfac400f
+  checksum: 10/fba11580e185e5e847c21c75ad8bef2e5e42a459ef7c0b8ea4028a27b83413120763da9d513b1b94165a9f827d2960a3da8a8082d4abbb3db47c669a5efaf95f
   languageName: node
   linkType: hard
 
@@ -19581,9 +19581,9 @@ __metadata:
   linkType: hard
 
 "fast-uri@npm:^3.0.0, fast-uri@npm:^3.0.1":
-  version: 3.0.6
-  resolution: "fast-uri@npm:3.0.6"
-  checksum: 10/43c87cd03926b072a241590e49eca0e2dfe1d347ddffd4b15307613b42b8eacce00a315cf3c7374736b5f343f27e27ec88726260eb03a758336d507d6fbaba0a
+  version: 3.1.0
+  resolution: "fast-uri@npm:3.1.0"
+  checksum: 10/818b2c96dc913bcf8511d844c3d2420e2c70b325c0653633f51821e4e29013c2015387944435cd0ef5322c36c9beecc31e44f71b257aeb8e0b333c1d62bb17c2
   languageName: node
   linkType: hard
 
