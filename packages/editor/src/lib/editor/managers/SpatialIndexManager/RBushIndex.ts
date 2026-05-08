@@ -113,28 +113,6 @@ export class RBushIndex {
 	}
 
 	/**
-	 * Get all shape IDs currently in the spatial index.
-	 */
-	getAllShapeIds(): TLShapeId[] {
-		return Array.from(this.elementsInTree.keys())
-	}
-
-	/**
-	 * Get the bounds currently stored in the spatial index for a shape.
-	 * Returns undefined if the shape is not in the index.
-	 */
-	getBounds(id: TLShapeId): Box | undefined {
-		const element = this.elementsInTree.get(id)
-		if (!element) return undefined
-		return new Box(
-			element.minX,
-			element.minY,
-			element.maxX - element.minX,
-			element.maxY - element.minY
-		)
-	}
-
-	/**
 	 * Get the raw stored element for a shape, without allocating a Box.
 	 * Use when you only need to read the indexed bounds for comparison.
 	 *
@@ -145,9 +123,9 @@ export class RBushIndex {
 	}
 
 	/**
-	 * Iterate the entries currently in the index.
-	 * Safe to call while mutating existing keys (upsert) or removing keys —
-	 * but do not insert new keys during iteration.
+	 * Iterate the entries currently in the index. Callers may upsert existing
+	 * keys or remove keys during iteration; current callers do not insert new
+	 * keys.
 	 *
 	 * @internal
 	 */

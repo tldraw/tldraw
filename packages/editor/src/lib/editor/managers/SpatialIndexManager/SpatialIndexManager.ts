@@ -10,23 +10,9 @@ import { RBushIndex, type SpatialElement } from './RBushIndex'
 /**
  * Manages spatial indexing for efficient shape location queries.
  *
- * Uses an R-tree (via RBush) to enable O(log n) spatial queries instead of O(n) iteration.
- * Handles shapes with computed bounds (arrows, groups, custom shapes) by re-checking
- * indexed shapes' bounds on every incremental update.
- *
- * Key features:
- * - Incremental updates using filterHistory pattern
- * - The `spatialIndexComputed` returns an internal bounds-epoch tick that only
- *   advances when the rbush actually changes, so downstream computeds (e.g.
- *   notVisibleShapes) can skip work on prop-only shape changes that don't move
- *   any bounds. The epoch itself is private; consumers subscribe via
- *   `getShapeIdsInsideBounds` / `getShapeIdsAtPoint`, which gate on the
- *   computed.
- * - Step-1 upserts compare against the indexed bounds and skip rbush mutation
- *   when bounds are unchanged, so prop-only updates are cheap
- * - Works with any custom shape type with computed bounds
- * - Per-page index (rebuilds on page change)
- * - Optimized for viewport culling queries
+ * Uses an R-tree (via RBush) for O(log n) spatial queries. Handles shapes with
+ * derived bounds (arrows, groups) by re-checking indexed bounds on every
+ * incremental update. Per-page; rebuilds on page change.
  *
  * @internal
  */
@@ -35,12 +21,9 @@ export class SpatialIndexManager {
 	private spatialIndexComputed: Computed<number>
 	private lastPageId: TLPageId | null = null
 
-	// Tick that bumps when the rbush content may have changed. On full
-	// rebuild paths (init, history reset, page switch) we bump unconditionally;
-	// on incremental updates we bump only when an add/remove/upsert actually
-	// happened. Consumers downstream (e.g. notVisibleShapes) depend on this
-	// value rather than the store epoch, so prop-only diffs that don't move
-	// any bounds don't re-trigger them.
+	// Bumps only when the rbush content may have changed. Consumers subscribe
+	// via the computed; a stable epoch lets prop-only diffs skip downstream
+	// invalidations.
 	private _boundsEpoch = 0
 
 	constructor(public readonly editor: Editor) {
@@ -73,14 +56,8 @@ export class SpatialIndexManager {
 				return this.rebuildAndBumpEpoch()
 			}
 
-			// No shape changes - index is already up to date
-			if (shapeDiff.length === 0) {
-				return this._boundsEpoch
-			}
+			if (shapeDiff.length === 0) return this._boundsEpoch
 
-			// Process incremental updates; only bump the epoch when something
-			// actually changed in the rbush. This is what lets downstream
-			// computeds (notVisibleShapes etc.) skip work on prop-only changes.
 			if (this.processIncrementalUpdate(shapeDiff)) {
 				this._boundsEpoch++
 			}
@@ -92,11 +69,8 @@ export class SpatialIndexManager {
 		this.rbush.clear()
 		this.lastPageId = this.editor.getCurrentPageId()
 
-		const shapes = this.editor.getCurrentPageShapes()
 		const elements: SpatialElement[] = []
-
-		// Collect all shape elements for bulk loading
-		for (const shape of shapes) {
+		for (const shape of this.editor.getCurrentPageShapes()) {
 			const bounds = this.editor.getShapePageBounds(shape.id)
 			if (bounds && bounds.isValid()) {
 				elements.push({
@@ -108,19 +82,18 @@ export class SpatialIndexManager {
 				})
 			}
 		}
-
-		// Bulk load for efficiency
 		this.rbush.bulkLoad(elements)
 	}
 
 	private processIncrementalUpdate(shapeDiff: RecordsDiff<TLRecord>[]): boolean {
-		// Track shapes we've already processed from the diff
 		const processedShapeIds = new Set<TLShapeId>()
 		let changed = false
 
-		// 1. Process shape additions, removals, and updates from diff
+		// Step 1: apply diff entries directly. `changed` flips only on real
+		// rbush mutations, so prop-only updates and no-op removes (e.g. shapes
+		// from other pages, or never-indexed shapes with invalid bounds) don't
+		// bump the epoch.
 		for (const changes of shapeDiff) {
-			// Handle additions (only for shapes on current page)
 			for (const shape of objectMapValues(changes.added) as TLShape[]) {
 				if (isShape(shape) && this.editor.getAncestorPageId(shape) === this.lastPageId) {
 					const bounds = this.editor.getShapePageBounds(shape.id)
@@ -132,10 +105,6 @@ export class SpatialIndexManager {
 				}
 			}
 
-			// Handle removals. Only mark changed when the shape was actually in
-			// the rbush — removed shapes from other pages, or shapes that were
-			// never indexed (invalid bounds at insert time), are no-ops here
-			// and shouldn't bump the bounds epoch.
 			for (const shape of objectMapValues(changes.removed) as TLShape[]) {
 				if (isShape(shape)) {
 					if (this.rbush.has(shape.id)) {
@@ -146,10 +115,6 @@ export class SpatialIndexManager {
 				}
 			}
 
-			// Handle updated shapes: page changes and bounds updates. Only
-			// upsert when the bounds actually differ — a shape's props can
-			// change without affecting its bounds (e.g., an active draw stroke
-			// adding a point that lies within the existing bounding box).
 			for (const [, to] of objectMapValues(changes.updated) as [TLShape, TLShape][]) {
 				if (!isShape(to)) continue
 				processedShapeIds.add(to.id)
@@ -175,31 +140,30 @@ export class SpatialIndexManager {
 			}
 		}
 
-		// 2. Check remaining indexed shapes for bounds changes. This handles
-		// shapes whose bounds derive from other shapes (arrows bound to moved
-		// shapes, groups with moved children) — and importantly also catches
-		// cases where a shape's *outline* changed without its axis-aligned
-		// bounds changing (e.g. geo `rectangle` → `ellipse` at the same w/h),
-		// which can shift a bound arrow's intersection points and therefore
-		// its bounds. A diff with only such updates leaves `changed` false
-		// after step 1, so we can't skip this pass on that signal alone.
-		// Iterate the rbush's element map directly to avoid allocating a
-		// shape-id array per pointer move; mutation during iteration here is
-		// limited to upserts of existing keys and deletions, both safe per
-		// the JS Map iteration spec.
+		// Step 2: must always run. Diff entries can dirty derived bounds —
+		// arrows bound to moved shapes, groups with moved children — without
+		// touching any record visited in step 1. Also catches outline-only
+		// changes (e.g. geo rectangle→ellipse at the same w/h) that shift a
+		// bound arrow's intersection points: step 1 sees the geo's
+		// axis-aligned bounds unchanged and skips, but the dependent arrow's
+		// bounds have moved.
+		//
+		// Iterating the rbush's element map directly avoids allocating a
+		// shape-id array per pointer move. Mutation here is limited to
+		// upserts of existing keys and deletions, both safe during Map
+		// iteration.
 		for (const [shapeId, indexedElement] of this.rbush.entries()) {
 			if (processedShapeIds.has(shapeId)) continue
 
 			const currentBounds = this.editor.getShapePageBounds(shapeId)
+			if (this.areBoundsEqualToElement(currentBounds, indexedElement)) continue
 
-			if (!this.areBoundsEqualToElement(currentBounds, indexedElement)) {
-				if (currentBounds && currentBounds.isValid()) {
-					this.rbush.upsert(shapeId, currentBounds)
-				} else {
-					this.rbush.remove(shapeId)
-				}
-				changed = true
+			if (currentBounds && currentBounds.isValid()) {
+				this.rbush.upsert(shapeId, currentBounds)
+			} else {
+				this.rbush.remove(shapeId)
 			}
+			changed = true
 		}
 
 		return changed
@@ -212,17 +176,8 @@ export class SpatialIndexManager {
 	}
 
 	/**
-	 * Get shape IDs within the given bounds.
-	 * Optimized for viewport culling queries.
-	 *
-	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
-	 * ```ts
-	 * const candidates = editor.spatialIndex.getShapeIdsInsideBounds(bounds)
-	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
-	 * ```
-	 *
-	 * @param bounds - The bounds to search within
-	 * @returns Unordered set of shape IDs within the bounds
+	 * Get shape IDs whose bounds intersect `bounds`. Results are unordered;
+	 * combine with `getCurrentPageShapesSorted()` for z-order.
 	 *
 	 * @public
 	 */
@@ -232,18 +187,8 @@ export class SpatialIndexManager {
 	}
 
 	/**
-	 * Get shape IDs at a point (with optional margin).
-	 * Creates a small bounding box around the point and searches the spatial index.
-	 *
-	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
-	 * ```ts
-	 * const candidates = editor.spatialIndex.getShapeIdsAtPoint(point, margin)
-	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
-	 * ```
-	 *
-	 * @param point - The point to search at
-	 * @param margin - The margin around the point to search (default: 0)
-	 * @returns Unordered set of shape IDs that could potentially contain the point
+	 * Get shape IDs whose bounds intersect a margin-expanded box around
+	 * `point`. Results are unordered.
 	 *
 	 * @public
 	 */
@@ -252,12 +197,7 @@ export class SpatialIndexManager {
 		return this.rbush.search(new Box(point.x - margin, point.y - margin, margin * 2, margin * 2))
 	}
 
-	/**
-	 * Dispose of the spatial index manager.
-	 * Clears the R-tree to prevent memory leaks.
-	 *
-	 * @public
-	 */
+	/** @public */
 	dispose(): void {
 		this.rbush.dispose()
 		this.lastPageId = null

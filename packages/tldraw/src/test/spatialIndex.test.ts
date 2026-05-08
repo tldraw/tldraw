@@ -1,4 +1,5 @@
 import { Box, PageRecordType, createShapeId, react } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -46,8 +47,8 @@ describe('SpatialIndexManager - bounds epoch', () => {
 	})
 
 	it('does not tick on a prop-only update with unchanged bounds', () => {
-		// Color change on a geo shape doesn't move bounds — step-1 must
-		// short-circuit the upsert and the epoch must stay still.
+		// Color change doesn't move bounds — step-1 must short-circuit
+		// the upsert and the epoch must stay still.
 		const id = createShapeId('prop-only')
 		editor.createShapes([
 			{ id, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100, color: 'black' } },
@@ -58,6 +59,54 @@ describe('SpatialIndexManager - bounds epoch', () => {
 		editor.updateShapes([{ id, type: 'geo', props: { color: 'red' } }])
 
 		expect(tracker.delta).toBe(0)
+		tracker.stop()
+	})
+
+	it('skips the rbush upsert call on a prop-only diff', () => {
+		// Direct check on the headline optimization: `RBushIndex.upsert`
+		// must not be called when only props change.
+		const id = createShapeId('upsert-spy')
+		editor.createShapes([{ id, type: 'geo', x: 100, y: 100 }])
+		// Initialize the computed before spying so buildFromScratch's
+		// bulkLoad runs outside the spy window.
+		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
+
+		const rbush = (editor as any)._spatialIndex.rbush
+		const spy = vi.spyOn(rbush, 'upsert')
+
+		editor.updateShapes([{ id, type: 'geo', props: { color: 'red' } }])
+		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
+		expect(spy).not.toHaveBeenCalled()
+
+		// Sanity: a real bounds change does call upsert.
+		editor.updateShapes([{ id, type: 'geo', x: 200, y: 200 }])
+		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
+		expect(spy).toHaveBeenCalled()
+
+		spy.mockRestore()
+	})
+
+	it('ticks exactly once when a multi-shape diff mixes prop-only and bounds changes', () => {
+		// Guards against a future "if (changed) return early after step 1"
+		// regression: with one mover and one prop-only shape in the same
+		// transaction, the epoch must bump exactly once.
+		const moverId = createShapeId('multi-mover')
+		const propOnlyId = createShapeId('multi-prop-only')
+		editor.createShapes([
+			{ id: moverId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			{ id: propOnlyId, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100, color: 'black' } },
+		])
+
+		const tracker = trackSpatialIndexInvalidations(editor, editor.getViewportPageBounds())
+
+		editor.run(() => {
+			editor.updateShapes([
+				{ id: moverId, type: 'geo', x: 200, y: 200 },
+				{ id: propOnlyId, type: 'geo', props: { color: 'red' } },
+			])
+		})
+
+		expect(tracker.delta).toBe(1)
 		tracker.stop()
 	})
 
@@ -84,10 +133,9 @@ describe('SpatialIndexManager - bounds epoch', () => {
 		tracker.stop()
 	})
 
-	it('ticks on page switch (full rebuild)', () => {
+	it('ticks exactly once on page switch (full rebuild)', () => {
 		editor.createShapes([{ id: createShapeId('p1-shape'), type: 'geo', x: 100, y: 100 }])
-
-		// Establish a baseline read so the computed is initialized.
+		// Initialize the computed before tracking.
 		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
 
 		const tracker = trackSpatialIndexInvalidations(editor, editor.getViewportPageBounds())
@@ -96,21 +144,17 @@ describe('SpatialIndexManager - bounds epoch', () => {
 		editor.createPage({ name: 'page2-switch', id: page2 })
 		editor.setCurrentPage(page2)
 
-		// Switching pages forces a full rebuild — the bounds epoch must bump.
-		expect(tracker.delta).toBeGreaterThanOrEqual(1)
+		expect(tracker.delta).toBe(1)
 		tracker.stop()
 	})
 })
 
 describe('SpatialIndexManager - step-2 transitive bounds sweep', () => {
 	it('refreshes arrow bounds when a bound geo shape changes outline without changing axis-aligned bounds', () => {
-		// Regression: a geo shape's `props.geo` flip from rectangle to
-		// ellipse keeps its axis-aligned bounds but moves the outline. An
-		// arrow bound to it intersects that outline, so its endpoint
-		// shifts and its axis-aligned bounds change. The spatial index
-		// must update the arrow even though the geo's own step-1 bounds
-		// check showed no change — the step-2 sweep is the only thing
-		// that catches this.
+		// Regression: rectangle→ellipse keeps axis-aligned bounds the
+		// same but moves the outline. The bound arrow's endpoint shifts,
+		// changing the arrow's bounds. Step 1 sees the geo unchanged;
+		// only step 2's sweep catches the dependent arrow.
 		const targetId = createShapeId('outline-target')
 		editor.createShapes([
 			{
@@ -151,35 +195,29 @@ describe('SpatialIndexManager - step-2 transitive bounds sweep', () => {
 		const arrowBoundsAfter = editor.getShapePageBounds(arrow.id)!
 		expect(arrowBoundsAfter.equals(arrowBoundsBefore)).toBe(false)
 
-		// Spatial index must reflect the new arrow bounds. Build a probe
-		// inside the symmetric difference of before/after — pick whichever
-		// edge expanded and put a thin strip just outside the old edge but
-		// inside the new one. If the rbush still has the old bounds, the
-		// probe won't intersect them and the assertion fails.
+		// Probe a region that's only inside the new bounds, not the old.
+		// If the rbush still has the old bounds, the probe misses.
 		const probe = probeOnlyInAfter(arrowBoundsBefore, arrowBoundsAfter)
 		const hits = editor.getShapeIdsInsideBounds(probe)
 		expect(hits.has(arrow.id)).toBe(true)
 	})
 
 	it('removes an indexed shape from the source page when it is reparented to another page', () => {
+		// Reparent-to-other-page hits step 1's "updated, not on page,
+		// `rbush.has(id)` true → remove" branch.
 		const page1 = editor.getCurrentPageId()
 		const id = createShapeId('migrating')
 		editor.createShapes([{ id, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
-
-		// Confirm it's indexed on page1.
 		expect(editor.getShapeIdsInsideBounds(new Box(0, 0, 1000, 1000)).has(id)).toBe(true)
 
 		const page2 = PageRecordType.createId('page2-migrate')
 		editor.createPage({ name: 'page2-migrate', id: page2 })
-
 		editor.setCurrentPage(page1)
-		const tracker = trackSpatialIndexInvalidations(editor, new Box(0, 0, 1000, 1000))
 
-		// Reparent to page2 — on the original page index, the shape must
-		// be removed and the epoch must bump.
+		const tracker = trackSpatialIndexInvalidations(editor, new Box(0, 0, 1000, 1000))
 		editor.reparentShapes([id], page2)
 
-		expect(tracker.delta).toBeGreaterThanOrEqual(1)
+		expect(tracker.delta).toBe(1)
 		expect(editor.getShapeIdsInsideBounds(new Box(0, 0, 1000, 1000)).has(id)).toBe(false)
 		tracker.stop()
 	})
