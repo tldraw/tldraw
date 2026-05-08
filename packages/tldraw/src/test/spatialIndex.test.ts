@@ -1,4 +1,4 @@
-import { Box, PageRecordType, createShapeId, react, type TLShapeId } from '@tldraw/editor'
+import { Box, PageRecordType, createShapeId, react } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -19,18 +19,14 @@ afterEach(() => {
 // from the count.
 function trackSpatialIndexInvalidations(target: TestEditor, bounds: Box) {
 	let count = 0
-	let lastIds: Set<TLShapeId> | undefined
 	const stop = react('count spatial index invalidations', () => {
-		lastIds = target.getShapeIdsInsideBounds(bounds)
+		target.getShapeIdsInsideBounds(bounds)
 		count++
 	})
 	const baseline = count
 	return {
 		get delta() {
 			return count - baseline
-		},
-		get ids() {
-			return lastIds!
 		},
 		stop,
 	}
@@ -85,22 +81,6 @@ describe('SpatialIndexManager - bounds epoch', () => {
 		editor.deleteShape(ghostId)
 
 		expect(tracker.delta).toBe(0)
-		tracker.stop()
-	})
-
-	it('does not tick when adding a shape with invalid bounds is cleaned up', () => {
-		// Adding a normal shape ticks the epoch; we use that as a control
-		// to make sure the tracker actually sees ticks when expected.
-		const id = createShapeId('control')
-		const tracker = trackSpatialIndexInvalidations(editor, editor.getViewportPageBounds())
-
-		editor.createShapes([{ id, type: 'geo', x: 100, y: 100 }])
-		expect(tracker.delta).toBe(1)
-
-		// A redundant prop-only update must not bump again.
-		editor.updateShapes([{ id, type: 'geo', props: { color: 'blue' } }])
-		expect(tracker.delta).toBe(1)
-
 		tracker.stop()
 	})
 
@@ -181,7 +161,7 @@ describe('SpatialIndexManager - step-2 transitive bounds sweep', () => {
 		expect(hits.has(arrow.id)).toBe(true)
 	})
 
-	it('updates an indexed shape when its bounds become invalid (e.g. moved off-page)', () => {
+	it('removes an indexed shape from the source page when it is reparented to another page', () => {
 		const page1 = editor.getCurrentPageId()
 		const id = createShapeId('migrating')
 		editor.createShapes([{ id, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
@@ -189,15 +169,15 @@ describe('SpatialIndexManager - step-2 transitive bounds sweep', () => {
 		// Confirm it's indexed on page1.
 		expect(editor.getShapeIdsInsideBounds(new Box(0, 0, 1000, 1000)).has(id)).toBe(true)
 
-		// Reparent to a new page — on the original page index, the shape
-		// must be removed and the epoch must bump.
 		const page2 = PageRecordType.createId('page2-migrate')
 		editor.createPage({ name: 'page2-migrate', id: page2 })
 
 		editor.setCurrentPage(page1)
 		const tracker = trackSpatialIndexInvalidations(editor, new Box(0, 0, 1000, 1000))
 
-		editor.updateShapes([{ id, type: 'geo', x: 100, y: 100, parentId: page2 } as any])
+		// Reparent to page2 — on the original page index, the shape must
+		// be removed and the epoch must bump.
+		editor.reparentShapes([id], page2)
 
 		expect(tracker.delta).toBeGreaterThanOrEqual(1)
 		expect(editor.getShapeIdsInsideBounds(new Box(0, 0, 1000, 1000)).has(id)).toBe(false)

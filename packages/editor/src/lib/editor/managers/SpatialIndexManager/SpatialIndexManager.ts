@@ -16,9 +16,12 @@ import { RBushIndex, type SpatialElement } from './RBushIndex'
  *
  * Key features:
  * - Incremental updates using filterHistory pattern
- * - Exposes a `_boundsEpoch` that ticks only when the rbush actually changes,
- *   so downstream computeds (e.g. notVisibleShapes) can skip work on prop-only
- *   shape changes that don't move any bounds
+ * - The `spatialIndexComputed` returns an internal bounds-epoch tick that only
+ *   advances when the rbush actually changes, so downstream computeds (e.g.
+ *   notVisibleShapes) can skip work on prop-only shape changes that don't move
+ *   any bounds. The epoch itself is private; consumers subscribe via
+ *   `getShapeIdsInsideBounds` / `getShapeIdsAtPoint`, which gate on the
+ *   computed.
  * - Step-1 upserts compare against the indexed bounds and skip rbush mutation
  *   when bounds are unchanged, so prop-only updates are cheap
  * - Works with any custom shape type with computed bounds
@@ -45,29 +48,29 @@ export class SpatialIndexManager {
 		this.spatialIndexComputed = this.createSpatialIndexComputed()
 	}
 
+	private rebuildAndBumpEpoch(): number {
+		this.buildFromScratch()
+		this._boundsEpoch++
+		return this._boundsEpoch
+	}
+
 	private createSpatialIndexComputed() {
 		const shapeHistory = this.editor.store.query.filterHistory('shape')
 
 		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {
 			if (isUninitialized(_prevValue)) {
-				this.buildFromScratch()
-				this._boundsEpoch++
-				return this._boundsEpoch
+				return this.rebuildAndBumpEpoch()
 			}
 
 			const shapeDiff = shapeHistory.getDiffSince(lastComputedEpoch)
 
 			if (shapeDiff === RESET_VALUE) {
-				this.buildFromScratch()
-				this._boundsEpoch++
-				return this._boundsEpoch
+				return this.rebuildAndBumpEpoch()
 			}
 
 			const currentPageId = this.editor.getCurrentPageId()
 			if (this.lastPageId !== currentPageId) {
-				this.buildFromScratch()
-				this._boundsEpoch++
-				return this._boundsEpoch
+				return this.rebuildAndBumpEpoch()
 			}
 
 			// No shape changes - index is already up to date
