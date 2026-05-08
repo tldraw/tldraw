@@ -1,4 +1,5 @@
 import { TLShape } from 'tldraw'
+import { shuffleInPlace } from './random'
 import { TechId } from './tech-config'
 import { UnitKind } from './unit-config'
 
@@ -433,11 +434,8 @@ const TOWN_NAME_POOL = [
 ] as const
 let _townDeck: string[] = []
 function refillTownDeck() {
-	_townDeck = [...TOWN_NAME_POOL]
-	for (let i = _townDeck.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1))
-		;[_townDeck[i], _townDeck[j]] = [_townDeck[j], _townDeck[i]]
-	}
+	// Seeded shuffle so every client agrees on the assigned town names.
+	_townDeck = shuffleInPlace([...TOWN_NAME_POOL])
 }
 export function pickTownName(): string {
 	if (_townDeck.length === 0) refillTownDeck()

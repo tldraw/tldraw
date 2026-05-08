@@ -2,6 +2,7 @@ import { TLShapeId, atom } from 'tldraw'
 import { BuildingKind } from './building-config'
 import { NationId } from './nations'
 import { HUMAN_PLAYER_ID, PLAYERS, PlayerId } from './players'
+import { freshSeed, setRandomSeed } from './random'
 import { TechId } from './tech-config'
 import { UnitKind } from './unit-config'
 
@@ -180,6 +181,20 @@ export const playerNations$ = atom<Record<PlayerId, NationId>>('playerNations', 
 // Map type selected at game start. Set just before gameStarted$ flips true.
 export const selectedMapType$ = atom<import('./map').MapTypeId | null>('selectedMapType', null)
 
+// 32-bit integer seed for the simulation's PRNG. Set explicitly when the
+// match starts (single-player rerolls; multiplayer takes the host's seed
+// from a synced tlc-game record). Stored as an atom for observability /
+// future sync, but the actual PRNG state lives in random.ts and is
+// advanced per call by the simulation.
+export const simSeed$ = atom('simSeed', 1)
+
+/** Pick a fresh seed and apply it to the PRNG. Call at the top of every
+ * match (start menu's Start, restart button, etc.). */
+export function reseedSim(seed: number = freshSeed()) {
+	simSeed$.set(seed)
+	setRandomSeed(seed)
+}
+
 export const trainQueues = new Map<TLShapeId, TrainQueueItem[]>()
 export const buildingCooldowns = new Map<TLShapeId, { lastFiredAt: number }>()
 export const trainQueuesAtom$ = atom<Record<string, TrainQueueItem[]>>('trainQueues', {})
@@ -239,6 +254,7 @@ export function resetGameState() {
 	researchTreeOpen$.set(false)
 	playerNations$.set({})
 	selectedMapType$.set(null)
+	reseedSim()
 	trainQueues.clear()
 	buildingCooldowns.clear()
 	trainQueuesAtom$.set({})

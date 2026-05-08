@@ -20,6 +20,7 @@ import {
 } from './game-state'
 import { getNation } from './nations'
 import { PlayerId, isEnemyOf } from './players'
+import { nextInt, nextRandom } from './random'
 import { canTrainUnit, isKnightUnlocked } from './tech'
 import { TECH_IDS, TechId } from './tech-config'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
@@ -260,8 +261,8 @@ function maybeTrainFighters(playerId: PlayerId, own: BuildingsByKind, fighterCou
 			r.gold >= UNIT_CONFIG.knight.trainCost.gold &&
 			r.wood >= UNIT_CONFIG.knight.trainCost.wood
 		let kind: UnitKind = 'soldier'
-		if (uniqueOK && Math.random() < 0.5) kind = uniqueKind!
-		else if (knightOK && Math.random() < 0.35) kind = 'knight'
+		if (uniqueOK && nextRandom() < 0.5) kind = uniqueKind!
+		else if (knightOK && nextRandom() < 0.35) kind = 'knight'
 		queueUnit(b.id, kind, playerId)
 	}
 }
@@ -421,7 +422,7 @@ function pickEnemyBaseTarget(
 		(b) => isEnemyOf(playerId, b.owner) && b.kind === 'town-hall' && b.hp > 0
 	)
 	if (candidates.length === 0) return null
-	const pick = candidates[Math.floor(Math.random() * candidates.length)]
+	const pick = candidates[nextInt(candidates.length)]
 	return { x: pick.cx, y: pick.cy }
 }
 

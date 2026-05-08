@@ -89,13 +89,12 @@ export function getNation(id: NationId): Nation {
 	return n
 }
 
+import { shuffleInPlace } from './random'
+
 // Random assignment for AI players. The human's nation is removed from the
-// pool so AI can't double up. Returns a stable random shuffle of the rest.
+// pool so AI can't double up. Uses the seeded PRNG so the outcome is
+// reproducible across clients (required for lockstep multiplayer).
 export function pickAiNations(humanNation: NationId): NationId[] {
 	const pool = NATIONS.filter((n) => n.id !== humanNation).map((n) => n.id)
-	for (let i = pool.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1))
-		;[pool[i], pool[j]] = [pool[j], pool[i]]
-	}
-	return pool
+	return shuffleInPlace(pool)
 }

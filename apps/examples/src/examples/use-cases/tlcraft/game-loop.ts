@@ -12,6 +12,8 @@ import {
 	getEffectiveTerritoryRadius,
 } from './building-config'
 import { computeFog, resetFog } from './fog'
+import { flushTickStats, time } from './perf'
+import { nextRandom } from './random'
 void getEffectiveTerritoryRadius // referenced by overlays; keep it next to the building helpers
 
 import {
@@ -82,24 +84,30 @@ export function runGameTick(editor: Editor, dtMs: number) {
 	elapsedMs$.set(now)
 	const dt = dtMs / 1000
 
-	syncBuildings(editor)
-	tickTraining(now)
-	tickResearch(now)
-	tickUpgrades(editor, now)
-	tickUnits(editor, dt, now)
-	tickTowers(now)
-	tickProjectiles(editor, dt, dtMs, now)
-	tickDamageNumbers(dtMs)
+	// Each phase is wrapped with `time()` so we can spot regressions and find
+	// optimization targets — see perf.ts for what to look at next. Overhead
+	// per call is ~1µs; ten phases = ~10µs/tick, well below noise.
+	time('syncBuildings', () => syncBuildings(editor))
+	time('tickTraining', () => tickTraining(now))
+	time('tickResearch', () => tickResearch(now))
+	time('tickUpgrades', () => tickUpgrades(editor, now))
+	time('tickUnits', () => tickUnits(editor, dt, now))
+	time('tickTowers', () => tickTowers(now))
+	time('tickProjectiles', () => tickProjectiles(editor, dt, dtMs, now))
+	time('tickDamageNumbers', () => tickDamageNumbers(dtMs))
 	// Recompute fog after units/buildings have moved/died, before AI sees
 	// the world. AI players ignore fog so it doesn't matter for them, but
 	// keeping it in this order means the next render sees fresh fog.
-	computeFog(HUMAN_PLAYER_ID, units$.get(), lastBuildingsByTick)
+	time('computeFog', () => computeFog(HUMAN_PLAYER_ID, units$.get(), lastBuildingsByTick))
 	fogVersion$.update((v) => v + 1)
-	for (const p of PLAYERS) {
-		if (p.isHuman) continue
-		tickAi(editor, p.id, lastBuildingsByTick, now)
-	}
+	time('tickAi', () => {
+		for (const p of PLAYERS) {
+			if (p.isHuman) continue
+			tickAi(editor, p.id, lastBuildingsByTick, now)
+		}
+	})
 	checkEndConditions()
+	flushTickStats()
 }
 
 // ------------------------------ buildings -------------------------------
@@ -230,7 +238,7 @@ function tickTraining(now: number) {
 			continue
 		}
 		// Spawn just outside the building footprint.
-		const angle = Math.random() * Math.PI * 2
+		const angle = nextRandom() * Math.PI * 2
 		const distFromCenter = building.halfSize + 26
 		const x = building.cx + Math.cos(angle) * distFromCenter
 		const y = building.cy + Math.sin(angle) * distFromCenter

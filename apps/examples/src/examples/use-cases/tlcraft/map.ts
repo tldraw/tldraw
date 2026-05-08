@@ -5,6 +5,7 @@
 // fresh ResourceNode[] when called.
 
 import { ResourceKind, ResourceNode, nextResourceId } from './game-state'
+import { nextInt, nextRandom } from './random'
 
 export const MAP_BOUNDS = { minX: 0, minY: 0, maxX: 4800, maxY: 2800 }
 
@@ -36,8 +37,8 @@ interface Seed {
 function cluster(kind: ResourceKind, cx: number, cy: number, n: number, spread = 60): Seed[] {
 	const out: Seed[] = []
 	for (let i = 0; i < n; i++) {
-		const a = (i / n) * Math.PI * 2 + Math.random() * 0.6 - 0.3
-		const r = spread * (0.55 + Math.random() * 0.9)
+		const a = (i / n) * Math.PI * 2 + nextRandom() * 0.6 - 0.3
+		const r = spread * (0.55 + nextRandom() * 0.9)
 		const x = clampX(cx + Math.cos(a) * r)
 		const y = clampY(cy + Math.sin(a) * r)
 		out.push({ kind, x, y })
@@ -46,7 +47,7 @@ function cluster(kind: ResourceKind, cx: number, cy: number, n: number, spread =
 }
 
 function rand(min: number, max: number): number {
-	return min + Math.random() * (max - min)
+	return min + nextRandom() * (max - min)
 }
 
 function clampX(x: number): number {
@@ -219,7 +220,7 @@ export function getMapType(id: MapTypeId): MapType {
 }
 
 export function pickRandomMapType(): MapType {
-	return MAP_TYPES[Math.floor(Math.random() * MAP_TYPES.length)]
+	return MAP_TYPES[nextInt(MAP_TYPES.length)]
 }
 
 // Backwards-compatible default seeder used for places that don't care about

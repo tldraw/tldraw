@@ -73,7 +73,7 @@ const TLDRAW_BEMO_URL_STRING =
 				: undefined
 
 export default defineConfig(({ mode }) => ({
-	plugins: [spaFallbackPlugin(), react(), exampleReadmePlugin()],
+	plugins: [spaFallbackPlugin(), react(), exampleReadmePlugin(), tlcraftPerfPlugin()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {
@@ -107,8 +107,62 @@ export default defineConfig(({ mode }) => ({
 			env === 'development' ? undefined : 'https://images.tldraw.xyz',
 			8786
 		),
+		// Surface the TLCRAFT_PERF env var to the browser so the tlcraft
+		// example's perf reporter knows whether to POST to the dev server.
+		'process.env.TLCRAFT_PERF': JSON.stringify(process.env.TLCRAFT_PERF ?? ''),
 	},
 }))
+
+// Dev-server middleware for the tlcraft example. When `TLCRAFT_PERF=1 yarn
+// dev` is used, the page periodically POSTs perf snapshots to
+// /__tlcraft-perf and we log them to the terminal — a play-test friendly
+// alternative to opening devtools. With the env unset the endpoint still
+// exists but accepts and discards the body, so the page doesn't 404.
+function tlcraftPerfPlugin(): PluginOption {
+	const enabled = process.env.TLCRAFT_PERF === '1' || process.env.TLCRAFT_PERF === 'true'
+	if (enabled) {
+		// eslint-disable-next-line no-console
+		console.log('[tlcraft perf] enabled — perf snapshots will print here while you play')
+	}
+	return {
+		name: 'tlcraft-perf',
+		configureServer(server) {
+			server.middlewares.use('/__tlcraft-perf', (req, res) => {
+				if (req.method !== 'POST') {
+					res.statusCode = 200
+					res.setHeader('content-type', 'application/json')
+					res.end(JSON.stringify({ enabled }))
+					return
+				}
+				let body = ''
+				req.on('data', (chunk) => {
+					body += chunk
+				})
+				req.on('end', () => {
+					if (enabled) {
+						try {
+							const data = JSON.parse(body)
+							const phases = Object.keys(data.avgMsByPhase ?? {})
+								.sort((a, b) => data.avgMsByPhase[b] - data.avgMsByPhase[a])
+								.map(
+									(p) =>
+										`${p}: ${data.avgMsByPhase[p].toFixed(2)}ms (max ${data.maxMsByPhase[p].toFixed(2)})`
+								)
+								.join(' · ')
+							const total = (data.lastTickTotalMs ?? 0).toFixed(2)
+							// eslint-disable-next-line no-console
+							console.log(`[tlcraft perf] tick total ${total}ms · ${phases}`)
+						} catch {
+							// ignore parse errors so a malformed POST doesn't kill the server
+						}
+					}
+					res.statusCode = 204
+					res.end()
+				})
+			})
+		},
+	}
+}
 
 function exampleReadmePlugin(): PluginOption {
 	return {

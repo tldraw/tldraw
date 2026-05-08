@@ -43,6 +43,7 @@ import {
 	playerResources$,
 	researchQueuesAtom$,
 	researchTreeOpen$,
+	reseedSim,
 	resetGameState,
 	resources$,
 	selectedBuildingId$,
@@ -58,6 +59,7 @@ import {
 	MapTypeId,
 	STARTING_WORKER_OFFSETS,
 	getMapType,
+	pickRandomMapType,
 	seedResources,
 } from './map'
 import { NATIONS, NationId, getNation, pickAiNations } from './nations'
@@ -193,12 +195,25 @@ function forceCreateTownHall(editor: Editor, p: ReturnType<typeof getPlayer>) {
 	})
 }
 
+// Fixed simulation tick rate. Render keeps following the editor's tick (60Hz);
+// the sim loop accumulates real elapsed ms and runs N fixed-size ticks per
+// frame. Fixed dt is the determinism precondition for lockstep multiplayer —
+// the simulation must produce identical state given identical inputs across
+// every client, which is impossible if dt varies with browser frame timing.
+const SIM_TICK_MS = 16
+
 function GameRunner() {
 	const editor = useEditor()
 	useEffect(() => {
+		let accumMs = 0
 		const onTick = (elapsedMs: number) => {
-			const dt = Math.min(80, elapsedMs)
-			runGameTick(editor, dt)
+			// Cap accumulator on tab-resume / long pause so we don't death-
+			// spiral catching up after the user comes back to the tab.
+			accumMs += Math.min(200, elapsedMs)
+			while (accumMs >= SIM_TICK_MS) {
+				runGameTick(editor, SIM_TICK_MS)
+				accumMs -= SIM_TICK_MS
+			}
 		}
 		editor.on('tick', onTick)
 		return () => {
@@ -642,6 +657,13 @@ function StartMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> })
 	const [selectedMap, setSelectedMap] = useState<MapTypeId | 'random'>('random')
 
 	const onStart = useCallback(() => {
+		// Fresh seed for the match. After this point, EVERY random call in
+		// the simulation goes through the seeded PRNG (see random.ts), so
+		// the same seed → the same match. In multiplayer the host will pick
+		// the seed and broadcast it via a synced record; the same `reseedSim`
+		// call applies it on every client.
+		reseedSim()
+
 		const aiNations = pickAiNations(selected)
 		const map: Record<string, NationId> = { [HUMAN_PLAYER_ID]: selected }
 		const aiPlayers = PLAYERS.filter((p) => !p.isHuman)
@@ -650,10 +672,7 @@ function StartMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> })
 		}
 		playerNations$.set(map)
 		// Resolve "random" lazily so each Restart that picks random rerolls.
-		const mapId: MapTypeId =
-			selectedMap === 'random'
-				? MAP_TYPES[Math.floor(Math.random() * MAP_TYPES.length)].id
-				: selectedMap
+		const mapId: MapTypeId = selectedMap === 'random' ? pickRandomMapType().id : selectedMap
 		selectedMapType$.set(mapId)
 		// Re-seed the resources for the chosen map BEFORE the game tick starts,
 		// since the editor was already bootstrapped in onMount with the default
