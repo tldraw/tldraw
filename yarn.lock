@@ -1766,29 +1766,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@clerk/shared@npm:^3.28.3, @clerk/shared@npm:^3.47.3":
-  version: 3.47.3
-  resolution: "@clerk/shared@npm:3.47.3"
-  dependencies:
-    csstype: "npm:3.1.3"
-    dequal: "npm:2.0.3"
-    glob-to-regexp: "npm:0.4.1"
-    js-cookie: "npm:3.0.5"
-    std-env: "npm:^3.9.0"
-    swr: "npm:2.3.4"
-  peerDependencies:
-    react: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
-    react-dom: ^18.0.0 || ~19.0.3 || ~19.1.4 || ~19.2.3 || ~19.3.0-0
-  peerDependenciesMeta:
-    react:
-      optional: true
-    react-dom:
-      optional: true
-  checksum: 10/3ece1a2b6bef8667fb53c8797096fc26645bba2efdfa20dbd768ce9141a5e3ffda395d9a0a8b4951e53ed26456df8cc5f389de42890563c2dd4fb0eebacbd95b
-  languageName: node
-  linkType: hard
-
-"@clerk/shared@npm:^3.47.5":
+"@clerk/shared@npm:^3.28.3, @clerk/shared@npm:^3.47.3, @clerk/shared@npm:^3.47.5":
   version: 3.47.5
   resolution: "@clerk/shared@npm:3.47.5"
   dependencies:
