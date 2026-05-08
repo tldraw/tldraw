@@ -7,18 +7,28 @@ import tmp from 'tmp'
 import { exec } from './exec'
 import { PackageDetails, getAllPackageDetails } from './publishing'
 
-async function getPackageFirstDiff(pkg: PackageDetails): Promise<Diff | null> {
+async function getPackageFirstDiff(
+	pkg: PackageDetails,
+	publishedVersion: string
+): Promise<Diff | null> {
 	assert(process.env.TLDRAW_BEMO_URL, 'TLDRAW_BEMO_URL env var must be set')
 	const dir = tmp.dirSync({ unsafeCleanup: true })
 	const dirPath = dir.name
 	try {
-		const version = pkg.version
-
 		const unscopedName = pkg.name.replace('@tldraw/', '')
-		const url = `https://registry.npmjs.org/${pkg.name}/-/${unscopedName}-${version}.tgz`
+		const url = `https://registry.npmjs.org/${pkg.name}/-/${unscopedName}-${publishedVersion}.tgz`
 		const res = await fetch(url)
+		if (res.status === 404) {
+			// The package is not published at this version. This happens when a
+			// new package was added to the monorepo since the last release, or
+			// when a previous publish was interrupted after the version-bump
+			// commit landed but before npm publish completed. In either case
+			// treat it as an added package so the release proceeds instead of
+			// failing the entire workflow.
+			return { type: 'added', packageName: pkg.name, filePath: pkg.name }
+		}
 		if (res.status >= 400) {
-			throw new Error(`Package not found at url ${url}: ${res.status}`)
+			throw new Error(`Failed to fetch ${url}: ${res.status}`)
 		}
 		const publishedTarballPath = `${dirPath}/published-package.tgz`
 		writeFileSync(publishedTarballPath, Buffer.from(await res.arrayBuffer()))
@@ -126,10 +136,21 @@ export function formatDiff(diff: Diff) {
 	return message
 }
 
-export async function getAnyPackageDiff(): Promise<Diff | null> {
+/**
+ * Compare each local package against the published tarball at
+ * `publishedVersion` on npm and return the first detected difference, or null
+ * if every package is identical to its published counterpart.
+ *
+ * Callers should pass the latest version that's actually published on npm
+ * (e.g. from `npm show <pkg> version`) rather than the version in the local
+ * `package.json`. The local version can drift ahead of npm if a previous
+ * publish was interrupted after the version-bump commit was pushed; using the
+ * known-published version keeps the diff check robust to that state.
+ */
+export async function getAnyPackageDiff(publishedVersion: string): Promise<Diff | null> {
 	const details = await getAllPackageDetails()
 	for (const pkg of Object.values(details)) {
-		const diff = await getPackageFirstDiff(pkg)
+		const diff = await getPackageFirstDiff(pkg, publishedVersion)
 		if (diff) {
 			return diff
 		}
