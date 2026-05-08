@@ -3146,7 +3146,7 @@ export class SnapManager {
 // @internal
 export class SpatialIndexManager {
     constructor(editor: Editor);
-    // @public (undocumented)
+    // @public
     dispose(): void;
     // (undocumented)
     readonly editor: Editor;

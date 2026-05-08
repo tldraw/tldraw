@@ -197,7 +197,11 @@ export class SpatialIndexManager {
 		return this.rbush.search(new Box(point.x - margin, point.y - margin, margin * 2, margin * 2))
 	}
 
-	/** @public */
+	/**
+	 * Dispose of the spatial index manager. Clears the R-tree.
+	 *
+	 * @public
+	 */
 	dispose(): void {
 		this.rbush.dispose()
 		this.lastPageId = null
