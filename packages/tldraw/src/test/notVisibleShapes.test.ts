@@ -230,6 +230,45 @@ describe('notVisibleShapes - canCull behavior', () => {
 		const second = editor.getNotVisibleShapes()
 		expect(second).toBe(first)
 	})
+
+	it('should isolate canCull subscriptions to the shape that owns them', () => {
+		// Two custom-canCull shapes offscreen. Flipping shape A's canCull must not
+		// affect shape B's classification, even though both are subscribed.
+		const testEditor = new TestEditor({ shapeUtils: [TestShape] })
+		testEditor.updateViewportScreenBounds(new Box(0, 0, 1000, 1000))
+		testEditor.setCamera({ x: 0, y: 0, z: 1 })
+
+		const aId = createShapeId('a')
+		const bId = createShapeId('b')
+		testEditor.createShapes([
+			{ id: aId, type: 'not-visible-test-shape', x: 2000, y: 2000, props: { canCull: true } },
+			{ id: bId, type: 'not-visible-test-shape', x: 2200, y: 2200, props: { canCull: true } },
+		])
+
+		let nv = testEditor.getNotVisibleShapes()
+		expect(nv.has(aId)).toBe(true)
+		expect(nv.has(bId)).toBe(true)
+
+		testEditor.updateShapes([
+			{ id: aId, type: 'not-visible-test-shape', props: { canCull: false } },
+		])
+		nv = testEditor.getNotVisibleShapes()
+		expect(nv.has(aId)).toBe(false)
+		expect(nv.has(bId)).toBe(true)
+
+		testEditor.dispose()
+	})
+})
+
+describe('notVisibleShapes - shape removal', () => {
+	it('should remove a deleted offscreen shape from notVisibleShapes', () => {
+		const id = createShapeId('to-delete')
+		editor.createShapes([{ id, type: 'geo', x: 2000, y: 2000, props: { w: 100, h: 100 } }])
+		expect(editor.getNotVisibleShapes().has(id)).toBe(true)
+
+		editor.deleteShape(id)
+		expect(editor.getNotVisibleShapes().has(id)).toBe(false)
+	})
 })
 
 describe('notVisibleShapes - selected shapes', () => {
