@@ -19,6 +19,28 @@ import {
 	getBuildingUpgradeLevel,
 	getEffectiveLabel,
 } from '../building-config'
+
+function roundRectPath(
+	ctx: CanvasRenderingContext2D,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	r: number
+) {
+	const radius = Math.min(r, w / 2, h / 2)
+	ctx.beginPath()
+	ctx.moveTo(x + radius, y)
+	ctx.lineTo(x + w - radius, y)
+	ctx.quadraticCurveTo(x + w, y, x + w, y + radius)
+	ctx.lineTo(x + w, y + h - radius)
+	ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h)
+	ctx.lineTo(x + radius, y + h)
+	ctx.quadraticCurveTo(x, y + h, x, y + h - radius)
+	ctx.lineTo(x, y + radius)
+	ctx.quadraticCurveTo(x, y, x + radius, y)
+	ctx.closePath()
+}
 import { clearUnitSelection } from '../command'
 import { isExploredByHuman } from '../fog'
 import {
@@ -208,19 +230,15 @@ export class BuildingDecorOverlayUtil extends OverlayUtil<TLBuildingDecorOverlay
 				ctx.strokeRect(barX, barY, barW, barH)
 			}
 
-			// "<Player> <Building>" label below the building.
+			// Building label rendered as a solid rounded chip below the
+			// building. Stroked text smudges at small sizes and was reading
+			// as two overlapping labels for compound names like
+			// "Glacierford · Town hall"; a chip is unambiguous.
 			const fontPx = 11 / zoom
 			ctx.font = `700 ${fontPx}px sans-serif`
 			ctx.textAlign = 'center'
-			ctx.textBaseline = 'bottom'
-			ctx.fillStyle = '#fff'
-			ctx.strokeStyle = '#000'
-			ctx.lineWidth = 3 / zoom
-			const labelY = cy + halfSize + 14 / zoom
+			ctx.textBaseline = 'middle'
 			const baseLabel = getEffectiveLabel(kind, level)
-			// Town halls show "<Town name> · <Town hall|Stronghold>" with the
-			// town name promoted; other buildings show just their kind label
-			// (or "<Player> · <kind>" for enemies).
 			let label: string
 			if (kind === 'town-hall' && townName) {
 				label =
@@ -230,8 +248,21 @@ export class BuildingDecorOverlayUtil extends OverlayUtil<TLBuildingDecorOverlay
 			} else {
 				label = `${player.label} · ${baseLabel}`
 			}
-			ctx.strokeText(label, cx, labelY)
-			ctx.fillText(label, cx, labelY)
+			const metrics = ctx.measureText(label)
+			const padX = 6 / zoom
+			const padY = 3 / zoom
+			const chipW = metrics.width + padX * 2
+			const chipH = fontPx + padY * 2
+			const chipX = cx - chipW / 2
+			const chipY = cy + halfSize + 8 / zoom
+			roundRectPath(ctx, chipX, chipY, chipW, chipH, 4 / zoom)
+			ctx.fillStyle = isDark ? 'rgba(20,22,28,0.9)' : 'rgba(255,255,255,0.92)'
+			ctx.fill()
+			ctx.lineWidth = 1 / zoom
+			ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.18)'
+			ctx.stroke()
+			ctx.fillStyle = isDark ? '#fff' : '#111'
+			ctx.fillText(label, cx, chipY + chipH / 2)
 			// Level badge in the top-left corner of the building footprint.
 			if (level > 0) {
 				const badgeR = 9 / zoom

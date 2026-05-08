@@ -179,14 +179,15 @@ export function placeBuilding(
 		// hp + maxHp + upgradeLevel are baked at construction. Town halls also
 		// get a town name pulled from the shuffled name deck — that's what
 		// makes them a "town" the player can cluster town-bound buildings
-		// around.
+		// around. The townName key is omitted entirely for non-town-halls
+		// because tldraw's meta validator rejects `undefined` values.
 		meta: {
 			buildingKind: kind,
 			hp: maxHp,
 			maxHp,
 			owner: playerId,
 			upgradeLevel: 0,
-			townName: kind === 'town-hall' ? pickTownName() : undefined,
+			...(kind === 'town-hall' ? { townName: pickTownName() } : {}),
 		},
 	})
 	updateResources(playerId, (rr) => ({

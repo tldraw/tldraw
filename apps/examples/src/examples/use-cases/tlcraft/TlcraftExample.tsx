@@ -1013,15 +1013,14 @@ const BUILDING_DESCRIPTIONS: Record<BuildingKind, string> = {
 		'Heavy fortification with an area attack and the largest territory of any building. Locked behind the Stonemasonry research.',
 }
 
-function PauseMenu() {
-	const editor = useEditor()
+function PauseMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 	const isPaused = useValue('paused', () => paused$.get(), [])
 	const [tab, setTab] = useState<GuideTab>('buildings')
 	const onResume = useCallback(() => paused$.set(false), [])
 	const onRestart = useCallback(() => {
 		paused$.set(false)
-		restartGame(editor)
-	}, [editor])
+		if (editorRef.current) restartGame(editorRef.current)
+	}, [editorRef])
 	if (!isPaused) return null
 	return (
 		<div className="tlc-modal tlc-modal--center" role="dialog" aria-modal="true">
@@ -1324,12 +1323,17 @@ export default function TlcraftExample() {
 					<GameRunner />
 					<DragSelectListener />
 					<KeyboardShortcuts />
-					<PauseMenu />
-					<StartMenu editorRef={editorRef} />
-					<ResearchTreeOverlay editorRef={editorRef} />
 				</Tldraw>
 			</div>
 			<Toolbar editorRef={editorRef} />
+			{/*
+			 * Modals render as siblings of the editor / HUD / toolbar so they
+			 * cover the whole shell and don't get clipped to the canvas area.
+			 * Each takes editorRef so they can dispatch editor commands.
+			 */}
+			<PauseMenu editorRef={editorRef} />
+			<StartMenu editorRef={editorRef} />
+			<ResearchTreeOverlay editorRef={editorRef} />
 		</div>
 	)
 }
