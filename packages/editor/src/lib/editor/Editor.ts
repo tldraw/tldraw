@@ -328,6 +328,8 @@ export interface TLRenderingShape {
 	opacity: number
 }
 
+const RENDERING_SHAPES_SORT_CACHE_THRESHOLD = 100
+
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
 	readonly id = uniqueId()
@@ -4730,6 +4732,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// drain. By always sorting by 'id' we keep the shapes always in the
 		// same order; but we later use index to set the element's 'z-index'
 		// to change the "rendered" position in z-space.
+
+		// For small N, native Array.sort is fast enough that the cache
+		// bookkeeping is a net loss. Only use the permutation cache when
+		// there are enough shapes for sort cost to matter.
+		if (renderingShapes.length <= RENDERING_SHAPES_SORT_CACHE_THRESHOLD) {
+			this._renderingShapesSortCache = null
+			return renderingShapes.sort(sortById)
+		}
 
 		// Sort permutation cache: when the set of ids on the page doesn't
 		// change (e.g. while drawing a stroke, only props change), we can
