@@ -135,6 +135,27 @@ export class RBushIndex {
 	}
 
 	/**
+	 * Get the raw stored element for a shape, without allocating a Box.
+	 * Use when you only need to read the indexed bounds for comparison.
+	 *
+	 * @internal
+	 */
+	getElement(id: TLShapeId): SpatialElement | undefined {
+		return this.elementsInTree.get(id)
+	}
+
+	/**
+	 * Iterate the entries currently in the index.
+	 * Safe to call while mutating existing keys (upsert) or removing keys —
+	 * but do not insert new keys during iteration.
+	 *
+	 * @internal
+	 */
+	entries(): IterableIterator<[TLShapeId, SpatialElement]> {
+		return this.elementsInTree.entries()
+	}
+
+	/**
 	 * Dispose of the spatial index.
 	 * Clears all data structures to prevent memory leaks.
 	 */
