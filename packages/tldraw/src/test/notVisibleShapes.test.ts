@@ -190,6 +190,46 @@ describe('notVisibleShapes - canCull behavior', () => {
 
 		testEditor.dispose()
 	})
+
+	it('should react when an offscreen shape flips its canCull prop', () => {
+		const testEditor = new TestEditor({ shapeUtils: [TestShape] })
+		testEditor.updateViewportScreenBounds(new Box(0, 0, 1000, 1000))
+		testEditor.setCamera({ x: 0, y: 0, z: 1 })
+
+		const id = createShapeId('flipper')
+		testEditor.createShapes([
+			{ id, type: 'not-visible-test-shape', x: 2000, y: 2000, props: { canCull: true } },
+		])
+
+		// canCull true, offscreen → present in notVisible
+		expect(testEditor.getNotVisibleShapes().has(id)).toBe(true)
+
+		// Flip prop: canCull false → must drop out of notVisible
+		testEditor.updateShapes([{ id, type: 'not-visible-test-shape', props: { canCull: false } }])
+		expect(testEditor.getNotVisibleShapes().has(id)).toBe(false)
+
+		// Flip back
+		testEditor.updateShapes([{ id, type: 'not-visible-test-shape', props: { canCull: true } }])
+		expect(testEditor.getNotVisibleShapes().has(id)).toBe(true)
+
+		testEditor.dispose()
+	})
+
+	it('should not invalidate notVisibleShapes for prop changes on built-in offscreen shapes', () => {
+		// Set up: one offscreen built-in shape (default canCull), notVisibleShapes computed.
+		const id = createShapeId('built-in-offscreen')
+		editor.createShapes([{ id, type: 'geo', x: 2000, y: 2000, props: { w: 100, h: 100 } }])
+
+		const first = editor.getNotVisibleShapes()
+		expect(first.has(id)).toBe(true)
+
+		// Change a prop that does NOT affect bounds or visibility.
+		editor.updateShapes([{ id, type: 'geo', props: { color: 'red' } }])
+
+		// Same Set reference → derivation did not re-run / re-allocate.
+		const second = editor.getNotVisibleShapes()
+		expect(second).toBe(first)
+	})
 })
 
 describe('notVisibleShapes - selected shapes', () => {
