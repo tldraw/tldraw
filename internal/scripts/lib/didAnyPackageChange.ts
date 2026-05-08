@@ -5,6 +5,7 @@ import kleur from 'kleur'
 import * as tar from 'tar'
 import tmp from 'tmp'
 import { exec } from './exec'
+import { nicelog } from './nicelog'
 import { PackageDetails, getAllPackageDetails } from './publishing'
 
 async function getPackageFirstDiff(
@@ -25,6 +26,9 @@ async function getPackageFirstDiff(
 			// commit landed but before npm publish completed. In either case
 			// treat it as an added package so the release proceeds instead of
 			// failing the entire workflow.
+			nicelog(
+				`No published tarball for ${pkg.name}@${publishedVersion} (${url}); treating as added.`
+			)
 			return { type: 'added', packageName: pkg.name, filePath: pkg.name }
 		}
 		if (res.status >= 400) {
