@@ -391,6 +391,12 @@ export class GeminiLiveSession {
 		src.onended = () => {
 			const idx = this.activeSources.indexOf(src)
 			if (idx >= 0) this.activeSources.splice(idx, 1)
+			// When the last buffered audio finishes AND the model's turn is
+			// complete (turn-complete arrives before audio finishes locally),
+			// flip status back so consumers stop showing "Speaking…".
+			if (this.activeSources.length === 0 && !this.modelTurnActive) {
+				this.setStatus('ready')
+			}
 		}
 	}
 
