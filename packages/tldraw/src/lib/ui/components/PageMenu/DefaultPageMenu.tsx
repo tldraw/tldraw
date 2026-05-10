@@ -6,7 +6,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useUiEvents } from '../../context/events'
@@ -37,6 +37,12 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const [isOpen, onOpenChange] = useMenuIsOpen('page-menu', handleOpenChange)
 
 	const ITEM_HEIGHT = 36
+	const DRAG_THRESHOLD = 5
+	// While dragging, when the cursor enters this many pixels of the top or
+	// bottom edge of the list container, the list auto-scrolls so the user
+	// can drop into rows that aren't currently visible.
+	const AUTO_SCROLL_ZONE = 28
+	const MAX_AUTO_SCROLL_SPEED = 12
 
 	const rSortableContainer = useRef<HTMLDivElement>(null)
 
@@ -80,34 +86,29 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	)
 
 	const rMutables = useRef({
-		isPointing: false,
 		status: 'idle' as 'idle' | 'pointing' | 'dragging',
-		pointing: null as { id: string; index: number } | null,
-		startY: 0,
+		id: null as TLPageId | null,
 		startIndex: 0,
 		dragIndex: 0,
+		startY: 0,
+		startScrollTop: 0,
+		lastClientY: 0,
 		// Set true on pointer-up after a drag, so the synthetic click that
 		// follows pointer-up doesn't also navigate to the dragged page.
 		justDragged: false,
+		// Whether an auto-scroll rAF is in flight; the loop reschedules itself
+		// while status === 'dragging' and exits otherwise.
+		autoScrollScheduled: false,
 	})
 
-	// Which page (if any) is currently being dragged. Used to apply the
-	// grabbing cursor only during an active drag — never on hover.
-	const [draggingPageId, setDraggingPageId] = useState<TLPageId | null>(null)
-
-	const [sortablePositionItems, setSortablePositionItems] = useState(
-		Object.fromEntries(
-			pages.map((page, i) => [page.id, { y: i * ITEM_HEIGHT, offsetY: 0, isSelected: false }])
-		)
-	)
-
-	useLayoutEffect(() => {
-		setSortablePositionItems(
-			Object.fromEntries(
-				pages.map((page, i) => [page.id, { y: i * ITEM_HEIGHT, offsetY: 0, isSelected: false }])
-			)
-		)
-	}, [ITEM_HEIGHT, pages])
+	// The single source of truth for an in-progress drag. Null when idle.
+	// Other rows' positions are derived from startIndex/dragIndex during render.
+	const [dragState, setDragState] = useState<{
+		id: TLPageId
+		startIndex: number
+		dragIndex: number
+		offsetY: number
+	} | null>(null)
 
 	// Scroll the current page into view when the menu opens / when current page changes
 	useEffect(() => {
@@ -139,134 +140,121 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		})
 	}, [ITEM_HEIGHT, currentPageId, isOpen, editor])
 
-	const handlePointerDown = useCallback(
-		(e: React.PointerEvent<HTMLButtonElement>) => {
-			const { clientY, currentTarget } = e
-			const {
-				dataset: { id, index },
-			} = currentTarget
-
-			if (!id || !index) return
-
+	// Recomputes the dragged row's offset and dragIndex from the current
+	// pointer position and container scrollTop, then publishes the new
+	// dragState so the rest of the rows shift around it.
+	const updateDragFromPointer = useCallback(
+		(clientY: number) => {
 			const mut = rMutables.current
-
-			setPointerCapture(e.currentTarget, e)
-
-			mut.status = 'pointing'
-			mut.pointing = { id, index: +index! }
-			const current = sortablePositionItems[id]
-			const dragY = current.y
-
-			mut.startY = clientY
-			mut.startIndex = Math.max(0, Math.min(Math.round(dragY / ITEM_HEIGHT), pages.length - 1))
+			if (mut.status !== 'dragging' || !mut.id) return
+			const scrollTop = rSortableContainer.current?.scrollTop ?? 0
+			// Offsets the cursor delta by any auto-scroll that has happened
+			// since the drag started, so the row tracks the cursor as the
+			// list scrolls underneath it.
+			const offsetY = clientY - mut.startY + (scrollTop - mut.startScrollTop)
+			const dragY = mut.startIndex * ITEM_HEIGHT + offsetY
+			const dragIndex = Math.max(0, Math.min(Math.round(dragY / ITEM_HEIGHT), pages.length - 1))
+			mut.dragIndex = dragIndex
+			mut.lastClientY = clientY
+			setDragState({ id: mut.id, startIndex: mut.startIndex, dragIndex, offsetY })
 		},
-		[ITEM_HEIGHT, pages.length, sortablePositionItems]
+		[ITEM_HEIGHT, pages.length]
 	)
+
+	const tickAutoScrollDuringDrag = useCallback(() => {
+		const mut = rMutables.current
+		const container = rSortableContainer.current
+		if (mut.status !== 'dragging' || !container) {
+			mut.autoScrollScheduled = false
+			return
+		}
+		const rect = container.getBoundingClientRect()
+		const fromTop = mut.lastClientY - rect.top
+		const fromBottom = rect.bottom - mut.lastClientY
+		const maxScroll = container.scrollHeight - container.clientHeight
+		let dy = 0
+		if (fromTop < AUTO_SCROLL_ZONE && container.scrollTop > 0) {
+			const depth = AUTO_SCROLL_ZONE - Math.max(fromTop, 0)
+			dy = -Math.ceil((depth / AUTO_SCROLL_ZONE) * MAX_AUTO_SCROLL_SPEED)
+		} else if (fromBottom < AUTO_SCROLL_ZONE && container.scrollTop < maxScroll) {
+			const depth = AUTO_SCROLL_ZONE - Math.max(fromBottom, 0)
+			dy = Math.ceil((depth / AUTO_SCROLL_ZONE) * MAX_AUTO_SCROLL_SPEED)
+		}
+		if (dy !== 0) {
+			const before = container.scrollTop
+			container.scrollTop = Math.max(0, Math.min(maxScroll, before + dy))
+			if (container.scrollTop !== before) {
+				updateDragFromPointer(mut.lastClientY)
+			}
+		}
+		editor.timers.requestAnimationFrame(tickAutoScrollDuringDrag)
+	}, [editor, updateDragFromPointer])
+
+	const ensureAutoScrollLoop = useCallback(() => {
+		const mut = rMutables.current
+		if (mut.autoScrollScheduled) return
+		mut.autoScrollScheduled = true
+		editor.timers.requestAnimationFrame(tickAutoScrollDuringDrag)
+	}, [editor, tickAutoScrollDuringDrag])
+
+	const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+		const { clientY, currentTarget } = e
+		const { id, index } = currentTarget.dataset
+		if (!id || index === undefined) return
+
+		const mut = rMutables.current
+		setPointerCapture(currentTarget, e)
+		mut.status = 'pointing'
+		mut.id = id as TLPageId
+		mut.startIndex = +index
+		mut.dragIndex = +index
+		mut.startY = clientY
+		mut.lastClientY = clientY
+		mut.startScrollTop = rSortableContainer.current?.scrollTop ?? 0
+	}, [])
 
 	const handlePointerMove = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {
 			const mut = rMutables.current
+			const { clientY } = e
 			if (mut.status === 'pointing') {
-				const { clientY } = e
-				const offset = clientY - mut.startY
-				if (Math.abs(offset) > 5) {
-					mut.status = 'dragging'
-					setDraggingPageId(mut.pointing!.id as TLPageId)
-				}
+				if (Math.abs(clientY - mut.startY) <= DRAG_THRESHOLD) return
+				mut.status = 'dragging'
+				mut.lastClientY = clientY
+				ensureAutoScrollLoop()
 			}
-
 			if (mut.status === 'dragging') {
-				const { clientY } = e
-				const offsetY = clientY - mut.startY
-				const current = sortablePositionItems[mut.pointing!.id]
-
-				const { startIndex, pointing } = mut
-				const dragY = current.y + offsetY
-				const dragIndex = Math.max(0, Math.min(Math.round(dragY / ITEM_HEIGHT), pages.length - 1))
-
-				const next = { ...sortablePositionItems }
-				next[pointing!.id] = {
-					y: current.y,
-					offsetY,
-					isSelected: true,
-				}
-
-				if (dragIndex !== mut.dragIndex) {
-					mut.dragIndex = dragIndex
-
-					for (let i = 0; i < pages.length; i++) {
-						const item = pages[i]
-						if (item.id === mut.pointing!.id) {
-							continue
-						}
-
-						let { y } = next[item.id]
-
-						if (dragIndex === startIndex) {
-							y = i * ITEM_HEIGHT
-						} else if (dragIndex < startIndex) {
-							if (dragIndex <= i && i < startIndex) {
-								y = (i + 1) * ITEM_HEIGHT
-							} else {
-								y = i * ITEM_HEIGHT
-							}
-						} else if (dragIndex > startIndex) {
-							if (dragIndex >= i && i > startIndex) {
-								y = (i - 1) * ITEM_HEIGHT
-							} else {
-								y = i * ITEM_HEIGHT
-							}
-						}
-
-						if (y !== next[item.id].y) {
-							next[item.id] = { y, offsetY: 0, isSelected: true }
-						}
-					}
-				}
-
-				setSortablePositionItems(next)
+				updateDragFromPointer(clientY)
 			}
 		},
-		[ITEM_HEIGHT, pages, sortablePositionItems]
+		[ensureAutoScrollLoop, updateDragFromPointer]
 	)
 
 	const handlePointerUp = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {
 			const mut = rMutables.current
-
-			if (mut.status === 'dragging') {
-				const { id, index } = mut.pointing!
-				onMovePage(editor, id as TLPageId, index, mut.dragIndex, trackEvent)
+			if (mut.status === 'dragging' && mut.id) {
+				onMovePage(editor, mut.id, mut.startIndex, mut.dragIndex, trackEvent)
 				mut.justDragged = true
 			}
-
 			releasePointerCapture(e.currentTarget, e)
 			mut.status = 'idle'
-			setDraggingPageId(null)
+			mut.id = null
+			setDragState(null)
 		},
 		[editor, trackEvent]
 	)
 
-	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLButtonElement>) => {
-			const mut = rMutables.current
-			if (e.key === 'Escape') {
-				if (mut.status === 'dragging') {
-					setSortablePositionItems(
-						Object.fromEntries(
-							pages.map((page, i) => [
-								page.id,
-								{ y: i * ITEM_HEIGHT, offsetY: 0, isSelected: false },
-							])
-						)
-					)
-				}
-
-				mut.status = 'idle'
-			}
-		},
-		[ITEM_HEIGHT, pages]
-	)
+	const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {
+		const mut = rMutables.current
+		// Pointer capture is naturally released on the eventual pointer up,
+		// at which point the idle status makes the up handler a no-op.
+		if (e.key === 'Escape' && mut.status !== 'idle') {
+			mut.status = 'idle'
+			mut.id = null
+			setDragState(null)
+		}
+	}, [])
 
 	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
 
@@ -361,12 +349,23 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						ref={rSortableContainer}
 					>
 						{pages.map((page, index) => {
-							const position = sortablePositionItems[page.id] ?? {
-								y: index * ITEM_HEIGHT,
-								offsetY: 0,
-							}
 							const isCurrentPage = page.id === currentPage.id
 							const isRenamingThisPage = editingPageId === page.id
+							const isDragging = dragState?.id === page.id
+
+							let y = index * ITEM_HEIGHT
+							if (dragState) {
+								if (isDragging) {
+									y = dragState.startIndex * ITEM_HEIGHT + dragState.offsetY
+								} else {
+									const { startIndex, dragIndex } = dragState
+									if (dragIndex < startIndex && index >= dragIndex && index < startIndex) {
+										y = (index + 1) * ITEM_HEIGHT
+									} else if (dragIndex > startIndex && index > startIndex && index <= dragIndex) {
+										y = (index - 1) * ITEM_HEIGHT
+									}
+								}
+							}
 
 							return (
 								<div
@@ -374,11 +373,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 									data-pageid={page.id}
 									data-testid="page-menu.item"
 									data-iscurrent={isCurrentPage}
-									data-dragging={draggingPageId === page.id}
+									data-dragging={isDragging}
 									className="tlui-page_menu__item__sortable"
 									style={{
 										zIndex: isCurrentPage ? 888 : index,
-										transform: `translate(0px, ${position.y + position.offsetY}px)`,
+										transform: `translate(0px, ${y}px)`,
 									}}
 								>
 									{isRenamingThisPage ? (
