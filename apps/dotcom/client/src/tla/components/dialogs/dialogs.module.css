@@ -36,8 +36,7 @@
 }
 
 .feedbackDialogCheckbox {
-	align-self: flex-start;
-	padding-left: 0;
+	margin-right: auto;
 }
 
 /* --------------------- Cookie --------------------- */

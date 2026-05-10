@@ -165,6 +165,8 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 					className={styles.feedbackDialogTextArea}
 					ref={rInput}
 				/>
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton
 					type="normal"
 					onClick={() => setIncludeFileLink((v) => !v)}
@@ -175,8 +177,6 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 						<F defaultMessage="Include link to current file" />
 					</TldrawUiButtonLabel>
 				</TldrawUiButton>
-			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={onClose}>
 					<TldrawUiButtonLabel>
 						<F defaultMessage="Cancel" />
