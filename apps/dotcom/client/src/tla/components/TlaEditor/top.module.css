@@ -202,6 +202,7 @@ button.topLeftInputNameWidthSetter {
 
 .topLeftMainMenuTrigger[data-state='open']::after {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
 }
 
 /* ------------------- Top right ------------------ */
