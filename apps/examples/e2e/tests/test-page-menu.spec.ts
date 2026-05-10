@@ -340,11 +340,8 @@ test.describe('page menu', () => {
 	})
 
 	test.describe('You can drag and drop pages to reorder them', () => {
-		test('You can enter drag and drop mode and drag a page to a new position', async ({
-			page,
-			pageMenu,
-		}) => {
-			const { pagemenuButton, editButton } = pageMenu
+		test('Pages can be reordered by dragging the row itself', async ({ page, pageMenu }) => {
+			const { pagemenuButton } = pageMenu
 
 			await test.step('create multiple pages for reordering', async () => {
 				await pagemenuButton.click()
@@ -357,24 +354,13 @@ test.describe('page menu', () => {
 				await page.keyboard.press('Escape')
 			})
 
-			await test.step('enter edit mode', async () => {
+			await test.step('drag page to new position by its row', async () => {
 				await pagemenuButton.click()
-				await editButton.click()
-				// Should see drag handles
-				await expect(page.locator('.tlui-page_menu__item__sortable__handle').first()).toBeVisible()
-			})
-
-			await test.step('drag page to new position', async () => {
-				const dragHandle = page.locator('.tlui-page_menu__item__sortable__handle').first()
+				const firstItem = await pageMenu.getPageItem(0)
 				const secondItem = await pageMenu.getPageItem(1)
+				const firstButton = firstItem.locator('.tlui-page-menu__item__button')
 
-				// Perform drag operation
-				await dragHandle.dragTo(secondItem)
-			})
-
-			await test.step('exit edit mode', async () => {
-				await editButton.click()
-				await expect(page.locator('.tlui-page_menu__item__sortable__handle').first()).toBeHidden()
+				await firstButton.dragTo(secondItem)
 			})
 		})
 	})

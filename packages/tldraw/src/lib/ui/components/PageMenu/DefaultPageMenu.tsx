@@ -14,10 +14,8 @@ import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
-import { TldrawUiRow } from '../primitives/layout'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
@@ -34,7 +32,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
-	const handleOpenChange = useCallback(() => setIsEditing(false), [])
+	const handleOpenChange = useCallback(() => setEditingPageId(null), [])
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('page-menu', handleOpenChange)
 
@@ -46,10 +44,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const currentPage = useValue('currentPage', () => editor.getCurrentPage(), [editor])
 	const currentPageId = useValue('currentPageId', () => editor.getCurrentPageId(), [editor])
 
-	// When in readonly mode, we don't allow a user to edit the pages
 	const isReadonlyMode = useReadonly()
 
-	// If the user has reached the max page count, we disable the "add page" button
 	const maxPageCountReached = useValue(
 		'maxPageCountReached',
 		() => editor.getPages().length >= editor.options.maxPages,
@@ -62,14 +58,14 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		[editor]
 	)
 
-	// The component has an "editing state" that may be toggled to expose additional controls
-	const [isEditing, setIsEditing] = useState(false)
+	// The id of the page currently being renamed inline, if any.
+	const [editingPageId, setEditingPageId] = useState<TLPageId | null>(null)
 
 	useEffect(
 		function closePageMenuOnEnterPressAfterPressingEnterToConfirmRename() {
 			const doc = editor.getContainerDocument()
 			function handleKeyDown() {
-				if (isEditing) return
+				if (editingPageId) return
 				if (doc.activeElement === doc.body) {
 					editor.menus.clearOpenMenus()
 				}
@@ -80,13 +76,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				doc.removeEventListener('keydown', handleKeyDown)
 			}
 		},
-		[editor, isEditing]
+		[editor, editingPageId]
 	)
-
-	const toggleEditing = useCallback(() => {
-		if (isReadonlyMode) return
-		setIsEditing((s) => !s)
-	}, [isReadonlyMode])
 
 	const rMutables = useRef({
 		isPointing: false,
@@ -95,7 +86,14 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		startY: 0,
 		startIndex: 0,
 		dragIndex: 0,
+		// Set true on pointer-up after a drag, so the synthetic click that
+		// follows pointer-up doesn't also navigate to the dragged page.
+		justDragged: false,
 	})
+
+	// Which page (if any) is currently being dragged. Used to apply the
+	// grabbing cursor only during an active drag — never on hover.
+	const [draggingPageId, setDraggingPageId] = useState<TLPageId | null>(null)
 
 	const [sortablePositionItems, setSortablePositionItems] = useState(
 		Object.fromEntries(
@@ -103,7 +101,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		)
 	)
 
-	// Update the sortable position items when the pages change
 	useLayoutEffect(() => {
 		setSortablePositionItems(
 			Object.fromEntries(
@@ -120,19 +117,19 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			const elm = doc.querySelector(`[data-pageid="${currentPageId}"]`) as HTMLDivElement
 
 			if (elm) {
-				elm.querySelector('button')?.focus()
+				;(
+					elm.querySelector('button.tlui-page-menu__item__button') as HTMLButtonElement | null
+				)?.focus()
 
 				const container = rSortableContainer.current
 				if (!container) return
 				// Scroll into view is slightly borked on iOS Safari
 
-				// if top of less than top cuttoff, scroll into view at top
 				const elmTopPosition = elm.offsetTop
 				const containerScrollTopPosition = container.scrollTop
 				if (elmTopPosition < containerScrollTopPosition) {
 					container.scrollTo({ top: elmTopPosition })
 				}
-				// if bottom position is greater than bottom cutoff, scroll into view at bottom
 				const elmBottomPosition = elmTopPosition + ITEM_HEIGHT
 				const containerScrollBottomPosition = container.scrollTop + container.offsetHeight
 				if (elmBottomPosition > containerScrollBottomPosition) {
@@ -174,6 +171,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				const offset = clientY - mut.startY
 				if (Math.abs(offset) > 5) {
 					mut.status = 'dragging'
+					setDraggingPageId(mut.pointing!.id as TLPageId)
 				}
 			}
 
@@ -239,10 +237,12 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			if (mut.status === 'dragging') {
 				const { id, index } = mut.pointing!
 				onMovePage(editor, id as TLPageId, index, mut.dragIndex, trackEvent)
+				mut.justDragged = true
 			}
 
 			releasePointerCapture(e.currentTarget, e)
 			mut.status = 'idle'
+			setDraggingPageId(null)
 		},
 		[editor, trackEvent]
 	)
@@ -250,7 +250,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLButtonElement>) => {
 			const mut = rMutables.current
-			// bail on escape
 			if (e.key === 'Escape') {
 				if (mut.status === 'dragging') {
 					setSortablePositionItems(
@@ -269,28 +268,39 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		[ITEM_HEIGHT, pages]
 	)
 
+	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
+
+	const startRenamingPage = useCallback(
+		(id: TLPageId, currentName: string) => {
+			if (isReadonlyMode) return
+			if (shouldUseWindowPrompt) {
+				const name = window.prompt(msg('action.rename'), currentName)
+				if (name && name !== currentName) {
+					editor.renamePage(id, name)
+					trackEvent('rename-page', { source: 'page-menu' })
+				}
+				return
+			}
+			setEditingPageId(id)
+		},
+		[editor, msg, isReadonlyMode, shouldUseWindowPrompt, trackEvent]
+	)
+
 	const handleCreatePageClick = useCallback(() => {
 		if (isReadonlyMode) return
 
+		const newPageId = PageRecordType.createId()
+		const initialName = msg('page-menu.new-page-initial-name')
+
 		editor.run(() => {
 			editor.markHistoryStoppingPoint('creating page')
-			const newPageId = PageRecordType.createId()
-			editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
+			editor.createPage({ name: initialName, id: newPageId })
 			editor.setCurrentPage(newPageId)
-
-			setIsEditing(true)
-
-			editor.timers.requestAnimationFrame(() => {
-				const doc = editor.getContainerDocument()
-				const elm = doc.querySelector(`[data-pageid="${newPageId}"]`) as HTMLDivElement
-
-				if (elm) {
-					elm.querySelector('button')?.focus()
-				}
-			})
 		})
+
+		startRenamingPage(newPageId, initialName)
 		trackEvent('new-page', { source: 'page-menu' })
-	}, [editor, msg, isReadonlyMode, trackEvent])
+	}, [editor, msg, isReadonlyMode, startRenamingPage, trackEvent])
 
 	const changePage = useCallback(
 		(id: TLPageId) => {
@@ -299,16 +309,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		},
 		[editor, trackEvent]
 	)
-
-	const renamePage = useCallback(
-		(id: TLPageId, name: string) => {
-			editor.renamePage(id, name)
-			trackEvent('rename-page', { source: 'page-menu' })
-		},
-		[editor, trackEvent]
-	)
-
-	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
 
 	return (
 		<TldrawUiPopover id="pages" onOpenChange={onOpenChange} open={isOpen}>
@@ -328,41 +328,30 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				side="bottom"
 				align="start"
 				sideOffset={0}
-				disableEscapeKeyDown={isEditing}
+				disableEscapeKeyDown={editingPageId !== null}
 			>
 				<div className="tlui-page-menu__wrapper">
 					<div className="tlui-page-menu__header">
 						<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
 						{!isReadonlyMode && (
-							<TldrawUiRow>
-								<TldrawUiButton
-									type="icon"
-									data-testid="page-menu.edit"
-									tooltip={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
-									title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
-									onClick={toggleEditing}
-								>
-									<TldrawUiButtonIcon icon={isEditing ? 'check' : 'edit'} />
-								</TldrawUiButton>
-								<TldrawUiButton
-									type="icon"
-									data-testid="page-menu.create"
-									tooltip={msg(
-										maxPageCountReached
-											? 'page-menu.max-page-count-reached'
-											: 'page-menu.create-new-page'
-									)}
-									title={msg(
-										maxPageCountReached
-											? 'page-menu.max-page-count-reached'
-											: 'page-menu.create-new-page'
-									)}
-									disabled={maxPageCountReached}
-									onClick={handleCreatePageClick}
-								>
-									<TldrawUiButtonIcon icon="plus" />
-								</TldrawUiButton>
-							</TldrawUiRow>
+							<TldrawUiButton
+								type="icon"
+								data-testid="page-menu.create"
+								tooltip={msg(
+									maxPageCountReached
+										? 'page-menu.max-page-count-reached'
+										: 'page-menu.create-new-page'
+								)}
+								title={msg(
+									maxPageCountReached
+										? 'page-menu.max-page-count-reached'
+										: 'page-menu.create-new-page'
+								)}
+								disabled={maxPageCountReached}
+								onClick={handleCreatePageClick}
+							>
+								<TldrawUiButtonIcon icon="plus" small />
+							</TldrawUiButton>
 						)}
 					</div>
 					<div
@@ -373,122 +362,75 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 					>
 						{pages.map((page, index) => {
 							const position = sortablePositionItems[page.id] ?? {
-								position: index * 40,
+								y: index * ITEM_HEIGHT,
 								offsetY: 0,
 							}
+							const isCurrentPage = page.id === currentPage.id
+							const isRenamingThisPage = editingPageId === page.id
 
-							return isEditing ? (
-								<div
-									key={page.id + '_editing'}
-									data-testid="page-menu.item"
-									data-pageid={page.id}
-									className="tlui-page_menu__item__sortable"
-									style={{
-										zIndex: page.id === currentPage.id ? 888 : index,
-										transform: `translate(0px, ${position.y + position.offsetY}px)`,
-									}}
-								>
-									<TldrawUiButton
-										type="icon"
-										tabIndex={-1}
-										className="tlui-page_menu__item__sortable__handle"
-										onPointerDown={handlePointerDown}
-										onPointerUp={handlePointerUp}
-										onPointerMove={handlePointerMove}
-										onKeyDown={handleKeyDown}
-										data-id={page.id}
-										data-index={index}
-									>
-										<TldrawUiButtonIcon icon="drag-handle-dots" />
-									</TldrawUiButton>
-									{shouldUseWindowPrompt ? (
-										// sigh, this is a workaround for iOS Safari
-										// because the device and the radix popover seem
-										// to be fighting over scroll position. Nothing
-										// else seems to work!
-										<TldrawUiButton
-											type="normal"
-											className="tlui-page-menu__item__button"
-											onClick={() => {
-												const name = window.prompt(msg('action.rename'), page.name)
-												if (name && name !== page.name) {
-													renamePage(page.id, name)
-												}
-											}}
-											onDoubleClick={toggleEditing}
-										>
-											<TldrawUiButtonCheck checked={page.id === currentPage.id} />
-											<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
-										</TldrawUiButton>
-									) : (
-										<div
-											className="tlui-page_menu__item__sortable__title"
-											style={{ height: ITEM_HEIGHT }}
-										>
-											<PageItemInput
-												id={page.id}
-												name={page.name}
-												isCurrentPage={page.id === currentPage.id}
-												onComplete={() => {
-													setIsEditing(false)
-												}}
-												onCancel={() => {
-													setIsEditing(false)
-												}}
-											/>
-										</div>
-									)}
-									{!isReadonlyMode && (
-										<div className="tlui-page_menu__item__submenu" data-isediting={isEditing}>
-											<PageItemSubmenu index={index} item={page} listSize={pages.length} />
-										</div>
-									)}
-								</div>
-							) : (
+							return (
 								<div
 									key={page.id}
 									data-pageid={page.id}
 									data-testid="page-menu.item"
-									className="tlui-page-menu__item"
+									data-iscurrent={isCurrentPage}
+									data-dragging={draggingPageId === page.id}
+									className="tlui-page_menu__item__sortable"
+									style={{
+										zIndex: isCurrentPage ? 888 : index,
+										transform: `translate(0px, ${position.y + position.offsetY}px)`,
+									}}
 								>
-									<TldrawUiButton
-										type="normal"
-										className="tlui-page-menu__item__button"
-										onClick={() => changePage(page.id)}
-										onDoubleClick={toggleEditing}
-										tooltip={msg('page-menu.go-to-page')}
-										title={msg('page-menu.go-to-page')}
-										onKeyDown={(e) => {
-											if (e.key === 'Enter') {
-												if (page.id === currentPage.id) {
-													toggleEditing()
+									{isRenamingThisPage ? (
+										<div className="tlui-page_menu__item__sortable__title" style={{ height: 40 }}>
+											<PageItemInput
+												id={page.id}
+												name={page.name}
+												isCurrentPage={isCurrentPage}
+												onComplete={() => setEditingPageId(null)}
+												onCancel={() => setEditingPageId(null)}
+											/>
+										</div>
+									) : (
+										<TldrawUiButton
+											type="normal"
+											className="tlui-page-menu__item__button"
+											onClick={() => {
+												if (rMutables.current.justDragged) {
+													rMutables.current.justDragged = false
+													return
+												}
+												changePage(page.id)
+											}}
+											onDoubleClick={() => startRenamingPage(page.id, page.name)}
+											onPointerDown={isReadonlyMode ? undefined : handlePointerDown}
+											onPointerMove={isReadonlyMode ? undefined : handlePointerMove}
+											onPointerUp={isReadonlyMode ? undefined : handlePointerUp}
+											tooltip={msg('page-menu.go-to-page')}
+											title={msg('page-menu.go-to-page')}
+											data-id={page.id}
+											data-index={index}
+											onKeyDown={(e) => {
+												if (e.key === 'Escape') {
+													handleKeyDown(e)
+													return
+												}
+												if (e.key === 'Enter' && isCurrentPage) {
+													startRenamingPage(page.id, page.name)
 													editor.markEventAsHandled(e)
 												}
-											}
-										}}
-									>
-										<TldrawUiButtonCheck checked={page.id === currentPage.id} />
-										<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
-									</TldrawUiButton>
+											}}
+										>
+											<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
+										</TldrawUiButton>
+									)}
 									{!isReadonlyMode && (
 										<div className="tlui-page_menu__item__submenu">
 											<PageItemSubmenu
 												index={index}
 												item={page}
 												listSize={pages.length}
-												onRename={() => {
-													if (shouldUseWindowPrompt) {
-														const name = window.prompt(msg('action.rename'), page.name)
-														if (name && name !== page.name) {
-															renamePage(page.id, name)
-														}
-													} else {
-														setIsEditing(true)
-														if (currentPageId !== page.id) {
-															changePage(page.id)
-														}
-													}
-												}}
+												onRename={() => startRenamingPage(page.id, page.name)}
 											/>
 										</div>
 									)}

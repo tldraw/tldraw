@@ -795,11 +795,6 @@
 	width: 100%;
 	height: 40px;
 	padding-inline-start: var(--tl-space-4);
-	border-bottom: 1px solid var(--tl-color-divider);
-}
-
-.tlui-page-menu__header > .tlui-button:nth-of-type(1) {
-	margin-right: -4px;
 }
 
 .tlui-page-menu__header__title {
@@ -826,31 +821,20 @@
 	touch-action: auto;
 }
 
-.tlui-page-menu__item {
-	position: relative;
-}
-
-.tlui-page_menu__item__submenu[data-isediting='true'] > .tlui-button[data-state='open'] {
-	opacity: 1;
-}
-
 @media (hover: hover) {
-	.tlui-page-menu__item:hover > .tlui-page_menu__item__submenu > .tlui-button {
+	.tlui-page_menu__item__sortable:hover > .tlui-page_menu__item__submenu > .tlui-button {
+		opacity: 1;
+	}
+
+	/* Keep the row's hover background visible while the kebab inside it is
+	   hovered, so hovering the kebab doesn't drop the row highlight. */
+	.tlui-page_menu__item__sortable:hover > .tlui-page-menu__item__button::after {
 		opacity: 1;
 	}
 }
 
-.tlui-page-menu__item:nth-of-type(n + 2) {
-	margin-top: -4px;
-}
-
 .tlui-page-menu__item__button {
 	width: 100%;
-}
-
-.tlui-page-menu__item__button:not(:only-child) {
-	flex-grow: 2;
-	margin-inline-end: -2px;
 }
 
 .tlui-page-menu__item__button > span {
@@ -871,24 +855,9 @@
 		padding-inline-end: 0px;
 	}
 
-	.tlui-page-menu__item:hover > .tlui-page-menu__item__button > span {
+	.tlui-page_menu__item__sortable:hover > .tlui-page-menu__item__button > span {
 		padding-inline-end: calc(40px - 12px);
 	}
-}
-
-.tlui-page-menu__item__button__checkbox {
-	padding-inline-start: 35px;
-}
-
-.tlui-page-menu__item__button__check {
-	position: absolute;
-	inset-inline-start: 0px;
-	width: 24px;
-	padding-inline-start: 10px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--tl-color-text);
 }
 
 .tlui-page_menu__item__sortable {
@@ -904,8 +873,23 @@
 	z-index: var(--tl-layer-above);
 }
 
+.tlui-page_menu__item__sortable[data-iscurrent='true'] > .tlui-page-menu__item__button::after {
+	background: var(--tl-color-hint);
+	opacity: 1;
+}
+
 .tlui-page_menu__item__sortable__title {
 	flex: 1;
+	position: relative;
+}
+
+.tlui-page_menu__item__sortable__title::before {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	border-radius: var(--tl-radius-2);
+	border: 1px solid var(--tl-color-primary);
+	pointer-events: none;
 }
 
 .tlui-page_menu__item__sortable__title > .tlui-input__wrapper {
@@ -916,18 +900,8 @@
 	z-index: var(--tl-layer-focused-input);
 }
 
-.tlui-page_menu__item__sortable__handle {
-	touch-action: none;
-	width: 32px;
-	min-width: 0px;
-	height: 40px;
-	cursor: grab;
-	color: var(--tl-color-text-3);
-	flex-shrink: 0;
-	margin-inline-end: -9px;
-}
-
-.tlui-page_menu__item__sortable__handle:active {
+.tlui-page_menu__item__sortable[data-dragging='true'],
+.tlui-page_menu__item__sortable[data-dragging='true'] .tlui-page-menu__item__button {
 	cursor: grabbing;
 }
 
@@ -936,9 +910,9 @@
 	height: 100%;
 }
 
-/* The more menu has complex CSS here: */
-/* If the user can hover, then visible but opacity zero until hover */
-/* If the user cannot hover, then not displayed unless editing, and then opacity 1 */
+/* The submenu kebab follows the dotcom sidebar pattern: hidden by default, */
+/* fades in on row hover (or always on coarse pointers), with no background  */
+/* of its own. */
 
 .tlui-page_menu__item__submenu {
 	pointer-events: all;
@@ -954,39 +928,27 @@
 
 .tlui-page_menu__item__submenu > .tlui-button {
 	opacity: 0;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-page_menu__item__submenu > .tlui-button::after {
+	content: none;
 }
 
 .tlui-page_menu__item__sortable:focus-visible > .tlui-page_menu__item__submenu > .tlui-button,
-.tlui-page_menu__item__submenu[data-isediting='true'],
 .tlui-page_menu__item__submenu > .tlui-button[data-state='open'],
 .tlui-page_menu__item__submenu > .tlui-button:focus-visible {
 	opacity: 1;
 }
 
-.tlui-page_menu__item__submenu > .tlui-button[data-state='open']::after {
-	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+.tl-container[data-coarse='true'] .tlui-page_menu__item__submenu > .tlui-button {
 	opacity: 1;
-}
-
-.tl-container[dir='rtl'] .tlui-page_menu__item__submenu > .tlui-button[data-state='open']::after {
-	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 }
 
 @media (hover: hover) {
-	.tlui-page_menu__item__submenu > .tlui-button[data-state='open']:not(:hover)::after {
-		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
-		opacity: 1;
+	.tlui-page_menu__item__submenu > .tlui-button:hover {
+		color: var(--tl-color-text);
 	}
-
-	.tl-container[dir='rtl']
-		.tlui-page_menu__item__submenu
-		> .tlui-button[data-state='open']:not(:hover)::after {
-		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
-	}
-}
-
-.tl-container[data-coarse='true'] .tlui-page_menu__item__submenu > .tlui-button {
-	opacity: 1;
 }
 
 .tlui-button__icon {
@@ -995,16 +957,6 @@
 
 .tlui-page-menu__item__button .tlui-button__icon {
 	margin-inline-end: 4px;
-}
-
-@media (hover: hover) {
-	.tlui-page_menu__item__submenu[data-isediting='true'] > .tlui-button {
-		opacity: 0;
-	}
-
-	.tlui-page_menu__item__submenu:hover > .tlui-button {
-		opacity: 1;
-	}
 }
 
 /* -------------- Skip to main content -------------- */
