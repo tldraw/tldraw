@@ -35,6 +35,11 @@
 	color: var(--tl-color-text-3);
 }
 
+.feedbackDialogCheckbox {
+	align-self: flex-start;
+	padding-left: 0;
+}
+
 /* --------------------- Cookie --------------------- */
 
 .cookieConsent {
