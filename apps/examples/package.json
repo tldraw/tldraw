@@ -62,12 +62,14 @@
 		"react-helmet-async": "^1.3.0",
 		"react-router-dom": "^6.28.2",
 		"tldraw": "workspace:*",
-		"vite": "^7.0.1"
+		"vite": "^7.0.1",
+		"ws": "^8.18.0"
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.17.14",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
+		"@types/ws": "^8.5.13",
 		"@vitejs/plugin-react-swc": "^3.10.2",
 		"dotenv": "^16.4.7",
 		"remark": "^15.0.1",

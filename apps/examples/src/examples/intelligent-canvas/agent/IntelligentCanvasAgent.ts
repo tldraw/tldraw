@@ -32,6 +32,32 @@ export interface AgentCallbacks {
 	onStatusChange: (status: AgentStatus, message?: string) => void
 }
 
+/** Result emitted when the agent finishes a voice command. */
+export interface VoiceCommandResult {
+	/** What the agent intended to say. Empty if the response had no speech. */
+	speech: string
+	/** Canvas items the agent placed, in order. */
+	canvasItems: CanvasItem[]
+	/** Shape IDs of the placed canvas items (parallel to canvasItems). */
+	placedShapeIds: TLShapeId[]
+}
+
+/** Options for delegating a voice command to the heavy agent. */
+export interface VoiceCommandOptions {
+	/**
+	 * When true, skip the agent's own TTS step (ElevenLabs / browser speech).
+	 * The camera tour still runs (on estimated timing) so visuals are synced.
+	 * Used when an upstream voice channel (e.g. Gemini Live) is doing the talking.
+	 */
+	silent?: boolean
+	/**
+	 * Called once the agent has placed shapes and is ready for an upstream
+	 * voice channel to narrate. Lets a Live caller feed `result.speech` back
+	 * into its model and run a synced camera tour.
+	 */
+	onResult?: (result: VoiceCommandResult) => void
+}
+
 export class IntelligentCanvasAgent {
 	private editor: Editor
 	private callbacks: AgentCallbacks
@@ -42,6 +68,7 @@ export class IntelligentCanvasAgent {
 		text: string
 		nearbyShapes: ShapeContext[]
 		textShapeId: TLShapeId | null
+		options: VoiceCommandOptions
 	} | null = null
 
 	constructor(editor: Editor, callbacks: AgentCallbacks) {
@@ -85,10 +112,10 @@ export class IntelligentCanvasAgent {
 		const searchArea = textBounds.clone().expandBy(NEARBY_MARGIN)
 		const nearbyShapes = findNearbyShapes(this.editor, searchArea)
 
-		this.enqueue(text, nearbyShapes, shapeId)
+		this.enqueue(text, nearbyShapes, shapeId, {})
 	}
 
-	handleVoiceCommand(text: string) {
+	handleVoiceCommand(text: string, options: VoiceCommandOptions = {}) {
 		const { x, y } = this.editor.getViewportScreenCenter()
 		const center = this.editor.screenToPage({ x, y })
 		const searchArea = new Box(
@@ -99,30 +126,35 @@ export class IntelligentCanvasAgent {
 		)
 		const nearbyShapes = findNearbyShapes(this.editor, searchArea)
 
-		this.enqueue(`[Voice input] ${text}`, nearbyShapes, null)
+		return this.enqueue(`[Voice input] ${text}`, nearbyShapes, null, options)
 	}
 
-	private enqueue(text: string, nearbyShapes: ShapeContext[], textShapeId: TLShapeId | null) {
+	private enqueue(
+		text: string,
+		nearbyShapes: ShapeContext[],
+		textShapeId: TLShapeId | null,
+		options: VoiceCommandOptions
+	): Promise<void> {
 		if (this.processing) {
-			// Queue command — will run when current pipeline finishes
-			this.pendingCommand = { text, nearbyShapes, textShapeId }
-			return
+			this.pendingCommand = { text, nearbyShapes, textShapeId, options }
+			return Promise.resolve()
 		}
-		this.runAgentPipeline(text, nearbyShapes, textShapeId)
+		return this.runAgentPipeline(text, nearbyShapes, textShapeId, options)
 	}
 
 	private drainQueue() {
 		if (this.pendingCommand) {
-			const { text, nearbyShapes, textShapeId } = this.pendingCommand
+			const { text, nearbyShapes, textShapeId, options } = this.pendingCommand
 			this.pendingCommand = null
-			this.runAgentPipeline(text, nearbyShapes, textShapeId)
+			void this.runAgentPipeline(text, nearbyShapes, textShapeId, options)
 		}
 	}
 
 	private async runAgentPipeline(
 		text: string,
 		nearbyShapes: ShapeContext[],
-		textShapeId: TLShapeId | null
+		textShapeId: TLShapeId | null,
+		options: VoiceCommandOptions = {}
 	) {
 		this.processing = true
 		this.callbacks.onStatusChange('thinking', 'Agent thinking...')
@@ -254,7 +286,14 @@ export class IntelligentCanvasAgent {
 
 			// Execute the orchestrator response: voice + canvas
 			if (orchestratorResponse) {
-				await this.executeResponse(orchestratorResponse, highlightBounds)
+				await this.executeResponse(orchestratorResponse, highlightBounds, options.silent === true)
+				// Notify caller (e.g. Live voice controller) so it can narrate
+				// the speech via its own audio channel.
+				options.onResult?.({
+					speech: orchestratorResponse.speech ?? '',
+					canvasItems: orchestratorResponse.canvas ?? [],
+					placedShapeIds: this.placedShapeIds.slice(),
+				})
 			}
 
 			this.callbacks.onStatusChange('idle')
@@ -276,7 +315,8 @@ export class IntelligentCanvasAgent {
 	/** Execute the orchestrator response: place canvas items immediately, play audio, animate camera. */
 	private async executeResponse(
 		response: OrchestratorResponse,
-		highlightBounds: Box | null = null
+		highlightBounds: Box | null = null,
+		silent = false
 	) {
 		this.callbacks.onStatusChange('thinking', 'Preparing canvas...')
 
@@ -300,8 +340,15 @@ export class IntelligentCanvasAgent {
 			}
 		}
 
-		// 3. Speech + camera tour (only if speech was provided)
-		if (response.speech) {
+		// 3. Speech + camera tour
+		// In silent mode, an upstream voice channel will narrate. We still
+		// need a camera tour for visuals — schedule it on estimated timing.
+		if (response.speech && silent) {
+			if (this.placedShapeIds.length > 0) {
+				this.scheduleFallbackCameraTour(response.speech, canvasItems)
+			}
+		}
+		if (response.speech && !silent) {
 			if (USE_BROWSER_TTS) {
 				// Use the browser's built-in speechSynthesis API
 				this.callbacks.onStatusChange('thinking', 'Speaking...')

@@ -479,11 +479,25 @@ async function executeWikipediaSearch(input: Record<string, unknown>): Promise<T
 	const topic = input.topic as string
 
 	try {
-		const encoded = encodeURIComponent(topic)
-		const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`)
+		// 1. Search Wikipedia to find the real article title for this topic.
+		const searchUrl = `https://en.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(
+			topic
+		)}&limit=1&namespace=0&format=json&origin=*`
+		const searchResp = await fetch(searchUrl)
+		if (!searchResp.ok) {
+			return { success: false, message: `Wikipedia search failed for "${topic}"` }
+		}
+		const searchData = (await searchResp.json()) as [string, string[], string[], string[]]
+		const matchedTitle = searchData[1]?.[0]
+		if (!matchedTitle) {
+			return { success: false, message: `No Wikipedia article found for "${topic}"` }
+		}
 
+		// 2. Fetch the summary for that real title.
+		const encoded = encodeURIComponent(matchedTitle)
+		const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`)
 		if (!response.ok) {
-			return { success: false, message: `Wikipedia lookup failed for "${topic}"` }
+			return { success: false, message: `Wikipedia summary failed for "${matchedTitle}"` }
 		}
 
 		const data = (await response.json()) as {
@@ -508,8 +522,11 @@ async function executeWikipediaSearch(input: Record<string, unknown>): Promise<T
 		}
 
 		return { success: true, message, imageUrl, imageWidth, imageHeight }
-	} catch {
-		return { success: false, message: `Failed to search Wikipedia for "${topic}"` }
+	} catch (err) {
+		return {
+			success: false,
+			message: `Failed to search Wikipedia for "${topic}": ${err instanceof Error ? err.message : String(err)}`,
+		}
 	}
 }
 

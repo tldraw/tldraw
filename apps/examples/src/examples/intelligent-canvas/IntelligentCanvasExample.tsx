@@ -7,9 +7,11 @@ import { CompositionOverlay } from './composition/CompositionOverlay'
 import { CompositionPanel } from './composition/CompositionPanel'
 import { TierBordersOverlay } from './composition/TierBordersOverlay'
 import './intelligent-canvas.css'
+import { USE_GEMINI_LIVE } from './lib/constants'
 import { CodeShapeUtil } from './shapes/CodeShapeUtil'
 import { AgentStatusIndicator } from './ui/AgentStatusIndicator'
 import { MicrophoneButton } from './ui/MicrophoneButton'
+import { LiveVoiceController } from './voice/LiveVoiceController'
 
 type CanvasMode = 'assistant' | 'composition'
 
@@ -63,11 +65,19 @@ function InFrontOfTheCanvasContent() {
 			{mode === 'assistant' ? (
 				<>
 					<KeyboardHandler />
-					<MicrophoneButton
-						onTranscript={handleTranscript}
-						disabled={agentStatus === 'thinking' || !agentAvailable}
-						onRecordingChange={setRecording}
-					/>
+					{USE_GEMINI_LIVE ? (
+						<LiveVoiceController
+							agentRef={agentRef}
+							disabled={!agentAvailable}
+							onRecordingChange={setRecording}
+						/>
+					) : (
+						<MicrophoneButton
+							onTranscript={handleTranscript}
+							disabled={agentStatus === 'thinking' || !agentAvailable}
+							onRecordingChange={setRecording}
+						/>
+					)}
 					<AgentStatusIndicator status={agentStatus} message={agentMessage} recording={recording} />
 				</>
 			) : (

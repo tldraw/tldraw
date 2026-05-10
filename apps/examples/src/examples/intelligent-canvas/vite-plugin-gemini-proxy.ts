@@ -1,8 +1,14 @@
 import { execFile, spawn } from 'child_process'
 import fs from 'fs'
+import type { IncomingMessage } from 'http'
 import path from 'path'
+import type { Duplex } from 'stream'
 import { Readable } from 'stream'
 import { loadEnv, type Plugin } from 'vite'
+import { WebSocketServer, WebSocket as WsClient } from 'ws'
+
+const GEMINI_LIVE_WS_URL =
+	'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent'
 
 const GEMINI_URL =
 	'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent'
@@ -34,6 +40,91 @@ export function geminiProxy(): Plugin {
 			server.middlewares.use('/api/gemini/status', (_req, res) => {
 				res.setHeader('Content-Type', 'application/json')
 				res.end(JSON.stringify({ available: !!apiKey }))
+			})
+
+			server.middlewares.use('/api/gemini/live/status', (_req, res) => {
+				res.setHeader('Content-Type', 'application/json')
+				res.end(JSON.stringify({ available: !!apiKey }))
+			})
+
+			// WebSocket proxy: client <-> this dev server <-> Gemini Live API.
+			// We add the API key here so it's never exposed to the browser.
+			const wss = new WebSocketServer({ noServer: true })
+
+			server.httpServer?.on('upgrade', (req: IncomingMessage, socket: Duplex, head: Buffer) => {
+				const url = req.url ?? ''
+				if (!url.startsWith('/api/gemini/live')) return
+				if (!apiKey) {
+					socket.destroy()
+					return
+				}
+				wss.handleUpgrade(req, socket, head, (clientWs) => {
+					const upstreamUrl = `${GEMINI_LIVE_WS_URL}?key=${apiKey}`
+					console.log(`[Gemini Live] ▶ client connected, opening upstream`)
+					const upstream = new WsClient(upstreamUrl)
+
+					const clientQueue: (string | Buffer)[] = []
+					let upstreamOpen = false
+
+					upstream.on('open', () => {
+						upstreamOpen = true
+						console.log(`[Gemini Live] ◀ upstream open`)
+						for (const msg of clientQueue) upstream.send(msg)
+						clientQueue.length = 0
+					})
+
+					upstream.on('message', (data, isBinary) => {
+						if (clientWs.readyState === clientWs.OPEN) {
+							clientWs.send(data, { binary: isBinary })
+						}
+					})
+
+					upstream.on('close', (code, reason) => {
+						const reasonText = reason.toString()
+						console.log(`[Gemini Live] upstream closed code=${code} reason=${reasonText}`)
+						if (clientWs.readyState === clientWs.OPEN) {
+							// Browser WebSocket only accepts 1000 or 3000-4999 in close().
+							// Pass the reason text through (truncated to 123 bytes) on a safe code
+							// so the browser-side handler can surface it.
+							const safeCode = code === 1000 || (code >= 3000 && code <= 4999) ? code : 1011
+							const safeReason = reasonText.slice(0, 120)
+							try {
+								clientWs.close(safeCode, safeReason)
+							} catch {
+								clientWs.close()
+							}
+						}
+					})
+
+					upstream.on('error', (err) => {
+						console.error(`[Gemini Live] upstream error:`, err)
+						if (clientWs.readyState === clientWs.OPEN) clientWs.close(1011, 'upstream error')
+					})
+
+					clientWs.on('message', (data, isBinary) => {
+						const msg = isBinary ? (data as Buffer) : data.toString()
+						if (upstreamOpen) {
+							upstream.send(msg)
+						} else {
+							clientQueue.push(msg)
+						}
+					})
+
+					clientWs.on('close', () => {
+						console.log(`[Gemini Live] client closed`)
+						if (
+							upstream.readyState === upstream.OPEN ||
+							upstream.readyState === upstream.CONNECTING
+						) {
+							upstream.close()
+						}
+					})
+
+					clientWs.on('error', (err) => {
+						console.error(`[Gemini Live] client error:`, err)
+						upstream.close()
+					})
+				})
 			})
 
 			server.middlewares.use('/api/gemini/embed', (req, res) => {
