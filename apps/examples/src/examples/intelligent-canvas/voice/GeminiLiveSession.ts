@@ -337,8 +337,10 @@ export class GeminiLiveSession {
 				if (this.pendingNarration) {
 					console.log(`[Live] turnComplete → flushing queued narration`)
 					const text = this.pendingNarration
+					const cb = this.pendingNarrationOnPlayStart
 					this.pendingNarration = null
-					setTimeout(() => this.dispatchNarration(text), 150)
+					this.pendingNarrationOnPlayStart = null
+					setTimeout(() => this.dispatchNarration(text, cb ?? undefined), 150)
 				}
 			}
 		}
