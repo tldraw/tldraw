@@ -129,7 +129,7 @@
 	left: 0px;
 	right: 0px;
 	bottom: 2px;
-	border-radius: 4px;
+	border-radius: 6px;
 	background-color: var(--tla-color-hover-1);
 	z-index: 0;
 	pointer-events: none;
