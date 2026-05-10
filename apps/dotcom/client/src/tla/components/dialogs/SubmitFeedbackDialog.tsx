@@ -167,16 +167,18 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 				/>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton
-					type="normal"
-					onClick={() => setIncludeFileLink((v) => !v)}
-					className={styles.feedbackDialogCheckbox}
-				>
-					<TldrawUiButtonCheck checked={includeFileLink} />
-					<TldrawUiButtonLabel>
-						<F defaultMessage="Include link to current file" />
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
+				<div className="tlui-dialog__footer__file-link-checkbox">
+					<TldrawUiButton
+						type="normal"
+						onClick={() => setIncludeFileLink((v) => !v)}
+						className={styles.feedbackDialogCheckbox}
+					>
+						<TldrawUiButtonCheck checked={includeFileLink} />
+						<TldrawUiButtonLabel>
+							<F defaultMessage="Include link to current file" />
+						</TldrawUiButtonLabel>
+					</TldrawUiButton>
+				</div>
 				<TldrawUiButton type="normal" onClick={onClose}>
 					<TldrawUiButtonLabel>
 						<F defaultMessage="Cancel" />
