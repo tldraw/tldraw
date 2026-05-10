@@ -1,60 +1,35 @@
 /**
- * Gemini Live API session.
+ * Gemini Live API session — text-in, audio-out.
  *
- * Bidirectional streaming voice with the Gemini Live API. The browser
- * connects to a dev-server WebSocket proxy at /api/gemini/live, which
- * forwards to the Gemini endpoint with the API key attached.
+ * The user's words come from browser WebSpeech (in LiveVoiceController);
+ * we only push text turns into Live and receive PCM audio back. No mic
+ * streaming, no tool calling, no `realtimeInput`. Much simpler.
  *
- * Responsibilities:
- *  - capture mic, downsample to 16kHz int16 PCM, stream to model
- *  - receive 24kHz int16 PCM, schedule for gap-free playback
- *  - dispatch tool calls (e.g. delegate_to_canvas) to the host app
- *  - emit timestamped events so we can measure end-to-end latency
+ * Two text-input methods:
+ *   - sendUserText(text)   — start a fresh user turn (the primer)
+ *   - narrate(text)        — push the heavy agent's depth answer in. If
+ *                             Live is still mid-primer, this is BUFFERED
+ *                             until turnComplete so we don't interrupt.
  */
 
-import {
-	base64ToBytes,
-	bufferToBase64,
-	CAPTURE_WORKLET_SOURCE,
-	int16ToFloat32,
-} from './audio-utils'
+import { base64ToBytes, int16ToFloat32 } from './audio-utils'
 import {
 	GEMINI_LIVE_MODEL,
 	GEMINI_LIVE_VOICE,
-	LIVE_INPUT_SAMPLE_RATE,
 	LIVE_OUTPUT_SAMPLE_RATE,
 	LIVE_SYSTEM_PROMPT,
-	LIVE_TOOL_DECLARATIONS,
 } from './live-config'
 
-export type LiveStatus =
-	| 'idle'
-	| 'connecting'
-	| 'listening'
-	| 'user-speaking'
-	| 'thinking'
-	| 'speaking'
-	| 'error'
+export type LiveStatus = 'idle' | 'connecting' | 'ready' | 'speaking' | 'error'
 
 export interface LiveSessionCallbacks {
 	onStatusChange: (status: LiveStatus, message?: string) => void
-	/** Live model invoked the delegation tool. Run the heavy agent. */
-	onDelegate: (intent: string) => Promise<void> | void
-	/** Best-effort transcript of what the user said (output transcription). */
-	onUserTranscript?: (text: string) => void
-	/** Best-effort transcript of what the model said. */
+	/** Best-effort transcript of what the model said this turn. */
 	onModelTranscript?: (text: string) => void
 	/** Generic structured event log — used for latency measurement. */
 	onEvent?: (event: string, data?: Record<string, unknown>) => void
 }
 
-interface ToolCall {
-	id: string
-	name: string
-	args: Record<string, unknown>
-}
-
-/** Minimal shape of the messages the Live API sends back. */
 interface ServerMessage {
 	setupComplete?: object
 	serverContent?: {
@@ -62,11 +37,8 @@ interface ServerMessage {
 		turnComplete?: boolean
 		generationComplete?: boolean
 		interrupted?: boolean
-		inputTranscription?: { text: string }
 		outputTranscription?: { text: string }
 	}
-	toolCall?: { functionCalls?: ToolCall[] }
-	toolCallCancellation?: { ids: string[] }
 	goAway?: { timeLeft: string }
 }
 
@@ -76,38 +48,29 @@ export class GeminiLiveSession {
 	private setupReady = false
 	private pendingOutbound: string[] = []
 
-	// audio capture
-	private inputCtx: AudioContext | null = null
-	private mediaStream: MediaStream | null = null
-	private workletNode: AudioWorkletNode | null = null
-	private sourceNode: MediaStreamAudioSourceNode | null = null
-
 	// audio playback
 	private outputCtx: AudioContext | null = null
 	private playbackHead = 0
 	private activeSources: AudioBufferSourceNode[] = []
 
-	// for latency logging
-	private speechStartedAt: number | null = null
-	private firstAudioOutAt: number | null = null
-
-	// running transcripts within a turn
-	private currentUserTranscript = ''
+	// running model transcript within a turn
 	private currentModelTranscript = ''
 
-	// turn buffering — used to defer a narration until the model's current
-	// turn finishes, so we don't cut its sentence in half. We track BOTH
-	// "model is currently producing audio" (modelTurnActive) and "we have
-	// closed a user turn and are waiting for the response" (awaitingResponse).
-	// The latter catches the race where the heavy agent finishes between
-	// audioStreamEnd and the first audio chunk back from Live.
+	// Turn buffering. Tracks whether the model is currently producing or
+	// is about to produce audio — we use this to defer narrate() calls so
+	// the heavy agent's depth answer doesn't interrupt the primer mid-sentence.
 	private modelTurnActive = false
 	private awaitingResponse = false
 	private pendingNarration: string | null = null
+	private pendingNarrationOnPlayStart: (() => void) | null = null
 	private pendingNarrationTimeout: ReturnType<typeof setTimeout> | null = null
+	// When true, the next audio chunk we receive belongs to a freshly-
+	// dispatched narration turn — we use it to fire `onPlayStart` callbacks
+	// the instant the model starts speaking the depth answer.
+	private narrationStartArmed = false
+	private narrationStartCallback: (() => void) | null = null
 	/** Hard cap on how long we wait for Live's turn to complete before
-	 * force-flushing a queued narration. If turnComplete fails to arrive
-	 * we'd otherwise leave the user in dead silence. */
+	 * force-flushing a queued narration. */
 	private static readonly MAX_NARRATION_BUFFER_MS = 8000
 
 	constructor(callbacks: LiveSessionCallbacks) {
@@ -121,7 +84,6 @@ export class GeminiLiveSession {
 	private logEvent(event: string, data?: Record<string, unknown>) {
 		const stamped = { t: performance.now(), ...data }
 		this.callbacks.onEvent?.(event, stamped)
-		// Also emit to console so it shows up alongside the proxy logs.
 		// eslint-disable-next-line no-console
 		console.log(`[Live] ${event}`, stamped)
 	}
@@ -148,14 +110,10 @@ export class GeminiLiveSession {
 								responseModalities: ['AUDIO'],
 								speechConfig: {
 									voiceConfig: { prebuiltVoiceConfig: { voiceName: GEMINI_LIVE_VOICE } },
-									// Pin language so the model doesn't drift into another
-									// language on noisy or short utterances.
 									languageCode: 'en-US',
 								},
 							},
 							systemInstruction: { parts: [{ text: LIVE_SYSTEM_PROMPT }] },
-							tools: [{ functionDeclarations: LIVE_TOOL_DECLARATIONS }],
-							inputAudioTranscription: {},
 							outputAudioTranscription: {},
 						},
 					})
@@ -170,8 +128,6 @@ export class GeminiLiveSession {
 
 		ws.addEventListener('message', (e) => this.handleServerMessage(e.data))
 		ws.addEventListener('close', (e) => {
-			// Surface close reason loudly — upstream typically closes with a
-			// reason like "INVALID_ARGUMENT: Invalid model" or "model not found".
 			const wasReady = this.setupReady
 			console.warn(
 				`[Live] ws-close code=${e.code} wasClean=${e.wasClean} setupReady=${wasReady} reason="${e.reason}"`
@@ -188,90 +144,43 @@ export class GeminiLiveSession {
 		return `${proto}//${window.location.host}/api/gemini/live`
 	}
 
-	/** Open mic, start streaming PCM to the model. */
-	async startMic(): Promise<void> {
-		if (!this.ws) await this.connect()
-		// Wait for setup to complete before sending audio.
-		if (!this.setupReady) await this.waitForSetup()
-
-		if (this.mediaStream) return // already running
-
-		this.setStatus('listening', 'Listening...')
-		this.logEvent('mic-start')
-
-		const stream = await navigator.mediaDevices.getUserMedia({
-			audio: {
-				channelCount: 1,
-				sampleRate: LIVE_INPUT_SAMPLE_RATE,
-				echoCancellation: true,
-				noiseSuppression: true,
+	/**
+	 * Push a user text turn into the session. Live will respond with audio
+	 * (the primer). Use this when WebSpeech gives us a final transcript.
+	 */
+	sendUserText(text: string): void {
+		if (!text.trim()) return
+		console.log(`[Live] sendUserText: "${text}"`)
+		this.sendJson({
+			clientContent: {
+				turns: [{ role: 'user', parts: [{ text }] }],
+				turnComplete: true,
 			},
 		})
-		this.mediaStream = stream
-
-		const ctx = new AudioContext()
-		this.inputCtx = ctx
-		const blob = new Blob([CAPTURE_WORKLET_SOURCE], { type: 'application/javascript' })
-		const url = URL.createObjectURL(blob)
-		await ctx.audioWorklet.addModule(url)
-		URL.revokeObjectURL(url)
-
-		const source = ctx.createMediaStreamSource(stream)
-		const worklet = new AudioWorkletNode(ctx, 'gemini-live-capture', {
-			processorOptions: { targetRate: LIVE_INPUT_SAMPLE_RATE },
-		})
-		worklet.port.onmessage = (e) => {
-			const buf = e.data as ArrayBuffer
-			this.sendAudioChunk(buf)
-		}
-
-		source.connect(worklet)
-		// Worklet must connect somewhere or it won't pull. Use a muted gain.
-		const sink = ctx.createGain()
-		sink.gain.value = 0
-		worklet.connect(sink).connect(ctx.destination)
-
-		this.sourceNode = source
-		this.workletNode = worklet
-	}
-
-	/** Close mic. The session itself stays open so we can keep replying. */
-	stopMic(): void {
-		this.logEvent('mic-stop')
-		this.workletNode?.disconnect()
-		this.sourceNode?.disconnect()
-		this.workletNode = null
-		this.sourceNode = null
-		this.mediaStream?.getTracks().forEach((t) => t.stop())
-		this.mediaStream = null
-		this.inputCtx?.close().catch(() => {})
-		this.inputCtx = null
-		// Hint to the model we're done speaking — server-side VAD will still
-		// catch end-of-speech, but this lets us be explicit on push-to-talk.
-		this.sendJson({
-			realtimeInput: { audioStreamEnd: true },
-		})
-		// We've closed the user turn; we're now expecting the model's
-		// response. Block any pending narration until that turn finishes.
+		// We've opened a turn; block any narration buffering until Live's
+		// response completes.
+		this.modelTurnActive = true
 		this.awaitingResponse = true
 	}
 
 	/**
-	 * Hand the canvas agent's final answer to Live so it can continue
-	 * speaking with continuity. If the model is currently mid-turn (still
-	 * delivering its initial substantive opening), buffer the narration
-	 * until that turn completes — sending a new turn mid-speech would
-	 * interrupt and abruptly restart the model.
+	 * Hand the canvas agent's depth answer to Live. Buffered if the model
+	 * is currently mid-turn — the queued narration fires automatically on
+	 * the next turnComplete (with a safety force-flush after a few seconds
+	 * if turnComplete never arrives).
+	 *
+	 * @param onPlayStart - fires the instant the first audio chunk for this
+	 *   narration arrives (= the model started speaking the depth answer).
+	 *   Use this to sync canvas animations to the actual voice timing.
 	 */
-	narrate(text: string): void {
+	narrate(text: string, onPlayStart?: () => void): void {
 		if (!text.trim()) return
 		if (this.modelTurnActive || this.awaitingResponse) {
 			console.log(
 				`[Live] narrate queued (modelTurnActive=${this.modelTurnActive} awaitingResponse=${this.awaitingResponse})`
 			)
 			this.pendingNarration = text
-			// Safety net: if turnComplete never arrives (model runs long,
-			// API drops the signal), force-flush after MAX_NARRATION_BUFFER_MS.
+			this.pendingNarrationOnPlayStart = onPlayStart ?? null
 			if (this.pendingNarrationTimeout) clearTimeout(this.pendingNarrationTimeout)
 			this.pendingNarrationTimeout = setTimeout(() => {
 				if (this.pendingNarration) {
@@ -279,20 +188,21 @@ export class GeminiLiveSession {
 						`[Live] narrate force-flushing after ${GeminiLiveSession.MAX_NARRATION_BUFFER_MS}ms — turnComplete never arrived`
 					)
 					const t = this.pendingNarration
+					const cb = this.pendingNarrationOnPlayStart
 					this.pendingNarration = null
+					this.pendingNarrationOnPlayStart = null
 					this.pendingNarrationTimeout = null
-					// Reset flags so dispatch will go through.
 					this.modelTurnActive = false
 					this.awaitingResponse = false
-					this.dispatchNarration(t)
+					this.dispatchNarration(t, cb ?? undefined)
 				}
 			}, GeminiLiveSession.MAX_NARRATION_BUFFER_MS)
 			return
 		}
-		this.dispatchNarration(text)
+		this.dispatchNarration(text, onPlayStart)
 	}
 
-	private dispatchNarration(text: string): void {
+	private dispatchNarration(text: string, onPlayStart?: () => void): void {
 		console.log(`[Live] narrate dispatch: "${text.slice(0, 80)}..."`)
 		this.sendJson({
 			clientContent: {
@@ -311,80 +221,29 @@ export class GeminiLiveSession {
 		})
 		this.modelTurnActive = true
 		this.awaitingResponse = true
+		// Arm the play-start callback to fire on the next incoming audio chunk.
+		this.narrationStartArmed = true
+		this.narrationStartCallback = onPlayStart ?? null
 	}
 
 	/** Tear down everything. */
 	async close(): Promise<void> {
-		this.stopMic()
 		this.stopAllPlayback()
 		this.outputCtx?.close().catch(() => {})
 		this.outputCtx = null
+		if (this.pendingNarrationTimeout) {
+			clearTimeout(this.pendingNarrationTimeout)
+			this.pendingNarrationTimeout = null
+		}
 		if (this.ws && this.ws.readyState === WebSocket.OPEN) this.ws.close()
 		this.ws = null
 		this.setupReady = false
 		this.setStatus('idle')
 	}
 
-	private waitForSetup(): Promise<void> {
-		if (this.setupReady) return Promise.resolve()
-		return new Promise((resolve) => {
-			const tick = () => {
-				if (this.setupReady) resolve()
-				else setTimeout(tick, 20)
-			}
-			tick()
-		})
-	}
-
-	/**
-	 * Wait for `currentUserTranscript` to stop growing. Returns the trimmed
-	 * transcript. Used right before delegating to the heavy agent so we get
-	 * the user's literal words rather than the Live model's paraphrase.
-	 *
-	 * Polls every 80ms; resolves once the transcript has been stable for
-	 * 240ms or a hard 1000ms timeout fires.
-	 */
-	private async waitForTranscriptSettled(): Promise<string> {
-		const POLL_MS = 80
-		const STABLE_REQUIRED = 3 // 3 × 80ms = 240ms of stability
-		const MAX_WAIT_MS = 1000
-
-		const start = performance.now()
-		let lastLen = this.currentUserTranscript.length
-		let stableCount = 0
-
-		while (performance.now() - start < MAX_WAIT_MS) {
-			await new Promise((r) => setTimeout(r, POLL_MS))
-			const len = this.currentUserTranscript.length
-			if (len === lastLen && len > 0) {
-				stableCount++
-				if (stableCount >= STABLE_REQUIRED) break
-			} else {
-				stableCount = 0
-				lastLen = len
-			}
-		}
-		return this.currentUserTranscript.trim()
-	}
-
-	private sendAudioChunk(buf: ArrayBuffer) {
-		if (this.speechStartedAt === null) {
-			this.speechStartedAt = performance.now()
-			this.logEvent('user-audio-first-chunk')
-		}
-		this.sendJson({
-			realtimeInput: {
-				audio: {
-					mimeType: `audio/pcm;rate=${LIVE_INPUT_SAMPLE_RATE}`,
-					data: bufferToBase64(buf),
-				},
-			},
-		})
-	}
-
 	private sendJson(obj: unknown) {
 		const text = JSON.stringify(obj)
-		if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+		if (this.ws && this.ws.readyState === WebSocket.OPEN && this.setupReady) {
 			this.ws.send(text)
 		} else {
 			this.pendingOutbound.push(text)
@@ -392,7 +251,6 @@ export class GeminiLiveSession {
 	}
 
 	private handleServerMessage(raw: string | ArrayBuffer | Blob) {
-		// Live API sends JSON as text frames; some clients route via Blob.
 		const handle = (text: string) => {
 			let msg: ServerMessage
 			try {
@@ -402,7 +260,6 @@ export class GeminiLiveSession {
 			}
 			this.processMessage(msg)
 		}
-
 		if (typeof raw === 'string') {
 			handle(raw)
 		} else if (raw instanceof ArrayBuffer) {
@@ -416,8 +273,7 @@ export class GeminiLiveSession {
 	}
 
 	private processMessage(msg: ServerMessage) {
-		// Compact echo so we can see exactly what the API sends back. Audio
-		// payloads are noisy, so we strip them.
+		// Compact echo for debugging — strip audio payloads so the log is readable.
 		try {
 			const sanitized = JSON.parse(JSON.stringify(msg)) as ServerMessage
 			const parts = sanitized.serverContent?.modelTurn?.parts
@@ -432,7 +288,7 @@ export class GeminiLiveSession {
 		if (msg.setupComplete) {
 			this.setupReady = true
 			this.logEvent('setup-complete')
-			this.setStatus('listening', 'Ready')
+			this.setStatus('ready')
 			while (this.pendingOutbound.length > 0) {
 				this.ws?.send(this.pendingOutbound.shift()!)
 			}
@@ -455,32 +311,23 @@ export class GeminiLiveSession {
 			if (sc.outputTranscription?.text) {
 				this.currentModelTranscript += sc.outputTranscription.text
 			}
-			if (sc.inputTranscription?.text) {
-				this.currentUserTranscript += sc.inputTranscription.text
-			}
 			if (sc.interrupted) {
-				this.logEvent('interrupted')
-				this.stopAllPlayback()
+				// In this text-in/audio-out setup, "interrupted" only fires
+				// when we ourselves send a new clientContent (the queued
+				// narration). We DON'T want to kill the primer's tail audio
+				// in that case — let it play out naturally so the depth
+				// audio queues seamlessly onto playbackHead. Just log it.
+				this.logEvent('interrupted (ignored — text-only mode)')
 			}
+
 			if (sc.turnComplete || sc.generationComplete) {
-				this.logEvent('turn-complete', {
-					user: this.currentUserTranscript,
-					model: this.currentModelTranscript,
-				})
-				if (this.currentUserTranscript) {
-					this.callbacks.onUserTranscript?.(this.currentUserTranscript)
-				}
+				this.logEvent('turn-complete', { model: this.currentModelTranscript })
 				if (this.currentModelTranscript) {
 					this.callbacks.onModelTranscript?.(this.currentModelTranscript)
 				}
-				this.currentUserTranscript = ''
 				this.currentModelTranscript = ''
-				this.speechStartedAt = null
-				this.firstAudioOutAt = null
 
-				// Model turn finished. If we have a buffered narration
-				// (heavy agent finished before the opening did), fire it
-				// now — small breath so it doesn't feel rushed.
+				// Model turn finished — flush any queued narration.
 				this.modelTurnActive = false
 				this.awaitingResponse = false
 				if (this.pendingNarrationTimeout) {
@@ -496,26 +343,25 @@ export class GeminiLiveSession {
 			}
 		}
 
-		if (msg.toolCall?.functionCalls) {
-			for (const call of msg.toolCall.functionCalls) {
-				this.handleToolCall(call)
-			}
-		}
-
 		if (msg.goAway) {
 			this.logEvent('go-away', { timeLeft: msg.goAway.timeLeft })
 		}
 	}
 
 	private handleAudioOut(b64: string) {
-		if (this.firstAudioOutAt === null) {
-			this.firstAudioOutAt = performance.now()
-			const gap = this.speechStartedAt !== null ? this.firstAudioOutAt - this.speechStartedAt : null
-			this.logEvent('model-audio-first-chunk', { sinceUserAudioStartMs: gap })
-			this.setStatus('speaking', 'Speaking...')
+		this.setStatus('speaking', 'Speaking...')
+		// First audio chunk after a narration dispatch — fire the play-start
+		// callback so the caller can sync canvas animations to the spoken word.
+		if (this.narrationStartArmed) {
+			this.narrationStartArmed = false
+			const cb = this.narrationStartCallback
+			this.narrationStartCallback = null
+			if (cb) {
+				console.log(`[Live] narration audio started → firing onPlayStart`)
+				cb()
+			}
 		}
 		const bytes = base64ToBytes(b64)
-		// 16-bit signed LE -> Float32 @ 24kHz
 		const int16 = new Int16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2)
 		const float = int16ToFloat32(int16)
 		this.scheduleAudio(float)
@@ -527,8 +373,7 @@ export class GeminiLiveSession {
 		}
 		const ctx = this.outputCtx
 		const buffer = ctx.createBuffer(1, samples.length, LIVE_OUTPUT_SAMPLE_RATE)
-		// Copy into a fresh ArrayBuffer-backed view so copyToChannel's strict
-		// TypedArray<ArrayBuffer> overload accepts it (TS 5.7+ buffer narrowing).
+		// Fresh ArrayBuffer-backed view for copyToChannel's strict typing.
 		const fresh = new Float32Array(samples.length)
 		fresh.set(samples)
 		buffer.copyToChannel(fresh, 0)
@@ -557,46 +402,5 @@ export class GeminiLiveSession {
 		if (this.outputCtx) {
 			this.playbackHead = this.outputCtx.currentTime
 		}
-	}
-
-	private async handleToolCall(call: ToolCall) {
-		this.logEvent('tool-call', { name: call.name, args: call.args })
-
-		let response: Record<string, unknown> = { ok: true }
-
-		if (call.name === 'delegate_to_canvas') {
-			// The toolCall message often arrives before inputTranscription
-			// finishes streaming. Wait briefly for the transcript to settle
-			// so the heavy agent gets the user's literal words, not the
-			// Live model's paraphrase.
-			const literalTranscript = await this.waitForTranscriptSettled()
-			const paraphrase = String(call.args.intent ?? '').trim()
-			const intent = literalTranscript || paraphrase
-			console.log(
-				`[Live] tool call delegate. transcript="${literalTranscript}" paraphrase="${paraphrase}" using="${intent}"`
-			)
-			try {
-				// Fire-and-forget: respond immediately so the Live model can
-				// keep talking. The heavy agent runs asynchronously.
-				void (async () => {
-					try {
-						await this.callbacks.onDelegate(intent)
-					} catch (err) {
-						console.error('[Live] delegate failed:', err)
-					}
-				})()
-				response = { status: 'started', intent }
-			} catch (err) {
-				response = { status: 'error', error: String(err) }
-			}
-		} else {
-			response = { status: 'unknown_tool' }
-		}
-
-		this.sendJson({
-			toolResponse: {
-				functionResponses: [{ id: call.id, name: call.name, response }],
-			},
-		})
 	}
 }

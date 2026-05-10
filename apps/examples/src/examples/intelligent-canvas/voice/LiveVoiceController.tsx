@@ -1,17 +1,36 @@
 /**
- * LiveVoiceController — owns the GeminiLiveSession lifecycle and wires it
- * to the heavyweight canvas agent.
+ * LiveVoiceController — push-to-talk that uses browser WebSpeech for STT,
+ * Gemini Live for spoken output, and the heavy canvas agent for canvas work.
  *
- * Push-to-talk: hold "M" to stream mic audio. Release to flush.
- * The Live model talks back with low latency. Canvas-touching requests
- * are handed off via the `delegate_to_canvas` tool call, which calls
- * agent.handleVoiceCommand(intent, { silent: true }) — the heavy agent
- * places shapes but does NOT speak (Live is doing the talking).
+ * Hold "M" to talk. On release we get the final transcript and:
+ *   1. Send it to Live → primer plays (~3-4s)
+ *   2. Dispatch to the heavy canvas agent (in parallel)
+ *   3. When the heavy agent returns, narrate(speech) — buffered until Live's
+ *      primer finishes so we don't interrupt mid-sentence.
  */
 
 import { useCallback, useEffect, useRef } from 'react'
 import type { IntelligentCanvasAgent } from '../agent/IntelligentCanvasAgent'
 import { GeminiLiveSession, type LiveStatus } from './GeminiLiveSession'
+
+interface SpeechRecognitionEvent {
+	results: { [index: number]: { [index: number]: { transcript: string } } }
+}
+interface SpeechRecognitionInstance {
+	continuous: boolean
+	interimResults: boolean
+	lang: string
+	start(): void
+	stop(): void
+	onresult: ((e: SpeechRecognitionEvent) => void) | null
+	onerror: (() => void) | null
+	onend: (() => void) | null
+}
+declare global {
+	interface Window {
+		webkitSpeechRecognition: new () => SpeechRecognitionInstance
+	}
+}
 
 interface LiveVoiceControllerProps {
 	agentRef: React.MutableRefObject<IntelligentCanvasAgent | null>
@@ -27,88 +46,102 @@ export function LiveVoiceController({
 	onRecordingChange,
 }: LiveVoiceControllerProps) {
 	const sessionRef = useRef<GeminiLiveSession | null>(null)
-	// Tracks whether the user is currently holding M. The connect+setup
-	// handshake can take several seconds on first use, and we don't want
-	// the mic to start streaming AFTER the user has already released.
-	const wantsRecordingRef = useRef(false)
+	const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
 
-	// One-time session creation. We keep the WebSocket open across utterances
-	// so the model has running conversation state.
+	// Create the Live session once and warm up the WebSocket so the first
+	// utterance doesn't pay the ~6s setup-handshake cost.
 	useEffect(() => {
 		const session = new GeminiLiveSession({
 			onStatusChange: (status, message) => {
 				onStatus?.(status, message)
 			},
-			onDelegate: async (intent) => {
-				const agent = agentRef.current
-				if (!agent) {
-					console.warn('[Live] delegate called but no agent mounted')
-					return
-				}
-				const t0 = performance.now()
-				console.log(`[Live] delegating to heavy agent: "${intent}"`)
-				await agent.handleVoiceCommand(intent, {
-					silent: true,
-					onResult: (result) => {
-						const elapsed = Math.round(performance.now() - t0)
-						console.log(
-							`[Live] heavy agent finished in ${elapsed}ms, speech len=${result.speech.length}, items=${result.canvasItems.length}`
-						)
-						if (result.speech) {
-							sessionRef.current?.narrate(result.speech)
-						}
-					},
-				})
-			},
-			onUserTranscript: (text) => console.log(`[Live] user said: ${text}`),
 			onModelTranscript: (text) => console.log(`[Live] model said: ${text}`),
-			onEvent: (_event, _data) => {
-				// onEvent already logs via console.log inside the session;
-				// hook stays here so we can fan it out somewhere later.
-			},
 		})
 		sessionRef.current = session
+		// Best-effort eager connect — ignore failures, retry lazily on first use.
+		session.connect().catch((err) => console.warn('[Live] eager connect failed', err))
 
 		return () => {
 			void session.close()
 			sessionRef.current = null
 		}
-		// agentRef is a stable ref; onStatus/onRecordingChange are recreated
-		// every render but we capture them via ref-style closure. Run once.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	const startTalking = useCallback(async () => {
+	const handleTranscript = useCallback(
+		async (text: string) => {
+			const session = sessionRef.current
+			const agent = agentRef.current
+			if (!session || !agent) return
+
+			console.log(`[Voice] transcript: "${text}"`)
+
+			// In case the eager connect hasn't completed yet.
+			await session.connect().catch(() => {})
+
+			// 1. Live primer (text in → audio out)
+			session.sendUserText(text)
+
+			// 2. Heavy agent in parallel. We defer the camera tour so it fires
+			// the moment Live actually starts speaking the depth answer — that
+			// way the camera moves match the words, not the silent transition.
+			const t0 = performance.now()
+			void agent.handleVoiceCommand(text, {
+				silent: true,
+				deferCameraTour: true,
+				onResult: (result) => {
+					const elapsed = Math.round(performance.now() - t0)
+					console.log(
+						`[Heavy] finished in ${elapsed}ms, speech len=${result.speech.length}, items=${result.canvasItems.length}`
+					)
+					if (result.speech) {
+						sessionRef.current?.narrate(result.speech, () => {
+							// Narration audio just started — kick off camera tour.
+							result.runCameraTour()
+						})
+					}
+				},
+			})
+		},
+		[agentRef]
+	)
+
+	const startRecognition = useCallback(() => {
 		if (disabled) return
-		const session = sessionRef.current
-		if (!session) return
-		wantsRecordingRef.current = true
-		// Flip the indicator IMMEDIATELY so the user sees feedback even while
-		// the WebSocket / mic permission is still resolving.
-		onRecordingChange?.(true)
-		try {
-			await session.connect()
-			// User may have released M during the connect handshake (which
-			// can take several seconds the first time). Abort if so.
-			if (!wantsRecordingRef.current) return
-			await session.startMic()
-			// And again after mic startup, in case getUserMedia took a moment.
-			if (!wantsRecordingRef.current) {
-				session.stopMic()
-			}
-		} catch (err) {
-			console.error('[Live] failed to start mic:', err)
+		if (!window.webkitSpeechRecognition) {
+			console.warn('[Voice] webkitSpeechRecognition not supported in this browser')
+			return
+		}
+		// If something's already listening, ignore — keypress repeat or jitter.
+		if (recognitionRef.current) return
+
+		const recognition = new window.webkitSpeechRecognition()
+		recognition.continuous = false
+		recognition.interimResults = false
+		recognition.lang = 'en-US'
+
+		recognition.onresult = (e) => {
+			const transcript = e.results[0][0].transcript
+			if (transcript.trim()) handleTranscript(transcript.trim())
+		}
+		recognition.onerror = () => {
+			recognitionRef.current = null
 			onRecordingChange?.(false)
 		}
-	}, [disabled, onRecordingChange])
+		recognition.onend = () => {
+			recognitionRef.current = null
+			onRecordingChange?.(false)
+		}
 
-	const stopTalking = useCallback(() => {
-		wantsRecordingRef.current = false
-		onRecordingChange?.(false)
-		const session = sessionRef.current
-		if (!session) return
-		session.stopMic()
-	}, [onRecordingChange])
+		recognitionRef.current = recognition
+		recognition.start()
+		onRecordingChange?.(true)
+	}, [disabled, handleTranscript, onRecordingChange])
+
+	const stopRecognition = useCallback(() => {
+		recognitionRef.current?.stop()
+		// onend will null out the ref and fire onRecordingChange(false).
+	}, [])
 
 	useEffect(() => {
 		const inEditableTarget = (el: EventTarget | null) => {
@@ -121,26 +154,24 @@ export function LiveVoiceController({
 				target.isContentEditable
 			)
 		}
-
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.repeat) return
 			if (e.key !== 'm' && e.key !== 'M') return
 			if (inEditableTarget(e.target)) return
 			e.preventDefault()
-			void startTalking()
+			startRecognition()
 		}
 		const handleKeyUp = (e: KeyboardEvent) => {
 			if (e.key !== 'm' && e.key !== 'M') return
-			stopTalking()
+			stopRecognition()
 		}
-
 		window.addEventListener('keydown', handleKeyDown)
 		window.addEventListener('keyup', handleKeyUp)
 		return () => {
 			window.removeEventListener('keydown', handleKeyDown)
 			window.removeEventListener('keyup', handleKeyUp)
 		}
-	}, [startTalking, stopTalking])
+	}, [startRecognition, stopRecognition])
 
 	return null
 }

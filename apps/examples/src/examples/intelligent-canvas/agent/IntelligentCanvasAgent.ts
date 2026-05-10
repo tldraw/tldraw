@@ -38,23 +38,31 @@ export interface VoiceCommandResult {
 	speech: string
 	/** Canvas items the agent placed, in order. */
 	canvasItems: CanvasItem[]
-	/** Shape IDs of the placed canvas items (parallel to canvasItems). */
+	/** Shape IDs of placed canvas items (parallel to canvasItems). */
 	placedShapeIds: TLShapeId[]
+	/**
+	 * Schedules a camera tour synchronized to the agent's speech. Call
+	 * this at the moment an upstream voice channel actually starts speaking
+	 * (e.g. when Live's depth narration audio begins) so the camera moves
+	 * in sync with the words. No-op if there are no placed shapes.
+	 */
+	runCameraTour: () => void
 }
 
 /** Options for delegating a voice command to the heavy agent. */
 export interface VoiceCommandOptions {
 	/**
 	 * When true, skip the agent's own TTS step (ElevenLabs / browser speech).
-	 * The camera tour still runs (on estimated timing) so visuals are synced.
-	 * Used when an upstream voice channel (e.g. Gemini Live) is doing the talking.
+	 * Used when an upstream voice channel (e.g. Gemini Live) is narrating.
 	 */
 	silent?: boolean
 	/**
-	 * Called once the agent has placed shapes and is ready for an upstream
-	 * voice channel to narrate. Lets a Live caller feed `result.speech` back
-	 * into its model and run a synced camera tour.
+	 * When true, the agent will NOT auto-schedule the camera tour after
+	 * placing shapes. Caller is expected to invoke `result.runCameraTour()`
+	 * at the right moment (e.g. when narration audio starts).
 	 */
+	deferCameraTour?: boolean
+	/** Called once the agent has placed shapes. */
 	onResult?: (result: VoiceCommandResult) => void
 }
 
@@ -286,13 +294,26 @@ export class IntelligentCanvasAgent {
 
 			// Execute the orchestrator response: voice + canvas
 			if (orchestratorResponse) {
-				await this.executeResponse(orchestratorResponse, highlightBounds, options.silent === true)
-				// Notify caller (e.g. Live voice controller) so it can narrate
-				// the speech via its own audio channel.
+				await this.executeResponse(
+					orchestratorResponse,
+					highlightBounds,
+					options.silent === true,
+					options.deferCameraTour === true
+				)
+				// Capture the values needed for the deferred camera tour now
+				// (placedShapeIds may be reset by a later turn).
+				const speech = orchestratorResponse.speech ?? ''
+				const items = orchestratorResponse.canvas ?? []
+				const idsForTour = this.placedShapeIds.slice()
 				options.onResult?.({
-					speech: orchestratorResponse.speech ?? '',
-					canvasItems: orchestratorResponse.canvas ?? [],
-					placedShapeIds: this.placedShapeIds.slice(),
+					speech,
+					canvasItems: items,
+					placedShapeIds: idsForTour,
+					runCameraTour: () => {
+						if (idsForTour.length > 0 && speech) {
+							this.scheduleFallbackCameraTour(speech, items, idsForTour)
+						}
+					},
 				})
 			}
 
@@ -316,7 +337,8 @@ export class IntelligentCanvasAgent {
 	private async executeResponse(
 		response: OrchestratorResponse,
 		highlightBounds: Box | null = null,
-		silent = false
+		silent = false,
+		deferCameraTour = false
 	) {
 		this.callbacks.onStatusChange('thinking', 'Preparing canvas...')
 
@@ -343,7 +365,9 @@ export class IntelligentCanvasAgent {
 		// 3. Speech + camera tour
 		// In silent mode, an upstream voice channel will narrate. We still
 		// need a camera tour for visuals — schedule it on estimated timing.
-		if (response.speech && silent) {
+		// If `deferCameraTour` is set, the caller will invoke it later
+		// (synchronized to when their voice channel actually starts speaking).
+		if (response.speech && silent && !deferCameraTour) {
 			if (this.placedShapeIds.length > 0) {
 				this.scheduleFallbackCameraTour(response.speech, canvasItems)
 			}
@@ -465,8 +489,12 @@ export class IntelligentCanvasAgent {
 	}
 
 	/** Schedule camera tour using estimated duration for browser TTS fallback. */
-	private scheduleFallbackCameraTour(speech: string, canvasItems: CanvasItem[]) {
-		const schedule = this.buildCameraSchedule(speech, canvasItems)
+	private scheduleFallbackCameraTour(
+		speech: string,
+		canvasItems: CanvasItem[],
+		shapeIds?: TLShapeId[]
+	) {
+		const schedule = this.buildCameraSchedule(speech, canvasItems, shapeIds)
 		// Estimate speech duration: ~2.5 words per second
 		const wordCount = speech.split(/\s+/).length
 		const estimatedDuration = wordCount / 2.5
@@ -485,13 +513,15 @@ export class IntelligentCanvasAgent {
 	/** Build a schedule mapping each canvas item to a fractional position in the speech. */
 	private buildCameraSchedule(
 		speech: string,
-		canvasItems: CanvasItem[]
+		canvasItems: CanvasItem[],
+		shapeIds?: TLShapeId[]
 	): { shapeId: TLShapeId; fraction: number }[] {
+		const ids = shapeIds ?? this.placedShapeIds
 		const speechLower = speech.toLowerCase()
 		const schedule: { shapeId: TLShapeId; fraction: number }[] = []
 
 		for (let i = 0; i < canvasItems.length; i++) {
-			const shapeId = this.placedShapeIds[i]
+			const shapeId = ids[i]
 			if (!shapeId) continue
 
 			const labelLower = canvasItems[i].label.toLowerCase()
