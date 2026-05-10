@@ -424,7 +424,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 											<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
 										</TldrawUiButton>
 									)}
-									{!isReadonlyMode && (
+									{!isReadonlyMode && !isRenamingThisPage && (
 										<div className="tlui-page_menu__item__submenu">
 											<PageItemSubmenu
 												index={index}
