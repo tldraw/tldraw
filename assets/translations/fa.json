@@ -243,7 +243,7 @@
 	"file-system.shared-document-file-open-error.description": "بازکردن پیونده‌ها از پروژه‌های هم‌رسانی‌شده پشتیبانی نمی‌شود.",
 	"file-system.shared-document-file-open-error.title": "پرونده باز نشد",
 	"fill-style.fill": "پر کردن",
-	"fill-style.lined-fill": "پر کردن خطی",
+	"fill-style.lined-fill": "پر کردن با آستر",
 	"fill-style.none": "هیچ‌یک",
 	"fill-style.pattern": "الگو",
 	"fill-style.semi": "نیمه",

@@ -243,7 +243,7 @@
 	"file-system.shared-document-file-open-error.description": "פתיחת קבצים מפרויקטים משותפים אינה נתמכת.",
 	"file-system.shared-document-file-open-error.title": "לא ניתן היה לפתוח את הקובץ",
 	"fill-style.fill": "מילוי",
-	"fill-style.lined-fill": "מילוי עם קווים",
+	"fill-style.lined-fill": "מילוי מרופד",
 	"fill-style.none": "כלום",
 	"fill-style.pattern": "תבנית",
 	"fill-style.semi": "חצי",

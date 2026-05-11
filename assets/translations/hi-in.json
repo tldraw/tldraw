@@ -243,7 +243,7 @@
 	"file-system.shared-document-file-open-error.description": "शेयर्ड प्रोजेक्ट्स से फ़ाइलें खोलना सपोर्टेड नहीं है।",
 	"file-system.shared-document-file-open-error.title": "फ़ाइल को खोला नहीं जा सका",
 	"fill-style.fill": "भरें",
-	"fill-style.lined-fill": "रेखांकित भराई",
+	"fill-style.lined-fill": "अस्तरयुक्त भराई",
 	"fill-style.none": "कोई नहीं",
 	"fill-style.pattern": "पैटर्न",
 	"fill-style.semi": "सेमी",
