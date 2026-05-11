@@ -816,6 +816,7 @@
 	margin-bottom: -3px;
 	cursor: ns-resize;
 	touch-action: none;
+	z-index: 999;
 }
 
 .tlui-page-menu__resize-handle::before {
@@ -832,6 +833,7 @@
 @media (hover: hover) {
 	.tlui-page-menu__resize-handle:hover::before {
 		background: var(--tl-color-selected);
+		height: 2px;
 		transition: background-color 150ms 80ms;
 	}
 }

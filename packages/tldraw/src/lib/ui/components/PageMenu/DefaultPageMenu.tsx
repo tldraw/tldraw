@@ -27,7 +27,7 @@ import { PageItemSubmenu } from './PageItemSubmenu'
 
 const PAGE_MENU_LIST_HEIGHT_KEY = 'tldraw_page_menu_list_height'
 const MIN_PAGE_MENU_LIST_HEIGHT = 54
-const DEFAULT_PAGE_MENU_LIST_HEIGHT = 144
+const DEFAULT_PAGE_MENU_LIST_HEIGHT = 145
 const MAX_PAGE_MENU_RENDER_HEIGHT = 800
 
 function readSavedPageMenuListHeight(): number {
@@ -141,6 +141,15 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		handle.addEventListener('pointermove', onMove)
 		handle.addEventListener('pointerup', onUp, { once: true })
 		handle.addEventListener('pointercancel', onUp, { once: true })
+	}, [])
+
+	const handleResizeDoubleClick = useCallback(() => {
+		setListHeight(DEFAULT_PAGE_MENU_LIST_HEIGHT)
+		try {
+			window.localStorage.removeItem(PAGE_MENU_LIST_HEIGHT_KEY)
+		} catch {
+			// ignore — storage may be unavailable in private/embedded contexts
+		}
 	}, [])
 
 	useEffect(
@@ -529,6 +538,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 							className="tlui-page-menu__resize-handle"
 							data-resizing={isResizing}
 							onPointerDown={handleResizePointerDown}
+							onDoubleClick={handleResizeDoubleClick}
 							role="separator"
 							aria-orientation="horizontal"
 							aria-label={msg('page-menu.resize')}
@@ -539,16 +549,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 							type="menu"
 							className="tlui-page-menu__create-button"
 							data-testid="page-menu.create"
-							tooltip={msg(
-								maxPageCountReached
-									? 'page-menu.max-page-count-reached'
-									: 'page-menu.create-new-page'
-							)}
-							title={msg(
-								maxPageCountReached
-									? 'page-menu.max-page-count-reached'
-									: 'page-menu.create-new-page'
-							)}
+							tooltip={msg('page-menu.create-new-page')}
+							title={msg('page-menu.create-new-page')}
 							disabled={maxPageCountReached}
 							onClick={handleCreatePageClick}
 						>
