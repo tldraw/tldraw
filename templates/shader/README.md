@@ -58,7 +58,7 @@ A bare-bones template for starting new shader projects. Renders a solid color th
 
 ### WebGLManager
 
-The `WebGLManager` class ([`src/WebGLManager.ts`](src/WebGLManager.ts)) provides the foundation for all shader examples. It handles:
+The `WebGLManager` class ([`src/WebGLManager.ts`](src/WebGLManager.ts)) provides the shared foundation that all shader examples build on. It handles:
 
 - WebGL2 context creation and lifecycle management
 - Automatic viewport synchronization with tldraw's canvas
