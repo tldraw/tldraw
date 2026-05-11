@@ -29,6 +29,9 @@ const PAGE_MENU_LIST_HEIGHT_KEY = 'tldraw_page_menu_list_height'
 const MIN_PAGE_MENU_LIST_HEIGHT = 54
 const DEFAULT_PAGE_MENU_LIST_HEIGHT = 145
 const MAX_PAGE_MENU_RENDER_HEIGHT = 800
+const MAX_PAGE_MENU_AVAILABLE_HEIGHT_RATIO = 0.62
+const PAGE_MENU_CREATE_BUTTON_HEIGHT = 40
+const PAGE_MENU_RESIZE_HANDLE_HEIGHT = 7
 
 function readSavedPageMenuListHeight(): number {
 	if (typeof window === 'undefined') return DEFAULT_PAGE_MENU_LIST_HEIGHT
@@ -42,11 +45,15 @@ function readSavedPageMenuListHeight(): number {
 	}
 }
 
-function getPageMenuRenderCap(viewportHeight: number): number {
-	return Math.max(
-		MIN_PAGE_MENU_LIST_HEIGHT,
-		Math.min(MAX_PAGE_MENU_RENDER_HEIGHT, viewportHeight * 0.8)
+function getPageMenuRenderCap(availableHeight: number, hasFooter: boolean): number {
+	const maxMenuHeight = Math.min(
+		MAX_PAGE_MENU_RENDER_HEIGHT,
+		availableHeight * MAX_PAGE_MENU_AVAILABLE_HEIGHT_RATIO
 	)
+	const footerHeight = hasFooter
+		? PAGE_MENU_CREATE_BUTTON_HEIGHT + PAGE_MENU_RESIZE_HANDLE_HEIGHT
+		: 0
+	return Math.max(MIN_PAGE_MENU_LIST_HEIGHT, maxMenuHeight - footerHeight)
 }
 
 /** @public @react */
@@ -97,17 +104,43 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	const [listHeight, setListHeight] = useState(readSavedPageMenuListHeight)
 	const [isResizing, setIsResizing] = useState(false)
-	const [viewportHeight, setViewportHeight] = useState(() =>
+	const [availableHeight, setAvailableHeight] = useState(() =>
 		typeof window === 'undefined' ? 800 : window.innerHeight
 	)
 
-	useEffect(() => {
-		const onResize = () => setViewportHeight(window.innerHeight)
-		window.addEventListener('resize', onResize)
-		return () => window.removeEventListener('resize', onResize)
+	const updateAvailableHeight = useCallback(() => {
+		if (typeof window === 'undefined') return
+
+		const popoverContent =
+			rSortableContainer.current?.closest<HTMLElement>('.tlui-popover__content')
+		const radixAvailableHeight = popoverContent
+			? Number.parseFloat(
+					getComputedStyle(popoverContent).getPropertyValue(
+						'--radix-popover-content-available-height'
+					)
+				)
+			: NaN
+
+		setAvailableHeight(
+			Number.isFinite(radixAvailableHeight) ? radixAvailableHeight : window.innerHeight
+		)
 	}, [])
 
-	const renderedListHeight = Math.min(listHeight, getPageMenuRenderCap(viewportHeight))
+	useEffect(() => {
+		const onResize = () => updateAvailableHeight()
+		window.addEventListener('resize', onResize)
+		return () => window.removeEventListener('resize', onResize)
+	}, [updateAvailableHeight])
+
+	useEffect(() => {
+		if (!isOpen) return
+		editor.timers.requestAnimationFrame(updateAvailableHeight)
+	}, [editor, isOpen, updateAvailableHeight])
+
+	const renderedListHeight = Math.min(
+		listHeight,
+		getPageMenuRenderCap(availableHeight, !isReadonlyMode)
+	)
 
 	const handleResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
 		e.preventDefault()
@@ -181,6 +214,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		// Set true on pointer-up after a drag, so the synthetic click that
 		// follows pointer-up doesn't also navigate to the dragged page.
 		justDragged: false,
+		startedOnDragHandle: false,
 		// Whether an auto-scroll rAF is in flight; the loop reschedules itself
 		// while status === 'dragging' and exits otherwise.
 		autoScrollScheduled: false,
@@ -251,23 +285,19 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		[ITEM_HEIGHT, pages.length]
 	)
 
-	// While a drag is in progress, follow the container's scroll so the
-	// dragged row stays under the cursor when the user scrolls the list
-	// (wheel, trackpad, scrollbar). Re-runs updateDragFromPointer with the
-	// last known clientY; the new scrollTop falls out of the offset math.
-	// Idempotent — safe even when our own auto-scroll also calls it.
+	// During a drag, the list should only scroll from the auto-scroll loop
+	// below. Native wheel/trackpad scroll would fight the drag position.
 	useEffect(() => {
 		if (!isOpen) return
 		const container = rSortableContainer.current
 		if (!container) return
-		function onScroll() {
-			const mut = rMutables.current
-			if (mut.status !== 'dragging') return
-			updateDragFromPointer(mut.lastClientY)
+		function onWheel(e: WheelEvent) {
+			if (rMutables.current.status !== 'dragging') return
+			e.preventDefault()
 		}
-		container.addEventListener('scroll', onScroll, { passive: true })
-		return () => container.removeEventListener('scroll', onScroll)
-	}, [isOpen, updateDragFromPointer])
+		container.addEventListener('wheel', onWheel, { passive: false })
+		return () => container.removeEventListener('wheel', onWheel)
+	}, [isOpen])
 
 	const tickAutoScrollDuringDrag = useCallback(() => {
 		const mut = rMutables.current
@@ -316,6 +346,12 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		const { id, index } = currentTarget.dataset
 		if (!id || index === undefined) return
 
+		const startedOnDragHandle = currentTarget.dataset.dragHandle === 'true'
+		if (startedOnDragHandle) {
+			e.preventDefault()
+			e.stopPropagation()
+		}
+
 		const mut = rMutables.current
 		setPointerCapture(currentTarget, e)
 		mut.status = 'pointing'
@@ -325,6 +361,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		mut.startY = clientY
 		mut.lastClientY = clientY
 		mut.startScrollTop = rSortableContainer.current?.scrollTop ?? 0
+		mut.startedOnDragHandle = startedOnDragHandle
 	}, [])
 
 	const handlePointerMove = useCallback(
@@ -338,6 +375,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				ensureAutoScrollLoop()
 			}
 			if (mut.status === 'dragging') {
+				e.preventDefault()
 				updateDragFromPointer(clientY)
 			}
 		},
@@ -349,15 +387,27 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			const mut = rMutables.current
 			if (mut.status === 'dragging' && mut.id) {
 				onMovePage(editor, mut.id, mut.startIndex, mut.dragIndex, trackEvent)
-				mut.justDragged = true
+				if (!mut.startedOnDragHandle) {
+					mut.justDragged = true
+				}
 			}
 			releasePointerCapture(e.currentTarget, e)
 			mut.status = 'idle'
 			mut.id = null
+			mut.startedOnDragHandle = false
 			setDragState(null)
 		},
 		[editor, trackEvent]
 	)
+
+	const handlePointerCancel = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+		const mut = rMutables.current
+		releasePointerCapture(e.currentTarget, e)
+		mut.status = 'idle'
+		mut.id = null
+		mut.startedOnDragHandle = false
+		setDragState(null)
+	}, [])
 
 	const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {
 		const mut = rMutables.current
@@ -366,11 +416,13 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		if (e.key === 'Escape' && mut.status !== 'idle') {
 			mut.status = 'idle'
 			mut.id = null
+			mut.startedOnDragHandle = false
 			setDragState(null)
 		}
 	}, [])
 
 	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
+	const shouldUseDragHandle = !isReadonlyMode && isCoarsePointer
 
 	const startRenamingPage = useCallback(
 		(id: TLPageId, currentName: string) => {
@@ -486,37 +538,67 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												/>
 											</div>
 										) : (
-											<TldrawUiButton
-												type="normal"
-												className="tlui-page-menu__item__button"
-												onClick={() => {
-													if (rMutables.current.justDragged) {
-														rMutables.current.justDragged = false
-														return
+											<>
+												{shouldUseDragHandle && (
+													<TldrawUiButton
+														type="icon"
+														className="tlui-page-menu__item__drag-handle"
+														data-testid="page-menu.item-drag-handle"
+														data-id={page.id}
+														data-index={index}
+														data-drag-handle="true"
+														onPointerDown={handlePointerDown}
+														onPointerMove={handlePointerMove}
+														onPointerUp={handlePointerUp}
+														onPointerCancel={handlePointerCancel}
+														onKeyDown={handleKeyDown}
+														tooltip={msg('context-menu.reorder')}
+														title={msg('context-menu.reorder')}
+													>
+														<TldrawUiButtonIcon icon="drag-handle-dots" small />
+													</TldrawUiButton>
+												)}
+												<TldrawUiButton
+													type="normal"
+													className="tlui-page-menu__item__button"
+													onClick={() => {
+														if (rMutables.current.justDragged) {
+															rMutables.current.justDragged = false
+															return
+														}
+														changePage(page.id)
+													}}
+													onDoubleClick={() => startRenamingPage(page.id, page.name)}
+													onPointerDown={
+														isReadonlyMode || shouldUseDragHandle ? undefined : handlePointerDown
 													}
-													changePage(page.id)
-												}}
-												onDoubleClick={() => startRenamingPage(page.id, page.name)}
-												onPointerDown={isReadonlyMode ? undefined : handlePointerDown}
-												onPointerMove={isReadonlyMode ? undefined : handlePointerMove}
-												onPointerUp={isReadonlyMode ? undefined : handlePointerUp}
-												tooltip={msg('page-menu.go-to-page')}
-												title={msg('page-menu.go-to-page')}
-												data-id={page.id}
-												data-index={index}
-												onKeyDown={(e) => {
-													if (e.key === 'Escape') {
-														handleKeyDown(e)
-														return
+													onPointerMove={
+														isReadonlyMode || shouldUseDragHandle ? undefined : handlePointerMove
 													}
-													if (e.key === 'Enter' && isCurrentPage) {
-														startRenamingPage(page.id, page.name)
-														editor.markEventAsHandled(e)
+													onPointerUp={
+														isReadonlyMode || shouldUseDragHandle ? undefined : handlePointerUp
 													}
-												}}
-											>
-												<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
-											</TldrawUiButton>
+													onPointerCancel={
+														isReadonlyMode || shouldUseDragHandle ? undefined : handlePointerCancel
+													}
+													tooltip={msg('page-menu.go-to-page')}
+													title={msg('page-menu.go-to-page')}
+													data-id={page.id}
+													data-index={index}
+													onKeyDown={(e) => {
+														if (e.key === 'Escape') {
+															handleKeyDown(e)
+															return
+														}
+														if (e.key === 'Enter' && isCurrentPage) {
+															startRenamingPage(page.id, page.name)
+															editor.markEventAsHandled(e)
+														}
+													}}
+												>
+													<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
+												</TldrawUiButton>
+											</>
 										)}
 										{!isReadonlyMode && !isRenamingThisPage && (
 											<div className="tlui-page_menu__item__submenu">

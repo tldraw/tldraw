@@ -1,9 +1,33 @@
-import { expect, type Locator } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
+import { type Editor } from 'tldraw'
 import test from '../fixtures/fixtures'
 import { setupOrReset, sleep } from '../shared-e2e'
 
+declare const editor: Editor
+
+const isMobileProject = () => test.info().project.name.includes('Mobile')
+
 async function expectPageItemToBeCurrent(pageItem: Locator, isCurrent: boolean) {
 	await expect(pageItem).toHaveAttribute('data-iscurrent', isCurrent ? 'true' : 'false')
+}
+
+async function createPagesForReordering(page: Page) {
+	await page.evaluate(() => {
+		editor.createPage({ name: 'Page 2' })
+		editor.createPage({ name: 'Page 3' })
+	})
+}
+
+async function useCoarsePointer(page: Page) {
+	await page.evaluate(() => {
+		window.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch' }))
+		editor.updateInstanceState({ isCoarsePointer: true })
+	})
+	await expect.poll(() => page.evaluate(() => editor.getInstanceState().isCoarsePointer)).toBe(true)
+}
+
+async function getPageNames(page: Page) {
+	return await page.evaluate(() => editor.getPages().map((p) => p.name))
 }
 
 test.describe('page menu', () => {
@@ -321,26 +345,57 @@ test.describe('page menu', () => {
 
 	test.describe('You can drag and drop pages to reorder them', () => {
 		test('Pages can be reordered by dragging the row itself', async ({ page, pageMenu }) => {
+			test.skip(isMobileProject(), 'Mobile page rows can only be reordered from the drag handle')
+
 			const { pagemenuButton } = pageMenu
 
 			await test.step('create multiple pages for reordering', async () => {
-				await pagemenuButton.click()
-				await pageMenu.createButton.click()
-				await sleep(100)
-				await page.keyboard.press('Enter')
-				await pageMenu.createButton.click()
-				await sleep(100)
-				await page.keyboard.press('Enter')
-				await page.keyboard.press('Escape')
+				await createPagesForReordering(page)
 			})
 
 			await test.step('drag page to new position by its row', async () => {
 				await pagemenuButton.click()
+				await expect(pageMenu.pageItems).toHaveCount(3)
 				const firstItem = await pageMenu.getPageItem(0)
 				const secondItem = await pageMenu.getPageItem(1)
 				const firstButton = firstItem.locator('.tlui-page-menu__item__button')
 
 				await firstButton.dragTo(secondItem)
+				await expect.poll(() => getPageNames(page)).toEqual(['Page 2', 'Page 1', 'Page 3'])
+			})
+		})
+
+		test('On coarse pointers, pages can only be reordered by dragging the handle', async ({
+			page,
+			pageMenu,
+		}) => {
+			test.skip(!isMobileProject(), 'Coarse-pointer page menu behavior')
+
+			const { pagemenuButton } = pageMenu
+
+			await test.step('create multiple pages for reordering', async () => {
+				await createPagesForReordering(page)
+			})
+
+			await test.step('dragging the row itself does not reorder pages', async () => {
+				await pagemenuButton.click()
+				await useCoarsePointer(page)
+				await expect(pageMenu.pageItems).toHaveCount(3)
+				const firstItem = await pageMenu.getPageItem(0)
+				const secondItem = await pageMenu.getPageItem(1)
+
+				await expect(firstItem.getByTestId('page-menu.item-drag-handle')).toBeVisible()
+				await firstItem.locator('.tlui-page-menu__item__button').dragTo(secondItem)
+				expect(await getPageNames(page)).toEqual(['Page 1', 'Page 2', 'Page 3'])
+			})
+
+			await test.step('dragging the handle reorders pages', async () => {
+				await useCoarsePointer(page)
+				const firstItem = await pageMenu.getPageItem(0)
+				const secondItem = await pageMenu.getPageItem(1)
+
+				await firstItem.getByTestId('page-menu.item-drag-handle').dragTo(secondItem)
+				await expect.poll(() => getPageNames(page)).toEqual(['Page 2', 'Page 1', 'Page 3'])
 			})
 		})
 	})
