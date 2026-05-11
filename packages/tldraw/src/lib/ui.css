@@ -929,14 +929,22 @@
 }
 
 .tlui-page-menu__item__drag-handle {
-	flex: 0 0 40px;
-	width: 40px;
-	min-width: 40px;
+	flex: 0 0 36px;
+	width: 36px;
+	min-width: 36px;
 	height: 40px;
 	padding: 0px;
 	color: var(--tl-color-text-3);
 	cursor: grab;
 	touch-action: none;
+}
+
+.tlui-page-menu__item__drag-handle + .tlui-page-menu__item__button {
+	padding-inline: 0px;
+}
+
+.tlui-page-menu__item__drag-handle + .tlui-page-menu__item__button > span {
+	padding-inline-end: 40px;
 }
 
 .tlui-page-menu__item__drag-handle > .tlui-icon {
