@@ -445,16 +445,25 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 		const newPageId = PageRecordType.createId()
 		const initialName = msg('page-menu.new-page-initial-name')
+		let name = initialName
+
+		if (shouldUseWindowPrompt) {
+			const result = window.prompt(msg('page-menu.create-new-page'), initialName)
+			if (result === null) return
+			name = result || initialName
+		}
 
 		editor.run(() => {
 			editor.markHistoryStoppingPoint('creating page')
-			editor.createPage({ name: initialName, id: newPageId })
+			editor.createPage({ name, id: newPageId })
 			editor.setCurrentPage(newPageId)
 		})
 
-		startRenamingPage(newPageId, initialName)
+		if (!shouldUseWindowPrompt) {
+			startRenamingPage(newPageId, initialName)
+		}
 		trackEvent('new-page', { source: 'page-menu' })
-	}, [editor, msg, isReadonlyMode, startRenamingPage, trackEvent])
+	}, [editor, msg, isReadonlyMode, shouldUseWindowPrompt, startRenamingPage, trackEvent])
 
 	const changePage = useCallback(
 		(id: TLPageId) => {
@@ -523,7 +532,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 										data-dragging={isDragging}
 										className="tlui-page_menu__item__sortable"
 										style={{
-											zIndex: isCurrentPage ? 888 : index,
+											zIndex: isDragging ? 999 : isCurrentPage ? 888 : index,
 											transform: `translate(0px, ${y}px)`,
 										}}
 									>
@@ -615,17 +624,15 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 							})}
 						</div>
 					</div>
-					{!isReadonlyMode && (
-						<div
-							className="tlui-page-menu__resize-handle"
-							data-resizing={isResizing}
-							onPointerDown={handleResizePointerDown}
-							onDoubleClick={handleResizeDoubleClick}
-							role="separator"
-							aria-orientation="horizontal"
-							aria-label={msg('page-menu.resize')}
-						/>
-					)}
+					<div
+						className="tlui-page-menu__resize-handle"
+						data-resizing={isResizing}
+						onPointerDown={handleResizePointerDown}
+						onDoubleClick={handleResizeDoubleClick}
+						role="separator"
+						aria-orientation="horizontal"
+						aria-label={msg('page-menu.resize')}
+					/>
 					{!isReadonlyMode && (
 						<TldrawUiButton
 							type="menu"

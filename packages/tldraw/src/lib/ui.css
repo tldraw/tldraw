@@ -830,14 +830,6 @@
 	transition: background-color 100ms;
 }
 
-@media (hover: hover) {
-	.tlui-page-menu__resize-handle:hover::before {
-		background: var(--tl-color-selected);
-		height: 2px;
-		transition: background-color 150ms 80ms;
-	}
-}
-
 .tlui-page-menu__resize-handle[data-resizing='true']::before {
 	background: var(--tl-color-selected);
 	transition: none;
@@ -850,18 +842,6 @@
 	border-radius: 0;
 }
 
-@media (hover: hover) {
-	.tlui-page_menu__item__sortable:hover > .tlui-page_menu__item__submenu > .tlui-button {
-		opacity: 1;
-	}
-
-	/* Keep the row's hover background visible while the kebab inside it is
-	   hovered, so hovering the kebab doesn't drop the row highlight. */
-	.tlui-page_menu__item__sortable:hover > .tlui-page-menu__item__button::after {
-		opacity: 1;
-	}
-}
-
 .tlui-page-menu__item__button {
 	flex: 1 1 auto;
 	width: auto;
@@ -870,16 +850,6 @@
 
 .tlui-page-menu__item__button > span {
 	padding-inline-end: calc(40px - 12px);
-}
-
-@media (hover: hover) {
-	.tlui-page-menu__item__button > span {
-		padding-inline-end: 0px;
-	}
-
-	.tlui-page_menu__item__sortable:hover > .tlui-page-menu__item__button > span {
-		padding-inline-end: calc(40px - 12px);
-	}
 }
 
 .tlui-page_menu__item__sortable {
@@ -926,12 +896,14 @@
 .tlui-page_menu__item__sortable[data-dragging='true'] .tlui-page-menu__item__button,
 .tlui-page_menu__item__sortable[data-dragging='true'] .tlui-page-menu__item__drag-handle {
 	cursor: grabbing;
+	background-color: var(--tl-color-panel);
+	z-index: 1000;
 }
 
 .tlui-page-menu__item__drag-handle {
-	flex: 0 0 36px;
-	width: 36px;
-	min-width: 36px;
+	flex: 0 0 32px;
+	width: 32px;
+	min-width: 32px;
 	height: 40px;
 	padding: 0px;
 	color: var(--tl-color-text-3);
@@ -939,24 +911,20 @@
 	touch-action: none;
 }
 
-.tlui-page-menu__item__drag-handle + .tlui-page-menu__item__button {
-	padding-inline: 0px;
-}
-
-.tlui-page-menu__item__drag-handle + .tlui-page-menu__item__button > span {
-	padding-inline-end: 40px;
-}
-
+/* tweak: adjust the drag handle a tiny bit and remove the left padding from the label */
 .tlui-page-menu__item__drag-handle > .tlui-icon {
 	margin: 0px;
+	position: relative;
+	left: 1px;
+}
+.tlui-page-menu__item__drag-handle + .tlui-button {
+	padding-left: 0px;
 }
 
-.tlui-page-menu__item__drag-handle::after {
-	inset: 4px;
-}
-
-.tlui-page_menu__item__sortable[data-iscurrent='true'] > .tlui-page-menu__item__drag-handle {
-	color: var(--tl-color-text-2);
+/* hack: make the background extend left to hover the drag handle icon */
+.tlui-page-menu__item__drag-handle + .tlui-button::after {
+	left: -28px;
+	pointer-events: none;
 }
 
 .tlui-page-menu__item__input {
@@ -1007,12 +975,6 @@
 	opacity: 1;
 }
 
-@media (hover: hover) {
-	.tlui-page_menu__item__submenu > .tlui-button:hover {
-		color: var(--tl-color-text);
-	}
-}
-
 .tlui-button__icon {
 	padding: 0px;
 }
@@ -1021,6 +983,35 @@
 	margin-inline-end: 4px;
 }
 
+@media (hover: hover) {
+	.tlui-page-menu__resize-handle:hover::before {
+		background: var(--tl-color-selected);
+		height: 2px;
+		transition: background-color 150ms 80ms;
+	}
+
+	.tlui-page_menu__item__sortable:hover > .tlui-page_menu__item__submenu > .tlui-button {
+		opacity: 1;
+	}
+
+	/* Keep the row's hover background visible while the kebab inside it is
+	   hovered, so hovering the kebab doesn't drop the row highlight. */
+	.tlui-page_menu__item__sortable:hover > .tlui-page-menu__item__button::after {
+		opacity: 1;
+	}
+
+	.tlui-page-menu__item__button > span {
+		padding-inline-end: 0px;
+	}
+
+	.tlui-page_menu__item__sortable:hover > .tlui-page-menu__item__button > span {
+		padding-inline-end: calc(40px - 12px);
+	}
+
+	.tlui-page_menu__item__submenu > .tlui-button:hover {
+		color: var(--tl-color-text);
+	}
+}
 /* -------------- Skip to main content -------------- */
 
 .tl-skip-to-main-content {

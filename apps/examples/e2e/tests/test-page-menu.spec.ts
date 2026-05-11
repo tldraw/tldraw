@@ -116,6 +116,27 @@ test.describe('page menu', () => {
 		})
 	})
 
+	test('On coarse pointers, canceling the new page prompt does not create a page', async ({
+		page,
+		pageMenu,
+	}) => {
+		test.skip(!isMobileProject(), 'Coarse-pointer page menu behavior')
+
+		const { pagemenuButton, createButton } = pageMenu
+
+		await pagemenuButton.click()
+		await useCoarsePointer(page)
+		expect(await getPageNames(page)).toEqual(['Page 1'])
+
+		page.once('dialog', async (dialog) => {
+			expect(dialog.type()).toBe('prompt')
+			await dialog.dismiss()
+		})
+		await createButton.tap()
+
+		expect(await getPageNames(page)).toEqual(['Page 1'])
+	})
+
 	test.describe('You can rename a page', () => {
 		test('You can rename a page by double clicking its name', async ({ page, pageMenu }) => {
 			const { pagemenuButton, pageItems } = pageMenu
