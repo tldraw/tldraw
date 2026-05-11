@@ -25,6 +25,30 @@ import { onMovePage } from './edit-pages-shared'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 
+const PAGE_MENU_LIST_HEIGHT_KEY = 'tldraw_page_menu_list_height'
+const MIN_PAGE_MENU_LIST_HEIGHT = 54
+const DEFAULT_PAGE_MENU_LIST_HEIGHT = 144
+const MAX_PAGE_MENU_RENDER_HEIGHT = 800
+
+function readSavedPageMenuListHeight(): number {
+	if (typeof window === 'undefined') return DEFAULT_PAGE_MENU_LIST_HEIGHT
+	try {
+		const raw = window.localStorage.getItem(PAGE_MENU_LIST_HEIGHT_KEY)
+		if (!raw) return DEFAULT_PAGE_MENU_LIST_HEIGHT
+		const n = Number(raw)
+		return Number.isFinite(n) && n >= MIN_PAGE_MENU_LIST_HEIGHT ? n : DEFAULT_PAGE_MENU_LIST_HEIGHT
+	} catch {
+		return DEFAULT_PAGE_MENU_LIST_HEIGHT
+	}
+}
+
+function getPageMenuRenderCap(viewportHeight: number): number {
+	return Math.max(
+		MIN_PAGE_MENU_LIST_HEIGHT,
+		Math.min(MAX_PAGE_MENU_RENDER_HEIGHT, viewportHeight * 0.8)
+	)
+}
+
 /** @public @react */
 export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const editor = useEditor()
@@ -70,6 +94,54 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	// The id of the page currently being renamed inline, if any.
 	const [editingPageId, setEditingPageId] = useState<TLPageId | null>(null)
+
+	const [listHeight, setListHeight] = useState(readSavedPageMenuListHeight)
+	const [isResizing, setIsResizing] = useState(false)
+	const [viewportHeight, setViewportHeight] = useState(() =>
+		typeof window === 'undefined' ? 800 : window.innerHeight
+	)
+
+	useEffect(() => {
+		const onResize = () => setViewportHeight(window.innerHeight)
+		window.addEventListener('resize', onResize)
+		return () => window.removeEventListener('resize', onResize)
+	}, [])
+
+	const renderedListHeight = Math.min(listHeight, getPageMenuRenderCap(viewportHeight))
+
+	const handleResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		const handle = e.currentTarget
+		handle.setPointerCapture(e.pointerId)
+		const startY = e.clientY
+		// Start the drag from what the user currently sees, so the divider
+		// tracks the cursor even when the stored preference exceeds the cap.
+		const startHeight = handle.previousElementSibling?.getBoundingClientRect().height ?? 0
+		let nextHeight = startHeight
+
+		setIsResizing(true)
+
+		const onMove = (moveEvent: PointerEvent) => {
+			nextHeight = Math.max(MIN_PAGE_MENU_LIST_HEIGHT, startHeight + (moveEvent.clientY - startY))
+			setListHeight(nextHeight)
+		}
+
+		const onUp = () => {
+			handle.removeEventListener('pointermove', onMove)
+			handle.removeEventListener('pointerup', onUp)
+			handle.removeEventListener('pointercancel', onUp)
+			setIsResizing(false)
+			try {
+				window.localStorage.setItem(PAGE_MENU_LIST_HEIGHT_KEY, String(nextHeight))
+			} catch {
+				// ignore — storage may be unavailable in private/embedded contexts
+			}
+		}
+
+		handle.addEventListener('pointermove', onMove)
+		handle.addEventListener('pointerup', onUp, { once: true })
+		handle.addEventListener('pointercancel', onUp, { once: true })
+	}, [])
 
 	useEffect(
 		function closePageMenuOnEnterPressAfterPressingEnterToConfirmRename() {
@@ -354,8 +426,9 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				<div className="tlui-page-menu__wrapper">
 					<div
 						data-testid="page-menu.list"
-						className="tlui-page-menu__list tlui-menu__group"
+						className="tlui-page-menu__list"
 						ref={rSortableContainer}
+						style={{ height: renderedListHeight }}
 					>
 						<div
 							className="tlui-page-menu__list__content"
@@ -451,6 +524,16 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 							})}
 						</div>
 					</div>
+					{!isReadonlyMode && (
+						<div
+							className="tlui-page-menu__resize-handle"
+							data-resizing={isResizing}
+							onPointerDown={handleResizePointerDown}
+							role="separator"
+							aria-orientation="horizontal"
+							aria-label={msg('page-menu.resize')}
+						/>
+					)}
 					{!isReadonlyMode && (
 						<TldrawUiButton
 							type="menu"

@@ -73,6 +73,10 @@
 	font-size: 12px;
 	flex-grow: 2;
 	text-align: start;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 /*
@@ -778,7 +782,7 @@
 .tlui-page-menu__wrapper {
 	display: flex;
 	flex-direction: column;
-	width: 260px;
+	width: 220px;
 }
 
 .tlui-page-menu__trigger {
@@ -795,8 +799,6 @@
 
 .tlui-page-menu__list {
 	flex: 0 0 auto;
-	/* 7.5 rows at 36px each — half-row peek so the user can tell the list scrolls. */
-	height: 270px;
 	overflow-x: hidden;
 	overflow-y: auto;
 	touch-action: auto;
@@ -807,12 +809,43 @@
 	width: 100%;
 }
 
+.tlui-page-menu__resize-handle {
+	flex: 0 0 auto;
+	position: relative;
+	height: 7px;
+	margin-bottom: -3px;
+	cursor: ns-resize;
+	touch-action: none;
+}
+
+.tlui-page-menu__resize-handle::before {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: var(--tl-color-divider);
+	transition: background-color 100ms;
+}
+
+@media (hover: hover) {
+	.tlui-page-menu__resize-handle:hover::before {
+		background: var(--tl-color-selected);
+		transition: background-color 150ms 80ms;
+	}
+}
+
+.tlui-page-menu__resize-handle[data-resizing='true']::before {
+	background: var(--tl-color-selected);
+	transition: none;
+}
+
 .tlui-page-menu__create-button {
 	flex: 0 0 auto;
 	width: 100%;
 	margin: 0;
 	border-radius: 0;
-	border-top: 1px solid var(--tl-color-divider);
 }
 
 @media (hover: hover) {
@@ -829,15 +862,6 @@
 
 .tlui-page-menu__item__button {
 	width: 100%;
-}
-
-.tlui-page-menu__item__button > span {
-	display: block;
-	flex-grow: 2;
-	text-align: start;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
 .tlui-page-menu__item__button > span {
