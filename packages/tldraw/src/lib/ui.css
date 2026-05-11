@@ -941,6 +941,14 @@
 	opacity: 1;
 }
 
+/* Hide the kebab while a row is being dragged: :hover sticks during pointer */
+/* capture, which would otherwise leave the kebab visible mid-drag. */
+.tlui-page_menu__item__sortable[data-dragging='true']
+	> .tlui-page_menu__item__submenu
+	> .tlui-button {
+	opacity: 0;
+}
+
 .tl-container[data-coarse='true'] .tlui-page_menu__item__submenu > .tlui-button {
 	opacity: 1;
 }
