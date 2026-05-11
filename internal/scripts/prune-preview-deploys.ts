@@ -173,7 +173,7 @@ async function listPreviewDatabases() {
 	}
 	return preview.map((b) => b.name)
 }
-const ZERO_CACHE_APP_REGEX = /^pr-\d+-zero-cache$/
+const ZERO_CACHE_APP_REGEX = /^pr-\d+-zero-(cache|rm|vs)$/
 async function listFlyioPreviewApps() {
 	// This is the kind of output this returns.
 	// We'll skip the first line then get the first column of each line.
