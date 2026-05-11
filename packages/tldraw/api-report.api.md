@@ -4085,6 +4085,7 @@ export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, T
     components?: TLComponents;
     // @deprecated
     embeds?: TLEmbedDefinition[];
+    locale?: string;
     // @deprecated
     textOptions?: TLTextOptions;
 }

@@ -167,7 +167,15 @@ The `HandleSnapGeometry` object has these properties:
 Here's a speech bubble shape with a draggable tail handle:
 
 ```tsx
-import { Polygon2d, ShapeUtil, TLHandle, TLHandleDragInfo, TLShape, ZERO_INDEX_KEY } from 'tldraw'
+import {
+	Polygon2d,
+	ShapeUtil,
+	TLHandle,
+	TLHandleDragInfo,
+	TLShape,
+	Vec,
+	ZERO_INDEX_KEY,
+} from 'tldraw'
 
 const SPEECH_BUBBLE_TYPE = 'speech-bubble'
 
@@ -190,13 +198,13 @@ class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const { w, h, tailX, tailY } = shape.props
 		return new Polygon2d({
 			points: [
-				{ x: 0, y: 0 },
-				{ x: w, y: 0 },
-				{ x: w, y: h },
-				{ x: w * 0.7, y: h },
-				{ x: tailX, y: tailY },
-				{ x: w * 0.3, y: h },
-				{ x: 0, y: h },
+				new Vec(0, 0),
+				new Vec(w, 0),
+				new Vec(w, h),
+				new Vec(w * 0.7, h),
+				new Vec(tailX, tailY),
+				new Vec(w * 0.3, h),
+				new Vec(0, h),
 			],
 			isFilled: true,
 		})

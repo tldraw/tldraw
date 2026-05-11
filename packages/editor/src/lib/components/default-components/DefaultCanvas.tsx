@@ -155,29 +155,30 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					{SelectionBackground && <SelectionBackgroundWrapper />}
 					{hideShapes ? null : <ShapesLayer canvasRef={rCanvas} />}
 				</div>
-				<div className="tl-overlays">
-					<CanvasOverlays />
-				</div>
+				<CanvasOverlays />
 				<MovingCameraHitTestBlocker />
 			</div>
-			<div
-				className="tl-canvas__in-front"
-				onPointerDown={editor.markEventAsHandled}
-				onPointerUp={editor.markEventAsHandled}
-				onTouchStart={editor.markEventAsHandled}
-				onTouchEnd={editor.markEventAsHandled}
-			>
-				<InFrontOfTheCanvasWrapper />
-			</div>
+			<InFrontOfTheCanvasWrapper />
 			<MenuClickCapture />
 		</>
 	)
 }
 
 function InFrontOfTheCanvasWrapper() {
+	const editor = useEditor()
 	const { InFrontOfTheCanvas } = useEditorComponents()
 	if (!InFrontOfTheCanvas) return null
-	return <InFrontOfTheCanvas />
+	return (
+		<div
+			className="tl-canvas__in-front"
+			onPointerDown={editor.markEventAsHandled}
+			onPointerUp={editor.markEventAsHandled}
+			onTouchStart={editor.markEventAsHandled}
+			onTouchEnd={editor.markEventAsHandled}
+		>
+			<InFrontOfTheCanvas />
+		</div>
+	)
 }
 
 function GridWrapper() {

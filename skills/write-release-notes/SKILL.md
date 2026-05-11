@@ -82,7 +82,46 @@ Create `apps/docs/content/releases/vX.Y.0.mdx` following the style guide.
 5. Add patch release sections if applicable
 6. Add GitHub release links
 
-### 6. Verify
+### 6. Write a migration guide for every breaking change
+
+Every `💥` in the article needs a migration recipe. The `tldraw-migrate` skill drives off these recipes — it intentionally does not duplicate them in its own SKILL.md, because version-specific knowledge belongs next to the breaking change that introduced it. If the recipe is missing, agents and contributors performing the upgrade have to reverse-engineer it from type defs.
+
+There are two acceptable forms:
+
+**For breaking changes with their own featured section** (renames, replaced APIs, new patterns), add a `<details><summary>Migration guide</summary>` block under the section. Include before/after code and call out any silent-compile traps (props the typecheck won't reject, signatures with optional new parameters, etc.):
+
+````mdx
+### 💥 Custom themes with display values
+
+[Description of what changed and why]
+
+<details>
+<summary>Migration guide</summary>
+
+`getDefaultColorTheme()` and `DefaultColorThemePalette` have been removed. Use `editor.getCurrentTheme().colors[colorMode]` instead:
+
+```tsx
+// Before
+const theme = getDefaultColorTheme({ isDarkMode })
+
+// After
+const theme = editor.getCurrentTheme()
+const colors = theme.colors[editor.getColorMode()]
+```
+
+</details>
+````
+
+**For one-line `💥` entries in the API changes list**, the bullet itself must contain the recipe — name the replacement and any caveats inline:
+
+- ✅ `💥 Replace TLDrawShapeSegment.points with the helper getPointsFromDrawSegment(segment, scaleX, scaleY) so segment points respect the shape's current scale.`
+- ❌ `💥 Remove TLDrawShapeSegment.points.` (no replacement → reader has to guess)
+
+A symbol that is removed without a replacement is a documentation bug — find the public alternative or, if there genuinely isn't one, say so explicitly so readers know to drop the call site rather than searching for a rename.
+
+**Special case — `@public` → `@internal` demotions:** these compile but disappear from public types. They are still breaking changes for consumers who imported the symbol. Treat them like a removal: mark with `💥`, name the public replacement, and explicitly tell readers *not* to reach for module augmentation to re-expose the demoted symbol.
+
+### 7. Verify
 
 Check that:
 
@@ -90,6 +129,7 @@ Check that:
 - PR links are correct and formatted properly
 - Community contributors are credited
 - Breaking changes are marked with 💥
+- **Every `💥` has either a migration guide block or an inline replacement** (run `grep -nE '💥' apps/docs/content/releases/<file>.mdx` and verify each bullet/section)
 - Sections are in the correct order
 
 ## References

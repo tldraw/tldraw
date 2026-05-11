@@ -196,6 +196,8 @@ export abstract class BaseFrameLikeShapeUtil<Shape extends TLBaseBoxShape> exten
     // (undocumented)
     canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']): boolean;
     // (undocumented)
+    canRemoveChildrenOfType(shape: Shape, _type: TLShape['type']): boolean;
+    // (undocumented)
     getClipPath(shape: Shape): undefined | Vec[];
     // (undocumented)
     isFrameLike(_shape: Shape): boolean;
@@ -2996,6 +2998,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     canEditInReadonly(shape: Shape): boolean;
     canEditWhileLocked(shape: Shape): boolean;
     canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
+    canRemoveChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
     canResize(shape: Shape): boolean;
     canResizeChildren(shape: Shape): boolean;
     canScroll(shape: Shape): boolean;

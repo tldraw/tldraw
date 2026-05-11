@@ -15,6 +15,7 @@ import { TLDragShapesInInfo, TLDragShapesOutInfo } from './ShapeUtil'
  * - `isFrameLike()` returns `true`
  * - `providesBackgroundForChildren()` returns `true`
  * - `canReceiveNewChildrenOfType()` returns `true` unless the container is locked
+ * - `canRemoveChildrenOfType()` returns `true` unless the container is locked
  * - `getClipPath()` returns the shape geometry's vertices
  * - `onDragShapesIn()` reparents shapes into the frame (with index restoration)
  * - `onDragShapesOut()` reparents shapes back to the page
@@ -57,6 +58,10 @@ export abstract class BaseFrameLikeShapeUtil<
 	}
 
 	override canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']): boolean {
+		return !shape.isLocked
+	}
+
+	override canRemoveChildrenOfType(shape: Shape, _type: TLShape['type']): boolean {
 		return !shape.isLocked
 	}
 

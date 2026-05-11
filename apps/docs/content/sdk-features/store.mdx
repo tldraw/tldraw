@@ -58,6 +58,115 @@ Records have a scope that determines how they're persisted and synchronized:
 
 Document records are your actual drawing data—saved to storage and synced across instances. Session records are local to one editor instance, like which page you're viewing. Presence records sync to other users in real-time but aren't saved—they're for showing cursors and selections in multiplayer.
 
+## Custom record types
+
+Shapes, bindings, and assets cover most drawing use cases, but some data doesn't fit any of them—comments threaded against a shape, per-user annotations, application state that should ride along with the document. Register a custom record type and these records live in the store like any other: validated, migrated, persisted, and synced according to the scope you pick.
+
+Pass record definitions to [createTLSchema](?) under the `records` option:
+
+```ts
+import { createTLSchema, T, defaultShapeSchemas } from 'tldraw'
+
+const schema = createTLSchema({
+	shapes: defaultShapeSchemas,
+	records: {
+		comment: {
+			scope: 'document',
+			validator: T.object({
+				id: T.string,
+				typeName: T.literal('comment'),
+				shapeId: T.string,
+				authorId: T.string,
+				text: T.string,
+				createdAt: T.number,
+			}),
+			createDefaultProperties: () => ({ createdAt: Date.now() }),
+		},
+	},
+})
+```
+
+Each entry is a [CustomRecordInfo](?):
+
+| Field                     | Type                                     | Description                                                                                                                 |
+| ------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `scope`                   | `'document' \| 'session' \| 'presence'`  | Same scopes as built-in records — `document` for synced/persisted data, `session` for local-only, `presence` for ephemeral. |
+| `validator`               | `T.Validatable`                          | Validates the full record (including `id` and `typeName`) on every write.                                                   |
+| `createDefaultProperties` | `() => Record<string, unknown>`          | Optional. Default props applied when a record is created without them.                                                      |
+| `migrations`              | `MigrationSequence \| TLPropsMigrations` | Optional. Schema evolution for the record type. An empty sequence is created automatically if you omit it.                  |
+
+For type-safe IDs and TypeScript narrowing across your app, augment [TLGlobalRecordPropsMap](?) so the rest of the SDK's `TLRecord` union knows about your record types:
+
+```ts
+import { BaseRecord, RecordId } from 'tldraw'
+
+interface TLComment extends BaseRecord<'comment', RecordId<TLComment>> {
+	shapeId: string
+	authorId: string
+	text: string
+	createdAt: number
+}
+
+declare module 'tldraw' {
+	export interface TLGlobalRecordPropsMap {
+		comment: TLComment
+	}
+}
+```
+
+### Creating and reading custom records
+
+Use [createCustomRecordId](?) to mint IDs that match the `typeName:suffix` convention the store expects. The companion guards [isCustomRecordId](?) and [isCustomRecord](?) narrow values to your custom type:
+
+```ts
+import { createCustomRecordId, isCustomRecord } from 'tldraw'
+
+const commentId = createCustomRecordId('comment')
+
+editor.store.put([
+	{
+		id: commentId,
+		typeName: 'comment',
+		shapeId: 'shape:abc123',
+		authorId: 'user:alice',
+		text: 'Looks good',
+		createdAt: Date.now(),
+	},
+])
+
+for (const record of editor.store.allRecords()) {
+	if (isCustomRecord('comment', record)) {
+		console.log(record.text) // narrowed to your comment shape
+	}
+}
+```
+
+Custom records appear in `store.listen` diffs, can be queried via `store.query.records('comment')`, and participate in undo/redo when written through the usual store APIs. Sync clients automatically include `document`-scoped records in the synced document; `presence`-scoped records are broadcast but not persisted.
+
+### Custom record migrations
+
+Define migrations the same way you would for shape props. Use [createCustomRecordMigrationIds](?) to generate the canonical `com.tldraw.<type>/<version>` IDs, then [createCustomRecordMigrationSequence](?) for the sequence itself:
+
+```ts
+import { createCustomRecordMigrationIds, createCustomRecordMigrationSequence } from 'tldraw'
+
+const commentVersions = createCustomRecordMigrationIds('comment', {
+	AddAuthorId: 1,
+})
+
+const commentMigrations = createCustomRecordMigrationSequence({
+	sequence: [
+		{
+			id: commentVersions.AddAuthorId,
+			up: (record) => ({ ...record, authorId: record.authorId ?? 'unknown' }),
+			down: ({ authorId, ...rest }) => rest,
+		},
+	],
+})
+```
+
+Pass `commentMigrations` as the `migrations` field on the comment's `CustomRecordInfo` and the store will run them when loading older snapshots.
+
 ## Basic operations
 
 ### Reading records
