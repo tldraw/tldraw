@@ -335,7 +335,6 @@ export type TLUiTranslationKey =
 	| 'context-menu.reorder'
 	| 'page-menu.title'
 	| 'page-menu.create-new-page'
-	| 'page-menu.max-page-count-reached'
 	| 'page-menu.new-page-initial-name'
 	| 'page-menu.edit-start'
 	| 'page-menu.edit-done'
