@@ -8,6 +8,8 @@ on:
         required: true
       HUPPY_APP_ID:
         required: true
+      DISCORD_DEPLOY_WEBHOOK_URL:
+        required: false
 
 env:
   CI: 1
@@ -61,3 +63,9 @@ jobs:
             yarn tsx ./internal/scripts/export-template.ts $template
             echo "::endgroup::"
           done
+
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

@@ -74,4 +74,5 @@ jobs:
     secrets:
       HUPPY_PRIVATE_KEY: ${{ secrets.HUPPY_PRIVATE_KEY }}
       HUPPY_APP_ID: ${{ vars.HUPPY_APP_ID }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
     needs: deploy
