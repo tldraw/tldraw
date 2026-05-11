@@ -38,11 +38,15 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	const ITEM_HEIGHT = 36
 	const DRAG_THRESHOLD = 5
-	// While dragging, when the cursor enters this many pixels of the top or
-	// bottom edge of the list container, the list auto-scrolls so the user
-	// can drop into rows that aren't currently visible.
-	const AUTO_SCROLL_ZONE = 28
-	const MAX_AUTO_SCROLL_SPEED = 12
+	// During a drag, scroll speed ramps linearly from MIN to MAX. The ramp
+	// starts when the cursor enters AUTO_SCROLL_ZONE pixels from the edge
+	// (slow drift) and reaches MAX once the cursor is AUTO_SCROLL_RAMP_DISTANCE
+	// pixels into the overshoot — i.e. AUTO_SCROLL_RAMP_DISTANCE − AUTO_SCROLL_ZONE
+	// pixels past the edge of the container.
+	const AUTO_SCROLL_ZONE = 16
+	const AUTO_SCROLL_RAMP_DISTANCE = 48
+	const MIN_AUTO_SCROLL_SPEED = 1
+	const MAX_AUTO_SCROLL_SPEED = 6
 
 	const rSortableContainer = useRef<HTMLDivElement>(null)
 
@@ -151,8 +155,16 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			// Offsets the cursor delta by any auto-scroll that has happened
 			// since the drag started, so the row tracks the cursor as the
 			// list scrolls underneath it.
-			const offsetY = clientY - mut.startY + (scrollTop - mut.startScrollTop)
-			const dragY = mut.startIndex * ITEM_HEIGHT + offsetY
+			const rawOffsetY = clientY - mut.startY + (scrollTop - mut.startScrollTop)
+			// Clamp the dragged row's visible position to the first/last slot
+			// so its transform never extends the popover scroll area.
+			const minDragY = 0
+			const maxDragY = (pages.length - 1) * ITEM_HEIGHT
+			const dragY = Math.max(
+				minDragY,
+				Math.min(maxDragY, mut.startIndex * ITEM_HEIGHT + rawOffsetY)
+			)
+			const offsetY = dragY - mut.startIndex * ITEM_HEIGHT
 			const dragIndex = Math.max(0, Math.min(Math.round(dragY / ITEM_HEIGHT), pages.length - 1))
 			mut.dragIndex = dragIndex
 			mut.lastClientY = clientY
@@ -160,6 +172,24 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		},
 		[ITEM_HEIGHT, pages.length]
 	)
+
+	// While a drag is in progress, follow the container's scroll so the
+	// dragged row stays under the cursor when the user scrolls the list
+	// (wheel, trackpad, scrollbar). Re-runs updateDragFromPointer with the
+	// last known clientY; the new scrollTop falls out of the offset math.
+	// Idempotent — safe even when our own auto-scroll also calls it.
+	useEffect(() => {
+		if (!isOpen) return
+		const container = rSortableContainer.current
+		if (!container) return
+		function onScroll() {
+			const mut = rMutables.current
+			if (mut.status !== 'dragging') return
+			updateDragFromPointer(mut.lastClientY)
+		}
+		container.addEventListener('scroll', onScroll, { passive: true })
+		return () => container.removeEventListener('scroll', onScroll)
+	}, [isOpen, updateDragFromPointer])
 
 	const tickAutoScrollDuringDrag = useCallback(() => {
 		const mut = rMutables.current
@@ -172,13 +202,19 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		const fromTop = mut.lastClientY - rect.top
 		const fromBottom = rect.bottom - mut.lastClientY
 		const maxScroll = container.scrollHeight - container.clientHeight
+		// `overshoot` is 0 at the inner edge of AUTO_SCROLL_ZONE and grows
+		// as the cursor approaches and passes the edge of the container.
+		const overshootTop = AUTO_SCROLL_ZONE - fromTop
+		const overshootBottom = AUTO_SCROLL_ZONE - fromBottom
 		let dy = 0
-		if (fromTop < AUTO_SCROLL_ZONE && container.scrollTop > 0) {
-			const depth = AUTO_SCROLL_ZONE - Math.max(fromTop, 0)
-			dy = -Math.ceil((depth / AUTO_SCROLL_ZONE) * MAX_AUTO_SCROLL_SPEED)
-		} else if (fromBottom < AUTO_SCROLL_ZONE && container.scrollTop < maxScroll) {
-			const depth = AUTO_SCROLL_ZONE - Math.max(fromBottom, 0)
-			dy = Math.ceil((depth / AUTO_SCROLL_ZONE) * MAX_AUTO_SCROLL_SPEED)
+		if (overshootTop > 0 && container.scrollTop > 0) {
+			const t = Math.min(1, overshootTop / AUTO_SCROLL_RAMP_DISTANCE)
+			const speed = MIN_AUTO_SCROLL_SPEED + (MAX_AUTO_SCROLL_SPEED - MIN_AUTO_SCROLL_SPEED) * t
+			dy = -Math.ceil(speed)
+		} else if (overshootBottom > 0 && container.scrollTop < maxScroll) {
+			const t = Math.min(1, overshootBottom / AUTO_SCROLL_RAMP_DISTANCE)
+			const speed = MIN_AUTO_SCROLL_SPEED + (MAX_AUTO_SCROLL_SPEED - MIN_AUTO_SCROLL_SPEED) * t
+			dy = Math.ceil(speed)
 		}
 		if (dy !== 0) {
 			const before = container.scrollTop
