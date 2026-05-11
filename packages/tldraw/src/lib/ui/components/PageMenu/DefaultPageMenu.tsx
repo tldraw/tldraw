@@ -352,124 +352,127 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				disableEscapeKeyDown={editingPageId !== null}
 			>
 				<div className="tlui-page-menu__wrapper">
-					<div className="tlui-page-menu__header">
-						<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
-						{!isReadonlyMode && (
-							<TldrawUiButton
-								type="icon"
-								data-testid="page-menu.create"
-								tooltip={msg(
-									maxPageCountReached
-										? 'page-menu.max-page-count-reached'
-										: 'page-menu.create-new-page'
-								)}
-								title={msg(
-									maxPageCountReached
-										? 'page-menu.max-page-count-reached'
-										: 'page-menu.create-new-page'
-								)}
-								disabled={maxPageCountReached}
-								onClick={handleCreatePageClick}
-							>
-								<TldrawUiButtonIcon icon="plus" small />
-							</TldrawUiButton>
-						)}
-					</div>
 					<div
 						data-testid="page-menu.list"
 						className="tlui-page-menu__list tlui-menu__group"
-						style={{ height: ITEM_HEIGHT * pages.length + 4 }}
 						ref={rSortableContainer}
 					>
-						{pages.map((page, index) => {
-							const isCurrentPage = page.id === currentPage.id
-							const isRenamingThisPage = editingPageId === page.id
-							const isDragging = dragState?.id === page.id
+						<div
+							className="tlui-page-menu__list__content"
+							style={{ height: ITEM_HEIGHT * pages.length + 4 }}
+						>
+							{pages.map((page, index) => {
+								const isCurrentPage = page.id === currentPage.id
+								const isRenamingThisPage = editingPageId === page.id
+								const isDragging = dragState?.id === page.id
 
-							let y = index * ITEM_HEIGHT
-							if (dragState) {
-								if (isDragging) {
-									y = dragState.startIndex * ITEM_HEIGHT + dragState.offsetY
-								} else {
-									const { startIndex, dragIndex } = dragState
-									if (dragIndex < startIndex && index >= dragIndex && index < startIndex) {
-										y = (index + 1) * ITEM_HEIGHT
-									} else if (dragIndex > startIndex && index > startIndex && index <= dragIndex) {
-										y = (index - 1) * ITEM_HEIGHT
+								let y = index * ITEM_HEIGHT
+								if (dragState) {
+									if (isDragging) {
+										y = dragState.startIndex * ITEM_HEIGHT + dragState.offsetY
+									} else {
+										const { startIndex, dragIndex } = dragState
+										if (dragIndex < startIndex && index >= dragIndex && index < startIndex) {
+											y = (index + 1) * ITEM_HEIGHT
+										} else if (dragIndex > startIndex && index > startIndex && index <= dragIndex) {
+											y = (index - 1) * ITEM_HEIGHT
+										}
 									}
 								}
-							}
 
-							return (
-								<div
-									key={page.id}
-									data-pageid={page.id}
-									data-testid="page-menu.item"
-									data-iscurrent={isCurrentPage}
-									data-dragging={isDragging}
-									className="tlui-page_menu__item__sortable"
-									style={{
-										zIndex: isCurrentPage ? 888 : index,
-										transform: `translate(0px, ${y}px)`,
-									}}
-								>
-									{isRenamingThisPage ? (
-										<div className="tlui-page_menu__item__sortable__title" style={{ height: 40 }}>
-											<PageItemInput
-												id={page.id}
-												name={page.name}
-												isCurrentPage={isCurrentPage}
-												onComplete={() => setEditingPageId(null)}
-												onCancel={() => setEditingPageId(null)}
-											/>
-										</div>
-									) : (
-										<TldrawUiButton
-											type="normal"
-											className="tlui-page-menu__item__button"
-											onClick={() => {
-												if (rMutables.current.justDragged) {
-													rMutables.current.justDragged = false
-													return
-												}
-												changePage(page.id)
-											}}
-											onDoubleClick={() => startRenamingPage(page.id, page.name)}
-											onPointerDown={isReadonlyMode ? undefined : handlePointerDown}
-											onPointerMove={isReadonlyMode ? undefined : handlePointerMove}
-											onPointerUp={isReadonlyMode ? undefined : handlePointerUp}
-											tooltip={msg('page-menu.go-to-page')}
-											title={msg('page-menu.go-to-page')}
-											data-id={page.id}
-											data-index={index}
-											onKeyDown={(e) => {
-												if (e.key === 'Escape') {
-													handleKeyDown(e)
-													return
-												}
-												if (e.key === 'Enter' && isCurrentPage) {
-													startRenamingPage(page.id, page.name)
-													editor.markEventAsHandled(e)
-												}
-											}}
-										>
-											<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
-										</TldrawUiButton>
-									)}
-									{!isReadonlyMode && !isRenamingThisPage && (
-										<div className="tlui-page_menu__item__submenu">
-											<PageItemSubmenu
-												index={index}
-												item={page}
-												listSize={pages.length}
-												onRename={() => startRenamingPage(page.id, page.name)}
-											/>
-										</div>
-									)}
-								</div>
-							)
-						})}
+								return (
+									<div
+										key={page.id}
+										data-pageid={page.id}
+										data-testid="page-menu.item"
+										data-iscurrent={isCurrentPage}
+										data-dragging={isDragging}
+										className="tlui-page_menu__item__sortable"
+										style={{
+											zIndex: isCurrentPage ? 888 : index,
+											transform: `translate(0px, ${y}px)`,
+										}}
+									>
+										{isRenamingThisPage ? (
+											<div className="tlui-page_menu__item__sortable__title" style={{ height: 40 }}>
+												<PageItemInput
+													id={page.id}
+													name={page.name}
+													isCurrentPage={isCurrentPage}
+													onComplete={() => setEditingPageId(null)}
+													onCancel={() => setEditingPageId(null)}
+												/>
+											</div>
+										) : (
+											<TldrawUiButton
+												type="normal"
+												className="tlui-page-menu__item__button"
+												onClick={() => {
+													if (rMutables.current.justDragged) {
+														rMutables.current.justDragged = false
+														return
+													}
+													changePage(page.id)
+												}}
+												onDoubleClick={() => startRenamingPage(page.id, page.name)}
+												onPointerDown={isReadonlyMode ? undefined : handlePointerDown}
+												onPointerMove={isReadonlyMode ? undefined : handlePointerMove}
+												onPointerUp={isReadonlyMode ? undefined : handlePointerUp}
+												tooltip={msg('page-menu.go-to-page')}
+												title={msg('page-menu.go-to-page')}
+												data-id={page.id}
+												data-index={index}
+												onKeyDown={(e) => {
+													if (e.key === 'Escape') {
+														handleKeyDown(e)
+														return
+													}
+													if (e.key === 'Enter' && isCurrentPage) {
+														startRenamingPage(page.id, page.name)
+														editor.markEventAsHandled(e)
+													}
+												}}
+											>
+												<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
+											</TldrawUiButton>
+										)}
+										{!isReadonlyMode && !isRenamingThisPage && (
+											<div className="tlui-page_menu__item__submenu">
+												<PageItemSubmenu
+													index={index}
+													item={page}
+													listSize={pages.length}
+													onRename={() => startRenamingPage(page.id, page.name)}
+												/>
+											</div>
+										)}
+									</div>
+								)
+							})}
+						</div>
 					</div>
+					{!isReadonlyMode && (
+						<TldrawUiButton
+							type="menu"
+							className="tlui-page-menu__create-button"
+							data-testid="page-menu.create"
+							tooltip={msg(
+								maxPageCountReached
+									? 'page-menu.max-page-count-reached'
+									: 'page-menu.create-new-page'
+							)}
+							title={msg(
+								maxPageCountReached
+									? 'page-menu.max-page-count-reached'
+									: 'page-menu.create-new-page'
+							)}
+							disabled={maxPageCountReached}
+							onClick={handleCreatePageClick}
+						>
+							<TldrawUiButtonLabel>{msg('page-menu.create-new-page')}</TldrawUiButtonLabel>
+							<TldrawUiButtonIcon icon="plus" small />
+						</TldrawUiButton>
+					)}
 				</div>
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>

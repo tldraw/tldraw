@@ -776,31 +776,13 @@
 /* ------------------- Page Select ------------------ */
 
 .tlui-page-menu__wrapper {
-	position: relative;
 	display: flex;
 	flex-direction: column;
 	width: 260px;
-	height: fit-content;
-	max-height: 50vh;
 }
 
 .tlui-page-menu__trigger {
 	width: auto;
-}
-
-.tlui-page-menu__header {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	width: 100%;
-	height: 40px;
-	padding-inline-start: var(--tl-space-4);
-}
-
-.tlui-page-menu__header__title {
-	color: var(--tl-color-text);
-	font-size: 12px;
-	flex-grow: 2;
 }
 
 .tlui-page-menu__name {
@@ -812,13 +794,25 @@
 }
 
 .tlui-page-menu__list {
-	position: relative;
-	touch-action: auto;
-	flex-direction: column;
-	max-height: 100%;
+	flex: 0 0 auto;
+	/* 7.5 rows at 36px each — half-row peek so the user can tell the list scrolls. */
+	height: 270px;
 	overflow-x: hidden;
 	overflow-y: auto;
 	touch-action: auto;
+}
+
+.tlui-page-menu__list__content {
+	position: relative;
+	width: 100%;
+}
+
+.tlui-page-menu__create-button {
+	flex: 0 0 auto;
+	width: 100%;
+	margin: 0;
+	border-radius: 0;
+	border-top: 1px solid var(--tl-color-divider);
 }
 
 @media (hover: hover) {
