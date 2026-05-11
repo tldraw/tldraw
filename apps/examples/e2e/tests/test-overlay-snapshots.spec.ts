@@ -39,6 +39,8 @@ async function snapshotCanvas(page: Page) {
 	// Allow a small tolerance to absorb sub-pixel anti-aliasing variance on
 	// rotated or curved overlay strokes. A real overlay regression (missing
 	// handle, wrong color, moved stroke) changes far more than 0.5% of pixels.
+	// Screenshot capture also waits for the canvas element to become stable,
+	// which can exceed the global 2s expect timeout on cold preview runs.
 	await expect(page.locator('.tl-canvas')).toHaveScreenshot({
 		maxDiffPixelRatio: 0.005,
 		timeout: 10_000,

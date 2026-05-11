@@ -1,6 +1,10 @@
-import { expect } from '@playwright/test'
+import { expect, type Locator } from '@playwright/test'
 import test from '../fixtures/fixtures'
 import { setupOrReset, sleep } from '../shared-e2e'
+
+async function expectPageItemToBeCurrent(pageItem: Locator, isCurrent: boolean) {
+	await expect(pageItem).toHaveAttribute('data-iscurrent', isCurrent ? 'true' : 'false')
+}
 
 test.describe('page menu', () => {
 	test.beforeEach(setupOrReset)
@@ -49,31 +53,19 @@ test.describe('page menu', () => {
 			await expect(firstPage).toBeVisible()
 			await expect(secondPage).toBeVisible()
 
-			await expect(
-				firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'false')
-			await expect(
-				secondPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'true')
+			await expectPageItemToBeCurrent(firstPage, false)
+			await expectPageItemToBeCurrent(secondPage, true)
 
 			// Click on second page
 			await secondPage.locator('button').first().click()
-			await expect(
-				firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'false')
-			await expect(
-				secondPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'true')
+			await expectPageItemToBeCurrent(firstPage, false)
+			await expectPageItemToBeCurrent(secondPage, true)
 
 			// Click on first page
 			await firstPage.locator('button').first().click()
 
-			await expect(
-				firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'true')
-			await expect(
-				secondPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'false')
+			await expectPageItemToBeCurrent(firstPage, true)
+			await expectPageItemToBeCurrent(secondPage, false)
 		})
 	})
 
@@ -246,16 +238,12 @@ test.describe('page menu', () => {
 
 				// The new page (last one) should be the active/focused page
 				const newPageItem = await pageMenu.getPageItem(initialCount)
-				await expect(
-					newPageItem.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-				).toHaveAttribute('data-checked', 'true')
+				await expectPageItemToBeCurrent(newPageItem, true)
 
 				// All other pages should not be active
 				for (let i = 0; i < initialCount; i++) {
 					const otherPageItem = await pageMenu.getPageItem(i)
-					await expect(
-						otherPageItem.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-					).toHaveAttribute('data-checked', 'false')
+					await expectPageItemToBeCurrent(otherPageItem, false)
 				}
 			})
 		})
@@ -289,9 +277,7 @@ test.describe('page menu', () => {
 				await expect(firstPage).toBeInViewport()
 
 				// Also verify it's marked as checked/active
-				await expect(
-					firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-				).toHaveAttribute('data-checked', 'true')
+				await expectPageItemToBeCurrent(firstPage, true)
 			})
 		})
 
@@ -322,19 +308,13 @@ test.describe('page menu', () => {
 				await pagemenuButton.click()
 
 				// Verify the middle page is marked as the current/focused page
-				await expect(
-					middlePage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-				).toHaveAttribute('data-checked', 'true')
+				await expectPageItemToBeCurrent(middlePage, true)
 
 				// Verify other pages are not focused
 				const firstPage = await pageMenu.getPageItem(0)
 				const lastPage = await pageMenu.getPageItem(2)
-				await expect(
-					firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-				).toHaveAttribute('data-checked', 'false')
-				await expect(
-					lastPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-				).toHaveAttribute('data-checked', 'false')
+				await expectPageItemToBeCurrent(firstPage, false)
+				await expectPageItemToBeCurrent(lastPage, false)
 			})
 		})
 	})
