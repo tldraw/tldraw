@@ -114,32 +114,29 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		offsetY: number
 	} | null>(null)
 
-	// Scroll the current page into view when the menu opens / when current page changes
+	// Scroll the current page into view when the menu opens / when current page changes.
+	// Rows are absolutely positioned at top:0 and translated via transform, so
+	// `offsetTop` is always 0 — derive the row's visual position from its index.
 	useEffect(() => {
 		if (!isOpen) return
 		editor.timers.requestAnimationFrame(() => {
+			const container = rSortableContainer.current
+			if (!container) return
+			const currentIndex = editor.getPages().findIndex((p) => p.id === currentPageId)
+			if (currentIndex === -1) return
+
 			const doc = editor.getContainerDocument()
-			const elm = doc.querySelector(`[data-pageid="${currentPageId}"]`) as HTMLDivElement
+			const elm = doc.querySelector(`[data-pageid="${currentPageId}"]`) as HTMLDivElement | null
+			elm?.querySelector<HTMLButtonElement>('button.tlui-page-menu__item__button')?.focus()
 
-			if (elm) {
-				;(
-					elm.querySelector('button.tlui-page-menu__item__button') as HTMLButtonElement | null
-				)?.focus()
-
-				const container = rSortableContainer.current
-				if (!container) return
-				// Scroll into view is slightly borked on iOS Safari
-
-				const elmTopPosition = elm.offsetTop
-				const containerScrollTopPosition = container.scrollTop
-				if (elmTopPosition < containerScrollTopPosition) {
-					container.scrollTo({ top: elmTopPosition })
-				}
-				const elmBottomPosition = elmTopPosition + ITEM_HEIGHT
-				const containerScrollBottomPosition = container.scrollTop + container.offsetHeight
-				if (elmBottomPosition > containerScrollBottomPosition) {
-					container.scrollTo({ top: elmBottomPosition - container.offsetHeight })
-				}
+			const elmTop = currentIndex * ITEM_HEIGHT
+			const elmBottom = elmTop + ITEM_HEIGHT
+			const viewTop = container.scrollTop
+			const viewBottom = viewTop + container.clientHeight
+			if (elmTop < viewTop) {
+				container.scrollTo({ top: elmTop })
+			} else if (elmBottom > viewBottom) {
+				container.scrollTo({ top: elmBottom - container.clientHeight })
 			}
 		})
 	}, [ITEM_HEIGHT, currentPageId, isOpen, editor])
