@@ -113,3 +113,9 @@ jobs:
           git push origin production
           # reset hotfixes to the latest production
           git push origin production:hotfixes --force
+
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
