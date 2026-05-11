@@ -51,16 +51,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/gateway@npm:2.0.85":
-  version: 2.0.85
-  resolution: "@ai-sdk/gateway@npm:2.0.85"
+"@ai-sdk/gateway@npm:2.0.86":
+  version: 2.0.86
+  resolution: "@ai-sdk/gateway@npm:2.0.86"
   dependencies:
     "@ai-sdk/provider": "npm:2.0.3"
     "@ai-sdk/provider-utils": "npm:3.0.25"
     "@vercel/oidc": "npm:3.1.0"
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
-  checksum: 10/87e58c8e6781a48dbb71fe7395a388cc62e0c9a0198473ccc6d297f32cfb4d86f0c5cc706a913510a9b37a6b59fcd9859aec6c0da518febdbd17ba84a90f56e1
+  checksum: 10/687446eb53e2255469340f80dfe7e1f93dbd03fc31bea97544dc034f167789c479a37b80fd128a3302830612ecda6a53d6e4cf08847cf5c3eee745cbd093a5b7
   languageName: node
   linkType: hard
 
@@ -15058,16 +15058,16 @@ __metadata:
   linkType: hard
 
 "ai@npm:^5.0.63":
-  version: 5.0.182
-  resolution: "ai@npm:5.0.182"
+  version: 5.0.184
+  resolution: "ai@npm:5.0.184"
   dependencies:
-    "@ai-sdk/gateway": "npm:2.0.85"
+    "@ai-sdk/gateway": "npm:2.0.86"
     "@ai-sdk/provider": "npm:2.0.3"
     "@ai-sdk/provider-utils": "npm:3.0.25"
     "@opentelemetry/api": "npm:1.9.0"
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
-  checksum: 10/c9869544d159ebbdfd02ec861c47813f34a9599107791d4d47db63d5862c8f552d2be7bf83b375e02779b1bd844b50a1d9b5a3191b7bf1e1e055157dbfac400f
+  checksum: 10/6c615484182d96591dbd3135fcc271bdea2e2dba6d07be4a6c20ed9d963a1d9054728679b6ff1fb993c5f637be8e8926dd88e11990056d107ecd91faf8e2ecaa
   languageName: node
   linkType: hard
 
@@ -19581,9 +19581,9 @@ __metadata:
   linkType: hard
 
 "fast-uri@npm:^3.0.0, fast-uri@npm:^3.0.1":
-  version: 3.0.6
-  resolution: "fast-uri@npm:3.0.6"
-  checksum: 10/43c87cd03926b072a241590e49eca0e2dfe1d347ddffd4b15307613b42b8eacce00a315cf3c7374736b5f343f27e27ec88726260eb03a758336d507d6fbaba0a
+  version: 3.1.1
+  resolution: "fast-uri@npm:3.1.1"
+  checksum: 10/9835afb6fbff39b1d5e2d36799fcd447dd6720714dc9c323f53d6f45f34e904a2ea1929ec25f57f4abda0f5fb6ff10e3bd30e2c9491f2b2b969200a2a0e666ea
   languageName: node
   linkType: hard
 
@@ -22447,9 +22447,9 @@ __metadata:
   linkType: hard
 
 "kysely@npm:^0.28.12":
-  version: 0.28.16
-  resolution: "kysely@npm:0.28.16"
-  checksum: 10/d0dffee9158a62103f61559588fffd7b34e01a1adf4f054599c3be50c10c6357cda09de456a931fd7eba6502cbb8804710805bbd56e6d94b19633e043cde3e31
+  version: 0.28.17
+  resolution: "kysely@npm:0.28.17"
+  checksum: 10/50690d745016d25f09574fe58c7e31f84427845497f30c84280131bc1f9f60d118c53640a184e225708a1f54f2b54ac12fdf3a0dfc6405527487ad96ff594f42
   languageName: node
   linkType: hard
 
@@ -26549,13 +26549,13 @@ __metadata:
   linkType: hard
 
 "postcss@npm:^8.4.4, postcss@npm:^8.4.47, postcss@npm:^8.5.1, postcss@npm:^8.5.6, postcss@npm:^8.5.8":
-  version: 8.5.13
-  resolution: "postcss@npm:8.5.13"
+  version: 8.5.14
+  resolution: "postcss@npm:8.5.14"
   dependencies:
     nanoid: "npm:^3.3.11"
     picocolors: "npm:^1.1.1"
     source-map-js: "npm:^1.2.1"
-  checksum: 10/4763873c0a39a6f71fc552d0046fedb80dca889ed0b85e36217285f754a3bd003a906f6088feb266b1f53b0ad20483a475dce4cc1c756f05e27940c51e40ebd8
+  checksum: 10/2e3f4dea69692918fe9df5402beb0e54df84499995a094f2fbf63d1a9e38bc1b7a42854df47f09e02593213e01a5eb0627b1d1bd6d1b0ea90767b2e072f7167c
   languageName: node
   linkType: hard
 
