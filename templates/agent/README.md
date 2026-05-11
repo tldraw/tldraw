@@ -142,7 +142,7 @@ export const TimePartUtil = registerPromptPartUtil(
 )
 ```
 
-The `getPart` method gather any data needed to construct the prompt. It can take `(request: AgentRequest, helpers: AgentHelpers)` parameters for access to the current request and helper methods.
+The `getPart` method gathers any data needed to construct the prompt. It can take `(request: AgentRequest, helpers: AgentHelpers)` parameters for access to the current request and helper methods.
 
 Then, back in `shared/schema/PromptPartDefinition.ts`, create the definition for that prompt part.
 
