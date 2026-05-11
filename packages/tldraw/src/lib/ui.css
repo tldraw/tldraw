@@ -802,6 +802,12 @@
 	overflow-x: hidden;
 	overflow-y: auto;
 	touch-action: auto;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.tlui-page-menu__list::-webkit-scrollbar {
+	display: none;
 }
 
 .tlui-page-menu__list__content {
