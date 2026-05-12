@@ -176,9 +176,20 @@ export type TLUserDurableObjectEvent =
 	| { type: 'reboot_duration'; id: string; duration: number }
 	| { type: 'cold_start_time'; id: string; duration: number }
 
-export interface QueueMessage {
-	type: 'asset-upload'
-	objectName: string
-	fileId: string
-	userId: string | null
-}
+export type QueueMessage =
+	| {
+			type: 'asset-upload'
+			objectName: string
+			fileId: string
+			userId: string | null
+	  }
+	| {
+			type: 'webhook-delivery'
+			webhookId: string
+			fileSlug: string
+			event: 'shape.created'
+			deliveryId: string
+			url: string
+			secret: string
+			payload: { shape: unknown; timestamp: number }
+	  }

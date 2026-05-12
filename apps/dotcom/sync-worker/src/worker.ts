@@ -41,6 +41,7 @@ import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
 import { createApiToken } from './routes/tla/createApiToken'
 import { createFiles } from './routes/tla/createFiles'
+import { createWebhook } from './routes/tla/createWebhook'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
@@ -50,6 +51,7 @@ import { testRoutes } from './testRoutes'
 import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
+import { signWebhookBody } from './utils/signWebhookBody'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -148,6 +150,7 @@ const router = createRouter<Environment>()
 	.post('/app/invite/:token/accept', acceptInvite)
 	.post('/app/whiteboard-tokens', createApiToken)
 	.post('/app/file/:fileSlug/whiteboard-rpc', whiteboardRpc)
+	.post('/app/file/:fileSlug/webhooks', createWebhook)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
 		if (isDebugLogging(env)) {
@@ -314,21 +317,64 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
-		const db = createPostgresConnectionPool(this.env, 'sync-worker-queue')
-		for (const message of batch.messages) {
-			const { objectName, fileId, userId } = message.body
-			try {
-				await db
-					.insertInto('asset')
-					.values({ objectName, fileId, userId })
-					.onConflict((oc) => oc.column('objectName').doNothing())
-					.execute()
-				message.ack()
-			} catch (_e) {
-				message.retry({
-					delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
-				})
+		let db: ReturnType<typeof createPostgresConnectionPool> | null = null
+		try {
+			for (const message of batch.messages) {
+				const body = message.body
+				if (body.type === 'asset-upload') {
+					db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
+					try {
+						await db
+							.insertInto('asset')
+							.values({
+								objectName: body.objectName,
+								fileId: body.fileId,
+								userId: body.userId,
+							})
+							.onConflict((oc) => oc.column('objectName').doNothing())
+							.execute()
+						message.ack()
+					} catch (_e) {
+						message.retry({
+							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+						})
+					}
+				} else if (body.type === 'webhook-delivery') {
+					try {
+						const envelope = JSON.stringify({
+							event: body.event,
+							fileSlug: body.fileSlug,
+							deliveryId: body.deliveryId,
+							timestamp: body.payload.timestamp,
+							data: { shape: body.payload.shape },
+						})
+						const signature = await signWebhookBody(envelope, body.secret)
+						const res = await fetch(body.url, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								'X-Tldraw-Event': body.event,
+								'X-Tldraw-Delivery': body.deliveryId,
+								'X-Tldraw-Signature': `sha256=${signature}`,
+							},
+							body: envelope,
+						})
+						if (res.ok) {
+							message.ack()
+						} else {
+							message.retry({
+								delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+							})
+						}
+					} catch (_e) {
+						message.retry({
+							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+						})
+					}
+				}
 			}
+		} finally {
+			await db?.destroy()
 		}
 	}
 }

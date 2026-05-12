@@ -274,6 +274,15 @@ export interface TlaApiToken {
 	revokedAt: number | null
 }
 
+export interface TlaFileWebhook {
+	id: string
+	fileId: string
+	userId: string
+	url: string
+	secret: string
+	createdAt: number
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -284,6 +293,7 @@ export interface DB {
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 	api_token: TlaApiToken
+	file_webhook: TlaFileWebhook
 }
 
 export const schema = createSchema({

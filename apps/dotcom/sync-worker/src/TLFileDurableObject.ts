@@ -58,7 +58,7 @@ import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
-import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
+import { Analytics, DBLoadResult, Environment, QueueMessage, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
@@ -69,12 +69,19 @@ import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { normalizeRpcOperations, type RpcRequestBody } from './utils/rpcOperations'
 import { throttle } from './utils/throttle'
-import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
+import {
+	getAuth,
+	requireAdminAccess,
+	requireWriteAccessForUser,
+	requireWriteAccessToFile,
+} from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { isTestFile } from './utils/tla/isTestFile'
 import { validateAndRepairDocumentMutations } from './utils/validateDocumentMutations'
 
 const MAX_CONNECTIONS = 50
+const WEBHOOK_DISPATCH_INTERVAL_MS = 100
+const WEBHOOK_CACHE_TTL_MS = 60_000
 
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
@@ -173,6 +180,7 @@ export class TLFileDurableObject extends DurableObject {
 				.then((storage) => {
 					storage.onChange(() => {
 						this.triggerPersist()
+						this.triggerWebhookDispatch()
 					})
 					storage.transaction((txn) => {
 						createTLSchema().migrateStorage(txn)
@@ -959,6 +967,106 @@ export class TLFileDurableObject extends DurableObject {
 	triggerPersist = throttle(() => {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
+
+	triggerWebhookDispatch = throttle(() => {
+		this.dispatchWebhooks().catch((e) => this.reportError(e))
+	}, WEBHOOK_DISPATCH_INTERVAL_MS)
+
+	private _webhooks: Array<{ id: string; url: string; secret: string }> | null = null
+	private _webhooksLoadedAt: number = 0
+	private _lastWebhookClock: number | null = null
+
+	private async getWebhooks(): Promise<Array<{ id: string; url: string; secret: string }>> {
+		const now = Date.now()
+		if (this._webhooks && now - this._webhooksLoadedAt < WEBHOOK_CACHE_TTL_MS) {
+			return this._webhooks
+		}
+		const rows = await this.db
+			.selectFrom('file_webhook')
+			.select(['id', 'url', 'secret', 'userId'])
+			.where('fileId', '=', this.documentInfo.slug)
+			.execute()
+
+		// Verify each registering user still has write access to this file.
+		// One check per unique userId; cached together with the webhook list, so
+		// we stop firing within at most WEBHOOK_CACHE_TTL_MS after access is revoked.
+		const uniqueUserIds = [...new Set(rows.map((r) => r.userId))]
+		const accessByUserId = new Map<string, boolean>()
+		await Promise.all(
+			uniqueUserIds.map(async (userId) => {
+				try {
+					await requireWriteAccessForUser(this.env, userId, this.documentInfo.slug)
+					accessByUserId.set(userId, true)
+				} catch {
+					accessByUserId.set(userId, false)
+				}
+			})
+		)
+
+		this._webhooks = rows
+			.filter((r) => accessByUserId.get(r.userId))
+			.map(({ id, url, secret }) => ({ id, url, secret }))
+		this._webhooksLoadedAt = now
+		return this._webhooks
+	}
+
+	private async dispatchWebhooks() {
+		if (!this._documentInfo || this.documentInfo.deleted) return
+
+		const storage = await this.getStorage()
+		if (this._lastWebhookClock === null) {
+			const persisted = (await this.ctx.storage.get('lastWebhookClock')) as number | undefined
+			this._lastWebhookClock = persisted ?? storage.getClock()
+			await this.ctx.storage.put('lastWebhookClock', this._lastWebhookClock)
+			return
+		}
+
+		const { result: changes, documentClock } = storage.transaction((txn) =>
+			txn.getChangesSince(this._lastWebhookClock ?? -1)
+		)
+		if (!changes) return
+
+		const newShapes: TLShape[] = []
+		for (const put of Object.values(changes.diff.puts)) {
+			if (Array.isArray(put)) continue
+			if (put.typeName !== 'shape') continue
+			newShapes.push(put as TLShape)
+		}
+
+		this._lastWebhookClock = documentClock
+		await this.ctx.storage.put('lastWebhookClock', documentClock)
+
+		if (newShapes.length === 0) return
+
+		const webhooks = await this.getWebhooks()
+		if (webhooks.length === 0) return
+
+		const fileSlug = this.documentInfo.slug
+		const timestamp = Date.now()
+		const messages: Array<{ body: QueueMessage }> = []
+		for (const shape of newShapes) {
+			for (const hook of webhooks) {
+				messages.push({
+					body: {
+						type: 'webhook-delivery',
+						webhookId: hook.id,
+						fileSlug,
+						event: 'shape.created',
+						deliveryId: uniqueId(),
+						url: hook.url,
+						secret: hook.secret,
+						payload: { shape, timestamp },
+					},
+				})
+			}
+		}
+		if (messages.length === 0) return
+		try {
+			await this.env.QUEUE.sendBatch(messages)
+		} catch (e) {
+			this.reportError(e)
+		}
+	}
 
 	private writeEvent(name: string, eventData: EventData) {
 		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
