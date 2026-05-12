@@ -1,5 +1,6 @@
-import { appendFileSync } from 'node:fs'
+import { appendFileSync, readFileSync } from 'node:fs'
 import { Octokit } from '@octokit/rest'
+import { parse } from 'semver'
 import { extractChangelog } from './extract-draft-changelog'
 import { getAnyPackageDiff } from './lib/didAnyPackageChange'
 import { exec } from './lib/exec'
@@ -66,7 +67,32 @@ async function main() {
 	// would return the new version and leave prevTag === tag, producing an empty changelog.
 	const prevTag = `v${latestVersionInBranch.format()}`
 
-	const nextVersion = latestVersionInBranch.inc('patch').format()
+	// Determine the version to bump from. Normally this is the latest version
+	// published on npm for this branch. But if a previous patch release was
+	// interrupted after the "v X.Y.Z [skip ci]" version-bump commit was pushed
+	// but before npm publish completed, the local package.json files (and the
+	// matching git tag) will be ahead of npm. In that case we bump from the
+	// local version so we sidestep the orphaned version+tag entirely instead
+	// of trying to re-create them - both `git commit` (no staged changes) and
+	// `git push --follow-tags` (tag already exists at a different commit on
+	// origin) would otherwise fail and permanently wedge the branch.
+	const localTldrawVersion = parse(
+		JSON.parse(readFileSync('packages/tldraw/package.json', 'utf8')).version
+	)
+	const baseVersion =
+		localTldrawVersion && localTldrawVersion.compare(latestVersionInBranch) > 0
+			? localTldrawVersion
+			: latestVersionInBranch
+	if (baseVersion !== latestVersionInBranch) {
+		nicelog(
+			`Local package version ${baseVersion.format()} is ahead of latest npm version ` +
+				`${latestVersionInBranch.format()}; bumping from local to skip past orphaned version.`
+		)
+	}
+
+	// .inc() mutates baseVersion; reparse so callers downstream of us see the
+	// original instance unchanged.
+	const nextVersion = parse(baseVersion.format())!.inc('patch').format()
 	nicelog('Releasing version', nextVersion)
 
 	await setAllVersions(nextVersion, { stageChanges: true })
