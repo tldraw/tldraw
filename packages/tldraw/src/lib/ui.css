@@ -860,6 +860,7 @@
 	flex-direction: row;
 	align-items: center;
 	overflow: hidden;
+	transition: transform 0.08s ease-out;
 }
 
 .tlui-page-menu__item::before {
@@ -905,9 +906,10 @@
 .tlui-page-menu__item[data-dragging='true'] .tlui-page-menu__item__button,
 .tlui-page-menu__item[data-dragging='true'] .tlui-page-menu__item__drag-handle {
 	cursor: grabbing;
+	transition: none;
 }
 
-.tlui-page-menu__item[data-dragging='true']::before {
+.tlui-page-menu__item[data-dragging='true'] {
 	background: var(--tl-color-panel);
 	opacity: 1;
 }
@@ -959,9 +961,12 @@
 	opacity: 1;
 }
 
-/* Hide the kebab while a row is being dragged: :hover sticks during pointer */
+/* Hide the kebab while any row is being dragged: :hover sticks during pointer */
 /* capture, which would otherwise leave the kebab visible mid-drag. */
-.tlui-page-menu__item[data-dragging='true'] > .tlui-page-menu__item__submenu > .tlui-button {
+.tlui-page-menu__list__content[data-dragging='true']
+	.tlui-page-menu__item
+	> .tlui-page-menu__item__submenu
+	> .tlui-button {
 	opacity: 0;
 }
 

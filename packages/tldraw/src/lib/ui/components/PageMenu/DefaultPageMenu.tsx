@@ -498,6 +498,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 					>
 						<div
 							className="tlui-page-menu__list__content"
+							data-dragging={dragState !== null}
 							style={{ height: PAGE_MENU_ITEM_HEIGHT * pages.length + 4 }}
 						>
 							{pages.map((page, index) => {
