@@ -262,6 +262,9 @@ export class TLLocalSyncClient {
 		this.debug('closing')
 		this.didDispose = true
 		this.disposables.forEach((d) => d())
+		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
+			delete (window as any).tlsync
+		}
 	}
 
 	private isPersisting = false

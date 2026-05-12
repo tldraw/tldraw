@@ -274,9 +274,18 @@ export class LicenseManager {
 			const expiryDate = new Date(licenseInfo.expiryDate)
 			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.ANNUAL_LICENSE)
 			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.PERPETUAL_LICENSE)
-
 			const isEvaluationLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.EVALUATION_LICENSE)
-			const daysSinceExpiry = this.getDaysSinceExpiry(expiryDate)
+
+			const isAnnualLicenseExpired = isAnnualLicense && this.isAnnualLicenseExpired(expiryDate)
+			const isPerpetualLicenseExpired =
+				isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate)
+
+			// For perpetual licenses, the calendar expiry date only gates access to future
+			// major/minor releases; it does not "expire" the license itself. While the user
+			// is still on a covered version we report `daysSinceExpiry` as 0 so consumers
+			// (and the grace-period warning) don't treat them as past expiry.
+			const daysSinceExpiry =
+				isPerpetualLicense && !isPerpetualLicenseExpired ? 0 : this.getDaysSinceExpiry(expiryDate)
 
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
@@ -285,9 +294,9 @@ export class LicenseManager {
 				isDomainValid: this.isDomainValid(licenseInfo),
 				expiryDate,
 				isAnnualLicense,
-				isAnnualLicenseExpired: isAnnualLicense && this.isAnnualLicenseExpired(expiryDate),
+				isAnnualLicenseExpired,
 				isPerpetualLicense,
-				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
+				isPerpetualLicenseExpired,
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
 				isNativeLicense: this.isNativeLicense(licenseInfo),
 				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),

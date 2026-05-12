@@ -1,210 +1,198 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents working in this repository.
 
-## Repository overview
+## Core rules
 
-This is the tldraw monorepo - an infinite canvas SDK for React applications. It's organized using yarn workspaces with packages for the core editor, UI components, shapes, tools, and supporting infrastructure.
+- Use `yarn`, not `npm`, for repo commands. This repo uses Yarn workspaces and Yarn 4.
+- Run commands from the repo root unless a command explicitly says to run from a workspace.
+- Never run bare `tsc`; use `yarn typecheck` from the repo root.
+- Prefer targeted checks first. Avoid repo-wide test or e2e runs unless the change needs them.
+- Keep changes scoped to the request and the affected package. Do not refactor unrelated code.
+- Respect existing worktree changes. Do not revert user changes unless explicitly asked.
+- Prefer editing existing files over creating new files. Do not add new documentation files unless requested.
+- Use sentence case for headings, titles, labels, and documentation text.
+
+## Repo overview
+
+This is the tldraw monorepo, an infinite canvas SDK for React applications. It is organized with Yarn workspaces.
+
+Core packages:
+
+- `packages/editor` - foundational infinite canvas editor with no default shapes, tools, or UI
+- `packages/tldraw` - complete SDK with default UI, shapes, tools, and interactions
+- `packages/store` - reactive client-side database, persistence, and migrations
+- `packages/tlschema` - shape, binding, and record type definitions and validators
+- `packages/state` - reactive signals library
+- `packages/sync` and `packages/sync-core` - multiplayer sync packages
+- `packages/utils` and `packages/validate` - shared utilities and validation helpers
+- `packages/assets` - icons, fonts, translations, and bundled assets
+
+Apps and examples:
+
+- `apps/examples` - SDK examples and demos; the main place for example development
+- `apps/docs` - documentation site at tldraw.dev
+- `apps/dotcom` - tldraw.com app and workers
+- `apps/vscode` - VS Code extension
+- `templates` - starter templates for supported frameworks
 
 ## Setup
 
-Requires Node ^20.0.0. Enable corepack to ensure correct yarn version:
+Requires Node `^20.0.0`. Enable Corepack before installing dependencies:
 
 ```bash
 npm i -g corepack && yarn
 ```
 
-## Essential commands
+## Common commands
 
-### Development
+Development:
 
-- `yarn dev` - Start development server for examples app at localhost:5420
-- `yarn dev-app` - Start tldraw.com client app development
-- `yarn dev-docs` - Start documentation site development
-- `yarn dev-vscode` - Start VSCode extension development
-- `yarn dev-template <template name>` - Runs a template
+- `yarn dev` - start the examples app at localhost:5420
+- `yarn dev-app` - start the tldraw.com client app
+- `yarn dev-docs` - start the docs site
+- `yarn dev-vscode` - start VS Code extension development
+- `yarn dev-template <template name>` - run a template
 
-### Building
+Build:
 
-- `yarn build` - Build all packages (incremental, builds only what changed)
-- `yarn build-package` - Build SDK packages only
-- `yarn build-app` - Build tldraw.com client app
-- `yarn build-docs` - Build documentation site
+- `yarn build` - build all changed packages incrementally
+- `yarn build-package` - build SDK packages only
+- `yarn build-app` - build the tldraw.com client app
+- `yarn build-docs` - build the docs site
 
-### Testing
+Testing:
 
-- `yarn test` in a workspace - Run tests in watch mode (cd to workspace first)
-- `yarn test run` in a workspace - Run tests once without watch mode
-- `yarn test run --grep "pattern"` - Run matching tests in a workspace
-- `yarn vitest` - Run all tests across repo (slow, avoid unless necessary)
-- `yarn e2e` - Run end-to-end tests for examples
-- `yarn e2e-dotcom` - Run end-to-end tests for tldraw.com
+- `yarn test` in a workspace - run tests in watch mode
+- `yarn test run` in a workspace - run tests once
+- `yarn test run --grep "pattern"` in a workspace - run matching tests
+- `yarn vitest` - run all tests across the repo; slow, avoid unless necessary
+- `yarn e2e` - run examples e2e tests
+- `yarn e2e-dotcom` - run tldraw.com e2e tests
 
-### Code quality
+Code quality:
 
-- `yarn lint` - Lint package
-- `yarn lint-current` - Lint only changed files (faster)
-- `yarn typecheck` - Type check all packages (run from repo root; also runs `refresh-assets`)
-- `yarn format` - Format code with Prettier
-- `yarn format-current` - Format only changed files (faster)
-- `yarn api-check` - Validate public API consistency
+- `yarn lint` - lint the package or workspace
+- `yarn lint-current` - lint changed files
+- `yarn typecheck` - type check all packages and refresh assets
+- `yarn format` - format the repo
+- `yarn format-current` - format changed files
+- `yarn api-check` - validate public API reports
 
-IMPORTANT: NEVER run bare `tsc` - always use `yarn typecheck`.
-If the `typecheck` command is not found, you're not running it from the repo root.
+## Validation workflow
 
-## Architecture overview
+- For narrow package changes, run the relevant workspace test first, for example `cd packages/tldraw && yarn test run --grep "SelectTool"`.
+- For changes that affect shared types, migrations, editor behavior, or cross-package contracts, run `yarn typecheck` from the repo root.
+- For public API changes, run `yarn api-check` and include intentional API report updates.
+- For asset changes, run `yarn refresh-assets` or `yarn typecheck` so generated assets stay current.
+- For docs changes, run the narrow docs checks or docs build only when the change affects generated content, MDX behavior, or site structure.
+- For e2e behavior changes, run the smallest relevant e2e suite and update snapshots only when behavior intentionally changed.
 
-### Core packages structure
+## Architecture notes
 
-**@tldraw/editor** - Foundational infinite canvas editor
+Reactive state:
 
-- No shapes, tools, or UI - just the core engine
-- State management using reactive signals (@tldraw/state)
-- Shape system via ShapeUtil, Tools via StateNode
-- Bindings system for shape relationships
+- State is managed through `@tldraw/state` signals (`Atom`, `Computed`, and related primitives).
+- Editor state is observable and dependency-tracked. Avoid bypassing existing reactive patterns.
 
-**@tldraw/tldraw** - Complete "batteries included" SDK
+Shapes:
 
-- Builds on editor with full UI, shapes, and tools
-- Default shape utilities (text, draw, geo, arrow, etc.)
-- Complete tool set (select, hand, eraser, etc.)
-- Responsive UI system with customizable components
+- Shape behavior lives in `ShapeUtil` classes.
+- Shape utils define geometry, rendering, handles, interactions, and SVG/export behavior.
+- Add custom shape behavior through the established ShapeUtil patterns rather than one-off editor patches.
 
-**@tldraw/store** - Reactive client-side database
+Tools:
 
-- Document persistence with IndexedDB
-- Reactive updates using signals
-- Migration system for schema changes
+- Tools are `StateNode` state machines.
+- Complex tools use child states for pointer, keyboard, tick, and transition behavior.
+- Keep interaction logic close to the tool state that owns it.
 
-**@tldraw/tlschema** - Type definitions and validators
+Bindings:
 
-- Shape, binding, and record type definitions
-- Validation schemas and migrations
-- Shared data structures
+- Shape relationships use binding records and `BindingUtil` classes.
+- Arrows and other connected shapes should update through binding utilities, not ad hoc shape mutation.
 
-### Key architectural patterns
+Store and schema:
 
-**Reactive state management**
+- Store changes should respect migrations, validators, and schema versioning.
+- Schema-affecting changes usually need updates in `packages/tlschema` and focused migration tests.
 
-- Uses @tldraw/state for reactive signals (Atom, Computed)
-- All editor state is reactive and observable
-- Automatic dependency tracking prevents unnecessary re-renders
+## Where to work
 
-**Shape system**
+- Use `packages/editor` for core editor primitives, geometry, managers, and UI-free behavior.
+- Use `packages/tldraw` for default shapes, default tools, UI, and integration tests that need the full SDK.
+- Use `apps/examples` for runnable SDK examples and demonstrations.
+- Use `apps/docs/content` for documentation articles and release notes.
+- Use `apps/dotcom/client` for tldraw.com frontend behavior.
+- Use `apps/dotcom/*-worker` for Cloudflare worker behavior.
+- Use `templates` for starter project changes.
 
-- Each shape type has a ShapeUtil class defining behavior
-- ShapeUtil handles geometry, rendering, interactions
-- Extensible - custom shapes via new ShapeUtil implementations
+## Testing guidance
 
-**Tools as state machines**
+- Unit tests live alongside source files as `*.test.ts`.
+- Integration tests commonly live in `packages/tldraw/src/test/`.
+- E2E tests live in `apps/examples/e2e/` and `apps/dotcom/client/e2e/`.
+- Test in `packages/tldraw` when default shapes, tools, bindings, or UI are involved.
+- Test in `packages/editor` for core editor behavior that should not depend on default shapes or UI.
+- Prefer comparing whole objects in assertions when that gives a clearer failure than checking fields one by one.
+- See `skills/write-unit-tests/` and `skills/write-e2e-tests/` for detailed test patterns.
 
-- Tools implemented as StateNode hierarchies
-- Event-driven with pointer, keyboard, tick handlers
-- Complex tools have child states (e.g., SelectTool has Brushing, Translating, etc.)
+## Documentation and examples
 
-**Bindings system**
+- Docs live in `apps/docs/content/`.
+- Examples live in `apps/examples/src/examples/`.
+- Example folders use lowercase kebab-case names.
+- Example README frontmatter drives the examples site; keep titles and descriptions sentence case.
+- Update docs or examples when an API or user-facing behavior changes.
+- See `skills/write-docs/`, `skills/write-example/`, and `skills/write-release-notes/` for task-specific guidance.
 
-- Relationships between shapes (arrows to shapes, etc.)
-- BindingUtil classes define binding behavior
-- Automatic updates when connected shapes change
+## Skills
 
-## Testing
+- Canonical agent skills live in `skills/`.
+- `.agents/skills` is a symlink to `../skills` for generic agent compatibility.
+- `.claude/skills` is a symlink to `../skills` for Claude compatibility. Keep `skills/` as the source of truth.
+- `.cursor/skills` is a symlink to `../skills` for Cursor compatibility.
+- Skill folders use `skill-name/SKILL.md` with YAML frontmatter containing at least `name` and `description`.
+- Put reusable scripts, references, and assets inside the relevant skill folder.
+- Do not duplicate skill content for different agents; add compatibility pointers or symlinks instead.
+- See `skills/skill-creator/` before creating or restructuring skills.
+- User-facing workflow skills include `skills/pr/`, `skills/issue/`, `skills/take/`, `skills/commit-changes/`, and `skills/clean-copy/`.
 
-- Unit tests: `packages/<workspace>/src/**/*.test.ts` (alongside source or in `src/test/`)
-- E2E tests: `apps/examples/e2e/` and `apps/dotcom/client/e2e/`
-- Test in `packages/tldraw` if you need default shapes/tools
-- Run from workspace: `cd packages/tldraw && yarn test run --grep "pattern"`
+## Code conventions
 
-See `.claude/skills/write-unit-tests/` and `.claude/skills/write-e2e-tests/` for detailed patterns.
+TypeScript:
 
-## Development workspace structure
+- Follow existing file-local style and abstractions.
+- Use workspace types and helpers rather than duplicating definitions.
+- Keep public API changes deliberate and reflected in API reports.
+- Avoid boolean or ambiguous positional options in new APIs when a named object or enum would make call sites clearer.
 
-```
-apps/
-├── examples/          # SDK examples and demos
-├── docs/             # Documentation site (tldraw.dev)
-├── dotcom/           # tldraw.com application
-│   ├── client/       # Frontend React app
-│   ├── sync-worker/  # Multiplayer backend
-│   └── asset-upload-worker/
-└── vscode/           # VSCode extension
+React and UI:
 
-packages/
-├── editor/           # Core editor engine
-├── tldraw/           # Complete SDK with UI
-├── store/            # Reactive database
-├── tlschema/         # Type definitions
-├── state/            # Reactive signals library
-├── sync/             # Multiplayer SDK
-├── utils/            # Shared utilities
-├── validate/         # Lightweight validation library
-├── assets/           # Icons, fonts, translations
-└── create-tldraw/    # npm create tldraw CLI
+- Follow existing component patterns in the relevant app or package.
+- Keep user-facing text concise and sentence case.
+- Avoid broad UI rewrites when a focused component change is enough.
 
-templates/            # Starter templates for different frameworks
-```
+Generated files:
 
-## Build system (LazyRepo)
+- Do not hand-edit generated assets, API reports, or schemas unless the repo already expects that file to be edited directly.
+- Run the owning generator command when generated output needs to change.
 
-Uses `lazyrepo` for incremental builds with caching:
+Dependencies:
 
-- `yarn build` builds only what changed
-- Workspace dependencies handled automatically
-- Caching based on file inputs/outputs
-- Parallel execution where possible
+- Keep dependencies workspace-appropriate.
+- If changing dependency manifests or lockfiles, make sure the lockfile update is intentional and included.
 
-## Key development notes
+## Writing style
 
-**TypeScript**
+- Use sentence case for Markdown headings, UI labels, docs titles, PR titles, and issue titles.
+- Capitalize proper nouns, acronyms, and code names normally, for example `PostgreSQL`, `WebSocket`, and `NodeShapeUtil`.
+- Use direct, concrete language.
+- Do not include AI attribution in commits, PR descriptions, issues, docs, release notes, or generated written content.
 
-- Uses workspace references for fast incremental compilation
-- Run `yarn typecheck` before commits
-- API surface validated with Microsoft API Extractor
+## Git and PR notes
 
-**Monorepo management**
-
-- Yarn workspaces with berry (yarn 4.x)
-- Use `yarn` not `npm` - packageManager field enforces this
-- Dependencies managed at workspace level where possible
-
-**Asset management**
-
-- Icons, fonts, translations in `/assets` (managed centrally)
-- Run `yarn refresh-assets` after asset changes
-- Assets bundled into packages during build
-- Automatic optimization and deduplication
-
-**Example development**
-
-- Main development happens in `apps/examples`
-- Examples showcase SDK capabilities
-- See `apps/examples/writing-examples.md` for guidelines
-
-## Writing style guidelines
-
-**Sentence case for titles and headings**
-
-- Always use sentence case for titles, headings, and labels (NOT Title Case)
-- Examples:
-  - ✅ "Database configuration"
-  - ❌ "Database Configuration"
-  - ✅ "Real-time updates"
-  - ❌ "Real-Time Updates"
-  - ✅ "Custom shapes"
-  - ❌ "Custom Shapes"
-- Exception: Proper nouns, acronyms, and class/component names remain capitalized
-  - ✅ "PostgreSQL database"
-  - ✅ "WebSocket connections"
-  - ✅ "NodeShapeUtil implementation"
-- This applies to:
-  - Markdown headers (##, ###, etc.)
-  - Bold labels in lists (**Label**:)
-  - Documentation titles
-  - Code comments describing features
-
-## Important instruction reminders
-
-- Do what has been asked; nothing more, nothing less.
-- NEVER create files unless they're absolutely necessary for achieving your goal.
-- ALWAYS prefer editing an existing file to creating a new one.
-- NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
+- Keep commits focused when asked to commit.
+- Use semantic PR titles for pull requests: `<type>(<scope>): <description>`.
+- Never add yourself or an AI tool as a co-author.
+- See `skills/pr/` and `skills/issue/` for GitHub workflows, and `skills/write-pr/` and `skills/write-issue/` for repository content standards.

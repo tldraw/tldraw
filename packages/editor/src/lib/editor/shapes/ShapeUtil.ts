@@ -218,42 +218,32 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	abstract component(shape: Shape): any
 
 	/**
-	 * Get JSX describing the shape's indicator (as an SVG element).
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	abstract indicator(shape: Shape): any
-
-	/**
-	 * Whether to use the legacy React-based indicator rendering.
-	 *
-	 * Override this to return `false` if your shape implements {@link ShapeUtil.getIndicatorPath}
-	 * for canvas-based indicator rendering.
-	 *
-	 * @returns `true` to use SVG indicators (default), `false` to use canvas indicators.
-	 * @public
-	 */
-	useLegacyIndicator(): boolean {
-		return true
-	}
-
-	/**
-	 * Get a Path2D for rendering the shape's indicator on the canvas.
-	 *
-	 * When implemented, this is used instead of {@link ShapeUtil.indicator} for more
-	 * efficient canvas-based indicator rendering. Shapes that return `undefined` will
-	 * fall back to SVG-based rendering via {@link ShapeUtil.indicator}.
+	 * Get a Path2D (or a richer object with clip/additional paths) for rendering the
+	 * shape's indicator on the canvas. Shapes that return `undefined` will not render
+	 * an indicator.
 	 *
 	 * For complex indicators that need clipping (e.g., arrows with labels), return an
 	 * object with `path`, `clipPath`, and `additionalPaths` properties.
 	 *
 	 * @param shape - The shape.
-	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to use SVG fallback.
+	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to skip.
 	 * @public
 	 */
-	getIndicatorPath(shape: Shape): TLIndicatorPath | undefined {
-		return undefined
+	abstract getIndicatorPath(shape: Shape): TLIndicatorPath | undefined
+
+	/**
+	 * Get JSX describing the shape's indicator (as an SVG element).
+	 *
+	 * @deprecated SVG indicators are no longer rendered. Override
+	 * {@link ShapeUtil.getIndicatorPath} instead. This stub is retained so legacy
+	 * subclasses that still call `super.indicator()` keep type-checking; new shapes
+	 * should not implement it.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	indicator(_shape: Shape): any {
+		return null
 	}
 
 	/**
@@ -556,7 +546,9 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	getHandles?(shape: Shape): TLHandle[]
 
 	/**
-	 * Get whether the shape can receive children of a given type.
+	 * Get whether the shape can receive children of a given type. Used by the drag and drop system
+	 * to decide whether {@link ShapeUtil.onDragShapesIn} should fire when a shape of the given type
+	 * is dragged over this one.
 	 *
 	 * @param shape - The shape.
 	 * @param type - The shape type.
@@ -564,6 +556,22 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 */
 	canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']) {
 		return false
+	}
+
+	/**
+	 * Get whether children of a given type can be removed from this shape. Used by the drag and
+	 * drop system to decide whether {@link ShapeUtil.onDragShapesOut} should fire when a child of
+	 * the given type is dragged out of this shape, and by `kickoutOccludedShapes` to decide
+	 * whether to auto-reparent a child of the given type when it has moved outside this shape's
+	 * geometry. Returning `false` therefore "pins" matching children — they stay parented to this
+	 * shape even when dragged or moved outside it. Defaults to `true`.
+	 *
+	 * @param shape - The shape.
+	 * @param type - The shape type.
+	 * @public
+	 */
+	canRemoveChildrenOfType(shape: Shape, type: TLShape['type']) {
+		return true
 	}
 
 	/**

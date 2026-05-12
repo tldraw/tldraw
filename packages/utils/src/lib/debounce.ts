@@ -79,6 +79,7 @@ export function debounce<T extends unknown[], U>(
 	fn.cancel = () => {
 		if (!state) return
 		clearTimeout(state.timeout)
+		state = undefined
 	}
 	return fn
 }

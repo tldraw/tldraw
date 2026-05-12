@@ -1418,20 +1418,20 @@ tldraw? probably.
 	display: none;
 }
 .tlui-row.tlui-main-toolbar__group:not(:nth-last-child(-n + 1 of [data-toolbar-visible='true'])) {
-	border-right: 1px solid var(--color-divider);
+	border-right: 1px solid var(--tl-color-divider);
 	margin-right: 2px;
 }
 .tlui-column.tlui-main-toolbar__group:not(
 		:nth-last-child(-n + 1 of [data-toolbar-visible='true'])
 	) {
-	border-bottom: 1px solid var(--color-divider);
+	border-bottom: 1px solid var(--tl-color-divider);
 	margin-bottom: 2px;
 }
 .tlui-grid.tlui-main-toolbar__group {
 	grid-column: 1 / span 4;
 }
 .tlui-grid.tlui-main-toolbar__group:not(:nth-last-child(-n + 1 of [data-toolbar-visible='true'])) {
-	border-bottom: 1px solid var(--color-divider);
+	border-bottom: 1px solid var(--tl-color-divider);
 	margin-bottom: 2px;
 }
 

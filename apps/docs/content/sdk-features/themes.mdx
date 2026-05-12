@@ -124,7 +124,7 @@ Each color in the palette is a [TLDefaultColor](?) with variants for different c
 | `highlightSrgb`      | Highlighter color in sRGB color space          |
 | `highlightP3`        | Highlighter color in Display P3 color space    |
 
-The palette also includes six base properties: `text` for default text color, `background` for the canvas background color used in SVG exports, `negativeSpace` for areas that should appear to "cut through" to the background (e.g. frame heading knockouts and text outlines), `solid` for the default solid surface color, `cursor` for the cursor color, and `noteBorder` for note shape borders. In the default themes, `background` and `negativeSpace` have the same value, but custom themes can set them independently.
+The palette also includes thirteen base properties: `text` for default text color, `background` for the canvas background color used in SVG exports, `negativeSpace` for areas that should appear to "cut through" to the background (e.g. frame heading knockouts and text outlines), `solid` for the default solid surface color, `cursor` for the cursor color, `noteBorder` for note shape borders, `selectionStroke` and `selectionFill` for the selection box, `selectedContrast` for indicators drawn on top of selected shapes, `brushStroke` and `brushFill` for the selection-brush rectangle, `snap` for snap guides, and `laser` for the laser pointer. In the default themes, `background` and `negativeSpace` have the same value, but custom themes can set them independently.
 
 > Note: The `background` property is used in SVG exports to set the canvas background, but the actual visible canvas background is set separately via the `--tl-color-background` CSS variable. If you customize `background` in your theme, make sure the CSS variable matches — otherwise exports may use a different background color than what's shown on the canvas.
 
@@ -328,7 +328,7 @@ const {
 } = DEFAULT_THEME.colors.light
 ```
 
-Colors removed this way won't appear in the style panel. UI infrastructure colors (`text`, `background`, `solid`, `cursor`, `noteBorder`, `negativeSpace`) cannot be removed.
+Colors removed this way won't appear in the style panel. UI infrastructure colors (`text`, `background`, `solid`, `cursor`, `noteBorder`, `negativeSpace`, `selectionStroke`, `selectionFill`, `selectedContrast`, `brushStroke`, `brushFill`, `snap`, `laser`) cannot be removed.
 
 ## Using themes in shape utils
 

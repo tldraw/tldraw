@@ -4,6 +4,7 @@ import {
 	TLArrowShape,
 	TLFrameShape,
 	TLGeoShape,
+	TLShape,
 	TLShapeId,
 	createShapeId,
 	toRichText,
@@ -27,6 +28,22 @@ afterEach(() => {
 
 const ids = {
 	boxA: createShapeId('boxA'),
+}
+
+class GeoRejectingFrameShapeUtil extends FrameShapeUtil {
+	static override type = 'frame' as const
+
+	override canReceiveNewChildrenOfType(_shape: TLFrameShape, type: TLShape['type']) {
+		return type !== 'geo'
+	}
+}
+
+class GeoPinningFrameShapeUtil extends FrameShapeUtil {
+	static override type = 'frame' as const
+
+	override canRemoveChildrenOfType(_shape: TLFrameShape, type: TLShape['type']) {
+		return type !== 'geo'
+	}
 }
 
 describe('creating frames', () => {
@@ -442,6 +459,51 @@ describe('frame shapes', () => {
 		// On pointer up, the shape should be dropped into the frame
 		editor.pointerUp()
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
+	})
+
+	it("doesn't drag shapes into a frame that rejects their type", () => {
+		editor.dispose()
+		editor = new TestEditor({ shapeUtils: [GeoRejectingFrameShapeUtil] })
+
+		const frameId = dragCreateFrame({ down: [0, 0], move: [200, 200], up: [200, 200] })
+
+		editor.createShapes([
+			{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50, fill: 'solid' } },
+		])
+
+		expect(editor.getShape(ids.boxA)!.parentId).toBe(editor.getCurrentPageId())
+
+		editor.setCurrentTool('select')
+		editor.pointerDown(275, 275, ids.boxA).pointerMove(100, 100)
+		vi.advanceTimersByTime(300)
+
+		expect(editor.getShape(ids.boxA)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+
+		editor.pointerUp(100, 100)
+
+		expect(editor.getShape(ids.boxA)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShape(frameId)!.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it("doesn't drag shapes out of a frame that pins their type", () => {
+		editor.dispose()
+		editor = new TestEditor({ shapeUtils: [GeoPinningFrameShapeUtil] })
+
+		// Create a frame and a geo shape that extends partially outside the frame so we
+		// can grab it by its outside portion (clicking inside the frame would select the frame).
+		const frameId = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		const rectId = dragCreateRect({ down: [80, 50], move: [120, 60], up: [120, 60] })
+		expect(editor.getShape(rectId)!.parentId).toBe(frameId)
+
+		// Drag the rect entirely out of the frame by clicking on the part that's outside
+		editor.pointerDown(110, 50)
+		editor.pointerMove(140, 50)
+		expect(editor.getShape(rectId)!.parentId).toBe(frameId)
+		editor.pointerUp(140, 50)
+
+		// The rect should still be parented to the frame because the frame pins geo shapes
+		expect(editor.getShape(rectId)!.parentId).toBe(frameId)
 	})
 
 	it('can be snapped to when dragging other shapes', () => {

@@ -83,7 +83,11 @@
 	},
 	"packageManager": "yarn@4.12.0",
 	"lint-staged": {
-		"*.{js,jsx,ts,tsx,cjs,mjs,css,md,mdx,html,yml,yaml}": [
+		"*.{js,jsx,ts,tsx,cjs,mjs}": [
+			"oxfmt --no-error-on-unmatched-pattern",
+			"oxlint"
+		],
+		"*.{css,md,mdx,html,yml,yaml}": [
 			"oxfmt --no-error-on-unmatched-pattern"
 		]
 	},
@@ -118,7 +122,7 @@
 		"rimraf": "^4.4.1",
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3",
-		"vercel": "^34.4.0",
+		"vercel": "^52.0.0",
 		"vite-plugin-circular-dependency": "^0.5.0",
 		"vitest": "^3.2.4",
 		"vitest-canvas-mock": "^1.1.3"

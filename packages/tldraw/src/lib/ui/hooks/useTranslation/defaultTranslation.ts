@@ -316,6 +316,7 @@ export const DEFAULT_TRANSLATION = {
 	'a11y.open-keyboard-shortcuts': 'Keyboard shortcuts…',
 	'menu.title': 'Menu',
 	'menu.theme': 'Theme',
+	'menu.color-theme': 'Color theme',
 	'menu.accessibility': 'Accessibility',
 	'menu.copy-as': 'Copy as',
 	'menu.edit': 'Edit',

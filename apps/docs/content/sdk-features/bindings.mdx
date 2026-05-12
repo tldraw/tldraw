@@ -142,9 +142,9 @@ Shapes control whether they accept bindings by implementing `canBind()` in their
 
 ```typescript
 class MyShapeUtil extends ShapeUtil<MyShape> {
-	canBind({ fromShapeType, toShapeType, bindingType }: TLShapeUtilCanBindOpts) {
+	canBind({ fromShape, toShape, bindingType }: TLShapeUtilCanBindOpts) {
 		// Only allow arrow bindings where this shape is the target
-		return bindingType === 'arrow' && toShapeType === this.type
+		return bindingType === 'arrow' && toShape.type === this.type
 	}
 }
 ```
