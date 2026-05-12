@@ -27,8 +27,10 @@ import { PageItemSubmenu } from './PageItemSubmenu'
 
 const PAGE_MENU_LIST_HEIGHT_KEY = 'tldraw_page_menu_list_height'
 const MIN_PAGE_MENU_LIST_HEIGHT = 54
-const DEFAULT_PAGE_MENU_LIST_HEIGHT = 145
 const MAX_PAGE_MENU_RENDER_HEIGHT = 800
+// Bottom padding included in the absolutely-positioned content stack — so the
+// auto-fit list height should mirror it.
+const PAGE_MENU_LIST_CONTENT_BOTTOM_PADDING = 4
 const MAX_PAGE_MENU_AVAILABLE_HEIGHT_RATIO = 0.62
 const PAGE_MENU_CREATE_BUTTON_HEIGHT = 40
 const PAGE_MENU_RESIZE_HANDLE_HEIGHT = 7
@@ -39,15 +41,15 @@ const PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE = 48
 const PAGE_MENU_MIN_AUTO_SCROLL_SPEED = 1
 const PAGE_MENU_MAX_AUTO_SCROLL_SPEED = 6
 
-function readSavedPageMenuListHeight(): number {
-	if (typeof window === 'undefined') return DEFAULT_PAGE_MENU_LIST_HEIGHT
+function readSavedPageMenuListHeight(): number | null {
+	if (typeof window === 'undefined') return null
 	try {
 		const raw = window.localStorage.getItem(PAGE_MENU_LIST_HEIGHT_KEY)
-		if (!raw) return DEFAULT_PAGE_MENU_LIST_HEIGHT
+		if (!raw) return null
 		const n = Number(raw)
-		return Number.isFinite(n) && n >= MIN_PAGE_MENU_LIST_HEIGHT ? n : DEFAULT_PAGE_MENU_LIST_HEIGHT
+		return Number.isFinite(n) && n >= MIN_PAGE_MENU_LIST_HEIGHT ? n : null
 	} catch {
-		return DEFAULT_PAGE_MENU_LIST_HEIGHT
+		return null
 	}
 }
 
@@ -89,7 +91,9 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		[editor]
 	)
 
-	const [listHeight, setListHeight] = useState(readSavedPageMenuListHeight)
+	// null = auto-fit to the number of pages (capped). A number means the user
+	// has pinned the list to that height via the resize handle.
+	const [userListHeight, setUserListHeight] = useState<number | null>(readSavedPageMenuListHeight)
 	const [isResizing, setIsResizing] = useState(false)
 	const [availableHeight, setAvailableHeight] = useState(() =>
 		typeof window === 'undefined' ? 800 : window.innerHeight
@@ -124,10 +128,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		editor.timers.requestAnimationFrame(updateAvailableHeight)
 	}, [editor, isOpen, updateAvailableHeight])
 
-	const renderedListHeight = Math.min(
-		listHeight,
-		getPageMenuRenderCap(availableHeight, !isReadonlyMode)
-	)
+	const renderCap = getPageMenuRenderCap(availableHeight, !isReadonlyMode)
+	const autoFitListHeight =
+		pages.length * PAGE_MENU_ITEM_HEIGHT + PAGE_MENU_LIST_CONTENT_BOTTOM_PADDING
+	const renderedListHeight = Math.min(userListHeight ?? autoFitListHeight, renderCap)
 
 	const handleResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
 		e.preventDefault()
@@ -143,7 +147,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 		const onMove = (moveEvent: PointerEvent) => {
 			nextHeight = Math.max(MIN_PAGE_MENU_LIST_HEIGHT, startHeight + (moveEvent.clientY - startY))
-			setListHeight(nextHeight)
+			setUserListHeight(nextHeight)
 		}
 
 		const onUp = () => {
@@ -164,7 +168,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [])
 
 	const handleResizeDoubleClick = useCallback(() => {
-		setListHeight(DEFAULT_PAGE_MENU_LIST_HEIGHT)
+		setUserListHeight(null)
 		try {
 			window.localStorage.removeItem(PAGE_MENU_LIST_HEIGHT_KEY)
 		} catch {
