@@ -49,7 +49,7 @@ async function main() {
 
 	// Skip releasing a new version if the package contents are identical.
 	// This may happen when cherry-picking docs-only changes.
-	if (!(await getAnyPackageDiff())) {
+	if (!(await getAnyPackageDiff(latestVersionInBranch.format()))) {
 		nicelog('No packages have changed, skipping release')
 		return
 	}
