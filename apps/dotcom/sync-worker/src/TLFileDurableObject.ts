@@ -37,6 +37,7 @@ import {
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
+	TLShape,
 	createTLSchema,
 } from '@tldraw/tlschema'
 import {
@@ -49,7 +50,7 @@ import {
 } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
-import { IRequest, Router } from 'itty-router'
+import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
@@ -62,13 +63,16 @@ import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import { mergeShapePartial } from './utils/mergeShapePartial'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
+import { normalizeRpcOperations, type RpcRequestBody } from './utils/rpcOperations'
 import { throttle } from './utils/throttle'
 import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { isTestFile } from './utils/tla/isTestFile'
+import { validateAndRepairDocumentMutations } from './utils/validateDocumentMutations'
 
 const MAX_CONNECTIONS = 50
 
@@ -120,6 +124,15 @@ function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
 function arrayBufferToBase64(ab: ArrayBuffer): string {
 	const bytes = new Uint8Array(ab)
 	return bytes.toBase64!()
+}
+
+function validateShapeOrThrow(shape: any, shapeType: { validate(record: unknown): unknown }) {
+	try {
+		shapeType.validate(shape)
+	} catch (e) {
+		const message = e instanceof Error ? e.message : 'invalid shape'
+		throw new StatusError(422, `shape ${shape?.id ?? '?'}: ${message}`)
+	}
 }
 
 const MB = 1024 * 1024
@@ -377,6 +390,11 @@ export class TLFileDurableObject extends DurableObject {
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req, true)
 		)
+		.post(
+			`/app/file/:roomId/whiteboard-rpc`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onWhiteboardRpc(req)
+		)
 		.all('*', () => new Response('Not found', { status: 404 }))
 
 	// eslint-disable-next-line tldraw/no-setter-getter
@@ -471,6 +489,94 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		room[method](attachment.sessionId)
+	}
+
+	async onWhiteboardRpc(req: IRequest): Promise<Response> {
+		if (this.documentInfo.deleted) {
+			return Response.json({ error: true, message: 'File not found' }, { status: 404 })
+		}
+
+		const body = (await req.json().catch(() => null)) as RpcRequestBody | null
+		const operations = normalizeRpcOperations(body)
+		if (!operations) {
+			return Response.json({ error: true, message: 'Invalid request body' }, { status: 400 })
+		}
+
+		const schema = createTLSchema()
+		const shapeType = schema.types.shape
+		const storage = await this.getStorage()
+		const createdIds: string[] = []
+
+		try {
+			const { documentClock } = storage.transaction(
+				(txn) => {
+					const mutatedShapeIds = new Set<string>()
+					const deletedShapeIds = new Set<string>()
+
+					for (const op of operations) {
+						switch (op.command) {
+							case 'createShape':
+							case 'createShapes': {
+								const shapes = op.command === 'createShape' ? [op.shape] : op.shapes
+								for (const shape of shapes) {
+									if (!shape || typeof shape !== 'object' || typeof shape.id !== 'string') {
+										throw new StatusError(400, 'shape.id is required')
+									}
+									if (txn.get(shape.id)) {
+										throw new StatusError(409, `shape already exists: ${shape.id}`)
+									}
+									validateShapeOrThrow(shape, shapeType)
+									txn.set(shape.id, shape as TLRecord)
+									mutatedShapeIds.add(shape.id)
+									createdIds.push(shape.id)
+								}
+								break
+							}
+							case 'updateShape':
+							case 'updateShapes': {
+								const partials = op.command === 'updateShape' ? [op.shape] : op.shapes
+								for (const partial of partials) {
+									if (!partial || typeof partial !== 'object' || typeof partial.id !== 'string') {
+										throw new StatusError(400, 'shape.id is required')
+									}
+									const existing = txn.get(partial.id)
+									if (!existing || existing.typeName !== 'shape') {
+										throw new StatusError(404, `shape not found: ${partial.id}`)
+									}
+									const merged = mergeShapePartial(existing as TLShape, partial)
+									validateShapeOrThrow(merged, shapeType)
+									txn.set(merged.id, merged as TLRecord)
+									mutatedShapeIds.add(merged.id)
+								}
+								break
+							}
+							case 'deleteShape':
+							case 'deleteShapes': {
+								const ids = op.command === 'deleteShape' ? [op.id] : op.ids
+								for (const id of ids) {
+									if (typeof id !== 'string') {
+										throw new StatusError(400, 'id must be a string')
+									}
+									txn.delete(id)
+									deletedShapeIds.add(id)
+								}
+								break
+							}
+						}
+					}
+
+					validateAndRepairDocumentMutations(txn, mutatedShapeIds, deletedShapeIds)
+				},
+				{ id: `whiteboard-rpc-${uniqueId()}`, emitChanges: 'always' }
+			)
+
+			return Response.json({ ok: true, documentClock, createdIds })
+		} catch (e) {
+			if (e instanceof StatusError) {
+				return Response.json({ error: true, message: e.message }, { status: e.status })
+			}
+			throw e
+		}
 	}
 
 	_isRestoring = false

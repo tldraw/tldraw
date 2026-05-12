@@ -13,6 +13,7 @@ import { useApp } from '../../../hooks/useAppState'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	ColorThemeSubmenu,
+	CreateApiTokenMenuItem,
 	DebugMenuGroup,
 	ImportFileActionItem,
 	SignOutMenuItem,
@@ -67,6 +68,9 @@ export function TlaUserSettingsMenu() {
 						<LanguageMenu />
 					</TldrawUiMenuGroup>
 					<DebugMenuGroup />
+					<TldrawUiMenuGroup id="api-tokens">
+						<CreateApiTokenMenuItem />
+					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="signout">
 						<SignOutMenuItem />
 					</TldrawUiMenuGroup>

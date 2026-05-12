@@ -265,6 +265,15 @@ export interface TlaAsset {
 	userId: string | null
 }
 
+export interface TlaApiToken {
+	id: string
+	userId: string
+	tokenHash: string
+	createdAt: number
+	lastUsedAt: number | null
+	revokedAt: number | null
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -274,6 +283,7 @@ export interface DB {
 	group_file: TlaGroupFile
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
+	api_token: TlaApiToken
 }
 
 export const schema = createSchema({

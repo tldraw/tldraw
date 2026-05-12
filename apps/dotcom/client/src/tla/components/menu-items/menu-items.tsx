@@ -32,6 +32,7 @@ import {
 	updateLocalSessionState,
 } from '../../utils/local-session-state'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
+import { TlaApiTokenDialog } from '../dialogs/TlaApiTokenDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
 const messages = defineMessages({
@@ -39,6 +40,7 @@ const messages = defineMessages({
 	// user menu
 	accountMenu: { defaultMessage: 'User settings' },
 	signOut: { defaultMessage: 'Sign out' },
+	createApiToken: { defaultMessage: 'Create API token' },
 	importFile: { defaultMessage: 'Import file…' },
 	dotdev: { defaultMessage: 'Try the tldraw SDK' },
 	// account menu
@@ -59,6 +61,25 @@ const messages = defineMessages({
 	langLongString: { defaultMessage: 'i18n: Long String' },
 	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 })
+
+export function CreateApiTokenMenuItem() {
+	const auth = useAuth()
+	const { addDialog } = useDialogs()
+	const label = useMsg(messages.createApiToken)
+
+	if (!auth.isSignedIn) return null
+	return (
+		<TldrawUiMenuItem
+			id="create-api-token"
+			data-testid="tla-user-create-api-token"
+			label={label}
+			readonlyOk
+			onSelect={() => {
+				addDialog({ component: TlaApiTokenDialog })
+			}}
+		/>
+	)
+}
 
 export function SignOutMenuItem() {
 	const auth = useAuth()
