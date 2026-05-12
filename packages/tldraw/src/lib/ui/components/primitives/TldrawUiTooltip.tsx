@@ -22,7 +22,6 @@ import { useDirection } from '../../hooks/useTranslation/useTranslation'
 import { useTldrawUiOrientation } from './layout'
 
 const DEFAULT_TOOLTIP_DELAY_MS = 700
-const DEBUG_DO_NOT_SHOW = true
 
 /** @public */
 export interface TldrawUiTooltipProps {
@@ -98,8 +97,6 @@ class TooltipManager {
 			}
 
 			case 'show': {
-				if (DEBUG_DO_NOT_SHOW) break
-
 				// Don't show tooltips while pointer is down
 				if (currentState.name === 'pointer_down') {
 					return
