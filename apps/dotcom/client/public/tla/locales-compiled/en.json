@@ -231,6 +231,16 @@
       "value": "Color theme"
     }
   ],
+  "42973c15d3": [
+    {
+      "type": 0,
+      "value": "Could not create token: "
+    },
+    {
+      "type": 1,
+      "value": "message"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -325,6 +335,12 @@
     {
       "type": 0,
       "value": "Unable to unpublish the file."
+    }
+  ],
+  "51408f1c75": [
+    {
+      "type": 0,
+      "value": "API token"
     }
   ],
   "517bb809d9": [
@@ -557,6 +573,12 @@
       "value": "You have reached the maximum number of files. You need to delete old files before creating new ones."
     }
   ],
+  "752e18dddf": [
+    {
+      "type": 0,
+      "value": "Create API token"
+    }
+  ],
   "7573b8110a": [
     {
       "type": 0,
@@ -573,6 +595,12 @@
     {
       "type": 0,
       "value": "Chat with us on Discord"
+    }
+  ],
+  "768404630c": [
+    {
+      "type": 0,
+      "value": "Copy this token. It will not be shown again."
     }
   ],
   "7697920637": [
@@ -1391,6 +1419,12 @@
     {
       "type": 0,
       "value": "Delete"
+    }
+  ],
+  "f37b0a088b": [
+    {
+      "type": 0,
+      "value": "Creating token…"
     }
   ],
   "f4f70727dc": [
