@@ -789,19 +789,10 @@
 	width: auto;
 }
 
-.tlui-page-menu__name {
-	flex-grow: 2;
-	text-align: start;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
 .tlui-page-menu__list {
 	flex: 0 0 auto;
 	overflow-x: hidden;
 	overflow-y: auto;
-	touch-action: auto;
 	scrollbar-width: none;
 	-ms-overflow-style: none;
 }
@@ -812,7 +803,6 @@
 
 .tlui-page-menu__list__content {
 	position: relative;
-	width: 100%;
 }
 
 .tlui-page-menu__resize-handle {
@@ -843,14 +833,11 @@
 
 .tlui-page-menu__create-button {
 	flex: 0 0 auto;
-	width: 100%;
 	margin: 0;
-	border-radius: 0;
 }
 
 .tlui-page-menu__item__button {
 	flex: 1 1 auto;
-	width: auto;
 	min-width: 0px;
 }
 
@@ -873,7 +860,6 @@
 	flex-direction: row;
 	align-items: center;
 	overflow: hidden;
-	z-index: var(--tl-layer-above);
 }
 
 .tlui-page-menu__item::before {
@@ -891,7 +877,7 @@
 	z-index: var(--tl-layer-above);
 }
 
-.tlui-page-menu__item[data-iscurrent='true']::before {
+.tlui-page-menu__item[data-iscurrent='true']:not([data-editing='true'])::before {
 	background: var(--tl-color-hint);
 	opacity: 1;
 }
@@ -928,9 +914,7 @@
 
 .tlui-page-menu__item__drag-handle {
 	flex: 0 0 32px;
-	width: 32px;
 	min-width: 32px;
-	height: 40px;
 	padding: 0px;
 	color: var(--tl-color-text-3);
 	cursor: grab;
@@ -938,7 +922,6 @@
 }
 
 .tlui-page-menu__item__drag-handle > .tlui-icon {
-	margin: 0px;
 	position: relative;
 	inset-inline-start: 1px;
 }
@@ -949,17 +932,13 @@
 
 .tlui-page-menu__item__input {
 	margin-inline-start: 12px;
-	height: 100%;
 }
 
 .tlui-page-menu__item__submenu {
-	pointer-events: all;
 	position: absolute;
 	inset-inline-end: 0px;
 	top: 0px;
 	height: 100%;
-	cursor: pointer;
-	margin: 0px;
 	z-index: 10;
 }
 
@@ -994,10 +973,6 @@
 	padding-inline-end: calc(40px - 12px);
 }
 
-.tlui-page-menu__item__button .tlui-button__icon {
-	margin-inline-end: 4px;
-}
-
 @media (hover: hover) {
 	.tlui-page-menu__resize-handle:hover::before {
 		background: var(--tl-color-selected);
@@ -1005,7 +980,7 @@
 		transition: background-color 150ms 80ms;
 	}
 
-	.tlui-page-menu__item:hover::before {
+	.tlui-page-menu__item:not([data-editing='true']):hover::before {
 		opacity: 1;
 	}
 

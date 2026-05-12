@@ -80,15 +80,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	const pages = useValue('pages', () => editor.getPages(), [editor])
 	const currentPage = useValue('currentPage', () => editor.getCurrentPage(), [editor])
-	const currentPageId = useValue('currentPageId', () => editor.getCurrentPageId(), [editor])
 
 	const isReadonlyMode = useReadonly()
-
-	const maxPageCountReached = useValue(
-		'maxPageCountReached',
-		() => editor.getPages().length >= editor.options.maxPages,
-		[editor]
-	)
 
 	const isCoarsePointer = useValue(
 		'isCoarsePointer',
@@ -231,11 +224,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		editor.timers.requestAnimationFrame(() => {
 			const container = rSortableContainer.current
 			if (!container) return
-			const currentIndex = editor.getPages().findIndex((p) => p.id === currentPageId)
+			const currentIndex = editor.getPages().findIndex((p) => p.id === currentPage.id)
 			if (currentIndex === -1) return
 
 			const doc = editor.getContainerDocument()
-			const elm = doc.querySelector(`[data-pageid="${currentPageId}"]`) as HTMLDivElement | null
+			const elm = doc.querySelector(`[data-pageid="${currentPage.id}"]`) as HTMLDivElement | null
 			elm?.querySelector<HTMLButtonElement>('button.tlui-page-menu__item__button')?.focus()
 
 			const elmTop = currentIndex * PAGE_MENU_ITEM_HEIGHT
@@ -248,7 +241,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				container.scrollTo({ top: elmBottom - container.clientHeight })
 			}
 		})
-	}, [currentPageId, isOpen, editor])
+	}, [currentPage.id, isOpen, editor])
 
 	// Recomputes the dragged row's offset and dragIndex from the current
 	// pointer position and container scrollTop, then publishes the new
@@ -486,7 +479,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 					data-testid="page-menu.button"
 					className="tlui-page-menu__trigger"
 				>
-					<div className="tlui-page-menu__name">{currentPage.name}</div>
+					<TldrawUiButtonLabel>{currentPage.name}</TldrawUiButtonLabel>
 					<TldrawUiButtonIcon icon="chevron-down" small />
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
@@ -533,6 +526,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 										data-testid="page-menu.item"
 										data-iscurrent={isCurrentPage}
 										data-dragging={isDragging}
+										data-editing={isRenamingThisPage}
 										className="tlui-page-menu__item"
 										style={{
 											zIndex: isDragging
@@ -647,7 +641,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 							data-testid="page-menu.create"
 							tooltip={msg('page-menu.create-new-page')}
 							title={msg('page-menu.create-new-page')}
-							disabled={maxPageCountReached}
+							disabled={pages.length >= editor.options.maxPages}
 							onClick={handleCreatePageClick}
 						>
 							<TldrawUiButtonLabel>{msg('page-menu.create-new-page')}</TldrawUiButtonLabel>
