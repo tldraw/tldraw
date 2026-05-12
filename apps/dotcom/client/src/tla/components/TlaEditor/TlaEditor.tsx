@@ -55,7 +55,6 @@ import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { A11yAudit } from './TlaDebug'
-import { TlaEditorContextMenu } from './TlaEditorContextMenu'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
@@ -275,9 +274,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
-			ContextMenu: (props) => <TlaEditorContextMenu {...props} fileId={fileId} />,
 		}
-	}, [fileId])
+	}, [])
 
 	return (
 		<TlaEditorWrapper>
