@@ -10,10 +10,6 @@ ip = "0.0.0.0"
 # these migrations are append-only. you can't change them. if you do need to change something, do so
 # by creating new migrations
 [[migrations]]
-tag = "v1" # Should be unique for each entry
-new_classes = ["TLDrawDurableObject"]
-
-[[migrations]]
 tag = "v2"
 new_classes = ["TLProWorkspaceDurableObject"]
 
