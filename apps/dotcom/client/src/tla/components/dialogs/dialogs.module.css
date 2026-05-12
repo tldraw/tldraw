@@ -189,6 +189,14 @@
 	border: 1px solid var(--tla-color-primary);
 }
 
+/* Single-line inputs: clip overflow with ellipsis (flex parents need min-width: 0). */
+.dialogInputTruncate {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0;
+}
+
 .dialogFooter {
 	display: flex;
 	justify-content: flex-end;

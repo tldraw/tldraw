@@ -14,6 +14,9 @@
   "07dbd11b21": {
     "translation": "Untitled file"
   },
+  "08181da205": {
+    "translation": "URL must start with http:// or https://"
+  },
   "08331c1710": {
     "translation": "Rate limit exceeded, try again later."
   },
@@ -26,11 +29,17 @@
   "0b27918290": {
     "translation": "File"
   },
+  "0b8764d3dc": {
+    "translation": "Webhook URL"
+  },
   "0b9a4cde72": {
     "translation": "File menu"
   },
   "0d1f2bb523": {
     "translation": "Send feedback"
+  },
+  "1063e38cb5": {
+    "translation": "Remove"
   },
   "110a4b01be": {
     "translation": "Publish"
@@ -53,6 +62,12 @@
   "14d65465b7": {
     "translation": "Delete group"
   },
+  "14f2b208be": {
+    "translation": "https://…"
+  },
+  "150c7abfca": {
+    "translation": "Webhook"
+  },
   "181b90f889": {
     "translation": "Create file"
   },
@@ -61,6 +76,9 @@
   },
   "1dd1c5fb7f": {
     "translation": "Today"
+  },
+  "221d2a347e": {
+    "translation": "Webhooks"
   },
   "2445e5e347": {
     "translation": "Create group"
@@ -101,14 +119,23 @@
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
+  "3c4f11162c": {
+    "translation": "Copy signing secret now"
+  },
   "3c5e891bff": {
     "translation": "Pinned"
   },
   "3d0238bf16": {
     "translation": "Accept all"
   },
+  "3e222fd81e": {
+    "translation": "Enter a valid URL"
+  },
   "3e2ae04ff0": {
     "translation": "Unsupported Mermaid diagram"
+  },
+  "3e7f0d5bbb": {
+    "translation": "(shown once)"
   },
   "402bf0c47e": {
     "translation": "Color theme"
@@ -239,11 +266,20 @@
   "6a26f54883": {
     "translation": "Help"
   },
+  "6ba5ab09fb": {
+    "translation": "Signing secret"
+  },
+  "6bdd6f648b": {
+    "translation": "+ Add webhook"
+  },
   "6dc0836c1b": {
     "translation": "You do not have the necessary permissions to perform this action."
   },
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
+  },
+  "6fad8fe8bd": {
+    "translation": "Failed to save webhook"
   },
   "70222abcfc": {
     "translation": "Group settings"
@@ -353,6 +389,9 @@
   "904a830405": {
     "translation": "Rename"
   },
+  "911a2360df": {
+    "translation": "Copy signing secret"
+  },
   "91e49bb0eb": {
     "translation": "Copy to my files"
   },
@@ -418,6 +457,9 @@
   },
   "a4d3b161ce": {
     "translation": "Submit"
+  },
+  "a588b1abc5": {
+    "translation": "Copied"
   },
   "a6cc403d56": {
     "translation": "Anyone with the link"
@@ -578,6 +620,9 @@
   },
   "ebfe9ce86e": {
     "translation": "Yesterday"
+  },
+  "ec211f7c20": {
+    "translation": "Add"
   },
   "ec59b960ea": {
     "translation": "This file has reached the maximum number of active collaborators."
