@@ -23,7 +23,6 @@ export const PageItemInput = function PageItemInput({
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 
-	const rInput = useRef<HTMLInputElement | null>(null)
 	const rMark = useRef<string | null>(null)
 
 	const handleFocus = useCallback(() => {
@@ -59,9 +58,6 @@ export const PageItemInput = function PageItemInput({
 	return (
 		<TldrawUiInput
 			className="tlui-page-menu__item__input"
-			ref={(el) => {
-				rInput.current = el
-			}}
 			defaultValue={name}
 			onValueChange={handleChange}
 			onComplete={onComplete}

@@ -854,16 +854,21 @@
 	min-width: 0px;
 }
 
-.tlui-page-menu__item__button > span {
+.tlui-page-menu__item__button::after,
+.tlui-page-menu__item__drag-handle::after {
+	content: none;
+}
+
+.tlui-page-menu__item__button > .tlui-button__label {
 	padding-inline-end: calc(40px - 12px);
 }
 
-.tlui-page_menu__item__sortable {
+.tlui-page-menu__item {
 	position: absolute;
 	top: 0px;
 	inset-inline-start: 0px;
 	width: 100%;
-	height: fit-content;
+	height: 40px;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -871,17 +876,33 @@
 	z-index: var(--tl-layer-above);
 }
 
-.tlui-page_menu__item__sortable[data-iscurrent='true'] > .tlui-page-menu__item__button::after {
+.tlui-page-menu__item::before {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-muted-2);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.tlui-page-menu__item > * {
+	position: relative;
+	z-index: var(--tl-layer-above);
+}
+
+.tlui-page-menu__item[data-iscurrent='true']::before {
 	background: var(--tl-color-hint);
 	opacity: 1;
 }
 
-.tlui-page_menu__item__sortable__title {
+.tlui-page-menu__item__title {
 	flex: 1;
+	height: 40px;
 	position: relative;
 }
 
-.tlui-page_menu__item__sortable__title::before {
+.tlui-page-menu__item__title::before {
 	content: '';
 	position: absolute;
 	inset: 4px;
@@ -890,20 +911,19 @@
 	pointer-events: none;
 }
 
-.tlui-page_menu__item__sortable__title > .tlui-input__wrapper {
+.tlui-page-menu__item__title > .tlui-input__wrapper {
 	height: 100%;
 }
 
-.tlui-page_menu__item__sortable:focus-visible {
-	z-index: var(--tl-layer-focused-input);
+.tlui-page-menu__item[data-dragging='true'],
+.tlui-page-menu__item[data-dragging='true'] .tlui-page-menu__item__button,
+.tlui-page-menu__item[data-dragging='true'] .tlui-page-menu__item__drag-handle {
+	cursor: grabbing;
 }
 
-.tlui-page_menu__item__sortable[data-dragging='true'],
-.tlui-page_menu__item__sortable[data-dragging='true'] .tlui-page-menu__item__button,
-.tlui-page_menu__item__sortable[data-dragging='true'] .tlui-page-menu__item__drag-handle {
-	cursor: grabbing;
-	background-color: var(--tl-color-panel);
-	z-index: 1000;
+.tlui-page-menu__item[data-dragging='true']::before {
+	background: var(--tl-color-panel);
+	opacity: 1;
 }
 
 .tlui-page-menu__item__drag-handle {
@@ -917,20 +937,14 @@
 	touch-action: none;
 }
 
-/* tweak: adjust the drag handle a tiny bit and remove the left padding from the label */
 .tlui-page-menu__item__drag-handle > .tlui-icon {
 	margin: 0px;
 	position: relative;
-	left: 1px;
-}
-.tlui-page-menu__item__drag-handle + .tlui-button {
-	padding-left: 0px;
+	inset-inline-start: 1px;
 }
 
-/* hack: make the background extend left to hover the drag handle icon */
-.tlui-page-menu__item__drag-handle + .tlui-button::after {
-	left: -28px;
-	pointer-events: none;
+.tlui-page-menu__item__drag-handle + .tlui-page-menu__item__button {
+	padding-inline-start: 0px;
 }
 
 .tlui-page-menu__item__input {
@@ -938,11 +952,7 @@
 	height: 100%;
 }
 
-/* The submenu kebab follows the dotcom sidebar pattern: hidden by default, */
-/* fades in on row hover (or always on coarse pointers), with no background  */
-/* of its own. */
-
-.tlui-page_menu__item__submenu {
+.tlui-page-menu__item__submenu {
 	pointer-events: all;
 	position: absolute;
 	inset-inline-end: 0px;
@@ -950,39 +960,38 @@
 	height: 100%;
 	cursor: pointer;
 	margin: 0px;
-	margin-inline-start: -2px;
 	z-index: 10;
 }
 
-.tlui-page_menu__item__submenu > .tlui-button {
+.tlui-page-menu__item__submenu > .tlui-button {
 	opacity: 0;
 	color: var(--tl-color-text-3);
 }
 
-.tlui-page_menu__item__submenu > .tlui-button::after {
+.tlui-page-menu__item__submenu > .tlui-button::after {
 	content: none;
 }
 
-.tlui-page_menu__item__sortable:focus-visible > .tlui-page_menu__item__submenu > .tlui-button,
-.tlui-page_menu__item__submenu > .tlui-button[data-state='open'],
-.tlui-page_menu__item__submenu > .tlui-button:focus-visible {
+.tlui-page-menu__item:has(.tlui-button:focus-visible)
+	> .tlui-page-menu__item__submenu
+	> .tlui-button,
+.tlui-page-menu__item__submenu > .tlui-button[data-state='open'],
+.tlui-page-menu__item__submenu > .tlui-button:focus-visible {
 	opacity: 1;
 }
 
 /* Hide the kebab while a row is being dragged: :hover sticks during pointer */
 /* capture, which would otherwise leave the kebab visible mid-drag. */
-.tlui-page_menu__item__sortable[data-dragging='true']
-	> .tlui-page_menu__item__submenu
-	> .tlui-button {
+.tlui-page-menu__item[data-dragging='true'] > .tlui-page-menu__item__submenu > .tlui-button {
 	opacity: 0;
 }
 
-.tl-container[data-coarse='true'] .tlui-page_menu__item__submenu > .tlui-button {
+.tl-container[data-coarse='true'] .tlui-page-menu__item__submenu > .tlui-button {
 	opacity: 1;
 }
 
-.tlui-button__icon {
-	padding: 0px;
+.tl-container[data-coarse='true'] .tlui-page-menu__item__button > .tlui-button__label {
+	padding-inline-end: calc(40px - 12px);
 }
 
 .tlui-page-menu__item__button .tlui-button__icon {
@@ -996,25 +1005,23 @@
 		transition: background-color 150ms 80ms;
 	}
 
-	.tlui-page_menu__item__sortable:hover > .tlui-page_menu__item__submenu > .tlui-button {
+	.tlui-page-menu__item:hover::before {
 		opacity: 1;
 	}
 
-	/* Keep the row's hover background visible while the kebab inside it is
-	   hovered, so hovering the kebab doesn't drop the row highlight. */
-	.tlui-page_menu__item__sortable:hover > .tlui-page-menu__item__button::after {
+	.tlui-page-menu__item:hover > .tlui-page-menu__item__submenu > .tlui-button {
 		opacity: 1;
 	}
 
-	.tlui-page-menu__item__button > span {
+	.tlui-page-menu__item__button > .tlui-button__label {
 		padding-inline-end: 0px;
 	}
 
-	.tlui-page_menu__item__sortable:hover > .tlui-page-menu__item__button > span {
+	.tlui-page-menu__item:hover > .tlui-page-menu__item__button > .tlui-button__label {
 		padding-inline-end: calc(40px - 12px);
 	}
 
-	.tlui-page_menu__item__submenu > .tlui-button:hover {
+	.tlui-page-menu__item__submenu > .tlui-button:hover {
 		color: var(--tl-color-text);
 	}
 }

@@ -32,6 +32,12 @@ const MAX_PAGE_MENU_RENDER_HEIGHT = 800
 const MAX_PAGE_MENU_AVAILABLE_HEIGHT_RATIO = 0.62
 const PAGE_MENU_CREATE_BUTTON_HEIGHT = 40
 const PAGE_MENU_RESIZE_HANDLE_HEIGHT = 7
+const PAGE_MENU_ITEM_HEIGHT = 36
+const PAGE_MENU_DRAG_THRESHOLD = 5
+const PAGE_MENU_AUTO_SCROLL_ZONE = 16
+const PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE = 48
+const PAGE_MENU_MIN_AUTO_SCROLL_SPEED = 1
+const PAGE_MENU_MAX_AUTO_SCROLL_SPEED = 6
 
 function readSavedPageMenuListHeight(): number {
 	if (typeof window === 'undefined') return DEFAULT_PAGE_MENU_LIST_HEIGHT
@@ -63,21 +69,12 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
+	// The id of the page currently being renamed inline, if any.
+	const [editingPageId, setEditingPageId] = useState<TLPageId | null>(null)
+
 	const handleOpenChange = useCallback(() => setEditingPageId(null), [])
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('page-menu', handleOpenChange)
-
-	const ITEM_HEIGHT = 36
-	const DRAG_THRESHOLD = 5
-	// During a drag, scroll speed ramps linearly from MIN to MAX. The ramp
-	// starts when the cursor enters AUTO_SCROLL_ZONE pixels from the edge
-	// (slow drift) and reaches MAX once the cursor is AUTO_SCROLL_RAMP_DISTANCE
-	// pixels into the overshoot — i.e. AUTO_SCROLL_RAMP_DISTANCE − AUTO_SCROLL_ZONE
-	// pixels past the edge of the container.
-	const AUTO_SCROLL_ZONE = 16
-	const AUTO_SCROLL_RAMP_DISTANCE = 48
-	const MIN_AUTO_SCROLL_SPEED = 1
-	const MAX_AUTO_SCROLL_SPEED = 6
 
 	const rSortableContainer = useRef<HTMLDivElement>(null)
 
@@ -98,9 +95,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		() => editor.getInstanceState().isCoarsePointer,
 		[editor]
 	)
-
-	// The id of the page currently being renamed inline, if any.
-	const [editingPageId, setEditingPageId] = useState<TLPageId | null>(null)
 
 	const [listHeight, setListHeight] = useState(readSavedPageMenuListHeight)
 	const [isResizing, setIsResizing] = useState(false)
@@ -244,8 +238,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			const elm = doc.querySelector(`[data-pageid="${currentPageId}"]`) as HTMLDivElement | null
 			elm?.querySelector<HTMLButtonElement>('button.tlui-page-menu__item__button')?.focus()
 
-			const elmTop = currentIndex * ITEM_HEIGHT
-			const elmBottom = elmTop + ITEM_HEIGHT
+			const elmTop = currentIndex * PAGE_MENU_ITEM_HEIGHT
+			const elmBottom = elmTop + PAGE_MENU_ITEM_HEIGHT
 			const viewTop = container.scrollTop
 			const viewBottom = viewTop + container.clientHeight
 			if (elmTop < viewTop) {
@@ -254,7 +248,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				container.scrollTo({ top: elmBottom - container.clientHeight })
 			}
 		})
-	}, [ITEM_HEIGHT, currentPageId, isOpen, editor])
+	}, [currentPageId, isOpen, editor])
 
 	// Recomputes the dragged row's offset and dragIndex from the current
 	// pointer position and container scrollTop, then publishes the new
@@ -271,18 +265,21 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			// Clamp the dragged row's visible position to the first/last slot
 			// so its transform never extends the popover scroll area.
 			const minDragY = 0
-			const maxDragY = (pages.length - 1) * ITEM_HEIGHT
+			const maxDragY = (pages.length - 1) * PAGE_MENU_ITEM_HEIGHT
 			const dragY = Math.max(
 				minDragY,
-				Math.min(maxDragY, mut.startIndex * ITEM_HEIGHT + rawOffsetY)
+				Math.min(maxDragY, mut.startIndex * PAGE_MENU_ITEM_HEIGHT + rawOffsetY)
 			)
-			const offsetY = dragY - mut.startIndex * ITEM_HEIGHT
-			const dragIndex = Math.max(0, Math.min(Math.round(dragY / ITEM_HEIGHT), pages.length - 1))
+			const offsetY = dragY - mut.startIndex * PAGE_MENU_ITEM_HEIGHT
+			const dragIndex = Math.max(
+				0,
+				Math.min(Math.round(dragY / PAGE_MENU_ITEM_HEIGHT), pages.length - 1)
+			)
 			mut.dragIndex = dragIndex
 			mut.lastClientY = clientY
 			setDragState({ id: mut.id, startIndex: mut.startIndex, dragIndex, offsetY })
 		},
-		[ITEM_HEIGHT, pages.length]
+		[pages.length]
 	)
 
 	// During a drag, the list should only scroll from the auto-scroll loop
@@ -310,18 +307,24 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		const fromTop = mut.lastClientY - rect.top
 		const fromBottom = rect.bottom - mut.lastClientY
 		const maxScroll = container.scrollHeight - container.clientHeight
-		// `overshoot` is 0 at the inner edge of AUTO_SCROLL_ZONE and grows
+		// During a drag, scroll speed ramps up as the pointer approaches and
+		// passes the edge of the scroll container.
+		// `overshoot` is 0 at the inner edge of PAGE_MENU_AUTO_SCROLL_ZONE and grows
 		// as the cursor approaches and passes the edge of the container.
-		const overshootTop = AUTO_SCROLL_ZONE - fromTop
-		const overshootBottom = AUTO_SCROLL_ZONE - fromBottom
+		const overshootTop = PAGE_MENU_AUTO_SCROLL_ZONE - fromTop
+		const overshootBottom = PAGE_MENU_AUTO_SCROLL_ZONE - fromBottom
 		let dy = 0
 		if (overshootTop > 0 && container.scrollTop > 0) {
-			const t = Math.min(1, overshootTop / AUTO_SCROLL_RAMP_DISTANCE)
-			const speed = MIN_AUTO_SCROLL_SPEED + (MAX_AUTO_SCROLL_SPEED - MIN_AUTO_SCROLL_SPEED) * t
+			const t = Math.min(1, overshootTop / PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE)
+			const speed =
+				PAGE_MENU_MIN_AUTO_SCROLL_SPEED +
+				(PAGE_MENU_MAX_AUTO_SCROLL_SPEED - PAGE_MENU_MIN_AUTO_SCROLL_SPEED) * t
 			dy = -Math.ceil(speed)
 		} else if (overshootBottom > 0 && container.scrollTop < maxScroll) {
-			const t = Math.min(1, overshootBottom / AUTO_SCROLL_RAMP_DISTANCE)
-			const speed = MIN_AUTO_SCROLL_SPEED + (MAX_AUTO_SCROLL_SPEED - MIN_AUTO_SCROLL_SPEED) * t
+			const t = Math.min(1, overshootBottom / PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE)
+			const speed =
+				PAGE_MENU_MIN_AUTO_SCROLL_SPEED +
+				(PAGE_MENU_MAX_AUTO_SCROLL_SPEED - PAGE_MENU_MIN_AUTO_SCROLL_SPEED) * t
 			dy = Math.ceil(speed)
 		}
 		if (dy !== 0) {
@@ -369,7 +372,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			const mut = rMutables.current
 			const { clientY } = e
 			if (mut.status === 'pointing') {
-				if (Math.abs(clientY - mut.startY) <= DRAG_THRESHOLD) return
+				if (Math.abs(clientY - mut.startY) <= PAGE_MENU_DRAG_THRESHOLD) return
 				mut.status = 'dragging'
 				mut.lastClientY = clientY
 				ensureAutoScrollLoop()
@@ -502,23 +505,23 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 					>
 						<div
 							className="tlui-page-menu__list__content"
-							style={{ height: ITEM_HEIGHT * pages.length + 4 }}
+							style={{ height: PAGE_MENU_ITEM_HEIGHT * pages.length + 4 }}
 						>
 							{pages.map((page, index) => {
 								const isCurrentPage = page.id === currentPage.id
 								const isRenamingThisPage = editingPageId === page.id
 								const isDragging = dragState?.id === page.id
 
-								let y = index * ITEM_HEIGHT
+								let y = index * PAGE_MENU_ITEM_HEIGHT
 								if (dragState) {
 									if (isDragging) {
-										y = dragState.startIndex * ITEM_HEIGHT + dragState.offsetY
+										y = dragState.startIndex * PAGE_MENU_ITEM_HEIGHT + dragState.offsetY
 									} else {
 										const { startIndex, dragIndex } = dragState
 										if (dragIndex < startIndex && index >= dragIndex && index < startIndex) {
-											y = (index + 1) * ITEM_HEIGHT
+											y = (index + 1) * PAGE_MENU_ITEM_HEIGHT
 										} else if (dragIndex > startIndex && index > startIndex && index <= dragIndex) {
-											y = (index - 1) * ITEM_HEIGHT
+											y = (index - 1) * PAGE_MENU_ITEM_HEIGHT
 										}
 									}
 								}
@@ -530,14 +533,18 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 										data-testid="page-menu.item"
 										data-iscurrent={isCurrentPage}
 										data-dragging={isDragging}
-										className="tlui-page_menu__item__sortable"
+										className="tlui-page-menu__item"
 										style={{
-											zIndex: isDragging ? 999 : isCurrentPage ? 888 : index,
-											transform: `translate(0px, ${y}px)`,
+											zIndex: isDragging
+												? pages.length + 2
+												: isCurrentPage
+													? pages.length + 1
+													: index,
+											transform: `translateY(${y}px)`,
 										}}
 									>
 										{isRenamingThisPage ? (
-											<div className="tlui-page_menu__item__sortable__title" style={{ height: 40 }}>
+											<div className="tlui-page-menu__item__title">
 												<PageItemInput
 													id={page.id}
 													name={page.name}
@@ -610,7 +617,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 											</>
 										)}
 										{!isReadonlyMode && !isRenamingThisPage && (
-											<div className="tlui-page_menu__item__submenu">
+											<div className="tlui-page-menu__item__submenu">
 												<PageItemSubmenu
 													index={index}
 													item={page}

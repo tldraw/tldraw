@@ -441,7 +441,7 @@ test.describe('page menu', () => {
 
 			await test.step('access page submenu and delete', async () => {
 				const pageItem = await pageMenu.getPageItem(1)
-				const submenuButton = pageItem.locator('.tlui-page_menu__item__submenu button')
+				const submenuButton = pageItem.getByTestId('page-menu.item-submenu')
 				await submenuButton.click()
 
 				// Click delete option
@@ -469,7 +469,7 @@ test.describe('page menu', () => {
 				const pageItem = await pageMenu.getPageItem(0)
 
 				// Click the submenu button (three dots)
-				const submenuButton = pageItem.locator('.tlui-page_menu__item__submenu button')
+				const submenuButton = pageItem.getByTestId('page-menu.item-submenu')
 				await submenuButton.click()
 
 				// Click duplicate option
@@ -501,7 +501,7 @@ test.describe('page menu', () => {
 				const pageItem = await pageMenu.getPageItem(1)
 
 				// Click the submenu button
-				const submenuButton = pageItem.locator('.tlui-page_menu__item__submenu button')
+				const submenuButton = pageItem.getByTestId('page-menu.item-submenu')
 				await submenuButton.click()
 
 				// Click delete option
@@ -537,7 +537,7 @@ test.describe('page menu', () => {
 				const lastPageItem = await pageMenu.getPageItem(2)
 
 				// Click the submenu button
-				const submenuButton = lastPageItem.locator('.tlui-page_menu__item__submenu button')
+				const submenuButton = lastPageItem.getByTestId('page-menu.item-submenu')
 				await submenuButton.click()
 
 				// Click move up option
@@ -580,7 +580,7 @@ test.describe('page menu', () => {
 				const firstPageItem = await pageMenu.getPageItem(0)
 
 				// Click the submenu button
-				const submenuButton = firstPageItem.locator('.tlui-page_menu__item__submenu button')
+				const submenuButton = firstPageItem.getByTestId('page-menu.item-submenu')
 				await submenuButton.click()
 
 				// Click move down option
