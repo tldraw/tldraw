@@ -996,6 +996,11 @@ export class TLFileDurableObject extends DurableObject {
 	private _webhooks: WebhookCacheEntry[] | null = null
 	private _webhooksLoadedAt: number = 0
 	private _lastWebhookClock: number | null = null
+	// In-memory mirror of every shape currently in storage. Needed because
+	// SQLiteSyncStorage.getChangesSince() only returns post-state for puts,
+	// so we can't otherwise tell creates from updates (or compute `previous`).
+	// Rebuilt from storage on cold start, kept in sync as we see puts/deletes.
+	private _knownShapes: Map<string, TLShape> | null = null
 
 	private async getWebhooks(): Promise<WebhookCacheEntry[]> {
 		const now = Date.now()
@@ -1043,9 +1048,27 @@ export class TLFileDurableObject extends DurableObject {
 		const storage = await this.getStorage()
 		if (this._lastWebhookClock === null) {
 			const persisted = (await this.ctx.storage.get('lastWebhookClock')) as number | undefined
-			this._lastWebhookClock = persisted ?? storage.getClock()
-			await this.ctx.storage.put('lastWebhookClock', this._lastWebhookClock)
-			return
+			storage.transaction((txn) => {
+				const map = new Map<string, TLShape>()
+				for (const record of txn.values()) {
+					if (record.typeName === 'shape') map.set(record.id, record as TLShape)
+				}
+				this._knownShapes = map
+			})
+			if (persisted === undefined) {
+				// Brand-new DO storage: start tracking from now. The first change
+				// after this can't be dispatched (nothing to diff against), and
+				// that's fine.
+				this._lastWebhookClock = storage.getClock()
+				await this.ctx.storage.put('lastWebhookClock', this._lastWebhookClock)
+				return
+			}
+			// Warm restart: resume from persisted clock and fall through to
+			// dispatch any changes we missed. NOTE: _knownShapes was rebuilt from
+			// CURRENT storage, so shapes created during downtime will be
+			// misclassified as updates in this first post-restart dispatch.
+			// Acceptable for now.
+			this._lastWebhookClock = persisted
 		}
 
 		const { result: changes, documentClock } = storage.transaction((txn) =>
@@ -1057,22 +1080,29 @@ export class TLFileDurableObject extends DurableObject {
 
 		if (!changes) return
 
+		// _knownShapes must be present here; init path above ensures it. Guard anyway.
+		const knownShapes = this._knownShapes ?? new Map<string, TLShape>()
+
 		const created: TLShape[] = []
 		const updated: Array<{ before: TLShape; after: TLShape }> = []
 		const deletedShapeIds: string[] = []
 
 		for (const put of Object.values(changes.diff.puts)) {
-			if (Array.isArray(put)) {
-				const [before, after] = put
-				if (after.typeName !== 'shape') continue
-				updated.push({ before: before as TLShape, after: after as TLShape })
+			// SQLite storage always returns bare records here, never [before, after]
+			// tuples — so we classify by cache membership.
+			const after = (Array.isArray(put) ? put[1] : put) as TLShape
+			if (after.typeName !== 'shape') continue
+			const before = knownShapes.get(after.id)
+			if (before) {
+				updated.push({ before, after })
 			} else {
-				if (put.typeName !== 'shape') continue
-				created.push(put as TLShape)
+				created.push(after)
 			}
+			knownShapes.set(after.id, after)
 		}
 		for (const id of changes.diff.deletes) {
-			if (id.startsWith('shape:')) deletedShapeIds.push(id)
+			if (!id.startsWith('shape:')) continue
+			if (knownShapes.delete(id)) deletedShapeIds.push(id)
 		}
 
 		if (created.length === 0 && updated.length === 0 && deletedShapeIds.length === 0) return
