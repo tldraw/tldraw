@@ -8,7 +8,13 @@ port = 8787
 ip = "0.0.0.0"
 
 # these migrations are append-only. you can't change them. if you do need to change something, do so
-# by creating new migrations
+# by creating new migrations.
+# IMPORTANT: when adding a new migration here, also add it to the [[env.preview.migrations]] block below
+# env-level migrations fully replace the top-level list, so preview won't inherit new entries.
+[[migrations]]
+tag = "v1"                            # Should be unique for each entry
+new_classes = ["TLDrawDurableObject"]
+
 [[migrations]]
 tag = "v2"
 new_classes = ["TLProWorkspaceDurableObject"]
@@ -42,6 +48,46 @@ deleted_classes = ["TLAppDurableObject"]
 tag = "v9"
 new_sqlite_classes = ["TLFileDurableObject"]
 
+[[migrations]]
+tag = "v10"
+deleted_classes = ["TLDrawDurableObject"]
+
+# preview workers are fresh deploys, so CF rejects v10's delete-class for
+# TLDrawDurableObject (code 10074). skip v1 and v10 here; env-level migrations
+# fully replace the top-level list.
+[[env.preview.migrations]]
+tag = "v2"
+new_classes = ["TLProWorkspaceDurableObject"]
+
+[[env.preview.migrations]]
+tag = "v3"
+deleted_classes = ["TLProWorkspaceDurableObject"]
+
+[[env.preview.migrations]]
+tag = "v4"
+new_classes = ["TLAppDurableObject"]
+
+[[env.preview.migrations]]
+tag = "v5"
+new_sqlite_classes = ["TLPostgresReplicator"]
+new_classes = ["TLUserDurableObject"]
+
+[[env.preview.migrations]]
+tag = "v6"
+new_sqlite_classes = ["TLLoggerDurableObject"]
+
+[[env.preview.migrations]]
+tag = "v7"
+new_sqlite_classes = ["TLStatsDurableObject"]
+
+[[env.preview.migrations]]
+tag = "v8"
+deleted_classes = ["TLAppDurableObject"]
+
+[[env.preview.migrations]]
+tag = "v9"
+new_sqlite_classes = ["TLFileDurableObject"]
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 
@@ -61,7 +107,7 @@ MULTIPLAYER_SERVER = "http://localhost:3000"
 # staging is the same as a preview on main:
 [env.staging]
 name = "main-tldraw-multiplayer"
-workers_dev = true # todo: remove this once clients are updated
+workers_dev = true               # todo: remove this once clients are updated
 
 [env.staging.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
@@ -71,7 +117,7 @@ HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
-workers_dev = true # todo: remove this once clients are updated
+workers_dev = true          # todo: remove this once clients are updated
 
 [env.production.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"

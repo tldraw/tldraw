@@ -58,6 +58,11 @@ export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'
 export { TLUserDurableObject } from './TLUserDurableObject'
+// no-op stub. wrangler.toml v1 created TLDrawDurableObject and v10 deletes it.
+// staging/prod still have it in their applied-migration history, so removing
+// this export breaks their deploys (see #8124). preview skips both v1 and v10,
+// so this export is just an unbound class on preview - harmless.
+export class TLDrawDurableObject {}
 
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
