@@ -42,9 +42,11 @@ import { acceptInvite } from './routes/tla/acceptInvite'
 import { createApiToken } from './routes/tla/createApiToken'
 import { createFiles } from './routes/tla/createFiles'
 import { createWebhook } from './routes/tla/createWebhook'
+import { deleteWebhook } from './routes/tla/deleteWebhook'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { listWebhooks } from './routes/tla/listWebhooks'
 import { upload } from './routes/tla/uploads'
 import { whiteboardRpc } from './routes/tla/whiteboardRpc'
 import { testRoutes } from './testRoutes'
@@ -155,7 +157,9 @@ const router = createRouter<Environment>()
 	.post('/app/invite/:token/accept', acceptInvite)
 	.post('/app/whiteboard-tokens', createApiToken)
 	.post('/app/file/:fileSlug/whiteboard-rpc', whiteboardRpc)
+	.get('/app/file/:fileSlug/webhooks', listWebhooks)
 	.post('/app/file/:fileSlug/webhooks', createWebhook)
+	.delete('/app/file/:fileSlug/webhooks/:webhookId', deleteWebhook)
 	.all('/app/__test__/*', testRoutes.fetch)
 	.get('/app/__debug-tail', (req, env) => {
 		if (isDebugLogging(env)) {

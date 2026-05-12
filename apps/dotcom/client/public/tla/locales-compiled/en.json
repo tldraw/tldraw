@@ -177,6 +177,18 @@
       "value": "About tldraw"
     }
   ],
+  "27537523b4": [
+    {
+      "type": 0,
+      "value": "Shape deleted"
+    }
+  ],
+  "27b0d8df7f": [
+    {
+      "type": 0,
+      "value": "Add at least one property path for this event type."
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -437,6 +449,12 @@
       "value": "PNG"
     }
   ],
+  "5647ecf021": [
+    {
+      "type": 0,
+      "value": "Loading webhooks…"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -511,6 +529,12 @@
     {
       "type": 0,
       "value": "We failed to upload some of the content you created before you signed in."
+    }
+  ],
+  "5e85ed076f": [
+    {
+      "type": 0,
+      "value": "Event type"
     }
   ],
   "5ea8bb44be": [
@@ -825,6 +849,12 @@
       "value": "Rename file"
     }
   ],
+  "891398a5cf": [
+    {
+      "type": 0,
+      "value": "Shape updated"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -877,6 +907,20 @@
     {
       "type": 0,
       "value": "Copied invite link"
+    }
+  ],
+  "94664ec21e": [
+    {
+      "type": 0,
+      "value": "Each path must be at most "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " characters."
     }
   ],
   "9489b2f82a": [
@@ -1001,6 +1045,12 @@
       "value": "Export image"
     }
   ],
+  "a2735c9c59": [
+    {
+      "type": 0,
+      "value": "Property paths (one per line)"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1047,6 +1097,12 @@
     {
       "type": 0,
       "value": "File limit reached"
+    }
+  ],
+  "abb28f334f": [
+    {
+      "type": 0,
+      "value": "Failed to load webhooks"
     }
   ],
   "af3dc88931": [
@@ -1107,6 +1163,12 @@
     {
       "type": 0,
       "value": "Sign in to share"
+    }
+  ],
+  "bb817f04b6": [
+    {
+      "type": 0,
+      "value": "Shape created"
     }
   ],
   "bb93a7590f": [
@@ -1271,6 +1333,20 @@
       "value": "Learn more about publishing."
     }
   ],
+  "d11e785606": [
+    {
+      "type": 0,
+      "value": "At most "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " paths (one per line)."
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1429,6 +1505,12 @@
     {
       "type": 0,
       "value": "Add"
+    }
+  ],
+  "ec50543c0d": [
+    {
+      "type": 0,
+      "value": "Failed to delete webhook"
     }
   ],
   "ec59b960ea": [

@@ -86,6 +86,12 @@
   "250ddea65c": {
     "translation": "About tldraw"
   },
+  "27537523b4": {
+    "translation": "Shape deleted"
+  },
+  "27b0d8df7f": {
+    "translation": "Add at least one property path for this event type."
+  },
   "299cb00a7a": {
     "translation": "Upload failed"
   },
@@ -209,6 +215,9 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5647ecf021": {
+    "translation": "Loading webhooks…"
+  },
   "5677e381d2": {
     "translation": "We use analytics cookies to make tldraw better."
   },
@@ -232,6 +241,9 @@
   },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
+  },
+  "5e85ed076f": {
+    "translation": "Event type"
   },
   "5ea8bb44be": {
     "translation": "You have been invited to join group:"
@@ -371,6 +383,9 @@
   "86c66437fd": {
     "translation": "Rename file"
   },
+  "891398a5cf": {
+    "translation": "Shape updated"
+  },
   "8ad4303b83": {
     "translation": "No thanks"
   },
@@ -397,6 +412,9 @@
   },
   "930390d222": {
     "translation": "Copied invite link"
+  },
+  "94664ec21e": {
+    "translation": "Each path must be at most {max} characters."
   },
   "9489b2f82a": {
     "translation": "You are already a member of this group"
@@ -452,6 +470,9 @@
   "a239905023": {
     "translation": "Export image"
   },
+  "a2735c9c59": {
+    "translation": "Property paths (one per line)"
+  },
   "a3debabee7": {
     "translation": "Cookie policy"
   },
@@ -475,6 +496,9 @@
   },
   "ab0df9ba36": {
     "translation": "File limit reached"
+  },
+  "abb28f334f": {
+    "translation": "Failed to load webhooks"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
@@ -503,6 +527,9 @@
   },
   "ba0318cb81": {
     "translation": "Sign in to share"
+  },
+  "bb817f04b6": {
+    "translation": "Shape created"
   },
   "bb93a7590f": {
     "translation": "Accept and join group"
@@ -557,6 +584,9 @@
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
+  },
+  "d11e785606": {
+    "translation": "At most {max} paths (one per line)."
   },
   "d3d2e61733": {
     "translation": "Close"
@@ -623,6 +653,9 @@
   },
   "ec211f7c20": {
     "translation": "Add"
+  },
+  "ec50543c0d": {
+    "translation": "Failed to delete webhook"
   },
   "ec59b960ea": {
     "translation": "This file has reached the maximum number of active collaborators."
