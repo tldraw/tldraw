@@ -341,13 +341,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 					}
 				} else if (body.type === 'webhook-delivery') {
 					try {
-						const envelope = JSON.stringify({
-							event: body.event,
-							fileSlug: body.fileSlug,
-							deliveryId: body.deliveryId,
-							timestamp: body.payload.timestamp,
-							data: { shape: body.payload.shape },
-						})
+						const envelope = JSON.stringify(body.envelope)
 						const signature = await signWebhookBody(envelope, body.secret)
 						const res = await fetch(body.url, {
 							method: 'POST',

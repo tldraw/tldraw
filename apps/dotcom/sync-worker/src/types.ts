@@ -187,9 +187,9 @@ export type QueueMessage =
 			type: 'webhook-delivery'
 			webhookId: string
 			fileSlug: string
-			event: 'shape.created'
+			event: 'shape.created' | 'shape.updated' | 'shape.deleted'
 			deliveryId: string
 			url: string
 			secret: string
-			payload: { shape: unknown; timestamp: number }
+			envelope: unknown
 	  }

@@ -16,6 +16,8 @@ import {
 	SNAPSHOT_PREFIX,
 	TLCustomServerEvent,
 	TlaFile,
+	TlaFileWebhookEventType,
+	TlaFileWebhookFilter,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -45,6 +47,7 @@ import {
 	assert,
 	assertExists,
 	exhaustiveSwitchError,
+	isEqual,
 	retry,
 	uniqueId,
 } from '@tldraw/utils'
@@ -82,6 +85,24 @@ import { validateAndRepairDocumentMutations } from './utils/validateDocumentMuta
 const MAX_CONNECTIONS = 50
 const WEBHOOK_DISPATCH_INTERVAL_MS = 100
 const WEBHOOK_CACHE_TTL_MS = 60_000
+
+interface WebhookCacheEntry {
+	id: string
+	url: string
+	secret: string
+	eventType: TlaFileWebhookEventType
+	filter: TlaFileWebhookFilter | null
+}
+
+function getAtPath(obj: unknown, path: string): unknown {
+	let cur: unknown = obj
+	for (const segment of path.split('.')) {
+		if (cur === null || cur === undefined) return undefined
+		if (typeof cur !== 'object') return undefined
+		cur = (cur as Record<string, unknown>)[segment]
+	}
+	return cur
+}
 
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
@@ -972,18 +993,18 @@ export class TLFileDurableObject extends DurableObject {
 		this.dispatchWebhooks().catch((e) => this.reportError(e))
 	}, WEBHOOK_DISPATCH_INTERVAL_MS)
 
-	private _webhooks: Array<{ id: string; url: string; secret: string }> | null = null
+	private _webhooks: WebhookCacheEntry[] | null = null
 	private _webhooksLoadedAt: number = 0
 	private _lastWebhookClock: number | null = null
 
-	private async getWebhooks(): Promise<Array<{ id: string; url: string; secret: string }>> {
+	private async getWebhooks(): Promise<WebhookCacheEntry[]> {
 		const now = Date.now()
 		if (this._webhooks && now - this._webhooksLoadedAt < WEBHOOK_CACHE_TTL_MS) {
 			return this._webhooks
 		}
 		const rows = await this.db
 			.selectFrom('file_webhook')
-			.select(['id', 'url', 'secret', 'userId'])
+			.select(['id', 'url', 'secret', 'userId', 'eventType', 'filter'])
 			.where('fileId', '=', this.documentInfo.slug)
 			.execute()
 
@@ -1005,7 +1026,13 @@ export class TLFileDurableObject extends DurableObject {
 
 		this._webhooks = rows
 			.filter((r) => accessByUserId.get(r.userId))
-			.map(({ id, url, secret }) => ({ id, url, secret }))
+			.map(({ id, url, secret, eventType, filter }) => ({
+				id,
+				url,
+				secret,
+				eventType: eventType as TlaFileWebhookEventType,
+				filter: filter as TlaFileWebhookFilter | null,
+			}))
 		this._webhooksLoadedAt = now
 		return this._webhooks
 	}
@@ -1024,19 +1051,31 @@ export class TLFileDurableObject extends DurableObject {
 		const { result: changes, documentClock } = storage.transaction((txn) =>
 			txn.getChangesSince(this._lastWebhookClock ?? -1)
 		)
-		if (!changes) return
-
-		const newShapes: TLShape[] = []
-		for (const put of Object.values(changes.diff.puts)) {
-			if (Array.isArray(put)) continue
-			if (put.typeName !== 'shape') continue
-			newShapes.push(put as TLShape)
-		}
 
 		this._lastWebhookClock = documentClock
 		await this.ctx.storage.put('lastWebhookClock', documentClock)
 
-		if (newShapes.length === 0) return
+		if (!changes) return
+
+		const created: TLShape[] = []
+		const updated: Array<{ before: TLShape; after: TLShape }> = []
+		const deletedShapeIds: string[] = []
+
+		for (const put of Object.values(changes.diff.puts)) {
+			if (Array.isArray(put)) {
+				const [before, after] = put
+				if (after.typeName !== 'shape') continue
+				updated.push({ before: before as TLShape, after: after as TLShape })
+			} else {
+				if (put.typeName !== 'shape') continue
+				created.push(put as TLShape)
+			}
+		}
+		for (const id of changes.diff.deletes) {
+			if (id.startsWith('shape:')) deletedShapeIds.push(id)
+		}
+
+		if (created.length === 0 && updated.length === 0 && deletedShapeIds.length === 0) return
 
 		const webhooks = await this.getWebhooks()
 		if (webhooks.length === 0) return
@@ -1044,22 +1083,57 @@ export class TLFileDurableObject extends DurableObject {
 		const fileSlug = this.documentInfo.slug
 		const timestamp = Date.now()
 		const messages: Array<{ body: QueueMessage }> = []
-		for (const shape of newShapes) {
-			for (const hook of webhooks) {
-				messages.push({
-					body: {
-						type: 'webhook-delivery',
-						webhookId: hook.id,
+
+		const enqueue = (hook: WebhookCacheEntry, envelope: object) => {
+			messages.push({
+				body: {
+					type: 'webhook-delivery',
+					webhookId: hook.id,
+					fileSlug,
+					event: hook.eventType,
+					deliveryId: uniqueId(),
+					url: hook.url,
+					secret: hook.secret,
+					envelope,
+				},
+			})
+		}
+
+		for (const hook of webhooks) {
+			if (hook.eventType === 'shape.created') {
+				for (const shape of created) {
+					enqueue(hook, {
+						event: hook.eventType,
 						fileSlug,
-						event: 'shape.created',
-						deliveryId: uniqueId(),
-						url: hook.url,
-						secret: hook.secret,
-						payload: { shape, timestamp },
-					},
-				})
+						timestamp,
+						data: { shape },
+					})
+				}
+			} else if (hook.eventType === 'shape.updated') {
+				const paths = hook.filter?.paths ?? []
+				if (paths.length === 0) continue
+				for (const { before, after } of updated) {
+					const changed = paths.filter((p) => !isEqual(getAtPath(before, p), getAtPath(after, p)))
+					if (changed.length === 0) continue
+					enqueue(hook, {
+						event: hook.eventType,
+						fileSlug,
+						timestamp,
+						data: { shape: after, previous: before, changed },
+					})
+				}
+			} else if (hook.eventType === 'shape.deleted') {
+				for (const shapeId of deletedShapeIds) {
+					enqueue(hook, {
+						event: hook.eventType,
+						fileSlug,
+						timestamp,
+						data: { shapeId },
+					})
+				}
 			}
 		}
+
 		if (messages.length === 0) return
 		try {
 			await this.env.QUEUE.sendBatch(messages)

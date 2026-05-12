@@ -12,6 +12,8 @@ CREATE TABLE "file_webhook" (
   "userId" TEXT NOT NULL,
   "url" TEXT NOT NULL,
   "secret" TEXT NOT NULL,
+  "eventType" TEXT NOT NULL,
+  "filter" JSONB,
   "createdAt" BIGINT NOT NULL,
   CONSTRAINT "file_webhook_file_fk"
     FOREIGN KEY ("fileId")
@@ -23,5 +25,6 @@ CREATE TABLE "file_webhook" (
     ON DELETE CASCADE
 );
 
-CREATE INDEX "file_webhook_file_id_idx" ON "file_webhook" ("fileId");
+CREATE INDEX "file_webhook_file_id_event_type_idx"
+  ON "file_webhook" ("fileId", "eventType");
 CREATE INDEX "file_webhook_user_id_idx" ON "file_webhook" ("userId");
