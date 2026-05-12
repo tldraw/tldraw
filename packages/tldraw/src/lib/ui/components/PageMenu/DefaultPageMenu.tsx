@@ -25,12 +25,44 @@ import { onMovePage } from './edit-pages-shared'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 
+const PAGE_MENU_LIST_HEIGHT_KEY = 'tldraw_page_menu_list_height'
+const MIN_PAGE_MENU_LIST_HEIGHT = 54
+const MAX_PAGE_MENU_RENDER_HEIGHT = 800
+// Bottom padding included in the absolutely-positioned content stack — so the
+// auto-fit list height should mirror it.
+const PAGE_MENU_LIST_CONTENT_BOTTOM_PADDING = 4
+const MAX_PAGE_MENU_AVAILABLE_HEIGHT_RATIO = 0.62
+const PAGE_MENU_CREATE_BUTTON_HEIGHT = 40
+const PAGE_MENU_RESIZE_HANDLE_HEIGHT = 7
 const PAGE_MENU_ITEM_HEIGHT = 36
 const PAGE_MENU_DRAG_THRESHOLD = 5
 const PAGE_MENU_AUTO_SCROLL_ZONE = 16
 const PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE = 48
 const PAGE_MENU_MIN_AUTO_SCROLL_SPEED = 1
 const PAGE_MENU_MAX_AUTO_SCROLL_SPEED = 6
+
+function readSavedPageMenuListHeight(): number | null {
+	if (typeof window === 'undefined') return null
+	try {
+		const raw = window.localStorage.getItem(PAGE_MENU_LIST_HEIGHT_KEY)
+		if (!raw) return null
+		const n = Number(raw)
+		return Number.isFinite(n) && n >= MIN_PAGE_MENU_LIST_HEIGHT ? n : null
+	} catch {
+		return null
+	}
+}
+
+function getPageMenuRenderCap(availableHeight: number, hasFooter: boolean): number {
+	const maxMenuHeight = Math.min(
+		MAX_PAGE_MENU_RENDER_HEIGHT,
+		availableHeight * MAX_PAGE_MENU_AVAILABLE_HEIGHT_RATIO
+	)
+	const footerHeight = hasFooter
+		? PAGE_MENU_CREATE_BUTTON_HEIGHT + PAGE_MENU_RESIZE_HANDLE_HEIGHT
+		: 0
+	return Math.max(MIN_PAGE_MENU_LIST_HEIGHT, maxMenuHeight - footerHeight)
+}
 
 /** @public @react */
 export const DefaultPageMenu = memo(function DefaultPageMenu() {
@@ -58,6 +90,91 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		() => editor.getInstanceState().isCoarsePointer,
 		[editor]
 	)
+
+	// null = auto-fit to the number of pages (capped). A number means the user
+	// has pinned the list to that height via the resize handle.
+	const [userListHeight, setUserListHeight] = useState<number | null>(readSavedPageMenuListHeight)
+	const [isResizing, setIsResizing] = useState(false)
+	const [availableHeight, setAvailableHeight] = useState(() =>
+		typeof window === 'undefined' ? 800 : window.innerHeight
+	)
+
+	const updateAvailableHeight = useCallback(() => {
+		if (typeof window === 'undefined') return
+
+		const popoverContent =
+			rSortableContainer.current?.closest<HTMLElement>('.tlui-popover__content')
+		const radixAvailableHeight = popoverContent
+			? Number.parseFloat(
+					getComputedStyle(popoverContent).getPropertyValue(
+						'--radix-popover-content-available-height'
+					)
+				)
+			: NaN
+
+		setAvailableHeight(
+			Number.isFinite(radixAvailableHeight) ? radixAvailableHeight : window.innerHeight
+		)
+	}, [])
+
+	useEffect(() => {
+		const onResize = () => updateAvailableHeight()
+		window.addEventListener('resize', onResize)
+		return () => window.removeEventListener('resize', onResize)
+	}, [updateAvailableHeight])
+
+	useEffect(() => {
+		if (!isOpen) return
+		editor.timers.requestAnimationFrame(updateAvailableHeight)
+	}, [editor, isOpen, updateAvailableHeight])
+
+	const renderCap = getPageMenuRenderCap(availableHeight, !isReadonlyMode)
+	const autoFitListHeight =
+		pages.length * PAGE_MENU_ITEM_HEIGHT + PAGE_MENU_LIST_CONTENT_BOTTOM_PADDING
+	const renderedListHeight = Math.min(userListHeight ?? autoFitListHeight, renderCap)
+
+	const handleResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+		e.preventDefault()
+		const handle = e.currentTarget
+		handle.setPointerCapture(e.pointerId)
+		const startY = e.clientY
+		// Start the drag from what the user currently sees, so the divider
+		// tracks the cursor even when the stored preference exceeds the cap.
+		const startHeight = handle.previousElementSibling?.getBoundingClientRect().height ?? 0
+		let nextHeight = startHeight
+
+		setIsResizing(true)
+
+		const onMove = (moveEvent: PointerEvent) => {
+			nextHeight = Math.max(MIN_PAGE_MENU_LIST_HEIGHT, startHeight + (moveEvent.clientY - startY))
+			setUserListHeight(nextHeight)
+		}
+
+		const onUp = () => {
+			handle.removeEventListener('pointermove', onMove)
+			handle.removeEventListener('pointerup', onUp)
+			handle.removeEventListener('pointercancel', onUp)
+			setIsResizing(false)
+			try {
+				window.localStorage.setItem(PAGE_MENU_LIST_HEIGHT_KEY, String(nextHeight))
+			} catch {
+				// ignore — storage may be unavailable in private/embedded contexts
+			}
+		}
+
+		handle.addEventListener('pointermove', onMove)
+		handle.addEventListener('pointerup', onUp, { once: true })
+		handle.addEventListener('pointercancel', onUp, { once: true })
+	}, [])
+
+	const handleResizeDoubleClick = useCallback(() => {
+		setUserListHeight(null)
+		try {
+			window.localStorage.removeItem(PAGE_MENU_LIST_HEIGHT_KEY)
+		} catch {
+			// ignore — storage may be unavailable in private/embedded contexts
+		}
+	}, [])
 
 	useEffect(
 		function closePageMenuOnEnterPressAfterPressingEnterToConfirmRename() {
@@ -381,6 +498,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						data-testid="page-menu.list"
 						className="tlui-page-menu__list"
 						ref={rSortableContainer}
+						style={{ height: renderedListHeight }}
 					>
 						<div
 							className="tlui-page-menu__list__content"
@@ -512,6 +630,15 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 							})}
 						</div>
 					</div>
+					<div
+						className="tlui-page-menu__resize-handle"
+						data-resizing={isResizing}
+						onPointerDown={handleResizePointerDown}
+						onDoubleClick={handleResizeDoubleClick}
+						role="separator"
+						aria-orientation="horizontal"
+						aria-label={msg('page-menu.resize')}
+					/>
 					{!isReadonlyMode && (
 						<TldrawUiButton
 							type="menu"

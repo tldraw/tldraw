@@ -339,6 +339,7 @@ export type TLUiTranslationKey =
 	| 'page-menu.edit-start'
 	| 'page-menu.edit-done'
 	| 'page-menu.go-to-page'
+	| 'page-menu.resize'
 	| 'page-menu.submenu.rename'
 	| 'page-menu.submenu.duplicate-page'
 	| 'page-menu.submenu.title'
