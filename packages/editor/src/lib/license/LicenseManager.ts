@@ -6,7 +6,7 @@ import { importPublicKey, str2ab } from '../utils/licensing'
 const GRACE_PERIOD_DAYS = 30
 
 export const FLAGS = {
-	// -- MUTUALLY EXCLUSIVE FLAGS --
+	// MUTUALLY EXCLUSIVE FLAGS
 	// Annual means the license expires after a time period, usually 1 year.
 	ANNUAL_LICENSE: 1,
 	// Perpetual means the license never expires up to the max supported version.
