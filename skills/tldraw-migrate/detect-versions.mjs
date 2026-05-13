@@ -48,7 +48,10 @@ function extractTldrawVersion(packageJsonStr) {
 			const raw = deps[name]
 			if (!raw) continue
 			const cleaned = String(raw).replace(/[\^~>=<\s]/g, '')
-			const match = cleaned.match(/(\d+\.\d+\.\d+)/)
+			// Preserve pre-release suffixes (e.g., 4.7.0-canary.abc) so the
+			// release-notes filter can compare them correctly against stable
+			// versions.
+			const match = cleaned.match(/(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)/)
 			if (match) return match[1]
 		}
 		return null
@@ -73,7 +76,7 @@ function emit(version) {
 const explicit = process.argv[2]?.trim()
 if (explicit) {
 	const cleaned = explicit.replace(/^v/, '')
-	const match = cleaned.match(/^(\d+\.\d+\.\d+)/)
+	const match = cleaned.match(/^(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)/)
 	if (match) emit(match[1])
 }
 
