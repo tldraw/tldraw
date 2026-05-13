@@ -23,7 +23,6 @@ export const PageItemInput = function PageItemInput({
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 
-	const rInput = useRef<HTMLInputElement | null>(null)
 	const rMark = useRef<string | null>(null)
 
 	const handleFocus = useCallback(() => {
@@ -45,19 +44,28 @@ export const PageItemInput = function PageItemInput({
 		onCancel()
 	}, [editor, onCancel])
 
+	// `isCurrentPage` is retained for backwards compatibility but is no longer
+	// used: mounting this input always indicates the user wants to rename, so
+	// we always auto-focus regardless of whether the page is the current one.
+	void isCurrentPage
+
+	// Blur commits the rename (the value has been live-saved via onValueChange)
+	// and exits editing, so clicking elsewhere closes the input.
+	const handleBlur = useCallback(() => {
+		onComplete?.()
+	}, [onComplete])
+
 	return (
 		<TldrawUiInput
 			className="tlui-page-menu__item__input"
-			ref={(el) => {
-				rInput.current = el
-			}}
 			defaultValue={name}
 			onValueChange={handleChange}
 			onComplete={onComplete}
 			onCancel={handleCancel}
 			onFocus={handleFocus}
+			onBlur={handleBlur}
 			shouldManuallyMaintainScrollPositionWhenFocused
-			autoFocus={isCurrentPage}
+			autoFocus
 			autoSelect
 		/>
 	)

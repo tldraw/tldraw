@@ -15,6 +15,8 @@ export const onMovePage = (
 	to: number,
 	trackEvent: TLUiEventContextType
 ) => {
+	if (from === to) return
+
 	let index: IndexKey
 
 	const pages = editor.getPages()
