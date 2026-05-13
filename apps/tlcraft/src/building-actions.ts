@@ -40,7 +40,7 @@ import { HUMAN_PLAYER_ID } from './players'
 import { PlayerId, getPlayer } from './players'
 import { canTrainUnit, getBuildingHpMultiplier, getResearchSpeedMultiplier, hasTech } from './tech'
 import { TECH_CONFIG, TechId, getAdvanceTechFor } from './tech-config'
-import { boxOverlapsBlocking } from './terrain'
+import { boxAdjacentToWater, boxOverlapsBlocking } from './terrain'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
 
 const BUILDING_PADDING = 16
@@ -55,6 +55,7 @@ export type PlaceBuildingOutcome =
 	| 'requires-tech'
 	| 'wrong-age'
 	| 'bad-terrain'
+	| 'needs-water-adjacency'
 
 // Public preflight check used by the placement preview overlay so it can paint
 // an invalid (red) ghost when the cursor is over an illegal spot. Mirrors the
@@ -78,6 +79,11 @@ export function checkPlacement(
 	}
 	if (overlapsExistingBuilding(editor, kind, cx, cy, cfg.size)) return 'overlap'
 	if (boxOverlapsBlocking(cx - half, cy - half, cx + half, cy + half)) return 'bad-terrain'
+	if (cfg.requiresWaterAdjacency) {
+		if (!boxAdjacentToWater(cx - half, cy - half, cx + half, cy + half)) {
+			return 'needs-water-adjacency'
+		}
+	}
 	const r = getResources(playerId)
 	if (r.gold < cfg.cost.gold || r.wood < cfg.cost.wood || r.stone < (cfg.cost.stone ?? 0)) {
 		return 'cant-afford'

@@ -54,6 +54,7 @@ import {
 	units$,
 	updateResources,
 } from './game-state'
+import { rebuildNav } from './nav'
 import { HUMAN_PLAYER_ID, PLAYERS, PlayerId, isEnemyOf } from './players'
 import {
 	getCarryMultiplier,
@@ -63,7 +64,7 @@ import {
 	getUnitSpeedMultiplier,
 } from './tech'
 import { TECH_CONFIG } from './tech-config'
-import { isPassable, speedMultiplier, terrainAt } from './terrain'
+import { TERRAIN_DESERT, isPassable, speedMultiplier, terrainAt } from './terrain'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
 
 const HIT_FLASH_MS = 180
@@ -189,6 +190,9 @@ function syncBuildings(editor: Editor) {
 	for (const id of [...upgradeQueues.keys()]) {
 		if (!liveIds.has(id)) upgradeQueues.delete(id)
 	}
+	// Rebuild the pathfinding masks every tick so newly-placed walls / dead
+	// buildings / opened gates reflect in the next command's path.
+	rebuildNav(lastBuildingsByTick)
 }
 
 // Upgrade per-tick: apply finished upgrades. Each shape can have at most one
@@ -356,6 +360,7 @@ export function spawnUnit(kind: UnitKind, x: number, y: number, owner: PlayerId)
 		carrying: null,
 		gatherUntilMs: 0,
 		hitFlashUntilMs: 0,
+		path: null,
 	}
 	units$.update((list) => [...list, unit])
 	updateResources(owner, (r) => ({ ...r, food: r.food + 1 }))
@@ -562,6 +567,26 @@ function moveAndClamp(unit: Unit, candX: number, candY: number): { x: number; y:
 	)
 }
 
+// Follow the A* waypoints we've stored on the unit. Returns the next leg's
+// target (a waypoint or the final goal if no path) plus the pruned remainder
+// of the path. Step functions consume this each tick and write the pruned
+// path back onto the unit.
+function pickMoveTarget(
+	unit: Unit,
+	finalX: number,
+	finalY: number
+): { target: { x: number; y: number }; nextPath: { x: number; y: number }[] | null } {
+	let path = unit.path ?? null
+	while (path && path.length > 1) {
+		const wp = path[0]
+		const wpd = Math.hypot(wp.x - unit.x, wp.y - unit.y)
+		if (wpd > ARRIVE_DIST) break
+		path = path.slice(1)
+	}
+	const target = path && path.length > 0 ? path[0] : { x: finalX, y: finalY }
+	return { target, nextPath: path }
+}
+
 function findNearestEnemyUnit(viewer: PlayerId, x: number, y: number, range: number): Unit | null {
 	let best: Unit | null = null
 	let bestDistSq = range * range
@@ -581,17 +606,21 @@ function findNearestEnemyUnit(viewer: PlayerId, x: number, y: number, range: num
 function stepMove(unit: Unit, dt: number): Unit {
 	const cmd = unit.command
 	if (cmd.type !== 'move') return unit
-	const dx = cmd.x - unit.x
-	const dy = cmd.y - unit.y
+	if (Math.hypot(cmd.x - unit.x, cmd.y - unit.y) <= ARRIVE_DIST) {
+		return { ...unit, command: { type: 'idle' }, path: null }
+	}
+	const { target, nextPath } = pickMoveTarget(unit, cmd.x, cmd.y)
+	const dx = target.x - unit.x
+	const dy = target.y - unit.y
 	const dist = Math.hypot(dx, dy)
 	if (dist <= ARRIVE_DIST) {
-		return { ...unit, command: { type: 'idle' } }
+		return { ...unit, command: { type: 'idle' }, path: null }
 	}
 	const step = Math.min(dist, getEffectiveSpeed(unit) * dt)
 	const candX = unit.x + (dx / dist) * step
 	const candY = unit.y + (dy / dist) * step
 	const clamped = moveAndClamp(unit, candX, candY)
-	return { ...unit, x: clamped.x, y: clamped.y }
+	return { ...unit, x: clamped.x, y: clamped.y, path: nextPath }
 }
 
 function stepAttack(editor: Editor, unit: Unit, dt: number, now: number): Unit {
@@ -635,11 +664,17 @@ function stepAttack(editor: Editor, unit: Unit, dt: number, now: number): Unit {
 	const reach = Math.sqrt(cfg.attackRangeSq) + targetRadius
 
 	if (dist > reach) {
-		const step = Math.min(dist - reach + 1, getEffectiveSpeed(unit) * dt)
-		const candX = unit.x + (dx / dist) * step
-		const candY = unit.y + (dy / dist) * step
+		const { target: wp, nextPath } = pickMoveTarget(unit, tx, ty)
+		const wdx = wp.x - unit.x
+		const wdy = wp.y - unit.y
+		const wDist = Math.hypot(wdx, wdy)
+		const stepLen = Math.min(wDist > 0 ? wDist : dist - reach + 1, getEffectiveSpeed(unit) * dt)
+		const dirX = wDist > 0 ? wdx / wDist : dx / dist
+		const dirY = wDist > 0 ? wdy / wDist : dy / dist
+		const candX = unit.x + dirX * stepLen
+		const candY = unit.y + dirY * stepLen
 		const clamped = moveAndClamp(unit, candX, candY)
-		return { ...unit, x: clamped.x, y: clamped.y }
+		return { ...unit, x: clamped.x, y: clamped.y, path: nextPath }
 	}
 
 	if (now < unit.nextAttackAtMs) return unit
@@ -669,11 +704,17 @@ function stepGather(unit: Unit, dt: number, now: number): Unit {
 	const dist = Math.hypot(dx, dy)
 	const reach = resource.radius + cfg.radius - 4
 	if (dist > reach) {
-		const step = Math.min(dist - reach + 1, getEffectiveSpeed(unit) * dt)
-		const candX = unit.x + (dx / dist) * step
-		const candY = unit.y + (dy / dist) * step
+		const { target: wp, nextPath } = pickMoveTarget(unit, resource.x, resource.y)
+		const wdx = wp.x - unit.x
+		const wdy = wp.y - unit.y
+		const wDist = Math.hypot(wdx, wdy)
+		const stepLen = Math.min(wDist > 0 ? wDist : dist - reach + 1, getEffectiveSpeed(unit) * dt)
+		const dirX = wDist > 0 ? wdx / wDist : dx / dist
+		const dirY = wDist > 0 ? wdy / wDist : dy / dist
+		const candX = unit.x + dirX * stepLen
+		const candY = unit.y + dirY * stepLen
 		const clamped = moveAndClamp(unit, candX, candY)
-		return { ...unit, x: clamped.x, y: clamped.y }
+		return { ...unit, x: clamped.x, y: clamped.y, path: nextPath }
 	}
 	return { ...unit, gatherUntilMs: now + GATHER_DURATION_MS, x: resource.x, y: resource.y }
 }
@@ -687,7 +728,9 @@ function finishGather(unit: Unit): Unit {
 	const resourceId = cmd.resourceId
 	let pickedUp = 0
 	let resourceKind: 'wood' | 'gold' | 'stone' = 'wood'
-	const carryCap = Math.round(cfg.carryCapacity * getCarryMultiplier(unit.owner))
+	// Desert reduces the per-trip carry by 15% — workers slog in the heat.
+	const desertMult = terrainAt(unit.x, unit.y) === TERRAIN_DESERT ? 0.85 : 1
+	const carryCap = Math.round(cfg.carryCapacity * getCarryMultiplier(unit.owner) * desertMult)
 	resources$.update((list) =>
 		list.map((r) => {
 			if (r.id !== resourceId) return r
@@ -723,15 +766,25 @@ function stepReturn(unit: Unit, dt: number): Unit {
 	const dy = target.cy - unit.y
 	const dist = Math.hypot(dx, dy)
 	if (dist > target.halfSize + DEPOSIT_RANGE) {
-		const step = getEffectiveSpeed(unit) * dt
-		const candX = unit.x + (dx / dist) * step
-		const candY = unit.y + (dy / dist) * step
+		const { target: wp, nextPath } = pickMoveTarget(unit, target.cx, target.cy)
+		const wdx = wp.x - unit.x
+		const wdy = wp.y - unit.y
+		const wDist = Math.hypot(wdx, wdy)
+		const stepLen = Math.min(
+			wDist > 0 ? wDist : getEffectiveSpeed(unit) * dt,
+			getEffectiveSpeed(unit) * dt
+		)
+		const dirX = wDist > 0 ? wdx / wDist : dx / dist
+		const dirY = wDist > 0 ? wdy / wDist : dy / dist
+		const candX = unit.x + dirX * stepLen
+		const candY = unit.y + dirY * stepLen
 		const clamped = moveAndClamp(unit, candX, candY)
 		return {
 			...unit,
 			command: { type: 'return', buildingId: target.id },
 			x: clamped.x,
 			y: clamped.y,
+			path: nextPath,
 		}
 	}
 	const carrying = unit.carrying

@@ -77,6 +77,7 @@ import {
 	seedResources,
 } from './map'
 import { NATIONS, NationId, getNation, pickAiNations } from './nations'
+import { rebuildNav, resizeNav } from './nav'
 import { BuildingDecorOverlayUtil } from './overlays/BuildingDecorOverlayUtil'
 import { DamageNumberOverlayUtil } from './overlays/DamageNumberOverlayUtil'
 import { DragSelectOverlayUtil } from './overlays/DragSelectOverlayUtil'
@@ -166,6 +167,7 @@ function applyMapSettings(editor: Editor, sizeId: MapSizeId) {
 	applyMapSize(size)
 	resizeFogGrids()
 	resizeTerrainGrid()
+	resizeNav()
 	updatePlayerStartBases(PLAYER_SPAWNS)
 	const existing = editor.getCameraOptions()
 	const constraints = existing.constraints
@@ -231,6 +233,7 @@ function bootstrapStartingState(editor: Editor) {
 	resetTerrain()
 	if (mapType?.generateTerrain) mapType.generateTerrain()
 	bumpTerrainVersion()
+	rebuildNav([])
 	resources$.set(mapType ? mapType.generate() : seedResources())
 	for (const p of PLAYERS) {
 		const id = placeBuilding(
@@ -1501,6 +1504,7 @@ const BUILDING_DESCRIPTIONS: Record<BuildingKind, string> = {
 		'Heavy fortification with an area attack and the largest territory of any building. Castle Age + Stonemasonry research required.',
 	monastery: 'Trains Monks — long-range support units. Adds 4 population.',
 	'siege-workshop': 'Imperial-Age building that trains Trebuchets — long-range siege.',
+	dock: 'Trains ships. Must be built next to a water tile. Unlocks Feudal Age.',
 }
 
 function PauseMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {

@@ -50,6 +50,11 @@ export interface Unit {
 	carrying: { resource: CarriedResource; amount: number } | null
 	gatherUntilMs: number
 	hitFlashUntilMs: number
+	// Waypoints from A* pathfinding. First entry is the next target; pop on
+	// arrival. null / undefined means no path computed (e.g. straight-line
+	// move within a single tile, or a target we already reached). Saved games
+	// may omit it — step functions treat undefined as null.
+	path?: { x: number; y: number }[] | null
 }
 
 // Resource node kinds. Trees deposit wood; mines deposit gold; quarries

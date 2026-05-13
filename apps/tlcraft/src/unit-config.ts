@@ -20,6 +20,7 @@ export type ArchetypeId =
 	| 'skirmisher'
 	| 'caster'
 	| 'siege'
+	| 'ship'
 
 export type UnitTrainBuilding =
 	| 'town-hall'
@@ -28,6 +29,7 @@ export type UnitTrainBuilding =
 	| 'stable'
 	| 'siege-workshop'
 	| 'monastery'
+	| 'dock'
 
 export type UnitKind =
 	// Base / shared units
@@ -41,6 +43,9 @@ export type UnitKind =
 	| 'knight'
 	| 'monk'
 	| 'trebuchet'
+	| 'fishing-boat'
+	| 'war-galley'
+	| 'transport-ship'
 	// Unique units (one per civ)
 	| 'longbowman'
 	| 'berserker'
@@ -285,6 +290,66 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 16_000,
 		trainedBy: 'siege-workshop',
 		glyph: 'T',
+	},
+	'fishing-boat': {
+		label: 'Fishing boat',
+		archetype: 'ship',
+		minAge: 'feudal',
+		maxHp: 60,
+		speed: 90,
+		radius: 14,
+		attackDamage: 0,
+		attackRangeSq: MELEE_RANGE_SQ,
+		attackCooldownMs: 9999,
+		visionRadius: 240,
+		gatherRate: 0,
+		carryCapacity: 0,
+		bounty: 6,
+		trainCost: { gold: 40, wood: 70, food: 1 },
+		trainMs: 6500,
+		trainedBy: 'dock',
+		glyph: 'F',
+		canTraverseWater: true,
+	},
+	'war-galley': {
+		label: 'War galley',
+		archetype: 'ship',
+		minAge: 'castle',
+		maxHp: 160,
+		speed: 100,
+		radius: 16,
+		attackDamage: 24,
+		attackRangeSq: MEDIUM_RANGE_SQ,
+		attackCooldownMs: 1100,
+		visionRadius: 320,
+		gatherRate: 0,
+		carryCapacity: 0,
+		bounty: 28,
+		trainCost: { gold: 90, wood: 140, food: 2 },
+		trainMs: 10_500,
+		trainedBy: 'dock',
+		glyph: 'G',
+		canTraverseWater: true,
+	},
+	'transport-ship': {
+		label: 'Transport ship',
+		archetype: 'ship',
+		minAge: 'castle',
+		maxHp: 240,
+		speed: 80,
+		radius: 18,
+		attackDamage: 0,
+		attackRangeSq: MELEE_RANGE_SQ,
+		attackCooldownMs: 9999,
+		visionRadius: 280,
+		gatherRate: 0,
+		carryCapacity: 0,
+		bounty: 22,
+		trainCost: { gold: 120, wood: 160, food: 2 },
+		trainMs: 11_000,
+		trainedBy: 'dock',
+		glyph: 'R',
+		canTraverseWater: true,
 	},
 
 	// ---- Unique units (one per civ) ---------------------------------------

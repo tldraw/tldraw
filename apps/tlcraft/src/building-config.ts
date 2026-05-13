@@ -25,6 +25,7 @@ export type BuildingKind =
 	| 'stable'
 	| 'siege-workshop'
 	| 'monastery'
+	| 'dock'
 
 // Used for civ "building-mult" bonuses. Lets a civ say "defensive buildings
 // +20% HP" or "economic buildings -15% cost" without listing every kind. The
@@ -74,6 +75,10 @@ export interface BuildingConfig {
 	// (any of their alive buildings' disks). Town halls themselves are
 	// 'territory' so subsequent town halls can be founded out at the frontier.
 	placement: 'town' | 'territory'
+	// Docks must touch a water tile. checkPlacement looks at the building's
+	// footprint expanded by one cell — if no neighbouring tile is water the
+	// placement is refused.
+	requiresWaterAdjacency?: boolean
 }
 
 export const BUILDING_CONFIG: Record<BuildingKind, BuildingConfig> = {
@@ -414,6 +419,26 @@ export const BUILDING_CONFIG: Record<BuildingKind, BuildingConfig> = {
 		upgrade: null,
 		placement: 'town',
 	},
+	dock: {
+		label: 'Dock',
+		geo: 'rectangle',
+		size: 120,
+		maxHp: 600,
+		cost: { gold: 100, wood: 150 },
+		trains: ['fishing-boat', 'war-galley', 'transport-ship'],
+		researches: [],
+		attack: null,
+		isDropOff: false,
+		foodCapacity: 4,
+		keyHint: 'd',
+		visionRadius: 280,
+		territoryRadius: 280,
+		minAge: 'feudal',
+		scope: 'military',
+		upgrade: null,
+		placement: 'town',
+		requiresWaterAdjacency: true,
+	},
 }
 
 export const BUILDING_KINDS: BuildingKind[] = [
@@ -430,6 +455,7 @@ export const BUILDING_KINDS: BuildingKind[] = [
 	'tower',
 	'wall',
 	'gate',
+	'dock',
 	'castle',
 	'monastery',
 	'siege-workshop',

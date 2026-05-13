@@ -21,6 +21,7 @@ import {
 	units$,
 } from './game-state'
 import { getNation } from './nations'
+import { pathfind } from './nav'
 import { PlayerId, isEnemyOf } from './players'
 import { nextInt, nextRandom } from './random'
 import { canTrainUnit } from './tech'
@@ -361,7 +362,12 @@ function keepWorkersGathering(_playerId: PlayerId, workers: Unit[]) {
 			if (!ids.has(u.id)) return u
 			const r = nearestResource(u.x, u.y)
 			if (!r) return u
-			return { ...u, command: { type: 'gather', resourceId: r.id } }
+			const mode = UNIT_CONFIG[u.kind].canTraverseWater === true ? 'water' : 'land'
+			return {
+				...u,
+				command: { type: 'gather', resourceId: r.id },
+				path: pathfind(u.x, u.y, r.x, r.y, mode),
+			}
 		})
 	)
 }
@@ -423,7 +429,12 @@ function maybePush(
 	units$.update((list) =>
 		list.map((u) => {
 			if (!ids.has(u.id)) return u
-			return { ...u, command: { type: 'move', x: target!.x, y: target!.y } }
+			const mode = UNIT_CONFIG[u.kind].canTraverseWater === true ? 'water' : 'land'
+			return {
+				...u,
+				command: { type: 'move', x: target!.x, y: target!.y },
+				path: pathfind(u.x, u.y, target!.x, target!.y, mode),
+			}
 		})
 	)
 	// Once the army arrives near the target, clear the rally so we re-pick a

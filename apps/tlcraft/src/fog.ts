@@ -11,6 +11,7 @@
 import { BUILDING_CONFIG, BuildingKind, getEffectiveTerritoryRadius } from './building-config'
 import { MAP_BOUNDS } from './map'
 import { PlayerId } from './players'
+import { TERRAIN_HILLS, terrainAt } from './terrain'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
 
 export const CELL_SIZE = 64
@@ -86,7 +87,11 @@ export function computeFog(humanId: PlayerId, units: UnitForFog[], buildings: Bu
 	for (const u of units) {
 		if (u.owner !== humanId || u.hp <= 0) continue
 		if (u.gatherUntilMs > 0) continue
-		const radius = UNIT_CONFIG[u.kind].visionRadius
+		// Hills grant a vision bonus to units standing on them — sentries on
+		// the high ground see further than units on level grass.
+		const baseRadius = UNIT_CONFIG[u.kind].visionRadius
+		const onHills = terrainAt(u.x, u.y) === TERRAIN_HILLS
+		const radius = onHills ? baseRadius * 1.15 : baseRadius
 		markCircle(visGrid, u.x, u.y, radius, 2)
 	}
 

@@ -14,8 +14,14 @@ import {
 	selectedUnitIds$,
 	units$,
 } from './game-state'
+import { pathfind } from './nav'
 import { HUMAN_PLAYER_ID, PlayerId, isEnemyOf } from './players'
 import { UNIT_CONFIG } from './unit-config'
+
+function pathForUnit(u: Unit, gx: number, gy: number): { x: number; y: number }[] | null {
+	const mode = UNIT_CONFIG[u.kind].canTraverseWater === true ? 'water' : 'land'
+	return pathfind(u.x, u.y, gx, gy, mode)
+}
 
 interface Point {
 	x: number
@@ -135,11 +141,11 @@ export function commandSelectedUnits(editor: Editor, target: Point): boolean {
 	// enemy building > empty ground.
 	const enemy = findEnemyUnitAtPoint(target, HUMAN_PLAYER_ID)
 	if (enemy) {
-		applyCommandToAll(selected, () => ({
-			type: 'attack',
-			targetUnitId: enemy.id,
-			targetBuildingId: null,
-		}))
+		applyCommandToAllWithPath(
+			selected,
+			() => ({ type: 'attack', targetUnitId: enemy.id, targetBuildingId: null }),
+			(u) => pathForUnit(u, enemy.x, enemy.y)
+		)
 		return true
 	}
 	const resource = findResourceAtPoint(target)
@@ -147,7 +153,11 @@ export function commandSelectedUnits(editor: Editor, target: Point): boolean {
 		const workers = selected.filter((u) => u.kind === 'worker')
 		const fighters = selected.filter((u) => u.kind !== 'worker')
 		if (workers.length > 0) {
-			applyCommandToAll(workers, () => ({ type: 'gather', resourceId: resource.id }))
+			applyCommandToAllWithPath(
+				workers,
+				() => ({ type: 'gather', resourceId: resource.id }),
+				(u) => pathForUnit(u, resource.x, resource.y)
+			)
 		}
 		if (fighters.length > 0) {
 			applyMoveSpread(fighters, target.x, target.y)
@@ -156,11 +166,14 @@ export function commandSelectedUnits(editor: Editor, target: Point): boolean {
 	}
 	const enemyBuilding = findBuildingAtPoint(editor, target)
 	if (enemyBuilding && enemyBuilding.owner !== HUMAN_PLAYER_ID) {
-		applyCommandToAll(selected, () => ({
-			type: 'attack',
-			targetUnitId: null,
-			targetBuildingId: enemyBuilding.id,
-		}))
+		const targetBounds = editor.getShapePageBounds(enemyBuilding.id)
+		const tx = targetBounds?.center.x ?? target.x
+		const ty = targetBounds?.center.y ?? target.y
+		applyCommandToAllWithPath(
+			selected,
+			() => ({ type: 'attack', targetUnitId: null, targetBuildingId: enemyBuilding.id }),
+			(u) => pathForUnit(u, tx, ty)
+		)
 		return true
 	}
 
@@ -168,9 +181,18 @@ export function commandSelectedUnits(editor: Editor, target: Point): boolean {
 	return true
 }
 
-function applyCommandToAll(selected: Unit[], makeCommand: (u: Unit) => Command) {
+function applyCommandToAllWithPath(
+	selected: Unit[],
+	makeCommand: (u: Unit) => Command,
+	makePath: (u: Unit) => { x: number; y: number }[] | null
+) {
 	const ids = new Set(selected.map((u) => u.id))
-	units$.update((list) => list.map((u) => (ids.has(u.id) ? { ...u, command: makeCommand(u) } : u)))
+	units$.update((list) =>
+		list.map((u) => {
+			if (!ids.has(u.id)) return u
+			return { ...u, command: makeCommand(u), path: makePath(u) }
+		})
+	)
 }
 
 function applyMoveSpread(selected: Unit[], cx: number, cy: number) {
@@ -195,7 +217,11 @@ function applyMoveSpread(selected: Unit[], cx: number, cy: number) {
 		list.map((u) => {
 			const t = targets.get(u.id)
 			if (!t) return u
-			return { ...u, command: { type: 'move', x: t.x, y: t.y } }
+			return {
+				...u,
+				command: { type: 'move', x: t.x, y: t.y },
+				path: pathForUnit(u, t.x, t.y),
+			}
 		})
 	)
 }

@@ -65,6 +65,7 @@ import {
 } from './game-state'
 import { MapSizeId, MapTypeId, PLAYER_SPAWNS, getMapSize, getMapType } from './map'
 import { NationId, getNation } from './nations'
+import { rebuildNav } from './nav'
 import { HUMAN_PLAYER_ID, PlayerId, updatePlayerStartBases } from './players'
 import { getRandomState, setRandomSeed } from './random'
 import { TechId } from './tech-config'
@@ -383,6 +384,10 @@ export function loadGame(
 		ageResearchByPlayer$.set(data.ageResearch)
 		if (data.terrain) deserializeTerrain(data.terrain)
 		bumpTerrainVersion()
+		// Nav masks will be rebuilt on the first game tick via syncBuildings;
+		// initial rebuild here gives pathfinding correct state before the
+		// player's first command.
+		rebuildNav([])
 
 		gameStarted$.set(true)
 		paused$.set(true)

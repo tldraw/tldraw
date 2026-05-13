@@ -143,5 +143,7 @@ function hintFor(
 			return 'Locked — advance to the next age first'
 		case 'bad-terrain':
 			return 'Cannot build on water or mountain'
+		case 'needs-water-adjacency':
+			return 'Must be placed next to water'
 	}
 }

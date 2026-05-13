@@ -135,6 +135,26 @@ export function paintRect(minX: number, minY: number, maxX: number, maxY: number
 // ---------------------------------------------------------------------------
 // Footprint queries
 
+/** True if at least one tile in or directly adjacent to the box is water.
+ * Used by Docks, which must touch a water tile to function. */
+export function boxAdjacentToWater(
+	minX: number,
+	minY: number,
+	maxX: number,
+	maxY: number
+): boolean {
+	const c0 = Math.max(0, Math.floor((minX - MAP_BOUNDS.minX) / CELL_SIZE) - 1)
+	const c1 = Math.min(COLS, Math.ceil((maxX - MAP_BOUNDS.minX) / CELL_SIZE) + 1)
+	const r0 = Math.max(0, Math.floor((minY - MAP_BOUNDS.minY) / CELL_SIZE) - 1)
+	const r1 = Math.min(ROWS, Math.ceil((maxY - MAP_BOUNDS.minY) / CELL_SIZE) + 1)
+	for (let row = r0; row < r1; row++) {
+		for (let col = c0; col < c1; col++) {
+			if (terrainGrid[row * COLS + col] === TERRAIN_WATER) return true
+		}
+	}
+	return false
+}
+
 /** True if any tile in an axis-aligned box is blocking (water or mountain).
  * Used by checkPlacement to refuse buildings on water/mountain. */
 export function boxOverlapsBlocking(
