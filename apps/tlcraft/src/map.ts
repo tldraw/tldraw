@@ -303,6 +303,14 @@ function generateGoldrush(): ResourceNode[] {
 		// trade for gold.
 		seeds.push({ kind: 'mine', x: clampX(home.x + 160), y: clampY(home.y - 200) })
 		seeds.push({ kind: 'mine', x: clampX(home.x + 360), y: clampY(home.y + 200) })
+		// A small starter quarry so every civ has some stone for Castle Age
+		// and stone walls without rushing the contested middle.
+		seeds.push({
+			kind: 'quarry',
+			x: clampX(home.x + 440),
+			y: clampY(home.y + 120),
+			remaining: Math.round(QUARRY_YIELD * 0.6),
+		})
 	}
 	const { cx, cy } = mid()
 	const scale = midScale()
@@ -338,6 +346,14 @@ function generateHeavyForest(): ResourceNode[] {
 		seeds.push(...cluster('tree', home.x + 280, home.y - 40, 16, 160))
 		seeds.push(...cluster('tree', home.x + 100, home.y + 320, 10, 110))
 		seeds.push({ kind: 'mine', x: clampX(home.x + 200), y: clampY(home.y - 220) })
+		// Single small starter quarry — stone is scarce on this map but every
+		// player needs at least one source for Castle Age and walls.
+		seeds.push({
+			kind: 'quarry',
+			x: clampX(home.x + 420),
+			y: clampY(home.y + 140),
+			remaining: Math.round(QUARRY_YIELD * 0.5),
+		})
 	}
 	const { cx, cy } = mid()
 	const scale = midScale()
