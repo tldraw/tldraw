@@ -68,7 +68,7 @@ export function checkPlacement(
 	) {
 		return 'out-of-bounds'
 	}
-	if (overlapsExistingBuilding(editor, cx, cy, cfg.size)) return 'overlap'
+	if (overlapsExistingBuilding(editor, kind, cx, cy, cfg.size)) return 'overlap'
 	const r = getResources(playerId)
 	if (r.gold < cfg.cost.gold || r.wood < cfg.cost.wood || r.stone < (cfg.cost.stone ?? 0)) {
 		return 'cant-afford'
@@ -179,8 +179,9 @@ export function placeBuilding(
 		// hp + maxHp + upgradeLevel are baked at construction. Town halls also
 		// get a town name pulled from the shuffled name deck — that's what
 		// makes them a "town" the player can cluster town-bound buildings
-		// around. The townName key is omitted entirely for non-town-halls
-		// because tldraw's meta validator rejects `undefined` values.
+		// around. Gates carry a gateOpen flag so the player can toggle them
+		// open / closed from the toolbar. The optional keys are spread in
+		// conditionally because tldraw's meta validator rejects `undefined`.
 		meta: {
 			buildingKind: kind,
 			hp: maxHp,
@@ -188,6 +189,7 @@ export function placeBuilding(
 			owner: playerId,
 			upgradeLevel: 0,
 			...(kind === 'town-hall' ? { townName: pickTownName() } : {}),
+			...(kind === 'gate' ? { gateOpen: false } : {}),
 		},
 	})
 	updateResources(playerId, (rr) => ({
@@ -199,13 +201,25 @@ export function placeBuilding(
 	return id
 }
 
-function overlapsExistingBuilding(editor: Editor, cx: number, cy: number, size: number): boolean {
+function overlapsExistingBuilding(
+	editor: Editor,
+	kind: BuildingKind,
+	cx: number,
+	cy: number,
+	size: number
+): boolean {
 	const half = size / 2
+	const newIsBarrier = kind === 'wall' || kind === 'gate'
 	for (const shape of editor.getCurrentPageShapes()) {
-		if (!getBuildingKind(shape)) continue
+		const otherKind = getBuildingKind(shape)
+		if (!otherKind) continue
 		const bounds = editor.getShapePageBounds(shape.id)
 		if (!bounds) continue
-		const inflate = BUILDING_PADDING
+		const otherIsBarrier = otherKind === 'wall' || otherKind === 'gate'
+		// Barrier-vs-barrier (walls + gates) is allowed to touch edge-to-edge so
+		// the player can chain walls into a continuous fortification. Everything
+		// else still requires BUILDING_PADDING of breathing room.
+		const inflate = newIsBarrier && otherIsBarrier ? -1 : BUILDING_PADDING
 		if (
 			cx + half + inflate < bounds.minX ||
 			cx - half - inflate > bounds.maxX ||
@@ -431,4 +445,25 @@ function playerHasBuildingKind(editor: Editor, playerId: PlayerId, kind: Buildin
 		if (shape.meta?.owner === playerId) return true
 	}
 	return false
+}
+
+// Flip a gate's open / closed state. Owner is checked client-side; the human
+// has no UI for friendly-AI gates, but we keep the assertion for the eventual
+// multiplayer command path (where the server will re-validate ownership).
+export function toggleGate(editor: Editor, shapeId: TLShapeId, playerId: PlayerId): boolean {
+	const shape = editor.getShape(shapeId)
+	if (!shape) return false
+	if (getBuildingKind(shape) !== 'gate') return false
+	if (getBuildingOwner(shape) !== playerId) return false
+	const open = !(shape.meta?.gateOpen === true)
+	editor.run(
+		() =>
+			editor.updateShape({
+				id: shapeId,
+				type: 'geo',
+				meta: { ...shape.meta, gateOpen: open },
+			}),
+		{ ignoreShapeLock: true }
+	)
+	return true
 }

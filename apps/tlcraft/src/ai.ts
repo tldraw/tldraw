@@ -36,6 +36,7 @@ interface BuildingsByKind {
 	libraries: BuildingSnap[]
 	farms: BuildingSnap[]
 	walls: BuildingSnap[]
+	gates: BuildingSnap[]
 	castles: BuildingSnap[]
 }
 
@@ -48,6 +49,9 @@ export interface BuildingSnap {
 	halfSize: number
 	hp: number
 	upgradeLevel: number
+	// Only meaningful when kind === 'gate'. Open gates are passable by all
+	// units (friendly + enemy); closed gates block like walls.
+	gateOpen: boolean
 }
 
 // AI cadences (in elapsed ms). Coarse so the AI feels deliberate, not twitchy.
@@ -138,6 +142,7 @@ function ownByKind(own: BuildingsByKind, kind: BuildingKind): BuildingSnap[] {
 	if (kind === 'library') return own.libraries
 	if (kind === 'farm') return own.farms
 	if (kind === 'wall') return own.walls
+	if (kind === 'gate') return own.gates
 	return own.castles
 }
 
@@ -149,6 +154,7 @@ function bucketize(all: BuildingSnap[], owner: PlayerId): BuildingsByKind {
 		libraries: [],
 		farms: [],
 		walls: [],
+		gates: [],
 		castles: [],
 	}
 	for (const b of all) {
@@ -159,6 +165,7 @@ function bucketize(all: BuildingSnap[], owner: PlayerId): BuildingsByKind {
 		else if (b.kind === 'library') out.libraries.push(b)
 		else if (b.kind === 'farm') out.farms.push(b)
 		else if (b.kind === 'wall') out.walls.push(b)
+		else if (b.kind === 'gate') out.gates.push(b)
 		else if (b.kind === 'castle') out.castles.push(b)
 	}
 	return out
@@ -334,7 +341,7 @@ function intersects(editor: Editor, cx: number, cy: number, size: number): boole
 	return false
 }
 
-function keepWorkersGathering(playerId: PlayerId, workers: Unit[]) {
+function keepWorkersGathering(_playerId: PlayerId, workers: Unit[]) {
 	const idle = workers.filter((w) => w.command.type === 'idle' && w.gatherUntilMs === 0)
 	if (idle.length === 0) return
 	const ids = new Set(idle.map((w) => w.id))

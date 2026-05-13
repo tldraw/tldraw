@@ -11,6 +11,7 @@ import {
 import {
 	BUILDING_CONFIG,
 	BuildingKind,
+	getBuildingGateOpen,
 	getBuildingHp,
 	getBuildingKind,
 	getBuildingMaxHp,
@@ -66,6 +67,7 @@ interface TLBuildingDecorOverlay extends TLOverlay {
 		hp: number
 		maxHp: number
 		townName: string | null
+		gateOpen: boolean
 		queueProgress: number
 		queueLength: number
 		researchProgress: number
@@ -91,6 +93,7 @@ export class BuildingDecorOverlayUtil extends OverlayUtil<TLBuildingDecorOverlay
 			hp: number
 			maxHp: number
 			townName: string | null
+			gateOpen: boolean
 		}> = []
 		for (const shape of this.editor.getCurrentPageShapes()) {
 			const kind = getBuildingKind(shape)
@@ -112,6 +115,7 @@ export class BuildingDecorOverlayUtil extends OverlayUtil<TLBuildingDecorOverlay
 				hp: getBuildingHp(shape),
 				maxHp,
 				townName: kind === 'town-hall' ? getBuildingTownName(shape) : null,
+				gateOpen: kind === 'gate' ? getBuildingGateOpen(shape) : false,
 			})
 		}
 		return out
@@ -205,6 +209,7 @@ export class BuildingDecorOverlayUtil extends OverlayUtil<TLBuildingDecorOverlay
 				hp,
 				maxHp,
 				townName,
+				gateOpen,
 				queueProgress,
 				queueLength,
 				researchProgress,
@@ -214,6 +219,34 @@ export class BuildingDecorOverlayUtil extends OverlayUtil<TLBuildingDecorOverlay
 			} = o.props
 			const player = getPlayer(owner)
 			ctx.save()
+			// Gate visual: a horizontal "doors" indicator across the centre.
+			// Closed = solid bar, open = two halves pulled apart with a gap.
+			// Drawn before everything else so HP / chip / arc decorations sit
+			// on top.
+			if (kind === 'gate') {
+				const w = halfSize * 1.6
+				const h = Math.max(6 / zoom, halfSize * 0.32)
+				const top = cy - h / 2
+				ctx.fillStyle = isDark ? '#1f2937' : '#1e293b'
+				ctx.strokeStyle = isDark ? '#0f172a' : '#0b1220'
+				ctx.lineWidth = 1.5 / zoom
+				if (gateOpen) {
+					const gap = halfSize * 0.5
+					const segW = (w - gap) / 2
+					ctx.fillRect(cx - w / 2, top, segW, h)
+					ctx.strokeRect(cx - w / 2, top, segW, h)
+					ctx.fillRect(cx + gap / 2, top, segW, h)
+					ctx.strokeRect(cx + gap / 2, top, segW, h)
+				} else {
+					ctx.fillRect(cx - w / 2, top, w, h)
+					ctx.strokeRect(cx - w / 2, top, w, h)
+					// Centre tick to read as a portcullis-style closed gate.
+					ctx.beginPath()
+					ctx.moveTo(cx, top)
+					ctx.lineTo(cx, top + h)
+					ctx.stroke()
+				}
+			}
 			// HP bar above the building (only when wounded).
 			if (hp > 0 && hp < maxHp) {
 				const barW = halfSize * 2

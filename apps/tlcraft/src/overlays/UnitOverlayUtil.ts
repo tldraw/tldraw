@@ -24,6 +24,11 @@ interface TLUnitOverlay extends TLOverlay {
 		flashing: boolean
 		selected: boolean
 		carryingResource: 'wood' | 'gold' | 'stone' | null
+		// True while the worker is "inside" a resource node mid-gather. We still
+		// render them (low opacity) so the player can see they exist (and watch
+		// HP bars when wounded), but we skip geometry so they're not clickable
+		// through the resource sprite.
+		inResource: boolean
 	}
 }
 
@@ -43,7 +48,7 @@ export class UnitOverlayUtil extends OverlayUtil<TLUnitOverlay> {
 		void fogVersion$.get()
 		const out: TLUnitOverlay[] = []
 		for (const u of units$.get()) {
-			if (u.gatherUntilMs > now) continue
+			const inResource = u.gatherUntilMs > now
 			// Hide enemy units in fogged cells. Friendly units always render.
 			if (u.owner !== HUMAN_PLAYER_ID && !isVisibleToHuman(u.x, u.y)) continue
 			out.push({
@@ -62,13 +67,18 @@ export class UnitOverlayUtil extends OverlayUtil<TLUnitOverlay> {
 					flashing: u.hitFlashUntilMs > now,
 					selected: selectedIds.has(u.id),
 					carryingResource: u.carrying?.resource ?? null,
+					inResource,
 				},
 			})
 		}
 		return out
 	}
 
-	override getGeometry(overlay: TLUnitOverlay): Geometry2d {
+	override getGeometry(overlay: TLUnitOverlay): Geometry2d | null {
+		// Workers mid-gather render visually but aren't clickable — clicks should
+		// pass through to the underlying resource node so right-click-to-gather
+		// keeps working.
+		if (overlay.props.inResource) return null
 		const { kind, x, y } = overlay.props
 		const r = UNIT_CONFIG[kind].radius
 		return new Circle2d({ x: x - r, y: y - r, radius: r, isFilled: true })
@@ -95,12 +105,17 @@ export class UnitOverlayUtil extends OverlayUtil<TLUnitOverlay> {
 	override render(ctx: CanvasRenderingContext2D, overlays: TLUnitOverlay[]): void {
 		const zoom = this.editor.getZoomLevel()
 		for (const o of overlays) {
-			const { kind, x, y, hp, maxHp, flashing, selected, carryingResource, owner } = o.props
+			const { kind, x, y, hp, maxHp, flashing, selected, carryingResource, owner, inResource } =
+				o.props
 			const cfg = UNIT_CONFIG[kind]
 			const player = getPlayer(owner)
 			const t = Math.max(0, Math.min(1, hp / maxHp))
 
 			ctx.save()
+			// Gathering workers render dimmed at the resource centre so the
+			// player can see them being attacked instead of vanishing into the
+			// tree/mine. Reduces a visual gap that made workers feel invincible.
+			if (inResource) ctx.globalAlpha = 0.45
 			if (selected) {
 				ctx.beginPath()
 				ctx.arc(x, y + cfg.radius * 0.5, cfg.radius + 4 / zoom, 0, Math.PI)
@@ -137,8 +152,12 @@ export class UnitOverlayUtil extends OverlayUtil<TLUnitOverlay> {
 				)
 			}
 
-			// HP bar above (only when wounded).
-			if (hp < maxHp) {
+			// HP bar above. Workers always show theirs so it's obvious when they
+			// take damage (gathering workers were previously invisible — the bar
+			// is the strongest "they're being attacked" cue we have). Other units
+			// only show theirs when wounded to reduce visual noise.
+			const showBar = hp < maxHp || kind === 'worker'
+			if (showBar) {
 				const barW = cfg.radius * 2
 				const barH = 4 / zoom
 				const barX = x - cfg.radius

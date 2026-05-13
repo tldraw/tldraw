@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	Box,
 	DefaultMinimap,
@@ -19,16 +19,19 @@ import {
 	queueResearch,
 	queueUnit,
 	queueUpgrade,
+	toggleGate,
 } from './building-actions'
 import {
 	BUILDING_CONFIG,
 	BUILDING_KINDS,
 	BuildingKind,
+	getBuildingGateOpen,
 	getBuildingUpgradeLevel,
 	pickTownName,
 	resetTownDeck,
 } from './building-config'
 import { commandSelectedUnits, selectUnitsInBox } from './command'
+import { resizeFogGrids } from './fog'
 import { resetGameLoop, runGameTick, spawnUnit } from './game-loop'
 import {
 	completedTechs$,
@@ -47,6 +50,7 @@ import {
 	resetGameState,
 	resources$,
 	selectedBuildingId$,
+	selectedMapSize$,
 	selectedMapType$,
 	selectedUnitIds$,
 	trainQueuesAtom$,
@@ -55,9 +59,14 @@ import {
 } from './game-state'
 import {
 	MAP_BOUNDS,
+	MAP_SIZES,
 	MAP_TYPES,
+	MapSizeId,
 	MapTypeId,
+	PLAYER_SPAWNS,
 	STARTING_WORKER_OFFSETS,
+	applyMapSize,
+	getMapSize,
 	getMapType,
 	pickRandomMapType,
 	seedResources,
@@ -74,7 +83,8 @@ import { ProjectileOverlayUtil } from './overlays/ProjectileOverlayUtil'
 import { ResourceOverlayUtil } from './overlays/ResourceOverlayUtil'
 import { TerritoryBoundaryOverlayUtil } from './overlays/TerritoryBoundaryOverlayUtil'
 import { UnitOverlayUtil } from './overlays/UnitOverlayUtil'
-import { HUMAN_PLAYER_ID, PLAYERS, getPlayer } from './players'
+import { HUMAN_PLAYER_ID, PLAYERS, getPlayer, updatePlayerStartBases } from './players'
+import { SaveSlotInfo, deleteSave, listSaves, loadGame, saveGame } from './save'
 import { canTrainUnit, getUniqueUnitKindForPlayer, hasTech } from './tech'
 import { TECH_CONFIG, TechId, getTechsByTier } from './tech-config'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
@@ -139,15 +149,68 @@ function formatCost(cost: { gold: number; wood: number; stone?: number }): strin
 	return parts.join(' · ')
 }
 
+// Apply the picked map size to MAP_BOUNDS + fog grids + player corners and
+// push the new bounds onto the editor's camera constraints so the player
+// can't pan into the void. Idempotent — safe to call when the size hasn't
+// changed.
+function applyMapSettings(editor: Editor, sizeId: MapSizeId) {
+	const size = getMapSize(sizeId)
+	applyMapSize(size)
+	resizeFogGrids()
+	updatePlayerStartBases(PLAYER_SPAWNS)
+	const existing = editor.getCameraOptions()
+	const constraints = existing.constraints
+	if (!constraints) return
+	editor.setCameraOptions({
+		constraints: {
+			...constraints,
+			bounds: { x: MAP_BOUNDS.minX, y: MAP_BOUNDS.minY, w: size.width, h: size.height },
+		},
+	})
+}
+
 function restartGame(editor: Editor) {
+	// Restart preserves the player's nation / map / size pick — they meant
+	// "give me a fresh match with these settings", not "kick me back to the
+	// menu". Snapshot before reset and re-apply after.
+	const prior = {
+		nations: playerNations$.get(),
+		mapType: selectedMapType$.get(),
+		mapSize: selectedMapSize$.get(),
+		started: gameStarted$.get(),
+	}
 	resetGameState()
 	resetGameLoop()
 	resetTownDeck()
+	applyMapSettings(editor, prior.mapSize)
+	if (prior.started) {
+		playerNations$.set(prior.nations)
+		selectedMapType$.set(prior.mapType)
+		selectedMapSize$.set(prior.mapSize)
+	}
 	const ids = editor.getCurrentPageShapes().map((s) => s.id)
 	if (ids.length > 0) {
 		editor.run(() => editor.deleteShapes(ids), { ignoreShapeLock: true })
 	}
 	bootstrapStartingState(editor)
+	if (prior.started) gameStarted$.set(true)
+}
+
+/** Explicit "Quit to menu" — wipes the match and surfaces the main menu so
+ * the player can start a new one or load a different save. */
+function quitToMenu(editor: Editor) {
+	resetGameState()
+	resetGameLoop()
+	resetTownDeck()
+	// Re-apply default map size so the camera goes back to a known state and
+	// the menu's bootstrap looks predictable.
+	applyMapSettings(editor, selectedMapSize$.get())
+	const ids = editor.getCurrentPageShapes().map((s) => s.id)
+	if (ids.length > 0) {
+		editor.run(() => editor.deleteShapes(ids), { ignoreShapeLock: true })
+	}
+	bootstrapStartingState(editor)
+	// resetGameState already set gameStarted$ to false; that's what we want.
 }
 
 function bootstrapStartingState(editor: Editor) {
@@ -277,6 +340,63 @@ function DragSelectListener() {
 	return null
 }
 
+// While the player has the Wall (or Gate) building armed and is dragging the
+// pointer, lay down additional barrier shapes along the path every ~size
+// page-units. This makes building a continuous wall a single drag instead of
+// dozens of clicks. Invalid spots (overlap, outside territory, can't afford)
+// are silently skipped — `placeBuilding` returns null and the drag continues
+// once the cursor is back over a legal cell.
+function WallDragListener() {
+	const editor = useEditor()
+	useEffect(() => {
+		let pointerDown = false
+		let lastPlaced: { x: number; y: number } | null = null
+		const onDown = (e: PointerEvent) => {
+			if (e.button !== 0) return
+			const kind = placingBuilding$.get()
+			if (kind !== 'wall' && kind !== 'gate') return
+			pointerDown = true
+			const page = editor.screenToPage({ x: e.clientX, y: e.clientY })
+			// The first placement is performed by PlacementPreviewOverlayUtil
+			// when the editor dispatches its own pointer-down to the overlay.
+			// We just record the position so the move handler knows when to
+			// drop the next one.
+			lastPlaced = { x: page.x, y: page.y }
+		}
+		const onMove = (e: PointerEvent) => {
+			if (!pointerDown) return
+			const kind = placingBuilding$.get()
+			if (kind !== 'wall' && kind !== 'gate') return
+			const cfg = BUILDING_CONFIG[kind]
+			// 0.95 * size lets adjacent walls touch without overlapping. The
+			// new wall-vs-wall padding rule (overlapsExistingBuilding) lets
+			// them sit edge-to-edge.
+			const minStep = cfg.size * 0.95
+			const page = editor.screenToPage({ x: e.clientX, y: e.clientY })
+			if (lastPlaced) {
+				const dx = page.x - lastPlaced.x
+				const dy = page.y - lastPlaced.y
+				if (dx * dx + dy * dy < minStep * minStep) return
+			}
+			const id = placeBuilding(editor, kind, HUMAN_PLAYER_ID, page.x, page.y)
+			if (id) lastPlaced = { x: page.x, y: page.y }
+		}
+		const onUp = () => {
+			pointerDown = false
+			lastPlaced = null
+		}
+		window.addEventListener('pointerdown', onDown)
+		window.addEventListener('pointermove', onMove)
+		window.addEventListener('pointerup', onUp)
+		return () => {
+			window.removeEventListener('pointerdown', onDown)
+			window.removeEventListener('pointermove', onMove)
+			window.removeEventListener('pointerup', onUp)
+		}
+	}, [editor])
+	return null
+}
+
 function KeyboardShortcuts() {
 	const editor = useEditor()
 	useEffect(() => {
@@ -308,6 +428,9 @@ function KeyboardShortcuts() {
 			} else if (e.key === '7') {
 				e.preventDefault()
 				pickBuilding('castle')
+			} else if (e.key === '8') {
+				e.preventDefault()
+				pickBuilding('gate')
 			} else if (e.key === 'r' || e.key === 'R') {
 				e.preventDefault()
 				if (gameStarted$.get()) researchTreeOpen$.update((v) => !v)
@@ -400,7 +523,7 @@ function HUD({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 			</div>
 			<div className="tlc-hud__hint">
 				Left-click or drag to select units. Right-click to move, attack, or gather. Build with the
-				toolbar (or <kbd>1</kbd>–<kbd>5</kbd>). Click a Library or press <kbd>R</kbd> for research.{' '}
+				toolbar (or <kbd>1</kbd>–<kbd>8</kbd>). Click a Library or press <kbd>R</kbd> for research.{' '}
 				<kbd>Esc</kbd> for the pause menu.
 			</div>
 			{gameOver && (
@@ -428,7 +551,14 @@ function Toolbar({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 	useValue('upgrade-queues', () => upgradeQueuesAtom$.get(), [])
 
 	const editor = editorRef.current
-	const selectedShape = editor && selectedBuilding ? editor.getShape(selectedBuilding) : null
+	// Read the shape reactively so meta changes (HP, gateOpen, upgradeLevel)
+	// re-render the toolbar — `editor.getShape` reads from the reactive store
+	// when called inside useValue.
+	const selectedShape = useValue(
+		'selectedShape',
+		() => (editor && selectedBuilding ? editor.getShape(selectedBuilding) : null),
+		[editor, selectedBuilding]
+	)
 	const selectedKind = selectedShape?.meta?.buildingKind as BuildingKind | undefined
 	const selectedCfg = selectedKind ? BUILDING_CONFIG[selectedKind] : null
 	const selectedOwner = selectedShape?.meta?.owner as string | undefined
@@ -526,6 +656,26 @@ function Toolbar({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 						<span className="tlc-toolbar__label">Open research</span>
 						<span className="tlc-toolbar__cost">
 							<kbd>R</kbd>
+						</span>
+					</button>
+				</div>
+			)}
+			{selectedKind === 'gate' && isOwnBuilding && selectedShape && selectedBuilding && (
+				<div className="tlc-toolbar__group">
+					<span className="tlc-toolbar__group-label">Gate</span>
+					<button
+						className="tlc-toolbar__btn"
+						onClick={() => {
+							if (!editor) return
+							toggleGate(editor, selectedBuilding, HUMAN_PLAYER_ID)
+						}}
+						title={getBuildingGateOpen(selectedShape) ? 'Close the gate' : 'Open the gate'}
+					>
+						<span className="tlc-toolbar__label">
+							{getBuildingGateOpen(selectedShape) ? 'Close gate' : 'Open gate'}
+						</span>
+						<span className="tlc-toolbar__cost">
+							{getBuildingGateOpen(selectedShape) ? 'currently open' : 'currently closed'}
 						</span>
 					</button>
 				</div>
@@ -648,38 +798,136 @@ const NATION_ACCENTS: Record<NationId, string> = {
 	'sun-tribe': '#f97316',
 }
 
-// ----------------------------- Start menu --------------------------------
+// ----------------------------- Pre-game menus ----------------------------
+//
+// PreGameMenu is the landing surface — it shows whenever no match is active.
+// It owns a tiny `view` state machine: 'main' → 'new' | 'load'. Each child
+// view handles its own form state. Going back from a child returns to 'main'.
 
-function StartMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
+type PreGameView = 'main' | 'new' | 'load'
+
+function PreGameMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 	const started = useValue('gameStarted', () => gameStarted$.get(), [])
+	const [view, setView] = useState<PreGameView>('main')
+	// `savesRev` is bumped on every save/delete so children that read the
+	// saves list re-render. Cheap; saves are typically <10 entries.
+	const [savesRev, setSavesRev] = useState(0)
+	const bumpSaves = useCallback(() => setSavesRev((n) => n + 1), [])
+	// When the player quits a running match back to the menu, always land on
+	// MainMenu instead of whichever sub-view they last visited. (The
+	// component stays mounted while `started` is true, so `view` would
+	// otherwise persist across matches.)
+	useEffect(() => {
+		if (!started) setView('main')
+	}, [started])
+	if (started) return null
+	if (view === 'new') {
+		return <NewGameForm editorRef={editorRef} onBack={() => setView('main')} />
+	}
+	if (view === 'load') {
+		return (
+			<LoadGameList
+				editorRef={editorRef}
+				savesRev={savesRev}
+				onChange={bumpSaves}
+				onBack={() => setView('main')}
+			/>
+		)
+	}
+	return (
+		<MainMenu savesRev={savesRev} onNew={() => setView('new')} onLoad={() => setView('load')} />
+	)
+}
+
+function MainMenu({
+	savesRev,
+	onNew,
+	onLoad,
+}: {
+	savesRev: number
+	onNew(): void
+	onLoad(): void
+}) {
+	const saves = useMemo(() => {
+		void savesRev
+		return listSaves()
+	}, [savesRev])
+	return (
+		<div className="tlc-modal tlc-modal--center" role="dialog" aria-modal="true">
+			<div className="tlc-modal__panel tlc-mainmenu">
+				<header className="tlc-mainmenu__header">
+					<h1 className="tlc-mainmenu__title">tlcraft</h1>
+					<div className="tlc-mainmenu__sub">
+						A tldraw-SDK RTS — build, expand, conquer four AI nations.
+					</div>
+				</header>
+				<div className="tlc-mainmenu__actions">
+					<button
+						className="tlc-modal__btn tlc-modal__btn--primary tlc-mainmenu__btn"
+						onClick={onNew}
+					>
+						New game
+					</button>
+					<button
+						className="tlc-modal__btn tlc-mainmenu__btn"
+						onClick={onLoad}
+						disabled={saves.length === 0}
+						title={saves.length === 0 ? 'No saved games yet' : `${saves.length} saved games`}
+					>
+						Load game
+						{saves.length > 0 && <span className="tlc-mainmenu__count">{saves.length}</span>}
+					</button>
+				</div>
+				<footer className="tlc-mainmenu__footer">
+					<span className="tlc-modal__hint">
+						Drag-select units, right-click to command. <kbd>Esc</kbd> for the pause menu.
+					</span>
+				</footer>
+			</div>
+		</div>
+	)
+}
+
+function NewGameForm({
+	editorRef,
+	onBack,
+}: {
+	editorRef: React.RefObject<Editor | null>
+	onBack(): void
+}) {
 	const [selected, setSelected] = useState<NationId>('solari')
-	// 'random' picks a different map every time you click Start.
 	const [selectedMap, setSelectedMap] = useState<MapTypeId | 'random'>('random')
+	const [selectedSize, setSelectedSize] = useState<MapSizeId>(selectedMapSize$.get())
 
 	const onStart = useCallback(() => {
 		// Fresh seed for the match. After this point, EVERY random call in
 		// the simulation goes through the seeded PRNG (see random.ts), so
-		// the same seed → the same match. In multiplayer the host will pick
-		// the seed and broadcast it via a synced record; the same `reseedSim`
-		// call applies it on every client.
+		// the same seed → the same match.
 		reseedSim()
 
 		const aiNations = pickAiNations(selected)
-		const map: Record<string, NationId> = { [HUMAN_PLAYER_ID]: selected }
+		const nationMap: Record<string, NationId> = { [HUMAN_PLAYER_ID]: selected }
 		const aiPlayers = PLAYERS.filter((p) => !p.isHuman)
 		for (let i = 0; i < aiPlayers.length; i++) {
-			map[aiPlayers[i].id] = aiNations[i] ?? aiNations[0]
+			nationMap[aiPlayers[i].id] = aiNations[i] ?? aiNations[0]
 		}
-		playerNations$.set(map)
-		// Resolve "random" lazily so each Restart that picks random rerolls.
 		const mapId: MapTypeId = selectedMap === 'random' ? pickRandomMapType().id : selectedMap
-		selectedMapType$.set(mapId)
-		// Re-seed the resources for the chosen map BEFORE the game tick starts,
-		// since the editor was already bootstrapped in onMount with the default
-		// seed.
+
 		const editor = editorRef.current
 		if (editor) {
-			resources$.set(getMapType(mapId).generate())
+			applyMapSettings(editor, selectedSize)
+			resetGameState()
+			resetGameLoop()
+			resetTownDeck()
+			// Re-apply selections cleared by resetGameState.
+			playerNations$.set(nationMap)
+			selectedMapType$.set(mapId)
+			selectedMapSize$.set(selectedSize)
+			const ids = editor.getCurrentPageShapes().map((s) => s.id)
+			if (ids.length > 0) {
+				editor.run(() => editor.deleteShapes(ids), { ignoreShapeLock: true })
+			}
+			bootstrapStartingState(editor)
 		}
 		gameStarted$.set(true)
 		if (editor) {
@@ -688,16 +936,16 @@ function StartMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> })
 				immediate: true,
 			})
 		}
-	}, [selected, selectedMap, editorRef])
-
-	if (started) return null
+	}, [selected, selectedMap, selectedSize, editorRef])
 
 	return (
 		<div className="tlc-modal tlc-modal--center" role="dialog" aria-modal="true">
 			<div className="tlc-modal__panel tlc-start">
 				<header className="tlc-modal__header">
-					<h2>Choose your nation</h2>
-					<span className="tlc-modal__hint">Pick once — you can’t switch mid-match</span>
+					<h2>New game</h2>
+					<span className="tlc-modal__hint">
+						Pick nation, map, and size — three AI nations are assigned randomly.
+					</span>
 				</header>
 				<div className="tlc-start__grid">
 					{NATIONS.map((n) => {
@@ -755,12 +1003,118 @@ function StartMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> })
 						))}
 					</div>
 				</div>
+				<div className="tlc-start__maps">
+					<div className="tlc-start__maps-label">Map size</div>
+					<div className="tlc-start__maps-row">
+						{MAP_SIZES.map((s) => (
+							<button
+								key={s.id}
+								type="button"
+								className={'tlc-start__map' + (selectedSize === s.id ? ' is-active' : '')}
+								onClick={() => setSelectedSize(s.id)}
+								title={`${s.label} — ${s.width} × ${s.height} page units. ${s.description}`}
+							>
+								<strong>
+									{s.label}{' '}
+									<span className="tlc-start__map-dim">
+										{s.width.toLocaleString()} × {s.height.toLocaleString()}
+									</span>
+								</strong>
+								<span>{s.description}</span>
+							</button>
+						))}
+					</div>
+				</div>
 				<footer className="tlc-modal__footer">
-					<span className="tlc-modal__hint">
-						Three AI opponents will be assigned the remaining nations randomly.
-					</span>
+					<button className="tlc-modal__btn" onClick={onBack}>
+						Back
+					</button>
 					<button className="tlc-modal__btn tlc-modal__btn--primary" onClick={onStart}>
 						Start match — play as {getNation(selected).label}
+					</button>
+				</footer>
+			</div>
+		</div>
+	)
+}
+
+function LoadGameList({
+	editorRef,
+	savesRev,
+	onChange,
+	onBack,
+}: {
+	editorRef: React.RefObject<Editor | null>
+	savesRev: number
+	onChange(): void
+	onBack(): void
+}) {
+	const saves = useMemo(() => {
+		void savesRev
+		return listSaves()
+	}, [savesRev])
+	const onLoad = useCallback(
+		(id: string) => {
+			if (!editorRef.current) return
+			loadGame(editorRef.current, id, applyMapSettings)
+		},
+		[editorRef]
+	)
+	const onDelete = useCallback(
+		(id: string) => {
+			deleteSave(id)
+			onChange()
+		},
+		[onChange]
+	)
+	return (
+		<div className="tlc-modal tlc-modal--center" role="dialog" aria-modal="true">
+			<div className="tlc-modal__panel tlc-loadlist">
+				<header className="tlc-modal__header">
+					<h2>Load game</h2>
+					<span className="tlc-modal__hint">
+						{saves.length === 0
+							? 'No saved games yet. Save from the pause menu mid-match.'
+							: `${saves.length} saved game${saves.length === 1 ? '' : 's'}`}
+					</span>
+				</header>
+				<div className="tlc-loadlist__rows">
+					{saves.map((s) => {
+						const elapsedSec = Math.round(s.elapsedMs / 1000)
+						const mins = Math.floor(elapsedSec / 60)
+						const secs = elapsedSec % 60
+						const elapsedLabel = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`
+						const sizeLabel = getMapSize(s.mapSize).label
+						const mapLabel = s.mapType ? getMapType(s.mapType).label : '—'
+						const nationLabel = s.humanNation ? getNation(s.humanNation).label : 'Match'
+						return (
+							<div key={s.id} className="tlc-loadlist__row">
+								<div className="tlc-loadlist__main">
+									<div className="tlc-loadlist__name">{s.name}</div>
+									<div className="tlc-loadlist__meta">
+										{nationLabel} · {mapLabel} · {sizeLabel} · {elapsedLabel} played ·{' '}
+										{formatRelativeTime(s.savedAt)}
+									</div>
+								</div>
+								<div className="tlc-loadlist__actions">
+									<button className="tlc-modal__btn" onClick={() => onLoad(s.id)}>
+										Load
+									</button>
+									<button
+										className="tlc-modal__btn tlc-loadlist__delete"
+										onClick={() => onDelete(s.id)}
+										title="Delete this save"
+									>
+										Delete
+									</button>
+								</div>
+							</div>
+						)
+					})}
+				</div>
+				<footer className="tlc-modal__footer">
+					<button className="tlc-modal__btn" onClick={onBack}>
+						Back
 					</button>
 				</footer>
 			</div>
@@ -1028,6 +1382,7 @@ const BUILDING_DESCRIPTIONS: Record<BuildingKind, string> = {
 		'Hosts the research tree — every passive, every unique-unit unlock. Click one to open the full tree (or press R).',
 	farm: 'The cheapest way to raise your population cap (+4 each). Doesn’t train anything; tuck them behind a barracks.',
 	wall: 'Cheap territorial extension. Low HP and no attack — chain them to push your border outward without paying for a full tower.',
+	gate: 'Pairs with walls to make breaches you control. Click a gate to toggle it open or closed — open lets any unit (including enemies) pass.',
 	castle:
 		'Heavy fortification with an area attack and the largest territory of any building. Locked behind the Stonemasonry research.',
 }
@@ -1035,10 +1390,22 @@ const BUILDING_DESCRIPTIONS: Record<BuildingKind, string> = {
 function PauseMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 	const isPaused = useValue('paused', () => paused$.get(), [])
 	const [tab, setTab] = useState<GuideTab>('buildings')
+	// `lastSaved` is the most recent slot the player wrote during this pause
+	// — used for the "Saved as ..." status line. Cleared when the menu closes.
+	const [lastSaved, setLastSaved] = useState<SaveSlotInfo | null>(null)
 	const onResume = useCallback(() => paused$.set(false), [])
 	const onRestart = useCallback(() => {
 		paused$.set(false)
 		if (editorRef.current) restartGame(editorRef.current)
+	}, [editorRef])
+	const onSave = useCallback(() => {
+		if (!editorRef.current) return
+		const info = saveGame(editorRef.current)
+		if (info) setLastSaved(info)
+	}, [editorRef])
+	const onQuit = useCallback(() => {
+		paused$.set(false)
+		if (editorRef.current) quitToMenu(editorRef.current)
 	}, [editorRef])
 	if (!isPaused) return null
 	return (
@@ -1070,6 +1437,19 @@ function PauseMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> })
 					{tab === 'research' && <ResearchGuide />}
 					{tab === 'controls' && <ControlsGuide />}
 				</div>
+				<div className="tlc-pause__save">
+					<button className="tlc-modal__btn" onClick={onSave}>
+						Save game
+					</button>
+					<button className="tlc-modal__btn" onClick={onQuit}>
+						Quit to menu
+					</button>
+					<span className="tlc-pause__save-info">
+						{lastSaved
+							? `Saved as “${lastSaved.name}”`
+							: 'Save creates a new slot. Manage saves from the main menu.'}
+					</span>
+				</div>
 				<footer className="tlc-modal__footer">
 					<button className="tlc-modal__btn" onClick={onRestart}>
 						Restart
@@ -1081,6 +1461,16 @@ function PauseMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> })
 			</div>
 		</div>
 	)
+}
+
+function formatRelativeTime(ts: number): string {
+	const deltaMs = Date.now() - ts
+	if (deltaMs < 60_000) return 'just now'
+	const minutes = Math.round(deltaMs / 60_000)
+	if (minutes < 60) return `${minutes} min ago`
+	const hours = Math.round(minutes / 60)
+	if (hours < 24) return `${hours}h ago`
+	return new Date(ts).toLocaleDateString()
 }
 
 function TabButton({
@@ -1238,9 +1628,12 @@ function ControlsGuide() {
 				Issue a command to the selected units: move, attack an enemy, or gather a tree / mine.
 			</dd>
 			<dt>
-				<kbd>1</kbd>–<kbd>5</kbd>
+				<kbd>1</kbd>–<kbd>8</kbd>
 			</dt>
-			<dd>Arm a building for placement: town hall, barracks, tower, library, farm.</dd>
+			<dd>
+				Arm a building for placement: town hall, barracks, tower, library, farm, wall, castle, gate.
+				Walls and gates can be drag-placed for continuous chains.
+			</dd>
 			<dt>
 				<kbd>R</kbd>
 			</dt>
@@ -1304,6 +1697,11 @@ const components: Required<TLUiComponents> = {
 function onEditorMount(editor: Editor) {
 	resetGameState()
 	resetGameLoop()
+	// Sync each player's startBase from the freshly-sampled PLAYER_SPAWNS
+	// before the first bootstrap reads them. The start menu reruns this with
+	// the picked size; this initial pass just makes sure the pre-start
+	// canvas isn't completely empty / placed at (0, 0).
+	updatePlayerStartBases(PLAYER_SPAWNS)
 	bootstrapStartingState(editor)
 	const human = PLAYERS.find((p) => p.id === HUMAN_PLAYER_ID)!
 	editor.zoomToBounds(new Box(human.startBase.x - 200, human.startBase.y - 200, 1600, 1100), {
@@ -1323,7 +1721,7 @@ function onEditorMount(editor: Editor) {
 	})
 }
 
-export default function TlcraftExample() {
+export default function App() {
 	const editorRef = useRef<Editor | null>(null)
 	const onMount = useCallback((editor: Editor) => {
 		editorRef.current = editor
@@ -1341,6 +1739,7 @@ export default function TlcraftExample() {
 				>
 					<GameRunner />
 					<DragSelectListener />
+					<WallDragListener />
 					<KeyboardShortcuts />
 				</Tldraw>
 			</div>
@@ -1351,7 +1750,7 @@ export default function TlcraftExample() {
 			 * Each takes editorRef so they can dispatch editor commands.
 			 */}
 			<PauseMenu editorRef={editorRef} />
-			<StartMenu editorRef={editorRef} />
+			<PreGameMenu editorRef={editorRef} />
 			<ResearchTreeOverlay editorRef={editorRef} />
 		</div>
 	)

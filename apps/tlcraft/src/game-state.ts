@@ -180,6 +180,12 @@ export const playerNations$ = atom<Record<PlayerId, NationId>>('playerNations', 
 
 // Map type selected at game start. Set just before gameStarted$ flips true.
 export const selectedMapType$ = atom<import('./map').MapTypeId | null>('selectedMapType', null)
+// Map size (small/medium/large/huge) selected at game start. Drives both the
+// playable area dimensions and how much resource the generators pour out.
+export const selectedMapSize$ = atom<import('./map').MapSizeId>(
+	'selectedMapSize',
+	'large' as import('./map').MapSizeId
+)
 
 // 32-bit integer seed for the simulation's PRNG. Set explicitly when the
 // match starts (single-player rerolls; multiplayer takes the host's seed
@@ -222,19 +228,68 @@ function freshTechs(): Record<PlayerId, ReadonlySet<TechId>> {
 }
 
 let _nextUnitId = 1
-export const nextUnitId = () => _nextUnitId++
+export function nextUnitId() {
+	return _nextUnitId++
+}
 let _nextResourceId = 1
-export const nextResourceId = () => _nextResourceId++
+export function nextResourceId() {
+	return _nextResourceId++
+}
 let _nextProjectileId = 1
-export const nextProjectileId = () => _nextProjectileId++
+export function nextProjectileId() {
+	return _nextProjectileId++
+}
 let _nextDamageId = 1
-export const nextDamageId = () => _nextDamageId++
+export function nextDamageId() {
+	return _nextDamageId++
+}
 let _nextQueueItemId = 1
-export const nextQueueItemId = () => _nextQueueItemId++
+export function nextQueueItemId() {
+	return _nextQueueItemId++
+}
 let _nextResearchItemId = 1
-export const nextResearchItemId = () => _nextResearchItemId++
+export function nextResearchItemId() {
+	return _nextResearchItemId++
+}
 let _nextUpgradeItemId = 1
-export const nextUpgradeItemId = () => _nextUpgradeItemId++
+export function nextUpgradeItemId() {
+	return _nextUpgradeItemId++
+}
+
+export interface NextIds {
+	unit: number
+	resource: number
+	projectile: number
+	damage: number
+	queueItem: number
+	researchItem: number
+	upgradeItem: number
+}
+
+/** Snapshot all the ID counters at once — used by save/load so the counters
+ * pick up where they left off after a load (otherwise newly spawned units /
+ * projectiles would collide with saved IDs). */
+export function getNextIds(): NextIds {
+	return {
+		unit: _nextUnitId,
+		resource: _nextResourceId,
+		projectile: _nextProjectileId,
+		damage: _nextDamageId,
+		queueItem: _nextQueueItemId,
+		researchItem: _nextResearchItemId,
+		upgradeItem: _nextUpgradeItemId,
+	}
+}
+
+export function setNextIds(ids: NextIds) {
+	_nextUnitId = ids.unit
+	_nextResourceId = ids.resource
+	_nextProjectileId = ids.projectile
+	_nextDamageId = ids.damage
+	_nextQueueItemId = ids.queueItem
+	_nextResearchItemId = ids.researchItem
+	_nextUpgradeItemId = ids.upgradeItem
+}
 
 export function resetGameState() {
 	units$.set([])

@@ -3,6 +3,7 @@ import { BuildingSnap, resetAi, tickAi } from './ai'
 import { finishUpgrade } from './building-actions'
 import {
 	BUILDING_CONFIG,
+	getBuildingGateOpen,
 	getBuildingHp,
 	getBuildingKind,
 	getBuildingOwner,
@@ -131,6 +132,7 @@ function snapshotBuildings(editor: Editor): BuildingSnap[] {
 			halfSize: cfg.size / 2,
 			hp: getBuildingHp(shape),
 			upgradeLevel: getBuildingUpgradeLevel(shape),
+			gateOpen: kind === 'gate' ? getBuildingGateOpen(shape) : false,
 		})
 	}
 	return out
@@ -401,6 +403,69 @@ function pickClosestEnemy(viewer: PlayerId, x: number, y: number): PlayerId | nu
 	return best
 }
 
+// ------------------------ building collision ----------------------------
+//
+// Units can't walk through buildings. Walls and closed gates block everyone
+// (including their owner — realistic enough); open gates pass everyone
+// including enemies. Units that start a tick already overlapping a building
+// (e.g. spawned next to one, or hitbox just grazing the edge) are exempted
+// for that building so they don't get permanently trapped.
+//
+// Sliding is axis-aligned: try moving on X first; if that collides, hold X.
+// Then try moving on Y with whatever X we accepted. This is the standard AABB
+// platformer trick — cheap and produces "slide along the wall" steering.
+
+function isPassableForUnit(b: BuildingSnap): boolean {
+	if (b.hp <= 0) return true
+	if (b.kind === 'gate' && b.gateOpen) return true
+	return false
+}
+
+function unitOverlapsBuilding(b: BuildingSnap, x: number, y: number, radius: number): boolean {
+	const half = b.halfSize
+	return (
+		x > b.cx - half - radius &&
+		x < b.cx + half + radius &&
+		y > b.cy - half - radius &&
+		y < b.cy + half + radius
+	)
+}
+
+function clampMoveAgainstBuildings(
+	prevX: number,
+	prevY: number,
+	nextX: number,
+	nextY: number,
+	radius: number
+): { x: number; y: number } {
+	if (lastBuildingsByTick.length === 0) return { x: nextX, y: nextY }
+	const blocking: BuildingSnap[] = []
+	for (const b of lastBuildingsByTick) {
+		if (isPassableForUnit(b)) continue
+		// If the unit is already inside this building's footprint at the start
+		// of the step, don't constrain against it — they'll walk out and the
+		// next tick will start enforcing.
+		if (unitOverlapsBuilding(b, prevX, prevY, radius)) continue
+		blocking.push(b)
+	}
+	if (blocking.length === 0) return { x: nextX, y: nextY }
+	let x = nextX
+	for (const b of blocking) {
+		if (unitOverlapsBuilding(b, x, prevY, radius)) {
+			x = prevX
+			break
+		}
+	}
+	let y = nextY
+	for (const b of blocking) {
+		if (unitOverlapsBuilding(b, x, y, radius)) {
+			y = prevY
+			break
+		}
+	}
+	return { x, y }
+}
+
 function findNearestEnemyUnit(viewer: PlayerId, x: number, y: number, range: number): Unit | null {
 	let best: Unit | null = null
 	let bestDistSq = range * range
@@ -428,7 +493,10 @@ function stepMove(unit: Unit, dt: number): Unit {
 		return { ...unit, command: { type: 'idle' } }
 	}
 	const step = Math.min(dist, cfg.speed * getUnitSpeedMultiplier(unit.owner) * dt)
-	return { ...unit, x: unit.x + (dx / dist) * step, y: unit.y + (dy / dist) * step }
+	const candX = unit.x + (dx / dist) * step
+	const candY = unit.y + (dy / dist) * step
+	const clamped = clampMoveAgainstBuildings(unit.x, unit.y, candX, candY, cfg.radius)
+	return { ...unit, x: clamped.x, y: clamped.y }
 }
 
 function stepAttack(editor: Editor, unit: Unit, dt: number, now: number): Unit {
@@ -473,7 +541,10 @@ function stepAttack(editor: Editor, unit: Unit, dt: number, now: number): Unit {
 
 	if (dist > reach) {
 		const step = Math.min(dist - reach + 1, cfg.speed * getUnitSpeedMultiplier(unit.owner) * dt)
-		return { ...unit, x: unit.x + (dx / dist) * step, y: unit.y + (dy / dist) * step }
+		const candX = unit.x + (dx / dist) * step
+		const candY = unit.y + (dy / dist) * step
+		const clamped = clampMoveAgainstBuildings(unit.x, unit.y, candX, candY, cfg.radius)
+		return { ...unit, x: clamped.x, y: clamped.y }
 	}
 
 	if (now < unit.nextAttackAtMs) return unit
@@ -504,7 +575,10 @@ function stepGather(unit: Unit, dt: number, now: number): Unit {
 	const reach = resource.radius + cfg.radius - 4
 	if (dist > reach) {
 		const step = Math.min(dist - reach + 1, cfg.speed * getUnitSpeedMultiplier(unit.owner) * dt)
-		return { ...unit, x: unit.x + (dx / dist) * step, y: unit.y + (dy / dist) * step }
+		const candX = unit.x + (dx / dist) * step
+		const candY = unit.y + (dy / dist) * step
+		const clamped = clampMoveAgainstBuildings(unit.x, unit.y, candX, candY, cfg.radius)
+		return { ...unit, x: clamped.x, y: clamped.y }
 	}
 	return { ...unit, gatherUntilMs: now + GATHER_DURATION_MS, x: resource.x, y: resource.y }
 }
@@ -556,11 +630,14 @@ function stepReturn(unit: Unit, dt: number): Unit {
 	const dist = Math.hypot(dx, dy)
 	if (dist > target.halfSize + DEPOSIT_RANGE) {
 		const step = cfg.speed * getUnitSpeedMultiplier(unit.owner) * dt
+		const candX = unit.x + (dx / dist) * step
+		const candY = unit.y + (dy / dist) * step
+		const clamped = clampMoveAgainstBuildings(unit.x, unit.y, candX, candY, cfg.radius)
 		return {
 			...unit,
 			command: { type: 'return', buildingId: target.id },
-			x: unit.x + (dx / dist) * step,
-			y: unit.y + (dy / dist) * step,
+			x: clamped.x,
+			y: clamped.y,
 		}
 	}
 	const carrying = unit.carrying

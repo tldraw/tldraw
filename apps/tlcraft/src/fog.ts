@@ -3,6 +3,10 @@
 // flat Uint8Array indexed by row*COLS + col. Cells are 64 page units; on the
 // 4800x2800 map that's 75x44 = 3300 cells, well within budget for a per-tick
 // recompute.
+//
+// COLS/ROWS/grids are mutable (`let` with live ES-module bindings) so the
+// start menu can pick a bigger map and we reallocate without breaking
+// importers — they pick up the new arrays automatically.
 
 import { BUILDING_CONFIG, BuildingKind, getEffectiveTerritoryRadius } from './building-config'
 import { MAP_BOUNDS } from './map'
@@ -10,14 +14,26 @@ import { PlayerId } from './players'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
 
 export const CELL_SIZE = 64
-export const COLS = Math.ceil((MAP_BOUNDS.maxX - MAP_BOUNDS.minX) / CELL_SIZE)
-export const ROWS = Math.ceil((MAP_BOUNDS.maxY - MAP_BOUNDS.minY) / CELL_SIZE)
-const TOTAL = COLS * ROWS
+export let COLS = Math.ceil((MAP_BOUNDS.maxX - MAP_BOUNDS.minX) / CELL_SIZE)
+export let ROWS = Math.ceil((MAP_BOUNDS.maxY - MAP_BOUNDS.minY) / CELL_SIZE)
+let TOTAL = COLS * ROWS
 
 // 0 = unexplored (heavy fog), 1 = explored (faded fog), 2 = currently visible.
-export const visGrid = new Uint8Array(TOTAL)
+export let visGrid = new Uint8Array(TOTAL)
 // 0 = outside human territory, 1 = inside.
-export const territoryGrid = new Uint8Array(TOTAL)
+export let territoryGrid = new Uint8Array(TOTAL)
+
+/** Recompute COLS/ROWS from the current MAP_BOUNDS and reallocate both
+ * Uint8Array grids. Call this immediately after `applyMapSize` in map.ts and
+ * before the next tick. Cheap — at the biggest map size we ship (13000x7600)
+ * it's ~24k cells. */
+export function resizeFogGrids() {
+	COLS = Math.ceil((MAP_BOUNDS.maxX - MAP_BOUNDS.minX) / CELL_SIZE)
+	ROWS = Math.ceil((MAP_BOUNDS.maxY - MAP_BOUNDS.minY) / CELL_SIZE)
+	TOTAL = COLS * ROWS
+	visGrid = new Uint8Array(TOTAL)
+	territoryGrid = new Uint8Array(TOTAL)
+}
 
 // A version counter the FogOverlayUtil reads to force a re-render whenever
 // the grids change. We bump it once per tick after recompute.

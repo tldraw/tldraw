@@ -14,6 +14,7 @@ export type BuildingKind =
 	| 'library'
 	| 'farm'
 	| 'wall'
+	| 'gate'
 	| 'castle'
 
 export interface ResourceCost {
@@ -199,6 +200,26 @@ export const BUILDING_CONFIG: Record<BuildingKind, BuildingConfig> = {
 		},
 		placement: 'territory',
 	},
+	gate: {
+		// Same footprint as a wall so it slots cleanly into a chain. Players
+		// toggle gateOpen via the toolbar — open lets any unit (including
+		// enemies) walk through, closed blocks like a wall.
+		label: 'Gate',
+		geo: 'rectangle',
+		size: 60,
+		maxHp: 350,
+		cost: { gold: 60, wood: 50 },
+		trains: [],
+		researches: [],
+		attack: null,
+		isDropOff: false,
+		foodCapacity: 0,
+		keyHint: '8',
+		visionRadius: 160,
+		territoryRadius: 200,
+		upgrade: null,
+		placement: 'territory',
+	},
 	castle: {
 		// Heavy fortified building with an area attack — basically a beefy
 		// tower at 3x the size and HP. Locked behind Stonemasonry research so
@@ -229,6 +250,7 @@ export const BUILDING_KINDS: BuildingKind[] = [
 	'library',
 	'farm',
 	'wall',
+	'gate',
 	'castle',
 ]
 
@@ -302,6 +324,13 @@ export function getBuildingOwner(shape: TLShape): string | null {
 export function getBuildingTownName(shape: TLShape): string | null {
 	const name = shape.meta?.townName
 	return typeof name === 'string' ? name : null
+}
+
+// Gate-only state. False (closed) by default. Non-gate buildings always
+// return false — callers should also check getBuildingKind() === 'gate'
+// before treating this as meaningful.
+export function getBuildingGateOpen(shape: TLShape): boolean {
+	return shape.meta?.gateOpen === true
 }
 
 // Pool of town names. We hand them out in shuffled-deck order so each town a

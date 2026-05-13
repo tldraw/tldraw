@@ -67,7 +67,10 @@ export class PlacementPreviewOverlayUtil extends OverlayUtil<TLPlacementPreviewO
 		const { kind, x, y, outcome } = overlay.props
 		if (outcome !== 'ok') return true
 		const id = placeBuilding(this.editor, kind, HUMAN_PLAYER_ID, x, y)
-		if (id) placingBuilding$.set(null)
+		// Barriers (walls + gates) stay armed across pointer events so the
+		// player can chain them by drag-to-extend (see WallDragListener) or
+		// click many in a row. Other buildings disarm after one placement.
+		if (id && kind !== 'wall' && kind !== 'gate') placingBuilding$.set(null)
 		return true
 	}
 
@@ -104,7 +107,7 @@ export class PlacementPreviewOverlayUtil extends OverlayUtil<TLPlacementPreviewO
 		ctx.fillStyle = '#fff'
 		ctx.strokeStyle = '#000'
 		ctx.lineWidth = 3 / zoom
-		const hint = hintFor(outcome, cfg.label.toLowerCase(), cfg.cost)
+		const hint = hintFor(outcome, cfg.label.toLowerCase(), cfg.cost, kind)
 		const ty = y + half + 8 / zoom
 		ctx.strokeText(hint, x, ty)
 		ctx.fillText(hint, x, ty)
@@ -115,10 +118,14 @@ export class PlacementPreviewOverlayUtil extends OverlayUtil<TLPlacementPreviewO
 function hintFor(
 	outcome: PlaceBuildingOutcome,
 	label: string,
-	cost: { gold: number; wood: number }
+	cost: { gold: number; wood: number },
+	kind: BuildingKind
 ): string {
 	switch (outcome) {
 		case 'ok':
+			if (kind === 'wall' || kind === 'gate') {
+				return `Click or drag to place ${label}s — Esc / right-click to exit`
+			}
 			return `Click to place ${label}`
 		case 'cant-afford':
 			return `Need ${cost.gold}g · ${cost.wood}w`
