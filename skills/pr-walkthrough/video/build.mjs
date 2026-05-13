@@ -371,6 +371,16 @@ function renderImage({ slide, start, duration, i }) {
 </div>`
 }
 
+function renderVideo({ slide, start, duration, i }) {
+	return `
+<div ${slideAttrs({ start, duration, i })}>
+	<div class="slide-bg"></div>
+	<div class="slide-stage stage--video">
+		<video id="video-${i}" class="video-fill" src="assets/${esc(slide.src || '')}" muted playsinline preload="auto"></video>
+	</div>
+</div>`
+}
+
 function renderOutro({ start, duration, i }) {
 	return `
 <div ${slideAttrs({ start, duration, i })}>
@@ -390,6 +400,7 @@ const RENDERERS = {
 	text: renderText,
 	list: renderList,
 	image: renderImage,
+	video: renderVideo,
 	outro: renderOutro,
 }
 
@@ -447,6 +458,16 @@ for (const { slide, start, duration, i } of timed) {
 		`tl.to("#slide-${i}", { opacity: 0, duration: ${fadeOut}, ease: "power2.in" }, ${start + duration - fadeOut});`
 	)
 	timelineJs.push(`tl.set("#slide-${i}", { opacity: 0 }, ${start + duration});`)
+
+	if (slide.type === 'video') {
+		// Scrub the video's currentTime along with the GSAP timeline so the embedded
+		// MP4 advances frame-by-frame when hyperframes seeks instead of relying on
+		// real-time playback (which doesn't work during frame-captured rendering).
+		timelineJs.push(`tl.set("#video-${i}", { currentTime: 0 }, ${start});`)
+		timelineJs.push(
+			`tl.to("#video-${i}", { currentTime: ${duration}, duration: ${duration}, ease: "none" }, ${start});`
+		)
+	}
 
 	if ((slide.type === 'code' || slide.type === 'diff') && slide.focus && slide.focus.length) {
 		const lineHeight = 36
@@ -649,6 +670,18 @@ const html = `<!doctype html>
 			.image-fill {
 				width: 100%; height: 100%;
 				object-fit: contain;
+			}
+
+			/* Video slide */
+			.stage--video {
+				display: flex; align-items: center; justify-content: center;
+				padding: 0;
+				background: #000;
+			}
+			.video-fill {
+				width: 100%; height: 100%;
+				object-fit: contain;
+				display: block;
 			}
 
 			/* Outro */

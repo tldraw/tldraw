@@ -165,16 +165,17 @@ Read the `durations.json` from step 3 to get the duration (in seconds) for each 
 
 #### Slide types
 
-| Type      | Required fields                                              | Description                        |
-| --------- | ------------------------------------------------------------ | ---------------------------------- |
-| `intro`   | `title`, `date`, `audio`, `durationInSeconds`                | Logo + title + date                |
-| `diff`    | `filename`, `language`, `diff`, `audio`, `durationInSeconds` | Syntax-highlighted unified diff    |
-| `code`    | `filename`, `language`, `code`, `audio`, `durationInSeconds` | Syntax-highlighted source code     |
-| `text`    | `title`, `audio`, `durationInSeconds`                        | Title + optional `subtitle`        |
-| `list`    | `title`, `items`, `audio`, `durationInSeconds`               | Title + numbered items             |
-| `image`   | `src`, `audio`, `durationInSeconds`                          | Pre-rendered image (fallback)      |
-| `segment` | `title`, `durationInSeconds`                                 | Silent title card between segments |
-| `outro`   | `durationInSeconds`                                          | Logo only, no audio                |
+| Type      | Required fields                                              | Description                                  |
+| --------- | ------------------------------------------------------------ | -------------------------------------------- |
+| `intro`   | `title`, `date`, `audio`, `durationInSeconds`                | Logo + title + date                          |
+| `diff`    | `filename`, `language`, `diff`, `audio`, `durationInSeconds` | Syntax-highlighted unified diff              |
+| `code`    | `filename`, `language`, `code`, `audio`, `durationInSeconds` | Syntax-highlighted source code               |
+| `text`    | `title`, `audio`, `durationInSeconds`                        | Title + optional `subtitle`                  |
+| `list`    | `title`, `items`, `audio`, `durationInSeconds`               | Title + numbered items                       |
+| `image`   | `src`, `audio`, `durationInSeconds`                          | Pre-rendered image (fallback)                |
+| `video`   | `src`, `durationInSeconds`                                   | Embedded MP4 (typically a before/after demo) |
+| `segment` | `title`, `durationInSeconds`                                 | Silent title card between segments           |
+| `outro`   | `durationInSeconds`                                          | Logo only, no audio                          |
 
 #### Animated scroll with `focus`
 
@@ -218,6 +219,38 @@ git diff main..HEAD -- path/to/file.ts
 Include only the relevant hunks, not the entire file diff. Strip the `diff --git` and `---`/`+++` header lines — start from the `@@` hunk header.
 
 For `code` slides, paste the relevant source code (a function, a class, a section). No diff prefixes needed.
+
+#### Video slides
+
+Use a `video` slide to embed a self-contained MP4 inside the walkthrough — most often a before/after demo produced by the sibling [`before-and-after-video`](../before-and-after-video/SKILL.md) skill. The slide plays the file muted; the slide's narration audio (if any) plays on top.
+
+```json
+{
+	"type": "video",
+	"title": "Page menu",
+	"src": "before-after-page-menu.mp4",
+	"audio": "audio-04.wav",
+	"durationInSeconds": 22
+}
+```
+
+- **`src`** — path to the MP4, resolved relative to the manifest (the render script copies it into `video/assets/` automatically).
+- **`audio`** — optional. If supplied, the narration plays over the (muted) video. Omit it to let the video play as a silent beat.
+- **`durationInSeconds`** — at least the video's runtime. If the narration is longer than the video, the last frame holds; if shorter, the video keeps playing under silence.
+- **`title`** — optional segment label in the top-left corner, same convention as `code`/`diff` slides.
+
+The walkthrough is rendered frame-by-frame by hyperframes, so the embedded video can't rely on real-time playback. The build emits a GSAP tween that scrubs the video's `currentTime` over the slide duration. For smooth scrubbing the MP4 needs dense keyframes — the default x264 GOP (~8s) is too coarse. Re-encode the source with `-g 1 -keyint_min 1` before adding it as a slide. See the [`before-and-after-video`](../before-and-after-video/SKILL.md) workflow notes for the exact command.
+
+### When to include a before/after video
+
+If the PR is about a UI behavior change (a redesigned menu, a reworked drag/drop flow, a new gesture, a layout change you can see), a static diff doesn't show what actually changed for the user. In those cases, produce a companion before/after video and feature it in the walkthrough:
+
+1. Invoke the `before-and-after-video` skill to record both builds and compose `out/<slug>.mp4`.
+2. Copy or reference that MP4 from the walkthrough's manifest directory.
+3. Add a `video` slide right after the segment that introduces the affected area, so the viewer sees the diff in code and the diff in behavior back-to-back.
+4. The narration over the video slide is usually shorter than its runtime — talk the viewer through what they're about to see, then let the demo play out.
+
+Skip the companion video when the change is invisible (refactors, internal types, performance work without a visible payoff) — those PRs are fully served by code/diff slides.
 
 #### Segment title slides
 
