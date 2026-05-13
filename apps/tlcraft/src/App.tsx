@@ -86,12 +86,14 @@ import { MapOverlayUtil } from './overlays/MapOverlayUtil'
 import { PlacementPreviewOverlayUtil } from './overlays/PlacementPreviewOverlayUtil'
 import { ProjectileOverlayUtil } from './overlays/ProjectileOverlayUtil'
 import { ResourceOverlayUtil } from './overlays/ResourceOverlayUtil'
+import { TerrainOverlayUtil } from './overlays/TerrainOverlayUtil'
 import { TerritoryBoundaryOverlayUtil } from './overlays/TerritoryBoundaryOverlayUtil'
 import { UnitOverlayUtil } from './overlays/UnitOverlayUtil'
 import { HUMAN_PLAYER_ID, PLAYERS, getPlayer, updatePlayerStartBases } from './players'
 import { SaveSlotInfo, deleteSave, listSaves, loadGame, saveGame } from './save'
 import { canTrainUnit, getUniqueUnitKindForPlayer, hasTech } from './tech'
 import { LIBRARY_TECH_IDS, TECH_CONFIG, TechId, getTechsByTier } from './tech-config'
+import { bumpTerrainVersion, resetTerrain, resizeTerrainGrid } from './terrain'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
 import './tlcraft.css'
 
@@ -99,6 +101,7 @@ const overlayUtils: TLAnyOverlayUtilConstructor[] = [
 	...defaultOverlayUtils,
 	GroundOverlayUtil,
 	MapOverlayUtil,
+	TerrainOverlayUtil,
 	ResourceOverlayUtil,
 	BuildingDecorOverlayUtil,
 	UnitOverlayUtil,
@@ -162,6 +165,7 @@ function applyMapSettings(editor: Editor, sizeId: MapSizeId) {
 	const size = getMapSize(sizeId)
 	applyMapSize(size)
 	resizeFogGrids()
+	resizeTerrainGrid()
 	updatePlayerStartBases(PLAYER_SPAWNS)
 	const existing = editor.getCameraOptions()
 	const constraints = existing.constraints
@@ -224,6 +228,9 @@ function bootstrapStartingState(editor: Editor) {
 	// been chosen so the canvas isn't empty.
 	const mapId = selectedMapType$.get()
 	const mapType = mapId ? getMapType(mapId) : null
+	resetTerrain()
+	if (mapType?.generateTerrain) mapType.generateTerrain()
+	bumpTerrainVersion()
 	resources$.set(mapType ? mapType.generate() : seedResources())
 	for (const p of PLAYERS) {
 		const id = placeBuilding(

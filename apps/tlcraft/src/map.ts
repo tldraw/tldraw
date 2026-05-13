@@ -14,6 +14,15 @@
 
 import { ResourceKind, ResourceNode, nextResourceId } from './game-state'
 import { nextInt, nextRandom } from './random'
+import {
+	TERRAIN_FOREST,
+	TERRAIN_GRASS,
+	TERRAIN_HILLS,
+	TERRAIN_MOUNTAIN,
+	TERRAIN_WATER,
+	paintDisk,
+	paintRect,
+} from './terrain'
 
 // Mutable so the map can be resized at game start. Treat as read-only outside
 // of map.ts itself — call `applyMapSize` to change.
@@ -32,6 +41,9 @@ export interface MapType {
 	label: string
 	description: string
 	generate(): ResourceNode[]
+	// Optional terrain populator. Called before `generate()`; writes into the
+	// shared terrainGrid in terrain.ts. Map types without one stay all-grass.
+	generateTerrain?(): void
 }
 
 // ----------------------------- map sizes ---------------------------------
@@ -414,6 +426,134 @@ function generateQuarryLands(): ResourceNode[] {
 	return toNodes(seeds)
 }
 
+// --------------------------- terrain generators -----------------------------
+//
+// Each map type lays down a thematic terrain layer before resources are
+// seeded. Player home areas are reserved (kept grass) so spawns stay clean.
+
+const HOME_RESERVE_RADIUS = 320
+
+function reservePlayerHomes() {
+	for (const c of PLAYER_SPAWNS) {
+		paintDisk(c.x + 100, c.y + 100, HOME_RESERVE_RADIUS, TERRAIN_GRASS)
+	}
+}
+
+function generateTerrainContinents() {
+	// A few scattered lakes + small forest patches + mid-band hills. Easy to
+	// navigate around even without pathfinding.
+	const { cx, cy } = mid()
+	const scale = midScale()
+	const lakeCount = Math.max(2, Math.round(2 * scale))
+	for (let i = 0; i < lakeCount; i++) {
+		paintDisk(
+			clampX(cx + rand(-1100, 1100)),
+			clampY(cy + rand(-900, 900)),
+			120 + nextRandom() * 120,
+			TERRAIN_WATER
+		)
+	}
+	const forestPatches = Math.max(3, Math.round(3 * scale))
+	for (let i = 0; i < forestPatches; i++) {
+		paintDisk(
+			clampX(cx + rand(-1400, 1400)),
+			clampY(cy + rand(-1000, 1000)),
+			180 + nextRandom() * 80,
+			TERRAIN_FOREST
+		)
+	}
+	const hillsCount = Math.max(2, Math.round(2 * scale))
+	for (let i = 0; i < hillsCount; i++) {
+		paintDisk(
+			clampX(cx + rand(-700, 700)),
+			clampY(cy + rand(-500, 500)),
+			150 + nextRandom() * 60,
+			TERRAIN_HILLS
+		)
+	}
+	reservePlayerHomes()
+}
+
+function generateTerrainGoldrush() {
+	// Open plains with a few hills clustering around the contested centre and
+	// one or two small lakes for character.
+	const { cx, cy } = mid()
+	const scale = midScale()
+	const hillsCount = Math.max(3, Math.round(4 * scale))
+	for (let i = 0; i < hillsCount; i++) {
+		paintDisk(
+			clampX(cx + rand(-600, 600)),
+			clampY(cy + rand(-400, 400)),
+			140 + nextRandom() * 80,
+			TERRAIN_HILLS
+		)
+	}
+	const lakeCount = Math.max(1, Math.round(scale))
+	for (let i = 0; i < lakeCount; i++) {
+		paintDisk(
+			clampX(cx + rand(-1300, 1300)),
+			clampY(cy + rand(-900, 900)),
+			100 + nextRandom() * 60,
+			TERRAIN_WATER
+		)
+	}
+	reservePlayerHomes()
+}
+
+function generateTerrainHeavyForest() {
+	// Large forest blobs blanketing the map. Combined with the existing tree
+	// resource clusters, this makes traversal slow and predictable.
+	const { cx, cy } = mid()
+	const scale = midScale()
+	const forestBlobs = Math.max(8, Math.round(8 * scale))
+	for (let i = 0; i < forestBlobs; i++) {
+		paintDisk(
+			clampX(cx + rand(-2000, 2000)),
+			clampY(cy + rand(-1400, 1400)),
+			220 + nextRandom() * 140,
+			TERRAIN_FOREST
+		)
+	}
+	// Small lakes thrown in for variety.
+	const lakeCount = Math.max(1, Math.round(scale))
+	for (let i = 0; i < lakeCount; i++) {
+		paintDisk(
+			clampX(cx + rand(-1500, 1500)),
+			clampY(cy + rand(-1000, 1000)),
+			90 + nextRandom() * 60,
+			TERRAIN_WATER
+		)
+	}
+	reservePlayerHomes()
+}
+
+function generateTerrainQuarryLands() {
+	// Mountain ridges in clumps + a halo of hills around them. Strong choke
+	// points; players that don't pivot to siege struggle to break through.
+	const { cx, cy } = mid()
+	const scale = midScale()
+	const ridges = Math.max(3, Math.round(3 * scale))
+	for (let i = 0; i < ridges; i++) {
+		const rx = clampX(cx + rand(-1600, 1600))
+		const ry = clampY(cy + rand(-1000, 1000))
+		paintDisk(rx, ry, 160 + nextRandom() * 60, TERRAIN_MOUNTAIN)
+		paintDisk(rx + rand(-80, 80), ry + rand(-80, 80), 200, TERRAIN_HILLS)
+	}
+	const extraHills = Math.max(3, Math.round(3 * scale))
+	for (let i = 0; i < extraHills; i++) {
+		paintDisk(
+			clampX(cx + rand(-1400, 1400)),
+			clampY(cy + rand(-900, 900)),
+			140 + nextRandom() * 80,
+			TERRAIN_HILLS
+		)
+	}
+	reservePlayerHomes()
+	// Suppress unused-import warning for paintRect — it's exported for hand-
+	// crafted templates a future map type might want.
+	void paintRect
+}
+
 export const MAP_TYPES: MapType[] = [
 	{
 		id: 'continents',
@@ -421,6 +561,7 @@ export const MAP_TYPES: MapType[] = [
 		description:
 			'A balanced classic. Trees and gold near every corner; stone and a contested forest in the middle.',
 		generate: generateContinents,
+		generateTerrain: generateTerrainContinents,
 	},
 	{
 		id: 'goldrush',
@@ -428,6 +569,7 @@ export const MAP_TYPES: MapType[] = [
 		description:
 			'Gold-rich. Two mines per home base + a fat gold belt at the centre. Stone is scarce.',
 		generate: generateGoldrush,
+		generateTerrain: generateTerrainGoldrush,
 	},
 	{
 		id: 'heavy-forest',
@@ -435,12 +577,14 @@ export const MAP_TYPES: MapType[] = [
 		description:
 			'Slow economies. Forests everywhere, gold and stone rare. Walls and ambushes go a long way.',
 		generate: generateHeavyForest,
+		generateTerrain: generateTerrainHeavyForest,
 	},
 	{
 		id: 'quarry-lands',
 		label: 'Quarry lands',
 		description: 'Stone is plentiful and gold is rare. Castles are the late-game power play.',
 		generate: generateQuarryLands,
+		generateTerrain: generateTerrainQuarryLands,
 	},
 ]
 

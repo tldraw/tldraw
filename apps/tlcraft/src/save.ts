@@ -20,9 +20,11 @@ import {
 	TLGeoShape,
 	TLShapeId,
 } from 'tldraw'
+import { AgeId } from './age-config'
 import { getBuildingKind, resetTownDeck } from './building-config'
 import { resetGameLoop } from './game-loop'
 import {
+	AgeResearchItem,
 	DamageNumber,
 	NextIds,
 	PlayerResources,
@@ -32,6 +34,8 @@ import {
 	TrainQueueItem,
 	Unit,
 	UpgradeQueueItem,
+	ageResearchByPlayer,
+	ageResearchByPlayer$,
 	buildingCooldowns,
 	completedTechs$,
 	damageNumbers$,
@@ -41,6 +45,7 @@ import {
 	gameStarted$,
 	getNextIds,
 	paused$,
+	playerAges$,
 	playerNations$,
 	playerResources$,
 	projectiles$,
@@ -63,10 +68,11 @@ import { NationId, getNation } from './nations'
 import { HUMAN_PLAYER_ID, PlayerId, updatePlayerStartBases } from './players'
 import { getRandomState, setRandomSeed } from './random'
 import { TechId } from './tech-config'
+import { bumpTerrainVersion, deserializeTerrain, serializeTerrain } from './terrain'
 
-const SAVES_INDEX_KEY = 'tlcraft:saves:index:v2'
-const SAVE_SLOT_PREFIX = 'tlcraft:saves:slot:v2:'
-const SAVE_VERSION = 2 as const
+const SAVES_INDEX_KEY = 'tlcraft:saves:index:v3'
+const SAVE_SLOT_PREFIX = 'tlcraft:saves:slot:v3:'
+const SAVE_VERSION = 3 as const
 
 interface BuildingSave {
 	id: TLShapeId
@@ -111,6 +117,14 @@ interface SaveGame {
 
 	nextIds: NextIds
 	buildings: BuildingSave[]
+
+	// Per-player current age (e.g. 'feudal') and the age-up research in flight
+	// (or null). New in v3.
+	playerAges: Record<PlayerId, AgeId>
+	ageResearch: Record<PlayerId, AgeResearchItem | null>
+
+	// Terrain grid serialized as base64 (one byte per tile). New in v3.
+	terrain: string
 }
 
 export interface SaveSlotInfo {
@@ -191,6 +205,9 @@ export function saveGame(editor: Editor, name?: string): SaveSlotInfo | null {
 			completed[pid] = [...(completedRaw[pid] as ReadonlySet<TechId>)]
 		}
 
+		const ageResearchSnapshot: Record<PlayerId, AgeResearchItem | null> = {}
+		for (const [pid, item] of ageResearchByPlayer) ageResearchSnapshot[pid] = item
+
 		const saveData: SaveGame = {
 			version: SAVE_VERSION,
 			savedAt: Date.now(),
@@ -214,6 +231,9 @@ export function saveGame(editor: Editor, name?: string): SaveSlotInfo | null {
 			buildingCooldowns: Object.fromEntries(buildingCooldowns),
 			nextIds: getNextIds(),
 			buildings,
+			playerAges: playerAges$.get(),
+			ageResearch: ageResearchSnapshot,
+			terrain: serializeTerrain(),
 		}
 
 		const id = `s_${Date.now()}_${Math.floor(Math.random() * 1_000_000)}`
@@ -354,6 +374,15 @@ export function loadGame(
 
 		setNextIds(data.nextIds)
 		setRandomSeed(data.prngState)
+
+		playerAges$.set(data.playerAges as Record<PlayerId, AgeId>)
+		ageResearchByPlayer.clear()
+		for (const pid of Object.keys(data.ageResearch)) {
+			ageResearchByPlayer.set(pid as PlayerId, data.ageResearch[pid as PlayerId])
+		}
+		ageResearchByPlayer$.set(data.ageResearch)
+		if (data.terrain) deserializeTerrain(data.terrain)
+		bumpTerrainVersion()
 
 		gameStarted$.set(true)
 		paused$.set(true)

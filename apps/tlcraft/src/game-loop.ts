@@ -63,6 +63,7 @@ import {
 	getUnitSpeedMultiplier,
 } from './tech'
 import { TECH_CONFIG } from './tech-config'
+import { isPassable, speedMultiplier, terrainAt } from './terrain'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
 
 const HIT_FLASH_MS = 180
@@ -503,6 +504,64 @@ function clampMoveAgainstBuildings(
 	return { x, y }
 }
 
+// AABB-slide collision against blocking terrain tiles (water + mountain).
+// Mirrors the building version: try X first, then Y from the accepted X. We
+// sample at the unit's hitbox corners + center so wide units don't sneak
+// across a 1-cell-wide gap. Units with canTraverseWater bypass water blocks.
+function clampMoveAgainstTerrain(
+	prevX: number,
+	prevY: number,
+	nextX: number,
+	nextY: number,
+	radius: number,
+	canTraverseWater: boolean
+): { x: number; y: number } {
+	function blocks(px: number, py: number): boolean {
+		// Sample at the four corners of the unit's bounding box; if any sample
+		// hits a blocking tile, the move is rejected.
+		const off = radius * 0.9
+		if (!isPassable(terrainAt(px - off, py - off), canTraverseWater)) return true
+		if (!isPassable(terrainAt(px + off, py - off), canTraverseWater)) return true
+		if (!isPassable(terrainAt(px - off, py + off), canTraverseWater)) return true
+		if (!isPassable(terrainAt(px + off, py + off), canTraverseWater)) return true
+		return false
+	}
+	if (blocks(prevX, prevY)) {
+		// Unit started in blocking terrain — let them out without further checks,
+		// otherwise they'd be stuck forever (e.g. terrain regenerated under them).
+		return { x: nextX, y: nextY }
+	}
+	let x = nextX
+	if (blocks(x, prevY)) x = prevX
+	let y = nextY
+	if (blocks(x, y)) y = prevY
+	return { x, y }
+}
+
+// Shared movement helpers. Every step function applies the same chain:
+//   1. Effective speed = base * civ/tech mult * terrain (current tile) mult
+//   2. Candidate next position
+//   3. Slide against buildings
+//   4. Slide against blocking terrain
+function getEffectiveSpeed(unit: Unit): number {
+	const cfg = UNIT_CONFIG[unit.kind]
+	const base = cfg.speed * getUnitSpeedMultiplier(unit.owner, unit.kind)
+	return base * speedMultiplier(terrainAt(unit.x, unit.y))
+}
+
+function moveAndClamp(unit: Unit, candX: number, candY: number): { x: number; y: number } {
+	const cfg = UNIT_CONFIG[unit.kind]
+	const ab = clampMoveAgainstBuildings(unit.x, unit.y, candX, candY, cfg.radius)
+	return clampMoveAgainstTerrain(
+		unit.x,
+		unit.y,
+		ab.x,
+		ab.y,
+		cfg.radius,
+		cfg.canTraverseWater === true
+	)
+}
+
 function findNearestEnemyUnit(viewer: PlayerId, x: number, y: number, range: number): Unit | null {
 	let best: Unit | null = null
 	let bestDistSq = range * range
@@ -522,17 +581,16 @@ function findNearestEnemyUnit(viewer: PlayerId, x: number, y: number, range: num
 function stepMove(unit: Unit, dt: number): Unit {
 	const cmd = unit.command
 	if (cmd.type !== 'move') return unit
-	const cfg = UNIT_CONFIG[unit.kind]
 	const dx = cmd.x - unit.x
 	const dy = cmd.y - unit.y
 	const dist = Math.hypot(dx, dy)
 	if (dist <= ARRIVE_DIST) {
 		return { ...unit, command: { type: 'idle' } }
 	}
-	const step = Math.min(dist, cfg.speed * getUnitSpeedMultiplier(unit.owner) * dt)
+	const step = Math.min(dist, getEffectiveSpeed(unit) * dt)
 	const candX = unit.x + (dx / dist) * step
 	const candY = unit.y + (dy / dist) * step
-	const clamped = clampMoveAgainstBuildings(unit.x, unit.y, candX, candY, cfg.radius)
+	const clamped = moveAndClamp(unit, candX, candY)
 	return { ...unit, x: clamped.x, y: clamped.y }
 }
 
@@ -577,10 +635,10 @@ function stepAttack(editor: Editor, unit: Unit, dt: number, now: number): Unit {
 	const reach = Math.sqrt(cfg.attackRangeSq) + targetRadius
 
 	if (dist > reach) {
-		const step = Math.min(dist - reach + 1, cfg.speed * getUnitSpeedMultiplier(unit.owner) * dt)
+		const step = Math.min(dist - reach + 1, getEffectiveSpeed(unit) * dt)
 		const candX = unit.x + (dx / dist) * step
 		const candY = unit.y + (dy / dist) * step
-		const clamped = clampMoveAgainstBuildings(unit.x, unit.y, candX, candY, cfg.radius)
+		const clamped = moveAndClamp(unit, candX, candY)
 		return { ...unit, x: clamped.x, y: clamped.y }
 	}
 
@@ -611,10 +669,10 @@ function stepGather(unit: Unit, dt: number, now: number): Unit {
 	const dist = Math.hypot(dx, dy)
 	const reach = resource.radius + cfg.radius - 4
 	if (dist > reach) {
-		const step = Math.min(dist - reach + 1, cfg.speed * getUnitSpeedMultiplier(unit.owner) * dt)
+		const step = Math.min(dist - reach + 1, getEffectiveSpeed(unit) * dt)
 		const candX = unit.x + (dx / dist) * step
 		const candY = unit.y + (dy / dist) * step
-		const clamped = clampMoveAgainstBuildings(unit.x, unit.y, candX, candY, cfg.radius)
+		const clamped = moveAndClamp(unit, candX, candY)
 		return { ...unit, x: clamped.x, y: clamped.y }
 	}
 	return { ...unit, gatherUntilMs: now + GATHER_DURATION_MS, x: resource.x, y: resource.y }
@@ -653,7 +711,6 @@ function finishGather(unit: Unit): Unit {
 function stepReturn(unit: Unit, dt: number): Unit {
 	const cmd = unit.command
 	if (cmd.type !== 'return') return unit
-	const cfg = UNIT_CONFIG[unit.kind]
 	let target = cmd.buildingId !== null ? lastBuildingsById.get(cmd.buildingId) : null
 	if (!target || target.hp <= 0 || target.owner !== unit.owner) {
 		const found = findNearestPlayerDropOff(unit.owner, unit.x, unit.y)
@@ -666,10 +723,10 @@ function stepReturn(unit: Unit, dt: number): Unit {
 	const dy = target.cy - unit.y
 	const dist = Math.hypot(dx, dy)
 	if (dist > target.halfSize + DEPOSIT_RANGE) {
-		const step = cfg.speed * getUnitSpeedMultiplier(unit.owner) * dt
+		const step = getEffectiveSpeed(unit) * dt
 		const candX = unit.x + (dx / dist) * step
 		const candY = unit.y + (dy / dist) * step
-		const clamped = clampMoveAgainstBuildings(unit.x, unit.y, candX, candY, cfg.radius)
+		const clamped = moveAndClamp(unit, candX, candY)
 		return {
 			...unit,
 			command: { type: 'return', buildingId: target.id },

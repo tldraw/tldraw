@@ -82,6 +82,9 @@ export interface UnitConfig {
 	trainedBy: UnitTrainBuilding
 	// Letter glyph drawn on the unit body when the overlay falls back to text.
 	glyph: string
+	// If true, this unit can enter water tiles (reserved for future ships /
+	// transports). Mountains still block everyone. Defaults to false.
+	canTraverseWater?: boolean
 }
 
 // Range helpers — keep magic numbers grouped so it's obvious what "long range" means.

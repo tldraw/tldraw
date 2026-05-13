@@ -141,5 +141,7 @@ function hintFor(
 			return 'Locked — research at the Library first'
 		case 'wrong-age':
 			return 'Locked — advance to the next age first'
+		case 'bad-terrain':
+			return 'Cannot build on water or mountain'
 	}
 }
