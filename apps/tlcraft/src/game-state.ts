@@ -32,8 +32,28 @@ export interface CommandReturn {
 	type: 'return'
 	buildingId: TLShapeId | null
 }
+export interface CommandAttackMove {
+	type: 'attack-move'
+	// Final destination; the unit walks toward it but auto-engages any enemy
+	// it sees along the way. On kill it resumes attack-move toward (x, y).
+	x: number
+	y: number
+}
 
-export type Command = CommandIdle | CommandMove | CommandAttack | CommandGather | CommandReturn
+export type Command =
+	| CommandIdle
+	| CommandMove
+	| CommandAttack
+	| CommandGather
+	| CommandReturn
+	| CommandAttackMove
+
+// Per-unit stance. Affects how the unit reacts to enemies it sees:
+//   - aggressive (default): chases enemies until they're dead or out of vision.
+//   - defensive: engages enemies in range but returns to its previous waypoint
+//     after the kill instead of pursuing.
+//   - hold-position: never moves. Attacks anything that comes into range.
+export type Stance = 'aggressive' | 'defensive' | 'hold-position'
 
 export interface Unit {
 	id: number
@@ -55,6 +75,9 @@ export interface Unit {
 	// move within a single tile, or a target we already reached). Saved games
 	// may omit it — step functions treat undefined as null.
 	path?: { x: number; y: number }[] | null
+	// Combat stance — see Stance above. Defaults to 'aggressive' if absent
+	// (saved games from before stances may omit it).
+	stance?: Stance
 }
 
 // Resource node kinds. Trees deposit wood; mines deposit gold; quarries
@@ -165,6 +188,11 @@ export const dragSelect$ = atom<{ x1: number; y1: number; x2: number; y2: number
 	null
 )
 export const placingBuilding$ = atom<BuildingKind | null>('placingBuilding', null)
+
+// True while the player has pressed `A` to arm attack-move. The next right-
+// click is interpreted as an attack-move command instead of the normal move /
+// attack / gather. Cleared after one command, or by pressing Esc.
+export const attackMoveArmed$ = atom('attackMoveArmed', false)
 
 export const playerResources$ = atom<Record<PlayerId, PlayerResources>>(
 	'playerResources',

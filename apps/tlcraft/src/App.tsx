@@ -45,6 +45,7 @@ import {
 	gameStarted$,
 	humanResources,
 	paused$,
+	attackMoveArmed$,
 	placingBuilding$,
 	playerAges$,
 	playerNations$,
@@ -449,12 +450,23 @@ function KeyboardShortcuts() {
 			} else if (e.key === 'r' || e.key === 'R') {
 				e.preventDefault()
 				if (gameStarted$.get()) researchTreeOpen$.update((v) => !v)
+			} else if (e.key === 'a' || e.key === 'A') {
+				e.preventDefault()
+				// Arm attack-move. Next right-click on the canvas issues an
+				// attack-move command to the current selection. Toggles off if
+				// pressed twice.
+				if (gameStarted$.get() && selectedUnitIds$.get().size > 0) {
+					attackMoveArmed$.update((v) => !v)
+				}
 			} else if (e.key === 'Escape') {
 				e.preventDefault()
-				// Priority chain: cancel placement → close research tree → close
-				// pause menu → clear selection → open pause menu.
+				// Priority chain: cancel placement → cancel attack-move → close
+				// research tree → close pause menu → clear selection → open
+				// pause menu.
 				if (placingBuilding$.get()) {
 					placingBuilding$.set(null)
+				} else if (attackMoveArmed$.get()) {
+					attackMoveArmed$.set(false)
 				} else if (researchTreeOpen$.get()) {
 					researchTreeOpen$.set(false)
 				} else if (paused$.get()) {

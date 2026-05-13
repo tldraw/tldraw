@@ -68,6 +68,8 @@ export type UnitKind =
 	| 'janissary'
 	| 'conquistador'
 
+export type AttackType = 'melee' | 'pierce' | 'siege'
+
 export interface UnitConfig {
 	label: string
 	archetype: ArchetypeId
@@ -78,6 +80,15 @@ export interface UnitConfig {
 	attackDamage: number
 	attackRangeSq: number
 	attackCooldownMs: number
+	// Flat damage reduction by incoming attack type. AoE-style soft armor:
+	// damage = max(1, base - armor[type] + bonusVs). Both attackType and
+	// armor default from the unit's archetype (see ARCHETYPE_DEFAULTS) so
+	// the per-unit entries below only specify overrides.
+	attackType?: AttackType
+	armor?: { melee: number; pierce: number }
+	// Optional bonus damage vs specific archetypes / 'building'. Stacks
+	// additively; one entry per category is plenty for now.
+	bonusVs?: { target: ArchetypeId | 'building'; damage: number }[]
 	visionRadius: number
 	gatherRate: number
 	carryCapacity: number
@@ -90,6 +101,42 @@ export interface UnitConfig {
 	// If true, this unit can enter water tiles (reserved for future ships /
 	// transports). Mountains still block everyone. Defaults to false.
 	canTraverseWater?: boolean
+}
+
+// Defaults applied when a unit doesn't override attackType / armor. Tuned to
+// give the eight archetypes distinct combat feel without per-unit work:
+//   - Skirmishers and ships have pierce armor (they're meant to soak arrows).
+//   - Siege is brutally pierce-armored (slow targets but resilient to ranged).
+//   - Cavalry and heavy infantry both wear armor (2 melee / 1 pierce).
+//   - Light infantry: 1 melee armor only.
+//   - Archers / light cavalry / casters: no armor (squishy).
+const ARCHETYPE_DEFAULTS: Record<
+	ArchetypeId,
+	{ attackType: AttackType; armor: { melee: number; pierce: number } }
+> = {
+	'heavy-cavalry': { attackType: 'melee', armor: { melee: 2, pierce: 1 } },
+	'light-cavalry': { attackType: 'melee', armor: { melee: 0, pierce: 0 } },
+	'heavy-infantry': { attackType: 'melee', armor: { melee: 2, pierce: 1 } },
+	'light-infantry': { attackType: 'melee', armor: { melee: 1, pierce: 0 } },
+	archer: { attackType: 'pierce', armor: { melee: 0, pierce: 0 } },
+	skirmisher: { attackType: 'pierce', armor: { melee: 0, pierce: 2 } },
+	caster: { attackType: 'pierce', armor: { melee: 0, pierce: 0 } },
+	siege: { attackType: 'siege', armor: { melee: 0, pierce: 6 } },
+	ship: { attackType: 'pierce', armor: { melee: 0, pierce: 4 } },
+}
+
+export function getAttackType(kind: UnitKind): AttackType {
+	const cfg = UNIT_CONFIG[kind]
+	return cfg.attackType ?? ARCHETYPE_DEFAULTS[cfg.archetype].attackType
+}
+
+export function getArmor(kind: UnitKind): { melee: number; pierce: number } {
+	const cfg = UNIT_CONFIG[kind]
+	return cfg.armor ?? ARCHETYPE_DEFAULTS[cfg.archetype].armor
+}
+
+export function getBonusVs(kind: UnitKind): { target: ArchetypeId | 'building'; damage: number }[] {
+	return UNIT_CONFIG[kind].bonusVs ?? []
 }
 
 // Range helpers — keep magic numbers grouped so it's obvious what "long range" means.
@@ -157,6 +204,11 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 7500,
 		trainedBy: 'barracks',
 		glyph: 'P',
+		// Anti-cavalry. The whole point of the unit.
+		bonusVs: [
+			{ target: 'heavy-cavalry', damage: 25 },
+			{ target: 'light-cavalry', damage: 25 },
+		],
 	},
 	archer: {
 		label: 'Archer',
@@ -214,6 +266,8 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 6500,
 		trainedBy: 'archery-range',
 		glyph: 'S',
+		// Pierce armor (from archetype default) plus a counter swing vs archers.
+		bonusVs: [{ target: 'archer', damage: 15 }],
 	},
 	'scout-cavalry': {
 		label: 'Scout cavalry',
@@ -233,6 +287,7 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 6500,
 		trainedBy: 'stable',
 		glyph: 'C',
+		bonusVs: [{ target: 'siege', damage: 20 }],
 	},
 	knight: {
 		label: 'Knight',
@@ -290,6 +345,7 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 16_000,
 		trainedBy: 'siege-workshop',
 		glyph: 'T',
+		bonusVs: [{ target: 'building', damage: 50 }],
 	},
 	'fishing-boat': {
 		label: 'Fishing boat',
@@ -428,6 +484,9 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 9000,
 		trainedBy: 'stable',
 		glyph: 'M',
+		// Horse archer: pierce attack despite the light-cavalry archetype.
+		attackType: 'pierce',
+		bonusVs: [{ target: 'siege', damage: 10 }],
 	},
 	'chariot-archer': {
 		label: 'Chariot archer',
@@ -523,6 +582,8 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 10_000,
 		trainedBy: 'barracks',
 		glyph: 'H',
+		// Phalanx — extra armor on both axes.
+		armor: { melee: 3, pierce: 2 },
 	},
 	'jaguar-warrior': {
 		label: 'Jaguar warrior',
@@ -580,6 +641,9 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 8500,
 		trainedBy: 'barracks',
 		glyph: 'U',
+		// Anti-archer: heavy pierce armor + minor pierce-damage bonus.
+		armor: { melee: 1, pierce: 4 },
+		bonusVs: [{ target: 'archer', damage: 8 }],
 	},
 	'woad-raider': {
 		label: 'Woad raider',
@@ -618,6 +682,9 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 11_000,
 		trainedBy: 'stable',
 		glyph: 'A',
+		// Throws javelins — pierce attack, anti-cavalry counter on a cav body.
+		attackType: 'pierce',
+		bonusVs: [{ target: 'heavy-cavalry', damage: 15 }],
 	},
 	cataphract: {
 		label: 'Cataphract',
@@ -637,6 +704,7 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 11_500,
 		trainedBy: 'stable',
 		glyph: 'Y',
+		armor: { melee: 3, pierce: 2 },
 	},
 	'throwing-axeman': {
 		label: 'Throwing axeman',
@@ -656,6 +724,7 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 8500,
 		trainedBy: 'archery-range',
 		glyph: 'F',
+		bonusVs: [{ target: 'archer', damage: 15 }],
 	},
 	boyar: {
 		label: 'Boyar',
@@ -675,6 +744,7 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 11_000,
 		trainedBy: 'stable',
 		glyph: 'Y',
+		armor: { melee: 3, pierce: 2 },
 	},
 	'imperial-camel': {
 		label: 'Imperial camel',
@@ -694,6 +764,8 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 9000,
 		trainedBy: 'stable',
 		glyph: 'I',
+		armor: { melee: 1, pierce: 0 },
+		bonusVs: [{ target: 'heavy-cavalry', damage: 20 }],
 	},
 	janissary: {
 		label: 'Janissary',
@@ -713,6 +785,8 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 9000,
 		trainedBy: 'archery-range',
 		glyph: 'N',
+		// Hand cannon — wears light armor.
+		armor: { melee: 1, pierce: 1 },
 	},
 	conquistador: {
 		label: 'Conquistador',
@@ -732,6 +806,10 @@ export const UNIT_CONFIG: Record<UnitKind, UnitConfig> = {
 		trainMs: 10_000,
 		trainedBy: 'stable',
 		glyph: 'Q',
+		// Mounted hand cannon — pierce attack and light armor.
+		attackType: 'pierce',
+		armor: { melee: 1, pierce: 1 },
+		bonusVs: [{ target: 'siege', damage: 10 }],
 	},
 }
 

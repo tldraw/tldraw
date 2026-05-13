@@ -65,7 +65,14 @@ import {
 } from './tech'
 import { TECH_CONFIG } from './tech-config'
 import { TERRAIN_DESERT, isPassable, speedMultiplier, terrainAt } from './terrain'
-import { UNIT_CONFIG, UnitKind } from './unit-config'
+import {
+	AttackType,
+	UNIT_CONFIG,
+	UnitKind,
+	getArmor,
+	getAttackType,
+	getBonusVs,
+} from './unit-config'
 
 const HIT_FLASH_MS = 180
 const DAMAGE_NUMBER_DURATION_MS = 700
@@ -403,14 +410,20 @@ function stepUnit(editor: Editor, unit: Unit, dt: number, now: number): Unit | n
 		return finishGather(unit)
 	}
 
-	// Idle re-engage: any unit that finishes a command and finds an enemy in
-	// vision picks them up. Workers don't auto-engage — they keep gathering.
+	// Idle re-engage. Range varies by stance:
+	//   - aggressive: full AUTO_ENGAGE_RANGE (chase enemies)
+	//   - defensive: attack-range only (fire on close targets, don't chase)
+	//   - hold-position: no auto-engage at all
+	// Workers don't auto-engage regardless.
 	if (unit.command.type === 'idle' && unit.kind !== 'worker') {
-		const enemy = findNearestEnemyUnit(unit.owner, unit.x, unit.y, AUTO_ENGAGE_RANGE)
-		if (enemy) {
-			unit = {
-				...unit,
-				command: { type: 'attack', targetUnitId: enemy.id, targetBuildingId: null },
+		const range = engageRangeFor(unit)
+		if (range > 0) {
+			const enemy = findNearestEnemyUnit(unit.owner, unit.x, unit.y, range)
+			if (enemy) {
+				unit = {
+					...unit,
+					command: { type: 'attack', targetUnitId: enemy.id, targetBuildingId: null },
+				}
 			}
 		}
 	}
@@ -426,7 +439,46 @@ function stepUnit(editor: Editor, unit: Unit, dt: number, now: number): Unit | n
 			return stepGather(unit, dt, now)
 		case 'return':
 			return stepReturn(unit, dt)
+		case 'attack-move':
+			return stepAttackMove(unit, dt)
 	}
+}
+
+// March toward (cmd.x, cmd.y) but engage any enemy that wanders into vision.
+// Mirrors the idle re-engage path in stepUnit but with an attack-move command
+// behind it so the unit resumes marching toward the same point after the kill.
+function stepAttackMove(unit: Unit, dt: number): Unit {
+	const cmd = unit.command
+	if (cmd.type !== 'attack-move') return unit
+	// First: opportunistic engagement. Workers don't break to fight; everyone
+	// else does.
+	if (unit.kind !== 'worker') {
+		const enemy = findNearestEnemyUnit(unit.owner, unit.x, unit.y, AUTO_ENGAGE_RANGE)
+		if (enemy) {
+			return {
+				...unit,
+				command: { type: 'attack', targetUnitId: enemy.id, targetBuildingId: null },
+				// Keep the path; stepAttack will repath. Cheap.
+				path: null,
+			}
+		}
+	}
+	// No enemy: continue marching toward the destination.
+	if (Math.hypot(cmd.x - unit.x, cmd.y - unit.y) <= ARRIVE_DIST) {
+		return { ...unit, command: { type: 'idle' }, path: null }
+	}
+	const { target, nextPath } = pickMoveTarget(unit, cmd.x, cmd.y)
+	const dx = target.x - unit.x
+	const dy = target.y - unit.y
+	const dist = Math.hypot(dx, dy)
+	if (dist <= ARRIVE_DIST) {
+		return { ...unit, command: { type: 'idle' }, path: null }
+	}
+	const step = Math.min(dist, getEffectiveSpeed(unit) * dt)
+	const candX = unit.x + (dx / dist) * step
+	const candY = unit.y + (dy / dist) * step
+	const clamped = moveAndClamp(unit, candX, candY)
+	return { ...unit, x: clamped.x, y: clamped.y, path: nextPath }
 }
 
 function pickClosestEnemy(viewer: PlayerId, x: number, y: number): PlayerId | null {
@@ -554,6 +606,18 @@ function getEffectiveSpeed(unit: Unit): number {
 	return base * speedMultiplier(terrainAt(unit.x, unit.y))
 }
 
+// Stance-dependent auto-engage range. Aggressive units chase; defensive units
+// only engage targets already at attack distance; hold-position never auto-
+// engages. Returns 0 when the unit shouldn't engage.
+function engageRangeFor(unit: Unit): number {
+	const stance = unit.stance ?? 'aggressive'
+	if (stance === 'hold-position') return 0
+	if (stance === 'defensive') {
+		return Math.sqrt(UNIT_CONFIG[unit.kind].attackRangeSq) + 20
+	}
+	return AUTO_ENGAGE_RANGE
+}
+
 function moveAndClamp(unit: Unit, candX: number, candY: number): { x: number; y: number } {
 	const cfg = UNIT_CONFIG[unit.kind]
 	const ab = clampMoveAgainstBuildings(unit.x, unit.y, candX, candY, cfg.radius)
@@ -585,6 +649,44 @@ function pickMoveTarget(
 	}
 	const target = path && path.length > 0 ? path[0] : { x: finalX, y: finalY }
 	return { target, nextPath: path }
+}
+
+// Combat damage formula. Folds:
+//   1. base * civ/tech damage multiplier
+//   2. + sum of any bonusVs entries that match the target's archetype (or
+//      'building' for non-unit targets)
+//   3. - target armor on the relevant attack-type channel
+// AoE-style: result is clamped to a minimum of 1 so something always lands.
+function computeUnitDamage(
+	attackerKind: UnitKind,
+	target: { kind: 'unit'; unitKind: UnitKind } | { kind: 'building' },
+	attacker: PlayerId
+): number {
+	const cfg = UNIT_CONFIG[attackerKind]
+	const attackType = getAttackType(attackerKind)
+	const base = cfg.attackDamage * getDamageMultiplier(attacker, attackerKind)
+	let bonus = 0
+	for (const b of getBonusVs(attackerKind)) {
+		if (target.kind === 'building') {
+			if (b.target === 'building') bonus += b.damage
+		} else {
+			const targetArchetype = UNIT_CONFIG[target.unitKind].archetype
+			if (b.target === targetArchetype) bonus += b.damage
+		}
+	}
+	const armor = target.kind === 'building' ? buildingArmor(attackType) : getArmor(target.unitKind)
+	const reduction =
+		attackType === 'pierce' ? armor.pierce : attackType === 'melee' ? armor.melee : 0
+	return Math.max(1, Math.round(base + bonus - reduction))
+}
+
+// Buildings don't have a per-kind armor table yet (could be added if any civ
+// bonus wants to target it). All buildings absorb the same flat values: 5
+// melee, 2 pierce. Siege damage bypasses both — that's the whole point of
+// having siege as a separate damage type.
+function buildingArmor(attackType: AttackType): { melee: number; pierce: number } {
+	if (attackType === 'siege') return { melee: 0, pierce: 0 }
+	return { melee: 5, pierce: 2 }
 }
 
 function findNearestEnemyUnit(viewer: PlayerId, x: number, y: number, range: number): Unit | null {
@@ -664,6 +766,11 @@ function stepAttack(editor: Editor, unit: Unit, dt: number, now: number): Unit {
 	const reach = Math.sqrt(cfg.attackRangeSq) + targetRadius
 
 	if (dist > reach) {
+		// Hold-position units never chase. Drop to idle so the idle re-engage
+		// can pick a fresh in-range target next tick (or stay quiet).
+		if ((unit.stance ?? 'aggressive') === 'hold-position') {
+			return { ...unit, command: { type: 'idle' }, path: null }
+		}
 		const { target: wp, nextPath } = pickMoveTarget(unit, tx, ty)
 		const wdx = wp.x - unit.x
 		const wdy = wp.y - unit.y
@@ -678,11 +785,42 @@ function stepAttack(editor: Editor, unit: Unit, dt: number, now: number): Unit {
 	}
 
 	if (now < unit.nextAttackAtMs) return unit
-	const dmg = Math.round(cfg.attackDamage * getDamageMultiplier(unit.owner))
+	let killed = false
 	if (isBuilding && targetBuildingId !== null) {
+		const dmg = computeUnitDamage(unit.kind, { kind: 'building' }, unit.owner)
 		applyBuildingDamage(editor, targetBuildingId, dmg, unit.owner, tx, ty)
 	} else if (targetUnitId !== null) {
-		applyUnitDamage(targetUnitId, dmg, unit.owner, now)
+		const targetUnit = units$.get().find((u) => u.id === targetUnitId)
+		if (targetUnit) {
+			const dmg = computeUnitDamage(
+				unit.kind,
+				{ kind: 'unit', unitKind: targetUnit.kind },
+				unit.owner
+			)
+			applyUnitDamage(targetUnitId, dmg, unit.owner, now)
+			if (targetUnit.hp - dmg <= 0) killed = true
+		}
+	}
+	// Killing blow: chain to the next visible enemy in the same tick instead
+	// of waiting for the idle re-engage cycle. Avoids the half-second pause
+	// between kills that made melee waves feel sluggish.
+	if (killed) {
+		const range = engageRangeFor(unit)
+		if (range > 0) {
+			const next = findNearestEnemyUnit(unit.owner, unit.x, unit.y, range)
+			if (next) {
+				return {
+					...unit,
+					nextAttackAtMs: now + cfg.attackCooldownMs,
+					command: { type: 'attack', targetUnitId: next.id, targetBuildingId: null },
+				}
+			}
+		}
+		return {
+			...unit,
+			nextAttackAtMs: now + cfg.attackCooldownMs,
+			command: { type: 'idle' },
+		}
 	}
 	return { ...unit, nextAttackAtMs: now + cfg.attackCooldownMs }
 }
@@ -962,7 +1100,11 @@ function tickProjectiles(_editor: Editor, dt: number, dtMs: number, now: number)
 			}
 		}
 		if (hit) {
-			applyUnitDamage(hit.id, p.damage, p.owner, now)
+			// Tower / castle projectiles are pierce attacks; apply target pierce
+			// armor at hit-time so the damage stat on the projectile stays as
+			// the pre-armor base.
+			const reduced = Math.max(1, p.damage - getArmor(hit.kind).pierce)
+			applyUnitDamage(hit.id, reduced, p.owner, now)
 			continue
 		}
 		surviving.push({ ...p, x, y, ageMs })

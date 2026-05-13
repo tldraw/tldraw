@@ -9,6 +9,7 @@ import {
 	Command,
 	ResourceNode,
 	Unit,
+	attackMoveArmed$,
 	resources$,
 	selectedBuildingId$,
 	selectedUnitIds$,
@@ -137,6 +138,14 @@ export function commandSelectedUnits(editor: Editor, target: Point): boolean {
 	const selected = allUnits.filter((u) => ids.has(u.id) && u.owner === HUMAN_PLAYER_ID)
 	if (selected.length === 0) return false
 
+	// Attack-move was armed via the A key — issue it to every selected unit
+	// regardless of what's at the target point. Disarm after use.
+	if (attackMoveArmed$.get()) {
+		attackMoveArmed$.set(false)
+		applyAttackMoveSpread(selected, target.x, target.y)
+		return true
+	}
+
 	// Priority: enemy unit > resource (workers gather, fighters move) >
 	// enemy building > empty ground.
 	const enemy = findEnemyUnitAtPoint(target, HUMAN_PLAYER_ID)
@@ -191,6 +200,39 @@ function applyCommandToAllWithPath(
 		list.map((u) => {
 			if (!ids.has(u.id)) return u
 			return { ...u, command: makeCommand(u), path: makePath(u) }
+		})
+	)
+}
+
+// Attack-move toward (cx, cy) for the whole selection. Same spreading as a
+// plain move so a 20-unit selection doesn't pile on a single tile.
+function applyAttackMoveSpread(selected: Unit[], cx: number, cy: number) {
+	const targets = new Map<number, { x: number; y: number }>()
+	const n = selected.length
+	if (n === 1) {
+		targets.set(selected[0].id, { x: cx, y: cy })
+	} else {
+		const ringSize = Math.ceil(Math.sqrt(n))
+		const spacing = 28
+		const start = -((ringSize - 1) * spacing) / 2
+		let i = 0
+		for (let row = 0; row < ringSize; row++) {
+			for (let col = 0; col < ringSize; col++) {
+				if (i >= n) break
+				const u = selected[i++]
+				targets.set(u.id, { x: cx + start + col * spacing, y: cy + start + row * spacing })
+			}
+		}
+	}
+	units$.update((list) =>
+		list.map((u) => {
+			const t = targets.get(u.id)
+			if (!t) return u
+			return {
+				...u,
+				command: { type: 'attack-move', x: t.x, y: t.y },
+				path: pathForUnit(u, t.x, t.y),
+			}
 		})
 	)
 }
