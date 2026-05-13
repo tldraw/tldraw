@@ -2043,7 +2043,7 @@ export interface InvalidLicenseKeyResult {
 }
 
 // @internal (undocumented)
-export type InvalidLicenseReason = 'has-key-development-mode' | 'invalid-license-key' | 'no-key-provided';
+export type InvalidLicenseReason = "has-key-development-mode" | "invalid-license-key" | "no-key-provided";
 
 // @internal (undocumented)
 export const isAccelKey: <InputType extends {
@@ -2097,7 +2097,7 @@ export class LicenseManager {
 }
 
 // @internal (undocumented)
-export type LicenseState = 'expired' | 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed-production' | 'unlicensed';
+export type LicenseState = "expired" | "licensed-with-watermark" | "licensed" | "pending" | "unlicensed-production" | "unlicensed";
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
