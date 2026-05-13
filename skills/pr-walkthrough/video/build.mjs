@@ -372,11 +372,14 @@ function renderImage({ slide, start, duration, i }) {
 }
 
 function renderVideo({ slide, start, duration, i }) {
+	// data-start / data-duration let hyperframes own the video's playhead per
+	// frame — without them the video element doesn't seek during headless
+	// frame capture and the slide is stuck on whatever frame loaded first.
 	return `
 <div ${slideAttrs({ start, duration, i })}>
 	<div class="slide-bg"></div>
 	<div class="slide-stage stage--video">
-		<video id="video-${i}" class="video-fill" src="assets/${esc(slide.src || '')}" muted playsinline preload="auto"></video>
+		<video id="video-${i}" class="video-fill" src="assets/${esc(slide.src || '')}" muted playsinline preload="auto" data-start="${start}" data-duration="${duration}"></video>
 	</div>
 </div>`
 }
@@ -459,15 +462,8 @@ for (const { slide, start, duration, i } of timed) {
 	)
 	timelineJs.push(`tl.set("#slide-${i}", { opacity: 0 }, ${start + duration});`)
 
-	if (slide.type === 'video') {
-		// Scrub the video's currentTime along with the GSAP timeline so the embedded
-		// MP4 advances frame-by-frame when hyperframes seeks instead of relying on
-		// real-time playback (which doesn't work during frame-captured rendering).
-		timelineJs.push(`tl.set("#video-${i}", { currentTime: 0 }, ${start});`)
-		timelineJs.push(
-			`tl.to("#video-${i}", { currentTime: ${duration}, duration: ${duration}, ease: "none" }, ${start});`
-		)
-	}
+	// Video slides hand playback control to hyperframes via data-start /
+	// data-duration on the <video> element; no GSAP scrub needed.
 
 	if ((slide.type === 'code' || slide.type === 'diff') && slide.focus && slide.focus.length) {
 		const lineHeight = 36
