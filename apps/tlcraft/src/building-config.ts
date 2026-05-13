@@ -1,4 +1,5 @@
 import { TLShape } from 'tldraw'
+import { AgeId } from './age-config'
 import { shuffleInPlace } from './random'
 import { TechId } from './tech-config'
 import { UnitKind } from './unit-config'
@@ -16,6 +17,20 @@ export type BuildingKind =
 	| 'wall'
 	| 'gate'
 	| 'castle'
+	| 'mill'
+	| 'lumber-camp'
+	| 'mining-camp'
+	| 'market'
+	| 'archery-range'
+	| 'stable'
+	| 'siege-workshop'
+	| 'monastery'
+
+// Used for civ "building-mult" bonuses. Lets a civ say "defensive buildings
+// +20% HP" or "economic buildings -15% cost" without listing every kind. The
+// 'all' value is a query wildcard — no individual building has 'all' as its
+// scope, but bonus lookups can pass 'all' to match every building.
+export type BuildingScope = 'economic' | 'military' | 'defensive' | 'all'
 
 export interface ResourceCost {
 	gold: number
@@ -50,7 +65,9 @@ export interface BuildingConfig {
 	keyHint: string
 	visionRadius: number
 	territoryRadius: number
-	requiresTech?: import('./tech-config').TechId
+	minAge: AgeId
+	scope: BuildingScope
+	requiresTech?: TechId
 	upgrade?: UpgradeConfig | null
 	// 'town' = must be placed inside the radius of one of the player's town
 	// halls (a town). 'territory' = anywhere in the player's wider territory
@@ -74,11 +91,93 @@ export const BUILDING_CONFIG: Record<BuildingKind, BuildingConfig> = {
 		keyHint: '1',
 		visionRadius: 420,
 		territoryRadius: 540,
+		minAge: 'dark',
+		scope: 'economic',
 		upgrade: {
 			label: 'Stronghold',
 			cost: { gold: 300, wood: 200, stone: 80 },
 			durationMs: 32_000,
 		},
+		placement: 'territory',
+	},
+	farm: {
+		label: 'Farm',
+		geo: 'rectangle',
+		size: 90,
+		maxHp: 280,
+		cost: { gold: 60, wood: 40 },
+		trains: [],
+		researches: [],
+		attack: null,
+		isDropOff: false,
+		foodCapacity: 4,
+		keyHint: '5',
+		visionRadius: 200,
+		territoryRadius: 220,
+		minAge: 'dark',
+		scope: 'economic',
+		upgrade: {
+			label: 'Greater Farm',
+			cost: { gold: 100, wood: 60 },
+			durationMs: 18_000,
+		},
+		placement: 'town',
+	},
+	mill: {
+		label: 'Mill',
+		geo: 'rectangle',
+		size: 80,
+		maxHp: 400,
+		cost: { gold: 80, wood: 60 },
+		trains: [],
+		researches: [],
+		attack: null,
+		isDropOff: true,
+		foodCapacity: 6,
+		keyHint: '4',
+		visionRadius: 220,
+		territoryRadius: 220,
+		minAge: 'dark',
+		scope: 'economic',
+		upgrade: null,
+		placement: 'town',
+	},
+	'lumber-camp': {
+		label: 'Lumber camp',
+		geo: 'rectangle',
+		size: 70,
+		maxHp: 300,
+		cost: { gold: 60, wood: 40 },
+		trains: [],
+		researches: [],
+		attack: null,
+		isDropOff: true,
+		foodCapacity: 0,
+		keyHint: 'l',
+		visionRadius: 200,
+		territoryRadius: 200,
+		minAge: 'dark',
+		scope: 'economic',
+		upgrade: null,
+		placement: 'territory',
+	},
+	'mining-camp': {
+		label: 'Mining camp',
+		geo: 'rectangle',
+		size: 70,
+		maxHp: 300,
+		cost: { gold: 60, wood: 60 },
+		trains: [],
+		researches: [],
+		attack: null,
+		isDropOff: true,
+		foodCapacity: 0,
+		keyHint: 'n',
+		visionRadius: 200,
+		territoryRadius: 200,
+		minAge: 'dark',
+		scope: 'economic',
+		upgrade: null,
 		placement: 'territory',
 	},
 	barracks: {
@@ -87,7 +186,7 @@ export const BUILDING_CONFIG: Record<BuildingKind, BuildingConfig> = {
 		size: 130,
 		maxHp: 800,
 		cost: { gold: 150, wood: 80 },
-		trains: ['soldier', 'knight'],
+		trains: ['soldier', 'pikeman'],
 		researches: [],
 		attack: null,
 		isDropOff: false,
@@ -95,10 +194,94 @@ export const BUILDING_CONFIG: Record<BuildingKind, BuildingConfig> = {
 		keyHint: '2',
 		visionRadius: 320,
 		territoryRadius: 320,
+		minAge: 'feudal',
+		scope: 'military',
 		upgrade: {
-			label: 'War Camp',
+			label: 'War camp',
 			cost: { gold: 200, wood: 100 },
 			durationMs: 25_000,
+		},
+		placement: 'town',
+	},
+	'archery-range': {
+		label: 'Archery range',
+		geo: 'rectangle',
+		size: 130,
+		maxHp: 800,
+		cost: { gold: 150, wood: 80 },
+		trains: ['archer', 'skirmisher', 'crossbowman'],
+		researches: [],
+		attack: null,
+		isDropOff: false,
+		foodCapacity: 4,
+		keyHint: 'r',
+		visionRadius: 320,
+		territoryRadius: 320,
+		minAge: 'feudal',
+		scope: 'military',
+		upgrade: null,
+		placement: 'town',
+	},
+	stable: {
+		label: 'Stable',
+		geo: 'rectangle',
+		size: 130,
+		maxHp: 800,
+		cost: { gold: 150, wood: 80 },
+		trains: ['scout-cavalry', 'knight'],
+		researches: [],
+		attack: null,
+		isDropOff: false,
+		foodCapacity: 4,
+		keyHint: 't',
+		visionRadius: 320,
+		territoryRadius: 320,
+		minAge: 'feudal',
+		scope: 'military',
+		upgrade: null,
+		placement: 'town',
+	},
+	market: {
+		label: 'Market',
+		geo: 'rectangle',
+		size: 100,
+		maxHp: 500,
+		cost: { gold: 80, wood: 100 },
+		trains: [],
+		researches: [],
+		attack: null,
+		isDropOff: false,
+		foodCapacity: 0,
+		keyHint: 'k',
+		visionRadius: 240,
+		territoryRadius: 240,
+		minAge: 'feudal',
+		scope: 'economic',
+		upgrade: null,
+		placement: 'town',
+	},
+	library: {
+		label: 'Library',
+		geo: 'rectangle',
+		size: 110,
+		maxHp: 700,
+		cost: { gold: 140, wood: 80 },
+		trains: [],
+		// Library hosts the entire tech tree. The list is populated dynamically
+		// from tech-config — see TECH_IDS at the bottom of that file.
+		researches: [],
+		attack: null,
+		isDropOff: false,
+		foodCapacity: 0,
+		keyHint: '4',
+		visionRadius: 260,
+		territoryRadius: 240,
+		minAge: 'feudal',
+		scope: 'economic',
+		upgrade: {
+			label: 'Grand Library',
+			cost: { gold: 240, wood: 120 },
+			durationMs: 28_000,
 		},
 		placement: 'town',
 	},
@@ -116,68 +299,14 @@ export const BUILDING_CONFIG: Record<BuildingKind, BuildingConfig> = {
 		keyHint: '3',
 		visionRadius: 360,
 		territoryRadius: 280,
+		minAge: 'feudal',
+		scope: 'defensive',
 		upgrade: {
 			label: 'Bastion',
 			cost: { gold: 200, wood: 80 },
 			durationMs: 25_000,
 		},
 		placement: 'territory',
-	},
-	library: {
-		label: 'Library',
-		geo: 'rectangle',
-		size: 110,
-		maxHp: 700,
-		cost: { gold: 140, wood: 80 },
-		trains: [],
-		// The Library hosts the entire tech tree. The toolbar surfaces a single
-		// "Open research" action when one is selected; the actual node graph is
-		// rendered by ResearchTreeOverlay.
-		researches: [
-			'sharp-blades',
-			'tools-of-the-trade',
-			'heavy-armor',
-			'cavalry-training',
-			'reinforced-walls',
-			'tower-marksmanship',
-			'holy-orders',
-			'blood-frenzy',
-			'arcane-studies',
-			'champions-path',
-		],
-		attack: null,
-		isDropOff: false,
-		foodCapacity: 0,
-		keyHint: '4',
-		visionRadius: 260,
-		territoryRadius: 240,
-		upgrade: {
-			label: 'Grand Library',
-			cost: { gold: 240, wood: 120 },
-			durationMs: 28_000,
-		},
-		placement: 'town',
-	},
-	farm: {
-		label: 'Farm',
-		geo: 'rectangle',
-		size: 90,
-		maxHp: 280,
-		cost: { gold: 60, wood: 40 },
-		trains: [],
-		researches: [],
-		attack: null,
-		isDropOff: false,
-		foodCapacity: 4,
-		keyHint: '5',
-		visionRadius: 200,
-		territoryRadius: 220,
-		upgrade: {
-			label: 'Greater Farm',
-			cost: { gold: 100, wood: 60 },
-			durationMs: 18_000,
-		},
-		placement: 'town',
 	},
 	wall: {
 		label: 'Wall',
@@ -193,6 +322,8 @@ export const BUILDING_CONFIG: Record<BuildingKind, BuildingConfig> = {
 		keyHint: '6',
 		visionRadius: 140,
 		territoryRadius: 200,
+		minAge: 'feudal',
+		scope: 'defensive',
 		upgrade: {
 			label: 'Stone Wall',
 			cost: { gold: 30, wood: 30, stone: 40 },
@@ -217,13 +348,15 @@ export const BUILDING_CONFIG: Record<BuildingKind, BuildingConfig> = {
 		keyHint: '8',
 		visionRadius: 160,
 		territoryRadius: 200,
+		minAge: 'feudal',
+		scope: 'defensive',
 		upgrade: null,
 		placement: 'territory',
 	},
 	castle: {
 		// Heavy fortified building with an area attack — basically a beefy
-		// tower at 3x the size and HP. Locked behind Stonemasonry research so
-		// it shows up as the player's late-game power play.
+		// tower at 3x the size and HP. Locked behind Castle Age and the
+		// stonemasonry tech so it shows up as the player's late-game power play.
 		label: 'Castle',
 		geo: 'rectangle',
 		size: 220,
@@ -237,21 +370,69 @@ export const BUILDING_CONFIG: Record<BuildingKind, BuildingConfig> = {
 		keyHint: '7',
 		visionRadius: 480,
 		territoryRadius: 560,
+		minAge: 'castle',
+		scope: 'defensive',
 		requiresTech: 'stonemasonry',
 		upgrade: null,
 		placement: 'territory',
+	},
+	monastery: {
+		label: 'Monastery',
+		geo: 'rectangle',
+		size: 110,
+		maxHp: 600,
+		cost: { gold: 120, wood: 80 },
+		trains: ['monk'],
+		researches: [],
+		attack: null,
+		isDropOff: false,
+		foodCapacity: 4,
+		keyHint: 'y',
+		visionRadius: 280,
+		territoryRadius: 260,
+		minAge: 'castle',
+		scope: 'military',
+		upgrade: null,
+		placement: 'town',
+	},
+	'siege-workshop': {
+		label: 'Siege workshop',
+		geo: 'rectangle',
+		size: 150,
+		maxHp: 900,
+		cost: { gold: 200, wood: 150 },
+		trains: ['trebuchet'],
+		researches: [],
+		attack: null,
+		isDropOff: false,
+		foodCapacity: 0,
+		keyHint: 'g',
+		visionRadius: 300,
+		territoryRadius: 300,
+		minAge: 'castle',
+		scope: 'military',
+		upgrade: null,
+		placement: 'town',
 	},
 }
 
 export const BUILDING_KINDS: BuildingKind[] = [
 	'town-hall',
-	'barracks',
-	'tower',
-	'library',
 	'farm',
+	'mill',
+	'lumber-camp',
+	'mining-camp',
+	'barracks',
+	'archery-range',
+	'stable',
+	'market',
+	'library',
+	'tower',
 	'wall',
 	'gate',
 	'castle',
+	'monastery',
+	'siege-workshop',
 ]
 
 // Read upgrade level baked at construction / re-baked after upgrade. 0 means

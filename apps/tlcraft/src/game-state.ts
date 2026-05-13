@@ -1,4 +1,5 @@
 import { TLShapeId, atom } from 'tldraw'
+import { AgeId, STARTING_AGE } from './age-config'
 import { BuildingKind } from './building-config'
 import { NationId } from './nations'
 import { HUMAN_PLAYER_ID, PLAYERS, PlayerId } from './players'
@@ -91,6 +92,15 @@ export interface DamageNumber {
 export interface TrainQueueItem {
 	id: number
 	kind: UnitKind
+	startedAtMs: number
+	durationMs: number
+}
+
+// Single in-flight age-advance research, queued at a player's Town Hall.
+// At most one per player; null when no age-up is in progress.
+export interface AgeResearchItem {
+	id: number
+	techId: TechId
 	startedAtMs: number
 	durationMs: number
 }
@@ -227,6 +237,25 @@ function freshTechs(): Record<PlayerId, ReadonlySet<TechId>> {
 	return out
 }
 
+// Per-player current age. Every player starts at the Dark Age (see
+// STARTING_AGE in age-config). Updated when the age-advance research at the
+// Town Hall completes.
+export const playerAges$ = atom<Record<PlayerId, AgeId>>('playerAges', freshAges())
+
+function freshAges(): Record<PlayerId, AgeId> {
+	const out: Record<PlayerId, AgeId> = {}
+	for (const p of PLAYERS) out[p.id] = STARTING_AGE
+	return out
+}
+
+// Per-player age-advance research. At most one in flight per player. The
+// non-reactive map is the source of truth; the atom mirrors it for UI.
+export const ageResearchByPlayer = new Map<PlayerId, AgeResearchItem | null>()
+export const ageResearchByPlayer$ = atom<Record<PlayerId, AgeResearchItem | null>>(
+	'ageResearchByPlayer',
+	{}
+)
+
 let _nextUnitId = 1
 export function nextUnitId() {
 	return _nextUnitId++
@@ -255,6 +284,10 @@ let _nextUpgradeItemId = 1
 export function nextUpgradeItemId() {
 	return _nextUpgradeItemId++
 }
+let _nextAgeResearchId = 1
+export function nextAgeResearchId() {
+	return _nextAgeResearchId++
+}
 
 export interface NextIds {
 	unit: number
@@ -264,6 +297,7 @@ export interface NextIds {
 	queueItem: number
 	researchItem: number
 	upgradeItem: number
+	ageResearch: number
 }
 
 /** Snapshot all the ID counters at once — used by save/load so the counters
@@ -278,6 +312,7 @@ export function getNextIds(): NextIds {
 		queueItem: _nextQueueItemId,
 		researchItem: _nextResearchItemId,
 		upgradeItem: _nextUpgradeItemId,
+		ageResearch: _nextAgeResearchId,
 	}
 }
 
@@ -289,6 +324,7 @@ export function setNextIds(ids: NextIds) {
 	_nextQueueItemId = ids.queueItem
 	_nextResearchItemId = ids.researchItem
 	_nextUpgradeItemId = ids.upgradeItem
+	_nextAgeResearchId = ids.ageResearch ?? 1
 }
 
 export function resetGameState() {
@@ -318,6 +354,9 @@ export function resetGameState() {
 	upgradeQueues.clear()
 	upgradeQueuesAtom$.set({})
 	completedTechs$.set(freshTechs())
+	playerAges$.set(freshAges())
+	ageResearchByPlayer.clear()
+	ageResearchByPlayer$.set({})
 	_nextUnitId = 1
 	_nextResourceId = 1
 	_nextProjectileId = 1
@@ -325,6 +364,7 @@ export function resetGameState() {
 	_nextQueueItemId = 1
 	_nextResearchItemId = 1
 	_nextUpgradeItemId = 1
+	_nextAgeResearchId = 1
 }
 
 export function getResources(playerId: PlayerId): PlayerResources {

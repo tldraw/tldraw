@@ -139,5 +139,7 @@ function hintFor(
 			return 'Must be inside one of your towns'
 		case 'requires-tech':
 			return 'Locked — research at the Library first'
+		case 'wrong-age':
+			return 'Locked — advance to the next age first'
 	}
 }

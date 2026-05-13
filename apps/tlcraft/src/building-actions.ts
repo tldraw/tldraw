@@ -12,15 +12,20 @@ import {
 } from './building-config'
 import { isInTerritoryOf } from './fog'
 import {
+	AgeResearchItem,
 	ResearchQueueItem,
 	TrainQueueItem,
 	UpgradeQueueItem,
+	ageResearchByPlayer,
+	ageResearchByPlayer$,
 	completedTechs$,
 	elapsedMs$,
 	getResources,
+	nextAgeResearchId,
 	nextQueueItemId,
 	nextResearchItemId,
 	nextUpgradeItemId,
+	playerAges$,
 	playerNations$,
 	researchQueues,
 	researchQueuesAtom$,
@@ -34,7 +39,7 @@ import { MAP_BOUNDS } from './map'
 import { HUMAN_PLAYER_ID } from './players'
 import { PlayerId, getPlayer } from './players'
 import { canTrainUnit, getBuildingHpMultiplier, getResearchSpeedMultiplier, hasTech } from './tech'
-import { TECH_CONFIG, TechId } from './tech-config'
+import { TECH_CONFIG, TechId, getAdvanceTechFor } from './tech-config'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
 
 const BUILDING_PADDING = 16
@@ -47,6 +52,7 @@ export type PlaceBuildingOutcome =
 	| 'outside-territory'
 	| 'outside-town'
 	| 'requires-tech'
+	| 'wrong-age'
 
 // Public preflight check used by the placement preview overlay so it can paint
 // an invalid (red) ghost when the cursor is over an illegal spot. Mirrors the
@@ -74,6 +80,11 @@ export function checkPlacement(
 		return 'cant-afford'
 	}
 	if (cfg.requiresTech && !hasTech(playerId, cfg.requiresTech)) return 'requires-tech'
+	{
+		const order = { dark: 0, feudal: 1, castle: 2, imperial: 3 } as const
+		const currentAge = playerAges$.get()[playerId] ?? 'dark'
+		if (order[currentAge] < order[cfg.minAge]) return 'wrong-age'
+	}
 	if (!playerHasAnyBuilding(editor, playerId)) return 'ok'
 	const buildings = collectBuildingsForFog(editor)
 	if (!isInTerritoryOf(playerId, HUMAN_PLAYER_ID, buildings, cx, cy)) {
@@ -271,6 +282,7 @@ export type QueueResearchOutcome =
 	| 'requires-barracks'
 	| 'requires-prereq'
 	| 'wrong-nation'
+	| 'wrong-age'
 
 export function canQueueResearch(
 	editor: Editor,
@@ -280,6 +292,15 @@ export function canQueueResearch(
 	if (completedTechs$.get()[playerId]?.has(techId)) return 'already-completed'
 	if (techIsInProgressForPlayer(editor, playerId, techId)) return 'already-in-progress'
 	const cfg = TECH_CONFIG[techId]
+	// Age advances live at the Town Hall, not the Library — refuse here so
+	// the Library UI doesn't accidentally queue them.
+	if (cfg.kind === 'advance') return 'wrong-age'
+	// Age gate: refuse research that requires a later age than the player has.
+	const currentAge = playerAges$.get()[playerId] ?? 'dark'
+	{
+		const order = { dark: 0, feudal: 1, castle: 2, imperial: 3 } as const
+		if (order[currentAge] < order[cfg.minAge]) return 'wrong-age'
+	}
 	if (cfg.requiredNation) {
 		const myNation = playerNations$.get()[playerId]
 		if (myNation !== cfg.requiredNation) return 'wrong-nation'
@@ -291,7 +312,25 @@ export function canQueueResearch(
 	if (r.gold < cfg.cost.gold || r.wood < cfg.cost.wood || r.stone < (cfg.cost.stone ?? 0)) {
 		return 'cant-afford'
 	}
-	if (techId === 'cavalry-training' && !playerHasBuildingKind(editor, playerId, 'barracks')) {
+	// Signature techs require the matching unique-unit production building
+	// to exist, so the player can actually train the unit it unlocks.
+	const SIG_TO_BUILDING: Partial<Record<string, BuildingKind>> = {
+		'horde-tactics': 'stable',
+		'royal-stables': 'stable',
+		'mamluk-guard': 'stable',
+		'greek-fire': 'stable',
+		chivalry: 'archery-range',
+		druzhina: 'stable',
+		sultanate: 'stable',
+		conquistadors: 'stable',
+		'yew-bow': 'archery-range',
+		'sun-chariot': 'archery-range',
+		'repeating-bolt': 'archery-range',
+		'el-dorado': 'archery-range',
+		'janissary-corps': 'archery-range',
+	}
+	const requiredBuilding = SIG_TO_BUILDING[techId]
+	if (requiredBuilding && !playerHasBuildingKind(editor, playerId, requiredBuilding)) {
 		return 'requires-barracks'
 	}
 	return 'queued'
@@ -445,6 +484,60 @@ function playerHasBuildingKind(editor: Editor, playerId: PlayerId, kind: Buildin
 		if (shape.meta?.owner === playerId) return true
 	}
 	return false
+}
+
+// ---------------------------------------------------------------------------
+// Age advancement
+//
+// Age-up research is queued at the player's Town Hall. There's at most one
+// in flight per player (not per Town Hall) so multiple Town Halls don't let
+// you skip ahead. The game loop ticks ageResearchByPlayer and on completion
+// flips playerAges$.
+
+export type AgeAdvanceOutcome =
+	| 'queued'
+	| 'already-in-progress'
+	| 'no-next-age'
+	| 'cant-afford'
+	| 'wrong-age'
+
+export function canQueueAgeAdvance(playerId: PlayerId): AgeAdvanceOutcome {
+	const current = playerAges$.get()[playerId] ?? 'dark'
+	const techId = getAdvanceTechFor(current)
+	if (!techId) return 'no-next-age'
+	if (ageResearchByPlayer.get(playerId)) return 'already-in-progress'
+	const cfg = TECH_CONFIG[techId]
+	if (cfg.minAge !== current) return 'wrong-age'
+	const r = getResources(playerId)
+	if (r.gold < cfg.cost.gold) return 'cant-afford'
+	if (r.wood < cfg.cost.wood) return 'cant-afford'
+	if (r.stone < (cfg.cost.stone ?? 0)) return 'cant-afford'
+	return 'queued'
+}
+
+export function queueAgeAdvance(playerId: PlayerId): boolean {
+	if (canQueueAgeAdvance(playerId) !== 'queued') return false
+	const current = playerAges$.get()[playerId] ?? 'dark'
+	const techId = getAdvanceTechFor(current)
+	if (!techId) return false
+	const cfg = TECH_CONFIG[techId]
+	updateResources(playerId, (rr) => ({
+		...rr,
+		gold: rr.gold - cfg.cost.gold,
+		wood: rr.wood - cfg.cost.wood,
+		stone: rr.stone - (cfg.cost.stone ?? 0),
+	}))
+	const item: AgeResearchItem = {
+		id: nextAgeResearchId(),
+		techId,
+		startedAtMs: elapsedMs$.get(),
+		durationMs: Math.round(cfg.researchMs / getResearchSpeedMultiplier(playerId)),
+	}
+	ageResearchByPlayer.set(playerId, item)
+	const snapshot: Record<string, AgeResearchItem | null> = {}
+	for (const [k, v] of ageResearchByPlayer) snapshot[k] = v
+	ageResearchByPlayer$.set(snapshot as Record<PlayerId, AgeResearchItem | null>)
+	return true
 }
 
 // Flip a gate's open / closed state. Owner is checked client-side; the human

@@ -18,6 +18,9 @@ import { nextRandom } from './random'
 void getEffectiveTerritoryRadius // referenced by overlays; keep it next to the building helpers
 
 import {
+	AgeResearchItem,
+	ageResearchByPlayer,
+	ageResearchByPlayer$,
 	Command,
 	PROJECTILE_MAX_AGE_MS,
 	Projectile,
@@ -35,6 +38,7 @@ import {
 	gameStarted$,
 	nextProjectileId,
 	paused$,
+	playerAges$,
 	nextUnitId,
 	upgradeQueues,
 	upgradeQueuesAtom$,
@@ -58,6 +62,7 @@ import {
 	getUnitHpMultiplier,
 	getUnitSpeedMultiplier,
 } from './tech'
+import { TECH_CONFIG } from './tech-config'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
 
 const HIT_FLASH_MS = 180
@@ -90,6 +95,7 @@ export function runGameTick(editor: Editor, dtMs: number) {
 	// per call is ~1µs; ten phases = ~10µs/tick, well below noise.
 	time('syncBuildings', () => syncBuildings(editor))
 	time('tickTraining', () => tickTraining(now))
+	time('tickAgeResearch', () => tickAgeResearch(now))
 	time('tickResearch', () => tickResearch(now))
 	time('tickUpgrades', () => tickUpgrades(editor, now))
 	time('tickUnits', () => tickUnits(editor, dt, now))
@@ -269,6 +275,37 @@ function snapshotResearchQueues(): Record<string, ResearchQueueItem[]> {
 		out[id as unknown as string] = queue.slice()
 	}
 	return out
+}
+
+// Process the per-player age-advance research. There's at most one in flight
+// per player, queued at the Town Hall. On completion the player's age in
+// playerAges$ advances and the tech is marked completed (so AI / UI gates
+// using hasTech also flip).
+function tickAgeResearch(now: number) {
+	if (ageResearchByPlayer.size === 0) return
+	let mutated = false
+	for (const [playerId, item] of ageResearchByPlayer) {
+		if (!item) continue
+		if (now - item.startedAtMs < item.durationMs) continue
+		const cfg = TECH_CONFIG[item.techId]
+		if (cfg.advanceToAge) {
+			playerAges$.update((prev) => ({ ...prev, [playerId]: cfg.advanceToAge! }))
+		}
+		completedTechs$.update((prev) => {
+			const existing = prev[playerId] ?? new Set()
+			if (existing.has(item.techId)) return prev
+			const next = new Set(existing)
+			next.add(item.techId)
+			return { ...prev, [playerId]: next }
+		})
+		ageResearchByPlayer.set(playerId, null)
+		mutated = true
+	}
+	if (mutated) {
+		const snapshot: Record<string, AgeResearchItem | null> = {}
+		for (const [k, v] of ageResearchByPlayer) snapshot[k] = v ?? null
+		ageResearchByPlayer$.set(snapshot as Record<PlayerId, AgeResearchItem | null>)
+	}
 }
 
 // Mirrors tickTraining but for the smithies' research queues. On completion

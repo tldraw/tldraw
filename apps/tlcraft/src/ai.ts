@@ -1,8 +1,10 @@
 import { Editor, TLShapeId } from 'tldraw'
 import {
+	canQueueAgeAdvance,
 	canQueueResearch,
 	canQueueUpgrade,
 	placeBuilding,
+	queueAgeAdvance,
 	queueResearch,
 	queueUnit,
 	queueUpgrade,
@@ -21,7 +23,7 @@ import {
 import { getNation } from './nations'
 import { PlayerId, isEnemyOf } from './players'
 import { nextInt, nextRandom } from './random'
-import { canTrainUnit, isKnightUnlocked } from './tech'
+import { canTrainUnit } from './tech'
 import { TECH_IDS, TechId } from './tech-config'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
 
@@ -92,6 +94,7 @@ export function tickAi(
 	const fighters = myUnits.filter((u) => u.kind !== 'worker')
 
 	keepWorkersGathering(playerId, workers)
+	maybeAdvanceAge(playerId)
 	maybeTrainWorker(playerId, own, workers.length)
 	maybeBuildBarracks(editor, playerId, own)
 	maybeBuildFarm(editor, playerId, own)
@@ -102,6 +105,12 @@ export function tickAi(
 	maybeBuildCastle(editor, playerId, own)
 	maybeUpgrade(editor, playerId, own)
 	maybePush(playerId, own, fighters, allBuildings, now)
+}
+
+// Try to advance to the next age once it's affordable. Greedy — no
+// economy-vs-research trade-off, just "if we can, do it".
+function maybeAdvanceAge(playerId: PlayerId) {
+	if (canQueueAgeAdvance(playerId) === 'queued') queueAgeAdvance(playerId)
 }
 
 function maybeBuildCastle(editor: Editor, playerId: PlayerId, own: BuildingsByKind) {
@@ -200,12 +209,14 @@ function maybeBuildFarm(editor: Editor, playerId: PlayerId, own: BuildingsByKind
 // dynamically in pickNextTech so each player chases the unit they're allowed
 // to train.
 const AI_RESEARCH_ORDER_BASE: TechId[] = [
-	'tools-of-the-trade',
+	'wheelbarrow',
 	'sharp-blades',
-	'cavalry-training',
-	'heavy-armor',
-	'reinforced-walls',
+	'masonry',
+	'forging',
+	'padded-armor',
 	'stonemasonry',
+	'blast-furnace',
+	'architecture',
 	'tower-marksmanship',
 ]
 
@@ -264,7 +275,7 @@ function maybeTrainFighters(playerId: PlayerId, own: BuildingsByKind, fighterCou
 			r.wood >= UNIT_CONFIG[uniqueKind].trainCost.wood &&
 			r.food + UNIT_CONFIG[uniqueKind].trainCost.food <= r.foodCap
 		const knightOK =
-			isKnightUnlocked(playerId) &&
+			canTrainUnit(playerId, 'knight') &&
 			r.gold >= UNIT_CONFIG.knight.trainCost.gold &&
 			r.wood >= UNIT_CONFIG.knight.trainCost.wood
 		let kind: UnitKind = 'soldier'

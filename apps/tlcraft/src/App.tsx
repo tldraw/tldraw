@@ -12,10 +12,13 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { AGES, AgeId, getAge } from './age-config'
 import {
+	canQueueAgeAdvance,
 	canQueueResearch,
 	canQueueUpgrade,
 	placeBuilding,
+	queueAgeAdvance,
 	queueResearch,
 	queueUnit,
 	queueUpgrade,
@@ -34,6 +37,7 @@ import { commandSelectedUnits, selectUnitsInBox } from './command'
 import { resizeFogGrids } from './fog'
 import { resetGameLoop, runGameTick, spawnUnit } from './game-loop'
 import {
+	ageResearchByPlayer$,
 	completedTechs$,
 	dragSelect$,
 	elapsedMs$,
@@ -42,6 +46,7 @@ import {
 	humanResources,
 	paused$,
 	placingBuilding$,
+	playerAges$,
 	playerNations$,
 	playerResources$,
 	researchQueuesAtom$,
@@ -86,7 +91,7 @@ import { UnitOverlayUtil } from './overlays/UnitOverlayUtil'
 import { HUMAN_PLAYER_ID, PLAYERS, getPlayer, updatePlayerStartBases } from './players'
 import { SaveSlotInfo, deleteSave, listSaves, loadGame, saveGame } from './save'
 import { canTrainUnit, getUniqueUnitKindForPlayer, hasTech } from './tech'
-import { TECH_CONFIG, TechId, getTechsByTier } from './tech-config'
+import { LIBRARY_TECH_IDS, TECH_CONFIG, TechId, getTechsByTier } from './tech-config'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
 import './tlcraft.css'
 
@@ -506,6 +511,8 @@ function HUD({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 						Playing as <strong>{nation.label}</strong>
 					</span>
 				)}
+				<HudAge />
+
 				<button className="tlc-hud__btn" onClick={onRestart}>
 					Restart
 				</button>
@@ -570,11 +577,16 @@ function Toolbar({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 			? canQueueUpgrade(selectedBuilding, editor, HUMAN_PLAYER_ID)
 			: 'no-upgrade'
 
-	// Compose the train list for the selected building. Barracks include the
-	// nation's unique unit, gated by canTrainUnit (which checks the signature
-	// tech).
+	// Compose the train list for the selected building. The nation's unique
+	// unit is appended at the building that actually trains its archetype
+	// (looked up via UNIT_CONFIG[uniqueUnit].trainedBy).
 	const trainList: UnitKind[] = selectedCfg ? selectedCfg.trains.slice() : []
-	if (selectedKind === 'barracks' && uniqueUnit && !trainList.includes(uniqueUnit)) {
+	if (
+		uniqueUnit &&
+		selectedKind &&
+		UNIT_CONFIG[uniqueUnit].trainedBy === selectedKind &&
+		!trainList.includes(uniqueUnit)
+	) {
 		trainList.push(uniqueUnit)
 	}
 
@@ -584,19 +596,26 @@ function Toolbar({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 				<span className="tlc-toolbar__group-label">Build</span>
 				{BUILDING_KINDS.map((kind) => {
 					const cfg = BUILDING_CONFIG[kind]
+					const ageOrder = { dark: 0, feudal: 1, castle: 2, imperial: 3 } as const
+					const humanAge = (playerAges$.get()[HUMAN_PLAYER_ID] as AgeId | undefined) ?? 'dark'
+					const ageLocked = ageOrder[humanAge] < ageOrder[cfg.minAge]
 					const canAfford =
 						r.gold >= cfg.cost.gold && r.wood >= cfg.cost.wood && r.stone >= (cfg.cost.stone ?? 0)
 					const isActive = placing === kind
+					const lockReason = ageLocked ? ` — requires ${getAge(cfg.minAge).label}` : ''
 					return (
 						<button
 							key={kind}
 							className={'tlc-toolbar__btn' + (isActive ? ' is-active' : '')}
-							disabled={!canAfford && !isActive}
+							disabled={(ageLocked || !canAfford) && !isActive}
 							onClick={() => pickBuilding(kind)}
-							title={`${cfg.label} — ${formatCost(cfg.cost)} — press ${cfg.keyHint}`}
+							title={`${cfg.label} — ${formatCost(cfg.cost)} — press ${cfg.keyHint}${lockReason}`}
 						>
 							<BuildGlyph kind={kind} />
-							<span className="tlc-toolbar__label">{cfg.label}</span>
+							<span className="tlc-toolbar__label">
+								{cfg.label}
+								{ageLocked ? ' 🔒' : ''}
+							</span>
 							<span className="tlc-toolbar__cost">
 								{formatCost(cfg.cost)} · <kbd>{cfg.keyHint}</kbd>
 							</span>
@@ -645,6 +664,7 @@ function Toolbar({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 					</span>
 				</div>
 			)}
+			{selectedKind === 'town-hall' && isOwnBuilding && <AdvanceAgeButton />}
 			{selectedKind === 'library' && isOwnBuilding && (
 				<div className="tlc-toolbar__group">
 					<span className="tlc-toolbar__group-label">Library</span>
@@ -760,6 +780,85 @@ function BuildGlyph({ kind }: { kind: BuildingKind }) {
 	)
 }
 
+function HudAge() {
+	const age = useValue(
+		'humanAge',
+		() => (playerAges$.get()[HUMAN_PLAYER_ID] as AgeId | undefined) ?? 'dark',
+		[]
+	)
+	const research = useValue(
+		'humanAgeResearch',
+		() => ageResearchByPlayer$.get()[HUMAN_PLAYER_ID] ?? null,
+		[]
+	)
+	const now = useValue('elapsed', () => elapsedMs$.get(), [])
+	const label = getAge(age).label
+	let progress: number | null = null
+	if (research) {
+		const elapsed = Math.max(0, now - research.startedAtMs)
+		progress = Math.min(1, elapsed / research.durationMs)
+	}
+	return (
+		<span className="tlc-hud__age">
+			Age: <strong>{label}</strong>
+			{progress !== null && (
+				<span className="tlc-hud__age-progress">→ {Math.round(progress * 100)}%</span>
+			)}
+		</span>
+	)
+}
+
+function AdvanceAgeButton() {
+	const age = useValue(
+		'humanAge',
+		() => (playerAges$.get()[HUMAN_PLAYER_ID] as AgeId | undefined) ?? 'dark',
+		[]
+	)
+	const research = useValue(
+		'humanAgeResearch',
+		() => ageResearchByPlayer$.get()[HUMAN_PLAYER_ID] ?? null,
+		[]
+	)
+	const outcome = useValue('canAgeUp', () => canQueueAgeAdvance(HUMAN_PLAYER_ID), [])
+	const order = AGES.findIndex((a) => a.id === age)
+	const nextAge = AGES[order + 1] ?? null
+	if (!nextAge) {
+		return (
+			<div className="tlc-toolbar__group">
+				<span className="tlc-toolbar__group-label">Age</span>
+				<span className="tlc-toolbar__cost">At the final age</span>
+			</div>
+		)
+	}
+	const cost = nextAge.advanceCost ?? { gold: 0, wood: 0 }
+	const inProgress = research !== null
+	const disabled = inProgress || outcome !== 'queued'
+	const costText = `${cost.gold}g · ${cost.wood}w` + (cost.stone ? ` · ${cost.stone}s` : '')
+	const title = inProgress
+		? `Advancing to ${nextAge.label}…`
+		: outcome === 'cant-afford'
+			? `Need ${costText}`
+			: outcome === 'queued'
+				? `Advance to ${nextAge.label} (${Math.round((nextAge.advanceResearchMs ?? 0) / 1000)}s)`
+				: `Unavailable`
+	return (
+		<div className="tlc-toolbar__group">
+			<span className="tlc-toolbar__group-label">Age</span>
+			<button
+				className="tlc-toolbar__btn"
+				disabled={disabled}
+				onClick={() => queueAgeAdvance(HUMAN_PLAYER_ID)}
+				title={title}
+			>
+				<span className="tlc-toolbar__label">
+					{inProgress ? `Advancing… ${nextAge.label}` : `Advance to ${nextAge.label}`}
+				</span>
+				<span className="tlc-toolbar__cost">{costText}</span>
+			</button>
+		</div>
+	)
+}
+
 function UnitGlyph({ kind }: { kind: UnitKind }) {
 	const human = getPlayer(HUMAN_PLAYER_ID)
 	const glyph = UNIT_CONFIG[kind].glyph
@@ -788,14 +887,10 @@ function UnitGlyph({ kind }: { kind: UnitKind }) {
 	)
 }
 
-// Nation accent colours used to outline the picked card and its swatch in
-// the start menu. Kept as a separate map so the visual identity matches the
-// in-game player colour without coupling the component file to player IDs.
-const NATION_ACCENTS: Record<NationId, string> = {
-	solari: '#3b82f6',
-	crimson: '#ef4444',
-	mystic: '#a855f7',
-	'sun-tribe': '#f97316',
+// Nation accent colour — read from the nation data itself so the in-game
+// colour and start-menu outline stay in sync without a duplicate map.
+function nationAccent(id: NationId): string {
+	return getNation(id).accentColor
 }
 
 // ----------------------------- Pre-game menus ----------------------------
@@ -856,9 +951,9 @@ function MainMenu({
 		<div className="tlc-modal tlc-modal--center" role="dialog" aria-modal="true">
 			<div className="tlc-modal__panel tlc-mainmenu">
 				<header className="tlc-mainmenu__header">
-					<h1 className="tlc-mainmenu__title">tlcraft</h1>
+					<h1 className="tlc-mainmenu__title">Age of tldraw</h1>
 					<div className="tlc-mainmenu__sub">
-						A tldraw-SDK RTS — build, expand, conquer four AI nations.
+						A tldraw-SDK RTS — build, expand, conquer rival AI nations.
 					</div>
 				</header>
 				<div className="tlc-mainmenu__actions">
@@ -895,7 +990,7 @@ function NewGameForm({
 	editorRef: React.RefObject<Editor | null>
 	onBack(): void
 }) {
-	const [selected, setSelected] = useState<NationId>('solari')
+	const [selected, setSelected] = useState<NationId>(NATIONS[0].id)
 	const [selectedMap, setSelectedMap] = useState<MapTypeId | 'random'>('random')
 	const [selectedSize, setSelectedSize] = useState<MapSizeId>(selectedMapSize$.get())
 
@@ -944,13 +1039,13 @@ function NewGameForm({
 				<header className="tlc-modal__header">
 					<h2>New game</h2>
 					<span className="tlc-modal__hint">
-						Pick nation, map, and size — three AI nations are assigned randomly.
+						Pick a civilization, map, and size — AI opponents draw from the remaining civs.
 					</span>
 				</header>
 				<div className="tlc-start__grid">
 					{NATIONS.map((n) => {
 						const isPicked = selected === n.id
-						const accent = NATION_ACCENTS[n.id]
+						const accent = nationAccent(n.id)
 						return (
 							<button
 								key={n.id}
@@ -971,6 +1066,11 @@ function NewGameForm({
 								</div>
 								<div className="tlc-start__tag">{n.tagline}</div>
 								<div className="tlc-start__desc">{n.description}</div>
+								<ul className="tlc-start__bonuses">
+									{n.bonuses.map((b, i) => (
+										<li key={i}>{b.description}</li>
+									))}
+								</ul>
 								<div className="tlc-start__perk">
 									Unique unit: <strong>{UNIT_CONFIG[n.uniqueUnit].label}</strong>
 								</div>
@@ -1125,20 +1225,19 @@ function LoadGameList({
 // ---------------------------- Research tree ------------------------------
 
 // Layout: 3 columns by tier, vertical slot per tech inside the column.
-// Coordinates are in node units (each node ~ 220x110 with a 30px gap).
-const TECH_LAYOUT: Record<TechId, { col: 0 | 1 | 2; row: number }> = {
-	'sharp-blades': { col: 0, row: 0 },
-	'tools-of-the-trade': { col: 0, row: 4 },
-	'heavy-armor': { col: 1, row: 0 },
-	'cavalry-training': { col: 1, row: 2 },
-	'reinforced-walls': { col: 1, row: 4 },
-	'tower-marksmanship': { col: 2, row: 0 },
-	'holy-orders': { col: 2, row: 1 },
-	'blood-frenzy': { col: 2, row: 2 },
-	'champions-path': { col: 2, row: 3 },
-	'arcane-studies': { col: 2, row: 4 },
-	stonemasonry: { col: 2, row: 5 },
-}
+// Auto-assigned from tech-config so adding a tech (or 20 signature techs)
+// doesn't need a manual update here.
+const TECH_LAYOUT: Record<TechId, { col: 0 | 1 | 2; row: number }> = (() => {
+	const out: Record<string, { col: 0 | 1 | 2; row: number }> = {}
+	const rows = [0, 0, 0]
+	for (const id of LIBRARY_TECH_IDS) {
+		const cfg = TECH_CONFIG[id]
+		const col = (cfg.tier - 1) as 0 | 1 | 2
+		out[id] = { col, row: rows[col] }
+		rows[col]++
+	}
+	return out as Record<TechId, { col: 0 | 1 | 2; row: number }>
+})()
 
 const NODE_W = 240
 const NODE_H = 96
@@ -1373,18 +1472,28 @@ type GuideTab = 'buildings' | 'units' | 'research' | 'controls'
 
 const BUILDING_DESCRIPTIONS: Record<BuildingKind, string> = {
 	'town-hall':
-		'Your home base. Trains workers and is where workers drop off gold and wood. Provides 8 population. Lose this and you lose the game.',
-	barracks:
-		'Trains soldiers and knights (and your nation’s unique unit once researched). Adds 4 population. Build near the front line.',
+		'Your home base. Trains villagers, drops off every resource, and provides 8 population. Lose every Town Hall and you lose the game.',
+	farm: 'Cheap food-cap building (+4 population each). Doesn’t train; tuck them behind a Barracks.',
+	mill: 'Bigger food-cap drop-off (+6). Build one near your farms so workers don’t walk all the way back to the Town Hall.',
+	'lumber-camp': 'Wood drop-off. Plant one near a forest so workers cut and deposit on the spot.',
+	'mining-camp': 'Gold and stone drop-off. Park next to a mine to halve the travel time.',
+	barracks: 'Trains militia and pikemen, plus several civs’ unique infantry. Adds 4 population.',
+	'archery-range':
+		'Trains archers, skirmishers, and crossbowmen — plus archer-archetype unique units. Adds 4 population.',
+	stable:
+		'Trains scout cavalry, knights, and the cavalry-archetype unique units. Adds 4 population.',
+	market:
+		'Lets you trade resources (and grants several civ bonuses involving gold). Doesn’t train anything.',
+	library:
+		'Hosts the research tree — every passive and unique-unit unlock. Click one to open the full tree (or press R).',
 	tower:
 		'Auto-attacks any enemy unit that strays into range. Cheap and sturdy. Tower marksmanship extends its range.',
-	library:
-		'Hosts the research tree — every passive, every unique-unit unlock. Click one to open the full tree (or press R).',
-	farm: 'The cheapest way to raise your population cap (+4 each). Doesn’t train anything; tuck them behind a barracks.',
 	wall: 'Cheap territorial extension. Low HP and no attack — chain them to push your border outward without paying for a full tower.',
 	gate: 'Pairs with walls to make breaches you control. Click a gate to toggle it open or closed — open lets any unit (including enemies) pass.',
 	castle:
-		'Heavy fortification with an area attack and the largest territory of any building. Locked behind the Stonemasonry research.',
+		'Heavy fortification with an area attack and the largest territory of any building. Castle Age + Stonemasonry research required.',
+	monastery: 'Trains Monks — long-range support units. Adds 4 population.',
+	'siege-workshop': 'Imperial-Age building that trains Trebuchets — long-range siege.',
 }
 
 function PauseMenu({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
@@ -1527,16 +1636,30 @@ function BuildingsGuide() {
 	)
 }
 
-const UNIT_DESCRIPTIONS: Record<UnitKind, string> = {
-	worker:
-		'Harvests wood and gold. Drops off at any town hall. Weak in combat — keep them clear of fights.',
-	soldier: 'Mainline melee infantry. Affordable HP and damage.',
-	knight: 'Heavy cavalry. Locked behind Cavalry training at the Library.',
-	paladin: 'Solari unique. Tankiest melee in the game; locked behind Holy orders.',
-	berserker: 'Crimson unique. Fast, hard-hitting raider; locked behind Blood frenzy.',
-	sorcerer: 'Mystic unique. Long-range magical attacker; locked behind Arcane studies.',
-	champion: 'Sun Tribe unique. Elite all-rounder; locked behind Champion’s path.',
-}
+// Generic per-unit copy. Base units get a hand-written line; civ-unique units
+// reuse the description from the nation entry so the two never drift apart.
+const UNIT_DESCRIPTIONS: Record<UnitKind, string> = (() => {
+	const base: Partial<Record<UnitKind, string>> = {
+		worker: 'Harvests every resource and drops off at the nearest depot. Weak in combat.',
+		soldier: 'Mainline Feudal-Age infantry. Affordable HP and damage.',
+		pikeman: 'Castle-Age anti-cavalry infantry. Cheap, durable, decent attack.',
+		archer: 'Feudal-Age ranged unit. Trained at the Archery Range.',
+		crossbowman: 'Castle-Age archer with higher HP and damage.',
+		skirmisher: 'Anti-archer ranged infantry. Short range, but fast and resilient.',
+		'scout-cavalry': 'Feudal-Age light cavalry. Fast and great for harassment / scouting.',
+		knight: 'Castle-Age heavy cavalry. Trained at the Stable.',
+		monk: 'Long-range support unit trained at the Monastery.',
+		trebuchet: 'Imperial-Age siege. Devastating against buildings; slow and fragile up close.',
+	}
+	const out: Record<string, string> = {}
+	for (const kind of Object.keys(UNIT_CONFIG)) {
+		out[kind] = base[kind as UnitKind] ?? `Civ-unique unit. See the picked nation for details.`
+	}
+	for (const n of NATIONS) {
+		out[n.uniqueUnit] = `${n.label} unique. ${n.description}`
+	}
+	return out as Record<UnitKind, string>
+})()
 
 function UnitsGuide() {
 	return (
