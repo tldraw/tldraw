@@ -25,6 +25,7 @@ import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
+import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
 import * as React_2 from 'react';
@@ -3856,6 +3857,39 @@ export interface TldrawOptions {
     readonly zoomToFitPadding: number;
 }
 
+// @public
+export const TldrawViewer: NamedExoticComponent<TldrawViewerProps>;
+
+// @public (undocumented)
+export interface TldrawViewerProps {
+    // (undocumented)
+    assets?: TLAssetStore;
+    // (undocumented)
+    assetUrls?: {
+        fonts?: {
+            [key: string]: string | undefined;
+        };
+    };
+    // (undocumented)
+    assetUtils: readonly TLAnyAssetUtilConstructor[];
+    // (undocumented)
+    bindingUtils: readonly TLAnyBindingUtilConstructor[];
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    components?: TLEditorComponents;
+    // (undocumented)
+    licenseKey?: string;
+    // (undocumented)
+    onMount?: TLOnMountHandler;
+    // (undocumented)
+    options?: Partial<TldrawOptions>;
+    // (undocumented)
+    shapeUtils: readonly TLAnyShapeUtilConstructor[];
+    // (undocumented)
+    snapshot: TLStoreSnapshot;
+}
+
 // @public (undocumented)
 export interface TLDropShapesOverInfo {
     // (undocumented)
@@ -5412,6 +5446,9 @@ export class Vec {
 
 // @public (undocumented)
 export type VecLike = Vec | VecModel;
+
+// @public
+export function ViewerCanvas({ className }: TLCanvasComponentProps): JSX.Element;
 
 
 export * from "@tldraw/state";

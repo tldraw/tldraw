@@ -86,15 +86,19 @@ export function ShapeCullingProvider({ children }: ShapeCullingProviderProps) {
 	return <ShapeCullingContext.Provider value={value}>{children}</ShapeCullingContext.Provider>
 }
 
+const NOOP_CULLING: ShapeCullingContextValue = {
+	register: () => {},
+	unregister: () => {},
+	updateCulling: () => {},
+}
+
 /**
- * Hook to access the shape culling context for container registration.
+ * Hook to access the shape culling context for container registration. Returns a
+ * no-op value when used outside a `ShapeCullingProvider` (e.g. inside the
+ * viewer, where culling is handled by filtering shapes at render time).
  *
  * @internal
  */
 export function useShapeCulling(): ShapeCullingContextValue {
-	const context = useContext(ShapeCullingContext)
-	if (!context) {
-		throw new Error('useShapeCulling must be used within ShapeCullingProvider')
-	}
-	return context
+	return useContext(ShapeCullingContext) ?? NOOP_CULLING
 }

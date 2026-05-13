@@ -18,6 +18,7 @@ import {
 	TlaFile,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
+import { SerializedSchema } from '@tldraw/store'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	DurableObjectSqliteSyncWrapper,
@@ -62,6 +63,11 @@ import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import {
+	filterRecordsToBounds,
+	parsePreviewBounds,
+	readPreviewBoundsFromDocument,
+} from './utils/filterRecordsToBounds'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
@@ -300,6 +306,20 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private readonly changeSource = 'TLFileDurableObject'
+
+	/**
+	 * In-memory cache of the post-prune, post-asset-inlined records for this
+	 * file's snapshot, used by `onDownloadTldr` so concurrent preview tile
+	 * requests don't each re-read SQLite storage and re-base64 every asset.
+	 *
+	 * Invalidated by short TTL (30s); ok if previews are mildly stale.
+	 */
+	private downloadRecordsCache: {
+		records: TLRecord[]
+		schema: SerializedSchema | undefined
+		documentName?: string
+		expiresAt: number
+	} | null = null
 
 	constructor(
 		private state: DurableObjectState,
@@ -725,6 +745,73 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
+	/**
+	 * Returns the post-prune, post-asset-inlined records for this file. Cached in
+	 * DO instance memory for 30s; concurrent preview requests skip the SQLite
+	 * read and R2 asset-inline loop.
+	 */
+	private async getDownloadRecordsCached(): Promise<{
+		records: TLRecord[]
+		schema: SerializedSchema | undefined
+		documentName?: string
+	}> {
+		const existing = this.downloadRecordsCache
+		if (existing && existing.expiresAt > Date.now()) {
+			return existing
+		}
+
+		const storage = await this.getStorage()
+		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+		const snapshot = storage.getSnapshot()
+		const pruned = pruneUnusedAssetsForTldr(snapshot.documents.map((d) => d.state) as TLRecord[])
+
+		const assetRows = await this.db
+			.selectFrom('asset')
+			.where('fileId', '=', this.documentInfo.slug)
+			.select('objectName')
+			.execute()
+		const assetObjectNames = new Set(assetRows.map((r) => r.objectName))
+
+		const env = this.env
+		const inlined: TLRecord[] = await Promise.all(
+			pruned.map(async (record) => {
+				if (record.typeName !== 'asset') return record
+				const assetRecord = record as TLAsset
+				if (assetRecord.type === 'bookmark') return record
+				const assetSrc = assetRecord.props.src
+				if (!assetSrc || assetSrc.startsWith('data:')) return record
+				const objectName = new URL(assetSrc).pathname.split('/').pop()
+				if (!objectName || !assetObjectNames.has(objectName)) return record
+				const blob = await env.UPLOADS.get(objectName)
+				if (!blob) return record
+				const ab = await blob.arrayBuffer()
+				const base64 = arrayBufferToBase64(ab)
+				const mimeType =
+					'mimeType' in assetRecord.props && assetRecord.props.mimeType
+						? assetRecord.props.mimeType
+						: 'application/octet-stream'
+				return {
+					...record,
+					props: {
+						...assetRecord.props,
+						src: `data:${mimeType};base64,${base64}`,
+					},
+				} as TLRecord
+			})
+		)
+
+		const documentRecord = inlined.find((r) => r.typeName === 'document') as TLDocument | undefined
+
+		const entry = {
+			records: inlined,
+			schema: snapshot.schema,
+			documentName: documentRecord?.name,
+			expiresAt: Date.now() + 30_000,
+		}
+		this.downloadRecordsCache = entry
+		return entry
+	}
+
 	/** Stream .tldr download (schema + records, R2 assets inlined as base64). Same access as joining the file. */
 	async onDownloadTldr(req: IRequest): Promise<Response> {
 		const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json'
@@ -770,69 +857,48 @@ export class TLFileDurableObject extends DurableObject {
 			return new Response('Forbidden', { status: 403 })
 		}
 
-		const storage = await this.getStorage()
-		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
-		const snapshot = storage.getSnapshot()
-		const records = pruneUnusedAssetsForTldr(snapshot.documents.map((d) => d.state) as TLRecord[])
+		const cached = await this.getDownloadRecordsCached()
+		let records = cached.records
 
-		const assetRows = await this.db
-			.selectFrom('asset')
-			.where('fileId', '=', this.documentInfo.slug)
-			.select('objectName')
-			.execute()
-		const assetObjectNames = new Set(assetRows.map((r) => r.objectName))
+		// Prefer the document's own preview viewport (set via the editor UI) over
+		// any client-supplied default.
+		const docBounds = readPreviewBoundsFromDocument(records)
+		const queryBounds = parsePreviewBounds(url.searchParams.get('bounds'))
+		const previewBounds = docBounds ?? queryBounds
+		const boundsSource = docBounds ? 'doc' : queryBounds ? 'query' : 'none'
+		if (previewBounds) {
+			const before = records.length
+			const t0 = performance.now()
+			records = filterRecordsToBounds(records, previewBounds)
+			const elapsed = Math.round((performance.now() - t0) * 100) / 100
+			console.error(
+				`[download:${this.documentInfo.slug}] filter (${boundsSource}) bounds=${previewBounds.x},${previewBounds.y},${previewBounds.w}x${previewBounds.h} ${before}→${records.length} records in ${elapsed}ms`
+			)
+		} else {
+			console.error(
+				`[download:${this.documentInfo.slug}] no bounds filter, ${records.length} records`
+			)
+		}
 
-		const documentRecord = records.find((r) => r.typeName === 'document') as TLDocument | undefined
 		// Prefer the TlaFile.name (kept in sync by the app layer) over the TLDocument.name
 		// (which is only updated when the document is open in an editor).
-		const rawName = file.name?.trim() || documentRecord?.name?.trim()
+		const rawName = file.name?.trim() || cached.documentName?.trim()
 		const sanitized =
 			rawName?.replace(/[^ \w-]/g, '_').slice(0, 200) || `${this.documentInfo.slug}.tldr`
 		const filename = sanitized.endsWith('.tldr') ? sanitized : `${sanitized}.tldr`
 
-		const env = this.env
+		const schema = cached.schema
 		const stream = new ReadableStream({
 			async start(controller) {
 				try {
 					const encoder = new TextEncoder()
 					controller.enqueue(
 						encoder.encode(
-							`{"tldrawFileFormatVersion":${TLDRAW_FILE_FORMAT_VERSION},"schema":${JSON.stringify(snapshot.schema)},"records":[`
+							`{"tldrawFileFormatVersion":${TLDRAW_FILE_FORMAT_VERSION},"schema":${JSON.stringify(schema)},"records":[`
 						)
 					)
 					for (let i = 0; i < records.length; i++) {
-						let record = records[i] as TLRecord
-						const assetSrc = record.typeName === 'asset' ? (record as TLAsset).props.src : null
-						if (
-							record.typeName === 'asset' &&
-							(record as TLAsset).type !== 'bookmark' &&
-							assetSrc &&
-							!assetSrc.startsWith('data:')
-						) {
-							const objectName = new URL(assetSrc).pathname.split('/').pop()
-							if (objectName && assetObjectNames.has(objectName)) {
-								const blob = await env.UPLOADS.get(objectName)
-								if (blob) {
-									const ab = await blob.arrayBuffer()
-									const base64 = arrayBufferToBase64(ab)
-									const assetRecord = record as TLAsset
-									const mimeType =
-										assetRecord.type !== 'bookmark' &&
-										'mimeType' in assetRecord.props &&
-										assetRecord.props.mimeType
-											? assetRecord.props.mimeType
-											: 'application/octet-stream'
-									record = {
-										...record,
-										props: {
-											...(record as TLAsset).props,
-											src: `data:${mimeType};base64,${base64}`,
-										},
-									} as TLRecord
-								}
-							}
-						}
-						controller.enqueue(encoder.encode((i > 0 ? ',' : '') + JSON.stringify(record)))
+						controller.enqueue(encoder.encode((i > 0 ? ',' : '') + JSON.stringify(records[i])))
 					}
 					controller.enqueue(encoder.encode(']}'))
 					controller.close()
@@ -846,6 +912,13 @@ export class TLFileDurableObject extends DurableObject {
 			headers: {
 				'Content-Type': TLDRAW_FILE_MIMETYPE,
 				'Content-Disposition': `attachment; filename="${filename}"`,
+				// Short-lived cache so /grid preview tiles don't re-fetch the
+				// same snapshot repeatedly. Private because access is auth-gated;
+				// vary on Authorization so caches don't serve user A's response to
+				// user B. Vary on bounds query is implicit (different URL = different
+				// cache entry).
+				'Cache-Control': 'private, max-age=30',
+				Vary: 'Authorization',
 			},
 		})
 	}

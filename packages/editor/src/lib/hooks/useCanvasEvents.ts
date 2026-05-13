@@ -223,7 +223,7 @@ export function useCanvasEvents() {
 			// so it appears like the ink is working locally, when really it's just that `useCoalescedEvents`
 			// is disabled. The intent here is to have `useCoalescedEvents` disabled for iOS.
 			const events =
-				!tlenv.isIos && currentTool.useCoalescedEvents && e.getCoalescedEvents
+				!tlenv.isIos && currentTool?.useCoalescedEvents && e.getCoalescedEvents
 					? e.getCoalescedEvents()
 					: [e]
 

@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect } from 'react'
+import { NavLink } from 'react-router-dom'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import {
@@ -101,6 +102,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				</div>
 				<div className={styles.sidebarContent}>
 					<div className={styles.sidebarContentInner}>
+						<TlaSidebarGridLinks />
 						{hasGroups ? <NewSidebarLayout /> : <LegacySidebarLayout />}
 					</div>
 				</div>
@@ -135,3 +137,18 @@ function NewSidebarLayout() {
 		</>
 	)
 }
+
+/* eslint-disable tldraw/jsx-no-literals */
+function TlaSidebarGridLinks() {
+	return (
+		<div className={styles.sidebarGridLinks}>
+			<NavLink to="/grid" className={styles.sidebarGridLink}>
+				Grid
+			</NavLink>
+			<NavLink to="/grid-original" className={styles.sidebarGridLink}>
+				Grid original
+			</NavLink>
+		</div>
+	)
+}
+/* eslint-enable tldraw/jsx-no-literals */
