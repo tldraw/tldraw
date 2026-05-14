@@ -25,7 +25,14 @@ const defaultBlueprintRenderingOptions = {
 	centerOnPosition: true,
 }
 
-/** @public */
+/**
+ * Materialize a {@link DiagramMermaidBlueprint} as tldraw shapes/arrows/groups.
+ *
+ * The top-level shape (root group when there are 2+ shapes, single shape otherwise) is
+ * stamped with `meta.mermaidDiagramKind = blueprint.diagramKind` so callers can later
+ * identify "this group is a mermaid <kind> diagram" without re-parsing the source text.
+ * @public
+ */
 export function renderBlueprint(
 	editor: Editor,
 	blueprint: DiagramMermaidBlueprint,
@@ -167,6 +174,15 @@ export function renderBlueprint(
 	}
 
 	if (rootShapeId) {
+		const rootShape = editor.getShape(rootShapeId)
+		if (rootShape) {
+			editor.updateShape({
+				id: rootShapeId,
+				type: rootShape.type,
+				meta: { ...rootShape.meta, mermaidDiagramKind: diagramKind },
+			})
+		}
+
 		const actualBounds = editor.getShapePageBounds(rootShapeId)
 		if (actualBounds) {
 			const desiredX = options.centerOnPosition ? center.x - actualBounds.w / 2 : center.x

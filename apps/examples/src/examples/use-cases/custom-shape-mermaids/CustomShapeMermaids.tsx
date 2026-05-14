@@ -3,12 +3,14 @@
  * Mermaid flowchart → DAG pipeline demo: paste flowchart/graph source, apply to the canvas, run simulated steps.
  * - `blueprintRender.mapNodeToRenderSpec` maps each flowchart vertex to `flowchart-util` + `mermaidNodeId`.
  * - After import, graph and layer badges come from arrows + bindings (`extractFlowchartPipelineFromEditor`).
+ * - "Copy as Mermaid" serializes the canvas back to `flowchart LR` source via `editorToFlowchartMermaid`.
  */
 import { useCallback, useState } from 'react'
-import { TLComponents, Tldraw, TldrawUiButton, useEditor, useValue } from 'tldraw'
+import { TLComponents, Tldraw, TldrawUiButton, useEditor, useToasts, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { FlowchartShapeUtil } from './customMermaidShapeUtil'
 import './custom-shape-mermaid.css'
+import { editorToFlowchartMermaid } from './editorToMermaid'
 import { getFlowchartSourceError } from './flowchartSourceGuard'
 import { mapNodeToRenderSpec } from './mermaidPipelineBlueprint'
 import { type StepStatus, pipelineStateAtom, runFullPipeline } from './mermaidPipelineState'
@@ -37,12 +39,14 @@ export default function MermaidDiagramsCustomShapes() {
 
 function TopPanel() {
 	const editor = useEditor()
+	const { addToast } = useToasts()
 	const [mermaidText, setMermaidText] = useState(DEFAULT_MERMAID)
 	const [isApplying, setIsApplying] = useState(false)
 	const pipeline = useValue(pipelineStateAtom)
 
 	const canRun =
 		!pipeline.parseError && pipeline.nodeIds.length > 0 && !pipeline.isRunning && !isApplying
+	const canCopy = pipeline.nodeIds.length > 0 && !isApplying
 
 	const applyWorkflow = useCallback(async () => {
 		if (isApplying) return
@@ -129,6 +133,21 @@ function TopPanel() {
 		void runFullPipeline()
 	}, [])
 
+	const copyAsMermaid = useCallback(async () => {
+		const source = editorToFlowchartMermaid(editor)
+		setMermaidText(source)
+		try {
+			await navigator.clipboard.writeText(source)
+			addToast({ title: 'Copied as Mermaid', severity: 'success' })
+		} catch {
+			addToast({
+				title: 'Copy failed',
+				description: 'Mermaid source is in the textarea above.',
+				severity: 'warning',
+			})
+		}
+	}, [editor, addToast])
+
 	return (
 		<div className="custom-shape-mermaid">
 			<div>
@@ -154,6 +173,9 @@ function TopPanel() {
 				</TldrawUiButton>
 				<TldrawUiButton type="low" onClick={runPipeline} disabled={!canRun}>
 					Run pipeline
+				</TldrawUiButton>
+				<TldrawUiButton type="low" onClick={copyAsMermaid} disabled={!canCopy}>
+					Copy as Mermaid
 				</TldrawUiButton>
 			</div>
 			{pipeline.isRunning && (

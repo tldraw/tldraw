@@ -78,8 +78,11 @@ export class FlowchartShapeUtil extends BaseBoxShapeUtil<ICustomShape> {
 		}
 	}
 
-	override canEdit(shape: ICustomShape) {
-		return false
+	override canEdit(_shape: ICustomShape) {
+		// Allow double-click to edit the rich-text label. `RichTextLabel` handles the
+		// editor wiring via `useEditableRichText`; `mermaidNodeId` and
+		// `pipelineStepIndex` are stored separately, so edits don't disturb the DAG.
+		return true
 	}
 
 	override component(shape: ICustomShape) {

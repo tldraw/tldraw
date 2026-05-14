@@ -48,6 +48,12 @@ export interface MermaidDiagramOptions {
  * Parse mermaid text and create tldraw shapes for supported diagram types.
  * Returns the SVG string for supported diagrams, or `null` when the diagram type
  * is unsupported (after calling `onUnsupportedDiagram` if provided).
+ *
+ * The top-level shape created for the diagram (the root group when there are 2+ shapes,
+ * or the single shape otherwise) is stamped with `meta.mermaidDiagramKind` so callers can
+ * recognize "this is a mermaid <kind> diagram" without re-parsing — the value is one of
+ * {@link MermaidDiagramKind} (`'flowchart' | 'state' | 'sequence' | 'mindmap'`).
+ *
  * Throws {@link MermaidDiagramError} if parsing fails.
  * @public
  */
