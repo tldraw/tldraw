@@ -1,0 +1,45 @@
+.isbn-map-top-panel {
+	margin: 8px;
+	padding: 8px 10px;
+	max-width: min(720px, calc(100vw - 32px));
+	pointer-events: all;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.isbn-map-top-panel__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+}
+
+.isbn-map-top-panel__divider {
+	width: 1px;
+	height: 24px;
+	background: var(--color-divider);
+	margin: 0 4px;
+}
+
+.isbn-map-top-panel__description {
+	font-size: 12px;
+	color: var(--color-text-2);
+	line-height: 1.4;
+	min-height: 1.4em;
+}
+
+.isbn-map-readout {
+	position: absolute;
+	bottom: 64px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: var(--color-panel);
+	color: var(--color-text);
+	border: 1px solid var(--color-divider);
+	border-radius: 8px;
+	padding: 4px 10px;
+	font-size: 12px;
+	font-family: var(--tl-font-mono, monospace);
+	pointer-events: none;
+}
