@@ -18,6 +18,7 @@ import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentT
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+import { githubShapeUtils } from '../../shapes/githubShapeUtils'
 
 /** @internal */
 export const components: TLComponents = {
@@ -74,6 +75,7 @@ function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 				className="tla-editor"
 				licenseKey={getLicenseKey()}
 				snapshot={snapshot}
+				shapeUtils={githubShapeUtils}
 				assetUrls={assetUrls}
 				onMount={handleMount}
 				overrides={[fileSystemUiOverrides]}

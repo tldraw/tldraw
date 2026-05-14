@@ -1,6 +1,7 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 import { Queue } from '@cloudflare/workers-types'
+import { TlaFileWebhookEventType } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -187,7 +188,7 @@ export type QueueMessage =
 			type: 'webhook-delivery'
 			webhookId: string
 			fileSlug: string
-			event: 'shape.created' | 'shape.updated' | 'shape.deleted'
+			event: TlaFileWebhookEventType
 			deliveryId: string
 			url: string
 			secret: string

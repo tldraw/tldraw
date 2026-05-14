@@ -358,6 +358,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 								'Content-Type': 'application/json',
 								'X-Tldraw-Event': body.event,
 								'X-Tldraw-Delivery': body.deliveryId,
+								'X-Tldraw-Webhook-Id': body.webhookId,
 								'X-Tldraw-Signature': `sha256=${signature}`,
 							},
 							body: envelope,

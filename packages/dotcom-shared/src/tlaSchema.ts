@@ -274,7 +274,13 @@ export interface TlaApiToken {
 	revokedAt: number | null
 }
 
-export type TlaFileWebhookEventType = 'shape.created' | 'shape.updated' | 'shape.deleted'
+export type TlaFileWebhookEventType =
+	| 'shape.created'
+	| 'shape.updated'
+	| 'shape.deleted'
+	| 'binding.created'
+	| 'binding.updated'
+	| 'binding.deleted'
 
 export interface TlaFileWebhookFilter {
 	paths?: string[]

@@ -2,7 +2,8 @@ import { IRequest, StatusError } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../../utils/roomIdIsTooLong'
-import { requireAuth, requireWriteAccessForUser } from '../../utils/tla/getAuth'
+import { requireWriteAccessForUser } from '../../utils/tla/getAuth'
+import { requireUserAuth } from '../../utils/tla/requireUserAuth'
 
 export async function deleteWebhook(request: IRequest, env: Environment): Promise<Response> {
 	const fileSlug = request.params.fileSlug
@@ -15,7 +16,7 @@ export async function deleteWebhook(request: IRequest, env: Environment): Promis
 	}
 	if (isRoomIdTooLong(fileSlug)) return roomIdIsTooLong()
 
-	const auth = await requireAuth(request, env)
+	const auth = await requireUserAuth(request, env)
 	try {
 		await requireWriteAccessForUser(env, auth.userId, fileSlug)
 	} catch (e) {

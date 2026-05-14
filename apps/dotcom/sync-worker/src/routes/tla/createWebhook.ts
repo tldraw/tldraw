@@ -4,13 +4,22 @@ import { IRequest, StatusError } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../../utils/roomIdIsTooLong'
-import { requireAuth, requireWriteAccessForUser } from '../../utils/tla/getAuth'
+import { requireWriteAccessForUser } from '../../utils/tla/getAuth'
+import { requireUserAuth } from '../../utils/tla/requireUserAuth'
 import { validateWebhookUrl } from '../../utils/webhookValidation'
 
 const SUPPORTED_EVENT_TYPES: ReadonlySet<TlaFileWebhookEventType> = new Set([
 	'shape.created',
 	'shape.updated',
 	'shape.deleted',
+	'binding.created',
+	'binding.updated',
+	'binding.deleted',
+])
+
+const EVENTS_REQUIRING_FILTER_PATHS: ReadonlySet<TlaFileWebhookEventType> = new Set([
+	'shape.updated',
+	'binding.updated',
 ])
 const MAX_WEBHOOKS_PER_FILE = 10
 const MAX_FILTER_PATHS = 20
@@ -29,7 +38,7 @@ export async function createWebhook(request: IRequest, env: Environment): Promis
 	}
 	if (isRoomIdTooLong(fileSlug)) return roomIdIsTooLong()
 
-	const auth = await requireAuth(request, env)
+	const auth = await requireUserAuth(request, env)
 	try {
 		await requireWriteAccessForUser(env, auth.userId, fileSlug)
 	} catch (e) {
@@ -60,7 +69,7 @@ export async function createWebhook(request: IRequest, env: Environment): Promis
 	}
 
 	let filter: TlaFileWebhookFilter | null = null
-	if (eventType === 'shape.updated') {
+	if (EVENTS_REQUIRING_FILTER_PATHS.has(eventType)) {
 		const paths = body.filter?.paths
 		if (
 			!isStringArray(paths) ||
@@ -71,7 +80,7 @@ export async function createWebhook(request: IRequest, env: Environment): Promis
 			return Response.json(
 				{
 					error: true,
-					message: `shape.updated requires filter.paths: non-empty string[] of <= ${MAX_FILTER_PATHS} dot-paths, each <= ${MAX_FILTER_PATH_LENGTH} chars`,
+					message: `${eventType} requires filter.paths: non-empty string[] of <= ${MAX_FILTER_PATHS} dot-paths, each <= ${MAX_FILTER_PATH_LENGTH} chars`,
 				},
 				{ status: 400 }
 			)
