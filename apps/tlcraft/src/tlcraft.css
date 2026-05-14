@@ -852,6 +852,129 @@
 	gap: 6px;
 }
 
+.tlc-hud__idle {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 8px;
+	border-radius: 8px;
+	background: rgba(250, 204, 21, 0.18);
+	color: #ca8a04;
+	font: inherit;
+	font-size: 11px;
+	border: 1px solid rgba(250, 204, 21, 0.35);
+	cursor: pointer;
+}
+
+.tlc-hud__idle:hover {
+	background: rgba(250, 204, 21, 0.28);
+}
+
+.tlc-hud__idle--zero {
+	opacity: 0.5;
+	cursor: default;
+	background: transparent;
+	border-color: var(--tl-color-divider);
+	color: var(--tl-color-text-1);
+}
+
+.tlc-hud__idle kbd {
+	display: inline-block;
+	padding: 0 3px;
+	border-radius: 3px;
+	background: rgba(0, 0, 0, 0.1);
+	font: inherit;
+	font-size: 10px;
+}
+
+/* Selection panel — floats above the build toolbar at the bottom. */
+.tlc-select-panel {
+	position: absolute;
+	bottom: 96px;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
+	background: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 10px;
+	box-shadow: var(--tl-shadow-2);
+	pointer-events: all;
+	z-index: 250;
+	color: var(--tl-color-text);
+	font-size: 12px;
+}
+
+.tlc-select-panel__kinds {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.tlc-select-panel__kind {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px;
+	border-radius: 6px;
+	background: var(--tl-color-low);
+	border: 1px solid var(--tl-color-divider);
+	color: var(--tl-color-text);
+	cursor: pointer;
+	font: inherit;
+}
+
+.tlc-select-panel__kind:hover {
+	background: var(--tl-color-hint);
+}
+
+.tlc-select-panel__glyph {
+	display: inline-flex;
+	width: 18px;
+	height: 18px;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: var(--tl-color-text);
+	color: var(--tl-color-panel);
+	font-size: 10px;
+	font-weight: 600;
+}
+
+.tlc-select-panel__count {
+	font-variant-numeric: tabular-nums;
+}
+
+.tlc-select-panel__stances {
+	display: flex;
+	gap: 4px;
+}
+
+.tlc-select-panel__stance {
+	padding: 2px 8px;
+	border-radius: 6px;
+	background: var(--tl-color-low);
+	border: 1px solid var(--tl-color-divider);
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+	font: inherit;
+	font-size: 11px;
+}
+
+.tlc-select-panel__stance:hover {
+	background: var(--tl-color-hint);
+}
+
+.tlc-select-panel__stance.is-active {
+	background: var(--tl-color-selected);
+	color: var(--tl-color-selected-contrast, white);
+	border-color: var(--tl-color-selected);
+}
+
 .tlc-hud__diplo {
 	display: inline-flex;
 	align-items: center;

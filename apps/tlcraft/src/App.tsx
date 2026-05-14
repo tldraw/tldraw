@@ -55,7 +55,10 @@ import {
 	paused$,
 	aiDifficulty$,
 	attackMoveArmed$,
+	controlGroups$,
+	lastIdleWorkerCycleId$,
 	placingBuilding$,
+	rallyPoints,
 	playerAges$,
 	playerNations$,
 	playerResources$,
@@ -351,6 +354,19 @@ function DragSelectListener() {
 			}
 			if (selectedUnitIds$.get().size > 0) {
 				commandSelectedUnits(editor, { x: page.x, y: page.y })
+				return
+			}
+			// No units selected, but a production building is — set its rally
+			// point. Only own buildings that train units accept rallies.
+			const selBuildingId = selectedBuildingId$.get()
+			if (selBuildingId) {
+				const shape = editor.getShape(selBuildingId)
+				if (shape && shape.meta?.owner === HUMAN_PLAYER_ID) {
+					const kind = (shape.meta?.buildingKind as BuildingKind | undefined) ?? null
+					if (kind && BUILDING_CONFIG[kind].trains.length > 0) {
+						rallyPoints.set(selBuildingId, { x: page.x, y: page.y })
+					}
+				}
 			}
 		}
 		window.addEventListener('pointermove', onMove)
@@ -422,40 +438,127 @@ function WallDragListener() {
 	return null
 }
 
+// ---------------------------------------------------------------------------
+// Control groups + idle worker cycle
+//
+// Helpers used by the keyboard shortcuts panel. Kept module-scope so they can
+// be invoked from the keydown handler without re-creating closures per render.
+
+function assignControlGroup(slot: number) {
+	const ids = selectedUnitIds$.get()
+	controlGroups$.update((prev) => ({ ...prev, [slot]: new Set(ids) }))
+}
+
+function selectControlGroup(
+	editor: Editor,
+	slot: number,
+	lastTap: Map<number, number>,
+	doubleTapMs: number
+) {
+	const group = controlGroups$.get()[slot]
+	if (!group || group.size === 0) return
+	// Validate: drop dead units so the slot self-cleans over time.
+	const alive = new Set<number>()
+	const living = new Set<number>()
+	for (const u of units$.get()) if (u.hp > 0) living.add(u.id)
+	for (const id of group) if (living.has(id)) alive.add(id)
+	if (alive.size === 0) {
+		controlGroups$.update((prev) => ({ ...prev, [slot]: alive }))
+		return
+	}
+	controlGroups$.update((prev) => ({ ...prev, [slot]: alive }))
+	selectedBuildingId$.set(null)
+	selectedUnitIds$.set(new Set(alive))
+	// Double-tap centres camera on the group's average position.
+	const now = performance.now()
+	const prev = lastTap.get(slot) ?? 0
+	lastTap.set(slot, now)
+	if (now - prev < doubleTapMs) {
+		let cx = 0
+		let cy = 0
+		let n = 0
+		for (const u of units$.get()) {
+			if (!alive.has(u.id)) continue
+			cx += u.x
+			cy += u.y
+			n++
+		}
+		if (n > 0) {
+			cx /= n
+			cy /= n
+			editor.centerOnPoint({ x: cx, y: cy }, { animation: { duration: 220 } })
+		}
+	}
+}
+
+function cycleIdleWorker(editor: Editor) {
+	const list = units$.get()
+	const idle = list
+		.filter((u) => u.owner === HUMAN_PLAYER_ID && u.kind === 'worker' && u.hp > 0)
+		.filter((u) => u.command.type === 'idle' && u.gatherUntilMs === 0)
+	if (idle.length === 0) return
+	const lastId = lastIdleWorkerCycleId$.get()
+	let next = idle[0]
+	if (lastId !== null) {
+		const idx = idle.findIndex((u) => u.id === lastId)
+		if (idx >= 0 && idx + 1 < idle.length) next = idle[idx + 1]
+		else next = idle[0]
+	}
+	lastIdleWorkerCycleId$.set(next.id)
+	selectedBuildingId$.set(null)
+	selectedUnitIds$.set(new Set([next.id]))
+	editor.centerOnPoint({ x: next.x, y: next.y }, { animation: { duration: 180 } })
+}
+
 function KeyboardShortcuts() {
 	const editor = useEditor()
 	useEffect(() => {
+		// Track double-tap for control-group center-on-camera.
+		const lastDigitPress = new Map<number, number>()
+		const DOUBLE_TAP_MS = 350
+
+		const buildingByDigit: Record<string, BuildingKind | undefined> = {
+			'1': 'town-hall',
+			'2': 'barracks',
+			'3': 'tower',
+			'4': 'library',
+			'5': 'farm',
+			'6': 'wall',
+			'7': 'castle',
+			'8': 'gate',
+		}
+
 		const onKeyDown = (e: KeyboardEvent) => {
-			if (e.metaKey || e.ctrlKey || e.altKey) return
 			const target = e.target as HTMLElement | null
 			if (target?.matches('input, textarea, [contenteditable="true"]')) return
+			// Control groups (Ctrl+digit assign, Shift+digit selects building,
+			// digit alone selects the group). Process these *before* the
+			// no-modifier guard so Ctrl-prefixed keys reach this handler.
+			if (e.key >= '1' && e.key <= '9') {
+				const slot = parseInt(e.key, 10)
+				if (e.ctrlKey || e.metaKey) {
+					e.preventDefault()
+					assignControlGroup(slot)
+					return
+				}
+				if (e.shiftKey) {
+					e.preventDefault()
+					const kind = buildingByDigit[e.key]
+					if (kind) pickBuilding(kind)
+					return
+				}
+				if (e.altKey) return
+				e.preventDefault()
+				selectControlGroup(editor, slot, lastDigitPress, DOUBLE_TAP_MS)
+				return
+			}
+			if (e.metaKey || e.ctrlKey || e.altKey) return
 			// preventDefault on every key we handle so tldraw's built-in tool
 			// hotkeys (1=select, 2=hand, 3=draw, R=rectangle, etc.) can't fire
 			// in parallel and leave the editor in a shape-drawing state.
-			if (e.key === '1') {
+			if (e.key === '.') {
 				e.preventDefault()
-				pickBuilding('town-hall')
-			} else if (e.key === '2') {
-				e.preventDefault()
-				pickBuilding('barracks')
-			} else if (e.key === '3') {
-				e.preventDefault()
-				pickBuilding('tower')
-			} else if (e.key === '4') {
-				e.preventDefault()
-				pickBuilding('library')
-			} else if (e.key === '5') {
-				e.preventDefault()
-				pickBuilding('farm')
-			} else if (e.key === '6') {
-				e.preventDefault()
-				pickBuilding('wall')
-			} else if (e.key === '7') {
-				e.preventDefault()
-				pickBuilding('castle')
-			} else if (e.key === '8') {
-				e.preventDefault()
-				pickBuilding('gate')
+				if (gameStarted$.get()) cycleIdleWorker(editor)
 			} else if (e.key === 'r' || e.key === 'R') {
 				e.preventDefault()
 				if (gameStarted$.get()) researchTreeOpen$.update((v) => !v)
@@ -534,6 +637,7 @@ function HUD({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 				<span>
 					Units <strong>{unitCount}</strong>
 				</span>
+				<HudIdleWorkers />
 				<span>
 					Score <strong>{r.score}</strong>
 				</span>
@@ -869,6 +973,127 @@ function DiplomacyControl({ other }: { other: PlayerId }) {
 				</button>
 			)}
 		</span>
+	)
+}
+
+// Floating panel showing the current selection grouped by unit kind, with a
+// stance toggle. Hidden when selection is empty or a building is selected.
+function SelectionPanel() {
+	const selectedIds = useValue('selSet', () => selectedUnitIds$.get(), [])
+	const allUnits = useValue('selUnits', () => units$.get(), [])
+	if (selectedIds.size === 0) return null
+	const selected = allUnits.filter((u) => selectedIds.has(u.id) && u.hp > 0)
+	if (selected.length === 0) return null
+
+	const byKind = new Map<UnitKind, number>()
+	for (const u of selected) byKind.set(u.kind, (byKind.get(u.kind) ?? 0) + 1)
+	const kinds = [...byKind.entries()].sort((a, b) => b[1] - a[1])
+
+	// Mixed stance shows "—"; otherwise the shared stance.
+	const stances = new Set<string>()
+	for (const u of selected) stances.add(u.stance ?? 'aggressive')
+	const sharedStance = stances.size === 1 ? [...stances][0] : null
+
+	const setStance = (s: 'aggressive' | 'defensive' | 'hold-position') => {
+		units$.update((list) => list.map((u) => (selectedIds.has(u.id) ? { ...u, stance: s } : u)))
+	}
+	const subselect = (kind: UnitKind, additive: boolean) => {
+		if (additive) {
+			// Shift-click: remove this kind from the selection.
+			selectedUnitIds$.update((prev) => {
+				const next = new Set<number>()
+				for (const u of allUnits) if (prev.has(u.id) && u.kind !== kind) next.add(u.id)
+				return next
+			})
+		} else {
+			// Plain click: replace with just this kind.
+			const next = new Set<number>()
+			for (const u of selected) if (u.kind === kind) next.add(u.id)
+			selectedUnitIds$.set(next)
+		}
+	}
+
+	return (
+		<div className="tlc-select-panel">
+			<div className="tlc-select-panel__kinds">
+				{kinds.map(([kind, n]) => (
+					<button
+						key={kind}
+						className="tlc-select-panel__kind"
+						onClick={(e) => subselect(kind, e.shiftKey)}
+						title={`${UNIT_CONFIG[kind].label} × ${n}. Click to subselect; shift-click to remove.`}
+					>
+						<span className="tlc-select-panel__glyph">{UNIT_CONFIG[kind].glyph}</span>
+						<span className="tlc-select-panel__count">{n}</span>
+					</button>
+				))}
+			</div>
+			<div className="tlc-select-panel__stances">
+				<button
+					className={
+						'tlc-select-panel__stance' + (sharedStance === 'aggressive' ? ' is-active' : '')
+					}
+					onClick={() => setStance('aggressive')}
+					title="Aggressive — chase enemies in vision"
+				>
+					Aggressive
+				</button>
+				<button
+					className={
+						'tlc-select-panel__stance' + (sharedStance === 'defensive' ? ' is-active' : '')
+					}
+					onClick={() => setStance('defensive')}
+					title="Defensive — engage but don't chase"
+				>
+					Defensive
+				</button>
+				<button
+					className={
+						'tlc-select-panel__stance' + (sharedStance === 'hold-position' ? ' is-active' : '')
+					}
+					onClick={() => setStance('hold-position')}
+					title="Hold position — fire in range, don't move"
+				>
+					Hold
+				</button>
+			</div>
+		</div>
+	)
+}
+
+function HudIdleWorkers() {
+	const editor = useEditor()
+	const count = useValue(
+		'idleWorkers',
+		() => {
+			let n = 0
+			for (const u of units$.get()) {
+				if (u.owner !== HUMAN_PLAYER_ID) continue
+				if (u.kind !== 'worker') continue
+				if (u.hp <= 0) continue
+				if (u.command.type !== 'idle') continue
+				if (u.gatherUntilMs > 0) continue
+				n++
+			}
+			return n
+		},
+		[]
+	)
+	if (count === 0) {
+		return (
+			<span className="tlc-hud__idle tlc-hud__idle--zero" title="No idle workers">
+				Idle <strong>0</strong>
+			</span>
+		)
+	}
+	return (
+		<button
+			className="tlc-hud__idle"
+			title="Cycle through idle workers (period key)"
+			onClick={() => cycleIdleWorker(editor)}
+		>
+			Idle <strong>{count}</strong> <kbd>.</kbd>
+		</button>
 	)
 }
 
@@ -1985,6 +2210,7 @@ export default function App() {
 					<KeyboardShortcuts />
 				</Tldraw>
 			</div>
+			<SelectionPanel />
 			<Toolbar editorRef={editorRef} />
 			{/*
 			 * Modals render as siblings of the editor / HUD / toolbar so they

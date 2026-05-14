@@ -200,6 +200,14 @@ export const attackMoveArmed$ = atom('attackMoveArmed', false)
 // the match begins. Resets to 'normal' on game reset.
 export const aiDifficulty$ = atom<'easy' | 'normal' | 'hard'>('aiDifficulty', 'normal')
 
+// Control groups: slot (1–9) → unit-id set. Ctrl+digit assigns the current
+// selection; plain digit re-selects the slot. Double-tap centres camera.
+export const controlGroups$ = atom<Record<number, ReadonlySet<number>>>('controlGroups', {})
+
+// Last idle-worker cycle target so the period key rotates through workers
+// instead of selecting the same one twice.
+export const lastIdleWorkerCycleId$ = atom<number | null>('lastIdleWorkerCycle', null)
+
 export const playerResources$ = atom<Record<PlayerId, PlayerResources>>(
 	'playerResources',
 	freshAllResources()
@@ -249,6 +257,12 @@ export function reseedSim(seed: number = freshSeed()) {
 	simSeed$.set(seed)
 	setRandomSeed(seed)
 }
+
+// Per-production-building rally point. When a unit finishes training, the
+// game loop issues an automatic move command toward this point so the player
+// doesn't have to babysit each barracks. Cleaned up in syncBuildings when
+// the source building dies.
+export const rallyPoints = new Map<TLShapeId, { x: number; y: number }>()
 
 export const trainQueues = new Map<TLShapeId, TrainQueueItem[]>()
 export const buildingCooldowns = new Map<TLShapeId, { lastFiredAt: number }>()
@@ -386,6 +400,7 @@ export function resetGameState() {
 	selectedMapType$.set(null)
 	reseedSim()
 	trainQueues.clear()
+	rallyPoints.clear()
 	buildingCooldowns.clear()
 	trainQueuesAtom$.set({})
 	researchQueues.clear()
@@ -398,6 +413,8 @@ export function resetGameState() {
 	ageResearchByPlayer$.set({})
 	attackMoveArmed$.set(false)
 	aiDifficulty$.set('normal')
+	controlGroups$.set({})
+	lastIdleWorkerCycleId$.set(null)
 	resetDiplomacy()
 	resetAiVision()
 	_nextUnitId = 1

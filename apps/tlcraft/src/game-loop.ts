@@ -40,6 +40,7 @@ import {
 	nextProjectileId,
 	paused$,
 	playerAges$,
+	rallyPoints,
 	nextUnitId,
 	upgradeQueues,
 	upgradeQueuesAtom$,
@@ -55,7 +56,7 @@ import {
 	units$,
 	updateResources,
 } from './game-state'
-import { rebuildNav } from './nav'
+import { pathfind, rebuildNav } from './nav'
 import { HUMAN_PLAYER_ID, PLAYERS, PlayerId, isEnemyOf } from './players'
 import {
 	getCarryMultiplier,
@@ -199,6 +200,9 @@ function syncBuildings(editor: Editor) {
 	for (const id of [...upgradeQueues.keys()]) {
 		if (!liveIds.has(id)) upgradeQueues.delete(id)
 	}
+	for (const id of [...rallyPoints.keys()]) {
+		if (!liveIds.has(id)) rallyPoints.delete(id)
+	}
 	// Rebuild the pathfinding masks every tick so newly-placed walls / dead
 	// buildings / opened gates reflect in the next command's path.
 	rebuildNav(lastBuildingsByTick)
@@ -264,7 +268,25 @@ function tickTraining(now: number) {
 		const distFromCenter = building.halfSize + 26
 		const x = building.cx + Math.cos(angle) * distFromCenter
 		const y = building.cy + Math.sin(angle) * distFromCenter
-		spawnUnit(head.kind, x, y, building.owner)
+		const newId = spawnUnit(head.kind, x, y, building.owner)
+		// Rally point: if the building has one, issue a move command to the
+		// newly spawned unit so it walks there instead of standing on the
+		// production building's edge.
+		const rally = rallyPoints.get(shapeId)
+		if (rally) {
+			const mode = UNIT_CONFIG[head.kind].canTraverseWater === true ? 'water' : 'land'
+			units$.update((list) =>
+				list.map((u) =>
+					u.id === newId
+						? {
+								...u,
+								command: { type: 'move', x: rally.x, y: rally.y },
+								path: pathfind(u.x, u.y, rally.x, rally.y, mode),
+							}
+						: u
+				)
+			)
+		}
 		queue.shift()
 		// Re-anchor the next item's start to "now" so the head clock matches the
 		// game-loop's elapsedMs (toolbar enqueues set startedAtMs=0 for non-head
@@ -351,7 +373,7 @@ function tickResearch(now: number) {
 	if (mutated) researchQueuesAtom$.set(snapshotResearchQueues())
 }
 
-export function spawnUnit(kind: UnitKind, x: number, y: number, owner: PlayerId) {
+export function spawnUnit(kind: UnitKind, x: number, y: number, owner: PlayerId): number {
 	const cfg = UNIT_CONFIG[kind]
 	// Heavy armor tech buffs HP at spawn time only; existing units don't heal up.
 	const hpMult = kind === 'worker' ? 1 : getUnitHpMultiplier(owner)
@@ -373,6 +395,7 @@ export function spawnUnit(kind: UnitKind, x: number, y: number, owner: PlayerId)
 	}
 	units$.update((list) => [...list, unit])
 	updateResources(owner, (r) => ({ ...r, food: r.food + 1 }))
+	return unit.id
 }
 
 // ------------------------------ units -----------------------------------
