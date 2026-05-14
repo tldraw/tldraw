@@ -34,6 +34,14 @@ import {
 	resetTownDeck,
 } from './building-config'
 import { commandSelectedUnits, selectUnitsInBox } from './command'
+import {
+	acceptPeace,
+	declareWar,
+	declinePeace,
+	diplomacyProposals$,
+	getRelation,
+	proposePeace,
+} from './diplomacy'
 import { resizeFogGrids } from './fog'
 import { resetGameLoop, runGameTick, spawnUnit } from './game-loop'
 import {
@@ -45,6 +53,7 @@ import {
 	gameStarted$,
 	humanResources,
 	paused$,
+	aiDifficulty$,
 	attackMoveArmed$,
 	placingBuilding$,
 	playerAges$,
@@ -91,7 +100,7 @@ import { ResourceOverlayUtil } from './overlays/ResourceOverlayUtil'
 import { TerrainOverlayUtil } from './overlays/TerrainOverlayUtil'
 import { TerritoryBoundaryOverlayUtil } from './overlays/TerritoryBoundaryOverlayUtil'
 import { UnitOverlayUtil } from './overlays/UnitOverlayUtil'
-import { HUMAN_PLAYER_ID, PLAYERS, getPlayer, updatePlayerStartBases } from './players'
+import { HUMAN_PLAYER_ID, PLAYERS, PlayerId, getPlayer, updatePlayerStartBases } from './players'
 import { SaveSlotInfo, deleteSave, listSaves, loadGame, saveGame } from './save'
 import { canTrainUnit, getUniqueUnitKindForPlayer, hasTech } from './tech'
 import { LIBRARY_TECH_IDS, TECH_CONFIG, TechId, getTechsByTier } from './tech-config'
@@ -546,6 +555,7 @@ function HUD({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 					return (
 						<span key={p.id} className="tlc-hud__player" style={{ color: p.minimapColor }}>
 							{label}: <strong>{allResources[p.id]?.score ?? 0}</strong>
+							{p.id !== HUMAN_PLAYER_ID && <DiplomacyControl other={p.id} />}
 						</span>
 					)
 				})}
@@ -802,6 +812,66 @@ function BuildGlyph({ kind }: { kind: BuildingKind }) {
 	)
 }
 
+function DiplomacyControl({ other }: { other: PlayerId }) {
+	const relation = useValue('diploRel', () => getRelation(HUMAN_PLAYER_ID, other), [other])
+	const incomingProposal = useValue(
+		'diploIncoming',
+		() => diplomacyProposals$.get().find((p) => p.from === other && p.to === HUMAN_PLAYER_ID),
+		[other]
+	)
+	const outgoingProposal = useValue(
+		'diploOutgoing',
+		() => diplomacyProposals$.get().find((p) => p.from === HUMAN_PLAYER_ID && p.to === other),
+		[other]
+	)
+	const now = useValue('diploNow', () => elapsedMs$.get(), [])
+	const onPropose = useCallback(() => {
+		proposePeace(HUMAN_PLAYER_ID, other, elapsedMs$.get())
+	}, [other])
+	const onDeclareWar = useCallback(() => {
+		declareWar(HUMAN_PLAYER_ID, other, elapsedMs$.get())
+	}, [other])
+	const onAccept = useCallback(() => {
+		acceptPeace(other, HUMAN_PLAYER_ID, elapsedMs$.get())
+	}, [other])
+	const onDecline = useCallback(() => {
+		declinePeace(other, HUMAN_PLAYER_ID, elapsedMs$.get())
+	}, [other])
+
+	if (incomingProposal) {
+		const remaining = Math.max(0, Math.round((incomingProposal.expiresAt - now) / 1000))
+		return (
+			<span className="tlc-hud__diplo">
+				<button className="tlc-hud__diplo-btn tlc-hud__diplo-btn--accept" onClick={onAccept}>
+					Accept peace ({remaining}s)
+				</button>
+				<button className="tlc-hud__diplo-btn" onClick={onDecline}>
+					Decline
+				</button>
+			</span>
+		)
+	}
+	if (outgoingProposal) {
+		return <span className="tlc-hud__diplo-status">Offered peace</span>
+	}
+	return (
+		<span className="tlc-hud__diplo">
+			<span className={'tlc-hud__diplo-state tlc-hud__diplo-state--' + relation}>
+				{relation === 'peace' ? '☮ Peace' : '⚔ War'}
+			</span>
+			{relation === 'war' ? (
+				<button className="tlc-hud__diplo-btn" onClick={onPropose} title="Offer peace">
+					Offer peace
+				</button>
+			) : (
+				<button className="tlc-hud__diplo-btn" onClick={onDeclareWar} title="Declare war">
+					Declare war
+				</button>
+			)}
+		</span>
+	)
+}
+
 function HudAge() {
 	const age = useValue(
 		'humanAge',
@@ -1014,6 +1084,9 @@ function NewGameForm({
 }) {
 	const [selected, setSelected] = useState<NationId>(NATIONS[0].id)
 	const [selectedMap, setSelectedMap] = useState<MapTypeId | 'random'>('random')
+	const [selectedDifficulty, setSelectedDifficulty] = useState<'easy' | 'normal' | 'hard'>(
+		aiDifficulty$.get()
+	)
 	const [selectedSize, setSelectedSize] = useState<MapSizeId>(selectedMapSize$.get())
 
 	const onStart = useCallback(() => {
@@ -1040,6 +1113,7 @@ function NewGameForm({
 			playerNations$.set(nationMap)
 			selectedMapType$.set(mapId)
 			selectedMapSize$.set(selectedSize)
+			aiDifficulty$.set(selectedDifficulty)
 			const ids = editor.getCurrentPageShapes().map((s) => s.id)
 			if (ids.length > 0) {
 				editor.run(() => editor.deleteShapes(ids), { ignoreShapeLock: true })
@@ -1053,7 +1127,7 @@ function NewGameForm({
 				immediate: true,
 			})
 		}
-	}, [selected, selectedMap, selectedSize, editorRef])
+	}, [selected, selectedMap, selectedSize, selectedDifficulty, editorRef])
 
 	return (
 		<div className="tlc-modal tlc-modal--center" role="dialog" aria-modal="true">
@@ -1143,6 +1217,28 @@ function NewGameForm({
 									</span>
 								</strong>
 								<span>{s.description}</span>
+							</button>
+						))}
+					</div>
+				</div>
+				<div className="tlc-start__maps">
+					<div className="tlc-start__maps-label">AI difficulty</div>
+					<div className="tlc-start__maps-row">
+						{(['easy', 'normal', 'hard'] as const).map((d) => (
+							<button
+								key={d}
+								type="button"
+								className={'tlc-start__map' + (selectedDifficulty === d ? ' is-active' : '')}
+								onClick={() => setSelectedDifficulty(d)}
+							>
+								<strong>{d === 'easy' ? 'Easy' : d === 'normal' ? 'Normal' : 'Hard'}</strong>
+								<span>
+									{d === 'easy'
+										? 'Late warmup, small army, handicapped economy.'
+										: d === 'normal'
+											? 'Standard timing. Uses the full building roster.'
+											: 'Fast warmup, parallel production, builds walls, slight resource bonus.'}
+								</span>
 							</button>
 						))}
 					</div>

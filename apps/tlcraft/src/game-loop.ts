@@ -12,6 +12,7 @@ import {
 	getEffectiveFoodCapacity,
 	getEffectiveTerritoryRadius,
 } from './building-config'
+import { onAttackDamage, tickDiplomacy } from './diplomacy'
 import { computeFog, resetFog } from './fog'
 import { flushTickStats, time } from './perf'
 import { nextRandom } from './random'
@@ -122,6 +123,7 @@ export function runGameTick(editor: Editor, dtMs: number) {
 			tickAi(editor, p.id, lastBuildingsByTick, now)
 		}
 	})
+	time('tickDiplomacy', () => tickDiplomacy(now))
 	checkEndConditions()
 	flushTickStats()
 }
@@ -963,21 +965,24 @@ function findNearestResource(x: number, y: number, kind: ResourceNode['kind']) {
 // ------------------------------ damage ----------------------------------
 
 function applyUnitDamage(targetId: number, amount: number, attacker: PlayerId, now: number) {
-	void attacker
 	const list = units$.get()
 	let hitX = 0
 	let hitY = 0
 	let hit = false
+	let victim: PlayerId | null = null
 	const next = list.map((u) => {
 		if (u.id !== targetId) return u
 		hit = true
 		hitX = u.x
 		hitY = u.y
+		victim = u.owner
 		return { ...u, hp: u.hp - amount, hitFlashUntilMs: now + HIT_FLASH_MS }
 	})
 	if (!hit) return
 	units$.set(next)
 	spawnDamageNumber(hitX, hitY, amount)
+	// Treachery: damaging a peaceful enemy flips the pair to war. Idempotent.
+	if (victim) onAttackDamage(attacker, victim, now)
 }
 
 function applyBuildingDamage(
@@ -990,6 +995,8 @@ function applyBuildingDamage(
 ) {
 	const snap = lastBuildingsById.get(id)
 	if (!snap) return
+	// Treachery: damaging a peaceful enemy's building flips the pair to war.
+	onAttackDamage(attacker, snap.owner, elapsedMs$.get())
 	const newHp = snap.hp - amount
 	if (newHp <= 0) {
 		lastBuildingsById.delete(id)

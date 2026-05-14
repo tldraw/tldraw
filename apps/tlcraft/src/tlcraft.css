@@ -847,6 +847,60 @@
 
 .tlc-hud__player {
 	font-size: 11px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.tlc-hud__diplo {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: 6px;
+	color: #d4d4d8;
+}
+
+.tlc-hud__diplo-state {
+	font-size: 10px;
+	padding: 1px 6px;
+	border-radius: 8px;
+}
+
+.tlc-hud__diplo-state--peace {
+	background: rgba(74, 222, 128, 0.15);
+	color: #4ade80;
+}
+
+.tlc-hud__diplo-state--war {
+	background: rgba(248, 113, 113, 0.15);
+	color: #f87171;
+}
+
+.tlc-hud__diplo-btn {
+	font-size: 10px;
+	padding: 1px 6px;
+	border-radius: 4px;
+	border: 1px solid var(--tl-color-divider);
+	background: var(--tl-color-low);
+	color: var(--tl-color-text);
+	cursor: pointer;
+}
+
+.tlc-hud__diplo-btn:hover {
+	background: var(--tl-color-hint);
+}
+
+.tlc-hud__diplo-btn--accept {
+	background: rgba(74, 222, 128, 0.2);
+	color: #16a34a;
+	border-color: rgba(74, 222, 128, 0.4);
+}
+
+.tlc-hud__diplo-status {
+	font-size: 10px;
+	color: var(--tl-color-text-1);
+	margin-left: 6px;
+	font-style: italic;
 }
 
 .tlc-hud__nation {

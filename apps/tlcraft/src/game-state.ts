@@ -1,6 +1,8 @@
 import { TLShapeId, atom } from 'tldraw'
 import { AgeId, STARTING_AGE } from './age-config'
+import { resetAiVision } from './ai-vision'
 import { BuildingKind } from './building-config'
+import { resetDiplomacy } from './diplomacy'
 import { NationId } from './nations'
 import { HUMAN_PLAYER_ID, PLAYERS, PlayerId } from './players'
 import { freshSeed, setRandomSeed } from './random'
@@ -193,6 +195,10 @@ export const placingBuilding$ = atom<BuildingKind | null>('placingBuilding', nul
 // click is interpreted as an attack-move command instead of the normal move /
 // attack / gather. Cleared after one command, or by pressing Esc.
 export const attackMoveArmed$ = atom('attackMoveArmed', false)
+
+// AI difficulty for all AI players this match. Set from the start menu before
+// the match begins. Resets to 'normal' on game reset.
+export const aiDifficulty$ = atom<'easy' | 'normal' | 'hard'>('aiDifficulty', 'normal')
 
 export const playerResources$ = atom<Record<PlayerId, PlayerResources>>(
 	'playerResources',
@@ -390,6 +396,10 @@ export function resetGameState() {
 	playerAges$.set(freshAges())
 	ageResearchByPlayer.clear()
 	ageResearchByPlayer$.set({})
+	attackMoveArmed$.set(false)
+	aiDifficulty$.set('normal')
+	resetDiplomacy()
+	resetAiVision()
 	_nextUnitId = 1
 	_nextResourceId = 1
 	_nextProjectileId = 1

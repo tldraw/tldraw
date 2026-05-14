@@ -1,4 +1,11 @@
 import { Editor, TLShapeId } from 'tldraw'
+import { DIFFICULTY_PROFILES, styleForNation } from './ai-strategy'
+import {
+	pickRememberedEnemyBase,
+	pickScoutTarget,
+	queryEnemyUnits,
+	updateAiVision,
+} from './ai-vision'
 import {
 	canQueueAgeAdvance,
 	canQueueResearch,
@@ -11,7 +18,16 @@ import {
 } from './building-actions'
 import { BUILDING_CONFIG, BuildingKind } from './building-config'
 import {
+	acceptPeace,
+	declareWar,
+	declinePeace,
+	diplomacyProposals$,
+	getRelation,
+	proposePeace,
+} from './diplomacy'
+import {
 	Unit,
+	aiDifficulty$,
 	completedTechs$,
 	getResources,
 	playerNations$,
@@ -22,8 +38,8 @@ import {
 } from './game-state'
 import { getNation } from './nations'
 import { pathfind } from './nav'
-import { PlayerId, isEnemyOf } from './players'
-import { nextInt, nextRandom } from './random'
+import { PLAYERS, PlayerId } from './players'
+import { nextRandom } from './random'
 import { canTrainUnit } from './tech'
 import { TECH_IDS, TechId } from './tech-config'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
@@ -41,6 +57,15 @@ interface BuildingsByKind {
 	walls: BuildingSnap[]
 	gates: BuildingSnap[]
 	castles: BuildingSnap[]
+	archeryRanges: BuildingSnap[]
+	stables: BuildingSnap[]
+	monasteries: BuildingSnap[]
+	siegeWorkshops: BuildingSnap[]
+	mills: BuildingSnap[]
+	lumberCamps: BuildingSnap[]
+	miningCamps: BuildingSnap[]
+	markets: BuildingSnap[]
+	docks: BuildingSnap[]
 }
 
 export interface BuildingSnap {
@@ -57,14 +82,6 @@ export interface BuildingSnap {
 	gateOpen: boolean
 }
 
-// AI cadences (in elapsed ms). Coarse so the AI feels deliberate, not twitchy.
-const DECISION_INTERVAL_MS = 800
-// Pause for a short ramp-up before AI starts pushing — gives the human a
-// chance to scout and scale up before being attacked.
-const AI_WARMUP_MS = 18_000
-// Max army size per AI before they stop training to avoid food-cap stalls.
-const MAX_WORKERS = 5
-const MAX_FIGHTERS = 8
 // Tower auto-attack range squared (pages). Reused for AI scouting too.
 const VISION_RANGE_SQ = 380 * 380
 
@@ -83,9 +100,26 @@ export function tickAi(
 	allBuildings: BuildingSnap[],
 	now: number
 ) {
-	const last = lastDecisionAt.get(playerId) ?? -DECISION_INTERVAL_MS
-	if (now - last < DECISION_INTERVAL_MS) return
+	const profile = DIFFICULTY_PROFILES[aiDifficulty$.get()]
+	const last = lastDecisionAt.get(playerId) ?? -profile.decisionIntervalMs
+	if (now - last < profile.decisionIntervalMs) return
 	lastDecisionAt.set(playerId, now)
+
+	// Refresh this AI's sightings (per-player fog of war): only see enemies
+	// within range of its own alive units / buildings. Anything spotted is
+	// remembered for ~90s after losing line of sight.
+	updateAiVision(
+		playerId,
+		allBuildings.map((b) => ({
+			id: b.id,
+			kind: b.kind,
+			owner: b.owner,
+			cx: b.cx,
+			cy: b.cy,
+			hp: b.hp,
+		})),
+		now
+	)
 
 	const own = bucketize(allBuildings, playerId)
 	if (own.townHalls.length === 0) return // wiped out
@@ -96,16 +130,19 @@ export function tickAi(
 
 	keepWorkersGathering(playerId, workers)
 	maybeAdvanceAge(playerId)
-	maybeTrainWorker(playerId, own, workers.length)
-	maybeBuildBarracks(editor, playerId, own)
+	maybeTrainWorker(playerId, own, workers.length, profile.maxWorkers)
+	maybeBuildBarracks(editor, playerId, own, profile.parallelBuildingsCap)
 	maybeBuildFarm(editor, playerId, own)
 	maybeBuildLibrary(editor, playerId, own)
+	maybeBuildArcheryRange(editor, playerId, own, profile.parallelBuildingsCap)
+	maybeBuildStable(editor, playerId, own, profile.parallelBuildingsCap)
 	maybeResearch(editor, playerId, own)
-	maybeTrainFighters(playerId, own, fighters.length)
+	maybeTrainFighters(playerId, own, fighters.length, profile.maxFighters)
 	maybeBuildTower(editor, playerId, own)
 	maybeBuildCastle(editor, playerId, own)
 	maybeUpgrade(editor, playerId, own)
-	maybePush(playerId, own, fighters, allBuildings, now)
+	maybeDiplomacy(playerId, fighters.length, now)
+	maybePush(playerId, own, fighters, now, profile.warmupMs)
 }
 
 // Try to advance to the next age once it's affordable. Greedy — no
@@ -166,19 +203,107 @@ function bucketize(all: BuildingSnap[], owner: PlayerId): BuildingsByKind {
 		walls: [],
 		gates: [],
 		castles: [],
+		archeryRanges: [],
+		stables: [],
+		monasteries: [],
+		siegeWorkshops: [],
+		mills: [],
+		lumberCamps: [],
+		miningCamps: [],
+		markets: [],
+		docks: [],
 	}
 	for (const b of all) {
 		if (b.owner !== owner) continue
-		if (b.kind === 'town-hall') out.townHalls.push(b)
-		else if (b.kind === 'barracks') out.barracks.push(b)
-		else if (b.kind === 'tower') out.towers.push(b)
-		else if (b.kind === 'library') out.libraries.push(b)
-		else if (b.kind === 'farm') out.farms.push(b)
-		else if (b.kind === 'wall') out.walls.push(b)
-		else if (b.kind === 'gate') out.gates.push(b)
-		else if (b.kind === 'castle') out.castles.push(b)
+		switch (b.kind) {
+			case 'town-hall':
+				out.townHalls.push(b)
+				break
+			case 'barracks':
+				out.barracks.push(b)
+				break
+			case 'tower':
+				out.towers.push(b)
+				break
+			case 'library':
+				out.libraries.push(b)
+				break
+			case 'farm':
+				out.farms.push(b)
+				break
+			case 'wall':
+				out.walls.push(b)
+				break
+			case 'gate':
+				out.gates.push(b)
+				break
+			case 'castle':
+				out.castles.push(b)
+				break
+			case 'archery-range':
+				out.archeryRanges.push(b)
+				break
+			case 'stable':
+				out.stables.push(b)
+				break
+			case 'monastery':
+				out.monasteries.push(b)
+				break
+			case 'siege-workshop':
+				out.siegeWorkshops.push(b)
+				break
+			case 'mill':
+				out.mills.push(b)
+				break
+			case 'lumber-camp':
+				out.lumberCamps.push(b)
+				break
+			case 'mining-camp':
+				out.miningCamps.push(b)
+				break
+			case 'market':
+				out.markets.push(b)
+				break
+			case 'dock':
+				out.docks.push(b)
+				break
+		}
 	}
 	return out
+}
+
+function maybeBuildArcheryRange(
+	editor: Editor,
+	playerId: PlayerId,
+	own: BuildingsByKind,
+	parallelCap: number
+) {
+	if (own.archeryRanges.length >= parallelCap) return
+	if (own.barracks.length === 0) return // gate behind having a basic military first
+	const cost = BUILDING_CONFIG['archery-range'].cost
+	const r = getResources(playerId)
+	if (r.gold < cost.gold || r.wood < cost.wood) return
+	const th = own.townHalls[0]
+	if (!th) return
+	const spot = findOpenSpotNear(editor, th, BUILDING_CONFIG['archery-range'].size)
+	if (spot) placeBuilding(editor, 'archery-range', playerId, spot.x, spot.y)
+}
+
+function maybeBuildStable(
+	editor: Editor,
+	playerId: PlayerId,
+	own: BuildingsByKind,
+	parallelCap: number
+) {
+	if (own.stables.length >= parallelCap) return
+	if (own.barracks.length === 0) return
+	const cost = BUILDING_CONFIG.stable.cost
+	const r = getResources(playerId)
+	if (r.gold < cost.gold || r.wood < cost.wood) return
+	const th = own.townHalls[0]
+	if (!th) return
+	const spot = findOpenSpotNear(editor, th, BUILDING_CONFIG.stable.size)
+	if (spot) placeBuilding(editor, 'stable', playerId, spot.x, spot.y)
 }
 
 function maybeBuildLibrary(editor: Editor, playerId: PlayerId, own: BuildingsByKind) {
@@ -250,8 +375,13 @@ function pickNextTech(editor: Editor, playerId: PlayerId): TechId | null {
 	return null
 }
 
-function maybeTrainWorker(playerId: PlayerId, own: BuildingsByKind, workerCount: number) {
-	if (workerCount >= MAX_WORKERS) return
+function maybeTrainWorker(
+	playerId: PlayerId,
+	own: BuildingsByKind,
+	workerCount: number,
+	maxWorkers: number
+) {
+	if (workerCount >= maxWorkers) return
 	const th = own.townHalls[0]
 	if (!th) return
 	const queue = trainQueues.get(th.id) ?? []
@@ -259,35 +389,99 @@ function maybeTrainWorker(playerId: PlayerId, own: BuildingsByKind, workerCount:
 	queueUnit(th.id, 'worker', playerId)
 }
 
-function maybeTrainFighters(playerId: PlayerId, own: BuildingsByKind, fighterCount: number) {
-	if (fighterCount >= MAX_FIGHTERS) return
+// Pick the next unit kind to train based on the civ's play-style composition
+// weights, biased toward counters. Falls back to whatever the building can
+// actually train.
+function pickTrainKind(
+	playerId: PlayerId,
+	building: BuildingSnap,
+	availableKinds: UnitKind[]
+): UnitKind | null {
+	const r = getResources(playerId)
+	const nationId = playerNations$.get()[playerId]
+	if (!nationId) return null
+	const style = styleForNation(nationId)
+	const uniqueKind = getNation(nationId).uniqueUnit
+	// If this building trains the civ's unique and we have the signature tech,
+	// roll for it first.
+	if (
+		availableKinds.includes(uniqueKind) &&
+		UNIT_CONFIG[uniqueKind].trainedBy === building.kind &&
+		canTrainUnit(playerId, uniqueKind) &&
+		canAfford(r, uniqueKind) &&
+		nextRandom() < 0.5
+	) {
+		return uniqueKind
+	}
+	// Otherwise pick from available kinds weighted by the civ's composition.
+	const weighted: { kind: UnitKind; weight: number }[] = []
+	for (const kind of availableKinds) {
+		if (!canTrainUnit(playerId, kind)) continue
+		if (!canAfford(r, kind)) continue
+		const arch = UNIT_CONFIG[kind].archetype
+		const weight = style.composition[arch] ?? 0
+		if (weight > 0) weighted.push({ kind, weight })
+	}
+	if (weighted.length === 0) {
+		// Style didn't list anything from this building. Train any trainable
+		// kind we can afford so the barracks isn't idle.
+		for (const kind of availableKinds) {
+			if (canTrainUnit(playerId, kind) && canAfford(r, kind)) return kind
+		}
+		return null
+	}
+	const total = weighted.reduce((s, w) => s + w.weight, 0)
+	let pick = nextRandom() * total
+	for (const w of weighted) {
+		pick -= w.weight
+		if (pick <= 0) return w.kind
+	}
+	return weighted[weighted.length - 1].kind
+}
+
+function canAfford(
+	r: { gold: number; wood: number; food: number; foodCap: number },
+	kind: UnitKind
+): boolean {
+	const cost = UNIT_CONFIG[kind].trainCost
+	return r.gold >= cost.gold && r.wood >= cost.wood && r.food + cost.food <= r.foodCap
+}
+
+function maybeTrainFighters(
+	playerId: PlayerId,
+	own: BuildingsByKind,
+	fighterCount: number,
+	maxFighters: number
+) {
+	if (fighterCount >= maxFighters) return
+	// Train from every production building the AI has. Each is independent.
 	for (const b of own.barracks) {
 		const queue = trainQueues.get(b.id) ?? []
 		if (queue.length >= 2) continue
-		// Prefer the unique unit if it's unlocked + affordable; else a knight if
-		// researched; otherwise fall back to soldiers.
-		const r = getResources(playerId)
-		const nationId = playerNations$.get()[playerId]
-		const uniqueKind = nationId ? getNation(nationId).uniqueUnit : null
-		const uniqueOK =
-			uniqueKind &&
-			canTrainUnit(playerId, uniqueKind) &&
-			r.gold >= UNIT_CONFIG[uniqueKind].trainCost.gold &&
-			r.wood >= UNIT_CONFIG[uniqueKind].trainCost.wood &&
-			r.food + UNIT_CONFIG[uniqueKind].trainCost.food <= r.foodCap
-		const knightOK =
-			canTrainUnit(playerId, 'knight') &&
-			r.gold >= UNIT_CONFIG.knight.trainCost.gold &&
-			r.wood >= UNIT_CONFIG.knight.trainCost.wood
-		let kind: UnitKind = 'soldier'
-		if (uniqueOK && nextRandom() < 0.5) kind = uniqueKind!
-		else if (knightOK && nextRandom() < 0.35) kind = 'knight'
-		queueUnit(b.id, kind, playerId)
+		const kind = pickTrainKind(playerId, b, BUILDING_CONFIG.barracks.trains)
+		if (kind) queueUnit(b.id, kind, playerId)
+	}
+	for (const b of own.archeryRanges) {
+		const queue = trainQueues.get(b.id) ?? []
+		if (queue.length >= 2) continue
+		const kind = pickTrainKind(playerId, b, BUILDING_CONFIG['archery-range'].trains)
+		if (kind) queueUnit(b.id, kind, playerId)
+	}
+	for (const b of own.stables) {
+		const queue = trainQueues.get(b.id) ?? []
+		if (queue.length >= 2) continue
+		const kind = pickTrainKind(playerId, b, BUILDING_CONFIG.stable.trains)
+		if (kind) queueUnit(b.id, kind, playerId)
 	}
 }
 
-function maybeBuildBarracks(editor: Editor, playerId: PlayerId, own: BuildingsByKind) {
-	if (own.barracks.length >= 2) return
+function maybeBuildBarracks(
+	editor: Editor,
+	playerId: PlayerId,
+	own: BuildingsByKind,
+	parallelCap: number
+) {
+	if (own.barracks.length >= parallelCap) return
 	const cost = BUILDING_CONFIG.barracks.cost
 	const r = getResources(playerId)
 	if (r.gold < cost.gold || r.wood < cost.wood) return
@@ -388,103 +582,137 @@ function nearestResource(x: number, y: number) {
 	return best
 }
 
-// Send idle fighters at an enemy. Ramp-up + minimum army size keeps the AI
-// from suiciding 1-by-1 on the human's town hall.
+// Send idle fighters at an enemy. Uses per-AI sightings instead of being
+// omniscient — the AI can only push toward enemy bases it has actually seen.
+// If it knows nothing, sends a scout to the next unexplored quadrant first.
 function maybePush(
 	playerId: PlayerId,
 	own: BuildingsByKind,
 	fighters: Unit[],
-	allBuildings: BuildingSnap[],
-	now: number
+	now: number,
+	warmupMs: number
 ) {
-	if (now < AI_WARMUP_MS) return
+	if (now < warmupMs) return
 	const idle = fighters.filter((u) => u.command.type === 'idle')
 	if (idle.length === 0) return
-	// First, defend: if any enemy is near our town hall, attack the nearest
-	// regardless of army size.
+
+	// Defend: if a remembered enemy unit is near our town hall, attack-move
+	// the army onto it. Uses sightings — only enemies we've actually seen
+	// count, so we don't react to invisible attackers.
 	const th = own.townHalls[0]
-	const nearbyEnemy = th ? findNearestEnemyUnit(playerId, th.cx, th.cy, VISION_RANGE_SQ) : null
-	if (nearbyEnemy) {
-		assignAttack(
-			idle.map((u) => u.id),
-			nearbyEnemy.id,
-			null
-		)
-		return
+	if (th) {
+		const enemies = queryEnemyUnits(playerId)
+		let nearestEnemy: { x: number; y: number } | null = null
+		let bestDsq = VISION_RANGE_SQ
+		for (const e of enemies) {
+			if (!e.visibleNow) continue
+			const dx = e.x - th.cx
+			const dy = e.y - th.cy
+			const dsq = dx * dx + dy * dy
+			if (dsq < bestDsq) {
+				bestDsq = dsq
+				nearestEnemy = { x: e.x, y: e.y }
+			}
+		}
+		if (nearestEnemy) {
+			issueAttackMove(idle, nearestEnemy.x, nearestEnemy.y)
+			return
+		}
 	}
 
-	// Otherwise, only push out once we have a critical mass.
-	if (fighters.length < 4) return
+	// Otherwise, only push out once we have the civ-style critical mass.
+	const nationId = playerNations$.get()[playerId]
+	const pushSize = nationId ? styleForNation(nationId).pushArmySize : 6
+	if (fighters.length < pushSize) return
 
 	let target = aiRallyTarget.get(playerId) ?? null
-	if (!target) {
-		target = pickEnemyBaseTarget(playerId, allBuildings)
+	if (!target && th) {
+		target = pickRememberedEnemyBase(playerId, th.cx, th.cy)
+		if (!target) {
+			// We've never seen an enemy base — go scout instead.
+			target = pickScoutTarget(playerId)
+		}
 		aiRallyTarget.set(playerId, target)
 	}
 	if (!target) return
-	// Move command toward the target; if any fighter strays into vision of an
-	// enemy along the way, the unit step will switch to an auto-attack via the
-	// idle-to-engage branch in the game loop.
-	const ids = new Set(idle.map((u) => u.id))
+	issueAttackMove(idle, target.x, target.y)
+	// Once the army arrives near the target, clear the rally so we re-pick a
+	// fresh target for the next push.
+	const arrivedNear = idle.some((u) => Math.hypot(u.x - target!.x, u.y - target!.y) < 80)
+	if (arrivedNear) aiRallyTarget.set(playerId, null)
+}
+
+function issueAttackMove(units: Unit[], gx: number, gy: number) {
+	const ids = new Set(units.map((u) => u.id))
 	units$.update((list) =>
 		list.map((u) => {
 			if (!ids.has(u.id)) return u
 			const mode = UNIT_CONFIG[u.kind].canTraverseWater === true ? 'water' : 'land'
 			return {
 				...u,
-				command: { type: 'move', x: target!.x, y: target!.y },
-				path: pathfind(u.x, u.y, target!.x, target!.y, mode),
+				command: { type: 'attack-move', x: gx, y: gy },
+				path: pathfind(u.x, u.y, gx, gy, mode),
 			}
 		})
 	)
-	// Once the army arrives near the target, clear the rally so we re-pick a
-	// fresh target for the next push (e.g. if the previous enemy was wiped).
-	const arrivedNear = idle.some((u) => Math.hypot(u.x - target!.x, u.y - target!.y) < 80)
-	if (arrivedNear) aiRallyTarget.set(playerId, null)
 }
 
-function pickEnemyBaseTarget(
-	playerId: PlayerId,
-	allBuildings: BuildingSnap[]
-): { x: number; y: number } | null {
-	const candidates = allBuildings.filter(
-		(b) => isEnemyOf(playerId, b.owner) && b.kind === 'town-hall' && b.hp > 0
-	)
-	if (candidates.length === 0) return null
-	const pick = candidates[nextInt(candidates.length)]
-	return { x: pick.cx, y: pick.cy }
-}
+// Diplomacy: AI proposes peace when losing badly, accepts when offered if
+// it's not currently winning, declines when dominant, occasionally declares
+// war when overwhelmingly strong. Strength is judged from this AI's own
+// sightings — it doesn't peek at the actual scores.
+function maybeDiplomacy(playerId: PlayerId, ownFighters: number, now: number) {
+	const nationId = playerNations$.get()[playerId]
+	const aggression = nationId ? styleForNation(nationId).aggression : 0.5
 
-function findNearestEnemyUnit(
-	viewer: PlayerId,
-	x: number,
-	y: number,
-	maxDistSq: number
-): Unit | null {
-	let best: Unit | null = null
-	let bestDistSq = maxDistSq
-	for (const u of units$.get()) {
-		if (!isEnemyOf(viewer, u.owner) || u.hp <= 0) continue
-		const dx = u.x - x
-		const dy = u.y - y
-		const dsq = dx * dx + dy * dy
-		if (dsq < bestDistSq) {
-			bestDistSq = dsq
-			best = u
+	// Respond to pending incoming proposals first.
+	const proposals = diplomacyProposals$.get()
+	for (const p of proposals) {
+		if (p.to !== playerId) continue
+		// Estimate the proposer's strength relative to ours from sightings.
+		const proposerSighted = countSightedFighters(playerId, p.from)
+		// If aggression is high, decline most peace offers.
+		const acceptThreshold = 1.2 - aggression // rush ≈ 0.35, turtle ≈ 0.9
+		const ratio = proposerSighted === 0 ? 0.5 : ownFighters / Math.max(1, proposerSighted)
+		if (ratio < acceptThreshold) {
+			acceptPeace(p.from, playerId, now)
+		} else {
+			declinePeace(p.from, playerId, now)
 		}
 	}
-	return best
+
+	// Propose peace to whichever enemy is beating us (we see lots of their
+	// units, we have few). Throttled by the cooldown inside proposePeace.
+	for (const p of PLAYERS) {
+		if (p.id === playerId) continue
+		if (getRelation(playerId, p.id) === 'peace') continue
+		const enemySighted = countSightedFighters(playerId, p.id)
+		if (enemySighted >= 4 && ownFighters * 2 <= enemySighted) {
+			proposePeace(playerId, p.id, now)
+		}
+	}
+
+	// Aggressive civs occasionally declare war on a peaceful neighbour they
+	// dominate. Rare — a roll on each AI tick.
+	if (aggression > 0.7 && nextRandom() < 0.005) {
+		for (const p of PLAYERS) {
+			if (p.id === playerId) continue
+			if (getRelation(playerId, p.id) === 'war') continue
+			const enemySighted = countSightedFighters(playerId, p.id)
+			if (ownFighters > enemySighted * 2 && ownFighters >= 8) {
+				declareWar(playerId, p.id, now)
+				break
+			}
+		}
+	}
 }
 
-function assignAttack(
-	unitIds: number[],
-	targetUnitId: number | null,
-	targetBuildingId: TLShapeId | null
-) {
-	const ids = new Set(unitIds)
-	units$.update((list) =>
-		list.map((u) =>
-			ids.has(u.id) ? { ...u, command: { type: 'attack', targetUnitId, targetBuildingId } } : u
-		)
-	)
+function countSightedFighters(playerId: PlayerId, owner: PlayerId): number {
+	let n = 0
+	for (const e of queryEnemyUnits(playerId)) {
+		if (e.owner !== owner) continue
+		if (e.unitKind === 'worker') continue
+		n++
+	}
+	return n
 }

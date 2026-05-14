@@ -4,6 +4,8 @@
 // players.ts ↔ map.ts ↔ game-state.ts would otherwise form a load-time
 // cycle (game-state.ts imports from players.ts).
 
+import { getRelation } from './diplomacy'
+
 export type PlayerId = string
 
 export const HUMAN_PLAYER_ID: PlayerId = 'p0'
@@ -91,5 +93,6 @@ export function isHuman(id: PlayerId): boolean {
 }
 
 export function isEnemyOf(viewer: PlayerId, target: PlayerId): boolean {
-	return viewer !== target
+	if (viewer === target) return false
+	return getRelation(viewer, target) === 'war'
 }
