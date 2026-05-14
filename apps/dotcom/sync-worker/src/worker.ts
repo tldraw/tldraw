@@ -200,14 +200,15 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
-		const result = await handleQueryRequest(
-			(name, args) => {
+		const result = await handleQueryRequest({
+			handler: (name, args) => {
 				const query = mustGetQuery(queries, name)
 				return query.fn({ args, ctx: { userId: auth.userId } })
 			},
 			schema,
-			req
-		)
+			request: req,
+			userID: auth.userId,
+		})
 		return json(result)
 	})
 	.all('*', notFound)
