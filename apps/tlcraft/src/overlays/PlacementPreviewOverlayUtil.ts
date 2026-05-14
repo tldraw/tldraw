@@ -8,6 +8,7 @@ import {
 } from 'tldraw'
 import { PlaceBuildingOutcome, checkPlacement, placeBuilding } from '../building-actions'
 import { BUILDING_CONFIG, BuildingKind } from '../building-config'
+import { assignSelectedWorkersToBuild } from '../command'
 import { fogVersion$, placingBuilding$ } from '../game-state'
 import { HUMAN_PLAYER_ID } from '../players'
 
@@ -67,6 +68,11 @@ export class PlacementPreviewOverlayUtil extends OverlayUtil<TLPlacementPreviewO
 		const { kind, x, y, outcome } = overlay.props
 		if (outcome !== 'ok') return true
 		const id = placeBuilding(this.editor, kind, HUMAN_PLAYER_ID, x, y)
+		if (id) {
+			// Assign every selected worker to construct this building. They
+			// path to the site and increment HP on arrival.
+			assignSelectedWorkersToBuild(id)
+		}
 		// Barriers (walls + gates) stay armed across pointer events so the
 		// player can chain them by drag-to-extend (see WallDragListener) or
 		// click many in a row. Other buildings disarm after one placement.

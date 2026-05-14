@@ -249,12 +249,16 @@ function bootstrapStartingState(editor: Editor) {
 	rebuildNav([])
 	resources$.set(mapType ? mapType.generate() : seedResources())
 	for (const p of PLAYERS) {
+		// Starting Town Halls are built immediately so the first match isn't
+		// gated on a construction race. Every other placement requires workers
+		// to construct it (constructing meta + 10% start HP).
 		const id = placeBuilding(
 			editor,
 			'town-hall',
 			p.id,
 			p.startBase.x + BUILDING_CONFIG['town-hall'].size / 2,
-			p.startBase.y + BUILDING_CONFIG['town-hall'].size / 2
+			p.startBase.y + BUILDING_CONFIG['town-hall'].size / 2,
+			{ skipConstruction: true }
 		)
 		// Starting resources can't pay for a town hall, so the regular
 		// placement path returns null. We force-place via the editor directly
@@ -693,6 +697,24 @@ function Toolbar({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 	useValue('nations', () => playerNations$.get(), [])
 	useValue('upgrade-queues', () => upgradeQueuesAtom$.get(), [])
 
+	// Selection-aware visibility for the build menu. The build group only
+	// renders when the player has at least one worker selected — workers are
+	// the only units that can construct buildings.
+	const hasWorkerSelected = useValue(
+		'workerSelected',
+		() => {
+			const ids = selectedUnitIds$.get()
+			if (ids.size === 0) return false
+			for (const u of units$.get()) {
+				if (ids.has(u.id) && u.owner === HUMAN_PLAYER_ID && u.kind === 'worker' && u.hp > 0) {
+					return true
+				}
+			}
+			return false
+		},
+		[]
+	)
+
 	const editor = editorRef.current
 	// Read the shape reactively so meta changes (HP, gateOpen, upgradeLevel)
 	// re-render the toolbar — `editor.getShape` reads from the reactive store
@@ -726,39 +748,48 @@ function Toolbar({ editorRef }: { editorRef: React.RefObject<Editor | null> }) {
 		trainList.push(uniqueUnit)
 	}
 
+	const showBuild = hasWorkerSelected
+
 	return (
 		<div className="tlc-toolbar">
-			<div className="tlc-toolbar__group">
-				<span className="tlc-toolbar__group-label">Build</span>
-				{BUILDING_KINDS.map((kind) => {
-					const cfg = BUILDING_CONFIG[kind]
-					const ageOrder = { dark: 0, feudal: 1, castle: 2, imperial: 3 } as const
-					const humanAge = (playerAges$.get()[HUMAN_PLAYER_ID] as AgeId | undefined) ?? 'dark'
-					const ageLocked = ageOrder[humanAge] < ageOrder[cfg.minAge]
-					const canAfford =
-						r.gold >= cfg.cost.gold && r.wood >= cfg.cost.wood && r.stone >= (cfg.cost.stone ?? 0)
-					const isActive = placing === kind
-					const lockReason = ageLocked ? ` — requires ${getAge(cfg.minAge).label}` : ''
-					return (
-						<button
-							key={kind}
-							className={'tlc-toolbar__btn' + (isActive ? ' is-active' : '')}
-							disabled={(ageLocked || !canAfford) && !isActive}
-							onClick={() => pickBuilding(kind)}
-							title={`${cfg.label} — ${formatCost(cfg.cost)} — press ${cfg.keyHint}${lockReason}`}
-						>
-							<BuildGlyph kind={kind} />
-							<span className="tlc-toolbar__label">
-								{cfg.label}
-								{ageLocked ? ' 🔒' : ''}
-							</span>
-							<span className="tlc-toolbar__cost">
-								{formatCost(cfg.cost)} · <kbd>{cfg.keyHint}</kbd>
-							</span>
-						</button>
-					)
-				})}
-			</div>
+			{!showBuild && !selectedCfg && (
+				<div className="tlc-toolbar__hint">
+					Select a worker to build, or select a barracks / archery range / stable to train.
+				</div>
+			)}
+			{showBuild && (
+				<div className="tlc-toolbar__group">
+					<span className="tlc-toolbar__group-label">Build</span>
+					{BUILDING_KINDS.map((kind) => {
+						const cfg = BUILDING_CONFIG[kind]
+						const ageOrder = { dark: 0, feudal: 1, castle: 2, imperial: 3 } as const
+						const humanAge = (playerAges$.get()[HUMAN_PLAYER_ID] as AgeId | undefined) ?? 'dark'
+						const ageLocked = ageOrder[humanAge] < ageOrder[cfg.minAge]
+						const canAfford =
+							r.gold >= cfg.cost.gold && r.wood >= cfg.cost.wood && r.stone >= (cfg.cost.stone ?? 0)
+						const isActive = placing === kind
+						const lockReason = ageLocked ? ` — requires ${getAge(cfg.minAge).label}` : ''
+						return (
+							<button
+								key={kind}
+								className={'tlc-toolbar__btn' + (isActive ? ' is-active' : '')}
+								disabled={(ageLocked || !canAfford) && !isActive}
+								onClick={() => pickBuilding(kind)}
+								title={`${cfg.label} — ${formatCost(cfg.cost)} — press ${cfg.keyHint}${lockReason}`}
+							>
+								<BuildGlyph kind={kind} />
+								<span className="tlc-toolbar__label">
+									{cfg.label}
+									{ageLocked ? ' 🔒' : ''}
+								</span>
+								<span className="tlc-toolbar__cost">
+									{formatCost(cfg.cost)} · <kbd>{cfg.keyHint}</kbd>
+								</span>
+							</button>
+						)
+					})}
+				</div>
+			)}
 			{selectedCfg && selectedBuilding && isOwnBuilding && trainList.length > 0 && (
 				<div className="tlc-toolbar__group">
 					<span className="tlc-toolbar__group-label">Train ({selectedCfg.label})</span>

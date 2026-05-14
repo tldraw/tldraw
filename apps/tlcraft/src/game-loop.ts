@@ -3,9 +3,11 @@ import { BuildingSnap, resetAi, tickAi } from './ai'
 import { finishUpgrade } from './building-actions'
 import {
 	BUILDING_CONFIG,
+	getBuildingConstructing,
 	getBuildingGateOpen,
 	getBuildingHp,
 	getBuildingKind,
+	getBuildingMaxHp,
 	getBuildingOwner,
 	getBuildingUpgradeLevel,
 	getEffectiveAttack,
@@ -151,6 +153,7 @@ function snapshotBuildings(editor: Editor): BuildingSnap[] {
 			hp: getBuildingHp(shape),
 			upgradeLevel: getBuildingUpgradeLevel(shape),
 			gateOpen: kind === 'gate' ? getBuildingGateOpen(shape) : false,
+			constructing: getBuildingConstructing(shape),
 		})
 	}
 	return out
@@ -170,6 +173,8 @@ function syncBuildings(editor: Editor) {
 		if (!kind) continue
 		const owner = getBuildingOwner(shape)
 		if (!owner) continue
+		// Buildings still being constructed don't contribute food capacity.
+		if (getBuildingConstructing(shape)) continue
 		const level = getBuildingUpgradeLevel(shape)
 		const cap = getEffectiveFoodCapacity(kind, level)
 		foodCapByOwner.set(owner, (foodCapByOwner.get(owner) ?? 0) + cap)
@@ -261,6 +266,13 @@ function tickTraining(now: number) {
 		if (!building) {
 			queue.shift()
 			mutated = true
+			continue
+		}
+		// Buildings still under construction can't complete training. Stall
+		// the head item by pushing its start forward so the timer doesn't
+		// elapse twice the moment construction finishes.
+		if (building.constructing) {
+			head.startedAtMs = now - head.durationMs + 1000
 			continue
 		}
 		// Spawn just outside the building footprint.
@@ -466,7 +478,71 @@ function stepUnit(editor: Editor, unit: Unit, dt: number, now: number): Unit | n
 			return stepReturn(unit, dt)
 		case 'attack-move':
 			return stepAttackMove(unit, dt)
+		case 'build':
+			return stepBuild(editor, unit, dt)
 	}
+}
+
+// HP added per second per worker actively constructing. Multiple workers on
+// the same site stack — N workers finish a building in ~maxHp / (N × rate).
+const CONSTRUCTION_HP_PER_SEC = 60
+
+// Worker step for the 'build' command. The worker walks to the building
+// footprint, then on each tick that it's adjacent it bumps the building's HP
+// toward maxHp. When the building reaches max HP the meta.constructing flag
+// flips off, the building goes live, and the worker returns to idle.
+function stepBuild(editor: Editor, unit: Unit, dt: number): Unit {
+	const cmd = unit.command
+	if (cmd.type !== 'build') return unit
+	const target = lastBuildingsById.get(cmd.buildingId)
+	const shape = editor.getShape(cmd.buildingId)
+	if (!target || !shape || target.hp <= 0) {
+		return { ...unit, command: { type: 'idle' }, path: null }
+	}
+	// Construction done? Drop the command.
+	if (!target.constructing) {
+		return { ...unit, command: { type: 'idle' }, path: null }
+	}
+	const reach = target.halfSize + UNIT_CONFIG[unit.kind].radius - 4
+	const dx = target.cx - unit.x
+	const dy = target.cy - unit.y
+	const dist = Math.hypot(dx, dy)
+	if (dist > reach) {
+		const { target: wp, nextPath } = pickMoveTarget(unit, target.cx, target.cy)
+		const wdx = wp.x - unit.x
+		const wdy = wp.y - unit.y
+		const wDist = Math.hypot(wdx, wdy)
+		const stepLen = Math.min(wDist > 0 ? wDist : dist - reach + 1, getEffectiveSpeed(unit) * dt)
+		const dirX = wDist > 0 ? wdx / wDist : dx / dist
+		const dirY = wDist > 0 ? wdy / wDist : dy / dist
+		const candX = unit.x + dirX * stepLen
+		const candY = unit.y + dirY * stepLen
+		const clamped = moveAndClamp(unit, candX, candY)
+		return { ...unit, x: clamped.x, y: clamped.y, path: nextPath }
+	}
+	// Adjacent: contribute HP this tick. Cap at maxHp; on completion flip
+	// the meta flag and reset the worker.
+	const maxHp = getBuildingMaxHp(shape)
+	const newHp = Math.min(maxHp, target.hp + CONSTRUCTION_HP_PER_SEC * dt)
+	target.hp = newHp
+	const finished = newHp >= maxHp
+	editor.run(
+		() =>
+			editor.updateShape({
+				id: cmd.buildingId,
+				type: 'geo',
+				meta: {
+					...shape.meta,
+					hp: Math.round(newHp),
+					...(finished ? { constructing: false } : {}),
+				},
+			}),
+		{ ignoreShapeLock: true }
+	)
+	if (finished) {
+		return { ...unit, command: { type: 'idle' }, path: null }
+	}
+	return unit
 }
 
 // March toward (cmd.x, cmd.y) but engage any enemy that wanders into vision.
@@ -1053,6 +1129,7 @@ function applyBuildingDamage(
 function tickTowers(now: number) {
 	for (const b of lastBuildingsByTick) {
 		if (b.hp <= 0) continue
+		if (b.constructing) continue
 		// Use the upgrade-aware attack stats so a Bastion-level tower (or
 		// upgraded Castle) gets the +30% damage / range bump it paid for.
 		const cfg = getEffectiveAttack(b.kind, b.upgradeLevel)

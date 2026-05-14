@@ -185,9 +185,48 @@ export function commandSelectedUnits(editor: Editor, target: Point): boolean {
 		)
 		return true
 	}
+	// Friendly building under construction? Send workers to build it.
+	const friendlyBuilding = findBuildingAtPoint(editor, target, HUMAN_PLAYER_ID)
+	if (friendlyBuilding) {
+		const shape = editor.getShape(friendlyBuilding.id)
+		if (shape?.meta?.constructing === true) {
+			const workers = selected.filter((u) => u.kind === 'worker')
+			if (workers.length > 0) {
+				const ids = new Set(workers.map((u) => u.id))
+				units$.update((list) =>
+					list.map((u) =>
+						ids.has(u.id)
+							? { ...u, command: { type: 'build', buildingId: friendlyBuilding.id }, path: null }
+							: u
+					)
+				)
+				return true
+			}
+		}
+	}
 
 	applyMoveSpread(selected, target.x, target.y)
 	return true
+}
+
+// Assign every selected human worker to construct the building at `buildingId`.
+// Called from the placement overlay right after a building goes down. Workers
+// path to the site and bump HP each tick via stepBuild.
+export function assignSelectedWorkersToBuild(buildingId: TLShapeId) {
+	const ids = selectedUnitIds$.get()
+	if (ids.size === 0) return
+	const allUnits = units$.get()
+	const workers = allUnits.filter(
+		(u) => ids.has(u.id) && u.owner === HUMAN_PLAYER_ID && u.kind === 'worker' && u.hp > 0
+	)
+	if (workers.length === 0) return
+	const workerIds = new Set(workers.map((u) => u.id))
+	units$.update((list) =>
+		list.map((u) => {
+			if (!workerIds.has(u.id)) return u
+			return { ...u, command: { type: 'build', buildingId }, path: null }
+		})
+	)
 }
 
 function applyCommandToAllWithPath(

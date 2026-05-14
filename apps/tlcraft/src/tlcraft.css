@@ -975,6 +975,13 @@
 	border-color: var(--tl-color-selected);
 }
 
+.tlc-toolbar__hint {
+	padding: 8px 12px;
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+	font-style: italic;
+}
+
 .tlc-hud__diplo {
 	display: inline-flex;
 	align-items: center;

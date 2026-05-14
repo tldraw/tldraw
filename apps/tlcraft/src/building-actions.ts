@@ -169,12 +169,19 @@ function collectBuildingsForFog(editor: Editor) {
 	}
 	return out
 }
+export interface PlaceBuildingOptions {
+	// Skip the construction step — building goes up fully built at maxHp.
+	// Used by the start-of-match Town Hall placement and by save/load.
+	skipConstruction?: boolean
+}
+
 export function placeBuilding(
 	editor: Editor,
 	kind: BuildingKind,
 	playerId: PlayerId,
 	cx: number,
-	cy: number
+	cy: number,
+	opts?: PlaceBuildingOptions
 ): TLShapeId | null {
 	if (checkPlacement(editor, kind, playerId, cx, cy) !== 'ok') return null
 	const cfg = BUILDING_CONFIG[kind]
@@ -183,6 +190,11 @@ export function placeBuilding(
 	const id = createShapeId()
 	const player = getPlayer(playerId)
 	const maxHp = Math.round(cfg.maxHp * getBuildingHpMultiplier(playerId))
+	// Town halls placed at game start go up fully built so the first match
+	// starts in a sensible state. Every other placement starts in construction
+	// at 10% HP — workers must complete it before it functions.
+	const startsConstructing = !opts?.skipConstruction
+	const initialHp = startsConstructing ? Math.max(20, Math.round(maxHp * 0.1)) : maxHp
 	editor.createShape({
 		id,
 		type: 'geo',
@@ -204,10 +216,11 @@ export function placeBuilding(
 		// conditionally because tldraw's meta validator rejects `undefined`.
 		meta: {
 			buildingKind: kind,
-			hp: maxHp,
+			hp: initialHp,
 			maxHp,
 			owner: playerId,
 			upgradeLevel: 0,
+			...(startsConstructing ? { constructing: true } : {}),
 			...(kind === 'town-hall' ? { townName: pickTownName() } : {}),
 			...(kind === 'gate' ? { gateOpen: false } : {}),
 		},

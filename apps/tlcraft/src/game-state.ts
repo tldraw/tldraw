@@ -41,6 +41,12 @@ export interface CommandAttackMove {
 	x: number
 	y: number
 }
+export interface CommandBuild {
+	type: 'build'
+	// Shape id of the under-construction building. Worker walks adjacent to
+	// it and adds HP each tick until construction completes.
+	buildingId: TLShapeId
+}
 
 export type Command =
 	| CommandIdle
@@ -49,6 +55,7 @@ export type Command =
 	| CommandGather
 	| CommandReturn
 	| CommandAttackMove
+	| CommandBuild
 
 // Per-unit stance. Affects how the unit reacts to enemies it sees:
 //   - aggressive (default): chases enemies until they're dead or out of vision.

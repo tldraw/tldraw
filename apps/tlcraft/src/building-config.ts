@@ -540,6 +540,13 @@ export function getBuildingGateOpen(shape: TLShape): boolean {
 	return shape.meta?.gateOpen === true
 }
 
+// True while a building is still under construction (HP ramping up from
+// workers' build commands). Construction buildings can't train, can't fire,
+// and don't provide food capacity.
+export function getBuildingConstructing(shape: TLShape): boolean {
+	return shape.meta?.constructing === true
+}
+
 // Pool of town names. We hand them out in shuffled-deck order so each town a
 // player founds gets a distinct name within a match, and across matches the
 // shuffle gives variety. The pool is intentionally far larger than any

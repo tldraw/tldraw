@@ -10,7 +10,7 @@ import {
 	canQueueAgeAdvance,
 	canQueueResearch,
 	canQueueUpgrade,
-	placeBuilding,
+	placeBuilding as _placeBuilding,
 	queueAgeAdvance,
 	queueResearch,
 	queueUnit,
@@ -43,6 +43,44 @@ import { nextRandom } from './random'
 import { canTrainUnit } from './tech'
 import { TECH_IDS, TechId } from './tech-config'
 import { UNIT_CONFIG, UnitKind } from './unit-config'
+
+// Wrapper around placeBuilding that auto-assigns the AI's nearest idle worker
+// to construct the new site. Otherwise the building would sit at 10% HP
+// forever (the AI doesn't otherwise issue 'build' commands).
+function placeBuilding(
+	editor: Editor,
+	kind: BuildingKind,
+	playerId: PlayerId,
+	cx: number,
+	cy: number
+): TLShapeId | null {
+	const id = _placeBuilding(editor, kind, playerId, cx, cy)
+	if (!id) return null
+	// Pick the nearest idle worker (or just nearest worker — gather is fine
+	// to interrupt for construction).
+	let best: Unit | null = null
+	let bestDsq = Infinity
+	for (const u of units$.get()) {
+		if (u.owner !== playerId || u.hp <= 0) continue
+		if (u.kind !== 'worker') continue
+		const dx = u.x - cx
+		const dy = u.y - cy
+		const dsq = dx * dx + dy * dy
+		if (dsq < bestDsq) {
+			bestDsq = dsq
+			best = u
+		}
+	}
+	if (best) {
+		const builderId = best.id
+		units$.update((list) =>
+			list.map((u) =>
+				u.id === builderId ? { ...u, command: { type: 'build', buildingId: id }, path: null } : u
+			)
+		)
+	}
+	return id
+}
 
 // Per-AI-player decisions. Called every game tick after movement / combat have
 // resolved. Cheap and idempotent — if the AI has nothing to do this tick, it
@@ -80,6 +118,9 @@ export interface BuildingSnap {
 	// Only meaningful when kind === 'gate'. Open gates are passable by all
 	// units (friendly + enemy); closed gates block like walls.
 	gateOpen: boolean
+	// True while the building is still being constructed by workers. Such
+	// buildings can be damaged but can't train, fire, or contribute food cap.
+	constructing: boolean
 }
 
 // Tower auto-attack range squared (pages). Reused for AI scouting too.
