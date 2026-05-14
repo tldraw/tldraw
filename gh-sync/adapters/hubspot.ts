@@ -65,9 +65,21 @@ interface HSSearchResult<T> {
 	paging?: { next?: { after: string } }
 }
 
+// v4 associations return `toObjectId` (number). Older endpoints / formats
+// may return `id` (string). Tolerate both — normalize to a string id.
+interface HSAssociationResultRaw {
+	id?: string | number
+	toObjectId?: string | number
+}
 interface HSAssociationsPage {
-	results: Array<{ id: string }>
+	results: HSAssociationResultRaw[]
 	paging?: { next?: { after: string } }
+}
+
+function associationId(r: HSAssociationResultRaw): string | null {
+	const raw = r.toObjectId ?? r.id
+	if (raw === undefined || raw === null || raw === '') return null
+	return String(raw)
 }
 
 // HubSpot uses "closedwon" / "closedlost" as terminal stages in default pipelines.
@@ -217,12 +229,14 @@ export class HubspotAdapter implements ProviderAdapter<HubspotEntity> {
 				`/crm/v4/objects/companies/${self.companyId}/associations/notes?limit=100`
 			)
 			for (const a of assoc.results) {
+				const noteId = associationId(a)
+				if (!noteId) continue
 				const note = await this.hub<{ id: string; properties: { hs_note_body?: string } }>(
 					'GET',
-					`/crm/v3/objects/notes/${a.id}?properties=hs_note_body`
+					`/crm/v3/objects/notes/${noteId}?properties=hs_note_body`
 				)
 				if (note.properties.hs_note_body?.includes(marker)) {
-					await this.hub('DELETE', `/crm/v3/objects/notes/${a.id}`)
+					await this.hub('DELETE', `/crm/v3/objects/notes/${noteId}`)
 					return
 				}
 			}
@@ -291,15 +305,18 @@ export class HubspotAdapter implements ProviderAdapter<HubspotEntity> {
 					`/crm/v4/objects/deals/${deal.id}/associations/companies?limit=10`
 				).catch(() => ({ results: [] }) as HSAssociationsPage)
 				for (const c of assoc.results) {
-					dealsByCompany.set(c.id, (dealsByCompany.get(c.id) ?? 0) + 1)
+					const id = associationId(c)
+					if (!id) continue
+					dealsByCompany.set(id, (dealsByCompany.get(id) ?? 0) + 1)
 				}
 			}
 			after = search.paging?.next?.after
 			if (!after) break
 		}
 
-		// Now batch-fetch the company records we need.
-		const companyIds = [...dealsByCompany.keys()]
+		// Now batch-fetch the company records we need. Filter once more so we
+		// never send `{id: undefined}` to HubSpot's batch endpoint (which 400s).
+		const companyIds = [...dealsByCompany.keys()].filter((id) => typeof id === 'string' && id.length > 0)
 		const out: Array<HSCompany & { activeDealCount: number }> = []
 		const BATCH = 100
 		for (let i = 0; i < companyIds.length; i += BATCH) {
