@@ -61,8 +61,7 @@ export function DefaultStylePanelContent() {
 	)
 	const [isResizing, setIsResizing] = React.useState(false)
 
-	const renderedColorGridHeight =
-		userColorGridHeight ?? DEFAULT_STYLE_PANEL_COLOR_GRID_HEIGHT
+	const renderedColorGridHeight = userColorGridHeight ?? DEFAULT_STYLE_PANEL_COLOR_GRID_HEIGHT
 
 	const handleResizePointerDown = React.useCallback(
 		(e: React.PointerEvent<HTMLDivElement>) => {
@@ -83,10 +82,7 @@ export function DefaultStylePanelContent() {
 				nextHeight = Math.round(
 					Math.min(
 						maxHeight,
-						Math.max(
-							MIN_STYLE_PANEL_COLOR_GRID_HEIGHT,
-							startHeight + (moveEvent.clientY - startY)
-						)
+						Math.max(MIN_STYLE_PANEL_COLOR_GRID_HEIGHT, startHeight + (moveEvent.clientY - startY))
 					)
 				)
 				setUserColorGridHeight(nextHeight)

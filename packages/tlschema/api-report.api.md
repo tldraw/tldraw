@@ -1691,30 +1691,6 @@ export type TLThemeColors = Pick<TLThemeDefaultColors, TLThemeUiColorKeys> & Omi
 // @public
 export interface TLThemeDefaultColors {
     // (undocumented)
-    'custom-1': TLDefaultColor;
-    // (undocumented)
-    'custom-10': TLDefaultColor;
-    // (undocumented)
-    'custom-11': TLDefaultColor;
-    // (undocumented)
-    'custom-12': TLDefaultColor;
-    // (undocumented)
-    'custom-2': TLDefaultColor;
-    // (undocumented)
-    'custom-3': TLDefaultColor;
-    // (undocumented)
-    'custom-4': TLDefaultColor;
-    // (undocumented)
-    'custom-5': TLDefaultColor;
-    // (undocumented)
-    'custom-6': TLDefaultColor;
-    // (undocumented)
-    'custom-7': TLDefaultColor;
-    // (undocumented)
-    'custom-8': TLDefaultColor;
-    // (undocumented)
-    'custom-9': TLDefaultColor;
-    // (undocumented)
     'light-blue': TLDefaultColor;
     // (undocumented)
     'light-green': TLDefaultColor;
