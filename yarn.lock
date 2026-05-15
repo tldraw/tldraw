@@ -19581,9 +19581,9 @@ __metadata:
   linkType: hard
 
 "fast-uri@npm:^3.0.0, fast-uri@npm:^3.0.1":
-  version: 3.0.6
-  resolution: "fast-uri@npm:3.0.6"
-  checksum: 10/43c87cd03926b072a241590e49eca0e2dfe1d347ddffd4b15307613b42b8eacce00a315cf3c7374736b5f343f27e27ec88726260eb03a758336d507d6fbaba0a
+  version: 3.1.2
+  resolution: "fast-uri@npm:3.1.2"
+  checksum: 10/1dff04865b2a38d3e0659deadfbf72efdf83a776bfbf9667e4aa9e5a3ec31bc341cda9622136b32b7652a857c8ba11896794186e8f876f8b2b72731fce8622f6
   languageName: node
   linkType: hard
 
@@ -22447,9 +22447,9 @@ __metadata:
   linkType: hard
 
 "kysely@npm:^0.28.12":
-  version: 0.28.16
-  resolution: "kysely@npm:0.28.16"
-  checksum: 10/d0dffee9158a62103f61559588fffd7b34e01a1adf4f054599c3be50c10c6357cda09de456a931fd7eba6502cbb8804710805bbd56e6d94b19633e043cde3e31
+  version: 0.28.17
+  resolution: "kysely@npm:0.28.17"
+  checksum: 10/50690d745016d25f09574fe58c7e31f84427845497f30c84280131bc1f9f60d118c53640a184e225708a1f54f2b54ac12fdf3a0dfc6405527487ad96ff594f42
   languageName: node
   linkType: hard
 
