@@ -95,7 +95,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 					<TldrawUiButtonIcon icon={icon as TLUiIconType} />
 				</TldrawUiToolbarButton>
 			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent side="left" align="center">
+			<TldrawUiPopoverContent side="left" align="center" sideOffset={0}>
 				<TldrawUiToolbar orientation={items.length > 4 ? 'grid' : 'horizontal'} label={labelStr}>
 					<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
 						{items.map((item) => {
