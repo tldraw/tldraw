@@ -328,6 +328,11 @@
 	text-align: center;
 }
 
+.tlui-zoom-menu__button[data-state='open']::after {
+	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
+}
+
 /* --------------------- Layout --------------------- */
 
 .tlui-layout {
@@ -787,6 +792,11 @@
 
 .tlui-page-menu__trigger {
 	width: auto;
+}
+
+.tlui-page-menu__trigger[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
 }
 
 .tlui-page-menu__list {
