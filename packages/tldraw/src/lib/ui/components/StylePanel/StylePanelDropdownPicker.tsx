@@ -28,6 +28,8 @@ export interface StylePanelDropdownPickerProps<T extends string> {
 	onValueChange?(style: StyleProp<T>, value: T): void
 	/** Override the test ID prefix. Defaults to uiType. */
 	testIdType?: string
+	/** Distance to push the popover left of the trigger so it lands flush with the style panel. */
+	sideOffset?: number
 }
 
 function StylePanelDropdownPickerInner<T extends string>(props: StylePanelDropdownPickerProps<T>) {
@@ -57,6 +59,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 		value,
 		onValueChange = ctx.onValueChange,
 		testIdType = uiType,
+		sideOffset = 0,
 	} = props
 	const msg = useTranslation()
 	const editor = useEditor()
@@ -95,7 +98,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 					<TldrawUiButtonIcon icon={icon as TLUiIconType} />
 				</TldrawUiToolbarButton>
 			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent side="left" align="center" sideOffset={0}>
+			<TldrawUiPopoverContent side="left" align="center" sideOffset={sideOffset}>
 				<TldrawUiToolbar orientation={items.length > 4 ? 'grid' : 'horizontal'} label={labelStr}>
 					<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
 						{items.map((item) => {
