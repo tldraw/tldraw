@@ -172,6 +172,7 @@ export function StylePanelFillPicker() {
 					style={DefaultFillStyle}
 					items={STYLES.fillExtra}
 					value={fill}
+					sideOffset={116}
 				/>
 			</TldrawUiToolbar>
 		</>
@@ -316,6 +317,7 @@ export function StylePanelLabelAlignPicker() {
 						style={DefaultVerticalAlignStyle}
 						items={STYLES.verticalAlign}
 						value={verticalLabelAlign}
+						sideOffset={116}
 					/>
 				)}
 			</TldrawUiToolbar>
