@@ -1139,6 +1139,12 @@ tldraw? probably.
 	border-bottom: 1px solid var(--tl-color-divider);
 }
 
+.tlui-toolbar-toggle-group-item,
+.tlui-style-panel__dropdown-picker > .tlui-button__icon {
+	width: 40px;
+	padding: 0;
+}
+
 .tlui-style-panel__dropdown-picker:only-child {
 	flex: 1;
 }

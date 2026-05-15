@@ -3646,6 +3646,7 @@ export interface StylePanelDropdownPickerProps<T extends string> {
     label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     // (undocumented)
     onValueChange?(style: StyleProp<T>, value: T): void;
+    sideOffset?: number;
     // (undocumented)
     style: StyleProp<T>;
     // (undocumented)
