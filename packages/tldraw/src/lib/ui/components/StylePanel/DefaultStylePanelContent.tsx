@@ -35,14 +35,115 @@ import {
 } from './StylePanelDropdownPicker'
 import { StylePanelSubheading } from './StylePanelSubheading'
 
+const STYLE_PANEL_COLOR_GRID_HEIGHT_KEY = 'tldraw_style_panel_color_grid_height'
+const DEFAULT_STYLE_PANEL_COLOR_GRID_HEIGHT = 112
+const MIN_STYLE_PANEL_COLOR_GRID_HEIGHT = 112
+
+function readSavedStylePanelColorGridHeight(): number | null {
+	if (typeof window === 'undefined') return null
+	try {
+		const raw = window.localStorage.getItem(STYLE_PANEL_COLOR_GRID_HEIGHT_KEY)
+		if (!raw) return null
+		const n = Number(raw)
+		return Number.isFinite(n) && n >= MIN_STYLE_PANEL_COLOR_GRID_HEIGHT ? n : null
+	} catch {
+		return null
+	}
+}
+
 /** @public @react */
 export function DefaultStylePanelContent() {
+	const msg = useTranslation()
+	const { styles } = useStylePanelContext()
+	const hasColorPicker = styles.get(DefaultColorStyle) !== undefined
+	const [userColorGridHeight, setUserColorGridHeight] = React.useState<number | null>(
+		readSavedStylePanelColorGridHeight
+	)
+	const [isResizing, setIsResizing] = React.useState(false)
+
+	const renderedColorGridHeight =
+		userColorGridHeight ?? DEFAULT_STYLE_PANEL_COLOR_GRID_HEIGHT
+
+	const handleResizePointerDown = React.useCallback(
+		(e: React.PointerEvent<HTMLDivElement>) => {
+			e.preventDefault()
+			const handle = e.currentTarget
+			handle.setPointerCapture(e.pointerId)
+			const colorGrid = handle.parentElement?.querySelector<HTMLElement>(
+				'.tlui-style-panel__color-grid'
+			)
+			const startY = e.clientY
+			const startHeight = colorGrid?.getBoundingClientRect().height ?? renderedColorGridHeight
+			const maxHeight = Math.max(MIN_STYLE_PANEL_COLOR_GRID_HEIGHT, colorGrid?.scrollHeight ?? 0)
+			let nextHeight = startHeight
+
+			setIsResizing(true)
+
+			const onMove = (moveEvent: PointerEvent) => {
+				nextHeight = Math.round(
+					Math.min(
+						maxHeight,
+						Math.max(
+							MIN_STYLE_PANEL_COLOR_GRID_HEIGHT,
+							startHeight + (moveEvent.clientY - startY)
+						)
+					)
+				)
+				setUserColorGridHeight(nextHeight)
+			}
+
+			const onUp = () => {
+				handle.removeEventListener('pointermove', onMove)
+				handle.removeEventListener('pointerup', onUp)
+				handle.removeEventListener('pointercancel', onUp)
+				setIsResizing(false)
+				try {
+					window.localStorage.setItem(STYLE_PANEL_COLOR_GRID_HEIGHT_KEY, String(nextHeight))
+				} catch {
+					// ignore - storage may be unavailable in private/embedded contexts
+				}
+			}
+
+			handle.addEventListener('pointermove', onMove)
+			handle.addEventListener('pointerup', onUp, { once: true })
+			handle.addEventListener('pointercancel', onUp, { once: true })
+		},
+		[renderedColorGridHeight]
+	)
+
+	const handleResizeDoubleClick = React.useCallback(() => {
+		setUserColorGridHeight(null)
+		try {
+			window.localStorage.removeItem(STYLE_PANEL_COLOR_GRID_HEIGHT_KEY)
+		} catch {
+			// ignore - storage may be unavailable in private/embedded contexts
+		}
+	}, [])
+
 	return (
-		<>
+		<div
+			className="tlui-style-panel__content"
+			style={
+				{
+					'--tlui-style-panel-color-grid-height': `${renderedColorGridHeight}px`,
+				} as React.CSSProperties
+			}
+		>
 			<StylePanelSection>
 				<StylePanelColorPicker />
 				<StylePanelOpacityPicker />
 			</StylePanelSection>
+			{hasColorPicker && (
+				<div
+					className="tlui-style-panel__resize-handle"
+					data-resizing={isResizing}
+					onPointerDown={handleResizePointerDown}
+					onDoubleClick={handleResizeDoubleClick}
+					role="separator"
+					aria-orientation="horizontal"
+					aria-label={msg('style-panel.resize')}
+				/>
+			)}
 			<StylePanelSection>
 				<StylePanelFillPicker />
 				<StylePanelDashPicker />
@@ -59,7 +160,7 @@ export function DefaultStylePanelContent() {
 				<StylePanelArrowheadPicker />
 				<StylePanelSplinePicker />
 			</StylePanelSection>
-		</>
+		</div>
 	)
 }
 

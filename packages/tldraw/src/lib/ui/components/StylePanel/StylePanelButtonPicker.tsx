@@ -146,7 +146,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 			value={value.type === 'shared' ? value.value : null}
 			asChild
 		>
-			<Layout>
+			<Layout className={uiType === 'color' ? 'tlui-style-panel__color-grid' : undefined}>
 				{items.map((item) => {
 					const isActive = value.type === 'shared' && value.value === item.value
 					const label = title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)

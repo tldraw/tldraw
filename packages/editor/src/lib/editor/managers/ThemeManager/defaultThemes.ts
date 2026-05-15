@@ -6,6 +6,26 @@ import {
 	TLThemeColors,
 } from '@tldraw/tlschema'
 
+function makeDefaultColor(solid: string): TLDefaultColor {
+	const translucent = solid + '33'
+	return {
+		solid,
+		semi: translucent,
+		pattern: solid,
+		fill: solid,
+		linedFill: translucent,
+		frameHeadingStroke: solid,
+		frameHeadingFill: translucent,
+		frameStroke: solid,
+		frameFill: translucent,
+		frameText: solid,
+		noteFill: translucent,
+		noteText: solid,
+		highlightSrgb: solid,
+		highlightP3: solid,
+	}
+}
+
 /**
  * The default theme definition containing color palettes for both light and dark modes.
  *
@@ -303,6 +323,18 @@ export const DEFAULT_THEME: TLTheme = {
 				highlightSrgb: '#ff636e',
 				highlightP3: 'color(display-p3 0.9992 0.4376 0.45)',
 			},
+			'custom-1': makeDefaultColor('#332233'),
+			'custom-2': makeDefaultColor('#554466'),
+			'custom-3': makeDefaultColor('#996688'),
+			'custom-4': makeDefaultColor('#cc9988'),
+			'custom-5': makeDefaultColor('#cc9966'),
+			'custom-6': makeDefaultColor('#aa6677'),
+			'custom-7': makeDefaultColor('#776677'),
+			'custom-8': makeDefaultColor('#aa9988'),
+			'custom-9': makeDefaultColor('#ddcc99'),
+			'custom-10': makeDefaultColor('#88aa77'),
+			'custom-11': makeDefaultColor('#667788'),
+			'custom-12': makeDefaultColor('#88aa99'),
 			violet: {
 				solid: '#ae3ec9',
 				fill: '#ae3ec9',
@@ -527,6 +559,18 @@ export const DEFAULT_THEME: TLTheme = {
 				highlightSrgb: '#de002c',
 				highlightP3: 'color(display-p3 0.7978 0.0509 0.2035)',
 			},
+			'custom-1': makeDefaultColor('#332233'),
+			'custom-2': makeDefaultColor('#554466'),
+			'custom-3': makeDefaultColor('#996688'),
+			'custom-4': makeDefaultColor('#cc9988'),
+			'custom-5': makeDefaultColor('#cc9966'),
+			'custom-6': makeDefaultColor('#aa6677'),
+			'custom-7': makeDefaultColor('#776677'),
+			'custom-8': makeDefaultColor('#aa9988'),
+			'custom-9': makeDefaultColor('#ddcc99'),
+			'custom-10': makeDefaultColor('#88aa77'),
+			'custom-11': makeDefaultColor('#667788'),
+			'custom-12': makeDefaultColor('#88aa99'),
 			violet: {
 				solid: '#ae3ec9',
 				fill: '#ae3ec9',

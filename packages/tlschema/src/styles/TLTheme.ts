@@ -87,6 +87,18 @@ export interface TLThemeDefaultColors {
 	'light-green': TLDefaultColor
 	'light-red': TLDefaultColor
 	red: TLDefaultColor
+	'custom-1': TLDefaultColor
+	'custom-2': TLDefaultColor
+	'custom-3': TLDefaultColor
+	'custom-4': TLDefaultColor
+	'custom-5': TLDefaultColor
+	'custom-6': TLDefaultColor
+	'custom-7': TLDefaultColor
+	'custom-8': TLDefaultColor
+	'custom-9': TLDefaultColor
+	'custom-10': TLDefaultColor
+	'custom-11': TLDefaultColor
+	'custom-12': TLDefaultColor
 	white: TLDefaultColor
 }
 

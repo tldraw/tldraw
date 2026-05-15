@@ -3,6 +3,26 @@ import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'
 import { useMaybeEditor } from './useEditor'
 
+function hasScrollableElement(target: EventTarget | null, root: HTMLElement) {
+	if (!(target instanceof Node)) {
+		return root.scrollHeight > root.clientHeight || root.scrollWidth > root.clientWidth
+	}
+
+	let elm: Element | null = target instanceof Element ? target : target.parentElement
+	while (elm) {
+		if (
+			elm instanceof HTMLElement &&
+			(elm.scrollHeight > elm.clientHeight || elm.scrollWidth > elm.clientWidth)
+		) {
+			return true
+		}
+		if (elm === root) return false
+		elm = elm.parentElement
+	}
+
+	return false
+}
+
 /** @public */
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement | null>) {
 	if (!ref) throw Error('usePassThroughWheelEvents must be passed a ref')
@@ -18,7 +38,7 @@ export function usePassThroughWheelEvents(ref: RefObject<HTMLElement | null>) {
 
 			// if the element is scrollable, don't redispatch the event
 			const elm = ref.current
-			if (elm && elm.scrollHeight > elm.clientHeight) {
+			if (elm && hasScrollableElement(e.target, elm)) {
 				return
 			}
 
