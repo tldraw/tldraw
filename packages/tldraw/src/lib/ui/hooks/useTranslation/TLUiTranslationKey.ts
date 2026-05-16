@@ -424,7 +424,7 @@ export type TLUiTranslationKey =
 	| 'style-panel.geo'
 	| 'style-panel.mixed'
 	| 'style-panel.opacity'
-	| 'style-panel.resize'
+	| 'style-panel.resize-color-area'
 	| 'style-panel.size'
 	| 'style-panel.spline'
 	| 'style-panel.selected'

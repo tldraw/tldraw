@@ -1101,26 +1101,6 @@
 	width: 100%;
 }
 
-.tlui-style-panel__content {
-	display: flex;
-	flex-direction: column;
-}
-
-.tlui-style-panel__color-grid {
-	overflow-y: auto;
-	overflow-x: hidden;
-	overscroll-behavior: contain;
-	scrollbar-width: none;
-}
-
-.tlui-style-panel__color-grid:has(> :nth-child(n + 13)) {
-	max-height: var(--tlui-style-panel-color-grid-height, 112px);
-}
-
-.tlui-style-panel__color-grid::-webkit-scrollbar {
-	display: none;
-}
-
 .tlui-style-panel__section {
 	display: flex;
 	position: relative;
@@ -1149,23 +1129,51 @@ tldraw? probably.
 	display: none;
 }
 
-.tlui-style-panel__section:has(+ .tlui-style-panel__resize-handle[data-resizing='true']) {
-	border-bottom-color: var(--tl-color-selected);
+/* Color area: capped height + resize handle. When data-fixed='true' the section
+   replaces its own border-bottom divider with the handle's 1px line. */
+.tlui-style-panel__color-area[data-fixed='true'] {
+	border-bottom: none;
+}
+
+.tlui-style-panel__color-area-scroll {
+	overflow-y: auto;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.tlui-style-panel__color-area-scroll::-webkit-scrollbar {
+	display: none;
+}
+
+.tlui-style-panel__color-area-resize-handle {
+	flex: 0 0 auto;
+	position: relative;
+	height: 7px;
+	cursor: ns-resize;
+	touch-action: none;
+	z-index: 1;
+}
+
+.tlui-style-panel__color-area-resize-handle::before {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: var(--tl-color-divider);
+	transition: background-color 100ms;
+}
+
+.tlui-style-panel__color-area-resize-handle[data-resizing='true']::before {
+	background: var(--tl-color-selected);
 	transition: none;
 }
 
-.tlui-style-panel__resize-handle {
-	flex: 0 0 auto;
-	position: relative;
-	height: 14px;
-	margin-top: -14px;
-	cursor: ns-resize;
-	touch-action: none;
-	z-index: 999;
-}
-
-.tlui-style-panel[data-ismobile='true'] .tlui-style-panel__resize-handle {
-	display: none;
+@media (hover: hover) {
+	.tlui-style-panel__color-area-resize-handle:hover::before {
+		background: var(--tl-color-selected);
+	}
 }
 
 /*
