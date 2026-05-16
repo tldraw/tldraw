@@ -587,6 +587,7 @@ export {
 	DefaultStylePanelContent,
 	StylePanelArrowheadPicker,
 	StylePanelArrowKindPicker,
+	StylePanelColorArea,
 	StylePanelColorPicker,
 	StylePanelDashPicker,
 	StylePanelFillPicker,
@@ -598,6 +599,8 @@ export {
 	StylePanelSizePicker,
 	StylePanelSplinePicker,
 	StylePanelTextAlignPicker,
+	type DefaultStylePanelContentProps,
+	type StylePanelColorAreaProps,
 	type StylePanelSectionProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export {

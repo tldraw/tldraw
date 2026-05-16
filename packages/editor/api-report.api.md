@@ -781,6 +781,7 @@ export const defaultTldrawOptions: {
     readonly rightClickPanning: true;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
+    readonly stylePanelColorAreaHeight: "auto";
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly text: {};
     readonly textShadowLod: 0.35;
@@ -3843,6 +3844,7 @@ export interface TldrawOptions {
     readonly rightClickPanning: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
+    readonly stylePanelColorAreaHeight: 'auto' | number;
     readonly temporaryAssetPreviewLifetimeMs: number;
     readonly text: TLTextOptions;
     // (undocumented)
