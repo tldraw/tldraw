@@ -1,5 +1,6 @@
 import {
 	Circle2d,
+	Editor,
 	Geometry2d,
 	Mat,
 	OverlayUtil,
@@ -7,9 +8,19 @@ import {
 	TLCursorType,
 	TLHandle,
 	TLOverlay,
+	TLOverlayDragInfo,
+	TLOverlayPointerDownRedirect,
+	TLOverlayPointerEventInfo,
+	TLPointerEventInfo,
+	TLShape,
 	TLShapeId,
 	Vec,
 } from '@tldraw/editor'
+import {
+	ShapeHandleDragSession,
+	ShapeHandlePointingInfo,
+	ShapeHandlePointingSession,
+} from './shapeHandleInteractions'
 
 /** @public */
 export interface TLShapeHandleOverlay extends TLOverlay {
@@ -28,6 +39,9 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 	static override type = 'shape_handle'
 	override options = { zIndex: 200, lineWidth: 1.5 }
 
+	private pointingSession: ShapeHandlePointingSession | null = null
+	private dragSession: ShapeHandleDragSession | null = null
+
 	override isActive(): boolean {
 		const editor = this.editor
 		if (editor.getIsReadonly() || editor.getInstanceState().isChangingStyle) return false
@@ -38,7 +52,14 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		const handles = editor.getShapeHandles(onlySelectedShape)
 		if (!handles) return false
 
-		if (editor.isInAny('select.idle', 'select.pointing_handle', 'select.pointing_shape')) {
+		if (
+			editor.isInAny(
+				'select.idle',
+				'select.pointing_overlay',
+				'select.pointing_handle',
+				'select.pointing_shape'
+			)
+		) {
 			return true
 		}
 
@@ -123,6 +144,104 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 
 	override getCursor(_overlay: TLShapeHandleOverlay): TLCursorType | undefined {
 		return 'grab' as TLCursorType
+	}
+
+	override getPointerDownRedirect(
+		overlay: TLShapeHandleOverlay,
+		info: TLOverlayPointerEventInfo<TLShapeHandleOverlay>
+	): TLOverlayPointerDownRedirect | void {
+		const handleInfo = ShapeHandleOverlayUtil.getHandleInfoFromOverlay(this.editor, overlay, info)
+		if (!handleInfo || this.editor.getIsReadonly()) return
+
+		if (this.editor.inputs.getAltKey()) {
+			return { id: 'select.pointing_shape', info: handleInfo }
+		}
+	}
+
+	override onPointerDown(
+		overlay: TLShapeHandleOverlay,
+		info: TLOverlayPointerEventInfo<TLShapeHandleOverlay>
+	) {
+		const handleInfo = ShapeHandleOverlayUtil.getHandleInfoFromOverlay(this.editor, overlay, info)
+		if (!handleInfo || this.editor.getIsReadonly()) return false
+
+		this.pointingSession = new ShapeHandlePointingSession(this.editor, handleInfo)
+		this.pointingSession.start()
+		return undefined
+	}
+
+	override getDragStartRedirect(
+		_overlay: TLShapeHandleOverlay,
+		_initial: TLOverlayPointerEventInfo<TLShapeHandleOverlay>,
+		current: TLPointerEventInfo
+	) {
+		const redirect = this.pointingSession?.getDragStartRedirect(current)
+		if (redirect) {
+			this.pointingSession?.cleanup()
+			this.pointingSession = null
+		}
+		return redirect
+	}
+
+	override onClick() {
+		const handled = this.pointingSession?.click() ?? false
+		this.pointingSession?.cleanup()
+		this.pointingSession = null
+		return handled ? false : undefined
+	}
+
+	override onDragStart(
+		overlay: TLShapeHandleOverlay,
+		info: TLOverlayDragInfo<TLShapeHandleOverlay>
+	) {
+		const handleInfo =
+			this.pointingSession?.info ??
+			ShapeHandleOverlayUtil.getHandleInfoFromOverlay(this.editor, overlay, info.initial)
+		if (!handleInfo) return
+
+		this.pointingSession = null
+		this.dragSession = new ShapeHandleDragSession(this.editor, handleInfo)
+		this.dragSession.start({ update: false })
+	}
+
+	override onDrag() {
+		this.dragSession?.update()
+	}
+
+	override onDragEnd() {
+		this.dragSession?.complete()
+		this.dragSession?.exit()
+		this.dragSession = null
+	}
+
+	override onDragCancel() {
+		this.dragSession?.cancel()
+		this.dragSession?.exit()
+		this.dragSession = null
+	}
+
+	private static getHandleInfoFromOverlay(
+		editor: Editor,
+		overlay: TLShapeHandleOverlay,
+		info: TLOverlayPointerEventInfo<TLShapeHandleOverlay>
+	): ShapeHandlePointingInfo | undefined {
+		const shape = editor.getShape(overlay.props.shapeId)
+		if (!shape) return
+		return ShapeHandleOverlayUtil.getHandleInfo(shape, overlay.props.handle, info)
+	}
+
+	private static getHandleInfo(
+		shape: TLShape,
+		handle: TLHandle,
+		info: TLPointerEventInfo
+	): ShapeHandlePointingInfo {
+		const { overlay: _overlay, ...pointerInfo } = info as TLOverlayPointerEventInfo
+		return {
+			...pointerInfo,
+			target: 'handle',
+			shape,
+			handle,
+		}
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLShapeHandleOverlay[]): void {

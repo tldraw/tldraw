@@ -15,6 +15,7 @@ import {
 	toRichText,
 	unsafe__withoutCapture,
 } from '@tldraw/editor'
+import { SelectionForegroundOverlayUtil } from '../../../overlays/SelectionForegroundOverlayUtil'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
@@ -117,68 +118,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'overlay': {
-				// Overlay events carry the overlay instance which has props
-				// describing what kind of overlay it is. Delegate to the appropriate
-				// state transition based on the overlay's props.
-				const { overlay } = info
-				const util = this.editor.overlays.getOverlayUtil(overlay)
-
-				// Give the overlay util a chance to handle the event itself.
-				// Defining onPointerDown acts as an interrupt — unless it
-				// explicitly returns false, we skip the default routing below.
-				if (util.onPointerDown) {
-					const result = util.onPointerDown(overlay, info)
-					if (result !== false) return
-				}
-
-				const overlayType = overlay.props.overlayType as string | undefined
-
-				// Check overlay type to determine how to route the event
-				if (overlay.type === 'shape_handle') {
-					// Re-dispatch as a handle event
-					const shape = this.editor.getShape(overlay.props.shapeId as any)
-					if (shape) {
-						this.onPointerDown({
-							...info,
-							target: 'handle',
-							shape,
-							handle: overlay.props.handle as any,
-						})
-					}
-				} else {
-					switch (overlayType) {
-						case 'rotate_handle': {
-							this.onPointerDown({
-								...info,
-								target: 'selection',
-								handle: overlay.props.handle as any,
-							})
-							break
-						}
-						case 'mobile_rotate': {
-							this.onPointerDown({
-								...info,
-								target: 'selection',
-								handle: overlay.props.handle as any,
-							})
-							break
-						}
-						case 'resize_handle': {
-							this.onPointerDown({
-								...info,
-								target: 'selection',
-								handle: overlay.props.handle as any,
-							})
-							break
-						}
-						default: {
-							this.onPointerDown({
-								...info,
-								target: 'selection',
-							})
-						}
-					}
-				}
+				this.parent.transition('pointing_overlay', info)
 				break
 			}
 			case 'shape': {
@@ -204,57 +144,39 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'selection': {
-				switch (info.handle) {
-					case 'mobile_rotate':
-					case 'top_left_rotate':
-					case 'top_right_rotate':
-					case 'bottom_left_rotate':
-					case 'bottom_right_rotate': {
-						if (info.accelKey) {
-							this.parent.transition('brushing', info)
-							break
-						}
-						this.parent.transition('pointing_rotate_handle', info)
+				const overlay = SelectionForegroundOverlayUtil.getOverlayForSelectionHandle(info.handle)
+				if (overlay) {
+					const overlayInfo = {
+						...info,
+						target: 'overlay',
+						overlay,
+					} as const
+					const redirect = SelectionForegroundOverlayUtil.getPointerDownRedirectForOverlay(
+						this.editor,
+						overlay,
+						overlayInfo
+					)
+					if (redirect) {
+						this.editor.setCurrentTool(redirect.id, redirect.info ?? overlayInfo)
 						break
-					}
-					case 'top':
-					case 'right':
-					case 'bottom':
-					case 'left':
-					case 'top_left':
-					case 'top_right':
-					case 'bottom_left':
-					case 'bottom_right': {
-						const onlySelectedShape = this.editor.getOnlySelectedShape()
-						if (info.ctrlKey && this.editor.canCropShape(onlySelectedShape)) {
-							this.parent.transition('crop.pointing_crop_handle', info)
-						} else {
-							if (info.accelKey) {
-								this.parent.transition('brushing', info)
-								break
-							}
-							this.parent.transition('pointing_resize_handle', info)
-						}
-						break
-					}
-					default: {
-						const hoveredShape = this.editor.getHoveredShape()
-						if (
-							hoveredShape &&
-							!this.editor.getSelectedShapeIds().includes(hoveredShape.id) &&
-							!hoveredShape.isLocked
-						) {
-							this.onPointerDown({
-								...info,
-								shape: hoveredShape,
-								target: 'shape',
-							})
-							return
-						}
-
-						this.parent.transition('pointing_selection', info)
 					}
 				}
+
+				const hoveredShape = this.editor.getHoveredShape()
+				if (
+					hoveredShape &&
+					!this.editor.getSelectedShapeIds().includes(hoveredShape.id) &&
+					!hoveredShape.isLocked
+				) {
+					this.onPointerDown({
+						...info,
+						shape: hoveredShape,
+						target: 'shape',
+					})
+					return
+				}
+
+				this.parent.transition('pointing_selection', info)
 				break
 			}
 		}

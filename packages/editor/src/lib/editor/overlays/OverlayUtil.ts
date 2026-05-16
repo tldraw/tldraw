@@ -31,6 +31,31 @@ export interface TLOverlayUtilConstructor<U extends OverlayUtil = OverlayUtil> {
 /** @public */
 export type TLAnyOverlayUtilConstructor = TLOverlayUtilConstructor<any>
 
+/** @public */
+export type TLOverlayPointerEventInfo<T extends TLOverlay = TLOverlay> = TLPointerEventInfo & {
+	target: 'overlay'
+	overlay: T
+}
+
+/**
+ * Return this from {@link OverlayUtil.getPointerDownRedirect} when an overlay
+ * should use an existing state node instead of the generic overlay interaction
+ * lifecycle.
+ *
+ * @public
+ */
+export interface TLOverlayPointerDownRedirect {
+	id: string
+	info?: object
+}
+
+/** @public */
+export interface TLOverlayDragInfo<T extends TLOverlay = TLOverlay> {
+	overlay: T
+	initial: TLOverlayPointerEventInfo<T>
+	current: TLPointerEventInfo
+}
+
 /**
  * Base class for overlay utilities. Overlays are ephemeral UI elements rendered
  * on top of the canvas (selection handles, rotation corners, shape handles, etc.).
@@ -110,16 +135,62 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
 	}
 
 	/**
-	 * Called when the user points down on this overlay, before the default
-	 * routing runs. Acts as an interrupt: define it to take over the event.
+	 * Return a redirect when this overlay should enter a specialized state
+	 * instead of the generic pointing / dragging overlay lifecycle.
 	 *
-	 * Return `false` to continue with the default behavior (e.g. the
-	 * built-in rotate/resize handle transitions or shape-handle dispatch).
-	 * Return `true` — or nothing at all — to skip the default. In other
-	 * words, once you override this method you own the event unless you
-	 * explicitly opt back in by returning `false`.
+	 * Selection resize handles, rotation handles, crop handles, and shape
+	 * handles use this to preserve their existing specialized interaction
+	 * states while still participating in overlay hit-testing and rendering.
 	 */
-	onPointerDown?(overlay: T, info: TLPointerEventInfo): boolean | void
+	getPointerDownRedirect?(
+		overlay: T,
+		info: TLOverlayPointerEventInfo<T>
+	): TLOverlayPointerDownRedirect | void
+
+	/**
+	 * Return a redirect when this overlay should enter a specialized state once
+	 * the user starts dragging.
+	 *
+	 * Most overlays can use the generic overlay dragging lifecycle. Use this for
+	 * interactions whose drag target is no longer the overlay itself, such as a
+	 * note clone handle creating and translating a new note.
+	 */
+	getDragStartRedirect?(
+		overlay: T,
+		initial: TLOverlayPointerEventInfo<T>,
+		current: TLPointerEventInfo
+	): TLOverlayPointerDownRedirect | void
+
+	/**
+	 * Called when the user points down on this overlay and no specialized
+	 * redirect was returned. Return false to fall back to the normal selection
+	 * pointer-down behavior.
+	 */
+	onPointerDown?(overlay: T, info: TLOverlayPointerEventInfo<T>): boolean | void
+
+	/**
+	 * Called when the user releases a pointer over a generic overlay interaction.
+	 * Return false to skip the follow-up click callback.
+	 */
+	onPointerUp?(overlay: T, info: TLOverlayPointerEventInfo<T>): boolean | void
+
+	/**
+	 * Called when a generic overlay pointing interaction completes without
+	 * dragging. Return false when the overlay handled its own state transition.
+	 */
+	onClick?(overlay: T, info: TLOverlayPointerEventInfo<T>): boolean | void
+
+	/** Called when a generic overlay drag starts. */
+	onDragStart?(overlay: T, info: TLOverlayDragInfo<T>): void
+
+	/** Called when a generic overlay drag updates. */
+	onDrag?(overlay: T, info: TLOverlayDragInfo<T>): void
+
+	/** Called when a generic overlay drag finishes. */
+	onDragEnd?(overlay: T, info: TLOverlayDragInfo<T>): void
+
+	/** Called when a generic overlay drag is cancelled or interrupted. */
+	onDragCancel?(overlay: T, info: TLOverlayDragInfo<T>): void
 
 	/**
 	 * Render all active overlays into the canvas context.

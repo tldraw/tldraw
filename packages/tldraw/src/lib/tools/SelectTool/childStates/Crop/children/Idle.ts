@@ -6,6 +6,7 @@ import {
 	TLPointerEventInfo,
 	Vec,
 } from '@tldraw/editor'
+import { SelectionForegroundOverlayUtil } from '../../../../../overlays/SelectionForegroundOverlayUtil'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredOverlayId } from '../../../../selection-logic/updateHoveredOverlayId'
 import { getTranslateCroppedImageChange } from './crop_helpers'
@@ -48,26 +49,20 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				// Check overlays first — if we hit a crop/resize handle, re-dispatch
+				// Check overlays first — if we hit a crop/resize handle, let the overlay own the routing.
 				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 				const hitOverlay = this.editor.overlays.getOverlayAtPoint(
 					currentPagePoint,
 					this.editor.options.hitTestMargin / this.editor.getZoomLevel()
 				)
 				if (hitOverlay) {
-					const overlayType = hitOverlay.props.overlayType as string | undefined
-					if (
-						overlayType === 'resize_handle' ||
-						overlayType === 'rotate_handle' ||
-						overlayType === 'mobile_rotate'
-					) {
-						this.onPointerDown({
-							...info,
-							target: 'selection',
-							handle: hitOverlay.props.handle as any,
-						})
-						return
-					}
+					this.editor.setCurrentTool('select.pointing_overlay', {
+						...info,
+						target: 'overlay',
+						overlay: hitOverlay,
+						onInteractionEnd: 'select.crop.idle',
+					})
+					return
 				}
 
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
@@ -83,6 +78,14 @@ export class Idle extends StateNode {
 				this.cancel()
 				// feed the event back into the statechart
 				this.editor.root.handleEvent(info)
+				break
+			}
+			case 'overlay': {
+				this.editor.setCurrentTool('select.pointing_overlay', {
+					...info,
+					target: 'overlay',
+					onInteractionEnd: 'select.crop.idle',
+				})
 				break
 			}
 			case 'shape': {
@@ -103,36 +106,26 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'selection': {
-				switch (info.handle) {
-					case 'mobile_rotate':
-					case 'top_left_rotate':
-					case 'top_right_rotate':
-					case 'bottom_left_rotate':
-					case 'bottom_right_rotate': {
-						this.editor.setCurrentTool('select.pointing_rotate_handle', {
-							...info,
-							onInteractionEnd: 'select.crop.idle',
-						})
+				const overlay = SelectionForegroundOverlayUtil.getOverlayForSelectionHandle(info.handle)
+				if (overlay) {
+					const overlayInfo = {
+						...info,
+						target: 'overlay',
+						overlay,
+						onInteractionEnd: 'select.crop.idle',
+					} as const
+					const redirect = SelectionForegroundOverlayUtil.getPointerDownRedirectForOverlay(
+						this.editor,
+						overlay,
+						overlayInfo
+					)
+					if (redirect) {
+						this.editor.setCurrentTool(redirect.id, redirect.info ?? overlayInfo)
 						break
-					}
-					case 'top':
-					case 'right':
-					case 'bottom':
-					case 'left':
-					case 'top_left':
-					case 'top_right':
-					case 'bottom_left':
-					case 'bottom_right': {
-						this.editor.setCurrentTool('select.crop.pointing_crop_handle', {
-							...info,
-							onInteractionEnd: 'select.crop.idle',
-						})
-						break
-					}
-					default: {
-						this.cancel()
 					}
 				}
+
+				this.cancel()
 				break
 			}
 		}
