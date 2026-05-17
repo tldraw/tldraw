@@ -47,18 +47,21 @@ function makeColor(solid: string): TLDefaultColor {
 }
 
 const CUSTOM_HEXES = [
+	// row 1 — dark to medium purples (mirrors black → grey → light-violet → violet)
 	'#332233',
 	'#554466',
-	'#996688',
-	'#cc9988',
-	'#cc9966',
-	'#aa6677',
 	'#776677',
-	'#aa9988',
-	'#ddcc99',
-	'#88aa77',
+	'#996688',
+	// row 2 — cool slates → warm ambers (mirrors blue → light-blue → yellow → orange)
 	'#667788',
 	'#88aa99',
+	'#cc9966',
+	'#aa6677',
+	// row 3 — sage/cream → warm taupes (mirrors green → light-green → light-red → red)
+	'#88aa77',
+	'#ddcc99',
+	'#aa9988',
+	'#cc9988',
 ] as const
 
 const customColors = Object.fromEntries(
