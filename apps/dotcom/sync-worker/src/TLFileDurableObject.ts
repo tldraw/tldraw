@@ -20,6 +20,7 @@ import {
 	TlaFileWebhookFilter,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
+import { createDotcomTLSchema } from '@tldraw/dotcom-shared'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	DurableObjectSqliteSyncWrapper,
@@ -33,7 +34,6 @@ import {
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
 } from '@tldraw/sync-core'
-import { createDotcomTLSchema } from '@tldraw/dotcom-shared'
 import {
 	TLAsset,
 	TLAssetId,
@@ -85,7 +85,7 @@ import { validateAndRepairDocumentMutations } from './utils/validateDocumentMuta
 
 const MAX_CONNECTIONS = 50
 const WEBHOOK_DISPATCH_INTERVAL_MS = 100
-const WEBHOOK_CACHE_TTL_MS = 60_000
+const WEBHOOK_CACHE_TTL_MS = 5_000
 
 interface WebhookCacheEntry {
 	id: string

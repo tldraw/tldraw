@@ -4,9 +4,9 @@
 
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { createServer, IncomingMessage, ServerResponse } from 'node:http'
-
-import { config } from './config'
-import { tldrawWebhookSecrets } from './tldraw'
+// Per-provider verification secrets the server needs to know about. The
+// GitHub adapter declares its secret; other adapters will too.
+import { GITHUB_WEBHOOK_SECRET_FOR_VERIFY } from './adapters/github'
 import {
 	clearArrowState,
 	findEntity,
@@ -15,11 +15,9 @@ import {
 	listAdapters,
 	wiredArrowIds,
 } from './arrows'
+import { config } from './config'
+import { tldrawWebhookSecrets } from './tldraw'
 import type { IncomingWebhookContext, TldrawShape } from './types'
-
-// Per-provider verification secrets the server needs to know about. The
-// GitHub adapter declares its secret; other adapters will too.
-import { GITHUB_WEBHOOK_SECRET_FOR_VERIFY } from './adapters/github'
 
 interface TldrawWebhookEnvelope {
 	event: string
@@ -46,13 +44,28 @@ function verifyTldraw(
 	signatureHeader: string | undefined,
 	webhookId: string | undefined
 ): boolean {
-	if (!signatureHeader || !webhookId) return false
+	if (!signatureHeader || !webhookId) {
+		console.warn(`[verify tldraw] missing headers: sig=${!!signatureHeader} id=${!!webhookId}`)
+		return false
+	}
 	const secret = tldrawWebhookSecrets.get(webhookId)
-	if (!secret) return false
+	if (!secret) {
+		console.warn(
+			`[verify tldraw] unknown webhook id ${webhookId}; known: [${[...tldrawWebhookSecrets.keys()].join(', ')}]`
+		)
+		return false
+	}
 	const expected = createHmac('sha256', secret).update(body).digest('hex')
 	const received = signatureHeader.replace(/^sha256=/, '')
-	if (expected.length !== received.length) return false
-	return timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(received, 'hex'))
+	if (expected.length !== received.length) {
+		console.warn(
+			`[verify tldraw] length mismatch for ${webhookId}: expected ${expected.length}, got ${received.length}`
+		)
+		return false
+	}
+	const ok = timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(received, 'hex'))
+	if (!ok) console.warn(`[verify tldraw] HMAC mismatch for ${webhookId}`)
+	return ok
 }
 
 function verifyGithub(body: string, header: string | undefined): boolean {
@@ -93,10 +106,7 @@ async function runResync() {
 function statusPageHtml(): string {
 	const adapters = listAdapters()
 	const rows = adapters
-		.map(
-			(a) =>
-				`<tr><td>${a.providerId}</td><td>${a.ownedShapeIds().length}</td></tr>`
-		)
+		.map((a) => `<tr><td>${a.providerId}</td><td>${a.ownedShapeIds().length}</td></tr>`)
 		.join('')
 	const arrows = wiredArrowIds().length
 	return `<!doctype html>
@@ -153,46 +163,112 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
 		}
 
 		if (req.url === '/tldraw-webhook') {
-			const ok = verifyTldraw(
-				body,
-				req.headers['x-tldraw-signature'] as string,
-				req.headers['x-tldraw-webhook-id'] as string
-			)
+			const tRecv = Date.now()
+			const webhookId = req.headers['x-tldraw-webhook-id'] as string | undefined
+			const deliveryId = req.headers['x-tldraw-delivery'] as string | undefined
+			if (webhookId && !tldrawWebhookSecrets.has(webhookId)) {
+				return reply(res, 200, 'stale webhook id; dropped')
+			}
+			const ok = verifyTldraw(body, req.headers['x-tldraw-signature'] as string, webhookId)
 			if (!ok) return reply(res, 401, 'invalid signature')
 			const env = JSON.parse(body) as TldrawWebhookEnvelope
-			if (env.event === 'shape.updated' && env.data.shape) {
-				const hit = findEntity(env.data.shape.id)
-				if (hit?.adapter.handleShapeUpdated) {
-					await hit.adapter.handleShapeUpdated(env.data.shape)
+			const queueDelay = env.timestamp ? tRecv - env.timestamp : -1
+			const d = env.data
+			const details = d.shape
+				? `shape=${d.shape.id} type=${d.shape.type}`
+				: d.binding
+					? `binding=${d.binding.id} type=${d.binding.type} from=${d.binding.fromId} to=${d.binding.toId} terminal=${d.binding.props?.terminal ?? '-'}`
+					: d.bindingId
+						? `binding=${d.bindingId}`
+						: d.shapeId
+							? `shape=${d.shapeId}`
+							: '-'
+			console.log(
+				`[tldraw-webhook] recv event=${env.event} ${details} delivery=${deliveryId ?? '-'} queueDelay=${queueDelay}ms bodyLen=${body.length}`
+			)
+
+			// Ack the worker immediately so a slow handler can never trigger queue
+			// retries. Process the event asynchronously after the reply.
+			reply(res, 200, 'ok')
+
+			void (async () => {
+				const tStart = Date.now()
+				try {
+					if (env.event === 'shape.updated' && env.data.shape) {
+						const hit = findEntity(env.data.shape.id)
+						if (hit?.adapter.handleShapeUpdated) {
+							console.log(
+								`[tldraw-webhook] routing to ${hit.adapter.providerId} (entity ${hit.entity.externalId})`
+							)
+							await hit.adapter.handleShapeUpdated(env.data.shape)
+						} else {
+							console.log(
+								`[tldraw-webhook] no adapter owns ${env.data.shape.id} (${env.data.shape.type}) — fanning out`
+							)
+							for (const adapter of listAdapters()) {
+								if (adapter.handleShapeUpdated) {
+									await adapter.handleShapeUpdated(env.data.shape)
+								}
+							}
+						}
+					} else if (env.event === 'binding.created' && env.data.binding) {
+						await handleBindingCreated({
+							id: env.data.binding.id,
+							fromId: env.data.binding.fromId,
+							toId: env.data.binding.toId,
+							props: env.data.binding.props,
+						})
+					} else if (env.event === 'binding.deleted' && env.data.bindingId) {
+						await handleBindingDeleted(env.data.bindingId)
+					}
+				} catch (e) {
+					console.warn(`[tldraw-webhook] handler error for ${env.event}:`, e)
 				}
-			} else if (env.event === 'binding.created' && env.data.binding) {
-				await handleBindingCreated({
-					id: env.data.binding.id,
-					fromId: env.data.binding.fromId,
-					toId: env.data.binding.toId,
-					props: env.data.binding.props,
-				})
-			} else if (env.event === 'binding.deleted' && env.data.bindingId) {
-				await handleBindingDeleted(env.data.bindingId)
-			}
-			return reply(res, 200, 'ok')
+				console.log(
+					`[tldraw-webhook] done event=${env.event} delivery=${deliveryId ?? '-'} handlerMs=${Date.now() - tStart} totalMs=${Date.now() - tRecv}`
+				)
+			})()
+			return
 		}
 
 		if (req.url === '/github-webhook') {
+			const tRecv = Date.now()
+			const event = req.headers['x-github-event'] as string | undefined
+			const delivery = req.headers['x-github-delivery'] as string | undefined
 			const ok = verifyGithub(body, req.headers['x-hub-signature-256'] as string)
-			if (!ok) return reply(res, 401, 'invalid signature')
-			const ctx: IncomingWebhookContext = {
-				headers: req.headers as Record<string, string | undefined>,
-				rawBody: body,
-				parsedBody: JSON.parse(body),
+			if (!ok) {
+				console.warn(`[github-webhook] invalid signature event=${event} delivery=${delivery}`)
+				return reply(res, 401, 'invalid signature')
 			}
-			for (const adapter of listAdapters()) {
-				if (adapter.matchesIncomingWebhook(ctx)) {
-					await adapter.handleIncomingWebhook(ctx)
-					break
+			const parsed = JSON.parse(body)
+			const action = (parsed as { action?: string }).action ?? '-'
+			console.log(
+				`[github-webhook] recv event=${event} action=${action} delivery=${delivery} bodyLen=${body.length}`
+			)
+			reply(res, 200, 'ok')
+			void (async () => {
+				const tStart = Date.now()
+				const ctx: IncomingWebhookContext = {
+					headers: req.headers as Record<string, string | undefined>,
+					rawBody: body,
+					parsedBody: parsed,
 				}
-			}
-			return reply(res, 200, 'ok')
+				try {
+					for (const adapter of listAdapters()) {
+						if (adapter.matchesIncomingWebhook(ctx)) {
+							console.log(`[github-webhook] routing to ${adapter.providerId} adapter`)
+							await adapter.handleIncomingWebhook(ctx)
+							break
+						}
+					}
+				} catch (e) {
+					console.warn(`[github-webhook] handler error for ${event}/${action}:`, e)
+				}
+				console.log(
+					`[github-webhook] done event=${event} action=${action} delivery=${delivery} handlerMs=${Date.now() - tStart} totalMs=${Date.now() - tRecv}`
+				)
+			})()
+			return
 		}
 
 		// Generic per-provider webhook endpoints: e.g. /notion-webhook, /hubspot-webhook

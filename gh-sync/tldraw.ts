@@ -49,10 +49,9 @@ interface RegisteredWebhook {
 }
 
 async function listOurWebhooks(): Promise<RegisteredWebhook[]> {
-	const res = await fetch(
-		`${config.tldrApiBase}/api/app/file/${config.tldrFileSlug}/webhooks`,
-		{ headers: { Authorization: `Bearer ${config.tldrApiToken}` } }
-	)
+	const res = await fetch(`${config.tldrApiBase}/api/app/file/${config.tldrFileSlug}/webhooks`, {
+		headers: { Authorization: `Bearer ${config.tldrApiToken}` },
+	})
 	if (!res.ok) throw new Error(`listWebhooks ${res.status}: ${await res.text().catch(() => '')}`)
 	const json = (await res.json()) as { webhooks: RegisteredWebhook[] }
 	return json.webhooks
@@ -69,17 +68,14 @@ async function deleteOurWebhook(id: string): Promise<void> {
 }
 
 async function createOurWebhook(eventType: string, filter?: { paths: string[] }) {
-	const res = await fetch(
-		`${config.tldrApiBase}/api/app/file/${config.tldrFileSlug}/webhooks`,
-		{
-			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${config.tldrApiToken}`,
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({ url: tldrWebhookUrl, eventType, filter }),
-		}
-	)
+	const res = await fetch(`${config.tldrApiBase}/api/app/file/${config.tldrFileSlug}/webhooks`, {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${config.tldrApiToken}`,
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ url: tldrWebhookUrl, eventType, filter }),
+	})
 	const json = (await res.json()) as { error?: boolean; id?: string; secret?: string }
 	if (!res.ok || json.error || !json.id || !json.secret) {
 		console.warn(`createWebhook ${eventType} failed:`, json)
@@ -105,8 +101,11 @@ export async function syncTldrawWebhooks() {
 		console.warn('could not list existing webhooks:', e)
 		return [] as RegisteredWebhook[]
 	})
-	for (const w of existing) {
-		if (w.url === tldrWebhookUrl) await deleteOurWebhook(w.id)
+	if (existing.length > 0) {
+		console.log(`wiping ${existing.length} pre-existing webhook subscription(s)`)
+		for (const w of existing) {
+			await deleteOurWebhook(w.id)
+		}
 	}
 	await createOurWebhook('shape.updated', { paths: ['x', 'y', 'props'] })
 	await createOurWebhook('shape.deleted')
