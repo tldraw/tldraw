@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "Moje datoteke"
   },
+  "2e2b3c700b": {
+    "translation": "Uključi vezu na trenutnu datoteku"
+  },
   "31246941ad": {
     "translation": "Morate se prijaviti da vidite ovu datoteku."
   },
@@ -106,6 +109,9 @@
   },
   "3e2ae04ff0": {
     "translation": "Nepodržani Mermaid dijagram"
+  },
+  "402bf0c47e": {
+    "translation": "Tema boja"
   },
   "42e53c47c1": {
     "translation": "Kontaktirajte vlasnika da zatražite pristup."
@@ -277,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "Pošaljite problem na GitHub"
+  },
+  "7a1920d611": {
+    "translation": "Zadano"
   },
   "7b1329f5ca": {
     "translation": "Korisnički priručnik"

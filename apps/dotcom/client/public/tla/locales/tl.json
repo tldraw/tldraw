@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "Aking mga file"
   },
+  "2e2b3c700b": {
+    "translation": "Isama ang link sa kasalukuyang file"
+  },
   "31246941ad": {
     "translation": "Kailangan mong mag-sign in upang tingnan ang file na ito."
   },
@@ -106,6 +109,9 @@
   },
   "3e2ae04ff0": {
     "translation": "Hindi sinusuportahang Mermaid diagram"
+  },
+  "402bf0c47e": {
+    "translation": "Tema ng kulay"
   },
   "42e53c47c1": {
     "translation": "Makipag-ugnayan sa may-ari para humiling ng access."
@@ -277,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "Magsumite ng isyu sa GitHub"
+  },
+  "7a1920d611": {
+    "translation": "Default"
   },
   "7b1329f5ca": {
     "translation": "User manual"
