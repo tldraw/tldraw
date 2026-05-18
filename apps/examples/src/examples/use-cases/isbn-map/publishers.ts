@@ -94,3 +94,30 @@ export const PUBLISHERS: PublisherEntry[] = [
 	{ relativePrefix: '00321', name: 'Addison-Wesley / Pearson', parent: 'Pearson' },
 	{ relativePrefix: '00134', name: 'Prentice Hall / Pearson', parent: 'Pearson' },
 ]
+
+// Find the longest publisher prefix that is a prefix of the given relative
+// ISBN. We walk from longest to shortest so e.g. "00307474278" matches "00307"
+// (Random House) even though "0030" might also match a broader range.
+//
+// Callers pass a relative-ISBN string (10 digits, the EAN-stripped form), and
+// we test prefixes of length 7 down to 3. Returns null if no entry matches.
+export function lookupPublisher(relativeIsbn: string): PublisherEntry | null {
+	for (let len = Math.min(7, relativeIsbn.length); len >= 3; len--) {
+		const prefix = relativeIsbn.slice(0, len)
+		const match = PUBLISHERS.find((p) => p.relativePrefix === prefix)
+		if (match) return match
+	}
+	return null
+}
+
+// Deterministic color for a publisher parent group (used by labels and by the
+// synthesized book-spine renderer). The hash spreads colors evenly around the
+// HSL wheel; the same parent always produces the same color so imprints from
+// the same publishing house visually cluster.
+export function parentToColor(parent: string | undefined, alpha = 1): string {
+	if (!parent) return `hsla(0, 0%, 60%, ${alpha})`
+	let h = 0
+	for (let i = 0; i < parent.length; i++) h = (h * 31 + parent.charCodeAt(i)) | 0
+	const hue = Math.abs(h) % 360
+	return `hsla(${hue}, 70%, 60%, ${alpha})`
+}
