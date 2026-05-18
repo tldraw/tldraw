@@ -328,6 +328,11 @@
 	text-align: center;
 }
 
+.tlui-zoom-menu__button[data-state='open']::after {
+	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
+}
+
 /* --------------------- Layout --------------------- */
 
 .tlui-layout {
@@ -789,6 +794,11 @@
 	width: auto;
 }
 
+.tlui-page-menu__trigger[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
+}
+
 .tlui-page-menu__list {
 	flex: 0 0 auto;
 	overflow-x: hidden;
@@ -1174,6 +1184,12 @@ tldraw? probably.
 .tlui-style-panel__section__common:not(:only-child) {
 	margin-bottom: 7px;
 	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+.tlui-toolbar-toggle-group-item,
+.tlui-style-panel__dropdown-picker > .tlui-button__icon {
+	width: 40px;
+	padding: 0;
 }
 
 .tlui-style-panel__dropdown-picker:only-child {

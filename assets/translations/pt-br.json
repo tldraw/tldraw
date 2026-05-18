@@ -243,7 +243,7 @@
 	"file-system.shared-document-file-open-error.description": "Não há suporte para abrir arquivos de projetos compartilhados.",
 	"file-system.shared-document-file-open-error.title": "Não foi possível abrir o arquivo",
 	"fill-style.fill": "Preencher",
-	"fill-style.lined-fill": "Preenchimento com linhas",
+	"fill-style.lined-fill": "enchimento alinhado",
 	"fill-style.none": "Nenhum",
 	"fill-style.pattern": "Padrão",
 	"fill-style.semi": "Semi",
