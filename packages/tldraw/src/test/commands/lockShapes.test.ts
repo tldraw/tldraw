@@ -297,3 +297,67 @@ it('works when forced', () => {
 	)
 	expect(editor.getShape(myShapeId)).toBeUndefined()
 })
+
+describe('When the selectLockedShapes option is enabled', () => {
+	let lockEditor: TestEditor
+
+	beforeEach(() => {
+		lockEditor = new TestEditor({ options: { selectLockedShapes: true } })
+		lockEditor.createShapes([
+			{
+				id: ids.lockedShapeA,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				isLocked: true,
+				props: { fill: 'solid' },
+			},
+			{ id: ids.unlockedShapeA, type: 'geo', x: 200, y: 200, isLocked: false },
+		])
+	})
+
+	it('Can be selected by clicking', () => {
+		const shape = lockEditor.getShape(ids.lockedShapeA)!
+
+		lockEditor
+			.pointerDown(10, 10, { target: 'shape', shape })
+			.expectToBeIn('select.pointing_shape')
+			.pointerUp()
+			.expectToBeIn('select.idle')
+		expect(lockEditor.getSelectedShapeIds()).toEqual([ids.lockedShapeA])
+	})
+
+	it('Can be selected by left-clicking on the canvas over the shape', () => {
+		lockEditor
+			.pointerDown(10, 10, { target: 'canvas' })
+			.expectToBeIn('select.pointing_shape')
+			.pointerUp()
+			.expectToBeIn('select.idle')
+		expect(lockEditor.getSelectedShapeIds()).toEqual([ids.lockedShapeA])
+	})
+
+	it('Can be selected by brushing', () => {
+		lockEditor
+			.pointerDown(-10, -10, { target: 'canvas' })
+			.pointerMove(250, 250)
+			.expectToBeIn('select.brushing')
+			.pointerUp()
+		expect(lockEditor.getSelectedShapeIds()).toEqual(
+			expect.arrayContaining([ids.lockedShapeA, ids.unlockedShapeA])
+		)
+	})
+
+	it('Still cannot be moved or mutated while selected', () => {
+		const shape = lockEditor.getShape(ids.lockedShapeA)!
+		const xBefore = shape.x
+
+		lockEditor.pointerDown(10, 10, { target: 'shape', shape }).pointerMove(50, 50).pointerUp()
+
+		expect(lockEditor.getShape(ids.lockedShapeA)!.x).toBe(xBefore)
+	})
+
+	it('Still cannot be deleted via deleteShapes', () => {
+		lockEditor.deleteShapes([ids.lockedShapeA])
+		expect(lockEditor.getShape(ids.lockedShapeA)).not.toBeUndefined()
+	})
+})
