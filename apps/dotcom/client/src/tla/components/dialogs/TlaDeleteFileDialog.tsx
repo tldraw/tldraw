@@ -1,5 +1,4 @@
 import { useAuth } from '@clerk/clerk-react'
-import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiButton,
@@ -32,7 +31,7 @@ export function TlaDeleteFileDialog({
 
 	const isOwner = useHasFileAdminRights(fileId)
 
-	const handleDelete = useCallback(async () => {
+	const handleDelete = async () => {
 		const token = await auth.getToken()
 		if (!token) throw new Error('No token')
 		trackEvent('delete-file', { source: 'file-menu' })
@@ -47,7 +46,7 @@ export function TlaDeleteFileDialog({
 			navigate(routes.tlaFile(recentFiles[0].fileId))
 		}
 		onClose()
-	}, [auth, app, fileId, groupId, onClose, navigate, trackEvent])
+	}
 
 	return (
 		<>
