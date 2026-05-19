@@ -1,6 +1,7 @@
 import { EASINGS, StateNode, TLClickEventInfo, TLStateNodeConstructor } from '@tldraw/editor'
 import { Dragging } from './childStates/Dragging'
 import { Idle } from './childStates/Idle'
+import { OneFingerZooming } from './childStates/OneFingerZooming'
 import { Pointing } from './childStates/Pointing'
 
 /** @public */
@@ -9,7 +10,7 @@ export class HandTool extends StateNode {
 	static override initial = 'idle'
 	static override isLockable = false
 	static override children(): TLStateNodeConstructor[] {
-		return [Idle, Pointing, Dragging]
+		return [Idle, Pointing, Dragging, OneFingerZooming]
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {

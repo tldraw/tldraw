@@ -1,4 +1,4 @@
-import { StateNode } from '@tldraw/editor'
+import { StateNode, TLClickEventInfo } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -15,6 +15,12 @@ export class Pointing extends StateNode {
 	override onPointerMove() {
 		if (this.editor.inputs.getIsDragging()) {
 			this.startDragging()
+		}
+	}
+
+	override onDoubleClick(info: TLClickEventInfo) {
+		if (info.phase === 'down' && this.editor.getInstanceState().isCoarsePointer) {
+			this.parent.transition('one_finger_zooming', info)
 		}
 	}
 
