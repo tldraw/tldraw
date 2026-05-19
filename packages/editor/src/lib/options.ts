@@ -172,6 +172,13 @@ export interface TldrawOptions {
 	 */
 	readonly snapThreshold: number
 	/**
+	 * Whether locked shapes can be selected with a left click. When false (default), left-clicking
+	 * a locked shape is treated as a click on the canvas — only right-click selects it. When true,
+	 * locked shapes can be selected via left click and included in brush and scribble selections,
+	 * but the editor's lock guards still prevent moving, resizing, editing, or deleting them.
+	 */
+	readonly selectLockedShapes: boolean
+	/**
 	 * Options for the editor's camera. These are the initial camera options.
 	 * Use {@link Editor.setCameraOptions} to update camera options at runtime.
 	 */
@@ -335,6 +342,7 @@ export const defaultTldrawOptions = {
 	rightClickPanning: true,
 	zoomToFitPadding: 128,
 	snapThreshold: 8,
+	selectLockedShapes: false,
 	camera: DEFAULT_CAMERA_OPTIONS,
 	text: {},
 	deepLinks: undefined,

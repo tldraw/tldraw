@@ -13,6 +13,7 @@ export function getHitShapeOnCanvasPointerDown(
 		editor.getShapeAtPoint(currentPagePoint, {
 			hitInside: false,
 			hitLabels,
+			hitLocked: editor.options.selectLockedShapes,
 			margin: editor.options.hitTestMargin / zoomLevel,
 			renderingOnly: true,
 		}) ??
