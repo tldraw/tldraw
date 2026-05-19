@@ -73,6 +73,9 @@ export const router = createRoutesFromElements(
 				/>
 				{/* File view */}
 				<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
+				{/* Grid views (read-only previews of user's files) */}
+				<Route path={ROUTES.tlaGrid} lazy={() => import('./tla/pages/grid')} />
+				<Route path={ROUTES.tlaGridOriginal} lazy={() => import('./tla/pages/grid-original')} />
 				<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
 				<Route
 					path={ROUTES.tlaFileHistorySnapshot}

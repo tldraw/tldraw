@@ -1056,3 +1056,29 @@
 [data-no-animation='true'] * {
 	animation-duration: 0s !important;
 }
+
+.sidebarGridLinks {
+	display: flex;
+	flex-direction: column;
+	margin-bottom: 8px;
+}
+
+.sidebarGridLink {
+	display: flex;
+	align-items: center;
+	height: 32px;
+	padding: 0 12px;
+	color: var(--tla-color-text-1);
+	font-size: 13px;
+	border-radius: 6px;
+	text-decoration: none;
+}
+
+.sidebarGridLink:hover {
+	background: var(--tla-color-hover);
+}
+
+.sidebarGridLink[aria-current='page'] {
+	background: var(--tla-color-active);
+	font-weight: 500;
+}

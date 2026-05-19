@@ -4,6 +4,8 @@ export const ROUTES = {
 	tlaOptIn: '/preview',
 
 	tlaRoot: `/`,
+	tlaGrid: `/grid`,
+	tlaGridOriginal: `/grid-original`,
 	tlaNew: `/new`,
 	tlaFile: `/f/:fileSlug`,
 	tlaFileHistory: `/f/:fileSlug/history`,

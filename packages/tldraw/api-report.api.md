@@ -74,6 +74,7 @@ import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
 import { SVGProps } from 'react';
 import { TiptapEditor } from '@tldraw/editor';
+import { TLAnyAssetUtilConstructor } from '@tldraw/editor';
 import { TLAnyBindingUtilConstructor } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
 import { TLArrowBinding } from '@tldraw/editor';
@@ -101,6 +102,7 @@ import { TldrawOptions } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeProps } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
+import { TldrawViewerProps } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEditStartInfo } from '@tldraw/editor';
@@ -4135,6 +4137,16 @@ export interface TldrawImageProps extends TLImageExportOptions {
     // @deprecated
     textOptions?: TLTextOptions;
 }
+
+// @public
+export function TldrawPreview({ shapeUtils, bindingUtils, assetUtils, onMount, assetUrls, options, ...rest }: TldrawPreviewProps): JSX.Element;
+
+// @public
+export type TldrawPreviewProps = Omit<TldrawViewerProps, 'assetUtils' | 'bindingUtils' | 'shapeUtils'> & {
+    assetUtils?: readonly TLAnyAssetUtilConstructor[];
+    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+};
 
 // @public (undocumented)
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps;

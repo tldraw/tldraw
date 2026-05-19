@@ -18,6 +18,7 @@ export {
 	DefaultCanvas,
 	type TLCanvasComponentProps,
 } from './lib/components/default-components/DefaultCanvas'
+export { ViewerCanvas } from './lib/components/default-components/ViewerCanvas'
 export {
 	DefaultErrorFallback,
 	type TLErrorFallbackComponent,
@@ -436,6 +437,7 @@ export {
 	type TldrawEditorWithStoreProps,
 	type TLOnMountHandler,
 } from './lib/TldrawEditor'
+export { TldrawViewer, type TldrawViewerProps } from './lib/TldrawViewer'
 export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
 export { clampToBrowserMaxCanvasSize, type CanvasMaxSize } from './lib/utils/browserCanvasMaxSize'
 export {
