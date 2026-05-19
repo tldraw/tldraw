@@ -15,6 +15,32 @@ const INTERNAL_REWRITES: Record<string, string> = {
 	'/installation': '/getting-started/installation',
 }
 
+// Path prefixes that are served by another system (e.g. the marketing site)
+// rather than this Next.js app, so they will never appear in the docs DB.
+// Matches the prefix as an exact path OR as a parent of a subpath:
+// e.g. '/legal' matches '/legal' and '/legal/tldraw-license' but not '/legal-foo'.
+const EXTERNAL_ROUTE_PREFIXES = [
+	'/accessibility',
+	'/blog',
+	'/careers',
+	'/company',
+	'/events',
+	'/faq',
+	'/features',
+	'/get-a-license',
+	'/legal',
+	'/partner',
+	'/pricing',
+	'/showcase',
+	'/thanks',
+]
+
+function isExternalRoute(urlPath: string): boolean {
+	return EXTERNAL_ROUTE_PREFIXES.some(
+		(prefix) => urlPath === prefix || urlPath.startsWith(prefix + '/')
+	)
+}
+
 /**
  * Strip fenced code blocks from markdown, replacing them with blank lines
  * to preserve line numbering for error reporting.
@@ -193,6 +219,10 @@ export async function checkBrokenLinks(): Promise<number> {
 			const hashIdx = url.indexOf('#')
 			const urlPath = hashIdx >= 0 ? url.slice(0, hashIdx) : url
 			const fragment = hashIdx >= 0 ? url.slice(hashIdx + 1).toLowerCase() : null
+
+			// Skip paths served by an external system (marketing site etc.)
+			// — they will never appear in the docs DB but are still valid in production.
+			if (isExternalRoute(urlPath)) continue
 
 			// Empty path with fragment = same-page anchor
 			if (urlPath === '' && fragment) {
