@@ -139,6 +139,17 @@ export interface TldrawOptions {
 	 */
 	readonly branding?: string
 	/**
+	 * Default height (in pixels) for the style panel's color area — the section containing the
+	 * color picker and opacity slider. When `'auto'` (the default) the area auto-fits its
+	 * content. When a number, the area is capped at that height, scrolls if its content
+	 * overflows, and exposes a resize handle that lets end users adjust the height; the chosen
+	 * height is persisted to localStorage and double-click resets it to this default.
+	 *
+	 * The `colorAreaHeight` prop on `DefaultStylePanelContent` overrides this; an end-user
+	 * resize overrides both.
+	 */
+	readonly stylePanelColorAreaHeight: number | 'auto'
+	/**
 	 * Whether to use debounced zoom level for certain rendering optimizations. When true,
 	 * `editor.getEfficientZoomLevel()` returns a cached zoom value while the camera is moving,
 	 * reducing re-renders. When false, it always returns the current zoom level.
@@ -351,4 +362,5 @@ export const defaultTldrawOptions = {
 	onBeforePasteFromClipboard: undefined,
 	onClipboardPasteRaw: undefined,
 	experimental__onDropOnCanvas: undefined,
+	stylePanelColorAreaHeight: 'auto',
 } as const satisfies TldrawOptions

@@ -1129,6 +1129,53 @@ tldraw? probably.
 	display: none;
 }
 
+/* Color area: capped height + resize handle. When data-fixed='true' the section
+   replaces its own border-bottom divider with the handle's 1px line. */
+.tlui-style-panel__color-area[data-fixed='true'] {
+	border-bottom: none;
+}
+
+.tlui-style-panel__color-area-scroll {
+	overflow-y: auto;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.tlui-style-panel__color-area-scroll::-webkit-scrollbar {
+	display: none;
+}
+
+.tlui-style-panel__color-area-resize-handle {
+	flex: 0 0 auto;
+	position: relative;
+	height: 7px;
+	cursor: ns-resize;
+	touch-action: none;
+	z-index: 1;
+}
+
+.tlui-style-panel__color-area-resize-handle::before {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: var(--tl-color-divider);
+	transition: background-color 100ms;
+}
+
+.tlui-style-panel__color-area-resize-handle[data-resizing='true']::before {
+	background: var(--tl-color-selected);
+	transition: none;
+}
+
+@media (hover: hover) {
+	.tlui-style-panel__color-area-resize-handle:hover::before {
+		background: var(--tl-color-selected);
+	}
+}
+
 /*
  * This is used in a couple places, like Align and Vertical Align.
  * It's because we have a toolbar with a Toggle Group but then an adjacent button
