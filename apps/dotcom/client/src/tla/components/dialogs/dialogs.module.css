@@ -189,6 +189,60 @@
 	border: 1px solid var(--tla-color-primary);
 }
 
+/* Single-line inputs: clip overflow with ellipsis (flex parents need min-width: 0). */
+.dialogInputTruncate {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0;
+}
+
+/* Webhook dialog: wide layout for URL + event type side by side */
+.webhookDialogBody {
+	width: min(720px, calc(100vw - 48px));
+	max-width: 720px;
+}
+
+/* Saved webhook rows: non-editable after creation */
+.webhookSavedField:disabled {
+	cursor: not-allowed;
+	opacity: 0.85;
+}
+
+.webhookSavedTextarea:disabled {
+	resize: none;
+	cursor: not-allowed;
+	opacity: 0.85;
+}
+
+.dialogSelectableError {
+	margin: 0 0 8px 0;
+	padding: 0;
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--color-warn);
+	cursor: text;
+	white-space: pre-wrap;
+	word-break: break-word;
+	user-select: text !important;
+	-webkit-user-select: text !important;
+}
+
+.dialogFilterPaths {
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--tl-radius-2);
+	padding: var(--tl-space-2) var(--tl-space-3);
+	width: 100%;
+	box-sizing: border-box;
+	font-size: 12px;
+	font-family: inherit;
+	line-height: 1.4;
+	resize: vertical;
+	min-height: 72px;
+	user-select: text;
+	-webkit-user-select: text;
+}
+
 .dialogFooter {
 	display: flex;
 	justify-content: flex-end;

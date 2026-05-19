@@ -24,6 +24,7 @@ import {
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
 	ZeroContext,
+	createDotcomTLSchema,
 	createMutators,
 	parseFlags,
 	queries,
@@ -57,7 +58,6 @@ import {
 	atom,
 	computed,
 	createTLCurrentUser,
-	createTLSchema,
 	dataUrlToFile,
 	defaultUserPreferences,
 	getUserPreferences,
@@ -1087,7 +1087,7 @@ export class TldrawApp {
 	) {
 		const json = await file.text()
 		const parseFileResult = parseTldrawJsonFile({
-			schema: createTLSchema(),
+			schema: createDotcomTLSchema(),
 			json,
 		})
 

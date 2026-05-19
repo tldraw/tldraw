@@ -12,6 +12,7 @@ import { TlaEditorPublishedSharePanel } from './editor-components/TlaEditorPubli
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+import { githubShapeUtils } from '../../shapes/githubShapeUtils'
 import styles from './editor.module.css'
 
 const components: TLComponents = {
@@ -48,6 +49,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
+				shapeUtils={githubShapeUtils}
 				snapshot={snapshot}
 				overrides={[fileEditorOverrides]}
 				onUiEvent={handleUiEvent}

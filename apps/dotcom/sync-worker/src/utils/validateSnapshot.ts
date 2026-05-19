@@ -1,5 +1,6 @@
+import { createDotcomTLSchema } from '@tldraw/dotcom-shared'
 import { SerializedSchema, SerializedStore } from '@tldraw/store'
-import { TLRecord, createTLSchema } from '@tldraw/tlschema'
+import { TLRecord } from '@tldraw/tlschema'
 import { Result, objectMapEntries } from '@tldraw/utils'
 
 interface SnapshotRequestBody {
@@ -7,7 +8,7 @@ interface SnapshotRequestBody {
 	snapshot: SerializedStore<TLRecord>
 }
 
-const schema = createTLSchema()
+const schema = createDotcomTLSchema()
 export function validateSnapshot(
 	body: SnapshotRequestBody
 ): Result<SerializedStore<TLRecord>, string> {

@@ -18,6 +18,7 @@ import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { dotcomShapeUtils, githubShapeUtils } from '../../shapes/githubShapeUtils'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorLegacySharePanel } from './editor-components/TlaEditorLegacySharePanel'
@@ -78,6 +79,7 @@ function TlaEditorInner({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${fileSlug}`,
 		roomId: fileSlug,
 		assets,
+		shapeUtils: dotcomShapeUtils,
 		trackAnalyticsEvent: trackEvent,
 	})
 
@@ -114,6 +116,7 @@ function TlaEditorInner({
 				className="tla-editor"
 				licenseKey={getLicenseKey()}
 				store={storeWithStatus}
+				shapeUtils={githubShapeUtils}
 				assetUrls={assetUrls}
 				onMount={handleMount}
 				overrides={[fileSystemUiOverrides]}

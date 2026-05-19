@@ -72,7 +72,10 @@ export async function requireWriteAccessToFile(
 	roomId: string
 ) {
 	const auth = await requireAuth(request, env)
+	await requireWriteAccessForUser(env, auth.userId, roomId)
+}
 
+export async function requireWriteAccessForUser(env: Environment, userId: string, roomId: string) {
 	const db = createPostgresConnectionPool(env, 'sync-worker/hasWriteAccessToFile')
 
 	try {
@@ -90,7 +93,7 @@ export async function requireWriteAccessToFile(
 		}
 
 		// If the user is the owner of the file, they have write access
-		if (file.ownerId === auth.userId) {
+		if (file.ownerId === userId) {
 			return
 		}
 
@@ -100,7 +103,7 @@ export async function requireWriteAccessToFile(
 				.selectFrom('group_user')
 				.select('role')
 				.where('groupId', '=', file.owningGroupId)
-				.where('userId', '=', auth.userId)
+				.where('userId', '=', userId)
 				.executeTakeFirst()
 
 			if (groupMember) {

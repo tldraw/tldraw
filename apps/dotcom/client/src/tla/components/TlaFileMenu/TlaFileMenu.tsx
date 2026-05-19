@@ -30,6 +30,7 @@ import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { CreateGroupDialog } from '../dialogs/CreateGroupDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
+import { WebhookDialog } from '../dialogs/WebhookDialog'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { downloadAppFile } from '../TlaEditor/useFileEditorOverrides'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -45,6 +46,7 @@ const messages = defineMessages({
 	pin: { defaultMessage: 'Pin file' },
 	unpin: { defaultMessage: 'Unpin file' },
 	myFiles: { defaultMessage: 'My files' },
+	webhooks: { defaultMessage: 'Webhooks' },
 })
 
 function getDuplicateName(file: TlaFile, app: TldrawApp) {
@@ -110,6 +112,7 @@ export function FileItems({
 	const hasGroups = useHasFlag('groups_frontend')
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
+	const canUpdateFile = useValue('canUpdateFile', () => app.canUpdateFile(fileId), [app, fileId])
 
 	// Get all group memberships (including home group which we'll filter in UI)
 	const groupMemberships = useValue('groupMembers', () => app.getGroupMemberships(), [app])
@@ -177,6 +180,12 @@ export function FileItems({
 		downloadAppFile(fileId)
 	}, [fileId, source, trackEvent])
 
+	const handleWebhooksClick = useCallback(() => {
+		addDialog({
+			component: ({ onClose }) => <WebhookDialog fileSlug={fileId} onClose={onClose} />,
+		})
+	}, [addDialog, fileId])
+
 	const copyLinkMsg = useMsg(messages.copyLink)
 	const renameMsg = useMsg(messages.rename)
 	const duplicateMsg = useMsg(messages.duplicate)
@@ -185,6 +194,10 @@ export function FileItems({
 	const deleteOrForgetMsg = useMsg(hasAdminRights ? messages.delete : messages.forget)
 	const downloadFile = useMsg(editorMessages.downloadFile)
 	const myFilesMsg = useMsg(messages.myFiles)
+	const webhooksMsg = useMsg(messages.webhooks)
+
+	const showSidebarWebhooks =
+		canUpdateFile && (source === 'sidebar' || source === 'sidebar-context-menu')
 
 	return (
 		<Fragment>
@@ -221,6 +234,14 @@ export function FileItems({
 						id="pin-unpin"
 						readonlyOk
 						onSelect={handlePinUnpinClick}
+					/>
+				)}
+				{showSidebarWebhooks && (
+					<TldrawUiMenuItem
+						label={webhooksMsg}
+						id="webhooks"
+						readonlyOk
+						onSelect={handleWebhooksClick}
 					/>
 				)}
 			</TldrawUiMenuGroup>

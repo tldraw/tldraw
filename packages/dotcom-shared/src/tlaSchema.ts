@@ -265,6 +265,38 @@ export interface TlaAsset {
 	userId: string | null
 }
 
+export interface TlaApiToken {
+	id: string
+	userId: string
+	tokenHash: string
+	createdAt: number
+	lastUsedAt: number | null
+	revokedAt: number | null
+}
+
+export type TlaFileWebhookEventType =
+	| 'shape.created'
+	| 'shape.updated'
+	| 'shape.deleted'
+	| 'binding.created'
+	| 'binding.updated'
+	| 'binding.deleted'
+
+export interface TlaFileWebhookFilter {
+	paths?: string[]
+}
+
+export interface TlaFileWebhook {
+	id: string
+	fileId: string
+	userId: string
+	url: string
+	secret: string
+	eventType: TlaFileWebhookEventType
+	filter: TlaFileWebhookFilter | null
+	createdAt: number
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -274,6 +306,8 @@ export interface DB {
 	group_file: TlaGroupFile
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
+	api_token: TlaApiToken
+	file_webhook: TlaFileWebhook
 }
 
 export const schema = createSchema({

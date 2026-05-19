@@ -1,4 +1,5 @@
-import { createTLSchema, fetch, parseTldrawJsonFile } from 'tldraw'
+import { createDotcomTLSchema } from '@tldraw/dotcom-shared'
+import { fetch, parseTldrawJsonFile } from 'tldraw'
 import type { TldrawApp } from '../app/TldrawApp'
 
 export async function importFromUrl(
@@ -15,7 +16,7 @@ export async function importFromUrl(
 		const json = await res.text()
 		const parseResult = parseTldrawJsonFile({
 			json,
-			schema: createTLSchema(),
+			schema: createDotcomTLSchema(),
 		})
 		if (!parseResult.ok) {
 			return { ok: false, error: 'URL did not point to a valid tldraw file' }

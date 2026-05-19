@@ -8,6 +8,7 @@ import {
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
+	TLUiOverrides,
 	TLUserStore,
 	Tldraw,
 	TldrawUiMenuItem,
@@ -38,6 +39,7 @@ import { isProductionEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
+import { dotcomShapeUtils, githubShapeUtils } from '../../shapes/githubShapeUtils'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
@@ -67,6 +69,13 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
+	// Hidden for the github-kanban experience. None of these are useful here:
+	//  - StylePanel: our custom shapes don't expose styles.
+	//  - HelpMenu: shortcuts cheatsheet noise.
+	//  - NavigationPanel: minimap; the board is intentionally column-shaped.
+	StylePanel: null,
+	HelpMenu: null,
+	NavigationPanel: null,
 }
 
 interface TlaEditorProps {
@@ -223,6 +232,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		users,
+		shapeUtils: dotcomShapeUtils,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)
 		}, []),
@@ -270,6 +280,21 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
+	// Github-kanban experience: pare the toolbar down to the few tools that
+	// make sense alongside issue cards. Users can still hit Backspace to delete.
+	const minimalToolsOverrides = useMemo(() => {
+		const keep = new Set(['select', 'hand', 'arrow', 'note'])
+		return {
+			tools(_editor, tools) {
+				const next: typeof tools = {}
+				for (const [id, tool] of Object.entries(tools)) {
+					if (keep.has(id)) next[id] = tool
+				}
+				return next
+			},
+		} satisfies TLUiOverrides
+	}, [])
+
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
@@ -283,6 +308,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				className="tla-editor"
 				licenseKey={getLicenseKey()}
 				store={store}
+				shapeUtils={githubShapeUtils}
 				assetUrls={assetUrls}
 				user={app?.tlUser}
 				onMount={handleMount}
@@ -292,7 +318,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,
 				}}
-				overrides={[overrides, extraDragIconOverrides]}
+				overrides={[overrides, extraDragIconOverrides, minimalToolsOverrides]}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />

@@ -14,6 +14,9 @@
   "07dbd11b21": {
     "translation": "Untitled file"
   },
+  "08181da205": {
+    "translation": "URL must start with http:// or https://"
+  },
   "08331c1710": {
     "translation": "Rate limit exceeded, try again later."
   },
@@ -26,11 +29,17 @@
   "0b27918290": {
     "translation": "File"
   },
+  "0b8764d3dc": {
+    "translation": "Webhook URL"
+  },
   "0b9a4cde72": {
     "translation": "File menu"
   },
   "0d1f2bb523": {
     "translation": "Send feedback"
+  },
+  "1063e38cb5": {
+    "translation": "Remove"
   },
   "110a4b01be": {
     "translation": "Publish"
@@ -53,6 +62,12 @@
   "14d65465b7": {
     "translation": "Delete group"
   },
+  "14f2b208be": {
+    "translation": "https://…"
+  },
+  "150c7abfca": {
+    "translation": "Webhook"
+  },
   "181b90f889": {
     "translation": "Create file"
   },
@@ -62,11 +77,20 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
+  "221d2a347e": {
+    "translation": "Webhooks"
+  },
   "2445e5e347": {
     "translation": "Create group"
   },
   "250ddea65c": {
     "translation": "About tldraw"
+  },
+  "27537523b4": {
+    "translation": "Shape deleted"
+  },
+  "27b0d8df7f": {
+    "translation": "Add at least one property path for this event type."
   },
   "299cb00a7a": {
     "translation": "Upload failed"
@@ -101,17 +125,29 @@
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
+  "3c4f11162c": {
+    "translation": "Copy signing secret now"
+  },
   "3c5e891bff": {
     "translation": "Pinned"
   },
   "3d0238bf16": {
     "translation": "Accept all"
   },
+  "3e222fd81e": {
+    "translation": "Enter a valid URL"
+  },
   "3e2ae04ff0": {
     "translation": "Unsupported Mermaid diagram"
   },
+  "3e7f0d5bbb": {
+    "translation": "(shown once)"
+  },
   "402bf0c47e": {
     "translation": "Color theme"
+  },
+  "42973c15d3": {
+    "translation": "Could not create token: {message}"
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
@@ -161,6 +197,9 @@
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
   },
+  "51408f1c75": {
+    "translation": "API token"
+  },
   "517bb809d9": {
     "translation": "Page menu"
   },
@@ -175,6 +214,9 @@
   },
   "55505ba281": {
     "translation": "PNG"
+  },
+  "5647ecf021": {
+    "translation": "Loading webhooks…"
   },
   "5677e381d2": {
     "translation": "We use analytics cookies to make tldraw better."
@@ -199,6 +241,9 @@
   },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
+  },
+  "5e85ed076f": {
+    "translation": "Event type"
   },
   "5ea8bb44be": {
     "translation": "You have been invited to join group:"
@@ -233,11 +278,20 @@
   "6a26f54883": {
     "translation": "Help"
   },
+  "6ba5ab09fb": {
+    "translation": "Signing secret"
+  },
+  "6bdd6f648b": {
+    "translation": "+ Add webhook"
+  },
   "6dc0836c1b": {
     "translation": "You do not have the necessary permissions to perform this action."
   },
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
+  },
+  "6fad8fe8bd": {
+    "translation": "Failed to save webhook"
   },
   "70222abcfc": {
     "translation": "Group settings"
@@ -257,6 +311,9 @@
   "752b79f137": {
     "translation": "You have reached the maximum number of files. You need to delete old files before creating new ones."
   },
+  "752e18dddf": {
+    "translation": "Create API token"
+  },
   "7573b8110a": {
     "translation": "No access"
   },
@@ -265,6 +322,9 @@
   },
   "764671e008": {
     "translation": "Chat with us on Discord"
+  },
+  "768404630c": {
+    "translation": "Copy this token. It will not be shown again."
   },
   "7697920637": {
     "translation": "Please reload"
@@ -323,6 +383,9 @@
   "86c66437fd": {
     "translation": "Rename file"
   },
+  "891398a5cf": {
+    "translation": "Shape updated"
+  },
   "8ad4303b83": {
     "translation": "No thanks"
   },
@@ -341,11 +404,17 @@
   "904a830405": {
     "translation": "Rename"
   },
+  "911a2360df": {
+    "translation": "Copy signing secret"
+  },
   "91e49bb0eb": {
     "translation": "Copy to my files"
   },
   "930390d222": {
     "translation": "Copied invite link"
+  },
+  "94664ec21e": {
+    "translation": "Each path must be at most {max} characters."
   },
   "9489b2f82a": {
     "translation": "You are already a member of this group"
@@ -401,11 +470,17 @@
   "a239905023": {
     "translation": "Export image"
   },
+  "a2735c9c59": {
+    "translation": "Property paths (one per line)"
+  },
   "a3debabee7": {
     "translation": "Cookie policy"
   },
   "a4d3b161ce": {
     "translation": "Submit"
+  },
+  "a588b1abc5": {
+    "translation": "Copied"
   },
   "a6cc403d56": {
     "translation": "Anyone with the link"
@@ -421,6 +496,9 @@
   },
   "ab0df9ba36": {
     "translation": "File limit reached"
+  },
+  "abb28f334f": {
+    "translation": "Failed to load webhooks"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
@@ -449,6 +527,9 @@
   },
   "ba0318cb81": {
     "translation": "Sign in to share"
+  },
+  "bb817f04b6": {
+    "translation": "Shape created"
   },
   "bb93a7590f": {
     "translation": "Accept and join group"
@@ -503,6 +584,9 @@
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
+  },
+  "d11e785606": {
+    "translation": "At most {max} paths (one per line)."
   },
   "d3d2e61733": {
     "translation": "Close"
@@ -567,6 +651,12 @@
   "ebfe9ce86e": {
     "translation": "Yesterday"
   },
+  "ec211f7c20": {
+    "translation": "Add"
+  },
+  "ec50543c0d": {
+    "translation": "Failed to delete webhook"
+  },
   "ec59b960ea": {
     "translation": "This file has reached the maximum number of active collaborators."
   },
@@ -599,6 +689,9 @@
   },
   "f2a6c498fb": {
     "translation": "Delete"
+  },
+  "f37b0a088b": {
+    "translation": "Creating token…"
   },
   "f4f70727dc": {
     "translation": "Settings"

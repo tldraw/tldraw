@@ -1,0 +1,339 @@
+/* =========================================================================
+   githubShapes.css — visual styling for the GitHub-kanban shape utils.
+   Adopts the tldraw-intel design language (BEM, low specificity, tokens
+   only, Inter font, black borders, tight radii).
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;550;600;700&display=swap');
+
+/* Tokens scoped to gh-sync shapes only so we don't disturb the rest of dotcom. */
+.gh-issue-card,
+.gh-column,
+.gh-label,
+.notion-project,
+.hubspot-company {
+	/* color */
+	--gh-color-surface: #ffffff;
+	--gh-color-surface-alt: #f7f7f7;
+	--gh-color-border: #000000;
+	--gh-color-border-soft: #d4d4d8;
+	--gh-color-text: #000000;
+	--gh-color-text-secondary: #5c5c61;
+	--gh-color-text-muted: #818189;
+	--gh-color-state-open: #22c55e;
+	--gh-color-state-completed: #8b5cf6;
+	--gh-color-state-not-planned: #818189;
+	--gh-color-shadow: rgba(0, 0, 0, 0.2);
+	/* spacing */
+	--gh-space-1: 4px;
+	--gh-space-2: 8px;
+	--gh-space-3: 12px;
+	--gh-space-4: 16px;
+	/* radius */
+	--gh-radius-sm: 2px;
+	--gh-radius-md: 3px;
+	--gh-radius-lg: 4px;
+	/* type */
+	--gh-font:
+		'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+	--gh-fs-xs: 9px;
+	--gh-fs-sm: 10px;
+	--gh-fs-md: 12px;
+	--gh-fs-lg: 14px;
+	--gh-fw-regular: 500;
+	--gh-fw-medium: 550;
+	--gh-fw-semibold: 600;
+	--gh-lh-tight: 1.25;
+}
+
+/* =========================================================================
+   gh-issue-card
+   ========================================================================= */
+
+.gh-issue-card {
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	padding: var(--gh-space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--gh-space-2);
+	background: var(--gh-color-surface);
+	border: 1px solid var(--gh-color-border);
+	border-radius: var(--gh-radius-md);
+	box-shadow: 2px 3px 0 0 var(--gh-color-shadow);
+	font-family: var(--gh-font);
+	font-size: var(--gh-fs-md);
+	font-weight: var(--gh-fw-regular);
+	line-height: var(--gh-lh-tight);
+	color: var(--gh-color-text);
+	overflow: hidden;
+	pointer-events: all;
+}
+
+.gh-issue-card__header {
+	display: flex;
+	align-items: center;
+	gap: var(--gh-space-2);
+}
+
+.gh-issue-card__state {
+	display: inline-flex;
+	align-items: center;
+	padding: 0 var(--gh-space-2);
+	height: 16px;
+	border: 1px solid var(--gh-color-border);
+	border-radius: var(--gh-radius-sm);
+	font-size: var(--gh-fs-xs);
+	font-weight: var(--gh-fw-semibold);
+	text-transform: lowercase;
+	letter-spacing: 0.02em;
+}
+
+.gh-issue-card__state--open {
+	background: var(--gh-color-state-open);
+	color: var(--gh-color-text);
+}
+
+.gh-issue-card__state--closed-completed {
+	background: var(--gh-color-state-completed);
+	color: #fff;
+}
+
+.gh-issue-card__state--closed-not-planned {
+	background: var(--gh-color-state-not-planned);
+	color: #fff;
+}
+
+.gh-issue-card__number {
+	font-size: var(--gh-fs-sm);
+	font-weight: var(--gh-fw-semibold);
+	color: var(--gh-color-text-secondary);
+	text-decoration: none;
+}
+
+.gh-issue-card__title {
+	font-size: var(--gh-fs-md);
+	font-weight: var(--gh-fw-semibold);
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.gh-issue-card__labels {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--gh-space-1);
+}
+
+.gh-issue-card__label {
+	padding: 0 var(--gh-space-2);
+	height: 14px;
+	border: 1px solid var(--gh-color-border);
+	border-radius: var(--gh-radius-sm);
+	font-size: var(--gh-fs-xs);
+	line-height: 12px;
+	font-weight: var(--gh-fw-medium);
+}
+
+.gh-issue-card__assignee {
+	margin-top: auto;
+	font-size: var(--gh-fs-xs);
+	color: var(--gh-color-text-muted);
+}
+
+/* =========================================================================
+   gh-column
+   ========================================================================= */
+
+.gh-column {
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	background: var(--gh-color-surface-alt);
+	border: 1px solid var(--gh-color-border);
+	border-radius: var(--gh-radius-md);
+	font-family: var(--gh-font);
+	pointer-events: all;
+}
+
+.gh-column__header {
+	padding: var(--gh-space-2) var(--gh-space-3);
+	border-bottom: 1px solid var(--gh-color-border);
+	font-size: var(--gh-fs-md);
+	font-weight: var(--gh-fw-semibold);
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.gh-column--open .gh-column__header {
+	background: var(--gh-color-state-open);
+	color: var(--gh-color-text);
+}
+
+.gh-column--closed-completed .gh-column__header {
+	background: var(--gh-color-state-completed);
+	color: #fff;
+}
+
+.gh-column--closed-not-planned .gh-column__header {
+	background: var(--gh-color-state-not-planned);
+	color: #fff;
+}
+
+/* =========================================================================
+   gh-label (sprinkler chip)
+   ========================================================================= */
+
+.gh-label {
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 var(--gh-space-3);
+	border: 1px solid var(--gh-color-border);
+	border-radius: var(--gh-radius-lg);
+	font-family: var(--gh-font);
+	font-size: var(--gh-fs-md);
+	font-weight: var(--gh-fw-semibold);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	pointer-events: all;
+}
+
+/* =========================================================================
+   notion-project
+   ========================================================================= */
+
+.notion-project {
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	padding: var(--gh-space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--gh-space-2);
+	background: var(--gh-color-surface);
+	border: 1px solid var(--gh-color-border);
+	border-radius: var(--gh-radius-md);
+	box-shadow: 2px 3px 0 0 var(--gh-color-shadow);
+	font-family: var(--gh-font);
+	font-size: var(--gh-fs-md);
+	color: var(--gh-color-text);
+	overflow: hidden;
+	pointer-events: all;
+}
+
+.notion-project__header {
+	display: flex;
+	align-items: center;
+	gap: var(--gh-space-2);
+}
+
+.notion-project__provider {
+	display: inline-flex;
+	align-items: center;
+	padding: 0 var(--gh-space-2);
+	height: 16px;
+	border: 1px solid var(--gh-color-border);
+	border-radius: var(--gh-radius-sm);
+	background: #000;
+	color: #fff;
+	font-size: var(--gh-fs-xs);
+	font-weight: var(--gh-fw-semibold);
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.notion-project__status {
+	font-size: var(--gh-fs-xs);
+	font-weight: var(--gh-fw-medium);
+	color: var(--gh-color-text-secondary);
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.notion-project__title {
+	font-size: var(--gh-fs-md);
+	font-weight: var(--gh-fw-semibold);
+	color: var(--gh-color-text);
+	text-decoration: none;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* =========================================================================
+   hubspot-company
+   ========================================================================= */
+
+.hubspot-company {
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	padding: var(--gh-space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--gh-space-1);
+	background: var(--gh-color-surface);
+	border: 1px solid var(--gh-color-border);
+	border-radius: var(--gh-radius-md);
+	box-shadow: 2px 3px 0 0 var(--gh-color-shadow);
+	font-family: var(--gh-font);
+	font-size: var(--gh-fs-md);
+	color: var(--gh-color-text);
+	overflow: hidden;
+	pointer-events: all;
+}
+
+.hubspot-company__header {
+	display: flex;
+	align-items: center;
+	gap: var(--gh-space-2);
+	margin-bottom: var(--gh-space-1);
+}
+
+.hubspot-company__provider {
+	display: inline-flex;
+	align-items: center;
+	padding: 0 var(--gh-space-2);
+	height: 16px;
+	border: 1px solid var(--gh-color-border);
+	border-radius: var(--gh-radius-sm);
+	background: #ff7a59;
+	color: #fff;
+	font-size: var(--gh-fs-xs);
+	font-weight: var(--gh-fw-semibold);
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.hubspot-company__deals {
+	font-size: var(--gh-fs-xs);
+	font-weight: var(--gh-fw-medium);
+	color: var(--gh-color-text-secondary);
+}
+
+.hubspot-company__name {
+	font-size: var(--gh-fs-md);
+	font-weight: var(--gh-fw-semibold);
+	color: var(--gh-color-text);
+	text-decoration: none;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.hubspot-company__domain {
+	font-size: var(--gh-fs-xs);
+	color: var(--gh-color-text-muted);
+	margin-top: auto;
+}

@@ -33,6 +33,12 @@
       "value": "Untitled file"
     }
   ],
+  "08181da205": [
+    {
+      "type": 0,
+      "value": "URL must start with http:// or https://"
+    }
+  ],
   "08331c1710": [
     {
       "type": 0,
@@ -57,6 +63,12 @@
       "value": "File"
     }
   ],
+  "0b8764d3dc": [
+    {
+      "type": 0,
+      "value": "Webhook URL"
+    }
+  ],
   "0b9a4cde72": [
     {
       "type": 0,
@@ -67,6 +79,12 @@
     {
       "type": 0,
       "value": "Send feedback"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Remove"
     }
   ],
   "110a4b01be": [
@@ -111,6 +129,18 @@
       "value": "Delete group"
     }
   ],
+  "14f2b208be": [
+    {
+      "type": 0,
+      "value": "https://…"
+    }
+  ],
+  "150c7abfca": [
+    {
+      "type": 0,
+      "value": "Webhook"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -129,6 +159,12 @@
       "value": "Today"
     }
   ],
+  "221d2a347e": [
+    {
+      "type": 0,
+      "value": "Webhooks"
+    }
+  ],
   "2445e5e347": [
     {
       "type": 0,
@@ -139,6 +175,18 @@
     {
       "type": 0,
       "value": "About tldraw"
+    }
+  ],
+  "27537523b4": [
+    {
+      "type": 0,
+      "value": "Shape deleted"
+    }
+  ],
+  "27b0d8df7f": [
+    {
+      "type": 0,
+      "value": "Add at least one property path for this event type."
     }
   ],
   "299cb00a7a": [
@@ -207,6 +255,12 @@
       "value": "Unable to publish the changes."
     }
   ],
+  "3c4f11162c": [
+    {
+      "type": 0,
+      "value": "Copy signing secret now"
+    }
+  ],
   "3c5e891bff": [
     {
       "type": 0,
@@ -219,16 +273,38 @@
       "value": "Accept all"
     }
   ],
+  "3e222fd81e": [
+    {
+      "type": 0,
+      "value": "Enter a valid URL"
+    }
+  ],
   "3e2ae04ff0": [
     {
       "type": 0,
       "value": "Unsupported Mermaid diagram"
     }
   ],
+  "3e7f0d5bbb": [
+    {
+      "type": 0,
+      "value": "(shown once)"
+    }
+  ],
   "402bf0c47e": [
     {
       "type": 0,
       "value": "Color theme"
+    }
+  ],
+  "42973c15d3": [
+    {
+      "type": 0,
+      "value": "Could not create token: "
+    },
+    {
+      "type": 1,
+      "value": "message"
     }
   ],
   "42e53c47c1": [
@@ -327,6 +403,12 @@
       "value": "Unable to unpublish the file."
     }
   ],
+  "51408f1c75": [
+    {
+      "type": 0,
+      "value": "API token"
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -365,6 +447,12 @@
     {
       "type": 0,
       "value": "PNG"
+    }
+  ],
+  "5647ecf021": [
+    {
+      "type": 0,
+      "value": "Loading webhooks…"
     }
   ],
   "5677e381d2": [
@@ -443,6 +531,12 @@
       "value": "We failed to upload some of the content you created before you signed in."
     }
   ],
+  "5e85ed076f": [
+    {
+      "type": 0,
+      "value": "Event type"
+    }
+  ],
   "5ea8bb44be": [
     {
       "type": 0,
@@ -509,6 +603,18 @@
       "value": "Help"
     }
   ],
+  "6ba5ab09fb": [
+    {
+      "type": 0,
+      "value": "Signing secret"
+    }
+  ],
+  "6bdd6f648b": [
+    {
+      "type": 0,
+      "value": "+ Add webhook"
+    }
+  ],
   "6dc0836c1b": [
     {
       "type": 0,
@@ -519,6 +625,12 @@
     {
       "type": 0,
       "value": "Follow these steps to import the content manually:"
+    }
+  ],
+  "6fad8fe8bd": [
+    {
+      "type": 0,
+      "value": "Failed to save webhook"
     }
   ],
   "70222abcfc": [
@@ -557,6 +669,12 @@
       "value": "You have reached the maximum number of files. You need to delete old files before creating new ones."
     }
   ],
+  "752e18dddf": [
+    {
+      "type": 0,
+      "value": "Create API token"
+    }
+  ],
   "7573b8110a": [
     {
       "type": 0,
@@ -573,6 +691,12 @@
     {
       "type": 0,
       "value": "Chat with us on Discord"
+    }
+  ],
+  "768404630c": [
+    {
+      "type": 0,
+      "value": "Copy this token. It will not be shown again."
     }
   ],
   "7697920637": [
@@ -725,6 +849,12 @@
       "value": "Rename file"
     }
   ],
+  "891398a5cf": [
+    {
+      "type": 0,
+      "value": "Shape updated"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -761,6 +891,12 @@
       "value": "Rename"
     }
   ],
+  "911a2360df": [
+    {
+      "type": 0,
+      "value": "Copy signing secret"
+    }
+  ],
   "91e49bb0eb": [
     {
       "type": 0,
@@ -771,6 +907,20 @@
     {
       "type": 0,
       "value": "Copied invite link"
+    }
+  ],
+  "94664ec21e": [
+    {
+      "type": 0,
+      "value": "Each path must be at most "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " characters."
     }
   ],
   "9489b2f82a": [
@@ -895,6 +1045,12 @@
       "value": "Export image"
     }
   ],
+  "a2735c9c59": [
+    {
+      "type": 0,
+      "value": "Property paths (one per line)"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -905,6 +1061,12 @@
     {
       "type": 0,
       "value": "Submit"
+    }
+  ],
+  "a588b1abc5": [
+    {
+      "type": 0,
+      "value": "Copied"
     }
   ],
   "a6cc403d56": [
@@ -935,6 +1097,12 @@
     {
       "type": 0,
       "value": "File limit reached"
+    }
+  ],
+  "abb28f334f": [
+    {
+      "type": 0,
+      "value": "Failed to load webhooks"
     }
   ],
   "af3dc88931": [
@@ -995,6 +1163,12 @@
     {
       "type": 0,
       "value": "Sign in to share"
+    }
+  ],
+  "bb817f04b6": [
+    {
+      "type": 0,
+      "value": "Shape created"
     }
   ],
   "bb93a7590f": [
@@ -1159,6 +1333,20 @@
       "value": "Learn more about publishing."
     }
   ],
+  "d11e785606": [
+    {
+      "type": 0,
+      "value": "At most "
+    },
+    {
+      "type": 1,
+      "value": "max"
+    },
+    {
+      "type": 0,
+      "value": " paths (one per line)."
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1313,6 +1501,18 @@
       "value": "Yesterday"
     }
   ],
+  "ec211f7c20": [
+    {
+      "type": 0,
+      "value": "Add"
+    }
+  ],
+  "ec50543c0d": [
+    {
+      "type": 0,
+      "value": "Failed to delete webhook"
+    }
+  ],
   "ec59b960ea": [
     {
       "type": 0,
@@ -1391,6 +1591,12 @@
     {
       "type": 0,
       "value": "Delete"
+    }
+  ],
+  "f37b0a088b": [
+    {
+      "type": 0,
+      "value": "Creating token…"
     }
   ],
   "f4f70727dc": [

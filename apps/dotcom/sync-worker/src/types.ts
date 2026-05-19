@@ -1,6 +1,7 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 import { Queue } from '@cloudflare/workers-types'
+import { TlaFileWebhookEventType } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
@@ -176,9 +177,20 @@ export type TLUserDurableObjectEvent =
 	| { type: 'reboot_duration'; id: string; duration: number }
 	| { type: 'cold_start_time'; id: string; duration: number }
 
-export interface QueueMessage {
-	type: 'asset-upload'
-	objectName: string
-	fileId: string
-	userId: string | null
-}
+export type QueueMessage =
+	| {
+			type: 'asset-upload'
+			objectName: string
+			fileId: string
+			userId: string | null
+	  }
+	| {
+			type: 'webhook-delivery'
+			webhookId: string
+			fileSlug: string
+			event: TlaFileWebhookEventType
+			deliveryId: string
+			url: string
+			secret: string
+			envelope: unknown
+	  }

@@ -16,8 +16,11 @@ import {
 	SNAPSHOT_PREFIX,
 	TLCustomServerEvent,
 	TlaFile,
+	TlaFileWebhookEventType,
+	TlaFileWebhookFilter,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
+import { createDotcomTLSchema } from '@tldraw/dotcom-shared'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	DurableObjectSqliteSyncWrapper,
@@ -34,22 +37,24 @@ import {
 import {
 	TLAsset,
 	TLAssetId,
+	TLBinding,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
-	createTLSchema,
+	TLShape,
 } from '@tldraw/tlschema'
 import {
 	ExecutionQueue,
 	assert,
 	assertExists,
 	exhaustiveSwitchError,
+	isEqual,
 	retry,
 	uniqueId,
 } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
-import { IRequest, Router } from 'itty-router'
+import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
@@ -57,20 +62,48 @@ import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
-import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
+import { Analytics, DBLoadResult, Environment, QueueMessage, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import { mergeShapePartial } from './utils/mergeShapePartial'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
+import { normalizeRpcOperations, type RpcRequestBody } from './utils/rpcOperations'
 import { throttle } from './utils/throttle'
-import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
+import {
+	getAuth,
+	requireAdminAccess,
+	requireWriteAccessForUser,
+	requireWriteAccessToFile,
+} from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { isTestFile } from './utils/tla/isTestFile'
+import { validateAndRepairDocumentMutations } from './utils/validateDocumentMutations'
 
 const MAX_CONNECTIONS = 50
+const WEBHOOK_DISPATCH_INTERVAL_MS = 100
+const WEBHOOK_CACHE_TTL_MS = 5_000
+
+interface WebhookCacheEntry {
+	id: string
+	url: string
+	secret: string
+	eventType: TlaFileWebhookEventType
+	filter: TlaFileWebhookFilter | null
+}
+
+function getAtPath(obj: unknown, path: string): unknown {
+	let cur: unknown = obj
+	for (const segment of path.split('.')) {
+		if (cur === null || cur === undefined) return undefined
+		if (typeof cur !== 'object') return undefined
+		cur = (cur as Record<string, unknown>)[segment]
+	}
+	return cur
+}
 
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
@@ -122,6 +155,15 @@ function arrayBufferToBase64(ab: ArrayBuffer): string {
 	return bytes.toBase64!()
 }
 
+function validateShapeOrThrow(shape: any, shapeType: { validate(record: unknown): unknown }) {
+	try {
+		shapeType.validate(shape)
+	} catch (e) {
+		const message = e instanceof Error ? e.message : 'invalid shape'
+		throw new StatusError(422, `shape ${shape?.id ?? '?'}: ${message}`)
+	}
+}
+
 const MB = 1024 * 1024
 
 export class TLFileDurableObject extends DurableObject {
@@ -160,9 +202,10 @@ export class TLFileDurableObject extends DurableObject {
 				.then((storage) => {
 					storage.onChange(() => {
 						this.triggerPersist()
+						this.triggerWebhookDispatch()
 					})
 					storage.transaction((txn) => {
-						createTLSchema().migrateStorage(txn)
+						createDotcomTLSchema().migrateStorage(txn)
 					})
 					return storage
 				})
@@ -187,6 +230,7 @@ export class TLFileDurableObject extends DurableObject {
 			this._room = this.getStorage().then(async (storage) => {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
 					storage,
+					schema: createDotcomTLSchema(),
 					clientTimeout: Infinity,
 					onSessionSnapshot: (sessionId, snapshot) => {
 						const ws = this.sessionIdToWs.get(sessionId)
@@ -377,6 +421,11 @@ export class TLFileDurableObject extends DurableObject {
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req, true)
 		)
+		.post(
+			`/app/file/:roomId/whiteboard-rpc`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onWhiteboardRpc(req)
+		)
 		.all('*', () => new Response('Not found', { status: 404 }))
 
 	// eslint-disable-next-line tldraw/no-setter-getter
@@ -473,6 +522,94 @@ export class TLFileDurableObject extends DurableObject {
 		room[method](attachment.sessionId)
 	}
 
+	async onWhiteboardRpc(req: IRequest): Promise<Response> {
+		if (this.documentInfo.deleted) {
+			return Response.json({ error: true, message: 'File not found' }, { status: 404 })
+		}
+
+		const body = (await req.json().catch(() => null)) as RpcRequestBody | null
+		const operations = normalizeRpcOperations(body)
+		if (!operations) {
+			return Response.json({ error: true, message: 'Invalid request body' }, { status: 400 })
+		}
+
+		const schema = createDotcomTLSchema()
+		const shapeType = schema.types.shape
+		const storage = await this.getStorage()
+		const createdIds: string[] = []
+
+		try {
+			const { documentClock } = storage.transaction(
+				(txn) => {
+					const mutatedShapeIds = new Set<string>()
+					const deletedShapeIds = new Set<string>()
+
+					for (const op of operations) {
+						switch (op.command) {
+							case 'createShape':
+							case 'createShapes': {
+								const shapes = op.command === 'createShape' ? [op.shape] : op.shapes
+								for (const shape of shapes) {
+									if (!shape || typeof shape !== 'object' || typeof shape.id !== 'string') {
+										throw new StatusError(400, 'shape.id is required')
+									}
+									if (txn.get(shape.id)) {
+										throw new StatusError(409, `shape already exists: ${shape.id}`)
+									}
+									validateShapeOrThrow(shape, shapeType)
+									txn.set(shape.id, shape as TLRecord)
+									mutatedShapeIds.add(shape.id)
+									createdIds.push(shape.id)
+								}
+								break
+							}
+							case 'updateShape':
+							case 'updateShapes': {
+								const partials = op.command === 'updateShape' ? [op.shape] : op.shapes
+								for (const partial of partials) {
+									if (!partial || typeof partial !== 'object' || typeof partial.id !== 'string') {
+										throw new StatusError(400, 'shape.id is required')
+									}
+									const existing = txn.get(partial.id)
+									if (!existing || existing.typeName !== 'shape') {
+										throw new StatusError(404, `shape not found: ${partial.id}`)
+									}
+									const merged = mergeShapePartial(existing as TLShape, partial)
+									validateShapeOrThrow(merged, shapeType)
+									txn.set(merged.id, merged as TLRecord)
+									mutatedShapeIds.add(merged.id)
+								}
+								break
+							}
+							case 'deleteShape':
+							case 'deleteShapes': {
+								const ids = op.command === 'deleteShape' ? [op.id] : op.ids
+								for (const id of ids) {
+									if (typeof id !== 'string') {
+										throw new StatusError(400, 'id must be a string')
+									}
+									txn.delete(id)
+									deletedShapeIds.add(id)
+								}
+								break
+							}
+						}
+					}
+
+					validateAndRepairDocumentMutations(txn, mutatedShapeIds, deletedShapeIds)
+				},
+				{ id: `whiteboard-rpc-${uniqueId()}`, emitChanges: 'always' }
+			)
+
+			return Response.json({ ok: true, documentClock, createdIds })
+		} catch (e) {
+			if (e instanceof StatusError) {
+				return Response.json({ error: true, message: e.message }, { status: e.status })
+			}
+			throw e
+		}
+	}
+
 	_isRestoring = false
 	async onRestore(req: IRequest, isPierre: boolean = false) {
 		this._isRestoring = true
@@ -513,7 +650,7 @@ export class TLFileDurableObject extends DurableObject {
 			await this.r2.rooms.put(roomKey, dataText)
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {
-				loadSnapshotIntoStorage(txn, createTLSchema(), JSON.parse(dataText))
+				loadSnapshotIntoStorage(txn, createDotcomTLSchema(), JSON.parse(dataText))
 			})
 
 			this.maybeAssociateFileAssets()
@@ -853,6 +990,248 @@ export class TLFileDurableObject extends DurableObject {
 	triggerPersist = throttle(() => {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
+
+	triggerWebhookDispatch = throttle(() => {
+		this.dispatchWebhooks().catch((e) => this.reportError(e))
+	}, WEBHOOK_DISPATCH_INTERVAL_MS)
+
+	private _webhooks: WebhookCacheEntry[] | null = null
+	private _webhooksLoadedAt: number = 0
+	private _lastWebhookClock: number | null = null
+	// In-memory mirror of every shape currently in storage. Needed because
+	// SQLiteSyncStorage.getChangesSince() only returns post-state for puts,
+	// so we can't otherwise tell creates from updates (or compute `previous`).
+	// Rebuilt from storage on cold start, kept in sync as we see puts/deletes.
+	private _knownShapes: Map<string, TLShape> | null = null
+	// Parallel mirror for binding records, so we can emit binding.created vs
+	// binding.updated correctly (same reason as _knownShapes).
+	private _knownBindings: Map<string, TLBinding> | null = null
+
+	private async getWebhooks(): Promise<WebhookCacheEntry[]> {
+		const now = Date.now()
+		if (this._webhooks && now - this._webhooksLoadedAt < WEBHOOK_CACHE_TTL_MS) {
+			return this._webhooks
+		}
+		const rows = await this.db
+			.selectFrom('file_webhook')
+			.select(['id', 'url', 'secret', 'userId', 'eventType', 'filter'])
+			.where('fileId', '=', this.documentInfo.slug)
+			.execute()
+
+		// Verify each registering user still has write access to this file.
+		// One check per unique userId; cached together with the webhook list, so
+		// we stop firing within at most WEBHOOK_CACHE_TTL_MS after access is revoked.
+		const uniqueUserIds = [...new Set(rows.map((r) => r.userId))]
+		const accessByUserId = new Map<string, boolean>()
+		await Promise.all(
+			uniqueUserIds.map(async (userId) => {
+				try {
+					await requireWriteAccessForUser(this.env, userId, this.documentInfo.slug)
+					accessByUserId.set(userId, true)
+				} catch {
+					accessByUserId.set(userId, false)
+				}
+			})
+		)
+
+		this._webhooks = rows
+			.filter((r) => accessByUserId.get(r.userId))
+			.map(({ id, url, secret, eventType, filter }) => ({
+				id,
+				url,
+				secret,
+				eventType: eventType as TlaFileWebhookEventType,
+				filter: filter as TlaFileWebhookFilter | null,
+			}))
+		this._webhooksLoadedAt = now
+		return this._webhooks
+	}
+
+	private async dispatchWebhooks() {
+		if (!this._documentInfo || this.documentInfo.deleted) return
+
+		const storage = await this.getStorage()
+		if (this._lastWebhookClock === null) {
+			const persisted = (await this.ctx.storage.get('lastWebhookClock')) as number | undefined
+			storage.transaction((txn) => {
+				const shapeMap = new Map<string, TLShape>()
+				const bindingMap = new Map<string, TLBinding>()
+				for (const record of txn.values()) {
+					if (record.typeName === 'shape') shapeMap.set(record.id, record as TLShape)
+					else if (record.typeName === 'binding') bindingMap.set(record.id, record as TLBinding)
+				}
+				this._knownShapes = shapeMap
+				this._knownBindings = bindingMap
+			})
+			if (persisted === undefined) {
+				// Brand-new DO storage: start tracking from now. The first change
+				// after this can't be dispatched (nothing to diff against), and
+				// that's fine.
+				this._lastWebhookClock = storage.getClock()
+				await this.ctx.storage.put('lastWebhookClock', this._lastWebhookClock)
+				return
+			}
+			// Warm restart: resume from persisted clock and fall through to
+			// dispatch any changes we missed. NOTE: _knownShapes was rebuilt from
+			// CURRENT storage, so shapes created during downtime will be
+			// misclassified as updates in this first post-restart dispatch.
+			// Acceptable for now.
+			this._lastWebhookClock = persisted
+		}
+
+		const { result: changes, documentClock } = storage.transaction((txn) =>
+			txn.getChangesSince(this._lastWebhookClock ?? -1)
+		)
+
+		this._lastWebhookClock = documentClock
+		await this.ctx.storage.put('lastWebhookClock', documentClock)
+
+		if (!changes) return
+
+		// _knownShapes/_knownBindings must be present here; init path above ensures
+		// it. Guard anyway.
+		const knownShapes = this._knownShapes ?? new Map<string, TLShape>()
+		const knownBindings = this._knownBindings ?? new Map<string, TLBinding>()
+
+		const created: TLShape[] = []
+		const updated: Array<{ before: TLShape; after: TLShape }> = []
+		const deletedShapeIds: string[] = []
+		const createdBindings: TLBinding[] = []
+		const updatedBindings: Array<{ before: TLBinding; after: TLBinding }> = []
+		const deletedBindingIds: string[] = []
+
+		for (const put of Object.values(changes.diff.puts)) {
+			// SQLite storage always returns bare records here, never [before, after]
+			// tuples — so we classify by cache membership.
+			const after = Array.isArray(put) ? put[1] : put
+			if ((after as TLRecord).typeName === 'shape') {
+				const s = after as TLShape
+				const before = knownShapes.get(s.id)
+				if (before) updated.push({ before, after: s })
+				else created.push(s)
+				knownShapes.set(s.id, s)
+			} else if ((after as TLRecord).typeName === 'binding') {
+				const b = after as TLBinding
+				const before = knownBindings.get(b.id)
+				if (before) updatedBindings.push({ before, after: b })
+				else createdBindings.push(b)
+				knownBindings.set(b.id, b)
+			}
+		}
+		for (const id of changes.diff.deletes) {
+			if (id.startsWith('shape:')) {
+				if (knownShapes.delete(id)) deletedShapeIds.push(id)
+			} else if (id.startsWith('binding:')) {
+				if (knownBindings.delete(id)) deletedBindingIds.push(id)
+			}
+		}
+
+		if (
+			created.length === 0 &&
+			updated.length === 0 &&
+			deletedShapeIds.length === 0 &&
+			createdBindings.length === 0 &&
+			updatedBindings.length === 0 &&
+			deletedBindingIds.length === 0
+		) {
+			return
+		}
+
+		const webhooks = await this.getWebhooks()
+		if (webhooks.length === 0) return
+
+		const fileSlug = this.documentInfo.slug
+		const timestamp = Date.now()
+		const messages: Array<{ body: QueueMessage }> = []
+
+		const enqueue = (hook: WebhookCacheEntry, envelope: object) => {
+			messages.push({
+				body: {
+					type: 'webhook-delivery',
+					webhookId: hook.id,
+					fileSlug,
+					event: hook.eventType,
+					deliveryId: uniqueId(),
+					url: hook.url,
+					secret: hook.secret,
+					envelope,
+				},
+			})
+		}
+
+		for (const hook of webhooks) {
+			if (hook.eventType === 'shape.created') {
+				for (const shape of created) {
+					enqueue(hook, {
+						event: hook.eventType,
+						fileSlug,
+						timestamp,
+						data: { shape },
+					})
+				}
+			} else if (hook.eventType === 'shape.updated') {
+				const paths = hook.filter?.paths ?? []
+				if (paths.length === 0) continue
+				for (const { before, after } of updated) {
+					const changed = paths.filter((p) => !isEqual(getAtPath(before, p), getAtPath(after, p)))
+					if (changed.length === 0) continue
+					enqueue(hook, {
+						event: hook.eventType,
+						fileSlug,
+						timestamp,
+						data: { shape: after, previous: before, changed },
+					})
+				}
+			} else if (hook.eventType === 'shape.deleted') {
+				for (const shapeId of deletedShapeIds) {
+					enqueue(hook, {
+						event: hook.eventType,
+						fileSlug,
+						timestamp,
+						data: { shapeId },
+					})
+				}
+			} else if (hook.eventType === 'binding.created') {
+				for (const binding of createdBindings) {
+					enqueue(hook, {
+						event: hook.eventType,
+						fileSlug,
+						timestamp,
+						data: { binding },
+					})
+				}
+			} else if (hook.eventType === 'binding.updated') {
+				const paths = hook.filter?.paths ?? []
+				if (paths.length === 0) continue
+				for (const { before, after } of updatedBindings) {
+					const changed = paths.filter((p) => !isEqual(getAtPath(before, p), getAtPath(after, p)))
+					if (changed.length === 0) continue
+					enqueue(hook, {
+						event: hook.eventType,
+						fileSlug,
+						timestamp,
+						data: { binding: after, previous: before, changed },
+					})
+				}
+			} else if (hook.eventType === 'binding.deleted') {
+				for (const bindingId of deletedBindingIds) {
+					enqueue(hook, {
+						event: hook.eventType,
+						fileSlug,
+						timestamp,
+						data: { bindingId },
+					})
+				}
+			}
+		}
+
+		if (messages.length === 0) return
+		try {
+			await this.env.QUEUE.sendBatch(messages)
+		} catch (e) {
+			this.reportError(e)
+		}
+	}
 
 	private writeEvent(name: string, eventData: EventData) {
 		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
