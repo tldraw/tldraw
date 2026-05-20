@@ -4,6 +4,7 @@ export const ROUTES = {
 	tlaOptIn: '/preview',
 
 	tlaRoot: `/`,
+	tlaDesktop: `/desktop`,
 	tlaNew: `/new`,
 	tlaFile: `/f/:fileSlug`,
 	tlaFileHistory: `/f/:fileSlug/history`,
