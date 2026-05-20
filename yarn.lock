@@ -12045,6 +12045,9 @@ __metadata:
     vite-plugin-circular-dependency: "npm:^0.5.0"
     vitest: "npm:^3.2.4"
     vitest-canvas-mock: "npm:^1.1.3"
+  dependenciesMeta:
+    workerd:
+      built: false
   languageName: unknown
   linkType: soft
 

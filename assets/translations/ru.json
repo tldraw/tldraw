@@ -243,7 +243,7 @@
 	"file-system.shared-document-file-open-error.description": "Открытие файлов из совместных проектов не поддерживается.",
 	"file-system.shared-document-file-open-error.title": "Не удалось открыть файл",
 	"fill-style.fill": "Заполнить",
-	"fill-style.lined-fill": "Линейная заливка",
+	"fill-style.lined-fill": "Облицованная засыпка",
 	"fill-style.none": "Без",
 	"fill-style.pattern": "Узор",
 	"fill-style.semi": "Полу",

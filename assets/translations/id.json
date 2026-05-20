@@ -121,7 +121,7 @@
 	"action.toggle-focus-mode.menu": "Mode fokus",
 	"action.toggle-grid": "Alihkan grid",
 	"action.toggle-grid.menu": "Tampilkan grid",
-	"action.toggle-invert-zoom": "Alihkan pembalikan zoom mouse",
+	"action.toggle-invert-zoom": "Alihkan fungsi pembalikan zoom mouse.",
 	"action.toggle-invert-zoom.menu": "Balikkan zoom mouse",
 	"action.toggle-keyboard-shortcuts": "Beralih pintasan keyboard",
 	"action.toggle-keyboard-shortcuts.menu": "Pintasan papan tik",
