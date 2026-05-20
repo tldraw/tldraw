@@ -208,7 +208,6 @@ export class PerformanceManager {
 		const event: TLInteractionStartPerfEvent = {
 			name,
 			path,
-			selectedShapeTypes: { ...selectedShapeTypes },
 			timestamp: performance.now(),
 		}
 		this.emitter.emit('interaction-start', event)

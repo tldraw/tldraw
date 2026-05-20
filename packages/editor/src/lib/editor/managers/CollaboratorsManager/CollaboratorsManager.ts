@@ -1,10 +1,6 @@
 import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
 import type { TLInstancePresence } from '@tldraw/tlschema'
 import { maxBy } from '@tldraw/utils'
-import {
-	getCollaboratorStateFromElapsedTime,
-	shouldShowCollaborator,
-} from '../../../utils/collaboratorState'
 import type { Editor } from '../../Editor'
 
 /**
@@ -89,6 +85,9 @@ export class CollaboratorsManager {
 	 */
 	@computed
 	getVisibleCollaborators(): TLInstancePresence[] {
+		const { editor } = this
+		const { collaboratorInactiveTimeoutMs, collaboratorIdleTimeoutMs } = editor.options
+
 		this._startVisibilityClock()
 		this._visibilityClock.get()
 		const now = Date.now()
@@ -99,15 +98,26 @@ export class CollaboratorsManager {
 		const currentUserId = this.editor.user.getId()
 
 		return collaborators.filter((presence) => {
+			const { lastActivityTimestamp, userId, chatMessage } = presence
+
 			// Treat a missing `lastActivityTimestamp` as "active right now" (elapsed = 0)
 			// so newly-joined peers aren't immediately classified as idle/inactive.
-			const elapsed = Math.max(0, now - (presence.lastActivityTimestamp ?? now))
-			const state = getCollaboratorStateFromElapsedTime(this.editor, elapsed)
-			return shouldShowCollaborator(presence, state, {
-				followingUserId,
-				highlightedUserIds,
-				currentUserId,
-			})
+			const elapsed = Math.max(0, now - (lastActivityTimestamp ?? now))
+
+			if (elapsed > collaboratorInactiveTimeoutMs) {
+				// Inactive: If they're inactive, only show if we're following them or they're highlighted
+				return followingUserId === userId || highlightedUserIds.includes(userId)
+			}
+
+			if (elapsed > collaboratorIdleTimeoutMs) {
+				// Idle: If they're idle and following us, hide them unless they have a chat message or are highlighted
+				if (followingUserId === currentUserId) {
+					return !!(chatMessage || highlightedUserIds.includes(userId))
+				}
+			}
+
+			// Active
+			return true
 		})
 	}
 

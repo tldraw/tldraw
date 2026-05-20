@@ -4269,7 +4269,6 @@ export interface TLInteractionEndPerfEvent extends TLPerfFrameTimeStats {
 export interface TLInteractionStartPerfEvent {
     name: string;
     path: string;
-    selectedShapeTypes: Record<string, number>;
     timestamp: number;
 }
 
