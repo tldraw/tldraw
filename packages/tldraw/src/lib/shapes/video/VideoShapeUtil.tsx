@@ -24,6 +24,14 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
+// HTML now supports `loading="lazy"` on <video> and <audio> (Chrome 148+). React's
+// types haven't caught up yet, so we extend MediaHTMLAttributes here.
+declare module 'react' {
+	interface MediaHTMLAttributes<T> {
+		loading?: 'eager' | 'lazy'
+	}
+}
+
 const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
@@ -213,6 +221,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									autoPlay={shape.props.autoplay && !prefersReducedMotion}
 									muted
 									loop
+									loading="lazy"
 									disableRemotePlayback
 									disablePictureInPicture
 									controls={isEditing && showControls}
