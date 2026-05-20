@@ -1,7 +1,7 @@
 import { registerTldrawLibraryVersion } from './lib/version'
 
-export { default as isEqual } from 'lodash.isequal'
-export { default as isEqualWith } from 'lodash.isequalwith'
+export { default as isEqual } from 'lodash/isEqual.js'
+export { default as isEqualWith } from 'lodash/isEqualWith.js'
 export { default as throttle } from 'lodash.throttle'
 export { default as uniq } from 'lodash.uniq'
 export {

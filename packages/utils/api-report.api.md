@@ -4,8 +4,8 @@
 
 ```ts
 
-import { default as isEqual } from 'lodash.isequal';
-import { default as isEqualWith } from 'lodash.isequalwith';
+import { default as isEqual } from 'lodash/isEqual.js';
+import { default as isEqualWith } from 'lodash/isEqualWith.js';
 import { default as throttle } from 'lodash.throttle';
 import { default as uniq } from 'lodash.uniq';
 
