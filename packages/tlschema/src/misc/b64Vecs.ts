@@ -343,6 +343,79 @@ export class b64Vecs {
 	}
 
 	/**
+	 * Append a single point to an existing delta-encoded base64 string in O(1).
+	 *
+	 * Use this on the hot path during freehand drawing to avoid re-encoding the
+	 * entire stroke on every pointer move.
+	 *
+	 * - If `prevB64` is empty (or `prevPoint` is null), the point is encoded as
+	 *   the first point (16 base64 chars, Float32).
+	 * - Otherwise, encodes the Float16 delta from `prevPoint` to `newPoint`
+	 *   (8 base64 chars) and appends. Each delta is 6 bytes — a multiple of 3 —
+	 *   so concatenated base64 segments are byte-equivalent to encoding the
+	 *   underlying buffers together.
+	 *
+	 * @param prevB64 - The current delta-encoded base64 string for the segment
+	 * @param newPoint - The point to append
+	 * @param prevPoint - The previous absolute point (null when prevB64 is empty)
+	 * @returns The base64 string with the new delta point appended
+	 * @public
+	 */
+	static encodePointsAppend(
+		prevB64: string,
+		newPoint: VecModel,
+		prevPoint: VecModel | null
+	): string {
+		if (!prevB64 || !prevPoint) {
+			const buffer = new Uint8Array(12)
+			const dataView = new DataView(buffer.buffer)
+			dataView.setFloat32(0, newPoint.x, true)
+			dataView.setFloat32(4, newPoint.y, true)
+			dataView.setFloat32(8, newPoint.z ?? 0.5, true)
+			return uint8ArrayToBase64(buffer)
+		}
+
+		const buffer = new Uint8Array(6)
+		const dataView = new DataView(buffer.buffer)
+		const newZ = newPoint.z ?? 0.5
+		const prevZ = prevPoint.z ?? 0.5
+		setFloat16(dataView, 0, newPoint.x - prevPoint.x)
+		setFloat16(dataView, 2, newPoint.y - prevPoint.y)
+		setFloat16(dataView, 4, newZ - prevZ)
+		return prevB64 + uint8ArrayToBase64(buffer)
+	}
+
+	/**
+	 * Append the decoded suffix of a delta-encoded path onto an existing decoded
+	 * point array, in place. Used by consumers that maintain a rolling cache of
+	 * the previous decode and want to extend it without redecoding the prefix.
+	 *
+	 * Pre-conditions:
+	 *  - `newB64` strictly extends `prevB64` (i.e., `newB64.startsWith(prevB64)`).
+	 *  - `points` is the result of decoding `prevB64`.
+	 *  - `prevB64.length >= 16` and the suffix is a multiple of 8 chars (delta
+	 *    points are 8 base64 chars each).
+	 *
+	 * @public
+	 */
+	static appendDecodedSuffix(points: VecModel[], prevB64: string, newB64: string): void {
+		if (newB64.length <= prevB64.length) return
+		const last = points[points.length - 1]
+		let x = last.x
+		let y = last.y
+		let z = last.z ?? 0.5
+		const suffix = newB64.slice(prevB64.length)
+		const bytes = base64ToUint8Array(suffix)
+		const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+		for (let offset = 0; offset < bytes.length; offset += 6) {
+			x += getFloat16(dataView, offset)
+			y += getFloat16(dataView, offset + 2)
+			z += getFloat16(dataView, offset + 4)
+			points.push({ x, y, z })
+		}
+	}
+
+	/**
 	 * Decode a delta-encoded base64 string back to an array of absolute VecModels.
 	 * The first point is stored as Float32 (high precision), subsequent points are
 	 * Float16 deltas that are accumulated to reconstruct absolute positions.

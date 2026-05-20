@@ -6,6 +6,7 @@ import {
 	TLDrawShape,
 	TLDrawShapeSegment,
 	Vec,
+	VecModel,
 	b64Vecs,
 	modulate,
 } from '@tldraw/editor'
@@ -102,6 +103,27 @@ export function getFreehandOptions(
 	return { ...solidSettings(strokeWidth), last }
 }
 
+// Most-recent decoded path. Drawing extends the same path on every pointer
+// move; this lets us decode only the new suffix rather than re-decoding the
+// entire stroke. Consumers MUST treat the returned array as read-only.
+let _decodeCache: { path: string; points: VecModel[] } | null = null
+
+function decodePointsCached(path: string): VecModel[] {
+	if (path === '') return []
+	const cache = _decodeCache
+	if (cache !== null) {
+		if (cache.path === path) return cache.points
+		if (path.length > cache.path.length && path.startsWith(cache.path)) {
+			b64Vecs.appendDecodedSuffix(cache.points, cache.path, path)
+			_decodeCache = { path, points: cache.points }
+			return cache.points
+		}
+	}
+	const points = b64Vecs.decodePoints(path)
+	_decodeCache = { path, points }
+	return points
+}
+
 /** @public */
 export function getPointsFromDrawSegment(
 	segment: TLDrawShapeSegment,
@@ -109,22 +131,26 @@ export function getPointsFromDrawSegment(
 	scaleY: number,
 	points: Vec[] = []
 ) {
-	const _points = b64Vecs.decodePoints(segment.path)
-
-	// Apply scale factors (used for lazy resize and flipping)
-	if (scaleX !== 1 || scaleY !== 1) {
-		for (const point of _points) {
-			point.x *= scaleX
-			point.y *= scaleY
-		}
-	}
+	const _points = decodePointsCached(segment.path)
+	const needScale = scaleX !== 1 || scaleY !== 1
 
 	if (segment.type === 'free' || _points.length < 2) {
-		points.push(..._points.map(Vec.From))
+		if (needScale) {
+			for (let i = 0; i < _points.length; i++) {
+				const p = _points[i]
+				points.push(new Vec(p.x * scaleX, p.y * scaleY, p.z))
+			}
+		} else {
+			for (let i = 0; i < _points.length; i++) {
+				points.push(Vec.From(_points[i]))
+			}
+		}
 	} else {
 		// A B <interpolated points> D
-		const A = Vec.From(_points[0])
-		const D = Vec.From(_points[1])
+		const p0 = _points[0]
+		const p1 = _points[1]
+		const A = needScale ? new Vec(p0.x * scaleX, p0.y * scaleY, p0.z) : Vec.From(p0)
+		const D = needScale ? new Vec(p1.x * scaleX, p1.y * scaleY, p1.z) : Vec.From(p1)
 		const dist = Vec.Dist(D, A)
 		if (dist === 0) {
 			points.push(A)
