@@ -10370,11 +10370,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	blur({ blurContainer = true } = {}): this {
 		if (!this.getIsFocused()) return this
-		if (blurContainer) {
-			this.focusManager.blur()
-		} else {
-			this.complete() // stop any interaction
-		}
+		this.focusManager.blur({ blurContainer })
 		this.updateInstanceState({ isFocused: false })
 		return this
 	}
