@@ -76,12 +76,12 @@ class ZoomTool extends StateNode {
 	static override id = 'zoom'
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (info.phase !== 'settle') return
+		if (info.phase !== 'settle-up') return
 		this.editor.zoomIn(info.point, { animation: { duration: 200 } })
 	}
 
 	override onTripleClick(info: TLClickEventInfo) {
-		if (info.phase !== 'settle') return
+		if (info.phase !== 'settle-up') return
 		this.editor.zoomOut(info.point, { animation: { duration: 200 } })
 	}
 }
@@ -125,7 +125,7 @@ The [TLClickEventInfo](?) type includes these properties:
 | `point`     | `VecLike`                                               | Pointer position in client space                       |
 | `pointerId` | `number`                                                | Unique identifier for the pointer                      |
 | `button`    | `number`                                                | Mouse button (0 = left, 1 = middle, 2 = right)         |
-| `phase`     | `'down' \| 'up' \| 'settle'`                            | When in the click sequence this fired                  |
+| `phase`     | `'down' \| 'up' \| 'settle-up' \| 'settle-down'`        | When in the click sequence this fired                  |
 | `target`    | `'canvas' \| 'selection' \| 'shape' \| 'handle'`        | What was clicked                                       |
 | `shape`     | `TLShape \| undefined`                                  | The shape, when target is `'shape'` or `'handle'`      |
 | `handle`    | `TLHandle \| undefined`                                 | The handle, when target is `'handle'`                  |

@@ -26,6 +26,8 @@ export class ClickManager {
 
 	private _previousScreenPoint?: Vec
 
+	private _isPressingWhilePending = false
+
 	@bind
 	_getClickTimeout(state: TLClickState, id = uniqueId()) {
 		this._clickId = id
@@ -39,7 +41,7 @@ export class ClickManager {
 								...this.lastPointerInfo,
 								type: 'click',
 								name: 'double_click',
-								phase: 'settle',
+								phase: this._isPressingWhilePending ? 'settle-down' : 'settle-up',
 							})
 							break
 						}
@@ -48,7 +50,7 @@ export class ClickManager {
 								...this.lastPointerInfo,
 								type: 'click',
 								name: 'triple_click',
-								phase: 'settle',
+								phase: this._isPressingWhilePending ? 'settle-down' : 'settle-up',
 							})
 							break
 						}
@@ -57,7 +59,7 @@ export class ClickManager {
 								...this.lastPointerInfo,
 								type: 'click',
 								name: 'quadruple_click',
-								phase: 'settle',
+								phase: this._isPressingWhilePending ? 'settle-down' : 'settle-up',
 							})
 							break
 						}
@@ -99,6 +101,8 @@ export class ClickManager {
 			case 'pointer_down': {
 				if (!this._clickState) return info
 				this._clickScreenPoint = Vec.From(info.point)
+
+				this._isPressingWhilePending = true
 
 				if (
 					this._previousScreenPoint &&
@@ -159,7 +163,10 @@ export class ClickManager {
 			}
 			case 'pointer_up': {
 				if (!this._clickState) return info
+
 				this._clickScreenPoint = Vec.From(info.point)
+
+				this._isPressingWhilePending = false
 
 				switch (this._clickState) {
 					case 'pendingTriple': {
@@ -219,5 +226,6 @@ export class ClickManager {
 	cancelDoubleClickTimeout() {
 		this._clickTimeout = clearTimeout(this._clickTimeout)
 		this._clickState = 'idle'
+		this._isPressingWhilePending = false // maybe clear this!
 	}
 }

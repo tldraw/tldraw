@@ -261,7 +261,7 @@ export class Idle extends StateNode {
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (this.editor.inputs.getShiftKey() || info.phase !== 'up') return
+		if (this.editor.inputs.getShiftKey() || info.phase !== 'settle-up') return
 
 		// We don't want to double click while toggling shapes
 		if (info.ctrlKey || info.shiftKey) return
