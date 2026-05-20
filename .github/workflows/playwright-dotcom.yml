@@ -37,8 +37,6 @@ jobs:
               - '.github/workflows/playwright-dotcom.yml'
               - '.github/actions/**'
               - 'yarn.lock'
-              - '!**/*.md'
-              - '!**/*.mdx'
 
   build:
     name: 'End to end tests (dotcom)'

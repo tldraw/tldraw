@@ -35,8 +35,6 @@ jobs:
               - '.github/workflows/playwright-examples.yml'
               - '.github/actions/**'
               - 'yarn.lock'
-              - '!**/*.md'
-              - '!**/*.mdx'
 
   build:
     name: 'End to end tests (examples)'
