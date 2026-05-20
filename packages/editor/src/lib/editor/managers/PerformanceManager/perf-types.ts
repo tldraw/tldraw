@@ -41,6 +41,8 @@ export interface TLInteractionStartPerfEvent {
 	name: string
 	/** Full tool path (e.g. `'select.translating'`). */
 	path: string
+	/** Breakdown of selected shape types at interaction start (e.g. `{ geo: 2, draw: 1 }`). */
+	selectedShapeTypes: Record<string, number>
 	/** `performance.now()` when the interaction started. */
 	timestamp: number
 }
