@@ -66,6 +66,8 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 	const msg = useTranslation()
 	const [isOpenA, setIsOpenA] = React.useState(false)
 	const [isOpenB, setIsOpenB] = React.useState(false)
+	const lastValueARef = React.useRef<T | null>(null)
+	const lastValueBRef = React.useRef<T | null>(null)
 
 	const iconA = React.useMemo(
 		() =>
@@ -84,6 +86,31 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 
 	const idA = `style panel ${uiTypeA} A`
 	const idB = `style panel ${uiTypeB} B`
+
+	const handleToggle = (
+		style: StyleProp<T>,
+		value: SharedStyle<T>,
+		items: StyleValuesForUi<T>,
+		lastValueRef: React.RefObject<T | null>,
+		id: string,
+		setIsOpen: (open: boolean) => void
+	) => {
+		if (value?.type !== 'shared') return
+		const current = value.value
+		let next: T | undefined
+		if (current === ('none' as T)) {
+			next =
+				lastValueRef.current ??
+				(items.find((i) => i.value !== ('none' as T))?.value as T | undefined)
+		} else {
+			lastValueRef.current = current
+			next = 'none' as T
+		}
+		if (next === undefined) return
+		onValueChange(style, next)
+		tlmenus.deleteOpenMenu(id, editor.contextId)
+		setIsOpen(false)
+	}
 	return (
 		<>
 			<TldrawUiPopover id={idA} open={isOpenA} onOpenChange={setIsOpenA}>
@@ -97,6 +124,9 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 							(valueA === null || valueA.type === 'mixed'
 								? msg('style-panel.mixed')
 								: msg(`${uiTypeA}-style.${valueA.value}` as TLUiTranslationKey))
+						}
+						onDoubleClick={() =>
+							handleToggle(styleA, valueA, itemsA, lastValueARef, idA, setIsOpenA)
 						}
 					>
 						<TldrawUiButtonIcon icon={iconA} small invertIcon />
@@ -137,6 +167,9 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 							(valueB === null || valueB.type === 'mixed'
 								? msg('style-panel.mixed')
 								: msg(`${uiTypeB}-style.${valueB.value}` as TLUiTranslationKey))
+						}
+						onDoubleClick={() =>
+							handleToggle(styleB, valueB, itemsB, lastValueBRef, idB, setIsOpenB)
 						}
 					>
 						<TldrawUiButtonIcon icon={iconB} small />
