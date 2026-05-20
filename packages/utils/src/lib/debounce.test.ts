@@ -118,9 +118,7 @@ describe(debounce, () => {
 			debounced()
 			debounced.cancel()
 
-			vi.useRealTimers()
-			await new Promise((resolve) => setTimeout(resolve, 0))
-			vi.useFakeTimers()
+			await new Promise(process.nextTick)
 
 			expect(handler).not.toHaveBeenCalled()
 		} finally {
