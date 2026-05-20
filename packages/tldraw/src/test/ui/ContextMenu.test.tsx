@@ -23,6 +23,23 @@ it('opens on right-click', async () => {
 	expect(screen.queryByTestId('context-menu')).toBeNull()
 })
 
+it('opens on right-click when a non-select tool is active', async () => {
+	await renderTldrawComponent(
+		<Tldraw
+			onMount={(editor) => {
+				editor.createShape({ id: createShapeId(), type: 'geo' })
+				editor.setCurrentTool('draw')
+			}}
+		/>,
+		{ waitForPatterns: false }
+	)
+	const canvas = await screen.findByTestId('canvas')
+
+	fireEvent.contextMenu(canvas)
+	await screen.findByTestId('context-menu')
+	await screen.findByTestId('context-menu.select-all')
+})
+
 it('tunnels context menu', async () => {
 	const components: TLComponents = {
 		ContextMenu: (props) => {

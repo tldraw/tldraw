@@ -17,16 +17,9 @@ export function DefaultContextMenuContent() {
 	const editor = useEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 
-	const selectToolActive = useValue(
-		'isSelectToolActive',
-		() => editor.getCurrentToolId() === 'select',
-		[editor]
-	)
 	const isSinglePageMode = useValue('isSinglePageMode', () => editor.options.maxPages <= 1, [
 		editor,
 	])
-
-	if (!selectToolActive) return null
 
 	return (
 		<>
