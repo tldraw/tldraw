@@ -421,7 +421,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.performance = new PerformanceManager(this)
 		this.disposables.add(() => this.performance.dispose())
 		this.collaborators = new CollaboratorsManager(this)
-		this.disposables.add(() => this.collaborators.dispose())
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''

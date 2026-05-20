@@ -15,24 +15,17 @@ import type { Editor } from '../../Editor'
 export class CollaboratorsManager {
 	constructor(private readonly editor: Editor) {}
 
-	private _visibilityClockInterval: number | null = null
+	private _visibilityClockStarted = false
 
 	private _startVisibilityClock() {
-		if (this._visibilityClockInterval !== null) return
+		if (this._visibilityClockStarted) return
+		this._visibilityClockStarted = true
 
 		// Editor disposes `editor.timers` on its own teardown, so the interval is
 		// automatically cleared when the editor is disposed.
-		this._visibilityClockInterval = this.editor.timers.setInterval(() => {
+		this.editor.timers.setInterval(() => {
 			this._visibilityClock.set(Date.now())
 		}, this.editor.options.collaboratorCheckIntervalMs)
-	}
-
-	/** @internal */
-	dispose() {
-		if (this._visibilityClockInterval === null) return
-
-		clearInterval(this._visibilityClockInterval)
-		this._visibilityClockInterval = null
 	}
 
 	/**

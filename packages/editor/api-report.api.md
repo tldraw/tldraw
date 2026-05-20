@@ -537,8 +537,6 @@ export function clockwiseAngleDist(a0: number, a1: number): number;
 // @public
 export class CollaboratorsManager {
     constructor(editor: Editor);
-    // @internal (undocumented)
-    dispose(): void;
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getVisibleCollaborators(): TLInstancePresence[];

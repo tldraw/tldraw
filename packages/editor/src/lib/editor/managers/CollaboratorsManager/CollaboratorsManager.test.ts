@@ -61,15 +61,8 @@ function createEditor(presences: TLInstancePresence[] = []) {
 }
 
 describe(CollaboratorsManager, () => {
-	const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval').mockImplementation(() => {})
-
 	afterEach(() => {
-		clearIntervalSpy.mockClear()
 		vi.clearAllMocks()
-	})
-
-	afterAll(() => {
-		clearIntervalSpy.mockRestore()
 	})
 
 	it('starts the visibility clock on the first visible collaborators read', () => {
@@ -82,20 +75,17 @@ describe(CollaboratorsManager, () => {
 
 		expect(setInterval).toHaveBeenCalledTimes(1)
 		expect(setInterval).toHaveBeenCalledWith(expect.any(Function), 1000)
-
-		manager.dispose()
-
-		expect(clearIntervalSpy).toHaveBeenCalledWith(123)
 	})
 
-	it('can be disposed before the visibility clock starts', () => {
+	it('only starts the visibility clock once across repeated reads', () => {
 		const { editor, setInterval } = createEditor()
 		const manager = new CollaboratorsManager(editor)
 
-		expect(() => manager.dispose()).not.toThrow()
+		manager.getVisibleCollaborators()
+		manager.getVisibleCollaborators()
+		manager.getVisibleCollaborators()
 
-		expect(setInterval).not.toHaveBeenCalled()
-		expect(clearIntervalSpy).not.toHaveBeenCalled()
+		expect(setInterval).toHaveBeenCalledTimes(1)
 	})
 
 	it('reads instance state once when filtering visible collaborators', () => {
