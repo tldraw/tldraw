@@ -109,4 +109,34 @@ describe(CollaboratorsManager, () => {
 
 		expect(getInstanceState).toHaveBeenCalledTimes(1)
 	})
+
+	it('hides idle collaborators that are following us', () => {
+		const presence = createPresence('peer')
+		presence.lastActivityTimestamp = Date.now() - 4000
+		presence.followingUserId = 'current-user'
+		const { editor } = createEditor([presence])
+		const manager = new CollaboratorsManager(editor)
+
+		expect(manager.getVisibleCollaborators()).toEqual([])
+	})
+
+	it('shows idle collaborators that are following us when they have a chat message', () => {
+		const presence = createPresence('peer')
+		presence.lastActivityTimestamp = Date.now() - 4000
+		presence.followingUserId = 'current-user'
+		presence.chatMessage = 'hi'
+		const { editor } = createEditor([presence])
+		const manager = new CollaboratorsManager(editor)
+
+		expect(manager.getVisibleCollaborators()).toHaveLength(1)
+	})
+
+	it('shows idle collaborators that are not following us', () => {
+		const presence = createPresence('peer')
+		presence.lastActivityTimestamp = Date.now() - 4000
+		const { editor } = createEditor([presence])
+		const manager = new CollaboratorsManager(editor)
+
+		expect(manager.getVisibleCollaborators()).toHaveLength(1)
+	})
 })

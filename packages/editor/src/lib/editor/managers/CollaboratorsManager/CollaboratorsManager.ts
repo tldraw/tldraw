@@ -111,7 +111,7 @@ export class CollaboratorsManager {
 
 			if (elapsed > collaboratorIdleTimeoutMs) {
 				// Idle: If they're idle and following us, hide them unless they have a chat message or are highlighted
-				if (followingUserId === currentUserId) {
+				if (presence.followingUserId === currentUserId) {
 					return !!(chatMessage || highlightedUserIds.includes(userId))
 				}
 			}
