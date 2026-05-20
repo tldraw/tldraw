@@ -1,9 +1,5 @@
 name: Example request
 description: Submit a request for an example
-type: Example
-title: ''
-labels: []
-assignees: []
 body:
   - type: markdown
     attributes:
