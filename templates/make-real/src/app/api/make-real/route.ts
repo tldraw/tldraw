@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 		})
 	}
 
-	const { image, text = '', theme = 'light', previousPreviews = [], provider = 'openai' } = body
+	const { image, text = '', theme = 'light', previousPreviews = [], provider = 'anthropic' } = body
 
 	if (!image) {
 		return new Response(JSON.stringify({ error: 'Missing image data' }), {

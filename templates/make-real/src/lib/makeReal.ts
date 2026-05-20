@@ -2,7 +2,7 @@ import { createShapeId, Editor } from 'tldraw'
 import { PreviewShape } from '@/components/PreviewShape'
 import { getTextFromSelectedShapes } from './getSelectionAsText'
 
-const PROVIDER = (process.env.NEXT_PUBLIC_MAKE_REAL_PROVIDER ?? 'openai') as
+const PROVIDER = (process.env.NEXT_PUBLIC_MAKE_REAL_PROVIDER ?? 'anthropic') as
 	| 'openai'
 	| 'anthropic'
 	| 'google'
