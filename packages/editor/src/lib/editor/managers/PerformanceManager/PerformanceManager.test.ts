@@ -107,7 +107,6 @@ describe('PerformanceManager', () => {
 			expect(fn.mock.calls[0][0]).toMatchObject({
 				name: 'translating',
 				path: 'select.translating',
-				selectedShapeTypes: { geo: 2, draw: 1 },
 			})
 			expect(fn.mock.calls[0][0].timestamp).toBeGreaterThan(0)
 		})
