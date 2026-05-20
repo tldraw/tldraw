@@ -1,4 +1,4 @@
-import { Image } from '@tldraw/editor'
+import { Image, noop } from '@tldraw/editor'
 import { createContext, useContext, useEffect } from 'react'
 import { TLUiAssetUrls } from '../assetUrls'
 
@@ -22,7 +22,7 @@ export function AssetUrlsProvider({
 			const image = Image()
 			image.crossOrigin = 'anonymous'
 			image.src = src
-			image.decode()
+			image.decode().catch(noop)
 		}
 		for (const src of Object.values(assetUrls.embedIcons)) {
 			if (!src) continue
@@ -30,7 +30,7 @@ export function AssetUrlsProvider({
 			const image = Image()
 			image.crossOrigin = 'anonymous'
 			image.src = src
-			image.decode()
+			image.decode().catch(noop)
 		}
 	}, [assetUrls])
 
