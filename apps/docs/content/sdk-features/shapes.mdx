@@ -55,7 +55,7 @@ editor.createShape({
 const shape = editor.getShape(shapeId)
 
 // Update a shape's position
-editor.updateShape({ id: shape.id, x: 200 })
+editor.updateShape({ id: shape.id, type: shape.type, x: 200 })
 ```
 
 Shapes are immutable records. When you update a shape, the editor creates a new record with the changes and stores it, replacing the old one. This immutability enables efficient change detection and undo/redo.
@@ -219,6 +219,8 @@ Shapes can be parented to pages or other shapes. This creates a hierarchy used f
 ### Frames
 
 Frames are container shapes that clip their children and provide a visual boundary. Shapes inside a frame position relative to the frame's origin. Moving the frame moves all its children. The frame clips content at its boundaries during rendering. See [Shape clipping](/sdk-features/shape-clipping) for details on implementing custom clipping shapes.
+
+To build your own container shape that behaves like a frame, extend `BaseFrameLikeShapeUtil` instead of `ShapeUtil` directly. It provides defaults for the full set of frame behaviors (clipping children, full-brush selection, blocking erasure from inside, drag-and-drop reparenting, providing a background for children) and any of them can be overridden. Custom shapes that don't extend the base class can still opt into the same behavior by overriding the `isFrameLike()` capability method to return `true`. See the [portal shapes example](/examples/shapes/tools/portal-shapes) for a custom shape that behaves like a frame and teleports its children between instances.
 
 ### Groups
 

@@ -47,6 +47,12 @@ jobs:
           TLDRAW_BEMO_URL: https://demo.tldraw.xyz
           TLDRAW_VERSION_STRING: ${{ inputs.version }}
 
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+
   publish_templates:
     name: Publishes code templates to separate repositories
     uses: tldraw/tldraw/.github/workflows/publish-templates.yml@main
@@ -54,4 +60,5 @@ jobs:
     secrets:
       HUPPY_PRIVATE_KEY: ${{ secrets.HUPPY_PRIVATE_KEY }}
       HUPPY_APP_ID: ${{ vars.HUPPY_APP_ID }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
     needs: deploy

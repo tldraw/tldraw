@@ -108,26 +108,26 @@ Access dynamic resize mode through [Editor#user](?):
 const isDynamic = editor.user.getIsDynamicResizeMode()
 
 // Enable dynamic resize mode
-editor.user.updateUserPreferences({ isDynamicResizeMode: true })
+editor.user.updateUserPreferences({ isDynamicSizeMode: true })
 ```
 
 ## Shape properties
 
 Draw shapes store their path data in an efficient delta-encoded base64 format. The first point uses full Float32 precision (12 bytes), with subsequent points stored as Float16 deltas (6 bytes each).
 
-| Property     | Type                   | Description                                                |
-| ------------ | ---------------------- | ---------------------------------------------------------- |
-| `color`      | `TLDefaultColorStyle`  | Stroke color                                               |
-| `fill`       | `TLDefaultFillStyle`   | Fill style (applies when `isClosed` is true)               |
-| `dash`       | `TLDefaultDashStyle`   | Stroke pattern: `draw`, `solid`, `dashed`, `dotted`        |
-| `size`       | `TLDefaultSizeStyle`   | Stroke width preset: `s`, `m`, `l`, `xl`                   |
-| `segments`   | `TLDrawShapeSegment[]` | Array of segments with `type` and base64-encoded `path`    |
-| `isComplete` | `boolean`              | Whether the user has finished drawing this stroke          |
-| `isClosed`   | `boolean`              | Whether the path forms a closed shape                      |
-| `isPen`      | `boolean`              | Whether drawn with a stylus (enables pressure-based width) |
-| `scale`      | `number`               | Scale factor applied to the shape                          |
-| `scaleX`     | `number`               | Horizontal scale factor for lazy resize                    |
-| `scaleY`     | `number`               | Vertical scale factor for lazy resize                      |
+| Property     | Type                   | Description                                                 |
+| ------------ | ---------------------- | ----------------------------------------------------------- |
+| `color`      | `TLDefaultColorStyle`  | Stroke color                                                |
+| `fill`       | `TLDefaultFillStyle`   | Fill style (applies when `isClosed` is true)                |
+| `dash`       | `TLDefaultDashStyle`   | Stroke pattern: `draw`, `solid`, `dashed`, `dotted`, `none` |
+| `size`       | `TLDefaultSizeStyle`   | Stroke width preset: `s`, `m`, `l`, `xl`                    |
+| `segments`   | `TLDrawShapeSegment[]` | Array of segments with `type` and base64-encoded `path`     |
+| `isComplete` | `boolean`              | Whether the user has finished drawing this stroke           |
+| `isClosed`   | `boolean`              | Whether the path forms a closed shape                       |
+| `isPen`      | `boolean`              | Whether drawn with a stylus (enables pressure-based width)  |
+| `scale`      | `number`               | Scale factor applied to the shape                           |
+| `scaleX`     | `number`               | Horizontal scale factor for lazy resize                     |
+| `scaleY`     | `number`               | Vertical scale factor for lazy resize                       |
 
 Each segment has a `type` of `'free'` or `'straight'` and a `path` containing the encoded point data with x, y, and z (pressure) values.
 

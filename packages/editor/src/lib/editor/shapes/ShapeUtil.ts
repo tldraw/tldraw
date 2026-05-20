@@ -546,7 +546,9 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	getHandles?(shape: Shape): TLHandle[]
 
 	/**
-	 * Get whether the shape can receive children of a given type.
+	 * Get whether the shape can receive children of a given type. Used by the drag and drop system
+	 * to decide whether {@link ShapeUtil.onDragShapesIn} should fire when a shape of the given type
+	 * is dragged over this one.
 	 *
 	 * @param shape - The shape.
 	 * @param type - The shape type.
@@ -554,6 +556,22 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 */
 	canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']) {
 		return false
+	}
+
+	/**
+	 * Get whether children of a given type can be removed from this shape. Used by the drag and
+	 * drop system to decide whether {@link ShapeUtil.onDragShapesOut} should fire when a child of
+	 * the given type is dragged out of this shape, and by `kickoutOccludedShapes` to decide
+	 * whether to auto-reparent a child of the given type when it has moved outside this shape's
+	 * geometry. Returning `false` therefore "pins" matching children — they stay parented to this
+	 * shape even when dragged or moved outside it. Defaults to `true`.
+	 *
+	 * @param shape - The shape.
+	 * @param type - The shape type.
+	 * @public
+	 */
+	canRemoveChildrenOfType(shape: Shape, type: TLShape['type']) {
+		return true
 	}
 
 	/**

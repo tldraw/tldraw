@@ -338,3 +338,7 @@
 	.tla-primary-button:not(.tlui-button):focus-visible {
 	outline-offset: 0;
 }
+
+.tlui-dialog__footer__file-link-checkbox {
+	flex: 2;
+}

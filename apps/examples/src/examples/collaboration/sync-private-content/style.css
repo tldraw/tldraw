@@ -12,6 +12,7 @@
 	display: flex;
 	align-items: center;
 	gap: 10px;
+	pointer-events: auto;
 }
 
 .toggle-panel button {

@@ -444,15 +444,13 @@ function TlaPreferencesGroup() {
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
+					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
 					<ColorSchemeMenu />
 					<UIThemeSubmenu />
 					<AccessibilityMenu />
 					<InputModeMenu />
-				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="debug">
-					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />
