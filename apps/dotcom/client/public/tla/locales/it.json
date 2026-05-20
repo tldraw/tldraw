@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "I miei file"
   },
+  "2e2b3c700b": {
+    "translation": "Includi il collegamento al file corrente"
+  },
   "31246941ad": {
     "translation": "Per vedere questo file devi accedere."
   },
@@ -106,6 +109,9 @@
   },
   "3e2ae04ff0": {
     "translation": "Diagramma Mermaid non supportato"
+  },
+  "402bf0c47e": {
+    "translation": "Tema del colore"
   },
   "42e53c47c1": {
     "translation": "Contatta il proprietario per richiedere l'accesso."
@@ -277,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "Segnala un problema su GitHub"
+  },
+  "7a1920d611": {
+    "translation": "Predefinito"
   },
   "7b1329f5ca": {
     "translation": "Manuale utente"

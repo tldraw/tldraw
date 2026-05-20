@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "Mes fichiers"
   },
+  "2e2b3c700b": {
+    "translation": "Inclure le lien vers le fichier actuel"
+  },
   "31246941ad": {
     "translation": "Vous devez vous connecter pour consulter ce fichier."
   },
@@ -106,6 +109,9 @@
   },
   "3e2ae04ff0": {
     "translation": "Diagramme Mermaid non pris en charge"
+  },
+  "402bf0c47e": {
+    "translation": "Thème de couleurs"
   },
   "42e53c47c1": {
     "translation": "Contactez le propriétaire pour demander l'accès."
@@ -277,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "Soumettre un problème sur GitHub"
+  },
+  "7a1920d611": {
+    "translation": "Par défaut"
   },
   "7b1329f5ca": {
     "translation": "Manuel d'utilisation"

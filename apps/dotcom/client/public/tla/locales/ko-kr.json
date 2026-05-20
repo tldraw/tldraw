@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "내 파일"
   },
+  "2e2b3c700b": {
+    "translation": "현재 파일 링크를 포함하세요"
+  },
   "31246941ad": {
     "translation": "이 파일을 보려면 로그인해야 합니다."
   },
@@ -106,6 +109,9 @@
   },
   "3e2ae04ff0": {
     "translation": "지원되지 않는 머메이드 다이어그램"
+  },
+  "402bf0c47e": {
+    "translation": "색상 테마"
   },
   "42e53c47c1": {
     "translation": "액세스 권한 요청은 소유주에게 문의하세요."
@@ -277,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "GitHub에 이슈 제출"
+  },
+  "7a1920d611": {
+    "translation": "기본"
   },
   "7b1329f5ca": {
     "translation": "사용 설명서"

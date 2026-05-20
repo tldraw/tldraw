@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "我的文件"
   },
+  "2e2b3c700b": {
+    "translation": "包含當前文件的連結"
+  },
   "31246941ad": {
     "translation": "您必須登入才能檢視此檔案。"
   },
@@ -106,6 +109,9 @@
   },
   "3e2ae04ff0": {
     "translation": "不支持的 Mermaid 圖"
+  },
+  "402bf0c47e": {
+    "translation": "顏色主題"
   },
   "42e53c47c1": {
     "translation": "請聯絡擁有者請求存取權限。"
@@ -277,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "在 GitHub 上提交問題"
+  },
+  "7a1920d611": {
+    "translation": "預設"
   },
   "7b1329f5ca": {
     "translation": "使用者手冊"
