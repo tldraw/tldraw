@@ -25,3 +25,4 @@ The page menu no longer has an explicit edit mode. Reorder pages by dragging a r
 - Fix a misleading "license expired" console warning for perpetual licenses on covered versions. ([#8791](https://github.com/tldraw/tldraw/pull/8791))
 - Fix inconsistent tooltip behavior on the video toolbar by using `TldrawUiToolbarButton` for the replace and download buttons. ([#8794](https://github.com/tldraw/tldraw/pull/8794))
 - Fix the missing open-state hint on the page menu and zoom menu triggers when rendered outside the main toolbar. ([#8813](https://github.com/tldraw/tldraw/pull/8813))
+- Mark the tldraw UI layer with `role="document"` so toolbars, menus, and dialogs stay reachable to mobile screen readers like VoiceOver and TalkBack, which do not announce the outer canvas `role="application"`. ([#8849](https://github.com/tldraw/tldraw/issues/8849))
