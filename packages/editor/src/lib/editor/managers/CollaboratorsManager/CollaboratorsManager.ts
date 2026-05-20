@@ -1,5 +1,5 @@
 import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
-import { TLInstancePresence } from '@tldraw/tlschema'
+import type { TLInstancePresence } from '@tldraw/tlschema'
 import { maxBy } from '@tldraw/utils'
 import {
 	getCollaboratorStateFromElapsedTime,
@@ -17,12 +17,26 @@ import type { Editor } from '../../Editor'
  * @public
  */
 export class CollaboratorsManager {
-	constructor(private readonly editor: Editor) {
+	constructor(private readonly editor: Editor) {}
+
+	private _visibilityClockInterval: number | null = null
+
+	private _startVisibilityClock() {
+		if (this._visibilityClockInterval !== null) return
+
 		// Editor disposes `editor.timers` on its own teardown, so the interval is
 		// automatically cleared when the editor is disposed.
-		editor.timers.setInterval(() => {
+		this._visibilityClockInterval = this.editor.timers.setInterval(() => {
 			this._visibilityClock.set(Date.now())
-		}, editor.options.collaboratorCheckIntervalMs)
+		}, this.editor.options.collaboratorCheckIntervalMs)
+	}
+
+	/** @internal */
+	dispose() {
+		if (this._visibilityClockInterval === null) return
+
+		clearInterval(this._visibilityClockInterval)
+		this._visibilityClockInterval = null
 	}
 
 	/**
@@ -75,6 +89,7 @@ export class CollaboratorsManager {
 	 */
 	@computed
 	getVisibleCollaborators(): TLInstancePresence[] {
+		this._startVisibilityClock()
 		this._visibilityClock.get()
 		const now = Date.now()
 		const collaborators = this.getCollaborators()
