@@ -77,12 +77,22 @@ export class CollaboratorsManager {
 	getVisibleCollaborators(): TLInstancePresence[] {
 		this._visibilityClock.get()
 		const now = Date.now()
-		return this.getCollaborators().filter((presence) => {
+		const collaborators = this.getCollaborators()
+		if (!collaborators.length) return EMPTY_ARRAY
+
+		const { followingUserId, highlightedUserIds } = this.editor.getInstanceState()
+		const currentUserId = this.editor.user.getId()
+
+		return collaborators.filter((presence) => {
 			// Treat a missing `lastActivityTimestamp` as "active right now" (elapsed = 0)
 			// so newly-joined peers aren't immediately classified as idle/inactive.
 			const elapsed = Math.max(0, now - (presence.lastActivityTimestamp ?? now))
 			const state = getCollaboratorStateFromElapsedTime(this.editor, elapsed)
-			return shouldShowCollaborator(this.editor, presence, state)
+			return shouldShowCollaborator(presence, state, {
+				followingUserId,
+				highlightedUserIds,
+				currentUserId,
+			})
 		})
 	}
 
