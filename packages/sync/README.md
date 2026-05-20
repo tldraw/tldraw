@@ -2,6 +2,10 @@
 
 This project contains source code for [tldraw sync](https://tldraw.dev/docs/sync). [Click here](https://tldraw.dev/blog/product/announcing-tldraw-sync) to learn more.
 
+## Documentation
+
+A `DOCS.md` file is included alongside this README in the published package, with detailed API documentation and usage examples.
+
 ## License
 
 This project is part of the tldraw SDK. It is provided under the [tldraw SDK license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
