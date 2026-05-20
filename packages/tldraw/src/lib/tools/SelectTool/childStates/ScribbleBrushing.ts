@@ -123,11 +123,12 @@ export class ScribbleBrushing extends StateNode {
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
 
-			// If the shape is a group or is already selected or locked, don't select it
+			// If the shape is a group or is already selected, don't select it.
+			// Also skip locked shapes unless the selectLockedShapes option is enabled.
 			if (
 				editor.isShapeOfType(shape, 'group') ||
 				newlySelectedShapeIds.has(shape.id) ||
-				editor.isShapeOrAncestorLocked(shape)
+				(!editor.options.selectLockedShapes && editor.isShapeOrAncestorLocked(shape))
 			) {
 				continue
 			}

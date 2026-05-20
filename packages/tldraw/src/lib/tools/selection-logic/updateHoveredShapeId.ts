@@ -25,6 +25,7 @@ function getShapeToHover(editor: Editor): TLShapeId | null {
 	const hitShape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
 		hitInside: false,
 		hitLabels: false,
+		hitLocked: editor.options.selectLockedShapes,
 		margin: editor.options.hitTestMargin / editor.getZoomLevel(),
 		renderingOnly: true,
 	})

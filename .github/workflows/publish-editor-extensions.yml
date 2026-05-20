@@ -53,3 +53,9 @@ jobs:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
           TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') }}
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

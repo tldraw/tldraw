@@ -153,6 +153,12 @@
       "value": "Dosyalarım"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Mevcut dosyaya bağlantı ekleyin"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -217,6 +223,12 @@
     {
       "type": 0,
       "value": "Desteklenmeyen Mermaid diyagramı"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Renk teması"
     }
   ],
   "42e53c47c1": [
@@ -597,6 +609,12 @@
     {
       "type": 0,
       "value": "GitHub'da bir sorun bildirin"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Varsayılan"
     }
   ],
   "7b1329f5ca": [

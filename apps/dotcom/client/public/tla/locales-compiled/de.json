@@ -153,6 +153,12 @@
       "value": "Meine Dateien"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Link zur aktuellen Datei einfügen"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -217,6 +223,12 @@
     {
       "type": 0,
       "value": "Nicht unterstütztes Mermaid-Diagramm"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Farbthema"
     }
   ],
   "42e53c47c1": [
@@ -597,6 +609,12 @@
     {
       "type": 0,
       "value": "Senden Sie ein Problem auf GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Standard"
     }
   ],
   "7b1329f5ca": [

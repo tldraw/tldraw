@@ -52,3 +52,9 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             Published version ${{ steps.extract_version.outputs.version }} to npm.
+
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}

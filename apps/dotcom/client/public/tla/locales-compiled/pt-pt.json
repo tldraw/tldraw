@@ -153,6 +153,12 @@
       "value": "Meus arquivos"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Incluir link para o arquivo atual"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -217,6 +223,12 @@
     {
       "type": 0,
       "value": "Diagrama Mermaid sem suporte"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Tema de cores"
     }
   ],
   "42e53c47c1": [
@@ -597,6 +609,12 @@
     {
       "type": 0,
       "value": "Envie um problema no GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Padrão"
     }
   ],
   "7b1329f5ca": [

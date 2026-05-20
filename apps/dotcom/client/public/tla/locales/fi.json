@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "Omat tiedostoni"
   },
+  "2e2b3c700b": {
+    "translation": "Sisällytä linkki nykyiseen tiedostoon"
+  },
   "31246941ad": {
     "translation": "Sinun on kirjauduttava sisään nähdäksesi tämän tiedoston."
   },
@@ -106,6 +109,9 @@
   },
   "3e2ae04ff0": {
     "translation": "Ei-tuettu Mermaid-kaavio"
+  },
+  "402bf0c47e": {
+    "translation": "Väriteema"
   },
   "42e53c47c1": {
     "translation": "Pyydä käyttöoikeutta ottamalla yhteyttä omistajaan."
@@ -277,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "Lähetä ongelma GitHubissa"
+  },
+  "7a1920d611": {
+    "translation": "Oletus"
   },
   "7b1329f5ca": {
     "translation": "Käyttöohje"

@@ -153,6 +153,12 @@
       "value": "Mijn bestanden"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Voeg een link naar het huidige bestand toe"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -217,6 +223,12 @@
     {
       "type": 0,
       "value": "Niet-ondersteund Mermaid-diagram"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Kleurenthema"
     }
   ],
   "42e53c47c1": [
@@ -597,6 +609,12 @@
     {
       "type": 0,
       "value": "Een probleem melden op GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Standaard"
     }
   ],
   "7b1329f5ca": [

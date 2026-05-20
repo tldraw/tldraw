@@ -8,6 +8,7 @@ import {
 	last,
 	suffixSafeId,
 	tlenv,
+	useColorMode,
 	useEditor,
 	useSharedSafeId,
 	useUniqueSafeId,
@@ -31,7 +32,7 @@ function HashPatternForExport() {
 	const getHashPatternZoomName = useGetHashPatternZoomName()
 	const maskId = useUniqueSafeId()
 	const editor = useEditor()
-	const colorMode = editor.getColorMode()
+	const colorMode = useColorMode()
 	const colors = editor.getCurrentTheme().colors[colorMode]
 	const t = 8 / 12
 	return (
