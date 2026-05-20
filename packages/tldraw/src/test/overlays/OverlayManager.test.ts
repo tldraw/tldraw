@@ -14,6 +14,44 @@ beforeEach(() => {
 })
 
 describe('OverlayManager', () => {
+	describe('dispose', () => {
+		it('calls dispose on registered overlay utils when the editor disposes', () => {
+			const dispose = vi.fn()
+
+			class TestOverlay extends OverlayUtil<TLOverlay<Record<string, never>>> {
+				static override type = 'dispose_tester'
+				override dispose = dispose
+				override isActive() {
+					return false
+				}
+				override getOverlays() {
+					return []
+				}
+			}
+
+			const editor = new TestEditor({ overlayUtils: [TestOverlay] })
+			editor.dispose()
+
+			expect(dispose).toHaveBeenCalledTimes(1)
+		})
+
+		it('supports the default OverlayUtil dispose no-op', () => {
+			class TestOverlay extends OverlayUtil<TLOverlay<Record<string, never>>> {
+				static override type = 'dispose_noop_tester'
+				override isActive() {
+					return false
+				}
+				override getOverlays() {
+					return []
+				}
+			}
+
+			const editor = new TestEditor({ overlayUtils: [TestOverlay] })
+
+			expect(() => editor.overlays.dispose()).not.toThrow()
+		})
+	})
+
 	describe('getCurrentOverlays', () => {
 		it('returns empty array when no overlays are active', () => {
 			expect(editor.overlays.getCurrentOverlays()).toEqual([])

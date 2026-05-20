@@ -416,6 +416,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.fonts = new FontManager(this, fontAssetUrls)
+		this.disposables.add(() => this.fonts.dispose())
 
 		this.inputs = new InputsManager(this)
 		this.performance = new PerformanceManager(this)
@@ -502,6 +503,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Overlay utils
 		this.overlays = new OverlayManager(this)
+		this.disposables.add(() => this.overlays.dispose())
 		if (overlayUtilConstructors) {
 			for (const Util of overlayUtilConstructors) {
 				const util = new Util(this)

@@ -140,4 +140,9 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
 	 * at minimap scale (e.g. brushes, collaborator cursors) should opt in.
 	 */
 	renderMinimap(_ctx: CanvasRenderingContext2D, _overlays: T[], _zoom: number): void {}
+
+	/**
+	 * Clean up any resources held by this overlay util.
+	 */
+	dispose(): void {}
 }

@@ -1768,6 +1768,8 @@ export class FontManager {
         [key: string]: string | undefined;
     } | undefined);
     // (undocumented)
+    dispose(): void;
+    // (undocumented)
     ensureFontIsLoaded(font: TLFontFace): Promise<void>;
     // (undocumented)
     getShapeFontFaces(shape: TLShape | TLShapeId): TLFontFace[];
@@ -2612,6 +2614,8 @@ export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>
 export class OverlayManager {
     constructor(editor: Editor);
     // (undocumented)
+    dispose(): void;
+    // (undocumented)
     readonly editor: Editor;
     getActiveOverlayEntries(): TLOverlayEntry[];
     getCurrentOverlays(): TLOverlay[];
@@ -2647,6 +2651,7 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     static configure<T extends TLOverlayUtilConstructor<any>>(this: T, options: T extends new (...args: any[]) => {
         options: infer Options;
     } ? Partial<Options> : never): T;
+    dispose(): void;
     // (undocumented)
     editor: Editor;
     getCursor(_overlay: T): TLCursorType | undefined;
