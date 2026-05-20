@@ -21,22 +21,33 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.head.repo.fork == false }}
     outputs:
-      relevant: ${{ steps.filter.outputs.relevant }}
+      relevant: ${{ steps.includes.outputs.match == 'true' && steps.nondocs.outputs.match == 'true' }}
     steps:
       - name: Check out code
         uses: actions/checkout@v6
 
-      - name: Check for relevant changes
+      - name: Check for changes to relevant paths
         uses: dorny/paths-filter@v3
-        id: filter
+        id: includes
         with:
           filters: |
-            relevant:
+            match:
               - 'packages/**'
               - 'apps/dotcom/**'
               - '.github/workflows/playwright-dotcom.yml'
               - '.github/actions/**'
               - 'yarn.lock'
+
+      - name: Check for any non-doc changes
+        uses: dorny/paths-filter@v3
+        id: nondocs
+        with:
+          predicate-quantifier: 'every'
+          filters: |
+            match:
+              - '**'
+              - '!**/*.md'
+              - '!**/*.mdx'
 
   build:
     name: 'End to end tests (dotcom)'
