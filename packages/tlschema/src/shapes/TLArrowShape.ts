@@ -278,6 +278,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddElbow: 6,
 	AddRichText: 7,
 	AddRichTextAttrs: 8,
+	AddAvoidObstacles: 9,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -467,6 +468,13 @@ export const arrowShapeMigrations = createMigrationSequence({
 					delete props.richText.attrs
 				}
 			},
+		}),
+		propsMigration({
+			id: arrowShapeVersions.AddAvoidObstacles,
+			up: (props) => {
+				delete props.avoidObstacles
+			},
+			down: 'retired',
 		}),
 	],
 })

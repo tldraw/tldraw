@@ -59,6 +59,7 @@
 		"classnames": "^2.5.1",
 		"d3-geo": "^3.1.1",
 		"lazyrepo": "0.0.0-alpha.27",
+		"libavoided-js": "^0.1.2",
 		"lodash": "^4.17.21",
 		"mermaid": "11.12.2",
 		"pdf-lib": "^1.17.1",

@@ -25,6 +25,7 @@ import {
 	ElbowArrowEdge,
 	ElbowArrowInfo,
 	ElbowArrowInfoWithoutRoute,
+	ElbowArrowMidpointHandle,
 	ElbowArrowOptions,
 	ElbowArrowRoute,
 	ElbowArrowSide,
@@ -51,6 +52,7 @@ export function getElbowArrowInfo(
 		elbowMidpoint: arrow.props.elbowMidPoint,
 		expandElbowLegLength: shapeOptions.expandElbowLegLength[arrow.props.size] * arrow.props.scale,
 		minElbowLegLength: shapeOptions.minElbowLegLength[arrow.props.size] * arrow.props.scale,
+		avoidObstaclesPadding: shapeOptions.avoidObstaclesPadding[arrow.props.size] * arrow.props.scale,
 	}
 
 	// Before we can do anything else, we need to find the start and end terminals of the arrow.
@@ -252,34 +254,81 @@ export function getElbowArrowInfo(
 		midY: my,
 	}
 
-	// We wrap the info in a working info object that lets us mutate and reset it as needed.
-	const workingInfo = new ElbowArrowWorkingInfo(info)
+	// Compute the default route lazily — the router callback may or may not need it.
+	// Compute the default route lazily — the router callback may or may not need it.
+	let defaultRouteComputed = false
+	let defaultRouteResult: ElbowArrowRoute | null = null
+	function computeDefaultRoute(): ElbowArrowRoute | null {
+		if (defaultRouteComputed) return defaultRouteResult
+		defaultRouteComputed = true
 
-	// Figure out the final sides to use for each terminal.
-	const aSide = getSideToUse(aTerminal, bTerminal, info.A.edges)
-	const bSide = getSideToUse(bTerminal, aTerminal, info.B.edges)
+		const workingInfo = new ElbowArrowWorkingInfo(info)
+		const aSide = getSideToUse(aTerminal, bTerminal, info.A.edges)
+		const bSide = getSideToUse(bTerminal, aTerminal, info.B.edges)
 
-	// try to find a route with the specification we have:
-	let route
-	if (aSide && bSide) {
-		route = routeArrowWithManualEdgePicking(workingInfo, aSide, bSide)
-	} else if (aSide && !bSide) {
-		route = routeArrowWithPartialEdgePicking(workingInfo, aSide)
+		let result: ElbowArrowRoute | null | undefined
+		if (aSide && bSide) {
+			result = routeArrowWithManualEdgePicking(workingInfo, aSide, bSide)
+		} else if (aSide && !bSide) {
+			result = routeArrowWithPartialEdgePicking(workingInfo, aSide)
+		}
+		if (!result) {
+			result = routeArrowWithAutoEdgePicking(workingInfo, aSide || bSide ? 'fallback' : 'auto')
+		}
+		defaultRouteResult = result ?? null
+		return defaultRouteResult
 	}
-	if (!route) {
-		route = routeArrowWithAutoEdgePicking(workingInfo, aSide || bSide ? 'fallback' : 'auto')
+
+	function measureManhattanPath(points: VecLike[]): number {
+		let d = 0
+		for (let i = 0; i < points.length - 1; i++) {
+			d += Math.abs(points[i + 1].x - points[i].x) + Math.abs(points[i + 1].y - points[i].y)
+		}
+		return d
+	}
+
+	// Invoke the pluggable router if configured.
+	const routerResult = shapeOptions.elbowRouter?.({
+		editor,
+		arrow,
+		bindings,
+		info,
+		computeDefaultRoute,
+	})
+
+	let route: ElbowArrowRoute | null
+	if (routerResult && routerResult.points.length >= 2) {
+		// Router provided custom points — build a route from them.
+		route = computeDefaultRoute() ?? {
+			name: 'custom-router',
+			points: [],
+			distance: 0,
+			aEdgePicking: 'auto',
+			bEdgePicking: 'auto',
+			skipPointsWhenDrawing: new Set(),
+			midpointHandle: null,
+		}
+		route.points = routerResult.points
+		route.distance = measureManhattanPath(routerResult.points)
+		route.midpointHandle = computeReroutedMidpointHandle(route.points, mxRange, myRange)
+
+		if (!routerResult.skipGeometryCasting) {
+			castPathSegmentIntoGeometry('first', info.A, info.B, route)
+			castPathSegmentIntoGeometry('last', info.B, info.A, route)
+			fixTinyEndNubs(route, aTerminal, bTerminal)
+		}
+	} else {
+		// No custom router — use default routing with standard post-processing.
+		route = computeDefaultRoute()
+		if (route) {
+			castPathSegmentIntoGeometry('first', info.A, info.B, route)
+			castPathSegmentIntoGeometry('last', info.B, info.A, route)
+			fixTinyEndNubs(route, aTerminal, bTerminal)
+		}
 	}
 
 	if (route) {
-		// If we found a route, we need to fix it up. The route will only go to the bounding box of
-		// the shape, so we need to cast the final segments into the actual geometry of the shape.
-		castPathSegmentIntoGeometry('first', info.A, info.B, route)
-		castPathSegmentIntoGeometry('last', info.B, info.A, route)
-		// If we have tiny L-shaped arrows, the arrowheads look super janky. We fix those up by just
-		// drawing a straight line instead.
-		fixTinyEndNubs(route, aTerminal, bTerminal)
-
-		// If we swapped the order way back of the start of things, we need to reverse the route so
+		// If we swapped the order way back at the start of things, we need to reverse the route so
 		// it flows start -> end instead of A -> B.
 		if (swapOrder) route.points.reverse()
 	}
@@ -896,4 +945,51 @@ function adjustTerminalForUnclosedPathIfNeeded(
 
 	terminal.side = side
 	return terminal
+}
+
+/**
+ * Compute a midpoint handle for an obstacle-avoidance-rerouted path.
+ * Picks the longest middle segment whose axis matches an available range,
+ * so the drag handler can map the handle position back to elbowMidPoint.
+ */
+function computeReroutedMidpointHandle(
+	points: Vec[],
+	mxRange: { a: number; b: number } | null,
+	myRange: { a: number; b: number } | null
+): ElbowArrowMidpointHandle | null {
+	if (points.length < 4) return null
+	if (!mxRange && !myRange) return null
+
+	const eps = 0.01
+	let bestLen = 0
+	let bestIdx = -1
+	let bestAxis: 'x' | 'y' | null = null
+
+	// Search middle segments (skip first and last which are exit/entry legs)
+	for (let i = 1; i < points.length - 2; i++) {
+		const a = points[i]
+		const b = points[i + 1]
+		const isHoriz = Math.abs(a.y - b.y) < eps
+		const axis = isHoriz ? 'x' : 'y'
+
+		// Only consider segments whose axis has a valid range
+		if (axis === 'x' && !mxRange) continue
+		if (axis === 'y' && !myRange) continue
+
+		const len = Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+		if (len > bestLen) {
+			bestLen = len
+			bestIdx = i
+			bestAxis = axis
+		}
+	}
+
+	if (bestIdx === -1 || !bestAxis) return null
+
+	return {
+		axis: bestAxis,
+		segmentStart: points[bestIdx],
+		segmentEnd: points[bestIdx + 1],
+		point: Vec.Lrp(points[bestIdx], points[bestIdx + 1], 0.5),
+	}
 }

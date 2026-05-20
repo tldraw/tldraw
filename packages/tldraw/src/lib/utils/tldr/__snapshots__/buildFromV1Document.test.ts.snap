@@ -62,6 +62,7 @@ exports[`buildFromV1Document test fixtures > arrow-binding.tldr 1`] = `
     "props": {
       "arrowheadEnd": "arrow",
       "arrowheadStart": "none",
+      "avoidObstacles": false,
       "bend": -74.62876127600846,
       "color": "red",
       "dash": "draw",
@@ -243,6 +244,7 @@ exports[`buildFromV1Document test fixtures > exact-arrow-binding.tldr 1`] = `
     "props": {
       "arrowheadEnd": "arrow",
       "arrowheadStart": "arrow",
+      "avoidObstacles": false,
       "bend": -117.13359957478735,
       "color": "red",
       "dash": "draw",
@@ -406,6 +408,7 @@ exports[`buildFromV1Document test fixtures > incorrect-arrow-binding.tldr 1`] = 
     "props": {
       "arrowheadEnd": "arrow",
       "arrowheadStart": "none",
+      "avoidObstacles": false,
       "bend": -0.00010621283112062974,
       "color": "red",
       "dash": "draw",

@@ -162,7 +162,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		shouldIgnoreTargets(editor: Editor) {
 			return editor.inputs.getCtrlKey()
 		},
+		avoidObstaclesPadding: {
+			s: 16,
+			m: 20,
+			l: 28,
+			xl: 40,
+		},
 		showTextOutline: true,
+		elbowRouter: () => null,
 		getDefaultDisplayValues(_editor, shape, theme, colorMode): ArrowShapeUtilDisplayValues {
 			const { color, fill, labelColor, size, font } = shape.props
 			const colors = theme.colors[colorMode]
@@ -441,14 +448,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const maxSnapDistance =
 			this.options.elbowMidpointSnapDistance / this.editor.getEfficientZoomLevel()
 
-		// we snap to the midpoint of the range by default
 		const midPoint = perpDistanceToLineAngle(
 			shapeToPageTransform.applyToPoint(axis.v(lerp(midRange.lo, midRange.hi, 0.5), 0)),
 			angle
 		)
 
-		let snapPoint = midPoint
-		let snapDistance = Math.abs(midPoint - handlePoint)
+		let snapPoint: number = midPoint
+		let snapDistance: number = Math.abs(midPoint - handlePoint)
 
 		// then we check all the other arrows that are on-screen.
 		for (const [snapAngle, snapLines] of getElbowArrowSnapLines(this.editor)) {

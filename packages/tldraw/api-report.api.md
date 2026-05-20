@@ -274,12 +274,14 @@ export function ArrowRightToolbarItem(): JSX.Element;
 // @public
 export interface ArrowShapeOptions extends ShapeOptionsWithDisplayValues<TLArrowShape, ArrowShapeUtilDisplayValues> {
     readonly arcArrowCenterSnapDistance: number;
+    readonly avoidObstaclesPadding: Record<TLDefaultSizeStyle, number>;
     readonly elbowArrowAxisSnapDistance: number;
     readonly elbowArrowCenterSnapDistance: number;
     readonly elbowArrowEdgeSnapDistance: number;
     readonly elbowArrowPointSnapDistance: number;
     readonly elbowMidpointSnapDistance: number;
     readonly elbowMinSegmentLengthToShowMidpointHandle: number;
+    elbowRouter?(ctx: ElbowArrowRouterContext): ElbowArrowRouterResult | null;
     readonly expandElbowLegLength: Record<TLDefaultSizeStyle, number>;
     readonly hoverPreciseTimeout: number;
     readonly labelCenterSnapDistance: number;
@@ -1695,6 +1697,8 @@ export interface ElbowArrowMidpointHandle {
 // @public
 export interface ElbowArrowOptions {
     // (undocumented)
+    avoidObstaclesPadding: number;
+    // (undocumented)
     elbowMidpoint: number;
     // (undocumented)
     expandElbowLegLength: number;
@@ -1714,6 +1718,8 @@ export interface ElbowArrowRange {
 export interface ElbowArrowRoute {
     // @internal
     aEdgePicking: ElbowArrowSideReason;
+    // @internal @deprecated (undocumented)
+    avoidObstaclesRerouted?: boolean;
     // @internal
     bEdgePicking: ElbowArrowSideReason;
     distance: number;
@@ -1722,6 +1728,21 @@ export interface ElbowArrowRoute {
     name: string;
     points: Vec[];
     skipPointsWhenDrawing: Set<Vec>;
+}
+
+// @public
+export interface ElbowArrowRouterContext {
+    arrow: TLArrowShape;
+    bindings: TLArrowBindings;
+    computeDefaultRoute(): ElbowArrowRoute | null;
+    editor: Editor;
+    info: ElbowArrowInfoWithoutRoute;
+}
+
+// @public
+export interface ElbowArrowRouterResult {
+    points: Vec[];
+    skipGeometryCasting?: boolean;
 }
 
 // @public

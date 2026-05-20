@@ -1,4 +1,15 @@
-import { Box, ElbowArrowSnap, Geometry2d, TLShapeId, Vec, VecLike, VecModel } from '@tldraw/editor'
+import {
+	Box,
+	Editor,
+	ElbowArrowSnap,
+	Geometry2d,
+	TLArrowShape,
+	TLShapeId,
+	Vec,
+	VecLike,
+	VecModel,
+} from '@tldraw/editor'
+import type { TLArrowBindings } from '../shared'
 
 /**
  * The side of a box that an elbow arrow could enter/exit from.
@@ -55,6 +66,11 @@ export interface ElbowArrowRoute {
 	 * The midpoint handle of the route, if any.
 	 */
 	midpointHandle: ElbowArrowMidpointHandle | null
+	/**
+	 * @deprecated Use {@link ElbowArrowRouterResult.skipGeometryCasting} instead.
+	 * @internal
+	 */
+	avoidObstaclesRerouted?: boolean
 }
 
 /**
@@ -82,6 +98,7 @@ export interface ElbowArrowOptions {
 	expandElbowLegLength: number
 	minElbowLegLength: number
 	elbowMidpoint: number
+	avoidObstaclesPadding: number
 }
 
 /**
@@ -303,6 +320,42 @@ export interface ElbowArrowInfo extends ElbowArrowInfoWithoutRoute {
 
 	midXRange: { lo: number; hi: number } | null
 	midYRange: { lo: number; hi: number } | null
+}
+
+/**
+ * Context provided to an {@link ArrowShapeOptions.elbowRouter} callback.
+ * @public
+ */
+export interface ElbowArrowRouterContext {
+	/** The editor instance, for querying shapes, obstacles, etc. */
+	editor: Editor
+	/** The arrow shape being routed. */
+	arrow: TLArrowShape
+	/** The arrow's start/end bindings. */
+	bindings: TLArrowBindings
+	/** Pre-computed info about the two terminals: bounds, edges, gaps, midpoints, options. */
+	info: ElbowArrowInfoWithoutRoute
+	/**
+	 * Lazily compute the default elbow route using the built-in edge-picking system.
+	 * Call this if your router wants to post-process the default route (e.g. obstacle avoidance).
+	 * Skip it if your router provides its own points (e.g. custom waypoints).
+	 */
+	computeDefaultRoute(): ElbowArrowRoute | null
+}
+
+/**
+ * The result returned by an {@link ArrowShapeOptions.elbowRouter} callback.
+ * @public
+ */
+export interface ElbowArrowRouterResult {
+	/** The route points to use instead of the default route. */
+	points: Vec[]
+	/**
+	 * If true, the default endpoint geometry casting is skipped. Set this when your router
+	 * handles its own endpoint positioning (e.g. obstacle avoidance paths with their own
+	 * exit/entry legs). When false or omitted, endpoints are cast to actual shape contours.
+	 */
+	skipGeometryCasting?: boolean
 }
 
 export interface ElbowArrowTerminal {

@@ -19334,6 +19334,7 @@ __metadata:
     d3-geo: "npm:^3.1.1"
     dotenv: "npm:^16.4.7"
     lazyrepo: "npm:0.0.0-alpha.27"
+    libavoided-js: "npm:^0.1.2"
     lodash: "npm:^4.17.21"
     mermaid: "npm:11.12.2"
     pdf-lib: "npm:^1.17.1"
@@ -22520,6 +22521,13 @@ __metadata:
   version: 3.1.0
   resolution: "leven@npm:3.1.0"
   checksum: 10/638401d534585261b6003db9d99afd244dfe82d75ddb6db5c0df412842d5ab30b2ef18de471aaec70fe69a46f17b4ae3c7f01d8a4e6580ef7adb9f4273ad1e55
+  languageName: node
+  linkType: hard
+
+"libavoided-js@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "libavoided-js@npm:0.1.2"
+  checksum: 10/05f3a17e91477b14daeadf3ef4c8d2ea4ba7ba19cfff551be73110a964d9f6835a431f6bcde4dec5b8d0dcf5439d9dc69c35848019b1828e8a3e7af913f57455
   languageName: node
   linkType: hard
 
