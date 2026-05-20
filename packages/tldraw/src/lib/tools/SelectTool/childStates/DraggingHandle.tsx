@@ -3,6 +3,7 @@ import {
 	StateNode,
 	TLArrowShape,
 	TLHandle,
+	TLKeyboardEventInfo,
 	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
@@ -16,6 +17,7 @@ import {
 } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { clearArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
+import { dropBoundTextShapeAtArrowTerminal } from '../../../shapes/arrow/dropShapeOnArrowDrag'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 
 export type DraggingHandleInfo = TLPointerEventInfo & {
@@ -184,11 +186,23 @@ export class DraggingHandle extends StateNode {
 		this.update()
 	}
 
-	override onKeyDown() {
+	override onKeyDown(info: TLKeyboardEventInfo) {
 		this.update()
 	}
 
-	override onKeyUp() {
+	override onKeyUp(info: TLKeyboardEventInfo) {
+		if (
+			info.key.toLowerCase() === 't' &&
+			this.editor.isShapeOfType(this.info.shape, 'arrow') &&
+			this.info.handle.id === 'end'
+		) {
+			const arrow = this.editor.getShape<TLArrowShape>(this.shapeId)
+			if (!arrow) return
+
+			dropBoundTextShapeAtArrowTerminal(this.editor, arrow, this.info.handle.id)
+			return
+		}
+
 		this.update()
 	}
 
