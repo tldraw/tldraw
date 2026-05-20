@@ -36,9 +36,11 @@ export function useCurrentTranslation() {
 }
 
 /**
- * Provides a translation context to the editor.
+ * Provides a translation context to the editor. Wrap this around components that use
+ * `useTranslation` (such as `TldrawSelectionForeground`) when you don't want to use the
+ * full `TldrawUiContextProvider`. Must be rendered inside an `AssetUrlsProvider`.
  *
- * @internal
+ * @public @react
  */
 export function TldrawUiTranslationProvider({
 	overrides,
@@ -97,6 +99,8 @@ export function TldrawUiTranslationProvider({
 	)
 }
 
+let hasWarnedAboutMissingTranslations = false
+
 /**
  * Returns a function to translate a translation key into a string based on the current translation.
  *
@@ -114,8 +118,11 @@ export function useTranslation() {
 	const messages = translation?.messages ?? DEFAULT_TRANSLATION
 
 	React.useEffect(() => {
-		if (!translation?.messages) {
-			console.warn('No translation messages found, falling back to default translation.')
+		if (!translation?.messages && !hasWarnedAboutMissingTranslations) {
+			hasWarnedAboutMissingTranslations = true
+			console.warn(
+				'No translation messages found, falling back to default translation. Wrap your app in <TldrawUiContextProvider> or <TldrawUiTranslationProvider> to provide translations.'
+			)
 		}
 	}, [translation?.messages])
 

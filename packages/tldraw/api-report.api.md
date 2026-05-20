@@ -478,7 +478,7 @@ export const ASPECT_RATIO_TO_VALUE: Record<ASPECT_RATIO_OPTION, number>;
 // @public (undocumented)
 export function AssetToolbarItem(): JSX.Element;
 
-// @internal (undocumented)
+// @public
 export function AssetUrlsProvider({ assetUrls, children }: {
     assetUrls: TLUiAssetUrls;
     children: React.ReactNode;
@@ -4364,7 +4364,7 @@ export interface TldrawUiTooltipProviderProps {
     children: React_3.ReactNode;
 }
 
-// @internal
+// @public
 export function TldrawUiTranslationProvider({ overrides, locale, children }: TLUiTranslationProviderProps): JSX.Element;
 
 // @public (undocumented)
@@ -6309,7 +6309,7 @@ export function useA11y(): TLUiA11yContextType;
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;
 
-// @internal (undocumented)
+// @public (undocumented)
 export function useAssetUrls(): TLUiAssetUrls;
 
 // @public (undocumented)
