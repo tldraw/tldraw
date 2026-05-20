@@ -1,4 +1,3 @@
-import { fetchFramerPaths } from '@/utils/framer-sitemap'
 import { nicelog } from '@/utils/nicelog'
 import { connect } from './connect'
 
@@ -14,6 +13,32 @@ const INTERNAL_REWRITES: Record<string, string> = {
 	'/releases': '/getting-started/releases',
 	'/quick-start': '/getting-started/quick-start',
 	'/installation': '/getting-started/installation',
+}
+
+// Path prefixes that are served by another system (e.g. the marketing site)
+// rather than this Next.js app, so they will never appear in the docs DB.
+// Matches the prefix as an exact path OR as a parent of a subpath:
+// e.g. '/legal' matches '/legal' and '/legal/tldraw-license' but not '/legal-foo'.
+const EXTERNAL_ROUTE_PREFIXES = [
+	'/accessibility',
+	'/blog',
+	'/careers',
+	'/company',
+	'/events',
+	'/faq',
+	'/features',
+	'/get-a-license',
+	'/legal',
+	'/partner',
+	'/pricing',
+	'/showcase',
+	'/thanks',
+]
+
+function isExternalRoute(urlPath: string): boolean {
+	return EXTERNAL_ROUTE_PREFIXES.some(
+		(prefix) => urlPath === prefix || urlPath.startsWith(prefix + '/')
+	)
 }
 
 /**
@@ -109,9 +134,6 @@ function tryRedirect(urlPath: string): string | null {
 export async function checkBrokenLinks(): Promise<number> {
 	const db = await connect({ mode: 'readonly' })
 
-	// Fetch framer paths from the live sitemap so we don't maintain a stale list
-	const framerPaths = await fetchFramerPaths()
-
 	// Build set of all valid paths
 	const validPaths = new Set<string>()
 
@@ -198,6 +220,10 @@ export async function checkBrokenLinks(): Promise<number> {
 			const urlPath = hashIdx >= 0 ? url.slice(0, hashIdx) : url
 			const fragment = hashIdx >= 0 ? url.slice(hashIdx + 1).toLowerCase() : null
 
+			// Skip paths served by an external system (marketing site etc.)
+			// — they will never appear in the docs DB but are still valid in production.
+			if (isExternalRoute(urlPath)) continue
+
 			// Empty path with fragment = same-page anchor
 			if (urlPath === '' && fragment) {
 				const slugs = headingMap.get(article.path)
@@ -221,8 +247,6 @@ export async function checkBrokenLinks(): Promise<number> {
 			} else if (validPathsLower.has(urlPath.toLowerCase())) {
 				// Case-insensitive fallback (handles macOS FS collisions
 				// where e.g. Atom.mdx and atom.mdx map to the same file)
-				pathValid = true
-			} else if (framerPaths.has(urlPath)) {
 				pathValid = true
 			} else {
 				// Try redirect resolution
