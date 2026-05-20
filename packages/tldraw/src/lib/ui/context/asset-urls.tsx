@@ -1,4 +1,4 @@
-import { Image } from '@tldraw/editor'
+import { Image, noop } from '@tldraw/editor'
 import { createContext, useContext, useEffect } from 'react'
 import { TLUiAssetUrls } from '../assetUrls'
 
@@ -6,11 +6,6 @@ import { TLUiAssetUrls } from '../assetUrls'
 type UiAssetUrlsContextType = TLUiAssetUrls | null
 
 const AssetUrlsContext = createContext<UiAssetUrlsContextType>(null)
-
-function noop() {
-	// Swallow image.decode() rejections (e.g. EncodingError) from icon preload —
-	// preload is best-effort and any real load failure surfaces where the icon is used.
-}
 
 /** @internal */
 export function AssetUrlsProvider({
