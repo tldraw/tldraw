@@ -1,0 +1,15 @@
+.tape-hint {
+	position: absolute;
+	bottom: 12px;
+	left: 50%;
+	transform: translateX(-50%);
+	padding: 6px 12px;
+	border-radius: 6px;
+	background-color: rgba(0, 0, 0, 0.6);
+	color: #fff;
+	font-family: sans-serif;
+	font-size: 12px;
+	letter-spacing: 0.02em;
+	pointer-events: none;
+	z-index: 300;
+}
