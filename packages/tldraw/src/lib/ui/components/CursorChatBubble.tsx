@@ -1,4 +1,4 @@
-import { preventDefault, track, useEditor } from '@tldraw/editor'
+import { preventDefault, tlenv, track, useEditor } from '@tldraw/editor'
 import {
 	ChangeEvent,
 	ClipboardEvent,
@@ -40,8 +40,14 @@ export const CursorChatBubble = track(function CursorChatBubble() {
 		}
 	}, [editor, chatMessage, isChatting])
 
-	if (isChatting)
-		return <CursorChatInput value={value} setValue={setValue} chatMessage={chatMessage} />
+	if (isChatting) {
+		return (
+			<>
+				{tlenv.isDarwin && <CursorChatAnchor />}
+				<CursorChatInput value={value} setValue={setValue} chatMessage={chatMessage} />
+			</>
+		)
+	}
 
 	return chatMessage.trim() ? <NotEditingChatMessage chatMessage={chatMessage} /> : null
 })
@@ -72,6 +78,45 @@ function usePositionBubble(ref: RefObject<HTMLInputElement | null>) {
 			win.removeEventListener('pointermove', positionChatBubble)
 		}
 	}, [ref, editor])
+}
+
+// Renders a visible pointer anchor at the user's screen-point while cursor
+// chat is open and they are typing. macOS hides the OS cursor while typing
+function CursorChatAnchor() {
+	const editor = useEditor()
+	const ref = useRef<HTMLInputElement>(null)
+	const [isTyping, setIsTyping] = useState(false)
+
+	usePositionBubble(ref)
+
+	useEffect(() => {
+		const win = editor.getContainerWindow()
+
+		// Ignore modifier-only and non-printable keys (e.g. Escape, arrows) so
+		// the anchor only appears when the user is actually typing.
+		const onKeyDown = (e: globalThis.KeyboardEvent) => {
+			if (e.key.length === 1 && !e.metaKey && !e.ctrlKey) {
+				setIsTyping(true)
+			}
+		}
+		const onPointerMove = () => setIsTyping(false)
+
+		win.addEventListener('keydown', onKeyDown)
+		win.addEventListener('pointermove', onPointerMove)
+		return () => {
+			win.removeEventListener('keydown', onKeyDown)
+			win.removeEventListener('pointermove', onPointerMove)
+		}
+	}, [editor])
+
+	return (
+		<div
+			ref={ref}
+			className="tl-cursor-chat__anchor"
+			aria-hidden="true"
+			style={{ visibility: isTyping ? 'visible' : 'hidden' }}
+		/>
+	)
 }
 
 const NotEditingChatMessage = ({ chatMessage }: { chatMessage: string }) => {
