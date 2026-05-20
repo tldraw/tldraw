@@ -49,7 +49,11 @@ import {
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getThemeFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
-import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
+import {
+	ShapeOptionsWithDisplayValues,
+	getDimensionDisplayValues,
+	getDisplayValues,
+} from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
@@ -254,7 +258,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	override getGeometry(shape: TLGeoShape) {
 		const { props } = shape
 		const { scale } = props
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 		const path = getGeoShapePath(shape, dv.strokeWidth, this.options.customGeoTypes)
 		const pathGeometry = path.toGeometry()
 
@@ -435,7 +439,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const isForceSolid = this.editor.getEfficientZoomLevel() < 0.25 / shape.props.scale
 
 		const { dash, scale } = shape.props
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 
 		const path = getGeoShapePath(shape, dv.strokeWidth, this.options.customGeoTypes)
 
@@ -819,7 +823,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	 * Expensively measure the unscaled label size for the shape. Avoid using it if we can.
 	 */
 	private measureUnscaledLabelSize(shape: TLGeoShape) {
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 
 		const html = renderHtmlFromRichTextForMeasurement(this.editor, shape.props.richText)
 

@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLTheme } from '@tldraw/editor'
+import { Editor, TLShape, TLTheme, unsafe__withoutCapture } from '@tldraw/editor'
 
 /** @public */
 export interface ShapeOptionsWithDisplayValues<
@@ -46,4 +46,27 @@ export function getDisplayValues<Shape extends TLShape, DisplayValues extends ob
 	}
 	dvCache.set(shape, { theme, colorMode: resolvedColorMode, values })
 	return values
+}
+
+/**
+ * Get a shape's display values without subscribing to the editor's color mode signal. Use this in
+ * computed caches that depend only on the dimension-affecting fields of the display values (font
+ * family, font size, line height, padding, etc.) so that toggling between light and dark mode
+ * doesn't invalidate the cache.
+ *
+ * Within a single theme, light and dark only differ in their color palette; font, font size,
+ * line height, and other dimension-affecting display values are identical. The returned object
+ * still contains color values for the current mode, but callers must not depend on those — they
+ * will be stale once color mode changes (the cache won't recompute on a toggle).
+ *
+ * @public
+ */
+export function getDimensionDisplayValues<Shape extends TLShape, DisplayValues extends object>(
+	util: { editor: Editor; options: ShapeOptionsWithDisplayValues<Shape, DisplayValues> },
+	shape: Shape
+): DisplayValues {
+	// Read colorMode outside the reactive capture so the surrounding computed scope doesn't
+	// take a dependency on it. We still pass it through so the dvCache lookup remains correct.
+	const colorMode = unsafe__withoutCapture(() => util.editor.getColorMode())
+	return getDisplayValues(util, shape, colorMode)
 }
