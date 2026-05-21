@@ -1,5 +1,5 @@
 ---
-title: Mermaid diagrams
+title: Hundreds of Mermaid Diagrams
 component: ./MermaidDiagramsExample.tsx
 priority: 10
 keywords: [mermaid, diagram]
