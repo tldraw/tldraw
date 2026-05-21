@@ -7,7 +7,7 @@ const PROVIDER = (process.env.NEXT_PUBLIC_MAKE_REAL_PROVIDER ?? 'anthropic') as
 	| 'anthropic'
 	| 'google'
 
-export async function makeReal(editor: Editor) {
+export async function makeReal(editor: Editor, opts: { signal?: AbortSignal } = {}) {
 	// Get the selected shapes (we need at least one)
 	const selectedShapes = editor.getSelectedShapes()
 	if (selectedShapes.length === 0) throw new Error('First select something to make real.')
@@ -23,6 +23,7 @@ export async function makeReal(editor: Editor) {
 		x: bounds.maxX + 60,
 		y: bounds.midY - (540 * 2) / 3 / 2,
 		props: { html: '' },
+		meta: { makingReal: true },
 	})
 
 	try {
@@ -54,6 +55,7 @@ export async function makeReal(editor: Editor) {
 				previousPreviews,
 				provider: PROVIDER,
 			}),
+			signal: opts.signal,
 		})
 
 		const json = (await response.json()) as { html?: string; error?: string }
@@ -66,12 +68,39 @@ export async function makeReal(editor: Editor) {
 			id: newShapeId,
 			type: 'response',
 			props: { html: json.html },
+			meta: { makingReal: false },
 		})
 	} catch (e) {
 		// If anything went wrong, delete the placeholder shape so the canvas is back to a clean state
 		editor.deleteShape(newShapeId)
 		throw e
 	}
+}
+
+/**
+ * Unlock any shapes that were left locked by an in-flight make-real call (eg. because the user
+ * refreshed the page mid-flight) and delete any empty preview placeholders.
+ */
+export function cleanupStaleMakeReal(editor: Editor) {
+	const staleShapes = editor.getCurrentPageShapes().filter((s) => s.meta?.makingReal)
+	if (staleShapes.length === 0) return
+
+	editor.run(
+		() => {
+			for (const shape of staleShapes) {
+				if (shape.type === 'response') {
+					editor.deleteShape(shape.id)
+				} else {
+					editor.updateShape({
+						...shape,
+						isLocked: false,
+						meta: { ...shape.meta, makingReal: false },
+					})
+				}
+			}
+		},
+		{ ignoreShapeLock: true, history: 'ignore' }
+	)
 }
 
 function blobToBase64(blob: Blob): Promise<string> {

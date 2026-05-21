@@ -33,18 +33,76 @@ body {
 }
 
 .makeRealButton {
-	background: var(--color-primary);
-	color: white;
+	position: absolute;
+	left: 50%;
+	bottom: 80px;
+	transform: translateX(-50%);
+	z-index: 400;
+	background: var(--tl-color-primary);
+	color: var(--tl-color-selected-contrast);
 	border: none;
 	font: inherit;
+	font-size: 18px;
 	font-weight: 600;
-	padding: var(--space-3) var(--space-4);
-	border-radius: var(--radius-2);
-	margin: var(--space-3);
+	padding: 14px 28px;
+	border-radius: var(--tl-radius-3);
 	cursor: pointer;
 	pointer-events: all;
+	box-shadow:
+		0 1px 2px rgba(0, 0, 0, 0.08),
+		0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .makeRealButton:hover {
 	opacity: 0.95;
+}
+
+.makeRealButton--stop {
+	background: hsl(0, 70%, 50%);
+}
+
+.instructions {
+	position: absolute;
+	left: 50%;
+	top: 96px;
+	transform: translateX(-50%);
+	z-index: 400;
+	max-width: 360px;
+	padding: 20px 24px;
+	background: var(--tl-color-panel);
+	color: var(--tl-color-text);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+	box-shadow:
+		0 1px 2px rgba(0, 0, 0, 0.08),
+		0 4px 12px rgba(0, 0, 0, 0.12);
+	pointer-events: none;
+}
+
+.instructions__title {
+	margin: 0 0 8px;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.instructions__list {
+	margin: 0;
+	padding-left: 20px;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.instructions__list li + li {
+	margin-top: 4px;
+}
+
+.makeRealShapeOverlay {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: color-mix(in srgb, var(--color-panel) 70%, transparent);
+	border-radius: var(--radius-2);
+	pointer-events: all;
+	cursor: wait;
 }
