@@ -29,6 +29,10 @@ jobs:
     outputs:
       is_latest_version: ${{ steps.publish_step.outputs.is_latest_version }}
 
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
       - name: Check out code
         uses: actions/checkout@v6
@@ -41,7 +45,6 @@ jobs:
         run: yarn tsx ./internal/scripts/publish-manual.ts
         env:
           GH_TOKEN: ${{ github.token }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
           TLDRAW_BEMO_URL: https://demo.tldraw.xyz

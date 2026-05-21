@@ -34,6 +34,10 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest-16-cores-arm-open
 
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
       - name: Check inputs
         run: |
@@ -78,7 +82,6 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
           TLDRAW_BEMO_URL: https://demo.tldraw.xyz

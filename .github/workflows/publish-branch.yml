@@ -17,7 +17,9 @@ jobs:
     if: github.event.label.name == 'publish-packages'
 
     permissions:
+      contents: read
       pull-requests: write
+      id-token: write
 
     steps:
       - name: Remove the publish-packages label
@@ -37,7 +39,6 @@ jobs:
         run: yarn tsx ./internal/scripts/publish-prerelease.ts internal
         env:
           GH_TOKEN: ${{ github.token }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
           TLDRAW_BEMO_URL: https://canary-demo.tldraw.xyz
