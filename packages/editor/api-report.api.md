@@ -815,6 +815,9 @@ export const defaultUserStore: TLUserStore;
 // @public
 export function degreesToRadians(d: number): number;
 
+// @public
+export const DRAW_ELEMENT_IMAGE_FLAG_HINT = "Enable chrome://flags/#canvas-draw-element in Chrome Canary or Brave (Chromium 146+) to try this experimental API.";
+
 // @public (undocumented)
 export const EASINGS: {
     readonly easeInCubic: (t: number) => number;
@@ -1756,6 +1759,27 @@ export function ErrorScreen({ children }: LoadingScreenProps): JSX.Element;
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
 
+// @public
+export function exportShapesViaDrawElementImage(editor: Editor, shapeIds: TLShapeId[], options?: ExportShapesViaDrawElementImageOptions): Promise<ExportShapesViaDrawElementImageResult | null>;
+
+// @public
+export interface ExportShapesViaDrawElementImageOptions {
+    background?: string;
+    padding?: number;
+    pixelRatio?: number;
+}
+
+// @public
+export interface ExportShapesViaDrawElementImageResult {
+    // (undocumented)
+    blob: Blob;
+    // (undocumented)
+    height: number;
+    skippedShapeIds: TLShapeId[];
+    // (undocumented)
+    width: number;
+}
+
 // @internal (undocumented)
 export function extractSessionStateFromLegacySnapshot(store: Record<string, UnknownRecord>): null | TLSessionStateSnapshot;
 
@@ -2350,6 +2374,9 @@ export function isAccelKey(e: {
     ctrlKey: boolean;
     metaKey: boolean;
 }): boolean;
+
+// @public
+export function isDrawElementImageSupported(): boolean;
 
 // @public
 export const isSafeFloat: (n: number) => boolean;
