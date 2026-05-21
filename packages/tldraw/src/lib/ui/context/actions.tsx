@@ -1848,6 +1848,26 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('download-original', { source })
 				},
 			},
+			{
+				id: 'copy-hovered-styles',
+				label: 'action.copy-hovered-styles',
+				kbd: 'q',
+				async onSelect() {
+					const hovered = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
+						hitInside: true,
+						renderingOnly: true,
+						hitLocked: true,
+					})
+
+					if (!hovered) return
+
+					for (const style of editor.styleProps[hovered.type].keys()) {
+						const value = editor.getShapeStyleIfExists(hovered, style)
+						if (value === undefined) continue
+						editor.setStyleForNextShapes(style, value)
+					}
+				},
+			},
 		]
 
 		if (showCollaborationUi) {
