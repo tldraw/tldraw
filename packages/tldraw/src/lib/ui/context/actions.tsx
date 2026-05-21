@@ -3,6 +3,7 @@ import {
 	DefaultColorStyle,
 	DefaultFillStyle,
 	Editor,
+	GeoShapeGeoStyle,
 	HALF_PI,
 	PageRecordType,
 	Result,
@@ -1857,14 +1858,20 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						hitInside: true,
 						renderingOnly: true,
 						hitLocked: true,
+						margin: editor.options.hitTestMargin / editor.getZoomLevel(),
 					})
 
 					if (!hovered) return
 
 					for (const style of editor.styleProps[hovered.type].keys()) {
 						const value = editor.getShapeStyleIfExists(hovered, style)
-						if (value === undefined) continue
-						editor.setStyleForNextShapes(style, value)
+						if (value === undefined || style === GeoShapeGeoStyle) continue
+
+						if (editor.isIn('select.idle')) {
+							editor.setStyleForSelectedShapes(style, value)
+						} else {
+							editor.setStyleForNextShapes(style, value)
+						}
 					}
 				},
 			},
