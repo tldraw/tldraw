@@ -1,0 +1,100 @@
+---
+title: Make real starter kit
+sidebarTitle: Make real
+status: published
+author: tldraw
+date: 5/21/2026
+order: 8
+description: The Make real Starter Kit turns sketches and wireframes drawn on a tldraw canvas into working HTML using a vision-capable AI model. Draw a UI, click "Make real", and the model returns a self-contained HTML page that renders next to your sketch as a custom `PreviewShape`. Use it as the foundation for prototyping tools, design copilots, and other apps that take visual input.
+embed: make-real
+githubLink: https://github.com/tldraw/tldraw/tree/main/templates/make-real
+keywords:
+  - make real
+  - ai
+  - wireframe
+  - prototype
+  - sketch
+  - html
+  - vision
+---
+
+To build with the make-real starter kit, run this command in your terminal:
+
+```bash
+npm create tldraw@latest -- --template make-real
+```
+
+Once you've followed the instructions, create a `.env.local` file in the project root and add an API key for at least one supported provider:
+
+```
+# OpenAI
+OPENAI_API_KEY=<your key>
+
+# Anthropic
+ANTHROPIC_API_KEY=<your key>
+
+# Google Generative AI
+GOOGLE_GENERATIVE_AI_API_KEY=<your key>
+
+# Optional: choose the default provider (openai | anthropic | google)
+NEXT_PUBLIC_MAKE_REAL_PROVIDER=anthropic
+```
+
+Get keys from [OpenAI](https://platform.openai.com/api-keys), [Anthropic](https://console.anthropic.com/settings/keys), or [Google AI Studio](https://aistudio.google.com/apikey). The server-side API route uses the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers), so you can swap in another provider with very little code.
+
+---
+
+## Use cases
+
+This starter kit is a foundation for apps that take visual input and produce working interfaces:
+
+<StarterKitBento type="make-real" />
+
+---
+
+## How it works
+
+1. **Draw and select.** Sketch a UI on the canvas, then select the shapes you want to turn into HTML.
+2. **Click "Make real".** The button locks the selected shapes, shows a spinner overlay, and creates an empty `PreviewShape` next to the selection so you see immediate feedback.
+3. **Capture the selection.** `editor.toImage` renders the selection to a JPEG. Text inside the selection is collected separately so the model gets both pixels and words.
+4. **Call the provider.** The image, text, the user's color-scheme preference, and any previous previews are POSTed to `/api/make-real`, which proxies the request to the configured provider via the Vercel AI SDK.
+5. **Render the response.** The model returns a single self-contained HTML document. The `PreviewShape` renders it inside a sandboxed iframe and replaces the spinner.
+6. **Iterate.** Annotate the preview, select it alongside new shapes, and click "Make real" again. The previous HTML is sent back as context so the model can refine its work.
+
+If the request fails or the user clicks "Stop", the in-flight `fetch` is aborted, the placeholder is removed, and the locked shapes are unlocked and editable again. The same cleanup runs on `onMount`, so a page refresh mid-request never leaves shapes stuck.
+
+---
+
+## Customization
+
+### Swap the AI provider
+
+`src/app/api/make-real/route.ts` reads the provider from the request body and routes to the matching Vercel AI SDK client. Add a new branch there to support a different provider, then expose it from the client by extending the union in `src/lib/makeReal.ts`.
+
+### Edit the prompt
+
+The system prompt and the user prompt template live in `src/lib/prompt.ts`. Tweak these to change how the model interprets sketches, what frameworks or styles it should use, or what output format you expect.
+
+### Extend the `PreviewShape`
+
+`src/components/PreviewShape.tsx` defines a custom shape that renders the generated HTML inside a sandboxed iframe with screenshot and copy-to-clipboard helpers. Extend it to add buttons, change the iframe sandboxing, or post-process the model's output. See [Custom shapes](/docs/shapes#custom-shapes) for the general pattern.
+
+### Change the trigger UX
+
+`src/components/MakeRealButton.tsx` owns the lock/spinner/abort lifecycle. `src/components/MakeRealOverlay.tsx` draws the spinner over the locked shapes. Replace the button with a context menu item, keyboard shortcut, or an automatic trigger by reusing the same `makingRealShapeIdsAtom` and `makeReal` helpers.
+
+---
+
+## Further reading
+
+- **[AI integration](/docs/ai)**: Patterns for combining tldraw with language and vision models.
+
+- **[Custom shapes](/docs/shapes#custom-shapes)**: How `PreviewShape` is built, and how to make your own.
+
+- **[Editor API](/docs/editor)**: Reference for `editor.toImage`, selection, locking, and the other APIs the kit uses.
+
+---
+
+## Building with this starter kit?
+
+If you build something great, please share it with us in our [#show-and-tell](https://discord.tldraw.com/?utm_source=docs&utm_medium=organic&utm_campaign=sociallink) channel on Discord. We want to see what you've built!

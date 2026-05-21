@@ -163,6 +163,30 @@ const KITS = {
 			},
 		],
 	},
+	'make-real': {
+		items: [
+			{
+				title: 'Wireframe-to-prototype tools',
+				desc: 'Let designers and PMs sketch a UI on the canvas and watch a working clickable prototype appear next to it.',
+			},
+			{
+				title: 'Design ideation platforms',
+				desc: 'Iterate on UI ideas by sketching variations, generating live previews, and annotating them back into the next prompt.',
+			},
+			{
+				title: 'AI design copilots',
+				desc: 'Build product design tools where rough sketches and handwritten notes become working HTML ready to hand to a developer.',
+			},
+			{
+				title: 'Teaching front-end development',
+				desc: 'Help students see how visual ideas translate to HTML and CSS, comparing their sketches side-by-side with generated code.',
+			},
+			{
+				title: 'Internal tool builders',
+				desc: 'Let non-engineers sketch the dashboard or form they need and walk away with a working HTML starting point.',
+			},
+		],
+	},
 } as const
 
 export type StarterKitType = keyof typeof KITS
