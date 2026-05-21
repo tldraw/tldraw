@@ -72,7 +72,7 @@ export type TLClickEventInfo = TLBaseEventInfo & {
 	point: VecLike
 	pointerId: number
 	button: number
-	phase: 'down' | 'up' | 'settle-up' | 'settle-down'
+	phase: 'down' | 'up' | 'settle-down' | 'settle-up'
 } & TLPointerEventTarget
 
 /** @public */

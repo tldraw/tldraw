@@ -139,12 +139,13 @@ describe('ClickManager', () => {
 			expect(result.phase).toBe('up')
 		})
 
-		it('should dispatch double_click settle event after timeout in pendingTriple', () => {
+		it('should dispatch double_click settle-down event after timeout in pendingTriple (pointer held)', () => {
 			const firstDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 			const secondDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 
 			clickManager.handlePointerEvent(firstDown)
 			clickManager.handlePointerEvent(secondDown)
+			// no pointer_up between or after — pointer is still down at settle time
 
 			vi.advanceTimersByTime(350)
 
@@ -152,7 +153,28 @@ describe('ClickManager', () => {
 				expect.objectContaining({
 					type: 'click',
 					name: 'double_click',
-					phase: 'settle',
+					phase: 'settle-down',
+				})
+			)
+			expect(clickManager.clickState).toBe('idle')
+		})
+
+		it('should dispatch double_click settle-up event after timeout in pendingTriple (pointer released)', () => {
+			const down = createPointerEvent('pointer_down', { x: 100, y: 100 })
+			const up = createPointerEvent('pointer_up', { x: 100, y: 100 })
+
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+
+			vi.advanceTimersByTime(350)
+
+			expect(editor.dispatch).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: 'click',
+					name: 'double_click',
+					phase: 'settle-up',
 				})
 			)
 			expect(clickManager.clickState).toBe('idle')
@@ -233,12 +255,12 @@ describe('ClickManager', () => {
 	})
 
 	describe('timeout behavior and settle events', () => {
-		it('should dispatch triple_click settle event after timeout in pendingQuadruple', () => {
+		it('should dispatch triple_click settle-down event after timeout in pendingQuadruple (pointer held)', () => {
 			const pointerDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 
 			clickManager.handlePointerEvent(pointerDown) // first
 			clickManager.handlePointerEvent(pointerDown) // second
-			clickManager.handlePointerEvent(pointerDown) // third
+			clickManager.handlePointerEvent(pointerDown) // third — still pressing
 
 			vi.advanceTimersByTime(350)
 
@@ -246,19 +268,42 @@ describe('ClickManager', () => {
 				expect.objectContaining({
 					type: 'click',
 					name: 'triple_click',
-					phase: 'settle',
+					phase: 'settle-down',
 				})
 			)
 			expect(clickManager.clickState).toBe('idle')
 		})
 
-		it('should dispatch quadruple_click settle event after timeout in pendingOverflow', () => {
+		it('should dispatch triple_click settle-up event after timeout in pendingQuadruple (pointer released)', () => {
+			const down = createPointerEvent('pointer_down', { x: 100, y: 100 })
+			const up = createPointerEvent('pointer_up', { x: 100, y: 100 })
+
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+
+			vi.advanceTimersByTime(350)
+
+			expect(editor.dispatch).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: 'click',
+					name: 'triple_click',
+					phase: 'settle-up',
+				})
+			)
+			expect(clickManager.clickState).toBe('idle')
+		})
+
+		it('should dispatch quadruple_click settle-down event after timeout in pendingOverflow (pointer held)', () => {
 			const pointerDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 
 			clickManager.handlePointerEvent(pointerDown) // first
 			clickManager.handlePointerEvent(pointerDown) // second
 			clickManager.handlePointerEvent(pointerDown) // third
-			clickManager.handlePointerEvent(pointerDown) // fourth
+			clickManager.handlePointerEvent(pointerDown) // fourth — still pressing
 
 			vi.advanceTimersByTime(350)
 
@@ -266,10 +311,54 @@ describe('ClickManager', () => {
 				expect.objectContaining({
 					type: 'click',
 					name: 'quadruple_click',
-					phase: 'settle',
+					phase: 'settle-down',
 				})
 			)
 			expect(clickManager.clickState).toBe('idle')
+		})
+
+		it('should dispatch quadruple_click settle-up event after timeout in pendingOverflow (pointer released)', () => {
+			const down = createPointerEvent('pointer_down', { x: 100, y: 100 })
+			const up = createPointerEvent('pointer_up', { x: 100, y: 100 })
+
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+
+			vi.advanceTimersByTime(350)
+
+			expect(editor.dispatch).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: 'click',
+					name: 'quadruple_click',
+					phase: 'settle-up',
+				})
+			)
+			expect(clickManager.clickState).toBe('idle')
+		})
+
+		it('should track press/release state across the pending window (settle-down then release → settle-up)', () => {
+			const down = createPointerEvent('pointer_down', { x: 100, y: 100 })
+			const up = createPointerEvent('pointer_up', { x: 100, y: 100 })
+
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+			clickManager.handlePointerEvent(down) // second press — pointer is down...
+			clickManager.handlePointerEvent(up) // ...but released before timeout
+
+			vi.advanceTimersByTime(350)
+
+			expect(editor.dispatch).toHaveBeenCalledWith(
+				expect.objectContaining({
+					name: 'double_click',
+					phase: 'settle-up',
+				})
+			)
 		})
 
 		it('should use different timeout durations for different states', () => {

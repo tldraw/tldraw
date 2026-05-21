@@ -64,12 +64,12 @@ describe('Handles events', () => {
 			expect(events[i]).toMatchObject(eventsBeforeSettle[i])
 		}
 
-		// allow double click to settle
+		// allow double click to settle as 'settle-up'
 		vi.advanceTimersByTime(500)
 
 		expect(events).toMatchObject([
 			...eventsBeforeSettle,
-			{ name: 'double_click', type: 'click', phase: 'settle' },
+			{ name: 'double_click', type: 'click', phase: 'settle-up' },
 		])
 
 		// clear events and click again
@@ -82,6 +82,27 @@ describe('Handles events', () => {
 			{ name: 'pointer_down' },
 			{ name: 'double_click', type: 'click', phase: 'down' },
 		])
+	})
+
+	it('Emits settle-down when pointer is still pressed at settle time', () => {
+		const events: any[] = []
+		editor.addListener('event', (info) => events.push(info))
+
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown() // second press, no pointerUp — still down at settle time
+
+		vi.advanceTimersByTime(500)
+
+		// a long_press may also fire while holding; find the settle event by type
+		const settle = events.find(
+			(e) => e.type === 'click' && e.name === 'double_click' && e.phase?.startsWith('settle')
+		)
+		expect(settle).toMatchObject({
+			name: 'double_click',
+			type: 'click',
+			phase: 'settle-down',
+		})
 	})
 
 	it('Emits triple click events', () => {
@@ -115,7 +136,7 @@ describe('Handles events', () => {
 
 		expect(events).toMatchObject([
 			...eventsBeforeSettle,
-			{ name: 'triple_click', type: 'click', phase: 'settle' },
+			{ name: 'triple_click', type: 'click', phase: 'settle-up' },
 		])
 
 		// clear events and click again
@@ -162,12 +183,12 @@ describe('Handles events', () => {
 
 		expect(events).toMatchObject(eventsBeforeSettle)
 
-		// allow double click to settle
+		// allow double click to settle (will settle as 'settle-up')
 		vi.advanceTimersByTime(500)
 
 		expect(events).toMatchObject([
 			...eventsBeforeSettle,
-			{ name: 'quadruple_click', type: 'click', phase: 'settle' },
+			{ name: 'quadruple_click', type: 'click', phase: 'settle-up' },
 		])
 
 		// clear events and click again

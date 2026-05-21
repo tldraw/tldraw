@@ -226,6 +226,8 @@ export class ClickManager {
 	cancelDoubleClickTimeout() {
 		this._clickTimeout = clearTimeout(this._clickTimeout)
 		this._clickState = 'idle'
-		this._isPressingWhilePending = false // maybe clear this!
+		// when a double click is cancelled, we are no longer pending any further
+		// clicks, so we set this to false even if the user is still pressing
+		this._isPressingWhilePending = false
 	}
 }
