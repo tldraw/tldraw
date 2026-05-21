@@ -334,6 +334,13 @@ describe('FocusManager', () => {
 
 			expect(callOrder).toEqual(['complete', 'blur'])
 		})
+
+		it('should complete without blurring the container when blurContainer is false', () => {
+			focusManager.blur({ blurContainer: false })
+
+			expect(editor.complete).toHaveBeenCalled()
+			expect(mockContainer.blur).not.toHaveBeenCalled()
+		})
 	})
 
 	describe('dispose', () => {
