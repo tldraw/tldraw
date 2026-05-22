@@ -145,6 +145,8 @@ export interface TLUiEventMap {
 			| 'bulletList'
 	}
 	edit: null
+	'copy-hovered-styles': null
+	'copy-styles': null
 }
 
 /** @public */

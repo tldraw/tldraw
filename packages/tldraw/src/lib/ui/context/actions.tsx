@@ -3,9 +3,11 @@ import {
 	DefaultColorStyle,
 	DefaultFillStyle,
 	Editor,
+	GeoShapeGeoStyle,
 	HALF_PI,
 	PageRecordType,
 	Result,
+	StyleProp,
 	TLEmbedShape,
 	TLImageShape,
 	TLShape,
@@ -25,6 +27,7 @@ import {
 import * as React from 'react'
 import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
+import type { SelectTool } from '../../tools/SelectTool/SelectTool'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
@@ -1846,6 +1849,58 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					}
 
 					trackEvent('download-original', { source })
+				},
+			},
+			{
+				id: 'copy-hovered-styles',
+				label: 'action.copy-hovered-styles',
+				kbd: 'shift+q',
+				async onSelect(source) {
+					// Use the editor's hovered shape so this matches the shape the user sees
+					// highlighted, rather than re-running a hit test with different options.
+					const hovered = editor.getHoveredShape()
+
+					// Only run from the main select idle state. Checking the leaf node's id would
+					// also match nested idle states like `select.crop.idle`, where this shouldn't run.
+					if (!hovered || !editor.isIn('select.idle')) return
+
+					// Setting styles for the next shape is instance state, not document state, so it
+					// isn't undoable and doesn't need a history stopping point.
+					editor.run(() => {
+						for (const style of editor.styleProps[hovered.type].keys()) {
+							const value = editor.getShapeStyleIfExists(hovered, style)
+							if (value === undefined || style === GeoShapeGeoStyle) continue
+							editor.setStyleForNextShapes(style, value)
+						}
+					})
+
+					trackEvent('copy-hovered-styles', { source })
+				},
+			},
+			{
+				id: 'copy-styles',
+				label: 'action.copy-styles',
+				kbd: 'cmd+alt+c,ctrl+alt+c',
+				async onSelect(source) {
+					// Copy the styles shared across the current selection into a buffer on the select
+					// tool. The next shape the user clicks will receive these styles (see the select
+					// tool's idle state). Any other interaction clears the buffer.
+					if (!editor.isIn('select') || editor.getSelectedShapeIds().length === 0) return
+
+					const styles: Array<[StyleProp<unknown>, unknown]> = []
+					for (const [style, value] of editor.getSharedStyles()) {
+						// Skip mixed values (no single value to copy) and the geo style, which would
+						// change the target's shape type rather than its appearance.
+						if (value.type !== 'shared' || style === GeoShapeGeoStyle) continue
+						styles.push([style, value.value])
+					}
+					if (styles.length === 0) return
+
+					const selectTool = editor.getStateDescendant<SelectTool>('select')
+					if (!selectTool) return
+					selectTool.stylesToPaste = styles
+
+					trackEvent('copy-styles', { source })
 				},
 			},
 		]

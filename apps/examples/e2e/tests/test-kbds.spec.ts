@@ -202,6 +202,19 @@ test.describe('Keyboard Shortcuts', () => {
 			data: { source: 'kbd' },
 		})
 	})
+
+	test('Copy hovered styles', async () => {
+		// The action copies styles from the editor's hovered shape, so make sure one is
+		// hovered before pressing the shortcut.
+		await page.evaluate(() => {
+			editor.setHoveredShape(editor.getCurrentPageShapes()[0].id)
+		})
+		await page.keyboard.press('Shift+q')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'copy-hovered-styles',
+			data: { source: 'kbd' },
+		})
+	})
 })
 
 test.describe('Actions on shapes', () => {
