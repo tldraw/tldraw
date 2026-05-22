@@ -813,6 +813,7 @@
 
 .tlui-page-menu__list__content {
 	position: relative;
+	overflow: hidden;
 }
 
 .tlui-page-menu__resize-handle {

@@ -26,15 +26,12 @@ import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 
 const PAGE_MENU_LIST_HEIGHT_KEY = 'tldraw_page_menu_list_height'
-const MIN_PAGE_MENU_LIST_HEIGHT = 54
 const MAX_PAGE_MENU_RENDER_HEIGHT = 800
-// Bottom padding included in the absolutely-positioned content stack — so the
-// auto-fit list height should mirror it.
-const PAGE_MENU_LIST_CONTENT_BOTTOM_PADDING = 4
 const MAX_PAGE_MENU_AVAILABLE_HEIGHT_RATIO = 0.62
 const PAGE_MENU_CREATE_BUTTON_HEIGHT = 40
 const PAGE_MENU_RESIZE_HANDLE_HEIGHT = 7
 const PAGE_MENU_ITEM_HEIGHT = 36
+const MIN_PAGE_MENU_LIST_HEIGHT = PAGE_MENU_ITEM_HEIGHT
 const PAGE_MENU_DRAG_THRESHOLD = 5
 const PAGE_MENU_AUTO_SCROLL_ZONE = 16
 const PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE = 48
@@ -129,8 +126,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [editor, isOpen, updateAvailableHeight])
 
 	const renderCap = getPageMenuRenderCap(availableHeight, !isReadonlyMode)
-	const autoFitListHeight =
-		pages.length * PAGE_MENU_ITEM_HEIGHT + PAGE_MENU_LIST_CONTENT_BOTTOM_PADDING
+	const autoFitListHeight = pages.length * PAGE_MENU_ITEM_HEIGHT
 	const renderedListHeight = Math.min(userListHeight ?? autoFitListHeight, renderCap)
 
 	const handleResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -503,7 +499,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						<div
 							className="tlui-page-menu__list__content"
 							data-dragging={dragState !== null}
-							style={{ height: PAGE_MENU_ITEM_HEIGHT * pages.length + 4 }}
+							style={{ height: autoFitListHeight }}
 						>
 							{pages.map((page, index) => {
 								const isCurrentPage = page.id === currentPage.id
