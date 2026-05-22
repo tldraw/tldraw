@@ -829,7 +829,7 @@
 .tlui-page-menu__resize-handle::before {
 	content: '';
 	position: absolute;
-	top: 3px;
+	top: 4px;
 	left: 0;
 	right: 0;
 	height: 1px;
