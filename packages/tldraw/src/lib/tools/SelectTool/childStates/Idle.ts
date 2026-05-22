@@ -310,7 +310,7 @@ export class Idle extends StateNode {
 
 				// todo
 				// double clicking on the middle of a hollow geo shape without a label, or
-				// over the label of a hollwo shape that has a label, should start editing
+				// over the label of a hollow shape that has a label, should start editing
 				// that shape's label. We can't support "double click anywhere inside"
 				// of the shape yet because that also creates text shapes, and can produce
 				// unexpected results when working "inside of" a hollow shape.
@@ -368,65 +368,75 @@ export class Idle extends StateNode {
 			case 'selection': {
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 
-				if (onlySelectedShape) {
-					const util = this.editor.getShapeUtil(onlySelectedShape)
-					const isEdge =
-						info.handle === 'right' ||
-						info.handle === 'left' ||
-						info.handle === 'top' ||
-						info.handle === 'bottom'
-					const isCorner =
-						info.handle === 'top_left' ||
-						info.handle === 'top_right' ||
-						info.handle === 'bottom_right' ||
-						info.handle === 'bottom_left'
+				if (!onlySelectedShape) {
+					break
+				}
 
-					if (this.editor.getIsReadonly()) {
-						// includes readonly check
-						if (
-							this.editor.canEditShape(onlySelectedShape, {
-								type: isCorner
-									? 'double-click-corner'
-									: isEdge
-										? 'double-click-edge'
-										: 'double-click',
-							})
-						) {
-							this.startEditingShape(onlySelectedShape, info, true /* select all */)
-						}
-						break
-					}
+				const parent = this.editor.getShapeParent(onlySelectedShape)
+				const isParentGroup = parent ? this.editor.isShapeOfType(parent, 'group') : false
 
-					// Test edges for an onDoubleClickEdge handler
-					if (isEdge) {
-						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
-						if (change) {
-							this.editor.markHistoryStoppingPoint('double click edge')
-							this.editor.updateShapes([change])
-							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
-							return
-						}
-					}
+				if (isParentGroup) {
+					this.editor.setSelectedShapes([onlySelectedShape])
+					break
+				}
 
-					if (isCorner) {
-						const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
-						if (change) {
-							this.editor.markHistoryStoppingPoint('double click corner')
-							this.editor.updateShapes([change])
-							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
-							return
-						}
-					}
+				const util = this.editor.getShapeUtil(onlySelectedShape)
+				const isEdge =
+					info.handle === 'right' ||
+					info.handle === 'left' ||
+					info.handle === 'top' ||
+					info.handle === 'bottom'
+				const isCorner =
+					info.handle === 'top_left' ||
+					info.handle === 'top_right' ||
+					info.handle === 'bottom_right' ||
+					info.handle === 'bottom_left'
 
-					// For corners OR edges but NOT rotation corners
-					if (this.editor.canCropShape(onlySelectedShape)) {
-						this.parent.transition('crop', info)
-						return
-					}
-
-					if (this.editor.canEditShape(onlySelectedShape)) {
+				if (this.editor.getIsReadonly()) {
+					// includes readonly check
+					if (
+						this.editor.canEditShape(onlySelectedShape, {
+							type: isCorner
+								? 'double-click-corner'
+								: isEdge
+									? 'double-click-edge'
+									: 'double-click',
+						})
+					) {
 						this.startEditingShape(onlySelectedShape, info, true /* select all */)
 					}
+					break
+				}
+
+				// Test edges for an onDoubleClickEdge handler
+				if (isEdge) {
+					const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
+					if (change) {
+						this.editor.markHistoryStoppingPoint('double click edge')
+						this.editor.updateShapes([change])
+						kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
+						return
+					}
+				}
+
+				if (isCorner) {
+					const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
+					if (change) {
+						this.editor.markHistoryStoppingPoint('double click corner')
+						this.editor.updateShapes([change])
+						kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
+						return
+					}
+				}
+
+				// For corners OR edges but NOT rotation corners
+				if (this.editor.canCropShape(onlySelectedShape)) {
+					this.parent.transition('crop', info)
+					return
+				}
+
+				if (this.editor.canEditShape(onlySelectedShape)) {
+					this.startEditingShape(onlySelectedShape, info, true /* select all */)
 				}
 				break
 			}
@@ -436,6 +446,14 @@ export class Idle extends StateNode {
 
 				// Allow playing videos and embeds
 				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
+
+				const parent = this.editor.getShapeParent(shape)
+				const isParentGroup = parent ? this.editor.isShapeOfType(parent, 'group') : false
+
+				if (isParentGroup) {
+					this.editor.setSelectedShapes([shape])
+					break
+				}
 
 				if (util.onDoubleClick) {
 					// Call the shape's double click handler
