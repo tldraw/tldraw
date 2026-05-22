@@ -539,6 +539,25 @@ describe('When double clicking a shape', () => {
 			.doubleClick(50, 50, { target: 'shape', shape: editor.getCurrentPageShapes()[0] })
 			.expectToBeIn('select.editing_shape')
 	})
+
+	it('does not edit a shape whose parent is a group', () => {
+		const childAId = createShapeId()
+		const childBId = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([
+				{ id: childAId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{ id: childBId, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100 } },
+			])
+			.groupShapes([childAId, childBId])
+
+		editor.doubleClick(150, 150, { target: 'shape', shape: editor.getShape(childAId)! })
+
+		expect(editor.getEditingShapeId()).toBe(null)
+		editor.expectToBeIn('select.idle')
+	})
 })
 
 describe('When pressing enter on a selected shape', () => {
@@ -651,6 +670,28 @@ describe('When double clicking the selection edge', () => {
 		editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 
 		expect(editor.getEditingShapeId()).toBe(id)
+	})
+
+	it('does not enter editing for a single-selected shape inside a group', () => {
+		const childAId = createShapeId()
+		const childBId = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([
+				{ id: childAId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{ id: childBId, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100 } },
+			])
+			.groupShapes([childAId, childBId])
+			.select(childAId)
+
+		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
+
+		editor.doubleClick(150, 150, { target: 'selection', handle: 'left' })
+
+		expect(editor.getEditingShapeId()).toBe(null)
+		editor.expectToBeIn('select.idle')
 	})
 
 	it('Resets the cursor to default when entering editing mode from a resize handle', () => {
