@@ -59,17 +59,17 @@ export const TEMPLATES: Template[] = [
 		repo: 'tldraw/branching-chat-template',
 	},
 	{
-		name: 'Shader',
-		description: 'Create WebGL shaders that respond to shapes on the canvas.',
-		shortDescription: 'Shaders on the canvas.',
-		order: 8,
-		repo: 'tldraw/shader-starter-kit',
-	},
-	{
 		name: 'Make real',
 		description: 'Turn sketches and wireframes into working HTML with AI.',
 		shortDescription: 'AI-powered sketch to HTML converter.',
-		order: 9,
+		order: 8,
 		repo: 'tldraw/make-real-template',
+	},
+	{
+		name: 'Shader',
+		description: 'Create WebGL shaders that respond to shapes on the canvas.',
+		shortDescription: 'Shaders on the canvas.',
+		order: 9,
+		repo: 'tldraw/shader-starter-kit',
 	},
 ]

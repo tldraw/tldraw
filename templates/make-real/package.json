@@ -14,7 +14,7 @@
 			"name": "Make real",
 			"description": "Turn sketches and wireframes into working HTML with AI.",
 			"shortDescription": "AI-powered sketch to HTML converter.",
-			"order": 9
+			"order": 8
 		},
 		"scripts": {
 			"lint": null
