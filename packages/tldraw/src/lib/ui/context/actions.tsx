@@ -1861,13 +1861,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						margin: editor.options.hitTestMargin / editor.getZoomLevel(),
 					})
 
-					if (!hovered) return
+					const currentPath = editor.getStateDescendant(editor.getCurrentTool().getPath())
+					const isIdle = currentPath ? currentPath.id === 'idle' : false
+
+					if (!hovered || !isIdle) return
 
 					for (const style of editor.styleProps[hovered.type].keys()) {
 						const value = editor.getShapeStyleIfExists(hovered, style)
 						if (value === undefined || style === GeoShapeGeoStyle) continue
 
-						if (editor.isIn('select.idle')) {
+						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, value)
 						} else {
 							editor.setStyleForNextShapes(style, value)
