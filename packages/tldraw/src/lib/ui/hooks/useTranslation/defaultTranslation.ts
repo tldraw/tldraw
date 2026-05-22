@@ -427,6 +427,7 @@ export const DEFAULT_TRANSLATION = {
 	'style-panel.geo': 'Shape',
 	'style-panel.mixed': 'Mixed',
 	'style-panel.opacity': 'Opacity',
+	'style-panel.resize-color-area': 'Resize color area',
 	'style-panel.size': 'Size',
 	'style-panel.spline': 'Spline',
 	'style-panel.selected': 'selected',
