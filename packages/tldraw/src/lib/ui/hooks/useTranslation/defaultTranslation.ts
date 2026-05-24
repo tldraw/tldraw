@@ -336,6 +336,7 @@ export const DEFAULT_TRANSLATION = {
 	'context-menu.reorder': 'Reorder',
 	'page-menu.title': 'Pages',
 	'page-menu.create-new-page': 'Create new page',
+	'page-menu.max-pages-reached': 'Maximum pages reached',
 	'page-menu.new-page-initial-name': 'Page 1',
 	'page-menu.edit-start': 'Edit',
 	'page-menu.edit-done': 'Done',

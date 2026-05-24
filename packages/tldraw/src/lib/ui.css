@@ -831,11 +831,7 @@
 .tlui-page-menu__resize-handle::after {
 	content: '';
 	position: absolute;
-	top: -4;
-	left: 0;
-	bottom: -4px;
-	right: 0;
-	height: 8px;
+	inset: -4px 0;
 	background: none;
 	z-index: 2000;
 	pointer-events: all;
