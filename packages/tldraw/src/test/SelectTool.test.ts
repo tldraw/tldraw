@@ -694,6 +694,34 @@ describe('When double clicking the selection edge', () => {
 		editor.expectToBeIn('select.idle')
 	})
 
+	it('enters editing for a selected shape inside the focused group when double clicking its edge', () => {
+		const childAId = createShapeId()
+		const childBId = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([
+				{ id: childAId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{ id: childBId, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100 } },
+			])
+			.groupShapes([childAId, childBId])
+
+		const groupId = editor.getLastCreatedShape()?.id
+		expect(editor.isShapeOfType(editor.getShape(groupId)!, 'group')).toBe(true)
+
+		editor.click(100, 100) // select the group
+		editor.click(100, 100) // select the child A and focus the group
+		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
+		expect(editor.getFocusedGroupId()).toBe(groupId)
+
+		// Double click on the right edge of the child A
+		editor.doubleClick(200, 150, { target: 'selection', handle: 'right' })
+
+		expect(editor.getEditingShapeId()).toBe(childAId)
+		editor.expectToBeIn('select.editing_shape')
+	})
+
 	it('Resets the cursor to default when entering editing mode from a resize handle', () => {
 		const id = createShapeId()
 		editor
