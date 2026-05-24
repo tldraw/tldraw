@@ -829,12 +829,24 @@
 .tlui-page-menu__resize-handle::before {
 	content: '';
 	position: absolute;
-	top: 4px;
+	top: 0;
 	left: 0;
 	right: 0;
 	height: 1px;
 	background: var(--tl-color-divider);
 	transition: background-color 100ms;
+}
+
+/* Hit-target for the resize handle. Extends 2px up into the last item so the */
+/* divider stays grabbable even though the visible line is flush with the list. */
+.tlui-page-menu__resize-handle::after {
+	content: '';
+	position: absolute;
+	top: -2px;
+	left: 0;
+	right: 0;
+	height: 6px;
+	z-index: 1;
 }
 
 .tlui-page-menu__resize-handle[data-resizing='true']::before {
