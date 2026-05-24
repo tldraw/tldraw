@@ -819,34 +819,39 @@
 .tlui-page-menu__resize-handle {
 	flex: 0 0 auto;
 	position: relative;
-	height: 7px;
-	margin-bottom: -3px;
+	height: 1px;
 	cursor: ns-resize;
 	touch-action: none;
+	background: var(--tl-color-divider);
+	transition: background-color ease-in-out 150ms 80ms;
 	z-index: 999;
 }
 
+/* Hit test area */
+.tlui-page-menu__resize-handle::after {
+	content: '';
+	position: absolute;
+	top: -4;
+	left: 0;
+	bottom: -4px;
+	right: 0;
+	height: 8px;
+	background: none;
+	z-index: 2000;
+	pointer-events: all;
+}
+
+/* Thick blue indicator */
 .tlui-page-menu__resize-handle::before {
 	content: '';
 	position: absolute;
 	top: 0;
 	left: 0;
 	right: 0;
-	height: 1px;
-	background: var(--tl-color-divider);
-	transition: background-color 100ms;
-}
-
-/* Hit-target for the resize handle. Extends 2px up into the last item so the */
-/* divider stays grabbable even though the visible line is flush with the list. */
-.tlui-page-menu__resize-handle::after {
-	content: '';
-	position: absolute;
-	top: -2px;
-	left: 0;
-	right: 0;
-	height: 6px;
-	z-index: 1;
+	height: 1.5px;
+	background: transparent;
+	pointer-events: none;
+	z-index: 2001;
 }
 
 .tlui-page-menu__resize-handle[data-resizing='true']::before {

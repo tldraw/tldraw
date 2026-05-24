@@ -27,11 +27,12 @@ import { PageItemSubmenu } from './PageItemSubmenu'
 
 const PAGE_MENU_LIST_HEIGHT_KEY = 'tldraw_page_menu_list_height'
 const MAX_PAGE_MENU_RENDER_HEIGHT = 800
+const LIST_BOTTOM_PADDING = 4
 const MAX_PAGE_MENU_AVAILABLE_HEIGHT_RATIO = 0.62
 const PAGE_MENU_CREATE_BUTTON_HEIGHT = 40
 const PAGE_MENU_RESIZE_HANDLE_HEIGHT = 7
 const PAGE_MENU_ITEM_HEIGHT = 36
-const MIN_PAGE_MENU_LIST_HEIGHT = PAGE_MENU_ITEM_HEIGHT
+const MIN_PAGE_MENU_LIST_HEIGHT = PAGE_MENU_ITEM_HEIGHT + LIST_BOTTOM_PADDING
 const PAGE_MENU_DRAG_THRESHOLD = 5
 const PAGE_MENU_AUTO_SCROLL_ZONE = 16
 const PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE = 48
@@ -126,7 +127,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [editor, isOpen, updateAvailableHeight])
 
 	const renderCap = getPageMenuRenderCap(availableHeight, !isReadonlyMode)
-	const autoFitListHeight = pages.length * PAGE_MENU_ITEM_HEIGHT
+	const autoFitListHeight = Math.max(
+		MIN_PAGE_MENU_LIST_HEIGHT,
+		pages.length * PAGE_MENU_ITEM_HEIGHT + LIST_BOTTOM_PADDING
+	)
 	const renderedListHeight = Math.min(userListHeight ?? autoFitListHeight, renderCap)
 
 	const handleResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
