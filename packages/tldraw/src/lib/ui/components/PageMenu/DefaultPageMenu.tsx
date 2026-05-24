@@ -31,11 +31,7 @@ const MAX_PAGE_MENU_AVAILABLE_HEIGHT_RATIO = 0.62
 const PAGE_MENU_CREATE_BUTTON_HEIGHT = 40
 const PAGE_MENU_RESIZE_HANDLE_HEIGHT = 7
 const PAGE_MENU_ITEM_HEIGHT = 36
-// Vertical breathing room above the first item and below the last item, so
-// the pill highlight and rename-input border (both inset 4px) never sit flush
-// against the top/bottom edge of the scroll container.
-const PAGE_MENU_LIST_CONTENT_PADDING = 4
-const MIN_PAGE_MENU_LIST_HEIGHT = PAGE_MENU_ITEM_HEIGHT + PAGE_MENU_LIST_CONTENT_PADDING * 2
+const MIN_PAGE_MENU_LIST_HEIGHT = PAGE_MENU_ITEM_HEIGHT
 const PAGE_MENU_DRAG_THRESHOLD = 5
 const PAGE_MENU_AUTO_SCROLL_ZONE = 16
 const PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE = 48
@@ -130,8 +126,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [editor, isOpen, updateAvailableHeight])
 
 	const renderCap = getPageMenuRenderCap(availableHeight, !isReadonlyMode)
-	const autoFitListHeight =
-		pages.length * PAGE_MENU_ITEM_HEIGHT + PAGE_MENU_LIST_CONTENT_PADDING * 2
+	const autoFitListHeight = pages.length * PAGE_MENU_ITEM_HEIGHT
 	const renderedListHeight = Math.min(userListHeight ?? autoFitListHeight, renderCap)
 
 	const handleResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -236,7 +231,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			const elm = doc.querySelector(`[data-pageid="${currentPage.id}"]`) as HTMLDivElement | null
 			elm?.querySelector<HTMLButtonElement>('button.tlui-page-menu__item__button')?.focus()
 
-			const elmTop = currentIndex * PAGE_MENU_ITEM_HEIGHT + PAGE_MENU_LIST_CONTENT_PADDING
+			const elmTop = currentIndex * PAGE_MENU_ITEM_HEIGHT
 			const elmBottom = elmTop + PAGE_MENU_ITEM_HEIGHT
 			const viewTop = container.scrollTop
 			const viewBottom = viewTop + container.clientHeight
@@ -524,7 +519,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 										}
 									}
 								}
-								y += PAGE_MENU_LIST_CONTENT_PADDING
 
 								return (
 									<div

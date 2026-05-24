@@ -6,8 +6,6 @@ import { setupOrReset, sleep } from '../shared-e2e'
 declare const editor: Editor
 
 const PAGE_MENU_ITEM_HEIGHT = 36
-const PAGE_MENU_LIST_CONTENT_PADDING = 4
-const PAGE_MENU_MIN_LIST_HEIGHT = PAGE_MENU_ITEM_HEIGHT + PAGE_MENU_LIST_CONTENT_PADDING * 2
 
 const isMobileProject = () => test.info().project.name.includes('Mobile')
 
@@ -89,7 +87,7 @@ test.describe('page menu', () => {
 		await pageMenu.pagemenuButton.click()
 		await expect(pageMenu.pageItems).toHaveCount(3)
 
-		const autoFitHeight = PAGE_MENU_ITEM_HEIGHT * 3 + PAGE_MENU_LIST_CONTENT_PADDING * 2
+		const autoFitHeight = PAGE_MENU_ITEM_HEIGHT * 3
 		await expectPageMenuListHeight(pageMenu.pageList, autoFitHeight)
 
 		await dragPageMenuResizeHandle(page, 120)
@@ -98,7 +96,7 @@ test.describe('page menu', () => {
 			.toBeGreaterThan(autoFitHeight)
 
 		await dragPageMenuResizeHandle(page, -300)
-		await expectPageMenuListHeight(pageMenu.pageList, PAGE_MENU_MIN_LIST_HEIGHT)
+		await expectPageMenuListHeight(pageMenu.pageList, PAGE_MENU_ITEM_HEIGHT)
 
 		await dragPageMenuResizeHandle(page, 120)
 		await page.locator('.tlui-page-menu__resize-handle').dblclick()
