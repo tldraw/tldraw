@@ -540,7 +540,7 @@ describe('When double clicking a shape', () => {
 			.expectToBeIn('select.editing_shape')
 	})
 
-	it('does not edit a shape whose parent is a group', () => {
+	it('does not edit a shape while double clicking into a group', () => {
 		const childAId = createShapeId()
 		const childBId = createShapeId()
 		editor
@@ -553,9 +553,16 @@ describe('When double clicking a shape', () => {
 			])
 			.groupShapes([childAId, childBId])
 
-		editor.doubleClick(150, 150, { target: 'shape', shape: editor.getShape(childAId)! })
+		const groupId = editor.getOnlySelectedShapeId()!
+		editor.selectNone()
+
+		editor
+			.click(150, 150, { target: 'shape', shape: editor.getShape(childAId)! })
+			.click(150, 150, { target: 'shape', shape: editor.getShape(childAId)! })
 
 		expect(editor.getEditingShapeId()).toBe(null)
+		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
+		expect(editor.getFocusedGroupId()).toBe(groupId)
 		editor.expectToBeIn('select.idle')
 	})
 })
@@ -672,7 +679,7 @@ describe('When double clicking the selection edge', () => {
 		expect(editor.getEditingShapeId()).toBe(id)
 	})
 
-	it('does not enter editing for a single-selected shape inside a group', () => {
+	it('selects a grouped shape without editing when double clicking its edge from outside the group', () => {
 		const childAId = createShapeId()
 		const childBId = createShapeId()
 		editor
@@ -684,14 +691,80 @@ describe('When double clicking the selection edge', () => {
 				{ id: childBId, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100 } },
 			])
 			.groupShapes([childAId, childBId])
-			.select(childAId)
 
-		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
+		const groupId = editor.getOnlySelectedShapeId()!
 
-		editor.doubleClick(150, 150, { target: 'selection', handle: 'left' })
+		editor.pointerMove(100, 150).click(100, 150).pointerMove(100, 150).click(100, 150)
 
 		expect(editor.getEditingShapeId()).toBe(null)
+		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
+		expect(editor.getFocusedGroupId()).toBe(groupId)
 		editor.expectToBeIn('select.idle')
+	})
+
+	it('enters editing when triple clicking a grouped shape edge', () => {
+		const childAId = createShapeId()
+		const childBId = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([
+				{ id: childAId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{ id: childBId, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100 } },
+			])
+			.groupShapes([childAId, childBId])
+
+		const groupId = editor.getOnlySelectedShapeId()!
+		editor.selectNone()
+
+		editor
+			.pointerMove(100, 150)
+			.click(100, 150)
+			.pointerMove(100, 150)
+			.click(100, 150)
+			.pointerMove(100, 150)
+			.click(100, 150)
+
+		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
+		expect(editor.getFocusedGroupId()).toBe(groupId)
+		expect(editor.getEditingShapeId()).toBe(childAId)
+		editor.expectToBeIn('select.editing_shape')
+	})
+
+	it('enters editing when quadruple clicking a shape edge inside nested groups', () => {
+		const childAId = createShapeId()
+		const childBId = createShapeId()
+		const childCId = createShapeId()
+		const innerGroupId = createShapeId()
+		const outerGroupId = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([
+				{ id: childAId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{ id: childBId, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100 } },
+				{ id: childCId, type: 'geo', x: 500, y: 100, props: { w: 100, h: 100 } },
+			])
+			.groupShapes([childAId, childBId], { groupId: innerGroupId })
+			.groupShapes([innerGroupId, childCId], { groupId: outerGroupId })
+			.selectNone()
+
+		editor
+			.pointerMove(100, 150)
+			.click(100, 150)
+			.pointerMove(100, 150)
+			.click(100, 150)
+			.pointerMove(100, 150)
+			.click(100, 150)
+			.pointerMove(100, 150)
+			.click(100, 150)
+
+		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
+		expect(editor.getFocusedGroupId()).toBe(innerGroupId)
+		expect(editor.getEditingShapeId()).toBe(childAId)
+		editor.expectToBeIn('select.editing_shape')
 	})
 
 	it('enters editing for a selected shape inside the focused group when double clicking its edge', () => {
@@ -707,7 +780,7 @@ describe('When double clicking the selection edge', () => {
 			])
 			.groupShapes([childAId, childBId])
 
-		const groupId = editor.getLastCreatedShape()?.id
+		const groupId = editor.getOnlySelectedShapeId()!
 		expect(editor.isShapeOfType(editor.getShape(groupId)!, 'group')).toBe(true)
 
 		editor.click(100, 100) // select the group
