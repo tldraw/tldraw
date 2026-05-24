@@ -20,28 +20,4 @@ export class HandTool extends StateNode {
 			})
 		}
 	}
-
-	override onTripleClick(info: TLClickEventInfo) {
-		if (info.phase === 'settle-up') {
-			const currentScreenPoint = this.editor.inputs.getCurrentScreenPoint()
-			this.editor.zoomOut(currentScreenPoint, {
-				animation: { duration: 320, easing: EASINGS.easeOutQuint },
-			})
-		}
-	}
-
-	override onQuadrupleClick(info: TLClickEventInfo) {
-		if (info.phase === 'settle-up') {
-			const zoomLevel = this.editor.getZoomLevel()
-			const currentScreenPoint = this.editor.inputs.getCurrentScreenPoint()
-
-			if (zoomLevel === 1) {
-				this.editor.zoomToFit({ animation: { duration: 400, easing: EASINGS.easeOutQuint } })
-			} else {
-				this.editor.resetZoom(currentScreenPoint, {
-					animation: { duration: 320, easing: EASINGS.easeOutQuint },
-				})
-			}
-		}
-	}
 }

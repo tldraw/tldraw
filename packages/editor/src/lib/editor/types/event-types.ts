@@ -24,7 +24,7 @@ export type TLPointerEventName =
 	| 'middle_click'
 
 /** @public */
-export type TLCLickEventName = 'double_click' | 'triple_click' | 'quadruple_click'
+export type TLCLickEventName = 'double_click'
 
 /** @public */
 export type TLPinchEventName = 'pinch_start' | 'pinch' | 'pinch_end'
@@ -173,8 +173,6 @@ export interface TLEventHandlers {
 	onLongPress: TLPointerEvent
 	onRightClick: TLPointerEvent
 	onDoubleClick: TLClickEvent
-	onTripleClick: TLClickEvent
-	onQuadrupleClick: TLClickEvent
 	onMiddleClick: TLPointerEvent
 	onPointerUp: TLPointerEvent
 	onKeyDown: TLKeyboardEvent
@@ -206,7 +204,5 @@ export const EVENT_NAME_MAP: Record<
 	complete: 'onComplete',
 	interrupt: 'onInterrupt',
 	double_click: 'onDoubleClick',
-	triple_click: 'onTripleClick',
-	quadruple_click: 'onQuadrupleClick',
 	tick: 'onTick',
 }

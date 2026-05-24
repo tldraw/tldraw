@@ -4,13 +4,7 @@ import type { Editor } from '../../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../../types/event-types'
 
 /** @public */
-export type TLClickState =
-	| 'idle'
-	| 'pendingDouble'
-	| 'pendingTriple'
-	| 'pendingQuadruple'
-	| 'pendingOverflow'
-	| 'overflow'
+export type TLClickState = 'idle' | 'pendingDouble' | 'pendingOverflow' | 'overflow'
 
 const MAX_CLICK_DISTANCE = 40
 
@@ -36,29 +30,11 @@ export class ClickManager {
 			() => {
 				if (this._clickState === state && this._clickId === id) {
 					switch (this._clickState) {
-						case 'pendingTriple': {
-							this.editor.dispatch({
-								...this.lastPointerInfo,
-								type: 'click',
-								name: 'double_click',
-								phase: this._isPressingWhilePending ? 'settle-down' : 'settle-up',
-							})
-							break
-						}
-						case 'pendingQuadruple': {
-							this.editor.dispatch({
-								...this.lastPointerInfo,
-								type: 'click',
-								name: 'triple_click',
-								phase: this._isPressingWhilePending ? 'settle-down' : 'settle-up',
-							})
-							break
-						}
 						case 'pendingOverflow': {
 							this.editor.dispatch({
 								...this.lastPointerInfo,
 								type: 'click',
-								name: 'quadruple_click',
+								name: 'double_click',
 								phase: this._isPressingWhilePending ? 'settle-down' : 'settle-up',
 							})
 							break
@@ -117,32 +93,12 @@ export class ClickManager {
 
 				switch (this._clickState) {
 					case 'pendingDouble': {
-						this._clickState = 'pendingTriple'
-						this._clickTimeout = this._getClickTimeout(this._clickState)
-						return {
-							...info,
-							type: 'click',
-							name: 'double_click',
-							phase: 'down',
-						}
-					}
-					case 'pendingTriple': {
-						this._clickState = 'pendingQuadruple'
-						this._clickTimeout = this._getClickTimeout(this._clickState)
-						return {
-							...info,
-							type: 'click',
-							name: 'triple_click',
-							phase: 'down',
-						}
-					}
-					case 'pendingQuadruple': {
 						this._clickState = 'pendingOverflow'
 						this._clickTimeout = this._getClickTimeout(this._clickState)
 						return {
 							...info,
 							type: 'click',
-							name: 'quadruple_click',
+							name: 'double_click',
 							phase: 'down',
 						}
 					}
@@ -169,27 +125,11 @@ export class ClickManager {
 				this._isPressingWhilePending = false
 
 				switch (this._clickState) {
-					case 'pendingTriple': {
-						return {
-							...this.lastPointerInfo,
-							type: 'click',
-							name: 'double_click',
-							phase: 'up',
-						}
-					}
-					case 'pendingQuadruple': {
-						return {
-							...this.lastPointerInfo,
-							type: 'click',
-							name: 'triple_click',
-							phase: 'up',
-						}
-					}
 					case 'pendingOverflow': {
 						return {
 							...this.lastPointerInfo,
 							type: 'click',
-							name: 'quadruple_click',
+							name: 'double_click',
 							phase: 'up',
 						}
 					}

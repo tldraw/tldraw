@@ -5,11 +5,9 @@ updated_at: 12/29/2025
 keywords:
   - click
   - double-click
-  - triple-click
-  - quadruple-click
+  - overflow click
   - pointer
   - ClickManager
-  - multi-click
 status: published
 date: 12/20/2025
 readability: 9
@@ -19,30 +17,28 @@ accuracy: 10
 notes: Could add a simpler opening hook per voice guide ("Have five minutes?"-style).
 ---
 
-In tldraw, the click detection system lets you respond to double, triple, and quadruple clicks. The [ClickManager](?) tracks consecutive pointer down events using a state machine, dispatching click events when timing and distance thresholds are met.
+In tldraw, the click detection system lets you respond to double-clicks. The [ClickManager](?) tracks consecutive pointer down events using a state machine, dispatching a double-click event when timing and distance thresholds are met.
 
-This powers text editing features like word selection on double-click and paragraph selection on triple-click. You can use these events to add custom multi-click behaviors in your own shapes and tools.
+After a double-click, extra nearby clicks are treated as overflow. Overflow clicks do not dispatch more click events; they keep the sequence suppressed long enough to prevent a rapid double-double-click from becoming two double-clicks.
 
 ## How it works
 
-When a pointer down event occurs, the manager either starts a new sequence or advances to the next click level. Each state has a timeout that determines how long to wait for the next click before settling on the current level.
+When a pointer down event occurs, the manager either starts a new sequence, detects a double-click, or moves the sequence into overflow. Each state has a timeout that determines how long to wait before returning to idle.
 
-Two timeout durations control the detection speed. The first click uses `doubleClickDurationMs` (450ms by default), giving users time to initiate a double-click sequence. Subsequent clicks use the shorter `multiClickDurationMs` (200ms by default), requiring faster input for triple and quadruple clicks. This pattern matches common operating system behavior.
+Two timeout durations control the detection speed. The first click uses `doubleClickDurationMs` (450ms by default), giving users time to initiate a double-click sequence. After a double-click, `multiClickDurationMs` (200ms by default) controls how long overflow clicks suppress the sequence.
 
 ### State transitions
 
 The click state machine progresses through these states:
 
-| State              | Description                                |
-| ------------------ | ------------------------------------------ |
-| `idle`             | No active click sequence                   |
-| `pendingDouble`    | First click registered, waiting for second |
-| `pendingTriple`    | Second click registered, waiting for third |
-| `pendingQuadruple` | Third click registered, waiting for fourth |
-| `pendingOverflow`  | Fourth click registered, waiting for fifth |
-| `overflow`         | More than four clicks detected             |
+| State             | Description                                   |
+| ----------------- | --------------------------------------------- |
+| `idle`            | No active click sequence                      |
+| `pendingDouble`   | First click registered, waiting for second    |
+| `pendingOverflow` | Double-click registered, waiting for overflow |
+| `overflow`        | Extra clicks detected after the double-click  |
 
-When a pointer down event arrives, the state advances to the next pending state and sets a timeout. If the timeout expires before the next click, the manager dispatches a settle event for the current click level and returns to idle. If another pointer down arrives before the timeout, the state advances and a click event is dispatched immediately.
+The second pointer down dispatches a `double_click` event immediately. If the timeout expires before another click, the manager dispatches a double-click settle event and returns to idle. If another pointer down arrives first, the sequence moves to overflow and no further click events are dispatched until the overflow timeout expires.
 
 ### Distance validation
 
@@ -52,17 +48,18 @@ Consecutive clicks must occur within a maximum distance of 40 pixels (screen spa
 
 Click events are dispatched with a `phase` property indicating when in the sequence the event fired:
 
-| Phase    | When it fires                                                  |
-| -------- | -------------------------------------------------------------- |
-| `down`   | Immediately when a multi-click is detected during pointer down |
-| `up`     | During pointer up for multi-clicks that are still pending      |
-| `settle` | When the timeout expires without further clicks                |
+| Phase         | When it fires                                                       |
+| ------------- | ------------------------------------------------------------------- |
+| `down`        | Immediately when the double-click is detected                       |
+| `up`          | During pointer up for a double-click that is still pending          |
+| `settle-down` | When the timeout expires without overflow while the pointer is down |
+| `settle-up`   | When the timeout expires without overflow after the pointer is up   |
 
-The phase system lets tools and shapes respond at different points in the click sequence. For example, the hand tool waits for the `settle` phase before zooming in—this avoids triggering a zoom if the user is about to triple-click.
+The phase system lets tools and shapes respond at different points in the click sequence. Most default double-click behavior responds on the `down` phase, so it starts on the second pointer down.
 
 ### Movement cancellation
 
-If the pointer moves too far during a pending click sequence, the system cancels the sequence and returns to idle. This prevents multi-click detection during click-drag operations. The movement threshold differs for coarse pointers (touchscreens) and fine pointers (mouse, stylus).
+If the pointer moves too far during a pending click sequence, the system cancels the sequence and returns to idle. This prevents double-click detection during click-drag operations. The movement threshold differs for coarse pointers (touchscreens) and fine pointers (mouse, stylus).
 
 ## Handling click events
 
@@ -76,13 +73,8 @@ class ZoomTool extends StateNode {
 	static override id = 'zoom'
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (info.phase !== 'settle-up') return
+		if (info.phase !== 'down') return
 		this.editor.zoomIn(info.point, { animation: { duration: 200 } })
-	}
-
-	override onTripleClick(info: TLClickEventInfo) {
-		if (info.phase !== 'settle-up') return
-		this.editor.zoomOut(info.point, { animation: { duration: 200 } })
 	}
 }
 
@@ -102,7 +94,7 @@ export default function App() {
 }
 ```
 
-Tools can handle [StateNode#onDoubleClick](?), [StateNode#onTripleClick](?), and [StateNode#onQuadrupleClick](?) events. Each receives a [TLClickEventInfo](?) object with details about the click.
+Tools can handle [StateNode#onDoubleClick](?) events. The handler receives a [TLClickEventInfo](?) object with details about the click.
 
 Shape utilities handle double-clicks through the [ShapeUtil#onDoubleClick](?) method. Return a partial shape object to apply changes:
 
@@ -118,31 +110,31 @@ override onDoubleClick(shape: MyShape) {
 
 The [TLClickEventInfo](?) type includes these properties:
 
-| Property    | Type                                                    | Description                                            |
-| ----------- | ------------------------------------------------------- | ------------------------------------------------------ |
-| `type`      | `'click'`                                               | Event type identifier                                  |
-| `name`      | `'double_click' \| 'triple_click' \| 'quadruple_click'` | Which multi-click event this is                        |
-| `point`     | `VecLike`                                               | Pointer position in client space                       |
-| `pointerId` | `number`                                                | Unique identifier for the pointer                      |
-| `button`    | `number`                                                | Mouse button (0 = left, 1 = middle, 2 = right)         |
-| `phase`     | `'down' \| 'up' \| 'settle-up' \| 'settle-down'`        | When in the click sequence this fired                  |
-| `target`    | `'canvas' \| 'selection' \| 'shape' \| 'handle'`        | What was clicked                                       |
-| `shape`     | `TLShape \| undefined`                                  | The shape, when target is `'shape'` or `'handle'`      |
-| `handle`    | `TLHandle \| undefined`                                 | The handle, when target is `'handle'`                  |
-| `shiftKey`  | `boolean`                                               | Whether Shift was held                                 |
-| `altKey`    | `boolean`                                               | Whether Alt/Option was held                            |
-| `ctrlKey`   | `boolean`                                               | Whether Control was held                               |
-| `metaKey`   | `boolean`                                               | Whether Meta/Command was held                          |
-| `accelKey`  | `boolean`                                               | Platform accelerator key (Cmd on Mac, Ctrl on Windows) |
+| Property    | Type                                             | Description                                            |
+| ----------- | ------------------------------------------------ | ------------------------------------------------------ |
+| `type`      | `'click'`                                        | Event type identifier                                  |
+| `name`      | `'double_click'`                                 | Which click event this is                              |
+| `point`     | `VecLike`                                        | Pointer position in client space                       |
+| `pointerId` | `number`                                         | Unique identifier for the pointer                      |
+| `button`    | `number`                                         | Mouse button (0 = left, 1 = middle, 2 = right)         |
+| `phase`     | `'down' \| 'up' \| 'settle-up' \| 'settle-down'` | When in the click sequence this fired                  |
+| `target`    | `'canvas' \| 'selection' \| 'shape' \| 'handle'` | What was clicked                                       |
+| `shape`     | `TLShape \| undefined`                           | The shape, when target is `'shape'` or `'handle'`      |
+| `handle`    | `TLHandle \| undefined`                          | The handle, when target is `'handle'`                  |
+| `shiftKey`  | `boolean`                                        | Whether Shift was held                                 |
+| `altKey`    | `boolean`                                        | Whether Alt/Option was held                            |
+| `ctrlKey`   | `boolean`                                        | Whether Control was held                               |
+| `metaKey`   | `boolean`                                        | Whether Meta/Command was held                          |
+| `accelKey`  | `boolean`                                        | Platform accelerator key (Cmd on Mac, Ctrl on Windows) |
 
 ## Timing configuration
 
 Click timing is configured through the editor's [options](/sdk-features/options):
 
-| Option                  | Default | Description                                              |
-| ----------------------- | ------- | -------------------------------------------------------- |
-| `doubleClickDurationMs` | 450ms   | Time window for the first click to become a double-click |
-| `multiClickDurationMs`  | 200ms   | Time window for subsequent clicks in the sequence        |
+| Option                  | Default | Description                                               |
+| ----------------------- | ------- | --------------------------------------------------------- |
+| `doubleClickDurationMs` | 450ms   | Time window for the first click to become a double-click  |
+| `multiClickDurationMs`  | 200ms   | Time window for overflow suppression after a double-click |
 
 ## Related examples
 

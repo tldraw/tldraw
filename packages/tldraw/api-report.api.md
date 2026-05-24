@@ -2406,10 +2406,6 @@ export class HandTool extends StateNode {
     static isLockable: boolean;
     // (undocumented)
     onDoubleClick(info: TLClickEventInfo): void;
-    // (undocumented)
-    onQuadrupleClick(info: TLClickEventInfo): void;
-    // (undocumented)
-    onTripleClick(info: TLClickEventInfo): void;
 }
 
 // @public (undocumented)
