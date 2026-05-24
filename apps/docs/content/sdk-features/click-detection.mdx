@@ -17,15 +17,15 @@ accuracy: 10
 notes: Could add a simpler opening hook per voice guide ("Have five minutes?"-style).
 ---
 
-In tldraw, the click detection system lets you respond to double-clicks. The [ClickManager](?) tracks consecutive pointer down events using a state machine, dispatching a double-click event when timing and distance thresholds are met.
+In tldraw, the click detection system turns a pair of nearby clicks into a `double_click` event. The [ClickManager](?) tracks consecutive pointer down events using a state machine, dispatching a double-click event when timing and distance thresholds are met.
 
-After a double-click, extra nearby clicks are treated as overflow. Overflow clicks do not dispatch more click events; they keep the sequence suppressed long enough to prevent a rapid double-double-click from becoming two double-clicks.
+After a double-click, extra nearby clicks are treated as overflow. Overflow clicks do not dispatch additional click events; they suppress the sequence long enough to prevent a rapid double-double-click from becoming two double-clicks.
 
 ## How it works
 
 When a pointer down event occurs, the manager either starts a new sequence, detects a double-click, or moves the sequence into overflow. Each state has a timeout that determines how long to wait before returning to idle.
 
-Two timeout durations control the detection speed. The first click uses `doubleClickDurationMs` (450ms by default), giving users time to initiate a double-click sequence. After a double-click, `multiClickDurationMs` (200ms by default) controls how long overflow clicks suppress the sequence.
+Two timeout durations control the detection speed. The first click uses `doubleClickDurationMs` (450ms by default), giving users time to initiate a double-click sequence. After a double-click, `multiClickDurationMs` (200ms by default) controls both the settle delay and the overflow suppression window. The option name is historical; it now controls only the post-double-click window.
 
 ### State transitions
 
@@ -38,11 +38,11 @@ The click state machine progresses through these states:
 | `pendingOverflow` | Double-click registered, waiting for overflow |
 | `overflow`        | Extra clicks detected after the double-click  |
 
-The second pointer down dispatches a `double_click` event immediately. If the timeout expires before another click, the manager dispatches a double-click settle event and returns to idle. If another pointer down arrives first, the sequence moves to overflow and no further click events are dispatched until the overflow timeout expires.
+The second pointer down dispatches a `double_click` event immediately and starts waiting for overflow. If the timeout expires before another click, the manager dispatches a double-click settle event and returns to idle. If another pointer down arrives first, the sequence moves to overflow and no further click events are dispatched until the overflow timeout expires.
 
 ### Distance validation
 
-Consecutive clicks must occur within a maximum distance of 40 pixels (screen space). If pointer down events are farther apart, the click sequence resets to idle.
+Consecutive clicks must occur within a maximum distance of 40 pixels (screen space). If pointer down events are farther apart, the new pointer down starts a fresh click sequence instead.
 
 ### Click event phases
 
@@ -50,12 +50,12 @@ Click events are dispatched with a `phase` property indicating when in the seque
 
 | Phase         | When it fires                                                       |
 | ------------- | ------------------------------------------------------------------- |
-| `down`        | Immediately when the double-click is detected                       |
-| `up`          | During pointer up for a double-click that is still pending          |
+| `down`        | On the second pointer down, when the double-click is detected       |
+| `up`          | On the matching pointer up while the double-click is still pending  |
 | `settle-down` | When the timeout expires without overflow while the pointer is down |
 | `settle-up`   | When the timeout expires without overflow after the pointer is up   |
 
-The phase system lets tools and shapes respond at different points in the click sequence. Most default double-click behavior responds on the `down` phase, so it starts on the second pointer down.
+The phase system lets tools respond at different points in the click sequence. Most default selection and cropping behavior responds on the `down` phase, so it starts on the second pointer down. The hand tool's double-click zoom responds on `settle-up`, so an overflow click can still cancel the pending zoom.
 
 ### Movement cancellation
 
@@ -63,7 +63,7 @@ If the pointer moves too far during a pending click sequence, the system cancels
 
 ## Handling click events
 
-Tools receive click events through handler methods defined in the [TLEventHandlers](?) interface. Here's a complete example of a custom tool that zooms in on double-click:
+Tools receive click events through handler methods defined in the [TLEventHandlers](?) interface. Here's a complete example of a custom tool that zooms in as soon as a double-click is detected:
 
 ```tsx
 import { StateNode, TLClickEventInfo, Tldraw } from 'tldraw'
@@ -94,9 +94,9 @@ export default function App() {
 }
 ```
 
-Tools can handle [StateNode#onDoubleClick](?) events. The handler receives a [TLClickEventInfo](?) object with details about the click.
+Tools can handle [StateNode#onDoubleClick](?) events. The handler receives a [TLClickEventInfo](?) object with details about the click. Use `phase: 'down'` for behavior that should start on the second pointer down, or a settle phase for behavior that should wait until the overflow window has passed.
 
-Shape utilities handle double-clicks through the [ShapeUtil#onDoubleClick](?) method. Return a partial shape object to apply changes:
+The select tool routes shape double-clicks to [ShapeUtil#onDoubleClick](?). Return a partial shape object to apply changes:
 
 ```tsx
 override onDoubleClick(shape: MyShape) {
@@ -117,7 +117,7 @@ The [TLClickEventInfo](?) type includes these properties:
 | `point`     | `VecLike`                                        | Pointer position in client space                       |
 | `pointerId` | `number`                                         | Unique identifier for the pointer                      |
 | `button`    | `number`                                         | Mouse button (0 = left, 1 = middle, 2 = right)         |
-| `phase`     | `'down' \| 'up' \| 'settle-up' \| 'settle-down'` | When in the click sequence this fired                  |
+| `phase`     | `'down' \| 'up' \| 'settle-down' \| 'settle-up'` | When in the click sequence this fired                  |
 | `target`    | `'canvas' \| 'selection' \| 'shape' \| 'handle'` | What was clicked                                       |
 | `shape`     | `TLShape \| undefined`                           | The shape, when target is `'shape'` or `'handle'`      |
 | `handle`    | `TLHandle \| undefined`                          | The handle, when target is `'handle'`                  |
@@ -134,7 +134,7 @@ Click timing is configured through the editor's [options](/sdk-features/options)
 | Option                  | Default | Description                                               |
 | ----------------------- | ------- | --------------------------------------------------------- |
 | `doubleClickDurationMs` | 450ms   | Time window for the first click to become a double-click  |
-| `multiClickDurationMs`  | 200ms   | Time window for overflow suppression after a double-click |
+| `multiClickDurationMs`  | 200ms   | Double-click settle delay and overflow suppression window |
 
 ## Related examples
 
