@@ -64,7 +64,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 					<TldrawUiButtonIcon icon="dots-vertical" small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent alignOffset={0} side="right" sideOffset={-4}>
+			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
 					<TldrawUiMenuGroup id="modify">
 						{onRename && (

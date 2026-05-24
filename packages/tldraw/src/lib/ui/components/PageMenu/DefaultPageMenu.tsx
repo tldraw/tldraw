@@ -77,7 +77,28 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	// The id of the page currently being renamed inline, if any.
 	const [editingPageId, setEditingPageId] = useState<TLPageId | null>(null)
 
-	const handleOpenChange = useCallback(() => setEditingPageId(null), [])
+	const closePageItemSubmenus = useCallback(
+		(exceptIndex?: number) => {
+			const contextSuffix = `-${editor.contextId}`
+			for (const menuId of editor.menus.getOpenMenus()) {
+				const id = menuId.endsWith(contextSuffix) ? menuId.slice(0, -contextSuffix.length) : menuId
+				if (!id.startsWith('page item submenu ')) continue
+				if (exceptIndex !== undefined && id === `page item submenu ${exceptIndex}`) continue
+				editor.menus.deleteOpenMenu(id)
+			}
+		},
+		[editor]
+	)
+
+	const handleOpenChange = useCallback(
+		(isOpen: boolean) => {
+			setEditingPageId(null)
+			if (!isOpen) {
+				closePageItemSubmenus()
+			}
+		},
+		[closePageItemSubmenus]
+	)
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('page-menu', handleOpenChange)
 
@@ -348,6 +369,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [editor, tickAutoScrollDuringDrag])
 
 	const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+		if (e.button !== 0) return
+
 		const { clientY, currentTarget } = e
 		const { id, index } = currentTarget.dataset
 		if (!id || index === undefined) return
@@ -404,6 +427,17 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			setDragState(null)
 		},
 		[editor, trackEvent]
+	)
+
+	const handleItemContextMenu = useCallback(
+		(e: React.MouseEvent<HTMLDivElement>, index: number) => {
+			e.preventDefault()
+			e.stopPropagation()
+
+			closePageItemSubmenus(index)
+			editor.menus.addOpenMenu(`page item submenu ${index}`)
+		},
+		[closePageItemSubmenus, editor]
 	)
 
 	const handlePointerCancel = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
@@ -539,6 +573,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 										data-dragging={isDragging}
 										data-editing={isRenamingThisPage}
 										className="tlui-page-menu__item"
+										onContextMenu={
+											!isReadonlyMode && !isRenamingThisPage
+												? (e) => handleItemContextMenu(e, index)
+												: undefined
+										}
 										style={{
 											zIndex: isDragging
 												? pages.length + 2
