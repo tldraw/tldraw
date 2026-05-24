@@ -1569,10 +1569,12 @@ describe('When double clicking an editable shape', () => {
 		editor.pointerMove(50, 50).click() // selects the group
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
 		expect(editor.getEditingShapeId()).toBe(null)
+
 		editor.pointerMove(50, 50).click() // selects the child shape
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		expect(editor.getEditingShapeId()).toBe(null)
 		editor.pointerMove(50, 50).click() // edits the selected child shape
+
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		expect(editor.getEditingShapeId()).toBe(ids.box1)
 		editor.expectToBeIn('select.editing_shape')

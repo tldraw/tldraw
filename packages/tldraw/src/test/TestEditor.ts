@@ -216,21 +216,8 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	/**
-	 * If you need to trigger a double click, you can either mock the implementation of one of these
-	 * methods, or call mockRestore() to restore the actual implementation (e.g.
-	 * _transformPointerDownSpy.mockRestore())
-	 */
-	_transformPointerDownSpy = vi
-		.spyOn(this._clickManager, 'handlePointerEvent')
-		.mockImplementation((info) => {
-			return info
-		})
-	_transformPointerUpSpy = vi
-		.spyOn(this._clickManager, 'handlePointerEvent')
-		.mockImplementation((info) => {
-			return info
-		})
+	_transformPointerDownSpy = vi.spyOn(this._clickManager, 'handlePointerEvent')
+	_transformPointerUpSpy = vi.spyOn(this._clickManager, 'handlePointerEvent')
 
 	/* ---- Delegated to Driver ---- */
 

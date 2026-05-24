@@ -17,6 +17,7 @@ import {
 	sortByIndex,
 	toRichText,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 
@@ -955,10 +956,14 @@ describe('the select tool', () => {
 		editor.pointerDown(0, 0, ids.boxA).pointerUp(0, 0)
 		expect(onlySelectedId()).toBe(groupCId)
 		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
+		vi.advanceTimersByTime(500)
+
 		editor.pointerDown(0, 0, ids.boxA)
 		editor.pointerUp(0, 0, ids.boxA)
 		expect(onlySelectedId()).toBe(groupAId)
 		expect(editor.getFocusedGroupId()).toBe(groupCId)
+		vi.advanceTimersByTime(500)
+
 		editor.pointerDown(0, 0, ids.boxA).pointerUp(0, 0, ids.boxA)
 		expect(onlySelectedId()).toBe(ids.boxA)
 		expect(editor.getFocusedGroupId()).toBe(groupAId)
