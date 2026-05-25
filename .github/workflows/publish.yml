@@ -43,9 +43,31 @@ permissions:
   contents: read
 
 jobs:
+  remove-label:
+    name: Remove the publish-packages label
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.label.name == 'publish-packages' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Remove the publish-packages label
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: publish-packages
+
   publish:
     name: Publish SDK packages
-    if: github.event_name != 'pull_request' || github.event.label.name == 'publish-packages'
+    if: |
+      github.event_name != 'pull_request' ||
+      (
+        github.event.label.name == 'publish-packages' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      )
     environment: npm deploy
     timeout-minutes: 60
     runs-on: ubuntu-latest-16-cores-arm-open
@@ -55,7 +77,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      pull-requests: write
 
     outputs:
       mode: ${{ steps.publish_mode.outputs.mode }}
@@ -141,12 +162,6 @@ jobs:
             echo "use_huppy=$use_huppy"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Remove the publish-packages label
-        if: steps.publish_mode.outputs.mode == 'internal'
-        uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          labels: publish-packages
-
       - name: Generate GH token
         id: generate_token
         if: steps.publish_mode.outputs.use_huppy == 'true'
@@ -211,14 +226,6 @@ jobs:
         id: version
         run: echo "value=$(jq -r .version ./packages/tldraw/package.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Tell user released version
-        if: steps.publish_mode.outputs.mode == 'internal'
-        uses: actions-ecosystem/action-create-comment@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          body: |
-            Published version ${{ steps.version.outputs.value }} to npm.
-
       - name: Generate tldraw-desktop token
         if: steps.publish_mode.outputs.mode == 'next'
         id: generate_desktop_token
@@ -243,6 +250,24 @@ jobs:
         uses: ./.github/actions/discord-fail-notify
         with:
           webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+
+  comment:
+    name: Tell user released version
+    if: needs.publish.outputs.mode == 'internal'
+    needs: publish
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Tell user released version
+        uses: actions-ecosystem/action-create-comment@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            Published version ${{ needs.publish.outputs.version }} to npm.
 
   publish_templates:
     name: Publishes code templates to separate repositories
