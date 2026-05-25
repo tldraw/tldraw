@@ -1,4 +1,5 @@
 {
+	"installCommand": "yarn workspaces focus examples.tldraw.com @tldraw/monorepo config",
 	"headers": [
 		{
 			"source": "/assets/(.*)",
