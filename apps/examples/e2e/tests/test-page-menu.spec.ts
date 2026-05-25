@@ -516,6 +516,24 @@ test.describe('page menu', () => {
 	})
 
 	test.describe('You can use the page menu', () => {
+		test('Right clicking a page item opens its submenu without reordering pages', async ({
+			page,
+			pageMenu,
+		}) => {
+			test.skip(isMobileProject(), 'Mobile emulation does not simulate right-click')
+
+			await createPagesForReordering(page)
+			await pageMenu.pagemenuButton.click()
+			await expect(pageMenu.pageItems).toHaveCount(3)
+
+			const firstPageItem = await pageMenu.getPageItem(0)
+			await firstPageItem.locator('.tlui-page-menu__item__button').click({ button: 'right' })
+
+			await expect(page.getByRole('menuitem', { name: /duplicate/i })).toBeVisible()
+			await expect(firstPageItem).toHaveAttribute('data-dragging', 'false')
+			expect(await getPageNames(page)).toEqual(['Page 1', 'Page 2', 'Page 3'])
+		})
+
 		test('You can duplicate a page from the page menu', async ({ page, pageMenu }) => {
 			const { pagemenuButton, pageItems } = pageMenu
 

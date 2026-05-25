@@ -98,16 +98,16 @@ describe('OverlayManager', () => {
 			expect(miss).toBeNull()
 		})
 
-		it('respects margin parameter for unfilled geometries (edge handles)', () => {
+		it('hits the bounded edge handle hit area regardless of margin', () => {
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 			editor.select(ids.box1)
-			// Point near the top edge but slightly outside
-			const nearTop = { x: 50, y: -5 }
-			// With zero margin, should miss
-			expect(editor.overlays.getOverlayAtPoint(nearTop, 0)).toBeNull()
-			// With margin, should hit the top edge overlay
-			const hit = editor.overlays.getOverlayAtPoint(nearTop, 10)
+			// Edge handles are filled polygons of half-thickness targetSizeY (~4.5px at zoom 1);
+			// a point inside that band hits with margin 0, and a point outside misses.
+			const insideTopEdge = { x: 50, y: -3 }
+			const outsideTopEdge = { x: 50, y: -20 }
+			const hit = editor.overlays.getOverlayAtPoint(insideTopEdge, 0)
 			expect(hit?.id).toBe('selection_fg:top')
+			expect(editor.overlays.getOverlayAtPoint(outsideTopEdge, 0)).toBeNull()
 		})
 
 		it('returns first matching overlay when multiple overlap (corner)', () => {
