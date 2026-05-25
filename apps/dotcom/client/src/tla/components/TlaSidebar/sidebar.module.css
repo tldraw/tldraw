@@ -354,6 +354,8 @@
 	gap: 0px;
 	text-align: left;
 	cursor: pointer;
+	/* Match .sidebarFileListItem so the hover overlay composites identically. */
+	opacity: 0.999;
 }
 
 .sidebarUserSettingsTrigger:focus-visible {
@@ -811,6 +813,8 @@
 	margin-bottom: 0px;
 	transition: margin-bottom 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 	--tla-sidebar-group-item-padding-left: 8px;
+	/* Match .sidebarFileListItem so the hover overlay composites identically. */
+	opacity: 0.999;
 }
 .sidebarGroupItem .sidebarFileListItemContent {
 	padding-left: var(--tla-sidebar-group-item-padding-left);
