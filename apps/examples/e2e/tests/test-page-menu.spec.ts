@@ -6,6 +6,10 @@ import { setupOrReset, sleep } from '../shared-e2e'
 declare const editor: Editor
 
 const PAGE_MENU_ITEM_HEIGHT = 36
+// The list reserves a few pixels of breathing room below the last row; the
+// auto-fit and minimum heights both include it, so the e2e expectations must too.
+const LIST_BOTTOM_PADDING = 4
+const MIN_PAGE_MENU_LIST_HEIGHT = PAGE_MENU_ITEM_HEIGHT + LIST_BOTTOM_PADDING
 
 const isMobileProject = () => test.info().project.name.includes('Mobile')
 
@@ -93,7 +97,7 @@ test.describe('page menu', () => {
 		await pageMenu.pagemenuButton.click()
 		await expect(pageMenu.pageItems).toHaveCount(3)
 
-		const autoFitHeight = PAGE_MENU_ITEM_HEIGHT * 3
+		const autoFitHeight = PAGE_MENU_ITEM_HEIGHT * 3 + LIST_BOTTOM_PADDING
 		await expectPageMenuListHeight(pageMenu.pageList, autoFitHeight)
 
 		await dragPageMenuResizeHandle(page, 120)
@@ -102,7 +106,7 @@ test.describe('page menu', () => {
 			.toBeGreaterThan(autoFitHeight)
 
 		await dragPageMenuResizeHandle(page, -300)
-		await expectPageMenuListHeight(pageMenu.pageList, PAGE_MENU_ITEM_HEIGHT)
+		await expectPageMenuListHeight(pageMenu.pageList, MIN_PAGE_MENU_LIST_HEIGHT)
 
 		await dragPageMenuResizeHandle(page, 120)
 		await page.locator('.tlui-page-menu__resize-handle').dblclick()
