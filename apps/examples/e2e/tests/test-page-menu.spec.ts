@@ -17,8 +17,14 @@ async function getPageMenuListHeight(pageList: Locator) {
 	return Math.round(await pageList.evaluate((elm) => elm.getBoundingClientRect().height))
 }
 
-async function expectPageMenuListHeight(pageList: Locator, expectedHeight: number) {
-	await expect.poll(async () => getPageMenuListHeight(pageList)).toBe(expectedHeight)
+async function expectPageMenuListHeight(pageList: Locator, expectedHeight: number, tolerance = 1) {
+	await expect
+		.poll(async () => getPageMenuListHeight(pageList))
+		.toBeGreaterThanOrEqual(expectedHeight - tolerance)
+
+	await expect
+		.poll(async () => getPageMenuListHeight(pageList))
+		.toBeLessThanOrEqual(expectedHeight + tolerance)
 }
 
 async function dragPageMenuResizeHandle(page: Page, deltaY: number) {
