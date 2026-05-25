@@ -863,6 +863,14 @@
 	visibility: visible;
 }
 
+.sidebarGroupItem:has(.sidebarGroupItemHeader:hover)::after {
+	background-color: var(--tla-color-hover-1);
+}
+
+.sidebarGroupItem[data-menu-open='true']::after {
+	background-color: var(--tla-color-hover-2);
+}
+
 .sidebarGroupItem[data-is-dragging='true'] {
 	opacity: 0.5;
 }
