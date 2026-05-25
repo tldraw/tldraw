@@ -5,10 +5,43 @@ import { setupOrReset, sleep } from '../shared-e2e'
 
 declare const editor: Editor
 
+const PAGE_MENU_ITEM_HEIGHT = 36
+// The list reserves a few pixels of breathing room below the last row; the
+// auto-fit and minimum heights both include it, so the e2e expectations must too.
+const LIST_BOTTOM_PADDING = 4
+const MIN_PAGE_MENU_LIST_HEIGHT = PAGE_MENU_ITEM_HEIGHT + LIST_BOTTOM_PADDING
+
 const isMobileProject = () => test.info().project.name.includes('Mobile')
 
 async function expectPageItemToBeCurrent(pageItem: Locator, isCurrent: boolean) {
 	await expect(pageItem).toHaveAttribute('data-iscurrent', isCurrent ? 'true' : 'false')
+}
+
+async function getPageMenuListHeight(pageList: Locator) {
+	return await pageList.evaluate((elm) => elm.getBoundingClientRect().height)
+}
+
+async function expectPageMenuListHeight(pageList: Locator, expectedHeight: number, tolerance = 1) {
+	await expect
+		.poll(async () => getPageMenuListHeight(pageList))
+		.toBeGreaterThanOrEqual(expectedHeight - tolerance)
+
+	await expect
+		.poll(async () => getPageMenuListHeight(pageList))
+		.toBeLessThanOrEqual(expectedHeight + tolerance)
+}
+
+async function dragPageMenuResizeHandle(page: Page, deltaY: number) {
+	const resizeHandle = page.locator('.tlui-page-menu__resize-handle')
+	const box = await resizeHandle.boundingBox()
+	if (!box) throw new Error('Could not find page menu resize handle')
+	const x = box.x + box.width / 2
+	const y = box.y + box.height / 2
+
+	await page.mouse.move(x, y)
+	await page.mouse.down()
+	await page.mouse.move(x, y + deltaY, { steps: 4 })
+	await page.mouse.up()
 }
 
 async function createPagesForReordering(page: Page) {
@@ -47,6 +80,37 @@ test.describe('page menu', () => {
 		await expect(header).toBeVisible()
 		await pagemenuButton.click()
 		await expect(header).toBeHidden()
+	})
+
+	test('The page list height fits its rows when opened, resized, and reset', async ({
+		page,
+		pageMenu,
+	}) => {
+		test.skip(isMobileProject(), 'Desktop page menu resize behavior')
+
+		await page.evaluate(() => {
+			window.localStorage.removeItem('tldraw_page_menu_list_height')
+			editor.createPage({ name: 'Page 2' })
+			editor.createPage({ name: 'Page 3' })
+		})
+
+		await pageMenu.pagemenuButton.click()
+		await expect(pageMenu.pageItems).toHaveCount(3)
+
+		const autoFitHeight = PAGE_MENU_ITEM_HEIGHT * 3 + LIST_BOTTOM_PADDING
+		await expectPageMenuListHeight(pageMenu.pageList, autoFitHeight)
+
+		await dragPageMenuResizeHandle(page, 120)
+		await expect
+			.poll(async () => getPageMenuListHeight(pageMenu.pageList))
+			.toBeGreaterThan(autoFitHeight)
+
+		await dragPageMenuResizeHandle(page, -300)
+		await expectPageMenuListHeight(pageMenu.pageList, MIN_PAGE_MENU_LIST_HEIGHT)
+
+		await dragPageMenuResizeHandle(page, 120)
+		await page.locator('.tlui-page-menu__resize-handle').dblclick()
+		await expectPageMenuListHeight(pageMenu.pageList, autoFitHeight)
 	})
 
 	test('You can change pages', async ({ page, pageMenu }) => {
