@@ -14,7 +14,7 @@ async function expectPageItemToBeCurrent(pageItem: Locator, isCurrent: boolean) 
 }
 
 async function getPageMenuListHeight(pageList: Locator) {
-	return Math.round(await pageList.evaluate((elm) => elm.getBoundingClientRect().height))
+	return await pageList.evaluate((elm) => elm.getBoundingClientRect().height)
 }
 
 async function expectPageMenuListHeight(pageList: Locator, expectedHeight: number, tolerance = 1) {
