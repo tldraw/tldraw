@@ -1892,7 +1892,7 @@ it('clones a single shape simply', () => {
 		.click()
 
 	expect(editor.getOnlySelectedShape()).toBe(editor.getCurrentPageShapes()[0])
-	expect(editor.getHoveredShape()).toBe(editor.getCurrentPageShapes()[0])
+	expect(editor.getHoveredShape()).toBe(undefined)
 
 	// click on the canvas to deselect
 	editor.pointerMove(200, 50).click()
@@ -1914,12 +1914,13 @@ it('clones a single shape simply', () => {
 		.keyDown('Alt')
 		// stop dragging
 		.pointerUp()
+		.keyUp('Alt')
 
 	expect(editor.getCurrentPageShapes()).toHaveLength(2)
 	const [, sticky2] = editor.getCurrentPageShapes()
 	expect(editor.getOnlySelectedShape()).toBe(sticky2)
 	expect(editor.getEditingShape()).toBe(undefined)
-	expect(editor.getHoveredShape()).toBe(sticky2)
+	expect(editor.getHoveredShape()).toBe(undefined) // over selection
 })
 
 describe('Moving the camera while panning', () => {

@@ -1,5 +1,4 @@
 import {
-	Editor,
 	StateNode,
 	TLAdjacentDirection,
 	TLClickEventInfo,
@@ -7,16 +6,15 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	Vec,
-	VecLike,
 	createShapeId,
 	debugFlags,
 	kickoutOccludedShapes,
-	pointInPolygon,
 	toRichText,
 	unsafe__withoutCapture,
 } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
+import { isPointInPointableSelectionBounds } from '../../selection-logic/isPointInRotatedSelectionBounds'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredOverlayId } from '../../selection-logic/updateHoveredOverlayId'
 import {
@@ -84,33 +82,30 @@ export class Idle extends StateNode {
 					return
 				}
 
+				const hitSelectionBounds = isPointInPointableSelectionBounds(this.editor, currentPagePoint)
+				const selectedShapeIds = this.editor.getSelectedShapeIds()
+
 				// Check to see if we hit any shape under the pointer; if so,
 				// handle this as a pointer down on the shape instead of the canvas
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
+
 				if (hitShape && (this.editor.options.selectLockedShapes || !hitShape.isLocked)) {
-					this.onPointerDown({
-						...info,
-						shape: hitShape,
-						target: 'shape',
-					})
-					return
-				}
-
-				const selectedShapeIds = this.editor.getSelectedShapeIds()
-				const onlySelectedShape = this.editor.getOnlySelectedShape()
-
-				if (
-					selectedShapeIds.length > 1 ||
-					(onlySelectedShape &&
-						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
-				) {
-					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
+					if (!hitSelectionBounds || selectedShapeIds.includes(hitShape.id)) {
 						this.onPointerDown({
 							...info,
-							target: 'selection',
+							shape: hitShape,
+							target: 'shape',
 						})
 						return
 					}
+				}
+
+				if (hitSelectionBounds) {
+					this.onPointerDown({
+						...info,
+						target: 'selection',
+					})
+					return
 				}
 
 				this.parent.transition('pointing_canvas', info)
@@ -485,7 +480,7 @@ export class Idle extends StateNode {
 					(onlySelectedShape &&
 						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
 				) {
-					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
+					if (isPointInPointableSelectionBounds(this.editor, currentPagePoint)) {
 						this.onRightClick({
 							...info,
 							target: 'selection',
@@ -786,16 +781,3 @@ export class Idle extends StateNode {
 export const MAJOR_NUDGE_FACTOR = 10
 export const MINOR_NUDGE_FACTOR = 1
 export const GRID_INCREMENT = 5
-
-function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
-	const selectionBounds = editor.getSelectionRotatedPageBounds()
-	if (!selectionBounds) return false
-
-	const selectionRotation = editor.getSelectionRotation()
-	if (!selectionRotation) return selectionBounds.containsPoint(point)
-
-	return pointInPolygon(
-		point,
-		selectionBounds.corners.map((c) => Vec.RotWith(c, selectionBounds.point, selectionRotation))
-	)
-}

@@ -3,6 +3,7 @@ import {
 	IndexKey,
 	TLFrameShape,
 	TLGeoShape,
+	Vec,
 	createShapeId,
 	tlenv,
 	toRichText,
@@ -1053,7 +1054,7 @@ describe('Selects inside of groups', () => {
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
 		editor.pointerDown()
-		editor.expectToBeIn('select.pointing_shape')
+		editor.expectToBeIn('select.pointing_selection')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
@@ -1152,6 +1153,109 @@ describe('Selects inside of groups', () => {
 	// })
 })
 
+describe('When shapes are selected', () => {
+	const setupRotatedSelectionOverFilledShape = () => {
+		const rotation = Math.PI / 4
+		const offset = 200 / Math.SQRT2
+
+		editor
+			.createShapes([
+				{
+					id: ids.box1,
+					type: 'geo',
+					x: 0,
+					y: 0,
+					props: { w: 500, h: 500, fill: 'solid' },
+				},
+				{
+					id: ids.box2,
+					type: 'geo',
+					x: 100,
+					y: 100,
+					rotation,
+					props: { w: 100, h: 100 },
+				},
+				{
+					id: ids.box3,
+					type: 'geo',
+					x: 100 + offset,
+					y: 100 + offset,
+					rotation,
+					props: { w: 100, h: 100 },
+				},
+			])
+			.select(ids.box2, ids.box3)
+
+		expect(editor.getSelectionRotation()).toBeCloseTo(rotation)
+		return editor.getSelectionRotatedPageBounds()!
+	}
+
+	const hitOptions = () =>
+		({
+			hitInside: false,
+			hitLabels: false,
+			margin: editor.options.hitTestMargin / editor.getZoomLevel(),
+			renderingOnly: true,
+		}) as const
+
+	it('does not hover a shape behind the rotated selection bounds', () => {
+		const selectionBounds = setupRotatedSelectionOverFilledShape()
+		const pagePoint = Vec.RotWith(
+			selectionBounds.center,
+			selectionBounds.point,
+			editor.getSelectionRotation()
+		)
+
+		expect(selectionBounds.containsPoint(pagePoint)).toBe(false)
+		expect(editor.getShapeAtPoint(pagePoint, hitOptions())?.id).toBe(ids.box1)
+
+		editor.pointerMove(pagePoint.x, pagePoint.y)
+		expect(editor.getHoveredShapeId()).toBe(null)
+	})
+
+	it('hovers a shape behind the unrotated selection bounds when outside the rotated bounds', () => {
+		const selectionBounds = setupRotatedSelectionOverFilledShape()
+		const pagePoint = {
+			x: selectionBounds.maxX - 10,
+			y: selectionBounds.maxY - 10,
+		}
+
+		expect(selectionBounds.containsPoint(pagePoint)).toBe(true)
+		expect(editor.getShapeAtPoint(pagePoint, hitOptions())?.id).toBe(ids.box1)
+
+		editor.pointerMove(pagePoint.x, pagePoint.y)
+		expect(editor.getHoveredShapeId()).toBe(ids.box1)
+	})
+
+	it('hovers a shape behind a hidden selection background', () => {
+		editor
+			.createShapes([
+				{
+					id: ids.box1,
+					type: 'geo',
+					x: 0,
+					y: 0,
+					props: { w: 500, h: 500, fill: 'solid' },
+				},
+			])
+			.setCurrentTool('arrow')
+			.pointerMove(100, 100)
+			.pointerDown()
+			.pointerMove(200, 200)
+			.pointerUp()
+			.setCurrentTool('select')
+
+		const arrow = editor.getLastCreatedShape()
+		editor.select(arrow.id)
+
+		const pagePoint = editor.getSelectionRotatedPageBounds()!.center
+		expect(editor.getShapeAtPoint(pagePoint, hitOptions())?.id).toBe(ids.box1)
+
+		editor.pointerMove(pagePoint.x, pagePoint.y)
+		expect(editor.getHoveredShapeId()).toBe(ids.box1)
+	})
+})
+
 describe('when selecting behind selection', () => {
 	beforeEach(() => {
 		editor
@@ -1165,7 +1269,7 @@ describe('when selecting behind selection', () => {
 
 	it('does not select on pointer down, only on pointer up', () => {
 		editor.pointerMove(175, 75)
-		expect(editor.getHoveredShapeId()).toBe(ids.box1)
+		expect(editor.getHoveredShapeId()).toBe(null) // over the selection
 		editor.pointerDown() // inside of box 1
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box3])
 		editor.pointerUp()
@@ -1174,7 +1278,7 @@ describe('when selecting behind selection', () => {
 
 	it('can drag the selection', () => {
 		editor.pointerMove(175, 75)
-		expect(editor.getHoveredShapeId()).toBe(ids.box1)
+		expect(editor.getHoveredShapeId()).toBe(null) // over the selection
 		editor.pointerDown() // inside of box 1
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box3])
 		editor.pointerMove(250, 50)

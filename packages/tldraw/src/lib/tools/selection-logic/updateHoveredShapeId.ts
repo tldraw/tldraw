@@ -1,4 +1,5 @@
 import { Editor, TLShape, TLShapeId, throttle } from '@tldraw/editor'
+import { isPointInPointableSelectionBounds } from './isPointInRotatedSelectionBounds'
 
 /*
 Perf optimization: Skip hover updates while panning.
@@ -23,27 +24,18 @@ const hoverLockedEditors = new WeakMap<Editor, boolean>()
 
 function getShapeToHover(editor: Editor): TLShapeId | null {
 	const currentPagePoint = editor.inputs.getCurrentPagePoint()
-	const hitOptions = {
+
+	if (isPointInPointableSelectionBounds(editor, currentPagePoint)) {
+		return null
+	}
+
+	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
 		hitInside: false,
 		hitLabels: false,
 		hitLocked: editor.options.selectLockedShapes,
 		margin: editor.options.hitTestMargin / editor.getZoomLevel(),
 		renderingOnly: true,
-	} as const
-
-	// Selection should win when stacked under another shape: if the pointer is
-	// over a selected shape, prefer it over a non-selected shape on top.
-	let hitShape: TLShape | undefined
-	const selectedShapeIds = editor.getSelectedShapeIds()
-	if (selectedShapeIds.length > 0) {
-		hitShape = editor.getShapeAtPoint(currentPagePoint, {
-			...hitOptions,
-			filter: (shape) => selectedShapeIds.includes(shape.id),
-		})
-	}
-	if (!hitShape) {
-		hitShape = editor.getShapeAtPoint(currentPagePoint, hitOptions)
-	}
+	})
 
 	if (!hitShape) return null
 
