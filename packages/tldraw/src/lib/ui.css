@@ -57,6 +57,7 @@
 	color: var(--tl-color-text-3);
 	text-shadow: none;
 	cursor: default;
+	opacity: 0.6;
 }
 
 .tlui-button:disabled .tlui-kbd,
