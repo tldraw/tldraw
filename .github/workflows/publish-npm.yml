@@ -1,0 +1,106 @@
+name: Publish npm packages (reusable)
+# Reusable workflow that performs the actual npm publish for all of our publish flows.
+#
+# All npm publishing must go through this one workflow so that npm OIDC trusted
+# publishing works: a trusted publisher is configured per package against a single
+# workflow filename, and the OIDC `job_workflow_ref` claim is matched against the
+# workflow that *defines the running job*. Because the publish job lives here, every
+# caller (canary, branch, patch, new, manual) authenticates against the same
+# `publish-npm.yml` trusted publisher. See https://docs.npmjs.com/trusted-publishers
+
+on:
+  workflow_call:
+    inputs:
+      publish-command:
+        description: The command that bumps versions (if needed) and runs npm publish.
+        required: true
+        type: string
+      bemo-url:
+        description: The TLDRAW_BEMO_URL to build assets against.
+        required: true
+        type: string
+      use-huppy-token:
+        description: Generate and use the huppy app token for checkout, git, and GH_TOKEN. Needed by flows that push commits, tags, or GitHub releases.
+        default: false
+        type: boolean
+      version-string:
+        description: Optional explicit version string passed as TLDRAW_VERSION_STRING.
+        required: false
+        type: string
+    outputs:
+      version:
+        description: The published version of the tldraw package.
+        value: ${{ jobs.publish.outputs.version }}
+      is_latest_version:
+        description: Whether the published version is the latest version on npm.
+        value: ${{ jobs.publish.outputs.is_latest_version }}
+
+# Secrets are read directly from the `npm deploy` environment below rather than
+# passed in by callers. Environment secrets are not forwarded by `secrets: inherit`
+# (the calling job has no environment), but the publish job here declares
+# `environment: npm deploy`, so they resolve directly.
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  publish:
+    name: Publish npm packages
+    environment: npm deploy
+    timeout-minutes: 60
+    runs-on: ubuntu-latest-16-cores-arm-open
+
+    permissions:
+      contents: read
+      id-token: write
+
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+      is_latest_version: ${{ steps.publish.outputs.is_latest_version }}
+
+    steps:
+      - name: Generate GH token
+        id: generate_token
+        if: ${{ inputs.use-huppy-token }}
+        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
+        with:
+          app_id: ${{ secrets.HUPPY_APP_ID }}
+          private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
+
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          # Full history and tags so version-bumping flows (patch, new) can read them.
+          fetch-depth: 0
+          persist-credentials: ${{ !inputs.use-huppy-token }}
+          token: ${{ (inputs.use-huppy-token && steps.generate_token.outputs.token) || github.token }}
+
+      - name: Configure git credentials
+        if: ${{ inputs.use-huppy-token }}
+        run: |
+          git config --global url."https://x-access-token:${{ steps.generate_token.outputs.token }}@github.com/".insteadOf "https://github.com/"
+          git config --global user.name 'huppy-bot[bot]'
+          git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Publish
+        id: publish
+        run: ${{ inputs.publish-command }}
+        env:
+          GH_TOKEN: ${{ (inputs.use-huppy-token && steps.generate_token.outputs.token) || github.token }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+          TLDRAW_BEMO_URL: ${{ inputs.bemo-url }}
+          TLDRAW_VERSION_STRING: ${{ inputs.version-string }}
+
+      - name: Get published version
+        id: version
+        run: echo "value=$(jq -r .version ./packages/tldraw/package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
