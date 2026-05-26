@@ -1,3 +1,4 @@
+import { warnOnce } from '@tldraw/editor'
 import * as React from 'react'
 import { useAssetUrls } from '../../context/asset-urls'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
@@ -99,8 +100,6 @@ export function TldrawUiTranslationProvider({
 	)
 }
 
-let hasWarnedAboutMissingTranslations = false
-
 /**
  * Returns a function to translate a translation key into a string based on the current translation.
  *
@@ -118,10 +117,9 @@ export function useTranslation() {
 	const messages = translation?.messages ?? DEFAULT_TRANSLATION
 
 	React.useEffect(() => {
-		if (!translation?.messages && !hasWarnedAboutMissingTranslations) {
-			hasWarnedAboutMissingTranslations = true
-			console.warn(
-				'No translation messages found, falling back to default translation. Wrap your app in <TldrawUiContextProvider> or <TldrawUiTranslationProvider> to provide translations.'
+		if (!translation?.messages) {
+			warnOnce(
+				'No translation messages found, falling back to default translation. Wrap your app in <TldrawUiContextProvider>, or in both <AssetUrlsProvider> and <TldrawUiTranslationProvider>, to provide translations.'
 			)
 		}
 	}, [translation?.messages])
