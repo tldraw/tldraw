@@ -240,6 +240,7 @@ export {
 	type NoteShapeOptions,
 	type NoteShapeUtilDisplayValues,
 } from './lib/shapes/note/NoteShapeUtil'
+export { addRoundedRectPath } from './lib/shapes/shared/addRoundedRectPath'
 export {
 	ASPECT_RATIO_OPTIONS,
 	ASPECT_RATIO_TO_VALUE,

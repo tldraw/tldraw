@@ -50,6 +50,7 @@ import {
 import React, { useMemo } from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
+import { addRoundedRectPath } from '../shared/addRoundedRectPath'
 import {
 	ARROW_LABEL_FONT_SIZES,
 	ARROW_LABEL_PADDING,
@@ -87,40 +88,6 @@ const ArrowHandles = {
 	End: 'end',
 } as const
 type ArrowHandles = (typeof ArrowHandles)[keyof typeof ArrowHandles]
-
-function addRoundedRectPath(path: Path2D, bounds: Box, radius: number, counterClockwise = false) {
-	const r = Math.max(0, Math.min(radius, bounds.w / 2, bounds.h / 2))
-
-	if (r === 0) {
-		path.rect(bounds.x, bounds.y, bounds.w, bounds.h)
-		return
-	}
-
-	if (counterClockwise) {
-		path.moveTo(bounds.x, bounds.y + r)
-		path.lineTo(bounds.x, bounds.maxY - r)
-		path.arcTo(bounds.x, bounds.maxY, bounds.x + r, bounds.maxY, r)
-		path.lineTo(bounds.maxX - r, bounds.maxY)
-		path.arcTo(bounds.maxX, bounds.maxY, bounds.maxX, bounds.maxY - r, r)
-		path.lineTo(bounds.maxX, bounds.y + r)
-		path.arcTo(bounds.maxX, bounds.y, bounds.maxX - r, bounds.y, r)
-		path.lineTo(bounds.x + r, bounds.y)
-		path.arcTo(bounds.x, bounds.y, bounds.x, bounds.y + r, r)
-		path.closePath()
-		return
-	}
-
-	path.moveTo(bounds.x + r, bounds.y)
-	path.lineTo(bounds.maxX - r, bounds.y)
-	path.arcTo(bounds.maxX, bounds.y, bounds.maxX, bounds.y + r, r)
-	path.lineTo(bounds.maxX, bounds.maxY - r)
-	path.arcTo(bounds.maxX, bounds.maxY, bounds.maxX - r, bounds.maxY, r)
-	path.lineTo(bounds.x + r, bounds.maxY)
-	path.arcTo(bounds.x, bounds.maxY, bounds.x, bounds.maxY - r, r)
-	path.lineTo(bounds.x, bounds.y + r)
-	path.arcTo(bounds.x, bounds.y, bounds.x + r, bounds.y, r)
-	path.closePath()
-}
 
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
