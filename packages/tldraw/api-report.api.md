@@ -479,10 +479,15 @@ export const ASPECT_RATIO_TO_VALUE: Record<ASPECT_RATIO_OPTION, number>;
 export function AssetToolbarItem(): JSX.Element;
 
 // @public
-export function AssetUrlsProvider({ assetUrls, children }: {
+export function AssetUrlsProvider({ assetUrls, children }: AssetUrlsProviderProps): JSX.Element;
+
+// @public (undocumented)
+export interface AssetUrlsProviderProps {
+    // (undocumented)
     assetUrls: TLUiAssetUrls;
+    // (undocumented)
     children: React.ReactNode;
-}): JSX.Element;
+}
 
 // @public (undocumented)
 export interface BasePathBuilderOpts {

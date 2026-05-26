@@ -7,19 +7,19 @@ type UiAssetUrlsContextType = TLUiAssetUrls | null
 
 const AssetUrlsContext = createContext<UiAssetUrlsContextType>(null)
 
+/** @public */
+export interface AssetUrlsProviderProps {
+	assetUrls: TLUiAssetUrls
+	children: React.ReactNode
+}
+
 /**
  * Provides asset URLs (icons, fonts, translations, embed icons) to the editor's UI.
  * Required when using `TldrawUiTranslationProvider` without `TldrawUiContextProvider`.
  *
  * @public @react
  */
-export function AssetUrlsProvider({
-	assetUrls,
-	children,
-}: {
-	assetUrls: TLUiAssetUrls
-	children: React.ReactNode
-}) {
+export function AssetUrlsProvider({ assetUrls, children }: AssetUrlsProviderProps) {
 	useEffect(() => {
 		for (const src of Object.values(assetUrls.icons)) {
 			if (!src) continue
