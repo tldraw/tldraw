@@ -11,6 +11,11 @@
 	box-shadow: 0 0 0 2px var(--tl-color-selected);
 }
 
+.flex-layout-heading__label {
+	padding: 0 10px;
+	font-style: italic;
+}
+
 .flex-layout-shape__body {
 	position: absolute;
 	inset: 0;
@@ -26,8 +31,6 @@
 	inset: 0;
 	box-sizing: border-box;
 	display: flex;
-	align-items: center;
-	justify-content: center;
 	gap: 16px;
 	padding: 24px;
 	opacity: 0;
