@@ -2,6 +2,10 @@ import { EASINGS } from '../../../primitives/easings'
 import { Vec } from '../../../primitives/Vec'
 import type { Editor } from '../../Editor'
 
+// Tuned for touch/small-screen feel; adjust together with coarsePointerWidth.
+const EDGE_SCROLL_SMALL_SCREEN_THRESHOLD_PX = 1000
+const EDGE_SCROLL_SMALL_SCREEN_SPEED_FACTOR = 0.612
+
 /** @public */
 export class EdgeScrollManager {
 	constructor(public editor: Editor) {}
@@ -115,8 +119,14 @@ export class EdgeScrollManager {
 		const screenBounds = editor.getViewportScreenBounds()
 
 		// Determines how much the speed is affected by the screen size
-		const screenSizeFactorX = screenBounds.w < 1000 ? 0.612 : 1
-		const screenSizeFactorY = screenBounds.h < 1000 ? 0.612 : 1
+		const screenSizeFactorX =
+			screenBounds.w < EDGE_SCROLL_SMALL_SCREEN_THRESHOLD_PX
+				? EDGE_SCROLL_SMALL_SCREEN_SPEED_FACTOR
+				: 1
+		const screenSizeFactorY =
+			screenBounds.h < EDGE_SCROLL_SMALL_SCREEN_THRESHOLD_PX
+				? EDGE_SCROLL_SMALL_SCREEN_SPEED_FACTOR
+				: 1
 
 		// Determines the base speed of the scroll
 		const zoomLevel = editor.getZoomLevel()

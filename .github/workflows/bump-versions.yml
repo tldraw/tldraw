@@ -54,7 +54,6 @@ jobs:
           yarn tsx ./internal/scripts/bump-versions.ts
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Notify Discord on failure
         if: failure()

@@ -80,9 +80,9 @@ export class FocusManager {
 		this.editor.getContainer().focus()
 	}
 
-	blur() {
+	blur({ blurContainer = true } = {}) {
 		this.editor.complete() // stop any interaction
-		this.editor.getContainer().blur() // blur the container
+		if (blurContainer) this.editor.getContainer().blur() // blur the container
 	}
 
 	dispose() {

@@ -104,8 +104,13 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 
 	const handleLeaveGroup = async () => {
 		try {
+			const isCurrentlyOnAFileInThisGroup =
+				currentFileId && app.getFile(currentFileId)?.owningGroupId === groupId
 			await app.z.mutate.leaveGroup({ groupId }).client
 			onClose()
+			if (isCurrentlyOnAFileInThisGroup) {
+				navigate('/')
+			}
 		} catch (error) {
 			console.error('Error leaving group:', error)
 		}

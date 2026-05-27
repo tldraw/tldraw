@@ -74,6 +74,7 @@ export async function connect(opts: { reset?: boolean; mode: 'readonly' | 'readw
 			date TEXT,
 			sourceUrl TEXT,
 			componentCode TEXT,
+			componentCodeFilename TEXT,
 			componentCodeFiles TEXT,
 			keywords TEXT,
 			apiTags TEXT,
