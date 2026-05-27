@@ -3,12 +3,12 @@ import {
 	ExtractShapeByProps,
 	TLShapeId,
 	getPointerInfo,
-	noop,
 	preventDefault,
 	tlenv,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { noop } from '@tldraw/utils'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { TextHelpers } from './TextHelpers'
 

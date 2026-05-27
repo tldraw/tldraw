@@ -43,8 +43,7 @@ import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
-import { noop } from '@tldraw/editor';
-import { noop as noop_2 } from '@tldraw/utils';
+import { noop } from '@tldraw/utils';
 import { OverlayOptionsWithDisplayValues } from '@tldraw/editor';
 import { OverlayUtil } from '@tldraw/editor';
 import { PerfectDashTerminal } from '@tldraw/editor';
@@ -6401,7 +6400,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByPro
 export function useEditableRichText(shapeId: TLShapeId, type: ExtractShapeByProps<{
     richText: TLRichText;
 }>['type'], richText?: TLRichText): {
-    handleBlur: noop_2;
+    handleBlur: noop;
     handleChange: ({ richText }: {
         richText: {
             attrs?: any;
@@ -6412,7 +6411,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: ExtractShapeByProp
     handleDoubleClick: (e: {
         nativeEvent: Event;
     } | Event) => void;
-    handleFocus: noop_2;
+    handleFocus: noop;
     handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     handlePaste: (e: ClipboardEvent | ClipboardEvent_2<HTMLTextAreaElement>) => void;
