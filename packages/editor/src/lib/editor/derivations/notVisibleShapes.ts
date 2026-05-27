@@ -1,5 +1,5 @@
 import { computed, isUninitialized } from '@tldraw/state'
-import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/tlschema'
 import type { Editor } from '../Editor'
 import { ShapeUtil } from '../shapes/ShapeUtil'
 
@@ -26,20 +26,20 @@ export function notVisibleShapes(editor: Editor) {
 			return prevValue
 		}
 
-		const notVisibleIds: TLShapeId[] = []
+		const notVisibleIds = new Set<TLShapeId>()
 		for (const id of allShapeIds) {
 			if (visibleIds.has(id)) continue
 
 			// Peek at the shape without subscribing — we only need its type to look up the util.
 			// Type is treated as immutable for a given id, so this is safe.
-			const peek = editor.store.unsafeGetWithoutCapture(id) as TLShape | undefined
+			const peek = editor.store.unsafeGetWithoutCapture(id)
 			if (!peek) continue
 			const util = editor.getShapeUtil(peek.type)
 
 			// If canCull is the default (always-true), skip per-shape subscription entirely.
 			// >99% of shapes hit this path in practice.
 			if (util.canCull === defaultCanCull) {
-				notVisibleIds.push(id)
+				notVisibleIds.add(id)
 				continue
 			}
 
@@ -47,19 +47,19 @@ export function notVisibleShapes(editor: Editor) {
 			const shape = editor.getShape(id)
 			if (!shape) continue
 			if (!util.canCull(shape)) continue
-			notVisibleIds.push(id)
+			notVisibleIds.add(id)
 		}
 
 		// First run
 		if (isUninitialized(prevValue)) {
-			return new Set(notVisibleIds)
+			return notVisibleIds
 		}
 
 		// Reuse prev set when contents are unchanged
-		if (notVisibleIds.length === prevValue.size) {
+		if (notVisibleIds.size === prevValue.size) {
 			let same = true
-			for (let i = 0; i < notVisibleIds.length; i++) {
-				if (!prevValue.has(notVisibleIds[i])) {
+			for (const id of notVisibleIds) {
+				if (!prevValue.has(id)) {
 					same = false
 					break
 				}
@@ -67,6 +67,6 @@ export function notVisibleShapes(editor: Editor) {
 			if (same) return prevValue
 		}
 
-		return new Set(notVisibleIds)
+		return notVisibleIds
 	})
 }
