@@ -261,7 +261,6 @@
 		{
 			"files": ["packages/editor/**/*", "packages/tldraw/**/*", "packages/utils/**/*"],
 			"rules": {
-				"tldraw/no-exported-arrow-const": "off",
 				"no-restricted-globals": [
 					"error",
 					{
@@ -417,7 +416,6 @@
 			"rules": {
 				"tldraw/no-setter-getter": "off",
 				"tldraw/no-direct-storage": "off",
-				"tldraw/no-exported-arrow-const": "off",
 				"tldraw/img-referrer-policy": "off"
 			}
 		},
@@ -427,7 +425,6 @@
 				"tldraw/prefer-class-methods": "off",
 				"tldraw/no-setter-getter": "off",
 				"tldraw/no-direct-storage": "off",
-				"tldraw/no-exported-arrow-const": "off",
 				"tldraw/img-referrer-policy": "off",
 				"no-console": "off",
 				"tldraw/method-signature-style": "off"
