@@ -697,7 +697,10 @@ export function DefaultBackground(): JSX.Element;
 export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Element;
 
 // @public (undocumented)
-export const DefaultErrorFallback: TLErrorFallbackComponent;
+export function DefaultErrorFallback({ error, editor }: {
+    editor?: Editor;
+    error: unknown;
+}): JSX.Element;
 
 // @public (undocumented)
 export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX.Element;
@@ -712,7 +715,7 @@ export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps 
 export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX.Element;
 
 // @public (undocumented)
-export const DefaultSvgDefs: () => null;
+export function DefaultSvgDefs(): null;
 
 // @public (undocumented)
 export const defaultTldrawOptions: {
@@ -2352,7 +2355,7 @@ export function isAccelKey(e: {
 }): boolean;
 
 // @public
-export const isSafeFloat: (n: number) => boolean;
+export function isSafeFloat(n: number): boolean;
 
 // @public
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opts?: {
@@ -3285,7 +3288,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 }
 
 // @public @deprecated
-export const stopEventPropagation: (e: any) => any;
+export function stopEventPropagation(e: any): any;
 
 // @internal (undocumented)
 export type StoreName = (typeof Table)[keyof typeof Table];

@@ -90,7 +90,7 @@ class SlidesManager {
 
 const slidesContext = createContext({} as SlidesManager)
 
-export const SlidesProvider = ({ children }: { children: ReactNode }) => {
+export function SlidesProvider({ children }: { children: ReactNode }) {
 	const [slideManager] = useState(() => new SlidesManager())
 	return <slidesContext.Provider value={slideManager}>{children}</slidesContext.Provider>
 }

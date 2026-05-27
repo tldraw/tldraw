@@ -981,7 +981,7 @@ const getHandleData = (id: string) => {
 	return { edgeType, point }
 }
 
-export const getNeighborGlobs = (editor: Editor, shape: GlobShape) => {
+export function getNeighborGlobs(editor: Editor, shape: GlobShape) {
 	const currentGlobBindings = editor.getBindingsFromShape<GlobBinding>(shape.id, 'glob')
 
 	const neighborGlobs: Set<GlobShape> = new Set()

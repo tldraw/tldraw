@@ -40,7 +40,7 @@ export function setBookmarkHeight(editor: Editor, shape: TLBookmarkShape) {
 }
 
 /** @internal */
-export const getHumanReadableAddress = (url: string) => {
+export function getHumanReadableAddress(url: string) {
 	try {
 		const objUrl = new URL(url)
 		// we want the hostname without any www
