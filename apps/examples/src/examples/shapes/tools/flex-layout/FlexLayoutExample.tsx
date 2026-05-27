@@ -113,13 +113,9 @@ function getContainerHeadingSize(
 	return new Box(0, -opts.height, width, opts.height)
 }
 
-function getContainerHeadingTranslation(
-	shape: FrameLabelBoxShape,
-	side: 0 | 1 | 2 | 3,
-	isSvg: boolean
-) {
-	const u = isSvg ? '' : 'px'
-	const r = isSvg ? '' : 'deg'
+function getContainerHeadingTranslation(shape: FrameLabelBoxShape, side: 0 | 1 | 2 | 3) {
+	const u = 'px'
+	const r = 'deg'
 	switch (side) {
 		case 0:
 			return ''
@@ -208,7 +204,7 @@ const FlexContainerHeading = memo(function FlexContainerHeading({
 			const labelSide = getContainerHeadingSide(editor, shape)
 			return {
 				side: labelSide,
-				translation: getContainerHeadingTranslation(shape, labelSide, false),
+				translation: getContainerHeadingTranslation(shape, labelSide),
 			}
 		},
 		[editor, shape]
