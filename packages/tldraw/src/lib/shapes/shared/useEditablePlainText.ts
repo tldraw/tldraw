@@ -8,7 +8,6 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { noop } from '@tldraw/utils'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { TextHelpers } from './TextHelpers'
 
@@ -167,8 +166,8 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 	)
 
 	return {
-		handleFocus: noop,
-		handleBlur: noop,
+		handleFocus: (): void => {},
+		handleBlur: (): void => {},
 		handleInputPointerDown,
 		handleDoubleClick: editor.markEventAsHandled,
 		handlePaste,

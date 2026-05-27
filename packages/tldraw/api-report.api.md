@@ -43,7 +43,6 @@ import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
-import { noop } from '@tldraw/utils';
 import { OverlayOptionsWithDisplayValues } from '@tldraw/editor';
 import { OverlayUtil } from '@tldraw/editor';
 import { PerfectDashTerminal } from '@tldraw/editor';
@@ -6379,14 +6378,14 @@ export function useDirection(): "ltr" | "rtl";
 export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByProps<{
     text: string;
 }>['type'], text?: string): {
-    handleBlur: typeof noop;
+    handleBlur: () => void;
     handleChange: ({ plaintext }: {
         plaintext: string;
     }) => void;
     handleDoubleClick: (e: {
         nativeEvent: Event;
     } | Event) => void;
-    handleFocus: typeof noop;
+    handleFocus: () => void;
     handleInputPointerDown: (e: React_3.PointerEvent<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     handlePaste: (e: ClipboardEvent | React_3.ClipboardEvent<HTMLTextAreaElement>) => void;
@@ -6400,7 +6399,7 @@ export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByPro
 export function useEditableRichText(shapeId: TLShapeId, type: ExtractShapeByProps<{
     richText: TLRichText;
 }>['type'], richText?: TLRichText): {
-    handleBlur: noop;
+    handleBlur: () => void;
     handleChange: ({ richText }: {
         richText: {
             attrs?: any;
@@ -6411,7 +6410,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: ExtractShapeByProp
     handleDoubleClick: (e: {
         nativeEvent: Event;
     } | Event) => void;
-    handleFocus: noop;
+    handleFocus: () => void;
     handleInputPointerDown: (e: PointerEvent_2<Element>) => void;
     handleKeyDown: (e: KeyboardEvent) => void;
     handlePaste: (e: ClipboardEvent | ClipboardEvent_2<HTMLTextAreaElement>) => void;
