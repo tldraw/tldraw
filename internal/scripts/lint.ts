@@ -52,7 +52,9 @@ async function main() {
 			{ pwd: REPO_ROOT }
 		)
 		if (!shouldFix) {
-			await exec('yarn', ['oxlint', ...target.split(' ')], { pwd: REPO_ROOT })
+			await exec('yarn', ['oxlint', '--disable-nested-config', ...target.split(' ')], {
+				pwd: REPO_ROOT,
+			})
 		}
 	} catch {
 		process.exit(1)
