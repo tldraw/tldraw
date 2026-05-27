@@ -134,7 +134,7 @@ export class SpatialIndexManager {
 					const bounds = this.editor.getShapePageBounds(to.id)
 					if (bounds && bounds.isValid()) {
 						const indexedElement = this.rbush.getElement(to.id)
-						if (!this.areBoundsEqualToElement(bounds, indexedElement)) {
+						if (!this.areBoundsEqualToSpatialElement(bounds, indexedElement)) {
 							this.rbush.upsert(to.id, bounds)
 							changed = true
 						}
@@ -165,7 +165,7 @@ export class SpatialIndexManager {
 			if (processedShapeIds.has(shapeId)) continue
 
 			const currentBounds = this.editor.getShapePageBounds(shapeId)
-			if (this.areBoundsEqualToElement(currentBounds, indexedElement)) continue
+			if (this.areBoundsEqualToSpatialElement(currentBounds, indexedElement)) continue
 
 			if (currentBounds && currentBounds.isValid()) {
 				this.rbush.upsert(shapeId, currentBounds)
@@ -178,7 +178,10 @@ export class SpatialIndexManager {
 		return changed
 	}
 
-	private areBoundsEqualToElement(a: Box | undefined, b: SpatialElement | undefined): boolean {
+	private areBoundsEqualToSpatialElement(
+		a: Box | undefined,
+		b: SpatialElement | undefined
+	): boolean {
 		if (!a && !b) return true
 		if (!a || !b) return false
 		return a.minX === b.minX && a.minY === b.minY && a.maxX === b.maxX && a.maxY === b.maxY
