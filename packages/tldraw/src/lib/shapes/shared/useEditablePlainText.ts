@@ -3,6 +3,7 @@ import {
 	ExtractShapeByProps,
 	TLShapeId,
 	getPointerInfo,
+	noop,
 	preventDefault,
 	tlenv,
 	useEditor,
@@ -166,8 +167,8 @@ export function useEditableTextCommon(shapeId: TLShapeId) {
 	)
 
 	return {
-		handleFocus: (): void => {},
-		handleBlur: (): void => {},
+		handleFocus: noop,
+		handleBlur: noop,
 		handleInputPointerDown,
 		handleDoubleClick: editor.markEventAsHandled,
 		handlePaste,
