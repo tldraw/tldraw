@@ -10,9 +10,16 @@ import { RBushIndex, type SpatialElement } from './RBushIndex'
 /**
  * Manages spatial indexing for efficient shape location queries.
  *
- * Uses an R-tree (via RBush) for O(log n) spatial queries. Handles shapes with
- * derived bounds (arrows, groups) by re-checking indexed bounds on every
- * incremental update. Per-page; rebuilds on page change.
+ * Uses an R-tree (via RBush) to enable O(log n) spatial queries instead of O(n) iteration.
+ * Handles shapes with computed bounds (arrows, groups, custom shapes) by checking all shapes'
+ * bounds on each update using the reactive bounds cache.
+ *
+ * Key features:
+ * - Incremental updates using filterHistory pattern
+ * - Leverages existing bounds cache reactivity for dependency tracking
+ * - Works with any custom shape type with computed bounds
+ * - Per-page index (rebuilds on page change)
+ * - Optimized for viewport culling queries
  *
  * @internal
  */
@@ -82,6 +89,8 @@ export class SpatialIndexManager {
 				})
 			}
 		}
+
+		// Bulk load for efficiency
 		this.rbush.bulkLoad(elements)
 	}
 
@@ -176,8 +185,17 @@ export class SpatialIndexManager {
 	}
 
 	/**
-	 * Get shape IDs whose bounds intersect `bounds`. Results are unordered;
-	 * combine with `getCurrentPageShapesSorted()` for z-order.
+	 * Get shape IDs within the given bounds.
+	 * Optimized for viewport culling queries.
+	 *
+	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
+	 * ```ts
+	 * const candidates = editor.spatialIndex.getShapeIdsInsideBounds(bounds)
+	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
+	 * ```
+	 *
+	 * @param bounds - The bounds to search within
+	 * @returns Unordered set of shape IDs within the bounds
 	 *
 	 * @public
 	 */
@@ -187,8 +205,18 @@ export class SpatialIndexManager {
 	}
 
 	/**
-	 * Get shape IDs whose bounds intersect a margin-expanded box around
-	 * `point`. Results are unordered.
+	 * Get shape IDs at a point (with optional margin).
+	 * Creates a small bounding box around the point and searches the spatial index.
+	 *
+	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
+	 * ```ts
+	 * const candidates = editor.spatialIndex.getShapeIdsAtPoint(point, margin)
+	 * const sorted = editor.getCurrentPageShapesSorted().filter(s => candidates.has(s.id))
+	 * ```
+	 *
+	 * @param point - The point to search at
+	 * @param margin - The margin around the point to search (default: 0)
+	 * @returns Unordered set of shape IDs that could potentially contain the point
 	 *
 	 * @public
 	 */
@@ -198,7 +226,8 @@ export class SpatialIndexManager {
 	}
 
 	/**
-	 * Dispose of the spatial index manager. Clears the R-tree.
+	 * Dispose of the spatial index manager.
+	 * Clears the R-tree to prevent memory leaks.
 	 *
 	 * @public
 	 */
