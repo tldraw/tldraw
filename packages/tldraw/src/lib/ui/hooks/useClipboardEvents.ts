@@ -236,13 +236,16 @@ type ClipboardThing =
  * @param point - The point to paste at
  * @internal
  */
-const handlePasteFromEventClipboardData = async (
+export const handlePasteFromEventClipboardData = async (
 	editor: Editor,
 	clipboardData: DataTransfer,
 	point?: VecLike
 ) => {
-	// Do not paste while in any editing state
-	if (editor.getEditingShapeId() !== null) return
+	// Do not paste while in any editing state, or while the user is in the middle
+	// of a pointer interaction (e.g. dragging an arrow handle, resizing, or
+	// translating a shape) — paste would change selection and create shapes
+	// under the active drag.
+	if (editor.getEditingShapeId() !== null || editor.inputs.getIsPointing()) return
 
 	if (!clipboardData) {
 		throw Error('No clipboard data')
@@ -813,8 +816,10 @@ export function useMenuClipboardEvents() {
 			if (!editor) return
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
-			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.getEditingShapeId() !== null) return
+			// input instead; e.g. when pasting text into a text shape's content.
+			// Also skip when the user is in the middle of a pointer interaction
+			// (dragging a handle, resizing, translating) — paste would interrupt it.
+			if (editor.getEditingShapeId() !== null || editor.inputs.getIsPointing()) return
 
 			const win = editor.getContainerWindow()
 			if (Array.isArray(data) && data[0] instanceof win.ClipboardItem) {
@@ -927,8 +932,16 @@ export function useNativeClipboardEvents() {
 
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
-			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) return
+			// input instead; e.g. when pasting text into a text shape's content.
+			// Also skip when the user is in the middle of a pointer interaction
+			// (dragging a handle, resizing, translating) — paste would interrupt it.
+			if (
+				editor.getEditingShapeId() !== null ||
+				editor.inputs.getIsPointing() ||
+				areShortcutsDisabled(editor)
+			) {
+				return
+			}
 
 			// Cmd+Shift+V / Ctrl+Shift+V = paste as plain text (no formatting).
 			// If there's no plain text on the clipboard (e.g., a copied PNG), fall

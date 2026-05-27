@@ -1,4 +1,6 @@
-import { TLFrameShape, TLGeoShape, approximately, createShapeId } from '@tldraw/editor'
+import { IndexKey, TLFrameShape, TLGeoShape, approximately, createShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
+import { handlePasteFromEventClipboardData } from '../lib/ui/hooks/useClipboardEvents'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -663,5 +665,63 @@ describe('When pasting into frames...', () => {
 		// The left and right shapes are far outside the frame → kicked out to page
 		expect(left.parentId).toBe(editor.getCurrentPageId())
 		expect(right.parentId).toBe(editor.getCurrentPageId())
+	})
+})
+
+describe('When pasting during a pointer interaction', () => {
+	// Regression test for https://github.com/tldraw/tldraw/issues/8305 — paste
+	// while dragging an arrow handle (or any other pointer-driven interaction)
+	// should be suppressed so it doesn't interrupt the active drag.
+	it('does not paste while dragging an arrow handle', async () => {
+		const arrowId = createShapeId('arrow1')
+		editor.createShapes([
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+			},
+		])
+
+		const arrow = editor.getShape(arrowId)!
+
+		editor.pointerDown(200, 100, {
+			target: 'handle',
+			shape: arrow,
+			handle: { id: 'end', type: 'vertex', index: 'a2' as IndexKey, x: 100, y: 0 },
+		})
+		editor.pointerMove(250, 100)
+		editor.expectToBeIn('select.dragging_handle')
+		expect(editor.inputs.getIsPointing()).toBe(true)
+
+		// The actual paste flow is async and not awaited at the call site, so
+		// shape creation isn't observable synchronously. Spy on
+		// markHistoryStoppingPoint('paste') — it is called the moment the paste
+		// flow commits to applying clipboard content — to detect whether the
+		// guard bailed.
+		const markSpy = vi.spyOn(editor, 'markHistoryStoppingPoint')
+
+		// jsdom does not provide DataTransfer; mock just enough for the paste
+		// flow to (otherwise) commit a text paste, so an unblocked paste would
+		// be visible via the spy.
+		const clipboardData = {
+			items: [
+				{
+					kind: 'string',
+					type: 'text/plain',
+					getAsString: (cb: (s: string) => void) => cb('hello world'),
+				},
+			],
+		} as unknown as DataTransfer
+		await handlePasteFromEventClipboardData(editor, clipboardData)
+		// Let any deferred microtasks settle.
+		await Promise.resolve()
+		await Promise.resolve()
+
+		editor.expectToBeIn('select.dragging_handle')
+		expect(markSpy).not.toHaveBeenCalledWith('paste')
+
+		markSpy.mockRestore()
 	})
 })
