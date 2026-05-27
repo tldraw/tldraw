@@ -702,7 +702,10 @@ describe('When double clicking the selection edge', () => {
 		editor.expectToBeIn('select.idle')
 	})
 
-	it('enters editing when triple clicking a grouped shape edge', () => {
+	it('drills into a group and enters editing on the trailing third click (2 + 1)', () => {
+		// 3 rapid clicks decompose as "double_click (drill) + click (edit)":
+		// click 1 selects the group, click 2 drills to the child, click 3
+		// lands on the now-selected child's text label and starts editing.
 		const childAId = createShapeId()
 		const childBId = createShapeId()
 		editor
@@ -718,13 +721,11 @@ describe('When double clicking the selection edge', () => {
 		const groupId = editor.getOnlySelectedShapeId()!
 		editor.selectNone()
 
+		const childA = editor.getShape(childAId)!
 		editor
-			.pointerMove(100, 150)
-			.click(100, 150)
-			.pointerMove(100, 150)
-			.click(100, 150)
-			.pointerMove(100, 150)
-			.click(100, 150)
+			.click(150, 150, { target: 'shape', shape: childA })
+			.click(150, 150, { target: 'shape', shape: childA })
+			.click(150, 150, { target: 'shape', shape: childA })
 
 		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
 		expect(editor.getFocusedGroupId()).toBe(groupId)
@@ -732,7 +733,12 @@ describe('When double clicking the selection edge', () => {
 		editor.expectToBeIn('select.editing_shape')
 	})
 
-	it('enters editing when quadruple clicking a shape edge inside nested groups', () => {
+	it('drills through nested groups and enters editing on the fourth click', () => {
+		// Each rapid click drills one level via PointingShape.onPointerUp:
+		// click 1 selects the outer group, click 2 drills to the inner group,
+		// click 3 drills to childA. Click 4 lands on the already-selected
+		// childA's text label and fires the PointingShape text-label-edit
+		// branch — drill, drill, drill, edit.
 		const childAId = createShapeId()
 		const childBId = createShapeId()
 		const childCId = createShapeId()
@@ -751,15 +757,12 @@ describe('When double clicking the selection edge', () => {
 			.groupShapes([innerGroupId, childCId], { groupId: outerGroupId })
 			.selectNone()
 
+		const childA = editor.getShape(childAId)!
 		editor
-			.pointerMove(100, 150)
-			.click(100, 150)
-			.pointerMove(100, 150)
-			.click(100, 150)
-			.pointerMove(100, 150)
-			.click(100, 150)
-			.pointerMove(100, 150)
-			.click(100, 150)
+			.click(150, 150, { target: 'shape', shape: childA })
+			.click(150, 150, { target: 'shape', shape: childA })
+			.click(150, 150, { target: 'shape', shape: childA })
+			.click(150, 150, { target: 'shape', shape: childA })
 
 		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
 		expect(editor.getFocusedGroupId()).toBe(innerGroupId)
@@ -783,13 +786,55 @@ describe('When double clicking the selection edge', () => {
 		const groupId = editor.getOnlySelectedShapeId()!
 		expect(editor.isShapeOfType(editor.getShape(groupId)!, 'group')).toBe(true)
 
-		editor.click(100, 100) // select the group
-		editor.click(100, 100) // select the child A and focus the group
+		// Drill into the group: first click selects the group, second click
+		// focuses the group and selects child A.
+		const childA = editor.getShape(childAId)!
+		editor
+			.click(150, 150, { target: 'shape', shape: childA })
+			.click(150, 150, { target: 'shape', shape: childA })
 		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
 		expect(editor.getFocusedGroupId()).toBe(groupId)
 
-		// Double click on the right edge of the child A
+		// Simulate the user pausing between drilling and starting the
+		// double-click — the ClickManager (and our snapshot of the focused
+		// group) reset at that boundary in production.
+		editor.cancelDoubleClick()
+
+		// Double-click on the right edge of child A — must enter editing even
+		// though the parent is a group, because the group is the focused one.
 		editor.doubleClick(200, 150, { target: 'selection', handle: 'right' })
+
+		expect(editor.getEditingShapeId()).toBe(childAId)
+		editor.expectToBeIn('select.editing_shape')
+	})
+
+	it('enters editing for a shape inside the focused group when double clicking the shape', () => {
+		const childAId = createShapeId()
+		const childBId = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([
+				{ id: childAId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+				{ id: childBId, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100 } },
+			])
+			.groupShapes([childAId, childBId])
+
+		const groupId = editor.getOnlySelectedShapeId()!
+
+		// Drill into the group, then (after the click sequence has settled)
+		// double-click the child directly.
+		const childA = editor.getShape(childAId)!
+		editor
+			.click(150, 150, { target: 'shape', shape: childA })
+			.click(150, 150, { target: 'shape', shape: childA })
+		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
+		expect(editor.getFocusedGroupId()).toBe(groupId)
+
+		editor.cancelDoubleClick()
+
+		editor.doubleClick(150, 150, { target: 'shape', shape: childA })
 
 		expect(editor.getEditingShapeId()).toBe(childAId)
 		editor.expectToBeIn('select.editing_shape')

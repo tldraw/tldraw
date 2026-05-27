@@ -1,11 +1,14 @@
 import {
+	ClickManager,
 	Editor,
 	StateNode,
 	TLAdjacentDirection,
 	TLClickEventInfo,
 	TLKeyboardEventInfo,
+	TLPageId,
 	TLPointerEventInfo,
 	TLShape,
+	TLShapeId,
 	Vec,
 	VecLike,
 	createShapeId,
@@ -41,6 +44,15 @@ export class Idle extends StateNode {
 
 	selectedShapesOnKeyDown: TLShape[] = []
 
+	// Snapshot of `getFocusedGroupId()` captured at the first pointer-down of
+	// the current potential multi-click sequence. Used by `onDoubleClick` to
+	// distinguish "user was already drilled into the group" from "user is
+	// drilling in right now". Without this snapshot the two cases look
+	// identical at `onDoubleClick` time, because the second click's
+	// `onPointerUp` drills in and sets the focused group before the synthetic
+	// `double_click` event fires.
+	private focusedGroupIdBeforePointerDown: TLShapeId | TLPageId | null = null
+
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
@@ -67,6 +79,21 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
+		// Snapshot the focused group id at the *start* of a potential
+		// multi-click sequence so that `onDoubleClick` can later distinguish
+		// "user was already drilled into the group" from "user is drilling in
+		// right now". The drilling happens in `pointing_shape.onPointerUp`,
+		// after this point, and would otherwise make the two cases
+		// indistinguishable.
+		//
+		// `ClickManager.handlePointerEvent` has already advanced the click
+		// state for this pointer-down before we get here, so `pendingDouble`
+		// means this *is* the first click of a fresh sequence (idle ->
+		// pendingDouble). Subsequent clicks would be pendingTriple or later.
+		if (this.getClickManager().clickState === 'pendingDouble') {
+			this.focusedGroupIdBeforePointerDown = this.editor.getFocusedGroupId()
+		}
+
 		switch (info.target) {
 			case 'canvas': {
 				// Check overlays first — if we hit an overlay, re-dispatch as an overlay event
@@ -373,11 +400,16 @@ export class Idle extends StateNode {
 				}
 
 				const parent = this.editor.getShapeParent(onlySelectedShape)
-				const isParentGroup = parent ? this.editor.isShapeOfType(parent, 'group') : false
-
-				if (isParentGroup) {
-					this.editor.setSelectedShapes([onlySelectedShape])
-					break
+				if (parent && this.editor.isShapeOfType(parent, 'group')) {
+					// Only allow the double-click through when the user had
+					// already drilled into this group *before* the click that
+					// triggered this double-click. Otherwise the second click
+					// of a drilling sequence (which is what set this group as
+					// the focused group in the first place) would also enter
+					// editing — see the snapshot captured in `onPointerDown`.
+					if (parent.id !== this.focusedGroupIdBeforePointerDown) {
+						break
+					}
 				}
 
 				const util = this.editor.getShapeUtil(onlySelectedShape)
@@ -448,11 +480,16 @@ export class Idle extends StateNode {
 				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
 
 				const parent = this.editor.getShapeParent(shape)
-				const isParentGroup = parent ? this.editor.isShapeOfType(parent, 'group') : false
-
-				if (isParentGroup) {
-					this.editor.setSelectedShapes([shape])
-					break
+				if (parent && this.editor.isShapeOfType(parent, 'group')) {
+					// Only allow the double-click through when the user had
+					// already drilled into this group *before* the click that
+					// triggered this double-click. Otherwise the second click
+					// of a drilling sequence (which is what set this group as
+					// the focused group in the first place) would also enter
+					// editing — see the snapshot captured in `onPointerDown`.
+					if (parent.id !== this.focusedGroupIdBeforePointerDown) {
+						break
+					}
 				}
 
 				if (util.onDoubleClick) {
@@ -716,6 +753,14 @@ export class Idle extends StateNode {
 				break
 			}
 		}
+	}
+
+	private getClickManager(): ClickManager {
+		// `_clickManager` is a protected property of `Editor`. We need to read
+		// its click state to detect the start of a multi-click sequence; the
+		// `ClickManager` class itself is exported as public API. See the
+		// snapshot logic in `onPointerDown` / `onDoubleClick` for the why.
+		return (this.editor as unknown as { _clickManager: ClickManager })._clickManager
 	}
 
 	private startEditingShape(
