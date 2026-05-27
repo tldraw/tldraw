@@ -81,6 +81,10 @@ export class Pointing extends StateNode {
 		this.cancel()
 	}
 
+	override onLongPress() {
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
+	}
+
 	cancel() {
 		if (this.shape) {
 			// the arrow might not have been created yet!
