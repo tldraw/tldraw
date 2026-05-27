@@ -718,6 +718,7 @@ export const DefaultSvgDefs: () => null;
 export const defaultTldrawOptions: {
     readonly actionShortcutsLocation: "swap";
     readonly adjacentShapeMargin: 10;
+    readonly allowVideoAutoplay: true;
     readonly animationMediumMs: 320;
     readonly camera: TLCameraOptions;
     readonly cameraMovingTimeoutMs: 64;
@@ -788,7 +789,6 @@ export const defaultTldrawOptions: {
     readonly tooltipDelayMs: 700;
     readonly uiCoarseDragDistanceSquared: 625;
     readonly uiDragDistanceSquared: 16;
-    readonly videoAutoplay: true;
     readonly zoomToFitPadding: 128;
 };
 
@@ -3755,6 +3755,7 @@ export interface TldrawOptions {
     readonly actionShortcutsLocation: 'menu' | 'swap' | 'toolbar';
     // (undocumented)
     readonly adjacentShapeMargin: number;
+    readonly allowVideoAutoplay: boolean;
     // (undocumented)
     readonly animationMediumMs: number;
     readonly branding?: string;
@@ -3861,7 +3862,6 @@ export interface TldrawOptions {
     readonly uiCoarseDragDistanceSquared: number;
     // (undocumented)
     readonly uiDragDistanceSquared: number;
-    readonly videoAutoplay: boolean;
     readonly zoomToFitPadding: number;
 }
 

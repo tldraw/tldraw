@@ -219,7 +219,7 @@ export interface TldrawOptions {
 	 * default is controlled by `VideoShapeOptions.autoplay` on `VideoShapeUtil`. The
 	 * `prefers-reduced-motion` media query continues to suppress autoplay independently.
 	 */
-	readonly videoAutoplay: boolean
+	readonly allowVideoAutoplay: boolean
 	/**
 	 * Called before content is written to the clipboard during a copy or cut operation.
 	 * Receives the serialized content (shapes, bindings, assets) and can filter or transform
@@ -358,7 +358,7 @@ export const defaultTldrawOptions = {
 	text: {},
 	deepLinks: undefined,
 	quickZoomPreservesScreenBounds: true,
-	videoAutoplay: true,
+	allowVideoAutoplay: true,
 	onBeforeCopyToClipboard: undefined,
 	onBeforePasteFromClipboard: undefined,
 	onClipboardPasteRaw: undefined,
