@@ -94,7 +94,6 @@
 	"devDependencies": {
 		"@lingual/i18n-check": "^0.5.5",
 		"@microsoft/api-extractor": "^7.55.2",
-		"@next/eslint-plugin-next": "^15.1.6",
 		"@swc/core": "^1.15.18",
 		"@types/adm-zip": "^0.5.7",
 		"@types/aws-lambda": "8.10.148",
@@ -131,6 +130,17 @@
 		"our examples app depenends on pdf.js which pulls in canvas as an optional dependency.",
 		"it slows down installs quite a bit though, so we replace it with an empty package."
 	],
+	"// dependenciesMeta.workerd": [
+		"workerd's postinstall script runs the native binary to self-check it, which fails on",
+		"CI images without GLIBC 2.35+ (e.g. Vercel, which builds the docs site). Skipping the",
+		"build script doesn't affect wrangler at dev time — wrangler still invokes the platform",
+		"binary normally on developer machines."
+	],
+	"dependenciesMeta": {
+		"workerd": {
+			"built": false
+		}
+	},
 	"resolutions": {
 		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch",
 		"canvas": "npm:empty-npm-package@1.0.0",
