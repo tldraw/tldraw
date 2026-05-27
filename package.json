@@ -85,7 +85,7 @@
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,cjs,mjs}": [
 			"oxfmt --no-error-on-unmatched-pattern",
-			"oxlint --disable-nested-config"
+			"oxlint"
 		],
 		"*.{css,md,mdx,html,yml,yaml}": [
 			"oxfmt --no-error-on-unmatched-pattern"
@@ -116,7 +116,7 @@
 		"lint-staged": "^15.4.3",
 		"open-cli": "^8.0.0",
 		"oxfmt": "^0.41.0",
-		"oxlint": "^1.58.0",
+		"oxlint": "^1.66.0",
 		"oxlint-tsgolint": "^0.18.0",
 		"rimraf": "^4.4.1",
 		"tsx": "^4.19.2",
