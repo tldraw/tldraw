@@ -715,7 +715,11 @@ describe('When pasting during a pointer interaction', () => {
 			],
 		} as unknown as DataTransfer
 		await handlePasteFromEventClipboardData(editor, clipboardData)
-		// Let any deferred microtasks settle.
+		// The paste flow returns its outer Promise before its inner work runs;
+		// drain a couple of microtask ticks so the spy can observe whether
+		// `markHistoryStoppingPoint('paste')` was reached. setTimeout(0) is
+		// avoided here because it interleaves with the paste flow's own
+		// timer-based work and can hang the test on the negative case.
 		await Promise.resolve()
 		await Promise.resolve()
 
