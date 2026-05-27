@@ -9,6 +9,14 @@ Create a GitHub issue on `tldraw/tldraw` from a user description, then research 
 
 Use `../write-issue/SKILL.md` as the standards reference for issue titles, bodies, types, labels, and triage conventions.
 
+At the top of the issue, include the user's original description verbatim. Annotate it with the human emoji, separated from your work by a horizontal rule. Example:
+
+```
+🧑: {user_description}
+
+---
+```
+
 ## Workflow
 
 1. Gather context:
