@@ -2397,7 +2397,7 @@ export function GroupMenuItem(): JSX.Element | null;
 export function GroupOrUngroupMenuItem(): JSX.Element;
 
 // @public
-export function handleNativeOrMenuCopy(editor: Editor, context?: TLClipboardWriteInfo): Promise<boolean>;
+export const handleNativeOrMenuCopy: (editor: Editor, context?: TLClipboardWriteInfo) => Promise<boolean>;
 
 // @public (undocumented)
 export class HandTool extends StateNode {

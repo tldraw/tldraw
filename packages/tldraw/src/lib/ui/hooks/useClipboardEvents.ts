@@ -236,11 +236,11 @@ type ClipboardThing =
  * @param point - The point to paste at
  * @internal
  */
-export async function handlePasteFromEventClipboardData(
+export const handlePasteFromEventClipboardData = async (
 	editor: Editor,
 	clipboardData: DataTransfer,
 	point?: VecLike
-) {
+) => {
 	// Do not paste while in any editing state, or while the user is in the middle
 	// of a pointer interaction (e.g. dragging an arrow handle, resizing, or
 	// translating a shape) — paste would change selection and create shapes
@@ -295,7 +295,7 @@ export async function handlePasteFromEventClipboardData(
  * @param point - The point to paste at
  * @internal
  */
-async function handlePasteFromClipboardApi({
+const handlePasteFromClipboardApi = async ({
 	editor,
 	clipboardItems,
 	point,
@@ -307,7 +307,7 @@ async function handlePasteFromClipboardApi({
 	point?: VecLike
 	fallbackFiles?: File[]
 	clipboardPasteSource: 'native-event' | 'clipboard-read'
-}) {
+}) => {
 	// We need to populate the array of clipboard things
 	// based on the ClipboardItems from the Clipboard API.
 	// This is done in a different way than when using
@@ -700,10 +700,10 @@ async function handleClipboardThings(
  *
  * @public
  */
-export async function handleNativeOrMenuCopy(
+export const handleNativeOrMenuCopy = async (
 	editor: Editor,
 	context: TLClipboardWriteInfo = { operation: 'copy', source: 'menu' }
-): Promise<boolean> {
+): Promise<boolean> => {
 	const nav = editor.getContainerWindow().navigator
 	let content = await editor.resolveAssetsInContent(
 		editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
