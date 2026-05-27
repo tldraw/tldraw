@@ -697,10 +697,7 @@ export function DefaultBackground(): JSX.Element;
 export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultErrorFallback({ error, editor }: {
-    editor?: Editor;
-    error: unknown;
-}): JSX.Element;
+export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
 export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX.Element;
