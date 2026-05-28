@@ -46,7 +46,8 @@ type CrossTabMessage =
 	| { _ct: 'leader-status'; status: TLPersistentClientSocketStatus; reason?: string }
 	| { _ct: 'follower-hello'; fromTabId: string }
 	| { _ct: 'client'; fromTabId: string; msg: TLSocketClientSentEvent<TLRecord> }
-	| { _ct: 'server'; msg: TLSocketServerSentEvent<TLRecord> }
+	| { _ct: 'server-all'; msg: TLSocketServerSentEvent<TLRecord> }
+	| { _ct: 'server-to'; toTabId: string; msg: TLSocketServerSentEvent<TLRecord> }
 
 /** @internal */
 export interface CrossTabSocketOptions {
@@ -88,19 +89,16 @@ function toStatusChangeEvent(status: TLPersistentClientSocketStatus): TLSocketSt
  * The tab that wins a Web Lock acts as the leader and owns the only real
  * WebSocket. Other tabs ("followers") send their client messages through a
  * `BroadcastChannel`; the leader forwards them to the server. Server
- * messages flow back over the same channel and are delivered to every tab.
+ * messages flow back the same way — broadcast for changes that all tabs
+ * care about, routed by `clientClock` / `connectRequestId` for responses
+ * that belong to a specific tab.
  *
  * When the Web Locks API is unavailable (some embedded webviews), the
  * adapter silently falls back to per-tab sockets so consumers see today's
  * behavior.
  *
- * Known gaps in this first cut (addressed in follow-up commits):
+ * Known gaps in this cut (addressed in follow-up commits):
  *
- * - **`clientClock` collisions.** Each follower's `TLSyncClient` numbers
- *   pushes from 0; routing the response back currently happens by
- *   broadcasting to all tabs and letting them filter by client clock — fine
- *   for a single tab in the pool, broken for concurrent pushes from
- *   multiple.
  * - **Same-pool sibling state drift.** The server suppresses self-broadcasts
  *   for the originating session, so a commit from one of our tabs doesn't
  *   produce a `patch` for the others. They diverge until reconnect.
@@ -150,6 +148,29 @@ export class CrossTabSocket
 
 	private readonly handleChannelMessage = (ev: MessageEvent) =>
 		this._handleChannelMessage(ev.data as CrossTabMessage)
+
+	// === Leader-side routing tables ===
+
+	/**
+	 * Maps the leader-allocated `clientClock` to the original sender. Every
+	 * tab's `TLSyncClient` numbers its own push requests independently, so
+	 * `clientClock=0` from one tab and `clientClock=0` from another would
+	 * collide on the server. The leader allocates a fresh monotonic clock
+	 * for each forwarded push and uses this table to rewrite the matching
+	 * `push_result` back to the originator's original clientClock.
+	 */
+	private readonly pushRouting = new Map<
+		number,
+		{ fromTabId: string; originalClock: number }
+	>()
+	private nextLeaderClock = 0
+
+	/**
+	 * Maps `connectRequestId` to the tab that sent the connect request. The
+	 * server echoes `connectRequestId` back in its connect response;
+	 * `TLSyncClient` uses it to match its in-flight handshake.
+	 */
+	private readonly connectRouting = new Map<string, string>()
 
 	constructor(getUri: () => Promise<string> | string, options: CrossTabSocketOptions) {
 		this.getUri = getUri
@@ -207,12 +228,7 @@ export class CrossTabSocket
 
 	sendMessage(msg: TLSocketClientSentEvent<TLRecord>): void {
 		assert(!this.isDisposed, 'Tried to send message on a disposed CrossTabSocket')
-		if (this.mode === 'leader' || this.mode === 'fallback') {
-			this.leaderSocket?.sendMessage(msg)
-			return
-		}
-		// Follower / pending: forward via channel for the leader to pick up.
-		this._postChannel({ _ct: 'client', fromTabId: this.tabId, msg })
+		this._handleClientMessage(this.tabId, msg)
 	}
 
 	onReceiveMessage(cb: (val: TLSocketServerSentEvent<TLRecord>) => void): () => void {
@@ -253,6 +269,8 @@ export class CrossTabSocket
 
 		this.messageListeners.clear()
 		this.statusListeners.clear()
+		this.pushRouting.clear()
+		this.connectRouting.clear()
 	}
 
 	// === Leader election ===
@@ -302,14 +320,151 @@ export class CrossTabSocket
 		this._applyLocalStatus(toStatusChangeEvent(ws.connectionStatus))
 	}
 
+	// === Outbound: client → server ===
+
+	/**
+	 * Handle a client-sent message that needs to reach the server. Called for
+	 * both the local tab's `sendMessage` and follower-sent messages received
+	 * over the channel.
+	 */
+	private _handleClientMessage(fromTabId: string, msg: TLSocketClientSentEvent<TLRecord>) {
+		if (this.mode === 'leader' || this.mode === 'fallback') {
+			this._forwardClientMessageToServer(fromTabId, msg)
+		} else {
+			// Follower / pending: forward via channel for the leader to pick up.
+			this._postChannel({ _ct: 'client', fromTabId, msg })
+		}
+	}
+
+	/**
+	 * Forward a client message to the underlying WebSocket, remapping clocks /
+	 * tracking routing info as needed so we can deliver the server's response
+	 * back to the right tab.
+	 */
+	private _forwardClientMessageToServer(
+		fromTabId: string,
+		msg: TLSocketClientSentEvent<TLRecord>
+	) {
+		assert(this.leaderSocket)
+
+		switch (msg.type) {
+			case 'push': {
+				const leaderClock = this.nextLeaderClock++
+				this.pushRouting.set(leaderClock, { fromTabId, originalClock: msg.clientClock })
+				this.leaderSocket.sendMessage({ ...msg, clientClock: leaderClock })
+				return
+			}
+			case 'connect': {
+				this.connectRouting.set(msg.connectRequestId, fromTabId)
+				this.leaderSocket.sendMessage(msg)
+				return
+			}
+			default:
+				// ping, custom, ...: no routing state needed.
+				this.leaderSocket.sendMessage(msg)
+				return
+		}
+	}
+
 	// === Inbound: server → tabs ===
 
+	/**
+	 * Dispatch a server-sent message to the right recipients. Most messages
+	 * are room-wide and broadcast to every tab; a few are routed by an id we
+	 * remembered when forwarding the corresponding client message:
+	 *
+	 * - `connect` → routed to the tab whose `connectRequestId` matches.
+	 * - `push_result` → routed back to the originating tab (with their
+	 *   original `clientClock`).
+	 * - `data` → split: routed entries are dispatched per-tab, broadcast
+	 *   entries go to all tabs.
+	 */
 	private _handleServerMessage(msg: TLSocketServerSentEvent<TLRecord>) {
-		// Naive routing: every server message goes to every tab in the pool.
-		// Follow-up commits route per-tab where it matters (push_result,
-		// connect) and synthesize sibling patches.
+		switch (msg.type) {
+			case 'connect':
+				this._handleServerConnect(msg)
+				return
+			case 'push_result':
+				this._handleServerPushResult(msg)
+				return
+			case 'data':
+				this._handleServerDataBatch(msg)
+				return
+			default:
+				this._deliverServerMessageToAll(msg)
+				return
+		}
+	}
+
+	private _handleServerConnect(
+		msg: Extract<TLSocketServerSentEvent<TLRecord>, { type: 'connect' }>
+	) {
+		const tabId = this.connectRouting.get(msg.connectRequestId)
+		if (!tabId) {
+			// We never saw a connect with this id — probably a race during
+			// leader handoff. Broadcast as a safe default; tabs whose
+			// connectRequestId doesn't match will ignore it inside TLSyncClient.
+			this._deliverServerMessageToAll(msg)
+			return
+		}
+		this.connectRouting.delete(msg.connectRequestId)
+		this._deliverServerMessageTo(tabId, msg)
+	}
+
+	private _handleServerPushResult(
+		msg: Extract<TLSocketServerSentEvent<TLRecord>, { type: 'push_result' }>
+	) {
+		const route = this.pushRouting.get(msg.clientClock)
+		if (!route) {
+			// Stale result (lost mapping across leader handoff?). Drop quietly.
+			return
+		}
+		this.pushRouting.delete(msg.clientClock)
+		this._deliverServerMessageTo(route.fromTabId, { ...msg, clientClock: route.originalClock })
+	}
+
+	private _handleServerDataBatch(
+		msg: Extract<TLSocketServerSentEvent<TLRecord>, { type: 'data' }>
+	) {
+		// Bucket inner events by destination: routed push_results per
+		// originator, broadcast entries to everyone.
+		const routedByTab = new Map<string, typeof msg.data>()
+		const broadcastInner: typeof msg.data = []
+
+		for (const inner of msg.data) {
+			if (inner.type !== 'push_result') {
+				broadcastInner.push(inner)
+				continue
+			}
+			const route = this.pushRouting.get(inner.clientClock)
+			if (!route) continue
+			this.pushRouting.delete(inner.clientClock)
+			const list = routedByTab.get(route.fromTabId) ?? []
+			list.push({ ...inner, clientClock: route.originalClock })
+			routedByTab.set(route.fromTabId, list)
+		}
+
+		if (broadcastInner.length > 0) {
+			this._deliverServerMessageToAll({ type: 'data', data: broadcastInner })
+		}
+		for (const [toTabId, list] of routedByTab) {
+			this._deliverServerMessageTo(toTabId, { type: 'data', data: list })
+		}
+	}
+
+	private _deliverServerMessageToAll(msg: TLSocketServerSentEvent<TLRecord>) {
+		// Local first so the leader's own TLSyncClient processes it in the
+		// same order as other tabs (which see it via the channel post below).
 		this.messageListeners.forEach((cb) => cb(msg))
-		this._postChannel({ _ct: 'server', msg })
+		this._postChannel({ _ct: 'server-all', msg })
+	}
+
+	private _deliverServerMessageTo(toTabId: string, msg: TLSocketServerSentEvent<TLRecord>) {
+		if (toTabId === this.tabId) {
+			this.messageListeners.forEach((cb) => cb(msg))
+		} else {
+			this._postChannel({ _ct: 'server-to', toTabId, msg })
+		}
 	}
 
 	// === Status propagation ===
@@ -352,8 +507,11 @@ export class CrossTabSocket
 			case 'client':
 				this._onChannelClientMessage(msg)
 				return
-			case 'server':
-				this._onChannelServerMessage(msg)
+			case 'server-all':
+				this._onChannelServerAll(msg)
+				return
+			case 'server-to':
+				this._onChannelServerTo(msg)
 				return
 		}
 	}
@@ -385,11 +543,16 @@ export class CrossTabSocket
 	private _onChannelClientMessage(msg: Extract<CrossTabMessage, { _ct: 'client' }>) {
 		if (this.mode !== 'leader') return
 		if (msg.fromTabId === this.tabId) return
-		this.leaderSocket?.sendMessage(msg.msg)
+		this._forwardClientMessageToServer(msg.fromTabId, msg.msg)
 	}
 
-	private _onChannelServerMessage(msg: Extract<CrossTabMessage, { _ct: 'server' }>) {
+	private _onChannelServerAll(msg: Extract<CrossTabMessage, { _ct: 'server-all' }>) {
 		if (this.mode === 'leader' || this.mode === 'fallback') return
+		this.messageListeners.forEach((cb) => cb(msg.msg))
+	}
+
+	private _onChannelServerTo(msg: Extract<CrossTabMessage, { _ct: 'server-to' }>) {
+		if (msg.toTabId !== this.tabId) return
 		this.messageListeners.forEach((cb) => cb(msg.msg))
 	}
 }

@@ -282,7 +282,177 @@ describe('CrossTabSocket: message forwarding', () => {
 		b.close()
 	})
 
-	it('broadcasts server messages to every tab', async () => {
+	it('remaps push clientClocks so concurrent followers do not collide', async () => {
+		const a = buildTab({ channels, locks, channelKey: 'room1', tabId: 'A', sockets })
+		await flushMicrotasks()
+		const b = buildTab({ channels, locks, channelKey: 'room1', tabId: 'B', sockets })
+		await flushMicrotasks()
+		const c = buildTab({ channels, locks, channelKey: 'room1', tabId: 'C', sockets })
+		await flushMicrotasks()
+
+		// Each tab's own TLSyncClient would start its clientClock at 0.
+		a.sendMessage({ type: 'push', clientClock: 0 })
+		b.sendMessage({ type: 'push', clientClock: 0 })
+		c.sendMessage({ type: 'push', clientClock: 0 })
+
+		const sent = sockets[0].sent.filter(
+			(m): m is Extract<TLSocketClientSentEvent<TLRecord>, { type: 'push' }> => m.type === 'push'
+		)
+		const clocks = sent.map((m) => m.clientClock)
+		// All three got distinct remapped clocks.
+		expect(new Set(clocks).size).toBe(3)
+
+		a.close()
+		b.close()
+		c.close()
+	})
+
+	it('routes push_result back to the originating tab with its original clientClock', async () => {
+		const a = buildTab({ channels, locks, channelKey: 'room1', tabId: 'A', sockets })
+		await flushMicrotasks()
+		const b = buildTab({ channels, locks, channelKey: 'room1', tabId: 'B', sockets })
+		await flushMicrotasks()
+
+		const aReceived: TLSocketServerSentEvent<TLRecord>[] = []
+		const bReceived: TLSocketServerSentEvent<TLRecord>[] = []
+		a.onReceiveMessage((m) => aReceived.push(m))
+		b.onReceiveMessage((m) => bReceived.push(m))
+
+		// Both push at their own clientClock=0.
+		a.sendMessage({ type: 'push', clientClock: 0 })
+		b.sendMessage({ type: 'push', clientClock: 0 })
+
+		const pushes = sockets[0].sent.filter(
+			(m): m is Extract<TLSocketClientSentEvent<TLRecord>, { type: 'push' }> => m.type === 'push'
+		)
+		expect(pushes).toHaveLength(2)
+		const [aRemapped, bRemapped] = pushes.map((p) => p.clientClock)
+
+		// Server responds out of order, with B's first then A's.
+		sockets[0]._emitServerMessage({
+			type: 'push_result',
+			clientClock: bRemapped,
+			serverClock: 1,
+			action: 'commit',
+		})
+		sockets[0]._emitServerMessage({
+			type: 'push_result',
+			clientClock: aRemapped,
+			serverClock: 2,
+			action: 'commit',
+		})
+
+		// Each tab received exactly its own push_result with its own clientClock.
+		expect(aReceived).toEqual([
+			{ type: 'push_result', clientClock: 0, serverClock: 2, action: 'commit' },
+		])
+		expect(bReceived).toEqual([
+			{ type: 'push_result', clientClock: 0, serverClock: 1, action: 'commit' },
+		])
+
+		a.close()
+		b.close()
+	})
+
+	it('splits a mixed data batch between routed push_results and broadcast patches', async () => {
+		const a = buildTab({ channels, locks, channelKey: 'room1', tabId: 'A', sockets })
+		await flushMicrotasks()
+		const b = buildTab({ channels, locks, channelKey: 'room1', tabId: 'B', sockets })
+		await flushMicrotasks()
+
+		const aReceived: TLSocketServerSentEvent<TLRecord>[] = []
+		const bReceived: TLSocketServerSentEvent<TLRecord>[] = []
+		a.onReceiveMessage((m) => aReceived.push(m))
+		b.onReceiveMessage((m) => bReceived.push(m))
+
+		a.sendMessage({ type: 'push', clientClock: 0 })
+		b.sendMessage({ type: 'push', clientClock: 0 })
+		const pushes = sockets[0].sent.filter(
+			(m): m is Extract<TLSocketClientSentEvent<TLRecord>, { type: 'push' }> => m.type === 'push'
+		)
+		const [aRemapped, bRemapped] = pushes.map((p) => p.clientClock)
+
+		sockets[0]._emitServerMessage({
+			type: 'data',
+			data: [
+				{ type: 'push_result', clientClock: aRemapped, serverClock: 3, action: 'commit' },
+				{ type: 'push_result', clientClock: bRemapped, serverClock: 4, action: 'commit' },
+				{ type: 'patch', diff: {}, serverClock: 5 },
+			],
+		})
+
+		const flatten = (msgs: TLSocketServerSentEvent<TLRecord>[]) =>
+			msgs.flatMap((m) => (m.type === 'data' ? m.data : [m]))
+
+		const aFlat = flatten(aReceived)
+		const bFlat = flatten(bReceived)
+
+		// Everyone gets the broadcast patch.
+		expect(aFlat).toContainEqual({ type: 'patch', diff: {}, serverClock: 5 })
+		expect(bFlat).toContainEqual({ type: 'patch', diff: {}, serverClock: 5 })
+		// Each tab gets only its own push_result.
+		expect(aFlat).toContainEqual({
+			type: 'push_result',
+			clientClock: 0,
+			serverClock: 3,
+			action: 'commit',
+		})
+		expect(aFlat).not.toContainEqual(
+			expect.objectContaining({ type: 'push_result', serverClock: 4 })
+		)
+		expect(bFlat).toContainEqual({
+			type: 'push_result',
+			clientClock: 0,
+			serverClock: 4,
+			action: 'commit',
+		})
+		expect(bFlat).not.toContainEqual(
+			expect.objectContaining({ type: 'push_result', serverClock: 3 })
+		)
+
+		a.close()
+		b.close()
+	})
+
+	it('routes connect responses back via connectRequestId', async () => {
+		const a = buildTab({ channels, locks, channelKey: 'room1', tabId: 'A', sockets })
+		await flushMicrotasks()
+		const b = buildTab({ channels, locks, channelKey: 'room1', tabId: 'B', sockets })
+		await flushMicrotasks()
+
+		const aReceived: TLSocketServerSentEvent<TLRecord>[] = []
+		const bReceived: TLSocketServerSentEvent<TLRecord>[] = []
+		a.onReceiveMessage((m) => aReceived.push(m))
+		b.onReceiveMessage((m) => bReceived.push(m))
+
+		b.sendMessage({
+			type: 'connect',
+			connectRequestId: 'cr-B',
+			lastServerClock: 0,
+			protocolVersion: 1,
+			schema: { schemaVersion: 2, sequences: {} } as any,
+		})
+
+		sockets[0]._emitServerMessage({
+			type: 'connect',
+			connectRequestId: 'cr-B',
+			hydrationType: 'wipe_all',
+			protocolVersion: 1,
+			schema: { schemaVersion: 2, sequences: {} } as any,
+			diff: {},
+			serverClock: 1,
+			isReadonly: false,
+		})
+
+		expect(aReceived).toHaveLength(0)
+		expect(bReceived).toHaveLength(1)
+		expect(bReceived[0]).toMatchObject({ type: 'connect', connectRequestId: 'cr-B' })
+
+		a.close()
+		b.close()
+	})
+
+	it('broadcasts pong / patch messages to every tab', async () => {
 		const a = buildTab({ channels, locks, channelKey: 'room1', tabId: 'A', sockets })
 		await flushMicrotasks()
 		const b = buildTab({ channels, locks, channelKey: 'room1', tabId: 'B', sockets })
