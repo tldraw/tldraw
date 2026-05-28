@@ -718,6 +718,7 @@ export const DefaultSvgDefs: () => null;
 export const defaultTldrawOptions: {
     readonly actionShortcutsLocation: "swap";
     readonly adjacentShapeMargin: 10;
+    readonly allowVideoAutoplay: true;
     readonly animationMediumMs: 320;
     readonly camera: TLCameraOptions;
     readonly cameraMovingTimeoutMs: 64;
@@ -3754,6 +3755,7 @@ export interface TldrawOptions {
     readonly actionShortcutsLocation: 'menu' | 'swap' | 'toolbar';
     // (undocumented)
     readonly adjacentShapeMargin: number;
+    readonly allowVideoAutoplay: boolean;
     // (undocumented)
     readonly animationMediumMs: number;
     readonly branding?: string;

@@ -210,6 +210,17 @@ export interface TldrawOptions {
 	 */
 	readonly quickZoomPreservesScreenBounds: boolean
 	/**
+	 * Whether video shapes are allowed to autoplay. When `true` (the default), each
+	 * video respects its own `shape.props.autoplay` value. When `false`, no video
+	 * autoplays regardless of its shape prop — useful for host apps that want to
+	 * disable autoplay across the board, including for pasted or restored shapes.
+	 *
+	 * This does not change the per-shape `autoplay` prop on new video shapes — that
+	 * default is controlled by `VideoShapeOptions.autoplay` on `VideoShapeUtil`. The
+	 * `prefers-reduced-motion` media query continues to suppress autoplay independently.
+	 */
+	readonly allowVideoAutoplay: boolean
+	/**
 	 * Called before content is written to the clipboard during a copy or cut operation.
 	 * Receives the serialized content (shapes, bindings, assets) and can filter or transform
 	 * it before it reaches the clipboard.
@@ -347,6 +358,7 @@ export const defaultTldrawOptions = {
 	text: {},
 	deepLinks: undefined,
 	quickZoomPreservesScreenBounds: true,
+	allowVideoAutoplay: true,
 	onBeforeCopyToClipboard: undefined,
 	onBeforePasteFromClipboard: undefined,
 	onClipboardPasteRaw: undefined,

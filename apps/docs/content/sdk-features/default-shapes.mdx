@@ -324,6 +324,12 @@ const ConfiguredVideoUtil = VideoShapeUtil.configure({
 })
 ```
 
+To disable autoplay across the board — including for pasted or restored shapes — set the editor-level `allowVideoAutoplay` option to `false` instead:
+
+```tsx
+<Tldraw options={{ allowVideoAutoplay: false }} />
+```
+
 ### Bookmark
 
 The bookmark shape displays a URL as a card with metadata including title, description, and preview image. Bookmarks are created when you paste URLs onto the canvas. The editor fetches metadata from the URL and stores it in an associated asset record. Bookmark shapes have fixed dimensions and can't be resized.
