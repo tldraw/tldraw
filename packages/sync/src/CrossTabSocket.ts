@@ -41,19 +41,24 @@ export interface CrossTabLockManager {
 
 /**
  * Browser-environment hooks {@link CrossTabSocket} uses to react to focus
- * (and later, visibility) changes. Pulled out as an interface so tests can
- * drive them deterministically; in production we wrap `window` and
- * `document`.
+ * and visibility changes. Pulled out as an interface so tests can drive
+ * them deterministically; in production we wrap `window` and `document`.
  *
  * Focus drives the **presenter** role — the tab whose cursor moves should
- * be broadcast. Only the focused tab receives pointer events, so it's
- * the only one with live cursor data to push.
+ * be broadcast. Only the focused tab receives pointer events, so it's the
+ * only one with live cursor data to push.
+ *
+ * Visibility drives **leader handoff** — a hidden leader can't keep the
+ * socket healthy because background-tab timer throttling clamps the ping
+ * interval, so the lock should migrate to a visible tab.
  *
  * @internal
  */
 export interface CrossTabBrowserEnv {
 	hasFocus(): boolean
+	isVisible(): boolean
 	onFocus(cb: () => void): () => void
+	onVisibilityChange(cb: () => void): () => void
 }
 
 /**
@@ -64,11 +69,21 @@ const defaultBrowserEnv: CrossTabBrowserEnv = {
 	hasFocus() {
 		return typeof document !== 'undefined' ? document.hasFocus() : false
 	},
+	isVisible() {
+		if (typeof document === 'undefined') return true
+		return document.visibilityState === 'visible'
+	},
 	onFocus(cb) {
 		if (typeof window === 'undefined') return () => {}
 		const handler = () => cb()
 		window.addEventListener('focus', handler)
 		return () => window.removeEventListener('focus', handler)
+	},
+	onVisibilityChange(cb) {
+		if (typeof document === 'undefined') return () => {}
+		const handler = () => cb()
+		document.addEventListener('visibilitychange', handler)
+		return () => document.removeEventListener('visibilitychange', handler)
 	},
 }
 
@@ -94,6 +109,18 @@ type CrossTabMessage =
 	 * delivery over the channel doesn't matter.
 	 */
 	| { _ct: 'presenter-claim'; tabId: string; claim: number }
+	/**
+	 * Sent on `visibilitychange` (and once on construction). Lets each tab
+	 * maintain a set of currently-visible peers so the leader knows whether
+	 * to release its lock when it becomes hidden.
+	 */
+	| { _ct: 'visibility'; tabId: string; visible: boolean }
+	/**
+	 * Asks all peers to broadcast their current visibility, so a tab
+	 * joining mid-session can populate its peer-visibility set without
+	 * waiting for the next `visibilitychange`.
+	 */
+	| { _ct: 'visibility-request'; fromTabId: string }
 
 /** @internal */
 export interface CrossTabSocketOptions {
@@ -158,10 +185,10 @@ function toStatusChangeEvent(status: TLPersistentClientSocketStatus): TLSocketSt
  * presence even when N tabs share a session, so other peers in the room
  * see a single cursor for this user.
  *
- * Known gaps in this cut (addressed in follow-up commits):
- *
- * - **Hidden-leader throttling.** A backgrounded leader's timers get
- *   clamped, the server hangs up. No automatic handoff yet.
+ * Leader migration is driven by visibility: a hidden tab releases the
+ * lock when any peer is visible, since hidden tabs get their timers
+ * throttled and can't keep the WebSocket healthy. A visible tab re-
+ * requests the lock when it becomes visible again.
  *
  * @internal
  */
@@ -252,6 +279,18 @@ export class CrossTabSocket
 	private highestPresenterClaim = 0
 	private highestPresenterTabId = ''
 
+	// === Visibility tracking ===
+
+	private myIsVisible = true
+	/** Last-seen visibility of each peer tab, keyed by tabId. */
+	private readonly peerVisibility = new Map<string, boolean>()
+	/**
+	 * Whether we currently have an outstanding `navigator.locks.request`.
+	 * Set just before requesting and cleared in the callback. Prevents
+	 * stacking concurrent requests when visibility toggles rapidly.
+	 */
+	private isLockRequestPending = false
+
 	private browserUnsubscribes: Array<() => void> = []
 
 	constructor(getUri: () => Promise<string> | string, options: CrossTabSocketOptions) {
@@ -283,19 +322,35 @@ export class CrossTabSocket
 
 		this.channel.addEventListener('message', this.handleChannelMessage)
 		this._postChannel({ _ct: 'follower-hello', fromTabId: this.tabId })
-		this._initializePresenter()
+		this._initializePresenterAndVisibility()
 		this._requestLeadership()
 	}
 
-	private _initializePresenter() {
+	/**
+	 * Initial population of presenter + visibility state, plus subscription
+	 * to browser focus / visibility events for future changes. Also asks
+	 * existing peers to report their visibility so we don't sit with an
+	 * empty peerVisibility map until they next toggle.
+	 */
+	private _initializePresenterAndVisibility() {
 		const env = this.browserEnv
 		if (!env) {
 			// No browser env: assume we're the only tab that matters.
 			this._claimPresenter()
+			this.myIsVisible = true
 			return
 		}
+
+		this.myIsVisible = env.isVisible()
+		this._postChannel({ _ct: 'visibility', tabId: this.tabId, visible: this.myIsVisible })
+		this._postChannel({ _ct: 'visibility-request', fromTabId: this.tabId })
+
 		if (env.hasFocus()) this._claimPresenter()
-		this.browserUnsubscribes.push(env.onFocus(() => this._onLocalFocus()))
+
+		this.browserUnsubscribes.push(
+			env.onFocus(() => this._onLocalFocus()),
+			env.onVisibilityChange(() => this._onLocalVisibilityChange())
+		)
 	}
 
 	private _resolveChannel(
@@ -383,17 +438,29 @@ export class CrossTabSocket
 		this.statusListeners.clear()
 		this.pushRouting.clear()
 		this.connectRouting.clear()
+		this.peerVisibility.clear()
 	}
 
 	// === Leader election ===
 
 	private _requestLeadership() {
 		assert(this.locks)
+		if (this.isLockRequestPending || this.releaseLock || this.isDisposed) return
+		this.isLockRequestPending = true
 		const lockName = `tldraw-leader-${this.channelKey}`
 		// We don't await this; the promise resolves when leadership ends.
 		void this.locks.request(lockName, { mode: 'exclusive' }, () => {
 			return new Promise<void>((resolve) => {
+				this.isLockRequestPending = false
 				if (this.isDisposed) {
+					resolve()
+					return
+				}
+				// While our request was queued, conditions may have changed —
+				// e.g., we became hidden and another tab became visible.
+				// Don't take the lock if we no longer want it; resolve and
+				// let the next waiter through.
+				if (!this._shouldWantLock()) {
 					resolve()
 					return
 				}
@@ -404,6 +471,51 @@ export class CrossTabSocket
 				this._enterLeaderMode()
 			})
 		})
+	}
+
+	/**
+	 * Whether this tab currently wants to hold the leader lock.
+	 *
+	 * - Visible tabs always want it.
+	 * - Hidden tabs want it only if no other tab is visible — someone has
+	 *   to hold the socket, so as a last resort, it stays here.
+	 */
+	private _shouldWantLock(): boolean {
+		if (this.myIsVisible) return true
+		for (const visible of this.peerVisibility.values()) {
+			if (visible) return false
+		}
+		return true
+	}
+
+	/**
+	 * Decide whether to release the lock (or request it) based on current
+	 * own/peer visibility. Called whenever those inputs change.
+	 */
+	private _evaluateLockHold() {
+		if (this.isDisposed) return
+		// No coordination available: nothing to evaluate.
+		if (!this.channel || !this.locks) return
+
+		const want = this._shouldWantLock()
+		if (this.releaseLock && !want) {
+			// We hold the lock but a visible peer should take over.
+			this.releaseLock()
+			return
+		}
+		if (!this.releaseLock && want && !this.isLockRequestPending) {
+			// We don't have it and want it back (e.g., visibility came back).
+			this._requestLeadership()
+		}
+	}
+
+	private _onLocalVisibilityChange() {
+		if (this.isDisposed || !this.browserEnv) return
+		const visible = this.browserEnv.isVisible()
+		if (visible === this.myIsVisible) return
+		this.myIsVisible = visible
+		this._postChannel({ _ct: 'visibility', tabId: this.tabId, visible })
+		this._evaluateLockHold()
 	}
 
 	// === Presenter election ===
@@ -721,6 +833,12 @@ export class CrossTabSocket
 			case 'presenter-claim':
 				this._onChannelPresenterClaim(msg)
 				return
+			case 'visibility':
+				this._onChannelVisibility(msg)
+				return
+			case 'visibility-request':
+				this._onChannelVisibilityRequest(msg)
+				return
 		}
 	}
 
@@ -785,5 +903,23 @@ export class CrossTabSocket
 		this.highestPresenterClaim = msg.claim
 		this.highestPresenterTabId = msg.tabId
 		if (this._isPresenter.get()) this._isPresenter.set(false)
+	}
+
+	private _onChannelVisibility(msg: Extract<CrossTabMessage, { _ct: 'visibility' }>) {
+		if (msg.tabId === this.tabId) return
+		this.peerVisibility.set(msg.tabId, msg.visible)
+		this._evaluateLockHold()
+	}
+
+	private _onChannelVisibilityRequest(
+		msg: Extract<CrossTabMessage, { _ct: 'visibility-request' }>
+	) {
+		if (msg.fromTabId === this.tabId) return
+		// A new tab is asking what we are; reply with our current visibility.
+		this._postChannel({
+			_ct: 'visibility',
+			tabId: this.tabId,
+			visible: this.myIsVisible,
+		})
 	}
 }

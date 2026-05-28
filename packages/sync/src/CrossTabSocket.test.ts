@@ -184,19 +184,26 @@ function buildTab(opts: {
 }
 
 /**
- * Mock browser env that lets the test push focus changes deterministically.
- * Starts unfocused by default so tests can opt in to whatever initial
- * state they want.
+ * Mock browser env that lets the test push focus and visibility changes
+ * deterministically. Starts unfocused and hidden by default so tests can
+ * opt in to whatever initial state they want.
  */
-function createMockBrowserEnv(initial?: { focused?: boolean }) {
+function createMockBrowserEnv(initial?: { focused?: boolean; visible?: boolean }) {
 	let focused = initial?.focused ?? false
+	let visible = initial?.visible ?? false
 	const focusListeners = new Set<() => void>()
+	const visibilityListeners = new Set<() => void>()
 
 	const env: CrossTabBrowserEnv = {
 		hasFocus: () => focused,
+		isVisible: () => visible,
 		onFocus(cb) {
 			focusListeners.add(cb)
 			return () => focusListeners.delete(cb)
+		},
+		onVisibilityChange(cb) {
+			visibilityListeners.add(cb)
+			return () => visibilityListeners.delete(cb)
 		},
 	}
 
@@ -210,6 +217,10 @@ function createMockBrowserEnv(initial?: { focused?: boolean }) {
 			focused = false
 			// `blur` doesn't fire any handler — the design is "most recently
 			// focused tab stays presenter until another tab claims".
+		},
+		setVisible(value: boolean) {
+			visible = value
+			visibilityListeners.forEach((cb) => cb())
 		},
 	}
 }
@@ -1006,6 +1017,133 @@ describe('CrossTabSocket: presenter election', () => {
 
 		expect(a.$isPresenter.get()).toBe(true)
 		a.close()
+	})
+})
+
+describe('CrossTabSocket: visibility-driven leader handoff', () => {
+	let channels: ReturnType<typeof createMockChannelFactory>
+	let locks: CrossTabLockManager & { holders: Map<string, { resolve: () => void } | null> }
+	let sockets: FakeSocket[]
+
+	beforeEach(() => {
+		channels = createMockChannelFactory()
+		locks = createMockLockManager()
+		sockets = []
+	})
+
+	it('the leader releases the lock when it becomes hidden and another tab is visible', async () => {
+		const aEnv = createMockBrowserEnv({ focused: true, visible: true })
+		const bEnv = createMockBrowserEnv({ focused: false, visible: true })
+		const a = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'A',
+			sockets,
+			browserEnv: aEnv.env,
+		})
+		await flushMicrotasks()
+		const b = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'B',
+			sockets,
+			browserEnv: bEnv.env,
+		})
+		await flushMicrotasks()
+
+		expect((a as any).mode).toBe('leader')
+		expect((b as any).mode).toBe('follower')
+
+		// A becomes hidden. B is still visible.
+		aEnv.setVisible(false)
+		await flushMicrotasks()
+
+		// Lock should have migrated to B.
+		expect((b as any).mode).toBe('leader')
+		// Two sockets have been opened over the lifetime of the test.
+		expect(sockets).toHaveLength(2)
+
+		a.close()
+		b.close()
+	})
+
+	it('a hidden tab keeps the lock if no other tab is visible', async () => {
+		const aEnv = createMockBrowserEnv({ focused: true, visible: true })
+		const bEnv = createMockBrowserEnv({ focused: false, visible: false })
+		const a = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'A',
+			sockets,
+			browserEnv: aEnv.env,
+		})
+		await flushMicrotasks()
+		const b = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'B',
+			sockets,
+			browserEnv: bEnv.env,
+		})
+		await flushMicrotasks()
+
+		expect((a as any).mode).toBe('leader')
+
+		// A becomes hidden — but B is also hidden, so A should hang onto the lock.
+		aEnv.setVisible(false)
+		await flushMicrotasks()
+
+		expect((a as any).mode).toBe('leader')
+		expect(sockets).toHaveLength(1)
+
+		a.close()
+		b.close()
+	})
+
+	it('a previously-hidden tab re-acquires the lock when it becomes visible again', async () => {
+		const aEnv = createMockBrowserEnv({ focused: true, visible: true })
+		const bEnv = createMockBrowserEnv({ focused: false, visible: true })
+		const a = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'A',
+			sockets,
+			browserEnv: aEnv.env,
+		})
+		await flushMicrotasks()
+		const b = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'B',
+			sockets,
+			browserEnv: bEnv.env,
+		})
+		await flushMicrotasks()
+
+		// A is leader. A becomes hidden — hands off to B.
+		aEnv.setVisible(false)
+		await flushMicrotasks()
+		expect((b as any).mode).toBe('leader')
+
+		// A becomes visible again. It should request the lock; B keeps it for
+		// now (B is still visible), so A waits in the queue. If B then becomes
+		// hidden, A would take over.
+		aEnv.setVisible(true)
+		await flushMicrotasks()
+		expect((b as any).mode).toBe('leader')
+
+		bEnv.setVisible(false)
+		await flushMicrotasks()
+		expect((a as any).mode).toBe('leader')
+
+		a.close()
+		b.close()
 	})
 })
 
