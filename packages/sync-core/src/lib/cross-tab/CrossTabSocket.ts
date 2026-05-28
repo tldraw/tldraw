@@ -9,7 +9,7 @@ import {
 	TLSocketStatusChangeEvent,
 	TLSocketStatusListener,
 } from '../TLSyncClient'
-import { CrossTabBrowserEnv, defaultBrowserEnv } from './browser-env'
+import { BrowserContext, defaultBrowserContext } from './browser-context'
 import { Leader } from './Leader'
 import { LeaderRouter } from './LeaderRouter'
 import { Presenter } from './Presenter'
@@ -51,7 +51,7 @@ export interface CrossTabSocketOptions {
 	 * handling entirely — the tab will keep the lock once acquired and will
 	 * always consider itself the presenter.
 	 */
-	browserEnv?: CrossTabBrowserEnv | null
+	browserContext?: BrowserContext | null
 }
 
 /**
@@ -132,7 +132,7 @@ export class CrossTabSocket
 
 		const rawChannel = this._resolveChannel(options.channel)
 		const locks = this._resolveLocks(options.locks)
-		const browserEnv = options.browserEnv === undefined ? defaultBrowserEnv : options.browserEnv
+		const browserContext = options.browserContext === undefined ? defaultBrowserContext : options.browserContext
 
 		// If either channel or locks is missing we can't coordinate across
 		// tabs — drop to per-tab socket behavior. The presenter is trivially
@@ -142,7 +142,7 @@ export class CrossTabSocket
 			this.leader = null
 			this.presenter = new Presenter({
 				channel: null,
-				browserEnv,
+				browserContext,
 				tabId: this.tabId,
 			})
 			this._enterFallbackMode()
@@ -158,14 +158,14 @@ export class CrossTabSocket
 
 		this.presenter = new Presenter({
 			channel: this.channel,
-			browserEnv,
+			browserContext,
 			tabId: this.tabId,
 		})
 
 		this.leader = new Leader({
 			channel: this.channel,
 			locks,
-			browserEnv,
+			browserContext,
 			lockName: `tldraw-leader-${this.channelKey}`,
 			tabId: this.tabId,
 			onBecomeLeader: () => this._onBecomeLeader(),

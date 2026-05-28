@@ -9,7 +9,7 @@ export {
 	type BroadcastChannelLike,
 	type CrossTabLockManager,
 } from './lib/cross-tab/protocol'
-export { type CrossTabBrowserEnv } from './lib/cross-tab/browser-env'
+export { type BrowserContext } from './lib/cross-tab/browser-context'
 export {
 	applyObjectDiff,
 	diffRecord,

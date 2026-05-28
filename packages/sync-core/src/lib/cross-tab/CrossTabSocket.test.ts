@@ -7,7 +7,7 @@ import {
 	TLSocketStatusChangeEvent,
 	TLSocketStatusListener,
 } from '../TLSyncClient'
-import { CrossTabBrowserEnv } from './browser-env'
+import { BrowserContext } from './browser-context'
 import { CrossTabSocket } from './CrossTabSocket'
 import { BroadcastChannelLike, CrossTabLockManager } from './protocol'
 
@@ -168,14 +168,14 @@ function buildTab(opts: {
 	channelKey: string
 	tabId: string
 	sockets: FakeSocket[]
-	browserEnv?: CrossTabBrowserEnv | null
+	browserContext?: BrowserContext | null
 }) {
 	const ct = new CrossTabSocket(() => 'ws://test', {
 		channelKey: opts.channelKey,
 		channel: opts.channels.create(`tldraw-room-${opts.channelKey}`),
 		locks: opts.locks,
 		tabId: opts.tabId,
-		browserEnv: opts.browserEnv,
+		browserContext: opts.browserContext,
 		createSocket: () => {
 			const s = new FakeSocket()
 			opts.sockets.push(s)
@@ -196,7 +196,7 @@ function createMockBrowserEnv(initial?: { focused?: boolean; visible?: boolean }
 	const focusListeners = new Set<() => void>()
 	const visibilityListeners = new Set<() => void>()
 
-	const env: CrossTabBrowserEnv = {
+	const env: BrowserContext = {
 		hasFocus: () => focused,
 		isVisible: () => visible,
 		onFocus(cb) {
@@ -943,7 +943,7 @@ describe('CrossTabSocket: presenter election', () => {
 			channelKey: 'room1',
 			tabId: 'A',
 			sockets,
-			browserEnv: aEnv.env,
+			browserContext: aEnv.env,
 		})
 		await flushMicrotasks()
 
@@ -959,7 +959,7 @@ describe('CrossTabSocket: presenter election', () => {
 			channelKey: 'room1',
 			tabId: 'A',
 			sockets,
-			browserEnv: aEnv.env,
+			browserContext: aEnv.env,
 		})
 		await flushMicrotasks()
 
@@ -976,7 +976,7 @@ describe('CrossTabSocket: presenter election', () => {
 			channelKey: 'room1',
 			tabId: 'A',
 			sockets,
-			browserEnv: aEnv.env,
+			browserContext: aEnv.env,
 		})
 		await flushMicrotasks()
 		const b = buildTab({
@@ -985,7 +985,7 @@ describe('CrossTabSocket: presenter election', () => {
 			channelKey: 'room1',
 			tabId: 'B',
 			sockets,
-			browserEnv: bEnv.env,
+			browserContext: bEnv.env,
 		})
 		await flushMicrotasks()
 
@@ -1012,7 +1012,7 @@ describe('CrossTabSocket: presenter election', () => {
 			channelKey: 'room1',
 			tabId: 'A',
 			sockets,
-			browserEnv: aEnv.env,
+			browserContext: aEnv.env,
 		})
 		await flushMicrotasks()
 		const b = buildTab({
@@ -1021,7 +1021,7 @@ describe('CrossTabSocket: presenter election', () => {
 			channelKey: 'room1',
 			tabId: 'B',
 			sockets,
-			browserEnv: bEnv.env,
+			browserContext: bEnv.env,
 		})
 		await flushMicrotasks()
 
@@ -1056,7 +1056,7 @@ describe('CrossTabSocket: presenter election', () => {
 			channelKey: 'room1',
 			tabId: 'A',
 			sockets,
-			browserEnv: aEnv.env,
+			browserContext: aEnv.env,
 		})
 		await flushMicrotasks()
 
@@ -1106,7 +1106,7 @@ describe('CrossTabSocket: visibility-driven leader handoff', () => {
 			channelKey: 'room1',
 			tabId: 'A',
 			sockets,
-			browserEnv: aEnv.env,
+			browserContext: aEnv.env,
 		})
 		await flushMicrotasks()
 		const b = buildTab({
@@ -1115,7 +1115,7 @@ describe('CrossTabSocket: visibility-driven leader handoff', () => {
 			channelKey: 'room1',
 			tabId: 'B',
 			sockets,
-			browserEnv: bEnv.env,
+			browserContext: bEnv.env,
 		})
 		await flushMicrotasks()
 
@@ -1144,7 +1144,7 @@ describe('CrossTabSocket: visibility-driven leader handoff', () => {
 			channelKey: 'room1',
 			tabId: 'A',
 			sockets,
-			browserEnv: aEnv.env,
+			browserContext: aEnv.env,
 		})
 		await flushMicrotasks()
 		const b = buildTab({
@@ -1153,7 +1153,7 @@ describe('CrossTabSocket: visibility-driven leader handoff', () => {
 			channelKey: 'room1',
 			tabId: 'B',
 			sockets,
-			browserEnv: bEnv.env,
+			browserContext: bEnv.env,
 		})
 		await flushMicrotasks()
 
@@ -1179,7 +1179,7 @@ describe('CrossTabSocket: visibility-driven leader handoff', () => {
 			channelKey: 'room1',
 			tabId: 'A',
 			sockets,
-			browserEnv: aEnv.env,
+			browserContext: aEnv.env,
 		})
 		await flushMicrotasks()
 		const b = buildTab({
@@ -1188,7 +1188,7 @@ describe('CrossTabSocket: visibility-driven leader handoff', () => {
 			channelKey: 'room1',
 			tabId: 'B',
 			sockets,
-			browserEnv: bEnv.env,
+			browserContext: bEnv.env,
 		})
 		await flushMicrotasks()
 

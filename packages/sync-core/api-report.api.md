@@ -44,6 +44,14 @@ export interface BroadcastChannelLike {
 }
 
 // @internal
+export interface BrowserContext {
+    hasFocus(): boolean;
+    isVisible(): boolean;
+    onFocus(cb: () => void): () => void;
+    onVisibilityChange(cb: () => void): () => void;
+}
+
+// @internal
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
 
 // @internal
@@ -67,14 +75,6 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
     _setNewSocket(ws: WebSocket): void;
     // (undocumented)
     _ws: null | WebSocket;
-}
-
-// @internal
-export interface CrossTabBrowserEnv {
-    hasFocus(): boolean;
-    isVisible(): boolean;
-    onFocus(cb: () => void): () => void;
-    onVisibilityChange(cb: () => void): () => void;
 }
 
 // @internal
@@ -109,7 +109,7 @@ export class CrossTabSocket implements TLPersistentClientSocket<TLSocketClientSe
 
 // @internal (undocumented)
 export interface CrossTabSocketOptions {
-    browserEnv?: CrossTabBrowserEnv | null;
+    browserContext?: BrowserContext | null;
     channel?: BroadcastChannelLike | null;
     channelKey: string;
     createSocket?: (getUri: () => Promise<string> | string) => TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>>;

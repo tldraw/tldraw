@@ -1,5 +1,5 @@
 import { atom, Atom } from '@tldraw/state'
-import { CrossTabBrowserEnv } from './browser-env'
+import { BrowserContext } from './browser-context'
 import { CrossTabChannel, CrossTabMessage } from './protocol'
 
 /**
@@ -31,7 +31,7 @@ export class Presenter {
 			 * this tab is unconditionally the presenter and no gossip happens.
 			 */
 			channel: CrossTabChannel | null
-			browserEnv: CrossTabBrowserEnv | null
+			browserContext: BrowserContext | null
 			tabId: string
 		}
 	) {
@@ -43,7 +43,7 @@ export class Presenter {
 
 		this.channelUnsubscribe = opts.channel.subscribe((msg) => this._onChannelMessage(msg))
 
-		const env = opts.browserEnv
+		const env = opts.browserContext
 		if (!env) {
 			// No browser env: assume we're the only tab that matters.
 			this._claim()

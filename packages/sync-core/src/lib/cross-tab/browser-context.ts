@@ -1,6 +1,6 @@
 /**
- * Browser-environment hooks the cross-tab machinery uses to react to focus
- * and visibility changes. Pulled out as an interface so tests can drive them
+ * Browser-state hooks the cross-tab machinery uses to react to focus and
+ * visibility changes. Pulled out as an interface so tests can drive them
  * deterministically; in production we wrap `window` and `document`.
  *
  * Focus drives the **presenter** role (the tab whose cursor moves should be
@@ -10,7 +10,7 @@
  *
  * @internal
  */
-export interface CrossTabBrowserEnv {
+export interface BrowserContext {
 	/** Whether the window currently has keyboard focus. */
 	hasFocus(): boolean
 	/**
@@ -28,15 +28,15 @@ export interface CrossTabBrowserEnv {
 }
 
 /**
- * Default {@link CrossTabBrowserEnv} that wraps real `window` / `document`.
- * In non-browser environments (SSR, Node tests without jsdom) all methods are
+ * Default {@link BrowserContext} that wraps real `window` / `document`. In
+ * non-browser environments (SSR, Node tests without jsdom) all methods are
  * benign no-ops — `hasFocus` returns false, `isVisible` returns true (treat
  * the tab as visible so the existing always-request-leader behavior keeps
  * working), and event subscriptions don't fire.
  *
  * @internal
  */
-export const defaultBrowserEnv: CrossTabBrowserEnv = {
+export const defaultBrowserContext: BrowserContext = {
 	hasFocus() {
 		return typeof document !== 'undefined' ? document.hasFocus() : false
 	},

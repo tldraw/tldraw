@@ -1,4 +1,4 @@
-import { CrossTabBrowserEnv } from './browser-env'
+import { BrowserContext } from './browser-context'
 import { CrossTabChannel, CrossTabLockManager, CrossTabMessage } from './protocol'
 
 /**
@@ -41,7 +41,7 @@ export class Leader {
 		private readonly opts: {
 			channel: CrossTabChannel
 			locks: CrossTabLockManager
-			browserEnv: CrossTabBrowserEnv | null
+			browserContext: BrowserContext | null
 			lockName: string
 			tabId: string
 			/**
@@ -61,7 +61,7 @@ export class Leader {
 	) {
 		this.channelUnsubscribe = opts.channel.subscribe((msg) => this._onChannelMessage(msg))
 
-		const env = opts.browserEnv
+		const env = opts.browserContext
 		if (env) {
 			this.myIsVisible = env.isVisible()
 			opts.channel.send({ _ct: 'visibility', tabId: opts.tabId, visible: this.myIsVisible })
@@ -149,8 +149,8 @@ export class Leader {
 	}
 
 	private _onLocalVisibilityChange() {
-		if (this.isDisposed || !this.opts.browserEnv) return
-		const visible = this.opts.browserEnv.isVisible()
+		if (this.isDisposed || !this.opts.browserContext) return
+		const visible = this.opts.browserContext.isVisible()
 		if (visible === this.myIsVisible) return
 		this.myIsVisible = visible
 		this.opts.channel.send({ _ct: 'visibility', tabId: this.opts.tabId, visible })
