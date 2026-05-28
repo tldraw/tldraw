@@ -1,19 +1,15 @@
+import { TLRecord } from '@tldraw/tlschema'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { TLSocketClientSentEvent, TLSocketServerSentEvent } from '../protocol'
 import {
 	TLPersistentClientSocket,
 	TLPersistentClientSocketStatus,
-	TLSocketClientSentEvent,
-	TLSocketServerSentEvent,
 	TLSocketStatusChangeEvent,
 	TLSocketStatusListener,
-} from '@tldraw/sync-core'
-import { TLRecord } from '@tldraw/tlschema'
-import { beforeEach, describe, expect, it } from 'vitest'
-import {
-	BroadcastChannelLike,
-	CrossTabBrowserEnv,
-	CrossTabLockManager,
-	CrossTabSocket,
-} from './CrossTabSocket'
+} from '../TLSyncClient'
+import { CrossTabBrowserEnv } from './browser-env'
+import { CrossTabSocket } from './CrossTabSocket'
+import { BroadcastChannelLike, CrossTabLockManager } from './protocol'
 
 // =====================================================================
 // Test doubles
@@ -102,6 +98,9 @@ function createMockLockManager(): CrossTabLockManager & {
 						run(name)
 					}
 					holders.set(name, { resolve: release })
+					// Per the Web Locks spec, the lock is held until the callback's
+					// promise resolves. We rely on CrossTabSocket to resolve the
+					// promise via its own release mechanism (close()).
 					callback().then(release, release)
 				}
 				if (holders.get(name)) {
@@ -117,8 +116,8 @@ function createMockLockManager(): CrossTabLockManager & {
 }
 
 /**
- * A fake socket that records sent messages and lets tests push server
- * messages and status changes.
+ * A fake socket that records sent messages and lets tests push server messages
+ * and status changes.
  */
 class FakeSocket
 	implements
@@ -142,6 +141,7 @@ class FakeSocket
 		return () => this.statusListeners.delete(cb)
 	}
 	restart() {
+		// Mimic a reset: go offline then online again so that listeners react.
 		this._emitStatus({ status: 'offline' })
 	}
 	close() {
@@ -150,6 +150,7 @@ class FakeSocket
 		this.statusListeners.clear()
 	}
 
+	// Test helpers
 	_emitStatus(ev: TLSocketStatusChangeEvent) {
 		this.connectionStatus = ev.status
 		this.statusListeners.forEach((cb) => cb(ev))
@@ -159,8 +160,8 @@ class FakeSocket
 	}
 }
 
-// Build a tab and capture references to the FakeSocket(s) the factory
-// hands out, so the test can drive the underlying "WS".
+// Convenience: build a tab and capture references to the socket factory
+// argument so the test can drive the underlying "WS".
 function buildTab(opts: {
 	channels: ReturnType<typeof createMockChannelFactory>
 	locks: CrossTabLockManager
@@ -169,7 +170,7 @@ function buildTab(opts: {
 	sockets: FakeSocket[]
 	browserEnv?: CrossTabBrowserEnv | null
 }) {
-	return new CrossTabSocket(() => 'ws://test', {
+	const ct = new CrossTabSocket(() => 'ws://test', {
 		channelKey: opts.channelKey,
 		channel: opts.channels.create(`tldraw-room-${opts.channelKey}`),
 		locks: opts.locks,
@@ -181,12 +182,13 @@ function buildTab(opts: {
 			return s
 		},
 	})
+	return ct
 }
 
 /**
  * Mock browser env that lets the test push focus and visibility changes
- * deterministically. Starts unfocused and hidden by default so tests can
- * opt in to whatever initial state they want.
+ * deterministically. Starts unfocused and hidden by default so tests can opt
+ * in to whatever initial state they want.
  */
 function createMockBrowserEnv(initial?: { focused?: boolean; visible?: boolean }) {
 	let focused = initial?.focused ?? false
@@ -226,8 +228,8 @@ function createMockBrowserEnv(initial?: { focused?: boolean; visible?: boolean }
 }
 
 // Wait for queued microtasks. The lock manager and broadcast channel deliver
-// synchronously, but lock callbacks (which return promises) need a turn of
-// the microtask queue to settle.
+// synchronously, but lock callbacks (which return promises) need a turn of the
+// microtask queue to settle.
 const flushMicrotasks = () => new Promise<void>((resolve) => setImmediate(resolve))
 
 // =====================================================================
@@ -245,7 +247,13 @@ describe('CrossTabSocket: leader election', () => {
 
 	it('the first tab to request the lock becomes leader', async () => {
 		const sockets: FakeSocket[] = []
-		const a = buildTab({ channels, locks, channelKey: 'room1', tabId: 'A', sockets })
+		const a = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'A',
+			sockets,
+		})
 		await flushMicrotasks()
 
 		expect(sockets).toHaveLength(1)
@@ -260,6 +268,7 @@ describe('CrossTabSocket: leader election', () => {
 		const b = buildTab({ channels, locks, channelKey: 'room1', tabId: 'B', sockets })
 		await flushMicrotasks()
 
+		// Only one underlying socket exists (the leader's).
 		expect(sockets).toHaveLength(1)
 		expect((a as any).mode).toBe('leader')
 		expect((b as any).mode).toBe('follower')
@@ -294,12 +303,13 @@ describe('CrossTabSocket: leader election', () => {
 		await flushMicrotasks()
 
 		expect((b as any).mode).toBe('leader')
+		// A new socket was opened by B.
 		expect(sockets).toHaveLength(2)
 		b.close()
 	})
 })
 
-describe('CrossTabSocket: message forwarding', () => {
+describe('CrossTabSocket: message routing', () => {
 	let channels: ReturnType<typeof createMockChannelFactory>
 	let locks: CrossTabLockManager
 	let sockets: FakeSocket[]
@@ -310,7 +320,7 @@ describe('CrossTabSocket: message forwarding', () => {
 		sockets = []
 	})
 
-	it("forwards the leader's own sendMessage to its socket", async () => {
+	it("forwards leader's own sendMessage to its socket", async () => {
 		const a = buildTab({ channels, locks, channelKey: 'room1', tabId: 'A', sockets })
 		await flushMicrotasks()
 
@@ -345,7 +355,8 @@ describe('CrossTabSocket: message forwarding', () => {
 		c.sendMessage({ type: 'push', clientClock: 0 })
 
 		const sent = sockets[0].sent.filter(
-			(m): m is Extract<TLSocketClientSentEvent<TLRecord>, { type: 'push' }> => m.type === 'push'
+			(m): m is Extract<TLSocketClientSentEvent<TLRecord>, { type: 'push' }> =>
+				m.type === 'push'
 		)
 		const clocks = sent.map((m) => m.clientClock)
 		// All three got distinct remapped clocks.
@@ -372,7 +383,8 @@ describe('CrossTabSocket: message forwarding', () => {
 		b.sendMessage({ type: 'push', clientClock: 0 })
 
 		const pushes = sockets[0].sent.filter(
-			(m): m is Extract<TLSocketClientSentEvent<TLRecord>, { type: 'push' }> => m.type === 'push'
+			(m): m is Extract<TLSocketClientSentEvent<TLRecord>, { type: 'push' }> =>
+				m.type === 'push'
 		)
 		expect(pushes).toHaveLength(2)
 		const [aRemapped, bRemapped] = pushes.map((p) => p.clientClock)
@@ -417,7 +429,8 @@ describe('CrossTabSocket: message forwarding', () => {
 		a.sendMessage({ type: 'push', clientClock: 0 })
 		b.sendMessage({ type: 'push', clientClock: 0 })
 		const pushes = sockets[0].sent.filter(
-			(m): m is Extract<TLSocketClientSentEvent<TLRecord>, { type: 'push' }> => m.type === 'push'
+			(m): m is Extract<TLSocketClientSentEvent<TLRecord>, { type: 'push' }> =>
+				m.type === 'push'
 		)
 		const [aRemapped, bRemapped] = pushes.map((p) => p.clientClock)
 
@@ -430,31 +443,29 @@ describe('CrossTabSocket: message forwarding', () => {
 			],
 		})
 
+		// The broadcast patch reached both; each push_result only reached its
+		// originator (with the original clientClock).
 		const flatten = (msgs: TLSocketServerSentEvent<TLRecord>[]) =>
 			msgs.flatMap((m) => (m.type === 'data' ? m.data : [m]))
 
 		const aFlat = flatten(aReceived)
 		const bFlat = flatten(bReceived)
 
-		// Everyone gets the broadcast patch.
-		expect(aFlat).toContainEqual({ type: 'patch', diff: {}, serverClock: 5 })
-		expect(bFlat).toContainEqual({ type: 'patch', diff: {}, serverClock: 5 })
-		// Each tab gets only its own push_result.
-		expect(aFlat).toContainEqual({
-			type: 'push_result',
-			clientClock: 0,
-			serverClock: 3,
-			action: 'commit',
-		})
+		expect(aFlat).toEqual(
+			expect.arrayContaining([
+				{ type: 'push_result', clientClock: 0, serverClock: 3, action: 'commit' },
+				{ type: 'patch', diff: {}, serverClock: 5 },
+			])
+		)
 		expect(aFlat).not.toContainEqual(
 			expect.objectContaining({ type: 'push_result', serverClock: 4 })
 		)
-		expect(bFlat).toContainEqual({
-			type: 'push_result',
-			clientClock: 0,
-			serverClock: 4,
-			action: 'commit',
-		})
+		expect(bFlat).toEqual(
+			expect.arrayContaining([
+				{ type: 'push_result', clientClock: 0, serverClock: 4, action: 'commit' },
+				{ type: 'patch', diff: {}, serverClock: 5 },
+			])
+		)
 		expect(bFlat).not.toContainEqual(
 			expect.objectContaining({ type: 'push_result', serverClock: 3 })
 		)
@@ -515,8 +526,14 @@ describe('CrossTabSocket: message forwarding', () => {
 		sockets[0]._emitServerMessage({ type: 'pong' })
 		sockets[0]._emitServerMessage({ type: 'patch', diff: {}, serverClock: 1 })
 
-		expect(aReceived).toEqual([{ type: 'pong' }, { type: 'patch', diff: {}, serverClock: 1 }])
-		expect(bReceived).toEqual([{ type: 'pong' }, { type: 'patch', diff: {}, serverClock: 1 }])
+		expect(aReceived).toEqual([
+			{ type: 'pong' },
+			{ type: 'patch', diff: {}, serverClock: 1 },
+		])
+		expect(bReceived).toEqual([
+			{ type: 'pong' },
+			{ type: 'patch', diff: {}, serverClock: 1 },
+		])
 
 		a.close()
 		b.close()
@@ -831,6 +848,7 @@ describe('CrossTabSocket: status propagation', () => {
 		b.onStatusChange((ev) => bStatuses.push(ev.status))
 
 		sockets[0]._emitStatus({ status: 'online' })
+		// Followers see the change.
 		expect(b.connectionStatus).toBe('online')
 		expect(bStatuses).toEqual(['online'])
 
@@ -847,6 +865,7 @@ describe('CrossTabSocket: status propagation', () => {
 		await flushMicrotasks()
 		sockets[0]._emitStatus({ status: 'online' })
 
+		// B joins late.
 		const b = buildTab({ channels, locks, channelKey: 'room1', tabId: 'B', sockets })
 		await flushMicrotasks()
 
@@ -862,7 +881,7 @@ describe('CrossTabSocket: fallback mode', () => {
 		const sockets: FakeSocket[] = []
 		const a = buildTab({
 			channels,
-			locks: null as any,
+			locks: null as any, // null forces fallback
 			channelKey: 'room1',
 			tabId: 'A',
 			sockets,
@@ -871,8 +890,10 @@ describe('CrossTabSocket: fallback mode', () => {
 		expect((a as any).mode).toBe('fallback')
 		expect(sockets).toHaveLength(1)
 
+		// sendMessage goes straight to the underlying socket.
 		a.sendMessage({ type: 'ping' })
 		expect(sockets[0].sent).toEqual([{ type: 'ping' }])
+
 		a.close()
 	})
 
@@ -915,7 +936,7 @@ describe('CrossTabSocket: presenter election', () => {
 	})
 
 	it('the tab focused at construction is the initial presenter', async () => {
-		const aEnv = createMockBrowserEnv({ focused: true })
+		const aEnv = createMockBrowserEnv({ focused: true, visible: true })
 		const a = buildTab({
 			channels,
 			locks,
@@ -931,7 +952,7 @@ describe('CrossTabSocket: presenter election', () => {
 	})
 
 	it('a tab without focus at construction is not the presenter', async () => {
-		const aEnv = createMockBrowserEnv({ focused: false })
+		const aEnv = createMockBrowserEnv({ focused: false, visible: true })
 		const a = buildTab({
 			channels,
 			locks,
@@ -947,8 +968,8 @@ describe('CrossTabSocket: presenter election', () => {
 	})
 
 	it('a focus event makes that tab the presenter and demotes the previous one', async () => {
-		const aEnv = createMockBrowserEnv({ focused: true })
-		const bEnv = createMockBrowserEnv({ focused: false })
+		const aEnv = createMockBrowserEnv({ focused: true, visible: true })
+		const bEnv = createMockBrowserEnv({ focused: false, visible: true })
 		const a = buildTab({
 			channels,
 			locks,
@@ -982,8 +1003,53 @@ describe('CrossTabSocket: presenter election', () => {
 		b.close()
 	})
 
+	it('the last-focused tab wins ties between simultaneous claims', async () => {
+		const aEnv = createMockBrowserEnv({ focused: false, visible: true })
+		const bEnv = createMockBrowserEnv({ focused: false, visible: true })
+		const a = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'A',
+			sockets,
+			browserEnv: aEnv.env,
+		})
+		await flushMicrotasks()
+		const b = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'B',
+			sockets,
+			browserEnv: bEnv.env,
+		})
+		await flushMicrotasks()
+
+		// Both start unfocused — neither is presenter.
+		expect(a.$isPresenter.get()).toBe(false)
+		expect(b.$isPresenter.get()).toBe(false)
+
+		// A focuses first.
+		aEnv.focus()
+		expect(a.$isPresenter.get()).toBe(true)
+		expect(b.$isPresenter.get()).toBe(false)
+
+		// Then B focuses — takes over.
+		bEnv.focus()
+		expect(a.$isPresenter.get()).toBe(false)
+		expect(b.$isPresenter.get()).toBe(true)
+
+		// Then A focuses again — takes back.
+		aEnv.focus()
+		expect(a.$isPresenter.get()).toBe(true)
+		expect(b.$isPresenter.get()).toBe(false)
+
+		a.close()
+		b.close()
+	})
+
 	it('blur alone does not demote the presenter — it stays until another tab claims', async () => {
-		const aEnv = createMockBrowserEnv({ focused: true })
+		const aEnv = createMockBrowserEnv({ focused: true, visible: true })
 		const a = buildTab({
 			channels,
 			locks,

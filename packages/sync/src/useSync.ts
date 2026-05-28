@@ -1,6 +1,7 @@
 import { atom, transact } from '@tldraw/state'
 import {
 	ClientWebSocketAdapter,
+	CrossTabSocket,
 	TLCustomMessageHandler,
 	TLPersistentClientSocket,
 	TLPresenceMode,
@@ -10,7 +11,6 @@ import {
 	TLSyncClient,
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
-import { CrossTabSocket } from './CrossTabSocket'
 import { useEffect } from 'react'
 import {
 	Editor,
@@ -533,19 +533,20 @@ export interface UseSyncOptionsBase {
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
 
 	/**
-	 * Optional key for cross-tab WebSocket sharing. When set, multiple tabs
-	 * of the same user opening the same `crossTabRoomKey` share a single
+	 * Optional key for cross-tab WebSocket sharing. When set, multiple tabs of
+	 * the same user opening the same `crossTabRoomKey` share a single
 	 * WebSocket connection to the sync server: one tab acts as the leader
 	 * (owns the socket) and the others forward their messages through it via
-	 * a `BroadcastChannel`. The leader is elected with the Web Locks API; if
-	 * locks are unavailable each tab falls back to its own socket.
+	 * a `BroadcastChannel`. The leader is elected with the Web Locks
+	 * API; if locks are unavailable each tab falls back to its own socket.
 	 *
 	 * The value should uniquely identify the room (typically the room id).
 	 * If omitted, each tab opens its own WebSocket as before.
 	 *
-	 * Tabs that share a leader inherit the leader's WebSocket auth, so
-	 * scoping is by user (the channel name includes the current user id).
-	 * Cross-user tabs never share.
+	 * Note: tabs that share a leader inherit the leader's WebSocket auth, so
+	 * scoping is currently by user only — readonly and readwrite tabs of the
+	 * same user will share. Cross-user tabs never share because the channel
+	 * name includes the user id.
 	 */
 	crossTabRoomKey?: string
 

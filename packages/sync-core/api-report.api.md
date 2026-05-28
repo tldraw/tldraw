@@ -32,6 +32,18 @@ export type AppendOp = [type: typeof ValueOpType.Append, value: string | unknown
 export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectDiff): T;
 
 // @internal
+export interface BroadcastChannelLike {
+    // (undocumented)
+    addEventListener(type: 'message', handler: (ev: MessageEvent) => void): void;
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    postMessage(msg: any): void;
+    // (undocumented)
+    removeEventListener(type: 'message', handler: (ev: MessageEvent) => void): void;
+}
+
+// @internal
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
 
 // @internal
@@ -55,6 +67,54 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
     _setNewSocket(ws: WebSocket): void;
     // (undocumented)
     _ws: null | WebSocket;
+}
+
+// @internal
+export interface CrossTabBrowserEnv {
+    hasFocus(): boolean;
+    isVisible(): boolean;
+    onFocus(cb: () => void): () => void;
+    onVisibilityChange(cb: () => void): () => void;
+}
+
+// @internal
+export interface CrossTabLockManager {
+    // (undocumented)
+    request(name: string, options: {
+        mode: 'exclusive';
+        signal?: AbortSignal;
+    }, callback: () => Promise<unknown>): Promise<unknown>;
+}
+
+// @internal
+export class CrossTabSocket implements TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>> {
+    get $isPresenter(): Atom<boolean>;
+    constructor(getUri: () => Promise<string> | string, options: CrossTabSocketOptions);
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    get connectionStatus(): TLPersistentClientSocketStatus;
+    get mode(): 'fallback' | 'follower' | 'leader';
+    // (undocumented)
+    onReceiveMessage(cb: (val: TLSocketServerSentEvent<TLRecord>) => void): () => void;
+    // (undocumented)
+    onStatusChange(cb: TLSocketStatusListener): () => void;
+    // (undocumented)
+    restart(): void;
+    // (undocumented)
+    sendMessage(msg: TLSocketClientSentEvent<TLRecord>): void;
+    // (undocumented)
+    readonly tabId: string;
+}
+
+// @internal (undocumented)
+export interface CrossTabSocketOptions {
+    browserEnv?: CrossTabBrowserEnv | null;
+    channel?: BroadcastChannelLike | null;
+    channelKey: string;
+    createSocket?: (getUri: () => Promise<string> | string) => TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>>;
+    locks?: CrossTabLockManager | null;
+    tabId?: string;
 }
 
 // @public
