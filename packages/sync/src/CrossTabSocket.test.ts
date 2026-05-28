@@ -8,7 +8,12 @@ import {
 } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { BroadcastChannelLike, CrossTabLockManager, CrossTabSocket } from './CrossTabSocket'
+import {
+	BroadcastChannelLike,
+	CrossTabBrowserEnv,
+	CrossTabLockManager,
+	CrossTabSocket,
+} from './CrossTabSocket'
 
 // =====================================================================
 // Test doubles
@@ -162,18 +167,51 @@ function buildTab(opts: {
 	channelKey: string
 	tabId: string
 	sockets: FakeSocket[]
+	browserEnv?: CrossTabBrowserEnv | null
 }) {
 	return new CrossTabSocket(() => 'ws://test', {
 		channelKey: opts.channelKey,
 		channel: opts.channels.create(`tldraw-room-${opts.channelKey}`),
 		locks: opts.locks,
 		tabId: opts.tabId,
+		browserEnv: opts.browserEnv,
 		createSocket: () => {
 			const s = new FakeSocket()
 			opts.sockets.push(s)
 			return s
 		},
 	})
+}
+
+/**
+ * Mock browser env that lets the test push focus changes deterministically.
+ * Starts unfocused by default so tests can opt in to whatever initial
+ * state they want.
+ */
+function createMockBrowserEnv(initial?: { focused?: boolean }) {
+	let focused = initial?.focused ?? false
+	const focusListeners = new Set<() => void>()
+
+	const env: CrossTabBrowserEnv = {
+		hasFocus: () => focused,
+		onFocus(cb) {
+			focusListeners.add(cb)
+			return () => focusListeners.delete(cb)
+		},
+	}
+
+	return {
+		env,
+		focus() {
+			focused = true
+			focusListeners.forEach((cb) => cb())
+		},
+		blur() {
+			focused = false
+			// `blur` doesn't fire any handler — the design is "most recently
+			// focused tab stays presenter until another tab claims".
+		},
+	}
 }
 
 // Wait for queued microtasks. The lock manager and broadcast channel deliver
@@ -851,6 +889,123 @@ describe('CrossTabSocket: fallback mode', () => {
 
 		a.close()
 		b.close()
+	})
+})
+
+describe('CrossTabSocket: presenter election', () => {
+	let channels: ReturnType<typeof createMockChannelFactory>
+	let locks: CrossTabLockManager
+	let sockets: FakeSocket[]
+
+	beforeEach(() => {
+		channels = createMockChannelFactory()
+		locks = createMockLockManager()
+		sockets = []
+	})
+
+	it('the tab focused at construction is the initial presenter', async () => {
+		const aEnv = createMockBrowserEnv({ focused: true })
+		const a = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'A',
+			sockets,
+			browserEnv: aEnv.env,
+		})
+		await flushMicrotasks()
+
+		expect(a.$isPresenter.get()).toBe(true)
+		a.close()
+	})
+
+	it('a tab without focus at construction is not the presenter', async () => {
+		const aEnv = createMockBrowserEnv({ focused: false })
+		const a = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'A',
+			sockets,
+			browserEnv: aEnv.env,
+		})
+		await flushMicrotasks()
+
+		expect(a.$isPresenter.get()).toBe(false)
+		a.close()
+	})
+
+	it('a focus event makes that tab the presenter and demotes the previous one', async () => {
+		const aEnv = createMockBrowserEnv({ focused: true })
+		const bEnv = createMockBrowserEnv({ focused: false })
+		const a = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'A',
+			sockets,
+			browserEnv: aEnv.env,
+		})
+		await flushMicrotasks()
+		const b = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'B',
+			sockets,
+			browserEnv: bEnv.env,
+		})
+		await flushMicrotasks()
+
+		// A focused at construction; B did not.
+		expect(a.$isPresenter.get()).toBe(true)
+		expect(b.$isPresenter.get()).toBe(false)
+
+		// Now focus B.
+		bEnv.focus()
+
+		expect(a.$isPresenter.get()).toBe(false)
+		expect(b.$isPresenter.get()).toBe(true)
+
+		a.close()
+		b.close()
+	})
+
+	it('blur alone does not demote the presenter — it stays until another tab claims', async () => {
+		const aEnv = createMockBrowserEnv({ focused: true })
+		const a = buildTab({
+			channels,
+			locks,
+			channelKey: 'room1',
+			tabId: 'A',
+			sockets,
+			browserEnv: aEnv.env,
+		})
+		await flushMicrotasks()
+
+		expect(a.$isPresenter.get()).toBe(true)
+
+		// Lose focus to something outside our pool (the OS taskbar, another app).
+		aEnv.blur()
+
+		// Still presenter — nothing has claimed.
+		expect(a.$isPresenter.get()).toBe(true)
+
+		a.close()
+	})
+
+	it('fallback-mode tabs are always presenters', async () => {
+		const a = buildTab({
+			channels,
+			locks: null as any,
+			channelKey: 'room1',
+			tabId: 'A',
+			sockets,
+		})
+		await flushMicrotasks()
+
+		expect(a.$isPresenter.get()).toBe(true)
+		a.close()
 	})
 })
 

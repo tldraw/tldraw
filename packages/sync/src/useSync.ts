@@ -252,6 +252,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			TLSocketClientSentEvent<TLRecord>,
 			TLSocketServerSentEvent<TLRecord>
 		>
+		// Track separately from `socket` so we can read its presenter signal
+		// without a TLPersistentClientSocket-narrowing cast below.
+		let crossTabSocket: CrossTabSocket | null = null
 		if (connect) {
 			if (uri) {
 				throw new Error('uri and connect cannot be used together')
@@ -291,9 +294,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			}
 
 			if (crossTabRoomKey) {
-				socket = new CrossTabSocket(getUri, {
+				const cts = new CrossTabSocket(getUri, {
 					channelKey: `${currentUser.get().id}-${crossTabRoomKey}`,
 				})
+				crossTabSocket = cts
+				socket = cts
 			} else {
 				socket = new ClientWebSocketAdapter(getUri)
 			}
@@ -334,6 +339,12 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		}))
 
 		const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
+			// When tabs share a socket, only the most-recently-focused tab —
+			// the "presenter" — should push presence. Otherwise N tabs sharing
+			// one server session would race each other to overwrite the same
+			// instance_presence row, and other peers would see the cursor
+			// jitter between positions.
+			if (crossTabSocket && !crossTabSocket.$isPresenter.get()) return 'solo'
 			if (otherUserPresences.get().size === 0) return 'solo'
 			return 'full'
 		})

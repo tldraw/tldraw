@@ -40,6 +40,39 @@ export interface CrossTabLockManager {
 }
 
 /**
+ * Browser-environment hooks {@link CrossTabSocket} uses to react to focus
+ * (and later, visibility) changes. Pulled out as an interface so tests can
+ * drive them deterministically; in production we wrap `window` and
+ * `document`.
+ *
+ * Focus drives the **presenter** role — the tab whose cursor moves should
+ * be broadcast. Only the focused tab receives pointer events, so it's
+ * the only one with live cursor data to push.
+ *
+ * @internal
+ */
+export interface CrossTabBrowserEnv {
+	hasFocus(): boolean
+	onFocus(cb: () => void): () => void
+}
+
+/**
+ * Default {@link CrossTabBrowserEnv} that wraps real `window` / `document`.
+ * In non-browser environments all methods are benign no-ops.
+ */
+const defaultBrowserEnv: CrossTabBrowserEnv = {
+	hasFocus() {
+		return typeof document !== 'undefined' ? document.hasFocus() : false
+	},
+	onFocus(cb) {
+		if (typeof window === 'undefined') return () => {}
+		const handler = () => cb()
+		window.addEventListener('focus', handler)
+		return () => window.removeEventListener('focus', handler)
+	},
+}
+
+/**
  * Internal channel message envelope. The `_ct` tag namespaces our messages so
  * a future user of the same channel doesn't accidentally trip our handlers.
  */
@@ -54,6 +87,13 @@ type CrossTabMessage =
 			exceptTabId: string
 			msg: TLSocketServerSentEvent<TLRecord>
 	  }
+	/**
+	 * Sent on `focus` events. The pair `(claim, tabId)` orders all
+	 * presenter claims in the pool — the highest tuple wins. Claims use a
+	 * monotonic counter bumped past the highest seen value, so out-of-order
+	 * delivery over the channel doesn't matter.
+	 */
+	| { _ct: 'presenter-claim'; tabId: string; claim: number }
 
 /** @internal */
 export interface CrossTabSocketOptions {
@@ -79,6 +119,13 @@ export interface CrossTabSocketOptions {
 	>
 	/** Override the tab identifier (tests). */
 	tabId?: string
+	/**
+	 * Override the focus source (tests). Defaults to a wrapper over
+	 * `window` / `document`. Pass `null` to disable focus handling — the
+	 * tab will always consider itself the presenter (suitable for tests
+	 * and SSR).
+	 */
+	browserEnv?: CrossTabBrowserEnv | null
 }
 
 const NO_LOCK = Symbol('CrossTabSocket: no lock manager')
@@ -105,10 +152,14 @@ function toStatusChangeEvent(status: TLPersistentClientSocketStatus): TLSocketSt
  * adapter silently falls back to per-tab sockets so consumers see today's
  * behavior.
  *
+ * A separate **presenter** role tracks the most-recently-focused tab (via
+ * gossip on the same channel) and exposes a `$isPresenter` signal that
+ * `useSync` uses to gate `presenceMode`. This keeps only one tab pushing
+ * presence even when N tabs share a session, so other peers in the room
+ * see a single cursor for this user.
+ *
  * Known gaps in this cut (addressed in follow-up commits):
  *
- * - **Presence races.** Every tab in the pool pushes its own cursor through
- *   the shared session, racing the single `instance_presence` row.
  * - **Hidden-leader throttling.** A backgrounded leader's timers get
  *   clamped, the server hangs up. No automatic handoff yet.
  *
@@ -123,6 +174,7 @@ export class CrossTabSocket
 	private readonly channelKey: string
 	private readonly channel: BroadcastChannelLike | null
 	private readonly locks: CrossTabLockManager | null
+	private readonly browserEnv: CrossTabBrowserEnv | null
 	private readonly getUri: () => Promise<string> | string
 	private readonly createSocket: (
 		getUri: () => Promise<string> | string
@@ -182,6 +234,26 @@ export class CrossTabSocket
 	 */
 	private readonly connectRouting = new Map<string, string>()
 
+	// === Presenter election ===
+
+	/**
+	 * Whether this tab is currently the presenter — the most-recently-
+	 * focused tab in the pool. Exposed via {@link CrossTabSocket.$isPresenter}
+	 * so `useSync` can gate `presenceMode` on it: only the presenter pushes
+	 * cursor data, even when multiple tabs share a leader.
+	 *
+	 * Distinct from leader role (which owns the WebSocket). The same tab
+	 * can be both, but they migrate on different signals — leader by Web
+	 * Lock, presenter by focus.
+	 */
+	private readonly _isPresenter: Atom<boolean> = atom('cross-tab presenter', false)
+
+	private myPresenterClaim = 0
+	private highestPresenterClaim = 0
+	private highestPresenterTabId = ''
+
+	private browserUnsubscribes: Array<() => void> = []
+
 	constructor(getUri: () => Promise<string> | string, options: CrossTabSocketOptions) {
 		this.getUri = getUri
 		this.tabId = options.tabId ?? uniqueId()
@@ -196,18 +268,34 @@ export class CrossTabSocket
 
 		const channel = this._resolveChannel(options.channel)
 		const locks = this._resolveLocks(options.locks)
+		this.browserEnv = options.browserEnv === undefined ? defaultBrowserEnv : options.browserEnv
 
 		this.channel = channel
 		this.locks = locks === NO_LOCK ? null : locks
 
 		if (!this.channel || !this.locks) {
+			// Fallback: no cross-tab coordination, so this tab is trivially the
+			// presenter from useSync's perspective.
+			this._isPresenter.set(true)
 			this._enterFallbackMode()
 			return
 		}
 
 		this.channel.addEventListener('message', this.handleChannelMessage)
 		this._postChannel({ _ct: 'follower-hello', fromTabId: this.tabId })
+		this._initializePresenter()
 		this._requestLeadership()
+	}
+
+	private _initializePresenter() {
+		const env = this.browserEnv
+		if (!env) {
+			// No browser env: assume we're the only tab that matters.
+			this._claimPresenter()
+			return
+		}
+		if (env.hasFocus()) this._claimPresenter()
+		this.browserUnsubscribes.push(env.onFocus(() => this._onLocalFocus()))
 	}
 
 	private _resolveChannel(
@@ -234,6 +322,16 @@ export class CrossTabSocket
 	get connectionStatus(): TLPersistentClientSocketStatus {
 		const status = this._connectionStatus.get()
 		return status === 'initial' ? 'offline' : status
+	}
+
+	/**
+	 * Reactive signal that's true when this tab is the presenter — the
+	 * most-recently-focused tab in the pool. {@link useSync} reads this to
+	 * gate `presenceMode`: only the presenter pushes cursor data, even
+	 * when multiple tabs share a leader.
+	 */
+	get $isPresenter(): Atom<boolean> {
+		return this._isPresenter
 	}
 
 	sendMessage(msg: TLSocketClientSentEvent<TLRecord>): void {
@@ -265,6 +363,10 @@ export class CrossTabSocket
 	close(): void {
 		if (this.isDisposed) return
 		this.isDisposed = true
+
+		// Unsubscribe from browser events first so we don't react during teardown.
+		for (const unsub of this.browserUnsubscribes) unsub()
+		this.browserUnsubscribes = []
 
 		this.leaderSocket?.close()
 		this.leaderSocket = null
@@ -302,6 +404,25 @@ export class CrossTabSocket
 				this._enterLeaderMode()
 			})
 		})
+	}
+
+	// === Presenter election ===
+
+	private _onLocalFocus() {
+		if (this.isDisposed) return
+		this._claimPresenter()
+	}
+
+	private _claimPresenter() {
+		// Bump past the highest claim we've seen. The tabId tiebreaker
+		// handles the rare case where two tabs make claims with the same
+		// numeric value (e.g. simultaneous focus events).
+		const next = Math.max(this.highestPresenterClaim, this.myPresenterClaim) + 1
+		this.myPresenterClaim = next
+		this.highestPresenterClaim = next
+		this.highestPresenterTabId = this.tabId
+		this._postChannel({ _ct: 'presenter-claim', tabId: this.tabId, claim: next })
+		if (!this._isPresenter.get()) this._isPresenter.set(true)
 	}
 
 	private _enterLeaderMode() {
@@ -597,6 +718,9 @@ export class CrossTabSocket
 			case 'server-broadcast-except':
 				this._onChannelServerBroadcastExcept(msg)
 				return
+			case 'presenter-claim':
+				this._onChannelPresenterClaim(msg)
+				return
 		}
 	}
 
@@ -648,5 +772,18 @@ export class CrossTabSocket
 		if (this.mode === 'leader' || this.mode === 'fallback') return
 		if (msg.exceptTabId === this.tabId) return
 		this.messageListeners.forEach((cb) => cb(msg.msg))
+	}
+
+	private _onChannelPresenterClaim(msg: Extract<CrossTabMessage, { _ct: 'presenter-claim' }>) {
+		if (msg.tabId === this.tabId) return
+		// Higher (claim, tabId) wins. The tabId tiebreaker handles
+		// simultaneous claims with the same numeric value.
+		const isHigher =
+			msg.claim > this.highestPresenterClaim ||
+			(msg.claim === this.highestPresenterClaim && msg.tabId > this.highestPresenterTabId)
+		if (!isHigher) return
+		this.highestPresenterClaim = msg.claim
+		this.highestPresenterTabId = msg.tabId
+		if (this._isPresenter.get()) this._isPresenter.set(false)
 	}
 }
