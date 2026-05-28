@@ -10,6 +10,7 @@ import {
 	TLSyncClient,
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
+import { CrossTabSocket } from './CrossTabSocket'
 import { useEffect } from 'react'
 import {
 	Editor,
@@ -182,6 +183,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
 		themes,
+		crossTabRoomKey,
 		...schemaOpts
 	} = opts
 
@@ -267,7 +269,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				throw new Error('uri and connect cannot be used together')
 			}
 
-			socket = new ClientWebSocketAdapter(async () => {
+			const getUri = async () => {
 				const uriString = typeof uri === 'string' ? uri : await uri()
 
 				// set sessionId as a query param on the uri
@@ -286,7 +288,15 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				withParams.searchParams.set('sessionId', TAB_ID)
 				withParams.searchParams.set('storeId', storeId)
 				return withParams.toString()
-			})
+			}
+
+			if (crossTabRoomKey) {
+				socket = new CrossTabSocket(getUri, {
+					channelKey: `${currentUser.get().id}-${crossTabRoomKey}`,
+				})
+			} else {
+				socket = new ClientWebSocketAdapter(getUri)
+			}
 		} else {
 			throw new Error('uri or connect must be provided')
 		}
@@ -510,6 +520,23 @@ export interface UseSyncOptionsBase {
 	roomId?: string
 	/** @internal */
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
+
+	/**
+	 * Optional key for cross-tab WebSocket sharing. When set, multiple tabs
+	 * of the same user opening the same `crossTabRoomKey` share a single
+	 * WebSocket connection to the sync server: one tab acts as the leader
+	 * (owns the socket) and the others forward their messages through it via
+	 * a `BroadcastChannel`. The leader is elected with the Web Locks API; if
+	 * locks are unavailable each tab falls back to its own socket.
+	 *
+	 * The value should uniquely identify the room (typically the room id).
+	 * If omitted, each tab opens its own WebSocket as before.
+	 *
+	 * Tabs that share a leader inherit the leader's WebSocket auth, so
+	 * scoping is by user (the channel name includes the current user id).
+	 * Cross-user tabs never share.
+	 */
+	crossTabRoomKey?: string
 
 	/**
 	 * A reactive function that returns a {@link @tldraw/tlschema#TLInstancePresence} object.
