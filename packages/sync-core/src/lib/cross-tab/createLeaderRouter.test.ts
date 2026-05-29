@@ -8,7 +8,7 @@ import {
 	createMockLockManager,
 	FakeSocket,
 	flushMicrotasks,
-} from './testDoubles'
+} from './mocks'
 import { CrossTabLockManager } from './types'
 
 describe('createLeaderRouter: message routing', () => {

@@ -6,7 +6,7 @@ import {
 	createMockLockManager,
 	FakeSocket,
 	flushMicrotasks,
-} from './testDoubles'
+} from './mocks'
 import { CrossTabLockManager } from './types'
 
 describe('createPresenter: presenter election', () => {

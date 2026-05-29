@@ -1,4 +1,4 @@
-// Shared test doubles for the cross-tab module tests. Not part of the
+// Shared mocks for the cross-tab module tests. Not part of the
 // production code path — kept alongside the modules so test files can
 // import directly without reaching into a sibling test file.
 

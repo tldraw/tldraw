@@ -5,7 +5,7 @@ import {
 	createMockLockManager,
 	FakeSocket,
 	flushMicrotasks,
-} from './testDoubles'
+} from './mocks'
 
 describe('createCrossTabSocket: fallback mode', () => {
 	it('uses a per-tab socket when locks are unavailable', async () => {
