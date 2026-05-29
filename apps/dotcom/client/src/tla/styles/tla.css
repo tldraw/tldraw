@@ -127,6 +127,23 @@
 	font-weight: 500;
 }
 
+/* Clerk's CAPTCHA widget mounts into #clerk-captcha. The element is always
+   present so any Clerk call can attach its challenge, but it stays empty (and
+   so invisible) for the common invisible challenge. When Clerk injects a
+   visible challenge we center it over the app so the user can complete it. */
+#clerk-captcha:not(:empty) {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 100000;
+	padding: 16px;
+	background-color: var(--tla-color-panel);
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--tla-radius-2);
+	box-shadow: var(--tla-shadow-3);
+}
+
 /* ---------------------- Text ---------------------- */
 
 .tla-text_ui__title {
