@@ -1,11 +1,8 @@
 import { TLRecord } from '@tldraw/tlschema'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from '../protocol'
-import {
-	TLPersistentClientSocket,
-	TLPersistentClientSocketStatus,
-	TLSocketStatusChangeEvent,
-} from '../TLSyncClient'
+import { TLPersistentClientSocket, TLSocketStatusChangeEvent } from '../TLSyncClient'
 import { createPushRouting } from './createPushRouting'
+import { LeaderStatusMessage, statusEventToMessage, toStatusChangeEvent } from './leaderStatus'
 import { routeServerMessage, ServerMessageDispatch } from './routeServerMessage'
 import { CrossTabChannel, CrossTabMessage } from './types'
 
@@ -25,23 +22,6 @@ export interface LeaderRouter {
 	 */
 	restart(): void
 	close(): void
-}
-
-/**
- * Build a {@link TLSocketStatusChangeEvent} from a bare status value. The
- * status enum permits `'error'`, but the event variant for `'error'`
- * requires a `reason`. In practice we only hit this for `'online'` /
- * `'offline'` when synthesizing initial events from a freshly created
- * socket — fall back to a placeholder reason for `'error'` rather than
- * crash if a socket somehow starts there.
- *
- * @internal
- */
-export function toStatusChangeEvent(
-	status: TLPersistentClientSocketStatus
-): TLSocketStatusChangeEvent {
-	if (status === 'error') return { status: 'error', reason: 'unknown' }
-	return { status }
 }
 
 /**
@@ -85,8 +65,7 @@ export function createLeaderRouter(opts: {
 }): LeaderRouter {
 	const routing = createPushRouting()
 
-	let lastBroadcastStatus: { status: TLPersistentClientSocketStatus; reason?: string } | null =
-		null
+	let lastLeaderStatus: LeaderStatusMessage | null = null
 
 	let isDisposed = false
 	const socketUnsubscribes: Array<() => void> = []
@@ -148,10 +127,8 @@ export function createLeaderRouter(opts: {
 
 	function handleStatusChange(ev: TLSocketStatusChangeEvent) {
 		opts.onStatusChange(ev)
-		const status = ev.status
-		const reason = ev.status === 'error' ? ev.reason : undefined
-		lastBroadcastStatus = { status, reason }
-		opts.channel.send({ _ct: 'leader-status', status, reason })
+		lastLeaderStatus = statusEventToMessage(ev)
+		opts.channel.send(lastLeaderStatus)
 	}
 
 	// --- channel ---
@@ -167,13 +144,7 @@ export function createLeaderRouter(opts: {
 				// A new follower came online. Re-broadcast our last status so
 				// they can leave 'initial' immediately rather than wait for
 				// our next status change.
-				if (lastBroadcastStatus) {
-					opts.channel.send({
-						_ct: 'leader-status',
-						status: lastBroadcastStatus.status,
-						reason: lastBroadcastStatus.reason,
-					})
-				}
+				if (lastLeaderStatus) opts.channel.send(lastLeaderStatus)
 				return
 			default:
 				return

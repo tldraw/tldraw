@@ -59,15 +59,27 @@ export interface BrowserContext {
 }
 
 /**
- * Internal channel message envelope. The `_ct` tag namespaces our messages
- * so a future user of the same channel doesn't accidentally trip our
- * handlers.
+ * Status handshake between the leader and its followers. The leader
+ * announces the shared socket's connection status; a newly-joined follower
+ * says hello so the leader re-announces, letting the follower leave
+ * `'initial'` immediately instead of waiting for the next status change.
  *
  * @internal
  */
-export type CrossTabMessage =
+export type StatusMessage =
 	| { _ct: 'leader-status'; status: TLPersistentClientSocketStatus; reason?: string }
 	| { _ct: 'follower-hello'; fromTabId: string }
+
+/**
+ * Relays the shared socket's traffic between the leader and its followers.
+ * Followers send `client` messages for the leader to forward; the leader
+ * sends server messages back, either to every tab (`server-all`), to one
+ * specific tab (`server-to`), or to everyone except the originator
+ * (`server-broadcast-except`, used for synthesized sibling patches).
+ *
+ * @internal
+ */
+export type TransportMessage =
 	| { _ct: 'client'; fromTabId: string; msg: TLSocketClientSentEvent<TLRecord> }
 	| { _ct: 'server-all'; msg: TLSocketServerSentEvent<TLRecord> }
 	| { _ct: 'server-to'; toTabId: string; msg: TLSocketServerSentEvent<TLRecord> }
@@ -76,13 +88,29 @@ export type CrossTabMessage =
 			exceptTabId: string
 			msg: TLSocketServerSentEvent<TLRecord>
 	  }
+
+/**
+ * Presenter election — picks the single tab whose presence (cursor) is
+ * pushed to the server.
+ *
+ * @internal
+ */
+export type PresenceMessage =
 	/**
 	 * Sent on `focus` events. The pair `(claim, tabId)` orders all presenter
 	 * claims in the pool — the highest tuple wins. Claims use a monotonic
 	 * counter bumped past the highest seen value, so out-of-order delivery
 	 * over the channel doesn't matter.
 	 */
-	| { _ct: 'presenter-claim'; tabId: string; claim: number }
+	{ _ct: 'presenter-claim'; tabId: string; claim: number }
+
+/**
+ * Visibility-driven leader handoff — lets a hidden leader release the
+ * socket to a visible peer.
+ *
+ * @internal
+ */
+export type LeadershipMessage =
 	/**
 	 * Sent on `visibilitychange` (and once on construction). Lets each tab
 	 * maintain a set of currently-visible peers so the leader knows whether
@@ -95,6 +123,21 @@ export type CrossTabMessage =
 	 * the next `visibilitychange`.
 	 */
 	| { _ct: 'visibility-request'; fromTabId: string }
+
+/**
+ * Internal channel message envelope. The `_ct` tag namespaces our messages
+ * so a future user of the same channel doesn't accidentally trip our
+ * handlers. Grouped into per-concern sub-unions ({@link StatusMessage},
+ * {@link TransportMessage}, {@link PresenceMessage}, {@link LeadershipMessage})
+ * so it's clear which module owns which arms.
+ *
+ * @internal
+ */
+export type CrossTabMessage =
+	| StatusMessage
+	| TransportMessage
+	| PresenceMessage
+	| LeadershipMessage
 
 /**
  * Thin typed wrapper over {@link BroadcastChannelLike}. Modules subscribe

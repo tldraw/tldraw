@@ -1,6 +1,7 @@
 import { TLRecord } from '@tldraw/tlschema'
 import { TLSocketServerSentEvent } from '../protocol'
 import { TLSocketStatusChangeEvent } from '../TLSyncClient'
+import { messageToStatusEvent } from './leaderStatus'
 import { CrossTabChannel, CrossTabMessage } from './types'
 
 /** What {@link createFollowerReceiver} returns. */
@@ -38,11 +39,7 @@ export function createFollowerReceiver(opts: {
 			case 'leader-status':
 				// Leaders / fallback own their own status from the underlying WS.
 				if (opts.isLeaderOrFallback()) return
-				opts.applyStatus(
-					msg.status === 'error'
-						? { status: 'error', reason: msg.reason ?? 'unknown' }
-						: { status: msg.status }
-				)
+				opts.applyStatus(messageToStatusEvent(msg))
 				return
 			case 'server-all':
 				if (opts.isLeaderOrFallback()) return

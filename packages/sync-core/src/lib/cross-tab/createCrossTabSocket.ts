@@ -11,9 +11,10 @@ import {
 import { createCrossTabChannel } from './createCrossTabChannel'
 import { createFollowerReceiver, FollowerReceiver } from './createFollowerReceiver'
 import { createLeader, Leader } from './createLeader'
-import { createLeaderRouter, LeaderRouter, toStatusChangeEvent } from './createLeaderRouter'
+import { createLeaderRouter, LeaderRouter } from './createLeaderRouter'
 import { createPresenter, Presenter } from './createPresenter'
-import { defaultBrowserContext } from './defaultBrowserContext'
+import { defaultBrowserContext, resolveChannel, resolveLocks } from './defaultEnvironment'
+import { toStatusChangeEvent } from './leaderStatus'
 import {
 	BroadcastChannelLike,
 	BrowserContext,
@@ -299,22 +300,4 @@ export function createCrossTabSocket(
 		restart,
 		close,
 	}
-}
-
-function resolveChannel(
-	override: BroadcastChannelLike | null | undefined,
-	channelKey: string
-): BroadcastChannelLike | null {
-	if (override !== undefined) return override
-	if (typeof BroadcastChannel === 'undefined') return null
-	return new BroadcastChannel(`tldraw-room-${channelKey}`) as BroadcastChannelLike
-}
-
-function resolveLocks(
-	override: CrossTabLockManager | null | undefined
-): CrossTabLockManager | null {
-	if (override === null) return null
-	if (override !== undefined) return override
-	if (typeof navigator === 'undefined') return null
-	return (navigator as unknown as { locks?: CrossTabLockManager }).locks ?? null
 }
