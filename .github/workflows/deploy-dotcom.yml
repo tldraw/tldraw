@@ -100,15 +100,23 @@ jobs:
           # Write to a temp file to avoid secrets leaking into CI step output.
           BRANCH_JSON=$(mktemp)
           for i in $(seq 1 24); do
+            # While the branch is still provisioning, `branches get` may exit
+            # non-zero and/or write a non-JSON line to stdout (the newer CLI
+            # renders an error there). Tolerate both: `|| true` keeps `set -e`
+            # from aborting on a non-zero get, and the guarded jq below treats
+            # any non-JSON / missing field as "not ready yet" so the loop retries.
             supabase branches get "$BRANCH_NAME" \
               --project-ref "$PROJECT_REF" \
-              -o json > "$BRANCH_JSON" 2>/dev/null
-            POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL // empty' "$BRANCH_JSON")
-            if [ -n "$POSTGRES_URL_TRANSACTION" ]; then break; fi
+              -o json > "$BRANCH_JSON" 2>/dev/null || true
+            POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL // empty' "$BRANCH_JSON" 2>/dev/null || true)
+            if [ -n "$POSTGRES_URL_TRANSACTION" ]; then
+              echo "Branch $BRANCH_NAME is ready."
+              break
+            fi
             echo "Waiting for branch to be ready ($i/24)..."
             sleep 5
           done
-          POSTGRES_URL_NON_POOLING=$(jq -r '.POSTGRES_URL_NON_POOLING' "$BRANCH_JSON")
+          POSTGRES_URL_NON_POOLING=$(jq -r '.POSTGRES_URL_NON_POOLING // empty' "$BRANCH_JSON" 2>/dev/null || true)
           rm "$BRANCH_JSON"
 
           if [ -z "$POSTGRES_URL_TRANSACTION" ]; then
