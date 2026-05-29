@@ -247,6 +247,12 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
+		// Reselect the shape whose handle we were dragging, in case the selection
+		// changed mid-drag (e.g. pasting while dragging creates and selects a new shape).
+		if (this.editor.getShape(this.shapeId)) {
+			this.editor.select(this.shapeId)
+		}
+
 		this.parent.transition('idle')
 	}
 

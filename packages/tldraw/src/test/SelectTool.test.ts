@@ -261,6 +261,83 @@ describe('DraggingHandle', () => {
 	})
 })
 
+describe('Pasting during an interaction', () => {
+	// Regression test for #8305: pasting mid-interaction creates and selects a new
+	// shape, but the shape being dragged/resized should be reselected when the
+	// interaction completes.
+
+	it('reselects the arrow whose handle is being dragged', () => {
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 100,
+				y: 100,
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+			},
+		])
+
+		// Put something on the clipboard
+		editor.select(ids.box1)
+		editor.copy()
+
+		const arrow = editor.getShape(ids.arrow1)!
+		const endHandle = editor.getShapeHandles(arrow)!.find((h) => h.id === 'end')!
+
+		editor.select(ids.arrow1)
+		editor.pointerDown(200, 200, { target: 'handle', shape: arrow, handle: endHandle })
+		editor.pointerMove(260, 260)
+		editor.expectToBeIn('select.dragging_handle')
+
+		// Pasting mid-drag steals the selection
+		const countBefore = editor.getCurrentPageShapes().length
+		editor.paste()
+		expect(editor.getCurrentPageShapes().length).toBeGreaterThan(countBefore)
+		expect(editor.getOnlySelectedShape()?.id).not.toBe(ids.arrow1)
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.arrow1])
+	})
+
+	it('reselects the shape being translated', () => {
+		editor.select(ids.box1)
+		editor.copy()
+
+		const box1 = editor.getShape(ids.box1)!
+		editor.pointerDown(150, 150, { target: 'shape', shape: box1 })
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.translating')
+
+		const countBefore = editor.getCurrentPageShapes().length
+		editor.paste()
+		expect(editor.getCurrentPageShapes().length).toBeGreaterThan(countBefore)
+		expect(editor.getOnlySelectedShape()?.id).not.toBe(ids.box1)
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+	})
+
+	it('reselects the shape being resized', () => {
+		editor.select(ids.box1)
+		editor.copy()
+
+		editor.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.resizing')
+
+		const countBefore = editor.getCurrentPageShapes().length
+		editor.paste()
+		expect(editor.getCurrentPageShapes().length).toBeGreaterThan(countBefore)
+		expect(editor.getOnlySelectedShape()?.id).not.toBe(ids.box1)
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+	})
+})
+
 describe('PointingLabel', () => {
 	it('Enters from pointing_arrow_label and exits to idle', () => {
 		editor.createShapes([

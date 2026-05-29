@@ -173,6 +173,10 @@ export class Resizing extends StateNode {
 			}
 		}
 
+		// Reselect the shapes we were resizing, in case the selection changed mid-resize
+		// (e.g. pasting while resizing creates and selects a new shape).
+		this.editor.setSelectedShapes(this.snapshot.selectedShapeIds)
+
 		this.parent.transition('idle')
 	}
 

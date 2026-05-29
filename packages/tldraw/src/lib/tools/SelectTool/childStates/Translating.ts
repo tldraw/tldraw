@@ -211,6 +211,9 @@ export class Translating extends StateNode {
 		if (this.isCreating) {
 			this.onCreate?.(this.editor.getOnlySelectedShape())
 		} else {
+			// Reselect the shapes we were moving, in case the selection changed mid-drag
+			// (e.g. pasting while translating creates and selects a new shape).
+			this.editor.setSelectedShapes(this.snapshot.movingShapes.map((s) => s.id))
 			this.parent.transition('idle')
 		}
 	}
