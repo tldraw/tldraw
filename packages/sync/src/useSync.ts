@@ -184,7 +184,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
 		themes,
-		crossTabRoomKey,
+		crossTab,
 		...schemaOpts
 	} = opts
 
@@ -294,9 +294,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				return withParams.toString()
 			}
 
-			if (crossTabRoomKey) {
+			const roomKey = resolveCrossTabRoomKey(crossTab, uri)
+			if (roomKey !== null) {
 				const cts = createCrossTabSocket(getUri, {
-					channelKey: `${currentUser.get().id}-${crossTabRoomKey}`,
+					channelKey: `${currentUser.get().id}-${roomKey}`,
 				})
 				crossTabSocket = cts
 				socket = cts
@@ -534,22 +535,31 @@ export interface UseSyncOptionsBase {
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
 
 	/**
-	 * Optional key for cross-tab WebSocket sharing. When set, multiple tabs of
-	 * the same user opening the same `crossTabRoomKey` share a single
-	 * WebSocket connection to the sync server: one tab acts as the leader
-	 * (owns the socket) and the others forward their messages through it via
-	 * a `BroadcastChannel`. The leader is elected with the Web Locks
-	 * API; if locks are unavailable each tab falls back to its own socket.
+	 * Whether multiple tabs of the same user opening the same room should
+	 * share a single WebSocket connection to the sync server.
 	 *
-	 * The value should uniquely identify the room (typically the room id).
-	 * If omitted, each tab opens its own WebSocket as before.
+	 * When sharing, one tab acts as the leader (owns the socket) and the
+	 * others forward their messages through it via a `BroadcastChannel`.
+	 * The leader is elected with the Web Locks API; if locks are
+	 * unavailable each tab falls back to its own socket.
 	 *
-	 * Note: tabs that share a leader inherit the leader's WebSocket auth, so
-	 * scoping is currently by user only — readonly and readwrite tabs of the
-	 * same user will share. Cross-user tabs never share because the channel
-	 * name includes the user id.
+	 * Defaults to `true` when `uri` is a string — the room identity is
+	 * derived from the URI path so no configuration is needed.
+	 *
+	 * Pass `false` to opt out (each tab opens its own WebSocket, matching
+	 * older behavior).
+	 *
+	 * Pass `{ roomKey }` to provide the room identifier explicitly. This is
+	 * required when `uri` is a function (async, with auth token rotation)
+	 * or when using a custom `connect` transport, since neither path
+	 * exposes a string URI we can derive from at setup.
+	 *
+	 * Tabs that share a leader inherit the leader's WebSocket auth, so
+	 * scoping is currently by user only — readonly and readwrite tabs of
+	 * the same user will share. Cross-user tabs never share because the
+	 * channel name includes the user id.
 	 */
-	crossTabRoomKey?: string
+	crossTab?: boolean | { roomKey: string }
 
 	/**
 	 * A reactive function that returns a {@link @tldraw/tlschema#TLInstancePresence} object.
@@ -639,3 +649,57 @@ export type UseSyncConnectFn = (query: {
  * @public
  */
 export type UseSyncOptions = UseSyncOptionsWithUri | UseSyncOptionsWithConnectFn
+
+/**
+ * Decide whether `useSync` should use a cross-tab shared socket, and if so
+ * what room key to scope the channel by.
+ *
+ * Returns the room key (a non-empty string) when cross-tab sharing should be
+ * enabled, or `null` to opt out (each tab opens its own socket as before).
+ *
+ * - `crossTab === false` → always `null` (explicit opt-out).
+ * - `crossTab` is `{ roomKey }` → use that key verbatim.
+ * - `crossTab` is `true` or `undefined` → derive from `uri` if it's a
+ *   string; otherwise `null` for `undefined` (silent default-off) or throw
+ *   for `true` (the consumer asked for it but we can't derive a key).
+ *
+ * @internal
+ */
+export function resolveCrossTabRoomKey(
+	crossTab: boolean | { roomKey: string } | undefined,
+	uri: string | (() => string | Promise<string>) | undefined
+): string | null {
+	if (crossTab === false) return null
+	if (typeof crossTab === 'object' && crossTab !== null) {
+		return crossTab.roomKey
+	}
+	if (typeof uri === 'string') {
+		return deriveRoomKeyFromUri(uri)
+	}
+	if (crossTab === true) {
+		throw new Error(
+			'useSync: `crossTab: true` requires either a string `uri` or an explicit `crossTab: { roomKey }`. ' +
+				'When `uri` is a function, we cannot derive a stable room identifier without resolving it.'
+		)
+	}
+	return null
+}
+
+/**
+ * Canonical room identifier derived from a sync URI. Strips the query and
+ * fragment (which often carry rotating auth tokens) so reconnects with a
+ * fresh token still produce the same channel key.
+ *
+ * Falls back to the raw string if `URL` parsing fails — better to risk an
+ * over-specific key than to crash useSync.
+ *
+ * @internal
+ */
+export function deriveRoomKeyFromUri(uri: string): string {
+	try {
+		const url = new URL(uri)
+		return `${url.protocol}//${url.host}${url.pathname}`
+	} catch {
+		return uri
+	}
+}
