@@ -1,6 +1,4 @@
-import { TLRecord } from '@tldraw/tlschema'
 import { describe, expect, it, vi } from 'vitest'
-import { TLSocketServerSentEvent } from '../protocol'
 import { createPushRouting } from './createPushRouting'
 import { routeServerMessage, ServerMessageDispatch, synthesizePatchForSiblings } from './routeServerMessage'
 
