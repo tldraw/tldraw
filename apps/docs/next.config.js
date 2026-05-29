@@ -209,7 +209,14 @@ const nextConfig = {
 	},
 	async rewrites() {
 		return {
-			beforeFiles: [],
+			// Canonical top-level URLs (/quick-start, …) are not in the content DB; articles
+			// live under /getting-started/*. Redirects send /getting-started/:id → /:id;
+			// these rewrites serve the article without a second hop (avoids /quick-start 404).
+			beforeFiles: [
+				{ source: '/quick-start', destination: '/getting-started/quick-start' },
+				{ source: '/installation', destination: '/getting-started/installation' },
+				{ source: '/releases', destination: '/getting-started/releases' },
+			],
 		}
 	},
 }
