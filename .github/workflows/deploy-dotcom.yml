@@ -100,9 +100,12 @@ jobs:
           # Write to a temp file to avoid secrets leaking into CI step output.
           BRANCH_JSON=$(mktemp)
           for i in $(seq 1 24); do
+            # While the branch is still provisioning, `branches get` exits
+            # non-zero. Tolerate that here so the loop keeps retrying instead of
+            # tripping `set -e` on the first attempt.
             supabase branches get "$BRANCH_NAME" \
               --project-ref "$PROJECT_REF" \
-              -o json > "$BRANCH_JSON" 2>/dev/null
+              -o json > "$BRANCH_JSON" 2>/dev/null || true
             POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL // empty' "$BRANCH_JSON")
             if [ -n "$POSTGRES_URL_TRANSACTION" ]; then break; fi
             echo "Waiting for branch to be ready ($i/24)..."
