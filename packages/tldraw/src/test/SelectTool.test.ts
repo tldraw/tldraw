@@ -808,6 +808,159 @@ describe('When double clicking the selection edge', () => {
 		editor.expectToBeIn('select.editing_shape')
 	})
 
+	it('does not edit when double-clicking into a group from page level, even with a page-level sibling already selected', () => {
+		// page
+		// ├── innerGroup
+		// │   ├── child
+		// │   └── childB
+		// └── sibling
+		//
+		// The user is at page level. Selecting the page-level sibling does
+		// not focus any group, so focusedGroupId stays at pageId. A
+		// subsequent double-click on childB must drill into the group and
+		// select the child, never enter editing — the drill context is empty
+		// because no group has been entered yet.
+		const childId = createShapeId()
+		const childBId = createShapeId()
+		const siblingId = createShapeId()
+		const innerGroupId = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([
+				{ id: childId, type: 'geo', x: 0, y: 0, props: { w: 50, h: 50 } },
+				{ id: childBId, type: 'geo', x: 60, y: 0, props: { w: 50, h: 50 } },
+				{ id: siblingId, type: 'geo', x: 200, y: 0, props: { w: 50, h: 50 } },
+			])
+			.groupShapes([childId, childBId], { groupId: innerGroupId })
+			.selectNone()
+
+		// Select the page-level sibling with a single click. This shouldn't
+		// focus any group.
+		const sibling = editor.getShape(siblingId)!
+		editor.click(225, 25, { target: 'shape', shape: sibling })
+		expect(editor.getOnlySelectedShapeId()).toBe(siblingId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
+
+		editor.cancelDoubleClick()
+
+		// Double-click childB. This should drill into innerGroup and select
+		// childB — and stop there. Editing must not start.
+		const childB = editor.getShape(childBId)!
+		editor
+			.click(85, 25, { target: 'shape', shape: childB })
+			.click(85, 25, { target: 'shape', shape: childB })
+
+		expect(editor.getOnlySelectedShapeId()).toBe(childBId)
+		expect(editor.getFocusedGroupId()).toBe(innerGroupId)
+		expect(editor.getEditingShapeId()).toBe(null)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('drills one level on double-click of a deeper-nested shape without entering editing', () => {
+		// Outer group contains an inner group (with two children) and a
+		// sibling shape S. The user drills into the outer group by selecting
+		// S. They then double-click a grandchild (a child of the inner
+		// group, which is itself inside the outer group). The inner group is
+		// *deeper* than the user's current drill level, so the double-click
+		// drills one level (into the inner group, selecting the grandchild)
+		// and stops there — editing requires another click.
+		const grandChildId = createShapeId()
+		const grandChildBId = createShapeId()
+		const siblingId = createShapeId()
+		const innerGroupId = createShapeId()
+		const outerGroupId = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([
+				{ id: grandChildId, type: 'geo', x: 0, y: 0, props: { w: 50, h: 50 } },
+				{ id: grandChildBId, type: 'geo', x: 60, y: 0, props: { w: 50, h: 50 } },
+				{ id: siblingId, type: 'geo', x: 200, y: 0, props: { w: 50, h: 50 } },
+			])
+			.groupShapes([grandChildId, grandChildBId], { groupId: innerGroupId })
+			.groupShapes([innerGroupId, siblingId], { groupId: outerGroupId })
+			.selectNone()
+
+		// Drill into the outer group by clicking the sibling shape twice:
+		// click 1 selects the outer group, click 2 drills and selects S.
+		const sibling = editor.getShape(siblingId)!
+		editor
+			.click(225, 25, { target: 'shape', shape: sibling })
+			.click(225, 25, { target: 'shape', shape: sibling })
+		expect(editor.getOnlySelectedShapeId()).toBe(siblingId)
+		expect(editor.getFocusedGroupId()).toBe(outerGroupId)
+
+		editor.cancelDoubleClick()
+
+		// Double-click (2 quick clicks) on the grandchild. Click 1 selects
+		// the inner group (drilling from the outer group's level), click 2
+		// drills into the inner group and selects the grandchild. The
+		// synthetic double_click that fires must NOT enter editing — the
+		// inner group is deeper than the outer group the user has actually
+		// entered, so editing requires a further click.
+		const grandChild = editor.getShape(grandChildId)!
+		editor
+			.click(25, 25, { target: 'shape', shape: grandChild })
+			.click(25, 25, { target: 'shape', shape: grandChild })
+
+		expect(editor.getOnlySelectedShapeId()).toBe(grandChildId)
+		expect(editor.getFocusedGroupId()).toBe(innerGroupId)
+		expect(editor.getEditingShapeId()).toBe(null)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('enters editing for a sibling shape inside an outer group when drilled into a nested group', () => {
+		// Outer group contains an inner group and a sibling shape S. The user
+		// drills into the inner group; S is still directly selectable because
+		// the outer group is on the drill stack. Double-clicking S should
+		// therefore enter editing, even though S's parent (the outer group) is
+		// not the currently focused group.
+		const innerChildId = createShapeId()
+		const innerChildBId = createShapeId()
+		const siblingId = createShapeId()
+		const innerGroupId = createShapeId()
+		const outerGroupId = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([
+				{ id: innerChildId, type: 'geo', x: 0, y: 0, props: { w: 50, h: 50 } },
+				{ id: innerChildBId, type: 'geo', x: 60, y: 0, props: { w: 50, h: 50 } },
+				{ id: siblingId, type: 'geo', x: 200, y: 0, props: { w: 50, h: 50 } },
+			])
+			.groupShapes([innerChildId, innerChildBId], { groupId: innerGroupId })
+			.groupShapes([innerGroupId, siblingId], { groupId: outerGroupId })
+			.selectNone()
+
+		// Drill all the way into the inner group: 1) select outer, 2) drill to
+		// inner, 3) drill to inner's child. After this the focused group is
+		// the inner group.
+		const innerChild = editor.getShape(innerChildId)!
+		editor
+			.click(25, 25, { target: 'shape', shape: innerChild })
+			.click(25, 25, { target: 'shape', shape: innerChild })
+			.click(25, 25, { target: 'shape', shape: innerChild })
+		expect(editor.getOnlySelectedShapeId()).toBe(innerChildId)
+		expect(editor.getFocusedGroupId()).toBe(innerGroupId)
+
+		// Reset the click manager state so the next double-click starts a
+		// fresh sequence.
+		editor.cancelDoubleClick()
+
+		// Double-click the sibling shape. Its parent is the outer group,
+		// which is an ancestor of the focused inner group, so editing must
+		// start.
+		const sibling = editor.getShape(siblingId)!
+		editor.doubleClick(225, 25, { target: 'shape', shape: sibling })
+
+		expect(editor.getEditingShapeId()).toBe(siblingId)
+		editor.expectToBeIn('select.editing_shape')
+	})
+
 	it('enters editing for a shape inside the focused group when double clicking the shape', () => {
 		const childAId = createShapeId()
 		const childBId = createShapeId()
