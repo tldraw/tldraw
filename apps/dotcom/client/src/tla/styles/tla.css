@@ -136,8 +136,10 @@
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	z-index: 100000;
-	padding: 16px;
+	/* Same layer as the app-level refresh overlay (MaybeForceUserRefresh) so a
+	   visible challenge sits above dialogs and the editor UI. */
+	z-index: 10000;
+	padding: var(--tl-space-5);
 	background-color: var(--tla-color-panel);
 	border: 1px solid var(--tla-color-border);
 	border-radius: var(--tla-radius-2);
