@@ -336,6 +336,72 @@ describe('Pasting during an interaction', () => {
 		editor.expectToBeIn('select.idle')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 	})
+
+	it('keeps the arrow binding hint visible while dragging a handle after a shape paste steals selection', () => {
+		// Regression for #8305: the dashed binding hint is gated on the
+		// interacted arrow, not the current selection, so pasting a shape
+		// mid-drag (which selects the pasted shape) must not hide it.
+		const overlayEditor = new TestEditor({ overlayUtils: defaultOverlayUtils })
+		const arrowId = createShapeId('hintArrow')
+		const targetId = createShapeId('hintTarget')
+		const clipboardId = createShapeId('hintClipboard')
+		overlayEditor.createShapes([
+			{ id: targetId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			{ id: clipboardId, type: 'geo', x: 400, y: 400, props: { w: 50, h: 50 } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 150,
+				y: 150,
+				props: { start: { x: 0, y: 0 }, end: { x: 120, y: 0 } },
+			},
+		])
+		// Bind the arrow's start to the target so a binding survives an end-handle drag.
+		overlayEditor.createBindings([
+			{
+				fromId: arrowId,
+				toId: targetId,
+				type: 'arrow',
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+		])
+
+		// Put a shape on the clipboard
+		overlayEditor.select(clipboardId)
+		overlayEditor.copy()
+
+		const hasBindingHint = () =>
+			overlayEditor.overlays.getCurrentOverlays().some((o) => o.type === 'arrow_binding_hint')
+
+		const arrow = overlayEditor.getShape(arrowId)!
+		const endHandle = overlayEditor.getShapeHandles(arrow)!.find((h) => h.id === 'end')!
+
+		overlayEditor.select(arrowId)
+		overlayEditor.pointerDown(arrow.x + endHandle.x, arrow.y + endHandle.y, {
+			target: 'handle',
+			shape: arrow,
+			handle: endHandle,
+		})
+		overlayEditor.pointerMove(arrow.x + endHandle.x + 20, arrow.y + endHandle.y)
+		overlayEditor.expectToBeIn('select.dragging_handle')
+		expect(hasBindingHint()).toBe(true)
+
+		// Pasting mid-drag steals the selection
+		const countBefore = overlayEditor.getCurrentPageShapes().length
+		overlayEditor.paste()
+		expect(overlayEditor.getCurrentPageShapes().length).toBeGreaterThan(countBefore)
+		expect(overlayEditor.getOnlySelectedShape()?.id).not.toBe(arrowId)
+
+		// The hint should still be visible while we keep dragging
+		expect(hasBindingHint()).toBe(true)
+
+		overlayEditor.pointerUp()
+	})
 })
 
 describe('PointingLabel', () => {

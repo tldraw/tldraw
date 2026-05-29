@@ -10,6 +10,8 @@ import {
 import { TLArrowInfo } from '../shapes/arrow/arrow-types'
 import { getArrowInfo } from '../shapes/arrow/getArrowInfo'
 import { getArrowBindings } from '../shapes/arrow/shared'
+import { DraggingHandle } from '../tools/SelectTool/childStates/DraggingHandle'
+import { PointingHandle } from '../tools/SelectTool/childStates/PointingHandle'
 
 /** @public */
 export interface TLArrowBindingHintOverlay extends TLOverlay {
@@ -41,10 +43,6 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 	override isActive(): boolean {
 		const editor = this.editor
 		if (editor.getIsReadonly()) return false
-		const id = editor.getOnlySelectedShapeId()
-		if (!id) return false
-		const shape = editor.getShape(id)
-		if (!shape || shape.type !== 'arrow') return false
 		if (
 			!editor.isInAny(
 				'select.idle',
@@ -56,12 +54,16 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 		) {
 			return false
 		}
+		const id = this.getActiveArrowId()
+		if (!id) return false
+		const shape = editor.getShape(id)
+		if (!shape || shape.type !== 'arrow') return false
 		const bindings = getArrowBindings(editor, shape as TLArrowShape)
 		return Boolean(bindings.start || bindings.end)
 	}
 
 	override getOverlays(): TLArrowBindingHintOverlay[] {
-		const id = this.editor.getOnlySelectedShapeId()
+		const id = this.getActiveArrowId()
 		if (!id) return []
 		return [
 			{
@@ -70,6 +72,26 @@ export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintO
 				props: { arrowId: id },
 			},
 		]
+	}
+
+	/**
+	 * Resolve the arrow this hint applies to. While pointing or dragging an
+	 * arrow's handle, the selection can be stolen mid-interaction (e.g. pasting
+	 * a shape, which selects the pasted shape), so we read the arrow from the
+	 * interaction state rather than the current selection. Otherwise we fall
+	 * back to the only selected shape.
+	 */
+	private getActiveArrowId(): TLShapeId | null {
+		const editor = this.editor
+		if (editor.isIn('select.dragging_handle')) {
+			const node: DraggingHandle = editor.getStateDescendant('select.dragging_handle')!
+			if (node.info.shape.type === 'arrow') return node.info.shape.id
+		}
+		if (editor.isIn('select.pointing_handle')) {
+			const node: PointingHandle = editor.getStateDescendant('select.pointing_handle')!
+			if (node.info.shape.type === 'arrow') return node.info.shape.id
+		}
+		return editor.getOnlySelectedShapeId()
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLArrowBindingHintOverlay[]): void {
