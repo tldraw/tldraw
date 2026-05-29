@@ -10,20 +10,6 @@ export interface Presenter {
 }
 
 /**
- * Lexicographic `(claim, tabId)` ordering for presenter election.
- * Higher pair wins. Tabs broadcast their `(claim, tabId)` on focus; on
- * receive, a tab drops out of presenter if it hears a higher pair.
- */
-function isHigherClaim(
-	claim: number,
-	tabId: string,
-	vsClaim: number,
-	vsTabId: string
-): boolean {
-	return claim > vsClaim || (claim === vsClaim && tabId > vsTabId)
-}
-
-/**
  * Track which tab in a same-user pool is the **presenter** — the tab whose
  * cursor moves should be pushed to the server. Last-write-wins on `focus`
  * events, with `(claim, tabId)` lexicographic ordering for tiebreaks.
@@ -70,7 +56,11 @@ export function createPresenter(opts: {
 		if (isDisposed) return
 		if (msg._ct !== 'presenter-claim') return
 		if (msg.tabId === opts.tabId) return
-		if (!isHigherClaim(msg.claim, msg.tabId, highestClaim, highestTabId)) return
+		// Lexicographic `(claim, tabId)` ordering: ignore anything that isn't a
+		// strictly higher pair than the highest we've seen, with tabId breaking ties.
+		const isHigher =
+			msg.claim > highestClaim || (msg.claim === highestClaim && msg.tabId > highestTabId)
+		if (!isHigher) return
 		highestClaim = msg.claim
 		highestTabId = msg.tabId
 		if ($isPresenter.get()) {
