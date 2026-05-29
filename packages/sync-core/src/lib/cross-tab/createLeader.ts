@@ -6,32 +6,11 @@ export interface Leader {
 }
 
 /**
- * Decide whether this tab currently wants to hold the leader lock.
- *
- * - Visible tabs always want it (they're healthy: timers aren't throttled,
- *   pings stay on schedule).
- * - Hidden tabs want it only if no other tab is visible — someone has to
- *   hold the socket, so as a last resort, it stays here.
- *
- * @internal
- */
-export function shouldWantLock(
-	myIsVisible: boolean,
-	peerVisibility: Iterable<boolean>
-): boolean {
-	if (myIsVisible) return true
-	for (const visible of peerVisibility) {
-		if (visible) return false
-	}
-	return true
-}
-
-/**
  * Own the cross-tab leadership lock for a single tab.
  *
  * Uses `navigator.locks`'s mutex semantics for mutual exclusion across
- * tabs, layered with a visibility-driven "want-lock" rule (see
- * {@link shouldWantLock}). Visibility status is gossiped over the channel.
+ * tabs, layered with a visibility-driven "want-lock" rule (see `want`
+ * below). Visibility status is gossiped over the channel.
  * The leader re-evaluates whether it should still hold the lock whenever
  * own or peer visibility changes; if it shouldn't, it releases (the next
  * visible tab's queued request resolves automatically).
@@ -73,7 +52,10 @@ export function createLeader(opts: {
 	const browserUnsubscribes: Array<() => void> = []
 
 	function want(): boolean {
-		return shouldWantLock(myIsVisible, peerVisibility.values())
+		// Visible tabs always want the lock (they're healthy: timers aren't
+		// throttled, pings stay on schedule). A hidden tab wants it only as a
+		// last resort, when no peer is visible to take over.
+		return myIsVisible || ![...peerVisibility.values()].some((visible) => visible)
 	}
 
 	function requestLeadership() {
