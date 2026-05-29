@@ -673,10 +673,8 @@ function useNoteKeydownHandler(id: TLShapeId) {
 			const isCmdEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
 
 			if (isTab) {
-				// When editing a bullet or ordered list inside the note, Tab should
-				// indent the list item (the default rich text behavior) rather than
-				// create a new adjacent note. The rich text editor's own keymap
-				// handles the indentation, so we just bail out here.
+				// In a list, let the rich text editor indent the item instead of
+				// creating a new note.
 				const textEditor = editor.getRichTextEditor()
 				if (textEditor?.isActive('bulletList') || textEditor?.isActive('orderedList')) {
 					return
