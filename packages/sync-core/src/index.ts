@@ -6,12 +6,12 @@ export {
 	type CrossTabSocket,
 	type CrossTabSocketOptions,
 	type UnderlyingSocket,
-} from './lib/cross-tab/cross-tab-socket'
+} from './lib/cross-tab/createCrossTabSocket'
 export {
 	type BroadcastChannelLike,
+	type BrowserContext,
 	type CrossTabLockManager,
-} from './lib/cross-tab/protocol'
-export { type BrowserContext } from './lib/cross-tab/browser-context'
+} from './lib/cross-tab/types'
 export {
 	applyObjectDiff,
 	diffRecord,

@@ -1,12 +1,25 @@
 import { atom, Atom } from '@tldraw/state'
-import { BrowserContext } from './browser-context'
-import { CrossTabChannel, CrossTabMessage } from './protocol'
+import { BrowserContext, CrossTabChannel, CrossTabMessage } from './types'
 
 /** What {@link createPresenter} returns. */
 export interface Presenter {
 	/** True when this tab is the presenter — the most-recently-focused tab in the pool. */
 	$isPresenter: Atom<boolean>
 	close(): void
+}
+
+/**
+ * Lexicographic `(claim, tabId)` ordering for presenter election.
+ * Higher pair wins. Tabs broadcast their `(claim, tabId)` on focus; on
+ * receive, a tab drops out of presenter if it hears a higher pair.
+ */
+function isHigherClaim(
+	claim: number,
+	tabId: string,
+	vsClaim: number,
+	vsTabId: string
+): boolean {
+	return claim > vsClaim || (claim === vsClaim && tabId > vsTabId)
 }
 
 /**
@@ -49,20 +62,14 @@ export function createPresenter(opts: {
 		if (!$isPresenter.get()) $isPresenter.set(true)
 	}
 
-	function handleClaimFromPeer(claimValue: number, fromTabId: string) {
-		const isHigher =
-			claimValue > highestClaim || (claimValue === highestClaim && fromTabId > highestTabId)
-		if (!isHigher) return
-		highestClaim = claimValue
-		highestTabId = fromTabId
-		if ($isPresenter.get()) $isPresenter.set(false)
-	}
-
 	function onChannelMessage(msg: CrossTabMessage) {
 		if (isDisposed) return
 		if (msg._ct !== 'presenter-claim') return
 		if (msg.tabId === opts.tabId) return
-		handleClaimFromPeer(msg.claim, msg.tabId)
+		if (!isHigherClaim(msg.claim, msg.tabId, highestClaim, highestTabId)) return
+		highestClaim = msg.claim
+		highestTabId = msg.tabId
+		if ($isPresenter.get()) $isPresenter.set(false)
 	}
 
 	function close() {

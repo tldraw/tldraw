@@ -30,8 +30,38 @@ export interface CrossTabLockManager {
 }
 
 /**
- * Internal channel message envelope. The `_ct` tag namespaces our messages so
- * a future user of the same channel doesn't accidentally trip our handlers.
+ * Browser-state hooks the cross-tab machinery uses to react to focus and
+ * visibility changes. Pulled out as an interface so tests can drive them
+ * deterministically; in production we wrap `window` and `document`.
+ *
+ * Focus drives the **presenter** role (the tab whose cursor moves should be
+ * broadcast). Visibility drives **leader handoff** (a hidden leader can't
+ * keep the socket healthy because background-tab timer throttling clamps the
+ * ping interval, so the lock should migrate to a visible tab).
+ *
+ * @internal
+ */
+export interface BrowserContext {
+	/** Whether the window currently has keyboard focus. */
+	hasFocus(): boolean
+	/**
+	 * Whether the document is currently visible (not in a background tab
+	 * strip, minimized window, etc).
+	 */
+	isVisible(): boolean
+	/** Subscribe to window `focus` events. Returns an unsubscribe function. */
+	onFocus(cb: () => void): () => void
+	/**
+	 * Subscribe to document `visibilitychange` events. Returns an unsubscribe
+	 * function.
+	 */
+	onVisibilityChange(cb: () => void): () => void
+}
+
+/**
+ * Internal channel message envelope. The `_ct` tag namespaces our messages
+ * so a future user of the same channel doesn't accidentally trip our
+ * handlers.
  *
  * @internal
  */
@@ -77,37 +107,4 @@ export interface CrossTabChannel {
 	send(msg: CrossTabMessage): void
 	subscribe(handler: (msg: CrossTabMessage) => void): () => void
 	close(): void
-}
-
-/**
- * Wrap a raw {@link BroadcastChannelLike} as a {@link CrossTabChannel}. Drops
- * messages that don't match our envelope so a future co-tenant on the same
- * channel name doesn't accidentally trip our handlers.
- *
- * @internal
- */
-export function createCrossTabChannel(bc: BroadcastChannelLike): CrossTabChannel {
-	const handlers = new Set<(msg: CrossTabMessage) => void>()
-	const onMessage = (ev: MessageEvent) => {
-		const data = ev.data
-		if (!data || typeof data !== 'object' || !('_ct' in data)) return
-		handlers.forEach((h) => h(data as CrossTabMessage))
-	}
-	bc.addEventListener('message', onMessage)
-	return {
-		send(msg) {
-			bc.postMessage(msg)
-		},
-		subscribe(handler) {
-			handlers.add(handler)
-			return () => {
-				handlers.delete(handler)
-			}
-		},
-		close() {
-			bc.removeEventListener('message', onMessage)
-			bc.close()
-			handlers.clear()
-		},
-	}
 }

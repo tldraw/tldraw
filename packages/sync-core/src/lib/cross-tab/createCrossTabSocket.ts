@@ -8,17 +8,18 @@ import {
 	TLSocketStatusChangeEvent,
 	TLSocketStatusListener,
 } from '../TLSyncClient'
-import { BrowserContext, defaultBrowserContext } from './browser-context'
-import { createLeader, Leader } from './leader'
-import { createLeaderRouter, LeaderRouter, toStatusChangeEvent } from './leader-router'
-import { createPresenter, Presenter } from './presenter'
+import { createCrossTabChannel } from './createCrossTabChannel'
+import { createFollowerReceiver, FollowerReceiver } from './createFollowerReceiver'
+import { createLeader, Leader } from './createLeader'
+import { createLeaderRouter, LeaderRouter, toStatusChangeEvent } from './createLeaderRouter'
+import { createPresenter, Presenter } from './createPresenter'
+import { defaultBrowserContext } from './defaultBrowserContext'
 import {
 	BroadcastChannelLike,
+	BrowserContext,
 	CrossTabChannel,
-	createCrossTabChannel,
 	CrossTabLockManager,
-	CrossTabMessage,
-} from './protocol'
+} from './types'
 
 /** @internal */
 export type UnderlyingSocket = TLPersistentClientSocket<
@@ -99,12 +100,14 @@ export interface CrossTabSocket
  * adapter silently falls back to per-tab sockets so consumers see today's
  * behavior.
  *
- * Composes three internal pieces:
+ * Composes four internal pieces:
  *
  * - `createPresenter` — focus-driven $isPresenter signal.
  * - `createLeader` — Web Lock + visibility-driven want-lock.
  * - `createLeaderRouter` — clientClock remap + sibling-patch synthesis +
  *   connect routing (instantiated only while this tab is leader).
+ * - `createFollowerReceiver` — channel dispatch for follower-bound
+ *   messages.
  *
  * @internal
  */
@@ -148,52 +151,20 @@ export function createCrossTabSocket(
 	let router: LeaderRouter | null = null
 	let fallbackSocket: UnderlyingSocket | null = null
 
+	function isLeaderOrFallback(): boolean {
+		return router !== null || fallbackSocket !== null
+	}
+
 	function getMode(): 'leader' | 'follower' | 'fallback' {
 		if (fallbackSocket) return 'fallback'
 		if (router) return 'leader'
 		return 'follower'
 	}
 
-	// --- channel-side (follower) dispatch ---
-
-	function onChannelMessage(msg: CrossTabMessage) {
-		if (isDisposed) return
-		switch (msg._ct) {
-			case 'leader-status':
-				// Leaders / fallback own their own status from the underlying WS.
-				if (router || fallbackSocket) return
-				applyStatus(
-					msg.status === 'error'
-						? { status: 'error', reason: msg.reason ?? 'unknown' }
-						: { status: msg.status }
-				)
-				return
-			case 'server-all':
-				// Leaders ignore their own re-broadcast echoes — but the channel
-				// doesn't echo to the sender so this is just defensive.
-				if (router) return
-				deliverToLocal(msg.msg)
-				return
-			case 'server-to':
-				if (msg.toTabId !== tabId) return
-				deliverToLocal(msg.msg)
-				return
-			case 'server-broadcast-except':
-				if (router) return
-				if (msg.exceptTabId === tabId) return
-				deliverToLocal(msg.msg)
-				return
-			default:
-				return
-		}
-	}
-
-	// --- fallback mode (no cross-tab coordination) ---
-
 	let presenter: Presenter
 	let leader: Leader | null = null
+	let followerReceiver: FollowerReceiver | null = null
 	let channel: CrossTabChannel | null = null
-	let channelUnsubscribe: (() => void) | null = null
 
 	if (!rawChannel || !locks) {
 		// No channel or no Web Locks: act as a regular per-tab socket. The
@@ -206,7 +177,17 @@ export function createCrossTabSocket(
 		applyStatus(toStatusChangeEvent(ws.connectionStatus))
 	} else {
 		channel = createCrossTabChannel(rawChannel)
-		channelUnsubscribe = channel.subscribe(onChannelMessage)
+
+		// Follower-side dispatch. Subscribed for the lifetime of this
+		// socket; it gates itself on isLeaderOrFallback() for messages
+		// that leaders/fallback should ignore.
+		followerReceiver = createFollowerReceiver({
+			tabId,
+			channel,
+			isLeaderOrFallback,
+			deliverToLocal,
+			applyStatus,
+		})
 
 		// Announce so any existing leader re-broadcasts its status to us;
 		// otherwise we'd sit at 'initial' until the leader's next status
@@ -290,8 +271,8 @@ export function createCrossTabSocket(
 		fallbackSocket?.close()
 		fallbackSocket = null
 
-		channelUnsubscribe?.()
-		channelUnsubscribe = null
+		followerReceiver?.close()
+		followerReceiver = null
 		leader?.close()
 		presenter.close()
 		channel?.close()

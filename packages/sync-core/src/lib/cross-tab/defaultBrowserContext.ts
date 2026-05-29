@@ -1,31 +1,4 @@
-/**
- * Browser-state hooks the cross-tab machinery uses to react to focus and
- * visibility changes. Pulled out as an interface so tests can drive them
- * deterministically; in production we wrap `window` and `document`.
- *
- * Focus drives the **presenter** role (the tab whose cursor moves should be
- * broadcast). Visibility drives **leader handoff** (a hidden leader can't
- * keep the socket healthy because background-tab timer throttling clamps the
- * ping interval, so the lock should migrate to a visible tab).
- *
- * @internal
- */
-export interface BrowserContext {
-	/** Whether the window currently has keyboard focus. */
-	hasFocus(): boolean
-	/**
-	 * Whether the document is currently visible (not in a background tab
-	 * strip, minimized window, etc).
-	 */
-	isVisible(): boolean
-	/** Subscribe to window `focus` events. Returns an unsubscribe function. */
-	onFocus(cb: () => void): () => void
-	/**
-	 * Subscribe to document `visibilitychange` events. Returns an unsubscribe
-	 * function.
-	 */
-	onVisibilityChange(cb: () => void): () => void
-}
+import { BrowserContext } from './types'
 
 /**
  * Default {@link BrowserContext} that wraps real `window` / `document`. In

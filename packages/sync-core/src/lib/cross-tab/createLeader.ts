@@ -1,5 +1,4 @@
-import { BrowserContext } from './browser-context'
-import { CrossTabChannel, CrossTabLockManager, CrossTabMessage } from './protocol'
+import { BrowserContext, CrossTabChannel, CrossTabLockManager, CrossTabMessage } from './types'
 
 /** What {@link createLeader} returns. */
 export interface Leader {
@@ -7,22 +6,35 @@ export interface Leader {
 }
 
 /**
+ * Decide whether this tab currently wants to hold the leader lock.
+ *
+ * - Visible tabs always want it (they're healthy: timers aren't throttled,
+ *   pings stay on schedule).
+ * - Hidden tabs want it only if no other tab is visible — someone has to
+ *   hold the socket, so as a last resort, it stays here.
+ *
+ * @internal
+ */
+export function shouldWantLock(
+	myIsVisible: boolean,
+	peerVisibility: Iterable<boolean>
+): boolean {
+	if (myIsVisible) return true
+	for (const visible of peerVisibility) {
+		if (visible) return false
+	}
+	return true
+}
+
+/**
  * Own the cross-tab leadership lock for a single tab.
  *
  * Uses `navigator.locks`'s mutex semantics for mutual exclusion across
- * tabs, layered with a visibility-driven "want-lock" rule on top:
- *
- * - **Visible tabs always want the lock.** They're healthy: timers aren't
- *   throttled and the WebSocket pings stay on schedule.
- * - **Hidden tabs only want the lock if no other tab is visible.** Hidden
- *   tabs get their `setInterval` clamped, which means the server's health
- *   check would close the socket. So if anyone visible can take it, they
- *   should.
- *
- * Visibility status is gossiped over the channel. The leader re-evaluates
- * whether it should still hold the lock whenever own or peer visibility
- * changes; if it shouldn't, it releases (the next visible tab's queued
- * request resolves automatically).
+ * tabs, layered with a visibility-driven "want-lock" rule (see
+ * {@link shouldWantLock}). Visibility status is gossiped over the channel.
+ * The leader re-evaluates whether it should still hold the lock whenever
+ * own or peer visibility changes; if it shouldn't, it releases (the next
+ * visible tab's queued request resolves automatically).
  *
  * Doesn't know about WebSockets or the sync protocol — those live in
  * `createLeaderRouter` and `createCrossTabSocket`. Replaceable: a
@@ -60,17 +72,8 @@ export function createLeader(opts: {
 
 	const browserUnsubscribes: Array<() => void> = []
 
-	/**
-	 * Whether this tab currently wants to hold the leader lock. Visible tabs
-	 * always want it; hidden tabs want it only if no other tab is visible —
-	 * someone has to hold the socket, so as a last resort, it stays here.
-	 */
-	function shouldWantLock(): boolean {
-		if (myIsVisible) return true
-		for (const visible of peerVisibility.values()) {
-			if (visible) return false
-		}
-		return true
+	function want(): boolean {
+		return shouldWantLock(myIsVisible, peerVisibility.values())
 	}
 
 	function requestLeadership() {
@@ -88,7 +91,7 @@ export function createLeader(opts: {
 				// e.g., we became hidden and another tab became visible. Don't
 				// take the lock if we no longer want it; resolve and let the
 				// next waiter through.
-				if (!shouldWantLock()) {
+				if (!want()) {
 					resolve()
 					return
 				}
@@ -104,13 +107,13 @@ export function createLeader(opts: {
 
 	function evaluateLockHold() {
 		if (isDisposed) return
-		const want = shouldWantLock()
-		if (releaseLock && !want) {
+		const wantIt = want()
+		if (releaseLock && !wantIt) {
 			// We hold the lock but a visible peer should take over.
 			releaseLock()
 			return
 		}
-		if (!releaseLock && want && !isLockRequestPending) {
+		if (!releaseLock && wantIt && !isLockRequestPending) {
 			// We don't have it and want it back (e.g., visibility came back).
 			requestLeadership()
 		}
