@@ -55,7 +55,7 @@ export function createLeader(opts: {
 		// Visible tabs always want the lock (they're healthy: timers aren't
 		// throttled, pings stay on schedule). A hidden tab wants it only as a
 		// last resort, when no peer is visible to take over.
-		return myIsVisible || ![...peerVisibility.values()].some((visible) => visible)
+		return myIsVisible || !Array.from(peerVisibility.values()).some((visible) => visible)
 	}
 
 	function requestLeadership() {
