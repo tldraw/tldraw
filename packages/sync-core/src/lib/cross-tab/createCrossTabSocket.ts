@@ -16,12 +16,7 @@ import { createPresenter, Presenter } from './createPresenter'
 import { logCrossTabRole } from './crossTabLog'
 import { defaultBrowserContext, resolveChannel, resolveLocks } from './defaultEnvironment'
 import { toStatusChangeEvent } from './leaderStatus'
-import {
-	BroadcastChannelLike,
-	BrowserContext,
-	CrossTabChannel,
-	CrossTabLockManager,
-} from './types'
+import { BroadcastChannelLike, BrowserContext, CrossTabChannel, CrossTabLockManager } from './types'
 
 /** @internal */
 export type UnderlyingSocket = TLPersistentClientSocket<
@@ -62,11 +57,10 @@ export interface CrossTabSocketOptions {
  *
  * @internal
  */
-export interface CrossTabSocket
-	extends TLPersistentClientSocket<
-		TLSocketClientSentEvent<TLRecord>,
-		TLSocketServerSentEvent<TLRecord>
-	> {
+export interface CrossTabSocket extends TLPersistentClientSocket<
+	TLSocketClientSentEvent<TLRecord>,
+	TLSocketServerSentEvent<TLRecord>
+> {
 	readonly tabId: string
 	/**
 	 * Reactive signal that's true when this tab is the presenter — the
@@ -120,8 +114,7 @@ export function createCrossTabSocket(
 	const tabId = options.tabId ?? uniqueId()
 	const channelKey = options.channelKey
 	const createUnderlyingSocket =
-		options.createSocket ??
-		((uri) => new ClientWebSocketAdapter(uri) as UnderlyingSocket)
+		options.createSocket ?? ((uri) => new ClientWebSocketAdapter(uri) as UnderlyingSocket)
 
 	const rawChannel = resolveChannel(options.channel, channelKey)
 	const locks = resolveLocks(options.locks)
@@ -155,12 +148,6 @@ export function createCrossTabSocket(
 
 	function isLeaderOrFallback(): boolean {
 		return router !== null || fallbackSocket !== null
-	}
-
-	function getMode(): 'leader' | 'follower' | 'fallback' {
-		if (fallbackSocket) return 'fallback'
-		if (router) return 'leader'
-		return 'follower'
 	}
 
 	let presenter: Presenter
@@ -293,7 +280,9 @@ export function createCrossTabSocket(
 			return presenter.$isPresenter
 		},
 		get mode() {
-			return getMode()
+			if (fallbackSocket) return 'fallback'
+			if (router) return 'leader'
+			return 'follower'
 		},
 		sendMessage,
 		onReceiveMessage,
