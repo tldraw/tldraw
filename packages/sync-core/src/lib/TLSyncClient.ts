@@ -43,11 +43,13 @@ import {
  */
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
-/** Network sync frame rate when in solo mode (no collaborators) @internal */
-const SOLO_MODE_FPS = 1
-
-/** Network sync frame rate when in collaborative mode (with collaborators) @internal */
-const COLLABORATIVE_MODE_FPS = 30
+/**
+ * Frame rate for outgoing pushes and incoming-diff rebases. The scheduler is
+ * `requestAnimationFrame`-driven, so hidden/backgrounded tabs are throttled to
+ * near-zero by the browser for free — no need to drop the target ourselves.
+ * @internal
+ */
+const NETWORK_SYNC_FPS = 30
 
 /**
  * WebSocket close code used by the server to signal a non-recoverable sync error.
@@ -488,7 +490,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		// Create a separate throttle instance for network sync operations
 		// This ensures sync operations have their own queue separate from UI operations
-		this.fpsScheduler = new FpsScheduler(COLLABORATIVE_MODE_FPS)
+		this.fpsScheduler = new FpsScheduler(NETWORK_SYNC_FPS)
 
 		// Initialize throttled methods after throttle instance is created
 		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => {
@@ -623,9 +625,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.disposables.push(
 				react('pushPresence', () => {
 					if (this.didCancel?.()) return this.close()
-					const mode = this.presenceMode?.get()
-					this.fpsScheduler.updateTargetFps(this.getSyncFps())
-					if (mode !== 'full') return
+					// `presenceMode` gates presence only. It must not throttle document
+					// sync: a tab can be 'solo' (no presence — e.g. a non-presenter tab
+					// sharing a cross-tab socket, or a tab alone in the room) while still
+					// needing to push and rebase document changes at full speed.
+					if (this.presenceMode?.get() !== 'full') return
 					this.pushPresence(this.presenceState!.get())
 				})
 			)
@@ -858,11 +862,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			squashRecordDiffsMutable(this.unsentChanges.nextDiff, [change])
 		}
 		this.sendUnsentChanges()
-	}
-
-	/** Get the target FPS for network operations based on presence mode */
-	private getSyncFps(): number {
-		return this.presenceMode?.get() === 'solo' ? SOLO_MODE_FPS : COLLABORATIVE_MODE_FPS
 	}
 
 	/**
