@@ -8,7 +8,7 @@ import {
 	TLSocketStatusListener,
 } from '../TLSyncClient'
 import { BrowserContext } from './browser-context'
-import { CrossTabSocket } from './CrossTabSocket'
+import { createCrossTabSocket } from './cross-tab-socket'
 import { BroadcastChannelLike, CrossTabLockManager } from './protocol'
 
 // =====================================================================
@@ -170,7 +170,7 @@ function buildTab(opts: {
 	sockets: FakeSocket[]
 	browserContext?: BrowserContext | null
 }) {
-	const ct = new CrossTabSocket(() => 'ws://test', {
+	const ct = createCrossTabSocket(() => 'ws://test', {
 		channelKey: opts.channelKey,
 		channel: opts.channels.create(`tldraw-room-${opts.channelKey}`),
 		locks: opts.locks,
@@ -257,7 +257,7 @@ describe('CrossTabSocket: leader election', () => {
 		await flushMicrotasks()
 
 		expect(sockets).toHaveLength(1)
-		expect((a as any).mode).toBe('leader')
+		expect(a.mode).toBe('leader')
 		a.close()
 	})
 
@@ -270,8 +270,8 @@ describe('CrossTabSocket: leader election', () => {
 
 		// Only one underlying socket exists (the leader's).
 		expect(sockets).toHaveLength(1)
-		expect((a as any).mode).toBe('leader')
-		expect((b as any).mode).toBe('follower')
+		expect(a.mode).toBe('leader')
+		expect(b.mode).toBe('follower')
 		a.close()
 		b.close()
 	})
@@ -282,8 +282,8 @@ describe('CrossTabSocket: leader election', () => {
 		const b = buildTab({ channels, locks, channelKey: 'room2', tabId: 'B', sockets })
 		await flushMicrotasks()
 
-		expect((a as any).mode).toBe('leader')
-		expect((b as any).mode).toBe('leader')
+		expect(a.mode).toBe('leader')
+		expect(b.mode).toBe('leader')
 		expect(sockets).toHaveLength(2)
 		a.close()
 		b.close()
@@ -296,13 +296,13 @@ describe('CrossTabSocket: leader election', () => {
 		const b = buildTab({ channels, locks, channelKey: 'room1', tabId: 'B', sockets })
 		await flushMicrotasks()
 
-		expect((a as any).mode).toBe('leader')
-		expect((b as any).mode).toBe('follower')
+		expect(a.mode).toBe('leader')
+		expect(b.mode).toBe('follower')
 
 		a.close()
 		await flushMicrotasks()
 
-		expect((b as any).mode).toBe('leader')
+		expect(b.mode).toBe('leader')
 		// A new socket was opened by B.
 		expect(sockets).toHaveLength(2)
 		b.close()
@@ -887,7 +887,7 @@ describe('CrossTabSocket: fallback mode', () => {
 			sockets,
 		})
 
-		expect((a as any).mode).toBe('fallback')
+		expect(a.mode).toBe('fallback')
 		expect(sockets).toHaveLength(1)
 
 		// sendMessage goes straight to the underlying socket.
@@ -916,8 +916,8 @@ describe('CrossTabSocket: fallback mode', () => {
 		})
 
 		expect(sockets).toHaveLength(2)
-		expect((a as any).mode).toBe('fallback')
-		expect((b as any).mode).toBe('fallback')
+		expect(a.mode).toBe('fallback')
+		expect(b.mode).toBe('fallback')
 
 		a.close()
 		b.close()
@@ -1119,15 +1119,15 @@ describe('CrossTabSocket: visibility-driven leader handoff', () => {
 		})
 		await flushMicrotasks()
 
-		expect((a as any).mode).toBe('leader')
-		expect((b as any).mode).toBe('follower')
+		expect(a.mode).toBe('leader')
+		expect(b.mode).toBe('follower')
 
 		// A becomes hidden. B is still visible.
 		aEnv.setVisible(false)
 		await flushMicrotasks()
 
 		// Lock should have migrated to B.
-		expect((b as any).mode).toBe('leader')
+		expect(b.mode).toBe('leader')
 		// Two sockets have been opened over the lifetime of the test.
 		expect(sockets).toHaveLength(2)
 
@@ -1157,13 +1157,13 @@ describe('CrossTabSocket: visibility-driven leader handoff', () => {
 		})
 		await flushMicrotasks()
 
-		expect((a as any).mode).toBe('leader')
+		expect(a.mode).toBe('leader')
 
 		// A becomes hidden — but B is also hidden, so A should hang onto the lock.
 		aEnv.setVisible(false)
 		await flushMicrotasks()
 
-		expect((a as any).mode).toBe('leader')
+		expect(a.mode).toBe('leader')
 		expect(sockets).toHaveLength(1)
 
 		a.close()
@@ -1195,18 +1195,18 @@ describe('CrossTabSocket: visibility-driven leader handoff', () => {
 		// A is leader. A becomes hidden — hands off to B.
 		aEnv.setVisible(false)
 		await flushMicrotasks()
-		expect((b as any).mode).toBe('leader')
+		expect(b.mode).toBe('leader')
 
 		// A becomes visible again. It should request the lock; B keeps it for
 		// now (B is still visible), so A waits in the queue. If B then becomes
 		// hidden, A would take over.
 		aEnv.setVisible(true)
 		await flushMicrotasks()
-		expect((b as any).mode).toBe('leader')
+		expect(b.mode).toBe('leader')
 
 		bEnv.setVisible(false)
 		await flushMicrotasks()
-		expect((a as any).mode).toBe('leader')
+		expect(a.mode).toBe('leader')
 
 		a.close()
 		b.close()

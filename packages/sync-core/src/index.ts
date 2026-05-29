@@ -2,9 +2,11 @@ import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { chunk, JsonChunkAssembler } from './lib/chunk'
 export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
 export {
-	CrossTabSocket,
+	createCrossTabSocket,
+	type CrossTabSocket,
 	type CrossTabSocketOptions,
-} from './lib/cross-tab/CrossTabSocket'
+	type UnderlyingSocket,
+} from './lib/cross-tab/cross-tab-socket'
 export {
 	type BroadcastChannelLike,
 	type CrossTabLockManager,

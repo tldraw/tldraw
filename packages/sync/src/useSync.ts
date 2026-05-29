@@ -2,6 +2,7 @@ import { atom, transact } from '@tldraw/state'
 import {
 	ClientWebSocketAdapter,
 	CrossTabSocket,
+	createCrossTabSocket,
 	TLCustomMessageHandler,
 	TLPersistentClientSocket,
 	TLPresenceMode,
@@ -294,7 +295,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			}
 
 			if (crossTabRoomKey) {
-				const cts = new CrossTabSocket(getUri, {
+				const cts = createCrossTabSocket(getUri, {
 					channelKey: `${currentUser.get().id}-${crossTabRoomKey}`,
 				})
 				crossTabSocket = cts
@@ -353,11 +354,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			store,
 			socket,
 			didCancel: () => didCancel,
-			onLoad(client) {
+			onLoad(client: TLSyncClient<TLRecord, TLStore>) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
 				setState({ readyClient: client })
 			},
-			onSyncError(reason) {
+			onSyncError(reason: string) {
 				console.error('sync error', reason)
 
 				switch (reason) {
@@ -381,7 +382,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState({ error: new TLRemoteSyncError(reason) })
 				socket.close()
 			},
-			onAfterConnect(_, { isReadonly }) {
+			onAfterConnect(_: TLSyncClient<TLRecord, TLStore>, { isReadonly }: { isReadonly: boolean }) {
 				transact(() => {
 					syncMode.set(isReadonly ? 'readonly' : 'readwrite')
 					// if the server crashes and loses all data it can return an empty document

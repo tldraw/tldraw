@@ -78,6 +78,9 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
 }
 
 // @internal
+export function createCrossTabSocket(getUri: () => Promise<string> | string, options: CrossTabSocketOptions): CrossTabSocket;
+
+// @internal
 export interface CrossTabLockManager {
     // (undocumented)
     request(name: string, options: {
@@ -87,22 +90,9 @@ export interface CrossTabLockManager {
 }
 
 // @internal
-export class CrossTabSocket implements TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>> {
-    get $isPresenter(): Atom<boolean>;
-    constructor(getUri: () => Promise<string> | string, options: CrossTabSocketOptions);
-    // (undocumented)
-    close(): void;
-    // (undocumented)
-    get connectionStatus(): TLPersistentClientSocketStatus;
-    get mode(): 'fallback' | 'follower' | 'leader';
-    // (undocumented)
-    onReceiveMessage(cb: (val: TLSocketServerSentEvent<TLRecord>) => void): () => void;
-    // (undocumented)
-    onStatusChange(cb: TLSocketStatusListener): () => void;
-    // (undocumented)
-    restart(): void;
-    // (undocumented)
-    sendMessage(msg: TLSocketClientSentEvent<TLRecord>): void;
+export interface CrossTabSocket extends TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>> {
+    readonly $isPresenter: Atom<boolean>;
+    readonly mode: 'fallback' | 'follower' | 'leader';
     // (undocumented)
     readonly tabId: string;
 }
@@ -112,7 +102,7 @@ export interface CrossTabSocketOptions {
     browserContext?: BrowserContext | null;
     channel?: BroadcastChannelLike | null;
     channelKey: string;
-    createSocket?: (getUri: () => Promise<string> | string) => TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>>;
+    createSocket?: (getUri: () => Promise<string> | string) => UnderlyingSocket;
     locks?: CrossTabLockManager | null;
     tabId?: string;
 }
@@ -843,6 +833,9 @@ export interface TLSyncStorageTransactionResult<T, R extends UnknownRecord = Unk
     // (undocumented)
     result: T;
 }
+
+// @internal (undocumented)
+export type UnderlyingSocket = TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>>;
 
 // @internal
 export type ValueOp = AppendOp | DeleteOp | PatchOp | PutOp;
