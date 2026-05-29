@@ -75,7 +75,7 @@ export function createMockLockManager(): CrossTabLockManager & {
 	const queues = new Map<string, Array<() => void>>()
 	const holders = new Map<string, { resolve: () => void } | null>()
 
-	const run = (name: string) => {
+	function run(name: string) {
 		const q = queues.get(name)
 		if (!q || q.length === 0) {
 			holders.set(name, null)
@@ -89,8 +89,8 @@ export function createMockLockManager(): CrossTabLockManager & {
 		holders,
 		async request(name, _options, callback) {
 			return new Promise<unknown>((outerResolve) => {
-				const start = () => {
-					const release = () => {
+				function start() {
+					function release() {
 						holders.set(name, null)
 						outerResolve(undefined)
 						run(name)
@@ -232,4 +232,6 @@ export function createMockBrowserContext(initial?: { focused?: boolean; visible?
  * deliver synchronously, but lock callbacks (which return promises) need
  * a turn of the microtask queue to settle.
  */
-export const flushMicrotasks = () => new Promise<void>((resolve) => setImmediate(resolve))
+export function flushMicrotasks() {
+	return new Promise<void>((resolve) => setImmediate(resolve))
+}

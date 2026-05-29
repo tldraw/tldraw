@@ -9,7 +9,7 @@ import { BroadcastChannelLike, CrossTabChannel, CrossTabMessage } from './types'
  */
 export function createCrossTabChannel(bc: BroadcastChannelLike): CrossTabChannel {
 	const handlers = new Set<(msg: CrossTabMessage) => void>()
-	const onMessage = (ev: MessageEvent) => {
+	function onMessage(ev: MessageEvent) {
 		const data = ev.data
 		if (!data || typeof data !== 'object' || !('_ct' in data)) return
 		handlers.forEach((h) => h(data as CrossTabMessage))

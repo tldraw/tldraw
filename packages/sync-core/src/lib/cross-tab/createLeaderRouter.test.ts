@@ -147,8 +147,9 @@ describe('createLeaderRouter: message routing', () => {
 
 		// The broadcast patch reached both; each push_result only reached its
 		// originator (with the original clientClock).
-		const flatten = (msgs: TLSocketServerSentEvent<TLRecord>[]) =>
-			msgs.flatMap((m) => (m.type === 'data' ? m.data : [m]))
+		function flatten(msgs: TLSocketServerSentEvent<TLRecord>[]) {
+			return msgs.flatMap((m) => (m.type === 'data' ? m.data : [m]))
+		}
 
 		const aFlat = flatten(aReceived)
 		const bFlat = flatten(bReceived)
@@ -481,8 +482,9 @@ describe('createLeaderRouter: sibling-patch synthesis', () => {
 			],
 		})
 
-		const flatten = (msgs: TLSocketServerSentEvent<TLRecord>[]) =>
-			msgs.flatMap((m) => (m.type === 'data' ? m.data : [m]))
+		function flatten(msgs: TLSocketServerSentEvent<TLRecord>[]) {
+			return msgs.flatMap((m) => (m.type === 'data' ? m.data : [m]))
+		}
 
 		const aFlat = flatten(aReceived)
 		const bFlat = flatten(bReceived)
