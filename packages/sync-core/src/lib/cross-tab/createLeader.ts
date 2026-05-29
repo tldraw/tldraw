@@ -163,7 +163,6 @@ export function createLeader(opts: {
 		peerVisibility.clear()
 	}
 
-	// --- init ---
 	const channelUnsubscribe = opts.channel.subscribe(onChannelMessage)
 
 	const ctx = opts.browserContext

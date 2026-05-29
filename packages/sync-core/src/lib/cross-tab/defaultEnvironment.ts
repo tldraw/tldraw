@@ -10,11 +10,9 @@ import { BroadcastChannelLike, BrowserContext, CrossTabLockManager } from './typ
  */
 
 /**
- * Default {@link BrowserContext} that wraps real `window` / `document`. In
- * non-browser environments (SSR, Node tests without jsdom) all methods are
- * benign no-ops — `hasFocus` returns false, `isVisible` returns true (treat
- * the tab as visible so the existing always-request-leader behavior keeps
- * working), and event subscriptions don't fire.
+ * Default {@link BrowserContext} wrapping real `window` / `document`. Outside a
+ * browser, `isVisible` returns true so a tab still requests leadership (the
+ * pre-cross-tab behavior); `hasFocus` returns false and subscriptions no-op.
  *
  * @internal
  */

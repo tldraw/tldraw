@@ -88,7 +88,6 @@ export function createPresenter(opts: {
 		channelUnsubscribe = null
 	}
 
-	// --- init ---
 	if (!opts.channel) {
 		// Single-tab / fallback: trivially the presenter.
 		$isPresenter.set(true)

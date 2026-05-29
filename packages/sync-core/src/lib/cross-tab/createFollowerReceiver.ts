@@ -37,7 +37,6 @@ export function createFollowerReceiver(opts: {
 	function onChannelMessage(msg: CrossTabMessage) {
 		switch (msg._ct) {
 			case 'leader-status':
-				// Leaders / fallback own their own status from the underlying WS.
 				if (opts.isLeaderOrFallback()) return
 				opts.applyStatus(messageToStatusEvent(msg))
 				return

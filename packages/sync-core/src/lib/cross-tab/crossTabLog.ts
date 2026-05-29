@@ -1,13 +1,10 @@
 /**
  * Console logging for cross-tab role transitions (leader / presenter), so the
- * behavior is observable while moving focus between tabs and windows. The
- * short tab id makes it easy to tell tabs apart when their consoles are open
- * side by side.
+ * behavior is observable while moving focus between tabs and windows.
  *
- * Uses `console.debug`, which browsers hide unless the devtools log level
- * includes "Verbose" — so this stays out of the default console (cross-tab is
- * on by default) while remaining one toggle away. Silent under test to keep
- * the suite output clean.
+ * Uses `console.debug` (hidden unless the devtools log level includes
+ * "Verbose") so it stays out of the default console — cross-tab is on by
+ * default — while remaining one toggle away. Silent under test.
  *
  * @internal
  */

@@ -70,8 +70,6 @@ export function createLeaderRouter(opts: {
 	let isDisposed = false
 	const socketUnsubscribes: Array<() => void> = []
 
-	// --- delivery callbacks for routeServerMessage ---
-
 	const dispatch: ServerMessageDispatch = {
 		toAll(msg) {
 			// Local first so the leader's own TLSyncClient processes it in
@@ -94,8 +92,6 @@ export function createLeaderRouter(opts: {
 			opts.channel.send({ _ct: 'server-broadcast-except', exceptTabId, msg })
 		},
 	}
-
-	// --- outbound: client → server ---
 
 	function forwardClientMessageToServer(
 		fromTabId: string,
@@ -123,15 +119,11 @@ export function createLeaderRouter(opts: {
 		}
 	}
 
-	// --- status propagation ---
-
 	function handleStatusChange(ev: TLSocketStatusChangeEvent) {
 		opts.onStatusChange(ev)
 		lastLeaderStatus = statusEventToMessage(ev)
 		opts.channel.send(lastLeaderStatus)
 	}
-
-	// --- channel ---
 
 	function onChannelMessage(msg: CrossTabMessage) {
 		if (isDisposed) return
@@ -151,8 +143,6 @@ export function createLeaderRouter(opts: {
 		}
 	}
 
-	// --- public surface ---
-
 	function sendLocalClientMessage(msg: TLSocketClientSentEvent<TLRecord>) {
 		forwardClientMessageToServer(opts.tabId, msg)
 	}
@@ -171,7 +161,6 @@ export function createLeaderRouter(opts: {
 		routing.clear()
 	}
 
-	// --- init ---
 	const channelUnsubscribe = opts.channel.subscribe(onChannelMessage)
 	socketUnsubscribes.push(
 		opts.underlyingSocket.onReceiveMessage((msg) => routeServerMessage(msg, routing, dispatch)),

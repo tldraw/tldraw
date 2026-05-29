@@ -228,8 +228,6 @@ export function createCrossTabSocket(
 		})
 	}
 
-	// --- public surface ---
-
 	function sendMessage(msg: TLSocketClientSentEvent<TLRecord>) {
 		assert(!isDisposed, 'Tried to send message on a disposed CrossTabSocket')
 		if (fallbackSocket) {
