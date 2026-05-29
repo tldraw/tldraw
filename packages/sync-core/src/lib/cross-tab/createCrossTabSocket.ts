@@ -13,6 +13,7 @@ import { createFollowerReceiver, FollowerReceiver } from './createFollowerReceiv
 import { createLeader, Leader } from './createLeader'
 import { createLeaderRouter, LeaderRouter } from './createLeaderRouter'
 import { createPresenter, Presenter } from './createPresenter'
+import { logCrossTabRole } from './crossTabLog'
 import { defaultBrowserContext, resolveChannel, resolveLocks } from './defaultEnvironment'
 import { toStatusChangeEvent } from './leaderStatus'
 import {
@@ -213,11 +214,13 @@ export function createCrossTabSocket(
 					onLocalServerMessage: deliverToLocal,
 					onStatusChange: applyStatus,
 				})
+				logCrossTabRole(tabId, 'became leader (now owns the shared WebSocket)')
 			},
 			onLoseLeadership: () => {
 				if (isDisposed) return
 				router?.close()
 				router = null
+				logCrossTabRole(tabId, 'lost leadership (released the shared WebSocket to another tab)')
 				// Followers expect to keep seeing leader-status events from
 				// whoever holds the lock next; our own status atom will catch
 				// up via the leader-status channel message.

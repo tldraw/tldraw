@@ -1,4 +1,5 @@
 import { atom, Atom } from '@tldraw/state'
+import { logCrossTabRole } from './crossTabLog'
 import { BrowserContext, CrossTabChannel, CrossTabMessage } from './types'
 
 /** What {@link createPresenter} returns. */
@@ -59,7 +60,10 @@ export function createPresenter(opts: {
 		highestClaim = next
 		highestTabId = opts.tabId
 		opts.channel?.send({ _ct: 'presenter-claim', tabId: opts.tabId, claim: next })
-		if (!$isPresenter.get()) $isPresenter.set(true)
+		if (!$isPresenter.get()) {
+			$isPresenter.set(true)
+			logCrossTabRole(opts.tabId, 'became presenter (now pushing presence/cursor to the server)')
+		}
 	}
 
 	function onChannelMessage(msg: CrossTabMessage) {
@@ -69,7 +73,10 @@ export function createPresenter(opts: {
 		if (!isHigherClaim(msg.claim, msg.tabId, highestClaim, highestTabId)) return
 		highestClaim = msg.claim
 		highestTabId = msg.tabId
-		if ($isPresenter.get()) $isPresenter.set(false)
+		if ($isPresenter.get()) {
+			$isPresenter.set(false)
+			logCrossTabRole(opts.tabId, 'is no longer presenter (another tab took focus)')
+		}
 	}
 
 	function close() {
