@@ -675,7 +675,9 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 			if (isTab && isEditingRichTextList(editor)) {
 				// In a list, let the rich text editor indent the item instead of
-				// creating a new note.
+				// creating a new note. Prevent default so Tab doesn't move focus out
+				// of the editor when the item can't be indented (e.g. the first item).
+				e.preventDefault()
 				return
 			}
 
