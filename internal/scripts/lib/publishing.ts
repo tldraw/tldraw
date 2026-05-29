@@ -174,8 +174,8 @@ export async function publish(distTag?: string) {
 							'--tag',
 							String(tag),
 							'--tolerate-republish',
-							'--access',
 							'--provenance',
+							'--access',
 							'public',
 						],
 						{
