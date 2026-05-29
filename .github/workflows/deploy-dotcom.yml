@@ -109,7 +109,10 @@ jobs:
               --project-ref "$PROJECT_REF" \
               -o json > "$BRANCH_JSON" 2>/dev/null || true
             POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL // empty' "$BRANCH_JSON" 2>/dev/null || true)
-            if [ -n "$POSTGRES_URL_TRANSACTION" ]; then break; fi
+            if [ -n "$POSTGRES_URL_TRANSACTION" ]; then
+              echo "Branch $BRANCH_NAME is ready."
+              break
+            fi
             echo "Waiting for branch to be ready ($i/24)..."
             sleep 5
           done
