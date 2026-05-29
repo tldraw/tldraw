@@ -67,7 +67,6 @@ export interface BrowserContext {
  */
 export type CrossTabMessage =
 	| { _ct: 'leader-status'; status: TLPersistentClientSocketStatus; reason?: string }
-	| { _ct: 'leader-hello' }
 	| { _ct: 'follower-hello'; fromTabId: string }
 	| { _ct: 'client'; fromTabId: string; msg: TLSocketClientSentEvent<TLRecord> }
 	| { _ct: 'server-all'; msg: TLSocketServerSentEvent<TLRecord> }

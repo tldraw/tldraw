@@ -4,7 +4,6 @@ import { TLSocketClientSentEvent, TLSocketServerSentEvent } from '../protocol'
 import { TLPersistentClientSocketStatus } from '../TLSyncClient'
 import {
 	buildTab,
-	createMockBrowserContext,
 	createMockChannelFactory,
 	createMockLockManager,
 	FakeSocket,

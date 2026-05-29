@@ -1,7 +1,4 @@
-import { TLRecord } from '@tldraw/tlschema'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { TLSocketClientSentEvent, TLSocketServerSentEvent } from '../protocol'
-import { TLPersistentClientSocketStatus } from '../TLSyncClient'
 import {
 	buildTab,
 	createMockBrowserContext,

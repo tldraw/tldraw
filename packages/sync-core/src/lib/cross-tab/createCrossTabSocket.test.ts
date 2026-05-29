@@ -1,16 +1,11 @@
-import { TLRecord } from '@tldraw/tlschema'
-import { beforeEach, describe, expect, it } from 'vitest'
-import { TLSocketClientSentEvent, TLSocketServerSentEvent } from '../protocol'
-import { TLPersistentClientSocketStatus } from '../TLSyncClient'
+import { describe, expect, it } from 'vitest'
 import {
 	buildTab,
-	createMockBrowserContext,
 	createMockChannelFactory,
 	createMockLockManager,
 	FakeSocket,
 	flushMicrotasks,
 } from './testDoubles'
-import { CrossTabLockManager } from './types'
 
 describe('createCrossTabSocket: fallback mode', () => {
 	it('uses a per-tab socket when locks are unavailable', async () => {
