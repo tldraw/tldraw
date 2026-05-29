@@ -168,7 +168,16 @@ export async function publish(distTag?: string) {
 				try {
 					await exec(
 						`yarn`,
-						['npm', 'publish', '--tag', String(tag), '--tolerate-republish', '--access', 'public'],
+						[
+							'npm',
+							'publish',
+							'--tag',
+							String(tag),
+							'--tolerate-republish',
+							'--access',
+							'--provenance',
+							'public',
+						],
 						{
 							pwd: packageDetails.dir,
 							processStdoutLine: (line) => {
