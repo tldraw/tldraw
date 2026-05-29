@@ -28,19 +28,13 @@ export const defaultBrowserContext: BrowserContext = {
 	},
 	onFocus(cb) {
 		if (typeof window === 'undefined') return () => {}
-		function handler() {
-			cb()
-		}
-		window.addEventListener('focus', handler)
-		return () => window.removeEventListener('focus', handler)
+		window.addEventListener('focus', cb)
+		return () => window.removeEventListener('focus', cb)
 	},
 	onVisibilityChange(cb) {
 		if (typeof document === 'undefined') return () => {}
-		function handler() {
-			cb()
-		}
-		document.addEventListener('visibilitychange', handler)
-		return () => document.removeEventListener('visibilitychange', handler)
+		document.addEventListener('visibilitychange', cb)
+		return () => document.removeEventListener('visibilitychange', cb)
 	},
 }
 
