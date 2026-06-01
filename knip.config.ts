@@ -109,10 +109,14 @@ const config: KnipConfig = {
 		// vite plugin's default entry detection.
 		'apps/dotcom/client': {
 			entry: ['scripts/**/*.{ts,js}', 'sentry-release-name.ts'],
-			// `ws` is currently declared as a devDep but no source imports
-			// it directly – likely a leftover. Leaving baseline-suppressed
-			// to keep this PR focused on adding the check itself.
-			ignoreDependencies: ['ws'],
+			ignoreDependencies: [
+				// `ws` is currently declared as a devDep but no source
+				// imports it directly – likely a leftover. Baseline.
+				'ws',
+				// scripts/build.ts imports bare `lodash`; fixed by #8984.
+				// Drop this entry once #8984 lands and is rebased in.
+				'lodash',
+			],
 		},
 
 		'apps/docs': {
@@ -217,6 +221,11 @@ const config: KnipConfig = {
 		'packages/store': {
 			ignoreDependencies: ['raf'],
 		},
+		'packages/state-react': {
+			// `lodash` + `@types/lodash` are unused; cleaned up by #8984.
+			// Drop this entry once #8984 lands and is rebased in.
+			ignoreDependencies: ['lodash', '@types/lodash'],
+		},
 		'packages/sync': {
 			ignoreDependencies: [
 				'@tldraw/state-react',
@@ -252,6 +261,12 @@ const config: KnipConfig = {
 		},
 		'templates/socketio-server-example': {
 			ignoreDependencies: ['react-router-dom'],
+		},
+		'templates/sync-cloudflare': {
+			// `lodash.throttle` + `@types/lodash.throttle` are unused;
+			// cleaned up by #8984. Drop this entry once #8984 lands and is
+			// rebased in.
+			ignoreDependencies: ['lodash.throttle', '@types/lodash.throttle'],
 		},
 	},
 }
