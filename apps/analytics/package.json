@@ -21,7 +21,7 @@
 		"@types/js-cookie": "^3.0.6",
 		"typescript": "^5.8.3",
 		"vite": "^8.0.1",
-		"vitest": "^3.2.4",
+		"vitest": "^4.1.8",
 		"wrangler": "^4.75.0"
 	}
 }

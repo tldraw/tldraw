@@ -37,7 +37,7 @@
 		"@tldraw/worker-shared": "workspace:*",
 		"itty-router": "^5.0.18",
 		"jose": "^5.9.6",
-		"kysely": "^0.28.12",
+		"kysely": "^0.29.2",
 		"lodash.throttle": "^4.1.1",
 		"pg": "^8.13.1",
 		"pg-logical-replication": "^2.0.7",
@@ -51,7 +51,7 @@
 		"esbuild": "^0.28.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^5.8.3",
-		"vitest": "^3.2.4",
+		"vitest": "^4.1.8",
 		"wrangler": "^4.75.0"
 	}
 }
