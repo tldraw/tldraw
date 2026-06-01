@@ -1,4 +1,3 @@
-import { capitalize } from 'lodash'
 import { useRef, useState } from 'react'
 import { Editor, TLShapeId, useEditor, useValue } from 'tldraw'
 import { VisibilityOff, VisibilityOn } from '../../../icons/icons'
@@ -160,6 +159,6 @@ function getShapeName(editor: Editor, shapeId: TLShapeId) {
 		// meta.name is the first choice, then the shape's text, then the capitalized shape type
 		(shape.meta.name as string) ||
 		editor.getShapeUtil(shape).getText(shape) ||
-		capitalize(shape.type + ' shape')
+		`${shape.type[0].toUpperCase()}${shape.type.slice(1)} shape`
 	)
 }

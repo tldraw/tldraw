@@ -136,6 +136,7 @@
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
 		"@types/fs-extra": "^11.0.4",
+		"@types/lodash.isequal": "^4.5.8",
 		"@types/node-fetch": "^2.6.12",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
@@ -144,7 +145,7 @@
 		"esbuild": "^0.28.0",
 		"fs-extra": "^11.3.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"lodash": "^4.17.21",
+		"lodash.isequal": "^4.5.0",
 		"mocha": "^9.2.2",
 		"ovsx": "^0.10.7",
 		"process": "^0.11.10",

@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash'
+import isEqual from 'lodash.isequal'
 import { UnknownRecord } from 'tldraw'
 import * as vscode from 'vscode'
 // @ts-ignore

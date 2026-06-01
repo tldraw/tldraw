@@ -1,4 +1,3 @@
-import { round } from 'lodash'
 import {
 	createComputedCache,
 	Editor,
@@ -716,8 +715,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 			const snapPoint = Vec.NearestPointOnLineSegment(start, end, handle, true)
 			const distance = Vec.Dist(handle, snapPoint)
 
-			if (round(distance) <= round(minDistance)) {
-				if (round(distance) < round(minDistance)) {
+			if (Math.round(distance) <= Math.round(minDistance)) {
+				if (Math.round(distance) < Math.round(minDistance)) {
 					endPoints.length = 0
 					minDistance = distance
 					nearestPoint = snapPoint
@@ -757,8 +756,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		)
 		const outerLineDistance = Vec.Dist(handle, outerLineSnapPoint)
 
-		if (round(outerLineDistance) <= round(minDistance)) {
-			if (round(outerLineDistance) < round(minDistance)) {
+		if (Math.round(outerLineDistance) <= Math.round(minDistance)) {
+			if (Math.round(outerLineDistance) < Math.round(minDistance)) {
 				minDistance = outerLineDistance
 				nearestPoint = outerLineSnapPoint
 			}
@@ -770,8 +769,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		const perpLineSnapPoint = Vec.NearestPointOnLineSegment(normalDStart, normalDEnd, handle, true)
 		const perpLineDistance = Vec.Dist(handle, perpLineSnapPoint)
 
-		if (round(perpLineDistance) <= round(minDistance)) {
-			if (round(perpLineDistance) < round(minDistance)) {
+		if (Math.round(perpLineDistance) <= Math.round(minDistance)) {
+			if (Math.round(perpLineDistance) < Math.round(minDistance)) {
 				minDistance = perpLineDistance
 				nearestPoint = perpLineSnapPoint
 			}

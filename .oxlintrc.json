@@ -213,6 +213,18 @@
 			}
 		],
 
+		"no-restricted-imports": [
+			"error",
+			{
+				"paths": [
+					{
+						"name": "lodash",
+						"message": "The main `lodash` package is CommonJS and does not tree-shake. Import a per-method package (e.g. `lodash.throttle`), `lodash-es`, or inline the helper."
+					}
+				]
+			}
+		],
+
 		"tldraw/no-export-star": "error",
 		"tldraw/no-internal-imports": "error",
 		"tldraw/tagged-components": "error",
@@ -372,6 +384,10 @@
 							{
 								"name": "react-intl",
 								"message": "Please import useIntl from src/utils/intl instead."
+							},
+							{
+								"name": "lodash",
+								"message": "The main `lodash` package is CommonJS and does not tree-shake. Import a per-method package (e.g. `lodash.throttle`), `lodash-es`, or inline the helper."
 							}
 						]
 					}
