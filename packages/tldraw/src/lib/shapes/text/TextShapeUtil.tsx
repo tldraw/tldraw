@@ -141,8 +141,9 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		return new Rectangle2d({
 			x: (-arrowPadding - ink.left) * scale,
+			y: -ink.top * scale,
 			width: (width + arrowPadding * 2 + ink.left + ink.right) * scale,
-			height: height * scale,
+			height: (height + ink.top + ink.bottom) * scale,
 			isFilled: true,
 			isLabel: true,
 		})
@@ -430,20 +431,52 @@ const RTL_REGEX =
 interface TextInkOverflow {
 	left: number
 	right: number
+	top: number
+	bottom: number
 }
 
-const ZERO_INK_OVERFLOW: TextInkOverflow = { left: 0, right: 0 }
+const ZERO_INK_OVERFLOW: TextInkOverflow = { left: 0, right: 0, top: 0, bottom: 0 }
+
+// Scan the rich text for bold/italic marks anywhere in the document. Glyph side bearings
+// differ for those styles, but the shape-level display values are always normal, so we'd
+// otherwise under-measure styled text. Applying a style found anywhere is a safe
+// over-estimate for mixed runs: the box can only get slightly looser, never clip.
+function getRichTextMarkStyles(richText: TLTextShape['props']['richText']): {
+	italic: boolean
+	bold: boolean
+} {
+	let italic = false
+	let bold = false
+	const stack: unknown[] = [richText]
+	while (stack.length) {
+		const node = stack.pop()
+		if (!node || typeof node !== 'object') continue
+		const { marks, content } = node as { marks?: unknown[]; content?: unknown[] }
+		if (Array.isArray(marks)) {
+			for (const mark of marks) {
+				const type =
+					mark && typeof mark === 'object' ? (mark as { type?: unknown }).type : undefined
+				if (type === 'italic') italic = true
+				else if (type === 'bold') bold = true
+			}
+		}
+		if (Array.isArray(content)) {
+			for (const child of content) stack.push(child)
+		}
+		if (italic && bold) break
+	}
+	return { italic, bold }
+}
 
 // Measure how far the rendered ink extends past the advance-width box that `getTextSize`
 // produces, per physical side, in local (unscaled) px. The DOM advance measurement only
-// captures pen-advance, so cursive/RTL/italic side bearings (e.g. Arabic, see #8803) get
-// painted outside the box. We re-measure each line with the Canvas TextMetrics API, which
-// reports the true ink extent (actualBoundingBoxLeft/Right).
+// captures pen-advance, so cursive/RTL/italic side bearings (e.g. Arabic, see #8803) and
+// tall diacritics get painted outside the box. We re-measure each line with the Canvas
+// TextMetrics API, which reports the true ink extent.
 //
-// TODO before shipping: (1) handle soft-wrapped lines — this splits on explicit breaks
-// only, which is correct for autoSize (the #8803 repro) but under-measures fixed-width
-// wrapping; (2) per-run font/style instead of the shape-level display values; (3) vertical
-// overflow (tall diacritics) is not yet accounted for.
+// Known limitation: soft-wrapped lines in fixed-width shapes are skipped — the browser
+// decides where to break them, so we can't attribute their ink to a side. Autosize text
+// (the #8803 case) never wraps, so every line is measured.
 function getTextInkOverflow(
 	editor: Editor,
 	props: TLTextShape['props'],
@@ -457,16 +490,30 @@ function getTextInkOverflow(
 	if (text.trim() === '') return ZERO_INK_OVERFLOW
 
 	const family = resolveCanvasFontFamily(editor, dv.fontFamily)
-	ctx.font = `${dv.fontStyle} ${dv.fontWeight} ${dv.fontSize}px ${family}`
+	const marks = getRichTextMarkStyles(props.richText)
+	const fontStyle = marks.italic ? 'italic' : dv.fontStyle
+	const fontWeight = marks.bold ? 'bold' : dv.fontWeight
+	ctx.font = `${fontStyle} ${fontWeight} ${dv.fontSize}px ${family}`
 
 	const boxWidth = size.width
+	const boxHeight = size.height
+	const lineHeightPx = dv.fontSize * dv.lineHeight
+	const lines = text.split('\n')
+
 	let overflowLeft = 0
 	let overflowRight = 0
+	let overflowTop = 0
+	let overflowBottom = 0
 
-	for (const rawLine of text.split('\n')) {
-		const line = rawLine === '' ? ' ' : rawLine
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i] === '' ? ' ' : lines[i]
 		const m = ctx.measureText(line)
 		const advance = m.width
+
+		// Fixed-width text wraps; we can't tell where, so skip lines wider than the box.
+		// Autosize text never wraps, so always measure it.
+		if (!props.autoSize && advance > boxWidth + 1) continue
+
 		const isRTL = RTL_REGEX.test(line)
 
 		// The physical left edge of this line's advance box within [0, boxWidth]. `start`
@@ -481,18 +528,37 @@ function getTextInkOverflow(
 			penX = alignsRight ? boxWidth - advance : 0
 		}
 
-		// Ink edges in box coordinates, then how far they spill past either side. The
-		// `|| 0` guards engines that don't report ink bounds (the metrics come back
-		// undefined), which would otherwise poison the geometry width with NaN.
+		// Horizontal: ink edges in box coordinates, then how far they spill past each side.
+		// The `|| 0` guards engines that don't report ink bounds (metrics come back
+		// undefined), which would otherwise poison the geometry with NaN.
 		const inkLeftEdge = penX - (m.actualBoundingBoxLeft || 0)
 		const inkRightEdge = penX + (m.actualBoundingBoxRight || 0)
 		overflowLeft = Math.max(overflowLeft, -inkLeftEdge)
 		overflowRight = Math.max(overflowRight, inkRightEdge - boxWidth)
+
+		// Vertical: only the first line can spill past the top of the block, only the last
+		// past the bottom. Place the baseline within the line box the way CSS line-height
+		// does (half-leading above the font ascent).
+		const fontAscent = m.fontBoundingBoxAscent || dv.fontSize
+		const fontDescent = m.fontBoundingBoxDescent || 0
+		const baselineFromTop = (lineHeightPx - (fontAscent + fontDescent)) / 2 + fontAscent
+		if (i === 0) {
+			const inkTop = baselineFromTop - (m.actualBoundingBoxAscent || 0)
+			overflowTop = Math.max(overflowTop, -inkTop)
+		}
+		if (i === lines.length - 1) {
+			const lastLineTop = boxHeight - lineHeightPx
+			const inkBottom = lastLineTop + baselineFromTop + (m.actualBoundingBoxDescent || 0)
+			overflowBottom = Math.max(overflowBottom, inkBottom - boxHeight)
+		}
 	}
 
+	const clamp = (n: number) => (Number.isFinite(n) ? Math.max(0, n) : 0)
 	return {
-		left: Number.isFinite(overflowLeft) ? Math.max(0, overflowLeft) : 0,
-		right: Number.isFinite(overflowRight) ? Math.max(0, overflowRight) : 0,
+		left: clamp(overflowLeft),
+		right: clamp(overflowRight),
+		top: clamp(overflowTop),
+		bottom: clamp(overflowBottom),
 	}
 }
 

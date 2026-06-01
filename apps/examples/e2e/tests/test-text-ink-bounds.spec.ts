@@ -69,4 +69,45 @@ test.describe('text shape ink bounds', () => {
 		expect(geometryX).toBeCloseTo(0, 1)
 		expect(geometryWidth).toBeCloseTo(advanceWidth, 1)
 	})
+
+	test('does not over-expand fixed-width text that soft-wraps', async ({ page }) => {
+		// A fixed-width shape wraps long text across several lines. Ink overflow can only be
+		// attributed for lines that fit the box, so wrapped lines are skipped — the geometry
+		// must stay at the fixed width rather than ballooning to the unwrapped advance.
+		const result = await page.evaluate(
+			async ({ id, text, width }) => {
+				const ed = editor as any
+				ed.selectAll().deleteShapes(ed.getSelectedShapeIds())
+				ed.createShape({
+					id,
+					type: 'text',
+					x: 100,
+					y: 100,
+					props: {
+						richText: {
+							type: 'doc',
+							content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
+						},
+						font: 'sans',
+						size: 'm',
+						autoSize: false,
+						w: width,
+						color: 'black',
+					},
+				})
+				await ed.fonts.loadRequiredFontsForCurrentPage()
+				await ed.getContainerDocument().fonts.ready
+				const shape = ed.getShape(id)
+				const bounds = ed.getShapeGeometry(shape).bounds
+				return { geometryWidth: bounds.width as number }
+			},
+			{
+				id: 'shape:fixedWrap',
+				text: 'The quick brown fox jumps over the lazy dog and keeps on running',
+				width: 200,
+			}
+		)
+		// Stays at the fixed width (a few px of slack), never the full unwrapped advance.
+		expect(result.geometryWidth).toBeLessThan(210)
+	})
 })
