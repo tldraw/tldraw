@@ -8,27 +8,9 @@ import type { Editor } from '../../Editor'
  *
  * A unitless `line-height` leaves the per-line advance fractional (e.g. 24 * 1.35 =
  * 32.4px). WebKit snaps each line box to a whole pixel while Blink keeps the fraction,
- * so wrapped lines drift apart across engines and the offset accumulates per line. This
- * breaks multiplayer alignment when clients are on different browsers (e.g. text vs draw
- * strokes line up for one user and are offset for another). Both behaviours are
- * spec-legal — line-box pixel snapping is implementation-defined — so it can't be waited
- * out. See https://github.com/tldraw/tldraw/issues/8970.
- *
- * Approaches considered:
- * - Keep the unitless multiplier: the fraction is what the engines disagree on, so this
- *   is the source of the drift.
- * - Set an explicit *fractional* px value (e.g. `32.4px`): doesn't help — WebKit still
- *   snaps the resulting line box to a whole pixel, so the engines still diverge.
- * - Round to a whole px in JS, identically on every client (this function): removes the
- *   fraction before it reaches the DOM, so there's nothing left for the engines to
- *   disagree about. This is the only option that aligned both engines in testing.
- *
- * Trade-offs of rounding: line spacing loses up to ~0.5px of sub-pixel precision (a
- * cosmetic tightening), the effective line-height ratio wobbles slightly between font
- * sizes since each rounds independently, and existing documents reflow once. Glyphs that
- * overflow the line box (tall scripts, emoji) can still differ between engines — this
- * only fixes the box advance, not glyph overflow. The value is still derived from the
- * resolved font size, so it scales with font size as before; only the fraction is lost.
+ * so wrapped lines drift apart across engines and the offset accumulates. Resolving the
+ * value to an integer here — in JS, identically on every client — removes the fraction
+ * before layout, so both engines agree. See https://github.com/tldraw/tldraw/issues/8970.
  *
  * This must be used everywhere line-height is applied (measurement, on-canvas render, and
  * export) so geometry and rendering stay in agreement.
