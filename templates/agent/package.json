@@ -35,7 +35,7 @@
 		"@google/generative-ai": "^0.24.1",
 		"@tldraw/tlschema": "workspace:*",
 		"@worker-tools/json-stream": "^0.1.0-pre.12",
-		"ai": "^5.0.63",
+		"ai": "^6.0.194",
 		"best-effort-json-parser": "^1.1.3",
 		"itty-router": "^5.0.18",
 		"react": "^19.2.1",
