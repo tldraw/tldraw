@@ -128,6 +128,7 @@ export {
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
 export {
 	TextManager,
+	getLineHeightPx,
 	type BatchMeasurementRequest,
 	type TLMeasuredTextSize,
 	type TLMeasureTextOpts,

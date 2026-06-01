@@ -1932,6 +1932,9 @@ export function getGlobalWindow(): Window & typeof globalThis;
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
+// @internal
+export function getLineHeightPx(fontSize: number, lineHeight: number): number;
+
 // @public
 export function getOverlayDisplayValues<Overlay extends TLOverlay, DisplayValues extends object>(util: {
     editor: Editor;

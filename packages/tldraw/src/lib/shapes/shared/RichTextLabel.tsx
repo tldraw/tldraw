@@ -4,6 +4,7 @@ import {
 	TLEventInfo,
 	TLRichText,
 	TLShapeId,
+	getLineHeightPx,
 	openWindow,
 	preventDefault,
 	useEditor,
@@ -161,8 +162,8 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
-					lineHeight: lineHeight.toString(),
-					minHeight: Math.floor(fontSize * lineHeight) + 'px',
+					lineHeight: getLineHeightPx(fontSize, lineHeight) + 'px',
+					minHeight: getLineHeightPx(fontSize, lineHeight) + 'px',
 					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,
 					width: textWidth ? Math.ceil(textWidth) : undefined,
@@ -254,7 +255,7 @@ export function RichTextSVG({
 		fontSize: `${fontSize}px`,
 		wrap: wrap ? 'wrap' : 'nowrap',
 		color: labelColor,
-		lineHeight,
+		lineHeight: `${getLineHeightPx(fontSize, lineHeight)}px`,
 		textAlign,
 		width: '100%',
 		wordWrap: 'break-word' as const,

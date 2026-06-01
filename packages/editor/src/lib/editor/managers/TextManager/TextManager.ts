@@ -2,6 +2,25 @@ import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 import { objectMapKeys } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
+/**
+ * Convert tldraw's unitless line-height (a multiplier) into a whole-pixel value for a
+ * given font size.
+ *
+ * A unitless `line-height` leaves the per-line advance fractional (e.g. 24 * 1.35 =
+ * 32.4px). WebKit snaps each line box to a whole pixel while Blink keeps the fraction,
+ * so wrapped lines drift apart across engines and the offset accumulates. Resolving the
+ * value to an integer here — in JS, identically on every client — removes the fraction
+ * before layout, so both engines agree. See https://github.com/tldraw/tldraw/issues/8970.
+ *
+ * This must be used everywhere line-height is applied (measurement, on-canvas render, and
+ * export) so geometry and rendering stay in agreement.
+ *
+ * @internal
+ */
+export function getLineHeightPx(fontSize: number, lineHeight: number): number {
+	return Math.round(fontSize * lineHeight)
+}
+
 const fixNewLines = /\r?\n|\r/g
 
 function normalizeTextForDom(text: string) {
@@ -154,7 +173,7 @@ export class TextManager {
 			'font-style': opts.fontStyle,
 			'font-weight': opts.fontWeight,
 			'font-size': opts.fontSize + 'px',
-			'line-height': opts.lineHeight.toString(),
+			'line-height': getLineHeightPx(opts.fontSize, opts.lineHeight) + 'px',
 			padding: opts.padding,
 			'max-width': opts.maxWidth ? opts.maxWidth + 'px' : undefined,
 			'min-width': opts.minWidth ? opts.minWidth + 'px' : undefined,
@@ -382,7 +401,7 @@ export class TextManager {
 			'font-style': opts.fontStyle,
 			'font-weight': opts.fontWeight,
 			'font-size': opts.fontSize + 'px',
-			'line-height': opts.lineHeight.toString(),
+			'line-height': getLineHeightPx(opts.fontSize, opts.lineHeight) + 'px',
 			width: `${elementWidth}px`,
 			height: 'min-content',
 			'text-align': textAlignmentsForLtr[opts.textAlign],
