@@ -219,7 +219,7 @@
 				"paths": [
 					{
 						"name": "lodash",
-						"message": "The main `lodash` package is CommonJS and does not tree-shake. Import a per-method package (e.g. `lodash.throttle`), `lodash-es`, or inline the helper."
+						"message": "The main `lodash` package is CommonJS and does not tree-shake. Use a deep import (e.g. `import throttle from 'lodash/throttle'`), `lodash-es`, a per-method package, or inline the helper."
 					}
 				]
 			}
@@ -387,7 +387,7 @@
 							},
 							{
 								"name": "lodash",
-								"message": "The main `lodash` package is CommonJS and does not tree-shake. Import a per-method package (e.g. `lodash.throttle`), `lodash-es`, or inline the helper."
+								"message": "The main `lodash` package is CommonJS and does not tree-shake. Use a deep import (e.g. `import throttle from 'lodash/throttle'`), `lodash-es`, a per-method package, or inline the helper."
 							}
 						]
 					}
