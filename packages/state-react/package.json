@@ -55,7 +55,7 @@
 		"lodash": "^4.17.21",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.0"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",

@@ -45,7 +45,7 @@
 	"devDependencies": {
 		"@types/lodash": "^4.17.14",
 		"lodash": "^4.17.21",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.8"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"
