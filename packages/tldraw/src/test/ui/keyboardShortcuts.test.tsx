@@ -1,7 +1,11 @@
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
 import { useActions } from '../../lib/ui/context/actions'
-import { getKbdKeyCombos } from '../../lib/ui/hooks/useKeyboardShortcuts'
+import {
+	getHotkeysStringFromKbd,
+	ParsedKbd,
+	parseKbd,
+} from '../../lib/ui/hooks/useKeyboardShortcuts'
 import { useTools } from '../../lib/ui/hooks/useTools'
 import { renderTldrawComponent } from '../testutils/renderTldrawComponent'
 
@@ -12,6 +16,19 @@ const SKIP_KBDS = ['copy', 'cut', 'paste', 'asset']
 interface ShortcutEntry {
 	id: string
 	kbd: string
+}
+
+function serializeParsedKbd(parsed: ParsedKbd): string {
+	const modifiers: string[] = []
+	if (parsed.meta) modifiers.push('meta')
+	if (parsed.ctrl) modifiers.push('ctrl')
+	if (parsed.alt) modifiers.push('alt')
+	if (parsed.shift) modifiers.push('shift')
+	return [...modifiers, parsed.key].join('+')
+}
+
+export function getKbdKeyCombos(kbd: string): string[] {
+	return parseKbd(getHotkeysStringFromKbd(kbd)).map(serializeParsedKbd)
 }
 
 function ShortcutCapturer({ onCapture }: { onCapture(entries: ShortcutEntry[]): void }) {

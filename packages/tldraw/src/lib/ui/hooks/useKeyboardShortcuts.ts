@@ -195,7 +195,10 @@ export function areShortcutsDisabled(editor: Editor) {
 // non-Latin layouts (Cyrillic, Greek, etc.) and macOS Option-letter dead-key combinations,
 // where `event.key` is a non-ASCII glyph.
 
-interface ParsedKbd {
+/**
+ * @internal
+ */
+export interface ParsedKbd {
 	key: string
 	shift: boolean
 	alt: boolean
@@ -319,33 +322,16 @@ const PHYSICAL_KEY_MAP: Record<string, string> = {
 	Backquote: '`',
 }
 
-function parseKbd(kbd: string): ParsedKbd[] {
+/**
+ * @internal
+ */
+export function parseKbd(kbd: string): ParsedKbd[] {
 	const out: ParsedKbd[] = []
 	for (const shortcut of getKeys(kbd)) {
 		const parsed = parseShortcut(shortcut)
 		if (parsed) out.push(parsed)
 	}
 	return out
-}
-
-function serializeParsedKbd(parsed: ParsedKbd): string {
-	const modifiers: string[] = []
-	if (parsed.meta) modifiers.push('meta')
-	if (parsed.ctrl) modifiers.push('ctrl')
-	if (parsed.alt) modifiers.push('alt')
-	if (parsed.shift) modifiers.push('shift')
-	return [...modifiers, parsed.key].join('+')
-}
-
-/**
- * Normalize a raw `kbd` string (the format used by actions and tools) into the list of canonical
- * key combos it binds to. Two registrations that produce overlapping combos will both fire on the
- * same keydown, so this is used to detect colliding shortcuts.
- *
- * @internal
- */
-export function getKbdKeyCombos(kbd: string): string[] {
-	return parseKbd(getHotkeysStringFromKbd(kbd)).map(serializeParsedKbd)
 }
 
 function parseShortcut(shortcut: string): ParsedKbd | null {
@@ -431,11 +417,16 @@ function shouldSkipEvent(e: KeyboardEvent): boolean {
 	return false
 }
 
-// The "raw" kbd here will look something like "a" or a combination of keys "del,backspace".
-// We need to first split them up by comma, then parse each key to ensure backwards compatibility
-// with the old kbd format. We used to have symbols to denote cmd/alt/shift,
-// using ! for shift, $ for cmd, and ? for alt.
-function getHotkeysStringFromKbd(kbd: string) {
+/**
+ * The "raw" kbd here will look something like "a" or a combination of keys
+ * "del,backspace". We need to first split them up by comma, then parse each
+ * key to ensure backwards compatibility with the old kbd format. We used to
+ * have symbols to denote cmd/alt/shift, using ! for shift, $ for cmd, and ?
+ * for alt.
+ *
+ * @internal
+ */
+export function getHotkeysStringFromKbd(kbd: string) {
 	return getKeys(kbd)
 		.map((kbd) => {
 			let str = ''
