@@ -1,4 +1,3 @@
-import { assert } from '@tldraw/utils'
 import { VecModel } from './geometry-types'
 
 // Each point = 3 Float16s = 6 bytes = 8 base64 chars (legacy format)
@@ -6,6 +5,12 @@ const _POINT_B64_LENGTH = 8
 
 // First point in delta encoding = 3 Float32s = 12 bytes = 16 base64 chars
 const FIRST_POINT_B64_LENGTH = 16
+
+// First point in 2D delta encoding = 2 Float32s = 8 bytes = 12 base64 chars (incl. padding)
+const FIRST_POINT_2D_B64_LENGTH = 12
+
+// Pressure value supplied when decoding non-pressure (2D) paths
+const DEFAULT_PRESSURE = 0.5
 
 // O(1) lookup table for base64 decoding (maps char code -> 6-bit value)
 const BASE64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -67,11 +72,23 @@ function nativeBase64ToUint8Array(base64: string): Uint8Array {
 
 /** @internal */
 export function fallbackBase64ToUint8Array(base64: string): Uint8Array {
-	const numBytes = Math.floor((base64.length * 3) / 4)
+	// Strip up to 2 '=' padding characters to determine the real byte count.
+	// The 2D point layout (8 + 4(n-1) bytes) is not a multiple of 3, so encoded
+	// paths can carry padding the original multiple-of-3-only decoder couldn't read.
+	const paddedLength = base64.length
+	let padding = 0
+	if (paddedLength > 0 && base64.charCodeAt(paddedLength - 1) === 61) {
+		padding++
+		if (paddedLength > 1 && base64.charCodeAt(paddedLength - 2) === 61) {
+			padding++
+		}
+	}
+	const numBytes = Math.floor((paddedLength * 3) / 4) - padding
 	const bytes = new Uint8Array(numBytes)
 	let byteIndex = 0
 
-	for (let i = 0; i < base64.length; i += 4) {
+	const fullGroups = Math.floor((paddedLength - padding) / 4) * 4
+	for (let i = 0; i < fullGroups; i += 4) {
 		const c0 = B64_LOOKUP[base64.charCodeAt(i)]
 		const c1 = B64_LOOKUP[base64.charCodeAt(i + 1)]
 		const c2 = B64_LOOKUP[base64.charCodeAt(i + 2)]
@@ -84,6 +101,21 @@ export function fallbackBase64ToUint8Array(base64: string): Uint8Array {
 		bytes[byteIndex++] = bitmap & 255
 	}
 
+	// Final group when padded: 3 valid chars -> 2 bytes, 2 valid chars -> 1 byte.
+	if (padding === 1) {
+		const c0 = B64_LOOKUP[base64.charCodeAt(fullGroups)]
+		const c1 = B64_LOOKUP[base64.charCodeAt(fullGroups + 1)]
+		const c2 = B64_LOOKUP[base64.charCodeAt(fullGroups + 2)]
+		const bitmap = (c0 << 18) | (c1 << 12) | (c2 << 6)
+		bytes[byteIndex++] = (bitmap >> 16) & 255
+		bytes[byteIndex++] = (bitmap >> 8) & 255
+	} else if (padding === 2) {
+		const c0 = B64_LOOKUP[base64.charCodeAt(fullGroups)]
+		const c1 = B64_LOOKUP[base64.charCodeAt(fullGroups + 1)]
+		const bitmap = (c0 << 18) | (c1 << 12)
+		bytes[byteIndex++] = (bitmap >> 16) & 255
+	}
+
 	return bytes
 }
 
@@ -93,11 +125,12 @@ function nativeUint8ArrayToBase64(uint8Array: Uint8Array): string {
 
 /** @internal */
 export function fallbackUint8ArrayToBase64(uint8Array: Uint8Array): string {
-	assert(uint8Array.length % 3 === 0, 'Uint8Array length must be a multiple of 3')
+	const len = uint8Array.length
+	const fullGroups = Math.floor(len / 3) * 3
 	let result = ''
 
 	// Process bytes in groups of 3 -> 4 base64 chars
-	for (let i = 0; i < uint8Array.length; i += 3) {
+	for (let i = 0; i < fullGroups; i += 3) {
 		const byte1 = uint8Array[i]
 		const byte2 = uint8Array[i + 1]
 		const byte3 = uint8Array[i + 2]
@@ -108,6 +141,21 @@ export function fallbackUint8ArrayToBase64(uint8Array: Uint8Array): string {
 			BASE64_CHARS[(bitmap >> 12) & 63] +
 			BASE64_CHARS[(bitmap >> 6) & 63] +
 			BASE64_CHARS[bitmap & 63]
+	}
+
+	// Trailing 1 or 2 bytes are emitted with '=' padding (the 2D layout is not
+	// 3-aligned). This matches standard base64 and Node's Buffer output.
+	const remaining = len - fullGroups
+	if (remaining === 1) {
+		const bitmap = uint8Array[fullGroups] << 16
+		result += BASE64_CHARS[(bitmap >> 18) & 63] + BASE64_CHARS[(bitmap >> 12) & 63] + '=='
+	} else if (remaining === 2) {
+		const bitmap = (uint8Array[fullGroups] << 16) | (uint8Array[fullGroups + 1] << 8)
+		result +=
+			BASE64_CHARS[(bitmap >> 18) & 63] +
+			BASE64_CHARS[(bitmap >> 12) & 63] +
+			BASE64_CHARS[(bitmap >> 6) & 63] +
+			'='
 	}
 
 	return result
@@ -299,10 +347,12 @@ export class b64Vecs {
 	 * - Delta points: 3 Float16 values each = 6 bytes = 8 base64 chars each
 	 *
 	 * @param points - An array of VecModel objects to encode
+	 * @param dim - Encoding dimension; `2` routes through the 2D variant (drops z), `3` (default) keeps x, y, z
 	 * @returns A base64-encoded string containing delta-encoded points
 	 * @public
 	 */
-	static encodePoints(points: VecModel[]): string {
+	static encodePoints(points: VecModel[], dim?: 2 | 3): string {
+		if (dim === 2) return b64Vecs.encodePoints2D(points)
 		if (points.length === 0) return ''
 
 		// First point: 3 Float32s = 12 bytes
@@ -348,10 +398,12 @@ export class b64Vecs {
 	 * Float16 deltas that are accumulated to reconstruct absolute positions.
 	 *
 	 * @param base64 - The base64-encoded string containing delta-encoded point data
+	 * @param dim - Encoding dimension; `2` expects x/y only (z supplied as 0.5), `3` (default) expects x/y/z
 	 * @returns An array of VecModel objects with absolute coordinates
 	 * @public
 	 */
-	static decodePoints(base64: string): VecModel[] {
+	static decodePoints(base64: string, dim?: 2 | 3): VecModel[] {
+		if (dim === 2) return b64Vecs.decodePoints2D(base64)
 		if (base64.length === 0) return []
 
 		const bytes = base64ToUint8Array(base64)
@@ -381,10 +433,12 @@ export class b64Vecs {
 	 * The first point is stored as Float32 for full precision.
 	 *
 	 * @param b64Points - The delta-encoded base64 string
+	 * @param dim - Encoding dimension; `2` expects x/y only (z supplied as 0.5), `3` (default) expects x/y/z
 	 * @returns The first point as a VecModel, or null if the string is too short
 	 * @public
 	 */
-	static decodeFirstPoint(b64Points: string): VecModel | null {
+	static decodeFirstPoint(b64Points: string, dim?: 2 | 3): VecModel | null {
+		if (dim === 2) return b64Vecs.decodeFirstPoint2D(b64Points)
 		// First point needs 16 base64 chars (12 bytes as Float32)
 		if (b64Points.length < FIRST_POINT_B64_LENGTH) return null
 
@@ -403,10 +457,12 @@ export class b64Vecs {
 	 * Requires decoding all points to accumulate deltas.
 	 *
 	 * @param b64Points - The delta-encoded base64 string
+	 * @param dim - Encoding dimension; `2` expects x/y only (z supplied as 0.5), `3` (default) expects x/y/z
 	 * @returns The last point as a VecModel, or null if the string is too short
 	 * @public
 	 */
-	static decodeLastPoint(b64Points: string): VecModel | null {
+	static decodeLastPoint(b64Points: string, dim?: 2 | 3): VecModel | null {
+		if (dim === 2) return b64Vecs.decodeLastPoint2D(b64Points)
 		if (b64Points.length < FIRST_POINT_B64_LENGTH) return null
 
 		const bytes = base64ToUint8Array(b64Points)
@@ -426,5 +482,141 @@ export class b64Vecs {
 		}
 
 		return { x, y, z }
+	}
+
+	/**
+	 * Encode an array of VecModels as 2D delta-encoded points, dropping z entirely.
+	 * Use for draw shapes from devices that don't report pressure, where z is a
+	 * constant 0.5 and storing it wastes ~33% of per-point bytes.
+	 *
+	 * Format:
+	 * - First point: 2 Float32 values (x, y) = 8 bytes
+	 * - Delta points: 2 Float16 values (dx, dy) = 4 bytes each
+	 *
+	 * @param points - An array of VecModel objects to encode (z is discarded)
+	 * @returns A base64-encoded string containing 2D delta-encoded points
+	 * @public
+	 */
+	static encodePoints2D(points: VecModel[]): string {
+		if (points.length === 0) return ''
+
+		const firstPointBytes = 8
+		const deltaBytes = (points.length - 1) * 4
+		const buffer = new Uint8Array(firstPointBytes + deltaBytes)
+		const dataView = new DataView(buffer.buffer)
+
+		const first = points[0]
+		dataView.setFloat32(0, first.x, true)
+		dataView.setFloat32(4, first.y, true)
+
+		let prevX = first.x
+		let prevY = first.y
+
+		for (let i = 1; i < points.length; i++) {
+			const p = points[i]
+			const offset = firstPointBytes + (i - 1) * 4
+			setFloat16(dataView, offset, p.x - prevX)
+			setFloat16(dataView, offset + 2, p.y - prevY)
+			prevX = p.x
+			prevY = p.y
+		}
+
+		return uint8ArrayToBase64(buffer)
+	}
+
+	/**
+	 * Decode a 2D delta-encoded base64 string back to an array of absolute VecModels.
+	 * The z coordinate is always set to 0.5 (the default pressure value) so downstream
+	 * consumers don't need a separate code path.
+	 *
+	 * @param base64 - The base64-encoded string containing 2D delta-encoded point data
+	 * @returns An array of VecModel objects with absolute (x, y) and z = 0.5
+	 * @public
+	 */
+	static decodePoints2D(base64: string): VecModel[] {
+		if (base64.length === 0) return []
+
+		const bytes = base64ToUint8Array(base64)
+		const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+		const result: VecModel[] = []
+
+		let x = dataView.getFloat32(0, true)
+		let y = dataView.getFloat32(4, true)
+		result.push({ x, y, z: DEFAULT_PRESSURE })
+
+		const firstPointBytes = 8
+		for (let offset = firstPointBytes; offset < bytes.length; offset += 4) {
+			x += getFloat16(dataView, offset)
+			y += getFloat16(dataView, offset + 2)
+			result.push({ x, y, z: DEFAULT_PRESSURE })
+		}
+
+		return result
+	}
+
+	/**
+	 * Get the first point from a 2D delta-encoded base64 string.
+	 *
+	 * @param b64Points - The 2D delta-encoded base64 string
+	 * @returns The first point with z = 0.5, or null if the string is too short
+	 * @public
+	 */
+	static decodeFirstPoint2D(b64Points: string): VecModel | null {
+		if (b64Points.length < FIRST_POINT_2D_B64_LENGTH) return null
+
+		const bytes = base64ToUint8Array(b64Points.slice(0, FIRST_POINT_2D_B64_LENGTH))
+		const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+
+		return {
+			x: dataView.getFloat32(0, true),
+			y: dataView.getFloat32(4, true),
+			z: DEFAULT_PRESSURE,
+		}
+	}
+
+	/**
+	 * Get the last point from a 2D delta-encoded base64 string.
+	 * Requires decoding all points to accumulate deltas.
+	 *
+	 * @param b64Points - The 2D delta-encoded base64 string
+	 * @returns The last point with z = 0.5, or null if the string is too short
+	 * @public
+	 */
+	static decodeLastPoint2D(b64Points: string): VecModel | null {
+		if (b64Points.length < FIRST_POINT_2D_B64_LENGTH) return null
+
+		const bytes = base64ToUint8Array(b64Points)
+		const dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+
+		let x = dataView.getFloat32(0, true)
+		let y = dataView.getFloat32(4, true)
+
+		const firstPointBytes = 8
+		for (let offset = firstPointBytes; offset < bytes.length; offset += 4) {
+			x += getFloat16(dataView, offset)
+			y += getFloat16(dataView, offset + 2)
+		}
+
+		return { x, y, z: DEFAULT_PRESSURE }
+	}
+
+	/**
+	 * Whether an encoded path contains only a single point (a "dot"), inferred from
+	 * the encoded length without decoding — cheap enough for the render path.
+	 *
+	 * The single-point length depends on the encoding dimension, so this takes the
+	 * segment's `dim`: a one-point path is `FIRST_POINT_B64_LENGTH` chars (3D) or
+	 * `FIRST_POINT_2D_B64_LENGTH` chars (2D). Keeping this beside the layout constants
+	 * is deliberate — it is the single source of truth for "how long is one point", so
+	 * callers never hard-code a length threshold (which silently breaks when a new
+	 * encoding is added).
+	 *
+	 * @param b64Points - The encoded path string
+	 * @param dim - Encoding dimension; `2` for (x, y), `3` (default) for (x, y, z)
+	 * @returns true if the path encodes exactly one point
+	 * @public
+	 */
+	static isSinglePoint(b64Points: string, dim?: 2 | 3): boolean {
+		return b64Points.length <= (dim === 2 ? FIRST_POINT_2D_B64_LENGTH : FIRST_POINT_B64_LENGTH)
 	}
 }

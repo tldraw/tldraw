@@ -105,6 +105,7 @@ const Versions = createShapePropsMigrationIds('highlight', {
 	AddScale: 1,
 	Base64: 2,
 	LegacyPointsConversion: 3,
+	OmitNonPressureZ: 4,
 })
 
 /**
@@ -180,6 +181,23 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (_props) => {
 				// handled by the previous down migration
+			},
+		},
+		{
+			id: Versions.OmitNonPressureZ,
+			up: (_props) => {
+				// No-op — see the matching draw-shape migration. Absent `dim` reads as 3D.
+			},
+			down: (props) => {
+				// Strip `dim` from every segment that carries it (older clients reject the
+				// unknown field); 2D segments are re-encoded to 3D, dim: 3 just loses the field.
+				props.segments = props.segments.map((segment: any) => {
+					if (segment.dim === undefined) return segment
+					const { dim, ...rest } = segment
+					return dim === 2
+						? { ...rest, path: b64Vecs.encodePoints(b64Vecs.decodePoints(segment.path, 2)) }
+						: rest
+				})
 			},
 		},
 	],

@@ -78,7 +78,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const segment = shape.props.segments[0]
 			expect(segment.type).toBe('straight')
 
-			const points = base64ToPoints(segment.path)
+			const points = base64ToPoints(segment.path, segment.dim)
 			expect(points.length).toBe(2)
 		})
 
@@ -177,7 +177,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]
-			const points = base64ToPoints(segment.path)
+			const points = base64ToPoints(segment.path, segment.dim)
 			expect(points[1].x).toBeCloseTo(snappedX)
 			expect(points[1].y).toBeCloseTo(snappedY)
 		})
@@ -201,7 +201,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]
-			const points = base64ToPoints(segment.path)
+			const points = base64ToPoints(segment.path, segment.dim)
 			expect(points[1].x).toBeCloseTo(x)
 			expect(points[1].y).toBeCloseTo(y)
 		})
@@ -221,14 +221,14 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment1 = last(shape1.props.segments)!
-			const points1 = base64ToPoints(segment1.path)
+			const points1 = base64ToPoints(segment1.path, segment1.dim)
 			const point1 = last(points1)!
 			expect(point1.x).toBe(1)
 
 			editor.keyDown('Meta')
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
-			const points2 = base64ToPoints(segment2.path)
+			const points2 = base64ToPoints(segment2.path, segment2.dim)
 			const point2 = last(points2)!
 			expect(point2.x).toBe(0)
 		})
@@ -248,14 +248,14 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment1 = last(shape1.props.segments)!
-			const points1 = base64ToPoints(segment1.path)
+			const points1 = base64ToPoints(segment1.path, segment1.dim)
 			const point1 = last(points1)!
 			expect(point1.x).toBe(1)
 
 			editor.keyDown('Meta')
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
-			const points2 = base64ToPoints(segment2.path)
+			const points2 = base64ToPoints(segment2.path, segment2.dim)
 			const point2 = last(points2)!
 			expect(point2.x).toBe(0)
 		})
