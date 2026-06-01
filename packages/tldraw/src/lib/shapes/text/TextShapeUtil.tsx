@@ -41,6 +41,23 @@ const sizeCache = createComputedCache(
 	},
 	{ areRecordsEqual: (a, b) => a.props === b.props }
 )
+
+// How far the rendered ink extends beyond the advance-width box that `getTextSize`
+// measures, per physical side. Used by `getGeometry` to pad the shape's bounds so
+// cursive/RTL/italic glyphs (e.g. Arabic, see #8803) aren't drawn outside the box.
+const inkOverflowCache = createComputedCache(
+	'text ink overflow',
+	(editor: Editor, shape: TLTextShape) => {
+		const util = editor.getShapeUtil(shape) as TextShapeUtil
+		const dv = getDisplayValues(util, shape)
+		// Reuse the size cache so we measure the advance box once and stay consistent with
+		// the geometry width. Reading it also tracks the shape's fonts, so this recomputes
+		// when a webfont finishes loading.
+		const size = sizeCache.get(editor, shape.id)!
+		return getTextInkOverflow(editor, shape.props, dv, size)
+	},
+	{ areRecordsEqual: (a, b) => a.props === b.props }
+)
 /** @public */
 export interface TextShapeUtilDisplayValues {
 	color: string
@@ -110,17 +127,21 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const { scale } = shape.props
 		const { width, height } = this.getMinDimensions(shape)!
 		const context = opts?.context ?? 'none'
+		const isArrowLabel = context === '@tldraw/arrow-without-arrowhead'
+		const arrowPadding = isArrowLabel ? this.options.extraArrowHorizontalPadding : 0
+
+		// Pad the geometry by however far glyph ink spills past the advance box so the
+		// indicator, selection bounds, and export viewport all enclose the rendered text
+		// (cursive/RTL/italic side bearings, see #8803). The text content still renders at
+		// the unpadded width, so its position is unchanged. Skipped for arrow labels, whose
+		// layout is driven by the advance box.
+		const ink = isArrowLabel
+			? ZERO_INK_OVERFLOW
+			: (inkOverflowCache.get(this.editor, shape.id) ?? ZERO_INK_OVERFLOW)
+
 		return new Rectangle2d({
-			x:
-				(context === '@tldraw/arrow-without-arrowhead'
-					? -this.options.extraArrowHorizontalPadding
-					: 0) * scale,
-			width:
-				(width +
-					(context === '@tldraw/arrow-without-arrowhead'
-						? this.options.extraArrowHorizontalPadding * 2
-						: 0)) *
-				scale,
+			x: (-arrowPadding - ink.left) * scale,
+			width: (width + arrowPadding * 2 + ink.left + ink.right) * scale,
 			height: height * scale,
 			isFilled: true,
 			isLabel: true,
@@ -191,14 +212,14 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		if (shape.props.autoSize && this.editor.getEditingShapeId() === shape.id) return undefined
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const path = new Path2D()
-		path.rect(0, 0, bounds.width, bounds.height)
+		path.rect(bounds.x, bounds.y, bounds.width, bounds.height)
 		return path
 	}
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const width = bounds.width / (shape.props.scale ?? 1)
-		const height = bounds.height / (shape.props.scale ?? 1)
+		// Render the text in its unpadded content box (not the ink-padded geometry); the
+		// geometry padding only widens the export viewport so glyphs aren't clipped.
+		const { width, height } = this.getMinDimensions(shape)
 
 		const dv = getDisplayValues(this, shape, ctx.colorMode)
 
@@ -368,6 +389,110 @@ function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeU
 	return {
 		width: maybeFixedWidth ?? Math.max(minWidth, result.w + 1),
 		height: Math.max(dv.fontSize, result.h),
+	}
+}
+
+// A lazily-created offscreen 2d context used to measure actual glyph ink bounds via the
+// Canvas TextMetrics API (actualBoundingBoxLeft/Right), which the DOM advance-width
+// measurement in getTextSize doesn't capture.
+let inkCanvasCtx: CanvasRenderingContext2D | null | undefined
+function getInkCanvasCtx(editor: Editor): CanvasRenderingContext2D | null {
+	if (inkCanvasCtx !== undefined) return inkCanvasCtx
+	const canvas = editor.getContainerDocument().createElement('canvas')
+	inkCanvasCtx = canvas.getContext('2d')
+	return inkCanvasCtx
+}
+
+// Resolve a CSS font-family value (which may be a `var(--tl-font-*)` reference) into the
+// concrete family list the canvas font shorthand needs — the canvas API does not resolve
+// CSS custom properties.
+function resolveCanvasFontFamily(editor: Editor, fontFamily: string): string {
+	const doc = editor.getContainerDocument()
+	const probe = doc.createElement('span')
+	probe.style.fontFamily = fontFamily
+	probe.style.position = 'absolute'
+	probe.style.visibility = 'hidden'
+	probe.style.pointerEvents = 'none'
+	editor.getContainer().appendChild(probe)
+	const view = doc.defaultView ?? window
+	const resolved = view.getComputedStyle(probe).fontFamily
+	probe.remove()
+	return resolved || fontFamily
+}
+
+// Scripts whose base direction is right-to-left (Hebrew, Arabic and its supplements,
+// Syriac, Thaana, NKo, and the Arabic/Hebrew presentation forms). Used to figure out
+// which physical edge a line's text aligns to so we can attribute ink overflow to the
+// correct side.
+const RTL_REGEX =
+	/[\u0590-\u05FF\u0600-\u06FF\u0700-\u074F\u0750-\u077F\u0780-\u07BF\u07C0-\u07FF\u08A0-\u08FF\uFB1D-\uFB4F\uFB50-\uFDFF\uFE70-\uFEFF]/
+
+interface TextInkOverflow {
+	left: number
+	right: number
+}
+
+const ZERO_INK_OVERFLOW: TextInkOverflow = { left: 0, right: 0 }
+
+// Measure how far the rendered ink extends past the advance-width box that `getTextSize`
+// produces, per physical side, in local (unscaled) px. The DOM advance measurement only
+// captures pen-advance, so cursive/RTL/italic side bearings (e.g. Arabic, see #8803) get
+// painted outside the box. We re-measure each line with the Canvas TextMetrics API, which
+// reports the true ink extent (actualBoundingBoxLeft/Right).
+//
+// TODO before shipping: (1) handle soft-wrapped lines — this splits on explicit breaks
+// only, which is correct for autoSize (the #8803 repro) but under-measures fixed-width
+// wrapping; (2) per-run font/style instead of the shape-level display values; (3) vertical
+// overflow (tall diacritics) is not yet accounted for.
+function getTextInkOverflow(
+	editor: Editor,
+	props: TLTextShape['props'],
+	dv: TextShapeUtilDisplayValues,
+	size: { width: number; height: number }
+): TextInkOverflow {
+	const ctx = getInkCanvasCtx(editor)
+	if (!ctx) return ZERO_INK_OVERFLOW
+
+	const text = renderPlaintextFromRichText(editor, props.richText)
+	if (text.trim() === '') return ZERO_INK_OVERFLOW
+
+	const family = resolveCanvasFontFamily(editor, dv.fontFamily)
+	ctx.font = `${dv.fontStyle} ${dv.fontWeight} ${dv.fontSize}px ${family}`
+
+	const boxWidth = size.width
+	let overflowLeft = 0
+	let overflowRight = 0
+
+	for (const rawLine of text.split('\n')) {
+		const line = rawLine === '' ? ' ' : rawLine
+		const m = ctx.measureText(line)
+		const advance = m.width
+		const isRTL = RTL_REGEX.test(line)
+
+		// The physical left edge of this line's advance box within [0, boxWidth]. `start`
+		// and `end` resolve to a physical side based on the line's base direction (the DOM
+		// uses dir="auto"), so an RTL line aligned to `start` sits against the right edge.
+		let penX: number
+		if (props.textAlign === 'middle') {
+			penX = (boxWidth - advance) / 2
+		} else {
+			const alignsRight =
+				(props.textAlign === 'start' && isRTL) || (props.textAlign === 'end' && !isRTL)
+			penX = alignsRight ? boxWidth - advance : 0
+		}
+
+		// Ink edges in box coordinates, then how far they spill past either side. The
+		// `|| 0` guards engines that don't report ink bounds (the metrics come back
+		// undefined), which would otherwise poison the geometry width with NaN.
+		const inkLeftEdge = penX - (m.actualBoundingBoxLeft || 0)
+		const inkRightEdge = penX + (m.actualBoundingBoxRight || 0)
+		overflowLeft = Math.max(overflowLeft, -inkLeftEdge)
+		overflowRight = Math.max(overflowRight, inkRightEdge - boxWidth)
+	}
+
+	return {
+		left: Number.isFinite(overflowLeft) ? Math.max(0, overflowLeft) : 0,
+		right: Number.isFinite(overflowRight) ? Math.max(0, overflowRight) : 0,
 	}
 }
 
