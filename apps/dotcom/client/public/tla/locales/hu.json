@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "Saját fájlok"
   },
+  "2e2b3c700b": {
+    "translation": "Hivatkozás hozzáadása az aktuális fájlra"
+  },
   "31246941ad": {
     "translation": "A fájl megtekintéséhez be kell jelentkeznie."
   },
@@ -106,6 +109,9 @@
   },
   "3e2ae04ff0": {
     "translation": "Nem támogatott Mermaid-diagram"
+  },
+  "402bf0c47e": {
+    "translation": "Színtéma"
   },
   "42e53c47c1": {
     "translation": "Hozzáférés kéréséhez forduljon a tulajdonoshoz."
@@ -277,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "Probléma benyújtása a GitHubon"
+  },
+  "7a1920d611": {
+    "translation": "Alapértelmezett"
   },
   "7b1329f5ca": {
     "translation": "Felhasználói kézikönyv"

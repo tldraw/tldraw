@@ -148,7 +148,6 @@ A utility class for the exam mark shape. This is where you define the shape's be
  - [a] To control behavior, we need to know if the shape is being edited. We can access this using `editor.getEditingShapeId()`.
 
  - [b] The important part of this shape utility is how it handles the score input. We know we want the ExamScoreLabel component to be able to access the score of the shape, so we want the score to be a prop for the shape.
- Annoying: eslint sometimes thinks this is a class component, but it's not.
 
  - [c] When the shape is mounted, we set it to be in editing mode.
 

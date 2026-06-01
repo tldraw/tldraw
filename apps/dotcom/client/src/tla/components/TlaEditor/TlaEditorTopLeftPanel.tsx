@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
@@ -106,9 +106,15 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 	return (
 		<>
-			<Link to="/" className={styles.topLeftOfflineLogo}>
+			<a
+				href="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=top-left-logo"
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label="tldraw.dev"
+				className={styles.topLeftOfflineLogo}
+			>
 				<TlaLogo data-testid="tla-top-left-logo-icon" />
-			</Link>
+			</a>
 			{anonFileName && (
 				<>
 					<span

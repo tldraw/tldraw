@@ -416,6 +416,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.fonts = new FontManager(this, fontAssetUrls)
+		this.disposables.add(() => this.fonts.dispose())
 
 		this.inputs = new InputsManager(this)
 		this.performance = new PerformanceManager(this)
@@ -502,6 +503,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Overlay utils
 		this.overlays = new OverlayManager(this)
+		this.disposables.add(() => this.overlays.dispose())
 		if (overlayUtilConstructors) {
 			for (const Util of overlayUtilConstructors) {
 				const util = new Util(this)
@@ -10370,11 +10372,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	blur({ blurContainer = true } = {}): this {
 		if (!this.getIsFocused()) return this
-		if (blurContainer) {
-			this.focusManager.blur()
-		} else {
-			this.complete() // stop any interaction
-		}
+		this.focusManager.blur({ blurContainer })
 		this.updateInstanceState({ isFocused: false })
 		return this
 	}

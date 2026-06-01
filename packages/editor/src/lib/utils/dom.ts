@@ -35,6 +35,7 @@ export function loopToHtmlElement(elm: Element): HTMLElement {
  * @public
  */
 export function preventDefault(event: React.BaseSyntheticEvent | Event) {
+	if ('cancelable' in event && !event.cancelable) return
 	event.preventDefault()
 	if (debugFlags.logPreventDefaults.get()) {
 		console.warn('preventDefault called on event:', event)

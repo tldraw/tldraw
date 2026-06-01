@@ -94,7 +94,6 @@
 	"devDependencies": {
 		"@lingual/i18n-check": "^0.5.5",
 		"@microsoft/api-extractor": "^7.55.2",
-		"@next/eslint-plugin-next": "^15.1.6",
 		"@swc/core": "^1.15.18",
 		"@types/adm-zip": "^0.5.7",
 		"@types/aws-lambda": "8.10.148",
@@ -117,7 +116,7 @@
 		"lint-staged": "^15.4.3",
 		"open-cli": "^8.0.0",
 		"oxfmt": "^0.41.0",
-		"oxlint": "^1.58.0",
+		"oxlint": "^1.66.0",
 		"oxlint-tsgolint": "^0.18.0",
 		"rimraf": "^4.4.1",
 		"tsx": "^4.19.2",

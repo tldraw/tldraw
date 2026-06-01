@@ -38,6 +38,12 @@ export class OverlayManager {
 		this._overlayUtils.set(type, util)
 	}
 
+	dispose() {
+		for (const util of this._overlayUtils.values()) {
+			util.dispose()
+		}
+	}
+
 	/**
 	 * Get an overlay util by type string, overlay instance, or by passing
 	 * a util class as a generic parameter for type-safe lookup.
