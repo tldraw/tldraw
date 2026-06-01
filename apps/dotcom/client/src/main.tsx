@@ -44,7 +44,6 @@ createRoot(document.getElementById('root')!).render(
 )
 
 showConsoleBranding()
-
 try {
 	// we have a dummy service worker that unregisters itself immediately
 	// this was needed to remove the service worker we used to have from the cache
