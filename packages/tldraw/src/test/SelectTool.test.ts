@@ -366,7 +366,7 @@ describe('Pasting during an interaction', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 	})
 
-	it('does not trigger the paste puff while mid-interaction', async () => {
+	it('does not flash the selection (isChangingStyle) while mid-interaction', async () => {
 		const content = editor.getContentFromCurrentPage([ids.box1])!
 
 		editor.select(ids.box1)
@@ -374,9 +374,10 @@ describe('Pasting during an interaction', () => {
 		editor.pointerMove(250, 250)
 		editor.expectToBeIn('select.translating')
 
-		// The puff's overlap check compares the selection bounds before and
-		// after paste. Mid-interaction we don't reselect, so those bounds are
-		// identical and the check would always pass — the puff must be skipped.
+		// The paste flash's overlap check compares the selection bounds before
+		// and after paste. Mid-interaction we don't reselect, so those bounds
+		// are identical and the check would always pass — isChangingStyle must
+		// stay false.
 		await defaultHandleExternalTldrawContent(editor, { content })
 		expect(editor.getInstanceState().isChangingStyle).toBe(false)
 	})

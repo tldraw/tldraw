@@ -644,9 +644,10 @@ export async function defaultHandleExternalTldrawContent(
 		if (
 			// When mid-interaction we don't select the pasted content, so the
 			// selection is unchanged and the before/after bounds are identical —
-			// the overlap check would always pass. The puff signals that the
-			// newly-selected pasted content landed on the old selection, which
-			// is meaningless when we didn't change the selection, so skip it.
+			// the overlap check would always pass. The selection flash below
+			// signals that the newly-selected pasted content landed on the old
+			// selection, which is meaningless when we didn't change the
+			// selection, so skip it.
 			!isMidInteraction &&
 			selectionBoundsBefore &&
 			selectedBoundsAfter &&
