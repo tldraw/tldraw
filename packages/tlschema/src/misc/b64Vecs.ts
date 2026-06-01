@@ -12,6 +12,11 @@ const FIRST_POINT_2D_B64_LENGTH = 12
 // Pressure value supplied when decoding non-pressure (2D) paths
 const DEFAULT_PRESSURE = 0.5
 
+/** Draw segment path encoded with 2 dimensions, XY — the constant pressure Z is dropped. @public */
+export const DIM_2D = 2
+/** Draw segment path encoded with 3 dimensions, XYZ. @public */
+export const DIM_3D = 3
+
 // O(1) lookup table for base64 decoding (maps char code -> 6-bit value)
 const BASE64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 const B64_LOOKUP = new Uint8Array(128)
@@ -352,7 +357,7 @@ export class b64Vecs {
 	 * @public
 	 */
 	static encodePoints(points: VecModel[], dim?: 2 | 3): string {
-		if (dim === 2) return b64Vecs.encodePoints2D(points)
+		if (dim === DIM_2D) return b64Vecs.encodePoints2D(points)
 		if (points.length === 0) return ''
 
 		// First point: 3 Float32s = 12 bytes
@@ -403,7 +408,7 @@ export class b64Vecs {
 	 * @public
 	 */
 	static decodePoints(base64: string, dim?: 2 | 3): VecModel[] {
-		if (dim === 2) return b64Vecs.decodePoints2D(base64)
+		if (dim === DIM_2D) return b64Vecs.decodePoints2D(base64)
 		if (base64.length === 0) return []
 
 		const bytes = base64ToUint8Array(base64)
@@ -438,7 +443,7 @@ export class b64Vecs {
 	 * @public
 	 */
 	static decodeFirstPoint(b64Points: string, dim?: 2 | 3): VecModel | null {
-		if (dim === 2) return b64Vecs.decodeFirstPoint2D(b64Points)
+		if (dim === DIM_2D) return b64Vecs.decodeFirstPoint2D(b64Points)
 		// First point needs 16 base64 chars (12 bytes as Float32)
 		if (b64Points.length < FIRST_POINT_B64_LENGTH) return null
 
@@ -462,7 +467,7 @@ export class b64Vecs {
 	 * @public
 	 */
 	static decodeLastPoint(b64Points: string, dim?: 2 | 3): VecModel | null {
-		if (dim === 2) return b64Vecs.decodeLastPoint2D(b64Points)
+		if (dim === DIM_2D) return b64Vecs.decodeLastPoint2D(b64Points)
 		if (b64Points.length < FIRST_POINT_B64_LENGTH) return null
 
 		const bytes = base64ToUint8Array(b64Points)
@@ -617,6 +622,6 @@ export class b64Vecs {
 	 * @public
 	 */
 	static isSinglePoint(b64Points: string, dim?: 2 | 3): boolean {
-		return b64Points.length <= (dim === 2 ? FIRST_POINT_2D_B64_LENGTH : FIRST_POINT_B64_LENGTH)
+		return b64Points.length <= (dim === DIM_2D ? FIRST_POINT_2D_B64_LENGTH : FIRST_POINT_B64_LENGTH)
 	}
 }

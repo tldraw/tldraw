@@ -386,6 +386,12 @@ export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 
 // @public
+export const DIM_2D = 2;
+
+// @public
+export const DIM_3D = 3;
+
+// @public
 export const DocumentRecordType: RecordType<TLDocument, never>;
 
 // @public

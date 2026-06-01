@@ -1,5 +1,5 @@
 import { T } from '@tldraw/validate'
-import { b64Vecs } from '../misc/b64Vecs'
+import { DIM_2D, b64Vecs } from '../misc/b64Vecs'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
@@ -194,8 +194,8 @@ export const highlightShapeMigrations = createShapePropsMigrationSequence({
 				props.segments = props.segments.map((segment: any) => {
 					if (segment.dim === undefined) return segment
 					const { dim, ...rest } = segment
-					return dim === 2
-						? { ...rest, path: b64Vecs.encodePoints(b64Vecs.decodePoints(segment.path, 2)) }
+					return dim === DIM_2D
+						? { ...rest, path: b64Vecs.encodePoints(b64Vecs.decodePoints(segment.path, DIM_2D)) }
 						: rest
 				})
 			},

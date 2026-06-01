@@ -1,5 +1,5 @@
 import { T } from '@tldraw/validate'
-import { b64Vecs } from '../misc/b64Vecs'
+import { DIM_2D, DIM_3D, b64Vecs } from '../misc/b64Vecs'
 import { VecModel } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -38,7 +38,7 @@ export interface TLDrawShapeSegment {
 export const DrawShapeSegment: T.ObjectValidator<TLDrawShapeSegment> = T.object({
 	type: T.literalEnum('free', 'straight'),
 	path: T.string,
-	dim: T.literalEnum(2, 3).optional(),
+	dim: T.literalEnum(DIM_2D, DIM_3D).optional(),
 })
 
 /**
@@ -262,8 +262,8 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 				props.segments = props.segments.map((segment: any) => {
 					if (segment.dim === undefined) return segment
 					const { dim, ...rest } = segment
-					return dim === 2
-						? { ...rest, path: b64Vecs.encodePoints(b64Vecs.decodePoints(segment.path, 2)) }
+					return dim === DIM_2D
+						? { ...rest, path: b64Vecs.encodePoints(b64Vecs.decodePoints(segment.path, DIM_2D)) }
 						: rest
 				})
 			},

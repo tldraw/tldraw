@@ -8,6 +8,7 @@ import {
 	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	TLShapePartial,
+	DIM_2D,
 	Vec,
 	VecModel,
 	b64Vecs,
@@ -192,7 +193,7 @@ export class Drawing extends StateNode {
 	 */
 	private makeSegment(type: TLDrawShapeSegment['type'], points: VecModel[]): TLDrawShapeSegment {
 		const path = b64Vecs.encodePoints(points, this.segmentDim)
-		return this.segmentDim === 2 ? { type, path, dim: 2 } : { type, path }
+		return this.segmentDim === DIM_2D ? { type, path, dim: DIM_2D } : { type, path }
 	}
 
 	private startShape() {
@@ -219,7 +220,7 @@ export class Drawing extends StateNode {
 		// deterministic and is O(1) at stroke start. Non-pressure devices report a
 		// constant z (0 / 0.5 / 1) that we normalize to 0.5 and omit entirely (2D);
 		// pen/stylus input keeps the full 3D encoding.
-		this.segmentDim = this.isPenOrStylus ? undefined : 2
+		this.segmentDim = this.isPenOrStylus ? undefined : DIM_2D
 
 		const pressure = this.isPenOrStylus ? z * 1.25 : 0.5
 
