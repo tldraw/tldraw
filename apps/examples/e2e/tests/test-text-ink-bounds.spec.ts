@@ -10,12 +10,17 @@ test.describe('text shape ink bounds', () => {
 	// Creates an autosized text shape, waits for its webfont to load — so the canvas ink
 	// measurement uses real glyph metrics and the geometry recomputes — then returns the
 	// advance-box width alongside the (possibly ink-padded) geometry bounds.
-	async function measure(page: Page, text: string, font: 'draw' | 'sans') {
+	async function measure(
+		page: Page,
+		text: string,
+		font: 'draw' | 'sans' | 'serif',
+		italic = false
+	) {
 		// Plain string (not a branded TLShapeId): the template-literal `shape:${string}` type
 		// trips TS2589 in page.evaluate's Serializable check on the argument.
 		const id = 'shape:textInkBounds'
 		return await page.evaluate(
-			async ({ id, text, font }) => {
+			async ({ id, text, font, italic }) => {
 				// Drop into `any` for the editor calls: fully typing a text-shape partial and
 				// reaching TextShapeUtil.getMinDimensions inside page.evaluate trips TS2589 (the
 				// shape-util union is too deep). The other e2e tests lean on `as any` similarly.
@@ -29,7 +34,14 @@ test.describe('text shape ink bounds', () => {
 					props: {
 						richText: {
 							type: 'doc',
-							content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
+							content: [
+								{
+									type: 'paragraph',
+									content: [
+										{ type: 'text', text, marks: italic ? [{ type: 'italic' }] : undefined },
+									],
+								},
+							],
 						},
 						font,
 						size: 'xl',
@@ -50,15 +62,16 @@ test.describe('text shape ink bounds', () => {
 					geometryWidth: bounds.width as number,
 				}
 			},
-			{ id, text, font }
+			{ id, text, font, italic }
 		)
 	}
 
-	test('grows the box to enclose RTL ink that spills past the advance width', async ({ page }) => {
-		// Hebrew in the default (draw) font has cursive side bearings whose ink extends past
-		// the pen-advance box. The shape's geometry must expand to contain them so the text
-		// isn't drawn outside its own bounding box (#8803).
-		const { advanceWidth, geometryWidth } = await measure(page, 'שלום עולם', 'draw')
+	test('expands the box to enclose ink that spills past the advance width', async ({ page }) => {
+		// Italic glyphs slant past their pen-advance box. We use an italic mark on a built-in
+		// tldraw font (a real embedded face, so the metrics are stable across platforms —
+		// unlike fallback-rendered scripts) to exercise the same overflow path that fixes
+		// RTL/cursive clipping (#8803). The geometry must grow to contain the ink.
+		const { advanceWidth, geometryWidth } = await measure(page, 'Affjjy WV', 'serif', true)
 		expect(geometryWidth).toBeGreaterThan(advanceWidth)
 	})
 
