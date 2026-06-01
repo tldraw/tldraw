@@ -136,9 +136,9 @@
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	/* Same layer as the app-level refresh overlay (MaybeForceUserRefresh) so a
-	   visible challenge sits above dialogs and the editor UI. */
-	z-index: 10000;
+	/* A visible challenge blocks the user until completed, so it sits at the
+	   blocker layer — above dialogs (--tl-layer-canvas-overlays) and editor UI. */
+	z-index: var(--tl-layer-canvas-blocker);
 	padding: var(--tl-space-5);
 	background-color: var(--tla-color-panel);
 	border: 1px solid var(--tla-color-border);
