@@ -202,6 +202,14 @@ test.describe('Keyboard Shortcuts', () => {
 			data: { source: 'kbd' },
 		})
 	})
+
+	test('Copy hovered styles', async () => {
+		await page.keyboard.press('Shift+q')
+		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+			name: 'copy-hovered-styles',
+			data: { source: 'kbd' },
+		})
+	})
 })
 
 test.describe('Actions on shapes', () => {

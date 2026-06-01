@@ -4952,6 +4952,8 @@ export interface TLUiEventMap {
         format: 'json' | 'png' | 'svg';
     };
     // (undocumented)
+    'copy-hovered-styles': null;
+    // (undocumented)
     'copy-link': null;
     // (undocumented)
     'create-new-project': null;

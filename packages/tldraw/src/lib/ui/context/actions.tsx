@@ -1853,7 +1853,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'copy-hovered-styles',
 				label: 'action.copy-hovered-styles',
 				kbd: 'shift+q',
-				async onSelect() {
+				async onSelect(source) {
 					const hovered = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
 						hitInside: true,
 						renderingOnly: true,
@@ -1886,6 +1886,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							}
 						}
 					})
+
+					trackEvent('copy-hovered-styles', { source })
 				},
 			},
 		]
