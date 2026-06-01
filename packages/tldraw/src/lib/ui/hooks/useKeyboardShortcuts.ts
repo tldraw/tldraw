@@ -328,6 +328,26 @@ function parseKbd(kbd: string): ParsedKbd[] {
 	return out
 }
 
+function serializeParsedKbd(parsed: ParsedKbd): string {
+	const modifiers: string[] = []
+	if (parsed.meta) modifiers.push('meta')
+	if (parsed.ctrl) modifiers.push('ctrl')
+	if (parsed.alt) modifiers.push('alt')
+	if (parsed.shift) modifiers.push('shift')
+	return [...modifiers, parsed.key].join('+')
+}
+
+/**
+ * Normalize a raw `kbd` string (the format used by actions and tools) into the list of canonical
+ * key combos it binds to. Two registrations that produce overlapping combos will both fire on the
+ * same keydown, so this is used to detect colliding shortcuts.
+ *
+ * @internal
+ */
+export function getKbdKeyCombos(kbd: string): string[] {
+	return parseKbd(getHotkeysStringFromKbd(kbd)).map(serializeParsedKbd)
+}
+
 function parseShortcut(shortcut: string): ParsedKbd | null {
 	const parts = shortcut.split('+')
 	const result: ParsedKbd = {

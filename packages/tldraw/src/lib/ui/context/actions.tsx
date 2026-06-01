@@ -1852,7 +1852,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'copy-hovered-styles',
 				label: 'action.copy-hovered-styles',
-				kbd: 'q',
+				kbd: 'shift+q',
 				async onSelect() {
 					const hovered = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
 						hitInside: true,
@@ -1866,16 +1866,26 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					if (!hovered || !isIdle) return
 
-					for (const style of editor.styleProps[hovered.type].keys()) {
-						const value = editor.getShapeStyleIfExists(hovered, style)
-						if (value === undefined || style === GeoShapeGeoStyle) continue
-
-						if (editor.isIn('select')) {
-							editor.setStyleForSelectedShapes(style, value)
-						} else {
-							editor.setStyleForNextShapes(style, value)
-						}
+					// Only applying styles to selected shapes modifies the document, so only that
+					// case needs a history stopping point. Setting styles for the next shape is
+					// instance state and shouldn't be undoable.
+					const isInSelect = editor.isIn('select')
+					if (isInSelect && editor.getSelectedShapeIds().length > 0) {
+						editor.markHistoryStoppingPoint('copy-hovered-styles')
 					}
+
+					editor.run(() => {
+						for (const style of editor.styleProps[hovered.type].keys()) {
+							const value = editor.getShapeStyleIfExists(hovered, style)
+							if (value === undefined || style === GeoShapeGeoStyle) continue
+
+							if (isInSelect) {
+								editor.setStyleForSelectedShapes(style, value)
+							} else {
+								editor.setStyleForNextShapes(style, value)
+							}
+						}
+					})
 				},
 			},
 		]
