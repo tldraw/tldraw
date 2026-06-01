@@ -314,20 +314,16 @@ Properties:
 
 Configuration options:
 
-| Option     | Type      | Default | Description                                     |
-| ---------- | --------- | ------- | ----------------------------------------------- |
-| `autoplay` | `boolean` | `true`  | Default autoplay behavior for new video shapes. |
+| Option     | Type      | Default | Description                                                                                                               |
+| ---------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `autoplay` | `boolean` | `true`  | Whether videos may autoplay. When `false`, new shapes default to `autoplay: false` and no video autoplays at render time. |
+
+To disable autoplay across the board — including for pasted or restored shapes — configure the `VideoShapeUtil`:
 
 ```tsx
 const ConfiguredVideoUtil = VideoShapeUtil.configure({
 	autoplay: false,
 })
-```
-
-To disable autoplay across the board — including for pasted or restored shapes — set the editor-level `allowVideoAutoplay` option to `false` instead:
-
-```tsx
-<Tldraw options={{ allowVideoAutoplay: false }} />
 ```
 
 ### Bookmark

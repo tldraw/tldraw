@@ -36,7 +36,16 @@ export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<
 	VideoShapeUtilDisplayValues
 > {
 	/**
-	 * Should videos play automatically?
+	 * Whether videos may play automatically.
+	 *
+	 * - `true` (default): new video shapes are created with `props.autoplay: true`,
+	 *   and videos with `props.autoplay: true` autoplay at render time.
+	 * - `false`: new video shapes are created with `props.autoplay: false`, and
+	 *   no video autoplays regardless of its `props.autoplay` value — including
+	 *   pasted, restored, or programmatically created shapes.
+	 *
+	 * The `prefers-reduced-motion` media query continues to suppress autoplay
+	 * independently of this option.
 	 */
 	autoplay: boolean
 }
@@ -212,7 +221,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									playsInline
 									autoPlay={
 										shape.props.autoplay &&
-										editor.options.allowVideoAutoplay &&
+										editor.getShapeUtil<VideoShapeUtil>(shape).options.autoplay &&
 										!prefersReducedMotion
 									}
 									muted
