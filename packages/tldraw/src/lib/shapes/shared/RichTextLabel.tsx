@@ -162,8 +162,8 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
-					lineHeight: getLineHeightPx(fontSize, lineHeight) + 'px',
-					minHeight: getLineHeightPx(fontSize, lineHeight) + 'px',
+					lineHeight: `${getLineHeightPx(fontSize, lineHeight)}px`,
+					minHeight: `${getLineHeightPx(fontSize, lineHeight)}px`,
 					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,
 					width: textWidth ? Math.ceil(textWidth) : undefined,
