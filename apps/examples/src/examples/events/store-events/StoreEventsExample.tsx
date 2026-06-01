@@ -1,4 +1,4 @@
-import isEqual from 'lodash.isequal'
+import isEqual from 'lodash/isEqual'
 import { useCallback, useEffect, useState } from 'react'
 import { Editor, TLEventMapHandler, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'

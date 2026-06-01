@@ -13091,7 +13091,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:*, @types/lodash@npm:^4.17.7":
+"@types/lodash@npm:*, @types/lodash@npm:^4.17.14, @types/lodash@npm:^4.17.7":
   version: 4.17.24
   resolution: "@types/lodash@npm:4.17.24"
   checksum: 10/0f2082565f60f9787eefc046edc38458054512be5a8b3584ef0bad5fd9e85d0ab55ec5a1fbfae1ed6ba015cf1f9e837d5fb4da1f99fc60b8f74b2a46146fb00f
@@ -19307,8 +19307,7 @@ __metadata:
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@types/d3-geo": "npm:^3.1.0"
-    "@types/lodash.isequal": "npm:^4.5.8"
-    "@types/lodash.throttle": "npm:^4.1.9"
+    "@types/lodash": "npm:^4.17.14"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/topojson-client": "npm:^3.1.5"
@@ -19321,8 +19320,7 @@ __metadata:
     d3-geo: "npm:^3.1.1"
     dotenv: "npm:^16.4.7"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
-    lodash.throttle: "npm:^4.1.1"
+    lodash: "npm:^4.17.21"
     mermaid: "npm:11.12.2"
     pdf-lib: "npm:^1.17.1"
     pdfjs-dist: "npm:^4.10.38"
@@ -30455,7 +30453,7 @@ __metadata:
   dependencies:
     "@tldraw/editor": "workspace:*"
     "@types/fs-extra": "npm:^11.0.4"
-    "@types/lodash.isequal": "npm:^4.5.8"
+    "@types/lodash": "npm:^4.17.14"
     "@types/node-fetch": "npm:^2.6.12"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
@@ -30465,7 +30463,7 @@ __metadata:
     esbuild: "npm:^0.28.0"
     fs-extra: "npm:^11.3.0"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
+    lodash: "npm:^4.17.21"
     mocha: "npm:^9.2.2"
     node-fetch: "npm:^2.7.0"
     ovsx: "npm:^0.10.7"
