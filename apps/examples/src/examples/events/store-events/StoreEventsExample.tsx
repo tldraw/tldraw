@@ -1,4 +1,5 @@
 import isEqual from 'lodash/isEqual'
+import reduce from 'lodash/reduce'
 import { useCallback, useEffect, useState } from 'react'
 import { Editor, TLEventMapHandler, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -39,14 +40,16 @@ export default function StoreEventsExample() {
 				) {
 					logChangeEvent(`changed page (${from.currentPageId}, ${to.currentPageId})`)
 				} else if (from.id.startsWith('shape') && to.id.startsWith('shape')) {
-					let diff = Object.entries(from).reduce<any[]>(
-						(result, [key, value]) =>
+					let diff = reduce(
+						from,
+						(result: any[], value, key: string) =>
 							isEqual(value, (to as any)[key]) ? result : result.concat([key, (to as any)[key]]),
 						[]
 					)
 					if (diff?.[0] === 'props') {
-						diff = Object.entries((from as any).props).reduce<any[]>(
-							(result, [key, value]) =>
+						diff = reduce(
+							(from as any).props,
+							(result: any[], value, key) =>
 								isEqual(value, (to as any).props[key])
 									? result
 									: result.concat([key, (to as any).props[key]]),

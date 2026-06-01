@@ -12164,6 +12164,8 @@ __metadata:
   resolution: "@tldraw/state@workspace:packages/state"
   dependencies:
     "@tldraw/utils": "workspace:*"
+    "@types/lodash": "npm:^4.17.14"
+    lodash: "npm:^4.17.21"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -18077,6 +18079,7 @@ __metadata:
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
+    "@types/lodash": "npm:^4.17.14"
     "@types/lodash.pick": "npm:^4.4.9"
     "@types/md5": "npm:^2.3.5"
     "@types/node": "npm:^22.15.31"
@@ -18096,6 +18099,7 @@ __metadata:
     json5: "npm:^2.2.3"
     kysely: "npm:^0.28.12"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash: "npm:^4.17.21"
     lodash.pick: "npm:^4.4.0"
     pg: "npm:^8.13.1"
     posthog-js: "npm:^1.281.0"

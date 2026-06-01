@@ -43,6 +43,8 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
+		"@types/lodash": "^4.17.14",
+		"lodash": "^4.17.21",
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {

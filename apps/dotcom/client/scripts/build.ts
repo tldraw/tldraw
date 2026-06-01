@@ -3,6 +3,7 @@ import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
 import { glob } from 'fast-glob'
 import json5 from 'json5'
+import chunk from 'lodash/chunk'
 import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
@@ -94,10 +95,7 @@ async function build() {
 
 	const assetsToCache = assetsList.filter((f) => !f.endsWith('.js.map')).map((f) => `/assets/${f}`)
 	// need to batch these because Vercel's route limit is 4096 characters
-	const assetsBatches: string[][] = []
-	for (let i = 0; i < assetsToCache.length; i += 50) {
-		assetsBatches.push(assetsToCache.slice(i, i + 50))
-	}
+	const assetsBatches = chunk(assetsToCache, 50)
 
 	writeFileSync(
 		'.vercel/output/config.json',

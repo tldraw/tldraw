@@ -1,12 +1,9 @@
+import times from 'lodash/times'
 import { Atom, atom, isAtom } from '../Atom'
 import { Computed, computed, isComputed } from '../Computed'
 import { Reactor, reactor } from '../EffectScheduler'
 import { transact } from '../transactions'
 import { Signal } from '../types'
-
-function times<T>(n: number, fn: (i: number) => T): T[] {
-	return Array.from({ length: n }, (_, i) => fn(i))
-}
 
 class RandomSource {
 	private seed: number
