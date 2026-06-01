@@ -24,6 +24,11 @@ for (let i = 0; i < 64; i++) {
 	B64_LOOKUP[BASE64_CHARS.charCodeAt(i)] = i
 }
 
+// Mask for one base64 sextet: the low 6 bits select an index into BASE64_CHARS (0–63).
+const SIX_BIT_MASK = 0x3f
+// '=' padding character, appended on encode so the output length is a multiple of 4.
+const PADDING_CHAR_CODE = '='.charCodeAt(0)
+
 // Precomputed powers of 2 for Float16 exponents (exp - 15, so indices 0-30 map to 2^-15 to 2^15)
 const POW2 = new Float64Array(31)
 for (let i = 0; i < 31; i++) {
@@ -82,9 +87,9 @@ export function fallbackBase64ToUint8Array(base64: string): Uint8Array {
 	// paths can carry padding the original multiple-of-3-only decoder couldn't read.
 	const paddedLength = base64.length
 	let padding = 0
-	if (paddedLength > 0 && base64.charCodeAt(paddedLength - 1) === 61) {
+	if (paddedLength > 0 && base64.charCodeAt(paddedLength - 1) === PADDING_CHAR_CODE) {
 		padding++
-		if (paddedLength > 1 && base64.charCodeAt(paddedLength - 2) === 61) {
+		if (paddedLength > 1 && base64.charCodeAt(paddedLength - 2) === PADDING_CHAR_CODE) {
 			padding++
 		}
 	}
@@ -142,10 +147,10 @@ export function fallbackUint8ArrayToBase64(uint8Array: Uint8Array): string {
 
 		const bitmap = (byte1 << 16) | (byte2 << 8) | byte3
 		result +=
-			BASE64_CHARS[(bitmap >> 18) & 63] +
-			BASE64_CHARS[(bitmap >> 12) & 63] +
-			BASE64_CHARS[(bitmap >> 6) & 63] +
-			BASE64_CHARS[bitmap & 63]
+			BASE64_CHARS[(bitmap >> 18) & SIX_BIT_MASK] +
+			BASE64_CHARS[(bitmap >> 12) & SIX_BIT_MASK] +
+			BASE64_CHARS[(bitmap >> 6) & SIX_BIT_MASK] +
+			BASE64_CHARS[bitmap & SIX_BIT_MASK]
 	}
 
 	// Trailing 1 or 2 bytes are emitted with '=' padding (the 2D layout is not
@@ -153,13 +158,16 @@ export function fallbackUint8ArrayToBase64(uint8Array: Uint8Array): string {
 	const remaining = len - fullGroups
 	if (remaining === 1) {
 		const bitmap = uint8Array[fullGroups] << 16
-		result += BASE64_CHARS[(bitmap >> 18) & 63] + BASE64_CHARS[(bitmap >> 12) & 63] + '=='
+		result +=
+			BASE64_CHARS[(bitmap >> 18) & SIX_BIT_MASK] +
+			BASE64_CHARS[(bitmap >> 12) & SIX_BIT_MASK] +
+			'=='
 	} else if (remaining === 2) {
 		const bitmap = (uint8Array[fullGroups] << 16) | (uint8Array[fullGroups + 1] << 8)
 		result +=
-			BASE64_CHARS[(bitmap >> 18) & 63] +
-			BASE64_CHARS[(bitmap >> 12) & 63] +
-			BASE64_CHARS[(bitmap >> 6) & 63] +
+			BASE64_CHARS[(bitmap >> 18) & SIX_BIT_MASK] +
+			BASE64_CHARS[(bitmap >> 12) & SIX_BIT_MASK] +
+			BASE64_CHARS[(bitmap >> 6) & SIX_BIT_MASK] +
 			'='
 	}
 
