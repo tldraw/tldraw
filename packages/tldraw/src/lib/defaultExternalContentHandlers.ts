@@ -624,9 +624,21 @@ export async function defaultHandleExternalTldrawContent(
 			}
 		}
 
+		// While the user is mid-interaction (dragging a handle, translating,
+		// resizing, or rotating), selecting the pasted content would steal the
+		// selection from the shape being manipulated and interrupt the
+		// interaction — e.g. an arrow's in-progress binding hint disappears
+		// until the drag ends. Leave the selection alone in those cases.
+		const isMidInteraction = editor.isInAny(
+			'select.dragging_handle',
+			'select.translating',
+			'select.resizing',
+			'select.rotating'
+		)
+
 		editor.putContentOntoCurrentPage(content, {
 			point: point,
-			select: true,
+			select: !isMidInteraction,
 		})
 		const selectedBoundsAfter = editor.getSelectionPageBounds()
 		if (
