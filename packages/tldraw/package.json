@@ -80,6 +80,8 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"chokidar-cli": "^3.0.0",
+		"fake-indexeddb": "^4.0.2",
+		"jest-diff": "^30.0.5",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",

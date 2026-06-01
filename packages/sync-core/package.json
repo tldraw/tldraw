@@ -43,11 +43,14 @@
 		"pack-tarball": "yarn pack"
 	},
 	"devDependencies": {
+		"@peculiar/webcrypto": "^1.5.0",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/uuid-readable": "^0.0.3",
+		"fake-indexeddb": "^4.0.2",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
+		"resize-observer-polyfill": "^1.5.1",
 		"tldraw": "workspace:*",
 		"typescript": "^5.8.3",
 		"uuid-by-string": "^4.0.0",
