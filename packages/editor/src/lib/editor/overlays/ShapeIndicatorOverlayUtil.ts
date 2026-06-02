@@ -143,6 +143,29 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 		return true
 	}
 
+	/**
+	 * Whether selected-shape indicators should currently be shown. This is the
+	 * extension point for gating indicator visibility on tool state: the base
+	 * editor has no tools, so the default always shows them. The tldraw package
+	 * overrides this to show indicators only in the select tool's resting and
+	 * interaction states.
+	 */
+	shouldShowSelectionIndicators(): boolean {
+		return true
+	}
+
+	/**
+	 * Whether the hovered-shape indicator should currently be shown. Still
+	 * subject to the hover and pointer-coarseness checks in {@link
+	 * ShapeIndicatorOverlayUtil.getOverlays}. Like {@link
+	 * ShapeIndicatorOverlayUtil.shouldShowSelectionIndicators}, the default
+	 * always shows it and the tldraw package narrows it to the select tool's
+	 * resting states.
+	 */
+	shouldShowHoverIndicator(): boolean {
+		return true
+	}
+
 	override getOverlays(): TLShapeIndicatorOverlay[] {
 		const editor = this.editor
 		const renderingShapeIds = new Set(editor.getRenderingShapes().map((s) => s.id))
@@ -150,20 +173,12 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 		// Local selected / hovered indicators.
 		const idsToDisplay: TLShapeId[] = []
 		const { isChangingStyle, isHoveringCanvas, isCoarsePointer } = this._instanceFlags$.get()
-		const isIdleOrEditing = editor.isInAny('select.idle', 'select.editing_shape')
-		const isInSelectState = editor.isInAny(
-			'select.brushing',
-			'select.scribble_brushing',
-			'select.pointing_shape',
-			'select.pointing_selection',
-			'select.pointing_handle'
-		)
 
-		if (!isChangingStyle && (isIdleOrEditing || isInSelectState)) {
+		if (!isChangingStyle && this.shouldShowSelectionIndicators()) {
 			for (const id of editor.getSelectedShapeIds()) {
 				if (renderingShapeIds.has(id)) idsToDisplay.push(id)
 			}
-			if (isIdleOrEditing && isHoveringCanvas && !isCoarsePointer) {
+			if (this.shouldShowHoverIndicator() && isHoveringCanvas && !isCoarsePointer) {
 				const hovered = editor.getHoveredShapeId()
 				if (hovered && renderingShapeIds.has(hovered) && !idsToDisplay.includes(hovered)) {
 					idsToDisplay.push(hovered)

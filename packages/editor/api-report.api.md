@@ -2988,6 +2988,8 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
     };
     // (undocumented)
     render(ctx: CanvasRenderingContext2D, overlays: TLShapeIndicatorOverlay[]): void;
+    shouldShowHoverIndicator(): boolean;
+    shouldShowSelectionIndicators(): boolean;
     // (undocumented)
     static type: string;
 }
