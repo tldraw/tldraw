@@ -1,5 +1,5 @@
 import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
-import type { TLInstancePresence } from '@tldraw/tlschema'
+import { createUserId, type TLInstancePresence } from '@tldraw/tlschema'
 import { maxBy } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
@@ -36,8 +36,11 @@ export class CollaboratorsManager {
 
 	@computed
 	private _getCollaboratorsQuery() {
+		// `user.getId()` returns the raw, unprefixed user-preferences id, but
+		// `instance_presence.userId` holds a prefixed `TLUserId`, so we must prefix
+		// before comparing — otherwise the local user's own other sessions leak in.
 		return this.editor.store.query.records('instance_presence', () => ({
-			userId: { neq: this.editor.user.getId() },
+			userId: { neq: createUserId(this.editor.user.getId()) },
 		}))
 	}
 
@@ -88,7 +91,8 @@ export class CollaboratorsManager {
 		if (!collaborators.length) return EMPTY_ARRAY
 
 		const { followingUserId, highlightedUserIds } = this.editor.getInstanceState()
-		const currentUserId = this.editor.user.getId()
+		// Prefix to match `presence.followingUserId`, a `TLUserId`; see `_getCollaboratorsQuery`.
+		const currentUserId = createUserId(this.editor.user.getId())
 
 		return collaborators.filter((presence) => {
 			const { lastActivityTimestamp, userId, chatMessage } = presence

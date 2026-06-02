@@ -1,11 +1,17 @@
-import { PageRecordType, type TLInstancePresence } from '@tldraw/tlschema'
+import {
+	PageRecordType,
+	createUserId,
+	type TLInstancePresence,
+	type TLUserId,
+} from '@tldraw/tlschema'
 import { vi } from 'vitest'
+import { createTLStore } from '../../../config/createTLStore'
 import type { Editor } from '../../Editor'
 import { CollaboratorsManager } from './CollaboratorsManager'
 
 const currentPageId = PageRecordType.createId('page')
 
-function createPresence(userId: string): TLInstancePresence {
+function createPresence(userId: TLUserId): TLInstancePresence {
 	return {
 		typeName: 'instance_presence',
 		id: `instance_presence:${userId}` as TLInstancePresence['id'],
@@ -34,6 +40,9 @@ function createEditor(presences: TLInstancePresence[] = []) {
 	}))
 	const userGetId = vi.fn(() => 'current-user')
 
+	const store = createTLStore()
+	store.put(presences)
+
 	const editor = {
 		options: {
 			collaboratorCheckIntervalMs: 1000,
@@ -46,13 +55,9 @@ function createEditor(presences: TLInstancePresence[] = []) {
 		user: {
 			getId: userGetId,
 		},
-		store: {
-			query: {
-				records: vi.fn(() => ({
-					get: () => presences,
-				})),
-			},
-		},
+		// Use a real store so the collaborators query runs against the real query
+		// engine rather than a hand-rolled reimplementation of its matchers.
+		store,
 		getInstanceState,
 		getCurrentPageId: vi.fn(() => currentPageId),
 	} as unknown as Editor
@@ -88,10 +93,22 @@ describe(CollaboratorsManager, () => {
 		expect(setInterval).toHaveBeenCalledTimes(1)
 	})
 
+	it("excludes the local user's own other sessions", () => {
+		// `user.getId()` returns the unprefixed preferences id ('current-user'), while
+		// a presence record's `userId` is the prefixed `TLUserId`. The local user's own
+		// other sessions push presence under that prefixed id and must be filtered out.
+		const ownSession = createPresence(createUserId('current-user'))
+		const peer = createPresence(createUserId('peer'))
+		const { editor } = createEditor([ownSession, peer])
+		const manager = new CollaboratorsManager(editor)
+
+		expect(manager.getCollaborators()).toEqual([peer])
+	})
+
 	it('reads instance state once when filtering visible collaborators', () => {
 		const { editor, getInstanceState } = createEditor([
-			createPresence('user-1'),
-			createPresence('user-2'),
+			createPresence(createUserId('user-1')),
+			createPresence(createUserId('user-2')),
 		])
 		const manager = new CollaboratorsManager(editor)
 
@@ -101,9 +118,9 @@ describe(CollaboratorsManager, () => {
 	})
 
 	it('hides idle collaborators that are following us', () => {
-		const presence = createPresence('peer')
+		const presence = createPresence(createUserId('peer'))
 		presence.lastActivityTimestamp = Date.now() - 4000
-		presence.followingUserId = 'current-user'
+		presence.followingUserId = createUserId('current-user')
 		const { editor } = createEditor([presence])
 		const manager = new CollaboratorsManager(editor)
 
@@ -111,9 +128,9 @@ describe(CollaboratorsManager, () => {
 	})
 
 	it('shows idle collaborators that are following us when they have a chat message', () => {
-		const presence = createPresence('peer')
+		const presence = createPresence(createUserId('peer'))
 		presence.lastActivityTimestamp = Date.now() - 4000
-		presence.followingUserId = 'current-user'
+		presence.followingUserId = createUserId('current-user')
 		presence.chatMessage = 'hi'
 		const { editor } = createEditor([presence])
 		const manager = new CollaboratorsManager(editor)
@@ -122,7 +139,7 @@ describe(CollaboratorsManager, () => {
 	})
 
 	it('shows idle collaborators that are not following us', () => {
-		const presence = createPresence('peer')
+		const presence = createPresence(createUserId('peer'))
 		presence.lastActivityTimestamp = Date.now() - 4000
 		const { editor } = createEditor([presence])
 		const manager = new CollaboratorsManager(editor)

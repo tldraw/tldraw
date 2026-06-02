@@ -157,6 +157,7 @@ import { TLTextShape } from '@tldraw/editor';
 import { TLTheme } from '@tldraw/editor';
 import { TLThemeColors } from '@tldraw/editor';
 import { TLUrlExternalAsset } from '@tldraw/editor';
+import { TLUserId } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
@@ -1392,7 +1393,7 @@ export function DefaultPeopleMenuContent({ userIds }: DefaultPeopleMenuContentPr
 // @public (undocumented)
 export interface DefaultPeopleMenuContentProps {
     // (undocumented)
-    userIds: string[];
+    userIds: TLUserId[];
 }
 
 // @public (undocumented)
@@ -5409,7 +5410,7 @@ export interface TLUiOverrides {
 // @public (undocumented)
 export interface TLUiPeopleMenuAvatarProps {
     // (undocumented)
-    userId: string;
+    userId: TLUserId;
 }
 
 // @public (undocumented)
@@ -5417,7 +5418,7 @@ export interface TLUiPeopleMenuFacePileProps {
     // (undocumented)
     userColor: string;
     // (undocumented)
-    userIds: string[];
+    userIds: TLUserId[];
     // (undocumented)
     userName: string;
 }
@@ -5425,7 +5426,7 @@ export interface TLUiPeopleMenuFacePileProps {
 // @public (undocumented)
 export interface TLUiPeopleMenuItemProps {
     // (undocumented)
-    userId: string;
+    userId: TLUserId;
 }
 
 // @public (undocumented)
