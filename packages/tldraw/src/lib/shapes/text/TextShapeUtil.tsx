@@ -9,7 +9,6 @@ import {
 	TLMeasureTextOpts,
 	TLResizeInfo,
 	TLShapeId,
-	TLTextInkOverflow,
 	TLTextShape,
 	Vec,
 	createComputedCache,
@@ -33,32 +32,38 @@ import { getThemeFontFaces } from '../shared/defaultFonts'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 
-const sizeCache = createComputedCache(
-	'text size',
-	(editor: Editor, shape: TLTextShape) => {
+const ZERO_OVERFLOW = { left: 0, right: 0, top: 0, bottom: 0 }
+
+interface TextShapeBounds {
+	width: number
+	height: number
+	/** How far glyph ink spills past each side of the advance box, in unscaled px. */
+	overflow: { left: number; right: number; top: number; bottom: number }
+}
+
+// Measures a text shape's advance box and its glyph ink overflow in a single layout pass.
+// The browser handles wrapping, bidi, alignment, and bold/italic runs; we read the advance
+// from getBoundingClientRect and the ink delta back from the same rendered measurement
+// element, then derive how far ink spills past each side of the box (cursive/RTL/italic side
+// bearings and tall diacritics, see #8803).
+const textBoundsCache = createComputedCache(
+	'text bounds',
+	(editor: Editor, shape: TLTextShape): TextShapeBounds => {
 		editor.fonts.trackFontsForShape(shape)
 		const util = editor.getShapeUtil(shape) as TextShapeUtil
 		const dv = getDisplayValues(util, shape)
-		return getTextSize(editor, shape.props, dv)
-	},
-	{ areRecordsEqual: (a, b) => a.props === b.props }
-)
-
-const ZERO_INK_OVERFLOW: TLTextInkOverflow = { left: 0, right: 0, top: 0, bottom: 0 }
-
-// How far the rendered glyph ink extends past the advance-width box the browser lays out,
-// per physical side. Used by `getGeometry` to grow the shape's bounds so cursive/RTL/italic
-// glyphs and tall diacritics (e.g. Arabic, see #8803) aren't drawn outside the box. The
-// browser handles wrapping, bidi, alignment, and bold/italic runs; the text measurer reads
-// the ink delta back from the rendered measurement element.
-const inkOverflowCache = createComputedCache(
-	'text ink overflow',
-	(editor: Editor, shape: TLTextShape): TLTextInkOverflow => {
-		editor.fonts.trackFontsForShape(shape)
-		const util = editor.getShapeUtil(shape) as TextShapeUtil
-		const dv = getDisplayValues(util, shape)
-		const { html, opts } = getTextMeasureSpec(editor, shape.props, dv)
-		return editor.textMeasure.measureHtmlInkOverflow(html, opts)
+		const { html, opts, maybeFixedWidth, minWidth } = getTextMeasureSpec(editor, shape.props, dv)
+		const { advance, ink } = editor.textMeasure.measureHtmlBounds(html, opts)
+		const { width, height } = resolveTextSize(advance, maybeFixedWidth, minWidth, dv.fontSize)
+		const overflow = ink
+			? {
+					left: Math.max(0, -ink.x),
+					top: Math.max(0, -ink.y),
+					right: Math.max(0, ink.x + ink.w - width),
+					bottom: Math.max(0, ink.y + ink.h - height),
+				}
+			: ZERO_OVERFLOW
+		return { width, height, overflow }
 	},
 	{ areRecordsEqual: (a, b) => a.props === b.props }
 )
@@ -124,12 +129,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	getMinDimensions(shape: TLTextShape) {
-		return sizeCache.get(this.editor, shape.id)!
+		const { width, height } = textBoundsCache.get(this.editor, shape.id)!
+		return { width, height }
 	}
 
 	getGeometry(shape: TLTextShape, opts: TLGeometryOpts) {
 		const { scale } = shape.props
-		const { width, height } = this.getMinDimensions(shape)!
+		const { width, height, overflow } = textBoundsCache.get(this.editor, shape.id)!
 		const context = opts?.context ?? 'none'
 		const isArrowLabel = context === '@tldraw/arrow-without-arrowhead'
 		const arrowPadding = isArrowLabel ? this.options.extraArrowHorizontalPadding : 0
@@ -139,9 +145,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		// (cursive/RTL/italic side bearings, see #8803). The text content still renders at
 		// the unpadded width, so its position is unchanged. Skipped for arrow labels, whose
 		// layout is driven by the advance box.
-		const ink = isArrowLabel
-			? ZERO_INK_OVERFLOW
-			: (inkOverflowCache.get(this.editor, shape.id) ?? ZERO_INK_OVERFLOW)
+		const ink = isArrowLabel ? ZERO_OVERFLOW : overflow
 
 		return new Rectangle2d({
 			x: (-arrowPadding - ink.left) * scale,
@@ -392,17 +396,25 @@ function getTextMeasureSpec(
 	return { html, opts, maybeFixedWidth, minWidth }
 }
 
+// Turn a raw advance measurement into the shape's width/height. When autosizing, measureText
+// floors fractional widths (`19` not `19.3`), so we +1 to avoid spurious wrapping.
+function resolveTextSize(
+	advance: { w: number; h: number },
+	maybeFixedWidth: number | null,
+	minWidth: number,
+	fontSize: number
+) {
+	return {
+		width: maybeFixedWidth ?? Math.max(minWidth, advance.w + 1),
+		height: Math.max(fontSize, advance.h),
+	}
+}
+
+// Advance-only size (no ink pass) — used by onBeforeUpdate to reposition autosized text.
 function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeUtilDisplayValues) {
 	const { html, opts, maybeFixedWidth, minWidth } = getTextMeasureSpec(editor, props, dv)
 	const result = editor.textMeasure.measureHtml(html, opts)
-
-	// If we're autosizing the measureText will essentially `Math.floor`
-	// the numbers so `19` rather than `19.3`, this means we must +1 to
-	// whatever we get to avoid wrapping.
-	return {
-		width: maybeFixedWidth ?? Math.max(minWidth, result.w + 1),
-		height: Math.max(dv.fontSize, result.h),
-	}
+	return resolveTextSize(result, maybeFixedWidth, minWidth, dv.fontSize)
 }
 
 function useTextShapeKeydownHandler(id: TLShapeId) {

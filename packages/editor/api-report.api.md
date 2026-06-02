@@ -3354,7 +3354,10 @@ export class TextManager {
     // (undocumented)
     measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
     // @internal
-    measureHtmlInkOverflow(html: string, opts: TLMeasureTextOpts): TLTextInkOverflow;
+    measureHtmlBounds(html: string, opts: TLMeasureTextOpts): {
+        advance: TLMeasuredTextSize;
+        ink: BoxModel | null;
+    };
     // (undocumented)
     measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
     measureTextInkBounds(element: HTMLElement): BoxModel | null;
@@ -4814,18 +4817,6 @@ export interface TLTextExternalContentSource {
     subtype: 'html' | 'json' | 'text' | 'url';
     // (undocumented)
     type: 'text';
-}
-
-// @internal
-export interface TLTextInkOverflow {
-    // (undocumented)
-    bottom: number;
-    // (undocumented)
-    left: number;
-    // (undocumented)
-    right: number;
-    // (undocumented)
-    top: number;
 }
 
 // @public (undocumented)

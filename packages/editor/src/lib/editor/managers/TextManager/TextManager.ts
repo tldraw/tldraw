@@ -76,20 +76,6 @@ export interface TLMeasureTextSpanOpts {
 	measureScrollWidth?: boolean
 }
 
-/**
- * The distance, in px, that rendered glyph ink extends past the layout (advance) box on
- * each physical side — what cursive/RTL/italic side bearings and tall diacritics paint
- * outside the box.
- *
- * @internal
- */
-export interface TLTextInkOverflow {
-	left: number
-	right: number
-	top: number
-	bottom: number
-}
-
 const spaceCharacterRegex = /\s/
 
 const initialDefaultStyles = Object.freeze({
@@ -549,27 +535,27 @@ export class TextManager {
 	}
 
 	/**
-	 * Render html into the measurement element and report how far the rendered ink spills past
-	 * the resulting layout (advance) box on each physical side, in px. A convenience over
-	 * {@link TextManager.measureTextInkBounds} for callers that already have html and measure
-	 * options (e.g. a text shape sizing its geometry).
+	 * Render html into the measurement element once and return both its layout (advance) size
+	 * and the actual ink bounds (relative to the advance box's top-left). A single-pass
+	 * convenience over {@link TextManager.measureHtml} + {@link TextManager.measureTextInkBounds}
+	 * for callers that need both, e.g. a text shape sizing its geometry. `ink` is null when
+	 * there's no measurable text or no canvas (headless).
 	 *
 	 * @internal
 	 */
-	measureHtmlInkOverflow(html: string, opts: TLMeasureTextOpts): TLTextInkOverflow {
+	measureHtmlBounds(
+		html: string,
+		opts: TLMeasureTextOpts
+	): { advance: TLMeasuredTextSize; ink: BoxModel | null } {
 		const { elm } = this
 		const restoreStyles = this.setElementStyles(elm, this.getMeasureStyles(opts))
 		try {
 			elm.innerHTML = html
+			const scrollWidth = opts.measureScrollWidth ? elm.scrollWidth : 0
 			const rect = elm.getBoundingClientRect()
+			const advance = { x: 0, y: 0, w: rect.width, h: rect.height, scrollWidth }
 			const ink = this.measureTextInkBounds(elm)
-			if (!ink) return { left: 0, right: 0, top: 0, bottom: 0 }
-			return {
-				left: Math.max(0, -ink.x),
-				top: Math.max(0, -ink.y),
-				right: Math.max(0, ink.x + ink.w - rect.width),
-				bottom: Math.max(0, ink.y + ink.h - rect.height),
-			}
+			return { advance, ink }
 		} finally {
 			restoreStyles()
 		}
