@@ -956,6 +956,7 @@ export class TldrawApp {
 				isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
 				enhancedA11yMode: restOfPreferences.enhancedA11yMode ?? null,
 				isZoomDirectionInverted: restOfPreferences.isZoomDirectionInverted ?? null,
+				isTextOutlineEnabled: restOfPreferences.isTextOutlineEnabled ?? null,
 			})
 
 			opts.trackEvent('create-user', { source: 'app' })

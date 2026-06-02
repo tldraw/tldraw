@@ -708,6 +708,20 @@ export function TogglePasteAtCursorItem() {
 	)
 }
 
+/** @public @react */
+export function ToggleTextOutlineItem() {
+	const editor = useEditor()
+	const isTextOutlineEnabled = useValue(
+		'isTextOutlineEnabled',
+		() => editor.user.getIsTextOutlineEnabled(),
+		[editor]
+	)
+
+	return (
+		<TldrawUiMenuActionCheckboxItem actionId="toggle-text-outline" checked={isTextOutlineEnabled} />
+	)
+}
+
 /* ---------------------- Print --------------------- */
 
 /** @public @react */

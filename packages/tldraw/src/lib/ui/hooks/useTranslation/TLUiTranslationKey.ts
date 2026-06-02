@@ -95,6 +95,8 @@ export type TLUiTranslationKey =
 	| 'action.toggle-dark-mode'
 	| 'action.toggle-paste-at-cursor.menu'
 	| 'action.toggle-paste-at-cursor'
+	| 'action.toggle-text-outline.menu'
+	| 'action.toggle-text-outline'
 	| 'action.toggle-wrap-mode.menu'
 	| 'action.toggle-wrap-mode'
 	| 'action.toggle-reduce-motion.menu'

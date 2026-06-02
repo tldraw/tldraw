@@ -804,6 +804,7 @@ export const defaultUserPreferences: Readonly<{
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
     isSnapMode: false;
+    isTextOutlineEnabled: true;
     isWrapMode: false;
     isZoomDirectionInverted: false;
     locale: "ar" | "bn" | "ca" | "cs" | "da" | "de" | "el" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "gu-in" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "km-kh" | "kn" | "ko-kr" | "ml" | "mr" | "ms" | "ne" | "nl" | "no" | "pa" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "ta" | "te" | "th" | "tl" | "tr" | "uk" | "ur" | "vi" | "zh-cn" | "zh-tw";
@@ -4923,6 +4924,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isSnapMode?: boolean | null;
     // (undocumented)
+    isTextOutlineEnabled?: boolean | null;
+    // (undocumented)
     isWrapMode?: boolean | null;
     // (undocumented)
     isZoomDirectionInverted?: boolean | null;
@@ -5106,6 +5109,8 @@ export class UserPreferencesManager {
     // (undocumented)
     getIsSnapMode(): boolean;
     // (undocumented)
+    getIsTextOutlineEnabled(): boolean;
+    // (undocumented)
     getIsWrapMode(): boolean;
     // (undocumented)
     getIsZoomDirectionInverted(): boolean;
@@ -5125,6 +5130,7 @@ export class UserPreferencesManager {
         isDarkMode: boolean;
         isDynamicResizeMode: boolean;
         isSnapMode: boolean;
+        isTextOutlineEnabled: boolean;
         isWrapMode: boolean;
         isZoomDirectionInverted: boolean;
         locale: string;

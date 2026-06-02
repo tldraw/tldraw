@@ -411,6 +411,7 @@ export {
 	TogglePasteAtCursorItem,
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
+	ToggleTextOutlineItem,
 	ToggleToolLockItem,
 	ToggleTransparentBgMenuItem,
 	ToggleWrapModeItem,

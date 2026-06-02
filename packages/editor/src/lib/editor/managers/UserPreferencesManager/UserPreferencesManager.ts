@@ -53,6 +53,7 @@ export class UserPreferencesManager {
 			enhancedA11yMode: this.getEnhancedA11yMode(),
 			inputMode: this.getInputMode(),
 			isZoomDirectionInverted: this.getIsZoomDirectionInverted(),
+			isTextOutlineEnabled: this.getIsTextOutlineEnabled(),
 		}
 	}
 
@@ -140,6 +141,13 @@ export class UserPreferencesManager {
 		return (
 			this.user.userPreferences.get().isZoomDirectionInverted ??
 			defaultUserPreferences.isZoomDirectionInverted
+		)
+	}
+
+	@computed getIsTextOutlineEnabled() {
+		return (
+			this.user.userPreferences.get().isTextOutlineEnabled ??
+			defaultUserPreferences.isTextOutlineEnabled
 		)
 	}
 }

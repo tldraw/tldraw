@@ -39,6 +39,7 @@ function makeUser(overrides: Partial<TlaUser> & { id: string }): TlaUser {
 		inputMode: null,
 		enhancedA11yMode: null,
 		isZoomDirectionInverted: null,
+		isTextOutlineEnabled: null,
 		allowAnalyticsCookie: null,
 		...overrides,
 	}

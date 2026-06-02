@@ -1308,6 +1308,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-text-outline',
+				label: {
+					default: 'action.toggle-text-outline',
+					menu: 'action.toggle-text-outline.menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-text-outline', { source })
+					editor.user.updateUserPreferences({
+						isTextOutlineEnabled: !editor.user.getIsTextOutlineEnabled(),
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-reduce-motion',
 				label: {
 					default: 'action.toggle-reduce-motion',

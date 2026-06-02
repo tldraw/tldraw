@@ -203,6 +203,7 @@ export const UserPreferencesKeys = [
 	'enhancedA11yMode',
 	'inputMode',
 	'isZoomDirectionInverted',
+	'isTextOutlineEnabled',
 	'name',
 	'color',
 ] as const satisfies Array<keyof TlaUser>

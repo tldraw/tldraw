@@ -32,6 +32,7 @@ describe('UserPreferencesManager', () => {
 		isPasteAtCursorMode: false,
 		inputMode: null,
 		isZoomDirectionInverted: false,
+		isTextOutlineEnabled: true,
 		...overrides,
 	})
 
@@ -237,6 +238,7 @@ describe('UserPreferencesManager', () => {
 				isDynamicResizeMode: mockUserPreferences.isDynamicSizeMode,
 				inputMode: mockUserPreferences.inputMode,
 				isZoomDirectionInverted: mockUserPreferences.isZoomDirectionInverted,
+				isTextOutlineEnabled: mockUserPreferences.isTextOutlineEnabled,
 			})
 		})
 
@@ -489,6 +491,24 @@ describe('UserPreferencesManager', () => {
 				expect(userPreferencesManager.getIsZoomDirectionInverted()).toBe(true)
 			})
 		})
+
+		describe('getIsTextOutlineEnabled', () => {
+			it('should return user text outline setting', () => {
+				expect(userPreferencesManager.getIsTextOutlineEnabled()).toBe(true)
+			})
+
+			it('should return default when null', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, isTextOutlineEnabled: null })
+				expect(userPreferencesManager.getIsTextOutlineEnabled()).toBe(
+					defaultUserPreferences.isTextOutlineEnabled
+				)
+			})
+
+			it('should return false when disabled', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, isTextOutlineEnabled: false })
+				expect(userPreferencesManager.getIsTextOutlineEnabled()).toBe(false)
+			})
+		})
 	})
 
 	describe('reactive behavior', () => {
@@ -551,6 +571,7 @@ describe('UserPreferencesManager', () => {
 				isDynamicSizeMode: null,
 				isPasteAtCursorMode: null,
 				isZoomDirectionInverted: null,
+				isTextOutlineEnabled: null,
 			})
 
 			userPreferencesAtom.set(nullPrefs)
@@ -575,6 +596,9 @@ describe('UserPreferencesManager', () => {
 			)
 			expect(userPreferencesManager.getIsZoomDirectionInverted()).toBe(
 				defaultUserPreferences.isZoomDirectionInverted
+			)
+			expect(userPreferencesManager.getIsTextOutlineEnabled()).toBe(
+				defaultUserPreferences.isTextOutlineEnabled
 			)
 		})
 

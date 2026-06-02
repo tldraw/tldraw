@@ -107,6 +107,7 @@ export interface TLUiEventMap {
 	'toggle-debug-mode': null
 	'toggle-dynamic-size-mode': null
 	'toggle-paste-at-cursor': null
+	'toggle-text-outline': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null
 	'toggle-keyboard-shortcuts': null

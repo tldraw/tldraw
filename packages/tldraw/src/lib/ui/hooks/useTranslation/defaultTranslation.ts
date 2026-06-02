@@ -96,6 +96,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.toggle-dark-mode': 'Toggle dark mode',
 	'action.toggle-paste-at-cursor.menu': 'Paste at cursor',
 	'action.toggle-paste-at-cursor': 'Toggle paste at cursor',
+	'action.toggle-text-outline.menu': 'Text outline',
+	'action.toggle-text-outline': 'Toggle text outline',
 	'action.toggle-wrap-mode.menu': 'Select on wrap',
 	'action.toggle-wrap-mode': 'Toggle select on wrap',
 	'action.toggle-reduce-motion.menu': 'Reduce motion',

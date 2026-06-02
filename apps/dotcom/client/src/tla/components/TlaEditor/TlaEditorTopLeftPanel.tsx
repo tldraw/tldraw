@@ -21,6 +21,7 @@ import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	ToggleSnapModeItem,
+	ToggleTextOutlineItem,
 	ToggleToolLockItem,
 	ToggleWrapModeItem,
 	TldrawUiDropdownMenuContent,
@@ -450,6 +451,7 @@ function TlaPreferencesGroup() {
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
+					<ToggleTextOutlineItem />
 					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
