@@ -63,7 +63,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		[editor]
 	)
 
-	const rMemoizedStuff = useRef({ lodDisableTextOutline: false, canUpdateTextOutline: true })
+	const rMemoizedStuff = useRef({ disableTextOutline: false, canUpdateTextOutline: true })
 
 	useQuickReactor(
 		'set text outline',
@@ -75,16 +75,19 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					rMemoizedStuff.current.canUpdateTextOutline = false // will prevent this check in the future
 				} else {
 					const efficientZoom = editor.getEfficientZoomLevel()
-					// If we're zoomed way out, and have this option enabled, then we hide text outline
-					const lodDisableTextOutline = efficientZoom < editor.options.textShadowLod
+					// Hide text outlines when the user has turned them off, or when we're zoomed
+					// way out (a performance optimization). This is the global switch for the
+					// `--tl-text-outline` variable that every text label reads.
+					const disableTextOutline =
+						!editor.user.getIsTextOutlineEnabled() || efficientZoom < editor.options.textShadowLod
 					// Skip the style update if the property is the same as it was before
-					if (lodDisableTextOutline !== rMemoizedStuff.current.lodDisableTextOutline) {
+					if (disableTextOutline !== rMemoizedStuff.current.disableTextOutline) {
 						container.style.setProperty(
 							'--tl-text-outline',
-							lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
+							disableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
 						)
 					}
-					rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
+					rMemoizedStuff.current.disableTextOutline = disableTextOutline
 				}
 			}
 		},

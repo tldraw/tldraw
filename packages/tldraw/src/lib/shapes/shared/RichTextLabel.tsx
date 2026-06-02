@@ -72,13 +72,6 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	const editor = useEditor()
 	const isDragging = React.useRef(false)
 	const legacyAlign = isLegacyAlign(textAlign)
-	// The shape opts in via the `showTextOutline` prop; the user can globally
-	// disable outlines with the `isTextOutlineEnabled` preference.
-	const showOutline = useValue(
-		'showTextOutline',
-		() => showTextOutline && editor.user.getIsTextOutlineEnabled(),
-		[editor, showTextOutline]
-	)
 	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
 
@@ -138,7 +131,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		<div
 			className={classNames(
 				`${cssPrefix}-label tl-text-wrapper tl-rich-text-wrapper`,
-				showOutline ? 'tl-text__outline' : 'tl-text__no-outline'
+				showTextOutline ? 'tl-text__outline' : 'tl-text__no-outline'
 			)}
 			aria-hidden={!isEditing}
 			data-hastext={!isEmpty}

@@ -1,4 +1,4 @@
-import { Box, ExtractShapeByProps, TLShapeId, useEditor, useValue } from '@tldraw/editor'
+import { Box, ExtractShapeByProps, TLShapeId } from '@tldraw/editor'
 import classNames from 'classnames'
 import React from 'react'
 import { PlainTextArea } from '../text/PlainTextArea'
@@ -56,17 +56,8 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 	textHeight,
 	showTextOutline = true,
 }: PlainTextLabelProps) {
-	const editor = useEditor()
 	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditablePlainText(shapeId, type, plaintext)
-
-	// The shape opts in via the `showTextOutline` prop; the user can globally
-	// disable outlines with the `isTextOutlineEnabled` preference.
-	const showOutline = useValue(
-		'showTextOutline',
-		() => showTextOutline && editor.user.getIsTextOutlineEnabled(),
-		[editor, showTextOutline]
-	)
 
 	const finalPlainText = TextHelpers.normalizeTextForDom(plaintext || '')
 	const hasText = finalPlainText.length > 0
@@ -125,7 +116,7 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 				<div
 					className={classNames(
 						`${cssPrefix} tl-text tl-text-content`,
-						showOutline ? 'tl-text__outline' : 'tl-text__no-outline'
+						showTextOutline ? 'tl-text__outline' : 'tl-text__no-outline'
 					)}
 					dir="auto"
 				>
