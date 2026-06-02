@@ -240,6 +240,36 @@ export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike) {
 
 const CLIP_EPSILON = 1e-10
 
+/**
+ * Intersect a line segment with the infinite line through `lineStart` and `lineEnd`.
+ * Used by Sutherland–Hodgman clipping (half-plane edges, not finite clip segments).
+ */
+function intersectLineSegmentLine(
+	a1: VecLike,
+	a2: VecLike,
+	lineStart: VecLike,
+	lineEnd: VecLike,
+	precision = CLIP_EPSILON
+): Vec | null {
+	const ABx = a1.x - lineStart.x
+	const ABy = a1.y - lineStart.y
+	const LVx = lineEnd.x - lineStart.x
+	const LVy = lineEnd.y - lineStart.y
+	const AVx = a2.x - a1.x
+	const AVy = a2.y - a1.y
+	const ua_t = LVx * ABy - LVy * ABx
+	const u_b = LVy * AVx - LVx * AVy
+
+	if (Math.abs(u_b) <= precision) return null // parallel
+
+	const ua = ua_t / u_b
+	if (ua >= -precision && ua <= 1 + precision) {
+		return new Vec(a1.x + ua * AVx, a1.y + ua * AVy)
+	}
+
+	return null
+}
+
 function isInsideConvexClipEdge(
 	point: VecLike,
 	edgeStart: VecLike,
@@ -270,7 +300,7 @@ function clipPolygonByEdge(
 
 		if (currentInside) {
 			if (!previousInside) {
-				const intersection = intersectLineSegmentLineSegment(
+				const intersection = intersectLineSegmentLine(
 					previous,
 					current,
 					edgeStart,
@@ -281,7 +311,7 @@ function clipPolygonByEdge(
 			}
 			output.push(current)
 		} else if (previousInside) {
-			const intersection = intersectLineSegmentLineSegment(
+			const intersection = intersectLineSegmentLine(
 				previous,
 				current,
 				edgeStart,

@@ -892,6 +892,21 @@ describe('intersectPolygonPolygon', () => {
 		expect(result).toBeNull()
 	})
 
+	it('should clip nested frame rectangles to the overlapping region', () => {
+		const outer = [new Vec(100, 100), new Vec(200, 100), new Vec(200, 200), new Vec(100, 200)]
+		const inner = [new Vec(150, 150), new Vec(250, 150), new Vec(250, 250), new Vec(150, 250)]
+		const result = intersectPolygonPolygon(outer, inner)
+		expect(result).not.toBeNull()
+		expect(result!.length).toBe(4)
+		const xs = result!.map((pt) => pt.x).sort((a, b) => a - b)
+		const ys = result!.map((pt) => pt.y).sort((a, b) => a - b)
+		expect(xs[0]).toBeCloseTo(150, 5)
+		expect(xs[3]).toBeCloseTo(200, 5)
+		expect(ys[0]).toBeCloseTo(150, 5)
+		expect(ys[3]).toBeCloseTo(200, 5)
+		expect(polygonIsSimple(result!)).toBe(true)
+	})
+
 	it('should return intersection polygon for overlapping squares', () => {
 		const polyA = [new Vec(0, 0), new Vec(4, 0), new Vec(4, 4), new Vec(0, 4)]
 		const polyB = [new Vec(2, 2), new Vec(6, 2), new Vec(6, 6), new Vec(2, 6)]
