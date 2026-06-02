@@ -909,6 +909,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): boolean;
     cancel(): this;
     cancelDoubleClick(): void;
+    // @internal
+    cancelPointer(pointerId: number): this;
     canCreateShape(shape: OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id']): boolean;
     canCreateShapes(shapes: (OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id'])[]): boolean;
     canCropShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
@@ -1972,6 +1974,7 @@ export function getPointerInfo(editor: Editor, e: PointerEvent | React_3.Pointer
         z: number;
     };
     pointerId: number;
+    pointerType: string;
     shiftKey: boolean;
 };
 
@@ -4486,6 +4489,7 @@ export type TLPointerEvent = (info: TLPointerEventInfo) => void;
 
 // @public (undocumented)
 export type TLPointerEventInfo = TLBaseEventInfo & {
+    pointerType?: string;
     button: number;
     isPen: boolean;
     name: TLPointerEventName;

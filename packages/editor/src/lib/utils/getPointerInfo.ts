@@ -20,5 +20,6 @@ export function getPointerInfo(editor: Editor, e: React.PointerEvent | PointerEv
 		pointerId: e.pointerId,
 		button: e.button,
 		isPen: e.pointerType === 'pen',
+		pointerType: e.pointerType,
 	}
 }

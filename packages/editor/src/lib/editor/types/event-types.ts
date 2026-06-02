@@ -63,6 +63,12 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 	pointerId: number
 	button: number
 	isPen: boolean
+	/**
+	 * The kind of device that produced the pointer event, mirroring the DOM
+	 * `PointerEvent.pointerType` (e.g. `'mouse'`, `'pen'`, `'touch'`). Optional
+	 * because synthetic events don't always set it.
+	 */
+	pointerType?: string
 } & TLPointerEventTarget
 
 /** @public */

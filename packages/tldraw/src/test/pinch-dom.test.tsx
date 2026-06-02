@@ -49,6 +49,19 @@ function pointerDownEvent(clientX: number, clientY: number, pointerId = 1) {
 	})
 }
 
+function pointerCancelEvent(clientX: number, clientY: number, pointerId = 1) {
+	return new (globalThis as any).PointerEvent('pointercancel', {
+		bubbles: true,
+		cancelable: true,
+		clientX,
+		clientY,
+		button: 0,
+		pointerId,
+		pointerType: 'touch',
+		isPrimary: pointerId === 1,
+	})
+}
+
 function touchEvent(type: string, points: Array<{ clientX: number; clientY: number }>) {
 	const e = new Event(type, { bubbles: true, cancelable: true })
 	const touches = points.map((p, i) => ({ clientX: p.clientX, clientY: p.clientY, identifier: i }))
@@ -151,6 +164,65 @@ describe('pinch selection via real DOM events', () => {
 		await pinchZoom(editor, canvas)
 
 		expect(editor.getSelectedShapeIds()).toEqual([ids.a])
+	})
+
+	it('does not let a second finger change the selection (multi-touch gate)', async () => {
+		const { editor, canvas } = await setupScene()
+
+		await act(async () => {
+			editor.select(ids.a)
+		})
+
+		// First finger lands on b and selects it through the real pointer handler.
+		await act(async () => {
+			canvas.dispatchEvent(pointerDownEvent(250, 50, 1))
+			editor.emit('tick', 16)
+		})
+		expect(editor.getSelectedShapeIds()).toEqual([ids.b])
+
+		// Second finger lands on c. Two touch pointers are now down, so this is a
+		// multi-touch gesture: the second finger must not change the selection
+		// (without the gate it would select c before pinch_start arrives).
+		await act(async () => {
+			canvas.dispatchEvent(pointerDownEvent(450, 50, 2))
+			editor.emit('tick', 16)
+		})
+		expect(editor.getSelectedShapeIds()).toEqual([ids.b])
+
+		// The pinch still rolls the selection back to what it was before the gesture.
+		await pinchZoom(editor, canvas)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.a])
+	})
+
+	it('recovers from a cancelled pointer without leaving pointing state stuck', async () => {
+		const { editor, canvas } = await setupScene()
+
+		await act(async () => {
+			editor.select(ids.a)
+		})
+
+		// A finger lands on b and starts a pointing interaction.
+		await act(async () => {
+			canvas.dispatchEvent(pointerDownEvent(250, 50, 1))
+			editor.emit('tick', 16)
+		})
+		expect(editor.inputs.getIsPointing()).toBe(true)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.b])
+
+		// The browser cancels the pointer (e.g. palm rejection). No pointer_up will
+		// arrive, so the pointing state must be torn down here.
+		await act(async () => {
+			canvas.dispatchEvent(pointerCancelEvent(250, 50, 1))
+			editor.emit('tick', 16)
+		})
+		expect(editor.inputs.getIsPointing()).toBe(false)
+
+		// A later pointer interaction still works normally.
+		await act(async () => {
+			canvas.dispatchEvent(pointerDownEvent(450, 50, 3))
+			editor.emit('tick', 16)
+		})
+		expect(editor.getSelectedShapeIds()).toEqual([ids.c])
 	})
 
 	it('keeps the live selection for a pinch with no preceding pointer_down', async () => {

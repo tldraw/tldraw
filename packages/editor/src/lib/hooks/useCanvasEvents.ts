@@ -78,6 +78,17 @@ export function useCanvasEvents() {
 				}
 			}
 
+			function onPointerCancel(e: React.PointerEvent) {
+				if (editor.wasEventAlreadyHandled(e)) return
+				editor.markEventAsHandled(e)
+				releasePointerCapture(e.currentTarget, e)
+				// The browser cancelled this pointer (e.g. it took over the gesture, or
+				// a palm was rejected). There will be no pointer_up, so tear the pointer
+				// interaction down here instead of leaving isPointing / capturedPointerId
+				// stuck on.
+				editor.cancelPointer(e.pointerId)
+			}
+
 			function onPointerEnter(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 				if (editor.getInstanceState().isPenMode && e.pointerType !== 'pen') return
@@ -187,6 +198,7 @@ export function useCanvasEvents() {
 			return {
 				onPointerDown,
 				onPointerUp,
+				onPointerCancel,
 				onPointerEnter,
 				onPointerLeave,
 				onDragOver,
