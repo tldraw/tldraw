@@ -76,6 +76,20 @@ export interface TLMeasureTextSpanOpts {
 	measureScrollWidth?: boolean
 }
 
+/**
+ * The distance, in px, that rendered glyph ink extends past the layout (advance) box on
+ * each physical side — what cursive/RTL/italic side bearings and tall diacritics paint
+ * outside the box.
+ *
+ * @internal
+ */
+export interface TLTextInkOverflow {
+	left: number
+	right: number
+	top: number
+	bottom: number
+}
+
 const spaceCharacterRegex = /\s/
 
 const initialDefaultStyles = Object.freeze({
@@ -91,6 +105,7 @@ const initialDefaultStyles = Object.freeze({
 export class TextManager {
 	private elm: HTMLDivElement
 	private poolElms: PoolItem[] = []
+	private inkCtx: CanvasRenderingContext2D | null | undefined
 
 	constructor(public editor: Editor) {
 		this.elm = this.createMeasurementEl()
@@ -434,6 +449,122 @@ export class TextManager {
 			}
 
 			return spans
+		} finally {
+			restoreStyles()
+		}
+	}
+
+	private getInkContext(): CanvasRenderingContext2D | null {
+		if (this.inkCtx !== undefined) return this.inkCtx
+		const canvas = this.editor.getContainerDocument().createElement('canvas')
+		this.inkCtx = canvas.getContext('2d')
+		return this.inkCtx
+	}
+
+	/**
+	 * Measure the actual ink bounds of the text rendered inside an element, in element-local
+	 * coordinates (relative to the element's bounding rect). Unlike the layout box, this
+	 * includes glyph side bearings, italic slant, and tall diacritics that paint outside the
+	 * advance width.
+	 *
+	 * The element must already be laid out (attached, with client rects). Wrapping, bidi,
+	 * alignment, and per-run bold/italic are all read back from the browser's layout; only the
+	 * ink delta is measured with canvas. Returns null when there is no measurable text (or no
+	 * canvas available, e.g. in a headless environment).
+	 *
+	 * @public
+	 */
+	measureTextInkBounds(element: HTMLElement): BoxModel | null {
+		const ctx = this.getInkContext()
+		if (!ctx) return null
+
+		const doc = this.editor.getContainerDocument()
+		const view = doc.defaultView ?? window
+		const ref = element.getBoundingClientRect()
+		const range = doc.createRange()
+		const walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+
+		let minX = Infinity
+		let minY = Infinity
+		let maxX = -Infinity
+		let maxY = -Infinity
+
+		for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+			const text = node.textContent
+			const parent = node.parentElement
+			if (!text || !text.trim() || !parent) continue
+
+			// Computed style is already resolved — CSS vars are expanded, and a bold/italic run
+			// reports its own weight/style because it lives in its own element.
+			const cs = view.getComputedStyle(parent)
+			ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+
+			// Split the node's characters into per-line fragments using the browser's layout: a
+			// change in a character's `top` means the text wrapped to a new line.
+			const fragments: { text: string; left: number; top: number; height: number }[] = []
+			let idx = 0
+			for (const char of text) {
+				range.setStart(node, idx)
+				range.setEnd(node, idx + char.length)
+				idx += char.length
+				const rects = range.getClientRects()
+				const rect = rects[rects.length - 1]
+				if (!rect) continue
+				const last = fragments[fragments.length - 1]
+				if (!last || rect.top !== last.top) {
+					fragments.push({ text: char, left: rect.left, top: rect.top, height: rect.height })
+				} else {
+					last.text += char
+					if (rect.left < last.left) last.left = rect.left
+				}
+			}
+
+			for (const frag of fragments) {
+				const m = ctx.measureText(frag.text)
+				const fontAscent = m.fontBoundingBoxAscent || parseFloat(cs.fontSize) || 0
+				const fontDescent = m.fontBoundingBoxDescent || 0
+				// Anchor the pen at the fragment's physical left edge and place the baseline within
+				// the line box the way CSS line-height does (half-leading above the font ascent).
+				const penX = frag.left - ref.left
+				const baseline =
+					frag.top - ref.top + (frag.height - (fontAscent + fontDescent)) / 2 + fontAscent
+				const left = penX - (m.actualBoundingBoxLeft || 0)
+				const right = penX + (m.actualBoundingBoxRight || 0)
+				const top = baseline - (m.actualBoundingBoxAscent || 0)
+				const bottom = baseline + (m.actualBoundingBoxDescent || 0)
+				if (left < minX) minX = left
+				if (right > maxX) maxX = right
+				if (top < minY) minY = top
+				if (bottom > maxY) maxY = bottom
+			}
+		}
+
+		if (!Number.isFinite(minX)) return null
+		return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
+	}
+
+	/**
+	 * Render html into the measurement element and report how far the rendered ink spills past
+	 * the resulting layout (advance) box on each physical side, in px. A convenience over
+	 * {@link TextManager.measureTextInkBounds} for callers that already have html and measure
+	 * options (e.g. a text shape sizing its geometry).
+	 *
+	 * @internal
+	 */
+	measureHtmlInkOverflow(html: string, opts: TLMeasureTextOpts): TLTextInkOverflow {
+		const { elm } = this
+		const restoreStyles = this.setElementStyles(elm, this.getMeasureStyles(opts))
+		try {
+			elm.innerHTML = html
+			const rect = elm.getBoundingClientRect()
+			const ink = this.measureTextInkBounds(elm)
+			if (!ink) return { left: 0, right: 0, top: 0, bottom: 0 }
+			return {
+				left: Math.max(0, -ink.x),
+				top: Math.max(0, -ink.y),
+				right: Math.max(0, ink.x + ink.w - rect.width),
+				bottom: Math.max(0, ink.y + ink.h - rect.height),
+			}
 		} finally {
 			restoreStyles()
 		}

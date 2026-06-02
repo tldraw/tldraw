@@ -6,8 +6,10 @@ import {
 	ShapeUtil,
 	SvgExportContext,
 	TLGeometryOpts,
+	TLMeasureTextOpts,
 	TLResizeInfo,
 	TLShapeId,
+	TLTextInkOverflow,
 	TLTextShape,
 	Vec,
 	createComputedCache,
@@ -42,19 +44,21 @@ const sizeCache = createComputedCache(
 	{ areRecordsEqual: (a, b) => a.props === b.props }
 )
 
-// How far the rendered ink extends beyond the advance-width box that `getTextSize`
-// measures, per physical side. Used by `getGeometry` to pad the shape's bounds so
-// cursive/RTL/italic glyphs (e.g. Arabic, see #8803) aren't drawn outside the box.
+const ZERO_INK_OVERFLOW: TLTextInkOverflow = { left: 0, right: 0, top: 0, bottom: 0 }
+
+// How far the rendered glyph ink extends past the advance-width box the browser lays out,
+// per physical side. Used by `getGeometry` to grow the shape's bounds so cursive/RTL/italic
+// glyphs and tall diacritics (e.g. Arabic, see #8803) aren't drawn outside the box. The
+// browser handles wrapping, bidi, alignment, and bold/italic runs; the text measurer reads
+// the ink delta back from the rendered measurement element.
 const inkOverflowCache = createComputedCache(
 	'text ink overflow',
-	(editor: Editor, shape: TLTextShape) => {
+	(editor: Editor, shape: TLTextShape): TLTextInkOverflow => {
+		editor.fonts.trackFontsForShape(shape)
 		const util = editor.getShapeUtil(shape) as TextShapeUtil
 		const dv = getDisplayValues(util, shape)
-		// Reuse the size cache so we measure the advance box once and stay consistent with
-		// the geometry width. Reading it also tracks the shape's fonts, so this recomputes
-		// when a webfont finishes loading.
-		const size = sizeCache.get(editor, shape.id)!
-		return getTextInkOverflow(editor, shape.props, dv, size)
+		const { html, opts } = getTextMeasureSpec(editor, shape.props, dv)
+		return editor.textMeasure.measureHtmlInkOverflow(html, opts)
 	},
 	{ areRecordsEqual: (a, b) => a.props === b.props }
 )
@@ -366,23 +370,31 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	// }
 }
 
-function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeUtilDisplayValues) {
-	const { richText, w } = props
-
+// Build the html and measure options shared by the advance-size and ink-overflow measures,
+// so they stay in lockstep (same font, wrapping width, and line breaks).
+function getTextMeasureSpec(
+	editor: Editor,
+	props: TLTextShape['props'],
+	dv: TextShapeUtilDisplayValues
+) {
 	const minWidth = 16
-
-	const maybeFixedWidth = props.autoSize ? null : Math.max(minWidth, Math.floor(w))
-
-	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
-	const result = editor.textMeasure.measureHtml(html, {
-		lineHeight: dv.lineHeight,
-		fontWeight: dv.fontWeight,
+	const maybeFixedWidth = props.autoSize ? null : Math.max(minWidth, Math.floor(props.w))
+	const html = renderHtmlFromRichTextForMeasurement(editor, props.richText)
+	const opts: TLMeasureTextOpts = {
 		fontStyle: dv.fontStyle,
-		padding: '0px',
+		fontWeight: dv.fontWeight,
 		fontFamily: dv.fontFamily,
 		fontSize: dv.fontSize,
+		lineHeight: dv.lineHeight,
 		maxWidth: maybeFixedWidth,
-	})
+		padding: '0px',
+	}
+	return { html, opts, maybeFixedWidth, minWidth }
+}
+
+function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeUtilDisplayValues) {
+	const { html, opts, maybeFixedWidth, minWidth } = getTextMeasureSpec(editor, props, dv)
+	const result = editor.textMeasure.measureHtml(html, opts)
 
 	// If we're autosizing the measureText will essentially `Math.floor`
 	// the numbers so `19` rather than `19.3`, this means we must +1 to
@@ -390,175 +402,6 @@ function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeU
 	return {
 		width: maybeFixedWidth ?? Math.max(minWidth, result.w + 1),
 		height: Math.max(dv.fontSize, result.h),
-	}
-}
-
-// A lazily-created offscreen 2d context used to measure actual glyph ink bounds via the
-// Canvas TextMetrics API (actualBoundingBoxLeft/Right), which the DOM advance-width
-// measurement in getTextSize doesn't capture.
-let inkCanvasCtx: CanvasRenderingContext2D | null | undefined
-function getInkCanvasCtx(editor: Editor): CanvasRenderingContext2D | null {
-	if (inkCanvasCtx !== undefined) return inkCanvasCtx
-	const canvas = editor.getContainerDocument().createElement('canvas')
-	inkCanvasCtx = canvas.getContext('2d')
-	return inkCanvasCtx
-}
-
-// Resolve a CSS font-family value (which may be a `var(--tl-font-*)` reference) into the
-// concrete family list the canvas font shorthand needs — the canvas API does not resolve
-// CSS custom properties.
-function resolveCanvasFontFamily(editor: Editor, fontFamily: string): string {
-	const doc = editor.getContainerDocument()
-	const probe = doc.createElement('span')
-	probe.style.fontFamily = fontFamily
-	probe.style.position = 'absolute'
-	probe.style.visibility = 'hidden'
-	probe.style.pointerEvents = 'none'
-	editor.getContainer().appendChild(probe)
-	const view = doc.defaultView ?? window
-	const resolved = view.getComputedStyle(probe).fontFamily
-	probe.remove()
-	return resolved || fontFamily
-}
-
-// Scripts whose base direction is right-to-left (Hebrew, Arabic and its supplements,
-// Syriac, Thaana, NKo, and the Arabic/Hebrew presentation forms). Used to figure out
-// which physical edge a line's text aligns to so we can attribute ink overflow to the
-// correct side.
-const RTL_REGEX =
-	/[\u0590-\u05FF\u0600-\u06FF\u0700-\u074F\u0750-\u077F\u0780-\u07BF\u07C0-\u07FF\u08A0-\u08FF\uFB1D-\uFB4F\uFB50-\uFDFF\uFE70-\uFEFF]/
-
-interface TextInkOverflow {
-	left: number
-	right: number
-	top: number
-	bottom: number
-}
-
-const ZERO_INK_OVERFLOW: TextInkOverflow = { left: 0, right: 0, top: 0, bottom: 0 }
-
-// Scan the rich text for bold/italic marks anywhere in the document. Glyph side bearings
-// differ for those styles, but the shape-level display values are always normal, so we'd
-// otherwise under-measure styled text. Applying a style found anywhere is a safe
-// over-estimate for mixed runs: the box can only get slightly looser, never clip.
-function getRichTextMarkStyles(richText: TLTextShape['props']['richText']): {
-	italic: boolean
-	bold: boolean
-} {
-	let italic = false
-	let bold = false
-	const stack: unknown[] = [richText]
-	while (stack.length) {
-		const node = stack.pop()
-		if (!node || typeof node !== 'object') continue
-		const { marks, content } = node as { marks?: unknown[]; content?: unknown[] }
-		if (Array.isArray(marks)) {
-			for (const mark of marks) {
-				const type =
-					mark && typeof mark === 'object' ? (mark as { type?: unknown }).type : undefined
-				if (type === 'italic') italic = true
-				else if (type === 'bold') bold = true
-			}
-		}
-		if (Array.isArray(content)) {
-			for (const child of content) stack.push(child)
-		}
-		if (italic && bold) break
-	}
-	return { italic, bold }
-}
-
-// Measure how far the rendered ink extends past the advance-width box that `getTextSize`
-// produces, per physical side, in local (unscaled) px. The DOM advance measurement only
-// captures pen-advance, so cursive/RTL/italic side bearings (e.g. Arabic, see #8803) and
-// tall diacritics get painted outside the box. We re-measure each line with the Canvas
-// TextMetrics API, which reports the true ink extent.
-//
-// Known limitation: soft-wrapped lines in fixed-width shapes are skipped — the browser
-// decides where to break them, so we can't attribute their ink to a side. Autosize text
-// (the #8803 case) never wraps, so every line is measured.
-function getTextInkOverflow(
-	editor: Editor,
-	props: TLTextShape['props'],
-	dv: TextShapeUtilDisplayValues,
-	size: { width: number; height: number }
-): TextInkOverflow {
-	const ctx = getInkCanvasCtx(editor)
-	if (!ctx) return ZERO_INK_OVERFLOW
-
-	const text = renderPlaintextFromRichText(editor, props.richText)
-	if (text.trim() === '') return ZERO_INK_OVERFLOW
-
-	const family = resolveCanvasFontFamily(editor, dv.fontFamily)
-	const marks = getRichTextMarkStyles(props.richText)
-	const fontStyle = marks.italic ? 'italic' : dv.fontStyle
-	const fontWeight = marks.bold ? 'bold' : dv.fontWeight
-	ctx.font = `${fontStyle} ${fontWeight} ${dv.fontSize}px ${family}`
-
-	const boxWidth = size.width
-	const boxHeight = size.height
-	const lineHeightPx = dv.fontSize * dv.lineHeight
-	const lines = text.split('\n')
-
-	let overflowLeft = 0
-	let overflowRight = 0
-	let overflowTop = 0
-	let overflowBottom = 0
-
-	for (let i = 0; i < lines.length; i++) {
-		const line = lines[i] === '' ? ' ' : lines[i]
-		const m = ctx.measureText(line)
-		const advance = m.width
-
-		// Fixed-width text wraps; we can't tell where, so skip lines wider than the box.
-		// Autosize text never wraps, so always measure it.
-		if (!props.autoSize && advance > boxWidth + 1) continue
-
-		const isRTL = RTL_REGEX.test(line)
-
-		// The physical left edge of this line's advance box within [0, boxWidth]. `start`
-		// and `end` resolve to a physical side based on the line's base direction (the DOM
-		// uses dir="auto"), so an RTL line aligned to `start` sits against the right edge.
-		let penX: number
-		if (props.textAlign === 'middle') {
-			penX = (boxWidth - advance) / 2
-		} else {
-			const alignsRight =
-				(props.textAlign === 'start' && isRTL) || (props.textAlign === 'end' && !isRTL)
-			penX = alignsRight ? boxWidth - advance : 0
-		}
-
-		// Horizontal: ink edges in box coordinates, then how far they spill past each side.
-		// The `|| 0` guards engines that don't report ink bounds (metrics come back
-		// undefined), which would otherwise poison the geometry with NaN.
-		const inkLeftEdge = penX - (m.actualBoundingBoxLeft || 0)
-		const inkRightEdge = penX + (m.actualBoundingBoxRight || 0)
-		overflowLeft = Math.max(overflowLeft, -inkLeftEdge)
-		overflowRight = Math.max(overflowRight, inkRightEdge - boxWidth)
-
-		// Vertical: only the first line can spill past the top of the block, only the last
-		// past the bottom. Place the baseline within the line box the way CSS line-height
-		// does (half-leading above the font ascent).
-		const fontAscent = m.fontBoundingBoxAscent || dv.fontSize
-		const fontDescent = m.fontBoundingBoxDescent || 0
-		const baselineFromTop = (lineHeightPx - (fontAscent + fontDescent)) / 2 + fontAscent
-		if (i === 0) {
-			const inkTop = baselineFromTop - (m.actualBoundingBoxAscent || 0)
-			overflowTop = Math.max(overflowTop, -inkTop)
-		}
-		if (i === lines.length - 1) {
-			const lastLineTop = boxHeight - lineHeightPx
-			const inkBottom = lastLineTop + baselineFromTop + (m.actualBoundingBoxDescent || 0)
-			overflowBottom = Math.max(overflowBottom, inkBottom - boxHeight)
-		}
-	}
-
-	const clamp = (n: number) => (Number.isFinite(n) ? Math.max(0, n) : 0)
-	return {
-		left: clamp(overflowLeft),
-		right: clamp(overflowRight),
-		top: clamp(overflowTop),
-		bottom: clamp(overflowBottom),
 	}
 }
 
