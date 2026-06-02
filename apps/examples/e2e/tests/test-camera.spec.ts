@@ -179,6 +179,70 @@ test.describe('camera', () => {
 		expect(await page.evaluate(() => editor.getZoomLevel())).toBe(8)
 	})
 
+	test('two-finger pinch does not change the selection', async ({ page, isMobile }) => {
+		test.skip(!isMobile)
+
+		client = await page.context().newCDPSession(page)
+
+		// Finger 1 lands here; finger 2 above it. Both are kept inside the mobile
+		// viewport so the gesture registers.
+		const f1 = { x: 196, y: 470, id: 0 }
+		const f2 = { x: 196, y: 300, id: 1 }
+
+		// Shape "a" (selected, off to the side) plus shape "b" placed directly under
+		// finger 1, so the first finger's pointer_down selects it.
+		await page.evaluate((f) => {
+			const p = editor.screenToPage({ x: f.x, y: f.y })
+			editor.createShapes([
+				{
+					id: 'shape:e2eA',
+					type: 'geo',
+					x: -1000,
+					y: -1000,
+					props: { w: 100, h: 100, fill: 'solid' },
+				},
+				{
+					id: 'shape:e2eB',
+					type: 'geo',
+					x: p.x - 60,
+					y: p.y - 60,
+					props: { w: 120, h: 120, fill: 'solid' },
+				},
+			] as any)
+			editor.setSelectedShapes(['shape:e2eA'] as any)
+		}, f1)
+
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toEqual(['shape:e2eA'])
+
+		// Finger 1 down on shape b — through the real touch/pointer pipeline this
+		// changes the selection to b.
+		await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [f1] })
+		await sleep(30)
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toEqual(['shape:e2eB'])
+
+		// Finger 2 joins, then both fingers move apart to pinch-zoom, then lift.
+		await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [f1, f2] })
+		await sleep(30)
+		const steps = 12
+		for (let i = 1; i <= steps; i++) {
+			await client.send('Input.dispatchTouchEvent', {
+				type: 'touchMove',
+				touchPoints: [
+					{ x: f1.x, y: f1.y + i * 8, id: 0 }, // finger 1 moves down
+					{ x: f2.x, y: f2.y - i * 8, id: 1 }, // finger 2 moves up
+				],
+			})
+			await sleep(10)
+		}
+		await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+		await sleep(100)
+
+		// The incidental selection of b is rolled back to the pre-gesture selection.
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toEqual(['shape:e2eA'])
+		// ...and the pinch really did zoom (sanity check that a pinch happened).
+		expect(await page.evaluate(() => editor.getZoomLevel())).not.toBe(1)
+	})
+
 	test.fixme('minimap', async () => {
 		// todo
 	})
