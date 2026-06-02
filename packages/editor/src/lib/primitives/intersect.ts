@@ -1,5 +1,4 @@
 import { Box } from './Box'
-import { pointInPolygon } from './utils'
 import { Vec, VecLike } from './Vec'
 
 // need even more intersections? See https://gist.github.com/steveruizok/35c02d526c707003a5c79761bfb89a52
@@ -239,65 +238,141 @@ export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike) {
 	return ccw(A, C, D) !== ccw(B, C, D) && ccw(A, B, C) !== ccw(A, B, D)
 }
 
+const CLIP_EPSILON = 1e-10
+
+function isInsideConvexClipEdge(
+	point: VecLike,
+	edgeStart: VecLike,
+	edgeEnd: VecLike,
+	precision = CLIP_EPSILON
+): boolean {
+	const cross =
+		(edgeEnd.x - edgeStart.x) * (point.y - edgeStart.y) -
+		(edgeEnd.y - edgeStart.y) * (point.x - edgeStart.x)
+	return cross >= -precision
+}
+
+function clipPolygonByEdge(
+	subject: VecLike[],
+	edgeStart: VecLike,
+	edgeEnd: VecLike,
+	precision = CLIP_EPSILON
+): VecLike[] {
+	const output: VecLike[] = []
+	const n = subject.length
+	if (n === 0) return output
+
+	for (let i = 0; i < n; i++) {
+		const current = subject[i]
+		const previous = subject[(i + n - 1) % n]
+		const currentInside = isInsideConvexClipEdge(current, edgeStart, edgeEnd, precision)
+		const previousInside = isInsideConvexClipEdge(previous, edgeStart, edgeEnd, precision)
+
+		if (currentInside) {
+			if (!previousInside) {
+				const intersection = intersectLineSegmentLineSegment(
+					previous,
+					current,
+					edgeStart,
+					edgeEnd,
+					precision
+				)
+				if (intersection) output.push(intersection)
+			}
+			output.push(current)
+		} else if (previousInside) {
+			const intersection = intersectLineSegmentLineSegment(
+				previous,
+				current,
+				edgeStart,
+				edgeEnd,
+				precision
+			)
+			if (intersection) output.push(intersection)
+		}
+	}
+
+	return output
+}
+
+function clipPolygonByConvexWindow(subject: VecLike[], clipWindow: VecLike[]): VecLike[] {
+	let output = subject
+	const m = clipWindow.length
+	if (m < 3) return []
+
+	for (let i = 0; i < m; i++) {
+		const edgeStart = clipWindow[i]
+		const edgeEnd = clipWindow[(i + 1) % m]
+		output = clipPolygonByEdge(output, edgeStart, edgeEnd)
+		if (output.length === 0) return []
+	}
+
+	return output
+}
+
+function dedupeConsecutivePolygonPoints(points: VecLike[], precision = CLIP_EPSILON): VecLike[] {
+	if (points.length === 0) return points
+
+	const result: VecLike[] = [points[0]]
+	for (let i = 1; i < points.length; i++) {
+		const prev = result[result.length - 1]
+		const cur = points[i]
+		const dx = cur.x - prev.x
+		const dy = cur.y - prev.y
+		if (dx * dx + dy * dy > precision * precision) {
+			result.push(cur)
+		}
+	}
+
+	if (result.length > 1) {
+		const first = result[0]
+		const last = result[result.length - 1]
+		const dx = last.x - first.x
+		const dy = last.y - first.y
+		if (dx * dx + dy * dy <= precision * precision) {
+			result.pop()
+		}
+	}
+
+	return result
+}
+
+function polygonAreaAbs(points: VecLike[]): number {
+	let area = 0
+	for (let i = 0; i < points.length; i++) {
+		const j = (i + 1) % points.length
+		area += points[i].x * points[j].y - points[j].x * points[i].y
+	}
+	return Math.abs(area) / 2
+}
+
+function finalizePolygonClipResult(clipped: VecLike[]): VecLike[] | null {
+	const deduped = dedupeConsecutivePolygonPoints(clipped)
+	if (deduped.length < 3) return null
+	if (polygonAreaAbs(deduped) <= CLIP_EPSILON) return null
+	return deduped
+}
+
 /**
- * Create a new convex polygon as the intersection of two convex polygons.
+ * Clip a polygon by a convex clip window (Sutherland-Hodgman).
  *
- * @param polygonA - An array of points representing the first polygon.
- * @param polygonB - An array of points representing the second polygon.
+ * `polygonA` may be concave. `polygonB` must be a convex clip window with
+ * consistent winding (the same winding as tldraw shape geometry vertices).
+ *
+ * @param polygonA - Subject polygon to clip.
+ * @param polygonB - Convex clip window polygon.
  * @public
  */
 export function intersectPolygonPolygon(
 	polygonA: VecLike[],
 	polygonB: VecLike[]
 ): VecLike[] | null {
-	// Create an empty polygon as result
-	const result: Map<string, VecLike> = new Map()
-	let a: VecLike, b: VecLike, c: VecLike, d: VecLike
+	if (polygonA.length < 3 || polygonB.length < 3) return null
 
-	// Add all corners of PolygonA that is inside PolygonB to result
-	for (let i = 0, n = polygonA.length; i < n; i++) {
-		a = polygonA[i]
-		if (pointInPolygon(a, polygonB)) {
-			const id = getPointId(a)
-			if (!result.has(id)) {
-				result.set(id, a)
-			}
-		}
-	}
-	// Add all corners of PolygonB that is inside PolygonA to result
-	for (let i = 0, n = polygonB.length; i < n; i++) {
-		a = polygonB[i]
-		if (pointInPolygon(a, polygonA)) {
-			const id = getPointId(a)
-			if (!result.has(id)) {
-				result.set(id, a)
-			}
-		}
-	}
+	const clippedA = finalizePolygonClipResult(clipPolygonByConvexWindow(polygonA, polygonB))
+	if (clippedA) return clippedA
 
-	// Add all intersection points to result
-	for (let i = 0, n = polygonA.length; i < n; i++) {
-		a = polygonA[i]
-		b = polygonA[(i + 1) % polygonA.length]
-
-		for (let j = 0, m = polygonB.length; j < m; j++) {
-			c = polygonB[j]
-			d = polygonB[(j + 1) % polygonB.length]
-			const intersection = intersectLineSegmentLineSegment(a, b, c, d)
-
-			if (intersection !== null) {
-				const id = getPointId(intersection)
-				if (!result.has(id)) {
-					result.set(id, intersection)
-				}
-			}
-		}
-	}
-
-	if (result.size === 0) return null // no intersection
-
-	// Order all points in the result counter-clockwise.
-	return orderClockwise([...result.values()])
+	return finalizePolygonClipResult(clipPolygonByConvexWindow(polygonB, polygonA))
 }
 
 /**
@@ -343,11 +418,6 @@ export function intersectPolys(
 
 function getPointId(point: VecLike) {
 	return `${point.x},${point.y}`
-}
-
-function orderClockwise(points: VecLike[]): VecLike[] {
-	const C = Vec.Average(points)
-	return points.sort((A, B) => Vec.Angle(C, A) - Vec.Angle(C, B))
 }
 
 /** @public */

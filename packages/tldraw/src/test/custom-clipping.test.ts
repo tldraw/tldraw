@@ -4,17 +4,20 @@ import {
 	Circle2d,
 	createShapeId,
 	Geometry2d,
+	linesIntersect,
 	RecordProps,
 	resizeBox,
 	StateNode,
 	T,
 	TLEventHandlers,
+	TLFrameShape,
 	TLGeoShape,
 	TLResizeInfo,
 	TLShape,
 	TLTextShape,
 	toRichText,
 	Vec,
+	VecLike,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
@@ -140,9 +143,25 @@ afterEach(() => {
 const ids = {
 	circleClip1: createShapeId('circleClip1'),
 	circleClip2: createShapeId('circleClip2'),
+	frame1: createShapeId('frame1'),
 	text1: createShapeId('text1'),
 	geo1: createShapeId('geo1'),
 	geo2: createShapeId('geo2'),
+}
+
+function polygonIsSimple(vertices: VecLike[]): boolean {
+	const n = vertices.length
+	for (let i = 0; i < n; i++) {
+		const a1 = vertices[i]
+		const a2 = vertices[(i + 1) % n]
+		for (let j = i + 2; j < n; j++) {
+			if (i === 0 && j === n - 1) continue
+			const b1 = vertices[j]
+			const b2 = vertices[(j + 1) % n]
+			if (linesIntersect(a1, a2, b1, b2)) return false
+		}
+	}
+	return true
 }
 
 beforeEach(() => {
@@ -438,5 +457,53 @@ describe('Integration tests', () => {
 		isClippingEnabled$.set(false)
 		expect(util.shouldClipChild?.(text1!)).toBe(false)
 		expect(util.shouldClipChild?.(text2!)).toBe(false)
+	})
+
+	it('should return a simple page mask when nested under multiple clipping ancestors', () => {
+		editor.createShape({
+			id: ids.circleClip1,
+			type: CIRCLE_CLIP_TYPE,
+			x: 0,
+			y: 0,
+			props: {
+				w: 300,
+				h: 300,
+			},
+		})
+
+		editor.createShape({
+			id: ids.frame1,
+			type: 'frame',
+			x: 50,
+			y: 50,
+			parentId: ids.circleClip1,
+			props: {
+				w: 200,
+				h: 200,
+			},
+		})
+
+		editor.createShape({
+			id: ids.geo1,
+			type: 'geo',
+			x: 80,
+			y: 80,
+			parentId: ids.frame1,
+			props: {
+				w: 40,
+				h: 40,
+			},
+		})
+
+		const frameShape = editor.getShape<TLFrameShape>(ids.frame1)
+		const geoShape = editor.getShape<TLGeoShape>(ids.geo1)
+		expect(frameShape!.parentId).toBe(ids.circleClip1)
+		expect(geoShape!.parentId).toBe(ids.frame1)
+
+		const mask = editor.getShapeMask(ids.geo1)
+		expect(mask).toBeDefined()
+		expect(mask!.length).toBeGreaterThanOrEqual(3)
+		expect(polygonIsSimple(mask!)).toBe(true)
+		expect(editor.getShapeClipPath(ids.geo1)).toBeDefined()
 	})
 })

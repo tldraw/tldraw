@@ -7,8 +7,24 @@ import {
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
 	intersectPolygonPolygon,
+	linesIntersect,
 } from './intersect'
 import { Vec, VecLike } from './Vec'
+
+function polygonIsSimple(vertices: VecLike[]): boolean {
+	const n = vertices.length
+	for (let i = 0; i < n; i++) {
+		const a1 = vertices[i]
+		const a2 = vertices[(i + 1) % n]
+		for (let j = i + 2; j < n; j++) {
+			if (i === 0 && j === n - 1) continue
+			const b1 = vertices[j]
+			const b2 = vertices[(j + 1) % n]
+			if (linesIntersect(a1, a2, b1, b2)) return false
+		}
+	}
+	return true
+}
 
 describe('intersectLineSegmentLineSegment', () => {
 	describe('intersecting segments', () => {
@@ -905,28 +921,18 @@ describe('intersectPolygonPolygon', () => {
 		expect(ys[3]).toBeCloseTo(8, 5)
 	})
 
-	it('should return single point when polygons touch at a point', () => {
+	it('should return null when polygons touch at a point', () => {
 		const polyA = [new Vec(0, 0), new Vec(2, 0), new Vec(2, 2), new Vec(0, 2)]
 		const polyB = [new Vec(2, 2), new Vec(4, 2), new Vec(4, 4), new Vec(2, 4)]
 		const result = intersectPolygonPolygon(polyA, polyB)
-		expect(result).not.toBeNull()
-		expect(result!.length).toBe(1)
-		expect(result![0].x).toBeCloseTo(2, 5)
-		expect(result![0].y).toBeCloseTo(2, 5)
+		expect(result).toBeNull()
 	})
 
-	it('should return shared edge when polygons share an edge', () => {
+	it('should return null when polygons share an edge', () => {
 		const polyA = [new Vec(0, 0), new Vec(2, 0), new Vec(2, 2), new Vec(0, 2)]
 		const polyB = [new Vec(2, 0), new Vec(4, 0), new Vec(4, 2), new Vec(2, 2)]
 		const result = intersectPolygonPolygon(polyA, polyB)
-		expect(result).not.toBeNull()
-		expect(result!.length).toBe(2)
-		const xs = result!.map((pt) => pt.x).sort((a, b) => a - b)
-		const ys = result!.map((pt) => pt.y).sort((a, b) => a - b)
-		expect(xs[0]).toBeCloseTo(2, 5)
-		expect(xs[1]).toBeCloseTo(2, 5)
-		expect(ys[0]).toBeCloseTo(0, 5)
-		expect(ys[1]).toBeCloseTo(2, 5)
+		expect(result).toBeNull()
 	})
 
 	it('should return all points for identical polygons', () => {
@@ -942,5 +948,43 @@ describe('intersectPolygonPolygon', () => {
 		const polyB = [new Vec(1, 1), new Vec(2, 2), new Vec(3, 3)]
 		const result = intersectPolygonPolygon(polyA, polyB)
 		expect(result).toBeNull()
+	})
+
+	it('should return a simple polygon when clipping a concave subject by a convex window', () => {
+		// Concave "U" shape
+		const concaveU = [
+			new Vec(0, 0),
+			new Vec(6, 0),
+			new Vec(6, 4),
+			new Vec(4, 4),
+			new Vec(4, 2),
+			new Vec(2, 2),
+			new Vec(2, 4),
+			new Vec(0, 4),
+		]
+		const clipWindow = [new Vec(1, 1), new Vec(5, 1), new Vec(5, 5), new Vec(1, 5)]
+		const result = intersectPolygonPolygon(concaveU, clipWindow)
+		expect(result).not.toBeNull()
+		expect(polygonIsSimple(result!)).toBe(true)
+		expect(result!.length).toBeGreaterThanOrEqual(4)
+	})
+
+	it('should preserve boundary order for concave subject clipped by a rectangle', () => {
+		const concaveU = [
+			new Vec(0, 0),
+			new Vec(6, 0),
+			new Vec(6, 4),
+			new Vec(4, 4),
+			new Vec(4, 2),
+			new Vec(2, 2),
+			new Vec(2, 4),
+			new Vec(0, 4),
+		]
+		const clipWindow = [new Vec(1, 1), new Vec(5, 1), new Vec(5, 5), new Vec(1, 5)]
+		const result = intersectPolygonPolygon(concaveU, clipWindow)!
+		// The notch at y=2 should remain in the boundary (vertices at y=2 inside the clip).
+		const hasNotchVertex = result.some((p) => p.y === 2 && (p.x === 2 || p.x === 4))
+		expect(hasNotchVertex).toBe(true)
+		expect(polygonIsSimple(result)).toBe(true)
 	})
 })
