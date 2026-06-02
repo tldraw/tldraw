@@ -97,6 +97,8 @@ export function fallbackBase64ToUint8Array(base64: string): Uint8Array {
 	const bytes = new Uint8Array(numBytes)
 	let byteIndex = 0
 
+	// The reverse of encoding: each 4 chars are 4 six-bit values that pack back into
+	// one 24-bit number, which we then read out as 3 bytes (& 255 keeps one byte).
 	const fullGroups = Math.floor((paddedLength - padding) / 4) * 4
 	for (let i = 0; i < fullGroups; i += 4) {
 		const c0 = B64_LOOKUP[base64.charCodeAt(i)]
@@ -106,9 +108,9 @@ export function fallbackBase64ToUint8Array(base64: string): Uint8Array {
 
 		const bitmap = (c0 << 18) | (c1 << 12) | (c2 << 6) | c3
 
-		bytes[byteIndex++] = (bitmap >> 16) & 255
-		bytes[byteIndex++] = (bitmap >> 8) & 255
-		bytes[byteIndex++] = bitmap & 255
+		bytes[byteIndex++] = (bitmap >> 16) & 255 // top byte (bits 23–16)
+		bytes[byteIndex++] = (bitmap >> 8) & 255 // middle byte (bits 15–8)
+		bytes[byteIndex++] = bitmap & 255 // bottom byte (bits 7–0)
 	}
 
 	// Final group when padded: 3 valid chars -> 2 bytes, 2 valid chars -> 1 byte.
@@ -139,7 +141,11 @@ export function fallbackUint8ArrayToBase64(uint8Array: Uint8Array): string {
 	const fullGroups = Math.floor(len / 3) * 3
 	let result = ''
 
-	// Process bytes in groups of 3 -> 4 base64 chars
+	// base64 represents 3 bytes (24 bits) as 4 characters of 6 bits each. For each
+	// group of 3 bytes we pack them into one 24-bit number, then read it back out as
+	// four 6-bit slices and use each slice (a value 0–63) to index into the 64-char
+	// alphabet. `>> n` shifts the wanted slice down to the bottom; SIX_BIT_MASK then
+	// discards everything above those 6 bits.
 	for (let i = 0; i < fullGroups; i += 3) {
 		const byte1 = uint8Array[i]
 		const byte2 = uint8Array[i + 1]
@@ -147,22 +153,26 @@ export function fallbackUint8ArrayToBase64(uint8Array: Uint8Array): string {
 
 		const bitmap = (byte1 << 16) | (byte2 << 8) | byte3
 		result +=
-			BASE64_CHARS[(bitmap >> 18) & SIX_BIT_MASK] +
-			BASE64_CHARS[(bitmap >> 12) & SIX_BIT_MASK] +
-			BASE64_CHARS[(bitmap >> 6) & SIX_BIT_MASK] +
-			BASE64_CHARS[bitmap & SIX_BIT_MASK]
+			BASE64_CHARS[(bitmap >> 18) & SIX_BIT_MASK] + // bits 23–18 (top sextet)
+			BASE64_CHARS[(bitmap >> 12) & SIX_BIT_MASK] + // bits 17–12
+			BASE64_CHARS[(bitmap >> 6) & SIX_BIT_MASK] + // bits 11–6
+			BASE64_CHARS[bitmap & SIX_BIT_MASK] // bits 5–0 (bottom sextet)
 	}
 
-	// Trailing 1 or 2 bytes are emitted with '=' padding (the 2D layout is not
-	// 3-aligned). This matches standard base64 and Node's Buffer output.
+	// A trailing 1 or 2 bytes can't fill a whole 4-char group, so we emit only the
+	// chars their bits cover and pad the rest with '=' to keep the length a multiple
+	// of 4. Standard base64 — matches the native API and Node's Buffer, so a path
+	// encoded by the fallback round-trips on a runtime that decodes with the native one.
 	const remaining = len - fullGroups
 	if (remaining === 1) {
+		// 8 bits → 2 sextets (the 2nd only partly filled), then "=="
 		const bitmap = uint8Array[fullGroups] << 16
 		result +=
 			BASE64_CHARS[(bitmap >> 18) & SIX_BIT_MASK] +
 			BASE64_CHARS[(bitmap >> 12) & SIX_BIT_MASK] +
 			'=='
 	} else if (remaining === 2) {
+		// 16 bits → 3 sextets (the 3rd only partly filled), then "="
 		const bitmap = (uint8Array[fullGroups] << 16) | (uint8Array[fullGroups + 1] << 8)
 		result +=
 			BASE64_CHARS[(bitmap >> 18) & SIX_BIT_MASK] +
