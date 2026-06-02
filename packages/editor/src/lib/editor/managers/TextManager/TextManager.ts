@@ -480,8 +480,13 @@ export class TextManager {
 
 		const doc = this.editor.getContainerDocument()
 		const view = doc.defaultView ?? window
-		const ref = element.getBoundingClientRect()
 		const range = doc.createRange()
+		// Some non-rendering environments (e.g. jsdom under test) provide a canvas context but
+		// don't lay text out, so ranges have no client rects. Without layout there are no ink
+		// bounds to measure.
+		if (typeof range.getClientRects !== 'function') return null
+
+		const ref = element.getBoundingClientRect()
 		const walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT)
 
 		let minX = Infinity
