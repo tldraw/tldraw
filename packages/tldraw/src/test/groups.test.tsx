@@ -2048,4 +2048,118 @@ describe('Grouping / ungrouping locked shapes', () => {
 		expect(editor.getShape(ids.boxA)!.isLocked).toBe(true)
 		expect(editor.getShape(ids.boxB)!.isLocked).toBe(false)
 	})
+
+	it('moves locked children along with their group when dragged', () => {
+		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
+		editor.groupShapes([ids.boxA, ids.boxB], { groupId: ids.groupA })
+		editor.updateShape({ id: ids.boxA, type: 'geo', isLocked: true })
+
+		// Drag the (unlocked) group by 100, 50
+		const group = editor.getShape(ids.groupA)!
+		editor.select(ids.groupA)
+		editor.pointerDown(5, 5, { target: 'shape', shape: group })
+		editor.pointerMove(105, 55)
+		editor.pointerUp()
+
+		// The locked child moves with the group
+		expect(editor.getShapePageBounds(ids.boxA)!).toCloselyMatchObject({
+			x: 100,
+			y: 50,
+			w: 10,
+			h: 10,
+		})
+		expect(editor.getShapePageBounds(ids.boxB)!).toCloselyMatchObject({
+			x: 120,
+			y: 50,
+			w: 10,
+			h: 10,
+		})
+		expect(editor.getShape(ids.boxA)!.isLocked).toBe(true)
+	})
+
+	it('rotates locked children along with their group', () => {
+		// Control: capture where an unlocked child ends up after rotating its group
+		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
+		editor.groupShapes([ids.boxA, ids.boxB], { groupId: ids.groupA })
+		editor.rotateShapesBy([ids.groupA], Math.PI / 2)
+		const unlockedBounds = editor.getShapePageBounds(ids.boxA)!.clone()
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		// With the child locked, it rotates with the group identically
+		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
+		editor.groupShapes([ids.boxA, ids.boxB], { groupId: ids.groupA })
+		editor.updateShape({ id: ids.boxA, type: 'geo', isLocked: true })
+		editor.rotateShapesBy([ids.groupA], Math.PI / 2)
+
+		expect(editor.getShapePageBounds(ids.boxA)!).toCloselyMatchObject(unlockedBounds)
+		expect(editor.getShape(ids.boxA)!.isLocked).toBe(true)
+	})
+
+	it('resizes locked children along with their group', () => {
+		// 0   10  20  30
+		// ┌───┐   ┌───┐
+		// │ A │   │ B │
+		// └───┘   └───┘
+		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
+		editor.groupShapes([ids.boxA, ids.boxB], { groupId: ids.groupA })
+
+		// Lock boxA
+		editor.updateShape({ id: ids.boxA, type: 'geo', isLocked: true })
+
+		// Resize the group from its top-left, scaling everything 2x about the bottom-right corner
+		editor.select(ids.groupA).resizeSelection({ scaleX: 2, scaleY: 2 }, 'top_left')
+
+		// The locked child transforms with the group rather than being left behind
+		expect(editor.getShapePageBounds(ids.boxA)!).toCloselyMatchObject({
+			x: -30,
+			y: -10,
+			w: 20,
+			h: 20,
+		})
+		expect(editor.getShapePageBounds(ids.boxB)!).toCloselyMatchObject({
+			x: 10,
+			y: -10,
+			w: 20,
+			h: 20,
+		})
+
+		// The locked child stays locked
+		expect(editor.getShape(ids.boxA)!.isLocked).toBe(true)
+	})
+
+	it('flips locked children along with their group', () => {
+		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
+		editor.groupShapes([ids.boxA, ids.boxB], { groupId: ids.groupA })
+
+		editor.updateShape({ id: ids.boxA, type: 'geo', isLocked: true })
+
+		// Flipping the group horizontally swaps the children's positions about the group center
+		editor.select(ids.groupA).flipShapes([ids.groupA], 'horizontal')
+
+		expect(editor.getShapePageBounds(ids.boxA)!).toCloselyMatchObject({ x: 20, y: 0, w: 10, h: 10 })
+		expect(editor.getShapePageBounds(ids.boxB)!).toCloselyMatchObject({ x: 0, y: 0, w: 10, h: 10 })
+		expect(editor.getShape(ids.boxA)!.isLocked).toBe(true)
+	})
+
+	it('still blocks resizing a locked shape that has no unlocked ancestor', () => {
+		editor.createShapes([box(ids.boxA, 0, 0)])
+		editor.updateShape({ id: ids.boxA, type: 'geo', isLocked: true })
+
+		// Resizing a top-level locked shape directly is a no-op
+		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
+
+		expect(editor.getShapePageBounds(ids.boxA)!).toCloselyMatchObject({ x: 0, y: 0, w: 10, h: 10 })
+	})
+
+	it('still blocks direct edits to a locked child of a group', () => {
+		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
+		editor.groupShapes([ids.boxA, ids.boxB], { groupId: ids.groupA })
+		editor.updateShape({ id: ids.boxA, type: 'geo', isLocked: true })
+
+		// A direct update to the locked child is still dropped, even though it has an unlocked
+		// ancestor. Only ancestor-driven transforms flow through.
+		editor.updateShape({ id: ids.boxA, type: 'geo', x: 999, props: { w: 999 } })
+
+		expect(editor.getShapePageBounds(ids.boxA)!).toCloselyMatchObject({ x: 0, y: 0, w: 10, h: 10 })
+	})
 })

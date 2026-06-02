@@ -5668,6 +5668,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Check whether any of a shape's ancestors are unlocked. A locked shape with an unlocked
+	 * ancestor (e.g. a locked child of a group) can still be transformed as a downstream effect
+	 * of transforming that ancestor.
+	 *
+	 * @param shape - The shape (or shape id) to check.
+	 *
+	 * @internal
+	 */
+	private hasUnlockedAncestor(shape?: TLShape | TLShapeId): boolean {
+		let parent = this.getShapeParent(shape)
+		while (parent) {
+			if (!parent.isLocked) return true
+			parent = this.getShapeParent(parent)
+		}
+		return false
+	}
+
+	/**
 	 * Get shapes that are outside of the viewport.
 	 *
 	 * @public
@@ -8080,6 +8098,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	resizeShape(shape: TLShapeId | TLShape, scale: VecLike, opts: TLResizeShapeOptions = {}): this {
 		const id = typeof shape === 'string' ? shape : shape.id
 		if (this.getIsReadonly()) return this
+
+		// A locked shape that lives inside an unlocked ancestor (e.g. a locked child of a group)
+		// should still resize when that ancestor is resized — the resize is a downstream effect of
+		// an ancestor transform, not a direct edit of the locked shape. Re-run with shape-lock
+		// checks disabled so the update isn't dropped by updateShapes. A locked shape with no
+		// unlocked ancestor (e.g. a top-level locked shape) stays blocked.
+		if (!this._shouldIgnoreShapeLock) {
+			const target = this.getShape(id)
+			if (target?.isLocked && this.hasUnlockedAncestor(target)) {
+				this.run(() => this.resizeShape(shape, scale, opts), { ignoreShapeLock: true })
+				return this
+			}
+		}
 
 		if (!Number.isFinite(scale.x)) scale = new Vec(1, scale.y)
 		if (!Number.isFinite(scale.y)) scale = new Vec(scale.x, 1)
