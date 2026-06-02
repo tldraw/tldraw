@@ -136,6 +136,7 @@
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
 		"@types/fs-extra": "^11.0.4",
+		"@types/lodash": "^4.17.14",
 		"@types/node-fetch": "^2.6.12",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
