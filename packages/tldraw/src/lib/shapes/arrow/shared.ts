@@ -69,66 +69,30 @@ export function getBoundShapeInfoForTerminal(
 		geometry,
 	}
 }
-
-function getBoundShapeTerminalPoint(
-	editor: Editor,
-	binding: TLArrowBinding,
-	forceImprecise: boolean
-) {
-	const boundShape = editor.getShape(binding.toId)
-	if (!boundShape) return
-
-	const { point, size } = editor.getShapeGeometry(boundShape).bounds
-	// If the parent is the bound shape, then it's always treated as precise.
-	const shouldUsePreciseAnchor = binding.props.isPrecise || forceImprecise
-	const normalizedAnchor = shouldUsePreciseAnchor
-		? clampNormalizedAnchor(binding.props.normalizedAnchor)
-		: { x: 0.5, y: 0.5 }
-
-	return {
-		boundShape,
-		shapePoint: Vec.Add(point, Vec.MulV(normalizedAnchor, size)),
-	}
-}
-
-/** @internal */
-export function getArrowTerminalInPageSpace(
-	editor: Editor,
-	arrowPageTransform: Mat,
-	binding: TLArrowBinding,
-	forceImprecise: boolean
-) {
-	const terminal = getBoundShapeTerminalPoint(editor, binding, forceImprecise)
-
-	if (!terminal) {
-		// this can happen in multiplayer contexts where the shape is being deleted
-		return Mat.applyToPoint(arrowPageTransform, new Vec(0, 0))
-	} else {
-		// Find the actual local point of the normalized terminal on
-		// the bound shape and transform it to page space.
-		return Mat.applyToPoint(editor.getShapePageTransform(terminal.boundShape), terminal.shapePoint)
-	}
-}
-
 export function getArrowTerminalInArrowSpace(
 	editor: Editor,
 	arrowPageTransform: Mat,
 	binding: TLArrowBinding,
 	forceImprecise: boolean
 ) {
-	const terminal = getBoundShapeTerminalPoint(editor, binding, forceImprecise)
+	const boundShape = editor.getShape(binding.toId)
 
-	if (!terminal) {
+	if (!boundShape) {
 		// this can happen in multiplayer contexts where the shape is being deleted
 		return new Vec(0, 0)
 	} else {
 		// Find the actual local point of the normalized terminal on
 		// the bound shape and transform it to page space, then transform
 		// it to arrow space
-		const pagePoint = Mat.applyToPoint(
-			editor.getShapePageTransform(terminal.boundShape),
-			terminal.shapePoint
-		)
+		const { point, size } = editor.getShapeGeometry(boundShape).bounds
+		// If the parent is the bound shape, then it's always treated as precise.
+		const shouldUsePreciseAnchor = binding.props.isPrecise || forceImprecise
+		const normalizedAnchor = shouldUsePreciseAnchor
+			? clampNormalizedAnchor(binding.props.normalizedAnchor)
+			: { x: 0.5, y: 0.5 }
+
+		const shapePoint = Vec.Add(point, Vec.MulV(normalizedAnchor, size))
+		const pagePoint = Mat.applyToPoint(editor.getShapePageTransform(boundShape)!, shapePoint)
 		const arrowPoint = Mat.applyToPoint(Mat.Inverse(arrowPageTransform), pagePoint)
 		return arrowPoint
 	}
@@ -199,37 +163,25 @@ export function getArrowTerminalsInArrowSpace(
 	return { start, end }
 }
 
-/** @internal */
+/**
+ * Get both arrow terminals (`start` and `end`) as page-space points. Bound terminals are
+ * resolved against their target shapes; unbound terminals use the arrow's own start/end
+ * props transformed into page space.
+ *
+ * @param editor - The editor instance.
+ * @param shape - The arrow shape.
+ * @returns The `start` and `end` terminals as page-space points.
+ * @internal
+ */
 export function getArrowTerminalsInPageSpace(editor: Editor, shape: TLArrowShape) {
-	const bindings = getArrowBindings(editor, shape)
 	const arrowPageTransform = editor.getShapePageTransform(shape)!
-	const boundShapeRelationships = getBoundShapeRelationships(
-		editor,
-		bindings.start?.toId,
-		bindings.end?.toId
-	)
+	const bindings = getArrowBindings(editor, shape)
+	const { start, end } = getArrowTerminalsInArrowSpace(editor, shape, bindings)
 
-	const start = bindings.start
-		? getArrowTerminalInPageSpace(
-				editor,
-				arrowPageTransform,
-				bindings.start,
-				boundShapeRelationships === 'double-bound' ||
-					boundShapeRelationships === 'start-contains-end'
-			)
-		: Mat.applyToPoint(arrowPageTransform, Vec.From(shape.props.start))
-
-	const end = bindings.end
-		? getArrowTerminalInPageSpace(
-				editor,
-				arrowPageTransform,
-				bindings.end,
-				boundShapeRelationships === 'double-bound' ||
-					boundShapeRelationships === 'end-contains-start'
-			)
-		: Mat.applyToPoint(arrowPageTransform, Vec.From(shape.props.end))
-
-	return { start, end }
+	return {
+		start: Mat.applyToPoint(arrowPageTransform, start),
+		end: Mat.applyToPoint(arrowPageTransform, end),
+	}
 }
 
 /**

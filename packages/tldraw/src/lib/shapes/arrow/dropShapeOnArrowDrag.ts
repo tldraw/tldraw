@@ -1,11 +1,24 @@
-import { Editor, TLArrowShape, TLTextShape, createShapeId, toRichText } from '@tldraw/editor'
+import {
+	Editor,
+	TLArrowShape,
+	TLTextShape,
+	VecLike,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 import { createOrUpdateArrowBinding, getArrowTerminalsInPageSpace } from './shared'
 
 /**
- * Drop a new text shape at the dragged arrow terminal and bind the terminal of the
- * in-flight arrow to its center. Ends the arrow drag and enters editing mode
- * on the new text shape so the user can type immediately.
+ * Drop a new text shape at the dragged arrow terminal and bind that terminal of the
+ * in-flight arrow to the text's center. The text is centered on the terminal point and
+ * its alignment is chosen from the arrow's direction (see {@link getTextAlignFromVecAngle}).
+ * Ends the arrow drag and enters editing mode on the new text shape so the user can type
+ * immediately.
+ *
+ * @param editor - The editor instance.
+ * @param arrow - The arrow shape whose terminal is being dragged.
+ * @param terminal - Which arrow terminal (`start` or `end`) to drop the text at and bind to.
  */
 export function dropBoundTextShapeAtArrowTerminal(
 	editor: Editor,
@@ -13,15 +26,16 @@ export function dropBoundTextShapeAtArrowTerminal(
 	terminal: 'start' | 'end'
 ) {
 	const scale = editor.getResizeScaleFactor()
-	const center = getArrowTerminalsInPageSpace(editor, arrow)[terminal]
+	const terminals = getArrowTerminalsInPageSpace(editor, arrow)
+	const terminalPoint = terminals[terminal]
 	const id = createShapeId()
 
 	editor.run(() => {
 		editor.createShape<TLTextShape>({
 			id,
 			type: 'text',
-			x: center.x,
-			y: center.y,
+			x: terminalPoint.x,
+			y: terminalPoint.y,
 			props: {
 				richText: toRichText(''),
 				autoSize: true,
@@ -52,7 +66,7 @@ export function dropBoundTextShapeAtArrowTerminal(
 			snap: 'center',
 		})
 
-		const textAlign = getTextAlignFromArrowAngle(editor, arrow)
+		const textAlign = getTextAlignFromVecAngle(terminals)
 		editor.updateShape({
 			id,
 			type: 'text',
@@ -65,11 +79,20 @@ export function dropBoundTextShapeAtArrowTerminal(
 	startEditingShapeWithRichText(editor, id, { selectAll: true })
 }
 
-function getTextAlignFromArrowAngle(
-	editor: Editor,
-	arrow: TLArrowShape
-): TLTextShape['props']['textAlign'] {
-	const { start, end } = getArrowTerminalsInPageSpace(editor, arrow)
+/**
+ * Choose a text alignment for a label dropped on an arrow based on the arrow's direction,
+ * so the label reads naturally relative to the way the arrow points. Arrows pointing
+ * roughly rightward align to `start`, roughly leftward to `end`, and roughly vertical
+ * arrows are centered (`middle`).
+ *
+ * @param terminals - The arrow's `start` and `end` terminals in page space.
+ * @returns The text alignment to use for the dropped label.
+ */
+function getTextAlignFromVecAngle(terminals: {
+	start: VecLike
+	end: VecLike
+}): TLTextShape['props']['textAlign'] {
+	const { start, end } = terminals
 
 	const angle = Math.atan2(end.y - start.y, end.x - start.x)
 

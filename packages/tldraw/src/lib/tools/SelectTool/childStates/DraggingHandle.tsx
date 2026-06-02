@@ -190,6 +190,11 @@ export class DraggingHandle extends StateNode {
 		this.update()
 	}
 
+	/**
+	 * Pressing `T` while dragging an arrow's `end` terminal drops a bound text shape at that
+	 * terminal and starts editing it, instead of completing the drag. Any other key just
+	 * refreshes the drag.
+	 */
 	override onKeyUp(info: TLKeyboardEventInfo) {
 		if (
 			info.key.toLowerCase() === 't' &&
