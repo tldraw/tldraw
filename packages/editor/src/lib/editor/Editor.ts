@@ -10768,6 +10768,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _selectedShapeIdsAtPointerDown: TLShapeId[] = []
 
+	/**
+	 * Whether `_selectedShapeIdsAtPointerDown` holds a pre-gesture selection
+	 * captured by a `pointer_down` (the touch path) that a following pinch
+	 * should restore. False when no pointer_down preceded the pinch (the
+	 * Safari trackpad path uses gesture events), in which case `pinch_start`
+	 * captures the live selection instead.
+	 * @internal
+	 */
+	private _didCaptureSelectionAtPointerDown = false
+
 	/** @internal */
 	private _longPressTimeout = -1 as any
 
@@ -10933,10 +10943,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (inputs.getIsPinching()) return
 
 						if (!inputs.getIsEditing()) {
-							// Always capture the current selection when pinch starts.
-							// This ensures Safari (which uses gesture events instead of wheel)
-							// doesn't restore a stale selection from an earlier pointer_down.
-							this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
+							// If a pointer_down already captured the pre-gesture selection,
+							// keep it: on touch, the first finger's pointer_down can change
+							// the selection before the second finger starts the pinch, and we
+							// want to restore the selection from before that change. When no
+							// pointer_down preceded the pinch (Safari delivers trackpad pinches
+							// as gesture events), capture the live selection now.
+							if (!this._didCaptureSelectionAtPointerDown) {
+								this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
+							}
 
 							this._didPinch = true
 
@@ -10994,6 +11009,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const { _selectedShapeIdsAtPointerDown: shapesToReselect } = this
 						this.setSelectedShapes(this._selectedShapeIdsAtPointerDown)
 						this._selectedShapeIdsAtPointerDown = []
+						this._didCaptureSelectionAtPointerDown = false
 
 						if (this._didPinch) {
 							this._didPinch = false
@@ -11122,8 +11138,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}, this.options.longPressDurationMs)
 						}
 
-						// Save the selected ids at pointer down
-						this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
+						// Save the selected ids at the start of an interaction so a pinch can
+						// restore the pre-gesture selection. Only capture on the first pointer:
+						// on touch, the second finger's pointer_down arrives after the first
+						// has already changed the selection, and we want the earlier snapshot.
+						// Cleared on pointer_up / pinch_end.
+						if (!this._didCaptureSelectionAtPointerDown) {
+							this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
+							this._didCaptureSelectionAtPointerDown = true
+						}
 
 						// Firefox bug fix...
 						// If it's a left-mouse-click, we store the pointer id for later user
@@ -11243,6 +11266,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (this.inputs.getIsRightPointing() && !this.inputs.getIsPanning()) {
 							this.inputs.setIsRightPointing(false)
 							this._selectedShapeIdsAtPointerDown = []
+							this._didCaptureSelectionAtPointerDown = false
 							break // fall through to state chart dispatch as right_click
 						}
 
@@ -11289,6 +11313,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 										this.slideCamera({ speed: slideSpeed, direction: slideDirection })
 									}
 									this._selectedShapeIdsAtPointerDown = []
+									this._didCaptureSelectionAtPointerDown = false
 									return this
 								}
 							}
@@ -11307,6 +11332,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Clear the stashed selection so the next pinch captures fresh state.
 						// This fixes Safari pinch zoom restoring outdated selections.
 						this._selectedShapeIdsAtPointerDown = []
+						this._didCaptureSelectionAtPointerDown = false
 
 						break
 					}
