@@ -109,6 +109,77 @@ describe(debounce, () => {
 		expect(() => debounced.cancel()).not.toThrow()
 	})
 
+	it('rejects the pending promise when the signal aborts', async () => {
+		const controller = new AbortController()
+		const fn = vi.fn()
+		const debounced = debounce(fn, 100, { signal: controller.signal })
+		const promiseA = debounced()
+		const promiseB = debounced()
+
+		controller.abort()
+		vi.advanceTimersByTime(200)
+
+		expect(fn).not.toHaveBeenCalled()
+		await expect(promiseA).rejects.toMatchObject({ name: 'AbortError' })
+		await expect(promiseB).rejects.toMatchObject({ name: 'AbortError' })
+	})
+
+	it('rejects with a custom abort reason', async () => {
+		const controller = new AbortController()
+		const reason = new Error('navigated away')
+		const fn = vi.fn()
+		const debounced = debounce(fn, 100, { signal: controller.signal })
+		const promise = debounced()
+
+		controller.abort(reason)
+
+		await expect(promise).rejects.toBe(reason)
+	})
+
+	it('rejects immediately and never schedules when the signal is already aborted', async () => {
+		const controller = new AbortController()
+		controller.abort()
+		const fn = vi.fn()
+		const debounced = debounce(fn, 100, { signal: controller.signal })
+
+		const promise = debounced()
+		vi.advanceTimersByTime(200)
+
+		expect(fn).not.toHaveBeenCalled()
+		await expect(promise).rejects.toMatchObject({ name: 'AbortError' })
+	})
+
+	it('does not fire the callback for a scheduled call after the signal aborts', async () => {
+		const controller = new AbortController()
+		const fn = vi.fn()
+		const debounced = debounce(fn, 100, { signal: controller.signal })
+		const promise = debounced()
+
+		controller.abort()
+		await expect(promise).rejects.toMatchObject({ name: 'AbortError' })
+
+		vi.advanceTimersByTime(200)
+		expect(fn).not.toHaveBeenCalled()
+	})
+
+	it('does not emit an unhandledrejection when a discarded promise is aborted', async () => {
+		const handler = vi.fn()
+		process.on('unhandledRejection', handler)
+		try {
+			const controller = new AbortController()
+			const fn = vi.fn()
+			const debounced = debounce(fn, 100, { signal: controller.signal })
+			debounced()
+			controller.abort()
+
+			await new Promise(process.nextTick)
+
+			expect(handler).not.toHaveBeenCalled()
+		} finally {
+			process.off('unhandledRejection', handler)
+		}
+	})
+
 	it('does not emit an unhandledrejection when the promise is discarded on cancel', async () => {
 		const handler = vi.fn()
 		process.on('unhandledRejection', handler)

@@ -1,5 +1,16 @@
+import { promiseWithResolve } from './control'
 import { noop } from './function'
 import type { Awaitable } from './types'
+
+interface DebounceState<T extends unknown[], U> {
+	// eslint-disable-next-line no-restricted-globals
+	timeout?: ReturnType<typeof setTimeout>
+	deferred: Promise<U> & {
+		resolve(value: Awaitable<U>): void
+		reject(reason?: any): void
+	}
+	latestArgs: T
+}
 
 /**
  * Create a debounced version of a function that delays execution until after a specified wait time.
@@ -9,14 +20,16 @@ import type { Awaitable } from './types'
  * function returns a Promise that resolves with the result of the original function. Includes a
  * cancel method to prevent execution if needed.
  *
- * Calling `cancel()` while a call is pending rejects the returned promise with an `Error`
- * whose message is `'Debounced function was cancelled'`. Callers that discard the promise
- * are not affected — internal handling suppresses the unhandled-rejection warning — but
- * any code that `await`s or chains `.then()` on the promise must be prepared to handle the
- * rejection.
+ * Cancel a pending call with the `cancel()` method, or by passing an `AbortSignal` via the
+ * `signal` option and aborting it. Both reject any pending promise with the cancellation reason
+ * (an `AbortError` by default for an aborted signal). Callers that discard the promise are not
+ * affected — internal handling suppresses the unhandled-rejection warning — but any code that
+ * `await`s or chains `.then()` on the promise must be prepared to handle the rejection.
  *
  * @param callback - The function to debounce (can be sync or async)
  * @param wait - The delay in milliseconds before executing the function
+ * @param opts - Optional options. Pass `signal` to cancel the debounced function when the
+ *   `AbortSignal` aborts.
  * @returns A debounced function that returns a Promise and includes a cancel method
  *
  * @example
@@ -30,7 +43,7 @@ import type { Awaitable } from './types'
  * debouncedSearch('react hooks') // This cancels the previous call
  * debouncedSearch('react typescript') // Only this will execute
  *
- * // Cancel pending execution — any in-flight promise rejects
+ * // Cancel pending execution
  * debouncedSearch.cancel()
  *
  * // With async/await — wrap in try/catch if you might cancel
@@ -43,6 +56,12 @@ import type { Awaitable } from './types'
  * } catch (err) {
  *   // handle cancellation or callback error
  * }
+ *
+ * // Tie the debounced function to an AbortSignal — aborting cancels it
+ * const controller = new AbortController()
+ * const debouncedSave = debounce(saveDraft, 500, { signal: controller.signal })
+ * debouncedSave(draft)
+ * controller.abort() // rejects the pending promise and stops the scheduled call
  * ```
  *
  * @public
@@ -50,54 +69,66 @@ import type { Awaitable } from './types'
  */
 export function debounce<T extends unknown[], U>(
 	callback: (...args: T) => Awaitable<U>,
-	wait: number
-) {
-	let state:
-		| undefined
-		| {
-				// eslint-disable-next-line no-restricted-globals
-				timeout: ReturnType<typeof setTimeout>
-				promise: Promise<U>
-				resolve(value: U | PromiseLike<U>): void
-				reject(value: any): void
-				latestArgs: T
-		  } = undefined
+	wait: number,
+	opts?: { signal?: AbortSignal }
+): {
+	(...args: T): Promise<U>
+	/**
+	 * Cancel the pending debounced call, rejecting its promise. Alternatively, pass an
+	 * `AbortSignal` via the `signal` option and abort it.
+	 */
+	cancel(): void
+} {
+	const externalSignal = opts?.signal
+	let state: DebounceState<T, U> | undefined
+
+	// Both cancellation paths — the deprecated `.cancel()` and an aborted external `signal` — run
+	// through here: clear the pending timer and reject the in-flight promise with `reason`. A call
+	// afterwards starts a fresh window.
+	function cancel(reason: unknown) {
+		if (!state) return
+		const { timeout, deferred } = state
+		state = undefined
+		clearTimeout(timeout)
+		// Attach a no-op handler so callers that discarded the promise don't trigger an
+		// unhandled-rejection warning. Consumers that did `.then`, `.catch`, or `await` on the
+		// returned promise still observe the rejection through their own chain.
+		deferred.catch(noop)
+		deferred.reject(reason)
+	}
 
 	const fn = (...args: T): Promise<U> => {
-		if (!state) {
-			state = {} as any
-			state!.promise = new Promise((resolve, reject) => {
-				state!.resolve = resolve
-				state!.reject = reject
-			})
+		if (externalSignal?.aborted) {
+			// The signal already aborted, so never schedule. Attach a no-op handler so callers that
+			// discard the promise don't trigger an unhandled-rejection warning.
+			const rejected = Promise.reject(externalSignal.reason)
+			rejected.catch(noop)
+			return rejected
 		}
-		clearTimeout(state!.timeout)
-		state!.latestArgs = args
-		// It's up to the consumer of debounce to call `cancel`
+		if (!state) {
+			state = { deferred: promiseWithResolve<U>(), latestArgs: args }
+		}
+		clearTimeout(state.timeout)
+		state.latestArgs = args
 		// eslint-disable-next-line no-restricted-globals
-		state!.timeout = setTimeout(() => {
+		state.timeout = setTimeout(() => {
 			const s = state!
 			state = undefined
 			try {
-				s.resolve(callback(...s.latestArgs))
+				s.deferred.resolve(callback(...s.latestArgs))
 			} catch (e) {
-				s.reject(e)
+				s.deferred.reject(e)
 			}
 		}, wait)
 
-		return state!.promise
+		return state.deferred
 	}
-	fn.cancel = () => {
-		if (!state) return
-		clearTimeout(state.timeout)
-		const s = state
-		state = undefined
-		// Attach a no-op handler so callers that discard the promise don't
-		// trigger an unhandled-rejection warning. Consumers that did `.then`,
-		// `.catch`, or `await` on the returned promise still observe the
-		// rejection through their own chain.
-		s.promise.catch(noop)
-		s.reject(new Error('Debounced function was cancelled'))
-	}
+
+	fn.cancel = () => cancel(new Error('Debounced function was cancelled'))
+
+	// An external signal cancels the in-flight call. `{ once: true }` is enough cleanup — an
+	// AbortSignal only ever fires `abort` once.
+	externalSignal?.addEventListener('abort', () => cancel(externalSignal.reason), { once: true })
+
 	return fn
 }

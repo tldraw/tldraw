@@ -10642,7 +10642,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				window.history.replaceState({}, this.getContainerDocument().title, url.toString())
 			})
 
-		const scheduleEffect = debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500)
+		const controller = new AbortController()
+		const scheduleEffect = debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500, {
+			signal: controller.signal,
+		})
 
 		const unlisten = react(
 			'update url on state change',
@@ -10652,7 +10655,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		return () => {
 			unlisten()
-			scheduleEffect.cancel()
+			controller.abort()
 		}
 	}
 

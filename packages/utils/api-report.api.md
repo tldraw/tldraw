@@ -44,9 +44,11 @@ export function clearSessionStorage(): void;
 export function compact<T>(arr: T[]): NonNullable<T>[];
 
 // @public
-export function debounce<T extends unknown[], U>(callback: (...args: T) => Awaitable<U>, wait: number): {
+export function debounce<T extends unknown[], U>(callback: (...args: T) => Awaitable<U>, wait: number, opts?: {
+    signal?: AbortSignal;
+}): {
     (...args: T): Promise<U>;
-    cancel: () => void;
+    cancel(): void;
 };
 
 // @public
