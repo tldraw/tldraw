@@ -55,8 +55,6 @@ function createEditor(presences: TLInstancePresence[] = []) {
 		user: {
 			getId: userGetId,
 		},
-		// Use a real store so the collaborators query runs against the real query
-		// engine rather than a hand-rolled reimplementation of its matchers.
 		store,
 		getInstanceState,
 		getCurrentPageId: vi.fn(() => currentPageId),
@@ -94,9 +92,6 @@ describe(CollaboratorsManager, () => {
 	})
 
 	it("excludes the local user's own other sessions", () => {
-		// `user.getId()` returns the unprefixed preferences id ('current-user'), while
-		// a presence record's `userId` is the prefixed `TLUserId`. The local user's own
-		// other sessions push presence under that prefixed id and must be filtered out.
 		const ownSession = createPresence(createUserId('current-user'))
 		const peer = createPresence(createUserId('peer'))
 		const { editor } = createEditor([ownSession, peer])

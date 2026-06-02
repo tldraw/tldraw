@@ -36,9 +36,6 @@ export class CollaboratorsManager {
 
 	@computed
 	private _getCollaboratorsQuery() {
-		// `user.getId()` returns the raw, unprefixed user-preferences id, but
-		// `instance_presence.userId` holds a prefixed `TLUserId`, so we must prefix
-		// before comparing — otherwise the local user's own other sessions leak in.
 		return this.editor.store.query.records('instance_presence', () => ({
 			userId: { neq: createUserId(this.editor.user.getId()) },
 		}))
@@ -91,7 +88,7 @@ export class CollaboratorsManager {
 		if (!collaborators.length) return EMPTY_ARRAY
 
 		const { followingUserId, highlightedUserIds } = this.editor.getInstanceState()
-		// Prefix to match `presence.followingUserId`, a `TLUserId`; see `_getCollaboratorsQuery`.
+		// Prefix manually; the `=== currentUserId` comparison below isn't type-checked the way the store query is.
 		const currentUserId = createUserId(this.editor.user.getId())
 
 		return collaborators.filter((presence) => {
