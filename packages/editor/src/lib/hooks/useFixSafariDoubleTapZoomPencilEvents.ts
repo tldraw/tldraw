@@ -23,7 +23,7 @@ export function useFixSafariDoubleTapZoomPencilEvents(ref: React.RefObject<HTMLE
 
 				if (
 					elementShouldCaptureKeys(target instanceof win.Element ? target : null, false) ||
-					editor.isIn('select.editing_shape')
+					editor.getEditingShapeId()
 				) {
 					return
 				}
