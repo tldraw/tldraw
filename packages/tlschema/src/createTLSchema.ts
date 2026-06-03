@@ -47,6 +47,8 @@ import { highlightShapeMigrations, highlightShapeProps } from './shapes/TLHighli
 import { imageShapeMigrations, imageShapeProps } from './shapes/TLImageShape'
 import { lineShapeMigrations, lineShapeProps } from './shapes/TLLineShape'
 import { noteShapeMigrations, noteShapeProps } from './shapes/TLNoteShape'
+import { tableCellShapeMigrations, tableCellShapeProps } from './shapes/TLTableCellShape'
+import { tableShapeMigrations, tableShapeProps } from './shapes/TLTableShape'
 import { textShapeMigrations, textShapeProps } from './shapes/TLTextShape'
 import { videoShapeMigrations, videoShapeProps } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
@@ -159,6 +161,8 @@ export const defaultShapeSchemas = {
 	image: { migrations: imageShapeMigrations, props: imageShapeProps },
 	line: { migrations: lineShapeMigrations, props: lineShapeProps },
 	note: { migrations: noteShapeMigrations, props: noteShapeProps },
+	table: { migrations: tableShapeMigrations, props: tableShapeProps },
+	'table-cell': { migrations: tableCellShapeMigrations, props: tableCellShapeProps },
 	text: { migrations: textShapeMigrations, props: textShapeProps },
 	video: { migrations: videoShapeMigrations, props: videoShapeProps },
 } satisfies {

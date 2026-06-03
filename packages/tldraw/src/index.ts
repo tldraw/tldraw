@@ -240,6 +240,49 @@ export {
 	type NoteShapeOptions,
 	type NoteShapeUtilDisplayValues,
 } from './lib/shapes/note/NoteShapeUtil'
+export { TableShapeUtil } from './lib/shapes/table/TableShapeUtil'
+export { TableCellShapeUtil, type TableCellShapeOptions } from './lib/shapes/table/TableCellShapeUtil'
+export { TableShapeTool } from './lib/shapes/table/TableShapeTool'
+export {
+	textCellKind,
+	type TLTableCellKind,
+	type TLTableCellKindProps,
+} from './lib/shapes/table/cellKinds'
+export {
+	buildGrid,
+	getCellAtPoint,
+	getCellKey,
+	getTableLayout,
+	resolveCellStyle,
+	TABLE_CONSTANTS,
+	withColumnInserted,
+	withColumnRemoved,
+	withColumnWidth,
+	withRowHeight,
+	withRowInserted,
+	withRowRemoved,
+	type ResolvedCellStyle,
+	type TableColLayout,
+	type TableLayout,
+	type TableRowLayout,
+} from './lib/shapes/table/core'
+export {
+	deleteColumn,
+	deleteRow,
+	drillSelectCell,
+	findOrCreateCell,
+	getCellText,
+	getTableCells,
+	getTableData,
+	insertColumn,
+	insertRow,
+	isCellEmpty,
+	navigateCell,
+	reconcileTable,
+	setCellText,
+	setColumnWidth,
+	setRowHeight,
+} from './lib/shapes/table/tableOperations'
 export {
 	ASPECT_RATIO_OPTIONS,
 	ASPECT_RATIO_TO_VALUE,
