@@ -10,6 +10,13 @@ import { TLPinchEventInfo, TLPointerEventInfo, TLWheelEventInfo } from '../../ty
 const POINTER_VELOCITY_REFERENCE_INTERVAL_MS = 16
 const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
 
+/**
+ * The phase of the multi-touch / pinch gesture lifecycle tracked by
+ * {@link InputsManager.getGesturePhase}.
+ * @public
+ */
+export type TLGesturePhase = 'idle' | 'multi-touch' | 'pinching'
+
 /** @public */
 export class InputsManager {
 	constructor(private readonly editor: Editor) {}
@@ -346,12 +353,78 @@ export class InputsManager {
 		this._isRightPointing.set(isRightPointing)
 	}
 
-	private _isPinching = atom<boolean>('isPinching', false)
+	/**
+	 * The current multi-touch / pinch gesture lifecycle. Both input streams feed
+	 * this one state machine: the pointer stream tracks how many touch pointers are
+	 * down (so a second finger is recognised the moment it lands, deterministically,
+	 * rather than whenever the touch-stream `pinch_start` arrives), and the
+	 * touch/gesture stream confirms the pinch.
+	 *
+	 * - `'idle'` — no multi-touch gesture is active.
+	 * - `'multi-touch'` — two or more touch pointers are down, but a pinch hasn't
+	 *   started yet.
+	 * - `'pinching'` — a pinch is in progress.
+	 *
+	 * `getIsPinching()` is derived from this. The pointer dispatch ignores pointer
+	 * events whenever this is not `'idle'`, so the fingers of a gesture never reach
+	 * the active tool.
+	 * @internal
+	 */
+	private _gesturePhase = atom<TLGesturePhase>('gesturePhase', 'idle')
+
+	/** The ids of the touch pointers currently down. @internal */
+	private _touchPointerIds = new Set<number>()
+
+	/**
+	 * The current multi-touch / pinch gesture phase.
+	 */
+	getGesturePhase(): TLGesturePhase {
+		return this._gesturePhase.get()
+	}
+
+	/**
+	 * Record a touch pointer going down. Returns `true` if this is the pointer that
+	 * starts a multi-touch gesture (the transition into `'multi-touch'`), so the
+	 * caller can interrupt the first finger's interaction once.
+	 * @internal
+	 */
+	addTouchPointer(pointerId: number): boolean {
+		this._touchPointerIds.add(pointerId)
+		if (this._touchPointerIds.size >= 2 && this._gesturePhase.get() === 'idle') {
+			this._gesturePhase.set('multi-touch')
+			return true
+		}
+		return false
+	}
+
+	/**
+	 * Record a touch pointer going up or being cancelled. Drops back out of the
+	 * `'multi-touch'` phase once fewer than two fingers remain; a `'pinching'` phase
+	 * is left to end through `pinch_end` / {@link InputsManager.endGesture}.
+	 * @internal
+	 */
+	removeTouchPointer(pointerId: number): void {
+		this._touchPointerIds.delete(pointerId)
+		if (this._touchPointerIds.size < 2 && this._gesturePhase.get() === 'multi-touch') {
+			this._gesturePhase.set('idle')
+		}
+	}
+
+	/**
+	 * End the current gesture: clear the tracked touch pointers and return to the
+	 * `'idle'` phase. Called on `pinch_end`.
+	 * @internal
+	 */
+	endGesture(): void {
+		this._touchPointerIds.clear()
+		this._gesturePhase.set('idle')
+	}
+
 	/**
 	 * Whether the user is pinching.
 	 */
 	getIsPinching() {
-		return this._isPinching.get()
+		return this._gesturePhase.get() === 'pinching'
 	}
 	/**
 	 * @deprecated Use `getIsPinching()` instead.
@@ -369,7 +442,13 @@ export class InputsManager {
 	 * @internal
 	 */
 	setIsPinching(isPinching: boolean) {
-		this._isPinching.set(isPinching)
+		if (isPinching) {
+			this._gesturePhase.set('pinching')
+		} else if (this._gesturePhase.get() === 'pinching') {
+			// The pinch ended: fall back to multi-touch if fingers are still down,
+			// otherwise to idle.
+			this._gesturePhase.set(this._touchPointerIds.size >= 2 ? 'multi-touch' : 'idle')
+		}
 	}
 
 	private _isEditing = atom<boolean>('isEditing', false)
@@ -503,7 +582,7 @@ export class InputsManager {
 	updateFromEvent(info: TLPointerEventInfo | TLPinchEventInfo | TLWheelEventInfo): void {
 		const currentScreenPoint = this._currentScreenPoint.__unsafe__getWithoutCapture()
 		const currentPagePoint = this._currentPagePoint.__unsafe__getWithoutCapture()
-		const isPinching = this._isPinching.__unsafe__getWithoutCapture()
+		const isPinching = this._gesturePhase.__unsafe__getWithoutCapture() === 'pinching'
 		const { screenBounds } = this.editor.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.editor.getCamera())
 
@@ -576,7 +655,8 @@ export class InputsManager {
 			isPen: this._isPen.get(),
 			isDragging: this._isDragging.get(),
 			isPointing: this._isPointing.get(),
-			isPinching: this._isPinching.get(),
+			isPinching: this.getIsPinching(),
+			gesturePhase: this._gesturePhase.get(),
 			isEditing: this._isEditing.get(),
 			isPanning: this._isPanning.get(),
 			isSpacebarPanning: this._isSpacebarPanning.get(),

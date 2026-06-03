@@ -10289,8 +10289,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	cancelPointer(pointerId: number): this {
-		this._activeTouchPointers.delete(pointerId)
-		this._wasMultiTouch = this._activeTouchPointers.size >= 2
+		this.inputs.removeTouchPointer(pointerId)
 
 		// If a pinch owns the gesture, just keep the touch count accurate; the pinch
 		// ends through its own pinch_end.
@@ -10818,24 +10817,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	capturedPointerId: number | null = null
 
-	/**
-	 * The ids of the touch pointers currently down on the canvas. Tracked on the
-	 * pointer stream (the same stream as selection) so that the moment a second
-	 * finger lands we can deterministically treat the interaction as a multi-touch
-	 * gesture — independent of when the touch-stream `pinch_start` arrives. This is
-	 * what closes the cross-stream ordering race behind #8397.
-	 * @internal
-	 */
-	private _activeTouchPointers = new Set<number>()
-
-	/**
-	 * Whether the editor is currently in a multi-touch gesture, i.e. two or more
-	 * touch pointers are down. While this is true, pointer events are not routed to
-	 * the active tool (the fingers belong to a pinch/pan, not a selection).
-	 * @internal
-	 */
-	private _wasMultiTouch = false
-
 	/** @internal */
 	private readonly performanceTracker: PerformanceTracker
 
@@ -11063,11 +11044,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this._selectedShapeIdsAtPointerDown = []
 						this._didCaptureSelectionAtPointerDown = false
 
-						// The gesture is over: clear the multi-touch lifecycle state. The
+						// The gesture is over: return the gesture state machine to idle. The
 						// fingers' pointer_ups were ignored while pinching, so reset the
 						// pointing state here too rather than leaving it stuck on.
-						this._activeTouchPointers.clear()
-						this._wasMultiTouch = false
+						inputs.endGesture()
 						inputs.setIsPointing(false)
 						inputs.setIsDragging(false)
 
@@ -11170,33 +11150,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 				break
 			}
 			case 'pointer': {
-				// Track touch pointers on the pointer stream — the same stream as
-				// selection — so the second finger of a pinch is recognised the moment it
-				// lands, rather than whenever the touch-stream pinch_start happens to
+				// Feed the gesture state machine from the pointer stream — the same stream
+				// as selection — so the second finger of a pinch is recognised the moment
+				// it lands, rather than whenever the touch-stream pinch_start happens to
 				// arrive. This is what makes the multi-touch decision deterministic and
 				// closes the cross-stream ordering race behind #8397.
 				if (info.pointerType === 'touch') {
-					if (info.name === 'pointer_down') this._activeTouchPointers.add(info.pointerId)
-					else if (info.name === 'pointer_up') this._activeTouchPointers.delete(info.pointerId)
-				}
-
-				// Ignore pointer events while we're pinching
-				if (inputs.getIsPinching()) return
-
-				// While two or more touch pointers are down, the fingers belong to a
-				// pinch/pan rather than a selection, so don't route their pointer events to
-				// the active tool. The first time we cross into multi-touch, interrupt
-				// whatever interaction the first finger started so it doesn't linger behind
-				// the gesture.
-				if (this._activeTouchPointers.size >= 2) {
-					if (!this._wasMultiTouch) {
-						this._wasMultiTouch = true
-						clearTimeout(this._longPressTimeout)
-						this.interrupt()
+					if (info.name === 'pointer_down') {
+						if (inputs.addTouchPointer(info.pointerId)) {
+							// A second finger just landed: interrupt whatever interaction the
+							// first finger started so it doesn't linger behind the gesture.
+							clearTimeout(this._longPressTimeout)
+							this.interrupt()
+						}
+					} else if (info.name === 'pointer_up') {
+						inputs.removeTouchPointer(info.pointerId)
 					}
-					return
 				}
-				this._wasMultiTouch = false
+
+				// While a multi-touch gesture is active (a pinch, or two-plus fingers down
+				// before the pinch starts) the fingers belong to that gesture rather than a
+				// selection, so don't route their pointer events to the active tool.
+				if (inputs.getGesturePhase() !== 'idle') return
 
 				this.inputs.updateFromEvent(info)
 				const { isPen } = info

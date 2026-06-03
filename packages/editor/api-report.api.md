@@ -950,6 +950,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 ctrlKey: boolean;
                 currentPagePoint: VecModel;
                 currentScreenPoint: VecModel;
+                gesturePhase: TLGesturePhase;
                 isDragging: boolean;
                 isEditing: boolean;
                 isPanning: boolean;
@@ -2188,6 +2189,8 @@ export class InputsManager {
     constructor(editor: Editor);
     // @deprecated (undocumented)
     get accelKey(): boolean;
+    // @internal
+    addTouchPointer(pointerId: number): boolean;
     // @deprecated (undocumented)
     get altKey(): boolean;
     set altKey(altKey: boolean);
@@ -2199,11 +2202,14 @@ export class InputsManager {
     get currentPagePoint(): Vec;
     // @deprecated (undocumented)
     get currentScreenPoint(): Vec;
+    // @internal
+    endGesture(): void;
     getAccelKey(): boolean;
     getAltKey(): boolean;
     getCtrlKey(): boolean;
     getCurrentPagePoint(): Vec;
     getCurrentScreenPoint(): Vec;
+    getGesturePhase(): TLGesturePhase;
     getIsDragging(): boolean;
     getIsEditing(): boolean;
     getIsPanning(): boolean;
@@ -2253,6 +2259,8 @@ export class InputsManager {
     get previousPagePoint(): Vec;
     // @deprecated (undocumented)
     get previousScreenPoint(): Vec;
+    // @internal
+    removeTouchPointer(pointerId: number): void;
     // @internal (undocumented)
     setAltKey(altKey: boolean): void;
     // @internal (undocumented)
@@ -2289,6 +2297,7 @@ export class InputsManager {
         ctrlKey: boolean;
         currentPagePoint: VecModel;
         currentScreenPoint: VecModel;
+        gesturePhase: TLGesturePhase;
         isDragging: boolean;
         isEditing: boolean;
         isPanning: boolean;
@@ -4190,6 +4199,9 @@ export interface TLFramePerfEvent {
 export interface TLGeometryOpts {
     context?: string;
 }
+
+// @public
+export type TLGesturePhase = 'idle' | 'multi-touch' | 'pinching';
 
 // @public
 export interface TLGetShapeAtPointOptions {

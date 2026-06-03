@@ -106,7 +106,10 @@ export { ClickManager, type TLClickState } from './lib/editor/managers/ClickMana
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager/EdgeScrollManager'
 export { FontManager } from './lib/editor/managers/FontManager/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
-export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
+export {
+	InputsManager,
+	type TLGesturePhase,
+} from './lib/editor/managers/InputsManager/InputsManager'
 export {
 	ScribbleManager,
 	type ScribbleItem,

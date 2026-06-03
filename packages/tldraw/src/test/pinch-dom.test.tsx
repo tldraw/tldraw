@@ -225,6 +225,46 @@ describe('pinch selection via real DOM events', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.c])
 	})
 
+	it('moves through the gesture phases: idle → multi-touch → pinching → idle', async () => {
+		const { editor, canvas } = await setupScene()
+		expect(editor.inputs.getGesturePhase()).toBe('idle')
+
+		// One finger down is not yet a multi-touch gesture.
+		await act(async () => {
+			canvas.dispatchEvent(pointerDownEvent(250, 50, 1))
+			editor.emit('tick', 16)
+		})
+		expect(editor.inputs.getGesturePhase()).toBe('idle')
+
+		// A second finger down enters the multi-touch phase.
+		await act(async () => {
+			canvas.dispatchEvent(pointerDownEvent(350, 50, 2))
+			editor.emit('tick', 16)
+		})
+		expect(editor.inputs.getGesturePhase()).toBe('multi-touch')
+
+		// The touch stream confirms the pinch.
+		await act(async () => {
+			canvas.dispatchEvent(
+				touchEvent('touchstart', [
+					{ clientX: 250, clientY: 50 },
+					{ clientX: 350, clientY: 50 },
+				])
+			)
+			editor.emit('tick', 16)
+		})
+		expect(editor.inputs.getGesturePhase()).toBe('pinching')
+
+		// Lifting the fingers ends the gesture and returns to idle.
+		await act(async () => {
+			canvas.dispatchEvent(touchEvent('touchend', []))
+			await new Promise((r) => setTimeout(r, 32))
+			editor.emit('tick', 16)
+			editor.emit('tick', 16)
+		})
+		expect(editor.inputs.getGesturePhase()).toBe('idle')
+	})
+
 	it('keeps the live selection for a pinch with no preceding pointer_down', async () => {
 		// Models the Safari-style path: a click changes the selection, then a pinch
 		// arrives with no fresh pointer_down. The clicked shape must stay selected.
