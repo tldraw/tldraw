@@ -2,6 +2,7 @@ import {
 	ToggleEnhancedA11yModeItem,
 	ToggleKeyboardShortcutsItem,
 	ToggleReduceMotionItem,
+	ToggleTextOutlineItem,
 } from './menu-items'
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
@@ -14,6 +15,7 @@ export function AccessibilityMenu() {
 				<ToggleReduceMotionItem />
 				<ToggleKeyboardShortcutsItem />
 				<ToggleEnhancedA11yModeItem />
+				<ToggleTextOutlineItem />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
