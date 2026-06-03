@@ -21,10 +21,6 @@ document.fonts = {
 	forEach: () => {},
 }
 
-// Text encoding/decoding polyfills
-global.TextEncoder = require('util').TextEncoder
-global.TextDecoder = require('util').TextDecoder
-
 // jsdom ships a global WebSocket built on its bundled copy of undici. In this jsdom test
 // environment its events are created in a different realm than the Node EventTarget they're
 // dispatched on, so connecting throws "The 'event' argument must be an instance of Event". Use
