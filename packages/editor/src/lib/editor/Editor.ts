@@ -5677,12 +5677,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private hasUnlockedAncestor(shape?: TLShape | TLShapeId): boolean {
-		let parent = this.getShapeParent(shape)
-		while (parent) {
-			if (!parent.isLocked) return true
-			parent = this.getShapeParent(parent)
-		}
-		return false
+		// Unlike isShapeOrAncestorLocked, this starts from the parent so it only considers
+		// ancestors, not the shape itself.
+		const parent = this.getShapeParent(shape)
+		if (parent === undefined) return false
+		if (!parent.isLocked) return true
+		return this.hasUnlockedAncestor(parent)
 	}
 
 	/**
