@@ -51,7 +51,10 @@ export class AgentHighlightOverlayUtil extends OverlayUtil<AgentHighlightOverlay
 	constructor(editor: Editor) {
 		super(editor)
 		editor.on('tick', this.handleTick)
-		editor.on('dispose', this.handleDispose)
+	}
+
+	override dispose() {
+		this.editor.off('tick', this.handleTick)
 	}
 
 	override isActive(): boolean {
@@ -88,11 +91,15 @@ export class AgentHighlightOverlayUtil extends OverlayUtil<AgentHighlightOverlay
 			this.addContextItemOverlays(overlays, agent.id, 'active', activeContextItems, true)
 		}
 
-		this.hasAnimatedOverlays = overlays.some((overlay) => overlay.props.generating)
 		return overlays
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: AgentHighlightOverlay[]): void {
+		// Track whether any overlay is animating so the tick handler knows when to
+		// advance the animation. This is a side effect, so it belongs in render
+		// (an effect) rather than getOverlays (a reactive computation).
+		this.hasAnimatedOverlays = overlays.some((overlay) => overlay.props.generating)
+
 		const zoom = this.editor.getZoomLevel()
 		const colors = this.getColors()
 		const dashOffset = getDashOffset(this.$animationElapsed.get(), zoom)
@@ -106,6 +113,7 @@ export class AgentHighlightOverlayUtil extends OverlayUtil<AgentHighlightOverlay
 					generating: overlay.props.generating,
 					dashOffset,
 					label: overlay.props.label,
+					labelText: colors.labelText,
 					zoom,
 				})
 			} else {
@@ -255,8 +263,16 @@ export class AgentHighlightOverlayUtil extends OverlayUtil<AgentHighlightOverlay
 			generating,
 			dashOffset,
 			label,
+			labelText,
 			zoom,
-		}: { color: string; generating: boolean; dashOffset: number; label?: string; zoom: number }
+		}: {
+			color: string
+			generating: boolean
+			dashOffset: number
+			label?: string
+			labelText: string
+			zoom: number
+		}
 	): void {
 		const bounds = Box.From(pageBounds).expandBy(4)
 		ctx.save()
@@ -271,7 +287,7 @@ export class AgentHighlightOverlayUtil extends OverlayUtil<AgentHighlightOverlay
 		ctx.restore()
 
 		if (label) {
-			this.renderLabel(ctx, bounds, label, color, zoom)
+			this.renderLabel(ctx, bounds, label, color, labelText, zoom)
 		}
 	}
 
@@ -311,13 +327,13 @@ export class AgentHighlightOverlayUtil extends OverlayUtil<AgentHighlightOverlay
 		bounds: Box,
 		label: string,
 		color: string,
+		labelText: string,
 		zoom: number
 	): void {
 		const scale = 1 / zoom
 		const padding = 4
 		const fontSize = 12
 		const fontFamily = this.editor.getCurrentTheme().fonts.sans.fontFamily
-		const labelText = this.getColors().labelText
 
 		ctx.save()
 		ctx.translate(bounds.x, bounds.y)
@@ -350,11 +366,6 @@ export class AgentHighlightOverlayUtil extends OverlayUtil<AgentHighlightOverlay
 	private handleTick = (elapsed: number) => {
 		if (!this.hasAnimatedOverlays) return
 		this.$animationElapsed.update((phase) => (phase + elapsed) % ANIMATION_PERIOD)
-	}
-
-	private handleDispose = () => {
-		this.editor.off('tick', this.handleTick)
-		this.editor.off('dispose', this.handleDispose)
 	}
 }
 
