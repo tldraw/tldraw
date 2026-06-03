@@ -2141,6 +2141,48 @@ describe('Grouping / ungrouping locked shapes', () => {
 		expect(editor.getShape(ids.boxA)!.isLocked).toBe(true)
 	})
 
+	it('resizes children of a locked subgroup when the outer group is resized', () => {
+		// group1 (unlocked)
+		//   boxA (unlocked)
+		//   group2 (locked)
+		//     boxB (unlocked)
+		//     boxC (locked)
+		const group1 = createShapeId('group1')
+		const group2 = createShapeId('group2')
+
+		const resizeAndReadBounds = (lockSubgroup: boolean) => {
+			editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+			editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0), box(ids.boxC, 40, 0)])
+			editor.groupShapes([ids.boxB, ids.boxC], { groupId: group2 })
+			editor.groupShapes([ids.boxA, group2], { groupId: group1 })
+			if (lockSubgroup) {
+				// Lock the leaf before the subgroup: once the subgroup is locked, writes to its
+				// children (including locking them) are blocked.
+				editor.updateShape({ id: ids.boxC, type: 'geo', isLocked: true })
+				editor.updateShape({ id: group2, type: 'group', isLocked: true })
+			}
+			editor.select(group1).resizeSelection({ scaleX: 2, scaleY: 2 }, 'top_left')
+			return {
+				a: editor.getShapePageBounds(ids.boxA)!.clone(),
+				b: editor.getShapePageBounds(ids.boxB)!.clone(),
+				c: editor.getShapePageBounds(ids.boxC)!.clone(),
+			}
+		}
+
+		// Locking the subgroup and one leaf must not change the resize result for any shape:
+		// the unlocked boxB and locked boxC both transform with the outer group.
+		const control = resizeAndReadBounds(false)
+		const locked = resizeAndReadBounds(true)
+
+		expect(locked.a).toCloselyMatchObject(control.a)
+		expect(locked.b).toCloselyMatchObject(control.b)
+		expect(locked.c).toCloselyMatchObject(control.c)
+
+		// Locks are preserved
+		expect(editor.getShape(group2)!.isLocked).toBe(true)
+		expect(editor.getShape(ids.boxC)!.isLocked).toBe(true)
+	})
+
 	it('still blocks resizing a locked shape that has no unlocked ancestor', () => {
 		editor.createShapes([box(ids.boxA, 0, 0)])
 		editor.updateShape({ id: ids.boxA, type: 'geo', isLocked: true })

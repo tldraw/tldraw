@@ -8099,14 +8099,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const id = typeof shape === 'string' ? shape : shape.id
 		if (this.getIsReadonly()) return this
 
-		// A locked shape that lives inside an unlocked ancestor (e.g. a locked child of a group)
-		// should still resize when that ancestor is resized — the resize is a downstream effect of
-		// an ancestor transform, not a direct edit of the locked shape. Re-run with shape-lock
-		// checks disabled so the update isn't dropped by updateShapes. A locked shape with no
-		// unlocked ancestor (e.g. a top-level locked shape) stays blocked.
+		// A shape that is locked down — either itself or via a locked ancestor — but still lives
+		// inside an unlocked ancestor (e.g. a locked child of a group, or any descendant of a locked
+		// subgroup nested in an unlocked group) should still resize when that outer ancestor is
+		// resized. The resize is a downstream effect of transforming the unlocked ancestor, not a
+		// direct edit. Re-run with shape-lock checks disabled so the update isn't dropped by
+		// updateShapes. A shape whose lock has no unlocked ancestor (e.g. a top-level locked shape,
+		// or any descendant of a top-level locked group) stays blocked.
 		if (!this._shouldIgnoreShapeLock) {
 			const target = this.getShape(id)
-			if (target?.isLocked && this.hasUnlockedAncestor(target)) {
+			if (target && this.isShapeOrAncestorLocked(target) && this.hasUnlockedAncestor(target)) {
 				this.run(() => this.resizeShape(shape, scale, opts), { ignoreShapeLock: true })
 				return this
 			}
