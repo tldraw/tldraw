@@ -223,6 +223,9 @@ test.describe('camera', () => {
 		// Finger 2 joins, then both fingers move apart to pinch-zoom, then lift.
 		await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [f1, f2] })
 		await sleep(30)
+		// The pinch has started, so the incidental selection is already rolled back —
+		// the original selection is shown during the gesture, not only after it ends.
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toEqual(['shape:e2eA'])
 		const steps = 12
 		for (let i = 1; i <= steps; i++) {
 			await client.send('Input.dispatchTouchEvent', {

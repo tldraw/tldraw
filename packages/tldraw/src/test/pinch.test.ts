@@ -51,6 +51,26 @@ describe('Pinch preserves the pre-gesture selection', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 	})
 
+	it('rolls the incidental selection back at pinch start, not only at the end (touch)', () => {
+		editor.select(ids.box1)
+
+		editor.pointerMove(250, 50)
+		editor.pointerDown()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+
+		// As soon as the pinch starts we know the first finger's selection was
+		// incidental, so it's rolled back immediately — not shown for the whole
+		// gesture and reverted only on pinch end.
+		editor.pinchStart(250, 50, editor.getZoomLevel(), 0, 0, 0)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+
+		// ...and it stays rolled back through the rest of the gesture.
+		editor.pinchTo(250, 50, 2, 0, 0, 0)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.pinchEnd(250, 50, 2, 0, 0, 0)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+	})
+
 	it('restores an empty selection when nothing was selected before the pinch (touch)', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([])
 
