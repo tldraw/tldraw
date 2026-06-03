@@ -109,6 +109,7 @@ export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryMana
 export {
 	InputsManager,
 	type TLGesturePhase,
+	type TLInteractionState,
 } from './lib/editor/managers/InputsManager/InputsManager'
 export {
 	ScribbleManager,

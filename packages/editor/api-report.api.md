@@ -951,6 +951,7 @@ export class Editor extends EventEmitter<TLEventMap> {
                 currentPagePoint: VecModel;
                 currentScreenPoint: VecModel;
                 gesturePhase: TLGesturePhase;
+                interaction: TLInteractionState;
                 isDragging: boolean;
                 isEditing: boolean;
                 isPanning: boolean;
@@ -2194,6 +2195,8 @@ export class InputsManager {
     // @deprecated (undocumented)
     get altKey(): boolean;
     set altKey(altKey: boolean);
+    // @internal
+    beginPointing(): void;
     readonly buttons: AtomSet<number>;
     // @deprecated (undocumented)
     get ctrlKey(): boolean;
@@ -2204,12 +2207,15 @@ export class InputsManager {
     get currentScreenPoint(): Vec;
     // @internal
     endGesture(): void;
+    // @internal
+    endInteraction(): void;
     getAccelKey(): boolean;
     getAltKey(): boolean;
     getCtrlKey(): boolean;
     getCurrentPagePoint(): Vec;
     getCurrentScreenPoint(): Vec;
     getGesturePhase(): TLGesturePhase;
+    getInteraction(): TLInteractionState;
     getIsDragging(): boolean;
     getIsEditing(): boolean;
     getIsPanning(): boolean;
@@ -2265,6 +2271,8 @@ export class InputsManager {
     setAltKey(altKey: boolean): void;
     // @internal (undocumented)
     setCtrlKey(ctrlKey: boolean): void;
+    // @internal
+    setDragging(dragging: boolean): void;
     // (undocumented)
     setIsDragging(isDragging: boolean): void;
     // (undocumented)
@@ -2298,6 +2306,7 @@ export class InputsManager {
         currentPagePoint: VecModel;
         currentScreenPoint: VecModel;
         gesturePhase: TLGesturePhase;
+        interaction: TLInteractionState;
         isDragging: boolean;
         isEditing: boolean;
         isPanning: boolean;
@@ -4291,6 +4300,14 @@ export interface TLInteractionStartPerfEvent {
     path: string;
     timestamp: number;
 }
+
+// @public
+export type TLInteractionState = {
+    dragging: boolean;
+    name: 'pointing';
+} | {
+    name: 'idle';
+};
 
 // @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;

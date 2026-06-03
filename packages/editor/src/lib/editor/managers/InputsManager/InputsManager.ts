@@ -17,6 +17,19 @@ const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
  */
 export type TLGesturePhase = 'idle' | 'multi-touch' | 'pinching'
 
+/**
+ * The current pointer interaction, modelled as one explicit state instead of the
+ * `isPointing` / `isDragging` flags (and, once the pan dimension is folded in,
+ * the panning flags too). The boolean getters are derived from it.
+ *
+ * - `'idle'` — no pointer interaction.
+ * - `'pointing'` — a pointer button is down; `dragging` once it passes the drag
+ *   threshold.
+ *
+ * @public
+ */
+export type TLInteractionState = { name: 'idle' } | { name: 'pointing'; dragging: boolean }
+
 /** @public */
 export class InputsManager {
 	constructor(private readonly editor: Editor) {}
@@ -290,37 +303,51 @@ export class InputsManager {
 		return this.getAccelKey()
 	}
 
-	private _isDragging = atom<boolean>('isDragging', false)
+	private _interaction = atom<TLInteractionState>('interaction', { name: 'idle' })
+
 	/**
-	 * Whether the user is dragging.
+	 * The current pointer interaction state. `isPointing` / `isDragging` are
+	 * derived from it.
 	 */
-	getIsDragging() {
-		return this._isDragging.get()
-	}
-	/**
-	 * Soon to be deprecated, use `getIsDragging()` instead.
-	 */
-	// eslint-disable-next-line tldraw/no-setter-getter
-	get isDragging() {
-		return this.getIsDragging()
-	}
-	// eslint-disable-next-line tldraw/no-setter-getter
-	set isDragging(isDragging: boolean) {
-		this.setIsDragging(isDragging)
-	}
-	/**
-	 * @param isDragging - Whether the user is dragging.
-	 */
-	setIsDragging(isDragging: boolean) {
-		this._isDragging.set(isDragging)
+	getInteraction(): TLInteractionState {
+		return this._interaction.get()
 	}
 
-	private _isPointing = atom<boolean>('isPointing', false)
 	/**
-	 * Whether the user is pointing.
+	 * Begin a pointer interaction (a pointer button went down).
+	 * @internal
+	 */
+	beginPointing(): void {
+		this._interaction.set({ name: 'pointing', dragging: false })
+	}
+
+	/**
+	 * Set whether the current pointing interaction has passed the drag threshold.
+	 * No-op when not pointing — there is no dragging without pointing.
+	 * @internal
+	 */
+	setDragging(dragging: boolean): void {
+		const interaction = this._interaction.get()
+		if (interaction.name === 'pointing') {
+			if (interaction.dragging !== dragging) {
+				this._interaction.set({ name: 'pointing', dragging })
+			}
+		}
+	}
+
+	/**
+	 * End the pointer interaction (pointer up / cancel / pinch), returning to idle.
+	 * @internal
+	 */
+	endInteraction(): void {
+		this._interaction.set({ name: 'idle' })
+	}
+
+	/**
+	 * Whether a pointer button is down.
 	 */
 	getIsPointing() {
-		return this._isPointing.get()
+		return this._interaction.get().name === 'pointing'
 	}
 	/**
 	 * @deprecated Use `getIsPointing()` instead.
@@ -338,7 +365,34 @@ export class InputsManager {
 	 * @internal
 	 */
 	setIsPointing(isPointing: boolean) {
-		this._isPointing.set(isPointing)
+		if (isPointing) this.beginPointing()
+		else this.endInteraction()
+	}
+
+	/**
+	 * Whether the user is dragging (a pointer is down and has passed the drag
+	 * threshold).
+	 */
+	getIsDragging() {
+		const interaction = this._interaction.get()
+		return interaction.name === 'pointing' && interaction.dragging
+	}
+	/**
+	 * Soon to be deprecated, use `getIsDragging()` instead.
+	 */
+	// eslint-disable-next-line tldraw/no-setter-getter
+	get isDragging() {
+		return this.getIsDragging()
+	}
+	// eslint-disable-next-line tldraw/no-setter-getter
+	set isDragging(isDragging: boolean) {
+		this.setIsDragging(isDragging)
+	}
+	/**
+	 * @param isDragging - Whether the user is dragging.
+	 */
+	setIsDragging(isDragging: boolean) {
+		this.setDragging(isDragging)
 	}
 
 	private _isRightPointing = atom<boolean>('isRightPointing', false)
@@ -653,10 +707,11 @@ export class InputsManager {
 			ctrlKey: this._ctrlKey.get(),
 			altKey: this._altKey.get(),
 			isPen: this._isPen.get(),
-			isDragging: this._isDragging.get(),
-			isPointing: this._isPointing.get(),
+			isDragging: this.getIsDragging(),
+			isPointing: this.getIsPointing(),
 			isPinching: this.getIsPinching(),
 			gesturePhase: this._gesturePhase.get(),
+			interaction: this._interaction.get(),
 			isEditing: this._isEditing.get(),
 			isPanning: this._isPanning.get(),
 			isSpacebarPanning: this._isSpacebarPanning.get(),
