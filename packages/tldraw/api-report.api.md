@@ -1373,7 +1373,7 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
-export const defaultOverlayUtils: readonly [typeof CollaboratorShapeIndicatorOverlayUtil, typeof SelectToolShapeIndicatorOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof ArrowBindingHintOverlayUtil, typeof CollaboratorCursorOverlayUtil];
+export const defaultOverlayUtils: readonly [typeof CollaboratorShapeIndicatorOverlayUtil, typeof ShapeIndicatorOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof ArrowBindingHintOverlayUtil, typeof CollaboratorCursorOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -3417,14 +3417,6 @@ export class SelectTool extends StateNode {
 
 // @public (undocumented)
 export function SelectToolbarItem(): JSX.Element;
-
-// @public
-export class SelectToolShapeIndicatorOverlayUtil extends ShapeIndicatorOverlayUtil {
-    // (undocumented)
-    shouldShowHoverIndicator(): boolean;
-    // (undocumented)
-    shouldShowSelectionIndicators(): boolean;
-}
 
 // @public (undocumented)
 export function serializeTldrawJson(editor: Editor): Promise<string>;

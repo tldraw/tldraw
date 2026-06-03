@@ -100,7 +100,6 @@ export {
 	SelectionForegroundOverlayUtil,
 	type TLSelectionForegroundOverlay,
 } from './lib/overlays/SelectionForegroundOverlayUtil'
-export { SelectToolShapeIndicatorOverlayUtil } from './lib/overlays/SelectToolShapeIndicatorOverlayUtil'
 export {
 	SnapIndicatorOverlayUtil,
 	type TLSnapIndicatorOverlay,
