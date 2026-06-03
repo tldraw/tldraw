@@ -171,15 +171,31 @@ formulas** (they're consumer code on the seam). Two ways to give the consumer wh
 Core ships the **event** (cheap, formula-agnostic) and the stable ids that make (a)
 possible. It does **not** ship reference rewriting. Decision: implement the event.
 
-### 4. Frame-like drill gap — **close it in the editor**
+### 4. Frame-like drill gap — **investigated, then rejected (keep the `onClick` drill)**
 
-Today `getOutermostSelectableShape` drills only for `group`, so frame-like containers
-reimplement click-to-drill, arrow-nav, and keyboard-ownership per-util (v1 did, on both
-utils). We will add a **container selection policy** to `@tldraw/editor`: a ShapeUtil
-declares it is a drillable container (and how its children map), and the editor handles
-click-to-drill (table → cell → text), arrow/tab navigation, and "a focused editor owns the
-keyboard" centrally. Tables, frames, and future board shapes all benefit. This is the one
-editor-core change in the plan; everything else is `@tldraw/tldraw` + `tlschema`.
+Original plan: generalize `getOutermostSelectableShape` + `focusedGroup` to any "container,"
+so the editor natively does table → cell → text. Investigating the editor's selection code to
+implement it changed the conclusion:
+
+- **The table's drill is already on the supported seam.** `PointingShape` (the select tool's
+  click state) checks `util.onClick` and, when present, defers to pointer-up and calls it
+  *instead of* default selection (PointingShape.ts:33, 84–93). The table's single-click drill
+  (`drillSelectCell`) uses exactly this hook — it is the editor's intended extension point, not
+  glue fighting it. The design doc's framing of this as "hand-rolled glue" was wrong.
+- **`focusedGroup` is hardcoded to groups** in ~10 places (`isShapeOfType(s, 'group')` in
+  `getOutermostSelectableShape`, ×8 in `Idle.ts`, and a selection side-effect that auto-focuses
+  the common *group* ancestor) plus the `focusedGroupId` page-state field. Generalizing it is a
+  large change with a schema migration and a regression surface across all group/frame
+  selection.
+- **And it's the wrong interaction model.** `focusedGroup` implements *double-click-to-enter*;
+  the table deliberately uses *single-click drill* (click → table, click → cell, click → text).
+  Forcing the table onto the group model would change its UX to the wrong behaviour.
+
+**Decision: keep the `onClick`-based single-click drill** (verified working across every
+example). The only genuinely hand-rolled bit is the arrow-key cell navigation (a capture-phase
+DOM keydown listener); moving that into a proper select-tool state is a small, separate,
+optional refinement — not the editor-core refactor originally imagined. There is therefore **no
+required `@tldraw/editor` change**; the whole shape lives in `@tldraw/tldraw` + `tlschema`.
 
 ## Public API (committed surface)
 
@@ -210,7 +226,9 @@ packages/editor/...   ← container selection policy (decision 4)
 3. **Shape utils + tool** — geometry (Group2d), SVG render, cell self-render, editing.
 4. **Reconciliation** — reposition / stored kind-measured heights / GC.
 5. **Cell kinds** — registry + `textCellKind` (with `measure`/`getText`/`isEmpty`).
-6. **Container selection (editor)** — close the drill gap (decision 4); wire table/cell.
+6. **Container selection (editor)** — INVESTIGATED & REJECTED (decision 4): the drill already
+   uses the supported `onClick` hook; generalizing `focusedGroup` is high-risk *and* the wrong
+   interaction model. No editor change. (Optional: move arrow-nav into a select-tool state.)
 7. **Selection helpers** — `selectRow`/`selectColumn` with materialization (decision 2).
 8. **Structural-change event** (decision 3).
 9. **Examples** — port the minimal set; keep the formula/vlookup engines as examples.
