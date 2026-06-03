@@ -243,6 +243,57 @@ test.describe('camera', () => {
 		expect(await page.evaluate(() => editor.getZoomLevel())).not.toBe(1)
 	})
 
+	test('a second finger does not select the shape it lands on', async ({ page, isMobile }) => {
+		test.skip(!isMobile)
+
+		client = await page.context().newCDPSession(page)
+
+		// Finger 1 lands low in the viewport, finger 2 above it — both kept inside
+		// the mobile viewport so the gesture registers.
+		const f1 = { x: 196, y: 470, id: 0 }
+		const f2 = { x: 196, y: 250, id: 1 }
+
+		// A shape under each finger, nothing selected to start.
+		await page.evaluate(
+			(fingers) => {
+				const pb = editor.screenToPage({ x: fingers.f1.x, y: fingers.f1.y })
+				const pc = editor.screenToPage({ x: fingers.f2.x, y: fingers.f2.y })
+				editor.createShapes([
+					{
+						id: 'shape:e2eB',
+						type: 'geo',
+						x: pb.x - 60,
+						y: pb.y - 60,
+						props: { w: 120, h: 120, fill: 'solid' },
+					},
+					{
+						id: 'shape:e2eC',
+						type: 'geo',
+						x: pc.x - 60,
+						y: pc.y - 60,
+						props: { w: 120, h: 120, fill: 'solid' },
+					},
+				] as any)
+				editor.selectNone()
+			},
+			{ f1, f2 }
+		)
+
+		// Finger 1 down on shape b selects it.
+		await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [f1] })
+		await sleep(30)
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toEqual(['shape:e2eB'])
+
+		// Finger 2 lands on shape c. Because two touch pointers are now down, the
+		// multi-touch gate must stop the second finger from selecting c.
+		await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [f1, f2] })
+		await sleep(30)
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toEqual(['shape:e2eB'])
+
+		await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+		await sleep(50)
+	})
+
 	test.fixme('minimap', async () => {
 		// todo
 	})
