@@ -245,9 +245,7 @@ jobs:
             https://api.github.com/repos/tldraw/tldraw-desktop/dispatches \
             -d '{"event_type":"tldraw-release","client_payload":{"version":"${{ steps.version.outputs.value }}","tag":"next"}}'
 
-      # "Determine publish mode" runs before "Check out code", so a failure there
-      # leaves the repo un-checked-out and the local notify action unavailable.
-      # Sparsely check it out on failure so the notification always runs.
+      # Earlier steps run before checkout, so re-fetch the local action on failure.
       - name: Check out Discord notify action
         if: failure()
         uses: actions/checkout@v6
