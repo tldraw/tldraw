@@ -1,6 +1,7 @@
 import { TLTableCellShape, TLTableShape } from '@tldraw/editor'
 import {
 	buildGrid,
+	diffTableStructure,
 	getCellAtPoint,
 	getCellKey,
 	getTableLayout,
@@ -142,6 +143,29 @@ describe('core/operations', () => {
 	it('clamps row height to the floor', () => {
 		const rows = withRowHeight(makeTable().props.rows, 0, 5)
 		expect(rows[0].height).toBe(TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT)
+	})
+})
+
+describe('core/references (structural diff)', () => {
+	it('returns null when nothing structural changed', () => {
+		const t = makeTable()
+		expect(diffTableStructure(t, makeTable())).toBeNull()
+	})
+
+	it('maps old indices to new after a row delete', () => {
+		const prev = makeTable() // rows r0,r1,r2
+		const next = makeTable({ rows: [{ id: 'r0' }, { id: 'r2' }] }) // r1 removed
+		const change = diffTableStructure(prev, next)
+		// r0 -> 0, r1 -> removed, r2 -> 1
+		expect(change?.rows).toEqual([0, null, 1])
+		expect(change?.cols).toEqual([0, 1, 2])
+	})
+
+	it('shifts indices after a row insert', () => {
+		const prev = makeTable()
+		const next = makeTable({ rows: [{ id: 'r0' }, { id: 'NEW' }, { id: 'r1' }, { id: 'r2' }] })
+		// r0 -> 0, r1 -> 2, r2 -> 3
+		expect(diffTableStructure(prev, next)?.rows).toEqual([0, 2, 3])
 	})
 })
 

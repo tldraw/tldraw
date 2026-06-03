@@ -67,7 +67,11 @@ export const textCellKind: TLTableCellKind = {
 	type: 'text',
 	Component: TextCell,
 	getText: (editor, cell) => renderPlaintextFromRichText(editor, cell.props.richText),
-	isEmpty: (_editor, cell) => isEmptyRichText(cell.props.richText),
+	// Empty = no text and no visible styling. A background fill is visible on an
+	// empty cell (e.g. a styled-but-empty header or row), so it's kept; truly blank
+	// cells (created by clicking around, or materialised for a row selection and not
+	// styled) are collectable.
+	isEmpty: (_editor, cell) => isEmptyRichText(cell.props.richText) && cell.props.fill === 'none',
 	measure: (editor, cell, width) => {
 		if (isEmptyRichText(cell.props.richText)) return TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT
 		const theme = editor.getCurrentTheme()

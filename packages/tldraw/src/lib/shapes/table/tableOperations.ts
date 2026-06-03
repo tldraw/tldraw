@@ -222,6 +222,32 @@ export function drillSelectCell(editor: Editor, table: TLTableShape, rowId: stri
 }
 
 /**
+ * Select every cell in a row. Empty cells are materialised first (per the design
+ * decision to densify a row on selection), so the whole row becomes real, styleable
+ * cells — set a fill/color in the style panel to restyle the row at once.
+ *
+ * @public
+ */
+export function selectRow(editor: Editor, table: TLTableShape, rowIndex: number) {
+	const row = table.props.rows[rowIndex]
+	if (!row) return
+	const ids = table.props.cols.map((col) => findOrCreateCell(editor, table, row.id, col.id))
+	if (ids.length) editor.select(...ids)
+}
+
+/**
+ * Select every cell in a column, materialising empty cells first. See {@link selectRow}.
+ *
+ * @public
+ */
+export function selectColumn(editor: Editor, table: TLTableShape, colIndex: number) {
+	const col = table.props.cols[colIndex]
+	if (!col) return
+	const ids = table.props.rows.map((row) => findOrCreateCell(editor, table, row.id, col.id))
+	if (ids.length) editor.select(...ids)
+}
+
+/**
  * Move the cell selection to the adjacent cell. Stays put at the grid edges; drops
  * the cell being left if it's still empty.
  *

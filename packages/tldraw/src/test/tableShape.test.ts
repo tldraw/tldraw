@@ -1,13 +1,16 @@
-import { Group2d, TLTableShape, createShapeId, toRichText } from '@tldraw/editor'
+import { Group2d, TLTableCellShape, TLTableShape, createShapeId, toRichText } from '@tldraw/editor'
 import { type TLTableCellKind, textCellKind } from '../lib/shapes/table/cellKinds'
-import { TABLE_CONSTANTS, getTableLayout } from '../lib/shapes/table/core'
+import { getCellKey, TABLE_CONSTANTS, getTableLayout } from '../lib/shapes/table/core'
 import { TableCellShapeUtil } from '../lib/shapes/table/TableCellShapeUtil'
 import {
 	deleteColumn,
 	deleteRow,
+	getTableCells,
 	getTableData,
 	insertColumn,
 	insertRow,
+	navigateCell,
+	selectRow,
 	setCellText,
 } from '../lib/shapes/table/tableOperations'
 import { TestEditor } from './TestEditor'
@@ -106,6 +109,30 @@ describe('table shape', () => {
 		expect(data[0][0]).toBe('A')
 		expect(data[1][2]).toBe('B')
 		expect(data[2][1]).toBe('')
+	})
+})
+
+describe('selection and navigation', () => {
+	it('selectRow materialises the row and selects all its cells', () => {
+		const t = makeTable()
+		selectRow(editor, fresh(t.id), 0)
+		const selected = editor.getSelectedShapes()
+		expect(selected).toHaveLength(3)
+		expect(selected.every((s) => s.type === 'table-cell')).toBe(true)
+	})
+
+	it('navigateCell moves the selection to the adjacent cell', () => {
+		const t = makeTable()
+		setCellText(editor, t.id, 0, 0, 'A')
+		const tt = fresh(t.id)
+		const start = getTableCells(editor, t.id).get(
+			getCellKey(tt.props.rows[0].id, tt.props.cols[0].id)
+		)!
+		editor.select(start.id)
+		navigateCell(editor, editor.getShape(start.id) as TLTableCellShape, 'right')
+		const sel = editor.getOnlySelectedShape() as TLTableCellShape
+		expect(sel?.type).toBe('table-cell')
+		expect(sel.props.colId).toBe(tt.props.cols[1].id)
 	})
 })
 

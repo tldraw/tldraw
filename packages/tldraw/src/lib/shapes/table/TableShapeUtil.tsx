@@ -33,8 +33,16 @@ import {
 	findOrCreateCell,
 	getTableCells,
 	isCellEmpty,
+	navigateCell,
 	reconcileTable,
 } from './tableOperations'
+
+const ARROW_DIRS: Record<string, 'left' | 'right' | 'up' | 'down'> = {
+	ArrowLeft: 'left',
+	ArrowRight: 'right',
+	ArrowUp: 'up',
+	ArrowDown: 'down',
+}
 
 const COL_HANDLE_PREFIX = 'col-resize:'
 
@@ -117,6 +125,33 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 				}
 			}
 		})
+
+		// Arrow-key navigation between cells. Capture phase so it runs before the
+		// default nudge. Never hijacks arrows while a text field is focused, so the
+		// caret can move within a cell being edited.
+		editor.getContainer().addEventListener(
+			'keydown',
+			(e) => {
+				if (editor.getEditingShapeId() || e.metaKey || e.ctrlKey || e.altKey) return
+				const active = editor.getContainer().ownerDocument.activeElement
+				if (
+					active instanceof HTMLElement &&
+					(active.isContentEditable || active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
+				) {
+					return
+				}
+				const dir = ARROW_DIRS[e.key]
+				if (!dir) return
+				const ids = editor.getSelectedShapeIds()
+				if (ids.length !== 1) return
+				const cell = editor.getShape(ids[0])
+				if (!cell || cell.type !== 'table-cell') return
+				e.preventDefault()
+				e.stopPropagation()
+				navigateCell(editor, cell as TLTableCellShape, dir)
+			},
+			{ capture: true }
+		)
 	}
 
 	override onBeforeCreate(shape: TLTableShape) {

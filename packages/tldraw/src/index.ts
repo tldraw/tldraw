@@ -250,6 +250,7 @@ export {
 } from './lib/shapes/table/cellKinds'
 export {
 	buildGrid,
+	diffTableStructure,
 	getCellAtPoint,
 	getCellKey,
 	getTableLayout,
@@ -265,6 +266,7 @@ export {
 	type TableColLayout,
 	type TableLayout,
 	type TableRowLayout,
+	type TableStructureChange,
 } from './lib/shapes/table/core'
 export {
 	deleteColumn,
@@ -279,6 +281,8 @@ export {
 	isCellEmpty,
 	navigateCell,
 	reconcileTable,
+	selectColumn,
+	selectRow,
 	setCellText,
 	setColumnWidth,
 	setRowHeight,
