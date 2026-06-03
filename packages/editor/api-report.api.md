@@ -2196,6 +2196,8 @@ export class InputsManager {
     get altKey(): boolean;
     set altKey(altKey: boolean);
     // @internal
+    beginPanning(via: 'middle' | 'right' | 'spacebar'): void;
+    // @internal
     beginPointing(): void;
     readonly buttons: AtomSet<number>;
     // @deprecated (undocumented)
@@ -2209,6 +2211,8 @@ export class InputsManager {
     endGesture(): void;
     // @internal
     endInteraction(): void;
+    // @internal
+    endPanning(): void;
     getAccelKey(): boolean;
     getAltKey(): boolean;
     getCtrlKey(): boolean;
@@ -2292,7 +2296,11 @@ export class InputsManager {
     // @internal (undocumented)
     setMetaKey(metaKey: boolean): void;
     // @internal
+    setPanningPointerDown(pointerDown: boolean): void;
+    // @internal
     setPointerVelocity(pointerVelocity: Vec): void;
+    // @internal
+    setRightUndecided(rightUndecided: boolean): void;
     // @internal (undocumented)
     setShiftKey(shiftKey: boolean): void;
     // @deprecated (undocumented)
@@ -4305,8 +4313,13 @@ export interface TLInteractionStartPerfEvent {
 export type TLInteractionState = {
     dragging: boolean;
     name: 'pointing';
+    rightUndecided: boolean;
 } | {
     name: 'idle';
+} | {
+    name: 'panning';
+    pointerDown: boolean;
+    via: 'middle' | 'right' | 'spacebar';
 };
 
 // @public (undocumented)

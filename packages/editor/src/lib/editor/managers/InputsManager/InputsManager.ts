@@ -18,17 +18,26 @@ const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
 export type TLGesturePhase = 'idle' | 'multi-touch' | 'pinching'
 
 /**
- * The current pointer interaction, modelled as one explicit state instead of the
- * `isPointing` / `isDragging` flags (and, once the pan dimension is folded in,
- * the panning flags too). The boolean getters are derived from it.
+ * The current pointer / pan interaction, modelled as one explicit state instead
+ * of the overlapping `isPointing` / `isDragging` / `isRightPointing` /
+ * `isPanning` / `isSpacebarPanning` flags. The boolean getters are derived from
+ * it.
  *
  * - `'idle'` — no pointer interaction.
  * - `'pointing'` — a pointer button is down; `dragging` once it passes the drag
- *   threshold.
+ *   threshold, `rightUndecided` while a right button is down and hasn't yet been
+ *   classified as a right-click or the start of a right-drag pan.
+ * - `'panning'` — the camera is being panned (`via` spacebar, the middle mouse
+ *   button, or a right-drag); `pointerDown` tracks whether a pointer button is
+ *   also held, which is what keeps `isPointing` true during a middle/right-drag
+ *   pan.
  *
  * @public
  */
-export type TLInteractionState = { name: 'idle' } | { name: 'pointing'; dragging: boolean }
+export type TLInteractionState =
+	| { name: 'idle' }
+	| { name: 'pointing'; dragging: boolean; rightUndecided: boolean }
+	| { name: 'panning'; via: 'spacebar' | 'middle' | 'right'; pointerDown: boolean }
 
 /** @public */
 export class InputsManager {
@@ -314,11 +323,18 @@ export class InputsManager {
 	}
 
 	/**
-	 * Begin a pointer interaction (a pointer button went down).
+	 * Begin a pointer interaction (a pointer button went down). If a pan is already
+	 * in progress (e.g. spacebar panning), this just records that a pointer is now
+	 * down rather than discarding the pan.
 	 * @internal
 	 */
 	beginPointing(): void {
-		this._interaction.set({ name: 'pointing', dragging: false })
+		const interaction = this._interaction.get()
+		if (interaction.name === 'panning') {
+			if (!interaction.pointerDown) this._interaction.set({ ...interaction, pointerDown: true })
+		} else {
+			this._interaction.set({ name: 'pointing', dragging: false, rightUndecided: false })
+		}
 	}
 
 	/**
@@ -328,11 +344,60 @@ export class InputsManager {
 	 */
 	setDragging(dragging: boolean): void {
 		const interaction = this._interaction.get()
-		if (interaction.name === 'pointing') {
-			if (interaction.dragging !== dragging) {
-				this._interaction.set({ name: 'pointing', dragging })
-			}
+		if (interaction.name === 'pointing' && interaction.dragging !== dragging) {
+			this._interaction.set({ ...interaction, dragging })
 		}
+	}
+
+	/**
+	 * Mark the current pointing interaction as a right button awaiting
+	 * classification (right-click vs. the start of a right-drag pan).
+	 * @internal
+	 */
+	setRightUndecided(rightUndecided: boolean): void {
+		const interaction = this._interaction.get()
+		if (interaction.name === 'pointing' && interaction.rightUndecided !== rightUndecided) {
+			this._interaction.set({ ...interaction, rightUndecided })
+		}
+	}
+
+	/**
+	 * Begin panning the camera. Preserves whether a pointer button is also held, so
+	 * a middle/right-drag pan keeps `isPointing` true.
+	 * @internal
+	 */
+	beginPanning(via: 'spacebar' | 'middle' | 'right'): void {
+		const interaction = this._interaction.get()
+		const pointerDown =
+			interaction.name === 'pointing' || (interaction.name === 'panning' && interaction.pointerDown)
+		this._interaction.set({ name: 'panning', via, pointerDown })
+	}
+
+	/**
+	 * Record whether a pointer button is held during a pan (e.g. cleared when the
+	 * pointer lifts but a spacebar pan continues).
+	 * @internal
+	 */
+	setPanningPointerDown(pointerDown: boolean): void {
+		const interaction = this._interaction.get()
+		if (interaction.name === 'panning' && interaction.pointerDown !== pointerDown) {
+			this._interaction.set({ ...interaction, pointerDown })
+		}
+	}
+
+	/**
+	 * Stop panning. Returns to `pointing` if a pointer is still down, otherwise to
+	 * `idle`.
+	 * @internal
+	 */
+	endPanning(): void {
+		const interaction = this._interaction.get()
+		if (interaction.name !== 'panning') return
+		this._interaction.set(
+			interaction.pointerDown
+				? { name: 'pointing', dragging: false, rightUndecided: false }
+				: { name: 'idle' }
+		)
 	}
 
 	/**
@@ -344,10 +409,14 @@ export class InputsManager {
 	}
 
 	/**
-	 * Whether a pointer button is down.
+	 * Whether a pointer button is down. True during a middle/right-drag pan (a
+	 * pointer is held), false during a spacebar pan with no pointer down.
 	 */
 	getIsPointing() {
-		return this._interaction.get().name === 'pointing'
+		const interaction = this._interaction.get()
+		return (
+			interaction.name === 'pointing' || (interaction.name === 'panning' && interaction.pointerDown)
+		)
 	}
 	/**
 	 * @deprecated Use `getIsPointing()` instead.
@@ -365,8 +434,13 @@ export class InputsManager {
 	 * @internal
 	 */
 	setIsPointing(isPointing: boolean) {
-		if (isPointing) this.beginPointing()
-		else this.endInteraction()
+		if (isPointing) {
+			this.beginPointing()
+		} else if (this._interaction.get().name === 'panning') {
+			this.setPanningPointerDown(false)
+		} else {
+			this.endInteraction()
+		}
 	}
 
 	/**
@@ -395,16 +469,17 @@ export class InputsManager {
 		this.setDragging(isDragging)
 	}
 
-	private _isRightPointing = atom<boolean>('isRightPointing', false)
 	/**
-	 * Whether the user is right-click pointing (before drag threshold).
+	 * Whether the user is right-click pointing (a right button is down and hasn't
+	 * yet been classified as a right-click or the start of a right-drag pan).
 	 */
 	getIsRightPointing() {
-		return this._isRightPointing.get()
+		const interaction = this._interaction.get()
+		return interaction.name === 'pointing' && interaction.rightUndecided
 	}
 	/** @internal */
 	setIsRightPointing(isRightPointing: boolean) {
-		this._isRightPointing.set(isRightPointing)
+		this.setRightUndecided(isRightPointing)
 	}
 
 	/**
@@ -530,12 +605,11 @@ export class InputsManager {
 		this._isEditing.set(isEditing)
 	}
 
-	private _isPanning = atom<boolean>('isPanning', false)
 	/**
-	 * Whether the user is panning.
+	 * Whether the user is panning the camera.
 	 */
 	getIsPanning() {
-		return this._isPanning.get()
+		return this._interaction.get().name === 'panning'
 	}
 	/**
 	 * @deprecated Use `getIsPanning()` instead.
@@ -553,15 +627,16 @@ export class InputsManager {
 	 * @internal
 	 */
 	setIsPanning(isPanning: boolean) {
-		this._isPanning.set(isPanning)
+		if (isPanning) this.beginPanning(this.keys.has('Space') ? 'spacebar' : 'middle')
+		else this.endPanning()
 	}
 
-	private _isSpacebarPanning = atom<boolean>('isSpacebarPanning', false)
 	/**
-	 * Whether the user is spacebar panning.
+	 * Whether the user is panning with the spacebar held.
 	 */
 	getIsSpacebarPanning() {
-		return this._isSpacebarPanning.get()
+		const interaction = this._interaction.get()
+		return interaction.name === 'panning' && interaction.via === 'spacebar'
 	}
 	/**
 	 * @deprecated Use `getIsSpacebarPanning()` instead.
@@ -579,7 +654,17 @@ export class InputsManager {
 	 * @internal
 	 */
 	setIsSpacebarPanning(isSpacebarPanning: boolean) {
-		this._isSpacebarPanning.set(isSpacebarPanning)
+		const interaction = this._interaction.get()
+		if (isSpacebarPanning) {
+			if (interaction.name === 'panning') {
+				if (interaction.via !== 'spacebar')
+					this._interaction.set({ ...interaction, via: 'spacebar' })
+			} else {
+				this.beginPanning('spacebar')
+			}
+		} else if (interaction.name === 'panning' && interaction.via === 'spacebar') {
+			this.endPanning()
+		}
 	}
 
 	@computed private _getHasCollaborators() {
@@ -713,8 +798,8 @@ export class InputsManager {
 			gesturePhase: this._gesturePhase.get(),
 			interaction: this._interaction.get(),
 			isEditing: this._isEditing.get(),
-			isPanning: this._isPanning.get(),
-			isSpacebarPanning: this._isSpacebarPanning.get(),
+			isPanning: this.getIsPanning(),
+			isSpacebarPanning: this.getIsSpacebarPanning(),
 			keys: Array.from(this.keys.keys()),
 			buttons: Array.from(this.buttons.keys()),
 		}

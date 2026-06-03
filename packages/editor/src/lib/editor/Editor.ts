@@ -10299,8 +10299,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.capturedPointerId === pointerId) this.capturedPointerId = null
 
 		if (this.inputs.getIsPointing()) {
-			this.inputs.setIsPointing(false)
-			this.inputs.setIsDragging(false)
+			this.inputs.endInteraction()
 			this._selectedShapeIdsAtPointerDown = []
 			this._didCaptureSelectionAtPointerDown = false
 			// Abort the active tool interaction without firing a click.
@@ -10911,11 +10910,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (info.type === 'misc') {
 			// stop panning if the interaction is cancelled or completed
 			if (info.name === 'cancel' || info.name === 'complete') {
-				this.inputs.setIsDragging(false)
+				this.inputs.setDragging(false)
 
 				if (this.inputs.getIsPanning()) {
-					this.inputs.setIsPanning(false)
-					this.inputs.setIsSpacebarPanning(false)
+					this.inputs.endPanning()
 					this.setCursor({ type: this._prevCursor, rotation: 0 })
 				}
 			}
@@ -10958,7 +10956,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		if (!inputs.getIsPointing()) {
-			inputs.setIsDragging(false)
+			inputs.setDragging(false)
 		}
 
 		const instanceState = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
@@ -11046,10 +11044,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						// The gesture is over: return the gesture state machine to idle. The
 						// fingers' pointer_ups were ignored while pinching, so reset the
-						// pointing state here too rather than leaving it stuck on.
+						// pointer interaction here too rather than leaving it stuck on.
 						inputs.endGesture()
-						inputs.setIsPointing(false)
-						inputs.setIsDragging(false)
+						inputs.endInteraction()
 
 						if (this._didPinch) {
 							this._didPinch = false
@@ -11215,9 +11212,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Add the button from the buttons set
 						inputs.buttons.add(info.button)
 
-						// Start pointing and stop dragging
-						inputs.setIsPointing(true)
-						inputs.setIsDragging(false)
+						// Start a pointer interaction
+						inputs.beginPointing()
 
 						// If pen mode is off but we're not already in pen mode, turn that on
 						if (!isPenMode && isPen) this.updateInstanceState({ isPenMode: true })
@@ -11232,10 +11228,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (!this.inputs.getIsPanning()) {
 								this._prevCursor = this.getInstanceState().cursor.type
 							}
-							this.inputs.setIsPanning(true)
+							this.inputs.beginPanning('middle')
 							clearTimeout(this._longPressTimeout)
 						} else if (info.button === RIGHT_MOUSE_BUTTON && this.options.rightClickPanning) {
-							this.inputs.setIsRightPointing(true)
+							this.inputs.setRightUndecided(true)
 							clearTimeout(this._longPressTimeout)
 							return this
 						}
@@ -11265,7 +11261,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							) {
 								// Passed the drag threshold—transition to panning
 								this._prevCursor = this.getInstanceState().cursor.type
-								this.inputs.setIsPanning(true)
+								this.inputs.beginPanning('right')
 								this.setCursor({ type: 'grabbing', rotation: 0 })
 								this.stopCameraAnimation()
 								// Apply the initial delta from the pointer down origin
@@ -11303,34 +11299,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 									cz
 						) {
 							// Start dragging
-							inputs.setIsDragging(true)
+							inputs.setDragging(true)
 							clearTimeout(this._longPressTimeout)
 						}
 						break
 					}
 					case 'pointer_up': {
-						// Stop dragging / pointing
-						inputs.setIsDragging(false)
-						inputs.setIsPointing(false)
+						// A pointer button lifted. Capture the interaction before tearing it down so
+						// the right-click and panning decisions below see the pre-up state.
+						const interaction = inputs.getInteraction()
+						const wasRightUndecided = interaction.name === 'pointing' && interaction.rightUndecided
+						const wasPanning = interaction.name === 'panning'
+
 						clearTimeout(this._longPressTimeout)
 						// Remove the button from the buttons set
 						inputs.buttons.delete(info.button)
 
 						// If we're in pen mode and we're not using a pen, stop here
-						if (instanceState.isPenMode && !isPen) return
+						if (instanceState.isPenMode && !isPen) {
+							inputs.endInteraction()
+							return
+						}
 
-						// Right-click pointing ended without dragging—this is a static
-						// right-click, so let it through to the state chart as right_click.
-						// Check isPanning first: if we transitioned to panning, isRightPointing
-						// is still true but we want the panning cleanup path instead.
-						if (this.inputs.getIsRightPointing() && !this.inputs.getIsPanning()) {
-							this.inputs.setIsRightPointing(false)
+						// Right-click pointing ended without dragging—this is a static right-click,
+						// so let it through to the state chart as right_click. (If it became a pan,
+						// take the panning cleanup path below instead.)
+						if (wasRightUndecided && !wasPanning) {
+							inputs.endInteraction()
 							this._selectedShapeIdsAtPointerDown = []
 							this._didCaptureSelectionAtPointerDown = false
 							break // fall through to state chart dispatch as right_click
 						}
-
-						this.inputs.setIsRightPointing(false)
 
 						// Firefox bug fix...
 						// If it's the same pointer that we stored earlier...
@@ -11340,11 +11339,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 							info.button = 0
 						}
 
-						if (inputs.getIsPanning()) {
-							if (!inputs.keys.has('Space')) {
-								inputs.setIsPanning(false)
-								inputs.setIsSpacebarPanning(false)
-							}
+						if (wasPanning) {
+							// The pointer accompanying the pan lifted. Keep panning only while the
+							// spacebar still holds it; otherwise end the pan.
+							inputs.setPanningPointerDown(false)
+							const keepPanning = inputs.keys.has('Space')
+							if (!keepPanning) inputs.endPanning()
+
 							const slideDirection = this.inputs.getPointerVelocity()
 							const slideSpeed = Math.min(2, slideDirection.len())
 
@@ -11354,19 +11355,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 									break
 								}
 								case MIDDLE_MOUSE_BUTTON: {
-									if (this.inputs.keys.has('Space')) {
-										this.setCursor({ type: 'grab', rotation: 0 })
-									} else {
-										this.setCursor({ type: this._prevCursor, rotation: 0 })
-									}
+									this.setCursor({ type: keepPanning ? 'grab' : this._prevCursor, rotation: 0 })
 									break
 								}
 								case RIGHT_MOUSE_BUTTON: {
-									if (this.inputs.keys.has('Space')) {
-										this.setCursor({ type: 'grab', rotation: 0 })
-									} else {
-										this.setCursor({ type: this._prevCursor, rotation: 0 })
-									}
+									this.setCursor({ type: keepPanning ? 'grab' : this._prevCursor, rotation: 0 })
 									// Don't pass right-click panning events to the state chart
 									// as it causes unintended shape selection on release
 									if (slideSpeed > 0) {
@@ -11382,6 +11375,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								this.slideCamera({ speed: slideSpeed, direction: slideDirection })
 							}
 						} else {
+							inputs.endInteraction()
 							if (info.button === STYLUS_ERASER_BUTTON) {
 								// If we were erasing with a stylus button, restore the tool we were using before we started erasing
 								this.complete()
@@ -11418,8 +11412,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 									this._prevCursor = instanceState.cursor.type
 								}
 
-								this.inputs.setIsPanning(true)
-								this.inputs.setIsSpacebarPanning(true)
+								this.inputs.beginPanning('spacebar')
 								clearTimeout(this._longPressTimeout)
 								this.setCursor({
 									type: this.inputs.getIsPointing() ? 'grabbing' : 'grab',
@@ -11469,8 +11462,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 									// If we're still middle dragging, continue panning
 								} else {
 									// otherwise, stop panning
-									this.inputs.setIsPanning(false)
-									this.inputs.setIsSpacebarPanning(false)
+									this.inputs.endPanning()
 									this.setCursor({ type: this._prevCursor, rotation: 0 })
 								}
 							}
