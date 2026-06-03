@@ -210,11 +210,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									height="100%"
 									draggable={false}
 									playsInline
-									autoPlay={
-										shape.props.autoplay &&
-										editor.options.allowVideoAutoplay &&
-										!prefersReducedMotion
-									}
+									autoPlay={shape.props.autoplay && !prefersReducedMotion}
 									muted
 									loop
 									disableRemotePlayback
