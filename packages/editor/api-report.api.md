@@ -2281,18 +2281,10 @@ export class InputsManager {
     setIsDragging(isDragging: boolean): void;
     // (undocumented)
     setIsEditing(isEditing: boolean): void;
-    // @internal (undocumented)
-    setIsPanning(isPanning: boolean): void;
     // (undocumented)
     setIsPen(isPen: boolean): void;
     // @internal (undocumented)
     setIsPinching(isPinching: boolean): void;
-    // @internal (undocumented)
-    setIsPointing(isPointing: boolean): void;
-    // @internal (undocumented)
-    setIsRightPointing(isRightPointing: boolean): void;
-    // @internal (undocumented)
-    setIsSpacebarPanning(isSpacebarPanning: boolean): void;
     // @internal (undocumented)
     setMetaKey(metaKey: boolean): void;
     // @internal

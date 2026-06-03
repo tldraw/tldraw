@@ -427,13 +427,6 @@ export class InputsManager {
 	}
 	// eslint-disable-next-line tldraw/no-setter-getter
 	set isPointing(isPointing: boolean) {
-		this.setIsPointing(isPointing)
-	}
-	/**
-	 * @param isPointing - Whether the user is pointing.
-	 * @internal
-	 */
-	setIsPointing(isPointing: boolean) {
 		if (isPointing) {
 			this.beginPointing()
 		} else if (this._interaction.get().name === 'panning') {
@@ -476,10 +469,6 @@ export class InputsManager {
 	getIsRightPointing() {
 		const interaction = this._interaction.get()
 		return interaction.name === 'pointing' && interaction.rightUndecided
-	}
-	/** @internal */
-	setIsRightPointing(isRightPointing: boolean) {
-		this.setRightUndecided(isRightPointing)
 	}
 
 	/**
@@ -620,13 +609,6 @@ export class InputsManager {
 	}
 	// eslint-disable-next-line tldraw/no-setter-getter
 	set isPanning(isPanning: boolean) {
-		this.setIsPanning(isPanning)
-	}
-	/**
-	 * @param isPanning - Whether the user is panning.
-	 * @internal
-	 */
-	setIsPanning(isPanning: boolean) {
 		if (isPanning) this.beginPanning(this.keys.has('Space') ? 'spacebar' : 'middle')
 		else this.endPanning()
 	}
@@ -647,13 +629,6 @@ export class InputsManager {
 	}
 	// eslint-disable-next-line tldraw/no-setter-getter
 	set isSpacebarPanning(isSpacebarPanning: boolean) {
-		this.setIsSpacebarPanning(isSpacebarPanning)
-	}
-	/**
-	 * @param isSpacebarPanning - Whether the user is spacebar panning.
-	 * @internal
-	 */
-	setIsSpacebarPanning(isSpacebarPanning: boolean) {
 		const interaction = this._interaction.get()
 		if (isSpacebarPanning) {
 			if (interaction.name === 'panning') {
