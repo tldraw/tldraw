@@ -29,7 +29,6 @@ export const DEFAULT_TRANSLATION = {
 	'action.copy-as-svg.short': 'SVG',
 	'action.copy-as-svg': 'Copy as SVG',
 	'action.copy': 'Copy',
-	'action.copy-hovered-styles': 'Copy hovered styles',
 	'action.cut': 'Cut',
 	'action.delete': 'Delete',
 	'action.unlock-all': 'Unlock all',
