@@ -97,6 +97,10 @@ export {
 	type TLShapeHandleOverlay,
 } from './lib/overlays/ShapeHandleOverlayUtil'
 export {
+	ShapeIndicatorOverlayUtil,
+	type TLShapeIndicatorOverlay,
+} from './lib/overlays/ShapeIndicatorOverlayUtil'
+export {
 	SelectionForegroundOverlayUtil,
 	type TLSelectionForegroundOverlay,
 } from './lib/overlays/SelectionForegroundOverlayUtil'

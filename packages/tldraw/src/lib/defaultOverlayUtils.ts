@@ -1,4 +1,3 @@
-import { ShapeIndicatorOverlayUtil } from '@tldraw/editor'
 import { ArrowBindingHintOverlayUtil } from './overlays/ArrowBindingHintOverlayUtil'
 import { ArrowHintOverlayUtil } from './overlays/ArrowHintOverlayUtil'
 import { BrushOverlayUtil } from './overlays/BrushOverlayUtil'
@@ -10,23 +9,24 @@ import { CollaboratorShapeIndicatorOverlayUtil } from './overlays/CollaboratorSh
 import { ScribbleOverlayUtil } from './overlays/ScribbleOverlayUtil'
 import { SelectionForegroundOverlayUtil } from './overlays/SelectionForegroundOverlayUtil'
 import { ShapeHandleOverlayUtil } from './overlays/ShapeHandleOverlayUtil'
+import { ShapeIndicatorOverlayUtil } from './overlays/ShapeIndicatorOverlayUtil'
 import { SnapIndicatorOverlayUtil } from './overlays/SnapIndicatorOverlayUtil'
 import { ZoomBrushOverlayUtil } from './overlays/ZoomBrushOverlayUtil'
 
 /** @public */
 export const defaultOverlayUtils = [
+	ArrowBindingHintOverlayUtil,
+	ArrowHintOverlayUtil,
+	BrushOverlayUtil,
+	CollaboratorBrushOverlayUtil,
+	CollaboratorCursorOverlayUtil,
+	CollaboratorHintOverlayUtil,
+	CollaboratorScribbleOverlayUtil,
 	CollaboratorShapeIndicatorOverlayUtil,
-	ShapeIndicatorOverlayUtil,
+	ScribbleOverlayUtil,
 	SelectionForegroundOverlayUtil,
 	ShapeHandleOverlayUtil,
-	BrushOverlayUtil,
-	ZoomBrushOverlayUtil,
+	ShapeIndicatorOverlayUtil,
 	SnapIndicatorOverlayUtil,
-	ScribbleOverlayUtil,
-	CollaboratorBrushOverlayUtil,
-	CollaboratorScribbleOverlayUtil,
-	CollaboratorHintOverlayUtil,
-	ArrowHintOverlayUtil,
-	ArrowBindingHintOverlayUtil,
-	CollaboratorCursorOverlayUtil,
+	ZoomBrushOverlayUtil,
 ] as const
