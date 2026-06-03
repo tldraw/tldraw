@@ -2141,46 +2141,84 @@ describe('Grouping / ungrouping locked shapes', () => {
 		expect(editor.getShape(ids.boxA)!.isLocked).toBe(true)
 	})
 
-	it('resizes children of a locked subgroup when the outer group is resized', () => {
-		// group1 (unlocked)
-		//   boxA (unlocked)
-		//   group2 (locked)
-		//     boxB (unlocked)
-		//     boxC (locked)
+	it('transforms every descendant regardless of which are locked', () => {
+		// The heuristic: a transform on an (unlocked) group supersedes locking for anything inside
+		// it. Locking any subset of descendants must not change how the group transforms.
+		//
+		// group1 (the transform origin, never locked)
+		//   boxA
+		//   group2
+		//     boxB
+		//     boxC
 		const group1 = createShapeId('group1')
 		const group2 = createShapeId('group2')
+		const allIds: TLShapeId[] = [ids.boxA, ids.boxB, ids.boxC, group2, group1]
 
-		const resizeAndReadBounds = (lockSubgroup: boolean) => {
+		// Shapes whose locked state we vary (never group1 — it's the thing being transformed).
+		const lockable: TLShapeId[] = [ids.boxA, ids.boxB, ids.boxC, group2]
+		// Lock leaves before their containing group; once a group is locked, writes to its
+		// children (including locking them) are dropped.
+		const lockOrder: { id: TLShapeId; type: 'geo' | 'group' }[] = [
+			{ id: ids.boxC, type: 'geo' },
+			{ id: ids.boxB, type: 'geo' },
+			{ id: ids.boxA, type: 'geo' },
+			{ id: group2, type: 'group' },
+		]
+
+		const build = () => {
 			editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
-			editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0), box(ids.boxC, 40, 0)])
+			editor.createShapes([
+				box(ids.boxA, 0, 0, 10, 10),
+				box(ids.boxB, 20, 0, 10, 10),
+				box(ids.boxC, 40, 0, 20, 30),
+			])
 			editor.groupShapes([ids.boxB, ids.boxC], { groupId: group2 })
 			editor.groupShapes([ids.boxA, group2], { groupId: group1 })
-			if (lockSubgroup) {
-				// Lock the leaf before the subgroup: once the subgroup is locked, writes to its
-				// children (including locking them) are blocked.
-				editor.updateShape({ id: ids.boxC, type: 'geo', isLocked: true })
-				editor.updateShape({ id: group2, type: 'group', isLocked: true })
-			}
-			editor.select(group1).resizeSelection({ scaleX: 2, scaleY: 2 }, 'top_left')
-			return {
-				a: editor.getShapePageBounds(ids.boxA)!.clone(),
-				b: editor.getShapePageBounds(ids.boxB)!.clone(),
-				c: editor.getShapePageBounds(ids.boxC)!.clone(),
-			}
 		}
 
-		// Locking the subgroup and one leaf must not change the resize result for any shape:
-		// the unlocked boxB and locked boxC both transform with the outer group.
-		const control = resizeAndReadBounds(false)
-		const locked = resizeAndReadBounds(true)
+		const transforms: { name: string; apply(): void }[] = [
+			{
+				name: 'resize from top-left',
+				apply: () => editor.select(group1).resizeSelection({ scaleX: 2, scaleY: 2 }, 'top_left'),
+			},
+			{
+				name: 'resize from right edge',
+				apply: () => editor.select(group1).resizeSelection({ scaleX: 0.5 }, 'right'),
+			},
+			{ name: 'flip horizontal', apply: () => editor.flipShapes([group1], 'horizontal') },
+			{ name: 'flip vertical', apply: () => editor.flipShapes([group1], 'vertical') },
+			{ name: 'rotate', apply: () => editor.rotateShapesBy([group1], Math.PI / 5) },
+			{ name: 'nudge', apply: () => editor.nudgeShapes([group1], { x: 13, y: -7 }) },
+		]
 
-		expect(locked.a).toCloselyMatchObject(control.a)
-		expect(locked.b).toCloselyMatchObject(control.b)
-		expect(locked.c).toCloselyMatchObject(control.c)
+		for (const transform of transforms) {
+			// Control: perform the transform with nothing locked.
+			build()
+			transform.apply()
+			const control = new Map(allIds.map((id) => [id, editor.getShapePageBounds(id)!.clone()]))
 
-		// Locks are preserved
-		expect(editor.getShape(group2)!.isLocked).toBe(true)
-		expect(editor.getShape(ids.boxC)!.isLocked).toBe(true)
+			// Every non-empty subset of lockable shapes must produce identical geometry.
+			for (let mask = 1; mask < 1 << lockable.length; mask++) {
+				const lockedSet = new Set(lockable.filter((_, i) => mask & (1 << i)))
+
+				build()
+				for (const { id, type } of lockOrder) {
+					if (lockedSet.has(id)) editor.updateShape({ id, type, isLocked: true })
+				}
+				transform.apply()
+
+				const label = `${transform.name}, locked={${[...lockedSet].join(',')}}`
+				for (const id of allIds) {
+					expect(editor.getShapePageBounds(id), `${label}, shape=${id}`).toCloselyMatchObject(
+						control.get(id)!
+					)
+				}
+				// Locks are preserved through the transform.
+				for (const id of lockedSet) {
+					expect(editor.getShape(id)!.isLocked, `${label}, shape=${id} stays locked`).toBe(true)
+				}
+			}
+		}
 	})
 
 	it('still blocks resizing a locked shape that has no unlocked ancestor', () => {
