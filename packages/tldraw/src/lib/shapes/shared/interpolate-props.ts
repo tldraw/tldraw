@@ -1,11 +1,11 @@
 import { TLDrawShapeSegment, VecModel, b64Vecs, lerp } from '@tldraw/editor'
 
 /** @public */
-export const interpolateSegments = (
+export function interpolateSegments(
 	startSegments: TLDrawShapeSegment[],
 	endSegments: TLDrawShapeSegment[],
 	progress: number
-): TLDrawShapeSegment[] => {
+): TLDrawShapeSegment[] {
 	const startPoints: VecModel[] = []
 	const endPoints: VecModel[] = []
 
