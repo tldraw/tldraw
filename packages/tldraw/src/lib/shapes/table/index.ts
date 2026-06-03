@@ -17,6 +17,7 @@ export {
 	type TableRowLayout,
 } from './core'
 export { type TLTableCellKind, type TLTableCellKindProps, textCellKind } from './cellKinds'
+export { reflowRowHeights } from './reflow'
 export { TableCellShapeUtil, type TableCellShapeOptions } from './TableCellShapeUtil'
 export { TableShapeTool } from './TableShapeTool'
 export { TableShapeUtil } from './TableShapeUtil'

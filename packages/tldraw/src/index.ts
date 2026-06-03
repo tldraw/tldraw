@@ -283,6 +283,7 @@ export {
 	setColumnWidth,
 	setRowHeight,
 } from './lib/shapes/table/tableOperations'
+export { reflowRowHeights } from './lib/shapes/table/reflow'
 export {
 	ASPECT_RATIO_OPTIONS,
 	ASPECT_RATIO_TO_VALUE,

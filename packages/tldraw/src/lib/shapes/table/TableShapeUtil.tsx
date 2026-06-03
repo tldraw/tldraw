@@ -27,6 +27,7 @@ import {
 	getTableLayout,
 	resolveCellStyle,
 } from './core'
+import { reflowRowHeights } from './reflow'
 import {
 	drillSelectCell,
 	findOrCreateCell,
@@ -36,7 +37,6 @@ import {
 } from './tableOperations'
 
 const COL_HANDLE_PREFIX = 'col-resize:'
-const ROW_HANDLE_PREFIX = 'row-resize:'
 
 /**
  * A table shape: a grid of cells holding editable rich text.
@@ -65,14 +65,38 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		this.reflowHandlerRegistered = true
 		const { editor } = this
 
-		// Skeleton changes (column/row insert/delete/resize) reposition cells.
+		const reflowParentOf = (cell: TLShape) => {
+			const table = editor.getShape(cell.parentId)
+			if (table?.type === 'table') reflowRowHeights(editor, table as TLTableShape)
+		}
+
+		// Skeleton changes reposition cells; cell content changes re-measure heights.
 		editor.sideEffects.registerAfterChangeHandler('shape', (prev, next) => {
-			if (next.type !== 'table') return
-			const p = prev as TLTableShape
-			const n = next as TLTableShape
-			if (p.props.cols !== n.props.cols || p.props.rows !== n.props.rows) {
-				reconcileTable(editor, n)
+			if (next.type === 'table') {
+				const p = prev as TLTableShape
+				const n = next as TLTableShape
+				if (p.props.cols !== n.props.cols || p.props.rows !== n.props.rows) {
+					reconcileTable(editor, n)
+				}
+			} else if (next.type === 'table-cell') {
+				const p = prev as TLTableCellShape
+				const n = next as TLTableCellShape
+				// Content (or per-cell font/size) changing the row's tallest cell.
+				if (
+					p.props.richText !== n.props.richText ||
+					p.props.font !== n.props.font ||
+					p.props.size !== n.props.size
+				) {
+					reflowParentOf(n)
+				}
 			}
+		})
+		// Creating/deleting a cell can change its row's height.
+		editor.sideEffects.registerAfterCreateHandler('shape', (shape) => {
+			if (shape.type === 'table-cell') reflowParentOf(shape)
+		})
+		editor.sideEffects.registerAfterDeleteHandler('shape', (shape) => {
+			if (shape.type === 'table-cell') reflowParentOf(shape)
 		})
 
 		// When a cell is deselected without gaining content, drop it so clicking
@@ -143,24 +167,13 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 	}
 
 	override onResize(shape: TLTableShape, info: TLResizeInfo<TLTableShape>) {
+		// Only columns have a manual width; rows are auto-height (they fit content),
+		// so vertical scaling is ignored — the row reconciler owns row heights.
 		const cols = info.initialShape.props.cols.map((c) => ({
 			...c,
 			width: Math.max(TABLE_CONSTANTS.MIN_COL_WIDTH, c.width * info.scaleX),
 		}))
-
-		let rows = info.initialShape.props.rows
-		if (info.scaleY !== 1) {
-			const initialLayout = getTableLayout(info.initialShape)
-			rows = info.initialShape.props.rows.map((r, i) => ({
-				...r,
-				height: Math.max(
-					TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT,
-					(initialLayout.rows[i]?.height ?? TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT) * info.scaleY
-				),
-			}))
-		}
-
-		return { props: { ...shape.props, cols, rows } }
+		return { props: { ...shape.props, cols } }
 	}
 
 	// Editable so that double-clicking an empty cell (no cell record to hit) routes
@@ -203,11 +216,12 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		}
 	}
 
-	// Interior column/row resize handles (the outer edges belong to the whole-table
-	// resize via the selection's corner/edge handles).
+	// Interior column resize handles (the outer edges belong to the whole-table
+	// resize via the selection's corner/edge handles). Rows are auto-height, so they
+	// have no resize handle — they fit their content.
 	override getHandles(shape: TLTableShape): TLHandle[] {
 		const layout = getTableLayout(shape)
-		const indices = getIndices(layout.cols.length + layout.rows.length)
+		const indices = getIndices(layout.cols.length)
 		const handles: TLHandle[] = []
 		layout.cols.forEach((col, i) => {
 			if (i === layout.cols.length - 1) return
@@ -220,17 +234,6 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 				canSnap: false,
 			})
 		})
-		layout.rows.forEach((row, i) => {
-			if (i === layout.rows.length - 1) return
-			handles.push({
-				id: `${ROW_HANDLE_PREFIX}${row.id}`,
-				type: 'vertex',
-				index: indices[layout.cols.length + i],
-				x: layout.width / 2,
-				y: row.y + row.height,
-				canSnap: false,
-			})
-		})
 		return handles
 	}
 
@@ -238,28 +241,14 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		shape: TLTableShape,
 		{ handle }: TLHandleDragInfo<TLTableShape>
 	): TLShapePartial<TLTableShape> | void {
+		if (!handle.id.startsWith(COL_HANDLE_PREFIX)) return
 		const layout = getTableLayout(shape)
-		if (handle.id.startsWith(COL_HANDLE_PREFIX)) {
-			const colId = handle.id.slice(COL_HANDLE_PREFIX.length)
-			const colIndex = shape.props.cols.findIndex((c) => c.id === colId)
-			if (colIndex === -1) return
-			const newWidth = Math.max(TABLE_CONSTANTS.MIN_COL_WIDTH, handle.x - layout.cols[colIndex].x)
-			const cols = shape.props.cols.map((c, i) => (i === colIndex ? { ...c, width: newWidth } : c))
-			return { id: shape.id, type: shape.type, props: { cols } }
-		}
-		if (handle.id.startsWith(ROW_HANDLE_PREFIX)) {
-			const rowId = handle.id.slice(ROW_HANDLE_PREFIX.length)
-			const rowIndex = shape.props.rows.findIndex((r) => r.id === rowId)
-			if (rowIndex === -1) return
-			const newHeight = Math.max(
-				TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT,
-				handle.y - layout.rows[rowIndex].y
-			)
-			const rows = shape.props.rows.map((r, i) =>
-				i === rowIndex ? { ...r, height: newHeight } : r
-			)
-			return { id: shape.id, type: shape.type, props: { rows } }
-		}
+		const colId = handle.id.slice(COL_HANDLE_PREFIX.length)
+		const colIndex = shape.props.cols.findIndex((c) => c.id === colId)
+		if (colIndex === -1) return
+		const newWidth = Math.max(TABLE_CONSTANTS.MIN_COL_WIDTH, handle.x - layout.cols[colIndex].x)
+		const cols = shape.props.cols.map((c, i) => (i === colIndex ? { ...c, width: newWidth } : c))
+		return { id: shape.id, type: shape.type, props: { cols } }
 	}
 
 	override getGeometry(shape: TLTableShape): Geometry2d {

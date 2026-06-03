@@ -90,10 +90,12 @@ header look is automatic *and* fully overridable per cell.
 
 ### Layout & measurement (stored, deterministic)
 
-- Column widths: stored, authoritative.
-- Row heights: stored; recomputed by the reconciler via the cell kind's `measure()` on
-  content change and **written to the record**; all clients read it. Formula/custom cells
-  measure their *rendered* output, not raw `richText`.
+- Column widths: stored, authoritative; **manually resizable** (interior handles).
+- Row heights: **auto-height only** — a row fits its tallest cell. The reconciler measures via
+  the cell kind's `measure()` on content/create/delete and **writes** the height to the
+  record; all clients read it. No manual row resize and no `scaleY` on the table — this removes
+  the manual-min-vs-content conflict entirely (columns resize; rows fit content, à la Notion).
+  Formula/custom cells measure their *rendered* output, not raw `richText`.
 
 ### Geometry & rendering
 
@@ -216,6 +218,14 @@ packages/editor/...   ← container selection policy (decision 4)
 
 ## Known limits / open
 
+- **tsgo large-union limitation.** Adding `table` + `table-cell` to the default schema,
+  once table-using code exists, trips `tsgo` (the repo's alpha typechecker) into failing
+  10 `TLShapePartial` assignments in *unrelated* `createShape` sites (frames, excalidraw,
+  resizing, …). Verified identical on the v1 reference branch (same 10 errors, same 8
+  files) — it is **not a v2 regression**, but the inherent cost of a large default-schema
+  union under tsgo. Runtime and (likely) real `tsc` are unaffected. The `value→meta`
+  change removes one independent trigger but not the union-size one. Revisit when tsgo
+  improves, or if the table moves out of defaults.
 - **Scale:** sparse storage = empty cells are free; a fully dense 200×200 (≈40k records)
   is the ceiling. v1 stance: sparse-only, document it; dense mode is future, not v1.
 - Header default styling values (fill variant, weight) — pick concrete values in step 1.

@@ -40,7 +40,7 @@ export class TableCellShapeUtil extends ShapeUtil<TLTableCellShape> {
 	override options: TableCellShapeOptions = { kinds: [textCellKind] }
 
 	/** Resolve the cell kind for a `kind` prop, falling back to the text kind. */
-	private getKind(type: string): TLTableCellKind {
+	getKind(type: string): TLTableCellKind {
 		return (
 			this.options.kinds.find((k) => k.type === type) ??
 			this.options.kinds.find((k) => k.type === 'text') ??
