@@ -65,6 +65,22 @@ if (typeof CSS.supports === 'undefined') {
 	CSS.supports = () => false
 }
 
+// Pointer capture polyfill. jsdom implements the PointerEvent constructor but not the pointer
+// capture model, so setPointerCapture/releasePointerCapture/hasPointerCapture are missing
+// (https://github.com/jsdom/jsdom/pull/2666). Our canvas event handlers capture the pointer on
+// pointerdown/up, so stub them out to avoid throwing.
+if (typeof Element !== 'undefined') {
+	Element.prototype.setPointerCapture ??= function () {
+		// noop
+	}
+	Element.prototype.releasePointerCapture ??= function () {
+		// noop
+	}
+	Element.prototype.hasPointerCapture ??= function () {
+		return false
+	}
+}
+
 function convertNumbersInObject(obj: any, roundToNearest: number): any {
 	if (!obj) return obj
 	if (Array.isArray(obj)) {
