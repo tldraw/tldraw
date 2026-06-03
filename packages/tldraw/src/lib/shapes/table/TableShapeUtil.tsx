@@ -110,7 +110,7 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 					cell &&
 					cell.type === 'table-cell' &&
 					editor.getEditingShapeId() !== id &&
-					isCellEmpty(cell as TLTableCellShape) &&
+					isCellEmpty(editor, cell as TLTableCellShape) &&
 					editor.getBindingsInvolvingShape(id).length === 0
 				) {
 					editor.deleteShapes([id])

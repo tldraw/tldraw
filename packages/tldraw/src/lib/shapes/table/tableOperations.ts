@@ -7,7 +7,7 @@ import {
 	createShapeId,
 	toRichText,
 } from '@tldraw/editor'
-import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
+import { renderPlaintextFromRichText } from '../../utils/text/richText'
 import {
 	getCellKey,
 	getTableLayout,
@@ -19,6 +19,20 @@ import {
 	withRowInserted,
 	withRowRemoved,
 } from './core'
+import type { TableCellShapeUtil } from './TableCellShapeUtil'
+
+/** Resolve a cell's registered kind via the cell util's registry. */
+function kindFor(editor: Editor, cell: TLTableCellShape) {
+	return (editor.getShapeUtil('table-cell') as TableCellShapeUtil).getKind(cell.props.kind)
+}
+
+/** Plain-text projection of a cell, via its kind (defaults to its rich text). */
+function cellText(editor: Editor, cell: TLTableCellShape): string {
+	const kind = kindFor(editor, cell)
+	return kind.getText
+		? kind.getText(editor, cell)
+		: renderPlaintextFromRichText(editor, cell.props.richText)
+}
 
 /** Collect a table's cell records, keyed by `(rowId, colId)`. @public */
 export function getTableCells(
@@ -50,7 +64,7 @@ export function getTableData(editor: Editor, tableId: TLTableShape['id']): strin
 	return (table as TLTableShape).props.rows.map((row) =>
 		(table as TLTableShape).props.cols.map((col) => {
 			const cell = cells.get(getCellKey(row.id, col.id))
-			return cell ? renderPlaintextFromRichText(editor, cell.props.richText) : ''
+			return cell ? cellText(editor, cell) : ''
 		})
 	)
 }
@@ -69,7 +83,7 @@ export function getCellText(
 	const col = t.props.cols[colIndex]
 	if (!row || !col) return ''
 	const cell = getTableCells(editor, tableId).get(getCellKey(row.id, col.id))
-	return cell ? renderPlaintextFromRichText(editor, cell.props.richText) : ''
+	return cell ? cellText(editor, cell) : ''
 }
 
 /**
@@ -135,14 +149,15 @@ export function findOrCreateCell(
 
 /**
  * Whether a cell is safe to garbage-collect when deselected or navigated away
- * from. Conservative: only a plain, blank `text` cell qualifies — a custom-kind
- * cell carries meaning (in `meta`) even with empty text. (Phase 5 will delegate
- * this to the kind's own `isEmpty`.)
+ * from. Delegated to the cell's kind: the text kind reports empty rich text; a
+ * custom kind decides for itself (and, with no `isEmpty`, is never collected — it
+ * carries meaning in `meta` even with empty text).
  *
  * @public
  */
-export function isCellEmpty(cell: TLTableCellShape): boolean {
-	return cell.props.kind === 'text' && isEmptyRichText(cell.props.richText)
+export function isCellEmpty(editor: Editor, cell: TLTableCellShape): boolean {
+	const kind = kindFor(editor, cell)
+	return kind.isEmpty ? kind.isEmpty(editor, cell) : false
 }
 
 /**
@@ -200,7 +215,7 @@ export function drillSelectCell(editor: Editor, table: TLTableShape, rowId: stri
 	}
 
 	const cellId = findOrCreateCell(editor, table, rowId, colId)
-	if (selectedCell && selectedCell.id !== cellId && isCellEmpty(selectedCell)) {
+	if (selectedCell && selectedCell.id !== cellId && isCellEmpty(editor, selectedCell)) {
 		editor.deleteShapes([selectedCell.id])
 	}
 	editor.select(cellId)
@@ -233,7 +248,7 @@ export function navigateCell(
 	if (nc === colIndex && nr === rowIndex) return
 
 	const next = findOrCreateCell(editor, t, t.props.rows[nr].id, t.props.cols[nc].id)
-	if (cell.id !== next && isCellEmpty(cell)) {
+	if (cell.id !== next && isCellEmpty(editor, cell)) {
 		editor.deleteShapes([cell.id])
 	}
 	editor.select(next)

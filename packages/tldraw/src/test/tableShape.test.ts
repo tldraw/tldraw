@@ -1,5 +1,7 @@
-import { Group2d, TLTableShape, createShapeId } from '@tldraw/editor'
+import { Group2d, TLTableShape, createShapeId, toRichText } from '@tldraw/editor'
+import { type TLTableCellKind, textCellKind } from '../lib/shapes/table/cellKinds'
 import { TABLE_CONSTANTS, getTableLayout } from '../lib/shapes/table/core'
+import { TableCellShapeUtil } from '../lib/shapes/table/TableCellShapeUtil'
 import {
 	deleteColumn,
 	deleteRow,
@@ -104,5 +106,44 @@ describe('table shape', () => {
 		expect(data[0][0]).toBe('A')
 		expect(data[1][2]).toBe('B')
 		expect(data[2][1]).toBe('')
+	})
+})
+
+describe('cell kind delegation', () => {
+	// A custom kind that has no text but a meaningful value, and projects its own text.
+	const checkKind: TLTableCellKind = {
+		type: 'check',
+		Component: () => null,
+		getText: () => 'done',
+		isEmpty: () => false,
+	}
+
+	it('projects cell text and decides GC through the kind', () => {
+		const ed = new TestEditor({
+			shapeUtils: [TableCellShapeUtil.configure({ kinds: [textCellKind, checkKind] })],
+		})
+		const id = createShapeId()
+		ed.createShape({ id, type: 'table', x: 0, y: 0 })
+		const table = ed.getShape(id) as TLTableShape
+		const cellId = createShapeId()
+		ed.createShape({
+			id: cellId,
+			type: 'table-cell',
+			parentId: id,
+			props: {
+				rowId: table.props.rows[0].id,
+				colId: table.props.cols[0].id,
+				kind: 'check',
+				richText: toRichText(''),
+			},
+		})
+
+		// getText projection: the kind, not the (empty) rich text
+		expect(getTableData(ed, id)[0][0]).toBe('done')
+
+		// isEmpty=false → the empty-text cell survives the deselect GC
+		ed.select(cellId)
+		ed.selectNone()
+		expect(ed.getShape(cellId)).toBeDefined()
 	})
 })
