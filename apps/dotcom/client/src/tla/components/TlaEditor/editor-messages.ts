@@ -6,4 +6,5 @@ export const editorMessages = defineMessages({
 	downloadFile: { defaultMessage: 'Download' },
 	copyToMyfiles: { defaultMessage: 'Copy to my files' },
 	anonymousUser: { defaultMessage: 'Guest user' },
+	pinkColor: { defaultMessage: 'Pink' },
 })

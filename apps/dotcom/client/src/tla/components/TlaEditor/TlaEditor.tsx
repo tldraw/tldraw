@@ -43,6 +43,7 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
+import { themes } from '../../utils/themes'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -223,6 +224,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		users,
+		themes,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)
 		}, []),
@@ -283,6 +285,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				className="tla-editor"
 				licenseKey={getLicenseKey()}
 				store={store}
+				themes={themes}
 				assetUrls={assetUrls}
 				user={app?.tlUser}
 				onMount={handleMount}

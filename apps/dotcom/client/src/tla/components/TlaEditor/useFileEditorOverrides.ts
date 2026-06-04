@@ -56,6 +56,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 			translations: {
 				en: {
 					'people-menu.anonymous-user': intl.formatMessage(messages.anonymousUser),
+					'color-style.pink': intl.formatMessage(messages.pinkColor),
 				},
 			},
 			actions(editor, actions) {

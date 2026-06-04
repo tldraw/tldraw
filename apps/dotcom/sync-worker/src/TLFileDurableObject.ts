@@ -16,6 +16,7 @@ import {
 	SNAPSHOT_PREFIX,
 	TLCustomServerEvent,
 	TlaFile,
+	createDotcomTLSchema,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -31,14 +32,7 @@ import {
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
 } from '@tldraw/sync-core'
-import {
-	TLAsset,
-	TLAssetId,
-	TLDOCUMENT_ID,
-	TLDocument,
-	TLRecord,
-	createTLSchema,
-} from '@tldraw/tlschema'
+import { TLAsset, TLAssetId, TLDOCUMENT_ID, TLDocument, TLRecord } from '@tldraw/tlschema'
 import {
 	ExecutionQueue,
 	assert,
@@ -162,7 +156,7 @@ export class TLFileDurableObject extends DurableObject {
 						this.triggerPersist()
 					})
 					storage.transaction((txn) => {
-						createTLSchema().migrateStorage(txn)
+						createDotcomTLSchema().migrateStorage(txn)
 					})
 					return storage
 				})
@@ -187,6 +181,7 @@ export class TLFileDurableObject extends DurableObject {
 			this._room = this.getStorage().then(async (storage) => {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
 					storage,
+					schema: createDotcomTLSchema(),
 					clientTimeout: Infinity,
 					onSessionSnapshot: (sessionId, snapshot) => {
 						const ws = this.sessionIdToWs.get(sessionId)
@@ -513,7 +508,7 @@ export class TLFileDurableObject extends DurableObject {
 			await this.r2.rooms.put(roomKey, dataText)
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {
-				loadSnapshotIntoStorage(txn, createTLSchema(), JSON.parse(dataText))
+				loadSnapshotIntoStorage(txn, createDotcomTLSchema(), JSON.parse(dataText))
 			})
 
 			this.maybeAssociateFileAssets()

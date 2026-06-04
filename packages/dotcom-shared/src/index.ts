@@ -1,5 +1,6 @@
 /* eslint-disable tldraw/no-export-star */
 export * from './constants'
+export * from './customColors'
 export { default as getLicenseKey } from './license'
 export * from './mutators'
 export * from './OptimisticAppStore'

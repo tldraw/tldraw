@@ -1,6 +1,5 @@
-import { CreateFilesRequestBody } from '@tldraw/dotcom-shared'
+import { CreateFilesRequestBody, createDotcomTLSchema } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { createTLSchema } from '@tldraw/tlschema'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../../r2'
@@ -30,7 +29,7 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 
 		// Create the new snapshot
 		const snapshot: RoomSnapshot = {
-			schema: createTLSchema().serialize(),
+			schema: createDotcomTLSchema().serialize(),
 			clock: 0,
 			documents: Object.values(snapshotResult.value).map((r) => ({
 				state: r,
