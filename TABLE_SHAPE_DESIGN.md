@@ -236,14 +236,32 @@ packages/editor/...   ← container selection policy (decision 4)
 
 ## Known limits / open
 
-- **tsgo large-union limitation.** Adding `table` + `table-cell` to the default schema,
-  once table-using code exists, trips `tsgo` (the repo's alpha typechecker) into failing
-  10 `TLShapePartial` assignments in *unrelated* `createShape` sites (frames, excalidraw,
-  resizing, …). Verified identical on the v1 reference branch (same 10 errors, same 8
-  files) — it is **not a v2 regression**, but the inherent cost of a large default-schema
-  union under tsgo. Runtime and (likely) real `tsc` are unaffected. The `value→meta`
-  change removes one independent trigger but not the union-size one. Revisit when tsgo
-  improves, or if the table moves out of defaults.
+- **tsgo discriminated-union false-positives (root cause confirmed; NOT a table-code defect).**
+  Adding `table` + `table-cell` can make `tsgo` (the repo's alpha typechecker,
+  `@typescript/native-preview` `7.0.0-dev`) report ~10 `TLShapePartial` assignment errors in
+  *unrelated* `createShape` sites (frames, excalidraw, resizing, …). A focused investigation
+  (background research agent) established:
+  - **It is not the table code.** Erasing *every* table-side type construct to `any` (call
+    sites, `TLShapePartial<TLTableShape>` return annotations, `ShapeUtil<TLTableCell…>` generics)
+    still produced the 10. Conversely, with the table layer fully intact, *excluding the
+    `src/test/*` fixture files* (each `declare module … TLGlobalShapePropsMap` adds ~15 fixture
+    shapes to `TLShape`) dropped it to **0**.
+  - **Root cause = the >25-member discriminated-union assignability limit**
+    ([TS#42518](https://github.com/microsoft/TypeScript/issues/42518)): the `TLShape` union
+    (defaults + ~15 test fixtures + `table` + `table-cell`) crosses ~25–30 members, so a source
+    `{ type: <30-member union> }` fails to assign to the distributed `TLShapePartial`. The
+    table's two shapes are the straw, not the cause.
+  - **It is nondeterministic** ([typescript-go#2951](https://github.com/microsoft/typescript-go/discussions/2951)):
+    the *same byte-identical tree* reports 10 (cold `.tsbuild` cache) or **0** (warm) — directly
+    reproduced. The earlier consistent "10" was cold-cache (each edit invalidates the package's
+    tsbuildinfo); a warm cache currently shows 0.
+  - **Caveats:** real `tsc` could not be run in the sandbox, so "stock `tsc` passes" is
+    structurally-likely but unverified; a forced cold rebuild (`--force`) was also blocked.
+  - **Disposition:** treat as a known tsgo-alpha false-positive — same category as the existing
+    `nudge.test.ts` filter — and don't contort the table for it. CI on a cold checkout may see the
+    errors; if a green typecheck is required before tsgo fixes land, apply a narrow, commented
+    cast at the ~8 failing sites (they build `{ id, type: shape.type, … }` and assign to
+    `TLShapePartial`) — a workaround for a compiler bug in non-table files, not a table change.
 - **Scale:** sparse storage = empty cells are free; a fully dense 200×200 (≈40k records)
   is the ceiling. v1 stance: sparse-only, document it; dense mode is future, not v1.
 - Header default styling values (fill variant, weight) — pick concrete values in step 1.
