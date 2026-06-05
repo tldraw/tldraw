@@ -92,6 +92,15 @@ Use sparingly (1-2 per issue) for metadata, not categorization.
 3. Suggested approach
 4. Which example category it belongs to
 
+### Agent-drafted issues (confidence and open questions)
+
+Issues created by the `/issue` skill capture the user's intent over a short interrogation, so they carry two extra sections beneath the verbatim description:
+
+- **Confidence** - A percentage reflecting how confident the agent is that the issue holds enough of the user's context and intent to be worked on. It is not a measure of confidence in the fix.
+- **Open questions** - A numbered list of the specific gaps in intent or context still worth asking the user about. Answers are written beneath each question as the user replies, and the confidence score is recomputed each round.
+
+Drop these sections once the issue is fully fleshed out and the questions are resolved.
+
 ## Triage workflow
 
 ### New issues

@@ -5,17 +5,36 @@ description: Create and research a GitHub issue in the tldraw repository from a 
 
 # Issue
 
-Create a GitHub issue on `tldraw/tldraw` from a user description, then research it.
+Create a GitHub issue on `tldraw/tldraw` from a user description, then interrogate the user to capture enough of their intent for the issue to be worked on.
 
 Use `../write-issue/SKILL.md` as the standards reference for issue titles, bodies, types, labels, and triage conventions.
 
-At the top of the issue, include the user's original description verbatim. Annotate it with the human emoji, separated from your work by a horizontal rule. Example:
+The goal is not to research the codebase to death. It is to capture the user's full intent and context in the issue, so that whoever (or whatever) picks it up later has what they need. You do this by creating the issue immediately, scoring your confidence in it, and then asking the user the questions that would raise that confidence.
+
+## Issue body shape
+
+The body always starts with the user's original description, verbatim, annotated with the human emoji and separated from the rest by a horizontal rule:
 
 ```
 🧑: {user_description}
 
 ---
+
+## Confidence: {n}%
+
+{one or two sentences on what is still missing or uncertain about the user's intent}
+
+## Open questions
+
+1. **{question}**
+   _Awaiting answer._
+2. **{question}**
+   _Awaiting answer._
 ```
+
+- The confidence score reflects how confident you are that the issue contains enough of the user's context and intent to be worked on, not how confident you are about the fix.
+- Each open question targets a specific gap in intent or context. Avoid questions you could answer yourself by looking at the code.
+- As the user answers, replace `_Awaiting answer._` with their answer (lightly cleaned up) directly beneath the question, recompute the confidence score, and add or drop questions as needed.
 
 ## Workflow
 
@@ -23,16 +42,17 @@ At the top of the issue, include the user's original description verbatim. Annot
    - User's issue description.
    - Current branch: `git branch --show-current`.
    - Recent issues: `gh issue list --repo tldraw/tldraw --limit 5 --json number,title --jq '.[] | "#\(.number) \(.title)"'`.
-2. Do a quick codebase investigation:
+2. Do a quick codebase investigation, just enough to ground your confidence score and ask sharp questions:
    - Search for relevant files, functions, or patterns mentioned in the description.
    - Identify likely affected packages, apps, or examples.
    - Note obvious causes, related issues, or existing code paths.
+   - Anything you can answer yourself this way should not become an open question.
 3. For visual bugs, identify a reproduction target when possible:
    - Examples app: `localhost:5420` from `yarn dev`.
    - tldraw.com app: `localhost:3000` from `yarn dev-app`.
    - Docs site: `localhost:3001` from `yarn dev-docs`.
-   - If screenshots are useful but not feasible locally, ask the user for screenshots and specific reproduction details.
-4. Write the issue title and body using `../write-issue/SKILL.md`.
+   - If screenshots are useful but not feasible locally, make a screenshot request one of your open questions.
+4. Write the issue title and body using `../write-issue/SKILL.md`. The body follows the shape above: verbatim description, confidence score, and open questions.
 5. Create the issue with the `slop` label so agent-generated issues are tagged as such:
 
 ```bash
@@ -45,20 +65,21 @@ gh issue create --repo tldraw/tldraw --title "..." --body "..." --label slop
 7. Assign a milestone only when there is a clear fit:
    - `Improve developer resources` for examples, documentation, comments, starter kits, and `npm create tldraw`.
    - `Improve automations` for GitHub Actions, review bots, CI/CD, and automation work.
-8. Share the issue URL with the user immediately after creation.
-9. Do deeper research after creation:
-   - Identify relevant files and line numbers.
-   - Explain the root cause for bugs.
-   - Summarize architecture context and related code.
-   - Note edge cases, testing needs, and likely implementation risks.
-10. Add the research as an issue comment:
+8. Respond to the user with the issue URL and the list of open questions. Ask them directly.
+9. Interrogate the user. After each reply:
+   - Update the issue body: write the user's answer beneath the relevant question, recompute the confidence score, and add or drop questions as their answers reveal new gaps or close old ones.
 
 ```bash
-gh issue comment <issue-number> --repo tldraw/tldraw --body "..."
+gh issue edit <issue-number> --repo tldraw/tldraw --body "..."
 ```
+
+   - Keep going, one round at a time, until you are confident the issue holds enough of the user's intent and context to be worked on.
+10. When confident, raise the confidence score to reflect it, clear or resolve any remaining open questions, and tell the user the issue is ready to be picked up.
 
 ## Rules
 
-- Always create the issue before doing deep research so the user can track it.
+- Always create the issue before interrogating the user, so they can track it from the first reply.
+- Ask only questions that capture the user's intent or context. Do not offload work you could do yourself.
+- Update the issue after every reply rather than batching answers at the end.
 - Follow `../write-issue/SKILL.md` for all issue content standards.
 - Do not include AI attribution in issue titles, bodies, comments, or metadata.
