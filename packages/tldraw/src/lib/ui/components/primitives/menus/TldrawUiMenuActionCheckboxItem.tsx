@@ -7,7 +7,7 @@ import {
 /** @public */
 export type TLUiMenuActionCheckboxItemProps = {
 	actionId?: string
-} & Pick<TLUiMenuCheckboxItemProps, 'disabled' | 'checked' | 'toggle'>
+} & Pick<TLUiMenuCheckboxItemProps, 'description' | 'disabled' | 'checked' | 'toggle'>
 
 /** @public @react */
 export function TldrawUiMenuActionCheckboxItem({

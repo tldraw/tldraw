@@ -50,6 +50,7 @@ export interface TLUiActionItem<
 	id: string
 	kbd?: string
 	label?: TransationKey | { [key: string]: TransationKey }
+	description?: TransationKey | { [key: string]: TransationKey }
 	readonlyOk?: boolean
 	checkbox?: boolean
 	isRequiredA11yAction?: boolean
@@ -1238,6 +1239,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-snap-mode',
 					menu: 'action.toggle-snap-mode.menu',
 				},
+				description: 'action.toggle-snap-mode.description',
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
 					editor.user.updateUserPreferences({ isSnapMode: !editor.user.getIsSnapMode() })
@@ -1267,6 +1269,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-wrap-mode',
 					menu: 'action.toggle-wrap-mode.menu',
 				},
+				description: 'action.toggle-wrap-mode.description',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-wrap-mode', { source })
@@ -1282,6 +1285,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-dynamic-size-mode',
 					menu: 'action.toggle-dynamic-size-mode.menu',
 				},
+				description: 'action.toggle-dynamic-size-mode.description',
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-dynamic-size-mode', { source })
@@ -1297,6 +1301,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-paste-at-cursor',
 					menu: 'action.toggle-paste-at-cursor.menu',
 				},
+				description: 'action.toggle-paste-at-cursor.description',
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-paste-at-cursor', { source })
@@ -1357,6 +1362,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-edge-scrolling',
 					menu: 'action.toggle-edge-scrolling.menu',
 				},
+				description: 'action.toggle-edge-scrolling.description',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-edge-scrolling', { source })
@@ -1403,6 +1409,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.toggle-tool-lock',
 					menu: 'action.toggle-tool-lock.menu',
 				},
+				description: 'action.toggle-tool-lock.description',
 				kbd: 'q',
 				onSelect(source) {
 					trackEvent('toggle-tool-lock', { source })

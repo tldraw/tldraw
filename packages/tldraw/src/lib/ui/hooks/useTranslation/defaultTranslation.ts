@@ -95,8 +95,12 @@ export const DEFAULT_TRANSLATION = {
 	'action.toggle-dark-mode': 'Toggle dark mode',
 	'action.toggle-paste-at-cursor.menu': 'Paste at cursor',
 	'action.toggle-paste-at-cursor': 'Toggle paste at cursor',
+	'action.toggle-paste-at-cursor.description':
+		'Paste content at the cursor instead of the viewport center.',
 	'action.toggle-wrap-mode.menu': 'Select on wrap',
 	'action.toggle-wrap-mode': 'Toggle select on wrap',
+	'action.toggle-wrap-mode.description':
+		'Select shapes only when the selection box fully encloses them.',
 	'action.toggle-reduce-motion.menu': 'Reduce motion',
 	'action.toggle-reduce-motion': 'Toggle reduce motion',
 	'action.toggle-keyboard-shortcuts.menu': 'Enable keyboard shortcuts',
@@ -105,6 +109,8 @@ export const DEFAULT_TRANSLATION = {
 	'action.enhanced-a11y-mode': 'Toggle enhanced accessibility mode',
 	'action.toggle-edge-scrolling.menu': 'Edge scrolling',
 	'action.toggle-edge-scrolling': 'Toggle edge scrolling',
+	'action.toggle-edge-scrolling.description':
+		'Pan the canvas automatically when you drag near the viewport edge.',
 	'action.toggle-invert-zoom.menu': 'Invert mouse zoom',
 	'action.toggle-invert-zoom': 'Toggle invert mouse zoom',
 	'action.toggle-debug-mode.menu': 'Debug mode',
@@ -113,14 +119,19 @@ export const DEFAULT_TRANSLATION = {
 	'action.toggle-focus-mode': 'Toggle focus mode',
 	'action.toggle-dynamic-size-mode.menu': 'Dynamic size',
 	'action.toggle-dynamic-size-mode': 'Toggle dynamic size',
+	'action.toggle-dynamic-size-mode.description':
+		'Keep stroke and font sizes consistent on screen as you zoom.',
 	'action.toggle-grid.menu': 'Show grid',
 	'action.toggle-grid': 'Toggle grid',
 	'action.toggle-lock': 'Toggle locked',
 	'action.flatten-to-image': 'Flatten',
 	'action.toggle-snap-mode.menu': 'Always snap',
 	'action.toggle-snap-mode': 'Toggle always snap',
+	'action.toggle-snap-mode.description':
+		'Snap to nearby shapes while drawing, moving, and resizing.',
 	'action.toggle-tool-lock.menu': 'Tool lock',
 	'action.toggle-tool-lock': 'Toggle tool lock',
+	'action.toggle-tool-lock.description': 'Keep the current tool selected after creating a shape.',
 	'action.toggle-transparent.context-menu': 'Transparent',
 	'action.toggle-transparent.menu': 'Transparent',
 	'action.toggle-transparent': 'Toggle transparent background',
