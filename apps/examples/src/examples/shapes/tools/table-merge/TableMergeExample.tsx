@@ -1,5 +1,6 @@
 import {
 	Editor,
+	TLComponents,
 	TLTableCellShape,
 	TLTableShape,
 	Tldraw,
@@ -9,67 +10,106 @@ import {
 	setCellText,
 	toRichText,
 	unmergeCell,
+	useEditor,
+	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// Merged cells. Shift-click across a block of cells to select a rectangular range,
-// then press "m" to merge it into a single cell (or "u" to unmerge the selected
-// cell). mergeCells/unmergeCell are public ops; this example just wires them to
-// keys — you'd bind them to a toolbar button or context menu in a real app.
+// Merged cells. A cell can span multiple rows and columns (rowSpan/colSpan). Drill
+// into a cell, then shift-click another to select a rectangular block — a floating
+// "Merge cells" button appears above the selection. Select a merged cell to get an
+// "Unmerge" button. mergeCells/unmergeCell are public ops; this wires them to an
+// InFrontOfTheCanvas control so the action is discoverable (a real app might use a
+// context menu or toolbar button instead).
 
-function mergeSelection(editor: Editor) {
-	const cells = editor
-		.getSelectedShapes()
-		.filter((s): s is TLTableCellShape => s.type === 'table-cell')
-	if (cells.length < 2) return
-	const table = editor.getShape(cells[0].parentId) as TLTableShape | undefined
-	if (table?.type !== 'table') return
-
-	// The selection's bounding corners, by row/column index.
-	const rowOf = (id: string) => table.props.rows.findIndex((r) => r.id === id)
-	const colOf = (id: string) => table.props.cols.findIndex((c) => c.id === id)
-	let minR = Infinity
-	let maxR = -Infinity
-	let minC = Infinity
-	let maxC = -Infinity
-	for (const cell of cells) {
-		minR = Math.min(minR, rowOf(cell.props.rowId))
-		maxR = Math.max(maxR, rowOf(cell.props.rowId))
-		minC = Math.min(minC, colOf(cell.props.colId))
-		maxC = Math.max(maxC, colOf(cell.props.colId))
-	}
-	mergeCells(
-		editor,
-		table,
-		{ rowId: table.props.rows[minR].id, colId: table.props.cols[minC].id },
-		{ rowId: table.props.rows[maxR].id, colId: table.props.cols[maxC].id }
-	)
-}
-
-function unmergeSelection(editor: Editor) {
-	const cell = editor.getOnlySelectedShape()
-	if (cell?.type === 'table-cell') unmergeCell(editor, cell as TLTableCellShape)
+const components: TLComponents = {
+	InFrontOfTheCanvas: MergeControl,
 }
 
 export default function TableMergeExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				components={components}
 				onMount={(editor) => {
 					if (editor.getCurrentPageShapeIds().size === 0) seedTable(editor)
-
-					const onKeyDown = (e: KeyboardEvent) => {
-						if (editor.getEditingShapeId()) return
-						if (e.key === 'm') mergeSelection(editor)
-						if (e.key === 'u') unmergeSelection(editor)
-					}
-					const container = editor.getContainer()
-					container.addEventListener('keydown', onKeyDown)
-					editor.disposables.add(() => container.removeEventListener('keydown', onKeyDown))
 				}}
 			/>
 		</div>
 	)
+}
+
+function MergeControl() {
+	const editor = useEditor()
+	const info = useValue('merge-control', () => getMergeControl(editor), [editor])
+	if (!info) return null
+
+	return (
+		<button
+			onPointerDown={(e) => e.stopPropagation()}
+			onClick={info.run}
+			style={{
+				position: 'absolute',
+				transform: `translate(${info.x}px, ${info.y}px) translate(-50%, -100%)`,
+				marginTop: -8,
+				pointerEvents: 'all',
+				padding: '4px 10px',
+				border: 'none',
+				borderRadius: 6,
+				background: '#3b82f6',
+				color: 'white',
+				fontSize: 12,
+				fontWeight: 600,
+				cursor: 'pointer',
+				whiteSpace: 'nowrap',
+			}}
+		>
+			{info.label}
+		</button>
+	)
+}
+
+// Decide which control to show for the current selection: "Merge cells" for a block
+// of 2+ cells in one table, "Unmerge" for a single merged cell, or nothing.
+function getMergeControl(editor: Editor) {
+	const cells = editor
+		.getSelectedShapes()
+		.filter((s): s is TLTableCellShape => s.type === 'table-cell')
+	if (!cells.length) return null
+
+	const table = editor.getShape<TLTableShape>(cells[0].parentId)
+	if (table?.type !== 'table' || !cells.every((c) => c.parentId === table.id)) return null
+
+	const bounds = editor.getSelectionPageBounds()
+	if (!bounds) return null
+	const vp = editor.getViewportScreenBounds()
+	const top = editor.pageToScreen({ x: bounds.midX, y: bounds.minY })
+	const pos = { x: top.x - vp.x, y: top.y - vp.y }
+
+	if (cells.length >= 2) {
+		// The selection's bounding corners, by row/column index.
+		const rowOf = (id: string) => table.props.rows.findIndex((r) => r.id === id)
+		const colOf = (id: string) => table.props.cols.findIndex((c) => c.id === id)
+		let minR = Infinity
+		let maxR = -Infinity
+		let minC = Infinity
+		let maxC = -Infinity
+		for (const cell of cells) {
+			minR = Math.min(minR, rowOf(cell.props.rowId))
+			maxR = Math.max(maxR, rowOf(cell.props.rowId))
+			minC = Math.min(minC, colOf(cell.props.colId))
+			maxC = Math.max(maxC, colOf(cell.props.colId))
+		}
+		const from = { rowId: table.props.rows[minR].id, colId: table.props.cols[minC].id }
+		const to = { rowId: table.props.rows[maxR].id, colId: table.props.cols[maxC].id }
+		return { ...pos, label: 'Merge cells', run: () => mergeCells(editor, table, from, to) }
+	}
+
+	const only = cells[0]
+	if ((only.props.colSpan ?? 1) > 1 || (only.props.rowSpan ?? 1) > 1) {
+		return { ...pos, label: 'Unmerge', run: () => unmergeCell(editor, only) }
+	}
+	return null
 }
 
 function seedTable(editor: Editor) {

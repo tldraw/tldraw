@@ -5,21 +5,15 @@ import { expect, test } from '@playwright/test'
 
 const SEEDED = [
 	'table',
-	'table-structure',
-	'table-styling',
-	'table-affordances',
-	'table-custom-cells',
+	'table-controls',
 	'table-formulas',
 	'table-merge',
-	'table-references',
 	'table-vlookup',
 	'table-csv',
-	'table-project-tracker',
 ]
-const TOOL_ONLY = ['table-multiplayer'] // no seed — just loads the editor + tool
 
 test.describe('table examples smoke', () => {
-	for (const slug of [...SEEDED, ...TOOL_ONLY]) {
+	for (const slug of SEEDED) {
 		test(`/${slug} loads`, async ({ page }) => {
 			await page.goto(`http://localhost:5420/${slug}/full`)
 			await expect(page.locator('.tl-container')).toBeVisible({ timeout: 20000 })

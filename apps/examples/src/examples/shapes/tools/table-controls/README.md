@@ -1,11 +1,11 @@
 ---
-title: Table row & column affordances
-component: ./TableAffordancesExample.tsx
+title: Table row and column controls
+component: ./TableControlsExample.tsx
 priority: 4
-keywords: [table, row, column, add, select, affordance, overlay, custom ui]
+keywords: [table, row, column, add, select, controls, overlay, custom ui]
 ---
 
-Build FigJam-style add-row / select-row table UI from public SDK APIs.
+Build FigJam-style controls for selecting and adding table rows and columns.
 
 ---
 

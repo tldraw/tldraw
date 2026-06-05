@@ -16,8 +16,8 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-// FigJam-style table affordances, built from public SDK APIs. Select a table (or
-// any of its cells) to reveal: a strip beside each row/column that selects the whole
+// FigJam-style table controls, built from public SDK APIs. Select a table (or any
+// of its cells) to reveal: a strip beside each row/column that selects the whole
 // row/column, and "+" bars to add a row or column. All from public helpers —
 // getTableLayout for geometry, pageToScreen + InFrontOfTheCanvas to place screen-
 // space UI, and selectRow/selectColumn + insertRow/insertColumn for the actions.
@@ -28,10 +28,10 @@ import 'tldraw/tldraw.css'
 const GUTTER = 16
 
 const components: TLComponents = {
-	InFrontOfTheCanvas: TableAffordances,
+	InFrontOfTheCanvas: TableControls,
 }
 
-export default function TableAffordancesExample() {
+export default function TableControlsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
@@ -44,10 +44,10 @@ export default function TableAffordancesExample() {
 	)
 }
 
-function TableAffordances() {
+function TableControls() {
 	const editor = useEditor()
 	const info = useValue(
-		'table-affordances',
+		'table-controls',
 		() => {
 			const tableId = activeTableId(editor)
 			if (!tableId) return null

@@ -4,6 +4,8 @@ import {
 	TLTableShape,
 	Tldraw,
 	createShapeId,
+	deleteColumn,
+	deleteRow,
 	getTableData,
 	insertColumn,
 	insertRow,
@@ -52,21 +54,35 @@ function CsvControls({ editor }: { editor: Editor }) {
 		const reader = new FileReader()
 		reader.onload = () => {
 			const rows = parseCsv(String(reader.result))
-			let table = getTable()
-			if (!table) return
+			if (!rows.length || !getTable()) return
 			const neededCols = Math.max(...rows.map((r) => r.length), 1)
-			// grow the table to fit the imported data
+
 			editor.run(() => {
-				while ((table = getTable()).props.cols.length < neededCols) {
+				let table = getTable()
+				// resize the table to exactly fit the imported data (a table keeps >= 1 row/col)
+				while ((table = getTable()).props.cols.length < neededCols)
 					insertColumn(editor, table, table.props.cols.length)
-				}
-				while ((table = getTable()).props.rows.length < rows.length) {
+				while ((table = getTable()).props.cols.length > neededCols)
+					deleteColumn(editor, table, table.props.cols.length - 1)
+				while ((table = getTable()).props.rows.length < rows.length)
 					insertRow(editor, table, table.props.rows.length)
+				while ((table = getTable()).props.rows.length > rows.length)
+					deleteRow(editor, table, table.props.rows.length - 1)
+				// write every cell, filling blanks so any previous content is cleared
+				table = getTable()
+				for (let r = 0; r < rows.length; r++) {
+					for (let c = 0; c < neededCols; c++) {
+						setCellText(editor, table.id, r, c, rows[r][c] ?? '')
+					}
 				}
-				rows.forEach((row, r) =>
-					row.forEach((value, c) => setCellText(editor, table.id, r, c, value))
-				)
 			})
+
+			// bring the freshly imported table into view
+			const table = getTable()
+			if (table) {
+				editor.select(table.id)
+				editor.zoomToFit()
+			}
 		}
 		reader.readAsText(file)
 	}
@@ -93,7 +109,11 @@ function CsvControls({ editor }: { editor: Editor }) {
 					type="file"
 					accept=".csv,text/csv"
 					style={{ display: 'none' }}
-					onChange={(e) => e.target.files?.[0] && importCsv(e.target.files[0])}
+					onChange={(e) => {
+						const file = e.target.files?.[0]
+						e.target.value = '' // reset so the same file can be re-imported
+						if (file) importCsv(file)
+					}}
 				/>
 			</label>
 		</div>
