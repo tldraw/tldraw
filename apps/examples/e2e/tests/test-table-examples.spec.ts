@@ -10,6 +10,7 @@ const SEEDED = [
 	'table-affordances',
 	'table-custom-cells',
 	'table-formulas',
+	'table-merge',
 	'table-references',
 	'table-vlookup',
 	'table-csv',

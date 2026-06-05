@@ -52,6 +52,14 @@ export interface TLTableCellShapeProps {
 	align: TLDefaultHorizontalAlignStyle
 	/** Vertical alignment of this cell's content */
 	verticalAlign: TLDefaultVerticalAlignStyle
+	/**
+	 * How many columns this cell spans (a merged cell). `1` or absent = a normal
+	 * single-column cell. The cell is anchored at `(rowId, colId)` and covers the
+	 * columns to its right; covered positions hold no cell record of their own.
+	 */
+	colSpan?: number
+	/** How many rows this cell spans (a merged cell). `1` or absent = single row. */
+	rowSpan?: number
 }
 
 /**
@@ -79,6 +87,8 @@ export const tableCellShapeProps: RecordProps<TLTableCellShape> = {
 	size: DefaultSizeStyle,
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
+	colSpan: T.positiveInteger.optional(),
+	rowSpan: T.positiveInteger.optional(),
 }
 
 /**

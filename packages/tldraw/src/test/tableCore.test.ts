@@ -5,6 +5,7 @@ import {
 	getCellAtPoint,
 	getCellKey,
 	getCellsInRange,
+	getMergeMap,
 	getTableLayout,
 	isCellStyleDefault,
 	resolveCellStyle,
@@ -117,6 +118,33 @@ describe('core/layout', () => {
 		expect(
 			getCellsInRange(t, { rowId: 'nope', colId: 'c0' }, { rowId: 'r0', colId: 'c0' })
 		).toEqual([])
+	})
+
+	it('resolves merged cells: anchor rect, covered positions, clamped spans', () => {
+		const t = makeTable() // 3x3, 120px cols, 32px rows
+		const spanned = (rowId: string, colId: string, rowSpan?: number, colSpan?: number) =>
+			makeCell({ rowId, colId, rowSpan, colSpan })
+		// a 2x2 merge anchored at r0,c0
+		const merged = getMergeMap(t, [spanned('r0', 'c0', 2, 2)])
+		expect(merged.anchors.get('r0:c0')).toMatchObject({
+			rowSpan: 2,
+			colSpan: 2,
+			x: 0,
+			y: 0,
+			width: 240,
+			height: 64,
+		})
+		// the other three positions in the block are covered, pointing at the anchor
+		expect([...merged.covered.entries()].sort()).toEqual([
+			['r0:c1', 'r0:c0'],
+			['r1:c0', 'r0:c0'],
+			['r1:c1', 'r0:c0'],
+		])
+		// a span that runs off the grid is clamped to the edge
+		const clamped = getMergeMap(t, [spanned('r1', 'c2', 5, 5)])
+		expect(clamped.anchors.get('r1:c2')).toMatchObject({ rowSpan: 2, colSpan: 1, width: 120 })
+		// a 1x1 "merge" is not an anchor and covers nothing
+		expect(getMergeMap(t, [spanned('r0', 'c0')]).anchors.size).toBe(0)
 	})
 
 	it('hit-tests a point to its cell', () => {

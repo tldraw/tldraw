@@ -7,6 +7,7 @@ export {
 	type TableRowLayout,
 } from './constants'
 export { getCellAtPoint, getCellKey, getCellsInRange, getTableLayout } from './layout'
+export { getMergeMap, type MergedCellInfo, type TableMergeMap } from './merge'
 export { diffTableStructure, type TableStructureChange } from './references'
 export {
 	withColumnInserted,

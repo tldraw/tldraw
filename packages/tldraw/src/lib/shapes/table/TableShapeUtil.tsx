@@ -21,12 +21,13 @@ import {
 	uniqueId,
 	useValue,
 } from '@tldraw/editor'
+import { type ReactElement } from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 import {
 	TABLE_CONSTANTS,
 	type TableLayout,
-	getCellAtPoint,
 	getCellKey,
+	getMergeMap,
 	getTableLayout,
 	resolveCellStyle,
 } from './core'
@@ -34,6 +35,7 @@ import { reflowRowHeights } from './reflow'
 import {
 	drillSelectCell,
 	findOrCreateCell,
+	getMergedCellAtPoint,
 	getRangeAnchorCell,
 	getTableCells,
 	isCellEmpty,
@@ -77,64 +79,51 @@ function TableGrid({
 		return getColorValue(colors, style.color, variant)
 	}
 
+	// Merged cells: positions covered by a span draw nothing; an anchor's rect covers
+	// its whole span. Borders are drawn per visible cell as a stroke rect (rather than
+	// full-length grid lines), so a merged cell has no interior borders and the grid
+	// lines simply stop at its edges.
+	const merge = getMergeMap(shape, cellsByKey.values())
+	const backgrounds: ReactElement[] = []
+	const borders: ReactElement[] = []
+	for (const row of layout.rows) {
+		for (const col of layout.cols) {
+			const key = getCellKey(row.id, col.id)
+			if (merge.covered.has(key)) continue
+			const merged = merge.anchors.get(key)
+			const x = merged ? merged.x : col.x
+			const y = merged ? merged.y : row.y
+			const width = merged ? merged.width : col.width
+			const height = merged ? merged.height : row.height
+
+			const cell = cellsByKey.get(key)
+			const bg = backgroundFor(row.index, col.index, cell)
+			if (bg !== 'transparent') {
+				backgrounds.push(
+					<rect key={`bg:${key}`} x={x} y={y} width={width} height={height} fill={bg} />
+				)
+			}
+			if (showBorders) {
+				borders.push(
+					<rect
+						key={`bd:${key}`}
+						x={x}
+						y={y}
+						width={width}
+						height={height}
+						fill="none"
+						stroke={borderColor}
+						strokeWidth={BORDER_WIDTH}
+					/>
+				)
+			}
+		}
+	}
+
 	return (
 		<>
-			{layout.rows.map((row) =>
-				layout.cols.map((col) => {
-					const cell = cellsByKey.get(getCellKey(row.id, col.id))
-					const bg = backgroundFor(row.index, col.index, cell)
-					if (bg === 'transparent') return null
-					return (
-						<rect
-							key={`bg:${row.id}:${col.id}`}
-							x={col.x}
-							y={row.y}
-							width={col.width}
-							height={row.height}
-							fill={bg}
-						/>
-					)
-				})
-			)}
-			{showBorders &&
-				layout.cols.map((col, i) =>
-					i === 0 ? null : (
-						<line
-							key={`v:${col.id}`}
-							x1={col.x}
-							y1={0}
-							x2={col.x}
-							y2={layout.height}
-							stroke={borderColor}
-							strokeWidth={BORDER_WIDTH}
-						/>
-					)
-				)}
-			{showBorders &&
-				layout.rows.map((row, i) =>
-					i === 0 ? null : (
-						<line
-							key={`h:${row.id}`}
-							x1={0}
-							y1={row.y}
-							x2={layout.width}
-							y2={row.y}
-							stroke={borderColor}
-							strokeWidth={BORDER_WIDTH}
-						/>
-					)
-				)}
-			{showBorders && (
-				<rect
-					x={0}
-					y={0}
-					width={layout.width}
-					height={layout.height}
-					fill="none"
-					stroke={borderColor}
-					strokeWidth={BORDER_WIDTH}
-				/>
-			)}
+			{backgrounds}
+			{borders}
 		</>
 	)
 }
@@ -352,7 +341,7 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		const { editor } = this
 		if (editor.getIsReadonly()) return
 		const point = editor.getPointInShapeSpace(shape, editor.inputs.getCurrentPagePoint())
-		const hit = getCellAtPoint(getTableLayout(shape), point.x, point.y)
+		const hit = getMergedCellAtPoint(editor, shape, point.x, point.y)
 		if (!hit) return
 		// Shift-click extends a cell range from the current selection's anchor.
 		const anchor = editor.inputs.getShiftKey() ? getRangeAnchorCell(editor, shape) : null
@@ -368,7 +357,7 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		const { editor } = this
 		if (editor.getIsReadonly()) return
 		const point = editor.getPointInShapeSpace(shape, editor.inputs.getCurrentPagePoint())
-		const hit = getCellAtPoint(getTableLayout(shape), point.x, point.y)
+		const hit = getMergedCellAtPoint(editor, shape, point.x, point.y)
 		if (!hit) return
 		editor.markHistoryStoppingPoint('editing table cell')
 		const cellId = findOrCreateCell(editor, shape, hit.rowId, hit.colId)
@@ -380,7 +369,7 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		const { editor } = this
 		if (editor.getIsReadonly()) return
 		const point = editor.getPointInShapeSpace(shape, editor.inputs.getCurrentPagePoint())
-		const hit = getCellAtPoint(getTableLayout(shape), point.x, point.y)
+		const hit = getMergedCellAtPoint(editor, shape, point.x, point.y)
 		if (!hit) return
 		const cellId = findOrCreateCell(editor, shape, hit.rowId, hit.colId)
 		if (editor.getEditingShapeId() !== cellId) {

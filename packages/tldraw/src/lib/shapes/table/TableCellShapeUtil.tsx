@@ -102,9 +102,19 @@ export class TableCellShapeUtil extends ShapeUtil<TLTableCellShape> {
 		const parent = this.editor.getShape(shape.parentId) as TLTableShape | undefined
 		if (parent?.type === 'table') {
 			const layout = getTableLayout(parent)
-			const col = layout.cols.find((c) => c.id === shape.props.colId)
-			const row = layout.rows.find((r) => r.id === shape.props.rowId)
-			if (col && row) return { w: col.width, h: row.height }
+			const ci = layout.cols.findIndex((c) => c.id === shape.props.colId)
+			const ri = layout.rows.findIndex((r) => r.id === shape.props.rowId)
+			if (ci !== -1 && ri !== -1) {
+				// A merged cell spans cols/rows; its size is the sum across the span,
+				// clamped to the grid edge.
+				const colSpan = Math.max(1, Math.floor(shape.props.colSpan ?? 1))
+				const rowSpan = Math.max(1, Math.floor(shape.props.rowSpan ?? 1))
+				const cEnd = Math.min(layout.cols.length - 1, ci + colSpan - 1)
+				const rEnd = Math.min(layout.rows.length - 1, ri + rowSpan - 1)
+				const w = layout.cols[cEnd].x + layout.cols[cEnd].width - layout.cols[ci].x
+				const h = layout.rows[rEnd].y + layout.rows[rEnd].height - layout.rows[ri].y
+				return { w, h }
+			}
 		}
 		return { w: TABLE_CONSTANTS.DEFAULT_COL_WIDTH, h: TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT }
 	}

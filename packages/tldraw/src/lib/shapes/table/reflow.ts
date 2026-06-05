@@ -33,6 +33,9 @@ export function reflowRowHeights(editor: Editor, table: TLTableShape, onlyRowIds
 		for (const col of table.props.cols) {
 			const cell = cells.get(getCellKey(row.id, col.id))
 			if (!cell) continue
+			// Merged cells span multiple columns/rows, so measuring them against a single
+			// column's width would be wrong; they don't drive row auto-height.
+			if ((cell.props.colSpan ?? 1) > 1 || (cell.props.rowSpan ?? 1) > 1) continue
 			const width = widthByColId.get(col.id) ?? TABLE_CONSTANTS.DEFAULT_COL_WIDTH
 			const h = cellUtil.getKind(cell.props.kind).measure?.(editor, cell, width)
 			if (h != null) measured = Math.max(measured, h)

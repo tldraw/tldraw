@@ -7,18 +7,21 @@ import {
 	deleteColumn,
 	deleteRow,
 	findOrCreateCell,
+	getMergedCellAtPoint,
 	getRangeAnchorCell,
 	getTableCells,
 	getTableData,
 	insertColumn,
 	insertRow,
 	isCellEmpty,
+	mergeCells,
 	navigateCell,
 	selectCellRange,
 	selectRow,
 	setCellText,
 	setRowHeight,
 	tabNavigateCell,
+	unmergeCell,
 } from '../lib/shapes/table/tableOperations'
 import { TestEditor } from './TestEditor'
 
@@ -202,6 +205,49 @@ describe('selection and navigation', () => {
 		expect(getTableCells(editor, t.id).size).toBe(0)
 	})
 
+	it('mergeCells merges a block into its anchor, and unmergeCell restores it', () => {
+		const t = makeTable() // 3x3
+		const tt = fresh(t.id)
+		// seed two cells in the block so we can see covered ones get removed
+		setCellText(editor, t.id, 0, 0, 'anchor')
+		setCellText(editor, t.id, 1, 1, 'covered')
+		expect(getTableCells(editor, t.id).size).toBe(2)
+
+		mergeCells(
+			editor,
+			fresh(t.id),
+			{ rowId: tt.props.rows[0].id, colId: tt.props.cols[0].id },
+			{ rowId: tt.props.rows[1].id, colId: tt.props.cols[1].id }
+		)
+
+		// only the anchor remains, now spanning 2x2 and selected
+		const cells = getTableCells(editor, t.id)
+		expect(cells.size).toBe(1)
+		const anchor = [...cells.values()][0]
+		expect(anchor.props).toMatchObject({ rowSpan: 2, colSpan: 2 })
+		expect(editor.getOnlySelectedShape()?.id).toBe(anchor.id)
+		// the anchor's geometry spans the merged block (2 cols x 2 rows)
+		const bounds = editor.getShapeGeometry(anchor.id).bounds
+		expect(bounds.width).toBe(tt.props.cols[0].width + tt.props.cols[1].width)
+
+		// a click anywhere in the merged block resolves to the anchor position
+		const layout = getTableLayout(fresh(t.id))
+		const hit = getMergedCellAtPoint(
+			editor,
+			fresh(t.id),
+			layout.cols[1].x + 5,
+			layout.rows[1].y + 5
+		)
+		expect(hit).toEqual({ rowId: tt.props.rows[0].id, colId: tt.props.cols[0].id })
+
+		// unmerge resets the span
+		unmergeCell(editor, editor.getShape(anchor.id) as TLTableCellShape)
+		expect((editor.getShape(anchor.id) as TLTableCellShape).props).toMatchObject({
+			rowSpan: 1,
+			colSpan: 1,
+		})
+	})
+
 	it('navigateCell moves the selection to the adjacent cell', () => {
 		const t = makeTable()
 		setCellText(editor, t.id, 0, 0, 'A')
@@ -342,9 +388,8 @@ describe('table shape — copy/paste, bindings, undo', () => {
 		const markup = renderToStaticMarkup(
 			editor.getShapeUtil('table').toSvg!(t, { colorMode: 'light' } as any) as any
 		)
-		// header backgrounds + outer frame as <rect>, interior borders as <line>
+		// backgrounds and per-cell borders are all native <rect> elements
 		expect((markup.match(/<rect/g) || []).length).toBeGreaterThan(0)
-		expect((markup.match(/<line/g) || []).length).toBeGreaterThan(0)
 		// the whole point: no rasterizable HTML foreign object for the structure
 		expect(markup).not.toContain('<foreignObject')
 	})

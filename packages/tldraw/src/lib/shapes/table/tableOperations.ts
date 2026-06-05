@@ -9,8 +9,10 @@ import {
 } from '@tldraw/editor'
 import { renderPlaintextFromRichText } from '../../utils/text/richText'
 import {
+	getCellAtPoint,
 	getCellKey,
 	getCellsInRange,
+	getMergeMap,
 	getTableLayout,
 	resolveCellStyle,
 	withColumnInserted,
@@ -266,6 +268,90 @@ export function getRangeAnchorCell(
 		if (!best || rank < best.rank) best = { rowId: c.props.rowId, colId: c.props.colId, rank }
 	}
 	return best ? { rowId: best.rowId, colId: best.colId } : null
+}
+
+/**
+ * The cell at a point in the table's local space, resolving a hit on a position
+ * covered by a merged cell to that merged cell's anchor. Returns `null` outside
+ * the grid. Use this (not the raw `getCellAtPoint`) when selecting or editing, so
+ * a click inside a merged cell targets the anchor rather than a hidden position.
+ *
+ * @public
+ */
+export function getMergedCellAtPoint(
+	editor: Editor,
+	table: TLTableShape,
+	x: number,
+	y: number
+): { rowId: string; colId: string } | null {
+	const hit = getCellAtPoint(getTableLayout(table), x, y)
+	if (!hit) return null
+	const merge = getMergeMap(table, getTableCells(editor, table.id).values())
+	const anchorKey = merge.covered.get(getCellKey(hit.rowId, hit.colId))
+	const anchor = anchorKey ? merge.anchors.get(anchorKey) : undefined
+	return anchor ? { rowId: anchor.rowId, colId: anchor.colId } : hit
+}
+
+/**
+ * Merge the rectangular block between two corner cells into a single cell anchored
+ * at its top-left. Sets the anchor's `rowSpan`/`colSpan`, deletes the now-covered
+ * cell records, and selects the anchor. A 1×1 block is a no-op. Bound covered cells
+ * are kept (so bindings don't break), but still hidden under the span.
+ *
+ * @public
+ */
+export function mergeCells(
+	editor: Editor,
+	table: TLTableShape,
+	a: { rowId: string; colId: string },
+	b: { rowId: string; colId: string }
+) {
+	const rowOf = (id: string) => table.props.rows.findIndex((r) => r.id === id)
+	const colOf = (id: string) => table.props.cols.findIndex((c) => c.id === id)
+	const r1 = rowOf(a.rowId)
+	const r2 = rowOf(b.rowId)
+	const c1 = colOf(a.colId)
+	const c2 = colOf(b.colId)
+	if (r1 === -1 || r2 === -1 || c1 === -1 || c2 === -1) return
+
+	const minR = Math.min(r1, r2)
+	const maxR = Math.max(r1, r2)
+	const minC = Math.min(c1, c2)
+	const maxC = Math.max(c1, c2)
+	const rowSpan = maxR - minR + 1
+	const colSpan = maxC - minC + 1
+	if (rowSpan === 1 && colSpan === 1) return
+
+	const anchorRowId = table.props.rows[minR].id
+	const anchorColId = table.props.cols[minC].id
+
+	editor.run(() => {
+		const anchorId = findOrCreateCell(editor, table, anchorRowId, anchorColId)
+		const cells = getTableCells(editor, table.id)
+		const toDelete: TLShapeId[] = []
+		for (const { rowId, colId } of getCellsInRange(table, a, b)) {
+			if (rowId === anchorRowId && colId === anchorColId) continue
+			const covered = cells.get(getCellKey(rowId, colId))
+			// Keep a covered cell that something is bound to, to avoid breaking bindings.
+			if (covered && editor.getBindingsInvolvingShape(covered.id).length === 0) {
+				toDelete.push(covered.id)
+			}
+		}
+		if (toDelete.length) editor.deleteShapes(toDelete)
+		editor.updateShape({ id: anchorId, type: 'table-cell', props: { rowSpan, colSpan } })
+		editor.select(anchorId)
+	})
+}
+
+/**
+ * Unmerge a previously merged cell, resetting its span to 1×1. The positions it
+ * covered become empty cells again. No-op for an unmerged cell.
+ *
+ * @public
+ */
+export function unmergeCell(editor: Editor, cell: TLTableCellShape) {
+	if ((cell.props.colSpan ?? 1) === 1 && (cell.props.rowSpan ?? 1) === 1) return
+	editor.updateShape({ id: cell.id, type: 'table-cell', props: { rowSpan: 1, colSpan: 1 } })
 }
 
 /**

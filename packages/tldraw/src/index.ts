@@ -257,6 +257,7 @@ export {
 	getCellAtPoint,
 	getCellKey,
 	getCellsInRange,
+	getMergeMap,
 	getTableLayout,
 	resolveCellStyle,
 	TABLE_CONSTANTS,
@@ -266,9 +267,11 @@ export {
 	withRowHeight,
 	withRowInserted,
 	withRowRemoved,
+	type MergedCellInfo,
 	type ResolvedCellStyle,
 	type TableColLayout,
 	type TableLayout,
+	type TableMergeMap,
 	type TableRowLayout,
 	type TableStructureChange,
 } from './lib/shapes/table/core'
@@ -278,12 +281,14 @@ export {
 	drillSelectCell,
 	findOrCreateCell,
 	getCellText,
+	getMergedCellAtPoint,
 	getRangeAnchorCell,
 	getTableCells,
 	getTableData,
 	insertColumn,
 	insertRow,
 	isCellEmpty,
+	mergeCells,
 	navigateCell,
 	reconcileTable,
 	selectCellRange,
@@ -293,6 +298,7 @@ export {
 	setColumnWidth,
 	setRowHeight,
 	tabNavigateCell,
+	unmergeCell,
 } from './lib/shapes/table/tableOperations'
 export { reflowRowHeights } from './lib/shapes/table/reflow'
 export {
