@@ -92,6 +92,20 @@ describe('table shape', () => {
 		expect(fresh(t.id).props.rows[0].manualHeight).toBe(120)
 	})
 
+	it('vertical resize scales rows; a horizontal-only resize leaves them auto-height', () => {
+		// vertical resize pins each row's height to its scaled rendered height
+		const t = makeTable() // 3x3, rows default 32
+		editor.resizeShape(t.id, { x: 1, y: 2 })
+		expect(getTableLayout(fresh(t.id)).rows[0].height).toBe(TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT * 2)
+		expect(fresh(t.id).props.rows[0].manualHeight).toBe(TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT * 2)
+
+		// a horizontal-only resize scales columns but must not pin row heights
+		const t2 = makeTable()
+		editor.resizeShape(t2.id, { x: 2, y: 1 })
+		expect(fresh(t2.id).props.cols[0].width).toBe(TABLE_CONSTANTS.DEFAULT_COL_WIDTH * 2)
+		expect(fresh(t2.id).props.rows[0].manualHeight).toBeUndefined()
+	})
+
 	it('repositions later rows when an earlier row grows', () => {
 		const t = makeTable()
 		setCellText(editor, t.id, 1, 0, 'x') // row 1 has a cell

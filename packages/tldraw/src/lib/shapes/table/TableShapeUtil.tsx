@@ -322,13 +322,26 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 	}
 
 	override onResize(shape: TLTableShape, info: TLResizeInfo<TLTableShape>) {
-		// Only columns have a manual width; rows are auto-height (they fit content),
-		// so vertical scaling is ignored — the row reconciler owns row heights.
+		// Columns carry a manual width, scaled horizontally.
 		const cols = info.initialShape.props.cols.map((c) => ({
 			...c,
 			width: Math.max(TABLE_CONSTANTS.MIN_COL_WIDTH, c.width * info.scaleX),
 		}))
-		return { props: { ...shape.props, cols } }
+		// A horizontal-only resize leaves rows alone (so they stay auto-height). A
+		// vertical resize scales each row's manual-height floor off its rendered height
+		// at the start of the gesture; content still keeps a row from shrinking below it.
+		if (info.scaleY === 1) {
+			return { props: { ...shape.props, cols } }
+		}
+		const initialLayout = getTableLayout(info.initialShape)
+		const rows = info.initialShape.props.rows.map((r, i) => ({
+			...r,
+			manualHeight: Math.max(
+				TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT,
+				initialLayout.rows[i].height * info.scaleY
+			),
+		}))
+		return { props: { ...shape.props, cols, rows } }
 	}
 
 	// Editable so that double-clicking an empty cell (no cell record to hit) routes
