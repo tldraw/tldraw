@@ -81,6 +81,6 @@
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"resize-observer-polyfill": "^1.5.1",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
 	}
 }
