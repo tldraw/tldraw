@@ -237,11 +237,11 @@ export function drillSelectCell(editor: Editor, table: TLTableShape, rowId: stri
 export function selectCellRange(
 	editor: Editor,
 	table: TLTableShape,
-	a: { rowId: string; colId: string },
-	b: { rowId: string; colId: string }
+	from: { rowId: string; colId: string },
+	to: { rowId: string; colId: string }
 ) {
 	editor.run(() => {
-		const ids = getCellsInRange(table, a, b).map(({ rowId, colId }) =>
+		const ids = getCellsInRange(table, from, to).map(({ rowId, colId }) =>
 			findOrCreateCell(editor, table, rowId, colId)
 		)
 		if (ids.length) editor.select(...ids)
@@ -308,15 +308,15 @@ export function getMergedCellAtPoint(
 export function mergeCells(
 	editor: Editor,
 	table: TLTableShape,
-	a: { rowId: string; colId: string },
-	b: { rowId: string; colId: string }
+	from: { rowId: string; colId: string },
+	to: { rowId: string; colId: string }
 ) {
 	const rowOf = (id: string) => table.props.rows.findIndex((r) => r.id === id)
 	const colOf = (id: string) => table.props.cols.findIndex((c) => c.id === id)
-	const r1 = rowOf(a.rowId)
-	const r2 = rowOf(b.rowId)
-	const c1 = colOf(a.colId)
-	const c2 = colOf(b.colId)
+	const r1 = rowOf(from.rowId)
+	const r2 = rowOf(to.rowId)
+	const c1 = colOf(from.colId)
+	const c2 = colOf(to.colId)
 	if (r1 === -1 || r2 === -1 || c1 === -1 || c2 === -1) return
 
 	const minR = Math.min(r1, r2)
@@ -334,7 +334,7 @@ export function mergeCells(
 		const anchorId = findOrCreateCell(editor, table, anchorRowId, anchorColId)
 		const cells = getTableCells(editor, table.id)
 		const toDelete: TLShapeId[] = []
-		for (const { rowId, colId } of getCellsInRange(table, a, b)) {
+		for (const { rowId, colId } of getCellsInRange(table, from, to)) {
 			if (rowId === anchorRowId && colId === anchorColId) continue
 			const covered = cells.get(getCellKey(rowId, colId))
 			// Keep a covered cell that something is bound to, to avoid breaking bindings.

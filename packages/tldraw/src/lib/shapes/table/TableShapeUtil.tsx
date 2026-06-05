@@ -26,6 +26,7 @@ import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelp
 import {
 	TABLE_CONSTANTS,
 	type TableLayout,
+	type TableMergeMap,
 	getCellKey,
 	getMergeMap,
 	getTableLayout,
@@ -55,12 +56,14 @@ function TableGrid({
 	shape,
 	layout,
 	cellsByKey,
+	merge,
 	theme,
 	colorMode,
 }: {
 	shape: TLTableShape
 	layout: TableLayout
 	cellsByKey: Map<string, TLTableCellShape>
+	merge: TableMergeMap
 	theme: TLTheme
 	colorMode: 'light' | 'dark'
 }) {
@@ -69,9 +72,8 @@ function TableGrid({
 	const { BORDER_WIDTH } = TABLE_CONSTANTS
 	const showBorders = shape.props.borders !== 'none'
 
-	// Resolve every cell's background through the single style resolver, so empty
-	// cells, populated cells, and headers all agree (and a styled header cell keeps
-	// its own fill — the v1 header bug is impossible here).
+	// Background through the single style resolver, so empty cells, populated cells,
+	// and headers agree (and a styled header keeps its own fill).
 	const backgroundFor = (rowIndex: number, colIndex: number, cell?: TLTableCellShape): string => {
 		const style = resolveCellStyle(shape, rowIndex, colIndex, cell)
 		if (style.fill === 'none') return 'transparent'
@@ -79,11 +81,8 @@ function TableGrid({
 		return getColorValue(colors, style.color, variant)
 	}
 
-	// Merged cells: positions covered by a span draw nothing; an anchor's rect covers
-	// its whole span. Borders are drawn per visible cell as a stroke rect (rather than
-	// full-length grid lines), so a merged cell has no interior borders and the grid
-	// lines simply stop at its edges.
-	const merge = getMergeMap(shape, cellsByKey.values())
+	// Covered positions draw nothing; an anchor draws its whole span. Borders are a
+	// stroke rect per visible cell, so a merged cell has no interior lines.
 	const backgrounds: ReactElement[] = []
 	const borders: ReactElement[] = []
 	for (const row of layout.rows) {
@@ -465,6 +464,11 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 			editor,
 			shape.id,
 		])
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const merge = useValue('table-merge', () => getMergeMap(shape, cellsByKey.values()), [
+			shape,
+			cellsByKey,
+		])
 
 		return (
 			<SVGContainer>
@@ -472,6 +476,7 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 					shape={shape}
 					layout={layout}
 					cellsByKey={cellsByKey}
+					merge={merge}
 					theme={theme}
 					colorMode={colorMode}
 				/>
@@ -479,10 +484,8 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		)
 	}
 
-	// Native SVG export of the grid chrome (backgrounds + borders). Cell content is
-	// exported separately by each `table-cell` child shape, so this only draws the
-	// table's own structure — as real vector rects/lines, not a rasterizable HTML
-	// foreign object. Uses the export's color mode so dark/light exports are correct.
+	// Native SVG export of the grid chrome (backgrounds + borders) as real vectors,
+	// not a rasterizable foreign object. Cell content is exported by each child cell.
 	override toSvg(shape: TLTableShape, ctx: SvgExportContext) {
 		const layout = getTableLayout(shape)
 		const cellsByKey = getTableCells(this.editor, shape.id)
@@ -491,6 +494,7 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 				shape={shape}
 				layout={layout}
 				cellsByKey={cellsByKey}
+				merge={getMergeMap(shape, cellsByKey.values())}
 				theme={this.editor.getCurrentTheme()}
 				colorMode={ctx.colorMode}
 			/>

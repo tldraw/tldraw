@@ -72,14 +72,14 @@ export function getCellAtPoint(
  */
 export function getCellsInRange(
 	table: TLTableShape,
-	a: { rowId: string; colId: string },
-	b: { rowId: string; colId: string }
+	from: { rowId: string; colId: string },
+	to: { rowId: string; colId: string }
 ): { rowId: string; colId: string }[] {
 	const { rows, cols } = table.props
-	const r1 = rows.findIndex((r) => r.id === a.rowId)
-	const r2 = rows.findIndex((r) => r.id === b.rowId)
-	const c1 = cols.findIndex((c) => c.id === a.colId)
-	const c2 = cols.findIndex((c) => c.id === b.colId)
+	const r1 = rows.findIndex((r) => r.id === from.rowId)
+	const r2 = rows.findIndex((r) => r.id === to.rowId)
+	const c1 = cols.findIndex((c) => c.id === from.colId)
+	const c2 = cols.findIndex((c) => c.id === to.colId)
 	if (r1 === -1 || r2 === -1 || c1 === -1 || c2 === -1) return []
 
 	const out: { rowId: string; colId: string }[] = []
