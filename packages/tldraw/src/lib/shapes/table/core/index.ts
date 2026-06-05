@@ -6,7 +6,7 @@ export {
 	type TableLayout,
 	type TableRowLayout,
 } from './constants'
-export { getCellAtPoint, getCellKey, getTableLayout } from './layout'
+export { getCellAtPoint, getCellKey, getCellsInRange, getTableLayout } from './layout'
 export { diffTableStructure, type TableStructureChange } from './references'
 export {
 	withColumnInserted,

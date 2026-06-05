@@ -10,6 +10,7 @@ import {
 import { renderPlaintextFromRichText } from '../../utils/text/richText'
 import {
 	getCellKey,
+	getCellsInRange,
 	getTableLayout,
 	resolveCellStyle,
 	withColumnInserted,
@@ -219,6 +220,52 @@ export function drillSelectCell(editor: Editor, table: TLTableShape, rowId: stri
 		editor.deleteShapes([selectedCell.id])
 	}
 	editor.select(cellId)
+}
+
+/**
+ * Select every cell in the rectangular block between two corner cells, materialising
+ * any that don't exist yet. The block is bulk-stylable (the style panel applies to
+ * all selected cells) and bulk-clearable (delete the selection). Order-independent.
+ *
+ * @public
+ */
+export function selectCellRange(
+	editor: Editor,
+	table: TLTableShape,
+	a: { rowId: string; colId: string },
+	b: { rowId: string; colId: string }
+) {
+	const ids = getCellsInRange(table, a, b).map(({ rowId, colId }) =>
+		findOrCreateCell(editor, table, rowId, colId)
+	)
+	if (ids.length) editor.select(...ids)
+}
+
+/**
+ * The anchor cell for a shift-click range extension: the top-left (lowest row, then
+ * column) of the cells currently selected in this table, or `null` if none are. Used
+ * so a shift-click selects the block from the existing selection to the clicked cell.
+ *
+ * @public
+ */
+export function getRangeAnchorCell(
+	editor: Editor,
+	table: TLTableShape
+): { rowId: string; colId: string } | null {
+	const rowOrder = new Map(table.props.rows.map((r, i) => [r.id, i]))
+	const colOrder = new Map(table.props.cols.map((c, i) => [c.id, i]))
+	let best: { rowId: string; colId: string; rank: number } | null = null
+	for (const id of editor.getSelectedShapeIds()) {
+		const cell = editor.getShape(id)
+		if (!cell || cell.type !== 'table-cell' || cell.parentId !== table.id) continue
+		const c = cell as TLTableCellShape
+		const r = rowOrder.get(c.props.rowId)
+		const col = colOrder.get(c.props.colId)
+		if (r === undefined || col === undefined) continue
+		const rank = r * table.props.cols.length + col
+		if (!best || rank < best.rank) best = { rowId: c.props.rowId, colId: c.props.colId, rank }
+	}
+	return best ? { rowId: best.rowId, colId: best.colId } : null
 }
 
 /**

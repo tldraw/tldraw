@@ -15,4 +15,5 @@ public API: `getTableLayout` for geometry, `editor.pageToScreen` with
 `InFrontOfTheCanvas` to place screen-space UI, and `selectRow`/`selectColumn` +
 `insertRow`/`insertColumn` for the actions. Selecting a row materialises its cells,
 so you can then set a fill in the style panel to restyle the whole row — header
-included.
+included. Shift-click another cell to select the rectangular range between it and
+the current cell, then bulk-style or delete the block.

@@ -11,7 +11,7 @@ import {
 } from '@tldraw/editor'
 import { TLTableCellKind, textCellKind } from './cellKinds'
 import { TABLE_CONSTANTS, getTableLayout } from './core'
-import { drillSelectCell } from './tableOperations'
+import { drillSelectCell, getRangeAnchorCell, selectCellRange } from './tableOperations'
 
 /**
  * Options for {@link TableCellShapeUtil}. Register custom cell kinds via
@@ -81,12 +81,20 @@ export class TableCellShapeUtil extends ShapeUtil<TLTableCellShape> {
 	}
 
 	// Clicking a cell drills: first click selects the table, the next selects the cell.
+	// Shift-clicking extends a rectangular range from the current selection's anchor.
 	override onClick(shape: TLTableCellShape) {
 		const { editor } = this
 		if (editor.getIsReadonly()) return
 		const table = editor.getShape(shape.parentId)
 		if (!table || table.type !== 'table') return
-		drillSelectCell(editor, table as TLTableShape, shape.props.rowId, shape.props.colId)
+		const t = table as TLTableShape
+		const hit = { rowId: shape.props.rowId, colId: shape.props.colId }
+		const anchor = editor.inputs.getShiftKey() ? getRangeAnchorCell(editor, t) : null
+		if (anchor) {
+			selectCellRange(editor, t, anchor, hit)
+		} else {
+			drillSelectCell(editor, t, hit.rowId, hit.colId)
+		}
 		return { id: shape.id, type: shape.type }
 	}
 

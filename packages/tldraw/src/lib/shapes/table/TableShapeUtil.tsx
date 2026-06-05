@@ -34,10 +34,12 @@ import { reflowRowHeights } from './reflow'
 import {
 	drillSelectCell,
 	findOrCreateCell,
+	getRangeAnchorCell,
 	getTableCells,
 	isCellEmpty,
 	navigateCell,
 	reconcileTable,
+	selectCellRange,
 	tabNavigateCell,
 } from './tableOperations'
 
@@ -352,7 +354,13 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		const point = editor.getPointInShapeSpace(shape, editor.inputs.getCurrentPagePoint())
 		const hit = getCellAtPoint(getTableLayout(shape), point.x, point.y)
 		if (!hit) return
-		drillSelectCell(editor, shape, hit.rowId, hit.colId)
+		// Shift-click extends a cell range from the current selection's anchor.
+		const anchor = editor.inputs.getShiftKey() ? getRangeAnchorCell(editor, shape) : null
+		if (anchor) {
+			selectCellRange(editor, shape, anchor, hit)
+		} else {
+			drillSelectCell(editor, shape, hit.rowId, hit.colId)
+		}
 		return { id: shape.id, type: shape.type }
 	}
 

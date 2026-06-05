@@ -61,3 +61,32 @@ export function getCellAtPoint(
 	if (!col || !row) return null
 	return { rowId: row.id, colId: col.id }
 }
+
+/**
+ * The `(rowId, colId)` of every cell in the rectangular block spanned by two
+ * corner cells (inclusive, order-independent). Returns an empty array if either
+ * corner isn't in the table. Pure — addresses by stable id, so it survives
+ * reorders. Row-major order.
+ *
+ * @public
+ */
+export function getCellsInRange(
+	table: TLTableShape,
+	a: { rowId: string; colId: string },
+	b: { rowId: string; colId: string }
+): { rowId: string; colId: string }[] {
+	const { rows, cols } = table.props
+	const r1 = rows.findIndex((r) => r.id === a.rowId)
+	const r2 = rows.findIndex((r) => r.id === b.rowId)
+	const c1 = cols.findIndex((c) => c.id === a.colId)
+	const c2 = cols.findIndex((c) => c.id === b.colId)
+	if (r1 === -1 || r2 === -1 || c1 === -1 || c2 === -1) return []
+
+	const out: { rowId: string; colId: string }[] = []
+	for (let r = Math.min(r1, r2); r <= Math.max(r1, r2); r++) {
+		for (let c = Math.min(c1, c2); c <= Math.max(c1, c2); c++) {
+			out.push({ rowId: rows[r].id, colId: cols[c].id })
+		}
+	}
+	return out
+}

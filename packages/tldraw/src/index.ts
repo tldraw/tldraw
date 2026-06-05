@@ -241,7 +241,10 @@ export {
 	type NoteShapeUtilDisplayValues,
 } from './lib/shapes/note/NoteShapeUtil'
 export { TableShapeUtil } from './lib/shapes/table/TableShapeUtil'
-export { TableCellShapeUtil, type TableCellShapeOptions } from './lib/shapes/table/TableCellShapeUtil'
+export {
+	TableCellShapeUtil,
+	type TableCellShapeOptions,
+} from './lib/shapes/table/TableCellShapeUtil'
 export { TableShapeTool } from './lib/shapes/table/TableShapeTool'
 export {
 	textCellKind,
@@ -253,6 +256,7 @@ export {
 	diffTableStructure,
 	getCellAtPoint,
 	getCellKey,
+	getCellsInRange,
 	getTableLayout,
 	resolveCellStyle,
 	TABLE_CONSTANTS,
@@ -274,6 +278,7 @@ export {
 	drillSelectCell,
 	findOrCreateCell,
 	getCellText,
+	getRangeAnchorCell,
 	getTableCells,
 	getTableData,
 	insertColumn,
@@ -281,6 +286,7 @@ export {
 	isCellEmpty,
 	navigateCell,
 	reconcileTable,
+	selectCellRange,
 	selectColumn,
 	selectRow,
 	setCellText,

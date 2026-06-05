@@ -4,6 +4,7 @@ import {
 	diffTableStructure,
 	getCellAtPoint,
 	getCellKey,
+	getCellsInRange,
 	getTableLayout,
 	isCellStyleDefault,
 	resolveCellStyle,
@@ -94,6 +95,28 @@ describe('core/layout', () => {
 			getTableLayout(makeTable({ rows: [{ id: 'r0', height: 200, manualHeight: 120 }] })).rows[0]
 				.height
 		).toBe(200)
+	})
+
+	it('lists the cells in a rectangular range, order-independent and by id', () => {
+		const t = makeTable() // 3x3: c0,c1,c2 / r0,r1,r2
+		const range = getCellsInRange(t, { rowId: 'r0', colId: 'c0' }, { rowId: 'r1', colId: 'c1' })
+		expect(range).toEqual([
+			{ rowId: 'r0', colId: 'c0' },
+			{ rowId: 'r0', colId: 'c1' },
+			{ rowId: 'r1', colId: 'c0' },
+			{ rowId: 'r1', colId: 'c1' },
+		])
+		// reversed corners give the same block
+		expect(getCellsInRange(t, { rowId: 'r1', colId: 'c1' }, { rowId: 'r0', colId: 'c0' })).toEqual(
+			range
+		)
+		// a single cell is a 1x1 range; an unknown corner is empty
+		expect(getCellsInRange(t, { rowId: 'r2', colId: 'c2' }, { rowId: 'r2', colId: 'c2' })).toEqual([
+			{ rowId: 'r2', colId: 'c2' },
+		])
+		expect(
+			getCellsInRange(t, { rowId: 'nope', colId: 'c0' }, { rowId: 'r0', colId: 'c0' })
+		).toEqual([])
 	})
 
 	it('hit-tests a point to its cell', () => {

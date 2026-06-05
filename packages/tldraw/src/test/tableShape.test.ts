@@ -7,12 +7,14 @@ import {
 	deleteColumn,
 	deleteRow,
 	findOrCreateCell,
+	getRangeAnchorCell,
 	getTableCells,
 	getTableData,
 	insertColumn,
 	insertRow,
 	isCellEmpty,
 	navigateCell,
+	selectCellRange,
 	selectRow,
 	setCellText,
 	setRowHeight,
@@ -176,6 +178,28 @@ describe('selection and navigation', () => {
 		expect(
 			tabNavigateCell(editor, editor.getShape(at(2, 2)) as TLTableCellShape, 'next')
 		).toBeNull()
+	})
+
+	it('selectCellRange selects a materialised block, with the anchor at its top-left', () => {
+		const t = makeTable() // 3x3
+		const tt = fresh(t.id)
+		// select a single cell, then extend the range to the opposite corner
+		const start = findOrCreateCell(editor, tt, tt.props.rows[0].id, tt.props.cols[0].id)
+		editor.select(start)
+		const anchor = getRangeAnchorCell(editor, fresh(t.id))
+		expect(anchor).toEqual({ rowId: tt.props.rows[0].id, colId: tt.props.cols[0].id })
+
+		selectCellRange(editor, fresh(t.id), anchor!, {
+			rowId: tt.props.rows[1].id,
+			colId: tt.props.cols[1].id,
+		})
+		const selected = editor.getSelectedShapes()
+		expect(selected).toHaveLength(4)
+		expect(selected.every((s) => s.type === 'table-cell')).toBe(true)
+
+		// the block is bulk-clearable: deleting the selection removes those cells
+		editor.deleteShapes(editor.getSelectedShapeIds())
+		expect(getTableCells(editor, t.id).size).toBe(0)
 	})
 
 	it('navigateCell moves the selection to the adjacent cell', () => {
