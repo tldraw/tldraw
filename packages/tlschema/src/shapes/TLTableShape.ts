@@ -27,16 +27,18 @@ export interface TLTableShapeColumn {
 }
 
 /**
- * A row in a table shape. The `id` is a stable identifier. Row heights are
- * recomputed from cell content (auto-height) and stored here so every client
- * reads the same value; `height`, when set, is the resolved row height. A manual
- * drag sets it as a *minimum* the row can still grow beyond.
+ * A row in a table shape. The `id` is a stable identifier. `height` is the row's
+ * content-measured auto-height, recomputed from its cells and stored so every
+ * client reads the same value. `manualHeight`, when set, is a user-dragged floor:
+ * the row is at least this tall but still grows past it to fit taller content. The
+ * rendered height is `max(height, manualHeight)`.
  *
  * @public
  */
 export interface TLTableShapeRow {
 	id: string
 	height?: number
+	manualHeight?: number
 }
 
 /**
@@ -102,7 +104,13 @@ export type TLTableShape = TLBaseShape<'table', TLTableShapeProps>
  */
 export const tableShapeProps: RecordProps<TLTableShape> = {
 	cols: T.arrayOf(T.object({ id: T.string, width: T.positiveNumber })),
-	rows: T.arrayOf(T.object({ id: T.string, height: T.positiveNumber.optional() })),
+	rows: T.arrayOf(
+		T.object({
+			id: T.string,
+			height: T.positiveNumber.optional(),
+			manualHeight: T.positiveNumber.optional(),
+		})
+	),
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
 	font: DefaultFontStyle,

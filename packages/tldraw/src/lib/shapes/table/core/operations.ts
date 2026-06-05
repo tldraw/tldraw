@@ -89,7 +89,9 @@ export function withColumnWidth(
 }
 
 /**
- * Set a row's stored (minimum) height. Returns a new rows array.
+ * Set a row's manual height — the user-dragged floor the row won't shrink below
+ * (it still grows past it to fit taller content). Clamped to the row-height floor.
+ * Returns a new rows array.
  *
  * @public
  */
@@ -100,6 +102,9 @@ export function withRowHeight(
 ): TLTableShapeRow[] {
 	if (atIndex < 0 || atIndex >= rows.length) return rows
 	const next = rows.slice()
-	next[atIndex] = { ...next[atIndex], height: Math.max(TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT, height) }
+	next[atIndex] = {
+		...next[atIndex],
+		manualHeight: Math.max(TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT, height),
+	}
 	return next
 }

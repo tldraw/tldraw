@@ -84,6 +84,18 @@ describe('core/layout', () => {
 		expect(layout.rows[0].height).toBe(TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT)
 	})
 
+	it('a manual height is a floor that taller content still overrides', () => {
+		// manual floor above the measured content
+		expect(
+			getTableLayout(makeTable({ rows: [{ id: 'r0', manualHeight: 120 }] })).rows[0].height
+		).toBe(120)
+		// content taller than the manual floor wins
+		expect(
+			getTableLayout(makeTable({ rows: [{ id: 'r0', height: 200, manualHeight: 120 }] })).rows[0]
+				.height
+		).toBe(200)
+	})
+
 	it('hit-tests a point to its cell', () => {
 		const layout = getTableLayout(makeTable())
 		expect(getCellAtPoint(layout, 130, 40)).toEqual({ rowId: 'r1', colId: 'c1' })
@@ -159,9 +171,12 @@ describe('core/operations', () => {
 		expect(cols[0].width).toBe(TABLE_CONSTANTS.MIN_COL_WIDTH)
 	})
 
-	it('clamps row height to the floor', () => {
+	it('sets a manual row height (clamped to the floor), leaving content height alone', () => {
 		const rows = withRowHeight(makeTable().props.rows, 0, 5)
-		expect(rows[0].height).toBe(TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT)
+		// manual height is the user-dragged floor, distinct from the measured content
+		expect(rows[0].manualHeight).toBe(TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT)
+		expect(rows[0].height).toBeUndefined()
+		expect(withRowHeight(makeTable().props.rows, 0, 200)[0].manualHeight).toBe(200)
 	})
 })
 

@@ -31,7 +31,10 @@ export function getTableLayout(table: TLTableShape): TableLayout {
 
 	let y = 0
 	const rows: TableRowLayout[] = table.props.rows.map((row, index) => {
-		const height = Math.max(DEFAULT_ROW_HEIGHT, row.height ?? DEFAULT_ROW_HEIGHT)
+		// The row is as tall as its content (`height`), but never shorter than a
+		// user-dragged floor (`manualHeight`) — so a manually heightened row keeps its
+		// size yet still grows to fit taller content.
+		const height = Math.max(DEFAULT_ROW_HEIGHT, row.height ?? 0, row.manualHeight ?? 0)
 		const layout: TableRowLayout = { id: row.id, index, y, height }
 		y += height
 		return layout

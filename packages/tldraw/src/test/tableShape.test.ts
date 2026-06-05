@@ -15,6 +15,7 @@ import {
 	navigateCell,
 	selectRow,
 	setCellText,
+	setRowHeight,
 	tabNavigateCell,
 } from '../lib/shapes/table/tableOperations'
 import { TestEditor } from './TestEditor'
@@ -72,6 +73,18 @@ describe('table shape', () => {
 		expect(grown).toBeGreaterThan(TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT)
 		// the height is stored (deterministic), not re-measured per read
 		expect(fresh(t.id).props.rows[0].height).toBe(grown)
+	})
+
+	it('manual row height pins a floor that content can still grow past', () => {
+		const t = makeTable()
+		setRowHeight(editor, fresh(t.id), 0, 120)
+		expect(getTableLayout(fresh(t.id)).rows[0].height).toBe(120)
+		// the floor pushes the next row down
+		expect(getTableLayout(fresh(t.id)).rows[1].y).toBe(120)
+		// taller content overrides the manual floor, and the floor persists on the record
+		setCellText(editor, t.id, 0, 0, 'one two three four five six seven eight '.repeat(4))
+		expect(getTableLayout(fresh(t.id)).rows[0].height).toBeGreaterThan(120)
+		expect(fresh(t.id).props.rows[0].manualHeight).toBe(120)
 	})
 
 	it('repositions later rows when an earlier row grows', () => {

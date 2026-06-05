@@ -145,6 +145,7 @@ const ARROW_DIRS: Record<string, 'left' | 'right' | 'up' | 'down'> = {
 }
 
 const COL_HANDLE_PREFIX = 'col-resize:'
+const ROW_HANDLE_PREFIX = 'row-resize:'
 
 /**
  * A table shape: a grid of cells holding editable rich text.
@@ -379,21 +380,34 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		}
 	}
 
-	// Interior column resize handles (the outer edges belong to the whole-table
-	// resize via the selection's corner/edge handles). Rows are auto-height, so they
-	// have no resize handle — they fit their content.
+	// Interior column- and row-resize handles, sitting on the boundaries between
+	// columns/rows. The outer edges belong to the whole-table resize (the selection's
+	// corner/edge handles), so the last column and last row are skipped. A row handle
+	// sets a manual height floor; the row still grows past it to fit taller content.
 	override getHandles(shape: TLTableShape): TLHandle[] {
 		const layout = getTableLayout(shape)
-		const indices = getIndices(layout.cols.length)
+		const colIndices = getIndices(layout.cols.length)
+		const rowIndices = getIndices(layout.rows.length)
 		const handles: TLHandle[] = []
 		layout.cols.forEach((col, i) => {
 			if (i === layout.cols.length - 1) return
 			handles.push({
 				id: `${COL_HANDLE_PREFIX}${col.id}`,
 				type: 'vertex',
-				index: indices[i],
+				index: colIndices[i],
 				x: col.x + col.width,
 				y: layout.height / 2,
+				canSnap: false,
+			})
+		})
+		layout.rows.forEach((row, i) => {
+			if (i === layout.rows.length - 1) return
+			handles.push({
+				id: `${ROW_HANDLE_PREFIX}${row.id}`,
+				type: 'vertex',
+				index: rowIndices[i],
+				x: layout.width / 2,
+				y: row.y + row.height,
 				canSnap: false,
 			})
 		})
@@ -404,14 +418,30 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		shape: TLTableShape,
 		{ handle }: TLHandleDragInfo<TLTableShape>
 	): TLShapePartial<TLTableShape> | void {
-		if (!handle.id.startsWith(COL_HANDLE_PREFIX)) return
 		const layout = getTableLayout(shape)
-		const colId = handle.id.slice(COL_HANDLE_PREFIX.length)
-		const colIndex = shape.props.cols.findIndex((c) => c.id === colId)
-		if (colIndex === -1) return
-		const newWidth = Math.max(TABLE_CONSTANTS.MIN_COL_WIDTH, handle.x - layout.cols[colIndex].x)
-		const cols = shape.props.cols.map((c, i) => (i === colIndex ? { ...c, width: newWidth } : c))
-		return { id: shape.id, type: shape.type, props: { cols } }
+		if (handle.id.startsWith(COL_HANDLE_PREFIX)) {
+			const colId = handle.id.slice(COL_HANDLE_PREFIX.length)
+			const colIndex = shape.props.cols.findIndex((c) => c.id === colId)
+			if (colIndex === -1) return
+			const newWidth = Math.max(TABLE_CONSTANTS.MIN_COL_WIDTH, handle.x - layout.cols[colIndex].x)
+			const cols = shape.props.cols.map((c, i) => (i === colIndex ? { ...c, width: newWidth } : c))
+			return { id: shape.id, type: shape.type, props: { cols } }
+		}
+		if (handle.id.startsWith(ROW_HANDLE_PREFIX)) {
+			const rowId = handle.id.slice(ROW_HANDLE_PREFIX.length)
+			const rowIndex = shape.props.rows.findIndex((r) => r.id === rowId)
+			if (rowIndex === -1) return
+			// Manual floor: the row won't go below content (the layout maxes the two),
+			// so dragging below content just clamps to content height.
+			const newHeight = Math.max(
+				TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT,
+				handle.y - layout.rows[rowIndex].y
+			)
+			const rows = shape.props.rows.map((r, i) =>
+				i === rowIndex ? { ...r, manualHeight: newHeight } : r
+			)
+			return { id: shape.id, type: shape.type, props: { rows } }
+		}
 	}
 
 	override getGeometry(shape: TLTableShape): Geometry2d {
