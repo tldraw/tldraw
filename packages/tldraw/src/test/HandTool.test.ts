@@ -19,17 +19,41 @@ afterEach(() => {
 vi.useFakeTimers()
 
 describe(HandTool, () => {
-	it('Uses one-finger zoom when coarse pointer double-taps and drags', () => {
+	it('Uses one-finger zoom when coarse pointer double-taps, holds, and drags', () => {
 		editor.setCurrentTool('hand')
 		editor.updateInstanceState({ isCoarsePointer: true })
 
+		// Double-tap, holding the second press down.
 		editor.pointerDown(0, 0).pointerUp(0, 0)
 		editor.pointerDown(0, 0)
+		// On the second press we're still just pointing — the zoom hasn't started yet.
+		editor.expectToBeIn('hand.pointing')
+
+		// One-finger zoom begins when the multi-click timer settles with the pointer
+		// still held down (the `settle-down` phase).
+		vi.advanceTimersByTime(editor.options.multiClickDurationMs)
 		editor.expectToBeIn('hand.one_finger_zooming')
 
 		const before = editor.getCamera().z
 		editor.pointerMove(0, 100).pointerUp(0, 100).forceTick()
 		expect(editor.getCamera().z).toBeGreaterThan(before)
+	})
+
+	it('Zooms in (not one-finger zoom) when a coarse pointer double-taps and releases', () => {
+		editor.setCurrentTool('hand')
+		editor.updateInstanceState({ isCoarsePointer: true })
+
+		// Double-tap and release the second press before the timer settles.
+		editor.pointerDown(0, 0).pointerUp(0, 0)
+		editor.pointerDown(0, 0).pointerUp(0, 0)
+		// Releasing means we never enter the one-finger zoom drag state.
+		editor.expectToBeIn('hand.idle')
+
+		// The `settle-up` phase zooms in by one step.
+		const before = editor.getZoomLevel()
+		vi.advanceTimersByTime(editor.options.multiClickDurationMs)
+		vi.advanceTimersByTime(600) // let the zoom animation finish
+		expect(editor.getZoomLevel()).toBeGreaterThan(before)
 	})
 
 	it('Double taps to zoom in', () => {

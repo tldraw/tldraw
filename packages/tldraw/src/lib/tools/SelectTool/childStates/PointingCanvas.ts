@@ -1,4 +1,4 @@
-import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 
 export class PointingCanvas extends StateNode {
