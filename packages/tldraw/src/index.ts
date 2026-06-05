@@ -286,6 +286,7 @@ export {
 	setCellText,
 	setColumnWidth,
 	setRowHeight,
+	tabNavigateCell,
 } from './lib/shapes/table/tableOperations'
 export { reflowRowHeights } from './lib/shapes/table/reflow'
 export {
