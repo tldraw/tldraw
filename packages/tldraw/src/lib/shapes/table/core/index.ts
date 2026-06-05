@@ -17,4 +17,4 @@ export {
 	withRowRemoved,
 } from './operations'
 export { buildGrid } from './serialization'
-export { resolveCellStyle, type ResolvedCellStyle } from './style'
+export { isCellStyleDefault, resolveCellStyle, type ResolvedCellStyle } from './style'

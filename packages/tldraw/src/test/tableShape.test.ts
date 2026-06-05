@@ -5,10 +5,12 @@ import { TableCellShapeUtil } from '../lib/shapes/table/TableCellShapeUtil'
 import {
 	deleteColumn,
 	deleteRow,
+	findOrCreateCell,
 	getTableCells,
 	getTableData,
 	insertColumn,
 	insertRow,
+	isCellEmpty,
 	navigateCell,
 	selectRow,
 	setCellText,
@@ -119,6 +121,18 @@ describe('selection and navigation', () => {
 		const selected = editor.getSelectedShapes()
 		expect(selected).toHaveLength(3)
 		expect(selected.every((s) => s.type === 'table-cell')).toBe(true)
+	})
+
+	it('isCellEmpty drops an unstyled blank cell but keeps a styled one', () => {
+		const t = makeTable()
+		const tt = fresh(t.id)
+		// findOrCreateCell initialises a blank cell with the resolved default style
+		const id = findOrCreateCell(editor, tt, tt.props.rows[0].id, tt.props.cols[0].id)
+		// unstyled blank → collectable
+		expect(isCellEmpty(editor, editor.getShape(id) as TLTableCellShape)).toBe(true)
+		// a deliberate per-cell style (still blank text) → kept
+		editor.updateShape({ id, type: 'table-cell', props: { color: 'blue' } })
+		expect(isCellEmpty(editor, editor.getShape(id) as TLTableCellShape)).toBe(false)
 	})
 
 	it('navigateCell moves the selection to the adjacent cell', () => {

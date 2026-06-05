@@ -73,9 +73,13 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		this.reflowHandlerRegistered = true
 		const { editor } = this
 
-		const reflowParentOf = (cell: TLShape) => {
+		// Re-measure only the cell's own row — a content edit can't change another
+		// row's height, so we avoid re-measuring the whole table on every keystroke.
+		const reflowParentOf = (cell: TLTableCellShape) => {
 			const table = editor.getShape(cell.parentId)
-			if (table?.type === 'table') reflowRowHeights(editor, table as TLTableShape)
+			if (table?.type === 'table') {
+				reflowRowHeights(editor, table as TLTableShape, new Set([cell.props.rowId]))
+			}
 		}
 
 		// Skeleton changes reposition cells; cell content changes re-measure heights.
@@ -83,7 +87,12 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 			if (next.type === 'table') {
 				const p = prev as TLTableShape
 				const n = next as TLTableShape
-				if (p.props.cols !== n.props.cols || p.props.rows !== n.props.rows) {
+				if (p.props.cols !== n.props.cols) {
+					// Column add/remove/resize changes wrapping in every row → re-measure
+					// all rows, then reposition cells with the new widths and heights.
+					reflowRowHeights(editor, n)
+					reconcileTable(editor, editor.getShape(n.id) as TLTableShape)
+				} else if (p.props.rows !== n.props.rows) {
 					reconcileTable(editor, n)
 				}
 			} else if (next.type === 'table-cell') {
@@ -101,10 +110,10 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 		})
 		// Creating/deleting a cell can change its row's height.
 		editor.sideEffects.registerAfterCreateHandler('shape', (shape) => {
-			if (shape.type === 'table-cell') reflowParentOf(shape)
+			if (shape.type === 'table-cell') reflowParentOf(shape as TLTableCellShape)
 		})
 		editor.sideEffects.registerAfterDeleteHandler('shape', (shape) => {
-			if (shape.type === 'table-cell') reflowParentOf(shape)
+			if (shape.type === 'table-cell') reflowParentOf(shape as TLTableCellShape)
 		})
 
 		// When a cell is deselected without gaining content, drop it so clicking
@@ -128,29 +137,31 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 
 		// Arrow-key navigation between cells. Capture phase so it runs before the
 		// default nudge. Never hijacks arrows while a text field is focused, so the
-		// caret can move within a cell being edited.
-		editor.getContainer().addEventListener(
-			'keydown',
-			(e) => {
-				if (editor.getEditingShapeId() || e.metaKey || e.ctrlKey || e.altKey) return
-				const active = editor.getContainer().ownerDocument.activeElement
-				if (
-					active instanceof HTMLElement &&
-					(active.isContentEditable || active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
-				) {
-					return
-				}
-				const dir = ARROW_DIRS[e.key]
-				if (!dir) return
-				const ids = editor.getSelectedShapeIds()
-				if (ids.length !== 1) return
-				const cell = editor.getShape(ids[0])
-				if (!cell || cell.type !== 'table-cell') return
-				e.preventDefault()
-				e.stopPropagation()
-				navigateCell(editor, cell as TLTableCellShape, dir)
-			},
-			{ capture: true }
+		// caret can move within a cell being edited. Registered with cleanup so it's
+		// removed when the editor is disposed.
+		const container = editor.getContainer()
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (editor.getEditingShapeId() || e.metaKey || e.ctrlKey || e.altKey) return
+			const active = container.ownerDocument.activeElement
+			if (
+				active instanceof HTMLElement &&
+				(active.isContentEditable || active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')
+			) {
+				return
+			}
+			const dir = ARROW_DIRS[e.key]
+			if (!dir) return
+			const ids = editor.getSelectedShapeIds()
+			if (ids.length !== 1) return
+			const cell = editor.getShape(ids[0])
+			if (!cell || cell.type !== 'table-cell') return
+			e.preventDefault()
+			e.stopPropagation()
+			navigateCell(editor, cell as TLTableCellShape, dir)
+		}
+		container.addEventListener('keydown', onKeyDown, { capture: true })
+		editor.disposables.add(() =>
+			container.removeEventListener('keydown', onKeyDown, { capture: true })
 		)
 	}
 

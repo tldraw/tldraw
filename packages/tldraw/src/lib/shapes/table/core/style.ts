@@ -66,3 +66,29 @@ export function resolveCellStyle(
 		verticalAlign: p.verticalAlign,
 	}
 }
+
+/**
+ * Whether a cell carries no styling of its own — i.e. its style equals the resolved
+ * default for its position (table defaults, plus header shading for header cells).
+ * Used to decide whether a blank cell is just an unstyled placeholder (collectable)
+ * or carries deliberate styling worth keeping (e.g. a styled-but-empty row). Pure.
+ *
+ * @public
+ */
+export function isCellStyleDefault(
+	table: TLTableShape,
+	rowIndex: number,
+	colIndex: number,
+	cell: TLTableCellShape
+): boolean {
+	const def = resolveCellStyle(table, rowIndex, colIndex)
+	const p = cell.props
+	return (
+		p.color === def.color &&
+		p.fill === def.fill &&
+		p.font === def.font &&
+		p.size === def.size &&
+		p.align === def.align &&
+		p.verticalAlign === def.verticalAlign
+	)
+}

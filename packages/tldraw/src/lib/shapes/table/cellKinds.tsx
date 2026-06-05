@@ -11,7 +11,7 @@ import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/r
 import { renderHtmlFromRichTextForMeasurement } from '../../utils/text/richText'
 import { LABEL_FONT_SIZES, TEXT_PROPS, getFontFamily } from '../shared/default-shape-constants'
 import { RichTextLabel } from '../shared/RichTextLabel'
-import { TABLE_CONSTANTS, getCellAtPoint, getTableLayout } from './core'
+import { TABLE_CONSTANTS, getCellAtPoint, getTableLayout, isCellStyleDefault } from './core'
 
 const { CELL_PADDING } = TABLE_CONSTANTS
 
@@ -67,11 +67,19 @@ export const textCellKind: TLTableCellKind = {
 	type: 'text',
 	Component: TextCell,
 	getText: (editor, cell) => renderPlaintextFromRichText(editor, cell.props.richText),
-	// Empty = no text and no visible styling. A background fill is visible on an
-	// empty cell (e.g. a styled-but-empty header or row), so it's kept; truly blank
-	// cells (created by clicking around, or materialised for a row selection and not
-	// styled) are collectable.
-	isEmpty: (_editor, cell) => isEmptyRichText(cell.props.richText) && cell.props.fill === 'none',
+	// Empty = no text and no styling of its own. A cell whose style differs from the
+	// resolved default for its position carries deliberate styling (e.g. a row you
+	// selected and made bold/red, or gave a fill) and is kept; an unstyled blank cell
+	// (clicked around, or materialised for a row selection and left as-is) is collectable.
+	isEmpty: (editor, cell) => {
+		if (!isEmptyRichText(cell.props.richText)) return false
+		const table = editor.getShape(cell.parentId)
+		if (table?.type !== 'table') return true
+		const t = table as TLTableShape
+		const rowIndex = t.props.rows.findIndex((r) => r.id === cell.props.rowId)
+		const colIndex = t.props.cols.findIndex((c) => c.id === cell.props.colId)
+		return isCellStyleDefault(t, rowIndex, colIndex, cell)
+	},
 	measure: (editor, cell, width) => {
 		if (isEmptyRichText(cell.props.richText)) return TABLE_CONSTANTS.DEFAULT_ROW_HEIGHT
 		const theme = editor.getCurrentTheme()

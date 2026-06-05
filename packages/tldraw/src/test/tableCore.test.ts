@@ -5,6 +5,7 @@ import {
 	getCellAtPoint,
 	getCellKey,
 	getTableLayout,
+	isCellStyleDefault,
 	resolveCellStyle,
 	TABLE_CONSTANTS,
 	withColumnInserted,
@@ -111,6 +112,24 @@ describe('core/style', () => {
 	it('a non-header empty cell uses the table defaults', () => {
 		const style = resolveCellStyle(makeTable({ font: 'mono', size: 's' }), 1, 1)
 		expect(style).toMatchObject({ color: 'black', fill: 'none', font: 'mono', size: 's' })
+	})
+
+	it('isCellStyleDefault detects deliberate styling vs the position default', () => {
+		const table = makeTable()
+		// a cell matching the table defaults is "default" (collectable when blank)
+		const plain = makeCell({
+			color: 'black',
+			fill: 'none',
+			font: 'draw',
+			size: 'm',
+			align: 'start',
+			verticalAlign: 'middle',
+		})
+		expect(isCellStyleDefault(table, 1, 1, plain)).toBe(true)
+		// any deviation marks it as deliberately styled
+		expect(isCellStyleDefault(table, 1, 1, makeCell({ ...plain.props, color: 'blue' }))).toBe(false)
+		// header default is shaded → a plain (fill:none) cell in a header is NOT default
+		expect(isCellStyleDefault(makeTable({ headerRows: 1 }), 0, 0, plain)).toBe(false)
 	})
 })
 
