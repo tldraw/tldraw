@@ -269,7 +269,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 										{member.userName}
 										{member.userId === app.getUser().id ? ` (${youMsg})` : ''}
 									</span>
-									{isOwner && member.userId !== app.getUser().id ? (
+									{isOwner && (member.userId !== app.getUser().id || ownersCount > 1) ? (
 										<MemberRoleSelect
 											value={member.role}
 											disabled={member.role === 'owner' && ownersCount <= 1}
