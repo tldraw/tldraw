@@ -152,11 +152,6 @@
 	font-weight: 500;
 }
 
-.clerkCaptcha:not(:empty) {
-	padding: var(--tl-space-8);
-	margin-top: calc(-1 * var(--tl-space-8));
-}
-
 .authTermsOfUse {
 	font-size: 12px;
 	color: var(--tl-color-text-2);

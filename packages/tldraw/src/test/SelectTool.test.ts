@@ -1,5 +1,6 @@
 import { IndexKey, ShapeUtil, TLFrameShape, createShapeId, toRichText } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { defaultHandleExternalTldrawContent } from '../lib/defaultExternalContentHandlers'
 import { defaultOverlayUtils } from '../lib/defaultOverlayUtils'
 import { TestEditor } from './TestEditor'
 
@@ -258,6 +259,140 @@ describe('DraggingHandle', () => {
 		editor.expectToBeIn('select.dragging_handle')
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
+	})
+})
+
+describe('Pasting during an interaction', () => {
+	// Regression for #8305: pasting tldraw content mid-interaction should not
+	// steal the selection from the shape being manipulated. The paste handler
+	// leaves the selection alone while dragging/translating/resizing/rotating,
+	// so the interacted shape stays selected (and an arrow's binding hint stays
+	// visible) without needing the tool to reselect on completion.
+
+	it('does not steal selection while dragging an arrow handle, keeping the binding hint visible', async () => {
+		const overlayEditor = new TestEditor({ overlayUtils: defaultOverlayUtils })
+		const arrowId = createShapeId('hintArrow')
+		const targetId = createShapeId('hintTarget')
+		const clipboardId = createShapeId('hintClipboard')
+		overlayEditor.createShapes([
+			{ id: targetId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			{ id: clipboardId, type: 'geo', x: 400, y: 400, props: { w: 50, h: 50 } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 150,
+				y: 150,
+				props: { start: { x: 0, y: 0 }, end: { x: 120, y: 0 } },
+			},
+		])
+		// Bind the arrow's start to the target so a binding survives an end-handle drag.
+		overlayEditor.createBindings([
+			{
+				fromId: arrowId,
+				toId: targetId,
+				type: 'arrow',
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+		])
+
+		// Snapshot a shape to paste through the real external-content path.
+		const content = overlayEditor.getContentFromCurrentPage([clipboardId])!
+
+		const hasBindingHint = () =>
+			overlayEditor.overlays.getCurrentOverlays().some((o) => o.type === 'arrow_binding_hint')
+
+		const arrow = overlayEditor.getShape(arrowId)!
+		const endHandle = overlayEditor.getShapeHandles(arrow)!.find((h) => h.id === 'end')!
+
+		overlayEditor.select(arrowId)
+		overlayEditor.pointerDown(arrow.x + endHandle.x, arrow.y + endHandle.y, {
+			target: 'handle',
+			shape: arrow,
+			handle: endHandle,
+		})
+		overlayEditor.pointerMove(arrow.x + endHandle.x + 20, arrow.y + endHandle.y)
+		overlayEditor.expectToBeIn('select.dragging_handle')
+		expect(hasBindingHint()).toBe(true)
+
+		// Paste a shape mid-drag.
+		const countBefore = overlayEditor.getCurrentPageShapes().length
+		await defaultHandleExternalTldrawContent(overlayEditor, { content })
+		expect(overlayEditor.getCurrentPageShapes().length).toBeGreaterThan(countBefore)
+
+		// Selection is left alone, so the arrow stays selected and the hint stays up.
+		expect(overlayEditor.getOnlySelectedShapeId()).toBe(arrowId)
+		expect(hasBindingHint()).toBe(true)
+
+		overlayEditor.pointerUp()
+		expect(overlayEditor.getSelectedShapeIds()).toEqual([arrowId])
+	})
+
+	it('does not steal selection while translating a shape', async () => {
+		const content = editor.getContentFromCurrentPage([ids.box1])!
+
+		editor.select(ids.box1)
+		editor.pointerDown(150, 150, { target: 'shape', shape: editor.getShape(ids.box1)! })
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.translating')
+
+		const countBefore = editor.getCurrentPageShapes().length
+		await defaultHandleExternalTldrawContent(editor, { content })
+		expect(editor.getCurrentPageShapes().length).toBeGreaterThan(countBefore)
+		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
+
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+	})
+
+	it('does not steal selection while resizing a shape', async () => {
+		const content = editor.getContentFromCurrentPage([ids.box1])!
+
+		editor.select(ids.box1)
+		editor.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.resizing')
+
+		const countBefore = editor.getCurrentPageShapes().length
+		await defaultHandleExternalTldrawContent(editor, { content })
+		expect(editor.getCurrentPageShapes().length).toBeGreaterThan(countBefore)
+		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
+
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+	})
+
+	it('does not flash the selection (isChangingStyle) while mid-interaction', async () => {
+		const content = editor.getContentFromCurrentPage([ids.box1])!
+
+		editor.select(ids.box1)
+		editor.pointerDown(150, 150, { target: 'shape', shape: editor.getShape(ids.box1)! })
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.translating')
+
+		// The paste flash's overlap check compares the selection bounds before
+		// and after paste. Mid-interaction we don't reselect, so those bounds
+		// are identical and the check would always pass — isChangingStyle must
+		// stay false.
+		await defaultHandleExternalTldrawContent(editor, { content })
+		expect(editor.getInstanceState().isChangingStyle).toBe(false)
+	})
+
+	it('still selects pasted content when not mid-interaction', async () => {
+		const content = editor.getContentFromCurrentPage([ids.box1])!
+
+		editor.selectNone()
+		editor.expectToBeIn('select.idle')
+
+		await defaultHandleExternalTldrawContent(editor, { content })
+
+		const selected = editor.getOnlySelectedShapeId()
+		expect(selected).not.toBeNull()
+		expect(selected).not.toBe(ids.box1)
 	})
 })
 

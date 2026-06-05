@@ -24,7 +24,7 @@ export class Sidebar {
 		this.helpMenu = this.page.getByTestId('tla-sidebar-help-menu-trigger')
 		this.themeButton = this.page.getByTestId('dialog-sub.help menu color-scheme-button')
 		this.darkModeButton = this.page.getByText('Dark')
-		this.signOutButton = this.page.getByText('Sign out')
+		this.signOutButton = this.page.getByTestId('dialog.sign-out')
 	}
 
 	async isVisible() {
@@ -62,6 +62,8 @@ export class Sidebar {
 	async openUserSettingsMenu() {
 		await this.userSettingsMenu.hover()
 		await this.userSettingsMenu.click()
+		// Wait for the dropdown content to mount before child-item clicks race the open animation.
+		await expect(this.page.getByRole('menu')).toBeVisible()
 	}
 
 	@step

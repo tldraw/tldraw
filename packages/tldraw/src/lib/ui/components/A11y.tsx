@@ -134,7 +134,7 @@ export function generateShapeAnnouncementMessage(args: {
 }
 
 /** @public */
-export const useSelectedShapesAnnouncer = () => {
+export function useSelectedShapesAnnouncer() {
 	const editor = useMaybeEditor()
 	const a11y = useA11y()
 	const msg = useTranslation()

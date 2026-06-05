@@ -349,11 +349,11 @@ export function OverflowingToolbar({
 	)
 }
 
-export const isActiveTLUiToolItem = (
+export function isActiveTLUiToolItem(
 	item: TLUiToolItem,
 	activeToolId: string | undefined,
 	geoState: string | null | undefined
-) => {
+) {
 	return item.meta?.geo
 		? activeToolId === 'geo' && geoState === item.meta?.geo
 		: activeToolId === item.id

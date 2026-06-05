@@ -661,7 +661,7 @@ test.describe('Shape Navigation', () => {
 
 		// Select both shapes
 		await page.keyboard.press('v')
-		await page.mouse.click(310, 50)
+		await page.mouse.move(310, 50)
 		await page.mouse.down()
 		await page.mouse.move(310, 50)
 		await page.mouse.move(700, 500)

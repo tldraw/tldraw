@@ -26,15 +26,13 @@ import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 
 const PAGE_MENU_LIST_HEIGHT_KEY = 'tldraw_page_menu_list_height'
-const MIN_PAGE_MENU_LIST_HEIGHT = 54
 const MAX_PAGE_MENU_RENDER_HEIGHT = 800
-// Bottom padding included in the absolutely-positioned content stack — so the
-// auto-fit list height should mirror it.
-const PAGE_MENU_LIST_CONTENT_BOTTOM_PADDING = 4
+const LIST_BOTTOM_PADDING = 4
 const MAX_PAGE_MENU_AVAILABLE_HEIGHT_RATIO = 0.62
 const PAGE_MENU_CREATE_BUTTON_HEIGHT = 40
-const PAGE_MENU_RESIZE_HANDLE_HEIGHT = 7
+const PAGE_MENU_RESIZE_HANDLE_HEIGHT = 1
 const PAGE_MENU_ITEM_HEIGHT = 36
+const MIN_PAGE_MENU_LIST_HEIGHT = PAGE_MENU_ITEM_HEIGHT + LIST_BOTTOM_PADDING
 const PAGE_MENU_DRAG_THRESHOLD = 5
 const PAGE_MENU_AUTO_SCROLL_ZONE = 16
 const PAGE_MENU_AUTO_SCROLL_RAMP_DISTANCE = 48
@@ -53,15 +51,20 @@ function readSavedPageMenuListHeight(): number | null {
 	}
 }
 
-function getPageMenuRenderCap(availableHeight: number, hasFooter: boolean): number {
+function getPageMenuRenderCap(availableHeight: number): number {
 	const maxMenuHeight = Math.min(
 		MAX_PAGE_MENU_RENDER_HEIGHT,
 		availableHeight * MAX_PAGE_MENU_AVAILABLE_HEIGHT_RATIO
 	)
-	const footerHeight = hasFooter
-		? PAGE_MENU_CREATE_BUTTON_HEIGHT + PAGE_MENU_RESIZE_HANDLE_HEIGHT
-		: 0
+	const footerHeight = PAGE_MENU_CREATE_BUTTON_HEIGHT + PAGE_MENU_RESIZE_HANDLE_HEIGHT
 	return Math.max(MIN_PAGE_MENU_LIST_HEIGHT, maxMenuHeight - footerHeight)
+}
+
+function getPageMenuAutoFitListHeight(pageCount: number): number {
+	return Math.max(
+		MIN_PAGE_MENU_LIST_HEIGHT,
+		pageCount * PAGE_MENU_ITEM_HEIGHT + LIST_BOTTOM_PADDING
+	)
 }
 
 /** @public @react */
@@ -149,10 +152,13 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		editor.timers.requestAnimationFrame(updateAvailableHeight)
 	}, [editor, isOpen, updateAvailableHeight])
 
-	const renderCap = getPageMenuRenderCap(availableHeight, !isReadonlyMode)
-	const autoFitListHeight =
-		pages.length * PAGE_MENU_ITEM_HEIGHT + PAGE_MENU_LIST_CONTENT_BOTTOM_PADDING
+	const renderCap = getPageMenuRenderCap(availableHeight)
+	const autoFitListHeight = getPageMenuAutoFitListHeight(pages.length)
 	const renderedListHeight = Math.min(userListHeight ?? autoFitListHeight, renderCap)
+	const hasReachedMaxPages = pages.length >= editor.options.maxPages
+	const createPageButtonLabel = msg(
+		hasReachedMaxPages ? 'page-menu.max-pages-reached' : 'page-menu.create-new-page'
+	)
 
 	const handleResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
 		e.preventDefault()
@@ -537,7 +543,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						<div
 							className="tlui-page-menu__list__content"
 							data-dragging={dragState !== null}
-							style={{ height: PAGE_MENU_ITEM_HEIGHT * pages.length + 4 }}
+							style={{ height: autoFitListHeight }}
 						>
 							{pages.map((page, index) => {
 								const isCurrentPage = page.id === currentPage.id
@@ -678,20 +684,18 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						aria-orientation="horizontal"
 						aria-label={msg('page-menu.resize')}
 					/>
-					{!isReadonlyMode && (
-						<TldrawUiButton
-							type="menu"
-							className="tlui-page-menu__create-button"
-							data-testid="page-menu.create"
-							tooltip={msg('page-menu.create-new-page')}
-							title={msg('page-menu.create-new-page')}
-							disabled={pages.length >= editor.options.maxPages}
-							onClick={handleCreatePageClick}
-						>
-							<TldrawUiButtonLabel>{msg('page-menu.create-new-page')}</TldrawUiButtonLabel>
-							<TldrawUiButtonIcon icon="plus" small />
-						</TldrawUiButton>
-					)}
+					<TldrawUiButton
+						type="menu"
+						className="tlui-page-menu__create-button"
+						data-testid="page-menu.create"
+						tooltip={createPageButtonLabel}
+						title={createPageButtonLabel}
+						disabled={isReadonlyMode || hasReachedMaxPages}
+						onClick={handleCreatePageClick}
+					>
+						<TldrawUiButtonLabel>{createPageButtonLabel}</TldrawUiButtonLabel>
+						{!hasReachedMaxPages && <TldrawUiButtonIcon icon="plus" small />}
+					</TldrawUiButton>
 				</div>
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>

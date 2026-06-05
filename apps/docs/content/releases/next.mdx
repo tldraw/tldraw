@@ -5,10 +5,10 @@ author: tldraw
 date: 05/06/2026
 order: 0
 status: published
-last_version: v5.0.1
+last_version: v5.0.2
 ---
 
-This release redesigns the page menu around inline interaction, adds a `selectLockedShapes` option for inspecting locked shapes, and fixes a misleading "expired" banner for perpetual licenses, along with other UI and licensing bug fixes.
+This release redesigns the page menu around inline interaction, adds a keyboard shortcut to copy styles from a hovered shape, and adds a `selectLockedShapes` option for inspecting locked shapes, along with new public translation APIs, canvas performance improvements, and various rendering and UI bug fixes.
 
 ## What's new
 
@@ -19,10 +19,23 @@ The page menu no longer has an explicit edit mode. Reorder pages by dragging a r
 ## API changes
 
 - Add a `selectLockedShapes` option to `TldrawOptions`. When enabled, locked shapes can be selected by left click or by brush/scribble selection while remaining protected from edits, moves, and deletes. ([#8860](https://github.com/tldraw/tldraw/pull/8860))
+- Export `TldrawUiTranslationProvider`, `AssetUrlsProvider`, and `useAssetUrls` as public API so components like `TldrawSelectionForeground` can be rendered without the full `TldrawUiContextProvider`. ([#8909](https://github.com/tldraw/tldraw/pull/8909))
+- Add `FontManager.dispose()`, `OverlayManager.dispose()`, and `OverlayUtil.dispose()` for cleaning up manager state across editor lifecycles. ([#8896](https://github.com/tldraw/tldraw/pull/8896))
+
+## Improvements
+
+- Add a `q` shortcut that copies the styles of the hovered shape and applies them to the next shape you create. ([#8917](https://github.com/tldraw/tldraw/pull/8917)) (contributed by [@kaneel](https://github.com/kaneel))
+- Improve performance on busy canvases — `getRenderingShapes()` now skips its sort step when only shape props, not the set of shape ids, have changed. ([#8784](https://github.com/tldraw/tldraw/pull/8784))
+- Improve drawing performance on pages with many shapes by skipping spatial index and culling recomputation when only shape props change. ([#8799](https://github.com/tldraw/tldraw/pull/8799), [#8804](https://github.com/tldraw/tldraw/pull/8804))
 
 ## Bug fixes
 
 - Fix a misleading "license expired" console warning for perpetual licenses on covered versions. ([#8791](https://github.com/tldraw/tldraw/pull/8791))
 - Fix inconsistent tooltip behavior on the video toolbar by using `TldrawUiToolbarButton` for the replace and download buttons. ([#8794](https://github.com/tldraw/tldraw/pull/8794))
 - Fix the missing open-state hint on the page menu and zoom menu triggers when rendered outside the main toolbar. ([#8813](https://github.com/tldraw/tldraw/pull/8813))
-- Mark the tldraw UI layer with `role="document"` so toolbars, menus, and dialogs stay reachable to mobile screen readers like VoiceOver and TalkBack, which do not announce the outer canvas `role="application"`. ([#8849](https://github.com/tldraw/tldraw/issues/8849))
+- Mark the tldraw UI layer with `role="document"` so toolbars, menus, and dialogs stay reachable to mobile screen readers like VoiceOver and TalkBack, which do not announce the outer canvas `role="application"`. ([#8901](https://github.com/tldraw/tldraw/pull/8901))
+- Fix selection edge resize handles overlapping corner handles, which made corners hard to grab on small shapes. ([#8926](https://github.com/tldraw/tldraw/pull/8926))
+- Fix a bug where deleting a shape inside a group could move the group to a different z-index. ([#8925](https://github.com/tldraw/tldraw/pull/8925)) (contributed by [@kaneel](https://github.com/kaneel))
+- Avoid console errors from calling `preventDefault` on non-cancelable events. ([#8910](https://github.com/tldraw/tldraw/pull/8910))
+- Only log the missing-translation warning once per session instead of once per `useTranslation` consumer. ([#8909](https://github.com/tldraw/tldraw/pull/8909))
+- Catch `image.decode()` rejections from the icon preload effect so they no longer surface as uncaught promise errors in the console. ([#8824](https://github.com/tldraw/tldraw/pull/8824))

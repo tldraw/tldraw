@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
@@ -44,6 +44,7 @@ import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-eve
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
+import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
 	CookieConsentMenuItem,
 	GiveUsFeedbackMenuItem,
@@ -106,9 +107,14 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 	return (
 		<>
-			<Link to="/" className={styles.topLeftOfflineLogo}>
+			<ExternalLink
+				to="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=top-left-logo"
+				eventName="top-left-logo-clicked"
+				aria-label="tldraw.dev"
+				className={styles.topLeftOfflineLogo}
+			>
 				<TlaLogo data-testid="tla-top-left-logo-icon" />
-			</Link>
+			</ExternalLink>
 			{anonFileName && (
 				<>
 					<span

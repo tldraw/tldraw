@@ -41,14 +41,14 @@ export interface TLUiContextualToolbarProps {
  *
  * @public @react
  */
-export const TldrawUiContextualToolbar = ({
+export function TldrawUiContextualToolbar({
 	children,
 	className,
 	isMousingDown,
 	getSelectionBounds,
 	changeOnlyWhenYChanges = false,
 	label,
-}: TLUiContextualToolbarProps) => {
+}: TLUiContextualToolbarProps) {
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
 

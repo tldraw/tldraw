@@ -54,6 +54,13 @@ jobs:
           TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') }}
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
+      # Earlier steps run before checkout, so re-fetch the local action on failure.
+      - name: Check out Discord notify action
+        if: failure()
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/actions/discord-fail-notify
+
       - name: Notify Discord on failure
         if: failure()
         uses: ./.github/actions/discord-fail-notify

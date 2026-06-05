@@ -64,12 +64,12 @@ describe('Handles events', () => {
 			expect(events[i]).toMatchObject(eventsBeforeSettle[i])
 		}
 
-		// allow double click to settle
+		// allow double click to settle as 'settle-up'
 		vi.advanceTimersByTime(500)
 
 		expect(events).toMatchObject([
 			...eventsBeforeSettle,
-			{ name: 'double_click', type: 'click', phase: 'settle' },
+			{ name: 'double_click', type: 'click', phase: 'settle-up' },
 		])
 
 		// clear events and click again
@@ -84,7 +84,28 @@ describe('Handles events', () => {
 		])
 	})
 
-	it('Emits triple click events', () => {
+	it('Emits settle-down when pointer is still pressed at settle time', () => {
+		const events: any[] = []
+		editor.addListener('event', (info) => events.push(info))
+
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown() // second press, no pointerUp — still down at settle time
+
+		vi.advanceTimersByTime(500)
+
+		// a long_press may also fire while holding; find the settle event by type
+		const settle = events.find(
+			(e) => e.type === 'click' && e.name === 'double_click' && e.phase?.startsWith('settle')
+		)
+		expect(settle).toMatchObject({
+			name: 'double_click',
+			type: 'click',
+			phase: 'settle-down',
+		})
+	})
+
+	it('Suppresses overflow clicks after a double click', () => {
 		const events: any[] = []
 		editor.addListener('event', (info) => events.push(info))
 
@@ -103,20 +124,15 @@ describe('Handles events', () => {
 			{ name: 'pointer_up' },
 			{ name: 'double_click', type: 'click', phase: 'up' },
 			{ name: 'pointer_down' },
-			{ name: 'triple_click', type: 'click', phase: 'down' },
 			{ name: 'pointer_up' },
-			{ name: 'triple_click', type: 'click', phase: 'up' },
 		]
 
-		expect(eventsBeforeSettle).toMatchObject(eventsBeforeSettle)
+		expect(events).toMatchObject(eventsBeforeSettle)
 
-		// allow double click to settle
+		// allow overflow to settle without emitting another click event
 		vi.advanceTimersByTime(500)
 
-		expect(events).toMatchObject([
-			...eventsBeforeSettle,
-			{ name: 'triple_click', type: 'click', phase: 'settle' },
-		])
+		expect(events).toMatchObject(eventsBeforeSettle)
 
 		// clear events and click again
 		// the interaction should have reset
@@ -130,7 +146,7 @@ describe('Handles events', () => {
 		])
 	})
 
-	it('Emits quadruple click events', () => {
+	it('Suppresses double-double clicks until overflow settles', () => {
 		const events: any[] = []
 		editor.addListener('event', (info) => events.push(info))
 
@@ -151,24 +167,17 @@ describe('Handles events', () => {
 			{ name: 'pointer_up' },
 			{ name: 'double_click', phase: 'up' },
 			{ name: 'pointer_down' },
-			{ name: 'triple_click', phase: 'down' },
 			{ name: 'pointer_up' },
-			{ name: 'triple_click', phase: 'up' },
 			{ name: 'pointer_down' },
-			{ name: 'quadruple_click', phase: 'down' },
 			{ name: 'pointer_up' },
-			{ name: 'quadruple_click', phase: 'up' },
 		]
 
 		expect(events).toMatchObject(eventsBeforeSettle)
 
-		// allow double click to settle
+		// allow overflow to settle
 		vi.advanceTimersByTime(500)
 
-		expect(events).toMatchObject([
-			...eventsBeforeSettle,
-			{ name: 'quadruple_click', type: 'click', phase: 'settle' },
-		])
+		expect(events).toMatchObject(eventsBeforeSettle)
 
 		// clear events and click again
 		// the interaction should have reset
@@ -182,7 +191,7 @@ describe('Handles events', () => {
 		])
 	})
 
-	it('Emits overflow click events', () => {
+	it('Keeps suppressing clicks while overflow clicks continue', () => {
 		const events: any[] = []
 		editor.addListener('event', (info) => events.push(info))
 
@@ -205,13 +214,9 @@ describe('Handles events', () => {
 			{ name: 'pointer_up' },
 			{ name: 'double_click', type: 'click', phase: 'up' },
 			{ name: 'pointer_down' },
-			{ name: 'triple_click', type: 'click', phase: 'down' },
 			{ name: 'pointer_up' },
-			{ name: 'triple_click', type: 'click', phase: 'up' },
 			{ name: 'pointer_down' },
-			{ name: 'quadruple_click', type: 'click', phase: 'down' },
 			{ name: 'pointer_up' },
-			{ name: 'quadruple_click', type: 'click', phase: 'up' },
 			{ name: 'pointer_down' },
 			{ name: 'pointer_up' },
 		]
@@ -248,9 +253,9 @@ it('Cancels when click moves', () => {
 	editor.pointerUp(0, 20)
 	expect(event.name).toBe('double_click')
 	editor.pointerDown(0, 45)
-	expect(event.name).toBe('triple_click')
+	expect(event.name).toBe('pointer_down')
 	editor.pointerUp(0, 45)
-	expect(event.name).toBe('triple_click')
+	expect(event.name).toBe('pointer_up')
 	// has to be 40 away from previous click location
 	editor.pointerDown(0, 86)
 	expect(event.name).toBe('pointer_down')
