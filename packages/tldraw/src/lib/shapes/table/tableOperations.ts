@@ -217,11 +217,14 @@ export function drillSelectCell(editor: Editor, table: TLTableShape, rowId: stri
 		return
 	}
 
-	const cellId = findOrCreateCell(editor, table, rowId, colId)
-	if (selectedCell && selectedCell.id !== cellId && isCellEmpty(editor, selectedCell)) {
-		editor.deleteShapes([selectedCell.id])
-	}
-	editor.select(cellId)
+	// Materialise + reselect (and drop the cell we left, if empty) as one transaction.
+	editor.run(() => {
+		const cellId = findOrCreateCell(editor, table, rowId, colId)
+		if (selectedCell && selectedCell.id !== cellId && isCellEmpty(editor, selectedCell)) {
+			editor.deleteShapes([selectedCell.id])
+		}
+		editor.select(cellId)
+	})
 }
 
 /**
@@ -237,10 +240,12 @@ export function selectCellRange(
 	a: { rowId: string; colId: string },
 	b: { rowId: string; colId: string }
 ) {
-	const ids = getCellsInRange(table, a, b).map(({ rowId, colId }) =>
-		findOrCreateCell(editor, table, rowId, colId)
-	)
-	if (ids.length) editor.select(...ids)
+	editor.run(() => {
+		const ids = getCellsInRange(table, a, b).map(({ rowId, colId }) =>
+			findOrCreateCell(editor, table, rowId, colId)
+		)
+		if (ids.length) editor.select(...ids)
+	})
 }
 
 /**
@@ -248,7 +253,7 @@ export function selectCellRange(
  * column) of the cells currently selected in this table, or `null` if none are. Used
  * so a shift-click selects the block from the existing selection to the clicked cell.
  *
- * @public
+ * @internal
  */
 export function getRangeAnchorCell(
 	editor: Editor,
@@ -364,8 +369,10 @@ export function unmergeCell(editor: Editor, cell: TLTableCellShape) {
 export function selectRow(editor: Editor, table: TLTableShape, rowIndex: number) {
 	const row = table.props.rows[rowIndex]
 	if (!row) return
-	const ids = table.props.cols.map((col) => findOrCreateCell(editor, table, row.id, col.id))
-	if (ids.length) editor.select(...ids)
+	editor.run(() => {
+		const ids = table.props.cols.map((col) => findOrCreateCell(editor, table, row.id, col.id))
+		if (ids.length) editor.select(...ids)
+	})
 }
 
 /**
@@ -376,8 +383,10 @@ export function selectRow(editor: Editor, table: TLTableShape, rowIndex: number)
 export function selectColumn(editor: Editor, table: TLTableShape, colIndex: number) {
 	const col = table.props.cols[colIndex]
 	if (!col) return
-	const ids = table.props.rows.map((row) => findOrCreateCell(editor, table, row.id, col.id))
-	if (ids.length) editor.select(...ids)
+	editor.run(() => {
+		const ids = table.props.rows.map((row) => findOrCreateCell(editor, table, row.id, col.id))
+		if (ids.length) editor.select(...ids)
+	})
 }
 
 /**
@@ -406,11 +415,13 @@ export function navigateCell(
 	else if (dir === 'down') nr = Math.min(t.props.rows.length - 1, rowIndex + 1)
 	if (nc === colIndex && nr === rowIndex) return
 
-	const next = findOrCreateCell(editor, t, t.props.rows[nr].id, t.props.cols[nc].id)
-	if (cell.id !== next && isCellEmpty(editor, cell)) {
-		editor.deleteShapes([cell.id])
-	}
-	editor.select(next)
+	editor.run(() => {
+		const next = findOrCreateCell(editor, t, t.props.rows[nr].id, t.props.cols[nc].id)
+		if (cell.id !== next && isCellEmpty(editor, cell)) {
+			editor.deleteShapes([cell.id])
+		}
+		editor.select(next)
+	})
 }
 
 /**
@@ -443,11 +454,14 @@ export function tabNavigateCell(
 	const nr = Math.floor(flat / cols.length)
 	const nc = flat % cols.length
 
-	const next = findOrCreateCell(editor, t, rows[nr].id, cols[nc].id)
-	if (cell.id !== next && isCellEmpty(editor, cell)) {
-		editor.deleteShapes([cell.id])
-	}
-	editor.select(next)
+	let next!: TLShapeId
+	editor.run(() => {
+		next = findOrCreateCell(editor, t, rows[nr].id, cols[nc].id)
+		if (cell.id !== next && isCellEmpty(editor, cell)) {
+			editor.deleteShapes([cell.id])
+		}
+		editor.select(next)
+	})
 	return next
 }
 

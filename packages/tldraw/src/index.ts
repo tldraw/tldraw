@@ -282,7 +282,6 @@ export {
 	findOrCreateCell,
 	getCellText,
 	getMergedCellAtPoint,
-	getRangeAnchorCell,
 	getTableCells,
 	getTableData,
 	insertColumn,
