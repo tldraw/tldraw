@@ -12309,7 +12309,7 @@ __metadata:
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.28.0"
-    kysely: "npm:^0.28.12"
+    kysely: "npm:^0.29.2"
     lazyrepo: "npm:0.0.0-alpha.27"
     nodemon: "npm:^3.1.9"
     pg: "npm:^8.13.1"
@@ -22403,13 +22403,6 @@ __metadata:
   version: 1.8.0
   resolution: "kolorist@npm:1.8.0"
   checksum: 10/71d5d122951cc65f2f14c3e1d7f8fd91694b374647d4f6deec3816d018cd04a44edd9578d93e00c82c2053b925e5d30a0565746c4171f4ca9fce1a13bd5f3315
-  languageName: node
-  linkType: hard
-
-"kysely@npm:^0.28.12":
-  version: 0.28.17
-  resolution: "kysely@npm:0.28.17"
-  checksum: 10/50690d745016d25f09574fe58c7e31f84427845497f30c84280131bc1f9f60d118c53640a184e225708a1f54f2b54ac12fdf3a0dfc6405527487ad96ff594f42
   languageName: node
   linkType: hard
 
