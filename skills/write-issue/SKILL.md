@@ -90,6 +90,15 @@ Use sparingly (1-2 per issue) for metadata, not categorization.
 3. Suggested approach
 4. Which example category it belongs to
 
+### Underspecified issues
+
+When an issue is underspecified, keep the original text verbatim and add:
+
+- **Open questions** - a short list of what the creator must clarify before the issue is actionable.
+- **Possible approaches** - when more than one reasonable interpretation or path exists, list them with their tradeoffs instead of committing to one.
+
+Add the `More Info Needed` label. Judging whether an issue is underspecified is part of the `issue` workflow.
+
 ## Triage workflow
 
 ### New issues
@@ -111,3 +120,4 @@ Use sparingly (1-2 per issue) for metadata, not categorization.
 
 - Never include AI attribution unless the issue directly relates to AI tooling
 - Never use title case for descriptions - use sentence case
+- Never present inferred intent as fact — flag inferences as inferences

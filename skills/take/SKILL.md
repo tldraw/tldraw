@@ -42,7 +42,9 @@ Read the full issue and comments. Identify:
 - Technical notes and affected files.
 - Relevant discussion or clarifications.
 
-If the issue lacks detail, explore the codebase before deciding whether implementation is safe.
+Check whether the issue is underspecified: a `More Info Needed` label, an "Open questions" section, listed alternative approaches, or original text that does not pin down the intended behavior. See the underspecified-issues standard in `../write-issue/SKILL.md`.
+
+If it is underspecified, do not guess past the open questions. Explore the codebase to see whether the intent is in fact unambiguous. If it is not, surface the open questions to the user and confirm the intended behavior and approach before implementing — picking the wrong interpretation here is exactly the failure to avoid.
 
 ### 3. Assign the issue
 
@@ -103,7 +105,7 @@ End with:
 
 ## Rules
 
-- Ask the user when requirements are unclear.
+- Ask the user when requirements are unclear. Resolve an underspecified issue's open questions before implementing — do not guess past them.
 - Do not guess at unspecified product behavior.
 - Keep the implementation scoped to the issue.
 - Never include AI attribution in commits, issues, or PRs.
