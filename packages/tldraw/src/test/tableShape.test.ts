@@ -188,3 +188,80 @@ describe('cell kind delegation', () => {
 		expect(ed.getShape(cellId)).toBeDefined()
 	})
 })
+
+// Regression coverage for behaviors that are easy to break and hard to notice:
+// copy/paste of the sparse cell records, bindings to a cell, and undo granularity.
+describe('table shape — copy/paste, bindings, undo', () => {
+	it('copy/paste round-trips the table, its cells, and their rich text', () => {
+		const t = makeTable()
+		setCellText(editor, t.id, 0, 0, 'hello')
+		const orig = [...getTableCells(editor, t.id).values()][0]
+
+		editor.selectAll()
+		const content = editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
+		expect(content?.shapes.map((s) => s.type).sort()).toEqual(['table', 'table-cell'])
+
+		editor.putContentOntoCurrentPage(content!, { point: { x: 600, y: 600 } })
+		const pasted = editor
+			.getCurrentPageShapes()
+			.find((s) => s.type === 'table' && s.x !== 0) as TLTableShape
+		expect(pasted).toBeDefined()
+
+		const pastedCells = getTableCells(editor, pasted.id)
+		expect(pastedCells.size).toBe(1)
+		const pastedCell = [...pastedCells.values()][0]
+		// the cell re-parents to the new table and keeps valid skeleton references
+		expect(pastedCell.parentId).toBe(pasted.id)
+		expect(pasted.props.rows.some((r) => r.id === pastedCell.props.rowId)).toBe(true)
+		expect(pasted.props.cols.some((c) => c.id === pastedCell.props.colId)).toBe(true)
+		expect(JSON.stringify(pastedCell.props.richText)).toBe(JSON.stringify(orig.props.richText))
+	})
+
+	it('a cell bound to an arrow survives the deselect GC and remaps on paste', () => {
+		const t = makeTable()
+		const cellId = findOrCreateCell(editor, t, t.props.rows[1].id, t.props.cols[1].id)
+
+		const arrowId = createShapeId()
+		editor.createShape({ id: arrowId, type: 'arrow', x: -200, y: -200 })
+		editor.createBinding({
+			type: 'arrow',
+			fromId: arrowId,
+			toId: cellId,
+			props: { terminal: 'end', isExact: false, isPrecise: false, normalizedAnchor: { x: 0.5, y: 0.5 } },
+		} as any)
+
+		// a blank-but-bound cell must not be garbage-collected on deselect
+		editor.select(cellId)
+		editor.selectNone()
+		expect(editor.getShape(cellId)).toBeDefined()
+
+		// copy the pair; the pasted arrow binds to the pasted cell, not the original
+		editor.selectAll()
+		const content = editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
+		expect(content?.bindings?.length).toBe(1)
+		editor.putContentOntoCurrentPage(content!, { point: { x: 900, y: 900 } })
+		const pastedArrow = editor
+			.getCurrentPageShapes()
+			.find((s) => s.type === 'arrow' && s.id !== arrowId)!
+		const bindings = editor.getBindingsInvolvingShape(pastedArrow.id)
+		expect(bindings.length).toBe(1)
+		const boundTo = editor.getShape((bindings[0] as any).toId)
+		expect(boundTo?.type).toBe('table-cell')
+		expect(boundTo?.id).not.toBe(cellId)
+	})
+
+	it('editing an empty cell is a single undo step that keeps the table', () => {
+		const t = makeTable()
+		editor.markHistoryStoppingPoint('before-edit')
+		setCellText(editor, t.id, 0, 0, 'hello world')
+		expect(getTableCells(editor, t.id).size).toBe(1)
+
+		// one undo reverts cell creation + text + reflow together; the table stays
+		editor.undo()
+		expect(editor.getShape(t.id)).toBeDefined()
+		expect(getTableCells(editor, t.id).size).toBe(0)
+
+		editor.redo()
+		expect(getTableCells(editor, t.id).size).toBe(1)
+	})
+})
