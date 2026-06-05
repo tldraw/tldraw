@@ -10,6 +10,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
+import { FILE_PREFIX } from './routes'
 import {
 	immutableColumns,
 	schema,
@@ -340,6 +341,26 @@ export function createMutators(userId: string) {
 			}
 		) => {
 			time = ensureSensibleTimestamp(time)
+
+			// Security: when a new file is seeded from another app file (the Duplicate
+			// action sets `createSource` to `${FILE_PREFIX}/${sourceFileId}`), the user
+			// must be able to read that source file. The content copy happens later in
+			// the worker (handleFileCreateFromSource), which trusts `createSource`
+			// verbatim, so the authorization has to happen here at creation time.
+			// Without this, a user who can still see a file they've lost access to — or
+			// who merely knows its id — could duplicate it and obtain an owned, editable
+			// copy of content they cannot read. Checked on the server only, matching the
+			// other file-access checks in this file (the optimistic client run may not
+			// have the source file synced). Other `createSource` prefixes (published,
+			// legacy rooms, local files) are intentionally not gated here.
+			if (tx.location === 'server' && createSource) {
+				const [prefix, sourceFileId] = createSource.split('/')
+				if (prefix === FILE_PREFIX) {
+					const sourceFile = await tx.run(zql.file.where('id', '=', sourceFileId).one())
+					await assertUserCanAccessFile(tx, userId, sourceFile!)
+				}
+			}
+
 			const migrated = await isGroupsMigrated(tx, userId)
 			if (!migrated) {
 				// eslint-disable-next-line @typescript-eslint/no-deprecated
