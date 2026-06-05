@@ -63,7 +63,10 @@ const LINETYPE = {
 	PAR_OVER_START: 32,
 	BIDIRECTIONAL_SOLID: 33,
 	BIDIRECTIONAL_DOTTED: 34,
-} as const satisfies SequenceDB['LINETYPE']
+	// Only the line types tldraw handles are mirrored here. `Partial` keeps the
+	// values type-checked against mermaid's enum without requiring every member,
+	// so newer mermaid releases adding line types don't break the build.
+} as const satisfies Partial<SequenceDB['LINETYPE']>
 
 const PLACEMENT = {
 	LEFTOF: 0,
