@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Geometry2d,
 	Rectangle2d,
@@ -99,7 +100,7 @@ export class TableCellShapeUtil extends ShapeUtil<TLTableCellShape> {
 	}
 
 	private getCellSize(shape: TLTableCellShape): { w: number; h: number } {
-		const parent = this.editor.getShape(shape.parentId) as TLTableShape | undefined
+		const parent = this.editor.getShape<TLTableShape>(shape.parentId)
 		if (parent?.type === 'table') {
 			const layout = getTableLayout(parent)
 			const ci = layout.cols.findIndex((c) => c.id === shape.props.colId)
@@ -126,12 +127,10 @@ export class TableCellShapeUtil extends ShapeUtil<TLTableCellShape> {
 
 	override component(shape: TLTableCellShape) {
 		const { editor } = this
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const table = useValue(
-			'cell-parent',
-			() => editor.getShape(shape.parentId) as TLTableShape | undefined,
-			[editor, shape.parentId]
-		)
+		const table = useValue('cell-parent', () => editor.getShape<TLTableShape>(shape.parentId), [
+			editor,
+			shape.parentId,
+		])
 		if (!table || table.type !== 'table') return null
 
 		const { w, h } = this.getCellSize(shape)

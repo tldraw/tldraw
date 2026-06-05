@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Editor,
 	HTMLContainer,
@@ -7,8 +8,11 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { type ReactNode } from 'react'
-import { isEmptyRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
-import { renderHtmlFromRichTextForMeasurement } from '../../utils/text/richText'
+import {
+	isEmptyRichText,
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../../utils/text/richText'
 import { LABEL_FONT_SIZES, TEXT_PROPS, getFontFamily } from '../shared/default-shape-constants'
 import { RichTextLabel } from '../shared/RichTextLabel'
 import { TABLE_CONSTANTS, getCellAtPoint, getTableLayout, isCellStyleDefault } from './core'
@@ -96,14 +100,11 @@ export const textCellKind: TLTableCellKind = {
 }
 
 function TextCell({ editor, shape, table, width, height }: TLTableCellKindProps) {
-	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const theme = useValue('cell-theme', () => editor.getCurrentTheme(), [editor])
-	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const colorMode = useValue('cell-colormode', () => editor.getColorMode(), [editor])
 
 	// Pre-mount the text editor when this cell is the editing shape OR hovered, so
 	// the 'select-all-text' event on double-click-to-edit is caught in time.
-	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const shouldMountEditor = useValue(
 		'cell-ready-for-editing',
 		() => {

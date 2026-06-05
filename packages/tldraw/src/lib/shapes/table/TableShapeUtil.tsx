@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Geometry2d,
 	Group2d,
@@ -182,7 +183,7 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 					// Column add/remove/resize changes wrapping in every row → re-measure
 					// all rows, then reposition cells with the new widths and heights.
 					reflowRowHeights(editor, n)
-					reconcileTable(editor, editor.getShape(n.id) as TLTableShape)
+					reconcileTable(editor, editor.getShape<TLTableShape>(n.id)!)
 				} else if (p.props.rows !== n.props.rows) {
 					reconcileTable(editor, n)
 				}
@@ -453,18 +454,13 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 	override component(shape: TLTableShape) {
 		const { editor } = this
 
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useValue('table-theme', () => editor.getCurrentTheme(), [editor])
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const colorMode = useValue('table-colormode', () => editor.getColorMode(), [editor])
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const layout = useValue('table-layout', () => getTableLayout(shape), [shape])
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const cellsByKey = useValue('table-cells', () => getTableCells(editor, shape.id), [
 			editor,
 			shape.id,
 		])
-		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const merge = useValue('table-merge', () => getMergeMap(shape, cellsByKey.values()), [
 			shape,
 			cellsByKey,
