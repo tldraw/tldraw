@@ -61,6 +61,11 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 export class TLPostgresPool implements PostgresPool {
 	private _lock: Promise<void> = Promise.resolve()
 
+	// Required by kysely's `PostgresPool` interface (since 0.29). Kysely only
+	// reads this when spreading into a streaming-cursor control client, which we
+	// don't use, so an empty object is sufficient.
+	options = {}
+
 	constructor(
 		private env: Environment,
 		private log: Logger
