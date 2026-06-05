@@ -1,4 +1,5 @@
 import { Group2d, TLTableCellShape, TLTableShape, createShapeId, toRichText } from '@tldraw/editor'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { type TLTableCellKind, textCellKind } from '../lib/shapes/table/cellKinds'
 import { getCellKey, TABLE_CONSTANTS, getTableLayout } from '../lib/shapes/table/core'
 import { TableCellShapeUtil } from '../lib/shapes/table/TableCellShapeUtil'
@@ -227,7 +228,12 @@ describe('table shape — copy/paste, bindings, undo', () => {
 			type: 'arrow',
 			fromId: arrowId,
 			toId: cellId,
-			props: { terminal: 'end', isExact: false, isPrecise: false, normalizedAnchor: { x: 0.5, y: 0.5 } },
+			props: {
+				terminal: 'end',
+				isExact: false,
+				isPrecise: false,
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+			},
 		} as any)
 
 		// a blank-but-bound cell must not be garbage-collected on deselect
@@ -263,5 +269,17 @@ describe('table shape — copy/paste, bindings, undo', () => {
 
 		editor.redo()
 		expect(getTableCells(editor, t.id).size).toBe(1)
+	})
+
+	it('exports the grid chrome as native SVG vectors, not a foreign object', () => {
+		const t = makeTable({ headerRows: 1 })
+		const markup = renderToStaticMarkup(
+			editor.getShapeUtil('table').toSvg!(t, { colorMode: 'light' } as any) as any
+		)
+		// header backgrounds + outer frame as <rect>, interior borders as <line>
+		expect((markup.match(/<rect/g) || []).length).toBeGreaterThan(0)
+		expect((markup.match(/<line/g) || []).length).toBeGreaterThan(0)
+		// the whole point: no rasterizable HTML foreign object for the structure
+		expect(markup).not.toContain('<foreignObject')
 	})
 })

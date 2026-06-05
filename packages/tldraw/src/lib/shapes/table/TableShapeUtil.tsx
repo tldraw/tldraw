@@ -4,6 +4,7 @@ import {
 	Rectangle2d,
 	SVGContainer,
 	ShapeUtil,
+	SvgExportContext,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
@@ -11,6 +12,7 @@ import {
 	TLShapePartial,
 	TLTableCellShape,
 	TLTableShape,
+	TLTheme,
 	Vec,
 	getColorValue,
 	getIndices,
@@ -22,6 +24,7 @@ import {
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 import {
 	TABLE_CONSTANTS,
+	type TableLayout,
 	getCellAtPoint,
 	getCellKey,
 	getTableLayout,
@@ -36,6 +39,102 @@ import {
 	navigateCell,
 	reconcileTable,
 } from './tableOperations'
+
+/**
+ * Renders the table's grid chrome — cell backgrounds, interior borders, and the
+ * outer frame — as plain SVG elements. Shared by the live `component` (wrapped in
+ * an `SVGContainer`) and `toSvg` export (emitted directly), so the canvas and the
+ * exported vector always match. Cell *content* is drawn by the child cell shapes.
+ */
+function TableGrid({
+	shape,
+	layout,
+	cellsByKey,
+	theme,
+	colorMode,
+}: {
+	shape: TLTableShape
+	layout: TableLayout
+	cellsByKey: Map<string, TLTableCellShape>
+	theme: TLTheme
+	colorMode: 'light' | 'dark'
+}) {
+	const colors = theme.colors[colorMode]
+	const borderColor = getColorValue(colors, shape.props.color, 'solid')
+	const { BORDER_WIDTH } = TABLE_CONSTANTS
+	const showBorders = shape.props.borders !== 'none'
+
+	// Resolve every cell's background through the single style resolver, so empty
+	// cells, populated cells, and headers all agree (and a styled header cell keeps
+	// its own fill — the v1 header bug is impossible here).
+	const backgroundFor = (rowIndex: number, colIndex: number, cell?: TLTableCellShape): string => {
+		const style = resolveCellStyle(shape, rowIndex, colIndex, cell)
+		if (style.fill === 'none') return 'transparent'
+		const variant = style.fill === 'solid' || style.fill === 'fill' ? 'fill' : 'semi'
+		return getColorValue(colors, style.color, variant)
+	}
+
+	return (
+		<>
+			{layout.rows.map((row) =>
+				layout.cols.map((col) => {
+					const cell = cellsByKey.get(getCellKey(row.id, col.id))
+					const bg = backgroundFor(row.index, col.index, cell)
+					if (bg === 'transparent') return null
+					return (
+						<rect
+							key={`bg:${row.id}:${col.id}`}
+							x={col.x}
+							y={row.y}
+							width={col.width}
+							height={row.height}
+							fill={bg}
+						/>
+					)
+				})
+			)}
+			{showBorders &&
+				layout.cols.map((col, i) =>
+					i === 0 ? null : (
+						<line
+							key={`v:${col.id}`}
+							x1={col.x}
+							y1={0}
+							x2={col.x}
+							y2={layout.height}
+							stroke={borderColor}
+							strokeWidth={BORDER_WIDTH}
+						/>
+					)
+				)}
+			{showBorders &&
+				layout.rows.map((row, i) =>
+					i === 0 ? null : (
+						<line
+							key={`h:${row.id}`}
+							x1={0}
+							y1={row.y}
+							x2={layout.width}
+							y2={row.y}
+							stroke={borderColor}
+							strokeWidth={BORDER_WIDTH}
+						/>
+					)
+				)}
+			{showBorders && (
+				<rect
+					x={0}
+					y={0}
+					width={layout.width}
+					height={layout.height}
+					fill="none"
+					stroke={borderColor}
+					strokeWidth={BORDER_WIDTH}
+				/>
+			)}
+		</>
+	)
+}
 
 const ARROW_DIRS: Record<string, 'left' | 'right' | 'up' | 'down'> = {
 	ArrowLeft: 'left',
@@ -321,81 +420,35 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 			editor,
 			shape.id,
 		])
-		const colors = theme.colors[colorMode]
-
-		const borderColor = getColorValue(colors, shape.props.color, 'solid')
-		const { BORDER_WIDTH } = TABLE_CONSTANTS
-		const showBorders = shape.props.borders !== 'none'
-
-		// Resolve every cell's background through the single style resolver, so empty
-		// cells, populated cells, and headers all agree (and a styled header cell
-		// keeps its own fill — the v1 header bug is impossible here).
-		const backgroundFor = (rowIndex: number, colIndex: number, cell?: TLTableCellShape): string => {
-			const style = resolveCellStyle(shape, rowIndex, colIndex, cell)
-			if (style.fill === 'none') return 'transparent'
-			const variant = style.fill === 'solid' || style.fill === 'fill' ? 'fill' : 'semi'
-			return getColorValue(colors, style.color, variant)
-		}
 
 		return (
 			<SVGContainer>
-				{layout.rows.map((row) =>
-					layout.cols.map((col) => {
-						const cell = cellsByKey.get(getCellKey(row.id, col.id))
-						const bg = backgroundFor(row.index, col.index, cell)
-						if (bg === 'transparent') return null
-						return (
-							<rect
-								key={`bg:${row.id}:${col.id}`}
-								x={col.x}
-								y={row.y}
-								width={col.width}
-								height={row.height}
-								fill={bg}
-							/>
-						)
-					})
-				)}
-				{showBorders &&
-					layout.cols.map((col, i) =>
-						i === 0 ? null : (
-							<line
-								key={`v:${col.id}`}
-								x1={col.x}
-								y1={0}
-								x2={col.x}
-								y2={layout.height}
-								stroke={borderColor}
-								strokeWidth={BORDER_WIDTH}
-							/>
-						)
-					)}
-				{showBorders &&
-					layout.rows.map((row, i) =>
-						i === 0 ? null : (
-							<line
-								key={`h:${row.id}`}
-								x1={0}
-								y1={row.y}
-								x2={layout.width}
-								y2={row.y}
-								stroke={borderColor}
-								strokeWidth={BORDER_WIDTH}
-							/>
-						)
-					)}
-				{showBorders && (
-					<rect
-						x={0}
-						y={0}
-						width={layout.width}
-						height={layout.height}
-						fill="none"
-						stroke={borderColor}
-						strokeWidth={BORDER_WIDTH}
-					/>
-				)}
+				<TableGrid
+					shape={shape}
+					layout={layout}
+					cellsByKey={cellsByKey}
+					theme={theme}
+					colorMode={colorMode}
+				/>
 			</SVGContainer>
+		)
+	}
+
+	// Native SVG export of the grid chrome (backgrounds + borders). Cell content is
+	// exported separately by each `table-cell` child shape, so this only draws the
+	// table's own structure — as real vector rects/lines, not a rasterizable HTML
+	// foreign object. Uses the export's color mode so dark/light exports are correct.
+	override toSvg(shape: TLTableShape, ctx: SvgExportContext) {
+		const layout = getTableLayout(shape)
+		const cellsByKey = getTableCells(this.editor, shape.id)
+		return (
+			<TableGrid
+				shape={shape}
+				layout={layout}
+				cellsByKey={cellsByKey}
+				theme={this.editor.getCurrentTheme()}
+				colorMode={ctx.colorMode}
+			/>
 		)
 	}
 
