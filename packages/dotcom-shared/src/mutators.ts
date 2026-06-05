@@ -209,6 +209,28 @@ async function assertUserCanUpdateFile(tx: Transaction<TlaSchema>, userId: strin
 	await assertUserCanAccessFileInternal(tx, userId, file, false)
 }
 
+/**
+ * Insert a legacy (user-owned) file together with its initial file_state.
+ *
+ * This was previously the `file.insertWithFileState` mutator. It was demoted to
+ * a private helper so it can only be reached through `createFile`, which gates
+ * the `createSource` for read access. As a public mutator it let a client
+ * insert an arbitrary file row — including a `createSource` pointing at another
+ * user's file — which would copy that file's content into the new room,
+ * bypassing the `createFile` gate.
+ */
+async function insertFileWithState(tx: Tx, userId: string, file: TlaFile, fileState: TlaFileState) {
+	// User must be the owner for legacy file creation
+	assert(file.ownerId === userId, ZErrorCode.forbidden)
+	await assertNotMaxFiles(tx, userId)
+	assertValidId(file.id)
+	assert(file.id === fileState.fileId, ZErrorCode.bad_request)
+	assert(fileState.userId === userId, ZErrorCode.forbidden)
+
+	await tx.mutate.file.insert(file)
+	await tx.mutate.file_state.upsert(fileState)
+}
+
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {
@@ -224,21 +246,6 @@ export function createMutators(userId: string) {
 			},
 		},
 		file: {
-			/** @deprecated */
-			insertWithFileState: async (
-				tx: Tx,
-				{ file, fileState }: { file: TlaFile; fileState: TlaFileState }
-			) => {
-				// User must be the owner for legacy file creation
-				assert(file.ownerId === userId, ZErrorCode.forbidden)
-				await assertNotMaxFiles(tx, userId)
-				assertValidId(file.id)
-				assert(file.id === fileState.fileId, ZErrorCode.bad_request)
-				assert(fileState.userId === userId, ZErrorCode.forbidden)
-
-				await tx.mutate.file.insert(file)
-				await tx.mutate.file_state.upsert(fileState)
-			},
 			/** @deprecated */
 			deleteOrForget: async (tx: Tx, { id }: { id: string }) => {
 				const file = await tx.run(zql.file.where('id', '=', id).one())
@@ -363,9 +370,10 @@ export function createMutators(userId: string) {
 
 			const migrated = await isGroupsMigrated(tx, userId)
 			if (!migrated) {
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				await mutators.file.insertWithFileState(tx, {
-					file: {
+				await insertFileWithState(
+					tx,
+					userId,
+					{
 						id: fileId,
 						name,
 						ownerId: userId,
@@ -384,7 +392,7 @@ export function createMutators(userId: string) {
 						isDeleted: false,
 						createSource,
 					},
-					fileState: {
+					{
 						userId,
 						fileId,
 						firstVisitAt: null,
@@ -393,8 +401,8 @@ export function createMutators(userId: string) {
 						lastVisitAt: null,
 						isFileOwner: true,
 						isPinned: false,
-					},
-				})
+					}
+				)
 				return
 			}
 

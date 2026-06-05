@@ -1276,3 +1276,40 @@ describe('createFile from source (duplicate) access control', () => {
 		await expectValid(() => duplicate(m, tx, `${PUBLISH_PREFIX}/${sourceId}`))
 	})
 })
+
+describe('legacy file creation (insertWithFileState removed as a mutator)', () => {
+	const userId = 'user_aaaa11112222bbbb'
+
+	it('file.insertWithFileState is not exposed as a callable mutator', () => {
+		// It was demoted to a private helper so a client cannot insert an
+		// arbitrary file row (with an attacker-controlled createSource) directly.
+		const m = createMutators(userId)
+		expect((m.file as Record<string, unknown>).insertWithFileState).toBeUndefined()
+	})
+
+	it('non-migrated user can still create a blank file (via the private helper)', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: '' })],
+			file: [] as TlaFile[],
+			file_state: [] as TlaFileState[],
+			group: [],
+			group_user: [],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await expectValid(() =>
+			m.createFile(tx, {
+				fileId: 'file_legacy123456789',
+				groupId: userId,
+				name: 'Legacy file',
+				time: Date.now(),
+				createSource: null,
+			})
+		)
+		// the file and its file_state were created with legacy ownerId ownership
+		const created = s.file.find((f) => f.id === 'file_legacy123456789')
+		expect(created?.ownerId).toBe(userId)
+		expect(s.file_state.find((fs) => fs.fileId === 'file_legacy123456789')).toBeDefined()
+	})
+})
