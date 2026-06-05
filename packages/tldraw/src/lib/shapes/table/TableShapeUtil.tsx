@@ -38,6 +38,7 @@ import {
 	isCellEmpty,
 	navigateCell,
 	reconcileTable,
+	tabNavigateCell,
 } from './tableOperations'
 
 /**
@@ -234,12 +235,29 @@ export class TableShapeUtil extends ShapeUtil<TLTableShape> {
 			}
 		})
 
-		// Arrow-key navigation between cells. Capture phase so it runs before the
-		// default nudge. Never hijacks arrows while a text field is focused, so the
-		// caret can move within a cell being edited. Registered with cleanup so it's
-		// removed when the editor is disposed.
+		// Keyboard navigation between cells. Capture phase so it runs before the default
+		// nudge / focus-move. Registered with cleanup so it's removed on dispose.
 		const container = editor.getContainer()
 		const onKeyDown = (e: KeyboardEvent) => {
+			// Tab / Shift+Tab moves forward / back across cells, wrapping at row ends.
+			// Unlike the arrows, it works *while editing* — it commits the current cell
+			// and moves on, keeping you in edit mode, the spreadsheet idiom.
+			if (e.key === 'Tab' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+				const editingId = editor.getEditingShapeId()
+				const selectedIds = editor.getSelectedShapeIds()
+				const currentId = editingId ?? (selectedIds.length === 1 ? selectedIds[0] : null)
+				const cell = currentId ? editor.getShape(currentId) : null
+				if (!cell || cell.type !== 'table-cell') return
+				e.preventDefault()
+				e.stopPropagation()
+				const next = tabNavigateCell(editor, cell as TLTableCellShape, e.shiftKey ? 'prev' : 'next')
+				// If we were editing, keep editing the cell we landed on.
+				if (next && editingId) startEditingShapeWithRichText(editor, next, { selectAll: true })
+				return
+			}
+
+			// Arrow navigation only when not editing and no text field is focused, so the
+			// caret can move within a cell being edited.
 			if (editor.getEditingShapeId() || e.metaKey || e.ctrlKey || e.altKey) return
 			const active = container.ownerDocument.activeElement
 			if (

@@ -15,6 +15,7 @@ import {
 	navigateCell,
 	selectRow,
 	setCellText,
+	tabNavigateCell,
 } from '../lib/shapes/table/tableOperations'
 import { TestEditor } from './TestEditor'
 
@@ -134,6 +135,34 @@ describe('selection and navigation', () => {
 		// a deliberate per-cell style (still blank text) → kept
 		editor.updateShape({ id, type: 'table-cell', props: { color: 'blue' } })
 		expect(isCellEmpty(editor, editor.getShape(id) as TLTableCellShape)).toBe(false)
+	})
+
+	it('tabNavigateCell moves forward, wraps at row ends, and stops at the edges', () => {
+		const t = makeTable() // 3x3
+		const tt = fresh(t.id)
+		const at = (r: number, c: number) =>
+			findOrCreateCell(editor, fresh(t.id), tt.props.rows[r].id, tt.props.cols[c].id)
+
+		// forward within a row
+		expect(tabNavigateCell(editor, editor.getShape(at(0, 0)) as TLTableCellShape, 'next')).toBe(
+			at(0, 1)
+		)
+		// forward wraps from the last column to the next row's first column
+		expect(tabNavigateCell(editor, editor.getShape(at(0, 2)) as TLTableCellShape, 'next')).toBe(
+			at(1, 0)
+		)
+		// back wraps the other way
+		expect(tabNavigateCell(editor, editor.getShape(at(1, 0)) as TLTableCellShape, 'prev')).toBe(
+			at(0, 2)
+		)
+		// at the very first cell, prev has nowhere to go
+		expect(
+			tabNavigateCell(editor, editor.getShape(at(0, 0)) as TLTableCellShape, 'prev')
+		).toBeNull()
+		// at the very last cell, next has nowhere to go
+		expect(
+			tabNavigateCell(editor, editor.getShape(at(2, 2)) as TLTableCellShape, 'next')
+		).toBeNull()
 	})
 
 	it('navigateCell moves the selection to the adjacent cell', () => {

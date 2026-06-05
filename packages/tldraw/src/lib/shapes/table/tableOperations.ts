@@ -280,6 +280,44 @@ export function navigateCell(
 	editor.select(next)
 }
 
+/**
+ * Move the cell selection one cell forward (`next`) or backward (`prev`) in
+ * row-major order, wrapping across row boundaries — the Tab / Shift+Tab idiom.
+ * Stops at the first/last cell of the table. Drops the cell being left if it's
+ * still empty. Returns the id of the cell moved to, or `null` if there was
+ * nowhere to go (already at the edge). Unlike {@link navigateCell}, this is meant
+ * to run while a cell is being edited, so callers can re-enter editing on the
+ * returned cell.
+ *
+ * @public
+ */
+export function tabNavigateCell(
+	editor: Editor,
+	cell: TLTableCellShape,
+	dir: 'next' | 'prev'
+): TLShapeId | null {
+	const table = editor.getShape(cell.parentId)
+	if (!table || table.type !== 'table') return null
+	const t = table as TLTableShape
+	const cols = t.props.cols
+	const rows = t.props.rows
+	const colIndex = cols.findIndex((c) => c.id === cell.props.colId)
+	const rowIndex = rows.findIndex((r) => r.id === cell.props.rowId)
+	if (colIndex === -1 || rowIndex === -1) return null
+
+	const flat = rowIndex * cols.length + colIndex + (dir === 'next' ? 1 : -1)
+	if (flat < 0 || flat >= cols.length * rows.length) return null // at the table edge
+	const nr = Math.floor(flat / cols.length)
+	const nc = flat % cols.length
+
+	const next = findOrCreateCell(editor, t, rows[nr].id, cols[nc].id)
+	if (cell.id !== next && isCellEmpty(editor, cell)) {
+		editor.deleteShapes([cell.id])
+	}
+	editor.select(next)
+	return next
+}
+
 /** Insert a new (empty) column at `atIndex`. @public */
 export function insertColumn(editor: Editor, table: TLTableShape, atIndex: number) {
 	const { cols } = withColumnInserted(table.props.cols, atIndex)
