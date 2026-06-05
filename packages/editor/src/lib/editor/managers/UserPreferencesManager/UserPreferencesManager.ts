@@ -1,6 +1,6 @@
 import { atom, computed } from '@tldraw/state'
+import { TLCurrentUser } from '../../../config/createTLCurrentUser'
 import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
-import { TLUser } from '../../../config/createTLUser'
 import { getGlobalWindow } from '../../../utils/dom'
 
 /** @public */
@@ -11,8 +11,8 @@ export class UserPreferencesManager {
 		this.disposables.forEach((d) => d())
 	}
 	constructor(
-		private readonly user: TLUser,
-		private readonly inferDarkMode: boolean
+		private readonly user: TLCurrentUser,
+		private readonly colorScheme: 'light' | 'dark' | 'system'
 	) {
 		if (typeof window === 'undefined' || !getGlobalWindow().matchMedia) return
 
@@ -57,7 +57,9 @@ export class UserPreferencesManager {
 	}
 
 	@computed getIsDarkMode() {
-		switch (this.user.userPreferences.get().colorScheme) {
+		const userColorScheme = this.user.userPreferences.get().colorScheme
+		const scheme = userColorScheme ?? this.colorScheme
+		switch (scheme) {
 			case 'dark':
 				return true
 			case 'light':
@@ -65,7 +67,7 @@ export class UserPreferencesManager {
 			case 'system':
 				return this.systemColorScheme.get() === 'dark'
 			default:
-				return this.inferDarkMode ? this.systemColorScheme.get() === 'dark' : false
+				return false
 		}
 	}
 

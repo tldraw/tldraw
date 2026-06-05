@@ -1,11 +1,11 @@
+import path from 'path'
+import { fileURLToPath } from 'url'
 import formatjs from '@formatjs/unplugin/vite'
 import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
-import path from 'path'
-import { fileURLToPath } from 'url'
 import { defineConfig, Plugin } from 'vite'
-import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
+import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 
 export { getMultiplayerServerURL }
 

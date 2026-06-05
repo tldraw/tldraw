@@ -1,7 +1,7 @@
 import { ArraySet } from './ArraySet'
-import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent } from './capture'
 import { EMPTY_ARRAY, equals, singleton } from './helpers'
+import { HistoryBuffer } from './HistoryBuffer'
 import { advanceGlobalEpoch, atomDidChange, getGlobalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 

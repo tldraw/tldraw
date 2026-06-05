@@ -1,9 +1,9 @@
 import { existsSync, readFileSync } from 'fs'
 import { readFile, writeFile as writeFileUnchecked } from 'fs/promises'
-import json5 from 'json5'
 import { dirname, join, relative } from 'path'
-import { format } from 'oxfmt'
 import { fileURLToPath } from 'url'
+import json5 from 'json5'
+import { format } from 'oxfmt'
 import { nicelog } from './nicelog'
 
 const __filename = fileURLToPath(import.meta.url)

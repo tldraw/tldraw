@@ -2,92 +2,40 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 03/18/2026
+date: 05/06/2026
 order: 0
 status: published
-last_version: v4.5.1
+last_version: v5.0.2
 ---
 
-This release adds custom record types to the store, WebSocket hibernation support for tlsync, a new `@tldraw/editor-controller` package for scripting and automation, RTL language support in the UI, cross-window embedding support, and smarter export trimming. It also includes various other improvements and bug fixes.
+This release redesigns the page menu around inline interaction, adds a keyboard shortcut to copy styles from a hovered shape, and adds a `selectLockedShapes` option for inspecting locked shapes, along with new public translation APIs, canvas performance improvements, and various rendering and UI bug fixes.
 
 ## What's new
 
-### Custom record types ([#8213](https://github.com/tldraw/tldraw/pull/8213))
+### Page menu redesign ([#8836](https://github.com/tldraw/tldraw/pull/8836))
 
-You can now register custom record types in the tldraw store for persisting and synchronizing domain-specific data that doesn't fit into shapes, bindings, or assets. Custom records support scoping (document/session/presence), validation, migrations, and default properties.
-
-```tsx
-import { createTLSchema, createCustomRecordId } from 'tldraw'
-
-const schema = createTLSchema({
-	records: [
-		{
-			typeName: 'marker',
-			scope: 'document',
-			validator: markerValidator,
-		},
-	],
-})
-```
-
-TypeScript module augmentation via `TLGlobalRecordPropsMap` lets custom record types participate in the `TLRecord` union.
-
-### WebSocket hibernation in tlsync ([#8070](https://github.com/tldraw/tldraw/pull/8070))
-
-`TLSocketRoom` now supports session resume and snapshot APIs for WebSocket hibernation environments like Cloudflare Durable Objects. Sessions can be suspended and restored without losing state, and the `sync-cloudflare` template has been updated to use the WebSocket Hibernation API.
-
-New APIs include `handleSocketResume()` for restoring sessions from snapshots, `getSessionSnapshot()` for capturing session state, and an `onSessionSnapshot` callback for persisting snapshots to WebSocket attachments.
-
-### @tldraw/editor-controller ([#7952](https://github.com/tldraw/tldraw/pull/7952))
-
-A new `@tldraw/editor-controller` package provides an imperative API for driving the tldraw editor programmatically. `EditorController` wraps an `Editor` instance and exposes event dispatch, selection transforms, clipboard operations, and shape queries with fluent chaining.
-
-```tsx
-import { EditorController } from '@tldraw/editor-controller'
-
-const controller = new EditorController(editor)
-controller
-	.pointerMove(100, 100)
-	.pointerDown()
-	.pointerMove(200, 200)
-	.pointerUp()
-```
-
-This is useful for scripting, automation, agent workflows, and REPL-style interaction. The release includes a Scripter example demonstrating the package.
-
-### RTL support ([#8033](https://github.com/tldraw/tldraw/pull/8033))
-
-The tldraw UI now supports right-to-left languages like Arabic. A new `useDirection()` hook returns `'ltr'` or `'rtl'` from the current translation context, and all Radix UI components and CSS have been updated to respect text direction. The `dir` attribute is set on `.tl-container`, and CSS uses logical properties (`margin-inline-start`, `inset-inline-end`, etc.) instead of physical ones.
-
-### Cross-window embedding support ([#8196](https://github.com/tldraw/tldraw/pull/8196))
-
-Tldraw now works correctly when embedded in iframes, Electron pop-out windows, and Obsidian plugins where the global `document` and `window` differ from the ones tldraw is mounted in. All bare `document` and `window` references have been replaced with container-aware alternatives.
-
-New helpers `getOwnerDocument()` and `getOwnerWindow()` are exported from `@tldraw/editor`, along with `Editor.getContainerDocument()` and `Editor.getContainerWindow()` convenience methods.
+The page menu no longer has an explicit edit mode. Reorder pages by dragging a row directly, rename inline by double-clicking the label or pressing Enter, and drag the new resize handle at the bottom of the popover to adjust the list height — the height is persisted across sessions and a double-click on the handle resets it to the default. The current page is now indicated by a subtle background pill, the row submenu trigger reveals on hover, and the "Create new page" button is pinned to the footer of the popover.
 
 ## API changes
 
-- Add `CustomRecordInfo` interface, `createCustomRecordId()`, `createCustomRecordMigrationIds()`, `createCustomRecordMigrationSequence()`, `isCustomRecord()`, `isCustomRecordId()` for custom record types. `createTLSchema()` and `createTLStore()` now accept a `records` option. ([#8213](https://github.com/tldraw/tldraw/pull/8213))
-- Add `@tldraw/editor-controller` package with `EditorController` class for imperative editor control. ([#7952](https://github.com/tldraw/tldraw/pull/7952))
-- Add `handleSocketResume()`, `getSessionSnapshot()`, and `onSessionSnapshot` to `TLSocketRoom` for WebSocket hibernation support. Add `clientTimeout` option to `TLSyncRoom`. ([#8070](https://github.com/tldraw/tldraw/pull/8070))
-- Add `Editor.getContainerDocument()` and `Editor.getContainerWindow()` methods, and `getOwnerDocument()` / `getOwnerWindow()` helpers for cross-window embedding. ([#8196](https://github.com/tldraw/tldraw/pull/8196))
-- Add `useDirection()` hook for RTL support. ([#8033](https://github.com/tldraw/tldraw/pull/8033))
-- Add `'json'` to `TLCopyType` for copying shapes as JSON in debug mode. ([#8206](https://github.com/tldraw/tldraw/pull/8206))
-- Change `TLSvgExportOptions.padding` to accept `number | 'auto'`. The `'auto'` mode (now default) renders with padding then trims to visual content bounds. ([#8202](https://github.com/tldraw/tldraw/pull/8202))
-- Add `Vec.IsFinite()` static method. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
-- Change `Vec.PointsBetween()` to accept an optional `ease` parameter. ([#7977](https://github.com/tldraw/tldraw/pull/7977))
+- Add a `selectLockedShapes` option to `TldrawOptions`. When enabled, locked shapes can be selected by left click or by brush/scribble selection while remaining protected from edits, moves, and deletes. ([#8860](https://github.com/tldraw/tldraw/pull/8860))
+- Export `TldrawUiTranslationProvider`, `AssetUrlsProvider`, and `useAssetUrls` as public API so components like `TldrawSelectionForeground` can be rendered without the full `TldrawUiContextProvider`. ([#8909](https://github.com/tldraw/tldraw/pull/8909))
+- Add `FontManager.dispose()`, `OverlayManager.dispose()`, and `OverlayUtil.dispose()` for cleaning up manager state across editor lifecycles. ([#8896](https://github.com/tldraw/tldraw/pull/8896))
 
 ## Improvements
 
-- Optimize geometry hot paths for hit testing: reduce allocations and function call overhead in `Vec`, `Edge2d`, `Circle2d`, `Arc2d`, `Polyline2d`, and intersection routines. Circle hit testing is up to 19x faster, polyline nearest-point is 6.8x faster. ([#8210](https://github.com/tldraw/tldraw/pull/8210))
-- Exports now automatically trim to visual content bounds, capturing overflow like thick strokes and arrowheads without extra whitespace. ([#8202](https://github.com/tldraw/tldraw/pull/8202))
-- Move the debug mode toggle into the preferences submenu. ([#8259](https://github.com/tldraw/tldraw/pull/8259))
+- Add a `q` shortcut that copies the styles of the hovered shape and applies them to the next shape you create. ([#8917](https://github.com/tldraw/tldraw/pull/8917)) (contributed by [@kaneel](https://github.com/kaneel))
+- Improve performance on busy canvases — `getRenderingShapes()` now skips its sort step when only shape props, not the set of shape ids, have changed. ([#8784](https://github.com/tldraw/tldraw/pull/8784))
+- Improve drawing performance on pages with many shapes by skipping spatial index and culling recomputation when only shape props change. ([#8799](https://github.com/tldraw/tldraw/pull/8799), [#8804](https://github.com/tldraw/tldraw/pull/8804))
 
 ## Bug fixes
 
-- Fix `bailToMark` silently discarding pending history changes when the target mark doesn't exist. ([#8260](https://github.com/tldraw/tldraw/pull/8260))
-- Fix `FocusManager.dispose()` not actually removing document event listeners due to `.bind()` creating new function references. ([#8232](https://github.com/tldraw/tldraw/pull/8232))
-- Fix pasting into editable text shapes when the clipboard contains tldraw data. ([#8192](https://github.com/tldraw/tldraw/pull/8192))
-- Fix crash when isolating curved arrows with degenerate binding geometry. ([#8176](https://github.com/tldraw/tldraw/pull/8176))
-- Fix eraser not erasing shapes when starting a drag from inside a group's bounds. ([#8054](https://github.com/tldraw/tldraw/pull/8054))
-- Fix over-softened corners and end artifacts when shift-clicking to draw straight line segments. ([#7977](https://github.com/tldraw/tldraw/pull/7977))
+- Fix a misleading "license expired" console warning for perpetual licenses on covered versions. ([#8791](https://github.com/tldraw/tldraw/pull/8791))
+- Fix inconsistent tooltip behavior on the video toolbar by using `TldrawUiToolbarButton` for the replace and download buttons. ([#8794](https://github.com/tldraw/tldraw/pull/8794))
+- Fix the missing open-state hint on the page menu and zoom menu triggers when rendered outside the main toolbar. ([#8813](https://github.com/tldraw/tldraw/pull/8813))
+- Mark the tldraw UI layer with `role="document"` so toolbars, menus, and dialogs stay reachable to mobile screen readers like VoiceOver and TalkBack, which do not announce the outer canvas `role="application"`. ([#8901](https://github.com/tldraw/tldraw/pull/8901))
+- Fix selection edge resize handles overlapping corner handles, which made corners hard to grab on small shapes. ([#8926](https://github.com/tldraw/tldraw/pull/8926))
+- Fix a bug where deleting a shape inside a group could move the group to a different z-index. ([#8925](https://github.com/tldraw/tldraw/pull/8925)) (contributed by [@kaneel](https://github.com/kaneel))
+- Avoid console errors from calling `preventDefault` on non-cancelable events. ([#8910](https://github.com/tldraw/tldraw/pull/8910))
+- Only log the missing-translation warning once per session instead of once per `useTranslation` consumer. ([#8909](https://github.com/tldraw/tldraw/pull/8909))
+- Catch `image.decode()` rejections from the icon preload effect so they no longer surface as uncaught promise errors in the console. ([#8824](https://github.com/tldraw/tldraw/pull/8824))

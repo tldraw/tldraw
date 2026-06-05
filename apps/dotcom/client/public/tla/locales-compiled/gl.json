@@ -153,6 +153,12 @@
       "value": "Os meus ficheiros"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Incluír unha ligazón ao ficheiro actual"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -211,6 +217,18 @@
     {
       "type": 0,
       "value": "Aceptar todo"
+    }
+  ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Diagrama de Mermaid sen soporte"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Tema de cores"
     }
   ],
   "42e53c47c1": [
@@ -285,10 +303,22 @@
       "value": "Eliminar grupo…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Máis opcións"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Seguro que queres eliminar este grupo? Esta acción non se pode desfacer."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Diagrama non compatible, xerarase SVG no seu lugar"
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +431,12 @@
       "value": "Revoga esta ligazón e crea unha nova."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Non se pode conectar"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +477,12 @@
     {
       "type": 0,
       "value": "ti"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Actualizar"
     }
   ],
   "6609dd239e": [
@@ -567,6 +609,12 @@
     {
       "type": 0,
       "value": "Envía un problema en GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Predeterminado"
     }
   ],
   "7b1329f5ca": [
@@ -791,6 +839,12 @@
     {
       "type": 0,
       "value": "Eliminar ficheiro"
+    }
+  ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Temos problemas para conectar co noso servizo de autenticación. Isto adoita ser temporal. Tenta actualizar a páxina."
     }
   ],
   "9ceb927baa": [
@@ -1067,6 +1121,12 @@
     {
       "type": 0,
       "value": "Pechar sesión"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Rexeitar"
     }
   ],
   "c9cc8cce24": [

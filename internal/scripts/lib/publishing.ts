@@ -1,9 +1,9 @@
-import { Octokit } from '@octokit/rest'
 import { execSync } from 'child_process'
-import { fetch } from 'cross-fetch'
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
-import { glob } from 'glob'
 import path, { join } from 'path'
+import { Octokit } from '@octokit/rest'
+import { fetch } from 'cross-fetch'
+import { glob } from 'glob'
 import { parse } from 'semver'
 import { exec } from './exec'
 import { REPO_ROOT } from './file'
@@ -135,14 +135,17 @@ function topologicalSortPackages(packages: Record<string, PackageDetails>) {
 }
 
 export async function publish(distTag?: string) {
-	const npmToken = process.env.NPM_TOKEN
-	if (!npmToken) {
-		throw new Error('NPM_TOKEN not set')
-	}
-
-	execSync(`yarn config set npmAuthToken ${npmToken}`, { stdio: 'inherit' })
-	execSync(`yarn config set npmRegistryServer https://registry.npmjs.org`, { stdio: 'inherit' })
-
+	// Authentication uses npm's trusted publisher OIDC flow. The publish job in
+	// CI must grant `permissions: id-token: write` so yarn (>= 4.10, which we are
+	// on via `packageManager`) can exchange the GitHub-issued OIDC token for a
+	// short-lived publish token automatically.
+	//
+	// We invoke `yarn npm publish` rather than `npm publish` directly so that
+	// yarn rewrites `workspace:*` dependency specifiers in the published
+	// tarball into the concrete sibling versions. `npm publish` has no concept
+	// of yarn's workspace protocol and would ship `"workspace:*"` literally,
+	// breaking installs for any consumer outside this monorepo.
+	// See https://docs.npmjs.com/trusted-publishers
 	const packages = await getAllPackageDetails()
 
 	const publishOrder = topologicalSortPackages(packages)
@@ -156,10 +159,23 @@ export async function publish(distTag?: string) {
 		await retry(
 			async () => {
 				let output = ''
+				const publishStart = Date.now()
+				nicelog(
+					`[publish] ${packageDetails.name}@${packageDetails.version} starting npm publish...`
+				)
 				try {
 					await exec(
 						`yarn`,
-						['npm', 'publish', '--tag', String(tag), '--tolerate-republish', '--access', 'public'],
+						[
+							'npm',
+							'publish',
+							'--tag',
+							String(tag),
+							'--tolerate-republish',
+							'--provenance',
+							'--access',
+							'public',
+						],
 						{
 							pwd: packageDetails.dir,
 							processStdoutLine: (line) => {
@@ -173,12 +189,21 @@ export async function publish(distTag?: string) {
 						}
 					)
 				} catch (e) {
-					if (output.includes('You cannot publish over the previously published versions')) {
-						// --tolerate-republish seems to not work for canary versions??? so let's just ignore this error
+					if (
+						output.includes('cannot publish over the previously published versions') ||
+						output.includes('You cannot publish over the previously published versions')
+					) {
+						nicelog(
+							`[publish] ${packageDetails.name}@${packageDetails.version} already published, skipping`
+						)
 						return
 					}
 					throw e
 				}
+				const elapsed = ((Date.now() - publishStart) / 1000).toFixed(1)
+				nicelog(
+					`[publish] ${packageDetails.name}@${packageDetails.version} npm publish done (${elapsed}s)`
+				)
 			},
 			{
 				delay: 10_000,

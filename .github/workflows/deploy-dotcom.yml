@@ -52,17 +52,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if [[ "${GITHUB_REF}" == "refs/heads/production" ]]; then
-            echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
+            echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
           elif [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
             echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
-          elif echo "${{ toJSON(github.event.pull_request.labels.*.name) }}" | grep -q "preview-flyio-zero-deploy-please"; then
-            echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
-          elif git fetch origin "${GITHUB_BASE_REF}" && git diff --name-only origin/"${GITHUB_BASE_REF}"...HEAD | grep -q '^apps/dotcom/'; then
-            # gh pr edit ${{ github.event.pull_request.number }} --add-label "preview-flyio-zero-deploy-please"
-            # echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
-            echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
           else
-            echo "DEPLOY_ZERO=false" >> $GITHUB_ENV
+            echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
           fi
 
       - name: Install Supabase CLI
@@ -100,15 +94,23 @@ jobs:
           # Write to a temp file to avoid secrets leaking into CI step output.
           BRANCH_JSON=$(mktemp)
           for i in $(seq 1 24); do
+            # While the branch is still provisioning, `branches get` may exit
+            # non-zero and/or write a non-JSON line to stdout (the newer CLI
+            # renders an error there). Tolerate both: `|| true` keeps `set -e`
+            # from aborting on a non-zero get, and the guarded jq below treats
+            # any non-JSON / missing field as "not ready yet" so the loop retries.
             supabase branches get "$BRANCH_NAME" \
               --project-ref "$PROJECT_REF" \
-              -o json > "$BRANCH_JSON" 2>/dev/null
-            POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL // empty' "$BRANCH_JSON")
-            if [ -n "$POSTGRES_URL_TRANSACTION" ]; then break; fi
+              -o json > "$BRANCH_JSON" 2>/dev/null || true
+            POSTGRES_URL_TRANSACTION=$(jq -r '.POSTGRES_URL // empty' "$BRANCH_JSON" 2>/dev/null || true)
+            if [ -n "$POSTGRES_URL_TRANSACTION" ]; then
+              echo "Branch $BRANCH_NAME is ready."
+              break
+            fi
             echo "Waiting for branch to be ready ($i/24)..."
             sleep 5
           done
-          POSTGRES_URL_NON_POOLING=$(jq -r '.POSTGRES_URL_NON_POOLING' "$BRANCH_JSON")
+          POSTGRES_URL_NON_POOLING=$(jq -r '.POSTGRES_URL_NON_POOLING // empty' "$BRANCH_JSON" 2>/dev/null || true)
           rm "$BRANCH_JSON"
 
           if [ -z "$POSTGRES_URL_TRANSACTION" ]; then
@@ -172,6 +174,9 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
           DISCORD_FEEDBACK_WEBHOOK_URL: ${{ secrets.DISCORD_FEEDBACK_WEBHOOK_URL }}
+          PLAIN_API_KEY: ${{ secrets.PLAIN_API_KEY }}
+          PLAIN_LABEL_TYPE_ID: ${{ secrets.PLAIN_LABEL_TYPE_ID }}
+          PLAIN_WORKSPACE_ID: ${{ secrets.PLAIN_WORKSPACE_ID }}
           DISCORD_HEALTH_WEBHOOK_URL: ${{ secrets.DISCORD_HEALTH_WEBHOOK_URL }}
           GC_MAPS_API_KEY: ${{ secrets.GC_MAPS_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
@@ -197,3 +202,5 @@ jobs:
           ZERO_R2_BUCKET_NAME: ${{ secrets.ZERO_R2_BUCKET_NAME }}
           ZERO_R2_ACCESS_KEY_ID: ${{ secrets.ZERO_R2_ACCESS_KEY_ID }}
           ZERO_R2_SECRET_ACCESS_KEY: ${{ secrets.ZERO_R2_SECRET_ACCESS_KEY }}
+          ZERO_OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_ENDPOINT }}
+          ZERO_OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.ZERO_OTEL_EXPORTER_OTLP_HEADERS }}

@@ -1,7 +1,7 @@
-import { NodeSqliteWrapper, SQLiteSyncStorage, TLSocketRoom } from '@tldraw/sync-core'
-import Database from 'better-sqlite3'
 import { mkdirSync } from 'fs'
 import { join } from 'path'
+import { NodeSqliteWrapper, SQLiteSyncStorage, TLSocketRoom } from '@tldraw/sync-core'
+import Database from 'better-sqlite3'
 
 // For this example we're saving data to a SQLite database on the local filesystem
 const DIR = './.rooms'

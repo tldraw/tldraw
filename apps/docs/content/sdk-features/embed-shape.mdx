@@ -37,6 +37,12 @@ editor.createShape({
 
 The embed system recognizes URLs from supported services and converts them to their embeddable equivalents. A YouTube watch URL becomes an embed URL automatically.
 
+### Pasting iframe code
+
+You can also paste raw `<iframe>` HTML directly onto the canvas to create an embed shape, even when the source URL doesn't match a known provider. tldraw extracts the iframe's `src` attribute and creates an embed pointing at it. If the iframe element is missing `width` and `height`, the embed uses default dimensions instead.
+
+This covers services tldraw doesn't know about — OpenStreetMap, SoundCloud, Loom, internal tools — without a custom embed definition. Iframes pasted this way receive a stricter sandbox than the built-in providers (no `allow-same-origin`, no top navigation), since tldraw can't make any safety guarantees about the source.
+
 ## Supported services
 
 | Service         | Hostnames                    | Resizable | Aspect ratio locked |
@@ -58,6 +64,7 @@ The embed system recognizes URLs from supported services and converts them to th
 | Vimeo           | vimeo.com, player.vimeo.com  | Yes       | Yes                 |
 | Observable      | observablehq.com             | Yes       | No                  |
 | Desmos          | desmos.com                   | Yes       | No                  |
+| Canva           | canva.com                    | Yes       | No                  |
 
 Each service has default dimensions appropriate for its content type. YouTube embeds default to 800×450 (16:9), while Spotify defaults to 720×500.
 
@@ -124,7 +131,7 @@ GitHub Gist embeds receive special handling: they use `srcDoc` instead of `src` 
 
 ## Custom embed definitions
 
-Replace or extend the default embed definitions using `EmbedShapeUtil.setEmbedDefinitions()`:
+Replace or extend the default embed definitions using `EmbedShapeUtil.configure()`:
 
 ```tsx
 import { Tldraw, EmbedShapeUtil, DEFAULT_EMBED_DEFINITIONS } from 'tldraw'
@@ -158,13 +165,12 @@ const myEmbedDefinitions = [
 	},
 ]
 
-// Set before mounting the editor
-EmbedShapeUtil.setEmbedDefinitions(myEmbedDefinitions)
+const shapeUtils = [EmbedShapeUtil.configure({ embedDefinitions: myEmbedDefinitions })]
 
 export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw />
+			<Tldraw shapeUtils={shapeUtils} />
 		</div>
 	)
 }

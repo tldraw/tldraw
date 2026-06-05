@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "File saya"
   },
+  "2e2b3c700b": {
+    "translation": "Sertakan tautan ke file saat ini"
+  },
   "31246941ad": {
     "translation": "Anda harus masuk untuk melihat file ini."
   },
@@ -103,6 +106,12 @@
   },
   "3d0238bf16": {
     "translation": "Terima semua"
+  },
+  "3e2ae04ff0": {
+    "translation": "Diagram Mermaid yang tidak didukung"
+  },
+  "402bf0c47e": {
+    "translation": "Tema warna"
   },
   "42e53c47c1": {
     "translation": "Hubungi pemilik untuk meminta akses."
@@ -140,8 +149,14 @@
   "4da5988a2e": {
     "translation": "Hapus grup…"
   },
+  "4dab36ac83": {
+    "translation": "Opsi lainnya"
+  },
   "4e6fbf032b": {
     "translation": "Yakin ingin menghapus grup ini? Tindakan ini tidak dapat dibatalkan."
+  },
+  "5097d89907": {
+    "translation": "Diagram tidak didukung, akan menghasilkan SVG sebagai gantinya."
   },
   "50db1b7e1e": {
     "translation": "Tidak dapat membatalkan penerbitan file."
@@ -179,6 +194,9 @@
   "5c6fe42bc2": {
     "translation": "Cabut tautan ini dan buat yang baru."
   },
+  "5d04a002ea": {
+    "translation": "Tidak dapat terhubung"
+  },
   "5d26ae7550": {
     "translation": "Kami gagal mengunggah beberapa konten yang Anda buat sebelum masuk."
   },
@@ -199,6 +217,9 @@
   },
   "639bae9ac6": {
     "translation": "Anda"
+  },
+  "63a6a88c06": {
+    "translation": "Muat ulang"
   },
   "6609dd239e": {
     "translation": "Terjadi kesalahan"
@@ -262,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "Kirimkan masalah di GitHub"
+  },
+  "7a1920d611": {
+    "translation": "Bawaan"
   },
   "7b1329f5ca": {
     "translation": "Panduan pengguna"
@@ -349,6 +373,9 @@
   },
   "9bef626805": {
     "translation": "Hapus file"
+  },
+  "9ccb565b86": {
+    "translation": "Kami mengalami masalah saat terhubung ke layanan otentikasi kami. Ini biasanya bersifat sementara. Silakan coba menyegarkan halaman."
   },
   "9ceb927baa": {
     "translation": "Terbitkan file ini"
@@ -458,6 +485,9 @@
   },
   "c87aacf567": {
     "translation": "Keluar"
+  },
+  "c8a59e7135": {
+    "translation": "Tutup"
   },
   "c9cc8cce24": {
     "translation": "Menyimpan"

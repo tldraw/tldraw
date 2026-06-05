@@ -8,8 +8,8 @@ import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { useMsg } from '../../../utils/i18n'
 import { toggleMobileSidebar } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import styles from '../sidebar.module.css'
 import { messages } from './sidebar-shared'
+import styles from '../sidebar.module.css'
 
 export function TlaSidebarCreateFileButton() {
 	const app = useApp()

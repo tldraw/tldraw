@@ -54,16 +54,16 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 			fromShape.type === 'container' && toShape.type === 'element' && bindingType === LAYOUT_TYPE
 		)
 	}
-	override canEdit() {
+	override canEdit(shape: ContainerShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(shape: ContainerShape) {
 		return false
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(shape: ContainerShape) {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(shape: ContainerShape) {
 		return true
 	}
 
@@ -87,8 +87,10 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 		)
 	}
 
-	override indicator(shape: ContainerShape) {
-		return <rect width={shape.props.width} height={shape.props.height} />
+	override getIndicatorPath(shape: ContainerShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.width, shape.props.height)
+		return path
 	}
 }
 
@@ -113,16 +115,16 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 			fromShape.type === 'container' && toShape.type === 'element' && bindingType === LAYOUT_TYPE
 		)
 	}
-	override canEdit() {
+	override canEdit(shape: ElementShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(shape: ElementShape) {
 		return false
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(shape: ElementShape) {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(shape: ElementShape) {
 		return true
 	}
 
@@ -138,8 +140,10 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		return <HTMLContainer style={{ backgroundColor: shape.props.color }}></HTMLContainer>
 	}
 
-	override indicator() {
-		return <rect width={100} height={100} />
+	override getIndicatorPath() {
+		const path = new Path2D()
+		path.rect(0, 0, 100, 100)
+		return path
 	}
 
 	private getTargetContainer(shape: ElementShape, pageAnchor: Vec) {

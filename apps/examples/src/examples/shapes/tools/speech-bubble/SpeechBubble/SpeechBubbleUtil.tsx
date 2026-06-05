@@ -4,15 +4,13 @@ import {
 	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
 	DefaultVerticalAlignStyle,
-	FONT_FAMILIES,
 	Geometry2d,
-	LABEL_FONT_SIZES,
 	PlainTextLabel,
 	Polygon2d,
 	RecordPropsType,
 	ShapeUtil,
 	T,
-	TEXT_PROPS,
+	TLDefaultSizeStyle,
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
@@ -20,12 +18,27 @@ import {
 	Vec,
 	ZERO_INDEX_KEY,
 	getColorValue,
+	getFontFamily,
 	resizeBox,
 	structuredClone,
-	useDefaultColorTheme,
+	useEditor,
 	vecModelValidator,
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
+
+const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
+	s: 1.125,
+	m: 1.375,
+	l: 1.625,
+	xl: 2,
+}
+
+const TEXT_PROPS = {
+	fontWeight: 'normal',
+	fontVariant: 'normal',
+	fontStyle: 'normal',
+	padding: '0px',
+}
 
 const SPEECH_BUBBLE_TYPE = 'speech-bubble'
 
@@ -69,15 +82,15 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	// [3]
 	static override props = speechBubbleShapeProps
 
-	override isAspectRatioLocked(_shape: SpeechBubbleShape) {
+	override isAspectRatioLocked(shape: SpeechBubbleShape) {
 		return false
 	}
 
-	override canResize(_shape: SpeechBubbleShape) {
+	override canResize(shape: SpeechBubbleShape) {
 		return true
 	}
 
-	override canEdit() {
+	override canEdit(shape: SpeechBubbleShape) {
 		return true
 	}
 
@@ -190,7 +203,9 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const theme = useDefaultColorTheme()
+		const editor = useEditor()
+		const theme = editor.getCurrentTheme()
+		const colors = theme.colors[editor.getColorMode()]
 
 		return (
 			<>
@@ -198,21 +213,21 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 					<path
 						d={pathData}
 						strokeWidth={STROKE_SIZES[size]}
-						stroke={getColorValue(theme, color, 'solid')}
+						stroke={getColorValue(colors, color, 'solid')}
 						fill={'none'}
 					/>
 				</svg>
 				<PlainTextLabel
 					shapeId={id}
 					type={type}
-					font={font}
+					fontFamily={getFontFamily(theme, font)}
 					textWidth={shape.props.w}
-					fontSize={LABEL_FONT_SIZES[size]}
-					lineHeight={TEXT_PROPS.lineHeight}
-					align={align}
+					fontSize={theme.fontSize * LABEL_FONT_SIZES[size]}
+					lineHeight={theme.lineHeight}
+					textAlign={align as 'start' | 'center' | 'end'}
 					verticalAlign="start"
 					text={text}
-					labelColor={getColorValue(theme, color, 'solid')}
+					labelColor={getColorValue(colors, color, 'solid')}
 					isSelected={isSelected}
 					wrap
 				/>
@@ -220,10 +235,10 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		)
 	}
 
-	indicator(shape: SpeechBubbleShape) {
+	getIndicatorPath(shape: SpeechBubbleShape) {
 		const vertices = getSpeechBubbleVertices(shape)
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
-		return <path d={pathData} />
+		return new Path2D(pathData)
 	}
 
 	override onResize(shape: SpeechBubbleShape, info: TLResizeInfo<SpeechBubbleShape>) {
@@ -239,10 +254,12 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	getGrowY(shape: SpeechBubbleShape, prevGrowY = 0) {
 		const PADDING = 17
 
+		const theme = this.editor.getCurrentTheme()
 		const nextTextSize = this.editor.textMeasure.measureText(shape.props.text, {
 			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize: LABEL_FONT_SIZES[shape.props.size],
+			lineHeight: theme.lineHeight,
+			fontFamily: getFontFamily(theme, shape.props.font),
+			fontSize: theme.fontSize * LABEL_FONT_SIZES[shape.props.size],
 			maxWidth: shape.props.w - PADDING * 2,
 		})
 

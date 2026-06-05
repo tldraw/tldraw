@@ -4,6 +4,7 @@ import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
 import { Group2d } from '../../../primitives/geometry/Group2d'
 import { Rectangle2d } from '../../../primitives/geometry/Rectangle2d'
 import { ShapeUtil } from '../ShapeUtil'
+import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { DashedOutlineBox } from './DashedOutlineBox'
 
 /** @public */
@@ -12,7 +13,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	static override props = groupShapeProps
 	static override migrations = groupShapeMigrations
 
-	override hideSelectionBoundsFg() {
+	override hideSelectionBoundsFg(shape: TLGroupShape) {
 		return true
 	}
 
@@ -78,10 +79,46 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		)
 	}
 
-	indicator(shape: TLGroupShape) {
-		// Not a class component, but eslint can't tell that :(
+	override getIndicatorPath(shape: TLGroupShape): Path2D {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-		return <DashedOutlineBox className="" bounds={bounds} />
+		const zoomLevel = this.editor.getEfficientZoomLevel()
+		const path = new Path2D()
+
+		for (const side of bounds.sides) {
+			const [start, end] = side
+			const length = start.dist(end)
+			if (length <= 0) continue
+
+			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(length, 1 / zoomLevel, {
+				style: 'dashed',
+				lengthRatio: 4,
+			})
+
+			if (strokeDasharray === 'none') {
+				path.moveTo(start.x, start.y)
+				path.lineTo(end.x, end.y)
+				continue
+			}
+
+			const [dashLength, gapLength] = strokeDasharray.split(' ').map(Number)
+			const dashOffset = Number(strokeDashoffset)
+			const period = dashLength + gapLength
+			if (!Number.isFinite(period) || period <= 0) continue
+
+			const dx = (end.x - start.x) / length
+			const dy = (end.y - start.y) / length
+
+			for (let dashStart = -dashOffset; dashStart < length; dashStart += period) {
+				const dashEnd = Math.min(length, dashStart + dashLength)
+				const clippedDashStart = Math.max(0, dashStart)
+				if (dashEnd <= clippedDashStart) continue
+
+				path.moveTo(start.x + dx * clippedDashStart, start.y + dy * clippedDashStart)
+				path.lineTo(start.x + dx * dashEnd, start.y + dy * dashEnd)
+			}
+		}
+
+		return path
 	}
 
 	override onChildrenChange(group: TLGroupShape) {
@@ -96,7 +133,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			if (this.editor.getCurrentPageState().focusedGroupId === group.id) {
 				this.editor.popFocusedGroupId()
 			}
-			this.editor.reparentShapes(children, group.parentId)
+			this.editor.reparentShapes(children, group.parentId, group.index)
 			this.editor.deleteShapes([group.id])
 			return
 		}

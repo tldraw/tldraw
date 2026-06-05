@@ -1,6 +1,6 @@
 import { UnknownRecord } from '@tldraw/store'
-import { TLRoomSocket } from './TLSyncRoom'
 import { TLSocketServerSentEvent } from './protocol'
+import { TLRoomSocket } from './TLSyncRoom'
 
 /**
  * Minimal server-side WebSocket interface that is compatible with various WebSocket implementations.

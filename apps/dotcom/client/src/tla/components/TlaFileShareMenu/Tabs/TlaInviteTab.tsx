@@ -5,7 +5,7 @@ import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useEditorDeepLink } from '../../../hooks/useDeepLink'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
-import { useTldrawUser } from '../../../hooks/useUser'
+import { useTldrawCurrentUser } from '../../../hooks/useUser'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
@@ -18,8 +18,8 @@ import {
 	TlaMenuSelect,
 	TlaMenuSwitch,
 } from '../../tla-menu/tla-menu'
-import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
+import { QrCode } from '../QrCode'
 
 const messages = defineMessages({
 	editor: { defaultMessage: 'Editor' },
@@ -60,7 +60,7 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 
 function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: string }) {
 	const app = useApp()
-	const user = useTldrawUser()
+	const user = useTldrawCurrentUser()
 	const trackEvent = useTldrawAppUiEvents()
 	if (!user) throw Error('should have auth')
 
@@ -95,7 +95,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 
 function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 	const app = useApp()
-	const user = useTldrawUser()
+	const user = useTldrawCurrentUser()
 	const trackEvent = useTldrawAppUiEvents()
 	if (!user) throw Error('should have auth')
 

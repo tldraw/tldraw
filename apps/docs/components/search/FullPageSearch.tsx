@@ -1,6 +1,4 @@
 'use client'
-import { getSearchIndexName, SearchEntry } from '@/utils/algolia'
-import { searchClient } from '@/utils/search-api'
 import { Combobox, ComboboxItem, ComboboxProvider } from '@ariakit/react'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { Hit } from 'instantsearch.js'
@@ -11,6 +9,8 @@ import { createRef, Fragment, useCallback, useEffect, useState } from 'react'
 import { Configure, Highlight, InstantSearch, useHits, useSearchBox } from 'react-instantsearch'
 import { twJoin } from 'tailwind-merge'
 import { debounce } from 'tldraw'
+import { getSearchIndexName, SearchEntry } from '@/utils/algolia'
+import { searchClient } from '@/utils/search-api'
 import { ContentHighlight } from './ContentHighlight'
 
 export function FullPageSearch({ indexName }: { indexName: 'docs' | 'blog' }) {

@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { AgGridReact } from 'ag-grid-react'
 import { BaseBoxShapeUtil, TLShape, Tldraw, createShapeId, useDelaySvgExport } from 'tldraw'
-
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-quartz.css'
 import 'tldraw/tldraw.css'
@@ -57,8 +56,10 @@ class AgGridShapeUtil extends BaseBoxShapeUtil<AgGridShape> {
 			</div>
 		)
 	}
-	override indicator(shape: AgGridShape) {
-		return <rect width={shape.props.w} height={shape.props.h} rx={8} ry={8} />
+	override getIndicatorPath(shape: AgGridShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 

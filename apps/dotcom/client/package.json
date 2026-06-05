@@ -11,11 +11,11 @@
 		"defaults"
 	],
 	"scripts": {
-		"dev": "./wait-for-postgres.sh && yarn run -T tsx scripts/dev-app.ts",
+		"dev": "../wait-for-migrations.sh && yarn run -T tsx scripts/dev-app.ts",
 		"build": "yarn run -T tsx scripts/build.ts",
 		"build-i18n": "yarn i18n:extract && yarn i18n:compile",
 		"start": "VITE_PREVIEW=1 yarn run -T tsx scripts/dev-app.ts",
-		"lint": "cd ../../.. && yarn run -T oxlint apps/dotcom/client",
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"i18n:extract": "formatjs extract 'src/{tla,pages,components}/**/*.ts*' --out-file public/tla/locales/en.json --additional-component-names F --id-interpolation-pattern '[md5:contenthash:hex:10]' --format lokalise",
@@ -31,7 +31,7 @@
 	"dependencies": {
 		"@clerk/clerk-react": "^5.53.3",
 		"@clerk/elements": "^0.23.74",
-		"@rocicorp/zero": "0.26.1",
+		"@rocicorp/zero": "1.5.0",
 		"@sentry/integrations": "^7.120.3",
 		"@sentry/react": "^7.120.3",
 		"@tldraw/assets": "workspace:*",
@@ -71,6 +71,7 @@
 		"@types/qrcode": "^1.5.5",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
+		"@types/regexgen": "^1",
 		"@vitejs/plugin-react": "^6.0.1",
 		"dotenv": "^16.4.7",
 		"fast-glob": "^3.3.3",
@@ -79,7 +80,8 @@
 		"kysely": "^0.28.12",
 		"lazyrepo": "0.0.0-alpha.27",
 		"pg": "^8.13.1",
-		"vite": "^8.0.0",
+		"regexgen": "^1.3.0",
+		"vite": "^8.0.1",
 		"vitest": "^3.2.4",
 		"ws": "^8.18.0"
 	}

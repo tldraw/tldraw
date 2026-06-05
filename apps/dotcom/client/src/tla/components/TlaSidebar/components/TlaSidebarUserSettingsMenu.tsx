@@ -11,13 +11,14 @@ import {
 } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
-import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	ColorThemeSubmenu,
 	DebugMenuGroup,
 	ImportFileActionItem,
 	SignOutMenuItem,
+	UIThemeSubmenu,
 } from '../../menu-items/menu-items'
+import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
@@ -62,6 +63,7 @@ export function TlaUserSettingsMenu() {
 					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="preferences">
 						<ColorThemeSubmenu />
+						<UIThemeSubmenu />
 						<LanguageMenu />
 					</TldrawUiMenuGroup>
 					<DebugMenuGroup />

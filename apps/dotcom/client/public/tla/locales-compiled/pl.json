@@ -153,6 +153,12 @@
       "value": "Moje pliki"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Dołącz link do bieżącego pliku"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -211,6 +217,18 @@
     {
       "type": 0,
       "value": "Akceptuj wszystko"
+    }
+  ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Nieobsługiwany diagram Mermaid"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Motyw kolorystyczny"
     }
   ],
   "42e53c47c1": [
@@ -285,10 +303,22 @@
       "value": "Usuń grupę…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Więcej opcji"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Czy na pewno chcesz usunąć tę grupę? Tej czynności nie można cofnąć."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Nieobsługiwany diagram, zamiast tego zostanie wygenerowany plik SVG"
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +431,12 @@
       "value": "Usuń ten link i utwórz nowy."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Nie można połączyć"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +477,12 @@
     {
       "type": 0,
       "value": "Ty"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Odświeżać"
     }
   ],
   "6609dd239e": [
@@ -567,6 +609,12 @@
     {
       "type": 0,
       "value": "Prześlij problem na GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Domyślny"
     }
   ],
   "7b1329f5ca": [
@@ -791,6 +839,12 @@
     {
       "type": 0,
       "value": "Usuń plik"
+    }
+  ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Mamy problem z połączeniem się z naszą usługą uwierzytelniania. Zazwyczaj jest to problem tymczasowy. Spróbuj odświeżyć stronę."
     }
   ],
   "9ceb927baa": [
@@ -1075,6 +1129,12 @@
     {
       "type": 0,
       "value": "Wyloguj się"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Zamknij"
     }
   ],
   "c9cc8cce24": [

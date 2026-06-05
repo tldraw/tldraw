@@ -1,8 +1,15 @@
-import { TLParentId, TLShape, TLShapeId, createShapeId, toRichText } from '@tldraw/tlschema'
+import {
+	TLFontFace,
+	TLParentId,
+	TLShape,
+	TLShapeId,
+	createShapeId,
+	toRichText,
+} from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { Mock, Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
-import { FontManager, TLFontFace } from './FontManager'
+import { FontManager } from './FontManager'
 
 // Mock the Editor class
 vi.mock('../../Editor')
@@ -29,6 +36,8 @@ describe('FontManager', () => {
 	let editor: Mocked<Editor>
 	let fontManager: FontManager
 	let mockAssetUrls: { [key: string]: string }
+	let mockShapeFontFacesCacheGet: Mock
+	let mockShapeFontLoadStateCacheGet: Mock
 
 	const createMockFont = (overrides: Partial<TLFontFace> = {}): TLFontFace => ({
 		family: 'Test Font',
@@ -71,12 +80,15 @@ describe('FontManager', () => {
 			getFontFaces: vi.fn(() => []),
 		}
 
+		mockShapeFontFacesCacheGet = vi.fn(() => [])
+		mockShapeFontLoadStateCacheGet = vi.fn(() => ({ get: vi.fn(() => []) }))
+
 		const mockStore = {
 			createComputedCache: vi.fn(() => ({
-				get: vi.fn(() => []),
+				get: mockShapeFontFacesCacheGet,
 			})),
 			createCache: vi.fn(() => ({
-				get: vi.fn(() => ({ get: vi.fn(() => []) })),
+				get: mockShapeFontLoadStateCacheGet,
 			})),
 		}
 
@@ -100,6 +112,32 @@ describe('FontManager', () => {
 		it('should initialize without assetUrls', () => {
 			const managerWithoutUrls = new FontManager(editor)
 			expect(managerWithoutUrls).toBeDefined()
+		})
+	})
+
+	describe('dispose', () => {
+		it('clears font state and caches', async () => {
+			const font = createMockFont()
+			const shapeId = createShapeId('test')
+			mockShapeFontFacesCacheGet.mockReturnValue([font])
+			const firstPromise = fontManager.ensureFontIsLoaded(font)
+
+			expect(fontManager.getShapeFontFaces(shapeId)).toEqual([font])
+			fontManager.trackFontsForShape(shapeId)
+			fontManager.requestFonts([font])
+			await firstPromise
+			fontManager.dispose()
+			fontManager.requestFonts([font])
+			const secondPromise = fontManager.ensureFontIsLoaded(font)
+
+			expect(fontManager.getShapeFontFaces(shapeId)).toEqual([])
+			fontManager.trackFontsForShape(shapeId)
+			expect(mockShapeFontFacesCacheGet).toHaveBeenCalledTimes(1)
+			expect(mockShapeFontLoadStateCacheGet).toHaveBeenCalledTimes(1)
+			expect(queueMicrotask).toHaveBeenCalledTimes(2)
+			expect(secondPromise).not.toBe(firstPromise)
+
+			await secondPromise
 		})
 	})
 

@@ -8,7 +8,7 @@ const menus = [
 		heading: 'Product',
 		items: [
 			{ caption: 'Whiteboard', href: '/features/out-of-the-box-whiteboard' },
-			{ caption: 'Starter kits', href: '/starter-kits' },
+			{ caption: 'Starter kits', href: '/starter-kits/overview' },
 			{ caption: 'Pricing', href: '/pricing' },
 			{ caption: 'FAQ', href: '/faq' },
 		],
@@ -17,9 +17,9 @@ const menus = [
 		heading: 'Developers',
 		items: [
 			{ caption: 'Quick start guide', href: '/quick-start' },
-			{ caption: 'Starter kits', href: '/starter-kits' },
+			{ caption: 'Starter kits', href: '/starter-kits/overview' },
 			{ caption: 'Examples', href: '/examples/basic' },
-			{ caption: 'Releases', href: '/releases-versioning' },
+			{ caption: 'Releases', href: '/releases' },
 			{ caption: 'Docs', href: '/quick-start' },
 		],
 	},
@@ -42,7 +42,7 @@ const menus = [
 		items: [
 			{ caption: 'Videos', href: '/blog/events' },
 			{ caption: 'Careers', href: '/careers' },
-			{ caption: 'License', href: '/legal/tldraw-license' },
+			{ caption: 'License', href: '/community/license' },
 			{ caption: 'Trademarks', href: '/legal/trademark-guidelines' },
 			{ caption: 'CLA', href: '/legal/contributor-license-agreement' },
 			{ caption: 'Privacy settings', href: '#', isCookieSetting: true },

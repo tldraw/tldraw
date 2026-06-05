@@ -12,35 +12,63 @@ import {
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { Kysely, sql } from 'kysely'
-
 import { LogicalReplicationService, Wal2Json, Wal2JsonPlugin } from 'pg-logical-replication'
 import { Logger } from './Logger'
-import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { LiveChangeCollator, buildTopicsString, getTopics } from './replicator/ChangeCollator'
+import { getResumeType } from './replicator/getResumeType'
+import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
+import { migrate } from './replicator/replicatorMigrations'
+import { ChangeV2, ReplicationEvent, replicatedTables } from './replicator/replicatorTypes'
 import {
 	TopicSubscriptionTree,
 	getSubscriptionChanges,
 	parseTopicSubscriptionTree,
 	serializeSubscriptions,
 } from './replicator/Subscription'
-import { getResumeType } from './replicator/getResumeType'
-import { pruneTopicSubscriptionsSql } from './replicator/pruneTopicSubscriptions'
-import { migrate } from './replicator/replicatorMigrations'
-import { ChangeV2, ReplicationEvent, replicatedTables } from './replicator/replicatorTypes'
 import {
 	Analytics,
 	Environment,
 	TLPostgresReplicatorEvent,
 	TLPostgresReplicatorRebootSource,
 } from './types'
+import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
 import { EventData, writeDataPoint } from './utils/analytics'
 import {
 	getRoomDurableObject,
 	getStatsDurableObjct,
 	getUserDurableObject,
 } from './utils/durableObjects'
+
+// TODO: remove this workaround after upgrading wal2json to a version with eulerto/wal2json#266 fixed.
+// Subclass to work around wal2json bug (eulerto/wal2json#266) where
+// concurrent pg_logical_emit_message produces malformed JSON with leading commas.
+class SafeWal2JsonPlugin extends Wal2JsonPlugin {
+	// Wal2JsonPlugin.parse() does a bare JSON.parse(buffer.toString()) which throws
+	// on malformed output before our code can catch it. We try parsing first and only
+	// apply fixups on failure to avoid corrupting valid JSON string values that might
+	// contain comma patterns like "a,,b".
+	// If fixups also fail, we deliberately let the error propagate — a crash loop is
+	// preferable to silently skipping (and acknowledging) unprocessable changes.
+	override parse(buffer: Buffer): any {
+		const raw = buffer.toString()
+		try {
+			return JSON.parse(raw)
+		} catch (e) {
+			const fixed = raw
+				.replace(/"change":\[,+/g, '"change":[') // leading commas: [,{ → [{
+				.replace(/,+]/g, ']') // trailing commas: ,] → ]
+				.replace(/,,+/g, ',') // consecutive commas: ,, → ,
+			const result = JSON.parse(fixed)
+			console.warn(
+				`SafeWal2JsonPlugin: fixed malformed wal2json output (eulerto/wal2json#266). ` +
+					`Original error: ${e}. Payload sample: ${raw.slice(0, 200)}`
+			)
+			return result
+		}
+	}
+}
 
 const ONE_MINUTE = 60 * 1000
 // IMPORTANT prune interval needs to be at least twice as big as the lsn update request timeout
@@ -95,8 +123,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private log
 
 	private readonly replicationService
-	private readonly slotName
-	private readonly wal2jsonPlugin = new Wal2JsonPlugin({
+	private slotName
+
+	private getNewSlotName() {
+		const slotNameMaxLength = 63 // max postgres identifier length
+		// PG slot names only allow [a-z0-9_], replace hyphens from nanoid
+		const slotId = uniqueId().toLowerCase().replace(/-/g, '_')
+		const slotNamePrefix = `tlpr_${slotId}_`
+		const durableObjectId = this.ctx.id.toString()
+		return slotNamePrefix + durableObjectId.slice(0, slotNameMaxLength - slotNamePrefix.length)
+	}
+
+	private readonly wal2jsonPlugin = new SafeWal2JsonPlugin({
 		addTables:
 			'public.user,public.file,public.file_state,public.user_mutation_number,public.replicator_boot_id,public.group,public.group_user,public.group_file',
 	})
@@ -112,11 +150,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			promise: promiseWithResolve(),
 		}
 
-		const slotNameMaxLength = 63 // max postgres identifier length
-		const slotNamePrefix = 'tlpr_' // pick something short so we can get more of the durable object id
-		const durableObjectId = this.ctx.id.toString()
-		this.slotName =
-			slotNamePrefix + durableObjectId.slice(0, slotNameMaxLength - slotNamePrefix.length)
+		let slotName = null
+		try {
+			slotName = this.sqlite.exec('SELECT slotName FROM meta').one().slotName
+		} catch (_e) {
+			// noop
+		}
+		if (typeof slotName !== 'string') {
+			slotName = this.getNewSlotName()
+		}
+		this.slotName = slotName
 
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
 		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator', 100)
@@ -154,9 +197,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				if (this.sqlite.exec('select slotName from meta').one().slotName !== this.slotName) {
 					this.sqlite.exec('UPDATE meta SET slotName = ?, lsn = null', this.slotName)
 				}
-				await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = ${this.slotName})`.execute(
-					this.db
-				)
+				await this.ensureValidSlot()
 				this.pruneHistory()
 			})
 			.then(() => {
@@ -302,6 +343,33 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 	}
 
+	private async ensureValidSlot(): Promise<void> {
+		const result = await sql<{ wal_status: string }>`
+			SELECT wal_status FROM pg_replication_slots
+			WHERE slot_name = ${this.slotName}
+		`.execute(this.db)
+
+		const slotInfo = result.rows[0]
+
+		if (!slotInfo) {
+			this.log.debug('creating replication slot', this.slotName)
+			await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json')`.execute(
+				this.db
+			)
+		} else if (slotInfo.wal_status === 'lost') {
+			this.captureException(new Error(`replication slot invalidated: ${this.slotName}`))
+			await sql`SELECT pg_drop_replication_slot(${this.slotName})`.execute(this.db)
+			// increment generation to get a new slot name, which changes all sequenceIds
+			// and guarantees downstream user DOs hard reset
+			this.slotName = this.getNewSlotName()
+			this.sqlite.exec('UPDATE meta SET slotName = ?, lsn = null', this.slotName)
+			this.log.debug('creating replication slot', this.slotName)
+			await sql`SELECT pg_create_logical_replication_slot(${this.slotName}, 'wal2json')`.execute(
+				this.db
+			)
+		}
+	}
+
 	private async boot() {
 		this.log.debug('booting')
 		this.lastPostgresMessageTime = Date.now()
@@ -316,6 +384,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.db
 		)
 		this.log.debug('done')
+
+		await this.ensureValidSlot()
 
 		const promise = 'promise' in this.state ? this.state.promise : promiseWithResolve()
 		this.state = {

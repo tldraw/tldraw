@@ -1,7 +1,7 @@
-import { mockUniqueId } from '@tldraw/editor'
 import { readdirSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
+import { mockUniqueId, setUserPreferences } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { putExcalidrawContent } from './putExcalidrawContent'
 
@@ -10,6 +10,7 @@ mockUniqueId(() => `${++nextNanoId}`)
 
 beforeEach(() => {
 	nextNanoId = 0
+	setUserPreferences({ id: '4', name: '', color: '#7B66DC' })
 })
 
 describe('putExcalidrawContent test fixtures', () => {

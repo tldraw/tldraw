@@ -11,16 +11,17 @@ import {
 	DefaultTextAlignStyle,
 	DefaultVerticalAlignStyle,
 	GeoShapeGeoStyle,
-	LineShapeSplineStyle,
-	TLArrowShapeArrowheadStyle,
 	kickoutOccludedShapes,
+	LineShapeSplineStyle,
 	minBy,
+	TLArrowShapeArrowheadStyle,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
-import { STYLES } from '../../../styles'
-import { useUiEvents } from '../../context/events'
+import { GeoShapeUtil } from '../../../shapes/geo/GeoShapeUtil'
+import { defaultGeoTypeDefinitions, GeoTypeDefinition } from '../../../shapes/geo/getGeoShapePath'
+import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
@@ -74,9 +75,15 @@ export function StylePanelSection({ children }: StylePanelSectionProps) {
 
 /** @public @react */
 export function StylePanelColorPicker() {
+	const editor = useEditor()
 	const { styles } = useStylePanelContext()
 	const msg = useTranslation()
 	const color = styles.get(DefaultColorStyle)
+	const items = useValue(
+		'style panel color items',
+		() => getColorStyleItems(editor.getCurrentTheme().colors[editor.getColorMode()]),
+		[editor]
+	)
 	if (color === undefined) return null
 
 	return (
@@ -84,7 +91,7 @@ export function StylePanelColorPicker() {
 			title={msg('style-panel.color')}
 			uiType="color"
 			style={DefaultColorStyle}
-			items={STYLES.color}
+			items={items}
 			value={color}
 		/>
 	)
@@ -94,26 +101,16 @@ const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
 /** @public @react */
 export function StylePanelOpacityPicker() {
 	const editor = useEditor()
-	const { onHistoryMark, enhancedA11yMode } = useStylePanelContext()
+	const { onHistoryMark, onOpacityChange, enhancedA11yMode } = useStylePanelContext()
 
 	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
-	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 
 	const handleOpacityValueChange = React.useCallback(
 		(value: number) => {
-			const item = tldrawSupportedOpacities[value]
-			editor.run(() => {
-				if (editor.isIn('select')) {
-					editor.setOpacityForSelectedShapes(item)
-				}
-				editor.setOpacityForNextShapes(item)
-				editor.updateInstanceState({ isChangingStyle: true })
-			})
-
-			trackEvent('set-style', { source: 'style-panel', id: 'opacity', value })
+			onOpacityChange(tldrawSupportedOpacities[value])
 		},
-		[editor, trackEvent]
+		[onOpacityChange]
 	)
 
 	if (opacity === undefined) return null
@@ -175,6 +172,7 @@ export function StylePanelFillPicker() {
 					style={DefaultFillStyle}
 					items={STYLES.fillExtra}
 					value={fill}
+					sideOffset={116}
 				/>
 			</TldrawUiToolbar>
 		</>
@@ -227,9 +225,15 @@ export function StylePanelSizePicker() {
 
 /** @public @react */
 export function StylePanelFontPicker() {
+	const editor = useEditor()
 	const { styles } = useStylePanelContext()
 	const msg = useTranslation()
 	const font = styles.get(DefaultFontStyle)
+	const items = useValue(
+		'style panel font items',
+		() => getFontStyleItems(editor.getCurrentTheme()),
+		[editor]
+	)
 	if (font === undefined) return null
 
 	return (
@@ -237,7 +241,7 @@ export function StylePanelFontPicker() {
 			title={msg('style-panel.font')}
 			uiType="font"
 			style={DefaultFontStyle}
-			items={STYLES.font}
+			items={items}
 			value={font}
 		/>
 	)
@@ -313,6 +317,7 @@ export function StylePanelLabelAlignPicker() {
 						style={DefaultVerticalAlignStyle}
 						items={STYLES.verticalAlign}
 						value={verticalLabelAlign}
+						sideOffset={116}
 					/>
 				)}
 			</TldrawUiToolbar>
@@ -322,9 +327,17 @@ export function StylePanelLabelAlignPicker() {
 
 /** @public @react */
 export function StylePanelGeoShapePicker() {
+	const editor = useEditor()
 	const { styles } = useStylePanelContext()
 	const geo = styles.get(GeoShapeGeoStyle)
 	if (geo === undefined) return null
+
+	const customGeoTypes = editor.getShapeUtil<GeoShapeUtil>('geo').options.customGeoTypes
+	const merged: Record<string, GeoTypeDefinition> = {
+		...defaultGeoTypeDefinitions,
+		...customGeoTypes,
+	}
+	const items = Object.entries(merged).map(([value, def]) => ({ value, icon: def.icon }))
 
 	return (
 		<StylePanelDropdownPicker
@@ -334,7 +347,7 @@ export function StylePanelGeoShapePicker() {
 			uiType="geo"
 			stylePanelType="geo"
 			style={GeoShapeGeoStyle}
-			items={STYLES.geo}
+			items={items}
 			value={geo}
 		/>
 	)

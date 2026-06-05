@@ -1,16 +1,10 @@
+import assert from 'assert'
 import { DragFileOperation, DragGroupOperation, DragReorderOperation } from '@tldraw/dotcom-shared'
 import { getIndexAbove, getIndexBetween, IndexKey } from '@tldraw/utils'
-import assert from 'assert'
 import { useCallback, useEffect, useRef } from 'react'
 import { Vec } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { useApp } from './useAppState'
-
-export interface DropTarget {
-	id: string
-	element: HTMLElement
-	rect: DOMRect
-}
 
 function detectDragOperations(
 	elements: DragElements,

@@ -153,6 +153,12 @@
       "value": "My files"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Include link to current file"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -217,6 +223,12 @@
     {
       "type": 0,
       "value": "Unsupported Mermaid diagram"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Color theme"
     }
   ],
   "42e53c47c1": [
@@ -597,6 +609,12 @@
     {
       "type": 0,
       "value": "Submit an issue on GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Default"
     }
   ],
   "7b1329f5ca": [

@@ -7,6 +7,7 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiGrid } from '../primitives/layout'
 
+/** @public @react */
 export const UserPresenceColorPicker = track(function UserPresenceColorPicker() {
 	const editor = useEditor()
 	const container = useContainer()

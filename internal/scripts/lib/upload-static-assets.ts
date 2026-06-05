@@ -1,7 +1,7 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import fs from 'fs'
-import mime from 'mime'
 import path from 'path'
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import mime from 'mime'
 import { exec } from './exec'
 import { makeEnv } from './makeEnv'
 

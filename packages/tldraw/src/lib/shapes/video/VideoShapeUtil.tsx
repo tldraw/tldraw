@@ -4,9 +4,12 @@ import {
 	MediaHelpers,
 	SvgExportContext,
 	TLAsset,
+	TLShapePartial,
+	TLVideoAsset,
 	TLVideoShape,
+	VecModel,
 	WeakCache,
-	toDomPrecision,
+	createShapeId,
 	useEditor,
 	useEditorComponents,
 	useIsEditing,
@@ -16,6 +19,7 @@ import {
 import classNames from 'classnames'
 import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
@@ -23,7 +27,14 @@ import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
-export interface VideoShapeOptions {
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface VideoShapeUtilDisplayValues {}
+
+/** @public */
+export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLVideoShape,
+	VideoShapeUtilDisplayValues
+> {
 	/**
 	 * Should videos play automatically?
 	 */
@@ -35,15 +46,22 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video' as const
 	static override props = videoShapeProps
 	static override migrations = videoShapeMigrations
+	static override handledAssetTypes = ['video'] as const
 
 	override options: VideoShapeOptions = {
 		autoplay: true,
+		getDefaultDisplayValues(): VideoShapeUtilDisplayValues {
+			return {}
+		},
+		getCustomDisplayValues(): Partial<VideoShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
-	override canEdit() {
+	override canEdit(shape: TLVideoShape) {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(shape: TLVideoShape) {
 		return true
 	}
 
@@ -61,20 +79,28 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		}
 	}
 
+	override createShapeForAsset(asset: TLAsset, position: VecModel): TLShapePartial | null {
+		const videoAsset = asset as TLVideoAsset
+		return {
+			id: createShapeId(),
+			type: 'video',
+			x: position.x,
+			y: position.y,
+			opacity: 1,
+			props: {
+				assetId: videoAsset.id,
+				w: videoAsset.props.w,
+				h: videoAsset.props.h,
+			},
+		}
+	}
+
 	override getAriaDescriptor(shape: TLVideoShape) {
 		return shape.props.altText
 	}
 
 	component(shape: TLVideoShape) {
 		return <VideoShape shape={shape} />
-	}
-
-	indicator(shape: TLVideoShape) {
-		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLVideoShape): Path2D {

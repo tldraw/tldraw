@@ -6,13 +6,13 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import {
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
-import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { useStylePanelContext } from './StylePanelContext'
 
 /** @public */
@@ -28,6 +28,8 @@ export interface StylePanelDropdownPickerProps<T extends string> {
 	onValueChange?(style: StyleProp<T>, value: T): void
 	/** Override the test ID prefix. Defaults to uiType. */
 	testIdType?: string
+	/** Distance to push the popover left of the trigger so it lands flush with the style panel. */
+	sideOffset?: number
 }
 
 function StylePanelDropdownPickerInner<T extends string>(props: StylePanelDropdownPickerProps<T>) {
@@ -57,6 +59,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 		value,
 		onValueChange = ctx.onValueChange,
 		testIdType = uiType,
+		sideOffset = 0,
 	} = props
 	const msg = useTranslation()
 	const editor = useEditor()
@@ -70,10 +73,17 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 
 	const stylePanelName = msg(`style-panel.${stylePanelType}` as TLUiTranslationKey)
 
+	// The current value isn't always present in this dropdown's items (for example the fill
+	// dropdown only holds the "extra" fills, so a "solid" selection lives elsewhere). When the
+	// selected value isn't one of these items, describe what the dropdown opens rather than a
+	// value it can't show.
+	const valueInItems = value.type !== 'mixed' && items.some((item) => item.value === value.value)
 	const titleStr =
 		value.type === 'mixed'
 			? msg('style-panel.mixed')
-			: stylePanelName + ' — ' + msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
+			: valueInItems
+				? stylePanelName + ' — ' + msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
+				: stylePanelName
 	const labelStr = label ? msg(label) : ''
 
 	const popoverId = `style panel ${id}`
@@ -95,7 +105,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 					<TldrawUiButtonIcon icon={icon as TLUiIconType} />
 				</TldrawUiToolbarButton>
 			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent side="left" align="center">
+			<TldrawUiPopoverContent side="left" align="center" sideOffset={sideOffset}>
 				<TldrawUiToolbar orientation={items.length > 4 ? 'grid' : 'horizontal'} label={labelStr}>
 					<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
 						{items.map((item) => {

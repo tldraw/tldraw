@@ -3,6 +3,22 @@ import { Editor } from '../../Editor'
 import { TextManager, TLMeasureTextSpanOpts } from './TextManager'
 
 // Create a simple mock DOM environment
+function createMockStyle() {
+	const properties = new Map<string, string>()
+
+	return {
+		setProperty: vi.fn((key: string, value: string) => {
+			properties.set(key, value)
+		}),
+		getPropertyValue: vi.fn((key: string) => properties.get(key) ?? ''),
+		removeProperty: vi.fn((key: string) => {
+			const previous = properties.get(key) ?? ''
+			properties.delete(key)
+			return previous
+		}),
+	}
+}
+
 const mockElement = {
 	classList: { add: vi.fn() },
 	tabIndex: -1,
@@ -10,10 +26,7 @@ const mockElement = {
 	innerHTML: '',
 	textContent: '',
 	setAttribute: vi.fn(),
-	style: {
-		setProperty: vi.fn(),
-		getPropertyValue: vi.fn(() => ''),
-	},
+	style: createMockStyle(),
 	scrollWidth: 100,
 	getBoundingClientRect: vi.fn(() => ({
 		width: 100,
@@ -31,6 +44,7 @@ const mockElement = {
 // Mock document.createElement to return our mock element
 const mockCreateElement = vi.fn(() => {
 	const element = { ...mockElement }
+	element.style = createMockStyle()
 	element.cloneNode = vi.fn(() => ({ ...element }))
 
 	// Make textContent and innerHTML reactive like real DOM elements

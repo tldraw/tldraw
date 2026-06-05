@@ -33,10 +33,11 @@ import { GroupInviteHandler } from '../components/GroupInviteHandler'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
+import { useUITheme } from '../hooks/useUITheme'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { hasNotAcceptedLegal } from '../utils/auth'
-import { FeatureFlagsFetcher } from '../utils/FeatureFlagsFetcher'
+import { FeatureFlagPoller } from '../utils/FeatureFlagPoller'
 import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	getLocalSessionState,
@@ -94,9 +95,10 @@ if (!PUBLISHABLE_KEY) {
 const CLERK_LOAD_TIMEOUT_MS = 10_000
 
 const CLERK_ERROR_MESSAGES = {
-	header: appMessages.clerkUnavailable.defaultMessage,
-	para1: appMessages.clerkUnavailablePara.defaultMessage,
-	cta: appMessages.refresh.defaultMessage,
+	header: 'Unable to connect',
+	para1:
+		"We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page.",
+	cta: 'Refresh',
 }
 
 export function Component() {
@@ -156,6 +158,10 @@ export function Component() {
 				</IntlWrapper>
 			</RefreshErrorBoundary>
 			<WatermarkOverride />
+			{/* Always-mounted target for Clerk's CAPTCHA widget, so any Clerk call
+			    anywhere in the app can attach its challenge. Stays empty (and so
+			    invisible) unless Clerk injects a visible challenge. */}
+			<div id="clerk-captcha" />
 		</div>
 	)
 }
@@ -306,7 +312,7 @@ function SignedInProvider({
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
-				<FeatureFlagsFetcher />
+				<FeatureFlagPoller />
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -314,15 +320,17 @@ function SignedInProvider({
 	}
 
 	return (
-		<AppStateProvider>
-			<UserProvider>
-				<ThemeContainer onThemeChange={onThemeChange}>
-					<FeatureFlagsFetcher />
-					<SignedInAnalytics />
-					{children}
-				</ThemeContainer>
-			</UserProvider>
-		</AppStateProvider>
+		<>
+			<FeatureFlagPoller />
+			<AppStateProvider>
+				<UserProvider>
+					<ThemeContainer onThemeChange={onThemeChange}>
+						<SignedInAnalytics />
+						{children}
+					</ThemeContainer>
+				</UserProvider>
+			</AppStateProvider>
+		</>
 	)
 }
 
@@ -364,6 +372,7 @@ function ThemeContainer({
 	onThemeChange(theme: 'light' | 'dark' | 'system'): void
 }) {
 	const theme = useValue('theme', () => getLocalSessionState().theme, [])
+	useUITheme()
 
 	useEffect(() => {
 		onThemeChange(theme)

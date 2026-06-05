@@ -1,7 +1,7 @@
+import { inspect } from 'util'
 /* eslint-disable no-console */
 import { HistoryManager, RecordsDiff } from '@tldraw/editor'
 import { DiffOptions, diff as jestDiff } from 'jest-diff'
-import { inspect } from 'util'
 
 class Printer {
 	private _output = ''

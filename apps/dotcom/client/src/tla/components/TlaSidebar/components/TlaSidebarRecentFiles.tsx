@@ -3,9 +3,9 @@ import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { getRelevantDates } from '../../../utils/dates'
 import { F } from '../../../utils/i18n'
+import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarFileSection } from './TlaSidebarFileSection'
-import { RecentFile } from './sidebar-shared'
 
 export function TlaSidebarRecentFiles() {
 	const app = useApp()

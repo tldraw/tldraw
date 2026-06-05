@@ -1,9 +1,9 @@
-import { parse as parseArgs } from '@bomb.sh/args'
-import { outro, spinner, text } from '@clack/prompts'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import process from 'node:process'
 import { Readable } from 'node:stream'
+import { parse as parseArgs } from '@bomb.sh/args'
+import { outro, spinner, text } from '@clack/prompts'
 import picocolors from 'picocolors'
 import * as tar from 'tar'
 import { groupSelect, GroupSelectOption } from './group-select'
@@ -105,6 +105,17 @@ function trackStarterKitChoice(templateId: string, noTelemetry?: boolean) {
 
 	// Fire and forget - don't block on this request
 	fetch('https://dashboard.tldraw.pro/api/starter-kit-choice', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ id: templateId }),
+	}).catch(() => {
+		// Silently ignore errors
+	})
+
+	// Fire and forget - don't block on this request
+	fetch('https://teamldraw.com/api/starter-kit-choice', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',

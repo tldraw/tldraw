@@ -153,6 +153,12 @@
       "value": "Mina filer"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Inkludera länk till aktuell fil"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -211,6 +217,18 @@
     {
       "type": 0,
       "value": "Acceptera alla"
+    }
+  ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Ostödd Mermaid-diagram"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Färgtema"
     }
   ],
   "42e53c47c1": [
@@ -285,10 +303,22 @@
       "value": "Radera grupp…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Fler alternativ"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Är du säker på att du vill ta bort den här gruppen? Åtgärden kan inte ångras."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Diagrammet stöds inte, genererar SVG istället"
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +431,12 @@
       "value": "Återkalla den här länken och skapa en ny."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Det gick inte att ansluta"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +477,12 @@
     {
       "type": 0,
       "value": "du"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Uppdatera"
     }
   ],
   "6609dd239e": [
@@ -567,6 +609,12 @@
     {
       "type": 0,
       "value": "Skicka ett problem på GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Standard"
     }
   ],
   "7b1329f5ca": [
@@ -791,6 +839,12 @@
     {
       "type": 0,
       "value": "Ta bort fil"
+    }
+  ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Vi har problem med att ansluta till vår autentiseringstjänst. Detta är vanligtvis tillfälligt. Försök att uppdatera sidan."
     }
   ],
   "9ceb927baa": [
@@ -1067,6 +1121,12 @@
     {
       "type": 0,
       "value": "Logga ut"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Avfärda"
     }
   ],
   "c9cc8cce24": [

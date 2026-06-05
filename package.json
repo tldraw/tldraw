@@ -54,10 +54,10 @@
 		"build-package": "lazy run build --filter 'packages/*'",
 		"preview-app": "yarn build-app && VITE_PREVIEW=1 yarn dev-app",
 		"preview-examples": "lazy run build --filter='apps/examples' && cd apps/examples && yarn preview",
-		"lint": "oxlint .",
-		"format": "oxfmt \"**/*.{js,jsx,ts,tsx,cjs,mjs}\"",
-		"format-current": "bash -c 'files=$(git diff --name-only --diff-filter d | grep -E \"\\.(js|jsx|ts|tsx|cjs|mjs)$\"); if [ -n \"$files\" ]; then echo \"$files\" | xargs oxfmt --no-error-on-unmatched-pattern; else echo No files to format; fi'",
-		"lint-current": "bash -c 'files=$(git diff --name-only --diff-filter d | grep -E \"\\.(js|jsx|ts|tsx)$\"); if [ -n \"$files\" ]; then echo \"$files\" | xargs oxlint; else echo No JS/TS files to lint; fi'",
+		"lint": "tsx internal/scripts/lint.ts",
+		"format": "tsx internal/scripts/lint.ts --fix",
+		"format-current": "tsx internal/scripts/lint.ts --fix --current",
+		"lint-current": "tsx internal/scripts/lint.ts --current",
 		"typecheck": "yarn refresh-assets && tsx internal/scripts/typecheck.ts",
 		"profile-typescript": "tsx internal/scripts/profile-typescript.ts",
 		"profile-tsserver": "tsx internal/scripts/profile-tsserver.ts",
@@ -84,13 +84,16 @@
 	"packageManager": "yarn@4.12.0",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,cjs,mjs}": [
+			"oxfmt --no-error-on-unmatched-pattern",
+			"oxlint"
+		],
+		"*.{css,md,mdx,html,yml,yaml}": [
 			"oxfmt --no-error-on-unmatched-pattern"
 		]
 	},
 	"devDependencies": {
 		"@lingual/i18n-check": "^0.5.5",
 		"@microsoft/api-extractor": "^7.55.2",
-		"@next/eslint-plugin-next": "^15.1.6",
 		"@swc/core": "^1.15.18",
 		"@types/adm-zip": "^0.5.7",
 		"@types/aws-lambda": "8.10.148",
@@ -113,12 +116,12 @@
 		"lint-staged": "^15.4.3",
 		"open-cli": "^8.0.0",
 		"oxfmt": "^0.41.0",
-		"oxlint": "^1.56.0",
-		"oxlint-tsgolint": "^0.17.0",
+		"oxlint": "^1.66.0",
+		"oxlint-tsgolint": "^0.18.0",
 		"rimraf": "^4.4.1",
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3",
-		"vercel": "^34.4.0",
+		"vercel": "^52.0.0",
 		"vite-plugin-circular-dependency": "^0.5.0",
 		"vitest": "^3.2.4",
 		"vitest-canvas-mock": "^1.1.3"
@@ -127,6 +130,17 @@
 		"our examples app depenends on pdf.js which pulls in canvas as an optional dependency.",
 		"it slows down installs quite a bit though, so we replace it with an empty package."
 	],
+	"// dependenciesMeta.workerd": [
+		"workerd's postinstall script runs the native binary to self-check it, which fails on",
+		"CI images without GLIBC 2.35+ (e.g. Vercel, which builds the docs site). Skipping the",
+		"build script doesn't affect wrangler at dev time — wrangler still invokes the platform",
+		"binary normally on developer machines."
+	],
+	"dependenciesMeta": {
+		"workerd": {
+			"built": false
+		}
+	},
 	"resolutions": {
 		"domino@^2.1.6": "patch:domino@npm%3A2.1.6#./.yarn/patches/domino-npm-2.1.6-b0dc3de857.patch",
 		"canvas": "npm:empty-npm-package@1.0.0",
@@ -138,7 +152,7 @@
 		"@sentry/cli": "^2.41.1",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
-		"esbuild": "^0.27.4",
+		"esbuild": "^0.28.0",
 		"mime": "^4.0.6",
 		"purgecss": "^5.0.0",
 		"svgo": "^3.3.3"

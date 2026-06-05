@@ -113,11 +113,14 @@ export class DragAndDropManager {
 
 		if (draggingOverShape) {
 			const util = editor.getShapeUtil(draggingOverShape)
-			util.onDropShapesOver?.(draggingOverShape, shapes, {
-				initialDraggingOverShapeId: this.initialDraggingOverShape?.id ?? null,
-				initialParentIds: this.initialParentIds,
-				initialIndices: this.initialIndices,
-			})
+			const receivableShapes = getReceivableShapesForTarget(editor, draggingOverShape, shapes)
+			if (receivableShapes.length > 0) {
+				util.onDropShapesOver?.(draggingOverShape, receivableShapes, {
+					initialDraggingOverShapeId: this.initialDraggingOverShape?.id ?? null,
+					initialParentIds: this.initialParentIds,
+					initialIndices: this.initialIndices,
+				})
+			}
 		}
 
 		this.dispose()
@@ -176,23 +179,42 @@ export class DragAndDropManager {
 
 			if (this.prevDraggingOverShape) {
 				const util = editor.getShapeUtil(this.prevDraggingOverShape)
-				util.onDragShapesOut?.(this.editor.getShape(this.prevDraggingOverShape)!, draggingShapes, {
-					nextDraggingOverShapeId: nextDraggingOverShape?.id ?? null,
-					initialDraggingOverShapeId: this.initialDraggingOverShape?.id ?? null,
-					initialParentIds: this.initialParentIds,
-					initialIndices: this.initialIndices,
-				})
+				const prevDraggingOverShape = this.editor.getShape(this.prevDraggingOverShape)!
+				const removableShapes = getRemovableShapesForTarget(
+					editor,
+					prevDraggingOverShape,
+					draggingShapes
+				)
+				if (removableShapes.length > 0) {
+					util.onDragShapesOut?.(prevDraggingOverShape, removableShapes, {
+						nextDraggingOverShapeId: nextDraggingOverShape?.id ?? null,
+						initialDraggingOverShapeId: this.initialDraggingOverShape?.id ?? null,
+						initialParentIds: this.initialParentIds,
+						initialIndices: this.initialIndices,
+					})
+				}
 			}
 
 			if (nextDraggingOverShape) {
 				const util = editor.getShapeUtil(nextDraggingOverShape)
-				util.onDragShapesIn?.(nextDraggingOverShape, draggingShapes, {
-					initialDraggingOverShapeId: this.initialDraggingOverShape?.id ?? null,
-					prevDraggingOverShapeId: this.prevDraggingOverShape?.id ?? null,
-					initialParentIds: this.initialParentIds,
-					initialIndices: this.initialIndices,
-				})
-				editor.setHintingShapes([nextDraggingOverShape.id])
+				const receivableShapes = getReceivableShapesForTarget(
+					editor,
+					nextDraggingOverShape,
+					draggingShapes
+				)
+				if (receivableShapes.length > 0) {
+					util.onDragShapesIn?.(nextDraggingOverShape, receivableShapes, {
+						initialDraggingOverShapeId: this.initialDraggingOverShape?.id ?? null,
+						prevDraggingOverShapeId: this.prevDraggingOverShape?.id ?? null,
+						initialParentIds: this.initialParentIds,
+						initialIndices: this.initialIndices,
+					})
+					editor.setHintingShapes([nextDraggingOverShape.id])
+				} else if (this.prevDraggingOverShape) {
+					// The new target won't accept anything; clear any stale hint left on the
+					// previous target.
+					editor.setHintingShapes([])
+				}
 			} else if (this.prevDraggingOverShape) {
 				editor.setHintingShapes([])
 			}
@@ -203,4 +225,22 @@ export class DragAndDropManager {
 
 		this.prevDraggingOverShape = nextDraggingOverShape
 	}
+}
+
+function getReceivableShapesForTarget(
+	editor: Editor,
+	targetShape: TLShape,
+	draggingShapes: TLShape[]
+) {
+	const util = editor.getShapeUtil(targetShape)
+	return draggingShapes.filter((shape) => util.canReceiveNewChildrenOfType(targetShape, shape.type))
+}
+
+function getRemovableShapesForTarget(
+	editor: Editor,
+	targetShape: TLShape,
+	draggingShapes: TLShape[]
+) {
+	const util = editor.getShapeUtil(targetShape)
+	return draggingShapes.filter((shape) => util.canRemoveChildrenOfType(targetShape, shape.type))
 }

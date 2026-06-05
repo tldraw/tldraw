@@ -10,8 +10,8 @@ import {
 	setDefaultUiAssetUrls,
 } from 'tldraw'
 import { ExamplePage } from './ExamplePage'
-import { ExampleWrapper } from './ExampleWrapper'
 import { examples } from './examples'
+import { ExampleWrapper } from './ExampleWrapper'
 import Develop from './misc/develop'
 import EndToEnd from './misc/end-to-end'
 

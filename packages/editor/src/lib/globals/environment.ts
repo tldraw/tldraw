@@ -46,7 +46,25 @@ const tlenvReactive = atom('tlenvReactive', {
 	// on touch-screen laptops, which will become "coarse" if the user touches the screen.
 	// See https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/pointer#coarse
 	isCoarsePointer: false,
+	// Whether the user's display supports P3 color space. This is dynamic because a window can
+	// move between displays with different color gamut support.
+	supportsP3ColorSpace: false,
 })
+
+if (typeof window !== 'undefined') {
+	const canRenderP3 = typeof CSS !== 'undefined' && CSS.supports('color', 'color(display-p3 1 1 1)')
+	if (canRenderP3) {
+		const p3mql = window.matchMedia('(color-gamut: p3)')
+		const updateSupportsP3 = () => {
+			const supportsP3 = p3mql.matches
+			if (supportsP3 !== tlenvReactive.__unsafe__getWithoutCapture().supportsP3ColorSpace) {
+				tlenvReactive.update((prev) => ({ ...prev, supportsP3ColorSpace: supportsP3 }))
+			}
+		}
+		updateSupportsP3()
+		p3mql.addEventListener('change', updateSupportsP3)
+	}
+}
 
 if (typeof window !== 'undefined' && !isForcedFinePointer) {
 	const mql = getGlobalWindow().matchMedia && getGlobalWindow().matchMedia('(any-pointer: coarse)')

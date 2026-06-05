@@ -153,6 +153,12 @@
       "value": "Mis archivos"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Incluir enlace al archivo actual"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -211,6 +217,18 @@
     {
       "type": 0,
       "value": "Aceptar todo"
+    }
+  ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Diagrama de Mermaid sin soporte"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Tema de color"
     }
   ],
   "42e53c47c1": [
@@ -285,10 +303,22 @@
       "value": "Eliminar grupo…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Más opciones"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "¿Seguro que quieres eliminar este grupo? Esta acción no se puede deshacer."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Diagrama no compatible, se generará un archivo SVG en su lugar."
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +431,12 @@
       "value": "Revoca este enlace y crea uno nuevo."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "No se puede conectar"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +477,12 @@
     {
       "type": 0,
       "value": "tú"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Actualizar"
     }
   ],
   "6609dd239e": [
@@ -567,6 +609,12 @@
     {
       "type": 0,
       "value": "Enviar un problema en GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Por defecto"
     }
   ],
   "7b1329f5ca": [
@@ -791,6 +839,12 @@
     {
       "type": 0,
       "value": "Eliminar archivo"
+    }
+  ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Tenemos problemas para conectarnos a nuestro servicio de autenticación. Esto suele ser temporal. Intenta actualizar la página."
     }
   ],
   "9ceb927baa": [
@@ -1067,6 +1121,12 @@
     {
       "type": 0,
       "value": "Cerrar sesión"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Descartar"
     }
   ],
   "c9cc8cce24": [

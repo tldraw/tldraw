@@ -153,6 +153,12 @@
       "value": "Els meus fitxers"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Inclou un enllaç al fitxer actual"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -211,6 +217,18 @@
     {
       "type": 0,
       "value": "Accepta-ho tot"
+    }
+  ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Diagrama de Mermaid no compatible"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Tema de color"
     }
   ],
   "42e53c47c1": [
@@ -285,10 +303,22 @@
       "value": "Suprimeix el grup…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Més opcions"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Esteu segur que voleu suprimir aquest grup? Aquesta acció no es pot desfer."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Diagrama no compatible, es generarà SVG en comptes d'això."
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +431,12 @@
       "value": "Revoca aquest enllaç i crea'n un de nou."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "No es pot connectar"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +477,12 @@
     {
       "type": 0,
       "value": "tu"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Actualitza"
     }
   ],
   "6609dd239e": [
@@ -567,6 +609,12 @@
     {
       "type": 0,
       "value": "Envieu un problema a GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Per defecte"
     }
   ],
   "7b1329f5ca": [
@@ -791,6 +839,12 @@
     {
       "type": 0,
       "value": "Esborra el fitxer"
+    }
+  ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Tenim problemes per connectar-nos al nostre servei d'autenticació. Això sol ser temporal. Si us plau, proveu d'actualitzar la pàgina."
     }
   ],
   "9ceb927baa": [
@@ -1067,6 +1121,12 @@
     {
       "type": 0,
       "value": "Tanca la sessió"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Ignora"
     }
   ],
   "c9cc8cce24": [

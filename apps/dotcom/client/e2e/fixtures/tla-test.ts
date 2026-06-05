@@ -1,17 +1,17 @@
+import fs from 'fs'
 import { setupClerkTestingToken } from '@clerk/testing/playwright'
 import { test as base, expect } from '@playwright/test'
-import fs from 'fs'
 import { OTHER_USERS, USERS } from '../consts'
 import { Database } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
 import { Editor } from './Editor'
 import { GroupInviteDialog } from './GroupInviteDialog'
+import { getStorageStateFileName } from './helpers'
 import { HomePage } from './HomePage'
 import { ImportHelper } from './ImportHelper'
 import { ShareMenu } from './ShareMenu'
 import { Sidebar } from './Sidebar'
 import { SignInDialog } from './SignInDialog'
-import { getStorageStateFileName } from './helpers'
 
 interface TlaFixtures {
 	homePage: HomePage

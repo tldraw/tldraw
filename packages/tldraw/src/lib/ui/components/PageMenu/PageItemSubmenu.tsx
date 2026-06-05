@@ -4,14 +4,14 @@ import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
+import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 } from '../primitives/TldrawUiDropdownMenu'
-import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
-import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { onMovePage } from './edit-pages-shared'
 /** @public */
 export interface PageItemSubmenuProps {
@@ -29,7 +29,6 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 }: PageItemSubmenuProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const pages = editor.getPages()
 	const trackEvent = useUiEvents()
 
 	const onDuplicate = useCallback(() => {
@@ -60,11 +59,12 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 					type="icon"
 					tooltip={msg('page-menu.submenu.title')}
 					title={msg('page-menu.submenu.title')}
+					data-testid="page-menu.item-submenu"
 				>
 					<TldrawUiButtonIcon icon="dots-vertical" small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent alignOffset={0} side="right" sideOffset={-4}>
+			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
 					<TldrawUiMenuGroup id="modify">
 						{onRename && (
@@ -74,7 +74,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 							id="duplicate"
 							label="page-menu.submenu.duplicate-page"
 							onSelect={onDuplicate}
-							disabled={pages.length >= editor.options.maxPages}
+							disabled={listSize >= editor.options.maxPages}
 						/>
 						{index > 0 && (
 							<TldrawUiMenuItem

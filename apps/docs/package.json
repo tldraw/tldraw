@@ -29,7 +29,7 @@
 	"scripts": {
 		"dev": "concurrently \"NODE_ENV=development next dev --port=3001\" \"tsx ./watcher.ts\" --kill-others",
 		"next-dev": "next dev",
-		"lint": "cd ../.. && yarn run -T oxlint apps/docs",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"build": "yarn refresh-everything && yarn check-links --fail && next build",
 		"start": "yarn refresh-everything && next start",
 		"fetch-api-source": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/fetch-api-source.ts",
@@ -69,7 +69,7 @@
 		"gray-matter": "^4.0.3",
 		"instantsearch.js": "^4.77.1",
 		"js-cookie": "^3.0.5",
-		"next": "^15.5.14",
+		"next": "^15.5.16",
 		"next-mdx-remote-client": "^1.1.2",
 		"next-themes": "^0.3.0",
 		"query-string": "^9.1.1",
