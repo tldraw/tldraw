@@ -10,6 +10,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
+import { FILE_PREFIX } from './routes'
 import {
 	immutableColumns,
 	schema,
@@ -224,21 +225,6 @@ export function createMutators(userId: string) {
 		},
 		file: {
 			/** @deprecated */
-			insertWithFileState: async (
-				tx: Tx,
-				{ file, fileState }: { file: TlaFile; fileState: TlaFileState }
-			) => {
-				// User must be the owner for legacy file creation
-				assert(file.ownerId === userId, ZErrorCode.forbidden)
-				await assertNotMaxFiles(tx, userId)
-				assertValidId(file.id)
-				assert(file.id === fileState.fileId, ZErrorCode.bad_request)
-				assert(fileState.userId === userId, ZErrorCode.forbidden)
-
-				await tx.mutate.file.insert(file)
-				await tx.mutate.file_state.upsert(fileState)
-			},
-			/** @deprecated */
 			deleteOrForget: async (tx: Tx, { id }: { id: string }) => {
 				const file = await tx.run(zql.file.where('id', '=', id).one())
 				if (!file) return
@@ -340,39 +326,62 @@ export function createMutators(userId: string) {
 			}
 		) => {
 			time = ensureSensibleTimestamp(time)
+
+			// Security: when a new file is seeded from another app file (the Duplicate
+			// action sets `createSource` to `${FILE_PREFIX}/${sourceFileId}`), the user
+			// must be able to read that source file. The content copy happens later in
+			// the worker (handleFileCreateFromSource), which trusts `createSource`
+			// verbatim, so the authorization has to happen here at creation time.
+			// Without this, a user who can still see a file they've lost access to — or
+			// who merely knows its id — could duplicate it and obtain an owned, editable
+			// copy of content they cannot read. Checked on the server only, matching the
+			// other file-access checks in this file (the optimistic client run may not
+			// have the source file synced). Other `createSource` prefixes (published,
+			// legacy rooms, local files) are intentionally not gated here.
+			if (tx.location === 'server' && createSource) {
+				const [prefix, sourceFileId] = createSource.split('/')
+				if (prefix === FILE_PREFIX) {
+					const sourceFile = await tx.run(zql.file.where('id', '=', sourceFileId).one())
+					await assertUserCanAccessFile(tx, userId, sourceFile!)
+				}
+			}
+
 			const migrated = await isGroupsMigrated(tx, userId)
 			if (!migrated) {
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				await mutators.file.insertWithFileState(tx, {
-					file: {
-						id: fileId,
-						name,
-						ownerId: userId,
-						owningGroupId: null,
-						ownerName: '',
-						ownerAvatar: '',
-						thumbnail: '',
-						shared: true,
-						sharedLinkType: 'edit',
-						published: false,
-						lastPublished: 0,
-						publishedSlug: uniqueId(),
-						createdAt: time,
-						updatedAt: time,
-						isEmpty: true,
-						isDeleted: false,
-						createSource,
-					},
-					fileState: {
-						userId,
-						fileId,
-						firstVisitAt: null,
-						lastEditAt: null,
-						lastSessionState: null,
-						lastVisitAt: null,
-						isFileOwner: true,
-						isPinned: false,
-					},
+				// Legacy (user-owned) file creation. ownerId, id and the file_state
+				// keys are constructed here to match userId/fileId, so the only checks
+				// that can fail are the file limit and id validity (createSource was
+				// gated above).
+				await assertNotMaxFiles(tx, userId)
+				assertValidId(fileId)
+				await tx.mutate.file.insert({
+					id: fileId,
+					name,
+					ownerId: userId,
+					owningGroupId: null,
+					ownerName: '',
+					ownerAvatar: '',
+					thumbnail: '',
+					shared: true,
+					sharedLinkType: 'edit',
+					published: false,
+					lastPublished: 0,
+					publishedSlug: uniqueId(),
+					createdAt: time,
+					updatedAt: time,
+					isEmpty: true,
+					isDeleted: false,
+					createSource,
+				})
+				await tx.mutate.file_state.upsert({
+					userId,
+					fileId,
+					firstVisitAt: null,
+					lastEditAt: null,
+					lastSessionState: null,
+					lastVisitAt: null,
+					isFileOwner: true,
+					isPinned: false,
 				})
 				return
 			}
