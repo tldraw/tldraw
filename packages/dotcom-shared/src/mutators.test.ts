@@ -1287,7 +1287,7 @@ describe('legacy file creation (insertWithFileState removed as a mutator)', () =
 		expect((m.file as Record<string, unknown>).insertWithFileState).toBeUndefined()
 	})
 
-	it('non-migrated user can still create a blank file (via the private helper)', async () => {
+	it('non-migrated user can still create a blank file', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: '' })],
 			file: [] as TlaFile[],

@@ -209,28 +209,6 @@ async function assertUserCanUpdateFile(tx: Transaction<TlaSchema>, userId: strin
 	await assertUserCanAccessFileInternal(tx, userId, file, false)
 }
 
-/**
- * Insert a legacy (user-owned) file together with its initial file_state.
- *
- * This was previously the `file.insertWithFileState` mutator. It was demoted to
- * a private helper so it can only be reached through `createFile`, which gates
- * the `createSource` for read access. As a public mutator it let a client
- * insert an arbitrary file row — including a `createSource` pointing at another
- * user's file — which would copy that file's content into the new room,
- * bypassing the `createFile` gate.
- */
-async function insertFileWithState(tx: Tx, userId: string, file: TlaFile, fileState: TlaFileState) {
-	// User must be the owner for legacy file creation
-	assert(file.ownerId === userId, ZErrorCode.forbidden)
-	await assertNotMaxFiles(tx, userId)
-	assertValidId(file.id)
-	assert(file.id === fileState.fileId, ZErrorCode.bad_request)
-	assert(fileState.userId === userId, ZErrorCode.forbidden)
-
-	await tx.mutate.file.insert(file)
-	await tx.mutate.file_state.upsert(fileState)
-}
-
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {
@@ -370,39 +348,41 @@ export function createMutators(userId: string) {
 
 			const migrated = await isGroupsMigrated(tx, userId)
 			if (!migrated) {
-				await insertFileWithState(
-					tx,
+				// Legacy (user-owned) file creation. ownerId, id and the file_state
+				// keys are constructed here to match userId/fileId, so the only checks
+				// that can fail are the file limit and id validity (createSource was
+				// gated above).
+				await assertNotMaxFiles(tx, userId)
+				assertValidId(fileId)
+				await tx.mutate.file.insert({
+					id: fileId,
+					name,
+					ownerId: userId,
+					owningGroupId: null,
+					ownerName: '',
+					ownerAvatar: '',
+					thumbnail: '',
+					shared: true,
+					sharedLinkType: 'edit',
+					published: false,
+					lastPublished: 0,
+					publishedSlug: uniqueId(),
+					createdAt: time,
+					updatedAt: time,
+					isEmpty: true,
+					isDeleted: false,
+					createSource,
+				})
+				await tx.mutate.file_state.upsert({
 					userId,
-					{
-						id: fileId,
-						name,
-						ownerId: userId,
-						owningGroupId: null,
-						ownerName: '',
-						ownerAvatar: '',
-						thumbnail: '',
-						shared: true,
-						sharedLinkType: 'edit',
-						published: false,
-						lastPublished: 0,
-						publishedSlug: uniqueId(),
-						createdAt: time,
-						updatedAt: time,
-						isEmpty: true,
-						isDeleted: false,
-						createSource,
-					},
-					{
-						userId,
-						fileId,
-						firstVisitAt: null,
-						lastEditAt: null,
-						lastSessionState: null,
-						lastVisitAt: null,
-						isFileOwner: true,
-						isPinned: false,
-					}
-				)
+					fileId,
+					firstVisitAt: null,
+					lastEditAt: null,
+					lastSessionState: null,
+					lastVisitAt: null,
+					isFileOwner: true,
+					isPinned: false,
+				})
 				return
 			}
 
