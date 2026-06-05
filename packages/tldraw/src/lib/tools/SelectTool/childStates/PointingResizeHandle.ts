@@ -1,4 +1,10 @@
-import { StateNode, TLCursorType, TLPointerEventInfo, TLSelectionHandle } from '@tldraw/editor'
+import {
+	StateNode,
+	TLClickEventInfo,
+	TLCursorType,
+	TLPointerEventInfo,
+	TLSelectionHandle,
+} from '@tldraw/editor'
 
 export const CursorTypeMap: Record<TLSelectionHandle, TLCursorType> = {
 	bottom: 'ns-resize',
@@ -62,6 +68,20 @@ export class PointingResizeHandle extends StateNode {
 
 	override onPointerUp() {
 		this.complete()
+	}
+
+	override onDoubleClick(info: TLClickEventInfo) {
+		if (
+			this.editor.inputs.getShiftKey() ||
+			info.phase !== 'down' ||
+			info.ctrlKey ||
+			info.shiftKey
+		) {
+			return
+		}
+
+		this.parent.transition('idle')
+		this.parent.getCurrent()?.handleEvent(info)
 	}
 
 	override onCancel() {

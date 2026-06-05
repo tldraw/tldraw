@@ -109,7 +109,7 @@
 		"docx": "^9.5.1",
 		"fs-extra": "^11.3.0",
 		"husky": "^8.0.3",
-		"jsdom": "^25.0.1",
+		"jsdom": "^29.1.1",
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"license-report": "^6.7.1",
