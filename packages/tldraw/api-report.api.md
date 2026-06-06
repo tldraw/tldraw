@@ -3571,7 +3571,7 @@ export interface StylePanelButtonPickerProps<T extends string> {
 }
 
 // @public (undocumented)
-export function StylePanelColorArea({ defaultHeight, children }: StylePanelColorAreaProps): JSX.Element;
+export function StylePanelColorArea({ defaultHeight, children, footer }: StylePanelColorAreaProps): JSX.Element;
 
 // @public (undocumented)
 export interface StylePanelColorAreaProps {
@@ -3579,6 +3579,7 @@ export interface StylePanelColorAreaProps {
     children: React_3.ReactNode;
     // (undocumented)
     defaultHeight?: 'auto' | number;
+    footer?: React_3.ReactNode;
 }
 
 // @public (undocumented)

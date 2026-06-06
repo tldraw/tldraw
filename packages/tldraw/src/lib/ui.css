@@ -1109,9 +1109,12 @@
 
 /*
 add a border to the bottom of all but the last section. we have to handle empty sections too, which
-are hidden and shouldn't be counted
+are hidden and shouldn't be counted. the fixed color area is excluded: its resize handle draws the
+divider instead, so a border here would double it up.
 */
-.tlui-style-panel__section:not(:nth-last-child(-n + 1 of .tlui-style-panel__section:not(:empty))) {
+.tlui-style-panel__section:not(.tlui-style-panel__color-area):not(
+		:nth-last-child(-n + 1 of .tlui-style-panel__section:not(:empty))
+	) {
 	border-bottom: 1px solid var(--tl-color-divider);
 }
 /*
@@ -1119,9 +1122,9 @@ if a section ends with a slider and we're adding a border, we need some extra sp
 balance. we need to handle empty sections as above. is this the most complex css selector in all of
 tldraw? probably.
 */
-.tlui-style-panel__section:has(.tlui-slider__container:last-child):not(
-		:nth-last-child(-n + 1 of .tlui-style-panel__section:not(:empty))
-	) {
+.tlui-style-panel__section:not(.tlui-style-panel__color-area):has(
+		.tlui-slider__container:last-child
+	):not(:nth-last-child(-n + 1 of .tlui-style-panel__section:not(:empty))) {
 	margin-bottom: 7px;
 }
 
@@ -1129,16 +1132,19 @@ tldraw? probably.
 	display: none;
 }
 
-/* Color area: capped height + resize handle. When data-fixed='true' the section
-   replaces its own border-bottom divider with the handle's 1px line. */
-.tlui-style-panel__color-area[data-fixed='true'] {
-	border-bottom: none;
-}
+/* Color area: capped height + resize handle. The handle's 1px line is the section's
+   divider, so the color area is excluded from the section border rule above. */
 
 .tlui-style-panel__color-area-scroll {
 	overflow-y: auto;
 	scrollbar-width: none;
 	-ms-overflow-style: none;
+}
+
+/* Footer (opacity slider) stays pinned below the scrolling colors and above the resize handle. */
+.tlui-style-panel__color-area-footer {
+	flex: 0 0 auto;
+	border-top: 1px solid var(--tl-color-divider);
 }
 
 .tlui-style-panel__color-area-scroll::-webkit-scrollbar {

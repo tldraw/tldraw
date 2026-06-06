@@ -54,9 +54,8 @@ export interface DefaultStylePanelContentProps {
 export function DefaultStylePanelContent({ colorAreaHeight }: DefaultStylePanelContentProps = {}) {
 	return (
 		<>
-			<StylePanelColorArea defaultHeight={colorAreaHeight}>
+			<StylePanelColorArea defaultHeight={colorAreaHeight} footer={<StylePanelOpacityPicker />}>
 				<StylePanelColorPicker />
-				<StylePanelOpacityPicker />
 			</StylePanelColorArea>
 			<StylePanelSection>
 				<StylePanelFillPicker />
@@ -97,10 +96,15 @@ function readSavedColorAreaHeight(): number | null {
 export interface StylePanelColorAreaProps {
 	defaultHeight?: number | 'auto'
 	children: React.ReactNode
+	/**
+	 * Content pinned to the bottom of the color area, below the scrollable region and above the
+	 * resize handle. Stays in view while `children` scroll when the area is capped to a height.
+	 */
+	footer?: React.ReactNode
 }
 
 /** @public @react */
-export function StylePanelColorArea({ defaultHeight, children }: StylePanelColorAreaProps) {
+export function StylePanelColorArea({ defaultHeight, children, footer }: StylePanelColorAreaProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const optionHeight = editor.options.stylePanelColorAreaHeight
@@ -158,11 +162,16 @@ export function StylePanelColorArea({ defaultHeight, children }: StylePanelColor
 	}, [])
 
 	if (resolved === 'auto') {
-		return <StylePanelSection>{children}</StylePanelSection>
+		return (
+			<StylePanelSection>
+				{children}
+				{footer}
+			</StylePanelSection>
+		)
 	}
 
 	return (
-		<div className="tlui-style-panel__section tlui-style-panel__color-area" data-fixed="true">
+		<div className="tlui-style-panel__section tlui-style-panel__color-area">
 			<div
 				ref={rScroll}
 				className="tlui-style-panel__color-area-scroll"
@@ -170,6 +179,7 @@ export function StylePanelColorArea({ defaultHeight, children }: StylePanelColor
 			>
 				{children}
 			</div>
+			{footer && <div className="tlui-style-panel__color-area-footer">{footer}</div>}
 			<div
 				className="tlui-style-panel__color-area-resize-handle"
 				data-resizing={isResizing}
