@@ -1,6 +1,6 @@
 ---
 name: issue
-description: Create a GitHub issue in the tldraw repository from a user description, then mature it through follow-up questions. Use when the user invokes issue, asks to create an issue, report a bug, or file a feature request.
+description: Create a GitHub issue in the tldraw repository from a user description, then mature it through follow-up questions. Use when the user invokes issue, asks to create an issue, report a bug, file a feature request, or answers follow-up questions for an issue created by this skill.
 ---
 
 # Issue
@@ -36,6 +36,7 @@ The body always starts with the user's original description, verbatim, annotated
 - Each open question targets a specific gap in intent or context. Avoid questions you could answer yourself by looking at the code.
 - Prefix a question with `Critical:` inside the bold, e.g. `**Critical: Which package should we rename?**`, only when it is genuinely blocking — the issue cannot be worked on at all until it is answered. Most issues have none; do not inflate ordinary gaps into critical ones. While any critical question is unanswered, cap the confidence score low (at most ~40%) no matter how complete the rest is.
 - As the user answers, replace `_Awaiting answer._` with their answer (lightly cleaned up) directly beneath the question, recompute the confidence score, and add or drop unanswered questions as needed.
+- If the user chooses not to answer a non-critical question, replace `_Awaiting answer._` with `_Deferred by user; not blocking implementation._`. Do not use this for critical questions.
 
 ## Workflow
 
@@ -78,7 +79,9 @@ gh issue edit <issue-number> --repo tldraw/tldraw --body "..."
 ```
 
    - Keep going, one round at a time, until you are confident the issue holds enough of the user's intent and context to be worked on.
-10. The issue is ready when no critical question is unanswered and it holds enough of the user's intent to be worked on. Low-priority questions the user has chosen to defer may stay open — readiness does not require answering them. Never declare it ready while a critical question is open, regardless of how complete the rest is. When ready, raise the confidence score to reflect it and tell the user the issue can be picked up. Leave every question — answered or intentionally deferred — in the issue as a record of the discussion. Do not delete the confidence or open questions sections.
+10. The issue is ready when no critical question is unanswered and it holds enough of the user's intent to be worked on. Never declare it ready while a critical question is open, regardless of how complete the rest is.
+   - Low-priority questions the user has chosen to defer may stay open; readiness does not require answering them. Mark them as `_Deferred by user; not blocking implementation._` rather than leaving `_Awaiting answer._` placeholders.
+   - When ready, raise the confidence score to reflect it and tell the user the issue can be picked up. Leave every question — answered or intentionally deferred — in the issue as a record of the discussion. Do not delete the confidence or open questions sections.
 
 ## Rules
 
