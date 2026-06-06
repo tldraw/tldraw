@@ -33,11 +33,11 @@ Confidence: {n}%, {ready_status}.
 ```
 
 - The readback paragraph is the agent's understanding of the problem. It should be short enough for the user to quickly correct, but specific enough to make the intended behavior clear. Keep it product-facing: no code blocks, no long implementation analysis, and no line-by-line diagnosis.
-- Include code context only when it helps the issue get picked up, and keep it as a brief inline note in the readback rather than a separate section. Prefer file/function references over snippets or line-by-line diagnosis.
-- Keep product intent ahead of code diagnosis. Separate what the user has confirmed, what the code appears to do, and what you are hypothesizing. Do not present a root cause or fix direction as fact unless it is verified or the user has confirmed that framing.
+- Do not include implementation breadcrumbs in the issue body by default. Avoid file paths, function names, line numbers, code snippets, likely causes, and fix recipes unless the user explicitly asks to include them. Whoever picks up the work can rediscover that technical context.
+- Keep product intent ahead of code diagnosis. The issue should record what the user wants, what they observed, and what scope or behavior they confirmed. Do not present a root cause or fix direction as fact unless the user has confirmed that framing.
 - Each open question targets a specific gap in intent or context. Avoid questions you could answer yourself by looking at the code.
 - Keep questions atomic. Do not bundle user-intent questions with implementer-verifiable technical checks. If the user answers only part of a compound question, keep the remaining part open only when it still needs the user's intent or context.
-- Prefer omitting implementer-verifiable unknowns over asking the user to verify them. If an unknown is useful context, keep it as a short sentence in the readback, e.g. "Pen input and dash-style coverage are unverified." Ask only when the user's own context or intent matters.
+- Prefer omitting implementer-verifiable unknowns over asking the user to verify them. Ask only when the user's own context or intent matters.
 - Prefix a question with `Critical:` inside the bold, e.g. `**Critical: Which package should we rename?**`, only when it is genuinely blocking — the issue cannot be worked on at all until it is answered. Most issues have none; do not inflate ordinary gaps into critical ones.
 - As the user answers, replace `_Awaiting answer._` with their answer (lightly cleaned up) directly beneath the question, revise the readback, and add or drop unanswered questions as needed.
 - If the user chooses not to answer a non-critical question, replace `_Awaiting answer._` with `_Deferred by user; not blocking implementation._`. Do not use this for critical questions.
@@ -49,12 +49,11 @@ Confidence: {n}%, {ready_status}.
    - User's issue description.
    - Current branch: `git branch --show-current`.
    - Recent issues: `gh issue list --repo tldraw/tldraw --limit 5 --json number,title --jq '.[] | "#\(.number) \(.title)"'`.
-2. Do a quick codebase investigation, just enough to ground your readback and ask sharp questions:
-   - Search for relevant files, functions, or patterns mentioned in the description.
-   - Identify likely affected packages, apps, or examples.
-   - Note related issues, existing code paths, and possible causes.
-   - Distinguish observed code facts from product intent and from hypotheses about the fix.
-   - Anything you can answer yourself this way should not become an open question.
+2. Do a lightweight triage check, not implementation research:
+   - Look for duplicate or closely related issues.
+   - Use repo context only to choose issue type, labels, milestone, and broad affected area.
+   - If a shallow code search is needed to avoid asking a bad question, do it, but do not add file paths, function names, line numbers, code snippets, likely causes, or fix recipes to the issue body.
+   - Anything you can answer yourself from repo context should not become an open question.
 3. For visual bugs, identify a reproduction target when possible:
    - Examples app: `localhost:5420` from `yarn dev`.
    - tldraw.com app: `localhost:3000` from `yarn dev-app`.
