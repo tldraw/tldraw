@@ -16,7 +16,7 @@ The goal is not to research the codebase to death. It is to capture the user's f
 The body always starts with the user's original description, verbatim, annotated with the human emoji and separated from the rest by a horizontal rule:
 
 ```
-🧑: {user_description}
+🗣️: {user_description}
 
 ---
 
@@ -34,7 +34,8 @@ The body always starts with the user's original description, verbatim, annotated
 
 - The confidence score reflects how confident you are that the issue contains enough of the user's context and intent to be worked on, not how confident you are about the fix.
 - Each open question targets a specific gap in intent or context. Avoid questions you could answer yourself by looking at the code.
-- As the user answers, replace `_Awaiting answer._` with their answer (lightly cleaned up) directly beneath the question, recompute the confidence score, and add or drop questions as needed.
+- Prefix a question with `Critical:` inside the bold, e.g. `**Critical: Which package should we rename?**`, only when it is genuinely blocking — the issue cannot be worked on at all until it is answered. Most issues have none; do not inflate ordinary gaps into critical ones. While any critical question is unanswered, cap the confidence score low (at most ~40%) no matter how complete the rest is.
+- As the user answers, replace `_Awaiting answer._` with their answer (lightly cleaned up) directly beneath the question, recompute the confidence score, and add or drop unanswered questions as needed.
 
 ## Workflow
 
@@ -59,25 +60,28 @@ The body always starts with the user's original description, verbatim, annotated
 gh issue create --repo tldraw/tldraw --title "..." --body "..."
 ```
 
-6. Set the issue type through GitHub GraphQL when possible, since `gh issue create --type` is not reliable across versions.
+6. Set the issue type (`Bug`, `Feature`, `Example`, or `Task`) — `gh issue create --type` is unreliable, so use the script:
+
+```bash
+skills/issue/scripts/set-issue-type.sh <issue-number> <type-name>
+```
 7. Assign a milestone only when there is a clear fit:
    - `Improve developer resources` for examples, documentation, comments, starter kits, and `npm create tldraw`.
    - `Improve automations` for GitHub Actions, review bots, CI/CD, and automation work.
-8. Respond to the user with the issue URL and the list of open questions. Ask them directly.
+8. Respond to the user with the issue URL and the list of open questions. Ask them directly, leading with any critical question.
 9. Interrogate the user. After each reply:
    - Update the issue body: write the user's answer beneath the relevant question, recompute the confidence score, and add or drop questions as their answers reveal new gaps or close old ones.
+   - Reconsider the issue's framing in light of the new context. If an answer changes what the issue actually is, update the title (`gh issue edit --title`), the issue type (the script from step 6), or its labels to match — for example, when a reported bug turns out to be a feature request, or the real problem is narrower than the title suggests.
 
 ```bash
 gh issue edit <issue-number> --repo tldraw/tldraw --body "..."
 ```
 
    - Keep going, one round at a time, until you are confident the issue holds enough of the user's intent and context to be worked on.
-10. When confident, raise the confidence score to reflect it, mark any remaining open questions resolved in place, and tell the user the issue is ready to be picked up. Leave the answered questions in the issue as a record of the discussion — do not delete the confidence or open questions sections.
+10. The issue is ready when no critical question is unanswered and it holds enough of the user's intent to be worked on. Low-priority questions the user has chosen to defer may stay open — readiness does not require answering them. Never declare it ready while a critical question is open, regardless of how complete the rest is. When ready, raise the confidence score to reflect it and tell the user the issue can be picked up. Leave every question — answered or intentionally deferred — in the issue as a record of the discussion. Do not delete the confidence or open questions sections.
 
 ## Rules
 
 - Always create the issue before interrogating the user, so they can track it from the first reply.
 - Ask only questions that capture the user's intent or context. Do not offload work you could do yourself.
 - Update the issue after every reply rather than batching answers at the end.
-- Follow `../write-issue/SKILL.md` for all issue content standards.
-- Do not include AI attribution in issue titles, bodies, comments, or metadata.
