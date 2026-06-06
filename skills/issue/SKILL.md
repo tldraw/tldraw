@@ -1,6 +1,6 @@
 ---
 name: issue
-description: Create and research a GitHub issue in the tldraw repository from a user description. Use when the user invokes issue, asks to create an issue, report a bug, file a feature request, or add research to a new issue.
+description: Create a GitHub issue in the tldraw repository from a user description, then mature it through follow-up questions. Use when the user invokes issue, asks to create an issue, report a bug, or file a feature request.
 ---
 
 # Issue
