@@ -53,13 +53,11 @@ The body always starts with the user's original description, verbatim, annotated
    - Docs site: `localhost:3001` from `yarn dev-docs`.
    - If screenshots are useful but not feasible locally, make a screenshot request one of your open questions.
 4. Write the issue title and body using `../write-issue/SKILL.md`. The body follows the shape above: verbatim description, confidence score, and open questions.
-5. Create the issue with the `slop` label so agent-generated issues are tagged as such:
+5. Create the issue:
 
 ```bash
-gh issue create --repo tldraw/tldraw --title "..." --body "..." --label slop
+gh issue create --repo tldraw/tldraw --title "..." --body "..."
 ```
-
-   When creating the issue through the GitHub MCP `issue_write` tool instead of `gh`, include `slop` in the `labels` array.
 
 6. Set the issue type through GitHub GraphQL when possible, since `gh issue create --type` is not reliable across versions.
 7. Assign a milestone only when there is a clear fit:

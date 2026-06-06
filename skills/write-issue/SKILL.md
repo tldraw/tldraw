@@ -66,8 +66,6 @@ Use sparingly (1-2 per issue) for metadata, not categorization.
 
 `keep`, `stale`, `update-snapshots`, `publish-packages`, `major`, `minor`, `skip-release`, deploy triggers
 
-`slop` marks issues drafted by an agent via the `/issue` skill. It is applied automatically by that skill as provenance metadata and should not be added by hand. Pair it with the normal issue type so agent-generated bugs and features are still typed as usual.
-
 ## Issue body standards
 
 ### Bug reports
