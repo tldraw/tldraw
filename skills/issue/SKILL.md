@@ -72,7 +72,7 @@ gh issue edit <issue-number> --repo tldraw/tldraw --body "..."
 ```
 
    - Keep going, one round at a time, until you are confident the issue holds enough of the user's intent and context to be worked on.
-10. When confident, raise the confidence score to reflect it, clear or resolve any remaining open questions, and tell the user the issue is ready to be picked up.
+10. When confident, raise the confidence score to reflect it, mark any remaining open questions resolved in place, and tell the user the issue is ready to be picked up. Leave the answered questions in the issue as a record of the discussion — do not delete the confidence or open questions sections.
 
 ## Rules
 

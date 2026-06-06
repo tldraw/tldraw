@@ -97,7 +97,7 @@ Issues created by the `/issue` skill capture the user's intent over a short inte
 - **Confidence** - A percentage reflecting how confident the agent is that the issue holds enough of the user's context and intent to be worked on. It is not a measure of confidence in the fix.
 - **Open questions** - A numbered list of the specific gaps in intent or context still worth asking the user about. Answers are written beneath each question as the user replies, and the confidence score is recomputed each round.
 
-Drop these sections once the issue is fully fleshed out and the questions are resolved.
+Leave both sections in the issue once interrogation is complete. The answered questions are a record of the discussion that produced the issue, so keep them rather than deleting them — mark questions resolved in place and let the final confidence score stand.
 
 ## Triage workflow
 
