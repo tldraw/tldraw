@@ -3,7 +3,17 @@ import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'fs'
 import path from 'path'
 import { pathToFileURL } from 'url'
 import { glob } from 'glob'
+import { generateTldrawPackageDocs } from './generate-tldraw-package-docs'
 import { nicelog } from './lib/nicelog'
+
+function markGeneratedFile(sourcePackageDir: string, fileName: string) {
+	const filePath = path.join(sourcePackageDir, fileName)
+	if (existsSync(filePath)) {
+		copyFileSync(filePath, `${filePath}.bak`)
+	} else {
+		writeFileSync(`${filePath}.generated`, '')
+	}
+}
 
 /** Prepares the package for publishing. the tarball in case it will be written to disk. */
 export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: string }) {
@@ -28,9 +38,17 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 
 	// Include DOCS.md in the published tarball when present. npm auto-includes
 	// README.md and LICENSE but not DOCS.md, so we have to add it explicitly.
-	const extraFiles: string[] = []
-	if (existsSync(path.join(sourcePackageDir, 'DOCS.md'))) {
-		extraFiles.push('DOCS.md')
+	const extraFiles = new Set<string>()
+	const docsPath = path.join(sourcePackageDir, 'DOCS.md')
+	if (existsSync(docsPath)) {
+		extraFiles.add('DOCS.md')
+	}
+	if (packageName === 'tldraw') {
+		markGeneratedFile(sourcePackageDir, 'DOCS.md')
+		markGeneratedFile(sourcePackageDir, 'RELEASE_NOTES.md')
+		generateTldrawPackageDocs({ sourcePackageDir })
+		extraFiles.add('DOCS.md')
+		extraFiles.add('RELEASE_NOTES.md')
 	}
 
 	// construct the final package.json
