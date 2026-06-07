@@ -18,19 +18,19 @@ function shapesWithUnboundArrows(editor: Editor) {
 }
 
 /** @internal */
-export const useThreeStackableItems = () => {
+export function useThreeStackableItems() {
 	const editor = useEditor()
 	return useValue('threeStackableItems', () => shapesWithUnboundArrows(editor).length > 2, [editor])
 }
 
 /** @internal */
-export const useIsInSelectState = () => {
+export function useIsInSelectState() {
 	const editor = useEditor()
 	return useValue('isInSelectState', () => editor.isIn('select'), [editor])
 }
 
 /** @internal */
-export const useAllowGroup = () => {
+export function useAllowGroup() {
 	const editor = useEditor()
 	return useValue(
 		'allow group',
@@ -65,7 +65,7 @@ export const useAllowGroup = () => {
 }
 
 /** @internal */
-export const useAllowUngroup = () => {
+export function useAllowUngroup() {
 	const editor = useEditor()
 	return useValue(
 		'allowUngroup',

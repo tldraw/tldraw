@@ -1,4 +1,4 @@
-import { StateNode, TLPointerEventInfo, TLShape } from '@tldraw/editor'
+import { StateNode, TLClickEventInfo, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 
@@ -195,8 +195,24 @@ export class PointingShape extends StateNode {
 		this.parent.transition('idle', info)
 	}
 
-	override onDoubleClick() {
+	override onDoubleClick(info: TLClickEventInfo) {
 		this.isDoubleClick = true
+
+		if (
+			this.editor.inputs.getShiftKey() ||
+			info.phase !== 'down' ||
+			info.ctrlKey ||
+			info.shiftKey
+		) {
+			return
+		}
+
+		const { shape: _shape, ...canvasInfo } = info as TLClickEventInfo & { target: 'shape' }
+		this.parent.transition('idle')
+		this.parent.getCurrent()?.handleEvent({
+			...canvasInfo,
+			target: 'canvas',
+		})
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {

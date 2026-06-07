@@ -7,6 +7,9 @@ import { isAccelKey } from '../../../utils/keyboard'
 import type { Editor } from '../../Editor'
 import { TLPinchEventInfo, TLPointerEventInfo, TLWheelEventInfo } from '../../types/event-types'
 
+const POINTER_VELOCITY_REFERENCE_INTERVAL_MS = 16
+const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
+
 /** @public */
 export class InputsManager {
 	constructor(private readonly editor: Editor) {}
@@ -331,6 +334,18 @@ export class InputsManager {
 		this._isPointing.set(isPointing)
 	}
 
+	private _isRightPointing = atom<boolean>('isRightPointing', false)
+	/**
+	 * Whether the user is right-click pointing (before drag threshold).
+	 */
+	getIsRightPointing() {
+		return this._isRightPointing.get()
+	}
+	/** @internal */
+	setIsRightPointing(isRightPointing: boolean) {
+		this._isRightPointing.set(isRightPointing)
+	}
+
 	private _isPinching = atom<boolean>('isPinching', false)
 	/**
 	 * Whether the user is pinching.
@@ -461,8 +476,14 @@ export class InputsManager {
 		const length = delta.len()
 		const direction = length ? delta.div(length) : new Vec(0, 0)
 
-		// consider adjusting this with an easing rather than a linear interpolation
-		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), 0.5)
+		// Preserve the old 16ms smoothing with alpha = 1 - (1 - 0.5)^(elapsed / 16).
+		const smoothing =
+			1 -
+			Math.pow(
+				1 - POINTER_VELOCITY_REFERENCE_SMOOTHING,
+				elapsed / POINTER_VELOCITY_REFERENCE_INTERVAL_MS
+			)
+		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), smoothing)
 
 		// if the velocity is very small, just set it to 0
 		if (Math.abs(next.x) < 0.01) next.x = 0

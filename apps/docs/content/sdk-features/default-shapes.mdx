@@ -225,13 +225,14 @@ Configuration options:
 | ------------------- | -------- | ------- | ------------------------------------------------------------------------- |
 | `maxPointsPerShape` | `number` | `600`   | Maximum points before starting a new shape. Same behavior as draw shapes. |
 
-The highlight's `underlayOpacity` (default `0.82`) and `overlayOpacity` (default `0.35`) are display values that can be overridden via `getCustomDisplayValues`.
+The highlight's `underlayOpacity` (default `0.82`) and `overlayOpacity` (default `0.35`) are display values that can be overridden via `getCustomDisplayValues`:
 
 ```tsx
 const ConfiguredHighlightUtil = HighlightShapeUtil.configure({
 	maxPointsPerShape: 800,
-	underlayOpacity: 0.7,
-	overlayOpacity: 0.4,
+	getCustomDisplayValues() {
+		return { underlayOpacity: 0.7, overlayOpacity: 0.4 }
+	},
 })
 ```
 
@@ -423,6 +424,8 @@ const ConfiguredFrameUtil = FrameShapeUtil.configure({
 	resizeChildren: true,
 })
 ```
+
+To build your own container shape that behaves like a frame, extend `BaseFrameLikeShapeUtil` rather than re-implementing every behavior on `FrameShapeUtil`. The base class provides defaults for clipping children, full-brush selection, blocking erasure from inside, and drag-and-drop reparenting — see [Shapes](/sdk-features/shapes#frames) for details and the [portal shapes example](/examples/shapes/tools/portal-shapes) for a working implementation.
 
 ### Group
 

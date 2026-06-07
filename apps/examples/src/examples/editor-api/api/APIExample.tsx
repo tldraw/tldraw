@@ -2,7 +2,6 @@ import {
 	DefaultColorStyle,
 	Editor,
 	TLGeoShape,
-	TLShapePartial,
 	Tldraw,
 	toRichText,
 	createShapeId,
@@ -13,56 +12,65 @@ import { useEffect } from 'react'
 
 // There's a guide at the bottom of this file!
 
+const STEP_MS = 1000
+const TIMELINE_MS = STEP_MS * 5
+
 //[1]
 export default function APIExample() {
 	const handleMount = (editor: Editor) => {
-		// Create a shape id
 		const id = createShapeId('hello')
 
-		// Create a shape
-		editor.createShapes([
-			{
-				id,
-				type: 'geo',
-				x: 128 + Math.random() * 500,
-				y: 128 + Math.random() * 500,
-				props: {
-					geo: 'rectangle',
-					w: 120,
-					h: 100,
-					dash: 'draw',
-					color: 'blue',
-					size: 'm',
-				},
+		// Run each API call on its own beat so a viewer can see what each one does.
+		// We include richText at creation time so the later height update isn't
+		// swallowed by the geo shape's first-label auto-sizing.
+		const steps: (() => void)[] = [
+			// 1. Create the shape
+			() => {
+				editor.createShapes([
+					{
+						id,
+						type: 'geo',
+						x: 128 + Math.random() * 500,
+						y: 128 + Math.random() * 500,
+						props: {
+							geo: 'rectangle',
+							w: 120,
+							h: 100,
+							dash: 'draw',
+							color: 'blue',
+							size: 'm',
+							richText: toRichText('hello world!'),
+						},
+					},
+				])
 			},
-		])
-
-		// Get the created shape
-		const shape = editor.getShape<TLGeoShape>(id)!
-
-		// Update the shape
-		editor.updateShape({
-			id,
-			type: 'geo',
-			props: {
-				h: shape.props.h * 3,
-				richText: toRichText('hello world!'),
+			// 2. Triple the shape's height
+			() => {
+				const shape = editor.getShape<TLGeoShape>(id)!
+				editor.updateShape({
+					id,
+					type: 'geo',
+					props: { h: shape.props.h * 3 },
+				})
 			},
-		})
+			// 3. Rotate the shape around its center
+			() => editor.rotateShapesBy([id], Math.PI / 8),
+			// 4. Zoom the camera to fit the shape
+			() => editor.zoomToFit(),
+			// 5. Select the shape
+			() => editor.select(id),
+		]
 
-		// Rotate the shape around its center
-		editor.rotateShapesBy([id], Math.PI / 8)
+		const timeouts = steps.map((step, i) => setTimeout(step, i * STEP_MS))
 
-		// Zoom the camera to fit the shape
-		editor.zoomToFit()
-
-		// Select the shape
-		editor.select(id)
+		return () => {
+			timeouts.forEach(clearTimeout)
+		}
 	}
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="api-example" onMount={handleMount}>
+			<Tldraw onMount={handleMount}>
 				<InsideOfEditorContext />
 			</Tldraw>
 		</div>
@@ -75,18 +83,24 @@ const InsideOfEditorContext = () => {
 
 	useEffect(() => {
 		let i = 0
+		let interval: ReturnType<typeof setInterval> | undefined
 
-		const interval = setInterval(() => {
-			const selection = [...editor.getSelectedShapeIds()]
-			editor.selectAll()
-			editor.setStyleForSelectedShapes(DefaultColorStyle, i % 2 ? 'blue' : 'light-blue')
-			editor.setStyleForNextShapes(DefaultColorStyle, i % 2 ? 'blue' : 'light-blue')
-			editor.setSelectedShapes(selection)
-			i++
-		}, 1000)
+		// Wait until the onMount timeline finishes before starting the color cycle,
+		// so the staged setup isn't visually interrupted.
+		const start = setTimeout(() => {
+			interval = setInterval(() => {
+				const selection = [...editor.getSelectedShapeIds()]
+				editor.selectAll()
+				editor.setStyleForSelectedShapes(DefaultColorStyle, i % 2 ? 'blue' : 'light-blue')
+				editor.setStyleForNextShapes(DefaultColorStyle, i % 2 ? 'blue' : 'light-blue')
+				editor.setSelectedShapes(selection)
+				i++
+			}, STEP_MS)
+		}, TIMELINE_MS)
 
 		return () => {
-			clearInterval(interval)
+			clearTimeout(start)
+			if (interval) clearInterval(interval)
 		}
 	}, [editor])
 
@@ -107,12 +121,18 @@ There are two main ways to use the editor:
 [1]
 The tldraw component shares its editor instance via its onMount callback prop.
 When you define a function for the onMount callback, it receives the editor
-instance as an argument. You can use this to manipulate the canvas.
+instance as an argument. We schedule each API call on its own beat so a viewer
+can see the effect of every step: creating the shape, updating its height,
+rotating it, zooming the camera, and selecting it. The cleanup function
+returned from onMount cancels any pending steps if the editor unmounts.
 
 
 [2]
 Another (sneakier) way to access the current app is through React context.
 The Tldraw component provides the context, so you can add children to
-the component and access the app through the useEditor hook. This is cool.
+the component and access the app through the useEditor hook. Once the timeline
+above finishes, this child component takes over and demonstrates a couple more
+API calls — setStyleForSelectedShapes and setStyleForNextShapes — by cycling
+the shape's color.
 
 */

@@ -65,6 +65,7 @@ export interface TLAppUiEventMap {
 	'room-size-limit-dialog-shown': null
 	'accept-group-invite': null
 	'add-file-link': null
+	'set-color-theme': { theme: string }
 }
 
 /** @public */

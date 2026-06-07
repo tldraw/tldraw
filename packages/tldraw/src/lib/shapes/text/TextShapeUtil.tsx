@@ -17,7 +17,6 @@ import {
 	resizeScaled,
 	textShapeMigrations,
 	textShapeProps,
-	toDomPrecision,
 	toRichText,
 	useColorMode,
 	useEditor,
@@ -142,11 +141,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return renderPlaintextFromRichText(this.editor, shape.props.richText)
 	}
 
-	override canEdit() {
+	override canEdit(shape: TLTextShape) {
 		return true
 	}
 
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(shape: TLTextShape) {
 		return true
 	} // WAIT NO THIS IS HARD CODED IN THE RESIZE HANDLER
 
@@ -186,17 +185,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				onKeyDown={handleKeyDown}
 			/>
 		)
-	}
-
-	indicator(shape: TLTextShape) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const editor = useEditor()
-		if (shape.props.autoSize && editor.getEditingShapeId() === shape.id) return null
-		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLTextShape): Path2D | undefined {

@@ -81,6 +81,12 @@ This embeds images and videos directly in the clipboard data rather than relying
 
 Cut combines copy and delete. The editor first copies the selected shapes to the clipboard, then deletes the originals. This order ensures the clipboard has the data before shapes disappear, preventing data loss if the copy fails.
 
+### Plain text paste
+
+`Cmd+Shift+V` (or `Ctrl+Shift+V` on Windows and Linux) pastes the clipboard as plain text. HTML and rich formatting are stripped. This is the standard "paste without formatting" shortcut. It's handy when styled text from a browser or word processor would otherwise bring its fonts and colors onto the canvas with it.
+
+To extend or override this behavior, use the `onClipboardPasteRaw` hook on [TldrawOptions](?). It fires before tldraw parses the clipboard, so you can read the raw `ClipboardEvent` data yourself. Return `false` to short-circuit the default pipeline, or `void` to let it continue.
+
 ## Content structure
 
 The [TLContent](?) type defines the clipboard payload:

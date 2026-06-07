@@ -28,6 +28,7 @@ import {
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -42,6 +43,7 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
+import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
@@ -117,11 +119,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
+	const trackPerformance = usePerformanceTracking()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
+			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
@@ -167,11 +171,21 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
+				cleanupPerf()
 				fileStateUpdater.dispose()
 				abortController.abort()
 			}
 		},
-		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
+		[
+			addDialog,
+			trackRoomLoaded,
+			trackNewRoomCreation,
+			trackPerformance,
+			app,
+			fileId,
+			remountImageShapes,
+			setIsReady,
+		]
 	)
 
 	const user = useTldrawCurrentUser()
@@ -274,7 +288,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={instanceComponents}
-				options={{ actionShortcutsLocation: 'toolbar', deepLinks: deepLinks ? true : undefined }}
+				options={{
+					actionShortcutsLocation: 'toolbar',
+					deepLinks: deepLinks ? true : undefined,
+				}}
 				overrides={[overrides, extraDragIconOverrides]}
 				getShapeVisibility={getShapeVisibility}
 			>
@@ -285,6 +302,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
+				<TlaAnonDotDevLink />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

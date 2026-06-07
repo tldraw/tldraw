@@ -63,16 +63,16 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		},
 	}
 
-	override hideResizeHandles() {
+	override hideResizeHandles(shape: TLLineShape) {
 		return true
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(shape: TLLineShape) {
 		return true
 	}
-	override hideSelectionBoundsFg() {
+	override hideSelectionBoundsFg(shape: TLLineShape) {
 		return true
 	}
-	override hideSelectionBoundsBg() {
+	override hideSelectionBoundsBg(shape: TLLineShape) {
 		return true
 	}
 	override hideInMinimap() {
@@ -217,26 +217,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				<LineShapeSvg shape={shape} strokeColor={dv.strokeColor} strokeWidth={dv.strokeWidth} />
 			</SVGContainer>
 		)
-	}
-
-	indicator(shape: TLLineShape) {
-		const strokeWidth = getDisplayValues(this, shape).strokeWidth * shape.props.scale
-		const path = getPathForLineShape(shape)
-		const { dash } = shape.props
-
-		return path.toSvg({
-			style: dash === 'draw' ? 'draw' : 'solid',
-			strokeWidth: 1,
-			passes: 1,
-			randomSeed: shape.id,
-			offset: 0,
-			roundness: strokeWidth * 2,
-			props: { strokeWidth: undefined },
-		})
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLLineShape): Path2D {

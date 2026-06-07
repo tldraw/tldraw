@@ -4,7 +4,7 @@ import { ReactNode, createContext, useContext, useMemo } from 'react'
 import { DefaultSpinner, LoadingScreen, assert, useShallowObjectIdentity } from 'tldraw'
 import { useMaybeApp } from './useAppState'
 
-export interface TldrawUser {
+interface TldrawUser {
 	id: string
 	clerkUser: UserResource
 	isTldraw: boolean

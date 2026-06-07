@@ -153,6 +153,12 @@
       "value": "Fail saya"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Sertakan pautan ke fail semasa"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -217,6 +223,12 @@
     {
       "type": 0,
       "value": "Gambar rajah Mermaid yang tidak disokong"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Tema warna"
     }
   ],
   "42e53c47c1": [
@@ -597,6 +609,12 @@
     {
       "type": 0,
       "value": "Serahkan isu pada GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Lalai"
     }
   ],
   "7b1329f5ca": [

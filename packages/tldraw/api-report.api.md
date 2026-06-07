@@ -8,6 +8,7 @@ import { AssetUtil } from '@tldraw/editor';
 import { Atom } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
+import { BaseFrameLikeShapeUtil } from '@tldraw/editor';
 import { BindingOnChangeOptions } from '@tldraw/editor';
 import { BindingOnCreateOptions } from '@tldraw/editor';
 import { BindingOnShapeChangeOptions } from '@tldraw/editor';
@@ -42,6 +43,8 @@ import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
+import { OverlayOptionsWithDisplayValues } from '@tldraw/editor';
+import { OverlayUtil } from '@tldraw/editor';
 import { PerfectDashTerminal } from '@tldraw/editor';
 import { PointerEvent as PointerEvent_2 } from 'react';
 import { Polygon2d } from '@tldraw/editor';
@@ -59,10 +62,13 @@ import { RefAttributes } from 'react';
 import { RefObject } from 'react';
 import { Result } from '@tldraw/editor';
 import { RichTextFontVisitorState } from '@tldraw/editor';
+import { RotateCorner } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
+import { ShapeIndicatorOverlayUtil } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
+import { SnapIndicator } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
@@ -85,11 +91,10 @@ import { TLClickEventInfo } from '@tldraw/editor';
 import { TLClipboardWriteInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
+import { TLCursorType } from '@tldraw/editor';
 import { TLDefaultColorStyle } from '@tldraw/tlschema';
 import { TLDefaultFontStyle } from '@tldraw/tlschema';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
-import { TLDragShapesOutInfo } from '@tldraw/editor';
-import { TLDragShapesOverInfo } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TldrawOptions } from '@tldraw/editor';
@@ -104,6 +109,7 @@ import { TLEmbedShapeProps } from '@tldraw/editor';
 import { TLEventInfo } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
 import { TLFileExternalAsset } from '@tldraw/editor';
+import { TLFileReplaceExternalContent } from '@tldraw/editor';
 import { TLFontFace } from '@tldraw/tlschema';
 import { TLFontFace as TLFontFace_2 } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
@@ -113,7 +119,6 @@ import { TLGeoShape } from '@tldraw/editor';
 import { TLGeoShapeProps } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandleDragInfo } from '@tldraw/editor';
-import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
 import { TLHighlightShapeProps } from '@tldraw/editor';
 import { TLImageAsset } from '@tldraw/editor';
@@ -125,6 +130,7 @@ import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
 import { TLNoteShapeProps } from '@tldraw/editor';
+import { TLOverlay } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLPointerEventInfo } from '@tldraw/editor';
@@ -132,8 +138,8 @@ import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLResizeInfo } from '@tldraw/editor';
 import { TLRichText } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
-import { TLScribbleProps } from '@tldraw/editor';
-import { TLSelectionForegroundProps } from '@tldraw/editor';
+import { TLScribble } from '@tldraw/editor';
+import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeCrop } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
@@ -192,6 +198,28 @@ export const allDefaultFontFaces: TLFontFace_2[];
 // @public (undocumented)
 export function ArrangeMenuSubmenu(): JSX.Element | null;
 
+// @public
+export class ArrowBindingHintOverlayUtil extends OverlayUtil<TLArrowBindingHintOverlay> {
+    // (undocumented)
+    getOverlays(): TLArrowBindingHintOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        crossSize: number;
+        dashedMinZoom: number;
+        dashLengthRatio: number;
+        dotRadius: number;
+        opacity: number;
+        strokeWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLArrowBindingHintOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
 // @public (undocumented)
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     // (undocumented)
@@ -216,6 +244,26 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 
 // @public (undocumented)
 export function ArrowDownToolbarItem(): JSX.Element;
+
+// @public
+export class ArrowHintOverlayUtil extends OverlayUtil<TLArrowHintOverlay> {
+    // (undocumented)
+    getOverlays(): TLArrowHintOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        edgePointRadius: number;
+        edgeRadius: number;
+        handleRadius: number;
+        lineWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLArrowHintOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
 
 // @public (undocumented)
 export function ArrowLeftToolbarItem(): JSX.Element;
@@ -262,9 +310,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canBind({ toShape }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean;
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLArrowShape): boolean;
     // (undocumented)
-    canSnap(): boolean;
+    canSnap(shape: TLArrowShape): boolean;
     // (undocumented)
     component(shape: TLArrowShape): JSX.Element | null;
     // (undocumented)
@@ -290,15 +338,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     hideInMinimap(): boolean;
     // (undocumented)
-    hideResizeHandles(): boolean;
+    hideResizeHandles(shape: TLArrowShape): boolean;
     // (undocumented)
-    hideRotateHandle(): boolean;
+    hideRotateHandle(shape: TLArrowShape): boolean;
     // (undocumented)
-    hideSelectionBoundsBg(): boolean;
+    hideSelectionBoundsBg(shape: TLArrowShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg(): boolean;
-    // (undocumented)
-    indicator(shape: TLArrowShape): JSX.Element | null;
+    hideSelectionBoundsFg(shape: TLArrowShape): boolean;
     // (undocumented)
     static migrations: MigrationSequence;
     // (undocumented)
@@ -349,8 +395,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "arrow";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -434,11 +478,16 @@ export const ASPECT_RATIO_TO_VALUE: Record<ASPECT_RATIO_OPTION, number>;
 // @public (undocumented)
 export function AssetToolbarItem(): JSX.Element;
 
-// @internal (undocumented)
-export function AssetUrlsProvider({ assetUrls, children }: {
+// @public
+export function AssetUrlsProvider({ assetUrls, children }: AssetUrlsProviderProps): JSX.Element;
+
+// @public (undocumented)
+export interface AssetUrlsProviderProps {
+    // (undocumented)
     assetUrls: TLUiAssetUrls;
+    // (undocumented)
     children: React.ReactNode;
-}): JSX.Element;
+}
 
 // @public (undocumented)
 export interface BasePathBuilderOpts {
@@ -477,7 +526,7 @@ export interface BookmarkShapeOptions extends ShapeOptionsWithDisplayValues<TLBo
 // @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
-    canResize(): boolean;
+    canResize(shape: TLBookmarkShape): boolean;
     // (undocumented)
     component(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
@@ -491,9 +540,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     getText(shape: TLBookmarkShape): string;
     // (undocumented)
-    hideSelectionBoundsFg(): boolean;
-    // (undocumented)
-    indicator(shape: TLBookmarkShape): JSX.Element;
+    hideSelectionBoundsFg(shape: TLBookmarkShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -542,8 +589,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
     static type: "bookmark";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -566,6 +611,38 @@ export interface BreakPointProviderProps {
     children: ReactNode;
     // (undocumented)
     forceMobile?: boolean;
+}
+
+// @public
+export class BrushOverlayUtil extends OverlayUtil<TLBrushOverlay> {
+    // (undocumented)
+    getOverlays(): TLBrushOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: BrushOverlayUtilOptions;
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[]): void;
+    // (undocumented)
+    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLBrushOverlay[], zoom: number): void;
+    // (undocumented)
+    static type: string;
+}
+
+// @public (undocumented)
+export interface BrushOverlayUtilDisplayValues {
+    // (undocumented)
+    fillColor: string;
+    // (undocumented)
+    lineWidth: number;
+    // (undocumented)
+    strokeColor: string;
+}
+
+// @public (undocumented)
+export interface BrushOverlayUtilOptions extends OverlayOptionsWithDisplayValues<TLBrushOverlay, BrushOverlayUtilDisplayValues> {
+    // (undocumented)
+    zIndex: number;
 }
 
 // @internal (undocumented)
@@ -604,6 +681,100 @@ export function ClipboardMenuGroup(): JSX.Element;
 
 // @public (undocumented)
 export function CloudToolbarItem(): JSX.Element;
+
+// @public
+export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrushOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorBrushOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        lineWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorBrushOverlay[]): void;
+    // (undocumented)
+    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorBrushOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
+// @public
+export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorCursorOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        chatMaxWidth: number;
+        fontSize: number;
+        nameMaxWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[]): void;
+    // (undocumented)
+    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[], zoom: number): void;
+    // (undocumented)
+    static type: string;
+}
+
+// @public
+export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorHintOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        lineWidth: number;
+        viewportPadding: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorHintOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
+// @public
+export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorScribbleOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorScribbleOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        cacheSize: number;
+        streamline: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorScribbleOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
+// @public
+export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollaboratorShapeIndicatorOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorShapeIndicatorOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        alpha: number;
+        lineWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorShapeIndicatorOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
 
 // @public (undocumented)
 export function ColorSchemeMenu(): JSX.Element;
@@ -737,6 +908,16 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly title: "Figma";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "figma";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly embedOnPaste: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["canva.com"];
+    readonly title: "Canva";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "canva";
     readonly width: 720;
 }, {
     readonly doesResize: true;
@@ -973,6 +1154,118 @@ export function DefaultFollowingIndicator(): JSX.Element | null;
 // @public (undocumented)
 export const DefaultFontFaces: TLDefaultFonts;
 
+// @public
+export const defaultGeoTypeDefinitions: {
+    readonly 'arrow-down': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-down";
+        readonly snapType: "polygon";
+    };
+    readonly 'arrow-left': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-left";
+        readonly snapType: "polygon";
+    };
+    readonly 'arrow-right': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-right";
+        readonly snapType: "polygon";
+    };
+    readonly 'arrow-up': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-arrow-up";
+        readonly snapType: "polygon";
+    };
+    readonly 'check-box': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-check-box";
+        readonly snapType: "polygon";
+    };
+    readonly 'rhombus-2': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-rhombus-2";
+        readonly snapType: "polygon";
+    };
+    readonly 'x-box': {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape, strokeWidth: number) => PathBuilder;
+        readonly icon: "geo-x-box";
+        readonly snapType: "polygon";
+    };
+    readonly cloud: {
+        readonly defaultSize: {
+            readonly h: 180;
+            readonly w: 300;
+        };
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-cloud";
+        readonly snapType: "blobby";
+    };
+    readonly diamond: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-diamond";
+        readonly snapType: "polygon";
+    };
+    readonly ellipse: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-ellipse";
+        readonly snapType: "blobby";
+    };
+    readonly heart: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-heart";
+        readonly snapType: "blobby";
+    };
+    readonly hexagon: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-hexagon";
+        readonly snapType: "polygon";
+    };
+    readonly octagon: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-octagon";
+        readonly snapType: "polygon";
+    };
+    readonly oval: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-oval";
+        readonly snapType: "blobby";
+    };
+    readonly pentagon: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-pentagon";
+        readonly snapType: "polygon";
+    };
+    readonly rectangle: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-rectangle";
+        readonly snapType: "polygon";
+    };
+    readonly rhombus: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-rhombus";
+        readonly snapType: "polygon";
+    };
+    readonly star: {
+        readonly defaultSize: {
+            readonly h: 190;
+            readonly w: 200;
+        };
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-star";
+        readonly snapType: "polygon";
+    };
+    readonly trapezoid: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-trapezoid";
+        readonly snapType: "polygon";
+    };
+    readonly triangle: {
+        readonly getPath: (w: number, h: number, shape: TLGeoShape) => PathBuilder;
+        readonly icon: "geo-triangle";
+        readonly snapType: "polygon";
+    };
+};
+
 // @public (undocumented)
 export function defaultHandleExternalEmbedContent<T>(editor: Editor, { point, url, embed }: {
     embed: T;
@@ -994,6 +1287,9 @@ export function defaultHandleExternalFileContent(editor: Editor, { point, files 
     files: File[];
     point?: VecLike;
 }, options: TLDefaultExternalContentHandlerOpts): Promise<void>;
+
+// @public (undocumented)
+export function defaultHandleExternalFileReplaceContent(editor: Editor, { file, shapeId }: TLFileReplaceExternalContent, options: TLDefaultExternalContentHandlerOpts): Promise<TLAsset | undefined>;
 
 // @public (undocumented)
 export function defaultHandleExternalSvgTextContent(editor: Editor, { point, text }: {
@@ -1077,7 +1373,41 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
+export const defaultOverlayUtils: readonly [typeof CollaboratorShapeIndicatorOverlayUtil, typeof ShapeIndicatorOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof ArrowBindingHintOverlayUtil, typeof CollaboratorCursorOverlayUtil];
+
+// @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
+
+// @public (undocumented)
+function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps): JSX.Element | null;
+export { DefaultPeopleMenu }
+export { DefaultPeopleMenu as PeopleMenu }
+
+// @public (undocumented)
+export function DefaultPeopleMenuAvatar({ userId }: TLUiPeopleMenuAvatarProps): JSX.Element | null;
+
+// @public (undocumented)
+export function DefaultPeopleMenuContent({ userIds }: DefaultPeopleMenuContentProps): JSX.Element;
+
+// @public (undocumented)
+export interface DefaultPeopleMenuContentProps {
+    // (undocumented)
+    userIds: string[];
+}
+
+// @public (undocumented)
+export function DefaultPeopleMenuFacePile({ userIds, userName, userColor }: TLUiPeopleMenuFacePileProps): JSX.Element;
+
+// @public (undocumented)
+export const DefaultPeopleMenuItem: NamedExoticComponent<TLUiPeopleMenuItemProps>;
+
+// @public (undocumented)
+interface DefaultPeopleMenuProps {
+    // (undocumented)
+    children?: ReactNode;
+}
+export { DefaultPeopleMenuProps }
+export { DefaultPeopleMenuProps as PeopleMenuProps }
 
 // @public (undocumented)
 export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
@@ -1106,7 +1436,7 @@ export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShape
 export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
 
 // @public (undocumented)
-export function DefaultSharePanel(): JSX.Element;
+export function DefaultSharePanel(): JSX.Element | null;
 
 // @public (undocumented)
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
@@ -1141,6 +1471,9 @@ export interface DefaultToolbarProps {
 
 // @public (undocumented)
 export const defaultTools: readonly [typeof EraserTool, typeof HandTool, typeof LaserTool, typeof ZoomTool, typeof SelectTool];
+
+// @public (undocumented)
+export function DefaultUserPresenceEditor(): JSX.Element;
 
 // @public (undocumented)
 export const DefaultVideoToolbar: NamedExoticComponent<TLUiVideoToolbarProps>;
@@ -1248,8 +1581,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     hideSelectionBoundsFg(shape: TLDrawShape): boolean;
     // (undocumented)
-    indicator(shape: TLDrawShape): JSX.Element;
-    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>): {
@@ -1266,8 +1597,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     toSvg(shape: TLDrawShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "draw";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1484,9 +1813,9 @@ export const embedShapePermissionDefaults: {
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLEmbedShape): boolean;
     // (undocumented)
-    canEditInReadonly(): boolean;
+    canEditInReadonly(shape: TLEmbedShape): boolean;
     // (undocumented)
     canEditWhileLocked(shape: TLEmbedShape): boolean;
     // (undocumented)
@@ -1512,8 +1841,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     hideSelectionBoundsFg(shape: TLEmbedShape): boolean;
     // (undocumented)
-    indicator(shape: TLEmbedShape): JSX.Element;
-    // (undocumented)
     isAspectRatioLocked(shape: TLEmbedShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -1527,8 +1854,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     static setEmbedDefinitions(embedDefinitions: readonly EmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1544,11 +1869,21 @@ export class EraserTool extends StateNode {
     // (undocumented)
     static id: string;
     // (undocumented)
+    info: {
+        onInteractionEnd?: string | undefined;
+    };
+    // (undocumented)
     static initial: string;
     // (undocumented)
     static isLockable: boolean;
     // (undocumented)
-    onEnter(): void;
+    maybeReturnToOriginatingTool(): void;
+    // (undocumented)
+    onEnter(info?: {
+        onInteractionEnd?: string;
+    }): void;
+    // (undocumented)
+    onExit(): void;
 }
 
 // @public (undocumented)
@@ -1636,15 +1971,13 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 }
 
 // @public (undocumented)
-export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
+export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
     // (undocumented)
     canEdit(shape: TLFrameShape, info: TLEditStartInfo): boolean;
     // (undocumented)
-    canReceiveNewChildrenOfType(shape: TLShape): boolean;
+    canResize(shape: TLFrameShape): boolean;
     // (undocumented)
-    canResize(): boolean;
-    // (undocumented)
-    canResizeChildren(): boolean;
+    canResizeChildren(shape: TLFrameShape): boolean;
     // (undocumented)
     component(shape: TLFrameShape): JSX.Element;
     // (undocumented)
@@ -1653,8 +1986,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     } ? Partial<Options> : never): T;
     // (undocumented)
     getAriaDescriptor(shape: TLFrameShape): string;
-    // (undocumented)
-    getClipPath(shape: TLFrameShape): Vec[];
     // (undocumented)
     getDefaultProps(): TLFrameShape['props'];
     // (undocumented)
@@ -1665,8 +1996,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     getInterpolatedProps(startShape: TLFrameShape, endShape: TLFrameShape, t: number): TLFrameShapeProps;
     // (undocumented)
     getText(shape: TLFrameShape): string | undefined;
-    // (undocumented)
-    indicator(shape: TLFrameShape): JSX.Element;
     // (undocumented)
     isExportBoundsContainer(): boolean;
     // (undocumented)
@@ -1686,23 +2015,13 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
         type: "frame";
     } | undefined;
     // (undocumented)
-    onDragShapesIn(shape: TLFrameShape, draggingShapes: TLShape[], { initialParentIds, initialIndices }: TLDragShapesOverInfo): void;
-    // (undocumented)
-    onDragShapesOut(shape: TLFrameShape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
-    // (undocumented)
-    onResize(shape: any, info: TLResizeInfo<any>): any;
-    // (undocumented)
     options: FrameShapeOptions;
     // (undocumented)
     static props: RecordProps<TLFrameShape>;
     // (undocumented)
-    providesBackgroundForChildren(): boolean;
-    // (undocumented)
     toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "frame";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1734,6 +2053,7 @@ export function FrameToolbarItem(): JSX.Element;
 
 // @public (undocumented)
 export interface GeoShapeOptions extends ShapeOptionsWithDisplayValues<TLGeoShape, GeoShapeUtilDisplayValues> {
+    customGeoTypes?: Record<string, GeoTypeDefinition>;
     // (undocumented)
     showTextOutline: boolean;
 }
@@ -1753,9 +2073,13 @@ export class GeoShapeTool extends StateNode {
 // @public (undocumented)
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLGeoShape): boolean;
     // (undocumented)
     component(shape: TLGeoShape): JSX.Element;
+    // (undocumented)
+    static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
+        options: infer Options;
+    } ? Partial<Options> : never): T;
     // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     // (undocumented)
@@ -1773,8 +2097,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getText(shape: TLGeoShape): string;
     // (undocumented)
-    indicator(shape: TLGeoShape): JSX.Element;
-    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onBeforeCreate(shape: TLGeoShape): {
@@ -1787,7 +2109,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
@@ -1822,7 +2144,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         props: {
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
@@ -1848,6 +2170,39 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     } | undefined;
     // (undocumented)
     onDoubleClick(shape: TLGeoShape): {
+        id: TLShapeId;
+        index: IndexKey;
+        isLocked: boolean;
+        meta: JsonObject;
+        opacity: number;
+        parentId: TLParentId;
+        props: {
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            color: TLDefaultColorStyle;
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
+            fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            font: TLDefaultFontStyle;
+            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            growY: number;
+            h: number;
+            labelColor: TLDefaultColorStyle;
+            richText: {
+                attrs?: any;
+                content: unknown[];
+                type: string;
+            };
+            scale: number;
+            size: "l" | "m" | "s" | "xl";
+            url: string;
+            verticalAlign: "end" | "middle" | "start";
+            w: number;
+        };
+        rotation: number;
+        type: "geo";
+        typeName: "shape";
+        x: number;
+        y: number;
+    } | {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -1896,8 +2251,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "geo";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -1940,6 +2293,20 @@ export interface GeoShapeUtilDisplayValues {
     strokeRoundness: number;
     // (undocumented)
     strokeWidth: number;
+}
+
+// @public
+export interface GeoTypeDefinition {
+    defaultSize?: {
+        h: number;
+        w: number;
+    };
+    getPath(w: number, h: number, shape: TLGeoShape, strokeWidth: number): PathBuilder;
+    icon: string;
+    onDoubleClick?(shape: TLGeoShape): {
+        props: Partial<TLGeoShape['props']>;
+    } | void;
+    snapType: 'blobby' | 'polygon';
 }
 
 // @public (undocumented)
@@ -1990,6 +2357,9 @@ export function getFontFamily(theme: TLTheme, font: string): string;
 // @public
 export function getFontStyleItems(theme: TLTheme): StyleValuesForUi<string>;
 
+// @public
+export function getGeoTypeDefinition(name: string, customGeoTypes?: Record<string, GeoTypeDefinition>): GeoTypeDefinition | undefined;
+
 // @public (undocumented)
 export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boolean): TLShape | undefined;
 
@@ -2027,7 +2397,7 @@ export function GroupMenuItem(): JSX.Element | null;
 export function GroupOrUngroupMenuItem(): JSX.Element;
 
 // @public
-export const handleNativeOrMenuCopy: (editor: Editor, context?: TLClipboardWriteInfo) => Promise<boolean>;
+export function handleNativeOrMenuCopy(editor: Editor, context?: TLClipboardWriteInfo): Promise<boolean>;
 
 // @public (undocumented)
 export class HandTool extends StateNode {
@@ -2041,10 +2411,6 @@ export class HandTool extends StateNode {
     static isLockable: boolean;
     // (undocumented)
     onDoubleClick(info: TLClickEventInfo): void;
-    // (undocumented)
-    onQuadrupleClick(info: TLClickEventInfo): void;
-    // (undocumented)
-    onTripleClick(info: TLClickEventInfo): void;
 }
 
 // @public (undocumented)
@@ -2103,8 +2469,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     hideSelectionBoundsFg(shape: TLHighlightShape): boolean;
     // (undocumented)
-    indicator(shape: TLHighlightShape): JSX.Element;
-    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
     onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>): {
@@ -2123,8 +2487,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     toSvg(shape: TLHighlightShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "highlight";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -2182,7 +2544,7 @@ export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<TLImage
 // @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
-    canCrop(): boolean;
+    canCrop(shape: TLImageShape): boolean;
     // (undocumented)
     component(shape: TLImageShape): JSX.Element;
     // (undocumented)
@@ -2200,9 +2562,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static handledAssetTypes: readonly ["image"];
     // (undocumented)
-    indicator(shape: TLImageShape): JSX.Element | null;
-    // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(shape: TLImageShape): boolean;
     // (undocumented)
     isExportBoundsContainer(): boolean;
     // (undocumented)
@@ -2219,13 +2579,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)
     static type: "image";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
 export interface ImageShapeUtilDisplayValues {
 }
+
+// @public (undocumented)
+export function InputModeMenu(): JSX.Element;
 
 // @public (undocumented)
 export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
@@ -2293,15 +2654,13 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     hideInMinimap(): boolean;
     // (undocumented)
-    hideResizeHandles(): boolean;
+    hideResizeHandles(shape: TLLineShape): boolean;
     // (undocumented)
-    hideRotateHandle(): boolean;
+    hideRotateHandle(shape: TLLineShape): boolean;
     // (undocumented)
-    hideSelectionBoundsBg(): boolean;
+    hideSelectionBoundsBg(shape: TLLineShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg(): boolean;
-    // (undocumented)
-    indicator(shape: TLLineShape): JSX.Element;
+    hideSelectionBoundsFg(shape: TLLineShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -2316,7 +2675,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         parentId: TLParentId;
         props: {
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             points: {
                 [x: string]: {
                     id: string;
@@ -2345,7 +2704,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         parentId: TLParentId;
         props: {
             color: TLDefaultColorStyle;
-            dash: "dashed" | "dotted" | "draw" | "solid";
+            dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             points: {
                 [x: string]: {
                     id: IndexKey;
@@ -2385,8 +2744,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     toSvg(shape: TLLineShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "line";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -2429,6 +2786,12 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
 }
 
 // @public (undocumented)
+export interface NonePathBuilderOpts extends BasePathBuilderOpts {
+    // (undocumented)
+    style: 'none';
+}
+
+// @public (undocumented)
 export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
     resizeMode: 'none' | 'scale';
 }
@@ -2448,7 +2811,7 @@ export class NoteShapeTool extends StateNode {
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLNoteShape): boolean;
     // (undocumented)
     component(shape: TLNoteShape): JSX.Element;
     // (undocumented)
@@ -2468,13 +2831,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getText(shape: TLNoteShape): string;
     // (undocumented)
-    hideResizeHandles(): boolean;
+    hideResizeHandles(shape: TLNoteShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg(): boolean;
+    hideSelectionBoundsFg(shape: TLNoteShape): boolean;
     // (undocumented)
-    indicator(shape: TLNoteShape): JSX.Element;
-    // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(shape: TLNoteShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -2527,8 +2888,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "note";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -2692,7 +3051,7 @@ export class PathBuilder {
     // (undocumented)
     toPath2D(opts: PathBuilderOpts): Path2D;
     // (undocumented)
-    toSvg(opts: PathBuilderOpts): JSX.Element;
+    toSvg(opts: PathBuilderOpts): JSX.Element | null;
 }
 
 // @internal (undocumented)
@@ -2755,7 +3114,7 @@ export interface PathBuilderLineOpts extends PathBuilderCommandOpts {
 }
 
 // @public (undocumented)
-export type PathBuilderOpts = DashedPathBuilderOpts | DrawPathBuilderOpts | SolidPathBuilderOpts;
+export type PathBuilderOpts = DashedPathBuilderOpts | DrawPathBuilderOpts | NonePathBuilderOpts | SolidPathBuilderOpts;
 
 // @public (undocumented)
 export interface PathBuilderToDOpts {
@@ -2765,15 +3124,6 @@ export interface PathBuilderToDOpts {
     onlyFilled?: boolean;
     // (undocumented)
     startIdx?: number;
-}
-
-// @public (undocumented)
-export function PeopleMenu({ children }: PeopleMenuProps): JSX.Element | null;
-
-// @public (undocumented)
-export interface PeopleMenuProps {
-    // (undocumented)
-    children?: ReactNode;
 }
 
 // @public
@@ -2999,8 +3349,47 @@ export const RTL_LANGUAGES: Set<string>;
 // @public
 export function sanitizeSvg(svgText: string): string;
 
+// @public
+export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
+    // (undocumented)
+    getOverlays(): TLScribbleOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        cacheSize: number;
+        streamline: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLScribbleOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
 // @public (undocumented)
 export function SelectAllMenuItem(): JSX.Element;
+
+// @public
+export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForegroundOverlay> {
+    // (undocumented)
+    getCursor(overlay: TLSelectionForegroundOverlay): TLCursorType | undefined;
+    // (undocumented)
+    getGeometry(overlay: TLSelectionForegroundOverlay): Geometry2d | null;
+    // (undocumented)
+    getOverlays(): TLSelectionForegroundOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        lineWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, _overlays: TLSelectionForegroundOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
 
 // @public (undocumented)
 export class SelectTool extends StateNode {
@@ -3040,12 +3429,50 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 // @public (undocumented)
 export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
 
+// @public
+export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
+    // (undocumented)
+    getCursor(_overlay: TLShapeHandleOverlay): TLCursorType | undefined;
+    // (undocumented)
+    getGeometry(overlay: TLShapeHandleOverlay): Geometry2d | null;
+    // (undocumented)
+    getOverlays(): TLShapeHandleOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        lineWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLShapeHandleOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
 // @public (undocumented)
 export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayValues extends object> {
     // (undocumented)
     getCustomDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): Partial<DisplayValues>;
     // (undocumented)
     getDefaultDisplayValues(editor: Editor, shape: Shape, theme: TLTheme, colorMode: 'dark' | 'light'): DisplayValues;
+}
+
+// @public
+export class SnapIndicatorOverlayUtil extends OverlayUtil<TLSnapIndicatorOverlay> {
+    // (undocumented)
+    getOverlays(): TLSnapIndicatorOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        lineWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLSnapIndicatorOverlay[]): void;
+    // (undocumented)
+    static type: string;
 }
 
 // @public (undocumented)
@@ -3220,6 +3647,7 @@ export interface StylePanelDropdownPickerProps<T extends string> {
     label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     // (undocumented)
     onValueChange?(style: StyleProp<T>, value: T): void;
+    sideOffset?: number;
     // (undocumented)
     style: StyleProp<T>;
     // (undocumented)
@@ -3333,7 +3761,7 @@ export class TextShapeTool extends StateNode {
 // @public (undocumented)
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLTextShape): boolean;
     // (undocumented)
     component(shape: TLTextShape): JSX.Element;
     // (undocumented)
@@ -3352,9 +3780,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     getText(shape: TLTextShape): string;
     // (undocumented)
-    indicator(shape: TLTextShape): JSX.Element | null;
-    // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(shape: TLTextShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -3414,8 +3840,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     toSvg(shape: TLTextShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "text";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -3479,11 +3903,56 @@ export interface TLArcInfo {
 }
 
 // @public (undocumented)
+export interface TLArrowBindingHintOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        arrowId: TLShapeId;
+    };
+}
+
+// @public (undocumented)
 export interface TLArrowBindings {
     // (undocumented)
     end: TLArrowBinding | undefined;
     // (undocumented)
     start: TLArrowBinding | undefined;
+}
+
+// @public (undocumented)
+export interface TLArrowHintOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        anchorX: number;
+        anchorY: number;
+        arrowKind: string;
+        handles: {
+            bottom: {
+                isEnabled: boolean;
+                x: number;
+                y: number;
+            };
+            left: {
+                isEnabled: boolean;
+                x: number;
+                y: number;
+            };
+            right: {
+                isEnabled: boolean;
+                x: number;
+                y: number;
+            };
+            top: {
+                isEnabled: boolean;
+                x: number;
+                y: number;
+            };
+        };
+        isExact: boolean;
+        isPrecise: boolean;
+        showEdgeHints: boolean;
+        snap: string;
+        targetId: TLShapeId;
+    };
 }
 
 // @public (undocumented)
@@ -3497,6 +3966,72 @@ export interface TLArrowPoint {
     handle: VecLike;
     // (undocumented)
     point: VecLike;
+}
+
+// @public (undocumented)
+export interface TLBrushOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        h: number;
+        w: number;
+        x: number;
+        y: number;
+    };
+}
+
+// @public (undocumented)
+export interface TLCollaboratorBrushOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        color: string;
+        h: number;
+        w: number;
+        x: number;
+        y: number;
+    };
+}
+
+// @public (undocumented)
+export interface TLCollaboratorCursorOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        chatMessage: string;
+        color: string;
+        name: null | string;
+        x: number;
+        y: number;
+    };
+}
+
+// @public (undocumented)
+export interface TLCollaboratorHintOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        x: number;
+        rotation: number;
+        color: string;
+        y: number;
+    };
+}
+
+// @public (undocumented)
+export interface TLCollaboratorScribbleOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        color: string;
+        scribble: TLScribble;
+    };
+}
+
+// @public (undocumented)
+export interface TLCollaboratorShapeIndicatorOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        indicators: Array<{
+            color: string;
+            shapeIds: TLShapeId[];
+        }>;
+    };
 }
 
 // @public
@@ -3547,31 +4082,14 @@ export function Tldraw(props: TldrawProps): JSX.Element;
 export const TLDRAW_FILE_EXTENSION: ".tldr";
 
 // @public (undocumented)
-export function TldrawArrowHints(): JSX.Element | null;
-
-// @public (undocumented)
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
     assetUrls?: TLUiAssetUrlOverrides;
     components?: TLComponents;
     // @deprecated
     embeds?: TLEmbedDefinition[];
+    locale?: string;
     // @deprecated
     textOptions?: TLTextOptions;
-}
-
-// @public (undocumented)
-export function TldrawCropHandles({ size, width, height, hideAlternateHandles }: TldrawCropHandlesProps): JSX.Element;
-
-// @public (undocumented)
-export interface TldrawCropHandlesProps {
-    // (undocumented)
-    height: number;
-    // (undocumented)
-    hideAlternateHandles: boolean;
-    // (undocumented)
-    size: number;
-    // (undocumented)
-    width: number;
 }
 
 // @public (undocumented)
@@ -3602,9 +4120,6 @@ export type TldrawFileParseError = {
     version: number;
 };
 
-// @public (undocumented)
-export function TldrawHandles({ children }: TLHandlesProps): JSX.Element | null;
-
 // @public
 export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 
@@ -3623,19 +4138,7 @@ export interface TldrawImageProps extends TLImageExportOptions {
 }
 
 // @public (undocumented)
-export function TldrawOverlays(): JSX.Element | null;
-
-// @public (undocumented)
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps;
-
-// @public (undocumented)
-export function TldrawScribble({ scribble, zoom, color, opacity, className }: TLScribbleProps): JSX.Element | null;
-
-// @public (undocumented)
-export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegroundProps>;
-
-// @public (undocumented)
-export function TldrawShapeIndicators(): JSX.Element;
 
 // @public (undocumented)
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
@@ -3665,7 +4168,7 @@ export function TldrawUiComponentsProvider({ overrides, children }: TLUiComponen
 export const TldrawUiContextProvider: NamedExoticComponent<TLUiContextProviderProps>;
 
 // @public
-export const TldrawUiContextualToolbar: ({ children, className, isMousingDown, getSelectionBounds, changeOnlyWhenYChanges, label, }: TLUiContextualToolbarProps) => JSX.Element;
+export function TldrawUiContextualToolbar({ children, className, isMousingDown, getSelectionBounds, changeOnlyWhenYChanges, label }: TLUiContextualToolbarProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX.Element;
@@ -3827,10 +4330,10 @@ export const TldrawUiToolbar: React_3.ForwardRefExoticComponent<TLUiToolbarProps
 export const TldrawUiToolbarButton: React_3.ForwardRefExoticComponent<TLUiToolbarButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
-export const TldrawUiToolbarToggleGroup: ({ children, className, type, asChild, ...props }: TLUiToolbarToggleGroupProps) => JSX.Element;
+export function TldrawUiToolbarToggleGroup({ children, className, type, asChild, ...props }: TLUiToolbarToggleGroupProps): JSX.Element;
 
 // @public (undocumented)
-export const TldrawUiToolbarToggleItem: ({ children, className, type, value, tooltip, ...props }: TLUiToolbarToggleItemProps) => JSX.Element;
+export function TldrawUiToolbarToggleItem({ children, className, type, value, tooltip, ...props }: TLUiToolbarToggleItemProps): JSX.Element;
 
 // @public (undocumented)
 export const TldrawUiTooltip: React_3.ForwardRefExoticComponent<TldrawUiTooltipProps & React_3.RefAttributes<HTMLButtonElement>>;
@@ -3862,7 +4365,7 @@ export interface TldrawUiTooltipProviderProps {
     children: React_3.ReactNode;
 }
 
-// @internal
+// @public
 export function TldrawUiTranslationProvider({ overrides, locale, children }: TLUiTranslationProviderProps): JSX.Element;
 
 // @public (undocumented)
@@ -3928,6 +4431,40 @@ export interface TLExternalContentProps {
     acceptedVideoMimeTypes?: readonly string[];
     maxAssetSize?: number;
     maxImageDimension?: number;
+}
+
+// @public (undocumented)
+export interface TLScribbleOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        scribble: TLScribble;
+    };
+}
+
+// @public (undocumented)
+export interface TLSelectionForegroundOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        handle: RotateCorner | TLSelectionHandle;
+        overlayType: 'mobile_rotate' | 'resize_handle' | 'rotate_handle';
+    };
+}
+
+// @public (undocumented)
+export interface TLShapeHandleOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        handle: TLHandle;
+        shapeId: TLShapeId;
+    };
+}
+
+// @public (undocumented)
+export interface TLSnapIndicatorOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        line: SnapIndicator;
+    };
 }
 
 // @public (undocumented)
@@ -4103,6 +4640,14 @@ export interface TLUiComponents {
     // (undocumented)
     PageMenu?: ComponentType | null;
     // (undocumented)
+    PeopleMenu?: ComponentType | null;
+    // (undocumented)
+    PeopleMenuAvatar?: ComponentType<TLUiPeopleMenuAvatarProps> | null;
+    // (undocumented)
+    PeopleMenuFacePile?: ComponentType<TLUiPeopleMenuFacePileProps> | null;
+    // (undocumented)
+    PeopleMenuItem?: ComponentType<TLUiPeopleMenuItemProps> | null;
+    // (undocumented)
     QuickActions?: ComponentType<TLUiQuickActionsProps> | null;
     // (undocumented)
     RichTextToolbar?: ComponentType<TLUiRichTextToolbarProps> | null;
@@ -4116,6 +4661,8 @@ export interface TLUiComponents {
     Toolbar?: ComponentType | null;
     // (undocumented)
     TopPanel?: ComponentType | null;
+    // (undocumented)
+    UserPresenceEditor?: ComponentType | null;
     // (undocumented)
     VideoToolbar?: ComponentType | null;
     // (undocumented)
@@ -4856,6 +5403,28 @@ export interface TLUiOverrides {
 }
 
 // @public (undocumented)
+export interface TLUiPeopleMenuAvatarProps {
+    // (undocumented)
+    userId: string;
+}
+
+// @public (undocumented)
+export interface TLUiPeopleMenuFacePileProps {
+    // (undocumented)
+    userColor: string;
+    // (undocumented)
+    userIds: string[];
+    // (undocumented)
+    userName: string;
+}
+
+// @public (undocumented)
+export interface TLUiPeopleMenuItemProps {
+    // (undocumented)
+    userId: string;
+}
+
+// @public (undocumented)
 export interface TLUiPopoverContentProps {
     // (undocumented)
     align?: 'center' | 'end' | 'start';
@@ -5173,7 +5742,7 @@ export interface TLUiTranslation {
 export type TLUiTranslationContextType = TLUiTranslation;
 
 // @public (undocumented)
-export type TLUiTranslationKey = 'a11y.adjust-shape-styles' | 'a11y.enlarge-shape' | 'a11y.enter-leave-container' | 'a11y.move-shape-faster' | 'a11y.move-shape' | 'a11y.multiple-shapes' | 'a11y.open-context-menu' | 'a11y.open-keyboard-shortcuts' | 'a11y.pan-camera' | 'a11y.repeat-shape' | 'a11y.rotate-shape-ccw-fine' | 'a11y.rotate-shape-ccw' | 'a11y.rotate-shape-cw-fine' | 'a11y.rotate-shape-cw' | 'a11y.select-shape-direction' | 'a11y.select-shape' | 'a11y.shape-image' | 'a11y.shape-index' | 'a11y.shape-video' | 'a11y.shrink-shape' | 'a11y.skip-to-main-content' | 'a11y.status' | 'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-json.short' | 'action.copy-as-json' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.download-original' | 'action.duplicate' | 'action.edit-link' | 'action.enhanced-a11y-mode.menu' | 'action.enhanced-a11y-mode' | 'action.exit-pen-mode' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flatten-to-image' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project-on-tldraw' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.open-kbd-shortcuts' | 'action.pack' | 'action.paste-error-description' | 'action.paste-error-title' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.select-zoom-tool' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-none' | 'action.toggle-auto-pan' | 'action.toggle-auto-size' | 'action.toggle-auto-zoom' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-dynamic-size-mode.menu' | 'action.toggle-dynamic-size-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-invert-zoom.menu' | 'action.toggle-invert-zoom' | 'action.toggle-keyboard-shortcuts.menu' | 'action.toggle-keyboard-shortcuts' | 'action.toggle-lock' | 'action.toggle-mouse' | 'action.toggle-paste-at-cursor.menu' | 'action.toggle-paste-at-cursor' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-trackpad' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-quick' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'app.loading' | 'arrow-kind-style.arc' | 'arrow-kind-style.elbow' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'assets.files.amount-too-many' | 'assets.files.maximum-size' | 'assets.files.size-too-big' | 'assets.files.type-not-allowed' | 'assets.files.upload-failed' | 'assets.url.failed' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.white' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.edit' | 'context-menu.export-all-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context-menu.title' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'document-name-menu.copy-link' | 'document.default-name' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.external-link' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.fill' | 'fill-style.lined-fill' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.heart' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus-2' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'handle.crop.bottom-left' | 'handle.crop.bottom-right' | 'handle.crop.bottom' | 'handle.crop.left' | 'handle.crop.right' | 'handle.crop.top-left' | 'handle.crop.top-right' | 'handle.crop.top' | 'handle.resize-bottom-left' | 'handle.resize-bottom-right' | 'handle.resize-bottom' | 'handle.resize-left' | 'handle.resize-right' | 'handle.resize-top-left' | 'handle.resize-top-right' | 'handle.resize-top' | 'handle.rotate.bottom_left_rotate' | 'handle.rotate.bottom_right_rotate' | 'handle.rotate.mobile_rotate' | 'handle.rotate.top_left_rotate' | 'handle.rotate.top_right_rotate' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.import-tldr-file' | 'help-menu.keyboard-shortcuts' | 'help-menu.privacy' | 'help-menu.terms' | 'help-menu.title' | 'help-menu.twitter' | 'menu.accessibility' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.input-device' | 'menu.language' | 'menu.preferences' | 'menu.theme' | 'menu.title' | 'menu.view' | 'navigation-zone.minimap' | 'navigation-zone.title' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.anonymous-user' | 'people-menu.avatar-color' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'share-menu.copied' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.creating-project' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.a11y' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.text-formatting' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'style-panel.align' | 'style-panel.arrow-kind' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.label-align' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.selected' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'theme.dark' | 'theme.light' | 'theme.system' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'toast.error' | 'toast.info' | 'toast.success' | 'toast.warning' | 'tool-panel.more' | 'tool-panel.title' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.aspect-ratio.circle' | 'tool.aspect-ratio.landscape' | 'tool.aspect-ratio.original' | 'tool.aspect-ratio.portrait' | 'tool.aspect-ratio.square' | 'tool.aspect-ratio.wide' | 'tool.aspect-ratio' | 'tool.bookmark' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.flip-horz' | 'tool.flip-vert' | 'tool.frame' | 'tool.hand' | 'tool.heart' | 'tool.hexagon' | 'tool.highlight' | 'tool.image-crop-confirm' | 'tool.image-crop' | 'tool.image-toolbar-title' | 'tool.image-zoom' | 'tool.laser' | 'tool.line' | 'tool.media-alt-text-confirm' | 'tool.media-alt-text-desc' | 'tool.media-alt-text' | 'tool.media' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.pointer-down' | 'tool.rectangle' | 'tool.replace-media' | 'tool.rhombus' | 'tool.rich-text-bold' | 'tool.rich-text-bulletList' | 'tool.rich-text-code' | 'tool.rich-text-header' | 'tool.rich-text-highlight' | 'tool.rich-text-italic' | 'tool.rich-text-link-remove' | 'tool.rich-text-link-visit' | 'tool.rich-text-link' | 'tool.rich-text-orderedList' | 'tool.rich-text-strikethrough' | 'tool.rich-text-toolbar-title' | 'tool.rotate-cw' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'ui.checked' | 'ui.close' | 'ui.unchecked' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open';
+export type TLUiTranslationKey = 'a11y.adjust-shape-styles' | 'a11y.enlarge-shape' | 'a11y.enter-leave-container' | 'a11y.move-shape-faster' | 'a11y.move-shape' | 'a11y.multiple-shapes' | 'a11y.open-context-menu' | 'a11y.open-keyboard-shortcuts' | 'a11y.pan-camera' | 'a11y.repeat-shape' | 'a11y.rotate-shape-ccw-fine' | 'a11y.rotate-shape-ccw' | 'a11y.rotate-shape-cw-fine' | 'a11y.rotate-shape-cw' | 'a11y.select-shape-direction' | 'a11y.select-shape' | 'a11y.shape-image' | 'a11y.shape-index' | 'a11y.shape-video' | 'a11y.shrink-shape' | 'a11y.skip-to-main-content' | 'a11y.status' | 'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-json.short' | 'action.copy-as-json' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.download-original' | 'action.duplicate' | 'action.edit-link' | 'action.enhanced-a11y-mode.menu' | 'action.enhanced-a11y-mode' | 'action.exit-pen-mode' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flatten-to-image' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project-on-tldraw' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.open-kbd-shortcuts' | 'action.pack' | 'action.paste-error-description' | 'action.paste-error-title' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.select-zoom-tool' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-none' | 'action.toggle-auto-pan' | 'action.toggle-auto-size' | 'action.toggle-auto-zoom' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-dynamic-size-mode.menu' | 'action.toggle-dynamic-size-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-invert-zoom.menu' | 'action.toggle-invert-zoom' | 'action.toggle-keyboard-shortcuts.menu' | 'action.toggle-keyboard-shortcuts' | 'action.toggle-lock' | 'action.toggle-mouse' | 'action.toggle-paste-at-cursor.menu' | 'action.toggle-paste-at-cursor' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-trackpad' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-quick' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'app.loading' | 'arrow-kind-style.arc' | 'arrow-kind-style.elbow' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'assets.files.amount-too-many' | 'assets.files.maximum-size' | 'assets.files.size-too-big' | 'assets.files.type-not-allowed' | 'assets.files.upload-failed' | 'assets.url.failed' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.white' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.edit' | 'context-menu.export-all-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context-menu.title' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'document-name-menu.copy-link' | 'document.default-name' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.external-link' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.fill' | 'fill-style.lined-fill' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.heart' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus-2' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'handle.crop.bottom-left' | 'handle.crop.bottom-right' | 'handle.crop.bottom' | 'handle.crop.left' | 'handle.crop.right' | 'handle.crop.top-left' | 'handle.crop.top-right' | 'handle.crop.top' | 'handle.resize-bottom-left' | 'handle.resize-bottom-right' | 'handle.resize-bottom' | 'handle.resize-left' | 'handle.resize-right' | 'handle.resize-top-left' | 'handle.resize-top-right' | 'handle.resize-top' | 'handle.rotate.bottom_left_rotate' | 'handle.rotate.bottom_right_rotate' | 'handle.rotate.mobile_rotate' | 'handle.rotate.top_left_rotate' | 'handle.rotate.top_right_rotate' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.import-tldr-file' | 'help-menu.keyboard-shortcuts' | 'help-menu.privacy' | 'help-menu.terms' | 'help-menu.title' | 'help-menu.twitter' | 'menu.accessibility' | 'menu.color-theme' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.input-device' | 'menu.language' | 'menu.preferences' | 'menu.theme' | 'menu.title' | 'menu.view' | 'navigation-zone.minimap' | 'navigation-zone.title' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-pages-reached' | 'page-menu.new-page-initial-name' | 'page-menu.resize' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.anonymous-user' | 'people-menu.avatar-color' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'share-menu.copied' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.creating-project' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.a11y' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.text-formatting' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'style-panel.align' | 'style-panel.arrow-kind' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.label-align' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.selected' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'theme.dark' | 'theme.light' | 'theme.system' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'toast.error' | 'toast.info' | 'toast.success' | 'toast.warning' | 'tool-panel.more' | 'tool-panel.title' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.aspect-ratio.circle' | 'tool.aspect-ratio.landscape' | 'tool.aspect-ratio.original' | 'tool.aspect-ratio.portrait' | 'tool.aspect-ratio.square' | 'tool.aspect-ratio.wide' | 'tool.aspect-ratio' | 'tool.bookmark' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.flip-horz' | 'tool.flip-vert' | 'tool.frame' | 'tool.hand' | 'tool.heart' | 'tool.hexagon' | 'tool.highlight' | 'tool.image-crop-confirm' | 'tool.image-crop' | 'tool.image-toolbar-title' | 'tool.image-zoom' | 'tool.laser' | 'tool.line' | 'tool.media-alt-text-confirm' | 'tool.media-alt-text-desc' | 'tool.media-alt-text' | 'tool.media' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.pointer-down' | 'tool.rectangle' | 'tool.replace-media' | 'tool.rhombus' | 'tool.rich-text-bold' | 'tool.rich-text-bulletList' | 'tool.rich-text-code' | 'tool.rich-text-header' | 'tool.rich-text-highlight' | 'tool.rich-text-italic' | 'tool.rich-text-link-remove' | 'tool.rich-text-link-visit' | 'tool.rich-text-link' | 'tool.rich-text-orderedList' | 'tool.rich-text-strikethrough' | 'tool.rich-text-toolbar-title' | 'tool.rotate-cw' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'ui.checked' | 'ui.close' | 'ui.unchecked' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open';
 
 // @public (undocumented)
 export interface TLUiTranslationProviderProps {
@@ -5617,6 +6186,17 @@ export interface TLV1VideoShape extends TLV1BaseShape {
 }
 
 // @public (undocumented)
+export interface TLZoomBrushOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        h: number;
+        w: number;
+        x: number;
+        y: number;
+    };
+}
+
+// @public (undocumented)
 export function ToggleAutoSizeMenuItem(): JSX.Element | null;
 
 // @public (undocumented)
@@ -5689,7 +6269,7 @@ export function TrapezoidToolbarItem(): JSX.Element;
 export function TriangleToolbarItem(): JSX.Element;
 
 // @public (undocumented)
-export const truncateStringWithEllipsis: (str: string, maxLength: number) => string;
+export function truncateStringWithEllipsis(str: string, maxLength: number): string;
 
 // @public (undocumented)
 export function UndoRedoGroup(): JSX.Element;
@@ -5730,7 +6310,7 @@ export function useA11y(): TLUiA11yContextType;
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;
 
-// @internal (undocumented)
+// @public (undocumented)
 export function useAssetUrls(): TLUiAssetUrls;
 
 // @public (undocumented)
@@ -5888,7 +6468,7 @@ export function useReadonly(): boolean;
 export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
 
 // @public (undocumented)
-export const useSelectedShapesAnnouncer: () => void;
+export function useSelectedShapesAnnouncer(): void;
 
 // @public (undocumented)
 export function useShowCollaborationUi(): boolean;
@@ -5953,7 +6533,7 @@ export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<TLVideo
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
-    canEdit(): boolean;
+    canEdit(shape: TLVideoShape): boolean;
     // (undocumented)
     component(shape: TLVideoShape): JSX.Element;
     // (undocumented)
@@ -5967,9 +6547,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     static handledAssetTypes: readonly ["video"];
     // (undocumented)
-    indicator(shape: TLVideoShape): JSX.Element;
-    // (undocumented)
-    isAspectRatioLocked(): boolean;
+    isAspectRatioLocked(shape: TLVideoShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -5980,8 +6558,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     toSvg(shape: TLVideoShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
     // (undocumented)
     static type: "video";
-    // (undocumented)
-    useLegacyIndicator(): boolean;
 }
 
 // @public (undocumented)
@@ -5993,6 +6569,25 @@ export function ViewSubmenu(): JSX.Element;
 
 // @public (undocumented)
 export function XBoxToolbarItem(): JSX.Element;
+
+// @public
+export class ZoomBrushOverlayUtil extends OverlayUtil<TLZoomBrushOverlay> {
+    // (undocumented)
+    getOverlays(): TLZoomBrushOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        lineWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLZoomBrushOverlay[]): void;
+    // (undocumented)
+    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLZoomBrushOverlay[], zoom: number): void;
+    // (undocumented)
+    static type: string;
+}
 
 // @public (undocumented)
 export function ZoomOrRotateMenuItem(): JSX.Element;

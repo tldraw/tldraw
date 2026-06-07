@@ -162,5 +162,6 @@ export function getDrawShapeStrokeDashArray(
 		solid: `none`,
 		dotted: `${dotAdjustment} ${strokeWidth * 2}`,
 		dashed: `${strokeWidth * 2} ${strokeWidth * 2}`,
+		none: `none`,
 	}[shape.props.dash]
 }

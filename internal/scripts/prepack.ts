@@ -2,7 +2,7 @@ import { execSync } from 'child_process'
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'fs'
 import path from 'path'
 import { pathToFileURL } from 'url'
-import glob from 'glob'
+import { glob } from 'glob'
 import { nicelog } from './lib/nicelog'
 
 /** Prepares the package for publishing. the tarball in case it will be written to disk. */

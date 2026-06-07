@@ -46,7 +46,9 @@ class TestShape extends ShapeUtil<ITestShape> {
 		return shape.props.isContainer ?? false
 	}
 
-	indicator() {}
+	getIndicatorPath() {
+		return undefined
+	}
 	component() {}
 }
 

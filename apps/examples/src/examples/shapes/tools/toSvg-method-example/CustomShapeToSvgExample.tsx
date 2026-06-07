@@ -41,13 +41,13 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 		}
 	}
 
-	override canEdit() {
+	override canEdit(shape: ICustomShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(shape: ICustomShape) {
 		return false
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(shape: ICustomShape) {
 		return false
 	}
 
@@ -64,8 +64,10 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 		return <HTMLContainer style={{ backgroundColor: isDarkmode ? DARK_FILL : LIGHT_FILL }} />
 	}
 
-	indicator(shape: ICustomShape) {
-		return this.getSvgRect(shape)
+	getIndicatorPath(shape: ICustomShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	// [1]

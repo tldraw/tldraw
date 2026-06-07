@@ -3,6 +3,7 @@ import {
 	Box,
 	DefaultFontFamilies,
 	EMPTY_ARRAY,
+	Editor,
 	Group2d,
 	IndexKey,
 	Rectangle2d,
@@ -26,7 +27,6 @@ import {
 	noteShapeProps,
 	resizeScaled,
 	rng,
-	toDomPrecision,
 	toRichText,
 	useColorMode,
 	useEditor,
@@ -37,6 +37,7 @@ import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelp
 import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
+	isEditingRichTextList,
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
@@ -139,10 +140,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		},
 	}
 
-	override canEdit() {
+	override canEdit(shape: TLNoteShape) {
 		return true
 	}
-	override hideResizeHandles() {
+	override hideResizeHandles(shape: TLNoteShape) {
 		const { resizeMode } = this.options
 		switch (resizeMode) {
 			case 'none': {
@@ -157,11 +158,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		}
 	}
 
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(shape: TLNoteShape) {
 		return this.options.resizeMode === 'scale'
 	}
 
-	override hideSelectionBoundsFg() {
+	override hideSelectionBoundsFg(shape: TLNoteShape) {
 		return false
 	}
 
@@ -335,9 +336,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const nw = dv.noteWidth * scale
 		const nh = getNoteHeight(shape, dv.noteHeight)
 
-		// Shadows are hidden when zoomed out far enough or in dark mode
-		let hideShadows = useEfficientZoomThreshold(0.25 / scale)
-		if (colorMode === 'dark') hideShadows = true
+		// Shadows are hidden when zoomed out far enough; the cheap borderBottom takes over.
+		const hideShadows = useEfficientZoomThreshold(0.25 / scale)
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
@@ -402,12 +402,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							hasCustomTabBehavior
 							showTextOutline={false}
 							onKeyDown={handleKeyDown}
-							style={{
-								transform: `scale(${scale})`,
-								transformOrigin: 'top left',
-								width: dv.noteWidth,
-								height: dv.noteHeight + shape.props.growY,
-							}}
+							style={
+								scale !== 1
+									? {
+											transform: `scale(${scale})`,
+											transformOrigin: 'top left',
+											width: dv.noteWidth,
+											height: dv.noteHeight + shape.props.growY,
+										}
+									: undefined
+							}
 						/>
 					)}
 				</div>
@@ -416,27 +420,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	indicator(shape: TLNoteShape) {
-		const { scale } = shape.props
-		const dv = getDisplayValues(this, shape)
-		return (
-			<rect
-				rx={scale}
-				width={toDomPrecision(dv.noteWidth * scale)}
-				height={toDomPrecision(getNoteHeight(shape, dv.noteHeight))}
-			/>
-		)
-	}
-
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLNoteShape): Path2D {
 		const { scale } = shape.props
 		const dv = getDisplayValues(this, shape)
 		const path = new Path2D()
-		path.roundRect(0, 0, dv.noteWidth * scale, getNoteHeight(shape, dv.noteHeight), scale)
+		path.rect(0, 0, dv.noteWidth * scale, getNoteHeight(shape, dv.noteHeight))
 		return path
 	}
 
@@ -472,10 +460,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		})
 
 		const { textFirstEditedBy } = shape.props
-		const attributionName =
+		const attributionFirstName =
 			textFirstEditedBy && !isEmptyRichText(shape.props.richText)
 				? this.editor.getAttributionDisplayName(textFirstEditedBy)?.split(' ')[0]
 				: null
+		const attributionName = attributionFirstName
+			? truncateAttributionForSvg(this.editor, attributionFirstName, dv.noteWidth)
+			: null
 
 		return (
 			<>
@@ -681,6 +672,15 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 			const isTab = e.key === 'Tab'
 			const isCmdEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
+
+			if (isTab && isEditingRichTextList(editor)) {
+				// In a list, let the rich text editor indent the item instead of
+				// creating a new note. Prevent default so Tab doesn't move focus out
+				// of the editor when the item can't be indented (e.g. the first item).
+				e.preventDefault()
+				return
+			}
+
 			if (isTab || isCmdEnter) {
 				e.preventDefault()
 
@@ -735,6 +735,27 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 function getNoteHeight(shape: TLNoteShape, noteHeight: number) {
 	return (noteHeight + shape.props.growY) * shape.props.scale
+}
+
+// Matches `.tl-note__attribution { max-width: 60% }` so SVG export truncates the same way.
+const ATTRIBUTION_MAX_WIDTH_RATIO = 0.6
+
+function truncateAttributionForSvg(editor: Editor, name: string, noteWidth: number) {
+	if (process.env.NODE_ENV === 'test') return name
+	const spans = editor.textMeasure.measureTextSpans(name, {
+		fontSize: 11,
+		fontFamily: DefaultFontFamilies['sans'],
+		textAlign: 'end',
+		width: noteWidth * ATTRIBUTION_MAX_WIDTH_RATIO,
+		height: 16,
+		padding: 0,
+		lineHeight: 1,
+		fontStyle: 'normal',
+		fontWeight: 'normal',
+		overflow: 'truncate-ellipsis',
+	})
+	if (spans.length === 0) return name
+	return spans.map((s) => s.text).join('')
 }
 
 function getNoteShadow(id: string, rotation: number, scale: number) {

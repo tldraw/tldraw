@@ -1562,17 +1562,17 @@ describe('When double clicking an editable shape', () => {
 		editor.expectToBeIn('select.editing_shape')
 	})
 
-	it('starts editing a child of a group on triple (not double!) click', () => {
+	it('starts editing a child of a group after selecting into the group', () => {
 		editor.createShape({ id: ids.box2, type: 'geo', x: 300, y: 0 })
 		editor.groupShapes([ids.box1, ids.box2], { groupId: ids.group1 })
 		editor.selectNone()
-		editor.pointerMove(50, 50).click() // clicks on the shape label
+		editor.pointerMove(50, 50).click() // selects the group
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
 		expect(editor.getEditingShapeId()).toBe(null)
-		editor.pointerMove(50, 50).click() // clicks on the shape label
+		editor.pointerMove(50, 50).click() // selects the child shape
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		expect(editor.getEditingShapeId()).toBe(null)
-		editor.pointerMove(50, 50).click() // clicks on the shape label
+		editor.pointerMove(50, 50).click() // edits the selected child shape
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		expect(editor.getEditingShapeId()).toBe(ids.box1)
 		editor.expectToBeIn('select.editing_shape')
@@ -1781,8 +1781,7 @@ describe('right clicking', () => {
 		editor.createShapes([{ id: ids.box1, type: 'geo' }])
 		expect(editor.getSelectedShapeIds()).toEqual([])
 		editor.pointerMove(4, 4)
-		editor.pointerDown(4, 4, { target: 'canvas', button: 2 })
-		editor.pointerUp()
+		editor.rightClick(4, 4)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 	})
 
@@ -1835,8 +1834,7 @@ describe('right clicking', () => {
 		// Not inside of the shape but inside of the selection bounds
 		editor.pointerMove(510, 590)
 		expect(editor.getHoveredShapeId()).toBe(null)
-		editor.pointerDown(30, 30, { target: 'canvas', button: 2 })
-		editor.pointerUp()
+		editor.rightClick(30, 30)
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 })

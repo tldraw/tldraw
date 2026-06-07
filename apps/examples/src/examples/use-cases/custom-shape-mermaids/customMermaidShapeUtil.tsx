@@ -78,7 +78,7 @@ export class FlowchartShapeUtil extends BaseBoxShapeUtil<ICustomShape> {
 		}
 	}
 
-	override canEdit() {
+	override canEdit(shape: ICustomShape) {
 		return false
 	}
 
@@ -86,8 +86,10 @@ export class FlowchartShapeUtil extends BaseBoxShapeUtil<ICustomShape> {
 		return <CustomShapeComponent shape={shape} />
 	}
 
-	override indicator(shape: ICustomShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	override getIndicatorPath(shape: ICustomShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 

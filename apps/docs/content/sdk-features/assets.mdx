@@ -288,9 +288,89 @@ const assetStore: TLAssetStore = {
 
 ### Custom asset types
 
-You can define custom asset types by extending [TLBaseAsset](?). Create a validator with [createAssetValidator](?), then implement shapes that reference your custom assets.
+Custom asset types let you store domain-specific media alongside images, videos, and bookmarks. Each asset type has a corresponding [AssetUtil](?) that defines type-specific behavior: which MIME types it accepts, how to derive an asset record from a dropped file, and what default props new instances start with. The built-in `ImageAssetUtil`, `VideoAssetUtil`, and `BookmarkAssetUtil` follow this pattern and live in `defaultAssetUtils`.
 
-Custom asset types follow the same storage lifecycle as built-in types. Your upload, resolve, and remove handlers need to support them, and your custom shapes handle the rendering.
+`AssetUtil` is the asset-side counterpart to `ShapeUtil`. You register one util per type on the editor at startup, and the editor calls its methods whenever a file enters the system.
+
+Register your asset's props on `TLGlobalAssetPropsMap` via TypeScript module augmentation, then implement an `AssetUtil` for it:
+
+```typescript
+import { AssetUtil, TLAsset, TLAssetId } from 'tldraw'
+
+const AUDIO_TYPE = 'audio'
+
+declare module 'tldraw' {
+	export interface TLGlobalAssetPropsMap {
+		[AUDIO_TYPE]: {
+			src: string | null
+			mimeType: string | null
+			name: string
+		}
+	}
+}
+
+type TLAudioAsset = TLAsset<typeof AUDIO_TYPE>
+
+class AudioAssetUtil extends AssetUtil<TLAudioAsset> {
+	static override type = AUDIO_TYPE
+
+	override getDefaultProps(): TLAudioAsset['props'] {
+		return { src: null, mimeType: null, name: '' }
+	}
+
+	override getSupportedMimeTypes() {
+		return ['audio/mpeg', 'audio/wav', 'audio/ogg']
+	}
+
+	override async getAssetFromFile(file: File, assetId: TLAssetId): Promise<TLAudioAsset | null> {
+		return {
+			id: assetId,
+			typeName: 'asset',
+			type: AUDIO_TYPE,
+			props: {
+				src: null, // populated by the asset store after upload
+				mimeType: file.type,
+				name: file.name,
+			},
+			meta: {},
+		}
+	}
+}
+```
+
+Pass the util to the `<Tldraw>` component alongside whichever defaults you still want:
+
+```tsx
+import { Tldraw, defaultAssetUtils } from 'tldraw'
+
+const assetUtils = [...defaultAssetUtils, AudioAssetUtil]
+
+export default function App() {
+	return <Tldraw assetUtils={assetUtils} />
+}
+```
+
+When a file is dropped or pasted, the editor finds the first registered util whose `getSupportedMimeTypes()` includes the file's MIME type and calls its `getAssetFromFile()`. The returned asset record then flows through your `TLAssetStore.upload` handler, which assigns the final `src`. Custom shape utils that render audio (or whatever else you registered) read the resolved URL through `editor.resolveAssetUrl()` like the built-in shapes do.
+
+### Configuring built-in asset utils
+
+Use [AssetUtil#configure](?) to tweak options on a built-in util without subclassing it. For example, lock image uploads down to PNG:
+
+```tsx
+import { ImageAssetUtil, defaultAssetUtils, Tldraw } from 'tldraw'
+
+const PngOnlyImageAssetUtil = ImageAssetUtil.configure({
+	supportedMimeTypes: ['image/png'],
+})
+
+const assetUtils = defaultAssetUtils.map((util) =>
+	util === ImageAssetUtil ? PngOnlyImageAssetUtil : util
+)
+
+<Tldraw assetUtils={assetUtils} />
+```
+
+`ImageAssetUtil` and `VideoAssetUtil` both expose `maxDimension` and `supportedMimeTypes` options.
 
 ### Asset validation and migrations
 

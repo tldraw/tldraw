@@ -1,7 +1,6 @@
 import {
 	Circle2d,
 	Editor,
-	getColorValue,
 	getIndicesAbove,
 	RecordProps,
 	ShapeUtil,
@@ -45,19 +44,19 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		}
 	}
 
-	override hideResizeHandles(_shape: NodeShape): boolean {
+	override hideResizeHandles(shape: NodeShape): boolean {
 		return true
 	}
 
-	override hideRotateHandle(_shape: NodeShape): boolean {
+	override hideRotateHandle(shape: NodeShape): boolean {
 		return true
 	}
 
-	override hideSelectionBoundsBg(_shape: NodeShape): boolean {
+	override hideSelectionBoundsBg(shape: NodeShape): boolean {
 		return true
 	}
 
-	override hideSelectionBoundsFg(_shape: NodeShape): boolean {
+	override hideSelectionBoundsFg(shape: NodeShape): boolean {
 		return true
 	}
 
@@ -70,7 +69,7 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		})
 	}
 
-	override onResize(_shape: NodeShape, info: TLResizeInfo<NodeShape>) {
+	override onResize(shape: NodeShape, info: TLResizeInfo<NodeShape>) {
 		const { scaleX, scaleY, initialShape } = info
 		const avgScale = (Math.abs(scaleX) + Math.abs(scaleY)) / 2
 
@@ -120,14 +119,10 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 		}
 	}
 
-	override indicator(shape: NodeShape) {
-		const zoom = this.editor.getZoomLevel()
-
-		const theme = this.editor.getCurrentTheme()
-		const colors = theme.colors[this.editor.getColorMode()]
-		const blue = getColorValue(colors, 'blue', 'solid')
-
-		return <circle r={shape.props.radius} strokeWidth={1 / zoom} stroke={blue} fill="none" />
+	override getIndicatorPath(shape: NodeShape) {
+		const path = new Path2D()
+		path.arc(0, 0, shape.props.radius, 0, Math.PI * 2)
+		return path
 	}
 
 	override component(shape: NodeShape) {

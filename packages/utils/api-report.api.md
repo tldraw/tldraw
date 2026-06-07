@@ -210,7 +210,7 @@ export function groupBy<K extends string, V>(array: ReadonlyArray<V>, keySelecto
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @internal
-const Image_2: (width?: number | undefined, height?: number | undefined) => HTMLImageElement;
+function Image_2(width?: number, height?: number): HTMLImageElement;
 export { Image_2 as Image }
 
 // @public
@@ -263,6 +263,19 @@ export function lerp(a: number, b: number, t: number): number;
 
 // @public
 export function lns(str: string): string;
+
+// @public
+export class LruCache<K, V> {
+    constructor(maxSize: number);
+    // (undocumented)
+    get(key: K): undefined | V;
+    // (undocumented)
+    has(key: K): boolean;
+    // (undocumented)
+    set(key: K, value: V): void;
+    // (undocumented)
+    get size(): number;
+}
 
 // @public
 export type MakeUndefinedOptional<T extends object> = Expand<{
@@ -335,7 +348,7 @@ export function mockUniqueId(fn: (size?: number) => string): void;
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
 
 // @internal
-export const noop: () => void;
+export function noop(): void;
 
 // @internal
 export function objectMapEntries<Obj extends object>(object: Obj): Array<[keyof Obj, Obj[keyof Obj]]>;
@@ -459,7 +472,7 @@ export function rng(seed?: string): () => number;
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
 // @public
-export const safeParseUrl: (url: string, baseUrl?: string | undefined | URL) => undefined | URL;
+export function safeParseUrl(url: string, baseUrl?: string | URL): undefined | URL;
 
 // @internal
 export function setInLocalStorage(key: string, value: string): void;

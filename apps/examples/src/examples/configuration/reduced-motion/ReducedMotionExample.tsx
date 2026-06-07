@@ -56,7 +56,7 @@ export class PulseShapeUtil extends ShapeUtil<PulseShape> {
 		return { w: 200, h: 200 }
 	}
 
-	override canEdit() {
+	override canEdit(shape: PulseShape) {
 		return false
 	}
 
@@ -72,8 +72,10 @@ export class PulseShapeUtil extends ShapeUtil<PulseShape> {
 		return <PulseShapeComponent shape={shape} />
 	}
 
-	indicator(shape: PulseShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: PulseShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 

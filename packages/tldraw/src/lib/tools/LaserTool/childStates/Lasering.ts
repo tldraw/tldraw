@@ -2,6 +2,7 @@ import { StateNode } from '@tldraw/editor'
 
 export class Lasering extends StateNode {
 	static override id = 'lasering'
+	static override trackPerformance = true
 
 	private scribbleId = ''
 	private sessionId = ''

@@ -10,6 +10,7 @@ export {
 	type DashedPathBuilderOpts,
 	type DrawPathBuilderDOpts,
 	type DrawPathBuilderOpts,
+	type NonePathBuilderOpts,
 	type LineToPathBuilderCommand,
 	type MoveToPathBuilderCommand,
 	type PathBuilderCommand,
@@ -57,15 +58,55 @@ export * from '@tldraw/editor'
 export { BookmarkAssetUtil } from './lib/assets/BookmarkAssetUtil'
 export { ImageAssetUtil } from './lib/assets/ImageAssetUtil'
 export { VideoAssetUtil } from './lib/assets/VideoAssetUtil'
+export {
+	ArrowBindingHintOverlayUtil,
+	type TLArrowBindingHintOverlay,
+} from './lib/overlays/ArrowBindingHintOverlayUtil'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
-export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
-export { TldrawHandles } from './lib/canvas/TldrawHandles'
-export { TldrawArrowHints, TldrawOverlays } from './lib/canvas/TldrawOverlays'
-export { TldrawScribble } from './lib/canvas/TldrawScribble'
-export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
-export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
+export { ArrowHintOverlayUtil, type TLArrowHintOverlay } from './lib/overlays/ArrowHintOverlayUtil'
+export {
+	BrushOverlayUtil,
+	type BrushOverlayUtilDisplayValues,
+	type BrushOverlayUtilOptions,
+	type TLBrushOverlay,
+} from './lib/overlays/BrushOverlayUtil'
+export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
+export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
+export {
+	CollaboratorBrushOverlayUtil,
+	type TLCollaboratorBrushOverlay,
+} from './lib/overlays/CollaboratorBrushOverlayUtil'
+export {
+	CollaboratorScribbleOverlayUtil,
+	type TLCollaboratorScribbleOverlay,
+} from './lib/overlays/CollaboratorScribbleOverlayUtil'
+export {
+	CollaboratorHintOverlayUtil,
+	type TLCollaboratorHintOverlay,
+} from './lib/overlays/CollaboratorHintOverlayUtil'
+export {
+	CollaboratorCursorOverlayUtil,
+	type TLCollaboratorCursorOverlay,
+} from './lib/overlays/CollaboratorCursorOverlayUtil'
+export {
+	CollaboratorShapeIndicatorOverlayUtil,
+	type TLCollaboratorShapeIndicatorOverlay,
+} from './lib/overlays/CollaboratorShapeIndicatorOverlayUtil'
+export {
+	ShapeHandleOverlayUtil,
+	type TLShapeHandleOverlay,
+} from './lib/overlays/ShapeHandleOverlayUtil'
+export {
+	SelectionForegroundOverlayUtil,
+	type TLSelectionForegroundOverlay,
+} from './lib/overlays/SelectionForegroundOverlayUtil'
+export {
+	SnapIndicatorOverlayUtil,
+	type TLSnapIndicatorOverlay,
+} from './lib/overlays/SnapIndicatorOverlayUtil'
 export { defaultAssetUtils } from './lib/defaultAssetUtils'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
+export { defaultOverlayUtils } from './lib/defaultOverlayUtils'
 export {
 	DEFAULT_EMBED_DEFINITIONS,
 	embedShapePermissionDefaults,
@@ -86,6 +127,7 @@ export {
 	defaultHandleExternalExcalidrawContent,
 	defaultHandleExternalFileAsset,
 	defaultHandleExternalFileContent,
+	defaultHandleExternalFileReplaceContent,
 	defaultHandleExternalSvgTextContent,
 	defaultHandleExternalTextContent,
 	defaultHandleExternalTldrawContent,
@@ -144,8 +186,8 @@ export {
 export { createBookmarkFromUrl } from './lib/shapes/bookmark/bookmarks'
 export {
 	BookmarkShapeUtil,
-	type BookmarkShapeUtilDisplayValues,
 	type BookmarkShapeOptions,
+	type BookmarkShapeUtilDisplayValues,
 } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
 export {
@@ -167,9 +209,14 @@ export {
 export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
 export {
 	GeoShapeUtil,
-	type GeoShapeUtilDisplayValues,
 	type GeoShapeOptions,
+	type GeoShapeUtilDisplayValues,
 } from './lib/shapes/geo/GeoShapeUtil'
+export {
+	defaultGeoTypeDefinitions,
+	getGeoTypeDefinition,
+	type GeoTypeDefinition,
+} from './lib/shapes/geo/getGeoShapePath'
 export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
 export {
 	HighlightShapeUtil,
@@ -178,20 +225,20 @@ export {
 } from './lib/shapes/highlight/HighlightShapeUtil'
 export {
 	ImageShapeUtil,
-	type ImageShapeUtilDisplayValues,
 	type ImageShapeOptions,
+	type ImageShapeUtilDisplayValues,
 } from './lib/shapes/image/ImageShapeUtil'
 export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
 export {
 	LineShapeUtil,
-	type LineShapeUtilDisplayValues,
 	type LineShapeOptions,
+	type LineShapeUtilDisplayValues,
 } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export {
 	NoteShapeUtil,
-	type NoteShapeUtilDisplayValues,
 	type NoteShapeOptions,
+	type NoteShapeUtilDisplayValues,
 } from './lib/shapes/note/NoteShapeUtil'
 export {
 	ASPECT_RATIO_OPTIONS,
@@ -202,6 +249,7 @@ export {
 	type ASPECT_RATIO_OPTION,
 	type CropBoxOptions,
 } from './lib/shapes/shared/crop'
+export { getFontFamily } from './lib/shapes/shared/default-shape-constants'
 export {
 	allDefaultFontFaces,
 	DefaultFontFaces,
@@ -244,7 +292,6 @@ export {
 	type VideoShapeOptions,
 	type VideoShapeUtilDisplayValues,
 } from './lib/shapes/video/VideoShapeUtil'
-export { getFontFamily } from './lib/shapes/shared/default-shape-constants'
 export { getColorStyleItems, getFontStyleItems, type StyleValuesForUi } from './lib/styles'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
@@ -313,6 +360,7 @@ export {
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 export { LanguageMenu } from './lib/ui/components/LanguageMenu'
+export { InputModeMenu } from './lib/ui/components/InputModeMenu'
 export {
 	DefaultMainMenu,
 	type TLUiMainMenuProps,
@@ -505,8 +553,31 @@ export {
 	type TLUiQuickActionsProps,
 } from './lib/ui/components/QuickActions/DefaultQuickActions'
 export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/DefaultQuickActionsContent'
+export {
+	DefaultPeopleMenu,
+	// legacy
+	DefaultPeopleMenu as PeopleMenu,
+	type DefaultPeopleMenuProps,
+	type DefaultPeopleMenuProps as PeopleMenuProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenu'
+export {
+	DefaultPeopleMenuAvatar,
+	type TLUiPeopleMenuAvatarProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuAvatar'
+export {
+	DefaultPeopleMenuContent,
+	type DefaultPeopleMenuContentProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuContent'
+export {
+	DefaultPeopleMenuFacePile,
+	type TLUiPeopleMenuFacePileProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuFacePile'
+export {
+	DefaultPeopleMenuItem,
+	type TLUiPeopleMenuItemProps,
+} from './lib/ui/components/SharePanel/DefaultPeopleMenuItem'
 export { DefaultSharePanel } from './lib/ui/components/SharePanel/DefaultSharePanel'
-export { PeopleMenu, type PeopleMenuProps } from './lib/ui/components/SharePanel/PeopleMenu'
+export { DefaultUserPresenceEditor } from './lib/ui/components/SharePanel/DefaultUserPresenceEditor'
 export { Spinner } from './lib/ui/components/Spinner'
 export {
 	DefaultStylePanel,
@@ -650,7 +721,11 @@ export {
 	type TLUiActionItem,
 	type TLUiActionsContextType,
 } from './lib/ui/context/actions'
-export { AssetUrlsProvider, useAssetUrls } from './lib/ui/context/asset-urls'
+export {
+	AssetUrlsProvider,
+	useAssetUrls,
+	type AssetUrlsProviderProps,
+} from './lib/ui/context/asset-urls'
 export {
 	BreakPointProvider,
 	useBreakpoint,

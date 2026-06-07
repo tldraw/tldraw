@@ -2,7 +2,7 @@
 
 import { Queue } from '@cloudflare/workers-types'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import type { TLFileDurableObject } from './TLDrawDurableObject'
+import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { TLStatsDurableObject } from './TLStatsDurableObject'
@@ -68,6 +68,9 @@ export interface Environment {
 	MULTIPLAYER_SERVER: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
+	HEALTH_CHECK_DB_SIZE_THRESHOLD_GB: string | undefined
+	HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB: string | undefined
+	HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB: string | undefined
 
 	ANALYTICS_API_URL: string | undefined
 	ANALYTICS_API_TOKEN: string | undefined

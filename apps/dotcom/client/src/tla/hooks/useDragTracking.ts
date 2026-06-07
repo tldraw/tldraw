@@ -6,12 +6,6 @@ import { Vec } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { useApp } from './useAppState'
 
-export interface DropTarget {
-	id: string
-	element: HTMLElement
-	rect: DOMRect
-}
-
 function detectDragOperations(
 	elements: DragElements,
 	mousePosition: { x: number; y: number },

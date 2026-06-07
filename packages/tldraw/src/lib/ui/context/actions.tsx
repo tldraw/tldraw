@@ -287,7 +287,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.copy-as-svg.short',
 					['context-menu']: 'action.copy-as-svg.short',
 				},
-				kbd: 'cmd+shift+c,ctrl+shift+c',
 				readonlyOk: true,
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -305,6 +304,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.copy-as-png.short',
 				},
 				readonlyOk: true,
+				kbd: 'cmd+shift+c,ctrl+shift+c',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
@@ -594,7 +594,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const selectedShapes = editor.getSelectedShapes()
 					if (
 						selectedShapes.length > 0 &&
-						selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
+						selectedShapes.every((shape) => editor.isShapeFrameLike(shape))
 					) {
 						editor.markHistoryStoppingPoint('remove-frame')
 						removeFrame(
@@ -612,7 +612,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('fit-frame-to-content', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
-					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'frame')) {
+					if (onlySelectedShape && editor.isShapeFrameLike(onlySelectedShape)) {
 						editor.markHistoryStoppingPoint('fit-frame-to-content')
 						fitFrameToContent(editor, onlySelectedShape.id)
 					}
@@ -1557,6 +1557,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const style = DefaultColorStyle
 					editor.run(() => {
+						editor.updateInstanceState({ isChangingStyle: true })
 						editor.markHistoryStoppingPoint('change-color')
 						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, 'white')
@@ -1573,6 +1574,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const style = DefaultFillStyle
 					editor.run(() => {
+						editor.updateInstanceState({ isChangingStyle: true })
 						editor.markHistoryStoppingPoint('change-fill')
 						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, 'fill')
@@ -1589,6 +1591,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const style = DefaultFillStyle
 					editor.run(() => {
+						editor.updateInstanceState({ isChangingStyle: true })
 						editor.markHistoryStoppingPoint('change-fill')
 						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, 'lined-fill')

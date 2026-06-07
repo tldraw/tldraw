@@ -53,7 +53,7 @@
 
 .cta {
 	background-color: var(--tla-color-cta);
-	color: #ffffff;
+	color: var(--tla-color-contrast);
 	font-weight: 600;
 }
 

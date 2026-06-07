@@ -35,6 +35,10 @@
 	color: var(--tl-color-text-3);
 }
 
+.feedbackDialogCheckbox {
+	margin-right: auto;
+}
+
 /* --------------------- Cookie --------------------- */
 
 .cookieConsent {
@@ -119,6 +123,10 @@
 	display: inline-block;
 	animation: marquee 3s linear infinite;
 	white-space: nowrap;
+}
+
+:global(.tl-container[dir='rtl']) .cookieAcceptButtonText {
+	animation-direction: reverse;
 }
 
 @keyframes marquee {

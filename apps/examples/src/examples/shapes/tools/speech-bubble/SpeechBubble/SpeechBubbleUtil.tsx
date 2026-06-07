@@ -82,15 +82,15 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	// [3]
 	static override props = speechBubbleShapeProps
 
-	override isAspectRatioLocked(_shape: SpeechBubbleShape) {
+	override isAspectRatioLocked(shape: SpeechBubbleShape) {
 		return false
 	}
 
-	override canResize(_shape: SpeechBubbleShape) {
+	override canResize(shape: SpeechBubbleShape) {
 		return true
 	}
 
-	override canEdit() {
+	override canEdit(shape: SpeechBubbleShape) {
 		return true
 	}
 
@@ -235,10 +235,10 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		)
 	}
 
-	indicator(shape: SpeechBubbleShape) {
+	getIndicatorPath(shape: SpeechBubbleShape) {
 		const vertices = getSpeechBubbleVertices(shape)
 		const pathData = 'M' + vertices[0] + 'L' + vertices.slice(1) + 'Z'
-		return <path d={pathData} />
+		return new Path2D(pathData)
 	}
 
 	override onResize(shape: SpeechBubbleShape, info: TLResizeInfo<SpeechBubbleShape>) {

@@ -46,7 +46,9 @@ class CustomShape extends ShapeUtil<ICustomShape> {
 			isFilled: shape.props.isFilled,
 		})
 	}
-	indicator() {}
+	getIndicatorPath() {
+		return undefined
+	}
 	component() {}
 }
 

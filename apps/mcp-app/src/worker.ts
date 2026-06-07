@@ -9,9 +9,10 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
-import type { TLShape } from 'tldraw'
 import { Logger } from './logger'
 import { registerTools } from './register-tools'
+import { loadEditorApiSpecFromAssets, loadMethodMapFromAssets } from './shared/generated-data'
+import { PendingRequests } from './shared/pending-requests'
 import {
 	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
@@ -21,14 +22,15 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './shared/types'
-import type { MCP_APP_HOST_NAMES, ServerDeps } from './shared/types'
-import { parseTlShapes, resolveMcpAppHostNameFromServerInfo } from './shared/utils'
+import type { MCP_APP_HOST_NAMES, PendingBootstrap, ServerDeps } from './shared/types'
+import { resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 
 // --- Types ---
 
 interface Env {
 	MCP_OBJECT: DurableObjectNamespace
 	ASSETS: Fetcher
+	LOADER: WorkerLoader
 	RATE_LIMITER: RateLimit
 	MCP_AUTH_TOKEN: string
 	MCP_IS_DEV: string
@@ -81,6 +83,13 @@ export class TldrawMCP extends McpAgent<Env> {
 	sessionId: string = ''
 	logger = new Logger('TldrawMCP', this.logsEnabled)
 	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
+	pendingRequests = new PendingRequests()
+	pendingBootstrap: PendingBootstrap | null = null
+
+	/** The MCP session ID used for DO routing (extracted from DO name). */
+	getMcpSessionId(): string {
+		return (this as any).name?.replace(/^streamable-http:/, '') ?? ''
+	}
 
 	async init() {
 		this.server.server.oninitialized = () => {
@@ -98,6 +107,8 @@ export class TldrawMCP extends McpAgent<Env> {
 		void this
 			.sql`CREATE TABLE IF NOT EXISTS checkpoints (id TEXT PRIMARY KEY, data TEXT, created_at INTEGER)`
 		void this.sql`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)`
+		void this
+			.sql`CREATE TABLE IF NOT EXISTS canvas_checkpoints (canvas_id TEXT PRIMARY KEY, checkpoint_id TEXT)`
 
 		// Restore active checkpoint on reconnect
 		const rows = [...this.sql`SELECT value FROM meta WHERE key = 'activeCheckpointId'`]
@@ -131,22 +142,48 @@ export class TldrawMCP extends McpAgent<Env> {
 
 		// --- Widget HTML (loaded once from Assets binding) ---
 		const widgetHtml = await loadWidgetHtml(this.env.ASSETS)
+		let editorApiSpecPromise: ReturnType<typeof loadEditorApiSpecFromAssets> | null = null
+		let methodMapPromise: ReturnType<typeof loadMethodMapFromAssets> | null = null
 
 		// --- Build ServerDeps from SQLite ---
 		const deps: ServerDeps = {
 			saveCheckpoint: (id, shapes, assets = [], bindings = []) =>
 				this.saveCheckpoint(id, shapes, assets, bindings),
 			loadCheckpoint: (id) => this.loadCheckpoint(id),
-			getActiveShapes: () => this.getActiveShapes(),
-			getActiveAssets: () => this.getActiveAssets(),
-			getActiveBindings: () => this.getActiveBindings(),
 			getActiveCheckpointId: () => this.activeCheckpointId,
 			setActiveCheckpointId: (id) => {
 				this.activeCheckpointId = id
 				void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
 			},
+			getCanvasCheckpointId: (canvasId) => {
+				const rows = [
+					...this.sql`SELECT checkpoint_id FROM canvas_checkpoints WHERE canvas_id = ${canvasId}`,
+				]
+				return rows.length > 0 ? (rows[0].checkpoint_id as string) : null
+			},
+			setCanvasCheckpointId: (canvasId, checkpointId) => {
+				void this
+					.sql`INSERT OR REPLACE INTO canvas_checkpoints (canvas_id, checkpoint_id) VALUES (${canvasId}, ${checkpointId})`
+			},
+			setPendingBootstrap: (bootstrap) => {
+				this.pendingBootstrap = bootstrap
+			},
+			consumePendingBootstrap: () => {
+				const b = this.pendingBootstrap
+				this.pendingBootstrap = null
+				return b
+			},
 			getSessionId: () => this.sessionId,
+			getMcpSessionId: () => this.getMcpSessionId(),
 			loadWidgetHtml: async () => widgetHtml,
+			loadEditorApiSpec: async () => {
+				editorApiSpecPromise ??= loadEditorApiSpecFromAssets(this.env.ASSETS)
+				return editorApiSpecPromise
+			},
+			loadMethodMap: async () => {
+				methodMapPromise ??= loadMethodMapFromAssets(this.env.ASSETS)
+				return methodMapPromise
+			},
 		}
 
 		const workerOrigin = this.env.WORKER_ORIGIN
@@ -155,10 +192,12 @@ export class TldrawMCP extends McpAgent<Env> {
 			log: this.logger.toLogFn(),
 			extraResourceDomains: workerOrigin ? [workerOrigin] : [],
 			extraConnectDomains: workerOrigin ? [workerOrigin] : [],
+			searchWorkerLoader: this.env.LOADER,
 			workerOrigin,
 			isDev: this.isDev,
 			analytics: this.env.MCP_ANALYTICS,
 			getClientHostName: () => this.clientHostName,
+			pendingRequests: this.pendingRequests,
 		})
 	}
 
@@ -189,24 +228,6 @@ export class TldrawMCP extends McpAgent<Env> {
 			assets: parsed.assets ?? [],
 			bindings: parsed.bindings ?? [],
 		}
-	}
-
-	getActiveShapes(): TLShape[] {
-		if (!this.activeCheckpointId) return []
-		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
-		return checkpoint ? parseTlShapes(checkpoint.shapes) : []
-	}
-
-	getActiveAssets(): unknown[] {
-		if (!this.activeCheckpointId) return []
-		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
-		return checkpoint ? checkpoint.assets : []
-	}
-
-	getActiveBindings(): unknown[] {
-		if (!this.activeCheckpointId) return []
-		const checkpoint = this.loadCheckpoint(this.activeCheckpointId)
-		return checkpoint ? checkpoint.bindings : []
 	}
 }
 
@@ -255,17 +276,22 @@ export default {
 
 			// Streamable HTTP transport
 			if (url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) {
-				// Rate limit by MCP session (POST without session ID is the initial handshake)
 				const sessionId = request.headers.get('mcp-session-id')
+				const forwardedFor = request.headers.get('x-forwarded-for')
+				const clientIp =
+					request.headers.get('cf-connecting-ip') ?? forwardedFor?.split(',')[0]?.trim()
+				const rateLimitKey = sessionId
+					? `mcp-session:${sessionId}`
+					: `mcp-ip:${clientIp ?? 'unknown'}`
+
+				const { success } = await env.RATE_LIMITER.limit({ key: rateLimitKey })
+				if (!success) {
+					return corsResponse(new Response('Rate limited', { status: 429 }))
+				}
+
+				// POST without a session ID is the initial handshake.
 				if (!sessionId && request.method !== 'POST') {
 					return corsResponse(new Response('Missing session', { status: 400 }))
-				}
-				if (sessionId) {
-					const { success } = await env.RATE_LIMITER.limit({ key: sessionId })
-
-					if (!success) {
-						return corsResponse(new Response('Rate limited', { status: 429 }))
-					}
 				}
 				return mcpHandler.fetch(request, env, ctx)
 			}

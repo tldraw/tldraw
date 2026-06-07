@@ -19,11 +19,6 @@ import { TLAnyAssetUtilConstructor } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { ImageAssetUtil } from './assets/ImageAssetUtil'
 import { VideoAssetUtil } from './assets/VideoAssetUtil'
-import { TldrawHandles } from './canvas/TldrawHandles'
-import { TldrawOverlays } from './canvas/TldrawOverlays'
-import { TldrawScribble } from './canvas/TldrawScribble'
-import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
-import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultAssetUtils } from './defaultAssetUtils'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { TLEmbedDefinition } from './defaultEmbedDefinitions'
@@ -31,6 +26,7 @@ import {
 	TLExternalContentProps,
 	registerDefaultExternalContentHandlers,
 } from './defaultExternalContentHandlers'
+import { defaultOverlayUtils } from './defaultOverlayUtils'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
@@ -101,6 +97,19 @@ export interface TldrawBaseProps
 	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
 	 */
 	textOptions?: TLTextOptions
+	/**
+	 * The locale to use for the editor's UI. When set, this takes priority over
+	 * both the browser's language preferences (`navigator.languages`) and the
+	 * user's locale preference (e.g. via
+	 * `editor.user.updateUserPreferences({ locale: '...' })`), giving the
+	 * application explicit control over the displayed language.
+	 *
+	 * @example
+	 * ```tsx
+	 * <Tldraw locale="fr" />
+	 * ```
+	 */
+	locale?: string
 }
 
 /** @public */
@@ -149,11 +158,13 @@ export function Tldraw(props: TldrawProps) {
 		shapeUtils = [],
 		bindingUtils = [],
 		assetUtils = [],
+		overlayUtils = [],
 		tools = [],
 		// needs to be here for backwards compatibility
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		embeds,
 		options,
+		locale,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
@@ -176,12 +187,6 @@ export function Tldraw(props: TldrawProps) {
 	}, [rest.hideUi, CustomInFrontOfTheCanvas])
 	const componentsWithDefault = useMemo(
 		() => ({
-			Scribble: TldrawScribble,
-			ShapeIndicators: TldrawShapeIndicators,
-			CollaboratorScribble: TldrawScribble,
-			SelectionForeground: TldrawSelectionForeground,
-			Handles: TldrawHandles,
-			Overlays: TldrawOverlays,
 			Spinner,
 			LoadingScreen,
 			..._components,
@@ -210,6 +215,12 @@ export function Tldraw(props: TldrawProps) {
 				{ maxImageDimension, acceptedImageMimeTypes, acceptedVideoMimeTypes }
 			),
 		[_assetUtils, maxImageDimension, acceptedImageMimeTypes, acceptedVideoMimeTypes]
+	)
+
+	const _overlayUtils = useShallowArrayIdentity(overlayUtils)
+	const overlayUtilsWithDefaults = useMemo(
+		() => mergeArraysAndReplaceDefaults('type', _overlayUtils, defaultOverlayUtils),
+		[_overlayUtils]
 	)
 
 	const _tools = useShallowArrayIdentity(tools)
@@ -267,7 +278,8 @@ export function Tldraw(props: TldrawProps) {
 		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(rest.assetUrls)}>
 			<TldrawUiTranslationProvider
 				overrides={useMergedTranslationOverrides(rest.overrides)}
-				locale={rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
+				// If the locale prop is provided, then use that and assume it to be controlled
+				locale={locale ?? rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
 			>
 				<TldrawEditor
 					initialState="select"
@@ -276,6 +288,7 @@ export function Tldraw(props: TldrawProps) {
 					shapeUtils={shapeUtilsWithDefaults}
 					bindingUtils={bindingUtilsWithDefaults}
 					assetUtils={assetUtilsWithDefaults}
+					overlayUtils={overlayUtilsWithDefaults}
 					tools={toolsWithDefaults}
 					options={optionsWithDefaults}
 					assetUrls={assets}
