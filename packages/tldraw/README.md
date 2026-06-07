@@ -32,6 +32,10 @@ export default function () {
 
 Visit [tldraw.dev](https://tldraw.dev) to learn more.
 
+## Documentation
+
+The published package includes a generated `DOCS.md` file with the docs-site content and a generated `RELEASE_NOTES.md` file with versioned release notes.
+
 ## Package development
 
 To start the local development server:

@@ -4,6 +4,10 @@ React bindings for tldraw's signals library. See also the [signals library](http
 
 To learn more about this check out the [Signia library's React bindings](https://signia.tldraw.dev/docs/react-bindings) which explains the bindings and also talks about the foundational concepts.
 
+## Documentation
+
+A `DOCS.md` file is included alongside this README in the published package, with detailed API documentation and usage examples.
+
 ## Contribution
 
 Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
