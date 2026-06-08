@@ -715,11 +715,14 @@ function EnrollUserInGroups({
 			}
 
 			const result = await res.json()
-			const parts: string[] = []
-			if (result.backendMigrated) parts.push('migrated to groups backend')
-			if (result.frontendGranted) parts.push('granted groups UI')
+			const changes = [
+				result.backendMigrated && 'migrated to groups backend',
+				result.frontendGranted && 'granted groups UI',
+			].filter(Boolean)
 			onSuccessMessage(
-				parts.length ? `Enrolled in groups: ${parts.join(', ')}` : 'User was already fully enrolled'
+				changes.length
+					? `Enrolled in groups: ${changes.join(', ')}`
+					: 'User was already fully enrolled'
 			)
 			onSuccess()
 		} catch (err) {
