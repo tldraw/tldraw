@@ -15,7 +15,7 @@ import type { Editor } from '../../Editor'
  * This must be used everywhere line-height is applied (measurement, on-canvas render, and
  * export) so geometry and rendering stay in agreement.
  *
- * @internal
+ * @public
  */
 export function getLineHeightPx(fontSize: number, lineHeight: number): number {
 	return Math.round(fontSize * lineHeight)

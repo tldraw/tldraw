@@ -28,6 +28,7 @@ import {
 	geoShapeProps,
 	getColorValue,
 	getFontsFromRichText,
+	getLineHeightPx,
 	isEqual,
 	lerp,
 	toRichText,
@@ -271,7 +272,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		// Calculate minimum label dimensions based on font size and shape size
 		const unscaledMinWidth = Math.min(100, unscaledShapeW / 2)
 		const unscaledMinHeight = Math.min(
-			dv.labelFontSize * dv.labelLineHeight + dv.labelPadding * 2,
+			getLineHeightPx(dv.labelFontSize, dv.labelLineHeight) + dv.labelPadding * 2,
 			unscaledShapeH / 2
 		)
 

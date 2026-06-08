@@ -1932,7 +1932,7 @@ export function getGlobalWindow(): Window & typeof globalThis;
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
-// @internal
+// @public
 export function getLineHeightPx(fontSize: number, lineHeight: number): number;
 
 // @public
