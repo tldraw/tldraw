@@ -99,7 +99,7 @@ export function TldrawUiMenuCheckboxItem<
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 	const descriptionToUse = unwrapLabel(description, menuType)
 	const descriptionStr = descriptionToUse ? msg(descriptionToUse as TLUiTranslationKey) : undefined
-	const titleStr = descriptionStr ? undefined : (title ?? labelStr)
+	const titleStr = descriptionStr ? undefined : title
 
 	const contentProps = {
 		checked,
@@ -132,7 +132,7 @@ export function TldrawUiMenuCheckboxItem<
 			)
 
 			return descriptionStr ? (
-				<TldrawUiTooltip content={descriptionStr} side="right">
+				<TldrawUiTooltip content={descriptionStr} side="bottom" className="tlui-tooltip--small">
 					{item}
 				</TldrawUiTooltip>
 			) : (
@@ -160,7 +160,7 @@ export function TldrawUiMenuCheckboxItem<
 			)
 
 			return descriptionStr ? (
-				<TldrawUiTooltip content={descriptionStr} side="right">
+				<TldrawUiTooltip content={descriptionStr} side="bottom" className="tlui-tooltip--small">
 					{item}
 				</TldrawUiTooltip>
 			) : (

@@ -32,6 +32,7 @@ export interface TldrawUiTooltipProps {
 	disabled?: boolean
 	showOnMobile?: boolean
 	delayDuration?: number
+	className?: string
 }
 
 interface TooltipData {
@@ -42,6 +43,7 @@ interface TooltipData {
 	showOnMobile: boolean
 	targetElement: HTMLElement
 	delayDuration: number
+	className: string
 }
 
 // State machine states
@@ -326,7 +328,7 @@ function TooltipSingleton() {
 				<div ref={triggerRef} />
 			</_Tooltip.Trigger>
 			<_Tooltip.Content
-				className="tlui-tooltip"
+				className={`tlui-tooltip ${currentTooltip.className}`}
 				side={currentTooltip.side}
 				sideOffset={currentTooltip.sideOffset}
 				avoidCollisions
@@ -351,6 +353,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 			disabled = false,
 			showOnMobile = false,
 			delayDuration,
+			className = '',
 		},
 		ref
 	) => {
@@ -405,7 +408,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 						{children}
 					</_Tooltip.Trigger>
 					<_Tooltip.Content
-						className="tlui-tooltip"
+						className={`tlui-tooltip ${className}`}
 						side={sideToUse}
 						sideOffset={sideOffset}
 						avoidCollisions
@@ -441,6 +444,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 					sideOffset,
 					showOnMobile,
 					delayDuration: delayDurationToUse,
+					className,
 				},
 			})
 		}
@@ -467,6 +471,7 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 					sideOffset,
 					showOnMobile,
 					delayDuration: delayDurationToUse,
+					className,
 				},
 			})
 		}

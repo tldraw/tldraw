@@ -4347,6 +4347,8 @@ export interface TldrawUiTooltipProps {
     // (undocumented)
     children: React_3.ReactNode;
     // (undocumented)
+    className?: string;
+    // (undocumented)
     content?: React_3.ReactNode | string;
     // (undocumented)
     delayDuration?: number;

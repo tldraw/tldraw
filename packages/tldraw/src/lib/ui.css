@@ -1490,6 +1490,10 @@ tldraw? probably.
 	z-index: 2;
 }
 
+.tlui-tooltip--small {
+	max-width: 200px;
+}
+
 .tlui-tooltip__arrow {
 	fill: var(--tl-color-tooltip);
 	will-change: opacity;
