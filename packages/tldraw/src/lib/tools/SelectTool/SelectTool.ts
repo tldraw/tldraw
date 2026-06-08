@@ -1,4 +1,4 @@
-import { StateNode, StyleProp, TLStateNodeConstructor, react } from '@tldraw/editor'
+import { StateNode, TLStateNodeConstructor, react } from '@tldraw/editor'
 import { Brushing } from './childStates/Brushing'
 import { Cropping } from './childStates/Crop/children/Cropping'
 import { PointingCropHandle } from './childStates/Crop/children/PointingCropHandle'
@@ -24,12 +24,6 @@ export class SelectTool extends StateNode {
 	static override initial = 'idle'
 	static override isLockable = false
 	reactor: undefined | (() => void) = undefined
-
-	/**
-	 * Styles captured by the "copy styles" action (cmd+alt+c), to be applied to the next shape the
-	 * user clicks. Cleared once the click lands, on escape, or when leaving the select tool.
-	 */
-	stylesToPaste: Array<[StyleProp<unknown>, unknown]> | null = null
 
 	static override children(): TLStateNodeConstructor[] {
 		return [
@@ -86,7 +80,6 @@ export class SelectTool extends StateNode {
 	}
 
 	override onExit() {
-		this.stylesToPaste = null
 		this.reactor?.()
 		if (this.editor.getCurrentPageState().editingShapeId) {
 			this.editor.setEditingShape(null)

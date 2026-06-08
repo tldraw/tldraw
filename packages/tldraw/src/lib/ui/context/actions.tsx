@@ -7,7 +7,6 @@ import {
 	HALF_PI,
 	PageRecordType,
 	Result,
-	StyleProp,
 	TLEmbedShape,
 	TLImageShape,
 	TLShape,
@@ -27,7 +26,6 @@ import {
 import * as React from 'react'
 import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
-import type { SelectTool } from '../../tools/SelectTool/SelectTool'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
@@ -1875,32 +1873,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 
 					trackEvent('copy-hovered-styles', { source })
-				},
-			},
-			{
-				id: 'copy-styles',
-				label: 'action.copy-styles',
-				kbd: 'cmd+alt+c,ctrl+alt+c',
-				async onSelect(source) {
-					// Copy the styles shared across the current selection into a buffer on the select
-					// tool. The next shape the user clicks will receive these styles (see the select
-					// tool's idle state). Any other interaction clears the buffer.
-					if (!editor.isIn('select') || editor.getSelectedShapeIds().length === 0) return
-
-					const styles: Array<[StyleProp<unknown>, unknown]> = []
-					for (const [style, value] of editor.getSharedStyles()) {
-						// Skip mixed values (no single value to copy) and the geo style, which would
-						// change the target's shape type rather than its appearance.
-						if (value.type !== 'shared' || style === GeoShapeGeoStyle) continue
-						styles.push([style, value.value])
-					}
-					if (styles.length === 0) return
-
-					const selectTool = editor.getStateDescendant<SelectTool>('select')
-					if (!selectTool) return
-					selectTool.stylesToPaste = styles
-
-					trackEvent('copy-styles', { source })
 				},
 			},
 		]

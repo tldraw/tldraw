@@ -1,7 +1,6 @@
 import {
 	Editor,
 	StateNode,
-	StyleProp,
 	TLAdjacentDirection,
 	TLClickEventInfo,
 	TLKeyboardEventInfo,
@@ -25,7 +24,6 @@ import {
 	updateHoveredShapeId,
 } from '../../selection-logic/updateHoveredShapeId'
 import { hasRichText, startEditingShapeWithRichText } from '../selectHelpers'
-import type { SelectTool } from '../SelectTool'
 
 const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 	'Delete',
@@ -69,43 +67,6 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		// If the "copy styles" action has armed a set of styles to paste, the next pointer down
-		// either applies them to the shape under the pointer, or — for any other target — clears
-		// the armed styles and continues with normal selection behavior.
-		const selectTool = this.parent as SelectTool
-		if (selectTool.stylesToPaste) {
-			const stylesToPaste = selectTool.stylesToPaste
-			selectTool.stylesToPaste = null
-
-			let targetShape: TLShape | undefined
-			if (info.target === 'shape') {
-				// Skip locked shapes (matching the normal shape handling below) so the click
-				// falls through to the usual pointing_canvas flow instead of being intercepted.
-				if (
-					this.editor.options.selectLockedShapes ||
-					!this.editor.isShapeOrAncestorLocked(info.shape)
-				) {
-					targetShape = info.shape
-				}
-			} else if (info.target === 'canvas') {
-				// Use the same lock-ancestry check as the shape branch so a child inside a locked
-				// group isn't treated as a valid paste target via canvas hit testing.
-				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
-				if (
-					hitShape &&
-					(this.editor.options.selectLockedShapes || !this.editor.isShapeOrAncestorLocked(hitShape))
-				) {
-					targetShape = hitShape
-				}
-			}
-
-			if (targetShape) {
-				this.applyStylesToShape(targetShape, stylesToPaste)
-				return
-			}
-			// Not over a shape: fall through so the click behaves normally.
-		}
-
 		switch (info.target) {
 			case 'canvas': {
 				// Check overlays first — if we hit an overlay, re-dispatch as an overlay event
@@ -511,10 +472,6 @@ export class Idle extends StateNode {
 	}
 
 	override onRightClick(info: TLPointerEventInfo) {
-		// A right click is not a paste target, so clear any styles armed by "copy styles"
-		// (cmd+alt+c). Otherwise they'd linger through context menus until a later left click.
-		;(this.parent as SelectTool).stylesToPaste = null
-
 		switch (info.target) {
 			case 'canvas': {
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
@@ -585,19 +542,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	private applyStylesToShape(shape: TLShape, styles: Array<[StyleProp<unknown>, unknown]>) {
-		this.editor.markHistoryStoppingPoint('paste-styles')
-		this.editor.run(() => {
-			this.editor.select(shape.id)
-			for (const [style, value] of styles) {
-				this.editor.setStyleForSelectedShapes(style, value)
-			}
-		})
-	}
-
 	override onCancel() {
-		const selectTool = this.parent as SelectTool
-		selectTool.stylesToPaste = null
 		if (
 			this.editor.getFocusedGroupId() !== this.editor.getCurrentPageId() &&
 			this.editor.getSelectedShapeIds().length > 0

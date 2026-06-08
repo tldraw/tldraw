@@ -146,7 +146,6 @@ export interface TLUiEventMap {
 	}
 	edit: null
 	'copy-hovered-styles': null
-	'copy-styles': null
 }
 
 /** @public */

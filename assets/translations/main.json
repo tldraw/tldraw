@@ -26,7 +26,6 @@
 	"action.copy-as-svg": "Copy as SVG",
 	"action.copy": "Copy",
 	"action.copy-hovered-styles": "Copy hovered styles",
-	"action.copy-styles": "Copy styles",
 	"action.cut": "Cut",
 	"action.delete": "Delete",
 	"action.unlock-all": "Unlock all",
@@ -497,3 +496,4 @@
 	"ui.checked": "Checked",
 	"ui.unchecked": "Unchecked"
 }
+
