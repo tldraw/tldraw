@@ -1419,7 +1419,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const updates = [] as TLShapePartial[]
 					for (const shape of editor.getCurrentPageShapes()) {
 						if (shape.isLocked) {
-							updates.push({ id: shape.id, type: shape.type, isLocked: false })
+							// cast: see microsoft/TypeScript#42518 (wide shape-type union, tsgo).
+							updates.push({ id: shape.id, type: shape.type, isLocked: false } as TLShapePartial)
 						}
 					}
 					if (updates.length > 0) {

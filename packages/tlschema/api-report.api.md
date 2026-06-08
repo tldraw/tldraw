@@ -317,6 +317,10 @@ export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "
 
 // @public
 export const defaultShapeSchemas: {
+    'table-cell': {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLTableCellShape>;
+    };
     arrow: {
         migrations: MigrationSequence;
         props: RecordProps<TLArrowShape>;
@@ -360,6 +364,10 @@ export const defaultShapeSchemas: {
     note: {
         migrations: TLPropsMigrations;
         props: RecordProps<TLNoteShape>;
+    };
+    table: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLTableShape>;
     };
     text: {
         migrations: TLPropsMigrations;
@@ -806,6 +814,18 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 export type StylePropValue<T extends StyleProp<any>> = T extends StyleProp<infer U> ? U : never;
 
 // @public
+export const tableCellShapeMigrations: TLPropsMigrations;
+
+// @public
+export const tableCellShapeProps: RecordProps<TLTableCellShape>;
+
+// @public
+export const tableShapeMigrations: TLPropsMigrations;
+
+// @public
+export const tableShapeProps: RecordProps<TLTableShape>;
+
+// @public
 export const textShapeMigrations: TLPropsMigrations;
 
 // @public
@@ -1106,7 +1126,7 @@ export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAli
 export type TLDefaultRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUser;
 
 // @public
-export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTableCellShape | TLTableShape | TLTextShape | TLVideoShape;
 
 // @public
 export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
@@ -1647,6 +1667,64 @@ export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
+
+// @public
+export type TLTableBorders = 'all' | 'none';
+
+// @public
+export type TLTableCellShape = TLBaseShape<'table-cell', TLTableCellShapeProps>;
+
+// @public
+export interface TLTableCellShapeProps {
+    align: TLDefaultHorizontalAlignStyle;
+    colId: string;
+    color: TLDefaultColorStyle;
+    colSpan?: number;
+    fill: TLDefaultFillStyle;
+    font: TLDefaultFontStyle;
+    kind: string;
+    richText: TLRichText;
+    rowId: string;
+    rowSpan?: number;
+    size: TLDefaultSizeStyle;
+    verticalAlign: TLDefaultVerticalAlignStyle;
+}
+
+// @public
+export type TLTableShape = TLBaseShape<'table', TLTableShapeProps>;
+
+// @public
+export interface TLTableShapeColumn {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    width: number;
+}
+
+// @public
+export interface TLTableShapeProps {
+    align: TLDefaultHorizontalAlignStyle;
+    borders: TLTableBorders;
+    color: TLDefaultColorStyle;
+    cols: TLTableShapeColumn[];
+    fill: TLDefaultFillStyle;
+    font: TLDefaultFontStyle;
+    headerCols: number;
+    headerRows: number;
+    rows: TLTableShapeRow[];
+    size: TLDefaultSizeStyle;
+    verticalAlign: TLDefaultVerticalAlignStyle;
+}
+
+// @public
+export interface TLTableShapeRow {
+    // (undocumented)
+    height?: number;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    manualHeight?: number;
+}
 
 // @public
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;

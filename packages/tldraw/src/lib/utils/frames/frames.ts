@@ -94,12 +94,14 @@ export function fitFrameToContent(editor: Editor, id: TLShapeId, opts = {} as { 
 	editor.run(() => {
 		const changes: TLShapePartial[] = childIds.map((child) => {
 			const shape = editor.getShape(child)!
+			// cast: a wide `shape.type` union trips tsgo's >25-member discriminated-union
+			// check (microsoft/TypeScript#42518); the shape is a valid partial.
 			return {
 				id: shape.id,
 				type: shape.type,
 				x: shape.x + dx,
 				y: shape.y + dy,
-			}
+			} as TLShapePartial
 		})
 
 		changes.push({

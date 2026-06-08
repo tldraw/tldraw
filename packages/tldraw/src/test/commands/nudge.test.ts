@@ -1,4 +1,4 @@
-import { TLShapeId, Vec, createShapeId } from '@tldraw/editor'
+import { TLShapeId, TLShapePartial, Vec, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -290,10 +290,11 @@ describe('When nudging a rotated shape...', () => {
 		editor.setSelectedShapes([ids.boxA])
 		const shapeA = editor.getShape(ids.boxA)!
 
-		editor.updateShapes([{ id: ids.boxA, type: shapeA.type, rotation: 90 }])
+		// casts: see microsoft/TypeScript#42518 (wide shape-type union, tsgo).
+		editor.updateShapes([{ id: ids.boxA, type: shapeA.type, rotation: 90 } as TLShapePartial])
 		expect(nudgeAndGet([ids.boxA], 'ArrowRight', false)).toMatchObject([{ x: 11, y: 10 }])
 
-		editor.updateShapes([{ id: ids.boxA, type: shapeA.type, rotation: -90 }])
+		editor.updateShapes([{ id: ids.boxA, type: shapeA.type, rotation: -90 } as TLShapePartial])
 		expect(nudgeAndGet([ids.boxA], 'ArrowDown', false)).toMatchObject([{ x: 11, y: 11 }])
 	})
 })
@@ -355,17 +356,18 @@ describe('When nudging multiple rotated shapes...', () => {
 			{ x: 28, y: 13 },
 		])
 
+		// casts: see microsoft/TypeScript#42518 (wide shape-type union, tsgo).
 		editor.updateShapes([
 			{
 				id: shapeA.id,
 				type: shapeA.type,
 				rotation: -90,
-			},
+			} as TLShapePartial,
 			{
 				id: shapeB.id,
 				type: shapeB.type,
 				rotation: 90,
-			},
+			} as TLShapePartial,
 		])
 		expect(nudgeAndGet([ids.boxA, ids.boxB], 'ArrowDown', false)).toMatchObject([
 			{ x: 11, y: 11 },

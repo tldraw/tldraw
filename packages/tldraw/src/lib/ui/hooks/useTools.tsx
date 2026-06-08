@@ -6,6 +6,7 @@ import {
 	getIndicesBetween,
 	TLPointerEventInfo,
 	TLShapeId,
+	TLShapePartial,
 	toRichText,
 	useMaybeEditor,
 } from '@tldraw/editor'
@@ -389,7 +390,8 @@ export function onDragFromToolbarToCreateShape(
 	const shape = assertExists(editor.getShape(id), 'Shape not found')
 
 	const { w, h } = editor.getShapePageBounds(id)!
-	editor.updateShape({ id, type: shape.type, x: x - w / 2, y: y - h / 2 })
+	// cast: see microsoft/TypeScript#42518 (wide shape-type union, tsgo).
+	editor.updateShape({ id, type: shape.type, x: x - w / 2, y: y - h / 2 } as TLShapePartial)
 	editor.select(id)
 
 	editor.setCurrentTool('select.translating', {

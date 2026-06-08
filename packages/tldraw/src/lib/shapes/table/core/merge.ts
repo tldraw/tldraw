@@ -1,9 +1,6 @@
 import { TLTableCellShape, TLTableShape } from '@tldraw/editor'
 import { getCellKey, getTableLayout } from './layout'
 
-/** The minimal cell shape this module needs: anchor position and spans, in `props`. */
-type SpannedCell = Pick<TLTableCellShape, 'props'>
-
 /**
  * The resolved geometry of a merged (spanning) cell, in the table's local space.
  *
@@ -45,7 +42,10 @@ export interface TableMergeMap {
  *
  * @public
  */
-export function getMergeMap(table: TLTableShape, cells: Iterable<SpannedCell>): TableMergeMap {
+export function getMergeMap(
+	table: TLTableShape,
+	cells: Iterable<Pick<TLTableCellShape, 'props'>>
+): TableMergeMap {
 	const layout = getTableLayout(table)
 	const rowIndex = new Map<string, number>(layout.rows.map((r, i) => [r.id, i]))
 	const colIndex = new Map<string, number>(layout.cols.map((c, i) => [c.id, i]))

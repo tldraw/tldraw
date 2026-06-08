@@ -731,12 +731,14 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 			editor.getSelectedShapes().map((shape) => {
 				const localRotation = editor.getShapeParentTransform(shape).decompose().rotation
 				const localDelta = Vec.Rot(offset, -localRotation)
+				// cast: wide `shape.type` union trips tsgo's >25-member discriminant check
+				// (microsoft/TypeScript#42518); the shape is a valid partial.
 				return {
 					id: shape.id,
 					type: shape.type,
 					x: shape.x! - localDelta.x,
 					y: shape.y! - localDelta.y,
-				}
+				} as TLShapePartial
 			})
 		)
 	}
@@ -750,12 +752,13 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 		editor.updateShapes(
 			editor.getSelectedShapes().map((shape) => {
 				const newPoint = { x: shape.x! - delta.x, y: shape.y! - delta.y }
+				// cast: see microsoft/TypeScript#42518 (wide shape-type union, tsgo).
 				return {
 					id: shape.id,
 					type: shape.type,
 					x: newPoint.x,
 					y: newPoint.y,
-				}
+				} as TLShapePartial
 			})
 		)
 	}

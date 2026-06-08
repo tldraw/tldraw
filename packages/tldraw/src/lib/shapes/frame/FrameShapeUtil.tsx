@@ -379,12 +379,13 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		this.editor.run(() => {
 			const changes: TLShapePartial[] = childIds.map((childId) => {
 				const childShape = this.editor.getShape(childId)!
+				// cast: see microsoft/TypeScript#42518 (wide shape-type union, tsgo).
 				return {
 					id: childShape.id,
 					type: childShape.type,
 					x: isHorizontalEdge ? childShape.x + dx : childShape.x,
 					y: isVerticalEdge ? childShape.y + dy : childShape.y,
-				}
+				} as TLShapePartial
 			})
 
 			this.editor.updateShapes(changes)

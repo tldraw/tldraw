@@ -93,8 +93,13 @@ import { TLContent } from '@tldraw/editor';
 import { TLCropInfo } from '@tldraw/editor';
 import { TLCursorType } from '@tldraw/editor';
 import { TLDefaultColorStyle } from '@tldraw/tlschema';
+import { TLDefaultColorStyle as TLDefaultColorStyle_2 } from '@tldraw/editor';
+import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/tlschema';
+import { TLDefaultFontStyle as TLDefaultFontStyle_2 } from '@tldraw/editor';
+import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
+import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TldrawOptions } from '@tldraw/editor';
@@ -152,6 +157,12 @@ import { TLShapeUtilConstructor } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
+import { TLTableBorders } from '@tldraw/tlschema';
+import { TLTableCellShape } from '@tldraw/editor';
+import { TLTableShape } from '@tldraw/editor';
+import { TLTableShapeColumn } from '@tldraw/editor';
+import { TLTableShapeRow } from '@tldraw/tlschema';
+import { TLTableShapeRow as TLTableShapeRow_2 } from '@tldraw/editor';
 import { TLTextOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTheme } from '@tldraw/editor';
@@ -647,6 +658,9 @@ export interface BrushOverlayUtilOptions extends OverlayOptionsWithDisplayValues
 
 // @internal (undocumented)
 export function buildFromV1Document(editor: Editor, _document: unknown): void;
+
+// @public
+export function buildGrid<T>(table: TLTableShape, valueOf: (rowId: string, colId: string) => T): T[][];
 
 // @public (undocumented)
 export function CenteredTopPanelContainer({ maxWidth, ignoreRightWidth, stylePanelWidth, marginBetweenZones, squeezeAmount, children }: CenteredTopPanelContainerProps): JSX.Element;
@@ -1430,10 +1444,10 @@ export interface DefaultRichTextToolbarContentProps {
 }
 
 // @public (undocumented)
-export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
+export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof TableShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
 
 // @public (undocumented)
-export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
+export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof TableShapeUtil, typeof TableCellShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
 
 // @public (undocumented)
 export function DefaultSharePanel(): JSX.Element | null;
@@ -1495,11 +1509,20 @@ export const DefaultZoomMenu: NamedExoticComponent<TLUiZoomMenuProps>;
 // @public (undocumented)
 export function DefaultZoomMenuContent(): JSX.Element;
 
+// @public
+export function deleteColumn(editor: Editor, table: TLTableShape, atIndex: number): void;
+
 // @public (undocumented)
 export function DeleteMenuItem(): JSX.Element;
 
+// @public
+export function deleteRow(editor: Editor, table: TLTableShape, atIndex: number): void;
+
 // @public (undocumented)
 export function DiamondToolbarItem(): JSX.Element;
+
+// @public
+export function diffTableStructure(prev: TLTableShape, next: TLTableShape): null | TableStructureChange;
 
 // @public (undocumented)
 export function DistributeMenuItems(): JSX.Element;
@@ -1613,6 +1636,9 @@ export interface DrawShapeUtilDisplayValues {
 
 // @public (undocumented)
 export function DrawToolbarItem(): JSX.Element;
+
+// @public
+export function drillSelectCell(editor: Editor, table: TLTableShape, rowId: string, colId: string): void;
 
 // @public (undocumented)
 export function DuplicateMenuItem(): JSX.Element | null;
@@ -1943,6 +1969,9 @@ export interface FeatureFlagsProps {
     // (undocumented)
     customFeatureFlags?: Record<string, DebugFlag<boolean>> | undefined;
 }
+
+// @public
+export function findOrCreateCell(editor: Editor, table: TLTableShape, rowId: string, colId: string): TLShapeId;
 
 // @public
 export function fitFrameToContent(editor: Editor, id: TLShapeId, opts?: {
@@ -2328,6 +2357,30 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 export function getAssetInfo(editor: Editor, file: File, assetId?: TLAssetId): Promise<null | TLAsset>;
 
 // @public
+export function getCellAtPoint(layout: TableLayout, x: number, y: number): {
+    colId: string;
+    rowId: string;
+} | null;
+
+// @public
+export function getCellKey(rowId: string, colId: string): string;
+
+// @public
+export function getCellsInRange(table: TLTableShape, from: {
+    colId: string;
+    rowId: string;
+}, to: {
+    colId: string;
+    rowId: string;
+}): {
+    colId: string;
+    rowId: string;
+}[];
+
+// @public
+export function getCellText(editor: Editor, tableId: TLTableShape['id'], rowIndex: number, colIndex: number): string;
+
+// @public
 export function getColorStyleItems(colors: TLThemeColors): StyleValuesForUi<string>;
 
 // @public (undocumented)
@@ -2363,6 +2416,15 @@ export function getGeoTypeDefinition(name: string, customGeoTypes?: Record<strin
 // @public (undocumented)
 export function getHitShapeOnCanvasPointerDown(editor: Editor, hitLabels?: boolean): TLShape | undefined;
 
+// @public
+export function getMergedCellAtPoint(editor: Editor, table: TLTableShape, x: number, y: number): {
+    colId: string;
+    rowId: string;
+} | null;
+
+// @public
+export function getMergeMap(table: TLTableShape, cells: Iterable<Pick<TLTableCellShape, 'props'>>): TableMergeMap;
+
 // @public (undocumented)
 export function getPointsFromDrawSegment(segment: TLDrawShapeSegment, scaleX: number, scaleY: number, points?: Vec[]): Vec[];
 
@@ -2380,6 +2442,15 @@ export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptio
 
 // @public
 export function getSvgPathFromStrokePoints(points: StrokePoint[], closed?: boolean): string;
+
+// @public
+export function getTableCells(editor: Editor, tableId: TLTableShape['id']): Map<string, TLTableCellShape>;
+
+// @public
+export function getTableData(editor: Editor, tableId: TLTableShape['id']): string[][];
+
+// @public
+export function getTableLayout(table: TLTableShape): TableLayout;
 
 // @public
 export function getUncroppedSize(shapeSize: {
@@ -2592,6 +2663,15 @@ export interface ImageShapeUtilDisplayValues {
 // @public (undocumented)
 export function InputModeMenu(): JSX.Element;
 
+// @public
+export function insertColumn(editor: Editor, table: TLTableShape, atIndex: number): void;
+
+// @public
+export function insertRow(editor: Editor, table: TLTableShape, atIndex: number): void;
+
+// @public
+export function isCellEmpty(editor: Editor, cell: TLTableCellShape): boolean;
+
 // @public (undocumented)
 export const KeyboardShiftEnterTweakExtension: Extension<any, any>;
 
@@ -2770,6 +2850,33 @@ export interface LineToPathBuilderCommand extends PathBuilderCommandBase {
 // @public (undocumented)
 export function LockGroup(): JSX.Element;
 
+// @public
+export function mergeCells(editor: Editor, table: TLTableShape, from: {
+    colId: string;
+    rowId: string;
+}, to: {
+    colId: string;
+    rowId: string;
+}): void;
+
+// @public
+export interface MergedCellInfo {
+    // (undocumented)
+    colId: string;
+    // (undocumented)
+    colSpan: number;
+    // (undocumented)
+    height: number;
+    rowId: string;
+    rowSpan: number;
+    // (undocumented)
+    width: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
 // @public (undocumented)
 export function MiscMenuGroup(): JSX.Element;
 
@@ -2788,6 +2895,9 @@ export interface MoveToPathBuilderCommand extends PathBuilderCommandBase {
     // (undocumented)
     type: 'move';
 }
+
+// @public
+export function navigateCell(editor: Editor, cell: TLTableCellShape, dir: 'down' | 'left' | 'right' | 'up'): void;
 
 // @public (undocumented)
 export interface NonePathBuilderOpts extends BasePathBuilderOpts {
@@ -3227,8 +3337,14 @@ export function PrintItem(): JSX.Element;
 // @public
 export function putExcalidrawContent(editor: Editor, excalidrawClipboardContent: any, point?: VecLike): Promise<void>;
 
+// @public
+export function reconcileTable(editor: Editor, table: TLTableShape): void;
+
 // @public (undocumented)
 export function RectangleToolbarItem(): JSX.Element;
+
+// @public
+export function reflowRowHeights(editor: Editor, table: TLTableShape, onlyRowIds?: Set<string>): void;
 
 // @public (undocumented)
 export function registerDefaultExternalContentHandlers(editor: Editor, options: TLDefaultExternalContentHandlerOpts): void;
@@ -3259,6 +3375,25 @@ export function ReorderMenuItems(): JSX.Element;
 
 // @public (undocumented)
 export function ReorderMenuSubmenu(): JSX.Element | null;
+
+// @public
+export function resolveCellStyle(table: TLTableShape, rowIndex: number, colIndex: number, cell?: TLTableCellShape): ResolvedCellStyle;
+
+// @public
+export interface ResolvedCellStyle {
+    // (undocumented)
+    align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
+    color: TLDefaultColorStyle_2;
+    // (undocumented)
+    fill: TLDefaultFillStyle;
+    // (undocumented)
+    font: TLDefaultFontStyle_2;
+    // (undocumented)
+    size: TLDefaultSizeStyle;
+    // (undocumented)
+    verticalAlign: TLDefaultVerticalAlignStyle;
+}
 
 // @public (undocumented)
 export function RhombusToolbarItem(): JSX.Element;
@@ -3375,6 +3510,18 @@ export class ScribbleOverlayUtil extends OverlayUtil<TLScribbleOverlay> {
 export function SelectAllMenuItem(): JSX.Element;
 
 // @public
+export function selectCellRange(editor: Editor, table: TLTableShape, from: {
+    colId: string;
+    rowId: string;
+}, to: {
+    colId: string;
+    rowId: string;
+}): void;
+
+// @public
+export function selectColumn(editor: Editor, table: TLTableShape, colIndex: number): void;
+
+// @public
 export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForegroundOverlay> {
     // (undocumented)
     getCursor(overlay: TLSelectionForegroundOverlay): TLCursorType | undefined;
@@ -3394,6 +3541,9 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
     // (undocumented)
     static type: string;
 }
+
+// @public
+export function selectRow(editor: Editor, table: TLTableShape, rowIndex: number): void;
 
 // @public (undocumented)
 export class SelectTool extends StateNode {
@@ -3424,11 +3574,20 @@ export function serializeTldrawJson(editor: Editor): Promise<string>;
 // @public (undocumented)
 export function serializeTldrawJsonBlob(editor: Editor): Promise<Blob>;
 
+// @public
+export function setCellText(editor: Editor, tableId: TLTableShape['id'], rowIndex: number, colIndex: number, text: string): void;
+
+// @public
+export function setColumnWidth(editor: Editor, table: TLTableShape, colIndex: number, width: number): void;
+
 // @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
+
+// @public
+export function setRowHeight(editor: Editor, table: TLTableShape, rowIndex: number, height: number): void;
 
 // @public (undocumented)
 export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
@@ -3713,6 +3872,188 @@ export type StyleValuesForUi<T> = readonly {
     readonly value: T;
 }[];
 
+// @public
+export const TABLE_CONSTANTS: {
+    readonly DEFAULT_ROW_HEIGHT: 32;
+    readonly BORDER_WIDTH: 1;
+    readonly CELL_PADDING: 6;
+    readonly DEFAULT_COL_WIDTH: 120;
+    readonly MIN_COL_WIDTH: 40;
+};
+
+// @public
+export interface TableCellShapeOptions {
+    // (undocumented)
+    kinds: TLTableCellKind[];
+}
+
+// @public
+export class TableCellShapeUtil extends ShapeUtil<TLTableCellShape> {
+    // (undocumented)
+    canEdit(): boolean;
+    // (undocumented)
+    canResize(): boolean;
+    // (undocumented)
+    component(shape: TLTableCellShape): JSX.Element | null;
+    // (undocumented)
+    getDefaultProps(): TLTableCellShape['props'];
+    // (undocumented)
+    getGeometry(shape: TLTableCellShape): Geometry2d;
+    // (undocumented)
+    getIndicatorPath(shape: TLTableCellShape): Path2D;
+    getKind(type: string): TLTableCellKind;
+    // (undocumented)
+    hideResizeHandles(): boolean;
+    // (undocumented)
+    hideRotateHandle(): boolean;
+    // (undocumented)
+    static migrations: TLPropsMigrations;
+    // (undocumented)
+    onClick(shape: TLTableCellShape): {
+        id: TLShapeId_2;
+        type: "table-cell";
+    } | undefined;
+    // (undocumented)
+    onTranslate(initial: TLTableCellShape): {
+        id: TLShapeId_2;
+        type: "table-cell";
+        x: number;
+        y: number;
+    };
+    // (undocumented)
+    options: TableCellShapeOptions;
+    // (undocumented)
+    static props: RecordProps<TLTableCellShape>;
+    // (undocumented)
+    static type: "table-cell";
+}
+
+// @public
+export interface TableColLayout {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    index: number;
+    // (undocumented)
+    width: number;
+    x: number;
+}
+
+// @public
+export interface TableLayout {
+    // (undocumented)
+    cols: TableColLayout[];
+    // (undocumented)
+    height: number;
+    // (undocumented)
+    rows: TableRowLayout[];
+    // (undocumented)
+    width: number;
+}
+
+// @public
+export interface TableMergeMap {
+    anchors: Map<string, MergedCellInfo>;
+    covered: Map<string, string>;
+}
+
+// @public
+export interface TableRowLayout {
+    // (undocumented)
+    height: number;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    index: number;
+    y: number;
+}
+
+// @public
+export class TableShapeTool extends StateNode {
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    onEnter(): void;
+    // (undocumented)
+    onPointerDown(): void;
+}
+
+// @public
+export class TableShapeUtil extends ShapeUtil<TLTableShape> {
+    // (undocumented)
+    canEdit(): boolean;
+    // (undocumented)
+    canReceiveNewChildrenOfType(_shape: TLTableShape, type: TLShape['type']): type is "table-cell";
+    // (undocumented)
+    canRemoveChildrenOfType(): boolean;
+    // (undocumented)
+    canResize(): boolean;
+    // (undocumented)
+    component(shape: TLTableShape): JSX.Element;
+    // (undocumented)
+    getClipPath(shape: TLTableShape): undefined | Vec[];
+    // (undocumented)
+    getDefaultProps(): TLTableShape['props'];
+    // (undocumented)
+    getGeometry(shape: TLTableShape): Geometry2d;
+    // (undocumented)
+    getHandles(shape: TLTableShape): TLHandle[];
+    // (undocumented)
+    getIndicatorPath(shape: TLTableShape): Path2D;
+    // (undocumented)
+    isFrameLike(): boolean;
+    // (undocumented)
+    static migrations: TLPropsMigrations;
+    // (undocumented)
+    onBeforeCreate(shape: TLTableShape): TLTableShape;
+    // (undocumented)
+    onClick(shape: TLTableShape): TLShapePartial<TLTableShape> | void;
+    // (undocumented)
+    onDoubleClick(shape: TLTableShape): TLShapePartial<TLTableShape> | void;
+    // (undocumented)
+    onEditStart(shape: TLTableShape): void;
+    // (undocumented)
+    onHandleDrag(shape: TLTableShape, { handle }: TLHandleDragInfo<TLTableShape>): TLShapePartial<TLTableShape> | void;
+    // (undocumented)
+    onResize(shape: TLTableShape, info: TLResizeInfo<TLTableShape>): {
+        props: {
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            borders: TLTableBorders;
+            color: TLDefaultColorStyle;
+            cols: {
+                id: string;
+                width: number;
+            }[];
+            fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            font: TLDefaultFontStyle;
+            headerCols: number;
+            headerRows: number;
+            rows: TLTableShapeRow[];
+            size: "l" | "m" | "s" | "xl";
+            verticalAlign: "end" | "middle" | "start";
+        };
+    };
+    // (undocumented)
+    static props: RecordProps<TLTableShape>;
+    // (undocumented)
+    providesBackgroundForChildren(): boolean;
+    // (undocumented)
+    toSvg(shape: TLTableShape, ctx: SvgExportContext): JSX.Element;
+    // (undocumented)
+    static type: "table";
+}
+
+// @public
+export interface TableStructureChange {
+    // (undocumented)
+    cols: (null | number)[];
+    // (undocumented)
+    rows: (null | number)[];
+}
+
+// @public
+export function tabNavigateCell(editor: Editor, cell: TLTableCellShape, dir: 'next' | 'prev'): null | TLShapeId;
+
 // @public (undocumented)
 export interface TextAreaProps {
     // (undocumented)
@@ -3743,6 +4084,9 @@ export interface TextAreaProps {
     // (undocumented)
     text?: string;
 }
+
+// @public
+export const textCellKind: TLTableCellKind;
 
 // @public (undocumented)
 export interface TextShapeOptions extends ShapeOptionsWithDisplayValues<TLTextShape, TextShapeUtilDisplayValues> {
@@ -4487,6 +4831,27 @@ export interface TLStraightArrowInfo {
     start: TLArrowPoint;
     // (undocumented)
     type: 'straight';
+}
+
+// @public
+export interface TLTableCellKind {
+    Component(props: TLTableCellKindProps): ReactNode;
+    getText?(editor: Editor, cell: TLTableCellShape): string;
+    isEmpty?(editor: Editor, cell: TLTableCellShape): boolean;
+    measure?(editor: Editor, cell: TLTableCellShape, width: number): number;
+    type: string;
+}
+
+// @public
+export interface TLTableCellKindProps {
+    // (undocumented)
+    editor: Editor;
+    height: number;
+    // (undocumented)
+    shape: TLTableCellShape;
+    // (undocumented)
+    table: TLTableShape;
+    width: number;
 }
 
 // @public (undocumented)
@@ -6287,6 +6652,9 @@ export const unknownEmbedShapePermissionOverrides: TLEmbedShapePermissions;
 // @public (undocumented)
 export function UnlockAllMenuItem(): JSX.Element;
 
+// @public
+export function unmergeCell(editor: Editor, cell: TLTableCellShape): void;
+
 // @public (undocumented)
 export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string): string | undefined;
 
@@ -6570,6 +6938,36 @@ export interface VideoShapeUtilDisplayValues {
 
 // @public (undocumented)
 export function ViewSubmenu(): JSX.Element;
+
+// @public
+export function withColumnInserted(cols: TLTableShapeColumn[], atIndex: number, width?: 120): {
+    colId: string;
+    cols: TLTableShapeColumn[];
+};
+
+// @public
+export function withColumnRemoved(cols: TLTableShapeColumn[], atIndex: number): {
+    colId: string;
+    cols: TLTableShapeColumn[];
+} | null;
+
+// @public
+export function withColumnWidth(cols: TLTableShapeColumn[], atIndex: number, width: number): TLTableShapeColumn[];
+
+// @public
+export function withRowHeight(rows: TLTableShapeRow_2[], atIndex: number, height: number): TLTableShapeRow_2[];
+
+// @public
+export function withRowInserted(rows: TLTableShapeRow_2[], atIndex: number): {
+    rowId: string;
+    rows: TLTableShapeRow_2[];
+};
+
+// @public
+export function withRowRemoved(rows: TLTableShapeRow_2[], atIndex: number): {
+    rowId: string;
+    rows: TLTableShapeRow_2[];
+} | null;
 
 // @public (undocumented)
 export function XBoxToolbarItem(): JSX.Element;
