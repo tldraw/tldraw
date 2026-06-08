@@ -133,3 +133,8 @@ skills/pr-walkthrough/video/dist
 skills/pr-walkthrough/video/public/audio-*
 skills/pr-walkthrough/video/public/manifest.json
 todo.md
+
+# Emacs temp files (autosave, backup, lock)
+\#*\#
+.\#*
+*~
