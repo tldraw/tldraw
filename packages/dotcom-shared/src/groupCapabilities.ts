@@ -1,3 +1,6 @@
+import { assert } from '@tldraw/utils'
+import { ZErrorCode } from './types'
+
 /**
  * Group authorization is expressed in terms of *capabilities*, never role names.
  *
@@ -69,4 +72,47 @@ export const GROUP_ROLE_CAPABILITIES: Record<GroupRole, readonly GroupCapability
 /** Returns true if the given role is allowed to perform the given capability. */
 export function roleHasCapability(role: GroupRole, capability: GroupCapability): boolean {
 	return GROUP_ROLE_CAPABILITIES[role].includes(capability)
+}
+
+/** A group, or just its id — so callers can pass either `group` or `groupId`. */
+export type GroupRef = string | { readonly id: string }
+
+/** Normalize a {@link GroupRef} to a group id. */
+export function getGroupId(group: GroupRef): string {
+	return typeof group === 'string' ? group : group.id
+}
+
+/**
+ * A user, as seen by group authorization: it answers "can this user do X in this
+ * group?". Both the client and the server build one of these for the acting user,
+ * so call sites read `user.can('editGroup', group)` instead of inspecting roles
+ * directly.
+ */
+export interface GroupActor {
+	/** Whether the user may perform `capability` in `group`. */
+	can(capability: GroupCapability, group: GroupRef): boolean
+	/** Throw `forbidden` unless the user may perform `capability` in `group`. */
+	assertCan(capability: GroupCapability, group: GroupRef): void
+}
+
+/**
+ * Build a {@link GroupActor} from a function that resolves the user's role in a
+ * group (or null if they aren't a member). All capability logic stays here; each
+ * context only supplies how to look up a role.
+ *
+ * This resolves roles synchronously, which suits the client (memberships are
+ * already synced into the store). The server has an async equivalent that reads
+ * the role from the database — see `groupActor` in mutators.ts.
+ */
+export function createGroupActor(resolveRole: (groupId: string) => GroupRole | null): GroupActor {
+	function can(capability: GroupCapability, group: GroupRef) {
+		const role = resolveRole(getGroupId(group))
+		return role !== null && roleHasCapability(role, capability)
+	}
+	return {
+		can,
+		assertCan(capability, group) {
+			assert(can(capability, group), ZErrorCode.forbidden)
+		},
+	}
 }

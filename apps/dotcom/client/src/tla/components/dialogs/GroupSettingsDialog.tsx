@@ -1,4 +1,4 @@
-import { GroupCapability, GroupRole, roleHasCapability } from '@tldraw/dotcom-shared'
+import { GroupRole } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { MouseEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -78,16 +78,15 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 	const currentUser = groupMembership.groupMembers.find(
 		(member) => member.userId === app.getUser().id
 	)
-	const role = currentUser?.role
-	const can = (capability: GroupCapability) => !!role && roleHasCapability(role, capability)
+	const user = app.getGroupActor()
 	const ownersCount = groupMembership.groupMembers.filter((m) => m.role === 'owner').length
 
-	const canEditName = can('editGroup')
-	const canManageMembers = can('manageMembers')
-	const canDelete = can('deleteGroup')
+	const canEditName = user.can('editGroup', groupId)
+	const canManageMembers = user.can('manageMembers', groupId)
+	const canDelete = user.can('deleteGroup', groupId)
 	// Leaving is allowed for everyone except the last owner — a group invariant
 	// (it must always keep at least one owner), not a capability.
-	const canLeave = role !== 'owner' || ownersCount > 1
+	const canLeave = currentUser?.role !== 'owner' || ownersCount > 1
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
