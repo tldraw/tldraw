@@ -60,6 +60,44 @@ function findHoveredWorkspaceId(
 	)
 }
 
+// Auto-scroll the sidebar while dragging when the pointer nears the top or
+// bottom edge of the scroll container. These mirror the page menu's drag
+// scrolling (see DefaultPageMenu) so the two pieces of UI behave the same.
+// AUTO_SCROLL_ZONE is how far from the edge the auto-scroll begins;
+// RAMP_DISTANCE is how far past that point it takes to reach max speed.
+const AUTO_SCROLL_ZONE = 16
+const AUTO_SCROLL_RAMP_DISTANCE = 48
+const MIN_AUTO_SCROLL_SPEED = 1
+const MAX_AUTO_SCROLL_SPEED = 6
+
+// Scrolls the sidebar container by one frame's worth of auto-scroll when the
+// pointer is within AUTO_SCROLL_ZONE of an edge, ramping the speed up the
+// further past the edge the pointer goes. Reorder/move targets are recomputed
+// on the next frame from fresh element rects, so no offset bookkeeping is
+// needed here — the native drag image follows the cursor on its own.
+function tickAutoScroll(container: HTMLElement, mousePosition: { y: number }) {
+	const rect = container.getBoundingClientRect()
+	const fromTop = mousePosition.y - rect.top
+	const fromBottom = rect.bottom - mousePosition.y
+	const maxScroll = container.scrollHeight - container.clientHeight
+
+	const overshootTop = AUTO_SCROLL_ZONE - fromTop
+	const overshootBottom = AUTO_SCROLL_ZONE - fromBottom
+
+	let dy = 0
+	if (overshootTop > 0 && container.scrollTop > 0) {
+		const t = Math.min(1, overshootTop / AUTO_SCROLL_RAMP_DISTANCE)
+		dy = -Math.ceil(MIN_AUTO_SCROLL_SPEED + (MAX_AUTO_SCROLL_SPEED - MIN_AUTO_SCROLL_SPEED) * t)
+	} else if (overshootBottom > 0 && container.scrollTop < maxScroll) {
+		const t = Math.min(1, overshootBottom / AUTO_SCROLL_RAMP_DISTANCE)
+		dy = Math.ceil(MIN_AUTO_SCROLL_SPEED + (MAX_AUTO_SCROLL_SPEED - MIN_AUTO_SCROLL_SPEED) * t)
+	}
+
+	if (dy !== 0) {
+		container.scrollTop = Math.max(0, Math.min(maxScroll, container.scrollTop + dy))
+	}
+}
+
 // This adds a little bit of an offset to the indicator
 // so it doesn't hug the top or bottom edge of the adjacent
 // item too closely if it's at the top or bottom of the list.
@@ -175,6 +213,7 @@ export function useDragTracking() {
 			const workspaceElements = document.querySelectorAll('[data-drop-target-id^="workspace:"]')
 			const homeWorkspaceId = app.getHomeWorkspaceId()
 			const myFilesElement = document.querySelector(`[data-drop-target-id="${homeWorkspaceId}"]`)
+			const scrollContainer = document.querySelector<HTMLElement>('[data-sidebar-scroll-container]')
 
 			assert(myFilesElement, 'myFilesElement not found')
 
@@ -225,6 +264,12 @@ export function useDragTracking() {
 			// Start the measurement loop
 			const onFrame = () => {
 				if (!cleanupRef.current) return
+
+				// Auto-scroll the sidebar when the pointer nears an edge so the
+				// list keeps moving even though native drag suppresses scrolling.
+				if (scrollContainer) {
+					tickAutoScroll(scrollContainer, mousePosition)
+				}
 
 				// Update bounding boxes for all drop targets
 				// Detect operations and update app state
