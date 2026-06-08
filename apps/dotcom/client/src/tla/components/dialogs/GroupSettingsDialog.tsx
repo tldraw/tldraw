@@ -1,4 +1,4 @@
-import { GroupRole } from '@tldraw/dotcom-shared'
+import { Role, can } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { MouseEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -78,15 +78,11 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 	const currentUser = groupMembership.groupMembers.find(
 		(member) => member.userId === app.getUser().id
 	)
-	const user = app.getGroupActor()
+	const role = currentUser?.role
 	const ownersCount = groupMembership.groupMembers.filter((m) => m.role === 'owner').length
-
-	const canEditName = user.can('editGroup', groupId)
-	const canManageMembers = user.can('manageMembers', groupId)
-	const canDelete = user.can('deleteGroup', groupId)
 	// Leaving is allowed for everyone except the last owner — a group invariant
 	// (it must always keep at least one owner), not a capability.
-	const canLeave = currentUser?.role !== 'owner' || ownersCount > 1
+	const canLeave = role !== 'owner' || ownersCount > 1
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
@@ -190,7 +186,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					<TldrawUiInput
 						className={styles.dialogInput}
 						defaultValue={group.name}
-						disabled={!canEditName}
+						disabled={!can(role, 'editGroup')}
 						onValueChange={(value) => {
 							const name = value.trim()
 							if (name && name !== group.name) {
@@ -275,7 +271,8 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 										{member.userName}
 										{member.userId === app.getUser().id ? ` (${youMsg})` : ''}
 									</span>
-									{canManageMembers && (member.userId !== app.getUser().id || ownersCount > 1) ? (
+									{can(role, 'manageMembers') &&
+									(member.userId !== app.getUser().id || ownersCount > 1) ? (
 										<MemberRoleSelect
 											value={member.role}
 											disabled={member.role === 'owner' && ownersCount <= 1}
@@ -347,7 +344,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 								<F {...messages.leaveGroup} />
 							</button>
 						)}
-						{canDelete && (
+						{can(role, 'deleteGroup') && (
 							<button className={styles.inlineButton} onClick={openDeleteConfirmDialog}>
 								<F {...messages.deleteGroup} />
 							</button>
@@ -368,8 +365,8 @@ function MemberRoleSelect({
 	ownerLabel,
 	adminLabel,
 }: {
-	value: GroupRole
-	onChange(v: GroupRole): void
+	value: Role
+	onChange(v: Role): void
 	disabled?: boolean
 	ownerLabel: string
 	adminLabel: string
@@ -381,7 +378,7 @@ function MemberRoleSelect({
 				className={styles.select}
 				value={value}
 				disabled={disabled}
-				onChange={(e) => onChange(e.currentTarget.value as GroupRole)}
+				onChange={(e) => onChange(e.currentTarget.value as Role)}
 			>
 				<option value="owner">{ownerLabel}</option>
 				<option value="admin">{adminLabel}</option>

@@ -7,7 +7,6 @@ import {
 	DragFileOperation,
 	DragReorderOperation,
 	FILE_PREFIX,
-	GroupActor,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
@@ -25,7 +24,6 @@ import {
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
 	ZeroContext,
-	createGroupActor,
 	createMutators,
 	parseFlags,
 	queries,
@@ -447,21 +445,6 @@ export class TldrawApp {
 
 	getGroupMembership(groupId: string) {
 		return this.groupMemberships$.get().find((g) => g.groupId === groupId)
-	}
-
-	/**
-	 * The signed-in user, as seen by group authorization. Read capabilities off
-	 * it with `app.getGroupActor().can('editGroup', group)`. Roles are resolved
-	 * synchronously from synced membership data; call `.can()` inside a reactive
-	 * scope (render or a computed) so it re-runs when membership changes.
-	 */
-	getGroupActor(): GroupActor {
-		const userId = this.userId
-		return createGroupActor((groupId) => {
-			// A user's personal/home group has groupId === userId; they own it.
-			if (groupId === userId) return 'owner'
-			return this.getGroupMembership(groupId)?.role ?? null
-		})
 	}
 
 	getGroupFilesSorted(groupId: string) {
