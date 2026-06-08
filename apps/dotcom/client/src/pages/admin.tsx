@@ -684,6 +684,7 @@ function EnrollUserInGroups({
 	hasFrontend: boolean
 }) {
 	const [isEnrolling, setIsEnrolling] = useState(false)
+	const [isUnenrolling, setIsUnenrolling] = useState(false)
 	const fullyEnrolled = hasBackend && hasFrontend
 
 	const handleEnroll = useCallback(async () => {
@@ -732,6 +733,48 @@ function EnrollUserInGroups({
 		}
 	}, [inputRef, onError, onSuccess, onSuccessMessage])
 
+	const handleUnenroll = useCallback(async () => {
+		const q = inputRef.current?.value?.trim() ?? ''
+		if (!q) {
+			onError('Please enter an email or ID')
+			return
+		}
+
+		if (
+			!window.confirm(
+				`Remove user "${q}" from the groups UI? This clears the groups_frontend flag (their data stays migrated).`
+			)
+		) {
+			return
+		}
+
+		setIsUnenrolling(true)
+		onError('')
+
+		try {
+			const res = await fetch(`/api/app/admin/user/unenroll_groups?${new URLSearchParams({ q })}`, {
+				method: 'POST',
+			})
+
+			if (!res.ok) {
+				onError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+
+			const result = await res.json()
+			onSuccessMessage(
+				result.frontendRemoved
+					? 'Removed from the groups UI'
+					: 'User was not enrolled in the groups UI'
+			)
+			onSuccess()
+		} catch (err) {
+			onError(err instanceof Error ? err.message : 'Unenroll failed')
+		} finally {
+			setIsUnenrolling(false)
+		}
+	}, [inputRef, onError, onSuccess, onSuccessMessage])
+
 	return (
 		<div className={styles.migrationSection}>
 			<h4 className="tla-text_ui__medium">Groups enrollment</h4>
@@ -743,14 +786,24 @@ function EnrollUserInGroups({
 				Enroll this user in the groups feature: migrates their data to the groups model if needed
 				and shows the groups UI.
 			</p>
-			<TlaButton
-				onClick={handleEnroll}
-				variant="primary"
-				disabled={isEnrolling || fullyEnrolled}
-				isLoading={isEnrolling}
-			>
-				Enroll in groups
-			</TlaButton>
+			<div className={styles.userActions}>
+				<TlaButton
+					onClick={handleEnroll}
+					variant="primary"
+					disabled={isEnrolling || isUnenrolling || fullyEnrolled}
+					isLoading={isEnrolling}
+				>
+					Enroll in groups
+				</TlaButton>
+				<TlaButton
+					onClick={handleUnenroll}
+					variant="secondary"
+					disabled={isEnrolling || isUnenrolling || !hasFrontend}
+					isLoading={isUnenrolling}
+				>
+					Unenroll from groups UI
+				</TlaButton>
+			</div>
 		</div>
 	)
 }

@@ -856,6 +856,37 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return { backendMigrated, frontendGranted }
 	}
 
+	/**
+	 * Unenroll a user from the groups UI by clearing the groups_frontend flag.
+	 * Leaves groups_backend (the data model) in place — this just hides the groups
+	 * UI again, which is handy for testing the enrollment flow. Reboots the user so
+	 * the change takes effect.
+	 */
+	async admin_unenrollFromGroups(userId: string) {
+		this.userId ??= userId
+
+		const row = await this.db
+			.selectFrom('user')
+			.where('id', '=', userId)
+			.select('flags')
+			.executeTakeFirst()
+		const flags = parseFlags(row?.flags)
+		const nextFlags = flags.filter((flag) => flag !== 'groups_frontend')
+		const frontendRemoved = nextFlags.length !== flags.length
+		if (frontendRemoved) {
+			await this.db
+				.updateTable('user')
+				.set({ flags: nextFlags.join(',') })
+				.where('id', '=', userId)
+				.execute()
+		}
+
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
+		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+
+		return { frontendRemoved }
+	}
+
 	async admin_forceHardReboot(userId: string) {
 		if (this.cache) {
 			await this.cache?.reboot({ hard: true, delay: false, source: 'admin' })

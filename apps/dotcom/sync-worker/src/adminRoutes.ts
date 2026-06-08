@@ -74,6 +74,16 @@ export const adminRoutes = createRouter<Environment>()
 		const result = await user.admin_enrollInGroups(userRow.id)
 		return json(result)
 	})
+	.post('/app/admin/user/unenroll_groups', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const userRow = await requireUser(env, q)
+		const user = getUserDurableObject(env, userRow.id)
+		const result = await user.admin_unenrollFromGroups(userRow.id)
+		return json(result)
+	})
 	.get('/app/admin/unmigrated_users_count', async (_res, env) => {
 		const pg = createPostgresConnectionPool(env, '/app/admin/unmigrated_users_count')
 		return json({ count: await getNumUnmigratedUsers(pg) })
