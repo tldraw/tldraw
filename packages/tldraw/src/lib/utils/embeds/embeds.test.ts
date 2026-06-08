@@ -5,6 +5,9 @@ import {
 } from '../../defaultEmbedDefinitions'
 import { getEmbedInfo, matchEmbedUrl, matchUrl } from './embeds'
 
+const GOOGLE_MAPS_API_KEY = 'test-google-maps-api-key'
+const TEST_EMBED_CONFIG = { google_maps: { apiKey: GOOGLE_MAPS_API_KEY } }
+
 describe('embed sandbox permissions', () => {
 	function getSandboxString(permissions: Record<string, boolean | undefined>): string {
 		return Object.entries(permissions)
@@ -250,7 +253,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -258,7 +261,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
+			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -266,7 +269,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5041626,-0.2468738&zoom=14&maptype=roadmap`,
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=51.5041626,-0.2468738&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -282,7 +285,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=17.313261121327326&maptype=satellite`,
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=17.313261121327326&maptype=satellite`,
 		},
 	},
 	{
@@ -290,7 +293,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5074,0.1278&zoom=16.984468114035085&maptype=satellite`,
+			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=51.5074,0.1278&zoom=16.984468114035085&maptype=satellite`,
 		},
 	},
 	{
@@ -604,7 +607,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 	},
 	// google_maps
 	{
-		embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14`,
+		embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14`,
 		match: true,
 		output: {
 			type: 'google_maps',
@@ -612,7 +615,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		},
 	},
 	{
-		embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=satellite`,
+		embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=satellite`,
 		match: true,
 		output: {
 			type: 'google_maps',
@@ -620,7 +623,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		},
 	},
 	{
-		embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5074,0.1278&zoom=12&maptype=roadmap`,
+		embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=51.5074,0.1278&zoom=12&maptype=roadmap`,
 		match: true,
 		output: {
 			type: 'google_maps',
@@ -629,7 +632,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 	},
 	{
 		embedUrl:
-			'https://google.com/maps/embed?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14',
+			'https://google.com/maps/embed?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14',
 		match: false,
 	},
 	// google_calendar
@@ -786,7 +789,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 
 for (const testDef of MATCH_URL_TEST_URLS) {
 	test(`matchUrl("${testDef.url}")`, () => {
-		const result = matchUrl(DEFAULT_EMBED_DEFINITIONS, testDef.url)
+		const result = matchUrl(DEFAULT_EMBED_DEFINITIONS, testDef.url, TEST_EMBED_CONFIG)
 		if (testDef.match) {
 			expect(result).toBeDefined()
 			expect(result?.definition.type).toBe(testDef.output.type)
@@ -797,7 +800,7 @@ for (const testDef of MATCH_URL_TEST_URLS) {
 	})
 
 	test(`getEmbedInfo("${testDef.url}")`, () => {
-		const result = getEmbedInfo(DEFAULT_EMBED_DEFINITIONS, testDef.url)
+		const result = getEmbedInfo(DEFAULT_EMBED_DEFINITIONS, testDef.url, TEST_EMBED_CONFIG)
 		if (testDef.match) {
 			expect(result).toBeDefined()
 			expect(result?.definition.type).toBe(testDef.output.type)

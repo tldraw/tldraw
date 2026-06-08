@@ -851,7 +851,7 @@ export interface CustomDebugFlags {
 }
 
 // @public (undocumented)
-export interface CustomEmbedDefinition extends EmbedDefinition {
+export interface CustomEmbedDefinition<Config = never> extends EmbedDefinition<Config> {
     // (undocumented)
     readonly icon: string;
 }
@@ -928,7 +928,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
         readonly 'allow-presentation': true;
     };
     readonly title: "Google Maps";
-    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly toEmbedUrl: (url: string, config?: GoogleMapsEmbedConfig | undefined) => string | undefined;
     readonly type: "google_maps";
     readonly width: 720;
 }, {
@@ -1143,6 +1143,12 @@ export const DefaultDialogs: NamedExoticComponent<object>;
 
 // @public (undocumented)
 export let defaultEditorAssetUrls: TLEditorAssetUrls;
+
+// @public
+export interface DefaultEmbedConfig {
+    // (undocumented)
+    readonly google_maps?: GoogleMapsEmbedConfig;
+}
 
 // @public (undocumented)
 export type DefaultEmbedDefinitionType = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'];
@@ -1749,7 +1755,7 @@ export interface ElbowArrowTargetBox extends ElbowArrowBox {
 export function EllipseToolbarItem(): JSX.Element;
 
 // @public (undocumented)
-export interface EmbedDefinition {
+export interface EmbedDefinition<Config = never> {
     // (undocumented)
     readonly backgroundColor?: string;
     // (undocumented)
@@ -1779,7 +1785,7 @@ export interface EmbedDefinition {
     // (undocumented)
     readonly title: string;
     // (undocumented)
-    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly toEmbedUrl: (url: string, config?: Config) => string | undefined;
     // (undocumented)
     readonly type: string;
     // (undocumented)
@@ -1788,6 +1794,7 @@ export interface EmbedDefinition {
 
 // @public (undocumented)
 export interface EmbedShapeOptions extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues> {
+    readonly embedConfig?: DefaultEmbedConfig & Record<string, unknown>;
     readonly embedDefinitions: readonly TLEmbedDefinition[];
 }
 
@@ -1850,7 +1857,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
     // @deprecated (undocumented)
-    static setEmbedDefinitions(embedDefinitions: readonly EmbedDefinition[]): void;
+    static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
 }
@@ -2348,7 +2355,7 @@ export function getDisplayValues<Shape extends TLShape, DisplayValues extends ob
 }, shape: Shape, colorMode?: 'dark' | 'light'): DisplayValues;
 
 // @public
-export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
+export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string, embedConfig?: Record<string, unknown>): TLEmbedResult;
 
 // @public (undocumented)
 export function getFontFamily(theme: TLTheme, font: string): string;
@@ -2388,6 +2395,12 @@ export function getUncroppedSize(shapeSize: {
     h: number;
     w: number;
 };
+
+// @public
+export interface GoogleMapsEmbedConfig {
+    // (undocumented)
+    readonly apiKey?: string;
+}
 
 // @public (undocumented)
 export function GroupMenuItem(): JSX.Element | null;
@@ -4428,7 +4441,7 @@ export interface TLElbowArrowInfo {
 }
 
 // @public (undocumented)
-export type TLEmbedDefinition = CustomEmbedDefinition | EmbedDefinition;
+export type TLEmbedDefinition = CustomEmbedDefinition<any> | EmbedDefinition<any>;
 
 // @public (undocumented)
 export type TLEmbedResult = {

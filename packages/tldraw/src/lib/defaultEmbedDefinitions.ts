@@ -111,7 +111,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		overridePermissions: {
 			'allow-presentation': true,
 		},
-		toEmbedUrl: (url) => {
+		toEmbedUrl: (url, config?: GoogleMapsEmbedConfig) => {
 			if (url.includes('/maps/embed?')) {
 				return url
 			} else if (url.includes('/maps/')) {
@@ -126,7 +126,8 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 							? zoomOrMeters
 							: -Math.log2(parseInt(zoomOrMeters) / 14772321) / 0.8
 					const host = new URL(url).host.replace('www.', '')
-					result = `https://${host}/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=${lat},${lng}&zoom=${z}&maptype=${mapType}`
+					const apiKey = config?.apiKey ?? process.env.NEXT_PUBLIC_GC_API_KEY
+					result = `https://${host}/maps/embed/v1/view?key=${apiKey}&center=${lat},${lng}&zoom=${z}&maptype=${mapType}`
 				} else {
 					result = ''
 				}
@@ -702,8 +703,28 @@ export const unknownEmbedShapePermissionOverrides: TLEmbedShapePermissions = {
 	'allow-popups': false,
 }
 
+/**
+ * Configuration for the default Google Maps embed. Provide an `apiKey` through
+ * {@link EmbedShapeUtil}'s `embedConfig` option to render Google Maps embeds.
+ *
+ * @public
+ */
+export interface GoogleMapsEmbedConfig {
+	readonly apiKey?: string
+}
+
+/**
+ * Per-embed configuration for the default embed definitions, keyed by embed type.
+ * Passed to an embed definition's `toEmbedUrl` when building its embed URL.
+ *
+ * @public
+ */
+export interface DefaultEmbedConfig {
+	readonly google_maps?: GoogleMapsEmbedConfig
+}
+
 /** @public */
-export interface EmbedDefinition {
+export interface EmbedDefinition<Config = never> {
 	readonly type: string
 	readonly title: string
 	readonly hostnames: readonly string[]
@@ -721,18 +742,18 @@ export interface EmbedDefinition {
 	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
 	readonly overrideOutlineRadius?: number
 	// eslint-disable-next-line tldraw/method-signature-style
-	readonly toEmbedUrl: (url: string) => string | undefined
+	readonly toEmbedUrl: (url: string, config?: Config) => string | undefined
 	// eslint-disable-next-line tldraw/method-signature-style
 	readonly fromEmbedUrl: (url: string) => string | undefined
 }
 
 /** @public */
-export interface CustomEmbedDefinition extends EmbedDefinition {
+export interface CustomEmbedDefinition<Config = never> extends EmbedDefinition<Config> {
 	readonly icon: string
 }
 
 /** @public */
-export type TLEmbedDefinition = EmbedDefinition | CustomEmbedDefinition
+export type TLEmbedDefinition = EmbedDefinition<any> | CustomEmbedDefinition<any>
 
 /** @public */
 export type DefaultEmbedDefinitionType = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type']
