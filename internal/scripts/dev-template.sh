@@ -22,6 +22,12 @@ if [ ${#vite_args[@]} -eq 0 ]; then
     exit $?
 fi
 
+# Running vite directly below skips lazy's `runsAfter` ordering for the `dev` task. Of those
+# prerequisites only refresh-assets feeds templates (no template has a predev, and build-i18n
+# only feeds dotcom), so run it synchronously here so it can't race the template's dev server.
+# It's a cache hit in the common case, and the backgrounded lazy run below then skips it.
+LAZYREPO_PRETTY_OUTPUT=0 lazy run refresh-assets
+
 # lazy does not forward extra args to package scripts, so run vite directly in the template.
 # Run the shared deps in their own process group (set -m) so we can tear down lazy and
 # everything it spawns on exit — lazy installs no signal handlers of its own, so killing
