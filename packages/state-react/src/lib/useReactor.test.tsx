@@ -6,7 +6,7 @@ import { useAtom } from './useAtom'
 import { useReactor } from './useReactor'
 
 describe('useReactor', () => {
-	let mockEffectFn: ReturnType<typeof vi.fn>
+	let mockEffectFn: ReturnType<typeof vi.fn<(...args: any[]) => any>>
 	let view: RenderResult
 
 	beforeEach(() => {
