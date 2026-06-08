@@ -14,7 +14,7 @@ describe('FocusManager', () => {
 			getInstanceState: Mock
 			updateInstanceState: Mock
 			getContainer: Mock
-			isIn: Mock
+			getEditingShapeId: Mock
 			getSelectedShapeIds: Mock
 			complete: Mock
 		}
@@ -51,7 +51,7 @@ describe('FocusManager', () => {
 			updateInstanceState: vi.fn(),
 			getContainer: vi.fn(() => mockContainer),
 			getContainerDocument: vi.fn(() => document),
-			isIn: vi.fn(() => false),
+			getEditingShapeId: vi.fn(() => null),
 			getSelectedShapeIds: vi.fn(() => []),
 			complete: vi.fn(),
 		} as any
@@ -243,7 +243,7 @@ describe('FocusManager', () => {
 		})
 
 		it('should return early when editor is in editing mode', () => {
-			editor.isIn.mockReturnValue(true)
+			editor.getEditingShapeId.mockReturnValue('shape:1')
 			const event = new KeyboardEvent('keydown', { key: 'Tab' })
 
 			keydownHandler(event)
@@ -407,7 +407,7 @@ describe('FocusManager', () => {
 			const keydownCall = addEventListenerCalls.find((call: any) => call[0] === 'keydown')
 			const keydownHandler = keydownCall![1]
 
-			editor.isIn.mockReturnValue(true) // Editing mode
+			editor.getEditingShapeId.mockReturnValue('shape:1') // Editing mode
 
 			const event = new KeyboardEvent('keydown', { key: 'Tab' })
 			keydownHandler(event)

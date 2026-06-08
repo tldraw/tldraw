@@ -1,6 +1,7 @@
 import { IndexKey, uniqueId } from '@tldraw/utils'
 import { describe, expect, it } from 'vitest'
 import { createMutators, parseFlags, userHasFlag } from './mutators'
+import { FILE_PREFIX, PUBLISH_PREFIX } from './routes'
 import {
 	TlaFile,
 	TlaFileState,
@@ -1174,5 +1175,141 @@ describe('cross-user isolation', () => {
 		await expectForbidden(() =>
 			mB.onEnterFile(tx, { fileId: 'file_userA123456789a', time: Date.now() })
 		)
+	})
+})
+
+describe('createFile from source (duplicate) access control', () => {
+	const userId = 'user_aaaa11112222bbbb'
+	const otherGroup = 'group_other123456789'
+	const sourceId = 'file_source123456789'
+	const newFileId = 'file_dup1234567890ab'
+
+	// migrated user whose target group is their home group (groupId === userId)
+	function baseStore(sourceFile: TlaFile) {
+		return {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [sourceFile],
+			file_state: [],
+			group: [makeGroup({ id: userId }), makeGroup({ id: otherGroup })],
+			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
+			group_file: [],
+		}
+	}
+
+	function duplicate(m: ReturnType<typeof createMutators>, tx: any, createSource: string | null) {
+		return m.createFile(tx, {
+			fileId: newFileId,
+			groupId: userId,
+			name: 'Copy',
+			time: Date.now(),
+			createSource,
+		})
+	}
+
+	it('can duplicate a file shared with you', async () => {
+		const s = baseStore(makeFile({ id: sourceId, owningGroupId: otherGroup, shared: true }))
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await expectValid(() => duplicate(m, tx, `${FILE_PREFIX}/${sourceId}`))
+		expect(s.file.find((f) => f.id === newFileId)).toBeDefined()
+	})
+
+	it('can duplicate your own file', async () => {
+		// source owned by the user's home group → accessible as a member
+		const s = baseStore(makeFile({ id: sourceId, owningGroupId: userId, shared: false }))
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await expectValid(() => duplicate(m, tx, `${FILE_PREFIX}/${sourceId}`))
+	})
+
+	it('cannot duplicate a file you cannot access (e.g. access revoked, shared:false)', async () => {
+		// the core bug: source no longer shared and user is not owner/member
+		const s = baseStore(makeFile({ id: sourceId, owningGroupId: otherGroup, shared: false }))
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await expectForbidden(() => duplicate(m, tx, `${FILE_PREFIX}/${sourceId}`))
+		// and no new file was created
+		expect(s.file.find((f) => f.id === newFileId)).toBeUndefined()
+	})
+
+	it('cannot duplicate a file you only know the id of (source not present)', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [] as TlaFile[],
+			file_state: [],
+			group: [makeGroup({ id: userId })],
+			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await expectBadRequest(() => duplicate(m, tx, `${FILE_PREFIX}/${sourceId}`))
+	})
+
+	it('non-migrated user cannot duplicate an inaccessible legacy file', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: '' })],
+			file: [makeFile({ id: sourceId, ownerId: 'user_someoneElse1234', shared: false })],
+			file_state: [],
+			group: [],
+			group_user: [],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await expectForbidden(() => duplicate(m, tx, `${FILE_PREFIX}/${sourceId}`))
+	})
+
+	it('does not gate non-file createSource prefixes (e.g. published)', async () => {
+		// a published-doc copy uses a different prefix and must still work even
+		// when there is no readable `file` row for the source id
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [] as TlaFile[],
+			file_state: [],
+			group: [makeGroup({ id: userId })],
+			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await expectValid(() => duplicate(m, tx, `${PUBLISH_PREFIX}/${sourceId}`))
+	})
+})
+
+describe('legacy file creation (insertWithFileState removed as a mutator)', () => {
+	const userId = 'user_aaaa11112222bbbb'
+
+	it('file.insertWithFileState is not exposed as a callable mutator', () => {
+		// It was demoted to a private helper so a client cannot insert an
+		// arbitrary file row (with an attacker-controlled createSource) directly.
+		const m = createMutators(userId)
+		expect((m.file as Record<string, unknown>).insertWithFileState).toBeUndefined()
+	})
+
+	it('non-migrated user can still create a blank file', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: '' })],
+			file: [] as TlaFile[],
+			file_state: [] as TlaFileState[],
+			group: [],
+			group_user: [],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await expectValid(() =>
+			m.createFile(tx, {
+				fileId: 'file_legacy123456789',
+				groupId: userId,
+				name: 'Legacy file',
+				time: Date.now(),
+				createSource: null,
+			})
+		)
+		// the file and its file_state were created with legacy ownerId ownership
+		const created = s.file.find((f) => f.id === 'file_legacy123456789')
+		expect(created?.ownerId).toBe(userId)
+		expect(s.file_state.find((fs) => fs.fileId === 'file_legacy123456789')).toBeDefined()
 	})
 })
