@@ -1,0 +1,26 @@
+
+name = "marketing-assets-template"
+main = "worker/worker.ts"
+compatibility_date = "2025-05-08"
+compatibility_flags = ["nodejs_compat"]
+upload_source_maps = true
+preview_urls = true
+
+[[routes]]
+pattern = "marketing-assets.templates.tldraw.dev"
+custom_domain = true
+
+[observability]
+enabled = true
+
+[assets]
+not_found_handling = "single-page-application"
+directory = "./dist/client"
+
+# Environment variables for AI provider API keys.
+# Set these in production with:
+#   wrangler secret put ANTHROPIC_API_KEY
+#   wrangler secret put GOOGLE_API_KEY
+# For local development, create a .dev.vars file (see .dev.vars.example):
+#   ANTHROPIC_API_KEY=...
+#   GOOGLE_API_KEY=...
