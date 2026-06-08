@@ -491,48 +491,50 @@ export const defaultShapesIds = {
 	ellipse1: createShapeId('ellipse1'),
 }
 
-export const createDefaultShapes = (): TLShapePartial[] => [
-	{
-		id: defaultShapesIds.box1,
-		type: 'geo',
-		x: 100,
-		y: 100,
-		props: {
-			w: 100,
-			h: 100,
-			geo: 'rectangle',
+export function createDefaultShapes(): TLShapePartial[] {
+	return [
+		{
+			id: defaultShapesIds.box1,
+			type: 'geo',
+			x: 100,
+			y: 100,
+			props: {
+				w: 100,
+				h: 100,
+				geo: 'rectangle',
+			},
 		},
-	},
-	{
-		id: defaultShapesIds.box2,
-		type: 'geo',
-		x: 200,
-		y: 200,
-		rotation: HALF_PI / 2,
-		props: {
-			w: 100,
-			h: 100,
-			color: 'black',
-			fill: 'none',
-			dash: 'draw',
-			size: 'm',
-			geo: 'rectangle',
+		{
+			id: defaultShapesIds.box2,
+			type: 'geo',
+			x: 200,
+			y: 200,
+			rotation: HALF_PI / 2,
+			props: {
+				w: 100,
+				h: 100,
+				color: 'black',
+				fill: 'none',
+				dash: 'draw',
+				size: 'm',
+				geo: 'rectangle',
+			},
 		},
-	},
-	{
-		id: defaultShapesIds.ellipse1,
-		type: 'geo',
-		parentId: defaultShapesIds.box2,
-		x: 200,
-		y: 200,
-		props: {
-			w: 50,
-			h: 50,
-			color: 'black',
-			fill: 'none',
-			dash: 'draw',
-			size: 'm',
-			geo: 'ellipse',
+		{
+			id: defaultShapesIds.ellipse1,
+			type: 'geo',
+			parentId: defaultShapesIds.box2,
+			x: 200,
+			y: 200,
+			props: {
+				w: 50,
+				h: 50,
+				color: 'black',
+				fill: 'none',
+				dash: 'draw',
+				size: 'm',
+				geo: 'ellipse',
+			},
 		},
-	},
-]
+	]
+}

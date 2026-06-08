@@ -29,7 +29,6 @@ export type TLUiTranslationKey =
 	| 'action.copy-as-svg.short'
 	| 'action.copy-as-svg'
 	| 'action.copy'
-	| 'action.copy-hovered-styles'
 	| 'action.cut'
 	| 'action.delete'
 	| 'action.unlock-all'

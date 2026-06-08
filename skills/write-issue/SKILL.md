@@ -90,6 +90,16 @@ Use sparingly (1-2 per issue) for metadata, not categorization.
 3. Suggested approach
 4. Which example category it belongs to
 
+### Agent-drafted issues (problem readback and open questions)
+
+Issues created by the `/issue` skill capture the user's intent over a short interrogation, so they carry an unheaded readback paragraph beneath the verbatim description, followed by open questions and a confidence status line at the bottom:
+
+- **Problem readback** - A brief, unheaded paragraph that states the agent's interpretation of the problem, expected behavior, and scope. It should be easy for the user to correct. Keep it product-facing: no code blocks, no long implementation analysis, no file paths, no function names, no line numbers, and no fix recipes unless the user explicitly asks for them.
+- **Open questions** - A numbered list of the specific gaps in intent or context still worth asking the user about. Answers are written beneath each question as the user replies, and the readback is revised each round. A question prefixed with `Critical:` is genuinely blocking — the issue cannot be worked on until it is answered. Most issues have none. Non-critical questions the user chooses not to answer are marked `_Deferred by user; not blocking implementation._`.
+- **Confidence line** - A plain-text line at the bottom, not a section heading, such as `Confidence: 84%, ready to get started.` or `Confidence: 42%, still need more information.` It reflects whether the issue has enough of the user's intent and context to work on, not confidence in the eventual fix.
+
+Leave the readback, open questions, and confidence line in the issue once interrogation is complete. The answered questions are a record of the discussion that produced the issue, so keep them rather than deleting them — mark questions resolved in place and keep the final readback as the issue's concise problem statement.
+
 ## Triage workflow
 
 ### New issues

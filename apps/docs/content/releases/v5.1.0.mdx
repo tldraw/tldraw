@@ -1,0 +1,50 @@
+---
+title: v5.1.0
+description: Page menu redesign, a copy-styles shortcut, a selectLockedShapes option, public translation APIs, and more
+author: tldraw
+date: 06/03/2026
+order: 0
+status: published
+keywords:
+  - changelog
+  - release
+  - v5.1
+  - v5.1.0
+  - page-menu
+  - copy-styles
+  - locked-shapes
+  - translations
+---
+
+[View on GitHub](https://github.com/tldraw/tldraw/releases/tag/v5.1.0)
+
+This release redesigns the page menu around inline interaction, adds a keyboard shortcut to copy styles from a hovered shape, and adds a `selectLockedShapes` option for inspecting locked shapes, along with new public translation APIs, canvas performance improvements, and various rendering and UI bug fixes.
+
+## What's new
+
+### Page menu redesign ([#8836](https://github.com/tldraw/tldraw/pull/8836))
+
+The page menu no longer has an explicit edit mode. Reorder pages by dragging a row directly, rename inline by double-clicking the label or pressing Enter, and drag the new resize handle at the bottom of the popover to adjust the list height — the height is persisted across sessions and a double-click on the handle resets it to the default. The current page is now indicated by a subtle background pill, the row submenu trigger reveals on hover, and the "Create new page" button is pinned to the footer of the popover.
+
+## API changes
+
+- Add a `selectLockedShapes` option to `TldrawOptions`. When enabled, locked shapes can be selected by left click or by brush/scribble selection while remaining protected from edits, moves, and deletes. ([#8860](https://github.com/tldraw/tldraw/pull/8860))
+- Export `TldrawUiTranslationProvider`, `AssetUrlsProvider`, and `useAssetUrls` as public API so components like `TldrawSelectionForeground` can be rendered without the full `TldrawUiContextProvider`. ([#8909](https://github.com/tldraw/tldraw/pull/8909))
+- Add `FontManager.dispose()`, `OverlayManager.dispose()`, and `OverlayUtil.dispose()` for cleaning up manager state across editor lifecycles. ([#8896](https://github.com/tldraw/tldraw/pull/8896))
+
+## Improvements
+
+- Improve performance on busy canvases — `getRenderingShapes()` now skips its sort step when only shape props, not the set of shape ids, have changed. ([#8784](https://github.com/tldraw/tldraw/pull/8784))
+- Improve drawing performance on pages with many shapes by skipping spatial index and culling recomputation when only shape props change. ([#8799](https://github.com/tldraw/tldraw/pull/8799), [#8804](https://github.com/tldraw/tldraw/pull/8804))
+
+## Bug fixes
+
+- Fix a misleading "license expired" console warning for perpetual licenses on covered versions. ([#8791](https://github.com/tldraw/tldraw/pull/8791))
+- Fix inconsistent tooltip behavior on the video toolbar by using `TldrawUiToolbarButton` for the replace and download buttons. ([#8794](https://github.com/tldraw/tldraw/pull/8794))
+- Fix the missing open-state hint on the page menu and zoom menu triggers when rendered outside the main toolbar. ([#8813](https://github.com/tldraw/tldraw/pull/8813))
+- Mark the tldraw UI layer with `role="document"` so toolbars, menus, and dialogs stay reachable to mobile screen readers like VoiceOver and TalkBack, which do not announce the outer canvas `role="application"`. ([#8901](https://github.com/tldraw/tldraw/pull/8901))
+- Fix selection edge resize handles overlapping corner handles, which made corners hard to grab on small shapes. ([#8926](https://github.com/tldraw/tldraw/pull/8926))
+- Fix a bug where deleting a shape inside a group could move the group to a different z-index. ([#8925](https://github.com/tldraw/tldraw/pull/8925))
+- Avoid console errors from calling `preventDefault` on non-cancelable events. ([#8910](https://github.com/tldraw/tldraw/pull/8910))
+- Only log the missing-translation warning once per session instead of once per `useTranslation` consumer. ([#8909](https://github.com/tldraw/tldraw/pull/8909))
+- Catch `image.decode()` rejections from the icon preload effect so they no longer surface as uncaught promise errors in the console. ([#8824](https://github.com/tldraw/tldraw/pull/8824))

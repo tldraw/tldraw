@@ -1,3 +1,4 @@
+import { noop } from './function'
 import type { Awaitable } from './types'
 
 /**
@@ -7,6 +8,12 @@ import type { Awaitable } from './types'
  * even if called multiple times in rapid succession. Each new call resets the timer. The debounced
  * function returns a Promise that resolves with the result of the original function. Includes a
  * cancel method to prevent execution if needed.
+ *
+ * Calling `cancel()` while a call is pending rejects the returned promise with an `Error`
+ * whose message is `'Debounced function was cancelled'`. Callers that discard the promise
+ * are not affected — internal handling suppresses the unhandled-rejection warning — but
+ * any code that `await`s or chains `.then()` on the promise must be prepared to handle the
+ * rejection.
  *
  * @param callback - The function to debounce (can be sync or async)
  * @param wait - The delay in milliseconds before executing the function
@@ -23,15 +30,19 @@ import type { Awaitable } from './types'
  * debouncedSearch('react hooks') // This cancels the previous call
  * debouncedSearch('react typescript') // Only this will execute
  *
- * // Cancel pending execution
+ * // Cancel pending execution — any in-flight promise rejects
  * debouncedSearch.cancel()
  *
- * // With async/await
+ * // With async/await — wrap in try/catch if you might cancel
  * const saveData = debounce(async (data: any) => {
  *   return await api.save(data)
  * }, 1000)
  *
- * const result = await saveData({name: 'John'})
+ * try {
+ *   const result = await saveData({name: 'John'})
+ * } catch (err) {
+ *   // handle cancellation or callback error
+ * }
  * ```
  *
  * @public
@@ -79,7 +90,14 @@ export function debounce<T extends unknown[], U>(
 	fn.cancel = () => {
 		if (!state) return
 		clearTimeout(state.timeout)
+		const s = state
 		state = undefined
+		// Attach a no-op handler so callers that discard the promise don't
+		// trigger an unhandled-rejection warning. Consumers that did `.then`,
+		// `.catch`, or `await` on the returned promise still observe the
+		// rejection through their own chain.
+		s.promise.catch(noop)
+		s.reject(new Error('Debounced function was cancelled'))
 	}
 	return fn
 }

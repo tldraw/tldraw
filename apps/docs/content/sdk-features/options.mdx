@@ -72,7 +72,7 @@ Configure how the editor interprets user input timing:
 | Option                  | Default | Description                                       |
 | ----------------------- | ------- | ------------------------------------------------- |
 | `doubleClickDurationMs` | 450     | Maximum interval for double-click detection       |
-| `multiClickDurationMs`  | 200     | Maximum interval for triple/quadruple click       |
+| `multiClickDurationMs`  | 200     | Double-click settle delay and overflow window     |
 | `longPressDurationMs`   | 500     | Duration to trigger long press                    |
 | `animationMediumMs`     | 320     | Duration for camera animations (zoom, pan to fit) |
 
@@ -201,7 +201,6 @@ When `debouncedZoom` is enabled and the page has more shapes than `debouncedZoom
 | `laserDelayMs`                   | 1200      | Duration laser pointer remains visible         |
 | `laserFadeoutMs`                 | 500       | Duration for laser pointer fadeout animation   |
 | `quickZoomPreservesScreenBounds` | true      | Whether quick zoom brush keeps viewport scale  |
-| `allowVideoAutoplay`             | true      | Whether video shapes are allowed to autoplay   |
 | `branding`                       | undefined | App name for accessibility labels              |
 | `nonce`                          | undefined | CSP nonce for inline styles                    |
 

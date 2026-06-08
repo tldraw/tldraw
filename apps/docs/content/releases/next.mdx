@@ -2,39 +2,23 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 05/06/2026
+date: 06/03/2026
 order: 0
 status: published
-last_version: v5.0.2
+last_version: v5.1.0
 ---
 
-This release redesigns the page menu around inline interaction, adds a keyboard shortcut to copy styles from a hovered shape, and adds a `selectLockedShapes` option for inspecting locked shapes, along with new public translation APIs and various rendering and UI bug fixes.
-
-## What's new
-
-### Page menu redesign ([#8836](https://github.com/tldraw/tldraw/pull/8836))
-
-The page menu no longer has an explicit edit mode. Reorder pages by dragging a row directly, rename inline by double-clicking the label or pressing Enter, and drag the new resize handle at the bottom of the popover to adjust the list height — the height is persisted across sessions and a double-click on the handle resets it to the default. The current page is now indicated by a subtle background pill, the row submenu trigger reveals on hover, and the "Create new page" button is pinned to the footer of the popover.
+This release simplifies multi-click handling down to a single double-click event — a breaking change for anyone relying on triple- or quadruple-click handlers — and fixes a number of canvas interaction bugs around pinch-zoom selection, pasting mid-gesture, note list editing, and zoom clamping.
 
 ## API changes
 
-- Add a `selectLockedShapes` option to `TldrawOptions`. When enabled, locked shapes can be selected by left click or by brush/scribble selection while remaining protected from edits, moves, and deletes. ([#8860](https://github.com/tldraw/tldraw/pull/8860))
-- Export `TldrawUiTranslationProvider`, `AssetUrlsProvider`, and `useAssetUrls` as public API so components like `TldrawSelectionForeground` can be rendered without the full `TldrawUiContextProvider`. ([#8909](https://github.com/tldraw/tldraw/pull/8909))
-- Add `FontManager.dispose()`, `OverlayManager.dispose()`, and `OverlayUtil.dispose()` for cleaning up manager state across editor lifecycles. ([#8896](https://github.com/tldraw/tldraw/pull/8896))
-
-## Improvements
-
-- Add a `q` shortcut that copies the styles of the hovered shape and applies them to the next shape you create. ([#8917](https://github.com/tldraw/tldraw/pull/8917)) (contributed by [@kaneel](https://github.com/kaneel))
-- Improve performance on busy canvases — `getRenderingShapes()` now skips its sort step when only shape props, not the set of shape ids, have changed. ([#8784](https://github.com/tldraw/tldraw/pull/8784))
+- 💥 Simplify multi-click handling to double-click only. `ClickManager` no longer tracks triple or quadruple clicks: the `triple_click` and `quadruple_click` events and the `onTripleClick` / `onQuadrupleClick` handlers have been removed, and `TLClickEventName` is now just `'double_click'`. ([#8897](https://github.com/tldraw/tldraw/pull/8897))
 
 ## Bug fixes
 
-- Fix a misleading "license expired" console warning for perpetual licenses on covered versions. ([#8791](https://github.com/tldraw/tldraw/pull/8791))
-- Fix inconsistent tooltip behavior on the video toolbar by using `TldrawUiToolbarButton` for the replace and download buttons. ([#8794](https://github.com/tldraw/tldraw/pull/8794))
-- Fix the missing open-state hint on the page menu and zoom menu triggers when rendered outside the main toolbar. ([#8813](https://github.com/tldraw/tldraw/pull/8813))
-- Mark the tldraw UI layer with `role="document"` so toolbars, menus, and dialogs stay reachable to mobile screen readers like VoiceOver and TalkBack, which do not announce the outer canvas `role="application"`. ([#8901](https://github.com/tldraw/tldraw/pull/8901))
-- Fix selection edge resize handles overlapping corner handles, which made corners hard to grab on small shapes. ([#8926](https://github.com/tldraw/tldraw/pull/8926))
-- Fix a bug where deleting a shape inside a group could move the group to a different z-index. ([#8925](https://github.com/tldraw/tldraw/pull/8925)) (contributed by [@kaneel](https://github.com/kaneel))
-- Avoid console errors from calling `preventDefault` on non-cancelable events. ([#8910](https://github.com/tldraw/tldraw/pull/8910))
-- Only log the missing-translation warning once per session instead of once per `useTranslation` consumer. ([#8909](https://github.com/tldraw/tldraw/pull/8909))
-- Catch `image.decode()` rejections from the icon preload effect so they no longer surface as uncaught promise errors in the console. ([#8824](https://github.com/tldraw/tldraw/pull/8824))
+- Fix the fill style dropdown trigger showing a misleading tooltip for the currently selected fill. ([#9023](https://github.com/tldraw/tldraw/pull/9023))
+- Fix a two-finger pinch unintentionally changing the selection on touch devices. ([#9006](https://github.com/tldraw/tldraw/pull/9006))
+- Pasting content while dragging, translating, resizing, or rotating no longer steals selection from the shape being manipulated. ([#8976](https://github.com/tldraw/tldraw/pull/8976))
+- Fix a bug where pressing `Tab` while editing a list inside a note shape created a new note instead of indenting the list item. ([#8958](https://github.com/tldraw/tldraw/pull/8958))
+- Fix the viewport shifting slightly when zooming past the minimum or maximum zoom level. ([#8957](https://github.com/tldraw/tldraw/pull/8957))
+- Fix `debounce(...).cancel()` leaving an awaited call hanging forever; it now rejects the pending promise. ([#8683](https://github.com/tldraw/tldraw/pull/8683))

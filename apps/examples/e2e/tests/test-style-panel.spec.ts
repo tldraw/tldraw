@@ -31,6 +31,23 @@ test.describe('Style selection behaviour', () => {
 		await stylePanel.isActive(blue)
 	})
 
+	test('the fill dropdown trigger tooltip describes the dropdown, not the current fill', async ({
+		isMobile,
+		stylePanel,
+		toolbar,
+	}) => {
+		const { solid } = stylePanel.fill
+		if (isMobile) {
+			await toolbar.mobileStylesButton.click()
+		}
+
+		// when the current fill lives outside the dropdown (the default "none", or "solid"),
+		// the trigger tooltip should just name the style, not a value the dropdown can't show
+		await expect(stylePanel.fillExtra).toHaveAttribute('aria-label', 'Fill')
+		await solid.click()
+		await expect(stylePanel.fillExtra).toHaveAttribute('aria-label', 'Fill')
+	})
+
 	test('selecting a style changes the style of the shapes', async ({
 		page,
 		stylePanel,

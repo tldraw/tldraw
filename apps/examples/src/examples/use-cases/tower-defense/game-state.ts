@@ -60,11 +60,17 @@ export const elapsedMs$ = atom('elapsedMs', 0)
 export const towerCooldowns = new Map<string, TowerCooldown>()
 
 let _nextEnemyId = 1
-export const nextEnemyId = () => _nextEnemyId++
+export function nextEnemyId() {
+	return _nextEnemyId++
+}
 let _nextProjId = 1
-export const nextProjectileId = () => _nextProjId++
+export function nextProjectileId() {
+	return _nextProjId++
+}
 let _nextExplosionId = 1
-export const nextExplosionId = () => _nextExplosionId++
+export function nextExplosionId() {
+	return _nextExplosionId++
+}
 
 export function resetGameState() {
 	enemies$.set([])

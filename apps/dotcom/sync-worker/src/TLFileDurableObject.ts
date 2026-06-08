@@ -909,6 +909,10 @@ export class TLFileDurableObject extends DurableObject {
 		const fetchTimer = this.timer()
 		switch (prefix) {
 			case FILE_PREFIX: {
+				// The source file's content is copied verbatim into this (user-owned)
+				// room. Read access to the source `id` is authorized upstream when the
+				// file record is created (see the `createFile` mutator), since that is
+				// where the requesting user's identity is known.
 				const awaitPersistTimer = this.timer()
 				await getRoomDurableObject(this.env, id).awaitPersist()
 				awaitPersistTimer.report('create_from_source_await_persist')

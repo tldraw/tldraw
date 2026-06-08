@@ -1,4 +1,7 @@
 {
+	"installCommand": "yarn workspaces focus examples.tldraw.com @tldraw/monorepo config",
+	"buildCommand": "cd ../../packages/tldraw && yarn prebuild && cd ../../apps/examples && yarn build",
+	"outputDirectory": "dist",
 	"headers": [
 		{
 			"source": "/assets/(.*)",

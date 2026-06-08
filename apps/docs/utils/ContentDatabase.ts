@@ -173,6 +173,14 @@ export class ContentDatabase {
 			}
 		}
 
+		// The releases section is ordered newest-first (so the latest release and the
+		// "Next release" page sit at the top of the list), but its prev/next nav should
+		// still read chronologically: "previous" → the older release, "next" → the newer
+		// release. Newer releases have a lower sectionIndex, so swap the computed links.
+		if (article.sectionId === 'releases') {
+			return { prev: next ?? null, next: prev ?? null }
+		}
+
 		return { prev: prev ?? null, next: next ?? null }
 	}
 
