@@ -6,7 +6,7 @@ import {
 	userHasFlag,
 	ZStoreData,
 } from '@tldraw/dotcom-shared'
-import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { sentryReleaseName } from '../../sentry-release-name'
@@ -225,12 +225,10 @@ export function Component() {
 							</TlaButton>
 						</div>
 						<EnrollUserInGroups
-							inputRef={inputRef}
+							user={data.user[0] as TlaUser}
 							onSuccess={loadData}
 							onError={setError}
 							onSuccessMessage={setSuccessMessage}
-							hasBackend={userHasFlag((data.user[0] as TlaUser).flags, 'groups_backend')}
-							hasFrontend={userHasFlag((data.user[0] as TlaUser).flags, 'groups_frontend')}
 						/>
 						<StructuredDataDisplay data={data} />
 					</section>
@@ -669,34 +667,28 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 }
 
 function EnrollUserInGroups({
-	inputRef,
+	user,
 	onSuccess,
 	onError,
 	onSuccessMessage,
-	hasBackend,
-	hasFrontend,
 }: {
-	inputRef: RefObject<HTMLInputElement | null>
+	user: TlaUser
 	onSuccess(): void
 	onError(error: string): void
 	onSuccessMessage(message: string): void
-	hasBackend: boolean
-	hasFrontend: boolean
 }) {
 	const [isEnrolling, setIsEnrolling] = useState(false)
 	const [isUnenrolling, setIsUnenrolling] = useState(false)
+	// Derive status and the target id from the loaded user, not the live search
+	// box, so the action always matches the status shown above it.
+	const hasBackend = userHasFlag(user.flags, 'groups_backend')
+	const hasFrontend = userHasFlag(user.flags, 'groups_frontend')
 	const fullyEnrolled = hasBackend && hasFrontend
 
 	const handleEnroll = useCallback(async () => {
-		const q = inputRef.current?.value?.trim() ?? ''
-		if (!q) {
-			onError('Please enter an email or ID')
-			return
-		}
-
 		if (
 			!window.confirm(
-				`Enroll user "${q}" in the groups feature? This grants groups_backend (migrating their data if needed) and groups_frontend (the groups UI).`
+				`Enroll ${user.email} in the groups feature? This grants groups_backend (migrating their data if needed) and groups_frontend (the groups UI).`
 			)
 		) {
 			return
@@ -706,9 +698,10 @@ function EnrollUserInGroups({
 		onError('')
 
 		try {
-			const res = await fetch(`/api/app/admin/user/enroll_groups?${new URLSearchParams({ q })}`, {
-				method: 'POST',
-			})
+			const res = await fetch(
+				`/api/app/admin/user/enroll_groups?${new URLSearchParams({ q: user.id })}`,
+				{ method: 'POST' }
+			)
 
 			if (!res.ok) {
 				onError(res.statusText + ': ' + (await res.text()))
@@ -731,18 +724,12 @@ function EnrollUserInGroups({
 		} finally {
 			setIsEnrolling(false)
 		}
-	}, [inputRef, onError, onSuccess, onSuccessMessage])
+	}, [user.id, user.email, onError, onSuccess, onSuccessMessage])
 
 	const handleUnenroll = useCallback(async () => {
-		const q = inputRef.current?.value?.trim() ?? ''
-		if (!q) {
-			onError('Please enter an email or ID')
-			return
-		}
-
 		if (
 			!window.confirm(
-				`Remove user "${q}" from the groups UI? This clears the groups_frontend flag (their data stays migrated).`
+				`Remove ${user.email} from the groups UI? This clears the groups_frontend flag (their data stays migrated).`
 			)
 		) {
 			return
@@ -752,9 +739,10 @@ function EnrollUserInGroups({
 		onError('')
 
 		try {
-			const res = await fetch(`/api/app/admin/user/unenroll_groups?${new URLSearchParams({ q })}`, {
-				method: 'POST',
-			})
+			const res = await fetch(
+				`/api/app/admin/user/unenroll_groups?${new URLSearchParams({ q: user.id })}`,
+				{ method: 'POST' }
+			)
 
 			if (!res.ok) {
 				onError(res.statusText + ': ' + (await res.text()))
@@ -773,7 +761,7 @@ function EnrollUserInGroups({
 		} finally {
 			setIsUnenrolling(false)
 		}
-	}, [inputRef, onError, onSuccess, onSuccessMessage])
+	}, [user.id, user.email, onError, onSuccess, onSuccessMessage])
 
 	return (
 		<div className={styles.migrationSection}>
