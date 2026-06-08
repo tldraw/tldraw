@@ -1,5 +1,6 @@
-import { RecordProps, T, TLShape } from 'tldraw'
-import { TextLayer } from '../api/marketingApi'
+import { T } from '@tldraw/validate'
+import type { RecordProps, TLShape } from 'tldraw'
+import type { TextLayer } from '../api/marketingApi'
 
 export const MARKETING_ASSET_TYPE = 'marketing-asset'
 
@@ -30,6 +31,12 @@ export interface MarketingAssetProps {
 	status: 'idle' | 'generating' | 'error'
 	/** Error message when status is 'error'. */
 	error: string
+	/**
+	 * When the current generation started, refreshed periodically as a heartbeat
+	 * while it runs. In multiplayer this lets a peer tell an actively-generating
+	 * asset from one whose client went away mid-render. 0 when not generating.
+	 */
+	generatingStartedAt: number
 }
 
 // Register the shape in tldraw's global shape map so TLShape<'marketing-asset'>
@@ -71,4 +78,5 @@ export const marketingAssetProps: RecordProps<MarketingAssetShape> = {
 	currentVersion: T.number,
 	status: T.literalEnum('idle', 'generating', 'error'),
 	error: T.string,
+	generatingStartedAt: T.number,
 }

@@ -7,6 +7,8 @@
 
 This starter kit generates on-brand marketing assets with an image model, then lets you refine them by drawing arrows and text directly on the [tldraw](https://github.com/tldraw/tldraw) canvas. You configure a brand, write a brief, pick an output format, and generate. To revise an asset, annotate it and hit re-render — the annotations are read by a vision model and turned into a precise edit, and every render is kept in a per-asset version history you can revert to.
 
+It's **multiplayer**: each canvas is a room (the room id is in the URL), so you can share the link and design assets together in real time. The board syncs through a self-hosted Cloudflare backend in the same worker that runs the AI.
+
 ## How it works
 
 An asset is a **text-free background** from the image model with **text layers** the app renders deterministically on top — so the copy is always legible, on-brand, and stable, and it never gets reinvented or misaligned by the image model.
@@ -15,9 +17,10 @@ An asset is a **text-free background** from the image model with **text layers**
 2. **Generate** — a brief, an output type (Instagram square, story, …), and an optional reference image produce an asset in a frame: Gemini renders a text-free background, then Claude lays out the text layers over it (content, position, font, colour, contrast scrim) and the app draws them with real fonts.
 3. **Annotate** — mark up an asset. Use the **Annotate** tool (in the toolbar, shortcut `K`) to ring an area with an oval and get an arrow plus a ready-to-type note in one gesture, or draw standard tldraw arrows and text by hand. Arrows point at what to change; text says how.
 4. **Re-render** — Claude (vision) reads the annotated asset, **updates the text layers directly** (no image model — so text edits are exact and can't drift), and hands back only the *background* changes. Those are applied to the background one pass each (the asset shows the step count while it works).
-5. **History** — every render is appended to the asset's version timeline (background + text layers), shown as thumbnails under the frame. Click any version to revert. Everything is stored in the tldraw document and persists across reloads.
+5. **History** — every render is appended to the asset's version timeline (background + text layers), shown as thumbnails under the frame. Click any version to revert.
+6. **Collaborate** — the whole board (assets, brand, versions, annotations) lives in a shared room and syncs in real time. Hit **Copy link** in the sidebar and send it to a teammate to work on the same canvas together. Generated backgrounds are uploaded to object storage (R2) and referenced by URL, so they're not synced inline.
 
-See `CONTEXT.md` for the project glossary and `docs/adr/` for the key design decisions.
+See `CONTEXT.md` for the project glossary and `docs/adr/` for the key design decisions. Multiplayer follows tldraw's [sync](https://tldraw.dev/docs/sync) stack; the [`sync-cloudflare`](../sync-cloudflare) template is the minimal reference for the same backend.
 
 ## Environment setup
 
@@ -39,7 +42,18 @@ Install dependencies with `yarn` or `npm install`.
 
 Run the development server with `yarn dev` or `npm run dev`.
 
-Open `http://localhost:5173/` in your browser to see the app.
+Open `http://localhost:5173/` in your browser. You'll be sent to a room URL like `/room-…`; open that same URL in another tab or browser to see live collaboration. Locally, room storage (the Durable Object's SQLite) and asset storage (R2) are emulated by Wrangler — no setup needed.
+
+## Deploying
+
+The worker hosts the rooms (a Durable Object per room) and the asset bucket. Before the first deploy, create the R2 bucket referenced in `wrangler.toml`:
+
+```
+wrangler r2 bucket create marketing-assets-template
+wrangler r2 bucket create marketing-assets-template-preview
+```
+
+Set the API keys as secrets (`wrangler secret put ANTHROPIC_API_KEY`, `wrangler secret put GOOGLE_API_KEY`), then `wrangler deploy`.
 
 ## Using another provider
 

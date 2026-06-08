@@ -24,3 +24,21 @@ directory = "./dist/client"
 # For local development, create a .dev.vars file (see .dev.vars.example):
 #   ANTHROPIC_API_KEY=...
 #   GOOGLE_API_KEY=...
+
+# Each room is hosted in a durable object. Room data is stored in the durable
+# object's SQLite storage.
+[durable_objects]
+bindings = [{ name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObject" }]
+
+# Durable objects require migrations to create/modify/delete them.
+# new_sqlite_classes opts the class into SQLite-backed storage.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TldrawDurableObject"]
+
+# Generated backgrounds and any dropped media are stored in an R2 bucket so they
+# don't get synced inline through the room as large data URLs.
+[[r2_buckets]]
+binding = 'TLDRAW_BUCKET'
+bucket_name = 'marketing-assets-template'
+preview_bucket_name = 'marketing-assets-template-preview'

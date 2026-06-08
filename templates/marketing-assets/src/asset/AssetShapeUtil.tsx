@@ -20,6 +20,7 @@ export class MarketingAssetShapeUtil extends ShapeUtil<MarketingAssetShape> {
 			currentVersion: 0,
 			status: 'idle',
 			error: '',
+			generatingStartedAt: 0,
 		}
 	}
 

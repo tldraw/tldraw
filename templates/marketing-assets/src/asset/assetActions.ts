@@ -14,6 +14,7 @@ import {
 import { apiGenerate, apiPlan, OutputType } from '../api/marketingApi'
 import { brandReferenceImages, getBrand, serializeBrand } from '../brand/brandState'
 import { FOOTER_HEIGHT, getDisplaySize, getOutputType } from '../constants'
+import { uploadImageBytes, urlToDataUrl } from '../multiplayerAssetStore'
 import { AssetVersion, MARKETING_ASSET_TYPE, MarketingAssetShape } from './assetShape'
 
 // Shape types that count as annotations when they overlap an asset frame.
@@ -21,6 +22,13 @@ const ANNOTATION_TYPES = new Set(['arrow', 'text', 'draw', 'geo', 'note', 'line'
 
 // Cap on how many sequential render passes one re-render makes.
 const MAX_RENDER_STEPS = 8
+
+// How often a running generation refreshes its heartbeat on the shape, and how
+// long a 'generating' shape can go without one before a peer treats it as
+// abandoned. In multiplayer this distinguishes an active render from one whose
+// client navigated away mid-generation.
+const GENERATION_HEARTBEAT_MS = 15_000
+const STALE_GENERATION_MS = 45_000
 
 // Live progress for multi-step re-renders, keyed by shape id. Kept off the shape
 // so it isn't persisted — it's transient UI state for the current render.
@@ -70,6 +78,7 @@ export function createAndGenerate(
 			currentVersion: 0,
 			status: 'generating',
 			error: '',
+			generatingStartedAt: Date.now(),
 		},
 	})
 	editor.select(id)
@@ -85,6 +94,7 @@ async function runFirstGeneration(
 	prompt: string,
 	shot: string | null
 ) {
+	const stopHeartbeat = startHeartbeat(editor, id)
 	try {
 		const brand = getBrand(editor)
 		const brandText = serializeBrand(brand)
@@ -93,7 +103,7 @@ async function runFirstGeneration(
 
 		// 1. A text-free background from the image model.
 		const { imageUrl } = await apiGenerate({ prompt, brandText, outputType, referenceImages })
-		const assetId = storeImageAsset(editor, imageUrl, outputType)
+		const assetId = await storeImageAsset(editor, imageUrl, outputType)
 
 		// 2. The text layout from the planner, placed over that background.
 		const { textLayers } = await apiPlan({ mode: 'create', prompt, brandText, outputType, image: imageUrl })
@@ -101,6 +111,8 @@ async function runFirstGeneration(
 		pushVersion(editor, id, { assetId, textLayers, instruction: '', createdAt: Date.now() })
 	} catch (e) {
 		setError(editor, id, e)
+	} finally {
+		stopHeartbeat()
 	}
 }
 
@@ -120,6 +132,7 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 	setGenerating(editor, id)
 
 	void (async () => {
+		const stopHeartbeat = startHeartbeat(editor, id)
 		try {
 			const outputType = getOutputType(shape.props.outputTypeId)
 			const brand = getBrand(editor)
@@ -154,7 +167,9 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 			const steps = limitSteps(backgroundInstructions)
 			if (steps.length) {
 				const referenceImages = brandReferenceImages(brand)
-				let currentImage = cleanSrc
+				// The stored background is an R2 URL; the image model needs the bytes,
+				// so read it back as a data URL before the first edit pass.
+				let currentImage = await urlToDataUrl(cleanSrc)
 				for (let i = 0; i < steps.length; i++) {
 					setRenderProgress(id, i + 1, steps.length)
 					const { imageUrl } = await apiGenerate({
@@ -167,7 +182,7 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 					})
 					currentImage = imageUrl
 				}
-				assetId = storeImageAsset(editor, currentImage, outputType)
+				assetId = await storeImageAsset(editor, currentImage, outputType)
 			}
 
 			pushVersion(editor, id, {
@@ -182,6 +197,7 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 		} catch (e) {
 			setError(editor, id, e)
 		} finally {
+			stopHeartbeat()
 			clearRenderProgress(id)
 		}
 	})()
@@ -210,20 +226,44 @@ export function getAssetSrc(editor: Editor, version: AssetVersion): string | und
 	return typeof src === 'string' ? src : undefined
 }
 
-/** Reset any assets left mid-generation by a reload. */
+/**
+ * Reset assets whose generation was abandoned (e.g. the tab was closed mid-render).
+ * In multiplayer another client may still be generating, so we only reset a shape
+ * whose heartbeat has gone stale — an active render keeps refreshing it.
+ */
 export function resetInterruptedGenerations(editor: Editor): void {
+	const now = Date.now()
 	for (const shape of editor.getCurrentPageShapes()) {
 		if (shape.type !== MARKETING_ASSET_TYPE) continue
 		const s = shape as MarketingAssetShape
 		if (s.props.status !== 'generating') continue
+		if (now - s.props.generatingStartedAt < STALE_GENERATION_MS) continue
 		editor.updateShape<MarketingAssetShape>({
 			id: s.id,
 			type: MARKETING_ASSET_TYPE,
 			props: s.props.versions.length
-				? { status: 'idle', error: '' }
-				: { status: 'error', error: 'Generation was interrupted' },
+				? { status: 'idle', error: '', generatingStartedAt: 0 }
+				: { status: 'error', error: 'Generation was interrupted', generatingStartedAt: 0 },
 		})
 	}
+}
+
+/**
+ * Keep a generating shape's heartbeat fresh while async work runs, so peers don't
+ * mistake a long render for an abandoned one. Returns a stop function.
+ */
+function startHeartbeat(editor: Editor, id: TLShapeId): () => void {
+	const beat = () => {
+		const shape = editor.getShape<MarketingAssetShape>(id)
+		if (!shape || shape.props.status !== 'generating') return
+		editor.updateShape<MarketingAssetShape>({
+			id,
+			type: MARKETING_ASSET_TYPE,
+			props: { generatingStartedAt: Date.now() },
+		})
+	}
+	const interval = setInterval(beat, GENERATION_HEARTBEAT_MS)
+	return () => clearInterval(interval)
 }
 
 // ---------------------------------------------------------------------------
@@ -237,7 +277,14 @@ function limitSteps(instructions: string[]): string[] {
 	return [...steps.slice(0, MAX_RENDER_STEPS - 1), steps.slice(MAX_RENDER_STEPS - 1).join(' ')]
 }
 
-function storeImageAsset(editor: Editor, dataUrl: string, outputType: OutputType): string {
+async function storeImageAsset(
+	editor: Editor,
+	dataUrl: string,
+	outputType: OutputType
+): Promise<string> {
+	// Upload the bytes to R2 and store only the URL on the asset record, so the
+	// (large) image isn't synced inline through the room.
+	const src = await uploadImageBytes(dataUrl, `${outputType.id}.png`)
 	const assetId = AssetRecordType.createId()
 	editor.createAssets([
 		{
@@ -247,7 +294,7 @@ function storeImageAsset(editor: Editor, dataUrl: string, outputType: OutputType
 			meta: {},
 			props: {
 				name: `${outputType.id}.png`,
-				src: dataUrl,
+				src,
 				w: outputType.width,
 				h: outputType.height,
 				mimeType: 'image/png',
@@ -265,7 +312,13 @@ function pushVersion(editor: Editor, id: TLShapeId, version: AssetVersion): void
 	editor.updateShape<MarketingAssetShape>({
 		id,
 		type: MARKETING_ASSET_TYPE,
-		props: { versions, currentVersion: versions.length - 1, status: 'idle', error: '' },
+		props: {
+			versions,
+			currentVersion: versions.length - 1,
+			status: 'idle',
+			error: '',
+			generatingStartedAt: 0,
+		},
 	})
 }
 
@@ -273,7 +326,7 @@ function setGenerating(editor: Editor, id: TLShapeId): void {
 	editor.updateShape<MarketingAssetShape>({
 		id,
 		type: MARKETING_ASSET_TYPE,
-		props: { status: 'generating', error: '' },
+		props: { status: 'generating', error: '', generatingStartedAt: Date.now() },
 	})
 }
 
@@ -281,7 +334,11 @@ function setError(editor: Editor, id: TLShapeId, e: unknown): void {
 	editor.updateShape<MarketingAssetShape>({
 		id,
 		type: MARKETING_ASSET_TYPE,
-		props: { status: 'error', error: e instanceof Error ? e.message : 'Something went wrong' },
+		props: {
+			status: 'error',
+			error: e instanceof Error ? e.message : 'Something went wrong',
+			generatingStartedAt: 0,
+		},
 	})
 }
 

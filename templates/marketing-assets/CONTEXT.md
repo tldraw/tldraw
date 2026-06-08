@@ -83,3 +83,18 @@ A toolbar tool that draws one [[Annotation]] as a single unit: an oval ringing t
 change, an arrow pointing from a note to that oval, and the note's text, ready to type the
 moment the oval is drawn. The three are ordinary tldraw shapes grouped together, so the
 re-render pipeline reads them like any other [[Annotation]].
+
+## Room
+
+The shared space a canvas lives in, named by the room id in the URL. Everyone who opens the
+link edits the same [[Marketing asset]]s, [[Brand guidelines]], [[Version]]s, and
+[[Annotation]]s together in real time, with live cursors. The document is synced through a
+server-hosted room and stored there, rather than in a single browser. Each visitor lands in
+their own remembered room by default; sharing the link is what makes it collaborative.
+
+## Asset upload
+
+Where the bytes of a [[Background]] (and any media dropped on the canvas) live: uploaded to
+the backend's object storage and referenced by URL on the synced document, so large images
+don't travel through the [[Room]] inline. The image model still works on the raw bytes — the
+background is read back from its URL whenever a [[Re-render]] needs to edit it.
