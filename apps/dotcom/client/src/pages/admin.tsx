@@ -746,10 +746,10 @@ function EnrollUserInGroups({
 			<TlaButton
 				onClick={handleEnroll}
 				variant="primary"
-				disabled={isEnrolling}
+				disabled={isEnrolling || fullyEnrolled}
 				isLoading={isEnrolling}
 			>
-				{isEnrolling ? 'Enrolling…' : fullyEnrolled ? 'Re-run enrollment' : 'Enroll in groups'}
+				Enroll in groups
 			</TlaButton>
 		</div>
 	)
