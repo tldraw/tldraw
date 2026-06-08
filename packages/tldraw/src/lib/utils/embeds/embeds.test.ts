@@ -631,8 +631,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		},
 	},
 	{
-		embedUrl:
-			'https://google.com/maps/embed?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14',
+		embedUrl: 'https://google.com/maps/embed?key=KEY&center=52.2449313,0.0813192&zoom=14',
 		match: false,
 	},
 	// google_calendar

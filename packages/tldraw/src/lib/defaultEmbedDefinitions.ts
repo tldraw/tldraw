@@ -126,8 +126,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 							? zoomOrMeters
 							: -Math.log2(parseInt(zoomOrMeters) / 14772321) / 0.8
 					const host = new URL(url).host.replace('www.', '')
-					const apiKey = config?.apiKey ?? process.env.NEXT_PUBLIC_GC_API_KEY
-					result = `https://${host}/maps/embed/v1/view?key=${apiKey}&center=${lat},${lng}&zoom=${z}&maptype=${mapType}`
+					result = `https://${host}/maps/embed/v1/view?key=${config?.apiKey}&center=${lat},${lng}&zoom=${z}&maptype=${mapType}`
 				} else {
 					result = ''
 				}
