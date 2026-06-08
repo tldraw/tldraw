@@ -1,11 +1,11 @@
+import { Capability } from './capabilities'
+
 /**
  * Group authorization, expressed as capabilities rather than role names.
  *
- * A capability is a single thing someone can do in a group ("rename the group",
- * "delete the group"). Authorization asks `can(role, capability)` — never
- * `role === 'owner'` — so the meaning of a role lives in exactly one place (the
- * `roles` table below). You can see what a role can do by reading its list, and
- * change what it can do, or add a role, by editing the table.
+ * Authorization asks `can(role, capability)` — never `role === 'owner'` — so the
+ * meaning of a role lives in exactly one place: the `roles` table below. Read a
+ * role's list to see what it can do; edit the list, or add a role, to change it.
  *
  * The role is stored in the DB as a plain string (`group_user.role`);
  * capabilities are never persisted — they're derived from that string here.
@@ -14,21 +14,6 @@
  * logic branches on the literal anymore, that rename is just relabeling the key
  * below plus a data migration of stored values.
  */
-export type Capability =
-	/** See the group and open the files inside it. (Everyone who is a member.) */
-	| 'viewGroup'
-	/** Add files to the group — link an existing file in, or move one in. */
-	| 'addFiles'
-	/** Remove files from the group. */
-	| 'removeFiles'
-	/** Create and revoke the shared invite link. */
-	| 'manageInvites'
-	/** Rename the group. */
-	| 'editGroup'
-	/** Change other members' roles (promote/demote). */
-	| 'manageMembers'
-	/** Delete the whole group and the files it owns. */
-	| 'deleteGroup'
 
 /**
  * What each role can do — the single source of truth. The role name is the key,

@@ -1,4 +1,5 @@
 /* eslint-disable tldraw/no-export-star */
+export * from './capabilities'
 export * from './constants'
 export * from './roles'
 export { default as getLicenseKey } from './license'
