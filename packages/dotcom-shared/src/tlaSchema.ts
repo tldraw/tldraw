@@ -9,6 +9,7 @@ import {
 	table,
 } from '@rocicorp/zero'
 import { IndexKey, stringEnum } from '@tldraw/utils'
+import { GroupRole } from './groupCapabilities'
 
 export interface ZColumn {
 	optional?: boolean
@@ -97,7 +98,7 @@ export const group_user = table('group_user')
 		groupId: string(),
 		createdAt: number(),
 		updatedAt: number(),
-		role: enumeration<'admin' | 'owner'>(),
+		role: enumeration<GroupRole>(),
 		userName: string(),
 		userColor: string(),
 		index: string<IndexKey>(),

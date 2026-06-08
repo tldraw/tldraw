@@ -10,6 +10,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
+import { GroupCapability, roleHasCapability } from './groupCapabilities'
 import { FILE_PREFIX } from './routes'
 import {
 	immutableColumns,
@@ -112,40 +113,27 @@ async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 	}
 }
 
-async function assertUserIsGroupMember(
+/**
+ * Assert that a user is allowed to perform a given capability in a group.
+ *
+ * This is the only place authorization touches a member's role: it looks up the
+ * member, then defers to GROUP_ROLE_CAPABILITIES to decide whether that role has
+ * the capability. Call sites name the capability they need (e.g. 'deleteGroup'),
+ * so what each operation requires reads off the call itself.
+ */
+async function assertUserHasGroupCapability(
 	tx: Transaction<TlaSchema>,
 	userId: string,
-	groupId: string
+	groupId: string,
+	capability: GroupCapability
 ) {
+	// A user's personal/home group has groupId === userId; they are always its owner.
 	if (userId === groupId) return
 	const groupUser = await tx.run(
 		zql.group_user.where('userId', '=', userId).where('groupId', '=', groupId).one()
 	)
 	assert(groupUser, ZErrorCode.forbidden)
-}
-
-async function assertUserIsGroupAdminOrOwner(
-	tx: Transaction<TlaSchema>,
-	userId: string,
-	groupId: string
-) {
-	if (userId === groupId) return
-	const groupUser = await tx.run(
-		zql.group_user.where('userId', '=', userId).where('groupId', '=', groupId).one()
-	)
-	assert(groupUser?.role === 'admin' || groupUser?.role === 'owner', ZErrorCode.forbidden)
-}
-
-async function assertUserIsGroupOwner(tx: Transaction<TlaSchema>, userId: string, groupId: string) {
-	if (userId === groupId) return
-	const groupUser = await tx.run(
-		zql.group_user
-			.where('userId', '=', userId)
-			.where('groupId', '=', groupId)
-			.where('role', '=', 'owner')
-			.one()
-	)
-	assert(groupUser, ZErrorCode.forbidden)
+	assert(roleHasCapability(groupUser.role, capability), ZErrorCode.forbidden)
 }
 
 function assertValidId(id: string) {
@@ -180,7 +168,7 @@ async function assertUserCanAccessFileInternal(
 		assert(file.ownerId === userId, ZErrorCode.forbidden)
 	} else if (file.owningGroupId) {
 		// New model: user must be a member of the owning group
-		await assertUserIsGroupMember(tx, userId, file.owningGroupId)
+		await assertUserHasGroupCapability(tx, userId, file.owningGroupId, 'viewGroup')
 	} else {
 		// File has neither ownerId nor owningGroupId - invalid state
 		assert(false, ZErrorCode.bad_request)
@@ -507,7 +495,7 @@ export function createMutators(userId: string) {
 				return
 			}
 
-			await assertUserIsGroupAdminOrOwner(tx, userId, groupId)
+			await assertUserHasGroupCapability(tx, userId, groupId, 'removeFiles')
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(file, ZErrorCode.bad_request)
 
@@ -594,7 +582,7 @@ export function createMutators(userId: string) {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			assert(name && name.trim(), ZErrorCode.bad_request)
-			await assertUserIsGroupOwner(tx, userId, id)
+			await assertUserHasGroupCapability(tx, userId, id, 'editGroup')
 
 			await tx.mutate.group.update({ id, name: name.trim() })
 		},
@@ -602,7 +590,7 @@ export function createMutators(userId: string) {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 
-			await assertUserIsGroupAdminOrOwner(tx, userId, id)
+			await assertUserHasGroupCapability(tx, userId, id, 'manageInvites')
 
 			if (tx.location === 'server') {
 				await tx.mutate.group.update({ id, inviteSecret: uniqueId() })
@@ -617,7 +605,7 @@ export function createMutators(userId: string) {
 			}: { groupId: string; targetUserId: string; role: 'admin' | 'owner' }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			await assertUserIsGroupOwner(tx, userId, groupId)
+			await assertUserHasGroupCapability(tx, userId, groupId, 'manageMembers')
 			assert(groupId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
 			assert(role === 'admin' || role === 'owner', ZErrorCode.bad_request)
@@ -630,7 +618,8 @@ export function createMutators(userId: string) {
 
 			if (targetMembership.role === role) return
 
-			// Prevent demoting the last remaining owner
+			// Invariant (not a capability): a group must always keep at least one
+			// owner, so the last owner can't be demoted.
 			if (targetMembership.role === 'owner' && role === 'admin') {
 				const owners = await tx.run(
 					zql.group_user.where('groupId', '=', groupId).where('role', '=', 'owner')
@@ -646,14 +635,14 @@ export function createMutators(userId: string) {
 				zql.group_user.where('groupId', '=', groupId).where('role', '=', 'owner')
 			)
 			const isOnlyOwner = owners.length === 1 && owners[0].userId === userId
-			// Prevent the last owner from leaving - they must delete the group instead
-			// This ensures groups always have at least one owner for administrative purposes
+			// Invariant (not a capability): a group must always keep at least one
+			// owner, so the last owner can't leave — they must delete the group instead.
 			assert(!isOnlyOwner, ZErrorCode.forbidden)
 			await tx.mutate.group_user.delete({ userId, groupId })
 		},
 		deleteGroup: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			await assertUserIsGroupOwner(tx, userId, id)
+			await assertUserHasGroupCapability(tx, userId, id, 'deleteGroup')
 
 			// Delete all group files
 			const groupFiles = await tx.run(zql.group_file.where('groupId', '=', id))
@@ -688,20 +677,10 @@ export function createMutators(userId: string) {
 				return
 			}
 
-			// Check if user has permission to move this file:
-			// 1. User owns the file directly, OR
-			// 2. User is a member of the group that currently owns the file
-			const hasFromGroupAccess = await tx.run(
-				zql.group_user.where('userId', '=', userId).where('groupId', '=', file.owningGroupId!).one()
-			)
-
-			assert(hasFromGroupAccess, ZErrorCode.forbidden)
-
-			// User must also be a member of the target group
-			const hasToGroupAccess = await tx.run(
-				zql.group_user.where('userId', '=', userId).where('groupId', '=', groupId).one()
-			)
-			assert(hasToGroupAccess, ZErrorCode.forbidden)
+			// User must be allowed to take the file out of its current group and
+			// to add files to the destination group.
+			await assertUserHasGroupCapability(tx, userId, file.owningGroupId!, 'removeFiles')
+			await assertUserHasGroupCapability(tx, userId, groupId, 'addFiles')
 
 			// Remove file from current group association if it exists
 			if (file.owningGroupId) {
@@ -730,8 +709,8 @@ export function createMutators(userId: string) {
 			assert(fileId, ZErrorCode.bad_request)
 			assert(groupId, ZErrorCode.bad_request)
 
-			// User must be a member of the target group
-			await assertUserIsGroupMember(tx, userId, groupId)
+			// User must be allowed to add files to the target group
+			await assertUserHasGroupCapability(tx, userId, groupId, 'addFiles')
 
 			// On server, verify the user has access to this file (owns it, is member of owning group, or it's shared)
 			if (tx.location === 'server') {
@@ -764,7 +743,7 @@ export function createMutators(userId: string) {
 			{ groupId, index }: { groupId: string; index: IndexKey }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			await assertUserIsGroupMember(tx, userId, groupId)
+			await assertUserHasGroupCapability(tx, userId, groupId, 'viewGroup')
 			await tx.mutate.group_user.update({ userId, groupId, index })
 		},
 		handleFileDragOperation: async (
@@ -779,10 +758,10 @@ export function createMutators(userId: string) {
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			if (!file) return
 			await assertUserCanAccessFile(tx, userId, file)
-			await assertUserIsGroupMember(tx, userId, groupId)
+			await assertUserHasGroupCapability(tx, userId, groupId, 'addFiles')
 			const finalGroupId = operation.move?.targetId ?? groupId
 			if (finalGroupId !== groupId) {
-				await assertUserIsGroupMember(tx, userId, finalGroupId)
+				await assertUserHasGroupCapability(tx, userId, finalGroupId, 'addFiles')
 			}
 			const isFileLink = file.owningGroupId !== groupId
 
