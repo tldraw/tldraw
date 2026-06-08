@@ -12156,7 +12156,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     "@types/ws": "npm:^8.18.1"
     "@vitejs/plugin-react": "npm:^6.0.1"
-    better-sqlite3: "npm:^11.8.1"
+    better-sqlite3: "npm:^12.10.0"
     concurrently: "npm:^9.1.2"
     fastify: "npm:^5.8.1"
     itty-router: "npm:^5.0.18"
@@ -12185,7 +12185,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     "@types/ws": "npm:^8.18.1"
     "@vitejs/plugin-react": "npm:^6.0.1"
-    better-sqlite3: "npm:^11.8.1"
+    better-sqlite3: "npm:^12.10.0"
     concurrently: "npm:^9.1.2"
     express: "npm:^5.1.0"
     lazyrepo: "npm:0.0.0-alpha.27"
@@ -15778,14 +15778,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"better-sqlite3@npm:^11.8.1":
-  version: 11.10.0
-  resolution: "better-sqlite3@npm:11.10.0"
+"better-sqlite3@npm:^12.10.0":
+  version: 12.10.0
+  resolution: "better-sqlite3@npm:12.10.0"
   dependencies:
     bindings: "npm:^1.5.0"
     node-gyp: "npm:latest"
     prebuild-install: "npm:^7.1.1"
-  checksum: 10/5e4c7437c4fe6033335a79c82974d7ab29f33c51c36f48b73e87e087d21578468575de1c56a7badd4f76f17255e25abefddaeacf018e5eeb9e0cb8d6e3e4a5e1
+  checksum: 10/99e213e78f15a7f40d5cb666b56781223a6b83ffc317c93846e2b63b694592978c1e3762e81afd6ce851e0e3c24ebc9d0c42341158ea93c8a39987e5e19602f8
   languageName: node
   linkType: hard
 

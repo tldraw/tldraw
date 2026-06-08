@@ -33,7 +33,7 @@
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@vitejs/plugin-react": "^6.0.1",
-		"better-sqlite3": "^11.8.1",
+		"better-sqlite3": "^12.10.0",
 		"express": "^5.1.0",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
