@@ -1,0 +1,149 @@
+name: Device e2e
+
+# Run-on-request device-realistic e2e tests.
+#
+# These run real Mobile Safari (iOS Simulator) and real Chrome (Android emulator)
+# through the OS input pipeline via Appium + WebdriverIO. Unlike the Playwright
+# suite, this exercises the browser's own gesture recogniser and platform
+# behaviour, so it can catch regressions that synthetic DOM events (CDP) cannot.
+# It currently covers multi-touch gestures (pinch), but the harness is meant to
+# grow to other device-specific behaviour (exports, clipboard, shortcuts, etc.)
+# and other platforms.
+#
+# It is slower and a bit flaky by nature, so it is NOT part of the per-PR checks.
+# Trigger it on demand:
+#
+#   - Manually from the Actions tab (workflow_dispatch), choosing the platform.
+#   - By adding the `test: device` label to a PR that touches device behaviour.
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Which platform(s) to run
+        type: choice
+        default: both
+        options: [both, ios, android]
+      ios_device:
+        description: iOS simulator device name
+        type: string
+        default: iPhone 16
+  pull_request:
+    types: [labeled]
+
+env:
+  CI: 1
+  EXAMPLES_PORT: '5420'
+
+defaults:
+  run:
+    shell: bash
+
+# A new push to a PR (or a re-dispatch) cancels the previous in-flight run.
+concurrency:
+  group: device-e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    name: iOS Safari
+    # Run when dispatched with ios/both, or when a PR is labelled `test: device`.
+    if: >
+      (github.event_name == 'workflow_dispatch' && inputs.platform != 'android') ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'test: device')
+    runs-on: macos-26 # pinned: image version determines Xcode + iOS sim runtimes
+    timeout-minutes: 40
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Build examples
+        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
+
+      - name: Install Appium and the XCUITest driver
+        run: |
+          npm i -g appium@2
+          appium driver install xcuitest
+
+      - name: Boot iOS simulator
+        run: |
+          xcrun simctl list devices available
+          xcrun simctl boot '${{ inputs.ios_device || 'iPhone 16' }}' || true
+
+      - name: Serve built examples
+        run: yarn preview --port "$EXAMPLES_PORT" &
+        working-directory: apps/examples
+
+      - name: Wait for examples server
+        run: npx --yes wait-on "http://localhost:$EXAMPLES_PORT/end-to-end" -t 120000
+
+      - name: Run device tests (iOS)
+        run: yarn e2e-device-ios
+        working-directory: apps/examples
+        env:
+          APPIUM_DEVICE_NAME: ${{ inputs.ios_device || 'iPhone 16' }}
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: device-e2e-ios
+          path: apps/examples/e2e-device/artifacts
+          retention-days: 14
+
+  android:
+    name: Android Chrome
+    if: >
+      (github.event_name == 'workflow_dispatch' && inputs.platform != 'ios') ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'test: device')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Enable KVM (hardware acceleration for the emulator)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Build examples
+        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
+
+      - name: Install Appium and the UiAutomator2 driver
+        run: |
+          npm i -g appium@2
+          appium driver install uiautomator2
+
+      - name: Serve built examples
+        run: yarn preview --port "$EXAMPLES_PORT" &
+        working-directory: apps/examples
+
+      - name: Wait for examples server
+        run: npx --yes wait-on "http://localhost:$EXAMPLES_PORT/end-to-end" -t 120000
+
+      - name: Run device tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          # The emulator's `localhost` is the emulator itself, so forward the host
+          # dev server into it before running the tests.
+          script: |
+            adb reverse tcp:${{ env.EXAMPLES_PORT }} tcp:${{ env.EXAMPLES_PORT }}
+            cd apps/examples && yarn e2e-device-android
+
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: device-e2e-android
+          path: apps/examples/e2e-device/artifacts
+          retention-days: 14
