@@ -3,21 +3,17 @@ import { objectMapKeys } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
 /**
- * Convert tldraw's unitless line-height (a multiplier) into a whole-pixel value for a
- * given font size.
- *
- * A unitless `line-height` leaves the per-line advance fractional (e.g. 24 * 1.35 =
- * 32.4px). WebKit snaps each line box to a whole pixel while Blink keeps the fraction,
- * so wrapped lines drift apart across engines and the offset accumulates. Resolving the
- * value to an integer here — in JS, identically on every client — removes the fraction
- * before layout, so both engines agree. See https://github.com/tldraw/tldraw/issues/8970.
- *
- * This must be used everywhere line-height is applied (measurement, on-canvas render, and
- * export) so geometry and rendering stay in agreement.
+ * The whole-pixel line-height for a given font size and tldraw's unitless line-height
+ * multiplier. tldraw's theme stores line-height as a multiplier (e.g. 1.35); resolving it
+ * to a whole pixel keeps line spacing identical across rendering engines, which otherwise
+ * disagree on fractional line boxes (WebKit snaps them to whole pixels, Blink keeps the
+ * fraction) and let multi-line text drift apart. Apply it everywhere line-height is used —
+ * measurement, on-canvas render, and export — so geometry and rendering agree.
+ * See https://github.com/tldraw/tldraw/issues/8970.
  *
  * @public
  */
-export function getLineHeightPx(fontSize: number, lineHeight: number): number {
+export function resolveLineHeightPx(fontSize: number, lineHeight: number): number {
 	return Math.round(fontSize * lineHeight)
 }
 
@@ -173,7 +169,7 @@ export class TextManager {
 			'font-style': opts.fontStyle,
 			'font-weight': opts.fontWeight,
 			'font-size': opts.fontSize + 'px',
-			'line-height': `${getLineHeightPx(opts.fontSize, opts.lineHeight)}px`,
+			'line-height': `${resolveLineHeightPx(opts.fontSize, opts.lineHeight)}px`,
 			padding: opts.padding,
 			'max-width': opts.maxWidth ? opts.maxWidth + 'px' : undefined,
 			'min-width': opts.minWidth ? opts.minWidth + 'px' : undefined,
@@ -401,7 +397,7 @@ export class TextManager {
 			'font-style': opts.fontStyle,
 			'font-weight': opts.fontWeight,
 			'font-size': opts.fontSize + 'px',
-			'line-height': `${getLineHeightPx(opts.fontSize, opts.lineHeight)}px`,
+			'line-height': `${resolveLineHeightPx(opts.fontSize, opts.lineHeight)}px`,
 			width: `${elementWidth}px`,
 			height: 'min-content',
 			'text-align': textAlignmentsForLtr[opts.textAlign],

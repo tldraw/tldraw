@@ -1932,9 +1932,6 @@ export function getGlobalWindow(): Window & typeof globalThis;
 export function getIncrementedName(name: string, others: string[]): string;
 
 // @public
-export function getLineHeightPx(fontSize: number, lineHeight: number): number;
-
-// @public
 export function getOverlayDisplayValues<Overlay extends TLOverlay, DisplayValues extends object>(util: {
     editor: Editor;
     options: OverlayOptionsWithDisplayValues<Overlay, DisplayValues>;
@@ -2867,6 +2864,9 @@ export function resizeScaled(shape: TLBaseShape<any, {
     x: number;
     y: number;
 };
+
+// @public
+export function resolveLineHeightPx(fontSize: number, lineHeight: number): number;
 
 // @public
 export function resolveThemes(themes?: Partial<TLThemes>): TLThemes;

@@ -21,12 +21,12 @@ import {
 	exhaustiveSwitchError,
 	getColorValue,
 	getFontsFromRichText,
-	getLineHeightPx,
 	isEqual,
 	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
 	resizeScaled,
+	resolveLineHeightPx,
 	rng,
 	toRichText,
 	useColorMode,
@@ -597,7 +597,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const { richText } = shape.props
 
 		if (isEmptyRichText(richText)) {
-			const minHeight = getLineHeightPx(dv.labelFontSize, dv.labelLineHeight) + dv.labelPadding * 2
+			const minHeight =
+				resolveLineHeightPx(dv.labelFontSize, dv.labelLineHeight) + dv.labelPadding * 2
 			return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 1 }
 		}
 
