@@ -17,6 +17,7 @@ if (typeof window !== 'undefined') {
 if (typeof window !== 'undefined' && typeof window.localStorage === 'undefined') {
 	class MemoryStorage implements Storage {
 		private store = new Map<string, string>()
+		// eslint-disable-next-line tldraw/no-setter-getter
 		get length() {
 			return this.store.size
 		}
@@ -128,7 +129,6 @@ expect.extend({
 
 		const EXPECTED_LABEL = 'Expected'
 		const RECEIVED_LABEL = 'Received'
-		const isExpand = (expand?: boolean): boolean => expand !== false
 
 		const newActualObj = convertNumbersInObject(actual, roundToNearest)
 
@@ -152,7 +152,7 @@ expect.extend({
 						getObjectSubset(actual, expected),
 						EXPECTED_LABEL,
 						RECEIVED_LABEL,
-						isExpand(this.expand)
+						true
 					)
 
 		return { message, pass }
