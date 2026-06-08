@@ -22,16 +22,13 @@ if [ ${#vite_args[@]} -eq 0 ]; then
     exit $?
 fi
 
-# Running vite directly below skips lazy's `runsAfter` ordering for the `dev` task. Of those
-# prerequisites only refresh-assets feeds templates (no template has a predev, and build-i18n
-# only feeds dotcom), so run it synchronously here so it can't race the template's dev server.
-# It's a cache hit in the common case, and the backgrounded lazy run below then skips it.
-LAZYREPO_PRETTY_OUTPUT=0 lazy run refresh-assets
+# Running vite directly skips lazy's `dev` prerequisites. Only refresh-assets feeds templates, so
+# run it here first (usually a cache hit) and bail on failure like the normal `lazy run dev` path.
+LAZYREPO_PRETTY_OUTPUT=0 lazy run refresh-assets || exit 1
 
-# lazy does not forward extra args to package scripts, so run vite directly in the template.
-# Run the shared deps in their own process group (set -m) so we can tear down lazy and
-# everything it spawns on exit — lazy installs no signal handlers of its own, so killing
-# just its pid would orphan the watchers it started.
+# lazy doesn't forward extra args, so run vite directly in the template below. Run the shared deps
+# in their own process group (set -m) so cleanup can kill lazy and its watchers, which lazy itself
+# won't (it installs no signal handlers, so killing just its pid would orphan them).
 set -m
 LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='packages/tldraw' --filter='apps/bemo-worker' &
 lazy_pid=$!
@@ -43,4 +40,6 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 cd "$workspace_root/templates/$template_name" || exit 1
+# Args are appended to the template's `dev` script, so they only reach vite for plain-vite templates.
+# For concurrently-wrapped or next.js templates they hit the wrapper/next instead.
 yarn dev "${vite_args[@]}"
