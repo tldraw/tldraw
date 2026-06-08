@@ -716,7 +716,7 @@ function EnrollUserInGroups({
 
 			const result = await res.json()
 			const parts: string[] = []
-			if (result.backendMigrated) parts.push(`migrated data (files: ${result.files_migrated})`)
+			if (result.backendMigrated) parts.push('migrated to groups backend')
 			if (result.frontendGranted) parts.push('granted groups UI')
 			onSuccessMessage(
 				parts.length ? `Enrolled in groups: ${parts.join(', ')}` : 'User was already fully enrolled'

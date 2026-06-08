@@ -823,12 +823,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	async admin_enrollInGroups(userId: string) {
 		this.userId ??= userId
 
-		// 1. Ensure the data model is migrated.
-		const migration = await sql<{
-			files_migrated: number
-			pinned_files_migrated: number
+		// 1. Ensure the data model is migrated. The SQL function is idempotent:
+		// flag_added is false (and nothing changes) when the user is already migrated.
+		const { rows } = await sql<{
 			flag_added: boolean
 		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${uniqueId()})`.execute(this.db)
+		const backendMigrated = rows[0]?.flag_added ?? false
 
 		// 2. Ensure the groups UI flag is present (read flags after the migration,
 		// which may have just added groups_backend).
@@ -853,12 +853,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
 
-		return {
-			backendMigrated: migration.rows[0]?.flag_added ?? false,
-			frontendGranted,
-			files_migrated: migration.rows[0]?.files_migrated ?? 0,
-			pinned_files_migrated: migration.rows[0]?.pinned_files_migrated ?? 0,
-		}
+		return { backendMigrated, frontendGranted }
 	}
 
 	async admin_forceHardReboot(userId: string) {
