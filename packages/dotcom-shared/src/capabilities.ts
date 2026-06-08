@@ -4,12 +4,12 @@
  * type is derived from it. Roles grant subsets of these — see `roles.ts`.
  */
 export const capabilities = [
-	'viewGroup', // see the group and open the files inside it
+	'accessFiles', // read the files in the group (any member)
 	'addFiles', // link an existing file into the group, or move one in
 	'removeFiles', // remove a file from the group
 	'manageInvites', // create and revoke the shared invite link
 	'editGroup', // rename the group
-	'manageMembers', // change other members' roles (promote/demote)
+	'editMembers', // edit the group's members (currently: change their roles)
 	'deleteGroup', // delete the whole group and the files it owns
 ] as const
 

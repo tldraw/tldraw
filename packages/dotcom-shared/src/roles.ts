@@ -22,14 +22,14 @@ import { Capability } from './capabilities'
  * owner list.
  */
 const roles = {
-	admin: ['viewGroup', 'addFiles', 'removeFiles', 'manageInvites'],
+	admin: ['accessFiles', 'addFiles', 'removeFiles', 'manageInvites'],
 	owner: [
-		'viewGroup',
+		'accessFiles',
 		'addFiles',
 		'removeFiles',
 		'manageInvites',
 		'editGroup',
-		'manageMembers',
+		'editMembers',
 		'deleteGroup',
 	],
 } satisfies Record<string, readonly Capability[]>

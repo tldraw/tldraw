@@ -162,7 +162,7 @@ async function assertUserCanAccessFileInternal(
 		assert(file.ownerId === userId, ZErrorCode.forbidden)
 	} else if (file.owningGroupId) {
 		// New model: user must be a member of the owning group
-		assert(can(await getRole(tx, userId, file.owningGroupId), 'viewGroup'), ZErrorCode.forbidden)
+		assert(can(await getRole(tx, userId, file.owningGroupId), 'accessFiles'), ZErrorCode.forbidden)
 	} else {
 		// File has neither ownerId nor owningGroupId - invalid state
 		assert(false, ZErrorCode.bad_request)
@@ -595,7 +595,7 @@ export function createMutators(userId: string) {
 			{ groupId, targetUserId, role }: { groupId: string; targetUserId: string; role: Role }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(can(await getRole(tx, userId, groupId), 'manageMembers'), ZErrorCode.forbidden)
+			assert(can(await getRole(tx, userId, groupId), 'editMembers'), ZErrorCode.forbidden)
 			assert(groupId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
 			assert(role === 'admin' || role === 'owner', ZErrorCode.bad_request)
@@ -736,7 +736,7 @@ export function createMutators(userId: string) {
 			{ groupId, index }: { groupId: string; index: IndexKey }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(can(await getRole(tx, userId, groupId), 'viewGroup'), ZErrorCode.forbidden)
+			assert(can(await getRole(tx, userId, groupId), 'accessFiles'), ZErrorCode.forbidden)
 			await tx.mutate.group_user.update({ userId, groupId, index })
 		},
 		handleFileDragOperation: async (

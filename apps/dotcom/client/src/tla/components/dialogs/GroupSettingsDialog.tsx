@@ -271,7 +271,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 										{member.userName}
 										{member.userId === app.getUser().id ? ` (${youMsg})` : ''}
 									</span>
-									{can(role, 'manageMembers') &&
+									{can(role, 'editMembers') &&
 									(member.userId !== app.getUser().id || ownersCount > 1) ? (
 										<MemberRoleSelect
 											value={member.role}
