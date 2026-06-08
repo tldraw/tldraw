@@ -17,6 +17,7 @@ import {
 	ZErrorCode,
 	ZServerSentPacket,
 	createMutators,
+	parseFlags,
 	schema,
 } from '@tldraw/dotcom-shared'
 import {
@@ -24,7 +25,14 @@ import {
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
-import { ExecutionQueue, IndexKey, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	IndexKey,
+	assert,
+	mapObjectMapValues,
+	sleep,
+	uniqueId,
+} from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -801,6 +809,56 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.log.debug('migration complete, user rebooted')
 
 		return result.rows[0]
+	}
+
+	/**
+	 * Enroll a user in the groups feature so they can actually see and use it.
+	 * Ensures both flags:
+	 *   - groups_backend: migrate the user's data into the groups model if needed
+	 *     (the SQL function is idempotent and returns early if already migrated).
+	 *   - groups_frontend: the flag that shows the groups UI (otherwise only granted
+	 *     when a user accepts a group invite).
+	 * Then reboots the user so the new flags/data take effect.
+	 */
+	async admin_enrollInGroups(userId: string) {
+		this.userId ??= userId
+
+		// 1. Ensure the data model is migrated.
+		const migration = await sql<{
+			files_migrated: number
+			pinned_files_migrated: number
+			flag_added: boolean
+		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${uniqueId()})`.execute(this.db)
+
+		// 2. Ensure the groups UI flag is present (read flags after the migration,
+		// which may have just added groups_backend).
+		const row = await this.db
+			.selectFrom('user')
+			.where('id', '=', userId)
+			.select('flags')
+			.executeTakeFirst()
+		const flags = parseFlags(row?.flags)
+		let frontendGranted = false
+		if (!flags.includes('groups_frontend')) {
+			flags.push('groups_frontend')
+			await this.db
+				.updateTable('user')
+				.set({ flags: flags.join(',') })
+				.where('id', '=', userId)
+				.execute()
+			frontendGranted = true
+		}
+
+		// 3. Reboot so the user picks up the new flags and migrated data.
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
+		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
+
+		return {
+			backendMigrated: migration.rows[0]?.flag_added ?? false,
+			frontendGranted,
+			files_migrated: migration.rows[0]?.files_migrated ?? 0,
+			pinned_files_migrated: migration.rows[0]?.pinned_files_migrated ?? 0,
+		}
 	}
 
 	async admin_forceHardReboot(userId: string) {

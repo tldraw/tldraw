@@ -224,12 +224,13 @@ export function Component() {
 								Force Reboot
 							</TlaButton>
 						</div>
-						<MigrateUserToGroups
+						<EnrollUserInGroups
 							inputRef={inputRef}
 							onSuccess={loadData}
 							onError={setError}
 							onSuccessMessage={setSuccessMessage}
-							didMigrate={userHasFlag((data.user[0] as TlaUser).flags, 'groups_backend')}
+							hasBackend={userHasFlag((data.user[0] as TlaUser).flags, 'groups_backend')}
+							hasFrontend={userHasFlag((data.user[0] as TlaUser).flags, 'groups_frontend')}
 						/>
 						<StructuredDataDisplay data={data} />
 					</section>
@@ -667,22 +668,25 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 	)
 }
 
-function MigrateUserToGroups({
+function EnrollUserInGroups({
 	inputRef,
 	onSuccess,
 	onError,
 	onSuccessMessage,
-	didMigrate,
+	hasBackend,
+	hasFrontend,
 }: {
 	inputRef: RefObject<HTMLInputElement | null>
 	onSuccess(): void
 	onError(error: string): void
 	onSuccessMessage(message: string): void
-	didMigrate: boolean
+	hasBackend: boolean
+	hasFrontend: boolean
 }) {
-	const [isMigrating, setIsMigrating] = useState(false)
+	const [isEnrolling, setIsEnrolling] = useState(false)
+	const fullyEnrolled = hasBackend && hasFrontend
 
-	const handleMigrate = useCallback(async () => {
+	const handleEnroll = useCallback(async () => {
 		const q = inputRef.current?.value?.trim() ?? ''
 		if (!q) {
 			onError('Please enter an email or ID')
@@ -691,17 +695,17 @@ function MigrateUserToGroups({
 
 		if (
 			!window.confirm(
-				`Are you sure you want to migrate user "${q}" to the groups backend? This action cannot be undone.`
+				`Enroll user "${q}" in the groups feature? This grants groups_backend (migrating their data if needed) and groups_frontend (the groups UI).`
 			)
 		) {
 			return
 		}
 
-		setIsMigrating(true)
+		setIsEnrolling(true)
 		onError('')
 
 		try {
-			const res = await fetch(`/api/app/admin/user/migrate?${new URLSearchParams({ q })}`, {
+			const res = await fetch(`/api/app/admin/user/enroll_groups?${new URLSearchParams({ q })}`, {
 				method: 'POST',
 			})
 
@@ -711,30 +715,38 @@ function MigrateUserToGroups({
 			}
 
 			const result = await res.json()
+			const parts: string[] = []
+			if (result.backendMigrated) parts.push(`migrated data (files: ${result.files_migrated})`)
+			if (result.frontendGranted) parts.push('granted groups UI')
 			onSuccessMessage(
-				`User migrated successfully! Files: ${result.files_migrated}, Pinned: ${result.pinned_files_migrated}`
+				parts.length ? `Enrolled in groups: ${parts.join(', ')}` : 'User was already fully enrolled'
 			)
 			onSuccess()
 		} catch (err) {
-			onError(err instanceof Error ? err.message : 'Migration failed')
+			onError(err instanceof Error ? err.message : 'Enrollment failed')
 		} finally {
-			setIsMigrating(false)
+			setIsEnrolling(false)
 		}
 	}, [inputRef, onError, onSuccess, onSuccessMessage])
 
-	return didMigrate ? null : (
+	return (
 		<div className={styles.migrationSection}>
-			<h4 className="tla-text_ui__medium">Migrate User to Groups Backend</h4>
+			<h4 className="tla-text_ui__medium">Groups enrollment</h4>
 			<p className="tla-text_ui__small">
-				Migrate this user from the legacy file_state model to the new groups model.
+				groups_backend: {hasBackend ? '✓ enrolled' : '✗ not enrolled'} · groups_frontend:{' '}
+				{hasFrontend ? '✓ enrolled' : '✗ not enrolled'}
+			</p>
+			<p className="tla-text_ui__small">
+				Enroll this user in the groups feature: migrates their data to the groups model if needed
+				and shows the groups UI.
 			</p>
 			<TlaButton
-				onClick={handleMigrate}
+				onClick={handleEnroll}
 				variant="primary"
-				disabled={isMigrating}
-				isLoading={isMigrating}
+				disabled={isEnrolling}
+				isLoading={isEnrolling}
 			>
-				{isMigrating ? 'Migrating...' : 'Migrate to Groups'}
+				{isEnrolling ? 'Enrolling…' : fullyEnrolled ? 'Re-run enrollment' : 'Enroll in groups'}
 			</TlaButton>
 		</div>
 	)
