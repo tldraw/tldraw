@@ -7764,7 +7764,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	alignShapes(
 		shapes: TLShapeId[] | TLShape[],
-		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom'
+		operation:
+			| 'left'
+			| 'center-horizontal'
+			| 'right'
+			| 'top'
+			| 'center-vertical'
+			| 'bottom'
+			| 'center'
 	): this {
 		if (this.getIsReadonly()) return this
 
@@ -7802,6 +7809,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 				case 'right': {
 					delta.x = commonBounds.maxX - pageBounds.minX - pageBounds.width
+					break
+				}
+				case 'center': {
+					delta.x = commonBounds.midX - pageBounds.minX - pageBounds.width / 2
+					delta.y = commonBounds.midY - pageBounds.minY - pageBounds.height / 2
 					break
 				}
 			}
