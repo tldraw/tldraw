@@ -1,0 +1,10 @@
+# Copy this file to `.dev.vars` and fill in your API keys.
+# `.dev.vars` is gitignored and only used for local development.
+
+# Background image generation and edits (the render stage).
+# Get a key from https://aistudio.google.com/apikey
+GOOGLE_API_KEY=
+
+# Text planning — lays out and revises the text layers (the plan stage).
+# Get a key from https://console.anthropic.com/settings/keys
+ANTHROPIC_API_KEY=
