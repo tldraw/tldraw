@@ -83,6 +83,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 	// Leaving is allowed for everyone except the last owner — a group invariant
 	// (it must always keep at least one owner), not a capability.
 	const canLeave = role !== 'owner' || ownersCount > 1
+	const roleLabels: Record<Role, string> = { owner: ownerMsg, admin: adminMsg }
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
@@ -276,8 +277,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 										<MemberRoleSelect
 											value={member.role}
 											disabled={member.role === 'owner' && ownersCount <= 1}
-											ownerLabel={ownerMsg}
-											adminLabel={adminMsg}
+											labels={roleLabels}
 											onChange={async (value) => {
 												if (value === member.role) return
 												if (member.role === 'owner' && value === 'admin' && ownersCount <= 1) return
@@ -293,40 +293,8 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 											}}
 										/>
 									) : (
-										<span className={styles.memberRole}>
-											{member.role === 'owner' ? ownerMsg : adminMsg}
-										</span>
+										<span className={styles.memberRole}>{roleLabels[member.role]}</span>
 									)}
-									{/* {isOwner && member.userId !== app.getUser().id ? (
-									<TlaMenuSelect<'owner' | 'admin'>
-										label={member.role === 'owner' ? ownerMsg : adminMsg}
-										value={member.role}
-										disabled={member.role === 'owner' && ownersCount <= 1}
-										onChange={async (value) => {
-											if (value === member.role) return
-											if (member.role === 'owner' && value === 'admin' && ownersCount <= 1) {
-												return
-											}
-											try {
-												await app.z.mutate.group.setMemberRole({
-													groupId,
-													targetUserId: member.userId,
-													role: value,
-												})
-											} catch (err) {
-												console.error('Failed to change member role', err)
-											}
-										}}
-										options={[
-											{ value: 'admin', label: adminMsg },
-											{ value: 'owner', label: ownerMsg },
-										]}
-									/>
-								) : (
-									<span className={styles.memberRole}>
-										{member.role === 'owner' ? ownerMsg : adminMsg}
-									</span>
-								)} */}
 								</div>
 							))}
 					</div>
@@ -362,14 +330,12 @@ function MemberRoleSelect({
 	value,
 	onChange,
 	disabled,
-	ownerLabel,
-	adminLabel,
+	labels,
 }: {
 	value: Role
 	onChange(v: Role): void
 	disabled?: boolean
-	ownerLabel: string
-	adminLabel: string
+	labels: Record<Role, string>
 }) {
 	return (
 		<div className={styles.selectWrapper}>
@@ -380,8 +346,11 @@ function MemberRoleSelect({
 				disabled={disabled}
 				onChange={(e) => onChange(e.currentTarget.value as Role)}
 			>
-				<option value="owner">{ownerLabel}</option>
-				<option value="admin">{adminLabel}</option>
+				{Object.entries(labels).map(([roleValue, label]) => (
+					<option key={roleValue} value={roleValue}>
+						{label}
+					</option>
+				))}
 			</select>
 		</div>
 	)
