@@ -295,7 +295,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			} else if (isSharedEdit) {
 				// shared for editing
 			} else if (userId && file.owningGroupId) {
-				if (!can(await getRole(db, userId, file.owningGroupId), 'accessFiles')) {
+				const role = await getRole(db, userId, file.owningGroupId)
+				if (!can(role, 'accessFiles')) {
 					return { ok: false, error: 'Forbidden' }
 				}
 			} else {

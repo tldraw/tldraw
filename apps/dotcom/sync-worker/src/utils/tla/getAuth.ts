@@ -98,7 +98,8 @@ export async function requireWriteAccessToFile(
 
 		// If the file is owned by a group, check the user can access its files
 		if (file.owningGroupId) {
-			if (can(await getRole(db, auth.userId, file.owningGroupId), 'accessFiles')) {
+			const role = await getRole(db, auth.userId, file.owningGroupId)
+			if (can(role, 'accessFiles')) {
 				return
 			}
 		}

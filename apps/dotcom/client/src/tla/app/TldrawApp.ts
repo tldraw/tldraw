@@ -815,7 +815,8 @@ export class TldrawApp {
 		if (!file) return false
 		if (file.ownerId) return file.ownerId === this.userId
 		if (file.owningGroupId) {
-			return can(this.getGroupMembership(file.owningGroupId)?.role, 'accessFiles')
+			const role = this.getGroupMembership(file.owningGroupId)?.role
+			return can(role, 'accessFiles')
 		}
 		return false
 	}

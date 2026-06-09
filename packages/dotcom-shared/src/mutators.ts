@@ -115,7 +115,7 @@ async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 
 /**
  * Resolve the user's role in a group, or null if they aren't a member. Pair it
- * with `can` from ./roles at call sites: `assert(can(await getRole(...), 'x'))`.
+ * with `can` from ./roles: `const role = await getRole(...); assert(can(role, 'x'))`.
  */
 async function getRole(
 	tx: Transaction<TlaSchema>,
@@ -162,7 +162,8 @@ async function assertUserCanAccessFileInternal(
 		assert(file.ownerId === userId, ZErrorCode.forbidden)
 	} else if (file.owningGroupId) {
 		// New model: user must be a member of the owning group
-		assert(can(await getRole(tx, userId, file.owningGroupId), 'accessFiles'), ZErrorCode.forbidden)
+		const role = await getRole(tx, userId, file.owningGroupId)
+		assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
 	} else {
 		// File has neither ownerId nor owningGroupId - invalid state
 		assert(false, ZErrorCode.bad_request)
@@ -489,7 +490,8 @@ export function createMutators(userId: string) {
 				return
 			}
 
-			assert(can(await getRole(tx, userId, groupId), 'removeFiles'), ZErrorCode.forbidden)
+			const role = await getRole(tx, userId, groupId)
+			assert(can(role, 'removeFiles'), ZErrorCode.forbidden)
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(file, ZErrorCode.bad_request)
 
@@ -576,7 +578,8 @@ export function createMutators(userId: string) {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			assert(name && name.trim(), ZErrorCode.bad_request)
-			assert(can(await getRole(tx, userId, id), 'editGroup'), ZErrorCode.forbidden)
+			const role = await getRole(tx, userId, id)
+			assert(can(role, 'editGroup'), ZErrorCode.forbidden)
 
 			await tx.mutate.group.update({ id, name: name.trim() })
 		},
@@ -584,7 +587,8 @@ export function createMutators(userId: string) {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 
-			assert(can(await getRole(tx, userId, id), 'manageInvites'), ZErrorCode.forbidden)
+			const role = await getRole(tx, userId, id)
+			assert(can(role, 'manageInvites'), ZErrorCode.forbidden)
 
 			if (tx.location === 'server') {
 				await tx.mutate.group.update({ id, inviteSecret: uniqueId() })
@@ -595,7 +599,8 @@ export function createMutators(userId: string) {
 			{ groupId, targetUserId, role }: { groupId: string; targetUserId: string; role: Role }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(can(await getRole(tx, userId, groupId), 'editMembers'), ZErrorCode.forbidden)
+			const actingRole = await getRole(tx, userId, groupId)
+			assert(can(actingRole, 'editMembers'), ZErrorCode.forbidden)
 			assert(groupId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
 			assert(isRole(role), ZErrorCode.bad_request)
@@ -632,7 +637,8 @@ export function createMutators(userId: string) {
 		},
 		deleteGroup: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(can(await getRole(tx, userId, id), 'deleteGroup'), ZErrorCode.forbidden)
+			const role = await getRole(tx, userId, id)
+			assert(can(role, 'deleteGroup'), ZErrorCode.forbidden)
 
 			// Delete all group files
 			const groupFiles = await tx.run(zql.group_file.where('groupId', '=', id))
@@ -669,11 +675,10 @@ export function createMutators(userId: string) {
 
 			// User must be allowed to take the file out of its current group and
 			// to add files to the destination group.
-			assert(
-				can(await getRole(tx, userId, file.owningGroupId!), 'removeFiles'),
-				ZErrorCode.forbidden
-			)
-			assert(can(await getRole(tx, userId, groupId), 'addFiles'), ZErrorCode.forbidden)
+			const fromRole = await getRole(tx, userId, file.owningGroupId!)
+			assert(can(fromRole, 'removeFiles'), ZErrorCode.forbidden)
+			const toRole = await getRole(tx, userId, groupId)
+			assert(can(toRole, 'addFiles'), ZErrorCode.forbidden)
 
 			// Remove file from current group association if it exists
 			if (file.owningGroupId) {
@@ -703,7 +708,8 @@ export function createMutators(userId: string) {
 			assert(groupId, ZErrorCode.bad_request)
 
 			// User must be allowed to add files to the target group
-			assert(can(await getRole(tx, userId, groupId), 'addFiles'), ZErrorCode.forbidden)
+			const role = await getRole(tx, userId, groupId)
+			assert(can(role, 'addFiles'), ZErrorCode.forbidden)
 
 			// On server, verify the user has access to this file (owns it, is member of owning group, or it's shared)
 			if (tx.location === 'server') {
@@ -736,7 +742,8 @@ export function createMutators(userId: string) {
 			{ groupId, index }: { groupId: string; index: IndexKey }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(can(await getRole(tx, userId, groupId), 'accessFiles'), ZErrorCode.forbidden)
+			const role = await getRole(tx, userId, groupId)
+			assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
 			await tx.mutate.group_user.update({ userId, groupId, index })
 		},
 		handleFileDragOperation: async (
@@ -751,10 +758,12 @@ export function createMutators(userId: string) {
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			if (!file) return
 			await assertUserCanAccessFile(tx, userId, file)
-			assert(can(await getRole(tx, userId, groupId), 'addFiles'), ZErrorCode.forbidden)
+			const role = await getRole(tx, userId, groupId)
+			assert(can(role, 'addFiles'), ZErrorCode.forbidden)
 			const finalGroupId = operation.move?.targetId ?? groupId
 			if (finalGroupId !== groupId) {
-				assert(can(await getRole(tx, userId, finalGroupId), 'addFiles'), ZErrorCode.forbidden)
+				const finalRole = await getRole(tx, userId, finalGroupId)
+				assert(can(finalRole, 'addFiles'), ZErrorCode.forbidden)
 			}
 			const isFileLink = file.owningGroupId !== groupId
 

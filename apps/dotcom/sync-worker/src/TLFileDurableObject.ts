@@ -643,7 +643,8 @@ export class TLFileDurableObject extends DurableObject {
 				} else if (file.owningGroupId && auth?.userId) {
 					// Check the user can access the owning group's files
 					const groupCheckTimer = this.timer()
-					if (can(await getRole(this.db, auth.userId, file.owningGroupId), 'accessFiles')) {
+					const role = await getRole(this.db, auth.userId, file.owningGroupId)
+					if (can(role, 'accessFiles')) {
 						hasOwnerAccess = true
 					}
 					groupCheckTimer.report('on_request_group_check')
@@ -755,7 +756,8 @@ export class TLFileDurableObject extends DurableObject {
 		if (file.ownerId && file.ownerId === auth?.userId) {
 			hasOwnerAccess = true
 		} else if (file.owningGroupId && auth?.userId) {
-			if (can(await getRole(this.db, auth.userId, file.owningGroupId), 'accessFiles')) {
+			const role = await getRole(this.db, auth.userId, file.owningGroupId)
+			if (can(role, 'accessFiles')) {
 				hasOwnerAccess = true
 			}
 		}
@@ -1577,8 +1579,10 @@ export class TLFileDurableObject extends DurableObject {
 			// Check if user owns the file directly
 			if (file.ownerId && session.meta.userId === file.ownerId) continue
 
-			const canAccessFiles = async () =>
-				can(await getRole(this.db, session.meta.userId, file.owningGroupId), 'accessFiles')
+			const canAccessFiles = async () => {
+				const role = await getRole(this.db, session.meta.userId, file.owningGroupId)
+				return can(role, 'accessFiles')
+			}
 
 			if (!file.shared) {
 				if (!(await canAccessFiles())) {
