@@ -129,7 +129,6 @@ export class AgentService {
 				},
 			})
 
-			console.warn('provider', provider)
 			const canForceResponseStart =
 				(provider === 'anthropic.messages' || provider === 'google.generative-ai') &&
 				modelDefinition.supportsPrefill
@@ -140,9 +139,6 @@ export class AgentService {
 			let startTime = Date.now()
 			for await (const text of textStream) {
 				buffer += text
-
-				console.warn('buffer', buffer)
-
 				const partialObject = closeAndParseJson(buffer)
 				if (!partialObject) continue
 
