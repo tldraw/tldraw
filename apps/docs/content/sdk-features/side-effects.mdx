@@ -82,7 +82,7 @@ Side effects run within store transactions. All before handlers complete before 
 
 ### Constraining shape positions
 
-Before handlers can enforce constraints on records. This example keeps shapes within a certain area by returning a modified record:
+Before handlers can enforce constraints on records. This example blocks moves into negative coordinates by returning the previous record:
 
 ```typescript
 editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next, source) => {
@@ -95,7 +95,7 @@ editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next, source) => 
 
 ### Cascading deletions
 
-You can delete related shapes when a parent is removed. This example deletes empty frames:
+You can cascade deletions to related records. This example deletes a frame when its last child is removed:
 
 ```typescript
 editor.sideEffects.registerAfterDeleteHandler('shape', (shape, source) => {

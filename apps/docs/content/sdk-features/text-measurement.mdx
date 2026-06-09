@@ -24,7 +24,7 @@ The editor measures text to calculate shape bounds, handle text wrapping, and en
 
 ## How text measurement works
 
-The `TextManager` creates a hidden measurement element on initialization and appends it to the editor container. This element stays in the DOM throughout the editor's lifecycle, allowing fast repeated measurements without repeated DOM manipulation.
+The `TextManager` creates a hidden measurement element on initialization and appends it to the editor container. This element stays in the DOM throughout the editor's lifecycle, so repeated measurements don't pay the cost of creating and removing elements.
 
 ```typescript
 // Simplified for clarity - see TextManager.ts for full implementation
