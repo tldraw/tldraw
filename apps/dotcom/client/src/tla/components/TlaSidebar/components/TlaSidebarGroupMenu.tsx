@@ -16,7 +16,6 @@ import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { defineMessages, useMsg } from '../../../utils/i18n'
-import { AddFileLinkDialog } from '../../dialogs/AddFileLinkDialog'
 import { GroupSettingsDialog } from '../../dialogs/GroupSettingsDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
@@ -27,7 +26,6 @@ export const groupMessages = defineMessages({
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	settings: { defaultMessage: 'Settings' },
 	importFiles: { defaultMessage: 'Import file…' },
-	addLinkToSharedFile: { defaultMessage: 'Add file link…' },
 	copied: { defaultMessage: 'Copied invite link' },
 })
 
@@ -69,7 +67,6 @@ export function GroupMenuContent({ groupId }: { groupId: string }) {
 	const copyInviteLinkMsg = useMsg(groupMessages.copyInviteLink)
 	const settingsMsg = useMsg(groupMessages.settings)
 	const importFilesMsg = useMsg(groupMessages.importFiles)
-	const addLinkToSharedFileMsg = useMsg(groupMessages.addLinkToSharedFile)
 
 	const handleCopyInviteLinkClick = useCallback(() => {
 		app.copyGroupInvite(groupId)
@@ -105,12 +102,6 @@ export function GroupMenuContent({ groupId }: { groupId: string }) {
 		}
 	}, [trackEvent, app, navigate, groupId])
 
-	const handleAddLinkToSharedFileClick = useCallback(() => {
-		addDialog({
-			component: ({ onClose }) => <AddFileLinkDialog onClose={onClose} groupId={groupId} />,
-		})
-	}, [addDialog, groupId])
-
 	return (
 		<>
 			<TldrawUiMenuGroup id="group-actions">
@@ -135,12 +126,6 @@ export function GroupMenuContent({ groupId }: { groupId: string }) {
 					id="import-files"
 					readonlyOk
 					onSelect={handleImportFilesClick}
-				/>
-				<TldrawUiMenuItem
-					label={addLinkToSharedFileMsg}
-					id="add-link-to-shared-file"
-					readonlyOk
-					onSelect={handleAddLinkToSharedFileClick}
 				/>
 			</TldrawUiMenuGroup>
 		</>

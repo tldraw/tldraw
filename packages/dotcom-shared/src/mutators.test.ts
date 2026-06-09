@@ -861,53 +861,6 @@ describe('file operations across groups', () => {
 		await m.removeFileFromGroup(tx, { fileId, groupId: groupA })
 		expect(s.file[0]?.isDeleted).toBe(true)
 	})
-
-	it('member with file access can add file link to group', async () => {
-		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
-			file: [makeFile({ id: fileId, owningGroupId: groupA })],
-			file_state: [],
-			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
-			group_user: [
-				makeGroupUser({ userId, groupId: groupA }),
-				makeGroupUser({ userId, groupId: groupB }),
-			],
-			group_file: [makeGroupFile({ fileId, groupId: groupA })],
-		}
-		const { tx } = createMockTx(s, { location: 'server' })
-		const m = createMutators(userId)
-		await m.addFileLinkToGroup(tx, { fileId, groupId: groupB })
-		expect(s.group_file.find((gf) => gf.groupId === groupB)).toBeDefined()
-	})
-
-	it('member without file access cannot add file link to group', async () => {
-		const otherGroup = 'group_other123456789'
-		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
-			file: [makeFile({ id: fileId, owningGroupId: otherGroup, shared: false })],
-			file_state: [],
-			group: [makeGroup({ id: groupB }), makeGroup({ id: otherGroup })],
-			group_user: [makeGroupUser({ userId, groupId: groupB })],
-			group_file: [],
-		}
-		const { tx } = createMockTx(s, { location: 'server' })
-		const m = createMutators(userId)
-		await expectForbidden(() => m.addFileLinkToGroup(tx, { fileId, groupId: groupB }))
-	})
-
-	it('non-member cannot add file link to group', async () => {
-		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
-			file: [makeFile({ id: fileId, owningGroupId: groupA, shared: true })],
-			file_state: [],
-			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
-			group_user: [makeGroupUser({ userId, groupId: groupA })],
-			group_file: [],
-		}
-		const { tx } = createMockTx(s, { location: 'server' })
-		const m = createMutators(userId)
-		await expectForbidden(() => m.addFileLinkToGroup(tx, { fileId, groupId: groupB }))
-	})
 })
 
 describe('home group special case', () => {

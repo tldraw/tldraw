@@ -722,43 +722,6 @@ export function createMutators(userId: string) {
 				index: null,
 			})
 		},
-		addFileLinkToGroup: async (
-			tx: Tx,
-			{ fileId, groupId }: { fileId: string; groupId: string }
-		) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(fileId, ZErrorCode.bad_request)
-			assert(groupId, ZErrorCode.bad_request)
-
-			// User must be a member of the target group
-			await assertUserIsGroupMember(tx, userId, groupId)
-
-			// On server, verify the user has access to this file (owns it, is member of owning group, or it's shared)
-			if (tx.location === 'server') {
-				const file = await tx.run(zql.file.where('id', '=', fileId).one())
-				assert(file, ZErrorCode.bad_request)
-				await assertUserCanAccessFile(tx, userId, file)
-			}
-
-			// Check if file link already exists
-			const existing = await tx.run(
-				zql.group_file.where('fileId', '=', fileId).where('groupId', '=', groupId).one()
-			)
-
-			if (existing) {
-				// Already exists, no-op
-				return
-			}
-
-			// Create the file link
-			await tx.mutate.group_file.insert({
-				fileId,
-				groupId,
-				createdAt: Date.now(),
-				updatedAt: Date.now(),
-				index: null,
-			})
-		},
 		updateOwnGroupUser: async (
 			tx: Tx,
 			{ groupId, index }: { groupId: string; index: IndexKey }
