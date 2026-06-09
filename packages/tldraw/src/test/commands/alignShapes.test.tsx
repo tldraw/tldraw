@@ -114,6 +114,17 @@ describe('when multiple shapes are selected', () => {
 		)
 	})
 
+	it('aligns center on both axes', () => {
+		editor.alignShapes(editor.getSelectedShapeIds(), 'center')
+		vi.advanceTimersByTime(1000)
+
+		editor.expectShapeToMatch(
+			{ id: ids.boxA, x: 200, y: 200 },
+			{ id: ids.boxB, x: 225, y: 225 },
+			{ id: ids.boxC, x: 200, y: 200 }
+		)
+	})
+
 	it('aligns center, when shapes are rotated', () => {
 		editor.updateShapes([
 			{

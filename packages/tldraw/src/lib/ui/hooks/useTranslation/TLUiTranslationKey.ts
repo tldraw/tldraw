@@ -12,6 +12,7 @@ export type TLUiTranslationKey =
 	| 'action.convert-to-embed'
 	| 'action.open-embed-link'
 	| 'action.align-bottom'
+	| 'action.align-center'
 	| 'action.align-center-horizontal'
 	| 'action.align-center-vertical'
 	| 'action.align-center-horizontal.short'

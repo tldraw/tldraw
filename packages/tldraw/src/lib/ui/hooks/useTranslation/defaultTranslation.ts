@@ -12,6 +12,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.convert-to-embed': 'Convert to embed',
 	'action.open-embed-link': 'Open link',
 	'action.align-bottom': 'Align bottom',
+	'action.align-center': 'Align center',
 	'action.align-center-horizontal': 'Align horizontally',
 	'action.align-center-vertical': 'Align vertically',
 	'action.align-center-horizontal.short': 'Align H',
