@@ -280,7 +280,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 											labels={roleLabels}
 											onChange={async (value) => {
 												if (value === member.role) return
-												if (member.role === 'owner' && value === 'admin' && ownersCount <= 1) return
+												if (member.role === 'owner' && value !== 'owner' && ownersCount <= 1) return
 												try {
 													await app.z.mutate.setGroupMemberRole({
 														groupId,

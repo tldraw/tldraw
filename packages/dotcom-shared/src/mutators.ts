@@ -596,14 +596,19 @@ export function createMutators(userId: string) {
 		},
 		setGroupMemberRole: async (
 			tx: Tx,
-			{ groupId, targetUserId, role }: { groupId: string; targetUserId: string; role: Role }
+			{
+				groupId,
+				targetUserId,
+				role: targetRole,
+			}: { groupId: string; targetUserId: string; role: Role }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			const actingRole = await getRole(tx, userId, groupId)
-			assert(can(actingRole, 'editMembers'), ZErrorCode.forbidden)
 			assert(groupId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
-			assert(isRole(role), ZErrorCode.bad_request)
+			assert(isRole(targetRole), ZErrorCode.bad_request)
+
+			const role = await getRole(tx, userId, groupId)
+			assert(can(role, 'editMembers'), ZErrorCode.forbidden)
 
 			// Target must be a member
 			const targetMembership = await tx.run(
@@ -611,18 +616,18 @@ export function createMutators(userId: string) {
 			)
 			assert(targetMembership, ZErrorCode.bad_request)
 
-			if (targetMembership.role === role) return
+			if (targetMembership.role === targetRole) return
 
 			// Invariant (not a capability): a group must always keep at least one
-			// owner, so the last owner can't be demoted.
-			if (targetMembership.role === 'owner' && role === 'admin') {
+			// owner, so the last owner can't be demoted away from owner.
+			if (targetMembership.role === 'owner' && targetRole !== 'owner') {
 				const owners = await tx.run(
 					zql.group_user.where('groupId', '=', groupId).where('role', '=', 'owner')
 				)
 				assert(owners.length > 1, ZErrorCode.forbidden)
 			}
 
-			await tx.mutate.group_user.update({ userId: targetUserId, groupId, role })
+			await tx.mutate.group_user.update({ userId: targetUserId, groupId, role: targetRole })
 		},
 		leaveGroup: async (tx: Tx, { groupId }: { groupId: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')

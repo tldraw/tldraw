@@ -10,9 +10,11 @@ import { Capability } from './capabilities'
  * The role is stored in the DB as a plain string (`group_user.role`);
  * capabilities are never persisted — they're derived from that string here.
  *
- * NOTE: `'admin'` is in the process of being renamed to `'member'`. Because no
- * logic branches on the literal anymore, that rename is just relabeling the key
- * below plus a data migration of stored values.
+ * NOTE: `'admin'` is in the process of being renamed to `'member'`. No
+ * authorization logic branches on that name — the only role literals left in
+ * logic are the last-owner invariant, which checks `'owner'` (not renamed). So
+ * the rename is relabeling this key, the `acceptInvite` default, the display
+ * labels, and a data migration of stored values.
  */
 
 /**
