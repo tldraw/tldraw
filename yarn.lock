@@ -9386,22 +9386,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero-sqlite3@npm:^1.0.17":
-  version: 1.0.17
-  resolution: "@rocicorp/zero-sqlite3@npm:1.0.17"
+"@rocicorp/zero-sqlite3@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@rocicorp/zero-sqlite3@npm:1.1.2"
   dependencies:
     bindings: "npm:^1.5.0"
     node-gyp: "npm:latest"
     prebuild-install: "npm:^7.1.1"
   bin:
     zero-sqlite3: shell.js
-  checksum: 10/670f61017e2fefcd521d4dfd321f0d0bf50b5a6bfc9dd5c58f6d27afabd3298b14b509a4a4c415d0a6d4498fc5a343b5c3337992a7e81dc243bc9a27c88a2f8d
+  checksum: 10/a926e1945639c7d4a1678cc55323953bcd92052b49a434943b518a8a8ee983ff6284dd0e2f3dfe2f2c2ef20e97a13247787c94085df281457fb61f129ddeef5d
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:1.5.0":
-  version: 1.5.0
-  resolution: "@rocicorp/zero@npm:1.5.0"
+"@rocicorp/zero@npm:1.6.1":
+  version: 1.6.1
+  resolution: "@rocicorp/zero@npm:1.6.1"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -9423,7 +9423,7 @@ __metadata:
     "@rocicorp/lock": "npm:^1.0.4"
     "@rocicorp/logger": "npm:^5.4.0"
     "@rocicorp/resolver": "npm:^1.0.2"
-    "@rocicorp/zero-sqlite3": "npm:^1.0.17"
+    "@rocicorp/zero-sqlite3": "npm:^1.1.2"
     "@standard-schema/spec": "npm:^1.0.0"
     "@types/basic-auth": "npm:^1.1.8"
     "@types/ws": "npm:^8.5.12"
@@ -9472,7 +9472,7 @@ __metadata:
     zero-cache-dev: out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: out/zero/src/deploy-permissions.js
     zero-out: out/zero/src/zero-out.js
-  checksum: 10/dcf15f543e7ed38fc3970307ee3d770ee7c6f0cf6e141c7f7666a38981b95f9d80a95a6da84462aa631d0054fc88b2d90a4a98c98f1df8057000c57a9ea6e870
+  checksum: 10/6520579811fab45b31d77856854dcdc55c8f6a8e5e65bb8284c4c27517650547c3c3843b192a222edfd2a1d8aa7f71d9114825964689a68951b909e07b589825
   languageName: node
   linkType: hard
 
@@ -11934,7 +11934,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:1.5.0"
+    "@rocicorp/zero": "npm:1.6.1"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -11958,7 +11958,7 @@ __metadata:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20260302.0"
     "@pierre/storage": "npm:^1.1.0"
-    "@rocicorp/zero": "npm:1.5.0"
+    "@rocicorp/zero": "npm:1.6.1"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -12403,7 +12403,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:1.5.0"
+    "@rocicorp/zero": "npm:1.6.1"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     esbuild: "npm:^0.28.0"
@@ -18139,7 +18139,7 @@ __metadata:
     "@formatjs/cli": "npm:^6.5.1"
     "@formatjs/unplugin": "npm:^1.1.0"
     "@playwright/test": "npm:^1.58.2"
-    "@rocicorp/zero": "npm:1.5.0"
+    "@rocicorp/zero": "npm:1.6.1"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
