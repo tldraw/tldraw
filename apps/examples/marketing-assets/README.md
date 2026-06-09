@@ -5,7 +5,7 @@
 	</picture>
 </div>
 
-This starter kit generates on-brand marketing assets with an image model, then lets you refine them by drawing arrows and text directly on the [tldraw](https://github.com/tldraw/tldraw) canvas. You configure a brand, write a brief, pick an output format, and generate. To revise an asset, annotate it and hit re-render — the annotations are read by a vision model and turned into a precise edit, and every render is kept in a per-asset version history you can revert to.
+This example generates on-brand marketing assets with an image model, then lets you refine them by drawing arrows and text directly on the [tldraw](https://github.com/tldraw/tldraw) canvas. You configure a brand, write a brief, pick an output format, and generate. To revise an asset, annotate it and hit re-render — the annotations are read by a vision model and turned into a precise edit, and every render is kept in a per-asset version history you can revert to.
 
 It's **multiplayer**: each canvas is a room (the room id is in the URL), so you can share the link and design assets together in real time. The board syncs through a self-hosted Cloudflare backend in the same worker that runs the AI.
 
@@ -20,7 +20,7 @@ An asset is a **text-free background** from the image model with **text layers**
 5. **History** — every render is appended to the asset's version timeline (background + text layers), shown as thumbnails under the frame. Click any version to revert.
 6. **Collaborate** — the whole board (assets, brand, versions, annotations) lives in a shared room and syncs in real time. Hit **Copy link** in the sidebar and send it to a teammate to work on the same canvas together. Generated backgrounds are uploaded to object storage (R2) and referenced by URL, so they're not synced inline.
 
-See `CONTEXT.md` for the project glossary and `docs/adr/` for the key design decisions. Multiplayer follows tldraw's [sync](https://tldraw.dev/docs/sync) stack; the [`sync-cloudflare`](../sync-cloudflare) template is the minimal reference for the same backend.
+See `CONTEXT.md` for the project glossary and `docs/adr/` for the key design decisions. Multiplayer follows tldraw's [sync](https://tldraw.dev/docs/sync) stack; the [`sync-cloudflare`](../../../templates/sync-cloudflare) template is the minimal reference for the same backend.
 
 ## Environment setup
 
@@ -49,8 +49,8 @@ Open `http://localhost:5173/` in your browser. You'll be sent to a room URL like
 The worker hosts the rooms (a Durable Object per room) and the asset bucket. Before the first deploy, create the R2 bucket referenced in `wrangler.toml`:
 
 ```
-wrangler r2 bucket create marketing-assets-template
-wrangler r2 bucket create marketing-assets-template-preview
+wrangler r2 bucket create marketing-assets
+wrangler r2 bucket create marketing-assets-preview
 ```
 
 Set the API keys as secrets (`wrangler secret put ANTHROPIC_API_KEY`, `wrangler secret put GOOGLE_API_KEY`), then `wrangler deploy`.

@@ -3,7 +3,7 @@
 The app is collaborative. Each canvas is a [[Room]] (the room id is in the URL); everyone
 who opens the link shares one synced tldraw document — [[Marketing asset]]s, [[Brand
 guidelines]], [[Version]]s, and [[Annotation]]s — with live cursors. This replaces the
-single-browser IndexedDB persistence the template started with (`persistenceKey`).
+single-browser IndexedDB persistence the project started with (`persistenceKey`).
 
 We use tldraw's first-party sync stack rather than rolling our own transport. The client
 connects with `useSync`; the backend is one Cloudflare Durable Object per room

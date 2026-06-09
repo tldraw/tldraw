@@ -28,6 +28,7 @@
 	"workspaces": [
 		"packages/*",
 		"apps/*",
+		"apps/examples/marketing-assets",
 		"apps/vscode/*",
 		"apps/dotcom/*",
 		"internal/*",

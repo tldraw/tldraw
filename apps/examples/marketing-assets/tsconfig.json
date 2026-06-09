@@ -18,5 +18,5 @@
 		"types": ["vite/client", "./worker-configuration.d.ts"]
 	},
 	"include": ["src", "worker", "vite.config.ts"],
-	"references": [{ "path": "../../packages/tldraw" }]
+	"references": [{ "path": "../../../packages/tldraw" }]
 }

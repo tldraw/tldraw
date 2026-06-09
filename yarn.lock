@@ -30453,17 +30453,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"tldraw-marketing-assets@workspace:templates/marketing-assets":
+"tldraw-marketing-assets@workspace:apps/examples/marketing-assets":
   version: 0.0.0-use.local
-  resolution: "tldraw-marketing-assets@workspace:templates/marketing-assets"
+  resolution: "tldraw-marketing-assets@workspace:apps/examples/marketing-assets"
   dependencies:
     "@cloudflare/vite-plugin": "npm:^1.29.1"
+    "@tldraw/sync": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react": "npm:^6.0.1"
+    cloudflare-workers-unfurl: "npm:^0.0.8"
     itty-router: "npm:^5.0.18"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
+    react-router-dom: "npm:^6.28.2"
     tldraw: "workspace:*"
     typescript: "npm:^5.8.3"
     vite: "npm:^8.0.1"

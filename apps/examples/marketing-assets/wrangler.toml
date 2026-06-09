@@ -1,5 +1,5 @@
 
-name = "marketing-assets-template"
+name = "marketing-assets"
 main = "worker/worker.ts"
 compatibility_date = "2025-05-08"
 compatibility_flags = ["nodejs_compat"]
@@ -7,7 +7,7 @@ upload_source_maps = true
 preview_urls = true
 
 [[routes]]
-pattern = "marketing-assets.templates.tldraw.dev"
+pattern = "marketing-assets.examples.tldraw.com"
 custom_domain = true
 
 [observability]
@@ -40,5 +40,5 @@ new_sqlite_classes = ["TldrawDurableObject"]
 # don't get synced inline through the room as large data URLs.
 [[r2_buckets]]
 binding = 'TLDRAW_BUCKET'
-bucket_name = 'marketing-assets-template'
-preview_bucket_name = 'marketing-assets-template-preview'
+bucket_name = 'marketing-assets'
+preview_bucket_name = 'marketing-assets-preview'
