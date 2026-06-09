@@ -50,6 +50,12 @@ describe('custom changeDocument rules', () => {
 		expect(editor.getShape(ids.boxA)!.isLocked).toBe(false)
 	})
 
+	it('blocks updateDocumentSettings', () => {
+		const before = editor.getDocumentSettings()
+		editor.updateDocumentSettings({ name: 'denied' })
+		expect(editor.getDocumentSettings()).toEqual(before)
+	})
+
 	it('blocks createPage and deletePage', () => {
 		const pageCount = editor.getPages().length
 		editor.createPage({ name: 'denied' })

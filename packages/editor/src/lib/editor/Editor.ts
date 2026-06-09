@@ -316,6 +316,13 @@ export interface TLEditorOptions {
  * @public
  */
 export interface TLEditorRunOptions extends TLHistoryBatchOptions {
+	/**
+	 * Whether to skip the per-shape permission checks within the transaction.
+	 * This bypasses the editor's per-shape allowables (like
+	 * {@link AllowManager.changeShape} and {@link AllowManager.deleteShape})
+	 * entirely — including any custom rules added to them, not just the
+	 * built-in shape lock rules.
+	 */
 	ignoreShapeLock?: boolean
 }
 
@@ -1619,7 +1626,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Run a function in a transaction with optional options for context.
 	 * You can use the options to change the way that history is treated
-	 * or allow changes to locked shapes.
+	 * or skip the per-shape permission checks. Note that `ignoreShapeLock`
+	 * bypasses the per-shape allowables entirely, including any custom
+	 * rules, not just the built-in shape lock rules.
 	 *
 	 * @example
 	 * ```ts
@@ -1886,6 +1895,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 **/
 	updateDocumentSettings(settings: Partial<TLDocument>): this {
+		if (!this.allow.changeDocument.can()) return this
 		this.run(
 			() => {
 				this.store.put([{ ...this.getDocumentSettings(), ...settings }])

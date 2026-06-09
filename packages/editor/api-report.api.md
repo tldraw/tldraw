@@ -3961,7 +3961,6 @@ export interface TLEditorOptions {
 
 // @public
 export interface TLEditorRunOptions extends TLHistoryBatchOptions {
-    // (undocumented)
     ignoreShapeLock?: boolean;
 }
 
