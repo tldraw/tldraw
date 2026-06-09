@@ -41,20 +41,35 @@ export function WorkspaceInviteHandler() {
 		if (storedToken) {
 			deleteFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)
 
+			const showError = () =>
+				addToast({
+					id: 'workspace-invite-error',
+					severity: 'error',
+					title: errorMsg,
+					keepOpen: true,
+				})
+
 			// Fetch invite info from API
 			fetch(`/api/app/invite/${storedToken}`)
-				.then((res) => res.json())
-				.then((data: GetInviteInfoResponseBody) => {
-					if (data.error) {
-						// The invite link is no longer valid: the owner has regenerated it
-						// (re-roll) or the workspace is gone. Show a dedicated empty-state
-						// instead of failing silently. (A toast is unreliable here: it is
-						// added during the /invite -> / -> file route transition and gets
-						// dismissed near-instantly at the default duration, so the dialog
-						// is the surface that reliably reaches the user.)
+				.then(async (res) => {
+					// 404 means the invite no longer resolves (link regenerated or workspace
+					// gone) — the only case that warrants the expired empty-state. Other
+					// failures (400, 500) are errors, not expired links.
+					if (res.status === 404) {
 						dialogs.addDialog({
 							component: ({ onClose }) => <TlaInviteExpiredDialog onClose={onClose} />,
 						})
+						return
+					}
+
+					if (!res.ok) {
+						showError()
+						return
+					}
+
+					const data: GetInviteInfoResponseBody = await res.json()
+					if (data.error) {
+						showError()
 						return
 					}
 
@@ -73,18 +88,7 @@ export function WorkspaceInviteHandler() {
 						component: ({ onClose }) => <TlaInviteDialog inviteInfo={data} onClose={onClose} />,
 					})
 				})
-				.catch(() => {
-					// Genuine network/parse failure (not a 404, which resolves and is
-					// handled above). No dialog competes here, so a toast is the right
-					// surface — keepOpen so it survives the route transition rather than
-					// being dismissed before the user sees it.
-					addToast({
-						id: 'workspace-invite-error',
-						severity: 'error',
-						title: errorMsg,
-						keepOpen: true,
-					})
-				})
+				.catch(showError)
 		}
 	}, [
 		auth.isLoaded,
