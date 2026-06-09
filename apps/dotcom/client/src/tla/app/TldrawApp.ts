@@ -24,6 +24,7 @@ import {
 	ZErrorCode,
 	Z_PROTOCOL_VERSION,
 	ZeroContext,
+	can,
 	createMutators,
 	parseFlags,
 	queries,
@@ -813,7 +814,10 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 		if (!file) return false
 		if (file.ownerId) return file.ownerId === this.userId
-		return this.getGroupMemberships().some((g) => g.groupId === file.owningGroupId)
+		if (file.owningGroupId) {
+			return can(this.getGroupMembership(file.owningGroupId)?.role, 'accessFiles')
+		}
+		return false
 	}
 
 	requireFile(fileId: string): TlaFile {

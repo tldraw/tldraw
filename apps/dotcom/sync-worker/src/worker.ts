@@ -49,6 +49,7 @@ import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
+import { userCanInGroup } from './utils/tla/groupAccess'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
@@ -293,13 +294,9 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			} else if (isSharedEdit) {
 				// shared for editing
 			} else if (userId && file.owningGroupId) {
-				const member = await db
-					.selectFrom('group_user')
-					.select('role')
-					.where('groupId', '=', file.owningGroupId)
-					.where('userId', '=', userId)
-					.executeTakeFirst()
-				if (!member) return { ok: false, error: 'Forbidden' }
+				if (!(await userCanInGroup(db, userId, file.owningGroupId, 'accessFiles'))) {
+					return { ok: false, error: 'Forbidden' }
+				}
 			} else {
 				return { ok: false, error: 'Forbidden' }
 			}

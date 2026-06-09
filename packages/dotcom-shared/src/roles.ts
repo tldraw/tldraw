@@ -45,8 +45,13 @@ export type Role = keyof typeof roles
  * throwing, so callers never have to validate it first.
  */
 export function can(role: string | null | undefined, capability: Capability): boolean {
-	if (role == null || !Object.hasOwn(roles, role)) return false
+	if (!isRole(role)) return false
 	// `satisfies` narrows each array to a tuple of its own literals, so the cast
 	// widens it back to the full Capability union for `includes`.
-	return (roles[role as Role] as readonly Capability[]).includes(capability)
+	return (roles[role] as readonly Capability[]).includes(capability)
+}
+
+/** Whether a string is a known role name. */
+export function isRole(role: string | null | undefined): role is Role {
+	return role != null && Object.hasOwn(roles, role)
 }

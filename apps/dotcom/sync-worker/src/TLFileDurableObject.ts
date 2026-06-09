@@ -68,6 +68,7 @@ import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
+import { userCanInGroup } from './utils/tla/groupAccess'
 import { isTestFile } from './utils/tla/isTestFile'
 
 const MAX_CONNECTIONS = 50
@@ -639,18 +640,12 @@ export class TLFileDurableObject extends DurableObject {
 				if (file.ownerId && file.ownerId === auth?.userId) {
 					hasOwnerAccess = true
 				} else if (file.owningGroupId && auth?.userId) {
-					// Check if user is a member of the owning group
+					// Check the user can access the owning group's files
 					const groupCheckTimer = this.timer()
-					const groupMember = await this.db
-						.selectFrom('group_user')
-						.where('groupId', '=', file.owningGroupId)
-						.where('userId', '=', auth.userId)
-						.executeTakeFirst()
-					groupCheckTimer.report('on_request_group_check')
-
-					if (groupMember) {
+					if (await userCanInGroup(this.db, auth.userId, file.owningGroupId, 'accessFiles')) {
 						hasOwnerAccess = true
 					}
+					groupCheckTimer.report('on_request_group_check')
 				}
 
 				if (!hasOwnerAccess) {
@@ -759,12 +754,9 @@ export class TLFileDurableObject extends DurableObject {
 		if (file.ownerId && file.ownerId === auth?.userId) {
 			hasOwnerAccess = true
 		} else if (file.owningGroupId && auth?.userId) {
-			const groupMember = await this.db
-				.selectFrom('group_user')
-				.where('groupId', '=', file.owningGroupId)
-				.where('userId', '=', auth.userId)
-				.executeTakeFirst()
-			if (groupMember) hasOwnerAccess = true
+			if (await userCanInGroup(this.db, auth.userId, file.owningGroupId, 'accessFiles')) {
+				hasOwnerAccess = true
+			}
 		}
 		if (!hasOwnerAccess && !file.shared) {
 			return new Response('Forbidden', { status: 403 })
@@ -1584,15 +1576,11 @@ export class TLFileDurableObject extends DurableObject {
 			// Check if user owns the file directly
 			if (file.ownerId && session.meta.userId === file.ownerId) continue
 
-			const isGroupMember = async () =>
-				!!(await this.db
-					.selectFrom('group_user')
-					.where('groupId', '=', file.owningGroupId)
-					.where('userId', '=', session.meta.userId)
-					.executeTakeFirst())
+			const canAccessFiles = () =>
+				userCanInGroup(this.db, session.meta.userId, file.owningGroupId, 'accessFiles')
 
 			if (!file.shared) {
-				if (!(await isGroupMember())) {
+				if (!(await canAccessFiles())) {
 					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
 				}
 			} else if (
@@ -1600,7 +1588,7 @@ export class TLFileDurableObject extends DurableObject {
 				(session.isReadonly && !roomIsReadOnlyForGuests) ||
 				(!session.isReadonly && roomIsReadOnlyForGuests)
 			) {
-				if (!(await isGroupMember())) {
+				if (!(await canAccessFiles())) {
 					// not passing a reason means they will try to reconnect
 					room.closeSession(session.sessionId)
 				}

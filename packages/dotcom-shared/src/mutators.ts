@@ -10,7 +10,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
-import { Role, can } from './roles'
+import { Role, can, isRole } from './roles'
 import { FILE_PREFIX } from './routes'
 import {
 	immutableColumns,
@@ -598,7 +598,7 @@ export function createMutators(userId: string) {
 			assert(can(await getRole(tx, userId, groupId), 'editMembers'), ZErrorCode.forbidden)
 			assert(groupId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
-			assert(role === 'admin' || role === 'owner', ZErrorCode.bad_request)
+			assert(isRole(role), ZErrorCode.bad_request)
 
 			// Target must be a member
 			const targetMembership = await tx.run(
