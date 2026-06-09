@@ -350,8 +350,8 @@ export function EditMenuSubmenu() {
 		<TldrawUiMenuSubmenu id="edit" label="context-menu.edit" size="small">
 			<GroupMenuItem />
 			<UngroupMenuItem />
-			<FrameSelectionMenuItem />
 			<FlattenMenuItem />
+			<FrameSelectionMenuItem />
 			<EditLinkMenuItem />
 			<FitFrameToContentMenuItem />
 			<RemoveFrameMenuItem />
