@@ -1,12 +1,23 @@
 import { copyFileSync, existsSync } from 'fs'
 import path from 'path'
 import { pathToFileURL } from 'url'
-import { build } from 'esbuild'
+import { build, type BuildOptions, type Plugin } from 'esbuild'
 import { glob } from 'glob'
 import kleur from 'kleur'
 import rimraf from 'rimraf'
 import { addJsExtensions } from './lib/add-extensions'
 import { readJsonIfExists } from './lib/file'
+
+/**
+ * Allowlist of ESM-only dependencies to inline into the CommonJS build output.
+ * We dual-publish CJS + ESM with `bundle: false`, so a dependency normally stays
+ * external as a `require("x")` in the CJS output. That breaks CJS consumers when
+ * `x` is ESM-only (`require` of an ES module throws on Node <20.19, and trips up
+ * Jest/ts-node). Bundling these deps into the CJS output keeps the CJS path
+ * working. The ESM build still leaves them external so ESM consumers resolve
+ * them natively and keep dedup/tree-shaking.
+ */
+const ESM_ONLY = new Set(['rbush', 'jittered-fractional-indexing', 'nanoevents'])
 
 interface LibraryInfo {
 	name: string
@@ -44,10 +55,16 @@ async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) 
 	const packageVersion = packageJson.version
 	if (typeof packageVersion !== 'string') throw new Error('package.json version is not a string')
 
+	// allowlisted ESM-only deps that this package actually depends on. Only these
+	// get inlined into the CJS build; every other package keeps the plain
+	// `bundle: false` path with byte-for-byte identical output.
+	const inlineDeps = Object.keys(packageJson.dependencies ?? {}).filter((dep) => ESM_ONLY.has(dep))
+
 	// build CommonJS files to /dist-cjs
 	await buildLibrary({
 		sourceFiles,
 		sourcePackageDir,
+		inlineDeps,
 		info: {
 			name: packageName,
 			version: packageVersion,
@@ -59,6 +76,7 @@ async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) 
 	await buildLibrary({
 		sourceFiles,
 		sourcePackageDir,
+		inlineDeps,
 		info: {
 			name: packageName,
 			version: packageVersion,
@@ -82,10 +100,12 @@ async function buildLibrary({
 	sourceFiles,
 	sourcePackageDir,
 	info,
+	inlineDeps,
 }: {
 	sourceFiles: string[]
 	sourcePackageDir: string
 	info: LibraryInfo
+	inlineDeps: string[]
 }) {
 	const dirName = `dist-${info.moduleSystem}`
 	const outdir = path.join(sourcePackageDir, dirName)
@@ -104,16 +124,29 @@ async function buildLibrary({
 	define['globalThis.TLDRAW_LIBRARY_MODULES'] = JSON.stringify(info.moduleSystem)
 	define['globalThis.TLDRAW_LIBRARY_IS_BUILD'] = JSON.stringify(true)
 
+	// Only the CJS build inlines allowlisted ESM-only deps, and only when this
+	// package actually depends on one. Every other build keeps the original
+	// `bundle: false` path so its output stays byte-for-byte identical.
+	const shouldInlineEsmDeps = info.moduleSystem === 'cjs' && inlineDeps.length > 0
+	const bundleOptions: BuildOptions = shouldInlineEsmDeps
+		? {
+				bundle: true,
+				plugins: [createCjsInlinePlugin(inlineDeps)],
+				// preserve the inlined deps' license notices in dist-cjs
+				legalComments: 'linked',
+			}
+		: { bundle: false }
+
 	const res = await build({
 		entryPoints: sourceFiles,
 		outdir,
 		format: info.moduleSystem,
 		outExtension: info.moduleSystem === 'esm' ? { '.js': '.mjs' } : undefined,
-		bundle: false,
 		platform: 'neutral',
 		sourcemap: true,
 		target: 'es2022',
 		define,
+		...bundleOptions,
 	})
 
 	if (info.moduleSystem === 'esm') {
@@ -124,6 +157,59 @@ async function buildLibrary({
 		console.error(kleur.red('Build failed with errors:'))
 		console.error(res.errors)
 		throw new Error('esm build failed')
+	}
+}
+
+/**
+ * Returns the package name for a bare import specifier, handling scoped names
+ * and subpath imports. e.g. `rbush` -> `rbush`, `rbush/foo` -> `rbush`,
+ * `@scope/name/sub` -> `@scope/name`.
+ */
+function getPackageName(specifier: string): string {
+	if (specifier.startsWith('@')) {
+		const [scope, name] = specifier.split('/')
+		return `${scope}/${name}`
+	}
+	return specifier.split('/')[0]
+}
+
+/**
+ * esbuild plugin for the bundled CJS pass. It inlines the allowlisted ESM-only
+ * deps (and their transitive deps) into the output while keeping our own
+ * per-file source mirror and all other deps external.
+ */
+function createCjsInlinePlugin(inlineDeps: string[]): Plugin {
+	const inlineSet = new Set(inlineDeps)
+	return {
+		name: 'tldraw-cjs-inline-esm-deps',
+		setup(pluginBuild) {
+			pluginBuild.onResolve({ filter: /.*/ }, (args) => {
+				// let esbuild resolve the entry points themselves.
+				if (args.kind === 'entry-point') return null
+
+				// we're inside an allowlisted dep's own subtree: bundle everything
+				// transitively. rbush v4 depends on quickselect, which is also
+				// ESM-only, so leaving it external would just move the bug down a
+				// level.
+				if (args.importer.includes('node_modules')) return null
+
+				// from here on the importer is our own source.
+
+				// keep relative imports external so we don't inline sibling source
+				// files into each entry point and collapse the per-file mirror.
+				if (args.path.startsWith('.')) {
+					return { path: args.path, external: true }
+				}
+
+				// bundle bare specifiers for allowlisted deps into the CJS output.
+				if (inlineSet.has(getPackageName(args.path))) {
+					return null
+				}
+
+				// every other bare specifier stays external.
+				return { path: args.path, external: true }
+			})
+		},
 	}
 }
 
