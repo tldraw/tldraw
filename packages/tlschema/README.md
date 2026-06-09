@@ -2,6 +2,10 @@
 
 Type definitions, schema migrations, and other type metadata for the tldraw editor's default persisted data.
 
+## Documentation
+
+A `DOCS.md` file is included alongside this README in the published package, with detailed API documentation and usage examples.
+
 ## Records
 
 There are three main kinds of types:

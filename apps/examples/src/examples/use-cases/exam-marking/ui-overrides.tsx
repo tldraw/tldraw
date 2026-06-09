@@ -52,7 +52,7 @@ export const components: TLComponents = {
 	},
 }
 
-/* 
+/*
 
 This file contains overrides for the Tldraw UI. These overrides are used to add your custom tools to
 the toolbar and the keyboard shortcuts menu.

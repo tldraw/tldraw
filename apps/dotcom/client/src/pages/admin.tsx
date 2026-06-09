@@ -1,11 +1,19 @@
-import { FeatureFlagValue, TlaFile, TlaUser, userHasFlag, ZStoreData } from '@tldraw/dotcom-shared'
-import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import {
+	FeatureFlagValue,
+	PercentageFeatureFlag,
+	TlaFile,
+	TlaUser,
+	userHasFlag,
+	ZStoreData,
+} from '@tldraw/dotcom-shared'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
+import { sentryReleaseName } from '../../sentry-release-name'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
-import { useTldrawUser } from '../tla/hooks/useUser'
-import styles from './admin.module.css'
+import { useTldrawCurrentUser } from '../tla/hooks/useUser'
 import { saveMigrationLog } from './migrationLogsDB'
+import styles from './admin.module.css'
 
 // Helper component for structured data display.
 function StructuredDataDisplay({ data }: { data: ZStoreData }) {
@@ -74,7 +82,7 @@ function UserDataSummary({ data }: { data: ZStoreData }) {
 }
 
 export function Component() {
-	const user = useTldrawUser()
+	const user = useTldrawCurrentUser()
 	const [data, setData] = useState<any>(null)
 	const [error, setError] = useState(null as string | null)
 	const [replicatorData, setReplicatorData] = useState(null)
@@ -159,6 +167,12 @@ export function Component() {
 		<div className={styles.adminContainer}>
 			<header className={styles.adminHeader}>
 				<h1 className="tla-text_ui__big">Admin Panel</h1>
+				<p className={styles.adminReleaseMeta}>
+					<span className={styles.adminReleaseLabel}>Release:</span>{' '}
+					<code className={styles.adminReleaseValue} translate="no">
+						{sentryReleaseName}
+					</code>
+				</p>
 			</header>
 
 			<main className={styles.adminContent}>
@@ -210,12 +224,11 @@ export function Component() {
 								Force Reboot
 							</TlaButton>
 						</div>
-						<MigrateUserToGroups
-							inputRef={inputRef}
+						<EnrollUserInGroups
+							user={data.user[0] as TlaUser}
 							onSuccess={loadData}
 							onError={setError}
 							onSuccessMessage={setSuccessMessage}
-							didMigrate={userHasFlag((data.user[0] as TlaUser).flags, 'groups_backend')}
 						/>
 						<StructuredDataDisplay data={data} />
 					</section>
@@ -291,33 +304,39 @@ function FeatureFlags() {
 		loadFlags()
 	}, [loadFlags])
 
-	const toggleFlag = useCallback(async (flag: string, enabled: boolean) => {
-		const action = enabled ? 'enable' : 'disable'
-		if (!window.confirm(`Are you sure you want to ${action} "${flag}" for ALL users?`)) {
-			return
-		}
-
-		setIsSaving(true)
-		setError(null)
-		setSuccessMessage(null)
-		try {
-			const res = await fetch('/api/app/admin/feature-flags', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ flag, enabled }),
-			})
-			if (!res.ok) {
-				setError(res.statusText + ': ' + (await res.text()))
-				return
+	const saveFlag = useCallback(
+		async (flag: string, update: { enabled?: boolean; percentage?: number }) => {
+			setIsSaving(true)
+			setError(null)
+			setSuccessMessage(null)
+			try {
+				const res = await fetch('/api/app/admin/feature-flags', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ flag, ...update }),
+				})
+				if (!res.ok) {
+					setError(res.statusText + ': ' + (await res.text()))
+					return
+				}
+				setFlags((prev) => ({ ...prev, [flag]: { ...prev[flag], ...update } }))
+				if (update.percentage !== undefined) {
+					setSuccessMessage(
+						update.percentage === 0
+							? `${flag} disabled (0%)`
+							: `${flag} set to ${update.percentage}% of users`
+					)
+				} else {
+					setSuccessMessage(`${flag} ${update.enabled ? 'enabled' : 'disabled'}`)
+				}
+			} catch (err) {
+				setError(err instanceof Error ? err.message : 'Failed to update flag')
+			} finally {
+				setIsSaving(false)
 			}
-			setFlags((prev) => ({ ...prev, [flag]: { ...prev[flag], enabled } }))
-			setSuccessMessage(`${flag} ${enabled ? 'enabled' : 'disabled'}`)
-		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Failed to update flag')
-		} finally {
-			setIsSaving(false)
-		}
-	}, [])
+		},
+		[]
+	)
 
 	useEffect(() => {
 		if (successMessage) {
@@ -335,8 +354,8 @@ function FeatureFlags() {
 				<strong>Global feature toggles.</strong> Changes take effect immediately for ALL users.
 			</p>
 			<p className={`tla-text_ui__small ${styles.featureFlagsDescription}`}>
-				Unchecking these flags will completely disable the feature for everyone, regardless of their
-				individual access settings.
+				Boolean flags toggle on/off for everyone. Percentage flags roll out to X% of users
+				(evaluated server-side per userId).
 			</p>
 
 			{isLoading ? (
@@ -344,12 +363,40 @@ function FeatureFlags() {
 			) : (
 				<div className={styles.featureFlagsContainer}>
 					{Object.entries(flags)
-						.sort(([a], [b]) => a.localeCompare(b))
+						.sort(([a], [b]) => {
+							// boolean flags first, then percentage flags
+							const aType = flags[a].type ?? 'boolean'
+							const bType = flags[b].type ?? 'boolean'
+							if (aType !== bType) return aType === 'boolean' ? -1 : 1
+							return a.localeCompare(b)
+						})
 						.map(([flagName, flagValue]) => {
 							const label = flagName
 								.split('_')
 								.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 								.join(' ')
+
+							if (flagValue.type === 'percentage') {
+								return (
+									<PercentageFlag
+										key={flagName}
+										flagName={flagName}
+										label={label}
+										flagValue={flagValue}
+										isSaving={isSaving}
+										onToggle={(enabled) => {
+											const action = enabled ? 'Enable' : 'Disable'
+											if (!window.confirm(`${action} "${flagName}"?`)) return
+											saveFlag(flagName, { enabled })
+										}}
+										onSavePercentage={(pct) => {
+											if (!window.confirm(`Set "${flagName}" to ${pct}% of users?`)) return
+											saveFlag(flagName, { percentage: pct })
+										}}
+									/>
+								)
+							}
+
 							return (
 								<div key={flagName} className={styles.featureFlagItem}>
 									<label htmlFor={flagName} className={styles.featureFlagLabel}>
@@ -357,7 +404,18 @@ function FeatureFlags() {
 											id={flagName}
 											type="checkbox"
 											checked={flagValue.enabled}
-											onChange={(e) => toggleFlag(flagName, e.target.checked)}
+											onChange={(e) => {
+												const enabled = e.target.checked
+												const action = enabled ? 'enable' : 'disable'
+												if (
+													!window.confirm(
+														`Are you sure you want to ${action} "${flagName}" for ALL users?`
+													)
+												) {
+													return
+												}
+												saveFlag(flagName, { enabled })
+											}}
 											disabled={isSaving}
 										/>
 										<span className="tla-text_ui__small">
@@ -373,6 +431,80 @@ function FeatureFlags() {
 							)
 						})}
 				</div>
+			)}
+		</div>
+	)
+}
+
+function PercentageFlag({
+	flagName,
+	label,
+	flagValue,
+	isSaving,
+	onToggle,
+	onSavePercentage,
+}: {
+	flagName: string
+	label: string
+	flagValue: PercentageFeatureFlag
+	isSaving: boolean
+	onToggle(enabled: boolean): void
+	onSavePercentage(percentage: number): void
+}) {
+	const currentPct = flagValue.percentage
+	const [pct, setPct] = useState(currentPct)
+
+	useEffect(() => {
+		setPct(currentPct)
+	}, [currentPct])
+
+	return (
+		<div className={styles.featureFlagItem}>
+			<div className={styles.featureFlagLabel}>
+				<label
+					htmlFor={flagName}
+					style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+				>
+					<input
+						id={flagName}
+						type="checkbox"
+						checked={flagValue.enabled}
+						onChange={(e) => onToggle(e.target.checked)}
+						disabled={isSaving}
+						style={{ cursor: 'pointer' }}
+					/>
+					<span className="tla-text_ui__small">
+						<strong>{label}</strong>
+					</span>
+				</label>
+				<input
+					type="text"
+					value={pct}
+					onChange={(e) => {
+						const n = Number(e.target.value)
+						if (!Number.isNaN(n)) setPct(Math.max(0, Math.min(100, n)))
+					}}
+					disabled={isSaving || !flagValue.enabled}
+					className={styles.searchInput}
+					style={{ width: 60 }}
+				/>
+				<span
+					className={`tla-text_ui__small ${!flagValue.enabled ? styles.featureFlagDisabled : ''}`}
+				>
+					%
+				</span>
+				<TlaButton
+					onClick={() => onSavePercentage(pct)}
+					variant="primary"
+					disabled={isSaving || !flagValue.enabled || pct === currentPct}
+				>
+					Save
+				</TlaButton>
+			</div>
+			{flagValue.description && (
+				<span className={`tla-text_ui__small ${styles.featureFlagsDescription}`}>
+					{flagValue.description}
+				</span>
 			)}
 		</div>
 	)
@@ -534,43 +666,83 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 	)
 }
 
-function MigrateUserToGroups({
-	inputRef,
+function EnrollUserInGroups({
+	user,
 	onSuccess,
 	onError,
 	onSuccessMessage,
-	didMigrate,
 }: {
-	inputRef: RefObject<HTMLInputElement | null>
+	user: TlaUser
 	onSuccess(): void
 	onError(error: string): void
 	onSuccessMessage(message: string): void
-	didMigrate: boolean
 }) {
-	const [isMigrating, setIsMigrating] = useState(false)
+	const [isEnrolling, setIsEnrolling] = useState(false)
+	const [isUnenrolling, setIsUnenrolling] = useState(false)
+	// Derive status and the target id from the loaded user, not the live search
+	// box, so the action always matches the status shown above it.
+	const hasBackend = userHasFlag(user.flags, 'groups_backend')
+	const hasFrontend = userHasFlag(user.flags, 'groups_frontend')
+	const fullyEnrolled = hasBackend && hasFrontend
 
-	const handleMigrate = useCallback(async () => {
-		const q = inputRef.current?.value?.trim() ?? ''
-		if (!q) {
-			onError('Please enter an email or ID')
-			return
-		}
-
+	const handleEnroll = useCallback(async () => {
 		if (
 			!window.confirm(
-				`Are you sure you want to migrate user "${q}" to the groups backend? This action cannot be undone.`
+				`Enroll ${user.email} in the groups feature? This grants groups_backend (migrating their data if needed) and groups_frontend (the groups UI).`
 			)
 		) {
 			return
 		}
 
-		setIsMigrating(true)
+		setIsEnrolling(true)
 		onError('')
 
 		try {
-			const res = await fetch(`/api/app/admin/user/migrate?${new URLSearchParams({ q })}`, {
-				method: 'POST',
-			})
+			const res = await fetch(
+				`/api/app/admin/user/enroll_groups?${new URLSearchParams({ q: user.id })}`,
+				{ method: 'POST' }
+			)
+
+			if (!res.ok) {
+				onError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+
+			const result = await res.json()
+			const changes = [
+				result.backendMigrated && 'migrated to groups backend',
+				result.frontendGranted && 'granted groups UI',
+			].filter(Boolean)
+			onSuccessMessage(
+				changes.length
+					? `Enrolled in groups: ${changes.join(', ')}`
+					: 'User was already fully enrolled'
+			)
+			onSuccess()
+		} catch (err) {
+			onError(err instanceof Error ? err.message : 'Enrollment failed')
+		} finally {
+			setIsEnrolling(false)
+		}
+	}, [user.id, user.email, onError, onSuccess, onSuccessMessage])
+
+	const handleUnenroll = useCallback(async () => {
+		if (
+			!window.confirm(
+				`Remove ${user.email} from the groups UI? This clears the groups_frontend flag (their data stays migrated).`
+			)
+		) {
+			return
+		}
+
+		setIsUnenrolling(true)
+		onError('')
+
+		try {
+			const res = await fetch(
+				`/api/app/admin/user/unenroll_groups?${new URLSearchParams({ q: user.id })}`,
+				{ method: 'POST' }
+			)
 
 			if (!res.ok) {
 				onError(res.statusText + ': ' + (await res.text()))
@@ -579,30 +751,47 @@ function MigrateUserToGroups({
 
 			const result = await res.json()
 			onSuccessMessage(
-				`User migrated successfully! Files: ${result.files_migrated}, Pinned: ${result.pinned_files_migrated}`
+				result.frontendRemoved
+					? 'Removed from the groups UI'
+					: 'User was not enrolled in the groups UI'
 			)
 			onSuccess()
 		} catch (err) {
-			onError(err instanceof Error ? err.message : 'Migration failed')
+			onError(err instanceof Error ? err.message : 'Unenroll failed')
 		} finally {
-			setIsMigrating(false)
+			setIsUnenrolling(false)
 		}
-	}, [inputRef, onError, onSuccess, onSuccessMessage])
+	}, [user.id, user.email, onError, onSuccess, onSuccessMessage])
 
-	return didMigrate ? null : (
+	return (
 		<div className={styles.migrationSection}>
-			<h4 className="tla-text_ui__medium">Migrate User to Groups Backend</h4>
+			<h4 className="tla-text_ui__medium">Groups enrollment</h4>
 			<p className="tla-text_ui__small">
-				Migrate this user from the legacy file_state model to the new groups model.
+				groups_backend: {hasBackend ? '✓ enrolled' : '✗ not enrolled'} · groups_frontend:{' '}
+				{hasFrontend ? '✓ enrolled' : '✗ not enrolled'}
 			</p>
-			<TlaButton
-				onClick={handleMigrate}
-				variant="primary"
-				disabled={isMigrating}
-				isLoading={isMigrating}
-			>
-				{isMigrating ? 'Migrating...' : 'Migrate to Groups'}
-			</TlaButton>
+			<p className="tla-text_ui__small">
+				Enroll this user in the groups feature: migrates their data to the groups model if needed
+				and shows the groups UI.
+			</p>
+			<div className={styles.userActions}>
+				<TlaButton
+					onClick={handleEnroll}
+					variant="primary"
+					disabled={isEnrolling || isUnenrolling || fullyEnrolled}
+					isLoading={isEnrolling}
+				>
+					Enroll in groups
+				</TlaButton>
+				<TlaButton
+					onClick={handleUnenroll}
+					variant="secondary"
+					disabled={isEnrolling || isUnenrolling || !hasFrontend}
+					isLoading={isUnenrolling}
+				>
+					Unenroll from groups UI
+				</TlaButton>
+			</div>
 		</div>
 	)
 }

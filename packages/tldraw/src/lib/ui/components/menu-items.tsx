@@ -119,7 +119,7 @@ export function RemoveFrameMenuItem() {
 		() => {
 			const selectedShapes = editor.getSelectedShapes()
 			if (selectedShapes.length === 0) return false
-			return selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
+			return selectedShapes.every((shape) => editor.isShapeFrameLike(shape))
 		},
 		[editor]
 	)
@@ -137,7 +137,7 @@ export function FitFrameToContentMenuItem() {
 			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return (
-				editor.isShapeOfType(onlySelectedShape, 'frame') &&
+				editor.isShapeFrameLike(onlySelectedShape) &&
 				editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
 			)
 		},
@@ -238,7 +238,9 @@ export function ClipboardMenuGroup() {
 
 /** @public @react */
 export function CopyAsMenuGroup() {
+	const editor = useEditor()
 	const atLeastOneShapeOnPage = useHasShapesOnPage()
+	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
 
 	return (
 		<TldrawUiMenuSubmenu
@@ -249,9 +251,10 @@ export function CopyAsMenuGroup() {
 		>
 			<TldrawUiMenuGroup id="copy-as-group">
 				<TldrawUiMenuActionItem actionId="copy-as-svg" />
-				{Boolean(window.navigator.clipboard?.write) && (
+				{Boolean(editor.getContainerWindow().navigator.clipboard?.write) && (
 					<TldrawUiMenuActionItem actionId="copy-as-png" />
 				)}
+				{isDebugMode && <TldrawUiMenuActionItem actionId="copy-as-json" />}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="copy-as-bg">
 				<ToggleTransparentBgMenuItem />

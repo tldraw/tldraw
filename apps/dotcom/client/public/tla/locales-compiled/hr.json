@@ -153,6 +153,12 @@
       "value": "Moje datoteke"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Uključi vezu na trenutnu datoteku"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -211,6 +217,18 @@
     {
       "type": 0,
       "value": "Prihvati sve"
+    }
+  ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Nepodržani Mermaid dijagram"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Tema boja"
     }
   ],
   "42e53c47c1": [
@@ -285,10 +303,22 @@
       "value": "Izbriši grupu…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Više opcija"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Jeste li sigurni da želite izbrisati ovu grupu? Ova se radnja ne može poništiti."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Nepodržani dijagram, umjesto toga će se generirati SVG"
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +431,12 @@
       "value": "Poništi ovu vezu i stvori novu."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Nije moguće povezivanje"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +477,12 @@
     {
       "type": 0,
       "value": "vas"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Osvježiti"
     }
   ],
   "6609dd239e": [
@@ -567,6 +609,12 @@
     {
       "type": 0,
       "value": "Pošaljite problem na GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Zadano"
     }
   ],
   "7b1329f5ca": [
@@ -791,6 +839,12 @@
     {
       "type": 0,
       "value": "Izbriši datoteku"
+    }
+  ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Imamo problema s povezivanjem s našom uslugom autentifikacije. To je obično privremeno. Pokušajte osvježiti stranicu."
     }
   ],
   "9ceb927baa": [
@@ -1071,6 +1125,12 @@
     {
       "type": 0,
       "value": "Odjavi se"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Odbaciti"
     }
   ],
   "c9cc8cce24": [

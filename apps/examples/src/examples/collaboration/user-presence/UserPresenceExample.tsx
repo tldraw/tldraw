@@ -100,7 +100,7 @@ export default function UserPresenceExample() {
 	)
 }
 
-/* 
+/*
 This example shows how to add instance presence records to the store to show other users' cursors.
 It is not an example of how to implement user presence, check out the collaboration examples for that:
 https://tldraw.dev/examples/sync-demo

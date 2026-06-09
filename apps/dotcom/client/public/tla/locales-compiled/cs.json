@@ -153,6 +153,12 @@
       "value": "Moje soubory"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Přidat odkaz na aktuální soubor"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -211,6 +217,18 @@
     {
       "type": 0,
       "value": "Přijmout vše"
+    }
+  ],
+  "3e2ae04ff0": [
+    {
+      "type": 0,
+      "value": "Nepodporovaný diagram Mermaid"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Barevný motiv"
     }
   ],
   "42e53c47c1": [
@@ -285,10 +303,22 @@
       "value": "Smazat skupinu…"
     }
   ],
+  "4dab36ac83": [
+    {
+      "type": 0,
+      "value": "Více možností"
+    }
+  ],
   "4e6fbf032b": [
     {
       "type": 0,
       "value": "Jste si jisti, že chcete tuto skupinu smazat? Tuto akci nelze vrátit zpět."
+    }
+  ],
+  "5097d89907": [
+    {
+      "type": 0,
+      "value": "Nepodporovaný diagram, místo toho se vygeneruje SVG."
     }
   ],
   "50db1b7e1e": [
@@ -401,6 +431,12 @@
       "value": "Zrušte toto propojení a vytvořte nové."
     }
   ],
+  "5d04a002ea": [
+    {
+      "type": 0,
+      "value": "Nelze se připojit"
+    }
+  ],
   "5d26ae7550": [
     {
       "type": 0,
@@ -441,6 +477,12 @@
     {
       "type": 0,
       "value": "Vy"
+    }
+  ],
+  "63a6a88c06": [
+    {
+      "type": 0,
+      "value": "Obnovit"
     }
   ],
   "6609dd239e": [
@@ -567,6 +609,12 @@
     {
       "type": 0,
       "value": "Odešlete problém na GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Výchozí"
     }
   ],
   "7b1329f5ca": [
@@ -791,6 +839,12 @@
     {
       "type": 0,
       "value": "Smazat soubor"
+    }
+  ],
+  "9ccb565b86": [
+    {
+      "type": 0,
+      "value": "Máme potíže s připojením k naší ověřovací službě. Toto je obvykle dočasné. Zkuste prosím obnovit stránku."
     }
   ],
   "9ceb927baa": [
@@ -1075,6 +1129,12 @@
     {
       "type": 0,
       "value": "Odhlaste se"
+    }
+  ],
+  "c8a59e7135": [
+    {
+      "type": 0,
+      "value": "Zavřít"
     }
   ],
   "c9cc8cce24": [

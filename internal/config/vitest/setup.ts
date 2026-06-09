@@ -1,5 +1,4 @@
 import { equals, getObjectSubset, iterableEquality, subsetEquality } from '@jest/expect-utils'
-import crypto from 'crypto'
 import {
 	matcherHint,
 	printDiffOrStringify,
@@ -7,33 +6,13 @@ import {
 	printReceived,
 	stringify,
 } from 'jest-matcher-utils'
-import { TextDecoder, TextEncoder } from 'util'
 
 if (typeof window !== 'undefined') {
 	await import('vitest-canvas-mock')
 }
 
-// Polyfill for requestAnimationFrame (equivalent to raf/polyfill)
-if (typeof globalThis.requestAnimationFrame === 'undefined') {
-	globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
-		return Number(setTimeout(() => cb(Date.now()), 16))
-	}
-}
-
-if (typeof globalThis.cancelAnimationFrame === 'undefined') {
-	globalThis.cancelAnimationFrame = (id: number) => {
-		clearTimeout(id)
-	}
-}
-
-// Global polyfills
-global.TextEncoder = TextEncoder as typeof global.TextEncoder
-global.TextDecoder = TextDecoder as typeof global.TextDecoder
-// @ts-expect-error - cannot delete non-optional property
-delete global.crypto
-global.crypto = crypto as any
-
-// Crypto polyfill (needed for ai package)
+// Crypto fallback for environments without a native WebCrypto implementation (e.g. the ai package).
+// jsdom provides window.crypto with subtle crypto, so this only kicks in elsewhere.
 if (typeof globalThis.crypto === 'undefined') {
 	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	const { Crypto } = require('@peculiar/webcrypto')
@@ -63,6 +42,22 @@ if (typeof CSS === 'undefined') {
 }
 if (typeof CSS.supports === 'undefined') {
 	CSS.supports = () => false
+}
+
+// Pointer capture polyfill. jsdom implements the PointerEvent constructor but not the pointer
+// capture model, so setPointerCapture/releasePointerCapture/hasPointerCapture are missing
+// (https://github.com/jsdom/jsdom/pull/2666). Our canvas event handlers capture the pointer on
+// pointerdown/up, so stub them out to avoid throwing.
+if (typeof Element !== 'undefined') {
+	Element.prototype.setPointerCapture ??= function () {
+		// noop
+	}
+	Element.prototype.releasePointerCapture ??= function () {
+		// noop
+	}
+	Element.prototype.hasPointerCapture ??= function () {
+		return false
+	}
 }
 
 function convertNumbersInObject(obj: any, roundToNearest: number): any {

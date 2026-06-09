@@ -3,10 +3,10 @@ import { Fragment } from 'react'
 import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { F } from '../../../utils/i18n'
-import styles from '../sidebar.module.css'
 import { ReorderCursor } from './ReorderCursor'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
+import styles from '../sidebar.module.css'
 
 export function TlaSidebarRecentFilesNew() {
 	const app = useApp()

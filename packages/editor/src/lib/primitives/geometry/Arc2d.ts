@@ -1,8 +1,8 @@
-import { Vec, VecLike } from '../Vec'
 import { intersectLineSegmentCircle } from '../intersect'
 import { getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Vec, VecLike } from '../Vec'
 import { getVerticesCountForArcLength } from './geometry-constants'
+import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Arc2d extends Geometry2d {
@@ -57,21 +57,16 @@ export class Arc2d extends Geometry2d {
 		if (t <= 0) return A
 		if (t >= 1) return B
 
-		// Get the point (P) on the arc, then pick the nearest of A, B, and P
-		const P = Vec.Sub(point, _center).uni().mul(radius).add(_center)
-
-		let nearest: Vec | undefined
-		let dist = Infinity
-		let d: number
-		for (const p of [A, B, P]) {
-			d = Vec.Dist2(point, p)
-			if (d < dist) {
-				nearest = p
-				dist = d
-			}
-		}
-		if (!nearest) throw Error('nearest point not found')
-		return nearest
+		// Inlined: Vec.Sub(point, _center).uni().mul(radius).add(_center)
+		// When t is in (0,1), the nearest point is the radial projection of point onto the arc.
+		// Previously this also checked min-distance against A and B, but that's unnecessary when
+		// t is already in range — the radial projection is always closer.
+		const dx = point.x - _center.x
+		const dy = point.y - _center.y
+		const len = Math.sqrt(dx * dx + dy * dy)
+		if (len === 0) return A
+		const scale = radius / len
+		return new Vec(_center.x + dx * scale, _center.y + dy * scale)
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike): boolean {

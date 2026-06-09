@@ -15,15 +15,16 @@ export function usePrefersReducedMotion() {
 			return
 		}
 
-		if (typeof window === 'undefined' || !('matchMedia' in window)) return
-		const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
+		const win = editor?.getContainerWindow() ?? window
+		if (!('matchMedia' in win)) return
+		const mql = win.matchMedia('(prefers-reduced-motion: reduce)')
 		const handler = () => {
 			setPrefersReducedMotion(mql.matches)
 		}
 		handler()
 		mql.addEventListener('change', handler)
 		return () => mql.removeEventListener('change', handler)
-	}, [animationSpeed])
+	}, [animationSpeed, editor])
 
 	return prefersReducedMotion
 }

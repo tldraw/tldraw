@@ -1,3 +1,4 @@
+import { bind } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
 /**
@@ -31,8 +32,9 @@ export class FocusManager {
 		}
 		this.updateContainerClass()
 
-		document.body.addEventListener('keydown', this.handleKeyDown.bind(this))
-		document.body.addEventListener('mousedown', this.handleMouseDown.bind(this))
+		const body = editor.getContainerDocument().body
+		body.addEventListener('keydown', this.handleKeyDown)
+		body.addEventListener('mousedown', this.handleMouseDown)
 	}
 
 	/**
@@ -56,20 +58,19 @@ export class FocusManager {
 		container.classList.add('tl-container__no-focus-ring')
 	}
 
-	private handleKeyDown(keyEvent: KeyboardEvent) {
+	@bind private handleKeyDown(keyEvent: KeyboardEvent) {
 		const container = this.editor.getContainer()
-		const activeEl = document.activeElement
+		const activeEl = container.ownerDocument.activeElement
 		// Edit mode should remove the focus ring, however if the active element's
 		// parent is the contextual toolbar, then allow it.
-		if (this.editor.isIn('select.editing_shape') && !activeEl?.closest('.tlui-contextual-toolbar'))
-			return
+		if (this.editor.getEditingShapeId() && !activeEl?.closest('.tlui-contextual-toolbar')) return
 		if (activeEl === container && this.editor.getSelectedShapeIds().length > 0) return
 		if (['Tab', 'ArrowUp', 'ArrowDown'].includes(keyEvent.key)) {
 			container.classList.remove('tl-container__no-focus-ring')
 		}
 	}
 
-	private handleMouseDown() {
+	@bind private handleMouseDown() {
 		const container = this.editor.getContainer()
 		container.classList.add('tl-container__no-focus-ring')
 	}
@@ -78,14 +79,15 @@ export class FocusManager {
 		this.editor.getContainer().focus()
 	}
 
-	blur() {
+	blur({ blurContainer = true } = {}) {
 		this.editor.complete() // stop any interaction
-		this.editor.getContainer().blur() // blur the container
+		if (blurContainer) this.editor.getContainer().blur() // blur the container
 	}
 
 	dispose() {
-		document.body.removeEventListener('keydown', this.handleKeyDown.bind(this))
-		document.body.removeEventListener('mousedown', this.handleMouseDown.bind(this))
+		const body = this.editor.getContainerDocument().body
+		body.removeEventListener('keydown', this.handleKeyDown)
+		body.removeEventListener('mousedown', this.handleMouseDown)
 		this.disposeSideEffectListener?.()
 	}
 }

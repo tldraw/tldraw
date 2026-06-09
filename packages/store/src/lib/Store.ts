@@ -13,12 +13,12 @@ import {
 } from '@tldraw/utils'
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
-import { RecordScope } from './RecordType'
+import { devFreeze } from './devFreeze'
 import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
+import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { StoreSideEffects } from './StoreSideEffects'
-import { devFreeze } from './devFreeze'
 
 /**
  * Extracts the record type from a record ID type.

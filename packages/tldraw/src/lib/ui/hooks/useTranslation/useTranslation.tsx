@@ -1,7 +1,8 @@
+import { warnOnce } from '@tldraw/editor'
 import * as React from 'react'
 import { useAssetUrls } from '../../context/asset-urls'
-import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
+import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { TLUiTranslation, fetchTranslation } from './translations'
 
 /** @public */
@@ -36,9 +37,11 @@ export function useCurrentTranslation() {
 }
 
 /**
- * Provides a translation context to the editor.
+ * Provides a translation context to the editor. Wrap this around components that use
+ * `useTranslation` (such as `TldrawSelectionForeground`) when you don't want to use the
+ * full `TldrawUiContextProvider`. Must be rendered inside an `AssetUrlsProvider`.
  *
- * @internal
+ * @public @react
  */
 export function TldrawUiTranslationProvider({
 	overrides,
@@ -112,12 +115,31 @@ export function TldrawUiTranslationProvider({
 export function useTranslation() {
 	const translation = React.useContext(TranslationsContext)
 	const messages = translation?.messages ?? DEFAULT_TRANSLATION
+
+	React.useEffect(() => {
+		if (!translation?.messages) {
+			warnOnce(
+				'No translation messages found, falling back to default translation. Wrap your app in <TldrawUiContextProvider>, or in both <AssetUrlsProvider> and <TldrawUiTranslationProvider>, to provide translations.'
+			)
+		}
+	}, [translation?.messages])
+
 	return React.useCallback(
 		function msg(id?: Exclude<string, TLUiTranslationKey> | string) {
 			return messages[id as TLUiTranslationKey] ?? id
 		},
 		[messages]
 	)
+}
+
+/**
+ * Returns the current text direction ('ltr' or 'rtl') based on the current translation.
+ *
+ * @public
+ */
+export function useDirection() {
+	const translation = useCurrentTranslation()
+	return translation.dir
 }
 
 export function untranslated(string: string) {

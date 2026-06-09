@@ -1,5 +1,4 @@
-import { atom, isSignal, transact } from '@tldraw/state'
-import { useAtom } from '@tldraw/state-react'
+import { atom, transact } from '@tldraw/state'
 import {
 	ClientWebSocketAdapter,
 	TLCustomMessageHandler,
@@ -14,26 +13,33 @@ import {
 import { useEffect } from 'react'
 import {
 	Editor,
-	InstancePresenceRecordType,
-	Signal,
 	TAB_ID,
 	TLAssetStore,
 	TLPresenceStateInfo,
-	TLPresenceUserInfo,
 	TLRecord,
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
+	TLThemes,
+	TLUser,
+	TLUserStore,
+	UserRecordType,
 	computed,
+	createCachedUserResolve,
+	createPresenceStateDerivation,
+	registerColorsFromThemes,
+	registerFontsFromThemes,
+	resolveThemes,
 	createTLStore,
+	createUserId,
 	defaultUserPreferences,
+	defaultUserStore,
 	getDefaultUserPresence,
 	getUserPreferences,
 	uniqueId,
 	useEvent,
 	useReactiveEvent,
 	useRefState,
-	useShallowObjectIdentity,
 	useTLSchemaFromUtils,
 	useValue,
 } from 'tldraw'
@@ -96,7 +102,7 @@ export type RemoteTLStoreWithStatus = Exclude<
  * @param opts - Configuration options for multiplayer synchronization
  *   - `uri` - WebSocket server URI (string or async function returning URI)
  *   - `assets` - Asset store for blob storage (required for production use)
- *   - `userInfo` - User information for presence system (can be reactive signal)
+ *   - `users` - User store for identity, presence and attribution
  *   - `getUserPresence` - Optional function to customize presence data
  *   - `onCustomMessageReceived` - Handler for custom socket messages
  *   - `roomId` - Room identifier for analytics (internal use)
@@ -112,10 +118,13 @@ export type RemoteTLStoreWithStatus = Exclude<
  *   const store = useSync({
  *     uri: 'wss://myserver.com/sync/room-123',
  *     assets: myAssetStore,
- *     userInfo: {
- *       id: 'user-1',
- *       name: 'Alice',
- *       color: '#ff0000'
+ *     users: {
+ *       currentUser: computed('current-user', () => ({
+ *         id: createUserId('user-1'),
+ *         name: 'Alice',
+ *         color: '#ff0000',
+ *         meta: {},
+ *       })),
  *     }
  *   })
  *
@@ -133,19 +142,15 @@ export type RemoteTLStoreWithStatus = Exclude<
  *
  * @example
  * ```tsx
- * // Dynamic authentication with reactive user info
- * import { atom } from '@tldraw/state'
- *
+ * // Dynamic authentication with user store
  * function AuthenticatedApp() {
- *   const currentUser = atom('user', { id: 'user-1', name: 'Alice', color: '#ff0000' })
- *
  *   const store = useSync({
  *     uri: async () => {
  *       const token = await getAuthToken()
  *       return `wss://myserver.com/sync/room-123?token=${token}`
  *     },
  *     assets: authenticatedAssetStore,
- *     userInfo: currentUser, // Reactive signal
+ *     users: myUserStore,
  *     getUserPresence: (store, user) => {
  *       return {
  *         userId: user.id,
@@ -170,52 +175,76 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		roomId = 'default',
 		assets,
+		users: _users,
 		onMount,
 		connect,
 		trackAnalyticsEvent: track,
-		userInfo,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
+		themes,
 		...schemaOpts
 	} = opts
 
 	// This line will throw a type error if we add any new options to the useSync hook but we don't destructure them
 	// This is required because otherwise the useTLSchemaFromUtils might return a new schema on every render if the newly-added option
-	// is allowed to be unstable (e.g. userInfo)
+	// is allowed to be unstable
 	const __never__: never = 0 as any as keyof Omit<typeof schemaOpts, keyof TLStoreSchemaOptions>
 
+	const resolvedThemes = resolveThemes(themes)
+	registerColorsFromThemes(resolvedThemes)
+	registerFontsFromThemes(resolvedThemes)
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
-	const prefs = useShallowObjectIdentity(userInfo)
 	const getUserPresence = useReactiveEvent(
 		(_getUserPresence ?? getDefaultUserPresence) as typeof getDefaultUserPresence
 	)
 	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
 
-	const userAtom = useAtom<TLPresenceUserInfo | Signal<TLPresenceUserInfo> | undefined>(
-		'userAtom',
-		prefs
-	)
-
-	useEffect(() => {
-		userAtom.set(prefs)
-	}, [prefs, userAtom])
-
 	useEffect(() => {
 		const storeId = uniqueId()
 
-		const userPreferences = computed<{ id: string; color: string; name: string }>(
-			'userPreferences',
-			() => {
-				const userStuff = userAtom.get()
-				const user = (isSignal(userStuff) ? userStuff.get() : userStuff) ?? getUserPreferences()
-				return {
-					id: user.id,
-					color: user.color ?? defaultUserPreferences.color,
-					name: user.name ?? defaultUserPreferences.name,
+		const users: Required<TLUserStore> = _users
+			? {
+					currentUser: _users.currentUser,
+					resolve:
+						_users.resolve ??
+						createCachedUserResolve((userId) => {
+							const current = _users.currentUser.get()
+							return current && current.id === createUserId(userId) ? current : null
+						}),
 				}
-			}
-		)
+			: {
+					currentUser: defaultUserStore.currentUser,
+					resolve: createCachedUserResolve((userId) => {
+						const current = defaultUserStore.currentUser.get()
+						if (current && current.id === createUserId(userId)) return current
+						const presences = store.query.records('instance_presence').get()
+						const match = presences.find((p) => p.userId === createUserId(userId))
+						if (match) {
+							return UserRecordType.create({
+								id: createUserId(userId),
+								name: match.userName,
+								color: match.color,
+							})
+						}
+						return null
+					}),
+				}
+
+		// This always returns a non-null user for presence display, falling back
+		// to anonymous user preferences. The store receives the raw `users` object
+		// (where currentUser may return null), so attribution via
+		// getAttributionUserId() correctly returns null for anonymous sessions.
+		const currentUser = computed<TLUser>('currentUser', () => {
+			const user = users.currentUser.get()
+			if (user) return user
+			const prefs = getUserPreferences()
+			return UserRecordType.create({
+				id: createUserId(prefs.id),
+				name: prefs.name ?? '',
+				color: prefs.color ?? defaultUserPreferences.color,
+			})
+		})
 
 		let socket: TLPersistentClientSocket<
 			TLSocketClientSentEvent<TLRecord>,
@@ -278,6 +307,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			id: storeId,
 			schema,
 			assets,
+			users,
 			onMount,
 			collaboration: {
 				status: collaborationStatusSignal,
@@ -285,23 +315,21 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			},
 		})
 
-		const presence = computed('instancePresence', () => {
-			const presenceState = getUserPresence(store, userPreferences.get())
-			if (!presenceState) return null
+		const presence = createPresenceStateDerivation(currentUser, {
+			getUserPresence,
+		})(store)
 
-			return InstancePresenceRecordType.create({
-				...presenceState,
-				id: InstancePresenceRecordType.createId(store.id),
-			})
-		})
-
-		const otherUserPresences = store.query.ids('instance_presence', () => ({
-			userId: { neq: userPreferences.get().id },
-		}))
+		// Every connected session — each tab, window, or device — pushes its
+		// presence on connect, so the store holds one instance_presence record per
+		// *other* session in the room, including the user's own other tabs. (The
+		// server never echoes a session its own record.) So an empty set means
+		// we're genuinely the only session and can throttle to solo; any other
+		// session — another user, or just another tab of our own — keeps us at the
+		// full sync rate so edits propagate without the solo-mode lag.
+		const otherSessions = store.query.ids('instance_presence')
 
 		const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
-			if (otherUserPresences.get().size === 0) return 'solo'
-			return 'full'
+			return otherSessions.get().size === 0 ? 'solo' : 'full'
 		})
 
 		const client = new TLSyncClient<TLRecord, TLStore>({
@@ -363,7 +391,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		assets,
 		onMount,
 		connect,
-		userAtom,
+		_users,
 		roomId,
 		schema,
 		setState,
@@ -401,10 +429,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  * const syncOptions: UseSyncOptions = {
  *   uri: 'wss://myserver.com/sync/room-123',
  *   assets: myAssetStore,
- *   userInfo: {
- *     id: 'user-1',
- *     name: 'Alice',
- *     color: '#ff0000'
+ *   users: {
+ *     currentUser: myCurrentUserSignal,
  *   },
  *   getUserPresence: (store, user) => ({
  *     userId: user.id,
@@ -418,27 +444,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  */
 export interface UseSyncOptionsBase {
 	/**
-	 * User information for multiplayer presence and identification.
-	 *
-	 * Can be a static object or a reactive signal that updates when user
-	 * information changes. The presence system automatically updates when
-	 * reactive signals change, allowing real-time user profile updates.
-	 *
-	 * Should be synchronized with the `userPreferences` prop of the main
-	 * Tldraw component for consistent user experience. If not provided,
-	 * defaults to localStorage-based user preferences.
-	 *
-	 * @example
-	 * ```ts
-	 * // Static user info
-	 * userInfo: { id: 'user-123', name: 'Alice', color: '#ff0000' }
-	 *
-	 * // Reactive user info
-	 * const userSignal = atom('user', { id: 'user-123', name: 'Alice', color: '#ff0000' })
-	 * userInfo: userSignal
-	 * ```
+	 * Named theme definitions. When provided, custom color names are automatically
+	 * registered before the store is constructed so persisted data with those
+	 * colors passes validation on load.
 	 */
-	userInfo?: TLPresenceUserInfo | Signal<TLPresenceUserInfo>
+	themes?: Partial<TLThemes>
 
 	/**
 	 * Asset store implementation for handling file uploads and storage.
@@ -465,6 +475,18 @@ export interface UseSyncOptionsBase {
 	 * ```
 	 */
 	assets: TLAssetStore
+
+	/**
+	 * User store for identity, presence and attribution.
+	 *
+	 * Both methods return reactive {@link @tldraw/state#Signal | Signals}.
+	 * `currentUser` provides the current user's identity (used for
+	 * both presence broadcasting and shape attribution) and optionally
+	 * `resolve(userId)` looks up other users by ID. If not provided,
+	 * a default implementation backed by localStorage user preferences is
+	 * used, with `resolve` falling back to presence records in the store.
+	 */
+	users?: TLUserStore
 
 	/**
 	 * Handler for receiving custom messages sent through the multiplayer connection.
@@ -525,7 +547,7 @@ export interface UseSyncOptionsBase {
 	 * }
 	 * ```
 	 */
-	getUserPresence?(store: TLStore, user: TLPresenceUserInfo): TLPresenceStateInfo | null
+	getUserPresence?(store: TLStore, user: TLUser): TLPresenceStateInfo | null
 }
 
 /** @public */

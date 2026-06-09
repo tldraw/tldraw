@@ -1,6 +1,6 @@
-import { useCallback, useRef } from 'react'
+import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { tltime } from 'tldraw'
+import { TldrawUiButton, tltime } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -8,8 +8,8 @@ import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { useMsg } from '../../../utils/i18n'
 import { toggleMobileSidebar } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import styles from '../sidebar.module.css'
 import { messages } from './sidebar-shared'
+import styles from '../sidebar.module.css'
 
 export function TlaSidebarCreateFileButton() {
 	const app = useApp()
@@ -19,7 +19,7 @@ export function TlaSidebarCreateFileButton() {
 
 	const rCanCreate = useRef(true)
 
-	const handleSidebarCreate = useCallback(async () => {
+	const handleSidebarCreate = async () => {
 		if (!rCanCreate.current) return
 		const res = await app.createFile()
 		if (res.ok) {
@@ -40,16 +40,18 @@ export function TlaSidebarCreateFileButton() {
 				toggleMobileSidebar(false)
 			}
 		}
-	}, [app, navigate, trackEvent])
+	}
 
 	return (
-		<button
+		<TldrawUiButton
+			type="icon"
 			className={styles.sidebarCreateFileButton}
 			onClick={handleSidebarCreate}
 			data-testid="tla-create-file"
-			aria-label={createTitle}
+			tooltip={createTitle}
+			title={createTitle}
 		>
 			<TlaIcon icon="edit-strong" style={{ left: 1 }} />
-		</button>
+		</TldrawUiButton>
 	)
 }

@@ -1,14 +1,28 @@
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
+	AccessibilityMenu,
+	ColorSchemeMenu,
 	DefaultPageMenu,
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	InputModeMenu,
+	KeyboardShortcutsMenuItem,
+	LanguageMenu,
 	PreferencesGroup,
+	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
+	ToggleEdgeScrollingItem,
+	ToggleFocusModeItem,
+	ToggleGridItem,
+	TogglePasteAtCursorItem,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
+	ToggleSnapModeItem,
+	ToggleToolLockItem,
+	ToggleWrapModeItem,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -29,17 +43,19 @@ import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
-import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
-import { TlaLogo } from '../TlaLogo/TlaLogo'
-import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
+import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
 	CookieConsentMenuItem,
 	GiveUsFeedbackMenuItem,
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
+	UIThemeSubmenu,
 } from '../menu-items/menu-items'
+import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TlaLogo } from '../TlaLogo/TlaLogo'
+import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
@@ -91,9 +107,14 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 	return (
 		<>
-			<Link to="/" className={styles.topLeftOfflineLogo}>
+			<ExternalLink
+				to="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=top-left-logo"
+				eventName="top-left-logo-clicked"
+				aria-label="tldraw.dev"
+				className={styles.topLeftOfflineLogo}
+			>
 				<TlaLogo data-testid="tla-top-left-logo-icon" />
-			</Link>
+			</ExternalLink>
 			{anonFileName && (
 				<>
 					<span
@@ -119,13 +140,15 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 					<TldrawUiDropdownMenuTrigger>
-						<button
+						<TldrawUiButton
+							type="icon"
 							className={styles.topLeftMainMenuTrigger}
+							tooltip={pageMenuLbl}
 							title={pageMenuLbl}
 							data-testid="tla-main-menu"
 						>
 							<TlaIcon icon="dots-vertical-strong" />
-						</button>
+						</TldrawUiButton>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 						<TldrawUiMenuGroup id="basic">
@@ -136,7 +159,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 							{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
 						</TldrawUiMenuGroup>
-						<PreferencesGroup />
+						<TlaPreferencesGroup />
 						<TldrawUiMenuGroup id="misc">
 							<UserManualMenuItem />
 							<GiveUsFeedbackMenuItem />
@@ -233,13 +256,15 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
-					<button
+					<TldrawUiButton
+						type="icon"
 						className={styles.topLeftMainMenuTrigger}
+						tooltip={pageMenuLbl}
 						title={pageMenuLbl}
 						data-testid="tla-main-menu"
 					>
 						<TlaIcon icon="dots-vertical-strong" />
-					</button>
+					</TldrawUiButton>
 				}
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
@@ -255,7 +280,6 @@ export function TlaEditorTopLeftPanelSignedIn() {
 					<ViewSubmenu />
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
-					<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="preferences">
 					<PreferencesGroup />
@@ -410,5 +434,33 @@ function SignInMenuItem() {
 			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
 			<TlaIcon icon="sign-in" />
 		</TldrawUiButton>
+	)
+}
+
+function TlaPreferencesGroup() {
+	return (
+		<TldrawUiMenuGroup id="preferences">
+			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
+				<TldrawUiMenuGroup id="preferences-actions">
+					<ToggleSnapModeItem />
+					<ToggleToolLockItem />
+					<ToggleGridItem />
+					<ToggleWrapModeItem />
+					<ToggleFocusModeItem />
+					<ToggleEdgeScrollingItem />
+					<ToggleDynamicSizeModeItem />
+					<TogglePasteAtCursorItem />
+					<ToggleDebugModeItem />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="user-interface-submenus">
+					<ColorSchemeMenu />
+					<UIThemeSubmenu />
+					<AccessibilityMenu />
+					<InputModeMenu />
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuSubmenu>
+			<LanguageMenu />
+			<KeyboardShortcutsMenuItem />
+		</TldrawUiMenuGroup>
 	)
 }

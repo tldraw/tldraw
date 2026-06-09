@@ -1,6 +1,6 @@
-import glob from 'glob'
-import isCI from 'is-ci'
 import path from 'path'
+import { glob } from 'glob'
+import isCI from 'is-ci'
 import { rimraf } from 'rimraf'
 import { exec } from './lib/exec'
 import { sortUnions } from './lib/sort-unions'

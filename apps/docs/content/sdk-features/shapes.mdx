@@ -55,7 +55,7 @@ editor.createShape({
 const shape = editor.getShape(shapeId)
 
 // Update a shape's position
-editor.updateShape({ id: shape.id, x: 200 })
+editor.updateShape({ id: shape.id, type: shape.type, x: 200 })
 ```
 
 Shapes are immutable records. When you update a shape, the editor creates a new record with the changes and stores it, replacing the old one. This immutability enables efficient change detection and undo/redo.
@@ -66,7 +66,7 @@ A ShapeUtil class defines how a shape type behaves. The editor maintains one Sha
 
 ### Required methods
 
-Every ShapeUtil must implement four methods: `getDefaultProps` returns default property values for new shapes, `getGeometry` returns a mathematical representation for hit testing and bounds calculation, `component` returns a React component that renders the shape, and `indicator` returns an SVG element for the selection outline.
+Every ShapeUtil must implement four methods: `getDefaultProps` returns default property values for new shapes, `getGeometry` returns a mathematical representation for hit testing and bounds calculation, `component` returns a React component that renders the shape, and `getIndicatorPath` returns paths for the selection outline.
 
 ```typescript
 class MyShapeUtil extends ShapeUtil<MyShape> {
@@ -88,8 +88,10 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 		return <div style={{ width: shape.props.w, height: shape.props.h }} />
 	}
 
-	indicator(shape: MyShape): JSX.Element {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: MyShape): Path2D | undefined {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 ```
@@ -184,7 +186,7 @@ The editor caches geometry computations to avoid recalculating bounds and hit te
 
 ## Shape rendering
 
-The editor renders shapes through a React component hierarchy. Each shape is wrapped in a container that handles positioning, transforms, and culling. When a shape renders, the editor computes the shape's page transform by combining its local position and rotation with all ancestor transforms, extracts bounds from the shape's geometry, skips rendering if the shape is outside the viewport and supports culling, renders the shape's visual content through the ShapeUtil's `component` method, and if selected, renders the selection outline through the `indicator` method.
+The editor renders shapes through a React component hierarchy. Each shape is wrapped in a container that handles positioning, transforms, and culling. When a shape renders, the editor computes the shape's page transform by combining its local position and rotation with all ancestor transforms, extracts bounds from the shape's geometry, skips rendering if the shape is outside the viewport and supports culling, renders the shape's visual content through the ShapeUtil's `component` method, and if selected, renders the selection outline through the `getIndicatorPath` method.
 
 ### Transform composition
 
@@ -217,6 +219,8 @@ Shapes can be parented to pages or other shapes. This creates a hierarchy used f
 ### Frames
 
 Frames are container shapes that clip their children and provide a visual boundary. Shapes inside a frame position relative to the frame's origin. Moving the frame moves all its children. The frame clips content at its boundaries during rendering. See [Shape clipping](/sdk-features/shape-clipping) for details on implementing custom clipping shapes.
+
+To build your own container shape that behaves like a frame, extend `BaseFrameLikeShapeUtil` instead of `ShapeUtil` directly. It provides defaults for the full set of frame behaviors (clipping children, full-brush selection, blocking erasure from inside, drag-and-drop reparenting, providing a background for children) and any of them can be overridden. Custom shapes that don't extend the base class can still opt into the same behavior by overriding the `isFrameLike()` capability method to return `true`. See the [portal shapes example](/examples/shapes/tools/portal-shapes) for a custom shape that behaves like a frame and teleports its children between instances.
 
 ### Groups
 

@@ -35,6 +35,10 @@
 	color: var(--tl-color-text-3);
 }
 
+.feedbackDialogCheckbox {
+	margin-right: auto;
+}
+
 /* --------------------- Cookie --------------------- */
 
 .cookieConsent {
@@ -48,6 +52,11 @@
 	transform: translate(0px, 110%);
 	animation: slideUp 3s ease-out forwards;
 	animation-delay: 2s;
+}
+
+:global(.tl-container[dir='rtl']) .cookieConsent {
+	margin-right: 0;
+	margin-left: 4px;
 }
 
 @keyframes slideUp {
@@ -116,6 +125,10 @@
 	white-space: nowrap;
 }
 
+:global(.tl-container[dir='rtl']) .cookieAcceptButtonText {
+	animation-direction: reverse;
+}
+
 @keyframes marquee {
 	0% {
 		transform: translateX(100%);
@@ -151,6 +164,11 @@
 	right: 0;
 	z-index: var(--tl-layer-toasts);
 	width: fit-content;
+}
+
+:global(.tl-container[dir='rtl']) .cookieConsentWrapper {
+	right: auto;
+	left: 0;
 }
 
 .noPadding {

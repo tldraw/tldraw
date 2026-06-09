@@ -1,0 +1,198 @@
+---
+title: Attribution
+created_at: 3/30/2026
+updated_at: 3/30/2026
+keywords:
+  - attribution
+  - user
+  - users
+  - TLUserStore
+  - TLUser
+  - getAttributionUserId
+  - getAttributionDisplayName
+  - getAttributionUser
+  - getReferencedUserIds
+  - createCachedUserResolve
+  - textFirstEditedBy
+  - UserRecordType
+  - createUserId
+status: published
+date: 3/30/2026
+---
+
+The attribution system lets you track which users create or edit shapes. Connect tldraw to your auth system through a `TLUserStore` to resolve display names, render attribution labels, and persist user records alongside your document data. The built-in note shape uses attribution to show who first edited a note's text, and you can add similar tracking to custom shapes.
+
+## User store
+
+A `TLUserStore` provides two reactive signals: `currentUser` for the active user, and `resolve` for looking up any user by ID. Pass it as the `users` prop on the [Tldraw](?) component or sync hooks:
+
+```tsx
+import { computed, createUserId, Tldraw, TLUserStore, UserRecordType } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const currentUser = computed('currentUser', () =>
+	UserRecordType.create({
+		id: createUserId('user-123'),
+		name: 'Alice',
+		color: '#e03131',
+	})
+)
+
+const users: TLUserStore = {
+	currentUser,
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw users={users} />
+		</div>
+	)
+}
+```
+
+When no `users` prop is provided, the editor falls back to user preferences and collaborator presence for display names.
+
+### Resolving other users
+
+The optional `resolve` method looks up users by their raw ID string. This is called when rendering attribution labels for shapes edited by other users:
+
+```tsx
+import {
+	computed,
+	createCachedUserResolve,
+	createUserId,
+	TLUserStore,
+	UserRecordType,
+} from 'tldraw'
+
+const users: TLUserStore = {
+	currentUser: computed('currentUser', () =>
+		UserRecordType.create({
+			id: createUserId('user-123'),
+			name: 'Alice',
+			color: '#e03131',
+		})
+	),
+	resolve: createCachedUserResolve((userId) => {
+		// Look up the user from your auth system
+		return myUserCache.get(userId) ?? null
+	}),
+}
+```
+
+The `createCachedUserResolve` helper wraps a lookup function so that each user ID gets a single stable reactive signal, avoiding redundant re-evaluations.
+
+## How attribution works
+
+Attribution is opt-in per shape type. Each shape util decides what to track and when to stamp a user ID. When a shape stores a user ID in its props, the editor persists a corresponding `user:` record in the store so that display names survive across sessions, clipboard paste, and `.tldr` file exports.
+
+### Note shape attribution
+
+The built-in note shape tracks who first added text. When a user types in an empty note, `NoteShapeUtil` sets the `textFirstEditedBy` prop to the current user's ID via `editor.getAttributionUserId()`. Subsequent edits by other users don't change this value. Clearing the text resets it to `null`. The note renders the first editor's name as a small label in the corner.
+
+## Reading attribution
+
+The [Editor](?) provides three methods for working with attribution. These methods check the `TLUserStore` first, then fall back to `user:` records in the store:
+
+```tsx
+import { useEditor, useValue } from 'tldraw'
+
+function AttributionLabel({ userId }: { userId: string }) {
+	const editor = useEditor()
+
+	const name = useValue('attribution-name', () => editor.getAttributionDisplayName(userId), [
+		editor,
+		userId,
+	])
+
+	if (!name) return null
+	return <span>{name}</span>
+}
+```
+
+## Custom shape attribution
+
+Add attribution tracking to your own shapes by storing a user ID in your shape's props and overriding `getReferencedUserIds` on your [ShapeUtil](?):
+
+```tsx
+import { ShapeUtil, T, TLBaseShape } from 'tldraw'
+
+type MyShape = TLBaseShape<
+	'my-shape',
+	{
+		createdBy: string | null
+	}
+>
+
+class MyShapeUtil extends ShapeUtil<MyShape> {
+	static override type = 'my-shape' as const
+	static override props = {
+		createdBy: T.string.nullable(),
+	}
+
+	override getReferencedUserIds(shape: MyShape) {
+		return shape.props.createdBy ? [shape.props.createdBy] : []
+	}
+
+	// ... other ShapeUtil methods
+}
+```
+
+Overriding `getReferencedUserIds` ensures that when shapes are copied to the clipboard or exported, the referenced `user:` records are included so that display names remain available on the other side.
+
+To stamp the current user when creating shapes:
+
+```tsx
+const userId = editor.getAttributionUserId()
+
+editor.createShape({
+	type: 'my-shape',
+	props: {
+		createdBy: userId,
+	},
+})
+```
+
+## Extensible user records
+
+Extend user records with custom metadata by passing validators to [createTLSchema](?):
+
+```tsx
+import { createTLSchema, T } from 'tldraw'
+
+const schema = createTLSchema({
+	user: {
+		meta: {
+			department: T.string,
+			isAdmin: T.boolean,
+		},
+	},
+})
+```
+
+Custom metadata is validated and persisted alongside the standard user fields. Access it through the `meta` property on [TLUser](?) records.
+
+## API reference
+
+| Method                                     | Description                                                             |
+| ------------------------------------------ | ----------------------------------------------------------------------- |
+| `editor.getAttributionUserId()`            | Get the current user's ID for stamping shapes. Returns `string \| null` |
+| `editor.getAttributionDisplayName(userId)` | Resolve a display name from a user ID. Returns `string \| null`         |
+| `editor.getAttributionUser(userId)`        | Resolve a full [TLUser](?) record from a user ID                        |
+
+| Type                      | Description                                          |
+| ------------------------- | ---------------------------------------------------- |
+| `TLUserStore`             | Interface for connecting to your auth/user system    |
+| [TLUser](?)               | A user record in the store                           |
+| `UserRecordType`          | The default user record type                         |
+| `createUserId`            | Create a typed user ID                               |
+| `createCachedUserResolve` | Create a cached resolve function for `TLUserStore`   |
+| `createUserRecordType`    | Build a user record type with custom meta validators |
+
+For setting up user identity in multiplayer, see the [Collaboration](/sdk-features/collaboration#user-identity) page.
+
+## Related examples
+
+- [Attribution](/examples/users/attribution) — Basic attribution with a user switcher and attribution inspector
+- [Attribution timeline](/examples/users/attribution-timeline) — Timeline scrubber with per-user filtering

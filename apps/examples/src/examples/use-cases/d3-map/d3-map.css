@@ -1,0 +1,52 @@
+.d3-map-explode-button {
+	position: absolute;
+	bottom: calc(8px * var(--tl-scale));
+	right: calc(8px * var(--tl-scale));
+	padding: calc(6px * var(--tl-scale)) calc(12px * var(--tl-scale));
+	font-size: calc(13px * var(--tl-scale));
+	background: var(--tl-color-low);
+	color: var(--tl-color-text);
+	border: 1px solid var(--tl-color-text-3);
+	border-radius: calc(var(--tl-radius-4) * var(--tl-scale));
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.d3-map-explode-button:hover {
+	background: var(--tl-color-muted-2);
+}
+
+.d3-map-state-label {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	padding: calc(2px * var(--tl-scale)) calc(4px * var(--tl-scale));
+	color: var(--tl-color-text);
+	background: var(--tl-color-low);
+	border-top-right-radius: calc(var(--tl-radius-2) * var(--tl-scale));
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+}
+
+.d3-map-top-panel {
+	display: flex;
+	gap: 8px;
+	padding: 4px;
+	pointer-events: all;
+}
+
+.d3-map-reset-button {
+	padding: 4px 12px;
+	font-size: 13px;
+	background: var(--tl-color-low);
+	color: var(--tl-color-text);
+	border: 1px solid var(--tl-color-text-3);
+	border-radius: var(--tl-radius-4);
+	cursor: pointer;
+}
+
+.d3-map-reset-button:hover {
+	background: var(--tl-color-muted-2);
+}

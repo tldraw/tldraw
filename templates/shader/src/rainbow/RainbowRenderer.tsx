@@ -1,9 +1,8 @@
-import { useEditor } from 'tldraw'
-
 import { memo, useLayoutEffect, useRef } from 'react'
+import { useEditor } from 'tldraw'
 import { WebGLCanvas } from '../WebGLCanvas'
-import { RainbowShaderManager } from './RainbowShaderManager'
 import { shaderConfig } from './config'
+import { RainbowShaderManager } from './RainbowShaderManager'
 
 export const RainbowRenderer = memo(() => {
 	const editor = useEditor()

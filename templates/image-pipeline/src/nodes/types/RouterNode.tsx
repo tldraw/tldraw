@@ -30,7 +30,7 @@ export class RouterNodeDefinition extends NodeDefinition<RouterNode> {
 	title = 'Router'
 	heading = 'Router'
 	hidden = true as const
-	icon = (<RouterIcon />)
+	icon = <RouterIcon />
 	category = 'utility'
 	getDefault(): RouterNode {
 		return {

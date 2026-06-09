@@ -92,16 +92,14 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 		return isClippingEnabled$.get()
 	}
 
-	override component(_shape: CircleClipShape) {
+	override component(shape: CircleClipShape) {
 		// For testing purposes, we'll just return null
 		// In a real implementation, this would return JSX
 		return null as any
 	}
 
-	override indicator(_shape: CircleClipShape) {
-		// For testing purposes, we'll just return null
-		// In a real implementation, this would return JSX
-		return null as any
+	override getIndicatorPath() {
+		return undefined
 	}
 
 	override onResize(shape: CircleClipShape, info: TLResizeInfo<CircleClipShape>) {

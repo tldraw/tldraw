@@ -1,12 +1,12 @@
 'use client'
 
+import { motion, useScroll, useTransform } from 'framer-motion'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { type IconName } from '@/components/common/icon'
 import { Logo } from '@/components/common/logo'
 import { SocialLink } from '@/components/navigation/social-link'
 import { SearchButton } from '@/components/search/SearchButton'
-import { motion, useScroll, useTransform } from 'framer-motion'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { ThemeSwitch } from '../common/theme-switch'
 
 const socialLinks = [

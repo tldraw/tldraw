@@ -36,6 +36,7 @@ function ContextualToolbarInner({
 	children?: React.ReactNode
 	textEditor: TiptapEditor
 }) {
+	const editor = useEditor()
 	const { isEditingLink, onEditLinkStart, onEditLinkClose } = useEditingLinkBehavior(textEditor)
 	const [currentSelection, setCurrentSelection] = useState<Range | null>(null)
 	const previousSelectionBounds = useRef<Box | undefined>(undefined)
@@ -48,7 +49,7 @@ function ContextualToolbarInner({
 			return previousSelectionBounds.current
 		}
 		// Get the text selection rects as a box. This will be undefined if there are no selections.
-		const selection = window.getSelection()
+		const selection = editor.getContainerWindow().getSelection()
 
 		// If there are no selections, don't return a box
 		if (!currentSelection || !selection || selection.rangeCount === 0 || selection.isCollapsed)
@@ -64,7 +65,7 @@ function ContextualToolbarInner({
 		const bounds = Box.Common(rangeBoxes)
 		previousSelectionBounds.current = bounds
 		return bounds
-	}, [currentSelection, isEditingLink])
+	}, [editor, currentSelection, isEditingLink])
 
 	useEffect(() => {
 		const handleSelectionUpdate = ({ editor: textEditor }: TextEditorEvents['selectionUpdate']) =>
@@ -190,8 +191,9 @@ function useIsMousingDownOnTextEditor(textEditor: TiptapEditor) {
 		touchDownEvents.forEach((eventName: string) => {
 			textEditor.view.dom.addEventListener(eventName, handlePointingDown)
 		})
+		const doc = textEditor.view.dom.ownerDocument
 		touchUpEvents.forEach((eventName: string) => {
-			document.body.addEventListener(eventName, handlePointingUp)
+			doc.body.addEventListener(eventName, handlePointingUp)
 		})
 		return () => {
 			touchDownEvents.forEach((eventName: string) => {
@@ -200,7 +202,7 @@ function useIsMousingDownOnTextEditor(textEditor: TiptapEditor) {
 				}
 			})
 			touchUpEvents.forEach((eventName: string) => {
-				document.body.removeEventListener(eventName, handlePointingUp)
+				doc.body.removeEventListener(eventName, handlePointingUp)
 			})
 		}
 	}, [textEditor])

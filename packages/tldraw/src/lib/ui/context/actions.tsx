@@ -23,6 +23,7 @@ import {
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
@@ -286,7 +287,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: 'action.copy-as-svg.short',
 					['context-menu']: 'action.copy-as-svg.short',
 				},
-				kbd: 'cmd+shift+c,ctrl+shift+c',
 				readonlyOk: true,
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
@@ -304,12 +304,29 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: 'action.copy-as-png.short',
 				},
 				readonlyOk: true,
+				kbd: 'cmd+shift+c,ctrl+shift+c',
 				onSelect(source) {
 					let ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('copy-as', { format: 'png', source })
 					helpers.copyAs(ids, 'png')
+				},
+			},
+			{
+				id: 'copy-as-json',
+				label: {
+					default: 'action.copy-as-json',
+					menu: 'action.copy-as-json.short',
+					['context-menu']: 'action.copy-as-json.short',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					let ids = editor.getSelectedShapeIds()
+					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+					if (ids.length === 0) return
+					trackEvent('copy-as', { format: 'json', source })
+					helpers.copyAs(ids, 'json')
 				},
 			},
 			{
@@ -635,7 +652,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const selectedShapes = editor.getSelectedShapes()
 					if (
 						selectedShapes.length > 0 &&
-						selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
+						selectedShapes.every((shape) => editor.isShapeFrameLike(shape))
 					) {
 						editor.markHistoryStoppingPoint('remove-frame')
 						removeFrame(
@@ -653,7 +670,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('fit-frame-to-content', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
-					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, 'frame')) {
+					if (onlySelectedShape && editor.isShapeFrameLike(onlySelectedShape)) {
 						editor.markHistoryStoppingPoint('fit-frame-to-content')
 						fitFrameToContent(editor, onlySelectedShape.id)
 					}
@@ -1042,6 +1059,55 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								source,
 								source === 'context-menu' ? editor.inputs.getCurrentPagePoint() : undefined
 							)
+						})
+						.catch(() => {
+							helpers.addToast({
+								title: helpers.msg('action.paste-error-title'),
+								description: helpers.msg('action.paste-error-description'),
+								severity: 'error',
+							})
+						})
+				},
+			},
+			{
+				// Cmd+Option+V: paste at cursor (or center if paste-at-cursor pref is on)
+				id: 'paste-at-cursor',
+				label: 'action.paste',
+				kbd: '$?v',
+				onSelect(source) {
+					const pasteAtCursor = !editor.user.getIsPasteAtCursorMode()
+					const point = pasteAtCursor ? editor.inputs.getCurrentPagePoint() : undefined
+					navigator.clipboard
+						?.read()
+						.then((clipboardItems) => {
+							helpers.paste(clipboardItems, source, point)
+						})
+						.catch(() => {
+							helpers.addToast({
+								title: helpers.msg('action.paste-error-title'),
+								description: helpers.msg('action.paste-error-description'),
+								severity: 'error',
+							})
+						})
+				},
+			},
+			{
+				// Cmd+Shift+Option+V: paste plain text at cursor (or center if pref is on)
+				id: 'paste-plain-text-at-cursor',
+				label: 'action.paste',
+				kbd: '$!?v',
+				onSelect() {
+					const pasteAtCursor = !editor.user.getIsPasteAtCursorMode()
+					const point = pasteAtCursor
+						? editor.inputs.getCurrentPagePoint()
+						: editor.getViewportPageBounds().center
+					navigator.clipboard
+						?.readText()
+						.then((text) => {
+							if (text?.trim()) {
+								editor.markHistoryStoppingPoint('paste')
+								defaultHandleExternalTextContent(editor, { text, point })
+							}
 						})
 						.catch(() => {
 							helpers.addToast({
@@ -1549,6 +1615,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const style = DefaultColorStyle
 					editor.run(() => {
+						editor.updateInstanceState({ isChangingStyle: true })
 						editor.markHistoryStoppingPoint('change-color')
 						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, 'white')
@@ -1565,6 +1632,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const style = DefaultFillStyle
 					editor.run(() => {
+						editor.updateInstanceState({ isChangingStyle: true })
 						editor.markHistoryStoppingPoint('change-fill')
 						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, 'fill')
@@ -1581,6 +1649,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					const style = DefaultFillStyle
 					editor.run(() => {
+						editor.updateInstanceState({ isChangingStyle: true })
 						editor.markHistoryStoppingPoint('change-fill')
 						if (editor.isIn('select')) {
 							editor.setStyleForSelectedShapes(style, 'lined-fill')
@@ -1824,7 +1893,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							const resp = await fetch(url)
 							if (!resp.ok) throw new Error(`Failed to fetch asset: ${resp.status}`)
 							const blob = await resp.blob()
-							downloadFile(new File([blob], name, { type: blob.type }))
+							downloadFile(
+								new File([blob], name, { type: blob.type }),
+								editor.getContainerDocument()
+							)
 						} catch {
 							// Fallback: open in new tab (e.g. if CORS blocked)
 							openWindow(url, '_blank')

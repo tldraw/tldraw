@@ -8,9 +8,13 @@ import {
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
+	TLUserStore,
 	Tldraw,
 	TldrawUiMenuItem,
+	UserRecordType,
+	computed,
 	createSessionStateSnapshotSignal,
+	createUserId,
 	parseDeepLinkString,
 	react,
 	throttle,
@@ -21,9 +25,10 @@ import {
 	useEvent,
 	useValue,
 } from 'tldraw'
+import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
-
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -36,19 +41,21 @@ import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
-import { useTldrawUser } from '../../hooks/useUser'
+import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
-import { A11yAudit } from './TlaDebug'
-import { TlaEditorWrapper } from './TlaEditorWrapper'
+import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
+import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { A11yAudit } from './TlaDebug'
+import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
@@ -112,11 +119,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
+	const trackPerformance = usePerformanceTracking()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
+			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
@@ -162,14 +171,24 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
+				cleanupPerf()
 				fileStateUpdater.dispose()
 				abortController.abort()
 			}
 		},
-		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
+		[
+			addDialog,
+			trackRoomLoaded,
+			trackNewRoomCreation,
+			trackPerformance,
+			app,
+			fileId,
+			remountImageShapes,
+			setIsReady,
+		]
 	)
 
-	const user = useTldrawUser()
+	const user = useTldrawCurrentUser()
 	const getUserToken = useEvent(async () => {
 		return (await user?.getToken()) ?? 'not-logged-in'
 	})
@@ -177,6 +196,22 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const assets = useMemo(() => {
 		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
 	}, [fileId, getUserToken])
+
+	const users: TLUserStore | undefined = useMemo(() => {
+		const prefs = app?.tlUser.userPreferences
+		if (!prefs) return undefined
+		const currentUser = computed('currentUser', () => {
+			const p = prefs.get()
+			return UserRecordType.create({
+				id: createUserId(p.id),
+				name: p.name ?? '',
+				color: p.color ?? '',
+			})
+		})
+		return {
+			currentUser,
+		}
+	}, [app?.tlUser.userPreferences])
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -187,7 +222,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			return url.toString()
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
-		userInfo: app?.tlUser.userPreferences,
+		users,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)
 		}, []),
@@ -253,15 +288,21 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={instanceComponents}
-				options={{ actionShortcutsLocation: 'toolbar', deepLinks: deepLinks ? true : undefined }}
+				options={{
+					actionShortcutsLocation: 'toolbar',
+					deepLinks: deepLinks ? true : undefined,
+				}}
 				overrides={[overrides, extraDragIconOverrides]}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
 				<SneakyToolSwitcher />
+				<SneakyMermaidHandler />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
+				<SneakyDebugModeToast />
+				<TlaAnonDotDevLink />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

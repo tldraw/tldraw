@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 import { HandTool } from '../lib/tools/HandTool/HandTool'
-import { TestEditor, createDefaultShapes } from './TestEditor'
+import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 
@@ -23,52 +23,23 @@ describe(HandTool, () => {
 		expect(editor.getZoomLevel()).toBe(1)
 		editor.click()
 		editor.click() // double click!
+		expect(editor.getZoomLevel()).toBe(1)
 		vi.advanceTimersByTime(300)
 		expect(editor.getZoomLevel()).not.toBe(1) // animating
 		vi.advanceTimersByTime(300)
 		expect(editor.getZoomLevel()).toBe(2) // all done
 	})
 
-	it('Triple taps to zoom out', () => {
+	it('Does not zoom on overflow taps', () => {
 		editor.setCurrentTool('hand')
 		expect(editor.getZoomLevel()).toBe(1)
 		editor.click()
 		editor.click()
-		editor.click() // triple click!
+		editor.click() // overflow click
 		vi.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).not.toBe(1) // animating
-		vi.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).toBe(0.5) // all done
-	})
-
-	it('Quadruple taps to reset zoom', () => {
-		editor.setCurrentTool('hand')
-		editor.zoomIn() // zoom to 2
-		expect(editor.getZoomLevel()).toBe(2)
-		editor.click()
-		editor.click()
-		editor.click()
-		editor.click() // quad click!
-		vi.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).not.toBe(2) // animating
-		vi.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).toBe(1) // all done
-	})
-
-	it('Quadruple taps from zoom=1 to zoom to fit', () => {
-		editor.setCurrentTool('hand')
 		expect(editor.getZoomLevel()).toBe(1)
-		editor.createShapes(createDefaultShapes()) // makes some shapes
-		editor.click()
-		editor.click()
-		editor.click()
-		editor.click() // quad click!
 		vi.advanceTimersByTime(300)
-		expect(editor.getZoomLevel()).not.toBe(1) // animating
-		vi.advanceTimersByTime(300)
-		const z = editor.getZoomLevel()
-		editor.zoomToFit() // call zoom to fit manually to compare
-		expect(editor.getZoomLevel()).toBe(z) // zoom should not have changed
+		expect(editor.getZoomLevel()).toBe(1)
 	})
 })
 

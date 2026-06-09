@@ -40,4 +40,4 @@ export function omitFromStackTrace<Args extends Array<unknown>, Return>(
  * Does nothing, but it's really really good at it.
  * @internal
  */
-export const noop: () => void = () => {}
+export function noop(): void {}

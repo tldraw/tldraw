@@ -104,8 +104,13 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 
 	const handleLeaveGroup = async () => {
 		try {
+			const isCurrentlyOnAFileInThisGroup =
+				currentFileId && app.getFile(currentFileId)?.owningGroupId === groupId
 			await app.z.mutate.leaveGroup({ groupId }).client
 			onClose()
+			if (isCurrentlyOnAFileInThisGroup) {
+				navigate('/')
+			}
 		} catch (error) {
 			console.error('Error leaving group:', error)
 		}
@@ -239,11 +244,8 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 				<hr className={styles.divider} />
 				<div className={styles.section}>
 					<label className={styles.sectionLabelLarge}>
-						<F {...messages.members} />{' '}
-						<span className={styles.memberCount}>{
-							// eslint-disable-next-line react/jsx-no-literals
-							`(${groupMembership.groupMembers.length})`
-						}</span>
+						<F {...messages.members} /> {/* eslint-disable-next-line tldraw/jsx-no-literals */}
+						<span className={styles.memberCount}>{`(${groupMembership.groupMembers.length})`}</span>
 					</label>
 					<div className={styles.membersList}>
 						{[...groupMembership.groupMembers]
@@ -267,7 +269,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 										{member.userName}
 										{member.userId === app.getUser().id ? ` (${youMsg})` : ''}
 									</span>
-									{isOwner && member.userId !== app.getUser().id ? (
+									{isOwner && (member.userId !== app.getUser().id || ownersCount > 1) ? (
 										<MemberRoleSelect
 											value={member.role}
 											disabled={member.role === 'owner' && ownersCount <= 1}

@@ -1,7 +1,7 @@
-import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
-import { Sidebar } from './Sidebar'
+import type { Locator, Page } from '@playwright/test'
 import { sleep } from './helpers'
+import { Sidebar } from './Sidebar'
 import { step } from './tla-test'
 
 export class Editor {
@@ -57,7 +57,9 @@ export class Editor {
 	}
 
 	async getCurrentFileName() {
-		return await this.fileName.innerText()
+		const text = await this.fileName.innerText()
+		// The UI replaces spaces with \u00a0 to prevent line-breaking; normalise back.
+		return text.replace(/\u00a0/g, ' ')
 	}
 
 	@step

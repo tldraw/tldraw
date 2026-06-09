@@ -1,11 +1,11 @@
-type BookmarkRequest = {
+interface BookmarkRequest {
 	type: 'vscode:bookmark/request'
 	uuid: string
 	data: {
 		url: string
 	}
 }
-type BookmarkResponse = {
+interface BookmarkResponse {
 	type: 'vscode:bookmark/response'
 	uuid: string
 	data: {
@@ -17,7 +17,7 @@ type BookmarkResponse = {
 	}
 }
 
-type BookmarkError = {
+interface BookmarkError {
 	type: 'vscode:bookmark/error'
 	uuid: string
 	data: {
@@ -25,7 +25,7 @@ type BookmarkError = {
 	}
 }
 
-type GetFileRequest = {
+interface GetFileRequest {
 	type: 'vscode:get-file/request'
 	uuid: string
 	data: {
@@ -33,7 +33,7 @@ type GetFileRequest = {
 	}
 }
 
-type GetFileResponse = {
+interface GetFileResponse {
 	type: 'vscode:get-file/response'
 	uuid: string
 	data: {
@@ -43,7 +43,7 @@ type GetFileResponse = {
 	}
 }
 
-type GetFileError = {
+interface GetFileError {
 	type: 'vscode:get-file/error'
 	uuid: string
 	data: {
@@ -52,7 +52,7 @@ type GetFileError = {
 }
 
 /** @public */
-export type VscodeMessagePairs = {
+export interface VscodeMessagePairs {
 	'vscode:bookmark': { request: BookmarkRequest; response: BookmarkResponse; error: BookmarkError }
 	'vscode:get-file': { request: GetFileRequest; response: GetFileResponse; error: GetFileError }
 }

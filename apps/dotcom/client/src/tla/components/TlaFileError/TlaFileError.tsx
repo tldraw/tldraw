@@ -4,9 +4,9 @@ import { TldrawUiButton, useDialogs } from 'tldraw'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
 import { useSetIsReady } from '../../hooks/useIsReady'
 import { F } from '../../utils/i18n'
-import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
+import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import styles from './TlaFileError.module.css'
 
 function DefaultError() {

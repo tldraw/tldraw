@@ -49,11 +49,15 @@ import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
-export { TLFileDurableObject } from './TLDrawDurableObject'
+export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'
 export { TLUserDurableObject } from './TLUserDurableObject'
+// no-op stub. wrangler.toml v1 created TLDrawDurableObject and v10 deletes it.
+// staging/prod still have it in their applied-migration history, so removing
+// this export breaks their deploys (see #8124). preview skips both v1 and v10,
+// so this export is just an unbound class on preview - harmless.
 export class TLDrawDurableObject {}
 
 const { preflight, corsify } = cors({
@@ -132,6 +136,7 @@ const router = createRouter<Environment>()
 		}
 		return notFound()
 	})
+	.get('/app/file/:roomId/download', forwardRoomRequest)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({
@@ -195,14 +200,15 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
-		const result = await handleQueryRequest(
-			(name, args) => {
+		const result = await handleQueryRequest({
+			handler: (name, args) => {
 				const query = mustGetQuery(queries, name)
 				return query.fn({ args, ctx: { userId: auth.userId } })
 			},
 			schema,
-			req
-		)
+			request: req,
+			userID: auth.userId,
+		})
 		return json(result)
 	})
 	.all('*', notFound)
@@ -317,7 +323,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				await db
 					.insertInto('asset')
 					.values({ objectName, fileId, userId })
-					.executeTakeFirstOrThrow()
+					.onConflict((oc) => oc.column('objectName').doNothing())
+					.execute()
 				message.ack()
 			} catch (_e) {
 				message.retry({

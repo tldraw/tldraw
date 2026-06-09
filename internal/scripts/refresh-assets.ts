@@ -1,3 +1,4 @@
+import { execFileSync } from 'child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs'
 import { join } from 'path'
 import { SemVer } from 'semver'
@@ -49,6 +50,35 @@ const collectedAssetUrls: Record<
 }
 
 const mergedIconFooter = '</svg>'
+
+function shouldSkipRefreshAssets(): boolean {
+	const onlyIfNecessary =
+		process.env.ONLY_REFRESH_ASSETS_IF_NECESSARY === '1' ||
+		process.argv.includes('--only-refresh-assets-if-necessary')
+	if (!onlyIfNecessary) return false
+
+	try {
+		const changedFiles = execFileSync(
+			'git',
+			[
+				'diff',
+				'--cached',
+				'--name-only',
+				'--',
+				'package.json',
+				'internal/scripts/refresh-assets.ts',
+				'assets',
+				'apps/dotcom/client/assets',
+				':(glob)packages/*/package.json',
+			],
+			{ cwd: REPO_ROOT, encoding: 'utf8' }
+		).trim()
+		return changedFiles.length === 0
+	} catch {
+		// If git inspection fails, fall back to running the full refresh.
+		return false
+	}
+}
 
 function optimizeAndMergeSvgs(
 	icons: string[],
@@ -710,6 +740,13 @@ class CodeFunction extends Code {
 
 // --- RUN
 async function main() {
+	if (shouldSkipRefreshAssets()) {
+		nicelog(
+			"Skipping refresh-assets (no staged changes to refresh-assets inputs, with '--only-refresh-assets-if-necessary')"
+		)
+		return
+	}
+
 	nicelog('Copying icons...')
 	await copyIcons()
 	nicelog('Copying dotcom icons...')

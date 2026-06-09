@@ -31,7 +31,7 @@ export class PerformanceTracker {
 	 * Records animation frames to calculate frame rate.
 	 * Called automatically during performance tracking.
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
+	// eslint-disable-next-line tldraw/prefer-class-methods
 	recordFrame = () => {
 		this.frames++
 		if (!this.started) return

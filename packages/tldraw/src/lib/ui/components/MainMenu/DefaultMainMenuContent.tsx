@@ -166,9 +166,9 @@ export function PreferencesGroup() {
 					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
-					<ColorSchemeMenu />
 					<AccessibilityMenu />
 					<InputModeMenu />
+					<ColorSchemeMenu />
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />

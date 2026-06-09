@@ -1,6 +1,7 @@
 import classNames from 'classnames'
 import {
 	LanguageMenu,
+	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -10,13 +11,14 @@ import {
 } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
-import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	ColorThemeSubmenu,
 	DebugMenuGroup,
 	ImportFileActionItem,
 	SignOutMenuItem,
+	UIThemeSubmenu,
 } from '../../menu-items/menu-items'
+import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
@@ -34,9 +36,11 @@ export function TlaUserSettingsMenu() {
 		<TldrawUiDropdownMenuRoot id={`user-settings-sidebar`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
-					<button
-						className={classNames(styles.sidebarUserSettingsTrigger, styles.hoverable)}
+					<TldrawUiButton
+						type="menu"
+						tooltip={userMenuLbl}
 						title={userMenuLbl}
+						className={classNames(styles.sidebarUserSettingsTrigger, styles.hoverable)}
 						data-testid="tla-sidebar-user-settings-trigger"
 					>
 						<div
@@ -51,7 +55,7 @@ export function TlaUserSettingsMenu() {
 						<div className={styles.sidebarUserSettingsIcon}>
 							<TlaIcon icon="dots-vertical-strong" />
 						</div>
-					</button>
+					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={4} sideOffset={4}>
 					<TldrawUiMenuGroup id="files">
@@ -59,6 +63,7 @@ export function TlaUserSettingsMenu() {
 					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="preferences">
 						<ColorThemeSubmenu />
+						<UIThemeSubmenu />
 						<LanguageMenu />
 					</TldrawUiMenuGroup>
 					<DebugMenuGroup />

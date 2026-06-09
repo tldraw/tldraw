@@ -22,9 +22,9 @@ export class Sidebar {
 		this.createGroupButton = this.page.getByTestId('tla-create-group')
 		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
 		this.helpMenu = this.page.getByTestId('tla-sidebar-help-menu-trigger')
-		this.themeButton = this.page.getByText('Theme')
+		this.themeButton = this.page.getByTestId('dialog-sub.help menu color-scheme-button')
 		this.darkModeButton = this.page.getByText('Dark')
-		this.signOutButton = this.page.getByText('Sign out')
+		this.signOutButton = this.page.getByTestId('dialog.sign-out')
 	}
 
 	async isVisible() {
@@ -62,6 +62,8 @@ export class Sidebar {
 	async openUserSettingsMenu() {
 		await this.userSettingsMenu.hover()
 		await this.userSettingsMenu.click()
+		// Wait for the dropdown content to mount before child-item clicks race the open animation.
+		await expect(this.page.getByRole('menu')).toBeVisible()
 	}
 
 	@step
@@ -340,7 +342,7 @@ export class Sidebar {
 		await groupHeader.hover()
 
 		// Click the more options button
-		const moreOptionsButton = group.locator('button[title="More options"]')
+		const moreOptionsButton = group.locator('button[aria-label="More options"]')
 		await moreOptionsButton.click()
 
 		// Click Settings menu item
@@ -398,7 +400,7 @@ export class Sidebar {
 		const groupHeader = group.locator('[role="button"]').first()
 		await groupHeader.hover()
 
-		const createButton = group.locator('button[title="New file"]')
+		const createButton = group.locator('button[aria-label="Create file"]')
 		await expect(createButton).toBeVisible()
 		await createButton.click()
 
@@ -446,6 +448,18 @@ export class Sidebar {
 	async expectFileNotPinned(fileName: string) {
 		const fileLink = this.getFileByName(fileName)
 		await expect(fileLink).toHaveAttribute('data-is-pinned', 'false')
+	}
+
+	@step
+	async expectFileActive(fileName: string) {
+		const fileLink = this.getFileByName(fileName)
+		await expect(fileLink).toHaveAttribute('data-active', 'true')
+	}
+
+	@step
+	async expectFileNotActive(fileName: string) {
+		const fileLink = this.getFileByName(fileName)
+		await expect(fileLink).toHaveAttribute('data-active', 'false')
 	}
 
 	async getFilesInGroup(groupName: string): Promise<string[]> {
@@ -503,7 +517,7 @@ export class Sidebar {
 		const groupHeader = group.locator('[role="button"]').first()
 		await groupHeader.hover()
 
-		const moreOptionsButton = group.locator('button[title="More options"]')
+		const moreOptionsButton = group.locator('button[aria-label="More options"]')
 		await moreOptionsButton.click()
 
 		await this.page.getByRole('menuitem', { name: 'Copy invite link' }).click()

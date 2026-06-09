@@ -1,6 +1,6 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
-import { TLRoomSocket } from './TLSyncRoom'
 import { TLSocketServerSentDataEvent } from './protocol'
+import { TLRoomSocket } from './TLSyncRoom'
 
 /**
  * Enumeration of possible states for a room session during its lifecycle.

@@ -1,5 +1,4 @@
 import PdfJSWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
-
 import { useState } from 'react'
 import { AssetRecordType, Box, TLAssetId, TLShapeId, createShapeId } from 'tldraw'
 import tldrawPdf from './assets/tldraw.pdf'

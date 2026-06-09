@@ -1,11 +1,13 @@
 import {
 	Editor,
 	FileHelpers,
+	TLClipboardWriteInfo,
 	TLExternalContentSource,
-	Vec,
 	VecLike,
+	activeElementShouldCaptureKeys,
 	assert,
 	compact,
+	getGlobalDocument,
 	isDefined,
 	preventDefault,
 	uniq,
@@ -15,10 +17,32 @@ import {
 } from '@tldraw/editor'
 import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
+import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../../utils/clipboard'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteUrl } from './clipboard/pasteUrl'
+
+/**
+ * Resolves paste modifier keys into plain-text and position behavior.
+ * Alt/Option inverts the paste-at-cursor user preference.
+ *
+ * @param isShift - Whether the Shift key is pressed (indicates plain text paste)
+ * @param isAlt - Whether the Alt/Option key is pressed (inverts paste position preference)
+ * @param pasteAtCursorPref - The user's preference for pasting at the cursor (true) or center (false)
+ *
+ * @internal
+ */
+export function resolvePasteModifiers(
+	isShift: boolean,
+	isAlt: boolean,
+	pasteAtCursorPref: boolean
+) {
+	return {
+		isPlainText: isShift,
+		pasteAtCursor: isAlt ? !pasteAtCursorPref : pasteAtCursorPref,
+	}
+}
 
 // Expected paste mime types. The earlier in this array they appear, the higher preference we give
 // them. For example, we prefer the `web image/png+tldraw` type to plain `image/png` as it does not
@@ -38,13 +62,48 @@ const expectedPasteFileMimeTypes = [
  */
 function stripHtml(html: string) {
 	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
-	const doc = document.implementation.createHTMLDocument('')
+	const doc = getGlobalDocument().implementation.createHTMLDocument('')
 	doc.documentElement.innerHTML = html.trim()
 	return doc.body.textContent || doc.body.innerText || ''
 }
 
+/**
+ * Extract iframe src and dimensions from an HTML string containing an iframe element.
+ * Tries width/height HTML attributes first, then falls back to pixel values in the
+ * style attribute, then to sensible defaults.
+ * Returns null if no valid iframe is found.
+ * @internal
+ */
+export function extractIframeFromHtml(
+	html: string
+): { src: string; width: number; height: number } | null {
+	if (!html.includes('<iframe')) return null
+	const doc = new DOMParser().parseFromString(html, 'text/html')
+	const iframe = doc.querySelector('iframe')
+	if (!iframe) return null
+	const src = iframe.getAttribute('src')
+	if (!src || !isValidHttpURL(src)) return null
+
+	const attrWidth = parseInt(iframe.getAttribute('width') || '', 10)
+	const attrHeight = parseInt(iframe.getAttribute('height') || '', 10)
+
+	let styleWidth = NaN
+	let styleHeight = NaN
+	const style = iframe.getAttribute('style')
+	if (style) {
+		const wMatch = style.match(/\bwidth:\s*(\d+)px/)
+		const hMatch = style.match(/\bheight:\s*(\d+)px/)
+		if (wMatch) styleWidth = parseInt(wMatch[1], 10)
+		if (hMatch) styleHeight = parseInt(hMatch[1], 10)
+	}
+
+	const width = attrWidth || styleWidth || 425
+	const height = attrHeight || styleHeight || 350
+	return { src, width, height }
+}
+
 /** @public */
-export const isValidHttpURL = (url: string) => {
+export function isValidHttpURL(url: string) {
 	try {
 		const u = new URL(url)
 		return u.protocol === 'http:' || u.protocol === 'https:'
@@ -74,23 +133,20 @@ const isSvgText = (text: string) => {
 	return /^<svg/.test(text)
 }
 
-const INPUTS = ['input', 'select', 'textarea']
-
 /**
  * Get whether to disallow clipboard events.
  *
  * @internal
  */
 function areShortcutsDisabled(editor: Editor) {
-	const { activeElement } = document
-
 	return (
 		editor.menus.hasAnyOpenMenus() ||
-		(activeElement &&
-			((activeElement as HTMLElement).isContentEditable ||
-				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
+		activeElementShouldCaptureKeys(false, editor.getContainerDocument())
 	)
 }
+
+import { putPastedExternalContent } from './clipboard/putPastedContent'
+export { putPastedExternalContent } from './clipboard/putPastedContent'
 
 /**
  * Handle text pasted into the editor.
@@ -103,31 +159,40 @@ const handleText = (
 	editor: Editor,
 	data: string,
 	point?: VecLike,
-	sources?: TLExternalContentSource[]
+	sources?: TLExternalContentSource[],
+	clipboardPasteSource: 'native-event' | 'clipboard-read' = 'native-event'
 ) => {
 	const validUrlList = getValidHttpURLList(data)
 	if (validUrlList) {
 		for (const url of validUrlList) {
-			pasteUrl(editor, url, point)
+			pasteUrl(editor, url, point, sources, clipboardPasteSource)
 		}
 	} else if (isValidHttpURL(data)) {
-		pasteUrl(editor, data, point)
+		pasteUrl(editor, data, point, sources, clipboardPasteSource)
 	} else if (isSvgText(data)) {
 		editor.markHistoryStoppingPoint('paste')
-		editor.putExternalContent({
-			type: 'svg-text',
-			text: data,
-			point,
-			sources,
-		})
+		putPastedExternalContent(
+			editor,
+			{
+				type: 'svg-text',
+				text: data,
+				point,
+				sources,
+			},
+			{ source: clipboardPasteSource, point }
+		)
 	} else {
 		editor.markHistoryStoppingPoint('paste')
-		editor.putExternalContent({
-			type: 'text',
-			text: data,
-			point,
-			sources,
-		})
+		putPastedExternalContent(
+			editor,
+			{
+				type: 'text',
+				text: data,
+				point,
+				sources,
+			},
+			{ source: clipboardPasteSource, point }
+		)
 	}
 }
 
@@ -215,7 +280,7 @@ const handlePasteFromEventClipboardData = async (
 		}
 	}
 
-	handleClipboardThings(editor, things, point)
+	handleClipboardThings(editor, things, point, 'native-event')
 }
 
 /**
@@ -232,11 +297,13 @@ const handlePasteFromClipboardApi = async ({
 	clipboardItems,
 	point,
 	fallbackFiles,
+	clipboardPasteSource,
 }: {
 	editor: Editor
 	clipboardItems: ClipboardItem[]
 	point?: VecLike
 	fallbackFiles?: File[]
+	clipboardPasteSource: 'native-event' | 'clipboard-read'
 }) => {
 	// We need to populate the array of clipboard things
 	// based on the ClipboardItems from the Clipboard API.
@@ -246,17 +313,29 @@ const handlePasteFromClipboardApi = async ({
 	const things: ClipboardThing[] = []
 
 	for (const item of clipboardItems) {
-		for (const type of expectedPasteFileMimeTypes) {
-			if (item.types.includes(type)) {
-				const blobPromise = item
-					.getType(type)
-					.then((blob) => FileHelpers.rewriteMimeType(blob, getCanonicalClipboardReadType(type)))
-				things.push({
-					type: 'blob',
-					source: blobPromise,
-				})
-				break
-			}
+		const matchingTypes = expectedPasteFileMimeTypes.filter((t) => item.types.includes(t))
+		if (matchingTypes.length > 0) {
+			things.push({
+				type: 'blob',
+				source: (async () => {
+					for (const type of matchingTypes) {
+						const blob = await item.getType(type)
+						// Chrome 147 stable regression: web custom-format blobs come back as
+						// 0 bytes when clipboard.read() runs inside a paste event. Fixed in
+						// Chrome Canary; expected to ship to stable in a later release. Until
+						// then, skip empty payloads and fall back to the next preferred type
+						// (usually image/png, which means Cmd+V paste of a tldraw-copied PNG
+						// loses the pHYs DPI chunk and pastes at 2x size on affected Chrome
+						// stable versions). Right-click Paste continues to work at 1x because
+						// that path calls clipboard.read() from a click handler, not a paste
+						// event. Remove this workaround when the fix ships to stable.
+						// https://issues.chromium.org/issues/505045934
+						if (blob.size === 0) continue
+						return FileHelpers.rewriteMimeType(blob, getCanonicalClipboardReadType(type))
+					}
+					return null
+				})(),
+			})
 		}
 
 		if (item.types.includes('text/html')) {
@@ -304,10 +383,15 @@ const handlePasteFromClipboardApi = async ({
 		)
 	}
 
-	return await handleClipboardThings(editor, things, point)
+	return await handleClipboardThings(editor, things, point, clipboardPasteSource)
 }
 
-async function handleClipboardThings(editor: Editor, things: ClipboardThing[], point?: VecLike) {
+async function handleClipboardThings(
+	editor: Editor,
+	things: ClipboardThing[],
+	point: VecLike | undefined,
+	clipboardPasteSource: 'native-event' | 'clipboard-read'
+) {
 	// 1. Handle files
 	//
 	// We need to handle files separately because if we want them to
@@ -323,7 +407,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 			throw Error('Too many files')
 		}
 		const fileBlobs = compact(await Promise.all(files.map((t) => t.source)))
-		return await pasteFiles(editor, fileBlobs, point)
+		return await pasteFiles(editor, fileBlobs, point, undefined, clipboardPasteSource)
 	}
 
 	// 2. Generate clipboard results for non-file things
@@ -475,7 +559,11 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	for (const result of results) {
 		if (result.type === 'tldraw') {
 			editor.markHistoryStoppingPoint('paste')
-			editor.putExternalContent({ type: 'tldraw', content: result.data, point })
+			putPastedExternalContent(
+				editor,
+				{ type: 'tldraw', content: result.data, point },
+				{ source: clipboardPasteSource, point }
+			)
 			return
 		}
 	}
@@ -484,7 +572,11 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	for (const result of results) {
 		if (result.type === 'excalidraw') {
 			editor.markHistoryStoppingPoint('paste')
-			editor.putExternalContent({ type: 'excalidraw', content: result.data, point })
+			putPastedExternalContent(
+				editor,
+				{ type: 'excalidraw', content: result.data, point },
+				{ source: clipboardPasteSource, point }
+			)
 			return
 		}
 	}
@@ -492,9 +584,27 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste html content
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'html') {
-			// try to find a link
 			const rootNode = new DOMParser().parseFromString(result.data, 'text/html')
 			const bodyNode = rootNode.querySelector('body')
+
+			// Check for iframe embeds in HTML before stripping content
+			const iframeInfo = extractIframeFromHtml(result.data)
+			if (iframeInfo) {
+				editor.markHistoryStoppingPoint('paste')
+				editor.putExternalContent({
+					type: 'embed',
+					url: iframeInfo.src,
+					point,
+					embed: {
+						width: iframeInfo.width,
+						height: iframeInfo.height,
+						doesResize: true,
+					},
+				})
+				return
+			}
+
+			// try to find a link
 
 			// Edge on Windows 11 home appears to paste a link as a single <a/> in
 			// the HTML document. If we're pasting a single like tag we'll just
@@ -509,7 +619,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 			if (isHtmlSingleLink) {
 				const href = bodyNode.firstElementChild.getAttribute('href')!
-				handleText(editor, href, point, results)
+				handleText(editor, href, point, results, clipboardPasteSource)
 				return
 			}
 
@@ -517,7 +627,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
 				const html = stripHtml(result.data) ?? ''
 				if (html) {
-					handleText(editor, stripHtml(result.data), point, results)
+					handleText(editor, stripHtml(result.data), point, results, clipboardPasteSource)
 					return
 				}
 			}
@@ -527,35 +637,38 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 				const html = stripHtml(result.data) ?? ''
 				if (html) {
 					editor.markHistoryStoppingPoint('paste')
-					editor.putExternalContent({
-						type: 'text',
-						text: html,
-						html: result.data,
-						point,
-						sources: results,
-					})
+					putPastedExternalContent(
+						editor,
+						{
+							type: 'text',
+							text: html,
+							html: result.data,
+							point,
+							sources: results,
+						},
+						{ source: clipboardPasteSource, point }
+					)
 					return
 				}
 			}
 		}
 
-		// Allow you to paste YouTube or Google Maps embeds, for example.
-		if (result.type === 'text' && result.subtype === 'text' && result.data.startsWith('<iframe ')) {
-			// try to find an iframe
-			const rootNode = new DOMParser().parseFromString(result.data, 'text/html')
-			const bodyNode = rootNode.querySelector('body')
-
-			const isSingleIframe =
-				bodyNode &&
-				Array.from(bodyNode.children).filter((el) => el.nodeType === 1).length === 1 &&
-				bodyNode.firstElementChild &&
-				bodyNode.firstElementChild.tagName === 'IFRAME' &&
-				bodyNode.firstElementChild.hasAttribute('src') &&
-				bodyNode.firstElementChild.getAttribute('src') !== ''
-
-			if (isSingleIframe) {
-				const src = bodyNode.firstElementChild.getAttribute('src')!
-				handleText(editor, src, point, results)
+		// Allow pasting any <iframe> embed code onto the canvas.
+		// Extracts the iframe src and dimensions, then creates an embed shape.
+		if (result.type === 'text' && result.subtype === 'text') {
+			const iframeInfo = extractIframeFromHtml(result.data)
+			if (iframeInfo) {
+				editor.markHistoryStoppingPoint('paste')
+				editor.putExternalContent({
+					type: 'embed',
+					url: iframeInfo.src,
+					point,
+					embed: {
+						width: iframeInfo.width,
+						height: iframeInfo.height,
+						doesResize: true,
+					},
+				})
 				return
 			}
 		}
@@ -564,7 +677,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste a link
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'url') {
-			pasteUrl(editor, result.data, point, results)
+			pasteUrl(editor, result.data, point, results, clipboardPasteSource)
 			return
 		}
 	}
@@ -573,29 +686,34 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'text' && result.data.trim()) {
 			// The clipboard may include multiple text items, but we only want to paste the first one
-			handleText(editor, result.data, point, results)
+			handleText(editor, result.data, point, results, clipboardPasteSource)
 			return
 		}
 	}
 }
 
 /**
- * When the user copies, write the contents to local storage and to the clipboard
+ * When the user copies or cuts, write the contents to the clipboard.
  *
- * @param editor - The editor instance.
  * @public
  */
-const handleNativeOrMenuCopy = async (editor: Editor) => {
-	const navigator =
-		editor.getContainer().ownerDocument?.defaultView?.navigator ?? globalThis.navigator
-	const content = await editor.resolveAssetsInContent(
+export async function handleNativeOrMenuCopy(
+	editor: Editor,
+	context: TLClipboardWriteInfo = { operation: 'copy', source: 'menu' }
+): Promise<boolean> {
+	const nav = editor.getContainerWindow().navigator
+	let content = await editor.resolveAssetsInContent(
 		editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
 	)
 	if (!content) {
-		if (navigator && navigator.clipboard) {
-			navigator.clipboard.writeText('')
-		}
-		return
+		nav?.clipboard?.writeText?.('')
+		return true
+	}
+
+	if (editor.options.onBeforeCopyToClipboard) {
+		const result = await editor.options.onBeforeCopyToClipboard({ editor, content, ...context })
+		if (result === false) return false
+		if (result != null) content = result
 	}
 
 	// Use versioned clipboard format for better compression
@@ -614,42 +732,44 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 	// Don't compress the final structure - just use plain JSON
 	const stringifiedClipboard = JSON.stringify(clipboardData)
 
-	if (typeof navigator === 'undefined') {
-		return
-	} else {
-		// Extract the text from the clipboard
-		const textItems = content.shapes
-			.map((shape) => {
-				const util = editor.getShapeUtil(shape)
-				return util.getText(shape)
-			})
-			.filter(isDefined)
-
-		if (navigator.clipboard?.write) {
-			const htmlBlob = new Blob([`<div data-tldraw>${stringifiedClipboard}</div>`], {
-				type: 'text/html',
-			})
-
-			let textContent = textItems.join(' ')
-
-			// This is a bug in chrome android where it won't paste content if
-			// the text/plain content is "" so we need to always add an empty
-			// space 🤬
-			if (textContent === '') {
-				textContent = ' '
-			}
-
-			navigator.clipboard.write([
-				new ClipboardItem({
-					'text/html': htmlBlob,
-					// What is this second blob used for?
-					'text/plain': new Blob([textContent], { type: 'text/plain' }),
-				}),
-			])
-		} else if (navigator.clipboard.writeText) {
-			navigator.clipboard.writeText(`<div data-tldraw>${stringifiedClipboard}</div>`)
-		}
+	if (typeof nav === 'undefined') {
+		return true
 	}
+
+	// Extract the text from the clipboard
+	const textItems = content.shapes
+		.map((shape) => {
+			const util = editor.getShapeUtil(shape)
+			return util.getText(shape)
+		})
+		.filter(isDefined)
+
+	if (nav.clipboard?.write) {
+		const htmlBlob = new Blob([`<div data-tldraw>${stringifiedClipboard}</div>`], {
+			type: 'text/html',
+		})
+
+		let textContent = textItems.join(' ')
+
+		// This is a bug in chrome android where it won't paste content if
+		// the text/plain content is "" so we need to always add an empty
+		// space 🤬
+		if (textContent === '') {
+			textContent = ' '
+		}
+
+		const CBI = editor.getContainerWindow().ClipboardItem
+		nav.clipboard.write([
+			new CBI({
+				'text/html': htmlBlob,
+				// What is this second blob used for?
+				'text/plain': new Blob([textContent], { type: 'text/plain' }),
+			}),
+		])
+	} else if (nav.clipboard?.writeText) {
+		nav.clipboard.writeText(`<div data-tldraw>${stringifiedClipboard}</div>`)
+	}
+	return true
 }
 
 /** @public */
@@ -662,8 +782,10 @@ export function useMenuClipboardEvents() {
 			assert(editor, 'editor is required for copy')
 			if (editor.getSelectedShapeIds().length === 0) return
 
-			await handleNativeOrMenuCopy(editor)
-			trackEvent('copy', { source })
+			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'copy', source: 'menu' })
+			if (didCopy) {
+				trackEvent('copy', { source })
+			}
 		},
 		[editor, trackEvent]
 	)
@@ -673,9 +795,11 @@ export function useMenuClipboardEvents() {
 			if (!editor) return
 			if (editor.getSelectedShapeIds().length === 0) return
 
-			await handleNativeOrMenuCopy(editor)
-			editor.deleteShapes(editor.getSelectedShapeIds())
-			trackEvent('cut', { source })
+			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'menu' })
+			if (didCopy) {
+				editor.deleteShapes(editor.getSelectedShapeIds())
+				trackEvent('cut', { source })
+			}
 		},
 		[editor, trackEvent]
 	)
@@ -692,12 +816,29 @@ export function useMenuClipboardEvents() {
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null) return
 
-			if (Array.isArray(data) && data[0] instanceof ClipboardItem) {
-				handlePasteFromClipboardApi({ editor, clipboardItems: data, point })
+			const win = editor.getContainerWindow()
+			if (Array.isArray(data) && data[0] instanceof win.ClipboardItem) {
+				if (
+					editor.options.onClipboardPasteRaw?.({
+						editor,
+						source: 'clipboard-read',
+						clipboardItems: data,
+						point,
+					}) === false
+				) {
+					trackEvent('paste', { source: 'menu' })
+					return
+				}
+				handlePasteFromClipboardApi({
+					editor,
+					clipboardItems: data,
+					point,
+					clipboardPasteSource: 'clipboard-read',
+				})
 				trackEvent('paste', { source: 'menu' })
 			} else {
-				// Read it first and then recurse, kind of weird
-				navigator.clipboard.read().then((clipboardItems) => {
+				const nav = win.navigator
+				nav.clipboard.read().then((clipboardItems) => {
 					paste(clipboardItems, source, point)
 				})
 			}
@@ -715,7 +856,7 @@ export function useMenuClipboardEvents() {
 /** @public */
 export function useNativeClipboardEvents() {
 	const editor = useEditor()
-	const ownerDocument = editor.getContainer().ownerDocument
+	const ownerDocument = editor.getContainerDocument()
 	const trackEvent = useUiEvents()
 
 	const appIsFocused = useValue('editor.isFocused', () => editor.getInstanceState().isFocused, [
@@ -734,8 +875,11 @@ export function useNativeClipboardEvents() {
 			}
 
 			preventDefault(e)
-			await handleNativeOrMenuCopy(editor)
-			trackEvent('copy', { source: 'kbd' })
+
+			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'copy', source: 'native' })
+			if (didCopy) {
+				trackEvent('copy', { source: 'kbd' })
+			}
 		}
 
 		async function cut(e: ClipboardEvent) {
@@ -747,9 +891,12 @@ export function useNativeClipboardEvents() {
 				return
 			}
 			preventDefault(e)
-			await handleNativeOrMenuCopy(editor)
-			editor.deleteShapes(editor.getSelectedShapeIds())
-			trackEvent('cut', { source: 'kbd' })
+
+			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'native' })
+			if (didCopy) {
+				editor.deleteShapes(editor.getSelectedShapeIds())
+				trackEvent('cut', { source: 'kbd' })
+			}
 		}
 
 		let disablingMiddleClickPaste = false
@@ -763,6 +910,15 @@ export function useNativeClipboardEvents() {
 			}
 		}
 
+		// Track native modifier state from the most recent keydown. We use this
+		// instead of editor.inputs.getShiftKey() because the editor applies a
+		// 150ms delay on modifier release (to prevent physical race conditions
+		// with pointer events), which can cause false positives here.
+		let nativeShiftKey = false
+		const trackModifiers = (e: KeyboardEvent) => {
+			nativeShiftKey = e.shiftKey
+		}
+
 		const paste = (e: ClipboardEvent) => {
 			if (disablingMiddleClickPaste) {
 				editor.markEventAsHandled(e)
@@ -774,18 +930,43 @@ export function useNativeClipboardEvents() {
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) return
 
-			// Where should the shapes go?
-			let point: Vec | undefined = undefined
-			let pasteAtCursor = false
+			// Cmd+Shift+V / Ctrl+Shift+V = paste as plain text (no formatting).
+			// If there's no plain text on the clipboard (e.g., a copied PNG), fall
+			// through to the normal paste handler so the file still gets pasted.
+			if (nativeShiftKey) {
+				const text = e.clipboardData?.getData('text/plain')
+				if (text?.trim()) {
+					const point = editor.user.getIsPasteAtCursorMode()
+						? editor.inputs.getCurrentPagePoint()
+						: editor.getViewportPageBounds().center
+					editor.markHistoryStoppingPoint('paste')
+					defaultHandleExternalTextContent(editor, { text, point })
+					preventDefault(e)
+					trackEvent('paste', { source: 'kbd' })
+					return
+				}
+			}
 
-			// | Shiftkey | Paste at cursor mode | Paste at point? |
-			// |    N 		|         N            |       N 				 |
-			// |    Y 		|         N            |       Y 				 |
-			// |    N 		|         Y            |       Y 				 |
-			// |    Y 		|         Y            |       N 				 |
-			if (editor.inputs.getShiftKey()) pasteAtCursor = true
-			if (editor.user.getIsPasteAtCursorMode()) pasteAtCursor = !pasteAtCursor
-			if (pasteAtCursor) point = editor.inputs.getCurrentPagePoint()
+			// Cmd+V: paste at center by default, or at cursor when the preference is on.
+			// (Cmd+Option+V and Cmd+Shift+Option+V are handled as actions in actions.tsx
+			// because the browser only fires paste events for Cmd+V and Cmd+Shift+V.)
+			const point = editor.user.getIsPasteAtCursorMode()
+				? editor.inputs.getCurrentPagePoint()
+				: undefined
+
+			if (
+				editor.options.onClipboardPasteRaw?.({
+					editor,
+					source: 'native-event',
+					event: e,
+					clipboardData: e.clipboardData,
+					point,
+				}) === false
+			) {
+				preventDefault(e)
+				trackEvent('paste', { source: 'kbd' })
+				return
+			}
 
 			const pasteFromEvent = () => {
 				if (e.clipboardData) {
@@ -796,15 +977,23 @@ export function useNativeClipboardEvents() {
 			// if we can read from the clipboard API, we want to try using that first. that allows
 			// us to access most things, and doesn't strip out metadata added to tldraw's own
 			// copy-as-png features - so copied shapes come back in at the correct size.
-			if (navigator.clipboard?.read) {
+			const win = editor.getContainerWindow()
+			const nav = win.navigator
+			if (nav.clipboard?.read) {
 				// We can't read files from the filesystem using the clipboard API though - they'll
 				// just come in as the file names instead. So we'll use the clipboard event's files
 				// as a fallback - if we only got text, but do have files, we use those instead.
 				const fallbackFiles = Array.from(e.clipboardData?.files || [])
-				navigator.clipboard.read().then(
+				nav.clipboard.read().then(
 					(clipboardItems) => {
-						if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
-							handlePasteFromClipboardApi({ editor, clipboardItems, point, fallbackFiles })
+						if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof win.ClipboardItem) {
+							handlePasteFromClipboardApi({
+								editor,
+								clipboardItems,
+								point,
+								fallbackFiles,
+								clipboardPasteSource: 'native-event',
+							})
 						}
 					},
 					() => {
@@ -824,12 +1013,16 @@ export function useNativeClipboardEvents() {
 		ownerDocument?.addEventListener('cut', cut)
 		ownerDocument?.addEventListener('paste', paste)
 		ownerDocument?.addEventListener('pointerup', pointerUpHandler)
+		ownerDocument?.addEventListener('keydown', trackModifiers, true)
+		ownerDocument?.addEventListener('keyup', trackModifiers, true)
 
 		return () => {
 			ownerDocument?.removeEventListener('copy', copy)
 			ownerDocument?.removeEventListener('cut', cut)
 			ownerDocument?.removeEventListener('paste', paste)
 			ownerDocument?.removeEventListener('pointerup', pointerUpHandler)
+			ownerDocument?.removeEventListener('keydown', trackModifiers, true)
+			ownerDocument?.removeEventListener('keyup', trackModifiers, true)
 		}
 	}, [editor, trackEvent, appIsFocused, ownerDocument])
 }
