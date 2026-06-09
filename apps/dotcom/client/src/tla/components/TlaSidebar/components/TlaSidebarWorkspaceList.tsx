@@ -111,7 +111,7 @@ function TlaSidebarWorkspaceListItem({ groupId, label }: { groupId: string; labe
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,
-						styles.sidebarWorkspaceItemLabel,
+						styles.sidebarRowItemLabel,
 						'notranslate'
 					)}
 				>
@@ -171,7 +171,8 @@ function TlaSidebarCreateWorkspaceButton() {
 		>
 			<div className={styles.sidebarFileListItemContent}>
 				<div
-					className={classNames(styles.sidebarFileListItemLabel, styles.sidebarWorkspaceItemLabel)}
+					className={classNames(styles.sidebarFileListItemLabel, styles.sidebarRowItemLabel)}
+					style={{ color: 'var(--tla-color-text-3)' }}
 				>
 					<F defaultMessage="Create a workspace +" />
 				</div>

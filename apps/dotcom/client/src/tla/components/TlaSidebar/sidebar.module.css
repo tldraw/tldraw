@@ -9,7 +9,7 @@
 	transform: translate(0px, 0px);
 	flex-direction: column;
 	flex: 0 0 auto;
-	padding: 0;
+	padding: 0 0 4px 0;
 	background: var(--tla-color-sidebar);
 	border-right: 1px solid var(--tl-color-low, rgba(237, 240, 242, 1));
 	transition: transform 0.16s ease-in-out;
@@ -107,7 +107,7 @@
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 auto;
-	padding: 2px 12px 40px 12px;
+	padding: 0 12px 40px 12px;
 	overflow-y: scroll;
 	overflow-x: visible;
 	-ms-overflow-style: none; /* IE and Edge */
@@ -461,12 +461,11 @@
 	position: relative;
 	width: 100%;
 	height: 36px;
-	padding: 0px 0px 0px 8px;
+	padding: 0px 8px;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	gap: 4px;
-	/* tla/sidebar section subtitle (e.g. "Pinned") */
 	font-family: var(--tla-font-ui);
 	font-weight: 500;
 	font-size: 12px;
@@ -475,9 +474,12 @@
 	color: var(--tla-color-text-3);
 }
 
-/* tla/sidebar title — the active space's name (e.g. "My files") */
 .sidebarActiveGroupTitle {
-	padding: 12px 8px 8px;
+	display: flex;
+	align-items: center;
+	height: 36px;
+	margin-top: 8px;
+	padding: 0 8px;
 	font-family: var(--tla-font-ui);
 	font-weight: 700;
 	font-size: 14px;
@@ -486,31 +488,27 @@
 	color: var(--tla-color-text-1);
 }
 
-/* Fixed top region holding the workspace items. The 12px padding lives here on
-   the parent (Figma: 257×132, padding 12) rather than on each item. */
+.sidebarActiveGroupTitle + .sidebarFileSectionWrapper {
+	margin-top: 0;
+}
+
 .sidebarWorkspaceList {
+	min-width: 200px;
 	padding: 12px;
 }
 
-/* Workspace list row label (e.g. "My files", "Create a workspace +") */
-.sidebarWorkspaceItemLabel {
+.sidebarRowItemLabel {
 	font-family: var(--tla-font-ui);
 	font-weight: 500;
 	font-size: 14px;
 	line-height: 22px;
 	letter-spacing: 0.01em;
+	color: var(--tla-color-text-1);
 }
 
-/* The workspace item hover/active pill uses the small radius (radius-1). */
-.sidebarWorkspaceList .hoverable::after {
-	border-radius: var(--tla-radius-1);
-}
-
-/* Full-width divider between the workspace list and the file list. Negative
-   horizontal margin cancels the sidebar content padding so it spans edge to edge. */
 .sidebarDivider {
-	margin: 0;
-	border-bottom: 1px solid var(--tl-color-divider, rgba(232, 232, 232, 1));
+	height: 8px;
+	border-top: 1px solid var(--tl-color-divider, rgba(232, 232, 232, 1));
 }
 
 .sidebarFileSectionTitlePadding span[role='img'] {
@@ -529,7 +527,7 @@
 	flex-direction: row;
 	align-items: center;
 	height: 36px;
-	padding: 0px 8px 0px 8px;
+	padding: 0px 4px 0px 8px;
 }
 
 .sidebarFileListItem[data-active='true'][data-enhanced-a11y-mode='true'] {

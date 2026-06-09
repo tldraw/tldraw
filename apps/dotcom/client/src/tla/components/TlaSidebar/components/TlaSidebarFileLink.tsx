@@ -275,7 +275,7 @@ export function TlaSidebarFileLinkInner({
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,
-						'tla-text_ui__regular',
+						styles.sidebarRowItemLabel,
 						'notranslate'
 					)}
 					data-testid={`${testId}-name`}
