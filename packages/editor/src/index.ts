@@ -102,6 +102,12 @@ export {
 	type TLRenderingShape,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
+export {
+	AllowManager,
+	type Allowable,
+	type AllowResult,
+	type AllowRule,
+} from './lib/editor/managers/AllowManager/AllowManager'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager/EdgeScrollManager'
 export { FontManager } from './lib/editor/managers/FontManager/FontManager'

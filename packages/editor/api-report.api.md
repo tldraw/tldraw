@@ -104,6 +104,48 @@ import { VecModel } from '@tldraw/tlschema';
 export function activeElementShouldCaptureKeys(includeButtonsAndMenus?: boolean, doc?: Document): boolean;
 
 // @public
+export interface Allowable<Ctx> {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    rules: Atom<AllowRule<Ctx>[]>;
+}
+
+// @public
+export class AllowManager {
+    constructor(editor: Editor);
+    can<Ctx>(allowable: Allowable<Ctx>, ...args: [Ctx] extends [void] ? [] : [ctx: Ctx]): boolean;
+    readonly changeDocument: Allowable<void>;
+    readonly changeShape: Allowable<TLShape>;
+    check<Ctx>(allowable: Allowable<Ctx>, ...args: [Ctx] extends [void] ? [] : [ctx: Ctx]): AllowResult;
+    readonly deleteShape: Allowable<TLShape>;
+    dispose(): void;
+    readonly duplicateShape: Allowable<TLShape>;
+    getResult(allowable: Allowable<void>): Computed<AllowResult>;
+    readonly groupShape: Allowable<TLShape>;
+    readonly moveCamera: Allowable<void>;
+    register<Ctx = void>(id: string, rules?: AllowRule<Ctx>[]): Allowable<Ctx>;
+    removeRule(allowable: Allowable<any>, ruleId: string): void;
+    readonly selectShape: Allowable<TLShape>;
+    setRule<Ctx>(allowable: Allowable<Ctx>, rule: AllowRule<Ctx>): void;
+    readonly ungroupShape: Allowable<TLShape>;
+    unregister(allowable: Allowable<any>): void;
+}
+
+// @public
+export interface AllowResult {
+    ok: boolean;
+    reasons: string[];
+}
+
+// @public
+export interface AllowRule<Ctx> {
+    id: string;
+    message: string;
+    test(ctx: Ctx): boolean;
+}
+
+// @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
 // @internal (undocumented)
@@ -870,6 +912,7 @@ export class EdgeScrollManager {
 export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
+    readonly allow: AllowManager;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
     // @internal (undocumented)
