@@ -1472,6 +1472,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	undo(): this {
+		if (!this.allow.undoRedo.can()) return this
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.undo()
@@ -1503,6 +1504,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	redo(): this {
+		if (!this.allow.undoRedo.can()) return this
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.redo()
@@ -4078,10 +4080,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.stopFollowingUser()
 			}
 
-			// If we're not on the same page, move to the page they're on
+			// If we're not on the same page, move to the page they're on. Bypass
+			// switchPage so that following stays possible when manual navigation
+			// is denied, as in a presentation.
 			const isOnSamePage = presence.currentPageId === this.getCurrentPageId()
 			if (!isOnSamePage) {
-				this.setCurrentPage(presence.currentPageId)
+				this.setCurrentPage(presence.currentPageId, { force: true })
 			}
 
 			// Only animate the camera if the user is on the same page as us
@@ -4904,15 +4908,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param page - The page (or the page id) to set as the current page.
+	 * @param opts - Options. Pass `force: true` to bypass the `switchPage` allowable.
 	 *
 	 * @public
 	 */
-	setCurrentPage(page: TLPageId | TLPage): this {
+	setCurrentPage(page: TLPageId | TLPage, opts?: { force?: boolean }): this {
 		const pageId = typeof page === 'string' ? page : page.id
-		if (!this.store.has(pageId)) {
+		const newPage = this.getPage(pageId)
+		if (!newPage) {
 			console.error("Tried to set the current page id to a page that doesn't exist.")
 			return this
 		}
+
+		if (!opts?.force && !this.allow.switchPage.can(newPage)) return this
 
 		this.stopFollowingUser()
 		// finish off any in-progress interactions
@@ -5017,7 +5025,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (id === this.getCurrentPageId()) {
 					const index = pages.findIndex((page) => page.id === id)
 					const next = pages[index - 1] ?? pages[index + 1]
-					this.setCurrentPage(next.id)
+					// the editor cannot stay on the deleted page, so bypass switchPage
+					this.setCurrentPage(next.id, { force: true })
 				}
 
 				const shapes = this.getSortedChildIdsForParent(deletedPage.id)
@@ -7126,8 +7135,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Delete the shapes on the current page
 			this.deleteShapes(ids)
 
-			// Move to the next page
-			this.setCurrentPage(pageId)
+			// Move to the next page. Bypass switchPage: the moved shapes are put
+			// onto the *current* page below, so failing to navigate here would
+			// re-paste them onto the page they came from.
+			this.setCurrentPage(pageId, { force: true })
 
 			// Put the shape content onto the new page; parents and indices will
 			// be taken care of by the putContent method; make sure to pop any focus

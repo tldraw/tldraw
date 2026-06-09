@@ -1,5 +1,5 @@
 import { atom, react } from '@tldraw/state'
-import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLPage, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { Editor } from '../../Editor'
 import { AllowManager } from './AllowManager'
 
@@ -60,6 +60,19 @@ describe('built-in allowables', () => {
 		expect(allow.moveCamera.can()).toBe(true)
 		cameraOptions.set({ isLocked: true })
 		expect(allow.moveCamera.can()).toBe(false)
+	})
+
+	it('gates undoRedo on readonly', () => {
+		const { allow, isReadonly } = setupManager()
+		expect(allow.undoRedo.can()).toBe(true)
+		isReadonly.set(true)
+		expect(allow.undoRedo.can()).toBe(false)
+	})
+
+	it('switchPage allows any page by default', () => {
+		const { allow } = setupManager()
+		const page = { id: 'page:a', name: 'a' } as TLPage
+		expect(allow.switchPage.can(page)).toBe(true)
 	})
 
 	it('denies changeShape when the shape itself is locked', () => {

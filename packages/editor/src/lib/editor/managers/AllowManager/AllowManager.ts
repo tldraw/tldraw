@@ -1,5 +1,5 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
-import { TLShape } from '@tldraw/tlschema'
+import { TLPage, TLShape } from '@tldraw/tlschema'
 import type { Editor } from '../../Editor'
 
 /**
@@ -164,6 +164,27 @@ export class AllowManager {
 	readonly moveCamera: Allowable<void>
 
 	/**
+	 * Whether the user may undo or redo. Seeded with a rule that denies while the
+	 * editor is in readonly mode; {@link Editor.undo} and {@link Editor.redo} bail
+	 * out early when this denies. Tools' internal history bails are not affected.
+	 * Add rules to it to apply custom permissions.
+	 *
+	 * @public
+	 */
+	readonly undoRedo: Allowable<void>
+
+	/**
+	 * Whether the user may navigate to a different page. The context is the
+	 * destination page. Has no seed rules; add rules to it to restrict page
+	 * navigation. {@link Editor.setCurrentPage} consults it unless called with
+	 * `{ force: true }`; operations that must switch pages to keep the editor
+	 * consistent (like deleting the current page) bypass it.
+	 *
+	 * @public
+	 */
+	readonly switchPage: Allowable<TLPage>
+
+	/**
 	 * Whether a shape may be changed. Seeded with a rule that denies changes to a
 	 * locked shape (or a shape with a locked ancestor). This covers only the lock
 	 * concern; readonly is handled by {@link AllowManager.changeDocument}. Add
@@ -246,6 +267,8 @@ export class AllowManager {
 
 		this.changeDocument = this.register('changeDocument', [notReadonly])
 		this.moveCamera = this.register('moveCamera', [cameraNotLocked])
+		this.undoRedo = this.register('undoRedo', [notReadonly])
+		this.switchPage = this.register<TLPage>('switchPage')
 		this.changeShape = this.register('changeShape', [shapeNotSelfLocked, shapeNoLockedAncestor])
 		// These selection-driven actions share the same self-lock concern, so they
 		// compose the same rule; each is its own allowable so consumers can permit

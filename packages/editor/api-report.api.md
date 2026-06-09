@@ -129,6 +129,8 @@ export class AllowManager {
     readonly moveCamera: Allowable<void>;
     register<Ctx = void>(id: string, rules?: AllowRule<Ctx>[]): Allowable<Ctx>;
     readonly selectShape: Allowable<TLShape>;
+    readonly switchPage: Allowable<TLPage>;
+    readonly undoRedo: Allowable<void>;
     readonly ungroupShape: Allowable<TLShape>;
     unregister(allowable: Allowable<any>): void;
 }
@@ -1608,7 +1610,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     // @internal (undocumented)
     _setCtrlKeyTimeout(): void;
-    setCurrentPage(page: TLPage | TLPageId): this;
+    setCurrentPage(page: TLPage | TLPageId, opts?: {
+        force?: boolean;
+    }): this;
     setCurrentTheme(id: TLThemeId): this;
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;

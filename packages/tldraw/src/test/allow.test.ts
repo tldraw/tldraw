@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/editor'
+import { PageRecordType, TLPageId, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -85,6 +85,95 @@ describe('custom moveCamera rules', () => {
 		const camera = editor.getCamera()
 		editor.setCamera({ x: camera.x + 100, y: camera.y + 100 }, { force: true })
 		expect(editor.getCamera()).toMatchObject({ x: camera.x + 100, y: camera.y + 100 })
+	})
+})
+
+describe('custom switchPage rules', () => {
+	let pageBId: TLPageId
+
+	beforeEach(() => {
+		pageBId = PageRecordType.createId('b')
+		editor.createPage({ id: pageBId, name: 'page b' })
+		editor.allow.switchPage.setRule({
+			id: 'stay-put',
+			message: 'Page navigation is not allowed',
+			test: () => false,
+		})
+	})
+
+	it('blocks setCurrentPage', () => {
+		const before = editor.getCurrentPageId()
+		editor.setCurrentPage(pageBId)
+		expect(editor.getCurrentPageId()).toBe(before)
+	})
+
+	it('is bypassed by force', () => {
+		editor.setCurrentPage(pageBId, { force: true })
+		expect(editor.getCurrentPageId()).toBe(pageBId)
+	})
+
+	it('can allow specific pages only', () => {
+		editor.allow.switchPage.setRule({
+			id: 'stay-put',
+			message: 'Only page b is allowed',
+			test: (page) => page.id === pageBId,
+		})
+		const pageCId = PageRecordType.createId('c')
+		editor.createPage({ id: pageCId, name: 'page c' })
+
+		editor.setCurrentPage(pageCId)
+		expect(editor.getCurrentPageId()).not.toBe(pageCId)
+		editor.setCurrentPage(pageBId)
+		expect(editor.getCurrentPageId()).toBe(pageBId)
+	})
+
+	it('does not strand the editor when the current page is deleted', () => {
+		const current = editor.getCurrentPageId()
+		editor.deletePage(current)
+		expect(editor.getPage(current)).toBeUndefined()
+		expect(editor.getCurrentPageId()).not.toBe(current)
+	})
+})
+
+describe('custom undoRedo rules', () => {
+	it('blocks undo and redo', () => {
+		editor.markHistoryStoppingPoint()
+		editor.updateShapes([{ id: ids.boxA, type: 'geo', x: 999 }])
+		expect(editor.getShape(ids.boxA)!.x).toBe(999)
+
+		editor.allow.undoRedo.setRule({
+			id: 'no-time-travel',
+			message: 'History is disabled',
+			test: () => false,
+		})
+
+		editor.undo()
+		expect(editor.getShape(ids.boxA)!.x).toBe(999)
+
+		editor.allow.undoRedo.removeRule('no-time-travel')
+		editor.undo()
+		expect(editor.getShape(ids.boxA)!.x).toBe(0)
+
+		editor.allow.undoRedo.setRule({
+			id: 'no-time-travel',
+			message: 'History is disabled',
+			test: () => false,
+		})
+		editor.redo()
+		expect(editor.getShape(ids.boxA)!.x).toBe(0)
+	})
+
+	it('is denied in readonly mode by default', () => {
+		editor.markHistoryStoppingPoint()
+		editor.updateShapes([{ id: ids.boxA, type: 'geo', x: 999 }])
+
+		editor.updateInstanceState({ isReadonly: true })
+		editor.undo()
+		expect(editor.getShape(ids.boxA)!.x).toBe(999)
+
+		editor.updateInstanceState({ isReadonly: false })
+		editor.undo()
+		expect(editor.getShape(ids.boxA)!.x).toBe(0)
 	})
 })
 
