@@ -7,3 +7,7 @@ order: 0
 status: published
 last_version: v5.2.0
 ---
+
+## Bug fixes
+
+- Fix a rendering artifact where nested clipped shapes (for example an image under multiple `getClipPath` ancestors) could show a stray triangular wedge. `intersectPolygonPolygon` now uses Sutherland–Hodgman clipping instead of sorting intersection vertices by angle around their centroid. ([#9001](https://github.com/tldraw/tldraw/pull/9001))
