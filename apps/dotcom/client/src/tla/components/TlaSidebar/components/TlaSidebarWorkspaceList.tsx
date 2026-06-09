@@ -52,6 +52,9 @@ function TlaSidebarWorkspaceListItem({ groupId, label }: { groupId: string; labe
 	const showDropState = useValue(
 		'workspace drop state',
 		() => {
+			// The active space is never a valid move target (its files already live
+			// there); dragging within it is a reorder/unpin, not a move.
+			if (isActive) return false
 			const dragState = app.sidebarState.get().dragState
 			if (!dragState?.hasDragStarted) return false
 			return (
@@ -60,7 +63,7 @@ function TlaSidebarWorkspaceListItem({ groupId, label }: { groupId: string; labe
 				!dragState.operation.reorder
 			)
 		},
-		[app, groupId]
+		[app, groupId, isActive]
 	)
 
 	const handleClick = useCallback(async () => {
