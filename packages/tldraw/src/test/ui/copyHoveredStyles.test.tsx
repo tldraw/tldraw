@@ -14,7 +14,7 @@ function ActionCapturer({ onCapture }: { onCapture(actions: TLUiActionsContextTy
 }
 
 // Move the pointer so the editor's current page point is over a given location. The
-// copy-hovered-styles action hit-tests this point to drill into groups.
+// copy-hovered-styles action hit-tests this point, which also drills into groups.
 function movePointerTo(editor: Editor, x: number, y: number) {
 	act(() => {
 		editor.dispatch({
@@ -35,60 +35,84 @@ function movePointerTo(editor: Editor, x: number, y: number) {
 	})
 }
 
+async function setup() {
+	let actions: TLUiActionsContextType | null = null
+	const { editor } = await renderTldrawComponentWithEditor(
+		(onMount) => (
+			<Tldraw onMount={onMount}>
+				<ActionCapturer onCapture={(a) => (actions = a)} />
+			</Tldraw>
+		),
+		{ waitForPatterns: false }
+	)
+
+	// The action hit-tests rendering shapes, so give the editor a real viewport.
+	act(() => {
+		editor.updateViewportScreenBounds(new Box(0, 0, 1000, 800))
+	})
+
+	return { editor, copyHoveredStyles: actions!['copy-hovered-styles'] }
+}
+
 describe('copy-hovered-styles action', () => {
-	it('only copies styles from the main select idle state, not nested idles like crop', async () => {
-		let actions: TLUiActionsContextType | null = null
-		const { editor } = await renderTldrawComponentWithEditor(
-			(onMount) => (
-				<Tldraw onMount={onMount}>
-					<ActionCapturer onCapture={(a) => (actions = a)} />
-				</Tldraw>
-			),
-			{ waitForPatterns: false }
-		)
+	it('copies styles from the shape under the pointer in any tool idle state', async () => {
+		const { editor, copyHoveredStyles } = await setup()
 
 		const redId = createShapeId()
 		editor.createShapes([
-			{ id: redId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100, color: 'red' } },
+			{
+				id: redId,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: { w: 100, h: 100, color: 'red', fill: 'solid' },
+			},
 		])
 
-		const copyHoveredStyles = actions!['copy-hovered-styles']
+		// Point at the red shape.
+		movePointerTo(editor, 50, 50)
 
-		// From the main select idle state, hovering a red shape copies its color to the next shape.
+		// From the select tool's idle state, the red shape's color is copied to the next shape.
 		editor.setStyleForNextShapes(DefaultColorStyle, 'black')
 		editor.setCurrentTool('select.idle')
-		editor.setHoveredShape(redId)
-		expect(editor.isIn('select.idle')).toBe(true)
-
+		expect(editor.getPath()).toBe('select.idle')
 		await copyHoveredStyles.onSelect('kbd')
 		expect(editor.getStyleForNextShape(DefaultColorStyle)).toBe('red')
 
-		// From a nested idle state (select.crop.idle) the action is a no-op, even though the leaf
-		// state node's id is also 'idle'.
-		editor.setStyleForNextShapes(DefaultColorStyle, 'blue')
-		editor.setCurrentTool('select.crop.idle')
-		editor.setHoveredShape(redId)
-		expect(editor.isIn('select.crop.idle')).toBe(true)
-
+		// It also runs from another tool's idle state, like geo.idle.
+		editor.setStyleForNextShapes(DefaultColorStyle, 'black')
+		editor.setCurrentTool('geo')
+		expect(editor.getPath()).toBe('geo.idle')
 		await copyHoveredStyles.onSelect('kbd')
-		expect(editor.getStyleForNextShape(DefaultColorStyle)).toBe('blue')
+		expect(editor.getStyleForNextShape(DefaultColorStyle)).toBe('red')
 	})
 
-	it('copies styles from the child under the cursor when a group is hovered', async () => {
-		let actions: TLUiActionsContextType | null = null
-		const { editor } = await renderTldrawComponentWithEditor(
-			(onMount) => (
-				<Tldraw onMount={onMount}>
-					<ActionCapturer onCapture={(a) => (actions = a)} />
-				</Tldraw>
-			),
-			{ waitForPatterns: false }
-		)
+	it('does nothing when the tool is not in an idle state', async () => {
+		const { editor, copyHoveredStyles } = await setup()
 
-		// The action hit-tests rendering shapes, so give the editor a real viewport.
-		act(() => {
-			editor.updateViewportScreenBounds(new Box(0, 0, 1000, 800))
-		})
+		const redId = createShapeId()
+		editor.createShapes([
+			{
+				id: redId,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: { w: 100, h: 100, color: 'red', fill: 'solid' },
+			},
+		])
+
+		movePointerTo(editor, 50, 50)
+
+		// Brushing is not an idle state, so the action is a no-op.
+		editor.setStyleForNextShapes(DefaultColorStyle, 'black')
+		editor.setCurrentTool('select.brushing')
+		expect(editor.getPath()).toBe('select.brushing')
+		await copyHoveredStyles.onSelect('kbd')
+		expect(editor.getStyleForNextShape(DefaultColorStyle)).toBe('black')
+	})
+
+	it('copies styles from the child under the cursor when pointing inside a group', async () => {
+		const { editor, copyHoveredStyles } = await setup()
 
 		const redId = createShapeId()
 		const blueId = createShapeId()
@@ -113,23 +137,17 @@ describe('copy-hovered-styles action', () => {
 		const groupId = editor.getOnlySelectedShapeId()!
 		expect(editor.isShapeOfType(editor.getShape(groupId)!, 'group')).toBe(true)
 		editor.selectNone()
-
-		const copyHoveredStyles = actions!['copy-hovered-styles']
 		editor.setCurrentTool('select.idle')
 
-		// Hovering the group highlights the whole group, but pointing at the red child should
-		// copy red. We set the hovered shape to the group explicitly (matching what the editor
-		// does when hovering a child of an unfocused group) and move the pointer over the child.
+		// The whole group is highlighted, but the hit test drills into it: pointing at the
+		// red child copies red, and pointing at the blue child copies blue.
 		editor.setStyleForNextShapes(DefaultColorStyle, 'black')
 		movePointerTo(editor, 50, 50)
-		editor.setHoveredShape(groupId)
 		await copyHoveredStyles.onSelect('kbd')
 		expect(editor.getStyleForNextShape(DefaultColorStyle)).toBe('red')
 
-		// Pointing at the blue child should copy blue.
 		editor.setStyleForNextShapes(DefaultColorStyle, 'black')
 		movePointerTo(editor, 250, 50)
-		editor.setHoveredShape(groupId)
 		await copyHoveredStyles.onSelect('kbd')
 		expect(editor.getStyleForNextShape(DefaultColorStyle)).toBe('blue')
 	})
