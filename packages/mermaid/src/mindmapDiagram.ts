@@ -6,7 +6,7 @@ import type {
 	MermaidBlueprintNode,
 } from './blueprint'
 import { parseRgbToTldrawColor } from './colors'
-import { parseNodesFromSvg, scaleLayout } from './svgParsing'
+import { parseNodesFromSvg, scaleLayout, stripDiagramIdPrefix } from './svgParsing'
 import type { ParsedNode } from './svgParsing'
 import { LAYOUT_SCALE } from './utils'
 
@@ -89,7 +89,7 @@ export function mindmapToBlueprint(
 
 	const nodeColors = new Map<string, TLDefaultColorStyle>()
 	for (const el of svgRoot.querySelectorAll('.node')) {
-		const rawId = el.getAttribute('id') || ''
+		const rawId = stripDiagramIdPrefix(svgRoot, el.getAttribute('id') || '')
 		const id = parseMindmapNodeId(rawId)
 		const shape =
 			el.querySelector('rect, circle, ellipse, polygon, path') ??

@@ -234,7 +234,11 @@ export function parseStateDiagramLayout(root: Element): ParsedDiagramLayout {
 		'.node',
 		(domId) => domId.match(/^state-(.+)-\d+$/)?.[1] ?? domId
 	)
-	const clusters = parseClustersFromSvg(root, '.statediagram-cluster')
+	const clusters = parseClustersFromSvg(
+		root,
+		'.statediagram-cluster',
+		(domId) => domId.match(/^state-(.+)-\d+$/)?.[1] ?? domId
+	)
 	const edges = parseAllEdgePointsFromSvg(root, (dataId) =>
 		/^edge\d+$/.test(dataId) ? { start: '', end: '' } : null
 	)
