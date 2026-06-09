@@ -699,6 +699,12 @@
       "value": "."
     }
   ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Member"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -1275,12 +1281,6 @@
     {
       "type": 0,
       "value": "Legal summary"
-    }
-  ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Admin"
     }
   ],
   "e404559826": [

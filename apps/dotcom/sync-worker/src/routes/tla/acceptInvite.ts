@@ -119,7 +119,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					userId: auth.userId,
 					userColor: user.color || '#000000',
 					userName: user.name,
-					role: 'admin',
+					role: 'member',
 					index,
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
