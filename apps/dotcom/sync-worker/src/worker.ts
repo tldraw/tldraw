@@ -9,6 +9,7 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	can,
 	createMutators,
 	queries,
 	schema,
@@ -49,7 +50,7 @@ import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
-import { userCanInGroup } from './utils/tla/groupAccess'
+import { getRole } from './utils/tla/getRole'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
@@ -294,7 +295,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			} else if (isSharedEdit) {
 				// shared for editing
 			} else if (userId && file.owningGroupId) {
-				if (!(await userCanInGroup(db, userId, file.owningGroupId, 'accessFiles'))) {
+				if (!can(await getRole(db, userId, file.owningGroupId), 'accessFiles')) {
 					return { ok: false, error: 'Forbidden' }
 				}
 			} else {

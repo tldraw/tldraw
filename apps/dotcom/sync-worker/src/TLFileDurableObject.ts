@@ -16,6 +16,7 @@ import {
 	SNAPSHOT_PREFIX,
 	TLCustomServerEvent,
 	TlaFile,
+	can,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -68,7 +69,7 @@ import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
-import { userCanInGroup } from './utils/tla/groupAccess'
+import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
 
 const MAX_CONNECTIONS = 50
@@ -642,7 +643,7 @@ export class TLFileDurableObject extends DurableObject {
 				} else if (file.owningGroupId && auth?.userId) {
 					// Check the user can access the owning group's files
 					const groupCheckTimer = this.timer()
-					if (await userCanInGroup(this.db, auth.userId, file.owningGroupId, 'accessFiles')) {
+					if (can(await getRole(this.db, auth.userId, file.owningGroupId), 'accessFiles')) {
 						hasOwnerAccess = true
 					}
 					groupCheckTimer.report('on_request_group_check')
@@ -754,7 +755,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (file.ownerId && file.ownerId === auth?.userId) {
 			hasOwnerAccess = true
 		} else if (file.owningGroupId && auth?.userId) {
-			if (await userCanInGroup(this.db, auth.userId, file.owningGroupId, 'accessFiles')) {
+			if (can(await getRole(this.db, auth.userId, file.owningGroupId), 'accessFiles')) {
 				hasOwnerAccess = true
 			}
 		}
@@ -1576,8 +1577,8 @@ export class TLFileDurableObject extends DurableObject {
 			// Check if user owns the file directly
 			if (file.ownerId && session.meta.userId === file.ownerId) continue
 
-			const canAccessFiles = () =>
-				userCanInGroup(this.db, session.meta.userId, file.owningGroupId, 'accessFiles')
+			const canAccessFiles = async () =>
+				can(await getRole(this.db, session.meta.userId, file.owningGroupId), 'accessFiles')
 
 			if (!file.shared) {
 				if (!(await canAccessFiles())) {
