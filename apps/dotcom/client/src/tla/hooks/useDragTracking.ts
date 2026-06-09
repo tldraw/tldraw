@@ -3,6 +3,7 @@ import { DragFileOperation, DragGroupOperation, DragReorderOperation } from '@tl
 import { getIndexAbove, getIndexBetween, IndexKey } from '@tldraw/utils'
 import { useCallback, useEffect, useRef } from 'react'
 import { Vec } from 'tldraw'
+import { routes } from '../../routeDefs'
 import { TldrawApp } from '../app/TldrawApp'
 import { useApp } from './useAppState'
 
@@ -183,6 +184,11 @@ async function executeFileOperations(
 			const homeGroupId = app.getHomeGroupId()
 			if (targetGroupId !== homeGroupId) {
 				app.ensureSidebarGroupExpanded(targetGroupId)
+			}
+			// When moving a file to a different space, follow it there so that space
+			// becomes the active one (the active space is derived from the open file).
+			if (targetGroupId !== groupId) {
+				app.navigate(routes.tlaFile(fileId))
 			}
 		}
 	}

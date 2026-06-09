@@ -1,126 +1,54 @@
-import { Collapsible } from 'radix-ui'
-import { Fragment } from 'react'
 import { useValue } from 'tldraw'
+import { useActiveGroupId } from '../../../hooks/useActiveGroupId'
 import { useApp } from '../../../hooks/useAppState'
 import { F } from '../../../utils/i18n'
 import { ReorderCursor } from './ReorderCursor'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
-import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
-import styles from '../sidebar.module.css'
 
+/**
+ * The scrollable lower region of the sidebar: the files of whichever space is
+ * currently active (derived from the open file). This replaces the old
+ * "My files + inline-expandable groups" layout — there is a single flat file
+ * list for the active space, with no per-group expand/collapse.
+ */
 export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
-	// Demo flag to switch between inline input and dialog
+	const activeGroupId = useActiveGroupId()
+	const homeGroupId = app.getHomeGroupId()
+	const isHome = activeGroupId === homeGroupId
 
-	const isShowingAll = useValue('isShowingAll', () => app.sidebarState.get().recentFilesShowMore, [
+	const group = useValue('active group', () => app.getGroupMembership(activeGroupId), [
 		app,
+		activeGroupId,
+	])
+	const files = useValue('active group files', () => app.getGroupFilesSorted(activeGroupId), [
+		app,
+		activeGroupId,
 	])
 
-	const handleShowMore = () => {
-		app.sidebarState.update((prev) => ({ ...prev, recentFilesShowMore: true }))
-	}
-
-	const handleShowLess = () => {
-		app.sidebarState.update((prev) => ({ ...prev, recentFilesShowMore: false }))
-	}
-
-	// Get group memberships from the server
-	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
-
-	const files = useValue('my files', () => app.getMyFiles(), [app])
-	const homeGroupId = app.getHomeGroupId()
-	const showMyFilesDropState = useValue(
-		'showMyFilesDropState',
-		() => {
-			const dragState = app.sidebarState.get().dragState
-			if (!dragState?.hasDragStarted) return false
-			return (
-				dragState.type === 'file' &&
-				dragState.operation.move?.targetId === homeGroupId &&
-				!dragState.operation.reorder
-			)
-		},
-		[app, homeGroupId]
-	)
-
-	if (!files) throw Error('Could not get files')
-	const numPinnedFiles = files.filter((f) => f.isPinned).length
-
-	const MAX_FILES_TO_SHOW = Math.max(
-		groupMemberships.length > 0 ? 6 : +Infinity,
-		numPinnedFiles + 4
-	)
-	const slop = 2
-	const isOverflowing = files.length > MAX_FILES_TO_SHOW + slop
-	const filesToShow = isOverflowing ? files.slice(0, MAX_FILES_TO_SHOW) : files
-	const hiddenFiles = isOverflowing ? files.slice(MAX_FILES_TO_SHOW) : []
+	const groupName = isHome ? <F defaultMessage="My files" /> : group?.group.name
 
 	return (
-		<Fragment>
+		<div
+			data-drop-target-id={isHome ? homeGroupId : `group:${activeGroupId}`}
+			data-group-id={activeGroupId}
+		>
 			<div
-				data-drop-target-id={homeGroupId}
-				className={showMyFilesDropState ? styles.dropping : ''}
+				style={{ fontSize: 12, paddingLeft: 8, paddingTop: 12, color: 'var(--tla-color-text-3)' }}
 			>
-				<div
-					style={{ fontSize: 12, paddingLeft: 8, paddingTop: 12, color: 'var(--tla-color-text-3)' }}
-				>
-					<F defaultMessage="My files" />
-				</div>
-				<div style={{ height: 8 }}></div>
-				{filesToShow.length > 0 &&
-					filesToShow.map((item, i) => (
-						<TlaSidebarFileLink
-							groupId={homeGroupId}
-							key={'file_link_today_' + item.fileId}
-							item={item}
-							testId={`tla-file-link-today-${i}`}
-						/>
-					))}
-				{hiddenFiles.length > 0 && (
-					<Collapsible.Root open={isShowingAll}>
-						<Collapsible.Content className={styles.CollapsibleContent}>
-							{hiddenFiles.map((item, i) => (
-								<TlaSidebarFileLink
-									groupId={homeGroupId}
-									key={'file_link_today_' + item.fileId}
-									item={item}
-									testId={`tla-file-link-today-${i}`}
-								/>
-							))}
-						</Collapsible.Content>
-						<Collapsible.Trigger asChild>
-							{isOverflowing &&
-								(isShowingAll ? (
-									<button className={styles.showAllButton} onClick={handleShowLess}>
-										<F defaultMessage="Show less" />
-									</button>
-								) : (
-									<button className={styles.showAllButton} onClick={handleShowMore}>
-										<F defaultMessage="Show more" />
-									</button>
-								))}
-						</Collapsible.Trigger>
-					</Collapsible.Root>
-				)}
+				{groupName}
 			</div>
-			<div style={{ height: 12 }}></div>
-			{groupMemberships.map((group, i) =>
-				group.groupId === app.getHomeGroupId() ? null : (
-					// Include the array index in the key to force a remount when the order changes
-					// this prevents a bug where the collapsible open animation replays when react moves
-					// an open group item within the list. I guess the browser thinks it's a new dom node
-					// or whatever.
-					// If radix's Collapsible had 'opening' and 'closing' states instead of just 'open' and 'closed'
-					// we wouldn't need this.
-					<TlaSidebarGroupItem
-						key={`group-${group.group.id}-${i}`}
-						groupId={group.group.id}
-						index={i}
-					/>
-				)
-			)}
-			{/* Global drag cursor for group reordering */}
+			<div style={{ height: 8 }} />
+			{files.map((item, i) => (
+				<TlaSidebarFileLink
+					groupId={activeGroupId}
+					key={`active-file-${item.fileId}`}
+					item={item}
+					testId={`tla-file-link-${i}`}
+				/>
+			))}
+			{/* Global drag cursor for file reordering */}
 			<ReorderCursor />
-		</Fragment>
+		</div>
 	)
 }

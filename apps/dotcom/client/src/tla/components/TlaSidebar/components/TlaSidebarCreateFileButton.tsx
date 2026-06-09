@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TldrawUiButton, tltime } from 'tldraw'
 import { routes } from '../../../../routeDefs'
+import { useActiveGroupId } from '../../../hooks/useActiveGroupId'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
@@ -16,18 +17,21 @@ export function TlaSidebarCreateFileButton() {
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	const createTitle = useMsg(messages.create)
+	// Create the file in whichever space is currently active (the home group when
+	// in "My files", otherwise the selected workspace).
+	const activeGroupId = useActiveGroupId()
 
 	const rCanCreate = useRef(true)
 
 	const handleSidebarCreate = async () => {
 		if (!rCanCreate.current) return
-		const res = await app.createFile()
+		const res = await app.createFile({ groupId: activeGroupId })
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
 				app.sidebarState.update((prev) => ({
 					...prev,
-					renameState: { fileId: res.value.fileId, groupId: app.getHomeGroupId() },
+					renameState: { fileId: res.value.fileId, groupId: activeGroupId },
 				}))
 			}
 			const { fileId } = res.value
