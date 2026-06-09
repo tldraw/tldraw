@@ -4,7 +4,7 @@
 declare namespace Cloudflare {
 	interface Env {
 		ANTHROPIC_API_KEY?: string
-		GOOGLE_API_KEY?: string
+		GOOGLE_GENERATIVE_AI_API_KEY?: string
 		TLDRAW_DURABLE_OBJECT: DurableObjectNamespace<import('./worker/worker').TldrawDurableObject>
 		TLDRAW_BUCKET: R2Bucket
 	}

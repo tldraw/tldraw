@@ -6,19 +6,43 @@ export const DISPLAY_MAX = 360
 /** Height of the on-canvas control bar under each asset, in tldraw units. */
 export const FOOTER_HEIGHT = 56
 
-/** The output formats offered in the generate dropdown. */
+/** The output formats offered in the generate dropdown, grouped by platform. */
 export const OUTPUT_TYPES: OutputType[] = [
-	{ id: 'ig-square', label: 'Instagram square', width: 1080, height: 1080 },
-	{ id: 'ig-story', label: 'Instagram story', width: 1080, height: 1920 },
-	{ id: 'ig-landscape', label: 'Instagram landscape', width: 1080, height: 566 },
-	{ id: 'fb-cover', label: 'Facebook cover', width: 820, height: 312 },
-	{ id: 'x-header', label: 'X header', width: 1500, height: 500 },
-	{ id: 'poster', label: 'Poster (A4)', width: 1240, height: 1754 },
+	{ id: 'li-single', label: 'Single image', width: 1200, height: 627, platform: 'LinkedIn' },
+	{ id: 'li-square', label: 'Square', width: 1080, height: 1080, platform: 'LinkedIn' },
+	{ id: 'li-portrait', label: 'Portrait', width: 1080, height: 1350, platform: 'LinkedIn' },
+	{ id: 'ig-square', label: 'Square', width: 1080, height: 1080, platform: 'Instagram' },
+	{ id: 'ig-story', label: 'Story', width: 1080, height: 1920, platform: 'Instagram' },
+	{ id: 'ig-landscape', label: 'Landscape', width: 1080, height: 566, platform: 'Instagram' },
+	{ id: 'fb-cover', label: 'Cover', width: 820, height: 312, platform: 'Facebook' },
+	{ id: 'x-header', label: 'Header', width: 1500, height: 500, platform: 'X' },
+	{ id: 'poster', label: 'Poster (A4)', width: 1240, height: 1754, platform: 'Print' },
 ]
 
 export function getOutputType(id: string): OutputType {
 	return OUTPUT_TYPES.find((t) => t.id === id) ?? OUTPUT_TYPES[0]
 }
+
+/** Output types grouped by platform, preserving declaration order. */
+export function outputTypesByPlatform(): { platform: string; types: OutputType[] }[] {
+	const groups: { platform: string; types: OutputType[] }[] = []
+	for (const type of OUTPUT_TYPES) {
+		const platform = type.platform ?? 'Other'
+		const group = groups.find((g) => g.platform === platform)
+		if (group) group.types.push(type)
+		else groups.push({ platform, types: [type] })
+	}
+	return groups
+}
+
+/** How many ideas a single batch can generate. */
+export const BATCH_SIZES = [1, 4, 8, 12] as const
+
+/** Default number of ideas generated per batch. */
+export const DEFAULT_BATCH_SIZE = 8
+
+/** Gap between asset frames when a batch is laid out in a grid, in tldraw units. */
+export const BATCH_GAP = 40
 
 /** Scale an output type down to its on-canvas display size. */
 export function getDisplaySize(outputType: OutputType): { w: number; h: number } {

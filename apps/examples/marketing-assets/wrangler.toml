@@ -20,10 +20,10 @@ directory = "./dist/client"
 # Environment variables for AI provider API keys.
 # Set these in production with:
 #   wrangler secret put ANTHROPIC_API_KEY
-#   wrangler secret put GOOGLE_API_KEY
+#   wrangler secret put GOOGLE_GENERATIVE_AI_API_KEY
 # For local development, create a .dev.vars file (see .dev.vars.example):
 #   ANTHROPIC_API_KEY=...
-#   GOOGLE_API_KEY=...
+#   GOOGLE_GENERATIVE_AI_API_KEY=...
 
 # Each room is hosted in a durable object. Room data is stored in the durable
 # object's SQLite storage.

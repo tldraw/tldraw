@@ -1,12 +1,12 @@
 # Marketing assets are generated rasters, not native shapes or HTML
 
-> Status: superseded in part by ADR 0004. The *background* is still a generated raster as
-> described here; *text* is no longer part of that raster — it is composed deterministically
+> Status: superseded in part by ADR 0004. The _background_ is still a generated raster as
+> described here; _text_ is no longer part of that raster — it is composed deterministically
 > by the app. The reasoning below applies to the background.
 
 A marketing asset is a raster PNG produced by an image-generation model (default
 Gemini 2.5 Flash Image), placed on the canvas inside a frame. We deliberately did
-*not* compose assets from native tldraw shapes (text/rect/image) or render them from
+_not_ compose assets from native tldraw shapes (text/rect/image) or render them from
 LLM-emitted HTML/CSS, even though a tldraw demo using native shapes would be the
 obvious choice.
 

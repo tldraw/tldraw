@@ -1,5 +1,5 @@
-import { createTLSchema, defaultBindingSchemas, defaultShapeSchemas } from '@tldraw/tlschema'
 import { useSync } from '@tldraw/sync'
+import { createTLSchema, defaultBindingSchemas, defaultShapeSchemas } from '@tldraw/tlschema'
 import { useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import {
@@ -17,12 +17,17 @@ import {
 	useTools,
 } from 'tldraw'
 import { ANNOTATION_TOOL_ID, AnnotationTool } from './annotate/AnnotationTool'
-import { MARKETING_ASSET_TYPE, marketingAssetProps } from './asset/assetShape'
-import { MarketingAssetShapeUtil } from './asset/AssetShapeUtil'
 import { resetInterruptedGenerations } from './asset/assetActions'
+import {
+	MARKETING_ASSET_TYPE,
+	marketingAssetMigrations,
+	marketingAssetProps,
+} from './asset/assetShape'
+import { MarketingAssetShapeUtil } from './asset/AssetShapeUtil'
+import { seedBrandFromStorage } from './brand/brandState'
 import { MarketingSidebar } from './components/MarketingSidebar'
-import { multiplayerAssetStore } from './multiplayerAssetStore'
 import { RoomBar } from './components/RoomBar'
+import { multiplayerAssetStore } from './multiplayerAssetStore'
 
 const shapeUtils = [MarketingAssetShapeUtil]
 const tools = [AnnotationTool]
@@ -32,7 +37,7 @@ const tools = [AnnotationTool]
 const schema = createTLSchema({
 	shapes: {
 		...defaultShapeSchemas,
-		[MARKETING_ASSET_TYPE]: { props: marketingAssetProps },
+		[MARKETING_ASSET_TYPE]: { props: marketingAssetProps, migrations: marketingAssetMigrations },
 	},
 	bindings: { ...defaultBindingSchemas },
 })
@@ -107,6 +112,7 @@ function App() {
 					onMount={(editor) => {
 						;(window as any).editor = editor
 						setEditor(editor)
+						seedBrandFromStorage(editor)
 						resetInterruptedGenerations(editor)
 					}}
 				/>

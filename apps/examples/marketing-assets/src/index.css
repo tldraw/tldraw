@@ -187,6 +187,53 @@ body {
 	cursor: default;
 }
 
+.MarketingSidebar-secondary {
+	width: 100%;
+	box-sizing: border-box;
+	margin-top: 8px;
+	border: 1px solid var(--tl-color-hint);
+	border-radius: var(--tl-radius-3);
+	padding: 8px 10px;
+	background: var(--tl-color-panel);
+	font: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+}
+
+.MarketingSidebar-secondary:hover {
+	background: var(--tl-color-muted-2);
+}
+
+.MarketingSidebar-secondary:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.MarketingSidebar-hint {
+	margin: 0 0 4px;
+	font-size: 11px;
+	line-height: 1.4;
+	color: var(--tl-color-text-3);
+}
+
+.MarketingSidebar-questions {
+	margin-top: 8px;
+	padding: 10px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+	background: var(--tl-color-muted-2);
+}
+
+.MarketingSidebar-questions .MarketingSidebar-label:first-child {
+	margin-top: 0;
+}
+
+.MarketingSidebar-answer {
+	min-height: 40px;
+}
+
 .MarketingSidebar-imageRow {
 	display: flex;
 	align-items: center;
@@ -263,7 +310,9 @@ body {
 		linear-gradient(45deg, hsl(0 0% 92%) 25%, transparent 25%, transparent 75%, hsl(0 0% 92%) 75%),
 		linear-gradient(45deg, hsl(0 0% 92%) 25%, transparent 25%, transparent 75%, hsl(0 0% 92%) 75%);
 	background-size: 16px 16px;
-	background-position: 0 0, 8px 8px;
+	background-position:
+		0 0,
+		8px 8px;
 	overflow: hidden;
 }
 
@@ -382,6 +431,30 @@ body {
 	border-top-left-radius: 3px;
 }
 
+.MarketingAsset-download {
+	flex: 0 0 auto;
+	width: 26px;
+	height: 26px;
+	padding: 0;
+	border: 1px solid var(--tl-color-hint);
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+	color: var(--tl-color-text-1);
+	font: inherit;
+	font-size: 14px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.MarketingAsset-download:hover {
+	background: var(--tl-color-muted-2);
+}
+
+.MarketingAsset-download:disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
 .MarketingAsset-rerender {
 	flex: 0 0 auto;
 	border: 1px solid var(--tl-color-selected);
@@ -398,6 +471,55 @@ body {
 .MarketingAsset-rerender:disabled {
 	opacity: 0.45;
 	cursor: default;
+}
+
+/* ---- Verdict (like / dislike) ---- */
+
+.MarketingAsset-verdict {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	flex: 0 0 auto;
+}
+
+.MarketingAsset-verdictButton {
+	width: 26px;
+	height: 26px;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: var(--tl-radius-2);
+	background: none;
+	font-size: 13px;
+	line-height: 1;
+	cursor: pointer;
+	filter: grayscale(1);
+	opacity: 0.6;
+}
+
+.MarketingAsset-verdictButton:hover {
+	background: var(--tl-color-muted-2);
+	opacity: 1;
+}
+
+.MarketingAsset-verdictButton_active {
+	filter: none;
+	opacity: 1;
+	background: var(--tl-color-muted-1);
+	border-color: var(--tl-color-divider);
+}
+
+/* A liked or disliked idea gets a coloured ring so the canvas reads at a glance. */
+.MarketingAsset_liked {
+	box-shadow:
+		0 0 0 2px #16a34a,
+		0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.MarketingAsset_disliked {
+	box-shadow:
+		0 0 0 2px #dc2626,
+		0 2px 8px rgba(0, 0, 0, 0.1);
+	opacity: 0.6;
 }
 
 .MarketingAsset-errorText {

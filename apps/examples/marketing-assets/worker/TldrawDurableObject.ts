@@ -12,7 +12,11 @@ import {
 } from '@tldraw/tlschema'
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, error, IRequest } from 'itty-router'
-import { MARKETING_ASSET_TYPE, marketingAssetProps } from '../src/asset/assetShape'
+import {
+	MARKETING_ASSET_TYPE,
+	marketingAssetMigrations,
+	marketingAssetProps,
+} from '../src/asset/assetShape'
 
 // The room's schema must match the client's. We extend the defaults with the
 // custom marketing-asset shape, and keep the default bindings because the
@@ -20,7 +24,7 @@ import { MARKETING_ASSET_TYPE, marketingAssetProps } from '../src/asset/assetSha
 const schema = createTLSchema({
 	shapes: {
 		...defaultShapeSchemas,
-		[MARKETING_ASSET_TYPE]: { props: marketingAssetProps },
+		[MARKETING_ASSET_TYPE]: { props: marketingAssetProps, migrations: marketingAssetMigrations },
 	},
 	bindings: { ...defaultBindingSchemas },
 })

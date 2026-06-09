@@ -72,6 +72,21 @@ export interface PlanResult {
 	backgroundInstructions: string[]
 }
 
+/**
+ * Parameters for the clarifying-questions stage, run before the first batch from
+ * the brief, brand, and chosen format alone (no image yet).
+ */
+export interface ClarifyParams {
+	prompt: string
+	brandText: string
+	outputType: OutputType
+}
+
+export interface ClarifyResult {
+	/** A few short questions to sharpen the brief, or empty if it's already clear. */
+	questions: string[]
+}
+
 export interface ImageProvider {
 	name: string
 	generate(params: GenerateParams, env: Env): Promise<GenerateResult>
@@ -80,6 +95,7 @@ export interface ImageProvider {
 export interface PlanProvider {
 	name: string
 	plan(params: PlanParams, env: Env): Promise<PlanResult>
+	clarify(params: ClarifyParams, env: Env): Promise<ClarifyResult>
 }
 
 /** Split a `data:` URL into its mime type and base64 payload. */

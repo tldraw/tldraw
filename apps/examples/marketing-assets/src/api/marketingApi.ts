@@ -8,6 +8,8 @@ export interface OutputType {
 	label: string
 	width: number
 	height: number
+	/** The platform this format targets, used to group the format picker. */
+	platform?: string
 }
 
 /** A piece of text the app renders deterministically over the background. */
@@ -80,4 +82,32 @@ export async function apiPlan(params: PlanRequest): Promise<PlanResult> {
 		throw new Error((err as { error?: string }).error ?? 'Planning failed')
 	}
 	return (await response.json()) as PlanResult
+}
+
+export interface ClarifyRequest {
+	prompt: string
+	brandText: string
+	outputType: OutputType
+}
+
+export interface ClarifyResult {
+	questions: string[]
+}
+
+/**
+ * Ask the planner for a few clarifying questions before the first batch, given
+ * the brief, the brand, and the chosen format. Returns an empty list if the brief
+ * is already clear.
+ */
+export async function apiClarify(params: ClarifyRequest): Promise<ClarifyResult> {
+	const response = await fetch('/api/clarify', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(params),
+	})
+	if (!response.ok) {
+		const err = await response.json().catch(() => ({ error: response.statusText }))
+		throw new Error((err as { error?: string }).error ?? 'Could not get questions')
+	}
+	return (await response.json()) as ClarifyResult
 }

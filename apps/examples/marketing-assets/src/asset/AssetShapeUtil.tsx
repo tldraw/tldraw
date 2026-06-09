@@ -1,9 +1,24 @@
-import { CSSProperties } from 'react'
-import { HTMLContainer, Rectangle2d, ShapeUtil, SvgExportContext, useEditor, useValue } from 'tldraw'
+import { CSSProperties, useState } from 'react'
+import {
+	HTMLContainer,
+	Rectangle2d,
+	ShapeUtil,
+	SvgExportContext,
+	useEditor,
+	useValue,
+} from 'tldraw'
 import { TextLayer } from '../api/marketingApi'
 import { Brand, getBrand, useBrand } from '../brand/brandState'
 import { FOOTER_HEIGHT } from '../constants'
-import { getAssetSrc, getRenderProgress, hasAnnotations, reRender, revertTo } from './assetActions'
+import { downloadAsset } from '../export'
+import {
+	getAssetSrc,
+	getRenderProgress,
+	hasAnnotations,
+	reRender,
+	revertTo,
+	setVerdict,
+} from './assetActions'
 import { marketingAssetProps, MARKETING_ASSET_TYPE, MarketingAssetShape } from './assetShape'
 
 export class MarketingAssetShapeUtil extends ShapeUtil<MarketingAssetShape> {
@@ -21,6 +36,7 @@ export class MarketingAssetShapeUtil extends ShapeUtil<MarketingAssetShape> {
 			status: 'idle',
 			error: '',
 			generatingStartedAt: 0,
+			verdict: 'none',
 		}
 	}
 
@@ -90,7 +106,7 @@ export class MarketingAssetShapeUtil extends ShapeUtil<MarketingAssetShape> {
 function MarketingAssetComponent({ shape }: { shape: MarketingAssetShape }) {
 	const editor = useEditor()
 	const brand = useBrand(editor)
-	const { w, h, status, error, versions, currentVersion } = shape.props
+	const { w, h, status, error, versions, currentVersion, verdict } = shape.props
 	const current = versions[currentVersion]
 
 	const src = useValue('src', () => (current ? getAssetSrc(editor, current) : undefined), [
@@ -98,14 +114,27 @@ function MarketingAssetComponent({ shape }: { shape: MarketingAssetShape }) {
 		current?.assetId,
 	])
 
-	const annotated = useValue('annotated', () => hasAnnotations(editor, shape.id), [editor, shape.id])
+	const annotated = useValue('annotated', () => hasAnnotations(editor, shape.id), [
+		editor,
+		shape.id,
+	])
 	const progress = useValue('progress', () => getRenderProgress(shape.id), [editor, shape.id])
 
 	const isGenerating = status === 'generating'
 	const layers = current?.textLayers ?? []
+	const [downloading, setDownloading] = useState(false)
+
+	async function download() {
+		setDownloading(true)
+		try {
+			await downloadAsset(editor, shape)
+		} finally {
+			setDownloading(false)
+		}
+	}
 
 	return (
-		<HTMLContainer className="MarketingAsset">
+		<HTMLContainer className={`MarketingAsset MarketingAsset_${verdict}`}>
 			<div className="MarketingAsset-image" style={{ height: h }}>
 				{src ? (
 					<img src={src} alt="marketing asset background" draggable={false} />
@@ -152,6 +181,35 @@ function MarketingAssetComponent({ shape }: { shape: MarketingAssetShape }) {
 								/>
 							))}
 						</div>
+						{versions.length > 0 && (
+							<div className="MarketingAsset-verdict">
+								<VerdictButton
+									symbol="👍"
+									label="Like this idea"
+									active={verdict === 'liked'}
+									onClick={() =>
+										setVerdict(editor, shape.id, verdict === 'liked' ? 'none' : 'liked')
+									}
+								/>
+								<VerdictButton
+									symbol="👎"
+									label="Dislike this idea"
+									active={verdict === 'disliked'}
+									onClick={() =>
+										setVerdict(editor, shape.id, verdict === 'disliked' ? 'none' : 'disliked')
+									}
+								/>
+							</div>
+						)}
+						<button
+							className="MarketingAsset-download"
+							disabled={isGenerating || versions.length === 0 || downloading}
+							title="Download this asset as a PNG"
+							aria-label="Download PNG"
+							onClick={download}
+						>
+							{downloading ? '…' : '⤓'}
+						</button>
 						<button
 							className="MarketingAsset-rerender"
 							disabled={isGenerating || versions.length === 0 || !annotated}
@@ -171,7 +229,17 @@ function MarketingAssetComponent({ shape }: { shape: MarketingAssetShape }) {
 	)
 }
 
-function HtmlTextLayer({ layer, w, h, brand }: { layer: TextLayer; w: number; h: number; brand: Brand }) {
+function HtmlTextLayer({
+	layer,
+	w,
+	h,
+	brand,
+}: {
+	layer: TextLayer
+	w: number
+	h: number
+	brand: Brand
+}) {
 	const font = layer.fontRole === 'heading' ? brand.headingFont : brand.bodyFont
 	const style: CSSProperties = {
 		position: 'absolute',
@@ -196,7 +264,17 @@ function HtmlTextLayer({ layer, w, h, brand }: { layer: TextLayer; w: number; h:
 	)
 }
 
-function SvgTextLayer({ layer, w, h, brand }: { layer: TextLayer; w: number; h: number; brand: Brand }) {
+function SvgTextLayer({
+	layer,
+	w,
+	h,
+	brand,
+}: {
+	layer: TextLayer
+	w: number
+	h: number
+	brand: Brand
+}) {
 	const font = layer.fontRole === 'heading' ? brand.headingFont : brand.bodyFont
 	const fontSize = layer.fontSize * h
 	const boxW = layer.width * w
@@ -248,7 +326,7 @@ function VersionThumb({
 	version: MarketingAssetShape['props']['versions'][number]
 	index: number
 	selected: boolean
-	onClick: () => void
+	onClick(): void
 }) {
 	const src = useValue('thumb', () => getAssetSrc(editor, version), [editor, version.assetId])
 	return (
@@ -259,6 +337,30 @@ function VersionThumb({
 		>
 			{src ? <img src={src} alt={`version ${index + 1}`} draggable={false} /> : null}
 			<span className="MarketingAsset-version-num">{index + 1}</span>
+		</button>
+	)
+}
+
+function VerdictButton({
+	symbol,
+	label,
+	active,
+	onClick,
+}: {
+	symbol: string
+	label: string
+	active: boolean
+	onClick(): void
+}) {
+	return (
+		<button
+			className={`MarketingAsset-verdictButton${active ? ' MarketingAsset-verdictButton_active' : ''}`}
+			title={label}
+			aria-label={label}
+			aria-pressed={active}
+			onClick={onClick}
+		>
+			{symbol}
 		</button>
 	)
 }

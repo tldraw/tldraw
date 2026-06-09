@@ -3,7 +3,7 @@
 
 # Background image generation and edits (the render stage).
 # Get a key from https://aistudio.google.com/apikey
-GOOGLE_API_KEY=
+GOOGLE_GENERATIVE_AI_API_KEY=
 
 # Text planning — lays out and revises the text layers (the plan stage).
 # Get a key from https://console.anthropic.com/settings/keys

@@ -98,3 +98,49 @@ Where the bytes of a [[Background]] (and any media dropped on the canvas) live: 
 the backend's object storage and referenced by URL on the synced document, so large images
 don't travel through the [[Room]] inline. The image model still works on the raw bytes — the
 background is read back from its URL whenever a [[Re-render]] needs to edit it.
+
+## Brief
+
+The campaign description the user writes, optionally sharpened with answered
+[[Clarifying questions]]. Combined with the [[Brand guidelines]] and the chosen [[Output type]]
+and sent to the models to produce a [[Batch]].
+
+## Batch
+
+A set of [[Marketing asset]]s generated together from one [[Brief]], laid out as a grid on the
+canvas and filled in parallel. Each tile is nudged toward a different creative direction so the
+batch explores a range rather than repeating one idea.
+
+## Verdict
+
+A reviewer's like or dislike on an idea, stored on its [[Asset frame]] and shown as a coloured
+ring. Liked ideas are fed back as references to the next batch; disliked ones steer it away.
+
+## Refine round
+
+A follow-up [[Batch]] generated from the current [[Verdict]]s plus written feedback: approved
+ideas become references to riff on, rejected directions are avoided. Placed below the previous
+rounds so the canvas reads as a top-to-bottom history of the campaign.
+
+## Selection variation
+
+A [[Batch]] seeded by the current canvas selection — the selected shapes are exported to one
+image and passed as the key visual reference, so a region the user likes can spin off new ideas.
+
+## Clarifying questions
+
+A short list of questions the [[Plan]] stage can suggest from the [[Brief]], brand, and format
+before the first [[Batch]]. Answering them folds extra detail into the brief; skipping them is
+fine.
+
+## Company brand
+
+The reusable [[Brand guidelines]] saved outside any one [[Room]] (in the browser's local
+storage), used to seed a fresh room so a new campaign starts from the last brand configured
+rather than the built-in defaults.
+
+## Campaign export
+
+A downloadable bundle of chosen assets — liked, selected, or all — with a full-resolution image
+per [[Marketing asset]] and a spreadsheet of every [[Text layer]]'s copy, for handing to an ad
+platform.

@@ -30467,6 +30467,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^6.0.1"
     cloudflare-workers-unfurl: "npm:^0.0.8"
     itty-router: "npm:^5.0.18"
+    jszip: "npm:^3.10.1"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     react-router-dom: "npm:^6.28.2"

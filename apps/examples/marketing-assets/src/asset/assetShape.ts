@@ -1,8 +1,12 @@
+import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 import type { RecordProps, TLShape } from 'tldraw'
 import type { TextLayer } from '../api/marketingApi'
 
 export const MARKETING_ASSET_TYPE = 'marketing-asset'
+
+/** The reviewer's verdict on an idea, used to steer the next batch. */
+export type AssetVerdict = 'none' | 'liked' | 'disliked'
 
 /**
  * One generated state of an asset: the text-free background (a tldraw asset id),
@@ -37,6 +41,8 @@ export interface MarketingAssetProps {
 	 * asset from one whose client went away mid-render. 0 when not generating.
 	 */
 	generatingStartedAt: number
+	/** The reviewer's like/dislike on this idea; steers the next batch. */
+	verdict: AssetVerdict
 }
 
 // Register the shape in tldraw's global shape map so TLShape<'marketing-asset'>
@@ -79,4 +85,26 @@ export const marketingAssetProps: RecordProps<MarketingAssetShape> = {
 	status: T.literalEnum('idle', 'generating', 'error'),
 	error: T.string,
 	generatingStartedAt: T.number,
+	verdict: T.literalEnum('none', 'liked', 'disliked'),
 }
+
+// Versioned migrations for the shape's props. Documents created before a field
+// existed are upgraded on load, so older rooms keep working. The same sequence is
+// passed to the schema on both the client and the worker.
+const Versions = createShapePropsMigrationIds(MARKETING_ASSET_TYPE, {
+	AddVerdict: 1,
+})
+
+export const marketingAssetMigrations = createShapePropsMigrationSequence({
+	sequence: [
+		{
+			id: Versions.AddVerdict,
+			up: (props) => {
+				props.verdict = 'none'
+			},
+			down: (props) => {
+				delete props.verdict
+			},
+		},
+	],
+})

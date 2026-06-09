@@ -1,4 +1,12 @@
-import { parseDataUrl, PlanParams, PlanProvider, PlanResult, TextLayer } from './types'
+import {
+	ClarifyParams,
+	ClarifyResult,
+	parseDataUrl,
+	PlanParams,
+	PlanProvider,
+	PlanResult,
+	TextLayer,
+} from './types'
 
 const ENDPOINT = 'https://api.anthropic.com/v1/messages'
 // The planner reasons over images and brand constraints, so it uses a capable
@@ -29,50 +37,96 @@ export const anthropic: PlanProvider = {
 	name: 'anthropic',
 
 	async plan(params: PlanParams, env: Env): Promise<PlanResult> {
-		const apiKey = env.ANTHROPIC_API_KEY
-		if (!apiKey) {
-			throw new Error('ANTHROPIC_API_KEY is not configured')
-		}
-
+		const apiKey = requireApiKey(env)
 		const { mimeType, data } = parseDataUrl(params.image)
 		const userText = params.mode === 'create' ? createPrompt(params) : revisePrompt(params)
 
-		const response = await fetch(ENDPOINT, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'x-api-key': apiKey,
-				'anthropic-version': '2023-06-01',
-			},
-			body: JSON.stringify({
-				model: MODEL,
-				max_tokens: 2048,
-				system: systemPrompt(params.mode),
-				messages: [
-					{
-						role: 'user',
-						content: [
-							{ type: 'image', source: { type: 'base64', media_type: mimeType, data } },
-							{ type: 'text', text: userText },
-						],
-					},
-				],
-			}),
-		})
-
-		if (!response.ok) {
-			const text = await response.text()
-			throw new Error(`Anthropic error ${response.status}: ${text}`)
-		}
-
-		const result = (await response.json()) as { content?: Array<{ type: string; text?: string }> }
-		const text = (result.content ?? [])
-			.filter((b) => b.type === 'text')
-			.map((b) => b.text ?? '')
-			.join('')
+		const text = await callClaude(apiKey, systemPrompt(params.mode), [
+			{ type: 'image', source: { type: 'base64', media_type: mimeType, data } },
+			{ type: 'text', text: userText },
+		])
 
 		return parsePlan(text)
 	},
+
+	async clarify(params: ClarifyParams, env: Env): Promise<ClarifyResult> {
+		const apiKey = requireApiKey(env)
+		const text = await callClaude(apiKey, CLARIFY_SYSTEM, [
+			{ type: 'text', text: clarifyPrompt(params) },
+		])
+		return parseClarify(text)
+	},
+}
+
+function requireApiKey(env: Env): string {
+	const apiKey = env.ANTHROPIC_API_KEY
+	if (!apiKey) {
+		throw new Error('ANTHROPIC_API_KEY is not configured')
+	}
+	return apiKey
+}
+
+/** POST a message to Claude and return the concatenated text of the reply. */
+async function callClaude(apiKey: string, system: string, content: unknown[]): Promise<string> {
+	const response = await fetch(ENDPOINT, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'x-api-key': apiKey,
+			'anthropic-version': '2023-06-01',
+		},
+		body: JSON.stringify({
+			model: MODEL,
+			max_tokens: 2048,
+			system,
+			messages: [{ role: 'user', content }],
+		}),
+	})
+
+	if (!response.ok) {
+		const text = await response.text()
+		throw new Error(`Anthropic error ${response.status}: ${text}`)
+	}
+
+	const result = (await response.json()) as { content?: Array<{ type: string; text?: string }> }
+	return (result.content ?? [])
+		.filter((b) => b.type === 'text')
+		.map((b) => b.text ?? '')
+		.join('')
+}
+
+const CLARIFY_SYSTEM = [
+	'You are a creative director scoping a marketing campaign before any assets are made.',
+	'Given the brief, brand, and target format, ask up to 3 short, specific clarifying questions that would most improve the result — for example the audience, the single key message, the call to action, must-include elements, or hard constraints.',
+	'Ask only what genuinely matters; if the brief is already clear, return an empty list.',
+	'Respond with ONLY a JSON object of the form { "questions": string[] } and no other prose.',
+].join('\n')
+
+function clarifyPrompt(params: ClarifyParams): string {
+	return [
+		`Target format: ${params.outputType.label} (${params.outputType.width}x${params.outputType.height}).`,
+		`Brief: ${params.prompt || '(none)'}`,
+		params.brandText.trim() ? `Brand guidelines: ${params.brandText.trim()}` : '',
+		'List the clarifying questions. Return the JSON object.',
+	]
+		.filter(Boolean)
+		.join('\n')
+}
+
+/** Pull the questions array out of the model's reply, capped at three. */
+function parseClarify(text: string): ClarifyResult {
+	const start = text.indexOf('{')
+	const end = text.lastIndexOf('}')
+	if (start === -1 || end === -1) return { questions: [] }
+	try {
+		const parsed = JSON.parse(text.slice(start, end + 1)) as { questions?: unknown }
+		const questions = Array.isArray(parsed.questions)
+			? parsed.questions.filter((q): q is string => typeof q === 'string' && !!q.trim()).slice(0, 3)
+			: []
+		return { questions }
+	} catch {
+		return { questions: [] }
+	}
 }
 
 function systemPrompt(mode: 'create' | 'revise'): string {
@@ -88,7 +142,7 @@ function systemPrompt(mode: 'create' | 'revise'): string {
 		common.push('Return: { "textLayers": TextLayer[], "backgroundInstructions": [] }.')
 	} else {
 		common.push(
-			'You are shown the current asset with the user\'s annotations (arrows and notes) drawn on it. Arrows point at what to change; the text says how.',
+			"You are shown the current asset with the user's annotations (arrows and notes) drawn on it. Arrows point at what to change; the text says how.",
 			'Update the text layers to satisfy every annotation that concerns text (wording, size, colour, position, adding or removing text).',
 			'For annotations that concern the background imagery rather than text (colours, objects, style, composition), do not change the text — instead add a short instruction to backgroundInstructions, one per change.',
 			'Return the FULL updated set of text layers (not just the changed ones).',
@@ -137,7 +191,9 @@ function parsePlan(text: string): PlanResult {
 	return {
 		textLayers: Array.isArray(parsed.textLayers) ? parsed.textLayers.map(normalizeLayer) : [],
 		backgroundInstructions: Array.isArray(parsed.backgroundInstructions)
-			? parsed.backgroundInstructions.filter((s): s is string => typeof s === 'string' && !!s.trim())
+			? parsed.backgroundInstructions.filter(
+					(s): s is string => typeof s === 'string' && !!s.trim()
+				)
 			: [],
 	}
 }

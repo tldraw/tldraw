@@ -3,6 +3,8 @@ import { gemini } from './gemini'
 import type { ImageProvider, PlanProvider } from './types'
 
 export type {
+	ClarifyParams,
+	ClarifyResult,
 	GenerateParams,
 	GenerateResult,
 	ImageProvider,

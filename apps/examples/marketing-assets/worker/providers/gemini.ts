@@ -24,9 +24,9 @@ export const gemini: ImageProvider = {
 	name: 'gemini',
 
 	async generate(params: GenerateParams, env: Env): Promise<GenerateResult> {
-		const apiKey = env.GOOGLE_API_KEY
+		const apiKey = env.GOOGLE_GENERATIVE_AI_API_KEY
 		if (!apiKey) {
-			throw new Error('GOOGLE_API_KEY is not configured')
+			throw new Error('GOOGLE_GENERATIVE_AI_API_KEY is not configured')
 		}
 
 		const parts: GeminiPart[] = [{ text: buildPrompt(params) }]
