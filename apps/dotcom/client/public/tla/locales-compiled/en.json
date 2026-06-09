@@ -903,6 +903,22 @@
       "value": "File is getting large"
     }
   ],
+  "a8c9ad7ea5": [
+    {
+      "type": 0,
+      "value": "You have been invited to join "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
