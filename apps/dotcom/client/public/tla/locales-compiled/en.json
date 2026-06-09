@@ -69,6 +69,12 @@
       "value": "File menu"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Something went wrong loading this invite. Please try again."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
@@ -679,6 +685,12 @@
       "value": "You are already a member of this workspace"
     }
   ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "This invite link has expired"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -1177,6 +1189,12 @@
       "value": "App debug flags"
     }
   ],
+  "e0aa021e21": [
+    {
+      "type": 0,
+      "value": "OK"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1229,6 +1247,12 @@
     {
       "type": 0,
       "value": "Cancel"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Ask the workspace owner for a new one."
     }
   ],
   "ebfe9ce86e": [
