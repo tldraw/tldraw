@@ -54,6 +54,7 @@ function createEditor(presences: TLInstancePresence[] = []) {
 		},
 		user: {
 			getId: userGetId,
+			getRecordId: () => createUserId(userGetId()),
 		},
 		store,
 		getInstanceState,

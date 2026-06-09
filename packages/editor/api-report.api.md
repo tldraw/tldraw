@@ -5114,6 +5114,7 @@ export class UserPreferencesManager {
     getLocale(): string;
     // (undocumented)
     getName(): string;
+    getRecordId(): TLUserId;
     // (undocumented)
     getUserPreferences(): {
         animationSpeed: number;

@@ -1,5 +1,5 @@
 import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
-import { createUserId, type TLInstancePresence } from '@tldraw/tlschema'
+import type { TLInstancePresence } from '@tldraw/tlschema'
 import { maxBy } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
@@ -37,7 +37,7 @@ export class CollaboratorsManager {
 	@computed
 	private _getCollaboratorsQuery() {
 		return this.editor.store.query.records('instance_presence', () => ({
-			userId: { neq: createUserId(this.editor.user.getId()) },
+			userId: { neq: this.editor.user.getRecordId() },
 		}))
 	}
 
@@ -88,8 +88,7 @@ export class CollaboratorsManager {
 		if (!collaborators.length) return EMPTY_ARRAY
 
 		const { followingUserId, highlightedUserIds } = this.editor.getInstanceState()
-		// Prefix manually; the `=== currentUserId` comparison below isn't type-checked the way the store query is.
-		const currentUserId = createUserId(this.editor.user.getId())
+		const currentUserId = this.editor.user.getRecordId()
 
 		return collaborators.filter((presence) => {
 			const { lastActivityTimestamp, userId, chatMessage } = presence

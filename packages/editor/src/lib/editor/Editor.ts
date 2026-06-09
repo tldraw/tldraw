@@ -3069,7 +3069,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _getFollowingPresence(targetUserId: TLUserId | null) {
-		const visited = [createUserId(this.user.getId())]
+		const visited = [this.user.getRecordId()]
 		const collaborators = this.getCollaborators()
 		let leaderPresence = null as null | TLInstancePresence
 		while (targetUserId && !visited.includes(targetUserId)) {

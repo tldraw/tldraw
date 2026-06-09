@@ -1,4 +1,5 @@
 import { atom, computed } from '@tldraw/state'
+import { createUserId, TLUserId } from '@tldraw/tlschema'
 import { TLCurrentUser } from '../../../config/createTLCurrentUser'
 import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
 import { getGlobalWindow } from '../../../utils/dom'
@@ -91,6 +92,16 @@ export class UserPreferencesManager {
 
 	@computed getId() {
 		return this.user.userPreferences.get().id
+	}
+
+	/**
+	 * The current user's id as a tldraw {@link @tldraw/tlschema#TLUserId} record id (prefixed
+	 * with `user:`). Use this when comparing against or looking up store records, such as a
+	 * presence record's `userId` or `followingUserId`. For the raw, app-provided id, use
+	 * {@link UserPreferencesManager.getId}.
+	 */
+	@computed getRecordId(): TLUserId {
+		return createUserId(this.getId())
 	}
 
 	@computed getName() {

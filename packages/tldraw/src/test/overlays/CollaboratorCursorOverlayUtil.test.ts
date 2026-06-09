@@ -233,7 +233,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 30, y: 30, rotation: 0 },
 					lastActivityTimestamp: now - 5 * 1000,
-					followingUserId: createUserId(editor.user.getId()),
+					followingUserId: editor.user.getRecordId(),
 				}),
 			])
 			const overlays = editor.overlays
@@ -253,7 +253,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 40, y: 40, rotation: 0 },
 					lastActivityTimestamp: now - 5 * 1000,
-					followingUserId: createUserId(editor.user.getId()),
+					followingUserId: editor.user.getRecordId(),
 					chatMessage: 'Hello',
 				}),
 			])

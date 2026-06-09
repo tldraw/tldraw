@@ -101,7 +101,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 					color: '#c00',
 					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
 					lastActivityTimestamp: now - 5 * 1000,
-					followingUserId: createUserId(editor.user.getId()),
+					followingUserId: editor.user.getRecordId(),
 				}),
 			])
 			const util = editor.overlays.getOverlayUtil<CollaboratorHintOverlayUtil>('collaborator_hint')
