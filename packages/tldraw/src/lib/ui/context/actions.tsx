@@ -1854,19 +1854,37 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.copy-hovered-styles',
 				kbd: 'shift+q',
 				async onSelect(source) {
-					// Use the editor's hovered shape so this matches the shape the user sees
-					// highlighted, rather than re-running a hit test with different options.
+					// Start from the editor's hovered shape so this matches the shape the user sees
+					// highlighted. Groups are handled specially below.
 					const hovered = editor.getHoveredShape()
 
 					// Only run from the main select idle state. Checking the leaf node's id would
 					// also match nested idle states like `select.crop.idle`, where this shouldn't run.
 					if (!hovered || !editor.isIn('select.idle')) return
 
+					// Groups carry no styles of their own. When a group is hovered the whole group
+					// is highlighted, but the user is pointing at a single child, so hit-test the
+					// pointer to find that leaf shape and copy from it. The hit test uses the same
+					// options as the hover logic so it resolves to the shape under the cursor.
+					let target: TLShape | undefined = hovered
+					if (editor.isShapeOfType(hovered, 'group')) {
+						target = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
+							hitInside: false,
+							hitLabels: false,
+							hitLocked: editor.options.selectLockedShapes,
+							margin: editor.options.hitTestMargin / editor.getZoomLevel(),
+							renderingOnly: true,
+						})
+					}
+
+					if (!target) return
+					const shape = target
+
 					// Setting styles for the next shape is instance state, not document state, so it
 					// isn't undoable and doesn't need a history stopping point.
 					editor.run(() => {
-						for (const style of editor.styleProps[hovered.type].keys()) {
-							const value = editor.getShapeStyleIfExists(hovered, style)
+						for (const style of editor.styleProps[shape.type].keys()) {
+							const value = editor.getShapeStyleIfExists(shape, style)
 							if (value === undefined || style === GeoShapeGeoStyle) continue
 							editor.setStyleForNextShapes(style, value)
 						}
