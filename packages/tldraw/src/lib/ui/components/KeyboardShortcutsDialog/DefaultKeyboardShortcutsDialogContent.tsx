@@ -43,6 +43,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="redo" />
 				<TldrawUiMenuActionItem actionId="cut" />
 				<TldrawUiMenuActionItem actionId="copy" />
+				<TldrawUiMenuActionItem actionId="copy-hovered-styles" />
 				<TldrawUiMenuActionItem actionId="paste" />
 				<TldrawUiMenuActionItem actionId="select-all" />
 				<TldrawUiMenuActionItem actionId="delete" />
