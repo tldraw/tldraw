@@ -126,7 +126,9 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 							? zoomOrMeters
 							: -Math.log2(parseInt(zoomOrMeters) / 14772321) / 0.8
 					const host = new URL(url).host.replace('www.', '')
-					result = `https://${host}/maps/embed/v1/view?key=${config?.apiKey}&center=${lat},${lng}&zoom=${z}&maptype=${mapType}`
+					// TODO: remove the process.env fallback once all consumers pass `apiKey` via `embedConfig`.
+					const apiKey = config?.apiKey ?? process.env.NEXT_PUBLIC_GC_API_KEY
+					result = `https://${host}/maps/embed/v1/view?key=${apiKey}&center=${lat},${lng}&zoom=${z}&maptype=${mapType}`
 				} else {
 					result = ''
 				}
