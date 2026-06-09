@@ -14,7 +14,7 @@ name: End to end tests (device)
 # Trigger it on demand:
 #
 #   - Manually from the Actions tab (workflow_dispatch), choosing the platform.
-#   - By adding the `test: device` label to a PR that touches device behaviour.
+#   - By adding the `e2e-device-tests` label to a PR that touches device behaviour.
 
 on:
   workflow_dispatch:
@@ -47,10 +47,10 @@ concurrency:
 jobs:
   ios:
     name: iOS Safari
-    # Run when dispatched with ios/both, or when a PR is labelled `test: device`.
+    # Run when dispatched with ios/both, or when a PR is labelled `e2e-device-tests`.
     if: >
       (github.event_name == 'workflow_dispatch' && inputs.platform != 'android') ||
-      (github.event_name == 'pull_request' && github.event.label.name == 'test: device')
+      (github.event_name == 'pull_request' && github.event.label.name == 'e2e-device-tests')
     runs-on: macos-26 # pinned: image version determines Xcode + iOS sim runtimes
     timeout-minutes: 40
     steps:
@@ -142,7 +142,7 @@ jobs:
     name: Android Chrome
     if: >
       (github.event_name == 'workflow_dispatch' && inputs.platform != 'ios') ||
-      (github.event_name == 'pull_request' && github.event.label.name == 'test: device')
+      (github.event_name == 'pull_request' && github.event.label.name == 'e2e-device-tests')
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
