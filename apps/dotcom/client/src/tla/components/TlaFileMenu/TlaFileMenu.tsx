@@ -4,7 +4,6 @@ import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-	TldrawUiButtonCheck,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -114,8 +113,12 @@ export function FileItems({
 	// Get all group memberships (including home group which we'll filter in UI)
 	const groupMemberships = useValue('groupMembers', () => app.getGroupMemberships(), [app])
 
-	// Filter out home group for the "Move to" menu
-	const nonHomeGroups = groupMemberships.filter((g) => g.groupId !== app.getHomeGroupId())
+	// A file lives in exactly one group. The "Move to" menu only offers the groups
+	// it can move to — i.e. every group except the one it's currently in.
+	const currentGroupId = file?.owningGroupId ?? app.getHomeGroupId()
+	const moveToGroups = groupMemberships.filter(
+		(g) => g.groupId !== app.getHomeGroupId() && g.groupId !== currentGroupId
+	)
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
@@ -227,44 +230,26 @@ export function FileItems({
 			<TldrawUiMenuGroup id="file-delete">
 				{hasGroups && (
 					<TldrawUiMenuSubmenu id="move-to-group" label={'Move to'} size="small">
-						<TldrawUiMenuGroup id="my-files">
-							<TldrawUiMenuItem
-								key="my-files"
-								label={myFilesMsg}
-								id="my-files"
-								iconLeft={
-									<TldrawUiButtonCheck
-										checked={
-											app.canUpdateFile(fileId)
-												? file?.owningGroupId === app.getHomeGroupId()
-												: (groupMemberships
-														.find((g) => g.groupId === app.getHomeGroupId())
-														?.groupFiles.some((g) => g.fileId === fileId) ?? false)
-										}
-									/>
-								}
-								readonlyOk
-								onSelect={() => {
-									app.z.mutate.moveFileToGroup({ fileId, groupId: app.getHomeGroupId() })
-								}}
-							/>
-						</TldrawUiMenuGroup>
-						{nonHomeGroups.length > 0 && (
+						{currentGroupId !== app.getHomeGroupId() && (
+							<TldrawUiMenuGroup id="my-files">
+								<TldrawUiMenuItem
+									key="my-files"
+									label={myFilesMsg}
+									id="my-files"
+									readonlyOk
+									onSelect={() => {
+										app.z.mutate.moveFileToGroup({ fileId, groupId: app.getHomeGroupId() })
+									}}
+								/>
+							</TldrawUiMenuGroup>
+						)}
+						{moveToGroups.length > 0 && (
 							<TldrawUiMenuGroup id="my-groups">
-								{nonHomeGroups.map((groupUser) => (
+								{moveToGroups.map((groupUser) => (
 									<TldrawUiMenuItem
 										key={groupUser.groupId}
 										label={groupUser.group.name}
 										id={`group-${groupUser.groupId}`}
-										iconLeft={
-											<TldrawUiButtonCheck
-												checked={
-													app.canUpdateFile(fileId)
-														? groupUser.group.id === file?.owningGroupId
-														: groupUser.groupFiles.some((g) => g.fileId === fileId)
-												}
-											/>
-										}
 										readonlyOk
 										onSelect={() => {
 											app.z.mutate.moveFileToGroup({ fileId, groupId: groupUser.groupId })
