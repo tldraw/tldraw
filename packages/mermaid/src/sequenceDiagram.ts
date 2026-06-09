@@ -63,10 +63,26 @@ const LINETYPE = {
 	PAR_OVER_START: 32,
 	BIDIRECTIONAL_SOLID: 33,
 	BIDIRECTIONAL_DOTTED: 34,
-	// Only the line types tldraw handles are mirrored here. `Partial` keeps the
-	// values type-checked against mermaid's enum without requiring every member,
-	// so newer mermaid releases adding line types don't break the build.
-} as const satisfies Partial<SequenceDB['LINETYPE']>
+	SOLID_TOP: 41,
+	SOLID_BOTTOM: 42,
+	STICK_TOP: 43,
+	STICK_BOTTOM: 44,
+	SOLID_ARROW_TOP_REVERSE: 45,
+	SOLID_ARROW_BOTTOM_REVERSE: 46,
+	STICK_ARROW_TOP_REVERSE: 47,
+	STICK_ARROW_BOTTOM_REVERSE: 48,
+	SOLID_TOP_DOTTED: 51,
+	SOLID_BOTTOM_DOTTED: 52,
+	STICK_TOP_DOTTED: 53,
+	STICK_BOTTOM_DOTTED: 54,
+	SOLID_ARROW_TOP_REVERSE_DOTTED: 55,
+	SOLID_ARROW_BOTTOM_REVERSE_DOTTED: 56,
+	STICK_ARROW_TOP_REVERSE_DOTTED: 57,
+	STICK_ARROW_BOTTOM_REVERSE_DOTTED: 58,
+	CENTRAL_CONNECTION: 59,
+	CENTRAL_CONNECTION_REVERSE: 60,
+	CENTRAL_CONNECTION_DUAL: 61,
+} as const satisfies SequenceDB['LINETYPE']
 
 const PLACEMENT = {
 	LEFTOF: 0,

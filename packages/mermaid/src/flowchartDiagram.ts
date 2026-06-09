@@ -59,10 +59,12 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 /** Parse flowchart-specific SVG layout data for use by {@link flowchartToBlueprint}. */
 export function parseFlowchartLayout(root: Element): ParsedDiagramLayout {
 	const nodes = parseNodesFromSvg(root, '.node', (domId) => {
-		const match = domId.match(/^flowchart-(.+)-\d+$/)
+		const match = domId.match(/^(?:mermaid-\d+-)?flowchart-(.+)-\d+$/)
 		return match ? match[1] : domId
 	})
-	const clusters = parseClustersFromSvg(root, '.cluster')
+	const clusters = parseClustersFromSvg(root, '.cluster', (domId) =>
+		domId.replace(/^mermaid-\d+-/, '')
+	)
 	const edges = parseAllEdgePointsFromSvg(root, (dataId) => {
 		const match = dataId.match(/^L_(.+)_([^_]+)_\d+$/)
 		return match ? { start: match[1], end: match[2] } : null

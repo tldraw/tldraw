@@ -20,22 +20,6 @@ export interface ParsedCluster {
 type NodeIdParser = (domId: string) => string
 type EdgeIdParser = (dataId: string) => { start: string; end: string } | null
 
-/**
- * mermaid >= 11.15 prefixes every rendered element id with the diagram's svg id,
- * e.g. `mermaid-0-flowchart-A-0` or `mermaid-0-state-Idle-2`. Earlier versions
- * emitted the bare id (`flowchart-A-0`). Strip the prefix so the node and cluster
- * id parsers keep matching across mermaid versions. Edge `data-id` attributes are
- * not prefixed, so edge parsing is unaffected.
- */
-export function stripDiagramIdPrefix(root: Element, domId: string): string {
-	const svg = root.tagName.toLowerCase() === 'svg' ? root : (root as SVGElement).ownerSVGElement
-	const svgId = svg?.getAttribute('id')
-	if (svgId && domId.startsWith(`${svgId}-`)) {
-		return domId.slice(svgId.length + 1)
-	}
-	return domId
-}
-
 function parseTranslate(attr: string | null): Vec2 {
 	if (!attr) return { x: 0, y: 0 }
 	// Matches SVG translate transforms, e.g. transform="translate(123.45, 67.8)".
@@ -125,7 +109,7 @@ export function parseNodesFromSvg(
 ): Map<string, ParsedNode> {
 	const out = new Map<string, ParsedNode>()
 	for (const groupEl of root.querySelectorAll(selector)) {
-		const rawId = stripDiagramIdPrefix(root, groupEl.getAttribute('id') || '')
+		const rawId = groupEl.getAttribute('id') || ''
 		const id = idParser(rawId)
 		const self = parseTranslate(groupEl.getAttribute('transform'))
 		const ancestor = getAccumulatedTranslate(groupEl)
@@ -147,7 +131,7 @@ export function parseClustersFromSvg(
 ): Map<string, ParsedCluster> {
 	const out = new Map<string, ParsedCluster>()
 	for (const groupEl of root.querySelectorAll(selector)) {
-		const id = idParser(stripDiagramIdPrefix(root, groupEl.getAttribute('id') || ''))
+		const id = idParser(groupEl.getAttribute('id') || '')
 		const rect = groupEl.querySelector('rect')
 		if (!rect) continue
 		const rx = parseFloat(rect.getAttribute('x') || '0')

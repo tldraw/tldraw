@@ -1,30 +1,11 @@
 import { parseFlowchartLayout } from './flowchartDiagram'
 import { parseStateDiagramLayout } from './stateDiagram'
-import { stripDiagramIdPrefix } from './svgParsing'
 
 function svgFromString(markup: string): SVGSVGElement {
 	const container = document.createElement('div')
 	container.innerHTML = markup
 	return container.querySelector('svg') as unknown as SVGSVGElement
 }
-
-describe('stripDiagramIdPrefix', () => {
-	it('strips the diagram svg id prefix added by mermaid >= 11.15', () => {
-		const svg = svgFromString('<svg id="mermaid-0"></svg>')
-		expect(stripDiagramIdPrefix(svg, 'mermaid-0-flowchart-A-0')).toBe('flowchart-A-0')
-		expect(stripDiagramIdPrefix(svg, 'mermaid-0-Frontend')).toBe('Frontend')
-	})
-
-	it('leaves bare ids from mermaid <= 11.12 untouched', () => {
-		const svg = svgFromString('<svg id="mermaid-0"></svg>')
-		expect(stripDiagramIdPrefix(svg, 'flowchart-A-0')).toBe('flowchart-A-0')
-	})
-
-	it('is a no-op when the svg has no id', () => {
-		const svg = svgFromString('<svg></svg>')
-		expect(stripDiagramIdPrefix(svg, 'flowchart-A-0')).toBe('flowchart-A-0')
-	})
-})
 
 // Regression for the mermaid 11.15 upgrade: every rendered element id gained a
 // `<svgId>-` prefix, which broke the node/cluster id parsers and produced empty
