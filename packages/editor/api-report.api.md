@@ -104,31 +104,31 @@ import { VecModel } from '@tldraw/tlschema';
 export function activeElementShouldCaptureKeys(includeButtonsAndMenus?: boolean, doc?: Document): boolean;
 
 // @public
-export interface Allowable<Ctx> {
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    rules: Atom<AllowRule<Ctx>[]>;
+export class Allowable<Ctx = void> {
+    constructor(
+    id: string, initialRules?: AllowRule<Ctx>[]);
+    can(...args: [Ctx] extends [void] ? [] : [ctx: Ctx]): boolean;
+    // @internal
+    _canWithoutCapture(this: Allowable<void>): boolean;
+    check(...args: [Ctx] extends [void] ? [] : [ctx: Ctx]): AllowResult;
+    getResult(this: Allowable<void>): Computed<AllowResult>;
+    readonly id: string;
+    removeRule(ruleId: string): void;
+    readonly rules: Atom<AllowRule<Ctx>[]>;
+    setRule(rule: AllowRule<Ctx>): void;
 }
 
 // @public
 export class AllowManager {
     constructor(editor: Editor);
-    can<Ctx>(allowable: Allowable<Ctx>, ...args: [Ctx] extends [void] ? [] : [ctx: Ctx]): boolean;
-    // @internal
-    _canWithoutCapture(allowable: Allowable<void>): boolean;
     readonly changeDocument: Allowable<void>;
     readonly changeShape: Allowable<TLShape>;
-    check<Ctx>(allowable: Allowable<Ctx>, ...args: [Ctx] extends [void] ? [] : [ctx: Ctx]): AllowResult;
     readonly deleteShape: Allowable<TLShape>;
     readonly duplicateShape: Allowable<TLShape>;
-    getResult(allowable: Allowable<void>): Computed<AllowResult>;
     readonly groupShape: Allowable<TLShape>;
     readonly moveCamera: Allowable<void>;
     register<Ctx = void>(id: string, rules?: AllowRule<Ctx>[]): Allowable<Ctx>;
-    removeRule(allowable: Allowable<any>, ruleId: string): void;
     readonly selectShape: Allowable<TLShape>;
-    setRule<Ctx>(allowable: Allowable<Ctx>, rule: AllowRule<Ctx>): void;
     readonly ungroupShape: Allowable<TLShape>;
     unregister(allowable: Allowable<any>): void;
 }

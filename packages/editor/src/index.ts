@@ -103,8 +103,8 @@ export {
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
 export {
+	Allowable,
 	AllowManager,
-	type Allowable,
 	type AllowResult,
 	type AllowRule,
 } from './lib/editor/managers/AllowManager/AllowManager'

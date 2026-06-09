@@ -2712,9 +2712,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const util = this.getShapeUtil(_shape)
 		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
 		if (!util.canEdit(_shape, _info)) return false // shape is not editable
-		if (!this.allow.can(this.allow.changeDocument) && !util.canEditInReadonly(_shape)) return false // readonly and no exception
-		if (!this.allow.can(this.allow.changeShape, _shape) && !util.canEditWhileLocked(_shape))
-			return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
+		if (!this.allow.changeDocument.can() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
+		if (!this.allow.changeShape.can(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
 		return true // shape is editable
 	}
 
@@ -3005,7 +3004,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!_shape) return false
 		const util = this.getShapeUtil(_shape)
 		if (!util.canCrop(_shape)) return false
-		if (!this.allow.can(this.allow.changeShape, _shape)) return false
+		if (!this.allow.changeShape.can(_shape)) return false
 		return true
 	}
 
@@ -3565,7 +3564,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
-		if (!opts?.force && !this.allow._canWithoutCapture(this.allow.moveCamera)) return this
+		if (!opts?.force && !this.allow.moveCamera._canWithoutCapture()) return this
 
 		// Stop any camera animations
 		this.stopCameraAnimation()
@@ -3615,7 +3614,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this {
-		if (!opts?.force && !this.allow.can(this.allow.moveCamera)) return this
+		if (!opts?.force && !this.allow.moveCamera.can()) return this
 
 		const { width: pw, height: ph } = this.getViewportPageBounds()
 		this.setCamera(new Vec(-(point.x - pw / 2), -(point.y - ph / 2), this.getCamera().z), opts)
@@ -3660,7 +3659,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	resetZoom(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
 		const { constraints } = this.getCameraOptions()
-		if (!opts?.force && !this.allow.can(this.allow.moveCamera)) return this
+		if (!opts?.force && !this.allow.moveCamera.can()) return this
 
 		const currentCamera = this.getCamera()
 		const { x: cx, y: cy, z: cz } = currentCamera
@@ -3700,7 +3699,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomIn(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
-		if (!opts?.force && !this.allow.can(this.allow.moveCamera)) return this
+		if (!opts?.force && !this.allow.moveCamera.can()) return this
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 
@@ -3744,7 +3743,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomOut(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
-		if (!opts?.force && !this.allow.can(this.allow.moveCamera)) return this
+		if (!opts?.force && !this.allow.moveCamera.can()) return this
 
 		const { zoomSteps } = this.getCameraOptions()
 		if (zoomSteps !== null && zoomSteps.length > 1) {
@@ -3786,7 +3785,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToSelection(opts?: TLCameraMoveOptions): this {
-		if (!opts?.force && !this.allow.can(this.allow.moveCamera)) return this
+		if (!opts?.force && !this.allow.moveCamera.can()) return this
 
 		const selectionPageBounds = this.getSelectionPageBounds()
 		if (selectionPageBounds) {
@@ -3853,7 +3852,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts?: { targetZoom?: number; inset?: number } & TLCameraMoveOptions
 	): this {
 		const cameraOptions = this._cameraOptions.__unsafe__getWithoutCapture()
-		if (!opts?.force && !this.allow._canWithoutCapture(this.allow.moveCamera)) return this
+		if (!opts?.force && !this.allow.moveCamera._canWithoutCapture()) return this
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
@@ -4012,7 +4011,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			force?: boolean
 		}
 	): this {
-		if (!opts?.force && !this.allow.can(this.allow.moveCamera)) return this
+		if (!opts?.force && !this.allow.moveCamera.can()) return this
 
 		const animationSpeed = this.user.getAnimationSpeed()
 		if (animationSpeed === 0) return this
@@ -4942,7 +4941,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		const prev = this.getPage(partial.id)
 		if (!prev) return this
@@ -4965,7 +4964,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	createPage(page: Partial<TLPage>): this {
 		this.run(() => {
-			if (!this.allow.can(this.allow.changeDocument)) return
+			if (!this.allow.changeDocument.can()) return
 			if (this.getPages().length >= this.options.maxPages) return
 			const pages = this.getPages()
 
@@ -5008,7 +5007,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const id = typeof page === 'string' ? page : page.id
 		this.run(
 			() => {
-				if (!this.allow.can(this.allow.changeDocument)) return
+				if (!this.allow.changeDocument.can()) return
 				const pages = this.getPages()
 				if (pages.length === 1) return
 
@@ -5083,7 +5082,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	renamePage(page: TLPageId | TLPage, name: string) {
 		const id = typeof page === 'string' ? page : page.id
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 		this.updatePage({ id, name })
 		return this
 	}
@@ -5117,7 +5116,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	createAssets(assets: TLAsset[]): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 		if (assets.length <= 0) return this
 		this.run(() => this.store.put(assets), { history: 'ignore' })
 		return this
@@ -5136,7 +5135,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateAssets(assets: TLAssetPartial[]): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 		if (assets.length <= 0) return this
 		this.run(
 			() => {
@@ -5165,7 +5164,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deleteAssets(assets: TLAssetId[] | TLAsset[]): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		const ids =
 			typeof assets[0] === 'string'
@@ -7101,7 +7100,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (shapes as TLShape[]).map((s) => s.id)
 
 		if (ids.length === 0) return this
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		const currentPageId = this.getCurrentPageId()
 
@@ -7164,7 +7163,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (!this.allow.can(this.allow.changeDocument) || ids.length === 0) return this
+		if (!this.allow.changeDocument.can() || ids.length === 0) return this
 
 		let allLocked = true,
 			allUnlocked = true
@@ -7429,7 +7428,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	flipShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		const ids =
 			typeof shapes[0] === 'string'
@@ -7528,7 +7527,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		gap?: number
 	): this {
 		const _gap = gap ?? this.options.adjacentShapeMargin
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		// todo: this has a lot of extra code to handle stacking with custom gaps or auto gaps or other things like that. I don't think anyone has ever used this stuff.
 
@@ -7644,7 +7643,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param gap - The padding to apply to the packed shapes. Defaults to the editor's `adjacentShapeMargin` option.
 	 */
 	packShapes(shapes: TLShapeId[] | TLShape[], _gap?: number): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		const gap = _gap ?? this.options.adjacentShapeMargin
 
@@ -7773,7 +7772,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shapes: TLShapeId[] | TLShape[],
 		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom'
 	): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		const { clusters: shapeClustersToAlign, allBounds } = this.getShapeClusters(shapes, 'align')
 
@@ -7848,7 +7847,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	distributeShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		const { clusters: shapeClustersToDistribute } = this.getShapeClusters(shapes, 'distribute')
 
@@ -7951,7 +7950,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stretchShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		const { clusters: shapeClustersToStretch, allBounds } = this.getShapeClusters(
 			shapes,
@@ -8026,7 +8025,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resizeToBounds(shapes: TLShapeId[] | TLShape[], bounds: BoxLike): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		const targetBounds = Box.From(bounds)
 
@@ -8092,7 +8091,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	resizeShape(shape: TLShapeId | TLShape, scale: VecLike, opts: TLResizeShapeOptions = {}): this {
 		const id = typeof shape === 'string' ? shape : shape.id
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		if (!Number.isFinite(scale.x)) scale = new Vec(1, scale.y)
 		if (!Number.isFinite(scale.y)) scale = new Vec(scale.x, 1)
@@ -8443,7 +8442,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
 		}
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 		if (shapes.length <= 0) return this
 
 		const currentPageShapeIds = this.getCurrentPageShapeIds()
@@ -8783,7 +8782,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.groupShapes: must provide an array of shapes or shape ids')
 		}
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		const ids =
 			typeof shapes[0] === 'string'
@@ -8865,7 +8864,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	ungroupShapes(ids: TLShapeId[], opts?: Partial<{ select: boolean }>): this
 	ungroupShapes(shapes: TLShape[], opts?: Partial<{ select: boolean }>): this
 	ungroupShapes(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<{ select: boolean }>) {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		const { select = true } = opts
 		const ids =
@@ -8978,7 +8977,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// locked ancestor).
 				const isUnlockingUpdate =
 					shape.isLocked && Object.hasOwn(partial, 'isLocked') && !partial.isLocked
-				if (!isUnlockingUpdate && !this.allow.can(this.allow.changeShape, shape)) {
+				if (!isUnlockingUpdate && !this.allow.changeShape.can(shape)) {
 					continue
 				}
 			}
@@ -8995,7 +8994,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	_updateShapes(_partials: (TLShapePartial | null | undefined)[]) {
-		if (!this.allow.can(this.allow.changeDocument)) return
+		if (!this.allow.changeDocument.can()) return
 
 		this.run(() => {
 			const updates = []
@@ -9036,7 +9035,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _getAllowedShapeIds(ids: TLShapeId[], allowable: Allowable<TLShape>): TLShapeId[] {
 		return ids.filter((id) => {
 			const shape = this.getShape(id)
-			return !shape || this.allow.can(allowable, shape)
+			return !shape || allowable.can(shape)
 		})
 	}
 
@@ -9055,7 +9054,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	deleteShapes(ids: TLShapeId[]): this
 	deleteShapes(shapes: TLShape[]): this
 	deleteShapes(_ids: TLShapeId[] | TLShape[]): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		if (!Array.isArray(_ids)) {
 			throw Error('Editor.deleteShapes: must provide an array of shapes or shapeIds')
@@ -9581,7 +9580,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
 	): Promise<void> {
-		if (!opts.force && !this.allow.can(this.allow.changeDocument)) return
+		if (!opts.force && !this.allow.changeDocument.can()) return
 
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
@@ -9596,7 +9595,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
 	): Promise<void> {
-		if (!opts.force && !this.allow.can(this.allow.changeDocument)) return
+		if (!opts.force && !this.allow.changeDocument.can()) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
@@ -9740,7 +9739,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			preserveIds?: boolean
 		} = {}
 	): this {
-		if (!this.allow.can(this.allow.changeDocument)) return this
+		if (!this.allow.changeDocument.can()) return this
 
 		// todo: make this able to support putting content onto any page, not just the current page
 
@@ -10949,7 +10948,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		switch (type) {
 			case 'pinch': {
-				if (!this.allow._canWithoutCapture(this.allow.moveCamera)) return
+				if (!this.allow.moveCamera._canWithoutCapture()) return
 				clearTimeout(this._longPressTimeout)
 				this.inputs.updateFromEvent(info)
 
@@ -11052,7 +11051,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 			case 'wheel': {
-				if (!this.allow._canWithoutCapture(this.allow.moveCamera)) return
+				if (!this.allow.moveCamera._canWithoutCapture()) return
 
 				this.inputs.updateFromEvent(info)
 

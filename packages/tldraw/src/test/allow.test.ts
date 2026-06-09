@@ -22,7 +22,7 @@ afterEach(() => {
 
 describe('custom changeDocument rules', () => {
 	beforeEach(() => {
-		editor.allow.setRule(editor.allow.changeDocument, {
+		editor.allow.changeDocument.setRule({
 			id: 'deny-all',
 			message: 'Changes are not allowed',
 			test: () => false,
@@ -60,7 +60,7 @@ describe('custom changeDocument rules', () => {
 	})
 
 	it('allows changes again once the rule is removed', () => {
-		editor.allow.removeRule(editor.allow.changeDocument, 'deny-all')
+		editor.allow.changeDocument.removeRule('deny-all')
 		editor.updateShapes([{ id: ids.boxA, type: 'geo', x: 999 }])
 		expect(editor.getShape(ids.boxA)!.x).toBe(999)
 	})
@@ -68,7 +68,7 @@ describe('custom changeDocument rules', () => {
 
 describe('custom moveCamera rules', () => {
 	beforeEach(() => {
-		editor.allow.setRule(editor.allow.moveCamera, {
+		editor.allow.moveCamera.setRule({
 			id: 'deny-all',
 			message: 'The camera may not move',
 			test: () => false,
@@ -90,7 +90,7 @@ describe('custom moveCamera rules', () => {
 
 describe('custom per-shape rules', () => {
 	it('deleteShape rules filter which shapes are deleted', () => {
-		editor.allow.setRule(editor.allow.deleteShape, {
+		editor.allow.deleteShape.setRule({
 			id: 'protect-box-a',
 			message: 'This shape is protected',
 			test: (shape) => shape.id !== ids.boxA,
@@ -102,7 +102,7 @@ describe('custom per-shape rules', () => {
 	})
 
 	it('changeShape rules block updates to matching shapes only', () => {
-		editor.allow.setRule(editor.allow.changeShape, {
+		editor.allow.changeShape.setRule({
 			id: 'freeze-box-a',
 			message: 'This shape is frozen',
 			test: (shape) => shape.id !== ids.boxA,

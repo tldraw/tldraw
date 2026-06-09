@@ -1,6 +1,5 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
 import { TLShape } from '@tldraw/tlschema'
-import { assertExists } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
 /**
@@ -20,21 +19,6 @@ export interface AllowRule<Ctx> {
 }
 
 /**
- * A named set of rules that must *all* pass for an action to be allowed. The
- * object returned from {@link AllowManager.register} carries its `Ctx` type, so
- * passing it to {@link AllowManager.can} type-checks the context argument.
- *
- * Its `rules` are held in an {@link @tldraw/state#Atom}, so editing them (and any
- * signals their `test`s read) makes {@link AllowManager.can} reactive.
- *
- * @public
- */
-export interface Allowable<Ctx> {
-	id: string
-	rules: Atom<AllowRule<Ctx>[]>
-}
-
-/**
  * The result of evaluating an {@link Allowable}.
  *
  * @public
@@ -47,20 +31,117 @@ export interface AllowResult {
 }
 
 /**
- * Manages the editor's allow rules: named sets of rules that gate whether the
- * user can perform an action. Editor methods consult these to decide whether to
- * proceed, and consumers can add, replace, or remove rules to customize what is
- * permitted.
+ * A named set of rules that must *all* pass for an action to be allowed. Its
+ * `Ctx` type parameter is the context the rules are evaluated against — for
+ * example, the editor's per-shape allowables have a `TLShape` context, while
+ * its document-level allowables have none.
  *
- * The system is reactive: rules live in signals and contextless results are
- * memoized in {@link @tldraw/state#Computed}s, so reading {@link AllowManager.can}
- * inside a reaction recomputes when the rules or any signal they read changes.
+ * The system is reactive: `rules` live in an {@link @tldraw/state#Atom} and a
+ * contextless result is memoized in a {@link @tldraw/state#Computed}, so reading
+ * {@link Allowable.can} inside a reaction recomputes when the rules or any
+ * signal they read changes.
+ *
+ * @example
+ * ```ts
+ * if (!editor.allow.changeShape.can(shape)) return
+ *
+ * editor.allow.deleteShape.setRule({
+ * 	id: 'protect-template-shapes',
+ * 	message: 'Template shapes cannot be deleted',
+ * 	test: (shape) => !shape.meta.isTemplate,
+ * })
+ * ```
+ *
+ * @public
+ */
+export class Allowable<Ctx = void> {
+	/** The rules that must all pass for the action to be allowed. */
+	readonly rules: Atom<AllowRule<Ctx>[]>
+	private readonly result: Computed<AllowResult>
+
+	constructor(
+		/** A unique id for the allowable. */
+		readonly id: string,
+		initialRules: AllowRule<Ctx>[] = []
+	) {
+		this.rules = atom(`allow:${id}:rules`, [...initialRules])
+		// A contextless result is a pure function of reactive state, so it can be
+		// memoized in a computed; a result that depends on `ctx` cannot be. This
+		// computed is only ever read for contextless allowables.
+		this.result = computed(`allow:${id}:result`, () => this.evaluate(undefined as Ctx))
+	}
+
+	/** Whether every rule passes for `ctx`. */
+	can(...args: [Ctx] extends [void] ? [] : [ctx: Ctx]): boolean {
+		return this.check(...args).ok
+	}
+
+	/**
+	 * Evaluate every rule for `ctx`, collecting the id and message of each rule
+	 * that denies the action. Reactive: reading this within a reaction tracks the
+	 * rules and any signals the rules read.
+	 */
+	check(...args: [Ctx] extends [void] ? [] : [ctx: Ctx]): AllowResult {
+		if (args.length === 0) return this.result.get()
+		return this.evaluate(args[0] as Ctx)
+	}
+
+	/**
+	 * Get a reactive signal of a contextless allowable's result. Read it inside a
+	 * reaction (or pass it to `useValue`) to update when the rules or the signals
+	 * they read change.
+	 */
+	getResult(this: Allowable<void>): Computed<AllowResult> {
+		return this.result
+	}
+
+	/**
+	 * Like {@link Allowable.can} for a contextless allowable, but without
+	 * capturing the result in the surrounding reactive context. Used by hot
+	 * paths (like `setCamera` and input dispatch) that deliberately avoid
+	 * becoming reactive to permission changes.
+	 *
+	 * @internal
+	 */
+	_canWithoutCapture(this: Allowable<void>): boolean {
+		return this.result.__unsafe__getWithoutCapture().ok
+	}
+
+	/** Add a rule, or replace an existing rule that shares its id. */
+	setRule(rule: AllowRule<Ctx>): void {
+		this.rules.update((rules) => {
+			const index = rules.findIndex((r) => r.id === rule.id)
+			if (index === -1) return [...rules, rule]
+			const next = rules.slice()
+			next[index] = rule
+			return next
+		})
+	}
+
+	/** Remove a rule by its id. */
+	removeRule(ruleId: string): void {
+		this.rules.update((rules) => rules.filter((r) => r.id !== ruleId))
+	}
+
+	private evaluate(ctx: Ctx): AllowResult {
+		const failures: AllowResult['failures'] = []
+		for (const rule of this.rules.get()) {
+			if (!rule.test(ctx)) failures.push({ ruleId: rule.id, message: rule.message })
+		}
+		return { ok: failures.length === 0, failures }
+	}
+}
+
+/**
+ * Manages the editor's allowables: named sets of rules that gate whether the
+ * user can perform an action. Editor methods consult these to decide whether to
+ * proceed, and consumers can add, replace, or remove rules on each
+ * {@link Allowable} to customize what is permitted.
  *
  * @public
  */
 export class AllowManager {
 	private readonly allowables = new Map<string, Allowable<any>>()
-	private readonly results = new Map<string, Computed<AllowResult>>()
 	private readonly builtinIds: ReadonlySet<string>
 
 	/**
@@ -182,26 +263,26 @@ export class AllowManager {
 
 	/**
 	 * Register an allowable: a named set of rules that must all pass. Returns the
-	 * allowable so it can be passed to {@link AllowManager.can} and the rule-editing
-	 * methods, where its `Ctx` type checks their arguments.
+	 * allowable; hold on to it to check it and edit its rules.
 	 *
 	 * Ids must be unique; registering an id that is already in use throws. To
-	 * change an existing allowable's rules, use {@link AllowManager.setRule} and
-	 * {@link AllowManager.removeRule} instead.
+	 * change an existing allowable's rules, use {@link Allowable.setRule} and
+	 * {@link Allowable.removeRule} instead.
 	 */
 	register<Ctx = void>(id: string, rules: AllowRule<Ctx>[] = []): Allowable<Ctx> {
 		if (this.allowables.has(id)) {
 			throw Error(`An allowable with id '${id}' is already registered`)
 		}
-		const allowable: Allowable<Ctx> = { id, rules: atom(`allow:${id}:rules`, [...rules]) }
+		const allowable = new Allowable<Ctx>(id, rules)
 		this.allowables.set(id, allowable)
 		return allowable
 	}
 
 	/**
-	 * Remove a previously registered allowable. The editor's built-in allowables
-	 * cannot be unregistered, as editor methods rely on them; remove or replace
-	 * their rules instead.
+	 * Remove a previously registered allowable, freeing its id. The allowable
+	 * itself keeps working for anyone still holding it. The editor's built-in
+	 * allowables cannot be unregistered, as editor methods rely on them; remove
+	 * or replace their rules instead.
 	 */
 	unregister(allowable: Allowable<any>): void {
 		if (this.builtinIds.has(allowable.id)) {
@@ -210,92 +291,5 @@ export class AllowManager {
 			)
 		}
 		this.allowables.delete(allowable.id)
-		this.results.delete(allowable.id)
-	}
-
-	/** Add a rule, or replace an existing rule that shares its id. */
-	setRule<Ctx>(allowable: Allowable<Ctx>, rule: AllowRule<Ctx>): void {
-		const target = this.getRegistered(allowable)
-		target.rules.update((rules) => {
-			const index = rules.findIndex((r) => r.id === rule.id)
-			if (index === -1) return [...rules, rule]
-			const next = rules.slice()
-			next[index] = rule
-			return next
-		})
-	}
-
-	/** Remove a rule from an allowable by its id. */
-	removeRule(allowable: Allowable<any>, ruleId: string): void {
-		const target = this.getRegistered(allowable)
-		target.rules.update((rules) => rules.filter((r) => r.id !== ruleId))
-	}
-
-	/**
-	 * Get a reactive signal of a contextless allowable's result. Read it inside a
-	 * reaction (or with `useValue`) to update when its rules or the signals they
-	 * read change.
-	 */
-	getResult(allowable: Allowable<void>): Computed<AllowResult> {
-		return this.getResultComputed(this.getRegistered(allowable))
-	}
-
-	/**
-	 * Evaluate every rule of the allowable for `ctx`, collecting the messages of
-	 * all rules that deny the action. Reactive: reading this within a reaction
-	 * tracks the allowable's rules and any signals the rules read.
-	 */
-	check<Ctx>(
-		allowable: Allowable<Ctx>,
-		...args: [Ctx] extends [void] ? [] : [ctx: Ctx]
-	): AllowResult {
-		const target = this.getRegistered(allowable)
-		// A contextless result is a pure function of reactive state, so we can
-		// memoize it in a computed; a result that depends on `ctx` cannot be.
-		if (args.length === 0) return this.getResultComputed(target).get()
-		return this.evaluate(target, args[0] as Ctx)
-	}
-
-	/** Whether every rule of the allowable passes for `ctx`. */
-	can<Ctx>(allowable: Allowable<Ctx>, ...args: [Ctx] extends [void] ? [] : [ctx: Ctx]): boolean {
-		return this.check(allowable, ...args).ok
-	}
-
-	/**
-	 * Like {@link AllowManager.can} for a contextless allowable, but without
-	 * capturing the result in the surrounding reactive context. Used by hot
-	 * paths (like `setCamera` and input dispatch) that deliberately avoid
-	 * becoming reactive to permission changes.
-	 *
-	 * @internal
-	 */
-	_canWithoutCapture(allowable: Allowable<void>): boolean {
-		return this.getResultComputed(this.getRegistered(allowable)).__unsafe__getWithoutCapture().ok
-	}
-
-	private evaluate<Ctx>(allowable: Allowable<Ctx>, ctx: Ctx): AllowResult {
-		const failures: AllowResult['failures'] = []
-		for (const rule of allowable.rules.get()) {
-			if (!rule.test(ctx)) failures.push({ ruleId: rule.id, message: rule.message })
-		}
-		return { ok: failures.length === 0, failures }
-	}
-
-	private getResultComputed<Ctx>(allowable: Allowable<Ctx>): Computed<AllowResult> {
-		let result = this.results.get(allowable.id)
-		if (!result) {
-			result = computed(`allow:${allowable.id}:result`, () =>
-				this.evaluate(allowable, undefined as Ctx)
-			)
-			this.results.set(allowable.id, result)
-		}
-		return result
-	}
-
-	private getRegistered<Ctx>(allowable: Allowable<Ctx>): Allowable<Ctx> {
-		return assertExists(
-			this.allowables.get(allowable.id),
-			`No allowable registered with id '${allowable.id}'`
-		)
 	}
 }
