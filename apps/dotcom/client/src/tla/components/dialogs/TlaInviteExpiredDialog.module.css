@@ -15,9 +15,11 @@
 	width: 300px;
 }
 
-.header {
+.dialogBody .header {
+	flex: 0 0 auto;
 	font-size: 16px;
 	font-weight: 600;
+	color: var(--tl-color-text-1);
 	margin: 8px 0 0;
 }
 

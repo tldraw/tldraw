@@ -12,16 +12,13 @@ export function TlaInviteExpiredDialog({ onClose }: { onClose(): void }) {
 	return (
 		<>
 			<TldrawUiDialogHeader className={styles.dialogHeader}>
-				<TldrawUiDialogTitle>
-					<span />
-				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.dialogBody}>
 				{sadFaceIcon}
-				<h1 className={styles.header}>
+				<TldrawUiDialogTitle className={styles.header}>
 					<F defaultMessage="This invite link has expired" />
-				</h1>
+				</TldrawUiDialogTitle>
 				<p className={styles.message}>
 					<F defaultMessage="Ask the workspace owner for a new one." />
 				</p>
