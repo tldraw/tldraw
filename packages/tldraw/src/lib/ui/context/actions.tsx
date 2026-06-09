@@ -569,7 +569,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'frame-selection',
 				label: 'action.frame-selection',
-				kbd: 'cmd+shift+f,ctrl+shift+f',
+				kbd: 'alt+shift+g',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
