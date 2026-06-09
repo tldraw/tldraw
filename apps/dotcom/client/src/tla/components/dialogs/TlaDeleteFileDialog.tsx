@@ -36,14 +36,26 @@ export function TlaDeleteFileDialog({
 		if (!token) throw new Error('No token')
 		trackEvent('delete-file', { source: 'file-menu' })
 		await app.deleteOrForgetFile(fileId, groupId)
-		const recentFiles = app.getMyFiles()
-		if (recentFiles.length === 0) {
-			const result = await app.createFile()
-			if (result.ok) {
-				navigate(routes.tlaFile(result.value.fileId))
-			}
+
+		// Prefer staying within the group the file was deleted from: navigate to the
+		// top of its remaining files so the sidebar scrolls to the current group
+		// instead of jumping up to my files.
+		const groupFiles = groupId === app.getHomeGroupId() ? [] : app.getGroupFilesSorted(groupId)
+		if (groupFiles.length > 0) {
+			app.ensureFileVisibleInSidebar(groupFiles[0].fileId)
+			navigate(routes.tlaFile(groupFiles[0].fileId))
 		} else {
-			navigate(routes.tlaFile(recentFiles[0].fileId))
+			// Deleting from my files, or the group is now empty: fall back to my files,
+			// creating a new file if there are none.
+			const recentFiles = app.getMyFiles()
+			if (recentFiles.length === 0) {
+				const result = await app.createFile()
+				if (result.ok) {
+					navigate(routes.tlaFile(result.value.fileId))
+				}
+			} else {
+				navigate(routes.tlaFile(recentFiles[0].fileId))
+			}
 		}
 		onClose()
 	}

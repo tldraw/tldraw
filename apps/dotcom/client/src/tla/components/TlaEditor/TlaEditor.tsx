@@ -34,6 +34,7 @@ import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
+import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { isProductionEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
@@ -284,6 +285,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				licenseKey={getLicenseKey()}
 				store={store}
 				assetUrls={assetUrls}
+				shapeUtils={embedShapeUtils}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
