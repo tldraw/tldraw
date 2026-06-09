@@ -204,11 +204,20 @@ test.describe('Keyboard Shortcuts', () => {
 	})
 
 	test('Copy hovered styles', async () => {
-		// The action copies styles from the editor's hovered shape, so make sure one is
-		// hovered before pressing the shortcut.
-		await page.evaluate(() => {
-			editor.setHoveredShape(editor.getCurrentPageShapes()[0].id)
+		// The action copies styles from the shape under the pointer, so create a shape in the
+		// middle of the viewport and move the mouse over it before pressing the shortcut.
+		const point = await page.evaluate(() => {
+			const center = editor.getViewportPageBounds().center
+			editor.createShape({
+				type: 'geo',
+				x: center.x - 50,
+				y: center.y - 50,
+				props: { w: 100, h: 100, fill: 'solid' },
+			})
+			const screen = editor.pageToScreen(center)
+			return { x: screen.x, y: screen.y }
 		})
+		await page.mouse.move(point.x, point.y)
 		await page.keyboard.press('Shift+q')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			name: 'copy-hovered-styles',

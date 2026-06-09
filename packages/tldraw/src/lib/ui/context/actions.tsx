@@ -1854,19 +1854,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.copy-hovered-styles',
 				kbd: 'shift+q',
 				async onSelect(source) {
-					const target = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
+					const shape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
 						hitInside: false,
 						hitLabels: false,
 						hitLocked: editor.options.selectLockedShapes,
 						margin: editor.options.hitTestMargin / editor.getZoomLevel(),
-						renderingOnly: true,
 					})
 
 					const path = editor.getPath()
-					if (!target || !path.endsWith('.idle')) return
-
-					if (!target) return
-					const shape = target
+					if (!shape || !path.endsWith('.idle')) return
 
 					// Setting styles for the next shape is instance state, not document state, so it
 					// isn't undoable and doesn't need a history stopping point.
