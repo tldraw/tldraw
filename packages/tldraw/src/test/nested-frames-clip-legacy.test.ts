@@ -2,7 +2,7 @@ import { createShapeId } from '@tldraw/editor'
 import { computePageMask, legacySegmentShIntersect, toClipPathCss } from './helpers/nestedClipMask'
 import { TestEditor } from './TestEditor'
 
-/** Same layout as nested-clip-bug-repro / frames.test.ts "masks its nested children". */
+/** Same layout as frames.test.ts "masks its nested children". */
 function setupNestedFrames(editor: TestEditor) {
 	const outer = createShapeId('outer')
 	const inner = createShapeId('inner')
