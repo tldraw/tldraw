@@ -238,7 +238,17 @@ export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike) {
 	return ccw(A, C, D) !== ccw(B, C, D) && ccw(A, B, C) !== ccw(A, B, D)
 }
 
-const CLIP_EPSILON = 1e-10
+/** Dimensionless tolerances (segment parameter `ua`, parallel-line ratio). */
+const CLIP_RATIO_EPSILON = 1e-10
+
+/** Squared-distance tolerance for vertex dedupe (coordinate units²). */
+const CLIP_DISTANCE_SQ_EPSILON = 1e-20
+
+/** Cross-product tolerance for half-plane inside tests (coordinate units²). */
+const CLIP_CROSS_EPSILON = 1e-10
+
+/** Minimum polygon area to treat a clip result as non-degenerate (coordinate units²). */
+const CLIP_AREA_EPSILON = 1e-10
 
 /**
  * Intersect a line segment with the infinite line through `lineStart` and `lineEnd`.
@@ -249,7 +259,7 @@ function intersectLineSegmentLine(
 	a2: VecLike,
 	lineStart: VecLike,
 	lineEnd: VecLike,
-	precision = CLIP_EPSILON
+	ratioEpsilon = CLIP_RATIO_EPSILON
 ): Vec | null {
 	const ABx = a1.x - lineStart.x
 	const ABy = a1.y - lineStart.y
@@ -260,10 +270,10 @@ function intersectLineSegmentLine(
 	const ua_t = LVx * ABy - LVy * ABx
 	const u_b = LVy * AVx - LVx * AVy
 
-	if (Math.abs(u_b) <= precision) return null // parallel
+	if (Math.abs(u_b) <= ratioEpsilon) return null // parallel
 
 	const ua = ua_t / u_b
-	if (ua >= -precision && ua <= 1 + precision) {
+	if (ua >= -ratioEpsilon && ua <= 1 + ratioEpsilon) {
 		return new Vec(a1.x + ua * AVx, a1.y + ua * AVy)
 	}
 
@@ -274,19 +284,20 @@ function isInsideConvexClipEdge(
 	point: VecLike,
 	edgeStart: VecLike,
 	edgeEnd: VecLike,
-	precision = CLIP_EPSILON
+	crossEpsilon = CLIP_CROSS_EPSILON
 ): boolean {
 	const cross =
 		(edgeEnd.x - edgeStart.x) * (point.y - edgeStart.y) -
 		(edgeEnd.y - edgeStart.y) * (point.x - edgeStart.x)
-	return cross >= -precision
+	return cross >= -crossEpsilon
 }
 
 function clipPolygonByEdge(
 	subject: VecLike[],
 	edgeStart: VecLike,
 	edgeEnd: VecLike,
-	precision = CLIP_EPSILON
+	ratioEpsilon = CLIP_RATIO_EPSILON,
+	crossEpsilon = CLIP_CROSS_EPSILON
 ): VecLike[] {
 	const output: VecLike[] = []
 	const n = subject.length
@@ -295,8 +306,8 @@ function clipPolygonByEdge(
 	for (let i = 0; i < n; i++) {
 		const current = subject[i]
 		const previous = subject[(i + n - 1) % n]
-		const currentInside = isInsideConvexClipEdge(current, edgeStart, edgeEnd, precision)
-		const previousInside = isInsideConvexClipEdge(previous, edgeStart, edgeEnd, precision)
+		const currentInside = isInsideConvexClipEdge(current, edgeStart, edgeEnd, crossEpsilon)
+		const previousInside = isInsideConvexClipEdge(previous, edgeStart, edgeEnd, crossEpsilon)
 
 		if (currentInside) {
 			if (!previousInside) {
@@ -305,7 +316,7 @@ function clipPolygonByEdge(
 					current,
 					edgeStart,
 					edgeEnd,
-					precision
+					ratioEpsilon
 				)
 				if (intersection) output.push(intersection)
 			}
@@ -316,7 +327,7 @@ function clipPolygonByEdge(
 				current,
 				edgeStart,
 				edgeEnd,
-				precision
+				ratioEpsilon
 			)
 			if (intersection) output.push(intersection)
 		}
@@ -340,7 +351,10 @@ function clipPolygonByConvexWindow(subject: VecLike[], clipWindow: VecLike[]): V
 	return output
 }
 
-function dedupeConsecutivePolygonPoints(points: VecLike[], precision = CLIP_EPSILON): VecLike[] {
+function dedupeConsecutivePolygonPoints(
+	points: VecLike[],
+	distanceSqEpsilon = CLIP_DISTANCE_SQ_EPSILON
+): VecLike[] {
 	if (points.length === 0) return points
 
 	const result: VecLike[] = [points[0]]
@@ -349,7 +363,7 @@ function dedupeConsecutivePolygonPoints(points: VecLike[], precision = CLIP_EPSI
 		const cur = points[i]
 		const dx = cur.x - prev.x
 		const dy = cur.y - prev.y
-		if (dx * dx + dy * dy > precision * precision) {
+		if (dx * dx + dy * dy > distanceSqEpsilon) {
 			result.push(cur)
 		}
 	}
@@ -359,7 +373,7 @@ function dedupeConsecutivePolygonPoints(points: VecLike[], precision = CLIP_EPSI
 		const last = result[result.length - 1]
 		const dx = last.x - first.x
 		const dy = last.y - first.y
-		if (dx * dx + dy * dy <= precision * precision) {
+		if (dx * dx + dy * dy <= distanceSqEpsilon) {
 			result.pop()
 		}
 	}
@@ -379,7 +393,7 @@ function polygonAreaAbs(points: VecLike[]): number {
 function finalizePolygonClipResult(clipped: VecLike[]): VecLike[] | null {
 	const deduped = dedupeConsecutivePolygonPoints(clipped)
 	if (deduped.length < 3) return null
-	if (polygonAreaAbs(deduped) <= CLIP_EPSILON) return null
+	if (polygonAreaAbs(deduped) <= CLIP_AREA_EPSILON) return null
 	return deduped
 }
 
