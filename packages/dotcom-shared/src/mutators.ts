@@ -120,8 +120,9 @@ async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 async function getRole(
 	tx: Transaction<TlaSchema>,
 	userId: string,
-	groupId: string
+	groupId: string | null | undefined
 ): Promise<Role | null> {
+	if (!groupId) return null
 	// A user's personal/home group has groupId === userId; they own it.
 	if (groupId === userId) return 'owner'
 	const groupUser = await tx.run(
@@ -537,6 +538,11 @@ export function createMutators(userId: string) {
 		createGroup: async (tx: Tx, { id, name }: { id: string; name: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assertValidId(id)
+
+			// Enforce the group limit before creating anything.
+			const existingGroups = await tx.run(zql.group_user.where('userId', '=', userId))
+			assert(existingGroups.length < MAX_NUMBER_OF_GROUPS, ZErrorCode.max_groups_reached)
+
 			await tx.mutate.group.insert({
 				id,
 				name,
@@ -545,9 +551,6 @@ export function createMutators(userId: string) {
 				createdAt: Date.now(),
 				updatedAt: Date.now(),
 			})
-			// Get user's existing groups to determine position for new group
-			const existingGroups = await tx.run(zql.group_user.where('userId', '=', userId))
-			assert(existingGroups.length < MAX_NUMBER_OF_GROUPS, ZErrorCode.max_groups_reached)
 
 			// Use tldraw's fractional indexing to place new group at the top
 			let index: IndexKey
@@ -631,6 +634,7 @@ export function createMutators(userId: string) {
 		},
 		leaveGroup: async (tx: Tx, { groupId }: { groupId: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(groupId, ZErrorCode.bad_request)
 			const owners = await tx.run(
 				zql.group_user.where('groupId', '=', groupId).where('role', '=', 'owner')
 			)
@@ -642,6 +646,7 @@ export function createMutators(userId: string) {
 		},
 		deleteGroup: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(id, ZErrorCode.bad_request)
 			const role = await getRole(tx, userId, id)
 			assert(can(role, 'deleteGroup'), ZErrorCode.forbidden)
 
@@ -680,7 +685,7 @@ export function createMutators(userId: string) {
 
 			// User must be allowed to take the file out of its current group and
 			// to add files to the destination group.
-			const fromRole = await getRole(tx, userId, file.owningGroupId!)
+			const fromRole = await getRole(tx, userId, file.owningGroupId)
 			assert(can(fromRole, 'removeFiles'), ZErrorCode.forbidden)
 			const toRole = await getRole(tx, userId, groupId)
 			assert(can(toRole, 'addFiles'), ZErrorCode.forbidden)
@@ -747,6 +752,7 @@ export function createMutators(userId: string) {
 			{ groupId, index }: { groupId: string; index: IndexKey }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(groupId, ZErrorCode.bad_request)
 			const role = await getRole(tx, userId, groupId)
 			assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
 			await tx.mutate.group_user.update({ userId, groupId, index })
@@ -760,6 +766,8 @@ export function createMutators(userId: string) {
 			}: { fileId: string; groupId: string; operation: DragFileOperation }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(fileId, ZErrorCode.bad_request)
+			assert(groupId, ZErrorCode.bad_request)
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			if (!file) return
 			await assertUserCanAccessFile(tx, userId, file)
