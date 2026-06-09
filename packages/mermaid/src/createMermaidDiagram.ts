@@ -1,6 +1,5 @@
 let nextMermaidId = 0
 
-import mermaid from 'mermaid'
 import type { FlowDB } from 'mermaid/dist/diagrams/flowchart/flowDb.d.ts'
 import type { FlowEdge, FlowSubGraph, FlowVertex } from 'mermaid/dist/diagrams/flowchart/types.js'
 import type { MindmapDB } from 'mermaid/dist/diagrams/mindmap/mindmapDb.d.ts'
@@ -56,6 +55,12 @@ export async function createMermaidDiagram(
 	text: string,
 	options: MermaidDiagramOptions = {}
 ): Promise<void> {
+	// load mermaid lazily so @tldraw/mermaid stays requirable from CommonJS:
+	// mermaid is ESM-only, and a static `import` would compile to `require(<esm>)`
+	// in the CJS build (throws ERR_REQUIRE_ESM on Node <20.19, Jest, ts-node). a
+	// dynamic import() works from CJS and only loads mermaid when this runs.
+	const mermaid = (await import('mermaid')).default
+
 	mermaid.initialize({
 		...MERMAID_CONFIG,
 		...(options.mermaidConfig ?? {}),
