@@ -82,6 +82,15 @@ export class HistoryManager<R extends UnknownRecord> {
 	/** @internal */
 	_isInBatch = false
 
+	/**
+	 * Whether we're currently re-applying a recorded diff as part of an undo or redo. While this is
+	 * true, the recorded diff is authoritative, so consistency side effects (such as the binding
+	 * isolation callbacks) should not recompute and overwrite the recorded values.
+	 *
+	 * @internal
+	 */
+	_isInUndoRedo = false
+
 	batch(fn: () => void, opts?: TLHistoryBatchOptions) {
 		const previousState = this.state
 
@@ -177,7 +186,12 @@ export class HistoryManager<R extends UnknownRecord> {
 				return this
 			}
 
-			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
+			this._isInUndoRedo = true
+			try {
+				this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
+			} finally {
+				this._isInUndoRedo = false
+			}
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {
@@ -225,7 +239,12 @@ export class HistoryManager<R extends UnknownRecord> {
 				}
 			}
 
-			this.store.applyDiff(diffToRedo, { ignoreEphemeralKeys: true })
+			this._isInUndoRedo = true
+			try {
+				this.store.applyDiff(diffToRedo, { ignoreEphemeralKeys: true })
+			} finally {
+				this._isInUndoRedo = false
+			}
 			this.store.ensureStoreIsUsable()
 			this.stacks.set({ undos, redos })
 		} finally {

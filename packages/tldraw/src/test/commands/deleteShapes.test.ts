@@ -1,4 +1,4 @@
-import { createBindingId, createShapeId } from '@tldraw/editor'
+import { createBindingId, createShapeId, TLArrowShape } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { getArrowBindings } from '../../lib/shapes/arrow/shared'
 import { TestEditor } from '../TestEditor'
@@ -173,5 +173,28 @@ describe('When deleting arrows', () => {
 		editor.undo()
 		expect(bindings().start).toBeDefined()
 		expect(bindings().end).toBeDefined()
+	})
+
+	it('Recalculates a bent arrow the same way on redo as on the original delete', () => {
+		// Give the arrow a bend so deleting a bound shape has to recompute its arc.
+		editor.updateShape({ id: ids.arrow1, type: 'arrow', props: { bend: 60 } })
+
+		editor.markHistoryStoppingPoint('before deleting')
+		editor.deleteShapes([ids.box2])
+
+		const afterDelete = editor.getShape<TLArrowShape>(ids.arrow1)!.props
+		expect(bindings().end).toBeUndefined()
+
+		editor.undo()
+		expect(bindings().end).toBeDefined()
+		expect(editor.getShape<TLArrowShape>(ids.arrow1)!.props.bend).toBe(60)
+
+		editor.redo()
+		const afterRedo = editor.getShape<TLArrowShape>(ids.arrow1)!.props
+		expect(bindings().end).toBeUndefined()
+		// redo must reproduce the exact frozen terminal and bend from the original delete,
+		// not recompute a drifted value
+		expect(afterRedo.end).toEqual(afterDelete.end)
+		expect(afterRedo.bend).toEqual(afterDelete.bend)
 	})
 })

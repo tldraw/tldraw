@@ -1330,6 +1330,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getIsFocused(): boolean;
     // (undocumented)
     getIsReadonly(): boolean;
+    getIsReplayingHistory(): boolean;
     // @internal
     getMarkIdMatching(idSubstring: string): null | string;
     getNearestAdjacentShape(shapes: TLShape[], currentShapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
@@ -2155,6 +2156,8 @@ export class HistoryManager<R extends UnknownRecord> {
     getNumUndos(): number;
     // @internal (undocumented)
     _isInBatch: boolean;
+    // @internal
+    _isInUndoRedo: boolean;
     // @internal (undocumented)
     _mark(id: string): void;
     // (undocumented)

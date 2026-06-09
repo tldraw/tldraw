@@ -697,16 +697,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						deletedShapeIds.add(shape.id)
 
+						// When re-applying a recorded diff during undo/redo, the diff already contains
+						// the result of isolation (e.g. an arrow's frozen terminal and bend). Running
+						// the isolation callbacks again would recompute from the already-modified
+						// shape and overwrite the recorded values, so we skip them during replay.
+						const isInUndoRedo = this.getIsReplayingHistory()
+
 						const deleteBindingIds: TLBindingId[] = []
 						for (const binding of this.getBindingsInvolvingShape(shape)) {
 							invalidBindingTypes.add(binding.type)
 							deleteBindingIds.push(binding.id)
 							const util = this.getBindingUtil(binding)
 							if (binding.fromId === shape.id) {
-								util.onBeforeIsolateToShape?.({ binding, removedShape: shape })
+								if (!isInUndoRedo) util.onBeforeIsolateToShape?.({ binding, removedShape: shape })
 								util.onBeforeDeleteFromShape?.({ binding, shape })
 							} else {
-								util.onBeforeIsolateFromShape?.({ binding, removedShape: shape })
+								if (!isInUndoRedo) util.onBeforeIsolateFromShape?.({ binding, removedShape: shape })
 								util.onBeforeDeleteToShape?.({ binding, shape })
 							}
 						}
@@ -1511,6 +1517,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	getCanRedo() {
 		return this.canRedo()
+	}
+
+	/**
+	 * Whether the editor is currently replaying a recorded change as part of an undo or redo.
+	 *
+	 * While this is true, the recorded history diff is authoritative: it already contains the
+	 * result of any side effects that ran when the change first happened. Side effects that perform
+	 * a one-shot, non-idempotent transform (for example, "freezing" an arrow's terminal when the
+	 * shape it points to is deleted) should not run again during replay, otherwise they recompute
+	 * from the already-updated state and drift away from the recorded values.
+	 *
+	 * @example
+	 * ```ts
+	 * class MyBindingUtil extends BindingUtil<MyBinding> {
+	 *     override onBeforeIsolateToShape({ binding }: BindingOnShapeIsolateOptions<MyBinding>) {
+	 *         // the recorded diff already holds the isolated result, so don't recompute it
+	 *         if (this.editor.getIsReplayingHistory()) return
+	 *         // ...otherwise bake in the current geometry
+	 *     }
+	 * }
+	 * ```
+	 *
+	 * @public
+	 */
+	getIsReplayingHistory() {
+		return this.history._isInUndoRedo
 	}
 
 	clearHistory() {
