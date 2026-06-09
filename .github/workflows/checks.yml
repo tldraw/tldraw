@@ -98,3 +98,8 @@ jobs:
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
         run: "yarn build-package | sed -E 's/^.*? ::/::/'"
+
+      - name: Smoke test CJS output
+        # fail if a published dist-cjs build require()s an ESM-only dependency
+        # that isn't inlined (would throw ERR_REQUIRE_ESM for CJS consumers)
+        run: yarn check-cjs

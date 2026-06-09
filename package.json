@@ -63,6 +63,7 @@
 		"profile-tsserver": "tsx internal/scripts/profile-tsserver.ts",
 		"check-packages": "tsx internal/scripts/check-packages.ts",
 		"check-circular-deps": "tsx internal/scripts/check-circular-deps.ts",
+		"check-cjs": "tsx internal/scripts/check-cjs.ts",
 		"update-pr-template": "tsx internal/scripts/update-pr-template.ts",
 		"generate-test-licenses": "tsx internal/scripts/generate-test-licenses.ts",
 		"api-check": "lazy api-check",
