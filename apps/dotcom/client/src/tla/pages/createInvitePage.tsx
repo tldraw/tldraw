@@ -28,25 +28,26 @@ export function createInvitePage(sessionStorageKey: string) {
 			const controller = new AbortController()
 			const { signal } = controller
 
-			async function showSignInDialog() {
-				// Fetch the invite info up front so the signed-out user sees which
-				// group they've been invited to before signing in. This endpoint needs
-				// no auth. On failure we fall back to the plain sign-in dialog.
-				let inviteInfo: ValidInviteInfo | undefined
+			// Fetch the invite info up front so the signed-out user sees which group
+			// they've been invited to before signing in. This endpoint needs no auth.
+			// An invalid or expired token comes back as `{ error: true }`; either that
+			// or a network/parsing failure leaves us with no group name, in which case
+			// we fall back to the plain sign-in dialog rather than blocking sign-in.
+			async function loadInviteInfo(): Promise<ValidInviteInfo | undefined> {
 				try {
 					const res = await fetch(`/api/app/invite/${token}`, { signal })
 					const data: GetInviteInfoResponseBody = await res.json()
-					// An invalid or expired token comes back as `{ error: true }`; we
-					// still show the dialog, just without a group name.
-					if (!data.error) inviteInfo = data
+					return data.error ? undefined : data
 				} catch (err) {
-					// The effect was cleaned up and the request aborted; abandon quietly.
-					if (signal.aborted) return
-					// Only genuine network or parsing failures reach here, not invalid
-					// tokens. Log it so the failure isn't swallowed silently.
-					console.error('Failed to load invite info', err)
+					// An aborted request (effect cleanup) is expected; only log real
+					// failures so they aren't swallowed silently.
+					if (!signal.aborted) console.error('Failed to load invite info', err)
+					return undefined
 				}
+			}
 
+			async function showSignInDialog() {
+				const inviteInfo = await loadInviteInfo()
 				if (signal.aborted) return
 				// Mark the dialog as shown only now that we're actually showing it. If
 				// the guard were set before the fetch resolved, an aborted attempt (an
