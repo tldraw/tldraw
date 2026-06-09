@@ -1,4 +1,4 @@
-import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type TLPointingCropHandleInfo = TLPointerEventInfo & {
@@ -60,6 +60,20 @@ export class PointingCropHandle extends StateNode {
 		}
 		this.editor.setCroppingShape(null)
 		this.editor.setCurrentTool('select.idle')
+	}
+
+	override onDoubleClick(info: TLClickEventInfo) {
+		if (
+			this.editor.inputs.getShiftKey() ||
+			info.phase !== 'down' ||
+			info.ctrlKey ||
+			info.shiftKey
+		) {
+			return
+		}
+
+		this.parent.transition('idle')
+		this.parent.getCurrent()?.handleEvent(info)
 	}
 
 	override onCancel() {

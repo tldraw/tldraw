@@ -429,7 +429,7 @@ describe(TLSocketRoom, () => {
 
 	describe('Session management', () => {
 		let room: TLSocketRoom
-		let onSessionRemoved: ReturnType<typeof vi.fn>
+		let onSessionRemoved: ReturnType<typeof vi.fn<(...args: any[]) => any>>
 
 		beforeEach(() => {
 			onSessionRemoved = vi.fn()
@@ -488,8 +488,8 @@ describe(TLSocketRoom, () => {
 	describe('Message handling', () => {
 		let room: TLSocketRoom
 		let socket: WebSocketMinimal
-		let onBeforeSendMessage: ReturnType<typeof vi.fn>
-		let onAfterReceiveMessage: ReturnType<typeof vi.fn>
+		let onBeforeSendMessage: ReturnType<typeof vi.fn<(...args: any[]) => any>>
+		let onAfterReceiveMessage: ReturnType<typeof vi.fn<(...args: any[]) => any>>
 
 		beforeEach(() => {
 			onBeforeSendMessage = vi.fn()

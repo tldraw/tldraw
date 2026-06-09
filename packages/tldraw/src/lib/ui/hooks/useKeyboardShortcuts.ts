@@ -195,7 +195,10 @@ export function areShortcutsDisabled(editor: Editor) {
 // non-Latin layouts (Cyrillic, Greek, etc.) and macOS Option-letter dead-key combinations,
 // where `event.key` is a non-ASCII glyph.
 
-interface ParsedKbd {
+/**
+ * @internal
+ */
+export interface ParsedKbd {
 	key: string
 	shift: boolean
 	alt: boolean
@@ -319,7 +322,10 @@ const PHYSICAL_KEY_MAP: Record<string, string> = {
 	Backquote: '`',
 }
 
-function parseKbd(kbd: string): ParsedKbd[] {
+/**
+ * @internal
+ */
+export function parseKbd(kbd: string): ParsedKbd[] {
 	const out: ParsedKbd[] = []
 	for (const shortcut of getKeys(kbd)) {
 		const parsed = parseShortcut(shortcut)
@@ -411,11 +417,16 @@ function shouldSkipEvent(e: KeyboardEvent): boolean {
 	return false
 }
 
-// The "raw" kbd here will look something like "a" or a combination of keys "del,backspace".
-// We need to first split them up by comma, then parse each key to ensure backwards compatibility
-// with the old kbd format. We used to have symbols to denote cmd/alt/shift,
-// using ! for shift, $ for cmd, and ? for alt.
-function getHotkeysStringFromKbd(kbd: string) {
+/**
+ * The "raw" kbd here will look something like "a" or a combination of keys
+ * "del,backspace". We need to first split them up by comma, then parse each
+ * key to ensure backwards compatibility with the old kbd format. We used to
+ * have symbols to denote cmd/alt/shift, using ! for shift, $ for cmd, and ?
+ * for alt.
+ *
+ * @internal
+ */
+export function getHotkeysStringFromKbd(kbd: string) {
 	return getKeys(kbd)
 		.map((kbd) => {
 			let str = ''

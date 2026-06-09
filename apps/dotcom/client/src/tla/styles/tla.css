@@ -127,6 +127,25 @@
 	font-weight: 500;
 }
 
+/* Clerk's CAPTCHA widget mounts into #clerk-captcha. The element is always
+   present so any Clerk call can attach its challenge, but it stays empty (and
+   so invisible) for the common invisible challenge. When Clerk injects a
+   visible challenge we center it over the app so the user can complete it. */
+#clerk-captcha:not(:empty) {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	/* A visible challenge blocks the user until completed, so it sits at the
+	   blocker layer — above dialogs (--tl-layer-canvas-overlays) and editor UI. */
+	z-index: var(--tl-layer-canvas-blocker);
+	padding: var(--tl-space-5);
+	background-color: var(--tla-color-panel);
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--tla-radius-2);
+	box-shadow: var(--tla-shadow-3);
+}
+
 /* ---------------------- Text ---------------------- */
 
 .tla-text_ui__title {

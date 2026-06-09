@@ -450,6 +450,18 @@ export class Sidebar {
 		await expect(fileLink).toHaveAttribute('data-is-pinned', 'false')
 	}
 
+	@step
+	async expectFileActive(fileName: string) {
+		const fileLink = this.getFileByName(fileName)
+		await expect(fileLink).toHaveAttribute('data-active', 'true')
+	}
+
+	@step
+	async expectFileNotActive(fileName: string) {
+		const fileLink = this.getFileByName(fileName)
+		await expect(fileLink).toHaveAttribute('data-active', 'false')
+	}
+
 	async getFilesInGroup(groupName: string): Promise<string[]> {
 		const group = this.getGroup(groupName)
 		const fileLinks = group.locator('[data-element="file-link"]')
