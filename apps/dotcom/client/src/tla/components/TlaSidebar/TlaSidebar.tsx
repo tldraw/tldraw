@@ -69,9 +69,12 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarWorkspaceLink />
 					<TlaSidebarCreateFileButton />
 				</div>
+				{/* The workspace list is fixed; only the file list below it scrolls. */}
+				{hasGroups && <TlaSidebarWorkspaceList />}
+				{hasGroups && <div className={styles.sidebarDivider} />}
 				<div className={styles.sidebarContent}>
 					<div className={styles.sidebarContentInner}>
-						{hasGroups ? <NewSidebarLayout /> : <LegacySidebarLayout />}
+						{hasGroups ? <TlaSidebarRecentFilesNew /> : <TlaSidebarRecentFiles />}
 					</div>
 				</div>
 				<div className={styles.sidebarBottomArea}>
@@ -85,16 +88,3 @@ export const TlaSidebar = memo(function TlaSidebar() {
 		</nav>
 	)
 })
-
-function LegacySidebarLayout() {
-	return <TlaSidebarRecentFiles />
-}
-
-function NewSidebarLayout() {
-	return (
-		<>
-			<TlaSidebarWorkspaceList />
-			<TlaSidebarRecentFilesNew />
-		</>
-	)
-}

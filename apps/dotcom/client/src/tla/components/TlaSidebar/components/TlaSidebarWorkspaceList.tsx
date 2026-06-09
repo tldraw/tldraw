@@ -36,12 +36,6 @@ export function TlaSidebarWorkspaceList() {
 				/>
 			))}
 			<TlaSidebarCreateWorkspaceButton />
-			<div
-				style={{
-					borderBottom: '1px solid var(--tla-color-border)',
-					margin: '8px 0',
-				}}
-			/>
 		</div>
 	)
 }
@@ -117,7 +111,7 @@ function TlaSidebarWorkspaceListItem({ groupId, label }: { groupId: string; labe
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,
-						'tla-text_ui__regular',
+						styles.sidebarWorkspaceItemLabel,
 						'notranslate'
 					)}
 				>
@@ -176,7 +170,9 @@ function TlaSidebarCreateWorkspaceButton() {
 			data-testid="tla-create-workspace"
 		>
 			<div className={styles.sidebarFileListItemContent}>
-				<div className={classNames(styles.sidebarFileListItemLabel, 'tla-text_ui__regular')}>
+				<div
+					className={classNames(styles.sidebarFileListItemLabel, styles.sidebarWorkspaceItemLabel)}
+				>
 					<F defaultMessage="Create a workspace +" />
 				</div>
 			</div>

@@ -25,7 +25,6 @@ import { F, defineMessages, useIntl } from '../../../utils/i18n'
 import { toggleMobileSidebar, useIsSidebarOpenMobile } from '../../../utils/local-session-state'
 import { FileItems } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { pinIcon } from './pinIcon'
 import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
@@ -273,7 +272,6 @@ export function TlaSidebarFileLinkInner({
 				draggable={false}
 			/>
 			<div className={styles.sidebarFileListItemContent}>
-				{isPinned && hasGroups && pinIcon}
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,
