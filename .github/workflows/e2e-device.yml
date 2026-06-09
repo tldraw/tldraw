@@ -1,4 +1,4 @@
-name: Device e2e
+name: End to end tests (device)
 
 # Run-on-request device-realistic e2e tests.
 #
@@ -25,9 +25,9 @@ on:
         default: both
         options: [both, ios, android]
       ios_device:
-        description: iOS simulator device name
+        description: iOS simulator device name (optional; auto-picks newest iPhone if empty)
         type: string
-        default: iPhone 16
+        default: ''
   pull_request:
     types: [labeled]
 
@@ -41,7 +41,7 @@ defaults:
 
 # A new push to a PR (or a re-dispatch) cancels the previous in-flight run.
 concurrency:
-  group: device-e2e-${{ github.event.pull_request.number || github.ref }}
+  group: e2e-device-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -65,13 +65,54 @@ jobs:
 
       - name: Install Appium and the XCUITest driver
         run: |
-          npm i -g appium@2
+          npm i -g appium@3
           appium driver install xcuitest
 
+      - name: Resolve Xcode version (WDA cache key)
+        id: xcode
+        run: echo "version=$(xcodebuild -version | head -1 | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache WebDriverAgent build
+        # WDA is rebuilt from source on a cold simulator (~3.5 min). Cache its
+        # DerivedData keyed on the Xcode version so iterating on test fixes reuses
+        # the prebuilt WDA instead of rebuilding. Bump the trailing -vN to bust.
+        id: wda-cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/wda-derived
+          key: wda-${{ runner.os }}-xcode-${{ steps.xcode.outputs.version }}-v1
+
       - name: Boot iOS simulator
+        id: sim
+        # A fresh iOS simulator's first boot runs slow one-time migration plugins
+        # that exceed XCUITest's boot-wait. So boot ONE simulator here, wait for it
+        # to finish (`bootstatus -b`), and hand its UDID to Appium so it attaches to
+        # the ready device instead of booting its own. The available iPhone models
+        # depend on the Xcode the runner image ships, so auto-pick rather than
+        # hardcode a name (an explicit `ios_device` input wins if it matches).
+        env:
+          DEVICE_NAME: ${{ inputs.ios_device }}
         run: |
           xcrun simctl list devices available
-          xcrun simctl boot '${{ inputs.ios_device || 'iPhone 16' }}' || true
+          SEL=$(xcrun simctl list devices available --json | node -e '
+            const data = JSON.parse(require("fs").readFileSync(0, "utf8"));
+            const want = process.env.DEVICE_NAME || "";
+            const runtimes = Object.keys(data.devices).filter(r => r.includes("iOS")).sort().reverse();
+            const phones = [];
+            for (const r of runtimes) for (const d of (data.devices[r] || [])) {
+              if (d.isAvailable !== false && d.name.startsWith("iPhone")) phones.push(d);
+            }
+            const pick = (want && phones.find(d => d.name === want)) || phones[0];
+            if (!pick) process.exit(2);
+            process.stdout.write(pick.udid + "|" + pick.name);
+          ') || { echo "No available iPhone simulator on this runner"; exit 1; }
+          UDID="${SEL%%|*}"
+          NAME="${SEL#*|}"
+          echo "Using $NAME ($UDID)"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
 
       - name: Serve built examples
         run: yarn preview --port "$EXAMPLES_PORT" &
@@ -84,12 +125,16 @@ jobs:
         run: yarn e2e-device-ios
         working-directory: apps/examples
         env:
-          APPIUM_DEVICE_NAME: ${{ inputs.ios_device || 'iPhone 16' }}
+          APPIUM_DEVICE_NAME: ${{ steps.sim.outputs.name }}
+          APPIUM_UDID: ${{ steps.sim.outputs.udid }}
+          # Build WDA into the cached dir; reuse the prebuilt one on a cache hit.
+          APPIUM_DERIVED_DATA_PATH: ${{ runner.temp }}/wda-derived
+          APPIUM_USE_PREBUILT_WDA: ${{ steps.wda-cache.outputs.cache-hit }}
 
       - uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: device-e2e-ios
+          name: e2e-device-ios
           path: apps/examples/e2e-device/artifacts
           retention-days: 14
 
@@ -119,7 +164,7 @@ jobs:
 
       - name: Install Appium and the UiAutomator2 driver
         run: |
-          npm i -g appium@2
+          npm i -g appium@3
           appium driver install uiautomator2
 
       - name: Serve built examples
@@ -144,6 +189,6 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: device-e2e-android
+          name: e2e-device-android
           path: apps/examples/e2e-device/artifacts
           retention-days: 14
