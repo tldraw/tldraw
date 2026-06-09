@@ -62,7 +62,7 @@ export class PointingResizeHandle extends StateNode {
 	}
 
 	private startResizing() {
-		if (this.editor.getIsReadonly()) return
+		if (!this.editor.allow.changeDocument.can()) return
 		this.parent.transition('resizing', this.info)
 	}
 

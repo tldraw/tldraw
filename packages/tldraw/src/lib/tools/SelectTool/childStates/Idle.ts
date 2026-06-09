@@ -87,7 +87,10 @@ export class Idle extends StateNode {
 				// Check to see if we hit any shape under the pointer; if so,
 				// handle this as a pointer down on the shape instead of the canvas
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
-				if (hitShape && (this.editor.options.selectLockedShapes || !hitShape.isLocked)) {
+				if (
+					hitShape &&
+					(this.editor.options.selectLockedShapes || this.editor.allow.selectShape.can(hitShape))
+				) {
 					this.onPointerDown({
 						...info,
 						shape: hitShape,
@@ -184,7 +187,10 @@ export class Idle extends StateNode {
 			case 'shape': {
 				const { shape } = info
 
-				if (!this.editor.options.selectLockedShapes && this.editor.isShapeOrAncestorLocked(shape)) {
+				if (
+					!this.editor.options.selectLockedShapes &&
+					(this.editor.isShapeOrAncestorLocked(shape) || !this.editor.allow.selectShape.can(shape))
+				) {
 					this.parent.transition('pointing_canvas', info)
 					break
 				}
@@ -194,7 +200,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.getIsReadonly()) break
+				if (!this.editor.allow.changeDocument.can()) break
 				if (this.editor.inputs.getAltKey()) {
 					this.parent.transition('pointing_shape', info)
 				} else {
@@ -242,7 +248,8 @@ export class Idle extends StateNode {
 						if (
 							hoveredShape &&
 							!this.editor.getSelectedShapeIds().includes(hoveredShape.id) &&
-							(this.editor.options.selectLockedShapes || !hoveredShape.isLocked)
+							(this.editor.options.selectLockedShapes ||
+								this.editor.allow.selectShape.can(hoveredShape))
 						) {
 							this.onPointerDown({
 								...info,
@@ -367,7 +374,7 @@ export class Idle extends StateNode {
 						info.handle === 'bottom_right' ||
 						info.handle === 'bottom_left'
 
-					if (this.editor.getIsReadonly()) {
+					if (!this.editor.allow.changeDocument.can()) {
 						// includes readonly check
 						if (
 							this.editor.canEditShape(onlySelectedShape, {
@@ -421,7 +428,12 @@ export class Idle extends StateNode {
 				const util = this.editor.getShapeUtil(shape)
 
 				// Allow playing videos and embeds
-				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
+				if (
+					shape.type !== 'video' &&
+					shape.type !== 'embed' &&
+					!this.editor.allow.changeDocument.can()
+				)
+					break
 
 				if (util.onDoubleClick) {
 					// Call the shape's double click handler
@@ -432,7 +444,7 @@ export class Idle extends StateNode {
 					}
 				}
 
-				if (util.canCrop(shape) && !this.editor.isShapeOrAncestorLocked(shape)) {
+				if (util.canCrop(shape) && this.editor.allow.changeShape.can(shape)) {
 					// crop image etc on double click
 					this.editor.markHistoryStoppingPoint('select and crop')
 					this.editor.select(info.shape?.id)
@@ -452,7 +464,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.getIsReadonly()) break
+				if (!this.editor.allow.changeDocument.can()) break
 				const { shape, handle } = info
 
 				const util = this.editor.getShapeUtil(shape)
@@ -709,7 +721,7 @@ export class Idle extends StateNode {
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
-		if (this.editor.getIsReadonly()) return
+		if (!this.editor.allow.changeDocument.can()) return
 
 		if (!this.editor.options.createTextOnCanvasDoubleClick) return
 

@@ -20,8 +20,9 @@ export class Erasing extends StateNode {
 			this.editor
 				.getCurrentPageShapes()
 				.filter((shape) => {
-					//If the shape is locked, we shouldn't erase it
+					//If the shape may not be deleted (locked, or denied by a custom rule), we shouldn't erase it
 					if (this.editor.isShapeOrAncestorLocked(shape)) return true
+					if (!this.editor.allow.deleteShape.can(shape)) return true
 					//If the shape is a group or frame-like, check we're inside it when we start erasing
 					if (this.editor.isShapeOfType(shape, 'group') || this.editor.isShapeFrameLike(shape)) {
 						const pointInShapeShape = this.editor.getPointInShapeSpace(shape, originPagePoint)

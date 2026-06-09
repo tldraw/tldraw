@@ -183,6 +183,67 @@ describe('custom undoRedo rules', () => {
 	})
 })
 
+describe('custom rules gate tool interactions', () => {
+	it('the eraser skips shapes protected by a deleteShape rule', () => {
+		editor.allow.deleteShape.setRule({
+			id: 'protect-box-a',
+			message: 'This shape is protected',
+			test: (shape) => shape.id !== ids.boxA,
+		})
+		editor.setCurrentTool('eraser')
+
+		editor.pointerDown(0, 50) // on the edge of boxA
+		expect(editor.getErasingShapeIds()).toEqual([])
+		editor.pointerUp()
+		expect(editor.getShape(ids.boxA)).toBeDefined()
+
+		editor.pointerDown(200, 250) // on the edge of boxB
+		expect(editor.getErasingShapeIds()).toEqual([ids.boxB])
+		editor.pointerUp()
+		expect(editor.getShape(ids.boxB)).toBeUndefined()
+	})
+
+	it('brush selection skips shapes denied by a selectShape rule', () => {
+		editor.allow.selectShape.setRule({
+			id: 'no-select-box-a',
+			message: 'This shape may not be selected',
+			test: (shape) => shape.id !== ids.boxA,
+		})
+		editor.setCurrentTool('select')
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(150, 150) // wraps boxA entirely
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.pointerUp()
+	})
+
+	it('clicking a shape denied by a selectShape rule does not select it', () => {
+		editor.allow.selectShape.setRule({
+			id: 'no-select-box-a',
+			message: 'This shape may not be selected',
+			test: (shape) => shape.id !== ids.boxA,
+		})
+		editor.setCurrentTool('select')
+		editor.pointerDown(0, 50) // on the edge of boxA
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('pointer-drag translate does not move a shape denied by a changeShape rule', () => {
+		editor.allow.changeShape.setRule({
+			id: 'freeze-box-a',
+			message: 'This shape is frozen',
+			test: (shape) => shape.id !== ids.boxA,
+		})
+		editor.setCurrentTool('select')
+		editor.select(ids.boxA)
+		editor.pointerDown(0, 50, ids.boxA)
+		editor.pointerMove(100, 150)
+		editor.pointerUp()
+		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 0, y: 0 })
+	})
+})
+
 describe('custom per-shape rules', () => {
 	it('deleteShape rules filter which shapes are deleted', () => {
 		editor.allow.deleteShape.setRule({

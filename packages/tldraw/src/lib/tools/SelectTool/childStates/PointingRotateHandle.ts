@@ -41,7 +41,7 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	private startRotating() {
-		if (this.editor.getIsReadonly()) return
+		if (!this.editor.allow.changeDocument.can()) return
 		this.parent.transition('rotating', this.info)
 	}
 

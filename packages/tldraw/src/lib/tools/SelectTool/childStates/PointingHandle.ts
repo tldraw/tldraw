@@ -102,7 +102,7 @@ export class PointingHandle extends StateNode {
 
 	private startDraggingHandle() {
 		const { editor } = this
-		if (editor.getIsReadonly()) return
+		if (!editor.allow.changeDocument.can()) return
 		const { shape, handle } = this.info
 
 		if (editor.isShapeOfType(shape, 'note')) {
