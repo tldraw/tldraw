@@ -1,4 +1,4 @@
-import { Editor, useEditor, useValue } from '@tldraw/editor'
+import { Allowable, Editor, TLShape, useEditor, useValue } from '@tldraw/editor'
 import { getArrowBindings } from '../../shapes/arrow/shared'
 
 function shapesWithUnboundArrows(editor: Editor) {
@@ -40,6 +40,7 @@ export function useAllowGroup() {
 			const selectedShapes = editor.getSelectedShapes()
 
 			if (selectedShapes.length < 2) return false
+			if (!selectedShapes.every((shape) => editor.allow.groupShape.can(shape))) return false
 
 			for (const shape of selectedShapes) {
 				if (editor.isShapeOfType(shape, 'arrow')) {
@@ -69,7 +70,11 @@ export function useAllowUngroup() {
 	const editor = useEditor()
 	return useValue(
 		'allowUngroup',
-		() => editor.getSelectedShapeIds().some((id) => editor.getShape(id)?.type === 'group'),
+		() =>
+			editor.getSelectedShapeIds().some((id) => {
+				const shape = editor.getShape(id)
+				return shape?.type === 'group' && editor.allow.ungroupShape.can(shape)
+			}),
 		[editor]
 	)
 }
@@ -113,16 +118,30 @@ export function useAnySelectedShapesCount(min?: number, max?: number) {
 
 /**
  * Returns true if the number of UNLOCKED selected shapes is at least min or at most max.
+ * A shape counts as unlocked when the editor's `changeShape` allowable permits it, which
+ * includes the built-in lock rules and any custom rules.
  * @public
  */
 export function useUnlockedSelectedShapesCount(min?: number, max?: number) {
 	const editor = useEditor()
+	return useAllowedSelectedShapesCount(editor.allow.changeShape, min, max)
+}
+
+/**
+ * Returns true if the number of selected shapes permitted by the given allowable is at
+ * least min or at most max.
+ * @internal
+ */
+export function useAllowedSelectedShapesCount(
+	allowable: Allowable<TLShape>,
+	min?: number,
+	max?: number
+) {
+	const editor = useEditor()
 	return useValue(
 		'selectedShapes',
 		() => {
-			const len = editor
-				.getSelectedShapes()
-				.filter((s) => !editor.isShapeOrAncestorLocked(s)).length
+			const len = editor.getSelectedShapes().filter((s) => allowable.can(s)).length
 			if (min === undefined) {
 				if (max === undefined) {
 					// just length
@@ -141,7 +160,7 @@ export function useUnlockedSelectedShapesCount(min?: number, max?: number) {
 				}
 			}
 		},
-		[editor]
+		[editor, allowable]
 	)
 }
 
@@ -171,7 +190,7 @@ export function useHasLinkShapeSelected() {
 				onlySelectedShape &&
 				onlySelectedShape.type !== 'embed' &&
 				'url' in onlySelectedShape.props &&
-				!onlySelectedShape.isLocked
+				editor.allow.changeShape.can(onlySelectedShape)
 			)
 		},
 		[editor]
@@ -200,13 +219,13 @@ export function useOnlyFlippableShape() {
 /** @public */
 export function useCanRedo() {
 	const editor = useEditor()
-	return useValue('useCanRedo', () => editor.getCanRedo(), [editor])
+	return useValue('useCanRedo', () => editor.getCanRedo() && editor.allow.undoRedo.can(), [editor])
 }
 
 /** @public */
 export function useCanUndo() {
 	const editor = useEditor()
-	return useValue('useCanUndo', () => editor.getCanUndo(), [editor])
+	return useValue('useCanUndo', () => editor.getCanUndo() && editor.allow.undoRedo.can(), [editor])
 }
 
 /** Returns true if the current page has at least one shape. */

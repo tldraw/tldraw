@@ -1,6 +1,7 @@
 import { ExtractShapeByProps, preventDefault, TLShape, TLShapeId, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
+import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -25,7 +26,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 	const msg = useTranslation()
 	const ref = useRef<HTMLInputElement>(null)
 	const trackEvent = useUiEvents()
-	const isReadonly = editor.getIsReadonly()
+	const isReadonly = useReadonly()
 
 	const handleValueChange = (value: string) => setAltText(value)
 

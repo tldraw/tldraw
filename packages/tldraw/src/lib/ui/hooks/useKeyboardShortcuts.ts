@@ -65,7 +65,7 @@ export function useKeyboardShortcuts() {
 		}
 
 		for (const tool of Object.values(tools)) {
-			if (!tool.kbd || (!tool.readonlyOk && editor.getIsReadonly())) {
+			if (!tool.kbd || (!tool.readonlyOk && isReadonlyMode)) {
 				continue
 			}
 

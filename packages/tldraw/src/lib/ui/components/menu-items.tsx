@@ -13,6 +13,7 @@ import {
 	useOnlyFlippableShape,
 	useShowAutoSizeToggle,
 	useThreeStackableItems,
+	useAllowedSelectedShapesCount,
 	useUnlockedSelectedShapesCount,
 } from '../hooks/menu-hooks'
 import { useGetEmbedDefinition } from '../hooks/useGetEmbedDefinition'
@@ -43,7 +44,8 @@ export function EditLinkMenuItem() {
 
 /** @public @react */
 export function DuplicateMenuItem() {
-	const shouldDisplay = useUnlockedSelectedShapesCount(1)
+	const editor = useEditor()
+	const shouldDisplay = useAllowedSelectedShapesCount(editor.allow.duplicateShape, 1)
 	if (!shouldDisplay) return null
 
 	return <TldrawUiMenuActionItem actionId="duplicate" />
@@ -257,8 +259,9 @@ export function CopyAsMenuGroup() {
 
 /** @public @react */
 export function CutMenuItem() {
+	const editor = useEditor()
 	const canApplySelectionAction = useCanApplySelectionAction()
-	const hasUnlockedShapes = useUnlockedSelectedShapesCount(1)
+	const hasUnlockedShapes = useAllowedSelectedShapesCount(editor.allow.deleteShape, 1)
 
 	return (
 		<TldrawUiMenuActionItem
@@ -319,8 +322,9 @@ export function SelectAllMenuItem() {
 
 /** @public @react */
 export function DeleteMenuItem() {
+	const editor = useEditor()
 	const canApplySelectionAction = useCanApplySelectionAction()
-	const hasUnlockedShapes = useUnlockedSelectedShapesCount(1)
+	const hasUnlockedShapes = useAllowedSelectedShapesCount(editor.allow.deleteShape, 1)
 
 	return (
 		<TldrawUiMenuActionItem
@@ -506,7 +510,7 @@ export function ConvertToBookmarkMenuItem() {
 			return !!(
 				editor.isShapeOfType(onlySelectedShape, 'embed') &&
 				onlySelectedShape.props.url &&
-				!editor.isShapeOrAncestorLocked(onlySelectedShape)
+				editor.allow.changeShape.can(onlySelectedShape)
 			)
 		},
 		[editor]
@@ -531,7 +535,7 @@ export function ConvertToEmbedMenuItem() {
 				editor.isShapeOfType(onlySelectedShape, 'bookmark') &&
 				onlySelectedShape.props.url &&
 				getEmbedDefinition(onlySelectedShape.props.url) &&
-				!editor.isShapeOrAncestorLocked(onlySelectedShape)
+				editor.allow.changeShape.can(onlySelectedShape)
 			)
 		},
 		[editor]

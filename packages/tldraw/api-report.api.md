@@ -6502,7 +6502,7 @@ export function useNativeClipboardEvents(): void;
 // @public (undocumented)
 export function usePrefersReducedMotion(): boolean;
 
-// @public (undocumented)
+// @public
 export function useReadonly(): boolean;
 
 // @public (undocumented)

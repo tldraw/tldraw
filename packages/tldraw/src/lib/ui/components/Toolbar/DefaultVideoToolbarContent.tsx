@@ -2,6 +2,7 @@ import { TLVideoShape, track, useEditor, useValue } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
+import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
@@ -21,7 +22,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'video-toolbar'
-	const isReadonly = editor.getIsReadonly()
+	const isReadonly = useReadonly()
 
 	const actions = useActions()
 

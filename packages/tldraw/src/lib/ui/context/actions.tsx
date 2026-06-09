@@ -1642,8 +1642,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const pages = editor.getPages()
 					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
 					if (currentPageIndex < 1) return
+					const prevPage = pages[currentPageIndex - 1]
+					if (!editor.allow.switchPage.can(prevPage)) return
 					trackEvent('change-page', { source, direction: 'prev' })
-					editor.setCurrentPage(pages[currentPageIndex - 1].id)
+					editor.setCurrentPage(prevPage.id)
 				},
 			},
 			{
@@ -1657,8 +1659,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					// If we're on the last page...
 					if (currentPageIndex === -1 || currentPageIndex >= pages.length - 1) {
-						// if the current page is blank or if we're in readonly mode, do nothing
-						if (editor.getCurrentPageShapes().length <= 0 || editor.getIsReadonly()) {
+						// if the current page is blank or if we may not change the document, do nothing
+						if (editor.getCurrentPageShapes().length <= 0 || !editor.allow.changeDocument.can()) {
 							return
 						}
 						// Otherwise, create a new page
@@ -1675,7 +1677,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 
-					editor.setCurrentPage(pages[currentPageIndex + 1].id)
+					const nextPage = pages[currentPageIndex + 1]
+					if (!editor.allow.switchPage.can(nextPage)) return
+					editor.setCurrentPage(nextPage.id)
 					trackEvent('change-page', { source, direction: 'next' })
 				},
 			},

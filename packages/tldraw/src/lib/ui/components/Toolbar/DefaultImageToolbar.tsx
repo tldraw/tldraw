@@ -29,7 +29,11 @@ export function DefaultImageToolbar({ children }: TLUiImageToolbarProps) {
 	)
 	const isLocked = useValue(
 		'locked',
-		() => (imageShapeId ? editor.getShape<TLImageShape>(imageShapeId)?.isLocked : false),
+		() => {
+			if (!imageShapeId) return false
+			const shape = editor.getShape<TLImageShape>(imageShapeId)
+			return shape ? !editor.allow.changeShape.can(shape) : false
+		},
 		[editor, imageShapeId]
 	)
 	if (!imageShapeId || !showToolbar || isLocked) return null

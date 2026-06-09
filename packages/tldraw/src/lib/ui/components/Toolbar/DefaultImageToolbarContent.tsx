@@ -21,6 +21,7 @@ import {
 } from '../../../shapes/shared/crop'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
+import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
@@ -55,7 +56,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const msg = useTranslation()
 	const source = 'image-toolbar'
 	const sliderRef = useRef<HTMLDivElement>(null)
-	const isReadonly = editor.getIsReadonly()
+	const isReadonly = useReadonly()
 
 	const crop = useValue('crop', () => editor.getShape<TLImageShape>(imageShapeId)!.props.crop, [
 		editor,
