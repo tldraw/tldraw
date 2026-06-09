@@ -984,6 +984,29 @@ describe('intersectPolygonPolygon', () => {
 		expect(result!.length).toBeGreaterThanOrEqual(4)
 	})
 
+	it('should intersect a convex polygon with a concave clip window via the convex fallback', () => {
+		// L-shape (concave) inside a 10×10 square. True intersection area is 75.
+		const square = [new Vec(0, 0), new Vec(10, 0), new Vec(10, 10), new Vec(0, 10)]
+		const lShape = [
+			new Vec(0, 0),
+			new Vec(10, 0),
+			new Vec(10, 5),
+			new Vec(5, 5),
+			new Vec(5, 10),
+			new Vec(0, 10),
+		]
+		const result = intersectPolygonPolygon(square, lShape)
+		expect(result).not.toBeNull()
+		expect(polygonIsSimple(result!)).toBe(true)
+
+		let area = 0
+		for (let i = 0; i < result!.length; i++) {
+			const j = (i + 1) % result!.length
+			area += result![i].x * result![j].y - result![j].x * result![i].y
+		}
+		expect(Math.abs(area) / 2).toBeCloseTo(75, 5)
+	})
+
 	it('should preserve boundary order for concave subject clipped by a rectangle', () => {
 		const concaveU = [
 			new Vec(0, 0),

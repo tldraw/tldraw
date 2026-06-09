@@ -397,14 +397,39 @@ function finalizePolygonClipResult(clipped: VecLike[]): VecLike[] | null {
 	return deduped
 }
 
+function isConvexPolygon(points: VecLike[], crossEpsilon = CLIP_CROSS_EPSILON): boolean {
+	const n = points.length
+	if (n < 3) return false
+
+	let sign = 0
+	for (let i = 0; i < n; i++) {
+		const a = points[i]
+		const b = points[(i + 1) % n]
+		const c = points[(i + 2) % n]
+		const cross = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x)
+		if (Math.abs(cross) <= crossEpsilon) continue
+		const turn = cross > 0 ? 1 : -1
+		if (sign === 0) {
+			sign = turn
+		} else if (turn !== sign) {
+			return false
+		}
+	}
+
+	return true
+}
+
 /**
- * Clip a polygon by a convex clip window (Sutherland-Hodgman).
+ * Return the intersection of two polygons using Sutherland–Hodgman clipping.
  *
- * `polygonA` may be concave. `polygonB` must be a convex clip window with
- * consistent winding (the same winding as tldraw shape geometry vertices).
+ * Each polygon may be concave, but only a **convex** polygon can be used as the
+ * clip window. The function clips `polygonA` by `polygonB` when `polygonB` is
+ * convex, otherwise clips `polygonB` by `polygonA` when `polygonA` is convex.
+ * Returns `null` when neither polygon is convex or the intersection is degenerate.
+ * Clip windows must use consistent winding (the same winding as tldraw shape geometry vertices).
  *
  * @param polygonA - Subject polygon to clip.
- * @param polygonB - Convex clip window polygon.
+ * @param polygonB - Clip window polygon when convex.
  * @public
  */
 export function intersectPolygonPolygon(
@@ -413,10 +438,22 @@ export function intersectPolygonPolygon(
 ): VecLike[] | null {
 	if (polygonA.length < 3 || polygonB.length < 3) return null
 
-	const clippedA = finalizePolygonClipResult(clipPolygonByConvexWindow(polygonA, polygonB))
-	if (clippedA) return clippedA
+	const aIsConvex = isConvexPolygon(polygonA)
+	const bIsConvex = isConvexPolygon(polygonB)
 
-	return finalizePolygonClipResult(clipPolygonByConvexWindow(polygonB, polygonA))
+	// Sutherland–Hodgman requires a convex clip window. A concave clip window can
+	// still yield a non-null polygon, so only run each pass when that polygon is convex.
+	if (bIsConvex) {
+		const clippedA = finalizePolygonClipResult(clipPolygonByConvexWindow(polygonA, polygonB))
+		if (clippedA) return clippedA
+	}
+
+	if (aIsConvex) {
+		const clippedB = finalizePolygonClipResult(clipPolygonByConvexWindow(polygonB, polygonA))
+		if (clippedB) return clippedB
+	}
+
+	return null
 }
 
 /**
