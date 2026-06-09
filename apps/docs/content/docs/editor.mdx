@@ -104,6 +104,44 @@ editor.run(
 )
 ```
 
+## Permissions
+
+The editor's [AllowManager](?), available as `editor.allow`, holds named sets of rules — called allowables — that gate what the user may do. Editor methods, the default tools, and the default user interface all consult these allowables: when a rule denies an action, the matching menu items and shortcuts disable, tools skip the affected shapes, and the editor methods themselves bail out.
+
+The built-in allowables are:
+
+| Allowable        | Gates                                                | Context   |
+| ---------------- | ---------------------------------------------------- | --------- |
+| `changeDocument` | Any change to the document (denied in readonly mode) | none      |
+| `moveCamera`     | Camera movement (denied while the camera is locked)  | none      |
+| `undoRedo`       | Undo and redo (denied in readonly mode)              | none      |
+| `switchPage`     | Navigating to a page                                 | `TLPage`  |
+| `changeShape`    | Changing a shape (denied for locked shapes)          | `TLShape` |
+| `selectShape`    | Selecting a shape via select-all or brushing         | `TLShape` |
+| `deleteShape`    | Deleting or erasing a shape                          | `TLShape` |
+| `duplicateShape` | Duplicating a shape                                  | `TLShape` |
+| `groupShape`     | Grouping a shape                                     | `TLShape` |
+| `ungroupShape`   | Ungrouping a shape                                   | `TLShape` |
+
+Add a rule to an allowable to customize what is permitted. A rule has an id (used to replace or remove it), a message explaining why it denies, and a test function that receives the allowable's context.
+
+```ts
+editor.allow.deleteShape.setRule({
+	id: 'protect-template-shapes',
+	message: 'Template shapes cannot be deleted',
+	test: (shape) => !shape.meta.isTemplate,
+})
+
+editor.allow.deleteShape.can(myShape) // false for template shapes
+editor.allow.deleteShape.removeRule('protect-template-shapes')
+```
+
+Allowables are reactive: rules live in signals, so reading [Allowable#can](?) inside a reaction or [useValue](?) updates when the rules — or any state their tests read — change. Use [Allowable#check](?) to get the messages of the rules that denied an action, and [Allowable#getResult](?) on a contextless allowable to get its result as a signal. You can register your own allowables for your application's actions with [AllowManager#register](?).
+
+Some operations deliberately bypass allowables: camera and page methods accept `{ force: true }`, and `editor.run(fn, { ignoreShapeLock: true })` skips the per-shape checks entirely, including custom rules.
+
+Rules shape the local user experience, but they are not a security boundary — in a collaborative app, the server must enforce real permissions.
+
 ## Capabilities
 
 The editor provides methods and properties organized around these areas:

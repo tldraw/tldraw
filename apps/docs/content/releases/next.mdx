@@ -8,11 +8,13 @@ status: published
 last_version: v5.1.0
 ---
 
-This release simplifies multi-click handling down to a single double-click event — a breaking change for anyone relying on triple- or quadruple-click handlers — and fixes a number of canvas interaction bugs around pinch-zoom selection, pasting mid-gesture, note list editing, and zoom clamping.
+This release adds a rule-based permission system to the editor (`editor.allow`), wired through the editor methods, tools, and default UI. It also simplifies multi-click handling down to a single double-click event — a breaking change for anyone relying on triple- or quadruple-click handlers — and fixes a number of canvas interaction bugs around pinch-zoom selection, pasting mid-gesture, note list editing, and zoom clamping.
 
 ## API changes
 
 - 💥 Simplify multi-click handling to double-click only. `ClickManager` no longer tracks triple or quadruple clicks: the `triple_click` and `quadruple_click` events and the `onTripleClick` / `onQuadrupleClick` handlers have been removed, and `TLClickEventName` is now just `'double_click'`. ([#8897](https://github.com/tldraw/tldraw/pull/8897))
+- Add a permission system to the editor. `editor.allow` is an `AllowManager` holding named, reactive sets of rules (`Allowable`s) that gate what the user may do: `changeDocument`, `moveCamera`, `undoRedo`, `switchPage`, and per-shape `changeShape`, `selectShape`, `deleteShape`, `duplicateShape`, `groupShape`, and `ungroupShape`. Editor methods, the default tools, and the default UI all consult these allowables, so adding a custom rule disables the matching menu items and shortcuts, makes tools skip protected shapes, and blocks the editor methods themselves. `Editor#setCurrentPage` now accepts `{ force: true }` to bypass the `switchPage` allowable.
+- 💥 `Editor#undo` and `Editor#redo` no longer run while the editor is in readonly mode (or when a custom rule denies the new `undoRedo` allowable). Previously, undo could mutate a readonly document if history existed from before readonly was enabled.
 
 ## Bug fixes
 
