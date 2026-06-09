@@ -12,7 +12,7 @@ import styles from './TlaInviteDialog.module.css'
 
 const messages = defineMessages({
 	inviteDialogTitle: {
-		defaultMessage: 'You have been invited to join group:',
+		defaultMessage: 'You have been invited to join workspace:',
 	},
 })
 
@@ -57,7 +57,7 @@ export function TlaInviteDialog({
 						onClose()
 					}}
 				>
-					<F defaultMessage="Accept and join group" />
+					<F defaultMessage="Accept and join workspace" />
 				</button>
 				<button className={styles.declineButton} onClick={onClose}>
 					<F defaultMessage="No thanks" />

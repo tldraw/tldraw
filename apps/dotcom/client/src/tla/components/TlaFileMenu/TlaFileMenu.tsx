@@ -276,7 +276,7 @@ export function FileItems({
 						)}
 						<TldrawUiMenuGroup id="create-new-group">
 							<TldrawUiMenuItem
-								label="New group"
+								label="New workspace"
 								id="create-new-group"
 								readonlyOk
 								icon={<TlaIcon icon="plus" />}

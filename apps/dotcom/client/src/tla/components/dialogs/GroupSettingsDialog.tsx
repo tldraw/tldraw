@@ -22,9 +22,9 @@ import { ConfirmDialog } from './ConfirmDialog'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
-	title: { defaultMessage: 'Group settings' },
+	title: { defaultMessage: 'Workspace settings' },
 	name: { defaultMessage: 'Name' },
-	namePlaceholder: { defaultMessage: 'Group name' },
+	namePlaceholder: { defaultMessage: 'Workspace name' },
 	inviteMembers: { defaultMessage: 'Invite members' },
 	regenerateInviteLinkHelp: {
 		defaultMessage: 'Revoke this link and create a new one.',
@@ -35,16 +35,16 @@ const messages = defineMessages({
 	admin: { defaultMessage: 'Admin' },
 	you: { defaultMessage: 'you' },
 	dangerZone: { defaultMessage: 'Danger zone' },
-	leaveGroup: { defaultMessage: 'Leave group…' },
-	deleteGroup: { defaultMessage: 'Delete group…' },
+	leaveGroup: { defaultMessage: 'Leave workspace…' },
+	deleteGroup: { defaultMessage: 'Delete workspace…' },
 	save: { defaultMessage: 'Save' },
 	cancel: { defaultMessage: 'Cancel' },
-	confirmLeave: { defaultMessage: 'Are you sure you want to leave this group?' },
+	confirmLeave: { defaultMessage: 'Are you sure you want to leave this workspace?' },
 	confirmDelete: {
-		defaultMessage: 'Are you sure you want to delete this group? This action cannot be undone.',
+		defaultMessage: 'Are you sure you want to delete this workspace? This action cannot be undone.',
 	},
-	leaveAction: { defaultMessage: 'Leave group' },
-	deleteAction: { defaultMessage: 'Delete group' },
+	leaveAction: { defaultMessage: 'Leave workspace' },
+	deleteAction: { defaultMessage: 'Delete workspace' },
 })
 
 interface GroupSettingsDialogProps {

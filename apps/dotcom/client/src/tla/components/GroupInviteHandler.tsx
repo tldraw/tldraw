@@ -14,7 +14,7 @@ import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { TlaInviteDialog } from './dialogs/TlaInviteDialog'
 
 const groupInviteMessages = defineMessages({
-	alreadyMember: { defaultMessage: 'You are already a member of this group' },
+	alreadyMember: { defaultMessage: 'You are already a member of this workspace' },
 })
 
 export function GroupInviteHandler() {

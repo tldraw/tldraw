@@ -20,7 +20,7 @@ import styles from './auth.module.css'
 const messages = defineMessages({
 	enterEmailAddress: { defaultMessage: 'Enter your email address' },
 	inviteMessage: {
-		defaultMessage: 'You have been invited to join group:',
+		defaultMessage: 'You have been invited to join workspace:',
 	},
 })
 
