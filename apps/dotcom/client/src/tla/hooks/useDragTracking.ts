@@ -258,7 +258,15 @@ export function useDragTracking() {
 				}
 			}
 
+			// The `drag` event is throttled well below the animation-frame rate,
+			// so on its own it leaves `mousePosition` stale between frames — the
+			// auto-scroll loop would keep scrolling for several frames after the
+			// pointer has already left the edge zone. `dragover` fires as the
+			// pointer moves across elements, refreshing the position within about
+			// a frame of leaving the zone. We only read coordinates here (no
+			// preventDefault), so this doesn't affect drop handling.
 			window.addEventListener('drag', handleMouseMove)
+			window.addEventListener('dragover', handleMouseMove)
 			let animationFrame = 0
 
 			// Start the measurement loop
@@ -306,6 +314,7 @@ export function useDragTracking() {
 				cleanupRef.current = null
 				cancelAnimationFrame(animationFrame)
 				window.removeEventListener('drag', handleMouseMove)
+				window.removeEventListener('dragover', handleMouseMove)
 				window.removeEventListener('dragend', onDone)
 				window.removeEventListener('pointerup', onDone)
 				window.removeEventListener('blur', onDone)
