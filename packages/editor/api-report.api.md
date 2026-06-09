@@ -115,11 +115,12 @@ export interface Allowable<Ctx> {
 export class AllowManager {
     constructor(editor: Editor);
     can<Ctx>(allowable: Allowable<Ctx>, ...args: [Ctx] extends [void] ? [] : [ctx: Ctx]): boolean;
+    // @internal
+    _canWithoutCapture(allowable: Allowable<void>): boolean;
     readonly changeDocument: Allowable<void>;
     readonly changeShape: Allowable<TLShape>;
     check<Ctx>(allowable: Allowable<Ctx>, ...args: [Ctx] extends [void] ? [] : [ctx: Ctx]): AllowResult;
     readonly deleteShape: Allowable<TLShape>;
-    dispose(): void;
     readonly duplicateShape: Allowable<TLShape>;
     getResult(allowable: Allowable<void>): Computed<AllowResult>;
     readonly groupShape: Allowable<TLShape>;
@@ -134,8 +135,11 @@ export class AllowManager {
 
 // @public
 export interface AllowResult {
+    failures: Array<{
+        message: string;
+        ruleId: string;
+    }>;
     ok: boolean;
-    reasons: string[];
 }
 
 // @public

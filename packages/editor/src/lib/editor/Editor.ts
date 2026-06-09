@@ -423,7 +423,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.performance = new PerformanceManager(this)
 		this.disposables.add(() => this.performance.dispose())
 		this.allow = new AllowManager(this)
-		this.disposables.add(() => this.allow.dispose())
 		this.collaborators = new CollaboratorsManager(this)
 
 		class NewRoot extends RootState {
@@ -2182,7 +2181,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Select all the unlocked shapes within the parent
 		const ids = this.getSortedChildIdsForParent(parentToSelectWithinId)
 		if (ids.length <= 0) return this
-		this.setSelectedShapes(this._getUnlockedShapeIds(ids, this.allow.selectShape))
+		this.setSelectedShapes(this._getAllowedShapeIds(ids, this.allow.selectShape))
 		return this
 	}
 
@@ -2713,8 +2712,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const util = this.getShapeUtil(_shape)
 		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
 		if (!util.canEdit(_shape, _info)) return false // shape is not editable
-		if (!util.canEditInReadonly(_shape) && !this.allow.can(this.allow.changeDocument)) return false // readonly and no exception
-		if (!util.canEditWhileLocked(_shape) && !this.allow.can(this.allow.changeShape, _shape))
+		if (!this.allow.can(this.allow.changeDocument) && !util.canEditInReadonly(_shape)) return false // readonly and no exception
+		if (!this.allow.can(this.allow.changeShape, _shape) && !util.canEditWhileLocked(_shape))
 			return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
 		return true // shape is editable
 	}
@@ -3566,7 +3565,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCamera(point: VecLike, opts?: TLCameraMoveOptions): this {
-		if (!opts?.force && !this.allow.can(this.allow.moveCamera)) return this
+		if (!opts?.force && !this.allow._canWithoutCapture(this.allow.moveCamera)) return this
 
 		// Stop any camera animations
 		this.stopCameraAnimation()
@@ -3854,7 +3853,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts?: { targetZoom?: number; inset?: number } & TLCameraMoveOptions
 	): this {
 		const cameraOptions = this._cameraOptions.__unsafe__getWithoutCapture()
-		if (!opts?.force && !this.allow.can(this.allow.moveCamera)) return this
+		if (!opts?.force && !this.allow._canWithoutCapture(this.allow.moveCamera)) return this
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
@@ -4966,7 +4965,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	createPage(page: Partial<TLPage>): this {
 		this.run(() => {
-			if (this.getIsReadonly()) return
+			if (!this.allow.can(this.allow.changeDocument)) return
 			if (this.getPages().length >= this.options.maxPages) return
 			const pages = this.getPages()
 
@@ -5009,7 +5008,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const id = typeof page === 'string' ? page : page.id
 		this.run(
 			() => {
-				if (this.getIsReadonly()) return
+				if (!this.allow.can(this.allow.changeDocument)) return
 				const pages = this.getPages()
 				if (pages.length === 1) return
 
@@ -6966,7 +6965,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const ids = this._shouldIgnoreShapeLock
 				? _ids
-				: this._getUnlockedShapeIds(_ids, this.allow.duplicateShape)
+				: this._getAllowedShapeIds(_ids, this.allow.duplicateShape)
 			if (ids.length <= 0) return this
 
 			const initialIds = new Set(ids)
@@ -7165,7 +7164,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (this.getIsReadonly() || ids.length === 0) return this
+		if (!this.allow.can(this.allow.changeDocument) || ids.length === 0) return this
 
 		let allLocked = true,
 			allUnlocked = true
@@ -8796,7 +8795,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shapesToGroup = compact(
 			(this._shouldIgnoreShapeLock
 				? ids
-				: this._getUnlockedShapeIds(ids, this.allow.groupShape)
+				: this._getAllowedShapeIds(ids, this.allow.groupShape)
 			).map((id) => this.getShape(id))
 		)
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
@@ -8877,7 +8876,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shapesToUngroup = compact(
 			(this._shouldIgnoreShapeLock
 				? ids
-				: this._getUnlockedShapeIds(ids, this.allow.ungroupShape)
+				: this._getAllowedShapeIds(ids, this.allow.ungroupShape)
 			).map((id) => this.getShape(id))
 		)
 
@@ -8996,7 +8995,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	_updateShapes(_partials: (TLShapePartial | null | undefined)[]) {
-		if (this.getIsReadonly()) return
+		if (!this.allow.can(this.allow.changeDocument)) return
 
 		this.run(() => {
 			const updates = []
@@ -9034,7 +9033,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _getUnlockedShapeIds(ids: TLShapeId[], allowable: Allowable<TLShape>): TLShapeId[] {
+	private _getAllowedShapeIds(ids: TLShapeId[], allowable: Allowable<TLShape>): TLShapeId[] {
 		return ids.filter((id) => {
 			const shape = this.getShape(id)
 			return !shape || this.allow.can(allowable, shape)
@@ -9068,7 +9067,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Normally we don't want to delete locked shapes, but if the force option is set, we'll delete them anyway
 		const shapeIdsToDelete = this._shouldIgnoreShapeLock
 			? shapeIds
-			: this._getUnlockedShapeIds(shapeIds, this.allow.deleteShape)
+			: this._getAllowedShapeIds(shapeIds, this.allow.deleteShape)
 
 		if (shapeIdsToDelete.length === 0) return this
 
@@ -9582,7 +9581,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
 	): Promise<void> {
-		if (!opts.force && this.getIsReadonly()) return
+		if (!opts.force && !this.allow.can(this.allow.changeDocument)) return
 
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
@@ -9597,7 +9596,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
 	): Promise<void> {
-		if (!opts.force && this.getIsReadonly()) return
+		if (!opts.force && !this.allow.can(this.allow.changeDocument)) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
@@ -10950,7 +10949,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		switch (type) {
 			case 'pinch': {
-				if (!this.allow.can(this.allow.moveCamera)) return
+				if (!this.allow._canWithoutCapture(this.allow.moveCamera)) return
 				clearTimeout(this._longPressTimeout)
 				this.inputs.updateFromEvent(info)
 
@@ -11053,7 +11052,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 			case 'wheel': {
-				if (!this.allow.can(this.allow.moveCamera)) return
+				if (!this.allow._canWithoutCapture(this.allow.moveCamera)) return
 
 				this.inputs.updateFromEvent(info)
 

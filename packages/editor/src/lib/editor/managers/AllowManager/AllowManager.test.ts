@@ -66,8 +66,8 @@ describe('built-in allowables', () => {
 		const { allow } = setupManager()
 		expect(allow.can(allow.changeShape, shape)).toBe(true)
 		expect(allow.can(allow.changeShape, makeShape('shape:a', true))).toBe(false)
-		expect(allow.check(allow.changeShape, makeShape('shape:a', true)).reasons).toEqual([
-			'The shape is locked',
+		expect(allow.check(allow.changeShape, makeShape('shape:a', true)).failures).toEqual([
+			{ ruleId: 'not-self-locked', message: 'The shape is locked' },
 		])
 	})
 
@@ -77,8 +77,8 @@ describe('built-in allowables', () => {
 		const child = makeShape('shape:child')
 		parentOf.set(child.id, parent)
 
-		expect(allow.check(allow.changeShape, child).reasons).toEqual([
-			'An ancestor of the shape is locked',
+		expect(allow.check(allow.changeShape, child).failures).toEqual([
+			{ ruleId: 'no-locked-ancestor', message: 'An ancestor of the shape is locked' },
 		])
 		expect(allow.can(allow.changeShape, child)).toBe(false)
 	})
@@ -115,13 +115,13 @@ describe('built-in allowables', () => {
 		}
 	})
 
-	it('reports the denying rule message via check', () => {
+	it('reports the denying rule id and message via check', () => {
 		const { allow, isReadonly } = setupManager()
-		expect(allow.check(allow.changeDocument)).toEqual({ ok: true, reasons: [] })
+		expect(allow.check(allow.changeDocument)).toEqual({ ok: true, failures: [] })
 		isReadonly.set(true)
 		expect(allow.check(allow.changeDocument)).toEqual({
 			ok: false,
-			reasons: ['The editor is in readonly mode'],
+			failures: [{ ruleId: 'not-readonly', message: 'The editor is in readonly mode' }],
 		})
 	})
 })
@@ -159,6 +159,21 @@ describe('reactivity', () => {
 		tracked.stop()
 	})
 
+	it('_canWithoutCapture does not capture in the surrounding reactive context', () => {
+		const { allow, cameraOptions } = setupManager()
+		const tracked = track(() => allow._canWithoutCapture(allow.moveCamera))
+
+		expect(tracked.runs).toBe(1)
+		expect(tracked.value).toBe(true)
+
+		// the reaction does not re-run, but the value is still current when read
+		cameraOptions.set({ isLocked: true })
+		expect(tracked.runs).toBe(1)
+		expect(allow._canWithoutCapture(allow.moveCamera)).toBe(false)
+
+		tracked.stop()
+	})
+
 	it('getResult returns a stable computed for a contextless allowable', () => {
 		const { allow, isReadonly } = setupManager()
 		const result = allow.getResult(allow.changeDocument)
@@ -179,7 +194,9 @@ describe('register and edit rules', () => {
 
 		expect(allow.can(canEditShape, { locked: false })).toBe(true)
 		expect(allow.can(canEditShape, { locked: true })).toBe(false)
-		expect(allow.check(canEditShape, { locked: true }).reasons).toEqual(['Shape is locked'])
+		expect(allow.check(canEditShape, { locked: true }).failures).toEqual([
+			{ ruleId: 'not-locked', message: 'Shape is locked' },
+		])
 	})
 
 	it('collects every failing rule, in order', () => {
@@ -189,16 +206,16 @@ describe('register and edit rules', () => {
 			{ id: 'b', message: 'second', test: () => true },
 			{ id: 'c', message: 'third', test: () => false },
 		])
-		expect(allow.check(a).reasons).toEqual(['first', 'third'])
+		expect(allow.check(a).failures.map((f) => f.message)).toEqual(['first', 'third'])
 	})
 
 	it('setRule replaces a rule that shares its id', () => {
 		const { allow } = setupManager()
 		const a = allow.register('a', [{ id: 'r', message: 'v1', test: () => false }])
-		expect(allow.check(a).reasons).toEqual(['v1'])
+		expect(allow.check(a).failures.map((f) => f.message)).toEqual(['v1'])
 
 		allow.setRule(a, { id: 'r', message: 'v2', test: () => false })
-		expect(allow.check(a).reasons).toEqual(['v2'])
+		expect(allow.check(a).failures.map((f) => f.message)).toEqual(['v2'])
 		expect(a.rules.get()).toHaveLength(1)
 	})
 
@@ -207,6 +224,22 @@ describe('register and edit rules', () => {
 		const a = allow.register('temp', [])
 		allow.unregister(a)
 		expect(() => allow.can(a)).toThrow()
+	})
+
+	it('throws when registering an id that is already in use', () => {
+		const { allow } = setupManager()
+		allow.register('custom', [])
+		expect(() => allow.register('custom', [])).toThrow()
+		// built-in ids are taken too
+		expect(() => allow.register('changeDocument', [])).toThrow()
+	})
+
+	it('throws when unregistering a built-in allowable', () => {
+		const { allow } = setupManager()
+		expect(() => allow.unregister(allow.changeDocument)).toThrow()
+		expect(() => allow.unregister(allow.changeShape)).toThrow()
+		// the built-in still works afterwards
+		expect(allow.can(allow.changeDocument)).toBe(true)
 	})
 })
 

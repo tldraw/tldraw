@@ -42,8 +42,8 @@ export interface Allowable<Ctx> {
 export interface AllowResult {
 	/** Whether every rule passed. */
 	ok: boolean
-	/** The messages of any rules that denied the action, in rule order. */
-	reasons: string[]
+	/** The id and message of each rule that denied the action, in rule order. */
+	failures: Array<{ ruleId: string; message: string }>
 }
 
 /**
@@ -61,6 +61,7 @@ export interface AllowResult {
 export class AllowManager {
 	private readonly allowables = new Map<string, Allowable<any>>()
 	private readonly results = new Map<string, Computed<AllowResult>>()
+	private readonly builtinIds: ReadonlySet<string>
 
 	/**
 	 * Whether the document may be changed. Seeded with a rule that denies changes
@@ -92,10 +93,11 @@ export class AllowManager {
 	readonly changeShape: Allowable<TLShape>
 
 	/**
-	 * Whether a shape may be selected (and acted on by selection-driven commands
-	 * like delete, group, and ungroup). Seeded with a rule that denies a directly
-	 * locked shape. Unlike {@link AllowManager.changeShape}, this does not consider
-	 * locked ancestors. Add rules to it to apply custom per-shape permissions.
+	 * Whether a shape may be selected when selecting every shape within a parent,
+	 * as in select-all. Seeded with a rule that denies a directly locked shape.
+	 * Unlike {@link AllowManager.changeShape}, this does not consider locked
+	 * ancestors, and it is not consulted by direct selection methods like
+	 * `setSelectedShapes`. Add rules to it to apply custom per-shape permissions.
 	 *
 	 * @public
 	 */
@@ -172,22 +174,41 @@ export class AllowManager {
 		this.duplicateShape = this.register('duplicateShape', [shapeNotSelfLocked])
 		this.groupShape = this.register('groupShape', [shapeNotSelfLocked])
 		this.ungroupShape = this.register('ungroupShape', [shapeNotSelfLocked])
+
+		// Editor methods assume the built-ins are always registered, so protect
+		// them from unregister.
+		this.builtinIds = new Set(this.allowables.keys())
 	}
 
 	/**
 	 * Register an allowable: a named set of rules that must all pass. Returns the
 	 * allowable so it can be passed to {@link AllowManager.can} and the rule-editing
 	 * methods, where its `Ctx` type checks their arguments.
+	 *
+	 * Ids must be unique; registering an id that is already in use throws. To
+	 * change an existing allowable's rules, use {@link AllowManager.setRule} and
+	 * {@link AllowManager.removeRule} instead.
 	 */
 	register<Ctx = void>(id: string, rules: AllowRule<Ctx>[] = []): Allowable<Ctx> {
-		this.results.delete(id)
+		if (this.allowables.has(id)) {
+			throw Error(`An allowable with id '${id}' is already registered`)
+		}
 		const allowable: Allowable<Ctx> = { id, rules: atom(`allow:${id}:rules`, [...rules]) }
 		this.allowables.set(id, allowable)
 		return allowable
 	}
 
-	/** Remove a previously registered allowable. */
+	/**
+	 * Remove a previously registered allowable. The editor's built-in allowables
+	 * cannot be unregistered, as editor methods rely on them; remove or replace
+	 * their rules instead.
+	 */
 	unregister(allowable: Allowable<any>): void {
+		if (this.builtinIds.has(allowable.id)) {
+			throw Error(
+				`Cannot unregister the built-in allowable '${allowable.id}'. Remove or replace its rules instead.`
+			)
+		}
 		this.allowables.delete(allowable.id)
 		this.results.delete(allowable.id)
 	}
@@ -240,20 +261,24 @@ export class AllowManager {
 		return this.check(allowable, ...args).ok
 	}
 
-	/** Clean up any resources held by the manager. */
-	dispose() {
-		// Nothing to tear down: the manager holds no subscriptions or timers, and
-		// its maps are released when the editor is garbage collected. We keep the
-		// registered allowables intact so `can()` still works on a disposed editor,
-		// matching the rest of the editor's post-dispose behavior.
+	/**
+	 * Like {@link AllowManager.can} for a contextless allowable, but without
+	 * capturing the result in the surrounding reactive context. Used by hot
+	 * paths (like `setCamera` and input dispatch) that deliberately avoid
+	 * becoming reactive to permission changes.
+	 *
+	 * @internal
+	 */
+	_canWithoutCapture(allowable: Allowable<void>): boolean {
+		return this.getResultComputed(this.getRegistered(allowable)).__unsafe__getWithoutCapture().ok
 	}
 
 	private evaluate<Ctx>(allowable: Allowable<Ctx>, ctx: Ctx): AllowResult {
-		const reasons: string[] = []
+		const failures: AllowResult['failures'] = []
 		for (const rule of allowable.rules.get()) {
-			if (!rule.test(ctx)) reasons.push(rule.message)
+			if (!rule.test(ctx)) failures.push({ ruleId: rule.id, message: rule.message })
 		}
-		return { ok: reasons.length === 0, reasons }
+		return { ok: failures.length === 0, failures }
 	}
 
 	private getResultComputed<Ctx>(allowable: Allowable<Ctx>): Computed<AllowResult> {
