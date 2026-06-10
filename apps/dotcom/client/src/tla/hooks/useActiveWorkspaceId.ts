@@ -6,6 +6,9 @@ import { useApp } from './useAppState'
  * The active workspace ("group") is derived from the file that's currently open,
  * not stored separately. We resolve it from the file in the URL and fall back to
  * the user's home group ("My files").
+ *
+ * A file can belong to a workspace the user is not a member of (e.g. a guest
+ * visiting a shared file); only memberships count as active.
  */
 export function useActiveWorkspaceId() {
 	const app = useApp()
@@ -15,7 +18,9 @@ export function useActiveWorkspaceId() {
 		() => {
 			if (fileSlug) {
 				const file = app.getFile(fileSlug)
-				if (file?.owningGroupId) return file.owningGroupId
+				if (file?.owningGroupId && app.getWorkspaceMembership(file.owningGroupId)) {
+					return file.owningGroupId
+				}
 			}
 			return app.getHomeWorkspaceId()
 		},
