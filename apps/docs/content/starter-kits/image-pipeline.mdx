@@ -33,7 +33,7 @@ REPLICATE_API_TOKEN=<your key>
 
 ## Use cases
 
-Use the Image Pipeline Starter Kit to build:
+Use the image pipeline starter kit to build:
 
 <StarterKitBento type="image-pipeline" />
 
@@ -94,6 +94,7 @@ export class CustomNodeDefinition extends NodeDefinition<CustomNode> {
 	category = 'process'
 
 	getDefault() { ... }
+	getBodyHeightPx(shape, node) { ... }
 	getPorts(shape, node) { ... }
 	async execute(shape, node, inputs) { ... }
 	getOutputInfo(shape, node, inputs) { ... }

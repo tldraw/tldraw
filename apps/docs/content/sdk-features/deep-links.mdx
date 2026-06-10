@@ -102,7 +102,7 @@ editor.navigateToDeepLink({
 Sets up automatic URL updates as the viewport changes. The listener debounces updates (500ms by default) to avoid excessive history entries:
 
 ```typescript
-// Use default behavior (updates window.location)
+// Use default behavior (replaces the current URL without adding history entries)
 const unlisten = editor.registerDeepLinkListener()
 
 // Custom change handler with longer debounce
