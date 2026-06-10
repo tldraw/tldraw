@@ -841,10 +841,6 @@ export class TldrawApp {
 		await this.z.mutate.removeFileFromWorkspace({ fileId, workspaceId }).client
 	}
 
-	async addFileLinkToWorkspace(fileId: string, workspaceId: string) {
-		await this.z.mutate.addFileLinkToWorkspace({ fileId, workspaceId }).client
-	}
-
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
 		if (!this.canUpdateFile(fileId)) throw Error('user cannot edit that file')
 
