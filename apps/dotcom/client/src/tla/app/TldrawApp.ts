@@ -1204,7 +1204,7 @@ export class TldrawApp {
 				this.navigate(routes.tlaRoot())
 				return
 			}
-			await sleep(50)
+			await sleep(100)
 		}
 
 		// Clear any existing ordering for this new workspace to get fresh ordering
