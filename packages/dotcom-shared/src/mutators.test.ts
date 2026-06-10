@@ -391,7 +391,7 @@ describe('file mutations', () => {
 		}
 	}
 
-	it('group member can update file', async () => {
+	it('workspace member can update file', async () => {
 		const s = baseStore()
 		const f = makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })
 		s.file.push(f)
@@ -400,7 +400,7 @@ describe('file mutations', () => {
 		await expectValid(() => m.file.update(tx, { id: f.id, name: 'Renamed' }))
 	})
 
-	it('shared user without group membership cannot update file', async () => {
+	it('shared user without workspace membership cannot update file', async () => {
 		const otherId = 'user_other1234567890'
 		const s = baseStore()
 		const f = makeFile({
@@ -459,7 +459,7 @@ describe('file creation', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
 
-	it('migrated user can create file in own group', async () => {
+	it('migrated user can create file in own workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -473,7 +473,7 @@ describe('file creation', () => {
 		await expectValid(() =>
 			m.createFile(tx, {
 				fileId: 'file_aaaa11112222bbbb',
-				groupId,
+				workspaceId: groupId,
 				name: 'New File',
 				time: Date.now(),
 				createSource: null,
@@ -481,7 +481,7 @@ describe('file creation', () => {
 		)
 	})
 
-	it('migrated user cannot create file in another group', async () => {
+	it('migrated user cannot create file in another workspace', async () => {
 		const otherGroup = 'group_other123456789'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -496,7 +496,7 @@ describe('file creation', () => {
 		await expectForbidden(() =>
 			m.createFile(tx, {
 				fileId: 'file_aaaa11112222bbbb',
-				groupId: otherGroup,
+				workspaceId: otherGroup,
 				name: 'Nope',
 				time: Date.now(),
 				createSource: null,
@@ -598,7 +598,7 @@ describe('onEnterFile', () => {
 		await expectForbidden(() => m.onEnterFile(tx, { fileId, time: Date.now() }))
 	})
 
-	it('entering file already in group does not create duplicate group_file', async () => {
+	it('entering file already in workspace does not create duplicate group_file', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId, shared: true })],
@@ -615,10 +615,10 @@ describe('onEnterFile', () => {
 	})
 })
 
-describe('group mutations', () => {
+describe('workspace mutations', () => {
 	const userId = 'user_aaaa11112222bbbb'
 
-	it('migrated user can create group', async () => {
+	it('migrated user can create workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -630,13 +630,13 @@ describe('group mutations', () => {
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		const groupId = 'group_new123456789ab'
-		await m.createGroup(tx, { id: groupId, name: 'My Group' })
+		await m.createWorkspace(tx, { id: groupId, name: 'My Group' })
 		expect(s.group.length).toBe(1)
 		expect(s.group_user.length).toBe(1)
 		expect((s.group_user as TlaGroupUser[])[0]?.role).toBe('owner')
 	})
 
-	it('owner can update group name', async () => {
+	it('owner can update workspace name', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -648,10 +648,10 @@ describe('group mutations', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await expectValid(() => m.updateGroup(tx, { id: groupId, name: 'Renamed' }))
+		await expectValid(() => m.updateWorkspace(tx, { id: groupId, name: 'Renamed' }))
 	})
 
-	it('member cannot update group name', async () => {
+	it('member cannot update workspace name', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -663,10 +663,10 @@ describe('group mutations', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await expectForbidden(() => m.updateGroup(tx, { id: groupId, name: 'Renamed' }))
+		await expectForbidden(() => m.updateWorkspace(tx, { id: groupId, name: 'Renamed' }))
 	})
 
-	it('owner can delete group', async () => {
+	it('owner can delete workspace', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const fileId = 'file_aaaa11112222bbbb'
 		const s = {
@@ -679,13 +679,13 @@ describe('group mutations', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await m.deleteGroup(tx, { id: groupId })
+		await m.deleteWorkspace(tx, { id: groupId })
 		expect(s.group[0]?.isDeleted).toBe(true)
 		expect(s.file[0]?.isDeleted).toBe(true)
 		expect(s.group_file.length).toBe(0)
 	})
 
-	it('non-owner cannot delete group', async () => {
+	it('non-owner cannot delete workspace', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -697,7 +697,7 @@ describe('group mutations', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await expectForbidden(() => m.deleteGroup(tx, { id: groupId }))
+		await expectForbidden(() => m.deleteWorkspace(tx, { id: groupId }))
 	})
 })
 
@@ -720,7 +720,11 @@ describe('membership', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await m.setGroupMemberRole(tx, { groupId, targetUserId: memberId, role: 'owner' })
+		await m.setWorkspaceMemberRole(tx, {
+			workspaceId: groupId,
+			targetUserId: memberId,
+			role: 'owner',
+		})
 		expect(s.group_user.find((gu) => gu.userId === memberId)?.role).toBe('owner')
 	})
 
@@ -739,7 +743,7 @@ describe('membership', () => {
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
-			m.setGroupMemberRole(tx, { groupId, targetUserId: memberId, role: 'owner' })
+			m.setWorkspaceMemberRole(tx, { workspaceId: groupId, targetUserId: memberId, role: 'owner' })
 		)
 	})
 
@@ -758,11 +762,11 @@ describe('membership', () => {
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
-			m.setGroupMemberRole(tx, { groupId, targetUserId: userId, role: 'member' })
+			m.setWorkspaceMemberRole(tx, { workspaceId: groupId, targetUserId: userId, role: 'member' })
 		)
 	})
 
-	it('last owner cannot leave group', async () => {
+	it('last owner cannot leave workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -773,10 +777,10 @@ describe('membership', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await expectForbidden(() => m.leaveGroup(tx, { groupId }))
+		await expectForbidden(() => m.leaveWorkspace(tx, { workspaceId: groupId }))
 	})
 
-	it('non-owner member can leave group', async () => {
+	it('non-owner member can leave workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -790,18 +794,18 @@ describe('membership', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await m.leaveGroup(tx, { groupId })
+		await m.leaveWorkspace(tx, { workspaceId: groupId })
 		expect(s.group_user.find((gu) => gu.userId === userId)).toBeUndefined()
 	})
 })
 
-describe('file operations across groups', () => {
+describe('file operations across workspaces', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupA = 'group_aaa11112222bbb'
 	const groupB = 'group_bbb11112222ccc'
 	const fileId = 'file_aaaa11112222bbbb'
 
-	it('member of both groups can move file between them', async () => {
+	it('member of both workspaces can move file between them', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -815,11 +819,11 @@ describe('file operations across groups', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await m.moveFileToGroup(tx, { fileId, groupId: groupB })
+		await m.moveFileToWorkspace(tx, { fileId, workspaceId: groupB })
 		expect(s.file[0]?.owningGroupId).toBe(groupB)
 	})
 
-	it('member of source group only cannot move file to other group', async () => {
+	it('member of source workspace only cannot move file to other workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -830,10 +834,10 @@ describe('file operations across groups', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await expectForbidden(() => m.moveFileToGroup(tx, { fileId, groupId: groupB }))
+		await expectForbidden(() => m.moveFileToWorkspace(tx, { fileId, workspaceId: groupB }))
 	})
 
-	it('member of target group only cannot move file from other group', async () => {
+	it('member of target workspace only cannot move file from other workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -844,10 +848,10 @@ describe('file operations across groups', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await expectForbidden(() => m.moveFileToGroup(tx, { fileId, groupId: groupB }))
+		await expectForbidden(() => m.moveFileToWorkspace(tx, { fileId, workspaceId: groupB }))
 	})
 
-	it('member can remove file from group', async () => {
+	it('member can remove file from workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -858,11 +862,47 @@ describe('file operations across groups', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await m.removeFileFromGroup(tx, { fileId, groupId: groupA })
+		await m.removeFileFromWorkspace(tx, { fileId, workspaceId: groupA })
 		expect(s.file[0]?.isDeleted).toBe(true)
 	})
 
-	it('member with file access can add file link to group', async () => {
+	it('non-member cannot remove file from workspace', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [makeFile({ id: fileId, owningGroupId: groupA })],
+			file_state: [makeFileState({ userId, fileId })],
+			group: [makeGroup({ id: groupA })],
+			group_user: [],
+			group_file: [makeGroupFile({ fileId, groupId: groupA })],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectForbidden(() => m.removeFileFromWorkspace(tx, { fileId, workspaceId: groupA }))
+		expect(s.file[0]?.isDeleted).toBe(false)
+	})
+
+	it('removing a linked file deletes only the link, not the file', async () => {
+		// the file is owned by workspace B but linked into workspace A
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [makeFile({ id: fileId, owningGroupId: groupB })],
+			file_state: [makeFileState({ userId, fileId })],
+			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
+			group_user: [makeGroupUser({ userId, groupId: groupA, role: 'owner' })],
+			group_file: [
+				makeGroupFile({ fileId, groupId: groupA }),
+				makeGroupFile({ fileId, groupId: groupB }),
+			],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.removeFileFromWorkspace(tx, { fileId, workspaceId: groupA })
+		expect(s.file[0]?.isDeleted).toBe(false)
+		expect(s.group_file.some((gf) => gf.groupId === groupA)).toBe(false)
+		expect(s.group_file.some((gf) => gf.groupId === groupB)).toBe(true)
+	})
+
+	it('drag move operation moves the file to the target workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -874,46 +914,103 @@ describe('file operations across groups', () => {
 			],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
 		}
-		const { tx } = createMockTx(s, { location: 'server' })
+		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await m.addFileLinkToGroup(tx, { fileId, groupId: groupB })
-		expect(s.group_file.find((gf) => gf.groupId === groupB)).toBeDefined()
+		await m.handleFileDragOperation(tx, {
+			fileId,
+			workspaceId: groupA,
+			operation: { move: { targetId: groupB } },
+		})
+		expect(s.file[0]?.owningGroupId).toBe(groupB)
+		expect(s.group_file.some((gf) => gf.groupId === groupB && gf.fileId === fileId)).toBe(true)
+		expect(s.group_file.some((gf) => gf.groupId === groupA && gf.fileId === fileId)).toBe(false)
 	})
 
-	it('member without file access cannot add file link to group', async () => {
-		const otherGroup = 'group_other123456789'
+	it('drag reorder pins the file above the insert target', async () => {
+		const otherFileId = 'file_bbbb11112222cccc'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
-			file: [makeFile({ id: fileId, owningGroupId: otherGroup, shared: false })],
+			file: [
+				makeFile({ id: fileId, owningGroupId: groupA }),
+				makeFile({ id: otherFileId, owningGroupId: groupA }),
+			],
 			file_state: [],
-			group: [makeGroup({ id: groupB }), makeGroup({ id: otherGroup })],
-			group_user: [makeGroupUser({ userId, groupId: groupB })],
-			group_file: [],
-		}
-		const { tx } = createMockTx(s, { location: 'server' })
-		const m = createMutators(userId)
-		await expectForbidden(() => m.addFileLinkToGroup(tx, { fileId, groupId: groupB }))
-	})
-
-	it('non-member cannot add file link to group', async () => {
-		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
-			file: [makeFile({ id: fileId, owningGroupId: groupA, shared: true })],
-			file_state: [],
-			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
+			group: [makeGroup({ id: groupA })],
 			group_user: [makeGroupUser({ userId, groupId: groupA })],
-			group_file: [],
+			group_file: [
+				makeGroupFile({ fileId, groupId: groupA }),
+				makeGroupFile({ fileId: otherFileId, groupId: groupA, index: 'a1' as IndexKey }),
+			],
 		}
-		const { tx } = createMockTx(s, { location: 'server' })
+		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await expectForbidden(() => m.addFileLinkToGroup(tx, { fileId, groupId: groupB }))
+		await m.handleFileDragOperation(tx, {
+			fileId,
+			workspaceId: groupA,
+			operation: { reorder: { insertBeforeId: otherFileId, indicatorY: 0 } },
+		})
+		const moved = s.group_file.find((gf) => gf.fileId === fileId)
+		const target = s.group_file.find((gf) => gf.fileId === otherFileId)
+		expect(moved?.index).toBeTruthy()
+		expect(moved!.index! < target!.index!).toBe(true)
+	})
+
+	it('drag with an empty operation unpins the file', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [makeFile({ id: fileId, owningGroupId: groupA })],
+			file_state: [],
+			group: [makeGroup({ id: groupA })],
+			group_user: [makeGroupUser({ userId, groupId: groupA })],
+			group_file: [makeGroupFile({ fileId, groupId: groupA, index: 'a1' as IndexKey })],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.handleFileDragOperation(tx, { fileId, workspaceId: groupA, operation: {} })
+		expect(s.group_file.find((gf) => gf.fileId === fileId)?.index).toBe(null)
+	})
+
+	it('pinning in a workspace computes the index against that workspace, not home', async () => {
+		const otherFileId = 'file_bbbb11112222cccc'
+		const homePinnedId = 'file_cccc11112222dddd'
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [
+				makeFile({ id: fileId, owningGroupId: groupA }),
+				makeFile({ id: otherFileId, owningGroupId: groupA }),
+				makeFile({ id: homePinnedId, owningGroupId: userId }),
+			],
+			file_state: [],
+			group: [makeGroup({ id: groupA }), makeGroup({ id: userId })],
+			group_user: [
+				makeGroupUser({ userId, groupId: groupA }),
+				makeGroupUser({ userId, groupId: userId }),
+			],
+			group_file: [
+				makeGroupFile({ fileId, groupId: groupA }),
+				// an already-pinned sibling in the same workspace
+				makeGroupFile({ fileId: otherFileId, groupId: groupA, index: 'a1' as IndexKey }),
+				// a pinned file in the home workspace with the same index; it must not
+				// influence (or collide with) the new pin's index
+				makeGroupFile({ fileId: homePinnedId, groupId: userId, index: 'a1' as IndexKey }),
+			],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.pinFile(tx, { fileId, workspaceId: groupA })
+
+		const pinned = s.group_file.find((gf) => gf.fileId === fileId && gf.groupId === groupA)
+		const sibling = s.group_file.find((gf) => gf.fileId === otherFileId && gf.groupId === groupA)
+		expect(pinned?.index).toBeTruthy()
+		// new pin goes above the workspace's existing pinned sibling
+		expect(pinned!.index! < sibling!.index!).toBe(true)
 	})
 })
 
-describe('home group special case', () => {
+describe('home workspace special case', () => {
 	const userId = 'user_aaaa11112222bbbb'
 
-	it('home group shortcut passes membership check', async () => {
+	it('home workspace shortcut passes membership check', async () => {
 		// createFile with groupId === userId should pass the membership check
 		// even without a group_user row, because of the userId === groupId shortcut
 		const s = {
@@ -930,7 +1027,7 @@ describe('home group special case', () => {
 		await expectValid(() =>
 			m.createFile(tx, {
 				fileId: 'file_home123456789ab',
-				groupId: userId,
+				workspaceId: userId,
 				name: 'Home file',
 				time: Date.now(),
 				createSource: null,
@@ -938,8 +1035,8 @@ describe('home group special case', () => {
 		)
 	})
 
-	it('home group shortcut passes ownership check', async () => {
-		// updateGroup with id === userId should pass assertUserIsGroupOwner
+	it('home workspace shortcut passes ownership check', async () => {
+		// updateWorkspace with id === userId should pass assertUserIsWorkspaceOwner
 		// via the shortcut, even if there's no group_user row
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -951,11 +1048,11 @@ describe('home group special case', () => {
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await expectValid(() => m.updateGroup(tx, { id: userId, name: 'My Home' }))
+		await expectValid(() => m.updateWorkspace(tx, { id: userId, name: 'My Home' }))
 	})
 })
 
-describe('regenerateGroupInviteSecret', () => {
+describe('regenerateWorkspaceInviteSecret', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
 
@@ -970,7 +1067,7 @@ describe('regenerateGroupInviteSecret', () => {
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
-		await m.regenerateGroupInviteSecret(tx, { id: groupId })
+		await m.regenerateWorkspaceInviteSecret(tx, { id: groupId })
 		// inviteSecret should have changed
 		expect(s.group[0]?.inviteSecret).not.toBe('old_secret_1234567')
 	})
@@ -988,7 +1085,7 @@ describe('regenerateGroupInviteSecret', () => {
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(nonMemberId)
-		await expectForbidden(() => m.regenerateGroupInviteSecret(tx, { id: groupId }))
+		await expectForbidden(() => m.regenerateWorkspaceInviteSecret(tx, { id: groupId }))
 	})
 })
 
@@ -1199,7 +1296,7 @@ describe('createFile from source (duplicate) access control', () => {
 	function duplicate(m: ReturnType<typeof createMutators>, tx: any, createSource: string | null) {
 		return m.createFile(tx, {
 			fileId: newFileId,
-			groupId: userId,
+			workspaceId: userId,
 			name: 'Copy',
 			time: Date.now(),
 			createSource,
@@ -1301,7 +1398,7 @@ describe('legacy file creation (insertWithFileState removed as a mutator)', () =
 		await expectValid(() =>
 			m.createFile(tx, {
 				fileId: 'file_legacy123456789',
-				groupId: userId,
+				workspaceId: userId,
 				name: 'Legacy file',
 				time: Date.now(),
 				createSource: null,

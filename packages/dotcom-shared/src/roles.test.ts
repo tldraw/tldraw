@@ -9,9 +9,9 @@ describe('capabilities', () => {
 			'addFiles',
 			'removeFiles',
 			'manageInvites',
-			'editGroup',
+			'editWorkspace',
 			'editMembers',
-			'deleteGroup',
+			'deleteWorkspace',
 		])
 		expect(new Set(capabilities).size).toBe(capabilities.length)
 	})
@@ -30,9 +30,9 @@ describe('can', () => {
 	})
 
 	it('denies members the administrative capabilities', () => {
-		expect(can('member', 'editGroup')).toBe(false)
+		expect(can('member', 'editWorkspace')).toBe(false)
 		expect(can('member', 'editMembers')).toBe(false)
-		expect(can('member', 'deleteGroup')).toBe(false)
+		expect(can('member', 'deleteWorkspace')).toBe(false)
 	})
 
 	it("members' capabilities are a subset of owners'", () => {

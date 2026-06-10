@@ -1,7 +1,7 @@
 import { Capability } from './capabilities'
 
 /**
- * Group authorization, expressed as capabilities rather than role names.
+ * Workspace authorization, expressed as capabilities rather than role names.
  *
  * Authorization asks `can(role, capability)` — never `role === 'owner'` — so the
  * meaning of a role lives in exactly one place: the `roles` table below. Read a
@@ -24,13 +24,13 @@ const roles = {
 		'addFiles',
 		'removeFiles',
 		'manageInvites',
-		'editGroup',
+		'editWorkspace',
 		'editMembers',
-		'deleteGroup',
+		'deleteWorkspace',
 	],
 } satisfies Record<string, readonly Capability[]>
 
-/** A role a member can have in a group — the string stored in `group_user.role`. */
+/** A role a member can have in a workspace — the string stored in `group_user.role`. */
 export type Role = keyof typeof roles
 
 /**

@@ -1,4 +1,4 @@
-import { Role, can } from '@tldraw/dotcom-shared'
+import { Role, ZErrorCode, can } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { MouseEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -23,9 +23,9 @@ import { ConfirmDialog } from './ConfirmDialog'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
-	title: { defaultMessage: 'Group settings' },
+	title: { defaultMessage: 'Workspace settings' },
 	name: { defaultMessage: 'Name' },
-	namePlaceholder: { defaultMessage: 'Group name' },
+	namePlaceholder: { defaultMessage: 'Workspace name' },
 	inviteMembers: { defaultMessage: 'Invite members' },
 	regenerateInviteLinkHelp: {
 		defaultMessage: 'Revoke this link and create a new one.',
@@ -36,24 +36,24 @@ const messages = defineMessages({
 	member: { defaultMessage: 'Member' },
 	you: { defaultMessage: 'you' },
 	dangerZone: { defaultMessage: 'Danger zone' },
-	leaveGroup: { defaultMessage: 'Leave group…' },
-	deleteGroup: { defaultMessage: 'Delete group…' },
+	leaveWorkspace: { defaultMessage: 'Leave workspace…' },
+	deleteWorkspaceMsg: { defaultMessage: 'Delete workspace…' },
 	save: { defaultMessage: 'Save' },
 	cancel: { defaultMessage: 'Cancel' },
-	confirmLeave: { defaultMessage: 'Are you sure you want to leave this group?' },
+	confirmLeave: { defaultMessage: 'Are you sure you want to leave this workspace?' },
 	confirmDelete: {
-		defaultMessage: 'Are you sure you want to delete this group? This action cannot be undone.',
+		defaultMessage: 'Are you sure you want to delete this workspace? This action cannot be undone.',
 	},
-	leaveAction: { defaultMessage: 'Leave group' },
-	deleteAction: { defaultMessage: 'Delete group' },
+	leaveAction: { defaultMessage: 'Leave workspace' },
+	deleteAction: { defaultMessage: 'Delete workspace' },
 })
 
-interface GroupSettingsDialogProps {
-	groupId: string
+interface WorkspaceSettingsDialogProps {
+	workspaceId: string
 	onClose(): void
 }
 
-export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogProps) {
+export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSettingsDialogProps) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const [isRegenerating, setIsRegenerating] = useState(false)
@@ -65,29 +65,30 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 	const memberMsg = useMsg(messages.member)
 	const youMsg = useMsg(messages.you)
 
-	// Get group data
-	const groupMembership = useValue('groupMembership', () => app.getGroupMembership(groupId), [
-		app,
-		groupId,
-	])
+	// Get workspace data
+	const workspaceMembership = useValue(
+		'workspaceMembership',
+		() => app.getWorkspaceMembership(workspaceId),
+		[app, workspaceId]
+	)
 	const currentFileId = useCurrentFileId()
 	const navigate = useNavigate()
 
-	if (!groupMembership) return null
-	const group = groupMembership.group
-	const currentUser = groupMembership.groupMembers.find(
+	if (!workspaceMembership) return null
+	const workspace = workspaceMembership.group
+	const currentUser = workspaceMembership.groupMembers.find(
 		(member) => member.userId === app.getUser().id
 	)
 	const role = currentUser?.role
-	const ownersCount = groupMembership.groupMembers.filter((m) => m.role === 'owner').length
-	// Leaving is allowed for everyone except the last owner — a group invariant
+	const ownersCount = workspaceMembership.groupMembers.filter((m) => m.role === 'owner').length
+	// Leaving is allowed for everyone except the last owner — a workspace invariant
 	// (it must always keep at least one owner), not a capability.
 	const canLeave = role !== 'owner' || ownersCount > 1
 	const roleLabels: Record<Role, string> = { owner: ownerMsg, member: memberMsg }
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
-		app.copyGroupInvite(groupId, false)
+		if (!app.copyWorkspaceInvite(workspaceId, false)) return
 		setCopiedInviteLink(true)
 		setTimeout(() => setCopiedInviteLink(false), 1000)
 	}
@@ -96,7 +97,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 		e.preventDefault()
 		setIsRegenerating(true)
 		try {
-			await app.z.mutate.regenerateGroupInviteSecret({ id: groupId }).server
+			await app.z.mutate.regenerateWorkspaceInviteSecret({ id: workspaceId }).server
 			setShowRefreshSuccess(true)
 			setTimeout(() => setShowRefreshSuccess(false), 1000)
 		} finally {
@@ -104,31 +105,33 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 		}
 	}
 
-	const handleLeaveGroup = async () => {
+	const handleLeaveWorkspace = async () => {
 		try {
-			const isCurrentlyOnAFileInThisGroup =
-				currentFileId && app.getFile(currentFileId)?.owningGroupId === groupId
-			await app.z.mutate.leaveGroup({ groupId }).client
+			const isCurrentlyOnAFileInThisWorkspace =
+				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
+			await app.z.mutate.leaveWorkspace({ workspaceId }).client
 			onClose()
-			if (isCurrentlyOnAFileInThisGroup) {
+			if (isCurrentlyOnAFileInThisWorkspace) {
 				navigate('/')
 			}
 		} catch (error) {
-			console.error('Error leaving group:', error)
+			console.error('Error leaving workspace:', error)
+			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
 		}
 	}
 
-	const handleDeleteGroup = async () => {
+	const handleDeleteWorkspace = async () => {
 		try {
-			const isCurrentlyOnAFileInThisGroup =
-				currentFileId && app.getFile(currentFileId)?.owningGroupId === groupId
-			await app.z.mutate.deleteGroup({ id: groupId }).client
+			const isCurrentlyOnAFileInThisWorkspace =
+				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
+			await app.z.mutate.deleteWorkspace({ id: workspaceId }).client
 			onClose()
-			if (isCurrentlyOnAFileInThisGroup) {
+			if (isCurrentlyOnAFileInThisWorkspace) {
 				navigate('/')
 			}
 		} catch (error) {
-			console.error('Error deleting group:', error)
+			console.error('Error deleting workspace:', error)
+			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
 		}
 	}
 
@@ -141,7 +144,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					confirmLabel={<F {...messages.leaveAction} />}
 					cancelLabel={<F {...messages.cancel} />}
 					confirmType="danger"
-					onConfirm={handleLeaveGroup}
+					onConfirm={handleLeaveWorkspace}
 					onClose={onClose}
 				/>
 			),
@@ -157,18 +160,20 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					confirmLabel={<F {...messages.deleteAction} />}
 					cancelLabel={<F {...messages.cancel} />}
 					confirmType="danger"
-					onConfirm={handleDeleteGroup}
+					onConfirm={handleDeleteWorkspace}
 					onClose={onClose}
 				/>
 			),
 		})
 	}
 
-	if (!group || !groupMembership) {
+	if (!workspace || !workspaceMembership) {
 		return null
 	}
 
-	const inviteUrl = group.inviteSecret ? routes.tlaInvite(group.inviteSecret, { asUrl: true }) : ''
+	const inviteUrl = workspace.inviteSecret
+		? routes.tlaInvite(workspace.inviteSecret, { asUrl: true })
+		: ''
 
 	return (
 		<_Tooltip.Provider>
@@ -178,20 +183,21 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.groupSettingsBody}>
+			<TldrawUiDialogBody className={styles.workspaceSettingsBody}>
 				{/* Name Section */}
 				<div className={styles.section}>
 					<div className={styles.sectionLabel}>
 						<F {...messages.name} />
 					</div>
+					{/* Renaming requires the owner role (the updateWorkspace mutator enforces it) */}
 					<TldrawUiInput
 						className={styles.dialogInput}
-						defaultValue={group.name}
-						disabled={!can(role, 'editGroup')}
+						defaultValue={workspace.name}
+						disabled={!can(role, 'editWorkspace')}
 						onValueChange={(value) => {
 							const name = value.trim()
-							if (name && name !== group.name) {
-								app.z.mutate.updateGroup({ id: groupId, name })
+							if (name && name !== workspace.name) {
+								app.z.mutate.updateWorkspace({ id: workspaceId, name })
 							}
 						}}
 						placeholder={namePlaceholderMsg}
@@ -247,11 +253,14 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 				<hr className={styles.divider} />
 				<div className={styles.section}>
 					<label className={styles.sectionLabelLarge}>
-						<F {...messages.members} /> {/* eslint-disable-next-line tldraw/jsx-no-literals */}
-						<span className={styles.memberCount}>{`(${groupMembership.groupMembers.length})`}</span>
+						<F {...messages.members} />{' '}
+						<span className={styles.memberCount}>
+							{/* eslint-disable-next-line tldraw/jsx-no-literals */}
+							{`(${workspaceMembership.groupMembers.length})`}
+						</span>
 					</label>
 					<div className={styles.membersList}>
-						{[...groupMembership.groupMembers]
+						{[...workspaceMembership.groupMembers]
 							.sort((a, b) => {
 								const currentId = app.getUser().id
 								if (a.userId === currentId && b.userId !== currentId) return -1
@@ -282,13 +291,14 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 												if (value === member.role) return
 												if (member.role === 'owner' && value !== 'owner' && ownersCount <= 1) return
 												try {
-													await app.z.mutate.setGroupMemberRole({
-														groupId,
+													await app.z.mutate.setWorkspaceMemberRole({
+														workspaceId,
 														targetUserId: member.userId,
 														role: value,
 													}).client
 												} catch (err) {
 													console.error('Failed to change member role', err)
+													app.showMutationRejectionToast((err as Error).message as ZErrorCode)
 												}
 											}}
 										/>
@@ -309,12 +319,12 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					<div className={styles.dangerZoneActions}>
 						{canLeave && (
 							<button className={styles.inlineButton} onClick={openLeaveConfirmDialog}>
-								<F {...messages.leaveGroup} />
+								<F {...messages.leaveWorkspace} />
 							</button>
 						)}
-						{can(role, 'deleteGroup') && (
+						{can(role, 'deleteWorkspace') && (
 							<button className={styles.inlineButton} onClick={openDeleteConfirmDialog}>
-								<F {...messages.deleteGroup} />
+								<F {...messages.deleteWorkspaceMsg} />
 							</button>
 						)}
 					</div>

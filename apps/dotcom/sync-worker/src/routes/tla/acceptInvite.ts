@@ -49,8 +49,8 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				return Response.json({
 					error: false,
 					message: 'You are already a member of this group',
-					groupId: group.id,
-					groupName: group.name,
+					workspaceId: group.id,
+					workspaceName: group.name,
 					alreadyMember: true,
 				} satisfies AcceptInviteResponseBody)
 			}
@@ -129,8 +129,8 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			return Response.json({
 				error: false,
 				message: 'Successfully joined the group',
-				groupId: group.id,
-				groupName: group.name,
+				workspaceId: group.id,
+				workspaceName: group.name,
 				success: true,
 			} satisfies AcceptInviteResponseBody)
 		})
