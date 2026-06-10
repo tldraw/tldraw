@@ -42,35 +42,31 @@ export function getStrokePoints(
 		}
 	}
 
-	if (pts.length === 0)
-		return [
-			{
-				point: Vec.From(rawInputPoints[0]),
-				input: Vec.From(rawInputPoints[0]),
-				pressure: simulatePressure ? 0.5 : 0.15,
-				vector: new Vec(1, 1),
-				distance: 0,
-				runningLength: 0,
-				radius: 1,
-			},
-		]
+	const minDist2 = (size / 3) ** 2
 
-	// Strip points that are too close to the first point.
-	let pt = pts[1]
-	while (pt) {
-		if (Vec.Dist2(pt, pts[0]) > (size / 3) ** 2) break
-		pts[0].z = Math.max(pts[0].z, pt.z) // Use maximum pressure
-		pts.splice(1, 1)
-		pt = pts[1]
+	// Strip points that are too close to the first point. Work with indices rather
+	// than repeated splices so this stays linear when many points are stripped.
+	const first = pts[0]
+	let startIdx = 1
+	while (startIdx < pts.length) {
+		const pt = pts[startIdx]
+		if (Vec.Dist2(pt, first) > minDist2) break
+		first.z = Math.max(first.z, pt.z) // Use maximum pressure
+		startIdx++
+	}
+
+	if (startIdx > 1) {
+		const kept: Vec[] = [first]
+		for (let i = startIdx; i < pts.length; i++) kept.push(pts[i])
+		pts = kept
 	}
 
 	// Strip points that are too close to the last point.
 	const last = pts.pop()!
-	pt = pts[pts.length - 1]
-	while (pt) {
-		if (Vec.Dist2(pt, last) > (size / 3) ** 2) break
+	while (pts.length) {
+		const pt = pts[pts.length - 1]
+		if (Vec.Dist2(pt, last) > minDist2) break
 		pts.pop()
-		pt = pts[pts.length - 1]
 		pointsRemovedFromNearEnd++
 	}
 	pts.push(last)

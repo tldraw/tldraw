@@ -90,20 +90,20 @@ const MAX_SAMPLES = 1500
 
 /**
  * Directed deviation: for each vertex of `from`, the distance to the closest segment of `to`.
- * Returns max and sum (for mean computation). Subsamples very long polylines to keep the
- * harness fast; deviations are about local geometry, so subsampling barely affects the result.
+ * Returns max and sum (for mean computation). Subsamples the sampled vertices (not the target
+ * segments — replacing target segments with longer chords would report false deviations) to
+ * keep the harness fast.
  */
 function directedDeviation(from: VecModel[], to: VecModel[], closed: boolean) {
 	const samples = subsample(from, MAX_SAMPLES)
-	const targets = subsample(to, MAX_SAMPLES)
-	const n = closed ? targets.length : targets.length - 1
+	const n = closed ? to.length : to.length - 1
 	let max = 0
 	let sum = 0
 	for (const p of samples) {
 		let best = Infinity
 		for (let i = 0; i < n; i++) {
-			const a = targets[i]
-			const b = targets[(i + 1) % targets.length]
+			const a = to[i]
+			const b = to[(i + 1) % to.length]
 			const d = distToSegmentSquared(p.x, p.y, a.x, a.y, b.x, b.y)
 			if (d < best) best = d
 		}

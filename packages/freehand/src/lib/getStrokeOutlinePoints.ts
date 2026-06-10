@@ -6,6 +6,51 @@ const { PI } = Math
 // Browser strokes seem to be off if PI is regular, a tiny offset seems to fix it
 const FIXED_PI = PI + 0.0001
 
+// How far the simplified outline tracks may deviate from the raw tracks, as a fraction of the
+// stroke size. Well below visible thresholds: the parity harness shows sub-0.1px differences at
+// default stroke sizes.
+const TRACK_TOLERANCE_RATIO = 0.05
+
+// The maximum number of intermediate points the track simplifier may drop per kept segment.
+const SIMPLIFY_WINDOW = 8
+
+/**
+ * Drop track points that lie within `tol` of the segment between their kept neighbors. The
+ * outline tracks are dense on gentle curves and straight runs where the quadratic smoothing
+ * used for rendering needs far fewer points; this keeps the simplified polyline within `tol`
+ * of the original one.
+ */
+function simplifyTrack(pts: Vec[], tol: number): Vec[] {
+	if (pts.length <= 2 || tol <= 0) return pts
+	const tol2 = tol * tol
+	const out: Vec[] = [pts[0]]
+	let anchor = 0
+	const lastIdx = pts.length - 1
+	while (anchor < lastIdx) {
+		let best = anchor + 1
+		const maxJ = anchor + SIMPLIFY_WINDOW > lastIdx ? lastIdx : anchor + SIMPLIFY_WINDOW
+		const a = pts[anchor]
+		outer: for (let j = anchor + 2; j <= maxJ; j++) {
+			const c = pts[j]
+			const acx = c.x - a.x
+			const acy = c.y - a.y
+			const l2 = acx * acx + acy * acy
+			for (let k = anchor + 1; k < j; k++) {
+				const b = pts[k]
+				let t = l2 === 0 ? 0 : ((b.x - a.x) * acx + (b.y - a.y) * acy) / l2
+				t = t < 0 ? 0 : t > 1 ? 1 : t
+				const ex = b.x - (a.x + acx * t)
+				const ey = b.y - (a.y + acy * t)
+				if (ex * ex + ey * ey > tol2) break outer
+			}
+			best = j
+		}
+		out.push(pts[best])
+		anchor = best
+	}
+	return out
+}
+
 /**
  * @internal
  */
@@ -34,15 +79,20 @@ export function getStrokeOutlineTracks(
 	const rightPts: Vec[] = []
 
 	// Previous vector
-	let prevVector = strokePoints[0].vector
+	let prevVecX = strokePoints[0].vector.x
+	let prevVecY = strokePoints[0].vector.y
 
 	// Previous left and right points
-	let pl = strokePoints[0].point
-	let pr = pl
+	let plx = strokePoints[0].point.x
+	let ply = strokePoints[0].point.y
+	let prx = plx
+	let pry = ply
 
 	// Temporary left and right points
-	let tl = pl
-	let tr = pr
+	let tlx = plx
+	let tly = ply
+	let trx = prx
+	let trY = pry
 
 	// Keep track of whether the previous point is a sharp corner
 	// ... so that we don't detect the same corner twice
@@ -59,7 +109,9 @@ export function getStrokeOutlineTracks(
 
 	for (let i = 0; i < strokePoints.length; i++) {
 		strokePoint = strokePoints[i]
-		const { point, vector } = strokePoints[i]
+		const point = strokePoint.point
+		const vecX = strokePoint.vector.x
+		const vecY = strokePoint.vector.y
 
 		/*
       Handle sharp corners
@@ -69,12 +121,12 @@ export function getStrokeOutlineTracks(
       draw a cap at the current point.
     */
 
-		const prevDpr = strokePoint.vector.dpr(prevVector)
+		const prevDpr = vecX * prevVecX + vecY * prevVecY
 		const nextVector = (i < strokePoints.length - 1 ? strokePoints[i + 1] : strokePoints[i]).vector
-		const nextDpr = i < strokePoints.length - 1 ? nextVector.dpr(strokePoint.vector) : 1
+		const nextDpr = i < strokePoints.length - 1 ? nextVector.x * vecX + nextVector.y * vecY : 1
 
 		const isPointSharpCorner = prevDpr < 0 && !isPrevPointSharpCorner
-		const isNextPointSharpCorner = nextDpr !== null && nextDpr < 0.2
+		const isNextPointSharpCorner = nextDpr < 0.2
 
 		if (isPointSharpCorner || isNextPointSharpCorner) {
 			// It's a sharp corner. Draw a rounded cap and move on to the next point
@@ -83,35 +135,53 @@ export function getStrokeOutlineTracks(
 
 			if (nextDpr > -0.62 && totalLength - strokePoint.runningLength > strokePoint.radius) {
 				// Draw a "soft" corner
-				const offset = prevVector.clone().mul(strokePoint.radius)
-				const cpr = prevVector.clone().cpr(nextVector)
+				const offsetX = prevVecX * strokePoint.radius
+				const offsetY = prevVecY * strokePoint.radius
+				const cpr = prevVecX * nextVector.y - prevVecY * nextVector.x
 
 				if (cpr < 0) {
-					tl = Vec.Add(point, offset)
-					tr = Vec.Sub(point, offset)
+					tlx = point.x + offsetX
+					tly = point.y + offsetY
+					trx = point.x - offsetX
+					trY = point.y - offsetY
 				} else {
-					tl = Vec.Sub(point, offset)
-					tr = Vec.Add(point, offset)
+					tlx = point.x - offsetX
+					tly = point.y - offsetY
+					trx = point.x + offsetX
+					trY = point.y + offsetY
 				}
 
-				leftPts.push(tl)
-				rightPts.push(tr)
+				leftPts.push(new Vec(tlx, tly))
+				rightPts.push(new Vec(trx, trY))
 			} else {
-				// Draw a "sharp" corner
-				const offset = prevVector.clone().mul(strokePoint.radius).per()
-				const start = Vec.Sub(strokePoint.input, offset)
+				// Draw a "sharp" corner: rotate around the input point
+				const inputX = strokePoint.input.x
+				const inputY = strokePoint.input.y
+				// start = input - per(prevVector) * radius
+				const dx = -prevVecY * strokePoint.radius
+				const dy = prevVecX * strokePoint.radius
 
 				for (let step = 1 / 13, t = 0; t < 1; t += step) {
-					tl = Vec.RotWith(start, strokePoint.input, FIXED_PI * t)
-					leftPts.push(tl)
+					let angle = FIXED_PI * t
+					let s = Math.sin(angle)
+					let c = Math.cos(angle)
+					tlx = inputX + (dx * c - dy * s)
+					tly = inputY + (dx * s + dy * c)
+					leftPts.push(new Vec(tlx, tly))
 
-					tr = Vec.RotWith(start, strokePoint.input, FIXED_PI + FIXED_PI * -t)
-					rightPts.push(tr)
+					angle = FIXED_PI + FIXED_PI * -t
+					s = Math.sin(angle)
+					c = Math.cos(angle)
+					trx = inputX + (dx * c - dy * s)
+					trY = inputY + (dx * s + dy * c)
+					rightPts.push(new Vec(trx, trY))
 				}
 			}
 
-			pl = tl
-			pr = tr
+			plx = tlx
+			ply = tly
+			prx = trx
+			pry = trY
 
 			if (isNextPointSharpCorner) {
 				isPrevPointSharpCorner = true
@@ -123,9 +193,11 @@ export function getStrokeOutlineTracks(
 		isPrevPointSharpCorner = false
 
 		if (strokePoint === firstStrokePoint || strokePoint === lastStrokePoint) {
-			const offset = Vec.Per(vector).mul(strokePoint.radius)
-			leftPts.push(Vec.Sub(point, offset))
-			rightPts.push(Vec.Add(point, offset))
+			// offset = per(vector) * radius
+			const offsetX = vecY * strokePoint.radius
+			const offsetY = -vecX * strokePoint.radius
+			leftPts.push(new Vec(point.x - offsetX, point.y - offsetY))
+			rightPts.push(new Vec(point.x + offsetX, point.y + offsetY))
 
 			continue
 		}
@@ -134,44 +206,61 @@ export function getStrokeOutlineTracks(
       Add regular points
 
       Project points to either side of the current point, using the
-      calculated size as a distance. If a point's distance to the 
+      calculated size as a distance. If a point's distance to the
       previous point on that side greater than the minimum distance
       (or if the corner is kinda sharp), add the points to the side's
       points array.
     */
 
-		const offset = Vec.Lrp(nextVector, vector, nextDpr).per().mul(strokePoint.radius)
+		// offset = lerp(nextVector, vector, nextDpr).per() * radius
+		const lerpedX = nextVector.x + (vecX - nextVector.x) * nextDpr
+		const lerpedY = nextVector.y + (vecY - nextVector.y) * nextDpr
+		const offsetX = lerpedY * strokePoint.radius
+		const offsetY = -lerpedX * strokePoint.radius
 
-		tl = Vec.Sub(point, offset)
+		tlx = point.x - offsetX
+		tly = point.y - offsetY
 
-		if (i <= 1 || Vec.Dist2(pl, tl) > minDistance) {
-			leftPts.push(tl)
-			pl = tl
+		if (i <= 1 || (plx - tlx) ** 2 + (ply - tly) ** 2 > minDistance) {
+			leftPts.push(new Vec(tlx, tly))
+			plx = tlx
+			ply = tly
 		}
 
-		tr = Vec.Add(point, offset)
+		trx = point.x + offsetX
+		trY = point.y + offsetY
 
-		if (i <= 1 || Vec.Dist2(pr, tr) > minDistance) {
-			rightPts.push(tr)
-			pr = tr
+		if (i <= 1 || (prx - trx) ** 2 + (pry - trY) ** 2 > minDistance) {
+			rightPts.push(new Vec(trx, trY))
+			prx = trx
+			pry = trY
 		}
 
 		// Set variables for next iteration
-		prevVector = vector
-
-		continue
+		prevVecX = vecX
+		prevVecY = vecY
 	}
 
 	/*
-    Return the points in the correct winding order: begin on the left side, then 
-    continue around the end cap, then come back along the right side, and finally 
+    Return the points in the correct winding order: begin on the left side, then
+    continue around the end cap, then come back along the right side, and finally
     complete the start cap.
   */
 
+	const tolerance = size * TRACK_TOLERANCE_RATIO
+
 	return {
-		left: leftPts,
-		right: rightPts,
+		left: simplifyTrack(leftPts, tolerance),
+		right: simplifyTrack(rightPts, tolerance),
 	}
+}
+
+/** Pick a step count for a polygonal arc so its chord error stays within `tol`. */
+function arcSteps(radius: number, sweep: number, tol: number, min: number, max: number) {
+	if (radius <= tol) return min
+	const maxAngle = 2 * Math.acos(1 - tol / radius)
+	const steps = Math.ceil(sweep / maxAngle)
+	return steps < min ? min : steps > max ? max : steps
 }
 
 /**
@@ -221,9 +310,13 @@ export function getStrokeOutlinePoints(
 	// Our collected left and right points
 	const { left: leftPts, right: rightPts } = getStrokeOutlineTracks(strokePoints, options)
 
+	// Chord tolerance for the polygonal caps below: caps don't need a fixed number of segments,
+	// they need enough segments that the polygon is indistinguishable from the arc.
+	const capTolerance = Math.max(0.05, size * 0.02)
+
 	/*
     Drawing caps
-    
+
     Now that we have our points on either side of the line, we need to
     draw caps at the start and end. Tapered lines don't have caps, but
     may have dots for very short lines.
@@ -238,7 +331,7 @@ export function getStrokeOutlinePoints(
 
 	/*
     Draw a dot for very short or completed strokes
-    
+
     If the line is too short to gather left or right points and if the line is
     not tapered on either side, draw a dot. If the line is tapered, then only
     draw a dot if the line is both very short and complete. If we draw a dot,
@@ -252,7 +345,8 @@ export function getStrokeOutlinePoints(
 				Vec.Sub(firstPoint, lastPoint).uni().per().mul(-firstStrokePoint.radius)
 			)
 			const dotPts: Vec[] = []
-			for (let step = 1 / 13, t = step; t <= 1; t += step) {
+			const steps = arcSteps(firstStrokePoint.radius, FIXED_PI * 2, capTolerance, 8, 13)
+			for (let step = 1 / steps, t = step; t <= 1; t += step) {
 				dotPts.push(Vec.RotWith(start, firstPoint, FIXED_PI * 2 * t))
 			}
 			return dotPts
@@ -272,8 +366,9 @@ export function getStrokeOutlinePoints(
 	if (taperStart || (taperEnd && strokePoints.length === 1)) {
 		// The start point is tapered, noop
 	} else if (capStart) {
-		// Draw the round cap - add thirteen points rotating the right point around the start point to the left point
-		for (let step = 1 / 8, t = step; t <= 1; t += step) {
+		// Draw the round cap - rotate the right point around the start point to the left point
+		const steps = arcSteps(firstStrokePoint.radius, FIXED_PI, capTolerance, 4, 8)
+		for (let step = 1 / steps, t = step; t <= 1; t += step) {
 			const pt = Vec.RotWith(rightPts[0], firstPoint, FIXED_PI * t)
 			startCap.push(pt)
 		}
@@ -310,7 +405,8 @@ export function getStrokeOutlinePoints(
 	} else if (capEnd) {
 		// Draw the round end cap
 		const start = Vec.Add(lastPoint, Vec.Mul(direction, lastStrokePoint.radius))
-		for (let step = 1 / 29, t = step; t < 1; t += step) {
+		const steps = arcSteps(lastStrokePoint.radius, FIXED_PI * 3, capTolerance, 8, 29)
+		for (let step = 1 / steps, t = step; t < 1; t += step) {
 			endCap.push(Vec.RotWith(start, lastPoint, FIXED_PI * 3 * t))
 		}
 	} else {
@@ -324,8 +420,8 @@ export function getStrokeOutlinePoints(
 	}
 
 	/*
-    Return the points in the correct winding order: begin on the left side, then 
-    continue around the end cap, then come back along the right side, and finally 
+    Return the points in the correct winding order: begin on the left side, then
+    continue around the end cap, then come back along the right side, and finally
     complete the start cap.
   */
 

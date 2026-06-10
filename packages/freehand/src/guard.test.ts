@@ -7,11 +7,19 @@ const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = join(here, '..', '..', '..')
 
 // The baseline and vendor files are verbatim copies of these sources, except
-// that their import specifiers point at the vendored primitives. Normalizing
-// the specifiers lets us assert that everything else is byte-identical, so
-// the baseline can't silently drift from what actually ships in tldraw.
+// that their import specifiers point at the vendored primitives (and the
+// formatter may order them differently). Normalizing the specifiers and
+// sorting the import lines lets us assert that everything else is
+// byte-identical, so the baseline can't silently drift from what actually
+// ships in tldraw.
 function normalize(source: string) {
-	return source.replace(/from '[^']+'/g, "from '#'")
+	const lines = source.replace(/from '[^']+'/g, "from '#'").split('\n')
+	const imports: string[] = []
+	const rest: string[] = []
+	for (const line of lines) {
+		;(line.startsWith('import ') ? imports : rest).push(line)
+	}
+	return [...imports.sort(), ...rest].join('\n')
 }
 
 function expectSameSource(copyPath: string, sourcePath: string) {
