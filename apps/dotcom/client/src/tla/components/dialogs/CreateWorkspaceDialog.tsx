@@ -12,19 +12,19 @@ import { defineMessages, F, useMsg } from '../../utils/i18n'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
-	title: { defaultMessage: 'Create group' },
+	title: { defaultMessage: 'Create workspace' },
 	name: { defaultMessage: 'Name' },
-	placeholder: { defaultMessage: 'Group name' },
+	placeholder: { defaultMessage: 'Workspace name' },
 	cancel: { defaultMessage: 'Cancel' },
-	create: { defaultMessage: 'Create group' },
+	create: { defaultMessage: 'Create workspace' },
 })
 
-interface CreateGroupDialogProps {
+interface CreateWorkspaceDialogProps {
 	onClose(): void
 	onCreate(name: string): void
 }
 
-export function CreateGroupDialog({ onClose, onCreate }: CreateGroupDialogProps) {
+export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDialogProps) {
 	const [groupName, setGroupName] = useState('')
 	const placeholderMsg = useMsg(messages.placeholder)
 

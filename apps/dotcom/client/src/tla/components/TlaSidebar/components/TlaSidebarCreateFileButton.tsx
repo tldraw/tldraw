@@ -27,7 +27,7 @@ export function TlaSidebarCreateFileButton() {
 			if (!isMobile) {
 				app.sidebarState.update((prev) => ({
 					...prev,
-					renameState: { fileId: res.value.fileId, groupId: app.getHomeGroupId() },
+					renameState: { fileId: res.value.fileId, workspaceId: app.getHomeWorkspaceId() },
 				}))
 			}
 			const { fileId } = res.value

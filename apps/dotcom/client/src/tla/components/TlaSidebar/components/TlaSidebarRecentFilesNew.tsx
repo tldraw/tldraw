@@ -25,10 +25,14 @@ export function TlaSidebarRecentFilesNew() {
 	}
 
 	// Get group memberships from the server
-	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
+	const workspaceMemberships = useValue(
+		'workspaceMemberships',
+		() => app.getWorkspaceMemberships(),
+		[app]
+	)
 
 	const files = useValue('my files', () => app.getMyFiles(), [app])
-	const homeGroupId = app.getHomeGroupId()
+	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const showMyFilesDropState = useValue(
 		'showMyFilesDropState',
 		() => {
@@ -36,18 +40,18 @@ export function TlaSidebarRecentFilesNew() {
 			if (!dragState?.hasDragStarted) return false
 			return (
 				dragState.type === 'file' &&
-				dragState.operation.move?.targetId === homeGroupId &&
+				dragState.operation.move?.targetId === homeWorkspaceId &&
 				!dragState.operation.reorder
 			)
 		},
-		[app, homeGroupId]
+		[app, homeWorkspaceId]
 	)
 
 	if (!files) throw Error('Could not get files')
 	const numPinnedFiles = files.filter((f) => f.isPinned).length
 
 	const MAX_FILES_TO_SHOW = Math.max(
-		groupMemberships.length > 0 ? 6 : +Infinity,
+		workspaceMemberships.length > 0 ? 6 : +Infinity,
 		numPinnedFiles + 4
 	)
 	const slop = 2
@@ -58,7 +62,7 @@ export function TlaSidebarRecentFilesNew() {
 	return (
 		<Fragment>
 			<div
-				data-drop-target-id={homeGroupId}
+				data-drop-target-id={homeWorkspaceId}
 				className={showMyFilesDropState ? styles.dropping : ''}
 			>
 				<div
@@ -70,7 +74,7 @@ export function TlaSidebarRecentFilesNew() {
 				{filesToShow.length > 0 &&
 					filesToShow.map((item, i) => (
 						<TlaSidebarFileLink
-							groupId={homeGroupId}
+							workspaceId={homeWorkspaceId}
 							key={'file_link_today_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-today-${i}`}
@@ -81,7 +85,7 @@ export function TlaSidebarRecentFilesNew() {
 						<Collapsible.Content className={styles.CollapsibleContent}>
 							{hiddenFiles.map((item, i) => (
 								<TlaSidebarFileLink
-									groupId={homeGroupId}
+									workspaceId={homeWorkspaceId}
 									key={'file_link_today_' + item.fileId}
 									item={item}
 									testId={`tla-file-link-today-${i}`}
@@ -104,8 +108,8 @@ export function TlaSidebarRecentFilesNew() {
 				)}
 			</div>
 			<div style={{ height: 12 }}></div>
-			{groupMemberships.map((group, i) =>
-				group.groupId === app.getHomeGroupId() ? null : (
+			{workspaceMemberships.map((group, i) =>
+				group.groupId === app.getHomeWorkspaceId() ? null : (
 					// Include the array index in the key to force a remount when the order changes
 					// this prevents a bug where the collapsible open animation replays when react moves
 					// an open group item within the list. I guess the browser thinks it's a new dom node
@@ -114,7 +118,7 @@ export function TlaSidebarRecentFilesNew() {
 					// we wouldn't need this.
 					<TlaSidebarGroupItem
 						key={`group-${group.group.id}-${i}`}
-						groupId={group.group.id}
+						workspaceId={group.group.id}
 						index={i}
 					/>
 				)

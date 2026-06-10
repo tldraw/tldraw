@@ -33,7 +33,13 @@ function extractFileIdFromUrl(url: string): string | null {
 	}
 }
 
-export function AddFileLinkDialog({ onClose, groupId }: { onClose(): void; groupId: string }) {
+export function AddFileLinkDialog({
+	onClose,
+	workspaceId,
+}: {
+	onClose(): void
+	workspaceId: string
+}) {
 	const app = useApp()
 	const trackEvent = useTldrawAppUiEvents()
 	const [fileUrl, setFileUrl] = useState('')
@@ -43,7 +49,7 @@ export function AddFileLinkDialog({ onClose, groupId }: { onClose(): void; group
 	const handleAdd = async () => {
 		const fileId = extractFileIdFromUrl(fileUrl)
 		if (fileId) {
-			await app.addFileLinkToGroup(fileId, groupId)
+			await app.addFileLinkToWorkspace(fileId, workspaceId)
 			trackEvent('add-file-link', { source: 'sidebar' })
 			onClose()
 		} else {

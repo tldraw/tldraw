@@ -30,8 +30,8 @@ export async function getInviteInfo(request: IRequest, env: Environment): Promis
 
 		return Response.json({
 			error: false,
-			groupId: group.id,
-			groupName: group.name,
+			workspaceId: group.id,
+			workspaceName: group.name,
 			isValid: true,
 			inviteSecret: token,
 		} satisfies GetInviteInfoResponseBody)

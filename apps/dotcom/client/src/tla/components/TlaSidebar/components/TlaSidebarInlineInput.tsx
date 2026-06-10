@@ -50,11 +50,11 @@ export function TlaSidebarInlineInput({
 		onCancel()
 	}, [onCancel])
 
-	const hasGroups = useHasFlag('groups_frontend')
+	const hasWorkspaces = useHasFlag('groups_frontend')
 
 	return (
 		<div className={classNames(styles.sidebarFileListItemRenameInputWrapper, wrapperClassName)}>
-			{isPinned && hasGroups && pinIcon}
+			{isPinned && hasWorkspaces && pinIcon}
 			<TldrawUiInput
 				ref={ref}
 				data-testid={dataTestId}

@@ -13,16 +13,16 @@ import { defineMessages, useMsg } from '../utils/i18n'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { TlaInviteDialog } from './dialogs/TlaInviteDialog'
 
-const groupInviteMessages = defineMessages({
-	alreadyMember: { defaultMessage: 'You are already a member of this group' },
+const workspaceInviteMessages = defineMessages({
+	alreadyMember: { defaultMessage: 'You are already a member of this workspace' },
 })
 
-export function GroupInviteHandler() {
+export function WorkspaceInviteHandler() {
 	const auth = useAuth()
 	const dialogs = useDialogs()
 	const { addToast } = useToasts()
 	const app = useMaybeApp()
-	const alreadyMemberMsg = useMsg(groupInviteMessages.alreadyMember)
+	const alreadyMemberMsg = useMsg(workspaceInviteMessages.alreadyMember)
 
 	const { user } = useClerkUser()
 
@@ -32,10 +32,10 @@ export function GroupInviteHandler() {
 		if (!app) return
 		if (hasNotAcceptedLegal(user)) return
 
-		const storedToken = getFromSessionStorage(SESSION_STORAGE_KEYS.GROUP_INVITE_TOKEN)
+		const storedToken = getFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)
 
 		if (storedToken) {
-			deleteFromSessionStorage(SESSION_STORAGE_KEYS.GROUP_INVITE_TOKEN)
+			deleteFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)
 
 			// Fetch invite info from API
 			fetch(`/api/app/invite/${storedToken}`)
@@ -47,12 +47,12 @@ export function GroupInviteHandler() {
 					}
 
 					// Check if already a member
-					if (app.getGroupMembership(data.groupId)) {
+					if (app.getWorkspaceMembership(data.workspaceId)) {
 						addToast({
-							id: 'group-invite-already-member',
+							id: 'workspace-invite-already-member',
 							title: alreadyMemberMsg,
 						})
-						app.navigateToGroupFiles(data.groupId)
+						app.navigateToWorkspaceFiles(data.workspaceId)
 						return
 					}
 

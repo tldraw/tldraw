@@ -6,18 +6,18 @@ import { TlaSidebarInlineInput } from './TlaSidebarInlineInput'
 
 export function TlaSidebarRenameInline({
 	fileId,
-	groupId,
+	workspaceId,
 	onClose,
 	source,
 }: {
 	fileId: string
-	groupId: string
+	workspaceId: string
 	onClose(): void
 	source: TLAppUiEventSource
 }) {
 	const app = useApp()
 	const trackEvent = useTldrawAppUiEvents()
-	const isPinned = useIsFilePinned(fileId, groupId)
+	const isPinned = useIsFilePinned(fileId, workspaceId)
 
 	const handleComplete = useCallback(
 		(name: string) => {

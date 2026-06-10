@@ -167,34 +167,34 @@ function isPointInRect(point: { x: number; y: number }, rect: DOMRect): boolean 
 async function executeFileOperations(
 	app: TldrawApp,
 	fileId: string,
-	groupId: string,
+	workspaceId: string,
 	operation: DragFileOperation
 ) {
 	if (operation.move || operation.reorder) {
 		app.z.mutate.handleFileDragOperation({
 			fileId,
-			groupId,
+			workspaceId,
 			operation,
 		})
 
 		// Expand the target group if it's collapsed
 		if (operation.move) {
 			const targetGroupId = operation.move.targetId
-			const homeGroupId = app.getHomeGroupId()
-			if (targetGroupId !== homeGroupId) {
+			const homeWorkspaceId = app.getHomeWorkspaceId()
+			if (targetGroupId !== homeWorkspaceId) {
 				app.ensureSidebarGroupExpanded(targetGroupId)
 			}
 		}
 	}
 }
 
-async function executeGroupOperations(app: TldrawApp, groupId: string, operation: any) {
+async function executeGroupOperations(app: TldrawApp, workspaceId: string, operation: any) {
 	if (operation.reorder) {
 		const { insertBeforeId } = operation.reorder
 
 		// Get all group memberships sorted by current index
-		const allGroups = app.getGroupMemberships()
-		const sortedGroups = allGroups.filter((g) => g.groupId !== app.getHomeGroupId())
+		const allGroups = app.getWorkspaceMemberships()
+		const sortedGroups = allGroups.filter((g) => g.groupId !== app.getHomeWorkspaceId())
 
 		// Calculate the new index for the group
 		let newIndex: IndexKey
@@ -211,7 +211,7 @@ async function executeGroupOperations(app: TldrawApp, groupId: string, operation
 			newIndex = getIndexBetween(beforeGroup?.index, afterGroup?.index)
 		}
 
-		await app.z.mutate.updateOwnGroupUser({ groupId, index: newIndex }).client
+		await app.z.mutate.updateOwnWorkspaceUser({ workspaceId, index: newIndex }).client
 	}
 }
 
@@ -223,7 +223,7 @@ interface GroupElements {
 }
 interface DragElements {
 	draggedElement: HTMLElement
-	groupId: string
+	workspaceId: string
 	myFiles: GroupElements
 	groups: GroupElements[]
 	groupItems?: Array<{ id: string; element: HTMLElement }>
@@ -235,24 +235,24 @@ export function useDragTracking() {
 
 	const startDragTracking = useCallback(
 		({
-			groupId,
+			workspaceId,
 			fileId,
 			clientX,
 			clientY,
 		}: {
-			groupId: string
+			workspaceId: string
 			fileId?: string
 			clientX: number
 			clientY: number
 		}) => {
 			const dragType = fileId ? 'file' : 'group'
-			const dragId = fileId ?? groupId
+			const dragId = fileId ?? workspaceId
 			assert(!cleanupRef.current, 'Drag tracking already started')
 
 			// Query all drop target elements
 			const groupElements = document.querySelectorAll('[data-drop-target-id^="group:"]')
-			const homeGroupId = app.getHomeGroupId()
-			const myFilesElement = document.querySelector(`[data-drop-target-id="${homeGroupId}"]`)
+			const homeWorkspaceId = app.getHomeWorkspaceId()
+			const myFilesElement = document.querySelector(`[data-drop-target-id="${homeWorkspaceId}"]`)
 
 			assert(myFilesElement, 'myFilesElement not found')
 
@@ -278,8 +278,8 @@ export function useDragTracking() {
 				draggedElement: document.querySelector(
 					`[data-drop-target-id="${dragType}:${dragId}"]`
 				) as HTMLElement,
-				groupId,
-				myFiles: getGroupElements(app.getHomeGroupId(), myFilesElement as HTMLElement),
+				workspaceId,
+				myFiles: getGroupElements(app.getHomeWorkspaceId(), myFilesElement as HTMLElement),
 				groups: [...groupElements].map((element) =>
 					getGroupElements(element.getAttribute('data-group-id')!, element as HTMLElement)
 				),
@@ -360,7 +360,7 @@ export function useDragTracking() {
 				if (!cancel) {
 					// Execute operations before clearing drag state
 					if (dragState && fileId) {
-						executeFileOperations(app, fileId, groupId, dragState.operation)
+						executeFileOperations(app, fileId, workspaceId, dragState.operation)
 					} else if (dragState && dragState.type === 'group') {
 						executeGroupOperations(app, dragState.id, dragState.operation)
 					}

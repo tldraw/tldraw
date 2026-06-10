@@ -21,7 +21,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const isSidebarOpen = useIsSidebarOpen()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 	const trackEvent = useTldrawAppUiEvents()
-	const createGroupMsg = useMsg(messages.createGroup)
+	const createGroupMsg = useMsg(messages.createWorkspace)
 
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
@@ -45,7 +45,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
-	const hasGroups = useHasFlag('groups_frontend')
+	const hasWorkspaces = useHasFlag('groups_frontend')
 	const addDialog = useDialogs().addDialog
 	const app = useApp()
 
@@ -53,11 +53,11 @@ export const TlaSidebar = memo(function TlaSidebar() {
 		// Use dialog if flag is set or on mobile
 		addDialog({
 			component: ({ onClose }) => (
-				<CreateGroupDialog
+				<CreateWorkspaceDialog
 					onClose={onClose}
 					onCreate={(name) => {
 						const id = uniqueId()
-						app.z.mutate.createGroup({ id, name })
+						app.z.mutate.createWorkspace({ id, name })
 						app.ensureSidebarGroupExpanded(id)
 					}}
 				/>
@@ -84,7 +84,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			>
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
-					{hasGroups && (
+					{hasWorkspaces && (
 						<TldrawUiButton
 							type="icon"
 							tooltip={createGroupMsg}
@@ -101,7 +101,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				</div>
 				<div className={styles.sidebarContent}>
 					<div className={styles.sidebarContentInner}>
-						{hasGroups ? <NewSidebarLayout /> : <LegacySidebarLayout />}
+						{hasWorkspaces ? <NewSidebarLayout /> : <LegacySidebarLayout />}
 					</div>
 				</div>
 				<div className={styles.sidebarBottomArea}>
@@ -124,7 +124,7 @@ import { TldrawUiButton, uniqueId, useDialogs } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useHasFlag } from '../../hooks/useHasFlag'
 import { useMsg } from '../../utils/i18n'
-import { CreateGroupDialog } from '../dialogs/CreateGroupDialog'
+import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { messages } from './components/sidebar-shared'
 

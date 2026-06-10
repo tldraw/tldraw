@@ -63,7 +63,7 @@ export interface TLAppUiEventMap {
 	'create-user': null
 	'room-size-warning-dialog-shown': null
 	'room-size-limit-dialog-shown': null
-	'accept-group-invite': null
+	'accept-workspace-invite': null
 	'add-file-link': null
 	'set-color-theme': { theme: string }
 }

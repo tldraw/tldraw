@@ -25,7 +25,7 @@ import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import { AddFileLinkDialog } from '../../dialogs/AddFileLinkDialog'
-import { GroupSettingsDialog } from '../../dialogs/GroupSettingsDialog'
+import { WorkspaceSettingsDialog } from '../../dialogs/WorkspaceSettingsDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { messages } from './sidebar-shared'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
@@ -41,7 +41,13 @@ const groupMessages = defineMessages({
 	copied: { defaultMessage: 'Copied invite link' },
 })
 
-function GroupEmptyState({ groupId, onCreateFile }: { groupId: string; onCreateFile(): void }) {
+function GroupEmptyState({
+	workspaceId,
+	onCreateFile,
+}: {
+	workspaceId: string
+	onCreateFile(): void
+}) {
 	const app = useApp()
 	return (
 		<div className={styles.sidebarGroupItemEmpty}>
@@ -57,7 +63,7 @@ function GroupEmptyState({ groupId, onCreateFile }: { groupId: string; onCreateF
 					invite: (chunks) => (
 						<button
 							className={styles.sidebarGroupItemButtonInline}
-							onClick={() => app.copyGroupInvite(groupId)}
+							onClick={() => app.copyWorkspaceInvite(workspaceId)}
 						>
 							{chunks}
 						</button>
@@ -69,28 +75,28 @@ function GroupEmptyState({ groupId, onCreateFile }: { groupId: string; onCreateF
 }
 
 const GroupFileList = memo(function GroupFileList({
-	groupId,
+	workspaceId,
 	onCreateFile,
 }: {
-	groupId: string
+	workspaceId: string
 	onCreateFile(): void
 }) {
 	const app = useApp()
-	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
+	const group = useValue('group', () => app.getWorkspaceMembership(workspaceId), [app, workspaceId])
 	const files = useValue(
 		'group files',
 		() => {
-			const groupFiles = app.getGroupFilesSorted(groupId)
+			const groupFiles = app.getWorkspaceFilesSorted(workspaceId)
 			const pinned = groupFiles.filter((f) => !!app.getFileState(f.fileId)?.isPinned)
 			const unpinned = groupFiles.filter((f) => !app.getFileState(f.fileId)?.isPinned)
 			return pinned.concat(unpinned)
 		},
-		[app, groupId]
+		[app, workspaceId]
 	)
 	const expansionState = useValue(
 		'expansionState',
-		() => app.sidebarState.get().expandedGroups[groupId] ?? 'closed',
-		[app, groupId]
+		() => app.sidebarState.get().expandedGroups[workspaceId] ?? 'closed',
+		[app, workspaceId]
 	)
 
 	const isShowingAll = expansionState === 'expanded_show_more'
@@ -98,16 +104,16 @@ const GroupFileList = memo(function GroupFileList({
 	const handleShowMore = useCallback(() => {
 		app.sidebarState.update((prev) => ({
 			...prev,
-			expandedGroups: { ...prev.expandedGroups, [groupId]: 'expanded_show_more' },
+			expandedGroups: { ...prev.expandedGroups, [workspaceId]: 'expanded_show_more' },
 		}))
-	}, [app, groupId])
+	}, [app, workspaceId])
 
 	const handleShowLess = useCallback(() => {
 		app.sidebarState.update((prev) => ({
 			...prev,
-			expandedGroups: { ...prev.expandedGroups, [groupId]: 'expanded_show_less' },
+			expandedGroups: { ...prev.expandedGroups, [workspaceId]: 'expanded_show_less' },
 		}))
-	}, [app, groupId])
+	}, [app, workspaceId])
 
 	if (!group) return null
 
@@ -120,13 +126,13 @@ const GroupFileList = memo(function GroupFileList({
 	const hiddenFiles = isOverflowing ? files.slice(MAX_FILES_TO_SHOW) : []
 
 	if (filesToShow.length === 0)
-		return <GroupEmptyState groupId={groupId} onCreateFile={onCreateFile} />
+		return <GroupEmptyState workspaceId={workspaceId} onCreateFile={onCreateFile} />
 
 	return (
 		<Collapsible.Root open={isShowingAll}>
 			{filesToShow.map((item) => (
 				<TlaSidebarFileLink
-					groupId={groupId}
+					workspaceId={workspaceId}
 					key={`group-file-${item.fileId}`}
 					className={styles.sidebarGroupItemFile}
 					item={item}
@@ -139,7 +145,7 @@ const GroupFileList = memo(function GroupFileList({
 					<Collapsible.Content className={styles.CollapsibleContent}>
 						{hiddenFiles.map((item) => (
 							<TlaSidebarFileLink
-								groupId={groupId}
+								workspaceId={workspaceId}
 								key={`group-file-${item.fileId}`}
 								className={styles.sidebarGroupItemFile}
 								item={item}
@@ -164,11 +170,11 @@ const GroupFileList = memo(function GroupFileList({
 	)
 })
 
-function TlaSidebarGroupMenu({ groupId }: { groupId: string }) {
+function TlaSidebarGroupMenu({ workspaceId }: { workspaceId: string }) {
 	const moreOptionsLbl = useMsg(groupMessages.moreOptions)
 
 	return (
-		<TldrawUiDropdownMenuRoot id={`group-menu-${groupId}-sidebar`}>
+		<TldrawUiDropdownMenuRoot id={`workspace-menu-${workspaceId}-sidebar`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
@@ -181,14 +187,14 @@ function TlaSidebarGroupMenu({ groupId }: { groupId: string }) {
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
-					<GroupMenuContent groupId={groupId} />
+					<GroupMenuContent workspaceId={workspaceId} />
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
 	)
 }
 
-function GroupMenuContent({ groupId }: { groupId: string }) {
+function GroupMenuContent({ workspaceId }: { workspaceId: string }) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
@@ -199,15 +205,17 @@ function GroupMenuContent({ groupId }: { groupId: string }) {
 	const addLinkToSharedFileMsg = useMsg(groupMessages.addLinkToSharedFile)
 
 	const handleCopyInviteLinkClick = useCallback(() => {
-		app.copyGroupInvite(groupId)
-	}, [app, groupId])
+		app.copyWorkspaceInvite(workspaceId)
+	}, [app, workspaceId])
 
 	const handleSettingsClick = useCallback(() => {
 		addDialog({
-			component: ({ onClose }) => <GroupSettingsDialog groupId={groupId} onClose={onClose} />,
+			component: ({ onClose }) => (
+				<WorkspaceSettingsDialog workspaceId={workspaceId} onClose={onClose} />
+			),
 		})
 		trackEvent('open-share-menu', { source: 'sidebar' })
-	}, [addDialog, groupId, trackEvent])
+	}, [addDialog, workspaceId, trackEvent])
 
 	const handleImportFilesClick = useCallback(async () => {
 		trackEvent('import-tldr-file', { source: 'sidebar' })
@@ -224,23 +232,23 @@ function GroupMenuContent({ groupId }: { groupId: string }) {
 				(fileId) => {
 					navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 				},
-				groupId
+				workspaceId
 			)
 		} catch {
 			// user cancelled
 			return
 		}
-	}, [trackEvent, app, navigate, groupId])
+	}, [trackEvent, app, navigate, workspaceId])
 
 	const handleAddLinkToSharedFileClick = useCallback(() => {
 		addDialog({
-			component: ({ onClose }) => <AddFileLinkDialog onClose={onClose} groupId={groupId} />,
+			component: ({ onClose }) => <AddFileLinkDialog onClose={onClose} workspaceId={workspaceId} />,
 		})
-	}, [addDialog, groupId])
+	}, [addDialog, workspaceId])
 
 	return (
 		<>
-			<TldrawUiMenuGroup id="group-actions">
+			<TldrawUiMenuGroup id="workspace-actions">
 				<TldrawUiMenuItem
 					label={copyInviteLinkMsg}
 					id="copy-invite-link"
@@ -248,7 +256,7 @@ function GroupMenuContent({ groupId }: { groupId: string }) {
 					onSelect={handleCopyInviteLinkClick}
 				/>
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="group-settings">
+			<TldrawUiMenuGroup id="workspace-settings">
 				<TldrawUiMenuItem
 					label={settingsMsg}
 					id="settings"
@@ -256,7 +264,7 @@ function GroupMenuContent({ groupId }: { groupId: string }) {
 					onSelect={handleSettingsClick}
 				/>
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="group-import-file-actions">
+			<TldrawUiMenuGroup id="workspace-import-file-actions">
 				<TldrawUiMenuItem
 					label={importFilesMsg}
 					id="import-files"
@@ -277,79 +285,85 @@ function GroupMenuContent({ groupId }: { groupId: string }) {
 const blankImg = document.createElement('img')
 blankImg.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
 
-export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index: number }) {
-	const [menuIsOpen] = useMenuIsOpen(`group-menu-${groupId}-sidebar`)
-	const [contextMenuIsOpen] = useMenuIsOpen(`group-context-menu-${groupId}`)
+export function TlaSidebarGroupItem({
+	workspaceId,
+	index,
+}: {
+	workspaceId: string
+	index: number
+}) {
+	const [menuIsOpen] = useMenuIsOpen(`workspace-menu-${workspaceId}-sidebar`)
+	const [contextMenuIsOpen] = useMenuIsOpen(`workspace-context-menu-${workspaceId}`)
 	const app = useApp()
-	const [_, handleContextMenuOpenChange] = useMenuIsOpen(`group-context-menu-${groupId}`)
+	const [_, handleContextMenuOpenChange] = useMenuIsOpen(`workspace-context-menu-${workspaceId}`)
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	const rCanCreate = useRef(true)
 	const newFileLbl = useMsg(groupMessages.newFile)
 	const { startDragTracking } = useDragTracking()
 
-	const isDragging = useIsDragging(groupId)
+	const isDragging = useIsDragging(workspaceId)
 	// disable dragging on mobile
 	const isCoarsePointer = getIsCoarsePointer()
 
 	const expansionState = useValue(
 		'expansionState',
 		() => {
-			return app.sidebarState.get().expandedGroups[groupId] ?? 'closed'
+			return app.sidebarState.get().expandedGroups[workspaceId] ?? 'closed'
 		},
-		[app, groupId]
+		[app, workspaceId]
 	)
 
 	const isExpanded = expansionState !== 'closed'
 
 	const isNoAnimation = useValue(
 		'isNoAnimation',
-		() => app.sidebarState.get().noAnimationGroups.includes(groupId),
-		[app, groupId]
+		() => app.sidebarState.get().noAnimationGroups.includes(workspaceId),
+		[app, workspaceId]
 	)
 	useEffect(() => {
 		if (isNoAnimation) {
 			setTimeout(() => {
 				app.sidebarState.update((prev) => ({
 					...prev,
-					noAnimationGroups: prev.noAnimationGroups.filter((id) => id !== groupId),
+					noAnimationGroups: prev.noAnimationGroups.filter((id) => id !== workspaceId),
 				}))
 			}, 350)
 		}
-	}, [isNoAnimation, app, groupId])
+	}, [isNoAnimation, app, workspaceId])
 
 	const setIsExpanded = useCallback(
 		(isExpanded: boolean) => {
 			if (isExpanded) {
 				app.sidebarState.update((prev) => ({
 					...prev,
-					expandedGroups: { ...prev.expandedGroups, [groupId]: 'expanded_show_less' },
+					expandedGroups: { ...prev.expandedGroups, [workspaceId]: 'expanded_show_less' },
 				}))
 				// Clear group file ordering when expanding to refresh the order (like recent files on page reload)
-				app.clearGroupFileOrdering(groupId)
+				app.clearWorkspaceFileOrdering(workspaceId)
 			} else {
 				app.sidebarState.update((prev) => ({
 					...prev,
-					expandedGroups: { ...prev.expandedGroups, [groupId]: 'closed' },
+					expandedGroups: { ...prev.expandedGroups, [workspaceId]: 'closed' },
 				}))
 			}
 		},
-		[app, groupId]
+		[app, workspaceId]
 	)
 
-	const group = useValue('group', () => app.getGroupMembership(groupId), [app, groupId])
+	const group = useValue('group', () => app.getWorkspaceMembership(workspaceId), [app, workspaceId])
 
 	const handleCreateFile = useCallback(async () => {
 		if (!rCanCreate.current) return
 
-		const res = await app.createFile({ groupId })
+		const res = await app.createFile({ workspaceId })
 
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
 				app.sidebarState.update((prev) => ({
 					...prev,
-					renameState: { fileId: res.value.fileId, groupId },
+					renameState: { fileId: res.value.fileId, workspaceId },
 				}))
 			}
 			app.ensureFileVisibleInSidebar(res.value.fileId)
@@ -359,11 +373,11 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 			rCanCreate.current = false
 			tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)
 		}
-	}, [app, groupId, navigate, trackEvent, setIsExpanded])
+	}, [app, workspaceId, navigate, trackEvent, setIsExpanded])
 
-	const isEmpty = useValue('isEmpty', () => app.getGroupFilesSorted(groupId).length === 0, [
+	const isEmpty = useValue('isEmpty', () => app.getWorkspaceFilesSorted(workspaceId).length === 0, [
 		app,
-		groupId,
+		workspaceId,
 	])
 
 	const showDroppingState = useValue(
@@ -373,11 +387,11 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 			if (!dragState) return false
 			return (
 				dragState.type === 'file' &&
-				dragState.operation.move?.targetId === groupId &&
+				dragState.operation.move?.targetId === workspaceId &&
 				!dragState.operation.reorder
 			)
 		},
-		[app, groupId]
+		[app, workspaceId]
 	)
 
 	if (!group) return null
@@ -419,7 +433,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 											event.dataTransfer.setData('text/plain', group.groupId)
 											event.dataTransfer.setDragImage(blankImg, 0, 0)
 											startDragTracking({
-												groupId: group.groupId,
+												workspaceId: group.groupId,
 												clientX: event.clientX,
 												clientY: event.clientY,
 											})
@@ -450,18 +464,18 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 								>
 									<TlaIcon icon="edit" />
 								</TldrawUiButton>
-								<TlaSidebarGroupMenu groupId={groupId} />
+								<TlaSidebarGroupMenu workspaceId={workspaceId} />
 							</div>
 						</div>
 					</Collapsible.Trigger>
 					<Collapsible.Content className={styles.CollapsibleContent}>
-						<GroupFileList groupId={groupId} onCreateFile={handleCreateFile} />
+						<GroupFileList workspaceId={workspaceId} onCreateFile={handleCreateFile} />
 					</Collapsible.Content>
 				</Collapsible.Root>
 			</_ContextMenu.Trigger>
 			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
 				<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-					<GroupMenuContent groupId={groupId} />
+					<GroupMenuContent workspaceId={workspaceId} />
 				</TldrawUiMenuContextProvider>
 			</_ContextMenu.Content>
 		</_ContextMenu.Root>

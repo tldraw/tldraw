@@ -197,7 +197,7 @@
 
 /* ----------------- Group Settings Dialog ---------------- */
 
-.groupSettingsBody {
+.workspaceSettingsBody {
 	max-width: 360px;
 	width: calc(100vw - 48px);
 }
