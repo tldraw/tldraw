@@ -103,7 +103,7 @@ export function extractIframeFromHtml(
 }
 
 /** @public */
-export const isValidHttpURL = (url: string) => {
+export function isValidHttpURL(url: string) {
 	try {
 		const u = new URL(url)
 		return u.protocol === 'http:' || u.protocol === 'https:'
@@ -697,10 +697,10 @@ async function handleClipboardThings(
  *
  * @public
  */
-export const handleNativeOrMenuCopy = async (
+export async function handleNativeOrMenuCopy(
 	editor: Editor,
 	context: TLClipboardWriteInfo = { operation: 'copy', source: 'menu' }
-): Promise<boolean> => {
+): Promise<boolean> {
 	const nav = editor.getContainerWindow().navigator
 	let content = await editor.resolveAssetsInContent(
 		editor.getContentFromCurrentPage(editor.getSelectedShapeIds())

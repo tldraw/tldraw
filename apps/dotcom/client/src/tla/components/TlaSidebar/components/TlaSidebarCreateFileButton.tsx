@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TldrawUiButton, tltime } from 'tldraw'
 import { routes } from '../../../../routeDefs'
@@ -19,7 +19,7 @@ export function TlaSidebarCreateFileButton() {
 
 	const rCanCreate = useRef(true)
 
-	const handleSidebarCreate = useCallback(async () => {
+	const handleSidebarCreate = async () => {
 		if (!rCanCreate.current) return
 		const res = await app.createFile()
 		if (res.ok) {
@@ -40,7 +40,7 @@ export function TlaSidebarCreateFileButton() {
 				toggleMobileSidebar(false)
 			}
 		}
-	}, [app, navigate, trackEvent])
+	}
 
 	return (
 		<TldrawUiButton

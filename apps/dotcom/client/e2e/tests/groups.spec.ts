@@ -328,6 +328,39 @@ test.describe('groups', () => {
 			await sidebar.expectFileVisible(file2)
 		})
 
+		test('deleting the active file in a group stays in the group', async ({
+			sidebar,
+			deleteFileDialog,
+		}) => {
+			const groupName = getRandomName()
+			const homeFile = getRandomName()
+			const file1 = getRandomName()
+			const file2 = getRandomName()
+
+			// A file in "my files" so we can tell if navigation jumps out of the group.
+			await sidebar.createNewDocument(homeFile)
+			await sidebar.expectFileVisible(homeFile)
+
+			await sidebar.createGroup(groupName)
+			await sidebar.expectGroupExpanded(groupName)
+			await sidebar.createFileInGroup(groupName, file1)
+			await sidebar.createFileInGroup(groupName, file2)
+
+			// file2 was created last, so it's the active file.
+			await sidebar.expectFileActive(file2)
+
+			await sidebar.deleteFileInGroup(file2)
+			await deleteFileDialog.expectIsVisible()
+			await deleteFileDialog.confirmDeletion()
+			await deleteFileDialog.expectIsNotVisible()
+			await sidebar.mutationResolution()
+
+			// We should land on the group's top remaining file, not jump to my files.
+			await sidebar.expectFileNotVisible(file2)
+			await sidebar.expectFileActive(file1)
+			await sidebar.expectFileNotActive(homeFile)
+		})
+
 		test('duplicate file', async ({ page, sidebar, editor }) => {
 			const groupName = getRandomName()
 			const file1 = getRandomName()

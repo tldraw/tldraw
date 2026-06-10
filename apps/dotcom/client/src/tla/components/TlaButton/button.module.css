@@ -24,6 +24,11 @@
 	-webkit-font-smoothing: antialiased;
 }
 
+.tlaButton:disabled {
+	cursor: not-allowed;
+	opacity: 0.5;
+}
+
 .tlaButton > .spinner {
 	position: absolute;
 	top: calc(50% - 20px);
@@ -123,15 +128,15 @@
 }
 
 @media (hover: hover) {
-	.primary:hover {
+	.primary:not(:disabled):hover {
 		background-color: var(--tla-color-primary-hover);
 	}
 
-	.secondary:hover {
+	.secondary:not(:disabled):hover {
 		background-color: var(--tla-color-secondary-hover);
 	}
 
-	.cta:hover {
+	.cta:not(:disabled):hover {
 		background-color: var(--tla-color-primary-hover);
 	}
 

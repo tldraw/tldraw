@@ -54,14 +54,14 @@
 
 .tlui-button:disabled,
 .tlui-button[data-disabled] {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-disabled);
 	text-shadow: none;
 	cursor: default;
 }
 
 .tlui-button:disabled .tlui-kbd,
 .tlui-button[data-disabled] .tlui-kbd {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-disabled);
 }
 
 .tlui-button > * {

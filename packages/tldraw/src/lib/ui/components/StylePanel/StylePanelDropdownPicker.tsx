@@ -73,10 +73,17 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 
 	const stylePanelName = msg(`style-panel.${stylePanelType}` as TLUiTranslationKey)
 
+	// The current value isn't always present in this dropdown's items (for example the fill
+	// dropdown only holds the "extra" fills, so a "solid" selection lives elsewhere). When the
+	// selected value isn't one of these items, describe what the dropdown opens rather than a
+	// value it can't show.
+	const valueInItems = value.type !== 'mixed' && items.some((item) => item.value === value.value)
 	const titleStr =
 		value.type === 'mixed'
 			? msg('style-panel.mixed')
-			: stylePanelName + ' — ' + msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
+			: valueInItems
+				? stylePanelName + ' — ' + msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
+				: stylePanelName
 	const labelStr = label ? msg(label) : ''
 
 	const popoverId = `style panel ${id}`

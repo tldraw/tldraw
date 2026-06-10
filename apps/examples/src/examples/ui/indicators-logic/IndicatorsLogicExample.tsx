@@ -1,4 +1,10 @@
-import { ShapeIndicatorOverlayUtil, TLShapeIndicatorOverlay, Tldraw } from 'tldraw'
+import {
+	createShapeId,
+	ShapeIndicatorOverlayUtil,
+	TLShapeIndicatorOverlay,
+	Tldraw,
+	toRichText,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -28,12 +34,17 @@ export default function IndicatorsLogicExample() {
 				overlayUtils={overlayUtils}
 				onMount={(editor) => {
 					if (editor.getCurrentPageShapeIds().size === 0) {
+						const bottomLeftA = createShapeId()
+						const bottomLeftB = createShapeId()
 						editor.createShapes([
 							{ type: 'geo', x: 100, y: 100 },
-							{ type: 'geo', x: 500, y: 150 },
-							{ type: 'geo', x: 100, y: 500 },
-							{ type: 'geo', x: 500, y: 500 },
+							{ type: 'geo', x: 500, y: 150, props: { geo: 'ellipse' } },
+							{ id: bottomLeftA, type: 'geo', x: 100, y: 500 },
+							{ id: bottomLeftB, type: 'geo', x: 250, y: 400 },
+							{ type: 'text', x: 500, y: 500, props: { richText: toRichText('Hello, world!') } },
 						])
+						editor.groupShapes([bottomLeftA, bottomLeftB])
+						editor.setSelectedShapes([])
 					}
 				}}
 			/>

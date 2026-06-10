@@ -712,13 +712,12 @@ export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps 
 export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX.Element;
 
 // @public (undocumented)
-export const DefaultSvgDefs: () => null;
+export function DefaultSvgDefs(): null;
 
 // @public (undocumented)
 export const defaultTldrawOptions: {
     readonly actionShortcutsLocation: "swap";
     readonly adjacentShapeMargin: 10;
-    readonly allowVideoAutoplay: true;
     readonly animationMediumMs: 320;
     readonly camera: TLCameraOptions;
     readonly cameraMovingTimeoutMs: 64;
@@ -2353,7 +2352,7 @@ export function isAccelKey(e: {
 }): boolean;
 
 // @public
-export const isSafeFloat: (n: number) => boolean;
+export function isSafeFloat(n: number): boolean;
 
 // @public
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opts?: {
@@ -2974,24 +2973,6 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 // @public (undocumented)
 export function setUserPreferences(user: TLUserPreferences): void;
 
-// @public
-export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverlay> {
-    // (undocumented)
-    getOverlays(): TLShapeIndicatorOverlay[];
-    // (undocumented)
-    isActive(): boolean;
-    // (undocumented)
-    options: {
-        hintedLineWidth: number;
-        lineWidth: number;
-        zIndex: number;
-    };
-    // (undocumented)
-    render(ctx: CanvasRenderingContext2D, overlays: TLShapeIndicatorOverlay[]): void;
-    // (undocumented)
-    static type: string;
-}
-
 // @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     constructor(editor: Editor);
@@ -3256,13 +3237,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     onPointerUp?(info: TLPointerEventInfo): void;
     // (undocumented)
-    onQuadrupleClick?(info: TLClickEventInfo): void;
-    // (undocumented)
     onRightClick?(info: TLPointerEventInfo): void;
     // (undocumented)
     onTick?(info: TLTickEventInfo): void;
-    // (undocumented)
-    onTripleClick?(info: TLClickEventInfo): void;
     // (undocumented)
     onWheel?(info: TLWheelEventInfo): void;
     // (undocumented)
@@ -3286,7 +3263,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 }
 
 // @public @deprecated
-export const stopEventPropagation: (e: any) => any;
+export function stopEventPropagation(e: any): any;
 
 // @internal (undocumented)
 export type StoreName = (typeof Table)[keyof typeof Table];
@@ -3547,17 +3524,17 @@ export type TLClickEvent = (info: TLClickEventInfo) => void;
 export type TLClickEventInfo = TLBaseEventInfo & {
     button: number;
     name: TLCLickEventName;
-    phase: 'down' | 'settle' | 'up';
+    phase: 'down' | 'settle-down' | 'settle-up' | 'up';
     point: VecLike;
     pointerId: number;
     type: 'click';
 } & TLPointerEventTarget;
 
 // @public (undocumented)
-export type TLCLickEventName = 'double_click' | 'quadruple_click' | 'triple_click';
+export type TLCLickEventName = 'double_click';
 
 // @public (undocumented)
-export type TLClickState = 'idle' | 'overflow' | 'pendingDouble' | 'pendingOverflow' | 'pendingQuadruple' | 'pendingTriple';
+export type TLClickState = 'idle' | 'overflow' | 'pendingDouble' | 'pendingOverflow';
 
 // @public
 export type TLClipboardPasteRawInfo = {
@@ -3755,7 +3732,6 @@ export interface TldrawOptions {
     readonly actionShortcutsLocation: 'menu' | 'swap' | 'toolbar';
     // (undocumented)
     readonly adjacentShapeMargin: number;
-    readonly allowVideoAutoplay: boolean;
     // (undocumented)
     readonly animationMediumMs: number;
     readonly branding?: string;
@@ -4036,13 +4012,9 @@ export interface TLEventHandlers {
     // (undocumented)
     onPointerUp: TLPointerEvent;
     // (undocumented)
-    onQuadrupleClick: TLClickEvent;
-    // (undocumented)
     onRightClick: TLPointerEvent;
     // (undocumented)
     onTick: TLTickEvent;
-    // (undocumented)
-    onTripleClick: TLClickEvent;
     // (undocumented)
     onWheel: TLWheelEvent;
 }
@@ -4630,15 +4602,6 @@ export interface TLSessionStateSnapshot {
 export type TLShapeErrorFallbackComponent = ComponentType<{
     error: any;
 }>;
-
-// @public (undocumented)
-export interface TLShapeIndicatorOverlay extends TLOverlay {
-    // (undocumented)
-    props: {
-        hintingShapeIds: TLShapeId[];
-        idsToDisplay: TLShapeId[];
-    };
-}
 
 // @public
 export interface TLShapeOperationPerfEvent {

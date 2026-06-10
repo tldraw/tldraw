@@ -37,6 +37,7 @@ import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelp
 import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
+	isEditingRichTextList,
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
@@ -671,6 +672,15 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 			const isTab = e.key === 'Tab'
 			const isCmdEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
+
+			if (isTab && isEditingRichTextList(editor)) {
+				// In a list, let the rich text editor indent the item instead of
+				// creating a new note. Prevent default so Tab doesn't move focus out
+				// of the editor when the item can't be indented (e.g. the first item).
+				e.preventDefault()
+				return
+			}
+
 			if (isTab || isCmdEnter) {
 				e.preventDefault()
 

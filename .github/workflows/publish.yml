@@ -245,6 +245,13 @@ jobs:
             https://api.github.com/repos/tldraw/tldraw-desktop/dispatches \
             -d '{"event_type":"tldraw-release","client_payload":{"version":"${{ steps.version.outputs.value }}","tag":"next"}}'
 
+      # Earlier steps run before checkout, so re-fetch the local action on failure.
+      - name: Check out Discord notify action
+        if: failure()
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/actions/discord-fail-notify
+
       - name: Notify Discord on failure
         if: failure()
         uses: ./.github/actions/discord-fail-notify

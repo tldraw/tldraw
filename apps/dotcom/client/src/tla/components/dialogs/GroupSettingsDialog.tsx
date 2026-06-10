@@ -1,3 +1,4 @@
+import { Role, can } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { MouseEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -77,11 +78,12 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 	const currentUser = groupMembership.groupMembers.find(
 		(member) => member.userId === app.getUser().id
 	)
-	const isOwner = currentUser?.role === 'owner'
-	const canDelete = isOwner
-	const canLeave =
-		!isOwner || groupMembership.groupMembers.filter((member) => member.role === 'owner').length > 1
+	const role = currentUser?.role
 	const ownersCount = groupMembership.groupMembers.filter((m) => m.role === 'owner').length
+	// Leaving is allowed for everyone except the last owner — a group invariant
+	// (it must always keep at least one owner), not a capability.
+	const canLeave = role !== 'owner' || ownersCount > 1
+	const roleLabels: Record<Role, string> = { owner: ownerMsg, admin: adminMsg }
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
@@ -185,6 +187,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					<TldrawUiInput
 						className={styles.dialogInput}
 						defaultValue={group.name}
+						disabled={!can(role, 'editGroup')}
 						onValueChange={(value) => {
 							const name = value.trim()
 							if (name && name !== group.name) {
@@ -269,15 +272,15 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 										{member.userName}
 										{member.userId === app.getUser().id ? ` (${youMsg})` : ''}
 									</span>
-									{isOwner && member.userId !== app.getUser().id ? (
+									{can(role, 'editMembers') &&
+									(member.userId !== app.getUser().id || ownersCount > 1) ? (
 										<MemberRoleSelect
 											value={member.role}
 											disabled={member.role === 'owner' && ownersCount <= 1}
-											ownerLabel={ownerMsg}
-											adminLabel={adminMsg}
+											labels={roleLabels}
 											onChange={async (value) => {
 												if (value === member.role) return
-												if (member.role === 'owner' && value === 'admin' && ownersCount <= 1) return
+												if (member.role === 'owner' && value !== 'owner' && ownersCount <= 1) return
 												try {
 													await app.z.mutate.setGroupMemberRole({
 														groupId,
@@ -290,40 +293,8 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 											}}
 										/>
 									) : (
-										<span className={styles.memberRole}>
-											{member.role === 'owner' ? ownerMsg : adminMsg}
-										</span>
+										<span className={styles.memberRole}>{roleLabels[member.role]}</span>
 									)}
-									{/* {isOwner && member.userId !== app.getUser().id ? (
-									<TlaMenuSelect<'owner' | 'admin'>
-										label={member.role === 'owner' ? ownerMsg : adminMsg}
-										value={member.role}
-										disabled={member.role === 'owner' && ownersCount <= 1}
-										onChange={async (value) => {
-											if (value === member.role) return
-											if (member.role === 'owner' && value === 'admin' && ownersCount <= 1) {
-												return
-											}
-											try {
-												await app.z.mutate.group.setMemberRole({
-													groupId,
-													targetUserId: member.userId,
-													role: value,
-												})
-											} catch (err) {
-												console.error('Failed to change member role', err)
-											}
-										}}
-										options={[
-											{ value: 'admin', label: adminMsg },
-											{ value: 'owner', label: ownerMsg },
-										]}
-									/>
-								) : (
-									<span className={styles.memberRole}>
-										{member.role === 'owner' ? ownerMsg : adminMsg}
-									</span>
-								)} */}
 								</div>
 							))}
 					</div>
@@ -341,7 +312,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 								<F {...messages.leaveGroup} />
 							</button>
 						)}
-						{canDelete && (
+						{can(role, 'deleteGroup') && (
 							<button className={styles.inlineButton} onClick={openDeleteConfirmDialog}>
 								<F {...messages.deleteGroup} />
 							</button>
@@ -359,14 +330,12 @@ function MemberRoleSelect({
 	value,
 	onChange,
 	disabled,
-	ownerLabel,
-	adminLabel,
+	labels,
 }: {
-	value: 'owner' | 'admin'
-	onChange(v: 'owner' | 'admin'): void
+	value: Role
+	onChange(v: Role): void
 	disabled?: boolean
-	ownerLabel: string
-	adminLabel: string
+	labels: Record<Role, string>
 }) {
 	return (
 		<div className={styles.selectWrapper}>
@@ -375,10 +344,13 @@ function MemberRoleSelect({
 				className={styles.select}
 				value={value}
 				disabled={disabled}
-				onChange={(e) => onChange(e.currentTarget.value as 'owner' | 'admin')}
+				onChange={(e) => onChange(e.currentTarget.value as Role)}
 			>
-				<option value="owner">{ownerLabel}</option>
-				<option value="admin">{adminLabel}</option>
+				{Object.entries(labels).map(([roleValue, label]) => (
+					<option key={roleValue} value={roleValue}>
+						{label}
+					</option>
+				))}
 			</select>
 		</div>
 	)

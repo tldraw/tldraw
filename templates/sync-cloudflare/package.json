@@ -22,7 +22,7 @@
 		}
 	},
 	"scripts": {
-		"dev": "vite",
+		"dev": "vite --host",
 		"build": "tsc && vite build",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"preview": "vite preview"
@@ -33,7 +33,6 @@
 		"@tldraw/tlschema": "workspace:*",
 		"cloudflare-workers-unfurl": "^0.0.8",
 		"itty-router": "^5.0.18",
-		"lodash.throttle": "^4.1.1",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-router-dom": "^6.28.2",
@@ -41,7 +40,6 @@
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.29.1",
-		"@types/lodash.throttle": "^4.1.9",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.1",

@@ -4,6 +4,10 @@
 
 `@tldraw/store` is used by [tldraw](https://www.tldraw.com) to store its data. It is designed to be used with [@tldraw/state](https://github.com/tldraw/tldraw/tree/main/packages/state).
 
+## Documentation
+
+A `DOCS.md` file is included alongside this README in the published package, with detailed API documentation and usage examples.
+
 # Usage
 
 First create types for your records.
@@ -339,7 +343,7 @@ A diff describing the changes to a collection.
 
 ## Contribution
 
-Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## License
 

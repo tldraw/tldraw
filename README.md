@@ -96,7 +96,7 @@ yarn dev
 
 ## Contributing
 
-See our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md) to learn about contributing to tldraw.
+We are not accepting contributions at this time. If you've found a bug or have a feature request, please [create an issue](https://github.com/tldraw/tldraw/issues/new/choose) and we can discuss it there. See our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md) for details.
 
 ## License
 
