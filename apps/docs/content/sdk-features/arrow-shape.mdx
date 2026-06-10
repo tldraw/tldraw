@@ -13,14 +13,129 @@ status: draft
 date: 1/31/2026
 ---
 
-TODO: Document the arrow shape including:
+The arrow shape draws a connector between two points on the canvas. Arrows can bind to other shapes, so they stay attached when those shapes move. They support two routing modes (curved arcs and right-angled elbows), nine arrowhead styles, and rich text labels.
 
-- Creating arrows programmatically
-- Arrow routing modes (arc vs elbow)
-- Arrow bindings and how they work
-- Arrowhead styles
-- Arrow labels
-- Bend and curvature
-- Arrow tool interactions
-- Configuration options
-- Precise vs imprecise bindings
+## Creating arrows
+
+An arrow is a shape of type `arrow`. Its `start` and `end` props are points relative to the shape's position:
+
+```tsx
+import { Tldraw, toRichText } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					editor.createShape({
+						type: 'arrow',
+						x: 100,
+						y: 100,
+						props: {
+							start: { x: 0, y: 0 },
+							end: { x: 300, y: 100 },
+							richText: toRichText('connects to'),
+						},
+					})
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+See [TLArrowShape](?) for the full list of props.
+
+## Binding arrows to shapes
+
+When a user draws an arrow onto a shape, the editor creates an arrow binding: a record that connects one of the arrow's terminals to the target shape. The arrow recalculates its path whenever the bound shape moves, resizes, or rotates. When a terminal is bound, the editor computes its position from the binding and ignores the corresponding `start` or `end` prop.
+
+To bind an arrow programmatically, create a binding of type `arrow` from the arrow to the target shape:
+
+```tsx
+editor.createBinding({
+	type: 'arrow',
+	fromId: arrow.id,
+	toId: targetShape.id,
+	props: {
+		terminal: 'end',
+		normalizedAnchor: { x: 0.5, y: 0.5 },
+		isPrecise: false,
+		isExact: false,
+		snap: 'none',
+	},
+})
+```
+
+An arrow can have up to two bindings, one with `terminal: 'start'` and one with `terminal: 'end'`. Use [getArrowBindings](?) to read an arrow's current bindings. See [Bindings](/sdk-features/bindings) for how bindings work in general, and the [create arrow example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/create-arrow) for a complete implementation.
+
+### Precise and exact bindings
+
+Three binding props control where the arrow attaches. See [TLArrowBindingProps](?) for details.
+
+| Prop               | Effect                                                                                                                                                    |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `normalizedAnchor` | The attachment point within the shape's bounds, where `{ x: 0, y: 0 }` is the top-left corner and `{ x: 1, y: 1 }` is the bottom-right                    |
+| `isPrecise`        | When `true`, the arrow points at the `normalizedAnchor` position. When `false`, it points at the shape's center                                           |
+| `isExact`          | When `true`, the arrowhead travels all the way to the anchor point, entering the shape. When `false`, the arrow stops at the edge of the shape's geometry |
+
+When drawing with the arrow tool, users get imprecise center bindings by default. Hovering over a spot inside a shape for a moment, or holding the pointer still while dragging a terminal, switches to a precise binding at that spot.
+
+## Routing: arc and elbow
+
+The `kind` prop selects between the two routing modes. It's a style prop, so users can switch modes from the style panel.
+
+Arc arrows (`kind: 'arc'`, the default) draw a straight line or a circular arc between their terminals. The `bend` prop is the perpendicular distance from the straight line to the arc's midpoint: `0` draws a straight line, positive and negative values curve to either side. Users adjust the bend by dragging the arrow's middle handle.
+
+Elbow arrows (`kind: 'elbow'`) route with right-angled segments, like connectors in a flowchart. The `elbowMidPoint` prop (0–1) positions the middle segment between the two ends. For elbow arrows, the binding's `snap` prop records what the terminal snapped to when drawn: `'center'`, `'edge-point'`, `'edge'`, or `'none'`.
+
+## Arrowheads
+
+The `arrowheadStart` and `arrowheadEnd` props set the style of each end independently. The available styles are `arrow`, `triangle`, `square`, `dot`, `pipe`, `diamond`, `inverted`, `bar`, and `none`. By default, arrows have `none` at the start and `arrow` at the end.
+
+```tsx
+editor.updateShape({
+	id: arrow.id,
+	type: 'arrow',
+	props: {
+		arrowheadStart: 'dot',
+		arrowheadEnd: 'triangle',
+	},
+})
+```
+
+## Labels
+
+Arrows can have a rich text label, stored in the `richText` prop. Use [toRichText](?) to create one from a plain string. The `labelPosition` prop (0–1) places the label along the arrow's path, with `0.5` (the default) at the midpoint. Users can drag the label along the arrow to reposition it. The `labelColor` and `font` props style the label's text.
+
+## Configuration
+
+[ArrowShapeUtil](?) exposes options for tuning arrow behavior, like snap distances, precise-targeting timeouts, and whether new arrows bind exactly. Use the static `configure` method to override them:
+
+```tsx
+import { ArrowShapeUtil, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const shapeUtils = [
+	ArrowShapeUtil.configure({
+		// Precise arrows point exactly at the spot the user picked
+		shouldBeExact: (editor, isPrecise) => isPrecise,
+	}),
+]
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw shapeUtils={shapeUtils} />
+		</div>
+	)
+}
+```
+
+See [ArrowShapeOptions](?) for the full list of options.
+
+## Related examples
+
+- [Create arrow](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/create-arrow) — Create an arrow between two shapes programmatically, including both bindings.
+- [Precise and exact arrows](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/configuration/arrows-precise-exact) — Configure the arrow tool so precise targets produce exact bindings.

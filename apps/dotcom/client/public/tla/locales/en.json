@@ -299,6 +299,9 @@
   "815e116a2e": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
   },
+  "858ba4765e": {
+    "translation": "Member"
+  },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
   },
@@ -518,9 +521,6 @@
   },
   "e2ae80a510": {
     "translation": "Legal summary"
-  },
-  "e3afed0047": {
-    "translation": "Admin"
   },
   "e404559826": {
     "translation": "Terms of service"

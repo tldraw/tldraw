@@ -116,8 +116,10 @@ export {
 	embedShapePermissionDefaults,
 	unknownEmbedShapePermissionOverrides,
 	type CustomEmbedDefinition,
+	type DefaultEmbedConfig,
 	type DefaultEmbedDefinitionType,
 	type EmbedDefinition,
+	type GoogleMapsEmbedConfig,
 	type TLEmbedDefinition,
 	type TLEmbedShapePermissions,
 } from './lib/defaultEmbedDefinitions'

@@ -15,6 +15,7 @@ import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
+import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -115,6 +116,7 @@ function TlaEditorInner({
 				licenseKey={getLicenseKey()}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
+				shapeUtils={embedShapeUtils}
 				onMount={handleMount}
 				overrides={[fileSystemUiOverrides]}
 				initialState={isReadonly ? 'hand' : 'select'}

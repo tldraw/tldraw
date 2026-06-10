@@ -15,12 +15,14 @@ import { FontManager } from './FontManager'
 vi.mock('../../Editor')
 
 // Mock globals
-global.FontFace = vi.fn().mockImplementation((family, src, descriptors) => ({
-	family,
-	src,
-	...descriptors,
-	load: vi.fn(() => Promise.resolve()),
-}))
+global.FontFace = vi.fn().mockImplementation(function (family: any, src: any, descriptors: any) {
+	return {
+		family,
+		src,
+		...descriptors,
+		load: vi.fn(() => Promise.resolve()),
+	}
+})
 
 Object.defineProperty(global.document, 'fonts', {
 	value: {
@@ -200,9 +202,11 @@ describe('FontManager', () => {
 			const font = createMockFont()
 			const error = new Error('Font load failed')
 
-			;(global.FontFace as Mock).mockReturnValue({
-				family: font.family,
-				load: vi.fn(() => Promise.reject(error)),
+			;(global.FontFace as Mock).mockImplementationOnce(function () {
+				return {
+					family: font.family,
+					load: vi.fn(() => Promise.reject(error)),
+				}
 			})
 
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})

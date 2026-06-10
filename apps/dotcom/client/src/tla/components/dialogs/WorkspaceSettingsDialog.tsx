@@ -1,4 +1,4 @@
-import { ZErrorCode } from '@tldraw/dotcom-shared'
+import { Role, ZErrorCode, can } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { MouseEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -33,7 +33,7 @@ const messages = defineMessages({
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	members: { defaultMessage: 'Members' },
 	owner: { defaultMessage: 'Owner' },
-	admin: { defaultMessage: 'Admin' },
+	member: { defaultMessage: 'Member' },
 	you: { defaultMessage: 'you' },
 	dangerZone: { defaultMessage: 'Danger zone' },
 	leaveWorkspace: { defaultMessage: 'Leave workspace…' },
@@ -62,7 +62,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 
 	const namePlaceholderMsg = useMsg(messages.namePlaceholder)
 	const ownerMsg = useMsg(messages.owner)
-	const adminMsg = useMsg(messages.admin)
+	const memberMsg = useMsg(messages.member)
 	const youMsg = useMsg(messages.you)
 
 	// Get workspace data
@@ -79,12 +79,12 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const currentUser = workspaceMembership.groupMembers.find(
 		(member) => member.userId === app.getUser().id
 	)
-	const isOwner = currentUser?.role === 'owner'
-	const canDelete = isOwner
-	const canLeave =
-		!isOwner ||
-		workspaceMembership.groupMembers.filter((member) => member.role === 'owner').length > 1
+	const role = currentUser?.role
 	const ownersCount = workspaceMembership.groupMembers.filter((m) => m.role === 'owner').length
+	// Leaving is allowed for everyone except the last owner — a workspace invariant
+	// (it must always keep at least one owner), not a capability.
+	const canLeave = role !== 'owner' || ownersCount > 1
+	const roleLabels: Record<Role, string> = { owner: ownerMsg, member: memberMsg }
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
@@ -193,7 +193,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					<TldrawUiInput
 						className={styles.dialogInput}
 						defaultValue={workspace.name}
-						disabled={!isOwner}
+						disabled={!can(role, 'editGroup')}
 						onValueChange={(value) => {
 							const name = value.trim()
 							if (name && name !== workspace.name) {
@@ -281,15 +281,15 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 										{member.userName}
 										{member.userId === app.getUser().id ? ` (${youMsg})` : ''}
 									</span>
-									{isOwner && (member.userId !== app.getUser().id || ownersCount > 1) ? (
+									{can(role, 'editMembers') &&
+									(member.userId !== app.getUser().id || ownersCount > 1) ? (
 										<MemberRoleSelect
 											value={member.role}
 											disabled={member.role === 'owner' && ownersCount <= 1}
-											ownerLabel={ownerMsg}
-											adminLabel={adminMsg}
+											labels={roleLabels}
 											onChange={async (value) => {
 												if (value === member.role) return
-												if (member.role === 'owner' && value === 'admin' && ownersCount <= 1) return
+												if (member.role === 'owner' && value !== 'owner' && ownersCount <= 1) return
 												try {
 													await app.z.mutate.setWorkspaceMemberRole({
 														workspaceId,
@@ -303,9 +303,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 											}}
 										/>
 									) : (
-										<span className={styles.memberRole}>
-											{member.role === 'owner' ? ownerMsg : adminMsg}
-										</span>
+										<span className={styles.memberRole}>{roleLabels[member.role]}</span>
 									)}
 								</div>
 							))}
@@ -324,7 +322,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 								<F {...messages.leaveWorkspace} />
 							</button>
 						)}
-						{canDelete && (
+						{can(role, 'deleteGroup') && (
 							<button className={styles.inlineButton} onClick={openDeleteConfirmDialog}>
 								<F {...messages.deleteWorkspaceMsg} />
 							</button>
@@ -342,14 +340,12 @@ function MemberRoleSelect({
 	value,
 	onChange,
 	disabled,
-	ownerLabel,
-	adminLabel,
+	labels,
 }: {
-	value: 'owner' | 'admin'
-	onChange(v: 'owner' | 'admin'): void
+	value: Role
+	onChange(v: Role): void
 	disabled?: boolean
-	ownerLabel: string
-	adminLabel: string
+	labels: Record<Role, string>
 }) {
 	return (
 		<div className={styles.selectWrapper}>
@@ -358,10 +354,13 @@ function MemberRoleSelect({
 				className={styles.select}
 				value={value}
 				disabled={disabled}
-				onChange={(e) => onChange(e.currentTarget.value as 'owner' | 'admin')}
+				onChange={(e) => onChange(e.currentTarget.value as Role)}
 			>
-				<option value="owner">{ownerLabel}</option>
-				<option value="admin">{adminLabel}</option>
+				{Object.entries(labels).map(([roleValue, label]) => (
+					<option key={roleValue} value={roleValue}>
+						{label}
+					</option>
+				))}
 			</select>
 		</div>
 	)

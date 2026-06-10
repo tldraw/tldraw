@@ -10,6 +10,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import { MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_WORKSPACES } from './constants'
+import { Role, can, isRole } from './roles'
 import { FILE_PREFIX } from './routes'
 import {
 	immutableColumns,
@@ -115,44 +116,22 @@ async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 	}
 }
 
-async function assertUserIsWorkspaceMember(
+/**
+ * Resolve the user's role in a workspace, or null if they aren't a member. Pair it
+ * with `can` from ./roles: `const role = await getRole(...); assert(can(role, 'x'))`.
+ */
+async function getRole(
 	tx: Transaction<TlaSchema>,
 	userId: string,
-	workspaceId: string
-) {
-	if (userId === workspaceId) return
+	workspaceId: string | null | undefined
+): Promise<Role | null> {
+	if (!workspaceId) return null
+	// A user's personal/home workspace has an id equal to their userId; they own it.
+	if (workspaceId === userId) return 'owner'
 	const workspaceUser = await tx.run(
 		zql.group_user.where('userId', '=', userId).where('groupId', '=', workspaceId).one()
 	)
-	assert(workspaceUser, ZErrorCode.forbidden)
-}
-
-async function assertUserIsWorkspaceAdminOrOwner(
-	tx: Transaction<TlaSchema>,
-	userId: string,
-	workspaceId: string
-) {
-	if (userId === workspaceId) return
-	const workspaceUser = await tx.run(
-		zql.group_user.where('userId', '=', userId).where('groupId', '=', workspaceId).one()
-	)
-	assert(workspaceUser?.role === 'admin' || workspaceUser?.role === 'owner', ZErrorCode.forbidden)
-}
-
-async function assertUserIsWorkspaceOwner(
-	tx: Transaction<TlaSchema>,
-	userId: string,
-	workspaceId: string
-) {
-	if (userId === workspaceId) return
-	const workspaceUser = await tx.run(
-		zql.group_user
-			.where('userId', '=', userId)
-			.where('groupId', '=', workspaceId)
-			.where('role', '=', 'owner')
-			.one()
-	)
-	assert(workspaceUser, ZErrorCode.forbidden)
+	return workspaceUser?.role ?? null
 }
 
 function assertValidId(id: string) {
@@ -187,7 +166,8 @@ async function assertUserCanAccessFileInternal(
 		assert(file.ownerId === userId, ZErrorCode.forbidden)
 	} else if (file.owningGroupId) {
 		// New model: user must be a member of the owning workspace
-		await assertUserIsWorkspaceMember(tx, userId, file.owningGroupId)
+		const role = await getRole(tx, userId, file.owningGroupId)
+		assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
 	} else {
 		// File has neither ownerId nor owningGroupId - invalid state
 		assert(false, ZErrorCode.bad_request)
@@ -513,7 +493,8 @@ export function createMutators(userId: string) {
 				return
 			}
 
-			await assertUserIsWorkspaceAdminOrOwner(tx, userId, workspaceId)
+			const role = await getRole(tx, userId, workspaceId)
+			assert(can(role, 'removeFiles'), ZErrorCode.forbidden)
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(file, ZErrorCode.bad_request)
 
@@ -605,7 +586,8 @@ export function createMutators(userId: string) {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			assert(name && name.trim(), ZErrorCode.bad_request)
-			await assertUserIsWorkspaceOwner(tx, userId, id)
+			const role = await getRole(tx, userId, id)
+			assert(can(role, 'editGroup'), ZErrorCode.forbidden)
 
 			await tx.mutate.group.update({ id, name: name.trim() })
 		},
@@ -613,7 +595,8 @@ export function createMutators(userId: string) {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 
-			await assertUserIsWorkspaceAdminOrOwner(tx, userId, id)
+			const role = await getRole(tx, userId, id)
+			assert(can(role, 'manageInvites'), ZErrorCode.forbidden)
 
 			if (tx.location === 'server') {
 				await tx.mutate.group.update({ id, inviteSecret: uniqueId() })
@@ -624,14 +607,16 @@ export function createMutators(userId: string) {
 			{
 				workspaceId,
 				targetUserId,
-				role,
-			}: { workspaceId: string; targetUserId: string; role: 'admin' | 'owner' }
+				role: targetRole,
+			}: { workspaceId: string; targetUserId: string; role: Role }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			await assertUserIsWorkspaceOwner(tx, userId, workspaceId)
 			assert(workspaceId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
-			assert(role === 'admin' || role === 'owner', ZErrorCode.bad_request)
+			assert(isRole(targetRole), ZErrorCode.bad_request)
+
+			const role = await getRole(tx, userId, workspaceId)
+			assert(can(role, 'editMembers'), ZErrorCode.forbidden)
 
 			// Target must be a member
 			const targetMembership = await tx.run(
@@ -639,32 +624,40 @@ export function createMutators(userId: string) {
 			)
 			assert(targetMembership, ZErrorCode.bad_request)
 
-			if (targetMembership.role === role) return
+			if (targetMembership.role === targetRole) return
 
-			// Prevent demoting the last remaining owner
-			if (targetMembership.role === 'owner' && role === 'admin') {
+			// Invariant (not a capability): a group must always keep at least one
+			// owner, so the last owner can't be demoted away from owner.
+			if (targetMembership.role === 'owner' && targetRole !== 'owner') {
 				const owners = await tx.run(
 					zql.group_user.where('groupId', '=', workspaceId).where('role', '=', 'owner')
 				)
 				assert(owners.length > 1, ZErrorCode.forbidden)
 			}
 
-			await tx.mutate.group_user.update({ userId: targetUserId, groupId: workspaceId, role })
+			await tx.mutate.group_user.update({
+				userId: targetUserId,
+				groupId: workspaceId,
+				role: targetRole,
+			})
 		},
 		leaveWorkspace: async (tx: Tx, { workspaceId }: { workspaceId: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(workspaceId, ZErrorCode.bad_request)
 			const owners = await tx.run(
 				zql.group_user.where('groupId', '=', workspaceId).where('role', '=', 'owner')
 			)
 			const isOnlyOwner = owners.length === 1 && owners[0].userId === userId
-			// Prevent the last owner from leaving - they must delete the group instead
-			// This ensures groups always have at least one owner for administrative purposes
+			// Invariant (not a capability): a group must always keep at least one
+			// owner, so the last owner can't leave — they must delete the group instead.
 			assert(!isOnlyOwner, ZErrorCode.forbidden)
 			await tx.mutate.group_user.delete({ userId, groupId: workspaceId })
 		},
 		deleteWorkspace: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			await assertUserIsWorkspaceOwner(tx, userId, id)
+			assert(id, ZErrorCode.bad_request)
+			const role = await getRole(tx, userId, id)
+			assert(can(role, 'deleteGroup'), ZErrorCode.forbidden)
 
 			// Delete all workspace files
 			const workspaceFileRows = await tx.run(zql.group_file.where('groupId', '=', id))
@@ -702,19 +695,12 @@ export function createMutators(userId: string) {
 				return
 			}
 
-			// To move a file the user must be a member of the workspace that
-			// currently owns it…
-			const hasFromWorkspaceAccess = await tx.run(
-				zql.group_user.where('userId', '=', userId).where('groupId', '=', file.owningGroupId!).one()
-			)
-
-			assert(hasFromWorkspaceAccess, ZErrorCode.forbidden)
-
-			// …and a member of the target workspace
-			const hasToWorkspaceAccess = await tx.run(
-				zql.group_user.where('userId', '=', userId).where('groupId', '=', workspaceId).one()
-			)
-			assert(hasToWorkspaceAccess, ZErrorCode.forbidden)
+			// User must be allowed to take the file out of its current workspace and
+			// to add files to the destination workspace.
+			const fromRole = await getRole(tx, userId, file.owningGroupId)
+			assert(can(fromRole, 'removeFiles'), ZErrorCode.forbidden)
+			const toRole = await getRole(tx, userId, workspaceId)
+			assert(can(toRole, 'addFiles'), ZErrorCode.forbidden)
 
 			// Remove file from current group association if it exists
 			if (file.owningGroupId) {
@@ -744,13 +730,17 @@ export function createMutators(userId: string) {
 			}: { fileId: string; workspaceId: string; operation: DragFileOperation }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(fileId, ZErrorCode.bad_request)
+			assert(workspaceId, ZErrorCode.bad_request)
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			if (!file) return
 			await assertUserCanAccessFile(tx, userId, file)
-			await assertUserIsWorkspaceMember(tx, userId, workspaceId)
+			const role = await getRole(tx, userId, workspaceId)
+			assert(can(role, 'addFiles'), ZErrorCode.forbidden)
 			const finalWorkspaceId = operation.move?.targetId ?? workspaceId
 			if (finalWorkspaceId !== workspaceId) {
-				await assertUserIsWorkspaceMember(tx, userId, finalWorkspaceId)
+				const finalRole = await getRole(tx, userId, finalWorkspaceId)
+				assert(can(finalRole, 'addFiles'), ZErrorCode.forbidden)
 			}
 			const isFileLink = file.owningGroupId !== workspaceId
 
