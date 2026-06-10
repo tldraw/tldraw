@@ -1,4 +1,4 @@
-import { Role, can } from '@tldraw/dotcom-shared'
+import { Role, ZErrorCode, can } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { MouseEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -88,7 +88,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
-		app.copyWorkspaceInvite(workspaceId, false)
+		if (!app.copyWorkspaceInvite(workspaceId, false)) return
 		setCopiedInviteLink(true)
 		setTimeout(() => setCopiedInviteLink(false), 1000)
 	}
@@ -116,6 +116,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			}
 		} catch (error) {
 			console.error('Error leaving workspace:', error)
+			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
 		}
 	}
 
@@ -130,6 +131,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			}
 		} catch (error) {
 			console.error('Error deleting workspace:', error)
+			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
 		}
 	}
 
@@ -187,6 +189,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					<div className={styles.sectionLabel}>
 						<F {...messages.name} />
 					</div>
+					{/* Renaming requires the owner role (the updateWorkspace mutator enforces it) */}
 					<TldrawUiInput
 						className={styles.dialogInput}
 						defaultValue={workspace.name}
@@ -295,6 +298,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 													}).client
 												} catch (err) {
 													console.error('Failed to change member role', err)
+													app.showMutationRejectionToast((err as Error).message as ZErrorCode)
 												}
 											}}
 										/>

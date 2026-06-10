@@ -865,6 +865,42 @@ describe('file operations across workspaces', () => {
 		await m.removeFileFromWorkspace(tx, { fileId, workspaceId: groupA })
 		expect(s.file[0]?.isDeleted).toBe(true)
 	})
+
+	it('pinning in a workspace computes the index against that workspace, not home', async () => {
+		const otherFileId = 'file_bbbb11112222cccc'
+		const homePinnedId = 'file_cccc11112222dddd'
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [
+				makeFile({ id: fileId, owningGroupId: groupA }),
+				makeFile({ id: otherFileId, owningGroupId: groupA }),
+				makeFile({ id: homePinnedId, owningGroupId: userId }),
+			],
+			file_state: [],
+			group: [makeGroup({ id: groupA }), makeGroup({ id: userId })],
+			group_user: [
+				makeGroupUser({ userId, groupId: groupA }),
+				makeGroupUser({ userId, groupId: userId }),
+			],
+			group_file: [
+				makeGroupFile({ fileId, groupId: groupA }),
+				// an already-pinned sibling in the same workspace
+				makeGroupFile({ fileId: otherFileId, groupId: groupA, index: 'a1' as IndexKey }),
+				// a pinned file in the home workspace with the same index; it must not
+				// influence (or collide with) the new pin's index
+				makeGroupFile({ fileId: homePinnedId, groupId: userId, index: 'a1' as IndexKey }),
+			],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.pinFile(tx, { fileId, workspaceId: groupA })
+
+		const pinned = s.group_file.find((gf) => gf.fileId === fileId && gf.groupId === groupA)
+		const sibling = s.group_file.find((gf) => gf.fileId === otherFileId && gf.groupId === groupA)
+		expect(pinned?.index).toBeTruthy()
+		// new pin goes above the workspace's existing pinned sibling
+		expect(pinned!.index! < sibling!.index!).toBe(true)
+	})
 })
 
 describe('home workspace special case', () => {

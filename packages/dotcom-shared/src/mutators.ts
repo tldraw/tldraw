@@ -434,13 +434,12 @@ export function createMutators(userId: string) {
 			const migrated = await isMigratedToWorkspaces(tx, userId)
 
 			if (migrated) {
-				assert(workspaceId, ZErrorCode.bad_request)
-				// Migrated users: use group_file.index in home group
-
+				// Migrated users: pinned files are group_file rows with a non-null index.
+				// New pins go above the workspace's current top pinned file.
 				let indexToUse = index
 				if (indexToUse == null) {
-					const allGroupFiles = await tx.run(zql.group_file.where('groupId', '=', userId))
-					const otherPinnedFiles = allGroupFiles.filter((gf: TlaGroupFile) => gf.index !== null)
+					const allWorkspaceFiles = await tx.run(zql.group_file.where('groupId', '=', workspaceId))
+					const otherPinnedFiles = allWorkspaceFiles.filter((gf: TlaGroupFile) => gf.index !== null)
 
 					otherPinnedFiles.sort(sortByMaybeIndex)
 					indexToUse = getIndexBelow(otherPinnedFiles[0]?.index) ?? ('a1' as IndexKey)
@@ -559,15 +558,15 @@ export function createMutators(userId: string) {
 			})
 
 			// Use tldraw's fractional indexing to place the new workspace at the top
+			// (the workspace list sorts ascending, so the lowest index renders first)
 			let index: IndexKey
 			if (existingWorkspaces.length === 0) {
 				// First workspace gets 'a1'
 				index = 'a1' as IndexKey
 			} else {
-				// Find the highest index and place above it using proper fractional indexing
 				const sortedWorkspaces = existingWorkspaces.sort(sortByIndex)
 				const lowest = sortedWorkspaces[0]?.index as IndexKey | undefined
-				// Generate a new index above the current highest
+				// Generate a new index below the current lowest
 				index = getIndexBelow(lowest)
 			}
 
@@ -819,8 +818,5 @@ export interface DragReorderOperation {
 
 export interface DragFileOperation {
 	move?: { targetId: string }
-	reorder?: DragReorderOperation
-}
-export interface DragGroupOperation {
 	reorder?: DragReorderOperation
 }
