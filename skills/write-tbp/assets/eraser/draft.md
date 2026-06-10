@@ -13,75 +13,85 @@ The fix is to stop thinking of eraser input as a sequence of points and start th
 The eraser tool is a state machine with three states: `idle`, `pointing`, and `erasing`. A quick click runs a single point test in the `pointing` state. The interesting work happens in the `erasing` state, which runs an `update` method on every pointer move:
 
 ```ts
-const currentPagePoint = editor.inputs.getCurrentPagePoint()
-const previousPagePoint = editor.inputs.getPreviousPagePoint()
+const segmentToTest = [
+	previousPagePoint,
+	currentPagePoint
+]
 ```
 
 These two points are the segment we test. But testing every shape on the page against it would be wasteful, so we narrow the field first:
 
 ```ts
-const minDist = this.editor.options.hitTestMargin / zoomLevel
+// the margin is in screen pixels, so convert it to page space
+const margin = hitTestMargin / zoomLevel
 
-// Create bounds around line segment with margin
-const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)
-const candidateIds = editor.getShapeIdsInsideBounds(lineBounds)
+const bounds = Box.FromPoints(segmentToTest).expandBy(margin)
+const candidates = editor.getShapeIdsInsideBounds(bounds)
 ```
 
-We wrap the segment in a bounding box, pad it by the hit test margin, and ask the editor's spatial index for the shapes inside. If there are none, we return early without ever touching the sorted shape list. Note the division by `zoomLevel`: the margin is defined in screen pixels, so when you're zoomed out we make it larger in page space. The eraser feels the same size on your screen no matter how far you've zoomed.
+We wrap the segment in a bounding box, pad it by the hit test margin, and ask the editor's spatial index for the shapes inside. If there are none, we return early without testing a single shape.
+
+Note the division by `zoomLevel`: the margin is defined in screen pixels, so when you're zoomed out we make it larger in page space. The eraser feels the same size on your screen no matter how far you've zoomed.
 
 For each candidate, we transform the segment into the shape's local coordinate space:
 
 ```ts
-const pt = pageTransform.clone().invert()
-const A = pt.applyToPoint(previousPagePoint)
-const B = pt.applyToPoint(currentPagePoint)
+const toLocalSpace = editor.getShapePageTransform(shape).clone().invert()
+const [A, B] = segmentToTest.map((point) => toLocalSpace.applyToPoint(point))
 ```
 
-This is cheaper than it looks and it buys us a lot. Instead of teaching every hit test about rotated and scaled shapes, we move the two endpoints into the shape's own space, where the shape is axis-aligned and unscaled. A rotated rectangle is just a rectangle once you're standing inside its transform. After a quick bounding-box rejection, we hand the segment to the shape's geometry:
+Instead of teaching every hit test about rotated and scaled shapes, we move the two endpoints into the shape's own space, where the shape is axis-aligned and unscaled. A rotated rectangle is just a rectangle once you're standing inside its transform. After a quick bounding-box rejection, we hand the segment to the shape's geometry:
 
 ```ts
-if (geometry.hitTestLineSegment(A, B, minDist)) {
-	erasing.add(editor.getOutermostSelectableShape(shape).id)
+const geometry = editor.getShapeGeometry(shape)
+if (geometry.hitTestLineSegment(A, B, margin)) {
+	erasing.add(shape.id)
 }
 ```
 
 ## One hit test, many geometries
 
-That `geometry` object is where the second half of the story lives. Every shape in tldraw exposes its outline through the geometry system: a tree of `Geometry2d` primitives like `Rectangle2d`, `Circle2d`, `Polyline2d`, and `CubicBezier2d`. The same geometry powers selection, arrow binding, snapping, and hit testing across the editor, so the eraser doesn't need to know anything about what it's erasing. A freehand draw stroke and a perfect ellipse both answer the same question: does this segment come within `minDist` of you?
+That `geometry` object is where the second half of the story lives. Every shape in tldraw exposes its outline through the geometry system: a tree of `Geometry2d` primitives like `Rectangle2d`, `Circle2d`, `Polyline2d`, and `CubicBezier2d`. The same geometry powers selection, arrow binding, snapping, and hit testing across the editor, so the eraser doesn't need to know anything about what it's erasing. A freehand draw stroke and a perfect ellipse both answer the same question: does this segment come within the margin of you?
 
-The base implementation answers it by walking the geometry's vertices. For each edge, it first checks whether the eraser segment crosses it outright, and bails immediately if so:
+The hit test itself is just a distance check: measure how close the segment gets to the geometry, and compare that against the margin. The base implementation walks the geometry's outline:
 
 ```ts
-const nextLimit = this.isClosed ? vertices.length : vertices.length - 1
-for (let i = 0; i < vertices.length; i++) {
-	p = vertices[i]
-	if (i < nextLimit) {
+distanceToLineSegment(A, B) {
+	const { vertices } = this
+	let distance = Infinity
+	let nearest
+
+	for (let i = 0; i < vertices.length; i++) {
+		const vertex = vertices[i]
+
+		// if the segment crosses an edge of the outline, that's a direct hit
 		const next = vertices[(i + 1) % vertices.length]
-		if (linesIntersect(A, B, p, next)) return 0
+		if (linesIntersect(A, B, vertex, next)) return 0
+
+		// otherwise, track the nearest the segment gets to the outline
+		const point = Vec.NearestPointOnLineSegment(A, B, vertex)
+		if (Vec.Dist(vertex, point) < distance) {
+			distance = Vec.Dist(vertex, point)
+			nearest = point
+		}
 	}
-	q = Vec.NearestPointOnLineSegment(A, B, p, true)
-	d = Vec.Dist2(p, q)
-	if (d < dist) {
-		dist = d
-		nearest = q
-	}
+
+	// being inside a filled shape counts, even without touching the outline
+	if (this.isFilled && pointInPolygon(nearest, vertices)) return -distance
+
+	return distance
 }
 ```
 
-If nothing crosses, we fall back to the nearest distance between the segment and the outline, which is what makes the margin work: you can erase a thin line by passing close to it, not just by crossing it exactly. There's one more subtlety at the end:
+If the segment crosses the outline anywhere, the distance is zero and the test passes. If nothing crosses, we fall back to the nearest distance between the segment and the outline, which is what makes the margin work: you can erase a thin line by passing close to it, not just by crossing it exactly.
 
-```ts
-return this.isClosed && this.isFilled && pointInPolygon(nearest, this.vertices) ? -dist : dist
-```
-
-If the geometry is closed and filled, and the nearest point sits inside it, the distance comes back negative. A negative distance always passes the hit test, so a segment drawn entirely inside a filled shape still erases it. For hollow shapes only the outline registers, which matches how clicking works elsewhere in the editor: you can't select a hollow rectangle by clicking its empty middle, and you can't erase it from there either.
+The filled-shape check at the end holds one more subtlety. If the shape is filled and the nearest point sits inside it, the distance comes back negative. A negative distance always passes the hit test, so a segment drawn entirely inside a filled shape still erases it. For hollow shapes only the outline registers, which matches how clicking works elsewhere in the editor: you can't select a hollow rectangle by clicking its empty middle, and you can't erase it from there either.
 
 Shapes with better math available override the vertex walk. A circle doesn't need to be approximated by vertices when there's a closed-form answer:
 
 ```ts
-hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {
-	const { _center, _radius: radius } = this
-	return intersectLineSegmentCircle(A, B, _center, radius + distance) !== null
+hitTestLineSegment(A, B, margin) {
+	return intersectLineSegmentCircle(A, B, this.center, this.radius + margin) !== null
 }
 ```
 
@@ -91,6 +101,6 @@ That's the quadratic formula doing eraser detection. Arcs do the circle intersec
 
 One more behavior worth mentioning: hits accumulate. Each `update` starts from the set of shapes already marked for erasing and only ever adds to it. Shapes in the set render semi-transparent as feedback, the scribble trail follows your pointer, and nothing is actually deleted until you release. On pointer up we delete the whole set in one operation; pressing escape mid-drag bails back to a history mark and everything snaps back to full opacity. Erasing is a proposal until the moment you let go.
 
-There's also some care taken around containers. If you start erasing while your pointer is inside a frame or a group, that container goes on an exclusion list, so you can scrub away its children without obliterating the frame around them. Cross into a frame from outside, though, and the frame itself is fair game.
+There's also some care taken around containers. When the eraser hits a shape that belongs to a group, we mark the outermost group rather than the individual shape: erasing follows the same boundaries as selection, so what you'd select by clicking is what you erase by scrubbing. And if you start erasing while your pointer is inside a frame or a group, that container goes on an exclusion list, so you can scrub away its children without obliterating the frame around them. Cross into a frame from outside, though, and the frame itself is fair game.
 
 The erasing logic lives in [`packages/tldraw/src/lib/tools/EraserTool/childStates/Erasing.ts`](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/tools/EraserTool/childStates/Erasing.ts), and the segment hit testing in [`packages/editor/src/lib/primitives/geometry/Geometry2d.ts`](https://github.com/tldraw/tldraw/blob/main/packages/editor/src/lib/primitives/geometry/Geometry2d.ts) and its subclasses. None of it is exotic: a spatial index for the broad phase and a distance-to-segment test for the exact one. But the decision to test segments instead of points is the difference between an eraser you can trust at speed and one that mysteriously leaves survivors behind. Users will never notice it working, and that's the point.
