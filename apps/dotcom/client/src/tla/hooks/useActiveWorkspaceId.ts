@@ -7,17 +7,17 @@ import { useApp } from './useAppState'
  * not stored separately. We resolve it from the file in the URL and fall back to
  * the user's home group ("My files").
  */
-export function useActiveGroupId() {
+export function useActiveWorkspaceId() {
 	const app = useApp()
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	return useValue(
-		'activeGroupId',
+		'activeWorkspaceId',
 		() => {
 			if (fileSlug) {
 				const file = app.getFile(fileSlug)
 				if (file?.owningGroupId) return file.owningGroupId
 			}
-			return app.getHomeGroupId()
+			return app.getHomeWorkspaceId()
 		},
 		[app, fileSlug]
 	)

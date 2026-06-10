@@ -19,17 +19,17 @@ const messages = defineMessages({
 	create: { defaultMessage: 'Create workspace' },
 })
 
-interface CreateGroupDialogProps {
+interface CreateWorkspaceDialogProps {
 	onClose(): void
 	onCreate(name: string): void
 }
 
-export function CreateGroupDialog({ onClose, onCreate }: CreateGroupDialogProps) {
-	const [groupName, setGroupName] = useState('')
+export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDialogProps) {
+	const [workspaceName, setWorkspaceName] = useState('')
 	const placeholderMsg = useMsg(messages.placeholder)
 
 	const handleCreate = () => {
-		const trimmedName = groupName.trim()
+		const trimmedName = workspaceName.trim()
 		if (trimmedName) {
 			onCreate(trimmedName)
 			onClose()
@@ -51,8 +51,8 @@ export function CreateGroupDialog({ onClose, onCreate }: CreateGroupDialogProps)
 					</label>
 					<TldrawUiInput
 						className={styles.dialogInput}
-						value={groupName}
-						onValueChange={setGroupName}
+						value={workspaceName}
+						onValueChange={setWorkspaceName}
 						onComplete={handleCreate}
 						onCancel={onClose}
 						placeholder={placeholderMsg}

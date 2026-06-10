@@ -21,6 +21,12 @@
       "value": "GetHelpLink"
     }
   ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
+    }
+  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -91,6 +97,20 @@
     {
       "type": 0,
       "value": "Export as"
+    }
+  ],
+  "1501a417da": [
+    {
+      "type": 0,
+      "value": "("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
     }
   ],
   "1764571547": [
@@ -359,40 +379,6 @@
     {
       "type": 0,
       "value": "Privacy policy"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Drag files here, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "create a file"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": ", or "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "copy invite link"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " to get started."
     }
   ],
   "5a95a425f7": [
@@ -1185,12 +1171,6 @@
     {
       "type": 0,
       "value": "Go here to see the content"
-    }
-  ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "You have reached the maximum number of groups. You need to delete old groups before creating new ones."
     }
   ],
   "dbbebf3c03": [

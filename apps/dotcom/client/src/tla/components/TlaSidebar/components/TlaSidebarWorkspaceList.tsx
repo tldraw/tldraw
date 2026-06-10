@@ -4,12 +4,12 @@ import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TldrawUiMenuContextProvider, uniqueId, useDialogs, useMenuIsOpen, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
-import { useActiveGroupId } from '../../../hooks/useActiveGroupId'
+import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { F } from '../../../utils/i18n'
-import { CreateGroupDialog } from '../../dialogs/CreateGroupDialog'
-import { GroupMenuContent, TlaSidebarGroupMenu } from './TlaSidebarGroupMenu'
+import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
+import { WorkspaceMenuContent, TlaSidebarWorkspaceMenu } from './TlaSidebarWorkspaceMenu'
 import styles from '../sidebar.module.css'
 
 /**
@@ -21,17 +21,24 @@ import styles from '../sidebar.module.css'
  */
 export function TlaSidebarWorkspaceList() {
 	const app = useApp()
-	const homeGroupId = app.getHomeGroupId()
-	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
-	const workspaces = groupMemberships.filter((g) => g.groupId !== homeGroupId)
+	const homeWorkspaceId = app.getHomeWorkspaceId()
+	const workspaceMemberships = useValue(
+		'workspaceMemberships',
+		() => app.getWorkspaceMemberships(),
+		[app]
+	)
+	const workspaces = workspaceMemberships.filter((g) => g.groupId !== homeWorkspaceId)
 
 	return (
 		<div className={styles.sidebarWorkspaceList}>
-			<TlaSidebarWorkspaceListItem groupId={homeGroupId} label={<F defaultMessage="My files" />} />
+			<TlaSidebarWorkspaceListItem
+				workspaceId={homeWorkspaceId}
+				label={<F defaultMessage="My files" />}
+			/>
 			{workspaces.map((g) => (
 				<TlaSidebarWorkspaceListItem
 					key={`workspace-${g.group.id}`}
-					groupId={g.group.id}
+					workspaceId={g.group.id}
 					label={g.group.name}
 				/>
 			))}
@@ -40,14 +47,20 @@ export function TlaSidebarWorkspaceList() {
 	)
 }
 
-function TlaSidebarWorkspaceListItem({ groupId, label }: { groupId: string; label: ReactNode }) {
+function TlaSidebarWorkspaceListItem({
+	workspaceId,
+	label,
+}: {
+	workspaceId: string
+	label: ReactNode
+}) {
 	const app = useApp()
 	const navigate = useNavigate()
-	const activeGroupId = useActiveGroupId()
-	const homeGroupId = app.getHomeGroupId()
-	const isActive = activeGroupId === groupId
-	const isHome = groupId === homeGroupId
-	const [, handleContextMenuOpenChange] = useMenuIsOpen(`group-context-menu-${groupId}`)
+	const activeWorkspaceId = useActiveWorkspaceId()
+	const homeWorkspaceId = app.getHomeWorkspaceId()
+	const isActive = activeWorkspaceId === workspaceId
+	const isHome = workspaceId === homeWorkspaceId
+	const [, handleContextMenuOpenChange] = useMenuIsOpen(`workspace-context-menu-${workspaceId}`)
 
 	const showDropState = useValue(
 		'workspace drop state',
@@ -59,42 +72,41 @@ function TlaSidebarWorkspaceListItem({ groupId, label }: { groupId: string; labe
 			if (!dragState?.hasDragStarted) return false
 			return (
 				dragState.type === 'file' &&
-				dragState.operation.move?.targetId === groupId &&
+				dragState.operation.move?.targetId === workspaceId &&
 				!dragState.operation.reorder
 			)
 		},
-		[app, groupId, isActive]
+		[app, workspaceId, isActive]
 	)
 
 	const handleClick = useCallback(async () => {
-		const files = app.getGroupFilesSorted(groupId)
+		const files = app.getWorkspaceFilesSorted(workspaceId)
 		if (files.length) {
 			navigate(routes.tlaFile(files[0]!.fileId))
 			return
 		}
 		// Empty space: create a file in it and open that, so selecting a space
 		// always lands you on a file within it.
-		const res = await app.createFile({ groupId })
+		const res = await app.createFile({ workspaceId })
 		if (res.ok) {
 			if (!getIsCoarsePointer()) {
 				app.sidebarState.update((prev) => ({
 					...prev,
-					renameState: { fileId: res.value.fileId, groupId },
+					renameState: { fileId: res.value.fileId, workspaceId },
 				}))
 			}
-			app.ensureFileVisibleInSidebar(res.value.fileId)
 			navigate(routes.tlaFile(res.value.fileId))
 		}
-	}, [app, groupId, navigate])
+	}, [app, workspaceId, navigate])
 
 	// The active space's files render in the list below, which is the drop target
 	// for reordering. To avoid a duplicate drop-target id, the active space's nav
 	// entry is not itself a drop target (you can't move a file into its own space).
 	const dropTargetProps = isActive
 		? {}
-		: groupId === homeGroupId
-			? { 'data-drop-target-id': homeGroupId }
-			: { 'data-drop-target-id': `group:${groupId}`, 'data-group-id': groupId }
+		: workspaceId === homeWorkspaceId
+			? { 'data-drop-target-id': homeWorkspaceId }
+			: { 'data-drop-target-id': `workspace:${workspaceId}`, 'data-workspace-id': workspaceId }
 
 	const row = (
 		<div
@@ -124,8 +136,8 @@ function TlaSidebarWorkspaceListItem({ groupId, label }: { groupId: string; labe
 			</div>
 			{!isHome && (
 				<div onClick={(e) => e.stopPropagation()}>
-					<TlaSidebarGroupMenu
-						groupId={groupId}
+					<TlaSidebarWorkspaceMenu
+						workspaceId={workspaceId}
 						className={styles.sidebarFileListItemMenuTrigger}
 					/>
 				</div>
@@ -141,7 +153,7 @@ function TlaSidebarWorkspaceListItem({ groupId, label }: { groupId: string; labe
 			<_ContextMenu.Trigger asChild>{row}</_ContextMenu.Trigger>
 			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
 				<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-					<GroupMenuContent groupId={groupId} />
+					<WorkspaceMenuContent workspaceId={workspaceId} />
 				</TldrawUiMenuContextProvider>
 			</_ContextMenu.Content>
 		</_ContextMenu.Root>
@@ -155,11 +167,11 @@ function TlaSidebarCreateWorkspaceButton() {
 	const handleCreateWorkspace = useCallback(() => {
 		addDialog({
 			component: ({ onClose }) => (
-				<CreateGroupDialog
+				<CreateWorkspaceDialog
 					onClose={onClose}
 					onCreate={(name) => {
 						const id = uniqueId()
-						app.z.mutate.createGroup({ id, name })
+						app.z.mutate.createWorkspace({ id, name })
 					}}
 				/>
 			),

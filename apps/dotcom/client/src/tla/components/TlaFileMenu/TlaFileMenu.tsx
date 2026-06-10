@@ -27,7 +27,7 @@ import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { CreateGroupDialog } from '../dialogs/CreateGroupDialog'
+import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { downloadAppFile } from '../TlaEditor/useFileEditorOverrides'
@@ -59,20 +59,25 @@ export function TlaFileMenu({
 	children,
 	source,
 	fileId,
-	groupId,
+	workspaceId,
 	onRenameAction,
 	trigger,
 }: {
 	children?: ReactNode
 	source: TLAppUiEventSource
 	fileId: string
-	groupId: string | null
+	workspaceId: string | null
 	onRenameAction(): void
 	trigger: ReactNode
 }) {
 	const id = useId()
 	const fileItemsWhenNoChildren = (
-		<FileItems source={source} fileId={fileId} onRenameAction={onRenameAction} groupId={groupId} />
+		<FileItems
+			source={source}
+			fileId={fileId}
+			onRenameAction={onRenameAction}
+			workspaceId={workspaceId}
+		/>
 	)
 	return (
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}-${id}`}>
@@ -90,12 +95,12 @@ export function FileItems({
 	source,
 	fileId,
 	onRenameAction,
-	groupId,
+	workspaceId,
 }: {
 	source: TLAppUiEventSource
 	fileId: string
 	onRenameAction(): void
-	groupId: string | null
+	workspaceId: string | null
 }) {
 	const app = useApp()
 	const editor = useMaybeEditor()
@@ -105,19 +110,23 @@ export function FileItems({
 	const trackEvent = useTldrawAppUiEvents()
 	const copiedMsg = useMsg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
-	const isPinned = useIsFilePinned(fileId, groupId ?? '')
-	const hasGroups = useHasFlag('groups_frontend')
+	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
+	const hasWorkspaces = useHasFlag('groups_frontend')
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
 	// Get all group memberships (including home group which we'll filter in UI)
-	const groupMemberships = useValue('groupMembers', () => app.getGroupMemberships(), [app])
+	const workspaceMemberships = useValue(
+		'workspaceMemberships',
+		() => app.getWorkspaceMemberships(),
+		[app]
+	)
 
-	// A file lives in exactly one group. The "Move to" menu only offers the groups
+	// A file lives in exactly one group. The "Move to" menu only offers the workspaces
 	// it can move to — i.e. every group except the one it's currently in.
-	const currentGroupId = file?.owningGroupId ?? app.getHomeGroupId()
-	const moveToGroups = groupMemberships.filter(
-		(g) => g.groupId !== app.getHomeGroupId() && g.groupId !== currentGroupId
+	const currentWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
+	const moveToWorkspaces = workspaceMemberships.filter(
+		(g) => g.groupId !== app.getHomeWorkspaceId() && g.groupId !== currentWorkspaceId
 	)
 
 	const handleCopyLinkClick = useCallback(() => {
@@ -131,23 +140,23 @@ export function FileItems({
 	}, [fileId, addToast, copiedMsg, trackEvent, source, editor])
 
 	const handlePinUnpinClick = useCallback(async () => {
-		if (!groupId) return
-		if (app.isPinned(fileId, groupId)) {
-			app.z.mutate.unpinFile({ fileId, groupId })
+		if (!workspaceId) return
+		if (app.isPinned(fileId, workspaceId)) {
+			app.z.mutate.unpinFile({ fileId, workspaceId })
 		} else {
-			app.z.mutate.pinFile({ fileId, groupId })
+			app.z.mutate.pinFile({ fileId, workspaceId })
 		}
-	}, [app, fileId, groupId])
+	}, [app, fileId, workspaceId])
 
 	const handleDuplicateClick = useCallback(async () => {
-		if (!groupId) return
+		if (!workspaceId) return
 		const newFileId = uniqueId()
 		const file = app.getFile(fileId)
 		if (!file) return
 		trackEvent('duplicate-file', { source })
 		const res = await app.createFile({
 			fileId: newFileId,
-			groupId,
+			workspaceId,
 			name: getDuplicateName(file, app),
 			createSource: `${FILE_PREFIX}/${fileId}`,
 		})
@@ -157,23 +166,22 @@ export function FileItems({
 			lastSessionState: prevState?.lastSessionState,
 		})
 		if (res.ok) {
-			app.ensureFileVisibleInSidebar(newFileId)
 			app.sidebarState.update((prev) => ({
 				...prev,
-				renameState: { fileId: newFileId, groupId },
+				renameState: { fileId: newFileId, workspaceId },
 			}))
 			navigate(routes.tlaFile(newFileId))
 		}
-	}, [app, fileId, groupId, navigate, trackEvent, source])
+	}, [app, fileId, workspaceId, navigate, trackEvent, source])
 
 	const handleDeleteClick = useCallback(() => {
-		if (!groupId) return
+		if (!workspaceId) return
 		addDialog({
 			component: ({ onClose }) => (
-				<TlaDeleteFileDialog groupId={groupId} fileId={fileId} onClose={onClose} />
+				<TlaDeleteFileDialog workspaceId={workspaceId} fileId={fileId} onClose={onClose} />
 			),
 		})
-	}, [fileId, addDialog, groupId])
+	}, [fileId, addDialog, workspaceId])
 
 	const handleDownloadClick = useCallback(() => {
 		trackEvent('download-file', { source })
@@ -218,7 +226,7 @@ export function FileItems({
 					readonlyOk
 					onSelect={handleDownloadClick}
 				/>
-				{groupId && (
+				{workspaceId && (
 					<TldrawUiMenuItem
 						label={isPinned ? unpinMsg : pinMsg}
 						id="pin-unpin"
@@ -228,9 +236,9 @@ export function FileItems({
 				)}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
-				{hasGroups && (
-					<TldrawUiMenuSubmenu id="move-to-group" label={'Move to'} size="small">
-						{currentGroupId !== app.getHomeGroupId() && (
+				{hasWorkspaces && (
+					<TldrawUiMenuSubmenu id="move-to-workspace" label={'Move to'} size="small">
+						{currentWorkspaceId !== app.getHomeWorkspaceId() && (
 							<TldrawUiMenuGroup id="my-files">
 								<TldrawUiMenuItem
 									key="my-files"
@@ -238,43 +246,44 @@ export function FileItems({
 									id="my-files"
 									readonlyOk
 									onSelect={() => {
-										app.z.mutate.moveFileToGroup({ fileId, groupId: app.getHomeGroupId() })
+										app.z.mutate.moveFileToWorkspace({
+											fileId,
+											workspaceId: app.getHomeWorkspaceId(),
+										})
 									}}
 								/>
 							</TldrawUiMenuGroup>
 						)}
-						{moveToGroups.length > 0 && (
-							<TldrawUiMenuGroup id="my-groups">
-								{moveToGroups.map((groupUser) => (
+						{moveToWorkspaces.length > 0 && (
+							<TldrawUiMenuGroup id="my-workspaces">
+								{moveToWorkspaces.map((membership) => (
 									<TldrawUiMenuItem
-										key={groupUser.groupId}
-										label={groupUser.group.name}
-										id={`group-${groupUser.groupId}`}
+										key={membership.groupId}
+										label={membership.group.name}
+										id={`workspace-${membership.groupId}`}
 										readonlyOk
 										onSelect={() => {
-											app.z.mutate.moveFileToGroup({ fileId, groupId: groupUser.groupId })
-											app.ensureSidebarGroupExpanded(groupUser.groupId)
+											app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: membership.groupId })
 										}}
 									/>
 								))}
 							</TldrawUiMenuGroup>
 						)}
-						<TldrawUiMenuGroup id="create-new-group">
+						<TldrawUiMenuGroup id="create-new-workspace">
 							<TldrawUiMenuItem
 								label="New workspace"
-								id="create-new-group"
+								id="create-new-workspace"
 								readonlyOk
 								icon={<TlaIcon icon="plus" />}
 								onSelect={() => {
 									addDialog({
 										component: ({ onClose }) => (
-											<CreateGroupDialog
+											<CreateWorkspaceDialog
 												onClose={onClose}
 												onCreate={async (name) => {
 													const id = uniqueId()
-													await app.z.mutate.createGroup({ id, name }).client
-													await app.z.mutate.moveFileToGroup({ fileId, groupId: id }).client
-													app.ensureSidebarGroupExpanded(id)
+													await app.z.mutate.createWorkspace({ id, name }).client
+													await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id }).client
 												}}
 											/>
 										),
@@ -284,7 +293,7 @@ export function FileItems({
 						</TldrawUiMenuGroup>
 					</TldrawUiMenuSubmenu>
 				)}
-				{groupId && (
+				{workspaceId && (
 					<TldrawUiMenuItem
 						label={deleteOrForgetMsg}
 						id="delete"

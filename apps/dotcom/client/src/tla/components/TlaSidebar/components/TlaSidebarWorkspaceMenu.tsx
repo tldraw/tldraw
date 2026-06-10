@@ -16,11 +16,11 @@ import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { defineMessages, useMsg } from '../../../utils/i18n'
-import { GroupSettingsDialog } from '../../dialogs/GroupSettingsDialog'
+import { WorkspaceSettingsDialog } from '../../dialogs/WorkspaceSettingsDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
-export const groupMessages = defineMessages({
+export const workspaceMessages = defineMessages({
 	newFile: { defaultMessage: 'Create file' },
 	moreOptions: { defaultMessage: 'More options' },
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
@@ -29,21 +29,21 @@ export const groupMessages = defineMessages({
 	copied: { defaultMessage: 'Copied invite link' },
 })
 
-export function TlaSidebarGroupMenu({
-	groupId,
+export function TlaSidebarWorkspaceMenu({
+	workspaceId,
 	className,
 }: {
-	groupId: string
+	workspaceId: string
 	className?: string
 }) {
-	const moreOptionsLbl = useMsg(groupMessages.moreOptions)
+	const moreOptionsLbl = useMsg(workspaceMessages.moreOptions)
 
 	return (
-		<TldrawUiDropdownMenuRoot id={`group-menu-${groupId}-sidebar`}>
+		<TldrawUiDropdownMenuRoot id={`workspace-menu-${workspaceId}-sidebar`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
-						className={className ?? styles.sidebarGroupItemButton}
+						className={className ?? styles.sidebarWorkspaceMenuButton}
 						tooltip={moreOptionsLbl}
 						title={moreOptionsLbl}
 						type="icon"
@@ -52,32 +52,34 @@ export function TlaSidebarGroupMenu({
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
-					<GroupMenuContent groupId={groupId} />
+					<WorkspaceMenuContent workspaceId={workspaceId} />
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
 	)
 }
 
-export function GroupMenuContent({ groupId }: { groupId: string }) {
+export function WorkspaceMenuContent({ workspaceId }: { workspaceId: string }) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const navigate = useNavigate()
-	const copyInviteLinkMsg = useMsg(groupMessages.copyInviteLink)
-	const settingsMsg = useMsg(groupMessages.settings)
-	const importFilesMsg = useMsg(groupMessages.importFiles)
+	const copyInviteLinkMsg = useMsg(workspaceMessages.copyInviteLink)
+	const settingsMsg = useMsg(workspaceMessages.settings)
+	const importFilesMsg = useMsg(workspaceMessages.importFiles)
 
 	const handleCopyInviteLinkClick = useCallback(() => {
-		app.copyGroupInvite(groupId)
-	}, [app, groupId])
+		app.copyWorkspaceInvite(workspaceId)
+	}, [app, workspaceId])
 
 	const handleSettingsClick = useCallback(() => {
 		addDialog({
-			component: ({ onClose }) => <GroupSettingsDialog groupId={groupId} onClose={onClose} />,
+			component: ({ onClose }) => (
+				<WorkspaceSettingsDialog workspaceId={workspaceId} onClose={onClose} />
+			),
 		})
 		trackEvent('open-share-menu', { source: 'sidebar' })
-	}, [addDialog, groupId, trackEvent])
+	}, [addDialog, workspaceId, trackEvent])
 
 	const handleImportFilesClick = useCallback(async () => {
 		trackEvent('import-tldr-file', { source: 'sidebar' })
@@ -94,17 +96,17 @@ export function GroupMenuContent({ groupId }: { groupId: string }) {
 				(fileId) => {
 					navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 				},
-				groupId
+				workspaceId
 			)
 		} catch {
 			// user cancelled
 			return
 		}
-	}, [trackEvent, app, navigate, groupId])
+	}, [trackEvent, app, navigate, workspaceId])
 
 	return (
 		<>
-			<TldrawUiMenuGroup id="group-actions">
+			<TldrawUiMenuGroup id="workspace-actions">
 				<TldrawUiMenuItem
 					label={copyInviteLinkMsg}
 					id="copy-invite-link"
@@ -112,7 +114,7 @@ export function GroupMenuContent({ groupId }: { groupId: string }) {
 					onSelect={handleCopyInviteLinkClick}
 				/>
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="group-settings">
+			<TldrawUiMenuGroup id="workspace-settings">
 				<TldrawUiMenuItem
 					label={settingsMsg}
 					id="settings"
@@ -120,7 +122,7 @@ export function GroupMenuContent({ groupId }: { groupId: string }) {
 					onSelect={handleSettingsClick}
 				/>
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="group-import-file-actions">
+			<TldrawUiMenuGroup id="workspace-import-file-actions">
 				<TldrawUiMenuItem
 					label={importFilesMsg}
 					id="import-files"

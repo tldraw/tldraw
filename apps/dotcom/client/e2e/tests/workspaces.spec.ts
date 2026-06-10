@@ -385,18 +385,16 @@ test.describe('workspaces', () => {
 			await database.migrateUser(true)
 
 			const parallelIndex = test.info().parallelIndex
-			const { newSidebar, newEditor, newGroupInviteDialog, newContext, newPage } = await openNewTab(
-				browser,
-				{
+			const { newSidebar, newEditor, newWorkspaceInviteDialog, newContext, newPage } =
+				await openNewTab(browser, {
 					url: inviteUrl,
 					allowClipboard: true,
 					userProps: { user: 'suppy', index: parallelIndex },
-				}
-			)
+				})
 
 			await newEditor.isLoaded()
 			await newEditor.ensureSidebarOpen()
-			await newGroupInviteDialog.acceptInvitation()
+			await newWorkspaceInviteDialog.acceptInvitation()
 
 			// Verify workspace visible (proves frontend flag was auto-enabled)
 			await newSidebar.expectWorkspaceVisible(workspaceName)
@@ -425,7 +423,7 @@ test.describe('workspaces', () => {
 			await database.migrateUser(true)
 
 			const parallelIndex = test.info().parallelIndex
-			const { newSidebar, newEditor, newGroupInviteDialog, newContext } = await openNewTab(
+			const { newSidebar, newEditor, newWorkspaceInviteDialog, newContext } = await openNewTab(
 				browser,
 				{
 					url: inviteUrl,
@@ -436,7 +434,7 @@ test.describe('workspaces', () => {
 
 			await newEditor.isLoaded()
 			await newEditor.ensureSidebarOpen()
-			await newGroupInviteDialog.acceptInvitation()
+			await newWorkspaceInviteDialog.acceptInvitation()
 
 			await newSidebar.expectWorkspaceVisible(workspaceName)
 			await newSidebar.expectFileVisible(fileName)
@@ -476,7 +474,7 @@ test.describe('workspaces', () => {
 			await database.migrateUser(true)
 
 			const parallelIndex = test.info().parallelIndex
-			const { newSidebar, newEditor, newGroupInviteDialog, newContext } = await openNewTab(
+			const { newSidebar, newEditor, newWorkspaceInviteDialog, newContext } = await openNewTab(
 				browser,
 				{
 					url: inviteUrl,
@@ -487,7 +485,7 @@ test.describe('workspaces', () => {
 
 			await newEditor.isLoaded()
 			await newEditor.ensureSidebarOpen()
-			await newGroupInviteDialog.acceptInvitation()
+			await newWorkspaceInviteDialog.acceptInvitation()
 
 			await newSidebar.expectWorkspaceVisible(workspaceName)
 			await newSidebar.expectFileVisible(fileName)
@@ -522,7 +520,7 @@ test.describe('workspaces', () => {
 			await database.migrateUser(true)
 
 			const parallelIndex = test.info().parallelIndex
-			const { newSidebar, newEditor, newGroupInviteDialog, newContext } = await openNewTab(
+			const { newSidebar, newEditor, newWorkspaceInviteDialog, newContext } = await openNewTab(
 				browser,
 				{
 					url: inviteUrl,
@@ -533,7 +531,7 @@ test.describe('workspaces', () => {
 
 			await newEditor.isLoaded()
 			await newEditor.ensureSidebarOpen()
-			await newGroupInviteDialog.acceptInvitation()
+			await newWorkspaceInviteDialog.acceptInvitation()
 
 			await newSidebar.expectWorkspaceVisible(workspaceName)
 

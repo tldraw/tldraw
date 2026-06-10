@@ -42,7 +42,7 @@ export function TlaInviteDialog({
 					role="presentation"
 				/>
 				<div className={styles.message}>
-					<F {...messages.inviteDialogTitle} /> {inviteInfo.groupName}
+					<F {...messages.inviteDialogTitle} /> {inviteInfo.workspaceName}
 				</div>
 
 				<button
@@ -51,7 +51,7 @@ export function TlaInviteDialog({
 					onClick={async () => {
 						if (!app) return
 						setIsAccepting(true)
-						await app.acceptGroupInvite(inviteInfo.inviteSecret).finally(() => {
+						await app.acceptWorkspaceInvite(inviteInfo.inviteSecret).finally(() => {
 							setIsAccepting(false)
 						})
 						onClose()

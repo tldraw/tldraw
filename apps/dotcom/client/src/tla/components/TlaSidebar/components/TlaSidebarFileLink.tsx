@@ -58,11 +58,11 @@ export function TlaSidebarFileLink({
 	item,
 	testId,
 	className,
-	groupId,
+	workspaceId,
 }: {
 	item: RecentFile
 	testId: string
-	groupId: string
+	workspaceId: string
 	className?: string
 }) {
 	const app = useApp()
@@ -80,11 +80,11 @@ export function TlaSidebarFileLink({
 
 	const isRenaming = useValue(
 		'shouldRename',
-		() => isEqual(app.sidebarState.get().renameState, { fileId, groupId }),
+		() => isEqual(app.sidebarState.get().renameState, { fileId, workspaceId }),
 		[fileId, app]
 	)
 
-	const isPinned = useIsFilePinned(fileId, groupId)
+	const isPinned = useIsFilePinned(fileId, workspaceId)
 
 	const handleRenameAction = () => {
 		if (isMobile) {
@@ -93,7 +93,7 @@ export function TlaSidebarFileLink({
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
-			app.sidebarState.update((prev) => ({ ...prev, renameState: { fileId, groupId } }))
+			app.sidebarState.update((prev) => ({ ...prev, renameState: { fileId, workspaceId } }))
 		}
 	}
 
@@ -104,7 +104,7 @@ export function TlaSidebarFileLink({
 			<_ContextMenu.Trigger>
 				<TlaSidebarFileLinkInner
 					fileId={fileId}
-					groupId={groupId}
+					workspaceId={workspaceId}
 					fileName={fileName}
 					isPinned={isPinned}
 					testId={testId}
@@ -124,7 +124,7 @@ export function TlaSidebarFileLink({
 							source="sidebar-context-menu"
 							fileId={fileId}
 							onRenameAction={handleRenameAction}
-							groupId={groupId}
+							workspaceId={workspaceId}
 						/>
 					</TldrawUiMenuContextProvider>
 				)}
@@ -148,7 +148,7 @@ export function TlaSidebarFileLinkInner({
 	isRenaming,
 	handleRenameAction,
 	onClose,
-	groupId,
+	workspaceId,
 	className,
 }: {
 	fileId: string
@@ -160,7 +160,7 @@ export function TlaSidebarFileLinkInner({
 	isRenaming: boolean
 	handleRenameAction(): void
 	onClose(): void
-	groupId: string
+	workspaceId: string
 	className?: string
 }) {
 	const trackEvent = useTldrawAppUiEvents()
@@ -197,8 +197,8 @@ export function TlaSidebarFileLinkInner({
 	const isCoarsePointer = getIsCoarsePointer()
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
-	const hasGroups = useHasFlag('groups_frontend')
-	const isDragEnabled = hasGroups && !isCoarsePointer
+	const hasWorkspaces = useHasFlag('groups_frontend')
+	const isDragEnabled = hasWorkspaces && !isCoarsePointer
 
 	if (!file) return null
 
@@ -207,7 +207,7 @@ export function TlaSidebarFileLinkInner({
 			<TlaSidebarRenameInline
 				source="sidebar"
 				fileId={fileId}
-				groupId={groupId}
+				workspaceId={workspaceId}
 				onClose={onClose}
 			/>
 		)
@@ -238,7 +238,7 @@ export function TlaSidebarFileLinkInner({
 							event.dataTransfer.effectAllowed = 'move'
 							event.dataTransfer.setData('text/uri-list', fileUrl)
 							startDragTracking({
-								groupId,
+								workspaceId,
 								fileId,
 								clientX: event.clientX,
 								clientY: event.clientY,
@@ -285,7 +285,7 @@ export function TlaSidebarFileLinkInner({
 				{!hasAdminRights && <GuestBadge file={file} href={href} />}
 			</div>
 			<TlaSidebarFileLinkMenu
-				groupId={groupId}
+				workspaceId={workspaceId}
 				fileId={fileId}
 				onRenameAction={handleRenameAction}
 			/>

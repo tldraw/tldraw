@@ -31,12 +31,13 @@ const messages = defineMessages({
 	},
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	members: { defaultMessage: 'Members' },
+	memberCount: { defaultMessage: '({count})' },
 	owner: { defaultMessage: 'Owner' },
 	admin: { defaultMessage: 'Admin' },
 	you: { defaultMessage: 'you' },
 	dangerZone: { defaultMessage: 'Danger zone' },
-	leaveGroup: { defaultMessage: 'Leave workspace…' },
-	deleteGroup: { defaultMessage: 'Delete workspace…' },
+	leaveWorkspace: { defaultMessage: 'Leave workspace…' },
+	deleteWorkspaceMsg: { defaultMessage: 'Delete workspace…' },
 	save: { defaultMessage: 'Save' },
 	cancel: { defaultMessage: 'Cancel' },
 	confirmLeave: { defaultMessage: 'Are you sure you want to leave this workspace?' },
@@ -47,12 +48,12 @@ const messages = defineMessages({
 	deleteAction: { defaultMessage: 'Delete workspace' },
 })
 
-interface GroupSettingsDialogProps {
-	groupId: string
+interface WorkspaceSettingsDialogProps {
+	workspaceId: string
 	onClose(): void
 }
 
-export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogProps) {
+export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSettingsDialogProps) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const [isRegenerating, setIsRegenerating] = useState(false)
@@ -64,28 +65,30 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 	const adminMsg = useMsg(messages.admin)
 	const youMsg = useMsg(messages.you)
 
-	// Get group data
-	const groupMembership = useValue('groupMembership', () => app.getGroupMembership(groupId), [
-		app,
-		groupId,
-	])
+	// Get workspace data
+	const workspaceMembership = useValue(
+		'workspaceMembership',
+		() => app.getWorkspaceMembership(workspaceId),
+		[app, workspaceId]
+	)
 	const currentFileId = useCurrentFileId()
 	const navigate = useNavigate()
 
-	if (!groupMembership) return null
-	const group = groupMembership.group
-	const currentUser = groupMembership.groupMembers.find(
+	if (!workspaceMembership) return null
+	const workspace = workspaceMembership.group
+	const currentUser = workspaceMembership.groupMembers.find(
 		(member) => member.userId === app.getUser().id
 	)
 	const isOwner = currentUser?.role === 'owner'
 	const canDelete = isOwner
 	const canLeave =
-		!isOwner || groupMembership.groupMembers.filter((member) => member.role === 'owner').length > 1
-	const ownersCount = groupMembership.groupMembers.filter((m) => m.role === 'owner').length
+		!isOwner ||
+		workspaceMembership.groupMembers.filter((member) => member.role === 'owner').length > 1
+	const ownersCount = workspaceMembership.groupMembers.filter((m) => m.role === 'owner').length
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
-		app.copyGroupInvite(groupId, false)
+		app.copyWorkspaceInvite(workspaceId, false)
 		setCopiedInviteLink(true)
 		setTimeout(() => setCopiedInviteLink(false), 1000)
 	}
@@ -94,7 +97,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 		e.preventDefault()
 		setIsRegenerating(true)
 		try {
-			await app.z.mutate.regenerateGroupInviteSecret({ id: groupId }).server
+			await app.z.mutate.regenerateWorkspaceInviteSecret({ id: workspaceId }).server
 			setShowRefreshSuccess(true)
 			setTimeout(() => setShowRefreshSuccess(false), 1000)
 		} finally {
@@ -102,31 +105,31 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 		}
 	}
 
-	const handleLeaveGroup = async () => {
+	const handleLeaveWorkspace = async () => {
 		try {
-			const isCurrentlyOnAFileInThisGroup =
-				currentFileId && app.getFile(currentFileId)?.owningGroupId === groupId
-			await app.z.mutate.leaveGroup({ groupId }).client
+			const isCurrentlyOnAFileInThisWorkspace =
+				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
+			await app.z.mutate.leaveWorkspace({ workspaceId }).client
 			onClose()
-			if (isCurrentlyOnAFileInThisGroup) {
+			if (isCurrentlyOnAFileInThisWorkspace) {
 				navigate('/')
 			}
 		} catch (error) {
-			console.error('Error leaving group:', error)
+			console.error('Error leaving workspace:', error)
 		}
 	}
 
-	const handleDeleteGroup = async () => {
+	const handleDeleteWorkspace = async () => {
 		try {
-			const isCurrentlyOnAFileInThisGroup =
-				currentFileId && app.getFile(currentFileId)?.owningGroupId === groupId
-			await app.z.mutate.deleteGroup({ id: groupId }).client
+			const isCurrentlyOnAFileInThisWorkspace =
+				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
+			await app.z.mutate.deleteWorkspace({ id: workspaceId }).client
 			onClose()
-			if (isCurrentlyOnAFileInThisGroup) {
+			if (isCurrentlyOnAFileInThisWorkspace) {
 				navigate('/')
 			}
 		} catch (error) {
-			console.error('Error deleting group:', error)
+			console.error('Error deleting workspace:', error)
 		}
 	}
 
@@ -139,7 +142,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					confirmLabel={<F {...messages.leaveAction} />}
 					cancelLabel={<F {...messages.cancel} />}
 					confirmType="danger"
-					onConfirm={handleLeaveGroup}
+					onConfirm={handleLeaveWorkspace}
 					onClose={onClose}
 				/>
 			),
@@ -155,18 +158,20 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					confirmLabel={<F {...messages.deleteAction} />}
 					cancelLabel={<F {...messages.cancel} />}
 					confirmType="danger"
-					onConfirm={handleDeleteGroup}
+					onConfirm={handleDeleteWorkspace}
 					onClose={onClose}
 				/>
 			),
 		})
 	}
 
-	if (!group || !groupMembership) {
+	if (!workspace || !workspaceMembership) {
 		return null
 	}
 
-	const inviteUrl = group.inviteSecret ? routes.tlaInvite(group.inviteSecret, { asUrl: true }) : ''
+	const inviteUrl = workspace.inviteSecret
+		? routes.tlaInvite(workspace.inviteSecret, { asUrl: true })
+		: ''
 
 	return (
 		<_Tooltip.Provider>
@@ -176,7 +181,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.groupSettingsBody}>
+			<TldrawUiDialogBody className={styles.workspaceSettingsBody}>
 				{/* Name Section */}
 				<div className={styles.section}>
 					<div className={styles.sectionLabel}>
@@ -184,11 +189,11 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					</div>
 					<TldrawUiInput
 						className={styles.dialogInput}
-						defaultValue={group.name}
+						defaultValue={workspace.name}
 						onValueChange={(value) => {
 							const name = value.trim()
-							if (name && name !== group.name) {
-								app.z.mutate.updateGroup({ id: groupId, name })
+							if (name && name !== workspace.name) {
+								app.z.mutate.updateWorkspace({ id: workspaceId, name })
 							}
 						}}
 						placeholder={namePlaceholderMsg}
@@ -244,11 +249,16 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 				<hr className={styles.divider} />
 				<div className={styles.section}>
 					<label className={styles.sectionLabelLarge}>
-						<F {...messages.members} /> {/* eslint-disable-next-line tldraw/jsx-no-literals */}
-						<span className={styles.memberCount}>{`(${groupMembership.groupMembers.length})`}</span>
+						<F {...messages.members} />{' '}
+						<span className={styles.memberCount}>
+							<F
+								{...messages.memberCount}
+								values={{ count: workspaceMembership.groupMembers.length }}
+							/>
+						</span>
 					</label>
 					<div className={styles.membersList}>
-						{[...groupMembership.groupMembers]
+						{[...workspaceMembership.groupMembers]
 							.sort((a, b) => {
 								const currentId = app.getUser().id
 								if (a.userId === currentId && b.userId !== currentId) return -1
@@ -279,8 +289,8 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 												if (value === member.role) return
 												if (member.role === 'owner' && value === 'admin' && ownersCount <= 1) return
 												try {
-													await app.z.mutate.setGroupMemberRole({
-														groupId,
+													await app.z.mutate.setWorkspaceMemberRole({
+														workspaceId,
 														targetUserId: member.userId,
 														role: value,
 													}).client
@@ -306,7 +316,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 											}
 											try {
 												await app.z.mutate.group.setMemberRole({
-													groupId,
+													workspaceId,
 													targetUserId: member.userId,
 													role: value,
 												})
@@ -338,12 +348,12 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					<div className={styles.dangerZoneActions}>
 						{canLeave && (
 							<button className={styles.inlineButton} onClick={openLeaveConfirmDialog}>
-								<F {...messages.leaveGroup} />
+								<F {...messages.leaveWorkspace} />
 							</button>
 						)}
 						{canDelete && (
 							<button className={styles.inlineButton} onClick={openDeleteConfirmDialog}>
-								<F {...messages.deleteGroup} />
+								<F {...messages.deleteWorkspaceMsg} />
 							</button>
 						)}
 					</div>

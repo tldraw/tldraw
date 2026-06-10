@@ -1,24 +1,10 @@
 import assert from 'assert'
-import { DragFileOperation, DragGroupOperation, DragReorderOperation } from '@tldraw/dotcom-shared'
-import { getIndexAbove, getIndexBetween, IndexKey } from '@tldraw/utils'
+import { DragFileOperation, DragReorderOperation } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef } from 'react'
 import { Vec } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { TldrawApp } from '../app/TldrawApp'
 import { useApp } from './useAppState'
-
-function detectDragOperations(
-	elements: DragElements,
-	mousePosition: { x: number; y: number },
-	dragType: 'file' | 'group',
-	dragId: string
-): DragFileOperation | DragGroupOperation {
-	if (dragType === 'file') {
-		return detectFileOperations(elements, mousePosition)
-	} else {
-		return detectGroupOperation(elements.groupItems ?? [], mousePosition, dragId)
-	}
-}
 
 function detectFileOperations(
 	elements: DragElements,
@@ -26,73 +12,39 @@ function detectFileOperations(
 ): DragFileOperation {
 	const operations: DragFileOperation = {}
 
-	// Check for move operation - mouse over different group
-	const hoveredGroupId = findHoveredGroupId(elements, mousePosition)
-	const group =
-		hoveredGroupId === elements.myFiles.id
+	// Check for move operation - mouse over a different workspace
+	const hoveredWorkspaceId = findHoveredWorkspaceId(elements, mousePosition)
+	const workspace =
+		hoveredWorkspaceId === elements.myFiles.id
 			? elements.myFiles
-			: elements.groups.find((g) => g.id === hoveredGroupId)!
+			: elements.workspaces.find((g) => g.id === hoveredWorkspaceId)!
 	const isPinned = elements.draggedElement.getAttribute('data-is-pinned') === 'true'
-	const containsDraggedElement = group?.element.contains(elements.draggedElement)
-	if (hoveredGroupId && !containsDraggedElement) {
-		operations.move = { targetId: hoveredGroupId }
+	const containsDraggedElement = workspace?.element.contains(elements.draggedElement)
+	if (hoveredWorkspaceId && !containsDraggedElement) {
+		operations.move = { targetId: hoveredWorkspaceId }
 	}
 
 	// Check for reorder operation
 
 	if (containsDraggedElement) {
 		const reorderOp = detectFileReorderOperation(
-			hoveredGroupId === elements.myFiles.id
+			hoveredWorkspaceId === elements.myFiles.id
 				? elements.myFiles
-				: elements.groups.find((g) => g.id === hoveredGroupId)!,
+				: elements.workspaces.find((g) => g.id === hoveredWorkspaceId)!,
 			mousePosition
 		)
 		if (reorderOp) {
 			operations.reorder = reorderOp
 		} else if (isPinned) {
 			// unpin the file
-			operations.move = { targetId: hoveredGroupId! }
+			operations.move = { targetId: hoveredWorkspaceId! }
 		}
 	}
 
 	return operations
 }
 
-function detectGroupOperation(
-	groupItems: Array<{ id: string; element: HTMLElement }>,
-	mousePosition: { x: number; y: number },
-	draggedGroupId: string
-): DragGroupOperation {
-	if (groupItems.filter((g) => g.id !== draggedGroupId).length === 0) {
-		return {}
-	}
-
-	const startTop = groupItems[0].element.getBoundingClientRect().top
-
-	let insertBeforeId = null as null | string
-	let indicatorY = null as null | number
-	let prevBottom = startTop - REORDER_BOUNDARY_INDICATOR_OFFSET * 2
-
-	for (const target of groupItems) {
-		const rect = target.element.getBoundingClientRect()
-		const midY = rect.top + rect.height / 2
-		if (mousePosition.y < midY) {
-			insertBeforeId = target.id
-			indicatorY = (rect.top + prevBottom) / 2
-			break
-		}
-		prevBottom = rect.bottom
-	}
-
-	return {
-		reorder: {
-			insertBeforeId,
-			indicatorY: indicatorY ?? prevBottom + REORDER_BOUNDARY_INDICATOR_OFFSET,
-		},
-	}
-}
-
-function findHoveredGroupId(
+function findHoveredWorkspaceId(
 	elements: DragElements,
 	mousePosition: { x: number; y: number }
 ): string | null {
@@ -102,7 +54,7 @@ function findHoveredGroupId(
 	}
 
 	return (
-		elements.groups.find((target) => {
+		elements.workspaces.find((target) => {
 			return isPointInRect(mousePosition, target.element.getBoundingClientRect())
 		})?.id ?? null
 	)
@@ -117,19 +69,21 @@ const REORDER_BOUNDARY_INDICATOR_OFFSET = 2
 const REORDER_PINNED_BOUNDARY_INDICATOR_THRESHOLD = 15
 
 function detectFileReorderOperation(
-	groupElements: GroupElements,
+	workspaceElements: WorkspaceElements,
 	mousePosition: { x: number; y: number }
 ): DragReorderOperation | null {
-	if (groupElements.pinnedFiles.length === 0 && !groupElements.topUnpinnedFile) {
+	if (workspaceElements.pinnedFiles.length === 0 && !workspaceElements.topUnpinnedFile) {
 		// don't offer pinning if the group is empty
 		return null
 	}
 	const startTop = (
-		groupElements.pinnedFiles[0]?.element ?? groupElements.topUnpinnedFile!.element
+		workspaceElements.pinnedFiles[0]?.element ?? workspaceElements.topUnpinnedFile!.element
 	).getBoundingClientRect().top
 	const endBottom =
-		groupElements.pinnedFiles[groupElements.pinnedFiles.length - 1]?.element.getBoundingClientRect()
-			.bottom ?? groupElements.topUnpinnedFile!.element.getBoundingClientRect().top
+		workspaceElements.pinnedFiles[
+			workspaceElements.pinnedFiles.length - 1
+		]?.element.getBoundingClientRect().bottom ??
+		workspaceElements.topUnpinnedFile!.element.getBoundingClientRect().top
 
 	if (
 		mousePosition.y < startTop - REORDER_PINNED_BOUNDARY_INDICATOR_THRESHOLD ||
@@ -142,7 +96,7 @@ function detectFileReorderOperation(
 	let indicatorY = null as null | number
 	let prevBottom = startTop - REORDER_BOUNDARY_INDICATOR_OFFSET
 
-	for (const target of groupElements.pinnedFiles) {
+	for (const target of workspaceElements.pinnedFiles) {
 		const rect = target.element.getBoundingClientRect()
 		const midY = rect.top + rect.height / 2
 		if (mousePosition.y < midY) {
@@ -168,60 +122,25 @@ function isPointInRect(point: { x: number; y: number }, rect: DOMRect): boolean 
 async function executeFileOperations(
 	app: TldrawApp,
 	fileId: string,
-	groupId: string,
+	workspaceId: string,
 	operation: DragFileOperation
 ) {
 	if (operation.move || operation.reorder) {
 		app.z.mutate.handleFileDragOperation({
 			fileId,
-			groupId,
+			workspaceId,
 			operation,
 		})
 
-		// Expand the target group if it's collapsed
-		if (operation.move) {
-			const targetGroupId = operation.move.targetId
-			const homeGroupId = app.getHomeGroupId()
-			if (targetGroupId !== homeGroupId) {
-				app.ensureSidebarGroupExpanded(targetGroupId)
-			}
-			// When moving a file to a different space, follow it there so that space
-			// becomes the active one (the active space is derived from the open file).
-			if (targetGroupId !== groupId) {
-				app.navigate(routes.tlaFile(fileId))
-			}
+		// When moving a file to a different space, follow it there so that space
+		// becomes the active one (the active space is derived from the open file).
+		if (operation.move && operation.move.targetId !== workspaceId) {
+			app.navigate(routes.tlaFile(fileId))
 		}
 	}
 }
 
-async function executeGroupOperations(app: TldrawApp, groupId: string, operation: any) {
-	if (operation.reorder) {
-		const { insertBeforeId } = operation.reorder
-
-		// Get all group memberships sorted by current index
-		const allGroups = app.getGroupMemberships()
-		const sortedGroups = allGroups.filter((g) => g.groupId !== app.getHomeGroupId())
-
-		// Calculate the new index for the group
-		let newIndex: IndexKey
-
-		if (insertBeforeId === null) {
-			// Insert at end - get index above the last group
-			const lastGroup = sortedGroups[sortedGroups.length - 1]
-			newIndex = lastGroup?.index ? getIndexAbove(lastGroup.index) : ('a0' as IndexKey)
-		} else {
-			// Insert before specific group
-			const targetIdx = sortedGroups.findIndex((g) => g.groupId === insertBeforeId)
-			const afterGroup = sortedGroups[targetIdx]
-			const beforeGroup = sortedGroups[targetIdx - 1]
-			newIndex = getIndexBetween(beforeGroup?.index, afterGroup?.index)
-		}
-
-		await app.z.mutate.updateOwnGroupUser({ groupId, index: newIndex }).client
-	}
-}
-
-interface GroupElements {
+interface WorkspaceElements {
 	id: string
 	element: HTMLElement
 	pinnedFiles: Array<{ id: string; element: HTMLElement }>
@@ -229,10 +148,9 @@ interface GroupElements {
 }
 interface DragElements {
 	draggedElement: HTMLElement
-	groupId: string
-	myFiles: GroupElements
-	groups: GroupElements[]
-	groupItems?: Array<{ id: string; element: HTMLElement }>
+	workspaceId: string
+	myFiles: WorkspaceElements
+	workspaces: WorkspaceElements[]
 }
 
 export function useDragTracking() {
@@ -241,28 +159,26 @@ export function useDragTracking() {
 
 	const startDragTracking = useCallback(
 		({
-			groupId,
+			workspaceId,
 			fileId,
 			clientX,
 			clientY,
 		}: {
-			groupId: string
-			fileId?: string
+			workspaceId: string
+			fileId: string
 			clientX: number
 			clientY: number
 		}) => {
-			const dragType = fileId ? 'file' : 'group'
-			const dragId = fileId ?? groupId
 			assert(!cleanupRef.current, 'Drag tracking already started')
 
 			// Query all drop target elements
-			const groupElements = document.querySelectorAll('[data-drop-target-id^="group:"]')
-			const homeGroupId = app.getHomeGroupId()
-			const myFilesElement = document.querySelector(`[data-drop-target-id="${homeGroupId}"]`)
+			const workspaceElements = document.querySelectorAll('[data-drop-target-id^="workspace:"]')
+			const homeWorkspaceId = app.getHomeWorkspaceId()
+			const myFilesElement = document.querySelector(`[data-drop-target-id="${homeWorkspaceId}"]`)
 
 			assert(myFilesElement, 'myFilesElement not found')
 
-			function getGroupElements(id: string, element: HTMLElement) {
+			function getWorkspaceElements(id: string, element: HTMLElement) {
 				const topUnpinnedFile = element.querySelector('[data-is-pinned="false"]')
 				return {
 					id,
@@ -282,21 +198,13 @@ export function useDragTracking() {
 
 			const elements: DragElements = {
 				draggedElement: document.querySelector(
-					`[data-drop-target-id="${dragType}:${dragId}"]`
+					`[data-drop-target-id="file:${fileId}"]`
 				) as HTMLElement,
-				groupId,
-				myFiles: getGroupElements(app.getHomeGroupId(), myFilesElement as HTMLElement),
-				groups: [...groupElements].map((element) =>
-					getGroupElements(element.getAttribute('data-group-id')!, element as HTMLElement)
+				workspaceId,
+				myFiles: getWorkspaceElements(homeWorkspaceId, myFilesElement as HTMLElement),
+				workspaces: [...workspaceElements].map((element) =>
+					getWorkspaceElements(element.getAttribute('data-workspace-id')!, element as HTMLElement)
 				),
-				// For group dragging, collect all group item elements for reordering
-				groupItems:
-					dragType === 'group'
-						? [...groupElements].map((element) => ({
-								id: element.getAttribute('data-group-id')!,
-								element: element as HTMLElement,
-							}))
-						: undefined,
 			}
 			const mousePosition = { x: clientX, y: clientY }
 			const startMousePosition = { x: clientX, y: clientY }
@@ -320,15 +228,15 @@ export function useDragTracking() {
 
 				// Update bounding boxes for all drop targets
 				// Detect operations and update app state
-				const operation = detectDragOperations(elements, mousePosition, dragType, dragId)
+				const operation = detectFileOperations(elements, mousePosition)
 
 				// Update app state with detected operations
 				app.sidebarState.set({
 					...app.sidebarState.get(),
 					dragState: {
 						hasDragStarted,
-						type: dragType,
-						id: dragId,
+						type: 'file',
+						id: fileId,
 						operation,
 					},
 				})
@@ -363,13 +271,9 @@ export function useDragTracking() {
 					...app.sidebarState.get(),
 					dragState: null,
 				})
-				if (!cancel) {
+				if (!cancel && dragState) {
 					// Execute operations before clearing drag state
-					if (dragState && fileId) {
-						executeFileOperations(app, fileId, groupId, dragState.operation)
-					} else if (dragState && dragState.type === 'group') {
-						executeGroupOperations(app, dragState.id, dragState.operation)
-					}
+					executeFileOperations(app, fileId, workspaceId, dragState.operation)
 				}
 			}
 

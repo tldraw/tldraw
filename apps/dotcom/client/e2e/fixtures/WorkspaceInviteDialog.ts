@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, step } from './tla-test'
 
-export class GroupInviteDialog {
+export class WorkspaceInviteDialog {
 	public readonly dialog: Locator
 	public readonly acceptButton: Locator
 	public readonly declineButton: Locator

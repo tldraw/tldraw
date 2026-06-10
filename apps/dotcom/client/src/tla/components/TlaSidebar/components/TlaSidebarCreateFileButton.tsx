@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TldrawUiButton, tltime } from 'tldraw'
 import { routes } from '../../../../routeDefs'
-import { useActiveGroupId } from '../../../hooks/useActiveGroupId'
+import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
@@ -19,23 +19,22 @@ export function TlaSidebarCreateFileButton() {
 	const createTitle = useMsg(messages.create)
 	// Create the file in whichever space is currently active (the home group when
 	// in "My files", otherwise the selected workspace).
-	const activeGroupId = useActiveGroupId()
+	const activeWorkspaceId = useActiveWorkspaceId()
 
 	const rCanCreate = useRef(true)
 
 	const handleSidebarCreate = async () => {
 		if (!rCanCreate.current) return
-		const res = await app.createFile({ groupId: activeGroupId })
+		const res = await app.createFile({ workspaceId: activeWorkspaceId })
 		if (res.ok) {
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
 				app.sidebarState.update((prev) => ({
 					...prev,
-					renameState: { fileId: res.value.fileId, groupId: activeGroupId },
+					renameState: { fileId: res.value.fileId, workspaceId: activeWorkspaceId },
 				}))
 			}
 			const { fileId } = res.value
-			app.ensureFileVisibleInSidebar(fileId)
 			navigate(routes.tlaFile(fileId))
 			trackEvent('create-file', { source: 'sidebar' })
 			rCanCreate.current = false
