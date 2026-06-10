@@ -1,0 +1,42 @@
+.edge-scrolling__panel {
+	position: absolute;
+	bottom: 80px;
+	left: 8px;
+	z-index: 300;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 240px;
+	padding: 12px;
+	border-radius: 8px;
+	background: var(--color-panel);
+	box-shadow: var(--shadow-2);
+}
+
+.edge-scrolling__title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--color-text-1);
+}
+
+.edge-scrolling__row {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	font-size: 11px;
+	color: var(--color-text-1);
+}
+
+.edge-scrolling__reset {
+	margin-top: 4px;
+	padding: 4px 8px;
+	border: 1px solid var(--color-muted-1);
+	border-radius: 6px;
+	background: var(--color-panel);
+	font-size: 11px;
+	cursor: pointer;
+}
+
+.edge-scrolling__reset:hover {
+	background: var(--color-muted-2);
+}
