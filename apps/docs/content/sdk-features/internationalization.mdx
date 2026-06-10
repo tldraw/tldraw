@@ -19,7 +19,7 @@ accuracy: 9
 notes: Consider linking to an i18n example if one exists.
 ---
 
-Tldraw's UI supports 50 languages out of the box, including right-to-left languages like Arabic, Hebrew, Farsi, and Urdu. The translation system loads language files on demand, detects the user's browser language, and lets you override any translation string or add custom ones.
+Tldraw's UI supports 49 languages out of the box, including right-to-left languages like Arabic, Hebrew, Farsi, and Urdu. The translation system loads language files on demand, detects the user's browser language, and lets you override any translation string or add custom ones.
 
 ## Setting the locale
 
@@ -40,7 +40,7 @@ export default function App() {
 }
 ```
 
-The `locale` prop takes priority over the browser's language preferences but can still be overridden by the user's explicit locale preference (e.g. via `editor.user.updateUserPreferences`).
+The `locale` prop takes priority over both the browser's language preferences and the user's locale preference. When set, your application controls the displayed language.
 
 You can also set the locale imperatively after the editor mounts:
 
@@ -239,3 +239,7 @@ Translations load asynchronously when the locale changes. The system:
 4. Updates the translation context
 
 During loading, the UI uses the previous translations to avoid flicker. If loading fails, English remains as the fallback.
+
+## Related examples
+
+- **[Custom translations and overrides](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/custom-language-translations)** — Override translation strings and use them in custom UI.
