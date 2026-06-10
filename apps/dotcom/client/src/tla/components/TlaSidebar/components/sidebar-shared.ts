@@ -8,12 +8,7 @@ export interface RecentFile {
 
 export const messages = defineMessages({
 	create: { defaultMessage: 'Create file' },
-	createWorkspace: { defaultMessage: 'Create workspace' },
 	toggleSidebar: { defaultMessage: 'Toggle sidebar' },
 	accountMenu: { defaultMessage: 'Account menu' },
 	fileMenu: { defaultMessage: 'File menu' },
-	groupEmpty: {
-		defaultMessage:
-			'Drag files here, <create>create a file</create>, or <invite>copy invite link</invite> to get started.',
-	},
 })

@@ -25,7 +25,6 @@ import { F, defineMessages, useIntl } from '../../../utils/i18n'
 import { toggleMobileSidebar, useIsSidebarOpenMobile } from '../../../utils/local-session-state'
 import { FileItems } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { pinIcon } from './pinIcon'
 import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
@@ -204,14 +203,7 @@ export function TlaSidebarFileLinkInner({
 	if (!file) return null
 
 	if (isRenaming) {
-		return (
-			<TlaSidebarRenameInline
-				source="sidebar"
-				fileId={fileId}
-				workspaceId={workspaceId}
-				onClose={onClose}
-			/>
-		)
+		return <TlaSidebarRenameInline source="sidebar" fileId={fileId} onClose={onClose} />
 	}
 
 	return (
@@ -273,7 +265,6 @@ export function TlaSidebarFileLinkInner({
 				draggable={false}
 			/>
 			<div className={styles.sidebarFileListItemContent}>
-				{isPinned && hasWorkspaces && pinIcon}
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,

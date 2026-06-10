@@ -47,9 +47,6 @@
   "13ddd375ad": {
     "translation": "Export as"
   },
-  "146ffe2fd9": {
-    "translation": "Show more"
-  },
   "1764571547": {
     "translation": "Are you sure you want to delete this workspace? This action cannot be undone."
   },
@@ -146,6 +143,9 @@
   "49ee308734": {
     "translation": "Name"
   },
+  "4c84b0cfaa": {
+    "translation": "Create a workspace +"
+  },
   "4d0d3ddec9": {
     "translation": "This site uses cookies to make the app work and to collect analytics."
   },
@@ -181,9 +181,6 @@
   },
   "56c34c6410": {
     "translation": "Privacy policy"
-  },
-  "5a86b22fa0": {
-    "translation": "Drag files here, <create>create a file</create>, or <invite>copy invite link</invite> to get started."
   },
   "5a95a425f7": {
     "translation": "Share"
@@ -344,9 +341,6 @@
   "91e49bb0eb": {
     "translation": "Copy to my files"
   },
-  "930390d222": {
-    "translation": "Copied invite link"
-  },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
   },
@@ -476,9 +470,6 @@
   },
   "c6a00f137b": {
     "translation": "Invite"
-  },
-  "c74ea6dbff": {
-    "translation": "Show less"
   },
   "c87aacf567": {
     "translation": "Sign out"
@@ -617,9 +608,6 @@
   },
   "fed5ec05eb": {
     "translation": "Copied link"
-  },
-  "ff7a814974": {
-    "translation": "Add file link…"
   },
   "ffcd73e997": {
     "translation": "Import file…"

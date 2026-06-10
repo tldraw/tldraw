@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect } from 'react'
+import { useHasFlag } from '../../hooks/useHasFlag'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import {
@@ -15,13 +16,13 @@ import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
+import { TlaSidebarWorkspaceList } from './components/TlaSidebarWorkspaceList'
 import styles from './sidebar.module.css'
 
 export const TlaSidebar = memo(function TlaSidebar() {
 	const isSidebarOpen = useIsSidebarOpen()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 	const trackEvent = useTldrawAppUiEvents()
-	const createGroupMsg = useMsg(messages.createWorkspace)
 
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
@@ -46,24 +47,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
 	const hasWorkspaces = useHasFlag('groups_frontend')
-	const addDialog = useDialogs().addDialog
-	const app = useApp()
-
-	const handleCreateGroup = () => {
-		// Use dialog if flag is set or on mobile
-		addDialog({
-			component: ({ onClose }) => (
-				<CreateWorkspaceDialog
-					onClose={onClose}
-					onCreate={(name) => {
-						const id = uniqueId()
-						app.z.mutate.createWorkspace({ id, name })
-						app.ensureSidebarGroupExpanded(id)
-					}}
-				/>
-			),
-		})
-	}
 
 	return (
 		<nav aria-hidden={!isSidebarOpen} style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}>
@@ -84,24 +67,14 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			>
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
-					{hasWorkspaces && (
-						<TldrawUiButton
-							type="icon"
-							tooltip={createGroupMsg}
-							title={createGroupMsg}
-							className={styles.sidebarCreateFileButton}
-							onClick={handleCreateGroup}
-							data-testid="tla-create-group"
-							style={{ marginRight: -8, color: 'var(--tla-color-text-1)' }}
-						>
-							<TlaIcon icon="folder-new" />
-						</TldrawUiButton>
-					)}
 					<TlaSidebarCreateFileButton />
 				</div>
+				{/* The workspace list is fixed; only the file list below it scrolls. */}
+				{hasWorkspaces && <TlaSidebarWorkspaceList />}
+				{hasWorkspaces && <div className={styles.sidebarDivider} />}
 				<div className={styles.sidebarContent}>
 					<div className={styles.sidebarContentInner}>
-						{hasWorkspaces ? <NewSidebarLayout /> : <LegacySidebarLayout />}
+						{hasWorkspaces ? <TlaSidebarRecentFilesNew /> : <TlaSidebarRecentFiles />}
 					</div>
 				</div>
 				<div className={styles.sidebarBottomArea}>
@@ -115,23 +88,3 @@ export const TlaSidebar = memo(function TlaSidebar() {
 		</nav>
 	)
 })
-
-function LegacySidebarLayout() {
-	return <TlaSidebarRecentFiles />
-}
-
-import { TldrawUiButton, uniqueId, useDialogs } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
-import { useHasFlag } from '../../hooks/useHasFlag'
-import { useMsg } from '../../utils/i18n'
-import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
-import { messages } from './components/sidebar-shared'
-
-function NewSidebarLayout() {
-	return (
-		<>
-			<TlaSidebarRecentFilesNew />
-		</>
-	)
-}

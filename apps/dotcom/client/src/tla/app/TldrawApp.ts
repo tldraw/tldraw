@@ -5,7 +5,6 @@ import {
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
 	DragFileOperation,
-	DragReorderOperation,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
@@ -80,24 +79,12 @@ import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
 
-interface DragGroupOperation {
-	reorder?: DragReorderOperation
+type DragState = null | {
+	type: 'file'
+	id: string
+	operation: DragFileOperation
+	hasDragStarted: boolean
 }
-
-type DragState =
-	| null
-	| {
-			type: 'file'
-			id: string
-			operation: DragFileOperation
-			hasDragStarted: boolean
-	  }
-	| {
-			type: 'group'
-			id: string
-			operation: DragGroupOperation
-			hasDragStarted: boolean
-	  }
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -1162,79 +1149,12 @@ export class TldrawApp {
 	}
 
 	sidebarState = atom('sidebar state', {
-		expandedGroups: {} as Record<string, 'closed' | 'expanded_show_less' | 'expanded_show_more'>,
-		recentFilesShowMore: false,
-		noAnimationGroups: [] as string[],
 		renameState: null as null | {
 			fileId: string
 			workspaceId: string
 		},
 		dragState: null as DragState,
 	})
-
-	ensureSidebarGroupExpanded(workspaceId: string) {
-		const currentExpansionState = this.sidebarState.get().expandedGroups[workspaceId]
-		if (!currentExpansionState || currentExpansionState === 'closed') {
-			this.sidebarState.update((prev) => ({
-				...prev,
-				expandedGroups: { ...prev.expandedGroups, [workspaceId]: 'expanded_show_less' },
-			}))
-		}
-	}
-
-	ensureFileVisibleInSidebar(fileId: string) {
-		const file = this.getFile(fileId)
-		if (!file) return
-
-		// If file is pinned, nothing to do
-		if (this.getFileState(fileId)?.isPinned) {
-			return
-		}
-
-		// If file is in a group
-		if (file.owningGroupId) {
-			const membership = this.getWorkspaceMembership(file.owningGroupId)
-			if (!membership) return
-
-			const groupFiles = this.getWorkspaceFilesSorted(file.owningGroupId)
-			const MAX_FILES_TO_SHOW = 4
-			const fileIndex = groupFiles.findIndex((f) => f?.fileId === fileId)
-
-			if (fileIndex >= MAX_FILES_TO_SHOW) {
-				// File is in the "show more" section, expand fully
-				this.sidebarState.update((prev) => ({
-					...prev,
-					expandedGroups: { ...prev.expandedGroups, [file.owningGroupId!]: 'expanded_show_more' },
-				}))
-			} else {
-				// File is in the "show less" section, ensure group is expanded
-				this.ensureSidebarGroupExpanded(file.owningGroupId)
-			}
-			return
-		}
-
-		// // If file is in recent files (not in a group)
-		// const recentFiles = this.getMyFiles()
-		// if (!recentFiles) return
-
-		// const workspaceMemberships = this.getWorkspaceMemberships()
-		// const otherFiles = recentFiles.filter(
-		// 	(item) =>
-		// 		!this.isPinned(item.id) &&
-		// 		!workspaceMemberships.some(
-		// 			(group) => group.group.id === this.getFile(item.fileId)?.owningGroupId
-		// 		)
-		// )
-
-		// const MAX_FILES_TO_SHOW = workspaceMemberships.length > 0 ? 6 : +Infinity
-		// const fileIndex = otherFiles.findIndex((item) => item.fileId === fileId)
-
-		// if (fileIndex >= MAX_FILES_TO_SHOW) {
-		// 	// File is in the "show more" section of recent files
-		// 	patch(this.sidebarState).recentFilesShowMore(true)
-		// }
-		// If file is in the "show less" section, nothing to do
-	}
 
 	copyWorkspaceInvite(workspaceId: string, showToast = true) {
 		const membership = this.getWorkspaceMembership(workspaceId)
@@ -1276,11 +1196,6 @@ export class TldrawApp {
 		while (!this.getWorkspaceMembership(payload.workspaceId)) {
 			await sleep(50)
 		}
-
-		this.sidebarState.update((prev) => ({
-			...prev,
-			expandedGroups: { ...prev.expandedGroups, [payload.workspaceId]: 'expanded_show_less' },
-		}))
 
 		// Clear any existing ordering for this new workspace to get fresh ordering
 		this.lastWorkspaceFileOrderings.delete(payload.workspaceId)

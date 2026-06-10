@@ -760,16 +760,6 @@ export function createMutators(userId: string) {
 				index: null,
 			})
 		},
-		updateOwnWorkspaceUser: async (
-			tx: Tx,
-			{ workspaceId, index }: { workspaceId: string; index: IndexKey }
-		) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(workspaceId, ZErrorCode.bad_request)
-			const role = await getRole(tx, userId, workspaceId)
-			assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
-			await tx.mutate.group_user.update({ userId, groupId: workspaceId, index })
-		},
 		handleFileDragOperation: async (
 			tx: Tx,
 			{

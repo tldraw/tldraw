@@ -99,12 +99,6 @@
       "value": "Export as"
     }
   ],
-  "146ffe2fd9": [
-    {
-      "type": 0,
-      "value": "Show more"
-    }
-  ],
   "1764571547": [
     {
       "type": 0,
@@ -297,6 +291,12 @@
       "value": "Name"
     }
   ],
+  "4c84b0cfaa": [
+    {
+      "type": 0,
+      "value": "Create a workspace +"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -377,40 +377,6 @@
     {
       "type": 0,
       "value": "Privacy policy"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Drag files here, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "create a file"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": ", or "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "copy invite link"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " to get started."
     }
   ],
   "5a95a425f7": [
@@ -767,12 +733,6 @@
       "value": "Copy to my files"
     }
   ],
-  "930390d222": [
-    {
-      "type": 0,
-      "value": "Copied invite link"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1105,12 +1065,6 @@
       "value": "Invite"
     }
   ],
-  "c74ea6dbff": [
-    {
-      "type": 0,
-      "value": "Show less"
-    }
-  ],
   "c87aacf567": [
     {
       "type": 0,
@@ -1427,12 +1381,6 @@
     {
       "type": 0,
       "value": "Copied link"
-    }
-  ],
-  "ff7a814974": [
-    {
-      "type": 0,
-      "value": "Add file link…"
     }
   ],
   "ffcd73e997": [

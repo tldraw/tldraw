@@ -1,10 +1,9 @@
 /* ---------------------- Menu ---------------------- */
 
-import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
+import { FILE_PREFIX, TlaFile, ZErrorCode } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-	TldrawUiButtonCheck,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -116,12 +115,18 @@ export function FileItems({
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
-	// Get all group memberships (including home group which we'll filter in UI)
-	const workspaceMemberships = useValue('groupMembers', () => app.getWorkspaceMemberships(), [app])
+	// Get all workspace memberships (including the home workspace, filtered out below)
+	const workspaceMemberships = useValue(
+		'workspaceMemberships',
+		() => app.getWorkspaceMemberships(),
+		[app]
+	)
 
-	// Filter out home group for the "Move to" menu
-	const nonHomeWorkspaces = workspaceMemberships.filter(
-		(g) => g.groupId !== app.getHomeWorkspaceId()
+	// A file lives in exactly one workspace. The "Move to" menu only offers the workspaces
+	// it can move to — every workspace except the current one and the home workspace
+	const currentWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
+	const moveToWorkspaces = workspaceMemberships.filter(
+		(g) => g.groupId !== app.getHomeWorkspaceId() && g.groupId !== currentWorkspaceId
 	)
 
 	const handleCopyLinkClick = useCallback(() => {
@@ -161,7 +166,6 @@ export function FileItems({
 			lastSessionState: prevState?.lastSessionState,
 		})
 		if (res.ok) {
-			app.ensureFileVisibleInSidebar(newFileId)
 			app.sidebarState.update((prev) => ({
 				...prev,
 				renameState: { fileId: newFileId, workspaceId },
@@ -234,51 +238,32 @@ export function FileItems({
 			<TldrawUiMenuGroup id="file-delete">
 				{hasWorkspaces && (
 					<TldrawUiMenuSubmenu id="move-to-workspace" label={'Move to'} size="small">
-						<TldrawUiMenuGroup id="my-files">
-							<TldrawUiMenuItem
-								key="my-files"
-								label={myFilesMsg}
-								id="my-files"
-								iconLeft={
-									<TldrawUiButtonCheck
-										checked={
-											app.canUpdateFile(fileId)
-												? file?.owningGroupId === app.getHomeWorkspaceId()
-												: (workspaceMemberships
-														.find((g) => g.groupId === app.getHomeWorkspaceId())
-														?.groupFiles.some((g) => g.fileId === fileId) ?? false)
-										}
-									/>
-								}
-								readonlyOk
-								onSelect={() => {
-									app.z.mutate.moveFileToWorkspace({
-										fileId,
-										workspaceId: app.getHomeWorkspaceId(),
-									})
-								}}
-							/>
-						</TldrawUiMenuGroup>
-						{nonHomeWorkspaces.length > 0 && (
+						{currentWorkspaceId !== app.getHomeWorkspaceId() && (
+							<TldrawUiMenuGroup id="my-files">
+								<TldrawUiMenuItem
+									key="my-files"
+									label={myFilesMsg}
+									id="my-files"
+									readonlyOk
+									onSelect={() => {
+										app.z.mutate.moveFileToWorkspace({
+											fileId,
+											workspaceId: app.getHomeWorkspaceId(),
+										})
+									}}
+								/>
+							</TldrawUiMenuGroup>
+						)}
+						{moveToWorkspaces.length > 0 && (
 							<TldrawUiMenuGroup id="my-workspaces">
-								{nonHomeWorkspaces.map((groupUser) => (
+								{moveToWorkspaces.map((membership) => (
 									<TldrawUiMenuItem
-										key={groupUser.groupId}
-										label={groupUser.group.name}
-										id={`group-${groupUser.groupId}`}
-										iconLeft={
-											<TldrawUiButtonCheck
-												checked={
-													app.canUpdateFile(fileId)
-														? groupUser.group.id === file?.owningGroupId
-														: groupUser.groupFiles.some((g) => g.fileId === fileId)
-												}
-											/>
-										}
+										key={membership.groupId}
+										label={membership.group.name}
+										id={`workspace-${membership.groupId}`}
 										readonlyOk
 										onSelect={() => {
-											app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: groupUser.groupId })
-											app.ensureSidebarGroupExpanded(groupUser.groupId)
+											app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: membership.groupId })
 										}}
 									/>
 								))}
@@ -297,9 +282,19 @@ export function FileItems({
 												onClose={onClose}
 												onCreate={async (name) => {
 													const id = uniqueId()
-													await app.z.mutate.createWorkspace({ id, name }).client
-													await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id }).client
-													app.ensureSidebarGroupExpanded(id)
+													try {
+														await app.z.mutate.createWorkspace({ id, name }).client
+													} catch (e) {
+														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+														return
+													}
+													try {
+														await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id })
+															.client
+													} catch (e) {
+														// the workspace was created; only the move failed
+														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+													}
 												}}
 											/>
 										),
