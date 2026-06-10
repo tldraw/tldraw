@@ -21,12 +21,14 @@ import {
 	useColorMode,
 	useValue,
 } from '@tldraw/editor'
+import {
+	getStrokeOutlinePoints,
+	getStrokePoints,
+	getSvgPathFromStrokePoints,
+	setStrokePointRadii,
+} from '@tldraw/freehand'
 import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
-import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
-import { getStrokePoints } from '../shared/freehand/getStrokePoints'
-import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
-import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'

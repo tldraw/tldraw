@@ -7,7 +7,7 @@ import {
 	TLThemeColors,
 	getSvgPathFromPoints,
 } from '@tldraw/editor'
-import { getStroke } from '../shapes/shared/freehand/getStroke'
+import { getStroke } from '@tldraw/freehand'
 
 /** @public */
 export interface TLScribbleOverlay extends TLOverlay {

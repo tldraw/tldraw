@@ -1,5 +1,5 @@
 import { EASINGS, OverlayUtil, TLOverlay, TLScribble, getSvgPathFromPoints } from '@tldraw/editor'
-import { getStroke } from '../shapes/shared/freehand/getStroke'
+import { getStroke } from '@tldraw/freehand'
 
 /** @public */
 export interface TLCollaboratorScribbleOverlay extends TLOverlay {

@@ -6,12 +6,11 @@ import { describe, expect, it } from 'vitest'
 const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = join(here, '..', '..', '..')
 
-// The baseline and vendor files are verbatim copies of these sources, except
-// that their import specifiers point at the vendored primitives (and the
-// formatter may order them differently). Normalizing the specifiers and
-// sorting the import lines lets us assert that everything else is
-// byte-identical, so the baseline can't silently drift from what actually
-// ships in tldraw.
+// The vendor files are verbatim copies of these editor sources, except that
+// their import specifiers point at the vendored primitives (and the formatter
+// may order them differently). Normalizing the specifiers and sorting the
+// import lines lets us assert that everything else is byte-identical, so the
+// vendored primitives can't silently drift from the editor's.
 function normalize(source: string) {
 	const lines = source.replace(/from '[^']+'/g, "from '#'").split('\n')
 	const imports: string[] = []
@@ -27,22 +26,6 @@ function expectSameSource(copyPath: string, sourcePath: string) {
 	const source = readFileSync(join(repoRoot, sourcePath), 'utf-8')
 	expect(normalize(copy), `${copyPath} must match ${sourcePath}`).toBe(normalize(source))
 }
-
-const TLDRAW_FREEHAND = 'packages/tldraw/src/lib/shapes/shared/freehand'
-
-describe('baseline copies match the live tldraw sources', () => {
-	it.each([
-		'getStroke.ts',
-		'getStrokeOutlinePoints.ts',
-		'getStrokePoints.ts',
-		'setStrokePointRadii.ts',
-		'svg.ts',
-		'svgInk.ts',
-		'types.ts',
-	])('%s', (file) => {
-		expectSameSource(join('baseline', file), join(TLDRAW_FREEHAND, file))
-	})
-})
 
 describe('vendored primitives match the live editor sources', () => {
 	it.each([

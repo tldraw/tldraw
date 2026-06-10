@@ -11887,7 +11887,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/freehand@workspace:packages/freehand":
+"@tldraw/freehand@workspace:*, @tldraw/freehand@workspace:packages/freehand":
   version: 0.0.0-use.local
   resolution: "@tldraw/freehand@workspace:packages/freehand"
   dependencies:
@@ -30295,6 +30295,7 @@ __metadata:
     "@tiptap/starter-kit": "npm:^3.12.1"
     "@tldraw/driver": "workspace:*"
     "@tldraw/editor": "workspace:*"
+    "@tldraw/freehand": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@types/classnames": "npm:^2.3.4"
     "@types/lz-string": "npm:^1.5.0"

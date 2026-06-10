@@ -5,6 +5,14 @@ import { getStrokePoints } from './getStrokePoints'
 import { setStrokePointRadii } from './setStrokePointRadii'
 import { StrokeOptions, StrokePoint } from './types'
 
+/**
+ * Render a freehand stroke as svg path data in a single pass, from raw input points to a filled
+ * outline with round caps. This is the path used by tldraw's draw shape when drawing with ink.
+ *
+ * @param rawInputPoints - The raw input points (as `{x, y, z}`, where `z` is pressure).
+ * @param options - An object with options.
+ * @public
+ */
 export function svgInk(rawInputPoints: VecLike[], options: StrokeOptions = {}) {
 	const { start = {}, end = {} } = options
 	const { cap: capStart = true } = start

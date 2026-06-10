@@ -20,12 +20,10 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { getStrokePoints, getSvgPathFromStrokePoints, svgInk } from '@tldraw/freehand'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
-import { getStrokePoints } from '../shared/freehand/getStrokePoints'
-import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
-import { svgInk } from '../shared/freehand/svgInk'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { PatternFill } from '../shared/PatternFill'

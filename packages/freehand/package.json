@@ -1,8 +1,7 @@
 {
 	"name": "@tldraw/freehand",
-	"description": "The freehand ink algorithm used by tldraw, extracted for benchmarking and optimization. Not published.",
+	"description": "The freehand ink algorithm used by tldraw's draw and highlighter shapes.",
 	"version": "5.1.0",
-	"private": true,
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -22,9 +21,11 @@
 		"ink",
 		"drawing"
 	],
+	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
 	"type": "module",
+	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
@@ -32,6 +33,11 @@
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"bench": "yarn run -T tsx scripts/bench.ts",
 		"compare": "yarn run -T tsx scripts/compare.ts",
+		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
+		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
+		"pack-tarball": "yarn pack",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
