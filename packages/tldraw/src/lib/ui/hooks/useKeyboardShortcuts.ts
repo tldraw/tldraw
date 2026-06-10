@@ -157,8 +157,8 @@ export function useKeyboardShortcuts() {
 					if (matchesEvent(e, p)) {
 						const prev = code ? heldKeyRegistrations.get(code) : undefined
 						// The held key already triggered a different shortcut; don't fall back to
-						// this one just because a modifier was released.
-						if (prev && prev !== reg) break
+						// this one (or anything else) just because a modifier was released.
+						if (prev && prev !== reg) return
 						if (code) heldKeyRegistrations.set(code, reg)
 						reg.onKeyDown(e)
 						break
