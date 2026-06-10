@@ -9,6 +9,7 @@ import {
 	TLHighlightShape,
 	TLHighlightShapeProps,
 	TLResizeInfo,
+	Vec,
 	VecLike,
 	debugFlags,
 	getColorValue,
@@ -120,7 +121,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		setStrokePointRadii(strokePoints, opts)
 
 		return new Polygon2d({
-			points: getStrokeOutlinePoints(strokePoints, opts),
+			points: getStrokeOutlinePoints(strokePoints, opts).map((p) => Vec.From(p)),
 			isFilled: true,
 		})
 	}

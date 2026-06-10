@@ -33,6 +33,7 @@
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"bench": "yarn run -T tsx scripts/bench.ts",
 		"compare": "yarn run -T tsx scripts/compare.ts",
+		"extract-raw": "yarn run -T tsx scripts/extract-raw.ts",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",

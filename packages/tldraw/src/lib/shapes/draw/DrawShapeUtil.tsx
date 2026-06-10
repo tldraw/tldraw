@@ -10,6 +10,7 @@ import {
 	TLDrawShapeProps,
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
+	Vec,
 	VecLike,
 	drawShapeMigrations,
 	drawShapeProps,
@@ -132,7 +133,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const strokePoints = getStrokePoints(
 			points,
 			getFreehandOptions(shape.props, sw, shape.props.isPen, true)
-		).map((p) => p.point)
+		).map((p) => Vec.From(p.point))
 
 		// A closed draw stroke
 		if (shape.props.isClosed && strokePoints.length > 2) {

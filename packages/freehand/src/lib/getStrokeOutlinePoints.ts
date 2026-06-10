@@ -14,6 +14,17 @@ const TRACK_TOLERANCE_RATIO = 0.05
 // The maximum number of intermediate points the track simplifier may drop per kept segment.
 const SIMPLIFY_WINDOW = 8
 
+// How many steps to take when rounding a corner
+const MIN_ROUNDED_CORNER_STEPS = 8
+const MAX_ROUNDED_CORNER_STEPS = 13
+
+// How many steps to take when rounding a corner
+const MIN_CAP_STEPS = 8
+const MAX_CAP_STEPS = 29
+
+// Dot product threshold for identifying a hard corner
+const HARD_CORNER_DPR = -0.62
+
 /**
  * Drop track points that lie within `tol` of the segment between their kept neighbors. The
  * outline tracks are dense on gentle curves and straight runs where the quadratic smoothing
@@ -133,7 +144,10 @@ export function getStrokeOutlineTracks(
 			// Considering saving these and drawing them later? So that we can avoid
 			// crossing future points.
 
-			if (nextDpr > -0.62 && totalLength - strokePoint.runningLength > strokePoint.radius) {
+			if (
+				nextDpr > HARD_CORNER_DPR &&
+				totalLength - strokePoint.runningLength > strokePoint.radius
+			) {
 				// Draw a "soft" corner
 				const offsetX = prevVecX * strokePoint.radius
 				const offsetY = prevVecY * strokePoint.radius
@@ -161,7 +175,7 @@ export function getStrokeOutlineTracks(
 				const dx = -prevVecY * strokePoint.radius
 				const dy = prevVecX * strokePoint.radius
 
-				for (let step = 1 / 13, t = 0; t < 1; t += step) {
+				for (let step = 1 / MAX_ROUNDED_CORNER_STEPS, t = 0; t < 1; t += step) {
 					let angle = FIXED_PI * t
 					let s = Math.sin(angle)
 					let c = Math.cos(angle)
@@ -345,7 +359,13 @@ export function getStrokeOutlinePoints(
 				Vec.Sub(firstPoint, lastPoint).uni().per().mul(-firstStrokePoint.radius)
 			)
 			const dotPts: Vec[] = []
-			const steps = arcSteps(firstStrokePoint.radius, FIXED_PI * 2, capTolerance, 8, 13)
+			const steps = arcSteps(
+				firstStrokePoint.radius,
+				FIXED_PI * 2,
+				capTolerance,
+				MIN_ROUNDED_CORNER_STEPS,
+				MAX_ROUNDED_CORNER_STEPS
+			)
 			for (let step = 1 / steps, t = step; t <= 1; t += step) {
 				dotPts.push(Vec.RotWith(start, firstPoint, FIXED_PI * 2 * t))
 			}
@@ -405,7 +425,13 @@ export function getStrokeOutlinePoints(
 	} else if (capEnd) {
 		// Draw the round end cap
 		const start = Vec.Add(lastPoint, Vec.Mul(direction, lastStrokePoint.radius))
-		const steps = arcSteps(lastStrokePoint.radius, FIXED_PI * 3, capTolerance, 8, 29)
+		const steps = arcSteps(
+			lastStrokePoint.radius,
+			FIXED_PI * 3,
+			capTolerance,
+			MIN_CAP_STEPS,
+			MAX_CAP_STEPS
+		)
 		for (let step = 1 / steps, t = step; t < 1; t += step) {
 			endCap.push(Vec.RotWith(start, lastPoint, FIXED_PI * 3 * t))
 		}

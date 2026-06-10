@@ -6,6 +6,7 @@ import {
 	simulatePressureSettings,
 	solidSettings,
 } from './presets'
+import { REAL_STROKES } from './real'
 
 /** A single comparison case: recorded input points plus the options tldraw would use. */
 export interface CorpusCase {
@@ -354,6 +355,13 @@ function makeCases(): CorpusCase[] {
 		}),
 		highlightSettings(28)
 	)
+
+	// --- Real recorded strokes (extracted from raw.json, see scripts/extract-raw.ts) ---
+	// All were drawn with a mouse at size 'xl' and scale 1, so tldraw passes
+	// strokeWidth = (theme.strokeWidth 2 * STROKE_SIZES.xl 5 + 1) * scale 1 = 11.
+	REAL_STROKES.forEach(({ points }, i) => {
+		add(`real-${i + 1}`, 'draw', points, simulatePressureSettings(11))
+	})
 
 	return cases
 }

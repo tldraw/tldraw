@@ -24,8 +24,8 @@ How it gets there:
 
 - `src/lib` - the shipping implementation, consumed by the `tldraw` package.
 - `src/baseline` - a frozen, verbatim copy of the algorithm as it shipped in `packages/tldraw` before the optimization work. Never edit these files; they are the reference the parity gate and benchmarks compare against.
-- `src/vendor` - copies of the `Vec` and easing primitives from `@tldraw/editor`, so the package has no dependencies and benchmarks measure only the algorithm.
-- `src/corpus` - a deterministic corpus of simulated strokes (short and long; mouse, stylus, solid, highlighter) using the same stroke options tldraw passes in production.
+- `src/vendor` - copies of the `Vec` and easing primitives from `@tldraw/editor`, so the package has no dependencies and benchmarks measure only the algorithm. `Vec` is trimmed to just the members the package uses; the drift guard checks each kept member is a verbatim copy of the editor's.
+- `src/corpus` - a deterministic corpus of simulated strokes (short and long; mouse, stylus, solid, highlighter) using the same stroke options tldraw passes in production, plus real recorded strokes: `raw.json` is a tldraw snapshot of hand-drawn shapes, and `yarn workspace @tldraw/freehand extract-raw` decodes its input points into the generated `real.ts`.
 - `src/harness` - the comparison harness: geometric deviation, output size, and timing metrics, plus SVG overlay rendering and the HTML report.
 
 ## Usage

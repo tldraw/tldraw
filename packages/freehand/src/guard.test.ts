@@ -27,11 +27,31 @@ function expectSameSource(copyPath: string, sourcePath: string) {
 	expect(normalize(copy), `${copyPath} must match ${sourcePath}`).toBe(normalize(source))
 }
 
+// The vendored Vec is trimmed to just the members the package uses, but every
+// line it keeps must still be a verbatim copy. Check that the copy's non-empty
+// lines appear in the editor source in the same order, i.e. the copy is the
+// editor file with whole members deleted and nothing edited.
+function expectOrderedSubsetOfSource(copyPath: string, sourcePath: string) {
+	const copy = normalize(readFileSync(join(here, copyPath), 'utf-8'))
+	const sourceLines = normalize(readFileSync(join(repoRoot, sourcePath), 'utf-8')).split('\n')
+	let cursor = 0
+	for (const line of copy.split('\n')) {
+		if (line.trim() === '') continue
+		const found = sourceLines.indexOf(line, cursor)
+		expect(
+			found,
+			`${copyPath} line must appear in ${sourcePath} (in order): ${JSON.stringify(line)}`
+		).toBeGreaterThanOrEqual(0)
+		cursor = found + 1
+	}
+}
+
 describe('vendored primitives match the live editor sources', () => {
-	it.each([
-		['vendor/Vec.ts', 'packages/editor/src/lib/primitives/Vec.ts'],
-		['vendor/easings.ts', 'packages/editor/src/lib/primitives/easings.ts'],
-	])('%s', (copyPath, sourcePath) => {
-		expectSameSource(copyPath, sourcePath)
+	it('vendor/easings.ts', () => {
+		expectSameSource('vendor/easings.ts', 'packages/editor/src/lib/primitives/easings.ts')
+	})
+
+	it('vendor/Vec.ts', () => {
+		expectOrderedSubsetOfSource('vendor/Vec.ts', 'packages/editor/src/lib/primitives/Vec.ts')
 	})
 })

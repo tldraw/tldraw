@@ -95,66 +95,18 @@ export function svgInk(rawInputPoints: VecLike[], options?: StrokeOptions): stri
 export class Vec {
     constructor(x?: number, y?: number, z?: number);
     // (undocumented)
-    static Abs(A: VecLike): Vec;
-    // (undocumented)
-    abs(): this;
-    // (undocumented)
     static Add(A: VecLike, B: VecLike): Vec;
     // (undocumented)
-    add(V: VecLike): this;
-    // (undocumented)
-    static AddScalar(A: VecLike, n: number): Vec;
-    // (undocumented)
-    addScalar(n: number): this;
-    // (undocumented)
     static AddXY(A: VecLike, x: number, y: number): Vec;
-    // (undocumented)
-    addXY(x: number, y: number): this;
-    static Angle(A: VecLike, B: VecLike): number;
-    // (undocumented)
-    angle(B: VecLike): number;
-    static AngleBetween(A: VecLike, B: VecLike): number;
-    // (undocumented)
-    static Average(arr: VecLike[]): Vec;
-    // (undocumented)
-    static Cast(A: VecLike): Vec;
-    // (undocumented)
-    static Clamp(A: Vec, min: number, max?: number): Vec;
-    // (undocumented)
-    clamp(min: number, max?: number): this;
-    // (undocumented)
-    static Clockwise(A: VecLike, B: VecLike, C: VecLike): boolean;
     // (undocumented)
     clone(): Vec;
     static Cpr(A: VecLike, B: VecLike): number;
     // (undocumented)
     cpr(V: VecLike): number;
     // (undocumented)
-    static Cross(A: VecLike, V: VecLike): Vec;
-    // (undocumented)
-    cross(V: VecLike): this;
-    // (undocumented)
     static Dist(A: VecLike, B: VecLike): number;
     // (undocumented)
-    dist(V: VecLike): number;
-    // (undocumented)
     static Dist2(A: VecLike, B: VecLike): number;
-    // (undocumented)
-    static DistanceToLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp?: boolean): number;
-    // (undocumented)
-    distanceToLineSegment(A: VecLike, B: VecLike): number;
-    // (undocumented)
-    static DistanceToLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): number;
-    // (undocumented)
-    static DistMin(A: VecLike, B: VecLike, n: number): boolean;
-    // (undocumented)
-    static Div(A: VecLike, t: number): Vec;
-    // (undocumented)
-    div(t: number): this;
-    // (undocumented)
-    static DivV(A: VecLike, B: VecLike): Vec;
-    // (undocumented)
-    divV(V: VecLike): this;
     static Dpr(A: VecLike, B: VecLike): number;
     // (undocumented)
     dpr(V: VecLike): number;
@@ -163,137 +115,27 @@ export class Vec {
     // (undocumented)
     equals(B: VecLike): boolean;
     // (undocumented)
-    static EqualsXY(A: VecLike, x: number, y: number): boolean;
-    // (undocumented)
-    equalsXY(x: number, y: number): boolean;
-    // (undocumented)
     static From({ x, y, z }: VecModel): Vec;
-    // (undocumented)
-    static FromAngle(r: number, length?: number): Vec;
-    // (undocumented)
-    static FromArray(v: number[]): Vec;
-    // (undocumented)
-    static IsFinite(A: VecLike): boolean;
-    // (undocumented)
-    static IsNaN(A: VecLike): boolean;
     // (undocumented)
     static Len(A: VecLike): number;
     // (undocumented)
     len(): number;
-    // (undocumented)
-    static Len2(A: VecLike): number;
-    // (undocumented)
-    len2(): number;
     static Lrp(A: VecLike, B: VecLike, t: number): Vec;
     // (undocumented)
     lrp(B: VecLike, t: number): Vec;
-    // (undocumented)
-    static ManhattanDist(A: VecLike, B: VecLike): number;
-    // (undocumented)
-    static Max(A: VecLike, B: VecLike): Vec;
-    // (undocumented)
-    static Med(A: VecLike, B: VecLike): Vec;
-    // (undocumented)
-    static Min(A: VecLike, B: VecLike): Vec;
     // (undocumented)
     static Mul(A: VecLike, t: number): Vec;
     // (undocumented)
     mul(t: number): this;
     // (undocumented)
-    static MulV(A: VecLike, B: VecLike): Vec;
-    // (undocumented)
-    mulV(V: VecLike): this;
-    // (undocumented)
-    static NearestPointOnLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp?: boolean): Vec;
-    static NearestPointOnLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): Vec;
-    // (undocumented)
-    static Neg(A: VecLike): Vec;
-    // (undocumented)
     neg(): this;
-    // (undocumented)
-    static Nudge(A: VecLike, B: VecLike, distance: number): Vec;
-    // (undocumented)
-    nudge(B: VecLike, distance: number): this;
     static Per(A: VecLike): Vec;
     // (undocumented)
     per(): this;
-    static PointsBetween(A: VecModel, B: VecModel, steps?: number, ease?: (t: number) => number): Vec[];
-    // (undocumented)
-    get pressure(): number;
-    static Pry(A: VecLike, B: VecLike): number;
-    // (undocumented)
-    pry(V: VecLike): number;
-    // (undocumented)
-    static Rescale(A: VecLike, n: number): Vec;
-    // (undocumented)
-    static Rot(A: VecLike, r?: number): Vec;
-    // (undocumented)
-    rot(r: number): this;
     // (undocumented)
     static RotWith(A: VecLike, C: VecLike, r: number): Vec;
     // (undocumented)
-    rotWith(C: VecLike, r: number): this;
-    // (undocumented)
-    static ScaleWithOrigin(A: VecLike, scale: number, origin: VecLike): Vec;
-    // (undocumented)
-    set(x?: number, y?: number, z?: number): this;
-    // (undocumented)
-    setTo({ x, y, z }: VecLike): this;
-    // (undocumented)
-    static Slope(A: VecLike, B: VecLike): number;
-    // (undocumented)
-    slope(B: VecLike): number;
-    // (undocumented)
-    static Snap(A: VecLike, step?: number): Vec;
-    // (undocumented)
-    static SnapToGrid(A: VecLike, gridSize?: number): Vec;
-    // (undocumented)
-    snapToGrid(gridSize: number): this;
-    // (undocumented)
     static Sub(A: VecLike, B: VecLike): Vec;
-    // (undocumented)
-    sub(V: VecLike): this;
-    // (undocumented)
-    static SubScalar(A: VecLike, n: number): Vec;
-    // (undocumented)
-    subScalar(n: number): this;
-    // (undocumented)
-    static SubXY(A: VecLike, x: number, y: number): Vec;
-    // (undocumented)
-    subXY(x: number, y: number): this;
-    // (undocumented)
-    static Tan(A: VecLike, B: VecLike): Vec;
-    // (undocumented)
-    tan(V: VecLike): Vec;
-    // (undocumented)
-    static ToAngle(A: VecLike): number;
-    // (undocumented)
-    toAngle(): number;
-    // (undocumented)
-    static ToArray(A: VecLike): number[];
-    // (undocumented)
-    toArray(): number[];
-    // (undocumented)
-    static ToCss(A: VecLike): string;
-    // (undocumented)
-    static ToFixed(A: VecLike): Vec;
-    // (undocumented)
-    toFixed(): this;
-    // (undocumented)
-    static ToInt(A: VecLike): Vec;
-    // (undocumented)
-    static ToJson(A: VecLike): {
-        x: number;
-        y: number;
-        z: number | undefined;
-    };
-    // (undocumented)
-    toJson(): VecModel;
-    // (undocumented)
-    static ToString(A: VecLike): string;
-    // (undocumented)
-    toString(): string;
-    static Uni(A: VecLike): Vec;
     // (undocumented)
     uni(): this;
     // (undocumented)
