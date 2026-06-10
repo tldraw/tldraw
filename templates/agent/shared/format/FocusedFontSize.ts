@@ -1,38 +1,43 @@
-import { TLDefaultSizeStyle } from 'tldraw'
+import {
+	createShapeId,
+	Editor,
+	getDisplayValues,
+	IndexKey,
+	TLDefaultSizeStyle,
+	TLTextShape,
+	TextShapeUtil,
+	TextShapeUtilDisplayValues,
+} from 'tldraw'
 import { z } from 'zod'
 
-const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
-	s: 1.125,
-	m: 1.5,
-	l: 2.25,
-	xl: 2.75,
-}
+const TEXT_SIZE_STYLES = ['s', 'm', 'l', 'xl'] as const satisfies readonly TLDefaultSizeStyle[]
 
 export const FocusedFontSize = z.number()
 
-const DEFAULT_BASE_FONT_SIZE = 16
-
 /**
  * Calculates the closest predefined font size and scale combination to achieve a target font size
+ * @param editor - The tldraw editor instance
  * @param targetFontSize - The desired font size in pixels
- * @param baseFontSize - The base font size from the theme (defaults to 16)
+ * @param textProps - The text shape props to use when resolving display values
  * @returns An object containing the closest predefined font size key and the scale factor
  */
 export function convertFocusedFontSizeToTldrawFontSizeAndScale(
+	editor: Editor,
 	targetFontSize: number,
-	baseFontSize = DEFAULT_BASE_FONT_SIZE
+	textProps?: Partial<TLTextShape['props']>
 ) {
-	const fontSizeEntries = Object.entries(FONT_SIZES)
+	const fontSizeEntries = TEXT_SIZE_STYLES.map(
+		(size) => [size, getTextShapeDisplayFontSize(editor, { ...textProps, size })] as const
+	)
 	let closestSize = fontSizeEntries[0]
-	let closestPixelSize = closestSize[1] * baseFontSize
+	let closestPixelSize = closestSize[1]
 	let minDifference = Math.abs(targetFontSize - closestPixelSize)
 
-	for (const [size, multiplier] of fontSizeEntries) {
-		const pixelSize = multiplier * baseFontSize
+	for (const [size, pixelSize] of fontSizeEntries) {
 		const difference = Math.abs(targetFontSize - pixelSize)
 		if (difference < minDifference) {
 			minDifference = difference
-			closestSize = [size, multiplier]
+			closestSize = [size, pixelSize]
 			closestPixelSize = pixelSize
 		}
 	}
@@ -45,15 +50,37 @@ export function convertFocusedFontSizeToTldrawFontSizeAndScale(
 
 /**
  * Converts a tldraw font size and scale to a focused font size
- * @param textSize - The tldraw font size
- * @param scale - The tldraw scale
- * @param baseFontSize - The base font size from the theme (defaults to 16)
+ * @param editor - The tldraw editor instance
+ * @param shape - The text shape to convert
  * @returns The focused font size
  */
-export function convertTldrawFontSizeAndScaleToFocusedFontSize(
-	textSize: TLDefaultSizeStyle,
-	scale: number,
-	baseFontSize = DEFAULT_BASE_FONT_SIZE
-) {
-	return Math.round(FONT_SIZES[textSize] * baseFontSize * scale)
+export function convertTldrawFontSizeAndScaleToFocusedFontSize(editor: Editor, shape: TLTextShape) {
+	const util = editor.getShapeUtil<TextShapeUtil>('text')
+	const displayValues = getDisplayValues<TLTextShape, TextShapeUtilDisplayValues>(util, shape)
+	return Math.round(displayValues.fontSize * shape.props.scale)
+}
+
+function getTextShapeDisplayFontSize(
+	editor: Editor,
+	textProps?: Partial<TLTextShape['props']>
+): number {
+	const util = editor.getShapeUtil<TextShapeUtil>('text')
+	const shape: TLTextShape = {
+		id: createShapeId('agent-font-size'),
+		typeName: 'shape',
+		type: 'text',
+		x: 0,
+		y: 0,
+		rotation: 0,
+		index: 'a1' as IndexKey,
+		parentId: editor.getCurrentPageId(),
+		isLocked: false,
+		opacity: 1,
+		props: {
+			...util.getDefaultProps(),
+			...textProps,
+		},
+		meta: {},
+	}
+	return getDisplayValues<TLTextShape, TextShapeUtilDisplayValues>(util, shape).fontSize
 }

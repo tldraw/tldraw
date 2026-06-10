@@ -2,6 +2,10 @@
 
 Type definitions, schema migrations, and other type metadata for the tldraw editor's default persisted data.
 
+## Documentation
+
+A `DOCS.md` file is included alongside this README in the published package, with detailed API documentation and usage examples.
+
 ## Records
 
 There are three main kinds of types:
@@ -80,7 +84,7 @@ You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?a
 
 ## Contribution
 
-Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## Community
 

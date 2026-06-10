@@ -2,6 +2,10 @@
 
 This project contains core functionality for [tldraw sync](https://tldraw.dev/docs/sync). [Click here](https://tldraw.dev/blog/product/announcing-tldraw-sync) to learn more.
 
+## Documentation
+
+A `DOCS.md` file is included alongside this README in the published package, with detailed API documentation and usage examples.
+
 ## License
 
 This project is part of the tldraw SDK. It is provided under the [tldraw SDK license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
@@ -18,7 +22,7 @@ You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?a
 
 ## Contribution
 
-Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## Community
 

@@ -87,7 +87,7 @@ export class Idle extends StateNode {
 				// Check to see if we hit any shape under the pointer; if so,
 				// handle this as a pointer down on the shape instead of the canvas
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
-				if (hitShape && !hitShape.isLocked) {
+				if (hitShape && (this.editor.options.selectLockedShapes || !hitShape.isLocked)) {
 					this.onPointerDown({
 						...info,
 						shape: hitShape,
@@ -184,7 +184,7 @@ export class Idle extends StateNode {
 			case 'shape': {
 				const { shape } = info
 
-				if (this.editor.isShapeOrAncestorLocked(shape)) {
+				if (!this.editor.options.selectLockedShapes && this.editor.isShapeOrAncestorLocked(shape)) {
 					this.parent.transition('pointing_canvas', info)
 					break
 				}
@@ -242,7 +242,7 @@ export class Idle extends StateNode {
 						if (
 							hoveredShape &&
 							!this.editor.getSelectedShapeIds().includes(hoveredShape.id) &&
-							!hoveredShape.isLocked
+							(this.editor.options.selectLockedShapes || !hoveredShape.isLocked)
 						) {
 							this.onPointerDown({
 								...info,
@@ -261,7 +261,7 @@ export class Idle extends StateNode {
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (this.editor.inputs.getShiftKey() || info.phase !== 'up') return
+		if (this.editor.inputs.getShiftKey() || info.phase !== 'down') return
 
 		// We don't want to double click while toggling shapes
 		if (info.ctrlKey || info.shiftKey) return

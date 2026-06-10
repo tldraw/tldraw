@@ -21,9 +21,12 @@ document.fonts = {
 	forEach: () => {},
 }
 
-// Text encoding/decoding polyfills
-global.TextEncoder = require('util').TextEncoder
-global.TextDecoder = require('util').TextDecoder
+// jsdom ships a global WebSocket built on its bundled copy of undici. In this jsdom test
+// environment its events are created in a different realm than the Node EventTarget they're
+// dispatched on, so connecting throws "The 'event' argument must be an instance of Event". Use
+// the `ws` package's WebSocket for client connections instead, matching the WebSocketServer the
+// tests connect to.
+global.WebSocket = require('ws').WebSocket
 
 // Window.matchMedia polyfill for media queries
 Object.defineProperty(window, 'matchMedia', {

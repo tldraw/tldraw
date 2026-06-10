@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "Els meus fitxers"
   },
+  "2e2b3c700b": {
+    "translation": "Inclou un enllaç al fitxer actual"
+  },
   "31246941ad": {
     "translation": "Heu d'iniciar la sessió per veure aquest fitxer."
   },
@@ -106,6 +109,9 @@
   },
   "3e2ae04ff0": {
     "translation": "Diagrama de Mermaid no compatible"
+  },
+  "402bf0c47e": {
+    "translation": "Tema de color"
   },
   "42e53c47c1": {
     "translation": "Contacta amb el propietari per sol·licitar accés."
@@ -277,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "Envieu un problema a GitHub"
+  },
+  "7a1920d611": {
+    "translation": "Per defecte"
   },
   "7b1329f5ca": {
     "translation": "Manual d'usuari"

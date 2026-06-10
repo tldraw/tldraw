@@ -712,7 +712,7 @@ export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps 
 export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX.Element;
 
 // @public (undocumented)
-export const DefaultSvgDefs: () => null;
+export function DefaultSvgDefs(): null;
 
 // @public (undocumented)
 export const defaultTldrawOptions: {
@@ -779,6 +779,7 @@ export const defaultTldrawOptions: {
     readonly onClipboardPasteRaw: undefined;
     readonly quickZoomPreservesScreenBounds: true;
     readonly rightClickPanning: true;
+    readonly selectLockedShapes: false;
     readonly snapThreshold: 8;
     readonly spacebarPanning: true;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
@@ -1767,6 +1768,8 @@ export class FontManager {
         [key: string]: string | undefined;
     } | undefined);
     // (undocumented)
+    dispose(): void;
+    // (undocumented)
     ensureFontIsLoaded(font: TLFontFace): Promise<void>;
     // (undocumented)
     getShapeFontFaces(shape: TLShape | TLShapeId): TLFontFace[];
@@ -2349,7 +2352,7 @@ export function isAccelKey(e: {
 }): boolean;
 
 // @public
-export const isSafeFloat: (n: number) => boolean;
+export function isSafeFloat(n: number): boolean;
 
 // @public
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opts?: {
@@ -2611,6 +2614,8 @@ export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>
 export class OverlayManager {
     constructor(editor: Editor);
     // (undocumented)
+    dispose(): void;
+    // (undocumented)
     readonly editor: Editor;
     getActiveOverlayEntries(): TLOverlayEntry[];
     getCurrentOverlays(): TLOverlay[];
@@ -2646,6 +2651,7 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     static configure<T extends TLOverlayUtilConstructor<any>>(this: T, options: T extends new (...args: any[]) => {
         options: infer Options;
     } ? Partial<Options> : never): T;
+    dispose(): void;
     // (undocumented)
     editor: Editor;
     getCursor(_overlay: T): TLCursorType | undefined;
@@ -2967,24 +2973,6 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 // @public (undocumented)
 export function setUserPreferences(user: TLUserPreferences): void;
 
-// @public
-export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverlay> {
-    // (undocumented)
-    getOverlays(): TLShapeIndicatorOverlay[];
-    // (undocumented)
-    isActive(): boolean;
-    // (undocumented)
-    options: {
-        hintedLineWidth: number;
-        lineWidth: number;
-        zIndex: number;
-    };
-    // (undocumented)
-    render(ctx: CanvasRenderingContext2D, overlays: TLShapeIndicatorOverlay[]): void;
-    // (undocumented)
-    static type: string;
-}
-
 // @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     constructor(editor: Editor);
@@ -3249,13 +3237,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     onPointerUp?(info: TLPointerEventInfo): void;
     // (undocumented)
-    onQuadrupleClick?(info: TLClickEventInfo): void;
-    // (undocumented)
     onRightClick?(info: TLPointerEventInfo): void;
     // (undocumented)
     onTick?(info: TLTickEventInfo): void;
-    // (undocumented)
-    onTripleClick?(info: TLClickEventInfo): void;
     // (undocumented)
     onWheel?(info: TLWheelEventInfo): void;
     // (undocumented)
@@ -3279,7 +3263,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 }
 
 // @public @deprecated
-export const stopEventPropagation: (e: any) => any;
+export function stopEventPropagation(e: any): any;
 
 // @internal (undocumented)
 export type StoreName = (typeof Table)[keyof typeof Table];
@@ -3540,17 +3524,17 @@ export type TLClickEvent = (info: TLClickEventInfo) => void;
 export type TLClickEventInfo = TLBaseEventInfo & {
     button: number;
     name: TLCLickEventName;
-    phase: 'down' | 'settle' | 'up';
+    phase: 'down' | 'settle-down' | 'settle-up' | 'up';
     point: VecLike;
     pointerId: number;
     type: 'click';
 } & TLPointerEventTarget;
 
 // @public (undocumented)
-export type TLCLickEventName = 'double_click' | 'quadruple_click' | 'triple_click';
+export type TLCLickEventName = 'double_click';
 
 // @public (undocumented)
-export type TLClickState = 'idle' | 'overflow' | 'pendingDouble' | 'pendingOverflow' | 'pendingQuadruple' | 'pendingTriple';
+export type TLClickState = 'idle' | 'overflow' | 'pendingDouble' | 'pendingOverflow';
 
 // @public
 export type TLClipboardPasteRawInfo = {
@@ -3841,6 +3825,7 @@ export interface TldrawOptions {
     onClipboardPasteRaw?(info: TLClipboardPasteRawInfo): false | void;
     readonly quickZoomPreservesScreenBounds: boolean;
     readonly rightClickPanning: boolean;
+    readonly selectLockedShapes: boolean;
     readonly snapThreshold: number;
     readonly spacebarPanning: boolean;
     readonly temporaryAssetPreviewLifetimeMs: number;
@@ -4027,13 +4012,9 @@ export interface TLEventHandlers {
     // (undocumented)
     onPointerUp: TLPointerEvent;
     // (undocumented)
-    onQuadrupleClick: TLClickEvent;
-    // (undocumented)
     onRightClick: TLPointerEvent;
     // (undocumented)
     onTick: TLTickEvent;
-    // (undocumented)
-    onTripleClick: TLClickEvent;
     // (undocumented)
     onWheel: TLWheelEvent;
 }
@@ -4621,15 +4602,6 @@ export interface TLSessionStateSnapshot {
 export type TLShapeErrorFallbackComponent = ComponentType<{
     error: any;
 }>;
-
-// @public (undocumented)
-export interface TLShapeIndicatorOverlay extends TLOverlay {
-    // (undocumented)
-    props: {
-        hintingShapeIds: TLShapeId[];
-        idsToDisplay: TLShapeId[];
-    };
-}
 
 // @public
 export interface TLShapeOperationPerfEvent {

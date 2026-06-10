@@ -1,7 +1,6 @@
 import {
 	Box,
 	Circle2d,
-	Edge2d,
 	Geometry2d,
 	HALF_PI,
 	Mat,
@@ -245,10 +244,12 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		transform: Mat
 	): Geometry2d {
 		if (handle === 'top' || handle === 'bottom' || handle === 'left' || handle === 'right') {
-			const edge = this._getEdgeLocalPoints(handle, state.width, state.height)
-			return new Edge2d({
-				start: Mat.applyToPoint(transform, edge.start),
-				end: Mat.applyToPoint(transform, edge.end),
+			const rect = this._getEdgeLocalRect(handle, state)
+			return new Polygon2d({
+				points: this._localRectToPoints(rect.x, rect.y, rect.w, rect.h).map((p) =>
+					Mat.applyToPoint(transform, p)
+				),
+				isFilled: true,
 			})
 		}
 
@@ -269,7 +270,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	): Geometry2d {
 		const cornerSize = Math.max(state.targetSizeX, state.targetSizeY) * 1.5
 		const center = this._getRotateHandleLocalCenter(handle, state.width, state.height, cornerSize)
-		const radius = (state.targetSize * 3) / 2
+		const radius = cornerSize
 		return new Circle2d({
 			x: center.x - radius,
 			y: center.y - radius,
@@ -622,20 +623,20 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		}
 	}
 
-	private _getEdgeLocalPoints(
+	private _getEdgeLocalRect(
 		edge: SelectionEdge,
-		width: number,
-		height: number
-	): { start: Vec; end: Vec } {
+		state: SelectionState
+	): { x: number; y: number; w: number; h: number } {
+		const { width, height, targetSizeX, targetSizeY } = state
 		switch (edge) {
 			case 'top':
-				return { start: new Vec(0, 0), end: new Vec(width, 0) }
+				return { x: 0, y: -targetSizeY, w: width, h: targetSizeY * 2 }
 			case 'right':
-				return { start: new Vec(width, 0), end: new Vec(width, height) }
+				return { x: width - targetSizeX, y: 0, w: targetSizeX * 2, h: height }
 			case 'bottom':
-				return { start: new Vec(0, height), end: new Vec(width, height) }
+				return { x: 0, y: height - targetSizeY, w: width, h: targetSizeY * 2 }
 			case 'left':
-				return { start: new Vec(0, 0), end: new Vec(0, height) }
+				return { x: -targetSizeX, y: 0, w: targetSizeX * 2, h: height }
 		}
 	}
 

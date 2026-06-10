@@ -416,6 +416,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.fonts = new FontManager(this, fontAssetUrls)
+		this.disposables.add(() => this.fonts.dispose())
 
 		this.inputs = new InputsManager(this)
 		this.performance = new PerformanceManager(this)
@@ -502,6 +503,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Overlay utils
 		this.overlays = new OverlayManager(this)
+		this.disposables.add(() => this.overlays.dispose())
 		if (overlayUtilConstructors) {
 			for (const Util of overlayUtilConstructors) {
 				const util = new Util(this)
@@ -3334,6 +3336,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let { x, y, z = currentCamera.z } = point
 
+		// `requested` kept the caller's focal point (e.g. the cursor) fixed at
+		// zoom `rz`. When `rz` gets clamped, keep that same focal point fixed at
+		// the clamped zoom `z` rather than snapping to the viewport center.
+		const preserveFocalPoint = (current: number, requested: number, rz: number, z: number) => {
+			const cz = currentCamera.z
+			if (rz === cz) return current
+			return current + ((requested - current) * (1 / z - 1 / cz)) / (1 / rz - 1 / cz)
+		}
+
 		// If force is true, then we'll set the camera to the point regardless of
 		// the camera options, so that we can handle gestures that permit elasticity
 		// or decay, or animations that occur while the camera is locked.
@@ -3376,17 +3387,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 
 				if (z < minZ || z > maxZ) {
-					// We're trying to zoom out past the minimum zoom level,
-					// or in past the maximum zoom level, so stop the camera
-					// but keep the current center
-					const { x: cx, y: cy, z: cz } = currentCamera
-					const cxA = -cx + vsb.w / cz / 2
-					const cyA = -cy + vsb.h / cz / 2
+					// We're trying to zoom out past the minimum zoom level, or in
+					// past the maximum zoom level, so clamp the zoom while keeping
+					// the caller's focal point fixed. Axis constraints below still
+					// apply on top of this.
+					const rz = z
 					z = clamp(z, minZ, maxZ)
-					const cxB = -cx + vsb.w / z / 2
-					const cyB = -cy + vsb.h / z / 2
-					x = cx + cxB - cxA
-					y = cy + cyB - cyA
+					x = preserveFocalPoint(currentCamera.x, x, rz, z)
+					y = preserveFocalPoint(currentCamera.y, y, rz, z)
 				}
 
 				// Calculate available space
@@ -3475,12 +3483,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 			} else {
-				// constrain the zoom, preserving the center
+				// constrain the zoom, keeping the caller's focal point fixed
 				if (z > zoomMax || z < zoomMin) {
-					const { x: cx, y: cy, z: cz } = currentCamera
+					const rz = z
 					z = clamp(z, zoomMin, zoomMax)
-					x = cx + (-cx + vsb.w / z / 2) - (-cx + vsb.w / cz / 2)
-					y = cy + (-cy + vsb.h / z / 2) - (-cy + vsb.h / cz / 2)
+					x = preserveFocalPoint(currentCamera.x, x, rz, z)
+					y = preserveFocalPoint(currentCamera.y, y, rz, z)
 				}
 			}
 		}
@@ -10370,11 +10378,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	blur({ blurContainer = true } = {}): this {
 		if (!this.getIsFocused()) return this
-		if (blurContainer) {
-			this.focusManager.blur()
-		} else {
-			this.complete() // stop any interaction
-		}
+		this.focusManager.blur({ blurContainer })
 		this.updateInstanceState({ isFocused: false })
 		return this
 	}
@@ -10770,6 +10774,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _selectedShapeIdsAtPointerDown: TLShapeId[] = []
 
+	/**
+	 * Whether `_selectedShapeIdsAtPointerDown` holds a pre-gesture selection
+	 * captured by a `pointer_down` (the touch path) that a following pinch
+	 * should restore. False when no pointer_down preceded the pinch (the
+	 * Safari trackpad path uses gesture events), in which case `pinch_start`
+	 * captures the live selection instead.
+	 * @internal
+	 */
+	private _didCaptureSelectionAtPointerDown = false
+
 	/** @internal */
 	private _longPressTimeout = -1 as any
 
@@ -10935,16 +10949,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (inputs.getIsPinching()) return
 
 						if (!inputs.getIsEditing()) {
-							// Always capture the current selection when pinch starts.
-							// This ensures Safari (which uses gesture events instead of wheel)
-							// doesn't restore a stale selection from an earlier pointer_down.
-							this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
+							// If a pointer_down already captured the pre-gesture selection,
+							// keep it: on touch, the first finger's pointer_down can change
+							// the selection before the second finger starts the pinch, and we
+							// want to restore the selection from before that change. When no
+							// pointer_down preceded the pinch (Safari delivers trackpad pinches
+							// as gesture events), capture the live selection now.
+							if (!this._didCaptureSelectionAtPointerDown) {
+								this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
+							}
 
 							this._didPinch = true
 
 							inputs.setIsPinching(true)
 
 							this.interrupt()
+
+							// If the first finger changed the selection, roll it back now rather
+							// than waiting for the pinch to end, so the pre-gesture selection is
+							// what's shown during the pinch.
+							if (this._didCaptureSelectionAtPointerDown) {
+								this.setSelectedShapes(this._selectedShapeIdsAtPointerDown)
+							}
 						}
 
 						this.emit('event', info)
@@ -10996,6 +11022,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const { _selectedShapeIdsAtPointerDown: shapesToReselect } = this
 						this.setSelectedShapes(this._selectedShapeIdsAtPointerDown)
 						this._selectedShapeIdsAtPointerDown = []
+						this._didCaptureSelectionAtPointerDown = false
 
 						if (this._didPinch) {
 							this._didPinch = false
@@ -11124,8 +11151,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}, this.options.longPressDurationMs)
 						}
 
-						// Save the selected ids at pointer down
-						this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
+						// Save the selected ids at the start of an interaction so a pinch can
+						// restore the pre-gesture selection. Only capture on the first pointer:
+						// on touch, the second finger's pointer_down arrives after the first
+						// has already changed the selection, and we want the earlier snapshot.
+						// Cleared on pointer_up / pinch_end.
+						if (!this._didCaptureSelectionAtPointerDown) {
+							this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
+							this._didCaptureSelectionAtPointerDown = true
+						}
 
 						// Firefox bug fix...
 						// If it's a left-mouse-click, we store the pointer id for later user
@@ -11245,6 +11279,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (this.inputs.getIsRightPointing() && !this.inputs.getIsPanning()) {
 							this.inputs.setIsRightPointing(false)
 							this._selectedShapeIdsAtPointerDown = []
+							this._didCaptureSelectionAtPointerDown = false
 							break // fall through to state chart dispatch as right_click
 						}
 
@@ -11291,6 +11326,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 										this.slideCamera({ speed: slideSpeed, direction: slideDirection })
 									}
 									this._selectedShapeIdsAtPointerDown = []
+									this._didCaptureSelectionAtPointerDown = false
 									return this
 								}
 							}
@@ -11309,6 +11345,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Clear the stashed selection so the next pinch captures fresh state.
 						// This fixes Safari pinch zoom restoring outdated selections.
 						this._selectedShapeIdsAtPointerDown = []
+						this._didCaptureSelectionAtPointerDown = false
 
 						break
 					}

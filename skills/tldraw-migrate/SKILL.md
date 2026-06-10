@@ -51,7 +51,7 @@ Before making any changes, scan the project to understand what you're working wi
 - **Import style**: `grep -r "from '@tldraw" <source-dir> --include="*.ts" --include="*.tsx" -l | head -5` — does the project import from `'tldraw'`, `'@tldraw/editor'`, or both? This affects module augmentation targets.
 - **TypeScript**: Check `package.json` for a `typecheck` or `tsc` script. If neither exists, fall back to `npx tsc --noEmit` (TypeScript is usually a devDependency). Also check the TypeScript version.
 - **Build tool**: Check `package.json` scripts for the build command (vite, next, webpack, esbuild, etc.)
-- **Linter**: Check for eslint/biome config files (`.eslintrc*`, `eslint.config.*`, `biome.json`). A linter may help catch deprecations later.
+- **Linter**: Check for oxlint/eslint/biome config files (`.oxlintrc*`, `.eslintrc*`, `eslint.config.*`, `biome.json`). A linter may help catch deprecations later.
 - **Monorepo**: Is `package.json` at the working directory root, or is this a nested package? Check for workspaces config.
 
 ## Step 2: Upgrade packages
@@ -177,7 +177,7 @@ After all type errors are resolved, find and fix `@deprecated` API usage. These 
 
    This catches multi-line JSDoc but produces some false positives — treat the output as a candidate list, not an authoritative one. The changelog grep is what you should drive from.
 
-2. **Run the linter if configured** — eslint's `deprecation/deprecation` rule will flag deprecated imports automatically. If no linter is configured, skip this step.
+2. **Run the linter if configured** — a deprecation rule (e.g. eslint's `deprecation/deprecation`) will flag deprecated imports automatically. If no linter is configured, skip this step.
 
 3. **Search the project source** for each deprecated symbol. Replace with the recommended alternative from the `@deprecated` JSDoc comment, the changelog entry, or the docs.
 

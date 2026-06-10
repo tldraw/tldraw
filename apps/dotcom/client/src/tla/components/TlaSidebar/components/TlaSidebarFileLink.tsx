@@ -1,7 +1,7 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef } from 'react'
+import { KeyboardEvent, MouseEvent, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
 	TldrawUiMenuContextProvider,
@@ -300,17 +300,14 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 	const testId = `guest-badge-${file.name}`
 	const navigate = useNavigate()
 
-	const handleToolTipClick = useCallback(
-		(e: MouseEvent) => {
-			e.preventDefault()
-			// the tool tip needs pointer events in order to accept the click...
-			// but that means it also blocks the link to the file. Here we bend
-			// the world to our will, ruling by desire: clicking the tooltip will
-			// navigate to the file
-			navigate(href)
-		},
-		[navigate, href]
-	)
+	const handleToolTipClick = (e: MouseEvent) => {
+		e.preventDefault()
+		// the tool tip needs pointer events in order to accept the click...
+		// but that means it also blocks the link to the file. Here we bend
+		// the world to our will, ruling by desire: clicking the tooltip will
+		// navigate to the file
+		navigate(href)
+	}
 
 	return (
 		<div className={styles.sidebarFileListItemGuestBadge} data-testid={testId}>
