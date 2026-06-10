@@ -866,6 +866,110 @@ describe('file operations across workspaces', () => {
 		expect(s.file[0]?.isDeleted).toBe(true)
 	})
 
+	it('non-member cannot remove file from workspace', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [makeFile({ id: fileId, owningGroupId: groupA })],
+			file_state: [makeFileState({ userId, fileId })],
+			group: [makeGroup({ id: groupA })],
+			group_user: [],
+			group_file: [makeGroupFile({ fileId, groupId: groupA })],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectForbidden(() => m.removeFileFromWorkspace(tx, { fileId, workspaceId: groupA }))
+		expect(s.file[0]?.isDeleted).toBe(false)
+	})
+
+	it('removing a linked file deletes only the link, not the file', async () => {
+		// the file is owned by workspace B but linked into workspace A
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [makeFile({ id: fileId, owningGroupId: groupB })],
+			file_state: [makeFileState({ userId, fileId })],
+			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
+			group_user: [makeGroupUser({ userId, groupId: groupA, role: 'owner' })],
+			group_file: [
+				makeGroupFile({ fileId, groupId: groupA }),
+				makeGroupFile({ fileId, groupId: groupB }),
+			],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.removeFileFromWorkspace(tx, { fileId, workspaceId: groupA })
+		expect(s.file[0]?.isDeleted).toBe(false)
+		expect(s.group_file.some((gf) => gf.groupId === groupA)).toBe(false)
+		expect(s.group_file.some((gf) => gf.groupId === groupB)).toBe(true)
+	})
+
+	it('drag move operation moves the file to the target workspace', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [makeFile({ id: fileId, owningGroupId: groupA })],
+			file_state: [],
+			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
+			group_user: [
+				makeGroupUser({ userId, groupId: groupA }),
+				makeGroupUser({ userId, groupId: groupB }),
+			],
+			group_file: [makeGroupFile({ fileId, groupId: groupA })],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.handleFileDragOperation(tx, {
+			fileId,
+			workspaceId: groupA,
+			operation: { move: { targetId: groupB } },
+		})
+		expect(s.file[0]?.owningGroupId).toBe(groupB)
+		expect(s.group_file.some((gf) => gf.groupId === groupB && gf.fileId === fileId)).toBe(true)
+		expect(s.group_file.some((gf) => gf.groupId === groupA && gf.fileId === fileId)).toBe(false)
+	})
+
+	it('drag reorder pins the file above the insert target', async () => {
+		const otherFileId = 'file_bbbb11112222cccc'
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [
+				makeFile({ id: fileId, owningGroupId: groupA }),
+				makeFile({ id: otherFileId, owningGroupId: groupA }),
+			],
+			file_state: [],
+			group: [makeGroup({ id: groupA })],
+			group_user: [makeGroupUser({ userId, groupId: groupA })],
+			group_file: [
+				makeGroupFile({ fileId, groupId: groupA }),
+				makeGroupFile({ fileId: otherFileId, groupId: groupA, index: 'a1' as IndexKey }),
+			],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.handleFileDragOperation(tx, {
+			fileId,
+			workspaceId: groupA,
+			operation: { reorder: { insertBeforeId: otherFileId, indicatorY: 0 } },
+		})
+		const moved = s.group_file.find((gf) => gf.fileId === fileId)
+		const target = s.group_file.find((gf) => gf.fileId === otherFileId)
+		expect(moved?.index).toBeTruthy()
+		expect(moved!.index! < target!.index!).toBe(true)
+	})
+
+	it('drag with an empty operation unpins the file', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [makeFile({ id: fileId, owningGroupId: groupA })],
+			file_state: [],
+			group: [makeGroup({ id: groupA })],
+			group_user: [makeGroupUser({ userId, groupId: groupA })],
+			group_file: [makeGroupFile({ fileId, groupId: groupA, index: 'a1' as IndexKey })],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.handleFileDragOperation(tx, { fileId, workspaceId: groupA, operation: {} })
+		expect(s.group_file.find((gf) => gf.fileId === fileId)?.index).toBe(null)
+	})
+
 	it('pinning in a workspace computes the index against that workspace, not home', async () => {
 		const otherFileId = 'file_bbbb11112222cccc'
 		const homePinnedId = 'file_cccc11112222dddd'
@@ -932,7 +1036,7 @@ describe('home workspace special case', () => {
 	})
 
 	it('home workspace shortcut passes ownership check', async () => {
-		// updateWorkspace with id === userId should pass assertUserIsGroupOwner
+		// updateWorkspace with id === userId should pass assertUserIsWorkspaceOwner
 		// via the shortcut, even if there's no group_user row
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
