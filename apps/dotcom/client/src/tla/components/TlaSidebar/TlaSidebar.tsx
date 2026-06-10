@@ -58,6 +58,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			<div
 				className={styles.sidebar}
 				data-visible={isSidebarOpen}
+				data-workspaces={hasWorkspaces}
 				data-visiblemobile={isSidebarOpenMobile}
 				data-testid="tla-sidebar"
 				onDropCapture={onDrop}

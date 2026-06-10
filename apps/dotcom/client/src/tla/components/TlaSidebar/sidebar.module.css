@@ -9,10 +9,17 @@
 	transform: translate(0px, 0px);
 	flex-direction: column;
 	flex: 0 0 auto;
-	padding: 0 0 4px 0;
+	padding: 3px 12px 0px 12px;
 	background: var(--tla-color-sidebar);
-	border-right: 1px solid var(--tl-color-low, rgba(237, 240, 242, 1));
+	border-right: 1px solid transparent;
 	transition: transform 0.16s ease-in-out;
+}
+
+/* The workspaces UI (groups_frontend flag) restyles the sidebar to the new
+   design; the rules below must not leak to users without the flag. */
+.sidebar[data-workspaces='true'] {
+	padding: 0 0 4px 0;
+	border-right: 1px solid var(--tl-color-low, rgba(237, 240, 242, 1));
 }
 
 :global(.tl-container[dir='rtl']) .sidebar {
@@ -107,7 +114,8 @@
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 auto;
-	padding: 0 12px 40px 12px;
+	margin: 0px -12px;
+	padding: 2px 12px 40px 12px;
 	overflow-y: scroll;
 	overflow-x: visible;
 	-ms-overflow-style: none; /* IE and Edge */
@@ -116,6 +124,11 @@
 
 .sidebarContent::-webkit-scrollbar {
 	display: none;
+}
+
+.sidebar[data-workspaces='true'] .sidebarContent {
+	margin: 0;
+	padding: 0 12px 40px 12px;
 }
 
 /* -------------------- Hoverable ------------------- */
@@ -233,6 +246,9 @@
 	flex-direction: row;
 	align-items: center;
 	flex: 0 0 auto;
+}
+
+.sidebar[data-workspaces='true'] .sidebarTopRow {
 	height: 43px;
 	padding: 3px 8px 0px 4px;
 	gap: 8px;
@@ -326,6 +342,9 @@
 	flex-direction: column;
 	flex: 0 0 auto;
 	margin-top: 0px;
+}
+
+.sidebar[data-workspaces='true'] .sidebarBottomArea {
 	padding: 0 12px;
 }
 
@@ -373,6 +392,10 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	color: var(--tla-color-text-1);
+}
+
+.sidebar[data-workspaces='true'] .sidebarUserSettingsName {
 	color: var(--tla-color-text-3);
 }
 
@@ -461,12 +484,18 @@
 	position: relative;
 	width: 100%;
 	height: 36px;
-	padding: 0px 8px;
+	padding: 0px 0px 0px 8px;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	gap: 4px;
+	font-weight: bold;
 	color: var(--tla-color-text-3);
+}
+
+.sidebar[data-workspaces='true'] .sidebarFileSectionTitle {
+	padding: 0px 8px;
+	font-weight: 500;
 }
 
 .sidebarActiveWorkspaceTitle {
@@ -511,6 +540,10 @@
 	flex-direction: row;
 	align-items: center;
 	height: 36px;
+	padding: 0px 8px 0px 8px;
+}
+
+.sidebar[data-workspaces='true'] .sidebarFileListItem {
 	padding: 0px 4px 0px 8px;
 }
 
@@ -546,6 +579,9 @@
 	text-overflow: ellipsis;
 	position: relative;
 	z-index: 1;
+}
+
+.sidebar[data-workspaces='true'] .sidebarFileListItemLabel {
 	color: var(--tla-color-text-1);
 }
 
