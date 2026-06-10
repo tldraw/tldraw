@@ -2,6 +2,24 @@
 
 The freehand ink algorithm used by tldraw's draw and highlighter shapes, extracted into its own package for benchmarking and optimization. This package is private and not published.
 
+## Current results
+
+The candidate implementation (`src/lib`) versus the baseline that ships in tldraw today, over the full corpus:
+
+- 1.33x faster overall (geomean of the full input-points-to-svg pipeline): short strokes 1.16x, medium 1.25x, long 1.78x, no case slower
+- 38% fewer outline points
+- 59% smaller svg path data
+- max deviation from the baseline shape: 0.26px (5% of the stroke size, the simplifier's bound); mean deviation 0.018px
+
+How it gets there:
+
+- svg path data is written into a shared byte buffer with integer math and decoded once per path; doubles rounded to 2 decimals stringify slowly in V8, so coordinates are tracked as integer hundredths of a pixel
+- paths use relative commands (`t`/`q`/`a`/`l`); deltas between consecutive points are small numbers that write fast and keep the data compact, and integer deltas sum exactly so rounding never drifts
+- outline tracks are simplified with a tolerance of 5% of the stroke size, and cap arcs are tessellated adaptively by chord error instead of fixed step counts
+- the elbow partitioner and outline-track loop use scalar math instead of allocating temporary vectors per point
+
+The candidate has not been ported back into `packages/tldraw` yet; that is the intended follow-up once the visual results have been reviewed (open `out/report.html` after a compare run to eyeball the overlays).
+
 ## Layout
 
 - `src/lib` - the candidate implementation. This is the code being optimized.
