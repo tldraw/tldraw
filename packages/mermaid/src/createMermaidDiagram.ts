@@ -24,6 +24,36 @@ export class MermaidDiagramError extends Error {
 	}
 }
 
+/**
+ * Fail loudly when the diagram's logical graph (from mermaid's DB) has content
+ * but none of it survived the join with the rendered SVG geometry — i.e. the
+ * produced blueprint is empty of nodes or edges.
+ *
+ * This deliberately checks the *blueprint*, not the raw parsed layout: node
+ * parsing always yields a key (it falls back to the raw dom id), so a broken
+ * id parse still produces a non-empty `layout.nodes` keyed by the wrong ids.
+ * The failure only becomes visible once those keys fail to match the DB's
+ * vertex ids during blueprint construction — which is exactly the regression
+ * that mermaid 11.15's dom-id prefix caused. Checking the blueprint catches
+ * that class, plus edge-detection and geometry-decoding failures.
+ * @internal
+ */
+export function assertBlueprintMapped(
+	diagramType: string,
+	counts: {
+		expectedNodes: number
+		mappedNodes: number
+		expectedEdges: number
+		mappedEdges: number
+	}
+) {
+	const nodesDropped = counts.expectedNodes > 0 && counts.mappedNodes === 0
+	const edgesDropped = counts.expectedEdges > 0 && counts.mappedEdges === 0
+	if (nodesDropped || edgesDropped) {
+		throw new MermaidDiagramError(diagramType, 'parse')
+	}
+}
+
 // Inflate the font size so Mermaid's layout engine allocates larger nodes,
 // compensating for tldraw's hand-drawn font being wider than Mermaid's default.
 const FONT_INFLATE = 1.4
@@ -109,6 +139,12 @@ export async function createMermaidDiagram(
 				const classes = db.getClasses()
 				const layout = parseFlowchartLayout(liveSvg)
 				blueprint = flowchartToBlueprint(layout, vertices, edges, subGraphs, classes)
+				assertBlueprintMapped(parsedResult.diagramType, {
+					expectedNodes: vertices.size,
+					mappedNodes: blueprint.nodes.length,
+					expectedEdges: edges.length,
+					mappedEdges: blueprint.edges.length,
+				})
 				break
 			}
 			case 'sequence': {
@@ -135,6 +171,12 @@ export async function createMermaidDiagram(
 				const classes = db.getClasses()
 				const layout = parseStateDiagramLayout(liveSvg)
 				blueprint = stateToBlueprint(layout, states, relations, classes)
+				assertBlueprintMapped(parsedResult.diagramType, {
+					expectedNodes: states.size,
+					mappedNodes: blueprint.nodes.length,
+					expectedEdges: relations.length,
+					mappedEdges: blueprint.edges.length,
+				})
 				break
 			}
 			case 'mindmap': {

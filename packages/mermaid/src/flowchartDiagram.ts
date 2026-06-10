@@ -13,11 +13,13 @@ import type {
 import { buildClassDefColorMap, parseCssStyles, parseNodeInlineColor } from './colors'
 import {
 	buildNodeCentersFromSvg,
+	getMermaidDiagramId,
 	parseAllEdgePointsFromSvg,
 	parseClustersFromSvg,
 	type ParsedDiagramLayout,
 	parseNodesFromSvg,
 	scaleLayout,
+	stripDiagramPrefix,
 } from './svgParsing'
 import { getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
 
@@ -58,20 +60,17 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 
 /** Parse flowchart-specific SVG layout data for use by {@link flowchartToBlueprint}. */
 export function parseFlowchartLayout(root: Element): ParsedDiagramLayout {
-	// Mermaid 11.15 prefixes node and cluster dom ids with the diagram id (e.g.
-	// `mermaid-0-flowchart-s1-0` instead of `flowchart-s1-0`), so tolerate that
-	// optional `mermaid-<n>-` prefix when reading the clean id.
+	// Mermaid 11.15 prefixes node/cluster dom ids with the diagram id (e.g.
+	// `mermaid-0-flowchart-s1-0`, `mermaid-0-G`). Strip that known prefix first,
+	// then read the clean id. Subgraph cluster ids are exactly the subgraph id
+	// once the prefix is removed.
+	const diagramId = getMermaidDiagramId(root)
 	const nodes = parseNodesFromSvg(root, '.node', (domId) => {
-		const match = domId.match(/^(?:mermaid-\d+-)?flowchart-(.+)-\d+$/)
+		const match = stripDiagramPrefix(domId, diagramId).match(/(?:^|-)flowchart-(.+)-\d+$/)
 		return match ? match[1] : domId
 	})
-	const clusters = parseClustersFromSvg(root, '.cluster', (domId) =>
-		domId.replace(/^mermaid-\d+-/, '')
-	)
-	const edges = parseAllEdgePointsFromSvg(root, (dataId) => {
-		const match = dataId.match(/(?:^|-)L_(.+)_([^_]+)_\d+$/)
-		return match ? { start: match[1], end: match[2] } : null
-	})
+	const clusters = parseClustersFromSvg(root, '.cluster', (id) => stripDiagramPrefix(id, diagramId))
+	const edges = parseAllEdgePointsFromSvg(root)
 	scaleLayout(nodes, clusters, edges, LAYOUT_SCALE)
 	return { nodes, clusters, edges }
 }

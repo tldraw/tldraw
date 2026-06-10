@@ -7,11 +7,13 @@ import type {
 import { buildClassDefColorMap, type ParsedNodeColors } from './colors'
 import {
 	buildNodeCentersFromSvg,
+	getMermaidDiagramId,
 	parseAllEdgePointsFromSvg,
 	parseClustersFromSvg,
 	type ParsedDiagramLayout,
 	parseNodesFromSvg,
 	scaleLayout,
+	stripDiagramPrefix,
 } from './svgParsing'
 import { getArrowBend, LAYOUT_SCALE, orderTopDown } from './utils'
 
@@ -229,22 +231,15 @@ const FRAME_TOP = 54
 
 /** Parse state-diagram SVG layout data for use by {@link stateToBlueprint}. */
 export function parseStateDiagramLayout(root: Element): ParsedDiagramLayout {
-	// Mermaid 11.15 prefixes node and cluster dom ids with the diagram id (e.g.
-	// `mermaid-0-state-Foo-1` instead of `state-Foo-1`), so tolerate that
-	// optional `mermaid-<n>-` prefix when reading the clean id.
-	const nodes = parseNodesFromSvg(
-		root,
-		'.node',
-		(domId) => domId.match(/^(?:mermaid-\d+-)?state-(.+)-\d+$/)?.[1] ?? domId
-	)
-	const clusters = parseClustersFromSvg(
-		root,
-		'.statediagram-cluster',
-		(domId) => domId.match(/^(?:mermaid-\d+-)?state-(.+)-\d+$/)?.[1] ?? domId
-	)
-	const edges = parseAllEdgePointsFromSvg(root, (dataId) =>
-		/(?:^|-)edge\d+$/.test(dataId) ? { start: '', end: '' } : null
-	)
+	// Mermaid 11.15 prefixes node/cluster dom ids with the diagram id (e.g.
+	// `mermaid-0-state-Foo-1`). Strip that known prefix first, then read the
+	// clean `state-<id>-<counter>` id. Compound clusters use the same format.
+	const diagramId = getMermaidDiagramId(root)
+	const parseStateId = (domId: string) =>
+		stripDiagramPrefix(domId, diagramId).match(/(?:^|-)state-(.+)-\d+$/)?.[1] ?? domId
+	const nodes = parseNodesFromSvg(root, '.node', parseStateId)
+	const clusters = parseClustersFromSvg(root, '.statediagram-cluster', parseStateId)
+	const edges = parseAllEdgePointsFromSvg(root)
 	scaleLayout(nodes, clusters, edges, LAYOUT_SCALE)
 	return { nodes, clusters, edges }
 }

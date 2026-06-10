@@ -5,7 +5,11 @@ export default defineConfig({
 	// vite 8 / vitest 4 transform with oxc and ignore the deprecated `esbuild.jsx`
 	// option, and this app's tsconfig uses `jsx: preserve` for its real build. Use
 	// the react plugin so JSX in `.tsx` files is transformed for tests.
-	plugins: [react()],
+	//
+	// `@vitejs/plugin-react` is typed against the root (rolldown) vite, whose
+	// `PluginContextMeta` differs from the vite that vitest/config bundles, so the
+	// plugin type is structurally incompatible here. Cast to sidestep the skew.
+	plugins: [react() as any],
 	test: {
 		environment: 'jsdom',
 		setupFiles: ['./setupTests.js'],

@@ -29,8 +29,8 @@ function cluster(id: string, x: number, y: number, w: number, h: number): Parsed
 	return { id, topLeft: { x, y }, width: w, height: h }
 }
 
-function edge(start: string, end: string, points: [number, number][]): ParsedEdge {
-	return { start, end, points: points.map(([x, y]) => ({ x, y })) }
+function edge(points: [number, number][]): ParsedEdge {
+	return { points: points.map(([x, y]) => ({ x, y })) }
 }
 
 function diagramLayout(
@@ -142,7 +142,7 @@ describe('flowchartToBlueprint', () => {
 			[node('A', 100, 50, 80, 40), node('B', 300, 50, 80, 40)],
 			[],
 			[
-				edge('A', 'B', [
+				edge([
 					[140, 50],
 					[260, 50],
 				]),
@@ -223,7 +223,7 @@ describe('flowchartToBlueprint', () => {
 			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
 			[],
 			[
-				edge('A', 'B', [
+				edge([
 					[20, 0],
 					[100, -50],
 					[180, 0],
@@ -242,7 +242,7 @@ describe('flowchartToBlueprint', () => {
 			[node('D', 100, 100, 80, 40)],
 			[],
 			[
-				edge('D', 'D', [
+				edge([
 					[100, 80],
 					[140, 40],
 					[100, 120],
@@ -304,7 +304,7 @@ describe('flowchartToBlueprint', () => {
 			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
 			[],
 			[
-				edge('A', 'B', [
+				edge([
 					[20, 0],
 					[180, 0],
 				]),
@@ -322,7 +322,7 @@ describe('flowchartToBlueprint', () => {
 			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
 			[],
 			[
-				edge('A', 'B', [
+				edge([
 					[20, 0],
 					[180, 0],
 				]),
@@ -340,7 +340,7 @@ describe('flowchartToBlueprint', () => {
 			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
 			[],
 			[
-				edge('A', 'B', [
+				edge([
 					[20, 0],
 					[180, 0],
 				]),
@@ -533,7 +533,7 @@ describe('stateToBlueprint', () => {
 			[node('A', 0, 0, 40, 40), node('B', 200, 0, 40, 40)],
 			[],
 			[
-				edge('', '', [
+				edge([
 					[0, 0],
 					[100, -40],
 					[200, 0],

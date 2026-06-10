@@ -18,7 +18,24 @@ export interface ParsedCluster {
 }
 
 type NodeIdParser = (domId: string) => string
-type EdgeIdParser = (dataId: string) => { start: string; end: string } | null
+
+/**
+ * Mermaid 11.15 renders the diagram's id (the `<svg>`'s own id, e.g.
+ * `mermaid-0`) as a prefix on every node and cluster dom id — for example
+ * `mermaid-0-flowchart-s1-0` or `mermaid-0-G`. The diagram id is a value we
+ * control and can read straight off the rendered root, so use it as the stable
+ * anchor for de-prefixing rather than guessing the boundary with a regex. This
+ * matters especially for subgraph cluster ids (`${diagramId}-${subgraphId}`),
+ * which carry no other delimiter to anchor on.
+ */
+export function getMermaidDiagramId(root: Element): string {
+	return root.getAttribute('id') || root.querySelector('svg')?.getAttribute('id') || ''
+}
+
+/** Strip the known `${diagramId}-` prefix from a dom id, if present. */
+export function stripDiagramPrefix(domId: string, diagramId: string): string {
+	return diagramId && domId.startsWith(`${diagramId}-`) ? domId.slice(diagramId.length + 1) : domId
+}
 
 function parseTranslate(attr: string | null): Vec2 {
 	if (!attr) return { x: 0, y: 0 }
@@ -151,8 +168,6 @@ export function parseClustersFromSvg(
 }
 
 export interface ParsedEdge {
-	start: string
-	end: string
 	points: Vec2[]
 }
 
@@ -167,17 +182,33 @@ export interface ParsedDiagramLayout {
 }
 
 /**
- * Parse every SVG edge path in DOM order (matching mermaid's edge list order).
- * Unlike the old per-pair map, this preserves all parallel edges individually.
+ * Identify mermaid edge paths via the renderer's stable semantic markers rather
+ * than version-specific id strings. Mermaid tags every edge path with
+ * `data-et="edge"` (and `data-edge="true"`, plus a `flowchart-link`/`transition`
+ * class); node/cluster paths do not carry these, so this is robust against the
+ * id-format churn that previously broke `L_…` / `edge\d+` parsing.
  */
-export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): ParsedEdge[] {
+function isEdgePath(path: Element): boolean {
+	return (
+		path.getAttribute('data-et') === 'edge' ||
+		path.getAttribute('data-edge') === 'true' ||
+		path.classList.contains('flowchart-link') ||
+		path.classList.contains('transition')
+	)
+}
+
+/**
+ * Parse every SVG edge path's waypoints in DOM order (matching mermaid's edge
+ * list order), preserving parallel edges individually. Edges are matched back to
+ * the logical graph by endpoint proximity in the diagram converters, so this
+ * only needs each edge's geometry, not its id.
+ */
+export function parseAllEdgePointsFromSvg(root: Element): ParsedEdge[] {
 	const out: ParsedEdge[] = []
 	for (const path of root.querySelectorAll('path[data-points]')) {
-		const dataId = path.getAttribute('data-id') || path.getAttribute('id') || ''
+		if (!isEdgePath(path)) continue
 		const dataPoints = path.getAttribute('data-points')
 		if (!dataPoints) continue
-		const parsed = parser(dataId)
-		if (!parsed) continue
 		try {
 			const points = JSON.parse(atob(dataPoints))
 			const ancestor = getAccumulatedTranslate(path as Element)
@@ -185,7 +216,7 @@ export function parseAllEdgePointsFromSvg(root: Element, parser: EdgeIdParser): 
 				point.x += ancestor.x
 				point.y += ancestor.y
 			}
-			out.push({ start: parsed.start, end: parsed.end, points })
+			out.push({ points })
 		} catch {
 			/* ignore malformed data */
 		}
