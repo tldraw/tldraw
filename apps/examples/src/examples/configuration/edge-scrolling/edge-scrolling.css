@@ -2,7 +2,7 @@
 	position: absolute;
 	bottom: 80px;
 	left: 8px;
-	z-index: 300;
+	z-index: var(--tl-layer-panels);
 	display: flex;
 	flex-direction: column;
 	gap: 8px;

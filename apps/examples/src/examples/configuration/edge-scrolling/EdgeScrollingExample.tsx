@@ -40,24 +40,33 @@ function ControlsPanel({
 	return (
 		<div className="edge-scrolling__panel">
 			<div className="edge-scrolling__title">Edge scrolling options</div>
-			{CONTROLS.map((control) => (
-				<label key={control.key} className="edge-scrolling__row">
-					<span>
-						{control.label}: <b>{pending[control.key]}</b>
-					</span>
-					<input
-						type="range"
-						min={control.min}
-						max={control.max}
-						step={control.step}
-						value={pending[control.key]}
-						onChange={(e) =>
-							setPending({ ...pending, [control.key]: Number(e.currentTarget.value) })
-						}
-						onPointerUp={() => onCommit(pending)}
-					/>
-				</label>
-			))}
+			{CONTROLS.map((control) => {
+				// read the slider's value from the DOM at commit time so the commit
+				// can't lag behind the last change event
+				const commit = (input: HTMLInputElement) =>
+					onCommit({ ...pending, [control.key]: Number(input.value) })
+
+				return (
+					<label key={control.key} className="edge-scrolling__row">
+						<span>
+							{control.label}: <b>{pending[control.key]}</b>
+						</span>
+						<input
+							type="range"
+							min={control.min}
+							max={control.max}
+							step={control.step}
+							value={pending[control.key]}
+							onChange={(e) =>
+								setPending({ ...pending, [control.key]: Number(e.currentTarget.value) })
+							}
+							onPointerUp={(e) => commit(e.currentTarget)}
+							onKeyUp={(e) => commit(e.currentTarget)}
+							onBlur={(e) => commit(e.currentTarget)}
+						/>
+					</label>
+				)
+			})}
 			<button
 				className="edge-scrolling__reset"
 				onClick={() => {
@@ -133,7 +142,10 @@ Edge scrolling is configured through four editor options:
 The sliders commit when you release them rather than while you drag.
 That's because editor options are read once when the editor instance is
 created: changing the options prop tears down and recreates the editor, so
-we don't want to do it dozens of times per second mid-drag.
+we don't want to do it dozens of times per second mid-drag. Commits fire on
+pointer release, key release (so keyboard adjustment works too), and blur —
+re-committing an unchanged value is harmless, since the Tldraw component
+shallow-compares its options.
 
 [3]
 A few shapes to drag around. Grab one and hold it near a window edge to see
