@@ -31,7 +31,6 @@ const messages = defineMessages({
 	},
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	members: { defaultMessage: 'Members' },
-	memberCount: { defaultMessage: '({count})' },
 	owner: { defaultMessage: 'Owner' },
 	admin: { defaultMessage: 'Admin' },
 	you: { defaultMessage: 'you' },
@@ -251,10 +250,8 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					<label className={styles.sectionLabelLarge}>
 						<F {...messages.members} />{' '}
 						<span className={styles.memberCount}>
-							<F
-								{...messages.memberCount}
-								values={{ count: workspaceMembership.groupMembers.length }}
-							/>
+							{/* eslint-disable-next-line tldraw/jsx-no-literals */}
+							{`(${workspaceMembership.groupMembers.length})`}
 						</span>
 					</label>
 					<div className={styles.membersList}>
