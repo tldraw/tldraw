@@ -1,6 +1,6 @@
 import { Computed, RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
 import type { RecordsDiff } from '@tldraw/store'
-import { TLPageId, TLShape, TLShapeId, isShape } from '@tldraw/tlschema'
+import { TLPageId, TLShape, TLShapeId, isBinding, isPageId, isShape } from '@tldraw/tlschema'
 import type { TLRecord } from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
 import { Box } from '../../../primitives/Box'
@@ -11,15 +11,21 @@ import { RBushIndex, type SpatialElement } from './RBushIndex'
  * Manages spatial indexing for efficient shape location queries.
  *
  * Uses an R-tree (via RBush) to enable O(log n) spatial queries instead of O(n) iteration.
- * Handles shapes with computed bounds (arrows, groups, custom shapes) by checking all shapes'
- * bounds on each update using the reactive bounds cache.
+ * Derived-bounds changes (arrows following bound shapes, groups resizing with children) are
+ * tracked structurally: each record diff is expanded into a dirty set covering the changed
+ * shapes' descendants, ancestors, and binding partners, and only those shapes' bounds are
+ * rechecked — O(affected) per update instead of O(page).
  *
  * Key features:
- * - Incremental updates using filterHistory pattern
- * - Leverages existing bounds cache reactivity for dependency tracking
- * - Works with any custom shape type with computed bounds
+ * - Incremental updates using filterHistory pattern (shape and binding history)
+ * - Dirty-set expansion via parent/child and binding relationships
  * - Per-page index (rebuilds on page change)
  * - Optimized for viewport culling queries
+ *
+ * Known limitation: a custom shape whose geometry reads other shapes outside the
+ * parent/child and binding relationships is not rechecked when those shapes change.
+ * Core shapes only depend on other shapes via bindings (arrows) and parent/child
+ * relationships (groups), which are both covered.
  *
  * @internal
  */
@@ -46,6 +52,7 @@ export class SpatialIndexManager {
 
 	private createSpatialIndexComputed() {
 		const shapeHistory = this.editor.store.query.filterHistory('shape')
+		const bindingHistory = this.editor.store.query.filterHistory('binding')
 
 		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {
 			if (isUninitialized(_prevValue)) {
@@ -58,14 +65,20 @@ export class SpatialIndexManager {
 				return this.rebuildAndBumpEpoch()
 			}
 
+			const bindingDiff = bindingHistory.getDiffSince(lastComputedEpoch)
+
+			if (bindingDiff === RESET_VALUE) {
+				return this.rebuildAndBumpEpoch()
+			}
+
 			const currentPageId = this.editor.getCurrentPageId()
 			if (this.lastPageId !== currentPageId) {
 				return this.rebuildAndBumpEpoch()
 			}
 
-			if (shapeDiff.length === 0) return this._boundsEpoch
+			if (shapeDiff.length === 0 && bindingDiff.length === 0) return this._boundsEpoch
 
-			if (this.processIncrementalUpdate(shapeDiff)) {
+			if (this.processIncrementalUpdate(shapeDiff, bindingDiff)) {
 				this._boundsEpoch++
 			}
 			return this._boundsEpoch
@@ -94,85 +107,139 @@ export class SpatialIndexManager {
 		this.rbush.bulkLoad(elements)
 	}
 
-	private processIncrementalUpdate(shapeDiff: RecordsDiff<TLRecord>[]): boolean {
-		const processedShapeIds = new Set<TLShapeId>()
+	private processIncrementalUpdate(
+		shapeDiff: RecordsDiff<TLRecord>[],
+		bindingDiff: RecordsDiff<TLRecord>[]
+	): boolean {
 		let changed = false
 
-		// Step 1: apply diff entries directly. `changed` flips only on real
-		// rbush mutations, so prop-only updates and no-op removes (e.g. shapes
-		// from other pages, or never-indexed shapes with invalid bounds) don't
-		// bump the epoch.
+		// Shapes whose page transform may have moved (their record was added or
+		// updated). Their descendants' transforms move with them.
+		const transformChanged = new Set<TLShapeId>()
+		// Shapes whose page bounds need rechecking against the index.
+		const dirty = new Set<TLShapeId>()
+		// Subset of `dirty` not yet expanded into ancestors/binding partners.
+		const queue: TLShapeId[] = []
+
+		const markDirty = (id: TLShapeId) => {
+			if (!dirty.has(id)) {
+				dirty.add(id)
+				queue.push(id)
+			}
+		}
+
+		// Step 1: seed the dirty set from the record diffs.
 		for (const changes of shapeDiff) {
 			for (const shape of objectMapValues(changes.added) as TLShape[]) {
-				if (isShape(shape) && this.editor.getAncestorPageId(shape) === this.lastPageId) {
-					const bounds = this.editor.getShapePageBounds(shape.id)
-					if (bounds && bounds.isValid()) {
-						this.rbush.upsert(shape.id, bounds)
-						changed = true
-					}
-					processedShapeIds.add(shape.id)
-				}
+				if (!isShape(shape)) continue
+				transformChanged.add(shape.id)
+				markDirty(shape.id)
 			}
 
 			for (const shape of objectMapValues(changes.removed) as TLShape[]) {
-				if (isShape(shape)) {
-					if (this.rbush.has(shape.id)) {
-						this.rbush.remove(shape.id)
-						changed = true
-					}
-					processedShapeIds.add(shape.id)
+				if (!isShape(shape)) continue
+				if (this.rbush.has(shape.id)) {
+					this.rbush.remove(shape.id)
+					changed = true
 				}
+				// The old parent's derived bounds (groups) may shrink. Bindings
+				// involving the shape are deleted in the same transaction, so the
+				// binding diff below dirties the other ends.
+				if (!isPageId(shape.parentId)) markDirty(shape.parentId)
 			}
 
-			for (const [, to] of objectMapValues(changes.updated) as [TLShape, TLShape][]) {
+			for (const [from, to] of objectMapValues(changes.updated) as [TLShape, TLShape][]) {
 				if (!isShape(to)) continue
-				processedShapeIds.add(to.id)
-
-				const isOnPage = this.editor.getAncestorPageId(to) === this.lastPageId
-
-				if (isOnPage) {
-					const bounds = this.editor.getShapePageBounds(to.id)
-					if (bounds && bounds.isValid()) {
-						const indexedElement = this.rbush.getElement(to.id)
-						if (!this.areBoundsEqualToSpatialElement(bounds, indexedElement)) {
-							this.rbush.upsert(to.id, bounds)
-							changed = true
-						}
-					} else if (this.rbush.has(to.id)) {
-						this.rbush.remove(to.id)
-						changed = true
-					}
-				} else if (this.rbush.has(to.id)) {
-					this.rbush.remove(to.id)
-					changed = true
+				transformChanged.add(to.id)
+				markDirty(to.id)
+				// On reparent, the old ancestor chain needs rechecking too
+				if (isShape(from) && from.parentId !== to.parentId && !isPageId(from.parentId)) {
+					markDirty(from.parentId)
 				}
 			}
 		}
 
-		// Step 2: must always run. Diff entries can dirty derived bounds —
-		// arrows bound to moved shapes, groups with moved children — without
-		// touching any record visited in step 1. Also catches outline-only
-		// changes (e.g. geo rectangle→ellipse at the same w/h) that shift a
-		// bound arrow's intersection points: step 1 sees the geo's
-		// axis-aligned bounds unchanged and skips, but the dependent arrow's
-		// bounds have moved.
-		//
-		// Iterating the rbush's element map directly avoids allocating a
-		// shape-id array per pointer move. Mutation here is limited to
-		// upserts of existing keys and deletions, both safe during Map
-		// iteration.
-		for (const [shapeId, indexedElement] of this.rbush.entries()) {
-			if (processedShapeIds.has(shapeId)) continue
-
-			const currentBounds = this.editor.getShapePageBounds(shapeId)
-			if (this.areBoundsEqualToSpatialElement(currentBounds, indexedElement)) continue
-
-			if (currentBounds && currentBounds.isValid()) {
-				this.rbush.upsert(shapeId, currentBounds)
-			} else {
-				this.rbush.remove(shapeId)
+		for (const changes of bindingDiff) {
+			for (const binding of objectMapValues(changes.added)) {
+				if (!isBinding(binding)) continue
+				markDirty(binding.fromId)
+				markDirty(binding.toId)
 			}
-			changed = true
+			for (const binding of objectMapValues(changes.removed)) {
+				if (!isBinding(binding)) continue
+				markDirty(binding.fromId)
+				markDirty(binding.toId)
+			}
+			for (const [, to] of objectMapValues(changes.updated)) {
+				if (!isBinding(to)) continue
+				markDirty(to.fromId)
+				markDirty(to.toId)
+			}
+		}
+
+		// Step 2: a moved record moves the page transforms of all its
+		// descendants, so their bounds need rechecking even though their
+		// records never changed. Expand before the fixpoint below so each
+		// descendant also gets its ancestors and binding partners visited.
+		const transformQueue = [...transformChanged]
+		while (transformQueue.length) {
+			const id = transformQueue.pop()!
+			for (const childId of this.editor.getSortedChildIdsForParent(id)) {
+				if (!transformChanged.has(childId)) {
+					transformChanged.add(childId)
+					transformQueue.push(childId)
+				}
+				markDirty(childId)
+			}
+		}
+
+		// Step 3: expand to a fixpoint. Any shape whose bounds may have changed
+		// can resize its ancestor groups and move arrows bound to it. A derived
+		// bounds change does not move the shape's own transform, so descendants
+		// are not affected by this expansion (only by step 2).
+		while (queue.length) {
+			const id = queue.pop()!
+
+			const record = this.editor.store.unsafeGetWithoutCapture(id)
+			if (record && isShape(record) && !isPageId(record.parentId)) {
+				markDirty(record.parentId)
+			}
+
+			for (const binding of this.editor.getBindingsInvolvingShape(id)) {
+				markDirty(binding.fromId)
+				markDirty(binding.toId)
+			}
+		}
+
+		// Step 4: recheck only the dirty shapes' bounds. `changed` flips only on
+		// real rbush mutations, so prop-only updates with unchanged bounds don't
+		// bump the epoch.
+		for (const id of dirty) {
+			const indexedElement = this.rbush.getElement(id)
+			const record = this.editor.store.unsafeGetWithoutCapture(id)
+
+			if (
+				!record ||
+				!isShape(record) ||
+				this.editor.getAncestorPageId(record) !== this.lastPageId
+			) {
+				if (indexedElement) {
+					this.rbush.remove(id)
+					changed = true
+				}
+				continue
+			}
+
+			const bounds = this.editor.getShapePageBounds(id)
+			if (bounds && bounds.isValid()) {
+				if (!this.areBoundsEqualToSpatialElement(bounds, indexedElement)) {
+					this.rbush.upsert(id, bounds)
+					changed = true
+				}
+			} else if (indexedElement) {
+				this.rbush.remove(id)
+				changed = true
+			}
 		}
 
 		return changed
