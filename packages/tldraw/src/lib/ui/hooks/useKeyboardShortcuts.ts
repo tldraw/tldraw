@@ -141,12 +141,25 @@ export function useKeyboardShortcuts() {
 
 		const body = editor.getContainerDocument().body
 
+		// Track which registration each physically-held key first triggered, keyed by
+		// `event.code`. While a key is held down, releasing a modifier should not let the
+		// auto-repeat keydown events trigger an adjacent shortcut (e.g. releasing shift while
+		// still holding shift+q shouldn't start firing the plain `q` shortcut). The same
+		// registration is still allowed to repeat (e.g. holding `=` to keep zooming).
+		const heldKeyRegistrations = new Map<string, Registration>()
+
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (shouldSkipEvent(e)) return
+			const code = e.code
 			for (const reg of registry) {
 				if (!reg.onKeyDown) continue
 				for (const p of reg.parsed) {
 					if (matchesEvent(e, p)) {
+						const prev = code ? heldKeyRegistrations.get(code) : undefined
+						// The held key already triggered a different shortcut; don't fall back to
+						// this one (or anything else) just because a modifier was released.
+						if (prev && prev !== reg) return
+						if (code) heldKeyRegistrations.set(code, reg)
 						reg.onKeyDown(e)
 						break
 					}
@@ -155,6 +168,10 @@ export function useKeyboardShortcuts() {
 		}
 
 		const handleKeyUp = (e: KeyboardEvent) => {
+			// Always release the held-key tracking, even for events we'd otherwise skip (e.g. the
+			// key was released after focus moved into a text input), so a stale entry can't block
+			// later shortcuts.
+			if (e.code) heldKeyRegistrations.delete(e.code)
 			if (shouldSkipEvent(e)) return
 			for (const reg of registry) {
 				if (!reg.onKeyUp) continue
