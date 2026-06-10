@@ -69,7 +69,6 @@ import {
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { MULTIPLAYER_SERVER, ZERO_SERVER } from '../../utils/config'
-import { isPreviewEnv } from '../../utils/env'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
@@ -405,8 +404,6 @@ export class TldrawApp {
 	}
 
 	hasFlag(flag: TlaFlags) {
-		// Enable the workspaces UI by default in preview deploys so it can be tested without enrolling.
-		if (flag === 'groups_frontend' && isPreviewEnv) return true
 		return this.getUserFlags().has(flag)
 	}
 
