@@ -2324,3 +2324,46 @@ it('preserves z-indexes when translating', () => {
 	expect(ordered2.indexOf(box1.id)).toBe(0)
 	expect(ordered2.indexOf(box2.id)).toBe(1)
 })
+
+describe('When moving shapes are changed externally mid-translation...', () => {
+	it('keeps an external rotation applied during the drag', () => {
+		editor.createShapes([box(ids.box1, 0, 0, 100, 100)])
+
+		editor.pointerDown(50, 50, ids.box1).pointerMove(150, 50)
+		editor.expectToBeIn('select.translating')
+		editor.expectShapeToMatch({ id: ids.box1, x: 100, y: 0 })
+
+		// Rotate the shape from outside the interaction, as a keyboard shortcut
+		// bound to `rotateShapesBy` would
+		editor.rotateShapesBy([ids.box1], Math.PI / 2)
+		const rotated = editor.getShape(ids.box1)!
+		expect(rotated.rotation).toBe(Math.PI / 2)
+		expect(rotated.x).not.toBeCloseTo(100, 6)
+
+		// An update without pointer movement must not stomp the rotated position
+		editor.pointerMove(150, 50)
+		let current = editor.getShape(ids.box1)!
+		expect(current.x).toBeCloseTo(rotated.x, 6)
+		expect(current.y).toBeCloseTo(rotated.y, 6)
+		expect(current.rotation).toBe(Math.PI / 2)
+
+		// Continuing the drag moves the shape from its rotated position
+		editor.pointerMove(150, 150).pointerUp()
+		current = editor.getShape(ids.box1)!
+		expect(current.x).toBeCloseTo(rotated.x, 6)
+		expect(current.y).toBeCloseTo(rotated.y + 100, 6)
+		expect(current.rotation).toBe(Math.PI / 2)
+	})
+
+	it('keeps an external position change applied during the drag', () => {
+		editor.createShapes([box(ids.box1, 0, 0, 100, 100)])
+
+		editor.pointerDown(50, 50, ids.box1).pointerMove(150, 50)
+		editor.expectShapeToMatch({ id: ids.box1, x: 100, y: 0 })
+
+		editor.nudgeShapes([ids.box1], { x: 0, y: 20 })
+
+		editor.pointerMove(250, 50).pointerUp()
+		editor.expectShapeToMatch({ id: ids.box1, x: 200, y: 20 })
+	})
+})

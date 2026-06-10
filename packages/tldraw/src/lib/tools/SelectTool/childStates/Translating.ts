@@ -11,6 +11,7 @@ import {
 	TLShapePartial,
 	TLTickEventInfo,
 	Vec,
+	approximately,
 	bind,
 	compact,
 	isPageId,
@@ -184,6 +185,9 @@ export class Translating extends StateNode {
 
 	reset() {
 		this.editor.bailToMark(this.markId)
+		// Bailing restores the shapes to their snapshot positions, so any
+		// previously applied drag offset no longer reflects the current shapes.
+		this.snapshot.lastAppliedOffset = null
 	}
 
 	protected complete() {
@@ -303,6 +307,8 @@ export class Translating extends StateNode {
 	}
 
 	protected updateShapes() {
+		this.refreshSnapshotIfChangedExternally()
+
 		const { snapshot } = this
 
 		// We should have started already, but hey
@@ -333,6 +339,67 @@ export class Translating extends StateNode {
 		if (changes.length > 0) {
 			this.editor.updateShapes(changes)
 		}
+	}
+
+	// Translating computes shape positions from scratch on every update as
+	// `snapshot position + drag delta`, so a change made to the moving shapes
+	// from outside this interaction (e.g. `rotateShapesBy` bound to a keyboard
+	// shortcut) would otherwise be stomped by the next update. Detect such
+	// changes and rebase the snapshot on the current shapes instead.
+	private refreshSnapshotIfChangedExternally() {
+		const { editor, snapshot } = this
+		const { lastAppliedOffset } = snapshot
+		if (!lastAppliedOffset) return
+
+		// Translation only ever moves shapes by the applied offset, so a shape
+		// whose page transform doesn't match what we last applied was changed
+		// from outside this interaction.
+		const didChangeExternally = snapshot.shapeSnapshots.some((shapeSnapshot) => {
+			const pageTransform = editor.getShapePageTransform(shapeSnapshot.shape.id)
+			if (!pageTransform) return true
+			const pagePoint = pageTransform.point()
+			return (
+				!approximately(pagePoint.x, shapeSnapshot.pagePoint.x + lastAppliedOffset.x, 1e-4) ||
+				!approximately(pagePoint.y, shapeSnapshot.pagePoint.y + lastAppliedOffset.y, 1e-4) ||
+				!approximately(pageTransform.rotation(), shapeSnapshot.pageRotation, 1e-4)
+			)
+		})
+
+		if (!didChangeExternally) return
+
+		// Rebuild the snapshot from the current shapes, then un-apply the drag
+		// offset so that the origin-based delta math continues from the
+		// externally changed positions without jumping.
+		const freshSnapshot = getTranslatingSnapshot(editor)
+		for (const shapeSnapshot of freshSnapshot.shapeSnapshots) {
+			shapeSnapshot.pagePoint.sub(lastAppliedOffset)
+		}
+		freshSnapshot.averagePagePoint.sub(lastAppliedOffset)
+		freshSnapshot.initialPageBounds.x -= lastAppliedOffset.x
+		freshSnapshot.initialPageBounds.y -= lastAppliedOffset.y
+		for (const snapPoint of freshSnapshot.initialSnapPoints) {
+			snapPoint.x -= lastAppliedOffset.x
+			snapPoint.y -= lastAppliedOffset.y
+		}
+		freshSnapshot.lastAppliedOffset = lastAppliedOffset
+
+		// Preserve the note-dragging context from the original snapshot. It's
+		// derived from where the drag began (which note is under the pointer, and
+		// the snap slots around its neighbours), so rebuilding it from the moved
+		// shapes would pick the wrong note. Re-point noteSnapshot at the matching
+		// rebuilt shape snapshot so its offset-corrected pagePoint stays in sync.
+		if (snapshot.noteSnapshot) {
+			freshSnapshot.noteSnapshot = freshSnapshot.shapeSnapshots.find(
+				(s) => s.shape.id === snapshot.noteSnapshot!.shape.id
+			) as typeof snapshot.noteSnapshot
+			freshSnapshot.noteAdjacentPositions = snapshot.noteAdjacentPositions
+			freshSnapshot.noteCenterOffset = snapshot.noteCenterOffset
+		}
+
+		if (this.snapshot === this.selectionSnapshot) {
+			this.selectionSnapshot = freshSnapshot
+		}
+		this.snapshot = freshSnapshot
 	}
 
 	@bind
@@ -452,6 +519,9 @@ function getTranslatingSnapshot(editor: Editor) {
 		noteAdjacentPositions,
 		noteSnapshot,
 		noteCenterOffset,
+		// The page-space offset most recently applied to the snapshot shapes by
+		// `moveShapesToPoint`, used to detect external changes to the shapes.
+		lastAppliedOffset: null as Vec | null,
 	}
 }
 
@@ -557,6 +627,8 @@ export function moveShapesToPoint({
 	}
 
 	const averageSnap = Vec.Sub(averageSnappedPoint, averagePagePoint)
+
+	snapshot.lastAppliedOffset = averageSnap
 
 	editor.updateShapes(
 		compact(
