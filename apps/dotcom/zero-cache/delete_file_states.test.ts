@@ -5,12 +5,17 @@ import pg from 'pg'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 // Focused integration test for the `delete_file_states` trigger that cleans up
-// guest file_state rows when a file is unshared (shared: true -> false).
+// guest file_state rows and guest home-group file links (group_file rows) when a
+// file is unshared (shared: true -> false).
 //
 // Regression coverage for: unsharing a group-owned file (ownerId NULL,
 // owningGroupId set) used to leave guest file_states behind, because the original
 // trigger keyed on `OLD."ownerId" != "userId"` and `NULL != x` is NULL in SQL.
-// See migration 033_fix_unshare_group_file_cleanup.sql.
+// Visiting a shared file also links it into the visitor's home group via a
+// group_file row (home group id == user id) — that link is what puts the file in
+// their recent files, and nothing cleaned it up either, so the file name lingered
+// in an ex-guest's recent files after access was revoked.
+// See migration 034_fix_unshare_group_file_cleanup.sql.
 //
 // This talks to a real postgres (the trigger is plpgsql, so fakes can't exercise
 // it). It is opt-in: set ZERO_CACHE_TEST_POSTGRES_URL (local dev stack:
@@ -35,7 +40,7 @@ const CONNECTION_STRING = process.env.ZERO_CACHE_TEST_POSTGRES_URL
 // The real, shipped function body. We load it from the migration file so the test
 // exercises exactly what runs in production rather than a hand-copied duplicate.
 const FIXED_FUNCTION_SQL = readFileSync(
-	join(DIRNAME, 'migrations', '033_fix_unshare_group_file_cleanup.sql'),
+	join(DIRNAME, 'migrations', '034_fix_unshare_group_file_cleanup.sql'),
 	'utf8'
 )
 
@@ -59,7 +64,7 @@ const schemaName = `tldraw_test_${process.pid}`
 // which we (re)create first). Dropping `file` CASCADE also drops the trigger.
 // Fully qualified so it cannot touch `public` no matter what session it runs on.
 const SCHEMA_SQL = `
-DROP TABLE IF EXISTS "${schemaName}"."file_state", "${schemaName}"."file", "${schemaName}"."group_user", "${schemaName}"."group" CASCADE;
+DROP TABLE IF EXISTS "${schemaName}"."file_state", "${schemaName}"."group_file", "${schemaName}"."file", "${schemaName}"."group_user", "${schemaName}"."group" CASCADE;
 CREATE TABLE "${schemaName}"."group" (
   "id" TEXT PRIMARY KEY
 );
@@ -80,6 +85,11 @@ CREATE TABLE "${schemaName}"."file_state" (
   "userId" TEXT NOT NULL,
   "fileId" TEXT NOT NULL,
   PRIMARY KEY ("userId", "fileId")
+);
+CREATE TABLE "${schemaName}"."group_file" (
+  "fileId" TEXT NOT NULL,
+  "groupId" TEXT NOT NULL,
+  PRIMARY KEY ("fileId", "groupId")
 );
 CREATE TRIGGER file_shared_update
 AFTER UPDATE OF shared ON "${schemaName}"."file"
@@ -169,6 +179,18 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 				[fileId]
 			)
 		}
+
+		// group_file rows: the owning group's own row for fGroup, plus home-group
+		// file links (home group id == user id) created by visiting a shared file
+		await client.query(
+			`INSERT INTO "${schemaName}"."group_file" ("fileId", "groupId") VALUES
+				('fGroup', 'g1'),
+				('fGroup', 'uMember'),
+				('fGroup', 'uGuest'),
+				('fLegacy', 'uOwner'),
+				('fLegacy', 'uGuest'),
+				('fControl', 'uGuest')`
+		)
 	}
 
 	// Unsharing fires the trigger, whose body reads `file_state` and `group_user`
@@ -188,7 +210,15 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 		return res.rows.map((r) => r.userId)
 	}
 
-	describe('with the fixed function (migration 033)', () => {
+	async function linksFor(fileId: string): Promise<string[]> {
+		const res = await client.query<{ groupId: string }>(
+			`SELECT "groupId" FROM "${schemaName}"."group_file" WHERE "fileId" = $1 ORDER BY "groupId"`,
+			[fileId]
+		)
+		return res.rows.map((r) => r.groupId)
+	}
+
+	describe('with the fixed function (migration 034)', () => {
 		beforeEach(async () => {
 			await inTestSchema(FIXED_FUNCTION_SQL)
 			await client.query(SCHEMA_SQL)
@@ -201,14 +231,28 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 			expect(await statesFor('fGroup')).toEqual(['uMember', 'uOwner'])
 		})
 
+		it('removes the guest file link but keeps the owning group row and member links', async () => {
+			await unshare('fGroup')
+			// the file still lives in its owning group, and the member keeps their
+			// home-group link (they retain access); the guest's link is cleaned up
+			// so the file stops showing in their recent files
+			expect(await linksFor('fGroup')).toEqual(['g1', 'uMember'])
+		})
+
 		it('removes the guest state but keeps the owner when a legacy file is unshared', async () => {
 			await unshare('fLegacy')
 			expect(await statesFor('fLegacy')).toEqual(['uOwner'])
 		})
 
+		it('removes the guest file link but keeps the owner link when a legacy file is unshared', async () => {
+			await unshare('fLegacy')
+			expect(await linksFor('fLegacy')).toEqual(['uOwner'])
+		})
+
 		it('leaves still-shared files untouched', async () => {
 			await unshare('fGroup')
 			expect(await statesFor('fControl')).toEqual(['uGuest', 'uMember', 'uOwner'])
+			expect(await linksFor('fControl')).toEqual(['uGuest'])
 		})
 	})
 
@@ -223,6 +267,9 @@ describeMaybe('delete_file_states trigger (unshare cleanup)', () => {
 			await unshare('fGroup')
 			// NULL != "userId" is NULL, so the old DELETE matched nothing: the guest lingers
 			expect(await statesFor('fGroup')).toEqual(['uGuest', 'uMember', 'uOwner'])
+			// and the old function never touched group_file at all, so the guest's
+			// home-group link (their recent-files entry) survived too
+			expect(await linksFor('fGroup')).toEqual(['g1', 'uGuest', 'uMember'])
 		})
 
 		it('still works for legacy files (so the regression is group-specific)', async () => {
