@@ -644,6 +644,37 @@ export function createMutators(userId: string) {
 			assert(!isOnlyOwner, ZErrorCode.forbidden)
 			await tx.mutate.group_user.delete({ userId, groupId })
 		},
+		removeGroupMember: async (
+			tx: Tx,
+			{ groupId, targetUserId }: { groupId: string; targetUserId: string }
+		) => {
+			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(groupId, ZErrorCode.bad_request)
+			assert(targetUserId, ZErrorCode.bad_request)
+
+			const role = await getRole(tx, userId, groupId)
+			assert(can(role, 'editMembers'), ZErrorCode.forbidden)
+
+			// Removing yourself goes through leaveGroup, which owns the last-owner invariant.
+			assert(targetUserId !== userId, ZErrorCode.bad_request)
+
+			// Target must be a member.
+			const targetMembership = await tx.run(
+				zql.group_user.where('userId', '=', targetUserId).where('groupId', '=', groupId).one()
+			)
+			assert(targetMembership, ZErrorCode.bad_request)
+
+			// Invariant (not a capability): a group must always keep at least one
+			// owner, so the last owner can't be removed — the group must be deleted instead.
+			if (targetMembership.role === 'owner') {
+				const owners = await tx.run(
+					zql.group_user.where('groupId', '=', groupId).where('role', '=', 'owner')
+				)
+				assert(owners.length > 1, ZErrorCode.forbidden)
+			}
+
+			await tx.mutate.group_user.delete({ userId: targetUserId, groupId })
+		},
 		deleteGroup: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)

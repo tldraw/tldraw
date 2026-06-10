@@ -92,8 +92,14 @@
   "335defdafe": {
     "translation": "Please try refreshing the page."
   },
+  "33d8b74c4b": {
+    "translation": "You no longer have access to this file."
+  },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "375396d6e5": {
+    "translation": "Remove member"
   },
   "3bc7d6ea2f": {
     "translation": "Continue with email"
@@ -175,6 +181,9 @@
   },
   "55505ba281": {
     "translation": "PNG"
+  },
+  "55a172e10a": {
+    "translation": "Remove {name} from this group?"
   },
   "5677e381d2": {
     "translation": "We use analytics cookies to make tldraw better."
@@ -412,6 +421,9 @@
   },
   "a6cc403d56": {
     "translation": "Anyone with the link"
+  },
+  "a701366b38": {
+    "translation": "Access removed"
   },
   "a768caa988": {
     "translation": "Analytics"

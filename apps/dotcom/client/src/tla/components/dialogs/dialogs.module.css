@@ -289,6 +289,22 @@
 	font-size: 12px;
 }
 
+.removeMemberButton {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 4px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tla-color-text-3);
+	border-radius: var(--tl-radius-1);
+}
+.removeMemberButton:hover {
+	color: var(--tla-color-text-1);
+	background-color: var(--tla-color-hover-2);
+}
+
 .dangerZoneActions {
 	display: flex;
 	flex-direction: column;

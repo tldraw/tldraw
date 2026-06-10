@@ -46,6 +46,8 @@ const messages = defineMessages({
 	},
 	leaveAction: { defaultMessage: 'Leave group' },
 	deleteAction: { defaultMessage: 'Delete group' },
+	removeMember: { defaultMessage: 'Remove member' },
+	confirmRemoveMember: { defaultMessage: 'Remove {name} from this group?' },
 })
 
 interface GroupSettingsDialogProps {
@@ -64,6 +66,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 	const ownerMsg = useMsg(messages.owner)
 	const memberMsg = useMsg(messages.member)
 	const youMsg = useMsg(messages.you)
+	const removeMemberMsg = useMsg(messages.removeMember)
 
 	// Get group data
 	const groupMembership = useValue('groupMembership', () => app.getGroupMembership(groupId), [
@@ -132,6 +135,14 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 		}
 	}
 
+	const handleRemoveMember = async (targetUserId: string) => {
+		try {
+			await app.z.mutate.removeGroupMember({ groupId, targetUserId }).client
+		} catch (error) {
+			console.error('Error removing member:', error)
+		}
+	}
+
 	const openLeaveConfirmDialog = () => {
 		addDialog({
 			component: ({ onClose }) => (
@@ -158,6 +169,22 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 					cancelLabel={<F {...messages.cancel} />}
 					confirmType="danger"
 					onConfirm={handleDeleteGroup}
+					onClose={onClose}
+				/>
+			),
+		})
+	}
+
+	const openRemoveMemberConfirmDialog = (member: { userId: string; userName: string }) => {
+		addDialog({
+			component: ({ onClose }) => (
+				<ConfirmDialog
+					title={<F {...messages.removeMember} />}
+					description={<F {...messages.confirmRemoveMember} values={{ name: member.userName }} />}
+					confirmLabel={<F {...messages.removeMember} />}
+					cancelLabel={<F {...messages.cancel} />}
+					confirmType="danger"
+					onConfirm={() => handleRemoveMember(member.userId)}
 					onClose={onClose}
 				/>
 			),
@@ -294,6 +321,16 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 										/>
 									) : (
 										<span className={styles.memberRole}>{roleLabels[member.role]}</span>
+									)}
+									{can(role, 'editMembers') && member.userId !== app.getUser().id && (
+										<button
+											type="button"
+											className={styles.removeMemberButton}
+											aria-label={removeMemberMsg}
+											onClick={() => openRemoveMemberConfirmDialog(member)}
+										>
+											<TlaIcon icon="cross-2" />
+										</button>
 									)}
 								</div>
 							))}

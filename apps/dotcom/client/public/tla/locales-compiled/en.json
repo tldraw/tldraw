@@ -189,10 +189,22 @@
       "value": "Please try refreshing the page."
     }
   ],
+  "33d8b74c4b": [
+    {
+      "type": 0,
+      "value": "You no longer have access to this file."
+    }
+  ],
   "344a7f427f": [
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Remove member"
     }
   ],
   "3bc7d6ea2f": [
@@ -365,6 +377,20 @@
     {
       "type": 0,
       "value": "PNG"
+    }
+  ],
+  "55a172e10a": [
+    {
+      "type": 0,
+      "value": "Remove "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " from this group?"
     }
   ],
   "5677e381d2": [
@@ -917,6 +943,12 @@
     {
       "type": 0,
       "value": "Anyone with the link"
+    }
+  ],
+  "a701366b38": [
+    {
+      "type": 0,
+      "value": "Access removed"
     }
   ],
   "a768caa988": [

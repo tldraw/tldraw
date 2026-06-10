@@ -793,6 +793,94 @@ describe('membership', () => {
 		await m.leaveGroup(tx, { groupId })
 		expect(s.group_user.find((gu) => gu.userId === userId)).toBeUndefined()
 	})
+
+	it('owner can remove a member', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId })],
+			group_user: [
+				makeGroupUser({ userId, groupId, role: 'owner' }),
+				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
+			],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.removeGroupMember(tx, { groupId, targetUserId: memberId })
+		expect(s.group_user.find((gu) => gu.userId === memberId)).toBeUndefined()
+	})
+
+	it('member cannot remove a member', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId })],
+			group_user: [
+				makeGroupUser({ userId, groupId, role: 'member' }),
+				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
+			],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectForbidden(() => m.removeGroupMember(tx, { groupId, targetUserId: memberId }))
+		expect(s.group_user.find((gu) => gu.userId === memberId)).toBeDefined()
+	})
+
+	it('cannot remove yourself (leave the group instead)', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId })],
+			group_user: [
+				makeGroupUser({ userId, groupId, role: 'owner' }),
+				makeGroupUser({ userId: memberId, groupId, role: 'owner' }),
+			],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectBadRequest(() => m.removeGroupMember(tx, { groupId, targetUserId: userId }))
+		expect(s.group_user.find((gu) => gu.userId === userId)).toBeDefined()
+	})
+
+	it('owner can remove another owner when more than one owner', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId })],
+			group_user: [
+				makeGroupUser({ userId, groupId, role: 'owner' }),
+				makeGroupUser({ userId: memberId, groupId, role: 'owner' }),
+			],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.removeGroupMember(tx, { groupId, targetUserId: memberId })
+		expect(s.group_user.find((gu) => gu.userId === memberId)).toBeUndefined()
+	})
+
+	it('cannot remove a user who is not a member', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId })],
+			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectBadRequest(() =>
+			m.removeGroupMember(tx, { groupId, targetUserId: 'user_notamember1234ab' })
+		)
+	})
 })
 
 describe('file operations across groups', () => {

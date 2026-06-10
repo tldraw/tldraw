@@ -4,6 +4,7 @@ import { useParams, useRouteError } from 'react-router-dom'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
+import { useGroupFileAccessGuard } from '../hooks/useGroupFileAccessGuard'
 import { ReadyWrapper } from '../hooks/useIsReady'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
@@ -37,6 +38,10 @@ export function Component({ error }: { error?: unknown }) {
 			app.ensureFileVisibleInSidebar(fileSlug)
 		}
 	}, [app, fileSlug])
+
+	// Navigate away if we lose access to a group file while viewing it — e.g. an
+	// owner removes us from the group, or the group is deleted.
+	useGroupFileAccessGuard(app, fileSlug)
 
 	if (!userId) {
 		return (
