@@ -111,7 +111,7 @@ export function FileItems({
 	const copiedMsg = useMsg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
-	const hasWorkspaces = useHasFlag('groups_frontend')
+	const workspacesEnabled = useHasFlag('groups_frontend')
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
@@ -236,7 +236,7 @@ export function FileItems({
 				)}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
-				{hasWorkspaces && (
+				{workspacesEnabled && (
 					<TldrawUiMenuSubmenu id="move-to-workspace" label={'Move to'} size="small">
 						{currentWorkspaceId !== app.getHomeWorkspaceId() && (
 							<TldrawUiMenuGroup id="my-files">

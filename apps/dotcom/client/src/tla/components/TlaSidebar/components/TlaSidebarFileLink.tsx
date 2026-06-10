@@ -197,8 +197,8 @@ export function TlaSidebarFileLinkInner({
 	const isCoarsePointer = getIsCoarsePointer()
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
-	const hasWorkspaces = useHasFlag('groups_frontend')
-	const isDragEnabled = hasWorkspaces && !isCoarsePointer
+	const workspacesEnabled = useHasFlag('groups_frontend')
+	const isDragEnabled = workspacesEnabled && !isCoarsePointer
 
 	if (!file) return null
 

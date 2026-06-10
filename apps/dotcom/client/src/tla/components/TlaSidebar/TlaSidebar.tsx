@@ -46,7 +46,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
-	const hasWorkspaces = useHasFlag('groups_frontend')
+	const workspacesEnabled = useHasFlag('groups_frontend')
 
 	return (
 		<nav aria-hidden={!isSidebarOpen} style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}>
@@ -58,7 +58,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			<div
 				className={styles.sidebar}
 				data-visible={isSidebarOpen}
-				data-workspaces={hasWorkspaces}
+				data-workspaces={workspacesEnabled}
 				data-visiblemobile={isSidebarOpenMobile}
 				data-testid="tla-sidebar"
 				onDropCapture={onDrop}
@@ -71,11 +71,11 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarCreateFileButton />
 				</div>
 				{/* The workspace list is fixed; only the file list below it scrolls. */}
-				{hasWorkspaces && <TlaSidebarWorkspaceList />}
-				{hasWorkspaces && <div className={styles.sidebarDivider} />}
+				{workspacesEnabled && <TlaSidebarWorkspaceList />}
+				{workspacesEnabled && <div className={styles.sidebarDivider} />}
 				<div className={styles.sidebarContent}>
 					<div className={styles.sidebarContentInner}>
-						{hasWorkspaces ? <TlaSidebarRecentFilesNew /> : <TlaSidebarRecentFiles />}
+						{workspacesEnabled ? <TlaSidebarRecentFilesNew /> : <TlaSidebarRecentFiles />}
 					</div>
 				</div>
 				<div className={styles.sidebarBottomArea}>
