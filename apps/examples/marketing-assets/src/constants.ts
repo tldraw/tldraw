@@ -6,6 +6,12 @@ export const DISPLAY_MAX = 360
 /** Height of the on-canvas control bar under each asset, in tldraw units. */
 export const FOOTER_HEIGHT = 56
 
+/**
+ * Height of the accompanying-copy panel under the footer, in tldraw units. Holds
+ * the platform caption (the body text shown beside the asset, not on the image).
+ */
+export const CAPTION_HEIGHT = 132
+
 /** The output formats offered in the generate dropdown, grouped by platform. */
 export const OUTPUT_TYPES: OutputType[] = [
 	{ id: 'li-single', label: 'Single image', width: 1200, height: 627, platform: 'LinkedIn' },

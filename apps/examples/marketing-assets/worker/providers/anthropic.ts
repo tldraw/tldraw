@@ -9,9 +9,10 @@ import {
 } from './types'
 
 const ENDPOINT = 'https://api.anthropic.com/v1/messages'
-// The planner reasons over images and brand constraints, so it uses a capable
-// vision model. Swap this for any Claude model with vision.
-const MODEL = 'claude-opus-4-8'
+// The planner reasons over images and brand constraints, so it defaults to a
+// capable Claude vision model. Override per-deployment with the PLAN_MODEL env
+// var (any Claude model with vision works); the app stays agent-agnostic.
+const DEFAULT_MODEL = 'claude-opus-4-8'
 
 const SCHEMA_DOC = [
 	'Each text layer is JSON with these fields:',
@@ -38,10 +39,11 @@ export const anthropic: PlanProvider = {
 
 	async plan(params: PlanParams, env: Env): Promise<PlanResult> {
 		const apiKey = requireApiKey(env)
+		const model = env.PLAN_MODEL || DEFAULT_MODEL
 		const { mimeType, data } = parseDataUrl(params.image)
 		const userText = params.mode === 'create' ? createPrompt(params) : revisePrompt(params)
 
-		const text = await callClaude(apiKey, systemPrompt(params.mode), [
+		const text = await callClaude(apiKey, model, systemPrompt(params.mode), [
 			{ type: 'image', source: { type: 'base64', media_type: mimeType, data } },
 			{ type: 'text', text: userText },
 		])
@@ -51,7 +53,8 @@ export const anthropic: PlanProvider = {
 
 	async clarify(params: ClarifyParams, env: Env): Promise<ClarifyResult> {
 		const apiKey = requireApiKey(env)
-		const text = await callClaude(apiKey, CLARIFY_SYSTEM, [
+		const model = env.PLAN_MODEL || DEFAULT_MODEL
+		const text = await callClaude(apiKey, model, CLARIFY_SYSTEM, [
 			{ type: 'text', text: clarifyPrompt(params) },
 		])
 		return parseClarify(text)
@@ -67,7 +70,12 @@ function requireApiKey(env: Env): string {
 }
 
 /** POST a message to Claude and return the concatenated text of the reply. */
-async function callClaude(apiKey: string, system: string, content: unknown[]): Promise<string> {
+async function callClaude(
+	apiKey: string,
+	model: string,
+	system: string,
+	content: unknown[]
+): Promise<string> {
 	const response = await fetch(ENDPOINT, {
 		method: 'POST',
 		headers: {
@@ -76,7 +84,7 @@ async function callClaude(apiKey: string, system: string, content: unknown[]): P
 			'anthropic-version': '2023-06-01',
 		},
 		body: JSON.stringify({
-			model: MODEL,
+			model,
 			max_tokens: 2048,
 			system,
 			messages: [{ role: 'user', content }],
@@ -131,33 +139,57 @@ function parseClarify(text: string): ClarifyResult {
 
 function systemPrompt(mode: 'create' | 'revise'): string {
 	const common = [
-		'You are a brand designer laying out the text of a marketing asset.',
+		'You are a brand designer composing a marketing asset: one clean image plus the post copy that runs alongside it (like a social post and its caption).',
 		'The image you are given is a text-free background; the app will render your text layers on top of it.',
-		'Choose positions over calm, high-contrast areas of the background, set scrim:true where the background is busy, and keep contrast strong so text is easy to read.',
-		'Use the brand fonts (via fontRole) and brand colours. Keep copy short and on-message; only include text that serves the brief.',
+		'CRITICAL: the image must stay visually clean. Put AT MOST ONE text layer on it — a single short headline (or a single key phrase). Never stack multiple text layers; never crowd the image. Everything else the campaign needs to say belongs in the caption, not on the image.',
+		'Place that one headline over a calm, high-contrast area, set scrim:true if the background behind it is busy, and keep contrast strong so it is easy to read. Use the brand fonts (via fontRole) and brand colours. If a strong background needs no words at all, it is fine to return zero text layers.',
 		SCHEMA_DOC,
+		'Separately, write the "caption": the body copy shown beside the image. This is where the message, detail, and call to action live. Voice it for the brand tone and tailor it to the target platform and audience (see the platform guidance in the user message). Respect that platform\'s length norm. Do not repeat the headline verbatim; complement it.',
 		'Respond with ONLY a JSON object and no other prose.',
 	]
 	if (mode === 'create') {
-		common.push('Return: { "textLayers": TextLayer[], "backgroundInstructions": [] }.')
+		common.push(
+			'Return: { "textLayers": TextLayer[] (length 0 or 1), "caption": string, "backgroundInstructions": [] }.'
+		)
 	} else {
 		common.push(
 			"You are shown the current asset with the user's annotations (arrows and notes) drawn on it. Arrows point at what to change; the text says how.",
-			'Update the text layers to satisfy every annotation that concerns text (wording, size, colour, position, adding or removing text).',
-			'For annotations that concern the background imagery rather than text (colours, objects, style, composition), do not change the text — instead add a short instruction to backgroundInstructions, one per change.',
-			'Return the FULL updated set of text layers (not just the changed ones).',
-			'Return: { "textLayers": TextLayer[], "backgroundInstructions": string[] }.'
+			'Update the single headline layer to satisfy any annotation about on-image text (wording, size, colour, position). Keep at most one text layer.',
+			'For annotations about the background imagery (colours, objects, style, composition), do not change the text — add a short instruction to backgroundInstructions, one per change.',
+			'Re-write the caption if any annotation concerns the body copy or messaging; otherwise return it unchanged. Keep it on-tone and within the platform length norm.',
+			'Return the FULL updated result.',
+			'Return: { "textLayers": TextLayer[] (length 0 or 1), "caption": string, "backgroundInstructions": string[] }.'
 		)
 	}
 	return common.join('\n')
 }
 
+/**
+ * Per-platform voice and length guidance for the caption. Falls back to a sensible
+ * default for formats with no platform (e.g. a print poster).
+ */
+function platformGuidance(platform: string | undefined): string {
+	switch (platform) {
+		case 'LinkedIn':
+			return 'Platform: LinkedIn. Audience: professionals and decision-makers. Voice: business-focused, credible, benefit-led; lead with the insight or outcome. Length: a short hook line then 1–3 tight sentences (roughly 50–120 words). At most one or two relevant hashtags.'
+		case 'X':
+			return 'Platform: X (Twitter). Audience: developers and technical builders. Voice: developer-focused, direct, concrete, no marketing fluff. Length: a single punchy post under 280 characters. Hashtags sparingly, if at all.'
+		case 'Instagram':
+			return 'Platform: Instagram. Audience: a broad, visual-first feed. Voice: warm and vivid, scannable. Length: 1–2 short sentences (front-load the first ~125 characters, since the rest is truncated). A few tasteful hashtags are fine.'
+		case 'Facebook':
+			return 'Platform: Facebook. Audience: a general feed. Voice: friendly and clear with a light call to action. Length: 1–2 short sentences (around 40–80 words).'
+		default:
+			return 'No specific social platform. Voice: match the brand tone. Length: one or two concise sentences of supporting copy.'
+	}
+}
+
 function createPrompt(params: PlanParams): string {
 	return [
 		`This is a ${params.outputType.label} (${params.outputType.width}x${params.outputType.height}).`,
+		platformGuidance(params.outputType.platform),
 		`Brief: ${params.prompt || '(none)'}`,
 		params.brandText.trim() ? `Brand guidelines: ${params.brandText.trim()}` : '',
-		'Lay out the text for this asset over the background. Return the JSON object.',
+		'Place at most one headline over the background and write the accompanying caption. Return the JSON object.',
 	]
 		.filter(Boolean)
 		.join('\n')
@@ -166,6 +198,7 @@ function createPrompt(params: PlanParams): string {
 function revisePrompt(params: PlanParams): string {
 	return [
 		`This is a ${params.outputType.label} (${params.outputType.width}x${params.outputType.height}).`,
+		platformGuidance(params.outputType.platform),
 		`Original brief: ${params.prompt || '(none)'}`,
 		params.brandText.trim() ? `Brand guidelines: ${params.brandText.trim()}` : '',
 		`Current text layers: ${JSON.stringify(params.currentLayers ?? [])}`,
@@ -174,7 +207,7 @@ function revisePrompt(params: PlanParams): string {
 					.map((a, i) => `${i + 1}. ${a}`)
 					.join('\n')}`
 			: 'No annotations were extracted as text — read them from the image.',
-		'Update the text layers and list any background edits. Return the JSON object.',
+		'Update the headline and caption, and list any background edits. Return the JSON object.',
 	]
 		.filter(Boolean)
 		.join('\n')
@@ -189,7 +222,12 @@ function parsePlan(text: string): PlanResult {
 	}
 	const parsed = JSON.parse(text.slice(start, end + 1)) as Partial<PlanResult>
 	return {
-		textLayers: Array.isArray(parsed.textLayers) ? parsed.textLayers.map(normalizeLayer) : [],
+		// Hard cap at one on-image text layer so the image never crowds, whatever
+		// the model returns. The rest of the message lives in the caption.
+		textLayers: Array.isArray(parsed.textLayers)
+			? parsed.textLayers.slice(0, 1).map(normalizeLayer)
+			: [],
+		caption: typeof parsed.caption === 'string' ? parsed.caption.trim() : '',
 		backgroundInstructions: Array.isArray(parsed.backgroundInstructions)
 			? parsed.backgroundInstructions.filter(
 					(s): s is string => typeof s === 'string' && !!s.trim()

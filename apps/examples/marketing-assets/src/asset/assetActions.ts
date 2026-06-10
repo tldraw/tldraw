@@ -13,7 +13,13 @@ import {
 } from 'tldraw'
 import { apiGenerate, apiPlan, OutputType } from '../api/marketingApi'
 import { brandReferenceImages, getBrand, serializeBrand } from '../brand/brandState'
-import { BATCH_GAP, FOOTER_HEIGHT, getDisplaySize, getOutputType } from '../constants'
+import {
+	BATCH_GAP,
+	CAPTION_HEIGHT,
+	FOOTER_HEIGHT,
+	getDisplaySize,
+	getOutputType,
+} from '../constants'
 import { uploadImageBytes, urlToDataUrl } from '../multiplayerAssetStore'
 import { AssetVerdict, AssetVersion, MARKETING_ASSET_TYPE, MarketingAssetShape } from './assetShape'
 
@@ -105,7 +111,7 @@ export function createAndGenerateBatch(
 ): TLShapeId[] {
 	const outputType = getOutputType(opts.outputTypeId)
 	const { w, h } = getDisplaySize(outputType)
-	const tileH = h + FOOTER_HEIGHT
+	const tileH = h + FOOTER_HEIGHT + CAPTION_HEIGHT
 	const count = Math.max(1, Math.floor(opts.count))
 	const cols = Math.min(count, Math.ceil(Math.sqrt(count)))
 	const rows = Math.ceil(count / cols)
@@ -252,8 +258,9 @@ async function runFirstGeneration(
 		const { imageUrl } = await apiGenerate({ prompt, brandText, outputType, referenceImages })
 		const assetId = await storeImageAsset(editor, imageUrl, outputType)
 
-		// 2. The text layout from the planner, placed over that background.
-		const { textLayers } = await apiPlan({
+		// 2. The text layout from the planner: a single headline placed over that
+		// background, plus the accompanying caption shown beside the asset.
+		const { textLayers, caption } = await apiPlan({
 			mode: 'create',
 			prompt,
 			brandText,
@@ -261,7 +268,13 @@ async function runFirstGeneration(
 			image: imageUrl,
 		})
 
-		pushVersion(editor, id, { assetId, textLayers, instruction: '', createdAt: Date.now() })
+		pushVersion(editor, id, {
+			assetId,
+			textLayers,
+			caption,
+			instruction: '',
+			createdAt: Date.now(),
+		})
 	} catch (e) {
 		setError(editor, id, e)
 	} finally {
@@ -349,7 +362,7 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 
 			// The planner updates the text layers directly and hands back only the
 			// edits that need the image model (background changes).
-			const { textLayers, backgroundInstructions } = await apiPlan({
+			const { textLayers, caption, backgroundInstructions } = await apiPlan({
 				mode: 'revise',
 				prompt: shape.props.prompt,
 				brandText,
@@ -386,6 +399,7 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 			pushVersion(editor, id, {
 				assetId,
 				textLayers,
+				caption,
 				instruction: steps.length ? steps.join('\n') : 'Text updated',
 				createdAt: Date.now(),
 			})

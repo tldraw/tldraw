@@ -67,6 +67,8 @@ export interface PlanRequest {
 
 export interface PlanResult {
 	textLayers: TextLayer[]
+	/** Body copy shown beside the asset (the social caption), not on the image. */
+	caption: string
 	backgroundInstructions: string[]
 }
 

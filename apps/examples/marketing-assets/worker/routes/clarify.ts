@@ -14,7 +14,7 @@ export async function handleClarify(request: IRequest, env: Env) {
 	const body = (await request.json()) as Partial<ClarifyParams>
 
 	try {
-		const provider = getPlanProvider()
+		const provider = getPlanProvider(env)
 		const params: ClarifyParams = {
 			prompt: body.prompt ?? '',
 			brandText: body.brandText ?? '',

@@ -8,12 +8,7 @@ import {
 	getAssetShapes,
 } from '../asset/assetActions'
 import { Brand, serializeBrand, useBrand } from '../brand/brandState'
-import {
-	BATCH_SIZES,
-	DEFAULT_BATCH_SIZE,
-	getOutputType,
-	outputTypesByPlatform,
-} from '../constants'
+import { BATCH_SIZES, DEFAULT_BATCH_SIZE, getOutputType, outputTypesByPlatform } from '../constants'
 import { ExportScope, exportCampaign, exportTargets } from '../export'
 import { usePanelTheme } from './usePanelTheme'
 
@@ -341,8 +336,9 @@ function ExportSection({ editor }: { editor: Editor }) {
 					? 'Packaging…'
 					: `Export ${targetCount} ${targetCount === 1 ? 'asset' : 'assets'} (.zip)`}
 			</button>
-			<p className="MarketingSidebar-hint">PNG per asset plus a copy.csv of every text layer.</p>
+			<p className="MarketingSidebar-hint">
+				PNG per asset, each platform caption as a .txt, plus a copy.csv of all text.
+			</p>
 		</section>
 	)
 }
-

@@ -571,10 +571,74 @@ body {
 	flex: 0 0 auto;
 }
 
-/* Only the footer is interactive — the image stays inert so arrows and text
-   can be drawn over it. */
-.tl-container[data-state='select.idle'] .MarketingAsset-footer {
+/* The footer and caption are interactive — the image stays inert so arrows and
+   text can be drawn over it. */
+.tl-container[data-state='select.idle'] .MarketingAsset-footer,
+.tl-container[data-state='select.idle'] .MarketingAsset-caption {
 	pointer-events: all;
+}
+
+/* ---- Accompanying copy (the platform caption, shown beside the asset) ---- */
+
+.MarketingAsset-caption {
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 10px 12px;
+	border-top: 1px solid var(--tl-color-divider);
+	background: var(--tl-color-panel);
+	flex: 0 0 auto;
+}
+
+.MarketingAsset-captionHead {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex: 0 0 auto;
+}
+
+.MarketingAsset-captionLabel {
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	color: var(--tl-color-text-3);
+}
+
+.MarketingAsset-captionCopy {
+	flex: 0 0 auto;
+	padding: 3px 9px;
+	border: 1px solid var(--tl-color-hint);
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+	font: inherit;
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+}
+
+.MarketingAsset-captionCopy:hover {
+	background: var(--tl-color-muted-2);
+}
+
+.MarketingAsset-captionText {
+	margin: 0;
+	flex: 1 1 auto;
+	overflow-y: auto;
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--tl-color-text-1);
+	white-space: pre-wrap;
+}
+
+.MarketingAsset-captionEmpty {
+	margin: 0;
+	flex: 1 1 auto;
+	font-size: 12px;
+	font-style: italic;
+	color: var(--tl-color-text-3);
 }
 
 .MarketingAsset-versions {

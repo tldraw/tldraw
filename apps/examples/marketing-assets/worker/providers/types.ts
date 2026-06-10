@@ -8,6 +8,9 @@ export interface OutputType {
 	label: string
 	width: number
 	height: number
+	/** The platform this format targets (LinkedIn, X, Instagram, …). Steers the
+	 * voice and length of the accompanying copy. */
+	platform?: string
 }
 
 /**
@@ -66,8 +69,18 @@ export interface PlanParams {
 }
 
 export interface PlanResult {
-	/** The full set of text layers to render. */
+	/**
+	 * The text rendered over the background. Capped at a single headline so the
+	 * image stays clean — all other words go in `caption`.
+	 */
 	textLayers: TextLayer[]
+	/**
+	 * The accompanying body copy shown beside the asset (the social post / caption),
+	 * not rendered on the image. Voiced for the brand tone and tailored to the
+	 * output platform (e.g. business for LinkedIn, developer-focused for X), at a
+	 * length that suits that platform.
+	 */
+	caption: string
 	/** On revise, edits to apply to the background image (empty on create). */
 	backgroundInstructions: string[]
 }

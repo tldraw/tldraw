@@ -5,6 +5,12 @@
 # Get a key from https://aistudio.google.com/apikey
 GOOGLE_GENERATIVE_AI_API_KEY=
 
-# Text planning — lays out and revises the text layers (the plan stage).
+# Text planning — the headline layout and the accompanying copy (the plan stage).
 # Get a key from https://console.anthropic.com/settings/keys
 ANTHROPIC_API_KEY=
+
+# Optional: override the text-planning provider and model. Defaults live in
+# wrangler.toml ([vars]) and resolve to Claude. The app is agent-agnostic — add a
+# provider in worker/providers/index.ts and select it here by name.
+# PLAN_PROVIDER=anthropic
+# PLAN_MODEL=claude-opus-4-8

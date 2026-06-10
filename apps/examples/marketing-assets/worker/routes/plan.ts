@@ -19,7 +19,7 @@ export async function handlePlan(request: IRequest, env: Env) {
 	}
 
 	try {
-		const provider = getPlanProvider()
+		const provider = getPlanProvider(env)
 		const params: PlanParams = {
 			mode: body.mode === 'revise' ? 'revise' : 'create',
 			prompt: body.prompt ?? '',

@@ -13,6 +13,14 @@ custom_domain = true
 [observability]
 enabled = true
 
+# The text-planning stage (the "plan" stage: headline + accompanying copy) is
+# kept agent-agnostic. These pick the provider and model; the default is Claude.
+# Override with `wrangler secret put` or a .dev.vars entry to use another model,
+# and register new providers in worker/providers/index.ts.
+[vars]
+PLAN_PROVIDER = "anthropic"
+PLAN_MODEL = "claude-opus-4-8"
+
 [assets]
 not_found_handling = "single-page-application"
 directory = "./dist/client"

@@ -16,6 +16,8 @@ export type AssetVerdict = 'none' | 'liked' | 'disliked'
 export interface AssetVersion {
 	assetId: string
 	textLayers: TextLayer[]
+	/** Accompanying body copy (the social caption), shown beside the asset. */
+	caption: string
 	instruction: string
 	createdAt: number
 }
@@ -77,6 +79,7 @@ export const marketingAssetProps: RecordProps<MarketingAssetShape> = {
 		T.object({
 			assetId: T.string,
 			textLayers: T.arrayOf(textLayer),
+			caption: T.string,
 			instruction: T.string,
 			createdAt: T.number,
 		})
@@ -93,6 +96,7 @@ export const marketingAssetProps: RecordProps<MarketingAssetShape> = {
 // passed to the schema on both the client and the worker.
 const Versions = createShapePropsMigrationIds(MARKETING_ASSET_TYPE, {
 	AddVerdict: 1,
+	AddCaption: 2,
 })
 
 export const marketingAssetMigrations = createShapePropsMigrationSequence({
@@ -104,6 +108,19 @@ export const marketingAssetMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.verdict
+			},
+		},
+		{
+			id: Versions.AddCaption,
+			up: (props) => {
+				for (const version of props.versions) {
+					version.caption = ''
+				}
+			},
+			down: (props) => {
+				for (const version of props.versions) {
+					delete version.caption
+				}
 			},
 		},
 	],

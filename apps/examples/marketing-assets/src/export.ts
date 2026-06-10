@@ -32,8 +32,9 @@ export function exportTargets(editor: Editor, scope: ExportScope): MarketingAsse
 }
 
 /**
- * Export the chosen assets as a zip: a full-resolution PNG per idea plus a
- * `copy.csv` listing every text layer, ready to drop into an ad platform.
+ * Export the chosen assets as a zip: a full-resolution PNG per idea, each asset's
+ * accompanying caption as a `captions/*.txt`, plus a `copy.csv` listing every text
+ * layer and caption, ready to drop into an ad platform.
  */
 export async function exportCampaign(editor: Editor, scope: ExportScope): Promise<number> {
 	const targets = exportTargets(editor, scope)
@@ -41,23 +42,33 @@ export async function exportCampaign(editor: Editor, scope: ExportScope): Promis
 
 	const zip = new JSZip()
 	const images = zip.folder('images')!
-	const csvRows: string[][] = [['asset', 'format', 'layer', 'role', 'copy']]
+	const captions = zip.folder('captions')!
+	const csvRows: string[][] = [['asset', 'format', 'platform', 'layer', 'role', 'copy']]
 
 	for (let i = 0; i < targets.length; i++) {
 		const shape = targets[i]
 		const name = assetFileBase(shape)
 		const outputType = getOutputType(shape.props.outputTypeId)
+		const platform = outputType.platform ?? ''
 
 		const png = await rasterizeAsset(editor, shape)
 		if (png) images.file(`${name}.png`, png)
 
-		const layers = shape.props.versions[shape.props.currentVersion]?.textLayers ?? []
+		const version = shape.props.versions[shape.props.currentVersion]
+		const layers = version?.textLayers ?? []
 		if (layers.length === 0) {
-			csvRows.push([name, outputType.label, '', '', ''])
+			csvRows.push([name, outputType.label, platform, '', '', ''])
 		} else {
 			layers.forEach((layer: TextLayer, j) => {
-				csvRows.push([name, outputType.label, String(j + 1), layer.fontRole, layer.text])
+				csvRows.push([name, outputType.label, platform, String(j + 1), layer.fontRole, layer.text])
 			})
+		}
+
+		// The accompanying copy: a row in the sheet plus a ready-to-paste text file.
+		const caption = version?.caption ?? ''
+		if (caption) {
+			csvRows.push([name, outputType.label, platform, '', 'caption', caption])
+			captions.file(`${name}.txt`, caption)
 		}
 	}
 

@@ -9,7 +9,7 @@ import {
 } from 'tldraw'
 import { TextLayer } from '../api/marketingApi'
 import { Brand, getBrand, useBrand } from '../brand/brandState'
-import { FOOTER_HEIGHT } from '../constants'
+import { CAPTION_HEIGHT, FOOTER_HEIGHT, getOutputType } from '../constants'
 import { downloadAsset } from '../export'
 import {
 	getAssetSrc,
@@ -65,7 +65,7 @@ export class MarketingAssetShapeUtil extends ShapeUtil<MarketingAssetShape> {
 	getGeometry(shape: MarketingAssetShape) {
 		return new Rectangle2d({
 			width: shape.props.w,
-			height: shape.props.h + FOOTER_HEIGHT,
+			height: shape.props.h + FOOTER_HEIGHT + CAPTION_HEIGHT,
 			isFilled: true,
 		})
 	}
@@ -76,7 +76,7 @@ export class MarketingAssetShapeUtil extends ShapeUtil<MarketingAssetShape> {
 
 	getIndicatorPath(shape: MarketingAssetShape) {
 		const path = new Path2D()
-		path.rect(0, 0, shape.props.w, shape.props.h + FOOTER_HEIGHT)
+		path.rect(0, 0, shape.props.w, shape.props.h + FOOTER_HEIGHT + CAPTION_HEIGHT)
 		return path
 	}
 
@@ -225,7 +225,66 @@ function MarketingAssetComponent({ shape }: { shape: MarketingAssetShape }) {
 					</>
 				)}
 			</div>
+
+			<CaptionPanel
+				caption={current?.caption ?? ''}
+				platform={getOutputType(shape.props.outputTypeId).platform}
+				isGenerating={isGenerating}
+			/>
 		</HTMLContainer>
+	)
+}
+
+/**
+ * The accompanying body copy shown under the asset — the social caption, voiced
+ * for the brand tone and tailored to the platform. Rendered beside the image, not
+ * baked into it, and copyable for pasting into the platform's composer.
+ */
+function CaptionPanel({
+	caption,
+	platform,
+	isGenerating,
+}: {
+	caption: string
+	platform?: string
+	isGenerating: boolean
+}) {
+	const [copied, setCopied] = useState(false)
+
+	async function copy() {
+		await navigator.clipboard.writeText(caption)
+		setCopied(true)
+		setTimeout(() => setCopied(false), 1500)
+	}
+
+	return (
+		<div
+			className="MarketingAsset-caption"
+			style={{ height: CAPTION_HEIGHT }}
+			onPointerDown={(e) => e.stopPropagation()}
+		>
+			<div className="MarketingAsset-captionHead">
+				<span className="MarketingAsset-captionLabel">
+					{platform ? `${platform} copy` : 'Accompanying copy'}
+				</span>
+				{caption && (
+					<button
+						className="MarketingAsset-captionCopy"
+						onClick={copy}
+						aria-label="Copy caption to clipboard"
+					>
+						{copied ? 'Copied' : 'Copy'}
+					</button>
+				)}
+			</div>
+			{caption ? (
+				<p className="MarketingAsset-captionText">{caption}</p>
+			) : (
+				<p className="MarketingAsset-captionEmpty">
+					{isGenerating ? 'Writing copy…' : 'Copy will appear here'}
+				</p>
+			)}
+		</div>
 	)
 }
 
