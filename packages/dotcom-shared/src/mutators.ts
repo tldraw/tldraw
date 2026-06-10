@@ -454,12 +454,11 @@ export function createMutators(userId: string) {
 			const migrated = await isMigratedToWorkspaces(tx, userId)
 
 			if (migrated) {
-				assert(workspaceId, ZErrorCode.bad_request)
-				// Migrated users: use group_file.index in home group
-
+				// Migrated users: pinned files are group_file rows with a non-null index.
+				// New pins go above the workspace's current top pinned file.
 				let indexToUse = index
 				if (indexToUse == null) {
-					const allWorkspaceFiles = await tx.run(zql.group_file.where('groupId', '=', userId))
+					const allWorkspaceFiles = await tx.run(zql.group_file.where('groupId', '=', workspaceId))
 					const otherPinnedFiles = allWorkspaceFiles.filter((gf: TlaGroupFile) => gf.index !== null)
 
 					otherPinnedFiles.sort(sortByMaybeIndex)
@@ -560,6 +559,14 @@ export function createMutators(userId: string) {
 		createWorkspace: async (tx: Tx, { id, name }: { id: string; name: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assertValidId(id)
+
+			// Enforce the workspace limit before creating anything.
+			const existingWorkspaces = await tx.run(zql.group_user.where('userId', '=', userId))
+			assert(
+				existingWorkspaces.length < MAX_NUMBER_OF_WORKSPACES,
+				ZErrorCode.max_workspaces_reached
+			)
+
 			await tx.mutate.group.insert({
 				id,
 				name,
@@ -568,23 +575,17 @@ export function createMutators(userId: string) {
 				createdAt: Date.now(),
 				updatedAt: Date.now(),
 			})
-			// Get user's existing workspaces to determine position for the new workspace
-			const existingWorkspaces = await tx.run(zql.group_user.where('userId', '=', userId))
-			assert(
-				existingWorkspaces.length < MAX_NUMBER_OF_WORKSPACES,
-				ZErrorCode.max_workspaces_reached
-			)
 
-			// Use tldraw's fractional indexing to place new workspace at the top
+			// Use tldraw's fractional indexing to place the new workspace at the top
+			// (the workspace list sorts ascending, so the lowest index renders first)
 			let index: IndexKey
 			if (existingWorkspaces.length === 0) {
 				// First workspace gets 'a1'
 				index = 'a1' as IndexKey
 			} else {
-				// Find the highest index and place above it using proper fractional indexing
 				const sortedWorkspaces = existingWorkspaces.sort(sortByIndex)
 				const lowest = sortedWorkspaces[0]?.index as IndexKey | undefined
-				// Generate a new index above the current highest
+				// Generate a new index below the current lowest
 				index = getIndexBelow(lowest)
 			}
 
@@ -734,14 +735,6 @@ export function createMutators(userId: string) {
 				updatedAt: Date.now(),
 				index: null,
 			})
-		},
-		updateOwnWorkspaceUser: async (
-			tx: Tx,
-			{ workspaceId, index }: { workspaceId: string; index: IndexKey }
-		) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
-			await assertUserIsWorkspaceMember(tx, userId, workspaceId)
-			await tx.mutate.group_user.update({ userId, groupId: workspaceId, index })
 		},
 		handleFileDragOperation: async (
 			tx: Tx,

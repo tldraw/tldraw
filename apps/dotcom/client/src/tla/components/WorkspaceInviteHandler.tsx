@@ -1,4 +1,5 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
+import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import {
 	deleteFromSessionStorage,
@@ -40,7 +41,7 @@ export function WorkspaceInviteHandler() {
 			// Fetch invite info from API
 			fetch(`/api/app/invite/${storedToken}`)
 				.then((res) => res.json())
-				.then((data) => {
+				.then((data: GetInviteInfoResponseBody) => {
 					if (data.error) {
 						// Invalid invite token, ignore
 						return

@@ -21,12 +21,10 @@ import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
 export const workspaceMessages = defineMessages({
-	newFile: { defaultMessage: 'Create file' },
 	moreOptions: { defaultMessage: 'More options' },
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	settings: { defaultMessage: 'Settings' },
 	importFiles: { defaultMessage: 'Import file…' },
-	copied: { defaultMessage: 'Copied invite link' },
 })
 
 export function TlaSidebarWorkspaceMenu({

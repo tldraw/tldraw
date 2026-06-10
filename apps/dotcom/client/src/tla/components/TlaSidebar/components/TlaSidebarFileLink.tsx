@@ -203,14 +203,7 @@ export function TlaSidebarFileLinkInner({
 	if (!file) return null
 
 	if (isRenaming) {
-		return (
-			<TlaSidebarRenameInline
-				source="sidebar"
-				fileId={fileId}
-				workspaceId={workspaceId}
-				onClose={onClose}
-			/>
-		)
+		return <TlaSidebarRenameInline source="sidebar" fileId={fileId} onClose={onClose} />
 	}
 
 	return (

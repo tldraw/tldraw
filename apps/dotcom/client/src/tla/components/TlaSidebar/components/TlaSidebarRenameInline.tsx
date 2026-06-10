@@ -9,7 +9,6 @@ export function TlaSidebarRenameInline({
 	source,
 }: {
 	fileId: string
-	workspaceId: string
 	onClose(): void
 	source: TLAppUiEventSource
 }) {

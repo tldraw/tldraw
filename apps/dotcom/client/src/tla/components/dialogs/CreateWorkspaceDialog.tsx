@@ -21,7 +21,8 @@ const messages = defineMessages({
 
 interface CreateWorkspaceDialogProps {
 	onClose(): void
-	onCreate(name: string): void
+	// The dialog closes immediately; failures are the handler's to surface (e.g. a toast).
+	onCreate(name: string): void | Promise<void>
 }
 
 export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDialogProps) {
@@ -46,7 +47,7 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				<div style={{ marginBottom: 16 }}>
-					<label htmlFor="group-name" style={{ display: 'block', marginBottom: 8 }}>
+					<label style={{ display: 'block', marginBottom: 8 }}>
 						<F {...messages.name} />
 					</label>
 					<TldrawUiInput

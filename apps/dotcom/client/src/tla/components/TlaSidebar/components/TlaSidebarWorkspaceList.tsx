@@ -1,3 +1,4 @@
+import { ZErrorCode } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode, useCallback } from 'react'
@@ -169,9 +170,13 @@ function TlaSidebarCreateWorkspaceButton() {
 			component: ({ onClose }) => (
 				<CreateWorkspaceDialog
 					onClose={onClose}
-					onCreate={(name) => {
+					onCreate={async (name) => {
 						const id = uniqueId()
-						app.z.mutate.createWorkspace({ id, name })
+						try {
+							await app.z.mutate.createWorkspace({ id, name }).client
+						} catch (e) {
+							app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+						}
 					}}
 				/>
 			),

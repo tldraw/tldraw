@@ -1,6 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
-import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
+import { FILE_PREFIX, TlaFile, ZErrorCode } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -115,15 +115,15 @@ export function FileItems({
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
-	// Get all group memberships (including home group which we'll filter in UI)
+	// Get all workspace memberships (including the home workspace, filtered out below)
 	const workspaceMemberships = useValue(
 		'workspaceMemberships',
 		() => app.getWorkspaceMemberships(),
 		[app]
 	)
 
-	// A file lives in exactly one group. The "Move to" menu only offers the workspaces
-	// it can move to — i.e. every group except the one it's currently in.
+	// A file lives in exactly one workspace. The "Move to" menu only offers the workspaces
+	// it can move to — every workspace except the current one and the home workspace
 	const currentWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
 	const moveToWorkspaces = workspaceMemberships.filter(
 		(g) => g.groupId !== app.getHomeWorkspaceId() && g.groupId !== currentWorkspaceId
@@ -282,8 +282,13 @@ export function FileItems({
 												onClose={onClose}
 												onCreate={async (name) => {
 													const id = uniqueId()
-													await app.z.mutate.createWorkspace({ id, name }).client
-													await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id }).client
+													try {
+														await app.z.mutate.createWorkspace({ id, name }).client
+														await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id })
+															.client
+													} catch (e) {
+														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+													}
 												}}
 											/>
 										),

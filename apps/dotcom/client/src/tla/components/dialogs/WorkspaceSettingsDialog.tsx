@@ -301,36 +301,6 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 											{member.role === 'owner' ? ownerMsg : adminMsg}
 										</span>
 									)}
-									{/* {isOwner && member.userId !== app.getUser().id ? (
-									<TlaMenuSelect<'owner' | 'admin'>
-										label={member.role === 'owner' ? ownerMsg : adminMsg}
-										value={member.role}
-										disabled={member.role === 'owner' && ownersCount <= 1}
-										onChange={async (value) => {
-											if (value === member.role) return
-											if (member.role === 'owner' && value === 'admin' && ownersCount <= 1) {
-												return
-											}
-											try {
-												await app.z.mutate.group.setMemberRole({
-													workspaceId,
-													targetUserId: member.userId,
-													role: value,
-												})
-											} catch (err) {
-												console.error('Failed to change member role', err)
-											}
-										}}
-										options={[
-											{ value: 'admin', label: adminMsg },
-											{ value: 'owner', label: ownerMsg },
-										]}
-									/>
-								) : (
-									<span className={styles.memberRole}>
-										{member.role === 'owner' ? ownerMsg : adminMsg}
-									</span>
-								)} */}
 								</div>
 							))}
 					</div>
