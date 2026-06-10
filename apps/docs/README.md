@@ -34,7 +34,7 @@ A section looks like this:
 {
 	"id": "community",
 	"title": "Community",
-	"description": "Guides for contributing to tldraw's open source project.",
+	"description": "Community resources for tldraw.",
 	"categories": []
 }
 ```
@@ -148,7 +148,7 @@ When developing the docs, any change to the `content` folder will cause the page
 
 ## Contribution
 
-Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## License
 
