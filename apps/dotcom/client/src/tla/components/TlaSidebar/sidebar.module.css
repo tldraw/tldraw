@@ -373,7 +373,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	color: var(--tla-color-text-1);
+	color: var(--tla-color-text-3);
 }
 
 .sidebarUserSettingsIcon {
