@@ -40,7 +40,7 @@ export class UserPreferencesManager {
 	}
 	@computed getUserPreferences() {
 		return {
-			id: this.getId(),
+			id: this.getExternalId(),
 			name: this.getName(),
 			locale: this.getLocale(),
 			color: this.getColor(),
@@ -90,18 +90,32 @@ export class UserPreferencesManager {
 		)
 	}
 
-	@computed getId() {
+	/**
+	 * The current user's raw, app-provided id — the value set in the user's
+	 * {@link @tldraw/editor#TLUserPreferences}. Use this when you need the id your application
+	 * assigned to the user. To compare against or look up store records, use
+	 * {@link UserPreferencesManager.getRecordId} instead.
+	 */
+	@computed getExternalId(): string {
 		return this.user.userPreferences.get().id
+	}
+
+	/**
+	 * @deprecated Use {@link UserPreferencesManager.getExternalId} for the raw app-provided id, or
+	 * {@link UserPreferencesManager.getRecordId} for the prefixed `TLUserId` record id.
+	 */
+	@computed getId() {
+		return this.getExternalId()
 	}
 
 	/**
 	 * The current user's id as a tldraw {@link @tldraw/tlschema#TLUserId} record id (prefixed
 	 * with `user:`). Use this when comparing against or looking up store records, such as a
 	 * presence record's `userId` or `followingUserId`. For the raw, app-provided id, use
-	 * {@link UserPreferencesManager.getId}.
+	 * {@link UserPreferencesManager.getExternalId}.
 	 */
 	@computed getRecordId(): TLUserId {
-		return createUserId(this.getId())
+		return createUserId(this.getExternalId())
 	}
 
 	@computed getName() {

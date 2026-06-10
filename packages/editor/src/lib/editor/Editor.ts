@@ -4430,7 +4430,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// if we were already following someone, stop following them
 		this.stopFollowingUser()
 
-		const thisUserId = this.user.getId()
+		const thisUserId = this.user.getExternalId()
 
 		if (!thisUserId) {
 			console.warn('You should set the userId for the current instance before following a user')

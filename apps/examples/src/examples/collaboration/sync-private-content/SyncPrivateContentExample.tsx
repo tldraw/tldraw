@@ -26,7 +26,7 @@ const components: TLComponents = {
 	InFrontOfTheCanvas: () => {
 		const editor = useEditor()
 		const isInSelectTool = useIsToolSelected(useTools().select)
-		const userId = useValue('userId', () => editor.user.getId(), [])
+		const userId = useValue('userId', () => editor.user.getExternalId(), [])
 		const myPrivateSelectedShapes = useValue(
 			'private shapes',
 			() =>
@@ -87,7 +87,7 @@ function App({ roomId }: { roomId: string }) {
 				options={{ deepLinks: true }}
 				// [4]
 				getShapeVisibility={(shape, editor) => {
-					const userId = editor.user.getId()
+					const userId = editor.user.getExternalId()
 					if (!!shape.meta.private && shape.meta.ownerId !== userId) {
 						return 'hidden'
 					}
@@ -102,7 +102,7 @@ function App({ roomId }: { roomId: string }) {
 							meta: {
 								...shape.meta,
 								private: isPrivateMode$.get(),
-								ownerId: editor.user.getId(),
+								ownerId: editor.user.getExternalId(),
 							},
 						}
 					})
