@@ -37,15 +37,15 @@ export function TlaDeleteFileDialog({
 		trackEvent('delete-file', { source: 'file-menu' })
 		await app.deleteOrForgetFile(fileId, workspaceId)
 
-		// Prefer staying within the group the file was deleted from: navigate to the
-		// top of its remaining files so the sidebar scrolls to the current group
+		// Prefer staying within the workspace the file was deleted from: navigate to the
+		// top of its remaining files so the sidebar scrolls to the current workspace
 		// instead of jumping up to my files.
-		const groupFiles =
+		const workspaceFiles =
 			workspaceId === app.getHomeWorkspaceId() ? [] : app.getWorkspaceFilesSorted(workspaceId)
-		if (groupFiles.length > 0) {
-			navigate(routes.tlaFile(groupFiles[0].fileId))
+		if (workspaceFiles.length > 0) {
+			navigate(routes.tlaFile(workspaceFiles[0].fileId))
 		} else {
-			// Deleting from my files, or the group is now empty: fall back to my files,
+			// Deleting from my files, or the workspace is now empty: fall back to my files,
 			// creating a new file if there are none.
 			const recentFiles = app.getMyFiles()
 			if (recentFiles.length === 0) {
