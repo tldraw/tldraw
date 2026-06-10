@@ -304,9 +304,46 @@ describe('FocusManager', () => {
 			focusManager = new FocusManager(editor)
 		})
 
-		it('should focus the container', () => {
+		it('should focus the keyboard sink', () => {
+			const sink = mockContainer.querySelector('[data-tl-keyboard-sink]') as HTMLElement
+			sink.focus = vi.fn()
 			focusManager.focus()
-			expect(mockContainer.focus).toHaveBeenCalled()
+			expect(sink.focus).toHaveBeenCalledWith({ preventScroll: true })
+		})
+	})
+
+	describe('keyboard sink', () => {
+		beforeEach(() => {
+			focusManager = new FocusManager(editor)
+		})
+
+		it('should render a hidden contenteditable inside the container', () => {
+			const sink = mockContainer.querySelector('[data-tl-keyboard-sink]') as HTMLElement
+			expect(sink).not.toBeNull()
+			expect(sink.getAttribute('contenteditable')).toBe('true')
+			expect(sink.getAttribute('inputmode')).toBe('none')
+			expect(sink.getAttribute('tabindex')).toBe('-1')
+		})
+
+		it('should forward container focus to the sink', () => {
+			const sink = mockContainer.querySelector('[data-tl-keyboard-sink]') as HTMLElement
+			sink.focus = vi.fn()
+			mockContainer.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+			expect(sink.focus).toHaveBeenCalledWith({ preventScroll: true })
+		})
+
+		it('should not forward focus events from other children of the container', () => {
+			const sink = mockContainer.querySelector('[data-tl-keyboard-sink]') as HTMLElement
+			sink.focus = vi.fn()
+			const child = document.createElement('button')
+			mockContainer.appendChild(child)
+			child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
+			expect(sink.focus).not.toHaveBeenCalled()
+		})
+
+		it('should be removed on dispose', () => {
+			focusManager.dispose()
+			expect(mockContainer.querySelector('[data-tl-keyboard-sink]')).toBeNull()
 		})
 	})
 
