@@ -31,8 +31,6 @@
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
-		"bench": "yarn run -T tsx scripts/bench.ts",
-		"compare": "yarn run -T tsx scripts/compare.ts",
 		"extract-raw": "yarn run -T tsx scripts/extract-raw.ts",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
@@ -40,6 +38,9 @@
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"dependencies": {
+		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27"

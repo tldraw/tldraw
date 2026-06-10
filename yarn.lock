@@ -11891,6 +11891,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/freehand@workspace:packages/freehand"
   dependencies:
+    "@tldraw/utils": "workspace:*"
     lazyrepo: "npm:0.0.0-alpha.27"
   languageName: unknown
   linkType: soft
