@@ -785,6 +785,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				.execute()
 		})
 
+		// Drop the stale user snapshot so the reboot pulls fresh post-reset state
+		// instead of resurrecting deleted files and groups.
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
 	}
 
