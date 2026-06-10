@@ -60,7 +60,9 @@ export function TlaSidebarRecentFilesNew() {
 			data-drop-target-id={isHome ? homeGroupId : `group:${activeGroupId}`}
 			data-group-id={activeGroupId}
 		>
-			<div className={styles.sidebarActiveGroupTitle}>{groupName}</div>
+			<div className={styles.sidebarActiveGroupTitle} data-testid="tla-active-workspace-name">
+				{groupName}
+			</div>
 			{results.pinnedFiles.length ? (
 				<TlaSidebarFileSection
 					iconLeft="pin"

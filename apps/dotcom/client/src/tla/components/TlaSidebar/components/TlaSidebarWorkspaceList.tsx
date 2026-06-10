@@ -102,6 +102,7 @@ function TlaSidebarWorkspaceListItem({ groupId, label }: { groupId: string; labe
 				[styles.dropping]: showDropState,
 			})}
 			data-active={isActive}
+			data-element="workspace-link"
 			role="button"
 			tabIndex={0}
 			onClick={handleClick}
