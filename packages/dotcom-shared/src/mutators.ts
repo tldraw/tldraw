@@ -587,7 +587,7 @@ export function createMutators(userId: string) {
 			assert(id, ZErrorCode.bad_request)
 			assert(name && name.trim(), ZErrorCode.bad_request)
 			const role = await getRole(tx, userId, id)
-			assert(can(role, 'editGroup'), ZErrorCode.forbidden)
+			assert(can(role, 'editWorkspace'), ZErrorCode.forbidden)
 
 			await tx.mutate.group.update({ id, name: name.trim() })
 		},
@@ -657,7 +657,7 @@ export function createMutators(userId: string) {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			const role = await getRole(tx, userId, id)
-			assert(can(role, 'deleteGroup'), ZErrorCode.forbidden)
+			assert(can(role, 'deleteWorkspace'), ZErrorCode.forbidden)
 
 			// Delete all workspace files
 			const workspaceFileRows = await tx.run(zql.group_file.where('groupId', '=', id))

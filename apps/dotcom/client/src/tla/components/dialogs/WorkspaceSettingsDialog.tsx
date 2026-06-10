@@ -193,7 +193,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					<TldrawUiInput
 						className={styles.dialogInput}
 						defaultValue={workspace.name}
-						disabled={!can(role, 'editGroup')}
+						disabled={!can(role, 'editWorkspace')}
 						onValueChange={(value) => {
 							const name = value.trim()
 							if (name && name !== workspace.name) {
@@ -322,7 +322,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 								<F {...messages.leaveWorkspace} />
 							</button>
 						)}
-						{can(role, 'deleteGroup') && (
+						{can(role, 'deleteWorkspace') && (
 							<button className={styles.inlineButton} onClick={openDeleteConfirmDialog}>
 								<F {...messages.deleteWorkspaceMsg} />
 							</button>
