@@ -466,11 +466,6 @@
 	flex-direction: row;
 	align-items: center;
 	gap: 4px;
-	font-family: var(--tla-font-ui);
-	font-weight: 500;
-	font-size: 12px;
-	line-height: 19.2px;
-	letter-spacing: 0;
 	color: var(--tla-color-text-3);
 }
 
@@ -483,8 +478,6 @@
 	font-family: var(--tla-font-ui);
 	font-weight: 700;
 	font-size: 14px;
-	line-height: 22px;
-	letter-spacing: 0.01em;
 	color: var(--tla-color-text-1);
 }
 
@@ -495,15 +488,6 @@
 .sidebarWorkspaceList {
 	min-width: 200px;
 	padding: 12px;
-}
-
-.sidebarRowItemLabel {
-	font-family: var(--tla-font-ui);
-	font-weight: 500;
-	font-size: 14px;
-	line-height: 22px;
-	letter-spacing: 0.01em;
-	color: var(--tla-color-text-1);
 }
 
 .sidebarDivider {
@@ -562,6 +546,7 @@
 	text-overflow: ellipsis;
 	position: relative;
 	z-index: 1;
+	color: var(--tla-color-text-1);
 }
 
 .sidebarFileListItemRenameInputWrapper {
