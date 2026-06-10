@@ -11887,6 +11887,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/freehand@workspace:packages/freehand":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/freehand@workspace:packages/freehand"
+  dependencies:
+    lazyrepo: "npm:0.0.0-alpha.27"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/mermaid@workspace:*, @tldraw/mermaid@workspace:packages/mermaid":
   version: 0.0.0-use.local
   resolution: "@tldraw/mermaid@workspace:packages/mermaid"

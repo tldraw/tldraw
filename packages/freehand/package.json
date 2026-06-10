@@ -1,0 +1,40 @@
+{
+	"name": "@tldraw/freehand",
+	"description": "The freehand ink algorithm used by tldraw, extracted for benchmarking and optimization. Not published.",
+	"version": "5.1.0",
+	"private": true,
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"freehand",
+		"ink",
+		"drawing"
+	],
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
+	"files": [],
+	"scripts": {
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
+		"bench": "yarn run -T tsx scripts/bench.ts",
+		"compare": "yarn run -T tsx scripts/compare.ts",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"devDependencies": {
+		"lazyrepo": "0.0.0-alpha.27"
+	}
+}
