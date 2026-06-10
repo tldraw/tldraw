@@ -7,36 +7,105 @@ body {
 	overscroll-behavior: none;
 }
 
-/* ---- Layout ---- */
+/* ---- App shell ---- */
 
-.marketing-layout {
+.marketing-app {
+	position: fixed;
+	inset: 0;
 	display: grid;
-	grid-template-columns: 300px 1fr;
-	grid-template-rows: 1fr;
+	grid-template-rows: 56px 1fr;
+	background: #f4f4f8;
+}
+
+.marketing-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 16px;
+	background: #ffffff;
+	border-bottom: 1px solid #e6e6ef;
+	box-shadow: 0 1px 2px rgba(20, 20, 50, 0.04);
+	z-index: 1;
+}
+
+.marketing-brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.marketing-brand-mark {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 9px;
+	background: linear-gradient(135deg, #6366f1, #a855f7);
+	color: #ffffff;
+	box-shadow: 0 2px 6px rgba(99, 102, 241, 0.35);
+}
+
+.marketing-brand-text {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.15;
+}
+
+.marketing-brand-name {
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+	color: #14142b;
+}
+
+.marketing-brand-sub {
+	font-size: 11px;
+	font-weight: 500;
+	color: #8a8aa0;
+}
+
+.marketing-header-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.marketing-body {
+	display: grid;
+	grid-template-columns: 300px 1fr 300px;
+	min-height: 0;
 }
 
 .marketing-sidebar {
-	background: var(--tl-color-panel);
-	border-right: 1px solid var(--tl-color-divider);
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
+	/* Tie the panel's primary actions to the brand accent. */
+	--tl-color-selected: #6366f1;
+	--tl-color-selected-contrast: #ffffff;
+}
+
+.marketing-sidebar_left {
+	border-right: 1px solid #e6e6ef;
+}
+
+.marketing-sidebar_right {
+	border-left: 1px solid #e6e6ef;
 }
 
 .marketing-canvas {
 	background: var(--tl-color-background);
 	position: relative;
+	min-width: 0;
 }
 
-/* ---- Room bar ---- */
+/* ---- Room bar (lives in the header) ---- */
 
 .RoomBar {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-	padding: 10px 16px;
-	border-bottom: 1px solid var(--tl-color-divider);
+	gap: 10px;
 }
 
 .RoomBar-room {
@@ -45,10 +114,11 @@ body {
 	gap: 6px;
 	min-width: 0;
 	font-size: 12px;
-	color: var(--tl-color-text-1);
+	color: #6a6a80;
 }
 
 .RoomBar-room span {
+	max-width: 160px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -56,18 +126,128 @@ body {
 
 .RoomBar-copy {
 	flex: 0 0 auto;
-	padding: 4px 10px;
+	padding: 6px 12px;
 	font-size: 11px;
 	font-weight: 600;
-	color: var(--tl-color-text-1);
-	background: var(--tl-color-muted-2);
-	border: 1px solid var(--tl-color-divider);
-	border-radius: 6px;
+	color: #ffffff;
+	background: #6366f1;
+	border: 1px solid #6366f1;
+	border-radius: 7px;
 	cursor: pointer;
 }
 
 .RoomBar-copy:hover {
-	background: var(--tl-color-muted-1);
+	background: #4f46e5;
+	border-color: #4f46e5;
+}
+
+/* ---- Theme toggle (lives in the header) ---- */
+
+.ThemeToggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 1px solid #e6e6ef;
+	border-radius: 8px;
+	background: #ffffff;
+	color: #6a6a80;
+	cursor: pointer;
+	transition:
+		background 0.12s ease,
+		color 0.12s ease,
+		border-color 0.12s ease;
+}
+
+.ThemeToggle:hover {
+	background: #f4f4f8;
+	color: #14142b;
+	border-color: #c8c8de;
+}
+
+/* ---- Annotate control (replaces the default tldraw toolbar) ---- */
+
+.AnnotateControl {
+	position: absolute;
+	left: 50%;
+	bottom: 24px;
+	transform: translateX(-50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	z-index: 300;
+	/* Let pointer events fall through to the canvas everywhere except the button. */
+	pointer-events: none;
+}
+
+.AnnotateControl-button {
+	pointer-events: all;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 16px;
+	border: 1px solid #e6e6ef;
+	border-radius: 999px;
+	background: #ffffff;
+	color: #14142b;
+	font: inherit;
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	cursor: pointer;
+	box-shadow: 0 6px 20px rgba(20, 20, 50, 0.14);
+	transition:
+		background 0.12s ease,
+		border-color 0.12s ease,
+		box-shadow 0.12s ease,
+		color 0.12s ease;
+}
+
+.AnnotateControl-button:hover {
+	border-color: #c8c8de;
+	box-shadow: 0 8px 26px rgba(20, 20, 50, 0.18);
+}
+
+.AnnotateControl-button_active {
+	background: linear-gradient(135deg, #6366f1, #a855f7);
+	border-color: transparent;
+	color: #ffffff;
+	box-shadow: 0 8px 26px rgba(99, 102, 241, 0.45);
+}
+
+.AnnotateControl-kbd {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 4px;
+	border-radius: 5px;
+	background: rgba(20, 20, 50, 0.08);
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.AnnotateControl-button_active .AnnotateControl-kbd {
+	background: rgba(255, 255, 255, 0.25);
+	color: #ffffff;
+}
+
+.AnnotateControl-hint {
+	margin: 0;
+	max-width: 320px;
+	padding: 4px 10px;
+	text-align: center;
+	font-size: 11px;
+	line-height: 1.4;
+	color: #6a6a80;
+	background: rgba(255, 255, 255, 0.7);
+	border-radius: 8px;
+	backdrop-filter: blur(4px);
 }
 
 /* ---- Sidebar ---- */
@@ -77,6 +257,8 @@ body {
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
+	/* Carries a tl-theme class, so this var resolves and flips with dark mode. */
+	background: var(--tl-color-panel);
 }
 
 .MarketingSidebar-scroll {
@@ -90,10 +272,12 @@ body {
 }
 
 .MarketingSidebar-heading {
-	margin: 0 0 12px;
-	font-size: 13px;
-	font-weight: 600;
-	color: var(--tl-color-text-1);
+	margin: 0 0 14px;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--tl-color-text-3);
 }
 
 .MarketingSidebar-label {
@@ -176,15 +360,21 @@ body {
 
 .MarketingSidebar-generate {
 	margin-top: 16px;
-	background: var(--tl-color-selected);
-	border-color: var(--tl-color-selected);
-	color: var(--tl-color-selected-contrast);
+	background: linear-gradient(135deg, #6366f1, #a855f7);
+	border-color: transparent;
+	color: #ffffff;
 	font-weight: 600;
+	box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.MarketingSidebar-generate:hover:not(:disabled) {
+	box-shadow: 0 4px 14px rgba(99, 102, 241, 0.42);
 }
 
 .MarketingSidebar-generate:disabled {
 	opacity: 0.5;
 	cursor: default;
+	box-shadow: none;
 }
 
 .MarketingSidebar-secondary {
@@ -528,4 +718,76 @@ body {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+/* ---- Dark mode ----
+   The panels' inner content uses tldraw's tl-theme__dark vars automatically; these
+   rules cover the custom shell (app background, header, and the annotate control)
+   that lives outside a tl-theme container. */
+
+.marketing-app_dark {
+	background: #0e0e16;
+}
+
+.marketing-app_dark .marketing-header {
+	background: #16161f;
+	border-bottom-color: #26263a;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.marketing-app_dark .marketing-brand-name {
+	color: #f4f4f8;
+}
+
+.marketing-app_dark .marketing-brand-sub {
+	color: #8a8aa0;
+}
+
+.marketing-app_dark .RoomBar-room {
+	color: #a0a0b8;
+}
+
+.marketing-app_dark .marketing-sidebar_left {
+	border-right-color: #26263a;
+}
+
+.marketing-app_dark .marketing-sidebar_right {
+	border-left-color: #26263a;
+}
+
+.marketing-app_dark .ThemeToggle {
+	background: #1f1f2c;
+	border-color: #33334a;
+	color: #a0a0b8;
+}
+
+.marketing-app_dark .ThemeToggle:hover {
+	background: #26263a;
+	color: #f4f4f8;
+	border-color: #44446a;
+}
+
+.marketing-app_dark .AnnotateControl-button {
+	background: #1f1f2c;
+	border-color: #33334a;
+	color: #f4f4f8;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+.marketing-app_dark .AnnotateControl-button:hover {
+	border-color: #44446a;
+}
+
+.marketing-app_dark .AnnotateControl-button_active {
+	border-color: transparent;
+}
+
+.marketing-app_dark .AnnotateControl-kbd {
+	background: rgba(255, 255, 255, 0.12);
+	color: #c8c8de;
+}
+
+.marketing-app_dark .AnnotateControl-hint {
+	color: #a0a0b8;
+	background: rgba(22, 22, 31, 0.7);
 }

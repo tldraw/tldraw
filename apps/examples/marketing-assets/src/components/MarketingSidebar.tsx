@@ -7,19 +7,17 @@ import {
 	generateNextBatch,
 	getAssetShapes,
 } from '../asset/assetActions'
-import { Brand, serializeBrand, setBrand, useBrand } from '../brand/brandState'
+import { Brand, serializeBrand, useBrand } from '../brand/brandState'
 import {
 	BATCH_SIZES,
 	DEFAULT_BATCH_SIZE,
-	DENSITY_OPTIONS,
-	FONT_OPTIONS,
 	getOutputType,
 	outputTypesByPlatform,
-	TONE_OPTIONS,
 } from '../constants'
 import { ExportScope, exportCampaign, exportTargets } from '../export'
+import { usePanelTheme } from './usePanelTheme'
 
-function fileToDataUrl(file: File): Promise<string> {
+export function fileToDataUrl(file: File): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader()
 		reader.onload = () => resolve(reader.result as string)
@@ -28,8 +26,12 @@ function fileToDataUrl(file: File): Promise<string> {
 	})
 }
 
+// The left panel drives a campaign: write a brief, generate ideas, refine, and
+// export. Brand setup lives in its own panel on the right (see BrandPanel) so
+// neither column needs much scrolling.
 export function MarketingSidebar({ editor }: { editor: Editor }) {
 	const brand = useBrand(editor)
+	const themeClass = usePanelTheme(editor)
 
 	// The brief, format, and batch size are shared by the first batch, the refine
 	// loop, and selection variations, so they live here at the top.
@@ -37,12 +39,8 @@ export function MarketingSidebar({ editor }: { editor: Editor }) {
 	const [outputTypeId, setOutputTypeId] = useState(outputTypesByPlatform()[0].types[0].id)
 	const [count, setCount] = useState<number>(DEFAULT_BATCH_SIZE)
 
-	function update(partial: Partial<Brand>) {
-		setBrand(editor, { ...brand, ...partial })
-	}
-
 	return (
-		<div className="MarketingSidebar tl-theme__light">
+		<div className={`MarketingSidebar ${themeClass}`}>
 			<div className="MarketingSidebar-scroll">
 				<GenerateSection
 					editor={editor}
@@ -56,7 +54,6 @@ export function MarketingSidebar({ editor }: { editor: Editor }) {
 				/>
 				<RefineSection editor={editor} prompt={prompt} outputTypeId={outputTypeId} count={count} />
 				<ExportSection editor={editor} />
-				<BrandSection brand={brand} update={update} />
 			</div>
 		</div>
 	)
@@ -349,156 +346,3 @@ function ExportSection({ editor }: { editor: Editor }) {
 	)
 }
 
-function BrandSection({ brand, update }: { brand: Brand; update(p: Partial<Brand>): void }) {
-	const logoInput = useRef<HTMLInputElement>(null)
-	const refsInput = useRef<HTMLInputElement>(null)
-
-	return (
-		<section className="MarketingSidebar-section">
-			<h2 className="MarketingSidebar-heading">Brand</h2>
-
-			<label className="MarketingSidebar-label">Colours</label>
-			<div className="MarketingSidebar-colors">
-				<ColorField
-					label="Primary"
-					value={brand.primary}
-					onChange={(v) => update({ primary: v })}
-				/>
-				<ColorField
-					label="Secondary"
-					value={brand.secondary}
-					onChange={(v) => update({ secondary: v })}
-				/>
-				<ColorField label="Accent" value={brand.accent} onChange={(v) => update({ accent: v })} />
-				<ColorField
-					label="Background"
-					value={brand.background}
-					onChange={(v) => update({ background: v })}
-				/>
-			</div>
-
-			<label className="MarketingSidebar-label">Heading font</label>
-			<select
-				className="MarketingSidebar-select"
-				value={brand.headingFont}
-				onChange={(e) => update({ headingFont: e.target.value })}
-			>
-				{FONT_OPTIONS.map((f) => (
-					<option key={f}>{f}</option>
-				))}
-			</select>
-
-			<label className="MarketingSidebar-label">Body font</label>
-			<select
-				className="MarketingSidebar-select"
-				value={brand.bodyFont}
-				onChange={(e) => update({ bodyFont: e.target.value })}
-			>
-				{FONT_OPTIONS.map((f) => (
-					<option key={f}>{f}</option>
-				))}
-			</select>
-
-			<label className="MarketingSidebar-label">Tone</label>
-			<select
-				className="MarketingSidebar-select"
-				value={brand.tone}
-				onChange={(e) => update({ tone: e.target.value })}
-			>
-				{TONE_OPTIONS.map((t) => (
-					<option key={t}>{t}</option>
-				))}
-			</select>
-
-			<label className="MarketingSidebar-label">Tone of voice</label>
-			<textarea
-				className="MarketingSidebar-textarea"
-				placeholder="Direct and confident; developer-to-developer; no hype; short sentences"
-				value={brand.voice}
-				onChange={(e) => update({ voice: e.target.value })}
-			/>
-
-			<label className="MarketingSidebar-label">Density</label>
-			<select
-				className="MarketingSidebar-select"
-				value={brand.density}
-				onChange={(e) => update({ density: e.target.value })}
-			>
-				{DENSITY_OPTIONS.map((d) => (
-					<option key={d}>{d}</option>
-				))}
-			</select>
-
-			<label className="MarketingSidebar-label">Logo</label>
-			{brand.logo ? (
-				<div className="MarketingSidebar-imageRow">
-					<img className="MarketingSidebar-thumb" src={brand.logo} alt="logo" />
-					<button className="MarketingSidebar-textButton" onClick={() => update({ logo: null })}>
-						Remove
-					</button>
-				</div>
-			) : (
-				<button className="MarketingSidebar-fileButton" onClick={() => logoInput.current?.click()}>
-					Upload logo
-				</button>
-			)}
-			<input
-				ref={logoInput}
-				type="file"
-				accept="image/*"
-				hidden
-				onChange={async (e) => {
-					const file = e.target.files?.[0]
-					if (file) update({ logo: await fileToDataUrl(file) })
-					e.target.value = ''
-				}}
-			/>
-
-			<label className="MarketingSidebar-label">Reference images</label>
-			<div className="MarketingSidebar-refs">
-				{brand.refs.map((ref, i) => (
-					<div key={i} className="MarketingSidebar-refItem">
-						<img className="MarketingSidebar-thumb" src={ref} alt={`reference ${i + 1}`} />
-						<button
-							className="MarketingSidebar-refRemove"
-							onClick={() => update({ refs: brand.refs.filter((_, j) => j !== i) })}
-						>
-							×
-						</button>
-					</div>
-				))}
-			</div>
-			<button className="MarketingSidebar-fileButton" onClick={() => refsInput.current?.click()}>
-				Add reference
-			</button>
-			<input
-				ref={refsInput}
-				type="file"
-				accept="image/*"
-				hidden
-				onChange={async (e) => {
-					const file = e.target.files?.[0]
-					if (file) update({ refs: [...brand.refs, await fileToDataUrl(file)] })
-					e.target.value = ''
-				}}
-			/>
-		</section>
-	)
-}
-
-function ColorField({
-	label,
-	value,
-	onChange,
-}: {
-	label: string
-	value: string
-	onChange(v: string): void
-}) {
-	return (
-		<label className="MarketingSidebar-color">
-			<input type="color" value={value} onChange={(e) => onChange(e.target.value)} />
-			<span>{label}</span>
-		</label>
-	)
-}
