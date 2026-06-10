@@ -73,7 +73,7 @@ function makeGroupUser(
 	return {
 		createdAt: 1,
 		updatedAt: 1,
-		role: 'admin',
+		role: 'member',
 		userName: 'Test',
 		userColor: '#000',
 		index: 'a1' as IndexKey,
@@ -386,7 +386,7 @@ describe('file mutations', () => {
 			file: [] as TlaFile[],
 			file_state: [] as TlaFileState[],
 			group: [makeGroup({ id: groupId })],
-			group_user: [makeGroupUser({ userId, groupId, role: 'admin' })],
+			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
 			group_file: [] as TlaGroupFile[],
 		}
 	}
@@ -651,14 +651,14 @@ describe('group mutations', () => {
 		await expectValid(() => m.updateGroup(tx, { id: groupId, name: 'Renamed' }))
 	})
 
-	it('admin cannot update group name', async () => {
+	it('member cannot update group name', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
-			group_user: [makeGroupUser({ userId, groupId, role: 'admin' })],
+			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
 			group_file: [],
 		}
 		const { tx } = createMockTx(s)
@@ -692,7 +692,7 @@ describe('group mutations', () => {
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
-			group_user: [makeGroupUser({ userId, groupId, role: 'admin' })],
+			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
 			group_file: [],
 		}
 		const { tx } = createMockTx(s)
@@ -714,7 +714,7 @@ describe('membership', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [
 				makeGroupUser({ userId, groupId, role: 'owner' }),
-				makeGroupUser({ userId: memberId, groupId, role: 'admin' }),
+				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
 			group_file: [],
 		}
@@ -724,15 +724,15 @@ describe('membership', () => {
 		expect(s.group_user.find((gu) => gu.userId === memberId)?.role).toBe('owner')
 	})
 
-	it('admin cannot set member roles', async () => {
+	it('member cannot set member roles', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
 			group_user: [
-				makeGroupUser({ userId, groupId, role: 'admin' }),
-				makeGroupUser({ userId: memberId, groupId, role: 'admin' }),
+				makeGroupUser({ userId, groupId, role: 'member' }),
+				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
 			group_file: [],
 		}
@@ -743,7 +743,7 @@ describe('membership', () => {
 		)
 	})
 
-	it('cannot demote last owner to admin', async () => {
+	it('cannot demote last owner to member', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -751,14 +751,14 @@ describe('membership', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [
 				makeGroupUser({ userId, groupId, role: 'owner' }),
-				makeGroupUser({ userId: memberId, groupId, role: 'admin' }),
+				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
 			group_file: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
 		await expectForbidden(() =>
-			m.setGroupMemberRole(tx, { groupId, targetUserId: userId, role: 'admin' })
+			m.setGroupMemberRole(tx, { groupId, targetUserId: userId, role: 'member' })
 		)
 	})
 
@@ -784,7 +784,7 @@ describe('membership', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [
 				makeGroupUser({ userId: 'user_owner12345678ab', groupId, role: 'owner' }),
-				makeGroupUser({ userId, groupId, role: 'admin' }),
+				makeGroupUser({ userId, groupId, role: 'member' }),
 			],
 			group_file: [],
 		}
@@ -847,13 +847,13 @@ describe('file operations across groups', () => {
 		await expectForbidden(() => m.moveFileToGroup(tx, { fileId, groupId: groupB }))
 	})
 
-	it('admin can remove file from group', async () => {
+	it('member can remove file from group', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
 			file_state: [makeFileState({ userId, fileId })],
 			group: [makeGroup({ id: groupA })],
-			group_user: [makeGroupUser({ userId, groupId: groupA, role: 'admin' })],
+			group_user: [makeGroupUser({ userId, groupId: groupA, role: 'member' })],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
 		}
 		const { tx } = createMockTx(s)
@@ -959,13 +959,13 @@ describe('regenerateGroupInviteSecret', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
 
-	it('admin can regenerate invite secret', async () => {
+	it('member can regenerate invite secret', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId, inviteSecret: 'old_secret_1234567' })],
-			group_user: [makeGroupUser({ userId, groupId, role: 'admin' })],
+			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
 			group_file: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
@@ -976,18 +976,18 @@ describe('regenerateGroupInviteSecret', () => {
 	})
 
 	it('non-member cannot regenerate invite secret', async () => {
-		const nonAdminId = 'user_nonadmin1234567'
+		const nonMemberId = 'user_nonmember123456'
 		const s = {
-			user: [makeUser({ id: nonAdminId, flags: 'groups_backend' })],
+			user: [makeUser({ id: nonMemberId, flags: 'groups_backend' })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
-			// No group_user for nonAdminId — not a member at all
+			// No group_user for nonMemberId — not a member at all
 			group_user: [],
 			group_file: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
-		const m = createMutators(nonAdminId)
+		const m = createMutators(nonMemberId)
 		await expectForbidden(() => m.regenerateGroupInviteSecret(tx, { id: groupId }))
 	})
 })

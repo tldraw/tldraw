@@ -9,22 +9,16 @@ import { Capability } from './capabilities'
  *
  * The role is stored in the DB as a plain string (`group_user.role`);
  * capabilities are never persisted — they're derived from that string here.
- *
- * NOTE: `'admin'` is in the process of being renamed to `'member'`. No
- * authorization logic branches on that name — the only role literals left in
- * logic are the last-owner invariant, which checks `'owner'` (not renamed). So
- * the rename is relabeling this key, the `acceptInvite` default, the display
- * labels, and a data migration of stored values.
  */
 
 /**
  * What each role can do — the single source of truth. The role name is the key,
  * and {@link Role} is derived from these keys. Today the only difference between
- * `admin` and `owner` is the three administrative capabilities at the end of the
+ * `member` and `owner` is the three administrative capabilities at the end of the
  * owner list.
  */
 const roles = {
-	admin: ['accessFiles', 'addFiles', 'removeFiles', 'manageInvites'],
+	member: ['accessFiles', 'addFiles', 'removeFiles', 'manageInvites'],
 	owner: [
 		'accessFiles',
 		'addFiles',

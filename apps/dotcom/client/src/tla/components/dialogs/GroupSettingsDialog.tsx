@@ -33,7 +33,7 @@ const messages = defineMessages({
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	members: { defaultMessage: 'Members' },
 	owner: { defaultMessage: 'Owner' },
-	admin: { defaultMessage: 'Admin' },
+	member: { defaultMessage: 'Member' },
 	you: { defaultMessage: 'you' },
 	dangerZone: { defaultMessage: 'Danger zone' },
 	leaveGroup: { defaultMessage: 'Leave group…' },
@@ -62,7 +62,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 
 	const namePlaceholderMsg = useMsg(messages.namePlaceholder)
 	const ownerMsg = useMsg(messages.owner)
-	const adminMsg = useMsg(messages.admin)
+	const memberMsg = useMsg(messages.member)
 	const youMsg = useMsg(messages.you)
 
 	// Get group data
@@ -83,7 +83,7 @@ export function GroupSettingsDialog({ groupId, onClose }: GroupSettingsDialogPro
 	// Leaving is allowed for everyone except the last owner — a group invariant
 	// (it must always keep at least one owner), not a capability.
 	const canLeave = role !== 'owner' || ownersCount > 1
-	const roleLabels: Record<Role, string> = { owner: ownerMsg, admin: adminMsg }
+	const roleLabels: Record<Role, string> = { owner: ownerMsg, member: memberMsg }
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
