@@ -44,5 +44,8 @@
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",
 		"vitest": "^4.1.7"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

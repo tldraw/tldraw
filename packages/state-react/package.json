@@ -64,5 +64,8 @@
 		"entryPoint": "./src/index.ts",
 		"displayName": "@tldraw/state",
 		"tsconfig": "./tsconfig.json"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }
