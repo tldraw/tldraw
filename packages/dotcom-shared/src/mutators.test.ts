@@ -391,7 +391,7 @@ describe('file mutations', () => {
 		}
 	}
 
-	it('group member can update file', async () => {
+	it('workspace member can update file', async () => {
 		const s = baseStore()
 		const f = makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })
 		s.file.push(f)
@@ -400,7 +400,7 @@ describe('file mutations', () => {
 		await expectValid(() => m.file.update(tx, { id: f.id, name: 'Renamed' }))
 	})
 
-	it('shared user without group membership cannot update file', async () => {
+	it('shared user without workspace membership cannot update file', async () => {
 		const otherId = 'user_other1234567890'
 		const s = baseStore()
 		const f = makeFile({
@@ -459,7 +459,7 @@ describe('file creation', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
 
-	it('migrated user can create file in own group', async () => {
+	it('migrated user can create file in own workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -481,7 +481,7 @@ describe('file creation', () => {
 		)
 	})
 
-	it('migrated user cannot create file in another group', async () => {
+	it('migrated user cannot create file in another workspace', async () => {
 		const otherGroup = 'group_other123456789'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -598,7 +598,7 @@ describe('onEnterFile', () => {
 		await expectForbidden(() => m.onEnterFile(tx, { fileId, time: Date.now() }))
 	})
 
-	it('entering file already in group does not create duplicate group_file', async () => {
+	it('entering file already in workspace does not create duplicate group_file', async () => {
 		const s = {
 			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId, shared: true })],
@@ -615,10 +615,10 @@ describe('onEnterFile', () => {
 	})
 })
 
-describe('group mutations', () => {
+describe('workspace mutations', () => {
 	const userId = 'user_aaaa11112222bbbb'
 
-	it('migrated user can create group', async () => {
+	it('migrated user can create workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -636,7 +636,7 @@ describe('group mutations', () => {
 		expect((s.group_user as TlaGroupUser[])[0]?.role).toBe('owner')
 	})
 
-	it('owner can update group name', async () => {
+	it('owner can update workspace name', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -651,7 +651,7 @@ describe('group mutations', () => {
 		await expectValid(() => m.updateWorkspace(tx, { id: groupId, name: 'Renamed' }))
 	})
 
-	it('admin cannot update group name', async () => {
+	it('admin cannot update workspace name', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -666,7 +666,7 @@ describe('group mutations', () => {
 		await expectForbidden(() => m.updateWorkspace(tx, { id: groupId, name: 'Renamed' }))
 	})
 
-	it('owner can delete group', async () => {
+	it('owner can delete workspace', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const fileId = 'file_aaaa11112222bbbb'
 		const s = {
@@ -685,7 +685,7 @@ describe('group mutations', () => {
 		expect(s.group_file.length).toBe(0)
 	})
 
-	it('non-owner cannot delete group', async () => {
+	it('non-owner cannot delete workspace', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
@@ -766,7 +766,7 @@ describe('membership', () => {
 		)
 	})
 
-	it('last owner cannot leave group', async () => {
+	it('last owner cannot leave workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -780,7 +780,7 @@ describe('membership', () => {
 		await expectForbidden(() => m.leaveWorkspace(tx, { workspaceId: groupId }))
 	})
 
-	it('non-owner member can leave group', async () => {
+	it('non-owner member can leave workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -799,13 +799,13 @@ describe('membership', () => {
 	})
 })
 
-describe('file operations across groups', () => {
+describe('file operations across workspaces', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupA = 'group_aaa11112222bbb'
 	const groupB = 'group_bbb11112222ccc'
 	const fileId = 'file_aaaa11112222bbbb'
 
-	it('member of both groups can move file between them', async () => {
+	it('member of both workspaces can move file between them', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -823,7 +823,7 @@ describe('file operations across groups', () => {
 		expect(s.file[0]?.owningGroupId).toBe(groupB)
 	})
 
-	it('member of source group only cannot move file to other group', async () => {
+	it('member of source workspace only cannot move file to other workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -837,7 +837,7 @@ describe('file operations across groups', () => {
 		await expectForbidden(() => m.moveFileToWorkspace(tx, { fileId, workspaceId: groupB }))
 	})
 
-	it('member of target group only cannot move file from other group', async () => {
+	it('member of target workspace only cannot move file from other workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -851,7 +851,7 @@ describe('file operations across groups', () => {
 		await expectForbidden(() => m.moveFileToWorkspace(tx, { fileId, workspaceId: groupB }))
 	})
 
-	it('admin can remove file from group', async () => {
+	it('admin can remove file from workspace', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
@@ -867,10 +867,10 @@ describe('file operations across groups', () => {
 	})
 })
 
-describe('home group special case', () => {
+describe('home workspace special case', () => {
 	const userId = 'user_aaaa11112222bbbb'
 
-	it('home group shortcut passes membership check', async () => {
+	it('home workspace shortcut passes membership check', async () => {
 		// createFile with groupId === userId should pass the membership check
 		// even without a group_user row, because of the userId === groupId shortcut
 		const s = {
@@ -895,7 +895,7 @@ describe('home group special case', () => {
 		)
 	})
 
-	it('home group shortcut passes ownership check', async () => {
+	it('home workspace shortcut passes ownership check', async () => {
 		// updateWorkspace with id === userId should pass assertUserIsGroupOwner
 		// via the shortcut, even if there's no group_user row
 		const s = {
