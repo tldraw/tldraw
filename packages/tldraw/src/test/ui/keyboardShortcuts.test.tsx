@@ -158,4 +158,25 @@ describe('keyboard shortcuts with a held key', () => {
 		keydown(editor, { key: 'q', code: 'KeyQ' })
 		expect(editor.getInstanceState().isToolLocked).toBe(true)
 	})
+
+	it('releases the held key even when the keyup lands on a text input', async () => {
+		const { editor } = await setupFocusedEditor()
+
+		keydown(editor, { key: 'q', code: 'KeyQ', shiftKey: true })
+		expect(editor.getInstanceState().isToolLocked).toBe(false)
+
+		// The key is released while focus is inside a text input, so the keyup is otherwise
+		// skipped. It must still clear the held-key tracking.
+		const body = editor.getContainerDocument().body
+		const input = editor.getContainerDocument().createElement('input')
+		body.appendChild(input)
+		act(() => {
+			input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'q', code: 'KeyQ' }))
+		})
+		body.removeChild(input)
+
+		// A fresh plain `q` press now works rather than being blocked by a stale entry.
+		keydown(editor, { key: 'q', code: 'KeyQ' })
+		expect(editor.getInstanceState().isToolLocked).toBe(true)
+	})
 })

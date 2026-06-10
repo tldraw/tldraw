@@ -168,8 +168,11 @@ export function useKeyboardShortcuts() {
 		}
 
 		const handleKeyUp = (e: KeyboardEvent) => {
-			if (shouldSkipEvent(e)) return
+			// Always release the held-key tracking, even for events we'd otherwise skip (e.g. the
+			// key was released after focus moved into a text input), so a stale entry can't block
+			// later shortcuts.
 			if (e.code) heldKeyRegistrations.delete(e.code)
+			if (shouldSkipEvent(e)) return
 			for (const reg of registry) {
 				if (!reg.onKeyUp) continue
 				for (const p of reg.parsed) {
