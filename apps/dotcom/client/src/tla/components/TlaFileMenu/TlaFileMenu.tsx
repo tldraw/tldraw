@@ -284,9 +284,15 @@ export function FileItems({
 													const id = uniqueId()
 													try {
 														await app.z.mutate.createWorkspace({ id, name }).client
+													} catch (e) {
+														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+														return
+													}
+													try {
 														await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id })
 															.client
 													} catch (e) {
+														// the workspace was created; only the move failed
 														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
 													}
 												}}

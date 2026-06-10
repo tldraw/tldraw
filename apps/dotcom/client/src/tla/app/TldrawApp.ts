@@ -654,20 +654,22 @@ export class TldrawApp {
 		workspaceId?: string
 		name?: string
 		createSource?: string | null
-	} = {}): Promise<Result<{ fileId: string }, 'max number of files reached'>> {
+	} = {}): Promise<
+		Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>
+	> {
 		if (!this.canCreateNewFile(workspaceId)) {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
 
 		this.storeNewRoomCreationTracking(fileId, createSource, Date.now())
-		this.z.mutate.createFile({ fileId, workspaceId, name, createSource, time: Date.now() })
-		// todo: add server error handling for real Zero
-		// .server.catch((res: { error: string; details: string }) => {
-		// 	if (res.details === ZErrorCode.max_files_reached) {
-		// 		this.showMaxFilesToast()
-		// 	}
-		// })
+		try {
+			await this.z.mutate.createFile({ fileId, workspaceId, name, createSource, time: Date.now() })
+				.client
+		} catch (e) {
+			this.showMutationRejectionToast((e as Error).message as ZErrorCode)
+			return Result.err('mutation rejected')
+		}
 
 		return Result.ok({ fileId })
 	}
@@ -1147,9 +1149,10 @@ export class TldrawApp {
 		dragState: null as DragState,
 	})
 
-	copyWorkspaceInvite(workspaceId: string, showToast = true) {
+	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
+	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
 		const membership = this.getWorkspaceMembership(workspaceId)
-		if (!membership?.group.inviteSecret) return
+		if (!membership?.group.inviteSecret) return false
 
 		const inviteText = `${location.origin}/invite/${membership.group.inviteSecret}`
 		navigator.clipboard.writeText(inviteText)
@@ -1162,6 +1165,7 @@ export class TldrawApp {
 		}
 
 		this.trackEvent('copy-share-link', { source: 'sidebar' })
+		return true
 	}
 
 	async acceptWorkspaceInvite(inviteSecret: string) {
@@ -1183,8 +1187,18 @@ export class TldrawApp {
 
 		this.trackEvent('accept-workspace-invite', { source: 'sidebar' })
 
-		// wait for the workspace to appear in the store
+		// wait for the workspace to appear in the store, but not forever
+		let attempts = 0
 		while (!this.getWorkspaceMembership(payload.workspaceId)) {
+			if (attempts++ > 100) {
+				this.toasts?.addToast({
+					severity: 'error',
+					title: 'Error accepting invite',
+					description: 'Please try again.',
+				})
+				this.navigate(routes.tlaRoot())
+				return
+			}
 			await sleep(50)
 		}
 

@@ -702,16 +702,15 @@ export function createMutators(userId: string) {
 				return
 			}
 
-			// Check if user has permission to move this file:
-			// 1. User owns the file directly, OR
-			// 2. User is a member of the group that currently owns the file
+			// To move a file the user must be a member of the workspace that
+			// currently owns it…
 			const hasFromWorkspaceAccess = await tx.run(
 				zql.group_user.where('userId', '=', userId).where('groupId', '=', file.owningGroupId!).one()
 			)
 
 			assert(hasFromWorkspaceAccess, ZErrorCode.forbidden)
 
-			// User must also be a member of the target workspace
+			// …and a member of the target workspace
 			const hasToWorkspaceAccess = await tx.run(
 				zql.group_user.where('userId', '=', userId).where('groupId', '=', workspaceId).one()
 			)
