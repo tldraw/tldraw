@@ -22,7 +22,14 @@ export async function openEditor() {
 		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 		editor.setCurrentTool('select')
 		editor.resetZoom()
+		// Focus the canvas container so keyboard shortcuts reach the editor.
+		;(document.querySelector('.tl-container') as HTMLElement | null)?.focus()
 	})
+}
+
+/** Number of shapes on the current page. */
+export function getShapeCount(): Promise<number> {
+	return browser.execute(() => editor.getCurrentPageShapeIds().size)
 }
 
 /** Read the current zoom level from the live editor. */
