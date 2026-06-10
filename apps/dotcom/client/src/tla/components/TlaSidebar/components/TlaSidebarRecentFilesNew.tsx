@@ -56,14 +56,24 @@ export function TlaSidebarRecentFilesNew() {
 
 	const workspaceName = isHome ? <F defaultMessage="My files" /> : membership?.group.name
 
+	// The header names which space's files are shown. Without any workspaces
+	// there is nothing to disambiguate, so it's omitted.
+	const hasWorkspaces = useValue(
+		'has workspaces',
+		() => app.getWorkspaceMemberships().some((m) => m.groupId !== homeWorkspaceId),
+		[app, homeWorkspaceId]
+	)
+
 	return (
 		<div
 			data-drop-target-id={isHome ? homeWorkspaceId : `workspace:${activeWorkspaceId}`}
 			data-workspace-id={activeWorkspaceId}
 		>
-			<div className={styles.sidebarActiveWorkspaceTitle} data-testid="tla-active-workspace-name">
-				{workspaceName}
-			</div>
+			{hasWorkspaces && (
+				<div className={styles.sidebarActiveWorkspaceTitle} data-testid="tla-active-workspace-name">
+					{workspaceName}
+				</div>
+			)}
 			{results.pinnedFiles.length ? (
 				<TlaSidebarFileSection
 					iconLeft="pin"
