@@ -26,10 +26,15 @@ const MAX_CAP_STEPS = 29
 const HARD_CORNER_DPR = -0.62
 
 /**
- * Drop track points that lie within `tol` of the segment between their kept neighbors. The
- * outline tracks are dense on gentle curves and straight runs where the quadratic smoothing
- * used for rendering needs far fewer points; this keeps the simplified polyline within `tol`
- * of the original one.
+ * Drop track points that lie within tolderance (`tol`) of the segment between their kept neighbors.
+ * The outline tracks are dense on gentle curves and straight runs where the quadratic smoothing
+ * used for rendering needs far fewer points; this keeps the simplified polyline within `tol` of
+ * the original one.
+ *
+ * @param pts - The points of the track to simplify
+ * @param tol - The tolerance
+ *
+ * @returns The simplified points.
  */
 function simplifyTrack(pts: Vec[], tol: number): Vec[] {
 	if (pts.length <= 2 || tol <= 0) return pts

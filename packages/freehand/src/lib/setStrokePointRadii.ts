@@ -1,7 +1,11 @@
-import { EASINGS } from '../vendor'
 import { StrokeOptions, StrokePoint } from './types'
 
 const { min } = Math
+
+// Default taper easings, mirroring `EASINGS.easeOutQuad` and `EASINGS.easeOutCubic`
+// from `@tldraw/editor`.
+const easeOutQuad = (t: number) => t * (2 - t)
+const easeOutCubic = (t: number) => --t * t * t + 1
 
 // This is the rate of change for simulated pressure. It could be an option.
 const RATE_OF_PRESSURE_CHANGE = 0.275
@@ -17,8 +21,8 @@ export function setStrokePointRadii(strokePoints: StrokePoint[], options: Stroke
 		end = {},
 	} = options
 
-	const { easing: taperStartEase = EASINGS.easeOutQuad } = start
-	const { easing: taperEndEase = EASINGS.easeOutCubic } = end
+	const { easing: taperStartEase = easeOutQuad } = start
+	const { easing: taperEndEase = easeOutCubic } = end
 
 	const totalLength = strokePoints[strokePoints.length - 1].runningLength
 

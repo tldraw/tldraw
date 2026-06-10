@@ -1,8 +1,9 @@
-import { Vec, VecLike, assert, average, precise, toDomPrecision } from '../vendor'
+import { Vec, VecLike, assert } from '../vendor'
 import { getStrokeOutlineTracks } from './getStrokeOutlinePoints'
 import { getStrokePoints } from './getStrokePoints'
 import { setStrokePointRadii } from './setStrokePointRadii'
 import { StrokeOptions, StrokePoint } from './types'
+import { average, precise, toDomPrecision } from './utils'
 
 export function svgInk(rawInputPoints: VecLike[], options: StrokeOptions = {}) {
 	const { start = {}, end = {} } = options
