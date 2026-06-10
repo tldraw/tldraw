@@ -8,10 +8,17 @@ status: published
 last_version: v5.1.0
 ---
 
-## What's new
+This release simplifies multi-click handling down to a single double-click event, a breaking change for anyone relying on triple or quadruple-click handlers and fixes a number of canvas interaction bugs around pinch-zoom selection, pasting mid-gesture, note list editing, and zoom clamping.
 
 ## API changes
 
-## Improvements
+- 💥 Simplify multi-click handling to double-click only. `ClickManager` no longer tracks triple or quadruple clicks: the `triple_click` and `quadruple_click` events and the `onTripleClick` / `onQuadrupleClick` handlers have been removed, and `TLClickEventName` is now just `'double_click'`. ([#8897](https://github.com/tldraw/tldraw/pull/8897))
 
 ## Bug fixes
+
+- Fix the fill style dropdown trigger showing a misleading tooltip for the currently selected fill. ([#9023](https://github.com/tldraw/tldraw/pull/9023))
+- Fix a two-finger pinch unintentionally changing the selection on touch devices. ([#9006](https://github.com/tldraw/tldraw/pull/9006))
+- Pasting content while dragging, translating, resizing, or rotating no longer steals selection from the shape being manipulated. ([#8976](https://github.com/tldraw/tldraw/pull/8976))
+- Fix a bug where pressing `Tab` while editing a list inside a note shape created a new note instead of indenting the list item. ([#8958](https://github.com/tldraw/tldraw/pull/8958))
+- Fix the viewport shifting slightly when zooming past the minimum or maximum zoom level. ([#8957](https://github.com/tldraw/tldraw/pull/8957))
+- Fix `debounce(...).cancel()` leaving an awaited call hanging forever; it now rejects the pending promise. ([#8683](https://github.com/tldraw/tldraw/pull/8683))
