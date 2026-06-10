@@ -15,37 +15,46 @@ const messages = defineMessages({
  * group-owned file they're viewing — e.g. an owner removes them from the group,
  * or the group is deleted out from under them.
  *
- * `getFile` resolves a group file through the user's synced memberships, so it
- * reactively becomes null the moment their `group_user` row disappears. The
- * guard only fires once access has been confirmed (`hadAccessRef`), so it never
- * trips during the initial sync — when the file legitimately isn't loaded yet —
- * nor for shared files that were never opened through a membership.
+ * The signal is losing *membership*, not the file going away. We remember the
+ * group a file belongs to (keyed to its slug, so navigating between files never
+ * trips it) and only redirect once that file is no longer visible *and* we're no
+ * longer a member of its group. Deleting the file you're on, or any other reason
+ * the file disappears while your membership stands, is left to the normal flows.
  */
 export function useGroupFileAccessGuard(app: TldrawApp | null | undefined, fileSlug: string) {
 	const navigate = useNavigate()
-	const hadAccessRef = useRef(false)
+	const lastSeenRef = useRef<{ fileSlug: string; groupId: string } | null>(null)
 
 	const lostAccessTitle = useMsg(messages.lostAccessTitle)
 	const lostAccessDescription = useMsg(messages.lostAccessDescription)
 
-	// The group this file belongs to, as seen through our own memberships.
-	const owningGroupId = useValue(
-		'owningGroupForCurrentFile',
-		() => app?.getFile(fileSlug)?.owningGroupId ?? null,
+	const lostAccess = useValue(
+		'lostGroupFileAccess',
+		() => {
+			if (!app) return false
+			const file = app.getFile(fileSlug)
+			if (file?.owningGroupId) {
+				// We can still see the file through one of our memberships.
+				lastSeenRef.current = { fileSlug, groupId: file.owningGroupId }
+				return false
+			}
+			// The file isn't visible. Only treat this as lost access if we'd seen it
+			// through a group membership for *this* file and that membership is gone.
+			const lastSeen = lastSeenRef.current
+			return (
+				!!lastSeen && lastSeen.fileSlug === fileSlug && !app.getGroupMembership(lastSeen.groupId)
+			)
+		},
 		[app, fileSlug]
 	)
 
 	useEffect(() => {
-		if (owningGroupId) {
-			hadAccessRef.current = true
-		} else if (hadAccessRef.current) {
-			hadAccessRef.current = false
-			app?.toasts?.addToast({
-				severity: 'info',
-				title: lostAccessTitle,
-				description: lostAccessDescription,
-			})
-			navigate(routes.tlaRoot())
-		}
-	}, [owningGroupId, app, navigate, lostAccessTitle, lostAccessDescription])
+		if (!lostAccess) return
+		app?.toasts?.addToast({
+			severity: 'info',
+			title: lostAccessTitle,
+			description: lostAccessDescription,
+		})
+		navigate(routes.tlaRoot())
+	}, [lostAccess, app, navigate, lostAccessTitle, lostAccessDescription])
 }
