@@ -17,11 +17,11 @@ import { F } from '../../utils/i18n'
 
 export function TlaDeleteFileDialog({
 	fileId,
-	groupId,
+	workspaceId,
 	onClose,
 }: {
 	fileId: string
-	groupId: string
+	workspaceId: string
 	onClose(): void
 }) {
 	const app = useApp()
@@ -35,15 +35,27 @@ export function TlaDeleteFileDialog({
 		const token = await auth.getToken()
 		if (!token) throw new Error('No token')
 		trackEvent('delete-file', { source: 'file-menu' })
-		await app.deleteOrForgetFile(fileId, groupId)
-		const recentFiles = app.getMyFiles()
-		if (recentFiles.length === 0) {
-			const result = await app.createFile()
-			if (result.ok) {
-				navigate(routes.tlaFile(result.value.fileId))
-			}
+		await app.deleteOrForgetFile(fileId, workspaceId)
+
+		// Prefer staying within the workspace the file was deleted from: navigate to the
+		// top of its remaining files so the sidebar scrolls to the current workspace
+		// instead of jumping up to my files.
+		const workspaceFiles =
+			workspaceId === app.getHomeWorkspaceId() ? [] : app.getWorkspaceFilesSorted(workspaceId)
+		if (workspaceFiles.length > 0) {
+			navigate(routes.tlaFile(workspaceFiles[0].fileId))
 		} else {
-			navigate(routes.tlaFile(recentFiles[0].fileId))
+			// Deleting from my files, or the workspace is now empty: fall back to my files,
+			// creating a new file if there are none.
+			const recentFiles = app.getMyFiles()
+			if (recentFiles.length === 0) {
+				const result = await app.createFile()
+				if (result.ok) {
+					navigate(routes.tlaFile(result.value.fileId))
+				}
+			} else {
+				navigate(routes.tlaFile(recentFiles[0].fileId))
+			}
 		}
 		onClose()
 	}

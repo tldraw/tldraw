@@ -97,6 +97,10 @@ export {
 	type TLShapeHandleOverlay,
 } from './lib/overlays/ShapeHandleOverlayUtil'
 export {
+	ShapeIndicatorOverlayUtil,
+	type TLShapeIndicatorOverlay,
+} from './lib/overlays/ShapeIndicatorOverlayUtil'
+export {
 	SelectionForegroundOverlayUtil,
 	type TLSelectionForegroundOverlay,
 } from './lib/overlays/SelectionForegroundOverlayUtil'
@@ -112,8 +116,10 @@ export {
 	embedShapePermissionDefaults,
 	unknownEmbedShapePermissionOverrides,
 	type CustomEmbedDefinition,
+	type DefaultEmbedConfig,
 	type DefaultEmbedDefinitionType,
 	type EmbedDefinition,
+	type GoogleMapsEmbedConfig,
 	type TLEmbedDefinition,
 	type TLEmbedShapePermissions,
 } from './lib/defaultEmbedDefinitions'

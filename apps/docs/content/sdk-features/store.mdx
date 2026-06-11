@@ -358,7 +358,7 @@ const textShapes = editor.store.query.records('shape', () => ({
 const allShapes = editor.store.query.records('shape')
 ```
 
-Query expressions support `eq` for exact matches. The `records()` method returns a computed array that updates when matching records change, while `index()` returns a map from property values to record IDs.
+Query expressions support `eq` (equals), `neq` (not equals), and `gt` (greater than, for numbers). The `records()` method returns a computed array that updates when matching records change, while `index()` returns a map from property values to record IDs.
 
 ## Transactions
 

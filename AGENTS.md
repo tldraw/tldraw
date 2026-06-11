@@ -54,6 +54,8 @@ Development:
 - `yarn dev-vscode` - start VS Code extension development
 - `yarn dev-template <template name>` - run a template
 
+Always run dev commands from the repo root. The root `yarn dev` runs each package's `predev` step, which generates build artifacts like `packages/tldraw/tldraw.css`. Running a per-workspace command (`yarn workspace examples.tldraw.com dev`) skips `predev`, so imports such as `tldraw/tldraw.css` fail to resolve. In a fresh git worktree, run `yarn install` first since worktrees start without `node_modules`.
+
 Build:
 
 - `yarn build` - build all changed packages incrementally

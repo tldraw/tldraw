@@ -15,6 +15,13 @@
 	transition: transform 0.16s ease-in-out;
 }
 
+/* The workspaces UI (groups_frontend flag) restyles the sidebar to the new
+   design; the rules below must not leak to users without the flag. */
+.sidebar[data-workspaces='true'] {
+	padding: 0 0 4px 0;
+	border-right: 1px solid var(--tl-color-low, rgba(237, 240, 242, 1));
+}
+
 :global(.tl-container[dir='rtl']) .sidebar {
 	left: auto;
 	right: calc(var(--tla-sidebar-width) * -1);
@@ -117,6 +124,11 @@
 
 .sidebarContent::-webkit-scrollbar {
 	display: none;
+}
+
+.sidebar[data-workspaces='true'] .sidebarContent {
+	margin: 0;
+	padding: 0 12px 40px 12px;
 }
 
 /* -------------------- Hoverable ------------------- */
@@ -236,6 +248,12 @@
 	flex: 0 0 auto;
 }
 
+.sidebar[data-workspaces='true'] .sidebarTopRow {
+	height: 43px;
+	padding: 3px 8px 0px 4px;
+	gap: 8px;
+}
+
 /* Workspace link */
 
 .sidebarWorkspaceButton {
@@ -326,6 +344,10 @@
 	margin-top: 0px;
 }
 
+.sidebar[data-workspaces='true'] .sidebarBottomArea {
+	padding: 0 12px;
+}
+
 /* ------------------- Bottom row ------------------- */
 
 .sidebarBottomRow {
@@ -371,6 +393,10 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	color: var(--tla-color-text-1);
+}
+
+.sidebar[data-workspaces='true'] .sidebarUserSettingsName {
+	color: var(--tla-color-text-3);
 }
 
 .sidebarUserSettingsIcon {
@@ -467,6 +493,37 @@
 	color: var(--tla-color-text-3);
 }
 
+.sidebar[data-workspaces='true'] .sidebarFileSectionTitle {
+	padding: 0px 8px;
+	font-weight: 500;
+}
+
+.sidebarActiveWorkspaceTitle {
+	display: flex;
+	align-items: center;
+	height: 36px;
+	margin-top: 8px;
+	padding: 0 8px;
+	font-family: var(--tla-font-ui);
+	font-weight: 700;
+	font-size: 14px;
+	color: var(--tla-color-text-1);
+}
+
+.sidebarActiveWorkspaceTitle + .sidebarFileSectionWrapper {
+	margin-top: 0;
+}
+
+.sidebarWorkspaceList {
+	min-width: 200px;
+	padding: 12px;
+}
+
+.sidebarDivider {
+	height: 8px;
+	border-top: 1px solid var(--tl-color-divider, rgba(232, 232, 232, 1));
+}
+
 .sidebarFileSectionTitlePadding span[role='img'] {
 	margin-bottom: 1px;
 }
@@ -475,8 +532,6 @@
 
 .sidebarFileListItem {
 	background-color: transparent;
-	/* Chrome hack to enable the drag image to have a transparent background */
-	opacity: 0.999;
 	position: relative;
 	width: 100%;
 	display: flex;
@@ -484,6 +539,19 @@
 	align-items: center;
 	height: 36px;
 	padding: 0px 8px 0px 8px;
+}
+
+.sidebar[data-workspaces='true'] .sidebarFileListItem {
+	padding: 0px 4px 0px 8px;
+}
+
+/* Chrome hack: promote the pressed row to its own compositing layer so the
+   native drag image keeps a transparent background. :active fires on
+   mousedown, before dragstart takes the snapshot, so the layer exists in
+   time. translateZ(0) promotes without touching opacity, so there's no
+   color shift at all. */
+.sidebarFileListItem:active {
+	transform: translateZ(0);
 }
 
 .sidebarFileListItem[data-active='true'][data-enhanced-a11y-mode='true'] {
@@ -518,6 +586,10 @@
 	text-overflow: ellipsis;
 	position: relative;
 	z-index: 1;
+}
+
+.sidebar[data-workspaces='true'] .sidebarFileListItemLabel {
+	color: var(--tla-color-text-1);
 }
 
 .sidebarFileListItemRenameInputWrapper {
@@ -769,32 +841,6 @@
 	}
 }
 
-/* ------------------- Show all button ------------------- */
-
-.showAllButton {
-	background: none;
-	border: none;
-	padding: 0px 8px 8px;
-	margin-top: 12px;
-	color: var(--tla-color-text-3);
-	font-size: 12px;
-	cursor: pointer;
-	text-decoration: none;
-	white-space: nowrap;
-	border-radius: 4px;
-	flex-shrink: 0;
-	text-align: left;
-	width: 100%;
-}
-
-.sidebarGroupItem .showAllButton {
-	padding-left: calc(8px + var(--tla-sidebar-group-item-padding-left));
-}
-
-.showAllButton:hover {
-	color: var(--tla-color-text-1);
-}
-
 .sidebarFileSectionTitleText {
 	flex: 1 1 auto;
 	white-space: nowrap;
@@ -802,19 +848,8 @@
 	text-overflow: ellipsis;
 }
 
-/* ------------------- Group Item ------------------- */
+/* ------------------- Drop targets ------------------- */
 
-.sidebarGroupItem {
-	position: relative;
-	overflow: visible;
-	width: 100%;
-	margin-bottom: 0px;
-	transition: margin-bottom 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-	--tla-sidebar-group-item-padding-left: 8px;
-}
-.sidebarGroupItem .sidebarFileListItemContent {
-	padding-left: var(--tla-sidebar-group-item-padding-left);
-}
 .dropping {
 	position: relative;
 }
@@ -842,113 +877,7 @@
 	pointer-events: none;
 	position: fixed;
 }
-.sidebarGroupItem[data-state='open'] {
-	margin-bottom: 12px;
-}
-.sidebarGroupItem:has(.sidebarGroupItemHeader:hover)::after,
-.sidebarGroupItem[data-is-empty='true'][data-is-expanded='true'][data-group-index='0']::after,
-.sidebarGroupItem[data-menu-open='true']::after,
-.sidebarGroupItem[data-is-dragging='true']::after {
-	display: block;
-	content: '';
-	position: absolute;
-	top: -2px;
-	left: -4px;
-	right: -4px;
-	bottom: -2px;
-	border-radius: 4px;
-	background-color: var(--tla-color-drop-zone);
-	z-index: 0;
-	pointer-events: none;
-	visibility: visible;
-}
-
-.sidebarGroupItem[data-is-dragging='true'] {
-	opacity: 0.5;
-}
-
-.sidebarGroupItemHeader {
-	background: none;
-	border: none;
-	position: relative;
-	width: 100%;
-	height: 36px;
-	padding: 0px 8px 0px 8px;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: flex-start;
-	overflow: hidden;
-	gap: 8px;
-	cursor: pointer;
-	color: var(--tla-color-text-1);
-}
-
-@media (hover: hover) {
-	.sidebarGroupItemTitle:hover,
-	.sidebarGroupItem[data-is-dragging='true'] .sidebarGroupItemTitle {
-		color: var(--tla-color-text-1);
-	}
-}
-
-.sidebarGroupItemCaret {
-	color: var(--tla-color-text-3);
-	flex: 0 0 16px;
-	width: 16px;
-	height: 16px;
-}
-
-.sidebarGroupItemTitle {
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	padding: 6px 10px 6px 0px;
-	flex: 0 1 auto;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	position: relative;
-	z-index: 1;
-	text-align: left;
-}
-
-.sidebarGroupItemContent {
-	display: flex;
-	flex-direction: column;
-	margin-bottom: 24px;
-}
-
-.sidebarGroupItemButtons {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 4px;
-	margin-left: auto;
-	opacity: 0;
-	transition: opacity 0.15s ease-in-out;
-}
-
-@media (hover: hover) {
-	.sidebarGroupItem:has(.sidebarGroupItemHeader:hover) .sidebarGroupItemButtons,
-	.sidebarGroupItem[data-menu-open='true'] .sidebarGroupItemButtons,
-	.sidebarGroupItem[data-is-dragging='true'] .sidebarGroupItemButtons {
-		opacity: 1;
-	}
-}
-
-@media (max-width: 767px) {
-	.sidebarGroupItemButtons {
-		opacity: 1;
-	}
-}
-
-.sidebarGroupEmptyStateIcon {
-	margin-left: 2px;
-	margin-right: 1px;
-	scale: 0.8;
-}
-
-.sidebarGroupItemButton {
+.sidebarWorkspaceMenuButton {
 	background: none;
 	border: none;
 	display: flex;
@@ -964,95 +893,22 @@
 	z-index: 1;
 }
 
-.sidebarGroupItemButton::before {
+.sidebarWorkspaceMenuButton::before {
 	position: absolute;
 	inset: -8px -8px -8px -2px;
 	content: '';
 	pointer-events: auto;
 }
 
-.sidebarGroupItemButton:after {
+.sidebarWorkspaceMenuButton:after {
 	content: none;
 }
 
-.sidebarGroupItemButton:hover {
+.sidebarWorkspaceMenuButton:hover {
 	color: var(--tla-color-text-1);
 }
 
-.sidebarGroupItemButton:focus-visible {
+.sidebarWorkspaceMenuButton:focus-visible {
 	outline: 2px solid var(--tla-color-focus);
 	outline-offset: 2px;
-}
-
-.sidebarGroupCreateInput {
-	font-size: 12px !important;
-	line-height: 1.3;
-}
-
-.sidebarGroupCreateInputWrapper {
-	margin-bottom: 8px;
-}
-
-.CollapsibleContent {
-	overflow: hidden;
-}
-
-/* Only animate when not during group reordering */
-.CollapsibleContent[data-state='open'] {
-	animation: slideDown 250ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-.CollapsibleContent[data-state='closed'] {
-	animation: slideUp 250ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideDown {
-	from {
-		height: 0;
-	}
-	to {
-		height: var(--radix-collapsible-content-height);
-	}
-}
-
-@keyframes slideUp {
-	from {
-		height: var(--radix-collapsible-content-height);
-	}
-	to {
-		height: 0;
-	}
-}
-
-.sidebarGroupItemEmpty {
-	color: var(--tla-color-text-3);
-	font-size: 12px;
-	padding: 8px 8px 8px calc(8px + var(--tla-sidebar-group-item-padding-left));
-}
-
-.sidebarGroupItemButtonInline {
-	display: inline-flex;
-	color: var(--tla-color-text-2);
-	align-items: center;
-	justify-content: center;
-	border-radius: 4px;
-	cursor: pointer;
-	position: relative;
-	outline: none;
-	border: none;
-	background: none;
-	margin: 0px;
-	padding: 0px;
-	font-size: 12px;
-	line-height: 1.3;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.sidebarGroupItemButtonInline:hover {
-	color: var(--tla-color-text-1);
-}
-
-[data-no-animation='true'] * {
-	animation-duration: 0s !important;
 }
