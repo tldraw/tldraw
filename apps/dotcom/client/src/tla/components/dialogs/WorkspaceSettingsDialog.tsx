@@ -47,6 +47,11 @@ const messages = defineMessages({
 	},
 	leaveAction: { defaultMessage: 'Leave workspace' },
 	deleteAction: { defaultMessage: 'Delete workspace' },
+	removeMember: { defaultMessage: 'Remove' },
+	removeAction: { defaultMessage: 'Remove member' },
+	confirmRemove: {
+		defaultMessage: 'Are you sure you want to remove {name} from this workspace?',
+	},
 })
 
 interface WorkspaceSettingsDialogProps {
@@ -65,6 +70,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const ownerMsg = useMsg(messages.owner)
 	const memberMsg = useMsg(messages.member)
 	const youMsg = useMsg(messages.you)
+	const removeMemberMsg = useMsg(messages.removeMember)
 
 	// Get workspace data
 	const workspaceMembership = useValue(
@@ -169,6 +175,31 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					cancelLabel={<F {...messages.cancel} />}
 					confirmType="danger"
 					onConfirm={handleDeleteWorkspace}
+					onClose={onClose}
+				/>
+			),
+		})
+	}
+
+	const handleRemoveMember = async (targetUserId: string) => {
+		try {
+			await app.z.mutate.removeWorkspaceMember({ workspaceId, targetUserId }).client
+		} catch (error) {
+			console.error('Error removing member:', error)
+			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
+		}
+	}
+
+	const openRemoveConfirmDialog = (member: { userId: string; userName: string }) => {
+		addDialog({
+			component: ({ onClose }) => (
+				<ConfirmDialog
+					title={<F {...messages.removeAction} />}
+					description={<F {...messages.confirmRemove} values={{ name: member.userName }} />}
+					confirmLabel={<F {...messages.removeAction} />}
+					cancelLabel={<F {...messages.cancel} />}
+					confirmType="danger"
+					onConfirm={() => handleRemoveMember(member.userId)}
 					onClose={onClose}
 				/>
 			),
@@ -303,6 +334,18 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 												value={member.role}
 												usePortal
 												options={roleOptions}
+												actions={
+													member.userId === app.getUser().id
+														? undefined
+														: [
+																{
+																	id: 'remove',
+																	label: removeMemberMsg,
+																	destructive: true,
+																	onSelect: () => openRemoveConfirmDialog(member),
+																},
+															]
+												}
 												onChange={async (value) => {
 													if (value === member.role) return
 													try {

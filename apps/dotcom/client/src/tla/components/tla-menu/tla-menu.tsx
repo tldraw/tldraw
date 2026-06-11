@@ -105,6 +105,7 @@ export function TlaMenuSelect<T extends string>({
 	disabled,
 	onChange,
 	options,
+	actions,
 	usePortal,
 	'data-testid': dataTestId,
 }: {
@@ -114,6 +115,9 @@ export function TlaMenuSelect<T extends string>({
 	disabled?: boolean
 	onChange(value: T): void
 	options: { value: T; label: ReactNode }[]
+	// Extra actions shown in their own section below the options (e.g. a
+	// destructive "remove"). Selecting one runs its onSelect instead of onChange.
+	actions?: { id: string; label: ReactNode; onSelect(): void; destructive?: boolean }[]
 	// When set, render the dropdown in a portal (popper-positioned) so it isn't
 	// clipped by / doesn't overflow a constrained container like a modal dialog.
 	usePortal?: boolean
@@ -123,9 +127,14 @@ export function TlaMenuSelect<T extends string>({
 	const container = useContainer()
 	const handleChange = useCallback(
 		(value: string) => {
+			const action = actions?.find((a) => a.id === value)
+			if (action) {
+				action.onSelect()
+				return
+			}
 			onChange(value as T)
 		},
-		[onChange]
+		[actions, onChange]
 	)
 
 	const handleOpenChange = (open: boolean) => {
@@ -198,6 +207,23 @@ export function TlaMenuSelect<T extends string>({
 									<_Select.ItemText>{option.label}</_Select.ItemText>
 								</_Select.Item>
 							))}
+							{actions && actions.length > 0 && (
+								<>
+									<_Select.Separator className={styles.menuSelectSeparator} />
+									{actions.map((action) => (
+										<_Select.Item
+											key={action.id}
+											className={classNames(
+												styles.menuSelectOption,
+												action.destructive && styles.menuSelectOptionDestructive
+											)}
+											value={action.id}
+										>
+											<_Select.ItemText>{action.label}</_Select.ItemText>
+										</_Select.Item>
+									))}
+								</>
+							)}
 						</_Select.Viewport>
 					</_Select.Content>
 				</TlaSelectPortal>

@@ -223,6 +223,16 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	display: none;
 }
 
+.menuSelectSeparator {
+	height: 1px;
+	margin: 4px;
+	background-color: var(--tl-color-divider);
+}
+
+.menuSelectOptionDestructive {
+	color: var(--tl-color-danger);
+}
+
 [data-radix-focus-guard] {
 	inset: 0;
 }

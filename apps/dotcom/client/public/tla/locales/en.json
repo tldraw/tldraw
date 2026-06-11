@@ -35,6 +35,9 @@
   "0d1f2bb523": {
     "translation": "Send feedback"
   },
+  "1063e38cb5": {
+    "translation": "Remove"
+  },
   "110a4b01be": {
     "translation": "Publish"
   },
@@ -91,6 +94,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "375396d6e5": {
+    "translation": "Remove member"
   },
   "3bc7d6ea2f": {
     "translation": "Continue with email"
@@ -593,6 +599,9 @@
   },
   "fed5ec05eb": {
     "translation": "Copied link"
+  },
+  "ff2fefd3c6": {
+    "translation": "Are you sure you want to remove {name} from this workspace?"
   },
   "ffcd73e997": {
     "translation": "Import file…"
