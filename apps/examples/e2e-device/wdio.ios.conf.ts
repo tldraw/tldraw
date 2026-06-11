@@ -38,6 +38,11 @@ export const config: Options.Testrunner = {
 			'appium:wdaConnectionTimeout': 300_000,
 			'appium:wdaStartupRetries': 2,
 			'appium:wdaStartupRetryInterval': 20_000,
+			// Safari's remote debugger can take a while to report its connected
+			// pages on a busy CI simulator; the ~12s default intermittently fails
+			// session creation outright ("did not return any connected web
+			// applications").
+			'appium:webviewConnectTimeout': 60_000,
 			'appium:showXcodeLog': false,
 			// Build WDA into a stable, cacheable DerivedData dir; on a CI cache hit
 			// reuse the prebuilt WDA and skip the xcodebuild step entirely.
