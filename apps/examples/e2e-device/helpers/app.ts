@@ -49,3 +49,24 @@ export async function currentWebContext(): Promise<string> {
 	if (!web) throw new Error(`No web context found. Available: ${contexts.join(', ')}`)
 	return web
 }
+
+/**
+ * Android Chrome shows a native permission dialog for the page's first
+ * `navigator.clipboard.read()`, and the read promise stays pending until the
+ * user answers it. Answer it the way a real user would. No-op on iOS and when
+ * no dialog is showing (e.g. permission already granted).
+ */
+export async function grantClipboardPermissionIfPrompted() {
+	if (!browser.isAndroid) return
+	const web = await currentWebContext()
+	await browser.switchContext(NATIVE_CONTEXT)
+	try {
+		const allow = browser.$('android=new UiSelector().textMatches("(?i)allow.*")')
+		await allow.waitForExist({ timeout: 5000 })
+		await allow.click()
+	} catch {
+		// No permission dialog appeared.
+	} finally {
+		await browser.switchContext(web)
+	}
+}

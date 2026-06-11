@@ -1,6 +1,6 @@
 import { expect } from '@wdio/globals'
 import type { Editor } from 'tldraw'
-import { getShapeCount, openEditor } from '../helpers/app'
+import { getShapeCount, grantClipboardPermissionIfPrompted, openEditor } from '../helpers/app'
 import { pressAccel } from '../helpers/keyboard'
 
 declare const editor: Editor
@@ -127,10 +127,14 @@ describe('copy/paste keyboard shortcuts (#7372)', () => {
 		await pressAccel('c')
 		await pressAccel('v')
 
+		// tldraw's paste handler prefers `navigator.clipboard.read()`, which on
+		// Android Chrome parks on a native permission dialog the first time.
+		await grantClipboardPermissionIfPrompted()
+
 		try {
 			// Paste places a copy at an offset, so the page should now have 2 shapes.
 			await browser.waitUntil(async () => (await getShapeCount()) === 2, {
-				timeout: 5000,
+				timeout: 10_000,
 				timeoutMsg: 'copy/paste shortcut did not create a second shape',
 			})
 		} finally {
