@@ -11341,7 +11341,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 									// Don't pass right-click panning events to the state chart
 									// as it causes unintended shape selection on release
 									if (slideSpeed > 0) {
-										this.slideCamera({ speed: slideSpeed, direction: slideDirection })
+										this.slideCamera({
+											speed: slideSpeed,
+											direction: { x: slideDirection.x, y: slideDirection.y, z: 0 },
+										})
 									}
 									this._selectedShapeIdsAtPointerDown = []
 									this._didCaptureSelectionAtPointerDown = false
