@@ -54,8 +54,15 @@ export class FocusManager {
 
 		// Take DOM focus on mount: keyboard listeners on the document fire
 		// either way on desktop, but iOS Safari only delivers Cmd/Ctrl key
-		// events when the keyboard sink actually holds focus.
-		if (autoFocus) this.focus()
+		// events when the keyboard sink actually holds focus. Don't steal focus
+		// when the surrounding app already focused something — e.g. tldraw.com
+		// focuses the file name input right after creating a new file.
+		if (autoFocus) {
+			const doc = editor.getContainerDocument()
+			if (!doc.activeElement || doc.activeElement === doc.body) {
+				this.focus()
+			}
+		}
 	}
 
 	/**
