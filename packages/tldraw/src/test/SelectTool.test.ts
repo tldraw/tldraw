@@ -556,9 +556,11 @@ describe('When double clicking a shape', () => {
 		const groupId = editor.getOnlySelectedShapeId()!
 		editor.selectNone()
 
-		editor
-			.click(150, 150, { target: 'shape', shape: editor.getShape(childAId)! })
-			.click(150, 150, { target: 'shape', shape: editor.getShape(childAId)! })
+		editor.click(150, 150, { target: 'shape', shape: editor.getShape(childAId)! })
+		// Each click is a separate user click that drills one level. Reset the
+		// click state between them so they aren't coalesced into a double-click.
+		editor.cancelDoubleClick()
+		editor.click(150, 150, { target: 'shape', shape: editor.getShape(childAId)! })
 
 		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
@@ -722,10 +724,15 @@ describe('When double clicking the selection edge', () => {
 		editor.selectNone()
 
 		const childA = editor.getShape(childAId)!
-		editor
-			.click(150, 150, { target: 'shape', shape: childA })
-			.click(150, 150, { target: 'shape', shape: childA })
-			.click(150, 150, { target: 'shape', shape: childA })
+		// Each click is a separate user click. Reset the click state between
+		// them so they aren't coalesced into a single multi-click sequence:
+		// click 1 selects the group, click 2 drills to the child, click 3 lands
+		// on the now-selected child's label and starts editing.
+		editor.click(150, 150, { target: 'shape', shape: childA })
+		editor.cancelDoubleClick()
+		editor.click(150, 150, { target: 'shape', shape: childA })
+		editor.cancelDoubleClick()
+		editor.click(150, 150, { target: 'shape', shape: childA })
 
 		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
 		expect(editor.getFocusedGroupId()).toBe(groupId)
@@ -758,11 +765,17 @@ describe('When double clicking the selection edge', () => {
 			.selectNone()
 
 		const childA = editor.getShape(childAId)!
-		editor
-			.click(150, 150, { target: 'shape', shape: childA })
-			.click(150, 150, { target: 'shape', shape: childA })
-			.click(150, 150, { target: 'shape', shape: childA })
-			.click(150, 150, { target: 'shape', shape: childA })
+		// Each click is a separate user click that drills one level. Reset the
+		// click state between them so they aren't coalesced: click 1 selects the
+		// outer group, click 2 drills to the inner group, click 3 drills to
+		// childA, click 4 lands on childA's label and starts editing.
+		editor.click(150, 150, { target: 'shape', shape: childA })
+		editor.cancelDoubleClick()
+		editor.click(150, 150, { target: 'shape', shape: childA })
+		editor.cancelDoubleClick()
+		editor.click(150, 150, { target: 'shape', shape: childA })
+		editor.cancelDoubleClick()
+		editor.click(150, 150, { target: 'shape', shape: childA })
 
 		expect(editor.getOnlySelectedShapeId()).toBe(childAId)
 		expect(editor.getFocusedGroupId()).toBe(innerGroupId)
@@ -845,12 +858,13 @@ describe('When double clicking the selection edge', () => {
 
 		editor.cancelDoubleClick()
 
-		// Double-click childB. This should drill into innerGroup and select
-		// childB — and stop there. Editing must not start.
+		// Drill into innerGroup and select childB — and stop there. Editing
+		// must not start. The two clicks are separate user clicks, so reset the
+		// click state between them.
 		const childB = editor.getShape(childBId)!
-		editor
-			.click(85, 25, { target: 'shape', shape: childB })
-			.click(85, 25, { target: 'shape', shape: childB })
+		editor.click(85, 25, { target: 'shape', shape: childB })
+		editor.cancelDoubleClick()
+		editor.click(85, 25, { target: 'shape', shape: childB })
 
 		expect(editor.getOnlySelectedShapeId()).toBe(childBId)
 		expect(editor.getFocusedGroupId()).toBe(innerGroupId)
@@ -885,26 +899,26 @@ describe('When double clicking the selection edge', () => {
 			.selectNone()
 
 		// Drill into the outer group by clicking the sibling shape twice:
-		// click 1 selects the outer group, click 2 drills and selects S.
+		// click 1 selects the outer group, click 2 drills and selects S. The
+		// clicks are separate user clicks, so reset the click state between them.
 		const sibling = editor.getShape(siblingId)!
-		editor
-			.click(225, 25, { target: 'shape', shape: sibling })
-			.click(225, 25, { target: 'shape', shape: sibling })
+		editor.click(225, 25, { target: 'shape', shape: sibling })
+		editor.cancelDoubleClick()
+		editor.click(225, 25, { target: 'shape', shape: sibling })
 		expect(editor.getOnlySelectedShapeId()).toBe(siblingId)
 		expect(editor.getFocusedGroupId()).toBe(outerGroupId)
 
 		editor.cancelDoubleClick()
 
-		// Double-click (2 quick clicks) on the grandchild. Click 1 selects
-		// the inner group (drilling from the outer group's level), click 2
-		// drills into the inner group and selects the grandchild. The
-		// synthetic double_click that fires must NOT enter editing — the
-		// inner group is deeper than the outer group the user has actually
-		// entered, so editing requires a further click.
+		// Two clicks on the grandchild. Click 1 selects the inner group
+		// (drilling from the outer group's level), click 2 drills into the inner
+		// group and selects the grandchild. Editing must NOT start — the inner
+		// group is deeper than the outer group the user has actually entered, so
+		// editing requires a further click.
 		const grandChild = editor.getShape(grandChildId)!
-		editor
-			.click(25, 25, { target: 'shape', shape: grandChild })
-			.click(25, 25, { target: 'shape', shape: grandChild })
+		editor.click(25, 25, { target: 'shape', shape: grandChild })
+		editor.cancelDoubleClick()
+		editor.click(25, 25, { target: 'shape', shape: grandChild })
 
 		expect(editor.getOnlySelectedShapeId()).toBe(grandChildId)
 		expect(editor.getFocusedGroupId()).toBe(innerGroupId)
@@ -940,10 +954,13 @@ describe('When double clicking the selection edge', () => {
 		// inner, 3) drill to inner's child. After this the focused group is
 		// the inner group.
 		const innerChild = editor.getShape(innerChildId)!
-		editor
-			.click(25, 25, { target: 'shape', shape: innerChild })
-			.click(25, 25, { target: 'shape', shape: innerChild })
-			.click(25, 25, { target: 'shape', shape: innerChild })
+		// Separate user clicks, each drilling one level; reset the click state
+		// between them so they aren't coalesced into a double-click.
+		editor.click(25, 25, { target: 'shape', shape: innerChild })
+		editor.cancelDoubleClick()
+		editor.click(25, 25, { target: 'shape', shape: innerChild })
+		editor.cancelDoubleClick()
+		editor.click(25, 25, { target: 'shape', shape: innerChild })
 		expect(editor.getOnlySelectedShapeId()).toBe(innerChildId)
 		expect(editor.getFocusedGroupId()).toBe(innerGroupId)
 

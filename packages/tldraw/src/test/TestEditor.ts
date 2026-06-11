@@ -295,6 +295,12 @@ export class TestEditor extends Editor {
 	}
 	doubleClick(...args: Parameters<Driver['doubleClick']>) {
 		this.controller.doubleClick(...args)
+		// Tests run with fake timers, so the ClickManager's double-click timeout
+		// never fires on its own. A `doubleClick()` is a complete gesture, so
+		// reset the click state afterwards; otherwise a following pointer event
+		// is coalesced into this double-click sequence (e.g. a `pointerDown`
+		// right after `doubleClick()` would be treated as a triple click).
+		this.cancelDoubleClick()
 		return this
 	}
 	keyPress(...args: Parameters<Driver['keyPress']>) {

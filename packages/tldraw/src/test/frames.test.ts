@@ -1520,6 +1520,10 @@ describe('Unparenting behavior', () => {
 		expect(editor.getOnlySelectedShape()?.id).toBe(triangle.id)
 		expect(editor.getShape(triangle.id)!.parentId).toBe(frame.id)
 
+		// Reset the click state so the drag below starts a fresh pointer
+		// sequence instead of coalescing with the select click into a
+		// double-click.
+		editor.cancelDoubleClick()
 		editor.pointerDown(50, 50)
 		editor.pointerMove(135, 135) // the bounds are still overlapping but the geometry is not
 

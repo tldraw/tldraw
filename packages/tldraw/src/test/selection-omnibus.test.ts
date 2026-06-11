@@ -1052,6 +1052,10 @@ describe('Selects inside of groups', () => {
 		editor.pointerDown()
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+		// The two manual click pairs are separate user clicks; reset the click
+		// state between them so the second pointer-down isn't coalesced into a
+		// double-click.
+		editor.cancelDoubleClick()
 		editor.pointerDown()
 		editor.expectToBeIn('select.pointing_shape')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
@@ -1574,6 +1578,7 @@ describe('When double clicking an editable shape', () => {
 		editor.pointerMove(50, 50).click() // selects the child shape
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		expect(editor.getEditingShapeId()).toBe(null)
+		editor.cancelDoubleClick()
 		editor.pointerMove(50, 50).click() // edits the selected child shape
 		editor.cancelDoubleClick()
 

@@ -335,6 +335,10 @@ it('Puts the new shape into a frame based on its center', () => {
 })
 
 function testNoteShapeFrameRotations(sourceRotation: number, rotation: number) {
+	// This helper runs several times per test; reset the click state so the
+	// next handle pointer-down starts a fresh click sequence instead of
+	// coalescing with the previous call into a double-click.
+	editor.cancelDoubleClick()
 	editor.createShape({ type: 'frame', x: 1220, y: 1000, rotation: rotation })
 	const frameA = editor.getLastCreatedShape()!
 	// top left won't be in the frame, but the center will (barely but yes)
