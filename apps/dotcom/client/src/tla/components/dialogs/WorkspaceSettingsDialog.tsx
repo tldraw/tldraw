@@ -87,6 +87,8 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const canLeave = role !== 'owner' || ownersCount > 1
 	const canEditMembers = can(role, 'editMembers')
 	const roleLabels: Record<Role, string> = { owner: ownerMsg, member: memberMsg }
+	// Owners sort above members; within a role the current user is pinned to the top.
+	const roleOrder: Record<Role, number> = { owner: 0, member: 1 }
 	const roleOptions = (Object.keys(roleLabels) as Role[]).map((value) => ({
 		value,
 		label: roleLabels[value],
@@ -269,8 +271,10 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						{[...workspaceMembership.groupMembers]
 							.sort((a, b) => {
 								const currentId = app.getUser().id
-								if (a.userId === currentId && b.userId !== currentId) return -1
-								if (b.userId === currentId && a.userId !== currentId) return 1
+								// Owners first, then members; within a role, pin the current user to the top.
+								if (a.role !== b.role) return roleOrder[a.role] - roleOrder[b.role]
+								if (a.userId === currentId) return -1
+								if (b.userId === currentId) return 1
 								return 0
 							})
 							.map((member) => {
