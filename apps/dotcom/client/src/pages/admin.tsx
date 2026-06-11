@@ -811,6 +811,8 @@ function RolloutGroupsFrontend() {
 		}
 	)
 	const [unmigratedCount, setUnmigratedCount] = useState<number | null>(null)
+	const [totalUsers, setTotalUsers] = useState<number | null>(null)
+	const percentageTouchedRef = useRef(false)
 	const [isLoadingCount, setIsLoadingCount] = useState(false)
 	const [eventSource, setEventSource] = useState<EventSource | null>(null)
 	const [sleepMs, setSleepMs] = useState(100)
@@ -845,12 +847,23 @@ function RolloutGroupsFrontend() {
 			}
 			const data = await res.json()
 			setUnmigratedCount(data.count)
+			setTotalUsers(data.total)
+			// Prefill the input with the current share so the default action is
+			// (nearly) a no-op instead of unenrolling everyone. Ceil so any
+			// rounding error enrolls a few users rather than unenrolls them.
+			if (!percentageTouchedRef.current && data.total > 0) {
+				setPercentage(Math.ceil(((data.total - data.count) / data.total) * 100))
+			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to fetch count')
 		} finally {
 			setIsLoadingCount(false)
 		}
 	}, [])
+
+	useEffect(() => {
+		fetchUnmigratedCount()
+	}, [fetchUnmigratedCount])
 
 	const stopMigration = useCallback(() => {
 		shouldContinueRef.current = false
@@ -872,7 +885,7 @@ function RolloutGroupsFrontend() {
 			return
 		}
 
-		const migrationMessage = `Roll out the groups UI until ${percentage}% of all users have the groups_frontend flag?`
+		const migrationMessage = `Set groups UI enrollment to ${percentage}% of all users? If more than ${percentage}% are currently enrolled, users will be UNENROLLED to reach the target.`
 
 		if (!window.confirm(migrationMessage)) {
 			return
@@ -927,6 +940,7 @@ function RolloutGroupsFrontend() {
 							if (data.failed) {
 								setError('Rollout stopped due to a failure — see the progress log')
 								setIsMigrating(false)
+								fetchUnmigratedCount()
 								resolve()
 							} else if (data.hasMore && shouldContinueRef.current) {
 								// Start next batch
@@ -934,6 +948,7 @@ function RolloutGroupsFrontend() {
 							} else {
 								setIsComplete(true)
 								setIsMigrating(false)
+								fetchUnmigratedCount()
 								resolve()
 							}
 						} else if (data.type === 'error') {
@@ -966,7 +981,7 @@ function RolloutGroupsFrontend() {
 		} catch (_err) {
 			// Error already handled in startBatch
 		}
-	}, [sleepMs, percentage])
+	}, [sleepMs, percentage, fetchUnmigratedCount])
 
 	return (
 		<div className={styles.dangerZone}>
@@ -980,21 +995,23 @@ function RolloutGroupsFrontend() {
 					isLoading={isLoadingCount}
 					disabled={isMigrating}
 				>
-					Check remaining users count
+					Refresh enrollment count
 				</TlaButton>
-				{unmigratedCount !== null && (
+				{unmigratedCount !== null && totalUsers !== null && (
 					<span className={styles.countDisplay}>
-						{unmigratedCount} user{unmigratedCount !== 1 ? 's' : ''} without groups_frontend
+						{totalUsers - unmigratedCount}/{totalUsers} users enrolled (
+						{totalUsers > 0 ? Math.round(((totalUsers - unmigratedCount) / totalUsers) * 100) : 0}
+						%)
 					</span>
 				)}
 			</div>
 
 			<p className="tla-text_ui__small">
-				This grants the groups_frontend flag (the groups UI) to users who don&apos;t have it.
-				Clients pick the flag up live through Zero, so no reboot is needed. Set a target percentage
-				for a gradual rollout: enrollment stops once that share of all users has the flag, and the
-				flag is persistent, so raising the percentage later only enrolls the difference. Users are
-				enrolled in chunks of 200 with a configurable pause between chunks.
+				This adjusts how many users have the groups_frontend flag (the groups UI) to match the
+				target percentage: raising it enrolls the difference, lowering it unenrolls users —
+				including any who got the flag by accepting a group invite. Clients pick changes up live
+				through Zero, so no reboot is needed, and reruns with the same target are no-ops. Users are
+				updated in chunks of 200 with a configurable pause between chunks.
 			</p>
 
 			{error && <div className={styles.errorMessage}>{error}</div>}
@@ -1007,7 +1024,10 @@ function RolloutGroupsFrontend() {
 						id="rolloutPercentage"
 						type="number"
 						value={percentage}
-						onChange={(e) => setPercentage(Number(e.target.value))}
+						onChange={(e) => {
+							percentageTouchedRef.current = true
+							setPercentage(Number(e.target.value))
+						}}
 						disabled={isMigrating}
 						min={0}
 						max={100}
@@ -1036,7 +1056,7 @@ function RolloutGroupsFrontend() {
 						<span className={styles.statValue}>{stats.totalUsers}</span>
 					</div>
 					<div className={styles.statItem}>
-						<span className={styles.statLabel}>Users to enroll:</span>
+						<span className={styles.statLabel}>Users to update:</span>
 						<span className={styles.statValue}>{stats.usersToMigrate}</span>
 					</div>
 					<div className={styles.statItem}>
@@ -1061,13 +1081,13 @@ function RolloutGroupsFrontend() {
 					className={styles.deleteButton}
 					disabled={!isMigrating && isLoadingCount}
 				>
-					{isMigrating ? 'Stop rollout' : 'Start rollout'}
+					{isMigrating ? 'Stop' : 'Update rollout percentage'}
 				</TlaButton>
 			</div>
 
 			{isComplete && (
 				<div className={styles.successMessage}>
-					Rollout completed! {stats.successCount} user{stats.successCount !== 1 ? 's' : ''} enrolled
+					Rollout completed! {stats.successCount} user{stats.successCount !== 1 ? 's' : ''} updated
 					successfully, {stats.failureCount} failed
 				</div>
 			)}

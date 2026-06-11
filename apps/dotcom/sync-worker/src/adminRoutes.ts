@@ -8,7 +8,12 @@ import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
-import { computeUsersToEnroll, enrollUsersInGroupsUi } from './utils/groupsUiRollout'
+import {
+	computeUsersToEnroll,
+	computeUsersToUnenroll,
+	enrollUsersInGroupsUi,
+	unenrollUsersFromGroupsUi,
+} from './utils/groupsUiRollout'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
@@ -87,7 +92,9 @@ export const adminRoutes = createRouter<Environment>()
 	})
 	.get('/app/admin/unmigrated_users_count', async (_res, env) => {
 		const pg = createPostgresConnectionPool(env, '/app/admin/unmigrated_users_count')
-		return json({ count: await getNumUnenrolledUsers(pg) })
+		const count = await getNumUnenrolledUsers(pg)
+		const total = await getTotalUsers(pg)
+		return json({ count, total })
 	})
 	.get('/app/admin/migrate_users_batch', async (res, env) => {
 		let stopRequested = false
@@ -524,6 +531,18 @@ async function getNextUnenrolledUsers(
 		.execute()
 }
 
+async function getNextEnrolledUsers(
+	pg: ReturnType<typeof createPostgresConnectionPool>,
+	limit: number
+) {
+	return await pg
+		.selectFrom('user')
+		.where('flags', 'like', '%groups_frontend%')
+		.select(['id'])
+		.limit(limit)
+		.execute()
+}
+
 async function getNumUnenrolledUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
 	const res = await sql<{
 		count: number
@@ -551,11 +570,16 @@ async function startFrontendRollout(
 	const batchSize = 2000 // per SSE request; the client chains requests via hasMore
 	const pg = createPostgresConnectionPool(env, '/app/admin/migrate_users_batch')
 
-	sendProgress('query', 'Fetching users without groups_frontend flag...')
+	sendProgress('query', 'Checking current groups UI enrollment...')
 
 	const unenrolledUsers = await getNumUnenrolledUsers(pg)
 	const totalUsers = await getTotalUsers(pg)
-	const usersToMigrate = computeUsersToEnroll(totalUsers, unenrolledUsers, percentage)
+	const toEnroll = computeUsersToEnroll({ totalUsers, unenrolledUsers, percentage })
+	const toUnenroll = computeUsersToUnenroll({ totalUsers, unenrolledUsers, percentage })
+	// At most one direction is non-zero; lowering the target unenrolls users
+	const enrolling = toEnroll > 0
+	const usersToMigrate = enrolling ? toEnroll : toUnenroll
+	const verb = enrolling ? 'enroll' : 'unenroll'
 	let successCount = 0
 	let failureCount = 0
 
@@ -571,12 +595,12 @@ async function startFrontendRollout(
 
 	sendProgress(
 		'query',
-		`${unenrolledUsers}/${totalUsers} users without the groups UI, enrolling ${usersToMigrate} to reach ${percentage}%`,
+		`${unenrolledUsers}/${totalUsers} users without the groups UI, ${verb}ing ${usersToMigrate} to reach ${percentage}%`,
 		getStats()
 	)
 
 	if (usersToMigrate === 0) {
-		sendProgress('complete', `No users to enroll — already at or above ${percentage}%`)
+		sendProgress('complete', `No users to update — already at ${percentage}%`)
 		return { hasMore: false, failed: false }
 	}
 
@@ -588,38 +612,43 @@ async function startFrontendRollout(
 			break
 		}
 
-		const chunk = await getNextUnenrolledUsers(pg, Math.min(chunkSize, remainingThisRequest))
+		const limit = Math.min(chunkSize, remainingThisRequest)
+		const chunk = enrolling
+			? await getNextUnenrolledUsers(pg, limit)
+			: await getNextEnrolledUsers(pg, limit)
 		if (chunk.length === 0) break
 
 		try {
+			const ids = chunk.map((u) => u.id)
 			const updated = await retry(() =>
-				enrollUsersInGroupsUi(
-					pg,
-					chunk.map((u) => u.id)
-				)
+				enrolling ? enrollUsersInGroupsUi(pg, ids) : unenrollUsersFromGroupsUi(pg, ids)
 			)
 			successCount += updated
 			if (updated === chunk.length) {
-				sendProgress('success', `Enrolled ${updated} users`, getStats())
-			} else {
-				// Shortfall = rows skipped by the already-enrolled guard: a retry
-				// whose first attempt committed, or a concurrent enrollment (e.g.
-				// invite accept). Data is correct, only the counts drift.
 				sendProgress(
 					'success',
-					`Enrolled ${updated}/${chunk.length} users in this chunk (the rest were already enrolled)`,
+					`${enrolling ? 'Enrolled' : 'Unenrolled'} ${updated} users`,
+					getStats()
+				)
+			} else {
+				// Shortfall = rows skipped by the flag guard: a retry whose first
+				// attempt committed, or a concurrent change (e.g. invite accept).
+				// Data is correct, only the counts drift.
+				sendProgress(
+					'success',
+					`${enrolling ? 'Enrolled' : 'Unenrolled'} ${updated}/${chunk.length} users in this chunk (the rest were already updated)`,
 					getStats()
 				)
 			}
 		} catch (error) {
 			failureCount += chunk.length
 			const errorMessage = error instanceof Error ? error.message : String(error)
-			console.error('groups UI rollout: failed to enroll chunk', errorMessage)
+			console.error(`groups UI rollout: failed to ${verb} chunk`, errorMessage)
 
 			// 'failure' events get stored in the client's log
 			sendProgress(
 				'failure',
-				`Failed to enroll a chunk of ${chunk.length} users (some may have been enrolled before the error)`,
+				`Failed to ${verb} a chunk of ${chunk.length} users (some may have been updated before the error)`,
 				{
 					userIds: chunk.map((u) => u.id),
 					error: errorMessage,
@@ -640,10 +669,13 @@ async function startFrontendRollout(
 
 	sendProgress('summary', 'Rollout batch complete', getStats())
 
-	// More requests needed if we're still below the target
+	// More requests needed if we're still off target in either direction
 	const stillUnenrolled = await getNumUnenrolledUsers(pg)
+	const stillOffTarget =
+		computeUsersToEnroll({ totalUsers, unenrolledUsers: stillUnenrolled, percentage }) +
+		computeUsersToUnenroll({ totalUsers, unenrolledUsers: stillUnenrolled, percentage })
 	return {
-		hasMore: !shouldStop() && computeUsersToEnroll(totalUsers, stillUnenrolled, percentage) > 0,
+		hasMore: !shouldStop() && stillOffTarget > 0,
 		failed: false,
 	}
 }
