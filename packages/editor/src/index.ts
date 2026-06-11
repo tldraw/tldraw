@@ -495,7 +495,6 @@ export {
 export { hardReset } from './lib/utils/sync/hardReset'
 export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
-export { uniq } from './lib/utils/uniq'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

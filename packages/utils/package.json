@@ -43,17 +43,9 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"jittered-fractional-indexing": "^1.0.0",
-		"lodash.isequal": "^4.5.0",
-		"lodash.isequalwith": "^4.4.0",
-		"lodash.throttle": "^4.1.1",
-		"lodash.uniq": "^4.5.0"
+		"jittered-fractional-indexing": "^1.0.0"
 	},
 	"devDependencies": {
-		"@types/lodash.isequal": "^4.5.8",
-		"@types/lodash.isequalwith": "^4.4.9",
-		"@types/lodash.throttle": "^4.1.9",
-		"@types/lodash.uniq": "^4.5.9",
 		"lazyrepo": "0.0.0-alpha.27",
 		"vitest": "^4.1.7"
 	}

@@ -145,11 +145,6 @@ export function RhombusToolbarItem() {
 }
 
 /** @public @react */
-export function PentagonToolbarItem() {
-	return <ToolbarItem tool="pentagon" />
-}
-
-/** @public @react */
 export function HeartToolbarItem() {
 	return <ToolbarItem tool="heart" />
 }

@@ -6,8 +6,6 @@
 
 import { Atom } from '@tldraw/state';
 import { AtomMap } from '@tldraw/store';
-import { DebouncedFunc } from 'lodash';
-import { DebouncedFuncLeading } from 'lodash';
 import { Emitter } from 'nanoevents';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
@@ -18,6 +16,7 @@ import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { SynchronousStorage } from '@tldraw/store';
+import { ThrottledFunction } from 'tldraw';
 import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
@@ -123,7 +122,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
     // @internal (undocumented)
-    pruneTombstones: DebouncedFunc<() => void>;
+    pruneTombstones: ThrottledFunction<() => void>;
     // @internal (undocumented)
     schema: Atom<SerializedSchema>;
     // @internal (undocumented)
@@ -337,7 +336,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => void): () => void;
     // @internal (undocumented)
-    pruneTombstones: DebouncedFunc<() => void>;
+    pruneTombstones: ThrottledFunction<() => void>;
     // @internal (undocumented)
     _setSchema(schema: SerializedSchema): void;
     // (undocumented)
@@ -700,7 +699,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     readonly presenceType: null | RecordType<R, any>;
     // (undocumented)
-    pruneSessions: DebouncedFuncLeading<() => void>;
+    pruneSessions: ThrottledFunction<() => void>;
     rejectSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;

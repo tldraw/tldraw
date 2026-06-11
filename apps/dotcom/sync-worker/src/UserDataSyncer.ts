@@ -21,11 +21,11 @@ import {
 	objectMapEntries,
 	promiseWithResolve,
 	sleep,
+	throttle,
 	uniqueId,
 } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { CompiledQuery, Kysely, sql } from 'kysely'
-import throttle from 'lodash.throttle'
 import { fetchEverythingSql } from './fetchEverythingSql.snap'
 import { Logger } from './Logger'
 import { parseResultRow } from './parseResultRow'

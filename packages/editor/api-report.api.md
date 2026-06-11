@@ -4971,12 +4971,6 @@ export type UiEvent = TLCancelEvent | TLClickEvent | TLCompleteEvent | TLKeyboar
 export type UiEventType = 'click' | 'keyboard' | 'pinch' | 'pointer' | 'wheel' | 'zoom';
 
 // @public (undocumented)
-export function uniq<T>(array: {
-    readonly [n: number]: T;
-    readonly length: number;
-} | null | undefined): T[];
-
-// @public (undocumented)
 export function useColorMode(): 'dark' | 'light';
 
 // @public (undocumented)

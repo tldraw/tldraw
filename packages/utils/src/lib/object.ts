@@ -1,4 +1,4 @@
-import isEqualWith from 'lodash.isequalwith'
+import { isEqualWith } from './equality'
 
 /**
  * Safely checks if an object has a specific property as its own property (not inherited).
@@ -337,7 +337,7 @@ export function getChangedKeys<T extends object>(obj1: T, obj2: T): (keyof T)[] 
 /**
  * Deep equality comparison that allows for floating-point precision errors.
  * Numbers are considered equal if they differ by less than the threshold.
- * Uses lodash.isequalwith internally for the deep comparison logic.
+ * Uses {@link isEqualWith} internally for the deep comparison logic.
  *
  * @param obj1 - First object to compare
  * @param obj2 - Second object to compare

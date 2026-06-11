@@ -1203,6 +1203,16 @@ export class BoundsSnaps {
 	}
 }
 
+const RESIZE_SNAP_CORNERS: ReadonlyArray<{
+	corner: SelectionCorner
+	edges: readonly SelectionEdge[]
+}> = [
+	{ corner: 'top_left', edges: ['top', 'left'] },
+	{ corner: 'top_right', edges: ['top', 'right'] },
+	{ corner: 'bottom_right', edges: ['bottom', 'right'] },
+	{ corner: 'bottom_left', edges: ['bottom', 'left'] },
+]
+
 function getResizeSnapPointsForHandle(
 	handle: SelectionCorner | SelectionEdge | 'any',
 	selectionPageBounds: Box
@@ -1210,60 +1220,15 @@ function getResizeSnapPointsForHandle(
 	const { minX, maxX, minY, maxY } = selectionPageBounds
 	const result: BoundsSnapPoint[] = []
 
-	// top left corner
-	switch (handle) {
-		case 'top':
-		case 'left':
-		case 'top_left':
-		case 'any':
+	for (const { corner, edges } of RESIZE_SNAP_CORNERS) {
+		if (handle === 'any' || handle === corner || edges.includes(handle as SelectionEdge)) {
 			result.push({
-				id: 'top_left',
-				handle: 'top_left',
-				x: minX,
-				y: minY,
+				id: corner,
+				handle: corner,
+				x: edges.includes('left') ? minX : maxX,
+				y: edges.includes('top') ? minY : maxY,
 			})
-	}
-
-	// top right corner
-	switch (handle) {
-		case 'top':
-		case 'right':
-		case 'top_right':
-		case 'any':
-			result.push({
-				id: 'top_right',
-				handle: 'top_right',
-				x: maxX,
-				y: minY,
-			})
-	}
-
-	// bottom right corner
-	switch (handle) {
-		case 'bottom':
-		case 'right':
-		case 'bottom_right':
-		case 'any':
-			result.push({
-				id: 'bottom_right',
-				handle: 'bottom_right',
-				x: maxX,
-				y: maxY,
-			})
-	}
-
-	// bottom left corner
-	switch (handle) {
-		case 'bottom':
-		case 'left':
-		case 'bottom_left':
-		case 'any':
-			result.push({
-				id: 'bottom_left',
-				handle: 'bottom_left',
-				x: minX,
-				y: maxY,
-			})
+		}
 	}
 
 	return result

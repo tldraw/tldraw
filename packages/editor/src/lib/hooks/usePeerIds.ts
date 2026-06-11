@@ -1,5 +1,5 @@
 import { useComputed, useValue } from '@tldraw/state-react'
-import { uniq } from '../utils/uniq'
+import { uniq } from '@tldraw/utils'
 import { useEditor } from './useEditor'
 
 /**

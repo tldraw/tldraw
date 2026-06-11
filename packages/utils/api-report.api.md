@@ -4,11 +4,6 @@
 
 ```ts
 
-import { default as isEqual } from 'lodash.isequal';
-import { default as isEqualWith } from 'lodash.isequalwith';
-import { default as throttle } from 'lodash.throttle';
-import { default as uniq } from 'lodash.uniq';
-
 // @internal
 export function annotateError(error: unknown, annotations: Partial<ErrorAnnotations>): void;
 
@@ -69,6 +64,9 @@ export function deleteFromLocalStorage(key: string): void;
 
 // @internal
 export function deleteFromSessionStorage(key: string): void;
+
+// @public
+export type EqualityCustomizer = (value: any, other: any, indexOrKey?: PropertyKey, parent?: any, otherParent?: any) => boolean | undefined;
 
 // @public (undocumented)
 export interface ErrorAnnotations {
@@ -224,12 +222,14 @@ export function invLerp(a: number, b: number, t: number): number;
 // @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
 
-export { isEqual }
+// @public
+export function isEqual(a: any, b: any): boolean;
 
 // @internal
 export function isEqualAllowingForFloatingPointErrors(obj1: object, obj2: object, threshold?: number): boolean;
 
-export { isEqualWith }
+// @public
+export function isEqualWith(a: any, b: any, customizer?: EqualityCustomizer): boolean;
 
 // @internal
 export const isNativeStructuredClone: boolean;
@@ -510,7 +510,19 @@ export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
 
-export { throttle }
+// @public
+export function throttle<T extends (...args: any[]) => any>(func: T, wait: number, options?: {
+    leading?: boolean;
+    trailing?: boolean;
+}): ThrottledFunction<T>;
+
+// @public
+export interface ThrottledFunction<T extends (...args: any[]) => any> {
+    // (undocumented)
+    (...args: Parameters<T>): ReturnType<T> | undefined;
+    cancel(): void;
+    flush(): ReturnType<T> | undefined;
+}
 
 // @internal
 export function throttleToNextFrame(fn: () => void): () => void;
@@ -531,7 +543,11 @@ export class Timers {
     setTimeout(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;
 }
 
-export { uniq }
+// @public
+export function uniq<T>(array: {
+    readonly [n: number]: T;
+    readonly length: number;
+} | null | undefined): T[];
 
 // @public
 export function uniqueId(size?: number): string;

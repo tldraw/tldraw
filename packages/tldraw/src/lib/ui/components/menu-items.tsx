@@ -1,4 +1,4 @@
-import { TLPageId, useEditor, useValue } from '@tldraw/editor'
+import { Editor, TLPageId, useEditor, useValue } from '@tldraw/editor'
 import { supportsDownloadingOriginal } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
@@ -544,68 +544,54 @@ export function ConvertToEmbedMenuItem() {
 
 /* ------------------- Preferences ------------------ */
 
+function ToggleCheckboxItem({
+	actionId,
+	getChecked,
+}: {
+	actionId: string
+	getChecked(editor: Editor): boolean
+}) {
+	const editor = useEditor()
+	const checked = useValue(actionId, () => getChecked(editor), [editor, getChecked])
+
+	return <TldrawUiMenuActionCheckboxItem actionId={actionId} checked={checked} />
+}
+
 /** @public @react */
 export function ToggleSnapModeItem() {
-	const editor = useEditor()
-	const isSnapMode = useValue('isSnapMode', () => editor.user.getIsSnapMode(), [editor])
-
-	return <TldrawUiMenuActionCheckboxItem actionId="toggle-snap-mode" checked={isSnapMode} />
+	return <ToggleCheckboxItem actionId="toggle-snap-mode" getChecked={getIsSnapMode} />
 }
+const getIsSnapMode = (editor: Editor) => editor.user.getIsSnapMode()
 
 /** @public @react */
 export function ToggleToolLockItem() {
-	const editor = useEditor()
-	const isToolLock = useValue('isToolLock', () => editor.getInstanceState().isToolLocked, [editor])
-
-	return <TldrawUiMenuActionCheckboxItem actionId="toggle-tool-lock" checked={isToolLock} />
+	return <ToggleCheckboxItem actionId="toggle-tool-lock" getChecked={getIsToolLock} />
 }
+const getIsToolLock = (editor: Editor) => editor.getInstanceState().isToolLocked
 
 /** @public @react */
 export function ToggleGridItem() {
-	const editor = useEditor()
-	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
-
-	return <TldrawUiMenuActionCheckboxItem actionId="toggle-grid" checked={isGridMode} />
+	return <ToggleCheckboxItem actionId="toggle-grid" getChecked={getIsGridMode} />
 }
+const getIsGridMode = (editor: Editor) => editor.getInstanceState().isGridMode
 
 /** @public @react */
 export function ToggleWrapModeItem() {
-	const editor = useEditor()
-	const isWrapMode = useValue('isWrapMode', () => editor.user.getIsWrapMode(), [editor])
-
-	return <TldrawUiMenuActionCheckboxItem actionId="toggle-wrap-mode" checked={isWrapMode} />
+	return <ToggleCheckboxItem actionId="toggle-wrap-mode" getChecked={getIsWrapMode} />
 }
-
-/** @public @react */
-export function ToggleDarkModeItem() {
-	const editor = useEditor()
-	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
-
-	return <TldrawUiMenuActionCheckboxItem actionId="toggle-dark-mode" checked={isDarkMode} />
-}
+const getIsWrapMode = (editor: Editor) => editor.user.getIsWrapMode()
 
 /** @public @react */
 export function ToggleFocusModeItem() {
-	const editor = useEditor()
-	const isFocusMode = useValue('isFocusMode', () => editor.getInstanceState().isFocusMode, [editor])
-
-	return <TldrawUiMenuActionCheckboxItem actionId="toggle-focus-mode" checked={isFocusMode} />
+	return <ToggleCheckboxItem actionId="toggle-focus-mode" getChecked={getIsFocusMode} />
 }
+const getIsFocusMode = (editor: Editor) => editor.getInstanceState().isFocusMode
 
 /** @public @react */
 export function ToggleEdgeScrollingItem() {
-	const editor = useEditor()
-	const edgeScrollSpeed = useValue('edgeScrollSpeed', () => editor.user.getEdgeScrollSpeed(), [
-		editor,
-	])
-
-	return (
-		<TldrawUiMenuActionCheckboxItem
-			actionId="toggle-edge-scrolling"
-			checked={edgeScrollSpeed === 1}
-		/>
-	)
+	return <ToggleCheckboxItem actionId="toggle-edge-scrolling" getChecked={getIsEdgeScrolling} />
 }
+const getIsEdgeScrolling = (editor: Editor) => editor.user.getEdgeScrollSpeed() === 1
 
 /** @public @react */
 export function ToggleInvertZoomItem() {
@@ -634,79 +620,43 @@ export function ToggleInvertZoomItem() {
 
 /** @public @react */
 export function ToggleReduceMotionItem() {
-	const editor = useEditor()
-	const animationSpeed = useValue('animationSpeed', () => editor.user.getAnimationSpeed(), [editor])
-
-	return (
-		<TldrawUiMenuActionCheckboxItem
-			actionId="toggle-reduce-motion"
-			checked={animationSpeed === 0}
-		/>
-	)
+	return <ToggleCheckboxItem actionId="toggle-reduce-motion" getChecked={getIsReduceMotion} />
 }
+const getIsReduceMotion = (editor: Editor) => editor.user.getAnimationSpeed() === 0
 
 /** @public @react */
 export function ToggleKeyboardShortcutsItem() {
-	const editor = useEditor()
-	const keyboardShortcuts = useValue(
-		'keyboardShortcuts',
-		() => editor.user.getAreKeyboardShortcutsEnabled(),
-		[editor]
-	)
-
 	return (
-		<TldrawUiMenuActionCheckboxItem
-			actionId="toggle-keyboard-shortcuts"
-			checked={keyboardShortcuts}
-		/>
+		<ToggleCheckboxItem actionId="toggle-keyboard-shortcuts" getChecked={getKeyboardShortcuts} />
 	)
 }
+const getKeyboardShortcuts = (editor: Editor) => editor.user.getAreKeyboardShortcutsEnabled()
 
 /** @public @react */
 export function ToggleEnhancedA11yModeItem() {
-	const editor = useEditor()
-	const enhancedA11yMode = useValue('enhancedA11yMode', () => editor.user.getEnhancedA11yMode(), [
-		editor,
-	])
-
-	return <TldrawUiMenuActionCheckboxItem actionId="enhanced-a11y-mode" checked={enhancedA11yMode} />
+	return <ToggleCheckboxItem actionId="enhanced-a11y-mode" getChecked={getEnhancedA11yMode} />
 }
+const getEnhancedA11yMode = (editor: Editor) => editor.user.getEnhancedA11yMode()
 
 /** @public @react */
 export function ToggleDebugModeItem() {
-	const editor = useEditor()
-	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
-	return <TldrawUiMenuActionCheckboxItem actionId="toggle-debug-mode" checked={isDebugMode} />
+	return <ToggleCheckboxItem actionId="toggle-debug-mode" getChecked={getIsDebugMode} />
 }
+const getIsDebugMode = (editor: Editor) => editor.getInstanceState().isDebugMode
 
 /** @public @react */
 export function ToggleDynamicSizeModeItem() {
-	const editor = useEditor()
-	const isDynamicResizeMode = useValue(
-		'dynamic resize',
-		() => editor.user.getIsDynamicResizeMode(),
-		[editor]
-	)
-
 	return (
-		<TldrawUiMenuActionCheckboxItem
-			actionId="toggle-dynamic-size-mode"
-			checked={isDynamicResizeMode}
-		/>
+		<ToggleCheckboxItem actionId="toggle-dynamic-size-mode" getChecked={getIsDynamicResizeMode} />
 	)
 }
+const getIsDynamicResizeMode = (editor: Editor) => editor.user.getIsDynamicResizeMode()
 
 /** @public @react */
 export function TogglePasteAtCursorItem() {
-	const editor = useEditor()
-	const pasteAtCursor = useValue('paste at cursor', () => editor.user.getIsPasteAtCursorMode(), [
-		editor,
-	])
-
-	return (
-		<TldrawUiMenuActionCheckboxItem actionId="toggle-paste-at-cursor" checked={pasteAtCursor} />
-	)
+	return <ToggleCheckboxItem actionId="toggle-paste-at-cursor" getChecked={getIsPasteAtCursor} />
 }
+const getIsPasteAtCursor = (editor: Editor) => editor.user.getIsPasteAtCursorMode()
 
 /* ---------------------- Print --------------------- */
 

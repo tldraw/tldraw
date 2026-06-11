@@ -1058,16 +1058,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 }
 
-export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
-	const info = getArrowInfo(editor, shape)!
-
-	return info.type === 'straight'
-		? Vec.Dist(info.start.handle, info.end.handle)
-		: info.type === 'arc'
-			? Math.abs(info.handleArc.length)
-			: info.route.distance
-}
-
 const ArrowSvg = track(function ArrowSvg({
 	shape,
 	strokeColor,
