@@ -1542,7 +1542,9 @@ export const jsonValue: Validator<JsonValue> = new Validator<JsonValue>(
 			return isDifferent ? (newValue as JsonValue) : knownGoodValue
 		} else if (isPlainObject(knownGoodValue) && isPlainObject(newValue)) {
 			let isDifferent = false
-			for (const key of Object.keys(newValue)) {
+			// for...in instead of Object.keys() to avoid the key array allocation
+			for (const key in newValue) {
+				if (!hasOwnProperty(newValue, key)) continue
 				if (!hasOwnProperty(knownGoodValue, key)) {
 					isDifferent = true
 					jsonValue.validate(newValue[key])
@@ -1558,10 +1560,14 @@ export const jsonValue: Validator<JsonValue> = new Validator<JsonValue>(
 					isDifferent = true
 				}
 			}
-			for (const key of Object.keys(knownGoodValue)) {
-				if (!hasOwnProperty(newValue, key)) {
-					isDifferent = true
-					break
+			if (!isDifferent) {
+				// this loop only detects removed keys, so skip it once a difference is known
+				for (const key in knownGoodValue) {
+					if (!hasOwnProperty(knownGoodValue, key)) continue
+					if (!hasOwnProperty(newValue, key)) {
+						isDifferent = true
+						break
+					}
 				}
 			}
 			return isDifferent ? (newValue as JsonValue) : knownGoodValue
