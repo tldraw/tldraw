@@ -97,8 +97,9 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 	override onBeforeIsolateFromShape({
 		binding,
 	}: BindingOnShapeIsolateOptions<TLArrowBinding>): void {
-		if ((this.editor as Editor & { history: { isReplaying(): boolean } }).history.isReplaying())
-			return
+		// during undo/redo the history diff already contains the arrow's correct
+		// state, so adjusting the terminal here would corrupt the replay
+		if (this.editor.isReplayingHistory()) return
 
 		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
 		if (!arrow) return
