@@ -6,6 +6,7 @@ import {
 } from 'tldraw'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
 import { F } from '../../utils/i18n'
+import { TlaButton } from '../TlaButton/TlaButton'
 import styles from './TlaInviteExpiredDialog.module.css'
 
 export function TlaInviteExpiredDialog({ onClose }: { onClose(): void }) {
@@ -22,9 +23,9 @@ export function TlaInviteExpiredDialog({ onClose }: { onClose(): void }) {
 				<p className={styles.message}>
 					<F defaultMessage="Ask the workspace owner for a new one." />
 				</p>
-				<button className={styles.okButton} onClick={onClose}>
+				<TlaButton variant="cta" className={styles.okButton} onClick={onClose}>
 					<F defaultMessage="OK" />
-				</button>
+				</TlaButton>
 			</TldrawUiDialogBody>
 		</>
 	)
