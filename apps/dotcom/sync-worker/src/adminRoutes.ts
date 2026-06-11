@@ -519,7 +519,7 @@ async function getNextUnenrolledUsers(
 	return await pg
 		.selectFrom('user')
 		.where((eb) => eb.or([eb('flags', 'not like', '%groups_frontend%'), eb('flags', 'is', null)]))
-		.select(['id', 'email', 'name'])
+		.select(['id'])
 		.limit(limit)
 		.execute()
 }
@@ -599,18 +599,33 @@ async function startFrontendRollout(
 				)
 			)
 			successCount += updated
-			sendProgress('success', `Enrolled ${updated} users`, getStats())
+			if (updated === chunk.length) {
+				sendProgress('success', `Enrolled ${updated} users`, getStats())
+			} else {
+				// Shortfall = rows skipped by the already-enrolled guard: a retry
+				// whose first attempt committed, or a concurrent enrollment (e.g.
+				// invite accept). Data is correct, only the counts drift.
+				sendProgress(
+					'success',
+					`Enrolled ${updated}/${chunk.length} users in this chunk (the rest were already enrolled)`,
+					getStats()
+				)
+			}
 		} catch (error) {
 			failureCount += chunk.length
 			const errorMessage = error instanceof Error ? error.message : String(error)
 			console.error('groups UI rollout: failed to enroll chunk', errorMessage)
 
 			// 'failure' events get stored in the client's log
-			sendProgress('failure', `Failed to enroll a chunk of ${chunk.length} users`, {
-				userIds: chunk.map((u) => u.id),
-				error: errorMessage,
-				...getStats(),
-			})
+			sendProgress(
+				'failure',
+				`Failed to enroll a chunk of ${chunk.length} users (some may have been enrolled before the error)`,
+				{
+					userIds: chunk.map((u) => u.id),
+					error: errorMessage,
+					...getStats(),
+				}
+			)
 			sendProgress('summary', 'Rollout stopped due to failure', {
 				failures: [{ userIds: chunk.map((u) => u.id), error: errorMessage }],
 			})
