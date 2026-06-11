@@ -274,6 +274,21 @@ export function ingest(rawInputPoints: VecLike[], options: StrokeOptions = {}): 
 }
 
 /**
+ * Resolve a taper option to a distance: `true` tapers over the whole stroke, `false` or
+ * `undefined` not at all.
+ *
+ * @internal
+ */
+export function resolveTaper(
+	taper: number | boolean | undefined,
+	size: number,
+	totalLength: number
+): number {
+	if (!taper) return 0
+	return taper === true ? Math.max(size, totalLength) : taper
+}
+
+/**
  * Phase 2: compute each point's radius from its pressure, distance and running length.
  * Same recurrences as the object pipeline, with the taper pass folded into the main
  * radius loop.
@@ -327,19 +342,8 @@ export function computeRadii(options: StrokeOptions): void {
 		prevPressure = prevPressure + (p - prevPressure) * 0.5
 	}
 
-	const taperStart =
-		start.taper === false
-			? 0
-			: start.taper === true
-				? Math.max(size, totalLength)
-				: (start.taper as number)
-
-	const taperEnd =
-		end.taper === false
-			? 0
-			: end.taper === true
-				? Math.max(size, totalLength)
-				: (end.taper as number)
+	const taperStart = resolveTaper(start.taper, size, totalLength)
+	const taperEnd = resolveTaper(end.taper, size, totalLength)
 
 	const hasTaper = taperStart || taperEnd
 

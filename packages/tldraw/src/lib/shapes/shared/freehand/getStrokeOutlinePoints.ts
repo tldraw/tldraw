@@ -1,6 +1,7 @@
 import { Vec, VecLike } from '@tldraw/editor'
 import {
 	loadSrcFromStrokePoints,
+	resolveTaper,
 	srcCount,
 	srcInputX,
 	srcInputY,
@@ -472,19 +473,8 @@ export function outlineFromSrc(options: StrokeOptions = {}): Vec[] {
 	// The total length of the line
 	const totalLength = srcRunningLength[n - 1]
 
-	const taperStart =
-		start.taper === false
-			? 0
-			: start.taper === true
-				? Math.max(size, totalLength)
-				: (start.taper as number)
-
-	const taperEnd =
-		end.taper === false
-			? 0
-			: end.taper === true
-				? Math.max(size, totalLength)
-				: (end.taper as number)
+	const taperStart = resolveTaper(start.taper, size, totalLength)
+	const taperEnd = resolveTaper(end.taper, size, totalLength)
 
 	// Our collected left and right points
 	buildTracks(options, false, 0, 0)
