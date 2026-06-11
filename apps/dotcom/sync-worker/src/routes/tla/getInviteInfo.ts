@@ -2,6 +2,7 @@ import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { getJoinableGroupFromInvite } from '../../utils/tla/getJoinableGroupFromInvite'
 
 export async function getInviteInfo(request: IRequest, env: Environment): Promise<Response> {
 	const { token } = request.params
@@ -12,29 +13,9 @@ export async function getInviteInfo(request: IRequest, env: Environment): Promis
 	const db = createPostgresConnectionPool(env, 'getInviteInfo')
 
 	try {
-		const group = await db
-			.selectFrom('group')
-			.select(['id', 'name', 'isDeleted'])
-			.where('inviteSecret', '=', token)
-			.executeTakeFirst()
+		const group = await getJoinableGroupFromInvite(db, token)
 
-		if (!group || group.isDeleted) {
-			return Response.json(
-				{
-					error: true,
-					message: 'Invalid or expired invite token',
-				} satisfies GetInviteInfoResponseBody,
-				{ status: 404 }
-			)
-		}
-
-		// A home workspace (group id === owner's user id) can't be joined.
-		const homeOwner = await db
-			.selectFrom('user')
-			.select('id')
-			.where('id', '=', group.id)
-			.executeTakeFirst()
-		if (homeOwner) {
+		if (!group) {
 			return Response.json(
 				{
 					error: true,

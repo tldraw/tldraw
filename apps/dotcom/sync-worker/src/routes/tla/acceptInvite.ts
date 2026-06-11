@@ -5,6 +5,7 @@ import { sql } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { requireAuth } from '../../utils/tla/getAuth'
+import { getJoinableGroupFromInvite } from '../../utils/tla/getJoinableGroupFromInvite'
 
 export async function acceptInvite(request: IRequest, env: Environment): Promise<Response> {
 	const { token } = request.params
@@ -21,29 +22,9 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 	try {
 		return await db.transaction().execute(async (tx) => {
 			// First, validate the invite token and get group info
-			const group = await tx
-				.selectFrom('group')
-				.select(['id', 'name', 'isDeleted'])
-				.where('inviteSecret', '=', token)
-				.executeTakeFirst()
+			const group = await getJoinableGroupFromInvite(tx, token)
 
-			if (!group || group.isDeleted) {
-				return Response.json(
-					{
-						error: true,
-						message: 'Invalid or expired invite token',
-					} satisfies AcceptInviteResponseBody,
-					{ status: 404 }
-				)
-			}
-
-			// A home workspace (group id === owner's user id) can't be joined.
-			const homeOwner = await tx
-				.selectFrom('user')
-				.select('id')
-				.where('id', '=', group.id)
-				.executeTakeFirst()
-			if (homeOwner) {
+			if (!group) {
 				return Response.json(
 					{
 						error: true,
