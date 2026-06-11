@@ -10,7 +10,7 @@ import {
 	useEffect,
 	useState,
 } from 'react'
-import { TldrawUiButton, TldrawUiIcon, TldrawUiTooltip } from 'tldraw'
+import { TldrawUiButton, TldrawUiIcon, TldrawUiTooltip, useContainer } from 'tldraw'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './menu.module.css'
@@ -105,6 +105,7 @@ export function TlaMenuSelect<T extends string>({
 	disabled,
 	onChange,
 	options,
+	usePortal,
 	'data-testid': dataTestId,
 }: {
 	id: string
@@ -113,9 +114,13 @@ export function TlaMenuSelect<T extends string>({
 	disabled?: boolean
 	onChange(value: T): void
 	options: { value: T; label: ReactNode }[]
+	// When set, render the dropdown in a portal (popper-positioned) so it isn't
+	// clipped by / doesn't overflow a constrained container like a modal dialog.
+	usePortal?: boolean
 	'data-testid'?: string
 }) {
 	const [isOpen, setIsOpen] = useState(false)
+	const container = useContainer()
 	const handleChange = useCallback(
 		(value: string) => {
 			onChange(value as T)
@@ -171,25 +176,49 @@ export function TlaMenuSelect<T extends string>({
 						<TlaIcon icon="chevron-down" className={styles.menuSelectChevron} />
 					</_Select.Icon>
 				</_Select.Trigger>
-				<_Select.Content className={styles.menuSelectContent}>
-					<_Select.Viewport>
-						{options.map((option) => (
-							<_Select.Item
-								key={option.value}
-								className={styles.menuSelectOption}
-								value={option.value}
-							>
-								<_Select.ItemIndicator>
-									<TlaIcon icon="check" />
-								</_Select.ItemIndicator>
-								<_Select.ItemText>{option.label}</_Select.ItemText>
-							</_Select.Item>
-						))}
-					</_Select.Viewport>
-				</_Select.Content>
+				<TlaSelectPortal usePortal={usePortal} container={container}>
+					<_Select.Content
+						className={styles.menuSelectContent}
+						position={usePortal ? 'popper' : undefined}
+						side={usePortal ? 'bottom' : undefined}
+						align={usePortal ? 'end' : undefined}
+						sideOffset={usePortal ? 4 : undefined}
+						collisionPadding={usePortal ? 4 : undefined}
+					>
+						<_Select.Viewport>
+							{options.map((option) => (
+								<_Select.Item
+									key={option.value}
+									className={styles.menuSelectOption}
+									value={option.value}
+								>
+									<_Select.ItemIndicator>
+										<TlaIcon icon="check" />
+									</_Select.ItemIndicator>
+									<_Select.ItemText>{option.label}</_Select.ItemText>
+								</_Select.Item>
+							))}
+						</_Select.Viewport>
+					</_Select.Content>
+				</TlaSelectPortal>
 			</_Select.Root>
 		</div>
 	)
+}
+
+function TlaSelectPortal({
+	usePortal,
+	container,
+	children,
+}: {
+	usePortal?: boolean
+	container: HTMLElement
+	children: ReactNode
+}) {
+	if (usePortal) {
+		return <_Select.Portal container={container}>{children}</_Select.Portal>
+	}
+	return <>{children}</>
 }
 
 /* --------------------- Switch --------------------- */
