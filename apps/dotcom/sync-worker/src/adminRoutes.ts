@@ -8,13 +8,13 @@ import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
+import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 import {
 	computeUsersToEnroll,
 	computeUsersToUnenroll,
-	enrollUsersInGroupsUi,
-	unenrollUsersFromGroupsUi,
-} from './utils/groupsUiRollout'
-import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
+	enrollUsersInWorkspacesUi,
+	unenrollUsersFromWorkspacesUi,
+} from './utils/workspacesUiRollout'
 
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
@@ -127,7 +127,7 @@ export const adminRoutes = createRouter<Environment>()
 
 						const shouldStop = () => stopRequested
 
-						sendProgress('starting', 'Beginning groups UI rollout batch...')
+						sendProgress('starting', 'Beginning workspaces UI rollout batch...')
 
 						const { hasMore, failed } = await startFrontendRollout(
 							env,
@@ -570,7 +570,7 @@ async function startFrontendRollout(
 	const batchSize = 2000 // per SSE request; the client chains requests via hasMore
 	const pg = createPostgresConnectionPool(env, '/app/admin/migrate_users_batch')
 
-	sendProgress('query', 'Checking current groups UI enrollment...')
+	sendProgress('query', 'Checking current workspaces UI enrollment...')
 
 	const unenrolledUsers = await getNumUnenrolledUsers(pg)
 	const totalUsers = await getTotalUsers(pg)
@@ -595,7 +595,7 @@ async function startFrontendRollout(
 
 	sendProgress(
 		'query',
-		`${unenrolledUsers}/${totalUsers} users without the groups UI, ${verb}ing ${usersToMigrate} to reach ${percentage}%`,
+		`${unenrolledUsers}/${totalUsers} users without the workspaces UI, ${verb}ing ${usersToMigrate} to reach ${percentage}%`,
 		getStats()
 	)
 
@@ -621,7 +621,7 @@ async function startFrontendRollout(
 		try {
 			const ids = chunk.map((u) => u.id)
 			const updated = await retry(() =>
-				enrolling ? enrollUsersInGroupsUi(pg, ids) : unenrollUsersFromGroupsUi(pg, ids)
+				enrolling ? enrollUsersInWorkspacesUi(pg, ids) : unenrollUsersFromWorkspacesUi(pg, ids)
 			)
 			successCount += updated
 			if (updated === chunk.length) {
@@ -643,7 +643,7 @@ async function startFrontendRollout(
 		} catch (error) {
 			failureCount += chunk.length
 			const errorMessage = error instanceof Error ? error.message : String(error)
-			console.error(`groups UI rollout: failed to ${verb} chunk`, errorMessage)
+			console.error(`workspaces UI rollout: failed to ${verb} chunk`, errorMessage)
 
 			// 'failure' events get stored in the client's log
 			sendProgress(

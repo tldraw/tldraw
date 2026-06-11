@@ -29,7 +29,10 @@ export function buildEnrollUsersQuery(db: Kysely<DB>, userIds: string[]) {
 		.where((eb) => eb.or([eb('flags', 'not like', '%groups_frontend%'), eb('flags', 'is', null)]))
 }
 
-export async function enrollUsersInGroupsUi(db: Kysely<DB>, userIds: string[]): Promise<number> {
+export async function enrollUsersInWorkspacesUi(
+	db: Kysely<DB>,
+	userIds: string[]
+): Promise<number> {
 	if (userIds.length === 0) return 0
 	const result = await buildEnrollUsersQuery(db, userIds).executeTakeFirst()
 	return Number(result.numUpdatedRows)
@@ -64,7 +67,7 @@ export function buildUnenrollUsersQuery(db: Kysely<DB>, userIds: string[]) {
 		.where('flags', 'like', '%groups_frontend%')
 }
 
-export async function unenrollUsersFromGroupsUi(
+export async function unenrollUsersFromWorkspacesUi(
 	db: Kysely<DB>,
 	userIds: string[]
 ): Promise<number> {

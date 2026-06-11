@@ -242,10 +242,10 @@ export function Component() {
 					</section>
 				)}
 
-				{/* Groups UI rollout section */}
+				{/* Workspaces UI rollout section */}
 				<section className={styles.adminSection}>
-					<h3 className="tla-text_ui__title">Groups UI rollout</h3>
-					<RolloutGroupsFrontend />
+					<h3 className="tla-text_ui__title">Workspaces UI rollout</h3>
+					<RolloutWorkspacesUi />
 				</section>
 
 				{/* Feature Flags Section */}
@@ -796,7 +796,7 @@ function EnrollUserInGroups({
 	)
 }
 
-function RolloutGroupsFrontend() {
+function RolloutWorkspacesUi() {
 	const [isMigrating, setIsMigrating] = useState(false)
 	const [progressLog, setProgressLog] = useState<string[]>([])
 	const [error, setError] = useState(null as string | null)
@@ -885,7 +885,7 @@ function RolloutGroupsFrontend() {
 			return
 		}
 
-		const migrationMessage = `Set groups UI enrollment to ${percentage}% of all users? If more than ${percentage}% are currently enrolled, users will be UNENROLLED to reach the target.`
+		const migrationMessage = `Set workspaces UI enrollment to ${percentage}% of all users? If more than ${percentage}% are currently enrolled, users will be UNENROLLED to reach the target.`
 
 		if (!window.confirm(migrationMessage)) {
 			return
@@ -985,7 +985,7 @@ function RolloutGroupsFrontend() {
 
 	return (
 		<div className={styles.dangerZone}>
-			<h4 className="tla-text_ui__medium">Roll out groups UI</h4>
+			<h4 className="tla-text_ui__medium">Roll out workspaces UI</h4>
 
 			{/* Unenrolled users count */}
 			<div className={styles.countContainer}>
@@ -1007,9 +1007,9 @@ function RolloutGroupsFrontend() {
 			</div>
 
 			<p className="tla-text_ui__small">
-				This adjusts how many users have the groups_frontend flag (the groups UI) to match the
+				This adjusts how many users have the groups_frontend flag (the workspaces UI) to match the
 				target percentage: raising it enrolls the difference, lowering it unenrolls users —
-				including any who got the flag by accepting a group invite. Clients pick changes up live
+				including any who got the flag by accepting a workspace invite. Clients pick changes up live
 				through Zero, so no reboot is needed, and reruns with the same target are no-ops. Users are
 				updated in chunks of 200 with a configurable pause between chunks.
 			</p>

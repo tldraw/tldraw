@@ -12,7 +12,7 @@ import {
 	buildUnenrollUsersQuery,
 	computeUsersToEnroll,
 	computeUsersToUnenroll,
-} from './groupsUiRollout'
+} from './workspacesUiRollout'
 
 // Compiles queries without a database connection
 const db = new Kysely<DB>({
