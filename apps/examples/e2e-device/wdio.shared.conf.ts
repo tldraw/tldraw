@@ -23,10 +23,12 @@ export const shared: Options.Testrunner = {
 	// Generous per-request timeout: the first session creation has to build and
 	// launch WebDriverAgent on a cold simulator, which can take several minutes.
 	connectionRetryTimeout: 600_000,
-	// Do NOT retry session creation: each retry boots another simulator, and
-	// several simulators booting at once on a small CI runner causes them all to
-	// time out. One attempt with a long timeout; the spec-level retry handles
-	// genuine flakes.
+	// Allow exactly one session-creation retry (1 retry = two attempts). On iOS
+	// the first attempt can fail on Safari's slow web-inspector attach; the retry
+	// reuses the already-booted simulator and running WebDriverAgent (CI attaches
+	// by udid), so it recovers quickly. Don't raise this: when Appium owned the
+	// simulator lifecycle, stacked retries booted multiple simulators at once and
+	// they all timed out.
 	connectionRetryCount: 1,
 
 	framework: 'mocha',
