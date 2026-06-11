@@ -1,4 +1,4 @@
-import { Vec, VecLike } from '../vendor'
+import { Vec, VecLike } from '@tldraw/editor'
 import {
 	loadSrcFromStrokePoints,
 	srcCount,

@@ -1,5 +1,5 @@
-import { StrokeOptions } from '../../lib/types'
-import { VecModel } from '../../vendor'
+import { VecModel } from '@tldraw/editor'
+import { StrokeOptions } from '../../../lib/shapes/shared/freehand/types'
 import {
 	highlightSettings,
 	realPressureSettings,

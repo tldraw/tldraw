@@ -1,4 +1,4 @@
-import { Vec, VecLike } from '../vendor'
+import { Vec, VecLike } from '@tldraw/editor'
 import { computeRadii, ingest, loadSrcFromPipeline, pointCount } from './core'
 import { outlineFromSrc } from './getStrokeOutlinePoints'
 import type { StrokeOptions } from './types'

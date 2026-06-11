@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { getSvgPathFromStrokePoints } from '../lib/svg'
-import { StrokePoint } from '../lib/types'
+import { getSvgPathFromStrokePoints } from '../../lib/shapes/shared/freehand/svg'
+import { StrokePoint } from '../../lib/shapes/shared/freehand/types'
 
 function pt(x: number, y: number): StrokePoint {
 	return { point: { x, y } } as StrokePoint

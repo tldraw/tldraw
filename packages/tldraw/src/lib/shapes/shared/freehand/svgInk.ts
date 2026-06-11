@@ -1,4 +1,4 @@
-import { VecLike, assert } from '../vendor'
+import { VecLike, assert } from '@tldraw/editor'
 import {
 	computeRadii,
 	ingest,

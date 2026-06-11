@@ -7,10 +7,5 @@
 		"noImplicitReturns": false,
 		"rootDir": "src"
 	},
-	"references": [
-		{ "path": "../editor" },
-		{ "path": "../driver" },
-		{ "path": "../freehand" },
-		{ "path": "../store" }
-	]
+	"references": [{ "path": "../editor" }, { "path": "../driver" }, { "path": "../store" }]
 }

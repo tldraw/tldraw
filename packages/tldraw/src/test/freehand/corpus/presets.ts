@@ -1,4 +1,4 @@
-import { StrokeOptions } from '../../lib/types'
+import { StrokeOptions } from '../../../lib/shapes/shared/freehand/types'
 
 // These presets mirror the StrokeOptions that tldraw actually passes to the
 // freehand algorithm. See packages/tldraw/src/lib/shapes/draw/getPath.ts.

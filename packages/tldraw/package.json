@@ -61,7 +61,6 @@
 		"@tiptap/starter-kit": "^3.12.1",
 		"@tldraw/driver": "workspace:*",
 		"@tldraw/editor": "workspace:*",
-		"@tldraw/freehand": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"classnames": "^2.5.1",
 		"idb": "^7.1.1",

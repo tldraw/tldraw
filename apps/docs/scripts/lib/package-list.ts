@@ -10,5 +10,4 @@ export const TLDRAW_PACKAGES_TO_INCLUDE_IN_DOCS = [
 	'sync-core',
 	'mermaid',
 	'driver',
-	'freehand',
 ]

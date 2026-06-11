@@ -1,4 +1,4 @@
-import { Vec } from '../vendor'
+import { Vec } from '@tldraw/editor'
 
 /**
  * The options object for `getStroke` or `getStrokePoints`.

@@ -1,7 +1,7 @@
 // Real hand-drawn strokes recorded in tldraw, decoded from a snapshot's
 // delta-encoded base64 segment points (tlschema's b64Vecs format).
 /* eslint-disable no-loss-of-precision -- the literals round-trip exactly; the rule false-positives on long decimals */
-import { VecModel } from '../../vendor'
+import { VecModel } from '@tldraw/editor'
 
 function pts(flat: number[]): VecModel[] {
 	const points: VecModel[] = []

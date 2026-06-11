@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { getStrokePoints } from '../lib/getStrokePoints'
-import { getSvgPathFromStrokePoints } from '../lib/svg'
-import { svgInk } from '../lib/svgInk'
+import { getStrokePoints } from '../../lib/shapes/shared/freehand/getStrokePoints'
+import { getSvgPathFromStrokePoints } from '../../lib/shapes/shared/freehand/svg'
+import { svgInk } from '../../lib/shapes/shared/freehand/svgInk'
 import { CORPUS, CorpusCase } from './corpus/strokes'
 
 /**
