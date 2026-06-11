@@ -532,8 +532,6 @@
 
 .sidebarFileListItem {
 	background-color: transparent;
-	/* Chrome hack to enable the drag image to have a transparent background */
-	opacity: 0.999;
 	position: relative;
 	width: 100%;
 	display: flex;
@@ -545,6 +543,15 @@
 
 .sidebar[data-workspaces='true'] .sidebarFileListItem {
 	padding: 0px 4px 0px 8px;
+}
+
+/* Chrome hack: promote the pressed row to its own compositing layer so the
+   native drag image keeps a transparent background. :active fires on
+   mousedown, before dragstart takes the snapshot, so the layer exists in
+   time. translateZ(0) promotes without touching opacity, so there's no
+   color shift at all. */
+.sidebarFileListItem:active {
+	transform: translateZ(0);
 }
 
 .sidebarFileListItem[data-active='true'][data-enhanced-a11y-mode='true'] {
