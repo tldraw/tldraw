@@ -1348,6 +1348,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     _getReferencedUserIds(shapes: TLShape[]): Set<string>;
     getRenderingShapes(): TLRenderingShape[];
     getResizeScaleFactor(): number;
+    // @internal
+    getResizeShapePartial(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): null | TLShapePartial;
     getRichTextEditor(): null | TiptapEditor;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
