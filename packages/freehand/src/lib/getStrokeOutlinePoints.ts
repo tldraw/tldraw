@@ -1,4 +1,16 @@
 import { Vec, VecLike } from '../vendor'
+import {
+	loadSrcFromStrokePoints,
+	srcCount,
+	srcInputX,
+	srcInputY,
+	srcIsCap,
+	srcRadius,
+	srcRunningLength,
+	srcX,
+	srcY,
+	srcZ,
+} from './core'
 import type { StrokeOptions, StrokePoint } from './types'
 
 const { PI } = Math
@@ -25,93 +37,144 @@ const MAX_CAP_STEPS = 29
 // Dot product threshold for identifying a hard corner
 const HARD_CORNER_DPR = -0.62
 
+// ---------------------------------------------------------------------------------
+// Track buffers: the left and right outline tracks, written by `buildTracks` and read
+// either by svgInk's path writer or materialized into Vecs by the public functions.
+// Reusable and non-reentrant, like the pipeline buffers in core.ts.
+// ---------------------------------------------------------------------------------
+
+let trackCapacity = 1024
+export let trackLeftX = new Float64Array(trackCapacity)
+export let trackLeftY = new Float64Array(trackCapacity)
+export let trackRightX = new Float64Array(trackCapacity)
+export let trackRightY = new Float64Array(trackCapacity)
+export let trackLeftCount = 0
+export let trackRightCount = 0
+
+// Tracks grow while being written (corners append a variable number of points), so unlike
+// the other buffers a grow here must copy the points written so far.
+function growTracks() {
+	trackCapacity *= 2
+	const nlx = new Float64Array(trackCapacity)
+	nlx.set(trackLeftX)
+	trackLeftX = nlx
+	const nly = new Float64Array(trackCapacity)
+	nly.set(trackLeftY)
+	trackLeftY = nly
+	const nrx = new Float64Array(trackCapacity)
+	nrx.set(trackRightX)
+	trackRightX = nrx
+	const nry = new Float64Array(trackCapacity)
+	nry.set(trackRightY)
+	trackRightY = nry
+}
+
 /**
  * Drop track points that lie within tolderance (`tol`) of the segment between their kept neighbors.
  * The outline tracks are dense on gentle curves and straight runs where the quadratic smoothing
  * used for rendering needs far fewer points; this keeps the simplified polyline within `tol` of
- * the original one.
+ * the original one. Works in place: kept points are compacted toward the front of the arrays.
  *
- * @param pts - The points of the track to simplify
+ * @param xs - The x coordinates of the track to simplify
+ * @param ys - The y coordinates of the track to simplify
+ * @param len - The number of points in the track
  * @param tol - The tolerance
  *
- * @returns The simplified points.
+ * @returns The number of points in the simplified track.
  */
-function simplifyTrack(pts: Vec[], tol: number): Vec[] {
-	if (pts.length <= 2 || tol <= 0) return pts
+function simplifyTrack(xs: Float64Array, ys: Float64Array, len: number, tol: number): number {
+	if (len <= 2 || tol <= 0) return len
 	const tol2 = tol * tol
-	const out: Vec[] = [pts[0]]
+	let out = 1
 	let anchor = 0
-	const lastIdx = pts.length - 1
+	const lastIdx = len - 1
 	while (anchor < lastIdx) {
 		let best = anchor + 1
 		const maxJ = anchor + SIMPLIFY_WINDOW > lastIdx ? lastIdx : anchor + SIMPLIFY_WINDOW
-		const a = pts[anchor]
+		const ax = xs[anchor]
+		const ay = ys[anchor]
 		outer: for (let j = anchor + 2; j <= maxJ; j++) {
-			const c = pts[j]
-			const acx = c.x - a.x
-			const acy = c.y - a.y
+			const acx = xs[j] - ax
+			const acy = ys[j] - ay
 			const l2 = acx * acx + acy * acy
 			for (let k = anchor + 1; k < j; k++) {
-				const b = pts[k]
-				let t = l2 === 0 ? 0 : ((b.x - a.x) * acx + (b.y - a.y) * acy) / l2
+				let t = l2 === 0 ? 0 : ((xs[k] - ax) * acx + (ys[k] - ay) * acy) / l2
 				t = t < 0 ? 0 : t > 1 ? 1 : t
-				const ex = b.x - (a.x + acx * t)
-				const ey = b.y - (a.y + acy * t)
+				const ex = xs[k] - (ax + acx * t)
+				const ey = ys[k] - (ay + acy * t)
 				if (ex * ex + ey * ey > tol2) break outer
 			}
 			best = j
 		}
-		out.push(pts[best])
+		// Compaction never overtakes the read cursor: the `out`th kept index is always >= out.
+		xs[out] = xs[best]
+		ys[out] = ys[best]
+		out++
 		anchor = best
 	}
 	return out
 }
 
 /**
- * @internal
+ * Build the left and right outline tracks for the stroke points currently loaded in the
+ * track-source buffers, into the track buffers. This is the array core of
+ * `getStrokeOutlineTracks`.
  *
- * `vectorAnchor` is the original predecessor of `strokePoints[1]` when the caller has cut or
- * altered the sequence in front of it (svgInk's elbow partitions): the second point's vector is
- * derived from the anchor rather than from `strokePoints[0]`, preserving the direction it had in
- * the uncut stroke. It only applies when there are more than two points; two-point sequences
- * derive both vectors from each other.
+ * `hasAnchor`/`anchorX`/`anchorY` carry the original predecessor of point 1 when the
+ * caller has cut or altered the sequence in front of it (svgInk's elbow partitions): the
+ * second point's vector is derived from the anchor rather than from point 0, preserving
+ * the direction it had in the uncut stroke. It only applies when there are more than two
+ * points; two-point sequences derive both vectors from each other.
+ *
+ * @internal
  */
-export function getStrokeOutlineTracks(
-	strokePoints: StrokePoint[],
-	options: StrokeOptions = {},
-	vectorAnchor?: VecLike
-): { left: Vec[]; right: Vec[] } {
+export function buildTracks(
+	options: StrokeOptions,
+	hasAnchor: boolean,
+	anchorX: number,
+	anchorY: number
+): void {
 	const { size = 16, smoothing = 0.5 } = options
 
-	// We can't do anything with an empty array or a stroke with negative size.
-	if (strokePoints.length === 0 || size <= 0) {
-		return { left: [], right: [] }
-	}
+	let lc = 0
+	let rc = 0
+	trackLeftCount = 0
+	trackRightCount = 0
 
-	const firstStrokePoint = strokePoints[0]
-	const lastStrokePoint = strokePoints[strokePoints.length - 1]
+	const n = srcCount
+
+	// We can't do anything with an empty array or a stroke with negative size.
+	if (n === 0 || size <= 0) return
+
+	// Local captures of the source buffers, hoisting the binding reads out of the loop.
+	// The track buffers can grow mid-loop, so those are re-captured after growth.
+	const sx = srcX
+	const sy = srcY
+	const six = srcInputX
+	const siy = srcInputY
+	const sr = srcRadius
+	const srl = srcRunningLength
+	const scap = srcIsCap
+	let lxs = trackLeftX
+	let lys = trackLeftY
+	let rxs = trackRightX
+	let rys = trackRightY
 
 	// The total length of the line
-	const totalLength = lastStrokePoint.runningLength
+	const totalLength = srl[n - 1]
 
 	// The minimum allowed distance between points (squared)
 	const minDistance = Math.pow(size * smoothing, 2)
 
-	// Our collected left and right points
-	const leftPts: Vec[] = []
-	const rightPts: Vec[] = []
-
-	const n = strokePoints.length
-
 	// Stroke point vectors are derived on the fly from consecutive points: a point's vector is
-	// the unit vector pointing back at its predecessor, `uni(prev.point - point)` (matching what
-	// getStrokePoints used to store). The first point shares the second point's vector; a lone
-	// point keeps the legacy unnormalized (1, 1).
+	// the unit vector pointing back at its predecessor (matching what getStrokePoints used to
+	// store). The first point shares the second point's vector; a lone point keeps the legacy
+	// unnormalized (1, 1).
 	let curVecX = 1
 	let curVecY = 1
 	if (n > 1) {
-		const dx = strokePoints[0].point.x - strokePoints[1].point.x
-		const dy = strokePoints[0].point.y - strokePoints[1].point.y
+		const dx = sx[0] - sx[1]
+		const dy = sy[0] - sy[1]
 		const l = (dx * dx + dy * dy) ** 0.5
 		if (l === 0) {
 			curVecX = dx
@@ -127,8 +190,8 @@ export function getStrokeOutlineTracks(
 	let prevVecY = curVecY
 
 	// Previous left and right points
-	let plx = strokePoints[0].point.x
-	let ply = strokePoints[0].point.y
+	let plx = sx[0]
+	let ply = sy[0]
 	let prx = plx
 	let pry = ply
 
@@ -149,11 +212,10 @@ export function getStrokeOutlineTracks(
     skipping the first and last pointsm, which will get caps later on.
   */
 
-	let strokePoint: StrokePoint
-
 	for (let i = 0; i < n; i++) {
-		strokePoint = strokePoints[i]
-		const point = strokePoint.point
+		const pointX = sx[i]
+		const pointY = sy[i]
+		const radius = sr[i]
 		const vecX = curVecX
 		const vecY = curVecY
 
@@ -162,9 +224,10 @@ export function getStrokeOutlineTracks(
 		let nextVecX = vecX
 		let nextVecY = vecY
 		if (i < n - 1) {
-			const from = i === 0 && n > 2 && vectorAnchor ? vectorAnchor : point
-			const dx = from.x - strokePoints[i + 1].point.x
-			const dy = from.y - strokePoints[i + 1].point.y
+			const fromX = i === 0 && n > 2 && hasAnchor ? anchorX : pointX
+			const fromY = i === 0 && n > 2 && hasAnchor ? anchorY : pointY
+			const dx = fromX - sx[i + 1]
+			const dy = fromY - sy[i + 1]
 			const l = (dx * dx + dy * dy) ** 0.5
 			if (l === 0) {
 				nextVecX = dx
@@ -176,6 +239,18 @@ export function getStrokeOutlineTracks(
 		}
 		curVecX = nextVecX
 		curVecY = nextVecY
+
+		// Make sure a corner's worth of points will fit on each side.
+		if (
+			lc + MAX_ROUNDED_CORNER_STEPS + 1 > trackCapacity ||
+			rc + MAX_ROUNDED_CORNER_STEPS + 1 > trackCapacity
+		) {
+			growTracks()
+			lxs = trackLeftX
+			lys = trackLeftY
+			rxs = trackRightX
+			rys = trackRightY
+		}
 
 		/*
       Handle sharp corners
@@ -196,51 +271,56 @@ export function getStrokeOutlineTracks(
 			// Considering saving these and drawing them later? So that we can avoid
 			// crossing future points.
 
-			if (
-				nextDpr > HARD_CORNER_DPR &&
-				totalLength - strokePoint.runningLength > strokePoint.radius
-			) {
+			if (nextDpr > HARD_CORNER_DPR && totalLength - srl[i] > radius) {
 				// Draw a "soft" corner
-				const offsetX = prevVecX * strokePoint.radius
-				const offsetY = prevVecY * strokePoint.radius
+				const offsetX = prevVecX * radius
+				const offsetY = prevVecY * radius
 				const cpr = prevVecX * nextVecY - prevVecY * nextVecX
 
 				if (cpr < 0) {
-					tlx = point.x + offsetX
-					tly = point.y + offsetY
-					trx = point.x - offsetX
-					trY = point.y - offsetY
+					tlx = pointX + offsetX
+					tly = pointY + offsetY
+					trx = pointX - offsetX
+					trY = pointY - offsetY
 				} else {
-					tlx = point.x - offsetX
-					tly = point.y - offsetY
-					trx = point.x + offsetX
-					trY = point.y + offsetY
+					tlx = pointX - offsetX
+					tly = pointY - offsetY
+					trx = pointX + offsetX
+					trY = pointY + offsetY
 				}
 
-				leftPts.push(new Vec(tlx, tly))
-				rightPts.push(new Vec(trx, trY))
+				lxs[lc] = tlx
+				lys[lc] = tly
+				lc++
+				rxs[rc] = trx
+				rys[rc] = trY
+				rc++
 			} else {
 				// Draw a "sharp" corner: rotate around the input point
-				const inputX = strokePoint.input.x
-				const inputY = strokePoint.input.y
+				const inX = six[i]
+				const inY = siy[i]
 				// start = input - per(prevVector) * radius
-				const dx = -prevVecY * strokePoint.radius
-				const dy = prevVecX * strokePoint.radius
+				const dx = -prevVecY * radius
+				const dy = prevVecX * radius
 
 				for (let step = 1 / MAX_ROUNDED_CORNER_STEPS, t = 0; t < 1; t += step) {
 					let angle = FIXED_PI * t
 					let s = Math.sin(angle)
 					let c = Math.cos(angle)
-					tlx = inputX + (dx * c - dy * s)
-					tly = inputY + (dx * s + dy * c)
-					leftPts.push(new Vec(tlx, tly))
+					tlx = inX + (dx * c - dy * s)
+					tly = inY + (dx * s + dy * c)
+					lxs[lc] = tlx
+					lys[lc] = tly
+					lc++
 
 					angle = FIXED_PI + FIXED_PI * -t
 					s = Math.sin(angle)
 					c = Math.cos(angle)
-					trx = inputX + (dx * c - dy * s)
-					trY = inputY + (dx * s + dy * c)
-					rightPts.push(new Vec(trx, trY))
+					trx = inX + (dx * c - dy * s)
+					trY = inY + (dx * s + dy * c)
+					rxs[rc] = trx
+					rys[rc] = trY
+					rc++
 				}
 			}
 
@@ -258,12 +338,16 @@ export function getStrokeOutlineTracks(
 
 		isPrevPointSharpCorner = false
 
-		if (strokePoint === firstStrokePoint || strokePoint === lastStrokePoint) {
+		if (scap[i]) {
 			// offset = per(vector) * radius
-			const offsetX = vecY * strokePoint.radius
-			const offsetY = -vecX * strokePoint.radius
-			leftPts.push(new Vec(point.x - offsetX, point.y - offsetY))
-			rightPts.push(new Vec(point.x + offsetX, point.y + offsetY))
+			const offsetX = vecY * radius
+			const offsetY = -vecX * radius
+			lxs[lc] = pointX - offsetX
+			lys[lc] = pointY - offsetY
+			lc++
+			rxs[rc] = pointX + offsetX
+			rys[rc] = pointY + offsetY
+			rc++
 
 			continue
 		}
@@ -281,23 +365,27 @@ export function getStrokeOutlineTracks(
 		// offset = lerp(nextVector, vector, nextDpr).per() * radius
 		const lerpedX = nextVecX + (vecX - nextVecX) * nextDpr
 		const lerpedY = nextVecY + (vecY - nextVecY) * nextDpr
-		const offsetX = lerpedY * strokePoint.radius
-		const offsetY = -lerpedX * strokePoint.radius
+		const offsetX = lerpedY * radius
+		const offsetY = -lerpedX * radius
 
-		tlx = point.x - offsetX
-		tly = point.y - offsetY
+		tlx = pointX - offsetX
+		tly = pointY - offsetY
 
 		if (i <= 1 || (plx - tlx) ** 2 + (ply - tly) ** 2 > minDistance) {
-			leftPts.push(new Vec(tlx, tly))
+			lxs[lc] = tlx
+			lys[lc] = tly
+			lc++
 			plx = tlx
 			ply = tly
 		}
 
-		trx = point.x + offsetX
-		trY = point.y + offsetY
+		trx = pointX + offsetX
+		trY = pointY + offsetY
 
 		if (i <= 1 || (prx - trx) ** 2 + (pry - trY) ** 2 > minDistance) {
-			rightPts.push(new Vec(trx, trY))
+			rxs[rc] = trx
+			rys[rc] = trY
+			rc++
 			prx = trx
 			pry = trY
 		}
@@ -307,18 +395,47 @@ export function getStrokeOutlineTracks(
 		prevVecY = vecY
 	}
 
-	/*
-    Return the points in the correct winding order: begin on the left side, then
-    continue around the end cap, then come back along the right side, and finally
-    complete the start cap.
-  */
-
 	const tolerance = size * TRACK_TOLERANCE_RATIO
 
-	return {
-		left: simplifyTrack(leftPts, tolerance),
-		right: simplifyTrack(rightPts, tolerance),
+	trackLeftCount = simplifyTrack(trackLeftX, trackLeftY, lc, tolerance)
+	trackRightCount = simplifyTrack(trackRightX, trackRightY, rc, tolerance)
+}
+
+/**
+ * @internal
+ *
+ * `vectorAnchor` is the original predecessor of `strokePoints[1]` when the caller has cut or
+ * altered the sequence in front of it (svgInk's elbow partitions): the second point's vector is
+ * derived from the anchor rather than from `strokePoints[0]`, preserving the direction it had in
+ * the uncut stroke. It only applies when there are more than two points; two-point sequences
+ * derive both vectors from each other.
+ */
+export function getStrokeOutlineTracks(
+	strokePoints: StrokePoint[],
+	options: StrokeOptions = {},
+	vectorAnchor?: VecLike
+): { left: Vec[]; right: Vec[] } {
+	loadSrcFromStrokePoints(strokePoints)
+	buildTracks(
+		options,
+		!!vectorAnchor,
+		vectorAnchor ? vectorAnchor.x : 0,
+		vectorAnchor ? vectorAnchor.y : 0
+	)
+
+	const lxs = trackLeftX
+	const lys = trackLeftY
+	const rxs = trackRightX
+	const rys = trackRightY
+	const left: Vec[] = new Array(trackLeftCount)
+	for (let i = 0; i < trackLeftCount; i++) {
+		left[i] = new Vec(lxs[i], lys[i])
 	}
+	const right: Vec[] = new Array(trackRightCount)
+	for (let i = 0; i < trackRightCount; i++) {
+		right[i] = new Vec(rxs[i], rys[i])
+	}
+	return { left, right }
 }
 
 /** Pick a step count for a polygonal arc so its chord error stays within `tol`. */
@@ -330,33 +447,27 @@ function arcSteps(radius: number, sweep: number, tol: number, min: number, max: 
 }
 
 /**
- * ## getStrokeOutlinePoints
+ * Build the full outline (tracks plus caps) for the stroke points currently loaded in the
+ * track-source buffers. This is the shared core of `getStrokeOutlinePoints` and
+ * `getStroke`.
  *
- * Get an array of points (as `[x, y]`) representing the outline of a stroke.
- *
- * @param points - An array of StrokePoints as returned from `getStrokePoints`.
- * @param options - An object with options.
- * @public
+ * @internal
  */
-export function getStrokeOutlinePoints(
-	strokePoints: StrokePoint[],
-	options: StrokeOptions = {}
-): Vec[] {
+export function outlineFromSrc(options: StrokeOptions = {}): Vec[] {
 	const { size = 16, start = {}, end = {}, last: isComplete = false } = options
 
 	const { cap: capStart = true } = start
 	const { cap: capEnd = true } = end
 
+	const n = srcCount
+
 	// We can't do anything with an empty array or a stroke with negative size.
-	if (strokePoints.length === 0 || size <= 0) {
+	if (n === 0 || size <= 0) {
 		return []
 	}
 
-	const firstStrokePoint = strokePoints[0]
-	const lastStrokePoint = strokePoints[strokePoints.length - 1]
-
 	// The total length of the line
-	const totalLength = lastStrokePoint.runningLength
+	const totalLength = srcRunningLength[n - 1]
 
 	const taperStart =
 		start.taper === false
@@ -372,28 +483,18 @@ export function getStrokeOutlinePoints(
 				? Math.max(size, totalLength)
 				: (end.taper as number)
 
-	// The minimum allowed distance between points (squared)
 	// Our collected left and right points
-	const { left: leftPts, right: rightPts } = getStrokeOutlineTracks(strokePoints, options)
+	buildTracks(options, false, 0, 0)
 
 	// Chord tolerance for the polygonal caps below: caps don't need a fixed number of segments,
 	// they need enough segments that the polygon is indistinguishable from the arc.
 	const capTolerance = Math.max(0.05, size * 0.02)
 
-	/*
-    Drawing caps
-
-    Now that we have our points on either side of the line, we need to
-    draw caps at the start and end. Tapered lines don't have caps, but
-    may have dots for very short lines.
-  */
-
-	const firstPoint = firstStrokePoint.point
+	const firstRadius = srcRadius[0]
+	const firstPoint = new Vec(srcX[0], srcY[0], srcZ[0])
 
 	const lastPoint =
-		strokePoints.length > 1
-			? strokePoints[strokePoints.length - 1].point
-			: Vec.AddXY(firstStrokePoint.point, 1, 1)
+		n > 1 ? new Vec(srcX[n - 1], srcY[n - 1], srcZ[n - 1]) : Vec.AddXY(firstPoint, 1, 1)
 
 	/*
     Draw a dot for very short or completed strokes
@@ -404,15 +505,15 @@ export function getStrokeOutlinePoints(
     we can just return those points.
   */
 
-	if (strokePoints.length === 1) {
+	if (n === 1) {
 		if (!(taperStart || taperEnd) || isComplete) {
 			const start = Vec.Add(
 				firstPoint,
-				Vec.Sub(firstPoint, lastPoint).uni().per().mul(-firstStrokePoint.radius)
+				Vec.Sub(firstPoint, lastPoint).uni().per().mul(-firstRadius)
 			)
 			const dotPts: Vec[] = []
 			const steps = arcSteps(
-				firstStrokePoint.radius,
+				firstRadius,
 				FIXED_PI * 2,
 				capTolerance,
 				MIN_ROUNDED_CORNER_STEPS,
@@ -435,18 +536,19 @@ export function getStrokeOutlinePoints(
   */
 
 	const startCap: Vec[] = []
-	if (taperStart || (taperEnd && strokePoints.length === 1)) {
+	if (taperStart || (taperEnd && n === 1)) {
 		// The start point is tapered, noop
 	} else if (capStart) {
 		// Draw the round cap - rotate the right point around the start point to the left point
-		const steps = arcSteps(firstStrokePoint.radius, FIXED_PI, capTolerance, 4, 8)
+		const firstRight = new Vec(trackRightX[0], trackRightY[0])
+		const steps = arcSteps(firstRadius, FIXED_PI, capTolerance, 4, 8)
 		for (let step = 1 / steps, t = step; t <= 1; t += step) {
-			const pt = Vec.RotWith(rightPts[0], firstPoint, FIXED_PI * t)
+			const pt = Vec.RotWith(firstRight, firstPoint, FIXED_PI * t)
 			startCap.push(pt)
 		}
 	} else {
 		// Draw the flat cap - add a point to the left and right of the start point
-		const cornersVector = Vec.Sub(leftPts[0], rightPts[0])
+		const cornersVector = new Vec(trackLeftX[0] - trackRightX[0], trackLeftY[0] - trackRightY[0])
 		const offsetA = Vec.Mul(cornersVector, 0.5)
 		const offsetB = Vec.Mul(cornersVector, 0.51)
 
@@ -469,14 +571,15 @@ export function getStrokeOutlinePoints(
   */
 
 	const endCap: Vec[] = []
+	const lastRadius = srcRadius[n - 1]
 
 	// direction = lastVector.per().neg(), with the last point's vector derived from its
 	// predecessor, `uni(prev.point - point)` (a lone point keeps the legacy (1, 1)).
 	let lastVecX = 1
 	let lastVecY = 1
-	if (strokePoints.length > 1) {
-		const dx = strokePoints[strokePoints.length - 2].point.x - lastStrokePoint.point.x
-		const dy = strokePoints[strokePoints.length - 2].point.y - lastStrokePoint.point.y
+	if (n > 1) {
+		const dx = srcX[n - 2] - srcX[n - 1]
+		const dy = srcY[n - 2] - srcY[n - 1]
 		const l = (dx * dx + dy * dy) ** 0.5
 		if (l === 0) {
 			lastVecX = dx
@@ -488,29 +591,23 @@ export function getStrokeOutlinePoints(
 	}
 	const direction = new Vec(-lastVecY, lastVecX)
 
-	if (taperEnd || (taperStart && strokePoints.length === 1)) {
+	if (taperEnd || (taperStart && n === 1)) {
 		// Tapered end - push the last point to the line
 		endCap.push(lastPoint)
 	} else if (capEnd) {
 		// Draw the round end cap
-		const start = Vec.Add(lastPoint, Vec.Mul(direction, lastStrokePoint.radius))
-		const steps = arcSteps(
-			lastStrokePoint.radius,
-			FIXED_PI * 3,
-			capTolerance,
-			MIN_CAP_STEPS,
-			MAX_CAP_STEPS
-		)
+		const start = Vec.Add(lastPoint, Vec.Mul(direction, lastRadius))
+		const steps = arcSteps(lastRadius, FIXED_PI * 3, capTolerance, MIN_CAP_STEPS, MAX_CAP_STEPS)
 		for (let step = 1 / steps, t = step; t < 1; t += step) {
 			endCap.push(Vec.RotWith(start, lastPoint, FIXED_PI * 3 * t))
 		}
 	} else {
 		// Draw the flat end cap
 		endCap.push(
-			Vec.Add(lastPoint, Vec.Mul(direction, lastStrokePoint.radius)),
-			Vec.Add(lastPoint, Vec.Mul(direction, lastStrokePoint.radius * 0.99)),
-			Vec.Sub(lastPoint, Vec.Mul(direction, lastStrokePoint.radius * 0.99)),
-			Vec.Sub(lastPoint, Vec.Mul(direction, lastStrokePoint.radius))
+			Vec.Add(lastPoint, Vec.Mul(direction, lastRadius)),
+			Vec.Add(lastPoint, Vec.Mul(direction, lastRadius * 0.99)),
+			Vec.Sub(lastPoint, Vec.Mul(direction, lastRadius * 0.99)),
+			Vec.Sub(lastPoint, Vec.Mul(direction, lastRadius))
 		)
 	}
 
@@ -520,5 +617,35 @@ export function getStrokeOutlinePoints(
     complete the start cap.
   */
 
-	return leftPts.concat(endCap, rightPts.reverse(), startCap)
+	const lxs = trackLeftX
+	const lys = trackLeftY
+	const rxs = trackRightX
+	const rys = trackRightY
+	const leftPts: Vec[] = new Array(trackLeftCount)
+	for (let i = 0; i < trackLeftCount; i++) {
+		leftPts[i] = new Vec(lxs[i], lys[i])
+	}
+	const rightPtsReversed: Vec[] = new Array(trackRightCount)
+	for (let i = 0; i < trackRightCount; i++) {
+		rightPtsReversed[i] = new Vec(rxs[trackRightCount - 1 - i], rys[trackRightCount - 1 - i])
+	}
+
+	return leftPts.concat(endCap, rightPtsReversed, startCap)
+}
+
+/**
+ * ## getStrokeOutlinePoints
+ *
+ * Get an array of points (as `[x, y]`) representing the outline of a stroke.
+ *
+ * @param points - An array of StrokePoints as returned from `getStrokePoints`.
+ * @param options - An object with options.
+ * @public
+ */
+export function getStrokeOutlinePoints(
+	strokePoints: StrokePoint[],
+	options: StrokeOptions = {}
+): Vec[] {
+	loadSrcFromStrokePoints(strokePoints)
+	return outlineFromSrc(options)
 }

@@ -10,7 +10,15 @@ const easeOutCubic = (t: number) => --t * t * t + 1
 // This is the rate of change for simulated pressure. It could be an option.
 const RATE_OF_PRESSURE_CHANGE = 0.275
 
-/** @public */
+/**
+ * Set the radius on materialized StrokePoints. This must stay in lockstep with
+ * `computeRadii` in core.ts, which runs the same recurrences over the pipeline buffers
+ * for the fused getStroke/svgInk paths: this object form exists because the points are
+ * already materialized here, and mutating them in place beats a round-trip through the
+ * buffers.
+ *
+ * @public
+ */
 export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions) {
 	const {
 		size = 16,
@@ -26,7 +34,6 @@ export function setStrokePointRadii(strokePoints: StrokePoint[], options: Stroke
 
 	const totalLength = strokePoints[strokePoints.length - 1].runningLength
 
-	let firstRadius: number | undefined
 	let prevPressure = strokePoints[0].pressure
 	let strokePoint: StrokePoint
 
@@ -54,39 +61,6 @@ export function setStrokePointRadii(strokePoints: StrokePoint[], options: Stroke
 			}
 			prevPressure = prevPressure + (p - prevPressure) * 0.5
 		}
-
-		// Now calculate pressure and radius for each point
-		for (let i = 0; i < strokePoints.length; i++) {
-			strokePoint = strokePoints[i]
-			if (thinning) {
-				let { pressure } = strokePoint
-				const sp = min(1, strokePoint.distance / size)
-				if (simulatePressure) {
-					// If we're simulating pressure, then do so based on the distance
-					// between the current point and the previous point, and the size
-					// of the stroke.
-					const rp = min(1, 1 - sp)
-					pressure = min(1, prevPressure + (rp - prevPressure) * (sp * RATE_OF_PRESSURE_CHANGE))
-				} else {
-					// Otherwise, use the input pressure slightly smoothed based on the
-					// distance between the current point and the previous point.
-					pressure = min(
-						1,
-						prevPressure + (pressure - prevPressure) * (sp * RATE_OF_PRESSURE_CHANGE)
-					)
-				}
-
-				strokePoint.radius = size * easing(0.5 - thinning * (0.5 - pressure))
-
-				prevPressure = pressure
-			} else {
-				strokePoint.radius = size / 2
-			}
-
-			if (firstRadius === undefined) {
-				firstRadius = strokePoint.radius
-			}
-		}
 	}
 
 	const taperStart =
@@ -103,14 +77,40 @@ export function setStrokePointRadii(strokePoints: StrokePoint[], options: Stroke
 				? Math.max(size, totalLength)
 				: (end.taper as number)
 
-	if (taperStart || taperEnd) {
-		for (let i = 0; i < strokePoints.length; i++) {
-			strokePoint = strokePoints[i]
+	const hasTaper = taperStart || taperEnd
+
+	// Now calculate pressure and radius for each point. If the point falls within a taper
+	// distance from either end, scale its radius by the smaller taper strength.
+	for (let i = 0; i < strokePoints.length; i++) {
+		strokePoint = strokePoints[i]
+		if (thinning) {
+			let { pressure } = strokePoint
+			const sp = min(1, strokePoint.distance / size)
+			if (simulatePressure) {
+				// If we're simulating pressure, then do so based on the distance
+				// between the current point and the previous point, and the size
+				// of the stroke.
+				const rp = min(1, 1 - sp)
+				pressure = min(1, prevPressure + (rp - prevPressure) * (sp * RATE_OF_PRESSURE_CHANGE))
+			} else {
+				// Otherwise, use the input pressure slightly smoothed based on the
+				// distance between the current point and the previous point.
+				pressure = min(1, prevPressure + (pressure - prevPressure) * (sp * RATE_OF_PRESSURE_CHANGE))
+			}
+
+			strokePoint.radius = size * easing(0.5 - thinning * (0.5 - pressure))
+
+			prevPressure = pressure
+		} else {
+			strokePoint.radius = size / 2
+		}
+
+		if (hasTaper) {
 			/*
 				Apply tapering
 
 				If the current length is within the taper distance at either the
-				start or the end, calculate the taper strengths. Apply the smaller 
+				start or the end, calculate the taper strengths. Apply the smaller
 				of the two taper strengths to the radius.
 			*/
 

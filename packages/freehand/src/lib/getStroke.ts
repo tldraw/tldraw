@@ -1,7 +1,6 @@
 import { Vec, VecLike } from '../vendor'
-import { getStrokeOutlinePoints } from './getStrokeOutlinePoints'
-import { getStrokePoints } from './getStrokePoints'
-import { setStrokePointRadii } from './setStrokePointRadii'
+import { computeRadii, ingest, loadSrcFromPipeline, pointCount } from './core'
+import { outlineFromSrc } from './getStrokeOutlinePoints'
 import type { StrokeOptions } from './types'
 
 /**
@@ -16,8 +15,9 @@ import type { StrokeOptions } from './types'
  */
 
 export function getStroke(points: VecLike[], options: StrokeOptions = {}): Vec[] {
-	return getStrokeOutlinePoints(
-		setStrokePointRadii(getStrokePoints(points, options), options),
-		options
-	)
+	ingest(points, options)
+	if (pointCount === 0) return []
+	computeRadii(options)
+	loadSrcFromPipeline()
+	return outlineFromSrc(options)
 }

@@ -22,7 +22,7 @@ export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptio
 // @public
 export function getSvgPathFromStrokePoints(points: StrokePoint[], closed?: boolean): string;
 
-// @public (undocumented)
+// @public
 export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
 
 // @public
