@@ -1,4 +1,4 @@
-import { stopEventPropagation, useEditor, useValue } from 'tldraw'
+import { useEditor, useValue } from 'tldraw'
 import { ANNOTATION_TOOL_ID } from '../annotate/AnnotationTool'
 
 /**
@@ -16,7 +16,7 @@ export function AnnotateControl() {
 	)
 
 	return (
-		<div className="AnnotateControl" onPointerDown={stopEventPropagation}>
+		<div className="AnnotateControl" onPointerDown={editor.markEventAsHandled}>
 			<button
 				className={
 					'AnnotateControl-button' + (isAnnotating ? ' AnnotateControl-button_active' : '')
