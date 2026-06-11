@@ -8,6 +8,7 @@ import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
+import { computeUsersToEnroll, enrollUsersInGroupsUi } from './utils/groupsUiRollout'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 async function requireUser(env: Environment, q: string) {
@@ -536,22 +537,6 @@ async function getTotalUsers(pg: ReturnType<typeof createPostgresConnectionPool>
 	return res.rows[0].count
 }
 
-async function enrollUsersInGroupsUi(
-	pg: ReturnType<typeof createPostgresConnectionPool>,
-	userIds: string[]
-): Promise<number> {
-	if (userIds.length === 0) return 0
-	const result = await pg
-		.updateTable('user')
-		.set({
-			flags: sql<string>`case when coalesce(flags, '') = '' then 'groups_frontend' else flags || ',groups_frontend' end`,
-		})
-		.where('id', 'in', userIds)
-		.where((eb) => eb.or([eb('flags', 'not like', '%groups_frontend%'), eb('flags', 'is', null)]))
-		.executeTakeFirst()
-	return Number(result.numUpdatedRows)
-}
-
 async function startFrontendRollout(
 	env: Environment,
 	sendProgress: (step: string, message: string, details?: any) => void,
@@ -570,10 +555,7 @@ async function startFrontendRollout(
 
 	const unenrolledUsers = await getNumUnenrolledUsers(pg)
 	const totalUsers = await getTotalUsers(pg)
-	// Target recomputed from the db each request, so reruns are idempotent and
-	// a higher percentage just tops up the difference.
-	const targetEnrolled = Math.floor((totalUsers * percentage) / 100)
-	const usersToMigrate = Math.max(0, targetEnrolled - (totalUsers - unenrolledUsers))
+	const usersToMigrate = computeUsersToEnroll(totalUsers, unenrolledUsers, percentage)
 	let successCount = 0
 	let failureCount = 0
 
@@ -646,7 +628,7 @@ async function startFrontendRollout(
 	// More requests needed if we're still below the target
 	const stillUnenrolled = await getNumUnenrolledUsers(pg)
 	return {
-		hasMore: !shouldStop() && stillUnenrolled > 0 && totalUsers - stillUnenrolled < targetEnrolled,
+		hasMore: !shouldStop() && computeUsersToEnroll(totalUsers, stillUnenrolled, percentage) > 0,
 		failed: false,
 	}
 }
