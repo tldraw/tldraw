@@ -5,6 +5,7 @@ import {
 	defaultShapeUtils,
 	defaultTools,
 	Editor,
+	TLAnyShapeUtilConstructor,
 	createTLStore,
 	tipTapDefaultExtensions,
 } from 'tldraw'
@@ -12,19 +13,21 @@ import {
 /**
  * A minimal headless editor for unit tests. Mirrors the essentials of the SDK's own
  * `TestEditor` — a sized container and a deterministic text-measurer (jsdom can't
- * measure text) — without pulling in its internal-only dependencies.
+ * measure text) — without pulling in its internal-only dependencies. Pass extra shape
+ * utils to register custom shapes (e.g. the marketing-asset shape).
  */
-export function makeEditor(): Editor {
+export function makeEditor(extraShapeUtils: TLAnyShapeUtilConstructor[] = []): Editor {
+	const shapeUtils = [...defaultShapeUtils, ...extraShapeUtils]
 	const elm = document.createElement('div')
 	const bounds = { x: 0, y: 0, top: 0, left: 0, width: 1080, height: 720, bottom: 720, right: 1080 }
 	elm.getBoundingClientRect = () => bounds as DOMRect
 	document.body.appendChild(elm)
 
 	const editor = new Editor({
-		shapeUtils: defaultShapeUtils,
+		shapeUtils,
 		bindingUtils: defaultBindingUtils,
 		tools: [...defaultTools, ...defaultShapeTools],
-		store: createTLStore({ shapeUtils: defaultShapeUtils, bindingUtils: defaultBindingUtils }),
+		store: createTLStore({ shapeUtils, bindingUtils: defaultBindingUtils }),
 		getContainer: () => elm,
 		initialState: 'select',
 		options: {

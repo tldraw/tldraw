@@ -1,4 +1,4 @@
-import { AssetRecordType, atom, createShapeId, Editor, TLAssetId, TLShapeId } from 'tldraw'
+import { AssetRecordType, atom, createShapeId, Editor, TLShapeId } from 'tldraw'
 import { ReadAnnotation, deleteAnnotations, readAnnotations } from '../annotate/readAnnotations'
 import { apiGenerate, apiPlan, OutputType } from '../api/marketingApi'
 import { brandReferenceImages, getBrand, serializeBrand } from '../brand/brandState'
@@ -11,7 +11,22 @@ import {
 	getOutputType,
 } from '../constants'
 import { blobToDataUrl, uploadImageBytes, urlToDataUrl } from './assetBytes'
-import { AssetVerdict, AssetVersion, MARKETING_ASSET_TYPE, MarketingAssetShape } from './assetShape'
+import {
+	getAssetShapes,
+	getAssetSrc,
+	markFailed,
+	markGenerating,
+	pushVersion,
+	recoverIfStale,
+	refreshHeartbeat,
+	revertTo,
+	setVerdict,
+} from './assetRecord'
+import { MARKETING_ASSET_TYPE, MarketingAssetShape } from './assetShape'
+
+// Reads and writes of the asset record live in ./assetRecord; re-exported here so
+// callers keep reaching asset operations through one module.
+export { getAssetShapes, getAssetSrc, revertTo, setVerdict }
 
 // Per-tile nudges so a batch explores distinct directions instead of returning
 // near-identical images. Cycled by tile index; the first tile gets none.
@@ -217,20 +232,6 @@ export async function createVariationsFromSelection(
 	})
 }
 
-/** Set (or clear) the like/dislike verdict on an asset. */
-export function setVerdict(editor: Editor, id: TLShapeId, verdict: AssetVerdict): void {
-	const shape = editor.getShape<MarketingAssetShape>(id)
-	if (!shape) return
-	editor.updateShape<MarketingAssetShape>({ id, type: MARKETING_ASSET_TYPE, props: { verdict } })
-}
-
-/** Every marketing-asset shape on the current page. */
-export function getAssetShapes(editor: Editor): MarketingAssetShape[] {
-	return editor
-		.getCurrentPageShapes()
-		.filter((s): s is MarketingAssetShape => s.type === MARKETING_ASSET_TYPE)
-}
-
 async function runFirstGeneration(
 	editor: Editor,
 	id: TLShapeId,
@@ -268,7 +269,7 @@ async function runFirstGeneration(
 			createdAt: Date.now(),
 		})
 	} catch (e) {
-		setError(editor, id, e)
+		markFailed(editor, id, e)
 	} finally {
 		stopHeartbeat()
 	}
@@ -334,7 +335,7 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 	const ids = annotations.flatMap((a) => a.shapeIds)
 	const lines = annotations.map(formatAnnotation)
 
-	setGenerating(editor, id)
+	markGenerating(editor, id, Date.now())
 
 	void (async () => {
 		const stopHeartbeat = startHeartbeat(editor, id)
@@ -401,7 +402,7 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 			// The annotations have been consumed — clear them, group shells and all.
 			deleteAnnotations(editor, annotations)
 		} catch (e) {
-			setError(editor, id, e)
+			markFailed(editor, id, e)
 		} finally {
 			stopHeartbeat()
 			clearRenderProgress(id)
@@ -409,27 +410,9 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 	})()
 }
 
-/** Point the asset at an earlier version, non-destructively. */
-export function revertTo(editor: Editor, id: TLShapeId, index: number): void {
-	const shape = editor.getShape<MarketingAssetShape>(id)
-	if (!shape || index < 0 || index >= shape.props.versions.length) return
-	editor.updateShape<MarketingAssetShape>({
-		id,
-		type: MARKETING_ASSET_TYPE,
-		props: { currentVersion: index },
-	})
-}
-
 /** Whether any annotations currently overlap the asset frame. */
 export function hasAnnotations(editor: Editor, id: TLShapeId): boolean {
 	return readAnnotations(editor, id).length > 0
-}
-
-/** The data URL of a version's stored image, if available. */
-export function getAssetSrc(editor: Editor, version: AssetVersion): string | undefined {
-	const asset = editor.getAsset(version.assetId as TLAssetId)
-	const src = (asset?.props as { src?: string | null } | undefined)?.src
-	return typeof src === 'string' ? src : undefined
 }
 
 /**
@@ -439,18 +422,8 @@ export function getAssetSrc(editor: Editor, version: AssetVersion): string | und
  */
 export function resetInterruptedGenerations(editor: Editor): void {
 	const now = Date.now()
-	for (const shape of editor.getCurrentPageShapes()) {
-		if (shape.type !== MARKETING_ASSET_TYPE) continue
-		const s = shape as MarketingAssetShape
-		if (s.props.status !== 'generating') continue
-		if (now - s.props.generatingStartedAt < STALE_GENERATION_MS) continue
-		editor.updateShape<MarketingAssetShape>({
-			id: s.id,
-			type: MARKETING_ASSET_TYPE,
-			props: s.props.versions.length
-				? { status: 'idle', error: '', generatingStartedAt: 0 }
-				: { status: 'error', error: 'Generation was interrupted', generatingStartedAt: 0 },
-		})
+	for (const shape of getAssetShapes(editor)) {
+		recoverIfStale(editor, shape, now, STALE_GENERATION_MS)
 	}
 }
 
@@ -459,16 +432,10 @@ export function resetInterruptedGenerations(editor: Editor): void {
  * mistake a long render for an abandoned one. Returns a stop function.
  */
 function startHeartbeat(editor: Editor, id: TLShapeId): () => void {
-	const beat = () => {
-		const shape = editor.getShape<MarketingAssetShape>(id)
-		if (!shape || shape.props.status !== 'generating') return
-		editor.updateShape<MarketingAssetShape>({
-			id,
-			type: MARKETING_ASSET_TYPE,
-			props: { generatingStartedAt: Date.now() },
-		})
-	}
-	const interval = setInterval(beat, GENERATION_HEARTBEAT_MS)
+	const interval = setInterval(
+		() => refreshHeartbeat(editor, id, Date.now()),
+		GENERATION_HEARTBEAT_MS
+	)
 	return () => clearInterval(interval)
 }
 
@@ -509,43 +476,6 @@ async function storeImageAsset(
 		},
 	])
 	return assetId
-}
-
-function pushVersion(editor: Editor, id: TLShapeId, version: AssetVersion): void {
-	const shape = editor.getShape<MarketingAssetShape>(id)
-	if (!shape) return
-	const versions = [...shape.props.versions, version]
-	editor.updateShape<MarketingAssetShape>({
-		id,
-		type: MARKETING_ASSET_TYPE,
-		props: {
-			versions,
-			currentVersion: versions.length - 1,
-			status: 'idle',
-			error: '',
-			generatingStartedAt: 0,
-		},
-	})
-}
-
-function setGenerating(editor: Editor, id: TLShapeId): void {
-	editor.updateShape<MarketingAssetShape>({
-		id,
-		type: MARKETING_ASSET_TYPE,
-		props: { status: 'generating', error: '', generatingStartedAt: Date.now() },
-	})
-}
-
-function setError(editor: Editor, id: TLShapeId, e: unknown): void {
-	editor.updateShape<MarketingAssetShape>({
-		id,
-		type: MARKETING_ASSET_TYPE,
-		props: {
-			status: 'error',
-			error: e instanceof Error ? e.message : 'Something went wrong',
-			generatingStartedAt: 0,
-		},
-	})
 }
 
 /**
