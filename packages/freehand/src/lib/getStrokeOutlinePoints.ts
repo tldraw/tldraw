@@ -299,7 +299,8 @@ export function buildTracks(
 				// Draw a "sharp" corner: rotate around the input point
 				const inX = six[i]
 				const inY = siy[i]
-				// start = input - per(prevVector) * radius
+				// The arm swept around the point starts perpendicular to the
+				// incoming direction, one radius long.
 				const dx = -prevVecY * radius
 				const dy = prevVecX * radius
 
@@ -339,7 +340,7 @@ export function buildTracks(
 		isPrevPointSharpCorner = false
 
 		if (scap[i]) {
-			// offset = per(vector) * radius
+			// Project one radius to each side, perpendicular to the direction of travel.
 			const offsetX = vecY * radius
 			const offsetY = -vecX * radius
 			lxs[lc] = pointX - offsetX
@@ -362,7 +363,9 @@ export function buildTracks(
       points array.
     */
 
-		// offset = lerp(nextVector, vector, nextDpr).per() * radius
+		// Project one radius to each side, perpendicular to the direction of
+		// travel. The direction blends the current and next vectors, leaning
+		// into the next vector as the upcoming turn sharpens.
 		const lerpedX = nextVecX + (vecX - nextVecX) * nextDpr
 		const lerpedY = nextVecY + (vecY - nextVecY) * nextDpr
 		const offsetX = lerpedY * radius
@@ -573,8 +576,9 @@ export function outlineFromSrc(options: StrokeOptions = {}): Vec[] {
 	const endCap: Vec[] = []
 	const lastRadius = srcRadius[n - 1]
 
-	// direction = lastVector.per().neg(), with the last point's vector derived from its
-	// predecessor, `uni(prev.point - point)` (a lone point keeps the legacy (1, 1)).
+	// The exit vector at the last point points back at its predecessor,
+	// normalized; a lone point keeps the legacy (1, 1). The cap then starts
+	// perpendicular to that vector.
 	let lastVecX = 1
 	let lastVecY = 1
 	if (n > 1) {

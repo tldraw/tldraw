@@ -291,7 +291,7 @@ function renderPartition(
 		const vdx = srcX[n - 2] - pointX
 		const vdy = srcY[n - 2] - pointY
 		const vlen = Math.sqrt(vdx * vdx + vdy * vdy)
-		// direction = vector.per().neg()
+		// The arc endpoints sit one radius to each side, perpendicular to the cap vector.
 		const dx = (-vdy / vlen) * radius
 		const dy = (vdx / vlen) * radius
 		const asx = toCenti(pointX + dx)
@@ -327,7 +327,7 @@ function renderPartition(
 		const vdx = pointX - srcX[1]
 		const vdy = pointY - srcY[1]
 		const vlen = Math.sqrt(vdx * vdx + vdy * vdy)
-		// direction = vector.per()
+		// The arc endpoints sit one radius to each side, perpendicular to the cap vector.
 		const dx = (vdy / vlen) * radius
 		const dy = (-vdx / vlen) * radius
 		const asx = toCenti(pointX + dx)
