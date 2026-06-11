@@ -24,36 +24,3 @@ export const multiplayerAssetStore: TLAssetStore = {
 		return asset.props.src
 	},
 }
-
-/**
- * Upload raw image bytes (a data URL produced by the image model) to R2 and
- * return the URL to store on the asset record. Used by the generation pipeline,
- * which creates assets programmatically rather than via the editor's upload flow.
- */
-export async function uploadImageBytes(dataUrl: string, name: string): Promise<string> {
-	const blob = await (await fetch(dataUrl)).blob()
-	const objectName = `${uniqueId()}-${name}`.replace(/[^a-zA-Z0-9.]/g, '-')
-	const url = `/api/uploads/${objectName}`
-
-	const response = await fetch(url, {
-		method: 'POST',
-		body: blob,
-		headers: { 'content-type': blob.type || 'image/png' },
-	})
-	if (!response.ok) {
-		throw new Error(`Failed to upload image: ${response.statusText}`)
-	}
-
-	return url
-}
-
-/** Fetch a stored asset URL and read it back as a data URL for the image model. */
-export async function urlToDataUrl(url: string): Promise<string> {
-	const blob = await (await fetch(url)).blob()
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onload = () => resolve(reader.result as string)
-		reader.onerror = () => reject(reader.error)
-		reader.readAsDataURL(blob)
-	})
-}

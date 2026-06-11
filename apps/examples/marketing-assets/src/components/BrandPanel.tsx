@@ -1,8 +1,8 @@
 import { useRef } from 'react'
 import { Editor } from 'tldraw'
+import { blobToDataUrl } from '../asset/assetBytes'
 import { Brand, setBrand, useBrand } from '../brand/brandState'
 import { DENSITY_OPTIONS, FONT_OPTIONS, TONE_OPTIONS } from '../constants'
-import { fileToDataUrl } from './MarketingSidebar'
 import { usePanelTheme } from './usePanelTheme'
 
 /**
@@ -77,7 +77,7 @@ export function BrandPanel({ editor }: { editor: Editor }) {
 						hidden
 						onChange={async (e) => {
 							const file = e.target.files?.[0]
-							if (file) update({ logo: await fileToDataUrl(file) })
+							if (file) update({ logo: await blobToDataUrl(file) })
 							e.target.value = ''
 						}}
 					/>
@@ -109,7 +109,7 @@ export function BrandPanel({ editor }: { editor: Editor }) {
 						hidden
 						onChange={async (e) => {
 							const file = e.target.files?.[0]
-							if (file) update({ refs: [...brand.refs, await fileToDataUrl(file)] })
+							if (file) update({ refs: [...brand.refs, await blobToDataUrl(file)] })
 							e.target.value = ''
 						}}
 					/>

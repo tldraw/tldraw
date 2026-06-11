@@ -7,19 +7,11 @@ import {
 	generateNextBatch,
 	getAssetShapes,
 } from '../asset/assetActions'
+import { blobToDataUrl } from '../asset/assetBytes'
 import { Brand, serializeBrand, useBrand } from '../brand/brandState'
 import { BATCH_SIZES, DEFAULT_BATCH_SIZE, getOutputType, outputTypesByPlatform } from '../constants'
 import { ExportScope, exportCampaign, exportTargets } from '../export'
 import { usePanelTheme } from './usePanelTheme'
-
-export function fileToDataUrl(file: File): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onload = () => resolve(reader.result as string)
-		reader.onerror = () => reject(reader.error)
-		reader.readAsDataURL(file)
-	})
-}
 
 // The left panel drives a campaign: write a brief, generate ideas, refine, and
 // export. Brand setup lives in its own panel on the right (see BrandPanel) so
@@ -176,7 +168,7 @@ function GenerateSection({
 				hidden
 				onChange={async (e) => {
 					const file = e.target.files?.[0]
-					if (file) setShot(await fileToDataUrl(file))
+					if (file) setShot(await blobToDataUrl(file))
 					e.target.value = ''
 				}}
 			/>

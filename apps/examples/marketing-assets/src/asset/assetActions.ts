@@ -10,7 +10,7 @@ import {
 	getDisplaySize,
 	getOutputType,
 } from '../constants'
-import { uploadImageBytes, urlToDataUrl } from '../multiplayerAssetStore'
+import { blobToDataUrl, uploadImageBytes, urlToDataUrl } from './assetBytes'
 import { AssetVerdict, AssetVersion, MARKETING_ASSET_TYPE, MarketingAssetShape } from './assetShape'
 
 // Per-tile nudges so a batch explores distinct directions instead of returning
@@ -569,13 +569,4 @@ function regionOf(area: { x: number; y: number; w: number; h: number }): string 
 	if (row === 'middle') return `${col} side`
 	if (col === 'centre') return `${row} centre`
 	return `${row} ${col}`
-}
-
-async function blobToDataUrl(blob: Blob): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onload = () => resolve(reader.result as string)
-		reader.onerror = () => reject(reader.error)
-		reader.readAsDataURL(blob)
-	})
 }
