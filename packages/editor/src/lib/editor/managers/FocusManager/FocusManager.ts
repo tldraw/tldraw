@@ -80,15 +80,22 @@ export class FocusManager {
 		// whenever it holds focus, so mirror the container's role and label.
 		elm.setAttribute('role', 'application')
 		elm.setAttribute('aria-label', container.getAttribute('aria-label') ?? 'tldraw')
+		// Visually hidden via the clip-based "sr-only" recipe. Deliberately NOT
+		// `opacity: 0` or `visibility: hidden`: iOS suppresses hardware-keyboard
+		// event delivery to editable elements it considers invisible (verified
+		// empirically — an `opacity: 0` input receives no key events on iOS
+		// Safari, see tldraw/tldraw#9101).
 		Object.assign(elm.style, {
 			position: 'absolute',
 			top: '0px',
 			left: '0px',
 			width: '1px',
 			height: '1px',
-			opacity: '0',
+			clipPath: 'inset(50%)',
 			overflow: 'hidden',
+			whiteSpace: 'nowrap',
 			pointerEvents: 'none',
+			color: 'transparent',
 			caretColor: 'transparent',
 			outline: 'none',
 		})
