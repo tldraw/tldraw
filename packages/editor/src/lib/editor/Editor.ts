@@ -8102,32 +8102,53 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resizeShape(shape: TLShapeId | TLShape, scale: VecLike, opts: TLResizeShapeOptions = {}): this {
+		const partial = this.getResizeShapePartial(shape, scale, opts)
+		if (partial) this.updateShapes([partial])
+		return this
+	}
+
+	/**
+	 * Get the update for a resized shape without committing it to the store. Interactions that
+	 * resize many shapes at once use this to collect all of the updates and commit them in a
+	 * single batch. Returns null when there is nothing to update.
+	 *
+	 * Shapes that are rotated out of alignment with the scale axis cannot be resized with a
+	 * single update; those shapes are resized immediately (as `resizeShape` would do) and null
+	 * is returned.
+	 *
+	 * @internal
+	 */
+	getResizeShapePartial(
+		shape: TLShapeId | TLShape,
+		scale: VecLike,
+		opts: TLResizeShapeOptions = {}
+	): TLShapePartial | null {
 		const id = typeof shape === 'string' ? shape : shape.id
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return null
 
 		if (!Number.isFinite(scale.x)) scale = new Vec(1, scale.y)
 		if (!Number.isFinite(scale.y)) scale = new Vec(scale.x, 1)
 
 		const initialShape = opts.initialShape ?? this.getShape(id)
-		if (!initialShape) return this
+		if (!initialShape) return null
 
 		const scaleOrigin = opts.scaleOrigin ?? this.getShapePageBounds(id)?.center
-		if (!scaleOrigin) return this
+		if (!scaleOrigin) return null
 
 		const pageTransform = opts.initialPageTransform
 			? Mat.Cast(opts.initialPageTransform)
 			: this.getShapePageTransform(id)
-		if (!pageTransform) return this
+		if (!pageTransform) return null
 
 		const pageRotation = pageTransform.rotation()
 
-		if (pageRotation == null) return this
+		if (pageRotation == null) return null
 
 		const scaleAxisRotation = opts.scaleAxisRotation ?? pageRotation
 
 		const initialBounds = opts.initialBounds ?? this.getShapeGeometry(id).bounds
 
-		if (!initialBounds) return this
+		if (!initialBounds) return null
 
 		const isAspectRatioLocked =
 			opts.isAspectRatioLocked ?? this.getShapeUtil(initialShape).isAspectRatioLocked(initialShape)
@@ -8137,7 +8158,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// from whichever axis is being scaled the least, to avoid the shape getting bigger
 			// than the bounds of the selection
 			// const minScale = Math.min(Math.abs(scale.x), Math.abs(scale.y))
-			return this._resizeUnalignedShape(id, scale, {
+			this._resizeUnalignedShape(id, scale, {
 				...opts,
 				initialBounds,
 				scaleOrigin,
@@ -8146,6 +8167,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				isAspectRatioLocked,
 				initialShape,
 			})
+			return null
 		}
 
 		const util = this.getShapeUtil(initialShape)
@@ -8158,7 +8180,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		let didResize = false
+		let workingShape: TLShape | null = null
 
 		if (util.onResize && util.canResize(initialShape)) {
 			// get the model changes from the shape util
@@ -8190,7 +8212,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// need to adjust the shape's x and y points in case the parent has moved since start of resizing
 			const { x, y } = this.getPointInParentSpace(initialShape.id, initialPagePoint)
 
-			let workingShape = initialShape
+			workingShape = initialShape
 			if (!opts.skipStartAndEndCallbacks) {
 				workingShape = applyPartialToRecordWithProps(
 					initialShape,
@@ -8212,10 +8234,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			)
 
-			if (resizedShape) {
-				didResize = true
-			}
-
 			workingShape = applyPartialToRecordWithProps(workingShape, {
 				id,
 				type: initialShape.type as any,
@@ -8231,40 +8249,47 @@ export class Editor extends EventEmitter<TLEventMap> {
 				)
 			}
 
-			this.updateShapes([workingShape])
+			if (resizedShape) {
+				return workingShape
+			}
 		}
 
-		if (!didResize) {
-			// reposition shape (rather than resizing it) based on where its resized center would be
+		// the shape was not resized by its util, so reposition it (rather than resizing it)
+		// based on where its resized center would be
 
-			const initialPageCenter = Mat.applyToPoint(pageTransform, initialBounds.center)
-			// get the model changes from the shape util
-			const newPageCenter = this._scalePagePoint(
-				initialPageCenter,
-				scaleOrigin,
-				scale,
-				scaleAxisRotation
-			)
+		const initialPageCenter = Mat.applyToPoint(pageTransform, initialBounds.center)
+		// get the model changes from the shape util
+		const newPageCenter = this._scalePagePoint(
+			initialPageCenter,
+			scaleOrigin,
+			scale,
+			scaleAxisRotation
+		)
 
-			const initialPageCenterInParentSpace = this.getPointInParentSpace(
-				initialShape.id,
-				initialPageCenter
-			)
-			const newPageCenterInParentSpace = this.getPointInParentSpace(initialShape.id, newPageCenter)
+		const initialPageCenterInParentSpace = this.getPointInParentSpace(
+			initialShape.id,
+			initialPageCenter
+		)
+		const newPageCenterInParentSpace = this.getPointInParentSpace(initialShape.id, newPageCenter)
 
-			const delta = Vec.Sub(newPageCenterInParentSpace, initialPageCenterInParentSpace)
-			// apply the changes to the model
-			this.updateShapes([
-				{
-					id,
-					type: initialShape.type as any,
-					x: initialShape.x + delta.x,
-					y: initialShape.y + delta.y,
-				},
-			])
+		const delta = Vec.Sub(newPageCenterInParentSpace, initialPageCenterInParentSpace)
+
+		if (workingShape) {
+			// the util's onResize ran but returned no change; keep the working update (which may
+			// include changes from onResizeStart / onResizeEnd) and reposition the shape
+			return {
+				...workingShape,
+				x: initialShape.x + delta.x,
+				y: initialShape.y + delta.y,
+			}
 		}
 
-		return this
+		return {
+			id,
+			type: initialShape.type as any,
+			x: initialShape.x + delta.x,
+			y: initialShape.y + delta.y,
+		}
 	}
 
 	/** @internal */

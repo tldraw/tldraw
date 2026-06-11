@@ -14,7 +14,7 @@ import {
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { devFreeze } from './devFreeze'
-import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
+import { hasAnyKey, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
@@ -573,11 +573,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			updated: filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName)),
 			removed: filterEntries(change.removed, (_, r) => this.scopedTypes[scope].has(r.typeName)),
 		}
-		if (
-			Object.keys(result.added).length === 0 &&
-			Object.keys(result.updated).length === 0 &&
-			Object.keys(result.removed).length === 0
-		) {
+		if (!hasAnyKey(result.added) && !hasAnyKey(result.updated) && !hasAnyKey(result.removed)) {
 			return null
 		}
 		return result
@@ -1328,7 +1324,9 @@ function squashHistoryEntries<T extends UnknownRecord>(
 	return devFreeze(
 		chunked.map((chunk) => ({
 			source: chunk[0].source,
-			changes: squashRecordDiffs(chunk.map((e) => e.changes)),
+			// a single-entry chunk needs no squashing — skip the O(N) copy of its diff
+			changes:
+				chunk.length === 1 ? chunk[0].changes : squashRecordDiffs(chunk.map((e) => e.changes)),
 		}))
 	)
 }
