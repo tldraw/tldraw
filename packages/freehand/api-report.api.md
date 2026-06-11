@@ -10,8 +10,8 @@ export function getStroke(points: VecLike[], options?: StrokeOptions): Vec[];
 // @public
 export function getStrokeOutlinePoints(strokePoints: StrokePoint[], options?: StrokeOptions): Vec[];
 
-// @internal (undocumented)
-export function getStrokeOutlineTracks(strokePoints: StrokePoint[], options?: StrokeOptions): {
+// @internal
+export function getStrokeOutlineTracks(strokePoints: StrokePoint[], options?: StrokeOptions, vectorAnchor?: VecLike): {
     left: Vec[];
     right: Vec[];
 };
@@ -61,8 +61,6 @@ export interface StrokePoint {
     radius: number;
     // (undocumented)
     runningLength: number;
-    // (undocumented)
-    vector: Vec;
 }
 
 // @public

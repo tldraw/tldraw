@@ -97,7 +97,6 @@ export function getStrokePoints(
 			point: pts[0],
 			input: pts[0],
 			pressure: simulatePressure ? 0.5 : pts[0].z,
-			vector: new Vec(1, 1),
 			distance: 0,
 			runningLength: 0,
 			radius: 1,
@@ -145,8 +144,6 @@ export function getStrokePoints(
 			point,
 			// The input pressure (or .5 if not specified)
 			pressure: simulatePressure ? 0.5 : pts[i].z,
-			// The vector from the current point to the previous point
-			vector: Vec.Sub(prev.point, point).uni(),
 			// The distance between the current point and the previous point
 			distance,
 			// The total distance so far
@@ -157,11 +154,6 @@ export function getStrokePoints(
 
 		// Push it to the strokePoints array.
 		strokePoints.push(prev)
-	}
-
-	// Set the vector of the first point to be the same as the second point.
-	if (strokePoints[1]?.vector) {
-		strokePoints[0].vector = strokePoints[1].vector.clone()
 	}
 
 	if (totalLength < 1) {

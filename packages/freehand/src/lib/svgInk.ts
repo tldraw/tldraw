@@ -1,4 +1,4 @@
-import { Vec, VecLike, assert } from '../vendor'
+import { VecLike, assert } from '../vendor'
 import { finishPath, resetPath, toCenti, writeC, writeCPair, writeStr } from './fmt'
 import { getStrokeOutlineTracks } from './getStrokeOutlinePoints'
 import { getStrokePoints } from './getStrokePoints'
@@ -32,11 +32,23 @@ export function svgInk(rawInputPoints: VecLike[], options: StrokeOptions = {}) {
 	return finishPath()
 }
 
-function partitionAtElbows(points: StrokePoint[]): StrokePoint[][] {
-	if (points.length <= 2) return [points]
+interface Partition {
+	points: StrokePoint[]
+	/**
+	 * The original predecessor of `points[1]` when partitioning has cut or moved the point in
+	 * front of it (the partition starts at an elbow, or cleanup spliced points out). The outline
+	 * tracks derive the second point's vector from this anchor so it keeps the direction it had
+	 * in the uncut stroke.
+	 */
+	vectorAnchor: VecLike | null
+}
 
-	const result: StrokePoint[][] = []
+function partitionAtElbows(points: StrokePoint[]): Partition[] {
+	if (points.length <= 2) return [{ points, vectorAnchor: null }]
+
+	const result: Partition[] = []
 	let currentPartition: StrokePoint[] = [points[0]]
+	let currentAnchor: VecLike | null = null
 
 	// Unit direction of the previous segment, computed with scalar math to avoid
 	// allocating two vectors per point.
@@ -70,8 +82,11 @@ function partitionAtElbows(points: StrokePoint[]): StrokePoint[][] {
 				point: thisPoint.input,
 			}
 			currentPartition.push(elbowPoint)
-			result.push(cleanUpPartition(currentPartition))
+			result.push(cleanUpPartition(currentPartition, currentAnchor))
 			currentPartition = [elbowPoint]
+			// The next partition's second point keeps the vector it had in the uncut stroke,
+			// which pointed at this point's streamlined position rather than its .input.
+			currentAnchor = thisPoint.point
 			continue
 		}
 		currentPartition.push(thisPoint)
@@ -93,18 +108,19 @@ function partitionAtElbows(points: StrokePoint[]): StrokePoint[][] {
 			// if this point is kinda close to its neighbors and it has a reasonably
 			// acute angle, it's probably a hard elbow
 			currentPartition.push(thisPoint)
-			result.push(cleanUpPartition(currentPartition))
+			result.push(cleanUpPartition(currentPartition, currentAnchor))
 			currentPartition = [thisPoint]
+			currentAnchor = null
 			continue
 		}
 	}
 	currentPartition.push(points[points.length - 1])
-	result.push(cleanUpPartition(currentPartition))
+	result.push(cleanUpPartition(currentPartition, currentAnchor))
 
 	return result
 }
 
-function cleanUpPartition(partition: StrokePoint[]) {
+function cleanUpPartition(partition: StrokePoint[], vectorAnchor: VecLike | null): Partition {
 	// clean up start of partition (remove points that are too close to the start)
 	const startPoint = partition[0]
 	let nextPoint: StrokePoint
@@ -113,7 +129,8 @@ function cleanUpPartition(partition: StrokePoint[]) {
 		const dx = startPoint.point.x - nextPoint.point.x
 		const dy = startPoint.point.y - nextPoint.point.y
 		if (dx * dx + dy * dy < (((startPoint.radius + nextPoint.radius) / 2) * 0.5) ** 2) {
-			partition.splice(1, 1)
+			// The surviving second point's vector keeps pointing at the spliced-out point.
+			vectorAnchor = partition.splice(1, 1)[0].point
 		} else {
 			break
 		}
@@ -131,28 +148,7 @@ function cleanUpPartition(partition: StrokePoint[]) {
 			break
 		}
 	}
-	// now readjust the cap point vectors to point to their nearest neighbors
-	if (partition.length > 1) {
-		const first = partition[0]
-		const second = partition[1]
-		let dx = first.point.x - second.point.x
-		let dy = first.point.y - second.point.y
-		let len = Math.sqrt(dx * dx + dy * dy)
-		partition[0] = {
-			...first,
-			vector: new Vec(dx / len, dy / len),
-		}
-		const last = partition[partition.length - 1]
-		const penultimate = partition[partition.length - 2]
-		dx = penultimate.point.x - last.point.x
-		dy = penultimate.point.y - last.point.y
-		len = Math.sqrt(dx * dx + dy * dy)
-		partition[partition.length - 1] = {
-			...last,
-			vector: new Vec(dx / len, dy / len),
-		}
-	}
-	return partition
+	return { points: partition, vectorAnchor }
 }
 
 function writeCirclePath(cx: number, cy: number, r: number) {
@@ -190,14 +186,19 @@ function writeCapArc(nr: number, dx: number, dy: number) {
 	writeCPair(dx, dy)
 }
 
-function renderPartition(strokePoints: StrokePoint[], options: StrokeOptions = {}): void {
+function renderPartition(partition: Partition, options: StrokeOptions = {}): void {
+	const strokePoints = partition.points
 	if (strokePoints.length === 0) return
 	if (strokePoints.length === 1) {
 		writeCirclePath(strokePoints[0].point.x, strokePoints[0].point.y, strokePoints[0].radius)
 		return
 	}
 
-	const { left, right } = getStrokeOutlineTracks(strokePoints, options)
+	const { left, right } = getStrokeOutlineTracks(
+		strokePoints,
+		options,
+		partition.vectorAnchor ?? undefined
+	)
 
 	// Current position in integer hundredths; all subsequent commands are relative.
 	let cx = toCenti(left[0].x)
@@ -221,9 +222,14 @@ function renderPartition(strokePoints: StrokePoint[], options: StrokeOptions = {
 	{
 		const point = strokePoints[strokePoints.length - 1]
 		const radius = point.radius
-		// direction = point.vector.per().neg()
-		const dx = -point.vector.y * radius
-		const dy = point.vector.x * radius
+		// The cap vector points from the last point back at its nearest neighbor.
+		const penultimate = strokePoints[strokePoints.length - 2]
+		const vdx = penultimate.point.x - point.point.x
+		const vdy = penultimate.point.y - point.point.y
+		const vlen = Math.sqrt(vdx * vdx + vdy * vdy)
+		// direction = vector.per().neg()
+		const dx = (-vdy / vlen) * radius
+		const dy = (vdx / vlen) * radius
 		const asx = toCenti(point.point.x + dx)
 		const asy = toCenti(point.point.y + dy)
 		const aex = toCenti(point.point.x - dx)
@@ -249,9 +255,14 @@ function renderPartition(strokePoints: StrokePoint[], options: StrokeOptions = {
 	{
 		const point = strokePoints[0]
 		const radius = point.radius
-		// direction = point.vector.per()
-		const dx = point.vector.y * radius
-		const dy = -point.vector.x * radius
+		// The cap vector points from the first point back past its nearest neighbor.
+		const second = strokePoints[1]
+		const vdx = point.point.x - second.point.x
+		const vdy = point.point.y - second.point.y
+		const vlen = Math.sqrt(vdx * vdx + vdy * vdy)
+		// direction = vector.per()
+		const dx = (vdy / vlen) * radius
+		const dy = (-vdx / vlen) * radius
 		const asx = toCenti(point.point.x + dx)
 		const asy = toCenti(point.point.y + dy)
 		const aex = toCenti(point.point.x - dx)

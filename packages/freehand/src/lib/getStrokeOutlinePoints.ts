@@ -1,4 +1,4 @@
-import { Vec } from '../vendor'
+import { Vec, VecLike } from '../vendor'
 import type { StrokeOptions, StrokePoint } from './types'
 
 const { PI } = Math
@@ -69,10 +69,17 @@ function simplifyTrack(pts: Vec[], tol: number): Vec[] {
 
 /**
  * @internal
+ *
+ * `vectorAnchor` is the original predecessor of `strokePoints[1]` when the caller has cut or
+ * altered the sequence in front of it (svgInk's elbow partitions): the second point's vector is
+ * derived from the anchor rather than from `strokePoints[0]`, preserving the direction it had in
+ * the uncut stroke. It only applies when there are more than two points; two-point sequences
+ * derive both vectors from each other.
  */
 export function getStrokeOutlineTracks(
 	strokePoints: StrokePoint[],
-	options: StrokeOptions = {}
+	options: StrokeOptions = {},
+	vectorAnchor?: VecLike
 ): { left: Vec[]; right: Vec[] } {
 	const { size = 16, smoothing = 0.5 } = options
 
@@ -94,9 +101,30 @@ export function getStrokeOutlineTracks(
 	const leftPts: Vec[] = []
 	const rightPts: Vec[] = []
 
+	const n = strokePoints.length
+
+	// Stroke point vectors are derived on the fly from consecutive points: a point's vector is
+	// the unit vector pointing back at its predecessor, `uni(prev.point - point)` (matching what
+	// getStrokePoints used to store). The first point shares the second point's vector; a lone
+	// point keeps the legacy unnormalized (1, 1).
+	let curVecX = 1
+	let curVecY = 1
+	if (n > 1) {
+		const dx = strokePoints[0].point.x - strokePoints[1].point.x
+		const dy = strokePoints[0].point.y - strokePoints[1].point.y
+		const l = (dx * dx + dy * dy) ** 0.5
+		if (l === 0) {
+			curVecX = dx
+			curVecY = dy
+		} else {
+			curVecX = dx / l
+			curVecY = dy / l
+		}
+	}
+
 	// Previous vector
-	let prevVecX = strokePoints[0].vector.x
-	let prevVecY = strokePoints[0].vector.y
+	let prevVecX = curVecX
+	let prevVecY = curVecY
 
 	// Previous left and right points
 	let plx = strokePoints[0].point.x
@@ -123,11 +151,31 @@ export function getStrokeOutlineTracks(
 
 	let strokePoint: StrokePoint
 
-	for (let i = 0; i < strokePoints.length; i++) {
+	for (let i = 0; i < n; i++) {
 		strokePoint = strokePoints[i]
 		const point = strokePoint.point
-		const vecX = strokePoint.vector.x
-		const vecY = strokePoint.vector.y
+		const vecX = curVecX
+		const vecY = curVecY
+
+		// Derive the next point's vector (the last point reuses its own), and advance the
+		// running vector so the next iteration picks it up regardless of `continue`s below.
+		let nextVecX = vecX
+		let nextVecY = vecY
+		if (i < n - 1) {
+			const from = i === 0 && n > 2 && vectorAnchor ? vectorAnchor : point
+			const dx = from.x - strokePoints[i + 1].point.x
+			const dy = from.y - strokePoints[i + 1].point.y
+			const l = (dx * dx + dy * dy) ** 0.5
+			if (l === 0) {
+				nextVecX = dx
+				nextVecY = dy
+			} else {
+				nextVecX = dx / l
+				nextVecY = dy / l
+			}
+		}
+		curVecX = nextVecX
+		curVecY = nextVecY
 
 		/*
       Handle sharp corners
@@ -138,8 +186,7 @@ export function getStrokeOutlineTracks(
     */
 
 		const prevDpr = vecX * prevVecX + vecY * prevVecY
-		const nextVector = (i < strokePoints.length - 1 ? strokePoints[i + 1] : strokePoints[i]).vector
-		const nextDpr = i < strokePoints.length - 1 ? nextVector.x * vecX + nextVector.y * vecY : 1
+		const nextDpr = i < n - 1 ? nextVecX * vecX + nextVecY * vecY : 1
 
 		const isPointSharpCorner = prevDpr < 0 && !isPrevPointSharpCorner
 		const isNextPointSharpCorner = nextDpr < 0.2
@@ -156,7 +203,7 @@ export function getStrokeOutlineTracks(
 				// Draw a "soft" corner
 				const offsetX = prevVecX * strokePoint.radius
 				const offsetY = prevVecY * strokePoint.radius
-				const cpr = prevVecX * nextVector.y - prevVecY * nextVector.x
+				const cpr = prevVecX * nextVecY - prevVecY * nextVecX
 
 				if (cpr < 0) {
 					tlx = point.x + offsetX
@@ -232,8 +279,8 @@ export function getStrokeOutlineTracks(
     */
 
 		// offset = lerp(nextVector, vector, nextDpr).per() * radius
-		const lerpedX = nextVector.x + (vecX - nextVector.x) * nextDpr
-		const lerpedY = nextVector.y + (vecY - nextVector.y) * nextDpr
+		const lerpedX = nextVecX + (vecX - nextVecX) * nextDpr
+		const lerpedY = nextVecY + (vecY - nextVecY) * nextDpr
 		const offsetX = lerpedY * strokePoint.radius
 		const offsetY = -lerpedX * strokePoint.radius
 
@@ -422,7 +469,24 @@ export function getStrokeOutlinePoints(
   */
 
 	const endCap: Vec[] = []
-	const direction = lastStrokePoint.vector.clone().per().neg()
+
+	// direction = lastVector.per().neg(), with the last point's vector derived from its
+	// predecessor, `uni(prev.point - point)` (a lone point keeps the legacy (1, 1)).
+	let lastVecX = 1
+	let lastVecY = 1
+	if (strokePoints.length > 1) {
+		const dx = strokePoints[strokePoints.length - 2].point.x - lastStrokePoint.point.x
+		const dy = strokePoints[strokePoints.length - 2].point.y - lastStrokePoint.point.y
+		const l = (dx * dx + dy * dy) ** 0.5
+		if (l === 0) {
+			lastVecX = dx
+			lastVecY = dy
+		} else {
+			lastVecX = dx / l
+			lastVecY = dy / l
+		}
+	}
+	const direction = new Vec(-lastVecY, lastVecX)
 
 	if (taperEnd || (taperStart && strokePoints.length === 1)) {
 		// Tapered end - push the last point to the line
