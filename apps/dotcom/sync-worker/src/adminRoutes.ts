@@ -86,13 +86,20 @@ export const adminRoutes = createRouter<Environment>()
 	})
 	.get('/app/admin/unmigrated_users_count', async (_res, env) => {
 		const pg = createPostgresConnectionPool(env, '/app/admin/unmigrated_users_count')
-		return json({ count: await getNumUnmigratedUsers(pg) })
+		return json({ count: await getNumUnenrolledUsers(pg) })
 	})
 	.get('/app/admin/migrate_users_batch', async (res, env) => {
 		let stopRequested = false
 
 		// Parse query parameters for batch configuration
 		const sleepMs = parseInt((res.query['sleepMs'] as string) || '100')
+		if (isNaN(sleepMs) || sleepMs < 0) {
+			throw new StatusError(400, 'sleepMs must be a non-negative number')
+		}
+		const percentage = parseInt((res.query['percentage'] as string) || '0')
+		if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+			throw new StatusError(400, 'percentage must be a number between 0 and 100')
+		}
 
 		return new Response(
 			new ReadableStream({
@@ -112,19 +119,28 @@ export const adminRoutes = createRouter<Environment>()
 
 						const shouldStop = () => stopRequested
 
-						sendProgress('starting', 'Beginning batch user migration process...')
+						sendProgress('starting', 'Beginning groups UI rollout batch...')
 
-						const hasMore = await startUserMigration(env, sendProgress, shouldStop, sleepMs)
+						const { hasMore, failed } = await startFrontendRollout(
+							env,
+							sendProgress,
+							shouldStop,
+							sleepMs,
+							percentage
+						)
 
 						// Send completion event
 						const completionEvent = {
 							type: 'complete',
 							step: 'finished',
 							message: stopRequested
-								? 'Batch migration stopped by user'
-								: 'Batch migration completed successfully',
+								? 'Rollout stopped by user'
+								: failed
+									? 'Rollout stopped due to a failure'
+									: 'Rollout batch completed',
 							timestamp: Date.now(),
 							hasMore,
+							failed,
 						}
 						controller.enqueue(
 							new TextEncoder().encode(`data: ${JSON.stringify(completionEvent)}\n\n`)
@@ -495,19 +511,22 @@ async function performUserDeletion(
 	await user.admin_delete(userRow.id)
 }
 
-async function getNextUnmigratedUser(pg: ReturnType<typeof createPostgresConnectionPool>) {
+async function getNextUnenrolledUsers(
+	pg: ReturnType<typeof createPostgresConnectionPool>,
+	limit: number
+) {
 	return await pg
 		.selectFrom('user')
-		.where((eb) => eb.or([eb('flags', 'not like', '%groups_backend%'), eb('flags', 'is', null)]))
+		.where((eb) => eb.or([eb('flags', 'not like', '%groups_frontend%'), eb('flags', 'is', null)]))
 		.select(['id', 'email', 'name'])
-		.limit(1)
-		.executeTakeFirst()
+		.limit(limit)
+		.execute()
 }
 
-async function getNumUnmigratedUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
+async function getNumUnenrolledUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
 	const res = await sql<{
 		count: number
-	}>`select count(*) from public.user where flags not like '%groups_backend%' or flags is null`.execute(
+	}>`select count(*) from public.user where flags not like '%groups_frontend%' or flags is null`.execute(
 		pg
 	)
 	return res.rows[0].count
@@ -517,19 +536,44 @@ async function getTotalUsers(pg: ReturnType<typeof createPostgresConnectionPool>
 	return res.rows[0].count
 }
 
-async function startUserMigration(
+async function enrollUsersInGroupsUi(
+	pg: ReturnType<typeof createPostgresConnectionPool>,
+	userIds: string[]
+): Promise<number> {
+	if (userIds.length === 0) return 0
+	const result = await pg
+		.updateTable('user')
+		.set({
+			flags: sql<string>`case when coalesce(flags, '') = '' then 'groups_frontend' else flags || ',groups_frontend' end`,
+		})
+		.where('id', 'in', userIds)
+		.where((eb) => eb.or([eb('flags', 'not like', '%groups_frontend%'), eb('flags', 'is', null)]))
+		.executeTakeFirst()
+	return Number(result.numUpdatedRows)
+}
+
+async function startFrontendRollout(
 	env: Environment,
 	sendProgress: (step: string, message: string, details?: any) => void,
 	shouldStop: () => boolean,
-	sleepTime: number = 100
-): Promise<boolean> {
-	const batchSize = 50
+	sleepTime: number = 100,
+	percentage: number = 0
+): Promise<{ hasMore: boolean; failed: boolean }> {
+	// Plain SQL on the shared pool — clients pick the flag up live through Zero,
+	// so no per-user DO work (same as acceptInvite) and no subrequest/connection
+	// limits (#7052, #7076).
+	const chunkSize = 200
+	const batchSize = 2000 // per SSE request; the client chains requests via hasMore
 	const pg = createPostgresConnectionPool(env, '/app/admin/migrate_users_batch')
 
-	sendProgress('query', 'Fetching users without groups_backend flag...')
+	sendProgress('query', 'Fetching users without groups_frontend flag...')
 
-	const usersToMigrate = await getNumUnmigratedUsers(pg)
+	const unenrolledUsers = await getNumUnenrolledUsers(pg)
 	const totalUsers = await getTotalUsers(pg)
+	// Target recomputed from the db each request, so reruns are idempotent and
+	// a higher percentage just tops up the difference.
+	const targetEnrolled = Math.floor((totalUsers * percentage) / 100)
+	const usersToMigrate = Math.max(0, targetEnrolled - (totalUsers - unenrolledUsers))
 	let successCount = 0
 	let failureCount = 0
 
@@ -543,89 +587,66 @@ async function startUserMigration(
 		}
 	}
 
-	sendProgress('query', `${usersToMigrate}/${totalUsers} users left to migrate`, getStats())
+	sendProgress(
+		'query',
+		`${unenrolledUsers}/${totalUsers} users without the groups UI, enrolling ${usersToMigrate} to reach ${percentage}%`,
+		getStats()
+	)
 
 	if (usersToMigrate === 0) {
-		sendProgress('complete', 'No users to migrate')
-		return false
+		sendProgress('complete', `No users to enroll — already at or above ${percentage}%`)
+		return { hasMore: false, failed: false }
 	}
 
-	const failures: Array<{ userId: string; email: string; error: string }> = []
-	let processedCount = 0
+	let remainingThisRequest = Math.min(batchSize, usersToMigrate)
 
-	// Process users in batches
-	while (processedCount < batchSize) {
-		const userRow = await getNextUnmigratedUser(pg)
-		if (!userRow) {
-			break
-		}
-
-		// Check if we should stop
+	while (remainingThisRequest > 0) {
 		if (shouldStop()) {
-			sendProgress('stopped', 'Migration stopped by user', getStats())
+			sendProgress('stopped', 'Rollout stopped by user', getStats())
 			break
 		}
 
-		sendProgress('migrating', `Migrating user ${userRow.email}`, {
-			userId: userRow.id,
-			email: userRow.email,
-			...getStats(),
-		})
+		const chunk = await getNextUnenrolledUsers(pg, Math.min(chunkSize, remainingThisRequest))
+		if (chunk.length === 0) break
 
 		try {
-			await retry(async () => {
-				const user = getUserDurableObject(env, userRow.id)
-
-				const result = await sql<{
-					files_migrated: number
-					pinned_files_migrated: number
-					flag_added: boolean
-				}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
-				await user.admin_forceHardReboot(userRow.id)
-
-				successCount++
-				sendProgress('success', `Successfully migrated user ${userRow.email}`, {
-					userId: userRow.id,
-					email: userRow.email,
-					result: result.rows[0],
-					...getStats(),
-				})
-			})
+			const updated = await retry(() =>
+				enrollUsersInGroupsUi(
+					pg,
+					chunk.map((u) => u.id)
+				)
+			)
+			successCount += updated
+			sendProgress('success', `Enrolled ${updated} users`, getStats())
 		} catch (error) {
-			failureCount++
+			failureCount += chunk.length
 			const errorMessage = error instanceof Error ? error.message : String(error)
-			failures.push({
-				userId: userRow.id,
-				email: userRow.email,
-				error: errorMessage,
-			})
+			console.error('groups UI rollout: failed to enroll chunk', errorMessage)
 
-			// Send failure event to client so it can be stored in the log
-			sendProgress('failure', `Failed to migrate ${userRow.email}`, {
-				userId: userRow.id,
-				email: userRow.email,
+			// 'failure' events get stored in the client's log
+			sendProgress('failure', `Failed to enroll a chunk of ${chunk.length} users`, {
+				userIds: chunk.map((u) => u.id),
 				error: errorMessage,
 				...getStats(),
 			})
-
-			// Stop processing immediately after reporting the failure
-			sendProgress('summary', 'Migration stopped due to failure', {
-				failures: failures.length > 0 ? failures : undefined,
+			sendProgress('summary', 'Rollout stopped due to failure', {
+				failures: [{ userIds: chunk.map((u) => u.id), error: errorMessage }],
 			})
-			return false
+			return { hasMore: false, failed: true }
 		}
 
-		processedCount++
+		remainingThisRequest -= chunk.length
 
-		// Brief pause between migrations to avoid overwhelming the system
+		// Pace the update bursts hitting zero-cache
 		await sleep(sleepTime)
 	}
 
-	sendProgress('summary', 'Migration batch complete', {
-		failures: failures.length > 0 ? failures : undefined,
-	})
+	sendProgress('summary', 'Rollout batch complete', getStats())
 
-	// Check if there are more users to migrate
-	const remainingUsers = await getNumUnmigratedUsers(pg)
-	return remainingUsers > 0
+	// More requests needed if we're still below the target
+	const stillUnenrolled = await getNumUnenrolledUsers(pg)
+	return {
+		hasMore: !shouldStop() && stillUnenrolled > 0 && totalUsers - stillUnenrolled < targetEnrolled,
+		failed: false,
+	}
 }

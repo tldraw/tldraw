@@ -242,10 +242,10 @@ export function Component() {
 					</section>
 				)}
 
-				{/* Batch Migration Section */}
+				{/* Groups UI rollout section */}
 				<section className={styles.adminSection}>
-					<h3 className="tla-text_ui__title">Batch Migration</h3>
-					<BatchMigrateUsersToGroups />
+					<h3 className="tla-text_ui__title">Groups UI rollout</h3>
+					<RolloutGroupsFrontend />
 				</section>
 
 				{/* Feature Flags Section */}
@@ -796,7 +796,7 @@ function EnrollUserInGroups({
 	)
 }
 
-function BatchMigrateUsersToGroups() {
+function RolloutGroupsFrontend() {
 	const [isMigrating, setIsMigrating] = useState(false)
 	const [progressLog, setProgressLog] = useState<string[]>([])
 	const [error, setError] = useState(null as string | null)
@@ -814,6 +814,7 @@ function BatchMigrateUsersToGroups() {
 	const [isLoadingCount, setIsLoadingCount] = useState(false)
 	const [eventSource, setEventSource] = useState<EventSource | null>(null)
 	const [sleepMs, setSleepMs] = useState(100)
+	const [percentage, setPercentage] = useState(0)
 	const logContainerRef = useRef<HTMLDivElement>(null)
 	const shouldContinueRef = useRef(true)
 
@@ -861,7 +862,17 @@ function BatchMigrateUsersToGroups() {
 	}, [eventSource])
 
 	const onMigrate = useCallback(async () => {
-		const migrationMessage = `Are you sure you want to migrate ALL users without the groups_backend flag? This action cannot be undone.`
+		// Validate here — a worker 400 only surfaces as a generic EventSource error
+		if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+			setError('Target percentage must be between 0 and 100')
+			return
+		}
+		if (isNaN(sleepMs) || sleepMs < 0) {
+			setError('Sleep must be a non-negative number')
+			return
+		}
+
+		const migrationMessage = `Roll out the groups UI until ${percentage}% of all users have the groups_frontend flag?`
 
 		if (!window.confirm(migrationMessage)) {
 			return
@@ -879,6 +890,7 @@ function BatchMigrateUsersToGroups() {
 				try {
 					const params = new URLSearchParams({
 						sleepMs: sleepMs.toString(),
+						percentage: percentage.toString(),
 					})
 					const es = new EventSource(`/api/app/admin/migrate_users_batch?${params}`)
 					setEventSource(es)
@@ -912,7 +924,11 @@ function BatchMigrateUsersToGroups() {
 						if (data.type === 'complete') {
 							es.close()
 							setEventSource(null)
-							if (data.hasMore && shouldContinueRef.current) {
+							if (data.failed) {
+								setError('Rollout stopped due to a failure — see the progress log')
+								setIsMigrating(false)
+								resolve()
+							} else if (data.hasMore && shouldContinueRef.current) {
 								// Start next batch
 								setTimeout(() => startBatch().then(resolve).catch(reject), 100)
 							} else {
@@ -950,13 +966,13 @@ function BatchMigrateUsersToGroups() {
 		} catch (_err) {
 			// Error already handled in startBatch
 		}
-	}, [sleepMs])
+	}, [sleepMs, percentage])
 
 	return (
 		<div className={styles.dangerZone}>
-			<h4 className="tla-text_ui__medium">Migrate All Users to Groups Backend</h4>
+			<h4 className="tla-text_ui__medium">Roll out groups UI</h4>
 
-			{/* Unmigrated Users Count */}
+			{/* Unenrolled users count */}
 			<div className={styles.countContainer}>
 				<TlaButton
 					onClick={fetchUnmigratedCount}
@@ -964,19 +980,21 @@ function BatchMigrateUsersToGroups() {
 					isLoading={isLoadingCount}
 					disabled={isMigrating}
 				>
-					Check Unmigrated Users Count
+					Check remaining users count
 				</TlaButton>
 				{unmigratedCount !== null && (
 					<span className={styles.countDisplay}>
-						{unmigratedCount} user{unmigratedCount !== 1 ? 's' : ''} need migration
+						{unmigratedCount} user{unmigratedCount !== 1 ? 's' : ''} without groups_frontend
 					</span>
 				)}
 			</div>
 
 			<p className="tla-text_ui__small">
-				This will migrate all users who don&apos;t have the groups_backend flag. The process will
-				run sequentially (one user at a time) and report progress in real-time. Configure the sleep
-				duration (milliseconds to wait between each user migration) below.
+				This grants the groups_frontend flag (the groups UI) to users who don&apos;t have it.
+				Clients pick the flag up live through Zero, so no reboot is needed. Set a target percentage
+				for a gradual rollout: enrollment stops once that share of all users has the flag, and the
+				flag is persistent, so raising the percentage later only enrolls the difference. Users are
+				enrolled in chunks of 200 with a configurable pause between chunks.
 			</p>
 
 			{error && <div className={styles.errorMessage}>{error}</div>}
@@ -984,7 +1002,20 @@ function BatchMigrateUsersToGroups() {
 			{/* Configuration Inputs */}
 			<div className={styles.configContainer}>
 				<div>
-					<label htmlFor="sleepMs">Sleep between migrations (ms):</label>
+					<label htmlFor="rolloutPercentage">Target percentage of all users:</label>
+					<input
+						id="rolloutPercentage"
+						type="number"
+						value={percentage}
+						onChange={(e) => setPercentage(Number(e.target.value))}
+						disabled={isMigrating}
+						min={0}
+						max={100}
+						className={`${styles.searchInput} ${styles.sleepInput}`}
+					/>
+				</div>
+				<div>
+					<label htmlFor="sleepMs">Sleep between chunks (ms):</label>
 					<input
 						id="sleepMs"
 						type="number"
@@ -1005,7 +1036,7 @@ function BatchMigrateUsersToGroups() {
 						<span className={styles.statValue}>{stats.totalUsers}</span>
 					</div>
 					<div className={styles.statItem}>
-						<span className={styles.statLabel}>Users to Migrate:</span>
+						<span className={styles.statLabel}>Users to enroll:</span>
 						<span className={styles.statValue}>{stats.usersToMigrate}</span>
 					</div>
 					<div className={styles.statItem}>
@@ -1030,21 +1061,21 @@ function BatchMigrateUsersToGroups() {
 					className={styles.deleteButton}
 					disabled={!isMigrating && isLoadingCount}
 				>
-					{isMigrating ? 'Stop Migration' : 'Start Batch Migration'}
+					{isMigrating ? 'Stop rollout' : 'Start rollout'}
 				</TlaButton>
 			</div>
 
 			{isComplete && (
 				<div className={styles.successMessage}>
-					Migration completed! {stats.successCount} user{stats.successCount !== 1 ? 's' : ''}{' '}
-					migrated successfully, {stats.failureCount} failed
+					Rollout completed! {stats.successCount} user{stats.successCount !== 1 ? 's' : ''} enrolled
+					successfully, {stats.failureCount} failed
 				</div>
 			)}
 
 			{/* Progress Log */}
 			{progressLog.length > 0 && (
 				<div className={styles.progressLog}>
-					<h5>Migration Progress:</h5>
+					<h5>Rollout progress:</h5>
 					<div ref={logContainerRef} className={styles.logContainer}>
 						{progressLog.map((log, index) => (
 							<div key={index} className={styles.logEntry}>
