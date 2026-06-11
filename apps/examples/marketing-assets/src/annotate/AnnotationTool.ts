@@ -14,7 +14,7 @@ import {
 // pointing at it, and an instantly-editable note at the other end. The three are
 // real tldraw shapes (geo + arrow + text) bound and grouped together, so they
 // move and delete as one unit and are read by the existing re-render pipeline
-// (see collectAnnotations in assetActions.ts) with no special casing.
+// (see readAnnotations in ./readAnnotations.ts) with no special casing.
 
 // Smallest drag that counts as a deliberate rectangle. A click below this gets a
 // default-sized rectangle centred on the pointer instead.

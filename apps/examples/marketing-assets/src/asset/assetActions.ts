@@ -1,16 +1,5 @@
-import {
-	AssetRecordType,
-	atom,
-	Box,
-	createShapeId,
-	Editor,
-	getArrowBindings,
-	getArrowInfo,
-	TLArrowShape,
-	TLAssetId,
-	TLShape,
-	TLShapeId,
-} from 'tldraw'
+import { AssetRecordType, atom, createShapeId, Editor, TLAssetId, TLShapeId } from 'tldraw'
+import { ReadAnnotation, deleteAnnotations, readAnnotations } from '../annotate/readAnnotations'
 import { apiGenerate, apiPlan, OutputType } from '../api/marketingApi'
 import { brandReferenceImages, getBrand, serializeBrand } from '../brand/brandState'
 import {
@@ -39,9 +28,6 @@ const DIRECTION_HINTS = [
 
 /** How many approved ideas to feed back into the next batch as references. */
 const MAX_FEEDBACK_REFERENCES = 3
-
-// Shape types that count as annotations when they overlap an asset frame.
-const ANNOTATION_TYPES = new Set(['arrow', 'text', 'draw', 'geo', 'note', 'line', 'highlight'])
 
 // Cap on how many sequential render passes one re-render makes.
 const MAX_RENDER_STEPS = 8
@@ -343,8 +329,10 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 	const cleanSrc = getAssetSrc(editor, current)
 	if (!cleanSrc) return
 
-	const { ids, lines } = collectAnnotations(editor, id)
-	if (ids.length === 0) return
+	const annotations = readAnnotations(editor, id)
+	if (annotations.length === 0) return
+	const ids = annotations.flatMap((a) => a.shapeIds)
+	const lines = annotations.map(formatAnnotation)
 
 	setGenerating(editor, id)
 
@@ -410,8 +398,8 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 				createdAt: Date.now(),
 			})
 
-			// The annotations have been consumed — clear them.
-			editor.deleteShapes(ids)
+			// The annotations have been consumed — clear them, group shells and all.
+			deleteAnnotations(editor, annotations)
 		} catch (e) {
 			setError(editor, id, e)
 		} finally {
@@ -434,7 +422,7 @@ export function revertTo(editor: Editor, id: TLShapeId, index: number): void {
 
 /** Whether any annotations currently overlap the asset frame. */
 export function hasAnnotations(editor: Editor, id: TLShapeId): boolean {
-	return collectAnnotations(editor, id).ids.length > 0
+	return readAnnotations(editor, id).length > 0
 }
 
 /** The data URL of a version's stored image, if available. */
@@ -561,148 +549,26 @@ function setError(editor: Editor, id: TLShapeId, e: unknown): void {
 }
 
 /**
- * Gather the annotations for an asset and describe them as located, paired
- * instructions. Captures arrows that point at the asset and the text notes tied
- * to them — including notes drawn in the margin with an arrow into the image, so
- * a note's text is never dropped just because it sits outside the frame.
+ * Phrase one read annotation as an instruction for the planner. This is the prose
+ * the model reads; `readAnnotations` itself stays free of marketing voice.
  */
-function collectAnnotations(editor: Editor, id: TLShapeId): { ids: TLShapeId[]; lines: string[] } {
-	const assetBounds = editor.getShapePageBounds(id)
-	if (!assetBounds) return { ids: [], lines: [] }
-
-	const candidates = editor
-		.getCurrentPageShapes()
-		.filter((s) => s.id !== id && ANNOTATION_TYPES.has(s.type))
-
-	const bounds = new Map<TLShapeId, Box>()
-	for (const s of candidates) {
-		const b = editor.getShapePageBounds(s.id)
-		if (b) bounds.set(s.id, b)
-	}
-
-	// What each arrow is bound to (start = where it's drawn from, end = where it
-	// points). The annotation tool binds an arrow from its note to its rectangle; a
-	// hand-drawn arrow may be bound to nothing.
-	const ends = new Map<TLShapeId, { start?: TLShapeId; end?: TLShapeId }>()
-	for (const s of candidates) {
-		if (s.type !== 'arrow') continue
-		const b = getArrowBindings(editor, s as TLArrowShape)
-		ends.set(s.id, { start: b.start?.toId, end: b.end?.toId })
-	}
-
-	// Arrows that point at the asset — either their own box overlaps it, or
-	// they're bound to a shape that does (e.g. a rectangle drawn on the asset).
-	const onAsset = (shapeId?: TLShapeId) =>
-		!!shapeId && bounds.has(shapeId) && overlaps(assetBounds, bounds.get(shapeId)!)
-	const arrows = candidates.filter((s) => {
-		if (s.type !== 'arrow' || !bounds.has(s.id)) return false
-		if (overlaps(assetBounds, bounds.get(s.id)!)) return true
-		const e = ends.get(s.id)!
-		return onAsset(e.start) || onAsset(e.end)
-	})
-	const arrowBounds = arrows.map((s) => bounds.get(s.id)!)
-
-	// Shapes bound to a detected arrow — these are part of an annotation even when
-	// they sit off the asset and the arrow leaves a small gap to them.
-	const boundToArrow = new Set<TLShapeId>()
-	for (const a of arrows) {
-		const e = ends.get(a.id)!
-		if (e.start) boundToArrow.add(e.start)
-		if (e.end) boundToArrow.add(e.end)
-	}
-
-	// Notes/text/shapes that sit on the asset, are bound to one of those arrows,
-	// or overlap one (a note in the margin with an arrow drawn from it to the
-	// image).
-	const notes = candidates.filter((s) => {
-		if (s.type === 'arrow' || !bounds.has(s.id)) return false
-		const b = bounds.get(s.id)!
-		return (
-			overlaps(assetBounds, b) ||
-			boundToArrow.has(s.id) ||
-			arrowBounds.some((ab) => overlaps(ab, b))
-		)
-	})
-
-	const ids: TLShapeId[] = [...arrows, ...notes].map((s) => s.id)
-	const lines: string[] = []
-	const usedNotes = new Set<TLShapeId>()
-
-	for (const arrow of arrows) {
-		const e = ends.get(arrow.id)!
-		const ab = bounds.get(arrow.id)!
-		// Candidate sources: shapes the arrow is bound to, plus shapes whose box
-		// overlaps it. Prefer one that actually carries text — the annotation
-		// tool's rectangle is a text-less geo, so without this it could be paired as
-		// the arrow's source and swallow the real note.
-		const linked = notes.filter(
-			(n) =>
-				!usedNotes.has(n.id) &&
-				(n.id === e.start || n.id === e.end || overlaps(ab, bounds.get(n.id)!))
-		)
-		const source = linked.find((n) => getText(editor, n)) ?? linked[0]
-		if (source) usedNotes.add(source.id)
-
-		const message = [getText(editor, arrow), source ? getText(editor, source) : '']
-			.filter(Boolean)
-			.join(' — ')
-		// Describe where the change is wanted. Prefer the shape the arrow points
-		// at (e.g. the rectangle ringing the area), else the resolved arrow head.
-		const endBounds = e.end ? bounds.get(e.end) : undefined
-		const target = endBounds ? endBounds.center : arrowTarget(editor, arrow)
-		const where = target ? regionOf(target, assetBounds) : 'the asset'
-
-		lines.push(
-			message
-				? `Change the ${where} of the asset: ${message}.`
-				: `Something at the ${where} of the asset needs changing (an arrow points there, but no text was given).`
-		)
-	}
-
-	// Free-standing notes not attached to any arrow.
-	for (const n of notes) {
-		if (usedNotes.has(n.id)) continue
-		const text = getText(editor, n)
-		if (text)
-			lines.push(`Note near the ${regionOf(bounds.get(n.id)!.center, assetBounds)}: ${text}.`)
-	}
-
-	return { ids, lines }
+function formatAnnotation(annotation: ReadAnnotation): string {
+	const where = `the ${regionOf(annotation.area)} of the asset`
+	return annotation.text
+		? `Change ${where}: ${annotation.text}.`
+		: `Something at ${where} needs changing (an arrow points there, but no text was given).`
 }
 
-function getText(editor: Editor, shape: TLShape): string {
-	const util = editor.getShapeUtil(shape) as { getText?(s: TLShape): string | undefined }
-	const text = util.getText?.(shape)
-	return typeof text === 'string' ? text.trim() : ''
-}
-
-/** The page-space point an arrow's head lands on. */
-function arrowTarget(editor: Editor, arrow: TLShape): { x: number; y: number } | null {
-	if (arrow.type !== 'arrow') return null
-	const transform = editor.getShapePageTransform(arrow)
-	if (!transform) return null
-	// Resolve the real head position. For a bound arrow (like an annotation's
-	// arrow) the live endpoint comes from the binding; props.end is only a stale
-	// fallback, so prefer the computed arrow info.
-	const info = getArrowInfo(editor, arrow as TLArrowShape)
-	const end = info ? info.end.point : (arrow as TLArrowShape).props.end
-	return transform.applyToPoint(end)
-}
-
-/** Describe where a point sits within the asset, e.g. "top left", "centre". */
-function regionOf(point: { x: number; y: number }, b: Box): string {
-	const nx = (point.x - b.minX) / b.width
-	const ny = (point.y - b.minY) / b.height
-	const col = nx < 0.34 ? 'left' : nx < 0.67 ? 'centre' : 'right'
-	const row = ny < 0.34 ? 'top' : ny < 0.67 ? 'middle' : 'bottom'
+/** Describe where a normalized area sits within the asset, e.g. "top left", "centre". */
+function regionOf(area: { x: number; y: number; w: number; h: number }): string {
+	const cx = area.x + area.w / 2
+	const cy = area.y + area.h / 2
+	const col = cx < 0.34 ? 'left' : cx < 0.67 ? 'centre' : 'right'
+	const row = cy < 0.34 ? 'top' : cy < 0.67 ? 'middle' : 'bottom'
 	if (row === 'middle' && col === 'centre') return 'centre'
 	if (row === 'middle') return `${col} side`
 	if (col === 'centre') return `${row} centre`
 	return `${row} ${col}`
-}
-
-function overlaps(a: Box, b: Box): boolean {
-	return a.minX < b.maxX && a.maxX > b.minX && a.minY < b.maxY && a.maxY > b.minY
 }
 
 async function blobToDataUrl(blob: Blob): Promise<string> {
