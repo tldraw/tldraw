@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { Editor } from '@tldraw/editor'
+import { createShapeId, Editor } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
 import { useActions } from '../../lib/ui/context/actions'
@@ -178,5 +178,30 @@ describe('keyboard shortcuts with a held key', () => {
 		// A fresh plain `q` press now works rather than being blocked by a stale entry.
 		keydown(editor, { key: 'q', code: 'KeyQ' })
 		expect(editor.getInstanceState().isToolLocked).toBe(true)
+	})
+
+	// Regression test for #9099: redo (cmd+shift+z) stopped firing after an undo (cmd+z) on
+	// macOS, where the browser swallows the `z` keyup while cmd stays held. The held-key
+	// tracking from #9099 never got cleared, so the stale undo registration blocked the redo
+	// on the same physical `KeyZ`. A fresh keypress must always be free to trigger its match.
+	it('fires redo after undo on the same physical key when the keyup is swallowed (cmd held)', async () => {
+		const { editor } = await setupFocusedEditor()
+
+		const id = createShapeId()
+		act(() => {
+			editor.markHistoryStoppingPoint()
+			editor.createShape({ id, type: 'geo', x: 0, y: 0 })
+		})
+		expect(editor.getCurrentPageShapeIds().has(id)).toBe(true)
+
+		// cmd+z undoes the shape creation. On macOS the `z` keyup is never delivered while cmd
+		// stays held, so we deliberately don't dispatch it.
+		keydown(editor, { key: 'z', code: 'KeyZ', metaKey: true })
+		expect(editor.getCurrentPageShapeIds().has(id)).toBe(false)
+
+		// Adding shift and pressing z again is a fresh keypress (not an auto-repeat), so it must
+		// trigger redo rather than being blocked by the stale undo registration on `KeyZ`.
+		keydown(editor, { key: 'z', code: 'KeyZ', metaKey: true, shiftKey: true })
+		expect(editor.getCurrentPageShapeIds().has(id)).toBe(true)
 	})
 })
