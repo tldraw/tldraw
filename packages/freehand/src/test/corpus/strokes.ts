@@ -1,5 +1,5 @@
-import { StrokeOptions } from '../lib/types'
-import { VecModel } from '../vendor'
+import { StrokeOptions } from '../../lib/types'
+import { VecModel } from '../../vendor'
 import {
 	highlightSettings,
 	realPressureSettings,
@@ -356,7 +356,7 @@ function makeCases(): CorpusCase[] {
 		highlightSettings(28)
 	)
 
-	// --- Real recorded strokes (extracted from raw.json, see scripts/extract-raw.ts) ---
+	// --- Real recorded strokes (see corpus/real.ts) ---
 	// All were drawn with a mouse at size 'xl' and scale 1, so tldraw passes
 	// strokeWidth = (theme.strokeWidth 2 * STROKE_SIZES.xl 5 + 1) * scale 1 = 11.
 	REAL_STROKES.forEach(({ points }, i) => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { getSvgPathFromStrokePoints } from './svg'
-import { StrokePoint } from './types'
+import { getSvgPathFromStrokePoints } from '../lib/svg'
+import { StrokePoint } from '../lib/types'
 
 function pt(x: number, y: number): StrokePoint {
 	return { point: { x, y } } as StrokePoint

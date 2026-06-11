@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url'
 import { describe, expect, it } from 'vitest'
 
 const here = dirname(fileURLToPath(import.meta.url))
-const repoRoot = join(here, '..', '..', '..')
+const repoRoot = join(here, '..', '..', '..', '..')
 
 // The vendored lines are verbatim copies of the editor sources, except that
 // import specifiers point at the vendored primitives (and the formatter may
@@ -42,6 +42,6 @@ function expectOrderedSubsetOfSource(copyPath: string, sourcePath: string) {
 
 describe('vendored primitives match the live editor sources', () => {
 	it('vendor/Vec.ts', () => {
-		expectOrderedSubsetOfSource('vendor/Vec.ts', 'packages/editor/src/lib/primitives/Vec.ts')
+		expectOrderedSubsetOfSource('../vendor/Vec.ts', 'packages/editor/src/lib/primitives/Vec.ts')
 	})
 })

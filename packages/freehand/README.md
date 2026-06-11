@@ -15,7 +15,7 @@ The implementation was optimized against the algorithm that previously shipped i
 
 - `src/lib` - the algorithm, consumed by the `tldraw` package.
 - `src/vendor` - copies of the `Vec` and easing primitives from `@tldraw/editor`, so the package does not depend on the editor. `Vec` is trimmed to just the members the package uses; the drift guard checks each kept member is a verbatim copy of the editor's.
-- `src/corpus` - a deterministic corpus of simulated strokes (short and long; mouse, stylus, solid, highlighter) using the same stroke options tldraw passes in production, plus real recorded strokes: `raw.json` is a tldraw snapshot of hand-drawn shapes, and `yarn workspace @tldraw/freehand extract-raw` decodes its input points into the generated `real.ts`.
+- `src/test` - the tests, including a deterministic corpus of simulated strokes (short and long; mouse, stylus, solid, highlighter) using the same stroke options tldraw passes in production, plus real hand-drawn strokes recorded in tldraw (`corpus/real.ts`).
 
 ## Tests
 

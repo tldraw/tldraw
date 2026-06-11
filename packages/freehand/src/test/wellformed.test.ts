@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { getStrokePoints } from '../lib/getStrokePoints'
+import { getSvgPathFromStrokePoints } from '../lib/svg'
+import { svgInk } from '../lib/svgInk'
 import { CORPUS, CorpusCase } from './corpus/strokes'
-import { getStrokePoints } from './lib/getStrokePoints'
-import { getSvgPathFromStrokePoints } from './lib/svg'
-import { svgInk } from './lib/svgInk'
 
 /**
  * Produce the svg path data tldraw would actually render for this case. Strokes with the 'draw'
