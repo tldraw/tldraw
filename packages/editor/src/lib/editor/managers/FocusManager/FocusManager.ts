@@ -3,6 +3,14 @@ import { elementShouldCaptureKeys, preventDefault } from '../../../utils/dom'
 import type { Editor } from '../../Editor'
 
 /**
+ * A zero-width space kept inside (and selected within) the keyboard sink. iOS
+ * Safari only fires `copy`/`cut` events for Cmd+C / Cmd+X when the focused
+ * editable has a non-collapsed selection, and tldraw's clipboard shortcuts
+ * ride those native events.
+ */
+const KEYBOARD_SINK_SENTINEL = '\u200b'
+
+/**
  * A manager for ensuring correct focus across the editor.
  * It will listen for changes in the instance state to make sure the
  * container is focused when the editor is focused.
@@ -99,18 +107,53 @@ export class FocusManager {
 			caretColor: 'transparent',
 			outline: 'none',
 		})
+		elm.textContent = KEYBOARD_SINK_SENTINEL
 		elm.addEventListener('beforeinput', preventDefault)
 		elm.addEventListener('input', this.handleKeyboardSinkInput)
+		elm.addEventListener('focus', this.handleKeyboardSinkFocus)
+		elm.addEventListener('copy', this.handleKeyboardSinkCopyCut)
+		elm.addEventListener('cut', this.handleKeyboardSinkCopyCut)
 		container.appendChild(elm)
 		return elm
+	}
+
+	/**
+	 * Keep the sink's invisible sentinel character selected while the sink has
+	 * focus, so the browser generates native `copy`/`cut` events for Cmd+C /
+	 * Cmd+X (iOS requires a non-collapsed selection in the focused editable;
+	 * see KEYBOARD_SINK_SENTINEL). The sentinel never reaches the clipboard:
+	 * the sink suppresses the default copy/cut, and tldraw's own clipboard
+	 * handlers write the real payload through the async clipboard API.
+	 */
+	private selectKeyboardSinkContents() {
+		const doc = this.editor.getContainerDocument()
+		const selection = doc.getSelection()
+		if (!selection) return
+		const range = doc.createRange()
+		range.selectNodeContents(this.keyboardSink)
+		selection.removeAllRanges()
+		selection.addRange(range)
+	}
+
+	@bind private handleKeyboardSinkFocus() {
+		this.selectKeyboardSinkContents()
+	}
+
+	@bind private handleKeyboardSinkCopyCut(e: ClipboardEvent) {
+		// Suppress the browser's default copy/cut of the sink's sentinel so it
+		// can never clobber the user's clipboard. This does not stop the event
+		// from bubbling to tldraw's clipboard handlers, which write the real
+		// payload themselves when shapes are selected.
+		preventDefault(e)
 	}
 
 	@bind private handleKeyboardSinkInput() {
 		// Belt and braces: beforeinput is canceled, but if anything still lands
 		// in the sink (e.g. via an input type a browser doesn't let us cancel),
-		// throw it away.
-		if (this.keyboardSink.textContent !== '') {
-			this.keyboardSink.textContent = ''
+		// restore the sentinel.
+		if (this.keyboardSink.textContent !== KEYBOARD_SINK_SENTINEL) {
+			this.keyboardSink.textContent = KEYBOARD_SINK_SENTINEL
+			this.selectKeyboardSinkContents()
 		}
 	}
 

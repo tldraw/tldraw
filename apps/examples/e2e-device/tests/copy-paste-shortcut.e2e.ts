@@ -47,9 +47,35 @@ async function installDiagnostics() {
 		for (const type of ['beforecopy', 'copy', 'cut', 'paste'] as const) {
 			document.addEventListener(
 				type,
-				(e) => log.push(`${type} target=${describe(e.target as Element)}`),
+				(e) => {
+					const types = (e as ClipboardEvent).clipboardData?.types?.join('+') ?? 'none'
+					log.push(`${type} target=${describe(e.target as Element)} dataTypes=${types}`)
+				},
 				{ capture: true }
 			)
+		}
+		// Trace async clipboard API calls so permission/focus rejections are
+		// visible in the CI job log.
+		const clip = navigator.clipboard as any
+		for (const method of ['write', 'writeText', 'read', 'readText']) {
+			const original = clip?.[method]?.bind(clip)
+			if (!original) {
+				log.push(`clipboard.${method} unavailable`)
+				continue
+			}
+			clip[method] = (...args: unknown[]) => {
+				log.push(`clipboard.${method} called`)
+				return original(...args).then(
+					(result: unknown) => {
+						log.push(`clipboard.${method} resolved`)
+						return result
+					},
+					(err: any) => {
+						log.push(`clipboard.${method} REJECTED ${err?.name}: ${err?.message}`)
+						throw err
+					}
+				)
+			}
 		}
 	})
 }
@@ -59,6 +85,7 @@ async function dumpDiagnostics(label: string) {
 	const diag = await browser.execute(() => {
 		const ae = document.activeElement
 		const sink = document.querySelector('[data-tl-keyboard-sink]')
+		const sel = document.getSelection()
 		return {
 			activeElement: !ae
 				? 'null'
@@ -68,6 +95,9 @@ async function dumpDiagnostics(label: string) {
 						? 'container'
 						: ae.tagName,
 			sinkExists: !!sink,
+			selection: !sel?.rangeCount
+				? 'none'
+				: `${sel.anchorNode?.parentElement?.closest('[data-tl-keyboard-sink]') ? 'in-sink' : 'elsewhere'} collapsed=${sel.isCollapsed}`,
 			editorIsFocused: editor.getInstanceState().isFocused,
 			events: ((window as any).__kbdDiag as string[] | undefined) ?? [],
 		}
