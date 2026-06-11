@@ -166,15 +166,14 @@ export class ValidationError extends Error {
 	}
 }
 
-function prefixError<T>(path: string | number, fn: () => T): T {
-	try {
-		return fn()
-	} catch (err) {
-		if (err instanceof ValidationError) {
-			throw new ValidationError(err.rawMessage, [path, ...err.path])
-		}
-		throw new ValidationError((err as Error).toString(), [path])
+// Rethrows a validation error with a path prefix. Validation paths use this in a plain
+// try/catch (rather than wrapping the work in a callback) so that the success path
+// allocates no closure.
+function rethrowPrefixed(path: string | number, err: unknown): never {
+	if (err instanceof ValidationError) {
+		throw new ValidationError(err.rawMessage, [path, ...err.path])
 	}
+	throw new ValidationError((err as Error).toString(), [path])
 }
 
 function typeToString(value: unknown): string {
@@ -487,7 +486,13 @@ export class Validator<T> implements Validatable<T> {
 	check(nameOrCheckFn: string | ((value: T) => void), checkFn?: (value: T) => void): Validator<T> {
 		if (typeof nameOrCheckFn === 'string') {
 			return this.refine((value) => {
-				prefixError(`(check ${nameOrCheckFn})`, () => checkFn!(value))
+				// build the check-name error prefix only on failure so the success path
+				// allocates no string or closure
+				try {
+					checkFn!(value)
+				} catch (err) {
+					rethrowPrefixed(`(check ${nameOrCheckFn})`, err)
+				}
 				return value
 			})
 		} else {
@@ -523,18 +528,11 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 			(value) => {
 				const arr = array.validate(value)
 				for (let i = 0; i < arr.length; i++) {
-					if (IS_DEV) {
-						prefixError(i, () => itemValidator.validate(arr[i]))
-					} else {
-						// Production: inline error handling to avoid closure overhead
-						try {
-							itemValidator.validate(arr[i])
-						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [i, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [i])
-						}
+					// inline error handling to avoid closure overhead on the success path
+					try {
+						itemValidator.validate(arr[i])
+					} catch (err) {
+						rethrowPrefixed(i, err)
 					}
 				}
 				return arr as T[]
@@ -551,17 +549,10 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 					const item = arr[i]
 					if (i >= knownGoodValue.length) {
 						isDifferent = true
-						if (IS_DEV) {
-							prefixError(i, () => itemValidator.validate(item))
-						} else {
-							try {
-								itemValidator.validate(item)
-							} catch (err) {
-								if (err instanceof ValidationError) {
-									throw new ValidationError(err.rawMessage, [i, ...err.path])
-								}
-								throw new ValidationError((err as Error).toString(), [i])
-							}
+						try {
+							itemValidator.validate(item)
+						} catch (err) {
+							rethrowPrefixed(i, err)
 						}
 						continue
 					}
@@ -569,28 +560,16 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 					if (Object.is(knownGoodValue[i], item)) {
 						continue
 					}
-					if (IS_DEV) {
-						const checkedItem = prefixError(i, () =>
-							itemValidator.validateUsingKnownGoodVersion!(knownGoodValue[i], item)
+					try {
+						const checkedItem = itemValidator.validateUsingKnownGoodVersion!(
+							knownGoodValue[i],
+							item
 						)
 						if (!Object.is(checkedItem, knownGoodValue[i])) {
 							isDifferent = true
 						}
-					} else {
-						try {
-							const checkedItem = itemValidator.validateUsingKnownGoodVersion!(
-								knownGoodValue[i],
-								item
-							)
-							if (!Object.is(checkedItem, knownGoodValue[i])) {
-								isDifferent = true
-							}
-						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [i, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [i])
-						}
+					} catch (err) {
+						rethrowPrefixed(i, err)
 					}
 				}
 
@@ -673,34 +652,34 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 		},
 		private readonly shouldAllowUnknownProperties = false
 	) {
+		// Cache the config keys and validators once so each validation iterates flat arrays
+		// instead of walking the config object with a hasOwnProperty check per key per call.
+		const configKeys: string[] = []
+		const configValidators: Validatable<unknown>[] = []
+		for (const [key, validator] of Object.entries(config)) {
+			configKeys.push(key)
+			configValidators.push(validator as Validatable<unknown>)
+		}
+
 		super(
 			(object) => {
 				if (typeof object !== 'object' || object === null) {
 					throw new ValidationError(`Expected object, got ${typeToString(object)}`)
 				}
 
-				for (const key in config) {
-					if (!hasOwnProperty(config, key)) continue
-					const validator = config[key as keyof typeof config]
-					if (IS_DEV) {
-						prefixError(key, () => {
-							;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
-						})
-					} else {
-						// Production: inline error handling to avoid closure overhead
-						try {
-							;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
-						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [key, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [key])
-						}
+				for (let i = 0; i < configKeys.length; i++) {
+					const key = configKeys[i]
+					try {
+						configValidators[i].validate(getOwnProperty(object, key))
+					} catch (err) {
+						rethrowPrefixed(key, err)
 					}
 				}
 
 				if (!shouldAllowUnknownProperties) {
-					for (const key of Object.keys(object)) {
+					// for...in instead of Object.keys() to avoid the key array allocation
+					for (const key in object) {
+						if (!hasOwnProperty(object, key)) continue
 						if (!hasOwnProperty(config, key)) {
 							throw new ValidationError(`Unexpected property`, [key])
 						}
@@ -720,57 +699,45 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 
 				let isDifferent = false
 
-				for (const key in config) {
-					if (!hasOwnProperty(config, key)) continue
-					const validator = config[key as keyof typeof config]
+				for (let i = 0; i < configKeys.length; i++) {
+					const key = configKeys[i]
 					const prev = getOwnProperty(knownGoodValue, key)
 					const next = getOwnProperty(newValue, key)
 					// sneaky quick check here to avoid the prefix + validator overhead
 					if (Object.is(prev, next)) {
 						continue
 					}
-					if (IS_DEV) {
-						const checked = prefixError(key, () => {
-							const validatable = validator as Validatable<unknown>
-							if (validatable.validateUsingKnownGoodVersion) {
-								return validatable.validateUsingKnownGoodVersion(prev, next)
-							} else {
-								return validatable.validate(next)
-							}
-						})
+					try {
+						const validator = configValidators[i]
+						const checked = validator.validateUsingKnownGoodVersion
+							? validator.validateUsingKnownGoodVersion(prev, next)
+							: validator.validate(next)
 						if (!Object.is(checked, prev)) {
 							isDifferent = true
 						}
-					} else {
-						try {
-							const validatable = validator as Validatable<unknown>
-							const checked = validatable.validateUsingKnownGoodVersion
-								? validatable.validateUsingKnownGoodVersion(prev, next)
-								: validatable.validate(next)
-							if (!Object.is(checked, prev)) {
-								isDifferent = true
-							}
-						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [key, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [key])
-						}
+					} catch (err) {
+						rethrowPrefixed(key, err)
 					}
 				}
 
 				if (!shouldAllowUnknownProperties) {
-					for (const key of Object.keys(newValue)) {
+					// for...in instead of Object.keys() to avoid the key array allocation
+					for (const key in newValue) {
+						if (!hasOwnProperty(newValue, key)) continue
 						if (!hasOwnProperty(config, key)) {
 							throw new ValidationError(`Unexpected property`, [key])
 						}
 					}
 				}
 
-				for (const key of Object.keys(knownGoodValue)) {
-					if (!hasOwnProperty(newValue, key)) {
-						isDifferent = true
-						break
+				if (!isDifferent) {
+					// this loop only detects removed keys, so skip it once a difference is known
+					for (const key in knownGoodValue) {
+						if (!hasOwnProperty(knownGoodValue, key)) continue
+						if (!hasOwnProperty(newValue, key)) {
+							isDifferent = true
+							break
+						}
 					}
 				}
 
@@ -874,35 +841,45 @@ export class UnionValidator<
 			(input) => {
 				this.expectObject(input)
 
-				const { matchingSchema, variant } = this.getMatchingSchemaAndVariant(input)
+				const matchingSchema = this.getMatchingSchema(input)
 				if (matchingSchema === undefined) {
-					return this.unknownValueValidation(input, variant)
+					return this.unknownValueValidation(input, this.getVariant(input))
 				}
 
-				return prefixError(`(${key} = ${variant})`, () => matchingSchema.validate(input))
+				// build the `(key = variant)` error prefix only on failure so the success path
+				// allocates no string or closure
+				try {
+					return matchingSchema.validate(input)
+				} catch (err) {
+					rethrowPrefixed(`(${key} = ${this.getVariant(input)})`, err)
+				}
 			},
 			(prevValue, newValue) => {
 				// Note: Object.is check is already done by base Validator class
 				this.expectObject(newValue)
 				this.expectObject(prevValue)
 
-				const { matchingSchema, variant } = this.getMatchingSchemaAndVariant(newValue)
+				const matchingSchema = this.getMatchingSchema(newValue)
 				if (matchingSchema === undefined) {
-					return this.unknownValueValidation(newValue, variant)
+					return this.unknownValueValidation(newValue, this.getVariant(newValue))
 				}
 
-				if (getOwnProperty(prevValue, key) !== getOwnProperty(newValue, key)) {
-					// the type has changed so bail out and do a regular validation
-					return prefixError(`(${key} = ${variant})`, () => matchingSchema.validate(newValue))
-				}
+				// build the `(key = variant)` error prefix only on failure so the success path
+				// allocates no string or closure
+				try {
+					if (getOwnProperty(prevValue, key) !== getOwnProperty(newValue, key)) {
+						// the type has changed so bail out and do a regular validation
+						return matchingSchema.validate(newValue)
+					}
 
-				return prefixError(`(${key} = ${variant})`, () => {
 					if (matchingSchema.validateUsingKnownGoodVersion) {
 						return matchingSchema.validateUsingKnownGoodVersion(prevValue, newValue)
 					} else {
 						return matchingSchema.validate(newValue)
 					}
-				})
+				} catch (err) {
+					rethrowPrefixed(`(${key} = ${this.getVariant(newValue)})`, err)
+				}
 			}
 		)
 	}
@@ -913,10 +890,14 @@ export class UnionValidator<
 		}
 	}
 
-	private getMatchingSchemaAndVariant(object: object): {
-		matchingSchema: Validatable<any> | undefined
-		variant: string
-	} {
+	private getVariant(object: object): string {
+		return getOwnProperty(object, this.key) as unknown as string
+	}
+
+	// Returns the matching schema for the object's variant, or undefined if the variant is
+	// unknown. The variant itself is only needed on cold paths (unknown variants and errors),
+	// so this avoids allocating a `{ matchingSchema, variant }` result per validation.
+	private getMatchingSchema(object: object): Validatable<any> | undefined {
 		const variant = getOwnProperty(object, this.key)! as string & keyof Config
 		if (!this.useNumberKeys && typeof variant !== 'string') {
 			throw new ValidationError(
@@ -933,8 +914,7 @@ export class UnionValidator<
 			}
 		}
 
-		const matchingSchema = hasOwnProperty(this.config, variant) ? this.config[variant] : undefined
-		return { matchingSchema, variant }
+		return hasOwnProperty(this.config, variant) ? this.config[variant] : undefined
 	}
 
 	/**
@@ -994,22 +974,12 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 				// Use for...in instead of Object.entries() to avoid array allocation
 				for (const key in object) {
 					if (!hasOwnProperty(object, key)) continue
-					if (IS_DEV) {
-						prefixError(key, () => {
-							keyValidator.validate(key)
-							valueValidator.validate((object as Record<string, unknown>)[key])
-						})
-					} else {
-						// Production: inline error handling to avoid closure overhead
-						try {
-							keyValidator.validate(key)
-							valueValidator.validate((object as Record<string, unknown>)[key])
-						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [key, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [key])
-						}
+					// inline error handling to avoid closure overhead on the success path
+					try {
+						keyValidator.validate(key)
+						valueValidator.validate((object as Record<string, unknown>)[key])
+					} catch (err) {
+						rethrowPrefixed(key, err)
 					}
 				}
 
@@ -1033,21 +1003,11 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 
 					if (!hasOwnProperty(knownGoodValue, key)) {
 						isDifferent = true
-						if (IS_DEV) {
-							prefixError(key, () => {
-								keyValidator.validate(key)
-								valueValidator.validate(next)
-							})
-						} else {
-							try {
-								keyValidator.validate(key)
-								valueValidator.validate(next)
-							} catch (err) {
-								if (err instanceof ValidationError) {
-									throw new ValidationError(err.rawMessage, [key, ...err.path])
-								}
-								throw new ValidationError((err as Error).toString(), [key])
-							}
+						try {
+							keyValidator.validate(key)
+							valueValidator.validate(next)
+						} catch (err) {
+							rethrowPrefixed(key, err)
 						}
 						continue
 					}
@@ -1059,31 +1019,15 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 						continue
 					}
 
-					if (IS_DEV) {
-						const checked = prefixError(key, () => {
-							if (valueValidator.validateUsingKnownGoodVersion) {
-								return valueValidator.validateUsingKnownGoodVersion(prev as Value, next)
-							} else {
-								return valueValidator.validate(next)
-							}
-						})
+					try {
+						const checked = valueValidator.validateUsingKnownGoodVersion
+							? valueValidator.validateUsingKnownGoodVersion(prev as Value, next)
+							: valueValidator.validate(next)
 						if (!Object.is(checked, prev)) {
 							isDifferent = true
 						}
-					} else {
-						try {
-							const checked = valueValidator.validateUsingKnownGoodVersion
-								? valueValidator.validateUsingKnownGoodVersion(prev as Value, next)
-								: valueValidator.validate(next)
-							if (!Object.is(checked, prev)) {
-								isDifferent = true
-							}
-						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [key, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [key])
-						}
+					} catch (err) {
+						rethrowPrefixed(key, err)
 					}
 				}
 
@@ -1536,12 +1480,21 @@ function isValidJson(value: any): value is JsonValue {
 		return true
 	}
 
+	// plain loops instead of .every() / Object.values() — this runs for every record on
+	// full validation (e.g. document load), so avoid the closure and array allocations
 	if (Array.isArray(value)) {
-		return value.every(isValidJson)
+		for (let i = 0; i < value.length; i++) {
+			if (!isValidJson(value[i])) return false
+		}
+		return true
 	}
 
 	if (isPlainObject(value)) {
-		return Object.values(value).every(isValidJson)
+		for (const key in value) {
+			if (!hasOwnProperty(value, key)) continue
+			if (!isValidJson(value[key])) return false
+		}
+		return true
 	}
 
 	return false
@@ -1589,7 +1542,9 @@ export const jsonValue: Validator<JsonValue> = new Validator<JsonValue>(
 			return isDifferent ? (newValue as JsonValue) : knownGoodValue
 		} else if (isPlainObject(knownGoodValue) && isPlainObject(newValue)) {
 			let isDifferent = false
-			for (const key of Object.keys(newValue)) {
+			// for...in instead of Object.keys() to avoid the key array allocation
+			for (const key in newValue) {
+				if (!hasOwnProperty(newValue, key)) continue
 				if (!hasOwnProperty(knownGoodValue, key)) {
 					isDifferent = true
 					jsonValue.validate(newValue[key])
@@ -1605,10 +1560,14 @@ export const jsonValue: Validator<JsonValue> = new Validator<JsonValue>(
 					isDifferent = true
 				}
 			}
-			for (const key of Object.keys(knownGoodValue)) {
-				if (!hasOwnProperty(newValue, key)) {
-					isDifferent = true
-					break
+			if (!isDifferent) {
+				// this loop only detects removed keys, so skip it once a difference is known
+				for (const key in knownGoodValue) {
+					if (!hasOwnProperty(knownGoodValue, key)) continue
+					if (!hasOwnProperty(newValue, key)) {
+						isDifferent = true
+						break
+					}
 				}
 			}
 			return isDifferent ? (newValue as JsonValue) : knownGoodValue
@@ -1760,16 +1719,23 @@ export function model<T extends { readonly id: string }>(
 ): Validator<T> {
 	return new Validator(
 		(value) => {
-			return prefixError(name, () => validator.validate(value))
+			// plain try/catch so the success path allocates no closure
+			try {
+				return validator.validate(value)
+			} catch (err) {
+				rethrowPrefixed(name, err)
+			}
 		},
 		(prevValue, newValue) => {
-			return prefixError(name, () => {
+			try {
 				if (validator.validateUsingKnownGoodVersion) {
 					return validator.validateUsingKnownGoodVersion(prevValue, newValue)
 				} else {
 					return validator.validate(newValue)
 				}
-			})
+			} catch (err) {
+				rethrowPrefixed(name, err)
+			}
 		}
 	)
 }
