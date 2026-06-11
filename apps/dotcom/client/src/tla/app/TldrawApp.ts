@@ -1156,6 +1156,8 @@ export class TldrawApp {
 
 	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
 	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
+		// The home workspace can't be invited to.
+		if (workspaceId === this.getHomeWorkspaceId()) return false
 		const membership = this.getWorkspaceMembership(workspaceId)
 		if (!membership?.group.inviteSecret) return false
 

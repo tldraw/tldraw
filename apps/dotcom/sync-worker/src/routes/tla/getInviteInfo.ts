@@ -28,6 +28,22 @@ export async function getInviteInfo(request: IRequest, env: Environment): Promis
 			)
 		}
 
+		// A home workspace (group id === owner's user id) can't be joined.
+		const homeOwner = await db
+			.selectFrom('user')
+			.select('id')
+			.where('id', '=', group.id)
+			.executeTakeFirst()
+		if (homeOwner) {
+			return Response.json(
+				{
+					error: true,
+					message: 'Invalid or expired invite token',
+				} satisfies GetInviteInfoResponseBody,
+				{ status: 404 }
+			)
+		}
+
 		return Response.json({
 			error: false,
 			workspaceId: group.id,

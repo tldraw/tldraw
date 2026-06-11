@@ -1035,20 +1035,62 @@ describe('home workspace special case', () => {
 		)
 	})
 
-	it('home workspace shortcut passes ownership check', async () => {
-		// updateWorkspace with id === userId should pass assertUserIsWorkspaceOwner
-		// via the shortcut, even if there's no group_user row
-		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
-			file: [],
-			file_state: [],
-			group: [makeGroup({ id: userId })],
-			group_user: [],
-			group_file: [],
+	// The home workspace (group id === userId) can't be renamed, invited to, left,
+	// deleted, or have its members managed.
+	function homeState(extra?: { secondOwnerId?: string }) {
+		const group_user: TlaGroupUser[] = [makeGroupUser({ userId, groupId: userId, role: 'owner' })]
+		const user = [makeUser({ id: userId, flags: 'groups_backend' })]
+		if (extra?.secondOwnerId) {
+			group_user.push(
+				makeGroupUser({ userId: extra.secondOwnerId, groupId: userId, role: 'owner' })
+			)
+			user.push(makeUser({ id: extra.secondOwnerId, flags: 'groups_backend' }))
 		}
+		return {
+			user,
+			file: [] as TlaFile[],
+			file_state: [] as TlaFileState[],
+			group: [makeGroup({ id: userId })],
+			group_user,
+			group_file: [] as TlaGroupFile[],
+		}
+	}
+
+	it('cannot rename home workspace', async () => {
+		const { tx } = createMockTx(homeState())
+		const m = createMutators(userId)
+		await expectForbidden(() => m.updateWorkspace(tx, { id: userId, name: 'My Home' }))
+	})
+
+	it('cannot regenerate invite secret on home workspace', async () => {
+		const { tx } = createMockTx(homeState(), { location: 'server' })
+		const m = createMutators(userId)
+		await expectForbidden(() => m.regenerateWorkspaceInviteSecret(tx, { id: userId }))
+	})
+
+	it('cannot delete home workspace', async () => {
+		const { tx } = createMockTx(homeState())
+		const m = createMutators(userId)
+		await expectForbidden(() => m.deleteWorkspace(tx, { id: userId }))
+	})
+
+	it('cannot leave home workspace, even with another owner', async () => {
+		// A second owner would normally allow leaving; the home guard blocks it anyway.
+		const { tx } = createMockTx(homeState({ secondOwnerId: 'user_second12345678' }))
+		const m = createMutators(userId)
+		await expectForbidden(() => m.leaveWorkspace(tx, { workspaceId: userId }))
+	})
+
+	it('cannot change member roles in home workspace', async () => {
+		const targetId = 'user_target123456789'
+		const s = homeState()
+		s.user.push(makeUser({ id: targetId, flags: 'groups_backend' }))
+		s.group_user.push(makeGroupUser({ userId: targetId, groupId: userId, role: 'member' }))
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
-		await expectValid(() => m.updateWorkspace(tx, { id: userId, name: 'My Home' }))
+		await expectForbidden(() =>
+			m.setWorkspaceMemberRole(tx, { workspaceId: userId, targetUserId: targetId, role: 'owner' })
+		)
 	})
 })
 

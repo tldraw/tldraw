@@ -37,6 +37,22 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				)
 			}
 
+			// A home workspace (group id === owner's user id) can't be joined.
+			const homeOwner = await tx
+				.selectFrom('user')
+				.select('id')
+				.where('id', '=', group.id)
+				.executeTakeFirst()
+			if (homeOwner) {
+				return Response.json(
+					{
+						error: true,
+						message: 'Invalid or expired invite token',
+					} satisfies AcceptInviteResponseBody,
+					{ status: 404 }
+				)
+			}
+
 			// Check if user is already a member of this group (with row lock to prevent race conditions)
 			const existingMember = await tx
 				.selectFrom('group_user')

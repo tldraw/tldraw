@@ -134,6 +134,16 @@ async function getRole(
 	return workspaceUser?.role ?? null
 }
 
+/**
+ * The home workspace (group id === its owner's user id) is private: it can't be
+ * invited to, renamed, left, deleted, or have its members managed. Throw if
+ * `workspaceId` is a home workspace, i.e. a user exists with a matching id.
+ */
+async function assertNotHomeWorkspace(tx: Transaction<TlaSchema>, workspaceId: string) {
+	const user = await tx.run(zql.user.where('id', '=', workspaceId).one())
+	assert(!user, ZErrorCode.forbidden)
+}
+
 function assertValidId(id: string) {
 	assert(id.match(/^[a-zA-Z0-9_-]+$/), ZErrorCode.bad_request)
 	assert(id.length <= 32, ZErrorCode.bad_request)
@@ -586,6 +596,7 @@ export function createMutators(userId: string) {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			assert(name && name.trim(), ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, id)
 			const role = await getRole(tx, userId, id)
 			assert(can(role, 'editWorkspace'), ZErrorCode.forbidden)
 
@@ -594,6 +605,7 @@ export function createMutators(userId: string) {
 		regenerateWorkspaceInviteSecret: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, id)
 
 			const role = await getRole(tx, userId, id)
 			assert(can(role, 'manageInvites'), ZErrorCode.forbidden)
@@ -614,6 +626,7 @@ export function createMutators(userId: string) {
 			assert(workspaceId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
 			assert(isRole(targetRole), ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, workspaceId)
 
 			const role = await getRole(tx, userId, workspaceId)
 			assert(can(role, 'editMembers'), ZErrorCode.forbidden)
@@ -644,6 +657,7 @@ export function createMutators(userId: string) {
 		leaveWorkspace: async (tx: Tx, { workspaceId }: { workspaceId: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(workspaceId, ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, workspaceId)
 			const owners = await tx.run(
 				zql.group_user.where('groupId', '=', workspaceId).where('role', '=', 'owner')
 			)
@@ -656,6 +670,7 @@ export function createMutators(userId: string) {
 		deleteWorkspace: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, id)
 			const role = await getRole(tx, userId, id)
 			assert(can(role, 'deleteWorkspace'), ZErrorCode.forbidden)
 
