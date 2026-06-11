@@ -9,6 +9,7 @@ import {
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
+	TEMPLATE_PREFIX,
 	TlaFile,
 	TlaFileState,
 	TlaFileStatePartial,
@@ -706,6 +707,8 @@ export class TldrawApp {
 			analyticsSource = 'duplicate'
 		} else if (createSource.startsWith(`${ROOM_PREFIX}/`)) {
 			analyticsSource = 'legacy-import'
+		} else if (createSource.startsWith(`${TEMPLATE_PREFIX}/`)) {
+			analyticsSource = 'template'
 		} else {
 			analyticsSource = 'other'
 		}

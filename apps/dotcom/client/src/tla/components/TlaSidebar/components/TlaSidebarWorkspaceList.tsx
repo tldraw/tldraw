@@ -1,4 +1,4 @@
-import { ZErrorCode } from '@tldraw/dotcom-shared'
+import { NEW_WORKSPACE_TEMPLATE_ID, TEMPLATE_PREFIX, ZErrorCode } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode, useCallback } from 'react'
@@ -8,8 +8,9 @@ import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
-import { F } from '../../../utils/i18n'
+import { F, useMsg } from '../../../utils/i18n'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
+import { messages } from './sidebar-shared'
 import { WorkspaceMenuContent, TlaSidebarWorkspaceMenu } from './TlaSidebarWorkspaceMenu'
 import styles from '../sidebar.module.css'
 
@@ -80,6 +81,8 @@ function TlaSidebarWorkspaceListItem({
 		[app, workspaceId, isActive]
 	)
 
+	const welcomeFileName = useMsg(messages.newWorkspaceFileName)
+
 	const handleClick = useCallback(async () => {
 		const files = app.getWorkspaceFilesSorted(workspaceId)
 		if (files.length) {
@@ -87,10 +90,19 @@ function TlaSidebarWorkspaceListItem({
 			return
 		}
 		// Empty space: create a file in it and open that, so selecting a space
-		// always lands you on a file within it.
-		const res = await app.createFile({ workspaceId })
+		// always lands you on a file within it. A workspace's first file is seeded
+		// from the new-workspace template, whose canvas introduces workspaces; it
+		// arrives named, so it skips the inline rename that blank files get. The
+		// home space gets a regular blank file.
+		const res = isHome
+			? await app.createFile({ workspaceId })
+			: await app.createFile({
+					workspaceId,
+					name: welcomeFileName,
+					createSource: `${TEMPLATE_PREFIX}/${NEW_WORKSPACE_TEMPLATE_ID}`,
+				})
 		if (res.ok) {
-			if (!getIsCoarsePointer()) {
+			if (isHome && !getIsCoarsePointer()) {
 				app.sidebarState.update((prev) => ({
 					...prev,
 					renameState: { fileId: res.value.fileId, workspaceId },
@@ -98,7 +110,7 @@ function TlaSidebarWorkspaceListItem({
 			}
 			navigate(routes.tlaFile(res.value.fileId))
 		}
-	}, [app, workspaceId, navigate])
+	}, [app, workspaceId, navigate, isHome, welcomeFileName])
 
 	// The active space's files render in the list below, which is the drop target
 	// for reordering. To avoid a duplicate drop-target id, the active space's nav

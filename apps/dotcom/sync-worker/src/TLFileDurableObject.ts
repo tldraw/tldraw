@@ -14,6 +14,7 @@ import {
 	ROOM_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
+	TEMPLATE_PREFIX,
 	TLCustomServerEvent,
 	TlaFile,
 	can,
@@ -58,6 +59,7 @@ import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
+import { getTemplateSnapshot } from './templates'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
@@ -937,6 +939,10 @@ export class TLFileDurableObject extends DurableObject {
 			case LOCAL_FILE_PREFIX:
 				// create empty room, the client will populate it
 				data = DEFAULT_INITIAL_SNAPSHOT
+				break
+			case TEMPLATE_PREFIX:
+				// a template baked into this worker, e.g. the initial document of a new workspace
+				data = getTemplateSnapshot(id)
 				break
 		}
 		fetchTimer.report('create_from_source_fetch_total')
