@@ -1048,12 +1048,12 @@ describe('home workspace special case', () => {
 		}
 		return {
 			user,
-			file: [] as TlaFile[],
-			file_state: [] as TlaFileState[],
+			file: [],
+			file_state: [],
 			group: [makeGroup({ id: userId })],
 			group_user,
-			group_file: [] as TlaGroupFile[],
-		}
+			group_file: [],
+		} satisfies TableStore
 	}
 
 	it('cannot rename home workspace', async () => {
