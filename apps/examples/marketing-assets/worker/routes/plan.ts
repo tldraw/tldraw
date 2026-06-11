@@ -33,6 +33,7 @@ export async function handlePlan(request: IRequest, env: Env) {
 			image: body.image,
 			currentLayers: body.currentLayers,
 			annotations: body.annotations,
+			captionAngle: body.captionAngle,
 		}
 
 		const result = await provider.plan(params, env)

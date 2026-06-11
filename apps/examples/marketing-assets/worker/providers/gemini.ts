@@ -79,21 +79,29 @@ export const gemini: ImageProvider = {
 
 /** Compose the text instruction sent alongside the images. */
 function buildPrompt(params: GenerateParams): string {
-	const { prompt, brandText, outputType, instruction, currentImage } = params
+	const { prompt, brandText, outputType, instruction, currentImage, referenceImages } = params
 	const lines: string[] = []
 
 	if (currentImage) {
 		lines.push(
-			'Edit the provided background image. Apply ONLY the change described below.',
+			'The FIRST image is the current background. Edit that image, applying ONLY the change described below.',
 			instruction ?? prompt,
 			'Keep every other part of the background in exactly the same position, scale, and crop — do not move, rescale, or reflow anything the change does not mention. Preserve the existing composition and margins so the result stays cleanly aligned.'
 		)
+		// On an edit the brand logo and reference images are passed after the
+		// background, so the model can composite them in (e.g. "add the logo").
+		// Without this, those extra images are ignored and the request silently fails.
+		if (referenceImages.length) {
+			lines.push(
+				'Any images AFTER the first are brand assets — the logo and reference imagery — not part of the background. When the change asks to add, place, or restore the logo, composite the PROVIDED logo image into the background cleanly and undistorted, at a sensible size and position; do not redraw, restyle, or invent a logo. Leave the rest of the background unchanged.'
+			)
+		}
 	} else {
 		lines.push(
 			`Design the background for a ${outputType.label} marketing asset, ${outputType.width}x${outputType.height} pixels (${describeRatio(outputType)}).`,
 			`Brief: ${prompt}`,
 			'Use the provided reference images for the logo and brand imagery. Composite the logo cleanly; do not distort it.',
-			'Lay it out on a clean, consistent grid with even margins and a balanced composition. Leave some calm, low-detail areas (for example near the top or bottom) where text can be placed later.'
+			'Lay it out on a clean, consistent grid with even margins and a balanced composition. Keep a generous, calm, low-detail area of negative space (for example near the top or bottom) and keep the focal subject away from the edges.'
 		)
 	}
 
@@ -101,10 +109,12 @@ function buildPrompt(params: GenerateParams): string {
 		lines.push('', 'Brand styling — apply these as visual style only:', brandText.trim())
 	}
 
-	// The app draws all text itself, so the background must contain none.
+	// All copy is rendered separately by the app and shown beside/under the asset.
+	// The preference is a completely text-free image: any lettering the model bakes
+	// in cannot be moved or measured, so it ends up overlapping or clipping the copy.
 	lines.push(
 		'',
-		'Critical: render NO text whatsoever — no headlines, captions, taglines, labels, prices, URLs, watermarks, colour codes, or font names, and no lettering of any kind anywhere in the image. Output a purely visual background. Do not draw arrows or annotation marks.'
+		'CRITICAL — the image must contain as little text as possible, and the strong preference is NONE. Do not add headlines, captions, taglines, body copy, labels, prices, URLs, watermarks, colour codes, font names, UI, or lettering of ANY kind anywhere in the image. Never invent words to fill space. The one and only exception is legible wordmark/lettering that already exists inside a provided brand logo, composited as-is; do not add any other text around it. Output a purely visual, text-free background with clean empty space. Do not draw arrows or annotation marks.'
 	)
 
 	return lines.join('\n')

@@ -66,6 +66,8 @@ export interface PlanParams {
 	currentLayers?: TextLayer[]
 	/** revise: located annotation descriptions. */
 	annotations?: string[]
+	/** A distinct messaging angle for this asset, so a batch's captions vary. */
+	captionAngle?: string
 }
 
 export interface PlanResult {

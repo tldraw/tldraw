@@ -10,18 +10,18 @@ import {
 	toRichText,
 } from 'tldraw'
 
-// A pen that draws one annotation: an oval around the area to change, an arrow
+// A pen that draws one annotation: a rectangle around the area to change, an arrow
 // pointing at it, and an instantly-editable note at the other end. The three are
 // real tldraw shapes (geo + arrow + text) bound and grouped together, so they
 // move and delete as one unit and are read by the existing re-render pipeline
 // (see collectAnnotations in assetActions.ts) with no special casing.
 
-// Smallest drag that counts as a deliberate oval. A click below this gets a
-// default-sized oval centred on the pointer instead.
-const MIN_OVAL = 12
-const DEFAULT_OVAL_W = 140
-const DEFAULT_OVAL_H = 100
-// Gap between the oval and its note, and the note's starting width.
+// Smallest drag that counts as a deliberate rectangle. A click below this gets a
+// default-sized rectangle centred on the pointer instead.
+const MIN_BOX = 12
+const DEFAULT_BOX_W = 140
+const DEFAULT_BOX_H = 100
+// Gap between the rectangle and its note, and the note's starting width.
 const NOTE_GAP = 56
 const NOTE_WIDTH = 220
 // Annotation styling — red reads as a mark-up over any background.
@@ -32,27 +32,27 @@ export const ANNOTATION_TOOL_ID = 'annotation'
 export class AnnotationTool extends StateNode {
 	static override id = ANNOTATION_TOOL_ID
 
-	/** The oval being dragged out, while the pointer is down. */
-	private ovalId: TLShapeId | null = null
+	/** The rectangle being dragged out, while the pointer is down. */
+	private boxId: TLShapeId | null = null
 
 	override onEnter() {
-		this.ovalId = null
+		this.boxId = null
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
 	override onPointerDown() {
 		const { editor } = this
 		const origin = editor.inputs.getOriginPagePoint()
-		const ovalId = createShapeId()
-		this.ovalId = ovalId
+		const boxId = createShapeId()
+		this.boxId = boxId
 		editor.markHistoryStoppingPoint('creating annotation')
 		editor.createShape<TLGeoShape>({
-			id: ovalId,
+			id: boxId,
 			type: 'geo',
 			x: origin.x,
 			y: origin.y,
 			props: {
-				geo: 'ellipse',
+				geo: 'rectangle',
 				w: 1,
 				h: 1,
 				fill: 'none',
@@ -63,12 +63,12 @@ export class AnnotationTool extends StateNode {
 	}
 
 	override onPointerMove() {
-		const { editor, ovalId } = this
-		if (!ovalId) return
+		const { editor, boxId } = this
+		if (!boxId) return
 		const origin = editor.inputs.getOriginPagePoint()
 		const current = editor.inputs.getCurrentPagePoint()
 		editor.updateShape<TLGeoShape>({
-			id: ovalId,
+			id: boxId,
 			type: 'geo',
 			x: Math.min(origin.x, current.x),
 			y: Math.min(origin.y, current.y),
@@ -92,34 +92,34 @@ export class AnnotationTool extends StateNode {
 	}
 
 	private cancel() {
-		const { editor, ovalId } = this
-		this.ovalId = null
-		if (ovalId) editor.deleteShape(ovalId)
+		const { editor, boxId } = this
+		this.boxId = null
+		if (boxId) editor.deleteShape(boxId)
 		this.editor.setCurrentTool('select')
 	}
 
-	/** Finish the annotation: size the oval, add the arrow + note, start typing. */
+	/** Finish the annotation: size the rectangle, add the arrow + note, start typing. */
 	private complete() {
 		const { editor } = this
-		const ovalId = this.ovalId
-		this.ovalId = null
-		if (!ovalId) return
+		const boxId = this.boxId
+		this.boxId = null
+		if (!boxId) return
 
-		// A click (or a tiny drag) gets a sensible default oval around the point.
-		let bounds = editor.getShapePageBounds(ovalId)
-		if (!bounds || bounds.width < MIN_OVAL || bounds.height < MIN_OVAL) {
+		// A click (or a tiny drag) gets a sensible default rectangle around the point.
+		let bounds = editor.getShapePageBounds(boxId)
+		if (!bounds || bounds.width < MIN_BOX || bounds.height < MIN_BOX) {
 			const origin = editor.inputs.getOriginPagePoint()
 			editor.updateShape<TLGeoShape>({
-				id: ovalId,
+				id: boxId,
 				type: 'geo',
-				x: origin.x - DEFAULT_OVAL_W / 2,
-				y: origin.y - DEFAULT_OVAL_H / 2,
-				props: { w: DEFAULT_OVAL_W, h: DEFAULT_OVAL_H },
+				x: origin.x - DEFAULT_BOX_W / 2,
+				y: origin.y - DEFAULT_BOX_H / 2,
+				props: { w: DEFAULT_BOX_W, h: DEFAULT_BOX_H },
 			})
-			bounds = editor.getShapePageBounds(ovalId)!
+			bounds = editor.getShapePageBounds(boxId)!
 		}
 
-		// The note sits in the margin to the right of the oval, vertically centred.
+		// The note sits in the margin to the right of the rectangle, vertically centred.
 		const noteId = createShapeId()
 		editor.createShape<TLTextShape>({
 			id: noteId,
@@ -134,8 +134,8 @@ export class AnnotationTool extends StateNode {
 			},
 		})
 
-		// An arrow from the note to the oval, bound at both ends so it keeps
-		// pointing at the oval and trailing from the note when either moves.
+		// An arrow from the note to the rectangle, bound at both ends so it keeps
+		// pointing at the rectangle and trailing from the note when either moves.
 		const arrowId = createShapeId()
 		editor.createShape<TLArrowShape>({
 			id: arrowId,
@@ -157,7 +157,7 @@ export class AnnotationTool extends StateNode {
 			},
 			{
 				fromId: arrowId,
-				toId: ovalId,
+				toId: boxId,
 				type: 'arrow',
 				props: {
 					terminal: 'end',
@@ -170,7 +170,7 @@ export class AnnotationTool extends StateNode {
 		])
 
 		// Bundle the three shapes so the annotation behaves as one unit.
-		editor.groupShapes([ovalId, noteId, arrowId])
+		editor.groupShapes([boxId, noteId, arrowId])
 
 		// Drop straight into the note so the user can type the change immediately.
 		startEditingShapeWithRichText(editor, noteId)

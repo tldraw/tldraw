@@ -83,3 +83,21 @@ export const TONE_OPTIONS = [
 
 /** Visual-density choices offered in the brand form. */
 export const DENSITY_OPTIONS = ['Airy', 'Balanced', 'Dense']
+
+/**
+ * Distinct messaging angles, cycled across a batch so each asset's accompanying
+ * copy takes a different approach instead of repeating the same caption. Each tile
+ * already gets a different visual direction; this does the same for the words.
+ */
+export const CAPTION_ANGLES = [
+	'Lead with the core benefit or the outcome the audience gets.',
+	'Open with a sharp question that hooks the reader.',
+	'Lead with a concrete stat, result, or proof point.',
+	'Take a bold, slightly contrarian stance.',
+	'Frame it as a quick, practical how-to or tip.',
+	'Use a short, vivid scenario or mini-story.',
+	'Lead with social proof — what peers or the market are doing.',
+	'Emphasise speed and ease: the fast path to the result.',
+	'Focus on the specific pain point it removes.',
+	'Make one confident, punchy claim and stop.',
+]

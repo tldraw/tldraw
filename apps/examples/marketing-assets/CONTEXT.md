@@ -97,9 +97,9 @@ image model as pixels. Re-render is triggered by an explicit button, not by draw
 
 ## Annotate tool
 
-A toolbar tool that draws one [[Annotation]] as a single unit: an oval ringing the area to
-change, an arrow pointing from a note to that oval, and the note's text, ready to type the
-moment the oval is drawn. The three are ordinary tldraw shapes grouped together, so the
+A toolbar tool that draws one [[Annotation]] as a single unit: a rectangle ringing the area to
+change, an arrow pointing from a note to that rectangle, and the note's text, ready to type the
+moment the rectangle is drawn. The three are ordinary tldraw shapes grouped together, so the
 re-render pipeline reads them like any other [[Annotation]].
 
 ## Room
@@ -126,8 +126,9 @@ and sent to the models to produce a [[Batch]].
 ## Batch
 
 A set of [[Marketing asset]]s generated together from one [[Brief]], laid out as a grid on the
-canvas and filled in parallel. Each tile is nudged toward a different creative direction so the
-batch explores a range rather than repeating one idea.
+canvas and filled in parallel. Each tile is nudged toward a different creative direction, and its
+[[Accompanying copy]] toward a different messaging angle, so the batch explores a range and every
+asset's caption is unique rather than repeating one idea.
 
 ## Verdict
 

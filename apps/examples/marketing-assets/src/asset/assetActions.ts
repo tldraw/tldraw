@@ -15,6 +15,7 @@ import { apiGenerate, apiPlan, OutputType } from '../api/marketingApi'
 import { brandReferenceImages, getBrand, serializeBrand } from '../brand/brandState'
 import {
 	BATCH_GAP,
+	CAPTION_ANGLES,
 	CAPTION_HEIGHT,
 	FOOTER_HEIGHT,
 	getDisplaySize,
@@ -145,7 +146,10 @@ export function createAndGenerateBatch(
 		ids.push(id)
 
 		const tilePrompt = composeTilePrompt(opts.prompt, opts.feedback, i, count)
-		void runFirstGeneration(editor, id, outputType, tilePrompt, opts.references ?? [])
+		// A distinct messaging angle per tile so each asset's caption is unique;
+		// single-asset generations get none (nothing to differ from).
+		const captionAngle = count > 1 ? CAPTION_ANGLES[i % CAPTION_ANGLES.length] : undefined
+		void runFirstGeneration(editor, id, outputType, tilePrompt, opts.references ?? [], captionAngle)
 	}
 
 	editor.select(...ids)
@@ -246,7 +250,8 @@ async function runFirstGeneration(
 	id: TLShapeId,
 	outputType: OutputType,
 	prompt: string,
-	extraReferences: string[]
+	extraReferences: string[],
+	captionAngle?: string
 ) {
 	const stopHeartbeat = startHeartbeat(editor, id)
 	try {
@@ -266,6 +271,7 @@ async function runFirstGeneration(
 			brandText,
 			outputType,
 			image: imageUrl,
+			captionAngle,
 		})
 
 		pushVersion(editor, id, {
@@ -575,7 +581,7 @@ function collectAnnotations(editor: Editor, id: TLShapeId): { ids: TLShapeId[]; 
 	}
 
 	// What each arrow is bound to (start = where it's drawn from, end = where it
-	// points). The annotation tool binds an arrow from its note to its oval; a
+	// points). The annotation tool binds an arrow from its note to its rectangle; a
 	// hand-drawn arrow may be bound to nothing.
 	const ends = new Map<TLShapeId, { start?: TLShapeId; end?: TLShapeId }>()
 	for (const s of candidates) {
@@ -585,7 +591,7 @@ function collectAnnotations(editor: Editor, id: TLShapeId): { ids: TLShapeId[]; 
 	}
 
 	// Arrows that point at the asset — either their own box overlaps it, or
-	// they're bound to a shape that does (e.g. an oval drawn on the asset).
+	// they're bound to a shape that does (e.g. a rectangle drawn on the asset).
 	const onAsset = (shapeId?: TLShapeId) =>
 		!!shapeId && bounds.has(shapeId) && overlaps(assetBounds, bounds.get(shapeId)!)
 	const arrows = candidates.filter((s) => {
@@ -627,7 +633,7 @@ function collectAnnotations(editor: Editor, id: TLShapeId): { ids: TLShapeId[]; 
 		const ab = bounds.get(arrow.id)!
 		// Candidate sources: shapes the arrow is bound to, plus shapes whose box
 		// overlaps it. Prefer one that actually carries text — the annotation
-		// tool's oval is a text-less geo, so without this it could be paired as
+		// tool's rectangle is a text-less geo, so without this it could be paired as
 		// the arrow's source and swallow the real note.
 		const linked = notes.filter(
 			(n) =>
@@ -641,7 +647,7 @@ function collectAnnotations(editor: Editor, id: TLShapeId): { ids: TLShapeId[]; 
 			.filter(Boolean)
 			.join(' — ')
 		// Describe where the change is wanted. Prefer the shape the arrow points
-		// at (e.g. the oval ringing the area), else the resolved arrow head.
+		// at (e.g. the rectangle ringing the area), else the resolved arrow head.
 		const endBounds = e.end ? bounds.get(e.end) : undefined
 		const target = endBounds ? endBounds.center : arrowTarget(editor, arrow)
 		const where = target ? regionOf(target, assetBounds) : 'the asset'

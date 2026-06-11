@@ -141,8 +141,8 @@ function systemPrompt(mode: 'create' | 'revise'): string {
 	const common = [
 		'You are a brand designer composing a marketing asset: one clean image plus the post copy that runs alongside it (like a social post and its caption).',
 		'The image you are given is a text-free background; the app will render your text layers on top of it.',
-		'CRITICAL: the image must stay visually clean. Put AT MOST ONE text layer on it — a single short headline (or a single key phrase). Never stack multiple text layers; never crowd the image. Everything else the campaign needs to say belongs in the caption, not on the image.',
-		'Place that one headline over a calm, high-contrast area, set scrim:true if the background behind it is busy, and keep contrast strong so it is easy to read. Use the brand fonts (via fontRole) and brand colours. If a strong background needs no words at all, it is fine to return zero text layers.',
+		'CRITICAL: prefer NO text on the image. Default to zero text layers — a clean, text-free image with the message carried entirely by the caption underneath is the best outcome. Add a SINGLE short headline (a few words, one line) ONLY when it clearly strengthens the asset; never add more than one, and never use the image for body copy, lists, prices, or fine print. Everything beyond a one-line headline belongs in the caption, not on the image.',
+		'If you do add the one headline: keep it very short so it cannot wrap awkwardly or clip; place it over a calm, high-contrast area with x and width chosen so the whole text box stays inside the safe margins (roughly x within 0.06–0.94 and x+width <= 0.94, y within 0.06–0.9); set scrim:true if the background behind it is busy; keep contrast strong; use the brand fonts (via fontRole) and brand colours.',
 		SCHEMA_DOC,
 		'Separately, write the "caption": the body copy shown beside the image. This is where the message, detail, and call to action live. Voice it for the brand tone and tailor it to the target platform and audience (see the platform guidance in the user message). Respect that platform\'s length norm. Do not repeat the headline verbatim; complement it.',
 		'Respond with ONLY a JSON object and no other prose.',
@@ -156,6 +156,7 @@ function systemPrompt(mode: 'create' | 'revise'): string {
 			"You are shown the current asset with the user's annotations (arrows and notes) drawn on it. Arrows point at what to change; the text says how.",
 			'Update the single headline layer to satisfy any annotation about on-image text (wording, size, colour, position). Keep at most one text layer.',
 			'For annotations about the background imagery (colours, objects, style, composition), do not change the text — add a short instruction to backgroundInstructions, one per change.',
+			'Adding, removing, moving, resizing, or restoring the LOGO or any imagery is a BACKGROUND change: put it in backgroundInstructions (e.g. "add the brand logo in the lower-right corner"), never as a text layer — the logo is an image, not text. A brand logo image is available to the image model.',
 			'Re-write the caption if any annotation concerns the body copy or messaging; otherwise return it unchanged. Keep it on-tone and within the platform length norm.',
 			'Return the FULL updated result.',
 			'Return: { "textLayers": TextLayer[] (length 0 or 1), "caption": string, "backgroundInstructions": string[] }.'
@@ -189,7 +190,10 @@ function createPrompt(params: PlanParams): string {
 		platformGuidance(params.outputType.platform),
 		`Brief: ${params.prompt || '(none)'}`,
 		params.brandText.trim() ? `Brand guidelines: ${params.brandText.trim()}` : '',
-		'Place at most one headline over the background and write the accompanying caption. Return the JSON object.',
+		params.captionAngle
+			? `Caption angle for THIS asset: ${params.captionAngle} This asset is one of several variations on the same brief — make its caption clearly distinct from the others in angle, opening line, and wording; do not write a generic caption that could belong to any of them.`
+			: '',
+		'Prefer no text on the image (zero text layers); add a single short headline only if it clearly helps. Write the accompanying caption. Return the JSON object.',
 	]
 		.filter(Boolean)
 		.join('\n')

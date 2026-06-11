@@ -63,6 +63,8 @@ export interface PlanRequest {
 	image: string
 	currentLayers?: TextLayer[]
 	annotations?: string[]
+	/** A distinct messaging angle for this asset, so a batch's captions vary. */
+	captionAngle?: string
 }
 
 export interface PlanResult {
