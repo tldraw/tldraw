@@ -75,6 +75,8 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const navigate = useNavigate()
 
 	if (!workspaceMembership) return null
+	// The home workspace has no settings to manage.
+	if (workspaceId === app.getHomeWorkspaceId()) return null
 	const workspace = workspaceMembership.group
 	const currentUser = workspaceMembership.groupMembers.find(
 		(member) => member.userId === app.getUser().id
