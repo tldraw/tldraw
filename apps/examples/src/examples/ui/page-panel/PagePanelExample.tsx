@@ -157,12 +157,11 @@ function PageThumbnail({ pageId }: { pageId: TLPageId }) {
 
 /*
 This example shows how to replace the built-in page menu with a custom page
-panel rendered in your own DOM, outside the canvas — including live thumbnail
-previews of every page.
+panel in your own DOM, outside the canvas, with live thumbnail previews of
+every page.
 
-A page list is always regular DOM UI, never canvas content. The canvas only
-renders the shapes of the current page, so previews of other pages have to be
-exported as images.
+The canvas only renders the shapes of the current page, so we export the
+other pages as images to show their previews.
 
 [1]
 Hide the built-in page menu by overriding the `PageMenu` component with null.
@@ -185,8 +184,8 @@ whole thing a single undo step. Note that `editor.deletePage` automatically
 switches to another page if you delete the current one.
 
 [5]
-Pages other than the current one are never rendered on the canvas, so we
-export them as images instead. `editor.getPageShapeIds(pageId)` returns the
+The canvas never renders pages other than the current one, so we export them
+as images instead. `editor.getPageShapeIds(pageId)` returns the
 shape ids on any page (not just the current one), and `editor.getSvgString`
 can export shapes from any page. We turn the SVG string into a data URL for a
 plain <img> tag.
