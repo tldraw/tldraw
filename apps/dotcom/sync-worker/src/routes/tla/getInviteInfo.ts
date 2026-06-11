@@ -2,7 +2,7 @@ import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
-import { getJoinableGroupFromInvite } from '../../utils/tla/getJoinableGroupFromInvite'
+import { getJoinableWorkspaceFromInvite } from '../../utils/tla/getJoinableWorkspaceFromInvite'
 
 export async function getInviteInfo(request: IRequest, env: Environment): Promise<Response> {
 	const { token } = request.params
@@ -13,9 +13,9 @@ export async function getInviteInfo(request: IRequest, env: Environment): Promis
 	const db = createPostgresConnectionPool(env, 'getInviteInfo')
 
 	try {
-		const group = await getJoinableGroupFromInvite(db, token)
+		const workspace = await getJoinableWorkspaceFromInvite(db, token)
 
-		if (!group) {
+		if (!workspace) {
 			return Response.json(
 				{
 					error: true,
@@ -27,8 +27,8 @@ export async function getInviteInfo(request: IRequest, env: Environment): Promis
 
 		return Response.json({
 			error: false,
-			workspaceId: group.id,
-			workspaceName: group.name,
+			workspaceId: workspace.id,
+			workspaceName: workspace.name,
 			isValid: true,
 			inviteSecret: token,
 		} satisfies GetInviteInfoResponseBody)

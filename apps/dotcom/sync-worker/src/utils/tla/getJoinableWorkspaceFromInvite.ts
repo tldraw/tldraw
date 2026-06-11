@@ -2,29 +2,29 @@ import { DB } from '@tldraw/dotcom-shared'
 import { Kysely } from 'kysely'
 
 /**
- * Resolve the group an invite token points to, or null if the token can't be
- * used to join: it's unknown/expired, the group is deleted, or the group is a
+ * Resolve the workspace an invite token points to, or null if the token can't
+ * be used to join: it's unknown/expired, the workspace is deleted, or it's a
  * home workspace (group id === its owner's user id), which is private. Callers
  * treat null as an invalid token.
  */
-export async function getJoinableGroupFromInvite(
+export async function getJoinableWorkspaceFromInvite(
 	db: Kysely<DB>,
 	token: string
 ): Promise<{ id: string; name: string } | null> {
-	const group = await db
+	const workspace = await db
 		.selectFrom('group')
 		.select(['id', 'name', 'isDeleted'])
 		.where('inviteSecret', '=', token)
 		.executeTakeFirst()
-	if (!group || group.isDeleted) return null
+	if (!workspace || workspace.isDeleted) return null
 
 	// A home workspace has the same id as its owning user.
 	const homeOwner = await db
 		.selectFrom('user')
 		.select('id')
-		.where('id', '=', group.id)
+		.where('id', '=', workspace.id)
 		.executeTakeFirst()
 	if (homeOwner) return null
 
-	return { id: group.id, name: group.name }
+	return { id: workspace.id, name: workspace.name }
 }

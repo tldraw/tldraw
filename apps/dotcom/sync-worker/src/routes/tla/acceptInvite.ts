@@ -5,7 +5,7 @@ import { sql } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { requireAuth } from '../../utils/tla/getAuth'
-import { getJoinableGroupFromInvite } from '../../utils/tla/getJoinableGroupFromInvite'
+import { getJoinableWorkspaceFromInvite } from '../../utils/tla/getJoinableWorkspaceFromInvite'
 
 export async function acceptInvite(request: IRequest, env: Environment): Promise<Response> {
 	const { token } = request.params
@@ -21,10 +21,10 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 
 	try {
 		return await db.transaction().execute(async (tx) => {
-			// First, validate the invite token and get group info
-			const group = await getJoinableGroupFromInvite(tx, token)
+			// First, validate the invite token and get workspace info
+			const workspace = await getJoinableWorkspaceFromInvite(tx, token)
 
-			if (!group) {
+			if (!workspace) {
 				return Response.json(
 					{
 						error: true,
@@ -38,7 +38,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			const existingMember = await tx
 				.selectFrom('group_user')
 				.select('userId')
-				.where('groupId', '=', group.id)
+				.where('groupId', '=', workspace.id)
 				.where('userId', '=', auth.userId)
 				.executeTakeFirst()
 
@@ -46,8 +46,8 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				return Response.json({
 					error: false,
 					message: 'You are already a member of this group',
-					workspaceId: group.id,
-					workspaceName: group.name,
+					workspaceId: workspace.id,
+					workspaceName: workspace.name,
 					alreadyMember: true,
 				} satisfies AcceptInviteResponseBody)
 			}
@@ -112,7 +112,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			await tx
 				.insertInto('group_user')
 				.values({
-					groupId: group.id,
+					groupId: workspace.id,
 					userId: auth.userId,
 					userColor: user.color || '#000000',
 					userName: user.name,
@@ -126,8 +126,8 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			return Response.json({
 				error: false,
 				message: 'Successfully joined the group',
-				workspaceId: group.id,
-				workspaceName: group.name,
+				workspaceId: workspace.id,
+				workspaceName: workspace.name,
 				success: true,
 			} satisfies AcceptInviteResponseBody)
 		})
