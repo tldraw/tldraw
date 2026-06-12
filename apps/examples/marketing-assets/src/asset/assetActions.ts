@@ -1,7 +1,5 @@
-import { AssetRecordType, atom, createShapeId, Editor, TLShapeId } from 'tldraw'
+import { createShapeId, Editor, TLShapeId } from 'tldraw'
 import { ReadAnnotation, deleteAnnotations, readAnnotations } from '../annotate/readAnnotations'
-import { apiGenerate, apiPlan, OutputType } from '../api/marketingApi'
-import { brandReferenceImages, getBrand, serializeBrand } from '../brand/brandState'
 import {
 	BATCH_GAP,
 	CAPTION_ANGLES,
@@ -10,23 +8,22 @@ import {
 	getDisplaySize,
 	getOutputType,
 } from '../constants'
-import { blobToDataUrl, uploadImageBytes, urlToDataUrl } from './assetBytes'
+import { blobToDataUrl, urlToDataUrl } from './assetBytes'
 import {
 	getAssetShapes,
 	getAssetSrc,
-	markFailed,
 	markGenerating,
-	pushVersion,
 	recoverIfStale,
-	refreshHeartbeat,
 	revertTo,
 	setVerdict,
 } from './assetRecord'
 import { MARKETING_ASSET_TYPE, MarketingAssetShape } from './assetShape'
+import { getRenderProgress, renderFromAnnotations, renderFromBrief } from './renderVersion'
 
-// Reads and writes of the asset record live in ./assetRecord; re-exported here so
-// callers keep reaching asset operations through one module.
-export { getAssetShapes, getAssetSrc, revertTo, setVerdict }
+// Reads and writes of the asset record live in ./assetRecord, and producing a Version
+// lives in ./renderVersion; both are re-exported here so callers keep reaching asset
+// operations through one module.
+export { getAssetShapes, getAssetSrc, getRenderProgress, revertTo, setVerdict }
 
 // Per-tile nudges so a batch explores distinct directions instead of returning
 // near-identical images. Cycled by tile index; the first tile gets none.
@@ -44,39 +41,11 @@ const DIRECTION_HINTS = [
 /** How many approved ideas to feed back into the next batch as references. */
 const MAX_FEEDBACK_REFERENCES = 3
 
-// Cap on how many sequential render passes one re-render makes.
-const MAX_RENDER_STEPS = 8
-
-// How often a running generation refreshes its heartbeat on the shape, and how
-// long a 'generating' shape can go without one before a peer treats it as
-// abandoned. In multiplayer this distinguishes an active render from one whose
-// client navigated away mid-generation.
-const GENERATION_HEARTBEAT_MS = 15_000
+// How long a 'generating' shape can go without a heartbeat before a peer treats it as
+// abandoned. In multiplayer this distinguishes an active render from one whose client
+// navigated away mid-generation. The render itself refreshes the heartbeat (see
+// ./renderVersion); this is the threshold the recovery sweep below reads.
 const STALE_GENERATION_MS = 45_000
-
-// Live progress for multi-step re-renders, keyed by shape id. Kept off the shape
-// so it isn't persisted — it's transient UI state for the current render.
-interface RenderProgress {
-	step: number
-	total: number
-}
-const renderProgress = atom<Record<string, RenderProgress>>('marketing render progress', {})
-
-function setRenderProgress(id: TLShapeId, step: number, total: number): void {
-	renderProgress.update((m) => ({ ...m, [id]: { step, total } }))
-}
-function clearRenderProgress(id: TLShapeId): void {
-	renderProgress.update((m) => {
-		if (!(id in m)) return m
-		const next = { ...m }
-		delete next[id]
-		return next
-	})
-}
-/** Reactive progress for an in-flight multi-step re-render, if any. */
-export function getRenderProgress(id: TLShapeId): RenderProgress | undefined {
-	return renderProgress.get()[id]
-}
 
 /** Create a single asset frame at the viewport centre and generate it. */
 export function createAndGenerate(
@@ -150,7 +119,12 @@ export function createAndGenerateBatch(
 		// A distinct messaging angle per tile so each asset's caption is unique;
 		// single-asset generations get none (nothing to differ from).
 		const captionAngle = count > 1 ? CAPTION_ANGLES[i % CAPTION_ANGLES.length] : undefined
-		void runFirstGeneration(editor, id, outputType, tilePrompt, opts.references ?? [], captionAngle)
+		void renderFromBrief(editor, id, {
+			outputType,
+			prompt: tilePrompt,
+			references: opts.references ?? [],
+			captionAngle,
+		})
 	}
 
 	editor.select(...ids)
@@ -232,49 +206,6 @@ export async function createVariationsFromSelection(
 	})
 }
 
-async function runFirstGeneration(
-	editor: Editor,
-	id: TLShapeId,
-	outputType: OutputType,
-	prompt: string,
-	extraReferences: string[],
-	captionAngle?: string
-) {
-	const stopHeartbeat = startHeartbeat(editor, id)
-	try {
-		const brand = getBrand(editor)
-		const brandText = serializeBrand(brand)
-		const referenceImages = [...brandReferenceImages(brand), ...extraReferences]
-
-		// 1. A text-free background from the image model.
-		const { imageUrl } = await apiGenerate({ prompt, brandText, outputType, referenceImages })
-		const assetId = await storeImageAsset(editor, imageUrl, outputType)
-
-		// 2. The text layout from the planner: a single headline placed over that
-		// background, plus the accompanying caption shown beside the asset.
-		const { textLayers, caption } = await apiPlan({
-			mode: 'create',
-			prompt,
-			brandText,
-			outputType,
-			image: imageUrl,
-			captionAngle,
-		})
-
-		pushVersion(editor, id, {
-			assetId,
-			textLayers,
-			caption,
-			instruction: '',
-			createdAt: Date.now(),
-		})
-	} catch (e) {
-		markFailed(editor, id, e)
-	} finally {
-		stopHeartbeat()
-	}
-}
-
 /** Combine the brief, any feedback, and a per-tile direction hint. */
 function composeTilePrompt(
 	prompt: string,
@@ -327,86 +258,27 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 
 	const current = shape.props.versions[shape.props.currentVersion]
 	if (!current) return
-	const cleanSrc = getAssetSrc(editor, current)
-	if (!cleanSrc) return
+	const currentSrc = getAssetSrc(editor, current)
+	if (!currentSrc) return
 
 	const annotations = readAnnotations(editor, id)
 	if (annotations.length === 0) return
-	const ids = annotations.flatMap((a) => a.shapeIds)
-	const lines = annotations.map(formatAnnotation)
 
 	markGenerating(editor, id, Date.now())
 
 	void (async () => {
-		const stopHeartbeat = startHeartbeat(editor, id)
-		try {
-			const outputType = getOutputType(shape.props.outputTypeId)
-			const brand = getBrand(editor)
-			const brandText = serializeBrand(brand)
-
-			// Export the asset plus its annotations as one composite image. The 2×
-			// scale and padding keep the arrows and any handwritten marks legible to
-			// the interpreter.
-			const { blob } = await editor.toImage([id, ...ids], {
-				format: 'png',
-				background: true,
-				padding: 16,
-				scale: 2,
-			})
-			const composite = await blobToDataUrl(blob)
-
-			// The planner updates the text layers directly and hands back only the
-			// edits that need the image model (background changes).
-			const { textLayers, caption, backgroundInstructions } = await apiPlan({
-				mode: 'revise',
-				prompt: shape.props.prompt,
-				brandText,
-				outputType,
-				image: composite,
-				currentLayers: current.textLayers,
-				annotations: lines,
-			})
-
-			// Apply any background edits one pass each; reuse the old background if
-			// nothing about it changed.
-			let assetId = current.assetId
-			const steps = limitSteps(backgroundInstructions)
-			if (steps.length) {
-				const referenceImages = brandReferenceImages(brand)
-				// The stored background is an R2 URL; the image model needs the bytes,
-				// so read it back as a data URL before the first edit pass.
-				let currentImage = await urlToDataUrl(cleanSrc)
-				for (let i = 0; i < steps.length; i++) {
-					setRenderProgress(id, i + 1, steps.length)
-					const { imageUrl } = await apiGenerate({
-						prompt: shape.props.prompt,
-						brandText,
-						outputType,
-						referenceImages,
-						currentImage,
-						instruction: steps[i],
-					})
-					currentImage = imageUrl
-				}
-				assetId = await storeImageAsset(editor, currentImage, outputType)
-			}
-
-			pushVersion(editor, id, {
-				assetId,
-				textLayers,
-				caption,
-				instruction: steps.length ? steps.join('\n') : 'Text updated',
-				createdAt: Date.now(),
-			})
-
-			// The annotations have been consumed — clear them, group shells and all.
-			deleteAnnotations(editor, annotations)
-		} catch (e) {
-			markFailed(editor, id, e)
-		} finally {
-			stopHeartbeat()
-			clearRenderProgress(id)
-		}
+		const committed = await renderFromAnnotations(editor, id, {
+			outputType: getOutputType(shape.props.outputTypeId),
+			prompt: shape.props.prompt,
+			currentVersion: current,
+			currentSrc,
+			compositeShapeIds: annotations.flatMap((a) => a.shapeIds),
+			// The prose the model reads; readAnnotations itself stays free of marketing voice.
+			instructions: annotations.map(formatAnnotation),
+		})
+		// The annotations have been consumed — clear them, group shells and all. Only
+		// once a new Version actually landed, so a failed render leaves the marks to retry.
+		if (committed) deleteAnnotations(editor, annotations)
 	})()
 }
 
@@ -427,56 +299,9 @@ export function resetInterruptedGenerations(editor: Editor): void {
 	}
 }
 
-/**
- * Keep a generating shape's heartbeat fresh while async work runs, so peers don't
- * mistake a long render for an abandoned one. Returns a stop function.
- */
-function startHeartbeat(editor: Editor, id: TLShapeId): () => void {
-	const interval = setInterval(
-		() => refreshHeartbeat(editor, id, Date.now()),
-		GENERATION_HEARTBEAT_MS
-	)
-	return () => clearInterval(interval)
-}
-
 // ---------------------------------------------------------------------------
 // Internals
 // ---------------------------------------------------------------------------
-
-/** Cap the instruction list, bundling any overflow into the final step. */
-function limitSteps(instructions: string[]): string[] {
-	const steps = instructions.map((s) => s.trim()).filter(Boolean)
-	if (steps.length <= MAX_RENDER_STEPS) return steps
-	return [...steps.slice(0, MAX_RENDER_STEPS - 1), steps.slice(MAX_RENDER_STEPS - 1).join(' ')]
-}
-
-async function storeImageAsset(
-	editor: Editor,
-	dataUrl: string,
-	outputType: OutputType
-): Promise<string> {
-	// Upload the bytes to R2 and store only the URL on the asset record, so the
-	// (large) image isn't synced inline through the room.
-	const src = await uploadImageBytes(dataUrl, `${outputType.id}.png`)
-	const assetId = AssetRecordType.createId()
-	editor.createAssets([
-		{
-			id: assetId,
-			typeName: 'asset',
-			type: 'image',
-			meta: {},
-			props: {
-				name: `${outputType.id}.png`,
-				src,
-				w: outputType.width,
-				h: outputType.height,
-				mimeType: 'image/png',
-				isAnimated: false,
-			},
-		},
-	])
-	return assetId
-}
 
 /**
  * Phrase one read annotation as an instruction for the planner. This is the prose
