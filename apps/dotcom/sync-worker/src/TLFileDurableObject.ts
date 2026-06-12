@@ -53,6 +53,7 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
+import PQueue from 'p-queue'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
@@ -75,6 +76,12 @@ import { isTestFile } from './utils/tla/isTestFile'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
 const MAX_CONNECTIONS = 50
+
+// Cloudflare allows at most six simultaneous open connections per invocation, and each asset
+// copy holds two of them (the R2 get body streaming into the put), so three copies at a time
+// saturates the limit without making the runtime reclaim connections that are still in use.
+// https://developers.cloudflare.com/workers/platform/limits/#simultaneous-open-connections
+const MAX_CONCURRENT_ASSET_COPIES = 3
 
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
@@ -1080,12 +1087,25 @@ export class TLFileDurableObject extends DurableObject {
 		return assertExists(this.env.USER_CONTENT_URL, 'USER_CONTENT_URL is required')
 	}
 
+	private _associateFileAssetsPromise: Promise<void> | null = null
+
 	// We use this to make sure that all of the assets in a tldraw app file are associated with that file.
 	// This is needed for a few cases like duplicating a file, copy pasting images between files, slurping legacy files.
 	// Also migrates old-format asset URLs to tldrawusercontent.com.
+	// Only one pass runs at a time: copying many assets can take longer than the persist interval,
+	// and overlapping passes would re-copy the same assets. Anything that shows up while a pass is
+	// running gets picked up by the next persist tick.
 	async maybeAssociateFileAssets() {
 		if (!this.documentInfo.isApp) return
+		if (!this._associateFileAssetsPromise) {
+			this._associateFileAssetsPromise = this.associateFileAssets().finally(() => {
+				this._associateFileAssetsPromise = null
+			})
+		}
+		return this._associateFileAssetsPromise
+	}
 
+	private async associateFileAssets() {
 		const slug = this.documentInfo.slug
 		const storage = await this.getStorage()
 
@@ -1153,31 +1173,34 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		const rows: { objectName: string; fileId: string }[] = []
+		const copyQueue = new PQueue({ concurrency: MAX_CONCURRENT_ASSET_COPIES })
 		await Promise.allSettled(
-			assetsToReplace.map(async (asset) => {
-				try {
-					const currentAsset = await this.env.UPLOADS.get(asset.objectName)
-					if (!currentAsset) return
-					await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {
-						httpMetadata: currentAsset.httpMetadata,
-					})
+			assetsToReplace.map((asset) =>
+				copyQueue.add(async () => {
+					try {
+						const currentAsset = await this.env.UPLOADS.get(asset.objectName)
+						if (!currentAsset) return
+						await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {
+							httpMetadata: currentAsset.httpMetadata,
+						})
 
-					storage.transaction((txn) => {
-						const assetRecord = txn.get(asset.assetId) as TLAsset | undefined
-						if (!assetRecord) return // extremely unlikely, not sure why this would happen
-						assetRecord.props.src = asset.newSrc
-						assetRecord.meta.fileId = slug
-						txn.set(asset.assetId, assetRecord)
-					})
+						storage.transaction((txn) => {
+							const assetRecord = txn.get(asset.assetId) as TLAsset | undefined
+							if (!assetRecord) return // extremely unlikely, not sure why this would happen
+							assetRecord.props.src = asset.newSrc
+							assetRecord.meta.fileId = slug
+							txn.set(asset.assetId, assetRecord)
+						})
 
-					rows.push({
-						objectName: asset.newObjectName,
-						fileId: slug,
-					})
-				} catch (e) {
-					this.reportError(e)
-				}
-			})
+						rows.push({
+							objectName: asset.newObjectName,
+							fileId: slug,
+						})
+					} catch (e) {
+						this.reportError(e)
+					}
+				})
+			)
 		)
 		if (rows.length === 0) return
 
