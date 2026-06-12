@@ -2,7 +2,7 @@ import { DatabaseSync } from 'node:sqlite'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { NodeSqliteWrapper } from './NodeSqliteWrapper'
 
-describe('NodeSqliteSyncWrapper', () => {
+describe('NodeSqliteWrapper', () => {
 	let db: DatabaseSync
 	let wrapper: NodeSqliteWrapper
 
@@ -13,7 +13,7 @@ describe('NodeSqliteSyncWrapper', () => {
 	})
 
 	describe('exec', () => {
-		it('executes DDL statements', () => {
+		it('[NW1] executes DDL statements', () => {
 			wrapper.exec('CREATE TABLE another (id INTEGER PRIMARY KEY)')
 			// Verify table exists by inserting
 			wrapper.prepare('INSERT INTO another (id) VALUES (?)').run(1)
@@ -21,7 +21,7 @@ describe('NodeSqliteSyncWrapper', () => {
 			expect(results).toEqual([{ id: 1 }])
 		})
 
-		it('executes multi-statement DDL', () => {
+		it('[NW1] executes multi-statement DDL', () => {
 			wrapper.exec(`
 				CREATE TABLE t1 (id INTEGER PRIMARY KEY);
 				CREATE TABLE t2 (id INTEGER PRIMARY KEY);
@@ -39,7 +39,7 @@ describe('NodeSqliteSyncWrapper', () => {
 
 	describe('prepare', () => {
 		describe('all()', () => {
-			it('returns all results as an array', () => {
+			it('[NW1] returns all results as an array', () => {
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(2, 'bob', 200)
 
@@ -53,7 +53,7 @@ describe('NodeSqliteSyncWrapper', () => {
 				])
 			})
 
-			it('handles queries with bindings', () => {
+			it('[NW1] handles queries with bindings', () => {
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(2, 'bob', 200)
 
@@ -64,7 +64,7 @@ describe('NodeSqliteSyncWrapper', () => {
 				expect(results).toEqual([{ name: 'bob' }])
 			})
 
-			it('returns empty array for DML statements', () => {
+			it('[NW1] returns empty array for DML statements', () => {
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 
 				const stmt = wrapper.prepare('UPDATE test SET value = ? WHERE id = ?')
@@ -77,7 +77,7 @@ describe('NodeSqliteSyncWrapper', () => {
 				expect(result).toEqual([{ value: 999 }])
 			})
 
-			it('handles INSERT with RETURNING clause', () => {
+			it('[NW1] handles INSERT with RETURNING clause', () => {
 				const results = wrapper
 					.prepare<{
 						id: number
@@ -92,7 +92,7 @@ describe('NodeSqliteSyncWrapper', () => {
 		})
 
 		describe('iterate()', () => {
-			it('returns results via iteration', () => {
+			it('[NW1] returns results via iteration', () => {
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(2, 'bob', 200)
 
@@ -110,7 +110,7 @@ describe('NodeSqliteSyncWrapper', () => {
 				])
 			})
 
-			it('handles queries with bindings', () => {
+			it('[NW1] handles queries with bindings', () => {
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(2, 'bob', 200)
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(3, 'carol', 300)
@@ -127,7 +127,7 @@ describe('NodeSqliteSyncWrapper', () => {
 		})
 
 		describe('run()', () => {
-			it('executes DML without returning results', () => {
+			it('[NW1] executes DML without returning results', () => {
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 
 				// Verify the insert happened
@@ -135,7 +135,7 @@ describe('NodeSqliteSyncWrapper', () => {
 				expect(results).toEqual([{ id: 1 }])
 			})
 
-			it('executes UPDATE', () => {
+			it('[NW1] executes UPDATE', () => {
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 				wrapper.prepare('UPDATE test SET value = ? WHERE id = ?').run(999, 1)
 
@@ -145,7 +145,7 @@ describe('NodeSqliteSyncWrapper', () => {
 				expect(results).toEqual([{ value: 999 }])
 			})
 
-			it('executes DELETE', () => {
+			it('[NW1] executes DELETE', () => {
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(2, 'bob', 200)
 				wrapper.prepare('DELETE FROM test WHERE id = ?').run(1)
@@ -156,7 +156,7 @@ describe('NodeSqliteSyncWrapper', () => {
 		})
 
 		describe('prepared statement reuse', () => {
-			it('can be reused with different bindings', () => {
+			it('[NW1] can be reused with different bindings', () => {
 				const insert = wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)')
 				insert.run(1, 'alice', 100)
 				insert.run(2, 'bob', 200)
@@ -166,7 +166,7 @@ describe('NodeSqliteSyncWrapper', () => {
 				expect(results).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }])
 			})
 
-			it('iterate can be called multiple times', () => {
+			it('[NW1] iterate can be called multiple times', () => {
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(2, 'bob', 200)
 
@@ -189,7 +189,7 @@ describe('NodeSqliteSyncWrapper', () => {
 			})
 		})
 
-		it('only executes first statement in multi-statement SQL (node:sqlite limitation)', () => {
+		it('[NW1] only executes first statement in multi-statement SQL (node:sqlite limitation)', () => {
 			// node:sqlite's prepare() silently ignores statements after the first semicolon
 			wrapper.prepare('INSERT INTO test (id) VALUES (1); INSERT INTO test (id) VALUES (2)').run()
 
@@ -198,7 +198,7 @@ describe('NodeSqliteSyncWrapper', () => {
 			expect(results).toEqual([{ id: 1 }])
 		})
 
-		it('handles string with semicolon in value (not multi-statement)', () => {
+		it('[NW1] handles string with semicolon in value (not multi-statement)', () => {
 			wrapper
 				.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)')
 				.run(1, 'hello; world', 100)
@@ -209,7 +209,7 @@ describe('NodeSqliteSyncWrapper', () => {
 	})
 
 	describe('transaction', () => {
-		it('commits on success', () => {
+		it('[NW2] commits on success', () => {
 			wrapper.transaction(() => {
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(2, 'bob', 200)
@@ -219,7 +219,7 @@ describe('NodeSqliteSyncWrapper', () => {
 			expect(results).toEqual([{ id: 1 }, { id: 2 }])
 		})
 
-		it('rolls back on error', () => {
+		it('[NW2] rolls back on error', () => {
 			expect(() => {
 				wrapper.transaction(() => {
 					wrapper
@@ -233,7 +233,7 @@ describe('NodeSqliteSyncWrapper', () => {
 			expect(results).toEqual([])
 		})
 
-		it('returns the callback result', () => {
+		it('[NW2] returns the callback result', () => {
 			const result = wrapper.transaction(() => {
 				wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 				return 'done'
@@ -242,7 +242,7 @@ describe('NodeSqliteSyncWrapper', () => {
 			expect(result).toBe('done')
 		})
 
-		it('supports nested reads within transaction', () => {
+		it('[NW2] supports nested reads within transaction', () => {
 			wrapper.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)').run(1, 'alice', 100)
 
 			const result = wrapper.transaction(() => {
@@ -257,16 +257,20 @@ describe('NodeSqliteSyncWrapper', () => {
 			expect(result).toBe(150)
 		})
 
-		it('re-throws the original error after rollback', () => {
+		it('[NW2] rolls back and rethrows the original error', () => {
 			const customError = new Error('custom error')
 
-			try {
+			expect(() => {
 				wrapper.transaction(() => {
+					wrapper
+						.prepare('INSERT INTO test (id, name, value) VALUES (?, ?, ?)')
+						.run(1, 'alice', 100)
 					throw customError
 				})
-			} catch (e) {
-				expect(e).toBe(customError)
-			}
+			}).toThrow(customError)
+
+			// the write was rolled back
+			expect(wrapper.prepare('SELECT * FROM test').all()).toEqual([])
 		})
 	})
 })
