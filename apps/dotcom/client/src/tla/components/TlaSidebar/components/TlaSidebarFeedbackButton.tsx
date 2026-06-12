@@ -21,7 +21,7 @@ export function TlaSidebarFeedbackButton() {
 			}}
 		>
 			<TlaIcon icon="feedback" />
-			{lbl}
+			<span className={styles.sidebarFeedbackButtonLabel}>{lbl}</span>
 		</button>
 	)
 }

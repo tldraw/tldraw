@@ -108,7 +108,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 							onSelect={handleCreateWorkspace}
 							data-testid="tla-create-workspace-menu-item"
 						>
-							{createWorkspaceLbl}
+							<span className={styles.sidebarWorkspaceSwitcherItemLabel}>{createWorkspaceLbl}</span>
 						</_DropdownMenu.Item>
 					</_DropdownMenu.Content>
 				</_DropdownMenu.Root>
@@ -159,7 +159,7 @@ function WorkspaceSwitcherItem({
 			onSelect={onSelect}
 			data-testid={testId}
 		>
-			{children}
+			<span className={styles.sidebarWorkspaceSwitcherItemLabel}>{children}</span>
 		</_DropdownMenu.Item>
 	)
 }
@@ -238,7 +238,7 @@ function TlaSidebarActionButton({
 			data-testid={testId}
 		>
 			<TlaIcon icon={icon} style={iconStyle} />
-			{label}
+			<span className={styles.sidebarActionButtonLabel}>{label}</span>
 		</button>
 	)
 }
