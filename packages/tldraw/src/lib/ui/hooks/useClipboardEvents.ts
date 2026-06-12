@@ -865,14 +865,14 @@ export function useNativeClipboardEvents() {
 
 	useEffect(() => {
 		if (!appIsFocused) return
+		// Copy and cut should only run when shapes are selected and nothing is being edited.
+		const shouldIgnoreCopyCut = () =>
+			editor.getSelectedShapeIds().length === 0 ||
+			editor.getEditingShapeId() !== null ||
+			areShortcutsDisabled(editor)
+
 		const copy = async (e: ClipboardEvent) => {
-			if (
-				editor.getSelectedShapeIds().length === 0 ||
-				editor.getEditingShapeId() !== null ||
-				areShortcutsDisabled(editor)
-			) {
-				return
-			}
+			if (shouldIgnoreCopyCut()) return
 
 			preventDefault(e)
 
@@ -883,13 +883,7 @@ export function useNativeClipboardEvents() {
 		}
 
 		async function cut(e: ClipboardEvent) {
-			if (
-				editor.getSelectedShapeIds().length === 0 ||
-				editor.getEditingShapeId() !== null ||
-				areShortcutsDisabled(editor)
-			) {
-				return
-			}
+			if (shouldIgnoreCopyCut()) return
 			preventDefault(e)
 
 			const didCopy = await handleNativeOrMenuCopy(editor, { operation: 'cut', source: 'native' })

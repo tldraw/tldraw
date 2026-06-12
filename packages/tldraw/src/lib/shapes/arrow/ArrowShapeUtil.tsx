@@ -720,50 +720,17 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			: null
 		const endNormalizedAnchor = bindings?.end ? Vec.From(bindings.end.props.normalizedAnchor) : null
 
-		if (scaleX < 0 && scaleY >= 0) {
-			if (bend !== 0) {
-				bend *= -1
-				bend *= Math.max(mx, my)
-			}
-
-			if (startNormalizedAnchor) {
-				startNormalizedAnchor.x = 1 - startNormalizedAnchor.x
-			}
-
-			if (endNormalizedAnchor) {
-				endNormalizedAnchor.x = 1 - endNormalizedAnchor.x
-			}
-		} else if (scaleX >= 0 && scaleY < 0) {
-			if (bend !== 0) {
-				bend *= -1
-				bend *= Math.max(mx, my)
-			}
-
-			if (startNormalizedAnchor) {
-				startNormalizedAnchor.y = 1 - startNormalizedAnchor.y
-			}
-
-			if (endNormalizedAnchor) {
-				endNormalizedAnchor.y = 1 - endNormalizedAnchor.y
-			}
-		} else if (scaleX >= 0 && scaleY >= 0) {
-			if (bend !== 0) {
-				bend *= Math.max(mx, my)
-			}
-		} else if (scaleX < 0 && scaleY < 0) {
-			if (bend !== 0) {
-				bend *= Math.max(mx, my)
-			}
-
-			if (startNormalizedAnchor) {
-				startNormalizedAnchor.x = 1 - startNormalizedAnchor.x
-				startNormalizedAnchor.y = 1 - startNormalizedAnchor.y
-			}
-
-			if (endNormalizedAnchor) {
-				endNormalizedAnchor.x = 1 - endNormalizedAnchor.x
-				endNormalizedAnchor.y = 1 - endNormalizedAnchor.y
-			}
+		// flipping on one axis (but not both) inverts the bend; anchors mirror on each flipped axis
+		const flipX = scaleX < 0
+		const flipY = scaleY < 0
+		if (bend !== 0) {
+			bend *= Math.max(mx, my)
+			if (flipX !== flipY) bend *= -1
+		}
+		for (const anchor of [startNormalizedAnchor, endNormalizedAnchor]) {
+			if (!anchor) continue
+			if (flipX) anchor.x = 1 - anchor.x
+			if (flipY) anchor.y = 1 - anchor.y
 		}
 
 		if (bindings.start && startNormalizedAnchor) {
