@@ -523,10 +523,13 @@ async function getNextUnenrolledUsers(
 	pg: ReturnType<typeof createPostgresConnectionPool>,
 	limit: number
 ) {
+	// md5(id) gives a deterministic shuffle — unbiased by signup date (raw ids
+	// are KSUID-like and time-sortable) and stable across chunks and reruns
 	return await pg
 		.selectFrom('user')
 		.where((eb) => eb.or([eb('flags', 'not like', '%groups_frontend%'), eb('flags', 'is', null)]))
 		.select(['id'])
+		.orderBy(sql`md5(id)`, 'asc')
 		.limit(limit)
 		.execute()
 }
@@ -535,10 +538,13 @@ async function getNextEnrolledUsers(
 	pg: ReturnType<typeof createPostgresConnectionPool>,
 	limit: number
 ) {
+	// Reverse hash order: unenrolling drops the most-recently-enrolled cohort,
+	// so lowering the percentage leaves the same set as rolling straight to it
 	return await pg
 		.selectFrom('user')
 		.where('flags', 'like', '%groups_frontend%')
 		.select(['id'])
+		.orderBy(sql`md5(id)`, 'desc')
 		.limit(limit)
 		.execute()
 }
