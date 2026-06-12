@@ -938,9 +938,11 @@ function RolloutWorkspacesUi() {
 							es.close()
 							setEventSource(null)
 							if (data.failed) {
-								setError('Rollout stopped due to a failure — see the progress log')
 								setIsMigrating(false)
-								fetchUnmigratedCount()
+								// Refresh first — fetchUnmigratedCount clears the error state,
+								// so setting the banner before it would wipe it
+								await fetchUnmigratedCount()
+								setError('Rollout stopped due to a failure — see the progress log')
 								resolve()
 							} else if (data.hasMore && shouldContinueRef.current) {
 								// Start next batch
@@ -1079,7 +1081,9 @@ function RolloutWorkspacesUi() {
 					onClick={isMigrating ? stopMigration : onMigrate}
 					variant="warning"
 					className={styles.deleteButton}
-					disabled={!isMigrating && isLoadingCount}
+					// Require a loaded count: until then the percentage input still
+					// has its initial 0 and submitting would unenroll everyone
+					disabled={!isMigrating && (isLoadingCount || totalUsers === null)}
 				>
 					{isMigrating ? 'Stop' : 'Update rollout percentage'}
 				</TlaButton>
