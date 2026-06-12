@@ -19,7 +19,7 @@ Sections marked **internal** describe supporting machinery that has its own cont
 ## 2. Protocol constants and errors (PV)
 
 - **PV1** `getTlsyncProtocolVersion()` returns 8.
-- **PV2** `TLSyncErrorCloseEventCode` is 4099. It is the WebSocket close code used for all fatal, non-retriable sync errors; the close reason carries a `TLSyncErrorCloseEventReason` string.
+- **PV2** `TLSyncErrorCloseEventCode` is 4099. It is the WebSocket close code used for fatal, non-retriable sync errors on modern sessions; the close reason carries a `TLSyncErrorCloseEventReason` string. (Legacy sessions are rejected without it — see SES4.)
 - **PV3** `TLRemoteSyncError` has `name: 'RemoteSyncError'`, `message: 'sync error: <reason>'`, and exposes the reason as `.reason`.
 
 ## 3. Computing diffs: `diffRecord` (D)
@@ -97,7 +97,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SS15** `txn.getChangesSince(c)` returns `undefined` when `c` equals the current clock. A `c` greater than the current clock is treated as `-1` (everything changed). The result's `wipeAll` is true when `c < tombstoneHistoryStartsAtClock`; in that case `puts` contains every document and `deletes` is empty. Otherwise `puts` contains documents with `lastChangedClock > c` (strict) and `deletes` the tombstone ids with clock `> c`.
 - **SS16** `getSnapshot()` returns `{ documentClock, tombstoneHistoryStartsAtClock, documents, tombstones, schema }` reflecting all committed transactions.
 - **SS17** Snapshot fallbacks at construction: `documentClock ?? clock ?? 0`; `tombstoneHistoryStartsAtClock ?? documentClock`.
-- **SS18** When the tombstone count exceeds `MAX_TOMBSTONES` (5000), a throttled (1s, trailing-only) prune deletes the oldest tombstones — the overflow plus `TOMBSTONE_PRUNE_BUFFER_SIZE` (1000) more, never splitting a clock value — and advances `tombstoneHistoryStartsAtClock` to the oldest surviving tombstone's clock.
+- **SS18** Deleting a record schedules a throttled (1s, trailing-only) tombstone prune; nothing else schedules one, so a storage constructed with an oversized tombstone set stays unpruned until the next delete. When the prune runs and the tombstone count exceeds `MAX_TOMBSTONES` (5000), it deletes the oldest tombstones — the overflow plus `TOMBSTONE_PRUNE_BUFFER_SIZE` (1000) more, never splitting a clock value — and advances `tombstoneHistoryStartsAtClock` to the oldest surviving tombstone's clock.
 
 ## 11. `InMemorySyncStorage` specifics (IM)
 
@@ -206,13 +206,13 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **RC3** Construction runs `schema.migrateStorage` in a storage transaction, migrating any pre-existing storage data up to the room's schema version. Re-running on already-migrated data changes nothing.
 - **RC4** Storage `onChange` notifications carrying a foreign transaction id make the room broadcast the new changes to all connected clients. The room's own transactions (id `'TLSyncRoom.txn'`) do not re-broadcast this way.
 - **RC5** If an external change leaves the storage unable to produce an incremental diff (`wipeAll`), the room closes every session so clients reconnect and re-hydrate.
-- **RC6** The idle timeout defaults to `SESSION_IDLE_TIMEOUT` (20s) and is configurable via `clientTimeout`. A finite positive timeout starts a periodic prune interval of `min(2000, timeout/4)` ms; `Infinity` or 0 disables the interval (pruning then only happens on message activity).
+- **RC6** The idle timeout defaults to `SESSION_IDLE_TIMEOUT` (20s) and is configurable via `clientTimeout`. A finite positive timeout starts a periodic prune interval of `min(2000, timeout/4)` ms; `Infinity` or 0 disables the interval (pruning then only happens on message activity or via the follow-up prune scheduled when a socket close/error cancels a session, per SES2).
 - **RC7** `close()` closes every session's socket and stops background work; `isClosed()` reports it.
 
 ## 23. `TLSyncRoom` — connect handshake (HS)
 
 - **HS1** `handleNewSession` registers the session in `AwaitingConnectMessage` state and assigns a presence id; a session re-registered under the same id keeps its previous presence id.
-- **HS2** Protocol negotiation accepts versions 5 through 8: 5 and 6 are accepted with `requiresLegacyRejection` (6's close protocol), 7 is accepted with `supportsStringAppend: false`, 8 natively. Anything below 5 (or missing) is rejected `CLIENT_TOO_OLD`; anything above 8 is rejected `SERVER_TOO_OLD`.
+- **HS2** Protocol negotiation accepts versions 5 through 8: 5 and 6 are accepted with `requiresLegacyRejection` (6's close protocol), 8 natively. Every version below 8 — including 7 — is accepted with `supportsStringAppend: false`. Anything below 5 (or missing) is rejected `CLIENT_TOO_OLD`; anything above 8 is rejected `SERVER_TOO_OLD`.
 - **HS3** A connect message without a schema, with a schema the server cannot migrate from, or whose migrations include any non-record-scope or down-less migration, is rejected `CLIENT_TOO_OLD`.
 - **HS4** The connect response echoes `connectRequestId` and `isReadonly`, carries the server's schema and current clock, and `hydrationType: 'wipe_all'` when storage cannot produce an incremental diff since the client's `lastServerClock` (including when that clock is in the future), else `'wipe_presence'`.
 - **HS5** The connect response diff contains every _other_ session's presence record — the connecting session's own presence is excluded — plus the document changes since the client's `lastServerClock` (the full document set in the `wipe_all` case), all down-migrated when the client's schema is older.
@@ -221,7 +221,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 ## 24. `TLSyncRoom` — push handling (RP)
 
 - **RP1** Pushes from sessions that are not `Connected` are ignored.
-- **RP2** A `put` whose record type is not a known document type rejects the session with `INVALID_RECORD`. A record that fails schema validation also rejects with `INVALID_RECORD` (closing the socket with code 4099).
+- **RP2** A `put` whose record type is not a known document type rejects the session with `INVALID_RECORD`. A record that fails schema validation also rejects with `INVALID_RECORD` (delivered per SES4: code 4099 for modern sessions, the legacy message for protocol ≤ 6).
 - **RP3** A `put` of a new id stores the record and broadcasts a `put`; a `put` over an existing record stores the new state but broadcasts a `patch` containing only the computed difference; a `put` equal to the stored record changes nothing.
 - **RP4** A `patch` for a missing (e.g. concurrently deleted) record is silently ignored.
 - **RP5** A `patch` is applied to the stored record (AD rules) and the result validated; the broadcast patch is the recomputed effective diff, not the client's input.

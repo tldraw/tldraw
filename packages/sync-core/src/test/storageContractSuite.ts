@@ -97,7 +97,7 @@ export function registerStorageContractTests(factory: StorageContractFactory) {
 				consoleSpy.mockRestore()
 			})
 
-			it('[SS5] a throwing callback rolls back documents, tombstones, and the clock', () => {
+			it('[SS5] a throwing callback rolls back documents, tombstones, the schema, and the clock', () => {
 				const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 				const storage = create(makeContractSnapshot(contractRecords, { documentClock: 10 }))
 				const newPage = makePage('new')
@@ -106,6 +106,7 @@ export function registerStorageContractTests(factory: StorageContractFactory) {
 					storage.transaction((txn) => {
 						txn.set(newPage.id, newPage)
 						txn.delete(contractRecords[1].id)
+						txn.setSchema({ ...contractSchema.serialize(), schemaVersion: 99 as any })
 						throw new Error('Oops after write!')
 					})
 				).toThrow('Oops after write!')
@@ -115,6 +116,7 @@ export function registerStorageContractTests(factory: StorageContractFactory) {
 				expect(snapshot.documents.find((d) => d.state.id === newPage.id)).toBeUndefined()
 				expect(snapshot.documents.find((d) => d.state.id === contractRecords[1].id)).toBeDefined()
 				expect(snapshot.tombstones).toEqual({})
+				expect(snapshot.schema).toEqual(contractSchema.serialize())
 				consoleSpy.mockRestore()
 			})
 
