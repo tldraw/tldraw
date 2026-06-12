@@ -37,9 +37,8 @@ describe('ImmutableMap (IM)', () => {
 
 		expect(map.get('a')).toBe(1)
 		expect(map.get('missing')).toBeUndefined()
-		// notSetValue is not part of the declared overloads, but is honored at runtime
-		expect((map.get as any)('missing', 42)).toBe(42)
-		expect((map.get as any)('a', 42)).toBe(1)
+		expect(map.get('missing', 42)).toBe(42)
+		expect(map.get('a', 42)).toBe(1)
 	})
 
 	it('[IM3] object keys are hashed by identity', () => {
