@@ -47,9 +47,9 @@ beforeEach(() => {
 			prompt: 'a brief',
 			versions: [],
 			currentVersion: 0,
-			status: 'generating',
+			status: 'idle',
 			error: '',
-			generatingStartedAt: 1000,
+			generatingStartedAt: 0,
 			verdict: 'none',
 		},
 	})
@@ -85,6 +85,32 @@ describe('renderFromBrief', () => {
 		expect(shape().props.status).toBe('idle')
 		expect(shape().props.versions).toHaveLength(1)
 		expect(getCurrentVersion(shape())).toMatchObject({ caption: 'a caption', instruction: '' })
+	})
+
+	it('owns the lifecycle: flips the shape to generating synchronously and back to idle', async () => {
+		vi.mocked(apiGenerate).mockImplementation(async () => {
+			// While the model runs, the shape is generating with a live heartbeat.
+			expect(shape().props.status).toBe('generating')
+			expect(shape().props.generatingStartedAt).toBeGreaterThan(0)
+			return { imageUrl: 'data:generated' }
+		})
+		vi.mocked(apiPlan).mockResolvedValue({
+			textLayers: [],
+			caption: 'c',
+			backgroundInstructions: [],
+		})
+
+		const pending = renderFromBrief(editor, id, {
+			outputType: OUTPUT_TYPE,
+			prompt: 'a brief',
+			references: [],
+		})
+		// Marked before the first await, so callers never see an idle gap.
+		expect(shape().props.status).toBe('generating')
+
+		await pending
+		expect(shape().props.status).toBe('idle')
+		expect(shape().props.generatingStartedAt).toBe(0)
 	})
 
 	it('marks the shape failed and commits nothing when generation throws', async () => {

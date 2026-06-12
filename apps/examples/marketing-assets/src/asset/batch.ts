@@ -157,9 +157,11 @@ export function createAndGenerateBatch(
 				prompt: opts.prompt,
 				versions: [],
 				currentVersion: 0,
-				status: 'generating',
+				// Created idle; renderFromBrief owns the lifecycle and flips the shape to
+				// generating synchronously, so there is no idle flash.
+				status: 'idle',
 				error: '',
-				generatingStartedAt: Date.now(),
+				generatingStartedAt: 0,
 				verdict: 'none',
 			},
 		})

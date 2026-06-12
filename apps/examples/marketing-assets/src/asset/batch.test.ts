@@ -124,7 +124,7 @@ describe('createAndGenerateBatch', () => {
 			.filter((s): s is MarketingAssetShape => s.type === 'marketing-asset')
 	}
 
-	it('creates one generating shape per tile and starts a render for each', () => {
+	it('creates one shape per tile and starts a render for each', () => {
 		const ids = createAndGenerateBatch(editor, {
 			prompt: 'the brief',
 			outputTypeId: 'ig-square',
@@ -135,7 +135,8 @@ describe('createAndGenerateBatch', () => {
 		const shapes = assetShapes()
 		expect(shapes).toHaveLength(4)
 		for (const shape of shapes) {
-			expect(shape.props).toMatchObject({ status: 'generating', prompt: 'the brief' })
+			// Created idle — the render seam owns the generating lifecycle (mocked here).
+			expect(shape.props).toMatchObject({ status: 'idle', prompt: 'the brief' })
 		}
 		// Shapes sit in a 2×2 grid: two distinct x positions, two distinct y positions.
 		expect(new Set(shapes.map((s) => s.x)).size).toBe(2)

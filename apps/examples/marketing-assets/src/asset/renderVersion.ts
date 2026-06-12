@@ -2,17 +2,17 @@ import { AssetRecordType, atom, Editor, TLShapeId } from 'tldraw'
 import { apiGenerate, apiPlan, OutputType } from '../api/marketingApi'
 import { brandReferenceImages, getBrand, serializeBrand } from '../brand/brandState'
 import { blobToDataUrl, uploadImageBytes, urlToDataUrl } from './assetBytes'
-import { markFailed, pushVersion, refreshHeartbeat } from './assetRecord'
+import { markFailed, markGenerating, pushVersion, refreshHeartbeat } from './assetRecord'
 import { AssetVersion } from './assetShape'
 
 /**
  * The render seam: producing a new Version of an asset. Both entry points —
  * `renderFromBrief` (a fresh idea) and `renderFromAnnotations` (a re-render driven by
  * the reviewer's marks) — run the same two-stage interpret→render dance (ADR-0002) and
- * share one lifecycle: keep the shape's heartbeat fresh while the async work runs
- * (ADR-0006), append the produced Version on success, and record the error on the shape
- * on failure. The two callers differ only in how they reach a Version, so that is all
- * they supply.
+ * share one lifecycle, owned entirely here: mark the shape generating, keep its
+ * heartbeat fresh while the async work runs (ADR-0006), append the produced Version on
+ * success, and record the error on the shape on failure. The two callers differ only in
+ * how they reach a Version, so that is all they supply.
  */
 
 // How often a running generation refreshes its heartbeat on the shape. Paired with the
@@ -177,7 +177,8 @@ export function renderFromAnnotations(
 // ---------------------------------------------------------------------------
 
 /**
- * Run a producer under the generation lifecycle: keep the heartbeat fresh, commit the
+ * Run a producer under the generation lifecycle: mark the shape generating (before the
+ * first await, so callers never see an idle gap), keep the heartbeat fresh, commit the
  * produced Version on success, record the error on the shape on failure. Returns whether
  * a Version was committed, so the caller can run its own post-render cleanup.
  */
@@ -186,6 +187,7 @@ async function commitVersion(
 	id: TLShapeId,
 	produce: () => Promise<DraftVersion>
 ): Promise<boolean> {
+	markGenerating(editor, id, Date.now())
 	const stopHeartbeat = startHeartbeat(editor, id)
 	try {
 		const draft = await produce()

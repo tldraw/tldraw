@@ -1,14 +1,7 @@
 import { Editor, TLShapeId } from 'tldraw'
 import { ReadAnnotation, deleteAnnotations, readAnnotations } from '../annotate/readAnnotations'
 import { getOutputType } from '../constants'
-import {
-	getAssetShapes,
-	getAssetSrc,
-	markGenerating,
-	recoverIfStale,
-	revertTo,
-	setVerdict,
-} from './assetRecord'
+import { getAssetShapes, getAssetSrc, recoverIfStale, revertTo, setVerdict } from './assetRecord'
 import { MarketingAssetShape } from './assetShape'
 import { getRenderProgress, renderFromAnnotations } from './renderVersion'
 
@@ -35,8 +28,6 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 
 	const annotations = readAnnotations(editor, id)
 	if (annotations.length === 0) return
-
-	markGenerating(editor, id, Date.now())
 
 	void (async () => {
 		const committed = await renderFromAnnotations(editor, id, {
