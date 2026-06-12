@@ -70,59 +70,61 @@ export function applyRotationToSnapshotShapes({
 }) {
 	const { initialPageCenter, shapeSnapshots } = snapshot
 
-	editor.updateShapes(
-		shapeSnapshots.map(({ shape, initialPagePoint }) => {
-			// We need to both rotate each shape individually and rotate the shapes
-			// around the pivot point (the average center of all rotating shapes.)
+	// Calculate all rotation and position partials
+	const positionAndRotationPartials = shapeSnapshots.map(({ shape, initialPagePoint }) => {
+		// We need to both rotate each shape individually and rotate the shapes
+		// around the pivot point (the average center of all rotating shapes.)
 
-			const parentTransform = isShapeId(shape.parentId)
-				? editor.getShapePageTransform(shape.parentId)!
-				: Mat.Identity()
+		const parentTransform = isShapeId(shape.parentId)
+			? editor.getShapePageTransform(shape.parentId)!
+			: Mat.Identity()
 
-			const newPagePoint = Vec.RotWith(initialPagePoint, centerOverride ?? initialPageCenter, delta)
+		const newPagePoint = Vec.RotWith(initialPagePoint, centerOverride ?? initialPageCenter, delta)
 
-			const newLocalPoint = Mat.applyToPoint(
-				// use the current parent transform in case it has moved/resized since the start
-				// (e.g. if rotating a shape at the edge of a group)
-				Mat.Inverse(parentTransform),
-				newPagePoint
-			)
-			const newRotation = canonicalizeRotation(shape.rotation + delta)
+		const newLocalPoint = Mat.applyToPoint(
+			// use the current parent transform in case it has moved/resized since the start
+			// (e.g. if rotating a shape at the edge of a group)
+			Mat.Inverse(parentTransform),
+			newPagePoint
+		)
+		const newRotation = canonicalizeRotation(shape.rotation + delta)
 
-			return {
-				id: shape.id,
-				type: shape.type,
-				x: newLocalPoint.x,
-				y: newLocalPoint.y,
-				rotation: newRotation,
-			}
-		})
-	)
+		return {
+			id: shape.id,
+			type: shape.type,
+			x: newLocalPoint.x,
+			y: newLocalPoint.y,
+			rotation: newRotation,
+		} as TLShapePartial
+	})
 
-	// Handle change
+	// Collect callback changes based on the new shapes that will exist after position/rotation update
+	const callbackPartials: TLShapePartial[] = []
 
-	const changes: TLShapePartial[] = []
-
-	shapeSnapshots.forEach(({ shape }) => {
-		const current = editor.getShape(shape.id)
-		if (!current) return
+	shapeSnapshots.forEach(({ shape }, index) => {
 		const util = editor.getShapeUtil(shape)
 
 		if (stage === 'start' || stage === 'one-off') {
 			const changeStart = util.onRotateStart?.(shape)
-			if (changeStart) changes.push(changeStart)
+			if (changeStart) callbackPartials.push(changeStart)
 		}
 
-		const changeUpdate = util.onRotate?.(shape, current)
-		if (changeUpdate) changes.push(changeUpdate)
+		// For onRotate callback, we need to pass the updated shape
+		// Create a temporary shape with the new rotation/position to get the updated state
+		const updatedShapePartial = positionAndRotationPartials[index]
+		const tempUpdatedShape = { ...shape, ...updatedShapePartial }
+		const changeUpdate = util.onRotate?.(shape, tempUpdatedShape as TLShape)
+		if (changeUpdate) callbackPartials.push(changeUpdate)
 
 		if (stage === 'end' || stage === 'one-off') {
-			const changeEnd = util.onRotateEnd?.(shape, current)
-			if (changeEnd) changes.push(changeEnd)
+			const changeEnd = util.onRotateEnd?.(shape, tempUpdatedShape as TLShape)
+			if (changeEnd) callbackPartials.push(changeEnd)
 		}
 	})
 
-	if (changes.length > 0) {
-		editor.updateShapes(changes)
+	// Batch all updates together: position/rotation + callbacks
+	const allPartials = [...positionAndRotationPartials, ...callbackPartials]
+	if (allPartials.length > 0) {
+		editor.updateShapes(allPartials)
 	}
 }

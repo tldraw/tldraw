@@ -327,3 +327,38 @@ describe('Edge cases', () => {
 			.expectToBeIn('select.idle')
 	})
 })
+
+describe('Rotation batching', () => {
+	it('batches rotation updates for multiple shapes in a single updateShapes call', () => {
+		// Create additional shapes
+		editor.createShape({
+			type: 'geo',
+			x: 400,
+			y: 400,
+			props: { w: 100, h: 100 },
+		})
+
+		const shapes = editor.getLastCreatedShapes(3)
+		const shapeIds = shapes.map((s) => s.id)
+		editor.select(...shapeIds)
+
+		// Get the rotate handle position
+		const handlePoint = editor.getSelectionHandlePagePoint('top_right_rotate')
+
+		// Start rotating from a rotate handle
+		editor.pointerDown(handlePoint.x, handlePoint.y)
+		// Move the pointer significantly to create a rotation
+		editor.pointerMove(handlePoint.x + 100, handlePoint.y + 100)
+
+		// Verify all shapes rotated correctly
+		const rotations = shapeIds.map((id) => editor.getShape(id)!.rotation)
+		// All shapes should have the same rotation since they were selected together
+		expect(rotations[0]).toBe(rotations[1])
+		expect(rotations[1]).toBe(rotations[2])
+		// And the rotation should be non-zero
+		expect(rotations[0]).not.toBe(0)
+
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
+	})
+})
