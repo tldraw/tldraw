@@ -274,6 +274,7 @@ function useSwitchToWorkspace() {
 function useCreateWorkspaceDialog() {
 	const app = useApp()
 	const { addDialog } = useDialogs()
+	const switchToWorkspace = useSwitchToWorkspace()
 
 	return useCallback(() => {
 		addDialog({
@@ -284,6 +285,7 @@ function useCreateWorkspaceDialog() {
 						const id = uniqueId()
 						try {
 							await app.z.mutate.createWorkspace({ id, name }).client
+							await switchToWorkspace(id)
 						} catch (e) {
 							app.showMutationRejectionToast((e as Error).message as ZErrorCode)
 						}
@@ -291,5 +293,5 @@ function useCreateWorkspaceDialog() {
 				/>
 			),
 		})
-	}, [app, addDialog])
+	}, [app, addDialog, switchToWorkspace])
 }
