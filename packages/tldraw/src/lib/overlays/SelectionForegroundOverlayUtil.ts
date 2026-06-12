@@ -97,6 +97,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			'select.pointing_selection',
 			'select.pointing_shape',
 			'select.pointing_resize_handle',
+			'select.pointing_rotate_handle',
 			'select.resizing',
 			'select.crop.idle',
 			'select.crop.pointing_crop',
@@ -495,6 +496,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 				'select.idle',
 				'select.pointing_selection',
 				'select.pointing_shape',
+				'select.pointing_resize_handle',
+				'select.pointing_rotate_handle',
 				'select.crop.idle'
 			) &&
 			!isChangingStyle &&
@@ -552,7 +555,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 					'select.crop.idle',
 					'select.crop.pointing_crop',
 					'select.crop.pointing_crop_handle',
-					'select.pointing_resize_handle'
+					'select.pointing_resize_handle',
+					'select.pointing_rotate_handle'
 				)) ||
 			(showSelectionBounds &&
 				editor.isIn('select.resizing') &&
