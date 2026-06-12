@@ -239,15 +239,28 @@ describe('side effect handlers (SE)', () => {
 		expect(operationComplete).not.toHaveBeenCalled()
 	})
 
-	it('[SE6] an out-of-band setIsEnabled(false) does not survive a standalone mutation', () => {
+	it('[SE6] setIsEnabled(false) keeps handlers off across standalone mutations', () => {
+		const beforeCreate = vi.fn((r: Book) => ({ ...r, title: 'transformed' }))
 		const afterCreate = vi.fn()
+		store.sideEffects.registerBeforeCreateHandler('book', beforeCreate)
 		store.sideEffects.registerAfterCreateHandler('book', afterCreate)
 
 		store.sideEffects.setIsEnabled(false)
-		// a standalone put is its own top-level atomic operation, which sets the
-		// enabled state from its runCallbacks argument (default true)
 		store.put([book1])
 
+		expect(beforeCreate).not.toHaveBeenCalled()
+		expect(afterCreate).not.toHaveBeenCalled()
+		expect(store.get(book1Id)!.title).toBe(book1.title)
+
+		// a nested attempt to switch them back on has no effect either
+		store.atomic(() => {
+			store.put([book2])
+		}, true)
+		expect(afterCreate).not.toHaveBeenCalled()
+
+		store.sideEffects.setIsEnabled(true)
+		store.remove([book1Id, book2Id])
+		store.put([book1])
 		expect(afterCreate).toHaveBeenCalledTimes(1)
 	})
 })

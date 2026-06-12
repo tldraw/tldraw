@@ -71,7 +71,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **SE3** `beforeChange` runs before validation on update, receiving `(prev, next, source)`; its return value is stored. Returning `prev` blocks the update (with a reference-preserving validator this makes the put a complete no-op per S3).
 - **SE4** `beforeDelete` may return `false` to prevent that record's deletion; other records in the same `remove` call are still deleted.
 - **SE5** `afterCreate`/`afterChange`/`afterDelete` run per AO4–AO6 and observe the final state of the operation; all handlers receive the source (`'user'` or `'remote'`).
-- **SE6** When side effects are disabled for an operation (`atomic(fn, false)`, `applyDiff(diff, { runCallbacks: false })`, snapshot loads), `before*` handlers pass values through unchanged, `after*` and `operationComplete` handlers do not run, and `beforeDelete` cannot block. The enabled state is per operation: a top-level atomic operation sets it from its `runCallbacks` argument, so an out-of-band `setIsEnabled(false)` does not survive the next standalone mutation.
+- **SE6** When side effects are disabled (`setIsEnabled(false)`, `atomic(fn, false)`, `applyDiff(diff, { runCallbacks: false })`, snapshot loads), `before*` handlers pass values through unchanged, `after*` and `operationComplete` handlers do not run, and `beforeDelete` cannot block. An operation may switch side effects off (AO3), but never on while they are disabled: `setIsEnabled(false)` keeps handlers off across subsequent operations until `setIsEnabled(true)`.
 
 ## 8. History and listeners (H)
 

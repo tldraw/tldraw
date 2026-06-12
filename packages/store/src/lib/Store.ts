@@ -884,8 +884,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		const prevSideEffectsEnabled = this.sideEffects.isEnabled()
 		try {
 			this.sideEffects.setIsEnabled(false)
-			// runCallbacks must be false here: `atomic` would otherwise switch side
-			// effects back on for the duration of the operation.
 			this.atomic(() => {
 				this.clear()
 				this.put(Object.values(migrationResult.value))
@@ -1254,7 +1252,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			this.pendingAfterEvents = new Map()
 			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
-			this.sideEffects.setIsEnabled(runCallbacks ?? prevSideEffectsEnabled)
+			// an operation may switch side effects off, but never on while they are disabled
+			this.sideEffects.setIsEnabled(runCallbacks && prevSideEffectsEnabled)
 			this._isInAtomicOp = true
 
 			if (isMergingRemoteChanges) {
