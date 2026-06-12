@@ -1,5 +1,6 @@
 import { Editor, TLShapeId } from 'tldraw'
-import { ReadAnnotation, deleteAnnotations, readAnnotations } from '../annotate/readAnnotations'
+import { formatAnnotation } from '../annotate/annotationPhrasing'
+import { deleteAnnotations, readAnnotations } from '../annotate/readAnnotations'
 import { getOutputType } from '../constants'
 import { getAssetShapes, getAssetSrc, recoverIfStale, revertTo, setVerdict } from './assetRecord'
 import { MarketingAssetShape } from './assetShape'
@@ -36,7 +37,6 @@ export function reRender(editor: Editor, id: TLShapeId): void {
 			currentVersion: current,
 			currentSrc,
 			compositeShapeIds: annotations.flatMap((a) => a.shapeIds),
-			// The prose the model reads; readAnnotations itself stays free of marketing voice.
 			instructions: annotations.map(formatAnnotation),
 		})
 		// The annotations have been consumed — clear them, group shells and all. Only
@@ -60,31 +60,4 @@ export function resetInterruptedGenerations(editor: Editor): void {
 	for (const shape of getAssetShapes(editor)) {
 		recoverIfStale(editor, shape, now, STALE_GENERATION_MS)
 	}
-}
-
-// ---------------------------------------------------------------------------
-// Internals
-// ---------------------------------------------------------------------------
-
-/**
- * Phrase one read annotation as an instruction for the planner. This is the prose
- * the model reads; `readAnnotations` itself stays free of marketing voice.
- */
-function formatAnnotation(annotation: ReadAnnotation): string {
-	const where = `the ${regionOf(annotation.area)} of the asset`
-	return annotation.text
-		? `Change ${where}: ${annotation.text}.`
-		: `Something at ${where} needs changing (an arrow points there, but no text was given).`
-}
-
-/** Describe where a normalized area sits within the asset, e.g. "top left", "centre". */
-function regionOf(area: { x: number; y: number; w: number; h: number }): string {
-	const cx = area.x + area.w / 2
-	const cy = area.y + area.h / 2
-	const col = cx < 0.34 ? 'left' : cx < 0.67 ? 'centre' : 'right'
-	const row = cy < 0.34 ? 'top' : cy < 0.67 ? 'middle' : 'bottom'
-	if (row === 'middle' && col === 'centre') return 'centre'
-	if (row === 'middle') return `${col} side`
-	if (col === 'centre') return `${row} centre`
-	return `${row} ${col}`
 }
