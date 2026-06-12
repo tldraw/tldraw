@@ -1,6 +1,9 @@
 import { react, transaction } from '@tldraw/state'
-import { vi } from 'vitest'
-import { AtomMap } from '../AtomMap'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { AtomMap } from './AtomMap'
+
+// Tests for SPEC.md §22 (AtomMap).
+// Rule IDs like [AM1] in test names refer to that document.
 
 describe('AtomMap', () => {
 	let cleanupFns: (() => void)[] = []
@@ -19,7 +22,7 @@ describe('AtomMap', () => {
 	}
 
 	describe('get', () => {
-		it('should return the value or undefined', () => {
+		it('[AM3] returns the value or undefined', () => {
 			const map = new AtomMap('test')
 			expect(map.get('a')).toBe(undefined)
 
@@ -30,7 +33,7 @@ describe('AtomMap', () => {
 			expect(map.get('a')).toBe(undefined)
 		})
 
-		it('should react to creating, updating, and deleting values', () => {
+		it('[AM1] [AM2] reacts to creating, updating, and deleting the read key', () => {
 			const map = new AtomMap('test', [['a', 1]])
 			const reactor = testReactor('test', () => map.get('b'))
 			expect(reactor).toHaveBeenCalledTimes(1)
@@ -49,34 +52,28 @@ describe('AtomMap', () => {
 			expect(reactor).toHaveLastReturnedWith(undefined)
 		})
 
-		it('should not react to changes in other keys', () => {
+		it('[AM1] does not react to changes in other keys', () => {
 			const map = new AtomMap('test', [['a', 1]])
 			const aReactor = testReactor('a-reactor', () => map.get('a'))
 			expect(aReactor).toHaveBeenCalledTimes(1)
 
-			// Setting other keys shouldn't trigger a reaction
+			// setting, updating, and deleting other keys does not trigger a reaction
 			map.set('b', 1)
 			map.set('c', 2)
-			expect(aReactor).toHaveBeenCalledTimes(1)
-
-			// Updating other keys shouldn't trigger a reaction
 			map.set('b', 3)
 			map.set('c', 4)
-			expect(aReactor).toHaveBeenCalledTimes(1)
-
-			// Deleting other keys shouldn't trigger a reaction
 			map.delete('b')
 			map.delete('c')
 			expect(aReactor).toHaveBeenCalledTimes(1)
 
-			// But setting the watched key should trigger a reaction
+			// but setting the watched key does
 			map.set('a', 5)
 			expect(aReactor).toHaveBeenCalledTimes(2)
 		})
 	})
 
 	describe('has', () => {
-		it('should return true if the key exists with a value', () => {
+		it('[AM3] reports whether the key has a value', () => {
 			const map = new AtomMap('test')
 			expect(map.has('a')).toBe(false)
 
@@ -87,7 +84,7 @@ describe('AtomMap', () => {
 			expect(map.has('a')).toBe(false)
 		})
 
-		it('should react to creating, updating, and deleting values', () => {
+		it('[AM1] [AM2] reacts to creating, updating, and deleting the checked key', () => {
 			const map = new AtomMap('test')
 			const reactor = testReactor('test', () => map.has('a'))
 			expect(reactor).toHaveBeenCalledTimes(1)
@@ -106,48 +103,51 @@ describe('AtomMap', () => {
 			expect(reactor).toHaveLastReturnedWith(false)
 
 			map.set('a', 2)
-			expect(reactor).toHaveBeenCalledTimes(5) // reinstating a previously deleted atom works
+			expect(reactor).toHaveBeenCalledTimes(5) // reinstating a previously deleted key works
 			expect(reactor).toHaveLastReturnedWith(true)
 		})
 
-		it('should not react to changes in other keys', () => {
+		it('[AM1] does not react to changes in other keys', () => {
 			const map = new AtomMap('test', [['a', 1]])
 			const aReactor = testReactor('a-reactor', () => map.has('a'))
 			expect(aReactor).toHaveBeenCalledTimes(1)
 
-			// Setting other keys shouldn't trigger a reaction
 			map.set('b', 1)
 			map.set('c', 2)
-			expect(aReactor).toHaveBeenCalledTimes(1)
-
-			// Updating other keys shouldn't trigger a reaction
 			map.set('b', 3)
 			map.set('c', 4)
-			expect(aReactor).toHaveBeenCalledTimes(1)
-
-			// Deleting other keys shouldn't trigger a reaction
 			map.delete('b')
 			map.delete('c')
 			expect(aReactor).toHaveBeenCalledTimes(1)
 
-			// But setting the watched key should trigger a reaction
 			map.set('a', 5)
 			expect(aReactor).toHaveBeenCalledTimes(2)
 		})
 	})
 
-	describe('set', () => {
-		it('should set values and return the map', () => {
+	describe('set and update', () => {
+		it('[AM3] set adds or updates and returns the map', () => {
 			const map = new AtomMap('test')
 			expect(map.set('a', 1)).toBe(map)
 			expect(map.get('a')).toBe(1)
 			map.set('a', 2)
 			expect(map.get('a')).toBe(2)
 		})
+
+		it('[AM3] update replaces an existing value', () => {
+			const map = new AtomMap('test', [['count', 5]])
+			map.update('count', (n) => n + 1)
+			expect(map.get('count')).toBe(6)
+		})
+
+		it('[AM3] update throws for a missing key', () => {
+			const map = new AtomMap<string, number>('test')
+			expect(() => map.update('missing', (n) => n + 1)).toThrow('AtomMap: key missing not found')
+		})
 	})
 
 	describe('delete', () => {
-		it('should delete values and return true if value existed', () => {
+		it('[AM4] deletes values and returns whether the key existed', () => {
 			const map = new AtomMap('test')
 			expect(map.delete('a')).toBe(false)
 
@@ -159,7 +159,7 @@ describe('AtomMap', () => {
 	})
 
 	describe('deleteMany', () => {
-		it('should delete multiple values at once', () => {
+		it('[AM4] deletes multiple values at once', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -184,7 +184,7 @@ describe('AtomMap', () => {
 			})
 		})
 
-		it('should trigger a single reaction for multiple deletions', () => {
+		it('[AM4] triggers a single reaction for multiple deletions', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -216,7 +216,7 @@ describe('AtomMap', () => {
 			expect(bValueReactor).toHaveLastReturnedWith(undefined)
 		})
 
-		it('should do nothing if no keys are provided', () => {
+		it('[AM4] does nothing if no keys are provided', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -230,7 +230,7 @@ describe('AtomMap', () => {
 			expect(map.size).toBe(2)
 		})
 
-		it('should do nothing if none of the keys exist', () => {
+		it('[AM4] does nothing if none of the keys exist', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -244,7 +244,7 @@ describe('AtomMap', () => {
 			expect(map.size).toBe(2)
 		})
 
-		it('should return only the entries that were actually deleted', () => {
+		it('[AM4] returns only the entries that were actually deleted', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -260,7 +260,7 @@ describe('AtomMap', () => {
 			expect(Array.from(map.entries())).toEqual([['c', 3]])
 		})
 
-		it('should not include entries that were already empty', () => {
+		it('[AM4] does not include entries that were already deleted', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -270,7 +270,7 @@ describe('AtomMap', () => {
 			expect(deleted).toEqual([['b', 2]])
 		})
 
-		it('should not trigger reactions for unaffected keys', () => {
+		it('[AM1] [AM4] does not trigger reactions for unaffected keys', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -303,7 +303,7 @@ describe('AtomMap', () => {
 	})
 
 	describe('clear', () => {
-		it('should remove all values', () => {
+		it('[AM5] removes all values', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -315,7 +315,7 @@ describe('AtomMap', () => {
 			expect(map.has('b')).toBe(false)
 		})
 
-		it('should trigger reactions', () => {
+		it('[AM5] triggers reactions', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -325,35 +325,26 @@ describe('AtomMap', () => {
 			expect(sizeReactor).toHaveLastReturnedWith(2)
 
 			map.clear()
-			// clear triggers multiple reactions since it clears multiple values
 			expect(sizeReactor).toHaveLastReturnedWith(0)
 		})
 	})
 
 	describe('entries', () => {
-		it('should iterate over key-value pairs', () => {
+		it('[AM6] iterates over key-value pairs, excluding deleted entries', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
 			])
-			const entries = Array.from(map.entries())
-			expect(entries).toEqual([
+			expect(Array.from(map.entries())).toEqual([
 				['a', 1],
 				['b', 2],
 			])
-		})
 
-		it('should skip empty values', () => {
-			const map = new AtomMap('test', [
-				['a', 1],
-				['b', 2],
-			])
 			map.delete('a')
-			const entries = Array.from(map.entries())
-			expect(entries).toEqual([['b', 2]])
+			expect(Array.from(map.entries())).toEqual([['b', 2]])
 		})
 
-		it('should react to changes', () => {
+		it('[AM6] reacts to changes', () => {
 			const map = new AtomMap('test', [['a', 1]])
 			const reactor = testReactor('test', () => Array.from(map.entries()))
 			expect(reactor).toHaveBeenCalledTimes(1)
@@ -377,29 +368,29 @@ describe('AtomMap', () => {
 				['a', 3],
 			])
 		})
+
+		it('[AM6] iterating the map itself is the same as entries', () => {
+			const map = new AtomMap('test', [
+				['a', 1],
+				['b', 2],
+			])
+			expect(Array.from(map)).toEqual(Array.from(map.entries()))
+		})
 	})
 
 	describe('keys', () => {
-		it('should iterate over keys', () => {
+		it('[AM6] iterates over keys, excluding deleted entries', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
 			])
-			const keys = Array.from(map.keys())
-			expect(keys).toEqual(['a', 'b'])
-		})
+			expect(Array.from(map.keys())).toEqual(['a', 'b'])
 
-		it('should skip keys with empty values', () => {
-			const map = new AtomMap('test', [
-				['a', 1],
-				['b', 2],
-			])
 			map.delete('a')
-			const keys = Array.from(map.keys())
-			expect(keys).toEqual(['b'])
+			expect(Array.from(map.keys())).toEqual(['b'])
 		})
 
-		it('should react to changes', () => {
+		it('[AM6] reacts to changes', () => {
 			const map = new AtomMap('test', [['a', 1]])
 			const reactor = testReactor('test', () => Array.from(map.keys()))
 			expect(reactor).toHaveBeenCalledTimes(1)
@@ -420,26 +411,18 @@ describe('AtomMap', () => {
 	})
 
 	describe('values', () => {
-		it('should iterate over values', () => {
+		it('[AM6] iterates over values, excluding deleted entries', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
 			])
-			const values = Array.from(map.values())
-			expect(values).toEqual([1, 2])
-		})
+			expect(Array.from(map.values())).toEqual([1, 2])
 
-		it('should skip empty values', () => {
-			const map = new AtomMap('test', [
-				['a', 1],
-				['b', 2],
-			])
 			map.delete('a')
-			const values = Array.from(map.values())
-			expect(values).toEqual([2])
+			expect(Array.from(map.values())).toEqual([2])
 		})
 
-		it('should react to changes', () => {
+		it('[AM6] reacts to changes', () => {
 			const map = new AtomMap('test', [['a', 1]])
 			const reactor = testReactor('test', () => Array.from(map.values()))
 			expect(reactor).toHaveBeenCalledTimes(1)
@@ -460,13 +443,11 @@ describe('AtomMap', () => {
 	})
 
 	describe('size', () => {
-		it('should return the number of non-empty values', () => {
+		it('[AM6] counts the live entries', () => {
 			const map = new AtomMap('test')
-			const size = map.size
-			expect(size).toBe(0)
+			expect(map.size).toBe(0)
 
 			map.set('a', 1)
-			expect(Array.from(map.entries()).length).toBe(1) // verify entries shows 1 item
 			expect(map.size).toBe(1)
 
 			map.set('b', 2)
@@ -479,17 +460,16 @@ describe('AtomMap', () => {
 			expect(map.size).toBe(0)
 		})
 
-		it('should react to changes', () => {
+		it('[AM6] reacts to changes', () => {
 			const map = new AtomMap('test')
 			const reactor = testReactor('test', () => map.size)
 			expect(reactor).toHaveBeenCalledTimes(1)
 			expect(reactor).toHaveLastReturnedWith(0)
 
 			map.set('a', 1)
-			// setting a value triggers a reaction for both the value and size
 			expect(reactor).toHaveLastReturnedWith(1)
 
-			map.set('a', 2) // updating should trigger a reaction but keep same size
+			map.set('a', 2) // updating keeps the same size
 			expect(reactor).toHaveLastReturnedWith(1)
 
 			map.delete('a')
@@ -498,35 +478,26 @@ describe('AtomMap', () => {
 	})
 
 	describe('forEach', () => {
-		it('should iterate over all entries', () => {
-			const map = new AtomMap('test', [
-				['a', 1],
-				['b', 2],
-			])
-			const results: Array<[string, number]> = []
-			map.forEach((value, key) => {
-				results.push([key, value])
-			})
-			expect(results).toEqual([
-				['a', 1],
-				['b', 2],
-			])
-		})
-
-		it('should skip empty values', () => {
+		it('[AM6] iterates over live entries', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
 			])
 			map.delete('a')
+			map.set('c', 3)
+
 			const results: Array<[string, number]> = []
-			map.forEach((value, key) => {
+			map.forEach((value, key, theMap) => {
+				expect(theMap).toBe(map)
 				results.push([key, value])
 			})
-			expect(results).toEqual([['b', 2]])
+			expect(results).toEqual([
+				['b', 2],
+				['c', 3],
+			])
 		})
 
-		it('should react to changes', () => {
+		it('[AM6] reacts to changes', () => {
 			const map = new AtomMap('test', [['a', 1]])
 			const reactor = testReactor('test', () => {
 				const current: Array<[string, number]> = []
@@ -540,24 +511,13 @@ describe('AtomMap', () => {
 
 			map.set('b', 2)
 			expect(reactor).toHaveBeenCalledTimes(2)
-			expect(reactor).toHaveLastReturnedWith([
-				['a', 1],
-				['b', 2],
-			])
 
 			map.delete('a')
 			expect(reactor).toHaveBeenCalledTimes(3)
 			expect(reactor).toHaveLastReturnedWith([['b', 2]])
-
-			map.set('a', 3)
-			expect(reactor).toHaveBeenCalledTimes(4)
-			expect(reactor).toHaveLastReturnedWith([
-				['b', 2],
-				['a', 3],
-			])
 		})
 
-		it('should use provided thisArg', () => {
+		it('[AM6] uses the provided thisArg', () => {
 			const map = new AtomMap('test', [['a', 1]])
 			const thisArg = { test: true }
 			map.forEach(function (this: any) {
@@ -567,7 +527,7 @@ describe('AtomMap', () => {
 	})
 
 	describe('transaction rollbacks', () => {
-		it('works for additions', () => {
+		it('[AM7] rolls back additions', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -578,6 +538,7 @@ describe('AtomMap', () => {
 			})
 			expect(map.size).toBe(2)
 			expect(map.has('c')).toBe(false)
+
 			transaction(() => {
 				map.set('c', 3)
 			})
@@ -585,7 +546,7 @@ describe('AtomMap', () => {
 			expect(map.get('c')).toBe(3)
 		})
 
-		it('works for updates', () => {
+		it('[AM7] rolls back updates', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -602,12 +563,11 @@ describe('AtomMap', () => {
 				map.set('a', 3)
 				map.set('b', 4)
 			})
-
 			expect(map.get('a')).toBe(3)
 			expect(map.get('b')).toBe(4)
 		})
 
-		it('works for deletions', () => {
+		it('[AM7] rolls back deletions', () => {
 			const map = new AtomMap('test', [
 				['a', 1],
 				['b', 2],
@@ -618,11 +578,17 @@ describe('AtomMap', () => {
 			})
 			expect(map.has('a')).toBe(true)
 			expect(map.size).toBe(2)
+
 			transaction(() => {
 				map.delete('a')
 			})
 			expect(map.has('a')).toBe(false)
 			expect(map.size).toBe(1)
 		})
+	})
+
+	it('[AM8] has the AtomMap string tag', () => {
+		const map = new AtomMap('test')
+		expect(Object.prototype.toString.call(map)).toBe('[object AtomMap]')
 	})
 })

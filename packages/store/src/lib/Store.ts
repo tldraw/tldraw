@@ -656,7 +656,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 					if (validated === initialValue) continue
 
-					record = devFreeze(record)
+					record = devFreeze(validated)
 					this.records.set(record.id, record)
 
 					didChange = true
@@ -888,7 +888,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.clear()
 				this.put(Object.values(migrationResult.value))
 				this.ensureStoreIsUsable()
-			})
+			}, false)
 		} finally {
 			this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 		}
@@ -1252,7 +1252,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			this.pendingAfterEvents = new Map()
 			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
-			this.sideEffects.setIsEnabled(runCallbacks ?? prevSideEffectsEnabled)
+			// an operation may switch side effects off, but never on while they are disabled
+			this.sideEffects.setIsEnabled(runCallbacks && prevSideEffectsEnabled)
 			this._isInAtomicOp = true
 
 			if (isMergingRemoteChanges) {
