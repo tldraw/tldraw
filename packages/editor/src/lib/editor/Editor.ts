@@ -2101,10 +2101,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	select(...shapes: TLShapeId[] | TLShape[]): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((shape) => shape.id)
+		const ids = toShapeIds(shapes)
 		this.setSelectedShapes(ids)
 		return this
 	}
@@ -2120,10 +2117,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deselect(...shapes: TLShapeId[] | TLShape[]): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((shape) => shape.id)
+		const ids = toShapeIds(shapes)
 		const selectedShapeIds = this.getSelectedShapeIds()
 		if (selectedShapeIds.length > 0 && ids.length > 0) {
 			this.setSelectedShapes(selectedShapeIds.filter((id) => !ids.includes(id)))
@@ -2889,10 +2883,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setHintingShapes(shapes: TLShapeId[] | TLShape[]): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((shape) => shape.id)
+		const ids = toShapeIds(shapes)
 		// always ephemeral
 		this.run(
 			() => {
@@ -2938,10 +2929,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setErasingShapes(shapes: TLShapeId[] | TLShape[]): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((shape) => shape.id)
+		const ids = toShapeIds(shapes)
 		ids.sort() // sort the incoming ids
 		const erasingShapeIds = this.getErasingShapeIds()
 		this.run(
@@ -5647,10 +5635,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return
 		}
 
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 		const freshShapes = compact(ids.map((id) => this.getShape(id)))
 
 		if (freshShapes.length === 1) {
@@ -6369,8 +6354,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	reparentShapes(shapes: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: IndexKey) {
-		const ids =
-			typeof shapes[0] === 'string' ? (shapes as TLShapeId[]) : shapes.map((s) => (s as TLShape).id)
+		const ids = toShapeIds(shapes)
 		if (ids.length === 0) return this
 
 		const changes: TLShapePartial[] = []
@@ -6871,10 +6855,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		delta: number,
 		opts?: { center?: VecLike }
 	): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 
 		if (ids.length <= 0) return this
 
@@ -6933,10 +6914,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param offset - The offset to apply to the shapes.
 	 */
 	nudgeShapes(shapes: TLShapeId[] | TLShape[], offset: VecLike): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 
 		if (ids.length <= 0) return this
 		const changes: TLShapePartial[] = []
@@ -6971,10 +6949,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	duplicateShapes(shapes: TLShapeId[] | TLShape[], offset?: VecLike): this {
 		this.run(() => {
-			const _ids =
-				typeof shapes[0] === 'string'
-					? (shapes as TLShapeId[])
-					: (shapes as TLShape[]).map((s) => s.id)
+			const _ids = toShapeIds(shapes)
 
 			const ids = this._shouldIgnoreShapeLock ? _ids : this._getUnlockedShapeIds(_ids)
 			if (ids.length <= 0) return this
@@ -7106,10 +7081,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	moveShapesToPage(shapes: TLShapeId[] | TLShape[], pageId: TLPageId): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 
 		if (ids.length === 0) return this
 		if (this.getIsReadonly()) return this
@@ -7170,10 +7142,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	toggleLock(shapes: TLShapeId[] | TLShape[]): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 
 		if (this.getIsReadonly() || ids.length === 0) return this
 
@@ -7225,10 +7194,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	sendToBack(shapes: TLShapeId[] | TLShape[]): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 		const changes = getReorderingShapesChanges(this, 'toBack', ids as TLShapeId[], {
 			considerAllShapes: true,
 		})
@@ -7259,10 +7225,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	sendBackward(shapes: TLShapeId[] | TLShape[], opts: { considerAllShapes?: boolean } = {}): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 		const changes = getReorderingShapesChanges(this, 'backward', ids as TLShapeId[], opts)
 		if (changes) this.updateShapes(changes)
 		return this
@@ -7291,10 +7254,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	bringForward(shapes: TLShapeId[] | TLShape[], opts: { considerAllShapes?: boolean } = {}): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 		const changes = getReorderingShapesChanges(this, 'forward', ids as TLShapeId[], opts)
 		if (changes) this.updateShapes(changes)
 		return this
@@ -7314,10 +7274,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	bringToFront(shapes: TLShapeId[] | TLShape[]): this {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 		const changes = getReorderingShapesChanges(this, 'toFront', ids as TLShapeId[])
 		if (changes) this.updateShapes(changes)
 		return this
@@ -7334,10 +7291,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		type: TLShapeUtilCanBeLaidOutOpts['type'],
 		opts?: { filterAxisAligned?: boolean }
 	): { clusters: { shapes: TLShape[]; pageBounds: Box }[]; allBounds: Box[] } {
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 
 		// always fresh shapes
 		let freshShapes = compact(ids.map((id) => this.getShape(id)))
@@ -7442,10 +7396,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	flipShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
 		if (this.getIsReadonly()) return this
 
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 
 		// Collect a greedy list of shapes to flip
 		const shapesToFlipFirstPass = compact(ids.map((id) => this.getShape(id)))
@@ -7548,22 +7499,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const len = shapeClustersToStack.length
 		if ((_gap === 0 && len < 3) || len < 2) return this
 
-		let val: 'x' | 'y'
-		let min: 'minX' | 'minY'
-		let max: 'maxX' | 'maxY'
-		let dim: 'width' | 'height'
-
-		if (operation === 'horizontal') {
-			val = 'x'
-			min = 'minX'
-			max = 'maxX'
-			dim = 'width'
-		} else {
-			val = 'y'
-			min = 'minY'
-			max = 'maxY'
-			dim = 'height'
-		}
+		const { val, min, max, dim } = AXIS_MAPPINGS[operation]
 
 		let shapeGap: number = 0
 
@@ -7865,22 +7801,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (shapeClustersToDistribute.length < 3) return this
 
-		let val: 'x' | 'y'
-		let min: 'minX' | 'minY'
-		let max: 'maxX' | 'maxY'
-		let dim: 'width' | 'height'
-
-		if (operation === 'horizontal') {
-			val = 'x'
-			min = 'minX'
-			max = 'maxX'
-			dim = 'width'
-		} else {
-			val = 'y'
-			min = 'minY'
-			max = 'maxY'
-			dim = 'height'
-		}
+		const { val, min, max, dim } = AXIS_MAPPINGS[operation]
 		const changes: TLShapePartial[] = []
 
 		const first = shapeClustersToDistribute.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])[0]
@@ -7889,10 +7810,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If the first shape group is also the last shape group, distribute without it
 		if (first === last) {
 			const excludedShapeIds = new Set(first.shapes.map((s) => s.id))
-			const ids =
-				typeof shapes[0] === 'string'
-					? (shapes as TLShapeId[])
-					: (shapes as TLShape[]).map((s) => s.id)
+			const ids = toShapeIds(shapes)
 			return this.distributeShapes(
 				ids.filter((id) => !excludedShapeIds.has(id)),
 				operation
@@ -7973,19 +7891,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (shapeClustersToStretch.length < 2) return this
 
 		const commonBounds = Box.Common(allBounds)
-		let val: 'x' | 'y'
-		let min: 'minX' | 'minY'
-		let dim: 'width' | 'height'
-
-		if (operation === 'horizontal') {
-			val = 'x'
-			min = 'minX'
-			dim = 'width'
-		} else {
-			val = 'y'
-			min = 'minY'
-			dim = 'height'
-		}
+		const { val, min, dim } = AXIS_MAPPINGS[operation]
 
 		this.run(() => {
 			shapeClustersToStretch.forEach(({ shapes, pageBounds }) => {
@@ -8821,10 +8727,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		if (this.getIsReadonly()) return this
 
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes.map((s) => (s as TLShape).id) as TLShapeId[])
+		const ids = toShapeIds(shapes)
 
 		if (ids.length <= 1) return this
 
@@ -8903,10 +8806,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getIsReadonly()) return this
 
 		const { select = true } = opts
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 
 		const shapesToUngroup = compact(
 			(this._shouldIgnoreShapeLock ? ids : this._getUnlockedShapeIds(ids)).map((id) =>
@@ -9645,10 +9545,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getContentFromCurrentPage(shapes: TLShapeId[] | TLShape[]): TLContent | undefined {
 		// todo: make this work with any page, not just the current page
-		const ids =
-			typeof shapes[0] === 'string'
-				? (shapes as TLShapeId[])
-				: (shapes as TLShape[]).map((s) => s.id)
+		const ids = toShapeIds(shapes)
 
 		if (!ids) return
 		if (ids.length === 0) return
@@ -10160,12 +10057,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLSvgExportOptions = {}) {
-		const ids =
-			shapes.length === 0
-				? this.getCurrentPageShapeIdsSorted()
-				: typeof shapes[0] === 'string'
-					? (shapes as TLShapeId[])
-					: (shapes as TLShape[]).map((s) => s.id)
+		const ids = shapes.length === 0 ? this.getCurrentPageShapeIdsSorted() : toShapeIds(shapes)
 
 		if (ids.length === 0) return undefined
 
@@ -11544,6 +11436,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}, 50)
 		}
 	}
+}
+
+const AXIS_MAPPINGS = {
+	horizontal: { val: 'x', min: 'minX', max: 'maxX', dim: 'width' },
+	vertical: { val: 'y', min: 'minY', max: 'maxY', dim: 'height' },
+} as const
+
+function toShapeIds(shapes: TLShapeId[] | TLShape[]): TLShapeId[] {
+	return typeof shapes[0] === 'string'
+		? (shapes as TLShapeId[])
+		: (shapes as TLShape[]).map((shape) => shape.id)
 }
 
 function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {

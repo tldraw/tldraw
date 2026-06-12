@@ -153,6 +153,132 @@ export class FpsScheduler {
 	}
 }
 
+/**
+ * A throttled function returned by {@link throttle}, with methods to cancel pending invocations
+ * or flush them immediately.
+ *
+ * @public
+ */
+export interface ThrottledFunction<T extends (...args: any[]) => any> {
+	(...args: Parameters<T>): ReturnType<T> | undefined
+	/** Cancel any pending trailing invocation. */
+	cancel(): void
+	/** Immediately invoke any pending trailing invocation and return its result. */
+	flush(): ReturnType<T> | undefined
+}
+
+/**
+ * Creates a throttled function that invokes `func` at most once per every `wait` milliseconds.
+ * The throttled function comes with `cancel` and `flush` methods, and invokes `func` on the
+ * leading and/or trailing edge of the `wait` timeout (both by default). Subsequent calls within
+ * the timeout return the result of the last `func` invocation.
+ *
+ * @param func - The function to throttle
+ * @param wait - The number of milliseconds to throttle invocations to
+ * @param options - The options object: `leading` invokes on the leading edge of the timeout
+ *   (default true), `trailing` invokes on the trailing edge of the timeout (default true)
+ * @returns The new throttled function
+ * @example
+ * ```ts
+ * const throttled = throttle(() => updateBounds(), 200, { trailing: true })
+ * window.addEventListener('resize', throttled)
+ * throttled.cancel() // cancel any pending trailing call
+ * ```
+ * @public
+ */
+export function throttle<T extends (...args: any[]) => any>(
+	func: T,
+	wait: number,
+	options?: { leading?: boolean; trailing?: boolean }
+): ThrottledFunction<T> {
+	const leading = options?.leading ?? true
+	const trailing = options?.trailing ?? true
+
+	let lastArgs: Parameters<T> | undefined
+	let lastThis: any
+	let result: ReturnType<T> | undefined
+	// eslint-disable-next-line no-restricted-globals
+	let timerId: ReturnType<typeof setTimeout> | undefined
+	let lastCallTime: number | undefined
+	let lastInvokeTime = 0
+
+	function invokeFunc(time: number) {
+		const args = lastArgs!
+		const thisArg = lastThis
+		lastArgs = lastThis = undefined
+		lastInvokeTime = time
+		result = func.apply(thisArg, args)
+		return result
+	}
+
+	function shouldInvoke(time: number) {
+		if (lastCallTime === undefined) return true
+		const timeSinceLastCall = time - lastCallTime
+		return timeSinceLastCall >= wait || timeSinceLastCall < 0 || time - lastInvokeTime >= wait
+	}
+
+	function timerExpired() {
+		const time = Date.now()
+		if (shouldInvoke(time)) {
+			trailingEdge(time)
+			return
+		}
+		// restart the timer for the remaining wait
+		// eslint-disable-next-line no-restricted-globals
+		timerId = setTimeout(
+			timerExpired,
+			Math.min(wait - (time - lastCallTime!), wait - (time - lastInvokeTime))
+		)
+	}
+
+	function trailingEdge(time: number) {
+		timerId = undefined
+		// only invoke if we have lastArgs, which means func has been called since the last invocation
+		if (trailing && lastArgs) return invokeFunc(time)
+		lastArgs = lastThis = undefined
+		return result
+	}
+
+	function throttled(this: any, ...args: Parameters<T>) {
+		const time = Date.now()
+		const isInvoking = shouldInvoke(time)
+
+		lastArgs = args
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		lastThis = this
+		lastCallTime = time
+
+		if (isInvoking) {
+			if (timerId === undefined) {
+				// leading edge
+				lastInvokeTime = lastCallTime
+				// eslint-disable-next-line no-restricted-globals
+				timerId = setTimeout(timerExpired, wait)
+				return leading ? invokeFunc(lastCallTime) : result
+			}
+			// handle invocations in a tight loop
+			clearTimeout(timerId)
+			// eslint-disable-next-line no-restricted-globals
+			timerId = setTimeout(timerExpired, wait)
+			return invokeFunc(lastCallTime)
+		}
+		if (timerId === undefined) {
+			// eslint-disable-next-line no-restricted-globals
+			timerId = setTimeout(timerExpired, wait)
+		}
+		return result
+	}
+	throttled.cancel = () => {
+		if (timerId !== undefined) clearTimeout(timerId)
+		lastInvokeTime = 0
+		lastArgs = lastCallTime = lastThis = timerId = undefined
+	}
+	throttled.flush = () => {
+		return timerId === undefined ? result : trailingEdge(Date.now())
+	}
+	return throttled
+}
+
 // Default instance for UI operations
 const defaultScheduler = new FpsScheduler(120)
 

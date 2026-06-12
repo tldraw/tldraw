@@ -229,51 +229,38 @@ function styleFromPseudoElement(element: Element, pseudo: string) {
 	return styleFromComputedStyle(style, { defaultStyles: NO_STYLES, parentStyles: NO_STYLES })
 }
 
-function styleFromComputedStyleMap(
-	style: StylePropertyMapReadOnly,
-	{ defaultStyles, parentStyles }: ReadStyleOpts
-) {
-	const styles: Record<string, string> = {}
-	const currentColor = style.get('color')?.toString() || ''
-	const ruleOptions = {
-		currentColor,
-		parentStyles,
-		defaultStyles,
-		getStyle: (property: string) => style.get(property)?.toString() ?? '',
-	}
-	for (const property of style.keys()) {
-		if (!shouldIncludeCssProperty(property)) continue
-
-		const value = style.get(property)!.toString()
-
-		if (defaultStyles[property] === value) continue
-
-		const rule = getOwnProperty(cssRules, property)
-		if (rule && rule(value, property, ruleOptions)) continue
-
-		styles[property] = value
-	}
-
-	return styles
+function styleFromComputedStyleMap(style: StylePropertyMapReadOnly, opts: ReadStyleOpts) {
+	return styleFromProperties(
+		style.keys(),
+		(property) => style.get(property)?.toString() ?? '',
+		opts
+	)
 }
 
-function styleFromComputedStyle(
-	style: CSSStyleDeclaration,
+function styleFromComputedStyle(style: CSSStyleDeclaration, opts: ReadStyleOpts) {
+	return styleFromProperties(
+		(function* () {
+			// eslint-disable-next-line @typescript-eslint/no-for-in-array
+			for (const property in style) yield property
+		})(),
+		(property) => style.getPropertyValue(property),
+		opts
+	)
+}
+
+function styleFromProperties(
+	properties: Iterable<string>,
+	getStyle: (property: string) => string,
 	{ defaultStyles, parentStyles }: ReadStyleOpts
 ) {
 	const styles: Record<string, string> = {}
-	const currentColor = style.color
-	const ruleOptions = {
-		currentColor,
-		parentStyles,
-		defaultStyles,
-		getStyle: (property: string) => style.getPropertyValue(property),
-	}
+	const currentColor = getStyle('color')
+	const ruleOptions = { currentColor, parentStyles, defaultStyles, getStyle }
 
-	for (const property in style) {
+	for (const property of properties) {
 		if (!shouldIncludeCssProperty(property)) continue
 
-		const value = style.getPropertyValue(property)
+		const value = getStyle(property)
 
 		if (defaultStyles[property] === value) continue
 

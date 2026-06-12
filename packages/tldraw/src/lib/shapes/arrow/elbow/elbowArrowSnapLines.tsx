@@ -120,10 +120,3 @@ export function perpDistanceToLineAngle(pointOnLine: VecLike, lineAngle: number)
 	// Project the point onto the perpendicular vector
 	return Vec.Dpr(pointOnLine, perpDir)
 }
-
-/**
- * Return the signed distance from the origin to the line segment defined by `A` and `B`.
- */
-export function perpDistanceToLine(A: VecLike, B: VecLike): number {
-	return perpDistanceToLineAngle(A, Vec.Angle(A, B))
-}

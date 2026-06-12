@@ -1,4 +1,4 @@
-import { assert, clamp } from '@tldraw/editor'
+import { assert } from '@tldraw/editor'
 
 export interface Range {
 	min: number
@@ -14,10 +14,6 @@ export function expandRange(range: Range, amount: number) {
 		return null
 	}
 	return newRange
-}
-
-export function clampToRange(value: number, range: Range) {
-	return clamp(value, range.min, range.max)
 }
 
 /**
@@ -64,18 +60,10 @@ export function createRange(a: number, b: number) {
 	return { min: Math.min(a, b), max: Math.max(a, b) }
 }
 
-export function doRangesOverlap(a: Range, b: Range) {
-	return a.min <= b.max && a.max >= b.min
-}
-
 export function isWithinRange(value: number, range: Range) {
 	return value >= range.min && value <= range.max
 }
 
 export function rangeSize(range: Range) {
 	return range.max - range.min
-}
-
-export function rangeCenter(range: Range) {
-	return (range.min + range.max) / 2
 }

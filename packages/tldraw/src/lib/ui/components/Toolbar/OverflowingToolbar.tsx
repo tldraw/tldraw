@@ -13,7 +13,6 @@ import { createContext, useEffect, useLayoutEffect, useRef, useState } from 'rea
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { areShortcutsDisabled } from '../../hooks/useKeyboardShortcuts'
-import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiColumn, TldrawUiRow } from '../primitives/layout'
@@ -347,16 +346,6 @@ export function OverflowingToolbar({
 			</TldrawUiToolbar>
 		</>
 	)
-}
-
-export function isActiveTLUiToolItem(
-	item: TLUiToolItem,
-	activeToolId: string | undefined,
-	geoState: string | null | undefined
-) {
-	return item.meta?.geo
-		? activeToolId === 'geo' && geoState === item.meta?.geo
-		: activeToolId === item.id
 }
 
 function findParentWithClassName(startingElement: HTMLElement, className: string): HTMLElement {

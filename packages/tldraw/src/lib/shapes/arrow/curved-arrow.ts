@@ -122,7 +122,7 @@ export function getCurvedArrowInfo(
 
 		const { isClosed } = startShapeInfo
 		let point: VecLike | undefined
-		let intersections = Array.from(
+		const intersections = Array.from(
 			startShapeInfo.geometry.intersectCircle(centerInStartShapeLocalSpace, handleArc.radius, {
 				includeLabels: false,
 				includeInternal: false,
@@ -132,30 +132,16 @@ export function getCurvedArrowInfo(
 		if (intersections.length) {
 			const angleToStart = centerInStartShapeLocalSpace.angle(startInStartShapeLocalSpace)
 			const angleToEnd = centerInStartShapeLocalSpace.angle(endInStartShapeLocalSpace)
-			const dAB = distFn(angleToStart, angleToEnd)
 
-			// Filter out any intersections that aren't in the arc
-			intersections = intersections.filter(
-				(pt) => distFn(angleToStart, centerInStartShapeLocalSpace.angle(pt)) <= dAB
-			)
-
-			const targetDist = dAB * 0.25
-
-			intersections.sort(
+			point = pickIntersectionInArc(
+				intersections,
+				centerInStartShapeLocalSpace,
+				angleToStart,
+				distFn(angleToStart, angleToEnd),
+				0.25,
+				distFn,
 				isClosed
-					? (p0, p1) =>
-							Math.abs(distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) - targetDist) <
-							Math.abs(distFn(angleToStart, centerInStartShapeLocalSpace.angle(p1)) - targetDist)
-								? -1
-								: 1
-					: (p0, p1) =>
-							distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) <
-							distFn(angleToStart, centerInStartShapeLocalSpace.angle(p1))
-								? -1
-								: 1
 			)
-
-			point = intersections[0]
 		}
 		if (!point) {
 			if (isClosed) {
@@ -204,7 +190,7 @@ export function getCurvedArrowInfo(
 
 		const isClosed = endShapeInfo.isClosed
 		let point: VecLike | undefined
-		let intersections = Array.from(
+		const intersections = Array.from(
 			endShapeInfo.geometry.intersectCircle(centerInEndShapeLocalSpace, handleArc.radius, {
 				includeLabels: false,
 				includeInternal: false,
@@ -214,30 +200,16 @@ export function getCurvedArrowInfo(
 		if (intersections.length) {
 			const angleToStart = centerInEndShapeLocalSpace.angle(startInEndShapeLocalSpace)
 			const angleToEnd = centerInEndShapeLocalSpace.angle(endInEndShapeLocalSpace)
-			const dAB = distFn(angleToStart, angleToEnd)
-			const targetDist = dAB * 0.75
 
-			// or simplified...
-
-			intersections = intersections.filter(
-				(pt) => distFn(angleToStart, centerInEndShapeLocalSpace.angle(pt)) <= dAB
-			)
-
-			intersections.sort(
+			point = pickIntersectionInArc(
+				intersections,
+				centerInEndShapeLocalSpace,
+				angleToStart,
+				distFn(angleToStart, angleToEnd),
+				0.75,
+				distFn,
 				isClosed
-					? (p0, p1) =>
-							Math.abs(distFn(angleToStart, centerInEndShapeLocalSpace.angle(p0)) - targetDist) <
-							Math.abs(distFn(angleToStart, centerInEndShapeLocalSpace.angle(p1)) - targetDist)
-								? -1
-								: 1
-					: (p0, p1) =>
-							distFn(angleToStart, centerInEndShapeLocalSpace.angle(p0)) <
-							distFn(angleToStart, centerInEndShapeLocalSpace.angle(p1))
-								? -1
-								: 1
 			)
-
-			point = intersections[0]
 		}
 		if (!point) {
 			if (isClosed) {
@@ -481,4 +453,34 @@ function placeCenterHandle(
 		tempB.setTo(tempA)
 		tempA.setTo(t)
 	}
+}
+
+// Picks the intersection point whose angular distance along the arc (from `angleToStart`) is
+// within the arc, preferring the point nearest `dAB * targetDistFraction` for closed shapes and
+// the nearest point overall for open shapes.
+function pickIntersectionInArc(
+	intersections: VecLike[],
+	center: Vec,
+	angleToStart: number,
+	dAB: number,
+	targetDistFraction: number,
+	distFn: (a: number, b: number) => number,
+	isClosed: boolean
+): VecLike | undefined {
+	const targetDist = dAB * targetDistFraction
+
+	const filtered = intersections.filter((pt) => distFn(angleToStart, center.angle(pt)) <= dAB)
+
+	filtered.sort(
+		isClosed
+			? (p0, p1) =>
+					Math.abs(distFn(angleToStart, center.angle(p0)) - targetDist) <
+					Math.abs(distFn(angleToStart, center.angle(p1)) - targetDist)
+						? -1
+						: 1
+			: (p0, p1) =>
+					distFn(angleToStart, center.angle(p0)) < distFn(angleToStart, center.angle(p1)) ? -1 : 1
+	)
+
+	return filtered[0]
 }

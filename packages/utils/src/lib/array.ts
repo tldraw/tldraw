@@ -286,3 +286,22 @@ export function mergeArraysAndReplaceDefaults<
 
 	return result
 }
+
+/**
+ * Returns a new array with duplicate values removed, keeping the first occurrence of each value.
+ * Values are compared with `SameValueZero` semantics (like `Set`), so `NaN` is equal to `NaN`.
+ *
+ * @param array - The array or array-like value to inspect
+ * @returns A new array of unique values, or an empty array if the input is nullish
+ * @example
+ * ```ts
+ * uniq([2, 1, 2]) // [2, 1]
+ * ```
+ * @public
+ */
+export function uniq<T>(
+	array: { readonly length: number; readonly [n: number]: T } | null | undefined
+): T[] {
+	if (!array) return []
+	return Array.from(new Set(Array.from(array)))
+}

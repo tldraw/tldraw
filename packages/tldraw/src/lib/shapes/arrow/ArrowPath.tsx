@@ -1,7 +1,6 @@
 import { exhaustiveSwitchError, TLArrowShape } from '@tldraw/editor'
 import { PathBuilder, PathBuilderOpts } from '../shared/PathBuilder'
 import { TLArrowInfo } from './arrow-types'
-import { getRouteHandlePath } from './elbow/getElbowArrowInfo'
 
 export function getArrowBodyPathBuilder(info: TLArrowInfo): PathBuilder {
 	switch (info.type) {
@@ -43,31 +42,4 @@ export function getArrowBodyPathBuilder(info: TLArrowInfo): PathBuilder {
 
 export function getArrowBodyPath(shape: TLArrowShape, info: TLArrowInfo, opts: PathBuilderOpts) {
 	return getArrowBodyPathBuilder(info).toSvg(opts)
-}
-
-export function getArrowHandlePath(info: TLArrowInfo, opts: PathBuilderOpts) {
-	switch (info.type) {
-		case 'straight':
-			return new PathBuilder()
-				.moveTo(info.start.handle.x, info.start.handle.y)
-				.lineTo(info.end.handle.x, info.end.handle.y)
-				.toSvg(opts)
-		case 'arc':
-			return new PathBuilder()
-				.moveTo(info.start.handle.x, info.start.handle.y)
-				.circularArcTo(
-					info.handleArc.radius,
-					!!info.handleArc.largeArcFlag,
-					!!info.handleArc.sweepFlag,
-					info.end.handle.x,
-					info.end.handle.y
-				)
-				.toSvg(opts)
-		case 'elbow': {
-			const handleRoute = getRouteHandlePath(info.elbow, info.route)
-			return PathBuilder.lineThroughPoints(handleRoute.points).toSvg(opts)
-		}
-		default:
-			exhaustiveSwitchError(info, 'type')
-	}
 }

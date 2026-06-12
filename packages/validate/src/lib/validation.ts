@@ -166,14 +166,18 @@ export class ValidationError extends Error {
 	}
 }
 
+function rethrowWithPath(err: unknown, path: string | number): never {
+	if (err instanceof ValidationError) {
+		throw new ValidationError(err.rawMessage, [path, ...err.path])
+	}
+	throw new ValidationError((err as Error).toString(), [path])
+}
+
 function prefixError<T>(path: string | number, fn: () => T): T {
 	try {
 		return fn()
 	} catch (err) {
-		if (err instanceof ValidationError) {
-			throw new ValidationError(err.rawMessage, [path, ...err.path])
-		}
-		throw new ValidationError((err as Error).toString(), [path])
+		rethrowWithPath(err, path)
 	}
 }
 
@@ -530,10 +534,7 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 						try {
 							itemValidator.validate(arr[i])
 						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [i, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [i])
+							rethrowWithPath(err, i)
 						}
 					}
 				}
@@ -557,10 +558,7 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 							try {
 								itemValidator.validate(item)
 							} catch (err) {
-								if (err instanceof ValidationError) {
-									throw new ValidationError(err.rawMessage, [i, ...err.path])
-								}
-								throw new ValidationError((err as Error).toString(), [i])
+								rethrowWithPath(err, i)
 							}
 						}
 						continue
@@ -586,10 +584,7 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 								isDifferent = true
 							}
 						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [i, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [i])
+							rethrowWithPath(err, i)
 						}
 					}
 				}
@@ -691,10 +686,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 						try {
 							;(validator as Validatable<unknown>).validate(getOwnProperty(object, key))
 						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [key, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [key])
+							rethrowWithPath(err, key)
 						}
 					}
 				}
@@ -751,10 +743,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 								isDifferent = true
 							}
 						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [key, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [key])
+							rethrowWithPath(err, key)
 						}
 					}
 				}
@@ -1018,10 +1007,7 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 							keyValidator.validate(key)
 							valueValidator.validate((object as Record<string, unknown>)[key])
 						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [key, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [key])
+							rethrowWithPath(err, key)
 						}
 					}
 				}
@@ -1056,10 +1042,7 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 								keyValidator.validate(key)
 								valueValidator.validate(next)
 							} catch (err) {
-								if (err instanceof ValidationError) {
-									throw new ValidationError(err.rawMessage, [key, ...err.path])
-								}
-								throw new ValidationError((err as Error).toString(), [key])
+								rethrowWithPath(err, key)
 							}
 						}
 						continue
@@ -1092,10 +1075,7 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 								isDifferent = true
 							}
 						} catch (err) {
-							if (err instanceof ValidationError) {
-								throw new ValidationError(err.rawMessage, [key, ...err.path])
-							}
-							throw new ValidationError((err as Error).toString(), [key])
+							rethrowWithPath(err, key)
 						}
 					}
 				}

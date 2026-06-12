@@ -1,9 +1,5 @@
 import { registerTldrawLibraryVersion } from './lib/version'
 
-export { default as isEqual } from 'lodash.isequal'
-export { default as isEqualWith } from 'lodash.isequalwith'
-export { default as throttle } from 'lodash.throttle'
-export { default as uniq } from 'lodash.uniq'
 export {
 	areArraysShallowEqual,
 	compact,
@@ -14,6 +10,7 @@ export {
 	minBy,
 	partition,
 	rotateArray,
+	uniq,
 } from './lib/array'
 export { bind } from './lib/bind'
 export { WeakCache } from './lib/cache'
@@ -28,6 +25,7 @@ export {
 	type OkResult,
 } from './lib/control'
 export { debounce } from './lib/debounce'
+export { isEqual, isEqualWith, type EqualityCustomizer } from './lib/equality'
 export { annotateError, getErrorAnnotations, type ErrorAnnotations } from './lib/error'
 export { ExecutionQueue } from './lib/ExecutionQueue'
 export { FileHelpers } from './lib/file'
@@ -92,7 +90,13 @@ export {
 	setInSessionStorage,
 } from './lib/storage'
 export { stringEnum } from './lib/stringEnum'
-export { FpsScheduler, fpsThrottle, throttleToNextFrame } from './lib/throttle'
+export {
+	FpsScheduler,
+	fpsThrottle,
+	throttle,
+	throttleToNextFrame,
+	type ThrottledFunction,
+} from './lib/throttle'
 export { Timers } from './lib/timers'
 export {
 	type Awaitable,

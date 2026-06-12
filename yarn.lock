@@ -11826,7 +11826,6 @@ __metadata:
     jose: "npm:^5.9.6"
     kysely: "npm:^0.28.12"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.throttle: "npm:^4.1.1"
     pg: "npm:^8.13.1"
     pg-logical-replication: "npm:^2.0.7"
     react: "npm:^19.2.1"
@@ -12187,16 +12186,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/utils@workspace:packages/utils"
   dependencies:
-    "@types/lodash.isequal": "npm:^4.5.8"
-    "@types/lodash.isequalwith": "npm:^4.4.9"
-    "@types/lodash.throttle": "npm:^4.1.9"
-    "@types/lodash.uniq": "npm:^4.5.9"
     jittered-fractional-indexing: "npm:^1.0.0"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.isequal: "npm:^4.5.0"
-    lodash.isequalwith: "npm:^4.4.0"
-    lodash.throttle: "npm:^4.1.1"
-    lodash.uniq: "npm:^4.5.0"
     vitest: "npm:^4.1.7"
   languageName: unknown
   linkType: soft
@@ -12960,48 +12951,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash.isequal@npm:^4.5.8":
-  version: 4.5.8
-  resolution: "@types/lodash.isequal@npm:4.5.8"
-  dependencies:
-    "@types/lodash": "npm:*"
-  checksum: 10/f3180c2d2925514fff1908a1303c11468c9f39b47fd7b053416aad3f1447f8e4a9894dd0460187ac9ac19387e25aec8dd8214d13a50a0967e0dc9cca8e4c5353
-  languageName: node
-  linkType: hard
-
-"@types/lodash.isequalwith@npm:^4.4.9":
-  version: 4.4.9
-  resolution: "@types/lodash.isequalwith@npm:4.4.9"
-  dependencies:
-    "@types/lodash": "npm:*"
-  checksum: 10/233580e3bb72a482c0deb5f40cc0e4585d2fec5b3eedbbb6b2b7b19f35ceb29efb6cb374209780280f9961104dacf469d3a41011e350b0cfd3dc70ff431685d7
-  languageName: node
-  linkType: hard
-
 "@types/lodash.pick@npm:^4.4.9":
   version: 4.4.9
   resolution: "@types/lodash.pick@npm:4.4.9"
   dependencies:
     "@types/lodash": "npm:*"
   checksum: 10/007c298133b5bc2157f13d6641b139d2782b4af7b6a942cc4b1a427c6ebc6020e46b32ee2e782607389b0c63a5211d51152606424fdfe25f3eeac8afea0bdf02
-  languageName: node
-  linkType: hard
-
-"@types/lodash.throttle@npm:^4.1.9":
-  version: 4.1.9
-  resolution: "@types/lodash.throttle@npm:4.1.9"
-  dependencies:
-    "@types/lodash": "npm:*"
-  checksum: 10/6d330072387f062d408747f0dbe62869820ee3f3fbec43965f703ce9c9083e4ff9082faa4fe92aea000d6367b7645955e9c8db6a4e04e6bd769697fdd19c12b1
-  languageName: node
-  linkType: hard
-
-"@types/lodash.uniq@npm:^4.5.9":
-  version: 4.5.9
-  resolution: "@types/lodash.uniq@npm:4.5.9"
-  dependencies:
-    "@types/lodash": "npm:*"
-  checksum: 10/60f125db84fc73aa07c1b435f9df773ebf16124c9506eec3e7f61b2cfc67da037a55d7f38a6eb7ed05391b8d93a44b17b01ef7c95e5ee3f17e1dc6bf7f3b731e
   languageName: node
   linkType: hard
 
@@ -22720,20 +22675,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash.isequal@npm:^4.5.0":
-  version: 4.5.0
-  resolution: "lodash.isequal@npm:4.5.0"
-  checksum: 10/82fc58a83a1555f8df34ca9a2cd300995ff94018ac12cc47c349655f0ae1d4d92ba346db4c19bbfc90510764e0c00ddcc985a358bdcd4b3b965abf8f2a48a214
-  languageName: node
-  linkType: hard
-
-"lodash.isequalwith@npm:^4.4.0":
-  version: 4.4.0
-  resolution: "lodash.isequalwith@npm:4.4.0"
-  checksum: 10/5c79d2f64b7eec9e9d337c347a58c8dda2f83f6da9ec8ff83fb1beab3ae87be3a02ac295e9283b6395673bee363039fca7324a6244bbdb7e6a47e0cd872cc36b
-  languageName: node
-  linkType: hard
-
 "lodash.isinteger@npm:^4.0.4":
   version: 4.0.4
   resolution: "lodash.isinteger@npm:4.0.4"
@@ -22794,13 +22735,6 @@ __metadata:
   version: 4.4.2
   resolution: "lodash.truncate@npm:4.4.2"
   checksum: 10/7a495616121449e5d2288c606b1025d42ab9979e8c93ba885e5c5802ffd4f1ebad4428c793ccc12f73e73237e85a9f5b67dd6415757546fbd5a4653ba83e25ac
-  languageName: node
-  linkType: hard
-
-"lodash.uniq@npm:^4.5.0":
-  version: 4.5.0
-  resolution: "lodash.uniq@npm:4.5.0"
-  checksum: 10/86246ca64ac0755c612e5df6d93cfe92f9ecac2e5ff054b965efbbb1d9a647b6310969e78545006f70f52760554b03233ad0103324121ae31474c20d5f7a2812
   languageName: node
   linkType: hard
 

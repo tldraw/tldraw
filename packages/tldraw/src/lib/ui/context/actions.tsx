@@ -128,6 +128,70 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
 		}
 
+		// Most shape-transforming actions follow the same shape: guard, track, mark a history
+		// stopping point, then transform the selection and kick out any occluded shapes.
+		function selectionShapesAction(
+			item: Omit<TLUiActionItem<TLUiTranslationKey, TLUiIconType>, 'onSelect'>,
+			mark: string,
+			track: (source: TLUiEventSource) => void,
+			run: (selectedShapeIds: TLShapeId[]) => void
+		): TLUiActionItem<TLUiTranslationKey, TLUiIconType> {
+			return {
+				...item,
+				onSelect(source) {
+					if (!canApplySelectionAction()) return
+					if (mustGoBackToSelectToolFirst()) return
+
+					track(source)
+					editor.markHistoryStoppingPoint(mark)
+					editor.run(() => {
+						const selectedShapeIds = editor.getSelectedShapeIds()
+						run(selectedShapeIds)
+						kickoutOccludedShapes(editor, selectedShapeIds)
+					})
+				},
+			}
+		}
+
+		// The export / copy-as actions fall back to all shapes on the page when
+		// nothing is selected, and bail out when the page is empty.
+		function getShapeIdsToExport() {
+			let ids = editor.getSelectedShapeIds()
+			if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
+			return ids.length === 0 ? null : ids
+		}
+
+		function showPasteErrorToast() {
+			helpers.addToast({
+				title: helpers.msg('action.paste-error-title'),
+				description: helpers.msg('action.paste-error-description'),
+				severity: 'error',
+			})
+		}
+
+		function makeZoomAction(
+			event: 'zoom-in' | 'zoom-out',
+			towardsCursor: boolean,
+			kbd: string
+		): TLUiActionItem<TLUiTranslationKey, TLUiIconType> {
+			return {
+				id: towardsCursor ? `${event}-on-cursor` : event,
+				label: event === 'zoom-in' ? 'action.zoom-in' : 'action.zoom-out',
+				kbd,
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent(event, { source, towardsCursor })
+					const point = towardsCursor ? editor.inputs.getCurrentScreenPoint() : undefined
+					const opts = { animation: { duration: editor.options.animationMediumMs } }
+					if (event === 'zoom-in') {
+						editor.zoomIn(point, opts)
+					} else {
+						editor.zoomOut(point, opts)
+					}
+				},
+			}
+		}
+
 		function scaleShapes(scaleFactor: number) {
 			if (!canApplySelectionAction()) return
 			if (mustGoBackToSelectToolFirst()) return
@@ -224,9 +288,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
-					let ids = editor.getSelectedShapeIds()
-					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
-					if (ids.length === 0) return
+					const ids = getShapeIdsToExport()
+					if (!ids) return
 					trackEvent('export-as', { format: 'svg', source })
 					helpers.exportAs(ids, { format: 'svg', name: getExportName(editor, defaultDocumentName) })
 				},
@@ -240,9 +303,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
-					let ids = editor.getSelectedShapeIds()
-					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
-					if (ids.length === 0) return
+					const ids = getShapeIdsToExport()
+					if (!ids) return
 					trackEvent('export-as', { format: 'png', source })
 					helpers.exportAs(ids, { format: 'png', name: getExportName(editor, defaultDocumentName) })
 				},
@@ -256,9 +318,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
-					let ids = editor.getSelectedShapeIds()
-					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
-					if (ids.length === 0) return
+					if (!getShapeIdsToExport()) return
 					trackEvent('export-all-as', { format: 'svg', source })
 					helpers.exportAs(Array.from(editor.getCurrentPageShapeIds()), {
 						format: 'svg',
@@ -290,9 +350,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
-					let ids = editor.getSelectedShapeIds()
-					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
-					if (ids.length === 0) return
+					const ids = getShapeIdsToExport()
+					if (!ids) return
 					trackEvent('copy-as', { format: 'svg', source })
 					helpers.copyAs(ids, 'svg')
 				},
@@ -307,9 +366,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				kbd: 'cmd+shift+c,ctrl+shift+c',
 				onSelect(source) {
-					let ids = editor.getSelectedShapeIds()
-					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
-					if (ids.length === 0) return
+					const ids = getShapeIdsToExport()
+					if (!ids) return
 					trackEvent('copy-as', { format: 'png', source })
 					helpers.copyAs(ids, 'png')
 				},
@@ -323,9 +381,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
-					let ids = editor.getSelectedShapeIds()
-					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
-					if (ids.length === 0) return
+					const ids = getShapeIdsToExport()
+					if (!ids) return
 					trackEvent('copy-as', { format: 'json', source })
 					helpers.copyAs(ids, 'json')
 				},
@@ -619,296 +676,170 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					}
 				},
 			},
-			{
-				id: 'align-left',
-				label: 'action.align-left',
-				kbd: 'alt+A',
-				icon: 'align-left',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('align-shapes', { operation: 'left', source })
-					editor.markHistoryStoppingPoint('align left')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.alignShapes(selectedShapeIds, 'left')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
+			selectionShapesAction(
+				{ id: 'align-left', label: 'action.align-left', kbd: 'alt+A', icon: 'align-left' },
+				'align left',
+				(source) => trackEvent('align-shapes', { operation: 'left', source }),
+				(ids) => editor.alignShapes(ids, 'left')
+			),
+			selectionShapesAction(
+				{
+					id: 'align-center-horizontal',
+					label: {
+						default: 'action.align-center-horizontal',
+						['context-menu']: 'action.align-center-horizontal.short',
+					},
+					kbd: 'alt+H',
+					icon: 'align-center-horizontal',
 				},
-			},
-			{
-				id: 'align-center-horizontal',
-				label: {
-					default: 'action.align-center-horizontal',
-					['context-menu']: 'action.align-center-horizontal.short',
+				'align center horizontal',
+				(source) => trackEvent('align-shapes', { operation: 'center-horizontal', source }),
+				(ids) => editor.alignShapes(ids, 'center-horizontal')
+			),
+			selectionShapesAction(
+				{ id: 'align-right', label: 'action.align-right', kbd: 'alt+D', icon: 'align-right' },
+				'align right',
+				(source) => trackEvent('align-shapes', { operation: 'right', source }),
+				(ids) => editor.alignShapes(ids, 'right')
+			),
+			selectionShapesAction(
+				{
+					id: 'align-center-vertical',
+					label: {
+						default: 'action.align-center-vertical',
+						['context-menu']: 'action.align-center-vertical.short',
+					},
+					kbd: 'alt+V',
+					icon: 'align-center-vertical',
 				},
-				kbd: 'alt+H',
-				icon: 'align-center-horizontal',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('align-shapes', { operation: 'center-horizontal', source })
-					editor.markHistoryStoppingPoint('align center horizontal')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.alignShapes(selectedShapeIds, 'center-horizontal')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
+				'align center vertical',
+				(source) => trackEvent('align-shapes', { operation: 'center-vertical', source }),
+				(ids) => editor.alignShapes(ids, 'center-vertical')
+			),
+			selectionShapesAction(
+				{ id: 'align-top', label: 'action.align-top', icon: 'align-top', kbd: 'alt+W' },
+				'align top',
+				(source) => trackEvent('align-shapes', { operation: 'top', source }),
+				(ids) => editor.alignShapes(ids, 'top')
+			),
+			selectionShapesAction(
+				{ id: 'align-bottom', label: 'action.align-bottom', icon: 'align-bottom', kbd: 'alt+S' },
+				'align bottom',
+				(source) => trackEvent('align-shapes', { operation: 'bottom', source }),
+				(ids) => editor.alignShapes(ids, 'bottom')
+			),
+			selectionShapesAction(
+				{
+					id: 'distribute-horizontal',
+					label: {
+						default: 'action.distribute-horizontal',
+						['context-menu']: 'action.distribute-horizontal.short',
+					},
+					icon: 'distribute-horizontal',
+					kbd: 'alt+shift+h',
 				},
-			},
-			{
-				id: 'align-right',
-				label: 'action.align-right',
-				kbd: 'alt+D',
-				icon: 'align-right',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('align-shapes', { operation: 'right', source })
-					editor.markHistoryStoppingPoint('align right')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.alignShapes(selectedShapeIds, 'right')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
+				'distribute horizontal',
+				(source) => trackEvent('distribute-shapes', { operation: 'horizontal', source }),
+				(ids) => editor.distributeShapes(ids, 'horizontal')
+			),
+			selectionShapesAction(
+				{
+					id: 'distribute-vertical',
+					label: {
+						default: 'action.distribute-vertical',
+						['context-menu']: 'action.distribute-vertical.short',
+					},
+					icon: 'distribute-vertical',
+					kbd: 'alt+shift+V',
 				},
-			},
-			{
-				id: 'align-center-vertical',
-				label: {
-					default: 'action.align-center-vertical',
-					['context-menu']: 'action.align-center-vertical.short',
+				'distribute vertical',
+				(source) => trackEvent('distribute-shapes', { operation: 'vertical', source }),
+				(ids) => editor.distributeShapes(ids, 'vertical')
+			),
+			selectionShapesAction(
+				{
+					id: 'stretch-horizontal',
+					label: {
+						default: 'action.stretch-horizontal',
+						['context-menu']: 'action.stretch-horizontal.short',
+					},
+					icon: 'stretch-horizontal',
 				},
-				kbd: 'alt+V',
-				icon: 'align-center-vertical',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('align-shapes', { operation: 'center-vertical', source })
-					editor.markHistoryStoppingPoint('align center vertical')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.alignShapes(selectedShapeIds, 'center-vertical')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
+				'stretch horizontal',
+				(source) => trackEvent('stretch-shapes', { operation: 'horizontal', source }),
+				(ids) => editor.stretchShapes(ids, 'horizontal')
+			),
+			selectionShapesAction(
+				{
+					id: 'stretch-vertical',
+					label: {
+						default: 'action.stretch-vertical',
+						['context-menu']: 'action.stretch-vertical.short',
+					},
+					icon: 'stretch-vertical',
 				},
-			},
-			{
-				id: 'align-top',
-				label: 'action.align-top',
-				icon: 'align-top',
-				kbd: 'alt+W',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('align-shapes', { operation: 'top', source })
-					editor.markHistoryStoppingPoint('align top')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.alignShapes(selectedShapeIds, 'top')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
+				'stretch vertical',
+				(source) => trackEvent('stretch-shapes', { operation: 'vertical', source }),
+				(ids) => editor.stretchShapes(ids, 'vertical')
+			),
+			selectionShapesAction(
+				{
+					id: 'flip-horizontal',
+					label: {
+						default: 'action.flip-horizontal',
+						['context-menu']: 'action.flip-horizontal.short',
+					},
+					kbd: 'shift+h',
 				},
-			},
-			{
-				id: 'align-bottom',
-				label: 'action.align-bottom',
-				icon: 'align-bottom',
-				kbd: 'alt+S',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('align-shapes', { operation: 'bottom', source })
-					editor.markHistoryStoppingPoint('align bottom')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.alignShapes(selectedShapeIds, 'bottom')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
+				'flip horizontal',
+				(source) => trackEvent('flip-shapes', { operation: 'horizontal', source }),
+				(ids) => editor.flipShapes(ids, 'horizontal')
+			),
+			selectionShapesAction(
+				{
+					id: 'flip-vertical',
+					label: {
+						default: 'action.flip-vertical',
+						['context-menu']: 'action.flip-vertical.short',
+					},
+					kbd: 'shift+v',
 				},
-			},
-			{
-				id: 'distribute-horizontal',
-				label: {
-					default: 'action.distribute-horizontal',
-					['context-menu']: 'action.distribute-horizontal.short',
+				'flip vertical',
+				(source) => trackEvent('flip-shapes', { operation: 'vertical', source }),
+				(ids) => editor.flipShapes(ids, 'vertical')
+			),
+			selectionShapesAction(
+				{ id: 'pack', label: 'action.pack', icon: 'pack' },
+				'pack',
+				(source) => trackEvent('pack-shapes', { source }),
+				(ids) => editor.packShapes(ids, editor.options.adjacentShapeMargin)
+			),
+			selectionShapesAction(
+				{
+					id: 'stack-vertical',
+					label: {
+						default: 'action.stack-vertical',
+						['context-menu']: 'action.stack-vertical.short',
+					},
+					icon: 'stack-vertical',
 				},
-				icon: 'distribute-horizontal',
-				kbd: 'alt+shift+h',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('distribute-shapes', { operation: 'horizontal', source })
-					editor.markHistoryStoppingPoint('distribute horizontal')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.distributeShapes(selectedShapeIds, 'horizontal')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
+				'stack-vertical',
+				(source) => trackEvent('stack-shapes', { operation: 'vertical', source }),
+				(ids) => editor.stackShapes(ids, 'vertical', editor.options.adjacentShapeMargin)
+			),
+			selectionShapesAction(
+				{
+					id: 'stack-horizontal',
+					label: {
+						default: 'action.stack-horizontal',
+						['context-menu']: 'action.stack-horizontal.short',
+					},
+					icon: 'stack-horizontal',
 				},
-			},
-			{
-				id: 'distribute-vertical',
-				label: {
-					default: 'action.distribute-vertical',
-					['context-menu']: 'action.distribute-vertical.short',
-				},
-				icon: 'distribute-vertical',
-				kbd: 'alt+shift+V',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('distribute-shapes', { operation: 'vertical', source })
-					editor.markHistoryStoppingPoint('distribute vertical')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.distributeShapes(selectedShapeIds, 'vertical')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
-				},
-			},
-			{
-				id: 'stretch-horizontal',
-				label: {
-					default: 'action.stretch-horizontal',
-					['context-menu']: 'action.stretch-horizontal.short',
-				},
-				icon: 'stretch-horizontal',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('stretch-shapes', { operation: 'horizontal', source })
-					editor.markHistoryStoppingPoint('stretch horizontal')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stretchShapes(selectedShapeIds, 'horizontal')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
-				},
-			},
-			{
-				id: 'stretch-vertical',
-				label: {
-					default: 'action.stretch-vertical',
-					['context-menu']: 'action.stretch-vertical.short',
-				},
-				icon: 'stretch-vertical',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('stretch-shapes', { operation: 'vertical', source })
-					editor.markHistoryStoppingPoint('stretch vertical')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stretchShapes(selectedShapeIds, 'vertical')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
-				},
-			},
-			{
-				id: 'flip-horizontal',
-				label: {
-					default: 'action.flip-horizontal',
-					['context-menu']: 'action.flip-horizontal.short',
-				},
-				kbd: 'shift+h',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('flip-shapes', { operation: 'horizontal', source })
-					editor.markHistoryStoppingPoint('flip horizontal')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.flipShapes(selectedShapeIds, 'horizontal')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
-				},
-			},
-			{
-				id: 'flip-vertical',
-				label: { default: 'action.flip-vertical', ['context-menu']: 'action.flip-vertical.short' },
-				kbd: 'shift+v',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('flip-shapes', { operation: 'vertical', source })
-					editor.markHistoryStoppingPoint('flip vertical')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.flipShapes(selectedShapeIds, 'vertical')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
-				},
-			},
-			{
-				id: 'pack',
-				label: 'action.pack',
-				icon: 'pack',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('pack-shapes', { source })
-					editor.markHistoryStoppingPoint('pack')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.packShapes(selectedShapeIds, editor.options.adjacentShapeMargin)
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
-				},
-			},
-			{
-				id: 'stack-vertical',
-				label: {
-					default: 'action.stack-vertical',
-					['context-menu']: 'action.stack-vertical.short',
-				},
-				icon: 'stack-vertical',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('stack-shapes', { operation: 'vertical', source })
-					editor.markHistoryStoppingPoint('stack-vertical')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stackShapes(selectedShapeIds, 'vertical', editor.options.adjacentShapeMargin)
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
-				},
-			},
-			{
-				id: 'stack-horizontal',
-				label: {
-					default: 'action.stack-horizontal',
-					['context-menu']: 'action.stack-horizontal.short',
-				},
-				icon: 'stack-horizontal',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('stack-shapes', { operation: 'horizontal', source })
-					editor.markHistoryStoppingPoint('stack-horizontal')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.stackShapes(selectedShapeIds, 'horizontal', editor.options.adjacentShapeMargin)
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
-				},
-			},
+				'stack-horizontal',
+				(source) => trackEvent('stack-shapes', { operation: 'horizontal', source }),
+				(ids) => editor.stackShapes(ids, 'horizontal', editor.options.adjacentShapeMargin)
+			),
 			{
 				id: 'bring-to-front',
 				label: 'action.bring-to-front',
@@ -1003,13 +934,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								source === 'context-menu' ? editor.inputs.getCurrentPagePoint() : undefined
 							)
 						})
-						.catch(() => {
-							helpers.addToast({
-								title: helpers.msg('action.paste-error-title'),
-								description: helpers.msg('action.paste-error-description'),
-								severity: 'error',
-							})
-						})
+						.catch(showPasteErrorToast)
 				},
 			},
 			{
@@ -1025,13 +950,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						.then((clipboardItems) => {
 							helpers.paste(clipboardItems, source, point)
 						})
-						.catch(() => {
-							helpers.addToast({
-								title: helpers.msg('action.paste-error-title'),
-								description: helpers.msg('action.paste-error-description'),
-								severity: 'error',
-							})
-						})
+						.catch(showPasteErrorToast)
 				},
 			},
 			{
@@ -1052,13 +971,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								defaultHandleExternalTextContent(editor, { text, point })
 							}
 						})
-						.catch(() => {
-							helpers.addToast({
-								title: helpers.msg('action.paste-error-title'),
-								description: helpers.msg('action.paste-error-description'),
-								severity: 'error',
-							})
-						})
+						.catch(showPasteErrorToast)
 				},
 			},
 			{
@@ -1149,54 +1062,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					})
 				},
 			},
-			{
-				id: 'zoom-in',
-				label: 'action.zoom-in',
-				kbd: 'cmd+=,ctrl+=,=',
-				readonlyOk: true,
-				onSelect(source) {
-					trackEvent('zoom-in', { source, towardsCursor: false })
-					editor.zoomIn(undefined, {
-						animation: { duration: editor.options.animationMediumMs },
-					})
-				},
-			},
-			{
-				id: 'zoom-in-on-cursor',
-				label: 'action.zoom-in',
-				kbd: 'shift+cmd+=,shift+ctrl+=,shift+=',
-				readonlyOk: true,
-				onSelect(source) {
-					trackEvent('zoom-in', { source, towardsCursor: true })
-					editor.zoomIn(editor.inputs.getCurrentScreenPoint(), {
-						animation: { duration: editor.options.animationMediumMs },
-					})
-				},
-			},
-			{
-				id: 'zoom-out',
-				label: 'action.zoom-out',
-				kbd: 'cmd+-,ctrl+-,-',
-				readonlyOk: true,
-				onSelect(source) {
-					trackEvent('zoom-out', { source, towardsCursor: false })
-					editor.zoomOut(undefined, {
-						animation: { duration: editor.options.animationMediumMs },
-					})
-				},
-			},
-			{
-				id: 'zoom-out-on-cursor',
-				label: 'action.zoom-out',
-				kbd: 'shift+cmd+-,shift+ctrl+-,shift+-',
-				readonlyOk: true,
-				onSelect(source) {
-					trackEvent('zoom-out', { source, towardsCursor: true })
-					editor.zoomOut(editor.inputs.getCurrentScreenPoint(), {
-						animation: { duration: editor.options.animationMediumMs },
-					})
-				},
-			},
+			makeZoomAction('zoom-in', false, 'cmd+=,ctrl+=,='),
+			makeZoomAction('zoom-in', true, 'shift+cmd+=,shift+ctrl+=,shift+='),
+			makeZoomAction('zoom-out', false, 'cmd+-,ctrl+-,-'),
+			makeZoomAction('zoom-out', true, 'shift+cmd+-,shift+ctrl+-,shift+-'),
 			{
 				id: 'zoom-to-100',
 				label: 'action.zoom-to-100',
