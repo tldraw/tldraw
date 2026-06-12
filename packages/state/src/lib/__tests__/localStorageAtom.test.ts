@@ -115,9 +115,12 @@ describe('localStorageAtom', () => {
 		it('[LS4] updates the atom when a storage event for its key arrives', () => {
 			const [atom, cleanup] = localStorageAtom('test-key', 'initial')
 
-			window.dispatchEvent(
-				new StorageEvent('storage', { key: 'test-key', newValue: JSON.stringify('from-other-tab') })
-			)
+			const event = new Event('storage')
+			Object.defineProperties(event, {
+				key: { value: 'test-key' },
+				newValue: { value: JSON.stringify('from-other-tab') },
+			})
+			window.dispatchEvent(event as StorageEvent)
 
 			expect(atom.get()).toBe('from-other-tab')
 			cleanup()
@@ -128,7 +131,12 @@ describe('localStorageAtom', () => {
 
 			atom.set('changed')
 
-			window.dispatchEvent(new StorageEvent('storage', { key: 'test-key', newValue: null }))
+			const event = new Event('storage')
+			Object.defineProperties(event, {
+				key: { value: 'test-key' },
+				newValue: { value: null },
+			})
+			window.dispatchEvent(event as StorageEvent)
 
 			expect(atom.get()).toBe('initial')
 			cleanup()
@@ -137,9 +145,12 @@ describe('localStorageAtom', () => {
 		it('[LS4] ignores storage events for other keys', () => {
 			const [atom, cleanup] = localStorageAtom('test-key', 'initial')
 
-			window.dispatchEvent(
-				new StorageEvent('storage', { key: 'other-key', newValue: JSON.stringify('other-value') })
-			)
+			const event = new Event('storage')
+			Object.defineProperties(event, {
+				key: { value: 'other-key' },
+				newValue: { value: JSON.stringify('other-value') },
+			})
+			window.dispatchEvent(event as StorageEvent)
 
 			expect(atom.get()).toBe('initial')
 			cleanup()
@@ -150,7 +161,12 @@ describe('localStorageAtom', () => {
 
 			atom.set('current')
 
-			window.dispatchEvent(new StorageEvent('storage', { key: 'test-key', newValue: 'not json' }))
+			const event = new Event('storage')
+			Object.defineProperties(event, {
+				key: { value: 'test-key' },
+				newValue: { value: 'not json' },
+			})
+			window.dispatchEvent(event as StorageEvent)
 
 			expect(atom.get()).toBe('current')
 			cleanup()
@@ -182,9 +198,12 @@ describe('localStorageAtom', () => {
 
 			cleanup()
 
-			window.dispatchEvent(
-				new StorageEvent('storage', { key: 'test-key', newValue: JSON.stringify('from-other-tab') })
-			)
+			const event = new Event('storage')
+			Object.defineProperties(event, {
+				key: { value: 'test-key' },
+				newValue: { value: JSON.stringify('from-other-tab') },
+			})
+			window.dispatchEvent(event as StorageEvent)
 
 			expect(atom.get()).toBe('initial')
 		})
