@@ -41,6 +41,8 @@ function makeUser(overrides: Partial<TlaUser> & { id: string }): TlaUser {
 		enhancedA11yMode: null,
 		isZoomDirectionInverted: null,
 		allowAnalyticsCookie: null,
+		rememberLastUsedStyles: null,
+		lastUsedStyles: null,
 		...overrides,
 	}
 }
@@ -372,6 +374,25 @@ describe('user mutations', () => {
 		// flags is NOT in immutableColumns.user, so this should succeed
 		await expectValid(() =>
 			m.user.update(tx, { id: userId, flags: 'groups_backend,groups_frontend' })
+		)
+	})
+
+	it('user can change own last used styles preferences', async () => {
+		const { tx } = createMockTx({
+			user: [makeUser({ id: userId })],
+			file: [],
+			file_state: [],
+			group: [],
+			group_user: [],
+			group_file: [],
+		})
+		const m = createMutators(userId)
+		await expectValid(() =>
+			m.user.update(tx, {
+				id: userId,
+				rememberLastUsedStyles: false,
+				lastUsedStyles: JSON.stringify({ 'tldraw:size': 's' }),
+			})
 		)
 	})
 })

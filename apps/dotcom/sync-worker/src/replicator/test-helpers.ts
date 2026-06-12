@@ -201,5 +201,7 @@ export function createMockUser(
 		isPasteAtCursorMode: false,
 		isZoomDirectionInverted: false,
 		allowAnalyticsCookie: false,
+		rememberLastUsedStyles: true,
+		lastUsedStyles: null,
 	}
 }

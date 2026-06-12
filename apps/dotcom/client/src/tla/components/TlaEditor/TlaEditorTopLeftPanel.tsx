@@ -11,7 +11,6 @@ import {
 	InputModeMenu,
 	KeyboardShortcutsMenuItem,
 	LanguageMenu,
-	PreferencesGroup,
 	ToggleDebugModeItem,
 	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
@@ -28,6 +27,7 @@ import {
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiInput,
 	TldrawUiMenuActionItem,
+	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuSubmenu,
@@ -65,6 +65,7 @@ const messages = defineMessages({
 	pageMenu: { defaultMessage: 'Page menu' },
 	brand: { defaultMessage: 'tldraw' },
 	untitledProject: { defaultMessage: 'Untitled file' },
+	rememberLastUsedStyles: { defaultMessage: 'Remember last used styles' },
 })
 
 // There are some styles in tla.css that adjust the regular tlui top panels
@@ -281,9 +282,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="preferences">
-					<PreferencesGroup />
-				</TldrawUiMenuGroup>
+				<TlaPreferencesGroup />
 			</TlaFileMenu>
 		</>
 	)
@@ -437,6 +436,27 @@ function SignInMenuItem() {
 	)
 }
 
+function ToggleRememberLastUsedStylesItem() {
+	const editor = useEditor()
+	const label = useMsg(messages.rememberLastUsedStyles)
+	const rememberLastUsedStyles = useValue(
+		'rememberLastUsedStyles',
+		() => editor.user.getRememberLastUsedStyles(),
+		[editor]
+	)
+	return (
+		<TldrawUiMenuCheckboxItem
+			id="remember-last-used-styles"
+			title={label}
+			label={label}
+			checked={rememberLastUsedStyles}
+			onSelect={() => {
+				editor.user.updateUserPreferences({ rememberLastUsedStyles: !rememberLastUsedStyles })
+			}}
+		/>
+	)
+}
+
 function TlaPreferencesGroup() {
 	return (
 		<TldrawUiMenuGroup id="preferences">
@@ -450,6 +470,7 @@ function TlaPreferencesGroup() {
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
+					<ToggleRememberLastUsedStylesItem />
 					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">

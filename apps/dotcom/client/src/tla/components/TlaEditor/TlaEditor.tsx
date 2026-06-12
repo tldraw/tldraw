@@ -5,6 +5,7 @@ import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	Editor,
+	StyleProp,
 	TLComponents,
 	TLSessionStateSnapshot,
 	TLUiDialogsContextType,
@@ -15,6 +16,7 @@ import {
 	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,
+	isEqual,
 	parseDeepLinkString,
 	react,
 	throttle,
@@ -159,7 +161,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			} else if (deepLink) {
 				editor.navigateToDeepLink(parseDeepLinkString(deepLink))
 			}
+			restoreLastUsedStyles(app, editor)
+
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
+			const lastUsedStylesUpdater = new LastUsedStylesUpdater(app, editor)
 
 			const abortController = new AbortController()
 			maybeSlurp({
@@ -174,6 +179,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			return () => {
 				cleanupPerf()
 				fileStateUpdater.dispose()
+				lastUsedStylesUpdater.dispose()
 				abortController.abort()
 			}
 		},
@@ -407,6 +413,95 @@ class FileStateUpdater {
 			})
 		},
 		FILE_STATE_UPDATE_INTERVAL,
+		{ trailing: true, leading: false }
+	)
+
+	dispose() {
+		this.update.flush()
+		this.disposables.forEach((dispose) => dispose())
+		this.disposables.clear()
+	}
+}
+
+function restoreLastUsedStyles(app: TldrawApp, editor: Editor) {
+	if (!editor.user.getRememberLastUsedStyles()) return
+	const lastUsed = app.getLastUsedStyles()
+	if (!lastUsed) return
+
+	editor.run(
+		() => {
+			if (lastUsed.stylesForNextShape) {
+				const knownStyles = new Map<string, StyleProp<unknown>>()
+				for (const shapeType in editor.styleProps) {
+					for (const style of editor.styleProps[shapeType].keys()) {
+						knownStyles.set(style.id, style)
+					}
+				}
+				for (const [id, value] of Object.entries(lastUsed.stylesForNextShape)) {
+					const style = knownStyles.get(id)
+					if (!style) continue
+					try {
+						style.validate(value)
+					} catch {
+						continue
+					}
+					editor.setStyleForNextShapes(style, value)
+				}
+			}
+			if (typeof lastUsed.opacityForNextShape === 'number') {
+				editor.setOpacityForNextShapes(lastUsed.opacityForNextShape)
+			}
+		},
+		{ history: 'ignore' }
+	)
+}
+
+const LAST_USED_STYLES_UPDATE_INTERVAL = 10_000
+class LastUsedStylesUpdater {
+	disposables = new Set<() => void>()
+	private nextStyles: {
+		stylesForNextShape: Record<string, unknown>
+		opacityForNextShape: number
+	} | null = null
+
+	constructor(
+		private readonly app: TldrawApp,
+		editor: Editor
+	) {
+		const styles$ = computed(
+			'lastUsedStyles',
+			() => ({
+				stylesForNextShape: editor.getInstanceState().stylesForNextShape,
+				opacityForNextShape: editor.getInstanceState().opacityForNextShape,
+			}),
+			{ isEqual }
+		)
+		let firstTime = true
+		this.disposables.add(
+			react('save last used styles', () => {
+				const styles = styles$.get()
+				if (firstTime) {
+					firstTime = false
+					return
+				}
+				if (!editor.user.getRememberLastUsedStyles()) return
+				this.nextStyles = styles
+				this.update()
+			})
+		)
+		const flush = () => this.update.flush()
+		window.addEventListener('beforeunload', flush)
+		this.disposables.add(() => window.removeEventListener('beforeunload', flush))
+	}
+
+	private update = throttle(
+		() => {
+			if (!this.nextStyles) return
+			const styles = this.nextStyles
+			this.nextStyles = null
+			this.app.setLastUsedStyles(styles)
+		},
+		LAST_USED_STYLES_UPDATE_INTERVAL,
 		{ trailing: true, leading: false }
 	)
 

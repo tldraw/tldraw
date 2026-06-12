@@ -869,6 +869,28 @@ export class TldrawApp {
 		this.updateUser(exportPreferences)
 	}
 
+	getLastUsedStyles(): {
+		stylesForNextShape?: Record<string, unknown>
+		opacityForNextShape?: number
+	} | null {
+		const raw = this.getUser().lastUsedStyles
+		if (!raw) return null
+		try {
+			const parsed = JSON.parse(raw)
+			if (!parsed || typeof parsed !== 'object') return null
+			return parsed
+		} catch {
+			return null
+		}
+	}
+
+	setLastUsedStyles(styles: {
+		stylesForNextShape?: Record<string, unknown>
+		opacityForNextShape?: number
+	}) {
+		this.updateUser({ lastUsedStyles: JSON.stringify(styles) })
+	}
+
 	getFileState(fileId: string) {
 		return this.getUserFileStates().find((f) => f.fileId === fileId)
 	}
