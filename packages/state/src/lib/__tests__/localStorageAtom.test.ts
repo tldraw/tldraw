@@ -1,6 +1,9 @@
 import { localStorageAtom } from '../localStorageAtom'
 import { getGlobalEpoch } from '../transactions'
 
+// Tests for SPEC.md §15 (localStorageAtom).
+// Rule IDs like [LS2] in test names refer to that document.
+
 // Mock localStorage
 const mockLocalStorage = (() => {
 	let store: Record<string, string> = {}
@@ -41,14 +44,14 @@ describe('localStorageAtom', () => {
 	})
 
 	describe('initialization', () => {
-		it('should create atom with initial value when localStorage is empty', () => {
+		it('[LS1] should create atom with initial value when localStorage is empty', () => {
 			const [atom, cleanup] = localStorageAtom('test-key', 'initial-value')
 
 			expect(atom.get()).toBe('initial-value')
 			cleanup()
 		})
 
-		it('should restore value from localStorage when it exists', () => {
+		it('[LS1] should restore value from localStorage when it exists', () => {
 			mockLocalStorage.setItem('test-key', JSON.stringify('stored-value'))
 
 			const [atom, cleanup] = localStorageAtom('test-key', 'initial-value')
@@ -59,7 +62,7 @@ describe('localStorageAtom', () => {
 	})
 
 	describe('corrupted localStorage handling', () => {
-		it('should use initial value and delete corrupted localStorage entry', () => {
+		it('[LS2] should use initial value and delete corrupted localStorage entry', () => {
 			mockLocalStorage.setItem('test-key', 'invalid-json')
 
 			const [atom, cleanup] = localStorageAtom('test-key', 'initial-value')
@@ -69,7 +72,7 @@ describe('localStorageAtom', () => {
 			cleanup()
 		})
 
-		it('should handle empty string in localStorage', () => {
+		it('[LS2] should handle empty string in localStorage', () => {
 			mockLocalStorage.setItem('test-key', '')
 
 			const [atom, cleanup] = localStorageAtom('test-key', 'initial-value')
@@ -81,7 +84,7 @@ describe('localStorageAtom', () => {
 	})
 
 	describe('localStorage synchronization', () => {
-		it('should save to localStorage when atom value changes', () => {
+		it('[LS3] should save to localStorage when atom value changes', () => {
 			const [atom, cleanup] = localStorageAtom('test-key', 'initial')
 
 			atom.set('new-value')
@@ -90,7 +93,7 @@ describe('localStorageAtom', () => {
 			cleanup()
 		})
 
-		it('should update localStorage on multiple changes', () => {
+		it('[LS3] should update localStorage on multiple changes', () => {
 			const [atom, cleanup] = localStorageAtom('counter', 0)
 
 			// Clear initial call from atom creation
@@ -108,8 +111,54 @@ describe('localStorageAtom', () => {
 		})
 	})
 
+	describe('cross-tab synchronization', () => {
+		it('[LS4] updates the atom when a storage event for its key arrives', () => {
+			const [atom, cleanup] = localStorageAtom('test-key', 'initial')
+
+			window.dispatchEvent(
+				new StorageEvent('storage', { key: 'test-key', newValue: JSON.stringify('from-other-tab') })
+			)
+
+			expect(atom.get()).toBe('from-other-tab')
+			cleanup()
+		})
+
+		it('[LS4] resets the atom to the initial value when the key is deleted in another tab', () => {
+			const [atom, cleanup] = localStorageAtom('test-key', 'initial')
+
+			atom.set('changed')
+
+			window.dispatchEvent(new StorageEvent('storage', { key: 'test-key', newValue: null }))
+
+			expect(atom.get()).toBe('initial')
+			cleanup()
+		})
+
+		it('[LS4] ignores storage events for other keys', () => {
+			const [atom, cleanup] = localStorageAtom('test-key', 'initial')
+
+			window.dispatchEvent(
+				new StorageEvent('storage', { key: 'other-key', newValue: JSON.stringify('other-value') })
+			)
+
+			expect(atom.get()).toBe('initial')
+			cleanup()
+		})
+
+		it('[LS4] ignores storage events with unparseable values', () => {
+			const [atom, cleanup] = localStorageAtom('test-key', 'initial')
+
+			atom.set('current')
+
+			window.dispatchEvent(new StorageEvent('storage', { key: 'test-key', newValue: 'not json' }))
+
+			expect(atom.get()).toBe('current')
+			cleanup()
+		})
+	})
+
 	describe('cleanup functionality', () => {
-		it('should stop syncing to localStorage after cleanup', () => {
+		it('[LS5] should stop syncing to localStorage after cleanup', () => {
 			const [atom, cleanup] = localStorageAtom('test-key', 'initial')
 
 			// Change value before cleanup - should sync
@@ -128,7 +177,19 @@ describe('localStorageAtom', () => {
 			expect(mockLocalStorage.setItem).not.toHaveBeenCalled()
 		})
 
-		it('should allow atom to continue functioning after cleanup', () => {
+		it('[LS5] should stop handling storage events after cleanup', () => {
+			const [atom, cleanup] = localStorageAtom('test-key', 'initial')
+
+			cleanup()
+
+			window.dispatchEvent(
+				new StorageEvent('storage', { key: 'test-key', newValue: JSON.stringify('from-other-tab') })
+			)
+
+			expect(atom.get()).toBe('initial')
+		})
+
+		it('[LS5] should allow atom to continue functioning after cleanup', () => {
 			const [atom, cleanup] = localStorageAtom('test-key', 'initial')
 
 			cleanup()
@@ -139,7 +200,7 @@ describe('localStorageAtom', () => {
 	})
 
 	describe('atom options', () => {
-		it('should pass through atom options', () => {
+		it('[LS5] should pass through atom options', () => {
 			const isEqual = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
 			const [atom, cleanup] = localStorageAtom('test-key', 'Hello', { isEqual })
 
@@ -148,7 +209,7 @@ describe('localStorageAtom', () => {
 			cleanup()
 		})
 
-		it('should work with history options', () => {
+		it('[LS5] should work with history options', () => {
 			const [atom, cleanup] = localStorageAtom('test-key', 0, {
 				historyLength: 3,
 				computeDiff: (a, b) => b - a,
@@ -166,7 +227,7 @@ describe('localStorageAtom', () => {
 	})
 
 	describe('multiple instances', () => {
-		it('should handle multiple atoms with different keys', () => {
+		it('[LS3] should handle multiple atoms with different keys', () => {
 			const [atom1, cleanup1] = localStorageAtom('key1', 'value1')
 			const [atom2, cleanup2] = localStorageAtom('key2', 'value2')
 
