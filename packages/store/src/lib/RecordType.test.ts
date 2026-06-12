@@ -89,6 +89,11 @@ describe('creating records (RT)', () => {
 		expect(generated.id).toMatch(/^author:/)
 	})
 
+	it('[RT3] an explicitly undefined id is treated as absent', () => {
+		const author = Author.create({ name: 'Le Guin', id: undefined })
+		expect(author.id).toMatch(/^author:/)
+	})
+
 	it('[R2] [RT3] createId returns typeName:uniquePart, honoring a custom part', () => {
 		expect(Author.createId('123')).toBe('author:123')
 		expect(Book.createId('xyz')).toBe('book:xyz')

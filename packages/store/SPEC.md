@@ -25,7 +25,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 - **RT1** `createRecordType(typeName, config)` makes a RecordType with the given `scope` and an optional `validator`; without a validator, records pass through validation unchanged. `RecordType`'s own constructor defaults `scope` to `'document'`.
 - **RT2** `create(props)` returns `{ ...defaults, ...props, id, typeName }`: default properties from `createDefaultProperties()`, overridden by the given props. Properties whose value is `undefined` do not override defaults.
-- **RT3** `create` uses the given `id` if the props contain one, else generates `typeName:<unique>` via `createId()`. `createId(customUniquePart)` uses the custom part when given.
+- **RT3** `create` uses the given `id` if the props contain a defined one, else generates `typeName:<unique>` via `createId()`; an explicitly undefined `id` is treated as absent (matching RT2). `createId(customUniquePart)` uses the custom part when given.
 - **RT4** `clone(record)` deep-clones the record and assigns a fresh id.
 - **RT5** `parseId(id)` returns the part after the colon and throws if the id does not belong to this type. `isId(id)` is true exactly for strings starting with `typeName:`; false for `undefined` and other types' ids. `isInstance(record)` checks `record?.typeName === typeName`.
 - **RT6** `assertIdType(id, type)` throws for `undefined`, empty, or wrong-type ids, and passes for valid ones.
