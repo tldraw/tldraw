@@ -20,6 +20,7 @@ import {
 	setVerdict,
 } from './assetActions'
 import { marketingAssetProps, MARKETING_ASSET_TYPE, MarketingAssetShape } from './assetShape'
+import { layoutTextLayer } from './textLayerLayout'
 
 export class MarketingAssetShapeUtil extends ShapeUtil<MarketingAssetShape> {
 	static override type = MARKETING_ASSET_TYPE
@@ -288,6 +289,9 @@ function CaptionPanel({
 	)
 }
 
+// The HTML and SVG text layers are two adapters over one layout (./textLayerLayout):
+// they draw the same resolved pixels, so the live view and the export cannot drift.
+
 function HtmlTextLayer({
 	layer,
 	w,
@@ -299,22 +303,20 @@ function HtmlTextLayer({
 	h: number
 	brand: Brand
 }) {
-	const font = layer.fontRole === 'heading' ? brand.headingFont : brand.bodyFont
+	const t = layoutTextLayer(layer, { w, h }, brand)
 	const style: CSSProperties = {
 		position: 'absolute',
-		left: layer.x * w,
-		top: layer.y * h,
-		width: layer.width * w,
-		fontFamily: `'${font}', sans-serif`,
-		fontSize: layer.fontSize * h,
-		fontWeight: layer.weight === 'bold' ? 700 : 400,
-		color: layer.color,
-		textAlign: layer.align,
-		lineHeight: 1.15,
+		left: t.x,
+		top: t.y,
+		width: t.width,
+		fontFamily: t.fontFamily,
+		fontSize: t.fontSize,
+		fontWeight: t.fontWeight,
+		color: t.color,
+		textAlign: t.align,
+		lineHeight: t.lineHeight / t.fontSize,
 		whiteSpace: 'pre-wrap',
-		...(layer.scrim
-			? { background: scrimColor(layer.color), padding: '0.15em 0.3em', borderRadius: 4 }
-			: {}),
+		...(t.scrim ? { background: t.scrim.color, padding: '0.15em 0.3em', borderRadius: 4 } : {}),
 	}
 	return (
 		<div className="MarketingAsset-text" style={style}>
@@ -334,38 +336,22 @@ function SvgTextLayer({
 	h: number
 	brand: Brand
 }) {
-	const font = layer.fontRole === 'heading' ? brand.headingFont : brand.bodyFont
-	const fontSize = layer.fontSize * h
-	const boxW = layer.width * w
-	const x0 = layer.x * w
-	const y0 = layer.y * h
-	const lineHeight = fontSize * 1.15
-	const lines = wrapText(layer.text, boxW, fontSize)
-	const anchor = layer.align === 'left' ? 'start' : layer.align === 'right' ? 'end' : 'middle'
-	const tx = layer.align === 'left' ? x0 : layer.align === 'right' ? x0 + boxW : x0 + boxW / 2
-
+	const t = layoutTextLayer(layer, { w, h }, brand)
 	return (
 		<>
-			{layer.scrim && (
-				<rect
-					x={x0}
-					y={y0}
-					width={boxW}
-					height={lines.length * lineHeight + fontSize * 0.3}
-					fill={scrimColor(layer.color)}
-					rx={4}
-				/>
+			{t.scrim && (
+				<rect x={t.x} y={t.y} width={t.width} height={t.scrim.height} fill={t.scrim.color} rx={4} />
 			)}
-			{lines.map((line, i) => (
+			{t.lines.map((line, i) => (
 				<text
 					key={i}
-					x={tx}
-					y={y0 + fontSize + i * lineHeight}
-					fontFamily={`'${font}', sans-serif`}
-					fontSize={fontSize}
-					fontWeight={layer.weight === 'bold' ? 700 : 400}
-					fill={layer.color}
-					textAnchor={anchor}
+					x={t.anchorX}
+					y={t.y + t.fontSize + i * t.lineHeight}
+					fontFamily={t.fontFamily}
+					fontSize={t.fontSize}
+					fontWeight={t.fontWeight}
+					fill={t.color}
+					textAnchor={t.anchor}
 				>
 					{line}
 				</text>
@@ -422,47 +408,4 @@ function VerdictButton({
 			{symbol}
 		</button>
 	)
-}
-
-// ---------------------------------------------------------------------------
-// Text helpers (shared by the live HTML and the SVG export)
-// ---------------------------------------------------------------------------
-
-/** A contrast panel colour chosen from the text's brightness. */
-function scrimColor(hex: string): string {
-	return luminance(hex) > 0.6 ? 'rgba(0, 0, 0, 0.45)' : 'rgba(255, 255, 255, 0.65)'
-}
-
-function luminance(hex: string): number {
-	const c = hex.replace('#', '')
-	if (c.length < 6) return 1
-	const r = parseInt(c.slice(0, 2), 16) / 255
-	const g = parseInt(c.slice(2, 4), 16) / 255
-	const b = parseInt(c.slice(4, 6), 16) / 255
-	return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
-
-/** Greedy word-wrap for the SVG export (the live HTML wraps natively). */
-function wrapText(text: string, boxWidth: number, fontSize: number): string[] {
-	const maxChars = Math.max(1, Math.floor(boxWidth / (fontSize * 0.5)))
-	const out: string[] = []
-	for (const para of text.split('\n')) {
-		const words = para.split(/\s+/).filter(Boolean)
-		if (!words.length) {
-			out.push('')
-			continue
-		}
-		let line = ''
-		for (const word of words) {
-			const candidate = line ? `${line} ${word}` : word
-			if (candidate.length > maxChars && line) {
-				out.push(line)
-				line = word
-			} else {
-				line = candidate
-			}
-		}
-		if (line) out.push(line)
-	}
-	return out
 }
