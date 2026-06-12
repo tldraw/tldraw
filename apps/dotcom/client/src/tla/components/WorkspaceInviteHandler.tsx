@@ -157,8 +157,10 @@ export function WorkspaceInviteHandler() {
 					return
 				}
 
-				// Show invite dialog
+				// Show invite dialog. The stable id makes a re-add replace the open
+				// dialog instead of stacking a second one if the effect re-fetches.
 				dialogs.addDialog({
+					id: 'workspace-invite-join',
 					component: ({ onClose }) => <TlaInviteDialog inviteInfo={data} onClose={onClose} />,
 				})
 			})
