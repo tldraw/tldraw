@@ -1,9 +1,10 @@
+import { DirectionProvider } from '@base-ui/react/direction-provider'
 import { RecursivePartial, defaultUserPreferences, track, useMaybeEditor } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
 import { TldrawUiTooltipProvider } from '../components/primitives/TldrawUiTooltip'
 import { ToolsProvider } from '../hooks/useTools'
-import { TldrawUiTranslationProvider } from '../hooks/useTranslation/useTranslation'
+import { TldrawUiTranslationProvider, useDirection } from '../hooks/useTranslation/useTranslation'
 import {
 	MimeTypeContext,
 	TLUiOverrides,
@@ -78,26 +79,34 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 					overrides={useMergedTranslationOverrides(overrides)}
 					locale={editor?.user.getLocale() ?? defaultUserPreferences.locale}
 				>
-					<TldrawUiTooltipProvider>
-						<TldrawUiEventsProvider onEvent={onUiEvent}>
-							<TldrawUiToastsProvider>
-								<TldrawUiDialogsProvider context={'tla'}>
-									<TldrawUiA11yProvider>
-										<BreakPointProvider forceMobile={forceMobile}>
-											<TldrawUiComponentsProvider overrides={components}>
-												<InternalProviders overrides={overrides}>{children}</InternalProviders>
-											</TldrawUiComponentsProvider>
-										</BreakPointProvider>
-									</TldrawUiA11yProvider>
-								</TldrawUiDialogsProvider>
-							</TldrawUiToastsProvider>
-						</TldrawUiEventsProvider>
-					</TldrawUiTooltipProvider>
+					<UiDirectionProvider>
+						<TldrawUiTooltipProvider>
+							<TldrawUiEventsProvider onEvent={onUiEvent}>
+								<TldrawUiToastsProvider>
+									<TldrawUiDialogsProvider context={'tla'}>
+										<TldrawUiA11yProvider>
+											<BreakPointProvider forceMobile={forceMobile}>
+												<TldrawUiComponentsProvider overrides={components}>
+													<InternalProviders overrides={overrides}>{children}</InternalProviders>
+												</TldrawUiComponentsProvider>
+											</BreakPointProvider>
+										</TldrawUiA11yProvider>
+									</TldrawUiDialogsProvider>
+								</TldrawUiToastsProvider>
+							</TldrawUiEventsProvider>
+						</TldrawUiTooltipProvider>
+					</UiDirectionProvider>
 				</TldrawUiTranslationProvider>
 			</AssetUrlsProvider>
 		</MimeTypeContext.Provider>
 	)
 })
+
+// Base UI components read text direction from this context rather than per-part `dir` props.
+function UiDirectionProvider({ children }: { children: ReactNode }) {
+	const dir = useDirection()
+	return <DirectionProvider direction={dir}>{children}</DirectionProvider>
+}
 
 function InternalProviders({
 	overrides,

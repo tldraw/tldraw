@@ -1,10 +1,10 @@
 import { Combobox, ComboboxItem, ComboboxProvider, VisuallyHidden } from '@ariakit/react'
+import { Dialog as _Dialog } from '@base-ui/react/dialog'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import { Hit } from 'instantsearch.js'
 import { SendEventForHits } from 'instantsearch.js/es/lib/utils'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Dialog as _Dialog } from 'radix-ui'
 import { Fragment, startTransition, useState } from 'react'
 import { Highlight } from 'react-instantsearch'
 import { twJoin } from 'tailwind-merge'
@@ -178,14 +178,14 @@ function SearchDialogWrapper({
 	return (
 		<_Dialog.Root open onOpenChange={onOpenChange}>
 			<_Dialog.Portal>
-				<_Dialog.Overlay />
-				<_Dialog.Content className="fixed inset-0 z-50" style={{ pointerEvents: 'none' }}>
+				<_Dialog.Backdrop />
+				<_Dialog.Popup className="fixed inset-0 z-50" style={{ pointerEvents: 'none' }}>
 					<VisuallyHidden>
 						<_Dialog.Title>Search</_Dialog.Title>
 						<_Dialog.Description>Search dialog</_Dialog.Description>
 					</VisuallyHidden>
 					{children}
-				</_Dialog.Content>
+				</_Dialog.Popup>
 			</_Dialog.Portal>
 		</_Dialog.Root>
 	)

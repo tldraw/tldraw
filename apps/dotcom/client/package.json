@@ -29,6 +29,7 @@
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
+		"@base-ui/react": "^1.5.0",
 		"@clerk/clerk-react": "^5.53.3",
 		"@clerk/elements": "^0.23.74",
 		"@rocicorp/zero": "1.6.1",
@@ -48,7 +49,6 @@
 		"lodash.pick": "^4.4.0",
 		"posthog-js": "^1.281.0",
 		"qrcode": "^1.5.4",
-		"radix-ui": "^1.4.2",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-ga4": "^2.1.0",

@@ -1,7 +1,7 @@
+import { Tooltip as _Tooltip } from '@base-ui/react/tooltip'
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import classNames from 'classnames'
-import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {

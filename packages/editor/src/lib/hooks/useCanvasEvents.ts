@@ -169,7 +169,7 @@ export function useCanvasEvents() {
 				// menu opens on press.
 				if (!editor.options.rightClickPanning) return
 				// Synthetic events — our own dispatch from onPointerUp, or tests using
-				// fireEvent.contextMenu — pass through so Radix can open the menu.
+				// fireEvent.contextMenu — pass through so the menu library can open the menu.
 				if (!e.nativeEvent.isTrusted) return
 				// Only suppress the native browser contextmenu when it follows a real
 				// right-click (button=2 with no ctrl modifier). For those, our pointer
@@ -177,11 +177,14 @@ export function useCanvasEvents() {
 				// synthetic contextmenu on pointerup to open the menu at the release
 				// position, or we panned and don't want a menu at all).
 				//
-				// Other contextmenu sources must reach Radix so the menu opens:
+				// Other contextmenu sources must reach the menu library so the menu opens:
 				// - ctrl+click on macOS (button=0, or button=2 with ctrlKey=true)
 				// - long-press on touch devices (button=0, pointerType=touch)
 				if (e.button !== 2 || e.ctrlKey) return
 				preventDefault(e)
+				// Also stop the event from bubbling to the context menu's trigger, which
+				// opens the menu without checking whether the event was default-prevented.
+				e.stopPropagation()
 			}
 
 			return {

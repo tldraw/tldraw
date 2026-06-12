@@ -230,8 +230,9 @@ async function isFocusedOnStylePanel(page: Page) {
 	return await page.evaluate(() => {
 		const activeEl = document.activeElement
 		return (
-			// check that the active element is within both the editor container and the style panel
-			activeEl?.role === 'radio' && activeEl?.closest('.tlui-style-panel') !== null
+			// check that the active element is a style toggle button within the style panel
+			activeEl?.hasAttribute('aria-pressed') === true &&
+			activeEl?.closest('.tlui-style-panel') !== null
 		)
 	})
 }

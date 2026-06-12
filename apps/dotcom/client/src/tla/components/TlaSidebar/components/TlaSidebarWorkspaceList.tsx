@@ -1,9 +1,16 @@
+import { ContextMenu as _ContextMenu } from '@base-ui/react/context-menu'
 import { ZErrorCode } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TldrawUiMenuContextProvider, uniqueId, useDialogs, useMenuIsOpen, useValue } from 'tldraw'
+import {
+	TldrawUiMenuContextProvider,
+	uniqueId,
+	useContainer,
+	useDialogs,
+	useMenuIsOpen,
+	useValue,
+} from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
@@ -62,6 +69,7 @@ function TlaSidebarWorkspaceListItem({
 	const isActive = activeWorkspaceId === workspaceId
 	const isHome = workspaceId === homeWorkspaceId
 	const [, handleContextMenuOpenChange] = useMenuIsOpen(`workspace-context-menu-${workspaceId}`)
+	const container = useContainer()
 
 	const showDropState = useValue(
 		'workspace drop state',
@@ -150,13 +158,17 @@ function TlaSidebarWorkspaceListItem({
 	if (isHome) return row
 
 	return (
-		<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange} modal={false}>
-			<_ContextMenu.Trigger asChild>{row}</_ContextMenu.Trigger>
-			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
-				<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-					<WorkspaceMenuContent workspaceId={workspaceId} />
-				</TldrawUiMenuContextProvider>
-			</_ContextMenu.Content>
+		<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange}>
+			<_ContextMenu.Trigger render={row} />
+			<_ContextMenu.Portal container={container}>
+				<_ContextMenu.Positioner className="tlui-menu__positioner" collisionPadding={4}>
+					<_ContextMenu.Popup className="tlui-menu tlui-scrollable">
+						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+							<WorkspaceMenuContent workspaceId={workspaceId} />
+						</TldrawUiMenuContextProvider>
+					</_ContextMenu.Popup>
+				</_ContextMenu.Positioner>
+			</_ContextMenu.Portal>
 		</_ContextMenu.Root>
 	)
 }

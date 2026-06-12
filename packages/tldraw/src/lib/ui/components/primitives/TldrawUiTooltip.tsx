@@ -1,3 +1,4 @@
+import { Tooltip as _Tooltip } from '@base-ui/react/tooltip'
 import {
 	assert,
 	atom,
@@ -8,7 +9,6 @@ import {
 	useMaybeEditor,
 	useValue,
 } from '@tldraw/editor'
-import { Tooltip as _Tooltip } from 'radix-ui'
 import React, {
 	createContext,
 	forwardRef,
@@ -18,7 +18,6 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
-import { useDirection } from '../../hooks/useTranslation/useTranslation'
 import { useTldrawUiOrientation } from './layout'
 
 const DEFAULT_TOOLTIP_DELAY_MS = 700
@@ -194,7 +193,7 @@ export interface TldrawUiTooltipProviderProps {
 /** @public @react */
 export function TldrawUiTooltipProvider({ children }: TldrawUiTooltipProviderProps) {
 	return (
-		<_Tooltip.Provider skipDelayDuration={700}>
+		<_Tooltip.Provider timeout={700}>
 			<TooltipSingletonContext.Provider value={true}>
 				{children}
 				<TooltipSingleton />
@@ -203,13 +202,45 @@ export function TldrawUiTooltipProvider({ children }: TldrawUiTooltipProviderPro
 	)
 }
 
+function TooltipContent({
+	side,
+	sideOffset,
+	anchor,
+	children,
+}: {
+	side: 'top' | 'right' | 'bottom' | 'left'
+	sideOffset: number
+	anchor?: HTMLElement
+	children: ReactNode
+}) {
+	const editor = useMaybeEditor()
+	return (
+		<_Tooltip.Portal container={editor?.getContainer()}>
+			<_Tooltip.Positioner
+				className="tlui-tooltip__positioner"
+				anchor={anchor}
+				side={side}
+				sideOffset={sideOffset}
+				collisionPadding={8}
+			>
+				<_Tooltip.Popup className="tlui-tooltip">
+					{children}
+					<_Tooltip.Arrow className="tlui-tooltip__arrow">
+						<svg width="10" height="5" viewBox="0 0 30 10" preserveAspectRatio="none">
+							<polygon points="0,0 30,0 15,10" />
+						</svg>
+					</_Tooltip.Arrow>
+				</_Tooltip.Popup>
+			</_Tooltip.Positioner>
+		</_Tooltip.Portal>
+	)
+}
+
 // The singleton tooltip component that renders once
 function TooltipSingleton() {
 	const [isOpen, setIsOpen] = useState(false)
-	const triggerRef = useRef<HTMLDivElement>(null)
 	const isFirstShowRef = useRef(true)
 	const editor = useMaybeEditor()
-	const dir = useDirection()
 
 	const currentTooltip = useValue(
 		'current tooltip',
@@ -269,29 +300,11 @@ function TooltipSingleton() {
 		}
 	}, [editor])
 
-	// Update open state and trigger position
+	// Update open state, with a delay for the first show
 	useEffect(() => {
 		// eslint-disable-next-line no-restricted-globals
 		let timer: ReturnType<typeof setTimeout> | null = null
-		if (currentTooltip && triggerRef.current) {
-			// Position the invisible trigger element over the active element
-			const activeRect = currentTooltip.targetElement.getBoundingClientRect()
-			const trigger = triggerRef.current
-
-			trigger.style.position = 'fixed'
-			trigger.style.left = '0px'
-			trigger.style.top = '0px'
-			const cbOffset = trigger.getBoundingClientRect()
-
-			trigger.style.left = `${activeRect.left - cbOffset.left}px`
-			trigger.style.top = `${activeRect.top - cbOffset.top}px`
-
-			trigger.style.width = `${activeRect.width}px`
-			trigger.style.height = `${activeRect.height}px`
-			trigger.style.pointerEvents = 'none'
-			trigger.style.zIndex = '9999'
-
-			// Handle delay for first show
+		if (currentTooltip) {
 			if (isFirstShowRef.current) {
 				// eslint-disable-next-line no-restricted-globals
 				timer = setTimeout(() => {
@@ -321,21 +334,14 @@ function TooltipSingleton() {
 	}
 
 	return (
-		<_Tooltip.Root open={isOpen} delayDuration={0}>
-			<_Tooltip.Trigger asChild>
-				<div ref={triggerRef} />
-			</_Tooltip.Trigger>
-			<_Tooltip.Content
-				className="tlui-tooltip"
+		<_Tooltip.Root open={isOpen}>
+			<TooltipContent
+				anchor={currentTooltip.targetElement}
 				side={currentTooltip.side}
 				sideOffset={currentTooltip.sideOffset}
-				avoidCollisions
-				collisionPadding={8}
-				dir={dir}
 			>
 				{currentTooltip.content}
-				<_Tooltip.Arrow className="tlui-tooltip__arrow" />
-			</_Tooltip.Content>
+			</TooltipContent>
 		</_Tooltip.Root>
 	)
 }
@@ -355,7 +361,6 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		ref
 	) => {
 		const editor = useMaybeEditor()
-		const dir = useDirection()
 		const tooltipId = useRef<string>(uniqueId())
 		const hasProvider = useContext(TooltipSingletonContext)
 		const enhancedA11yMode = useValue(
@@ -397,24 +402,15 @@ export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProp
 		// Fallback to old behavior if no provider
 		if (!hasProvider || enhancedA11yMode) {
 			return (
-				<_Tooltip.Root
-					delayDuration={delayDurationToUse}
-					disableHoverableContent={!enhancedA11yMode}
-				>
-					<_Tooltip.Trigger asChild ref={ref}>
-						{children}
-					</_Tooltip.Trigger>
-					<_Tooltip.Content
-						className="tlui-tooltip"
-						side={sideToUse}
-						sideOffset={sideOffset}
-						avoidCollisions
-						collisionPadding={8}
-						dir={dir}
-					>
+				<_Tooltip.Root disableHoverablePopup={!enhancedA11yMode}>
+					<_Tooltip.Trigger
+						render={children as React.ReactElement}
+						ref={ref}
+						delay={delayDurationToUse}
+					/>
+					<TooltipContent side={sideToUse} sideOffset={sideOffset}>
 						{content}
-						<_Tooltip.Arrow className="tlui-tooltip__arrow" />
-					</_Tooltip.Content>
+					</TooltipContent>
 				</_Tooltip.Root>
 			)
 		}

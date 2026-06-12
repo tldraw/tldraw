@@ -1,8 +1,8 @@
+import { Popover as _Popover } from '@base-ui/react/popover'
 import { USER_COLORS, getOwnerWindow, track, useContainer, useEditor } from '@tldraw/editor'
-import { Popover as _Popover } from 'radix-ui'
 import React, { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
-import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiGrid } from '../primitives/layout'
@@ -12,7 +12,6 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 	const editor = useEditor()
 	const container = useContainer()
 	const msg = useTranslation()
-	const dir = useDirection()
 	const trackEvent = useUiEvents()
 
 	const rPointing = useRef(false)
@@ -85,45 +84,48 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 
 	return (
 		<_Popover.Root onOpenChange={handleOpenChange} open={isOpen}>
-			<_Popover.Trigger dir={dir} asChild>
-				<TldrawUiButton
-					type="icon"
-					className="tlui-people-menu__user__color"
-					style={{ color: editor.user.getColor() }}
-					title={msg('people-menu.change-color')}
-				>
-					<TldrawUiButtonIcon icon="color" />
-				</TldrawUiButton>
-			</_Popover.Trigger>
+			<_Popover.Trigger
+				render={
+					<TldrawUiButton
+						type="icon"
+						className="tlui-people-menu__user__color"
+						style={{ color: editor.user.getColor() }}
+						title={msg('people-menu.change-color')}
+					>
+						<TldrawUiButtonIcon icon="color" />
+					</TldrawUiButton>
+				}
+			/>
 			<_Popover.Portal container={container}>
-				<_Popover.Content
-					dir={dir}
-					className="tlui-menu tlui-people-menu__user__color-picker"
+				<_Popover.Positioner
+					className="tlui-popover__positioner"
 					align="start"
 					side="left"
 					sideOffset={8}
 				>
-					<TldrawUiGrid>
-						{USER_COLORS.map((item: string) => (
-							<TldrawUiButton
-								type="icon"
-								key={item}
-								data-id={item}
-								data-testid={item}
-								aria-label={item}
-								isActive={value === item}
-								title={item}
-								style={{ color: item }}
-								onPointerEnter={handleButtonPointerEnter}
-								onPointerDown={handleButtonPointerDown}
-								onPointerUp={handleButtonPointerUp}
-								onClick={handleButtonClick}
-							>
-								<TldrawUiButtonIcon icon="color" />
-							</TldrawUiButton>
-						))}
-					</TldrawUiGrid>
-				</_Popover.Content>
+					<_Popover.Popup className="tlui-menu tlui-people-menu__user__color-picker">
+						<TldrawUiGrid>
+							{USER_COLORS.map((item: string) => (
+								<TldrawUiButton
+									type="icon"
+									key={item}
+									data-id={item}
+									data-testid={item}
+									aria-label={item}
+									isActive={value === item}
+									title={item}
+									style={{ color: item }}
+									onPointerEnter={handleButtonPointerEnter}
+									onPointerDown={handleButtonPointerDown}
+									onPointerUp={handleButtonPointerUp}
+									onClick={handleButtonClick}
+								>
+									<TldrawUiButtonIcon icon="color" />
+								</TldrawUiButton>
+							))}
+						</TldrawUiGrid>
+					</_Popover.Popup>
+				</_Popover.Positioner>
 			</_Popover.Portal>
 		</_Popover.Root>
 	)

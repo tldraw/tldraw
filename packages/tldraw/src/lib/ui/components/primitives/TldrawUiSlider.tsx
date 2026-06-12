@@ -1,8 +1,8 @@
+import { Slider as _Slider } from '@base-ui/react/slider'
 import { tltime } from '@tldraw/editor'
-import { Slider as _Slider } from 'radix-ui'
 import React, { useCallback, useEffect, useState } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
-import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { hideAllTooltips, TldrawUiTooltip } from './TldrawUiTooltip'
 
 /** @public */
@@ -34,20 +34,11 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 	ref
 ) {
 	const msg = useTranslation()
-	const dir = useDirection()
 	const [titleAndLabel, setTitleAndLabel] = useState('')
 
-	// XXX: Radix starts out our slider with a tabIndex of 0
-	// This causes some tab focusing issues, most prevelant in MobileStylePanel,
-	// where it grabs the focus. This works around it.
-	const [tabIndex, setTabIndex] = useState(-1)
-	useEffect(() => {
-		setTabIndex(0)
-	}, [])
-
 	const handleValueChange = useCallback(
-		(value: number[]) => {
-			onValueChange(value[0])
+		(value: number | number[]) => {
+			onValueChange(Array.isArray(value) ? value[0] : value)
 		},
 		[onValueChange]
 	)
@@ -57,7 +48,7 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 		onHistoryMark?.('click slider')
 	}, [onHistoryMark])
 
-	// N.B. This is a bit silly. The Radix slider auto-focuses which
+	// N.B. This is a bit silly. The slider auto-focuses which
 	// triggers TldrawUiTooltip handleFocus when we dbl-click to edit an image,
 	// which in turn makes the tooltip display prematurely.
 	// This makes it wait until we've focused to show the tooltip.
@@ -72,47 +63,32 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 		return () => clearTimeout(timeout)
 	}, [label, msg, title])
 
-	// N.B. Annoying. For a11y purposes, we need Tab to work.
-	// For some reason, Radix has some custom behavior here
-	// that interferes with tabbing past the slider and then
-	// you get stuck in the slider.
-	const handleKeyEvent = useCallback((event: React.KeyboardEvent) => {
-		if (event.key === 'Tab') {
-			event.stopPropagation()
-		}
-	}, [])
-
 	return (
 		<div className="tlui-slider__container">
 			<TldrawUiTooltip content={titleAndLabel}>
 				<_Slider.Root
 					data-testid={testId}
 					className="tlui-slider"
-					dir={dir}
 					min={min ?? 0}
 					max={steps}
 					step={1}
-					value={value !== null ? [value] : undefined}
+					value={value !== null ? value : undefined}
 					onPointerDown={handlePointerDown}
 					onValueChange={handleValueChange}
-					onKeyDownCapture={handleKeyEvent}
-					onKeyUpCapture={handleKeyEvent}
 				>
-					<_Slider.Track className="tlui-slider__track" dir={dir}>
-						{value !== null && <_Slider.Range className="tlui-slider__range" dir={dir} />}
-					</_Slider.Track>
-					{value !== null && (
-						<_Slider.Thumb
-							aria-valuemin={(min ?? 0) * ariaValueModifier}
-							aria-valuenow={value * ariaValueModifier}
-							aria-valuemax={steps * ariaValueModifier}
-							aria-label={titleAndLabel}
-							className="tlui-slider__thumb"
-							dir={dir}
-							ref={ref}
-							tabIndex={tabIndex}
-						/>
-					)}
+					<_Slider.Control className="tlui-slider__control">
+						<_Slider.Track className="tlui-slider__track">
+							{value !== null && <_Slider.Indicator className="tlui-slider__range" />}
+							{value !== null && (
+								<_Slider.Thumb
+									getAriaValueText={(_formattedValue, value) => String(value * ariaValueModifier)}
+									aria-label={titleAndLabel}
+									className="tlui-slider__thumb"
+									ref={ref}
+								/>
+							)}
+						</_Slider.Track>
+					</_Slider.Control>
 				</_Slider.Root>
 			</TldrawUiTooltip>
 		</div>

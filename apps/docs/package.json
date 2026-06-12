@@ -51,6 +51,7 @@
 	},
 	"dependencies": {
 		"@ariakit/react": "^0.4.15",
+		"@base-ui/react": "^1.5.0",
 		"@headlessui/react": "^2.2.0",
 		"@heroicons/react": "^2.2.0",
 		"@microsoft/api-extractor-model": "^7.30.2",
@@ -73,7 +74,6 @@
 		"next-mdx-remote-client": "^1.1.2",
 		"next-themes": "^0.3.0",
 		"query-string": "^9.1.1",
-		"radix-ui": "^1.4.2",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-instantsearch": "^7.15.1",

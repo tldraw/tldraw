@@ -33,7 +33,6 @@
 		"ai": "^5.0.63",
 		"classnames": "^2.5.1",
 		"itty-router": "^5.0.18",
-		"radix-ui": "^1.4.2",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",

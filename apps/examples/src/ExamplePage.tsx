@@ -1,4 +1,4 @@
-import { AlertDialog as _AlertDialog } from 'radix-ui'
+import { AlertDialog } from '@base-ui/react/alert-dialog'
 import { Dispatch, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Example, examples } from './examples'
@@ -252,26 +252,28 @@ function Dialogs() {
 	}
 
 	return (
-		<_AlertDialog.Root defaultOpen onOpenChange={handleOpenChange} open={!!example}>
-			<_AlertDialog.Overlay
-				className="example__dialog__overlay"
-				onPointerDown={() => setExampleDialog(null)}
-			/>
-			<_AlertDialog.Content className="example__dialog__content">
-				<h1>{example.title}</h1>
-				<Markdown
-					sanitizedHtml={content?.description ?? ''}
-					className="example__dialog__markdown"
+		<AlertDialog.Root onOpenChange={handleOpenChange} open={!!example}>
+			<AlertDialog.Portal>
+				<AlertDialog.Backdrop
+					className="example__dialog__overlay"
+					onPointerDown={() => setExampleDialog(null)}
 				/>
-				<Markdown sanitizedHtml={content?.details ?? ''} className="example__dialog__markdown" />
-				<div className="example__dialog__actions">
-					<a href={example.codeUrl}>
-						View Source <ExternalLinkIcon />
-					</a>
-					<_AlertDialog.Cancel className="example__dialog__close">Close</_AlertDialog.Cancel>
-				</div>
-			</_AlertDialog.Content>
-		</_AlertDialog.Root>
+				<AlertDialog.Popup className="example__dialog__content">
+					<AlertDialog.Title render={<h1 />}>{example.title}</AlertDialog.Title>
+					<Markdown
+						sanitizedHtml={content?.description ?? ''}
+						className="example__dialog__markdown"
+					/>
+					<Markdown sanitizedHtml={content?.details ?? ''} className="example__dialog__markdown" />
+					<div className="example__dialog__actions">
+						<a href={example.codeUrl}>
+							View Source <ExternalLinkIcon />
+						</a>
+						<AlertDialog.Close className="example__dialog__close">Close</AlertDialog.Close>
+					</div>
+				</AlertDialog.Popup>
+			</AlertDialog.Portal>
+		</AlertDialog.Root>
 	)
 }
 

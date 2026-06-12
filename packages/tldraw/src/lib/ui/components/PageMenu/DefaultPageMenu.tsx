@@ -128,16 +128,12 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 		const popoverContent =
 			rSortableContainer.current?.closest<HTMLElement>('.tlui-popover__content')
-		const radixAvailableHeight = popoverContent
-			? Number.parseFloat(
-					getComputedStyle(popoverContent).getPropertyValue(
-						'--radix-popover-content-available-height'
-					)
-				)
+		const popoverAvailableHeight = popoverContent
+			? Number.parseFloat(getComputedStyle(popoverContent).getPropertyValue('--available-height'))
 			: NaN
 
 		setAvailableHeight(
-			Number.isFinite(radixAvailableHeight) ? radixAvailableHeight : window.innerHeight
+			Number.isFinite(popoverAvailableHeight) ? popoverAvailableHeight : window.innerHeight
 		)
 	}, [])
 

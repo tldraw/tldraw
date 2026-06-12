@@ -92,7 +92,7 @@
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-button__tool:focus-visible {
 	border-radius: 12px;
 }
-.tlui-slider__container:has(.tlui-slider__thumb:focus-visible) {
+.tlui-slider__container:has(.tlui-slider__thumb input:focus-visible) {
 	border-radius: 10px;
 	outline: 2px solid var(--tl-color-focus);
 	outline-offset: -5px;
@@ -446,6 +446,13 @@
 	width: 100%;
 }
 
+.tlui-slider__control {
+	display: flex;
+	align-items: center;
+	position: relative;
+	width: 100%;
+}
+
 .tlui-slider__track {
 	position: relative;
 	flex-grow: 1;
@@ -555,7 +562,7 @@
 	gap: var(--tl-space-3);
 }
 
-.tlui-select__trigger[data-state='open']::after {
+.tlui-select__trigger[data-popup-open]::after {
 	opacity: 1;
 }
 
@@ -572,8 +579,8 @@
 
 /* Content extends .tlui-menu with Radix-aware sizing */
 .tlui-select__content {
-	min-width: var(--radix-select-trigger-width);
-	max-height: var(--radix-select-content-available-height);
+	min-width: var(--anchor-width);
+	max-height: var(--available-height);
 }
 
 .tlui-select__viewport {
@@ -589,7 +596,7 @@
 	visibility: hidden;
 }
 
-.tlui-select__item[data-state='checked'] .tlui-select__item-indicator {
+.tlui-select__item[data-selected] .tlui-select__item-indicator {
 	visibility: visible;
 }
 
@@ -637,6 +644,14 @@
 
 .tlui-menu:empty {
 	display: none;
+}
+
+/* Base UI positions popups with a positioner element; it needs the z-index, since the
+   popup inside it can't escape the positioner's stacking context. */
+.tlui-menu__positioner,
+.tlui-select__positioner,
+.tlui-popover__positioner {
+	z-index: var(--tl-layer-menus);
 }
 
 .tlui-menu {
@@ -689,7 +704,7 @@
 	--gradient-angle: 270deg;
 }
 
-.tlui-menu__submenu__trigger[data-state='open']::after {
+.tlui-menu__submenu__trigger[data-popup-open]::after {
 	opacity: 1;
 	background: linear-gradient(
 		var(--gradient-angle),
@@ -699,7 +714,7 @@
 }
 
 @media (hover: hover) {
-	.tlui-menu__submenu__trigger:is(:hover, [data-state='open'])::after {
+	.tlui-menu__submenu__trigger:is(:hover, [data-popup-open])::after {
 		opacity: 1;
 		background: linear-gradient(
 			var(--gradient-angle),
@@ -743,7 +758,7 @@
 
 .tlui-popover__content {
 	position: relative;
-	max-height: calc(var(--radix-popover-content-available-height) - 8px);
+	max-height: calc(var(--available-height) - 8px);
 	margin: 0px;
 	border: none;
 	border-radius: var(--tl-radius-3);
@@ -770,13 +785,13 @@
 	background-color: var(--tl-color-low);
 }
 
-.tlui-menu-zone *[data-state='open']::after {
+.tlui-menu-zone *[data-popup-open]::after {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	opacity: 1;
 }
 
 @media (hover: hover) {
-	.tlui-menu-zone *[data-state='open']:not(:hover)::after {
+	.tlui-menu-zone *[data-popup-open]:not(:hover)::after {
 		background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 		opacity: 1;
 	}
@@ -980,7 +995,7 @@
 .tlui-page-menu__item:has(.tlui-button:focus-visible)
 	> .tlui-page-menu__item__submenu
 	> .tlui-button,
-.tlui-page-menu__item__submenu > .tlui-button[data-state='open'],
+.tlui-page-menu__item__submenu > .tlui-button[data-popup-open],
 .tlui-page-menu__item__submenu > .tlui-button:focus-visible {
 	opacity: 1;
 }
@@ -1188,7 +1203,7 @@ tldraw? probably.
 	max-width: 100%;
 }
 
-.tlui-style-panel .tlui-button[data-state='open']::after {
+.tlui-style-panel .tlui-button[data-popup-open]::after {
 	opacity: 1;
 	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 }
@@ -1197,7 +1212,7 @@ tldraw? probably.
 	.tlui-style-panel .tlui-button[aria-expanded='true'] {
 		background: none;
 	}
-	.tlui-style-panel .tlui-button[data-state='open']:not(:hover)::after {
+	.tlui-style-panel .tlui-button[data-popup-open]:not(:hover)::after {
 		opacity: 1;
 		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	}
@@ -1424,11 +1439,11 @@ tldraw? probably.
 	padding: 0px;
 }
 
-.tlui-main-toolbar--horizontal *[data-state='open']::after {
+.tlui-main-toolbar--horizontal *[data-popup-open]::after {
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	opacity: 1;
 }
-.tlui-main-toolbar--vertical *[data-state='open']::after {
+.tlui-main-toolbar--vertical *[data-popup-open]::after {
 	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	opacity: 1;
 }
@@ -1464,11 +1479,11 @@ tldraw? probably.
 }
 
 @media (hover: hover) {
-	.tlui-main-toolbar--horizontal *[data-state='open']:not(:hover)::after {
+	.tlui-main-toolbar--horizontal *[data-popup-open]:not(:hover)::after {
 		background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 		opacity: 1;
 	}
-	.tlui-main-toolbar--vertical *[data-state='open']:not(:hover)::after {
+	.tlui-main-toolbar--vertical *[data-popup-open]:not(:hover)::after {
 		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 		opacity: 1;
 	}
@@ -1491,12 +1506,40 @@ tldraw? probably.
 }
 
 .tlui-tooltip__arrow {
+	display: block;
+	width: 10px;
+	height: 5px;
 	fill: var(--tl-color-tooltip);
 	will-change: opacity;
 }
 
-[data-radix-popper-content-wrapper]:has(.tlui-tooltip) {
-	z-index: var(--tl-layer-toasts) !important;
+.tlui-tooltip__arrow svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.tlui-tooltip__arrow[data-side='top'] {
+	bottom: -5px;
+}
+
+.tlui-tooltip__arrow[data-side='bottom'] {
+	top: -5px;
+	rotate: 180deg;
+}
+
+.tlui-tooltip__arrow[data-side='left'] {
+	right: -7.5px;
+	rotate: -90deg;
+}
+
+.tlui-tooltip__arrow[data-side='right'] {
+	left: -7.5px;
+	rotate: 90deg;
+}
+
+.tlui-tooltip__positioner {
+	z-index: var(--tl-layer-toasts);
 	pointer-events: none;
 }
 
@@ -1646,37 +1689,32 @@ tldraw? probably.
 }
 
 @media (prefers-reduced-motion: no-preference) {
-	.tlui-toast__container[data-state='open'] {
+	.tlui-toast__container {
 		animation: tlui-slide-in 200ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
+		transition:
+			transform 200ms ease-out,
+			opacity 100ms ease-in;
 	}
 
-	.tlui-toast__container[data-state='closed'] {
-		animation: tlui-fade-out 100ms ease-in;
+	/* While swiping, Base UI positions the toast with an inline transform. */
+	.tlui-toast__container[data-swiping] {
+		transition: none;
 	}
 
-	.tlui-toast__container[data-swipe='move'] {
-		transform: translateX(var(--radix-toast-swipe-move-x));
+	.tlui-toast__container[data-ending-style] {
+		opacity: 0;
 	}
 
-	.tlui-toast__container[data-swipe='cancel'] {
-		transform: translateX(0);
-		transition: transform 200ms ease-out;
+	.tlui-toast__container[data-ending-style][data-swipe-direction='right'] {
+		transform: translateX(100%);
 	}
 
-	.tlui-toast__container[data-swipe='end'] {
-		animation: tlui-slide-out 100ms ease-out;
+	.tlui-toast__container[data-ending-style][data-swipe-direction='left'] {
+		transform: translateX(-100%);
 	}
 
-	.tl-container[dir='rtl'] .tlui-toast__container[data-state='open'] {
+	.tl-container[dir='rtl'] .tlui-toast__container {
 		animation: tlui-slide-in-rtl 200ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
-	}
-
-	.tl-container[dir='rtl'] .tlui-toast__container[data-state='closed'] {
-		animation: tlui-fade-out 100ms ease-in;
-	}
-
-	.tl-container[dir='rtl'] .tlui-toast__container[data-swipe='end'] {
-		animation: tlui-slide-out-rtl 100ms ease-out;
 	}
 }
 
@@ -2011,7 +2049,7 @@ tldraw? probably.
 	margin-inline-start: -12px;
 }
 
-.tlui-people-menu__avatars-button[data-state='open'] {
+.tlui-people-menu__avatars-button[data-popup-open] {
 	opacity: 1;
 }
 
@@ -2264,15 +2302,6 @@ tldraw? probably.
 }
 
 /* ------------------- Animations ------------------- */
-@keyframes tlui-fade-out {
-	0% {
-		opacity: 1;
-	}
-	100% {
-		opacity: 0;
-	}
-}
-
 @keyframes tlui-slide-in {
 	from {
 		transform: translateX(calc(100% + var(--tl-space-3)));
@@ -2282,29 +2311,11 @@ tldraw? probably.
 	}
 }
 
-@keyframes tlui-slide-out {
-	from {
-		transform: translateX(var(--radix-toast-swipe-end-x));
-	}
-	to {
-		transform: translateX(calc(100% + var(--tl-space-3)));
-	}
-}
-
 @keyframes tlui-slide-in-rtl {
 	from {
 		transform: translateX(calc(-100% - var(--tl-space-3)));
 	}
 	to {
 		transform: translateX(0px);
-	}
-}
-
-@keyframes tlui-slide-out-rtl {
-	from {
-		transform: translateX(var(--radix-toast-swipe-end-x));
-	}
-	to {
-		transform: translateX(calc(-100% - var(--tl-space-3)));
 	}
 }

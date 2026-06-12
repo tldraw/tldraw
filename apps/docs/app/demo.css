@@ -2,6 +2,6 @@
 @import url('tldraw/tldraw.css');
 
 .tl-container {
-	/* need to set up a stacking context within the editor to avoid the docs header being underneath the radix menus */
+	/* need to set up a stacking context within the editor to avoid the docs header being underneath the editor's popup menus */
 	z-index: 1;
 }

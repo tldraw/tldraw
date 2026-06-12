@@ -136,13 +136,13 @@
 	opacity: 0;
 }
 
-/* need to target the parent div, ugh, can't target via a className */
-div:has(> .menuSelectContent) {
+.menuSelectPositioner {
 	position: absolute !important;
-	top: 17px;
-	right: -8px;
+	top: 17px !important;
+	right: -8px !important;
 	left: auto !important;
-	z-index: 2 !important;
+	transform: none !important;
+	z-index: 2;
 }
 
 .menuSelectContent {
@@ -213,16 +213,12 @@ div:has(> .menuSelectContent) {
 	display: none;
 }
 
-[data-radix-focus-guard] {
-	inset: 0;
-}
-
 .menuSelectTrigger:focus-visible {
 	outline-offset: 2px;
 	border-radius: 2px;
 }
 
-.menuSelectTrigger[data-state='open']::after {
+.menuSelectTrigger[data-popup-open]::after {
 	opacity: 1;
 }
 

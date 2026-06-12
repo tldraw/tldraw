@@ -2590,7 +2590,7 @@ export interface MatModel {
 export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
 
 // @public
-export function MenuClickCapture(): false | JSX.Element;
+export function MenuClickCapture(): JSX.Element;
 
 // @internal
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {

@@ -1,5 +1,7 @@
+import { Toggle as _Toggle } from '@base-ui/react/toggle'
+import { ToggleGroup as _ToggleGroup } from '@base-ui/react/toggle-group'
+import { Toolbar as _Toolbar } from '@base-ui/react/toolbar'
 import classnames from 'classnames'
-import { Toolbar as _Toolbar } from 'radix-ui'
 import React from 'react'
 import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow } from './layout'
 import { TldrawUiTooltip } from './TldrawUiTooltip'
@@ -67,7 +69,7 @@ export const TldrawUiToolbarButton = React.forwardRef<HTMLButtonElement, TLUiToo
 		const button = (
 			<_Toolbar.Button
 				ref={ref}
-				asChild={asChild}
+				render={asChild ? (children as React.ReactElement) : undefined}
 				draggable={false}
 				data-isactive={isActive}
 				{...props}
@@ -76,7 +78,7 @@ export const TldrawUiToolbarButton = React.forwardRef<HTMLButtonElement, TLUiToo
 				title={undefined}
 				className={classnames('tlui-button', `tlui-button__${type}`, props.className)}
 			>
-				{children}
+				{asChild ? undefined : children}
 			</_Toolbar.Button>
 		)
 
@@ -98,27 +100,35 @@ export interface TLUiToolbarToggleGroupProps extends React.HTMLAttributes<HTMLDi
 	asChild?: boolean
 }
 
+// Base UI's ToggleGroup always represents its value as an array, where Radix used a plain
+// string for `type="single"` groups.
+function toToggleGroupValue(value: any): string[] | undefined {
+	if (value === undefined) return undefined
+	if (value === null) return []
+	return Array.isArray(value) ? value : [value]
+}
+
 /** @public @react */
 export function TldrawUiToolbarToggleGroup({
 	children,
 	className,
 	type,
 	asChild,
+	value,
+	defaultValue,
 	...props
 }: TLUiToolbarToggleGroupProps) {
 	return (
-		<_Toolbar.ToggleGroup
-			asChild={asChild}
-			type={type}
+		<_ToggleGroup
+			render={asChild ? (children as React.ReactElement) : undefined}
+			multiple={type === 'multiple'}
+			value={toToggleGroupValue(value)}
+			defaultValue={toToggleGroupValue(defaultValue)}
 			{...props}
-			// TODO: this fixes a bug in Radix until they fix it.
-			// https://github.com/radix-ui/primitives/issues/3188
-			// https://github.com/radix-ui/primitives/pull/3189
-			role="radiogroup"
 			className={classnames('tlui-toolbar-toggle-group', className)}
 		>
-			{children}
-		</_Toolbar.ToggleGroup>
+			{asChild ? undefined : children}
+		</_ToggleGroup>
 	)
 }
 
@@ -141,7 +151,8 @@ export function TldrawUiToolbarToggleItem({
 	...props
 }: TLUiToolbarToggleItemProps) {
 	const toggleItem = (
-		<_Toolbar.ToggleItem
+		<_Toolbar.Button
+			render={<_Toggle value={value} />}
 			{...props}
 			// The tooltip takes care of this.
 			title={undefined}
@@ -151,10 +162,9 @@ export function TldrawUiToolbarToggleItem({
 				'tlui-toolbar-toggle-group-item',
 				className
 			)}
-			value={value}
 		>
 			{children}
-		</_Toolbar.ToggleItem>
+		</_Toolbar.Button>
 	)
 
 	const tooltipContent = tooltip || props.title

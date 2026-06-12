@@ -40,6 +40,7 @@
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
+		"@base-ui/react": "^1.5.0",
 		"@dimforge/rapier2d-compat": "^0.19.3",
 		"@playwright/test": "^1.58.2",
 		"@tiptap/core": "^3.12.1",
@@ -63,7 +64,6 @@
 		"mermaid": "11.12.2",
 		"pdf-lib": "^1.17.1",
 		"pdfjs-dist": "^4.10.38",
-		"radix-ui": "^1.4.2",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-helmet-async": "^1.3.0",

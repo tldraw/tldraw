@@ -1,6 +1,14 @@
+import { useRender } from '@base-ui/react/use-render'
 import classNames from 'classnames'
-import { Slot } from 'radix-ui'
-import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext } from 'react'
+import {
+	HTMLAttributes,
+	ReactElement,
+	ReactNode,
+	Ref,
+	createContext,
+	forwardRef,
+	useContext,
+} from 'react'
 
 /** @public */
 export interface TldrawUiOrientationContext {
@@ -58,17 +66,36 @@ export interface TLUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
 	asChild?: boolean
 }
 
+// When `asChild` is set, the single child element is rendered with the layout props merged
+// onto it (the Radix Slot pattern, implemented with Base UI's useRender).
+function useLayoutElement(
+	layoutClassName: string,
+	{ asChild, className, children, ...props }: Omit<TLUiLayoutProps, 'tooltipSide'>,
+	ref: Ref<HTMLDivElement>
+) {
+	const mergedProps: Record<string, unknown> = {
+		...props,
+		className: classNames(layoutClassName, className),
+	}
+	if (!asChild) mergedProps.children = children
+	return useRender({
+		render: asChild ? (children as ReactElement) : undefined,
+		ref,
+		props: mergedProps,
+	})
+}
+
 /**
  * A row, usually of UI controls like buttons, select dropdown, checkboxes, etc.
  *
  * @public @react
  */
 export const TldrawUiRow = forwardRef<HTMLDivElement, TLUiLayoutProps>(
-	({ asChild, className, tooltipSide, ...props }, ref) => {
-		const Component = asChild ? Slot.Root : 'div'
+	({ tooltipSide, ...props }, ref) => {
+		const element = useLayoutElement('tlui-row', props, ref)
 		return (
 			<TldrawUiOrientationProvider orientation="horizontal" tooltipSide={tooltipSide}>
-				<Component ref={ref} className={classNames('tlui-row', className)} {...props} />
+				{element}
 			</TldrawUiOrientationProvider>
 		)
 	}
@@ -80,11 +107,11 @@ export const TldrawUiRow = forwardRef<HTMLDivElement, TLUiLayoutProps>(
  * @public @react
  */
 export const TldrawUiColumn = forwardRef<HTMLDivElement, TLUiLayoutProps>(
-	({ asChild, className, tooltipSide, ...props }, ref) => {
-		const Component = asChild ? Slot.Root : 'div'
+	({ tooltipSide, ...props }, ref) => {
+		const element = useLayoutElement('tlui-column', props, ref)
 		return (
 			<TldrawUiOrientationProvider orientation="vertical" tooltipSide={tooltipSide}>
-				<Component ref={ref} className={classNames('tlui-column', className)} {...props} />
+				{element}
 			</TldrawUiOrientationProvider>
 		)
 	}
@@ -96,11 +123,11 @@ export const TldrawUiColumn = forwardRef<HTMLDivElement, TLUiLayoutProps>(
  *
  * @public @react */
 export const TldrawUiGrid = forwardRef<HTMLDivElement, TLUiLayoutProps>(
-	({ asChild, className, tooltipSide, ...props }, ref) => {
-		const Component = asChild ? Slot.Root : 'div'
+	({ tooltipSide, ...props }, ref) => {
+		const element = useLayoutElement('tlui-grid', props, ref)
 		return (
 			<TldrawUiOrientationProvider orientation="horizontal" tooltipSide={tooltipSide}>
-				<Component ref={ref} className={classNames('tlui-grid', className)} {...props} />
+				{element}
 			</TldrawUiOrientationProvider>
 		)
 	}

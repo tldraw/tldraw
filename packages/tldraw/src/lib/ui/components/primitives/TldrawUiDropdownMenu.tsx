@@ -1,7 +1,7 @@
+import { Menu as _Menu } from '@base-ui/react/menu'
 import { preventDefault, useContainer } from '@tldraw/editor'
 import classNames from 'classnames'
-import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { ReactNode } from 'react'
+import { ReactElement, ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './Button/TldrawUiButton'
@@ -25,17 +25,11 @@ export function TldrawUiDropdownMenuRoot({
 	debugOpen = false,
 }: TLUiDropdownMenuRootProps) {
 	const [open, onOpenChange] = useMenuIsOpen(id)
-	const dir = useDirection()
 
 	return (
-		<_DropdownMenu.Root
-			open={debugOpen || open}
-			dir={dir}
-			modal={modal}
-			onOpenChange={onOpenChange}
-		>
+		<_Menu.Root open={debugOpen || open} modal={modal} onOpenChange={onOpenChange}>
 			{children}
-		</_DropdownMenu.Root>
+		</_Menu.Root>
 	)
 }
 
@@ -46,17 +40,13 @@ export interface TLUiDropdownMenuTriggerProps {
 
 /** @public @react */
 export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps) {
-	const dir = useDirection()
 	return (
-		<_DropdownMenu.Trigger
-			dir={dir}
-			asChild
+		<_Menu.Trigger
+			render={children as ReactElement}
 			// Firefox fix: Stop the dropdown immediately closing after touch
 			onTouchEnd={(e) => preventDefault(e)}
 			{...rest}
-		>
-			{children}
-		</_DropdownMenu.Trigger>
+		/>
 	)
 }
 
@@ -83,18 +73,18 @@ export function TldrawUiDropdownMenuContent({
 	const container = useContainer()
 
 	return (
-		<_DropdownMenu.Portal container={container}>
-			<_DropdownMenu.Content
-				className={classNames('tlui-menu', className)}
+		<_Menu.Portal container={container}>
+			<_Menu.Positioner
+				className="tlui-menu__positioner"
 				side={side}
 				sideOffset={sideOffset}
 				align={align}
 				alignOffset={alignOffset}
 				collisionPadding={4}
 			>
-				{children}
-			</_DropdownMenu.Content>
-		</_DropdownMenu.Portal>
+				<_Menu.Popup className={classNames('tlui-menu', className)}>{children}</_Menu.Popup>
+			</_Menu.Positioner>
+		</_Menu.Portal>
 	)
 }
 
@@ -109,9 +99,9 @@ export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubPro
 	const [open, onOpenChange] = useMenuIsOpen(id)
 
 	return (
-		<_DropdownMenu.Sub open={open} onOpenChange={onOpenChange}>
+		<_Menu.SubmenuRoot open={open} onOpenChange={onOpenChange}>
 			{children}
-		</_DropdownMenu.Sub>
+		</_Menu.SubmenuRoot>
 	)
 }
 
@@ -132,18 +122,22 @@ export function TldrawUiDropdownMenuSubTrigger({
 }: TLUiDropdownMenuSubTriggerProps) {
 	const dir = useDirection()
 	return (
-		<_DropdownMenu.SubTrigger dir={dir} asChild disabled={disabled}>
-			<TldrawUiButton
-				data-testid={id}
-				type="menu"
-				className="tlui-menu__submenu__trigger"
-				disabled={disabled}
-				title={title}
-			>
-				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
-				<TldrawUiButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
-			</TldrawUiButton>
-		</_DropdownMenu.SubTrigger>
+		<_Menu.SubmenuTrigger
+			disabled={disabled}
+			nativeButton
+			render={
+				<TldrawUiButton
+					data-testid={id}
+					type="menu"
+					className="tlui-menu__submenu__trigger"
+					disabled={disabled}
+					title={title}
+				>
+					<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+					<TldrawUiButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
+				</TldrawUiButton>
+			}
+		/>
 	)
 }
 
@@ -166,18 +160,22 @@ export function TldrawUiDropdownMenuSubContent({
 }: TLUiDropdownMenuSubContentProps) {
 	const container = useContainer()
 	return (
-		<_DropdownMenu.Portal container={container}>
-			<_DropdownMenu.SubContent
-				data-testid={id}
-				className="tlui-menu tlui-menu__submenu__content"
+		<_Menu.Portal container={container}>
+			<_Menu.Positioner
+				className="tlui-menu__positioner"
 				alignOffset={alignOffset}
 				sideOffset={sideOffset}
 				collisionPadding={4}
-				data-size={size}
 			>
-				{children}
-			</_DropdownMenu.SubContent>
-		</_DropdownMenu.Portal>
+				<_Menu.Popup
+					data-testid={id}
+					className="tlui-menu tlui-menu__submenu__content"
+					data-size={size}
+				>
+					{children}
+				</_Menu.Popup>
+			</_Menu.Positioner>
+		</_Menu.Portal>
 	)
 }
 
@@ -200,12 +198,9 @@ export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownM
 /** @public @react */
 export function TldrawUiDropdownMenuIndicator() {
 	const msg = useTranslation()
-	const dir = useDirection()
 
 	return (
-		<_DropdownMenu.ItemIndicator dir={dir} asChild>
-			<TldrawUiIcon label={msg('ui.checked')} icon="check" />
-		</_DropdownMenu.ItemIndicator>
+		<_Menu.CheckboxItemIndicator render={<TldrawUiIcon label={msg('ui.checked')} icon="check" />} />
 	)
 }
 
@@ -217,12 +212,8 @@ export interface TLUiDropdownMenuItemProps {
 
 /** @public @react */
 export function TldrawUiDropdownMenuItem({ noClose, children }: TLUiDropdownMenuItemProps) {
-	const dir = useDirection()
-	return (
-		<_DropdownMenu.Item dir={dir} asChild onClick={noClose ? preventDefault : undefined}>
-			{children}
-		</_DropdownMenu.Item>
-	)
+	// Menu items in tldraw render buttons, so let Base UI know to use native button semantics.
+	return <_Menu.Item render={children as ReactElement} closeOnClick={!noClose} nativeButton />
 }
 
 /** @public */
@@ -241,24 +232,22 @@ export function TldrawUiDropdownMenuCheckboxItem({
 	...rest
 }: TLUiDropdownMenuCheckboxItemProps) {
 	const msg = useTranslation()
-	const dir = useDirection()
 
 	return (
-		<_DropdownMenu.CheckboxItem
-			dir={dir}
+		<_Menu.CheckboxItem
 			className="tlui-button tlui-button__menu tlui-button__checkbox"
-			onSelect={(e) => {
-				onSelect?.(e)
-				preventDefault(e)
+			onClick={(e) => {
+				onSelect?.(e.nativeEvent)
 			}}
+			closeOnClick={false}
 			{...rest}
 		>
 			<div className="tlui-button__checkbox__indicator">
-				<_DropdownMenu.ItemIndicator dir={dir}>
+				<_Menu.CheckboxItemIndicator>
 					<TldrawUiIcon label={msg('ui.checked')} icon="check" small />
-				</_DropdownMenu.ItemIndicator>
+				</_Menu.CheckboxItemIndicator>
 			</div>
 			{children}
-		</_DropdownMenu.CheckboxItem>
+		</_Menu.CheckboxItem>
 	)
 }

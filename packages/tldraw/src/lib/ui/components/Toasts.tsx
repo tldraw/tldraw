@@ -1,6 +1,6 @@
+import { Toast as _Toast } from '@base-ui/react/toast'
 import { useValue } from '@tldraw/editor'
-import { Toast as _Toast } from 'radix-ui'
-import { memo } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import { AlertSeverity, TLUiToast, useToasts } from '../context/toasts'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
@@ -17,16 +17,12 @@ const SEVERITY_TO_ICON: { [msg in AlertSeverity]: TLUiIconType } = {
 	info: 'info-circle',
 }
 
+type ManagedToast = ReturnType<typeof _Toast.useToastManager>['toasts'][number]
+
 /** @internal */
-function TldrawUiToast({ toast }: { toast: TLUiToast }) {
+function TldrawUiToast({ toast, managedToast }: { toast: TLUiToast; managedToast: ManagedToast }) {
 	const { removeToast } = useToasts()
 	const msg = useTranslation()
-
-	const onOpenChange = (isOpen: boolean) => {
-		if (!isOpen) {
-			removeToast(toast.id)
-		}
-	}
 
 	const hasActions = toast.actions && toast.actions.length > 0
 
@@ -35,9 +31,9 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 
 	return (
 		<_Toast.Root
-			onOpenChange={onOpenChange}
+			toast={managedToast}
 			className="tlui-toast__container"
-			duration={toast.keepOpen ? Infinity : DEFAULT_TOAST_DURATION}
+			swipeDirection="right"
 			data-severity={toast.severity}
 		>
 			{icon && (
@@ -62,29 +58,35 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 				{toast.actions && (
 					<div className="tlui-toast__actions">
 						{toast.actions.map((action, i) => (
-							<_Toast.Action key={i} altText={action.label} asChild onClick={action.onClick}>
-								<TldrawUiButton type={action.type}>
-									<TldrawUiButtonLabel>{action.label}</TldrawUiButtonLabel>
-								</TldrawUiButton>
+							<_Toast.Action
+								key={i}
+								render={<TldrawUiButton type={action.type} />}
+								onClick={() => {
+									action.onClick()
+									// closing after the action ran matches the previous behavior
+									removeToast(toast.id)
+								}}
+							>
+								<TldrawUiButtonLabel>{action.label}</TldrawUiButtonLabel>
 							</_Toast.Action>
 						))}
-						<_Toast.Close asChild>
-							<TldrawUiButton
-								type="normal"
-								className="tlui-toast__close"
-								style={{ marginLeft: 'auto' }}
-							>
-								<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
-							</TldrawUiButton>
+						<_Toast.Close
+							render={
+								<TldrawUiButton
+									type="normal"
+									className="tlui-toast__close"
+									style={{ marginLeft: 'auto' }}
+								/>
+							}
+						>
+							<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
 						</_Toast.Close>
 					</div>
 				)}
 			</div>
 			{!hasActions && (
-				<_Toast.Close asChild>
-					<TldrawUiButton type="normal" className="tlui-toast__close">
-						<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
-					</TldrawUiButton>
+				<_Toast.Close render={<TldrawUiButton type="normal" className="tlui-toast__close" />}>
+					<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
 				</_Toast.Close>
 			)}
 		</_Toast.Root>
@@ -93,14 +95,49 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 
 /** @public @react */
 export const DefaultToasts = memo(function TldrawUiToasts() {
-	const { toasts } = useToasts()
+	const { toasts, removeToast } = useToasts()
 	const toastsArray = useValue('toasts', () => toasts.get(), [])
+	const toastManager = _Toast.useToastManager()
+
+	// Mirror tldraw's toast list into the Base UI toast manager, which owns timers,
+	// swiping, and dismissal.
+	const syncedIdsRef = useRef(new Set<string>())
+	useEffect(() => {
+		const syncedIds = syncedIdsRef.current
+		for (const toast of toastsArray) {
+			const options = {
+				data: toast,
+				timeout: toast.keepOpen ? 0 : DEFAULT_TOAST_DURATION,
+				onClose: () => removeToast(toast.id),
+			}
+			if (!syncedIds.has(toast.id)) {
+				syncedIds.add(toast.id)
+				toastManager.add({ id: toast.id, ...options })
+			} else {
+				toastManager.update(toast.id, options)
+			}
+		}
+		for (const managed of toastManager.toasts) {
+			if (!toastsArray.some((t) => t.id === managed.id)) {
+				toastManager.close(managed.id)
+			}
+		}
+		for (const id of [...syncedIds]) {
+			if (!toastsArray.some((t) => t.id === id)) {
+				syncedIds.delete(id)
+			}
+		}
+	}, [toastsArray, toastManager, removeToast])
+
 	return (
-		<>
-			{toastsArray.map((toast) => (
-				<TldrawUiToast key={toast.id} toast={toast} />
+		<_Toast.Viewport className="tlui-toast__viewport">
+			{toastManager.toasts.map((managedToast) => (
+				<TldrawUiToast
+					key={managedToast.id}
+					toast={managedToast.data as TLUiToast}
+					managedToast={managedToast}
+				/>
 			))}
-			<_Toast.ToastViewport className="tlui-toast__viewport" />
-		</>
+		</_Toast.Viewport>
 	)
 })

@@ -1,4 +1,4 @@
-import { Dialog, VisuallyHidden } from 'radix-ui'
+import { Dialog } from '@base-ui/react/dialog'
 import { useCallback, useMemo, useState } from 'react'
 import {
 	TldrawUiButton,
@@ -72,6 +72,8 @@ function OnCanvasComponentPickerDialog({
 	])
 	const shouldRender = !!location
 	const [container, setContainer] = useState<HTMLDivElement | null>(null)
+	// In-place portal target so the dialog stays in the editor's in-front-of-canvas layer
+	const [portalNode, setPortalNode] = useState<HTMLDivElement | null>(null)
 	// Allow wheel events to pass through to the canvas
 	usePassThroughWheelEvents(useMemo(() => ({ current: container }), [container]))
 
@@ -110,28 +112,33 @@ function OnCanvasComponentPickerDialog({
 	)
 
 	return (
-		<Dialog.Root
-			open={shouldRender}
-			modal={false}
-			onOpenChange={(isOpen) => {
-				if (!isOpen) onClose()
-			}}
-		>
-			<Dialog.Content
-				ref={setContainer}
-				className={`OnCanvasComponentPicker OnCanvasComponentPicker_${location}`}
-				style={{ width: NODE_WIDTH_PX }}
+		<>
+			<div ref={setPortalNode} />
+			<Dialog.Root
+				open={shouldRender}
+				modal={false}
+				onOpenChange={(isOpen) => {
+					if (!isOpen) onClose()
+				}}
 			>
-				<div className="OnCanvasComponentPicker-content">
-					<VisuallyHidden.Root>
-						<Dialog.Title>Insert Node</Dialog.Title>
-					</VisuallyHidden.Root>
-					<TldrawUiMenuContextProvider sourceId="dialog" type="menu">
-						{children}
-					</TldrawUiMenuContextProvider>
-				</div>
-			</Dialog.Content>
-		</Dialog.Root>
+				{portalNode && (
+					<Dialog.Portal container={portalNode}>
+						<Dialog.Popup
+							ref={setContainer}
+							className={`OnCanvasComponentPicker OnCanvasComponentPicker_${location}`}
+							style={{ width: NODE_WIDTH_PX }}
+						>
+							<div className="OnCanvasComponentPicker-content">
+								<Dialog.Title className="sr-only">Insert Node</Dialog.Title>
+								<TldrawUiMenuContextProvider sourceId="dialog" type="menu">
+									{children}
+								</TldrawUiMenuContextProvider>
+							</div>
+						</Dialog.Popup>
+					</Dialog.Portal>
+				)}
+			</Dialog.Root>
+		</>
 	)
 }
 

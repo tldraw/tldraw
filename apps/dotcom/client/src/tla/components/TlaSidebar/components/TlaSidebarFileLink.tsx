@@ -1,6 +1,6 @@
+import { ContextMenu as _ContextMenu } from '@base-ui/react/context-menu'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { KeyboardEvent, MouseEvent, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -8,6 +8,7 @@ import {
 	TldrawUiTooltip,
 	isEqual,
 	preventDefault,
+	useContainer,
 	useMaybeEditor,
 	useMenuIsOpen,
 	useValue,
@@ -98,9 +99,10 @@ export function TlaSidebarFileLink({
 	}
 
 	const [_, handleOpenChange] = useMenuIsOpen(`file-context-menu-${fileId}`)
+	const container = useContainer()
 
 	return (
-		<_ContextMenu.Root onOpenChange={handleOpenChange} modal={false}>
+		<_ContextMenu.Root onOpenChange={handleOpenChange}>
 			<_ContextMenu.Trigger>
 				<TlaSidebarFileLinkInner
 					fileId={fileId}
@@ -116,19 +118,23 @@ export function TlaSidebarFileLink({
 					className={className}
 				/>
 			</_ContextMenu.Trigger>
-			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
-				{/* Don't show the context menu on mobile */}
-				{!isMobile && (
-					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-						<FileItems
-							source="sidebar-context-menu"
-							fileId={fileId}
-							onRenameAction={handleRenameAction}
-							workspaceId={workspaceId}
-						/>
-					</TldrawUiMenuContextProvider>
-				)}
-			</_ContextMenu.Content>
+			<_ContextMenu.Portal container={container}>
+				<_ContextMenu.Positioner className="tlui-menu__positioner" collisionPadding={4}>
+					<_ContextMenu.Popup className="tlui-menu tlui-scrollable">
+						{/* Don't show the context menu on mobile */}
+						{!isMobile && (
+							<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+								<FileItems
+									source="sidebar-context-menu"
+									fileId={fileId}
+									onRenameAction={handleRenameAction}
+									workspaceId={workspaceId}
+								/>
+							</TldrawUiMenuContextProvider>
+						)}
+					</_ContextMenu.Popup>
+				</_ContextMenu.Positioner>
+			</_ContextMenu.Portal>
 		</_ContextMenu.Root>
 	)
 }
