@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { ReactNode, useCallback, useRef } from 'react'
+import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TldrawUiMenuContextProvider, useDialogs, useMenuIsOpen, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
@@ -79,37 +79,25 @@ function TlaSidebarWorkspaceListItem({
 		[app, workspaceId, isActive]
 	)
 
-	// Guards against repeated activation (double-click, key autorepeat) creating
-	// multiple files while the first creation is still in flight.
-	const isCreatingFile = useRef(false)
-
 	const handleClick = useCallback(async () => {
 		const files = app.getWorkspaceFilesSorted(workspaceId)
 		if (files.length) {
 			navigate(routes.tlaFile(files[0]!.fileId))
 			return
 		}
-		if (isCreatingFile.current) return
-		isCreatingFile.current = true
-		try {
-			// Empty space: create a file in it and open that, so selecting a space
-			// always lands you on a file within it. A workspace's first file is the
-			// seeded welcome canvas; it arrives named, so it skips the inline rename
-			// that blank files get. The home space gets a regular blank file.
-			const res = isHome
-				? await app.createFile({ workspaceId })
-				: await app.createWorkspaceFile(workspaceId)
-			if (res.ok) {
-				if (isHome && !getIsCoarsePointer()) {
-					app.sidebarState.update((prev) => ({
-						...prev,
-						renameState: { fileId: res.value.fileId, workspaceId },
-					}))
-				}
-				navigate(routes.tlaFile(res.value.fileId))
+		// Empty space: create its first file and open it, so selecting a space always lands
+		// you on a file. The welcome file arrives named, so only the home space's blank file
+		// gets the inline rename. createWorkspaceFirstFile dedupes against the creation flow's
+		// seed and rapid re-clicks, returning null when another caller is already creating it.
+		const res = await app.createWorkspaceFirstFile(workspaceId)
+		if (res?.ok) {
+			if (isHome && !getIsCoarsePointer()) {
+				app.sidebarState.update((prev) => ({
+					...prev,
+					renameState: { fileId: res.value.fileId, workspaceId },
+				}))
 			}
-		} finally {
-			isCreatingFile.current = false
+			navigate(routes.tlaFile(res.value.fileId))
 		}
 	}, [app, workspaceId, navigate, isHome])
 

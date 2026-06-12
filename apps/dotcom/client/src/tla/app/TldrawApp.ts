@@ -649,17 +649,46 @@ export class TldrawApp {
 		return this.getFileState(fileId)?.isPinned ?? false
 	}
 
+	// Workspace ids whose first file is currently being created. A new workspace's
+	// `createWorkspace` mutation lands (and the workspace shows in the sidebar) before its
+	// first file's mutation does, so the workspace is briefly visible with zero files. Two
+	// paths race to seed that first file: the creation flow (`createWorkspace`, kicked off by
+	// the create dialog, which closes without awaiting it) and a click on the apparently
+	// empty workspace row. Both read the same zero-file state, so without coordination both
+	// create a file and the workspace ends up with two welcome files. An id is added here
+	// synchronously before the file mutation starts, so the second caller sees it and backs
+	// off. (Same-client only; this does not coordinate across tabs or users.)
+	private readonly workspacesSeedingFirstFile = new Set<string>()
+
 	/**
-	 * Create the seeded first file of a workspace: a welcome canvas that introduces
-	 * workspaces (see the sync worker's new-workspace template). It arrives named, and is
-	 * otherwise an ordinary file.
+	 * Create the first file of an empty workspace, at most once per workspace even when the
+	 * creation flow and a click on the (briefly) empty workspace race. The home workspace
+	 * gets a blank file; other workspaces get the seeded welcome canvas (the sync worker's
+	 * new-workspace template), which arrives named. Resolves to `null` when another caller is
+	 * already seeding this workspace's first file.
 	 */
-	async createWorkspaceFile(workspaceId: string) {
-		return await this.createFile({
-			workspaceId,
-			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
-			createSource: `${TEMPLATE_PREFIX}/${NEW_WORKSPACE_TEMPLATE_ID}`,
-		})
+	async createWorkspaceFirstFile(
+		workspaceId: string
+	): Promise<Result<
+		{ fileId: string },
+		'max number of files reached' | 'mutation rejected'
+	> | null> {
+		if (this.workspacesSeedingFirstFile.has(workspaceId)) return null
+		this.workspacesSeedingFirstFile.add(workspaceId)
+		try {
+			const isHome = workspaceId === this.getHomeWorkspaceId()
+			return await this.createFile(
+				isHome
+					? { workspaceId }
+					: {
+							workspaceId,
+							name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+							createSource: `${TEMPLATE_PREFIX}/${NEW_WORKSPACE_TEMPLATE_ID}`,
+						}
+			)
+		} finally {
+			this.workspacesSeedingFirstFile.delete(workspaceId)
+		}
 	}
 
 	/**
@@ -681,8 +710,8 @@ export class TldrawApp {
 			this.showMutationRejectionToast((e as Error).message as ZErrorCode)
 			return Result.err('failed')
 		}
-		const res = await this.createWorkspaceFile(workspaceId)
-		return Result.ok({ workspaceId, fileId: res.ok ? res.value.fileId : null })
+		const res = await this.createWorkspaceFirstFile(workspaceId)
+		return Result.ok({ workspaceId, fileId: res?.ok ? res.value.fileId : null })
 	}
 
 	async createFile({
