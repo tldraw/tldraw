@@ -1,9 +1,8 @@
+import { Select as _Select } from '@base-ui/react/select'
 import { useContainer } from '@tldraw/editor'
 import classNames from 'classnames'
-import { Select as _Select } from 'radix-ui'
 import * as React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { useDirection } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { TldrawUiIcon } from './TldrawUiIcon'
 
@@ -53,16 +52,22 @@ export function TldrawUiSelect({
 	'aria-label': ariaLabel,
 }: TLUiSelectProps) {
 	const [open, handleOpenChange] = useMenuIsOpen(id, onOpenChange)
-	const dir = useDirection()
+
+	const handleValueChange = React.useCallback(
+		(value: string | null) => {
+			if (value !== null) onValueChange(value)
+		},
+		[onValueChange]
+	)
 
 	return (
 		<_Select.Root
 			value={value}
-			onValueChange={onValueChange}
+			onValueChange={handleValueChange}
 			onOpenChange={handleOpenChange}
 			open={open}
 			disabled={disabled}
-			dir={dir}
+			modal={false}
 		>
 			<div
 				id={id}
@@ -123,11 +128,18 @@ export interface TLUiSelectValueProps {
  */
 export function TldrawUiSelectValue({ placeholder, icon, children }: TLUiSelectValueProps) {
 	return (
-		<_Select.Value placeholder={placeholder}>
-			<span className="tlui-select__value">
-				{icon && <TldrawUiIcon icon={icon} label="" small />}
-				<span className="tlui-button__label">{children}</span>
-			</span>
+		<_Select.Value>
+			{(value: string | null) =>
+				// Show the placeholder when nothing is selected, matching the previous behavior.
+				value == null ? (
+					(placeholder ?? null)
+				) : (
+					<span className="tlui-select__value">
+						{icon && <TldrawUiIcon icon={icon} label="" small />}
+						<span className="tlui-button__label">{children}</span>
+					</span>
+				)
+			}
 		</_Select.Value>
 	)
 }
@@ -158,16 +170,18 @@ export function TldrawUiSelectContent({
 
 	return (
 		<_Select.Portal container={container}>
-			<_Select.Content
-				className={classNames('tlui-menu tlui-select__content', className)}
-				position="popper"
+			<_Select.Positioner
+				className="tlui-select__positioner"
+				alignItemWithTrigger={false}
 				side={side}
 				align={align}
 				sideOffset={4}
 				collisionPadding={4}
 			>
-				<_Select.Viewport className="tlui-select__viewport">{children}</_Select.Viewport>
-			</_Select.Content>
+				<_Select.Popup className={classNames('tlui-menu tlui-select__content', className)}>
+					<_Select.List className="tlui-select__viewport">{children}</_Select.List>
+				</_Select.Popup>
+			</_Select.Positioner>
 		</_Select.Portal>
 	)
 }

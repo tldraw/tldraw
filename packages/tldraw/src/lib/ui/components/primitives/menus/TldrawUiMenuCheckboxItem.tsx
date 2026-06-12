@@ -1,10 +1,10 @@
-import { preventDefault } from '@tldraw/editor'
-import { ContextMenu as _ContextMenu, DropdownMenu as _DropdownMenu } from 'radix-ui'
+import { ContextMenu as _ContextMenu } from '@base-ui/react/context-menu'
+import { Menu as _Menu } from '@base-ui/react/menu'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
-import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
@@ -45,7 +45,6 @@ export function TldrawUiMenuCheckboxItem<
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const isReadonlyMode = useReadonly()
 	const msg = useTranslation()
-	const dir = useDirection()
 
 	// If the editor is in readonly mode and the item is not marked as readonlyok, return null
 	if (isReadonlyMode && !readonlyOk) return null
@@ -56,15 +55,14 @@ export function TldrawUiMenuCheckboxItem<
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<_DropdownMenu.CheckboxItem
-					dir={dir}
+				<_Menu.CheckboxItem
 					lang={lang}
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
 					title={labelStr}
-					onSelect={(e) => {
+					onClick={() => {
 						onSelect?.(sourceId)
-						preventDefault(e)
 					}}
+					closeOnClick={false}
 					disabled={disabled}
 					checked={checked}
 				>
@@ -79,7 +77,7 @@ export function TldrawUiMenuCheckboxItem<
 						</span>
 					)}
 					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
-				</_DropdownMenu.CheckboxItem>
+				</_Menu.CheckboxItem>
 			)
 		}
 		case 'context-menu': {
@@ -87,13 +85,12 @@ export function TldrawUiMenuCheckboxItem<
 				<_ContextMenu.CheckboxItem
 					key={id}
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
-					dir={dir}
 					lang={lang}
 					title={labelStr}
-					onSelect={(e) => {
+					onClick={() => {
 						onSelect(sourceId)
-						preventDefault(e)
 					}}
+					closeOnClick={false}
 					disabled={disabled}
 					checked={checked}
 				>

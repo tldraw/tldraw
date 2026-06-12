@@ -1,16 +1,13 @@
+import { Dialog as _Dialog } from '@base-ui/react/dialog'
 import { useContainer, useValue } from '@tldraw/editor'
-import { Dialog as _Dialog } from 'radix-ui'
-import { memo, useCallback, useRef } from 'react'
+import { memo, useCallback } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
-import { useDirection } from '../hooks/useTranslation/useTranslation'
 
 /** @internal */
 const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }: TLUiDialog) => {
 	const { removeDialog } = useDialogs()
-	const mouseDownInsideContentRef = useRef(false)
 
 	const container = useContainer()
-	const dir = useDirection()
 
 	const handleOpenChange = useCallback(
 		(isOpen: boolean) => {
@@ -22,40 +19,21 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 	)
 
 	return (
-		<_Dialog.Root onOpenChange={handleOpenChange} defaultOpen>
+		<_Dialog.Root
+			onOpenChange={handleOpenChange}
+			defaultOpen
+			disablePointerDismissal={preventBackgroundClose}
+		>
 			<_Dialog.Portal container={container}>
-				<_Dialog.Overlay
-					dir={dir}
-					className="tlui-dialog__overlay"
-					onClick={(e) => {
-						// We pressed mouse down inside the content of the dialog then moved the mouse
-						// outside it and let go of the mouse button. This should not close the dialog.
-						if (mouseDownInsideContentRef.current) return
-						// only close if the click is on the overlay itself, ignore bubbling clicks
-						if (!preventBackgroundClose && e.target === e.currentTarget) handleOpenChange(false)
-					}}
-				>
-					<_Dialog.Content
-						dir={dir}
-						className="tlui-dialog__content"
-						aria-describedby={undefined}
-						onMouseDown={() => (mouseDownInsideContentRef.current = true)}
-						onMouseUp={() => (mouseDownInsideContentRef.current = false)}
-						onInteractOutside={(e) => {
-							mouseDownInsideContentRef.current = false
-							if (preventBackgroundClose) {
-								e.preventDefault()
-							}
-						}}
-					>
+				<_Dialog.Viewport className="tlui-dialog__overlay">
+					<_Dialog.Popup className="tlui-dialog__content" aria-describedby={undefined}>
 						<ModalContent
 							onClose={() => {
-								mouseDownInsideContentRef.current = false
 								handleOpenChange(false)
 							}}
 						/>
-					</_Dialog.Content>
-				</_Dialog.Overlay>
+					</_Dialog.Popup>
+				</_Dialog.Viewport>
 			</_Dialog.Portal>
 		</_Dialog.Root>
 	)

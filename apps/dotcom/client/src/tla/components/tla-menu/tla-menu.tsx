@@ -1,5 +1,5 @@
+import { Select as _Select } from '@base-ui/react/select'
 import classNames from 'classnames'
-import { Select as _Select } from 'radix-ui'
 import {
 	ChangeEvent,
 	createContext,
@@ -116,8 +116,10 @@ export function TlaMenuSelect<T extends string>({
 	'data-testid'?: string
 }) {
 	const [isOpen, setIsOpen] = useState(false)
+	const [wrapper, setWrapper] = useState<HTMLDivElement | null>(null)
 	const handleChange = useCallback(
-		(value: string) => {
+		(value: string | null) => {
+			if (value === null) return
 			onChange(value as T)
 		},
 		[onChange]
@@ -130,7 +132,7 @@ export function TlaMenuSelect<T extends string>({
 	useEffect(() => {
 		if (!isOpen) return
 		// Close the select menu when the user clicks outside of it
-		// This is a workaround for an issue in Radix Select when combined with a popper menu.
+		// This is a workaround for an issue with the select when combined with a popper menu.
 		const handlePointerDown = (event: MouseEvent) => {
 			const target = event.target as HTMLElement
 			if (!target.closest(`.${styles.menuSelectContent}`)) {
@@ -146,6 +148,7 @@ export function TlaMenuSelect<T extends string>({
 
 	return (
 		<div
+			ref={setWrapper}
 			className={styles.menuSelectWrapper}
 			onClickCapture={(e) => {
 				e.stopPropagation()
@@ -156,6 +159,8 @@ export function TlaMenuSelect<T extends string>({
 				value={value}
 				onOpenChange={handleOpenChange}
 				onValueChange={handleChange}
+				disabled={disabled}
+				modal={false}
 			>
 				<_Select.Trigger
 					id={id}
@@ -164,29 +169,34 @@ export function TlaMenuSelect<T extends string>({
 					aria-label={label}
 					data-testid={dataTestId}
 				>
-					<_Select.Value asChild>
-						<div className={styles.menuSelectLabel}>{label}</div>
-					</_Select.Value>
+					<div className={styles.menuSelectLabel}>{label}</div>
 					<_Select.Icon>
 						<TlaIcon icon="chevron-down" className={styles.menuSelectChevron} />
 					</_Select.Icon>
 				</_Select.Trigger>
-				<_Select.Content className={styles.menuSelectContent}>
-					<_Select.Viewport>
-						{options.map((option) => (
-							<_Select.Item
-								key={option.value}
-								className={styles.menuSelectOption}
-								value={option.value}
-							>
-								<_Select.ItemIndicator>
-									<TlaIcon icon="check" />
-								</_Select.ItemIndicator>
-								<_Select.ItemText>{option.label}</_Select.ItemText>
-							</_Select.Item>
-						))}
-					</_Select.Viewport>
-				</_Select.Content>
+				{wrapper && (
+					<_Select.Portal container={wrapper}>
+						<_Select.Positioner
+							className={styles.menuSelectPositioner}
+							alignItemWithTrigger={false}
+						>
+							<_Select.Popup className={styles.menuSelectContent}>
+								{options.map((option) => (
+									<_Select.Item
+										key={option.value}
+										className={styles.menuSelectOption}
+										value={option.value}
+									>
+										<_Select.ItemIndicator>
+											<TlaIcon icon="check" />
+										</_Select.ItemIndicator>
+										<_Select.ItemText>{option.label}</_Select.ItemText>
+									</_Select.Item>
+								))}
+							</_Select.Popup>
+						</_Select.Positioner>
+					</_Select.Portal>
+				)}
 			</_Select.Root>
 		</div>
 	)

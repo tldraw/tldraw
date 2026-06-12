@@ -136,13 +136,13 @@
 	visibility: hidden;
 }
 
-.hoverable:has(*[data-state='open'])::after,
+.hoverable:has(*[data-popup-open])::after,
 .hoverable[data-active='true']::after {
 	background-color: var(--tla-color-hover-2);
 	visibility: visible;
 }
 
-.hoverable:has(*[data-state='open']) .collaborator {
+.hoverable:has(*[data-popup-open]) .collaborator {
 	display: none;
 }
 
@@ -394,11 +394,11 @@
 	}
 }
 
-.sidebarUserSettingsTrigger[data-state='open']::after {
+.sidebarUserSettingsTrigger[data-popup-open]::after {
 	visibility: visible;
 }
 
-.sidebarUserSettingsTrigger[data-state='open'] .sidebarUserSettingsIcon {
+.sidebarUserSettingsTrigger[data-popup-open] .sidebarUserSettingsIcon {
 	visibility: visible;
 }
 
@@ -434,7 +434,7 @@
 	}
 }
 
-.sidebarHelpMenuTrigger[data-state='open']::after {
+.sidebarHelpMenuTrigger[data-popup-open]::after {
 	background-color: var(--tla-color-hover-1);
 	visibility: visible;
 }
@@ -621,7 +621,7 @@
 		display: flex;
 	}
 
-	.sidebarFileListItem .sidebarFileListItemMenuTrigger[data-state='open'],
+	.sidebarFileListItem .sidebarFileListItemMenuTrigger[data-popup-open],
 	.sidebarFileListItem:hover .sidebarFileListItemMenuTrigger {
 		visibility: visible;
 		display: flex;
@@ -842,7 +842,7 @@
 	pointer-events: none;
 	position: fixed;
 }
-.sidebarGroupItem[data-state='open'] {
+.sidebarGroupItem[data-open] {
 	margin-bottom: 12px;
 }
 .sidebarGroupItem:has(.sidebarGroupItemHeader:hover)::after,
@@ -998,10 +998,10 @@
 }
 
 /* Only animate when not during group reordering */
-.CollapsibleContent[data-state='open'] {
+.CollapsibleContent[data-open] {
 	animation: slideDown 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-.CollapsibleContent[data-state='closed'] {
+.CollapsibleContent[data-closed] {
 	animation: slideUp 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1010,13 +1010,13 @@
 		height: 0;
 	}
 	to {
-		height: var(--radix-collapsible-content-height);
+		height: var(--collapsible-panel-height);
 	}
 }
 
 @keyframes slideUp {
 	from {
-		height: var(--radix-collapsible-content-height);
+		height: var(--collapsible-panel-height);
 	}
 	to {
 		height: 0;

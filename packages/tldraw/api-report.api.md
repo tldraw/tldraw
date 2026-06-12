@@ -4328,10 +4328,10 @@ export const TldrawUiToolbar: React_3.ForwardRefExoticComponent<TLUiToolbarProps
 export const TldrawUiToolbarButton: React_3.ForwardRefExoticComponent<TLUiToolbarButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
-export const TldrawUiToolbarToggleGroup: ({ children, className, type, asChild, ...props }: TLUiToolbarToggleGroupProps) => JSX.Element;
+export function TldrawUiToolbarToggleGroup({ children, className, type, asChild, value, defaultValue, ...props }: TLUiToolbarToggleGroupProps): JSX.Element;
 
 // @public (undocumented)
-export const TldrawUiToolbarToggleItem: ({ children, className, type, value, tooltip, ...props }: TLUiToolbarToggleItemProps) => JSX.Element;
+export function TldrawUiToolbarToggleItem({ children, className, type, value, tooltip, ...props }: TLUiToolbarToggleItemProps): JSX.Element;
 
 // @public (undocumented)
 export const TldrawUiTooltip: React_3.ForwardRefExoticComponent<TldrawUiTooltipProps & React_3.RefAttributes<HTMLButtonElement>>;

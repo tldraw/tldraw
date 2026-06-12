@@ -86,8 +86,8 @@ export class Sidebar {
 		await expect(async () => {
 			const checkedAttribute = await this.page
 				.getByRole('menuitemcheckbox', { name: language })
-				.getAttribute('data-state')
-			expect(checkedAttribute).toBe('checked')
+				.getAttribute('aria-checked')
+			expect(checkedAttribute).toBe('true')
 		}).toPass()
 	}
 

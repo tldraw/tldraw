@@ -1,5 +1,5 @@
+import { ContextMenu as _ContextMenu } from '@base-ui/react/context-menu'
 import { useContainer } from '@tldraw/editor'
-import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
@@ -63,28 +63,36 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 
 			return (
 				<ContextMenuSubWithMenu id={`${sourceId}-sub.${id}`}>
-					<_ContextMenu.ContextMenuSubTrigger dir={dir} disabled={disabled} asChild>
-						<TldrawUiButton
-							data-testid={`${sourceId}-sub.${id}-button`}
-							type="menu"
-							className="tlui-menu__submenu__trigger"
-						>
-							<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
-							<TldrawUiButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
-						</TldrawUiButton>
-					</_ContextMenu.ContextMenuSubTrigger>
-					<_ContextMenu.ContextMenuPortal container={container}>
-						<_ContextMenu.ContextMenuSubContent
-							data-testid={`${sourceId}-sub.${id}-content`}
-							className="tlui-menu tlui-menu__submenu__content"
+					<_ContextMenu.SubmenuTrigger
+						disabled={disabled}
+						nativeButton
+						render={
+							<TldrawUiButton
+								data-testid={`${sourceId}-sub.${id}-button`}
+								type="menu"
+								className="tlui-menu__submenu__trigger"
+							>
+								<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+								<TldrawUiButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
+							</TldrawUiButton>
+						}
+					/>
+					<_ContextMenu.Portal container={container}>
+						<_ContextMenu.Positioner
+							className="tlui-menu__positioner"
 							alignOffset={-1}
 							sideOffset={-4}
 							collisionPadding={4}
-							data-size={size}
 						>
-							{children}
-						</_ContextMenu.ContextMenuSubContent>
-					</_ContextMenu.ContextMenuPortal>
+							<_ContextMenu.Popup
+								data-testid={`${sourceId}-sub.${id}-content`}
+								className="tlui-menu tlui-menu__submenu__content"
+								data-size={size}
+							>
+								{children}
+							</_ContextMenu.Popup>
+						</_ContextMenu.Positioner>
+					</_ContextMenu.Portal>
 				</ContextMenuSubWithMenu>
 			)
 		}
@@ -106,8 +114,8 @@ export function ContextMenuSubWithMenu({ id, children }: TLUiContextMenuSubProps
 	const [open, onOpenChange] = useMenuIsOpen(id)
 
 	return (
-		<_ContextMenu.ContextMenuSub open={open} onOpenChange={onOpenChange}>
+		<_ContextMenu.SubmenuRoot open={open} onOpenChange={onOpenChange}>
 			{children}
-		</_ContextMenu.ContextMenuSub>
+		</_ContextMenu.SubmenuRoot>
 	)
 }

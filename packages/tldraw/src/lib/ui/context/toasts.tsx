@@ -1,5 +1,5 @@
+import { Toast as _Toast } from '@base-ui/react/toast'
 import { Atom, Editor, uniqueId, useAtom } from '@tldraw/editor'
-import { Toast as _Toast } from 'radix-ui'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
 import { TLUiIconType } from '../icon-types'
 
@@ -72,7 +72,8 @@ export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps) {
 	}
 
 	return (
-		<_Toast.Provider>
+		// tldraw manages its own toast list, so don't let Base UI cap how many show at once
+		<_Toast.Provider limit={Number.MAX_SAFE_INTEGER}>
 			<ToastsContext.Provider value={current}>{children}</ToastsContext.Provider>
 		</_Toast.Provider>
 	)

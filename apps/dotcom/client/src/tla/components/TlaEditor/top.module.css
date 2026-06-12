@@ -200,7 +200,7 @@ button.topLeftInputNameWidthSetter {
 	}
 }
 
-.topLeftMainMenuTrigger[data-state='open']::after {
+.topLeftMainMenuTrigger[data-popup-open]::after {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 }
 
@@ -266,7 +266,7 @@ button.topLeftInputNameWidthSetter {
 	visibility: hidden;
 }
 
-.topRightAnonShareButton[data-state='open']::after {
+.topRightAnonShareButton[data-popup-open]::after {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	visibility: visible;
 }

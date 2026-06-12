@@ -1,6 +1,6 @@
+import { Menu as _Menu } from '@base-ui/react/menu'
 import { useAuth } from '@clerk/clerk-react'
 import { fileOpen } from 'browser-fs-access'
-import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -12,7 +12,6 @@ import {
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
 	useDialogs,
-	useDirection,
 	useMaybeEditor,
 	useTranslation,
 	useValue,
@@ -108,22 +107,18 @@ function UIThemeMenuCheckboxItem({
 	onPreview(): void
 	onSelect(): void
 }) {
-	const dir = useDirection()
 	const msg = useTranslation()
 
 	return (
-		<_DropdownMenu.CheckboxItem
-			dir={dir}
+		<_Menu.CheckboxItem
 			className="tlui-button tlui-button__menu tlui-button__checkbox"
 			title={label}
 			checked={checked}
+			closeOnClick={false}
 			onPointerEnter={(e) => {
 				if (e.pointerType !== 'touch') onPreview()
 			}}
-			onSelect={(e) => {
-				onSelect()
-				e.preventDefault()
-			}}
+			onClick={() => onSelect()}
 		>
 			<TldrawUiIcon
 				small
@@ -133,7 +128,7 @@ function UIThemeMenuCheckboxItem({
 			<span className="tlui-button__label" draggable={false}>
 				{label}
 			</span>
-		</_DropdownMenu.CheckboxItem>
+		</_Menu.CheckboxItem>
 	)
 }
 

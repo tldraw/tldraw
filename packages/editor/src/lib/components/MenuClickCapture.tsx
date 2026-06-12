@@ -17,7 +17,7 @@ export function MenuClickCapture() {
 
 	const isMenuOpen = useValue('is menu open', () => editor.menus.hasAnyOpenMenus(), [editor])
 
-	// Keep this component mounted while the pointer is down so pointerup/move still
+	// Keep this element visible while the pointer is down so pointerup/move still
 	// land here after a synchronous clearOpenMenus() flips isMenuOpen to false.
 	const [isPointing, setIsPointing] = useState(false)
 	const showElement = isMenuOpen || isPointing
@@ -32,9 +32,9 @@ export function MenuClickCapture() {
 	})
 
 	// Swallow the native contextmenu that follows a right-click pointerdown. Without
-	// this, Radix's trigger catches the native event and opens a menu at the pointer-
-	// DOWN position — then our own synthetic contextmenu (fired on pointerup) opens it
-	// again at the release position, producing a visible flash.
+	// this, the context menu's trigger catches the native event and opens a menu at the
+	// pointer-DOWN position — then our own synthetic contextmenu (fired on pointerup)
+	// opens it again at the release position, producing a visible flash.
 	const rCancelContextMenuSwallow = useRef<null | (() => void)>(null)
 	useEffect(
 		() => () => {
@@ -90,8 +90,8 @@ export function MenuClickCapture() {
 				// Forward right-click pointerdown through the canvas's own handler so
 				// pointer capture is also set on the canvas (load-bearing: without this
 				// the context menu briefly flashes closed during consecutive right-clicks).
-				// We don't clearOpenMenus() — Radix's DismissableLayer closes the menu
-				// via outside-click detection, keeping its internal state in sync.
+				// We don't clearOpenMenus() — the menu library closes the menu via its
+				// own outside-press detection, keeping its internal state in sync.
 				const canvas =
 					editor.getContainer().querySelector<HTMLDivElement>('.tl-canvas') ?? e.currentTarget
 				canvasEvents.onPointerDown?.({ ...e, currentTarget: canvas })
@@ -151,8 +151,8 @@ export function MenuClickCapture() {
 			})
 
 			if (isStaticRightClick && editor.options.rightClickPanning) {
-				// Dispatch contextmenu on the canvas's parent (Radix's trigger) so the
-				// menu opens at the release position. Bypassing the canvas avoids its
+				// Dispatch contextmenu on the canvas's parent (the context menu's trigger)
+				// so the menu opens at the release position. Bypassing the canvas avoids its
 				// own onContextMenu handler, which preventDefaults non-synthesized events.
 				const canvas = editor.getContainer().querySelector<HTMLDivElement>('.tl-canvas')
 				const trigger = canvas?.parentElement ?? e.currentTarget
@@ -184,20 +184,24 @@ export function MenuClickCapture() {
 		[editor]
 	)
 
+	// The element stays mounted and is hidden with `display` rather than unmounted:
+	// the menu library closes menus from a document-level capture listener, which
+	// clears the open-menus state synchronously *during* a pointerdown's capture
+	// phase. If that re-render unmounted this element, React would skip dispatching
+	// the pointerdown to it and the pan/drag forwarding below would never run.
 	return (
-		showElement && (
-			<div
-				className="tlui-menu-click-capture"
-				data-testid="menu-click-capture.content"
-				{...canvasEvents}
-				onPointerDown={handlePointerDown}
-				onPointerMove={handlePointerMove}
-				onPointerUp={handlePointerUp}
-				onContextMenu={(e) => {
-					e.preventDefault()
-					e.stopPropagation()
-				}}
-			/>
-		)
+		<div
+			className="tlui-menu-click-capture"
+			data-testid="menu-click-capture.content"
+			style={showElement ? undefined : { display: 'none' }}
+			{...canvasEvents}
+			onPointerDown={handlePointerDown}
+			onPointerMove={handlePointerMove}
+			onPointerUp={handlePointerUp}
+			onContextMenu={(e) => {
+				e.preventDefault()
+				e.stopPropagation()
+			}}
+		/>
 	)
 }

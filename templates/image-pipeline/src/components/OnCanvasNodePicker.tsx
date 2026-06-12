@@ -1,4 +1,4 @@
-import { Dialog, VisuallyHidden } from 'radix-ui'
+import { Dialog } from '@base-ui/react/dialog'
 import { useCallback, useMemo, useState } from 'react'
 import {
 	TldrawUiButton,
@@ -76,6 +76,8 @@ function OnCanvasNodePickerDialog({
 	])
 	const shouldRender = !!location
 	const [container, setContainer] = useState<HTMLDivElement | null>(null)
+	// In-place portal target so the dialog stays in the editor's in-front-of-canvas layer
+	const [portalNode, setPortalNode] = useState<HTMLDivElement | null>(null)
 	usePassThroughWheelEvents(useMemo(() => ({ current: container }), [container]))
 
 	useQuickReactor(
@@ -109,28 +111,33 @@ function OnCanvasNodePickerDialog({
 	)
 
 	return (
-		<Dialog.Root
-			open={shouldRender}
-			modal={false}
-			onOpenChange={(isOpen) => {
-				if (!isOpen) onClose()
-			}}
-		>
-			<Dialog.Content
-				ref={setContainer}
-				className={`OnCanvasNodePicker OnCanvasNodePicker_${location}`}
-				style={{ width: NODE_WIDTH_PX }}
+		<>
+			<div ref={setPortalNode} />
+			<Dialog.Root
+				open={shouldRender}
+				modal={false}
+				onOpenChange={(isOpen) => {
+					if (!isOpen) onClose()
+				}}
 			>
-				<div className="OnCanvasNodePicker-content">
-					<VisuallyHidden.Root>
-						<Dialog.Title>Insert node</Dialog.Title>
-					</VisuallyHidden.Root>
-					<TldrawUiMenuContextProvider sourceId="dialog" type="menu">
-						{children}
-					</TldrawUiMenuContextProvider>
-				</div>
-			</Dialog.Content>
-		</Dialog.Root>
+				{portalNode && (
+					<Dialog.Portal container={portalNode}>
+						<Dialog.Popup
+							ref={setContainer}
+							className={`OnCanvasNodePicker OnCanvasNodePicker_${location}`}
+							style={{ width: NODE_WIDTH_PX }}
+						>
+							<div className="OnCanvasNodePicker-content">
+								<Dialog.Title className="sr-only">Insert node</Dialog.Title>
+								<TldrawUiMenuContextProvider sourceId="dialog" type="menu">
+									{children}
+								</TldrawUiMenuContextProvider>
+							</div>
+						</Dialog.Popup>
+					</Dialog.Portal>
+				)}
+			</Dialog.Root>
+		</>
 	)
 }
 

@@ -1,6 +1,7 @@
+import { Collapsible } from '@base-ui/react/collapsible'
+import { ContextMenu as _ContextMenu } from '@base-ui/react/context-menu'
 import { fileOpen } from 'browser-fs-access'
 import classNames from 'classnames'
-import { Collapsible, ContextMenu as _ContextMenu } from 'radix-ui'
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -13,6 +14,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	tltime,
+	useContainer,
 	useDialogs,
 	useMenuIsOpen,
 	useValue,
@@ -136,7 +138,7 @@ const GroupFileList = memo(function GroupFileList({
 
 			{isOverflowing && (
 				<>
-					<Collapsible.Content className={styles.CollapsibleContent}>
+					<Collapsible.Panel className={styles.CollapsibleContent}>
 						{hiddenFiles.map((item) => (
 							<TlaSidebarFileLink
 								groupId={groupId}
@@ -146,18 +148,20 @@ const GroupFileList = memo(function GroupFileList({
 								testId={`tla-group-file-${item.fileId}`}
 							/>
 						))}
-					</Collapsible.Content>
-					<Collapsible.Trigger asChild>
-						{isShowingAll ? (
-							<button className={styles.showAllButton} onClick={handleShowLess}>
-								<F defaultMessage="Show less" />
-							</button>
-						) : (
-							<button className={styles.showAllButton} onClick={handleShowMore}>
-								<F defaultMessage="Show more" />
-							</button>
-						)}
-					</Collapsible.Trigger>
+					</Collapsible.Panel>
+					<Collapsible.Trigger
+						render={
+							isShowingAll ? (
+								<button className={styles.showAllButton} onClick={handleShowLess}>
+									<F defaultMessage="Show less" />
+								</button>
+							) : (
+								<button className={styles.showAllButton} onClick={handleShowMore}>
+									<F defaultMessage="Show more" />
+								</button>
+							)
+						}
+					/>
 				</>
 			)}
 		</Collapsible.Root>
@@ -282,6 +286,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 	const [contextMenuIsOpen] = useMenuIsOpen(`group-context-menu-${groupId}`)
 	const app = useApp()
 	const [_, handleContextMenuOpenChange] = useMenuIsOpen(`group-context-menu-${groupId}`)
+	const container = useContainer()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	const rCanCreate = useRef(true)
@@ -383,7 +388,7 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 	if (!group) return null
 
 	return (
-		<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange} modal={false}>
+		<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange}>
 			<_ContextMenu.Trigger>
 				<Collapsible.Root
 					className={classNames(styles.sidebarGroupItem, {
@@ -398,72 +403,79 @@ export function TlaSidebarGroupItem({ groupId, index }: { groupId: string; index
 					data-no-animation={isNoAnimation}
 					data-is-dragging={isDragging}
 				>
-					<Collapsible.Trigger asChild>
-						<div
-							className={styles.sidebarGroupItemHeader}
-							aria-expanded={isExpanded}
-							role="button"
-							tabIndex={0}
-							onKeyDown={(e) => {
-								if (e.key === 'Enter') {
-									setIsExpanded(!isExpanded)
-								}
-							}}
-							draggable={!isCoarsePointer}
-							onClick={() => setIsExpanded(!isExpanded)}
-							onDragStart={
-								isCoarsePointer
-									? undefined
-									: (event) => {
-											event.dataTransfer.effectAllowed = 'move'
-											event.dataTransfer.setData('text/plain', group.groupId)
-											event.dataTransfer.setDragImage(blankImg, 0, 0)
-											startDragTracking({
-												groupId: group.groupId,
-												clientX: event.clientX,
-												clientY: event.clientY,
-											})
-										}
-							}
-						>
+					<Collapsible.Trigger
+						nativeButton={false}
+						render={
 							<div
-								className={styles.sidebarGroupItemTitle}
-								style={{
-									marginLeft: isExpanded ? 0 : 0,
-									transition: 'margin-left 0.14s ease-in-out',
+								className={styles.sidebarGroupItemHeader}
+								aria-expanded={isExpanded}
+								role="button"
+								tabIndex={0}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter') {
+										setIsExpanded(!isExpanded)
+									}
 								}}
+								draggable={!isCoarsePointer}
+								onClick={() => setIsExpanded(!isExpanded)}
+								onDragStart={
+									isCoarsePointer
+										? undefined
+										: (event) => {
+												event.dataTransfer.effectAllowed = 'move'
+												event.dataTransfer.setData('text/plain', group.groupId)
+												event.dataTransfer.setDragImage(blankImg, 0, 0)
+												startDragTracking({
+													groupId: group.groupId,
+													clientX: event.clientX,
+													clientY: event.clientY,
+												})
+											}
+								}
+							/>
+						}
+					>
+						<div
+							className={styles.sidebarGroupItemTitle}
+							style={{
+								marginLeft: isExpanded ? 0 : 0,
+								transition: 'margin-left 0.14s ease-in-out',
+							}}
+						>
+							<TlaIcon icon={isExpanded ? 'folder-open' : 'folder'} style={{ top: -1 }} />
+							{group.group.name}
+						</div>
+						<div
+							className={styles.sidebarGroupItemButtons}
+							onClick={(e) => e.stopPropagation()}
+							style={{ cursor: 'default' }}
+						>
+							<TldrawUiButton
+								type="icon"
+								className={styles.sidebarGroupItemButton}
+								onClick={handleCreateFile}
+								tooltip={newFileLbl}
+								title={newFileLbl}
 							>
-								<TlaIcon icon={isExpanded ? 'folder-open' : 'folder'} style={{ top: -1 }} />
-								{group.group.name}
-							</div>
-							<div
-								className={styles.sidebarGroupItemButtons}
-								onClick={(e) => e.stopPropagation()}
-								style={{ cursor: 'default' }}
-							>
-								<TldrawUiButton
-									type="icon"
-									className={styles.sidebarGroupItemButton}
-									onClick={handleCreateFile}
-									tooltip={newFileLbl}
-									title={newFileLbl}
-								>
-									<TlaIcon icon="edit" />
-								</TldrawUiButton>
-								<TlaSidebarGroupMenu groupId={groupId} />
-							</div>
+								<TlaIcon icon="edit" />
+							</TldrawUiButton>
+							<TlaSidebarGroupMenu groupId={groupId} />
 						</div>
 					</Collapsible.Trigger>
-					<Collapsible.Content className={styles.CollapsibleContent}>
+					<Collapsible.Panel className={styles.CollapsibleContent}>
 						<GroupFileList groupId={groupId} onCreateFile={handleCreateFile} />
-					</Collapsible.Content>
+					</Collapsible.Panel>
 				</Collapsible.Root>
 			</_ContextMenu.Trigger>
-			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
-				<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-					<GroupMenuContent groupId={groupId} />
-				</TldrawUiMenuContextProvider>
-			</_ContextMenu.Content>
+			<_ContextMenu.Portal container={container}>
+				<_ContextMenu.Positioner className="tlui-menu__positioner" collisionPadding={4}>
+					<_ContextMenu.Popup className="tlui-menu tlui-scrollable">
+						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+							<GroupMenuContent groupId={groupId} />
+						</TldrawUiMenuContextProvider>
+					</_ContextMenu.Popup>
+				</_ContextMenu.Positioner>
+			</_ContextMenu.Portal>
 		</_ContextMenu.Root>
 	)
 }

@@ -101,7 +101,7 @@ export function OverflowingToolbar({
 						items: collectItems(child.children),
 						element: child as HTMLElement,
 					})
-				} else if (!child.hasAttribute('data-radix-popper-content-wrapper')) {
+				} else if (!child.classList.contains('tlui-menu__positioner')) {
 					items.push({ type: 'item', element: child as HTMLElement })
 				}
 			}
@@ -241,7 +241,7 @@ export function OverflowingToolbar({
 		// `aria-pressed` flips when the active tool/geo variant changes — important for cases where
 		// only individual ToolbarItem children re-render and OverflowingToolbar itself does not (see
 		// #8689). `data-value` identifies the tool slot. We deliberately exclude all other
-		// attributes (notably `data-state`, `aria-describedby`, `aria-expanded` from tooltip /
+		// attributes (notably `data-popup-open`, `aria-describedby`, `aria-expanded` from tooltip /
 		// popover wrappers, and our own `data-toolbar-visible` writes) to avoid hover- and
 		// self-triggered recomputes that caused ResizeObserver loop warnings (see #8528).
 		mutationObserver.observe(mainToolsRef.current, {

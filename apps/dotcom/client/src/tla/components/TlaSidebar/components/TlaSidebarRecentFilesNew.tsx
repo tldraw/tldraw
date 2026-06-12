@@ -1,4 +1,4 @@
-import { Collapsible } from 'radix-ui'
+import { Collapsible } from '@base-ui/react/collapsible'
 import { Fragment } from 'react'
 import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
@@ -78,7 +78,7 @@ export function TlaSidebarRecentFilesNew() {
 					))}
 				{hiddenFiles.length > 0 && (
 					<Collapsible.Root open={isShowingAll}>
-						<Collapsible.Content className={styles.CollapsibleContent}>
+						<Collapsible.Panel className={styles.CollapsibleContent}>
 							{hiddenFiles.map((item, i) => (
 								<TlaSidebarFileLink
 									groupId={homeGroupId}
@@ -87,19 +87,22 @@ export function TlaSidebarRecentFilesNew() {
 									testId={`tla-file-link-today-${i}`}
 								/>
 							))}
-						</Collapsible.Content>
-						<Collapsible.Trigger asChild>
-							{isOverflowing &&
-								(isShowingAll ? (
-									<button className={styles.showAllButton} onClick={handleShowLess}>
-										<F defaultMessage="Show less" />
-									</button>
-								) : (
-									<button className={styles.showAllButton} onClick={handleShowMore}>
-										<F defaultMessage="Show more" />
-									</button>
-								))}
-						</Collapsible.Trigger>
+						</Collapsible.Panel>
+						{isOverflowing && (
+							<Collapsible.Trigger
+								render={
+									isShowingAll ? (
+										<button className={styles.showAllButton} onClick={handleShowLess}>
+											<F defaultMessage="Show less" />
+										</button>
+									) : (
+										<button className={styles.showAllButton} onClick={handleShowMore}>
+											<F defaultMessage="Show more" />
+										</button>
+									)
+								}
+							/>
+						)}
 					</Collapsible.Root>
 				)}
 			</div>
@@ -110,7 +113,7 @@ export function TlaSidebarRecentFilesNew() {
 					// this prevents a bug where the collapsible open animation replays when react moves
 					// an open group item within the list. I guess the browser thinks it's a new dom node
 					// or whatever.
-					// If radix's Collapsible had 'opening' and 'closing' states instead of just 'open' and 'closed'
+					// If the Collapsible had 'opening' and 'closing' states instead of just 'open' and 'closed'
 					// we wouldn't need this.
 					<TlaSidebarGroupItem
 						key={`group-${group.group.id}-${i}`}

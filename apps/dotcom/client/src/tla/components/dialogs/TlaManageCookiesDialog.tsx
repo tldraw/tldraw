@@ -1,4 +1,4 @@
-import { Tooltip as _Tooltip } from 'radix-ui'
+import { Tooltip as _Tooltip } from '@base-ui/react/tooltip'
 import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,

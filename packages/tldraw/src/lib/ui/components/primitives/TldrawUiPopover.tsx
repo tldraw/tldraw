@@ -1,9 +1,8 @@
+import { Popover as _Popover } from '@base-ui/react/popover'
 import { useContainer } from '@tldraw/editor'
 import classNames from 'classnames'
-import { Popover as _Popover } from 'radix-ui'
 import React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { useDirection } from '../../hooks/useTranslation/useTranslation'
 
 /** @public */
 export interface TLUiPopoverProps {
@@ -14,13 +13,38 @@ export interface TLUiPopoverProps {
 	className?: string
 }
 
+// Options that TldrawUiPopoverContent needs to communicate up to the root, where Base UI
+// handles dismissal.
+interface PopoverOptions {
+	disableEscapeKeyDown: boolean
+}
+
+const PopoverOptionsContext = React.createContext<PopoverOptions | null>(null)
+
 /** @public @react */
 export function TldrawUiPopover({ id, children, onOpenChange, open, className }: TLUiPopoverProps) {
 	const [isOpen, handleOpenChange] = useMenuIsOpen(id, onOpenChange)
+	const [options] = React.useState<PopoverOptions>(() => ({ disableEscapeKeyDown: false }))
+
+	const handleOpenChangeWithDetails = React.useCallback(
+		(isOpen: boolean, eventDetails: _Popover.Root.ChangeEventDetails) => {
+			if (!isOpen && eventDetails.reason === 'escape-key' && options.disableEscapeKeyDown) {
+				eventDetails.cancel()
+				return
+			}
+			handleOpenChange(isOpen)
+		},
+		[handleOpenChange, options]
+	)
 
 	return (
-		<_Popover.Root onOpenChange={handleOpenChange} open={open || isOpen /* allow debugging */}>
-			<div className={classNames('tlui-popover', className)}>{children}</div>
+		<_Popover.Root
+			onOpenChange={handleOpenChangeWithDetails}
+			open={open || isOpen /* allow debugging */}
+		>
+			<PopoverOptionsContext.Provider value={options}>
+				<div className={classNames('tlui-popover', className)}>{children}</div>
+			</PopoverOptionsContext.Provider>
 		</_Popover.Root>
 	)
 }
@@ -32,12 +56,7 @@ export interface TLUiPopoverTriggerProps {
 
 /** @public @react */
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps) {
-	const dir = useDirection()
-	return (
-		<_Popover.Trigger asChild dir={dir}>
-			{children}
-		</_Popover.Trigger>
-	)
+	return <_Popover.Trigger render={children as React.ReactElement} />
 }
 
 /** @public */
@@ -62,35 +81,39 @@ export function TldrawUiPopoverContent({
 	autoFocusFirstButton = true,
 }: TLUiPopoverContentProps) {
 	const container = useContainer()
-	const dir = useDirection()
 	const ref = React.useRef<HTMLDivElement>(null)
 
-	const handleOpenAutoFocus = React.useCallback(() => {
-		if (!autoFocusFirstButton) return
+	const options = React.useContext(PopoverOptionsContext)
+	React.useEffect(() => {
+		if (options) options.disableEscapeKeyDown = disableEscapeKeyDown
+	}, [options, disableEscapeKeyDown])
+
+	const handleInitialFocus = React.useCallback(() => {
+		if (!autoFocusFirstButton) return true
 		const buttons = (ref.current?.querySelectorAll('button:not([disabled])') ?? []) as HTMLElement[]
 		const visibleButtons = [...buttons].filter(
 			(button) => button.offsetWidth || button.offsetHeight
 		)
-		const firstButton = visibleButtons[0]
-		if (firstButton) firstButton.focus()
+		return visibleButtons[0] ?? true
 	}, [autoFocusFirstButton])
 
 	return (
 		<_Popover.Portal container={container}>
-			<_Popover.Content
-				className="tlui-popover__content"
+			<_Popover.Positioner
+				className="tlui-popover__positioner"
 				side={side}
 				sideOffset={sideOffset}
 				align={align}
 				alignOffset={alignOffset}
-				dir={dir}
-				ref={ref}
-				onOpenAutoFocus={handleOpenAutoFocus}
-				onEscapeKeyDown={(e) => disableEscapeKeyDown && e.preventDefault()}
 			>
-				{children}
-				{/* <StyledArrow /> */}
-			</_Popover.Content>
+				<_Popover.Popup
+					className="tlui-popover__content"
+					ref={ref}
+					initialFocus={handleInitialFocus}
+				>
+					{children}
+				</_Popover.Popup>
+			</_Popover.Positioner>
 		</_Popover.Portal>
 	)
 }

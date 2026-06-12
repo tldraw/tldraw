@@ -1,3 +1,4 @@
+import { ContextMenu as _ContextMenu } from '@base-ui/react/context-menu'
 import {
 	exhaustiveSwitchError,
 	getPointerInfo,
@@ -7,14 +8,13 @@ import {
 	Vec,
 	VecModel,
 } from '@tldraw/editor'
-import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { useMemo, useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiToolItem } from '../../../hooks/useTools'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
-import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../../kbd-utils'
 import { Spinner } from '../../Spinner'
 import { TldrawUiButton } from '../Button/TldrawUiButton'
@@ -100,7 +100,6 @@ export function TldrawUiMenuItem<
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
 	const msg = useTranslation()
-	const dir = useDirection()
 
 	const [disableClicks, setDisableClicks] = useState(false)
 
@@ -145,21 +144,19 @@ export function TldrawUiMenuItem<
 
 			return (
 				<_ContextMenu.Item
-					dir={dir}
 					draggable={false}
 					className="tlui-button tlui-button__menu"
 					data-testid={`${sourceId}.${id}`}
 					onPointerUp={(e) => {
-						// Prevent right-click pointerup from triggering item selection.
-						// Radix calls click() on pointerup when the pointer wasn't pressed
-						// on the item, but doesn't check the button — so a right-click
-						// release while moving across the menu selects the item under the cursor.
+						// Prevent right-click pointerup from triggering item selection when the
+						// menu library activates items on pointer release without checking which
+						// button was released.
 						if (e.button !== 0) {
 							preventDefault(e)
 						}
 					}}
-					onSelect={(e) => {
-						if (noClose) preventDefault(e)
+					closeOnClick={!noClose}
+					onClick={() => {
 						if (disableClicks) {
 							setDisableClicks(false)
 						} else {
