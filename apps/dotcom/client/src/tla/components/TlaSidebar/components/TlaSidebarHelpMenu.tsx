@@ -7,6 +7,7 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 } from 'tldraw'
+import { useHasFlag } from '../../../hooks/useHasFlag'
 import { defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	CookieConsentMenuItem,
@@ -24,6 +25,8 @@ const messages = defineMessages({
 
 export function TlaSidebarHelpMenu() {
 	const msg = useMsg(messages.help)
+	// With workspaces, feedback moves to a dedicated button at the bottom of the sidebar.
+	const workspacesEnabled = useHasFlag('groups_frontend')
 	return (
 		<TldrawUiDropdownMenuRoot id={`help-menu-sidebar`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
@@ -41,7 +44,7 @@ export function TlaSidebarHelpMenu() {
 				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={10}>
 					<TldrawUiMenuGroup id="support">
 						<UserManualMenuItem />
-						<GiveUsFeedbackMenuItem />
+						{!workspacesEnabled && <GiveUsFeedbackMenuItem />}
 						<DotDevMenuItem />
 					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="legal">

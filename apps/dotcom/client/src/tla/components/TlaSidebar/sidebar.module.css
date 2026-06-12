@@ -357,6 +357,33 @@
 	flex: 0 0 auto;
 }
 
+/* ----------------- Feedback button ---------------- */
+
+.sidebarFeedbackButton {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+	height: 36px;
+	flex: 0 0 auto;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tla-color-text-1);
+	padding: 0px 8px;
+	text-align: left;
+}
+
+.sidebarFeedbackButton > span[role='img'] {
+	flex-shrink: 0;
+	margin: -1.5px;
+}
+
+.sidebarFeedbackButton:focus-visible {
+	outline-offset: -2px;
+}
+
 /* User settings menu */
 
 .sidebarUserSettingsTrigger {

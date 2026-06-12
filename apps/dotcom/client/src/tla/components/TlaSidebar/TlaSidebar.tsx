@@ -11,6 +11,7 @@ import {
 } from '../../utils/local-session-state'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
+import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
 import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
@@ -80,6 +81,12 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				</div>
 				<div className={styles.sidebarBottomArea}>
 					<TlaSidebarDotDevLink />
+					{workspacesEnabled && (
+						<>
+							<div className={styles.sidebarDivider} />
+							<TlaSidebarFeedbackButton />
+						</>
+					)}
 					<div className={styles.sidebarBottomRow}>
 						<TlaUserSettingsMenu />
 						<TlaSidebarHelpMenu />
