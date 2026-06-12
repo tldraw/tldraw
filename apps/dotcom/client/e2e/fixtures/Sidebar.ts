@@ -256,8 +256,20 @@ export class Sidebar {
 	// Workspace-related methods
 
 	@step
-	async createWorkspace(name: string) {
-		await this.createWorkspaceButton.click()
+	async openWorkspaceSwitcher() {
+		await this.page.getByTestId('tla-workspace-switcher').click()
+	}
+
+	@step
+	async createWorkspace(name: string, { dismissRename = true } = {}) {
+		// The standalone button is only shown while the user has no workspaces;
+		// after that, creating happens from the workspace switcher dropdown.
+		if (await this.createWorkspaceButton.isVisible()) {
+			await this.createWorkspaceButton.click()
+		} else {
+			await this.openWorkspaceSwitcher()
+			await this.page.getByTestId('tla-create-workspace-menu-item').click()
+		}
 
 		const input = this.page.getByPlaceholder('Workspace name')
 		await expect(input).toBeVisible()
@@ -265,18 +277,33 @@ export class Sidebar {
 
 		await this.page.getByRole('button', { name: 'Create workspace' }).click()
 		await this.mutationResolution()
+
+		// Creating a workspace switches to it, creates its first file, and
+		// starts renaming that file.
+		await this.expectActiveWorkspace(name)
+		const renameInput = this.page.getByTestId('tla-sidebar-rename-input')
+		await expect(renameInput).toBeVisible()
+		if (dismissRename) {
+			await this.page.keyboard.press('Escape')
+		}
 	}
 
 	getWorkspaceLink(name: string) {
 		return this.page.locator('[data-element="workspace-link"]').filter({ hasText: name })
 	}
 
+	@step
 	async expectWorkspaceVisible(name: string) {
+		await this.openWorkspaceSwitcher()
 		await expect(this.getWorkspaceLink(name)).toBeVisible()
+		await this.page.keyboard.press('Escape')
 	}
 
+	@step
 	async expectWorkspaceNotVisible(name: string) {
+		await this.openWorkspaceSwitcher()
 		await expect(this.getWorkspaceLink(name)).not.toBeVisible()
+		await this.page.keyboard.press('Escape')
 	}
 
 	@step
@@ -286,21 +313,20 @@ export class Sidebar {
 
 	@step
 	async switchToWorkspace(name: string) {
+		await this.openWorkspaceSwitcher()
 		await this.getWorkspaceLink(name).click()
 		await this.expectActiveWorkspace(name)
 	}
 
 	@step
-	private async openWorkspaceMenu(name: string) {
-		const link = this.getWorkspaceLink(name)
-		await link.hover()
-		await link.locator('button[aria-label="More options"]').click()
-	}
-
-	@step
 	async openWorkspaceSettings(name: string) {
-		await this.openWorkspaceMenu(name)
-		await this.page.getByRole('menuitem', { name: 'Settings' }).click()
+		// The settings action lives in the active workspace's action rows, so
+		// switch to the workspace first if needed.
+		const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
+		if (activeName !== name) {
+			await this.switchToWorkspace(name)
+		}
+		await this.page.getByTestId('tla-sidebar-workspace-settings').click()
 	}
 
 	@step
@@ -330,9 +356,14 @@ export class Sidebar {
 	}
 
 	@step
-	async copyWorkspaceInviteLinkFromMenu(name: string): Promise<string> {
-		await this.openWorkspaceMenu(name)
-		await this.page.getByRole('menuitem', { name: 'Copy invite link' }).click()
+	async copyWorkspaceInviteLink(name: string): Promise<string> {
+		// The invite action lives in the active workspace's action rows, so
+		// switch to the workspace first if needed.
+		const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
+		if (activeName !== name) {
+			await this.switchToWorkspace(name)
+		}
+		await this.page.getByTestId('tla-sidebar-invite-teammates').click()
 		return await this.page.evaluate(() => navigator.clipboard.readText())
 	}
 
@@ -357,6 +388,68 @@ export class Sidebar {
 		await fileLink.hover()
 		const button = fileLink.getByRole('button')
 		await button.click()
+	}
+
+	@step
+	async dragFileToPinnedSection(fileName: string) {
+		const fileElement = this.getFileByName(fileName)
+		const fileBox = await fileElement.boundingBox()
+		const topFile = this.sidebar.locator('[data-drop-target-id^="file:"]').first()
+		const topBox = await topFile.boundingBox()
+
+		if (!fileBox || !topBox) throw new Error('Could not get bounding boxes')
+
+		// Move to file
+		await this.page.mouse.move(fileBox.x + fileBox.width / 2, fileBox.y + fileBox.height / 2)
+
+		// Press and hold
+		await this.page.mouse.down()
+
+		// Small delay to let browser detect drag intent
+		await this.page.waitForTimeout(100)
+
+		// Drop just above the top of the file list, inside the pin zone
+		await this.page.mouse.move(topBox.x + topBox.width / 2, topBox.y - 5, { steps: 10 })
+
+		// Small delay before release
+		await this.page.waitForTimeout(50)
+
+		// Release
+		await this.page.mouse.up()
+
+		await this.mutationResolution()
+	}
+
+	@step
+	async dragFileToUnpinnedSection(fileName: string) {
+		const fileElement = this.getFileByName(fileName)
+		const fileBox = await fileElement.boundingBox()
+		const lastFile = this.sidebar.locator('[data-drop-target-id^="file:"]').last()
+		const lastBox = await lastFile.boundingBox()
+
+		if (!fileBox || !lastBox) throw new Error('Could not get bounding boxes')
+
+		// Move to file
+		await this.page.mouse.move(fileBox.x + fileBox.width / 2, fileBox.y + fileBox.height / 2)
+
+		// Press and hold
+		await this.page.mouse.down()
+
+		// Small delay to let browser detect drag intent
+		await this.page.waitForTimeout(100)
+
+		// Drop on the unpinned part of the list, below the pin zone
+		await this.page.mouse.move(lastBox.x + lastBox.width / 2, lastBox.y + lastBox.height / 2, {
+			steps: 10,
+		})
+
+		// Small delay before release
+		await this.page.waitForTimeout(50)
+
+		// Release
+		await this.page.mouse.up()
+
+		await this.mutationResolution()
 	}
 
 	@step
@@ -443,42 +536,5 @@ export class Sidebar {
 	@step
 	async moveFileToHome(fileName: string) {
 		await this.moveFileToWorkspace(fileName, 'My files')
-	}
-
-	@step
-	async dragFileToWorkspace(fileName: string, targetWorkspaceName: string) {
-		const fileElement = this.getFileByName(fileName)
-		const targetWorkspace = this.getWorkspaceLink(targetWorkspaceName)
-
-		const fileBox = await fileElement.boundingBox()
-		const targetBox = await targetWorkspace.boundingBox()
-
-		if (!fileBox || !targetBox) throw new Error('Could not get bounding boxes')
-
-		// Move to file
-		await this.page.mouse.move(fileBox.x + fileBox.width / 2, fileBox.y + fileBox.height / 2)
-
-		// Press and hold
-		await this.page.mouse.down()
-
-		// Small delay to let browser detect drag intent
-		await this.page.waitForTimeout(100)
-
-		// Drag to the workspace link in the top list
-		await this.page.mouse.move(
-			targetBox.x + targetBox.width / 2,
-			targetBox.y + targetBox.height / 2,
-			{
-				steps: 10,
-			}
-		)
-
-		// Small delay before release
-		await this.page.waitForTimeout(50)
-
-		// Release
-		await this.page.mouse.up()
-
-		await this.mutationResolution()
 	}
 }
