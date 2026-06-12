@@ -2,6 +2,7 @@ import { react } from '@tldraw/state'
 import { useQuickReactor, useStateTracking } from '@tldraw/state-react'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { Editor } from '../editor/Editor'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditorComponents } from '../hooks/EditorComponentsContext'
 import { useEditor } from '../hooks/useEditor'
@@ -153,10 +154,102 @@ export const Shape = memo(function Shape({
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
+				{util.getContentElement && <ContentElementSlot id={id} util={util} />}
 			</ShapeWrapper>
 		</>
 	)
 })
+
+/*
+The content element slot hosts an app-owned element provided by the shape util's
+getContentElement method. The contract: while the shape is mounted, tldraw never
+unmounts, recreates, or relocates the element (the canvas renders shapes in stable
+id-sorted DOM order, so reorders and reparenting never move DOM nodes), and before
+the slot is destroyed — shape deletion, page change, error teardown, or the whole
+editor unmounting — onReleaseContentElement is called while the slot is still
+connected to the document, so the app can move the element to a new parent with
+Node.moveBefore without resetting its state. That last guarantee relies on this
+being a layout effect: React runs layout effect cleanups before it detaches the
+host nodes of a deleted subtree, which is not true of passive effects.
+*/
+const ContentElementSlot = memo(function ContentElementSlot({
+	id,
+	util,
+}: {
+	id: TLShapeId
+	util: ShapeUtil
+}) {
+	const editor = useEditor()
+	const slotRef = useRef<HTMLDivElement>(null)
+
+	useLayoutEffect(() => {
+		const slot = slotRef.current
+		if (!slot) return
+
+		const shape = editor.getShape(id)
+		if (!shape) return
+
+		const element = util.getContentElement?.(shape)
+		if (!element) return
+
+		// An element that was connected before adoption (e.g. parked off-canvas by the
+		// app between editor sessions) should survive the move without reloading.
+		const wasConnectedBeforeAdoption = element.isConnected
+
+		if (element.parentNode !== slot) {
+			moveElementInto(slot, element)
+		}
+
+		if (process.env.NODE_ENV !== 'production' && wasConnectedBeforeAdoption) {
+			warnIfContentElementReloads(editor, slot, element)
+		}
+
+		return () => {
+			const latestShape = editor.getShape(id) ?? shape
+			util.onReleaseContentElement?.(latestShape, element)
+			if (process.env.NODE_ENV !== 'production' && element.parentNode === slot) {
+				console.warn(
+					`[tldraw] The content element for shape "${id}" was not reclaimed by onReleaseContentElement and will be destroyed along with its slot, losing any state it holds.`
+				)
+			}
+		}
+	}, [editor, id, util])
+
+	return <div ref={slotRef} className="tl-content-slot" draggable={false} />
+})
+
+function moveElementInto(parent: HTMLElement, element: HTMLElement) {
+	// Node.moveBefore (Chromium 133+, Firefox 144+) preserves iframe and media state
+	// across the move; it requires both nodes to be connected to the same document.
+	if (
+		element.isConnected &&
+		parent.isConnected &&
+		typeof (parent as any).moveBefore === 'function' &&
+		element.ownerDocument === parent.ownerDocument
+	) {
+		try {
+			;(parent as any).moveBefore(element, null)
+			return
+		} catch {
+			// fall through to appendChild
+		}
+	}
+	parent.appendChild(element)
+}
+
+// Dev-mode assertion that adoption kept the platform's state-preservation promise: a
+// load event firing on a previously-connected adopted element means the embed reloaded.
+// load doesn't bubble, but capture-phase listeners on ancestors still observe it.
+function warnIfContentElementReloads(editor: Editor, slot: HTMLElement, element: HTMLElement) {
+	const onLoad = (event: Event) => {
+		if (event.target !== element && !element.contains(event.target as Node)) return
+		console.warn(
+			'[tldraw] A load event fired on an adopted content element. The element reloaded when it was moved into the shape, losing its state. State-preserving moves need Node.moveBefore (Chromium 133+, Firefox 144+) and a continuously connected element.'
+		)
+	}
+	slot.addEventListener('load', onLoad, { capture: true })
+	editor.timers.setTimeout(() => slot.removeEventListener('load', onLoad, { capture: true }), 1000)
+}
 
 export const InnerShape = memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
