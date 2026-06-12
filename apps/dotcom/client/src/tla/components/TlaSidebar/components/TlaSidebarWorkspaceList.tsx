@@ -186,9 +186,11 @@ function TlaSidebarCreateWorkspaceButton() {
 					onClose={onClose}
 					onCreate={async (name) => {
 						// The workspace is created with its seeded welcome file, and we land
-						// on that file right away (which also makes the workspace active).
+						// on that file right away (which also makes the workspace active). If
+						// only the seeding failed, stay put — clicking the empty workspace
+						// seeds a fresh welcome file.
 						const res = await app.createWorkspace(name)
-						if (res.ok) {
+						if (res.ok && res.value.fileId) {
 							navigate(routes.tlaFile(res.value.fileId))
 						}
 					}}

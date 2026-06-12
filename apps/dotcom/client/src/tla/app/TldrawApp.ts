@@ -666,10 +666,14 @@ export class TldrawApp {
 	 * Create a workspace seeded with its welcome file, so the workspace can be opened
 	 * straight onto a file. Mutation rejections (e.g. the workspace limit) surface as
 	 * toasts here.
+	 *
+	 * The welcome file is best-effort: the workspace is usable without it (clicking the
+	 * empty workspace seeds one later), so a seeding failure still resolves ok with a null
+	 * `fileId` — only a failure to create the workspace itself is an error.
 	 */
 	async createWorkspace(
 		name: string
-	): Promise<Result<{ workspaceId: string; fileId: string }, 'failed'>> {
+	): Promise<Result<{ workspaceId: string; fileId: string | null }, 'failed'>> {
 		const workspaceId = uniqueId()
 		try {
 			await this.z.mutate.createWorkspace({ id: workspaceId, name }).client
@@ -678,8 +682,7 @@ export class TldrawApp {
 			return Result.err('failed')
 		}
 		const res = await this.createWorkspaceFile(workspaceId)
-		if (!res.ok) return Result.err('failed')
-		return Result.ok({ workspaceId, fileId: res.value.fileId })
+		return Result.ok({ workspaceId, fileId: res.ok ? res.value.fileId : null })
 	}
 
 	async createFile({

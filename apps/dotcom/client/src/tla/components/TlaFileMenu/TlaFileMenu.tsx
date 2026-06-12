@@ -281,8 +281,10 @@ export function FileItems({
 											<CreateWorkspaceDialog
 												onClose={onClose}
 												onCreate={async (name) => {
-													// Creates the workspace with its seeded welcome file; we stay on
-													// the current file since this flow is about moving it.
+													// Creates the workspace with its (best-effort) seeded welcome
+													// file; we stay on the current file since this flow is about
+													// moving it. The move happens whenever the workspace exists,
+													// whether or not the welcome file could be seeded.
 													const res = await app.createWorkspace(name)
 													if (!res.ok) return
 													try {
