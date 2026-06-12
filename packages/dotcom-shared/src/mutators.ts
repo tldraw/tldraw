@@ -654,6 +654,34 @@ export function createMutators(userId: string) {
 				role: targetRole,
 			})
 		},
+		removeWorkspaceMember: async (
+			tx: Tx,
+			{ workspaceId, targetUserId }: { workspaceId: string; targetUserId: string }
+		) => {
+			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(workspaceId, ZErrorCode.bad_request)
+			assert(targetUserId, ZErrorCode.bad_request)
+
+			const role = await getRole(tx, userId, workspaceId)
+			assert(can(role, 'editMembers'), ZErrorCode.forbidden)
+
+			// Target must be a member
+			const targetMembership = await tx.run(
+				zql.group_user.where('userId', '=', targetUserId).where('groupId', '=', workspaceId).one()
+			)
+			assert(targetMembership, ZErrorCode.bad_request)
+
+			// Invariant (not a capability): a group must always keep at least one
+			// owner, so the last owner can't be removed.
+			if (targetMembership.role === 'owner') {
+				const owners = await tx.run(
+					zql.group_user.where('groupId', '=', workspaceId).where('role', '=', 'owner')
+				)
+				assert(owners.length > 1, ZErrorCode.forbidden)
+			}
+
+			await tx.mutate.group_user.delete({ userId: targetUserId, groupId: workspaceId })
+		},
 		leaveWorkspace: async (tx: Tx, { workspaceId }: { workspaceId: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(workspaceId, ZErrorCode.bad_request)
