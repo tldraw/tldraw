@@ -29,7 +29,7 @@ function CustomPeopleMenu() {
 	// [a]
 	const myUserColor = useValue('user', () => editor.user.getColor(), [editor])
 	const myUserName = useValue('user', () => editor.user.getName() || 'Guest', [editor])
-	const myUserId = useValue('user', () => editor.user.getId(), [editor])
+	const myUserId = useValue('user', () => editor.user.getExternalId(), [editor])
 
 	// [b]
 	const allOtherPresences = useValue('presences', () => editor.getCollaborators(), [editor])

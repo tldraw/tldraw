@@ -95,6 +95,7 @@ import { TLUnknownAsset } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLUser } from '@tldraw/tlschema';
+import { TLUserId } from '@tldraw/tlschema';
 import { TLUserStore } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
@@ -1595,7 +1596,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly snaps: SnapManager;
     squashToMark(markId: string): this;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this;
-    startFollowingUser(userId: string): this;
+    startFollowingUser(userId: TLUserId): this;
     stopCameraAnimation(): this;
     stopFollowingUser(): this;
     readonly store: TLStore;
@@ -1670,7 +1671,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         inset?: number;
         targetZoom?: number;
     } & TLCameraMoveOptions): void;
-    zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
+    zoomToUser(userId: TLUserId, opts?: TLCameraMoveOptions): this;
 }
 
 // @public
@@ -5026,10 +5027,10 @@ export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement | null>
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement | null>): void;
 
 // @public
-export function usePeerIds(): string[];
+export function usePeerIds(): TLUserId[];
 
 // @public (undocumented)
-export function usePresence(userId: string): null | TLInstancePresence;
+export function usePresence(userId: TLUserId): null | TLInstancePresence;
 
 // @internal (undocumented)
 export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
@@ -5056,7 +5057,8 @@ export class UserPreferencesManager {
     getEdgeScrollSpeed(): number;
     // (undocumented)
     getEnhancedA11yMode(): boolean;
-    // (undocumented)
+    getExternalId(): string;
+    // @deprecated (undocumented)
     getId(): string;
     // (undocumented)
     getInputMode(): "mouse" | "trackpad" | null;
@@ -5076,6 +5078,7 @@ export class UserPreferencesManager {
     getLocale(): string;
     // (undocumented)
     getName(): string;
+    getRecordId(): TLUserId;
     // (undocumented)
     getUserPreferences(): {
         animationSpeed: number;

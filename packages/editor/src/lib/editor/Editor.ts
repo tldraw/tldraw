@@ -3068,8 +3068,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return baseCamera
 	}
 
-	private _getFollowingPresence(targetUserId: string | null) {
-		const visited = [this.user.getId()]
+	private _getFollowingPresence(targetUserId: TLUserId | null) {
+		const visited = [this.user.getRecordId()]
 		const collaborators = this.getCollaborators()
 		let leaderPresence = null as null | TLInstancePresence
 		while (targetUserId && !visited.includes(targetUserId)) {
@@ -4078,7 +4078,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - The camera move options.
 	 * @public
 	 */
-	zoomToUser(userId: string, opts: TLCameraMoveOptions = { animation: { duration: 500 } }): this {
+	zoomToUser(userId: TLUserId, opts: TLCameraMoveOptions = { animation: { duration: 500 } }): this {
 		const presence = this.getCollaborators().find((c) => c.userId === userId)
 
 		if (!presence) return this
@@ -4450,11 +4450,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	startFollowingUser(userId: string): this {
+	startFollowingUser(userId: TLUserId): this {
 		// if we were already following someone, stop following them
 		this.stopFollowingUser()
 
-		const thisUserId = this.user.getId()
+		const thisUserId = this.user.getExternalId()
 
 		if (!thisUserId) {
 			console.warn('You should set the userId for the current instance before following a user')

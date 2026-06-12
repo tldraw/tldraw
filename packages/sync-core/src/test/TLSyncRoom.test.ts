@@ -12,6 +12,7 @@ import {
 	TLRecord,
 	TLShapeId,
 	createTLSchema,
+	createUserId,
 } from '@tldraw/tlschema'
 import { IndexKey, ZERO_INDEX_KEY, mockUniqueId, sortById } from '@tldraw/utils'
 import { vi } from 'vitest'
@@ -301,7 +302,7 @@ describe('isReadonly', () => {
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('foo'),
 					currentPageId: 'page:page_2' as any,
-					userId: 'foo',
+					userId: createUserId('foo'),
 					userName: 'Jimbo',
 				}),
 			],
@@ -349,7 +350,7 @@ describe('isReadonly', () => {
 		            "scribbles": [],
 		            "selectedShapeIds": [],
 		            "typeName": "instance_presence",
-		            "userId": "foo",
+		            "userId": "user:foo",
 		            "userName": "Jimbo",
 		          },
 		        ],
@@ -904,7 +905,7 @@ describe('Presence store isolation', () => {
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('presence-1'),
 					currentPageId: PageRecordType.createId('page_2'),
-					userId: 'user-1',
+					userId: createUserId('user-1'),
 					userName: 'Test User',
 				}),
 			],
@@ -949,7 +950,7 @@ describe('Presence store isolation', () => {
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('any'),
 					currentPageId: PageRecordType.createId('page_2'),
-					userId: 'user-1',
+					userId: createUserId('user-1'),
 					userName: 'Test User',
 				}),
 			],
@@ -999,7 +1000,7 @@ describe('Presence store isolation', () => {
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('any'),
 					currentPageId: PageRecordType.createId('page_2'),
-					userId: 'user-1',
+					userId: createUserId('user-1'),
 					userName: 'Test User',
 				}),
 			],
