@@ -733,14 +733,14 @@ describe('reactive nested queries (QE3, QI5, QQ)', () => {
 			const query = { metadata: { sessionId: { eq: 'session:alpha' } } }
 			const idsQuery = store.query.ids('book', () => query)
 
-			const initialIds = new Set([books.foundation.id, books.hitchhiker.id, books.robots.id])
-			expect(idsQuery.get()).toEqual(initialIds)
+			const before = idsQuery.get()
+			expect(before).toEqual(new Set([books.foundation.id, books.hitchhiker.id, books.robots.id]))
 
 			// Remove a non-matching book
 			store.remove([books.neuromancer.id])
 
-			// Results should be unchanged
-			expect(idsQuery.get()).toEqual(initialIds)
+			// the same Set object stays in place — downstream consumers observe no change
+			expect(idsQuery.get()).toBe(before)
 		})
 
 		it('should handle removing all matching records', () => {
@@ -846,8 +846,8 @@ describe('reactive nested queries (QE3, QI5, QQ)', () => {
 			const query = { metadata: { sessionId: { eq: 'session:alpha' } } }
 			const idsQuery = store.query.ids('book', () => query)
 
-			const initialIds = new Set([books.foundation.id, books.hitchhiker.id, books.robots.id])
-			expect(idsQuery.get()).toEqual(initialIds)
+			const before = idsQuery.get()
+			expect(before).toEqual(new Set([books.foundation.id, books.hitchhiker.id, books.robots.id]))
 
 			// Update a non-nested property (title) but keep nested property the same
 			store.put([
@@ -857,8 +857,8 @@ describe('reactive nested queries (QE3, QI5, QQ)', () => {
 				},
 			])
 
-			// Results should be unchanged
-			expect(idsQuery.get()).toEqual(initialIds)
+			// the same Set object stays in place — downstream consumers observe no change
+			expect(idsQuery.get()).toBe(before)
 		})
 	})
 
