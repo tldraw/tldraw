@@ -1,36 +1,45 @@
 import { NEW_WORKSPACE_TEMPLATE_ID } from '@tldraw/dotcom-shared'
+import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTLSchema } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
-import { getTemplateSnapshot } from './index'
-import { newWorkspaceTemplateSnapshot } from './newWorkspace'
+import { getSerializedTemplate } from './index'
+import { newWorkspaceTemplateJson } from './newWorkspace'
 
-describe('getTemplateSnapshot', () => {
+describe('getSerializedTemplate', () => {
 	it('resolves the new-workspace template', () => {
-		expect(getTemplateSnapshot(NEW_WORKSPACE_TEMPLATE_ID)).toBe(newWorkspaceTemplateSnapshot)
+		expect(getSerializedTemplate(NEW_WORKSPACE_TEMPLATE_ID)).toBe(newWorkspaceTemplateJson)
 	})
 
 	// `createSource` values are client-controlled, so unknown ids include keys from the
-	// object prototype chain, which must not resolve to truthy non-snapshot values.
+	// object prototype chain, which must not resolve to truthy non-template values.
 	it('returns null for unknown template ids', () => {
-		expect(getTemplateSnapshot('not-a-template')).toBeNull()
-		expect(getTemplateSnapshot('constructor')).toBeNull()
-		expect(getTemplateSnapshot('__proto__')).toBeNull()
+		expect(getSerializedTemplate('not-a-template')).toBeNull()
+		expect(getSerializedTemplate('constructor')).toBeNull()
+		expect(getSerializedTemplate('__proto__')).toBeNull()
 	})
 })
 
-describe('newWorkspaceTemplateSnapshot', () => {
+describe('newWorkspaceTemplateJson', () => {
+	const snapshot = JSON.parse(newWorkspaceTemplateJson) as RoomSnapshot
+
+	it('parses into a room snapshot', () => {
+		expect(snapshot).toMatchObject({ documentClock: 0, tombstoneHistoryStartsAtClock: 0 })
+		expect(snapshot.schema).toBeDefined()
+		expect(Array.isArray(snapshot.documents)).toBe(true)
+		for (const doc of snapshot.documents) {
+			expect(doc).toMatchObject({ lastChangedClock: 0 })
+			expect(doc.state.id).toBeDefined()
+		}
+	})
+
 	// The template's records were exported under the schema version current at export time.
 	// They must keep migrating and validating under whatever schema the repo is on now,
 	// since that is exactly what happens when the snapshot is loaded into a room.
 	it('migrates and validates under the current schema', () => {
 		const schema = createTLSchema()
-		expect(newWorkspaceTemplateSnapshot.documents.length).toBeGreaterThan(0)
-		for (const { state } of newWorkspaceTemplateSnapshot.documents) {
-			const migrated = schema.migratePersistedRecord(
-				state as any,
-				newWorkspaceTemplateSnapshot.schema!,
-				'up'
-			)
+		expect(snapshot.documents.length).toBeGreaterThan(0)
+		for (const { state } of snapshot.documents) {
+			const migrated = schema.migratePersistedRecord(state as any, snapshot.schema!, 'up')
 			expect(migrated, `record ${state.id} should migrate`).toMatchObject({ type: 'success' })
 			if (migrated.type === 'success') {
 				expect(() => schema.types[migrated.value.typeName].validate(migrated.value)).not.toThrow()
@@ -39,7 +48,7 @@ describe('newWorkspaceTemplateSnapshot', () => {
 	})
 
 	it('parents every shape to the single page through groups, without cycles', () => {
-		const records = newWorkspaceTemplateSnapshot.documents.map((d) => d.state)
+		const records = snapshot.documents.map((d) => d.state)
 		const documents = records.filter((r) => r.typeName === 'document')
 		const pages = records.filter((r) => r.typeName === 'page')
 		const shapes = records.filter((r) => r.typeName === 'shape') as any[]
@@ -67,7 +76,7 @@ describe('newWorkspaceTemplateSnapshot', () => {
 	// is a coarse proxy for shape bounds, but it catches a re-export from the wrong part of
 	// a canvas, which would present new users with an apparently empty file.
 	it('keeps content near the origin so the default camera shows it', () => {
-		const records = newWorkspaceTemplateSnapshot.documents.map((d) => d.state)
+		const records = snapshot.documents.map((d) => d.state)
 		const pageId = records.find((r) => r.typeName === 'page')!.id
 		const topLevelShapes = records.filter(
 			(r) => r.typeName === 'shape' && (r as any).parentId === pageId
@@ -84,7 +93,7 @@ describe('newWorkspaceTemplateSnapshot', () => {
 	// Templates are stamped into every user's new workspace, so they must not carry the
 	// authoring user's identity (see the regeneration notes in newWorkspace.ts).
 	it('contains no authoring user identity', () => {
-		const records = newWorkspaceTemplateSnapshot.documents.map((d) => d.state)
+		const records = snapshot.documents.map((d) => d.state)
 		expect(records.filter((r) => r.typeName === 'user')).toHaveLength(0)
 		for (const record of records) {
 			const props = (record as any).props

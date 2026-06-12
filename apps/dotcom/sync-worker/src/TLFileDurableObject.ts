@@ -59,7 +59,7 @@ import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
-import { getTemplateSnapshot } from './templates'
+import { getSerializedTemplate } from './templates'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
@@ -941,11 +941,12 @@ export class TLFileDurableObject extends DurableObject {
 				data = DEFAULT_INITIAL_SNAPSHOT
 				break
 			case TEMPLATE_PREFIX:
-				// a template baked into this worker, e.g. the initial document of a new workspace.
+				// a pre-serialized template baked into this worker, e.g. the initial document of
+				// a new workspace (the string is written to R2 verbatim and parsed per seed).
 				// Template ids are persisted forever in `createSource`, so an id this worker does
 				// not know (deploy skew, a retired template) degrades to an empty room rather than
 				// permanently failing the file's first load with ROOM_NOT_FOUND.
-				data = getTemplateSnapshot(id)
+				data = getSerializedTemplate(id)
 				if (!data) {
 					this.reportError(new Error(`Unknown createSource template: ${id}`))
 					data = DEFAULT_INITIAL_SNAPSHOT
