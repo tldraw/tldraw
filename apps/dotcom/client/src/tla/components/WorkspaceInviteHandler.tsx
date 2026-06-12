@@ -1,7 +1,7 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import {
 	deleteFromSessionStorage,
 	fetch,
@@ -22,6 +22,14 @@ const workspaceInviteMessages = defineMessages({
 	error: { defaultMessage: 'Something went wrong loading this invite. Please try again.' },
 })
 
+// The invite route redirects to the root with this query param to mark that
+// the user is arriving from an invite link. The signed-out sign-in dialog only
+// shows when the marker is present; the invite token alone isn't enough, since
+// it stays in session storage after the dialog is dismissed (so a later
+// sign-in still completes the join) and would otherwise re-show the dialog on
+// every plain visit to tldraw.com in the same tab.
+export const WORKSPACE_INVITE_QUERY_PARAM = 'invite'
+
 type ValidInviteInfo = Extract<GetInviteInfoResponseBody, { error: false }>
 
 export function WorkspaceInviteHandler() {
@@ -35,6 +43,7 @@ export function WorkspaceInviteHandler() {
 	// each navigation, since visiting an invite link stores a new token and
 	// redirects to the root without any other dependency changing.
 	const location = useLocation()
+	const [searchParams, setSearchParams] = useSearchParams()
 
 	const { user } = useClerkUser()
 	const signInDialogShownForToken = useRef<string | null>(null)
@@ -50,6 +59,7 @@ export function WorkspaceInviteHandler() {
 			// the invite context on top of the anonymous editor. The token stays in
 			// session storage so the signed-in branch below can complete the join
 			// once they've signed in.
+			if (!searchParams.has(WORKSPACE_INVITE_QUERY_PARAM)) return
 			if (signInDialogShownForToken.current === storedToken) return
 
 			const controller = new AbortController()
@@ -87,6 +97,17 @@ export function WorkspaceInviteHandler() {
 					id: 'workspace-invite-sign-in',
 					component: (props) => <TlaSignInDialog {...props} inviteInfo={inviteInfo} skipRedirect />,
 				})
+				// Strip the marker now that the dialog is up, so reloading the
+				// cleaned-up URL doesn't re-show it. The dialog survives this
+				// navigation: dialogs live in a provider-level atom that nothing
+				// clears on route changes.
+				setSearchParams(
+					(params) => {
+						params.delete(WORKSPACE_INVITE_QUERY_PARAM)
+						return params
+					},
+					{ replace: true }
+				)
 			}
 
 			showSignInDialog()
@@ -158,6 +179,8 @@ export function WorkspaceInviteHandler() {
 		alreadyMemberMsg,
 		errorMsg,
 		location,
+		searchParams,
+		setSearchParams,
 	])
 
 	return null
