@@ -77,11 +77,12 @@ import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
 const MAX_CONNECTIONS = 50
 
-// Cloudflare allows at most six simultaneous open connections per invocation, and each asset
-// copy holds two of them (the R2 get body streaming into the put), so three copies at a time
-// saturates the limit without making the runtime reclaim connections that are still in use.
+// Cloudflare allows at most six simultaneous open connections, and each asset copy holds two
+// of them (the R2 get body streaming into the put). Two copies at a time leaves two slots free
+// for everything else the durable object does while a pass runs — snapshot persistence to R2,
+// Pierre pushes, Postgres queries — all of which share the same connection budget.
 // https://developers.cloudflare.com/workers/platform/limits/#simultaneous-open-connections
-const MAX_CONCURRENT_ASSET_COPIES = 3
+const MAX_CONCURRENT_ASSET_COPIES = 2
 
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
