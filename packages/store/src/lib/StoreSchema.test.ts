@@ -489,7 +489,7 @@ describe('getMigrationsSince (MG)', () => {
 		const err1 = schemaWithMigrations.getMigrationsSince(incompatible)
 		const err2 = schemaWithMigrations.getMigrationsSince(incompatible)
 		expect(err1.ok).toBe(false)
-		expect(err2.ok).toBe(false)
+		expect(err2).toBe(err1)
 	})
 
 	it('[MG7] v1 persisted schemas are upgraded before comparison', () => {
