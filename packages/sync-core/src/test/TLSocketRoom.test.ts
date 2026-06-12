@@ -366,6 +366,26 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(room.getSessions()).toHaveLength(0)
 		})
 
+		it('[SR5] rejects the session with UNKNOWN_ERROR when async message handling throws', async () => {
+			const log: TLSyncLog = { warn: vi.fn(), error: vi.fn() }
+			const room = new TLSocketRoom({ log })
+			const socket = createMockSocket()
+			connectSession(room, 'test-session', socket)
+
+			// A structurally valid JSON message with an unknown type passes the
+			// assembler but makes the room's (async) message handler throw
+			room.handleSocketMessage('test-session', JSON.stringify({ type: 'bogus' }))
+			await Promise.resolve()
+			await Promise.resolve()
+
+			expect(log.error).toHaveBeenCalled()
+			expect(socket.close).toHaveBeenCalledWith(
+				TLSyncErrorCloseEventCode,
+				TLSyncErrorCloseEventReason.UNKNOWN_ERROR
+			)
+			expect(room.getSessions()).toHaveLength(0)
+		})
+
 		it('[SR5] warns when receiving a message from an unknown session', () => {
 			const log: TLSyncLog = { warn: vi.fn(), error: vi.fn() }
 			const room = new TLSocketRoom({ log })
