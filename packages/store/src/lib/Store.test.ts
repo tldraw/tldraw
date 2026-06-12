@@ -511,6 +511,68 @@ describe('Store: validation (V)', () => {
 		expect(store.allRecords()).toEqual([])
 	})
 
+	it('[V4] the validation failure handler result is stored, on create and update alike', () => {
+		const FixableAuthor = createRecordType<Author>('author', {
+			validator: {
+				validate(value) {
+					const author = value as Author
+					if (typeof author.name !== 'string') throw Error('invalid author name')
+					return author
+				},
+			},
+			scope: 'document',
+		})
+		const recoveringStore = new Store<Author>({
+			props: {},
+			schema: StoreSchema.create<Author>(
+				{ author: FixableAuthor },
+				{
+					onValidationFailure: ({ record }) => ({ ...record, name: 'Recovered' }) as Author,
+				}
+			),
+		})
+
+		const id = FixableAuthor.createId('a')
+
+		// create
+		recoveringStore.put([{ id, typeName: 'author', name: 4, isPseudonym: false } as any])
+		expect(recoveringStore.get(id)!.name).toBe('Recovered')
+
+		// update
+		recoveringStore.put([{ id, typeName: 'author', name: 'Valid', isPseudonym: false } as any])
+		recoveringStore.put([{ id, typeName: 'author', name: 5, isPseudonym: false } as any])
+		expect(recoveringStore.get(id)!.name).toBe('Recovered')
+		recoveringStore.dispose()
+	})
+
+	it('[V4] a validator that substitutes a transformed record has it stored on update', () => {
+		const NormalizingAuthor = createRecordType<Author>('author', {
+			validator: {
+				validate(value) {
+					const author = value as Author
+					return { ...author, name: author.name.trim() }
+				},
+			},
+			scope: 'document',
+		})
+		const normalizingStore = new Store<Author>({
+			props: {},
+			schema: StoreSchema.create<Author>({ author: NormalizingAuthor }),
+		})
+
+		const id = NormalizingAuthor.createId('a')
+		normalizingStore.put([
+			{ id, typeName: 'author', name: '  padded  ', isPseudonym: false } as any,
+		])
+		expect(normalizingStore.get(id)!.name).toBe('padded')
+
+		normalizingStore.put([
+			{ id, typeName: 'author', name: '  padded again  ', isPseudonym: false } as any,
+		])
+		expect(normalizingStore.get(id)!.name).toBe('padded again')
+		normalizingStore.dispose()
+	})
+
 	it('[V5] store.validate re-validates every record', () => {
 		const author = Author.create({ name: 'J.R.R Tolkein' })
 		const book = Book.create({ title: 'The Hobbit', author: author.id })

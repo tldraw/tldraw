@@ -91,7 +91,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **V1** Records are validated on initialization, creation, and update (phases `'initialize'`, `'createRecord'`, `'updateRecord'`). A record whose `typeName` has no RecordType in the schema fails validation with `Missing definition for record type <name>`.
 - **V2** Updates pass the previous record to the validator via `validateUsingKnownGoodVersion` when the validator implements it (RT8).
 - **V3** A validation throw propagates by default and aborts the whole operation: the transaction rolls back and the store is left unchanged, even for records earlier in the same `put`.
-- **V4** With `onValidationFailure`, the handler receives `{ error, store, record, phase, recordBefore }` and its return value is stored instead of throwing.
+- **V4** With `onValidationFailure`, the handler receives `{ error, store, record, phase, recordBefore }` and its return value is stored instead of throwing — on creation and update alike. More generally, the validator's return value is what gets stored, so validators may substitute a transformed record.
 - **V5** `store.validate(phase)` re-validates every record currently in the store.
 
 ## 10. Computed caches (CC)

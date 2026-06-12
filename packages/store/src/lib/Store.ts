@@ -656,7 +656,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 					if (validated === initialValue) continue
 
-					record = devFreeze(record)
+					record = devFreeze(validated)
 					this.records.set(record.id, record)
 
 					didChange = true
