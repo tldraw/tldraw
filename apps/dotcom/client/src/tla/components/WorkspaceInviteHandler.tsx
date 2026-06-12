@@ -1,6 +1,6 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import {
 	deleteFromSessionStorage,
@@ -24,10 +24,11 @@ const workspaceInviteMessages = defineMessages({
 
 // The invite route redirects to the root with this query param to mark that
 // the user is arriving from an invite link. The signed-out sign-in dialog only
-// shows when the marker is present; the invite token alone isn't enough, since
-// it stays in session storage after the dialog is dismissed (so a later
-// sign-in still completes the join) and would otherwise re-show the dialog on
-// every plain visit to tldraw.com in the same tab.
+// shows when the marker is present, and the marker is stripped once the dialog
+// is up, so the marker fully encodes "show the dialog once per arrival". The
+// invite token alone couldn't: it stays in session storage after the dialog is
+// dismissed (so a later sign-in still completes the join) and would otherwise
+// re-show the dialog on every plain visit to tldraw.com in the same tab.
 export const WORKSPACE_INVITE_QUERY_PARAM = 'invite'
 
 type ValidInviteInfo = Extract<GetInviteInfoResponseBody, { error: false }>
@@ -46,7 +47,6 @@ export function WorkspaceInviteHandler() {
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const { user } = useClerkUser()
-	const signInDialogShownForToken = useRef<string | null>(null)
 
 	useEffect(() => {
 		if (!auth.isLoaded) return
@@ -60,7 +60,6 @@ export function WorkspaceInviteHandler() {
 			// session storage so the signed-in branch below can complete the join
 			// once they've signed in.
 			if (!searchParams.has(WORKSPACE_INVITE_QUERY_PARAM)) return
-			if (signInDialogShownForToken.current === storedToken) return
 
 			const controller = new AbortController()
 			const { signal } = controller
@@ -87,12 +86,8 @@ export function WorkspaceInviteHandler() {
 			async function showSignInDialog() {
 				const inviteInfo = await loadInviteInfo()
 				if (signal.aborted) return
-				// Mark the dialog as shown only now that we're actually showing it.
-				// If the guard were set before the fetch resolved, an aborted attempt
-				// (an effect re-run mid-flight) would leave the guard set, blocking
-				// any retry. Keying the guard by token also lets a different invite
-				// link replace the dialog, which the stable dialog id makes seamless.
-				signInDialogShownForToken.current = storedToken
+				// The stable dialog id means a re-arrival from another invite link
+				// replaces the open dialog rather than stacking a second one.
 				dialogs.addDialog({
 					id: 'workspace-invite-sign-in',
 					component: (props) => <TlaSignInDialog {...props} inviteInfo={inviteInfo} skipRedirect />,
