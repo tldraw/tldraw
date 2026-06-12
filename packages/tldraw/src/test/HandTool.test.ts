@@ -208,4 +208,49 @@ describe('When in the dragging state', () => {
 		editor.cancel()
 		editor.expectToBeIn('hand.idle')
 	})
+
+	it('Returns to the idle state on interrupt', () => {
+		editor.setCurrentTool('hand')
+		editor.pointerDown(50, 50)
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('hand.dragging')
+		editor.interrupt()
+		editor.expectToBeIn('hand.idle')
+	})
+
+	it('Ends the pan when a second touch starts, without jumping the camera', () => {
+		editor.setCurrentTool('hand')
+		editor.pointerDown(50, 50)
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('hand.dragging')
+		expect(editor.getCamera()).toMatchObject({ x: 50, y: 50 })
+
+		// A second finger lands far from the first, resetting the input origin.
+		editor.pointerDown(200, 0)
+		editor.expectToBeIn('hand.idle')
+
+		// Movement before pinch_start arrives no longer pans the camera.
+		editor.pointerMove(210, 10)
+		expect(editor.getCamera()).toMatchObject({ x: 50, y: 50 })
+	})
+
+	it('Does not resume the pan after a pinch ends', () => {
+		editor.setCurrentTool('hand')
+		editor.pointerDown(50, 50)
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('hand.dragging')
+
+		// A second finger lands and starts a pinch.
+		editor.pointerDown(200, 0)
+		editor.expectToBeIn('hand.idle')
+		editor.pinchStart(150, 50, 1, 0, 0, 0)
+		editor.pinchTo(150, 50, 2, 0, 0, 0)
+		editor.pinchEnd(150, 50, 2, 0, 0, 0)
+		editor.expectToBeIn('hand.idle')
+
+		// Moving the remaining finger does not pan the camera.
+		const { x, y } = editor.getCamera()
+		editor.pointerMove(120, 120)
+		expect(editor.getCamera()).toMatchObject({ x, y })
+	})
 })
