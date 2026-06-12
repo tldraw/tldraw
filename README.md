@@ -32,6 +32,12 @@ tldraw provides a feature-complete infinite canvas engine designed to be the fou
 - **DOM canvas** — web rendering supports anything the browser supports, including embedded websites from YouTube, Figma, GitHub, [and more](https://tldraw.dev/sdk-features/embed-shape)
 - **Broad support** — works in any browser across desktop, touch screens, tablets, and mobile devices
 
+## Who's using tldraw
+
+The tldraw SDK powers canvas experiences in products from [Google](https://about.google), [Shopify](https://www.shopify.com), [BlackRock](https://www.blackrock.com), [Autodesk](https://blogs.autodesk.com/forma/2024/06/20/forma-board-collaborative-tool-for-architects/), [ClickUp](https://tldraw.dev/blog/clickup), [Replit](https://docs.replit.com/replitai/canvas), [Google Stitch](https://stitch.withgoogle.com), [Luma](https://lumalabs.ai/app), [Runway](https://runwayml.com), [Padlet](https://tldraw.dev/blog/padlet), [Mobbin](https://tldraw.dev/blog/mobbin), [Jam](https://tldraw.dev/blog/jam), [Craft](https://support.craft.do/en/write-and-edit/whiteboards), [Honeycomb](https://www.honeycomb.io/platform/canvas), [SchoolAI](https://schoolai.com/products/powerups), [Brisk](https://www.briskteaching.com/post/boost-whiteboard), [CADChat](https://cadchat.com), [bigpi](https://www.bigpi.ai), [Genio](https://genio.co), [Pollination](https://www.pollination.solutions), [Legendkeeper](https://www.legendkeeper.com), [Matilda](https://www.matilda.io), [Aries](https://aries.com/infinite), [Alai](https://getalai.com), [Dirac](https://www.diracinc.com), and many more.
+
+See our [showcase](https://tldraw.dev/showcase) for case studies on how teams build with tldraw.
+
 ## Quick start
 
 Install the tldraw package:
