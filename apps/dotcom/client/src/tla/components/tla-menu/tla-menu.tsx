@@ -150,7 +150,15 @@ export function TlaMenuSelect<T extends string>({
 		<div
 			ref={setWrapper}
 			className={styles.menuSelectWrapper}
-			onClickCapture={(e) => {
+			// Stop clicks in the bubble phase (not capture) so Base UI's select item
+			// onClick still runs to commit the selection before we stop the event.
+			onClick={(e) => {
+				e.stopPropagation()
+			}}
+			// The share menu wrapper preventDefaults pointerdown, which suppresses the
+			// compatibility mousedown event that Base UI's select opens on. Keep the
+			// pointerdown from reaching it.
+			onPointerDown={(e) => {
 				e.stopPropagation()
 			}}
 		>

@@ -114,7 +114,9 @@ export function ContextMenuSubWithMenu({ id, children }: TLUiContextMenuSubProps
 	const [open, onOpenChange] = useMenuIsOpen(id)
 
 	return (
-		<_ContextMenu.SubmenuRoot open={open} onOpenChange={onOpenChange}>
+		// closeParentOnEsc restores the Radix behavior of escape closing the whole menu
+		// tree rather than just the focused submenu.
+		<_ContextMenu.SubmenuRoot open={open} onOpenChange={onOpenChange} closeParentOnEsc>
 			{children}
 		</_ContextMenu.SubmenuRoot>
 	)

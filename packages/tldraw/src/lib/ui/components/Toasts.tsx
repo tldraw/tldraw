@@ -100,18 +100,22 @@ export const DefaultToasts = memo(function TldrawUiToasts() {
 	const toastManager = _Toast.useToastManager()
 
 	// Mirror tldraw's toast list into the Base UI toast manager, which owns timers,
-	// swiping, and dismissal.
-	const syncedIdsRef = useRef(new Set<string>())
+	// swiping, and dismissal. Every add/update/close changes the manager state and
+	// re-runs this effect, so only sync toasts that actually changed — unconditional
+	// updates would loop forever.
+	const syncedToastsRef = useRef(new Map<string, TLUiToast>())
 	useEffect(() => {
-		const syncedIds = syncedIdsRef.current
+		const syncedToasts = syncedToastsRef.current
 		for (const toast of toastsArray) {
+			if (syncedToasts.get(toast.id) === toast) continue
 			const options = {
 				data: toast,
 				timeout: toast.keepOpen ? 0 : DEFAULT_TOAST_DURATION,
 				onClose: () => removeToast(toast.id),
 			}
-			if (!syncedIds.has(toast.id)) {
-				syncedIds.add(toast.id)
+			const isNew = !syncedToasts.has(toast.id)
+			syncedToasts.set(toast.id, toast)
+			if (isNew) {
 				toastManager.add({ id: toast.id, ...options })
 			} else {
 				toastManager.update(toast.id, options)
@@ -122,9 +126,9 @@ export const DefaultToasts = memo(function TldrawUiToasts() {
 				toastManager.close(managed.id)
 			}
 		}
-		for (const id of [...syncedIds]) {
+		for (const id of [...syncedToasts.keys()]) {
 			if (!toastsArray.some((t) => t.id === id)) {
-				syncedIds.delete(id)
+				syncedToasts.delete(id)
 			}
 		}
 	}, [toastsArray, toastManager, removeToast])

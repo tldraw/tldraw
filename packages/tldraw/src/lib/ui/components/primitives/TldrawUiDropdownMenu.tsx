@@ -99,7 +99,9 @@ export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubPro
 	const [open, onOpenChange] = useMenuIsOpen(id)
 
 	return (
-		<_Menu.SubmenuRoot open={open} onOpenChange={onOpenChange}>
+		// closeParentOnEsc restores the Radix behavior of escape closing the whole menu
+		// tree rather than just the focused submenu.
+		<_Menu.SubmenuRoot open={open} onOpenChange={onOpenChange} closeParentOnEsc>
 			{children}
 		</_Menu.SubmenuRoot>
 	)
