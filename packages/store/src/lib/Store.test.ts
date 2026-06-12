@@ -491,9 +491,15 @@ describe('Store: validation (V)', () => {
 
 	it('[V5] store.validate re-validates every record', () => {
 		const author = Author.create({ name: 'J.R.R Tolkein' })
-		store.put([author])
+		const book = Book.create({ title: 'The Hobbit', author: author.id })
+		store.put([author, book])
 
-		expect(() => store.validate('tests')).not.toThrow()
+		const validateRecord = vi.spyOn(store.schema, 'validateRecord')
+		store.validate('tests')
+		expect(validateRecord).toHaveBeenCalledTimes(2)
+		expect(validateRecord).toHaveBeenCalledWith(store, author, 'tests', null)
+		expect(validateRecord).toHaveBeenCalledWith(store, book, 'tests', null)
+		validateRecord.mockRestore()
 	})
 })
 
