@@ -46,6 +46,10 @@ export class SpatialIndexManager {
 
 	private createSpatialIndexComputed() {
 		const shapeHistory = this.editor.store.query.filterHistory('shape')
+		// Binding changes can move a shape's derived bounds (e.g. creating or
+		// deleting an arrow binding relocates the arrow's body) without
+		// touching any shape record, so they must also invalidate the index.
+		const bindingHistory = this.editor.store.query.filterHistory('binding')
 
 		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {
 			if (isUninitialized(_prevValue)) {
@@ -53,8 +57,9 @@ export class SpatialIndexManager {
 			}
 
 			const shapeDiff = shapeHistory.getDiffSince(lastComputedEpoch)
+			const bindingDiff = bindingHistory.getDiffSince(lastComputedEpoch)
 
-			if (shapeDiff === RESET_VALUE) {
+			if (shapeDiff === RESET_VALUE || bindingDiff === RESET_VALUE) {
 				return this.rebuildAndBumpEpoch()
 			}
 
@@ -63,8 +68,10 @@ export class SpatialIndexManager {
 				return this.rebuildAndBumpEpoch()
 			}
 
-			if (shapeDiff.length === 0) return this._boundsEpoch
+			if (shapeDiff.length === 0 && bindingDiff.length === 0) return this._boundsEpoch
 
+			// A binding-only diff passes an empty shape diff: step 1 is a no-op
+			// and the step-2 sweep re-checks the indexed bounds of every shape.
 			if (this.processIncrementalUpdate(shapeDiff)) {
 				this._boundsEpoch++
 			}
