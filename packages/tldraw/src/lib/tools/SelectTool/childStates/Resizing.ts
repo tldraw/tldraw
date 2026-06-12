@@ -415,12 +415,13 @@ export class Resizing extends StateNode {
 
 				if (delta.x !== 0 || delta.y !== 0) {
 					for (const child of children) {
+						// cast: see microsoft/TypeScript#42518 (wide shape-type union, tsgo).
 						this.editor.updateShape({
 							id: child.id,
 							type: child.type,
 							x: child.x - delta.x,
 							y: child.y - delta.y,
-						})
+						} as TLShapePartial)
 					}
 				}
 			}
@@ -431,12 +432,13 @@ export class Resizing extends StateNode {
 			for (const { children } of frames) {
 				if (!children.length) continue
 				for (const child of children) {
+					// cast: see microsoft/TypeScript#42518 (wide shape-type union, tsgo).
 					this.editor.updateShape({
 						id: child.id,
 						type: child.type,
 						x: child.x,
 						y: child.y,
-					})
+					} as TLShapePartial)
 				}
 			}
 		}

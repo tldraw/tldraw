@@ -567,12 +567,13 @@ export function moveShapesToPoint({
 					? Mat.applyToPoint(parentTransform, newPagePoint)
 					: newPagePoint
 
+				// cast: see microsoft/TypeScript#42518 (wide shape-type union, tsgo).
 				return {
 					id: shape.id,
 					type: shape.type,
 					x: newLocalPoint.x,
 					y: newLocalPoint.y,
-				}
+				} as TLShapePartial
 			})
 		)
 	)

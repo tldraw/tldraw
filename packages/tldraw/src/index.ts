@@ -246,6 +246,66 @@ export {
 	type NoteShapeOptions,
 	type NoteShapeUtilDisplayValues,
 } from './lib/shapes/note/NoteShapeUtil'
+export { TableShapeUtil } from './lib/shapes/table/TableShapeUtil'
+export {
+	TableCellShapeUtil,
+	type TableCellShapeOptions,
+} from './lib/shapes/table/TableCellShapeUtil'
+export { TableShapeTool } from './lib/shapes/table/TableShapeTool'
+export {
+	textCellKind,
+	type TLTableCellKind,
+	type TLTableCellKindProps,
+} from './lib/shapes/table/cellKinds'
+export {
+	buildGrid,
+	diffTableStructure,
+	getCellAtPoint,
+	getCellKey,
+	getCellsInRange,
+	getMergeMap,
+	getTableLayout,
+	resolveCellStyle,
+	TABLE_CONSTANTS,
+	withColumnInserted,
+	withColumnRemoved,
+	withColumnWidth,
+	withRowHeight,
+	withRowInserted,
+	withRowRemoved,
+	type MergedCellInfo,
+	type ResolvedCellStyle,
+	type TableColLayout,
+	type TableLayout,
+	type TableMergeMap,
+	type TableRowLayout,
+	type TableStructureChange,
+} from './lib/shapes/table/core'
+export {
+	deleteColumn,
+	deleteRow,
+	drillSelectCell,
+	findOrCreateCell,
+	getCellText,
+	getMergedCellAtPoint,
+	getTableCells,
+	getTableData,
+	insertColumn,
+	insertRow,
+	isCellEmpty,
+	mergeCells,
+	navigateCell,
+	reconcileTable,
+	selectCellRange,
+	selectColumn,
+	selectRow,
+	setCellText,
+	setColumnWidth,
+	setRowHeight,
+	tabNavigateCell,
+	unmergeCell,
+} from './lib/shapes/table/tableOperations'
+export { reflowRowHeights } from './lib/shapes/table/reflow'
 export {
 	ASPECT_RATIO_OPTIONS,
 	ASPECT_RATIO_TO_VALUE,

@@ -14,6 +14,7 @@ import {
 	TLDefaultTextAlignStyle,
 	TLOpacityType,
 	TLShapeId,
+	TLShapePartial,
 	Vec,
 	VecLike,
 	VecModel,
@@ -366,12 +367,13 @@ export async function putExcalidrawContent(
 				y: (s.y ?? 0) - (bounds.y + bounds.h / 2),
 			}
 
+			// cast: see microsoft/TypeScript#42518 (wide shape-type union, tsgo).
 			return {
 				id: s.id,
 				type: s.type,
 				x: viewPortCenter.x + delta.x,
 				y: viewPortCenter.y + delta.y,
-			}
+			} as TLShapePartial
 		})
 	)
 	editor.setSelectedShapes(rootShapeIds)

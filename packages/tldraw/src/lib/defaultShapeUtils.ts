@@ -8,6 +8,8 @@ import { HighlightShapeUtil } from './shapes/highlight/HighlightShapeUtil'
 import { ImageShapeUtil } from './shapes/image/ImageShapeUtil'
 import { LineShapeUtil } from './shapes/line/LineShapeUtil'
 import { NoteShapeUtil } from './shapes/note/NoteShapeUtil'
+import { TableCellShapeUtil } from './shapes/table/TableCellShapeUtil'
+import { TableShapeUtil } from './shapes/table/TableShapeUtil'
 import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { VideoShapeUtil } from './shapes/video/VideoShapeUtil'
 
@@ -20,6 +22,8 @@ export const defaultShapeUtils = [
 	NoteShapeUtil,
 	LineShapeUtil,
 	FrameShapeUtil,
+	TableShapeUtil,
+	TableCellShapeUtil,
 	ArrowShapeUtil,
 	HighlightShapeUtil,
 	EmbedShapeUtil,
