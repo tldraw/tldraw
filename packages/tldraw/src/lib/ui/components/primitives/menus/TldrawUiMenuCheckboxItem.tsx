@@ -54,9 +54,13 @@ export function TldrawUiMenuCheckboxItem<
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
 	switch (menuType) {
-		case 'menu': {
+		case 'menu':
+		case 'context-menu': {
+			const CheckboxItem =
+				menuType === 'menu' ? _DropdownMenu.CheckboxItem : _ContextMenu.CheckboxItem
 			return (
-				<_DropdownMenu.CheckboxItem
+				<CheckboxItem
+					key={id}
 					dir={dir}
 					lang={lang}
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
@@ -79,36 +83,7 @@ export function TldrawUiMenuCheckboxItem<
 						</span>
 					)}
 					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
-				</_DropdownMenu.CheckboxItem>
-			)
-		}
-		case 'context-menu': {
-			return (
-				<_ContextMenu.CheckboxItem
-					key={id}
-					className="tlui-button tlui-button__menu tlui-button__checkbox"
-					dir={dir}
-					lang={lang}
-					title={labelStr}
-					onSelect={(e) => {
-						onSelect(sourceId)
-						preventDefault(e)
-					}}
-					disabled={disabled}
-					checked={checked}
-				>
-					<TldrawUiIcon
-						small
-						label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
-						icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
-					/>
-					{labelStr && (
-						<span className="tlui-button__label" draggable={false}>
-							{labelStr}
-						</span>
-					)}
-					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
-				</_ContextMenu.CheckboxItem>
+				</CheckboxItem>
 			)
 		}
 		default: {

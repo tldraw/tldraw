@@ -219,39 +219,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
-
-							editor.updateShapes([
-								{
-									id: inCommon.id,
-									type: 'geo',
-									props: {
-										richText: toRichText(v1Shape.label ?? ''),
-									},
-								},
-							])
-
-							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
-								const { growY } = shape.props
-								const w = coerceDimension(shape.props.w)
-								const h = coerceDimension(shape.props.h)
-								const newW = w + growY / 2
-								const newH = h + growY / 2
-
-								editor.updateShapes([
-									{
-										id: inCommon.id,
-										type: 'geo',
-										x: coerceNumber(shape.x) - (newW - w) / 2,
-										y: coerceNumber(shape.y) - (newH - h) / 2,
-										props: {
-											w: newW,
-											h: newH,
-										},
-									},
-								])
-							}
+							applyV1LabelToGeoShape(editor, inCommon.id, v1Shape.label)
 							break
 						}
 						case TLV1ShapeType.Triangle: {
@@ -274,39 +242,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
-
-							editor.updateShapes([
-								{
-									id: inCommon.id,
-									type: 'geo',
-									props: {
-										richText: toRichText(v1Shape.label ?? ''),
-									},
-								},
-							])
-
-							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
-								const { growY } = shape.props
-								const w = coerceDimension(shape.props.w)
-								const h = coerceDimension(shape.props.h)
-								const newW = w + growY / 2
-								const newH = h + growY / 2
-
-								editor.updateShapes([
-									{
-										id: inCommon.id,
-										type: 'geo',
-										x: coerceNumber(shape.x) - (newW - w) / 2,
-										y: coerceNumber(shape.y) - (newH - h) / 2,
-										props: {
-											w: newW,
-											h: newH,
-										},
-									},
-								])
-							}
+							applyV1LabelToGeoShape(editor, inCommon.id, v1Shape.label)
 							break
 						}
 						case TLV1ShapeType.Ellipse: {
@@ -329,39 +265,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
-
-							editor.updateShapes([
-								{
-									id: inCommon.id,
-									type: 'geo',
-									props: {
-										richText: toRichText(v1Shape.label ?? ''),
-									},
-								},
-							])
-
-							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
-								const { growY } = shape.props
-								const w = coerceDimension(shape.props.w)
-								const h = coerceDimension(shape.props.h)
-								const newW = w + growY / 2
-								const newH = h + growY / 2
-
-								editor.updateShapes([
-									{
-										id: inCommon.id,
-										type: 'geo',
-										x: coerceNumber(shape.x) - (newW - w) / 2,
-										y: coerceNumber(shape.y) - (newH - h) / 2,
-										props: {
-											w: newW,
-											h: newH,
-										},
-									},
-								])
-							}
+							applyV1LabelToGeoShape(editor, inCommon.id, v1Shape.label)
 
 							break
 						}
@@ -604,6 +508,43 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 			editor.zoomToBounds(bounds, { targetZoom: 1 })
 		}
 	})
+}
+
+// Applies a v1 label to a geo shape, then for square shapes grows the shape to fit the label.
+function applyV1LabelToGeoShape(editor: Editor, id: TLShapeId, label: string | undefined) {
+	const pageBoundsBeforeLabel = editor.getShapePageBounds(id)!
+
+	editor.updateShapes([
+		{
+			id,
+			type: 'geo',
+			props: {
+				richText: toRichText(label ?? ''),
+			},
+		},
+	])
+
+	if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
+		const shape = editor.getShape<TLGeoShape>(id)!
+		const { growY } = shape.props
+		const w = coerceDimension(shape.props.w)
+		const h = coerceDimension(shape.props.h)
+		const newW = w + growY / 2
+		const newH = h + growY / 2
+
+		editor.updateShapes([
+			{
+				id,
+				type: 'geo',
+				x: coerceNumber(shape.x) - (newW - w) / 2,
+				y: coerceNumber(shape.y) - (newH - h) / 2,
+				props: {
+					w: newW,
+					h: newH,
+				},
+			},
+		])
+	}
 }
 
 function coerceNumber(n: unknown): number {

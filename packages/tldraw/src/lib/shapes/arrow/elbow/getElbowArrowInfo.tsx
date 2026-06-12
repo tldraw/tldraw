@@ -86,19 +86,9 @@ export function getElbowArrowInfo(
 
 	// We model each edge that an arrow might enter/exit from separately. If an edge is blocked,
 	// `getUsableEdge` might return null.
-	let edgesA = {
-		top: getUsableEdge(aTerminal, bTerminal, 'top', options),
-		right: getUsableEdge(aTerminal, bTerminal, 'right', options),
-		bottom: getUsableEdge(aTerminal, bTerminal, 'bottom', options),
-		left: getUsableEdge(aTerminal, bTerminal, 'left', options),
-	}
+	let edgesA = getUsableEdges(aTerminal, bTerminal, options)
 
-	let edgesB = {
-		top: getUsableEdge(bTerminal, aTerminal, 'top', options),
-		right: getUsableEdge(bTerminal, aTerminal, 'right', options),
-		bottom: getUsableEdge(bTerminal, aTerminal, 'bottom', options),
-		left: getUsableEdge(bTerminal, aTerminal, 'left', options),
-	}
+	let edgesB = getUsableEdges(bTerminal, aTerminal, options)
 
 	// We we don't have a usable edge because it's blocked, we can convert some of the terminals to
 	// points. Point terminals have less strict edge routing rules, but don't look as good
@@ -126,19 +116,9 @@ export function getElbowArrowInfo(
 	}
 
 	if (needsNewEdges) {
-		edgesA = {
-			top: getUsableEdge(aTerminal, bTerminal, 'top', options),
-			right: getUsableEdge(aTerminal, bTerminal, 'right', options),
-			bottom: getUsableEdge(aTerminal, bTerminal, 'bottom', options),
-			left: getUsableEdge(aTerminal, bTerminal, 'left', options),
-		}
+		edgesA = getUsableEdges(aTerminal, bTerminal, options)
 
-		edgesB = {
-			top: getUsableEdge(bTerminal, aTerminal, 'top', options),
-			right: getUsableEdge(bTerminal, aTerminal, 'right', options),
-			bottom: getUsableEdge(bTerminal, aTerminal, 'bottom', options),
-			left: getUsableEdge(bTerminal, aTerminal, 'left', options),
-		}
+		edgesB = getUsableEdges(bTerminal, aTerminal, options)
 	}
 
 	// We expand the bounds of the terminals so we can route arrows around them without the arrows
@@ -533,6 +513,15 @@ const sideProps = {
 		crossAxis: 'y',
 	},
 } as const
+
+function getUsableEdges(a: ElbowArrowTerminal, b: ElbowArrowTerminal, options: ElbowArrowOptions) {
+	return {
+		top: getUsableEdge(a, b, 'top', options),
+		right: getUsableEdge(a, b, 'right', options),
+		bottom: getUsableEdge(a, b, 'bottom', options),
+		left: getUsableEdge(a, b, 'left', options),
+	}
+}
 
 export function getUsableEdge(
 	a: ElbowArrowTerminal,
