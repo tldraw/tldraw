@@ -341,42 +341,6 @@
 	justify-content: center;
 }
 
-.selectWrapper {
-	display: flex;
-	position: relative;
-}
-
-.select {
-	display: inline-block;
-	appearance: none;
-	outline: none;
-	border: none;
-	padding: 4px 20px 4px 8px;
-	cursor: pointer;
-	position: relative;
-}
-
-.select:disabled {
-	cursor: default;
-}
-
-.selectWrapper:hover::after {
-	content: '';
-	pointer-events: none;
-	display: flex;
-	position: absolute;
-	inset: 0px -6px 0px 0px;
-	background-color: var(--tla-color-hover-2);
-	border-radius: var(--tl-radius-1);
-}
-
-.menuSelectChevron {
-	position: absolute !important;
-	right: 0 !important;
-	top: 50% !important;
-	transform: translateY(-50%) !important;
-}
-
 .copyInviteLinkIconRight {
 	right: 12.5px !important;
 }

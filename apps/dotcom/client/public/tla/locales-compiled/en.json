@@ -75,6 +75,12 @@
       "value": "Send feedback"
     }
   ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Remove"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -187,6 +193,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Remove member"
     }
   ],
   "3bc7d6ea2f": [
@@ -1351,6 +1363,20 @@
     {
       "type": 0,
       "value": "Copied link"
+    }
+  ],
+  "ff2fefd3c6": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to remove "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " from this workspace?"
     }
   ],
   "ffcd73e997": [

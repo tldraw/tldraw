@@ -17,6 +17,7 @@ import { routes } from '../../../routeDefs'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
+import { TlaMenuSelect } from '../tla-menu/tla-menu'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -46,6 +47,11 @@ const messages = defineMessages({
 	},
 	leaveAction: { defaultMessage: 'Leave workspace' },
 	deleteAction: { defaultMessage: 'Delete workspace' },
+	removeMember: { defaultMessage: 'Remove' },
+	removeAction: { defaultMessage: 'Remove member' },
+	confirmRemove: {
+		defaultMessage: 'Are you sure you want to remove {name} from this workspace?',
+	},
 })
 
 interface WorkspaceSettingsDialogProps {
@@ -64,6 +70,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const ownerMsg = useMsg(messages.owner)
 	const memberMsg = useMsg(messages.member)
 	const youMsg = useMsg(messages.you)
+	const removeMemberMsg = useMsg(messages.removeMember)
 
 	// Get workspace data
 	const workspaceMembership = useValue(
@@ -86,7 +93,14 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	// Leaving is allowed for everyone except the last owner — a workspace invariant
 	// (it must always keep at least one owner), not a capability.
 	const canLeave = role !== 'owner' || ownersCount > 1
+	const canEditMembers = can(role, 'editMembers')
 	const roleLabels: Record<Role, string> = { owner: ownerMsg, member: memberMsg }
+	// Owners sort above members; within a role the current user is pinned to the top.
+	const roleOrder: Record<Role, number> = { owner: 0, member: 1 }
+	const roleOptions = (Object.keys(roleLabels) as Role[]).map((value) => ({
+		value,
+		label: roleLabels[value],
+	}))
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
@@ -163,6 +177,31 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					cancelLabel={<F {...messages.cancel} />}
 					confirmType="danger"
 					onConfirm={handleDeleteWorkspace}
+					onClose={onClose}
+				/>
+			),
+		})
+	}
+
+	const handleRemoveMember = async (targetUserId: string) => {
+		try {
+			await app.z.mutate.removeWorkspaceMember({ workspaceId, targetUserId }).client
+		} catch (error) {
+			console.error('Error removing member:', error)
+			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
+		}
+	}
+
+	const openRemoveConfirmDialog = (member: { userId: string; userName: string }) => {
+		addDialog({
+			component: ({ onClose }) => (
+				<ConfirmDialog
+					title={<F {...messages.removeAction} />}
+					description={<F {...messages.confirmRemove} values={{ name: member.userName }} />}
+					confirmLabel={<F {...messages.removeAction} />}
+					cancelLabel={<F {...messages.cancel} />}
+					confirmType="danger"
+					onConfirm={() => handleRemoveMember(member.userId)}
 					onClose={onClose}
 				/>
 			),
@@ -265,50 +304,70 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						{[...workspaceMembership.groupMembers]
 							.sort((a, b) => {
 								const currentId = app.getUser().id
-								if (a.userId === currentId && b.userId !== currentId) return -1
-								if (b.userId === currentId && a.userId !== currentId) return 1
+								// Owners first, then members; within a role, pin the current user to the top.
+								if (a.role !== b.role) return roleOrder[a.role] - roleOrder[b.role]
+								if (a.userId === currentId) return -1
+								if (b.userId === currentId) return 1
 								return 0
 							})
-							.map((member) => (
-								<div key={member.userId} className={styles.memberItem}>
-									<div
-										className={styles.memberAvatar}
-										style={{
-											backgroundColor: member.userColor || '#ff6b35',
-										}}
-									>
-										{member.userName.charAt(0).toUpperCase()}
-									</div>
-									<span className={styles.memberName}>
-										{member.userName}
-										{member.userId === app.getUser().id ? ` (${youMsg})` : ''}
-									</span>
-									{can(role, 'editMembers') &&
-									(member.userId !== app.getUser().id || ownersCount > 1) ? (
-										<MemberRoleSelect
-											value={member.role}
-											disabled={member.role === 'owner' && ownersCount <= 1}
-											labels={roleLabels}
-											onChange={async (value) => {
-												if (value === member.role) return
-												if (member.role === 'owner' && value !== 'owner' && ownersCount <= 1) return
-												try {
-													await app.z.mutate.setWorkspaceMemberRole({
-														workspaceId,
-														targetUserId: member.userId,
-														role: value,
-													}).client
-												} catch (err) {
-													console.error('Failed to change member role', err)
-													app.showMutationRejectionToast((err as Error).message as ZErrorCode)
-												}
+							.map((member) => {
+								// Roles are shown to everyone; only editMembers holders can change them,
+								// and never their own role while they're the sole owner.
+								const canEditThisRole =
+									canEditMembers && (member.userId !== app.getUser().id || ownersCount > 1)
+								return (
+									<div key={member.userId} className={styles.memberItem}>
+										<div
+											className={styles.memberAvatar}
+											style={{
+												backgroundColor: member.userColor || '#ff6b35',
 											}}
-										/>
-									) : (
-										<span className={styles.memberRole}>{roleLabels[member.role]}</span>
-									)}
-								</div>
-							))}
+										>
+											{member.userName.charAt(0).toUpperCase()}
+										</div>
+										<span className={styles.memberName}>
+											{member.userName}
+											{member.userId === app.getUser().id ? ` (${youMsg})` : ''}
+										</span>
+										{canEditThisRole ? (
+											<TlaMenuSelect
+												id={`workspace-member-role-${member.userId}`}
+												label={roleLabels[member.role]}
+												value={member.role}
+												usePortal
+												options={roleOptions}
+												actions={
+													member.userId === app.getUser().id
+														? undefined
+														: [
+																{
+																	id: 'remove',
+																	label: removeMemberMsg,
+																	destructive: true,
+																	onSelect: () => openRemoveConfirmDialog(member),
+																},
+															]
+												}
+												onChange={async (value) => {
+													if (value === member.role) return
+													try {
+														await app.z.mutate.setWorkspaceMemberRole({
+															workspaceId,
+															targetUserId: member.userId,
+															role: value,
+														}).client
+													} catch (err) {
+														console.error('Failed to change member role', err)
+														app.showMutationRejectionToast((err as Error).message as ZErrorCode)
+													}
+												}}
+											/>
+										) : (
+											<span className={styles.memberRole}>{roleLabels[member.role]}</span>
+										)}
+									</div>
+								)
+							})}
 					</div>
 				</div>
 
@@ -335,35 +394,5 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 				{/* Confirmation handled via tldraw dialogs */}
 			</TldrawUiDialogBody>
 		</_Tooltip.Provider>
-	)
-}
-
-function MemberRoleSelect({
-	value,
-	onChange,
-	disabled,
-	labels,
-}: {
-	value: Role
-	onChange(v: Role): void
-	disabled?: boolean
-	labels: Record<Role, string>
-}) {
-	return (
-		<div className={styles.selectWrapper}>
-			<TlaIcon icon="chevron-down" className={styles.menuSelectChevron} />
-			<select
-				className={styles.select}
-				value={value}
-				disabled={disabled}
-				onChange={(e) => onChange(e.currentTarget.value as Role)}
-			>
-				{Object.entries(labels).map(([roleValue, label]) => (
-					<option key={roleValue} value={roleValue}>
-						{label}
-					</option>
-				))}
-			</select>
-		</div>
 	)
 }
