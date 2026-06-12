@@ -92,7 +92,7 @@ describe('schema creation (SC)', () => {
 		)
 	})
 
-	it('[SC1] sortedMigrations is sorted regardless of registration order', () => {
+	it('[MS1] [MS2] sortedMigrations is sorted regardless of registration order', () => {
 		const foo: MigrationSequence = {
 			sequenceId: 'foo',
 			retroactive: false,
@@ -213,7 +213,7 @@ describe('validateRecord (V)', () => {
 		scope: 'document',
 	})
 
-	it('[V1] [V3] a validation error propagates when there is no failure handler', () => {
+	it('[V1] a validation error propagates when there is no failure handler', () => {
 		const schema = StoreSchema.create({ book: StrictBook })
 		const store = new Store({ schema, props: {} })
 
