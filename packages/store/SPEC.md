@@ -44,7 +44,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 - **S1** A new store is empty unless `initialData` is given; initial data is validated with phase `'initialize'`. Records read from the store are deep-frozen in dev/test builds (DF1).
 - **S2** `put([record])` creates records whose ids are not present (validated with phase `'createRecord'`) and updates those that are (phase `'updateRecord'`, with the previous record as the known-good version). `get` returns the stored record; `has` reports presence.
-- **S3** `put` skips a record entirely — no store change, no history entry — when the validated result is reference-equal to the currently stored record. (A `validateUsingKnownGoodVersion` implementation that returns the known-good object for equal values, or a `beforeChange` handler returning `prev`, therefore makes equal re-puts complete no-ops.) If every record in a `put` is skipped, no history entry is produced.
+- **S3** `put` skips a record entirely — no store change, no history entry — when the validated result is reference-equal to the currently stored record. (A `validateUsingKnownGoodVersion` implementation that returns the known-good object for equal values therefore makes equal re-puts complete no-ops; likewise a `beforeChange` handler returning `prev` blocks an update, provided the validator is reference-preserving.) If every record in a `put` is skipped, no history entry is produced.
 - **S4** `update(id, updater)` is `put([updater(current)])`. For a missing id it logs an error and changes nothing (it does not throw).
 - **S5** `remove(ids)` deletes the records with those ids; missing ids are ignored. If nothing is actually deleted, no history entry is produced. `clear()` removes all records.
 - **S6** `get`/`has` are reactive (capture as parents of the running computed/effect); `unsafeGetWithoutCapture` reads without capturing. `allRecords()` returns all records as an array.
@@ -57,7 +57,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 - **AO1** Every store mutation runs inside `store.atomic()` (directly or implicitly via `put`/`remove`/etc.), which wraps a `@tldraw/state` transaction: reactive effects observe all changes of the operation at once, when the outermost atomic completes.
 - **AO2** Nested `atomic` calls join the outer operation: their after-events fold into the outer flush, and `mergeRemoteChanges` inside an atomic op throws.
-- **AO3** `atomic(fn, runCallbacks = true)`: passing `false` disables the `before*` handlers for the operation. A nested atomic can switch callbacks off but cannot switch them back on if an enclosing operation turned them off.
+- **AO3** `atomic(fn, runCallbacks = true)`: passing `false` to a top-level call disables side effects for the whole operation — `before*` handlers are bypassed while `fn` runs, and the flush skips the `after*` and `operationComplete` handlers. A nested `atomic(fn, false)` inside an enabled operation suppresses only the `before*` handlers for its duration: its after-events flush with the outer operation, where side effects are enabled again. A nested atomic can switch callbacks off but cannot switch them back on if an enclosing operation turned them off.
 - **AO4** After-events are deduplicated per record id across the operation: one callback per record, using the first `before` and the final `after`. A record created and then deleted in the same operation produces no callback at all; created then updated produces a single `afterCreate` with the final value.
 - **AO5** `afterChange` fires only when the before and after records differ by deep equality. (Putting a structurally-equal copy still records a history entry per S3/H1 — only the callback is suppressed.)
 - **AO6** After-handlers run when the outermost atomic's function completes, still inside the transaction. Changes they make trigger another round of after-events, repeating until quiescent. More than 100 rounds throws `Maximum store update depth exceeded`.
@@ -71,7 +71,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 - **SE3** `beforeChange` runs before validation on update, receiving `(prev, next, source)`; its return value is stored. Returning `prev` blocks the update (with a reference-preserving validator this makes the put a complete no-op per S3).
 - **SE4** `beforeDelete` may return `false` to prevent that record's deletion; other records in the same `remove` call are still deleted.
 - **SE5** `afterCreate`/`afterChange`/`afterDelete` run per AO4–AO6 and observe the final state of the operation; all handlers receive the source (`'user'` or `'remote'`).
-- **SE6** When side effects are disabled (`setIsEnabled(false)`, `atomic(fn, false)`, `applyDiff(diff, { runCallbacks: false })`, snapshot loads), `before*` handlers pass values through unchanged, `after*` and `operationComplete` handlers do not run, and `beforeDelete` cannot block. An operation may switch side effects off (AO3), but never on while they are disabled: `setIsEnabled(false)` keeps handlers off across subsequent operations until `setIsEnabled(true)`.
+- **SE6** While side effects are disabled (`setIsEnabled(false)`, a top-level `atomic(fn, false)`, `applyDiff(diff, { runCallbacks: false })`, snapshot loads), `before*` handlers pass values through unchanged, `beforeDelete` cannot block, and after-events flushed while disabled are dropped — `after*` and `operationComplete` handlers do not run. (A nested `atomic(fn, false)` is weaker: per AO3 its after-events fire with the outer, enabled flush.) An operation may switch side effects off, but never on while they are disabled: `setIsEnabled(false)` keeps handlers off across subsequent operations until `setIsEnabled(true)`.
 
 ## 8. History and listeners (H)
 
@@ -179,7 +179,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 ## 20. Migrations: applying to snapshots and storage (MA)
 
-- **MA1** `migrateStoreSnapshot(snapshot)` migrates every record and returns the new store object; the input snapshot is not modified unless `mutateInputStore: true`, in which case `snapshot.store` is updated in place (including deletions) and returned.
+- **MA1** `migrateStoreSnapshot(snapshot)` migrates every record and returns the new store object; the input snapshot is not modified unless `mutateInputStore: true`, in which case `snapshot.store` is updated in place (including deletions) and returned. (In dev builds the input snapshot's records are deep-frozen as a side effect of migration, even without `mutateInputStore` — their contents are unchanged, but they become immutable.)
 - **MA2** With no migrations to apply, the snapshot's store is returned as-is.
 - **MA3** Store-scope migrations receive the whole record map and may add, change, and delete records.
 - **MA4** Storage-scope migrations receive a `SynchronousStorage` (get/set/delete/keys/values/entries) and may use it to read and write records directly.

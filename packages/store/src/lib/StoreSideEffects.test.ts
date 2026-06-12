@@ -148,6 +148,34 @@ describe('side effect handlers (SE)', () => {
 		expect(listener).not.toHaveBeenCalled() // no history entry either
 	})
 
+	it('[SE3] [S3] full blocking requires a reference-preserving validator', () => {
+		// a validator that returns a clone defeats the reference-equality skip
+		const CloningBook = createRecordType<Book>('book', {
+			validator: { validate: (book) => ({ ...(book as Book) }) },
+			scope: 'document',
+		})
+		const cloningStore = new Store<Book>({
+			props: {},
+			schema: StoreSchema.create<Book>({ book: CloningBook }),
+		})
+		cloningStore.put([book1])
+
+		cloningStore.sideEffects.registerBeforeChangeHandler('book', (prev) => prev)
+		const afterChange = vi.fn()
+		cloningStore.sideEffects.registerAfterChangeHandler('book', afterChange)
+		const listener = vi.fn()
+		cloningStore.listen(listener)
+
+		cloningStore.update(book1Id, (b) => ({ ...b, numPages: 200 }))
+
+		// the value is still blocked, and afterChange is suppressed by deep
+		// equality (AO5)...
+		expect(cloningStore.get(book1Id)).toEqual(book1)
+		expect(afterChange).not.toHaveBeenCalled()
+		// ...but a (no-op) history entry is recorded: not a complete no-op
+		expect(listener).toHaveBeenCalledTimes(1)
+	})
+
 	it('[SE4] beforeDelete can return false to prevent that deletion only', () => {
 		store.put([book1, book2])
 

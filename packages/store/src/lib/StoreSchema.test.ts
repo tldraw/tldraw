@@ -803,6 +803,8 @@ describe('migrateStoreSnapshot (MA)', () => {
 		assert(result1.type === 'success')
 		expect((result1.value as any).test1.version).toBe(2)
 		expect(store1.test1.version).toBe(1) // input untouched
+		// ...though in dev builds migration deep-freezes the input's records
+		expect(Object.isFrozen(store1.test1)).toBe(true)
 
 		const store2: any = {
 			test1: { id: 'test1', version: 1, typeName: 'test', versions: {} },
