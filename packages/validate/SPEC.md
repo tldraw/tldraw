@@ -110,7 +110,7 @@ Rules marked **dev** describe assertions that run only in development builds (`N
 ## 13. JSON values (J)
 
 - **J1** `jsonValue` accepts `null`, booleans, finite and non-finite numbers, strings, and arrays and plain objects of accepted values, recursively.
-- **J2** It rejects `undefined`, functions, bigints, symbols, and class instances — anywhere in the structure, including inside arrays and object values.
+- **J2** It rejects `undefined`, functions, bigints, symbols, and class instances — anywhere in the structure, including inside arrays and object values. Sparse array holes read as `undefined`, so sparse arrays are rejected.
 - **J3** "Plain object" means the prototype is `Object.prototype`, `null`, or the structured-clone prototype: `Object.create(null)` and `structuredClone` results validate.
 - **J4** The full-validation failure message reports the `typeof` of the _root_ value (`Expected json serializable value, got object`), even when the offending value is nested.
 - **J5** Known-good validation is incremental when both values are arrays or both are plain objects: unchanged (`Object.is`-equal) entries are skipped, added/changed entries are validated recursively, and the known-good value is returned exactly when nothing changed — length changes and removed keys make the new value the result.
