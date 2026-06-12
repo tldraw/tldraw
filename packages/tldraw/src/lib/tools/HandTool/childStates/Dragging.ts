@@ -15,8 +15,21 @@ export class Dragging extends StateNode {
 		this.update()
 	}
 
+	override onPointerDown() {
+		// A second touch resets the input origin to the new pointer, so continuing
+		// the pan would snap the camera. Yield before the pinch begins; the pan
+		// does not resume when the pinch ends.
+		this.parent.transition('idle')
+	}
+
 	override onPointerUp() {
 		this.complete()
+	}
+
+	override onInterrupt() {
+		// A pinch interrupts when it starts (without a preceding pointer_down on
+		// some inputs, like Safari trackpads), so end the pan here too.
+		this.parent.transition('idle')
 	}
 
 	override onCancel() {
