@@ -1479,14 +1479,14 @@ export function arrayOf<T>(itemValidator: Validatable<T>): ArrayOfValidator<T> {
 }
 
 /**
- * Validator that ensures a value is an object (non-null, non-array). Does not validate
- * the properties of the object.
+ * Validator that ensures a value is a non-null object. Does not validate the properties of
+ * the object. Note that arrays also pass this check.
  *
  * @example
  * ```ts
  * const obj = T.unknownObject.validate({ any: "properties" }) // Returns Record<string, unknown>
  * T.unknownObject.validate(null) // Throws ValidationError: "Expected object, got null"
- * T.unknownObject.validate([1, 2, 3]) // Throws ValidationError: "Expected object, got an array"
+ * T.unknownObject.validate([1, 2, 3]) // Returns the array (arrays pass the object check)
  * ```
  * @public
  */
