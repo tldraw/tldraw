@@ -162,7 +162,7 @@ export class ValidationError extends Error {
 			.split('\n')
 			.map((line, i) => (i === 0 ? line : `  ${line}`))
 			.join('\n')
-		super(path ? `At ${formattedPath}: ${indentedMessage}` : indentedMessage)
+		super(formattedPath ? `At ${formattedPath}: ${indentedMessage}` : indentedMessage)
 	}
 }
 

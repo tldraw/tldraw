@@ -17,6 +17,18 @@ describe('§2 Validation errors and paths', () => {
 		expect(new ValidationError('msg', ['a', 0, 'b']).message).toBe('At a.0.b: msg')
 	})
 
+	it('[E2] uses the raw message alone when the path is empty', () => {
+		expect(new ValidationError('msg').message).toBe('msg')
+		expect(new ValidationError('msg', []).message).toBe('msg')
+
+		try {
+			T.string.validate(5)
+			throw new Error('should have thrown')
+		} catch (error) {
+			expect((error as Error).message).toBe('Expected string, got a number')
+		}
+	})
+
 	it('[E3] joins string segments with dots and renders numeric indices', () => {
 		const validator = T.object({
 			toad: T.object({
