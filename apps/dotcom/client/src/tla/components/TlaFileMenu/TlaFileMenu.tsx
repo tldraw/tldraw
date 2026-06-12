@@ -281,16 +281,15 @@ export function FileItems({
 											<CreateWorkspaceDialog
 												onClose={onClose}
 												onCreate={async (name) => {
-													const id = uniqueId()
+													// Creates the workspace with its seeded welcome file; we stay on
+													// the current file since this flow is about moving it.
+													const res = await app.createWorkspace(name)
+													if (!res.ok) return
 													try {
-														await app.z.mutate.createWorkspace({ id, name }).client
-													} catch (e) {
-														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
-														return
-													}
-													try {
-														await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id })
-															.client
+														await app.z.mutate.moveFileToWorkspace({
+															fileId,
+															workspaceId: res.value.workspaceId,
+														}).client
 													} catch (e) {
 														// the workspace was created; only the move failed
 														app.showMutationRejectionToast((e as Error).message as ZErrorCode)

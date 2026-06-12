@@ -8,6 +8,7 @@ import {
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
+	NEW_WORKSPACE_TEMPLATE_ID,
 	ROOM_PREFIX,
 	TEMPLATE_PREFIX,
 	TlaFile,
@@ -328,6 +329,8 @@ export class TldrawApp {
 			defaultMessage:
 				'You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones.',
 		},
+		// the name of a workspace's seeded first file
+		new_workspace_file_name: { defaultMessage: 'Welcome to your workspace' },
 		// toast title
 		mutation_error_toast_title: { defaultMessage: 'Error' },
 		// toast descriptions
@@ -644,6 +647,39 @@ export class TldrawApp {
 			)
 		}
 		return this.getFileState(fileId)?.isPinned ?? false
+	}
+
+	/**
+	 * Create the seeded first file of a workspace: a welcome canvas that introduces
+	 * workspaces (see the sync worker's new-workspace template). It arrives named, and is
+	 * otherwise an ordinary file.
+	 */
+	async createWorkspaceFile(workspaceId: string) {
+		return await this.createFile({
+			workspaceId,
+			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+			createSource: `${TEMPLATE_PREFIX}/${NEW_WORKSPACE_TEMPLATE_ID}`,
+		})
+	}
+
+	/**
+	 * Create a workspace seeded with its welcome file, so the workspace can be opened
+	 * straight onto a file. Mutation rejections (e.g. the workspace limit) surface as
+	 * toasts here.
+	 */
+	async createWorkspace(
+		name: string
+	): Promise<Result<{ workspaceId: string; fileId: string }, 'failed'>> {
+		const workspaceId = uniqueId()
+		try {
+			await this.z.mutate.createWorkspace({ id: workspaceId, name }).client
+		} catch (e) {
+			this.showMutationRejectionToast((e as Error).message as ZErrorCode)
+			return Result.err('failed')
+		}
+		const res = await this.createWorkspaceFile(workspaceId)
+		if (!res.ok) return Result.err('failed')
+		return Result.ok({ workspaceId, fileId: res.value.fileId })
 	}
 
 	async createFile({

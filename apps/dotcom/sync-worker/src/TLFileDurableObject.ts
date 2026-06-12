@@ -941,8 +941,15 @@ export class TLFileDurableObject extends DurableObject {
 				data = DEFAULT_INITIAL_SNAPSHOT
 				break
 			case TEMPLATE_PREFIX:
-				// a template baked into this worker, e.g. the initial document of a new workspace
+				// a template baked into this worker, e.g. the initial document of a new workspace.
+				// Template ids are persisted forever in `createSource`, so an id this worker does
+				// not know (deploy skew, a retired template) degrades to an empty room rather than
+				// permanently failing the file's first load with ROOM_NOT_FOUND.
 				data = getTemplateSnapshot(id)
+				if (!data) {
+					this.reportError(new Error(`Unknown createSource template: ${id}`))
+					data = DEFAULT_INITIAL_SNAPSHOT
+				}
 				break
 		}
 		fetchTimer.report('create_from_source_fetch_total')

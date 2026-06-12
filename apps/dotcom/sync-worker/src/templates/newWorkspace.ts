@@ -19,6 +19,10 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 // reset any `textFirstEditedBy` props to null, since those carry the authoring user's
 // identity. The serialized schema must be the one captured at export time so the records
 // migrate correctly when loaded under newer schema versions.
+//
+// Keep the content near the origin and inside roughly 1200×800 page units: new files open
+// at the default camera (no zoom-to-fit on first visit), so the canvas must fit a typical
+// editor viewport. templates.test.ts asserts a coarse bounds envelope for this.
 
 const schema: SerializedSchema = {
 	schemaVersion: 2,

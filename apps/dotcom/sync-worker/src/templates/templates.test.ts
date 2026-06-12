@@ -9,8 +9,12 @@ describe('getTemplateSnapshot', () => {
 		expect(getTemplateSnapshot(NEW_WORKSPACE_TEMPLATE_ID)).toBe(newWorkspaceTemplateSnapshot)
 	})
 
+	// `createSource` values are client-controlled, so unknown ids include keys from the
+	// object prototype chain, which must not resolve to truthy non-snapshot values.
 	it('returns null for unknown template ids', () => {
 		expect(getTemplateSnapshot('not-a-template')).toBeNull()
+		expect(getTemplateSnapshot('constructor')).toBeNull()
+		expect(getTemplateSnapshot('__proto__')).toBeNull()
 	})
 })
 
@@ -34,20 +38,46 @@ describe('newWorkspaceTemplateSnapshot', () => {
 		}
 	})
 
-	it('has a single page with no dangling parents', () => {
+	it('parents every shape to the single page through groups, without cycles', () => {
 		const records = newWorkspaceTemplateSnapshot.documents.map((d) => d.state)
 		const documents = records.filter((r) => r.typeName === 'document')
 		const pages = records.filter((r) => r.typeName === 'page')
-		const shapes = records.filter((r) => r.typeName === 'shape')
+		const shapes = records.filter((r) => r.typeName === 'shape') as any[]
 		expect(documents).toHaveLength(1)
 		expect(pages).toHaveLength(1)
 		expect(shapes.length).toBeGreaterThan(0)
-		// every shape is parented to the page or to another shape in the snapshot (e.g. a group)
-		const validParentIds = new Set([pages[0].id, ...shapes.map((s) => s.id)])
+		const shapesById = new Map(shapes.map((s) => [s.id, s]))
 		for (const shape of shapes) {
-			expect(validParentIds.has((shape as any).parentId), `${shape.id} has a live parent`).toBe(
-				true
-			)
+			// walk the parent chain to the page; intermediate parents must be group shapes
+			const visited = new Set<string>([shape.id])
+			let current = shape
+			while (current.parentId !== pages[0].id) {
+				expect(visited.has(current.parentId), `${shape.id} parent chain has no cycle`).toBe(false)
+				visited.add(current.parentId)
+				const parent = shapesById.get(current.parentId)
+				expect(parent, `${shape.id} ancestor ${current.parentId} exists`).toBeDefined()
+				expect(parent.type, `${shape.id} ancestor ${parent.id} is a group`).toBe('group')
+				current = parent
+			}
+		}
+	})
+
+	// New files open at the default camera (there is no zoom-to-fit on first visit), so the
+	// canvas content must sit near the origin and fit a typical editor viewport. Record x/y
+	// is a coarse proxy for shape bounds, but it catches a re-export from the wrong part of
+	// a canvas, which would present new users with an apparently empty file.
+	it('keeps content near the origin so the default camera shows it', () => {
+		const records = newWorkspaceTemplateSnapshot.documents.map((d) => d.state)
+		const pageId = records.find((r) => r.typeName === 'page')!.id
+		const topLevelShapes = records.filter(
+			(r) => r.typeName === 'shape' && (r as any).parentId === pageId
+		) as any[]
+		expect(topLevelShapes.length).toBeGreaterThan(0)
+		for (const shape of topLevelShapes) {
+			expect(shape.x, `${shape.id} x within the first viewport`).toBeGreaterThan(-100)
+			expect(shape.x, `${shape.id} x within the first viewport`).toBeLessThan(1300)
+			expect(shape.y, `${shape.id} y within the first viewport`).toBeGreaterThan(-100)
+			expect(shape.y, `${shape.id} y within the first viewport`).toBeLessThan(900)
 		}
 	})
 

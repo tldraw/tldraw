@@ -1,16 +1,14 @@
-import { NEW_WORKSPACE_TEMPLATE_ID, TEMPLATE_PREFIX, ZErrorCode } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { ReactNode, useCallback } from 'react'
+import { ReactNode, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TldrawUiMenuContextProvider, uniqueId, useDialogs, useMenuIsOpen, useValue } from 'tldraw'
+import { TldrawUiMenuContextProvider, useDialogs, useMenuIsOpen, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
-import { F, useMsg } from '../../../utils/i18n'
+import { F } from '../../../utils/i18n'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
-import { messages } from './sidebar-shared'
 import { WorkspaceMenuContent, TlaSidebarWorkspaceMenu } from './TlaSidebarWorkspaceMenu'
 import styles from '../sidebar.module.css'
 
@@ -81,7 +79,9 @@ function TlaSidebarWorkspaceListItem({
 		[app, workspaceId, isActive]
 	)
 
-	const welcomeFileName = useMsg(messages.newWorkspaceFileName)
+	// Guards against repeated activation (double-click, key autorepeat) creating
+	// multiple files while the first creation is still in flight.
+	const isCreatingFile = useRef(false)
 
 	const handleClick = useCallback(async () => {
 		const files = app.getWorkspaceFilesSorted(workspaceId)
@@ -89,28 +89,29 @@ function TlaSidebarWorkspaceListItem({
 			navigate(routes.tlaFile(files[0]!.fileId))
 			return
 		}
-		// Empty space: create a file in it and open that, so selecting a space
-		// always lands you on a file within it. A workspace's first file is seeded
-		// from the new-workspace template, whose canvas introduces workspaces; it
-		// arrives named, so it skips the inline rename that blank files get. The
-		// home space gets a regular blank file.
-		const res = isHome
-			? await app.createFile({ workspaceId })
-			: await app.createFile({
-					workspaceId,
-					name: welcomeFileName,
-					createSource: `${TEMPLATE_PREFIX}/${NEW_WORKSPACE_TEMPLATE_ID}`,
-				})
-		if (res.ok) {
-			if (isHome && !getIsCoarsePointer()) {
-				app.sidebarState.update((prev) => ({
-					...prev,
-					renameState: { fileId: res.value.fileId, workspaceId },
-				}))
+		if (isCreatingFile.current) return
+		isCreatingFile.current = true
+		try {
+			// Empty space: create a file in it and open that, so selecting a space
+			// always lands you on a file within it. A workspace's first file is the
+			// seeded welcome canvas; it arrives named, so it skips the inline rename
+			// that blank files get. The home space gets a regular blank file.
+			const res = isHome
+				? await app.createFile({ workspaceId })
+				: await app.createWorkspaceFile(workspaceId)
+			if (res.ok) {
+				if (isHome && !getIsCoarsePointer()) {
+					app.sidebarState.update((prev) => ({
+						...prev,
+						renameState: { fileId: res.value.fileId, workspaceId },
+					}))
+				}
+				navigate(routes.tlaFile(res.value.fileId))
 			}
-			navigate(routes.tlaFile(res.value.fileId))
+		} finally {
+			isCreatingFile.current = false
 		}
-	}, [app, workspaceId, navigate, isHome, welcomeFileName])
+	}, [app, workspaceId, navigate, isHome])
 
 	// The active space's files render in the list below, which is the drop target
 	// for reordering. To avoid a duplicate drop-target id, the active space's nav
@@ -175,6 +176,7 @@ function TlaSidebarWorkspaceListItem({
 
 function TlaSidebarCreateWorkspaceButton() {
 	const app = useApp()
+	const navigate = useNavigate()
 	const { addDialog } = useDialogs()
 
 	const handleCreateWorkspace = useCallback(() => {
@@ -183,17 +185,17 @@ function TlaSidebarCreateWorkspaceButton() {
 				<CreateWorkspaceDialog
 					onClose={onClose}
 					onCreate={async (name) => {
-						const id = uniqueId()
-						try {
-							await app.z.mutate.createWorkspace({ id, name }).client
-						} catch (e) {
-							app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+						// The workspace is created with its seeded welcome file, and we land
+						// on that file right away (which also makes the workspace active).
+						const res = await app.createWorkspace(name)
+						if (res.ok) {
+							navigate(routes.tlaFile(res.value.fileId))
 						}
 					}}
 				/>
 			),
 		})
-	}, [app, addDialog])
+	}, [app, addDialog, navigate])
 
 	return (
 		<button
