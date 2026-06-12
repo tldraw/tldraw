@@ -11137,7 +11137,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.setIsDragging(false)
 
 						// If pen mode is off but we're not already in pen mode, turn that on
-						if (!isPenMode && isPen) this.updateInstanceState({ isPenMode: true })
+						if (!isPenMode && isPen) {
+							this.updateInstanceState({ isPenMode: true })
+							// Once pen mode is on, touch input is ignored, so we discard the
+							// in-progress touch interaction .
+							this.interrupt()
+						}
 
 						// On devices with erasers (like the Surface Pen or Wacom Pen), button 5 is the eraser
 						if (info.button === STYLUS_ERASER_BUTTON) {
