@@ -56,6 +56,26 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	// interacts again.
 	const suppressDismissUntilRef = useRef(0)
 
+	// Base UI's touch long-press timer is not cancelled when a second finger joins
+	// the gesture (its move threshold only applies while a single touch is down),
+	// so a slow pinch would open the menu mid-gesture. Track the active touch count
+	// so we can cancel opens that fire during a multi-touch gesture.
+	const touchCountRef = useRef(0)
+	useEffect(() => {
+		const container = editor.getContainer()
+		const update = (e: TouchEvent) => {
+			touchCountRef.current = e.touches.length
+		}
+		container.addEventListener('touchstart', update, { capture: true, passive: true })
+		container.addEventListener('touchend', update, { capture: true, passive: true })
+		container.addEventListener('touchcancel', update, { capture: true, passive: true })
+		return () => {
+			container.removeEventListener('touchstart', update, { capture: true })
+			container.removeEventListener('touchend', update, { capture: true })
+			container.removeEventListener('touchcancel', update, { capture: true })
+		}
+	}, [editor])
+
 	const cb = useCallback(
 		(isOpen: boolean) => {
 			const body = editor.getContainerDocument().body
@@ -116,6 +136,11 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 				eventDetails.cancel()
 				return
 			}
+			// Don't open from a long-press that's actually part of a pinch.
+			if (isOpen && (touchCountRef.current > 1 || editor.inputs.getIsPinching())) {
+				eventDetails.cancel()
+				return
+			}
 			// Swallow dismissals during the touch grace window after open (see above).
 			if (
 				!isOpen &&
@@ -127,7 +152,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 			}
 			handleOpenChange(isOpen)
 		},
-		[disabled, handleOpenChange]
+		[disabled, editor, handleOpenChange]
 	)
 
 	// Get the context menu content, either the default component or the user's

@@ -32,6 +32,8 @@ test.describe('help menu', () => {
 			await expect(buttons.edit).toBeHidden()
 			// open the menu again
 			await mainMenuButton.click()
+			// the menu opens on the frame after the click, so wait for it before clicking outside
+			await expect(buttons.edit).toBeVisible()
 			// click somewhere on the canvas to close the menu
 			await page.mouse.click(250, 150)
 			await expect(buttons.edit).toBeHidden()

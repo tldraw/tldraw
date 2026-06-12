@@ -451,20 +451,14 @@
 	align-items: center;
 	position: relative;
 	width: 100%;
-}
-
-.tlui-slider__track {
-	position: relative;
-	flex-grow: 1;
 	height: 44px;
 	cursor: pointer;
 }
 
-.tlui-slider__track::after {
-	display: block;
-	position: absolute;
-	top: calc(50% - 2px);
-	content: '';
+/* Base UI positions the track, indicator, and thumb with inline styles: the
+   track is the visible rail, the indicator fills it (height: inherit), and
+   the thumb is absolutely positioned and centered on it. */
+.tlui-slider__track {
 	height: 3px;
 	width: 100%;
 	background-color: var(--tl-color-muted-1);
@@ -472,22 +466,14 @@
 }
 
 .tlui-slider__range {
-	position: absolute;
-	top: calc(50% - 2px);
-	left: 0px;
-	height: 3px;
 	background-color: var(--tl-color-selected);
 	border-radius: 14px;
 }
 
 .tlui-slider__thumb {
-	all: unset;
 	cursor: grab;
-	display: block;
 	width: 18px;
 	height: 18px;
-	position: relative;
-	top: -1px;
 	background-color: var(--tl-color-panel);
 	border-radius: 999px;
 	box-shadow: inset 0px 0px 0px 2px var(--tl-color-text-1);
