@@ -13,7 +13,10 @@ export function createInvitePage(sessionStorageKey: string) {
 		const auth = useAuth()
 		const { addDialog } = useDialogs()
 		const navigate = useNavigate()
-		const dialogShown = useRef(false)
+		// The token the dialog is currently showing invite info for. Keying the
+		// guard by token (rather than a boolean) lets a token change replace the
+		// open dialog with fresh invite info instead of being ignored.
+		const dialogShownForToken = useRef<string | null>(null)
 
 		if (token) {
 			setInSessionStorage(sessionStorageKey, token)
@@ -23,7 +26,9 @@ export function createInvitePage(sessionStorageKey: string) {
 			// Wait for auth to load before deciding what to do
 			if (!auth.isLoaded) return
 			// Only signed-out users need the sign-in dialog, and only show it once
-			if (auth.isSignedIn || dialogShown.current || !token) return
+			// per token
+			if (auth.isSignedIn || dialogShownForToken.current === token || !token) return
+			const inviteToken = token
 
 			const controller = new AbortController()
 			const { signal } = controller
@@ -35,7 +40,7 @@ export function createInvitePage(sessionStorageKey: string) {
 			// we fall back to the plain sign-in dialog rather than blocking sign-in.
 			async function loadInviteInfo(): Promise<ValidInviteInfo | undefined> {
 				try {
-					const res = await fetch(`/api/app/invite/${token}`, { signal })
+					const res = await fetch(`/api/app/invite/${inviteToken}`, { signal })
 					const data: GetInviteInfoResponseBody = await res.json()
 					return data.error ? undefined : data
 				} catch (err) {
@@ -54,8 +59,11 @@ export function createInvitePage(sessionStorageKey: string) {
 				// effect re-run mid-flight) would leave the guard set, blocking any
 				// retry and leaving the user on a blank page with no sign-in dialog.
 				// Setting it here lets a re-run start a fresh fetch.
-				dialogShown.current = true
+				dialogShownForToken.current = inviteToken
+				// The fixed id makes addDialog replace the open dialog if the token
+				// changed while it was up, rather than stacking a second one.
 				addDialog({
+					id: 'invite-sign-in',
 					component: (props) => <TlaSignInDialog {...props} inviteInfo={inviteInfo} skipRedirect />,
 					onClose: () => navigate('/', { replace: true }),
 				})
