@@ -77,12 +77,16 @@ import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
 const MAX_CONNECTIONS = 50
 
-// Cloudflare allows at most six simultaneous open connections, and each asset copy holds two
-// of them (the R2 get body streaming into the put). Two copies at a time leaves two slots free
-// for everything else the durable object does while a pass runs — snapshot persistence to R2,
-// Pierre pushes, Postgres queries — all of which share the same connection budget.
+// Cloudflare allows at most six simultaneous open connections. We funnel every R2 operation the
+// durable object makes — asset copies during association passes AND snapshot uploads during
+// persistence — through a single queue so they can never collectively exceed that budget. An
+// asset copy holds two connections (the R2 get body streaming into the put); a snapshot upload
+// holds ~one at a time (multipart parts are uploaded sequentially). With two operations in flight
+// the worst case is two copies = four connections, leaving two free for Pierre pushes and Postgres
+// queries. Without a shared budget the upload and a concurrent association pass contend for the
+// same connections, which surfaces as "Network connection lost" during multipart uploads.
 // https://developers.cloudflare.com/workers/platform/limits/#simultaneous-open-connections
-const MAX_CONCURRENT_ASSET_COPIES = 2
+const MAX_CONCURRENT_R2_OPERATIONS = 2
 
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
@@ -1090,6 +1094,10 @@ export class TLFileDurableObject extends DurableObject {
 
 	private readonly associateAssetsQueue = new ExecutionQueue()
 
+	// Shared connection budget for every R2 operation this durable object makes — see
+	// MAX_CONCURRENT_R2_OPERATIONS. Both asset copies and snapshot uploads draw from this queue.
+	private readonly r2ConnectionQueue = new PQueue({ concurrency: MAX_CONCURRENT_R2_OPERATIONS })
+
 	// We use this to make sure that all of the assets in a tldraw app file are associated with that file.
 	// This is needed for a few cases like duplicating a file, copy pasting images between files, slurping legacy files.
 	// Also migrates old-format asset URLs to tldrawusercontent.com.
@@ -1171,10 +1179,9 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		const rows: { objectName: string; fileId: string }[] = []
-		const copyQueue = new PQueue({ concurrency: MAX_CONCURRENT_ASSET_COPIES })
 		await Promise.allSettled(
 			assetsToReplace.map((asset) =>
-				copyQueue.add(async () => {
+				this.r2ConnectionQueue.add(async () => {
 					try {
 						const currentAsset = await this.env.UPLOADS.get(asset.objectName)
 						if (!currentAsset) return
@@ -1310,17 +1317,36 @@ export class TLFileDurableObject extends DurableObject {
 		await this._uploadSnapshotToBucket(this.r2.versionCache, snapshot, versionKey)
 	}
 
-	private async _uploadSnapshotToBucket(bucket: R2Bucket, snapshot: RoomSnapshot, key: string) {
-		try {
-			// Try multipart upload first
-			return await this._uploadSnapshotToBucketMultipart(bucket, snapshot, key)
-		} catch (multipartError) {
-			this.reportError(
-				new Error(`Multipart upload failed, falling back to simple PUT: ${multipartError}`)
-			)
-			// Fallback to simple PUT
-			return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key)
-		}
+	private async _uploadSnapshotToBucket(
+		bucket: R2Bucket,
+		snapshot: RoomSnapshot,
+		key: string
+	): Promise<number | null> {
+		// Funnel through the shared connection budget so the upload can't contend with a concurrent
+		// asset-association pass (or the version-cache upload) and exhaust Cloudflare's connections.
+		const result = await this.r2ConnectionQueue.add(async () => {
+			try {
+				// Try multipart upload first, retrying transient connection drops before falling back.
+				return await retry(() => this._uploadSnapshotToBucketMultipart(bucket, snapshot, key), {
+					attempts: 3,
+					waitDuration: 500,
+				})
+			} catch (multipartError) {
+				// Falling back to a simple PUT is the designed recovery path, so it's a breadcrumb
+				// rather than a captured exception — only a failure of the fallback itself is reported.
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				this.sentry?.addBreadcrumb({
+					message: `Multipart upload failed, falling back to simple PUT: ${multipartError}`,
+				})
+				try {
+					return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key)
+				} catch (putError) {
+					this.reportError(putError)
+					throw putError
+				}
+			}
+		})
+		return result ?? null
 	}
 
 	private async _uploadSnapshotToBucketMultipart(
