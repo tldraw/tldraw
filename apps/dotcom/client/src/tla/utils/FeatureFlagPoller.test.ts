@@ -15,6 +15,7 @@ function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 		zero_enabled: { enabled: false },
 		zero_kill_switch: { enabled: false },
 		rum_enabled: { enabled: false },
+		groups_frontend_for_new_users: { enabled: false },
 		...overrides,
 	}
 }

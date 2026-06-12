@@ -42,6 +42,7 @@ import { TLPostgresPool } from './postgres'
 import { Analytics, Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { EventData, writeDataPoint } from './utils/analytics'
+import { getFeatureFlagEnabled } from './utils/featureFlags'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 import { getClerkClient } from './utils/tla/getAuth'
@@ -125,6 +126,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					const clerk = getClerkClient(this.env)
 					const clerkUser = await clerk.users.getUser(id)
 					assert(clerkUser, 'Clerk user not found')
+					const groupsForNewUsers = await getFeatureFlagEnabled(
+						this.env,
+						'groups_frontend_for_new_users'
+					)
 					await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, id))
 					await this.db.transaction().execute(async (tx) => {
 						// check that user wasn't added by another request in between the auth check and the snapshot deletion
@@ -146,7 +151,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								exportPadding: true,
 								createdAt: now,
 								updatedAt: now,
-								flags: 'groups_backend,groups_frontend',
+								flags: groupsForNewUsers ? 'groups_backend,groups_frontend' : 'groups_backend',
 							})
 							.execute()
 						await tx

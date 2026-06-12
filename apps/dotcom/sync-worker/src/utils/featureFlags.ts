@@ -27,6 +27,12 @@ function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagV
 			enabled: false,
 			description: 'Real User Monitoring for editor performance metrics',
 		},
+		groups_frontend_for_new_users: {
+			type: 'boolean',
+			enabled: false,
+			description:
+				'Give new signups the groups UI (adds the groups_frontend flag at account creation)',
+		},
 	}
 }
 
