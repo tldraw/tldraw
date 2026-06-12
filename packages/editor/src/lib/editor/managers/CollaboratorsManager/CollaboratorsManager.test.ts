@@ -147,9 +147,9 @@ describe(CollaboratorsManager, () => {
 		// A peer who has joined but not moved their pointer broadcasts the default
 		// `lastActivityTimestamp` of 0. They should still be treated as active so
 		// they appear in the people menu / face pile. See issue #9017.
-		const zero = createPresence('zero')
+		const zero = createPresence(createUserId('zero'))
 		zero.lastActivityTimestamp = 0
-		const nullish = createPresence('nullish')
+		const nullish = createPresence(createUserId('nullish'))
 		nullish.lastActivityTimestamp = null
 		const { editor } = createEditor([zero, nullish])
 		const manager = new CollaboratorsManager(editor)
