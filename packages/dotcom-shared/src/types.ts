@@ -85,8 +85,8 @@ export type UnpublishFileResponseBody =
 export type GetInviteInfoResponseBody =
 	| {
 			error: false
-			groupId: string
-			groupName: string
+			workspaceId: string
+			workspaceName: string
 			isValid: true
 			inviteSecret: string
 	  }
@@ -99,15 +99,15 @@ export type AcceptInviteResponseBody =
 	| {
 			error: false
 			message: string
-			groupId: string
-			groupName: string
+			workspaceId: string
+			workspaceName: string
 			success: true
 	  }
 	| {
 			error: false
 			message: string
-			groupId: string
-			groupName: string
+			workspaceId: string
+			workspaceName: string
 			alreadyMember: true
 	  }
 	| {
@@ -152,7 +152,7 @@ export const ZErrorCode = stringEnum(
 	'forbidden',
 	'bad_request',
 	'rate_limit_exceeded',
-	'max_groups_reached',
+	'max_workspaces_reached',
 	'max_files_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode

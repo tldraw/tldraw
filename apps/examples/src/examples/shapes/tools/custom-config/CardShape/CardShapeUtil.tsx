@@ -137,7 +137,6 @@ shape as an argument. HTMLContainer is just a div that's being used to wrap our 
 and button. We can get the shape's bounds using our own getGeometry method.
 
 - [a] Check it out! We can do normal React stuff here like using setState.
-   Annoying: eslint sometimes thinks this is a class component, but it's not.
 
 - [b] You need to stop the pointer down event on buttons, otherwise the editor will
 	   think you're trying to select drag the shape.

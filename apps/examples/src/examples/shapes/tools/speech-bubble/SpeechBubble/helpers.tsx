@@ -1,7 +1,7 @@
 import { Vec, VecLike, lerp, pointInPolygon } from 'tldraw'
 import { SpeechBubbleShape } from './SpeechBubbleUtil'
 
-export const getSpeechBubbleVertices = (shape: SpeechBubbleShape): Vec[] => {
+export function getSpeechBubbleVertices(shape: SpeechBubbleShape): Vec[] {
 	const { w, tail } = shape.props
 
 	const fullHeight = shape.props.h + shape.props.growY

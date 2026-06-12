@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "Moje pliki"
   },
+  "2e2b3c700b": {
+    "translation": "Dołącz link do bieżącego pliku"
+  },
   "31246941ad": {
     "translation": "Musisz się zalogować, aby zobaczyć ten plik."
   },
@@ -106,6 +109,9 @@
   },
   "3e2ae04ff0": {
     "translation": "Nieobsługiwany diagram Mermaid"
+  },
+  "402bf0c47e": {
+    "translation": "Motyw kolorystyczny"
   },
   "42e53c47c1": {
     "translation": "Skontaktuj się z właścicielem, aby poprosić o dostęp."
@@ -277,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "Prześlij problem na GitHub"
+  },
+  "7a1920d611": {
+    "translation": "Domyślny"
   },
   "7b1329f5ca": {
     "translation": "Instrukcja obsługi"

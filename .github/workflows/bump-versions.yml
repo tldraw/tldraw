@@ -54,7 +54,13 @@ jobs:
           yarn tsx ./internal/scripts/bump-versions.ts
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Earlier steps run before checkout, so re-fetch the local action on failure.
+      - name: Check out Discord notify action
+        if: failure()
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/actions/discord-fail-notify
 
       - name: Notify Discord on failure
         if: failure()

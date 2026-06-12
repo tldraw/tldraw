@@ -125,7 +125,7 @@ Create a table that includes net LOC changes for each of the following sections.
 - Documentation — docs site and examples (`apps/docs/`, `apps/examples/`)
 - Apps — application code (`apps/dotcom/`, `apps/mcp-app/`, `apps/vscode/`, etc.), excluding e2e tests
 - Templates — starter templates (`templates/`)
-- Config/tooling — config files, lock files, lint config, CI, build scripts (`eslint.config.*`, `yarn.lock`, etc.)
+- Config/tooling — config files, lock files, lint config, CI, build scripts (`.oxlintrc.json`, `yarn.lock`, etc.)
 
 ```md
 ### Code changes

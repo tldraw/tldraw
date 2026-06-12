@@ -153,6 +153,12 @@
       "value": "Omat tiedostoni"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Sisällytä linkki nykyiseen tiedostoon"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -217,6 +223,12 @@
     {
       "type": 0,
       "value": "Ei-tuettu Mermaid-kaavio"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Väriteema"
     }
   ],
   "42e53c47c1": [
@@ -597,6 +609,12 @@
     {
       "type": 0,
       "value": "Lähetä ongelma GitHubissa"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Oletus"
     }
   ],
   "7b1329f5ca": [

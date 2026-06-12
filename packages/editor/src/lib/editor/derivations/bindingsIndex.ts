@@ -29,7 +29,7 @@ function fromScratch(bindingsQuery: Computed<TLBinding[], unknown>) {
 	return shapesToBindings
 }
 
-export const bindingsIndex = (editor: Editor): Computed<TLBindingsIndex> => {
+export function bindingsIndex(editor: Editor): Computed<TLBindingsIndex> {
 	const { store } = editor
 	const bindingsHistory = store.query.filterHistory('binding')
 	const bindingsQuery = store.query.records('binding')

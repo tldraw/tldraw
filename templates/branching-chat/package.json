@@ -23,7 +23,7 @@
 	},
 	"scripts": {
 		"build": "tsc && vite build",
-		"dev": "vite",
+		"dev": "vite --host",
 		"preview": "vite preview",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},

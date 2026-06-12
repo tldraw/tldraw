@@ -149,7 +149,7 @@ describe('validations', () => {
 		)
 
 		// Should reject NaN
-		expect(() => numberUnionSchema.validate({ version: NaN, data: 'test' })).toThrowError(
+		expect(() => numberUnionSchema.validate({ version: NaN, data: 'test' })).toThrow(
 			/Expected a number for key "version"/
 		)
 	})

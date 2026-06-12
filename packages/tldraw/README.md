@@ -32,6 +32,10 @@ export default function () {
 
 Visit [tldraw.dev](https://tldraw.dev) to learn more.
 
+## Documentation
+
+The published package includes a generated `DOCS.md` file with the docs-site content and a generated `RELEASE_NOTES.md` file with versioned release notes.
+
 ## Package development
 
 To start the local development server:
@@ -56,7 +60,7 @@ You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?a
 
 ## Contribution
 
-Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## Community
 

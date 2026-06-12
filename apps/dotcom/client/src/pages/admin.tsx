@@ -6,7 +6,7 @@ import {
 	userHasFlag,
 	ZStoreData,
 } from '@tldraw/dotcom-shared'
-import { RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { sentryReleaseName } from '../../sentry-release-name'
@@ -224,12 +224,11 @@ export function Component() {
 								Force Reboot
 							</TlaButton>
 						</div>
-						<MigrateUserToGroups
-							inputRef={inputRef}
+						<EnrollUserInGroups
+							user={data.user[0] as TlaUser}
 							onSuccess={loadData}
 							onError={setError}
 							onSuccessMessage={setSuccessMessage}
-							didMigrate={userHasFlag((data.user[0] as TlaUser).flags, 'groups_backend')}
 						/>
 						<StructuredDataDisplay data={data} />
 					</section>
@@ -667,43 +666,83 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 	)
 }
 
-function MigrateUserToGroups({
-	inputRef,
+function EnrollUserInGroups({
+	user,
 	onSuccess,
 	onError,
 	onSuccessMessage,
-	didMigrate,
 }: {
-	inputRef: RefObject<HTMLInputElement | null>
+	user: TlaUser
 	onSuccess(): void
 	onError(error: string): void
 	onSuccessMessage(message: string): void
-	didMigrate: boolean
 }) {
-	const [isMigrating, setIsMigrating] = useState(false)
+	const [isEnrolling, setIsEnrolling] = useState(false)
+	const [isUnenrolling, setIsUnenrolling] = useState(false)
+	// Derive status and the target id from the loaded user, not the live search
+	// box, so the action always matches the status shown above it.
+	const hasBackend = userHasFlag(user.flags, 'groups_backend')
+	const hasFrontend = userHasFlag(user.flags, 'groups_frontend')
+	const fullyEnrolled = hasBackend && hasFrontend
 
-	const handleMigrate = useCallback(async () => {
-		const q = inputRef.current?.value?.trim() ?? ''
-		if (!q) {
-			onError('Please enter an email or ID')
-			return
-		}
-
+	const handleEnroll = useCallback(async () => {
 		if (
 			!window.confirm(
-				`Are you sure you want to migrate user "${q}" to the groups backend? This action cannot be undone.`
+				`Enroll ${user.email} in the groups feature? This grants groups_backend (migrating their data if needed) and groups_frontend (the groups UI).`
 			)
 		) {
 			return
 		}
 
-		setIsMigrating(true)
+		setIsEnrolling(true)
 		onError('')
 
 		try {
-			const res = await fetch(`/api/app/admin/user/migrate?${new URLSearchParams({ q })}`, {
-				method: 'POST',
-			})
+			const res = await fetch(
+				`/api/app/admin/user/enroll_groups?${new URLSearchParams({ q: user.id })}`,
+				{ method: 'POST' }
+			)
+
+			if (!res.ok) {
+				onError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+
+			const result = await res.json()
+			const changes = [
+				result.backendMigrated && 'migrated to groups backend',
+				result.frontendGranted && 'granted groups UI',
+			].filter(Boolean)
+			onSuccessMessage(
+				changes.length
+					? `Enrolled in groups: ${changes.join(', ')}`
+					: 'User was already fully enrolled'
+			)
+			onSuccess()
+		} catch (err) {
+			onError(err instanceof Error ? err.message : 'Enrollment failed')
+		} finally {
+			setIsEnrolling(false)
+		}
+	}, [user.id, user.email, onError, onSuccess, onSuccessMessage])
+
+	const handleUnenroll = useCallback(async () => {
+		if (
+			!window.confirm(
+				`Remove ${user.email} from the groups UI? This clears the groups_frontend flag (their data stays migrated).`
+			)
+		) {
+			return
+		}
+
+		setIsUnenrolling(true)
+		onError('')
+
+		try {
+			const res = await fetch(
+				`/api/app/admin/user/unenroll_groups?${new URLSearchParams({ q: user.id })}`,
+				{ method: 'POST' }
+			)
 
 			if (!res.ok) {
 				onError(res.statusText + ': ' + (await res.text()))
@@ -712,30 +751,47 @@ function MigrateUserToGroups({
 
 			const result = await res.json()
 			onSuccessMessage(
-				`User migrated successfully! Files: ${result.files_migrated}, Pinned: ${result.pinned_files_migrated}`
+				result.frontendRemoved
+					? 'Removed from the groups UI'
+					: 'User was not enrolled in the groups UI'
 			)
 			onSuccess()
 		} catch (err) {
-			onError(err instanceof Error ? err.message : 'Migration failed')
+			onError(err instanceof Error ? err.message : 'Unenroll failed')
 		} finally {
-			setIsMigrating(false)
+			setIsUnenrolling(false)
 		}
-	}, [inputRef, onError, onSuccess, onSuccessMessage])
+	}, [user.id, user.email, onError, onSuccess, onSuccessMessage])
 
-	return didMigrate ? null : (
+	return (
 		<div className={styles.migrationSection}>
-			<h4 className="tla-text_ui__medium">Migrate User to Groups Backend</h4>
+			<h4 className="tla-text_ui__medium">Groups enrollment</h4>
 			<p className="tla-text_ui__small">
-				Migrate this user from the legacy file_state model to the new groups model.
+				groups_backend: {hasBackend ? '✓ enrolled' : '✗ not enrolled'} · groups_frontend:{' '}
+				{hasFrontend ? '✓ enrolled' : '✗ not enrolled'}
 			</p>
-			<TlaButton
-				onClick={handleMigrate}
-				variant="primary"
-				disabled={isMigrating}
-				isLoading={isMigrating}
-			>
-				{isMigrating ? 'Migrating...' : 'Migrate to Groups'}
-			</TlaButton>
+			<p className="tla-text_ui__small">
+				Enroll this user in the groups feature: migrates their data to the groups model if needed
+				and shows the groups UI.
+			</p>
+			<div className={styles.userActions}>
+				<TlaButton
+					onClick={handleEnroll}
+					variant="primary"
+					disabled={isEnrolling || isUnenrolling || fullyEnrolled}
+					isLoading={isEnrolling}
+				>
+					Enroll in groups
+				</TlaButton>
+				<TlaButton
+					onClick={handleUnenroll}
+					variant="secondary"
+					disabled={isEnrolling || isUnenrolling || !hasFrontend}
+					isLoading={isUnenrolling}
+				>
+					Unenroll from groups UI
+				</TlaButton>
+			</div>
 		</div>
 	)
 }

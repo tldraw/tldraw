@@ -1,13 +1,13 @@
 import { useValue } from 'tldraw'
 import { useApp } from './useAppState'
 
-export function useIsDragging(fileOrGroupId: string) {
+export function useIsDragging(fileOrWorkspaceId: string) {
 	const app = useApp()
 	return useValue(
-		'isDragging:' + fileOrGroupId,
+		'isDragging:' + fileOrWorkspaceId,
 		() =>
 			app.sidebarState.get().dragState?.hasDragStarted &&
-			app.sidebarState.get().dragState?.id === fileOrGroupId,
-		[fileOrGroupId, app]
+			app.sidebarState.get().dragState?.id === fileOrWorkspaceId,
+		[fileOrWorkspaceId, app]
 	)
 }

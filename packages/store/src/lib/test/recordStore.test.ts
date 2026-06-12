@@ -1278,15 +1278,15 @@ describe('callbacks', () => {
 		numPages: 1,
 	})
 
-	let onAfterCreate: ReturnType<typeof vi.fn>
-	let onAfterChange: ReturnType<typeof vi.fn>
-	let onAfterDelete: ReturnType<typeof vi.fn>
+	let onAfterCreate: ReturnType<typeof vi.fn<(...args: any[]) => any>>
+	let onAfterChange: ReturnType<typeof vi.fn<(...args: any[]) => any>>
+	let onAfterDelete: ReturnType<typeof vi.fn<(...args: any[]) => any>>
 
-	let onBeforeCreate: ReturnType<typeof vi.fn>
-	let onBeforeChange: ReturnType<typeof vi.fn>
-	let onBeforeDelete: ReturnType<typeof vi.fn>
+	let onBeforeCreate: ReturnType<typeof vi.fn<(...args: any[]) => any>>
+	let onBeforeChange: ReturnType<typeof vi.fn<(...args: any[]) => any>>
+	let onBeforeDelete: ReturnType<typeof vi.fn<(...args: any[]) => any>>
 
-	let onOperationComplete: ReturnType<typeof vi.fn>
+	let onOperationComplete: ReturnType<typeof vi.fn<(...args: any[]) => any>>
 
 	beforeEach(() => {
 		store = new Store({

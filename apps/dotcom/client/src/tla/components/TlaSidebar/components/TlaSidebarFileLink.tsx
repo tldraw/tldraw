@@ -1,7 +1,7 @@
 import { ContextMenu as _ContextMenu } from '@base-ui/react/context-menu'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { KeyboardEvent, MouseEvent, useCallback, useEffect, useRef } from 'react'
+import { KeyboardEvent, MouseEvent, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
 	TldrawUiMenuContextProvider,
@@ -26,7 +26,6 @@ import { F, defineMessages, useIntl } from '../../../utils/i18n'
 import { toggleMobileSidebar, useIsSidebarOpenMobile } from '../../../utils/local-session-state'
 import { FileItems } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { pinIcon } from './pinIcon'
 import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
@@ -60,11 +59,11 @@ export function TlaSidebarFileLink({
 	item,
 	testId,
 	className,
-	groupId,
+	workspaceId,
 }: {
 	item: RecentFile
 	testId: string
-	groupId: string
+	workspaceId: string
 	className?: string
 }) {
 	const app = useApp()
@@ -82,11 +81,11 @@ export function TlaSidebarFileLink({
 
 	const isRenaming = useValue(
 		'shouldRename',
-		() => isEqual(app.sidebarState.get().renameState, { fileId, groupId }),
+		() => isEqual(app.sidebarState.get().renameState, { fileId, workspaceId }),
 		[fileId, app]
 	)
 
-	const isPinned = useIsFilePinned(fileId, groupId)
+	const isPinned = useIsFilePinned(fileId, workspaceId)
 
 	const handleRenameAction = () => {
 		if (isMobile) {
@@ -95,7 +94,7 @@ export function TlaSidebarFileLink({
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
-			app.sidebarState.update((prev) => ({ ...prev, renameState: { fileId, groupId } }))
+			app.sidebarState.update((prev) => ({ ...prev, renameState: { fileId, workspaceId } }))
 		}
 	}
 
@@ -107,7 +106,7 @@ export function TlaSidebarFileLink({
 			<_ContextMenu.Trigger>
 				<TlaSidebarFileLinkInner
 					fileId={fileId}
-					groupId={groupId}
+					workspaceId={workspaceId}
 					fileName={fileName}
 					isPinned={isPinned}
 					testId={testId}
@@ -129,7 +128,7 @@ export function TlaSidebarFileLink({
 									source="sidebar-context-menu"
 									fileId={fileId}
 									onRenameAction={handleRenameAction}
-									groupId={groupId}
+									workspaceId={workspaceId}
 								/>
 							</TldrawUiMenuContextProvider>
 						)}
@@ -155,7 +154,7 @@ export function TlaSidebarFileLinkInner({
 	isRenaming,
 	handleRenameAction,
 	onClose,
-	groupId,
+	workspaceId,
 	className,
 }: {
 	fileId: string
@@ -167,7 +166,7 @@ export function TlaSidebarFileLinkInner({
 	isRenaming: boolean
 	handleRenameAction(): void
 	onClose(): void
-	groupId: string
+	workspaceId: string
 	className?: string
 }) {
 	const trackEvent = useTldrawAppUiEvents()
@@ -204,20 +203,13 @@ export function TlaSidebarFileLinkInner({
 	const isCoarsePointer = getIsCoarsePointer()
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
-	const hasGroups = useHasFlag('groups_frontend')
-	const isDragEnabled = hasGroups && !isCoarsePointer
+	const workspacesEnabled = useHasFlag('groups_frontend')
+	const isDragEnabled = workspacesEnabled && !isCoarsePointer
 
 	if (!file) return null
 
 	if (isRenaming) {
-		return (
-			<TlaSidebarRenameInline
-				source="sidebar"
-				fileId={fileId}
-				groupId={groupId}
-				onClose={onClose}
-			/>
-		)
+		return <TlaSidebarRenameInline source="sidebar" fileId={fileId} onClose={onClose} />
 	}
 
 	return (
@@ -245,7 +237,7 @@ export function TlaSidebarFileLinkInner({
 							event.dataTransfer.effectAllowed = 'move'
 							event.dataTransfer.setData('text/uri-list', fileUrl)
 							startDragTracking({
-								groupId,
+								workspaceId,
 								fileId,
 								clientX: event.clientX,
 								clientY: event.clientY,
@@ -279,7 +271,6 @@ export function TlaSidebarFileLinkInner({
 				draggable={false}
 			/>
 			<div className={styles.sidebarFileListItemContent}>
-				{isPinned && hasGroups && pinIcon}
 				<div
 					className={classNames(
 						styles.sidebarFileListItemLabel,
@@ -293,7 +284,7 @@ export function TlaSidebarFileLinkInner({
 				{!hasAdminRights && <GuestBadge file={file} href={href} />}
 			</div>
 			<TlaSidebarFileLinkMenu
-				groupId={groupId}
+				workspaceId={workspaceId}
 				fileId={fileId}
 				onRenameAction={handleRenameAction}
 			/>
@@ -306,17 +297,14 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 	const testId = `guest-badge-${file.name}`
 	const navigate = useNavigate()
 
-	const handleToolTipClick = useCallback(
-		(e: MouseEvent) => {
-			e.preventDefault()
-			// the tool tip needs pointer events in order to accept the click...
-			// but that means it also blocks the link to the file. Here we bend
-			// the world to our will, ruling by desire: clicking the tooltip will
-			// navigate to the file
-			navigate(href)
-		},
-		[navigate, href]
-	)
+	const handleToolTipClick = (e: MouseEvent) => {
+		e.preventDefault()
+		// the tool tip needs pointer events in order to accept the click...
+		// but that means it also blocks the link to the file. Here we bend
+		// the world to our will, ruling by desire: clicking the tooltip will
+		// navigate to the file
+		navigate(href)
+	}
 
 	return (
 		<div className={styles.sidebarFileListItemGuestBadge} data-testid={testId}>

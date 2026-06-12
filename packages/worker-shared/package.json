@@ -19,7 +19,7 @@
 		"@cloudflare/workers-types": "^4.20260302.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^5.8.3",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
 	},
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",

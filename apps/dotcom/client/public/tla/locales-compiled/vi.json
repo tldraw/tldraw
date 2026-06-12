@@ -153,6 +153,12 @@
       "value": "Các tập tin của tôi"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Bao gồm liên kết đến tệp hiện tại"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -217,6 +223,12 @@
     {
       "type": 0,
       "value": "Sơ đồ Mermaid không được hỗ trợ"
+    }
+  ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Chủ đề màu sắc"
     }
   ],
   "42e53c47c1": [
@@ -597,6 +609,12 @@
     {
       "type": 0,
       "value": "Gửi vấn đề trên GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Mặc định"
     }
   ],
   "7b1329f5ca": [

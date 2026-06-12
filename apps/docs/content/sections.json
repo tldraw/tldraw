@@ -37,7 +37,7 @@
 	{
 		"id": "community",
 		"title": "Community",
-		"description": "Guides for contributing to tldraw's open source project.",
+		"description": "Community resources for the tldraw SDK.",
 		"categories": [],
 		"sidebar_behavior": "show-links"
 	},

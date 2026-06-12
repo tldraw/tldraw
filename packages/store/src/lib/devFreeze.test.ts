@@ -46,6 +46,7 @@ describe('devFreeze', () => {
 	describe('development mode behavior', () => {
 		beforeEach(() => {
 			// Mock development environment
+			;(isDev as MockedFunction<typeof isDev>).mockReturnValue(true)
 			vi.stubGlobal('process', { env: { NODE_ENV: 'development' } })
 		})
 

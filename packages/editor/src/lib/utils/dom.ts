@@ -35,6 +35,7 @@ export function loopToHtmlElement(elm: Element): HTMLElement {
  * @public
  */
 export function preventDefault(event: React.BaseSyntheticEvent | Event) {
+	if ('cancelable' in event && !event.cancelable) return
 	event.preventDefault()
 	if (debugFlags.logPreventDefaults.get()) {
 		console.warn('preventDefault called on event:', event)
@@ -85,14 +86,16 @@ export function releasePointerCapture(
  *
  * @public
  */
-export const stopEventPropagation = (e: any) => e.stopPropagation()
+export function stopEventPropagation(e: any) {
+	return e.stopPropagation()
+}
 
 /** @internal */
-export const setStyleProperty = (
+export function setStyleProperty(
 	elm: HTMLElement | null,
 	property: string,
 	value: string | number
-) => {
+) {
 	if (!elm) return
 	elm.style.setProperty(property, String(value))
 }

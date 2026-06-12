@@ -16,6 +16,17 @@ interface FontState {
 	readonly loadingPromise: Promise<void>
 }
 
+interface ShapeFontFacesCache {
+	get(id: TLShapeId): TLFontFace[] | undefined
+}
+
+interface ShapeFontLoadStateCache {
+	get(id: TLShapeId): (FontState | null)[] | undefined
+}
+
+const EMPTY_SHAPE_FONT_FACES_CACHE: ShapeFontFacesCache = { get: () => undefined }
+const EMPTY_SHAPE_FONT_LOAD_STATE_CACHE: ShapeFontLoadStateCache = { get: () => undefined }
+
 /** @public */
 export class FontManager {
 	constructor(
@@ -49,8 +60,15 @@ export class FontManager {
 		)
 	}
 
-	private readonly shapeFontFacesCache
-	private readonly shapeFontLoadStateCache
+	dispose() {
+		this.fontStates.clear()
+		this.fontsToLoad.clear()
+		this.shapeFontFacesCache = EMPTY_SHAPE_FONT_FACES_CACHE
+		this.shapeFontLoadStateCache = EMPTY_SHAPE_FONT_LOAD_STATE_CACHE
+	}
+
+	private shapeFontFacesCache: ShapeFontFacesCache
+	private shapeFontLoadStateCache: ShapeFontLoadStateCache
 
 	getShapeFontFaces(shape: TLShape | TLShapeId): TLFontFace[] {
 		const shapeId = typeof shape === 'string' ? shape : shape.id

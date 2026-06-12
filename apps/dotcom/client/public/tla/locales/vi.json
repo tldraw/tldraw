@@ -74,6 +74,9 @@
   "2c3ef76333": {
     "translation": "Các tập tin của tôi"
   },
+  "2e2b3c700b": {
+    "translation": "Bao gồm liên kết đến tệp hiện tại"
+  },
   "31246941ad": {
     "translation": "Bạn cần đăng nhập để xem tệp này."
   },
@@ -106,6 +109,9 @@
   },
   "3e2ae04ff0": {
     "translation": "Sơ đồ Mermaid không được hỗ trợ"
+  },
+  "402bf0c47e": {
+    "translation": "Chủ đề màu sắc"
   },
   "42e53c47c1": {
     "translation": "Liên hệ với chủ sở hữu để yêu cầu quyền truy cập."
@@ -277,6 +283,9 @@
   },
   "797799f35e": {
     "translation": "Gửi vấn đề trên GitHub"
+  },
+  "7a1920d611": {
+    "translation": "Mặc định"
   },
   "7b1329f5ca": {
     "translation": "Hướng dẫn sử dụng"

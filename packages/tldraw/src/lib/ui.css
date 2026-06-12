@@ -54,14 +54,14 @@
 
 .tlui-button:disabled,
 .tlui-button[data-disabled] {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-disabled);
 	text-shadow: none;
 	cursor: default;
 }
 
 .tlui-button:disabled .tlui-kbd,
 .tlui-button[data-disabled] .tlui-kbd {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-disabled);
 }
 
 .tlui-button > * {
@@ -326,6 +326,11 @@
 	width: 60px;
 	min-width: 60px;
 	text-align: center;
+}
+
+.tlui-zoom-menu__button[data-state='open']::after {
+	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
 }
 
 /* --------------------- Layout --------------------- */
@@ -804,6 +809,11 @@
 	width: auto;
 }
 
+.tlui-page-menu__trigger[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
+}
+
 .tlui-page-menu__list {
 	flex: 0 0 auto;
 	overflow-x: hidden;
@@ -818,27 +828,41 @@
 
 .tlui-page-menu__list__content {
 	position: relative;
+	overflow: hidden;
 }
 
 .tlui-page-menu__resize-handle {
 	flex: 0 0 auto;
 	position: relative;
-	height: 7px;
-	margin-bottom: -3px;
+	height: 1px;
 	cursor: ns-resize;
 	touch-action: none;
+	background: var(--tl-color-divider);
+	transition: background-color ease-in-out 150ms 80ms;
 	z-index: 999;
 }
 
+/* Hit test area */
+.tlui-page-menu__resize-handle::after {
+	content: '';
+	position: absolute;
+	inset: -4px 0;
+	background: none;
+	z-index: 2000;
+	pointer-events: all;
+}
+
+/* Thick blue indicator */
 .tlui-page-menu__resize-handle::before {
 	content: '';
 	position: absolute;
-	top: 3px;
+	top: 0;
 	left: 0;
 	right: 0;
-	height: 1px;
-	background: var(--tl-color-divider);
-	transition: background-color 100ms;
+	height: 1.5px;
+	background: transparent;
+	pointer-events: none;
+	z-index: 2001;
 }
 
 .tlui-page-menu__resize-handle[data-resizing='true']::before {
@@ -1150,6 +1174,12 @@ tldraw? probably.
 .tlui-style-panel__section__common:not(:only-child) {
 	margin-bottom: 7px;
 	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+.tlui-toolbar-toggle-group-item,
+.tlui-style-panel__dropdown-picker > .tlui-button__icon {
+	width: 40px;
+	padding: 0;
 }
 
 .tlui-style-panel__dropdown-picker:only-child {
