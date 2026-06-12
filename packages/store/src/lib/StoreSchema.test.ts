@@ -440,7 +440,8 @@ describe('getMigrationsSince (MG)', () => {
 		const schema = StoreSchema.create({}, { migrations: [foo] })
 
 		const result = schema.getMigrationsSince({ schemaVersion: 2, sequences: { foo: 999 } })
-		expect(result.ok).toBe(false)
+		assert(!result.ok)
+		expect(result.error).toBe('Incompatible schema?')
 	})
 
 	it('[MG6] results are cached per persisted-schema object identity', () => {
