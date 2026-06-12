@@ -334,6 +334,19 @@ describe('objectMatchesQuery (QE)', () => {
 
 			expect(objectMatchesQuery(query, book)).toBe(false)
 		})
+
+		it('should not match when the property is missing, mirroring the indexes', () => {
+			const bookWithoutStatus = books.foundation // metadata.status is undefined
+			const query = { metadata: { status: { neq: 'published' } } }
+
+			expect(
+				objectMatchesQuery(
+					// @ts-expect-error - status is optional so the matcher type rejects it
+					query,
+					bookWithoutStatus
+				)
+			).toBe(false)
+		})
 	})
 
 	describe('[QE1] greater than matching (gt)', () => {
@@ -1164,6 +1177,35 @@ describe('reactive nested queries (QE3, QI5, QQ)', () => {
 
 			// Should now include only the archived book
 			expect(idsQuery.get()).toEqual(new Set([bookWithArchivedStatus.id]))
+		})
+
+		it('[QE5] from-scratch and incremental evaluation agree for neq with missing values', () => {
+			const bookWithoutStatus = Book.create({
+				title: 'Book Without Status',
+				authorId: authors.herbert.id,
+				publishedYear: 2022,
+				inStock: true,
+				metadata: {
+					sessionId: 'session:test',
+					extras: { region: 'us' },
+				},
+			})
+			store.put([bookWithoutStatus])
+
+			const query = { metadata: { status: { neq: 'published' } } }
+			const idsQuery = store.query.ids(
+				'book',
+				// @ts-expect-error - status is optional so the matcher type rejects it
+				() => query
+			)
+
+			// from scratch: the record without a status is not included
+			expect(idsQuery.get().has(bookWithoutStatus.id)).toBe(false)
+
+			// an unrelated update to that record must not change its membership
+			// through the incremental path either
+			store.put([{ ...bookWithoutStatus, title: 'Renamed' }])
+			expect(idsQuery.get().has(bookWithoutStatus.id)).toBe(false)
 		})
 
 		it('should handle multiple nested criteria with updates', () => {

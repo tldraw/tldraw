@@ -126,7 +126,7 @@ Sections marked **internal** describe supporting machinery (`ImmutableMap`, `Inc
 
 ## 14. Query execution (QE)
 
-- **QE1** `{ eq: v }` matches strict equality; `{ neq: v }` matches everything except `v`; `{ gt: n }` matches only numbers strictly greater than `n` (non-numeric values never match `gt`).
+- **QE1** `{ eq: v }` matches strict equality; `{ neq: v }` matches records whose value is defined and differs from `v` — records missing the property do not match, mirroring the indexes, which only track defined values; `{ gt: n }` matches only numbers strictly greater than `n` (non-numeric values never match `gt`).
 - **QE2** Multiple properties in one expression are ANDed; the result is the intersection of the per-property matches.
 - **QE3** A nested object in the expression matches into the corresponding nested record object, to any depth. If the record's value at that level is missing or not an object, the record does not match.
 - **QE4** The empty expression `{}` matches every record of the type: `objectMatchesQuery({}, r)` is true and `ids(type)` contains all ids. (The raw `executeQuery` helper instead returns an empty set for an empty expression; `StoreQueries.ids` special-cases it before calling `executeQuery`.)
