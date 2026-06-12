@@ -1,827 +1,677 @@
+import { react } from '@tldraw/state'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BaseRecord, RecordId } from './BaseRecord'
-import { RecordsDiff } from './RecordsDiff'
+import { createMigrationSequence } from './migrate'
 import { createRecordType } from './RecordType'
 import { createComputedCache, Store } from './Store'
 import { StoreSchema } from './StoreSchema'
 
-// Test record types
+// Tests for SPEC.md §5 (reading and writing), §9 (validation), §10 (computed caches),
+// and §21 (integrity). Rule IDs like [S3] in test names refer to that document.
+
 interface Book extends BaseRecord<'book', RecordId<Book>> {
 	title: string
 	author: RecordId<Author>
 	numPages: number
-	genre?: string
-	inStock?: boolean
 }
 
 const Book = createRecordType<Book>('book', {
 	validator: {
-		validate: (record: unknown): Book => {
-			if (!record || typeof record !== 'object') {
-				throw new Error('Book record must be an object')
+		validate(value) {
+			const book = value as Book
+			if (!book.id.startsWith('book:')) throw Error('invalid book id')
+			if (book.typeName !== 'book') throw Error('invalid book typeName')
+			if (typeof book.title !== 'string') throw Error('invalid book title')
+			if (!Number.isFinite(book.numPages) || book.numPages < 0) {
+				throw Error('invalid book numPages')
 			}
-			const r = record as any
-			if (typeof r.id !== 'string' || !r.id.startsWith('book:')) {
-				throw new Error('Book must have valid id starting with "book:"')
-			}
-			if (r.typeName !== 'book') {
-				throw new Error('Book typeName must be "book"')
-			}
-			if (typeof r.title !== 'string' || r.title.trim().length === 0) {
-				throw new Error('Book must have non-empty title string')
-			}
-			if (typeof r.author !== 'string' || !r.author.startsWith('author:')) {
-				throw new Error('Book must have valid author RecordId')
-			}
-			if (typeof r.numPages !== 'number' || r.numPages < 1) {
-				throw new Error('Book numPages must be positive number')
-			}
-			if (r.genre !== undefined && typeof r.genre !== 'string') {
-				throw new Error('Book genre must be string if provided')
-			}
-			if (r.inStock !== undefined && typeof r.inStock !== 'boolean') {
-				throw new Error('Book inStock must be boolean if provided')
-			}
-			return r as Book
+			return book
 		},
 	},
 	scope: 'document',
-}).withDefaultProperties(() => ({
-	inStock: true,
-	numPages: 100,
-}))
+}).withDefaultProperties(() => ({ numPages: 100 }))
 
 interface Author extends BaseRecord<'author', RecordId<Author>> {
 	name: string
 	isPseudonym: boolean
-	birthYear?: number
 }
 
 const Author = createRecordType<Author>('author', {
 	validator: {
-		validate: (record: unknown): Author => {
-			if (!record || typeof record !== 'object') {
-				throw new Error('Author record must be an object')
-			}
-			const r = record as any
-			if (typeof r.id !== 'string' || !r.id.startsWith('author:')) {
-				throw new Error('Author must have valid id starting with "author:"')
-			}
-			if (r.typeName !== 'author') {
-				throw new Error('Author typeName must be "author"')
-			}
-			if (typeof r.name !== 'string' || r.name.trim().length === 0) {
-				throw new Error('Author must have non-empty name string')
-			}
-			if (typeof r.isPseudonym !== 'boolean') {
-				throw new Error('Author isPseudonym must be boolean')
-			}
-			if (
-				r.birthYear !== undefined &&
-				(typeof r.birthYear !== 'number' || r.birthYear < 1000 || r.birthYear > 2100)
-			) {
-				throw new Error('Author birthYear must be reasonable year number if provided')
-			}
-			return r as Author
+		validate(value) {
+			const author = value as Author
+			if (!author.id.startsWith('author:')) throw Error('invalid author id')
+			if (author.typeName !== 'author') throw Error('invalid author typeName')
+			if (typeof author.name !== 'string') throw Error('invalid author name')
+			if (typeof author.isPseudonym !== 'boolean') throw Error('invalid author isPseudonym')
+			return author
 		},
 	},
 	scope: 'document',
-}).withDefaultProperties(() => ({
-	isPseudonym: false,
-}))
+}).withDefaultProperties(() => ({ isPseudonym: false }))
 
 interface Visit extends BaseRecord<'visit', RecordId<Visit>> {
 	visitorName: string
-	booksInBasket: RecordId<Book>[]
-	timestamp: number
 }
 
 const Visit = createRecordType<Visit>('visit', {
-	validator: {
-		validate: (record: unknown): Visit => {
-			if (!record || typeof record !== 'object') {
-				throw new Error('Visit record must be an object')
-			}
-			const r = record as any
-			if (typeof r.id !== 'string' || !r.id.startsWith('visit:')) {
-				throw new Error('Visit must have valid id starting with "visit:"')
-			}
-			if (r.typeName !== 'visit') {
-				throw new Error('Visit typeName must be "visit"')
-			}
-			if (typeof r.visitorName !== 'string' || r.visitorName.trim().length === 0) {
-				throw new Error('Visit must have non-empty visitorName string')
-			}
-			if (!Array.isArray(r.booksInBasket)) {
-				throw new Error('Visit booksInBasket must be an array')
-			}
-			for (const bookId of r.booksInBasket) {
-				if (typeof bookId !== 'string' || !bookId.startsWith('book:')) {
-					throw new Error('Visit booksInBasket must contain valid book RecordIds')
-				}
-			}
-			if (typeof r.timestamp !== 'number' || r.timestamp < 0) {
-				throw new Error('Visit timestamp must be non-negative number')
-			}
-			return r as Visit
-		},
-	},
 	scope: 'session',
-}).withDefaultProperties(() => ({
-	visitorName: 'Anonymous',
-	booksInBasket: [],
-	timestamp: Date.now(),
-}))
+}).withDefaultProperties(() => ({ visitorName: 'Anonymous' }))
 
 interface Cursor extends BaseRecord<'cursor', RecordId<Cursor>> {
 	x: number
 	y: number
-	userId: string
 }
 
 const Cursor = createRecordType<Cursor>('cursor', {
-	validator: {
-		validate: (record: unknown): Cursor => {
-			if (!record || typeof record !== 'object') {
-				throw new Error('Cursor record must be an object')
-			}
-			const r = record as any
-			if (typeof r.id !== 'string' || !r.id.startsWith('cursor:')) {
-				throw new Error('Cursor must have valid id starting with "cursor:"')
-			}
-			if (r.typeName !== 'cursor') {
-				throw new Error('Cursor typeName must be "cursor"')
-			}
-			if (typeof r.x !== 'number' || !isFinite(r.x)) {
-				throw new Error('Cursor x must be finite number')
-			}
-			if (typeof r.y !== 'number' || !isFinite(r.y)) {
-				throw new Error('Cursor y must be finite number')
-			}
-			if (typeof r.userId !== 'string' || r.userId.trim().length === 0) {
-				throw new Error('Cursor must have non-empty userId string')
-			}
-			return r as Cursor
-		},
-	},
 	scope: 'presence',
 })
 
 type LibraryType = Book | Author | Visit | Cursor
 
-describe('Store', () => {
+const schema = () =>
+	StoreSchema.create<LibraryType>({
+		book: Book,
+		author: Author,
+		visit: Visit,
+		cursor: Cursor,
+	})
+
+describe('Store: reading and writing (S)', () => {
 	let store: Store<LibraryType>
 
 	beforeEach(() => {
-		store = new Store({
-			props: {},
-			schema: StoreSchema.create<LibraryType>({
-				book: Book,
-				author: Author,
-				visit: Visit,
-				cursor: Cursor,
-			}),
-		})
+		store = new Store({ props: {}, schema: schema() })
 	})
 
 	afterEach(() => {
 		store.dispose()
 	})
 
-	describe('basic record operations', () => {
-		it('puts records into the store', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			const book = Book.create({
+	it('[S1] a new store is empty', () => {
+		expect(store.allRecords()).toEqual([])
+	})
+
+	it('[S1] initialData populates the store', () => {
+		const author = Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })
+		const populated = new Store({
+			props: {},
+			schema: schema(),
+			initialData: { [author.id]: author } as any,
+		})
+		expect(populated.allRecords()).toEqual([author])
+		populated.dispose()
+	})
+
+	it('[S1] records read from the store are frozen in dev/test builds', () => {
+		const author = Author.create({ name: 'J.R.R Tolkein' })
+		store.put([author])
+		expect(Object.isFrozen(store.get(author.id))).toBe(true)
+	})
+
+	it('[S2] put creates records and get/has read them', () => {
+		const author = Author.create({ name: 'J.R.R Tolkein' })
+		const book = Book.create({ title: 'The Hobbit', author: author.id, numPages: 310 })
+
+		store.put([author, book])
+
+		expect(store.get(author.id)).toEqual(author)
+		expect(store.get(book.id)).toEqual(book)
+		expect(store.has(author.id)).toBe(true)
+		expect(store.has(Book.createId('missing'))).toBe(false)
+		expect(store.get(Book.createId('missing'))).toBeUndefined()
+	})
+
+	it('[S2] put updates records whose ids are already present', () => {
+		const author = Author.create({ name: 'J.R.R Tolkein' })
+		store.put([author])
+
+		store.put([{ ...author, name: 'John Ronald Reuel Tolkien' }])
+
+		expect(store.get(author.id)?.name).toBe('John Ronald Reuel Tolkien')
+	})
+
+	it('[S3] re-putting the stored object is a complete no-op', () => {
+		const author = Author.create({ name: 'J.R.R Tolkein' })
+		store.put([author])
+
+		const listener = vi.fn()
+		store.listen(listener)
+
+		store.update(author.id, (a) => a)
+		store.put([store.get(author.id)!])
+
+		expect(listener).not.toHaveBeenCalled()
+	})
+
+	it('[S3] a no-op put produces no history entry even among real changes', () => {
+		const author = Author.create({ name: 'J.R.R Tolkein' })
+		store.put([author])
+
+		const other = Author.create({ name: 'Ursula K. Le Guin' })
+		const diff = store.extractingChanges(() => {
+			store.put([store.get(author.id)!, other])
+		})
+
+		expect(Object.keys(diff.updated)).toEqual([])
+		expect(Object.keys(diff.added)).toEqual([other.id])
+	})
+
+	it('[S4] update applies an updater function to the current record', () => {
+		const author = Author.create({ name: 'J.R.R Tolkein' })
+		store.put([author])
+
+		store.update(author.id, (current) => ({ ...current, name: 'Jimmy Tolks' }))
+
+		expect(store.get(author.id)?.name).toBe('Jimmy Tolks')
+	})
+
+	it('[S4] update of a missing id logs an error and does not throw', () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		expect(() => {
+			store.update(Author.createId('missing'), (a) => a)
+		}).not.toThrow()
+
+		expect(consoleSpy).toHaveBeenCalled()
+		consoleSpy.mockRestore()
+	})
+
+	it('[S5] remove deletes records and ignores missing ids', () => {
+		const author = Author.create({ name: 'J.R.R Tolkein' })
+		const book = Book.create({ title: 'The Hobbit', author: author.id })
+		store.put([author, book])
+
+		store.remove([author.id, Book.createId('missing')])
+
+		expect(store.has(author.id)).toBe(false)
+		expect(store.has(book.id)).toBe(true)
+	})
+
+	it('[S5] removing nothing produces no history entry', () => {
+		const diff = store.extractingChanges(() => {
+			store.remove([Author.createId('missing')])
+		})
+		expect(diff).toEqual({ added: {}, updated: {}, removed: {} })
+	})
+
+	it('[S5] clear removes all records', () => {
+		store.put([Author.create({ name: 'J.R.R Tolkein' }), Visit.create({ visitorName: 'John Doe' })])
+		expect(store.allRecords()).toHaveLength(2)
+
+		store.clear()
+		expect(store.allRecords()).toHaveLength(0)
+	})
+
+	it('[S6] get is reactive; unsafeGetWithoutCapture is not', () => {
+		const author = Author.create({ name: 'J.R.R Tolkein' })
+		store.put([author])
+
+		const reactiveReads: (string | undefined)[] = []
+		const unsafeReads: (string | undefined)[] = []
+		const stop = react('reader', () => {
+			reactiveReads.push(store.get(author.id)?.name)
+			unsafeReads.push(store.unsafeGetWithoutCapture(author.id)?.name)
+		})
+
+		store.update(author.id, (a) => ({ ...a, name: 'Jimmy Tolks' }))
+
+		expect(reactiveReads).toEqual(['J.R.R Tolkein', 'Jimmy Tolks'])
+		stop()
+
+		const unsafeOnly: (string | undefined)[] = []
+		const stop2 = react('unsafe-reader', () => {
+			unsafeOnly.push(store.unsafeGetWithoutCapture(author.id)?.name)
+		})
+		store.update(author.id, (a) => ({ ...a, name: 'John Ronald' }))
+		// the effect did not re-run because nothing was captured
+		expect(unsafeOnly).toEqual(['Jimmy Tolks'])
+		stop2()
+	})
+})
+
+describe('Store: serialization and snapshots (S)', () => {
+	let store: Store<LibraryType>
+
+	beforeEach(() => {
+		store = new Store({ props: {}, schema: schema() })
+		store.put([
+			Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') }),
+			Book.create({
 				title: 'The Hobbit',
-				author: author.id,
-				numPages: 310,
-			})
+				id: Book.createId('hobbit'),
+				author: Author.createId('tolkein'),
+				numPages: 300,
+			}),
+			Visit.create({ visitorName: 'John Doe', id: Visit.createId('doe') }),
+			Cursor.create({ x: 1, y: 2, id: Cursor.createId('c') }),
+		])
+	})
 
-			store.put([author, book])
+	afterEach(() => {
+		store.dispose()
+	})
 
-			expect(store.get(author.id)).toEqual(author)
-			expect(store.get(book.id)).toEqual(book)
-		})
+	it('[S7] serialize defaults to document scope', () => {
+		const typeNames = Object.values(store.serialize()).map((r) => r.typeName)
+		expect(typeNames.sort()).toEqual(['author', 'book'])
+	})
 
-		it('updates existing records', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			store.put([author])
+	it('[S7] serialize filters by the given scope, and "all" includes everything', () => {
+		expect(Object.values(store.serialize('session')).map((r) => r.typeName)).toEqual(['visit'])
+		expect(Object.values(store.serialize('presence')).map((r) => r.typeName)).toEqual(['cursor'])
+		expect(
+			Object.values(store.serialize('all'))
+				.map((r) => r.typeName)
+				.sort()
+		).toEqual(['author', 'book', 'cursor', 'visit'])
+	})
 
-			const updatedAuthor = { ...author, name: 'John Ronald Reuel Tolkien' }
-			store.put([updatedAuthor])
-
-			expect(store.get(author.id)?.name).toBe('John Ronald Reuel Tolkien')
-		})
-
-		it('removes records from the store', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: author.id,
-				numPages: 310,
-			})
-
-			store.put([author, book])
-			expect(store.has(author.id)).toBe(true)
-			expect(store.has(book.id)).toBe(true)
-
-			store.remove([author.id, book.id])
-			expect(store.has(author.id)).toBe(false)
-			expect(store.has(book.id)).toBe(false)
-		})
-
-		it('updates records using update method', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			store.put([author])
-
-			store.update(author.id, (current) => ({
-				...current,
-				name: 'John Ronald Reuel Tolkien',
-			}))
-
-			expect(store.get(author.id)?.name).toBe('John Ronald Reuel Tolkien')
-		})
-
-		it('clears all records', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: author.id,
-				numPages: 310,
-			})
-
-			store.put([author, book])
-			expect(store.allRecords()).toHaveLength(2)
-
-			store.clear()
-			expect(store.allRecords()).toHaveLength(0)
+	it('[S7] scopedTypes maps each scope to its type names', () => {
+		expect(store.scopedTypes).toEqual({
+			document: new Set(['book', 'author']),
+			session: new Set(['visit']),
+			presence: new Set(['cursor']),
 		})
 	})
 
-	describe('atomic operations', () => {
-		it('performs atomic operations', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: author.id,
-				numPages: 310,
-			})
-
-			const result = store.atomic(() => {
-				store.put([author])
-				store.put([book])
-				return 'completed'
-			})
-
-			expect(result).toBe('completed')
-			expect(store.get(author.id)).toEqual(author)
-			expect(store.get(book.id)).toEqual(book)
-		})
-
-		it('handles nested atomic operations', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: author.id,
-				numPages: 310,
-			})
-
-			store.atomic(() => {
-				store.put([author])
-				store.atomic(() => {
-					store.put([book])
-				})
-			})
-
-			expect(store.get(author.id)).toEqual(author)
-			expect(store.get(book.id)).toEqual(book)
-		})
+	it('[S8] getStoreSnapshot bundles the serialized records and schema', () => {
+		const snapshot = store.getStoreSnapshot('all')
+		expect(snapshot.store).toEqual(store.serialize('all'))
+		expect(snapshot.schema).toEqual(store.schema.serialize())
 	})
 
-	describe('history tracking', () => {
-		it('extracts changes from operations', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: author.id,
-				numPages: 310,
-			})
+	it('[S9] loadStoreSnapshot replaces all current data', () => {
+		const snapshot = store.getStoreSnapshot()
 
-			const changes = store.extractingChanges(() => {
-				store.put([author, book])
-			})
+		const store2 = new Store({ props: {}, schema: schema() })
+		store2.put([Author.create({ name: 'Someone Else' })])
+		store2.loadStoreSnapshot(snapshot)
 
-			expect(changes.added).toHaveProperty(author.id)
-			expect(changes.added).toHaveProperty(book.id)
-			expect(Object.keys(changes.updated)).toHaveLength(0)
-			expect(Object.keys(changes.removed)).toHaveLength(0)
-		})
-
-		it('extracts update changes', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			store.put([author])
-
-			const changes = store.extractingChanges(() => {
-				store.update(author.id, (a) => ({ ...a, name: 'John Ronald Reuel Tolkien' }))
-			})
-
-			expect(Object.keys(changes.added)).toHaveLength(0)
-			expect(changes.updated).toHaveProperty(author.id)
-			expect(Object.keys(changes.removed)).toHaveLength(0)
-		})
-
-		it('extracts removal changes', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			store.put([author])
-
-			const changes = store.extractingChanges(() => {
-				store.remove([author.id])
-			})
-
-			expect(Object.keys(changes.added)).toHaveLength(0)
-			expect(Object.keys(changes.updated)).toHaveLength(0)
-			expect(changes.removed).toHaveProperty(author.id)
-		})
+		expect(store2.serialize('all')).toEqual(store.serialize('document'))
+		expect(store2.getStoreSnapshot()).toEqual(snapshot)
+		store2.dispose()
 	})
 
-	describe('listeners', () => {
-		it('adds and removes listeners', async () => {
-			const listener = vi.fn()
-			const removeListener = store.listen(listener)
+	it('[S9] loadStoreSnapshot does not run side effects', () => {
+		const snapshot = store.getStoreSnapshot()
 
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			store.put([author])
+		const store2 = new Store({ props: {}, schema: schema() })
+		const afterCreate = vi.fn()
+		const beforeCreate = vi.fn((r: Book) => r)
+		store2.sideEffects.registerAfterCreateHandler('book', afterCreate)
+		store2.sideEffects.registerBeforeCreateHandler('book', beforeCreate)
 
-			// Wait for async history flush
-			await new Promise((resolve) => requestAnimationFrame(resolve))
+		store2.loadStoreSnapshot(snapshot)
 
-			expect(listener).toHaveBeenCalledTimes(1)
-			expect(listener).toHaveBeenCalledWith(
-				expect.objectContaining({
-					source: 'user',
-					changes: expect.objectContaining({
-						added: expect.objectContaining({
-							[author.id]: author,
+		expect(beforeCreate).not.toHaveBeenCalled()
+		expect(afterCreate).not.toHaveBeenCalled()
+		// side effects are re-enabled afterwards
+		store2.put([Book.create({ title: 'New', author: Author.createId('x') })])
+		expect(afterCreate).toHaveBeenCalledTimes(1)
+		store2.dispose()
+	})
+
+	it('[S9] loadStoreSnapshot migrates the snapshot first', () => {
+		const snapshot = store.getStoreSnapshot()
+		const up = vi.fn((s: any) => {
+			s['book:hobbit'].numPages = 42
+		})
+
+		const store2 = new Store<LibraryType>({
+			props: {},
+			schema: StoreSchema.create<LibraryType>(
+				{ book: Book, author: Author, visit: Visit, cursor: Cursor },
+				{
+					migrations: [
+						createMigrationSequence({
+							sequenceId: 'com.tldraw',
+							retroactive: true,
+							sequence: [{ id: 'com.tldraw/1', scope: 'store', up }],
 						}),
-					}),
-				})
-			)
-
-			removeListener()
-
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: author.id,
-				numPages: 310,
-			})
-			store.put([book])
-
-			// Wait for async history flush
-			await new Promise((resolve) => requestAnimationFrame(resolve))
-
-			// Should still be called only once
-			expect(listener).toHaveBeenCalledTimes(1)
+					],
+				}
+			),
 		})
 
-		it('filters listeners by source', async () => {
-			const userListener = vi.fn()
-			const remoteListener = vi.fn()
+		store2.loadStoreSnapshot(snapshot)
 
-			store.listen(userListener, { source: 'user', scope: 'all' })
-			store.listen(remoteListener, { source: 'remote', scope: 'all' })
-
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-
-			// User change
-			store.put([author])
-			await new Promise((resolve) => requestAnimationFrame(resolve))
-
-			expect(userListener).toHaveBeenCalledTimes(1)
-			expect(remoteListener).not.toHaveBeenCalled()
-
-			// Remote change
-			store.mergeRemoteChanges(() => {
-				const book = Book.create({
-					title: 'The Hobbit',
-					author: author.id,
-					numPages: 310,
-				})
-				store.put([book])
-			})
-			await new Promise((resolve) => requestAnimationFrame(resolve))
-
-			expect(userListener).toHaveBeenCalledTimes(1)
-			expect(remoteListener).toHaveBeenCalledTimes(1)
-		})
-
-		it('filters listeners by scope', async () => {
-			const documentListener = vi.fn()
-			const sessionListener = vi.fn()
-			const presenceListener = vi.fn()
-
-			store.listen(documentListener, { source: 'all', scope: 'document' })
-			store.listen(sessionListener, { source: 'all', scope: 'session' })
-			store.listen(presenceListener, { source: 'all', scope: 'presence' })
-
-			const author = Author.create({ name: 'J.R.R. Tolkien' }) // document scope
-			const visit = Visit.create({ visitorName: 'John Doe' }) // session scope
-			const cursor = Cursor.create({ x: 100, y: 200, userId: 'user1' }) // presence scope
-
-			store.put([author, visit, cursor])
-			await new Promise((resolve) => requestAnimationFrame(resolve))
-
-			expect(documentListener).toHaveBeenCalledTimes(1)
-			expect(sessionListener).toHaveBeenCalledTimes(1)
-			expect(presenceListener).toHaveBeenCalledTimes(1)
-
-			// Check that each listener only received records from their scope
-			expect(documentListener.mock.calls[0][0].changes.added).toHaveProperty(author.id)
-			expect(documentListener.mock.calls[0][0].changes.added).not.toHaveProperty(visit.id)
-			expect(documentListener.mock.calls[0][0].changes.added).not.toHaveProperty(cursor.id)
-
-			expect(sessionListener.mock.calls[0][0].changes.added).not.toHaveProperty(author.id)
-			expect(sessionListener.mock.calls[0][0].changes.added).toHaveProperty(visit.id)
-			expect(sessionListener.mock.calls[0][0].changes.added).not.toHaveProperty(cursor.id)
-
-			expect(presenceListener.mock.calls[0][0].changes.added).not.toHaveProperty(author.id)
-			expect(presenceListener.mock.calls[0][0].changes.added).not.toHaveProperty(visit.id)
-			expect(presenceListener.mock.calls[0][0].changes.added).toHaveProperty(cursor.id)
-		})
-
-		it('flushes history before adding listeners', async () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			store.put([author])
-
-			// Add listener after changes
-			const listener = vi.fn()
-			store.listen(listener)
-
-			// Should not receive historical changes
-			await new Promise((resolve) => requestAnimationFrame(resolve))
-			expect(listener).not.toHaveBeenCalled()
-
-			// Should receive new changes
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: author.id,
-				numPages: 310,
-			})
-			store.put([book])
-
-			await new Promise((resolve) => requestAnimationFrame(resolve))
-			expect(listener).toHaveBeenCalledTimes(1)
-		})
+		expect(up).toHaveBeenCalledTimes(1)
+		expect((store2.get(Book.createId('hobbit')) as Book).numPages).toBe(42)
+		store2.dispose()
 	})
 
-	describe('remote changes', () => {
-		it('merges remote changes with correct source', async () => {
-			const listener = vi.fn()
-			store.listen(listener)
-
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-
-			store.mergeRemoteChanges(() => {
-				store.put([author])
-			})
-
-			await new Promise((resolve) => requestAnimationFrame(resolve))
-
-			expect(listener).toHaveBeenCalledWith(expect.objectContaining({ source: 'remote' }))
+	it('[S9] storage-scope migrations run during loadStoreSnapshot', () => {
+		const snapshot = store.getStoreSnapshot()
+		const up = vi.fn((storage: any) => {
+			const book = storage.get('book:hobbit')
+			storage.set('book:hobbit', { ...book, numPages: 42 })
+			storage.delete('author:tolkein')
 		})
 
-		it('ensures store is usable after remote changes', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-
-			store.mergeRemoteChanges(() => {
-				store.put([author])
-			})
-
-			expect(store.get(author.id)).toEqual(author)
+		const store2 = new Store<LibraryType>({
+			props: {},
+			schema: StoreSchema.create<LibraryType>(
+				{ book: Book, author: Author, visit: Visit, cursor: Cursor },
+				{
+					migrations: [
+						createMigrationSequence({
+							sequenceId: 'com.tldraw',
+							retroactive: true,
+							sequence: [{ id: 'com.tldraw/1', scope: 'storage', up }],
+						}),
+					],
+				}
+			),
 		})
 
-		it('throws error when merging remote changes during atomic operation', () => {
-			expect(() => {
-				store.atomic(() => {
-					store.mergeRemoteChanges(() => {
-						// This should throw
-					})
-				})
-			}).toThrow('Cannot merge remote changes while in atomic operation')
-		})
+		store2.loadStoreSnapshot(snapshot)
+
+		expect(up).toHaveBeenCalledTimes(1)
+		expect((store2.get(Book.createId('hobbit')) as Book).numPages).toBe(42)
+		expect(store2.get(Author.createId('tolkein'))).toBeUndefined()
+		store2.dispose()
 	})
 
-	describe('serialization and snapshots', () => {
-		beforeEach(() => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: author.id,
-				numPages: 310,
-			})
-			const visit = Visit.create({ visitorName: 'John Doe' })
-			const cursor = Cursor.create({ x: 100, y: 200, userId: 'user1' })
+	it('[S9] loadStoreSnapshot throws on migration failure and leaves the store unchanged', () => {
+		const snapshot = store.getStoreSnapshot()
 
-			store.put([author, book, visit, cursor])
+		const store2 = new Store({
+			props: {},
+			schema: StoreSchema.create<Book>({ book: Book }), // no author type
 		})
+		const existing = Book.create({ title: 'Keep me', author: Author.createId('x') })
+		store2.put([existing])
 
-		it('serializes store with document scope by default', () => {
-			const serialized = store.serialize()
-			const records = Object.values(serialized)
+		expect(() => {
+			store2.loadStoreSnapshot(snapshot as any)
+		}).toThrow('Missing definition for record type author')
+		expect(store2.get(existing.id)).toEqual(existing)
+		store2.dispose()
+	})
 
-			// Should include document records only
-			expect(records.some((r) => r.typeName === 'author')).toBe(true)
-			expect(records.some((r) => r.typeName === 'book')).toBe(true)
-			expect(records.some((r) => r.typeName === 'visit')).toBe(false)
-			expect(records.some((r) => r.typeName === 'cursor')).toBe(false)
-		})
+	it('[S10] migrateSnapshot returns the snapshot stamped with the current schema', () => {
+		const snapshot = store.getStoreSnapshot()
+		const migrated = store.migrateSnapshot(snapshot)
+		expect(migrated).toEqual(snapshot) // no migrations needed
 
-		it('serializes store with specific scope', () => {
-			const sessionSerialized = store.serialize('session')
-			const sessionRecords = Object.values(sessionSerialized)
+		expect(() =>
+			store.migrateSnapshot({ store: {}, schema: { schemaVersion: -1 } } as any)
+		).toThrow('Failed to migrate snapshot')
+	})
+})
 
-			expect(sessionRecords.some((r) => r.typeName === 'visit')).toBe(true)
-			expect(sessionRecords.some((r) => r.typeName === 'author')).toBe(false)
-		})
+describe('Store: validation (V)', () => {
+	let store: Store<LibraryType>
 
-		it('serializes store with all scopes', () => {
-			const allSerialized = store.serialize('all')
-			const allRecords = Object.values(allSerialized)
+	beforeEach(() => {
+		store = new Store({ props: {}, schema: schema() })
+	})
 
-			expect(allRecords.some((r) => r.typeName === 'author')).toBe(true)
-			expect(allRecords.some((r) => r.typeName === 'book')).toBe(true)
-			expect(allRecords.some((r) => r.typeName === 'visit')).toBe(true)
-			expect(allRecords.some((r) => r.typeName === 'cursor')).toBe(true)
-		})
+	afterEach(() => {
+		store.dispose()
+	})
 
-		it('creates and loads store snapshots', () => {
-			const snapshot = store.getStoreSnapshot()
-
-			expect(snapshot).toHaveProperty('store')
-			expect(snapshot).toHaveProperty('schema')
-
-			const newStore = new Store({
-				props: {},
-				schema: StoreSchema.create<LibraryType>({
-					book: Book,
-					author: Author,
-					visit: Visit,
-					cursor: Cursor,
+	it('[V1] put validates created records', () => {
+		expect(() => {
+			store.put([
+				Book.create({
+					// @ts-expect-error - deliberately invalid data
+					title: 4,
+					author: Author.createId('tolkein'),
 				}),
-			})
-
-			newStore.loadStoreSnapshot(snapshot)
-
-			// Should have same document records (default scope)
-			const originalDocumentRecords = store.serialize('document')
-			const newDocumentRecords = newStore.serialize('document')
-
-			expect(newDocumentRecords).toEqual(originalDocumentRecords)
-			newStore.dispose()
-		})
-
-		it('migrates snapshots', () => {
-			const snapshot = store.getStoreSnapshot()
-			const migratedSnapshot = store.migrateSnapshot(snapshot)
-
-			expect(migratedSnapshot).toEqual(snapshot) // No migrations needed
-		})
-
-		it('throws error on migration failure', () => {
-			const invalidSnapshot = {
-				store: {},
-				schema: { version: -1 }, // Invalid version
-			} as any
-
-			expect(() => store.migrateSnapshot(invalidSnapshot)).toThrow()
-		})
+			])
+		}).toThrow('invalid book title')
+		expect(store.allRecords()).toEqual([])
 	})
 
-	describe('computed caches', () => {
-		it('creates and uses computed cache', () => {
-			const computeExpensiveData = vi.fn((book: Book) => `expensive-${book.title}`)
+	it('[V1] put validates updated records', () => {
+		const book = Book.create({ title: 'The Hobbit', author: Author.createId('tolkein') })
+		store.put([book])
 
-			const cache = store.createComputedCache('expensiveBook', computeExpensiveData)
-
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: Author.createId('tolkien'),
-				numPages: 310,
-			})
-			store.put([book])
-
-			const result1 = cache.get(book.id)
-			expect(result1).toBe('expensive-The Hobbit')
-			expect(computeExpensiveData).toHaveBeenCalledTimes(1)
-
-			// Should use cached result
-			const result2 = cache.get(book.id)
-			expect(result2).toBe('expensive-The Hobbit')
-			expect(computeExpensiveData).toHaveBeenCalledTimes(1)
-		})
-
-		it('invalidates cache when record changes', () => {
-			const computeExpensiveData = vi.fn((book: Book) => `expensive-${book.title}`)
-			const cache = store.createComputedCache('expensiveBook', computeExpensiveData)
-
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: Author.createId('tolkien'),
-				numPages: 310,
-			})
-			store.put([book])
-
-			cache.get(book.id)
-			expect(computeExpensiveData).toHaveBeenCalledTimes(1)
-
-			// Update the book
-			store.update(book.id, (b) => ({ ...b, title: 'The Hobbit: Updated' }))
-
-			// Should recompute
-			const result = cache.get(book.id)
-			expect(result).toBe('expensive-The Hobbit: Updated')
-			expect(computeExpensiveData).toHaveBeenCalledTimes(2)
-		})
+		expect(() => {
+			store.put([{ ...book, numPages: -1 }])
+		}).toThrow('invalid book numPages')
+		expect(store.get(book.id)).toEqual(book)
 	})
 
-	describe('standalone createComputedCache', () => {
-		it('works with store objects', () => {
-			const derive = vi.fn(
-				(context: { store: Store<LibraryType> }, book: Book) => `${book.title}-${context.store.id}`
-			)
-
-			const cache = createComputedCache('standalone', derive)
-
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: Author.createId('tolkien'),
-				numPages: 310,
+	it('[V1] the store constructor validates initial data', () => {
+		const author = Author.create({ name: 'J.R.R Tolkein' })
+		expect(() => {
+			new Store({
+				props: {},
+				schema: schema(),
+				initialData: { [author.id]: { ...author, name: 4 } } as any,
 			})
-			store.put([book])
-
-			const result = cache.get({ store }, book.id)
-			expect(result).toBe(`The Hobbit-${store.id}`)
-			expect(derive).toHaveBeenCalledTimes(1)
-		})
-
-		it('works directly with store instances', () => {
-			const derive = vi.fn((store: Store<LibraryType>, book: Book) => `${book.title}-${store.id}`)
-
-			const cache = createComputedCache('standalone', derive)
-
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: Author.createId('tolkien'),
-				numPages: 310,
-			})
-			store.put([book])
-
-			const result = cache.get(store, book.id)
-			expect(result).toBe(`The Hobbit-${store.id}`)
-			expect(derive).toHaveBeenCalledTimes(1)
-		})
+		}).toThrow('invalid author name')
 	})
 
-	describe('diff application', () => {
-		it('applies diffs to the store', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			const book = Book.create({
-				title: 'The Hobbit',
-				author: author.id,
-				numPages: 310,
-			})
-
-			const diff: RecordsDiff<LibraryType> = {
-				added: {
-					[author.id]: author,
-					[book.id]: book,
-				},
-				updated: {},
-				removed: {},
-			}
-
-			store.applyDiff(diff)
-
-			expect(store.get(author.id)).toEqual(author)
-			expect(store.get(book.id)).toEqual(book)
+	it('[V2] updates pass the previous record to validateUsingKnownGoodVersion', () => {
+		const validateUsingKnownGoodVersion = vi.fn((_prev: Author, next: unknown) => next as Author)
+		const TrackedAuthor = createRecordType<Author>('author', {
+			validator: {
+				validate: (r) => r as Author,
+				validateUsingKnownGoodVersion,
+			},
+			scope: 'document',
+		})
+		const trackedStore = new Store({
+			props: {},
+			schema: StoreSchema.create<Author>({ author: TrackedAuthor }),
 		})
 
-		it('applies diffs with updates', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			store.put([author])
+		const author = Author.create({ name: 'J.R.R Tolkein' })
+		trackedStore.put([author])
+		expect(validateUsingKnownGoodVersion).not.toHaveBeenCalled()
 
-			const updatedAuthor = { ...author, name: 'John Ronald Reuel Tolkien' }
-			const diff: RecordsDiff<LibraryType> = {
-				added: {},
-				updated: {
-					[author.id]: [author, updatedAuthor],
-				},
-				removed: {},
-			}
-
-			store.applyDiff(diff)
-
-			expect(store.get(author.id)?.name).toBe('John Ronald Reuel Tolkien')
-		})
-
-		it('applies diffs with removals', () => {
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			store.put([author])
-
-			const diff: RecordsDiff<LibraryType> = {
-				added: {},
-				updated: {},
-				removed: {
-					[author.id]: author,
-				},
-			}
-
-			store.applyDiff(diff)
-
-			expect(store.has(author.id)).toBe(false)
-		})
+		const updated = { ...author, name: 'Jimmy Tolks' }
+		trackedStore.put([updated])
+		expect(validateUsingKnownGoodVersion).toHaveBeenCalledWith(author, updated)
+		trackedStore.dispose()
 	})
 
-	describe('validation', () => {
-		it('validates records during operations', () => {
-			expect(() => {
-				store.put([
-					{
-						id: Book.createId('test1'),
-						typeName: 'book',
-						title: '', // Invalid: empty title
-						author: Author.createId('tolkien'),
-						numPages: 100,
-						inStock: true,
-					} as any,
-				])
-			}).toThrow('Book must have non-empty title string')
-		})
+	it('[V3] a validation throw rolls back the whole operation', () => {
+		const goodAuthor = Author.create({ name: 'Fine' })
+
+		expect(() => {
+			store.put([
+				goodAuthor,
+				Book.create({
+					// @ts-expect-error - deliberately invalid data
+					title: 4,
+					author: goodAuthor.id,
+				}),
+			])
+		}).toThrow()
+
+		// the valid record earlier in the same put was rolled back too
+		expect(store.get(goodAuthor.id)).toBeUndefined()
+		expect(store.allRecords()).toEqual([])
 	})
 
-	describe('side effects integration', () => {
-		it('integrates with side effects for put operations', () => {
-			const beforeCreate = vi.fn((record: Author) => record)
-			const afterCreate = vi.fn()
+	it('[V5] store.validate re-validates every record', () => {
+		const author = Author.create({ name: 'J.R.R Tolkein' })
+		store.put([author])
 
-			store.sideEffects.registerBeforeCreateHandler('author', beforeCreate)
-			store.sideEffects.registerAfterCreateHandler('author', afterCreate)
+		expect(() => store.validate('tests')).not.toThrow()
+	})
+})
 
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			store.put([author])
+describe('computed caches (CC)', () => {
+	let store: Store<LibraryType>
 
-			expect(beforeCreate).toHaveBeenCalledWith(author, 'user')
-			expect(afterCreate).toHaveBeenCalledWith(author, 'user')
+	beforeEach(() => {
+		store = new Store({ props: {}, schema: schema() })
+	})
+
+	afterEach(() => {
+		store.dispose()
+	})
+
+	it('[CC1] get derives for existing records and returns undefined for missing ones', () => {
+		const derive = vi.fn((book: Book) => `derived-${book.title}`)
+		const cache = store.createComputedCache('cache', derive)
+
+		expect(cache.get(Book.createId('missing'))).toBeUndefined()
+		expect(derive).not.toHaveBeenCalled()
+
+		const book = Book.create({ title: 'The Hobbit', author: Author.createId('tolkien') })
+		store.put([book])
+
+		expect(cache.get(book.id)).toBe('derived-The Hobbit')
+	})
+
+	it('[CC2] values are cached until the record changes', () => {
+		const derive = vi.fn((book: Book) => `derived-${book.title}`)
+		const cache = store.createComputedCache('cache', derive)
+
+		const book = Book.create({ title: 'The Hobbit', author: Author.createId('tolkien') })
+		store.put([book])
+
+		expect(cache.get(book.id)).toBe('derived-The Hobbit')
+		expect(cache.get(book.id)).toBe('derived-The Hobbit')
+		expect(derive).toHaveBeenCalledTimes(1)
+
+		store.update(book.id, (b) => ({ ...b, title: 'The Hobbit: Updated' }) as Book)
+
+		expect(cache.get(book.id)).toBe('derived-The Hobbit: Updated')
+		expect(derive).toHaveBeenCalledTimes(2)
+	})
+
+	it('[CC1] a deleted record makes get return undefined again', () => {
+		const cache = store.createComputedCache('cache', (book: Book) => book.title)
+		const book = Book.create({ title: 'The Hobbit', author: Author.createId('tolkien') })
+		store.put([book])
+
+		expect(cache.get(book.id)).toBe('The Hobbit')
+		store.remove([book.id])
+		expect(cache.get(book.id)).toBeUndefined()
+	})
+
+	it('[CC3] areRecordsEqual controls which record changes invalidate the cache', () => {
+		const derive = vi.fn((book: Book) => book.title)
+		const cache = store.createComputedCache('cache', derive, {
+			areRecordsEqual: (a, b) => a.title === b.title,
 		})
 
-		it('integrates with side effects for update operations', () => {
-			const beforeChange = vi.fn((prev: Author, next: Author) => next)
-			const afterChange = vi.fn()
+		const book = Book.create({ title: 'The Hobbit', author: Author.createId('tolkien') })
+		store.put([book])
+		expect(cache.get(book.id)).toBe('The Hobbit')
+		expect(derive).toHaveBeenCalledTimes(1)
 
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			store.put([author])
+		// a change the equality function ignores does not re-derive
+		store.update(book.id, (b) => ({ ...b, numPages: 999 }) as Book)
+		expect(cache.get(book.id)).toBe('The Hobbit')
+		expect(derive).toHaveBeenCalledTimes(1)
 
-			store.sideEffects.registerBeforeChangeHandler('author', beforeChange)
-			store.sideEffects.registerAfterChangeHandler('author', afterChange)
+		// a change it observes does
+		store.update(book.id, (b) => ({ ...b, title: 'New Title' }) as Book)
+		expect(cache.get(book.id)).toBe('New Title')
+		expect(derive).toHaveBeenCalledTimes(2)
+	})
 
-			const updatedAuthor = { ...author, name: 'John Ronald Reuel Tolkien' }
-			store.put([updatedAuthor])
+	it('[CC3] areResultsEqual keeps the previous result object for equal results', () => {
+		const cache = store.createComputedCache(
+			'cache',
+			(book: Book) => ({ words: book.title.split(' ') }),
+			{ areResultsEqual: (a, b) => a.words.join() === b.words.join() }
+		)
 
-			expect(beforeChange).toHaveBeenCalledWith(author, updatedAuthor, 'user')
-			expect(afterChange).toHaveBeenCalledWith(author, updatedAuthor, 'user')
+		const book = Book.create({ title: 'The Hobbit', author: Author.createId('tolkien') })
+		store.put([book])
+		const first = cache.get(book.id)
+
+		// the record changed, but the derived result is "equal" -> same object back
+		store.update(book.id, (b) => ({ ...b, numPages: 999 }) as Book)
+		expect(cache.get(book.id)).toBe(first)
+	})
+
+	it('[CC4] the standalone createComputedCache keys caches per context object', () => {
+		const derive = vi.fn((context: Store<LibraryType>, book: Book) => `${book.title}-${context.id}`)
+		const cache = createComputedCache('standalone', derive)
+
+		const store2 = new Store({ props: {}, schema: schema() })
+		const book = Book.create({ title: 'The Hobbit', author: Author.createId('tolkien') })
+		store.put([book])
+		store2.put([book])
+
+		expect(cache.get(store, book.id)).toBe(`The Hobbit-${store.id}`)
+		expect(cache.get(store2, book.id)).toBe(`The Hobbit-${store2.id}`)
+		expect(derive).toHaveBeenCalledTimes(2)
+		store2.dispose()
+	})
+
+	it('[CC4] the standalone cache accepts objects containing a store', () => {
+		const cache = createComputedCache(
+			'standalone',
+			(context: { store: Store<LibraryType> }, book: Book) => `${book.title}-${context.store.id}`
+		)
+
+		const book = Book.create({ title: 'The Hobbit', author: Author.createId('tolkien') })
+		store.put([book])
+
+		expect(cache.get({ store }, book.id)).toBe(`The Hobbit-${store.id}`)
+	})
+
+	it('[CC5] createCache calls create once per record and not for missing ids', () => {
+		const create = vi.fn((id: any, recordSignal: any) => {
+			// return the record signal itself: the cached value is the record
+			return recordSignal
+		})
+		const cache = store.createCache(create)
+
+		expect(cache.get(Book.createId('missing'))).toBeUndefined()
+		expect(create).not.toHaveBeenCalled()
+
+		const book = Book.create({ title: 'The Hobbit', author: Author.createId('tolkien') })
+		store.put([book])
+
+		expect(cache.get(book.id)).toEqual(book)
+		cache.get(book.id)
+		expect(create).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('integrity (IC)', () => {
+	it('[IC1] ensureStoreIsUsable creates the integrity checker once and runs it', () => {
+		const integrityChecker = vi.fn()
+		const createIntegrityChecker = vi.fn(() => integrityChecker)
+		const integritySchema = StoreSchema.create<LibraryType>(
+			{ book: Book, author: Author, visit: Visit, cursor: Cursor },
+			{ createIntegrityChecker: createIntegrityChecker as any }
+		)
+		const store = new Store({ props: {}, schema: integritySchema })
+
+		store.ensureStoreIsUsable()
+		store.ensureStoreIsUsable()
+
+		expect(createIntegrityChecker).toHaveBeenCalledTimes(1)
+		expect(createIntegrityChecker).toHaveBeenCalledWith(store)
+		expect(integrityChecker).toHaveBeenCalledTimes(2)
+		store.dispose()
+	})
+
+	it('[IC1] the integrity checker runs after mergeRemoteChanges', () => {
+		const integrityChecker = vi.fn()
+		const integritySchema = StoreSchema.create<LibraryType>(
+			{ book: Book, author: Author, visit: Visit, cursor: Cursor },
+			{ createIntegrityChecker: (() => integrityChecker) as any }
+		)
+		const store = new Store({ props: {}, schema: integritySchema })
+
+		store.mergeRemoteChanges(() => {
+			store.put([Author.create({ name: 'J.R.R Tolkein' })])
 		})
 
-		it('integrates with side effects for remove operations', () => {
-			const beforeDelete = vi.fn()
-			const afterDelete = vi.fn()
+		expect(integrityChecker).toHaveBeenCalled()
+		store.dispose()
+	})
 
-			const author = Author.create({ name: 'J.R.R. Tolkien' })
-			store.put([author])
-
-			store.sideEffects.registerBeforeDeleteHandler('author', beforeDelete)
-			store.sideEffects.registerAfterDeleteHandler('author', afterDelete)
-
-			store.remove([author.id])
-
-			expect(beforeDelete).toHaveBeenCalledWith(author, 'user')
-			expect(afterDelete).toHaveBeenCalledWith(author, 'user')
-		})
-
-		it('can prevent deletion with beforeDelete handler', () => {
-			const beforeDelete = vi.fn().mockReturnValue(false)
-			const afterDelete = vi.fn()
-
-			store.sideEffects.registerBeforeDeleteHandler('author', beforeDelete)
-			store.sideEffects.registerAfterDeleteHandler('author', afterDelete)
-
-			const author = Author.create({ name: 'Protected Author' })
-			store.put([author])
-
-			// Try to delete - should be prevented
-			store.remove([author.id])
-
-			expect(beforeDelete).toHaveBeenCalledWith(author, 'user')
-			expect(afterDelete).not.toHaveBeenCalled()
-			expect(store.has(author.id)).toBe(true) // Should still exist
-		})
+	it('[IC2] markAsPossiblyCorrupted sets a readable flag', () => {
+		const store = new Store({ props: {}, schema: schema() })
+		expect(store.isPossiblyCorrupted()).toBe(false)
+		store.markAsPossiblyCorrupted()
+		expect(store.isPossiblyCorrupted()).toBe(true)
+		store.dispose()
 	})
 })

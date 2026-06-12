@@ -884,11 +884,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		const prevSideEffectsEnabled = this.sideEffects.isEnabled()
 		try {
 			this.sideEffects.setIsEnabled(false)
+			// runCallbacks must be false here: `atomic` would otherwise switch side
+			// effects back on for the duration of the operation.
 			this.atomic(() => {
 				this.clear()
 				this.put(Object.values(migrationResult.value))
 				this.ensureStoreIsUsable()
-			})
+			}, false)
 		} finally {
 			this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 		}

@@ -5,6 +5,10 @@ import { createRecordType } from './RecordType'
 import { Store } from './Store'
 import { StoreSchema } from './StoreSchema'
 
+// Tests for SPEC.md §14 (query execution). Rule IDs like [QE1] in describe names refer to
+// that document. The "reactive nested queries" section also exercises §12's nested-path
+// indexes ([QI5]) through the reactive ids() machinery.
+
 // Test record types
 interface Author extends BaseRecord<'author', RecordId<Author>> {
 	name: string
@@ -299,8 +303,8 @@ beforeEach(() => {
 	store.put([...Object.values(authors), ...Object.values(books), ...Object.values(reviews)])
 })
 
-describe('objectMatchesQuery', () => {
-	describe('equality matching (eq)', () => {
+describe('objectMatchesQuery (QE)', () => {
+	describe('[QE1] equality matching (eq)', () => {
 		it('should match when property equals the target value', () => {
 			const book = books.foundation
 			const query = { inStock: { eq: true } }
@@ -316,7 +320,7 @@ describe('objectMatchesQuery', () => {
 		})
 	})
 
-	describe('inequality matching (neq)', () => {
+	describe('[QE1] inequality matching (neq)', () => {
 		it('should match when property does not equal the target value', () => {
 			const book = books.foundation // category: 'sci-fi'
 			const query = { category: { neq: 'romance' } }
@@ -332,7 +336,7 @@ describe('objectMatchesQuery', () => {
 		})
 	})
 
-	describe('greater than matching (gt)', () => {
+	describe('[QE1] greater than matching (gt)', () => {
 		it('should match when numeric property is greater than target', () => {
 			const book = books.neuromancer // publishedYear: 1984
 			const query = { publishedYear: { gt: 1980 } }
@@ -355,7 +359,7 @@ describe('objectMatchesQuery', () => {
 		})
 	})
 
-	describe('multiple criteria matching', () => {
+	describe('[QE2] multiple criteria matching', () => {
 		it('should match when all criteria are satisfied', () => {
 			const book = books.foundation // inStock: true, publishedYear: 1951, category: 'sci-fi'
 			const query = {
@@ -379,7 +383,7 @@ describe('objectMatchesQuery', () => {
 		})
 	})
 
-	describe('nested object matching', () => {
+	describe('[QE3] nested object matching', () => {
 		it('should match when nested property satisfies criteria', () => {
 			const query = { metadata: { sessionId: { eq: 'session:alpha' } } }
 
@@ -410,7 +414,7 @@ describe('objectMatchesQuery', () => {
 		})
 	})
 
-	describe('edge cases', () => {
+	describe('[QE3] [QE4] edge cases', () => {
 		it('should return true for empty query', () => {
 			const book = books.foundation
 			const query = {}
@@ -433,8 +437,8 @@ describe('objectMatchesQuery', () => {
 	})
 })
 
-describe('executeQuery', () => {
-	describe('equality queries (eq)', () => {
+describe('executeQuery (QE)', () => {
+	describe('[QE1] [QE5] equality queries (eq)', () => {
 		it('should find records with matching string values', () => {
 			const query = { category: { eq: 'sci-fi' } }
 			const result = executeQuery(store.query, 'book', query)
@@ -466,7 +470,7 @@ describe('executeQuery', () => {
 		})
 	})
 
-	describe('inequality queries (neq)', () => {
+	describe('[QE1] [QE5] inequality queries (neq)', () => {
 		it('should find records that do not match string values', () => {
 			const query = { category: { neq: 'sci-fi' } }
 			const result = executeQuery(store.query, 'book', query)
@@ -481,7 +485,7 @@ describe('executeQuery', () => {
 		})
 	})
 
-	describe('greater than queries (gt)', () => {
+	describe('[QE1] [QE5] greater than queries (gt)', () => {
 		it('should find records with values greater than threshold', () => {
 			const query = { publishedYear: { gt: 1970 } }
 			const result = executeQuery(store.query, 'book', query)
@@ -499,7 +503,7 @@ describe('executeQuery', () => {
 		})
 	})
 
-	describe('combined queries', () => {
+	describe('[QE2] combined queries', () => {
 		it('should handle mixed query types', () => {
 			const query = {
 				inStock: { eq: true },
@@ -519,7 +523,7 @@ describe('executeQuery', () => {
 		})
 	})
 
-	describe('nested object queries', () => {
+	describe('[QE3] [QE5] nested object queries', () => {
 		it('should filter records using nested properties', () => {
 			const query = { metadata: { sessionId: { eq: 'session:alpha' } } }
 			const result = executeQuery(store.query, 'book', query)
@@ -558,7 +562,7 @@ describe('executeQuery', () => {
 		})
 	})
 
-	describe('edge cases', () => {
+	describe('[QE4] edge cases', () => {
 		it('should handle empty query', () => {
 			const query = {}
 			const result = executeQuery(store.query, 'book', query)
@@ -586,7 +590,7 @@ describe('executeQuery', () => {
 		})
 	})
 
-	describe('store integration', () => {
+	describe('[QE5] store integration', () => {
 		it('should update results when store changes', () => {
 			const query = { category: { eq: 'mystery' } }
 
@@ -612,8 +616,8 @@ describe('executeQuery', () => {
 	})
 })
 
-describe('reactive nested queries', () => {
-	describe('adding records', () => {
+describe('reactive nested queries (QE3, QI5, QQ)', () => {
+	describe('[QQ1] adding records', () => {
 		it('should include newly added record that matches nested query', () => {
 			const query = { metadata: { sessionId: { eq: 'session:delta' } } }
 			const idsQuery = store.query.ids('book', () => query)
@@ -709,7 +713,7 @@ describe('reactive nested queries', () => {
 		})
 	})
 
-	describe('removing records', () => {
+	describe('[QQ1] [QQ3] removing records', () => {
 		it('should remove record from results when it is deleted', () => {
 			const query = { metadata: { sessionId: { eq: 'session:alpha' } } }
 			const idsQuery = store.query.ids('book', () => query)
@@ -755,7 +759,7 @@ describe('reactive nested queries', () => {
 		})
 	})
 
-	describe('updating records', () => {
+	describe('[QQ1] [QQ3] updating records', () => {
 		it('should add record to results when nested property is updated to match', () => {
 			const query = { metadata: { sessionId: { eq: 'session:omega' } } }
 			const idsQuery = store.query.ids('book', () => query)
@@ -858,7 +862,7 @@ describe('reactive nested queries', () => {
 		})
 	})
 
-	describe('combined nested and top-level queries', () => {
+	describe('[QE2] [QE3] combined nested and top-level queries', () => {
 		it('should correctly update when top-level property changes', () => {
 			const query = {
 				inStock: { eq: true },
@@ -982,7 +986,7 @@ describe('reactive nested queries', () => {
 		})
 	})
 
-	describe('query operators with nested properties', () => {
+	describe('[QE1] [QI5] query operators with nested properties', () => {
 		it('should handle gt operator on nested properties', () => {
 			// Add some books with different copy counts
 			const bookLowCopies = Book.create({
@@ -1199,7 +1203,7 @@ describe('reactive nested queries', () => {
 		})
 	})
 
-	describe('multiple subscribers', () => {
+	describe('[QQ1] multiple subscribers', () => {
 		it('should update all subscribers when records change', () => {
 			const query = { metadata: { sessionId: { eq: 'session:theta' } } }
 			const idsQuery1 = store.query.ids('book', () => query)
@@ -1270,7 +1274,7 @@ describe('reactive nested queries', () => {
 		})
 	})
 
-	describe('batch operations', () => {
+	describe('[QQ1] batch operations', () => {
 		it('should handle batch updates affecting nested queries', () => {
 			const query = { metadata: { extras: { region: { eq: 'canada' } } } }
 			const idsQuery = store.query.ids('book', () => query)
