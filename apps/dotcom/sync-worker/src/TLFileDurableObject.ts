@@ -1087,22 +1087,19 @@ export class TLFileDurableObject extends DurableObject {
 		return assertExists(this.env.USER_CONTENT_URL, 'USER_CONTENT_URL is required')
 	}
 
-	private _associateFileAssetsPromise: Promise<void> | null = null
+	private readonly associateAssetsQueue = new ExecutionQueue()
 
 	// We use this to make sure that all of the assets in a tldraw app file are associated with that file.
 	// This is needed for a few cases like duplicating a file, copy pasting images between files, slurping legacy files.
 	// Also migrates old-format asset URLs to tldrawusercontent.com.
 	// Only one pass runs at a time: copying many assets can take longer than the persist interval,
-	// and overlapping passes would re-copy the same assets. Anything that shows up while a pass is
-	// running gets picked up by the next persist tick.
+	// and each pass rescans the whole store, so overlapping passes would re-copy the same assets.
+	// Calls made while a pass is running are dropped; the next persist tick picks up anything
+	// that arrived in the meantime.
 	async maybeAssociateFileAssets() {
 		if (!this.documentInfo.isApp) return
-		if (!this._associateFileAssetsPromise) {
-			this._associateFileAssetsPromise = this.associateFileAssets().finally(() => {
-				this._associateFileAssetsPromise = null
-			})
-		}
-		return this._associateFileAssetsPromise
+		if (!this.associateAssetsQueue.isEmpty()) return
+		await this.associateAssetsQueue.push(() => this.associateFileAssets())
 	}
 
 	private async associateFileAssets() {
