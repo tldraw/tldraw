@@ -268,6 +268,7 @@ describe('listeners (H)', () => {
 
 	it('[H6] accumulated history is discarded while no listeners are attached', () => {
 		store.put([tolkein()])
+		// H6 has no public observation point, so this reaches into private state
 		expect((store as any).historyAccumulator._history).toHaveLength(0)
 	})
 })
