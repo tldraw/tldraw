@@ -135,7 +135,7 @@ export class RecordType<
 	): R {
 		const result = {
 			...this.createDefaultProperties(),
-			id: 'id' in properties ? properties.id : this.createId(),
+			id: (properties as Partial<R>).id ?? this.createId(),
 		} as any
 
 		for (const [k, v] of Object.entries(properties)) {
