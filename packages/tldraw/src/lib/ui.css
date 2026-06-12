@@ -189,6 +189,12 @@
 	min-height: 40px;
 	width: 100%;
 	gap: 8px;
+}
+
+/* Stack menu buttons so their 4px paddings overlap. Uses the general sibling
+   combinator rather than :nth-child because Base UI inserts hidden focus-guard
+   spans as siblings of an open popup's trigger. */
+.tlui-button__menu ~ .tlui-button__menu {
 	margin-top: -4px;
 }
 
@@ -199,14 +205,6 @@
 
 .tlui-button__menu > .tlui-icon + .tlui-button__label {
 	margin-inline-start: 0px;
-}
-
-.tlui-button__menu:nth-child(1) {
-	margin-top: 0px;
-}
-
-.tlui-button__menu:nth-last-child(1) {
-	margin-bottom: 0px;
 }
 
 /* Menu checkbox button */
@@ -328,7 +326,7 @@
 	text-align: center;
 }
 
-.tlui-zoom-menu__button[data-state='open']::after {
+.tlui-zoom-menu__button[data-popup-open]::after {
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	opacity: 1;
 }
@@ -795,7 +793,7 @@
 	width: auto;
 }
 
-.tlui-page-menu__trigger[data-state='open']::after {
+.tlui-page-menu__trigger[data-popup-open]::after {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	opacity: 1;
 }
