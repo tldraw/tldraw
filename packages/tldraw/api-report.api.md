@@ -64,7 +64,6 @@ import { Result } from '@tldraw/editor';
 import { RichTextFontVisitorState } from '@tldraw/editor';
 import { RotateCorner } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
-import { ShapeIndicatorOverlayUtil } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
@@ -853,7 +852,7 @@ export interface CustomDebugFlags {
 }
 
 // @public (undocumented)
-export interface CustomEmbedDefinition extends EmbedDefinition {
+export interface CustomEmbedDefinition<Config = never> extends EmbedDefinition<Config> {
     // (undocumented)
     readonly icon: string;
 }
@@ -930,7 +929,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
         readonly 'allow-presentation': true;
     };
     readonly title: "Google Maps";
-    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly toEmbedUrl: (url: string, config?: GoogleMapsEmbedConfig | undefined) => string | undefined;
     readonly type: "google_maps";
     readonly width: 720;
 }, {
@@ -1145,6 +1144,12 @@ export const DefaultDialogs: NamedExoticComponent<object>;
 
 // @public (undocumented)
 export let defaultEditorAssetUrls: TLEditorAssetUrls;
+
+// @public
+export interface DefaultEmbedConfig {
+    // (undocumented)
+    readonly google_maps?: GoogleMapsEmbedConfig;
+}
 
 // @public (undocumented)
 export type DefaultEmbedDefinitionType = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'];
@@ -1374,7 +1379,7 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
-export const defaultOverlayUtils: readonly [typeof CollaboratorShapeIndicatorOverlayUtil, typeof ShapeIndicatorOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof BrushOverlayUtil, typeof ZoomBrushOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof ArrowBindingHintOverlayUtil, typeof CollaboratorCursorOverlayUtil];
+export const defaultOverlayUtils: readonly [typeof ArrowBindingHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof BrushOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorCursorOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorShapeIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof ShapeIndicatorOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ZoomBrushOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -1751,7 +1756,7 @@ export interface ElbowArrowTargetBox extends ElbowArrowBox {
 export function EllipseToolbarItem(): JSX.Element;
 
 // @public (undocumented)
-export interface EmbedDefinition {
+export interface EmbedDefinition<Config = never> {
     // (undocumented)
     readonly backgroundColor?: string;
     // (undocumented)
@@ -1781,7 +1786,7 @@ export interface EmbedDefinition {
     // (undocumented)
     readonly title: string;
     // (undocumented)
-    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly toEmbedUrl: (url: string, config?: Config) => string | undefined;
     // (undocumented)
     readonly type: string;
     // (undocumented)
@@ -1790,6 +1795,7 @@ export interface EmbedDefinition {
 
 // @public (undocumented)
 export interface EmbedShapeOptions extends ShapeOptionsWithDisplayValues<TLEmbedShape, EmbedShapeUtilDisplayValues> {
+    readonly embedConfig?: DefaultEmbedConfig & Record<string, unknown>;
     readonly embedDefinitions: readonly TLEmbedDefinition[];
 }
 
@@ -1852,7 +1858,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
     // @deprecated (undocumented)
-    static setEmbedDefinitions(embedDefinitions: readonly EmbedDefinition[]): void;
+    static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
 }
@@ -2350,7 +2356,7 @@ export function getDisplayValues<Shape extends TLShape, DisplayValues extends ob
 }, shape: Shape, colorMode?: 'dark' | 'light'): DisplayValues;
 
 // @public
-export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
+export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string, embedConfig?: Record<string, unknown>): TLEmbedResult;
 
 // @public (undocumented)
 export function getFontFamily(theme: TLTheme, font: string): string;
@@ -2391,6 +2397,12 @@ export function getUncroppedSize(shapeSize: {
     w: number;
 };
 
+// @public
+export interface GoogleMapsEmbedConfig {
+    // (undocumented)
+    readonly apiKey?: string;
+}
+
 // @public (undocumented)
 export function GroupMenuItem(): JSX.Element | null;
 
@@ -2412,10 +2424,6 @@ export class HandTool extends StateNode {
     static isLockable: boolean;
     // (undocumented)
     onDoubleClick(info: TLClickEventInfo): void;
-    // (undocumented)
-    onQuadrupleClick(info: TLClickEventInfo): void;
-    // (undocumented)
-    onTripleClick(info: TLClickEventInfo): void;
 }
 
 // @public (undocumented)
@@ -3455,6 +3463,24 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
     static type: string;
 }
 
+// @public
+export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverlay> {
+    // (undocumented)
+    getOverlays(): TLShapeIndicatorOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        hintedLineWidth: number;
+        lineWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLShapeIndicatorOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
 // @public (undocumented)
 export interface ShapeOptionsWithDisplayValues<Shape extends TLShape, DisplayValues extends object> {
     // (undocumented)
@@ -4416,7 +4442,7 @@ export interface TLElbowArrowInfo {
 }
 
 // @public (undocumented)
-export type TLEmbedDefinition = CustomEmbedDefinition | EmbedDefinition;
+export type TLEmbedDefinition = CustomEmbedDefinition<any> | EmbedDefinition<any>;
 
 // @public (undocumented)
 export type TLEmbedResult = {
@@ -4461,6 +4487,15 @@ export interface TLShapeHandleOverlay extends TLOverlay {
     props: {
         handle: TLHandle;
         shapeId: TLShapeId;
+    };
+}
+
+// @public (undocumented)
+export interface TLShapeIndicatorOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        hintingShapeIds: TLShapeId_2[];
+        idsToDisplay: TLShapeId_2[];
     };
 }
 
@@ -4952,6 +4987,8 @@ export interface TLUiEventMap {
     'copy-as': {
         format: 'json' | 'png' | 'svg';
     };
+    // (undocumented)
+    'copy-hovered-styles': null;
     // (undocumented)
     'copy-link': null;
     // (undocumented)

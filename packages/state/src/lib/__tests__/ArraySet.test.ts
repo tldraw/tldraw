@@ -1,5 +1,8 @@
 import { ARRAY_SIZE_THRESHOLD, ArraySet } from '../ArraySet'
 
+// Tests for SPEC.md §16 (ArraySet, internal).
+// Rule IDs like [AS1] in test names refer to that document.
+
 const get = <T>(set: ArraySet<T>) => {
 	const s = new Set<T>()
 
@@ -8,6 +11,86 @@ const get = <T>(set: ArraySet<T>) => {
 }
 
 describe(ArraySet, () => {
+	it('[AS1] add and remove report whether they changed the set', () => {
+		const as = new ArraySet<number>()
+
+		expect(as.add(1)).toBe(true)
+		expect(as.add(1)).toBe(false)
+		expect(as.remove(1)).toBe(true)
+		expect(as.remove(1)).toBe(false)
+
+		// the same holds in set mode
+		for (let i = 0; i < ARRAY_SIZE_THRESHOLD + 1; i++) {
+			as.add(i)
+		}
+		expect(as.add(0)).toBe(false)
+		expect(as.remove(0)).toBe(true)
+		expect(as.remove(0)).toBe(false)
+	})
+
+	it('[AS2] has, size, isEmpty, visit, and iteration agree', () => {
+		const as = new ArraySet<number>()
+
+		expect(as.isEmpty).toBe(true)
+		expect(as.size()).toBe(0)
+		expect([...as]).toEqual([])
+
+		as.add(1)
+		as.add(2)
+		as.add(3)
+
+		expect(as.isEmpty).toBe(false)
+		expect(as.size()).toBe(3)
+		expect(as.has(2)).toBe(true)
+		expect(as.has(4)).toBe(false)
+		expect(new Set([...as])).toEqual(new Set([1, 2, 3]))
+		expect(get(as)).toEqual(new Set([1, 2, 3]))
+
+		as.clear()
+
+		expect(as.isEmpty).toBe(true)
+		expect(as.size()).toBe(0)
+		expect(as.has(1)).toBe(false)
+		expect([...as]).toEqual([])
+	})
+
+	it('[AS3] behaves identically across the array-to-set promotion boundary', () => {
+		const as = new ArraySet<number>()
+		const expected = new Set<number>()
+
+		// fill exactly to the threshold (array mode)
+		for (let i = 0; i < ARRAY_SIZE_THRESHOLD; i++) {
+			expect(as.add(i)).toBe(true)
+			expected.add(i)
+		}
+		expect(as.size()).toBe(ARRAY_SIZE_THRESHOLD)
+		expect(get(as)).toEqual(expected)
+
+		// one more promotes to set mode
+		expect(as.add(ARRAY_SIZE_THRESHOLD)).toBe(true)
+		expected.add(ARRAY_SIZE_THRESHOLD)
+
+		expect(as.size()).toBe(ARRAY_SIZE_THRESHOLD + 1)
+		expect(get(as)).toEqual(expected)
+		expect(new Set([...as])).toEqual(expected)
+
+		for (const value of expected) {
+			expect(as.has(value)).toBe(true)
+		}
+
+		// removal works the same after promotion
+		for (const value of expected) {
+			expect(as.remove(value)).toBe(true)
+		}
+		expect(as.isEmpty).toBe(true)
+
+		// clearing in set mode keeps working
+		as.add(1)
+		as.clear()
+		expect(as.isEmpty).toBe(true)
+		expect(as.add(1)).toBe(true)
+	})
+
 	it('works with small numbers of things', () => {
 		const as = new ArraySet<number>()
 

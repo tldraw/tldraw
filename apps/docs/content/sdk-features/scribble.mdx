@@ -100,7 +100,7 @@ const { x, y } = this.editor.inputs.getCurrentPagePoint()
 this.editor.scribbles.addPoint(scribble.id, x, y)
 ```
 
-Pass an optional third parameter `z` (defaults to `0.5`) to control point pressure for variable-width strokes.
+Pass an optional `z` value after the coordinates (defaults to `0.5`) to control point pressure for variable-width strokes.
 
 **Stopping a scribble**: When the tool operation completes, stop the scribble to begin fade-out:
 
@@ -115,7 +115,7 @@ The scribble transitions to stopping state and removes itself once all points cl
 For more complex scenarios, use sessions to group multiple scribbles together and control their behavior. The laser pointer uses sessions to create a trailing effect where all scribbles fade together:
 
 ```typescript
-import { StateNode, TLStateNodeConstructor } from '@tldraw/editor'
+import { StateNode } from '@tldraw/editor'
 
 export class LaserTool extends StateNode {
 	static override id = 'laser'

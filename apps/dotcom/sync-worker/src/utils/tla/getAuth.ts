@@ -1,7 +1,9 @@
 import { ClerkClient, createClerkClient } from '@clerk/backend'
+import { can } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { getRole } from './getRole'
 
 export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
 	const auth = await getAuth(request, env)
@@ -94,16 +96,10 @@ export async function requireWriteAccessToFile(
 			return
 		}
 
-		// If the file is owned by a group, check if user is a member
+		// If the file is owned by a group, check the user can access its files
 		if (file.owningGroupId) {
-			const groupMember = await db
-				.selectFrom('group_user')
-				.select('role')
-				.where('groupId', '=', file.owningGroupId)
-				.where('userId', '=', auth.userId)
-				.executeTakeFirst()
-
-			if (groupMember) {
+			const role = await getRole(db, auth.userId, file.owningGroupId)
+			if (can(role, 'accessFiles')) {
 				return
 			}
 		}

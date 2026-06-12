@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/state",
 	"description": "tldraw infinite canvas SDK (state).",
-	"version": "5.0.1",
+	"version": "5.1.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -45,7 +45,7 @@
 	"devDependencies": {
 		"@types/lodash": "^4.17.14",
 		"lodash": "^4.17.21",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"

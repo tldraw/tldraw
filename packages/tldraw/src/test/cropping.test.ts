@@ -8,6 +8,7 @@ vi.useFakeTimers()
 let editor: TestEditor
 
 afterEach(() => {
+	vi.restoreAllMocks()
 	editor?.dispose()
 })
 
@@ -85,6 +86,8 @@ beforeEach(() => {
 
 describe('When in the select.idle state', () => {
 	it('double clicking an image should transition to select.crop', () => {
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
 		editor.select(ids.boxA)
 
 		editor.expectToBeIn('select.idle')
@@ -130,6 +133,10 @@ describe('When in the select.idle state', () => {
 		expect(editor.getOnlySelectedShape()!.props).toMatchObject({
 			crop: { topLeft: { x: 0.1, y: 0.1 }, bottomRight: { x: 0.9, y: 0.9 } },
 		})
+		expect(consoleErrorSpy).not.toHaveBeenCalledWith(
+			'Could not find mark to squash to: ',
+			expect.any(String)
+		)
 	})
 
 	it('when ONLY ONE image is selected double clicking a selection handle should transition to select.crop', () => {

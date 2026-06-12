@@ -72,7 +72,7 @@ Configure how the editor interprets user input timing:
 | Option                  | Default | Description                                       |
 | ----------------------- | ------- | ------------------------------------------------- |
 | `doubleClickDurationMs` | 450     | Maximum interval for double-click detection       |
-| `multiClickDurationMs`  | 200     | Maximum interval for triple/quadruple click       |
+| `multiClickDurationMs`  | 200     | Double-click settle delay and overflow window     |
 | `longPressDurationMs`   | 500     | Duration to trigger long press                    |
 | `animationMediumMs`     | 320     | Duration for camera animations (zoom, pan to fit) |
 
@@ -111,7 +111,7 @@ Configure auto-scroll behavior when dragging near viewport edges:
 | `edgeScrollSpeed`        | 25      | Base scroll speed in pixels per tick     |
 | `edgeScrollDistance`     | 8       | Width of the edge scroll trigger zone    |
 
-See [Edge scrolling](./edge-scrolling.mdx) for details on how these options affect behavior.
+See [Edge scrolling](/sdk-features/edge-scrolling) for details on how these options affect behavior.
 
 ### Camera
 
@@ -201,7 +201,6 @@ When `debouncedZoom` is enabled and the page has more shapes than `debouncedZoom
 | `laserDelayMs`                   | 1200      | Duration laser pointer remains visible         |
 | `laserFadeoutMs`                 | 500       | Duration for laser pointer fadeout animation   |
 | `quickZoomPreservesScreenBounds` | true      | Whether quick zoom brush keeps viewport scale  |
-| `allowVideoAutoplay`             | true      | Whether video shapes are allowed to autoplay   |
 | `branding`                       | undefined | App name for accessibility labels              |
 | `nonce`                          | undefined | CSP nonce for inline styles                    |
 

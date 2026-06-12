@@ -4,7 +4,7 @@ sidebarTitle: Multiplayer
 status: published
 author: tldraw
 date: 9/16/2024
-order: 6
+order: 7
 description: The Multiplayer Starter Kit demonstrates how to build self-hosted tldraw applications with real-time multiplayer collaboration using Cloudflare Durable Objects. It features production-ready backend infrastructure that handles WebSocket connections, automatic persistence, and asset management. You can use this foundation to create collaborative whiteboards, design tools, or any multi-user canvas application.
 embed: multiplayer
 githubLink: https://github.com/tldraw/tldraw/tree/main/templates/sync-cloudflare
@@ -181,7 +181,7 @@ bucket_name = "my-app-production-bucket"
 name = "TLDRAW_DURABLE_OBJECT"
 class_name = "TldrawDurableObject"
 
-[env.production.routes]
+[[env.production.routes]]
 pattern = "myapp.com/api/*"
 zone_name = "myapp.com"
 ```
@@ -244,8 +244,8 @@ export class TldrawDurableObject extends DurableObject {
 
 ## Further reading
 
-- [**Sync Documentation**](/docs/sync): Learn how to integrate tldraw sync into existing applications and customize the synchronization behavior.
-- **[Editor State Management](/docs/editor)**: Learn how to work with tldraw's reactive state system, editor lifecycle, and event handling for complex canvas applications.
+- **[Sync documentation](/docs/sync)**: Learn how to integrate tldraw sync into existing applications and customize the synchronization behavior.
+- **[Editor state management](/docs/editor)**: Learn how to work with tldraw's reactive state system, editor lifecycle, and event handling for complex canvas applications.
 
 ---
 

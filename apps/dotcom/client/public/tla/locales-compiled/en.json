@@ -21,6 +21,12 @@
       "value": "GetHelpLink"
     }
   ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
+    }
+  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -63,22 +69,28 @@
       "value": "File menu"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Something went wrong loading this invite. Please try again."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Send feedback"
     }
   ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Remove"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
       "value": "Publish"
-    }
-  ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Leave group"
     }
   ],
   "12a6766ba1": [
@@ -99,22 +111,22 @@
       "value": "Export as"
     }
   ],
-  "146ffe2fd9": [
+  "1764571547": [
     {
       "type": 0,
-      "value": "Show more"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Delete group"
+      "value": "Are you sure you want to delete this workspace? This action cannot be undone."
     }
   ],
   "181b90f889": [
     {
       "type": 0,
       "value": "Create file"
+    }
+  ],
+  "1d2591253e": [
+    {
+      "type": 0,
+      "value": "Workspace settings"
     }
   ],
   "1da2e8106b": [
@@ -129,10 +141,10 @@
       "value": "Today"
     }
   ],
-  "2445e5e347": [
+  "21f66c9c00": [
     {
       "type": 0,
-      "value": "Create group"
+      "value": "Workspace name"
     }
   ],
   "250ddea65c": [
@@ -171,12 +183,6 @@
       "value": "i18n: Highlight Missing"
     }
   ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Add link"
-    }
-  ],
   "324a0f3182": [
     {
       "type": 0,
@@ -193,6 +199,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Remove member"
     }
   ],
   "3bc7d6ea2f": [
@@ -237,6 +249,12 @@
       "value": "Contact the owner to request access."
     }
   ],
+  "44680c1fa7": [
+    {
+      "type": 0,
+      "value": "Leave workspace…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -267,12 +285,6 @@
       "value": "Pin file"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Paste tldraw file URL..."
-    }
-  ],
   "4908687e50": [
     {
       "type": 0,
@@ -283,6 +295,12 @@
     {
       "type": 0,
       "value": "Name"
+    }
+  ],
+  "4c84b0cfaa": [
+    {
+      "type": 0,
+      "value": "Create a workspace +"
     }
   ],
   "4d0d3ddec9": [
@@ -297,22 +315,10 @@
       "value": "Reload"
     }
   ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Delete group…"
-    }
-  ],
   "4dab36ac83": [
     {
       "type": 0,
       "value": "More options"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Are you sure you want to delete this group? This action cannot be undone."
     }
   ],
   "5097d89907": [
@@ -379,40 +385,6 @@
       "value": "Privacy policy"
     }
   ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Drag files here, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "create a file"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": ", or "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "copy invite link"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " to get started."
-    }
-  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -441,12 +413,6 @@
     {
       "type": 0,
       "value": "We failed to upload some of the content you created before you signed in."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "You have been invited to join group:"
     }
   ],
   "5f3c333678": [
@@ -503,6 +469,12 @@
       "value": "Enter your email address"
     }
   ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Delete workspace"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
@@ -519,12 +491,6 @@
     {
       "type": 0,
       "value": "Follow these steps to import the content manually:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Group settings"
     }
   ],
   "70a6facb9d": [
@@ -641,12 +607,6 @@
       "value": "Forget"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Leave group…"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -699,6 +659,12 @@
       "value": "."
     }
   ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Member"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -723,6 +689,18 @@
     {
       "type": 0,
       "value": "Rename file"
+    }
+  ],
+  "87fdb09de6": [
+    {
+      "type": 0,
+      "value": "You are already a member of this workspace"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "This invite link has expired"
     }
   ],
   "8ad4303b83": [
@@ -767,22 +745,16 @@
       "value": "Copy to my files"
     }
   ],
-  "930390d222": [
-    {
-      "type": 0,
-      "value": "Copied invite link"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "You are already a member of this group"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Sign in with Google"
+    }
+  ],
+  "95b56f4cd6": [
+    {
+      "type": 0,
+      "value": "Delete workspace…"
     }
   ],
   "95d2109dc8": [
@@ -801,12 +773,6 @@
     {
       "type": 0,
       "value": "Terms of Use"
-    }
-  ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Add file link"
     }
   ],
   "9914a0ce04": [
@@ -931,6 +897,12 @@
       "value": "Background"
     }
   ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Create workspace"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -967,12 +939,6 @@
       "value": "Email address"
     }
   ],
-  "b3d2db69fe": [
-    {
-      "type": 0,
-      "value": "File URL"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -995,12 +961,6 @@
     {
       "type": 0,
       "value": "Sign in to share"
-    }
-  ],
-  "bb93a7590f": [
-    {
-      "type": 0,
-      "value": "Accept and join group"
     }
   ],
   "bbbcefd7ce": [
@@ -1093,12 +1053,6 @@
       "value": "Essential cookies"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Group name"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1109,12 +1063,6 @@
     {
       "type": 0,
       "value": "Invite"
-    }
-  ],
-  "c74ea6dbff": [
-    {
-      "type": 0,
-      "value": "Show less"
     }
   ],
   "c87aacf567": [
@@ -1235,28 +1183,28 @@
       "value": "Go here to see the content"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "You have reached the maximum number of groups. You need to delete old groups before creating new ones."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Invite only"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "Invalid tldraw file URL"
+      "value": "Leave workspace"
     }
   ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "App debug flags"
+    }
+  ],
+  "e0aa021e21": [
+    {
+      "type": 0,
+      "value": "OK"
     }
   ],
   "e0c88179b3": [
@@ -1277,22 +1225,28 @@
       "value": "Legal summary"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Admin"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Terms of service"
     }
   ],
+  "e615d52512": [
+    {
+      "type": 0,
+      "value": "Accept and join workspace"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "or"
+    }
+  ],
+  "e9e0f16850": [
+    {
+      "type": 0,
+      "value": "You have been invited to join workspace:"
     }
   ],
   "ea0626ac5a": [
@@ -1305,6 +1259,12 @@
     {
       "type": 0,
       "value": "Cancel"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Ask the workspace owner for a new one."
     }
   ],
   "ebfe9ce86e": [
@@ -1399,12 +1359,6 @@
       "value": "Settings"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Are you sure you want to leave this group?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1415,6 +1369,12 @@
     {
       "type": 0,
       "value": "Viewer"
+    }
+  ],
+  "fc9d47046b": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to leave this workspace?"
     }
   ],
   "fd1be3efcf": [
@@ -1429,10 +1389,18 @@
       "value": "Copied link"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Add file link…"
+      "value": "Are you sure you want to remove "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " from this workspace?"
     }
   ],
   "ffcd73e997": [
