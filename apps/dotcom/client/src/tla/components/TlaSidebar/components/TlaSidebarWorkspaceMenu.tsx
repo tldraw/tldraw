@@ -75,6 +75,10 @@ export function WorkspaceMenuContent({ workspaceId }: { workspaceId: string }) {
 			component: ({ onClose }) => (
 				<WorkspaceSettingsDialog workspaceId={workspaceId} onClose={onClose} />
 			),
+			// The role picker is a Radix select; opening it inside the modal trips the
+			// dialog's outside-interaction dismissal. Closing happens via the close
+			// button or Escape instead.
+			preventBackgroundClose: true,
 		})
 		trackEvent('open-share-menu', { source: 'sidebar' })
 	}, [addDialog, workspaceId, trackEvent])

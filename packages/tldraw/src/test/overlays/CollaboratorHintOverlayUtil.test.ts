@@ -1,4 +1,4 @@
-import { InstancePresenceRecordType } from '@tldraw/tlschema'
+import { createUserId, InstancePresenceRecordType } from '@tldraw/tlschema'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
 import { CollaboratorHintOverlayUtil } from '../../lib/overlays/CollaboratorHintOverlayUtil'
 import { TestEditor } from '../TestEditor'
@@ -22,7 +22,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer1'),
-					userId: 'peer1',
+					userId: createUserId('peer1'),
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
@@ -46,7 +46,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer1'),
-					userId: 'peer1',
+					userId: createUserId('peer1'),
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					color: '#c00',
@@ -55,7 +55,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 				}),
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer2'),
-					userId: 'peer2',
+					userId: createUserId('peer2'),
 					userName: 'Peer 2',
 					currentPageId: pageId,
 					color: '#0c0',
@@ -77,7 +77,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer1'),
-					userId: 'peer1',
+					userId: createUserId('peer1'),
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					color: '#c00',
@@ -95,13 +95,13 @@ describe('CollaboratorHintOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer1'),
-					userId: 'peer1',
+					userId: createUserId('peer1'),
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					color: '#c00',
 					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
 					lastActivityTimestamp: now - 5 * 1000,
-					followingUserId: editor.user.getId(),
+					followingUserId: editor.user.getRecordId(),
 				}),
 			])
 			const util = editor.overlays.getOverlayUtil<CollaboratorHintOverlayUtil>('collaborator_hint')

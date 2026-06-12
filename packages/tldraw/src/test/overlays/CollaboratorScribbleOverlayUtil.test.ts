@@ -1,4 +1,4 @@
-import { InstancePresenceRecordType } from '@tldraw/tlschema'
+import { createUserId, InstancePresenceRecordType } from '@tldraw/tlschema'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
 import { CollaboratorScribbleOverlayUtil } from '../../lib/overlays/CollaboratorScribbleOverlayUtil'
 import { TestEditor } from '../TestEditor'
@@ -22,7 +22,7 @@ describe('CollaboratorScribbleOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer1'),
-					userId: 'peer1',
+					userId: createUserId('peer1'),
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					scribbles: [
@@ -58,7 +58,7 @@ describe('CollaboratorScribbleOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer1'),
-					userId: 'peer1',
+					userId: createUserId('peer1'),
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					color: '#00FF00',

@@ -69,10 +69,22 @@
       "value": "File menu"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Something went wrong loading this invite. Please try again."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Send feedback"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Remove"
     }
   ],
   "110a4b01be": [
@@ -187,6 +199,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Remove member"
     }
   ],
   "3bc7d6ea2f": [
@@ -677,6 +695,12 @@
     {
       "type": 0,
       "value": "You are already a member of this workspace"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "This invite link has expired"
     }
   ],
   "8ad4303b83": [
@@ -1177,6 +1201,12 @@
       "value": "App debug flags"
     }
   ],
+  "e0aa021e21": [
+    {
+      "type": 0,
+      "value": "OK"
+    }
+  ],
   "e0c88179b3": [
     {
       "type": 0,
@@ -1229,6 +1259,12 @@
     {
       "type": 0,
       "value": "Cancel"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Ask the workspace owner for a new one."
     }
   ],
   "ebfe9ce86e": [
@@ -1351,6 +1387,20 @@
     {
       "type": 0,
       "value": "Copied link"
+    }
+  ],
+  "ff2fefd3c6": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to remove "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " from this workspace?"
     }
   ],
   "ffcd73e997": [

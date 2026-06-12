@@ -797,6 +797,62 @@ describe('membership', () => {
 		await m.leaveWorkspace(tx, { workspaceId: groupId })
 		expect(s.group_user.find((gu) => gu.userId === userId)).toBeUndefined()
 	})
+
+	it('owner can remove a member', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId })],
+			group_user: [
+				makeGroupUser({ userId, groupId, role: 'owner' }),
+				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
+			],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.removeWorkspaceMember(tx, { workspaceId: groupId, targetUserId: memberId })
+		expect(s.group_user.find((gu) => gu.userId === memberId)).toBeUndefined()
+	})
+
+	it('member cannot remove members', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId })],
+			group_user: [
+				makeGroupUser({ userId, groupId, role: 'member' }),
+				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
+			],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectForbidden(() =>
+			m.removeWorkspaceMember(tx, { workspaceId: groupId, targetUserId: memberId })
+		)
+	})
+
+	it('cannot remove the last owner', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId })],
+			group_user: [
+				makeGroupUser({ userId, groupId, role: 'owner' }),
+				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
+			],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectForbidden(() =>
+			m.removeWorkspaceMember(tx, { workspaceId: groupId, targetUserId: userId })
+		)
+	})
 })
 
 describe('file operations across workspaces', () => {

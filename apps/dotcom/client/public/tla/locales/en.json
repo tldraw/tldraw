@@ -32,8 +32,14 @@
   "0b9a4cde72": {
     "translation": "File menu"
   },
+  "0c4383617a": {
+    "translation": "Something went wrong loading this invite. Please try again."
+  },
   "0d1f2bb523": {
     "translation": "Send feedback"
+  },
+  "1063e38cb5": {
+    "translation": "Remove"
   },
   "110a4b01be": {
     "translation": "Publish"
@@ -91,6 +97,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "375396d6e5": {
+    "translation": "Remove member"
   },
   "3bc7d6ea2f": {
     "translation": "Continue with email"
@@ -314,6 +323,9 @@
   "87fdb09de6": {
     "translation": "You are already a member of this workspace"
   },
+  "88bf6ab42c": {
+    "translation": "This invite link has expired"
+  },
   "8ad4303b83": {
     "translation": "No thanks"
   },
@@ -513,6 +525,9 @@
   "dfdb78a4e4": {
     "translation": "App debug flags"
   },
+  "e0aa021e21": {
+    "translation": "OK"
+  },
   "e0c88179b3": {
     "translation": "Invite members"
   },
@@ -539,6 +554,9 @@
   },
   "ea4788705e": {
     "translation": "Cancel"
+  },
+  "eb1e2b0542": {
+    "translation": "Ask the workspace owner for a new one."
   },
   "ebfe9ce86e": {
     "translation": "Yesterday"
@@ -593,6 +611,9 @@
   },
   "fed5ec05eb": {
     "translation": "Copied link"
+  },
+  "ff2fefd3c6": {
+    "translation": "Are you sure you want to remove {name} from this workspace?"
   },
   "ffcd73e997": {
     "translation": "Import file…"

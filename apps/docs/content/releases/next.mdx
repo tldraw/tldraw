@@ -2,17 +2,31 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 06/03/2026
+date: 06/10/2026
 order: 0
 status: published
 last_version: v5.1.0
 ---
 
-This release simplifies multi-click handling down to a single double-click event — a breaking change for anyone relying on triple- or quadruple-click handlers — and fixes a number of canvas interaction bugs around pinch-zoom selection, pasting mid-gesture, note list editing, and zoom clamping.
+This release simplifies multi-click handling down to a single double-click event — a breaking change for anyone relying on triple- or quadruple-click handlers — and adds per-embed configuration for API keys, a `shift+q` shortcut for copying styles between shapes, and full-speed sync across your own tabs and devices. It also fixes a number of canvas interaction bugs around pinch-zoom selection, pasting mid-gesture, note list editing, and zoom clamping.
 
 ## API changes
 
 - 💥 Simplify multi-click handling to double-click only. `ClickManager` no longer tracks triple or quadruple clicks: the `triple_click` and `quadruple_click` events and the `onTripleClick` / `onQuadrupleClick` handlers have been removed, and `TLClickEventName` is now just `'double_click'`. ([#8897](https://github.com/tldraw/tldraw/pull/8897))
+- 💥 Move `ShapeIndicatorOverlayUtil` and `TLShapeIndicatorOverlay` from `@tldraw/editor` to `tldraw`. Both are still exported from `tldraw`; update any imports of these symbols that came directly from `@tldraw/editor`. ([#9018](https://github.com/tldraw/tldraw/pull/9018))
+- Add an `embedConfig` option to `EmbedShapeUtil` for passing per-embed configuration such as API keys. The default Google Maps embed no longer reads `process.env.NEXT_PUBLIC_GC_API_KEY` — pass the key explicitly instead. ([#9068](https://github.com/tldraw/tldraw/pull/9068))
+
+  ```ts
+  EmbedShapeUtil.configure({
+  	embedConfig: { google_maps: { apiKey: '...' } },
+  })
+  ```
+
+## Improvements
+
+- Add a `shift+q` shortcut that copies the styles of the hovered shape and applies them to the next shapes you create. ([#9028](https://github.com/tldraw/tldraw/pull/9028))
+- Keep sync at full speed when the same multiplayer room is open in multiple tabs, windows, or devices — previously a room with no other users throttled network sync to once per second. ([#8988](https://github.com/tldraw/tldraw/pull/8988))
+- Include `DOCS.md` documentation in published npm packages, and a generated docs and release notes rollup in the `tldraw` package, so documentation is available when browsing package artifacts. ([#8503](https://github.com/tldraw/tldraw/pull/8503))
 
 ## Bug fixes
 
@@ -21,4 +35,5 @@ This release simplifies multi-click handling down to a single double-click event
 - Pasting content while dragging, translating, resizing, or rotating no longer steals selection from the shape being manipulated. ([#8976](https://github.com/tldraw/tldraw/pull/8976))
 - Fix a bug where pressing `Tab` while editing a list inside a note shape created a new note instead of indenting the list item. ([#8958](https://github.com/tldraw/tldraw/pull/8958))
 - Fix the viewport shifting slightly when zooming past the minimum or maximum zoom level. ([#8957](https://github.com/tldraw/tldraw/pull/8957))
+- Improve the contrast of disabled buttons and menu items in dark mode. ([#8931](https://github.com/tldraw/tldraw/pull/8931))
 - Fix `debounce(...).cancel()` leaving an awaited call hanging forever; it now rejects the pending promise. ([#8683](https://github.com/tldraw/tldraw/pull/8683))

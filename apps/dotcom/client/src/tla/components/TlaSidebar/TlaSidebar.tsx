@@ -73,7 +73,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				{/* The workspace list is fixed; only the file list below it scrolls. */}
 				{workspacesEnabled && <TlaSidebarWorkspaceList />}
 				{workspacesEnabled && <div className={styles.sidebarDivider} />}
-				<div className={styles.sidebarContent}>
+				<div className={styles.sidebarContent} data-sidebar-scroll-container>
 					<div className={styles.sidebarContentInner}>
 						{workspacesEnabled ? <TlaSidebarRecentFilesNew /> : <TlaSidebarRecentFiles />}
 					</div>
