@@ -1023,20 +1023,6 @@
 
 /* ------------------- Drop targets ------------------- */
 
-.dropping {
-	position: relative;
-}
-
-.dropping::after {
-	content: '';
-	position: absolute;
-	inset: -2px;
-	border-radius: 6px;
-	border: 2px solid rgba(0, 122, 255, 0.7);
-	pointer-events: none;
-	visibility: visible;
-}
-
 .dropCursorLine {
 	height: 2px;
 	/* translateZ() is required to render at a consistent visual size */

@@ -2,7 +2,6 @@ import assert from 'assert'
 import { DragFileOperation, DragReorderOperation } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef } from 'react'
 import { Vec } from 'tldraw'
-import { routes } from '../../routeDefs'
 import { TldrawApp } from '../app/TldrawApp'
 import { useApp } from './useAppState'
 
@@ -12,52 +11,23 @@ function detectFileOperations(
 ): DragFileOperation {
 	const operations: DragFileOperation = {}
 
-	// Check for move operation - mouse over a different workspace
-	const hoveredWorkspaceId = findHoveredWorkspaceId(elements, mousePosition)
-	const workspace =
-		hoveredWorkspaceId === elements.myFiles.id
-			? elements.myFiles
-			: elements.workspaces.find((g) => g.id === hoveredWorkspaceId)!
-	const isPinned = elements.draggedElement.getAttribute('data-is-pinned') === 'true'
-	const containsDraggedElement = workspace?.element.contains(elements.draggedElement)
-	if (hoveredWorkspaceId && !containsDraggedElement) {
-		operations.move = { targetId: hoveredWorkspaceId }
+	// Only the active workspace's file list is a drop target. Moving files to
+	// another workspace by dragging isn't possible since the workspace
+	// switcher became a dropdown; moving happens through the file menu.
+	if (!isPointInRect(mousePosition, elements.activeWorkspace.element.getBoundingClientRect())) {
+		return operations
 	}
 
-	// Check for reorder operation
-
-	if (containsDraggedElement) {
-		const reorderOp = detectFileReorderOperation(
-			hoveredWorkspaceId === elements.myFiles.id
-				? elements.myFiles
-				: elements.workspaces.find((g) => g.id === hoveredWorkspaceId)!,
-			mousePosition
-		)
-		if (reorderOp) {
-			operations.reorder = reorderOp
-		} else if (isPinned) {
-			// unpin the file
-			operations.move = { targetId: hoveredWorkspaceId! }
-		}
+	const reorderOp = detectFileReorderOperation(elements.activeWorkspace, mousePosition)
+	const isPinned = elements.draggedElement.getAttribute('data-is-pinned') === 'true'
+	if (reorderOp) {
+		operations.reorder = reorderOp
+	} else if (isPinned) {
+		// unpin the file
+		operations.move = { targetId: elements.activeWorkspace.id }
 	}
 
 	return operations
-}
-
-function findHoveredWorkspaceId(
-	elements: DragElements,
-	mousePosition: { x: number; y: number }
-): string | null {
-	// Find group or home group target that contains the mouse
-	if (isPointInRect(mousePosition, elements.myFiles.element.getBoundingClientRect())) {
-		return elements.myFiles.id
-	}
-
-	return (
-		elements.workspaces.find((target) => {
-			return isPointInRect(mousePosition, target.element.getBoundingClientRect())
-		})?.id ?? null
-	)
 }
 
 // This adds a little bit of an offset to the indicator
@@ -131,12 +101,6 @@ async function executeFileOperations(
 			workspaceId,
 			operation,
 		})
-
-		// When moving a file to a different space, follow it there so that space
-		// becomes the active one (the active space is derived from the open file).
-		if (operation.move && operation.move.targetId !== workspaceId) {
-			app.navigate(routes.tlaFile(fileId))
-		}
 	}
 }
 
@@ -149,8 +113,7 @@ interface WorkspaceElements {
 interface DragElements {
 	draggedElement: HTMLElement
 	workspaceId: string
-	myFiles: WorkspaceElements
-	workspaces: WorkspaceElements[]
+	activeWorkspace: WorkspaceElements
 }
 
 export function useDragTracking() {
@@ -171,12 +134,15 @@ export function useDragTracking() {
 		}) => {
 			assert(!cleanupRef.current, 'Drag tracking already started')
 
-			// Query all drop target elements
-			const workspaceElements = document.querySelectorAll('[data-drop-target-id^="workspace:"]')
+			// The active workspace's file list is the only drop target
 			const homeWorkspaceId = app.getHomeWorkspaceId()
-			const myFilesElement = document.querySelector(`[data-drop-target-id="${homeWorkspaceId}"]`)
+			const activeWorkspaceElement = document.querySelector(
+				workspaceId === homeWorkspaceId
+					? `[data-drop-target-id="${homeWorkspaceId}"]`
+					: `[data-drop-target-id="workspace:${workspaceId}"]`
+			)
 
-			assert(myFilesElement, 'myFilesElement not found')
+			assert(activeWorkspaceElement, 'active workspace file list not found')
 
 			function getWorkspaceElements(id: string, element: HTMLElement) {
 				const topUnpinnedFile = element.querySelector('[data-is-pinned="false"]')
@@ -201,10 +167,7 @@ export function useDragTracking() {
 					`[data-drop-target-id="file:${fileId}"]`
 				) as HTMLElement,
 				workspaceId,
-				myFiles: getWorkspaceElements(homeWorkspaceId, myFilesElement as HTMLElement),
-				workspaces: [...workspaceElements].map((element) =>
-					getWorkspaceElements(element.getAttribute('data-workspace-id')!, element as HTMLElement)
-				),
+				activeWorkspace: getWorkspaceElements(workspaceId, activeWorkspaceElement as HTMLElement),
 			}
 			const mousePosition = { x: clientX, y: clientY }
 			const startMousePosition = { x: clientX, y: clientY }
