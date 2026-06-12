@@ -196,7 +196,7 @@ describe('schema creation (SC)', () => {
 	it('[SC4] getType returns the record type and throws for unknown names', () => {
 		const schema = StoreSchema.create({ book: Book })
 		expect(schema.getType('book')).toBe(Book)
-		expect(() => schema.getType('nonexistent')).toThrow('record type does not exists')
+		expect(() => schema.getType('nonexistent')).toThrow('record type does not exist')
 	})
 })
 
