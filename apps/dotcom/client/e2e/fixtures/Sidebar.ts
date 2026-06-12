@@ -302,6 +302,9 @@ export class Sidebar {
 	@step
 	async expectWorkspaceNotVisible(name: string) {
 		await this.openWorkspaceSwitcher()
+		// Wait for the dropdown to actually render (Home is always present)
+		// so the absence check below can't pass vacuously.
+		await expect(this.page.getByTestId('tla-workspace-switcher-home')).toBeVisible()
 		await expect(this.getWorkspaceLink(name)).not.toBeVisible()
 		await this.page.keyboard.press('Escape')
 	}

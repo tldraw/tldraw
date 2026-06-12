@@ -16,8 +16,8 @@ export function useHandleSidebarCreateFile() {
 	const app = useApp()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
-	// Create the file in whichever space is currently active (the home group when
-	// in "My files", otherwise the selected workspace).
+	// Create the file in whichever workspace is currently active (the home
+	// workspace when in Home, otherwise the selected workspace).
 	const activeWorkspaceId = useActiveWorkspaceId()
 
 	const rCanCreate = useRef(true)

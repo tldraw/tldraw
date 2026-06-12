@@ -4,8 +4,9 @@ import { expect, test } from '../fixtures/tla-test'
 // The sidebar has a workspace switcher dropdown at the top ("Home" + the
 // user's workspaces + a create item), action rows for the active non-home
 // workspace (new board, invite teammates, workspace settings), and the active
-// workspace's files below. Switching to a workspace opens its most recent
-// file (creating one if it's empty), and creating a workspace switches to it.
+// workspace's files below. Switching to a workspace opens its top file — first pinned,
+// otherwise most recent (creating one if it's empty) — and creating a
+// workspace switches to it.
 test.describe('workspaces', () => {
 	test.beforeEach(async ({ database, editor }) => {
 		await database.migrateUser()
@@ -238,7 +239,8 @@ test.describe('workspaces', () => {
 			await sidebar.createWorkspace(workspace2)
 			await sidebar.switchToWorkspace('Home')
 
-			// In My files: the current space is hidden, others offered
+			// In Home: the current workspace is hidden, others offered (the move-to
+			// menu still labels home as "My files")
 			await sidebar.openMoveToMenu(file1)
 			await expect(page.getByRole('menuitem', { name: workspace1, exact: true })).toBeVisible()
 			await expect(page.getByRole('menuitem', { name: workspace2, exact: true })).toBeVisible()
@@ -247,7 +249,7 @@ test.describe('workspaces', () => {
 
 			await sidebar.moveFileToWorkspace(file1, workspace1)
 
-			// In a workspace: My files is offered, the current workspace is hidden
+			// In a workspace: home is offered, the current workspace is hidden
 			await sidebar.switchToWorkspace(workspace1)
 			await sidebar.openMoveToMenu(file1)
 			await expect(page.getByRole('menuitem', { name: 'My files', exact: true })).toBeVisible()

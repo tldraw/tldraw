@@ -26,10 +26,10 @@ const messages = defineMessages({
 
 /**
  * The fixed top region of the sidebar: a dropdown for switching between the
- * home workspace and the user's other workspaces, followed by the actions
- * available in the active workspace. Selecting a workspace opens its most
- * recent file, which makes it active (the active workspace is derived from
- * the open file).
+ * home workspace and the user's other workspaces, followed by action rows
+ * when a non-home workspace is active. Selecting a workspace opens its top
+ * file (first pinned file, otherwise the most recent one), which makes it
+ * active (the active workspace is derived from the open file).
  */
 export function TlaSidebarWorkspaceSwitcher() {
 	const app = useApp()
@@ -179,7 +179,15 @@ function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
 	const settingsLbl = useMsg(messages.workspaceSettings)
 
 	const handleCopyInviteLink = useCallback(() => {
-		app.copyWorkspaceInvite(workspaceId)
+		// Right after creating a workspace the invite secret only exists on the
+		// server, so there may be nothing to copy for a moment.
+		if (!app.copyWorkspaceInvite(workspaceId)) {
+			app.toasts?.addToast({
+				id: 'invite-link-not-ready',
+				title: 'Invite link not ready yet',
+				description: 'Try again in a moment.',
+			})
+		}
 	}, [app, workspaceId])
 
 	const handleSettings = useCallback(() => {
@@ -289,10 +297,11 @@ function useCreateWorkspaceDialog() {
 						const id = uniqueId()
 						try {
 							await app.z.mutate.createWorkspace({ id, name }).client
-							await switchToWorkspace(id)
 						} catch (e) {
 							app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+							return
 						}
+						await switchToWorkspace(id)
 					}}
 				/>
 			),
