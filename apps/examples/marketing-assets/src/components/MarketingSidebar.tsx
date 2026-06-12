@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react'
 import { Editor, useValue } from 'tldraw'
 import { apiClarify } from '../api/marketingApi'
+import { getAssetShapes } from '../asset/assetActions'
+import { blobToDataUrl } from '../asset/assetBytes'
 import {
 	createAndGenerateBatch,
 	createVariationsFromSelection,
 	generateNextBatch,
-	getAssetShapes,
-} from '../asset/assetActions'
-import { blobToDataUrl } from '../asset/assetBytes'
+} from '../asset/batch'
 import { Brand, serializeBrand, useBrand } from '../brand/brandState'
 import { BATCH_SIZES, DEFAULT_BATCH_SIZE, getOutputType, outputTypesByPlatform } from '../constants'
 import { ExportScope, exportCampaign, exportTargets } from '../export'
