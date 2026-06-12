@@ -2,6 +2,21 @@ import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 import { objectMapKeys } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
+/**
+ * The whole-pixel line-height for a given font size and tldraw's unitless line-height
+ * multiplier. tldraw's theme stores line-height as a multiplier (e.g. 1.35); resolving it
+ * to a whole pixel keeps line spacing identical across rendering engines, which otherwise
+ * disagree on fractional line boxes (WebKit snaps them to whole pixels, Blink keeps the
+ * fraction) and let multi-line text drift apart. Apply it everywhere line-height is used —
+ * measurement, on-canvas render, and export — so geometry and rendering agree.
+ * See https://github.com/tldraw/tldraw/issues/8970.
+ *
+ * @public
+ */
+export function resolveLineHeightPx(fontSize: number, lineHeight: number): number {
+	return Math.round(fontSize * lineHeight)
+}
+
 const fixNewLines = /\r?\n|\r/g
 
 function normalizeTextForDom(text: string) {
@@ -154,7 +169,7 @@ export class TextManager {
 			'font-style': opts.fontStyle,
 			'font-weight': opts.fontWeight,
 			'font-size': opts.fontSize + 'px',
-			'line-height': opts.lineHeight.toString(),
+			'line-height': `${resolveLineHeightPx(opts.fontSize, opts.lineHeight)}px`,
 			padding: opts.padding,
 			'max-width': opts.maxWidth ? opts.maxWidth + 'px' : undefined,
 			'min-width': opts.minWidth ? opts.minWidth + 'px' : undefined,
@@ -382,7 +397,7 @@ export class TextManager {
 			'font-style': opts.fontStyle,
 			'font-weight': opts.fontWeight,
 			'font-size': opts.fontSize + 'px',
-			'line-height': opts.lineHeight.toString(),
+			'line-height': `${resolveLineHeightPx(opts.fontSize, opts.lineHeight)}px`,
 			width: `${elementWidth}px`,
 			height: 'min-content',
 			'text-align': textAlignmentsForLtr[opts.textAlign],

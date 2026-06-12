@@ -2867,6 +2867,9 @@ export function resizeScaled(shape: TLBaseShape<any, {
 };
 
 // @public
+export function resolveLineHeightPx(fontSize: number, lineHeight: number): number;
+
+// @public
 export function resolveThemes(themes?: Partial<TLThemes>): TLThemes;
 
 // @public (undocumented)
