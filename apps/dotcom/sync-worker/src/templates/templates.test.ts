@@ -34,7 +34,7 @@ describe('newWorkspaceTemplateSnapshot', () => {
 		}
 	})
 
-	it('has a single page with all shapes on it', () => {
+	it('has a single page with no dangling parents', () => {
 		const records = newWorkspaceTemplateSnapshot.documents.map((d) => d.state)
 		const documents = records.filter((r) => r.typeName === 'document')
 		const pages = records.filter((r) => r.typeName === 'page')
@@ -42,8 +42,12 @@ describe('newWorkspaceTemplateSnapshot', () => {
 		expect(documents).toHaveLength(1)
 		expect(pages).toHaveLength(1)
 		expect(shapes.length).toBeGreaterThan(0)
+		// every shape is parented to the page or to another shape in the snapshot (e.g. a group)
+		const validParentIds = new Set([pages[0].id, ...shapes.map((s) => s.id)])
 		for (const shape of shapes) {
-			expect((shape as any).parentId).toBe(pages[0].id)
+			expect(validParentIds.has((shape as any).parentId), `${shape.id} has a live parent`).toBe(
+				true
+			)
 		}
 	})
 
