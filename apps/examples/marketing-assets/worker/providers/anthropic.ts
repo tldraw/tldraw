@@ -211,7 +211,7 @@ function revisePrompt(params: PlanParams): string {
 					.map((a, i) => `${i + 1}. ${a}`)
 					.join('\n')}`
 			: 'No annotations were extracted as text — read them from the image.',
-		'Update the headline and caption, and list any background edits. Return the JSON object.',
+		'Update the headline and caption, and list any background edits. Scope each background edit narrowly to the region its annotation points at, phrased so everything else stays untouched — never involve the logo or other brand marks in an edit unless an annotation explicitly asks to change them, and when an edit touches the area near the logo, state that the logo must stay exactly as it is. Return the JSON object.',
 	]
 		.filter(Boolean)
 		.join('\n')

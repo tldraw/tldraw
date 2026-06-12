@@ -86,14 +86,18 @@ function buildPrompt(params: GenerateParams): string {
 		lines.push(
 			'The FIRST image is the current background. Edit that image, applying ONLY the change described below.',
 			instruction ?? prompt,
-			'Keep every other part of the background in exactly the same position, scale, and crop — do not move, rescale, or reflow anything the change does not mention. Preserve the existing composition and margins so the result stays cleanly aligned.'
+			'Keep every other part of the background in exactly the same position, scale, and crop — do not move, rescale, or reflow anything the change does not mention. Preserve the existing composition and margins so the result stays cleanly aligned.',
+			// Edits run as a chain of passes (one change per pass), so any detail the
+			// model redraws — a logo especially — degrades a little more on every pass.
+			// Call the logo out explicitly as untouchable unless the change names it.
+			'TREAT EXISTING DETAILS AS UNTOUCHABLE: any logo, wordmark, icon, product shot, or other distinct element already in the image must be preserved pixel-for-pixel — identical position, size, colours, and lettering. Do not redraw, restyle, blur, or remove them, even if your edit changes the area around them. Only alter such an element when the change above explicitly names it.'
 		)
 		// On an edit the brand logo and reference images are passed after the
 		// background, so the model can composite them in (e.g. "add the logo").
 		// Without this, those extra images are ignored and the request silently fails.
 		if (referenceImages.length) {
 			lines.push(
-				'Any images AFTER the first are brand assets — the logo and reference imagery — not part of the background. When the change asks to add, place, or restore the logo, composite the PROVIDED logo image into the background cleanly and undistorted, at a sensible size and position; do not redraw, restyle, or invent a logo. Leave the rest of the background unchanged.'
+				'Any images AFTER the first are brand assets — the logo and reference imagery — not part of the background. When the change asks to add, place, or restore the logo, composite the PROVIDED logo image into the background cleanly and undistorted, at a sensible size and position; do not redraw, restyle, or invent a logo. If the background already contains the logo, use the provided logo image as ground truth: if your edit would disturb it, restore it from the provided image, undistorted, in its current position and size. Leave the rest of the background unchanged.'
 			)
 		}
 	} else {
