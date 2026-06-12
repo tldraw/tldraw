@@ -395,6 +395,28 @@ describe('Store: serialization and snapshots (S)', () => {
 		const migrated = store.migrateSnapshot(snapshot)
 		expect(migrated).toEqual(snapshot) // no migrations needed
 
+		// a snapshot with an older schema is migrated and stamped with the current one
+		const store2 = new Store<LibraryType>({
+			props: {},
+			schema: StoreSchema.create<LibraryType>(
+				{ book: Book, author: Author, visit: Visit, cursor: Cursor },
+				{
+					migrations: [
+						createMigrationSequence({
+							sequenceId: 'com.tldraw',
+							retroactive: true,
+							sequence: [{ id: 'com.tldraw/1', scope: 'record', up: (r) => r }],
+						}),
+					],
+				}
+			),
+		})
+		const migrated2 = store2.migrateSnapshot(snapshot)
+		expect(snapshot.schema).toEqual({ schemaVersion: 2, sequences: {} })
+		expect(migrated2.schema).toEqual({ schemaVersion: 2, sequences: { 'com.tldraw': 1 } })
+		expect(migrated2.schema).toEqual(store2.schema.serialize())
+		store2.dispose()
+
 		expect(() =>
 			store.migrateSnapshot({ store: {}, schema: { schemaVersion: -1 } } as any)
 		).toThrow('Failed to migrate snapshot')
