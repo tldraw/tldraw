@@ -93,7 +93,7 @@ function TouchFriendlyButton() {
 
 ### Coarse pointer detection
 
-The `isCoarsePointer` value tracks whether the user is currently using touch input. We detect this two ways: by listening to the `(any-pointer: coarse)` media query, and by checking `pointerType` on each pointer event. This dual approach handles devices that support both mouse and touch—like laptops with touchscreens—where the user might switch input methods mid-session.
+The `isCoarsePointer` value tracks whether the user is currently using touch input. We detect this two ways: by listening to the `(any-pointer: coarse)` media query, and by checking `pointerType` on each pointer down event. This dual approach handles devices that support both mouse and touch—like laptops with touchscreens—where the user might switch input methods mid-session.
 
 ```typescript
 import { tlenvReactive, react } from 'tldraw'
@@ -136,9 +136,9 @@ These are what the editor uses internally for export, measurement, focus trackin
 
 Here's a sample of what we use environment detection for internally.
 
-**Safari** has the most workarounds. SVG-to-image export fails silently unless we add a 250ms delay after loading the image—a WebKit bug that's been open for years. We also draw minimap triangles four times because Safari's WebGL implementation sometimes drops draw calls. Text outlines render incorrectly, so we disable them entirely on Safari.
+**Safari** has the most workarounds. During SVG-to-image export, Safari fires the image's load event before the fonts inside the SVG have loaded, so we wait an extra 250ms—a WebKit bug that's been open for years. Text outlines are a performance problem on Safari, so we disable them there.
 
-**iOS** coalesced pointer events are broken (they report wrong coordinates), so we skip them entirely and use individual events. We also handle the virtual keyboard differently since iOS doesn't fire standard resize events.
+**iOS** support for coalesced pointer events is unreliable—`getCoalescedEvents` is sometimes missing entirely—so we skip coalesced events on iOS and dispatch individual pointer events instead.
 
 **Firefox** desktop's `(any-pointer: coarse)` media query reports false positives when a touchscreen is present but not in use. We force fine pointer mode on Firefox desktop to avoid jumpy UI.
 

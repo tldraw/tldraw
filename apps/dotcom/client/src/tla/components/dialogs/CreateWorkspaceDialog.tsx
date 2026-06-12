@@ -12,24 +12,25 @@ import { defineMessages, F, useMsg } from '../../utils/i18n'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
-	title: { defaultMessage: 'Create group' },
+	title: { defaultMessage: 'Create workspace' },
 	name: { defaultMessage: 'Name' },
-	placeholder: { defaultMessage: 'Group name' },
+	placeholder: { defaultMessage: 'Workspace name' },
 	cancel: { defaultMessage: 'Cancel' },
-	create: { defaultMessage: 'Create group' },
+	create: { defaultMessage: 'Create workspace' },
 })
 
-interface CreateGroupDialogProps {
+interface CreateWorkspaceDialogProps {
 	onClose(): void
-	onCreate(name: string): void
+	// The dialog closes immediately; failures are the handler's to surface (e.g. a toast).
+	onCreate(name: string): void | Promise<void>
 }
 
-export function CreateGroupDialog({ onClose, onCreate }: CreateGroupDialogProps) {
-	const [groupName, setGroupName] = useState('')
+export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDialogProps) {
+	const [workspaceName, setWorkspaceName] = useState('')
 	const placeholderMsg = useMsg(messages.placeholder)
 
 	const handleCreate = () => {
-		const trimmedName = groupName.trim()
+		const trimmedName = workspaceName.trim()
 		if (trimmedName) {
 			onCreate(trimmedName)
 			onClose()
@@ -46,13 +47,13 @@ export function CreateGroupDialog({ onClose, onCreate }: CreateGroupDialogProps)
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				<div style={{ marginBottom: 16 }}>
-					<label htmlFor="group-name" style={{ display: 'block', marginBottom: 8 }}>
+					<label style={{ display: 'block', marginBottom: 8 }}>
 						<F {...messages.name} />
 					</label>
 					<TldrawUiInput
 						className={styles.dialogInput}
-						value={groupName}
-						onValueChange={setGroupName}
+						value={workspaceName}
+						onValueChange={setWorkspaceName}
 						onComplete={handleCreate}
 						onCancel={onClose}
 						placeholder={placeholderMsg}

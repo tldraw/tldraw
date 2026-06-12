@@ -23,7 +23,7 @@ notes: ''
 
 Tools in tldraw define how the editor responds to user input. Each tool handles a specific interaction mode—selecting shapes, drawing, or panning the canvas. You implement tools as state machines using the `StateNode` class, which gives you a structured way to manage complex interactions through a hierarchy of states. The editor maintains a single active tool at any time and routes all input events through it. When you click the hand icon in the toolbar, the editor transitions from the select tool to the hand tool, changing how the canvas responds to your mouse movements and clicks.
 
-The state machine architecture lets you handle multi-step interactions cleanly. For example, when you use the select tool to resize a shape, the tool transitions through multiple states: idle, pointing the resize handle, and actively resizing. Each state handles different events and can transition to other states based on user input. This pattern keeps your tool logic organized and makes complex interactions manageable.
+The state machine architecture lets you handle multi-step interactions cleanly. For example, when you use the select tool to resize a shape, the tool transitions through multiple states: idle, pointing the resize handle, and actively resizing. Each state handles different events and can transition to other states based on user input.
 
 ## How it works
 
@@ -31,9 +31,9 @@ Tools are organized in a hierarchical state machine where each node can handle e
 
 The [StateNode](?) class provides the foundation for this system. Each state node has an id, optional children, and methods for handling events. State nodes come in three types: root nodes that contain tools, branch nodes that have child states, and leaf nodes that perform actual work. Tools themselves are typically branch nodes with child states representing different phases of an interaction.
 
-When a state becomes active, its `onEnter` method runs. When it becomes inactive, its `onExit` method runs. Between these lifecycle events, the state handles input through event methods like `onPointerDown`, `onPointerMove`, and `onKeyDown`. If a state doesn't handle an event, it passes through without effect. Child states receive events after their parent, allowing both to respond.
+When a state becomes active, its `onEnter` method runs. When it becomes inactive, its `onExit` method runs. Between these lifecycle events, the state handles input through event methods like `onPointerDown`, `onPointerMove`, and `onKeyDown`. If a state doesn't handle an event, it passes through without effect. Child states receive events after their parent, so both can respond.
 
-You trigger transitions between states explicitly through the `transition` method. When the select tool's idle state detects a pointer down on a shape, it calls `this.parent.transition('pointing_shape', info)` to move to the pointing state. The transition triggers the appropriate exit and enter handlers, maintaining clean state boundaries.
+You trigger transitions between states explicitly through the `transition` method. When the select tool's idle state detects a pointer down on a shape, it calls `this.parent.transition('pointing_shape', info)` to move to the pointing state. The transition triggers the appropriate exit and enter handlers.
 
 ## Key concepts
 
@@ -57,7 +57,7 @@ Transitions carry information through their second parameter. When transitioning
 
 ### Tool registration
 
-Tools are registered with the editor through the root state. The `@tldraw/editor` package provides only the root state with no tools. The `@tldraw/tldraw` package extends this with a full suite of tools. Custom tools are added by creating a custom root state that includes them as children.
+Tools are registered with the editor through the root state. The `@tldraw/editor` package provides only the root state with no tools. The `tldraw` package extends this with a full suite of tools. Custom tools are added by creating a custom root state that includes them as children.
 
 The editor's `setCurrentTool` method transitions the root state to a different tool by id. The `getCurrentTool` method returns the currently active tool state node. These methods provide the public API for tool management while the state machine handles the internal transitions.
 
@@ -109,13 +109,13 @@ export class StampTool extends StateNode {
 
 The `StateNode` class has these static properties:
 
-| Property             | Description                                                             |
-| -------------------- | ----------------------------------------------------------------------- |
-| `id`                 | Required. The unique identifier for this state                          |
-| `initial`            | The id of the initial child state (required if the tool has children)   |
-| `children()`         | A function returning an array of child state constructors               |
-| `isLockable`         | Whether tool lock applies to this tool (default: `true`)                |
-| `useCoalescedEvents` | Whether to batch pointer move events for performance (default: `false`) |
+| Property             | Description                                                                                                 |
+| -------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `id`                 | Required. The unique identifier for this state                                                              |
+| `initial`            | The id of the initial child state (required if the tool has children)                                       |
+| `children()`         | A function returning an array of child state constructors                                                   |
+| `isLockable`         | Whether tool lock applies to this tool (default: `true`)                                                    |
+| `useCoalescedEvents` | Whether to receive the browser's coalesced pointer move events for higher-fidelity input (default: `false`) |
 
 For a simple tool without child states, implement event handlers directly on the tool class:
 
@@ -124,7 +124,7 @@ export class MeasureTool extends StateNode {
 	static override id = 'measure'
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		const { currentPagePoint } = this.editor.inputs
+		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 		// Start measuring from this point
 	}
 
@@ -146,7 +146,7 @@ export class DrawingPointing extends StateNode {
 	static override id = 'pointing'
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
+		if (this.editor.inputs.getIsDragging()) {
 			this.parent.transition('drawing', info)
 		}
 	}
@@ -266,7 +266,14 @@ function App() {
 		setIsEnabled(!isEnabled)
 	}
 
-	return <Tldraw onMount={setEditor} />
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw onMount={setEditor} />
+			<button style={{ position: 'absolute', top: 64, left: 8, zIndex: 1000 }} onClick={toggleTool}>
+				{isEnabled ? 'Remove heart tool' : 'Add heart tool'}
+			</button>
+		</div>
+	)
 }
 ```
 

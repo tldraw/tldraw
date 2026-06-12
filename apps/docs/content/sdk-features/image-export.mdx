@@ -129,18 +129,28 @@ img.src = result.url
 
 ## Error handling
 
-All export methods return `undefined` if the export fails (for example, if there are no shapes to export or if the browser canvas limits are exceeded). Always check the result:
+The SVG methods ([Editor#getSvgElement](?) and [Editor#getSvgString](?)) return `undefined` when there's nothing to export. Check the result before using it:
 
 ```typescript
-const result = await editor.toImage(shapes, { format: 'png' })
+const result = await editor.getSvgString(shapes)
 if (!result) {
-	console.error('Export failed')
+	console.error('Nothing to export')
 	return
 }
-// result.blob is available
+// result.svg is available
 ```
 
-The raster conversion automatically clamps dimensions to stay within browser canvas limits, which vary by platform but are typically around 16k x 16k pixels. Very large exports at high pixel ratios may fail if they exceed these limits.
+The raster methods ([Editor#toImage](?) and [Editor#toImageDataUrl](?)) throw instead. Wrap them in a try/catch when the export might fail:
+
+```typescript
+try {
+	const { blob } = await editor.toImage(shapes, { format: 'png' })
+} catch (e) {
+	console.error('Export failed', e)
+}
+```
+
+The raster conversion automatically clamps dimensions to stay within browser canvas limits, which vary by browser. Very large exports at high pixel ratios are scaled down to fit rather than failing.
 
 ## Related examples
 

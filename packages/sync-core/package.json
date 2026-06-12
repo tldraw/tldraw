@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "tldraw infinite canvas SDK (multiplayer sync).",
-	"version": "5.1.0",
+	"version": "5.1.1",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -52,7 +52,7 @@
 		"typescript": "^5.8.3",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",

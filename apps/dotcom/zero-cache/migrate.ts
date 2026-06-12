@@ -40,6 +40,21 @@ INSERT INTO migrations.applied_migrations (filename) VALUES
 ON CONFLICT DO NOTHING;
  */
 
+// Tell Zero about schema changes so it updates its replica in place instead of a
+// full reset (Supabase doesn't fire event triggers for ALTER PUBLICATION). Guarded
+// because migrations run before Zero boots, so zero_0 may not exist yet on a fresh
+// database. to_regprocedure resolves the no-arg overload (to_regproc returns NULL
+// when the name is ambiguous, silently skipping the call).
+// https://zero.rocicorp.dev/docs/connecting-to-postgres#schema-change-hooks
+const notifyZeroOfSchemaChange = `
+DO $$
+BEGIN
+  IF to_regprocedure('zero_0.update_schemas()') IS NOT NULL THEN
+    PERFORM zero_0.update_schemas();
+  END IF;
+END $$;
+`
+
 const shouldSignalSuccess = process.argv.includes('--signal-success')
 const dryRun = process.argv.includes('--dry-run')
 
@@ -92,6 +107,23 @@ async function migrate(summary: string[], dryRun: boolean) {
 			}
 		}
 
+		// We hardcode the `zero_0` shard schema. If Zero is ever reconfigured with a
+		// different app id or shard, that name changes and our guards would silently
+		// stop firing, reverting us to full resets. Fail loudly if it drifts. (No rows
+		// means Zero hasn't booted yet, expected on a fresh database.)
+		const shardSchemas = await sql<{ nspname: string }>`
+			SELECT DISTINCT n.nspname FROM pg_proc p
+			JOIN pg_namespace n ON n.oid = p.pronamespace
+			WHERE p.proname = 'update_schemas'
+		`.execute(tx)
+		const schemaNames = shardSchemas.rows.map((r) => r.nspname)
+		if (schemaNames.length > 0 && !schemaNames.includes('zero_0')) {
+			throw new Error(
+				`Expected Zero shard schema "zero_0" but found ${schemaNames.join(', ')}. Update the hardcoded schema name in migrate.ts and add a new migration to enable ddlDetection on the new schema.`
+			)
+		}
+
+		let appliedNewMigration = false
 		for (const migration of migrations) {
 			if (appliedMigrations.rows.some((m: any) => m.filename === migration)) {
 				summary.push(`🏃 ${migration} already applied`)
@@ -109,12 +141,19 @@ async function migrate(summary: string[], dryRun: boolean) {
 				await sql`INSERT INTO migrations.applied_migrations (filename) VALUES (${migration})`.execute(
 					tx
 				)
+				appliedNewMigration = true
 				summary.push(`✅ ${migration} applied`)
 			} catch (e) {
 				summary.push(`❌ ${migration} failed`)
 				throw e
 			}
 		}
+
+		// Notify Zero once after all DDL has run (see notifyZeroOfSchemaChange).
+		if (appliedNewMigration) {
+			await sql.raw(notifyZeroOfSchemaChange).execute(tx)
+		}
+
 		if (dryRun) {
 			throw DRY_RUN_ROLLBACK
 		}
