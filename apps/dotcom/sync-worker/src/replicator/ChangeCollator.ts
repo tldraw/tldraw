@@ -1,12 +1,12 @@
 import {
 	TlaFile,
 	TlaFileState,
-	TlaGroup,
-	TlaGroupFile,
-	TlaGroupUser,
 	TlaRow,
 	TlaUser,
 	TlaUserMutationNumber,
+	TlaWorkspace,
+	TlaWorkspaceFile,
+	TlaWorkspaceUser,
 } from '@tldraw/dotcom-shared'
 import { exhaustiveSwitchError } from '@tldraw/utils'
 import { DurableObject } from 'cloudflare:workers'
@@ -55,12 +55,18 @@ export function getTopics(row: TlaRow, event: ReplicationEvent): Topic[] {
 		}
 		case 'user_mutation_number':
 			return [`user:${(row as any as TlaUserMutationNumber).userId}`]
-		case 'group':
-			return [`group:${(row as TlaGroup).id}`]
-		case 'group_user':
-			return [`group:${(row as TlaGroupUser).groupId}`, `user:${(row as TlaGroupUser).userId}`]
-		case 'group_file':
-			return [`group:${(row as TlaGroupFile).groupId}`, `file:${(row as TlaGroupFile).fileId}`]
+		case 'workspace':
+			return [`workspace:${(row as TlaWorkspace).id}`]
+		case 'workspace_user':
+			return [
+				`workspace:${(row as TlaWorkspaceUser).workspaceId}`,
+				`user:${(row as TlaWorkspaceUser).userId}`,
+			]
+		case 'workspace_file':
+			return [
+				`workspace:${(row as TlaWorkspaceFile).workspaceId}`,
+				`file:${(row as TlaWorkspaceFile).fileId}`,
+			]
 		default: {
 			exhaustiveSwitchError(event.table)
 			return [] // just in case
@@ -107,7 +113,7 @@ export function buildTopicsString(changes: ChangeV2[]): string {
  *
  * Uses the subscription graph to determine which users should receive
  * each change. For example, if a file changes, it finds all users who
- * subscribe to that file (directly or through groups) and queues the
+ * subscribe to that file (directly or through workspaces) and queues the
  * change for delivery to them.
  */
 export class LiveChangeCollator implements ChangeCollator {
@@ -130,7 +136,7 @@ export class LiveChangeCollator implements ChangeCollator {
 	 * Uses recursive SQL to traverse the subscription graph and find all
 	 * users connected to these topics through any number of hops.
 	 *
-	 * Example: user:alice -> group:dev -> file:doc1
+	 * Example: user:alice -> workspace:dev -> file:doc1
 	 * When file:doc1 changes, alice gets notified even though she's not directly subscribed.
 	 */
 	private getSubscribersToTopics(topics: Topic[]): string[] {
@@ -159,7 +165,7 @@ export class LiveChangeCollator implements ChangeCollator {
 				-- Direct subscriptions to any of the target topics
 				SELECT fromTopic FROM topic_subscription WHERE toTopic IN (${placeholders})
 				UNION
-				-- Transitive subscriptions (users -> groups -> topics)
+				-- Transitive subscriptions (users -> workspaces -> topics)
 				SELECT ts.fromTopic 
 				FROM topic_subscription ts
 				JOIN subscribers s ON ts.toTopic = s.fromTopic

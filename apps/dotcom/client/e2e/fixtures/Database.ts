@@ -61,7 +61,7 @@ export class Database {
 		if (!id) throw new Error('User not found')
 
 		// Call the migration function
-		await sql`SELECT * FROM migrate_user_to_groups(${id}, ${inviteSecret})`.execute(db)
+		await sql`SELECT * FROM migrate_user_to_workspaces(${id}, ${inviteSecret})`.execute(db)
 	}
 
 	/**

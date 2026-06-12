@@ -77,12 +77,12 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	if (!workspaceMembership) return null
 	// The home workspace has no settings to manage.
 	if (workspaceId === app.getHomeWorkspaceId()) return null
-	const workspace = workspaceMembership.group
-	const currentUser = workspaceMembership.groupMembers.find(
+	const workspace = workspaceMembership.workspace
+	const currentUser = workspaceMembership.workspaceMembers.find(
 		(member) => member.userId === app.getUser().id
 	)
 	const role = currentUser?.role
-	const ownersCount = workspaceMembership.groupMembers.filter((m) => m.role === 'owner').length
+	const ownersCount = workspaceMembership.workspaceMembers.filter((m) => m.role === 'owner').length
 	// Leaving is allowed for everyone except the last owner — a workspace invariant
 	// (it must always keep at least one owner), not a capability.
 	const canLeave = role !== 'owner' || ownersCount > 1
@@ -110,7 +110,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const handleLeaveWorkspace = async () => {
 		try {
 			const isCurrentlyOnAFileInThisWorkspace =
-				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
+				currentFileId && app.getFile(currentFileId)?.owningWorkspaceId === workspaceId
 			await app.z.mutate.leaveWorkspace({ workspaceId }).client
 			onClose()
 			if (isCurrentlyOnAFileInThisWorkspace) {
@@ -125,7 +125,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const handleDeleteWorkspace = async () => {
 		try {
 			const isCurrentlyOnAFileInThisWorkspace =
-				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
+				currentFileId && app.getFile(currentFileId)?.owningWorkspaceId === workspaceId
 			await app.z.mutate.deleteWorkspace({ id: workspaceId }).client
 			onClose()
 			if (isCurrentlyOnAFileInThisWorkspace) {
@@ -258,11 +258,11 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						<F {...messages.members} />{' '}
 						<span className={styles.memberCount}>
 							{/* eslint-disable-next-line tldraw/jsx-no-literals */}
-							{`(${workspaceMembership.groupMembers.length})`}
+							{`(${workspaceMembership.workspaceMembers.length})`}
 						</span>
 					</label>
 					<div className={styles.membersList}>
-						{[...workspaceMembership.groupMembers]
+						{[...workspaceMembership.workspaceMembers]
 							.sort((a, b) => {
 								const currentId = app.getUser().id
 								if (a.userId === currentId && b.userId !== currentId) return -1

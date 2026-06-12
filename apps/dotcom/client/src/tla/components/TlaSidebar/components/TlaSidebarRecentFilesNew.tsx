@@ -54,13 +54,13 @@ export function TlaSidebarRecentFilesNew() {
 		[app, activeWorkspaceId]
 	)
 
-	const workspaceName = isHome ? <F defaultMessage="My files" /> : membership?.group.name
+	const workspaceName = isHome ? <F defaultMessage="My files" /> : membership?.workspace.name
 
 	// The header names which space's files are shown. Without any workspaces
 	// there is nothing to disambiguate, so it's omitted.
 	const hasWorkspaces = useValue(
 		'has workspaces',
-		() => app.getWorkspaceMemberships().some((m) => m.groupId !== homeWorkspaceId),
+		() => app.getWorkspaceMemberships().some((m) => m.workspaceId !== homeWorkspaceId),
 		[app, homeWorkspaceId]
 	)
 

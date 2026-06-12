@@ -28,7 +28,7 @@ export function TlaSidebarWorkspaceList() {
 		() => app.getWorkspaceMemberships(),
 		[app]
 	)
-	const workspaces = workspaceMemberships.filter((g) => g.groupId !== homeWorkspaceId)
+	const workspaces = workspaceMemberships.filter((m) => m.workspaceId !== homeWorkspaceId)
 
 	return (
 		<div className={styles.sidebarWorkspaceList}>
@@ -36,11 +36,11 @@ export function TlaSidebarWorkspaceList() {
 				workspaceId={homeWorkspaceId}
 				label={<F defaultMessage="My files" />}
 			/>
-			{workspaces.map((g) => (
+			{workspaces.map((m) => (
 				<TlaSidebarWorkspaceListItem
-					key={`workspace-${g.group.id}`}
-					workspaceId={g.group.id}
-					label={g.group.name}
+					key={`workspace-${m.workspace.id}`}
+					workspaceId={m.workspace.id}
+					label={m.workspace.name}
 				/>
 			))}
 			<TlaSidebarCreateWorkspaceButton />

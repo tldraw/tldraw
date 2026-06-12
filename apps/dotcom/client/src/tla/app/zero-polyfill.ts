@@ -3,10 +3,10 @@ import {
 	OptimisticAppStore,
 	TlaFile,
 	TlaFileState,
-	TlaGroup,
-	TlaGroupFile,
-	TlaGroupUser,
 	TlaSchema,
+	TlaWorkspace,
+	TlaWorkspaceFile,
+	TlaWorkspaceUser,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZServerSentMessage,
@@ -300,27 +300,29 @@ export class Zero {
 			)
 		}
 
-		if (tableName === 'group_user' && ast.related?.length) {
+		if (tableName === 'workspace_user' && ast.related?.length) {
 			rows = rows.map((row) => {
-				const groupUser = row as TlaGroupUser
-				const group = data.group.find((g: TlaGroup) => g.id === groupUser.groupId)
-				const groupFiles = compact(
-					data.group_file
-						.filter((gf: TlaGroupFile) => gf.groupId === groupUser.groupId)
-						.map((gf: TlaGroupFile) => {
-							const file = data.file.find((f: TlaFile) => f.id === gf.fileId)
+				const workspaceUser = row as TlaWorkspaceUser
+				const workspace = data.workspace.find(
+					(w: TlaWorkspace) => w.id === workspaceUser.workspaceId
+				)
+				const workspaceFiles = compact(
+					data.workspace_file
+						.filter((wf: TlaWorkspaceFile) => wf.workspaceId === workspaceUser.workspaceId)
+						.map((wf: TlaWorkspaceFile) => {
+							const file = data.file.find((f: TlaFile) => f.id === wf.fileId)
 							if (!file) return null
-							return { ...gf, file }
+							return { ...wf, file }
 						})
 				)
-				const groupMembers = data.group_user.filter(
-					(gu: TlaGroupUser) => gu.groupId === groupUser.groupId
+				const workspaceMembers = data.workspace_user.filter(
+					(wu: TlaWorkspaceUser) => wu.workspaceId === workspaceUser.workspaceId
 				)
 				return {
-					...groupUser,
-					group,
-					groupFiles,
-					groupMembers,
+					...workspaceUser,
+					workspace,
+					workspaceFiles,
+					workspaceMembers,
 				}
 			})
 		}

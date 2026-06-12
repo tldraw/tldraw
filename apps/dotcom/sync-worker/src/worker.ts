@@ -276,7 +276,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			const file = await db
 				.selectFrom('file')
 				.where('id', '=', fileId)
-				.select(['ownerId', 'owningGroupId', 'shared', 'sharedLinkType'])
+				.select(['ownerId', 'owningWorkspaceId', 'shared', 'sharedLinkType'])
 				.executeTakeFirst()
 			if (!file) return { ok: false, error: 'File not found' }
 
@@ -294,8 +294,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				// owner
 			} else if (isSharedEdit) {
 				// shared for editing
-			} else if (userId && file.owningGroupId) {
-				const role = await getRole(db, userId, file.owningGroupId)
+			} else if (userId && file.owningWorkspaceId) {
+				const role = await getRole(db, userId, file.owningWorkspaceId)
 				if (!can(role, 'accessFiles')) {
 					return { ok: false, error: 'Forbidden' }
 				}

@@ -4,11 +4,11 @@ import {
 	OptimisticAppStore,
 	TlaFile,
 	TlaFileState,
-	TlaGroup,
-	TlaGroupFile,
-	TlaGroupUser,
 	TlaRow,
 	TlaUser,
+	TlaWorkspace,
+	TlaWorkspaceFile,
+	TlaWorkspaceUser,
 	ZEvent,
 	ZRowUpdate,
 	ZServerSentPacket,
@@ -91,7 +91,7 @@ type BootState =
 			lastSequenceNumber: number
 	  }
 
-const stateVersion = 4
+const stateVersion = 5
 interface StateSnapshot {
 	version: number
 	initialData: ZStoreData
@@ -123,9 +123,9 @@ interface LegacyZStoreDataV3 {
 	file: TlaFile[]
 	file_state: TlaFileState[]
 	user: TlaUser[]
-	group: TlaGroup[]
-	group_user: TlaGroupUser[]
-	group_file: TlaGroupFile[]
+	group: TlaWorkspace[]
+	group_user: (Omit<TlaWorkspaceUser, 'workspaceId'> & { groupId: string })[]
+	group_file: (Omit<TlaWorkspaceFile, 'workspaceId'> & { groupId: string })[]
 	lsn: string
 }
 
@@ -172,8 +172,13 @@ function migrateStateSnapshot(snapshot: any) {
 			group: data.group,
 			group_user: data.group_user,
 			group_file: data.group_file,
-		} satisfies ZStoreData
+		} satisfies LegacyZStoreDataV3
 	}
+
+	// Version 5 renamed the group tables/columns to workspace. There is no v4 → v5
+	// data migration: the replicator forces a full refetch as part of the rename
+	// deploy anyway, so v4 snapshots are discarded (loadInitialDataFromR2 returns
+	// null on version mismatch) and rebuilt from postgres.
 }
 
 const MUTATION_COMMIT_TIMEOUT = 10_000
@@ -332,9 +337,9 @@ export class UserDataSyncer {
 			user: [],
 			file: [],
 			file_state: [],
-			group: [],
-			group_user: [],
-			group_file: [],
+			workspace: [],
+			workspace_user: [],
+			workspace_file: [],
 			lsn: '0/0',
 			mutationNumber: 0,
 		}
@@ -347,9 +352,9 @@ export class UserDataSyncer {
 				initialData.user = []
 				initialData.file = []
 				initialData.file_state = []
-				initialData.group = []
-				initialData.group_user = []
-				initialData.group_file = []
+				initialData.workspace = []
+				initialData.workspace_user = []
+				initialData.workspace_file = []
 
 				await this.db.transaction().execute(async (tx) => {
 					const result = await tx.executeQuery(CompiledQuery.raw(fetchEverythingSql, [this.userId]))
@@ -444,26 +449,26 @@ export class UserDataSyncer {
 				lastSequenceNumber: resumeData.lastSequenceNumber,
 			}))
 		) {
-			// TODO: investigate how this returns without group_user, or suck that 'group_user is not iterable'
+			// TODO: investigate how this returns without workspace_user, or suck that 'workspace_user is not iterable'
 			const initialData = this.store.getCommittedData()!
 			const topicSubscriptions: TopicSubscriptionTree = {}
-			const groupFileIds = new Set()
-			for (const group_user of initialData.group_user) {
-				topicSubscriptions[`group:${group_user.groupId}`] = {}
+			const workspaceFileIds = new Set()
+			for (const workspace_user of initialData.workspace_user) {
+				topicSubscriptions[`workspace:${workspace_user.workspaceId}`] = {}
 			}
-			for (const group_file of initialData.group_file) {
-				groupFileIds.add(group_file.fileId)
-				let subgraph = topicSubscriptions[`group:${group_file.groupId}`]
+			for (const workspace_file of initialData.workspace_file) {
+				workspaceFileIds.add(workspace_file.fileId)
+				let subgraph = topicSubscriptions[`workspace:${workspace_file.workspaceId}`]
 				if (typeof subgraph !== 'object') {
 					subgraph = {}
-					topicSubscriptions[`group:${group_file.groupId}`] = subgraph
+					topicSubscriptions[`workspace:${workspace_file.workspaceId}`] = subgraph
 				}
 
-				subgraph[`file:${group_file.fileId}`] = 1
+				subgraph[`file:${workspace_file.fileId}`] = 1
 			}
 
 			for (const file_state of initialData.file_state) {
-				if (groupFileIds.has(file_state.fileId)) continue
+				if (workspaceFileIds.has(file_state.fileId)) continue
 				topicSubscriptions[`file:${file_state.fileId}`] = 1
 			}
 
@@ -515,9 +520,9 @@ export class UserDataSyncer {
 				event.table !== 'user' &&
 				event.table !== 'file' &&
 				event.table !== 'file_state' &&
-				event.table !== 'group' &&
-				event.table !== 'group_user' &&
-				event.table !== 'group_file'
+				event.table !== 'workspace' &&
+				event.table !== 'workspace_user' &&
+				event.table !== 'workspace_file'
 			) {
 				throw new Error(`Unhandled table: ${event.table}`)
 			}

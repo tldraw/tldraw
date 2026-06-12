@@ -22,7 +22,7 @@ export const SneakyTldrawFileDropHandler = memo(function SneakyTldrawFileDropHan
 			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
 			if (tldrawFiles.length > 0) {
 				const currentFile = fileId ? app.getFile(fileId) : null
-				const workspaceId = currentFile?.owningGroupId ?? undefined
+				const workspaceId = currentFile?.owningWorkspaceId ?? undefined
 				await app.uploadTldrFiles(
 					tldrawFiles,
 					(fileId) => {

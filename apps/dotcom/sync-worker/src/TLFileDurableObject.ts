@@ -636,18 +636,18 @@ export class TLFileDurableObject extends DurableObject {
 				}
 				rateLimitTimer.report('on_request_rate_limit')
 
-				// Check if user has owner access (directly or via group membership)
+				// Check if user has owner access (directly or via workspace membership)
 				let hasOwnerAccess = false
 				if (file.ownerId && file.ownerId === auth?.userId) {
 					hasOwnerAccess = true
-				} else if (file.owningGroupId && auth?.userId) {
-					// Check the user can access the owning group's files
-					const groupCheckTimer = this.timer()
-					const role = await getRole(this.db, auth.userId, file.owningGroupId)
+				} else if (file.owningWorkspaceId && auth?.userId) {
+					// Check the user can access the owning workspace's files
+					const workspaceCheckTimer = this.timer()
+					const role = await getRole(this.db, auth.userId, file.owningWorkspaceId)
 					if (can(role, 'accessFiles')) {
 						hasOwnerAccess = true
 					}
-					groupCheckTimer.report('on_request_group_check')
+					workspaceCheckTimer.report('on_request_workspace_check')
 				}
 
 				if (!hasOwnerAccess) {
@@ -755,8 +755,8 @@ export class TLFileDurableObject extends DurableObject {
 		let hasOwnerAccess = false
 		if (file.ownerId && file.ownerId === auth?.userId) {
 			hasOwnerAccess = true
-		} else if (file.owningGroupId && auth?.userId) {
-			const role = await getRole(this.db, auth.userId, file.owningGroupId)
+		} else if (file.owningWorkspaceId && auth?.userId) {
+			const role = await getRole(this.db, auth.userId, file.owningWorkspaceId)
 			if (can(role, 'accessFiles')) {
 				hasOwnerAccess = true
 			}
@@ -1580,7 +1580,7 @@ export class TLFileDurableObject extends DurableObject {
 			if (file.ownerId && session.meta.userId === file.ownerId) continue
 
 			const canAccessFiles = async () => {
-				const role = await getRole(this.db, session.meta.userId, file.owningGroupId)
+				const role = await getRole(this.db, session.meta.userId, file.owningWorkspaceId)
 				return can(role, 'accessFiles')
 			}
 

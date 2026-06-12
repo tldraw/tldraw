@@ -34,25 +34,25 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				)
 			}
 
-			// Check if user is already a member of this group (with row lock to prevent race conditions)
+			// Check if user is already a member of this workspace (with row lock to prevent race conditions)
 			const existingMember = await tx
-				.selectFrom('group_user')
+				.selectFrom('workspace_user')
 				.select('userId')
-				.where('groupId', '=', workspace.id)
+				.where('workspaceId', '=', workspace.id)
 				.where('userId', '=', auth.userId)
 				.executeTakeFirst()
 
 			if (existingMember) {
 				return Response.json({
 					error: false,
-					message: 'You are already a member of this group',
+					message: 'You are already a member of this workspace',
 					workspaceId: workspace.id,
 					workspaceName: workspace.name,
 					alreadyMember: true,
 				} satisfies AcceptInviteResponseBody)
 			}
 
-			// Get the user's information for the group_user record
+			// Get the user's information for the workspace_user record
 			const user = await tx
 				.selectFrom('user')
 				.select(['name', 'color', 'flags'])
@@ -72,7 +72,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				return Response.json(
 					{
 						error: true,
-						message: 'User is not migrated to the groups model',
+						message: 'User is not migrated to the workspaces model',
 					} satisfies AcceptInviteResponseBody,
 					{ status: 400 }
 				)
@@ -89,30 +89,30 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					.execute()
 			}
 
-			// Get the lowest index to place new group at the top
-			const lowestIndexGroup = await sql<{
+			// Get the lowest index to place new workspace at the top
+			const lowestIndexWorkspace = await sql<{
 				index: string
 				// kysely doesn't support 'collate' in the query builder, so we have to use raw sql
 				// collate "C" makes it use straight up byte comparison instead of lexicographic comparison
-			}>`select index from group_user where "userId" = ${auth.userId} order by index collate "C" asc limit 1`.execute(
+			}>`select index from workspace_user where "userId" = ${auth.userId} order by index collate "C" asc limit 1`.execute(
 				tx
 			)
 
-			// Use tldraw's fractional indexing to place new group at the top
+			// Use tldraw's fractional indexing to place new workspace at the top
 			let index: IndexKey
-			if (!lowestIndexGroup.rows[0]) {
-				// First group gets 'a1'
+			if (!lowestIndexWorkspace.rows[0]) {
+				// First workspace gets 'a1'
 				index = 'a1' as IndexKey
 			} else {
 				// Generate a new index below the current lowest (to place at top)
-				index = getIndexBelow(lowestIndexGroup.rows[0].index as IndexKey)
+				index = getIndexBelow(lowestIndexWorkspace.rows[0].index as IndexKey)
 			}
 
-			// Add user to the group
+			// Add user to the workspace
 			await tx
-				.insertInto('group_user')
+				.insertInto('workspace_user')
 				.values({
-					groupId: workspace.id,
+					workspaceId: workspace.id,
 					userId: auth.userId,
 					userColor: user.color || '#000000',
 					userName: user.name,
@@ -125,7 +125,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 
 			return Response.json({
 				error: false,
-				message: 'Successfully joined the group',
+				message: 'Successfully joined the workspace',
 				workspaceId: workspace.id,
 				workspaceName: workspace.name,
 				success: true,

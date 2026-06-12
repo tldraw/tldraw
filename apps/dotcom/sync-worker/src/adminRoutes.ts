@@ -388,55 +388,59 @@ async function performUserDeletion(
 ) {
 	const pg = createPostgresConnectionPool(env, '/app/admin/delete_user')
 
-	// Step 1: Find all groups the user is the only owner of
-	// This includes their home group (group.id = user.id) and any other groups they solely own
-	sendProgress?.('groups', 'Finding groups to delete...')
+	// Step 1: Find all workspaces the user is the only owner of
+	// This includes their home workspace (workspace.id = user.id) and any other workspaces they solely own
+	sendProgress?.('workspaces', 'Finding workspaces to delete...')
 
-	// Get all groups where this user is an owner
-	const userOwnedGroupMemberships = await pg
-		.selectFrom('group_user')
+	// Get all workspaces where this user is an owner
+	const userOwnedWorkspaceMemberships = await pg
+		.selectFrom('workspace_user')
 		.where('userId', '=', userRow.id)
 		.where('role', '=', 'owner')
-		.select('groupId')
+		.select('workspaceId')
 		.execute()
 
-	const groupsToDelete: string[] = []
+	const workspacesToDelete: string[] = []
 
-	for (const membership of userOwnedGroupMemberships) {
-		// Check if this user is the only owner of this group
+	for (const membership of userOwnedWorkspaceMemberships) {
+		// Check if this user is the only owner of this workspace
 		const ownerCount = await pg
-			.selectFrom('group_user')
-			.where('groupId', '=', membership.groupId)
+			.selectFrom('workspace_user')
+			.where('workspaceId', '=', membership.workspaceId)
 			.where('role', '=', 'owner')
 			.select((eb) => eb.fn.countAll().as('count'))
 			.executeTakeFirst()
 
 		if (ownerCount && Number(ownerCount.count) === 1) {
-			groupsToDelete.push(membership.groupId)
+			workspacesToDelete.push(membership.workspaceId)
 		}
 	}
 
-	sendProgress?.('groups', `Found ${groupsToDelete.length} groups to delete`, {
-		groupCount: groupsToDelete.length,
-		groupIds: groupsToDelete,
+	sendProgress?.('workspaces', `Found ${workspacesToDelete.length} workspaces to delete`, {
+		workspaceCount: workspacesToDelete.length,
+		workspaceIds: workspacesToDelete,
 	})
 
-	// Step 2: Soft delete groups (the cleanup_deleted_group_trigger will soft delete their files)
-	if (groupsToDelete.length > 0) {
-		sendProgress?.('groups', 'Soft deleting groups...')
-		await pg.updateTable('group').set('isDeleted', true).where('id', 'in', groupsToDelete).execute()
+	// Step 2: Soft delete workspaces (the cleanup_deleted_workspace_trigger will soft delete their files)
+	if (workspacesToDelete.length > 0) {
+		sendProgress?.('workspaces', 'Soft deleting workspaces...')
+		await pg
+			.updateTable('workspace')
+			.set('isDeleted', true)
+			.where('id', 'in', workspacesToDelete)
+			.execute()
 	}
 
 	// Step 3: Get all files to hard delete
 	const filesToDelete = new Map<string, TlaFile>()
 
-	if (groupsToDelete.length > 0) {
-		const groupFiles = await pg
+	if (workspacesToDelete.length > 0) {
+		const workspaceFiles = await pg
 			.selectFrom('file')
-			.where('owningGroupId', 'in', groupsToDelete)
+			.where('owningWorkspaceId', 'in', workspacesToDelete)
 			.selectAll()
 			.execute()
-		for (const file of groupFiles) {
+		for (const file of workspaceFiles) {
 			filesToDelete.set(file.id, file)
 		}
 	}
@@ -446,7 +450,7 @@ async function performUserDeletion(
 	})
 
 	// Allow time for soft deletes to propagate
-	if (groupsToDelete.length > 0 || filesToDelete.size > 0) {
+	if (workspacesToDelete.length > 0 || filesToDelete.size > 0) {
 		await sleep(3000)
 	}
 
@@ -458,7 +462,7 @@ async function performUserDeletion(
 
 	sendProgress?.('database', 'Cleaning up database records...')
 
-	// Step 5: Hard delete groups and user in a transaction
+	// Step 5: Hard delete workspaces and user in a transaction
 	await pg.transaction().execute(async (tx) => {
 		// Clean up tables that don't have CASCADE delete constraints
 		await tx.deleteFrom('user_mutation_number').where('userId', '=', userRow.id).execute()
@@ -466,12 +470,12 @@ async function performUserDeletion(
 		// Clean up assets that reference this user (nullable foreign key)
 		await tx.deleteFrom('asset').where('userId', '=', userRow.id).execute()
 
-		// Remove user from all groups they're a member of (including ones they don't solely own)
-		await tx.deleteFrom('group_user').where('userId', '=', userRow.id).execute()
+		// Remove user from all workspaces they're a member of (including ones they don't solely own)
+		await tx.deleteFrom('workspace_user').where('userId', '=', userRow.id).execute()
 
-		// Hard delete the groups (this will cascade delete group_user and group_file entries)
-		if (groupsToDelete.length > 0) {
-			await tx.deleteFrom('group').where('id', 'in', groupsToDelete).execute()
+		// Hard delete the workspaces (this will cascade delete workspace_user and workspace_file entries)
+		if (workspacesToDelete.length > 0) {
+			await tx.deleteFrom('workspace').where('id', 'in', workspacesToDelete).execute()
 		}
 
 		// Delete the user row (this will cascade delete any remaining related records)
@@ -580,7 +584,7 @@ async function startUserMigration(
 					files_migrated: number
 					pinned_files_migrated: number
 					flag_added: boolean
-				}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
+				}>`SELECT * FROM migrate_user_to_workspaces(${userRow.id}, ${uniqueId()})`.execute(pg)
 				await user.admin_forceHardReboot(userRow.id)
 
 				successCount++

@@ -47,38 +47,38 @@ const withs = [
 	{
 		alias: 'legacy_files_shared_with_me',
 		// Legacy access control via file_state for non-migrated users
-		// Migrated users (with 'groups_backend' flag) have shared files in their home group via group_file
+		// Migrated users (with 'groups_backend' flag) have shared files in their home workspace via workspace_file
 		expression:
 			'SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE ufs."isFileOwner" = false AND f.shared = true',
 	},
 	{
-		alias: 'my_group_ids',
-		expression: 'SELECT "groupId" FROM public."group_user" WHERE "userId" = $1',
+		alias: 'my_workspace_ids',
+		expression: 'SELECT "workspaceId" FROM public."workspace_user" WHERE "userId" = $1',
 	},
 	{
-		alias: 'my_groups',
+		alias: 'my_workspaces',
 		expression:
-			'SELECT g.* FROM my_group_ids mg JOIN public."group" g ON g.id = mg."groupId" WHERE g."isDeleted" = false',
+			'SELECT w.* FROM my_workspace_ids mw JOIN public."workspace" w ON w.id = mw."workspaceId" WHERE w."isDeleted" = false',
 	},
 	{
-		alias: 'all_group_users',
+		alias: 'all_workspace_users',
 		expression:
-			'SELECT ug.* FROM my_groups mg JOIN public."group_user" ug ON ug."groupId" = mg."id"',
+			'SELECT uw.* FROM my_workspaces mw JOIN public."workspace_user" uw ON uw."workspaceId" = mw."id"',
 	},
 	{
-		alias: 'group_file_ownership',
+		alias: 'workspace_file_ownership',
 		expression:
-			'SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"',
+			'SELECT fw.* FROM my_workspaces mw JOIN public."workspace_file" fw ON fw."workspaceId" = mw."id"',
 	},
 	{
-		alias: 'group_files',
+		alias: 'workspace_files',
 		expression:
-			'SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"',
+			'SELECT f.* FROM workspace_file_ownership wfo JOIN public."file" f ON f.id = wfo."fileId"',
 	},
 	{
 		alias: 'all_files',
 		expression:
-			'SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from group_files',
+			'SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from workspace_files',
 	},
 ] as const satisfies WithClause[]
 
@@ -109,19 +109,19 @@ const selects: SelectClause[] = [
 		columns: makeColumnStuff(schema.tables.file),
 	},
 	{
-		from: 'group_file_ownership',
-		outputTableName: 'group_file',
-		columns: makeColumnStuff(schema.tables.group_file),
+		from: 'workspace_file_ownership',
+		outputTableName: 'workspace_file',
+		columns: makeColumnStuff(schema.tables.workspace_file),
 	},
 	{
-		from: 'my_groups',
-		outputTableName: 'group',
-		columns: makeColumnStuff(schema.tables.group),
+		from: 'my_workspaces',
+		outputTableName: 'workspace',
+		columns: makeColumnStuff(schema.tables.workspace),
 	},
 	{
-		from: 'all_group_users',
-		outputTableName: 'group_user',
-		columns: makeColumnStuff(schema.tables.group_user),
+		from: 'all_workspace_users',
+		outputTableName: 'workspace_user',
+		columns: makeColumnStuff(schema.tables.workspace_user),
 	},
 	{
 		from: 'public."user_mutation_number"',

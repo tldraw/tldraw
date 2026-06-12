@@ -13,9 +13,9 @@ import {
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
-	TlaGroup,
-	TlaGroupFile,
-	TlaGroupUser,
+	TlaWorkspace,
+	TlaWorkspaceFile,
+	TlaWorkspaceUser,
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
@@ -131,10 +131,10 @@ export class TldrawApp {
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
 	private readonly workspaceMemberships$: Signal<
-		(TlaGroupUser & {
-			group: TlaGroup
-			groupFiles: Array<TlaGroupFile & { file: TlaFile }>
-			groupMembers: Array<TlaGroupUser>
+		(TlaWorkspaceUser & {
+			workspace: TlaWorkspace
+			workspaceFiles: Array<TlaWorkspaceFile & { file: TlaFile }>
+			workspaceMembers: Array<TlaWorkspaceUser>
 		})[]
 	>
 
@@ -410,7 +410,7 @@ export class TldrawApp {
 
 	/**
 	 * Check if the user has been migrated to the new workspaces-based data model.
-	 * Users with the 'groups_backend' flag use group_file for access control and pinning.
+	 * Users with the 'groups_backend' flag use workspace_file for access control and pinning.
 	 * Users without the flag use the legacy file_state-based approach.
 	 */
 	isWorkspacesMigrated() {
@@ -432,15 +432,15 @@ export class TldrawApp {
 	}
 
 	getWorkspaceMembership(workspaceId: string) {
-		return this.workspaceMemberships$.get().find((g) => g.groupId === workspaceId)
+		return this.workspaceMemberships$.get().find((m) => m.workspaceId === workspaceId)
 	}
 
 	getWorkspaceFilesSorted(workspaceId: string) {
 		const membership = this.getWorkspaceMembership(workspaceId)
 		if (!membership) return []
 
-		const pinned = membership.groupFiles.filter((f) => f.index !== null)
-		const unpinned = membership.groupFiles.filter((f) => f.index === null)
+		const pinned = membership.workspaceFiles.filter((f) => f.index !== null)
+		const unpinned = membership.workspaceFiles.filter((f) => f.index === null)
 
 		const lastOrdering = this.lastWorkspaceFileOrderings.get(workspaceId)
 		const retainedOrdering =
@@ -561,7 +561,7 @@ export class TldrawApp {
 			}
 
 			// if the file is in a workspace we have access to, we don't want to show it in my files
-			if (myWorkspaceMemberships.some((g) => g.groupFiles.some((gf) => gf.fileId === fileId))) {
+			if (myWorkspaceMemberships.some((m) => m.workspaceFiles.some((wf) => wf.fileId === fileId))) {
 				continue
 			}
 
@@ -618,7 +618,7 @@ export class TldrawApp {
 			// For migrated users, count non-deleted files in the home workspace
 			const membership = this.getWorkspaceMembership(workspaceId)
 			if (!membership) return true
-			const nonDeletedCount = membership.groupFiles.filter((gf) => !gf.file.isDeleted).length
+			const nonDeletedCount = membership.workspaceFiles.filter((wf) => !wf.file.isDeleted).length
 			return nonDeletedCount < this.config.maxNumberOfFiles
 		} else {
 			// For unmigrated users, count non-deleted files owned by the user
@@ -794,8 +794,8 @@ export class TldrawApp {
 		if (this.isWorkspacesMigrated()) {
 			return (
 				this.getWorkspaceMemberships()
-					.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
-					?.groupFiles.find((gf) => gf.fileId === fileId)?.file ?? null
+					.find((m) => m.workspaceFiles.some((wf) => wf.fileId === fileId))
+					?.workspaceFiles.find((wf) => wf.fileId === fileId)?.file ?? null
 			)
 		}
 		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
@@ -805,8 +805,8 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 		if (!file) return false
 		if (file.ownerId) return file.ownerId === this.userId
-		if (file.owningGroupId) {
-			const role = this.getWorkspaceMembership(file.owningGroupId)?.role
+		if (file.owningWorkspaceId) {
+			const role = this.getWorkspaceMembership(file.owningWorkspaceId)?.role
 			return can(role, 'accessFiles')
 		}
 		return false
@@ -1159,9 +1159,9 @@ export class TldrawApp {
 		// The home workspace can't be invited to.
 		if (workspaceId === this.getHomeWorkspaceId()) return false
 		const membership = this.getWorkspaceMembership(workspaceId)
-		if (!membership?.group.inviteSecret) return false
+		if (!membership?.workspace.inviteSecret) return false
 
-		const inviteText = `${location.origin}/invite/${membership.group.inviteSecret}`
+		const inviteText = `${location.origin}/invite/${membership.workspace.inviteSecret}`
 		navigator.clipboard.writeText(inviteText)
 
 		if (showToast) {

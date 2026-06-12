@@ -89,7 +89,7 @@ export function createMockFile(
 		id: fileId,
 		name: overrides.name || `Test Document ${fileId}`,
 		ownerId,
-		owningGroupId: null,
+		owningWorkspaceId: null,
 		ownerName: `Owner ${ownerId}`,
 		ownerAvatar: '',
 		thumbnail: '',

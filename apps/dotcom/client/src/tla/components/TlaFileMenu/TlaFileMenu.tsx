@@ -124,9 +124,9 @@ export function FileItems({
 
 	// A file lives in exactly one workspace. The "Move to" menu only offers the workspaces
 	// it can move to — every workspace except the current one and the home workspace
-	const currentWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
+	const currentWorkspaceId = file?.owningWorkspaceId ?? app.getHomeWorkspaceId()
 	const moveToWorkspaces = workspaceMemberships.filter(
-		(g) => g.groupId !== app.getHomeWorkspaceId() && g.groupId !== currentWorkspaceId
+		(m) => m.workspaceId !== app.getHomeWorkspaceId() && m.workspaceId !== currentWorkspaceId
 	)
 
 	const handleCopyLinkClick = useCallback(() => {
@@ -258,12 +258,15 @@ export function FileItems({
 							<TldrawUiMenuGroup id="my-workspaces">
 								{moveToWorkspaces.map((membership) => (
 									<TldrawUiMenuItem
-										key={membership.groupId}
-										label={membership.group.name}
-										id={`workspace-${membership.groupId}`}
+										key={membership.workspaceId}
+										label={membership.workspace.name}
+										id={`workspace-${membership.workspaceId}`}
 										readonlyOk
 										onSelect={() => {
-											app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: membership.groupId })
+											app.z.mutate.moveFileToWorkspace({
+												fileId,
+												workspaceId: membership.workspaceId,
+											})
 										}}
 									/>
 								))}

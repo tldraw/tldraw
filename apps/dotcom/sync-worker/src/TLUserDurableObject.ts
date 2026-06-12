@@ -150,7 +150,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							})
 							.execute()
 						await tx
-							.insertInto('group')
+							.insertInto('workspace')
 							.values({
 								id,
 								name: clerkUser.fullName ?? '',
@@ -161,10 +161,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							})
 							.execute()
 						await tx
-							.insertInto('group_user')
+							.insertInto('workspace_user')
 							.values({
 								userId: id,
-								groupId: id,
+								workspaceId: id,
 								createdAt: now,
 								updatedAt: now,
 								role: 'owner',
@@ -542,7 +542,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await client.query('BEGIN', [])
 
 			// Acquire shared advisory lock to coordinate with migration
-			// This will wait if migrate_user_to_groups is running (which uses exclusive lock)
+			// This will wait if migrate_user_to_workspaces is running (which uses exclusive lock)
 			// but won't block other mutations (which also use shared locks)
 			// Lock will be automatically released when transaction ends
 			await client.query('SELECT pg_advisory_xact_lock_shared(hashtext($1))', [this.userId])
@@ -743,22 +743,22 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				.where('id', '=', userId)
 				.execute()
 
-			// Get all groups the user is a member of and delete them
-			// CASCADE will automatically delete group_user, group_file, and owned files
-			const userGroups = await tx
-				.selectFrom('group_user')
+			// Get all workspaces the user is a member of and delete them
+			// CASCADE will automatically delete workspace_user, workspace_file, and owned files
+			const userWorkspaces = await tx
+				.selectFrom('workspace_user')
 				.where('userId', '=', userId)
-				.select('groupId')
+				.select('workspaceId')
 				.execute()
-			const groupIds = userGroups.map((g) => g.groupId)
+			const workspaceIds = userWorkspaces.map((w) => w.workspaceId)
 
-			if (groupIds.length > 0) {
-				await tx.deleteFrom('group').where('id', 'in', groupIds).execute()
+			if (workspaceIds.length > 0) {
+				await tx.deleteFrom('workspace').where('id', 'in', workspaceIds).execute()
 			}
 
-			// Re-create the home group
+			// Re-create the home workspace
 			await tx
-				.insertInto('group')
+				.insertInto('workspace')
 				.values({
 					id: userId,
 					name: '',
@@ -770,10 +770,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				.onConflict((oc) => oc.doNothing())
 				.execute()
 			await tx
-				.insertInto('group_user')
+				.insertInto('workspace_user')
 				.values({
 					userId: userId,
-					groupId: userId,
+					workspaceId: userId,
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 					role: 'owner',
@@ -786,7 +786,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		})
 
 		// Drop the stale user snapshot so the reboot pulls fresh post-reset state
-		// instead of resurrecting deleted files and groups.
+		// instead of resurrecting deleted files and workspaces.
 		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
 	}
@@ -795,13 +795,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		console.error('admin_migrateToGroups', userId, inviteSecret)
 		this.userId ??= userId
 
-		this.log.debug('migrating to groups', userId, inviteSecret)
+		this.log.debug('migrating to workspaces', userId, inviteSecret)
 		// Call the Postgres migration function
 		const result = await sql<{
 			files_migrated: number
 			pinned_files_migrated: number
 			flag_added: boolean
-		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
+		}>`SELECT * FROM migrate_user_to_workspaces(${userId}, ${inviteSecret})`.execute(this.db)
 		console.error('admin_migrateToGroups result', result.rows)
 
 		this.log.debug('migration result', result.rows[0])
@@ -815,12 +815,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	/**
-	 * Enroll a user in the groups feature so they can actually see and use it.
+	 * Enroll a user in the workspaces feature so they can actually see and use it.
 	 * Ensures both flags:
-	 *   - groups_backend: migrate the user's data into the groups model if needed
+	 *   - groups_backend: migrate the user's data into the workspaces model if needed
 	 *     (the SQL function is idempotent and returns early if already migrated).
-	 *   - groups_frontend: the flag that shows the groups UI (otherwise only granted
-	 *     when a user accepts a group invite).
+	 *   - groups_frontend: the flag that shows the workspaces UI (otherwise only granted
+	 *     when a user accepts a workspace invite).
 	 * Then reboots the user so the new flags/data take effect.
 	 */
 	async admin_enrollInGroups(userId: string) {
@@ -830,10 +830,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		// flag_added is false (and nothing changes) when the user is already migrated.
 		const { rows } = await sql<{
 			flag_added: boolean
-		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${uniqueId()})`.execute(this.db)
+		}>`SELECT * FROM migrate_user_to_workspaces(${userId}, ${uniqueId()})`.execute(this.db)
 		const backendMigrated = rows[0]?.flag_added ?? false
 
-		// 2. Ensure the groups UI flag is present (read flags after the migration,
+		// 2. Ensure the workspaces UI flag is present (read flags after the migration,
 		// which may have just added groups_backend).
 		const row = await this.db
 			.selectFrom('user')
@@ -860,10 +860,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	/**
-	 * Unenroll a user from the groups UI by clearing the groups_frontend flag.
-	 * Leaves groups_backend (the data model) in place — this just hides the groups
-	 * UI again, which is handy for testing the enrollment flow. Reboots the user so
-	 * the change takes effect.
+	 * Unenroll a user from the workspaces UI by clearing the groups_frontend flag.
+	 * Leaves groups_backend (the data model) in place — this just hides the
+	 * workspaces UI again, which is handy for testing the enrollment flow. Reboots
+	 * the user so the change takes effect.
 	 */
 	async admin_unenrollFromGroups(userId: string) {
 		this.userId ??= userId

@@ -4,15 +4,15 @@ import { Kysely } from 'kysely'
 /**
  * Resolve the workspace an invite token points to, or null if the token can't
  * be used to join: it's unknown/expired, the workspace is deleted, or it's a
- * home workspace (group id === its owner's user id), which is private. Callers
- * treat null as an invalid token.
+ * home workspace (workspace id === its owner's user id), which is private.
+ * Callers treat null as an invalid token.
  */
 export async function getJoinableWorkspaceFromInvite(
 	db: Kysely<DB>,
 	token: string
 ): Promise<{ id: string; name: string } | null> {
 	const workspace = await db
-		.selectFrom('group')
+		.selectFrom('workspace')
 		.select(['id', 'name', 'isDeleted'])
 		.where('inviteSecret', '=', token)
 		.executeTakeFirst()

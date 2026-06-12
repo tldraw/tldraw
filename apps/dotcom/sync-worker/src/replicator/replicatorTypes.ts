@@ -1,16 +1,16 @@
 import { TlaFile, TlaRow } from '@tldraw/dotcom-shared'
 import { stringEnum } from '@tldraw/utils'
 
-export type Topic = `user:${string}` | `file:${string}` | `group:${string}`
+export type Topic = `user:${string}` | `file:${string}` | `workspace:${string}`
 
 export const replicatedTables = stringEnum(
 	'user',
 	'file',
 	'file_state',
 	'user_mutation_number',
-	'group',
-	'group_user',
-	'group_file'
+	'workspace',
+	'workspace_user',
+	'workspace_file'
 )
 export type ReplicatedTable = keyof typeof replicatedTables
 

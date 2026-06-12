@@ -169,6 +169,28 @@ const migrations: Migration[] = [
 		// so we need to regenerate the subscription changes for all existing history rows
 		fn: _updateHistorySubscriptions,
 	},
+	{
+		id: '008_rename_group_topics_to_workspace',
+		// The postgres data model renamed group → workspace (zero-cache migration
+		// 035), which changes the table names, the groupId/owningGroupId column
+		// names, and the `group:` topic prefix. History rows store serialized
+		// changes under the old names, which new code can't replay, so drop them
+		// and force every user DO to re-register and refetch from postgres:
+		//  * empty history → getResumeType returns 'reboot' for any stale lsn
+		//  * no active_user rows → resumeSequence fails, forcing re-registration
+		//  * null lsn → registerUser waits for the first post-boot commit, whose
+		//    lsn is newer than any user's stale lsn
+		// Re-registration re-seeds each user's topic_subscription edges with
+		// `workspace:` topics; rewrite the existing rows anyway so edges for users
+		// who don't reconnect soon don't linger with a dead prefix.
+		sql: `
+			DELETE FROM history;
+			DELETE FROM active_user;
+			UPDATE topic_subscription SET fromTopic = 'workspace:' || substr(fromTopic, 7) WHERE fromTopic LIKE 'group:%';
+			UPDATE topic_subscription SET toTopic = 'workspace:' || substr(toTopic, 7) WHERE toTopic LIKE 'group:%';
+			UPDATE meta SET lsn = NULL;
+		`,
+	},
 ]
 
 function _updateHistorySubscriptions(sqlite: SqlStorage) {

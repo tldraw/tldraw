@@ -1,4 +1,4 @@
-import { TlaFileState, TlaGroupFile, TlaGroupUser, TlaRow } from '@tldraw/dotcom-shared'
+import { TlaFileState, TlaRow, TlaWorkspaceFile, TlaWorkspaceUser } from '@tldraw/dotcom-shared'
 import { ReplicationEvent, Topic } from './replicatorTypes'
 
 /**
@@ -57,36 +57,36 @@ export function getSubscriptionChanges(changes: Array<{ row: TlaRow; event: Repl
 				}
 				break
 			}
-			case 'group_user': {
-				const userGroup = change.row as TlaGroupUser
-				const userTopic: Topic = `user:${userGroup.userId}`
-				const groupTopic: Topic = `group:${userGroup.groupId}`
+			case 'workspace_user': {
+				const userWorkspace = change.row as TlaWorkspaceUser
+				const userTopic: Topic = `user:${userWorkspace.userId}`
+				const workspaceTopic: Topic = `workspace:${userWorkspace.workspaceId}`
 				if (change.event.command === 'insert') {
-					// User joins a group - create subscription from user to group
-					newSubscriptions.push({ fromTopic: userTopic, toTopic: groupTopic })
+					// User joins a workspace - create subscription from user to workspace
+					newSubscriptions.push({ fromTopic: userTopic, toTopic: workspaceTopic })
 				} else if (change.event.command === 'delete') {
-					// User leaves a group - remove subscription from user to group
-					removedSubscriptions.push({ fromTopic: userTopic, toTopic: groupTopic })
+					// User leaves a workspace - remove subscription from user to workspace
+					removedSubscriptions.push({ fromTopic: userTopic, toTopic: workspaceTopic })
 				}
 				break
 			}
-			case 'group_file': {
-				const fileGroup = change.row as TlaGroupFile
-				const fileTopic: Topic = `file:${fileGroup.fileId}`
-				const groupTopic: Topic = `group:${fileGroup.groupId}`
+			case 'workspace_file': {
+				const fileWorkspace = change.row as TlaWorkspaceFile
+				const fileTopic: Topic = `file:${fileWorkspace.fileId}`
+				const workspaceTopic: Topic = `workspace:${fileWorkspace.workspaceId}`
 				if (change.event.command === 'insert') {
-					// File is added to group - create subscription from group to file
-					newSubscriptions.push({ fromTopic: groupTopic, toTopic: fileTopic })
+					// File is added to workspace - create subscription from workspace to file
+					newSubscriptions.push({ fromTopic: workspaceTopic, toTopic: fileTopic })
 				} else if (change.event.command === 'delete') {
-					// File is removed from group - remove subscription from group to file
-					removedSubscriptions.push({ fromTopic: groupTopic, toTopic: fileTopic })
+					// File is removed from workspace - remove subscription from workspace to file
+					removedSubscriptions.push({ fromTopic: workspaceTopic, toTopic: fileTopic })
 				}
 				break
 			}
 			// IMPORTANT: If you make changes to this function, we might need to add a replicator migration
 			// to update the history table's subscription changes columns.
 			default:
-				// Only file_state, group_user, and group_file changes affect subscriptions
+				// Only file_state, workspace_user, and workspace_file changes affect subscriptions
 				break
 		}
 	}

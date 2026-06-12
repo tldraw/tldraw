@@ -81,7 +81,7 @@ export async function requireWriteAccessToFile(
 		const file = await db
 			.selectFrom('file')
 			.select('ownerId')
-			.select('owningGroupId')
+			.select('owningWorkspaceId')
 			.select('shared')
 			.select('sharedLinkType')
 			.where('id', '=', roomId)
@@ -96,9 +96,9 @@ export async function requireWriteAccessToFile(
 			return
 		}
 
-		// If the file is owned by a group, check the user can access its files
-		if (file.owningGroupId) {
-			const role = await getRole(db, auth.userId, file.owningGroupId)
+		// If the file is owned by a workspace, check the user can access its files
+		if (file.owningWorkspaceId) {
+			const role = await getRole(db, auth.userId, file.owningWorkspaceId)
 			if (can(role, 'accessFiles')) {
 				return
 			}

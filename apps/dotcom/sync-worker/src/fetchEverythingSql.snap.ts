@@ -6,12 +6,12 @@ WITH
   legacy_my_own_files AS (SELECT * FROM public."file" WHERE "ownerId" = $1 AND "isDeleted" = false),
   my_file_states AS (SELECT * FROM public."file_state" WHERE "userId" = $1),
   legacy_files_shared_with_me AS (SELECT f.* FROM my_file_states ufs JOIN public."file" f ON f.id = ufs."fileId" WHERE ufs."isFileOwner" = false AND f.shared = true),
-  my_group_ids AS (SELECT "groupId" FROM public."group_user" WHERE "userId" = $1),
-  my_groups AS (SELECT g.* FROM my_group_ids mg JOIN public."group" g ON g.id = mg."groupId" WHERE g."isDeleted" = false),
-  all_group_users AS (SELECT ug.* FROM my_groups mg JOIN public."group_user" ug ON ug."groupId" = mg."id"),
-  group_file_ownership AS (SELECT fg.* FROM my_groups mg JOIN public."group_file" fg ON fg."groupId" = mg."id"),
-  group_files AS (SELECT f.* FROM group_file_ownership gfo JOIN public."file" f ON f.id = gfo."fileId"),
-  all_files AS (SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from group_files)
+  my_workspace_ids AS (SELECT "workspaceId" FROM public."workspace_user" WHERE "userId" = $1),
+  my_workspaces AS (SELECT w.* FROM my_workspace_ids mw JOIN public."workspace" w ON w.id = mw."workspaceId" WHERE w."isDeleted" = false),
+  all_workspace_users AS (SELECT uw.* FROM my_workspaces mw JOIN public."workspace_user" uw ON uw."workspaceId" = mw."id"),
+  workspace_file_ownership AS (SELECT fw.* FROM my_workspaces mw JOIN public."workspace_file" fw ON fw."workspaceId" = mw."id"),
+  workspace_files AS (SELECT f.* FROM workspace_file_ownership wfo JOIN public."file" f ON f.id = wfo."fileId"),
+  all_files AS (SELECT * from legacy_my_own_files UNION SELECT * from legacy_files_shared_with_me UNION SELECT * from workspace_files)
 SELECT
   'user' as "table",
   "allowAnalyticsCookie"::boolean as "0",
@@ -93,7 +93,7 @@ SELECT
   "ownerAvatar"::text as "17",
   "ownerId"::text as "18",
   "ownerName"::text as "19",
-  "owningGroupId"::text as "20",
+  "owningWorkspaceId"::text as "20",
   "publishedSlug"::text as "21",
   "sharedLinkType"::text as "22",
   "thumbnail"::text as "23",
@@ -101,7 +101,7 @@ SELECT
 FROM all_files
 UNION ALL
 SELECT
-  'group_file' as "table",
+  'workspace_file' as "table",
   null::boolean as "0",
   null::boolean as "1",
   null::boolean as "2",
@@ -117,8 +117,8 @@ SELECT
   null::bigint as "12",
   null::bigint as "13",
   "fileId"::text as "14",
-  "groupId"::text as "15",
-  "index"::text as "16",
+  "index"::text as "15",
+  "workspaceId"::text as "16",
   null::text as "17",
   null::text as "18",
   null::text as "19",
@@ -127,10 +127,10 @@ SELECT
   null::text as "22",
   null::text as "23",
   null::text as "24"
-FROM group_file_ownership
+FROM workspace_file_ownership
 UNION ALL
 SELECT
-  'group' as "table",
+  'workspace' as "table",
   "isDeleted"::boolean as "0",
   null::boolean as "1",
   null::boolean as "2",
@@ -156,10 +156,10 @@ SELECT
   null::text as "22",
   null::text as "23",
   null::text as "24"
-FROM my_groups
+FROM my_workspaces
 UNION ALL
 SELECT
-  'group_user' as "table",
+  'workspace_user' as "table",
   null::boolean as "0",
   null::boolean as "1",
   null::boolean as "2",
@@ -174,18 +174,18 @@ SELECT
   "updatedAt"::bigint as "11",
   null::bigint as "12",
   null::bigint as "13",
-  "groupId"::text as "14",
-  "index"::text as "15",
-  "role"::text as "16",
-  "userColor"::text as "17",
-  "userId"::text as "18",
-  "userName"::text as "19",
+  "index"::text as "14",
+  "role"::text as "15",
+  "userColor"::text as "16",
+  "userId"::text as "17",
+  "userName"::text as "18",
+  "workspaceId"::text as "19",
   null::text as "20",
   null::text as "21",
   null::text as "22",
   null::text as "23",
   null::text as "24"
-FROM all_group_users
+FROM all_workspace_users
 UNION ALL
 SELECT
   'user_mutation_number' as "table",
@@ -298,19 +298,19 @@ export const columnNamesByAlias = {
 		'17': 'ownerAvatar',
 		'18': 'ownerId',
 		'19': 'ownerName',
-		'20': 'owningGroupId',
+		'20': 'owningWorkspaceId',
 		'21': 'publishedSlug',
 		'22': 'sharedLinkType',
 		'23': 'thumbnail',
 	},
-	group_file: {
+	workspace_file: {
 		'10': 'createdAt',
 		'11': 'updatedAt',
 		'14': 'fileId',
-		'15': 'groupId',
-		'16': 'index',
+		'15': 'index',
+		'16': 'workspaceId',
 	},
-	group: {
+	workspace: {
 		'0': 'isDeleted',
 		'10': 'createdAt',
 		'11': 'updatedAt',
@@ -318,15 +318,15 @@ export const columnNamesByAlias = {
 		'15': 'inviteSecret',
 		'16': 'name',
 	},
-	group_user: {
+	workspace_user: {
 		'10': 'createdAt',
 		'11': 'updatedAt',
-		'14': 'groupId',
-		'15': 'index',
-		'16': 'role',
-		'17': 'userColor',
-		'18': 'userId',
-		'19': 'userName',
+		'14': 'index',
+		'15': 'role',
+		'16': 'userColor',
+		'17': 'userId',
+		'18': 'userName',
+		'19': 'workspaceId',
 	},
 	user_mutation_number: {
 		'10': 'mutationNumber',

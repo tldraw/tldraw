@@ -3,12 +3,12 @@ import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaFile,
 	TlaFileState,
-	TlaGroup,
-	TlaGroupFile,
-	TlaGroupUser,
 	TlaRow,
 	TlaRowPartial,
 	TlaUser,
+	TlaWorkspace,
+	TlaWorkspaceFile,
+	TlaWorkspaceUser,
 } from './tlaSchema'
 
 export interface Snapshot {
@@ -119,9 +119,9 @@ export interface ZStoreData {
 	file: TlaFile[]
 	file_state: TlaFileState[]
 	user: TlaUser[]
-	group: TlaGroup[]
-	group_user: TlaGroupUser[]
-	group_file: TlaGroupFile[]
+	workspace: TlaWorkspace[]
+	workspace_user: TlaWorkspaceUser[]
+	workspace_file: TlaWorkspaceFile[]
 	lsn: string
 }
 
@@ -139,7 +139,13 @@ export interface ZRowDeleteOrUpdate {
 	event: 'update' | 'delete'
 }
 
-export type ZTable = 'file' | 'file_state' | 'user' | 'group' | 'group_user' | 'group_file'
+export type ZTable =
+	| 'file'
+	| 'file_state'
+	| 'user'
+	| 'workspace'
+	| 'workspace_user'
+	| 'workspace_file'
 
 export type ZEvent = 'insert' | 'update' | 'delete'
 
@@ -159,8 +165,8 @@ export type ZErrorCode = keyof typeof ZErrorCode
 
 // increment this to force clients to reload
 // e.g. if we make backwards-incompatible changes to the schema
-export const Z_PROTOCOL_VERSION = 3
-export const MIN_Z_PROTOCOL_VERSION = 3
+export const Z_PROTOCOL_VERSION = 4
+export const MIN_Z_PROTOCOL_VERSION = 4
 
 export type ZServerSentPacket =
 	| {

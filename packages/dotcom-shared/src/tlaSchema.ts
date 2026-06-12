@@ -64,7 +64,7 @@ export const file = table('file')
 		id: string(),
 		name: string(),
 		ownerId: string().optional(),
-		owningGroupId: string().optional(),
+		owningWorkspaceId: string().optional(),
 		ownerName: string(),
 		ownerAvatar: string(),
 		thumbnail: string(),
@@ -81,7 +81,7 @@ export const file = table('file')
 	})
 	.primaryKey('id')
 
-export const group = table('group')
+export const workspace = table('workspace')
 	.columns({
 		id: string(),
 		name: string(),
@@ -92,10 +92,10 @@ export const group = table('group')
 	})
 	.primaryKey('id')
 
-export const group_user = table('group_user')
+export const workspace_user = table('workspace_user')
 	.columns({
 		userId: string(),
-		groupId: string(),
+		workspaceId: string(),
 		createdAt: number(),
 		updatedAt: number(),
 		role: enumeration<Role>(),
@@ -103,17 +103,17 @@ export const group_user = table('group_user')
 		userColor: string(),
 		index: string<IndexKey>(),
 	})
-	.primaryKey('userId', 'groupId')
+	.primaryKey('userId', 'workspaceId')
 
-export const group_file = table('group_file')
+export const workspace_file = table('workspace_file')
 	.columns({
 		fileId: string(),
-		groupId: string(),
+		workspaceId: string(),
 		createdAt: number(),
 		updatedAt: number(),
 		index: string<IndexKey>().optional(),
 	})
-	.primaryKey('fileId', 'groupId')
+	.primaryKey('fileId', 'workspaceId')
 
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
@@ -126,10 +126,10 @@ const fileRelationships = relationships(file, ({ one, many }) => ({
 		destField: ['fileId'],
 		destSchema: file_state,
 	}),
-	groupFiles: many({
+	workspaceFiles: many({
 		sourceField: ['id'],
 		destField: ['fileId'],
-		destSchema: group_file,
+		destSchema: workspace_file,
 	}),
 }))
 
@@ -146,57 +146,57 @@ const fileStateRelationships = relationships(file_state, ({ one }) => ({
 	}),
 }))
 
-const groupRelationships = relationships(group, ({ many }) => ({
-	groupMembers: many({
+const workspaceRelationships = relationships(workspace, ({ many }) => ({
+	workspaceMembers: many({
 		sourceField: ['id'],
-		destField: ['groupId'],
-		destSchema: group_user,
+		destField: ['workspaceId'],
+		destSchema: workspace_user,
 	}),
-	groupFiles: many({
+	workspaceFiles: many({
 		sourceField: ['id'],
-		destField: ['groupId'],
-		destSchema: group_file,
+		destField: ['workspaceId'],
+		destSchema: workspace_file,
 	}),
 }))
 
-const groupUserRelationships = relationships(group_user, ({ one, many }) => ({
+const workspaceUserRelationships = relationships(workspace_user, ({ one, many }) => ({
 	user: one({
 		sourceField: ['userId'],
 		destField: ['id'],
 		destSchema: user,
 	}),
-	group: one({
-		sourceField: ['groupId'],
+	workspace: one({
+		sourceField: ['workspaceId'],
 		destField: ['id'],
-		destSchema: group,
+		destSchema: workspace,
 	}),
-	groupFiles: many({
-		sourceField: ['groupId'],
-		destField: ['groupId'],
-		destSchema: group_file,
+	workspaceFiles: many({
+		sourceField: ['workspaceId'],
+		destField: ['workspaceId'],
+		destSchema: workspace_file,
 	}),
-	groupMembers: many({
-		sourceField: ['groupId'],
-		destField: ['groupId'],
-		destSchema: group_user,
+	workspaceMembers: many({
+		sourceField: ['workspaceId'],
+		destField: ['workspaceId'],
+		destSchema: workspace_user,
 	}),
 }))
 
-const groupFileRelationships = relationships(group_file, ({ one, many }) => ({
+const workspaceFileRelationships = relationships(workspace_file, ({ one, many }) => ({
 	file: one({
 		sourceField: ['fileId'],
 		destField: ['id'],
 		destSchema: file,
 	}),
-	group: one({
-		sourceField: ['groupId'],
+	workspace: one({
+		sourceField: ['workspaceId'],
 		destField: ['id'],
-		destSchema: group,
+		destSchema: workspace,
 	}),
-	groupMembers: many({
-		sourceField: ['groupId'],
-		destField: ['groupId'],
-		destSchema: group_user,
+	workspaceMembers: many({
+		sourceField: ['workspaceId'],
+		destField: ['workspaceId'],
+		destSchema: workspace_user,
 	}),
 }))
 
@@ -212,28 +212,34 @@ export type TlaUserPartial = Partial<TlaUser> & {
 	id: TlaUser['id']
 }
 
-export type TlaGroupPartial = Partial<TlaGroup> & {
-	id: TlaGroup['id']
+export type TlaWorkspacePartial = Partial<TlaWorkspace> & {
+	id: TlaWorkspace['id']
 }
 
-export type TlaGroupUserPartial = Partial<TlaGroupUser> & {
-	userId: TlaGroupUser['userId']
-	groupId: TlaGroupUser['groupId']
+export type TlaWorkspaceUserPartial = Partial<TlaWorkspaceUser> & {
+	userId: TlaWorkspaceUser['userId']
+	workspaceId: TlaWorkspaceUser['workspaceId']
 }
 
-export type TlaGroupFilePartial = Partial<TlaGroupFile> & {
-	fileId: TlaGroupFile['fileId']
-	groupId: TlaGroupFile['groupId']
+export type TlaWorkspaceFilePartial = Partial<TlaWorkspaceFile> & {
+	fileId: TlaWorkspaceFile['fileId']
+	workspaceId: TlaWorkspaceFile['workspaceId']
 }
 
-export type TlaRow = TlaFile | TlaFileState | TlaUser | TlaGroup | TlaGroupUser | TlaGroupFile
+export type TlaRow =
+	| TlaFile
+	| TlaFileState
+	| TlaUser
+	| TlaWorkspace
+	| TlaWorkspaceUser
+	| TlaWorkspaceFile
 export type TlaRowPartial =
 	| TlaFilePartial
 	| TlaFileStatePartial
 	| TlaUserPartial
-	| TlaGroupPartial
-	| TlaGroupUserPartial
-	| TlaGroupFilePartial
+	| TlaWorkspacePartial
+	| TlaWorkspaceUserPartial
+	| TlaWorkspaceFilePartial
 export interface TlaUserMutationNumber {
 	userId: string
 	mutationNumber: number
@@ -244,7 +250,7 @@ export const immutableColumns = {
 	file: new Set<keyof TlaFile>([
 		'ownerName',
 		'ownerAvatar',
-		'owningGroupId',
+		'owningWorkspaceId',
 		'publishedSlug',
 		'ownerId',
 		'thumbnail',
@@ -270,21 +276,21 @@ export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
 	user: TlaUser
-	group: TlaGroup
-	group_user: TlaGroupUser
-	group_file: TlaGroupFile
+	workspace: TlaWorkspace
+	workspace_user: TlaWorkspaceUser
+	workspace_file: TlaWorkspaceFile
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state, group, group_user, group_file],
+	tables: [user, file, file_state, workspace, workspace_user, workspace_file],
 	relationships: [
 		fileRelationships,
 		fileStateRelationships,
-		groupRelationships,
-		groupUserRelationships,
-		groupFileRelationships,
+		workspaceRelationships,
+		workspaceUserRelationships,
+		workspaceFileRelationships,
 	],
 })
 
@@ -292,11 +298,14 @@ export type TlaSchema = typeof schema
 export type TlaUser = Row<typeof schema.tables.user>
 export type TlaFile = Row<typeof schema.tables.file>
 export type TlaFileState = Row<typeof schema.tables.file_state>
-export type TlaGroup = Row<typeof schema.tables.group>
-export type TlaGroupUser = Row<typeof schema.tables.group_user>
-export type TlaGroupFile = Row<typeof schema.tables.group_file>
+export type TlaWorkspace = Row<typeof schema.tables.workspace>
+export type TlaWorkspaceUser = Row<typeof schema.tables.workspace_user>
+export type TlaWorkspaceFile = Row<typeof schema.tables.workspace_file>
 
 // Permissions are now handled via Synced Queries in queries.ts
 
+// These flag values are persisted in user.flags rows from the original groups
+// rollout, so they keep the old "groups" naming even though the data model is
+// now named "workspace".
 export const TlaFlags = stringEnum('groups_backend', 'groups_frontend')
 export type TlaFlags = keyof typeof TlaFlags

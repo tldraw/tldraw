@@ -18,8 +18,8 @@ export function useActiveWorkspaceId() {
 		() => {
 			if (fileSlug) {
 				const file = app.getFile(fileSlug)
-				if (file?.owningGroupId && app.getWorkspaceMembership(file.owningGroupId)) {
-					return file.owningGroupId
+				if (file?.owningWorkspaceId && app.getWorkspaceMembership(file.owningWorkspaceId)) {
+					return file.owningWorkspaceId
 				}
 			}
 			return app.getHomeWorkspaceId()
