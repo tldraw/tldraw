@@ -27,6 +27,12 @@ describe('§13 JSON values', () => {
 		expect(T.jsonValue.isValid({ deep: { deeper: [1n] } })).toBe(false)
 	})
 
+	it('[J2] rejects sparse arrays, whose holes read as undefined', () => {
+		// eslint-disable-next-line no-sparse-arrays
+		expect(T.jsonValue.isValid([1, , 3])).toBe(false)
+		expect(T.jsonValue.isValid(new Array(3))).toBe(false)
+	})
+
 	it('[J3] accepts null-prototype and structured-clone objects as plain objects', () => {
 		expect(T.jsonValue.isValid(Object.create(null))).toBe(true)
 		expect(T.jsonValue.isValid(structuredClone({ a: 1 }))).toBe(true)
