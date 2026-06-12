@@ -236,7 +236,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 
 ## 25. `TLSyncRoom` — messaging and broadcast (RB)
 
-- **RB1** Data messages (`patch`, `push_result`) to a session are debounced: the first is sent immediately wrapped as `{ type: 'data', data: [msg] }`; messages within the following `DATA_MESSAGE_DEBOUNCE_INTERVAL` (1000/60 ms) are buffered and flushed together as one `data` message.
+- **RB1** Data messages (`patch`, `push_result`) to a session are debounced: the first is sent immediately wrapped as `{ type: 'data', data: [msg] }`; messages within the following `DATA_MESSAGE_DEBOUNCE_INTERVAL` (1000/60 ms) are buffered and flushed together as one `data` message. The array handed to the socket is not mutated afterwards, so sockets may serialize lazily.
 - **RB2** Non-data messages flush any buffered data messages first, preserving order — except `pong`, which skips the flush.
 - **RB3** Sending to a session whose socket is closed cancels that session.
 - **RB4** Broadcasts are migrated per session (MG1); a migration failure rejects only the affected session, and the broadcast proceeds for the others.

@@ -379,8 +379,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		session.debounceTimer = null
 
 		if (session.outstandingDataMessages.length > 0) {
-			session.socket.sendMessage({ type: 'data', data: session.outstandingDataMessages })
-			session.outstandingDataMessages.length = 0
+			// hand the buffer over and start a fresh one, rather than truncating in
+			// place, so sockets that defer serialization don't see an emptied array
+			const data = session.outstandingDataMessages
+			session.outstandingDataMessages = []
+			session.socket.sendMessage({ type: 'data', data })
 		}
 	}
 

@@ -1777,6 +1777,37 @@ describe('25. Messaging and broadcast (RB)', () => {
 		})
 	})
 
+	it('[RB1] the flushed data array is handed off to the socket, not truncated in place', () => {
+		vi.useFakeTimers()
+		const { room, socketB } = setupTwoSessions()
+		const newPage = makePage('page_3', 'v1')
+
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 1,
+			diff: { [newPage.id]: ['put', newPage] },
+		} as TLPushRequest<TLRecord>)
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 2,
+			diff: { [newPage.id]: ['patch', { name: ['put', 'v2'] }] },
+		} as TLPushRequest<TLRecord>)
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 3,
+			diff: { [newPage.id]: ['patch', { name: ['put', 'v3'] }] },
+		} as TLPushRequest<TLRecord>)
+
+		// capture the raw message object without cloning, as a socket that defers
+		// serialization would observe it
+		const rawMessages: any[] = []
+		socketB.sendMessage.mockImplementation((msg: any) => rawMessages.push(msg))
+		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
+
+		expect(rawMessages).toHaveLength(1)
+		expect(rawMessages[0].data).toHaveLength(2)
+	})
+
 	it('[RB2] a custom message flushes buffered data messages first, preserving order', () => {
 		vi.useFakeTimers()
 		const { room, socketB } = setupTwoSessions()
