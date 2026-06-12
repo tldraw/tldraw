@@ -112,6 +112,22 @@ describe('§10 Objects', () => {
 		)
 	})
 
+	it('[O8] known-good validation detects changes to unknown properties', () => {
+		const validator = T.object({ a: T.number }).allowUnknownProperties()
+
+		const knownGood = validator.validate({ a: 1, extra: 1 })
+		expect(validator.validateUsingKnownGoodVersion(knownGood, { a: 1, extra: 1 })).toBe(knownGood)
+
+		const changed = { a: 1, extra: 2 }
+		expect(validator.validateUsingKnownGoodVersion(knownGood, changed)).toBe(changed)
+
+		const added = { a: 1, extra: 1, more: true }
+		expect(validator.validateUsingKnownGoodVersion(knownGood, added)).toBe(added)
+
+		const removed = { a: 1 }
+		expect(validator.validateUsingKnownGoodVersion(knownGood, removed)).toBe(removed)
+	})
+
 	it('[O7] known-good validation detects removed keys', () => {
 		const validator = T.object({ a: T.number, b: T.number.optional() })
 		const knownGood = validator.validate({ a: 1, b: 2 })

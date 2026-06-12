@@ -765,6 +765,19 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 							throw new ValidationError(`Unexpected property`, [key])
 						}
 					}
+				} else if (!isDifferent) {
+					// Unknown properties are not validated, but changes to them still
+					// count as changes: otherwise the stale known-good object would be
+					// returned and callers would drop the update.
+					for (const key of Object.keys(newValue)) {
+						if (
+							!hasOwnProperty(config, key) &&
+							!Object.is(getOwnProperty(knownGoodValue, key), getOwnProperty(newValue, key))
+						) {
+							isDifferent = true
+							break
+						}
+					}
 				}
 
 				for (const key of Object.keys(knownGoodValue)) {
