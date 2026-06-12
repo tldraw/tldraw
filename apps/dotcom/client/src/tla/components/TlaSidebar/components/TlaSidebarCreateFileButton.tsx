@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TldrawUiButton, tltime } from 'tldraw'
 import { routes } from '../../../../routeDefs'
@@ -12,18 +12,17 @@ import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { messages } from './sidebar-shared'
 import styles from '../sidebar.module.css'
 
-export function TlaSidebarCreateFileButton() {
+export function useHandleSidebarCreateFile() {
 	const app = useApp()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
-	const createTitle = useMsg(messages.create)
 	// Create the file in whichever space is currently active (the home group when
 	// in "My files", otherwise the selected workspace).
 	const activeWorkspaceId = useActiveWorkspaceId()
 
 	const rCanCreate = useRef(true)
 
-	const handleSidebarCreate = async () => {
+	return useCallback(async () => {
 		if (!rCanCreate.current) return
 		const res = await app.createFile({ workspaceId: activeWorkspaceId })
 		if (res.ok) {
@@ -43,7 +42,12 @@ export function TlaSidebarCreateFileButton() {
 				toggleMobileSidebar(false)
 			}
 		}
-	}
+	}, [app, navigate, trackEvent, activeWorkspaceId])
+}
+
+export function TlaSidebarCreateFileButton() {
+	const createTitle = useMsg(messages.create)
+	const handleSidebarCreate = useHandleSidebarCreateFile()
 
 	return (
 		<TldrawUiButton

@@ -17,7 +17,7 @@ import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
-import { TlaSidebarWorkspaceList } from './components/TlaSidebarWorkspaceList'
+import { TlaSidebarWorkspaceSwitcher } from './components/TlaSidebarWorkspaceSwitcher'
 import styles from './sidebar.module.css'
 
 export const TlaSidebar = memo(function TlaSidebar() {
@@ -71,8 +71,8 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarWorkspaceLink />
 					<TlaSidebarCreateFileButton />
 				</div>
-				{/* The workspace list is fixed; only the file list below it scrolls. */}
-				{workspacesEnabled && <TlaSidebarWorkspaceList />}
+				{/* The workspace switcher is fixed; only the file list below it scrolls. */}
+				{workspacesEnabled && <TlaSidebarWorkspaceSwitcher />}
 				{workspacesEnabled && <div className={styles.sidebarDivider} />}
 				<div className={styles.sidebarContent}>
 					<div className={styles.sidebarContentInner}>
