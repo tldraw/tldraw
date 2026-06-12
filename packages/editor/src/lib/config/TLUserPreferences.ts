@@ -28,6 +28,7 @@ export interface TLUserPreferences {
 	enhancedA11yMode?: boolean | null
 	inputMode?: 'trackpad' | 'mouse' | null
 	isZoomDirectionInverted?: boolean | null
+	rememberLastUsedStyles?: boolean | null
 }
 
 interface UserDataSnapshot {
@@ -59,6 +60,7 @@ export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUser
 	enhancedA11yMode: T.boolean.nullable().optional(),
 	inputMode: T.literalEnum('trackpad', 'mouse').nullable().optional(),
 	isZoomDirectionInverted: T.boolean.nullable().optional(),
+	rememberLastUsedStyles: T.boolean.nullable().optional(),
 })
 
 const Versions = {
@@ -75,6 +77,7 @@ const Versions = {
 	AddPointerPeripheral: 11,
 	RenameShowUiLabelsToEnhancedA11yMode: 12,
 	AddZoomDirectionInverted: 13,
+	AddRememberLastUsedStyles: 14,
 } as const
 
 const CURRENT_VERSION = Math.max(...Object.values(Versions))
@@ -129,6 +132,10 @@ function migrateSnapshot(data: { version: number; user: any }) {
 		data.user.isZoomDirectionInverted = false
 	}
 
+	if (data.version < Versions.AddRememberLastUsedStyles) {
+		data.user.rememberLastUsedStyles = true
+	}
+
 	// finally
 	data.version = CURRENT_VERSION
 }
@@ -180,6 +187,7 @@ export const defaultUserPreferences = Object.freeze({
 	colorScheme: 'light',
 	inputMode: null,
 	isZoomDirectionInverted: false,
+	rememberLastUsedStyles: true,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */

@@ -53,6 +53,7 @@ export class UserPreferencesManager {
 			enhancedA11yMode: this.getEnhancedA11yMode(),
 			inputMode: this.getInputMode(),
 			isZoomDirectionInverted: this.getIsZoomDirectionInverted(),
+			rememberLastUsedStyles: this.getRememberLastUsedStyles(),
 		}
 	}
 
@@ -140,6 +141,13 @@ export class UserPreferencesManager {
 		return (
 			this.user.userPreferences.get().isZoomDirectionInverted ??
 			defaultUserPreferences.isZoomDirectionInverted
+		)
+	}
+
+	@computed getRememberLastUsedStyles() {
+		return (
+			this.user.userPreferences.get().rememberLastUsedStyles ??
+			defaultUserPreferences.rememberLastUsedStyles
 		)
 	}
 }

@@ -32,6 +32,7 @@ describe('UserPreferencesManager', () => {
 		isPasteAtCursorMode: false,
 		inputMode: null,
 		isZoomDirectionInverted: false,
+		rememberLastUsedStyles: true,
 		...overrides,
 	})
 
@@ -237,6 +238,7 @@ describe('UserPreferencesManager', () => {
 				isDynamicResizeMode: mockUserPreferences.isDynamicSizeMode,
 				inputMode: mockUserPreferences.inputMode,
 				isZoomDirectionInverted: mockUserPreferences.isZoomDirectionInverted,
+				rememberLastUsedStyles: mockUserPreferences.rememberLastUsedStyles,
 			})
 		})
 
@@ -487,6 +489,24 @@ describe('UserPreferencesManager', () => {
 			it('should return true when inverted', () => {
 				userPreferencesAtom.set({ ...mockUserPreferences, isZoomDirectionInverted: true })
 				expect(userPreferencesManager.getIsZoomDirectionInverted()).toBe(true)
+			})
+		})
+
+		describe('getRememberLastUsedStyles', () => {
+			it('should return user remember last used styles setting', () => {
+				expect(userPreferencesManager.getRememberLastUsedStyles()).toBe(true)
+			})
+
+			it('should return default when null', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, rememberLastUsedStyles: null })
+				expect(userPreferencesManager.getRememberLastUsedStyles()).toBe(
+					defaultUserPreferences.rememberLastUsedStyles
+				)
+			})
+
+			it('should return false when disabled', () => {
+				userPreferencesAtom.set({ ...mockUserPreferences, rememberLastUsedStyles: false })
+				expect(userPreferencesManager.getRememberLastUsedStyles()).toBe(false)
 			})
 		})
 	})
