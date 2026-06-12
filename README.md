@@ -32,6 +32,12 @@ tldraw provides a feature-complete infinite canvas engine designed to be the fou
 - **DOM canvas** — web rendering supports anything the browser supports, including embedded websites from YouTube, Figma, GitHub, [and more](https://tldraw.dev/sdk-features/embed-shape)
 - **Broad support** — works in any browser across desktop, touch screens, tablets, and mobile devices
 
+## Who's using tldraw
+
+The tldraw SDK powers canvas experiences in products from Google, Shopify, BlackRock, Autodesk, ClickUp, Replit, Google Stitch, Luma, Runway, Padlet, Mobbin, Jam, Craft, Honeycomb, SchoolAI, Brisk, CADChat, bigpi, Genio, Pollination, Legendkeeper, Matilda workspace, Aries, AlAI, Dirac, and many more.
+
+See our [showcase](https://tldraw.dev/showcase) for case studies on how teams build with tldraw.
+
 ## Quick start
 
 Install the tldraw package:
