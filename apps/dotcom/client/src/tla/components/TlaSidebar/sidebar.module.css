@@ -397,6 +397,7 @@
 	color: var(--tla-color-text-1);
 	padding: 0px 8px;
 	text-align: left;
+	text-decoration: none;
 }
 
 .sidebarFeedbackButton > span[role='img'] {
@@ -430,9 +431,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	padding-right: 6px;
-	padding-left: 2px;
-	padding: 0px 0px 0px 8px;
+	padding: 0px 4px 0px 8px;
 	gap: 0px;
 	text-align: left;
 	cursor: pointer;
@@ -444,7 +443,7 @@
 }
 
 .sidebarUserSettingsTrigger::after {
-	inset: 2px 8px 2px 0px;
+	inset: 2px 0px;
 }
 
 .sidebarUserSettingsName {
@@ -456,7 +455,14 @@
 }
 
 .sidebarUserSettingsIcon {
-	margin-right: 16px;
+	width: 36px;
+	height: 36px;
+	min-width: 0;
+	margin-inline-end: -6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
 	color: var(--tla-color-text-3);
 }
 
@@ -482,48 +488,6 @@
 
 .sidebarUserSettingsTrigger[data-state='open'] .sidebarUserSettingsIcon {
 	visibility: visible;
-}
-
-/* Help menu */
-
-.sidebarHelpMenuTrigger {
-	height: 28px;
-	width: 28px;
-	display: flex;
-	flex-shrink: 0;
-	align-items: center;
-	justify-content: center;
-	position: relative;
-	cursor: pointer;
-	border: none;
-	color: var(--tla-color-text-3);
-	background: none;
-	margin-right: -2px;
-	min-width: 0;
-}
-
-.sidebarHelpMenuTrigger::after {
-	border-radius: 100%;
-	inset: 4px;
-	visibility: visible;
-	border: 1px solid var(--tla-color-border);
-	background-color: transparent;
-	opacity: 1;
-}
-
-@media (hover: hover) {
-	.helpMenuTrigger:hover::after {
-		background-color: var(--tla-color-hover-1);
-	}
-}
-
-.sidebarHelpMenuTrigger[data-state='open']::after {
-	background-color: var(--tla-color-hover-1);
-	visibility: visible;
-}
-
-.sidebarHelpMenuTrigger:focus-visible {
-	outline-offset: 2px;
 }
 
 /* ---------------- File link section --------------- */
@@ -617,7 +581,6 @@
 	flex-shrink: 0;
 	position: relative;
 	z-index: 1;
-	margin: -1.5px;
 }
 
 .sidebarWorkspaceSwitcherMenu {
@@ -691,6 +654,10 @@
 
 .sidebarWorkspaceSwitcherItemLabel {
 	flex: 0 1 auto;
+	display: flex;
+	width: 100%;
+	align-items: center;
+	gap: 6px;
 	min-width: 0;
 	white-space: nowrap;
 	overflow: hidden;

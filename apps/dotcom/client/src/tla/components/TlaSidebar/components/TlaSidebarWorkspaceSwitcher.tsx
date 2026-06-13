@@ -18,7 +18,7 @@ import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
 	home: { defaultMessage: 'Home' },
-	createWorkspace: { defaultMessage: 'Create a workspace +' },
+	createWorkspace: { defaultMessage: 'Create workspace' },
 	newBoard: { defaultMessage: 'New board' },
 	inviteTeammates: { defaultMessage: 'Invite teammates' },
 	workspaceSettings: { defaultMessage: 'Workspace settings' },
@@ -124,6 +124,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 								data-testid="tla-create-workspace-menu-item"
 							>
 								<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
+									<TlaIcon icon="plus" />
 									{createWorkspaceLbl}
 								</span>
 							</_DropdownMenu.Item>

@@ -12,7 +12,6 @@ import {
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
 import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
-import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
@@ -80,16 +79,11 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					</div>
 				</div>
 				<div className={styles.sidebarBottomArea}>
+					<div className={styles.sidebarDivider} />
 					<TlaSidebarDotDevLink />
-					{workspacesEnabled && (
-						<>
-							<div className={styles.sidebarDivider} />
-							<TlaSidebarFeedbackButton />
-						</>
-					)}
+					<TlaSidebarFeedbackButton />
 					<div className={styles.sidebarBottomRow}>
 						<TlaUserSettingsMenu />
-						<TlaSidebarHelpMenu />
 					</div>
 				</div>
 			</div>

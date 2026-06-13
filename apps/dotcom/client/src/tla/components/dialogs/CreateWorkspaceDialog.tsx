@@ -31,6 +31,8 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
+		// This dialog is opened from a Radix dropdown item. Native autoFocus can run
+		// before the dropdown finishes closing and restores focus to its trigger.
 		const timeout = window.setTimeout(() => {
 			inputRef.current?.focus()
 		}, 0)

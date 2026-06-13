@@ -21,8 +21,8 @@ export class Sidebar {
 		this.createFileButton = this.page.getByTestId('tla-create-file')
 		this.createWorkspaceButton = this.page.getByTestId('tla-create-workspace')
 		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
-		this.helpMenu = this.page.getByTestId('tla-sidebar-help-menu-trigger')
-		this.themeButton = this.page.getByTestId('dialog-sub.help menu color-scheme-button')
+		this.helpMenu = this.userSettingsMenu
+		this.themeButton = this.page.getByTestId('dialog-sub.theme-button')
 		this.darkModeButton = this.page.getByText('Dark')
 		this.signOutButton = this.page.getByTestId('dialog.sign-out')
 	}
