@@ -8,6 +8,9 @@
   "043973ec1f": {
     "translation": "Still having trouble? {GetHelpLink}"
   },
+  "04a2dd56d6": {
+    "translation": "Invite teammates"
+  },
   "05f43078e9": {
     "translation": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
   },
@@ -146,17 +149,11 @@
   "49ee308734": {
     "translation": "Name"
   },
-  "4c84b0cfaa": {
-    "translation": "Create a workspace +"
-  },
   "4d0d3ddec9": {
     "translation": "This site uses cookies to make the app work and to collect analytics."
   },
   "4d1c8263ba": {
     "translation": "Reload"
-  },
-  "4dab36ac83": {
-    "translation": "More options"
   },
   "5097d89907": {
     "translation": "Unsupported diagram, will generate SVG instead"
@@ -190,6 +187,9 @@
   },
   "5bec508475": {
     "translation": "Old browser detected. Please update your browser to use this app."
+  },
+  "5bff3c9c88": {
+    "translation": "My workspace"
   },
   "5c6fe42bc2": {
     "translation": "Revoke this link and create a new one."
@@ -332,6 +332,9 @@
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
   },
+  "8cf04a9734": {
+    "translation": "Home"
+  },
   "8eb2c00e96": {
     "translation": "Shared with you"
   },
@@ -470,6 +473,9 @@
   },
   "c6a00f137b": {
     "translation": "Invite"
+  },
+  "c7d7403714": {
+    "translation": "New board"
   },
   "c87aacf567": {
     "translation": "Sign out"

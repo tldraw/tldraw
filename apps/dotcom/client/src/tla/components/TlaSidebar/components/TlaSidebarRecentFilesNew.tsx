@@ -7,7 +7,6 @@ import { ReorderCursor } from './ReorderCursor'
 import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarFileSection } from './TlaSidebarFileSection'
-import styles from '../sidebar.module.css'
 
 /**
  * The scrollable lower region of the sidebar: the files of whichever space is
@@ -19,12 +18,6 @@ export function TlaSidebarRecentFilesNew() {
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const isHome = activeWorkspaceId === homeWorkspaceId
-
-	const membership = useValue(
-		'active workspace',
-		() => app.getWorkspaceMembership(activeWorkspaceId),
-		[app, activeWorkspaceId]
-	)
 
 	const results = useValue(
 		'active workspace files',
@@ -54,26 +47,11 @@ export function TlaSidebarRecentFilesNew() {
 		[app, activeWorkspaceId]
 	)
 
-	const workspaceName = isHome ? <F defaultMessage="My files" /> : membership?.group.name
-
-	// The header names which space's files are shown. Without any workspaces
-	// there is nothing to disambiguate, so it's omitted.
-	const hasWorkspaces = useValue(
-		'has workspaces',
-		() => app.getWorkspaceMemberships().some((m) => m.groupId !== homeWorkspaceId),
-		[app, homeWorkspaceId]
-	)
-
 	return (
 		<div
 			data-drop-target-id={isHome ? homeWorkspaceId : `workspace:${activeWorkspaceId}`}
 			data-workspace-id={activeWorkspaceId}
 		>
-			{hasWorkspaces && (
-				<div className={styles.sidebarActiveWorkspaceTitle} data-testid="tla-active-workspace-name">
-					{workspaceName}
-				</div>
-			)}
 			{results.pinnedFiles.length ? (
 				<TlaSidebarFileSection
 					iconLeft="pin"

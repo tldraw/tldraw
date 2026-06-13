@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiDialogBody,
@@ -14,6 +14,7 @@ import styles from './dialogs.module.css'
 const messages = defineMessages({
 	title: { defaultMessage: 'Create workspace' },
 	name: { defaultMessage: 'Name' },
+	defaultName: { defaultMessage: 'My workspace' },
 	placeholder: { defaultMessage: 'Workspace name' },
 	cancel: { defaultMessage: 'Cancel' },
 	create: { defaultMessage: 'Create workspace' },
@@ -26,8 +27,20 @@ interface CreateWorkspaceDialogProps {
 }
 
 export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDialogProps) {
-	const [workspaceName, setWorkspaceName] = useState('')
+	const defaultName = useMsg(messages.defaultName)
+	const [workspaceName, setWorkspaceName] = useState(defaultName)
 	const placeholderMsg = useMsg(messages.placeholder)
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	useEffect(() => {
+		// This dialog is opened from a Radix dropdown item. Native autoFocus can run
+		// before the dropdown finishes closing and restores focus to its trigger.
+		const timeout = window.setTimeout(() => {
+			inputRef.current?.focus()
+			inputRef.current?.select()
+		}, 0)
+		return () => window.clearTimeout(timeout)
+	}, [])
 
 	const handleCreate = () => {
 		const trimmedName = workspaceName.trim()
@@ -51,6 +64,7 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 						<F {...messages.name} />
 					</label>
 					<TldrawUiInput
+						ref={inputRef}
 						className={styles.dialogInput}
 						value={workspaceName}
 						onValueChange={setWorkspaceName}
