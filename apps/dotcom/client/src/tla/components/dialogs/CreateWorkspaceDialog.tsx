@@ -14,6 +14,7 @@ import styles from './dialogs.module.css'
 const messages = defineMessages({
 	title: { defaultMessage: 'Create workspace' },
 	name: { defaultMessage: 'Name' },
+	defaultName: { defaultMessage: 'My workspace' },
 	placeholder: { defaultMessage: 'Workspace name' },
 	cancel: { defaultMessage: 'Cancel' },
 	create: { defaultMessage: 'Create workspace' },
@@ -26,7 +27,8 @@ interface CreateWorkspaceDialogProps {
 }
 
 export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDialogProps) {
-	const [workspaceName, setWorkspaceName] = useState('')
+	const defaultName = useMsg(messages.defaultName)
+	const [workspaceName, setWorkspaceName] = useState(defaultName)
 	const placeholderMsg = useMsg(messages.placeholder)
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -35,6 +37,7 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 		// before the dropdown finishes closing and restores focus to its trigger.
 		const timeout = window.setTimeout(() => {
 			inputRef.current?.focus()
+			inputRef.current?.select()
 		}, 0)
 		return () => window.clearTimeout(timeout)
 	}, [])
