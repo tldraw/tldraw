@@ -146,9 +146,6 @@
   "49ee308734": {
     "translation": "Name"
   },
-  "4c84b0cfaa": {
-    "translation": "Create a workspace +"
-  },
   "4d0d3ddec9": {
     "translation": "This site uses cookies to make the app work and to collect analytics."
   },
@@ -187,6 +184,9 @@
   },
   "5bec508475": {
     "translation": "Old browser detected. Please update your browser to use this app."
+  },
+  "5bff3c9c88": {
+    "translation": "My workspace"
   },
   "5c6fe42bc2": {
     "translation": "Revoke this link and create a new one."

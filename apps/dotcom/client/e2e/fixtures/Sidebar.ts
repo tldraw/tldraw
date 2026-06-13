@@ -23,7 +23,7 @@ export class Sidebar {
 		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
 		this.helpMenu = this.userSettingsMenu
 		this.themeButton = this.page.getByTestId('dialog-sub.theme-button')
-		this.darkModeButton = this.page.getByText('Dark')
+		this.darkModeButton = this.page.getByRole('menuitemcheckbox', { name: 'Dark', exact: true })
 		this.signOutButton = this.page.getByTestId('dialog.sign-out')
 	}
 

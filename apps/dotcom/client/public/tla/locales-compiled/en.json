@@ -297,12 +297,6 @@
       "value": "Name"
     }
   ],
-  "4c84b0cfaa": [
-    {
-      "type": 0,
-      "value": "Create a workspace +"
-    }
-  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -389,6 +383,12 @@
     {
       "type": 0,
       "value": "Old browser detected. Please update your browser to use this app."
+    }
+  ],
+  "5bff3c9c88": [
+    {
+      "type": 0,
+      "value": "My workspace"
     }
   ],
   "5c6fe42bc2": [

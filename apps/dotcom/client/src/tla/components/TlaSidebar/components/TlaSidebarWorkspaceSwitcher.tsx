@@ -214,6 +214,7 @@ function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
 			component: ({ onClose }) => (
 				<WorkspaceSettingsDialog workspaceId={workspaceId} onClose={onClose} />
 			),
+			preventBackgroundClose: true,
 		})
 		trackEvent('open-share-menu', { source: 'sidebar' })
 	}, [addDialog, workspaceId, trackEvent])
