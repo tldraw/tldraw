@@ -93,6 +93,22 @@ describe('SelectionForegroundOverlayUtil', () => {
 			expect(idsSet.has('selection_fg:bottom_right_rotate')).toBe(true)
 		})
 
+		it.each(['top_left', 'top', 'top_left_rotate'] as const)(
+			'keeps selection foreground overlays visible while pointing the %s handle',
+			(handle) => {
+				editor.updateInstanceState({ isCoarsePointer: false })
+				editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
+				editor.select(ids.box1)
+				editor.pointerDown(0, 0, { target: 'selection', handle })
+
+				const overlays = editor.overlays.getCurrentOverlays()
+				const idsSet = new Set(overlays.map((o) => o.id))
+				expect(idsSet.has('selection_fg:top_left')).toBe(true)
+				expect(idsSet.has('selection_fg:top')).toBe(true)
+				expect(idsSet.has('selection_fg:top_left_rotate')).toBe(true)
+			}
+		)
+
 		it('includes mobile rotate handle for coarse pointer', () => {
 			editor.updateInstanceState({ isCoarsePointer: true })
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 60, h: 60 } }])
