@@ -561,7 +561,9 @@
 	display: flex;
 	flex-direction: column;
 	flex: 0 0 auto;
-	padding: 8px 12px;
+	justify-content: center;
+	padding: 0px 12px;
+	height: 48px;
 }
 
 .sidebarWorkspaceSwitcherTrigger {
@@ -569,8 +571,8 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	gap: 4px;
 	height: 36px;
+	gap: 6px;
 	background: none;
 	border: none;
 	cursor: pointer;
@@ -608,24 +610,60 @@
 }
 
 .sidebarWorkspaceSwitcherMenu {
-	min-width: calc(var(--tla-sidebar-width) - 24px);
-	max-width: calc(var(--tla-sidebar-width) - 24px);
+	min-width: calc(var(--tla-sidebar-width) - 4px);
+	max-width: calc(var(--tla-sidebar-width) - 4px);
 	max-height: 70vh;
 	overflow-y: auto;
-	padding: 4px;
+	padding: 2px 0px;
 }
 
 .sidebarWorkspaceSwitcherItem {
 	position: relative;
 	display: flex;
 	align-items: center;
-	height: 36px;
-	padding: 0px 8px;
-	border-radius: 4px;
+	height: 40px;
+	padding: 0px 12px;
 	color: var(--tla-color-text-1);
 	cursor: pointer;
 	outline: none;
 	min-width: 0;
+	z-index: 1;
+}
+
+.sidebarWorkspaceSwitcherMenu > * {
+	margin-top: -4px;
+	margin-bottom: -4px;
+}
+
+.sidebarWorkspaceSwitcherMenu > *:hover {
+	z-index: 2;
+}
+
+.sidebarWorkspaceSwitcherMenu > *:nth-of-type(1) {
+	margin-top: 0px;
+}
+
+.sidebarWorkspaceSwitcherMenu > *:nth-last-of-type(1) {
+	margin-bottom: 0px;
+}
+
+.sidebarWorkspaceSwitcherItem::after {
+	content: '';
+	position: absolute;
+	inset: 4px 6px;
+	opacity: 0;
+	pointer-events: none;
+	border-radius: 4px;
+}
+
+.sidebarWorkspaceSwitcherItem[data-highlighted]::after {
+	opacity: 1;
+	background-color: var(--tla-color-hover-1);
+}
+
+.sidebarWorkspaceSwitcherItem[data-highlighted]::after {
+	opacity: 1;
+	background-color: var(--tla-color-hover-2);
 }
 
 .sidebarWorkspaceSwitcherItemLabel {
@@ -634,14 +672,6 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-}
-
-.sidebarWorkspaceSwitcherItem[data-highlighted] {
-	background-color: var(--tla-color-hover-1);
-}
-
-.sidebarWorkspaceSwitcherItem[data-active='true'] {
-	background-color: var(--tla-color-hover-2);
 }
 
 .sidebarWorkspaceSwitcherItemCreate {

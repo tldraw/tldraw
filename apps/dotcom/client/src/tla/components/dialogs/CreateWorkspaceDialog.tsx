@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiDialogBody,
@@ -28,6 +28,11 @@ interface CreateWorkspaceDialogProps {
 export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDialogProps) {
 	const [workspaceName, setWorkspaceName] = useState('')
 	const placeholderMsg = useMsg(messages.placeholder)
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	useEffect(() => {
+		inputRef.current?.focus()
+	}, [])
 
 	const handleCreate = () => {
 		const trimmedName = workspaceName.trim()
@@ -51,6 +56,7 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 						<F {...messages.name} />
 					</label>
 					<TldrawUiInput
+						ref={inputRef}
 						className={styles.dialogInput}
 						value={workspaceName}
 						onValueChange={setWorkspaceName}
