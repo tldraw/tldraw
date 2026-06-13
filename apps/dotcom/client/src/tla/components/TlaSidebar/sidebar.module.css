@@ -422,7 +422,8 @@
 	background: none;
 	border: none;
 	position: relative;
-	height: 40px;
+	height: 36px;
+	min-height: 36px;
 	flex-grow: 2;
 	display: flex;
 	align-items: center;
@@ -507,6 +508,7 @@
 	visibility: visible;
 	border: 1px solid var(--tla-color-border);
 	background-color: transparent;
+	opacity: 1;
 }
 
 @media (hover: hover) {
@@ -568,7 +570,7 @@
 	flex-direction: row;
 	align-items: center;
 	gap: 4px;
-	height: 32px;
+	height: 36px;
 	background: none;
 	border: none;
 	cursor: pointer;
