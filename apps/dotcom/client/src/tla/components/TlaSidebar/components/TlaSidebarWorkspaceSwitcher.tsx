@@ -49,70 +49,87 @@ export function TlaSidebarWorkspaceSwitcher() {
 		[app, activeWorkspaceId]
 	)
 
-	const [, onOpenChange] = useMenuIsOpen('sidebar-workspace-switcher')
+	const [isOpen, onOpenChange] = useMenuIsOpen('sidebar-workspace-switcher')
 	const switchToWorkspace = useSwitchToWorkspace()
 	const handleCreateWorkspace = useCreateWorkspaceDialog()
 	const createWorkspaceLbl = useMsg(messages.createWorkspace)
 
 	return (
 		<>
-			<div className={styles.sidebarWorkspaceSwitcher}>
-				<_DropdownMenu.Root onOpenChange={onOpenChange} modal>
-					<_DropdownMenu.Trigger asChild>
-						<button
-							className={classNames(
-								styles.sidebarWorkspaceSwitcherTrigger,
-								styles.hoverable,
-								'tla-text_ui__regular'
-							)}
-							data-testid="tla-workspace-switcher"
-						>
-							<span
-								className={classNames(styles.sidebarWorkspaceSwitcherLabel, 'notranslate')}
-								data-testid="tla-active-workspace-name"
+			<div className={styles.sidebarSection}>
+				{isOpen && (
+					<div
+						className={styles.sidebarWorkspaceSwitcherOverlay}
+						onPointerDown={(e) => {
+							e.preventDefault()
+							e.stopPropagation()
+							onOpenChange(false)
+						}}
+					/>
+				)}
+				<div className={styles.sidebarWorkspaceSwitcherRoot}>
+					<_DropdownMenu.Root open={isOpen} onOpenChange={onOpenChange} modal>
+						<_DropdownMenu.Trigger asChild>
+							<button
+								className={classNames(
+									styles.sidebarWorkspaceSwitcherTrigger,
+									styles.hoverable,
+									'tla-text_ui__regular'
+								)}
+								data-testid="tla-workspace-switcher"
 							>
-								{isHome ? homeLbl : (activeWorkspaceName ?? homeLbl)}
-							</span>
-							<TlaIcon icon="chevron-up-down" className={styles.sidebarWorkspaceSwitcherChevrons} />
-						</button>
-					</_DropdownMenu.Trigger>
-					<_DropdownMenu.Content
-						className={classNames('tlui-menu', styles.sidebarWorkspaceSwitcherMenu)}
-						side="bottom"
-						align="start"
-						sideOffset={4}
-						alignOffset={-4}
-						collisionPadding={8}
-					>
-						<WorkspaceSwitcherItem
-							isActive={isHome}
-							onSelect={() => switchToWorkspace(homeWorkspaceId)}
-							testId="tla-workspace-switcher-home"
+								<span
+									className={classNames(styles.sidebarWorkspaceSwitcherLabel, 'notranslate')}
+									data-testid="tla-active-workspace-name"
+								>
+									{isHome ? homeLbl : (activeWorkspaceName ?? homeLbl)}
+								</span>
+								<TlaIcon
+									icon="chevron-up-down"
+									className={styles.sidebarWorkspaceSwitcherChevrons}
+								/>
+							</button>
+						</_DropdownMenu.Trigger>
+						<_DropdownMenu.Content
+							className={classNames('tlui-menu', styles.sidebarWorkspaceSwitcherMenu)}
+							side="bottom"
+							align="start"
+							sideOffset={4}
+							alignOffset={-4}
+							collisionPadding={8}
 						>
-							{homeLbl}
-						</WorkspaceSwitcherItem>
-						{workspaces.map((g) => (
 							<WorkspaceSwitcherItem
-								key={`workspace-${g.group.id}`}
-								isActive={g.group.id === activeWorkspaceId}
-								onSelect={() => switchToWorkspace(g.group.id)}
+								isActive={isHome}
+								onSelect={() => switchToWorkspace(homeWorkspaceId)}
+								testId="tla-workspace-switcher-home"
 							>
-								{g.group.name}
+								{homeLbl}
 							</WorkspaceSwitcherItem>
-						))}
-						<_DropdownMenu.Item
-							className={classNames(
-								styles.sidebarWorkspaceSwitcherItem,
-								styles.sidebarWorkspaceSwitcherItemCreate,
-								'tla-text_ui__regular'
-							)}
-							onSelect={handleCreateWorkspace}
-							data-testid="tla-create-workspace-menu-item"
-						>
-							<span className={styles.sidebarWorkspaceSwitcherItemLabel}>{createWorkspaceLbl}</span>
-						</_DropdownMenu.Item>
-					</_DropdownMenu.Content>
-				</_DropdownMenu.Root>
+							{workspaces.map((g) => (
+								<WorkspaceSwitcherItem
+									key={`workspace-${g.group.id}`}
+									isActive={g.group.id === activeWorkspaceId}
+									onSelect={() => switchToWorkspace(g.group.id)}
+								>
+									{g.group.name}
+								</WorkspaceSwitcherItem>
+							))}
+							<_DropdownMenu.Item
+								className={classNames(
+									styles.sidebarWorkspaceSwitcherItem,
+									styles.sidebarWorkspaceSwitcherItemCreate,
+									'tla-text_ui__regular'
+								)}
+								onSelect={handleCreateWorkspace}
+								data-testid="tla-create-workspace-menu-item"
+							>
+								<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
+									{createWorkspaceLbl}
+								</span>
+							</_DropdownMenu.Item>
+						</_DropdownMenu.Content>
+					</_DropdownMenu.Root>
+				</div>
 				{workspaces.length === 0 && (
 					<button
 						className={classNames(
@@ -201,7 +218,7 @@ function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
 	}, [addDialog, workspaceId, trackEvent])
 
 	return (
-		<div className={styles.sidebarWorkspaceActions}>
+		<div className={styles.sidebarSection}>
 			<TlaSidebarActionButton
 				icon="edit-strong"
 				// edit-strong fills its 15px box while the other action icons draw

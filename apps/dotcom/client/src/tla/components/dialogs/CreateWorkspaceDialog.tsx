@@ -31,7 +31,10 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
-		inputRef.current?.focus()
+		const timeout = window.setTimeout(() => {
+			inputRef.current?.focus()
+		}, 0)
+		return () => window.clearTimeout(timeout)
 	}, [])
 
 	const handleCreate = () => {

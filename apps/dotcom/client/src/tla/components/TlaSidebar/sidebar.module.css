@@ -305,7 +305,7 @@
 	border: none;
 	cursor: pointer;
 	position: relative;
-	top: 0.5px;
+	top: 0px;
 	right: -8px;
 	height: 40px;
 	width: 40px;
@@ -555,6 +555,16 @@
 	font-weight: 500;
 }
 
+/* ----------------------------- Shared section ----------------------------- */
+
+.sidebarSection {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 auto;
+	justify-content: center;
+	padding: 6px 12px;
+}
+
 /* --------------- Workspace switcher --------------- */
 
 .sidebarWorkspaceSwitcher {
@@ -572,6 +582,7 @@
 	flex-direction: row;
 	align-items: center;
 	height: 36px;
+	width: 100%;
 	gap: 6px;
 	background: none;
 	border: none;
@@ -615,6 +626,18 @@
 	max-height: 70vh;
 	overflow-y: auto;
 	padding: 2px 0px;
+}
+
+.sidebarWorkspaceSwitcherOverlay {
+	position: absolute;
+	inset: 0;
+	z-index: calc(var(--tl-layer-menus) - 1);
+	pointer-events: all;
+}
+
+.sidebarWorkspaceSwitcherRoot {
+	position: relative;
+	z-index: var(--tl-layer-menus);
 }
 
 .sidebarWorkspaceSwitcherItem {
@@ -693,13 +716,6 @@
 
 .sidebarCreateWorkspaceButton:focus-visible {
 	outline-offset: -2px;
-}
-
-.sidebarWorkspaceActions {
-	display: flex;
-	flex-direction: column;
-	flex: 0 0 auto;
-	padding: 6px 12px;
 }
 
 /* 36px rows whose hover highlight is 32px tall (the .hoverable::after insets
@@ -1058,8 +1074,8 @@
 
 @media (hover: hover) {
 	.sidebarDotDevLink:hover a div {
-		transform: translate(80px, 0px) rotate(180deg);
-		transition: transform 6s ease-in-out 1s;
+		transform: translate(200px, 0px) rotate(180deg);
+		transition: transform 8s ease-in-out 1s;
 	}
 
 	.sidebarDotDevLink:has(a:hover) .sidebarDotDevDismissButton {
