@@ -1,5 +1,5 @@
-import { getRandomName, openNewTab } from '../fixtures/helpers'
-import { expect, test } from '../fixtures/tla-test'
+import { getRandomName, openNewTab } from '../../fixtures/helpers'
+import { expect, test } from '../../fixtures/tla-test'
 
 // The sidebar has a workspace switcher dropdown at the top ("Home" + the
 // user's workspaces + a create item), action rows for the active non-home

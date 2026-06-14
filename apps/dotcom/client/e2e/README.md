@@ -7,7 +7,7 @@ Issue #9185 is moving dotcom tests toward user scenarios instead of isolated UI 
 - Name scenario files `*.scenario.spec.ts`. They run in the `chromium-scenarios` project with `fullyParallel: true`.
 - Run the ordinary local/CI dotcom suite with `yarn e2e-dotcom` from the repo root, or `yarn workspace dotcom e2e` from this workspace. This runs the scenario project only.
 - Run only the scenario suite without clearing stored auth with `yarn workspace dotcom e2e-scenarios`.
-- Run the preserved legacy smoke suite with `yarn e2e-dotcom-smoke` from the repo root, or `yarn workspace dotcom e2e-smoke` from this workspace. It still uses the reset-based `chromium` project and is intentionally separate from the default runner.
+- Run the preserved legacy smoke suite with `yarn e2e-dotcom-smoke` from the repo root, or `yarn workspace dotcom e2e-smoke` from this workspace. These specs live in `tests/smoke`, still use the reset-based `chromium` project, and are intentionally separate from the default runner. They do not run on CI; migrate coverage out of `tests/smoke` into scenario tests as the follow-ups below are unblocked.
 - Run both projects together with `yarn e2e-dotcom-all` from the repo root, or `yarn workspace dotcom e2e-all` from this workspace, when comparing old and new coverage.
 - Use named actors from the fixture: `owner`, `member`, and `visitor`.
 - Use `scenario.name('label')` for files and workspaces so test data is unique to the run.

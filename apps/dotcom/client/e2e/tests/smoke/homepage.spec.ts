@@ -1,5 +1,5 @@
-import { expectBeforeAndAfterReload, getRandomName, sleep } from '../fixtures/helpers'
-import { expect, test } from '../fixtures/tla-test'
+import { expectBeforeAndAfterReload, getRandomName, sleep } from '../../fixtures/helpers'
+import { expect, test } from '../../fixtures/tla-test'
 
 test.beforeEach(async ({ editor }) => {
 	await editor.isLoaded()

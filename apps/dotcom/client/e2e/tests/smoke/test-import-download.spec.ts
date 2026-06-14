@@ -1,6 +1,6 @@
 import fs from 'fs'
-import { USERS } from '../consts'
-import { expect, test } from '../fixtures/tla-test'
+import { USERS } from '../../consts'
+import { expect, test } from '../../fixtures/tla-test'
 
 function validateTldrJson(json: unknown) {
 	expect(json).toMatchObject({

@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { getRandomName, openNewTab } from '../fixtures/helpers'
-import { expect, test } from '../fixtures/tla-test'
+import { getRandomName, openNewTab } from '../../fixtures/helpers'
+import { expect, test } from '../../fixtures/tla-test'
 
 test.beforeEach(async ({ context }) => {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write'])

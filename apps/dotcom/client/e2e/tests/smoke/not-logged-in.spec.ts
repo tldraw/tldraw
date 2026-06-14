@@ -1,5 +1,5 @@
-import { USERS } from '../consts'
-import { expect, test } from '../fixtures/tla-test'
+import { USERS } from '../../consts'
+import { expect, test } from '../../fixtures/tla-test'
 
 // Don't use stored credentials
 test.use({ storageState: { cookies: [], origins: [] } })

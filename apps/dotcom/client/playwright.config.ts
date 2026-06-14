@@ -3,6 +3,9 @@ import { defineConfig, devices } from '@playwright/test'
 import dotenv from 'dotenv'
 
 const scenarioTestMatch = /.*\.scenario\.spec\.ts/
+// Legacy smoke specs live in e2e/tests/smoke and are intentionally separate from the default
+// scenario runner. See e2e/README.md.
+const smokeTestMatch = /tests\/smoke\/.*\.spec\.ts/
 
 /**
  * Read environment variables from file.
@@ -49,7 +52,7 @@ export default defineConfig({
 		{ name: 'global-staging-setup', testMatch: /global-staging\.setup\.ts/ },
 		{
 			name: 'chromium',
-			testIgnore: scenarioTestMatch,
+			testMatch: smokeTestMatch,
 			use: {
 				...devices['Desktop Chrome'],
 			},
