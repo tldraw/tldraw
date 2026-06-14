@@ -1,8 +1,8 @@
 import path from 'path'
 import { defineConfig, devices } from '@playwright/test'
-import { DOTCOM_DEV_READINESS_TIMEOUT_MS } from '../zero-cache/dev-env'
 
-const CI_WEB_SERVER_TIMEOUT_MS = DOTCOM_DEV_READINESS_TIMEOUT_MS * 3 + 60_000
+// Must cover three 180s readiness checks in `wait-for-dev-readiness.ts` plus a Vite startup buffer.
+const CI_WEB_SERVER_TIMEOUT_MS = 600_000
 
 /**
  * Read environment variables from file.
