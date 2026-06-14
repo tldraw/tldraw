@@ -1,6 +1,9 @@
 import path from 'path'
 import { defineConfig, devices } from '@playwright/test'
 
+// Must cover `DOTCOM_DEV_APP_READY_TIMEOUT_MS` in zero-cache/dev-env.ts plus a Vite startup buffer.
+const CI_WEB_SERVER_TIMEOUT_MS = 840_000
+
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -100,6 +103,6 @@ export default defineConfig({
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
-		timeout: process.env.CI ? 120_000 : 300_000,
+		timeout: process.env.CI ? CI_WEB_SERVER_TIMEOUT_MS : 300_000,
 	},
 })
