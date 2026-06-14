@@ -12,7 +12,7 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"dev": "./dev.sh",
+		"dev": "yarn run -T tsx ./dev.ts",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"clean": "rm -rf .wrangler/state",
