@@ -176,8 +176,7 @@ async function main() {
 
 	spawnManaged('schema watch', 'yarn', ['bundle-schema:watch'])
 	spawnManaged('Zero', 'yarn', [
-		'run',
-		'-T',
+		'exec',
 		'nodemon',
 		'--watch',
 		'./.schema.js',
