@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
-import { DOTCOM_DEV_PORTS } from './dev-env'
+import { DOTCOM_DEV_PORTS, DOTCOM_DEV_READINESS_TIMEOUT_MS } from './dev-env'
 
 function delay(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 async function waitForOk(url: string, label: string) {
-	const deadline = Date.now() + 180_000
+	const deadline = Date.now() + DOTCOM_DEV_READINESS_TIMEOUT_MS
 	let attempts = 0
 
 	while (Date.now() < deadline) {
@@ -28,7 +28,7 @@ async function waitForOk(url: string, label: string) {
 }
 
 async function waitForResponse(url: string, label: string) {
-	const deadline = Date.now() + 180_000
+	const deadline = Date.now() + DOTCOM_DEV_READINESS_TIMEOUT_MS
 	let attempts = 0
 
 	while (Date.now() < deadline) {

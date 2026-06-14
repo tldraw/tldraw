@@ -14,6 +14,7 @@ export const DOTCOM_DEV_PORTS = {
 	syncWorker: 8787,
 } as const
 
+export const DOTCOM_DEV_READINESS_TIMEOUT_MS = 180_000
 export const DOTCOM_DEV_DOCKER_PROJECT_PREFIX = 'tldraw_dotcom_'
 export const DOTCOM_DEV_POSTGRES_VOLUME_SUFFIX = '_tlapp_pgdata'
 export const DOTCOM_DEV_ZERO_REPLICA_FILE_PREFIX = 'tldraw-dotcom-zero-'
@@ -85,11 +86,11 @@ export function sanitizeBranchKey(value: string | null | undefined, fallback = '
 		.replace(/^-+|-+$/g, '')
 		.replace(/-+/g, '-')
 
-	const key: string = sanitized || sanitizeBranchKey(fallback, 'local')
-	if (key.length <= MAX_BRANCH_KEY_LENGTH) return key
+	if (!sanitized) return sanitizeBranchKey(fallback, 'local')
+	if (sanitized === raw && sanitized.length <= MAX_BRANCH_KEY_LENGTH) return sanitized
 
 	const hash = createHash('sha1').update(raw).digest('hex').slice(0, 8)
-	const prefix = key.slice(0, MAX_BRANCH_KEY_LENGTH - hash.length - 1).replace(/-+$/g, '')
+	const prefix = sanitized.slice(0, MAX_BRANCH_KEY_LENGTH - hash.length - 1).replace(/-+$/g, '')
 	return `${prefix}-${hash}`
 }
 

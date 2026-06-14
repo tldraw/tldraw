@@ -9,20 +9,31 @@ import {
 
 describe('dotcom dev env', () => {
 	it('sanitizes branch names for Docker and file paths', () => {
-		expect(sanitizeBranchKey('feature/Zero Dev DX')).toBe('feature-zero-dev-dx')
-		expect(sanitizeBranchKey('STEPHEN+review.fix')).toBe('stephen-review-fix')
+		expect(sanitizeBranchKey('feature/Zero Dev DX')).toMatch(/^feature-zero-dev-dx-[a-f0-9]{8}$/)
+		expect(sanitizeBranchKey('STEPHEN+review.fix')).toMatch(/^stephen-review-fix-[a-f0-9]{8}$/)
 		expect(sanitizeBranchKey('---', 'fallback-ref')).toBe('fallback-ref')
+	})
+
+	it('keeps branch keys distinct when branch names sanitize to the same base', () => {
+		const slash = sanitizeBranchKey('feature/foo')
+		const plus = sanitizeBranchKey('feature+foo')
+		const safe = sanitizeBranchKey('feature-foo')
+
+		expect(slash).toMatch(/^feature-foo-[a-f0-9]{8}$/)
+		expect(plus).toMatch(/^feature-foo-[a-f0-9]{8}$/)
+		expect(safe).toBe('feature-foo')
+		expect(new Set([slash, plus, safe]).size).toBe(3)
 	})
 
 	it('falls back to the short commit SHA when there is no branch name', () => {
 		expect(
 			getBranchInfoFromValues({
 				branchName: '',
-				shortCommitSha: 'ABC1234',
+				shortCommitSha: 'abc1234',
 			})
 		).toEqual({
 			branchName: null,
-			shortCommitSha: 'ABC1234',
+			shortCommitSha: 'abc1234',
 			branchKey: 'abc1234',
 		})
 	})
@@ -44,16 +55,17 @@ describe('dotcom dev env', () => {
 				shortCommitSha: 'abc1234',
 			}),
 		})
+		const branchKey = sanitizeBranchKey('feature/Zero Dev DX')
 
-		expect(env.branchKey).toBe('feature-zero-dev-dx')
-		expect(env.composeProjectName).toBe('tldraw_dotcom_feature-zero-dev-dx')
-		expect(env.postgresVolumeName).toBe('tldraw_dotcom_feature-zero-dev-dx_tlapp_pgdata')
+		expect(env.branchKey).toBe(branchKey)
+		expect(env.composeProjectName).toBe(`tldraw_dotcom_${branchKey}`)
+		expect(env.postgresVolumeName).toBe(`tldraw_dotcom_${branchKey}_tlapp_pgdata`)
 		expect(env.zeroEnv).toMatchObject({
-			ZERO_REPLICA_FILE: '/tmp/tldraw-dotcom-zero-feature-zero-dev-dx.db',
+			ZERO_REPLICA_FILE: `/tmp/tldraw-dotcom-zero-${branchKey}.db`,
 			ZERO_NUM_SYNC_WORKERS: '1',
 		})
 		expect(env.wranglerPersistDir).toBe(
-			'/repo/apps/dotcom/sync-worker/.wrangler/state-feature-zero-dev-dx'
+			`/repo/apps/dotcom/sync-worker/.wrangler/state-${branchKey}`
 		)
 	})
 

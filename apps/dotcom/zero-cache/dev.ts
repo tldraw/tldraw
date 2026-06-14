@@ -2,7 +2,7 @@
 import { ChildProcess, spawn } from 'child_process'
 import dotenv from 'dotenv'
 import pg from 'pg'
-import { DOTCOM_DEV_PORTS, getDotcomDevEnv } from './dev-env'
+import { DOTCOM_DEV_PORTS, DOTCOM_DEV_READINESS_TIMEOUT_MS, getDotcomDevEnv } from './dev-env'
 
 const env = getDotcomDevEnv()
 const dotEnv = dotenv.config({ path: env.dockerEnvFile }).parsed ?? {}
@@ -97,7 +97,7 @@ async function waitForPostgres() {
 		childEnv.ZERO_UPSTREAM_DB ??
 		`postgresql://user:password@127.0.0.1:${DOTCOM_DEV_PORTS.postgres}/postgres`
 	const pool = new pg.Pool({ connectionString, max: 1 })
-	const deadline = Date.now() + 90_000
+	const deadline = Date.now() + DOTCOM_DEV_READINESS_TIMEOUT_MS
 	let attempts = 0
 
 	try {
@@ -121,7 +121,7 @@ async function waitForPostgres() {
 }
 
 async function waitForHttpOk(url: string, label: string) {
-	const deadline = Date.now() + 90_000
+	const deadline = Date.now() + DOTCOM_DEV_READINESS_TIMEOUT_MS
 	let attempts = 0
 
 	while (Date.now() < deadline) {
