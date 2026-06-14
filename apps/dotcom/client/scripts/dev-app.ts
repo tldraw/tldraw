@@ -3,6 +3,9 @@ import { pathToFileURL } from 'url'
 import { exec } from '../../../../internal/scripts/lib/exec'
 
 const CLIENT_PORT = 3000
+const SKIPPABLE_PROBE_ERROR_CODES = new Set(['EADDRNOTAVAIL', 'EAFNOSUPPORT'])
+
+type PortProbe = (port: number, host: string) => Promise<void>
 
 function probePort(port: number, host: string) {
 	return new Promise<void>((resolve, reject) => {
@@ -15,15 +18,22 @@ function probePort(port: number, host: string) {
 	})
 }
 
-export async function assertPortFree(port: number, hosts = ['0.0.0.0', '::']) {
+export async function assertPortFree(
+	port: number,
+	hosts = ['0.0.0.0', '::'],
+	probe: PortProbe = probePort
+) {
 	for (const host of hosts) {
 		try {
-			await probePort(port, host)
+			await probe(port, host)
 		} catch (error: any) {
 			if (error?.code === 'EADDRINUSE') {
 				throw new Error(
 					`Port ${port} is already in use. Stop the process using port ${port} before running yarn dev-app.`
 				)
+			}
+			if (SKIPPABLE_PROBE_ERROR_CODES.has(error?.code)) {
+				continue
 			}
 			throw error
 		}

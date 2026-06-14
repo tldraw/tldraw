@@ -9,6 +9,7 @@ const dotEnv = dotenv.config({ path: env.dockerEnvFile }).parsed ?? {}
 const childEnv = {
 	...dotEnv,
 	...process.env,
+	// Branch-scoped dev values intentionally win over shell vars for deterministic local state.
 	...env.zeroEnv,
 }
 
@@ -93,7 +94,8 @@ async function runOnce(name: string, command: string, args: string[]) {
 
 async function waitForPostgres() {
 	const connectionString =
-		childEnv.ZERO_UPSTREAM_DB ?? 'postgresql://user:password@127.0.0.1:6543/postgres'
+		childEnv.ZERO_UPSTREAM_DB ??
+		`postgresql://user:password@127.0.0.1:${DOTCOM_DEV_PORTS.postgres}/postgres`
 	const pool = new pg.Pool({ connectionString, max: 1 })
 	const deadline = Date.now() + 90_000
 	let attempts = 0

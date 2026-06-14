@@ -38,4 +38,29 @@ describe('dev-app script', () => {
 			`Port ${port} is already in use`
 		)
 	})
+
+	it('skips unavailable host families when checking the client port', async () => {
+		const calls: string[] = []
+
+		await expect(
+			assertPortFree(3000, ['::', '0.0.0.0'], async (_port, host) => {
+				calls.push(host)
+				if (host === '::') {
+					throw Object.assign(new Error('IPv6 is not available'), {
+						code: 'EADDRNOTAVAIL',
+					})
+				}
+			})
+		).resolves.toBeUndefined()
+
+		expect(calls).toEqual(['::', '0.0.0.0'])
+	})
+
+	it('rejects unexpected port probe errors', async () => {
+		await expect(
+			assertPortFree(3000, ['0.0.0.0'], async () => {
+				throw Object.assign(new Error('Unexpected probe error'), { code: 'EPERM' })
+			})
+		).rejects.toThrow('Unexpected probe error')
+	})
 })
