@@ -1,0 +1,736 @@
+/* ----------------------------------------------------------------------------
+ * tldraw OS desktop styles. BEM only, single-level nesting, no hard-coded
+ * colors/sizes (all tokens). Hover is always gated behind @media (hover: hover)
+ * per the intel-frontend rules.
+ *
+ * Layout: the .desktop element fills the full viewport inside the existing
+ * TLA shell. Children stack as siblings:
+ *   .desktop__canvas      the tldraw canvas + wallpaper (z: 0)
+ *   .desktop__minimized-layer  minimized chips over launchers (z: 1)
+ *   .desktop__windows     pointer-events: none overlay holding windows (z: 2)
+ *
+ * Each .desktop-window inside .desktop__windows reclaims pointer events.
+ * --------------------------------------------------------------------------*/
+
+/* ----------------------------------------------------------------------------
+ * 1. Tokens
+ * --------------------------------------------------------------------------*/
+
+.desktop {
+	--tla-desktop-menubar-height: 26px;
+	--tla-color-desktop-bg: hsl(214, 32%, 88%);
+	--tla-color-desktop-menubar-bg: hsl(0, 0%, 100%);
+	--tla-color-desktop-menubar-fg: hsl(0, 0%, 10%);
+	--tla-color-desktop-menubar-border: hsl(0, 0%, 8%);
+	--tla-color-desktop-fg: hsl(214, 24%, 38%);
+	--tla-color-desktop-window-chrome: hsl(0, 0%, 98%);
+	--tla-color-desktop-window-chrome-fg: hsl(0, 0%, 12%);
+	--tla-color-desktop-window-border: hsl(0, 0%, 8%);
+	--tla-color-desktop-window-body: hsl(0, 0%, 100%);
+	--tla-color-desktop-titlebar-stripe: hsl(0, 0%, 60%);
+	--tla-color-desktop-control-fg: hsl(0, 0%, 8%);
+	--tla-color-desktop-control-bg: hsl(0, 0%, 100%);
+	--tla-color-desktop-hover: hsla(0, 0%, 0%, 0.06);
+	--tla-color-desktop-launcher-fg: hsl(214, 24%, 18%);
+	--tla-shadow-desktop-window: 4px 4px 0 0 hsla(0, 0%, 0%, 0.85);
+	--tla-shadow-desktop-window-focused: 6px 6px 0 0 hsla(0, 0%, 0%, 0.95);
+	--tla-radius-desktop-window: 6px;
+}
+
+.tla-theme__dark .desktop {
+	--tla-color-desktop-bg: hsl(214, 20%, 12%);
+	--tla-color-desktop-menubar-bg: hsl(0, 0%, 8%);
+	--tla-color-desktop-menubar-fg: hsl(0, 0%, 96%);
+	--tla-color-desktop-menubar-border: hsl(0, 0%, 96%);
+	--tla-color-desktop-fg: hsl(214, 12%, 72%);
+	--tla-color-desktop-window-chrome: hsl(0, 0%, 14%);
+	--tla-color-desktop-window-chrome-fg: hsl(0, 0%, 96%);
+	--tla-color-desktop-window-border: hsl(0, 0%, 96%);
+	--tla-color-desktop-window-body: hsl(0, 0%, 8%);
+	--tla-color-desktop-titlebar-stripe: hsl(0, 0%, 40%);
+	--tla-color-desktop-control-fg: hsl(0, 0%, 96%);
+	--tla-color-desktop-control-bg: hsl(0, 0%, 16%);
+	--tla-color-desktop-hover: hsla(0, 0%, 100%, 0.08);
+	--tla-color-desktop-launcher-fg: hsl(0, 0%, 96%);
+	--tla-shadow-desktop-window: 4px 4px 0 0 hsla(0, 0%, 100%, 0.6);
+	--tla-shadow-desktop-window-focused: 6px 6px 0 0 hsla(0, 0%, 100%, 0.85);
+}
+
+/* ----------------------------------------------------------------------------
+ * 2. Desktop layout
+ * --------------------------------------------------------------------------*/
+
+.desktop {
+	position: fixed;
+	inset: 0;
+	overflow: hidden;
+	background: var(--tla-color-desktop-bg);
+	font-family: var(
+		--tla-font-ui,
+		ui-sans-serif,
+		system-ui,
+		-apple-system,
+		'Helvetica Neue',
+		sans-serif
+	);
+	color: var(--tla-color-desktop-launcher-fg);
+}
+
+.desktop__canvas {
+	position: absolute;
+	top: var(--tla-desktop-menubar-height);
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 0;
+}
+
+.desktop__canvas .tldraw__editor,
+.desktop__canvas .tl-container {
+	background: transparent;
+}
+
+.desktop__wallpaper {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+.desktop__wallpaper-ink {
+	position: absolute;
+	inset: 0;
+	background-color: var(--tla-color-desktop-fg);
+	-webkit-mask-image: url('/desktop/hey-dithered.png');
+	mask-image: url('/desktop/hey-dithered.png');
+	-webkit-mask-position: center;
+	mask-position: center;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-size: min(1200px, 80vmin);
+	mask-size: min(1200px, 80vmin);
+	image-rendering: pixelated;
+	opacity: 0.75;
+}
+
+.desktop__minimized-layer {
+	position: absolute;
+	top: var(--tla-desktop-menubar-height);
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1;
+	pointer-events: none;
+}
+
+.desktop__minimized-layer > * {
+	pointer-events: auto;
+}
+
+.desktop__windows {
+	position: absolute;
+	top: var(--tla-desktop-menubar-height);
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 2;
+	pointer-events: none;
+}
+
+.desktop__windows > * {
+	pointer-events: auto;
+}
+
+/* ----------------------------------------------------------------------------
+ * 2b. Menu bar
+ * --------------------------------------------------------------------------*/
+
+.desktop__menubar {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: var(--tla-desktop-menubar-height);
+	z-index: 3;
+	display: flex;
+	line-height: 0;
+	align-items: stretch;
+	padding: 0 4px 0 6px;
+	gap: 8px;
+	background: var(--tla-color-desktop-menubar-bg);
+	color: var(--tla-color-desktop-menubar-fg);
+	border-bottom: 1.5px solid var(--tla-color-desktop-menubar-border);
+	font-size: 12px;
+	font-weight: 600;
+	user-select: none;
+}
+
+.desktop__menubar-logo {
+	display: inline-flex;
+	align-items: center;
+	padding: 0 8px;
+	color: var(--tla-color-desktop-menubar-fg);
+	text-decoration: none;
+	border-radius: 2px;
+}
+
+.desktop__menubar-logo-mark {
+	width: 14px;
+	height: 14px;
+	display: block;
+}
+
+.desktop__menubar-logo-img {
+	height: 14px;
+	width: auto;
+	display: block;
+}
+
+.tla-theme__dark .desktop__menubar-logo-img {
+	filter: invert(1);
+}
+
+@media (hover: hover) {
+	.desktop__menubar-logo:hover .desktop__menubar-logo-img {
+		filter: invert(1);
+	}
+	.tla-theme__dark .desktop__menubar-logo:hover .desktop__menubar-logo-img {
+		filter: invert(0);
+	}
+}
+
+.desktop__menubar-active-title {
+	display: inline-flex;
+	align-items: center;
+	padding: 0 8px;
+	font-weight: 700;
+	color: var(--tla-color-desktop-menubar-fg);
+	white-space: nowrap;
+}
+
+.desktop__menubar-items,
+.desktop__menubar-socials {
+	display: flex;
+	align-items: stretch;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+}
+
+.desktop__menubar-items {
+	flex: 1 1 auto;
+	gap: 0;
+}
+
+.desktop__menubar-socials {
+	flex: 0 0 auto;
+	gap: 0;
+}
+
+.desktop__menubar-item {
+	position: relative;
+	display: flex;
+	align-items: stretch;
+}
+
+.desktop__menubar-link {
+	display: inline-flex;
+	align-items: center;
+	padding: 0 10px;
+	color: inherit;
+	text-decoration: none;
+	border-radius: 2px;
+	white-space: nowrap;
+}
+
+.desktop__menubar-trigger {
+	background: transparent;
+	border: 0;
+	font: inherit;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.desktop__menubar-trigger[data-open] {
+	background: var(--tla-color-desktop-menubar-fg);
+	color: var(--tla-color-desktop-menubar-bg);
+}
+
+.desktop__menubar-caret {
+	width: 8px;
+	height: 5px;
+	display: block;
+}
+
+@media (hover: hover) {
+	.desktop__menubar-logo:hover,
+	.desktop__menubar-link.hoverable:hover {
+		background: var(--tla-color-desktop-menubar-fg);
+		color: var(--tla-color-desktop-menubar-bg);
+	}
+}
+
+.desktop__menubar-dropdown {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	min-width: 240px;
+	max-width: 360px;
+	margin-top: 1px;
+	padding: 4px;
+	display: flex;
+	flex-direction: column;
+	background: var(--tla-color-desktop-menubar-bg);
+	color: var(--tla-color-desktop-menubar-fg);
+	border: 1.5px solid var(--tla-color-desktop-menubar-border);
+	border-radius: 4px;
+	box-shadow: 3px 3px 0 0 hsla(0, 0%, 0%, 0.6);
+	z-index: 4;
+}
+
+.tla-theme__dark .desktop__menubar-dropdown {
+	box-shadow: 3px 3px 0 0 hsla(0, 0%, 100%, 0.4);
+}
+
+.desktop__menubar-dropdown-item {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 6px 10px;
+	color: inherit;
+	text-decoration: none;
+	border-radius: 2px;
+	font-weight: 500;
+	font-size: 12px;
+}
+
+.desktop__menubar-dropdown-label {
+	display: block;
+	line-height: 1.3;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.desktop__menubar-dropdown-desc {
+	display: block;
+	font-weight: 400;
+	font-size: 11px;
+	opacity: 0.7;
+	white-space: normal;
+	line-height: 1.3;
+}
+
+@media (hover: hover) {
+	.desktop__menubar-dropdown-item.hoverable:hover {
+		background: var(--tla-color-desktop-menubar-fg);
+		color: var(--tla-color-desktop-menubar-bg);
+	}
+	.desktop__menubar-dropdown-item.hoverable:hover .desktop__menubar-dropdown-desc {
+		opacity: 0.85;
+	}
+}
+
+/* ----------------------------------------------------------------------------
+ * 3. App launchers (rendered as tldraw shapes via HTMLContainer)
+ * --------------------------------------------------------------------------*/
+
+.desktop-launcher {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	gap: var(--tla-radius-3, 6px);
+	padding: var(--tla-radius-2, 4px);
+	color: var(--tla-color-desktop-launcher-fg);
+	border-radius: var(--tla-radius-2, 4px);
+	cursor: pointer;
+	user-select: none;
+}
+
+.desktop-launcher__icon {
+	width: 56px;
+	height: 56px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--tla-color-desktop-control-bg);
+	color: var(--tla-color-desktop-control-fg);
+	border: 1.5px solid var(--tla-color-desktop-window-border);
+	border-radius: var(--tla-radius-2, 4px);
+	box-shadow: 2px 2px 0 0 hsla(0, 0%, 0%, 0.5);
+}
+
+.tla-theme__dark .desktop-launcher__icon {
+	box-shadow: 2px 2px 0 0 hsla(0, 0%, 100%, 0.4);
+}
+
+.desktop-launcher__glyph {
+	width: 32px;
+	height: 32px;
+	fill: var(--tla-color-desktop-control-fg);
+}
+
+.desktop-launcher__label {
+	font-size: 12px;
+	font-weight: 500;
+	text-align: center;
+	line-height: 1.2;
+	padding: 1px 4px;
+	border-radius: 2px;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	background: transparent;
+}
+
+@media (hover: hover) {
+	.desktop-launcher.hoverable:hover .desktop-launcher__label {
+		background: var(--tla-color-desktop-hover);
+	}
+}
+
+/* ----------------------------------------------------------------------------
+ * 4. Windows
+ * --------------------------------------------------------------------------*/
+
+.desktop-window {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	background: var(--tla-color-desktop-window-body);
+	border: 1.5px solid var(--tla-color-desktop-window-border);
+	border-radius: var(--tla-radius-desktop-window);
+	box-shadow: var(--tla-shadow-desktop-window);
+	overflow: hidden;
+	min-width: 320px;
+	min-height: 200px;
+}
+
+.desktop-window[data-focused] {
+	box-shadow: var(--tla-shadow-desktop-window-focused);
+}
+
+.desktop-window[data-maximized] {
+	transform: none !important;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: auto !important;
+	height: auto !important;
+	border-radius: 0;
+	border-width: 0 0 1.5px 0;
+	box-shadow: none;
+}
+
+.desktop-window__titlebar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 8px;
+	background: var(--tla-color-desktop-window-chrome);
+	color: var(--tla-color-desktop-window-chrome-fg);
+	border-bottom: 1.5px solid var(--tla-color-desktop-window-border);
+	cursor: grab;
+	user-select: none;
+	font-size: 13px;
+	font-weight: 600;
+	position: relative;
+	flex: 0 0 auto;
+}
+
+.desktop-window__titlebar:active {
+	cursor: grabbing;
+}
+
+.desktop-window__title {
+	position: relative;
+	flex: 1 1 auto;
+	text-align: center;
+	padding: 0 var(--tla-radius-4, 8px);
+	background: var(--tla-color-desktop-window-chrome);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	z-index: 1;
+}
+
+.desktop-window__controls {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	z-index: 1;
+}
+
+.desktop-window__control {
+	width: 18px;
+	height: 18px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	margin: 0;
+	background: var(--tla-color-desktop-control-bg);
+	color: var(--tla-color-desktop-control-fg);
+	border: 1.5px solid var(--tla-color-desktop-window-border);
+	border-radius: 3px;
+	cursor: pointer;
+	font: inherit;
+}
+
+.desktop-window__control svg {
+	width: 10px;
+	height: 10px;
+	display: block;
+}
+
+.desktop-window__control svg rect,
+.desktop-window__control svg path {
+	fill: currentColor;
+	stroke: currentColor;
+}
+
+.desktop-window__control svg rect[fill='none'] {
+	fill: none;
+}
+
+@media (hover: hover) {
+	.desktop-window__control:hover {
+		background: var(--tla-color-desktop-hover);
+	}
+}
+
+.desktop-window__remix {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 6px;
+	margin-left: auto;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tla-color-desktop-window-chrome-fg);
+	text-decoration: none;
+	border-radius: 3px;
+	z-index: 1;
+	flex: 0 0 auto;
+	white-space: nowrap;
+}
+
+.desktop-window__remix-mark {
+	width: 12px;
+	height: 12px;
+	display: block;
+}
+
+@media (hover: hover) {
+	.desktop-window__remix:hover {
+		background: var(--tla-color-desktop-hover);
+	}
+}
+
+.desktop-window__body {
+	flex: 1 1 auto;
+	background: var(--tla-color-desktop-window-body);
+	position: relative;
+	overflow: hidden;
+}
+
+.desktop-window__iframe {
+	width: 100%;
+	height: 100%;
+	border: 0;
+	display: block;
+	background: var(--tla-color-desktop-window-body);
+}
+
+.desktop-window__resize-handle {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	width: 16px;
+	height: 16px;
+	cursor: nwse-resize;
+	background: linear-gradient(
+		135deg,
+		transparent 0,
+		transparent 6px,
+		var(--tla-color-desktop-window-border) 6px,
+		var(--tla-color-desktop-window-border) 7px,
+		transparent 7px,
+		transparent 10px,
+		var(--tla-color-desktop-window-border) 10px,
+		var(--tla-color-desktop-window-border) 11px,
+		transparent 11px
+	);
+}
+
+.desktop-window[data-maximized] .desktop-window__resize-handle {
+	display: none;
+}
+
+/* ----------------------------------------------------------------------------
+ * 4a. Desktop floppy widget (top-right of the desktop)
+ * --------------------------------------------------------------------------*/
+
+.desktop-floppy {
+	position: absolute;
+	top: calc(var(--tla-desktop-menubar-height) + 12px);
+	right: 16px;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 10px;
+	background: transparent;
+	color: var(--tla-color-desktop-launcher-fg);
+	border: 0;
+	border-radius: var(--tla-radius-2, 4px);
+	cursor: pointer;
+	font: inherit;
+}
+
+.desktop-floppy__icon {
+	width: 48px;
+	height: 48px;
+	display: block;
+}
+
+.desktop-floppy__label {
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.2;
+	padding: 1px 4px;
+	border-radius: 2px;
+	background: transparent;
+	white-space: nowrap;
+}
+
+@media (hover: hover) {
+	.desktop-floppy.hoverable:hover .desktop-floppy__label {
+		background: var(--tla-color-desktop-hover);
+	}
+}
+
+/* ----------------------------------------------------------------------------
+ * 4b. System dialog (classic Mac modal)
+ * --------------------------------------------------------------------------*/
+
+.desktop__dialog-overlay {
+	position: absolute;
+	top: var(--tla-desktop-menubar-height);
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 5;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: transparent;
+}
+
+.desktop-dialog {
+	min-width: 260px;
+	max-width: 360px;
+	background: var(--tla-color-desktop-window-body);
+	color: var(--tla-color-desktop-window-chrome-fg);
+	border: 1.5px solid var(--tla-color-desktop-window-border);
+	border-radius: var(--tla-radius-desktop-window);
+	box-shadow: 6px 6px 0 0 hsla(0, 0%, 0%, 0.95);
+	padding: 16px 16px 12px;
+	font-size: 13px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.tla-theme__dark .desktop-dialog {
+	box-shadow: 6px 6px 0 0 hsla(0, 0%, 100%, 0.85);
+}
+
+.desktop-dialog__title {
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.desktop-dialog__body {
+	line-height: 1.4;
+}
+
+.desktop-dialog__actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 4px;
+}
+
+.desktop-dialog__button {
+	min-width: 80px;
+	padding: 4px 14px;
+	font: inherit;
+	font-weight: 600;
+	color: var(--tla-color-desktop-control-fg);
+	background: var(--tla-color-desktop-control-bg);
+	border: 1.5px solid var(--tla-color-desktop-window-border);
+	border-radius: 999px;
+	cursor: pointer;
+}
+
+@media (hover: hover) {
+	.desktop-dialog__button:hover {
+		background: var(--tla-color-desktop-hover);
+	}
+}
+
+/* ----------------------------------------------------------------------------
+ * 5. Minimized chip (anchored over the launcher)
+ * --------------------------------------------------------------------------*/
+
+.desktop-minimized-icon {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 18px;
+	height: 18px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: 1.5px solid var(--tla-color-desktop-window-border);
+	background: var(--tla-color-desktop-control-bg);
+	color: var(--tla-color-desktop-control-fg);
+	border-radius: 3px;
+	cursor: pointer;
+	box-shadow: 1px 1px 0 0 hsla(0, 0%, 0%, 0.6);
+}
+
+.tla-theme__dark .desktop-minimized-icon {
+	box-shadow: 1px 1px 0 0 hsla(0, 0%, 100%, 0.4);
+}
+
+.desktop-minimized-icon svg {
+	width: 12px;
+	height: 12px;
+	display: block;
+	fill: currentColor;
+	stroke: currentColor;
+}
+
+.desktop-minimized-icon svg rect[fill='none'] {
+	fill: none;
+}
+
+@media (hover: hover) {
+	.desktop-minimized-icon.hoverable:hover {
+		background: var(--tla-color-desktop-hover);
+	}
+}
