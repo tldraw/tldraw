@@ -1,5 +1,8 @@
 import path from 'path'
 import { defineConfig, devices } from '@playwright/test'
+import { DOTCOM_DEV_READINESS_TIMEOUT_MS } from '../zero-cache/dev-env'
+
+const CI_WEB_SERVER_TIMEOUT_MS = DOTCOM_DEV_READINESS_TIMEOUT_MS * 3 + 60_000
 
 /**
  * Read environment variables from file.
@@ -100,6 +103,6 @@ export default defineConfig({
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
-		timeout: process.env.CI ? 120_000 : 300_000,
+		timeout: process.env.CI ? CI_WEB_SERVER_TIMEOUT_MS : 300_000,
 	},
 })
