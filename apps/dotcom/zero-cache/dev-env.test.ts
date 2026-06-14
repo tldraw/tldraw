@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+	DOTCOM_DEV_APP_READY_TIMEOUT_MS,
+	DOTCOM_DEV_MIGRATIONS_READY_TIMEOUT_MS,
+	DOTCOM_DEV_READINESS_TIMEOUT_MS,
 	buildDotcomDevEnv,
 	getBranchInfoFromValues,
 	getDotcomDevCleanAllTargets,
@@ -45,6 +48,15 @@ describe('dotcom dev env', () => {
 		expect(first).toBe(second)
 		expect(first.length).toBeLessThanOrEqual(48)
 		expect(first).toMatch(/-[a-f0-9]{8}$/)
+	})
+
+	it('allows client readiness to cover Zero startup stages before Vite starts', () => {
+		expect(DOTCOM_DEV_MIGRATIONS_READY_TIMEOUT_MS).toBe(
+			DOTCOM_DEV_READINESS_TIMEOUT_MS * 2 + 60_000
+		)
+		expect(DOTCOM_DEV_APP_READY_TIMEOUT_MS).toBe(
+			DOTCOM_DEV_MIGRATIONS_READY_TIMEOUT_MS + DOTCOM_DEV_READINESS_TIMEOUT_MS * 2
+		)
 	})
 
 	it('derives branch-scoped Zero and Docker values', () => {

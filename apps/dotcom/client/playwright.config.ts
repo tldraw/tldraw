@@ -1,8 +1,8 @@
 import path from 'path'
 import { defineConfig, devices } from '@playwright/test'
 
-// Must cover three 180s readiness checks in `wait-for-dev-readiness.ts` plus a Vite startup buffer.
-const CI_WEB_SERVER_TIMEOUT_MS = 600_000
+// Must cover `DOTCOM_DEV_APP_READY_TIMEOUT_MS` in zero-cache/dev-env.ts plus a Vite startup buffer.
+const CI_WEB_SERVER_TIMEOUT_MS = 840_000
 
 /**
  * Read environment variables from file.
