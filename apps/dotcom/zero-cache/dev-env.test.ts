@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	buildDotcomDevEnv,
 	getBranchInfoFromValues,
+	getDotcomDevCleanAllTargets,
 	getDotcomDevCleanTargets,
 	sanitizeBranchKey,
 } from './dev-env'
@@ -75,6 +76,30 @@ describe('dotcom dev env', () => {
 			],
 			schemaFile: '/repo/apps/dotcom/zero-cache/.schema.js',
 			wranglerPersistDir: '/repo/apps/dotcom/sync-worker/.wrangler/state-main',
+			legacyWranglerStateDir: '/repo/apps/dotcom/sync-worker/.wrangler/state',
+		})
+	})
+
+	it('selects all branch-scoped clean target patterns plus legacy Docker state', () => {
+		const env = buildDotcomDevEnv({
+			repoRoot: '/repo',
+			branchInfo: getBranchInfoFromValues({
+				branchName: 'main',
+				shortCommitSha: 'abc1234',
+			}),
+		})
+
+		expect(getDotcomDevCleanAllTargets(env)).toEqual({
+			composeProjectNamePrefix: 'tldraw_dotcom_',
+			legacyComposeProjectNames: ['docker'],
+			postgresVolumeNamePrefix: 'tldraw_dotcom_',
+			postgresVolumeNameSuffix: '_tlapp_pgdata',
+			legacyPostgresVolumeNames: ['docker_tlapp_pgdata'],
+			zeroReplicaDir: '/tmp',
+			zeroReplicaFilePrefix: 'tldraw-dotcom-zero-',
+			schemaFile: '/repo/apps/dotcom/zero-cache/.schema.js',
+			wranglerStateDir: '/repo/apps/dotcom/sync-worker/.wrangler',
+			wranglerPersistDirPrefix: 'state-',
 			legacyWranglerStateDir: '/repo/apps/dotcom/sync-worker/.wrangler/state',
 		})
 	})

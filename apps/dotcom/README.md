@@ -26,4 +26,10 @@ To reset the current branch's server-side state, run:
 yarn dev-app:clean
 ```
 
+Each branch's Postgres volume starts at roughly 40-50 MB before much user data, so this state can add up if you work across many branches. To remove dotcom dev server state for every branch, stop `yarn dev-app` and run:
+
+```bash
+yarn dev-app:clean:all
+```
+
 Browser-side state is separate. After starting `yarn dev-app`, visit `http://localhost:3000/dev/reset-local-state` to clear local storage, IndexedDB, caches, service workers, accessible cookies, and Clerk session state for the current origin.

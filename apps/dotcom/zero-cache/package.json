@@ -13,6 +13,7 @@
 	"scripts": {
 		"dev": "yarn run -T tsx ./dev.ts",
 		"dev:clean": "yarn run -T tsx ./dev-clean.ts",
+		"dev:clean:all": "yarn run -T tsx ./dev-clean.ts --all",
 		"dev:doctor": "yarn run -T tsx ./dev-doctor.ts",
 		"wait-for-dev-readiness": "yarn run -T tsx ./wait-for-dev-readiness.ts",
 		"bundle-schema": "esbuild --bundle --platform=node --format=esm --outfile=./.schema.js ../../../packages/dotcom-shared/src/tlaSchema.ts",
@@ -21,6 +22,7 @@
 		"docker-down": "yarn run -T tsx ./docker-compose.ts down",
 		"migrate": "yarn tsx ./migrate.ts",
 		"clean": "yarn dev:clean",
+		"clean:all": "yarn dev:clean:all",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
