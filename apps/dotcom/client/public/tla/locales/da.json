@@ -1,4 +1,7 @@
 {
+  "1764571547": {
+    "translation": "Er du sikker på, at du vil slette dette arbejdsområde? Denne handling kan ikke fortrydes."
+  },
   "0095a9fa74": {
     "translation": "Eksportere"
   },
@@ -7,6 +10,12 @@
   },
   "043973ec1f": {
     "translation": "Har du stadig problemer? {GetHelpLink}"
+  },
+  "04a2dd56d6": {
+    "translation": "Inviter holdkammerater"
+  },
+  "05f43078e9": {
+    "translation": "Du har nået det maksimale antal arbejdsområder. Du skal slette gamle arbejdsområder, før du opretter nye."
   },
   "06b9281e39": {
     "translation": "Auto"
@@ -29,14 +38,17 @@
   "0b9a4cde72": {
     "translation": "Fil menu"
   },
+  "0c4383617a": {
+    "translation": "Noget gik galt under indlæsning af denne invitation. Prøv igen."
+  },
   "0d1f2bb523": {
     "translation": "Send feedback"
   },
+  "1063e38cb5": {
+    "translation": "Fjerne"
+  },
   "110a4b01be": {
     "translation": "Offentliggøre"
-  },
-  "129b9e34ea": {
-    "translation": "Forlad gruppen"
   },
   "12a6766ba1": {
     "translation": "Frigør fil"
@@ -47,14 +59,11 @@
   "13ddd375ad": {
     "translation": "Eksporter som"
   },
-  "146ffe2fd9": {
-    "translation": "Vis mere"
-  },
-  "14d65465b7": {
-    "translation": "Slet gruppe"
-  },
   "181b90f889": {
     "translation": "Opret fil"
+  },
+  "1d2591253e": {
+    "translation": "Indstillinger for arbejdsområde"
   },
   "1da2e8106b": {
     "translation": "Der opstod en uventet fejl."
@@ -62,8 +71,8 @@
   "1dd1c5fb7f": {
     "translation": "I dag"
   },
-  "2445e5e347": {
-    "translation": "Opret gruppe"
+  "21f66c9c00": {
+    "translation": "Arbejdsområdenavn"
   },
   "250ddea65c": {
     "translation": "Om tldraw"
@@ -83,9 +92,6 @@
   "31418ce4ad": {
     "translation": "i18n: Fremhæv mangler"
   },
-  "32210b37e4": {
-    "translation": "Tilføj link"
-  },
   "324a0f3182": {
     "translation": "Tilbage til tldraw"
   },
@@ -94,6 +100,9 @@
   },
   "344a7f427f": {
     "translation": "Redaktør"
+  },
+  "375396d6e5": {
+    "translation": "Fjern medlem"
   },
   "3bc7d6ea2f": {
     "translation": "Fortsæt med e-mail"
@@ -116,6 +125,9 @@
   "42e53c47c1": {
     "translation": "Kontakt ejeren for at anmode om adgang."
   },
+  "44680c1fa7": {
+    "translation": "Forlad arbejdsområdet…"
+  },
   "44db318ee5": {
     "translation": "Få hjælp til Discord"
   },
@@ -131,12 +143,6 @@
   "47f493a590": {
     "translation": "Fastgør fil"
   },
-  "49049467ff": {
-    "translation": "Indsæt tldraw-filens URL..."
-  },
-  "4908687e50": {
-    "translation": "Er du sikker på, at du vil glemme denne fil?"
-  },
   "49ee308734": {
     "translation": "Navn"
   },
@@ -145,15 +151,6 @@
   },
   "4d1c8263ba": {
     "translation": "Genindlæs"
-  },
-  "4da5988a2e": {
-    "translation": "Slet gruppe…"
-  },
-  "4dab36ac83": {
-    "translation": "Flere muligheder"
-  },
-  "4e6fbf032b": {
-    "translation": "Er du sikker på, at du vil slette denne gruppe? Denne handling kan ikke fortrydes."
   },
   "5097d89907": {
     "translation": "Ikke-understøttet diagram, vil generere SVG i stedet"
@@ -182,14 +179,14 @@
   "56c34c6410": {
     "translation": "Privatlivspolitik"
   },
-  "5a86b22fa0": {
-    "translation": "Træk filer hertil, <create>opret en fil</create>, eller <invite>kopiér invitationslinket</invite> for at komme i gang."
-  },
   "5a95a425f7": {
     "translation": "Dele"
   },
   "5bec508475": {
     "translation": "Gammel browser fundet. Opdater venligst din browser for at bruge denne app."
+  },
+  "5bff3c9c88": {
+    "translation": "Mit arbejdsområde"
   },
   "5c6fe42bc2": {
     "translation": "Tilbagekald dette link og opret et nyt."
@@ -199,9 +196,6 @@
   },
   "5d26ae7550": {
     "translation": "Vi kunne ikke uploade noget af det indhold, du oprettede, før du loggede ind."
-  },
-  "5ea8bb44be": {
-    "translation": "Du er blevet inviteret til at deltage i gruppen:"
   },
   "5f3c333678": {
     "translation": "Feedback indsendt"
@@ -230,6 +224,9 @@
   "6832ac5936": {
     "translation": "Indtast din e-mailadresse"
   },
+  "694f82ed9d": {
+    "translation": "Slet arbejdsområde"
+  },
   "6a26f54883": {
     "translation": "Hjælp"
   },
@@ -238,9 +235,6 @@
   },
   "6dfc62f621": {
     "translation": "Følg disse trin for at importere indholdet manuelt:"
-  },
-  "70222abcfc": {
-    "translation": "Gruppeindstillinger"
   },
   "70a6facb9d": {
     "translation": "Denne uge"
@@ -268,6 +262,9 @@
   },
   "764671e008": {
     "translation": "Chat med os på Discord"
+  },
+  "4908687e50": {
+    "translation": "Er du sikker på, at du vil glemme denne fil?"
   },
   "76dea3c9ca": {
     "translation": "tldraw er et gratis online whiteboard. Opret en konto for at gemme dine filer og arbejde med dine venner."
@@ -299,9 +296,6 @@
   "7cb5f8b4a5": {
     "translation": "Glemme"
   },
-  "7cfe6c43dc": {
-    "translation": "Forlad gruppen…"
-  },
   "7daeced9ff": {
     "translation": "Udgiv ændringer"
   },
@@ -314,6 +308,9 @@
   "815e116a2e": {
     "translation": "Har du en fejl, et problem eller en idé til tldraw? Fortæl os det! Udfyld denne formular, så følger vi op via e-mail, hvis det er nødvendigt. Du kan også <discord>chatte med os på Discord</discord> eller <github>indsende et problem på GitHub</github>."
   },
+  "858ba4765e": {
+    "translation": "Medlem"
+  },
   "85a082de1b": {
     "translation": "Opdater siden for at få den seneste version af tldraw."
   },
@@ -323,11 +320,20 @@
   "86c66437fd": {
     "translation": "Omdøb fil"
   },
+  "87fdb09de6": {
+    "translation": "Du er allerede medlem af dette arbejdsområde"
+  },
+  "88bf6ab42c": {
+    "translation": "Dette invitationslink er udløbet"
+  },
   "8ad4303b83": {
     "translation": "Nej tak"
   },
   "8c2d3d730c": {
     "translation": "Tjek din e-mail for en bekræftelseskode."
+  },
+  "8cf04a9734": {
+    "translation": "Hjem"
   },
   "8eb2c00e96": {
     "translation": "Delt med dig"
@@ -344,14 +350,11 @@
   "91e49bb0eb": {
     "translation": "Kopier til mine filer"
   },
-  "930390d222": {
-    "translation": "Kopieret invitationslink"
-  },
-  "9489b2f82a": {
-    "translation": "Du er allerede medlem af denne gruppe"
-  },
   "95aacd4d4a": {
     "translation": "Log ind med Google"
+  },
+  "95b56f4cd6": {
+    "translation": "Slet arbejdsområde…"
   },
   "95d2109dc8": {
     "translation": "Byg med tldraw SDK'et"
@@ -361,9 +364,6 @@
   },
   "985a4b720f": {
     "translation": "Brugsbetingelser"
-  },
-  "98c997a27e": {
-    "translation": "Tilføj fillink"
   },
   "9914a0ce04": {
     "translation": "Lys"
@@ -419,6 +419,9 @@
   "a9ded1e5ce": {
     "translation": "Baggrund"
   },
+  "aac449eef6": {
+    "translation": "Opret arbejdsområde"
+  },
   "ab0df9ba36": {
     "translation": "Filgrænsen er nået"
   },
@@ -435,9 +438,6 @@
   "b357b524e7": {
     "translation": "E-mailadresse"
   },
-  "b3d2db69fe": {
-    "translation": "Fil-URL"
-  },
   "b6d4223e60": {
     "translation": "Log ind"
   },
@@ -449,9 +449,6 @@
   },
   "ba0318cb81": {
     "translation": "Log ind for at dele"
-  },
-  "bb93a7590f": {
-    "translation": "Accepter og bliv medlem af gruppen"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Uploader .tldr-fil...} other {Uploader {uploaded} af {total} .tldr-filer...}}"
@@ -471,17 +468,14 @@
   "c4b39a1cc3": {
     "translation": "Vigtige cookies"
   },
-  "c6155aaecc": {
-    "translation": "Gruppenavn"
-  },
   "c655b27b1e": {
     "translation": "i18n: Lang streng"
   },
   "c6a00f137b": {
     "translation": "Invitere"
   },
-  "c74ea6dbff": {
-    "translation": "Vis mindre"
+  "c7d7403714": {
+    "translation": "Nyt bestyrelse"
   },
   "c87aacf567": {
     "translation": "Log ud"
@@ -528,17 +522,17 @@
   "d9100f3e10": {
     "translation": "Gå her for at se indholdet"
   },
-  "d9e35d0f55": {
-    "translation": "Du har nået det maksimale antal grupper. Du skal slette gamle grupper, før du opretter nye."
-  },
   "dbbebf3c03": {
     "translation": "Kun invitation"
   },
-  "dcdaa754fe": {
-    "translation": "Ugyldig URL til tldraw-fil"
+  "dbf9b24193": {
+    "translation": "Forlad arbejdsområdet"
   },
   "dfdb78a4e4": {
     "translation": "App debug flag"
+  },
+  "e0aa021e21": {
+    "translation": "Okay"
   },
   "e0c88179b3": {
     "translation": "Inviter medlemmer"
@@ -549,20 +543,26 @@
   "e2ae80a510": {
     "translation": "Juridisk resumé"
   },
-  "e3afed0047": {
-    "translation": "Admin"
-  },
   "e404559826": {
     "translation": "Servicevilkår"
   },
+  "e615d52512": {
+    "translation": "Accepter og tilmeld dig arbejdsområdet"
+  },
   "e81c4e4f2b": {
     "translation": "eller"
+  },
+  "e9e0f16850": {
+    "translation": "Du er blevet inviteret til at deltage i arbejdsområdet:"
   },
   "ea0626ac5a": {
     "translation": "Farezone"
   },
   "ea4788705e": {
     "translation": "Ophæve"
+  },
+  "eb1e2b0542": {
+    "translation": "Bed ejeren af ​​arbejdsområdet om en ny."
   },
   "ebfe9ce86e": {
     "translation": "I går"
@@ -603,14 +603,14 @@
   "f4f70727dc": {
     "translation": "Indstillinger"
   },
-  "f714e36843": {
-    "translation": "Er du sikker på, at du vil forlade denne gruppe?"
-  },
   "fa2ead697d": {
     "translation": "Privatlivspolitik"
   },
   "fb15c53f22": {
     "translation": "Seer"
+  },
+  "fc9d47046b": {
+    "translation": "Er du sikker på, at du vil forlade dette arbejdsområde?"
   },
   "fd1be3efcf": {
     "translation": "Er du sikker på, at du vil slette denne fil?"
@@ -618,8 +618,8 @@
   "fed5ec05eb": {
     "translation": "Kopieret link"
   },
-  "ff7a814974": {
-    "translation": "Tilføj fillink…"
+  "ff2fefd3c6": {
+    "translation": "Er du sikker på, at du vil fjerne {name} fra dette arbejdsområde?"
   },
   "ffcd73e997": {
     "translation": "Importér fil…"

@@ -1,4 +1,7 @@
 {
+  "1764571547": {
+    "translation": "このワークスペースを削除してもよろしいですか？この操作は元に戻せません。"
+  },
   "0095a9fa74": {
     "translation": "エクスポート"
   },
@@ -7,6 +10,12 @@
   },
   "043973ec1f": {
     "translation": "問題が解決しませんか？{GetHelpLink}"
+  },
+  "04a2dd56d6": {
+    "translation": "チームメイトを招待する"
+  },
+  "05f43078e9": {
+    "translation": "ワークスペースの最大数に達しました。新しいワークスペースを作成する前に、古いワークスペースを削除する必要があります。"
   },
   "06b9281e39": {
     "translation": "自動"
@@ -29,14 +38,17 @@
   "0b9a4cde72": {
     "translation": "ファイルメニュー"
   },
+  "0c4383617a": {
+    "translation": "招待状の読み込み中に問題が発生しました。もう一度お試しください。"
+  },
   "0d1f2bb523": {
     "translation": "フィードバックを送信"
   },
+  "1063e38cb5": {
+    "translation": "取り除く"
+  },
   "110a4b01be": {
     "translation": "公開"
-  },
-  "129b9e34ea": {
-    "translation": "グループを脱退"
   },
   "12a6766ba1": {
     "translation": "ファイルのピンを外す"
@@ -47,14 +59,11 @@
   "13ddd375ad": {
     "translation": "形式を選択してエクスポート"
   },
-  "146ffe2fd9": {
-    "translation": "もっと見る"
-  },
-  "14d65465b7": {
-    "translation": "グループを削除"
-  },
   "181b90f889": {
     "translation": "ファイルを作成"
+  },
+  "1d2591253e": {
+    "translation": "ワークスペース設定"
   },
   "1da2e8106b": {
     "translation": "予期せぬエラーが発生しました。"
@@ -62,8 +71,8 @@
   "1dd1c5fb7f": {
     "translation": "今日"
   },
-  "2445e5e347": {
-    "translation": "グループを作成"
+  "21f66c9c00": {
+    "translation": "ワークスペース名"
   },
   "250ddea65c": {
     "translation": "tldrawについて"
@@ -83,9 +92,6 @@
   "31418ce4ad": {
     "translation": "i18n：ハイライト不足"
   },
-  "32210b37e4": {
-    "translation": "リンクを追加"
-  },
   "324a0f3182": {
     "translation": "tldrawに戻る"
   },
@@ -94,6 +100,9 @@
   },
   "344a7f427f": {
     "translation": "エディタ"
+  },
+  "375396d6e5": {
+    "translation": "メンバーを削除する"
   },
   "3bc7d6ea2f": {
     "translation": "メールで続行"
@@ -116,6 +125,9 @@
   "42e53c47c1": {
     "translation": "所有者へ連絡して、アクセスを依頼してください。"
   },
+  "44680c1fa7": {
+    "translation": "作業スペースを離れる…"
+  },
   "44db318ee5": {
     "translation": "Discordで問い合わせる"
   },
@@ -131,12 +143,6 @@
   "47f493a590": {
     "translation": "ピンファイル"
   },
-  "49049467ff": {
-    "translation": "tldraw ファイルの URL を貼り付けます..."
-  },
-  "4908687e50": {
-    "translation": "このファイルを無視しても本当によろしいですか？"
-  },
   "49ee308734": {
     "translation": "名前"
   },
@@ -145,15 +151,6 @@
   },
   "4d1c8263ba": {
     "translation": "再読み込み"
-  },
-  "4da5988a2e": {
-    "translation": "グループを削除…"
-  },
-  "4dab36ac83": {
-    "translation": "その他のオプション"
-  },
-  "4e6fbf032b": {
-    "translation": "このグループを削除してもよろしいですか? この操作は元に戻せません。"
   },
   "5097d89907": {
     "translation": "サポートされていない図です。代わりにSVGを生成します。"
@@ -182,14 +179,14 @@
   "56c34c6410": {
     "translation": "プライバシーポリシー"
   },
-  "5a86b22fa0": {
-    "translation": "開始するには、ファイルをここにドラッグするか、<create>ファイルを作成</create>するか、<invite>招待リンクをコピー</invite>してください。"
-  },
   "5a95a425f7": {
     "translation": "共有"
   },
   "5bec508475": {
     "translation": "古いブラウザが検出されました。このアプリを使用するにはブラウザを更新してください。"
+  },
+  "5bff3c9c88": {
+    "translation": "私の作業スペース"
   },
   "5c6fe42bc2": {
     "translation": "このリンクを取り消して新しいリンクを作成してください。"
@@ -199,9 +196,6 @@
   },
   "5d26ae7550": {
     "translation": "サインイン前に作成されたコンテンツの一部のアップロードに失敗しました。"
-  },
-  "5ea8bb44be": {
-    "translation": "グループに参加するよう招待されました:"
   },
   "5f3c333678": {
     "translation": "フィードバックを送信しました"
@@ -230,6 +224,9 @@
   "6832ac5936": {
     "translation": "メールアドレスを入力してください"
   },
+  "694f82ed9d": {
+    "translation": "ワークスペースを削除"
+  },
   "6a26f54883": {
     "translation": "ヘルプ"
   },
@@ -238,9 +235,6 @@
   },
   "6dfc62f621": {
     "translation": "コンテンツを手動でインポートするには、次の手順に従ってください。"
-  },
-  "70222abcfc": {
-    "translation": "グループ設定"
   },
   "70a6facb9d": {
     "translation": "今週"
@@ -268,6 +262,9 @@
   },
   "764671e008": {
     "translation": "Discordでチャットしましょう"
+  },
+  "4908687e50": {
+    "translation": "このファイルを無視しても本当によろしいですか？"
   },
   "76dea3c9ca": {
     "translation": "tldrawは無料のオンラインホワイトボードです。アカウントを作成してファイルを保存し、友達と共同作業しましょう。"
@@ -299,9 +296,6 @@
   "7cb5f8b4a5": {
     "translation": "無視する"
   },
-  "7cfe6c43dc": {
-    "translation": "グループを脱退…"
-  },
   "7daeced9ff": {
     "translation": "変更内容を公開"
   },
@@ -314,6 +308,9 @@
   "815e116a2e": {
     "translation": "tldraw に関するバグ、問題、またはアイデアがありましたら、ぜひお知らせください。こちらのフォームにご記入いただければ、必要に応じてメールでご連絡いたします。また、<discord>Discord でチャット</discord>、<github>GitHub で問題を提出</github>することも可能です。"
   },
+  "858ba4765e": {
+    "translation": "メンバー"
+  },
   "85a082de1b": {
     "translation": "tldrawの最新バージョンを取得するには、ページを再読み込みしてください。"
   },
@@ -323,11 +320,20 @@
   "86c66437fd": {
     "translation": "ファイル名を変更する"
   },
+  "87fdb09de6": {
+    "translation": "あなたは既にこのワークスペースのメンバーです"
+  },
+  "88bf6ab42c": {
+    "translation": "この招待リンクは期限切れです"
+  },
   "8ad4303b83": {
     "translation": "結構です"
   },
   "8c2d3d730c": {
     "translation": "確認コードをメールで確認してください。"
+  },
+  "8cf04a9734": {
+    "translation": "家"
   },
   "8eb2c00e96": {
     "translation": "あなたと共有しました"
@@ -344,14 +350,11 @@
   "91e49bb0eb": {
     "translation": "自分のファイルにコピー"
   },
-  "930390d222": {
-    "translation": "招待リンクをコピーしました"
-  },
-  "9489b2f82a": {
-    "translation": "あなたはすでにこのグループのメンバーです"
-  },
   "95aacd4d4a": {
     "translation": "Googleでログイン"
+  },
+  "95b56f4cd6": {
+    "translation": "ワークスペースを削除…"
   },
   "95d2109dc8": {
     "translation": "tldraw SDKでビルドする"
@@ -361,9 +364,6 @@
   },
   "985a4b720f": {
     "translation": "利用規約"
-  },
-  "98c997a27e": {
-    "translation": "ファイルリンクを追加"
   },
   "9914a0ce04": {
     "translation": "ライト"
@@ -419,6 +419,9 @@
   "a9ded1e5ce": {
     "translation": "背景"
   },
+  "aac449eef6": {
+    "translation": "ワークスペースを作成する"
+  },
   "ab0df9ba36": {
     "translation": "ファイル制限に達しました"
   },
@@ -435,9 +438,6 @@
   "b357b524e7": {
     "translation": "電子メールアドレス"
   },
-  "b3d2db69fe": {
-    "translation": "ファイルURL"
-  },
   "b6d4223e60": {
     "translation": "サインイン"
   },
@@ -449,9 +449,6 @@
   },
   "ba0318cb81": {
     "translation": "共有するにはサインインしてください"
-  },
-  "bb93a7590f": {
-    "translation": "承認してグループに参加する"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, other {{uploaded} 件中 {total} 件の .tldr ファイルをアップロードしています…}}"
@@ -471,17 +468,14 @@
   "c4b39a1cc3": {
     "translation": "必須クッキー"
   },
-  "c6155aaecc": {
-    "translation": "グループ名"
-  },
   "c655b27b1e": {
     "translation": "i18n：長い文字列"
   },
   "c6a00f137b": {
     "translation": "招待する"
   },
-  "c74ea6dbff": {
-    "translation": "表示を減らす"
+  "c7d7403714": {
+    "translation": "新しいボード"
   },
   "c87aacf567": {
     "translation": "サインアウト"
@@ -528,17 +522,17 @@
   "d9100f3e10": {
     "translation": "コンテンツを見るにはこちらへ移動してください"
   },
-  "d9e35d0f55": {
-    "translation": "グループの最大数に達しました。新しいグループを作成する前に、古いグループを削除する必要があります。"
-  },
   "dbbebf3c03": {
     "translation": "招待のみ"
   },
-  "dcdaa754fe": {
-    "translation": "無効なtldrawファイルURL"
+  "dbf9b24193": {
+    "translation": "ワークスペースを離れる"
   },
   "dfdb78a4e4": {
     "translation": "デバッグのフラグを追加"
+  },
+  "e0aa021e21": {
+    "translation": "わかりました"
   },
   "e0c88179b3": {
     "translation": "メンバーを招待する"
@@ -549,20 +543,26 @@
   "e2ae80a510": {
     "translation": "法的概要"
   },
-  "e3afed0047": {
-    "translation": "管理者"
-  },
   "e404559826": {
     "translation": "利用規約"
   },
+  "e615d52512": {
+    "translation": "ワークスペースを承認して参加する"
+  },
   "e81c4e4f2b": {
     "translation": "または"
+  },
+  "e9e0f16850": {
+    "translation": "ワークスペースへの参加にご招待されました。"
   },
   "ea0626ac5a": {
     "translation": "危険地帯"
   },
   "ea4788705e": {
     "translation": "キャンセル"
+  },
+  "eb1e2b0542": {
+    "translation": "ワークスペースのオーナーに新しいものを頼んでください。"
   },
   "ebfe9ce86e": {
     "translation": "昨日"
@@ -603,14 +603,14 @@
   "f4f70727dc": {
     "translation": "設定"
   },
-  "f714e36843": {
-    "translation": "このグループを脱退してもよろしいですか?"
-  },
   "fa2ead697d": {
     "translation": "プライバシーポリシー"
   },
   "fb15c53f22": {
     "translation": "ビューア"
+  },
+  "fc9d47046b": {
+    "translation": "本当にこのワークスペースを離れますか？"
   },
   "fd1be3efcf": {
     "translation": "このファイルを削除しても本当によろしいですか？"
@@ -618,8 +618,8 @@
   "fed5ec05eb": {
     "translation": "コピーしたリンク"
   },
-  "ff7a814974": {
-    "translation": "ファイルリンクを追加…"
+  "ff2fefd3c6": {
+    "translation": "このワークスペースから{name}を削除してもよろしいですか？"
   },
   "ffcd73e997": {
     "translation": "ファイルをインポート…"
