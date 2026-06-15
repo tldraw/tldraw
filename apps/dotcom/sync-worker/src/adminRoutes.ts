@@ -345,7 +345,7 @@ export const adminRoutes = createRouter<Environment>()
 		const file = await pg
 			.selectFrom('file')
 			.where('id', '=', fileId)
-			.select(['id', 'published', 'publishedSlug'])
+			.select(['id', 'published', 'publishedSlug', 'isDeleted'])
 			.executeTakeFirst()
 		if (!file) throw new StatusError(404, `File not found: ${fileId}`)
 		if (!file.published) {
@@ -362,7 +362,10 @@ export const adminRoutes = createRouter<Environment>()
 					.doUpdateSet({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
 			)
 			.execute()
-		return json({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
+		// Return the same shape as GET, including `live`, so the admin UI doesn't flash the
+		// "not published" warning right after a successful set.
+		const live = !file.isDeleted && file.published
+		return json({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt, live })
 	})
 	// Clear the welcome template, reverting new workspaces to the committed default snapshot.
 	.post('/app/admin/welcome-template/clear', async (_res, env) => {

@@ -684,6 +684,15 @@ export class TldrawApp {
 		return seed
 	}
 
+	/**
+	 * The in-flight welcome-file seed for a workspace, if one is still creating. The empty-workspace
+	 * open path uses this to await a just-created workspace's welcome file rather than racing it with
+	 * a duplicate blank file. Returns undefined once the seed settles (or if none was started).
+	 */
+	getPendingWorkspaceWelcomeFile(workspaceId: string) {
+		return this.workspaceWelcomeFileSeeds.get(workspaceId)
+	}
+
 	async createFile({
 		fileId = uniqueId(),
 		workspaceId = this.getHomeWorkspaceId(),
