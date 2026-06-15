@@ -50,6 +50,9 @@
   "12c8a9838c": {
     "translation": "Try the tldraw SDK"
   },
+  "13348442cc": {
+    "translation": "Search"
+  },
   "13ddd375ad": {
     "translation": "Export as"
   },
@@ -301,6 +304,9 @@
   },
   "801ab24683": {
     "translation": "Download"
+  },
+  "8030793ce3": {
+    "translation": "New workspace"
   },
   "815e116a2e": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."

@@ -2,11 +2,10 @@ import { getRandomName, openNewTab } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/tla-test'
 
 // The sidebar has a workspace switcher dropdown at the top ("Home" + the
-// user's workspaces + a create item), action rows for the active non-home
-// workspace (new board, invite teammates, workspace settings), and the active
-// workspace's files below. Switching to a workspace opens its top file — first pinned,
-// otherwise most recent (creating one if it's empty) — and creating a
-// workspace switches to it.
+// user's workspaces + a create item), action rows for the active workspace,
+// and the active workspace's files below. Switching to a workspace opens its
+// top file: first pinned, otherwise most recent (creating one if it's empty).
+// Creating a workspace switches to it.
 test.describe('workspaces', () => {
 	test.beforeEach(async ({ database, editor }) => {
 		await database.migrateUser()

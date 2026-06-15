@@ -19,17 +19,19 @@ import styles from '../sidebar.module.css'
 const messages = defineMessages({
 	home: { defaultMessage: 'Home' },
 	createWorkspace: { defaultMessage: 'Create workspace' },
+	newWorkspace: { defaultMessage: 'New workspace' },
 	newBoard: { defaultMessage: 'New board' },
+	search: { defaultMessage: 'Search' },
 	inviteTeammates: { defaultMessage: 'Invite teammates' },
 	workspaceSettings: { defaultMessage: 'Workspace settings' },
 })
 
 /**
  * The fixed top region of the sidebar: a dropdown for switching between the
- * home workspace and the user's other workspaces, followed by action rows
- * when a non-home workspace is active. Selecting a workspace opens its top
- * file (first pinned file, otherwise the most recent one), which makes it
- * active (the active workspace is derived from the open file).
+ * home workspace and the user's other workspaces, followed by action rows for
+ * the active workspace. Selecting a workspace opens its top file (first
+ * pinned file, otherwise the most recent one) and makes it active (the active
+ * workspace is derived from the open file).
  */
 export function TlaSidebarWorkspaceSwitcher() {
 	const app = useApp()
@@ -114,6 +116,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 									{g.group.name}
 								</WorkspaceSwitcherItem>
 							))}
+							<_DropdownMenu.Separator className={styles.sidebarWorkspaceSwitcherSeparator} />
 							<_DropdownMenu.Item
 								className={classNames(
 									styles.sidebarWorkspaceSwitcherItem,
@@ -131,26 +134,13 @@ export function TlaSidebarWorkspaceSwitcher() {
 						</_DropdownMenu.Content>
 					</_DropdownMenu.Root>
 				</div>
-				{workspaces.length === 0 && (
-					<button
-						className={classNames(
-							styles.sidebarCreateWorkspaceButton,
-							styles.hoverable,
-							'tla-text_ui__regular'
-						)}
-						onClick={handleCreateWorkspace}
-						data-testid="tla-create-workspace"
-					>
-						{createWorkspaceLbl}
-					</button>
-				)}
 			</div>
-			{!isHome && (
-				<>
-					<div className={styles.sidebarDivider} />
-					<TlaSidebarWorkspaceActions workspaceId={activeWorkspaceId} />
-				</>
-			)}
+			<div className={styles.sidebarDivider} />
+			<TlaSidebarWorkspaceActions
+				workspaceId={activeWorkspaceId}
+				isHome={isHome}
+				onCreateWorkspace={handleCreateWorkspace}
+			/>
 		</>
 	)
 }
@@ -178,22 +168,34 @@ function WorkspaceSwitcherItem({
 			onSelect={onSelect}
 			data-testid={testId}
 		>
+			<span className={styles.sidebarWorkspaceSwitcherItemCheck}>
+				{isActive ? <TlaIcon icon="check" /> : null}
+			</span>
 			<span className={styles.sidebarWorkspaceSwitcherItemLabel}>{children}</span>
 		</_DropdownMenu.Item>
 	)
 }
 
 /**
- * The action rows shown below the workspace switcher when a non-home
- * workspace is active: creating a new board in it, copying the workspace
- * invite link, and opening the workspace settings.
+ * The action rows shown below the workspace switcher. Home shows file and
+ * workspace creation actions; public workspaces add invite and settings.
  */
-function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
+function TlaSidebarWorkspaceActions({
+	workspaceId,
+	isHome,
+	onCreateWorkspace,
+}: {
+	workspaceId: string
+	isHome: boolean
+	onCreateWorkspace(): void
+}) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const handleCreateFile = useHandleSidebarCreateFile()
 	const newBoardLbl = useMsg(messages.newBoard)
+	const searchLbl = useMsg(messages.search)
+	const newWorkspaceLbl = useMsg(messages.newWorkspace)
 	const inviteTeammatesLbl = useMsg(messages.inviteTeammates)
 	const settingsLbl = useMsg(messages.workspaceSettings)
 
@@ -230,18 +232,30 @@ function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
 				onClick={handleCreateFile}
 				testId="tla-sidebar-new-board"
 			/>
-			<TlaSidebarActionButton
-				icon="invite"
-				label={inviteTeammatesLbl}
-				onClick={handleCopyInviteLink}
-				testId="tla-sidebar-invite-teammates"
-			/>
-			<TlaSidebarActionButton
-				icon="settings"
-				label={settingsLbl}
-				onClick={handleSettings}
-				testId="tla-sidebar-workspace-settings"
-			/>
+			<TlaSidebarActionButton icon="search" label={searchLbl} />
+			{isHome ? (
+				<TlaSidebarActionButton
+					icon="plus"
+					label={newWorkspaceLbl}
+					onClick={onCreateWorkspace}
+					testId="tla-create-workspace"
+				/>
+			) : (
+				<>
+					<TlaSidebarActionButton
+						icon="invite"
+						label={inviteTeammatesLbl}
+						onClick={handleCopyInviteLink}
+						testId="tla-sidebar-invite-teammates"
+					/>
+					<TlaSidebarActionButton
+						icon="settings"
+						label={settingsLbl}
+						onClick={handleSettings}
+						testId="tla-sidebar-workspace-settings"
+					/>
+				</>
+			)}
 		</div>
 	)
 }
@@ -256,16 +270,40 @@ function TlaSidebarActionButton({
 	icon: string
 	iconStyle?: CSSProperties
 	label: string
-	onClick(): void
-	testId: string
+	onClick?(): void
+	testId?: string
 }) {
+	const iconEl =
+		icon === 'search' ? (
+			<span className={styles.sidebarSearchIcon} aria-hidden="true" />
+		) : (
+			<TlaIcon icon={icon} style={iconStyle} />
+		)
+
+	if (!onClick) {
+		return (
+			<div
+				className={classNames(
+					styles.sidebarActionButton,
+					styles.sidebarActionButtonStatic,
+					'tla-text_ui__regular'
+				)}
+				aria-hidden="true"
+				data-testid={testId}
+			>
+				{iconEl}
+				<span className={styles.sidebarActionButtonLabel}>{label}</span>
+			</div>
+		)
+	}
+
 	return (
 		<button
 			className={classNames(styles.sidebarActionButton, styles.hoverable, 'tla-text_ui__regular')}
 			onClick={onClick}
 			data-testid={testId}
 		>
-			<TlaIcon icon={icon} style={iconStyle} />
+			{iconEl}
 			<span className={styles.sidebarActionButtonLabel}>{label}</span>
 		</button>
 	)
