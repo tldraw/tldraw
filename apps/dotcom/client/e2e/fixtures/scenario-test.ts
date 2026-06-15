@@ -273,7 +273,9 @@ class DotcomScenario {
 
 	constructor(private readonly testInfo: TestInfo) {
 		this.id = getScenarioId(testInfo)
-		this.database = new Database(null, testInfo.parallelIndex)
+		// Scenario actors live in the scenario user pool, so the database must use the same index
+		// for its index-based helpers to target the right Clerk accounts.
+		this.database = new Database(null, getScenarioUserIndex(testInfo.parallelIndex))
 	}
 
 	name(label: string) {
