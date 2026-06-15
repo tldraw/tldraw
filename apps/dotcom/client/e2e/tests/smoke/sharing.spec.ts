@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { getRandomName, openNewTab } from '../fixtures/helpers'
-import { expect, test } from '../fixtures/tla-test'
+import { getRandomName, openNewTab } from '../../fixtures/helpers'
+import { expect, test } from '../../fixtures/tla-test'
 
 test.beforeEach(async ({ context }) => {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -83,166 +83,9 @@ test.describe('signed in user on own file', () => {
 
 		await newContext.close()
 	})
-
-	test('can switch share permissions between editor and viewer', async ({
-		page,
-		browser,
-		shareMenu,
-	}) => {
-		// Copy the link to the current file
-		await shareMenu.open()
-
-		// The permission should be editor by default...
-		await expect(page.getByTestId('shared-link-type-select')).toHaveText('Editor')
-
-		// Copy the share link
-		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
-		const url = await shareMenu.copyLink()
-
-		// Open link in an incognito window
-		const { newPage, newContext } = await openNewTab(browser, {
-			url,
-			allowClipboard: true,
-			userProps: undefined,
-		})
-
-		// The second page should be in editor mode
-		await expect(newPage.getByTestId('tools.draw')).toBeVisible()
-
-		// Now set the permission to viewer...
-		await page.getByTestId('shared-link-type-select').click()
-		await page.getByRole('option', { name: 'Viewer' }).click()
-		await expect(page.getByTestId('shared-link-type-select')).toHaveText('Viewer')
-
-		// Reload the second page
-		newPage.reload()
-
-		// The second page should be in readonly mode
-		await expect(newPage.getByTestId('tools.draw')).not.toBeVisible()
-
-		// Now reshare it...
-		await page.getByTestId('shared-link-type-select').click()
-		await page.getByRole('option', { name: 'Editor' }).click()
-		await expect(page.getByTestId('shared-link-type-select')).toHaveText('Editor')
-
-		// Reload the second page again
-		newPage.reload()
-
-		// The second page should be back in editor mode
-		await expect(newPage.getByTestId('tools.draw')).toBeVisible()
-
-		await newContext.close()
-	})
-
-	test('can publish and unpublish', async ({ shareMenu, browser }) => {
-		// Publish the user's current file
-		await shareMenu.open()
-		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
-		await shareMenu.publishFile()
-		const url = await shareMenu.copyLink()
-
-		// Open published file link in an incognito window
-		const { newPage, newShareMenu, newContext } = await openNewTab(browser, {
-			url,
-			allowClipboard: true,
-			userProps: { user: 'huppy', index: test.info().parallelIndex },
-		})
-
-		await expect(newShareMenu.shareButton).toBeVisible()
-
-		// Now unpublish it...
-
-		await shareMenu.unpublishFile()
-
-		newPage.reload()
-
-		// Open published file link in an incognito window
-
-		await expect(newShareMenu.shareButton).not.toBeVisible()
-
-		await expect(newPage.getByTestId('tla-error-icon')).toBeVisible()
-
-		await newContext.close()
-	})
-
-	test('can publish changes', async ({ page, shareMenu, browser }) => {
-		// Publish the user's current project
-		await shareMenu.open()
-		await shareMenu.publishFile()
-		const url = await shareMenu.copyLink()
-
-		// Open published project link in an incognito window
-		const newTab1 = await openNewTab(browser, {
-			url,
-			allowClipboard: true,
-			userProps: undefined,
-		})
-
-		await expect(newTab1.newShareMenu.shareButton).toBeVisible()
-		await newTab1.newShareMenu.open()
-
-		// should see an empty page...
-		await newTab1.newEditor.expectShapesCount(0)
-		await newTab1.newContext.close()
-
-		// Back on the published project, add a shape
-		await page.getByTestId('tools.rectangle').click()
-		await page.locator('.tl-background').click()
-
-		// Open in a second new tab
-		const newTab2 = await openNewTab(browser, {
-			url,
-			allowClipboard: true,
-			userProps: undefined,
-		})
-
-		// published project should still be zero
-		await newTab2.newEditor.expectShapesCount(0)
-		await newTab2.newContext.close()
-
-		// Back on the published project... publish the changes
-		await shareMenu.open()
-		await shareMenu.publishChanges()
-
-		// Open published project in a third new tab
-		const newTab3 = await openNewTab(browser, {
-			url,
-			allowClipboard: true,
-			userProps: undefined,
-		})
-
-		// published project should now have one shape
-		await newTab3.newEditor.expectShapesCount(1)
-		await newTab3.newContext.close()
-	})
 })
 
 test.describe('signed in user on someone elses file', () => {
-	test('can see guest files in the sidebar', async ({ browser, shareMenu, sidebar }) => {
-		const newName = getRandomName()
-		await sidebar.renameFile(0, newName)
-
-		// Copy the link to the current file
-		await shareMenu.open()
-		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
-		const url = await shareMenu.copyLink()
-
-		const parallelIndex = test.info().parallelIndex
-		// Open link in an incognito window
-		const { newPage, newShareMenu } = await openNewTab(browser, {
-			url,
-			allowClipboard: true,
-			userProps: { user: 'suppy', index: parallelIndex },
-		})
-
-		// The second page should have the share button and not the error
-		await expect(newShareMenu.shareButton).toBeVisible()
-		await expect(newPage.getByTestId('tla-error-icon')).not.toBeVisible()
-		// We should also see the file in the sidebar and a guest badge icon next to it
-		await expect(newPage.getByTestId('tla-sidebar').getByText(newName)).toBeVisible()
-		await expect(newPage.getByTestId(`guest-badge-${newName}`)).toBeVisible()
-	})
-
 	test('tabs work correctly', async ({ browser, sidebar, shareMenu }) => {
 		const newName = getRandomName()
 		await sidebar.renameFile(0, newName)

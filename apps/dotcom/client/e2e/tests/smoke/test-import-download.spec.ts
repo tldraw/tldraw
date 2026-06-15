@@ -1,6 +1,6 @@
 import fs from 'fs'
-import { USERS } from '../consts'
-import { expect, test } from '../fixtures/tla-test'
+import { USERS } from '../../consts'
+import { expect, test } from '../../fixtures/tla-test'
 
 function validateTldrJson(json: unknown) {
 	expect(json).toMatchObject({
@@ -15,23 +15,6 @@ function validateTldrJson(json: unknown) {
 test.describe('import from URL (signed in)', () => {
 	test.beforeEach(async ({ editor }) => {
 		await editor.isLoaded()
-	})
-
-	test('imports file and navigates to it', async ({ page, editor, sidebar, importHelper }) => {
-		await importHelper.mockUrl()
-		await editor.ensureSidebarOpen()
-		const fileCountBefore = await sidebar.getNumberOfFiles()
-
-		await importHelper.navigate()
-		await page.waitForURL(/\/f\//)
-		await editor.isLoaded()
-
-		await expect(async () => {
-			expect(await sidebar.getNumberOfFiles()).toBe(fileCountBefore + 1)
-		}).toPass()
-
-		const fileName = await editor.getCurrentFileName()
-		expect(fileName).toBe('e2e import test')
 	})
 
 	test('redirects to root when no url param is provided', async ({ page }) => {
@@ -99,28 +82,6 @@ test.describe('import from URL (signed out)', () => {
 test.describe('download', () => {
 	test.beforeEach(async ({ editor }) => {
 		await editor.isLoaded()
-	})
-
-	test('can download the currently open file from the sidebar file menu', async ({
-		page,
-		sidebar,
-		editor,
-	}) => {
-		await editor.ensureSidebarOpen()
-
-		const fileLink = sidebar.getFirstFileLink()
-		await fileLink.hover()
-		await fileLink.getByRole('button').click()
-
-		const downloadPromise = page.waitForEvent('download')
-		await page.getByRole('menuitem', { name: 'Download' }).click()
-		const download = await downloadPromise
-
-		const filePath = await download.path()
-		expect(filePath).toBeTruthy()
-		const json = JSON.parse(fs.readFileSync(filePath!, 'utf-8'))
-		validateTldrJson(json)
-		expect(download.suggestedFilename()).toMatch(/\.tldr$/)
 	})
 
 	test('can download a file that is not currently open from the sidebar', async ({

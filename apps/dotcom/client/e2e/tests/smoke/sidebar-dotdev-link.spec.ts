@@ -1,4 +1,4 @@
-import { expect, test } from '../fixtures/tla-test'
+import { expect, test } from '../../fixtures/tla-test'
 
 const DOT_DEV_LOCAL_STORAGE_KEY = 'showDotDevLink'
 const DOT_DEV_URL =

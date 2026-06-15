@@ -1,4 +1,4 @@
-import { expect, test } from '../fixtures/tla-test'
+import { expect, test } from '../../fixtures/tla-test'
 
 const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
 

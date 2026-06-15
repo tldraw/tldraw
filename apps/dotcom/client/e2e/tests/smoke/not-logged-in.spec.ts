@@ -1,11 +1,11 @@
-import { USERS } from '../consts'
-import { expect, test } from '../fixtures/tla-test'
+import { USERS } from '../../consts'
+import { expect, test } from '../../fixtures/tla-test'
 
 // Don't use stored credentials
 test.use({ storageState: { cookies: [], origins: [] } })
 
 test('can login', async ({ homePage, editor }) => {
-	expect(homePage.signInButton).toBeVisible()
+	await expect(homePage.signInButton).toBeVisible()
 	const user = USERS[test.info().parallelIndex]
 	await homePage.loginAs(user)
 	await editor.isLoaded()
@@ -25,10 +25,10 @@ test('can sign out', async ({ homePage, editor, sidebar }) => {
 	await homePage.expectSignInButtonVisible()
 })
 
-test.fixme('can scroll down to see landing page content', async () => {
-	// ...
-})
+test('shows anonymous SDK content', async ({ page, homePage }) => {
+	await homePage.expectSignInButtonVisible()
+	await expect(page.getByTestId('tla-anon-dotdev-link')).toBeVisible()
 
-test.fixme('can export images', async () => {
-	// ...
+	await page.getByTestId('tla-anon-dotdev-dismiss-button').click()
+	await expect(page.getByTestId('tla-anon-dotdev-link')).not.toBeVisible()
 })

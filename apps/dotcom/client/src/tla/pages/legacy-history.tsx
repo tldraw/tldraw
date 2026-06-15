@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/react'
-import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
+import { ROOM_PREFIX, type HistoryResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useRouteError } from 'react-router-dom'
 import { fetch } from 'tldraw'
@@ -27,7 +27,7 @@ const { loader, useData } = defineLoader(async (args) => {
 	if (!result.ok) return null
 	const data = await result.json()
 
-	return { data, boardId } as { data: string[]; boardId: string }
+	return { data, boardId } as { data: HistoryResponseBody; boardId: string }
 })
 
 export { loader }
@@ -63,7 +63,10 @@ export function Component({ error: _error }: { error?: unknown }) {
 			) : (
 				<TlaAnonLayout>
 					<BoardHistoryLog
-						data={data.data.map((timestamp) => ({ timestamp, href: `./${timestamp}` }))}
+						data={data.data.timestamps.map((timestamp) => ({
+							timestamp,
+							href: `./${timestamp}`,
+						}))}
 					/>
 				</TlaAnonLayout>
 			)}
