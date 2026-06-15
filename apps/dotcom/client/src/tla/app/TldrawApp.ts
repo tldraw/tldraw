@@ -648,45 +648,37 @@ export class TldrawApp {
 		return this.getFileState(fileId)?.isPinned ?? false
 	}
 
-	// A new workspace becomes visible in the sidebar (its `createWorkspace` mutation lands)
-	// before its first file does, so it briefly appears empty. Both the creation flow and an
-	// empty-workspace switch want to seed that first file; this single-flights the seed per
-	// workspace so concurrent callers (and rapid repeat clicks) share one creation — and all
-	// receive its result — rather than racing to create duplicates. Cleared once settled, so a
-	// workspace emptied later can be seeded again.
-	private readonly workspaceFirstFileSeeds = new Map<
+	// A workspace's welcome file is seeded once, when the workspace is created. Its
+	// `createWorkspace` mutation lands before the file does, so the workspace briefly appears
+	// empty; this single-flights the seed per workspace so a double-submit (or any concurrent
+	// caller) shares one creation and all receive its result, rather than creating duplicates.
+	// Cleared once settled.
+	private readonly workspaceWelcomeFileSeeds = new Map<
 		string,
 		Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>>
 	>()
 
 	/**
-	 * Create the first file of an empty workspace, at most once per workspace even when the
-	 * creation flow and a switch to the (briefly) empty workspace race — concurrent callers
-	 * share the same in-flight creation and all get its result. The home workspace gets a blank
-	 * file; other workspaces get the seeded welcome file, whose content the sync worker
-	 * resolves from the welcome template (or a committed default). The welcome file arrives
-	 * named.
+	 * Seed a newly-created workspace's welcome file: a named file whose content the sync worker
+	 * resolves from the welcome template (or a committed default). Called once at workspace
+	 * creation — not on later empty opens, which get a blank file (see useSwitchToWorkspace) —
+	 * and single-flighted so a double-submit shares the same creation.
 	 */
-	createWorkspaceFirstFile(
+	createWorkspaceWelcomeFile(
 		workspaceId: string
 	): Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>> {
-		const inFlight = this.workspaceFirstFileSeeds.get(workspaceId)
+		const inFlight = this.workspaceWelcomeFileSeeds.get(workspaceId)
 		if (inFlight) return inFlight
 
-		const isHome = workspaceId === this.getHomeWorkspaceId()
-		const seed = this.createFile(
-			isHome
-				? { workspaceId }
-				: {
-						workspaceId,
-						name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
-						createSource: WELCOME_CREATE_SOURCE,
-					}
-		)
-		this.workspaceFirstFileSeeds.set(workspaceId, seed)
+		const seed = this.createFile({
+			workspaceId,
+			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+			createSource: WELCOME_CREATE_SOURCE,
+		})
+		this.workspaceWelcomeFileSeeds.set(workspaceId, seed)
 		seed.finally(() => {
-			if (this.workspaceFirstFileSeeds.get(workspaceId) === seed) {
-				this.workspaceFirstFileSeeds.delete(workspaceId)
+			if (this.workspaceWelcomeFileSeeds.get(workspaceId) === seed) {
+				this.workspaceWelcomeFileSeeds.delete(workspaceId)
 			}
 		})
 		return seed

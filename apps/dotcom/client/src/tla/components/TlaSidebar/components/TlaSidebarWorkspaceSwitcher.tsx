@@ -282,15 +282,13 @@ function useSwitchToWorkspace() {
 				navigate(routes.tlaFile(files[0]!.fileId))
 				return
 			}
-			// Empty workspace: create its first file and open that, so selecting a workspace
-			// always lands you on a file within it. Non-home workspaces are seeded with the
-			// welcome file (named, so no inline rename); the home workspace gets a blank file
-			// to rename. createWorkspaceFirstFile single-flights per workspace, so a concurrent
-			// seed (or a rapid second click) shares the same creation and still resolves here.
-			const isHome = workspaceId === app.getHomeWorkspaceId()
-			const res = await app.createWorkspaceFirstFile(workspaceId)
+			// Empty workspace: create a blank file and open it, so selecting a workspace always
+			// lands you on a file within it. The welcome file is seeded only when a workspace is
+			// first created (see useCreateWorkspaceDialog), so an emptied workspace — like the
+			// home workspace — just gets a fresh blank file to rename, not another welcome doc.
+			const res = await app.createFile({ workspaceId })
 			if (res.ok) {
-				if (isHome && !getIsCoarsePointer()) {
+				if (!getIsCoarsePointer()) {
 					app.sidebarState.update((prev) => ({
 						...prev,
 						renameState: { fileId: res.value.fileId, workspaceId },
@@ -305,8 +303,8 @@ function useSwitchToWorkspace() {
 
 function useCreateWorkspaceDialog() {
 	const app = useApp()
+	const navigate = useNavigate()
 	const { addDialog } = useDialogs()
-	const switchToWorkspace = useSwitchToWorkspace()
 
 	return useCallback(() => {
 		addDialog({
@@ -321,10 +319,16 @@ function useCreateWorkspaceDialog() {
 							app.showMutationRejectionToast((e as Error).message as ZErrorCode)
 							return
 						}
-						await switchToWorkspace(id)
+						// Seed the workspace's welcome file once, here at creation, and open it
+						// directly (not via switchToWorkspace, whose empty-workspace path would
+						// otherwise create a blank file before the welcome file lands).
+						const res = await app.createWorkspaceWelcomeFile(id)
+						if (res.ok) {
+							navigate(routes.tlaFile(res.value.fileId))
+						}
 					}}
 				/>
 			),
 		})
-	}, [app, addDialog, switchToWorkspace])
+	}, [app, addDialog, navigate])
 }
