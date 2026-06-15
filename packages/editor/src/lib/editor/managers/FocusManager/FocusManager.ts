@@ -1,5 +1,6 @@
 import { bind } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
+import { EditorManager } from '../EditorManager'
 
 /**
  * A manager for ensuring correct focus across the editor.
@@ -10,14 +11,11 @@ import type { Editor } from '../../Editor'
  *
  * @internal
  */
-export class FocusManager {
-	private disposeSideEffectListener?: () => void
+export class FocusManager extends EditorManager {
+	constructor(editor: Editor, autoFocus?: boolean) {
+		super(editor)
 
-	constructor(
-		public editor: Editor,
-		autoFocus?: boolean
-	) {
-		this.disposeSideEffectListener = editor.sideEffects.registerAfterChangeHandler(
+		const disposeSideEffectListener = editor.sideEffects.registerAfterChangeHandler(
 			'instance',
 			(prev, next) => {
 				if (prev.isFocused !== next.isFocused) {
@@ -25,6 +23,7 @@ export class FocusManager {
 				}
 			}
 		)
+		this._register(() => disposeSideEffectListener?.())
 
 		const currentFocusState = editor.getInstanceState().isFocused
 		if (autoFocus !== currentFocusState) {
@@ -35,6 +34,10 @@ export class FocusManager {
 		const body = editor.getContainerDocument().body
 		body.addEventListener('keydown', this.handleKeyDown)
 		body.addEventListener('mousedown', this.handleMouseDown)
+		this._register(() => {
+			body.removeEventListener('keydown', this.handleKeyDown)
+			body.removeEventListener('mousedown', this.handleMouseDown)
+		})
 	}
 
 	/**
@@ -82,12 +85,5 @@ export class FocusManager {
 	blur({ blurContainer = true } = {}) {
 		this.editor.complete() // stop any interaction
 		if (blurContainer) this.editor.getContainer().blur() // blur the container
-	}
-
-	dispose() {
-		const body = this.editor.getContainerDocument().body
-		body.removeEventListener('keydown', this.handleKeyDown)
-		body.removeEventListener('mousedown', this.handleMouseDown)
-		this.disposeSideEffectListener?.()
 	}
 }

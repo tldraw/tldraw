@@ -19,7 +19,6 @@ describe('TickManager', () => {
 	let editor: Mocked<Editor>
 	let tickManager: TickManager
 	let mockEmit: Mock
-	let mockDisposablesAdd: Mock
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -38,13 +37,9 @@ describe('TickManager', () => {
 		mockCancelAnimationFrame.mockImplementation(() => {})
 
 		mockEmit = vi.fn()
-		mockDisposablesAdd = vi.fn()
 
 		editor = {
 			emit: mockEmit,
-			disposables: {
-				add: mockDisposablesAdd,
-			},
 		} as unknown as Mocked<Editor>
 
 		tickManager = new TickManager(editor)
@@ -58,13 +53,8 @@ describe('TickManager', () => {
 
 	describe('constructor and initialization', () => {
 		it('should initialize with correct default values', () => {
-			expect(tickManager.editor).toBe(editor)
 			expect(tickManager.isPaused).toBe(false)
 			expect(tickManager.now).toBe(1000)
-		})
-
-		it('should add dispose method to editor disposables', () => {
-			expect(mockDisposablesAdd).toHaveBeenCalledWith(tickManager.dispose)
 		})
 
 		it('should start the tick loop on construction', () => {
