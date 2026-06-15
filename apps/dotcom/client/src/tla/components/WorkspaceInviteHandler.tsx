@@ -22,13 +22,14 @@ const workspaceInviteMessages = defineMessages({
 	error: { defaultMessage: 'Something went wrong loading this invite. Please try again.' },
 })
 
-// The invite route redirects to the root with this query param to mark that
-// the user is arriving from an invite link. The signed-out sign-in dialog only
-// shows when the marker is present, and the marker is stripped once the dialog
-// is up, so the marker fully encodes "show the dialog once per arrival". The
-// invite token alone couldn't: it stays in session storage after the dialog is
-// dismissed (so a later sign-in still completes the join) and would otherwise
-// re-show the dialog on every plain visit to tldraw.com in the same tab.
+// The invite route redirects to the root with this query param to mark that the
+// signed-out invite flow is active. The sign-in dialog shows while the marker is
+// present and clears it when dismissed, so the URL is the source of truth: a
+// refresh while the dialog is up keeps it, while dismissing (or a plain visit to
+// tldraw.com, which carries no marker) does not bring it back. The invite token
+// can't play this role — it deliberately outlives the dialog so a later sign-in
+// still completes the join, and would otherwise re-nag on every visit in the
+// same tab.
 export const WORKSPACE_INVITE_QUERY_PARAM = 'invite'
 
 type ValidInviteInfo = Extract<GetInviteInfoResponseBody, { error: false }>
@@ -88,21 +89,20 @@ export function WorkspaceInviteHandler() {
 				if (signal.aborted) return
 				// The stable dialog id means a re-arrival from another invite link
 				// replaces the open dialog rather than stacking a second one.
+				// Dismissing clears the marker, so the dialog stays gone on reload
+				// while a refresh with the marker still present brings it back.
 				dialogs.addDialog({
 					id: 'workspace-invite-sign-in',
 					component: (props) => <TlaSignInDialog {...props} inviteInfo={inviteInfo} skipRedirect />,
+					onClose: () =>
+						setSearchParams(
+							(params) => {
+								params.delete(WORKSPACE_INVITE_QUERY_PARAM)
+								return params
+							},
+							{ replace: true }
+						),
 				})
-				// Strip the marker now that the dialog is up, so reloading the
-				// cleaned-up URL doesn't re-show it. The dialog survives this
-				// navigation: dialogs live in a provider-level atom that nothing
-				// clears on route changes.
-				setSearchParams(
-					(params) => {
-						params.delete(WORKSPACE_INVITE_QUERY_PARAM)
-						return params
-					},
-					{ replace: true }
-				)
 			}
 
 			showSignInDialog()

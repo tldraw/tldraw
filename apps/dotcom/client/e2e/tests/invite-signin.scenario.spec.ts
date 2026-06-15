@@ -19,30 +19,38 @@ test.describe('invite sign-in scenarios', () => {
 			fileName: scenario.name('invite sign-in file'),
 		})
 
-		// The invite route resolves to the root: the anonymous editor renders
-		// behind the sign-in dialog, which names the invited workspace, and the
-		// ?invite marker is stripped from the URL once the dialog is up.
+		// The invite route resolves to the root and keeps the ?invite marker, so
+		// the anonymous editor renders behind the sign-in dialog (which names the
+		// invited workspace) and the URL reflects the active invite flow.
 		await visitor.page.goto(inviteUrl)
-		await visitor.page.waitForURL('http://localhost:3000/')
+		await visitor.page.waitForURL('http://localhost:3000/?invite=true')
 		await expect(visitor.signInDialog.googleButton).toBeVisible()
 		await expect(visitor.page.locator('strong', { hasText: workspaceName })).toBeVisible()
 		await expect(visitor.homePage.tldrawCanvas).toBeVisible()
 
-		// Dismissing the dialog leaves the visitor on the usable anonymous editor.
+		// Refreshing while the dialog is up keeps it: the marker is still in the URL.
+		await visitor.page.reload()
+		await visitor.waitForAppReady()
+		await expect(visitor.signInDialog.googleButton).toBeVisible()
+
+		// Dismissing clears the marker, leaving the visitor on the usable anonymous
+		// editor at the bare root.
 		await visitor.page.keyboard.press('Escape')
+		await visitor.page.waitForURL('http://localhost:3000/')
 		await expect(visitor.signInDialog.googleButton).not.toBeVisible()
 		await expect(visitor.homePage.signInButton).toBeVisible()
 
-		// A plain reload must not re-show the dialog. The invite token deliberately
-		// lingers in session storage (so a later sign-in still completes the join),
-		// but only an arrival from the invite route may open the dialog. Waiting for
-		// app readiness lets the handler effect run, so the absence is meaningful.
+		// With the marker cleared, a plain reload must not bring the dialog back.
+		// The invite token deliberately lingers in session storage (so a later
+		// sign-in still completes the join), but the marker, not the token, gates
+		// the dialog. Waiting for app readiness lets the handler effect run, so the
+		// absence is meaningful.
 		await visitor.page.reload()
 		await visitor.waitForAppReady()
 		await expect(visitor.signInDialog.googleButton).not.toBeVisible()
 
-		// Opening the same invite link again is a fresh arrival, so the dialog
-		// shows again.
+		// Opening the invite link again re-activates the flow, so the dialog shows
+		// again.
 		await visitor.page.goto(inviteUrl)
 		await expect(visitor.signInDialog.googleButton).toBeVisible()
 		await expect(visitor.page.locator('strong', { hasText: workspaceName })).toBeVisible()
