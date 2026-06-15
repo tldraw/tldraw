@@ -182,6 +182,7 @@
 	--tl-color-text-0: hsl(0, 0%, 11%);
 	--tl-color-text-1: hsl(0, 0%, 18%);
 	--tl-color-text-3: hsl(204, 4%, 45%);
+	--tl-color-text-disabled: hsl(204, 4%, 55%);
 	--tl-color-text-shadow: hsl(0, 0%, 100%);
 	--tl-color-text-highlight: hsl(52, 100%, 50%);
 	--tl-color-text-highlight-p3: color(display-p3 0.972 0.8205 0.05);
@@ -236,6 +237,7 @@
 	--tl-color-text-0: hsl(0, 9%, 94%);
 	--tl-color-text-1: hsl(0, 0%, 85%);
 	--tl-color-text-3: hsl(204, 4%, 75%);
+	--tl-color-text-disabled: hsl(204, 4%, 50%);
 	--tl-color-text-shadow: hsl(210, 13%, 18%);
 	--tl-color-text-highlight: hsl(52, 100%, 41%);
 	--tl-color-text-highlight-p3: color(display-p3 0.8078 0.6225 0.0312);

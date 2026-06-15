@@ -270,13 +270,27 @@ export class Idle extends StateNode {
 			case 'canvas': {
 				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
-				// Check overlays first — if we hit a resize/rotate handle, re-dispatch
-				// as a selection event so onDoubleClickEdge / onDoubleClickCorner fire.
+				// Check overlays first — if we hit a shape handle, re-dispatch as a
+				// handle event so onDoubleClickHandle fires; if we hit a resize/rotate
+				// handle, re-dispatch as a selection event so onDoubleClickEdge /
+				// onDoubleClickCorner fire.
 				const hitOverlay = this.editor.overlays.getOverlayAtPoint(
 					currentPagePoint,
 					this.editor.options.hitTestMargin / this.editor.getZoomLevel()
 				)
 				if (hitOverlay) {
+					if (hitOverlay.type === 'shape_handle') {
+						const shape = this.editor.getShape(hitOverlay.props.shapeId as any)
+						if (shape) {
+							this.onDoubleClick({
+								...info,
+								target: 'handle',
+								shape,
+								handle: hitOverlay.props.handle as any,
+							})
+							return
+						}
+					}
 					const overlayType = hitOverlay.props.overlayType as string | undefined
 					if (
 						overlayType === 'resize_handle' ||

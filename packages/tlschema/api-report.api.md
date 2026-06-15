@@ -451,7 +451,7 @@ export function getDefaultUserPresence(store: TLStore, user: TLUser): {
         x: number;
         y: number;
     };
-    followingUserId: null | string;
+    followingUserId: TLUserId | null;
     lastActivityTimestamp: number;
     meta: {};
     screenBounds: BoxModel;
@@ -1355,9 +1355,9 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     exportBackground: boolean;
     // (undocumented)
-    followingUserId: null | string;
+    followingUserId: null | TLUserId;
     // (undocumented)
-    highlightedUserIds: string[];
+    highlightedUserIds: TLUserId[];
     // (undocumented)
     insets: boolean[];
     // (undocumented)
@@ -1451,7 +1451,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         y: number;
     } | null;
     // (undocumented)
-    followingUserId: null | string;
+    followingUserId: null | TLUserId;
     // (undocumented)
     lastActivityTimestamp: null | number;
     // (undocumented)
@@ -1463,7 +1463,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     selectedShapeIds: TLShapeId[];
     // (undocumented)
-    userId: string;
+    userId: TLUserId;
     // (undocumented)
     userName: string;
 }

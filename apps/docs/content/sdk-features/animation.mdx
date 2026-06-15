@@ -31,7 +31,7 @@ Camera animations respect the user's animation speed preference, which can be se
 
 ## Shape animations
 
-Shape animations enable smooth transitions for individual shape properties. The editor tracks each animating shape independently, allowing multiple concurrent animations that can be interrupted or replaced.
+Shape animations transition individual shape properties smoothly. The editor tracks each animating shape independently, so multiple animations can run at once.
 
 Use `animateShape()` to animate a single shape or `animateShapes()` to animate multiple shapes simultaneously:
 
@@ -55,15 +55,15 @@ The animation system handles interpolation for core shape properties that are co
 - `opacity` - Shape transparency (0 to 1)
 - `rotation` - Shape rotation angle in radians
 
-For shape-specific properties like width, height, or custom values, shape utilities can define their own interpolation logic by implementing the `getInterpolatedProps()` method. This allows each shape type to control how its unique properties animate. For example, box shapes interpolate their dimensions:
+For shape-specific properties like width, height, or custom values, shape utilities define their own interpolation logic by implementing the `getInterpolatedProps()` method. For example, box shapes interpolate their dimensions:
 
 ```typescript
 getInterpolatedProps(startShape: Shape, endShape: Shape, t: number) {
-  return {
-    ...endShape.props,
-    w: lerp(startShape.props.w, endShape.props.w, t),
-    h: lerp(startShape.props.h, endShape.props.h, t),
-  }
+	return {
+		...endShape.props,
+		w: lerp(startShape.props.w, endShape.props.w, t),
+		h: lerp(startShape.props.h, endShape.props.h, t),
+	}
 }
 ```
 
@@ -94,7 +94,7 @@ Camera animations automatically stop when the user interacts with the viewport t
 
 ### Zooming to bounds
 
-Use `zoomToBounds()` to animate the camera so a specific area fills the viewport. This is useful for focusing on shapes, navigating between sections, or implementing slideshow-style transitions:
+Use `zoomToBounds()` to animate the camera so a specific area fills the viewport. Use it to focus on shapes or build slideshow-style transitions:
 
 ```typescript
 const bounds = { x: 0, y: 0, w: 800, h: 600 }
@@ -133,7 +133,7 @@ This method respects the user's animation speed preference. If animation speed i
 
 ## Easing functions
 
-Easing functions control the rate of change during animations, making movements feel natural rather than mechanical. Choose an easing based on the interaction: use `easeOut` variants when responding to user actions (the animation starts fast and settles), `easeIn` for exits or dismissals (gradual start, quick finish), and `easeInOut` for autonomous movements like camera transitions (smooth start and end).
+Easing functions control the rate of change during an animation. The right curve makes movement feel natural rather than mechanical. Use `easeOut` variants when responding to user actions (the animation starts fast and settles), `easeIn` for exits or dismissals (gradual start, quick finish), and `easeInOut` for autonomous movements like camera transitions (smooth start and end).
 
 The editor provides these easing functions in `EASINGS`:
 
@@ -149,7 +149,7 @@ Shape animations default to `linear` easing. Camera animations default to `easeI
 
 ## User preferences
 
-Camera animations check `editor.user.getAnimationSpeed()` before running. This value multiplies animation durations, so users can speed up, slow down, or disable animations entirely.
+Camera animations check `editor.user.getAnimationSpeed()` before running. This value is a speed multiplier: the editor divides animation durations by it, so users can speed up, slow down, or disable animations entirely.
 
 When animation speed is zero, camera methods like `setCamera()`, `slideCamera()`, `zoomToBounds()`, and `zoomToFit()` skip the animation and jump immediately to the final position. Shape animations via `animateShape()` and `animateShapes()` do not check this preference automatically. If you need reduced motion support for shape animations, check the animation speed yourself:
 

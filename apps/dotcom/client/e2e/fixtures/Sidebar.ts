@@ -8,7 +8,7 @@ export class Sidebar {
 	public readonly sidebar: Locator
 	public readonly sidebarLogo: Locator
 	public readonly createFileButton: Locator
-	public readonly createGroupButton: Locator
+	public readonly createWorkspaceButton: Locator
 	public readonly userSettingsMenu: Locator
 	public readonly helpMenu: Locator
 	public readonly themeButton: Locator
@@ -19,11 +19,11 @@ export class Sidebar {
 		this.sidebar = this.page.getByTestId('tla-sidebar')
 		this.sidebarLogo = this.page.getByTestId('tla-sidebar-logo-icon')
 		this.createFileButton = this.page.getByTestId('tla-create-file')
-		this.createGroupButton = this.page.getByTestId('tla-create-group')
+		this.createWorkspaceButton = this.page.getByTestId('tla-create-workspace')
 		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
-		this.helpMenu = this.page.getByTestId('tla-sidebar-help-menu-trigger')
-		this.themeButton = this.page.getByTestId('dialog-sub.help menu color-scheme-button')
-		this.darkModeButton = this.page.getByText('Dark')
+		this.helpMenu = this.userSettingsMenu
+		this.themeButton = this.page.getByTestId('dialog-sub.theme-button')
+		this.darkModeButton = this.page.getByRole('menuitemcheckbox', { name: 'Dark', exact: true })
 		this.signOutButton = this.page.getByTestId('dialog.sign-out')
 	}
 
@@ -41,6 +41,7 @@ export class Sidebar {
 
 	async createNewDocument(name?: string) {
 		const numDocuments = await this.getNumberOfFiles()
+		const previousUrl = this.page.url()
 		await this.createFileButton.click()
 		const input = this.page.getByTestId('tla-sidebar-rename-input')
 		await expect(input).toBeVisible()
@@ -48,11 +49,18 @@ export class Sidebar {
 		if (name) {
 			await input.fill(name)
 		}
-		await this.page.keyboard.press('Enter')
-		const newNumDocuments = await this.getNumberOfFiles()
-		expect(newNumDocuments).toBe(numDocuments + 1)
+		await Promise.all([
+			this.page.waitForURL(
+				(url) => url.toString() !== previousUrl && url.pathname.startsWith('/f/'),
+				{ timeout: 10000 }
+			),
+			this.page.keyboard.press('Enter'),
+		])
+		await expect.poll(() => this.getNumberOfFiles()).toBe(numDocuments + 1)
 		// give the websocket a chance to catch up
 		await this.mutationResolution()
+		// the create button has a 1000ms throttle - wait so the next creation isn't swallowed
+		await this.page.waitForTimeout(1100)
 	}
 
 	async getNumberOfFiles() {
@@ -164,8 +172,19 @@ export class Sidebar {
 		await this.mutationResolution()
 	}
 
+	@step
+	async renameFileByName(fileName: string, newName: string) {
+		await this.openFileMenuByName(fileName)
+		await this.renameFromFileMenu(newName)
+		await this.mutationResolution()
+	}
+
 	async mutationResolution() {
-		await this.page.evaluate(() => (window as any).app.z.__e2e__waitForMutationResolution?.())
+		await expect(async () => {
+			await this.page.evaluate(async () => {
+				await (window as any).app?.z?.__e2e__waitForMutationResolution?.()
+			})
+		}).toPass()
 	}
 
 	@step
@@ -219,12 +238,25 @@ export class Sidebar {
 		await this.page.getByRole('menuitem', { name: 'Copy link' }).click()
 	}
 
+	// The app writes to the clipboard asynchronously after the copy action, so reading it once can
+	// return a stale or empty value. Poll until the clipboard holds a valid URL (optionally matching
+	// an expected path) to avoid races.
+	private async readClipboardUrl(pathPattern?: RegExp): Promise<string> {
+		let value = ''
+		await expect(async () => {
+			value = await this.page.evaluate(() => navigator.clipboard.readText())
+			const url = new URL(value)
+			if (pathPattern) expect(url.pathname).toMatch(pathPattern)
+		}).toPass({ timeout: 10000 })
+		return value
+	}
+
 	@step
 	async copyFileLink(index: number) {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.copyFileLinkFromFileMenu()
-		return await this.page.evaluate(() => navigator.clipboard.readText())
+		return await this.readClipboardUrl(/^\/f\//)
 	}
 
 	@step
@@ -232,7 +264,7 @@ export class Sidebar {
 		const fileLink = this.getFileByName(name)
 		await this.openFileMenu(fileLink)
 		await this.copyFileLinkFromFileMenu()
-		return await this.page.evaluate(() => navigator.clipboard.readText())
+		return await this.readClipboardUrl(/^\/f\//)
 	}
 
 	async getAfterElementStyle(element: Locator, property: string): Promise<string> {
@@ -251,110 +283,93 @@ export class Sidebar {
 		await this.page.keyboard.press('Escape')
 	}
 
-	// Group-related methods
+	// Workspace-related methods
 
 	@step
-	async createGroup(name: string) {
-		// Click the create group button
-		await this.createGroupButton.click()
+	async openWorkspaceSwitcher() {
+		await this.page.getByTestId('tla-workspace-switcher').click()
+	}
 
-		// Fill in group name
-		const input = this.page.getByPlaceholder('Group name')
+	@step
+	async createWorkspace(name: string, { dismissRename = true } = {}) {
+		// The standalone button is only shown while the user has no workspaces;
+		// after that, creating happens from the workspace switcher dropdown.
+		if (await this.createWorkspaceButton.isVisible()) {
+			await this.createWorkspaceButton.click()
+		} else {
+			await this.openWorkspaceSwitcher()
+			await this.page.getByTestId('tla-create-workspace-menu-item').click()
+		}
+
+		const input = this.page.getByPlaceholder('Workspace name')
 		await expect(input).toBeVisible()
 		await input.fill(name)
 
-		// Click create button
-		await this.page.getByRole('button', { name: 'Create group' }).click()
+		await this.page.getByRole('button', { name: 'Create workspace' }).click()
 		await this.mutationResolution()
-	}
 
-	getGroup(groupName: string) {
-		return this.page.locator(`[data-group-id]`).filter({ hasText: groupName })
-	}
-
-	async expectGroupVisible(groupName: string) {
-		await expect(this.getGroup(groupName)).toBeVisible()
-	}
-
-	async isGroupExpanded(groupName: string): Promise<boolean> {
-		const group = this.getGroup(groupName)
-		const header = group.locator('[role="button"]').first()
-		const expanded = await header.getAttribute('aria-expanded')
-		return expanded === 'true'
-	}
-
-	@step
-	async toggleGroup(groupName: string) {
-		const group = this.getGroup(groupName)
-		const header = group.locator('[role="button"]').first()
-		await header.click()
-	}
-
-	@step
-	async expandGroup(groupName: string) {
-		if (!(await this.isGroupExpanded(groupName))) {
-			await this.toggleGroup(groupName)
+		// Creating a workspace switches to it, creates its first file, and
+		// starts renaming that file.
+		await this.expectActiveWorkspace(name)
+		const renameInput = this.page.getByTestId('tla-sidebar-rename-input')
+		await expect(renameInput).toBeVisible()
+		if (dismissRename) {
+			await this.page.keyboard.press('Escape')
 		}
 	}
 
+	getWorkspaceLink(name: string) {
+		return this.page.locator('[data-element="workspace-link"]').filter({ hasText: name })
+	}
+
 	@step
-	async collapseGroup(groupName: string) {
-		if (await this.isGroupExpanded(groupName)) {
-			await this.toggleGroup(groupName)
+	async expectWorkspaceVisible(name: string) {
+		await this.openWorkspaceSwitcher()
+		// A workspace can appear via cross-client sync (e.g. after accepting an invite), which can
+		// take longer than the default assertion timeout on CI.
+		await expect(this.getWorkspaceLink(name)).toBeVisible({ timeout: 15000 })
+		await this.page.keyboard.press('Escape')
+	}
+
+	@step
+	async expectWorkspaceNotVisible(name: string) {
+		await this.openWorkspaceSwitcher()
+		// Wait for the dropdown to actually render (Home is always present)
+		// so the absence check below can't pass vacuously.
+		await expect(this.page.getByTestId('tla-workspace-switcher-home')).toBeVisible()
+		await expect(this.getWorkspaceLink(name)).not.toBeVisible()
+		await this.page.keyboard.press('Escape')
+	}
+
+	@step
+	async expectActiveWorkspace(name: string) {
+		await expect(this.page.getByTestId('tla-active-workspace-name')).toHaveText(name)
+	}
+
+	@step
+	async switchToWorkspace(name: string) {
+		await this.openWorkspaceSwitcher()
+		await this.getWorkspaceLink(name).click()
+		await this.expectActiveWorkspace(name)
+	}
+
+	@step
+	async openWorkspaceSettings(name: string) {
+		// The settings action lives in the active workspace's action rows, so
+		// switch to the workspace first if needed.
+		const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
+		if (activeName !== name) {
+			await this.switchToWorkspace(name)
 		}
-	}
-
-	private async expectGroupState(groupName: string, expectedExpanded: boolean) {
-		const group = this.getGroup(groupName)
-		const header = group.locator('[role="button"]').first()
-
-		// Check aria-expanded attribute
-		await expect(header).toHaveAttribute('aria-expanded', expectedExpanded.toString())
-
-		// Check icon via mask style
-		const icon = group.locator('[role="img"]').first()
-		const expectedIcon = expectedExpanded ? 'icon-folder-open' : 'icon-folder'
-		await expect(icon).toBeVisible()
-
-		await expect(async () => {
-			const maskStyle = await icon.evaluate((el) => window.getComputedStyle(el).mask)
-			expect(maskStyle).toContain(expectedIcon)
-			if (!expectedExpanded) {
-				expect(maskStyle).not.toContain('icon-folder-open')
-			}
-		}).toPass({ timeout: 5000 })
+		await this.page.getByTestId('tla-sidebar-workspace-settings').click()
 	}
 
 	@step
-	async expectGroupExpanded(groupName: string) {
-		await this.expectGroupState(groupName, true)
-	}
-
-	@step
-	async expectGroupCollapsed(groupName: string) {
-		await this.expectGroupState(groupName, false)
-	}
-
-	@step
-	async openGroupSettings(groupName: string) {
-		const group = this.getGroup(groupName)
-		const groupHeader = group.locator('[role="button"]').first()
-		await groupHeader.hover()
-
-		// Click the more options button
-		const moreOptionsButton = group.locator('button[aria-label="More options"]')
-		await moreOptionsButton.click()
-
-		// Click Settings menu item
-		await this.page.getByRole('menuitem', { name: 'Settings' }).click()
-	}
-
-	@step
-	async renameGroup(oldName: string, newName: string) {
-		await this.openGroupSettings(oldName)
+	async renameWorkspace(oldName: string, newName: string) {
+		await this.openWorkspaceSettings(oldName)
 
 		// Find the name input and change it (use placeholder as user sees it)
-		const input = this.page.getByPlaceholder('Group name')
+		const input = this.page.getByPlaceholder('Workspace name')
 		await expect(input).toBeVisible()
 		await input.fill(newName)
 
@@ -364,19 +379,27 @@ export class Sidebar {
 	}
 
 	@step
-	async deleteGroup(groupName: string) {
-		await this.openGroupSettings(groupName)
+	async deleteWorkspace(name: string) {
+		await this.openWorkspaceSettings(name)
 
-		// Click the Delete group button (exact text as user sees it)
-		await this.page.getByRole('button', { name: 'Delete group…' }).click()
+		// Click the Delete workspace button (exact text as user sees it)
+		await this.page.getByRole('button', { name: 'Delete workspace…' }).click()
 
 		// Confirm deletion in the confirmation dialog
-		await this.page.getByRole('button', { name: 'Delete group' }).click()
+		await this.page.getByRole('button', { name: 'Delete workspace' }).click()
 		await this.mutationResolution()
 	}
 
-	async expectGroupNotVisible(groupName: string) {
-		await expect(this.getGroup(groupName)).not.toBeVisible()
+	@step
+	async copyWorkspaceInviteLink(name: string): Promise<string> {
+		// The invite action lives in the active workspace's action rows, so
+		// switch to the workspace first if needed.
+		const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
+		if (activeName !== name) {
+			await this.switchToWorkspace(name)
+		}
+		await this.page.getByTestId('tla-sidebar-invite-teammates').click()
+		return await this.readClipboardUrl()
 	}
 
 	// File visibility methods
@@ -395,28 +418,6 @@ export class Sidebar {
 	}
 
 	@step
-	async createFileInGroup(groupName: string, fileName: string) {
-		const group = this.getGroup(groupName)
-		const groupHeader = group.locator('[role="button"]').first()
-		await groupHeader.hover()
-
-		const createButton = group.locator('button[aria-label="Create file"]')
-		await expect(createButton).toBeVisible()
-		await createButton.click()
-
-		const input = this.page.getByTestId('tla-sidebar-rename-input')
-		await expect(input).toBeVisible({ timeout: 10000 })
-		await expect(input).toBeFocused()
-		await input.fill(fileName)
-		await this.page.keyboard.press('Enter')
-
-		await this.mutationResolution()
-		await this.expectFileVisible(fileName)
-		// UI has 1000ms throttle - wait to allow next file creation
-		await this.page.waitForTimeout(1100)
-	}
-
-	@step
 	private async openFileMenuByName(fileName: string) {
 		const fileLink = this.getFileByName(fileName)
 		await fileLink.hover()
@@ -425,14 +426,76 @@ export class Sidebar {
 	}
 
 	@step
-	async pinFileInGroup(fileName: string) {
+	async dragFileToPinnedSection(fileName: string) {
+		const fileElement = this.getFileByName(fileName)
+		const fileBox = await fileElement.boundingBox()
+		const topFile = this.sidebar.locator('[data-drop-target-id^="file:"]').first()
+		const topBox = await topFile.boundingBox()
+
+		if (!fileBox || !topBox) throw new Error('Could not get bounding boxes')
+
+		// Move to file
+		await this.page.mouse.move(fileBox.x + fileBox.width / 2, fileBox.y + fileBox.height / 2)
+
+		// Press and hold
+		await this.page.mouse.down()
+
+		// Small delay to let browser detect drag intent
+		await this.page.waitForTimeout(100)
+
+		// Drop just above the top of the file list, inside the pin zone
+		await this.page.mouse.move(topBox.x + topBox.width / 2, topBox.y - 5, { steps: 10 })
+
+		// Small delay before release
+		await this.page.waitForTimeout(50)
+
+		// Release
+		await this.page.mouse.up()
+
+		await this.mutationResolution()
+	}
+
+	@step
+	async dragFileToUnpinnedSection(fileName: string) {
+		const fileElement = this.getFileByName(fileName)
+		const fileBox = await fileElement.boundingBox()
+		const lastFile = this.sidebar.locator('[data-drop-target-id^="file:"]').last()
+		const lastBox = await lastFile.boundingBox()
+
+		if (!fileBox || !lastBox) throw new Error('Could not get bounding boxes')
+
+		// Move to file
+		await this.page.mouse.move(fileBox.x + fileBox.width / 2, fileBox.y + fileBox.height / 2)
+
+		// Press and hold
+		await this.page.mouse.down()
+
+		// Small delay to let browser detect drag intent
+		await this.page.waitForTimeout(100)
+
+		// Drop on the unpinned part of the list, below the pin zone
+		await this.page.mouse.move(lastBox.x + lastBox.width / 2, lastBox.y + lastBox.height / 2, {
+			steps: 10,
+		})
+
+		// Small delay before release
+		await this.page.waitForTimeout(50)
+
+		// Release
+		await this.page.mouse.up()
+
+		await this.mutationResolution()
+	}
+
+	@step
+	async pinFile(fileName: string) {
 		await this.openFileMenuByName(fileName)
 		await this.page.getByRole('menuitem', { name: 'Pin' }).click()
 		await this.mutationResolution()
 	}
 
 	@step
-	async unpinFileInGroup(fileName: string) {
+	async unpinFile(fileName: string) {
 		await this.openFileMenuByName(fileName)
 		await this.page.getByRole('menuitem', { name: 'Unpin' }).click()
 		await this.mutationResolution()
@@ -462,9 +525,9 @@ export class Sidebar {
 		await expect(fileLink).toHaveAttribute('data-active', 'false')
 	}
 
-	async getFilesInGroup(groupName: string): Promise<string[]> {
-		const group = this.getGroup(groupName)
-		const fileLinks = group.locator('[data-element="file-link"]')
+	/** The names of the files currently shown in the file list (the active workspace's files). */
+	async getVisibleFiles(): Promise<string[]> {
+		const fileLinks = this.sidebar.locator('[data-element="file-link"]')
 		const count = await fileLinks.count()
 		const fileNames: string[] = []
 		for (let i = 0; i < count; i++) {
@@ -475,141 +538,45 @@ export class Sidebar {
 	}
 
 	@step
-	async deleteFileInGroup(fileName: string) {
+	async deleteFileByName(fileName: string) {
 		await this.openFileMenuByName(fileName)
 		await this.deleteFromFileMenu()
 	}
 
 	@step
-	async duplicateFileInGroup(fileName: string, newName?: string) {
+	async duplicateFileByName(fileName: string, newName?: string) {
 		await this.openFileMenuByName(fileName)
 		await this.duplicateFromFileMenu(newName)
 	}
 
 	@step
-	async moveFileToGroup(fileName: string, targetGroupName: string) {
+	async openMoveToMenu(fileName: string) {
 		await this.openFileMenuByName(fileName)
-		await this.page.getByRole('menuitem', { name: 'Move to' }).hover()
-		await this.page.getByRole('menuitem', { name: targetGroupName, exact: true }).click()
+		const moveToButton = this.page.getByTestId('dialog-sub.move-to-workspace-button')
+		await expect(async () => {
+			await expect(moveToButton).toBeVisible()
+			await moveToButton.hover({ force: true })
+			await expect(this.page.getByTestId('dialog-sub.move-to-workspace-content')).toBeVisible({
+				timeout: 1000,
+			})
+		}).toPass()
+	}
+
+	@step
+	async closeMoveToMenu() {
+		await this.page.keyboard.press('Escape')
+		await this.page.keyboard.press('Escape')
+	}
+
+	@step
+	async moveFileToWorkspace(fileName: string, targetWorkspaceName: string) {
+		await this.openMoveToMenu(fileName)
+		await this.page.getByRole('menuitem', { name: targetWorkspaceName, exact: true }).click()
 		await this.mutationResolution()
 	}
 
 	@step
 	async moveFileToHome(fileName: string) {
-		await this.openFileMenuByName(fileName)
-		await this.page.getByRole('menuitem', { name: 'Move to' }).hover()
-		await this.page.getByRole('menuitem', { name: 'My files' }).click()
-		await this.mutationResolution()
-	}
-
-	@step
-	async copyGroupInviteLink(groupName: string): Promise<string> {
-		const group = this.getGroup(groupName)
-		await this.expandGroup(groupName)
-		const inviteButton = group.getByRole('button', { name: 'copy invite link' })
-		await inviteButton.click()
-		return await this.page.evaluate(() => navigator.clipboard.readText())
-	}
-
-	@step
-	async copyGroupInviteLinkFromMenu(groupName: string): Promise<string> {
-		const group = this.getGroup(groupName)
-		const groupHeader = group.locator('[role="button"]').first()
-		await groupHeader.hover()
-
-		const moreOptionsButton = group.locator('button[aria-label="More options"]')
-		await moreOptionsButton.click()
-
-		await this.page.getByRole('menuitem', { name: 'Copy invite link' }).click()
-		return await this.page.evaluate(() => navigator.clipboard.readText())
-	}
-
-	async getGroupOrder(): Promise<string[]> {
-		const groups = this.page.locator('[data-group-id]')
-		const count = await groups.count()
-		const groupNames: string[] = []
-		for (let i = 0; i < count; i++) {
-			const groupHeader = groups.nth(i).locator('[role="button"]').first()
-			const text = await groupHeader.innerText()
-			// Extract just the group name (text before any counts)
-			const name = text.split('\n')[0].trim()
-			groupNames.push(name)
-		}
-		return groupNames
-	}
-
-	@step
-	async dragGroupToPosition(sourceGroupName: string, targetGroupName: string) {
-		const sourceHeader = this.getGroup(sourceGroupName).locator('[role="button"]').first()
-		const targetGroup = this.getGroup(targetGroupName)
-
-		const sourceBox = await sourceHeader.boundingBox()
-		const targetBox = await targetGroup.boundingBox()
-
-		if (!sourceBox || !targetBox) throw new Error('Could not get bounding boxes')
-
-		// Move to source
-		await this.page.mouse.move(
-			sourceBox.x + sourceBox.width / 2,
-			sourceBox.y + sourceBox.height / 2
-		)
-
-		// Press and hold
-		await this.page.mouse.down()
-
-		// Small delay to let browser detect drag intent
-		await this.page.waitForTimeout(100)
-
-		// Drag to target position (below target group)
-		await this.page.mouse.move(
-			targetBox.x + targetBox.width / 2,
-			targetBox.y + targetBox.height + 5,
-			{ steps: 10 }
-		)
-
-		// Small delay before release
-		await this.page.waitForTimeout(50)
-
-		// Release
-		await this.page.mouse.up()
-
-		await this.mutationResolution()
-	}
-
-	@step
-	async dragFileToGroup(fileName: string, targetGroupName: string) {
-		const fileElement = this.getFileByName(fileName)
-		const targetGroup = this.getGroup(targetGroupName)
-
-		const fileBox = await fileElement.boundingBox()
-		const targetBox = await targetGroup.boundingBox()
-
-		if (!fileBox || !targetBox) throw new Error('Could not get bounding boxes')
-
-		// Move to file
-		await this.page.mouse.move(fileBox.x + fileBox.width / 2, fileBox.y + fileBox.height / 2)
-
-		// Press and hold
-		await this.page.mouse.down()
-
-		// Small delay to let browser detect drag intent
-		await this.page.waitForTimeout(100)
-
-		// Drag to target group center
-		await this.page.mouse.move(
-			targetBox.x + targetBox.width / 2,
-			targetBox.y + targetBox.height / 2,
-			{
-				steps: 10,
-			}
-		)
-
-		// Small delay before release
-		await this.page.waitForTimeout(50)
-
-		// Release
-		await this.page.mouse.up()
-
-		await this.mutationResolution()
+		await this.moveFileToWorkspace(fileName, 'My files')
 	}
 }

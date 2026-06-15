@@ -3,6 +3,7 @@ import {
 	DefaultColorStyle,
 	DefaultFillStyle,
 	Editor,
+	GeoShapeGeoStyle,
 	HALF_PI,
 	PageRecordType,
 	Result,
@@ -1904,6 +1905,34 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					}
 
 					trackEvent('download-original', { source })
+				},
+			},
+			{
+				id: 'copy-hovered-styles',
+				label: 'action.copy-hovered-styles',
+				kbd: 'shift+q',
+				async onSelect(source) {
+					const shape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
+						hitInside: false,
+						hitLabels: false,
+						hitLocked: editor.options.selectLockedShapes,
+						margin: editor.options.hitTestMargin / editor.getZoomLevel(),
+					})
+
+					const path = editor.getPath()
+					if (!shape || !path.endsWith('.idle')) return
+
+					// Setting styles for the next shape is instance state, not document state, so it
+					// isn't undoable and doesn't need a history stopping point.
+					editor.run(() => {
+						for (const style of editor.styleProps[shape.type].keys()) {
+							const value = editor.getShapeStyleIfExists(shape, style)
+							if (value === undefined || style === GeoShapeGeoStyle) continue
+							editor.setStyleForNextShapes(style, value)
+						}
+					})
+
+					trackEvent('copy-hovered-styles', { source })
 				},
 			},
 		]
