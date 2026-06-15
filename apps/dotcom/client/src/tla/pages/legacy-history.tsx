@@ -67,7 +67,6 @@ export function Component({ error: _error }: { error?: unknown }) {
 							timestamp,
 							href: `./${timestamp}`,
 						}))}
-						hasMore={data.data.hasMore}
 					/>
 				</TlaAnonLayout>
 			)}
