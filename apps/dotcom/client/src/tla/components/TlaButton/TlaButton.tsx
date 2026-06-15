@@ -43,6 +43,7 @@ export const TlaButton = forwardRef<
 					[styles.cta]: variant === 'cta',
 					[styles.primary]: variant === 'primary',
 					[styles.secondary]: variant === 'secondary',
+					[styles.warning]: variant === 'warning',
 					[styles.ghost]: ghost,
 					[styles.big]: big,
 				},
