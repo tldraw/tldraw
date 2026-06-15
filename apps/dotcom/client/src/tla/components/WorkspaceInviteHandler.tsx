@@ -94,14 +94,14 @@ export function WorkspaceInviteHandler() {
 				dialogs.addDialog({
 					id: 'workspace-invite-sign-in',
 					component: (props) => <TlaSignInDialog {...props} inviteInfo={inviteInfo} skipRedirect />,
+					// Push, not replace: dismissing leaves the ?invite URL behind in
+					// history, so the invite stays a real back-navigable state rather
+					// than being erased.
 					onClose: () =>
-						setSearchParams(
-							(params) => {
-								params.delete(WORKSPACE_INVITE_QUERY_PARAM)
-								return params
-							},
-							{ replace: true }
-						),
+						setSearchParams((params) => {
+							params.delete(WORKSPACE_INVITE_QUERY_PARAM)
+							return params
+						}),
 				})
 			}
 
@@ -153,7 +153,9 @@ export function WorkspaceInviteHandler() {
 						id: 'workspace-invite-already-member',
 						title: alreadyMemberMsg,
 					})
-					app.navigateToWorkspaceFiles(data.workspaceId)
+					// Replace, not push: the invite is moot for an existing member, so
+					// it shouldn't linger in history as a back-navigable state.
+					app.navigateToWorkspaceFiles(data.workspaceId, { replace: true })
 					return
 				}
 

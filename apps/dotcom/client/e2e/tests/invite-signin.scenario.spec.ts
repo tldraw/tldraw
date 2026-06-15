@@ -49,9 +49,11 @@ test.describe('invite sign-in scenarios', () => {
 		await visitor.waitForAppReady()
 		await expect(visitor.signInDialog.googleButton).not.toBeVisible()
 
-		// Opening the invite link again re-activates the flow, so the dialog shows
-		// again.
-		await visitor.page.goto(inviteUrl)
+		// Dismissing pushes rather than replaces, so the invite stays a real
+		// back-navigable history state: going back re-activates the marker and the
+		// dialog returns.
+		await visitor.page.goBack()
+		await visitor.page.waitForURL('http://localhost:3000/?invite=true')
 		await expect(visitor.signInDialog.googleButton).toBeVisible()
 		await expect(visitor.page.locator('strong', { hasText: workspaceName })).toBeVisible()
 	})
