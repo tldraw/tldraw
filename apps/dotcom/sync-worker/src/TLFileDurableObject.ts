@@ -896,60 +896,9 @@ export class TLFileDurableObject extends DurableObject {
 
 	async handleFileCreateFromSource(): Promise<DBLoadResult> {
 		assert(this._fileRecordCache, 'we need to have a file record to create a file from source')
-		const createSource = this._fileRecordCache.createSource
 
-		let data: RoomSnapshot | string | null | undefined = undefined
 		const fetchTimer = this.timer()
-
-		if (createSource === WELCOME_CREATE_SOURCE) {
-			// A new workspace's first file. Unlike the prefix/id sources below, this is a fixed
-			// marker the worker resolves to the welcome template's content (or a committed
-			// default) — see resolveWelcomeSnapshot.
-			data = await resolveWelcomeSnapshot(this.env, (e) => this.reportError(e))
-		} else {
-			const split = createSource?.split('/')
-			if (!split || split?.length !== 2) {
-				throw ROOM_NOT_FOUND
-			}
-			const [prefix, id] = split
-			switch (prefix) {
-				case FILE_PREFIX: {
-					// The source file's content is copied verbatim into this (user-owned)
-					// room. Read access to the source `id` is authorized upstream when the
-					// file record is created (see the `createFile` mutator), since that is
-					// where the requesting user's identity is known.
-					const awaitPersistTimer = this.timer()
-					await getRoomDurableObject(this.env, id).awaitPersist()
-					awaitPersistTimer.report('create_from_source_await_persist')
-
-					const r2FetchTimer = this.timer()
-					data = await this.r2.rooms
-						.get(getR2KeyForRoom({ slug: id, isApp: true }))
-						.then((r) => r?.text())
-					r2FetchTimer.report('create_from_source_r2_fetch')
-					break
-				}
-				case ROOM_PREFIX:
-					data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_WRITE)
-					break
-				case READ_ONLY_PREFIX:
-					data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY)
-					break
-				case READ_ONLY_LEGACY_PREFIX:
-					data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
-					break
-				case SNAPSHOT_PREFIX:
-					data = await getLegacyRoomData(this.env, id, 'snapshot')
-					break
-				case PUBLISH_PREFIX:
-					data = await getPublishedRoomSnapshot(this.env, id)
-					break
-				case LOCAL_FILE_PREFIX:
-					// create empty room, the client will populate it
-					data = DEFAULT_INITIAL_SNAPSHOT
-					break
-			}
-		}
+		const data = await this.loadCreateSourceData(this._fileRecordCache.createSource)
 		fetchTimer.report('create_from_source_fetch_total')
 
 		if (!data) {
@@ -967,6 +916,58 @@ export class TLFileDurableObject extends DurableObject {
 		return {
 			snapshot,
 			roomSizeMB: roomObject ? roomObject.size / MB : 0,
+		}
+	}
+
+	/**
+	 * Resolve the seed content for a file's `createSource`, as a RoomSnapshot or its serialized
+	 * string. Returns undefined for an unknown source, which the caller turns into ROOM_NOT_FOUND.
+	 */
+	private async loadCreateSourceData(
+		createSource: string | null | undefined
+	): Promise<RoomSnapshot | string | null | undefined> {
+		// A new workspace's first file: a fixed marker (no prefix/id) the worker resolves to the
+		// welcome template's content, or a committed default — see resolveWelcomeSnapshot.
+		if (createSource === WELCOME_CREATE_SOURCE) {
+			return await resolveWelcomeSnapshot(this.env, (e) => this.reportError(e))
+		}
+
+		const split = createSource?.split('/')
+		if (!split || split.length !== 2) {
+			throw ROOM_NOT_FOUND
+		}
+		const [prefix, id] = split
+		switch (prefix) {
+			case FILE_PREFIX: {
+				// The source file's content is copied verbatim into this (user-owned) room. Read
+				// access to the source `id` is authorized upstream when the file record is created
+				// (see the `createFile` mutator), since that is where the user's identity is known.
+				const awaitPersistTimer = this.timer()
+				await getRoomDurableObject(this.env, id).awaitPersist()
+				awaitPersistTimer.report('create_from_source_await_persist')
+
+				const r2FetchTimer = this.timer()
+				const text = await this.r2.rooms
+					.get(getR2KeyForRoom({ slug: id, isApp: true }))
+					.then((r) => r?.text())
+				r2FetchTimer.report('create_from_source_r2_fetch')
+				return text
+			}
+			case ROOM_PREFIX:
+				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_WRITE)
+			case READ_ONLY_PREFIX:
+				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY)
+			case READ_ONLY_LEGACY_PREFIX:
+				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
+			case SNAPSHOT_PREFIX:
+				return await getLegacyRoomData(this.env, id, 'snapshot')
+			case PUBLISH_PREFIX:
+				return await getPublishedRoomSnapshot(this.env, id)
+			case LOCAL_FILE_PREFIX:
+				// create empty room, the client will populate it
+				return DEFAULT_INITIAL_SNAPSHOT
+			default:
+				return undefined
 		}
 	}
 
