@@ -282,11 +282,15 @@ function useSwitchToWorkspace() {
 				navigate(routes.tlaFile(files[0]!.fileId))
 				return
 			}
-			// Empty workspace: create a file in it and open that, so selecting a
-			// workspace always lands you on a file within it.
-			const res = await app.createFile({ workspaceId })
-			if (res.ok) {
-				if (!getIsCoarsePointer()) {
+			// Empty workspace: create its first file and open that, so selecting a workspace
+			// always lands you on a file within it. Non-home workspaces are seeded with the
+			// welcome file (named, so no inline rename); the home workspace gets a blank file
+			// to rename. createWorkspaceFirstFile dedupes against a concurrent seed and returns
+			// null if one is already in flight.
+			const isHome = workspaceId === app.getHomeWorkspaceId()
+			const res = await app.createWorkspaceFirstFile(workspaceId)
+			if (res?.ok) {
+				if (isHome && !getIsCoarsePointer()) {
 					app.sidebarState.update((prev) => ({
 						...prev,
 						renameState: { fileId: res.value.fileId, workspaceId },

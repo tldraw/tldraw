@@ -10,6 +10,7 @@ import {
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	TlaFile,
+	WELCOME_CREATE_SOURCE,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
@@ -327,6 +328,8 @@ export class TldrawApp {
 			defaultMessage:
 				'You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones.',
 		},
+		// the name of a workspace's seeded first (welcome) file
+		new_workspace_file_name: { defaultMessage: 'Welcome to your workspace' },
 		// toast title
 		mutation_error_toast_title: { defaultMessage: 'Error' },
 		// toast descriptions
@@ -643,6 +646,44 @@ export class TldrawApp {
 			)
 		}
 		return this.getFileState(fileId)?.isPinned ?? false
+	}
+
+	// A new workspace becomes visible in the sidebar (its `createWorkspace` mutation lands)
+	// before its first file does, so it briefly appears empty. Both the creation flow and an
+	// empty-workspace switch want to seed that first file; this tracks which workspaces have a
+	// seed in flight so the two paths (and rapid repeat clicks) don't create duplicates. The
+	// entry is added synchronously before the file mutation, so a racing caller sees it.
+	private readonly workspacesSeedingFirstFile = new Set<string>()
+
+	/**
+	 * Create the first file of an empty workspace, at most once per workspace even when the
+	 * creation flow and a switch to the (briefly) empty workspace race. The home workspace
+	 * gets a blank file; other workspaces get the seeded welcome file, whose content the sync
+	 * worker resolves from the welcome template (or a committed default). The welcome file
+	 * arrives named. Resolves to `null` when another caller is already seeding this workspace.
+	 */
+	async createWorkspaceFirstFile(
+		workspaceId: string
+	): Promise<Result<
+		{ fileId: string },
+		'max number of files reached' | 'mutation rejected'
+	> | null> {
+		if (this.workspacesSeedingFirstFile.has(workspaceId)) return null
+		this.workspacesSeedingFirstFile.add(workspaceId)
+		try {
+			const isHome = workspaceId === this.getHomeWorkspaceId()
+			return await this.createFile(
+				isHome
+					? { workspaceId }
+					: {
+							workspaceId,
+							name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+							createSource: WELCOME_CREATE_SOURCE,
+						}
+			)
+		} finally {
+			this.workspacesSeedingFirstFile.delete(workspaceId)
+		}
 	}
 
 	async createFile({
