@@ -2198,6 +2198,8 @@ export class InputsManager {
     get currentPagePoint(): Vec;
     // @deprecated (undocumented)
     get currentScreenPoint(): Vec;
+    // @internal (undocumented)
+    dispose(): void;
     getAccelKey(): boolean;
     getAltKey(): boolean;
     getCtrlKey(): boolean;
