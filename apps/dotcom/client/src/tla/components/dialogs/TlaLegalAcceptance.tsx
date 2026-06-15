@@ -5,7 +5,7 @@ import { TldrawUiDialogBody, TldrawUiDialogHeader, TldrawUiDialogTitle } from 't
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
 import { TlaMenuSwitch } from '../tla-menu/tla-menu'
-import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
+import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import styles from './auth.module.css'
 
@@ -111,14 +111,15 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 				)}
 
 				{error && <div className={styles.authError}>{error}</div>}
-				<TlaCtaButton
+				<TlaButton
+					variant="cta"
 					data-testid="tla-accept-and-continue-button"
 					onClick={handleContinue}
 					disabled={isSubmitting}
 					className={classNames(styles.authCtaButton, styles.authTermsAcceptAndContinueButton)}
 				>
 					<F defaultMessage="Accept and continue" />
-				</TlaCtaButton>
+				</TlaButton>
 			</TldrawUiDialogBody>
 		</div>
 	)

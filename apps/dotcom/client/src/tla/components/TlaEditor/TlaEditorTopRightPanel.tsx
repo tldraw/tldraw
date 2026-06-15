@@ -22,7 +22,7 @@ import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
-import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
+import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './top.module.css'
@@ -50,7 +50,8 @@ export function TlaEditorTopRightPanel({
 			<div ref={ref} className={styles.topRightPanel}>
 				<PeopleMenu />
 				<SignedOutShareButton fileId={fileId} context={context} />
-				<TlaCtaButton
+				<TlaButton
+					variant="cta"
 					canvas
 					data-testid="tla-sign-in-button"
 					onClick={() => {
@@ -62,7 +63,7 @@ export function TlaEditorTopRightPanel({
 					}}
 				>
 					<F {...ctaMessages.signInToShare} />
-				</TlaCtaButton>
+				</TlaButton>
 			</div>
 		)
 	}
@@ -73,13 +74,14 @@ export function TlaEditorTopRightPanel({
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
 				<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
-					<TlaCtaButton
+					<TlaButton
+						variant="cta"
 						canvas
 						data-testid="tla-share-button"
 						onClick={() => trackEvent('open-share-menu', { source: 'top-bar' })}
 					>
 						<F defaultMessage="Share" />
-					</TlaCtaButton>
+					</TlaButton>
 				</TlaFileShareMenu>
 			)}
 		</div>
@@ -146,9 +148,9 @@ function LegacyImportButton() {
 	}, [app, editor, name, navigate, roomInfo, trackEvent])
 
 	return (
-		<TlaCtaButton canvas data-testid="tla-import-button" onClick={handleClick}>
+		<TlaButton variant="cta" canvas data-testid="tla-import-button" onClick={handleClick}>
 			<F defaultMessage="Copy to my files" />
-		</TlaCtaButton>
+		</TlaButton>
 	)
 }
 

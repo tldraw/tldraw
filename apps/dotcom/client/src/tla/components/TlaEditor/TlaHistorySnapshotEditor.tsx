@@ -10,7 +10,7 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { F } from '../../utils/i18n'
-import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
+import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
@@ -72,7 +72,8 @@ function TlaEditorInner({
 		return {
 			ErrorFallback: TlaEditorErrorFallback,
 			SharePanel: () => (
-				<TlaCtaButton
+				<TlaButton
+					variant="cta"
 					canvas
 					style={{
 						pointerEvents: 'all',
@@ -92,7 +93,7 @@ function TlaEditorInner({
 					}}
 				>
 					<F defaultMessage="Restore version"></F>
-				</TlaCtaButton>
+				</TlaButton>
 			),
 		}
 	}, [onRestore])

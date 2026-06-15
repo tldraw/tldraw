@@ -56,10 +56,72 @@
 	}
 }
 
+/* cta is a call-to-action button. Its background is drawn by a ::before
+   pseudo-element so the canvas variant can layer a background-coloured ring
+   (::after) behind it when the button floats over canvas content. */
 .cta {
-	background-color: var(--tla-color-cta);
+	height: 36px;
+	padding: 0px 16px;
+	margin-left: 2px;
+	border: none;
+	background-color: transparent;
 	color: var(--tla-color-contrast);
 	font-weight: 600;
+	box-sizing: border-box;
+}
+
+.cta::before {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: 0px;
+	background-color: var(--tla-color-cta);
+	border-radius: 6px;
+	z-index: 2;
+}
+
+.cta > span {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	z-index: 3;
+}
+
+.cta:focus-visible {
+	border-radius: 6px;
+}
+
+.cta:disabled {
+	pointer-events: none;
+}
+
+.ctaCanvas::before {
+	inset: 2px;
+}
+
+.ctaCanvas::after {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: 0px;
+	background-color: var(--tl-color-background);
+	border-radius: 8px;
+	z-index: 1;
+}
+
+.ctaSecondary {
+	color: var(--tl-color-text-1);
+}
+
+.ctaSecondary::before {
+	background-color: var(--tl-color-muted-2);
+	border: 1px solid var(--tl-color-muted-1);
+}
+
+.ctaSecondary::after {
+	inset: 0px;
+	border-radius: 8px;
 }
 
 .primary {
@@ -136,8 +198,12 @@
 		background-color: var(--tla-color-secondary-hover);
 	}
 
-	.cta:not(:disabled):hover {
-		background-color: var(--tla-color-primary-hover);
+	.cta:not(:disabled):hover::before {
+		background-color: var(--tla-color-cta-hover);
+	}
+
+	.ctaSecondary:not(:disabled):hover::before {
+		background-color: var(--tl-color-muted-1);
 	}
 
 	.ghost:hover::after {

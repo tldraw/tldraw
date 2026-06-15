@@ -6,7 +6,7 @@ import { useSetIsReady } from '../../hooks/useIsReady'
 import { F } from '../../utils/i18n'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
-import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
+import { TlaButton } from '../TlaButton/TlaButton'
 import styles from './TlaFileError.module.css'
 
 function DefaultError() {
@@ -104,12 +104,13 @@ function NotAuthenticatedError() {
 			header={<F defaultMessage="Sign in" />}
 			para1={<F defaultMessage="You need to sign in to view this file." />}
 			cta={
-				<TlaCtaButton
+				<TlaButton
+					variant="cta"
 					data-testid="tla-sign-in-button"
 					onClick={() => dialogs.addDialog({ component: TlaSignInDialog })}
 				>
 					<F defaultMessage="Sign in" />
-				</TlaCtaButton>
+				</TlaButton>
 			}
 		/>
 	)

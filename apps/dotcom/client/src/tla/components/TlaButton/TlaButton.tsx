@@ -12,6 +12,10 @@ export const TlaButton = forwardRef<
 		iconRightClassName?: string
 		ghost?: boolean
 		variant?: 'primary' | 'secondary' | 'warning' | 'cta'
+		/** Adds a background-coloured ring so a `cta` button reads correctly floating over canvas content. */
+		canvas?: boolean
+		/** Renders a `cta` button with the muted secondary treatment instead of the filled call-to-action colour. */
+		ctaSecondary?: boolean
 	}
 >(function TlaButton(
 	{
@@ -23,14 +27,23 @@ export const TlaButton = forwardRef<
 		ghost = false,
 		variant = 'primary',
 		isLoading = false,
+		canvas = false,
+		ctaSecondary = false,
+		type,
+		draggable,
 		onClick,
 		...props
 	},
 	ref
 ) {
+	const isCta = variant === 'cta'
 	return (
 		<button
 			{...props}
+			// cta buttons default to type="button" and draggable={false}, matching the
+			// behaviour of the former TlaCtaButton; callers can still override either.
+			type={type ?? (isCta ? 'button' : undefined)}
+			draggable={draggable ?? (isCta ? false : undefined)}
 			onClick={isLoading ? undefined : onClick}
 			ref={ref}
 			data-state={isLoading ? 'loading' : 'ready'}
@@ -38,7 +51,9 @@ export const TlaButton = forwardRef<
 				'tla-button',
 				styles.tlaButton,
 				{
-					[styles.cta]: variant === 'cta',
+					[styles.cta]: isCta,
+					[styles.ctaCanvas]: isCta && canvas,
+					[styles.ctaSecondary]: isCta && ctaSecondary,
 					[styles.primary]: variant === 'primary',
 					[styles.secondary]: variant === 'secondary',
 					[styles.ghost]: ghost,

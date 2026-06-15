@@ -13,7 +13,7 @@ import {
 } from 'tldraw'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { setRedirectOnSignIn } from '../../utils/redirect'
-import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
+import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import styles from './auth.module.css'
 
@@ -209,7 +209,8 @@ function TlaEnterEmailStep({
 					<div className={styles.authGoogleButtonWrapper}>
 						{/* @ts-ignore this is fine */}
 						<Clerk.Connection name="google" asChild>
-							<TlaCtaButton
+							<TlaButton
+								variant="cta"
 								data-testid="tla-google-sign-in-button"
 								className={styles.authCtaButton}
 								onClick={() => {
@@ -220,7 +221,7 @@ function TlaEnterEmailStep({
 							>
 								<Clerk.Icon icon="google" />
 								<F defaultMessage="Sign in with Google" />
-							</TlaCtaButton>
+							</TlaButton>
 						</Clerk.Connection>
 					</div>
 				</SignIn.Step>
@@ -252,15 +253,16 @@ function TlaEnterEmailStep({
 					{state.error && <div className={styles.authError}>{state.error}</div>}
 				</div>
 
-				<TlaCtaButton
+				<TlaButton
+					variant="cta"
+					ctaSecondary
 					data-testid="tla-continue-with-email-button"
 					className={classNames(styles.authContinueWithEmailButton, styles.authCtaButton)}
 					disabled={state.isSubmitting}
-					secondary
 					type="submit"
 				>
 					<F defaultMessage="Continue with email" />
-				</TlaCtaButton>
+				</TlaButton>
 
 				<p className={styles.authTermsOfUse}>
 					<a href="/tos.html" target="_blank" rel="noopener noreferrer">
