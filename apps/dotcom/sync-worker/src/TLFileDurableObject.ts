@@ -905,7 +905,7 @@ export class TLFileDurableObject extends DurableObject {
 			// A new workspace's first file. Unlike the prefix/id sources below, this is a fixed
 			// marker the worker resolves to the welcome template's content (or a committed
 			// default) — see resolveWelcomeSnapshot.
-			data = await resolveWelcomeSnapshot(this.env)
+			data = await resolveWelcomeSnapshot(this.env, (e) => this.reportError(e))
 		} else {
 			const split = createSource?.split('/')
 			if (!split || split?.length !== 2) {

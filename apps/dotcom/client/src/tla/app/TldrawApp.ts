@@ -650,40 +650,46 @@ export class TldrawApp {
 
 	// A new workspace becomes visible in the sidebar (its `createWorkspace` mutation lands)
 	// before its first file does, so it briefly appears empty. Both the creation flow and an
-	// empty-workspace switch want to seed that first file; this tracks which workspaces have a
-	// seed in flight so the two paths (and rapid repeat clicks) don't create duplicates. The
-	// entry is added synchronously before the file mutation, so a racing caller sees it.
-	private readonly workspacesSeedingFirstFile = new Set<string>()
+	// empty-workspace switch want to seed that first file; this single-flights the seed per
+	// workspace so concurrent callers (and rapid repeat clicks) share one creation — and all
+	// receive its result — rather than racing to create duplicates. Cleared once settled, so a
+	// workspace emptied later can be seeded again.
+	private readonly workspaceFirstFileSeeds = new Map<
+		string,
+		Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>>
+	>()
 
 	/**
 	 * Create the first file of an empty workspace, at most once per workspace even when the
-	 * creation flow and a switch to the (briefly) empty workspace race. The home workspace
-	 * gets a blank file; other workspaces get the seeded welcome file, whose content the sync
-	 * worker resolves from the welcome template (or a committed default). The welcome file
-	 * arrives named. Resolves to `null` when another caller is already seeding this workspace.
+	 * creation flow and a switch to the (briefly) empty workspace race — concurrent callers
+	 * share the same in-flight creation and all get its result. The home workspace gets a blank
+	 * file; other workspaces get the seeded welcome file, whose content the sync worker
+	 * resolves from the welcome template (or a committed default). The welcome file arrives
+	 * named.
 	 */
-	async createWorkspaceFirstFile(
+	createWorkspaceFirstFile(
 		workspaceId: string
-	): Promise<Result<
-		{ fileId: string },
-		'max number of files reached' | 'mutation rejected'
-	> | null> {
-		if (this.workspacesSeedingFirstFile.has(workspaceId)) return null
-		this.workspacesSeedingFirstFile.add(workspaceId)
-		try {
-			const isHome = workspaceId === this.getHomeWorkspaceId()
-			return await this.createFile(
-				isHome
-					? { workspaceId }
-					: {
-							workspaceId,
-							name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
-							createSource: WELCOME_CREATE_SOURCE,
-						}
-			)
-		} finally {
-			this.workspacesSeedingFirstFile.delete(workspaceId)
-		}
+	): Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>> {
+		const inFlight = this.workspaceFirstFileSeeds.get(workspaceId)
+		if (inFlight) return inFlight
+
+		const isHome = workspaceId === this.getHomeWorkspaceId()
+		const seed = this.createFile(
+			isHome
+				? { workspaceId }
+				: {
+						workspaceId,
+						name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+						createSource: WELCOME_CREATE_SOURCE,
+					}
+		)
+		this.workspaceFirstFileSeeds.set(workspaceId, seed)
+		seed.finally(() => {
+			if (this.workspaceFirstFileSeeds.get(workspaceId) === seed) {
+				this.workspaceFirstFileSeeds.delete(workspaceId)
+			}
+		})
+		return seed
 	}
 
 	async createFile({
@@ -741,6 +747,8 @@ export class TldrawApp {
 
 		if (!createSource) {
 			analyticsSource = 'create-blank-file' // Default for button clicks
+		} else if (createSource === WELCOME_CREATE_SOURCE) {
+			analyticsSource = 'welcome'
 		} else if (createSource.startsWith(`${LOCAL_FILE_PREFIX}/`)) {
 			analyticsSource = 'slurp'
 		} else if (createSource.startsWith(`${FILE_PREFIX}/`)) {

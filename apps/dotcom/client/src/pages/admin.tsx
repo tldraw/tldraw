@@ -283,7 +283,9 @@ export function Component() {
 
 function WelcomeTemplate() {
 	const inputRef = useRef<HTMLInputElement>(null)
-	const [current, setCurrent] = useState(null as { fileId: string; publishedSlug: string } | null)
+	const [current, setCurrent] = useState(
+		null as { fileId: string; publishedSlug: string; live?: boolean } | null
+	)
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState(null as string | null)
 	const [successMessage, setSuccessMessage] = useState(null as string | null)
@@ -376,7 +378,9 @@ function WelcomeTemplate() {
 					{isLoading
 						? 'Loading…'
 						: current
-							? `${current.fileId} (published slug ${current.publishedSlug})`
+							? `${current.fileId} (published slug ${current.publishedSlug})${
+									current.live ? '' : ' ⚠️ not published — new workspaces fall back to the default'
+								}`
 							: 'none — using the built-in default'}
 				</span>
 			</div>

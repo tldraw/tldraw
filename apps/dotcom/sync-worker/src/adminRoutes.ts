@@ -319,11 +319,21 @@ export const adminRoutes = createRouter<Environment>()
 		return await returnFileSnapshot(env, fileSlug, false)
 	})
 	// The current welcome template (the file new workspaces fork their first file from), or
-	// null when none is set and the committed default is used. See resolveWelcomeSnapshot.
+	// null when none is set and the committed default is used. Also reports whether the marked
+	// file is still live and published: the resolver silently falls back to the default if it
+	// isn't, so the admin needs to see a stale pointer rather than assume it's working. See
+	// resolveWelcomeSnapshot.
 	.get('/app/admin/welcome-template', async (_res, env) => {
 		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
 		const row = await pg.selectFrom('welcome_template').selectAll().executeTakeFirst()
-		return json(row ?? null)
+		if (!row) return json(null)
+		const file = await pg
+			.selectFrom('file')
+			.where('id', '=', row.fileId)
+			.select(['published', 'isDeleted'])
+			.executeTakeFirst()
+		const live = !!file && !file.isDeleted && file.published
+		return json({ ...row, live })
 	})
 	// Mark a published file as the welcome template. We store its publishedSlug, so the file
 	// must be published first; new workspaces then fork its published snapshot.

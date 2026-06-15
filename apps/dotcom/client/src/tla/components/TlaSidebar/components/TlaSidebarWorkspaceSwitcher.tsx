@@ -285,11 +285,11 @@ function useSwitchToWorkspace() {
 			// Empty workspace: create its first file and open that, so selecting a workspace
 			// always lands you on a file within it. Non-home workspaces are seeded with the
 			// welcome file (named, so no inline rename); the home workspace gets a blank file
-			// to rename. createWorkspaceFirstFile dedupes against a concurrent seed and returns
-			// null if one is already in flight.
+			// to rename. createWorkspaceFirstFile single-flights per workspace, so a concurrent
+			// seed (or a rapid second click) shares the same creation and still resolves here.
 			const isHome = workspaceId === app.getHomeWorkspaceId()
 			const res = await app.createWorkspaceFirstFile(workspaceId)
-			if (res?.ok) {
+			if (res.ok) {
 				if (isHome && !getIsCoarsePointer()) {
 					app.sidebarState.update((prev) => ({
 						...prev,
