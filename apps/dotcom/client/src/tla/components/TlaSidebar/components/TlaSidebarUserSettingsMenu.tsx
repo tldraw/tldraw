@@ -71,7 +71,7 @@ export function TlaUserSettingsMenu() {
 						</>
 					)}
 					<TldrawUiMenuGroup id="legal">
-						<UserManualMenuItem icon={false} />
+						<UserManualMenuItem icon="question-circle" />
 						<LegalSummaryMenuItem />
 						<CookieConsentMenuItem />
 					</TldrawUiMenuGroup>

@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { TldrawUiButton } from 'tldraw'
 import { useMsg } from '../../../utils/i18n'
 import { TlaFileMenu } from '../../TlaFileMenu/TlaFileMenu'
@@ -22,6 +23,7 @@ export function TlaSidebarFileLinkMenu({
 			workspaceId={workspaceId}
 			source="sidebar"
 			onRenameAction={onRenameAction}
+			contentClassName={classNames(styles.sidebarDropdownMenu, 'tla-sidebar-file-menu')}
 			trigger={
 				<TldrawUiButton
 					type="icon"

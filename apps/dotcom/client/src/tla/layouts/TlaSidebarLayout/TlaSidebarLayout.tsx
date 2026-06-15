@@ -15,7 +15,7 @@ import {
 import styles from './sidebar-layout.module.css'
 
 const MIN_SIDEBAR_WIDTH = 150
-const DEF_SIDEBAR_WIDTH = 260
+const DEF_SIDEBAR_WIDTH = 264
 const MAX_SIDEBAR_WIDTH = 500
 
 export function TlaSidebarLayout({

@@ -291,13 +291,13 @@ export function CookieConsentMenuItem() {
 	)
 }
 
-export function UserManualMenuItem({ icon = true }: { icon?: boolean } = {}) {
+export function UserManualMenuItem({ icon = 'manual' }: { icon?: string | false } = {}) {
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	return (
 		<TldrawUiMenuItem
 			id="user-manual"
 			label={useMsg(messages.getHelp)}
-			iconLeft={icon ? 'manual' : undefined}
+			iconLeft={icon || undefined}
 			readonlyOk
 			onSelect={() => {
 				openAndTrack('https://tldraw.notion.site/support')

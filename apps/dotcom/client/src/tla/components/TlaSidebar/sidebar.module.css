@@ -19,7 +19,7 @@
    design; the rules below must not leak to users without the flag. */
 .sidebar[data-workspaces='true'] {
 	padding: 0 0 4px 0;
-	border-right: 1px solid var(--tl-color-low, rgba(237, 240, 242, 1));
+	border-right: 1px solid var(--tla-color-border);
 }
 
 :global(.tl-container[dir='rtl']) .sidebar {
@@ -253,8 +253,9 @@
    92px. */
 .sidebar[data-workspaces='true'] .sidebarTopRow {
 	height: 44px;
-	padding: 3px 8px 0px 4px;
-	gap: 8px;
+	justify-content: space-between;
+	padding: 3px 6px 0px 18px;
+	gap: 0px;
 }
 
 /* Workspace link */
@@ -277,12 +278,15 @@
 /* In the workspaces layout the logo is 16px tall, with its mark centered on
    the same vertical axis as the action-row icons below. */
 .sidebar[data-workspaces='true'] .sidebarWorkspaceButton {
-	padding-left: 15.3px;
+	flex: 0 0 auto;
+	height: 41px;
+	padding: 0;
+	background-color: transparent;
 }
 
 .sidebar[data-workspaces='true'] .sidebarWorkspaceButton span[role='img'] {
 	height: 16px;
-	width: 59px;
+	width: 62px;
 }
 
 .sidebarWorkspaceButtonLabel {
@@ -323,6 +327,17 @@
 	left: -8px;
 }
 
+.sidebar[data-workspaces='true'] .sidebarCreateFileButton {
+	right: auto;
+	min-width: 36px;
+	width: 36px;
+	height: 36px;
+}
+
+:global(.tl-container[dir='rtl']) .sidebar[data-workspaces='true'] .sidebarCreateFileButton {
+	left: auto;
+}
+
 .sidebarCreateFileButton::after {
 	display: block;
 	content: '';
@@ -336,6 +351,15 @@
 	z-index: 0;
 	visibility: hidden;
 	background-color: var(--tla-color-hover-1);
+}
+
+.sidebar[data-workspaces='true'] .sidebarCreateFileButton::after {
+	inset: 2px;
+}
+
+.sidebar[data-workspaces='true'] .sidebarCreateFileButton span[role='img'] {
+	width: 12px;
+	height: 12px;
 }
 
 .sidebarCreateFileButton:focus-visible {
@@ -400,9 +424,31 @@
 	text-decoration: none;
 }
 
+.sidebar[data-workspaces='true'] .sidebarFeedbackButton,
+.sidebar[data-workspaces='true'] .sidebarUserSettingsTrigger,
+.sidebar[data-workspaces='true'] .sidebarUserSettingsName,
+.sidebar[data-workspaces='true'] .sidebarWorkspaceSwitcherTrigger,
+.sidebar[data-workspaces='true'] .sidebarWorkspaceSwitcherLabel,
+.sidebar[data-workspaces='true'] .sidebarWorkspaceSwitcherItem,
+.sidebar[data-workspaces='true'] .sidebarActionButton,
+.sidebar[data-workspaces='true'] .sidebarActionButtonLabel,
+.sidebar[data-workspaces='true'] .sidebarFeedbackButtonLabel,
+.sidebar[data-workspaces='true'] .sidebarFileListItemLabel {
+	font-size: 12px;
+	line-height: 1;
+	font-weight: 500;
+}
+
 .sidebarFeedbackButton > span[role='img'] {
 	flex-shrink: 0;
 	margin: -1.5px;
+}
+
+.sidebar[data-workspaces='true'] .sidebarFeedbackButton > span[role='img'],
+.sidebar[data-workspaces='true'] .sidebarFeedbackButton > :global(.tlui-icon) {
+	width: 12px;
+	height: 12px;
+	margin: 0;
 }
 
 .sidebarFeedbackButtonLabel {
@@ -466,6 +512,16 @@
 	color: var(--tla-color-text-3);
 }
 
+.sidebar[data-workspaces='true'] .sidebarUserSettingsIcon {
+	visibility: visible;
+	color: var(--tla-color-text-1);
+}
+
+.sidebar[data-workspaces='true'] .sidebarUserSettingsIcon span[role='img'] {
+	width: 12px;
+	height: 12px;
+}
+
 @media (hover: hover) {
 	.sidebarUserSettingsTrigger:hover {
 		color: var(--tla-color-text-1);
@@ -474,6 +530,11 @@
 	.sidebarUserSettingsIcon {
 		color: var(--tla-color-text-3);
 		visibility: hidden;
+	}
+
+	.sidebar[data-workspaces='true'] .sidebarUserSettingsIcon {
+		color: var(--tla-color-text-1);
+		visibility: visible;
 	}
 
 	.sidebarUserSettingsTrigger:hover .sidebarUserSettingsIcon {
@@ -496,6 +557,10 @@
 	margin-top: 8px;
 }
 
+.sidebar[data-workspaces='true'] .sidebarFileSectionWrapper {
+	margin-top: 6px;
+}
+
 .sidebarFileSection {
 	position: relative;
 	background: var(--tla-color-sidebar);
@@ -516,7 +581,14 @@
 
 .sidebar[data-workspaces='true'] .sidebarFileSectionTitle {
 	padding: 0px 8px;
-	font-weight: 500;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 19.2px;
+}
+
+.sidebar[data-workspaces='true'] .sidebarFileSectionTitle > span[role='img'] {
+	width: 12px;
+	height: 12px;
 }
 
 /* ----------------------------- Shared section ----------------------------- */
@@ -583,12 +655,17 @@
 	z-index: 1;
 }
 
+.sidebar[data-workspaces='true'] .sidebarWorkspaceSwitcherChevrons {
+	width: 12px;
+	height: 12px;
+}
+
 .sidebarWorkspaceSwitcherMenu {
-	min-width: calc(var(--tla-sidebar-width) - 4px);
-	max-width: calc(var(--tla-sidebar-width) - 4px);
+	min-width: var(--tla-sidebar-width);
+	max-width: var(--tla-sidebar-width);
 	max-height: 70vh;
 	overflow-y: auto;
-	padding: 4px 0px;
+	padding: 2px 0px;
 }
 
 .sidebarWorkspaceSwitcherOverlay {
@@ -607,8 +684,8 @@
 	position: relative;
 	display: flex;
 	align-items: center;
-	height: 34px;
-	padding: 0px 8px;
+	height: 36px;
+	padding: 0px 12px;
 	gap: 6px;
 	color: var(--tla-color-text-1);
 	cursor: pointer;
@@ -620,7 +697,7 @@
 .sidebarWorkspaceSwitcherItem::after {
 	content: '';
 	position: absolute;
-	inset: 1px 6px;
+	inset: 2px 4px;
 	opacity: 0;
 	pointer-events: none;
 	border-radius: 4px;
@@ -660,17 +737,125 @@
 }
 
 .sidebarWorkspaceSwitcherItemCreate {
-	color: var(--tla-color-text-3);
+	color: var(--tla-color-text-1);
 }
 
 .sidebarWorkspaceSwitcherItemCreate .sidebarWorkspaceSwitcherItemLabel {
-	padding-left: 2px;
+	padding-left: 0px;
+}
+
+.sidebarWorkspaceSwitcherItemLabel span[role='img'] {
+	width: 12px;
+	height: 12px;
 }
 
 .sidebarWorkspaceSwitcherSeparator {
+	height: 4px;
+	margin: 0px;
+	display: flex;
+	align-items: center;
+	background-color: transparent;
+}
+
+.sidebarWorkspaceSwitcherSeparator::after {
+	content: '';
+	width: 100%;
 	height: 1px;
-	margin: 4px 0px;
-	background-color: var(--tl-color-divider, rgba(232, 232, 232, 1));
+	background-color: var(--tla-color-border);
+}
+
+/* Sidebar dropdowns use the compact 36px menu rows from the Figma sidebar spec. */
+.sidebarDropdownMenu,
+:global(body:has(.tla-sidebar-file-menu) [data-testid$='move-to-workspace-content']) {
+	min-width: 101px;
+	padding: 2px 0px;
+	border-radius: 9px;
+	background-color: var(--tla-color-sidebar);
+	box-shadow: var(--tla-shadow-2);
+	color: var(--tla-color-text-1);
+}
+
+:global(body:has(.tla-sidebar-file-menu) [data-testid$='move-to-workspace-content']) {
+	min-width: 144px;
+}
+
+.sidebarDropdownMenu :global(.tlui-menu__group),
+:global(
+	body:has(.tla-sidebar-file-menu) [data-testid$='move-to-workspace-content'] .tlui-menu__group
+) {
+	border-bottom: none;
+}
+
+.sidebarDropdownMenu :global(.tlui-menu__group + .tlui-menu__group),
+:global(
+	body:has(.tla-sidebar-file-menu)
+		[data-testid$='move-to-workspace-content']
+		.tlui-menu__group
+		+ .tlui-menu__group
+) {
+	margin-top: 2px;
+	padding-top: 2px;
+	border-top: 1px solid var(--tla-color-border);
+}
+
+.sidebarDropdownMenu :global(.tlui-button__menu),
+:global(
+	body:has(.tla-sidebar-file-menu) [data-testid$='move-to-workspace-content'] .tlui-button__menu
+) {
+	height: 36px;
+	min-height: 36px;
+	margin-top: 0px;
+	padding: 0px 12px;
+	gap: 6px;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	color: var(--tla-color-text-1);
+}
+
+.sidebarDropdownMenu :global(.tlui-button__menu)::after,
+:global(
+	body:has(.tla-sidebar-file-menu) [data-testid$='move-to-workspace-content'] .tlui-button__menu
+)::after {
+	inset: 2px 4px;
+	border-radius: 4px;
+	background-color: var(--tla-color-hover-1);
+}
+
+.sidebarDropdownMenu :global(.tlui-button__menu[data-highlighted])::after,
+.sidebarDropdownMenu :global(.tlui-menu__submenu__trigger[data-state='open'])::after,
+:global(
+	body:has(.tla-sidebar-file-menu)
+		[data-testid$='move-to-workspace-content']
+		.tlui-button__menu[data-highlighted]
+)::after {
+	opacity: 1;
+	background: var(--tla-color-hover-1);
+}
+
+.sidebarDropdownMenu :global(.tlui-button__menu > .tlui-icon),
+.sidebarDropdownMenu :global(.tlui-button__menu span[role='img']),
+.sidebarDropdownMenu :global(.tlui-icon__placeholder),
+:global(
+	body:has(.tla-sidebar-file-menu)
+		[data-testid$='move-to-workspace-content']
+		.tlui-button__menu
+		> .tlui-icon
+),
+:global(
+	body:has(.tla-sidebar-file-menu)
+		[data-testid$='move-to-workspace-content']
+		.tlui-button__menu
+		span[role='img']
+),
+:global(
+	body:has(.tla-sidebar-file-menu)
+		[data-testid$='move-to-workspace-content']
+		.tlui-button__menu
+		.tlui-icon__placeholder
+) {
+	width: 12px;
+	height: 12px;
 }
 
 /* 36px rows whose hover highlight is 32px tall (the .hoverable::after insets
@@ -700,6 +885,12 @@
 .sidebarActionButton > span[role='img'] {
 	flex-shrink: 0;
 	margin: -1.5px;
+}
+
+.sidebar[data-workspaces='true'] .sidebarActionButton > span[role='img'] {
+	width: 12px;
+	height: 12px;
+	margin: 0;
 }
 
 .sidebarSearchIcon {
@@ -833,13 +1024,20 @@
 }
 
 .sidebarFileListItemRenameInputWrapper {
+	box-sizing: border-box;
 	display: flex;
 	align-items: center;
 	justify-content: flex-start;
+	width: 100%;
+	height: 36px;
 	padding: 0px 8px 0px calc(8px + var(--tla-sidebar-group-item-padding-left, 0px));
 	outline-offset: -2px;
 	gap: 8px;
 	position: relative;
+}
+
+.sidebar[data-workspaces='true'] .sidebarFileListItemRenameInputWrapper {
+	padding: 0px 4px 0px 8px;
 }
 
 .sidebarFileListItemRenameInputWrapper::before {
@@ -856,14 +1054,23 @@
 }
 
 .sidebarFileListItemRenameInput {
+	box-sizing: border-box;
 	height: 36px;
+	max-height: 36px;
 	align-self: flex-start;
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	padding: 0px;
 	position: relative;
 	z-index: 1;
+}
+
+.sidebar[data-workspaces='true'] .sidebarFileListItemRenameInput {
+	font-size: 12px;
+	line-height: 1;
+	font-weight: 500;
 }
 
 .sidebarFileListItemButton {
@@ -907,6 +1114,11 @@
 
 .sidebarFileListItemMenuTrigger:after {
 	content: none;
+}
+
+.sidebar[data-workspaces='true'] .sidebarFileListItemMenuTrigger span[role='img'] {
+	width: 12px;
+	height: 12px;
 }
 
 .sidebarFileListItemMenuTrigger:focus-visible {

@@ -97,8 +97,8 @@ export function TlaSidebarWorkspaceSwitcher() {
 							side="bottom"
 							align="start"
 							sideOffset={4}
-							alignOffset={-4}
-							collisionPadding={8}
+							alignOffset={-6}
+							collisionPadding={0}
 						>
 							<WorkspaceSwitcherItem
 								isActive={isHome}
@@ -135,12 +135,16 @@ export function TlaSidebarWorkspaceSwitcher() {
 					</_DropdownMenu.Root>
 				</div>
 			</div>
-			<div className={styles.sidebarDivider} />
-			<TlaSidebarWorkspaceActions
-				workspaceId={activeWorkspaceId}
-				isHome={isHome}
-				onCreateWorkspace={handleCreateWorkspace}
-			/>
+			{(!isHome || workspaces.length === 0) && (
+				<>
+					<div className={styles.sidebarDivider} />
+					<TlaSidebarWorkspaceActions
+						workspaceId={activeWorkspaceId}
+						isHome={isHome}
+						onCreateWorkspace={handleCreateWorkspace}
+					/>
+				</>
+			)}
 		</>
 	)
 }
@@ -178,7 +182,7 @@ function WorkspaceSwitcherItem({
 
 /**
  * The action rows shown below the workspace switcher. Home shows file and
- * workspace creation actions; public workspaces add invite and settings.
+ * workspace creation actions; created workspaces show invite and settings.
  */
 function TlaSidebarWorkspaceActions({
 	workspaceId,
@@ -223,23 +227,25 @@ function TlaSidebarWorkspaceActions({
 
 	return (
 		<div className={styles.sidebarSection}>
-			<TlaSidebarActionButton
-				icon="edit-strong"
-				// edit-strong fills its 15px box while the other action icons draw
-				// 12px art inside it; scale it down so they optically match.
-				iconStyle={{ width: 12, height: 12, margin: 0 }}
-				label={newBoardLbl}
-				onClick={handleCreateFile}
-				testId="tla-sidebar-new-board"
-			/>
-			<TlaSidebarActionButton icon="search" label={searchLbl} />
 			{isHome ? (
-				<TlaSidebarActionButton
-					icon="plus"
-					label={newWorkspaceLbl}
-					onClick={onCreateWorkspace}
-					testId="tla-create-workspace"
-				/>
+				<>
+					<TlaSidebarActionButton
+						icon="edit-strong"
+						// edit-strong fills its 15px box while the other action icons draw
+						// 12px art inside it; scale it down so they optically match.
+						iconStyle={{ width: 12, height: 12, margin: 0 }}
+						label={newBoardLbl}
+						onClick={handleCreateFile}
+						testId="tla-sidebar-new-board"
+					/>
+					<TlaSidebarActionButton icon="search" label={searchLbl} />
+					<TlaSidebarActionButton
+						icon="plus"
+						label={newWorkspaceLbl}
+						onClick={onCreateWorkspace}
+						testId="tla-create-workspace"
+					/>
+				</>
 			) : (
 				<>
 					<TlaSidebarActionButton

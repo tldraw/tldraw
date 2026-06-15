@@ -59,7 +59,7 @@ const defaultSessionState: TldrawAppSessionState = {
 		exportBackground: true,
 		exportPadding: false,
 	},
-	sidebarWidth: 260,
+	sidebarWidth: 264,
 }
 
 let prev: TldrawAppSessionState = { ...defaultSessionState }

@@ -116,7 +116,13 @@ export function TlaSidebarFileLink({
 					className={className}
 				/>
 			</_ContextMenu.Trigger>
-			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
+			<_ContextMenu.Content
+				className={classNames(
+					'tlui-menu tlui-scrollable',
+					styles.sidebarDropdownMenu,
+					'tla-sidebar-file-menu'
+				)}
+			>
 				{/* Don't show the context menu on mobile */}
 				{!isMobile && (
 					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">

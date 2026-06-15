@@ -62,6 +62,7 @@ export function TlaFileMenu({
 	workspaceId,
 	onRenameAction,
 	trigger,
+	contentClassName,
 }: {
 	children?: ReactNode
 	source: TLAppUiEventSource
@@ -69,6 +70,7 @@ export function TlaFileMenu({
 	workspaceId: string | null
 	onRenameAction(): void
 	trigger: ReactNode
+	contentClassName?: string
 }) {
 	const id = useId()
 	const fileItemsWhenNoChildren = (
@@ -83,7 +85,13 @@ export function TlaFileMenu({
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}-${id}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+				<TldrawUiDropdownMenuContent
+					side="bottom"
+					align="start"
+					alignOffset={0}
+					sideOffset={0}
+					className={contentClassName}
+				>
 					{children ?? fileItemsWhenNoChildren}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
@@ -122,12 +130,10 @@ export function FileItems({
 		[app]
 	)
 
-	// A file lives in exactly one workspace. The "Move to" menu only offers the workspaces
-	// it can move to — every workspace except the current one and the home workspace
+	// A file lives in exactly one workspace. The "Move to" menu shows every workspace
+	// with the current workspace checked, matching the workspace switcher.
 	const currentWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
-	const moveToWorkspaces = workspaceMemberships.filter(
-		(g) => g.groupId !== app.getHomeWorkspaceId() && g.groupId !== currentWorkspaceId
-	)
+	const otherWorkspaces = workspaceMemberships.filter((g) => g.groupId !== app.getHomeWorkspaceId())
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
@@ -238,31 +244,33 @@ export function FileItems({
 			<TldrawUiMenuGroup id="file-delete">
 				{workspacesEnabled && (
 					<TldrawUiMenuSubmenu id="move-to-workspace" label={'Move to'} size="small">
-						{currentWorkspaceId !== app.getHomeWorkspaceId() && (
-							<TldrawUiMenuGroup id="my-files">
-								<TldrawUiMenuItem
-									key="my-files"
-									label={myFilesMsg}
-									id="my-files"
-									readonlyOk
-									onSelect={() => {
-										app.z.mutate.moveFileToWorkspace({
-											fileId,
-											workspaceId: app.getHomeWorkspaceId(),
-										})
-									}}
-								/>
-							</TldrawUiMenuGroup>
-						)}
-						{moveToWorkspaces.length > 0 && (
+						<TldrawUiMenuGroup id="my-files">
+							<TldrawUiMenuItem
+								key="my-files"
+								label={myFilesMsg}
+								id="my-files"
+								readonlyOk
+								iconLeft={currentWorkspaceId === app.getHomeWorkspaceId() ? 'check' : 'none'}
+								onSelect={() => {
+									if (currentWorkspaceId === app.getHomeWorkspaceId()) return
+									app.z.mutate.moveFileToWorkspace({
+										fileId,
+										workspaceId: app.getHomeWorkspaceId(),
+									})
+								}}
+							/>
+						</TldrawUiMenuGroup>
+						{otherWorkspaces.length > 0 && (
 							<TldrawUiMenuGroup id="my-workspaces">
-								{moveToWorkspaces.map((membership) => (
+								{otherWorkspaces.map((membership) => (
 									<TldrawUiMenuItem
 										key={membership.groupId}
 										label={membership.group.name}
 										id={`workspace-${membership.groupId}`}
 										readonlyOk
+										iconLeft={membership.groupId === currentWorkspaceId ? 'check' : 'none'}
 										onSelect={() => {
+											if (membership.groupId === currentWorkspaceId) return
 											app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: membership.groupId })
 										}}
 									/>
