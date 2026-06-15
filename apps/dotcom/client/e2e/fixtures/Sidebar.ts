@@ -196,7 +196,7 @@ export class Sidebar {
 	async pinFromFileMenu(index: number) {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
-		await this.page.getByRole('menuitem', { name: 'Pin' }).click()
+		await this.page.getByRole('menuitem', { name: 'Add pin' }).click()
 		await this.mutationResolution()
 	}
 
@@ -204,7 +204,7 @@ export class Sidebar {
 	async unpinFromFileMenu(index: number) {
 		const fileLink = this.getFileLink('pinned', index)
 		await this.openFileMenu(fileLink)
-		await this.page.getByRole('menuitem', { name: 'Unpin' }).click()
+		await this.page.getByRole('menuitem', { name: 'Remove pin' }).click()
 		await this.mutationResolution()
 	}
 
@@ -458,14 +458,14 @@ export class Sidebar {
 	@step
 	async pinFile(fileName: string) {
 		await this.openFileMenuByName(fileName)
-		await this.page.getByRole('menuitem', { name: 'Pin' }).click()
+		await this.page.getByRole('menuitem', { name: 'Add pin' }).click()
 		await this.mutationResolution()
 	}
 
 	@step
 	async unpinFile(fileName: string) {
 		await this.openFileMenuByName(fileName)
-		await this.page.getByRole('menuitem', { name: 'Unpin' }).click()
+		await this.page.getByRole('menuitem', { name: 'Remove pin' }).click()
 		await this.mutationResolution()
 	}
 

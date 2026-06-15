@@ -47,9 +47,6 @@
   "110a4b01be": {
     "translation": "Publish"
   },
-  "12a6766ba1": {
-    "translation": "Unpin file"
-  },
   "12c8a9838c": {
     "translation": "Try the tldraw SDK"
   },
@@ -70,6 +67,9 @@
   },
   "1dd1c5fb7f": {
     "translation": "Today"
+  },
+  "1ef22651a0": {
+    "translation": "Add pin"
   },
   "21f66c9c00": {
     "translation": "Workspace name"
@@ -139,9 +139,6 @@
   },
   "47839e47a5": {
     "translation": "tldraw"
-  },
-  "47f493a590": {
-    "translation": "Pin file"
   },
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
@@ -473,6 +470,9 @@
   },
   "c6a00f137b": {
     "translation": "Invite"
+  },
+  "c753a20c76": {
+    "translation": "Remove pin"
   },
   "c7d7403714": {
     "translation": "New board"

@@ -99,12 +99,6 @@
       "value": "Publish"
     }
   ],
-  "12a6766ba1": [
-    {
-      "type": 0,
-      "value": "Unpin file"
-    }
-  ],
   "12c8a9838c": [
     {
       "type": 0,
@@ -145,6 +139,12 @@
     {
       "type": 0,
       "value": "Today"
+    }
+  ],
+  "1ef22651a0": [
+    {
+      "type": 0,
+      "value": "Add pin"
     }
   ],
   "21f66c9c00": [
@@ -283,12 +283,6 @@
     {
       "type": 0,
       "value": "tldraw"
-    }
-  ],
-  "47f493a590": [
-    {
-      "type": 0,
-      "value": "Pin file"
     }
   ],
   "4908687e50": [
@@ -1069,6 +1063,12 @@
     {
       "type": 0,
       "value": "Invite"
+    }
+  ],
+  "c753a20c76": [
+    {
+      "type": 0,
+      "value": "Remove pin"
     }
   ],
   "c7d7403714": [
