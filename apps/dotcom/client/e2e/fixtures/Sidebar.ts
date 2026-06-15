@@ -238,12 +238,25 @@ export class Sidebar {
 		await this.page.getByRole('menuitem', { name: 'Copy link' }).click()
 	}
 
+	// The app writes to the clipboard asynchronously after the copy action, so reading it once can
+	// return a stale or empty value. Poll until the clipboard holds a valid URL (optionally matching
+	// an expected path) to avoid races.
+	private async readClipboardUrl(pathPattern?: RegExp): Promise<string> {
+		let value = ''
+		await expect(async () => {
+			value = await this.page.evaluate(() => navigator.clipboard.readText())
+			const url = new URL(value)
+			if (pathPattern) expect(url.pathname).toMatch(pathPattern)
+		}).toPass({ timeout: 10000 })
+		return value
+	}
+
 	@step
 	async copyFileLink(index: number) {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.copyFileLinkFromFileMenu()
-		return await this.page.evaluate(() => navigator.clipboard.readText())
+		return await this.readClipboardUrl(/^\/f\//)
 	}
 
 	@step
@@ -251,7 +264,7 @@ export class Sidebar {
 		const fileLink = this.getFileByName(name)
 		await this.openFileMenu(fileLink)
 		await this.copyFileLinkFromFileMenu()
-		return await this.page.evaluate(() => navigator.clipboard.readText())
+		return await this.readClipboardUrl(/^\/f\//)
 	}
 
 	async getAfterElementStyle(element: Locator, property: string): Promise<string> {
@@ -312,7 +325,9 @@ export class Sidebar {
 	@step
 	async expectWorkspaceVisible(name: string) {
 		await this.openWorkspaceSwitcher()
-		await expect(this.getWorkspaceLink(name)).toBeVisible()
+		// A workspace can appear via cross-client sync (e.g. after accepting an invite), which can
+		// take longer than the default assertion timeout on CI.
+		await expect(this.getWorkspaceLink(name)).toBeVisible({ timeout: 15000 })
 		await this.page.keyboard.press('Escape')
 	}
 
@@ -384,7 +399,7 @@ export class Sidebar {
 			await this.switchToWorkspace(name)
 		}
 		await this.page.getByTestId('tla-sidebar-invite-teammates').click()
-		return await this.page.evaluate(() => navigator.clipboard.readText())
+		return await this.readClipboardUrl()
 	}
 
 	// File visibility methods
