@@ -563,7 +563,7 @@ export class TldrawApp {
 				continue
 			}
 
-			// if the file is in a workspace we have access to, we don't want to show it in my files
+			// if the file is in a workspace we have access to, we don't want to show it in my workspace
 			if (myWorkspaceMemberships.some((g) => g.groupFiles.some((gf) => gf.fileId === fileId))) {
 				continue
 			}
@@ -587,7 +587,7 @@ export class TldrawApp {
 			// If this was previously unpinned and we have existing ordering,
 			// preserve its position in the unpinned section to avoid real-time reordering
 			if (!isPinned && existing && !existing.isPinned) {
-				// Keep the old date to preserve ordering in "My files"
+				// Keep the old date to preserve ordering in "My workspace"
 				newEntry.date = existing.date
 			}
 

@@ -2,9 +2,6 @@
   "0095a9fa74": {
     "translation": "Export"
   },
-  "03a2191550": {
-    "translation": "Workspace"
-  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -43,6 +40,9 @@
   },
   "1063e38cb5": {
     "translation": "Remove"
+  },
+  "10fb1df194": {
+    "translation": "Copy to personal workspace"
   },
   "110a4b01be": {
     "translation": "Publish"
@@ -85,9 +85,6 @@
   },
   "2a37324bb4": {
     "translation": "Search..."
-  },
-  "2c3ef76333": {
-    "translation": "My files"
   },
   "2e2b3c700b": {
     "translation": "Include link to current file"
@@ -166,6 +163,9 @@
   },
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
+  },
+  "51317dcad5": {
+    "translation": "This is your private workspace. Create a new workspace to invite teammates."
   },
   "517bb809d9": {
     "translation": "Page menu"
@@ -317,6 +317,9 @@
   "801ab24683": {
     "translation": "Download"
   },
+  "8030793ce3": {
+    "translation": "New workspace"
+  },
   "815e116a2e": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
   },
@@ -358,9 +361,6 @@
   },
   "904a830405": {
     "translation": "Rename"
-  },
-  "91e49bb0eb": {
-    "translation": "Copy to my files"
   },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
@@ -488,6 +488,9 @@
   },
   "c6a00f137b": {
     "translation": "Invite"
+  },
+  "c6f16003f2": {
+    "translation": "Copy to my workspace"
   },
   "c87aacf567": {
     "translation": "Sign out"

@@ -19,7 +19,7 @@ import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
 	home: { defaultMessage: 'Home' },
-	createWorkspace: { defaultMessage: 'Create workspace' },
+	createWorkspace: { defaultMessage: 'New workspace' },
 	newFile: { defaultMessage: 'New file' },
 	workspaceSettings: { defaultMessage: 'Workspace settings' },
 })

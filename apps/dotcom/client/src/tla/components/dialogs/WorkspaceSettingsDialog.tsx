@@ -256,7 +256,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						<div className={styles.sectionLabel}>
 							<F {...messages.inviteMembers} />
 						</div>
-						<TlaButton iconRight="copy" variant="primary" disabled>
+						<TlaButton iconRight="copy" variant="secondary" disabled>
 							<F {...messages.copyInviteLink} />
 						</TlaButton>
 						<p className={styles.sectionHelp}>

@@ -136,7 +136,7 @@ test.describe('workspaces', () => {
 			await sidebar.expectFileNotVisible(file1)
 		})
 
-		test('move file to My files', async ({ sidebar }) => {
+		test('move file to Home', async ({ sidebar }) => {
 			const workspaceName = getRandomName()
 			const file1 = getRandomName()
 			const file2 = getRandomName()
@@ -175,12 +175,12 @@ test.describe('workspaces', () => {
 			await sidebar.createWorkspace(workspace2)
 			await sidebar.switchToWorkspace('Home')
 
-			// In Home: the file lives in "My files", which is checked; every other
+			// In Home: the file lives in the home workspace, which is checked; every other
 			// workspace is offered unchecked (an unchecked item's accessible name is
 			// just its label, so exact matching works for those).
 			await sidebar.openMoveToMenu(file1)
 			await expect(
-				page.getByRole('menuitemcheckbox', { name: 'My files', checked: true })
+				page.getByRole('menuitemcheckbox', { name: 'Home', checked: true })
 			).toBeVisible()
 			await expect(
 				page.getByRole('menuitemcheckbox', { name: workspace1, exact: true })
@@ -192,16 +192,14 @@ test.describe('workspaces', () => {
 
 			await sidebar.moveFileToWorkspace(file1, workspace1)
 
-			// In workspace1: workspace1 is now the checked item; "My files" and the
+			// In workspace1: workspace1 is now the checked item; the home workspace and the
 			// other workspace are offered unchecked.
 			await sidebar.switchToWorkspace(workspace1)
 			await sidebar.openMoveToMenu(file1)
 			await expect(
 				page.getByRole('menuitemcheckbox', { name: workspace1, checked: true })
 			).toBeVisible()
-			await expect(
-				page.getByRole('menuitemcheckbox', { name: 'My files', exact: true })
-			).toBeVisible()
+			await expect(page.getByRole('menuitemcheckbox', { name: 'Home', exact: true })).toBeVisible()
 			await expect(
 				page.getByRole('menuitemcheckbox', { name: workspace2, exact: true })
 			).toBeVisible()
@@ -303,7 +301,7 @@ test.describe('workspaces', () => {
 			await deleteFileDialog.expectIsNotVisible()
 			await sidebar.mutationResolution()
 
-			// We should land on the workspace's remaining file, not jump to My files.
+			// We should land on the workspace's remaining file, not jump to the home workspace.
 			await sidebar.expectFileNotVisible(file2)
 			await sidebar.expectActiveWorkspace(workspaceName)
 			await sidebar.expectFileActive(file1)

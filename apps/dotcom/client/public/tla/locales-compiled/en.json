@@ -5,12 +5,6 @@
       "value": "Export"
     }
   ],
-  "03a2191550": [
-    {
-      "type": 0,
-      "value": "Workspace"
-    }
-  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Remove"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copy to personal workspace"
     }
   ],
   "110a4b01be": [
@@ -175,12 +175,6 @@
     {
       "type": 0,
       "value": "Search..."
-    }
-  ],
-  "2c3ef76333": [
-    {
-      "type": 0,
-      "value": "My files"
     }
   ],
   "2e2b3c700b": [
@@ -337,6 +331,12 @@
     {
       "type": 0,
       "value": "Unable to unpublish the file."
+    }
+  ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "This is your private workspace. Create a new workspace to invite teammates."
     }
   ],
   "517bb809d9": [
@@ -649,6 +649,12 @@
       "value": "Download"
     }
   ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "New workspace"
+    }
+  ],
   "815e116a2e": [
     {
       "type": 0,
@@ -767,12 +773,6 @@
     {
       "type": 0,
       "value": "Rename"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copy to my files"
     }
   ],
   "95aacd4d4a": [
@@ -1099,6 +1099,12 @@
     {
       "type": 0,
       "value": "Invite"
+    }
+  ],
+  "c6f16003f2": [
+    {
+      "type": 0,
+      "value": "Copy to my workspace"
     }
   ],
   "c87aacf567": [

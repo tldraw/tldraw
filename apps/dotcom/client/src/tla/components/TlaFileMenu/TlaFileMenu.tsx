@@ -43,7 +43,7 @@ const messages = defineMessages({
 	copy: { defaultMessage: 'Copy' },
 	pin: { defaultMessage: 'Pin file' },
 	unpin: { defaultMessage: 'Unpin file' },
-	myFiles: { defaultMessage: 'My files' },
+	home: { defaultMessage: 'Home' },
 })
 
 function getDuplicateName(file: TlaFile, app: TldrawApp) {
@@ -123,9 +123,12 @@ export function FileItems({
 	)
 
 	// A file lives in exactly one workspace. The "Move to" menu is a checklist of every
-	// destination — the home workspace ("My files") plus each non-home workspace — with the
-	// file's current workspace checked. The home workspace is rendered separately as "My files".
+	// destination — the home workspace plus each non-home workspace — with the file's current
+	// workspace checked. The home workspace is rendered separately (it's always the first item),
+	// labelled with its own name like any other workspace.
 	const currentWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
+	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === app.getHomeWorkspaceId())
+		?.group.name
 	const moveToWorkspaces = workspaceMemberships.filter(
 		(g) => g.groupId !== app.getHomeWorkspaceId()
 	)
@@ -196,7 +199,7 @@ export function FileItems({
 	const unpinMsg = useMsg(messages.unpin)
 	const deleteOrForgetMsg = useMsg(hasAdminRights ? messages.delete : messages.forget)
 	const downloadFile = useMsg(editorMessages.downloadFile)
-	const myFilesMsg = useMsg(messages.myFiles)
+	const homeMsg = useMsg(messages.home)
 
 	return (
 		<Fragment>
@@ -242,7 +245,7 @@ export function FileItems({
 						<TldrawUiMenuGroup id="workspaces">
 							<TldrawUiMenuCheckboxItem
 								key="my-files"
-								label={myFilesMsg}
+								label={homeWorkspaceName ?? homeMsg}
 								id="my-files"
 								readonlyOk
 								checked={currentWorkspaceId === app.getHomeWorkspaceId()}
