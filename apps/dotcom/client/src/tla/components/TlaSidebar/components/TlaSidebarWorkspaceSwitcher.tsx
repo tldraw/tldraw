@@ -130,15 +130,11 @@ export function TlaSidebarWorkspaceSwitcher() {
 						alignOffset={-4}
 						collisionPadding={8}
 					>
+						{/* The home workspace has no invite link or settings, so it gets
+						    no action handlers and renders no action buttons. */}
 						<WorkspaceSwitcherItem
 							isActive={isHome}
-							isHome
 							onSelect={() => switchToWorkspace(homeWorkspaceId)}
-							onInvite={() => handleCopyInvite(homeWorkspaceId)}
-							onSettings={() => handleSettings(homeWorkspaceId)}
-							closeMenu={closeMenu}
-							inviteLabel={inviteTeammatesLbl}
-							settingsLabel={workspaceSettingsLbl}
 							testId="tla-workspace-switcher-home"
 						>
 							{myFilesLbl}
@@ -147,11 +143,15 @@ export function TlaSidebarWorkspaceSwitcher() {
 							<WorkspaceSwitcherItem
 								key={`workspace-${g.group.id}`}
 								isActive={g.group.id === activeWorkspaceId}
-								isHome={false}
 								onSelect={() => switchToWorkspace(g.group.id)}
-								onInvite={() => handleCopyInvite(g.group.id)}
-								onSettings={() => handleSettings(g.group.id)}
-								closeMenu={closeMenu}
+								onInvite={() => {
+									handleCopyInvite(g.group.id)
+									closeMenu()
+								}}
+								onSettings={() => {
+									handleSettings(g.group.id)
+									closeMenu()
+								}}
 								inviteLabel={inviteTeammatesLbl}
 								settingsLabel={workspaceSettingsLbl}
 							>
@@ -191,24 +191,22 @@ export function TlaSidebarWorkspaceSwitcher() {
 
 function WorkspaceSwitcherItem({
 	isActive,
-	isHome,
 	onSelect,
 	onInvite,
 	onSettings,
-	closeMenu,
 	inviteLabel,
 	settingsLabel,
 	testId,
 	children,
 }: {
 	isActive: boolean
-	isHome: boolean
 	onSelect(): void
-	onInvite(): void
-	onSettings(): void
-	closeMenu(): void
-	inviteLabel: string
-	settingsLabel: string
+	// Action handlers are optional: a workspace only shows the buttons whose
+	// handler it provides (the home workspace provides none).
+	onInvite?(): void
+	onSettings?(): void
+	inviteLabel?: string
+	settingsLabel?: string
 	testId?: string
 	children: ReactNode
 }) {
@@ -230,7 +228,7 @@ function WorkspaceSwitcherItem({
 				style={{ visibility: isActive ? 'visible' : 'hidden' }}
 			/>
 			<span className={styles.sidebarWorkspaceSwitcherItemLabel}>{children}</span>
-			{isActive && !isHome && (
+			{isActive && (onInvite || onSettings) && (
 				<span
 					className={styles.sidebarWorkspaceSwitcherItemActions}
 					// Keep interactions with the action buttons from reaching the row,
@@ -240,24 +238,22 @@ function WorkspaceSwitcherItem({
 					onPointerUp={(e) => e.stopPropagation()}
 					onClick={(e) => e.stopPropagation()}
 				>
-					<WorkspaceActionButton
-						icon="invite"
-						label={inviteLabel}
-						onClick={() => {
-							onInvite()
-							closeMenu()
-						}}
-						testId="tla-sidebar-invite-teammates"
-					/>
-					<WorkspaceActionButton
-						icon="settings"
-						label={settingsLabel}
-						onClick={() => {
-							onSettings()
-							closeMenu()
-						}}
-						testId="tla-sidebar-workspace-settings"
-					/>
+					{onInvite && (
+						<WorkspaceActionButton
+							icon="invite"
+							label={inviteLabel}
+							onClick={onInvite}
+							testId="tla-sidebar-invite-teammates"
+						/>
+					)}
+					{onSettings && (
+						<WorkspaceActionButton
+							icon="settings"
+							label={settingsLabel}
+							onClick={onSettings}
+							testId="tla-sidebar-workspace-settings"
+						/>
+					)}
 				</span>
 			)}
 		</_DropdownMenu.Item>
@@ -271,7 +267,7 @@ function WorkspaceActionButton({
 	testId,
 }: {
 	icon: string
-	label: string
+	label?: string
 	onClick(): void
 	testId: string
 }) {
