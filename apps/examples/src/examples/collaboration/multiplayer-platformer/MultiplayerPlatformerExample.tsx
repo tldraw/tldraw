@@ -183,9 +183,15 @@ function PlatformerEngine() {
 			const me = getMyPlayer(editor)
 			if (!me) return
 
-			// While I'm dragging my own player, let the drag place it and pause
-			// physics so gravity doesn't fight the pointer.
-			if (editor.isIn('select.translating') && editor.getSelectedShapeIds().includes(me.id)) {
+			// While I'm actively manipulating my own player — dragging, resizing, or
+			// rotating it — pause physics so gravity doesn't fight the pointer. It
+			// resumes from rest once the interaction finishes.
+			const manipulatingMe =
+				editor.getSelectedShapeIds().includes(me.id) &&
+				(editor.isIn('select.translating') ||
+					editor.isIn('select.resizing') ||
+					editor.isIn('select.rotating'))
+			if (manipulatingMe) {
 				motion.current.vy = 0
 				return
 			}
@@ -356,8 +362,8 @@ shortcuts elsewhere. Typing into a shape's text or an input is left alone.
 
 [9]
 The game loop runs on the editor's `tick` event. We only simulate our own
-player; everyone else's positions arrive over sync. While we're dragging our own
-player we pause physics so the drag wins.
+player; everyone else's positions arrive over sync. While we're dragging,
+resizing, or rotating our own player we pause physics so the interaction wins.
 
 [10]
 Collision is checked against the page-space bounding box of every other shape.
