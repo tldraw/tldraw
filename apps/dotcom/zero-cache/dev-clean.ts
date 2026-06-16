@@ -81,8 +81,8 @@ function getComposeProjectForContainer(containerId: string) {
 	return projectName ?? ''
 }
 
-function cleanCurrentBranch() {
-	console.log(`Cleaning dotcom dev state for branch key "${env.branchKey}"...`)
+function cleanCurrent() {
+	console.log('Cleaning dotcom dev state...')
 
 	runBestEffort('docker', [
 		'compose',
@@ -103,15 +103,14 @@ function cleanCurrentBranch() {
 	}
 	removePath(targets.schemaFile)
 	removePath(targets.wranglerPersistDir)
-	removePath(targets.legacyWranglerStateDir)
 
 	console.log('')
-	console.log('Server-side dotcom dev state is clean for this branch.')
+	console.log('Server-side dotcom dev state is clean.')
 	console.log(`Clear browser state at ${env.resetLocalStateUrl}`)
 }
 
-function cleanAllBranches() {
-	console.log('Cleaning dotcom dev state for all branches...')
+function cleanAll() {
+	console.log('Cleaning dotcom dev state, including any leftover per-branch state...')
 
 	const dotcomContainerIds = readCommandLines('docker', [
 		'ps',
@@ -154,20 +153,17 @@ function cleanAllBranches() {
 			(entry.endsWith('.db') || entry.endsWith('.db-shm') || entry.endsWith('.db-wal'))
 	)
 	removePath(allTargets.schemaFile)
-	removeMatchingPaths(
-		allTargets.wranglerStateDir,
-		(entry) =>
-			entry.startsWith(allTargets.wranglerPersistDirPrefix) ||
-			join(allTargets.wranglerStateDir, entry) === allTargets.legacyWranglerStateDir
+	removeMatchingPaths(allTargets.wranglerStateDir, (entry) =>
+		entry.startsWith(allTargets.wranglerPersistDirPrefix)
 	)
 
 	console.log('')
-	console.log('Server-side dotcom dev state is clean for all branches.')
+	console.log('Server-side dotcom dev state is clean.')
 	console.log(`Clear browser state at ${env.resetLocalStateUrl}`)
 }
 
 if (process.argv.includes('--all')) {
-	cleanAllBranches()
+	cleanAll()
 } else {
-	cleanCurrentBranch()
+	cleanCurrent()
 }
