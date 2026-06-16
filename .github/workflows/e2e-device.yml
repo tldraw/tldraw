@@ -131,13 +131,6 @@ jobs:
           APPIUM_DERIVED_DATA_PATH: ${{ runner.temp }}/wda-derived
           APPIUM_USE_PREBUILT_WDA: ${{ steps.wda-cache.outputs.cache-hit }}
 
-      - uses: actions/upload-artifact@v6
-        if: always()
-        with:
-          name: e2e-device-ios
-          path: apps/examples/e2e-device/artifacts
-          retention-days: 14
-
   android:
     name: Android Chrome
     if: >
@@ -185,10 +178,3 @@ jobs:
           script: |
             adb reverse tcp:${{ env.EXAMPLES_PORT }} tcp:${{ env.EXAMPLES_PORT }}
             cd apps/examples && yarn e2e-device-android
-
-      - uses: actions/upload-artifact@v6
-        if: always()
-        with:
-          name: e2e-device-android
-          path: apps/examples/e2e-device/artifacts
-          retention-days: 14
