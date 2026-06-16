@@ -40,7 +40,9 @@ export function TlaIcon({
 	})
 
 	if (icon === 'none') {
-		return <span className={_className} />
+		// An empty spacer: keep the icon's layout box but no painted mark.
+		// Without this the .icon background-color would fill as a solid rectangle.
+		return <span className={_className} style={{ backgroundColor: 'transparent' }} />
 	}
 
 	return (

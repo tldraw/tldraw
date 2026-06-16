@@ -14,14 +14,14 @@ export function TlaSidebarFeedbackButton() {
 	const lbl = useMsg(messages.submitFeedback)
 	return (
 		<button
-			className={classNames(styles.sidebarFeedbackButton, styles.hoverable, 'tla-text_ui__regular')}
+			className={classNames(styles.sidebarLinkButton, styles.hoverable, 'tla-text_ui__regular')}
 			data-testid="tla-sidebar-feedback-button"
 			onClick={() => {
 				addDialog({ component: SubmitFeedbackDialog })
 			}}
 		>
 			<TlaIcon icon="feedback" />
-			<span className={styles.sidebarFeedbackButtonLabel}>{lbl}</span>
+			<span className={styles.sidebarLinkButtonLabel}>{lbl}</span>
 		</button>
 	)
 }
