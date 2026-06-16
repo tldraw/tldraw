@@ -21,8 +21,7 @@ const messages = defineMessages({
 	home: { defaultMessage: 'Home' },
 	createWorkspace: { defaultMessage: 'Create workspace' },
 	newFile: { defaultMessage: 'New file' },
-	inviteTeammates: { defaultMessage: 'Copy invite link' },
-	workspaceSettings: { defaultMessage: 'Members and settings' },
+	workspaceSettings: { defaultMessage: 'Workspace settings' },
 })
 
 /**
@@ -220,25 +219,11 @@ function TlaSidebarWorkspaceActions({
 	workspaceId: string
 	isHome: boolean
 }) {
-	const app = useApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const handleCreateFile = useHandleSidebarCreateFile()
 	const newBoardLbl = useMsg(messages.newFile)
-	const inviteTeammatesLbl = useMsg(messages.inviteTeammates)
 	const settingsLbl = useMsg(messages.workspaceSettings)
-
-	const handleCopyInviteLink = useCallback(() => {
-		// Right after creating a workspace the invite secret only exists on the
-		// server, so there may be nothing to copy for a moment.
-		if (!app.copyWorkspaceInvite(workspaceId)) {
-			app.toasts?.addToast({
-				id: 'invite-link-not-ready',
-				title: 'Invite link not ready yet',
-				description: 'Try again in a moment.',
-			})
-		}
-	}, [app, workspaceId])
 
 	const handleSettings = useCallback(() => {
 		addDialog({
@@ -261,12 +246,6 @@ function TlaSidebarWorkspaceActions({
 			<TlaSidebarSearch />
 			{!isHome && (
 				<>
-					<TlaSidebarActionButton
-						icon="invite"
-						label={inviteTeammatesLbl}
-						onClick={handleCopyInviteLink}
-						testId="tla-sidebar-invite-teammates"
-					/>
 					<TlaSidebarActionButton
 						icon="settings"
 						label={settingsLbl}

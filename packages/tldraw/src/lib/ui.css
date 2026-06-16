@@ -428,6 +428,11 @@
 	height: 15px;
 }
 
+.tlui-icon__tiny {
+	width: 12px;
+	height: 12px;
+}
+
 /* --------------------- Slider --------------------- */
 
 .tlui-slider__container {

@@ -62,6 +62,9 @@
   "181b90f889": {
     "translation": "Create file"
   },
+  "1d2591253e": {
+    "translation": "Workspace settings"
+  },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
   },
@@ -382,9 +385,6 @@
   },
   "9b33f5c63c": {
     "translation": "Didn’t receive a code? <resend>Resend</resend>."
-  },
-  "9b80ecf7d1": {
-    "translation": "Members and settings"
   },
   "9bef626805": {
     "translation": "Delete file"

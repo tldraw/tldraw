@@ -129,6 +129,12 @@
       "value": "Create file"
     }
   ],
+  "1d2591253e": [
+    {
+      "type": 0,
+      "value": "Workspace settings"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -829,12 +835,6 @@
     {
       "type": 0,
       "value": "."
-    }
-  ],
-  "9b80ecf7d1": [
-    {
-      "type": 0,
-      "value": "Members and settings"
     }
   ],
   "9bef626805": [

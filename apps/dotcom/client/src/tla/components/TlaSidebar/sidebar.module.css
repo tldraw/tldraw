@@ -380,9 +380,9 @@
 	flex: 0 0 auto;
 }
 
-/* ----------------- Feedback button ---------------- */
+/* ----------------- Link button ---------------- */
 
-.sidebarFeedbackButton {
+.sidebarLinkButton {
 	position: relative;
 	display: flex;
 	flex-direction: row;
@@ -399,12 +399,12 @@
 	text-decoration: none;
 }
 
-.sidebarFeedbackButton > span[role='img'] {
+.sidebarLinkButton > span[role='img'] {
 	flex-shrink: 0;
 	margin: -1.5px;
 }
 
-.sidebarFeedbackButtonLabel {
+.sidebarLinkButtonLabel {
 	flex: 0 1 auto;
 	min-width: 0;
 	white-space: nowrap;
@@ -412,7 +412,7 @@
 	text-overflow: ellipsis;
 }
 
-.sidebarFeedbackButton:focus-visible {
+.sidebarLinkButton:focus-visible {
 	outline-offset: -2px;
 }
 
