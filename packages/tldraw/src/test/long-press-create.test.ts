@@ -1,3 +1,4 @@
+import { createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -14,9 +15,10 @@ vi.useFakeTimers()
 
 // On a touch device a long press fires the browser `contextmenu` event. Each
 // shape-creation tool should respond to the long press by canceling any pending
-// creation and returning to idle, so the context menu opens with no stray shape
-// left behind. The guard is `isCoarsePointer`, so fine-pointer (desktop)
-// behavior must be preserved. See #8277.
+// creation and routing through the select tool — so the context menu opens as
+// the normal selection menu with no stray shape left behind. The guard is
+// `isCoarsePointer`, so fine-pointer (desktop) behavior must be preserved.
+// See #8277.
 const CREATION_TOOLS = [
 	{ tool: 'geo', pointingState: 'geo.pointing' },
 	{ tool: 'note', pointingState: 'note.pointing' },
@@ -34,13 +36,14 @@ describe('long press on shape-creation tools', () => {
 		})
 
 		it.each(CREATION_TOOLS)(
-			'$tool cancels creation and returns to idle, leaving no shape behind',
+			'$tool cancels creation and switches to the select tool, leaving no shape behind',
 			({ tool }) => {
 				editor.setCurrentTool(tool)
 				editor.pointerDown(100, 100)
 				vi.advanceTimersByTime(editor.options.longPressDurationMs)
 
-				editor.expectToBeIn(`${tool}.idle`)
+				// routed through the select tool so the menu has full content
+				editor.expectToBeIn('select.idle')
 				expect(editor.getCurrentPageShapes()).toHaveLength(0)
 
 				// releasing the long press must not create a shape either
@@ -48,25 +51,64 @@ describe('long press on shape-creation tools', () => {
 				expect(editor.getCurrentPageShapes()).toHaveLength(0)
 			}
 		)
+
+		it('selects the shape under the pointer so the menu reflects it', () => {
+			const id = createShapeId()
+			editor.createShape({
+				id,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: { w: 100, h: 100, geo: 'rectangle' },
+			})
+			editor.selectNone()
+
+			// long-press over the existing shape while a shape-creation tool is active
+			editor.setCurrentTool('geo')
+			editor.pointerDown(50, 50)
+			vi.advanceTimersByTime(editor.options.longPressDurationMs)
+
+			editor.expectToBeIn('select.idle')
+			expect(editor.getSelectedShapeIds()).toEqual([id])
+			// the long-press didn't create a second shape
+			expect(editor.getCurrentPageShapes()).toHaveLength(1)
+		})
+
+		it('clears the selection when long-pressing empty canvas', () => {
+			const id = createShapeId()
+			editor.createShape({
+				id,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: { w: 100, h: 100, geo: 'rectangle' },
+			})
+			editor.select(id)
+
+			// long-press far away from the shape
+			editor.setCurrentTool('geo')
+			editor.pointerDown(500, 500)
+			vi.advanceTimersByTime(editor.options.longPressDurationMs)
+
+			editor.expectToBeIn('select.idle')
+			expect(editor.getSelectedShapeIds()).toEqual([])
+		})
 	})
 
-	describe('with a fine pointer', () => {
+	describe('with a fine pointer, the long press is ignored', () => {
 		beforeEach(() => {
 			editor.updateInstanceState({ isCoarsePointer: false })
 		})
 
-		it.each(CREATION_TOOLS)(
-			'$tool ignores the long press and stays in $pointingState',
-			({ tool, pointingState }) => {
-				editor.setCurrentTool(tool)
-				editor.pointerDown(100, 100)
-				editor.expectToBeIn(pointingState)
+		it.each(CREATION_TOOLS)('$tool stays in $pointingState', ({ tool, pointingState }) => {
+			editor.setCurrentTool(tool)
+			editor.pointerDown(100, 100)
+			editor.expectToBeIn(pointingState)
 
-				vi.advanceTimersByTime(editor.options.longPressDurationMs)
+			vi.advanceTimersByTime(editor.options.longPressDurationMs)
 
-				// desktop behavior is preserved: the tool is still mid-creation
-				editor.expectToBeIn(pointingState)
-			}
-		)
+			// desktop behavior is preserved: the tool is still mid-creation
+			editor.expectToBeIn(pointingState)
+		})
 	})
 })

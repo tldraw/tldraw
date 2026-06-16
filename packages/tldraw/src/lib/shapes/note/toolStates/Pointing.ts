@@ -6,6 +6,7 @@ import {
 	TLShapeId,
 	Vec,
 	createShapeId,
+	handleShapeCreationLongPress,
 	maybeSnapToGrid,
 } from '@tldraw/editor'
 import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
@@ -79,12 +80,12 @@ export class Pointing extends StateNode {
 		this.complete()
 	}
 
-	override onInterrupt() {
-		this.cancel()
+	override onLongPress() {
+		handleShapeCreationLongPress(this.editor, () => this.cancel())
 	}
 
-	override onLongPress() {
-		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
+	override onInterrupt() {
+		this.cancel()
 	}
 
 	override onComplete() {

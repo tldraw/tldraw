@@ -6,6 +6,7 @@ import {
 	Vec,
 	createShapeId,
 	getIndexAbove,
+	handleShapeCreationLongPress,
 	last,
 	maybeSnapToGrid,
 	sortByIndex,
@@ -141,6 +142,10 @@ export class Pointing extends StateNode {
 		this.complete()
 	}
 
+	override onLongPress() {
+		handleShapeCreationLongPress(this.editor, () => this.cancel())
+	}
+
 	override onCancel() {
 		this.cancel()
 	}
@@ -153,10 +158,6 @@ export class Pointing extends StateNode {
 		this.parent.transition('idle')
 		if (this.markId) this.editor.bailToMark(this.markId)
 		this.editor.snaps.clearIndicators()
-	}
-
-	override onLongPress() {
-		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
 	}
 
 	complete() {

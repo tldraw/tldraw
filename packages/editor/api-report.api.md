@@ -2093,6 +2093,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 // @public (undocumented)
 export const HALF_PI: number;
 
+// @internal
+export function handleShapeCreationLongPress(editor: Editor, cancelPendingCreation: () => void): void;
+
 // @public
 export interface HandleSnapGeometry {
     getSelfSnapOutline?(handle: TLHandle): Geometry2d | null;
