@@ -26,10 +26,10 @@ const messages = defineMessages({
 
 /**
  * The fixed top region of the sidebar: a dropdown for switching between the
- * home workspace and the user's other workspaces, followed by action rows
- * when a non-home workspace is active. Selecting a workspace opens its top
- * file (first pinned file, otherwise the most recent one), which makes it
- * active (the active workspace is derived from the open file).
+ * home workspace and the user's other workspaces, followed by action rows for
+ * the active workspace. Selecting a workspace opens its top file (first pinned
+ * file, otherwise the most recent one), which makes it active (the active
+ * workspace is derived from the open file).
  */
 export function TlaSidebarWorkspaceSwitcher() {
 	const app = useApp()
@@ -47,6 +47,11 @@ export function TlaSidebarWorkspaceSwitcher() {
 		'active workspace name',
 		() => app.getWorkspaceMembership(activeWorkspaceId)?.group.name,
 		[app, activeWorkspaceId]
+	)
+	const homeWorkspaceName = useValue(
+		'home workspace name',
+		() => app.getWorkspaceMembership(homeWorkspaceId)?.group.name,
+		[app, homeWorkspaceId]
 	)
 
 	// Use a stable, editor-independent menu id. useMenuIsOpen would suffix the id
@@ -99,7 +104,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 									className={classNames(styles.sidebarWorkspaceSwitcherLabel, 'notranslate')}
 									data-testid="tla-active-workspace-name"
 								>
-									{isHome ? homeLbl : (activeWorkspaceName ?? homeLbl)}
+									{activeWorkspaceName ?? homeLbl}
 								</span>
 								<TlaIcon
 									icon="chevron-up-down"
@@ -125,7 +130,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 								onSelect={() => switchToWorkspace(homeWorkspaceId)}
 								testId="tla-workspace-switcher-home"
 							>
-								{homeLbl}
+								{homeWorkspaceName ?? homeLbl}
 							</WorkspaceSwitcherItem>
 							{workspaces.map((g) => (
 								<WorkspaceSwitcherItem
@@ -170,7 +175,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 				)}
 			</div>
 			<div className={styles.sidebarDivider} />
-			<TlaSidebarWorkspaceActions workspaceId={activeWorkspaceId} isHome={isHome} />
+			<TlaSidebarWorkspaceActions workspaceId={activeWorkspaceId} />
 		</>
 	)
 }
@@ -208,17 +213,11 @@ function WorkspaceSwitcherItem({
 
 /**
  * The action rows shown below the workspace switcher. Both the home space and
- * non-home workspaces get the search and new-board actions; a non-home
- * workspace additionally gets actions to copy its invite link and open its
- * settings.
+ * non-home workspaces get the search, new-board, and settings actions. (The home
+ * workspace's settings are limited: it can be renamed but not shared or managed —
+ * see WorkspaceSettingsDialog.)
  */
-function TlaSidebarWorkspaceActions({
-	workspaceId,
-	isHome,
-}: {
-	workspaceId: string
-	isHome: boolean
-}) {
+function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const handleCreateFile = useHandleSidebarCreateFile()
@@ -244,16 +243,12 @@ function TlaSidebarWorkspaceActions({
 				testId="tla-sidebar-new-board"
 			/>
 			<TlaSidebarSearch />
-			{!isHome && (
-				<>
-					<TlaSidebarActionButton
-						icon="settings"
-						label={settingsLbl}
-						onClick={handleSettings}
-						testId="tla-sidebar-workspace-settings"
-					/>
-				</>
-			)}
+			<TlaSidebarActionButton
+				icon="settings"
+				label={settingsLbl}
+				onClick={handleSettings}
+				testId="tla-sidebar-workspace-settings"
+			/>
 		</div>
 	)
 }

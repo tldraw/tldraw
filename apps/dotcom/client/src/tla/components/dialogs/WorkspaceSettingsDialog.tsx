@@ -28,6 +28,9 @@ const messages = defineMessages({
 	name: { defaultMessage: 'Name' },
 	namePlaceholder: { defaultMessage: 'Workspace name' },
 	inviteMembers: { defaultMessage: 'Invite members' },
+	homeWorkspacePrivate: {
+		defaultMessage: 'Your home workspace is private. Other people can’t be invited to join it.',
+	},
 	regenerateInviteLinkHelp: {
 		defaultMessage: 'Revoke this link and create a new one.',
 	},
@@ -82,8 +85,10 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const navigate = useNavigate()
 
 	if (!workspaceMembership) return null
-	// The home workspace has no settings to manage.
-	if (workspaceId === app.getHomeWorkspaceId()) return null
+	// The home workspace is private: it can be renamed, but it can't be shared,
+	// have members managed, or be left/deleted. We hide or disable those sections
+	// rather than showing the full workspace settings.
+	const isHome = workspaceId === app.getHomeWorkspaceId()
 	const workspace = workspaceMembership.group
 	const currentUser = workspaceMembership.groupMembers.find(
 		(member) => member.userId === app.getUser().id
@@ -246,146 +251,164 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 				</div>
 
 				{/* Invite Members Section */}
-				<div className={styles.section}>
-					<div className={styles.sectionLabel}>
-						<F {...messages.inviteMembers} />
+				{isHome ? (
+					<div className={styles.section}>
+						<div className={styles.sectionLabel}>
+							<F {...messages.inviteMembers} />
+						</div>
+						<TlaButton iconRight="copy" variant="primary" disabled>
+							<F {...messages.copyInviteLink} />
+						</TlaButton>
+						<p className={styles.sectionHelp}>
+							<F {...messages.homeWorkspacePrivate} />
+						</p>
 					</div>
-					<div className={`${styles.inviteInputContainer} tlui-input--disabled`}>
-						<input
-							className={`${styles.noPadding} tlui-input`}
-							value={inviteUrl}
-							readOnly
-							onBlur={() => {
-								window.getSelection()?.collapseToEnd()
-							}}
-							onMouseDown={(e) => {
-								e.preventDefault()
-								;(e.target as HTMLInputElement).select()
-							}}
-						/>
-						<TldrawUiTooltip content={<F {...messages.regenerateInviteLinkHelp} />}>
-							<TldrawUiButton
-								type="normal"
-								aria-label="Regenerate invite link"
-								onClick={handleRegenerateInviteLink}
-								disabled={isRegenerating}
-								style={{
-									transform: 'scale(0.9)',
+				) : (
+					<div className={styles.section}>
+						<div className={styles.sectionLabel}>
+							<F {...messages.inviteMembers} />
+						</div>
+						<div className={`${styles.inviteInputContainer} tlui-input--disabled`}>
+							<input
+								className={`${styles.noPadding} tlui-input`}
+								value={inviteUrl}
+								readOnly
+								onBlur={() => {
+									window.getSelection()?.collapseToEnd()
 								}}
-							>
-								<TlaIcon
-									icon={showRefreshSuccess ? 'check' : 'refresh'}
-									className={showRefreshSuccess ? styles.disabledIcon : undefined}
-								/>
-							</TldrawUiButton>
-						</TldrawUiTooltip>
+								onMouseDown={(e) => {
+									e.preventDefault()
+									;(e.target as HTMLInputElement).select()
+								}}
+							/>
+							<TldrawUiTooltip content={<F {...messages.regenerateInviteLinkHelp} />}>
+								<TldrawUiButton
+									type="normal"
+									aria-label="Regenerate invite link"
+									onClick={handleRegenerateInviteLink}
+									disabled={isRegenerating}
+									style={{
+										transform: 'scale(0.9)',
+									}}
+								>
+									<TlaIcon
+										icon={showRefreshSuccess ? 'check' : 'refresh'}
+										className={showRefreshSuccess ? styles.disabledIcon : undefined}
+									/>
+								</TldrawUiButton>
+							</TldrawUiTooltip>
+						</div>
+						<TlaButton
+							iconRight={copiedInviteLink ? 'check' : 'copy'}
+							iconRightClassName={styles.copyInviteLinkIconRight}
+							variant="primary"
+							onClick={handleCopyInviteLink}
+						>
+							<F {...messages.copyInviteLink} />
+						</TlaButton>
 					</div>
-					<TlaButton
-						iconRight={copiedInviteLink ? 'check' : 'copy'}
-						iconRightClassName={styles.copyInviteLinkIconRight}
-						variant="primary"
-						onClick={handleCopyInviteLink}
-					>
-						<F {...messages.copyInviteLink} />
-					</TlaButton>
-				</div>
+				)}
 
-				{/* Members Section */}
-				<hr className={styles.divider} />
-				<div className={styles.section}>
-					<label className={styles.sectionLabel}>
-						<F {...messages.members} />
-					</label>
-					<div className={styles.membersList}>
-						{[...workspaceMembership.groupMembers]
-							.sort((a, b) => {
-								const currentId = app.getUser().id
-								// Owners first, then members; within a role, pin the current user to the top.
-								if (a.role !== b.role) return roleOrder[a.role] - roleOrder[b.role]
-								if (a.userId === currentId) return -1
-								if (b.userId === currentId) return 1
-								return 0
-							})
-							.map((member) => {
-								// Roles are shown to everyone; only editMembers holders can change them,
-								// and never their own role while they're the sole owner.
-								const canEditThisRole =
-									canEditMembers && (member.userId !== app.getUser().id || ownersCount > 1)
-								return (
-									<div key={member.userId} className={styles.memberItem}>
-										<div
-											className={styles.memberAvatar}
-											style={{
-												backgroundColor: member.userColor || '#ff6b35',
-											}}
-										>
-											{member.userName.charAt(0).toUpperCase()}
-										</div>
-										<span className={styles.memberName}>
-											{member.userName}
-											{member.userId === app.getUser().id ? ` (${youMsg})` : ''}
-										</span>
-										{canEditThisRole ? (
-											<TlaMenuSelect
-												id={`workspace-member-role-${member.userId}`}
-												label={roleLabels[member.role]}
-												value={member.role}
-												usePortal
-												options={roleOptions}
-												actions={
-													member.userId === app.getUser().id
-														? undefined
-														: [
-																{
-																	id: 'remove',
-																	label: removeMemberMsg,
-																	destructive: true,
-																	onSelect: () => openRemoveConfirmDialog(member),
-																},
-															]
-												}
-												onChange={async (value) => {
-													if (value === member.role) return
-													try {
-														await app.z.mutate.setWorkspaceMemberRole({
-															workspaceId,
-															targetUserId: member.userId,
-															role: value,
-														}).client
-													} catch (err) {
-														console.error('Failed to change member role', err)
-														app.showMutationRejectionToast((err as Error).message as ZErrorCode)
-													}
-												}}
-											/>
-										) : (
-											<span className={styles.memberRole}>{roleLabels[member.role]}</span>
-										)}
-									</div>
-								)
-							})}
-					</div>
-				</div>
+				{/* Members Section — home is private, so it only ever has you */}
+				{!isHome && (
+					<>
+						<hr className={styles.divider} />
+						<div className={styles.section}>
+							<label className={styles.sectionLabel}>
+								<F {...messages.members} />
+							</label>
+							<div className={styles.membersList}>
+								{[...workspaceMembership.groupMembers]
+									.sort((a, b) => {
+										const currentId = app.getUser().id
+										// Owners first, then members; within a role, pin the current user to the top.
+										if (a.role !== b.role) return roleOrder[a.role] - roleOrder[b.role]
+										if (a.userId === currentId) return -1
+										if (b.userId === currentId) return 1
+										return 0
+									})
+									.map((member) => {
+										// Roles are shown to everyone; only editMembers holders can change them,
+										// and never their own role while they're the sole owner.
+										const canEditThisRole =
+											canEditMembers && (member.userId !== app.getUser().id || ownersCount > 1)
+										return (
+											<div key={member.userId} className={styles.memberItem}>
+												<div
+													className={styles.memberAvatar}
+													style={{
+														backgroundColor: member.userColor || '#ff6b35',
+													}}
+												>
+													{member.userName.charAt(0).toUpperCase()}
+												</div>
+												<span className={styles.memberName}>
+													{member.userName}
+													{member.userId === app.getUser().id ? ` (${youMsg})` : ''}
+												</span>
+												{canEditThisRole ? (
+													<TlaMenuSelect
+														id={`workspace-member-role-${member.userId}`}
+														label={roleLabels[member.role]}
+														value={member.role}
+														usePortal
+														options={roleOptions}
+														actions={
+															member.userId === app.getUser().id
+																? undefined
+																: [
+																		{
+																			id: 'remove',
+																			label: removeMemberMsg,
+																			destructive: true,
+																			onSelect: () => openRemoveConfirmDialog(member),
+																		},
+																	]
+														}
+														onChange={async (value) => {
+															if (value === member.role) return
+															try {
+																await app.z.mutate.setWorkspaceMemberRole({
+																	workspaceId,
+																	targetUserId: member.userId,
+																	role: value,
+																}).client
+															} catch (err) {
+																console.error('Failed to change member role', err)
+																app.showMutationRejectionToast((err as Error).message as ZErrorCode)
+															}
+														}}
+													/>
+												) : (
+													<span className={styles.memberRole}>{roleLabels[member.role]}</span>
+												)}
+											</div>
+										)
+									})}
+							</div>
+						</div>
 
-				{/* Danger Zone */}
-				<hr className={styles.divider} />
-				<div>
-					<label className={styles.sectionLabel}>
-						<F {...messages.dangerZone} />
-					</label>
-					<div className={styles.dangerZoneActions}>
-						{canLeave && (
-							<button className={styles.inlineButton} onClick={openLeaveConfirmDialog}>
-								<F {...messages.leaveWorkspace} />
-							</button>
-						)}
-						{can(role, 'deleteWorkspace') && (
-							<button className={styles.inlineButton} onClick={openDeleteConfirmDialog}>
-								<F {...messages.deleteWorkspaceMsg} />
-							</button>
-						)}
-					</div>
-				</div>
+						{/* Danger Zone */}
+						<hr className={styles.divider} />
+						<div>
+							<label className={styles.sectionLabel}>
+								<F {...messages.dangerZone} />
+							</label>
+							<div className={styles.dangerZoneActions}>
+								{canLeave && (
+									<button className={styles.inlineButton} onClick={openLeaveConfirmDialog}>
+										<F {...messages.leaveWorkspace} />
+									</button>
+								)}
+								{can(role, 'deleteWorkspace') && (
+									<button className={styles.inlineButton} onClick={openDeleteConfirmDialog}>
+										<F {...messages.deleteWorkspaceMsg} />
+									</button>
+								)}
+							</div>
+						</div>
+					</>
+				)}
 
 				{/* Confirmation handled via tldraw dialogs */}
 			</TldrawUiDialogBody>
