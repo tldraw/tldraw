@@ -17,7 +17,8 @@ Everything in the level — the floor, platforms, crates, and the player charact
 This example shows how to:
 
 - Define a custom `player` shape that's still a normal, movable shape via `BaseBoxShapeUtil`.
-- Run a per-frame game loop on the editor's `tick` event, applying gravity and axis-aligned collision detection.
+- Run a per-frame game loop on the editor's `tick` event, applying gravity and collision detection.
+- Collide against each shape's real geometry (`editor.getShapeGeometry`) rather than its bounding box, using SAT so the player can land on a rotated shape and slide down it.
 - Read keyboard input without breaking tldraw's own shortcuts, by marking the game keys as handled before the editor sees them (space, the arrow keys, and W/A/S/D all have default behaviors otherwise).
 - Combine custom physics with `useSyncDemo`: each client simulates only its own player and writes its position to the store, while everyone else's players arrive over sync.
 - Despawn a collaborator's player when they leave, by reconciling player shapes against `editor.getCollaborators()` (with a short grace period so brief disconnects don't remove a player that's about to reappear).

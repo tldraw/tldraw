@@ -2,7 +2,7 @@ import { useSyncDemo } from '@tldraw/sync'
 import { useEffect, useRef } from 'react'
 import { Box, Editor, TLComponents, Tldraw, TldrawUiButton, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { type Box as Collider, type PlayerMotion, stepPlayer } from './physics'
+import { type Collider, type PlayerMotion, stepPlayer } from './physics'
 import './multiplayer-platformer.css'
 import { PLAYER_TYPE, PlayerShape, PlayerShapeUtil } from './PlayerShape'
 
@@ -97,7 +97,7 @@ function PlatformerEngine() {
 	const editor = useEditor()
 	const pressed = useRef(new Set<string>())
 	const jumpRequested = useRef(false)
-	const motion = useRef<PlayerMotion>({ vy: 0, grounded: false })
+	const motion = useRef<PlayerMotion>({ vx: 0, vy: 0, grounded: false })
 
 	useEffect(() => {
 		setupLevel(editor)
@@ -192,7 +192,7 @@ function PlatformerEngine() {
 					editor.isIn('select.resizing') ||
 					editor.isIn('select.rotating'))
 			if (manipulatingMe) {
-				motion.current.vy = 0
+				motion.current = { vx: 0, vy: 0, grounded: motion.current.grounded }
 				return
 			}
 
@@ -203,8 +203,15 @@ function PlatformerEngine() {
 			const colliders: Collider[] = []
 			for (const shape of editor.getCurrentPageShapes()) {
 				if (shape.id === me.id) continue
-				const bounds = editor.getShapePageBounds(shape.id)
-				if (bounds) colliders.push({ x: bounds.x, y: bounds.y, w: bounds.w, h: bounds.h })
+				const geometry = editor.getShapeGeometry(shape)
+				// Open shapes (lines, arrows) have no interior to stand on — skip them.
+				if (!geometry.isClosed) continue
+				const transform = editor.getShapePageTransform(shape)
+				const vertices = geometry.vertices.map((v) => {
+					const page = transform.applyToPoint(v)
+					return { x: page.x, y: page.y }
+				})
+				if (vertices.length >= 3) colliders.push({ vertices })
 			}
 
 			const left = [...pressed.current].some((k) => LEFT_KEYS.has(k))
@@ -219,13 +226,13 @@ function PlatformerEngine() {
 				colliders,
 				dt
 			)
-			motion.current = { vy: result.vy, grounded: result.grounded }
+			motion.current = { vx: result.vx, vy: result.vy, grounded: result.grounded }
 
 			let { x, y } = result.box
 			if (y > VOID_Y) {
 				x = SPAWN.x
 				y = SPAWN.y
-				motion.current = { vy: 0, grounded: false }
+				motion.current = { vx: 0, vy: 0, grounded: false }
 			}
 
 			const facing = result.facing ?? me.props.facing
@@ -366,9 +373,13 @@ player; everyone else's positions arrive over sync. While we're dragging,
 resizing, or rotating our own player we pause physics so the interaction wins.
 
 [10]
-Collision is checked against the page-space bounding box of every other shape.
-Because they're just bounding boxes, rotated shapes collide as their upright
-box — fine for a demo, and it keeps the maths simple.
+Each collider is a shape's real outline — its geometry vertices mapped into page
+space via the shape's transform — not its bounding box. So a rotated rectangle
+collides as a rotated rectangle, and the player can land on a tilted shape and
+slide down it. We skip open shapes (lines, arrows) since they have no interior to
+stand on. Collision is solved with SAT in `physics.ts`: exact for convex shapes
+(rectangles, triangles), approximate for the many-sided polygons used for
+ellipses, and rough for concave shapes.
 
 [11]
 Position updates run with `history: 'ignore'` so the physics don't fill up the
