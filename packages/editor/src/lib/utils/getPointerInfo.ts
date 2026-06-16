@@ -1,7 +1,7 @@
 import type React from 'react'
 import { Editor } from '../editor/Editor'
 import { isAccelKey } from './keyboard'
-import { getRightClickLikeButton } from './pointer'
+import { getPointerEventButton } from './pointer'
 
 /** @public */
 export function getPointerInfo(editor: Editor, e: React.PointerEvent | PointerEvent) {
@@ -19,7 +19,7 @@ export function getPointerInfo(editor: Editor, e: React.PointerEvent | PointerEv
 		metaKey: e.metaKey,
 		accelKey: isAccelKey(e),
 		pointerId: e.pointerId,
-		button: getRightClickLikeButton(e),
+		button: getPointerEventButton(e),
 		isPen: e.pointerType === 'pen',
 	}
 }

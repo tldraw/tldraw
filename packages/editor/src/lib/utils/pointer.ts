@@ -1,11 +1,18 @@
 import { tlenv } from '../globals/environment'
 
 /** @internal */
-export function isRightClickLikeEvent(e: { button: number; ctrlKey: boolean; metaKey: boolean }) {
+interface PointerLike {
+	button: number
+	ctrlKey: boolean
+	metaKey: boolean
+}
+
+/** @internal */
+export function isSecondaryClickEvent(e: PointerLike) {
 	return e.button === 2 || (tlenv.isDarwin && e.button === 0 && e.ctrlKey && !e.metaKey)
 }
 
 /** @internal */
-export function getRightClickLikeButton(e: { button: number; ctrlKey: boolean; metaKey: boolean }) {
-	return isRightClickLikeEvent(e) ? 2 : e.button
+export function getPointerEventButton(e: PointerLike) {
+	return isSecondaryClickEvent(e) ? 2 : e.button
 }

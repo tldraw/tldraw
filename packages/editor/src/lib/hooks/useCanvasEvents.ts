@@ -8,7 +8,7 @@ import {
 	setPointerCapture,
 } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
-import { getRightClickLikeButton, isRightClickLikeEvent } from '../utils/pointer'
+import { getPointerEventButton, isSecondaryClickEvent } from '../utils/pointer'
 import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
@@ -18,12 +18,12 @@ export function useCanvasEvents() {
 
 	const events = useMemo(
 		function canvasEvents() {
-			let isRightClickLikePointerDown = false
+			let isSecondaryClickPointerDown = false
 
 			function onPointerDown(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
-				const button = getRightClickLikeButton(e)
-				isRightClickLikePointerDown = button === 2
+				const button = getPointerEventButton(e)
+				isSecondaryClickPointerDown = button === 2
 
 				// With right-click panning disabled, fire right_click on press and let the
 				// native contextmenu through so the menu opens at the pointer-down location.
@@ -51,7 +51,7 @@ export function useCanvasEvents() {
 
 			function onPointerUp(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
-				const button = isRightClickLikePointerDown ? 2 : getRightClickLikeButton(e)
+				const button = isSecondaryClickPointerDown ? 2 : getPointerEventButton(e)
 				if (button !== 0 && button !== 1 && button !== 2 && button !== 5) return
 
 				const rightClickPanning = editor.options.rightClickPanning
@@ -83,7 +83,7 @@ export function useCanvasEvents() {
 					})
 					e.currentTarget.dispatchEvent(contextMenuEvent)
 				}
-				isRightClickLikePointerDown = false
+				isSecondaryClickPointerDown = false
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
@@ -180,14 +180,14 @@ export function useCanvasEvents() {
 				// fireEvent.contextMenu — pass through so Radix can open the menu.
 				if (!e.nativeEvent.isTrusted) return
 				// Only suppress the native browser contextmenu when it follows a
-				// right-click-like event. For those, our pointer handling has already
+				// secondary click. For those, our pointer handling has already
 				// decided what to do (either we'll dispatch a synthetic contextmenu on
 				// pointerup to open the menu at the release position, or we panned and
 				// don't want a menu at all).
 				//
 				// Other contextmenu sources must reach Radix so the menu opens:
 				// - long-press on touch devices (button=0, pointerType=touch)
-				if (!isRightClickLikeEvent(e)) return
+				if (!isSecondaryClickEvent(e)) return
 				preventDefault(e)
 			}
 
