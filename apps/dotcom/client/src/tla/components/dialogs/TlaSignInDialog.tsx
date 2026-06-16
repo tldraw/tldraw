@@ -196,11 +196,11 @@ function TlaEnterEmailStep({
 						<F {...messages.inviteMessage} /> {inviteInfo.workspaceName}
 						<br />
 						<br />
-						<F defaultMessage="tldraw is a free online whiteboard. Create an account to save your files and work with your friends." />
+						<F defaultMessage="Create a free account to save your files, create workspaces, and invite your teammates." />
 					</>
 				) : (
 					<>
-						<F defaultMessage="tldraw is a free online whiteboard. Create an account to save your files and work with your friends." />
+						<F defaultMessage="Create a free account to save your files, create workspaces, and invite your teammates." />
 					</>
 				)}
 			</div>
