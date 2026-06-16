@@ -293,7 +293,17 @@ export class Sidebar {
 
 	@step
 	async openWorkspaceSwitcher() {
-		await this.page.getByTestId('tla-workspace-switcher').click()
+		// A single fire-and-forget click is unreliable: it can be lost to a re-render, and the menu
+		// closes on any outside pointer-down. Click only when it isn't already open, and retry until
+		// the menu content (Home is always present) is actually mounted, so callers can rely on the
+		// switcher being open rather than racing a click that may not have registered.
+		const home = this.page.getByTestId('tla-workspace-switcher-home')
+		await expect(async () => {
+			if (!(await home.isVisible())) {
+				await this.page.getByTestId('tla-workspace-switcher').click()
+			}
+			await expect(home).toBeVisible({ timeout: 2000 })
+		}).toPass({ timeout: 15000 })
 	}
 
 	@step
@@ -346,10 +356,9 @@ export class Sidebar {
 		// cross-client sync too. Wait for the membership to leave the data layer before asserting the
 		// switcher no longer lists it, so the absence check can't race ahead of the sync.
 		await this.waitForWorkspaceMembershipSync(name, false)
+		// openWorkspaceSwitcher only returns once the menu content is mounted (Home is always
+		// present), so the absence check below can't pass vacuously against an unopened dropdown.
 		await this.openWorkspaceSwitcher()
-		// Wait for the dropdown to actually render (Home is always present)
-		// so the absence check below can't pass vacuously.
-		await expect(this.page.getByTestId('tla-workspace-switcher-home')).toBeVisible()
 		await expect(this.getWorkspaceLink(name)).not.toBeVisible()
 		await this.page.keyboard.press('Escape')
 	}
@@ -375,7 +384,11 @@ export class Sidebar {
 
 	@step
 	async expectActiveWorkspace(name: string) {
-		await expect(this.page.getByTestId('tla-active-workspace-name')).toHaveText(name)
+		// Switching workspaces navigates to (or creates) a file in the target before the active name
+		// updates, so allow the suite's cross-client budget rather than the default 5s.
+		await expect(this.page.getByTestId('tla-active-workspace-name')).toHaveText(name, {
+			timeout: 10000,
+		})
 	}
 
 	@step
