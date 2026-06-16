@@ -41,78 +41,80 @@ export function WorkspaceInviteHandler() {
 	const app = useMaybeApp()
 	const alreadyMemberMsg = useMsg(workspaceInviteMessages.alreadyMember)
 	const errorMsg = useMsg(workspaceInviteMessages.error)
-	// The location dependency makes the effect re-check session storage after
-	// each navigation, since visiting an invite link stores a new token and
-	// redirects to the root without any other dependency changing.
 	const location = useLocation()
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const { user } = useClerkUser()
 
+	// Signed out with a pending invite: show the sign-in dialog with the invite
+	// context on top of the anonymous editor.
 	useEffect(() => {
-		if (!auth.isLoaded) return
+		if (!auth.isLoaded || auth.isSignedIn) return
 
 		const storedToken = getFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)
 		if (!storedToken) return
 
-		if (!auth.isSignedIn) {
-			// A signed-out user has a pending invite: show the sign-in dialog with
-			// the invite context on top of the anonymous editor. The token stays in
-			// session storage so the signed-in branch below can complete the join
-			// once they've signed in.
-			if (!searchParams.has(WORKSPACE_INVITE_QUERY_PARAM)) return
+		// Only show when arriving from an invite link. The token can't gate this on
+		// its own: it outlives the dialog so a later sign-in still completes the
+		// join, whereas the marker is the ephemeral "show it now" signal.
+		if (!searchParams.has(WORKSPACE_INVITE_QUERY_PARAM)) return
 
-			const controller = new AbortController()
-			const { signal } = controller
+		const controller = new AbortController()
+		const { signal } = controller
 
-			// Fetch the invite info up front so the signed-out user sees which
-			// workspace they've been invited to before signing in. This endpoint
-			// needs no auth. An invalid or expired token comes back as
-			// `{ error: true }`; either that or a network/parsing failure leaves us
-			// with no workspace name, in which case we fall back to the plain
-			// sign-in dialog rather than blocking sign-in.
-			async function loadInviteInfo(): Promise<ValidInviteInfo | undefined> {
-				try {
-					const res = await fetch(`/api/app/invite/${storedToken}`, { signal })
-					const data: GetInviteInfoResponseBody = await res.json()
-					return data.error ? undefined : data
-				} catch (err) {
-					// An aborted request (effect cleanup) is expected; only log real
-					// failures so they aren't swallowed silently.
-					if (!signal.aborted) console.error('Failed to load invite info', err)
-					return undefined
-				}
+		// Fetch the invite info up front so the signed-out user sees which
+		// workspace they've been invited to before signing in. This endpoint needs
+		// no auth. An invalid or expired token comes back as `{ error: true }`;
+		// either that or a network/parsing failure leaves us with no workspace name,
+		// in which case we fall back to the plain sign-in dialog rather than
+		// blocking sign-in.
+		async function loadInviteInfo(): Promise<ValidInviteInfo | undefined> {
+			try {
+				const res = await fetch(`/api/app/invite/${storedToken}`, { signal })
+				const data: GetInviteInfoResponseBody = await res.json()
+				return data.error ? undefined : data
+			} catch (err) {
+				// An aborted request (effect cleanup) is expected; only log real
+				// failures so they aren't swallowed silently.
+				if (!signal.aborted) console.error('Failed to load invite info', err)
+				return undefined
 			}
-
-			async function showSignInDialog() {
-				const inviteInfo = await loadInviteInfo()
-				if (signal.aborted) return
-				// The stable dialog id means a re-arrival from another invite link
-				// replaces the open dialog rather than stacking a second one.
-				// Dismissing clears the marker, so the dialog stays gone on reload
-				// while a refresh with the marker still present brings it back.
-				dialogs.addDialog({
-					id: 'workspace-invite-sign-in',
-					component: (props) => <TlaSignInDialog {...props} inviteInfo={inviteInfo} skipRedirect />,
-					// Push, not replace: dismissing leaves the ?invite URL behind in
-					// history, so the invite stays a real back-navigable state rather
-					// than being erased.
-					onClose: () =>
-						setSearchParams((params) => {
-							params.delete(WORKSPACE_INVITE_QUERY_PARAM)
-							return params
-						}),
-				})
-			}
-
-			showSignInDialog()
-			return () => controller.abort()
 		}
 
+		async function showSignInDialog() {
+			const inviteInfo = await loadInviteInfo()
+			if (signal.aborted) return
+			// The stable dialog id means a re-arrival from another invite link
+			// replaces the open dialog rather than stacking a second one.
+			dialogs.addDialog({
+				id: 'workspace-invite-sign-in',
+				component: (props) => <TlaSignInDialog {...props} inviteInfo={inviteInfo} skipRedirect />,
+				// Push, not replace: dismissing leaves the ?invite URL behind in
+				// history, so the invite stays a real back-navigable state rather than
+				// being erased.
+				onClose: () =>
+					setSearchParams((params) => {
+						params.delete(WORKSPACE_INVITE_QUERY_PARAM)
+						return params
+					}),
+			})
+		}
+
+		showSignInDialog()
+		return () => controller.abort()
+	}, [auth.isLoaded, auth.isSignedIn, dialogs, location, searchParams, setSearchParams])
+
+	// Signed in with a pending invite: complete the join.
+	useEffect(() => {
+		if (!auth.isLoaded || !auth.isSignedIn) return
 		if (!auth.userId) return
 		if (!app) return
 		if (hasNotAcceptedLegal(user)) return
 
+		const storedToken = getFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)
+		if (!storedToken) return
+
+		// Consume the token: this is the only place it is deleted.
 		deleteFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)
 
 		const showError = () =>
@@ -169,17 +171,15 @@ export function WorkspaceInviteHandler() {
 			.catch(showError)
 	}, [
 		auth.isLoaded,
-		auth.userId,
 		auth.isSignedIn,
-		dialogs,
+		auth.userId,
 		app,
 		user,
+		dialogs,
 		addToast,
 		alreadyMemberMsg,
 		errorMsg,
 		location,
-		searchParams,
-		setSearchParams,
 	])
 
 	return null
