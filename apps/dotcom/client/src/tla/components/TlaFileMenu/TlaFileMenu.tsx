@@ -32,7 +32,6 @@ import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { downloadAppFile } from '../TlaEditor/useFileEditorOverrides'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
 
 const messages = defineMessages({
 	copied: { defaultMessage: 'Copied link' },
@@ -273,8 +272,8 @@ export function FileItems({
 							<TldrawUiMenuItem
 								label="New workspace"
 								id="create-new-workspace"
+								iconLeft={'plus'}
 								readonlyOk
-								iconLeft={<TlaIcon icon="plus" />}
 								onSelect={() => {
 									addDialog({
 										component: ({ onClose }) => (
