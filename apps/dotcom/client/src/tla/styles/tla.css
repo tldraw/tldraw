@@ -361,3 +361,10 @@
 .tlui-dialog__footer__file-link-checkbox {
 	flex: 2;
 }
+
+/* The "New workspace" item in the file "Move to" menu is a plain menu item, so it
+   uses the base 12px left padding while the workspace checkbox items above it use
+   8px. Match it so its plus icon lines up with the checkmarks. */
+[data-testid='dialog.create-new-workspace'] {
+	padding-left: 8px;
+}

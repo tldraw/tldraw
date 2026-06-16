@@ -114,6 +114,11 @@ export function TlaSidebarWorkspaceSwitcher() {
 							sideOffset={4}
 							alignOffset={-4}
 							collisionPadding={8}
+							// Switching workspaces mounts a new canvas that steals focus as it
+							// loads. Without this the focus shift would dismiss the switcher mid-
+							// switch. The open state is driven externally (useGlobalMenuIsOpen), so
+							// the menu still closes via the trigger, the overlay, or Escape.
+							onFocusOutside={(e) => e.preventDefault()}
 						>
 							<WorkspaceSwitcherItem
 								isActive={isHome}
@@ -131,6 +136,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 									{g.group.name}
 								</WorkspaceSwitcherItem>
 							))}
+							<_DropdownMenu.Separator className={styles.sidebarWorkspaceSwitcherSeparator} />
 							<_DropdownMenu.Item
 								className={classNames(
 									styles.sidebarWorkspaceSwitcherItem,
@@ -158,6 +164,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 						onClick={handleCreateWorkspace}
 						data-testid="tla-create-workspace"
 					>
+						<TlaIcon icon="plus" />
 						{createWorkspaceLbl}
 					</button>
 				)}
@@ -195,7 +202,10 @@ function WorkspaceSwitcherItem({
 			onSelect={onSelect}
 			data-testid={testId}
 		>
-			<span className={styles.sidebarWorkspaceSwitcherItemLabel}>{children}</span>
+			<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
+				<TlaIcon icon={isActive ? 'check' : 'none'} />
+				{children}
+			</span>
 		</_DropdownMenu.Item>
 	)
 }

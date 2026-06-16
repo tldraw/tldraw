@@ -664,19 +664,24 @@
 	text-overflow: ellipsis;
 }
 
-.sidebarWorkspaceSwitcherItemCreate {
-	color: var(--tla-color-text-3);
+/* Override the menu's negative item margins so the separator sits flush
+   between the workspace list and the "New workspace" row. */
+.sidebarWorkspaceSwitcherMenu > .sidebarWorkspaceSwitcherSeparator {
+	height: 1px;
+	margin: 6px 0px;
+	background-color: var(--tl-color-divider, rgba(232, 232, 232, 1));
 }
 
 .sidebarCreateWorkspaceButton {
 	position: relative;
 	display: flex;
 	align-items: center;
+	gap: 6px;
 	height: 32px;
 	background: none;
 	border: none;
 	cursor: pointer;
-	color: var(--tla-color-text-3);
+	color: var(--tla-color-text-1);
 	padding: 0px 8px;
 	text-align: left;
 }

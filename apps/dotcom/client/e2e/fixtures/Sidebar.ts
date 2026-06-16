@@ -625,7 +625,12 @@ export class Sidebar {
 	@step
 	async moveFileToWorkspace(fileName: string, targetWorkspaceName: string) {
 		await this.openMoveToMenu(fileName)
-		await this.page.getByRole('menuitem', { name: targetWorkspaceName, exact: true }).click()
+		// The move-to menu is a checklist: each destination is a checkbox item, and the
+		// destination we're moving to is never the current (checked) one, so its accessible
+		// name is just the workspace name (an unchecked item adds no "checked" prefix).
+		await this.page
+			.getByRole('menuitemcheckbox', { name: targetWorkspaceName, exact: true })
+			.click()
 		await this.mutationResolution()
 	}
 
