@@ -353,13 +353,16 @@ export const adminRoutes = createRouter<Environment>()
 		}
 
 		const updatedAt = Date.now()
+		// Reset locales to []: the new template has no generated variants yet (the queue job below
+		// fills them back in). Without this, switching templates would show the previous one's locales.
+		const locales: string[] = []
 		await pg
 			.insertInto('welcome_template')
-			.values({ id: true, fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
+			.values({ id: true, fileId: file.id, publishedSlug: file.publishedSlug, updatedAt, locales })
 			.onConflict((oc) =>
 				oc
 					.column('id')
-					.doUpdateSet({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
+					.doUpdateSet({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt, locales })
 			)
 			.execute()
 		// Kick off generating the per-locale welcome variants for this template; they're read back
@@ -369,7 +372,7 @@ export const adminRoutes = createRouter<Environment>()
 		// Return the same shape as GET, including `live`, so the admin UI doesn't flash the
 		// "not published" warning right after a successful set.
 		const live = !file.isDeleted && file.published
-		return json({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt, live })
+		return json({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt, locales, live })
 	})
 	// Clear the welcome template, reverting new workspaces to the committed default snapshot.
 	.post('/app/admin/welcome-template/clear', async (_res, env) => {

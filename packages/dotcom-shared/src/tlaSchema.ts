@@ -275,6 +275,9 @@ export interface TlaWelcomeTemplate {
 	fileId: string
 	publishedSlug: string
 	updatedAt: number
+	// Locales that currently have a generated welcome variant in R2. Written by the
+	// variant-generation job; reset to [] when the template is (re)set. Observability only.
+	locales: string[]
 }
 
 export interface DB {

@@ -284,7 +284,12 @@ export function Component() {
 function WelcomeTemplate() {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [current, setCurrent] = useState(
-		null as { fileId: string; publishedSlug: string; live?: boolean } | null
+		null as {
+			fileId: string
+			publishedSlug: string
+			live?: boolean
+			locales?: string[]
+		} | null
 	)
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState(null as string | null)
@@ -384,6 +389,16 @@ function WelcomeTemplate() {
 							: 'none — using the built-in default'}
 				</span>
 			</div>
+			{current && (
+				<div className={styles.summaryItem}>
+					<span className={styles.fieldLabel}>Localized variants:</span>
+					<span className={styles.fieldValue}>
+						{current.locales?.length
+							? `${current.locales.length} locale${current.locales.length === 1 ? '' : 's'} — ${current.locales.join(', ')}`
+							: 'none yet — other locales fall back until variants generate'}
+					</span>
+				</div>
+			)}
 			<div className={styles.searchContainer}>
 				<input
 					type="text"

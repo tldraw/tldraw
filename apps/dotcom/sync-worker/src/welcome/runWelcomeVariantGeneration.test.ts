@@ -10,9 +10,21 @@ vi.mock('./loadWelcomeCatalog', async (orig) => ({
 	...(await orig<typeof import('./loadWelcomeCatalog')>()),
 	loadWelcomeCatalog: vi.fn(),
 }))
+vi.mock('../postgres', () => ({ createPostgresConnectionPool: vi.fn() }))
 
 const { getPublishedRoomSnapshot } = await import('../routes/tla/getPublishedFile')
 const { loadWelcomeCatalog } = await import('./loadWelcomeCatalog')
+const { createPostgresConnectionPool } = await import('../postgres')
+
+// Capture the welcome_template update so tests can assert which locales got recorded.
+const updateExecute = vi.fn(async () => {})
+const updateWhere = vi.fn(() => ({ execute: updateExecute }))
+const updateSet = vi.fn(() => ({ where: updateWhere }))
+const poolDestroy = vi.fn(async () => {})
+vi.mocked(createPostgresConnectionPool).mockReturnValue({
+	updateTable: () => ({ set: updateSet }),
+	destroy: poolDestroy,
+} as any)
 
 const source = () => JSON.parse(defaultWelcomeSnapshotJson) as RoomSnapshot
 
@@ -61,5 +73,10 @@ describe('runWelcomeVariantGeneration', () => {
 		const [key, body] = put.mock.calls[0]
 		expect(key).toBe(welcomeVariantR2Key('pub_abc', 'fr'))
 		expect(titleText(body as string)).toBe('Bienvenue dans votre espace de travail')
+
+		// records the ready locales on the row, scoped to this template's publishedSlug
+		expect(updateSet).toHaveBeenCalledWith({ locales: ['fr'] })
+		expect(updateWhere).toHaveBeenCalledWith('publishedSlug', '=', 'pub_abc')
+		expect(poolDestroy).toHaveBeenCalledOnce()
 	})
 })

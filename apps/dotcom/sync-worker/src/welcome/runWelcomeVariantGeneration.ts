@@ -1,4 +1,5 @@
 import { WELCOME_COPY } from '@tldraw/dotcom-shared'
+import { createPostgresConnectionPool } from '../postgres'
 import { getPublishedRoomSnapshot } from '../routes/tla/getPublishedFile'
 import { Environment } from '../types'
 import { loadWelcomeCatalog } from './loadWelcomeCatalog'
@@ -79,7 +80,7 @@ export async function runWelcomeVariantGeneration(
 	if (!source) {
 		throw new Error(`welcome template ${publishedSlug} has no published snapshot`)
 	}
-	return await generateWelcomeVariants({
+	const generated = await generateWelcomeVariants({
 		source,
 		locales: WELCOME_TARGET_LOCALES,
 		loadCatalog: async (locale) => {
@@ -94,4 +95,18 @@ export async function runWelcomeVariantGeneration(
 		},
 		reportError: (locale, e) => console.error(`welcome variant generation failed for ${locale}`, e),
 	})
+
+	// Record which locales are ready for the admin UI. Guard on publishedSlug so a stale job (the
+	// admin retargeted the template mid-run) doesn't overwrite the current template's locales.
+	const pg = createPostgresConnectionPool(env, 'runWelcomeVariantGeneration')
+	try {
+		await pg
+			.updateTable('welcome_template')
+			.set({ locales: generated })
+			.where('publishedSlug', '=', publishedSlug)
+			.execute()
+	} finally {
+		await pg.destroy()
+	}
+	return generated
 }
