@@ -9,7 +9,7 @@ const dotEnv = dotenv.config({ path: env.dockerEnvFile }).parsed ?? {}
 const childEnv = {
 	...dotEnv,
 	...process.env,
-	// Branch-scoped dev values intentionally win over shell vars for deterministic local state.
+	// Fixed dev values intentionally win over shell vars for deterministic local state.
 	...env.zeroEnv,
 }
 
@@ -17,9 +17,9 @@ const children: ChildProcess[] = []
 let migrationsReady = false
 let shuttingDown = false
 
-// Host ports the branch-scoped Docker stack publishes (see docker/docker-compose.yml). The dev
-// stack is scoped per branch, but these ports are not, so a stack left running on another branch
-// keeps holding them and blocks `docker compose up`.
+// Host ports the Docker stack publishes (see docker/docker-compose.yml). Our own stack is reused
+// in place across runs, but a stack from an older per-branch setup will hold these ports and block
+// `docker compose up`, so we reconcile those away on startup.
 const DOCKER_PUBLISHED_PORTS = [DOTCOM_DEV_PORTS.pgbouncer, DOTCOM_DEV_PORTS.postgres]
 
 function delay(ms: number) {
@@ -153,13 +153,17 @@ async function runOnce(name: string, command: string, args: string[]) {
 }
 
 /**
- * `docker compose up` binds fixed host ports (postgres, pgbouncer). Because the dev stack is
- * branch-scoped but those ports are not, a stack left running on another branch holds them and
- * makes `up` fail with "port is already allocated". Previously that surfaced only as the client
+ * `docker compose up` binds fixed host ports (postgres, pgbouncer). Our own stack
+ * (`tldraw_dotcom_dev`) is fine — compose just reattaches to it — but a stack from the old
+ * per-branch setup (`tldraw_dotcom_<branch>`) or another Compose project will hold those ports and
+ * make `up` fail with "port is already allocated". Previously that surfaced only as the client
  * polling "Waiting for migrations..." for minutes while the orchestrator had already exited.
- * Detect the conflict up front and print an actionable message instead.
+ *
+ * So before bringing our stack up we self-heal: any *other* dotcom dev stack holding our ports is
+ * stopped automatically (containers only — its volume is kept). A non-dotcom process holding a port
+ * is something we can't safely stop, so we fail fast with an actionable message instead.
  */
-function preflightDockerPorts() {
+function reconcileDockerStacks() {
 	const result = spawnSync(
 		'docker',
 		['ps', '--format', '{{.Names}}\t{{.Label "com.docker.compose.project"}}\t{{.Ports}}'],
@@ -168,30 +172,38 @@ function preflightDockerPorts() {
 	// Docker not running/available yet: let `docker compose up` surface its own error.
 	if (result.status !== 0) return
 
-	const conflicts: { name: string; project: string; ports: number[] }[] = []
+	const dotcomProjects = new Set<string>()
+	const foreignHolders: { name: string; ports: number[] }[] = []
 	for (const line of (result.stdout ?? '').split('\n')) {
 		const [name, project, ports] = line.split('\t')
 		if (!name || !ports) continue
-		// Our own stack is fine: `docker compose up` just attaches to the existing containers.
+		// Our own stack is fine: `docker compose up` just reattaches to the existing containers.
 		if (project === env.composeProjectName) continue
 		const held = DOCKER_PUBLISHED_PORTS.filter((port) => ports.includes(`:${port}->`))
-		if (held.length > 0) conflicts.push({ name, project, ports: held })
+		if (held.length === 0) continue
+		if (project?.startsWith('tldraw_dotcom_')) {
+			dotcomProjects.add(project)
+		} else {
+			foreignHolders.push({ name, ports: held })
+		}
 	}
 
-	if (conflicts.length === 0) return
+	for (const project of dotcomProjects) {
+		console.log(`Stopping old dev stack "${project}" (it is holding required ports)...`)
+		spawnSync('docker', ['compose', '--project-name', project, 'down', '--remove-orphans'], {
+			cwd: env.zeroCacheDir,
+			stdio: 'inherit',
+		})
+	}
 
-	console.error('\nCannot start the dotcom dev stack: required host ports are already in use.')
-	for (const { name, ports } of conflicts) {
-		console.error(`  • ${name} is holding port(s) ${ports.join(', ')}`)
+	if (foreignHolders.length > 0) {
+		console.error('\nCannot start the dotcom dev stack: required host ports are in use.')
+		for (const { name, ports } of foreignHolders) {
+			console.error(`  • ${name} is holding port(s) ${ports.join(', ')}`)
+		}
+		console.error('\nStop whatever owns those ports and try again.\n')
+		process.exit(1)
 	}
-	console.error(
-		'\nThis usually means a dev stack from another branch is still running. Stop it with:'
-	)
-	for (const project of new Set(conflicts.map((c) => c.project).filter(Boolean))) {
-		console.error(`  docker compose -p ${project} down --remove-orphans`)
-	}
-	console.error('or remove all dotcom dev stacks with: yarn dev-app:clean:all\n')
-	process.exit(1)
 }
 
 async function waitForPostgres() {
@@ -247,7 +259,6 @@ async function waitForHttpOk(url: string, label: string) {
 }
 
 async function main() {
-	console.log(`Dotcom Zero dev branch key: ${env.branchKey}`)
 	console.log(`Docker compose project: ${env.composeProjectName}`)
 	console.log(`Postgres volume: ${env.postgresVolumeName}`)
 	console.log(`Zero replica: ${env.zeroReplicaFile}`)
@@ -263,7 +274,7 @@ async function main() {
 		}
 	})
 
-	preflightDockerPorts()
+	reconcileDockerStacks()
 
 	spawnManaged(
 		'Docker compose',

@@ -1,5 +1,3 @@
-import { execFileSync } from 'child_process'
-import { createHash } from 'crypto'
 import { dirname, join, resolve } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -18,25 +16,27 @@ export const DOTCOM_DEV_READINESS_TIMEOUT_MS = 180_000
 export const DOTCOM_DEV_MIGRATIONS_READY_TIMEOUT_MS = DOTCOM_DEV_READINESS_TIMEOUT_MS * 2 + 60_000
 export const DOTCOM_DEV_APP_READY_TIMEOUT_MS =
 	DOTCOM_DEV_MIGRATIONS_READY_TIMEOUT_MS + DOTCOM_DEV_READINESS_TIMEOUT_MS * 2
+
+// The dotcom dev stack uses a single, fixed set of identifiers rather than per-branch ones. The
+// stack binds fixed host ports, so only one copy can run at a time anyway; fixed names mean your
+// local database and state persist across branch switches, and there are no per-branch stacks left
+// to orphan and fight over those ports.
+export const DOTCOM_DEV_COMPOSE_PROJECT = 'tldraw_dotcom_dev'
+export const DOTCOM_DEV_POSTGRES_VOLUME = `${DOTCOM_DEV_COMPOSE_PROJECT}_tlapp_pgdata`
+export const DOTCOM_DEV_ZERO_REPLICA_FILE = '/tmp/tldraw-dotcom-zero-dev.db'
+export const DOTCOM_DEV_WRANGLER_STATE_DIR = 'state-dev'
+
+// Identifiers for resources left behind by older dev setups (per-branch scoping and the original
+// `docker` compose project). `yarn dev-app` reconciles these on startup and `dev-app:clean:all`
+// removes them.
 export const DOTCOM_DEV_DOCKER_PROJECT_PREFIX = 'tldraw_dotcom_'
 export const DOTCOM_DEV_POSTGRES_VOLUME_SUFFIX = '_tlapp_pgdata'
 export const DOTCOM_DEV_ZERO_REPLICA_FILE_PREFIX = 'tldraw-dotcom-zero-'
-export const DOTCOM_DEV_WRANGLER_STATE_PREFIX = 'state-'
+export const DOTCOM_DEV_WRANGLER_STATE_PREFIX = 'state'
 export const DOTCOM_DEV_LEGACY_DOCKER_PROJECT_NAMES = ['docker']
 export const DOTCOM_DEV_LEGACY_POSTGRES_VOLUME_NAMES = ['docker_tlapp_pgdata']
 
-const MAX_BRANCH_KEY_LENGTH = 48
-
-export interface DotcomDevBranchInfo {
-	branchName: string | null
-	shortCommitSha: string | null
-	branchKey: string
-}
-
 export interface DotcomDevEnv {
-	branchName: string | null
-	shortCommitSha: string | null
-	branchKey: string
 	repoRoot: string
 	dotcomDir: string
 	zeroCacheDir: string
@@ -50,7 +50,6 @@ export interface DotcomDevEnv {
 	schemaFile: string
 	schemaSourceFile: string
 	wranglerPersistDir: string
-	legacyWranglerStateDir: string
 	resetLocalStateUrl: string
 }
 
@@ -60,7 +59,6 @@ export interface DotcomDevCleanTargets {
 	zeroReplicaFiles: string[]
 	schemaFile: string
 	wranglerPersistDir: string
-	legacyWranglerStateDir: string
 }
 
 export interface DotcomDevCleanAllTargets {
@@ -74,114 +72,40 @@ export interface DotcomDevCleanAllTargets {
 	schemaFile: string
 	wranglerStateDir: string
 	wranglerPersistDirPrefix: string
-	legacyWranglerStateDir: string
-}
-
-function normalizeBranchSource(value: string | null | undefined) {
-	return value?.trim() || ''
-}
-
-export function sanitizeBranchKey(value: string | null | undefined, fallback = 'local'): string {
-	const raw = normalizeBranchSource(value) || fallback
-	const sanitized = raw
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '')
-		.replace(/-+/g, '-')
-
-	if (!sanitized) return sanitizeBranchKey(fallback, 'local')
-	if (sanitized === raw && sanitized.length <= MAX_BRANCH_KEY_LENGTH) return sanitized
-
-	const hash = createHash('sha1').update(raw).digest('hex').slice(0, 8)
-	const prefix = sanitized.slice(0, MAX_BRANCH_KEY_LENGTH - hash.length - 1).replace(/-+$/g, '')
-	return `${prefix}-${hash}`
-}
-
-export function getBranchInfoFromValues({
-	branchName,
-	shortCommitSha,
-}: {
-	branchName?: string | null
-	shortCommitSha?: string | null
-}): DotcomDevBranchInfo {
-	const normalizedBranchName = normalizeBranchSource(branchName)
-	const normalizedShortCommitSha = normalizeBranchSource(shortCommitSha)
-	const source = normalizedBranchName || normalizedShortCommitSha || 'local'
-
-	return {
-		branchName: normalizedBranchName || null,
-		shortCommitSha: normalizedShortCommitSha || null,
-		branchKey: sanitizeBranchKey(source),
-	}
-}
-
-function readGit(args: string[], cwd: string) {
-	try {
-		return execFileSync('git', args, {
-			cwd,
-			encoding: 'utf8',
-			stdio: ['ignore', 'pipe', 'ignore'],
-		}).trim()
-	} catch {
-		return ''
-	}
-}
-
-export function getCurrentDotcomDevBranchInfo(cwd = resolve(thisDir, '../../..')) {
-	const branchName = readGit(['branch', '--show-current'], cwd)
-	const shortCommitSha = readGit(['rev-parse', '--short', 'HEAD'], cwd)
-	return getBranchInfoFromValues({ branchName, shortCommitSha })
 }
 
 export function buildDotcomDevEnv({
-	branchInfo,
 	repoRoot = resolve(thisDir, '../../..'),
 }: {
-	branchInfo: DotcomDevBranchInfo
 	repoRoot?: string
-}): DotcomDevEnv {
+} = {}): DotcomDevEnv {
 	const dotcomDir = join(repoRoot, 'apps/dotcom')
 	const zeroCacheDir = join(dotcomDir, 'zero-cache')
 	const syncWorkerDir = join(dotcomDir, 'sync-worker')
-	const composeProjectName = `${DOTCOM_DEV_DOCKER_PROJECT_PREFIX}${branchInfo.branchKey}`
-	const zeroReplicaFile = join(
-		'/tmp',
-		`${DOTCOM_DEV_ZERO_REPLICA_FILE_PREFIX}${branchInfo.branchKey}.db`
-	)
 
 	return {
-		...branchInfo,
 		repoRoot,
 		dotcomDir,
 		zeroCacheDir,
 		syncWorkerDir,
 		dockerComposeFile: join(zeroCacheDir, 'docker/docker-compose.yml'),
 		dockerEnvFile: join(zeroCacheDir, '.env'),
-		composeProjectName,
-		postgresVolumeName: `${composeProjectName}${DOTCOM_DEV_POSTGRES_VOLUME_SUFFIX}`,
-		zeroReplicaFile,
+		composeProjectName: DOTCOM_DEV_COMPOSE_PROJECT,
+		postgresVolumeName: DOTCOM_DEV_POSTGRES_VOLUME,
+		zeroReplicaFile: DOTCOM_DEV_ZERO_REPLICA_FILE,
 		zeroEnv: {
-			ZERO_REPLICA_FILE: zeroReplicaFile,
+			ZERO_REPLICA_FILE: DOTCOM_DEV_ZERO_REPLICA_FILE,
 			ZERO_NUM_SYNC_WORKERS: '1',
 		},
 		schemaFile: join(zeroCacheDir, '.schema.js'),
 		schemaSourceFile: join(repoRoot, 'packages/dotcom-shared/src/tlaSchema.ts'),
-		wranglerPersistDir: join(
-			syncWorkerDir,
-			'.wrangler',
-			`${DOTCOM_DEV_WRANGLER_STATE_PREFIX}${branchInfo.branchKey}`
-		),
-		legacyWranglerStateDir: join(syncWorkerDir, '.wrangler', 'state'),
+		wranglerPersistDir: join(syncWorkerDir, '.wrangler', DOTCOM_DEV_WRANGLER_STATE_DIR),
 		resetLocalStateUrl: `http://localhost:${DOTCOM_DEV_PORTS.client}/dev/reset-local-state`,
 	}
 }
 
-export function getDotcomDevEnv(cwd?: string) {
-	const repoRoot = resolve(thisDir, '../../..')
-	return buildDotcomDevEnv({
-		branchInfo: getCurrentDotcomDevBranchInfo(cwd ?? repoRoot),
-		repoRoot,
-	})
+export function getDotcomDevEnv() {
+	return buildDotcomDevEnv()
 }
 
 export function getDotcomDevCleanTargets(env: DotcomDevEnv): DotcomDevCleanTargets {
@@ -195,7 +119,6 @@ export function getDotcomDevCleanTargets(env: DotcomDevEnv): DotcomDevCleanTarge
 		],
 		schemaFile: env.schemaFile,
 		wranglerPersistDir: env.wranglerPersistDir,
-		legacyWranglerStateDir: env.legacyWranglerStateDir,
 	}
 }
 
@@ -211,6 +134,5 @@ export function getDotcomDevCleanAllTargets(env: DotcomDevEnv): DotcomDevCleanAl
 		schemaFile: env.schemaFile,
 		wranglerStateDir: join(env.syncWorkerDir, '.wrangler'),
 		wranglerPersistDirPrefix: DOTCOM_DEV_WRANGLER_STATE_PREFIX,
-		legacyWranglerStateDir: env.legacyWranglerStateDir,
 	}
 }
