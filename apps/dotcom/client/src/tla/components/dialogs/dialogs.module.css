@@ -217,7 +217,8 @@
 
 .sectionHelp {
 	margin: 8px 0 0;
-	color: var(--tla-color-text-3);
+	text-align: center;
+	text-wrap: balance;
 }
 
 .inviteHeader {

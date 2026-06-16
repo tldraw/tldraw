@@ -29,7 +29,7 @@ const messages = defineMessages({
 	namePlaceholder: { defaultMessage: 'Workspace name' },
 	inviteMembers: { defaultMessage: 'Invite members' },
 	homeWorkspacePrivate: {
-		defaultMessage: 'Your home workspace is private. Other people can’t be invited to join it.',
+		defaultMessage: 'This is your private workspace. Create a new workspace to invite teammates.',
 	},
 	regenerateInviteLinkHelp: {
 		defaultMessage: 'Revoke this link and create a new one.',
