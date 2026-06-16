@@ -14,14 +14,15 @@ import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
 import { WorkspaceSettingsDialog } from '../../dialogs/WorkspaceSettingsDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { useHandleSidebarCreateFile } from './TlaSidebarCreateFileButton'
+import { TlaSidebarSearch } from './TlaSidebarSearch'
 import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
 	home: { defaultMessage: 'Home' },
 	createWorkspace: { defaultMessage: 'Create workspace' },
-	newBoard: { defaultMessage: 'New board' },
-	inviteTeammates: { defaultMessage: 'Invite teammates' },
-	workspaceSettings: { defaultMessage: 'Workspace settings' },
+	newFile: { defaultMessage: 'New file' },
+	inviteTeammates: { defaultMessage: 'Copy invite link' },
+	workspaceSettings: { defaultMessage: 'Members and settings' },
 })
 
 /**
@@ -169,12 +170,8 @@ export function TlaSidebarWorkspaceSwitcher() {
 					</button>
 				)}
 			</div>
-			{!isHome && (
-				<>
-					<div className={styles.sidebarDivider} />
-					<TlaSidebarWorkspaceActions workspaceId={activeWorkspaceId} />
-				</>
-			)}
+			<div className={styles.sidebarDivider} />
+			<TlaSidebarWorkspaceActions workspaceId={activeWorkspaceId} isHome={isHome} />
 		</>
 	)
 }
@@ -211,16 +208,23 @@ function WorkspaceSwitcherItem({
 }
 
 /**
- * The action rows shown below the workspace switcher when a non-home
- * workspace is active: creating a new board in it, copying the workspace
- * invite link, and opening the workspace settings.
+ * The action rows shown below the workspace switcher. Both the home space and
+ * non-home workspaces get the search and new-board actions; a non-home
+ * workspace additionally gets actions to copy its invite link and open its
+ * settings.
  */
-function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
+function TlaSidebarWorkspaceActions({
+	workspaceId,
+	isHome,
+}: {
+	workspaceId: string
+	isHome: boolean
+}) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const handleCreateFile = useHandleSidebarCreateFile()
-	const newBoardLbl = useMsg(messages.newBoard)
+	const newBoardLbl = useMsg(messages.newFile)
 	const inviteTeammatesLbl = useMsg(messages.inviteTeammates)
 	const settingsLbl = useMsg(messages.workspaceSettings)
 
@@ -241,7 +245,6 @@ function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
 			component: ({ onClose }) => (
 				<WorkspaceSettingsDialog workspaceId={workspaceId} onClose={onClose} />
 			),
-			preventBackgroundClose: true,
 		})
 		trackEvent('open-share-menu', { source: 'sidebar' })
 	}, [addDialog, workspaceId, trackEvent])
@@ -249,26 +252,29 @@ function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
 	return (
 		<div className={styles.sidebarSection}>
 			<TlaSidebarActionButton
-				icon="edit-strong"
-				// edit-strong fills its 15px box while the other action icons draw
-				// 12px art inside it; scale it down so they optically match.
+				icon="edit"
 				iconStyle={{ width: 12, height: 12, margin: 0 }}
 				label={newBoardLbl}
 				onClick={handleCreateFile}
 				testId="tla-sidebar-new-board"
 			/>
-			<TlaSidebarActionButton
-				icon="invite"
-				label={inviteTeammatesLbl}
-				onClick={handleCopyInviteLink}
-				testId="tla-sidebar-invite-teammates"
-			/>
-			<TlaSidebarActionButton
-				icon="settings"
-				label={settingsLbl}
-				onClick={handleSettings}
-				testId="tla-sidebar-workspace-settings"
-			/>
+			<TlaSidebarSearch />
+			{!isHome && (
+				<>
+					<TlaSidebarActionButton
+						icon="invite"
+						label={inviteTeammatesLbl}
+						onClick={handleCopyInviteLink}
+						testId="tla-sidebar-invite-teammates"
+					/>
+					<TlaSidebarActionButton
+						icon="settings"
+						label={settingsLbl}
+						onClick={handleSettings}
+						testId="tla-sidebar-workspace-settings"
+					/>
+				</>
+			)}
 		</div>
 	)
 }

@@ -11,6 +11,7 @@ interface TlaSidebarInlineInputProps {
 	className?: string
 	wrapperClassName?: string
 	autoFocus?: boolean
+	active?: boolean
 	'data-testid'?: string
 }
 
@@ -22,6 +23,7 @@ export function TlaSidebarInlineInput({
 	className,
 	wrapperClassName,
 	autoFocus = true,
+	active = false,
 	'data-testid': dataTestId,
 }: TlaSidebarInlineInputProps) {
 	const ref = useRef<HTMLInputElement>(null)
@@ -54,6 +56,7 @@ export function TlaSidebarInlineInput({
 				className={classNames(
 					styles.sidebarFileListItemRenameInput,
 					'tla-text_ui__regular',
+					active && styles.sidebarFileListItemRenameInputActive,
 					className
 				)}
 				defaultValue={defaultValue}

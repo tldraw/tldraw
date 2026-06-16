@@ -2,14 +2,14 @@
   "0095a9fa74": {
     "translation": "Export"
   },
+  "03a2191550": {
+    "translation": "Workspace"
+  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
   "043973ec1f": {
     "translation": "Still having trouble? {GetHelpLink}"
-  },
-  "04a2dd56d6": {
-    "translation": "Invite teammates"
   },
   "05f43078e9": {
     "translation": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
@@ -62,9 +62,6 @@
   "181b90f889": {
     "translation": "Create file"
   },
-  "1d2591253e": {
-    "translation": "Workspace settings"
-  },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
   },
@@ -82,6 +79,9 @@
   },
   "2a1167f869": {
     "translation": "Welcome to your workspace"
+  },
+  "2a37324bb4": {
+    "translation": "Search..."
   },
   "2c3ef76333": {
     "translation": "My files"
@@ -227,6 +227,9 @@
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
   },
+  "681e10aecb": {
+    "translation": "New file"
+  },
   "6832ac5936": {
     "translation": "Enter your email address"
   },
@@ -253,6 +256,9 @@
   },
   "7408cf0d7b": {
     "translation": "Please reload the page"
+  },
+  "74ff4bad28": {
+    "translation": "No files found"
   },
   "752b79f137": {
     "translation": "You have reached the maximum number of files. You need to delete old files before creating new ones."
@@ -371,8 +377,14 @@
   "9914a0ce04": {
     "translation": "Light"
   },
+  "9983381c21": {
+    "translation": "Clear search"
+  },
   "9b33f5c63c": {
     "translation": "Didn’t receive a code? <resend>Resend</resend>."
+  },
+  "9b80ecf7d1": {
+    "translation": "Members and settings"
   },
   "9bef626805": {
     "translation": "Delete file"
@@ -476,9 +488,6 @@
   },
   "c6a00f137b": {
     "translation": "Invite"
-  },
-  "c7d7403714": {
-    "translation": "New board"
   },
   "c87aacf567": {
     "translation": "Sign out"

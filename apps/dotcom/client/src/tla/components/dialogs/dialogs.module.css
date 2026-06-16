@@ -215,13 +215,6 @@
 	font-weight: 500;
 }
 
-.sectionLabelLarge {
-	display: block;
-	margin-bottom: 12px;
-	font-weight: 500;
-	font-variant-numeric: tabular-nums;
-}
-
 .inviteHeader {
 	display: flex;
 	align-items: center;

@@ -7,6 +7,7 @@ import { ReorderCursor } from './ReorderCursor'
 import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarFileSection } from './TlaSidebarFileSection'
+import styles from '../sidebar.module.css'
 
 /**
  * The scrollable lower region of the sidebar: the files of whichever space is
@@ -22,7 +23,15 @@ export function TlaSidebarRecentFilesNew() {
 	const results = useValue(
 		'active workspace files',
 		() => {
-			const files = app.getWorkspaceFilesSorted(activeWorkspaceId)
+			let files = app.getWorkspaceFilesSorted(activeWorkspaceId)
+
+			// Filter by the sidebar search query, if any. Reading the signal here keeps
+			// the list reactive to the query without threading it through props.
+			const query = app.sidebarState.get().searchQuery.trim().toLowerCase()
+			if (query) {
+				files = files.filter((item) => app.getFileName(item.fileId).toLowerCase().includes(query))
+			}
+
 			const { today, yesterday, thisWeek, thisMonth } = getRelevantDates()
 
 			const pinnedFiles: RecentFile[] = []
@@ -46,6 +55,13 @@ export function TlaSidebarRecentFilesNew() {
 		},
 		[app, activeWorkspaceId]
 	)
+
+	const isSearching = useValue(
+		'is searching',
+		() => app.sidebarState.get().searchQuery.trim().length > 0,
+		[app]
+	)
+	const hasResults = Object.values(results).some((group) => group.length > 0)
 
 	return (
 		<div
@@ -129,6 +145,11 @@ export function TlaSidebarRecentFilesNew() {
 							/>
 						))}
 				</TlaSidebarFileSection>
+			) : null}
+			{isSearching && !hasResults ? (
+				<div className={styles.sidebarSearchEmpty} data-testid="tla-sidebar-search-empty">
+					<F defaultMessage="No files found" />
+				</div>
 			) : null}
 			{/* Global drag cursor for file reordering */}
 			<ReorderCursor />

@@ -281,8 +281,7 @@
 }
 
 .sidebar[data-workspaces='true'] .sidebarWorkspaceButton span[role='img'] {
-	height: 16px;
-	width: 59px;
+	width: 64px;
 }
 
 .sidebarWorkspaceButtonLabel {
@@ -306,7 +305,7 @@
 	cursor: pointer;
 	position: relative;
 	top: 0px;
-	right: -8px;
+	right: -4px;
 	height: 40px;
 	width: 40px;
 	display: flex;
@@ -369,7 +368,7 @@
 }
 
 .sidebar[data-workspaces='true'] .sidebarBottomArea .sidebarDivider {
-	margin: 0;
+	margin: 0px 0px 6px 0px;
 }
 
 /* ------------------- Bottom row ------------------- */
@@ -510,7 +509,6 @@
 	flex-direction: row;
 	align-items: center;
 	gap: 4px;
-	font-weight: bold;
 	color: var(--tla-color-text-3);
 }
 
@@ -574,7 +572,7 @@
 	text-overflow: ellipsis;
 	position: relative;
 	z-index: 1;
-	font-weight: 600;
+	font-weight: 800;
 }
 
 .sidebarWorkspaceSwitcherChevrons {
@@ -727,6 +725,91 @@
 	outline-offset: -2px;
 }
 
+/* ------------------- Sidebar search ------------------ */
+
+/* Sits in the same 36px row as the search action button it replaces. The focus
+   ring is drawn by ::before so it matches the rename input's bordered box. */
+.sidebarSearch {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+	height: 36px;
+	flex: 0 0 auto;
+	/* Match the file rows below so the clear button lines up with their menu triggers. */
+	padding: 0px 4px 0px 8px;
+	color: var(--tla-color-text-1);
+}
+
+.sidebarSearch::before {
+	content: '';
+	position: absolute;
+	inset: 2px 0px;
+	border-radius: 4px;
+	border: 1px solid transparent;
+	pointer-events: none;
+}
+
+.sidebarSearch:focus-within::before {
+	border-color: var(--tla-color-primary);
+}
+
+/* Match the action button's 12px icon grid alignment. Sits above the hover
+   highlight (.hoverable::after, z-index 0). */
+.sidebarSearchIcon {
+	flex-shrink: 0;
+	margin: -1.5px;
+	z-index: 1;
+	color: var(--tla-color-text-1);
+}
+
+.sidebarSearchInput {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 36px;
+	background: none;
+	border: none;
+	padding: 0px;
+	color: var(--tla-color-text-1);
+	position: relative;
+	z-index: 1;
+}
+
+/* Identical to the file item menu trigger, but with an X icon. */
+.sidebarSearchClear {
+	padding: 0px;
+	background: none;
+	border: none;
+	position: relative;
+	outline: none;
+	margin-inline-end: -10px;
+	width: 36px;
+	height: 36px;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	z-index: 3;
+	cursor: pointer;
+	color: var(--tla-color-text-1);
+}
+
+.sidebarSearchClear:after {
+	content: none;
+}
+
+.sidebarSearchClear:focus-visible {
+	border-radius: 8px;
+	outline-offset: -4px;
+}
+
+.sidebarSearchEmpty {
+	padding: 8px;
+	color: var(--tla-color-text-3);
+}
+
 /* An 8px-tall block with the 1px line sitting in its middle. */
 .sidebarDivider {
 	height: 8px;
@@ -810,6 +893,17 @@
 	color: var(--tla-color-text-1);
 }
 
+/* The selected file reads as the current one with a heavier weight. */
+.sidebarFileListItem[data-active='true'] .sidebarFileListItemLabel {
+	font-weight: 600;
+}
+
+/* The portion of a file name that matches the active search query. */
+.sidebarFileListItemLabelMatch {
+	font-weight: 700;
+	color: var(--tla-color-text);
+}
+
 .sidebarFileListItemRenameInputWrapper {
 	display: flex;
 	align-items: center;
@@ -842,6 +936,11 @@
 	text-overflow: ellipsis;
 	position: relative;
 	z-index: 1;
+}
+
+/* Match the selected file's heavier label weight while renaming it. */
+.sidebarFileListItemRenameInputActive {
+	font-weight: 600;
 }
 
 .sidebarFileListItemButton {

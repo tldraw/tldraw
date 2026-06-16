@@ -1202,6 +1202,8 @@ export class TldrawApp {
 			workspaceId: string
 		},
 		dragState: null as DragState,
+		// The current sidebar file-search query. Empty string means no filter.
+		searchQuery: '',
 	})
 
 	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
