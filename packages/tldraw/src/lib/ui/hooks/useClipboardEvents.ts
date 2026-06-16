@@ -145,6 +145,16 @@ function areShortcutsDisabled(editor: Editor) {
 	)
 }
 
+/**
+ * Check if there's an active selection
+ *
+ * @internal
+ */
+function hasActiveTextSelection(editor: Editor) {
+	const selection = editor.getContainerWindow().getSelection()
+	return !!selection && !selection.isCollapsed && selection.toString().trim().length > 0
+}
+
 import { putPastedExternalContent } from './clipboard/putPastedContent'
 export { putPastedExternalContent } from './clipboard/putPastedContent'
 
@@ -869,7 +879,8 @@ export function useNativeClipboardEvents() {
 			if (
 				editor.getSelectedShapeIds().length === 0 ||
 				editor.getEditingShapeId() !== null ||
-				areShortcutsDisabled(editor)
+				areShortcutsDisabled(editor) ||
+				hasActiveTextSelection(editor)
 			) {
 				return
 			}
@@ -886,7 +897,8 @@ export function useNativeClipboardEvents() {
 			if (
 				editor.getSelectedShapeIds().length === 0 ||
 				editor.getEditingShapeId() !== null ||
-				areShortcutsDisabled(editor)
+				areShortcutsDisabled(editor) ||
+				hasActiveTextSelection(editor)
 			) {
 				return
 			}
