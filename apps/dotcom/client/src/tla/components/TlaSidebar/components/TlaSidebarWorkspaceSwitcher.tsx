@@ -160,11 +160,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 						))}
 						<_DropdownMenu.Separator className={styles.sidebarWorkspaceSwitcherMenuDivider} />
 						<_DropdownMenu.Item
-							className={classNames(
-								styles.sidebarWorkspaceSwitcherItem,
-								styles.sidebarWorkspaceSwitcherItemCreate,
-								'tla-text_ui__regular'
-							)}
+							className={classNames(styles.sidebarWorkspaceSwitcherItem, 'tla-text_ui__regular')}
 							onSelect={handleCreateWorkspace}
 							data-testid="tla-create-workspace-menu-item"
 						>
