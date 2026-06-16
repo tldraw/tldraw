@@ -212,6 +212,9 @@
   "5fb63579fc": {
     "translation": "Copy"
   },
+  "5fd0972432": {
+    "translation": "Create a free account to save your files, create workspaces, and invite your teammates."
+  },
   "61057a0c84": {
     "translation": "Later"
   },
@@ -278,9 +281,6 @@
   "7697920637": {
     "translation": "Please reload"
   },
-  "76dea3c9ca": {
-    "translation": "tldraw is a free online whiteboard. Create an account to save your files and work with your friends."
-  },
   "777f9e90cf": {
     "translation": "Invalid request."
   },
@@ -346,9 +346,6 @@
   },
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
-  },
-  "8cf04a9734": {
-    "translation": "Home"
   },
   "8eb2c00e96": {
     "translation": "Shared with you"

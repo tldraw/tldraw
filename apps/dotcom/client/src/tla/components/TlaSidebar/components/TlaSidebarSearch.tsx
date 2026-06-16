@@ -48,6 +48,10 @@ export function TlaSidebarSearch() {
 		const input = inputRef.current
 		if (input) {
 			input.value = ''
+			// Keep focus on the field after clearing. Otherwise focus is left on the
+			// (now-hidden) clear button, so the next click-away never fires the input's
+			// blur and search mode can only be exited with Escape.
+			input.focus()
 		}
 		setQuery('')
 	}, [setQuery])

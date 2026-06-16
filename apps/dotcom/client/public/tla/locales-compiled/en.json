@@ -439,6 +439,12 @@
       "value": "Copy"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Create a free account to save your files, create workspaces, and invite your teammates."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -569,12 +575,6 @@
     {
       "type": 0,
       "value": "Please reload"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw is a free online whiteboard. Create an account to save your files and work with your friends."
     }
   ],
   "777f9e90cf": [
@@ -743,12 +743,6 @@
     {
       "type": 0,
       "value": "Check your email for a verification code."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Home"
     }
   ],
   "8eb2c00e96": [
