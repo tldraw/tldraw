@@ -30,7 +30,7 @@ const messages = defineMessages({
  * Selecting a workspace opens its top file (first pinned file, otherwise the
  * most recent one), which makes it active (the active workspace is derived
  * from the open file). The home workspace has no invite link or settings, so
- * its actions are shown disabled.
+ * it shows no actions.
  */
 export function TlaSidebarWorkspaceSwitcher() {
 	const app = useApp()
@@ -234,7 +234,7 @@ function WorkspaceSwitcherItem({
 				style={{ visibility: isActive ? 'visible' : 'hidden' }}
 			/>
 			<span className={styles.sidebarWorkspaceSwitcherItemLabel}>{children}</span>
-			{isActive && (
+			{isActive && !isHome && (
 				<span
 					className={styles.sidebarWorkspaceSwitcherItemActions}
 					// Keep interactions with the action buttons from reaching the row,
@@ -247,7 +247,6 @@ function WorkspaceSwitcherItem({
 					<WorkspaceActionButton
 						icon="invite"
 						label={inviteLabel}
-						disabled={isHome}
 						onClick={() => {
 							onInvite()
 							closeMenu()
@@ -257,7 +256,6 @@ function WorkspaceSwitcherItem({
 					<WorkspaceActionButton
 						icon="settings"
 						label={settingsLabel}
-						disabled={isHome}
 						onClick={() => {
 							onSettings()
 							closeMenu()
@@ -273,13 +271,11 @@ function WorkspaceSwitcherItem({
 function WorkspaceActionButton({
 	icon,
 	label,
-	disabled,
 	onClick,
 	testId,
 }: {
 	icon: string
 	label: string
-	disabled: boolean
 	onClick(): void
 	testId: string
 }) {
@@ -289,7 +285,6 @@ function WorkspaceActionButton({
 			className={styles.sidebarWorkspaceSwitcherActionButton}
 			aria-label={label}
 			title={label}
-			disabled={disabled}
 			onClick={onClick}
 			data-testid={testId}
 		>

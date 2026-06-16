@@ -671,11 +671,11 @@
 	text-overflow: ellipsis;
 }
 
-/* Invite + settings actions pinned to the right of the active row. */
+/* Invite + settings actions pinned to the right of the active row. The
+   buttons sit flush so there's no dead gap between their hover targets. */
 .sidebarWorkspaceSwitcherItemActions {
 	display: flex;
 	align-items: center;
-	gap: 2px;
 	margin-left: auto;
 	flex-shrink: 0;
 	z-index: 1;
@@ -698,13 +698,6 @@
 .sidebarWorkspaceSwitcherActionButton:hover {
 	background-color: var(--tla-color-hover-1);
 	color: var(--tla-color-text-1);
-}
-
-.sidebarWorkspaceSwitcherActionButton:disabled {
-	color: var(--tla-color-text-3);
-	opacity: 0.5;
-	cursor: default;
-	background: none;
 }
 
 .sidebarWorkspaceSwitcherItemCreate {
