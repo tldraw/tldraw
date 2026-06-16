@@ -482,9 +482,9 @@ it('[HS3] when the client is too new it cannot connect', () => {
 
 	expect(v2_socket.close).toHaveBeenCalledWith(
 		4099,
-		// this should really be 'serverTooOld' but our schema format is a bit too loose to
-		// accurately determine that now.
-		TLSyncErrorCloseEventReason.CLIENT_TOO_OLD
+		// the client is on a newer schema than the server, so from its perspective the server is
+		// the one that's too old.
+		TLSyncErrorCloseEventReason.SERVER_TOO_OLD
 	)
 })
 

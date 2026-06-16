@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { ChildProcess, spawn } from 'child_process'
+import { ChildProcess, spawn, spawnSync } from 'child_process'
 import dotenv from 'dotenv'
 import pg from 'pg'
 import { DOTCOM_DEV_PORTS, DOTCOM_DEV_READINESS_TIMEOUT_MS, getDotcomDevEnv } from './dev-env'
@@ -25,17 +25,72 @@ function statusFromExit(code: number | null, signal: NodeJS.Signals | null) {
 	return signal ? `signal ${signal}` : `code ${code ?? 1}`
 }
 
+/** Collect every descendant PID of `pid` by walking the process tree with `pgrep -P`. */
+function descendantPids(pid: number): number[] {
+	const result = spawnSync('pgrep', ['-P', String(pid)], { encoding: 'utf8' })
+	const childPids = (result.stdout ?? '')
+		.split('\n')
+		.map((line) => Number(line.trim()))
+		.filter((n) => Number.isInteger(n) && n > 0)
+	return childPids.flatMap((childPid) => [childPid, ...descendantPids(childPid)])
+}
+
+function killChildren() {
+	// Reap the whole descendant tree, not just our direct children. The zero-cache dev server spawns
+	// worker subprocesses (change-streamer, replicator, syncer, ...) in their own process groups, so a
+	// terminal/group signal misses them and they orphan, holding port 4848. Walking by PID crosses
+	// those group boundaries. Collect PIDs before killing so the tree does not reparent out from under
+	// us, then SIGKILL deepest-first.
+	const descendants = descendantPids(process.pid).reverse()
+	for (const pid of descendants) {
+		try {
+			process.kill(pid, 'SIGKILL')
+		} catch {
+			// already gone
+		}
+	}
+	for (const child of [...children].reverse()) {
+		if (!child.killed) {
+			child.kill('SIGKILL')
+		}
+	}
+}
+
+function composeDown() {
+	// Bring the branch-scoped Docker stack down so its containers and ports (postgres, pgbouncer)
+	// are released when the orchestrator stops. SIGINT to the attached `compose up` alone can leave
+	// containers running if we were not stopped cleanly.
+	//
+	// We `dev-app` under lazyrepo, where Ctrl+C delivers SIGINT to the whole process group at once,
+	// so a blocking teardown here would race the group being torn down and never finish. Spawn the
+	// teardown detached (its own session, immune to that group signal) and unref it so it runs to
+	// completion after we exit. The postgres volume is kept (no --volumes) so local data survives a
+	// restart; `yarn dev-app:clean` removes it.
+	const child = spawn(
+		'docker',
+		[
+			'compose',
+			'--env-file',
+			env.dockerEnvFile,
+			'-f',
+			env.dockerComposeFile,
+			'--project-name',
+			env.composeProjectName,
+			'down',
+			'--remove-orphans',
+		],
+		{ cwd: env.zeroCacheDir, detached: true, stdio: 'ignore' }
+	)
+	child.unref()
+}
+
 function shutdown(code: number) {
 	if (shuttingDown) return
 	shuttingDown = true
 
-	for (const child of [...children].reverse()) {
-		if (!child.killed) {
-			child.kill('SIGINT')
-		}
-	}
-
-	setTimeout(() => process.exit(code), 500).unref()
+	killChildren()
+	composeDown()
+	process.exit(code)
 }
 
 function spawnManaged(
@@ -152,6 +207,14 @@ async function main() {
 
 	process.on('SIGINT', () => shutdown(0))
 	process.on('SIGTERM', () => shutdown(0))
+	process.on('SIGHUP', () => shutdown(0))
+	// Last-resort sync cleanup if we ever exit through a path that bypassed shutdown(). Keep this light
+	// (no subprocess spawning, which is unreliable from an 'exit' handler): just kill our direct children.
+	process.on('exit', () => {
+		for (const child of children) {
+			if (!child.killed) child.kill('SIGKILL')
+		}
+	})
 
 	spawnManaged(
 		'Docker compose',

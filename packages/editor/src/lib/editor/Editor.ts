@@ -1552,6 +1552,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Whether the editor is currently replaying history (i.e. an undo or redo is being applied).
+	 *
+	 * @internal
+	 */
+	isReplayingHistory(): boolean {
+		return this.history.isReplaying()
+	}
+
+	/**
 	 * Coalesces all changes since the given mark into a single change, removing any intermediate marks.
 	 *
 	 * This is useful if you need to 'compress' the recent history to simplify the undo/redo experience of a complex interaction.

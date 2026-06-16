@@ -10,6 +10,7 @@ import {
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	TlaFile,
+	WELCOME_CREATE_SOURCE,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
@@ -327,6 +328,8 @@ export class TldrawApp {
 			defaultMessage:
 				'You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones.',
 		},
+		// the name of a workspace's seeded first (welcome) file
+		new_workspace_file_name: { defaultMessage: 'Welcome to your workspace' },
 		// toast title
 		mutation_error_toast_title: { defaultMessage: 'Error' },
 		// toast descriptions
@@ -645,6 +648,51 @@ export class TldrawApp {
 		return this.getFileState(fileId)?.isPinned ?? false
 	}
 
+	// A workspace's welcome file is seeded once, when the workspace is created. Its
+	// `createWorkspace` mutation lands before the file does, so the workspace briefly appears
+	// empty; this single-flights the seed per workspace so a double-submit (or any concurrent
+	// caller) shares one creation and all receive its result, rather than creating duplicates.
+	// Cleared once settled.
+	private readonly workspaceWelcomeFileSeeds = new Map<
+		string,
+		Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>>
+	>()
+
+	/**
+	 * Seed a newly-created workspace's welcome file: a named file whose content the sync worker
+	 * resolves from the welcome template (or a committed default). Called once at workspace
+	 * creation — not on later empty opens, which get a blank file (see useSwitchToWorkspace) —
+	 * and single-flighted so a double-submit shares the same creation.
+	 */
+	createWorkspaceWelcomeFile(
+		workspaceId: string
+	): Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>> {
+		const inFlight = this.workspaceWelcomeFileSeeds.get(workspaceId)
+		if (inFlight) return inFlight
+
+		const seed = this.createFile({
+			workspaceId,
+			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+			createSource: WELCOME_CREATE_SOURCE,
+		})
+		this.workspaceWelcomeFileSeeds.set(workspaceId, seed)
+		seed.finally(() => {
+			if (this.workspaceWelcomeFileSeeds.get(workspaceId) === seed) {
+				this.workspaceWelcomeFileSeeds.delete(workspaceId)
+			}
+		})
+		return seed
+	}
+
+	/**
+	 * The in-flight welcome-file seed for a workspace, if one is still creating. The empty-workspace
+	 * open path uses this to await a just-created workspace's welcome file rather than racing it with
+	 * a duplicate blank file. Returns undefined once the seed settles (or if none was started).
+	 */
+	getPendingWorkspaceWelcomeFile(workspaceId: string) {
+		return this.workspaceWelcomeFileSeeds.get(workspaceId)
+	}
+
 	async createFile({
 		fileId = uniqueId(),
 		workspaceId = this.getHomeWorkspaceId(),
@@ -700,6 +748,8 @@ export class TldrawApp {
 
 		if (!createSource) {
 			analyticsSource = 'create-blank-file' // Default for button clicks
+		} else if (createSource === WELCOME_CREATE_SOURCE) {
+			analyticsSource = 'welcome'
 		} else if (createSource.startsWith(`${LOCAL_FILE_PREFIX}/`)) {
 			analyticsSource = 'slurp'
 		} else if (createSource.startsWith(`${FILE_PREFIX}/`)) {

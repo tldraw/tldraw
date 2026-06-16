@@ -20,6 +20,7 @@ import {
 	isShapeId,
 	kickoutOccludedShapes,
 } from '@tldraw/editor'
+import { getEnclosedShapeIds } from '../../../shapes/frame/FrameShapeTool'
 import { batchMeasureGeoLabels, setBatchLabelSizeCache } from '../../../shapes/geo/GeoShapeUtil'
 
 export type ResizingInfo = TLPointerEventInfo & {
@@ -472,6 +473,27 @@ export class Resizing extends StateNode {
 				this.editor.updateShapes(childChanges)
 			}
 		}
+
+		this.updateEnclosureHints()
+	}
+
+	// While drag-creating a frame, hint the sibling shapes that would become its children on pointer up
+	private updateEnclosureHints() {
+		if (!this.info.isCreating) return
+
+		const shape = this.editor.getOnlySelectedShape()
+		if (!shape || !this.editor.isShapeOfType(shape, 'frame')) return
+
+		const hintingShapeIds = getEnclosedShapeIds(this.editor, shape)
+		const prevHintingShapeIds = this.editor.getHintingShapeIds()
+		if (
+			hintingShapeIds.length === prevHintingShapeIds.length &&
+			hintingShapeIds.every((id, i) => id === prevHintingShapeIds[i])
+		) {
+			return
+		}
+
+		this.editor.setHintingShapes(hintingShapeIds)
 	}
 
 	// ---
@@ -520,6 +542,9 @@ export class Resizing extends StateNode {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
 		setBatchLabelSizeCache(this.editor, null)
+		if (this.info.isCreating && this.editor.getHintingShapeIds().length > 0) {
+			this.editor.setHintingShapes([])
+		}
 	}
 
 	private _createSnapshot() {
