@@ -18,6 +18,10 @@ async function globalTeardown() {
 	const result = spawnSync('yarn', ['dev-app:clean'], { cwd: repoRoot, stdio: 'inherit' })
 	if (result.error) {
 		console.warn(`Could not run yarn dev-app:clean: ${result.error.message}`)
+	} else if (result.status !== 0) {
+		console.warn(
+			`yarn dev-app:clean exited with ${result.signal ? `signal ${result.signal}` : `code ${result.status}`}; dev state may have leaked`
+		)
 	}
 }
 
