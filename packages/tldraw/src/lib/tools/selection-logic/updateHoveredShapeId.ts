@@ -25,6 +25,7 @@ function getShapeToHover(editor: Editor): TLShapeId | null {
 	const hitShape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
 		hitInside: false,
 		hitLabels: false,
+		hitLocked: editor.options.selectLockedShapes,
 		margin: editor.options.hitTestMargin / editor.getZoomLevel(),
 		renderingOnly: true,
 	})
@@ -52,6 +53,8 @@ function getShapeToHover(editor: Editor): TLShapeId | null {
 }
 
 function _updateHoveredShapeId(editor: Editor) {
+	if (editor.isDisposed) return
+
 	const cameraMoving = editor.getCameraState() === 'moving'
 
 	if (!cameraMoving) {
@@ -81,8 +84,27 @@ function _updateHoveredShapeId(editor: Editor) {
 	return undefined
 }
 
+const THROTTLE_MS = process.env.NODE_ENV === 'test' ? 0 : 32
+const editorThrottles = new WeakMap<
+	Editor,
+	ReturnType<typeof throttle<typeof _updateHoveredShapeId>>
+>()
+
+function getThrottled(editor: Editor) {
+	let throttled = editorThrottles.get(editor)
+	if (!throttled) {
+		throttled = throttle(_updateHoveredShapeId, THROTTLE_MS)
+		editorThrottles.set(editor, throttled)
+	}
+	return throttled
+}
+
 /** @internal */
-export const updateHoveredShapeId = throttle(
-	_updateHoveredShapeId,
-	process.env.NODE_ENV === 'test' ? 0 : 32
-)
+export function updateHoveredShapeId(editor: Editor) {
+	getThrottled(editor)(editor)
+}
+
+/** @internal */
+export function cancelUpdateHoveredShapeId(editor: Editor) {
+	editorThrottles.get(editor)?.cancel()
+}

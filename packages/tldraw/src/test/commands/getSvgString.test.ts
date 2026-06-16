@@ -106,6 +106,25 @@ it('Accepts a scale option', async () => {
 	expect(svg2.width).toBe(1128)
 })
 
+it.each([
+	{ darkMode: false, label: 'light mode' },
+	{ darkMode: true, label: 'dark mode' },
+])('emits matching pattern id and reference in $label export', async ({ darkMode }) => {
+	const result = parseSvg(await editor.getSvgString([ids.boxC], { darkMode }))
+
+	const patternIds = Array.from(result.querySelectorAll('pattern')).map((p) => p.id)
+	expect(patternIds.length).toBeGreaterThan(0)
+
+	const fillUrlIds = Array.from(result.querySelectorAll('path'))
+		.map((p) => p.getAttribute('fill')?.match(/^url\(#(.+)\)$/)?.[1])
+		.filter((id): id is string => Boolean(id))
+	expect(fillUrlIds.length).toBeGreaterThan(0)
+
+	for (const id of fillUrlIds) {
+		expect(patternIds).toContain(id)
+	}
+})
+
 it('Accepts a background option', async () => {
 	const svg1 = parseSvg(
 		await editor.getSvgString(editor.getSelectedShapeIds(), { background: true })

@@ -87,7 +87,7 @@ export class RecordType<
 		 */
 		public readonly typeName: R['typeName'],
 		config: {
-			// eslint-disable-next-line @typescript-eslint/method-signature-style
+			// eslint-disable-next-line tldraw/method-signature-style
 			readonly createDefaultProperties: () => Exclude<
 				Omit<R, 'id' | 'typeName'>,
 				RequiredProperties
@@ -135,7 +135,7 @@ export class RecordType<
 	): R {
 		const result = {
 			...this.createDefaultProperties(),
-			id: 'id' in properties ? properties.id : this.createId(),
+			id: (properties as Partial<R>).id ?? this.createId(),
 		} as any
 
 		for (const [k, v] of Object.entries(properties)) {

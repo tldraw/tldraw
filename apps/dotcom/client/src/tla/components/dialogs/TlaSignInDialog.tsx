@@ -20,7 +20,7 @@ import styles from './auth.module.css'
 const messages = defineMessages({
 	enterEmailAddress: { defaultMessage: 'Enter your email address' },
 	inviteMessage: {
-		defaultMessage: 'You have been invited to join group:',
+		defaultMessage: 'You have been invited to join workspace:',
 	},
 })
 
@@ -86,9 +86,6 @@ export function TlaSignInDialog({
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.authDialogBody}>
 				<div className={styles.authBody}>{innerContent}</div>
-
-				{/* Clerk's CAPTCHA widget */}
-				<div id="clerk-captcha" className={styles.clerkCaptcha} />
 			</TldrawUiDialogBody>
 		</div>
 	)
@@ -196,7 +193,7 @@ function TlaEnterEmailStep({
 			<div className={styles.authDescription}>
 				{inviteInfo ? (
 					<>
-						<F {...messages.inviteMessage} /> {inviteInfo.groupName}
+						<F {...messages.inviteMessage} /> {inviteInfo.workspaceName}
 						<br />
 						<br />
 						<F defaultMessage="tldraw is a free online whiteboard. Create an account to save your files and work with your friends." />
@@ -269,7 +266,7 @@ function TlaEnterEmailStep({
 					<a href="/tos.html" target="_blank" rel="noopener noreferrer">
 						<F defaultMessage="Terms of Use" />
 					</a>
-					{/* eslint-disable-next-line react/jsx-no-literals */}
+					{/* eslint-disable-next-line tldraw/jsx-no-literals */}
 					{' · '}
 					<a href="/privacy.html" target="_blank" rel="noopener noreferrer">
 						<F defaultMessage="Privacy Policy" />
@@ -479,7 +476,7 @@ function TlaVerificationCodeStep({
 								>
 									{resendCooldown > 0 ? (
 										<>
-											{/* eslint-disable-next-line react/jsx-no-literals */}
+											{/* eslint-disable-next-line tldraw/jsx-no-literals */}
 											{chunks} ({resendCooldown})
 										</>
 									) : (

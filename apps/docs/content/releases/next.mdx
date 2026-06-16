@@ -2,62 +2,38 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 03/04/2026
+date: 06/10/2026
 order: 0
 status: published
-last_version: v4.4.0
+last_version: v5.1.0
 ---
 
-This release adds click-through on transparent image pixels, a new `Editor.resizeToBounds()` method, SVG sanitization for external content, and TypeScript enum-to-const refactoring for Node strip-types compatibility. It also includes various improvements and bug fixes.
-
-## What's new
-
-### Click-through on transparent image pixels ([#7942](https://github.com/tldraw/tldraw/pull/7942))
-
-Clicking on transparent areas of PNG, WebP, GIF, and AVIF images now selects shapes behind the image instead of the image itself. This works with cropped, flipped, and circle-cropped images.
-
-This is powered by a new `Geometry2d.ignoreHit(point)` method that allows geometries to reject successful hit tests.
+This release simplifies multi-click handling down to a single double-click event — a breaking change for anyone relying on triple- or quadruple-click handlers — and adds per-embed configuration for API keys, a `shift+q` shortcut for copying styles between shapes, and full-speed sync across your own tabs and devices. It also fixes a number of canvas interaction bugs around pinch-zoom selection, pasting mid-gesture, note list editing, and zoom clamping.
 
 ## API changes
 
-- Add `Geometry2d.ignoreHit(point)` for rejecting hit tests on transparent pixels. ([#7942](https://github.com/tldraw/tldraw/pull/7942))
-- Add `Editor.resizeToBounds(shapes, bounds)` for resizing shapes to fit target bounds. ([#8120](https://github.com/tldraw/tldraw/pull/8120))
-- Add `sanitizeSvg(svgText: string)` export for sanitizing SVG content against XSS and data exfiltration. ([#7896](https://github.com/tldraw/tldraw/pull/7896))
-- Add experimental `experimental__onDropOnCanvas` option to intercept canvas drop events. Return `true` from the callback to prevent the editor's default drop behavior. ([#7911](https://github.com/tldraw/tldraw/pull/7911))
+- 💥 Simplify multi-click handling to double-click only. `ClickManager` no longer tracks triple or quadruple clicks: the `triple_click` and `quadruple_click` events and the `onTripleClick` / `onQuadrupleClick` handlers have been removed, and `TLClickEventName` is now just `'double_click'`. ([#8897](https://github.com/tldraw/tldraw/pull/8897))
+- 💥 Move `ShapeIndicatorOverlayUtil` and `TLShapeIndicatorOverlay` from `@tldraw/editor` to `tldraw`. Both are still exported from `tldraw`; update any imports of these symbols that came directly from `@tldraw/editor`. ([#9018](https://github.com/tldraw/tldraw/pull/9018))
+- Add an `embedConfig` option to `EmbedShapeUtil` for passing per-embed configuration such as API keys. The default Google Maps embed no longer reads `process.env.NEXT_PUBLIC_GC_API_KEY` — pass the key explicitly instead. ([#9068](https://github.com/tldraw/tldraw/pull/9068))
 
-  ```tsx
-  <Tldraw
-  	options={{
-  		experimental__onDropOnCanvas: (point, event) => {
-  			// Handle drop at page-space point
-  			return true // prevent default
-  		},
-  	}}
-  />
+  ```ts
+  EmbedShapeUtil.configure({
+  	embedConfig: { google_maps: { apiKey: '...' } },
+  })
   ```
-
-- Replace TypeScript enums (`MigrationFailureReason`, `PORTRAIT_BREAKPOINT`) with `const` object + type alias pattern for compatibility with Node's built-in TypeScript support (strip-types). Values are unchanged. ([#8084](https://github.com/tldraw/tldraw/pull/8084))
 
 ## Improvements
 
-- Simplify paste-parent selection to use `canReceiveNewChildrenOfType` instead of frame-specific checks. Prevent edge-only overlap from auto-reparenting pasted shapes into adjacent frames. ([#8057](https://github.com/tldraw/tldraw/pull/8057))
-- Save link and alt-text values when clicking outside the editor instead of discarding changes. ([#8037](https://github.com/tldraw/tldraw/pull/8037))
-- Add SVG sanitization on paste and file drop to prevent XSS and data exfiltration. ([#7896](https://github.com/tldraw/tldraw/pull/7896))
-- Fix circular dependencies across `@tldraw/state`, `@tldraw/editor`, and `@tldraw/tldraw` packages to improve compatibility with Jest mocking and tree-shaking. ([#7935](https://github.com/tldraw/tldraw/pull/7935))
+- Add a `shift+q` shortcut that copies the styles of the hovered shape and applies them to the next shapes you create. ([#9028](https://github.com/tldraw/tldraw/pull/9028))
+- Keep sync at full speed when the same multiplayer room is open in multiple tabs, windows, or devices — previously a room with no other users throttled network sync to once per second. ([#8988](https://github.com/tldraw/tldraw/pull/8988))
+- Include `DOCS.md` documentation in published npm packages, and a generated docs and release notes rollup in the `tldraw` package, so documentation is available when browsing package artifacts. ([#8503](https://github.com/tldraw/tldraw/pull/8503))
 
 ## Bug fixes
 
-- Fix shapes pasted with Ctrl+V not being parented to a frame when they land inside one. ([#7938](https://github.com/tldraw/tldraw/pull/7938))
-- Fix a crash when cropping custom shapes that don't include `isCircle` in their crop schema. ([#7931](https://github.com/tldraw/tldraw/pull/7931))
-- Fix a crash when loading session state without a `currentPageId` (e.g. when using deep links). ([#7994](https://github.com/tldraw/tldraw/pull/7994))
-- Fix U+2028/U+2029 line separators breaking chunked sync messages. ([#7918](https://github.com/tldraw/tldraw/pull/7918))
-- Fix "Download original" not triggering a download for cross-origin assets. ([#8090](https://github.com/tldraw/tldraw/pull/8090))
-- Fix arrow endpoints terminating at invisible clipped shape boundaries instead of at the frame edge. ([#7932](https://github.com/tldraw/tldraw/pull/7932))
-- Fix sticky notes having a hard shadow instead of a soft drop shadow when exported as SVG. ([#7934](https://github.com/tldraw/tldraw/pull/7934))
-- Fix rich text toolbar staying open when the editing shape is deleted by another user. ([#8050](https://github.com/tldraw/tldraw/pull/8050))
-- Fix SVG sanitizer stripping embedded SVG data URIs on `<image>` elements. Nested SVGs are now recursively sanitized instead of blocked. ([#8087](https://github.com/tldraw/tldraw/pull/8087))
-- Fix `TldrawSelectionForeground` crashing when used without `TldrawUiContextProvider`. ([#8011](https://github.com/tldraw/tldraw/pull/8011))
-- Fix dynamic-size shapes losing shadows and dashes too early when zoomed out. ([#8040](https://github.com/tldraw/tldraw/pull/8040))
-- Fix a crash when resizing draw or highlight shapes to zero width or height. ([#8067](https://github.com/tldraw/tldraw/pull/8067))
-- Fix crash when enabling Debug SVG with shapes on the canvas. ([#8101](https://github.com/tldraw/tldraw/pull/8101))
-- Fix `localOffset` mutation bug in `stretchShapes` when shapes have parent transforms. ([#8120](https://github.com/tldraw/tldraw/pull/8120))
+- Fix the fill style dropdown trigger showing a misleading tooltip for the currently selected fill. ([#9023](https://github.com/tldraw/tldraw/pull/9023))
+- Fix a two-finger pinch unintentionally changing the selection on touch devices. ([#9006](https://github.com/tldraw/tldraw/pull/9006))
+- Pasting content while dragging, translating, resizing, or rotating no longer steals selection from the shape being manipulated. ([#8976](https://github.com/tldraw/tldraw/pull/8976))
+- Fix a bug where pressing `Tab` while editing a list inside a note shape created a new note instead of indenting the list item. ([#8958](https://github.com/tldraw/tldraw/pull/8958))
+- Fix the viewport shifting slightly when zooming past the minimum or maximum zoom level. ([#8957](https://github.com/tldraw/tldraw/pull/8957))
+- Improve the contrast of disabled buttons and menu items in dark mode. ([#8931](https://github.com/tldraw/tldraw/pull/8931))
+- Fix `debounce(...).cancel()` leaving an awaited call hanging forever; it now rejects the pending promise. ([#8683](https://github.com/tldraw/tldraw/pull/8683))

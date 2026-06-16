@@ -1,6 +1,6 @@
 import fs from 'fs'
-import fse from 'fs-extra'
 import { join } from 'path'
+import fse from 'fs-extra'
 import { exists, getDirname } from './path'
 
 const vscodeDir = getDirname(import.meta.url, '../../')

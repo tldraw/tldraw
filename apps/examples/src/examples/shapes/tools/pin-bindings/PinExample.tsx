@@ -59,13 +59,13 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		// Allow pins to participate in other bindings, e.g. arrows
 		return true
 	}
-	override canEdit() {
+	override canEdit(shape: PinShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(shape: PinShape) {
 		return false
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(shape: PinShape) {
 		return true
 	}
 	override isAspectRatioLocked() {
@@ -99,8 +99,10 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		)
 	}
 
-	override indicator() {
-		return <rect width={32} height={32} x={offsetX} y={offsetY} />
+	override getIndicatorPath() {
+		const path = new Path2D()
+		path.rect(offsetX, offsetY, 32, 32)
+		return path
 	}
 
 	override onTranslateStart(shape: PinShape) {

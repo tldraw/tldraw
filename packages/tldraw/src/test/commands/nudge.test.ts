@@ -298,6 +298,42 @@ describe('When nudging a rotated shape...', () => {
 	})
 })
 
+describe('When nudging, the selection overlay is hidden...', () => {
+	it('Sets isChangingStyle to true while nudging', () => {
+		editor.setSelectedShapes([ids.boxA])
+		expect(editor.getInstanceState().isChangingStyle).toBe(false)
+
+		editor.keyDown('ArrowUp')
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+		editor.keyUp('ArrowUp')
+	})
+
+	it('Clears isChangingStyle when the pointer moves over the canvas', () => {
+		editor.setSelectedShapes([ids.boxA])
+
+		editor.keyDown('ArrowUp')
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+		editor.keyUp('ArrowUp')
+
+		editor.pointerMove(50, 50)
+		expect(editor.getInstanceState().isChangingStyle).toBe(false)
+	})
+
+	it('Sets isChangingStyle to true on key repeat', () => {
+		editor.setSelectedShapes([ids.boxA])
+
+		editor.keyDown('ArrowRight')
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+
+		// Reset it manually to verify repeat sets it again
+		editor.updateInstanceState({ isChangingStyle: false })
+
+		editor.keyRepeat('ArrowRight')
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+		editor.keyUp('ArrowRight')
+	})
+})
+
 describe('When nudging multiple rotated shapes...', () => {
 	it('Moves the page point correctly', () => {
 		editor.setSelectedShapes([ids.boxA, ids.boxB])

@@ -72,7 +72,7 @@ Draw shapes can automatically close when you bring the endpoint near the startin
 The shape closes when:
 
 - The path length exceeds 4× the stroke width
-- The endpoint is within 2× the stroke width of the starting point
+- The endpoint is near the starting point, within a threshold based on stroke width and zoom level
 
 When a shape closes, the shape sets `isClosed` to true and fills according to its fill style. Highlight shapes don't support closing.
 
@@ -108,26 +108,26 @@ Access dynamic resize mode through [Editor#user](?):
 const isDynamic = editor.user.getIsDynamicResizeMode()
 
 // Enable dynamic resize mode
-editor.user.updateUserPreferences({ isDynamicResizeMode: true })
+editor.user.updateUserPreferences({ isDynamicSizeMode: true })
 ```
 
 ## Shape properties
 
 Draw shapes store their path data in an efficient delta-encoded base64 format. The first point uses full Float32 precision (12 bytes), with subsequent points stored as Float16 deltas (6 bytes each).
 
-| Property     | Type                   | Description                                                |
-| ------------ | ---------------------- | ---------------------------------------------------------- |
-| `color`      | `TLDefaultColorStyle`  | Stroke color                                               |
-| `fill`       | `TLDefaultFillStyle`   | Fill style (applies when `isClosed` is true)               |
-| `dash`       | `TLDefaultDashStyle`   | Stroke pattern: `draw`, `solid`, `dashed`, `dotted`        |
-| `size`       | `TLDefaultSizeStyle`   | Stroke width preset: `s`, `m`, `l`, `xl`                   |
-| `segments`   | `TLDrawShapeSegment[]` | Array of segments with `type` and base64-encoded `path`    |
-| `isComplete` | `boolean`              | Whether the user has finished drawing this stroke          |
-| `isClosed`   | `boolean`              | Whether the path forms a closed shape                      |
-| `isPen`      | `boolean`              | Whether drawn with a stylus (enables pressure-based width) |
-| `scale`      | `number`               | Scale factor applied to the shape                          |
-| `scaleX`     | `number`               | Horizontal scale factor for lazy resize                    |
-| `scaleY`     | `number`               | Vertical scale factor for lazy resize                      |
+| Property     | Type                   | Description                                                 |
+| ------------ | ---------------------- | ----------------------------------------------------------- |
+| `color`      | `TLDefaultColorStyle`  | Stroke color                                                |
+| `fill`       | `TLDefaultFillStyle`   | Fill style (applies when `isClosed` is true)                |
+| `dash`       | `TLDefaultDashStyle`   | Stroke pattern: `draw`, `solid`, `dashed`, `dotted`, `none` |
+| `size`       | `TLDefaultSizeStyle`   | Stroke width preset: `s`, `m`, `l`, `xl`                    |
+| `segments`   | `TLDrawShapeSegment[]` | Array of segments with `type` and base64-encoded `path`     |
+| `isComplete` | `boolean`              | Whether the user has finished drawing this stroke           |
+| `isClosed`   | `boolean`              | Whether the path forms a closed shape                       |
+| `isPen`      | `boolean`              | Whether drawn with a stylus (enables pressure-based width)  |
+| `scale`      | `number`               | Scale factor applied to the shape                           |
+| `scaleX`     | `number`               | Horizontal scale factor for lazy resize                     |
+| `scaleY`     | `number`               | Vertical scale factor for lazy resize                       |
 
 Each segment has a `type` of `'free'` or `'straight'` and a `path` containing the encoded point data with x, y, and z (pressure) values.
 
@@ -154,7 +154,7 @@ When a stroke exceeds the maximum point count, the draw tool completes the curre
 To create a draw shape through the editor API, you need to encode the point data:
 
 ```tsx
-import { b64Vecs, createShapeId } from '@tldraw/editor'
+import { b64Vecs, createShapeId } from 'tldraw'
 
 // Define your points with x, y, and z (pressure)
 const points = [

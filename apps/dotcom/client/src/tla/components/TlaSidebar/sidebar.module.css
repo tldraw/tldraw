@@ -15,6 +15,20 @@
 	transition: transform 0.16s ease-in-out;
 }
 
+/* The workspaces UI (groups_frontend flag) restyles the sidebar to the new
+   design; the rules below must not leak to users without the flag. */
+.sidebar[data-workspaces='true'] {
+	padding: 0 0 4px 0;
+	border-right: 1px solid var(--tl-color-low, rgba(237, 240, 242, 1));
+}
+
+:global(.tl-container[dir='rtl']) .sidebar {
+	left: auto;
+	right: calc(var(--tla-sidebar-width) * -1);
+	border-right: none;
+	border-left: 1px solid transparent;
+}
+
 .sidebarDragOverlay {
 	position: absolute;
 	inset: 0px;
@@ -59,6 +73,15 @@
 		transform: translate(100%, 0px);
 		transition: transform 0.22s ease-out;
 	}
+
+	:global(.tl-container[dir='rtl']) .sidebar {
+		border-right: none;
+		border-left: 1px solid var(--tl-color-low);
+	}
+
+	:global(.tl-container[dir='rtl']) .sidebar[data-visible='true'] {
+		transform: translate(-100%, 0px);
+	}
 }
 
 @media (max-width: 767px) {
@@ -71,6 +94,15 @@
 
 	.sidebar[data-visiblemobile='true'] {
 		transform: translate(100%, 0px);
+	}
+
+	:global(.tl-container[dir='rtl']) .sidebar {
+		left: auto;
+		right: calc(var(--w) * -1);
+	}
+
+	:global(.tl-container[dir='rtl']) .sidebar[data-visiblemobile='true'] {
+		transform: translate(-100%, 0px);
 	}
 
 	.sidebarOverlayMobile[data-visiblemobile='true'] {
@@ -92,6 +124,11 @@
 
 .sidebarContent::-webkit-scrollbar {
 	display: none;
+}
+
+.sidebar[data-workspaces='true'] .sidebarContent {
+	margin: 0;
+	padding: 0 12px 40px 12px;
 }
 
 /* -------------------- Hoverable ------------------- */
@@ -211,7 +248,16 @@
 	flex: 0 0 auto;
 }
 
-/* Workspace link (sort of) */
+/* Figma: the logo section is 44px tall, the switcher section below it 48px
+   (8px padding + 32px trigger + 8px padding), putting the first divider at
+   92px. */
+.sidebar[data-workspaces='true'] .sidebarTopRow {
+	height: 44px;
+	padding: 3px 8px 0px 4px;
+	gap: 8px;
+}
+
+/* Workspace link */
 
 .sidebarWorkspaceButton {
 	background: none;
@@ -226,6 +272,17 @@
 	background-color: var(--tla-color-sidebar);
 	overflow: hidden;
 	padding-bottom: 1px;
+}
+
+/* In the workspaces layout the logo is 16px tall, with its mark centered on
+   the same vertical axis as the action-row icons below. */
+.sidebar[data-workspaces='true'] .sidebarWorkspaceButton {
+	padding-left: 15.3px;
+}
+
+.sidebar[data-workspaces='true'] .sidebarWorkspaceButton span[role='img'] {
+	height: 16px;
+	width: 59px;
 }
 
 .sidebarWorkspaceButtonLabel {
@@ -248,7 +305,7 @@
 	border: none;
 	cursor: pointer;
 	position: relative;
-	top: 0.5px;
+	top: 0px;
 	right: -8px;
 	height: 40px;
 	width: 40px;
@@ -259,6 +316,11 @@
 	flex-shrink: 0;
 	padding: 0px;
 	z-index: 10;
+}
+
+:global(.tl-container[dir='rtl']) .sidebarCreateFileButton {
+	right: auto;
+	left: -8px;
 }
 
 .sidebarCreateFileButton::after {
@@ -296,6 +358,20 @@
 	margin-top: 0px;
 }
 
+.sidebar[data-workspaces='true'] .sidebarBottomArea {
+	padding: 0 12px;
+}
+
+/* Dividers are inset 12px from the sidebar edges. The bottom area's own
+   padding already provides the inset. */
+.sidebar[data-workspaces='true'] .sidebarDivider {
+	margin: 0 12px;
+}
+
+.sidebar[data-workspaces='true'] .sidebarBottomArea .sidebarDivider {
+	margin: 0;
+}
+
 /* ------------------- Bottom row ------------------- */
 
 .sidebarBottomRow {
@@ -305,22 +381,57 @@
 	flex: 0 0 auto;
 }
 
+/* ----------------- Feedback button ---------------- */
+
+.sidebarFeedbackButton {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+	height: 36px;
+	flex: 0 0 auto;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tla-color-text-1);
+	padding: 0px 8px;
+	text-align: left;
+	text-decoration: none;
+}
+
+.sidebarFeedbackButton > span[role='img'] {
+	flex-shrink: 0;
+	margin: -1.5px;
+}
+
+.sidebarFeedbackButtonLabel {
+	flex: 0 1 auto;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sidebarFeedbackButton:focus-visible {
+	outline-offset: -2px;
+}
+
 /* User settings menu */
 
 .sidebarUserSettingsTrigger {
 	background: none;
 	border: none;
 	position: relative;
-	height: 40px;
+	height: 36px;
+	min-height: 36px;
 	flex-grow: 2;
 	display: flex;
 	align-items: center;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	padding-right: 6px;
-	padding-left: 2px;
-	padding: 0px 0px 0px 8px;
+	padding: 0px 4px 0px 8px;
 	gap: 0px;
 	text-align: left;
 	cursor: pointer;
@@ -332,7 +443,7 @@
 }
 
 .sidebarUserSettingsTrigger::after {
-	inset: 2px 8px 2px 0px;
+	inset: 2px 0px;
 }
 
 .sidebarUserSettingsName {
@@ -344,7 +455,14 @@
 }
 
 .sidebarUserSettingsIcon {
-	margin-right: 16px;
+	width: 36px;
+	height: 36px;
+	min-width: 0;
+	margin-inline-end: -6px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
 	color: var(--tla-color-text-3);
 }
 
@@ -372,47 +490,6 @@
 	visibility: visible;
 }
 
-/* Help menu */
-
-.sidebarHelpMenuTrigger {
-	height: 28px;
-	width: 28px;
-	display: flex;
-	flex-shrink: 0;
-	align-items: center;
-	justify-content: center;
-	position: relative;
-	cursor: pointer;
-	border: none;
-	color: var(--tla-color-text-3);
-	background: none;
-	margin-right: -2px;
-	min-width: 0;
-}
-
-.sidebarHelpMenuTrigger::after {
-	border-radius: 100%;
-	inset: 4px;
-	visibility: visible;
-	border: 1px solid var(--tla-color-border);
-	background-color: transparent;
-}
-
-@media (hover: hover) {
-	.helpMenuTrigger:hover::after {
-		background-color: var(--tla-color-hover-1);
-	}
-}
-
-.sidebarHelpMenuTrigger[data-state='open']::after {
-	background-color: var(--tla-color-hover-1);
-	visibility: visible;
-}
-
-.sidebarHelpMenuTrigger:focus-visible {
-	outline-offset: 2px;
-}
-
 /* ---------------- File link section --------------- */
 
 .sidebarFileSectionWrapper {
@@ -437,6 +514,229 @@
 	color: var(--tla-color-text-3);
 }
 
+.sidebar[data-workspaces='true'] .sidebarFileSectionTitle {
+	padding: 0px 8px;
+	font-weight: 500;
+}
+
+/* ----------------------------- Shared section ----------------------------- */
+
+.sidebarSection {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 auto;
+	justify-content: center;
+	padding: 6px 12px;
+}
+
+/* --------------- Workspace switcher --------------- */
+
+.sidebarWorkspaceSwitcher {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 auto;
+	justify-content: center;
+	padding: 0px 12px;
+	height: 48px;
+}
+
+.sidebarWorkspaceSwitcherTrigger {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 36px;
+	width: 100%;
+	gap: 6px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tla-color-text-1);
+	padding: 0px 8px;
+	text-align: left;
+	min-width: 0;
+}
+
+.sidebarWorkspaceSwitcherTrigger:focus-visible {
+	outline-offset: -2px;
+}
+
+.sidebarWorkspaceSwitcherTrigger[data-state='open']::after {
+	background-color: var(--tla-color-hover-2);
+	visibility: visible;
+}
+
+.sidebarWorkspaceSwitcherLabel {
+	flex: 0 1 auto;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	position: relative;
+	z-index: 1;
+	font-weight: 600;
+}
+
+.sidebarWorkspaceSwitcherChevrons {
+	flex-shrink: 0;
+	position: relative;
+	z-index: 1;
+}
+
+.sidebarWorkspaceSwitcherMenu {
+	min-width: calc(var(--tla-sidebar-width) - 4px);
+	max-width: calc(var(--tla-sidebar-width) - 4px);
+	max-height: 70vh;
+	overflow-y: auto;
+	padding: 2px 0px;
+}
+
+.sidebarWorkspaceSwitcherOverlay {
+	position: absolute;
+	inset: 0;
+	z-index: calc(var(--tl-layer-menus) - 1);
+	pointer-events: all;
+}
+
+.sidebarWorkspaceSwitcherRoot {
+	position: relative;
+	z-index: var(--tl-layer-menus);
+}
+
+.sidebarWorkspaceSwitcherItem {
+	position: relative;
+	display: flex;
+	align-items: center;
+	height: 40px;
+	padding: 0px 12px;
+	color: var(--tla-color-text-1);
+	cursor: pointer;
+	outline: none;
+	min-width: 0;
+	z-index: 1;
+}
+
+.sidebarWorkspaceSwitcherMenu > * {
+	margin-top: -4px;
+	margin-bottom: -4px;
+}
+
+.sidebarWorkspaceSwitcherMenu > *:hover {
+	z-index: 2;
+}
+
+.sidebarWorkspaceSwitcherMenu > *:nth-of-type(1) {
+	margin-top: 0px;
+}
+
+.sidebarWorkspaceSwitcherMenu > *:nth-last-of-type(1) {
+	margin-bottom: 0px;
+}
+
+.sidebarWorkspaceSwitcherItem::after {
+	content: '';
+	position: absolute;
+	inset: 4px 6px;
+	opacity: 0;
+	pointer-events: none;
+	border-radius: 4px;
+}
+
+.sidebarWorkspaceSwitcherItem[data-highlighted]::after {
+	opacity: 1;
+	background-color: var(--tla-color-hover-1);
+}
+
+.sidebarWorkspaceSwitcherItem[data-highlighted]::after {
+	opacity: 1;
+	background-color: var(--tla-color-hover-2);
+}
+
+.sidebarWorkspaceSwitcherItemLabel {
+	flex: 0 1 auto;
+	display: flex;
+	width: 100%;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sidebarWorkspaceSwitcherItemCreate {
+	color: var(--tla-color-text-3);
+}
+
+.sidebarCreateWorkspaceButton {
+	position: relative;
+	display: flex;
+	align-items: center;
+	height: 32px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tla-color-text-3);
+	padding: 0px 8px;
+	text-align: left;
+}
+
+.sidebarCreateWorkspaceButton:focus-visible {
+	outline-offset: -2px;
+}
+
+/* 36px rows whose hover highlight is 32px tall (the .hoverable::after insets
+   2px top and bottom), same as the file rows. */
+.sidebarActionButton {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+	height: 36px;
+	flex: 0 0 auto;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tla-color-text-1);
+	padding: 0px 8px;
+	text-align: left;
+}
+
+/* The outline icons draw 12px art centered in a 15px box; pull the box in so
+   the art lines up with the design's 12px icon grid. */
+.sidebarActionButton > span[role='img'] {
+	flex-shrink: 0;
+	margin: -1.5px;
+}
+
+.sidebarActionButtonLabel {
+	flex: 0 1 auto;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sidebarActionButton:focus-visible {
+	outline-offset: -2px;
+}
+
+/* An 8px-tall block with the 1px line sitting in its middle. */
+.sidebarDivider {
+	height: 8px;
+	display: flex;
+	align-items: center;
+	flex: 0 0 auto;
+}
+
+.sidebarDivider::after {
+	content: '';
+	width: 100%;
+	height: 1px;
+	background-color: var(--tl-color-divider, rgba(232, 232, 232, 1));
+}
+
 .sidebarFileSectionTitlePadding span[role='img'] {
 	margin-bottom: 1px;
 }
@@ -445,8 +745,6 @@
 
 .sidebarFileListItem {
 	background-color: transparent;
-	/* Chrome hack to enable the drag image to have a transparent background */
-	opacity: 0.999;
 	position: relative;
 	width: 100%;
 	display: flex;
@@ -454,6 +752,19 @@
 	align-items: center;
 	height: 36px;
 	padding: 0px 8px 0px 8px;
+}
+
+.sidebar[data-workspaces='true'] .sidebarFileListItem {
+	padding: 0px 4px 0px 8px;
+}
+
+/* Chrome hack: promote the pressed row to its own compositing layer so the
+   native drag image keeps a transparent background. :active fires on
+   mousedown, before dragstart takes the snapshot, so the layer exists in
+   time. translateZ(0) promotes without touching opacity, so there's no
+   color shift at all. */
+.sidebarFileListItem:active {
+	transform: translateZ(0);
 }
 
 .sidebarFileListItem[data-active='true'][data-enhanced-a11y-mode='true'] {
@@ -488,6 +799,10 @@
 	text-overflow: ellipsis;
 	position: relative;
 	z-index: 1;
+}
+
+.sidebar[data-workspaces='true'] .sidebarFileListItemLabel {
+	color: var(--tla-color-text-1);
 }
 
 .sidebarFileListItemRenameInputWrapper {
@@ -550,7 +865,7 @@
 	border: none;
 	position: relative;
 	outline: none;
-	margin-right: -10px;
+	margin-inline-end: -10px;
 	width: 36px;
 	height: 36px;
 	min-width: 0;
@@ -726,8 +1041,8 @@
 
 @media (hover: hover) {
 	.sidebarDotDevLink:hover a div {
-		transform: translate(80px, 0px) rotate(180deg);
-		transition: transform 6s ease-in-out 1s;
+		transform: translate(200px, 0px) rotate(180deg);
+		transition: transform 8s ease-in-out 1s;
 	}
 
 	.sidebarDotDevLink:has(a:hover) .sidebarDotDevDismissButton {
@@ -739,32 +1054,6 @@
 	}
 }
 
-/* ------------------- Show all button ------------------- */
-
-.showAllButton {
-	background: none;
-	border: none;
-	padding: 0px 8px 8px;
-	margin-top: 12px;
-	color: var(--tla-color-text-3);
-	font-size: 12px;
-	cursor: pointer;
-	text-decoration: none;
-	white-space: nowrap;
-	border-radius: 4px;
-	flex-shrink: 0;
-	text-align: left;
-	width: 100%;
-}
-
-.sidebarGroupItem .showAllButton {
-	padding-left: calc(8px + var(--tla-sidebar-group-item-padding-left));
-}
-
-.showAllButton:hover {
-	color: var(--tla-color-text-1);
-}
-
 .sidebarFileSectionTitleText {
 	flex: 1 1 auto;
 	white-space: nowrap;
@@ -772,32 +1061,7 @@
 	text-overflow: ellipsis;
 }
 
-/* ------------------- Group Item ------------------- */
-
-.sidebarGroupItem {
-	position: relative;
-	overflow: visible;
-	width: 100%;
-	margin-bottom: 0px;
-	transition: margin-bottom 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-	--tla-sidebar-group-item-padding-left: 8px;
-}
-.sidebarGroupItem .sidebarFileListItemContent {
-	padding-left: var(--tla-sidebar-group-item-padding-left);
-}
-.dropping {
-	position: relative;
-}
-
-.dropping::after {
-	content: '';
-	position: absolute;
-	inset: -2px;
-	border-radius: 6px;
-	border: 2px solid rgba(0, 122, 255, 0.7);
-	pointer-events: none;
-	visibility: visible;
-}
+/* ------------------- Drop targets ------------------- */
 
 .dropCursorLine {
 	height: 2px;
@@ -811,218 +1075,4 @@
 	z-index: 1000;
 	pointer-events: none;
 	position: fixed;
-}
-.sidebarGroupItem[data-state='open'] {
-	margin-bottom: 12px;
-}
-.sidebarGroupItem:has(.sidebarGroupItemHeader:hover)::after,
-.sidebarGroupItem[data-is-empty='true'][data-is-expanded='true'][data-group-index='0']::after,
-.sidebarGroupItem[data-menu-open='true']::after,
-.sidebarGroupItem[data-is-dragging='true']::after {
-	display: block;
-	content: '';
-	position: absolute;
-	top: -2px;
-	left: -4px;
-	right: -4px;
-	bottom: -2px;
-	border-radius: 4px;
-	background-color: var(--tla-color-drop-zone);
-	z-index: 0;
-	pointer-events: none;
-	visibility: visible;
-}
-
-.sidebarGroupItem[data-is-dragging='true'] {
-	opacity: 0.5;
-}
-
-.sidebarGroupItemHeader {
-	background: none;
-	border: none;
-	position: relative;
-	width: 100%;
-	height: 36px;
-	padding: 0px 8px 0px 8px;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: flex-start;
-	overflow: hidden;
-	gap: 8px;
-	cursor: pointer;
-	color: var(--tla-color-text-1);
-}
-
-@media (hover: hover) {
-	.sidebarGroupItemTitle:hover,
-	.sidebarGroupItem[data-is-dragging='true'] .sidebarGroupItemTitle {
-		color: var(--tla-color-text-1);
-	}
-}
-
-.sidebarGroupItemCaret {
-	color: var(--tla-color-text-3);
-	flex: 0 0 16px;
-	width: 16px;
-	height: 16px;
-}
-
-.sidebarGroupItemTitle {
-	display: flex;
-	gap: 8px;
-	align-items: center;
-	padding: 6px 10px 6px 0px;
-	flex: 0 1 auto;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	position: relative;
-	z-index: 1;
-	text-align: left;
-}
-
-.sidebarGroupItemContent {
-	display: flex;
-	flex-direction: column;
-	margin-bottom: 24px;
-}
-
-.sidebarGroupItemButtons {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 4px;
-	margin-left: auto;
-	opacity: 0;
-	transition: opacity 0.15s ease-in-out;
-}
-
-@media (hover: hover) {
-	.sidebarGroupItem:has(.sidebarGroupItemHeader:hover) .sidebarGroupItemButtons,
-	.sidebarGroupItem[data-menu-open='true'] .sidebarGroupItemButtons,
-	.sidebarGroupItem[data-is-dragging='true'] .sidebarGroupItemButtons {
-		opacity: 1;
-	}
-}
-
-@media (max-width: 767px) {
-	.sidebarGroupItemButtons {
-		opacity: 1;
-	}
-}
-
-.sidebarGroupEmptyStateIcon {
-	margin-left: 2px;
-	margin-right: 1px;
-	scale: 0.8;
-}
-
-.sidebarGroupItemButton {
-	background: none;
-	border: none;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 20px;
-	height: 20px;
-	min-width: 0;
-	border-radius: 4px;
-	color: var(--tla-color-text-3);
-	cursor: pointer;
-	position: relative;
-	z-index: 1;
-}
-
-.sidebarGroupItemButton::before {
-	position: absolute;
-	inset: -8px -8px -8px -2px;
-	content: '';
-	pointer-events: auto;
-}
-
-.sidebarGroupItemButton:after {
-	content: none;
-}
-
-.sidebarGroupItemButton:hover {
-	color: var(--tla-color-text-1);
-}
-
-.sidebarGroupItemButton:focus-visible {
-	outline: 2px solid var(--tla-color-focus);
-	outline-offset: 2px;
-}
-
-.sidebarGroupCreateInput {
-	font-size: 12px !important;
-	line-height: 1.3;
-}
-
-.sidebarGroupCreateInputWrapper {
-	margin-bottom: 8px;
-}
-
-.CollapsibleContent {
-	overflow: hidden;
-}
-
-/* Only animate when not during group reordering */
-.CollapsibleContent[data-state='open'] {
-	animation: slideDown 250ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-.CollapsibleContent[data-state='closed'] {
-	animation: slideUp 250ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideDown {
-	from {
-		height: 0;
-	}
-	to {
-		height: var(--radix-collapsible-content-height);
-	}
-}
-
-@keyframes slideUp {
-	from {
-		height: var(--radix-collapsible-content-height);
-	}
-	to {
-		height: 0;
-	}
-}
-
-.sidebarGroupItemEmpty {
-	color: var(--tla-color-text-3);
-	font-size: 12px;
-	padding: 8px 8px 8px calc(8px + var(--tla-sidebar-group-item-padding-left));
-}
-
-.sidebarGroupItemButtonInline {
-	display: inline-flex;
-	color: var(--tla-color-text-2);
-	align-items: center;
-	justify-content: center;
-	border-radius: 4px;
-	cursor: pointer;
-	position: relative;
-	outline: none;
-	border: none;
-	background: none;
-	margin: 0px;
-	padding: 0px;
-	font-size: 12px;
-	line-height: 1.3;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.sidebarGroupItemButtonInline:hover {
-	color: var(--tla-color-text-1);
-}
-
-[data-no-animation='true'] * {
-	animation-duration: 0s !important;
 }

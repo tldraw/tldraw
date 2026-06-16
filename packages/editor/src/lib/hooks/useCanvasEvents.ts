@@ -1,6 +1,5 @@
 import { useValue } from '@tldraw/state-react'
 import React, { useEffect, useMemo } from 'react'
-import { RIGHT_MOUSE_BUTTON } from '../constants'
 import { tlenv } from '../globals/environment'
 import {
 	elementShouldCaptureKeys,
@@ -13,7 +12,7 @@ import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
 	const editor = useEditor()
-	const ownerDocument = editor.getContainer().ownerDocument
+	const ownerDocument = editor.getContainerDocument()
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
 	const events = useMemo(
@@ -21,7 +20,9 @@ export function useCanvasEvents() {
 			function onPointerDown(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 
-				if (e.button === RIGHT_MOUSE_BUTTON) {
+				// With right-click panning disabled, fire right_click on press and let the
+				// native contextmenu through so the menu opens at the pointer-down location.
+				if (e.button === 2 && !editor.options.rightClickPanning) {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',
@@ -31,7 +32,7 @@ export function useCanvasEvents() {
 					return
 				}
 
-				if (e.button !== 0 && e.button !== 1 && e.button !== 5) return
+				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
 				setPointerCapture(e.currentTarget, e)
 
@@ -47,6 +48,11 @@ export function useCanvasEvents() {
 				if (editor.wasEventAlreadyHandled(e)) return
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 
+				const rightClickPanning = editor.options.rightClickPanning
+				// Check before dispatch (which resets isPanning)
+				const wasRightClickPanning =
+					rightClickPanning && e.button === 2 && editor.inputs.getIsPanning()
+
 				releasePointerCapture(e.currentTarget, e)
 
 				editor.dispatch({
@@ -55,6 +61,21 @@ export function useCanvasEvents() {
 					name: 'pointer_up',
 					...getPointerInfo(editor, e),
 				})
+
+				// Static right-click: fire contextmenu at the pointer-up location
+				if (rightClickPanning && e.button === 2 && !wasRightClickPanning) {
+					const contextMenuEvent = new PointerEvent('contextmenu', {
+						bubbles: true,
+						clientX: e.clientX,
+						clientY: e.clientY,
+						button: 2,
+						buttons: 0,
+						pointerId: e.pointerId,
+						pointerType: e.pointerType,
+						isPrimary: e.isPrimary,
+					})
+					e.currentTarget.dispatchEvent(contextMenuEvent)
+				}
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
@@ -80,8 +101,7 @@ export function useCanvasEvents() {
 			function onTouchEnd(e: React.TouchEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 				editor.markEventAsHandled(e)
-				// check that e.target is an HTMLElement
-				if (!(e.target instanceof HTMLElement)) return
+				if (!(e.target instanceof editor.getContainerWindow().HTMLElement)) return
 
 				const editingShapeId = editor.getEditingShapeId()
 				if (
@@ -144,6 +164,26 @@ export function useCanvasEvents() {
 				e.stopPropagation()
 			}
 
+			function onContextMenu(e: React.MouseEvent) {
+				// With right-click panning disabled, let the native contextmenu through so the
+				// menu opens on press.
+				if (!editor.options.rightClickPanning) return
+				// Synthetic events — our own dispatch from onPointerUp, or tests using
+				// fireEvent.contextMenu — pass through so Radix can open the menu.
+				if (!e.nativeEvent.isTrusted) return
+				// Only suppress the native browser contextmenu when it follows a real
+				// right-click (button=2 with no ctrl modifier). For those, our pointer
+				// handling has already decided what to do (either we'll dispatch a
+				// synthetic contextmenu on pointerup to open the menu at the release
+				// position, or we panned and don't want a menu at all).
+				//
+				// Other contextmenu sources must reach Radix so the menu opens:
+				// - ctrl+click on macOS (button=0, or button=2 with ctrlKey=true)
+				// - long-press on touch devices (button=0, pointerType=touch)
+				if (e.button !== 2 || e.ctrlKey) return
+				preventDefault(e)
+			}
+
 			return {
 				onPointerDown,
 				onPointerUp,
@@ -154,6 +194,7 @@ export function useCanvasEvents() {
 				onTouchStart,
 				onTouchEnd,
 				onClick,
+				onContextMenu,
 			}
 		},
 		[editor]

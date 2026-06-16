@@ -129,16 +129,16 @@ function highlightNextStep(editor: Editor, shapeId: TLShapeId) {
 }
 ```
 
-**Show related shapes when one is selected:**
+**Show connected arrows when a shape is selected:**
 
 ```typescript
 editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next) => {
 	const selected = next.selectedShapeIds
 	if (selected.length === 1) {
-		// Find bindings connected to the selected shape
+		// Highlight the arrows bound to the selected shape
 		const bindings = editor.getBindingsToShape(selected[0], 'arrow')
-		const connectedShapeIds = bindings.map((b) => b.fromId)
-		editor.setHintingShapes(connectedShapeIds)
+		const arrowIds = bindings.map((b) => b.fromId)
+		editor.setHintingShapes(arrowIds)
 	} else {
 		editor.setHintingShapes([])
 	}
@@ -147,7 +147,7 @@ editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next
 
 ## Visual rendering
 
-Both hover and hint indicators use the same selection color (`--tl-color-selected` CSS variable). The editor renders them using either SVG or canvas depending on the shape's indicator implementation.
+Both hover and hint indicators use the theme's selection color. The editor renders them on the canvas using the shape's [ShapeUtil#getIndicatorPath](?) implementation.
 
 | State    | Stroke width | Condition                          |
 | -------- | ------------ | ---------------------------------- |

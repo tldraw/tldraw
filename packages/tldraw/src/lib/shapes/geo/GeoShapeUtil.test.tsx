@@ -1,6 +1,16 @@
-import { Group2d, IndexKey, TLGeoShape, TLShapeId, createShapeId, toRichText } from '@tldraw/editor'
+import {
+	GeoShapeGeoStyle,
+	Group2d,
+	IndexKey,
+	TLGeoShape,
+	TLShapeId,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../../../test/TestEditor'
-import { TL } from '../../../test/test-jsx'
+import { PathBuilder } from '../shared/PathBuilder'
+import { GeoShapeUtil } from './GeoShapeUtil'
 
 let editor: TestEditor
 let ids: Record<string, TLShapeId>
@@ -15,20 +25,25 @@ afterEach(() => {
 
 describe('Handle snapping', () => {
 	beforeEach(() => {
-		ids = editor.createShapesFromJsx(
-			<>
-				<TL.geo ref="geo" x={0} y={0} geo="rectangle" w={100} h={100} />
-				<TL.line
-					ref="line"
-					x={0}
-					y={0}
-					points={{
+		ids = {
+			geo: createShapeId('geo'),
+			line: createShapeId('line'),
+		}
+		editor.createShapes([
+			{ id: ids.geo, type: 'geo', x: 0, y: 0, props: { geo: 'rectangle', w: 100, h: 100 } },
+			{
+				id: ids.line,
+				type: 'line',
+				x: 0,
+				y: 0,
+				props: {
+					points: {
 						a1: { id: 'a1', index: 'a1' as IndexKey, x: 200, y: 0 },
 						a2: { id: 'a2', index: 'a2' as IndexKey, x: 200, y: 100 },
-					}}
-				/>
-			</>
-		)
+					},
+				},
+			},
+		])
 	})
 
 	const geoShape = () => {
@@ -164,5 +179,78 @@ describe('Resizing geo shapes with labels', () => {
 		const geo = getGeo()
 		expect(geo.props.w).toBeLessThan(50)
 		expect(geo.props.h).toBeLessThan(50)
+	})
+})
+
+describe('GeoShapeUtil.configure with customGeoTypes', () => {
+	// Snapshot the built-in geo values so we can clean up any custom keys added
+	// during these tests. `GeoShapeUtil.configure({ customGeoTypes })` mutates
+	// `GeoShapeGeoStyle.values` globally via `addValues`, so without cleanup the
+	// state would leak between tests in this describe block.
+	const builtinGeoValues = [...GeoShapeGeoStyle.values]
+	afterEach(() => {
+		const toRemove = GeoShapeGeoStyle.values.filter((v) => !builtinGeoValues.includes(v))
+		if (toRemove.length > 0) {
+			GeoShapeGeoStyle.removeValues(...toRemove)
+		}
+	})
+
+	const validDef = {
+		getPath: (w: number, h: number) =>
+			new PathBuilder()
+				.moveTo(0, 0, { geometry: { isFilled: true } })
+				.lineTo(w, 0)
+				.lineTo(w, h)
+				.lineTo(0, h)
+				.close(),
+		snapType: 'polygon' as const,
+		icon: 'geo-rectangle',
+		defaultSize: { w: 999, h: 999 },
+	}
+
+	function getConfiguredOptions(customGeoTypes: Record<string, typeof validDef>) {
+		const Configured = GeoShapeUtil.configure({ customGeoTypes })
+		const localEditor = new TestEditor({ shapeUtils: [Configured] })
+		try {
+			const util = localEditor.getShapeUtil('geo') as GeoShapeUtil
+			return util.options.customGeoTypes
+		} finally {
+			localEditor.dispose()
+		}
+	}
+
+	test('keeps non-colliding entries in options.customGeoTypes', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		try {
+			expect(getConfiguredOptions({ 'my-shape': validDef })).toEqual({ 'my-shape': validDef })
+			expect(warn).not.toHaveBeenCalled()
+		} finally {
+			warn.mockRestore()
+		}
+	})
+
+	test('strips colliding keys from options so runtime lookups do not see them', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		try {
+			expect(getConfiguredOptions({ rectangle: validDef, 'my-shape': validDef })).toEqual({
+				'my-shape': validDef,
+			})
+			expect(warn).toHaveBeenCalledWith(expect.stringMatching(/customGeoTypes key "rectangle"/))
+		} finally {
+			warn.mockRestore()
+		}
+	})
+
+	test('reusing the same custom key across configure() calls still keeps the entry', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		try {
+			expect(getConfiguredOptions({ 'my-shape': validDef })).toEqual({ 'my-shape': validDef })
+			// A second configure() call with the same key should not treat it as a
+			// collision with built-ins, so the entry is preserved.
+			expect(getConfiguredOptions({ 'my-shape': validDef })).toEqual({ 'my-shape': validDef })
+			expect(warn).not.toHaveBeenCalled()
+		} finally {
+			warn.mockRestore()
+		}
 	})
 })

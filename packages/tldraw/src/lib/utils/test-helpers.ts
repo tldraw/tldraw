@@ -1,5 +1,5 @@
-import type { TLDrawShapeSegment, VecModel } from '@tldraw/editor'
 import { b64Vecs, compressLegacySegments } from '@tldraw/editor'
+import type { TLDrawShapeSegment, VecModel } from '@tldraw/editor'
 
 /**
  * Helper function to convert draw shape points from VecModel[] to base64 string.

@@ -151,7 +151,8 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 		React.useEffect(() => {
 			if (!tlenv.isIos) return undefined
 
-			const visualViewport = window.visualViewport
+			const win = editor?.getContainerWindow() ?? window
+			const visualViewport = win.visualViewport
 			if (isFocused && shouldManuallyMaintainScrollPositionWhenFocused && visualViewport) {
 				const onViewportChange = () => {
 					rInputRef.current?.scrollIntoView({ block: 'center' })

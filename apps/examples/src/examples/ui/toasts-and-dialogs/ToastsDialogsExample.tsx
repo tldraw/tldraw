@@ -102,7 +102,7 @@ export default function ToastsDialogsExample() {
 	)
 }
 
-/* 
+/*
 
 To control toasts and dialogs your app, you can use the `useToasts` and `useDialogs` hooks. 
 These hooks give you access to functions which allow you to add, remove and clear toasts 

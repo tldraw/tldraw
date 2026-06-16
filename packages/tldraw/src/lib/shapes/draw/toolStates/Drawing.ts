@@ -20,12 +20,14 @@ import {
 } from '@tldraw/editor'
 import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
+import { getDisplayValues } from '../../shared/getDisplayValues'
 import { DrawShapeUtil } from '../DrawShapeUtil'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
 
 export class Drawing extends StateNode {
 	static override id = 'drawing'
+	static override trackPerformance = true
 
 	info = {} as TLPointerEventInfo
 
@@ -49,6 +51,7 @@ export class Drawing extends StateNode {
 	lastRecordedPoint = {} as Vec
 	mergeNextPoint = false
 	currentLineLength = 0
+	zoomOnEnter = 1
 
 	// Cache for current segment's points to avoid repeated b64 decode/encode
 	currentSegmentPoints: Vec[] = []
@@ -59,6 +62,7 @@ export class Drawing extends StateNode {
 		this.markId = null
 		this.info = info
 		this.lastRecordedPoint = this.editor.inputs.getCurrentPagePoint().clone()
+		this.zoomOnEnter = this.editor.getZoomLevel()
 		this.startShape()
 	}
 
@@ -80,7 +84,7 @@ export class Drawing extends StateNode {
 		if (this.isPenOrStylus) {
 			// Don't update the shape if we haven't moved far enough from the last time we recorded a point
 			const currentPagePoint = inputs.getCurrentPagePoint()
-			if (Vec.Dist(currentPagePoint, this.lastRecordedPoint) >= 1 / this.editor.getZoomLevel()) {
+			if (Vec.Dist(currentPagePoint, this.lastRecordedPoint) >= 1 / this.zoomOnEnter) {
 				this.lastRecordedPoint = currentPagePoint.clone()
 				this.mergeNextPoint = false
 			} else {
@@ -141,20 +145,38 @@ export class Drawing extends StateNode {
 		return this.shapeType !== 'highlight'
 	}
 
-	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle, scale: number) {
+	getIsClosed(
+		segments: TLDrawShapeSegment[],
+		size: TLDefaultSizeStyle,
+		scale: number,
+		strokeWidth?: number
+	) {
 		if (!this.canClose()) return false
 
-		const strokeWidth = STROKE_SIZES[size]
+		if (strokeWidth === undefined) {
+			const theme = this.editor.getCurrentTheme()
+			strokeWidth = theme.strokeWidth * STROKE_SIZES[size]
+		}
 		const firstPoint = b64Vecs.decodeFirstPoint(segments[0].path)
 		const lastSegment = segments[segments.length - 1]
 		const lastPoint = b64Vecs.decodeLastPoint(lastSegment.path)
+
+		const isDynamicResizingEnabled = this.editor.user.getIsDynamicResizeMode()
+
+		const threshold = isDynamicResizingEnabled // when dynamic resizing is enabled scale is 1/zoom, so the threshold should not scale directly with zoom at all
+			? (strokeWidth + 2) * scale // +2 keeps tiny strokes from being too hard to close
+			: // 6 is a base floor, 2 is stroke influence, 0.8 tempers width growth
+				6 +
+				2 * Math.sqrt(strokeWidth * 0.8) +
+				// 100 is low-zoom boost, 0.18 is the zoom knee, 3 controls falloff steepness
+				100 / (1 + Math.pow(this.zoomOnEnter / 0.18, 3))
 
 		return (
 			firstPoint !== null &&
 			lastPoint !== null &&
 			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 * scale &&
-			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2 * scale)
+			Vec.DistMin(firstPoint, lastPoint, threshold)
 		)
 	}
 
@@ -217,7 +239,9 @@ export class Drawing extends StateNode {
 				this.pagePointWhereNextSegmentChanged = null
 				const segments = [...shape.props.segments, newSegment]
 
-				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+				const dvStrokeWidth = (getDisplayValues(this.util as any, shape) as { strokeWidth: number })
+					.strokeWidth
+				if (this.currentLineLength < dvStrokeWidth * 4) {
 					this.currentLineLength = this.getLineLength(segments)
 				}
 
@@ -419,7 +443,10 @@ export class Drawing extends StateNode {
 
 					const finalSegments = [...newSegments, newFreeSegment]
 
-					if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+					const dvStrokeWidth = (
+						getDisplayValues(this.util as any, shape) as { strokeWidth: number }
+					).strokeWidth
+					if (this.currentLineLength < dvStrokeWidth * 4) {
 						this.currentLineLength = this.getLineLength(finalSegments)
 					}
 
@@ -481,7 +508,7 @@ export class Drawing extends StateNode {
 				if (shouldSnap) {
 					if (newSegments.length > 2) {
 						let nearestPoint: VecModel | undefined = undefined
-						let minDistance = 8 / this.editor.getZoomLevel()
+						let minDistance = 8 / this.zoomOnEnter
 
 						// Don't try to snap to the last two segments
 						for (let i = 0, n = segments.length - 2; i < n; i++) {
@@ -618,7 +645,9 @@ export class Drawing extends StateNode {
 					path: b64Vecs.encodePoints(cachedPoints),
 				}
 
-				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+				const dvStrokeWidth = (getDisplayValues(this.util as any, shape) as { strokeWidth: number })
+					.strokeWidth
+				if (this.currentLineLength < dvStrokeWidth * 4) {
 					this.currentLineLength = this.getLineLength(newSegments)
 				}
 
@@ -721,6 +750,14 @@ export class Drawing extends StateNode {
 			return
 		}
 
+		if (this.markId) {
+			this.editor.bailToMark(this.markId)
+		}
+		this.cancel()
+	}
+
+	override onLongPress() {
+		if (!this.editor.getInstanceState().isCoarsePointer) return
 		if (this.markId) {
 			this.editor.bailToMark(this.markId)
 		}

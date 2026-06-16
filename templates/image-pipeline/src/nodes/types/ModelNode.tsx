@@ -49,7 +49,7 @@ export class ModelNodeDefinition extends NodeDefinition<ModelNode> {
 	static validator = ModelNode
 	title = 'Load model'
 	heading = 'Model'
-	icon = (<ModelIcon />)
+	icon = <ModelIcon />
 	category = 'input'
 	getDefault(): ModelNode {
 		return {

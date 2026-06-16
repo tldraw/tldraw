@@ -35,6 +35,10 @@
 	color: var(--tl-color-text-3);
 }
 
+.feedbackDialogCheckbox {
+	margin-right: auto;
+}
+
 /* --------------------- Cookie --------------------- */
 
 .cookieConsent {
@@ -48,6 +52,11 @@
 	transform: translate(0px, 110%);
 	animation: slideUp 3s ease-out forwards;
 	animation-delay: 2s;
+}
+
+:global(.tl-container[dir='rtl']) .cookieConsent {
+	margin-right: 0;
+	margin-left: 4px;
 }
 
 @keyframes slideUp {
@@ -116,6 +125,10 @@
 	white-space: nowrap;
 }
 
+:global(.tl-container[dir='rtl']) .cookieAcceptButtonText {
+	animation-direction: reverse;
+}
+
 @keyframes marquee {
 	0% {
 		transform: translateX(100%);
@@ -153,6 +166,11 @@
 	width: fit-content;
 }
 
+:global(.tl-container[dir='rtl']) .cookieConsentWrapper {
+	right: auto;
+	left: 0;
+}
+
 .noPadding {
 	padding: 0px;
 }
@@ -179,7 +197,7 @@
 
 /* ----------------- Group Settings Dialog ---------------- */
 
-.groupSettingsBody {
+.workspaceSettingsBody {
 	max-width: 360px;
 	width: calc(100vw - 48px);
 }
@@ -321,42 +339,6 @@
 	display: flex;
 	gap: 8px;
 	justify-content: center;
-}
-
-.selectWrapper {
-	display: flex;
-	position: relative;
-}
-
-.select {
-	display: inline-block;
-	appearance: none;
-	outline: none;
-	border: none;
-	padding: 4px 20px 4px 8px;
-	cursor: pointer;
-	position: relative;
-}
-
-.select:disabled {
-	cursor: default;
-}
-
-.selectWrapper:hover::after {
-	content: '';
-	pointer-events: none;
-	display: flex;
-	position: absolute;
-	inset: 0px -6px 0px 0px;
-	background-color: var(--tla-color-hover-2);
-	border-radius: var(--tl-radius-1);
-}
-
-.menuSelectChevron {
-	position: absolute !important;
-	right: 0 !important;
-	top: 50% !important;
-	transform: translateY(-50%) !important;
 }
 
 .copyInviteLinkIconRight {

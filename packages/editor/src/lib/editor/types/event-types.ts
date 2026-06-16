@@ -1,5 +1,6 @@
 import { TLHandle, TLShape, VecModel } from '@tldraw/tlschema'
 import { VecLike } from '../../primitives/Vec'
+import { TLOverlay } from '../overlays/OverlayUtil'
 import { TLSelectionHandle } from './selection-types'
 
 /** @public */
@@ -11,6 +12,7 @@ export type TLPointerEventTarget =
 	| { target: 'selection'; handle?: TLSelectionHandle; shape?: undefined }
 	| { target: 'shape'; shape: TLShape }
 	| { target: 'handle'; shape: TLShape; handle: TLHandle }
+	| { target: 'overlay'; overlay: TLOverlay; shape?: undefined }
 
 /** @public */
 export type TLPointerEventName =
@@ -22,7 +24,7 @@ export type TLPointerEventName =
 	| 'middle_click'
 
 /** @public */
-export type TLCLickEventName = 'double_click' | 'triple_click' | 'quadruple_click'
+export type TLCLickEventName = 'double_click'
 
 /** @public */
 export type TLPinchEventName = 'pinch_start' | 'pinch' | 'pinch_end'
@@ -70,7 +72,7 @@ export type TLClickEventInfo = TLBaseEventInfo & {
 	point: VecLike
 	pointerId: number
 	button: number
-	phase: 'down' | 'up' | 'settle'
+	phase: 'down' | 'up' | 'settle-down' | 'settle-up'
 } & TLPointerEventTarget
 
 /** @public */
@@ -171,8 +173,6 @@ export interface TLEventHandlers {
 	onLongPress: TLPointerEvent
 	onRightClick: TLPointerEvent
 	onDoubleClick: TLClickEvent
-	onTripleClick: TLClickEvent
-	onQuadrupleClick: TLClickEvent
 	onMiddleClick: TLPointerEvent
 	onPointerUp: TLPointerEvent
 	onKeyDown: TLKeyboardEvent
@@ -204,7 +204,5 @@ export const EVENT_NAME_MAP: Record<
 	complete: 'onComplete',
 	interrupt: 'onInterrupt',
 	double_click: 'onDoubleClick',
-	triple_click: 'onTripleClick',
-	quadruple_click: 'onQuadrupleClick',
 	tick: 'onTick',
 }

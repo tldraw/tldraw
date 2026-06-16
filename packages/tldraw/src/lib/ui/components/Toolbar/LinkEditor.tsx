@@ -60,8 +60,9 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 	const handleLinkCancel = () => onClose()
 
 	useEffect(() => {
+		const doc = editor.getContainerDocument()
 		const handlePointerDown = (e: PointerEvent) => {
-			const toolbar = document.querySelector('.tlui-rich-text__toolbar')
+			const toolbar = doc.querySelector('.tlui-rich-text__toolbar')
 			if (toolbar?.contains(e.target as Node)) return
 			// If the pointer down is not in the toolbar, complete the link
 			if (value) {
@@ -70,11 +71,11 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 				handleRemoveLink()
 			}
 		}
-		document.addEventListener('pointerdown', handlePointerDown, { capture: true })
+		doc.addEventListener('pointerdown', handlePointerDown, { capture: true })
 		return () => {
-			document.removeEventListener('pointerdown', handlePointerDown, { capture: true })
+			doc.removeEventListener('pointerdown', handlePointerDown, { capture: true })
 		}
-	}, [handleLinkComplete, handleRemoveLink, value])
+	}, [editor, handleLinkComplete, handleRemoveLink, value])
 
 	useEffect(() => {
 		ref.current?.focus()

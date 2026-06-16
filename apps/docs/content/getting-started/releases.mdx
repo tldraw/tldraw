@@ -17,12 +17,28 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 - Minor version bumps are released on a regular cadence, approximately monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible, but tldraw is actively evolving as we add new features. We recommend updating at a similar pace and checking the release notes.
 - Patch version bumps are for bugfixes and hotfixes that can't wait for the next cadence release.
 
+## Latest tldraw versions
+
+- Run `npm install tldraw` to get the latest minor version of tldraw
+- Use `npm install tldraw@next` to get the latest version of tldraw that is used on [tldraw.com](https://www.tldraw.com)
+- The latest changes to the `main` branch of tldraw are available to test through our [pre-release canary builds](https://www.npmjs.com/package/tldraw?activeTab=versions).
+
+## Migration skill
+
+We ship an experimental `tldraw-migrate` agent skill that helps a coding agent update your project to the latest version of the SDK. It detects your current version, fetches the relevant release notes, upgrades packages, and works through any type errors using the migration guides in our release notes. See our [migration skill guide](/releases/migration-skill) for details on how to install and use the skill.
+
 ## Next
 
 - [next](/releases/next) - Changes for the upcoming release.
 
+## v5.x
+
+- [v5.1](/releases/v5.1.0) - Page menu redesign, copy-styles shortcut, selectable locked shapes, public translation APIs, and performance improvements
+- [v5.0](/releases/v5.0.0) - Custom themes, overlays, performance, extensiblity, and attribution
+
 ## v4.x
 
+- [v4.5](/releases/v4.5.0) - Click-through on transparent pixels, SVG sanitization, configurable embed definitions
 - [v4.4](/releases/v4.4.0) - Image pipeline starter kit, performance improvements, quick zoom, canvas indicators
 - [v4.3](/releases/v4.3.0) - SQLite sync storage, improved custom shape types, reactive inputs, draw shape encoding
 - [v4.2](/releases/v4.2.0) - TipTap v3, dynamic tools, custom socket implementations

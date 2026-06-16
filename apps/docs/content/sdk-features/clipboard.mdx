@@ -81,6 +81,12 @@ This embeds images and videos directly in the clipboard data rather than relying
 
 Cut combines copy and delete. The editor first copies the selected shapes to the clipboard, then deletes the originals. This order ensures the clipboard has the data before shapes disappear, preventing data loss if the copy fails.
 
+### Plain text paste
+
+`Cmd+Shift+V` (or `Ctrl+Shift+V` on Windows and Linux) pastes the clipboard as plain text. HTML and rich formatting are stripped. This is the standard "paste without formatting" shortcut. It's handy when styled text from a browser or word processor would otherwise bring its fonts and colors onto the canvas with it.
+
+To extend or override this behavior, use the `onClipboardPasteRaw` hook on [TldrawOptions](?). It fires before tldraw parses the clipboard, so you can read the raw `ClipboardEvent` data yourself. Return `false` to short-circuit the default pipeline, or `void` to let it continue.
+
 ## Content structure
 
 The [TLContent](?) type defines the clipboard payload:
@@ -92,6 +98,7 @@ interface TLContent {
 	rootShapeIds: TLShapeId[]
 	assets: TLAsset[]
 	schema: SerializedSchema
+	users?: TLUser[]
 }
 ```
 
@@ -99,13 +106,14 @@ interface TLContent {
 - `rootShapeIds` identifies which shapes have no parent in the copied set, distinguishing top-level shapes from nested children
 - `bindings` holds relationships between shapes, like arrows connected to boxes
 - `assets` includes images, videos, and other external resources
-- `schema` preserves the store schema version, enabling migration when pasting content from a different editor version
+- `schema` preserves the store schema version, so content from a different editor version can be migrated on paste
+- `users` carries any user records referenced by the copied shapes, so [attribution](/sdk-features/attribution) display names survive the paste
 
 ## Position handling
 
 [Editor#putContentOntoCurrentPage](?) offers flexible positioning:
 
-- By default, shapes paste at a slight offset from their original position, making it clear that new shapes were created
+- By default, shapes paste at a slight offset from their original position so it's clear that new shapes were created
 - When pasting with the shift key pressed (or with paste-at-cursor mode enabled), shapes paste at the cursor position
 - The `preservePosition` option places shapes at their exact stored coordinates, skipping offset calculation entirely
 
@@ -115,7 +123,7 @@ The editor uses `preservePosition` internally when moving shapes between pages, 
 
 Shape and binding IDs get remapped during paste to prevent collisions with existing shapes. The editor creates a mapping from old IDs to new IDs, then updates all references throughout the pasted content: parent-child relationships, binding endpoints, and asset references all get the new IDs.
 
-The `preserveIds` option disables remapping. This is useful when duplicating pages where you need to maintain specific IDs.
+The `preserveIds` option disables remapping. The editor uses it when moving shapes between pages, where the shapes should keep their existing IDs.
 
 ## External content handling
 

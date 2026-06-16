@@ -1,6 +1,6 @@
+import fs from 'fs'
 import { Page } from '@playwright/test'
 import { DB, userHasFlag } from '@tldraw/dotcom-shared'
-import fs from 'fs'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
 import { OTHER_USERS, USERS } from '../consts'
@@ -20,7 +20,7 @@ const db = new Kysely<DB>({
 
 export class Database {
 	constructor(
-		readonly page: Page,
+		readonly page: Page | null,
 		private parallelIndex: number
 	) {}
 
@@ -29,8 +29,15 @@ export class Database {
 		await this.cleanUpUser(false)
 	}
 
+	getEmail(isOther: boolean = false) {
+		return getTestUserEmail(this.parallelIndex, isOther ? 'suppy' : 'huppy')
+	}
+
 	async getUserId(isOther: boolean = false) {
-		const email = isOther ? OTHER_USERS[this.parallelIndex] : USERS[this.parallelIndex]
+		return await this.getUserIdByEmail(this.getEmail(isOther))
+	}
+
+	async getUserIdByEmail(email: string) {
 		const dbUser = await sql<{
 			id: string
 		}>`SELECT id FROM public.user WHERE email = ${email ?? ''}`.execute(db)
@@ -42,7 +49,11 @@ export class Database {
 	 * Check if a user is migrated to the groups model
 	 */
 	async isUserMigrated(isOther: boolean = false): Promise<boolean> {
-		const id = await this.getUserId(isOther)
+		return await this.isUserMigratedByEmail(this.getEmail(isOther))
+	}
+
+	async isUserMigratedByEmail(email: string): Promise<boolean> {
+		const id = await this.getUserIdByEmail(email)
 		if (!id) return false
 
 		const result = await sql<{
@@ -56,9 +67,15 @@ export class Database {
 	 * Migrate a user to the groups model
 	 */
 	async migrateUser(isOther: boolean = false): Promise<void> {
-		const id = await this.getUserId(isOther)
+		await this.migrateUserByEmail(this.getEmail(isOther))
+	}
+
+	async migrateUserByEmail(email: string): Promise<void> {
+		const id = await this.getUserIdByEmail(email)
+		if (!id) throw new Error(`User not found: ${email}`)
+		if (await this.isUserMigratedByEmail(email)) return
+
 		const inviteSecret = 'test' + Math.random().toString(36).substring(2, 15)
-		if (!id) throw new Error('User not found')
 
 		// Call the migration function
 		await sql`SELECT * FROM migrate_user_to_groups(${id}, ${inviteSecret})`.execute(db)
@@ -68,8 +85,12 @@ export class Database {
 	 * Enable groups frontend flag for a user
 	 */
 	async enableGroupsFrontend(isOther: boolean = false): Promise<void> {
-		const id = await this.getUserId(isOther)
-		if (!id) throw new Error('User not found')
+		await this.enableGroupsFrontendByEmail(this.getEmail(isOther))
+	}
+
+	async enableGroupsFrontendByEmail(email: string): Promise<void> {
+		const id = await this.getUserIdByEmail(email)
+		if (!id) throw new Error(`User not found: ${email}`)
 
 		// Get current flags
 		const result = await sql<{
@@ -89,6 +110,11 @@ export class Database {
 		await sql`UPDATE public.user SET flags = ${newFlags} WHERE id = ${id}`.execute(db)
 	}
 
+	async ensureGroupsReadyByEmail(email: string): Promise<void> {
+		await this.migrateUserByEmail(email)
+		await this.enableGroupsFrontendByEmail(email)
+	}
+
 	private async cleanUpUser(isOther: boolean) {
 		const fileName = getStorageStateFileName(this.parallelIndex, isOther ? 'suppy' : 'huppy')
 		if (!fs.existsSync(fileName)) return
@@ -103,4 +129,10 @@ export class Database {
 			console.error('Error', e)
 		}
 	}
+}
+
+export type TestUser = 'huppy' | 'suppy'
+
+export function getTestUserEmail(index: number, user: TestUser) {
+	return user === 'suppy' ? OTHER_USERS[index] : USERS[index]
 }

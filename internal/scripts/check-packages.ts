@@ -1,5 +1,5 @@
-import kleur from 'kleur'
 import path, { join, relative } from 'path'
+import kleur from 'kleur'
 import {
 	REPO_ROOT,
 	readFileIfExists,
@@ -53,7 +53,7 @@ const packageJsonScriptExceptions: Record<string, Record<string, () => string | 
 		lint: () => undefined,
 	},
 	'@tldraw/monorepo': {
-		lint: () => 'lazy lint',
+		lint: () => undefined,
 	},
 	'@tldraw/assets': {
 		test: () => undefined,

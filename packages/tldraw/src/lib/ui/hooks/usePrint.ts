@@ -10,15 +10,17 @@ export function usePrint() {
 	return useCallback(
 		async function printSelectionOrPages() {
 			assert(editor, 'usePrint: editor is required')
-			const el = document.createElement('div')
-			const style = document.createElement('style')
+			const doc = editor.getContainerDocument()
+			const win = editor.getContainerWindow()
+			const el = doc.createElement('div')
+			const style = doc.createElement('style')
 
 			// todo: why are these using a ref? this seems like it could be a function rather than a hook
 			const clearElements = (printEl: HTMLDivElement | null, styleEl: HTMLStyleElement | null) => {
 				if (printEl) printEl.innerHTML = ''
-				if (styleEl && document.head.contains(styleEl)) document.head.removeChild(styleEl)
-				if (printEl && document.body.contains(printEl)) {
-					document.body.removeChild(printEl)
+				if (styleEl && doc.head.contains(styleEl)) doc.head.removeChild(styleEl)
+				if (printEl && doc.body.contains(printEl)) {
+					doc.body.removeChild(printEl)
 				}
 			}
 
@@ -130,8 +132,8 @@ export function usePrint() {
 		`
 
 			const beforePrintHandler = () => {
-				document.head.appendChild(style)
-				document.body.appendChild(el)
+				doc.head.appendChild(style)
+				doc.body.appendChild(el)
 			}
 
 			const afterPrintHandler = () => {
@@ -140,8 +142,8 @@ export function usePrint() {
 				})
 			}
 
-			window.addEventListener('beforeprint', beforePrintHandler)
-			window.addEventListener('afterprint', afterPrintHandler)
+			win.addEventListener('beforeprint', beforePrintHandler)
+			win.addEventListener('afterprint', afterPrintHandler)
 
 			function addPageToPrint(title: string, footer: string | null, svg: string) {
 				try {
@@ -164,13 +166,13 @@ export function usePrint() {
 			function triggerPrint() {
 				if (tlenv.isChromeForIos) {
 					beforePrintHandler()
-					window.print()
+					win.print()
 				} else if (tlenv.isSafari) {
 					beforePrintHandler()
 					// eslint-disable-next-line @typescript-eslint/no-deprecated
-					document.execCommand('print', false)
+					doc.execCommand('print', false)
 				} else {
-					window.print()
+					win.print()
 				}
 			}
 
@@ -223,8 +225,8 @@ export function usePrint() {
 				}
 			}
 
-			window.removeEventListener('beforeprint', beforePrintHandler)
-			window.removeEventListener('afterprint', afterPrintHandler)
+			win.removeEventListener('beforeprint', beforePrintHandler)
+			win.removeEventListener('afterprint', afterPrintHandler)
 		},
 		[editor]
 	)

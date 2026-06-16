@@ -72,10 +72,10 @@ function debug(...args: any[]) {
  * }
  * ```
  */
-export class ClientWebSocketAdapter
-	implements
-		TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>>
-{
+export class ClientWebSocketAdapter implements TLPersistentClientSocket<
+	TLSocketClientSentEvent<TLRecord>,
+	TLSocketServerSentEvent<TLRecord>
+> {
 	_ws: WebSocket | null = null
 
 	isDisposed = false
@@ -240,7 +240,7 @@ export class ClientWebSocketAdapter
 	 *
 	 * @returns The current connection status: 'online', 'offline', or 'error'
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get connectionStatus(): TLPersistentClientSocketStatus {
 		const status = this._connectionStatus.get()
 		return status === 'initial' ? 'offline' : status

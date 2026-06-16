@@ -5,7 +5,7 @@ import { unwrapLabel, useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
 import { useLocalStorageState } from '../../hooks/useLocalStorageState'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../kbd-utils'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
@@ -14,6 +14,7 @@ import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiTo
 export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 	const actions = useActions()
 	const msg = useTranslation()
+	const dir = useDirection()
 	const breakpoint = useBreakpoint()
 
 	const ref = useRef<HTMLDivElement>(null)
@@ -38,6 +39,16 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 					<ZoomMenu />
 				) : (
 					<>
+						{Minimap && dir === 'rtl' && (
+							<TldrawUiToolbarButton
+								type="icon"
+								data-testid="minimap.toggle-button"
+								title={msg('navigation-zone.toggle-minimap')}
+								onClick={toggleMinimap}
+							>
+								<TldrawUiButtonIcon small icon={collapsed ? 'chevron-left' : 'chevron-right'} />
+							</TldrawUiToolbarButton>
+						)}
 						{!collapsed && (
 							<TldrawUiToolbarButton
 								type="icon"
@@ -59,7 +70,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 								<TldrawUiButtonIcon small icon="plus" />
 							</TldrawUiToolbarButton>
 						)}
-						{Minimap && (
+						{Minimap && dir !== 'rtl' && (
 							<TldrawUiToolbarButton
 								type="icon"
 								data-testid="minimap.toggle-button"

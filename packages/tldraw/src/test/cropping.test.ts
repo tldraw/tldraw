@@ -1,13 +1,14 @@
 import { createShapeId, TLImageShape } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { MIN_CROP_SIZE } from '../lib/shapes/shared/crop'
-import { TestEditor } from './TestEditor'
+import { defaultHandleOverlays, TestEditor } from './TestEditor'
 
 vi.useFakeTimers()
 
 let editor: TestEditor
 
 afterEach(() => {
+	vi.restoreAllMocks()
 	editor?.dispose()
 })
 
@@ -29,7 +30,7 @@ const imageProps = {
 }
 
 beforeEach(() => {
-	editor = new TestEditor()
+	editor = new TestEditor({ overlayUtils: defaultHandleOverlays })
 
 	// this side effect is normally added via a hook
 	editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next) => {
@@ -85,6 +86,8 @@ beforeEach(() => {
 
 describe('When in the select.idle state', () => {
 	it('double clicking an image should transition to select.crop', () => {
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
 		editor.select(ids.boxA)
 
 		editor.expectToBeIn('select.idle')
@@ -130,6 +133,10 @@ describe('When in the select.idle state', () => {
 		expect(editor.getOnlySelectedShape()!.props).toMatchObject({
 			crop: { topLeft: { x: 0.1, y: 0.1 }, bottomRight: { x: 0.9, y: 0.9 } },
 		})
+		expect(consoleErrorSpy).not.toHaveBeenCalledWith(
+			'Could not find mark to squash to: ',
+			expect.any(String)
+		)
 	})
 
 	it('when ONLY ONE image is selected double clicking a selection handle should transition to select.crop', () => {
@@ -295,24 +302,53 @@ describe('When in the crop.idle state', () => {
 			.expectToBeIn('select.pointing_shape')
 	})
 
-	it('pointing a selection handle should enter the select.crop.pointing_crop_handle state', () => {
-		// corner
+	it('updates cursor when hovering crop handles', () => {
 		editor
 			.expectToBeIn('select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectToBeIn('select.crop.idle')
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: false })
+
+		// Hover top-left corner of the cropped image (at page point 500,500)
+		editor.pointerMove(500, 500)
+		expect(editor.getInstanceState().cursor.type).toBe('nwse-resize')
+
+		// Hover top-right corner (at 1100,500)
+		editor.pointerMove(1100, 500)
+		expect(editor.getInstanceState().cursor.type).toBe('nesw-resize')
+
+		// Hover top edge midpoint (at 800,500)
+		editor.pointerMove(800, 500)
+		expect(editor.getInstanceState().cursor.type).toBe('ns-resize')
+
+		// Hover left edge midpoint (at 500,700)
+		editor.pointerMove(500, 700)
+		expect(editor.getInstanceState().cursor.type).toBe('ew-resize')
+
+		// Move away from any handle, cursor should reset
+		editor.pointerMove(700, 700)
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
+
+	it('clicking a crop handle via canvas event enters pointing_crop_handle state', () => {
+		// Click corner crop handle
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+			.pointerMove(500, 500)
+			.pointerDown()
 			.expectToBeIn('select.crop.pointing_crop_handle')
 
-		//reset
-		editor.cancel().cancel()
+		// reset
+		editor.cancel().cancel().cancel()
 
-		// edge
+		// Click edge crop handle
 		editor
 			.expectToBeIn('select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectToBeIn('select.crop.idle')
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom', ctrlKey: false })
+			.pointerMove(800, 500)
+			.pointerDown()
 			.expectToBeIn('select.crop.pointing_crop_handle')
 	})
 
@@ -349,6 +385,23 @@ describe('When in the crop.idle state', () => {
 			.expectToBeIn('select.pointing_rotate_handle')
 			.pointerMove(510, 590)
 			.expectToBeIn('select.rotating')
+			.pointerUp()
+			.expectToBeIn('select.crop.idle')
+	})
+
+	it('mobile rotate enters pointing_rotate_handle in crop mode on coarse pointers', () => {
+		editor.updateInstanceState({ isCoarsePointer: true })
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+
+		const p = editor.getSelectionHandlePagePoint('mobile_rotate')
+
+		editor
+			.pointerMove(p.x, p.y)
+			.pointerDown()
+			.expectToBeIn('select.pointing_rotate_handle')
 			.pointerUp()
 			.expectToBeIn('select.crop.idle')
 	})

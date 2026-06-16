@@ -1,6 +1,6 @@
+import { createServer } from 'http'
 import { WebSocketMinimal } from '@tldraw/sync-core'
 import express from 'express'
-import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { loadAsset, storeAsset } from './assets'
 import { makeOrLoadRoom } from './rooms'

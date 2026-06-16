@@ -48,7 +48,11 @@ export class HistoryManager<R extends UnknownRecord> {
 			switch (this.state) {
 				case HistoryRecorderState.Recording:
 					this.pendingDiff.apply(entry.changes)
-					this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
+					// this interceptor runs for every store change, so skip the update when the
+					// redo stack is already empty
+					if (this.stacks.get().redos.length > 0) {
+						this.stacks.update(({ undos }) => ({ undos, redos: stack() }))
+					}
 					break
 				case HistoryRecorderState.RecordingPreserveRedoStack:
 					this.pendingDiff.apply(entry.changes)
@@ -182,8 +186,8 @@ export class HistoryManager<R extends UnknownRecord> {
 			}
 
 			if (!didFindMark && toMark) {
-				// whoops, we didn't find the mark we were looking for
-				// don't do anything
+				// we didn't find the mark we were looking for — restore state and bail
+				this.pendingDiff.restore(pendingDiff)
 				return this
 			}
 			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
@@ -350,18 +354,37 @@ class PendingDiff<R extends UnknownRecord> {
 		return diff
 	}
 
+	restore(diff: RecordsDiff<R>) {
+		this.diff = diff
+		this.isEmptyAtom.set(isRecordsDiffEmpty(diff))
+	}
+
 	isEmpty() {
 		return this.isEmptyAtom.get()
 	}
 
 	apply(diff: RecordsDiff<R>) {
 		squashRecordDiffsMutable(this.diff, [diff])
-		this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
+		// Recomputing emptiness from the accumulated diff is O(N) (for-in over a
+		// dictionary-mode object pays an O(N) key-collection prologue), and this runs on
+		// every history interceptor call — e.g. every input tick while resizing many
+		// shapes. Updates can never cancel out existing entries during a squash, so the
+		// full recompute is only needed when the incoming diff adds or removes records.
+		if (hasAnyKey(diff.added) || hasAnyKey(diff.removed)) {
+			this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
+		} else if (this.isEmptyAtom.__unsafe__getWithoutCapture()) {
+			this.isEmptyAtom.set(!hasAnyKey(diff.updated))
+		}
 	}
 
 	debug() {
 		return { diff: this.diff, isEmpty: this.isEmpty() }
 	}
+}
+
+function hasAnyKey(obj: object) {
+	for (const _ in obj) return true
+	return false
 }
 
 type Stack<T> = StackItem<T> | EmptyStackItem<T>

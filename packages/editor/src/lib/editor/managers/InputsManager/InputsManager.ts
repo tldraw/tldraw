@@ -7,6 +7,9 @@ import { isAccelKey } from '../../../utils/keyboard'
 import type { Editor } from '../../Editor'
 import { TLPinchEventInfo, TLPointerEventInfo, TLWheelEventInfo } from '../../types/event-types'
 
+const POINTER_VELOCITY_REFERENCE_INTERVAL_MS = 16
+const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
+
 /** @public */
 export class InputsManager {
 	constructor(private readonly editor: Editor) {}
@@ -21,7 +24,7 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getOriginPagePoint()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get originPagePoint() {
 		return this.getOriginPagePoint()
 	}
@@ -36,7 +39,7 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getOriginScreenPoint()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get originScreenPoint() {
 		return this.getOriginScreenPoint()
 	}
@@ -51,7 +54,7 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getPreviousPagePoint()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get previousPagePoint() {
 		return this.getPreviousPagePoint()
 	}
@@ -66,7 +69,7 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getPreviousScreenPoint()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get previousScreenPoint() {
 		return this.getPreviousScreenPoint()
 	}
@@ -81,7 +84,7 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getCurrentPagePoint()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get currentPagePoint() {
 		return this.getCurrentPagePoint()
 	}
@@ -96,7 +99,7 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getCurrentScreenPoint()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get currentScreenPoint() {
 		return this.getCurrentScreenPoint()
 	}
@@ -111,7 +114,7 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getPointerVelocity()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get pointerVelocity() {
 		return this.getPointerVelocity()
 	}
@@ -147,11 +150,11 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getIsPen()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get isPen() {
 		return this.getIsPen()
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	set isPen(isPen: boolean) {
 		this.setIsPen(isPen)
 	}
@@ -172,11 +175,11 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getShiftKey()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get shiftKey() {
 		return this.getShiftKey()
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	set shiftKey(shiftKey: boolean) {
 		this.setShiftKey(shiftKey)
 	}
@@ -198,11 +201,11 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getMetaKey()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get metaKey() {
 		return this.getMetaKey()
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	set metaKey(metaKey: boolean) {
 		this.setMetaKey(metaKey)
 	}
@@ -224,11 +227,11 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getCtrlKey()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get ctrlKey() {
 		return this.getCtrlKey()
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	set ctrlKey(ctrlKey: boolean) {
 		this.setCtrlKey(ctrlKey)
 	}
@@ -250,11 +253,11 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getAltKey()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get altKey() {
 		return this.getAltKey()
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	set altKey(altKey: boolean) {
 		this.setAltKey(altKey)
 	}
@@ -275,7 +278,7 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getAccelKey()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get accelKey() {
 		return this.getAccelKey()
 	}
@@ -290,11 +293,11 @@ export class InputsManager {
 	/**
 	 * Soon to be deprecated, use `getIsDragging()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get isDragging() {
 		return this.getIsDragging()
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	set isDragging(isDragging: boolean) {
 		this.setIsDragging(isDragging)
 	}
@@ -315,11 +318,11 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getIsPointing()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get isPointing() {
 		return this.getIsPointing()
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	set isPointing(isPointing: boolean) {
 		this.setIsPointing(isPointing)
 	}
@@ -329,6 +332,18 @@ export class InputsManager {
 	 */
 	setIsPointing(isPointing: boolean) {
 		this._isPointing.set(isPointing)
+	}
+
+	private _isRightPointing = atom<boolean>('isRightPointing', false)
+	/**
+	 * Whether the user is right-click pointing (before drag threshold).
+	 */
+	getIsRightPointing() {
+		return this._isRightPointing.get()
+	}
+	/** @internal */
+	setIsRightPointing(isRightPointing: boolean) {
+		this._isRightPointing.set(isRightPointing)
 	}
 
 	private _isPinching = atom<boolean>('isPinching', false)
@@ -341,11 +356,11 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getIsPinching()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get isPinching() {
 		return this.getIsPinching()
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	set isPinching(isPinching: boolean) {
 		this.setIsPinching(isPinching)
 	}
@@ -367,11 +382,11 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getIsEditing()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get isEditing() {
 		return this.getIsEditing()
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	set isEditing(isEditing: boolean) {
 		this.setIsEditing(isEditing)
 	}
@@ -392,11 +407,11 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getIsPanning()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get isPanning() {
 		return this.getIsPanning()
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	set isPanning(isPanning: boolean) {
 		this.setIsPanning(isPanning)
 	}
@@ -418,11 +433,11 @@ export class InputsManager {
 	/**
 	 * @deprecated Use `getIsSpacebarPanning()` instead.
 	 */
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	get isSpacebarPanning() {
 		return this.getIsSpacebarPanning()
 	}
-	// eslint-disable-next-line no-restricted-syntax
+	// eslint-disable-next-line tldraw/no-setter-getter
 	set isSpacebarPanning(isSpacebarPanning: boolean) {
 		this.setIsSpacebarPanning(isSpacebarPanning)
 	}
@@ -461,8 +476,14 @@ export class InputsManager {
 		const length = delta.len()
 		const direction = length ? delta.div(length) : new Vec(0, 0)
 
-		// consider adjusting this with an easing rather than a linear interpolation
-		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), 0.5)
+		// Preserve the old 16ms smoothing with alpha = 1 - (1 - 0.5)^(elapsed / 16).
+		const smoothing =
+			1 -
+			Math.pow(
+				1 - POINTER_VELOCITY_REFERENCE_SMOOTHING,
+				elapsed / POINTER_VELOCITY_REFERENCE_INTERVAL_MS
+			)
+		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), smoothing)
 
 		// if the velocity is very small, just set it to 0
 		if (Math.abs(next.x) < 0.01) next.x = 0

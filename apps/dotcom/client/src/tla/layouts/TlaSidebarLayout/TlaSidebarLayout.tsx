@@ -1,8 +1,8 @@
 import React, { ReactNode, useCallback, useLayoutEffect, useRef } from 'react'
-import { clamp, tltime, useQuickReactor } from 'tldraw'
-import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
+import { clamp, tltime, useMenuIsOpen, useQuickReactor } from 'tldraw'
 import { TlaSidebarToggle } from '../../components/TlaSidebar/components/TlaSidebarToggle'
 import { TlaSidebarToggleMobile } from '../../components/TlaSidebar/components/TlaSidebarToggleMobile'
+import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import {
 	getLocalSessionState,
@@ -28,6 +28,7 @@ export function TlaSidebarLayout({
 }) {
 	const isSidebarOpen = useIsSidebarOpen()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
+	const [isWorkspaceSwitcherOpen] = useMenuIsOpen('sidebar-workspace-switcher')
 
 	usePreventAccidentalDrops()
 
@@ -80,9 +81,14 @@ export function TlaSidebarLayout({
 
 		if (rResizeState.current.name === 'resizing') {
 			const { startX, startWidth } = rResizeState.current
+			const direction = getComputedStyle(
+				rLayoutContainer.current ?? document.documentElement
+			).direction
+			const deltaX = moveEvent.clientX - startX
+			const widthDelta = direction === 'rtl' ? -deltaX : deltaX
 
 			const newWidth = Math.floor(
-				clamp(startWidth + (moveEvent.clientX - startX), MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH)
+				clamp(startWidth + widthDelta, MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH)
 			)
 
 			if (newWidth !== getLocalSessionStateUnsafe().sidebarWidth) {
@@ -175,7 +181,7 @@ export function TlaSidebarLayout({
 						<TlaSidebarToggle />
 						<TlaSidebarToggleMobile />
 					</div>
-					{isSidebarOpen && (
+					{isSidebarOpen && !isWorkspaceSwitcherOpen && (
 						<div
 							className={styles.resizeHandle}
 							onPointerDown={handlePointerDown}

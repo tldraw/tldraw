@@ -6,21 +6,21 @@ import {
 	StyleProp,
 	TLDefaultColorStyle,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import { memo, useMemo, useRef } from 'react'
-import { useDefaultColorTheme } from '../../../shapes/shared/useDefaultColorTheme'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
 import {
 	TldrawUiToolbar,
 	TldrawUiToolbarToggleGroup,
 	TldrawUiToolbarToggleItem,
 } from '../primitives/TldrawUiToolbar'
-import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
 import { useStylePanelContext } from './StylePanelContext'
 import { StylePanelSubheading } from './StylePanelSubheading'
 
@@ -61,8 +61,12 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		onValueChange = ctx.onValueChange,
 		onHistoryMark = ctx.onHistoryMark,
 	} = props
-	const theme = useDefaultColorTheme()
 	const editor = useEditor()
+	const colors = useValue(
+		'style panel button picker colors',
+		() => editor.getCurrentTheme().colors[editor.getColorMode()],
+		[editor]
+	)
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
@@ -77,7 +81,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 	} = useMemo(() => {
 		const handlePointerUp = () => {
 			rPointing.current = false
-			window.removeEventListener('pointerup', handlePointerUp)
+			editor.getContainerWindow().removeEventListener('pointerup', handlePointerUp)
 
 			// This is fun little micro-optimization to make sure that the focus
 			// is retained on a text label. That way, you can continue typing
@@ -106,8 +110,9 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 			onValueChange(style, id as T)
 
 			rPointing.current = true
-			rPointingOriginalActiveElement.current = document.activeElement as HTMLElement
-			window.addEventListener('pointerup', handlePointerUp) // see TLD-658
+			rPointingOriginalActiveElement.current = editor.getContainerDocument()
+				.activeElement as HTMLElement
+			editor.getContainerWindow().addEventListener('pointerup', handlePointerUp) // see TLD-658
 		}
 
 		const handleButtonPointerEnter = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -164,7 +169,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 							title={label}
 							style={
 								style === (DefaultColorStyle as StyleProp<unknown>)
-									? { color: getColorValue(theme, item.value as TLDefaultColorStyle, 'solid') }
+									? { color: getColorValue(colors, item.value as TLDefaultColorStyle, 'solid') }
 									: undefined
 							}
 							onPointerEnter={handleButtonPointerEnter}

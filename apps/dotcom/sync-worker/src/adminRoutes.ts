@@ -7,8 +7,14 @@ import { createPostgresConnectionPool } from './postgres'
 import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
-import { getFeatureFlags, setFeatureFlag } from './utils/featureFlags'
+import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
+import {
+	computeUsersToEnroll,
+	computeUsersToUnenroll,
+	enrollUsersInWorkspacesUi,
+	unenrollUsersFromWorkspacesUi,
+} from './utils/workspacesUiRollout'
 
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
@@ -64,15 +70,44 @@ export const adminRoutes = createRouter<Environment>()
 		const result = await user.admin_migrateToGroups(userRow.id, uniqueId())
 		return json(result)
 	})
+	.post('/app/admin/user/enroll_groups', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const userRow = await requireUser(env, q)
+		const user = getUserDurableObject(env, userRow.id)
+		const result = await user.admin_enrollInGroups(userRow.id)
+		return json(result)
+	})
+	.post('/app/admin/user/unenroll_groups', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const userRow = await requireUser(env, q)
+		const user = getUserDurableObject(env, userRow.id)
+		const result = await user.admin_unenrollFromGroups(userRow.id)
+		return json(result)
+	})
 	.get('/app/admin/unmigrated_users_count', async (_res, env) => {
 		const pg = createPostgresConnectionPool(env, '/app/admin/unmigrated_users_count')
-		return json({ count: await getNumUnmigratedUsers(pg) })
+		const count = await getNumUnenrolledUsers(pg)
+		const total = await getTotalUsers(pg)
+		return json({ count, total })
 	})
 	.get('/app/admin/migrate_users_batch', async (res, env) => {
 		let stopRequested = false
 
 		// Parse query parameters for batch configuration
 		const sleepMs = parseInt((res.query['sleepMs'] as string) || '100')
+		if (isNaN(sleepMs) || sleepMs < 0) {
+			throw new StatusError(400, 'sleepMs must be a non-negative number')
+		}
+		const percentage = parseInt((res.query['percentage'] as string) || '0')
+		if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+			throw new StatusError(400, 'percentage must be a number between 0 and 100')
+		}
 
 		return new Response(
 			new ReadableStream({
@@ -92,19 +127,28 @@ export const adminRoutes = createRouter<Environment>()
 
 						const shouldStop = () => stopRequested
 
-						sendProgress('starting', 'Beginning batch user migration process...')
+						sendProgress('starting', 'Beginning workspaces UI rollout batch...')
 
-						const hasMore = await startUserMigration(env, sendProgress, shouldStop, sleepMs)
+						const { hasMore, failed } = await startFrontendRollout(
+							env,
+							sendProgress,
+							shouldStop,
+							sleepMs,
+							percentage
+						)
 
 						// Send completion event
 						const completionEvent = {
 							type: 'complete',
 							step: 'finished',
 							message: stopRequested
-								? 'Batch migration stopped by user'
-								: 'Batch migration completed successfully',
+								? 'Rollout stopped by user'
+								: failed
+									? 'Rollout stopped due to a failure'
+									: 'Rollout batch completed',
 							timestamp: Date.now(),
 							hasMore,
+							failed,
 						}
 						controller.enqueue(
 							new TextEncoder().encode(`data: ${JSON.stringify(completionEvent)}\n\n`)
@@ -139,22 +183,34 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		)
 	})
-	.get('/app/admin/feature-flags', getFeatureFlags)
+	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
 		const body: any = await req.json()
-		const { flag, enabled } = body
+		const { flag, enabled, percentage } = body
 
-		if (typeof flag !== 'string' || typeof enabled !== 'boolean') {
-			throw new StatusError(400, 'flag (string) and enabled (boolean) are required')
+		if (typeof flag !== 'string') {
+			throw new StatusError(400, 'flag (string) is required')
+		}
+		if (enabled !== undefined && typeof enabled !== 'boolean') {
+			throw new StatusError(400, 'enabled must be a boolean')
+		}
+		if (
+			percentage !== undefined &&
+			(typeof percentage !== 'number' || percentage < 0 || percentage > 100)
+		) {
+			throw new StatusError(400, 'percentage must be a number between 0 and 100')
 		}
 
-		const validFlags: FeatureFlagKey[] = []
-		if (!validFlags.includes(flag as FeatureFlagKey)) {
-			throw new StatusError(400, `Invalid flag. Must be one of: ${validFlags.join(', ')}`)
+		if (!FEATURE_FLAG_KEYS.includes(flag as FeatureFlagKey)) {
+			throw new StatusError(400, `Invalid flag. Must be one of: ${FEATURE_FLAG_KEYS.join(', ')}`)
 		}
 
-		await setFeatureFlag(env, flag as FeatureFlagKey, enabled)
-		return json({ success: true, flag, enabled })
+		const update: { enabled?: boolean; percentage?: number } = {}
+		if (enabled !== undefined) update.enabled = enabled
+		if (percentage !== undefined) update.percentage = percentage
+
+		await setFeatureFlag(env, flag as FeatureFlagKey, update)
+		return json({ success: true, flag, ...update })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
@@ -261,6 +317,61 @@ export const adminRoutes = createRouter<Environment>()
 		const fileSlug = res.params.fileSlug
 		assert(typeof fileSlug === 'string', 'fileSlug is required')
 		return await returnFileSnapshot(env, fileSlug, false)
+	})
+	// The current welcome template (the file new workspaces fork their first file from), or
+	// null when none is set and the committed default is used. Also reports whether the marked
+	// file is still live and published: the resolver silently falls back to the default if it
+	// isn't, so the admin needs to see a stale pointer rather than assume it's working. See
+	// resolveWelcomeSnapshot.
+	.get('/app/admin/welcome-template', async (_res, env) => {
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		const row = await pg.selectFrom('welcome_template').selectAll().executeTakeFirst()
+		if (!row) return json(null)
+		const file = await pg
+			.selectFrom('file')
+			.where('id', '=', row.fileId)
+			.select(['published', 'isDeleted'])
+			.executeTakeFirst()
+		const live = !!file && !file.isDeleted && file.published
+		return json({ ...row, live })
+	})
+	// Mark a published file as the welcome template. We store its publishedSlug, so the file
+	// must be published first; new workspaces then fork its published snapshot.
+	.post('/app/admin/welcome-template', async (req, env) => {
+		const { fileId } = (await req.json()) as { fileId?: unknown }
+		assert(typeof fileId === 'string' && fileId.length > 0, 'fileId (string) is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		const file = await pg
+			.selectFrom('file')
+			.where('id', '=', fileId)
+			.select(['id', 'published', 'publishedSlug', 'isDeleted'])
+			.executeTakeFirst()
+		if (!file) throw new StatusError(404, `File not found: ${fileId}`)
+		if (!file.published) {
+			throw new StatusError(400, 'File must be published before it can be the welcome template')
+		}
+
+		const updatedAt = Date.now()
+		await pg
+			.insertInto('welcome_template')
+			.values({ id: true, fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
+			.onConflict((oc) =>
+				oc
+					.column('id')
+					.doUpdateSet({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
+			)
+			.execute()
+		// Return the same shape as GET, including `live`, so the admin UI doesn't flash the
+		// "not published" warning right after a successful set.
+		const live = !file.isDeleted && file.published
+		return json({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt, live })
+	})
+	// Clear the welcome template, reverting new workspaces to the committed default snapshot.
+	.post('/app/admin/welcome-template/clear', async (_res, env) => {
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		await pg.deleteFrom('welcome_template').execute()
+		return json({ cleared: true })
 	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {
@@ -463,19 +574,40 @@ async function performUserDeletion(
 	await user.admin_delete(userRow.id)
 }
 
-async function getNextUnmigratedUser(pg: ReturnType<typeof createPostgresConnectionPool>) {
+async function getNextUnenrolledUsers(
+	pg: ReturnType<typeof createPostgresConnectionPool>,
+	limit: number
+) {
+	// md5(id) gives a deterministic shuffle — unbiased by signup date (raw ids
+	// are KSUID-like and time-sortable) and stable across chunks and reruns
 	return await pg
 		.selectFrom('user')
-		.where((eb) => eb.or([eb('flags', 'not like', '%groups_backend%'), eb('flags', 'is', null)]))
-		.select(['id', 'email', 'name'])
-		.limit(1)
-		.executeTakeFirst()
+		.where((eb) => eb.or([eb('flags', 'not like', '%groups_frontend%'), eb('flags', 'is', null)]))
+		.select(['id'])
+		.orderBy(sql`md5(id)`, 'asc')
+		.limit(limit)
+		.execute()
 }
 
-async function getNumUnmigratedUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
+async function getNextEnrolledUsers(
+	pg: ReturnType<typeof createPostgresConnectionPool>,
+	limit: number
+) {
+	// Reverse hash order: unenrolling drops the most-recently-enrolled cohort,
+	// so lowering the percentage leaves the same set as rolling straight to it
+	return await pg
+		.selectFrom('user')
+		.where('flags', 'like', '%groups_frontend%')
+		.select(['id'])
+		.orderBy(sql`md5(id)`, 'desc')
+		.limit(limit)
+		.execute()
+}
+
+async function getNumUnenrolledUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
 	const res = await sql<{
 		count: number
-	}>`select count(*) from public.user where flags not like '%groups_backend%' or flags is null`.execute(
+	}>`select count(*) from public.user where flags not like '%groups_frontend%' or flags is null`.execute(
 		pg
 	)
 	return res.rows[0].count
@@ -485,19 +617,30 @@ async function getTotalUsers(pg: ReturnType<typeof createPostgresConnectionPool>
 	return res.rows[0].count
 }
 
-async function startUserMigration(
+async function startFrontendRollout(
 	env: Environment,
 	sendProgress: (step: string, message: string, details?: any) => void,
 	shouldStop: () => boolean,
-	sleepTime: number = 100
-): Promise<boolean> {
-	const batchSize = 50
+	sleepTime: number = 100,
+	percentage: number = 0
+): Promise<{ hasMore: boolean; failed: boolean }> {
+	// Plain SQL on the shared pool — clients pick the flag up live through Zero,
+	// so no per-user DO work (same as acceptInvite) and no subrequest/connection
+	// limits (#7052, #7076).
+	const chunkSize = 200
+	const batchSize = 2000 // per SSE request; the client chains requests via hasMore
 	const pg = createPostgresConnectionPool(env, '/app/admin/migrate_users_batch')
 
-	sendProgress('query', 'Fetching users without groups_backend flag...')
+	sendProgress('query', 'Checking current workspaces UI enrollment...')
 
-	const usersToMigrate = await getNumUnmigratedUsers(pg)
+	const unenrolledUsers = await getNumUnenrolledUsers(pg)
 	const totalUsers = await getTotalUsers(pg)
+	const toEnroll = computeUsersToEnroll({ totalUsers, unenrolledUsers, percentage })
+	const toUnenroll = computeUsersToUnenroll({ totalUsers, unenrolledUsers, percentage })
+	// At most one direction is non-zero; lowering the target unenrolls users
+	const enrolling = toEnroll > 0
+	const usersToMigrate = enrolling ? toEnroll : toUnenroll
+	const verb = enrolling ? 'enroll' : 'unenroll'
 	let successCount = 0
 	let failureCount = 0
 
@@ -511,89 +654,89 @@ async function startUserMigration(
 		}
 	}
 
-	sendProgress('query', `${usersToMigrate}/${totalUsers} users left to migrate`, getStats())
+	sendProgress(
+		'query',
+		`${unenrolledUsers}/${totalUsers} users without the workspaces UI, ${verb}ing ${usersToMigrate} to reach ${percentage}%`,
+		getStats()
+	)
 
 	if (usersToMigrate === 0) {
-		sendProgress('complete', 'No users to migrate')
-		return false
+		sendProgress('complete', `No users to update — already at ${percentage}%`)
+		return { hasMore: false, failed: false }
 	}
 
-	const failures: Array<{ userId: string; email: string; error: string }> = []
-	let processedCount = 0
+	let remainingThisRequest = Math.min(batchSize, usersToMigrate)
 
-	// Process users in batches
-	while (processedCount < batchSize) {
-		const userRow = await getNextUnmigratedUser(pg)
-		if (!userRow) {
-			break
-		}
-
-		// Check if we should stop
+	while (remainingThisRequest > 0) {
 		if (shouldStop()) {
-			sendProgress('stopped', 'Migration stopped by user', getStats())
+			sendProgress('stopped', 'Rollout stopped by user', getStats())
 			break
 		}
 
-		sendProgress('migrating', `Migrating user ${userRow.email}`, {
-			userId: userRow.id,
-			email: userRow.email,
-			...getStats(),
-		})
+		const limit = Math.min(chunkSize, remainingThisRequest)
+		const chunk = enrolling
+			? await getNextUnenrolledUsers(pg, limit)
+			: await getNextEnrolledUsers(pg, limit)
+		if (chunk.length === 0) break
 
 		try {
-			await retry(async () => {
-				const user = getUserDurableObject(env, userRow.id)
-
-				const result = await sql<{
-					files_migrated: number
-					pinned_files_migrated: number
-					flag_added: boolean
-				}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
-				await user.admin_forceHardReboot(userRow.id)
-
-				successCount++
-				sendProgress('success', `Successfully migrated user ${userRow.email}`, {
-					userId: userRow.id,
-					email: userRow.email,
-					result: result.rows[0],
-					...getStats(),
-				})
-			})
+			const ids = chunk.map((u) => u.id)
+			const updated = await retry(() =>
+				enrolling ? enrollUsersInWorkspacesUi(pg, ids) : unenrollUsersFromWorkspacesUi(pg, ids)
+			)
+			successCount += updated
+			if (updated === chunk.length) {
+				sendProgress(
+					'success',
+					`${enrolling ? 'Enrolled' : 'Unenrolled'} ${updated} users`,
+					getStats()
+				)
+			} else {
+				// Shortfall = rows skipped by the flag guard: a retry whose first
+				// attempt committed, or a concurrent change (e.g. invite accept).
+				// Data is correct, only the counts drift.
+				sendProgress(
+					'success',
+					`${enrolling ? 'Enrolled' : 'Unenrolled'} ${updated}/${chunk.length} users in this chunk (the rest were already updated)`,
+					getStats()
+				)
+			}
 		} catch (error) {
-			failureCount++
+			failureCount += chunk.length
 			const errorMessage = error instanceof Error ? error.message : String(error)
-			failures.push({
-				userId: userRow.id,
-				email: userRow.email,
-				error: errorMessage,
-			})
+			console.error(`workspaces UI rollout: failed to ${verb} chunk`, errorMessage)
 
-			// Send failure event to client so it can be stored in the log
-			sendProgress('failure', `Failed to migrate ${userRow.email}`, {
-				userId: userRow.id,
-				email: userRow.email,
-				error: errorMessage,
-				...getStats(),
+			// 'failure' events get stored in the client's log
+			sendProgress(
+				'failure',
+				`Failed to ${verb} a chunk of ${chunk.length} users (some may have been updated before the error)`,
+				{
+					userIds: chunk.map((u) => u.id),
+					error: errorMessage,
+					...getStats(),
+				}
+			)
+			sendProgress('summary', 'Rollout stopped due to failure', {
+				failures: [{ userIds: chunk.map((u) => u.id), error: errorMessage }],
 			})
-
-			// Stop processing immediately after reporting the failure
-			sendProgress('summary', 'Migration stopped due to failure', {
-				failures: failures.length > 0 ? failures : undefined,
-			})
-			return false
+			return { hasMore: false, failed: true }
 		}
 
-		processedCount++
+		remainingThisRequest -= chunk.length
 
-		// Brief pause between migrations to avoid overwhelming the system
+		// Pace the update bursts hitting zero-cache
 		await sleep(sleepTime)
 	}
 
-	sendProgress('summary', 'Migration batch complete', {
-		failures: failures.length > 0 ? failures : undefined,
-	})
+	sendProgress('summary', 'Rollout batch complete', getStats())
 
-	// Check if there are more users to migrate
-	const remainingUsers = await getNumUnmigratedUsers(pg)
-	return remainingUsers > 0
+	// More requests needed if we're still off target in either direction
+	const stillUnenrolled = await getNumUnenrolledUsers(pg)
+	const stillOffTarget =
+		computeUsersToEnroll({ totalUsers, unenrolledUsers: stillUnenrolled, percentage }) +
+		computeUsersToUnenroll({ totalUsers, unenrolledUsers: stillUnenrolled, percentage })
+	return {
+		hasMore: !shouldStop() && stillOffTarget > 0,
+		failed: false,
+	}
 }

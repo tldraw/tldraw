@@ -2,16 +2,16 @@ import { TldrawUiButton } from 'tldraw'
 import { useMsg } from '../../../utils/i18n'
 import { TlaFileMenu } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import styles from '../sidebar.module.css'
 import { messages } from './sidebar-shared'
+import styles from '../sidebar.module.css'
 
 export function TlaSidebarFileLinkMenu({
 	fileId,
-	groupId,
+	workspaceId,
 	onRenameAction,
 }: {
 	fileId: string
-	groupId: string | null
+	workspaceId: string | null
 	onRenameAction(): void
 }) {
 	const fileMenuLbl = useMsg(messages.fileMenu)
@@ -19,7 +19,7 @@ export function TlaSidebarFileLinkMenu({
 	return (
 		<TlaFileMenu
 			fileId={fileId}
-			groupId={groupId}
+			workspaceId={workspaceId}
 			source="sidebar"
 			onRenameAction={onRenameAction}
 			trigger={

@@ -1,7 +1,7 @@
 import { TLDrawShape, TLHighlightShape, last } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { base64ToPoints } from '../lib/utils/test-helpers'
 import { TEST_DRAW_SHAPE_SCREEN_POINTS } from './drawing.data'
-import { base64ToPoints } from './test-jsx'
 import { TestEditor } from './TestEditor'
 
 vi.useFakeTimers()
@@ -188,7 +188,16 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const x = magnitude * Math.cos(angle)
 			const y = magnitude * Math.sin(angle)
 
-			editor.setCurrentTool(toolType).keyDown('Meta').pointerDown(0, 0).pointerMove(x, y)
+			// Shift held during pointerDown enters straight-line (angle-snapping) mode.
+			// Cmd pressed after pointerDown disables the angle snap. We press cmd
+			// after pointerDown so the accel-to-erase shortcut (which fires from
+			// the tool's idle state) doesn't intercept it.
+			editor
+				.setCurrentTool(toolType)
+				.keyDown('Shift')
+				.pointerDown(0, 0)
+				.keyDown('Meta')
+				.pointerMove(x, y)
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]
@@ -284,7 +293,6 @@ it('Draws a bunch', () => {
 	editor.selectAll()
 
 	const shape = { ...editor.getLastCreatedShape() }
-	// @ts-expect-error
-	delete shape.id
+	delete (shape as any).id
 	expect(shape).toMatchSnapshot('draw shape')
 })

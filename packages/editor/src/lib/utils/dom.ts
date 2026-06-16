@@ -35,6 +35,7 @@ export function loopToHtmlElement(elm: Element): HTMLElement {
  * @public
  */
 export function preventDefault(event: React.BaseSyntheticEvent | Event) {
+	if ('cancelable' in event && !event.cancelable) return
 	event.preventDefault()
 	if (debugFlags.logPreventDefaults.get()) {
 		console.warn('preventDefault called on event:', event)
@@ -85,14 +86,16 @@ export function releasePointerCapture(
  *
  * @public
  */
-export const stopEventPropagation = (e: any) => e.stopPropagation()
+export function stopEventPropagation(e: any) {
+	return e.stopPropagation()
+}
 
 /** @internal */
-export const setStyleProperty = (
+export function setStyleProperty(
 	elm: HTMLElement | null,
 	property: string,
 	value: string | number
-) => {
+) {
 	if (!elm) return
 	elm.style.setProperty(property, String(value))
 }
@@ -112,7 +115,39 @@ export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMe
 	)
 }
 
+/**
+ * Returns the global `document`. Use this instead of bare `document` to satisfy lint rules.
+ *
+ * When you have a DOM node or editor instance, prefer the scoped versions instead:
+ * - `getOwnerDocument(node)` – the document that owns a specific DOM node
+ * - `editor.getContainerDocument()` – the document where the editor is mounted
+ *
+ * @internal
+ */
+export function getGlobalDocument(): Document {
+	// eslint-disable-next-line no-restricted-globals
+	if (typeof document !== 'undefined') return document
+	return globalThis.document
+}
+
+/**
+ * Returns the global `window`. Use this instead of bare `window` to satisfy lint rules.
+ *
+ * When you have a DOM node or editor instance, prefer the scoped versions instead:
+ * - `getOwnerWindow(node)` – the window that owns a specific DOM node
+ * - `editor.getContainerWindow()` – the window where the editor is mounted
+ *
+ * @internal
+ */
+export function getGlobalWindow(): Window & typeof globalThis {
+	if (typeof window !== 'undefined') return window as Window & typeof globalThis
+	return globalThis as Window & typeof globalThis
+}
+
 /** @internal */
-export function activeElementShouldCaptureKeys(includeButtonsAndMenus = true) {
-	return elementShouldCaptureKeys(document.activeElement, includeButtonsAndMenus)
+export function activeElementShouldCaptureKeys(includeButtonsAndMenus = true, doc?: Document) {
+	return elementShouldCaptureKeys(
+		(doc ?? getGlobalDocument()).activeElement,
+		includeButtonsAndMenus
+	)
 }

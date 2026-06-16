@@ -78,10 +78,10 @@ When a user starts chatting:
 1. The `CursorChatBubble` component renders an input field at the cursor position
 2. The input tracks the cursor via `pointermove` events
 3. As the user types, `chatMessage` updates in instance state
-4. When they press Enter or the input loses focus, `isChatting` becomes `false`
-5. The message displays for 2 seconds, then clears automatically
+4. When they press Escape, press Enter with an empty input, or the input loses focus, `isChatting` becomes `false`
+5. The message stays visible for 2 seconds, then clears automatically
 
-Messages time out after 5 seconds while typing, or 2 seconds after the user stops.
+While the input is open, chat times out after 5 seconds of inactivity.
 
 ## Keyboard shortcuts
 
@@ -175,7 +175,7 @@ export default function App() {
 }
 ```
 
-For customizing how remote users' chat messages appear, override the `CollaboratorCursor` component instead. See [Cursors](/sdk-features/cursors) for details.
+Remote users' chat messages render as part of the collaborator cursor overlay. To customize how they appear, replace [CollaboratorCursorOverlayUtil](?) — see [Cursors](/sdk-features/cursors#rendering-collaborator-cursors) for details.
 
 ## Availability
 

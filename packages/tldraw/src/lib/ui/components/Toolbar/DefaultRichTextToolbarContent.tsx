@@ -1,4 +1,4 @@
-import { isAccelKey, preventDefault, TiptapEditor } from '@tldraw/editor'
+import { isAccelKey, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
 import { useEffect, useMemo, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -20,6 +20,7 @@ export function DefaultRichTextToolbarContent({
 	textEditor,
 	onEditLinkStart,
 }: DefaultRichTextToolbarContentProps) {
+	const editor = useEditor()
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'rich-text-menu'
@@ -45,11 +46,12 @@ export function DefaultRichTextToolbarContent({
 			}
 		}
 
-		document.addEventListener('keydown', handleKeyDown)
+		const doc = editor.getContainerDocument()
+		doc.addEventListener('keydown', handleKeyDown)
 		return () => {
-			document.removeEventListener('keydown', handleKeyDown)
+			doc.removeEventListener('keydown', handleKeyDown)
 		}
-	}, [onEditLinkStart])
+	}, [editor, onEditLinkStart])
 
 	// todo: we could make this a prop
 	const actions = useMemo(() => {

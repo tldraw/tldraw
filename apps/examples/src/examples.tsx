@@ -20,6 +20,7 @@ const categories = [
 	['layout', 'Page layout'],
 	['events', 'Events & effects'],
 	['shapes/tools', 'Shapes & tools'],
+	['users', 'Users'],
 	['collaboration', 'Collaboration'],
 	['data/assets', 'Data & assets'],
 	['use-cases', 'Use cases'],

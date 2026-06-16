@@ -41,7 +41,7 @@ export class IPAdapterNodeDefinition extends NodeDefinition<IPAdapterNode> {
 	title = 'IP-Adapter'
 	heading = 'IP-Adapter'
 	hidden = true as const
-	icon = (<IPAdapterIcon />)
+	icon = <IPAdapterIcon />
 	category = 'process'
 	resultKeys = ['lastResultUrl'] as const
 	getDefault(): IPAdapterNode {

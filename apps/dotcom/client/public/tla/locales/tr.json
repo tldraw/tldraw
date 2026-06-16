@@ -1,4 +1,7 @@
 {
+  "1764571547": {
+    "translation": "Bu çalışma alanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+  },
   "0095a9fa74": {
     "translation": "Dışa aktar"
   },
@@ -7,6 +10,12 @@
   },
   "043973ec1f": {
     "translation": "Sorun devam ediyor mu? {GetHelpLink}"
+  },
+  "04a2dd56d6": {
+    "translation": "Takım arkadaşlarınızı davet edin"
+  },
+  "05f43078e9": {
+    "translation": "Maksimum çalışma alanı sayısına ulaştınız. Yeni çalışma alanları oluşturmadan önce eski çalışma alanlarını silmeniz gerekiyor."
   },
   "06b9281e39": {
     "translation": "Otomatik"
@@ -29,14 +38,17 @@
   "0b9a4cde72": {
     "translation": "Dosya menüsü"
   },
+  "0c4383617a": {
+    "translation": "Bu davetiye yüklenirken bir sorun oluştu. Lütfen tekrar deneyin."
+  },
   "0d1f2bb523": {
     "translation": "Geri bildirim gönder"
   },
+  "1063e38cb5": {
+    "translation": "Kaldırmak"
+  },
   "110a4b01be": {
     "translation": "Yayınla"
-  },
-  "129b9e34ea": {
-    "translation": "Gruptan ayrıl"
   },
   "12a6766ba1": {
     "translation": "Dosyayı sabitle"
@@ -47,14 +59,11 @@
   "13ddd375ad": {
     "translation": "Dışa aktarma formatı"
   },
-  "146ffe2fd9": {
-    "translation": "Daha fazlasını göster"
-  },
-  "14d65465b7": {
-    "translation": "Grubu sil"
-  },
   "181b90f889": {
     "translation": "Dosya oluştur"
+  },
+  "1d2591253e": {
+    "translation": "Çalışma alanı ayarları"
   },
   "1da2e8106b": {
     "translation": "Beklenmeyen bir hata oluştu."
@@ -62,8 +71,8 @@
   "1dd1c5fb7f": {
     "translation": "Bugün"
   },
-  "2445e5e347": {
-    "translation": "Grup oluştur"
+  "21f66c9c00": {
+    "translation": "Çalışma alanı adı"
   },
   "250ddea65c": {
     "translation": "tldraw hakkında"
@@ -74,14 +83,14 @@
   "2c3ef76333": {
     "translation": "Dosyalarım"
   },
+  "2e2b3c700b": {
+    "translation": "Mevcut dosyaya bağlantı ekleyin"
+  },
   "31246941ad": {
     "translation": "Bu dosyayı görüntülemek için oturum açmanız gerekiyor."
   },
   "31418ce4ad": {
     "translation": "i18n: Vurgu Eksik"
-  },
-  "32210b37e4": {
-    "translation": "Bağlantı ekle"
   },
   "324a0f3182": {
     "translation": "tldraw'a geri dön"
@@ -91,6 +100,9 @@
   },
   "344a7f427f": {
     "translation": "Düzenleyici"
+  },
+  "375396d6e5": {
+    "translation": "Üyeyi kaldır"
   },
   "3bc7d6ea2f": {
     "translation": "E-postayla devam et"
@@ -104,8 +116,17 @@
   "3d0238bf16": {
     "translation": "Hepsini kabul et"
   },
+  "3e2ae04ff0": {
+    "translation": "Desteklenmeyen Mermaid diyagramı"
+  },
+  "402bf0c47e": {
+    "translation": "Renk teması"
+  },
   "42e53c47c1": {
     "translation": "Erişim isteğinde bulunmak için sahibiyle iletişime geçin."
+  },
+  "44680c1fa7": {
+    "translation": "Çalışma alanından ayrılın…"
   },
   "44db318ee5": {
     "translation": "Discord'da yardım alın"
@@ -122,12 +143,6 @@
   "47f493a590": {
     "translation": "Pin dosyası"
   },
-  "49049467ff": {
-    "translation": "tldraw dosya URL'sini yapıştır..."
-  },
-  "4908687e50": {
-    "translation": "Bu dosyayı unutmak istediğinizden emin misiniz?"
-  },
   "49ee308734": {
     "translation": "İsim"
   },
@@ -137,11 +152,8 @@
   "4d1c8263ba": {
     "translation": "Tekrar yükle"
   },
-  "4da5988a2e": {
-    "translation": "Grubu sil…"
-  },
-  "4e6fbf032b": {
-    "translation": "Bu grubu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+  "5097d89907": {
+    "translation": "Desteklenmeyen diyagram, bunun yerine SVG oluşturulacak."
   },
   "50db1b7e1e": {
     "translation": "Dosya yayından kaldırılamıyor."
@@ -167,23 +179,23 @@
   "56c34c6410": {
     "translation": "Gizlilik Politikası"
   },
-  "5a86b22fa0": {
-    "translation": "Başlamak için dosyaları buraya sürükleyin, <create>bir dosya oluşturun</create> veya <invite>davet bağlantısını kopyalayın</invite>."
-  },
   "5a95a425f7": {
     "translation": "Paylaş"
   },
   "5bec508475": {
     "translation": "Eski tarayıcı algılandı. Bu uygulamayı kullanmak için lütfen tarayıcınızı güncelleyin."
   },
+  "5bff3c9c88": {
+    "translation": "Çalışma alanım"
+  },
   "5c6fe42bc2": {
     "translation": "Bu bağlantıyı iptal edin ve yeni bir bağlantı oluşturun."
   },
+  "5d04a002ea": {
+    "translation": "Bağlantı kurulamadı."
+  },
   "5d26ae7550": {
     "translation": "Oturum açmadan önce oluşturduğunuz bazı içerikleri yükleyemedik."
-  },
-  "5ea8bb44be": {
-    "translation": "Gruba katılmaya davet edildiniz:"
   },
   "5f3c333678": {
     "translation": "Geri bildirim gönderildi"
@@ -200,6 +212,9 @@
   "639bae9ac6": {
     "translation": "Sen"
   },
+  "63a6a88c06": {
+    "translation": "Yenile"
+  },
   "6609dd239e": {
     "translation": "Bir sorun oluştu"
   },
@@ -209,6 +224,9 @@
   "6832ac5936": {
     "translation": "E-posta adresinizi girin"
   },
+  "694f82ed9d": {
+    "translation": "Çalışma alanını sil"
+  },
   "6a26f54883": {
     "translation": "Yardım"
   },
@@ -217,9 +235,6 @@
   },
   "6dfc62f621": {
     "translation": "İçeriği manuel olarak içe aktarmak için şu adımları izleyin:"
-  },
-  "70222abcfc": {
-    "translation": "Grup ayarları"
   },
   "70a6facb9d": {
     "translation": "Bu hafta"
@@ -248,6 +263,9 @@
   "764671e008": {
     "translation": "Discord'da bizimle sohbet edin"
   },
+  "4908687e50": {
+    "translation": "Bu dosyayı unutmak istediğinizden emin misiniz?"
+  },
   "76dea3c9ca": {
     "translation": "tldraw ücretsiz bir çevrimiçi beyaz tahtadır. Dosyalarınızı kaydetmek ve arkadaşlarınızla birlikte çalışmak için bir hesap oluşturun."
   },
@@ -263,6 +281,9 @@
   "797799f35e": {
     "translation": "GitHub'da bir sorun bildirin"
   },
+  "7a1920d611": {
+    "translation": "Varsayılan"
+  },
   "7b1329f5ca": {
     "translation": "Kullanıcı kılavuzu"
   },
@@ -274,9 +295,6 @@
   },
   "7cb5f8b4a5": {
     "translation": "Unut"
-  },
-  "7cfe6c43dc": {
-    "translation": "Gruptan ayrıl…"
   },
   "7daeced9ff": {
     "translation": "Değişiklikleri yayınla"
@@ -290,6 +308,9 @@
   "815e116a2e": {
     "translation": "tldraw için bir hata, sorun veya fikriniz mi var? Bize bildirin! Bu formu doldurun ve gerekirse e-posta yoluyla takip edeceğiz. Ayrıca <discord>Discord'da bizimle sohbet edebilir</discord> veya <github>GitHub'da bir sorun gönderebilirsiniz</github>."
   },
+  "858ba4765e": {
+    "translation": "Üye"
+  },
   "85a082de1b": {
     "translation": "En güncel tldraw sürümü için lütfen sayfayı yenileyin."
   },
@@ -299,11 +320,20 @@
   "86c66437fd": {
     "translation": "Dosyayı yeniden adlandır"
   },
+  "87fdb09de6": {
+    "translation": "Zaten bu çalışma alanının bir üyesisiniz."
+  },
+  "88bf6ab42c": {
+    "translation": "Bu davet bağlantısının süresi doldu."
+  },
   "8ad4303b83": {
     "translation": "Hayır, teşekkürler"
   },
   "8c2d3d730c": {
     "translation": "Doğrulama kodu için e-postanızı kontrol edin."
+  },
+  "8cf04a9734": {
+    "translation": "Ev"
   },
   "8eb2c00e96": {
     "translation": "Sizinle paylaşıldı"
@@ -320,14 +350,11 @@
   "91e49bb0eb": {
     "translation": "Dosyalarıma kopyala"
   },
-  "930390d222": {
-    "translation": "Davet bağlantısı kopyalandı"
-  },
-  "9489b2f82a": {
-    "translation": "Zaten bu grubun üyesisiniz"
-  },
   "95aacd4d4a": {
     "translation": "Google ile oturum açın"
+  },
+  "95b56f4cd6": {
+    "translation": "Çalışma alanını sil…"
   },
   "95d2109dc8": {
     "translation": "tldraw SDK ile oluşturun"
@@ -338,9 +365,6 @@
   "985a4b720f": {
     "translation": "Kullanım Şartları"
   },
-  "98c997a27e": {
-    "translation": "Dosya bağlantısı ekle"
-  },
   "9914a0ce04": {
     "translation": "Açık"
   },
@@ -349,6 +373,9 @@
   },
   "9bef626805": {
     "translation": "Dosyayı sil"
+  },
+  "9ccb565b86": {
+    "translation": "Kimlik doğrulama servisimize bağlanmada sorun yaşıyoruz. Bu genellikle geçici bir durumdur. Lütfen sayfayı yenilemeyi deneyin."
   },
   "9ceb927baa": {
     "translation": "Bu dosyayı yayınla"
@@ -392,6 +419,9 @@
   "a9ded1e5ce": {
     "translation": "Arka plan"
   },
+  "aac449eef6": {
+    "translation": "Çalışma alanı oluşturun"
+  },
   "ab0df9ba36": {
     "translation": "Dosya sınırına ulaşıldı"
   },
@@ -408,9 +438,6 @@
   "b357b524e7": {
     "translation": "E-posta adresi"
   },
-  "b3d2db69fe": {
-    "translation": "Dosya URL'si"
-  },
   "b6d4223e60": {
     "translation": "Oturum aç"
   },
@@ -422,9 +449,6 @@
   },
   "ba0318cb81": {
     "translation": "Paylaşmak için oturum açın"
-  },
-  "bb93a7590f": {
-    "translation": "Kabul et ve gruba katıl"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {.tldr dosyası yükleniyor…} other {{uploaded} / {total} .tldr dosyası yükleniyor…}}"
@@ -444,20 +468,20 @@
   "c4b39a1cc3": {
     "translation": "Temel çerezler"
   },
-  "c6155aaecc": {
-    "translation": "Grup adı"
-  },
   "c655b27b1e": {
     "translation": "i18n: Uzun Dizi"
   },
   "c6a00f137b": {
     "translation": "Davet et"
   },
-  "c74ea6dbff": {
-    "translation": "Daha az göster"
+  "c7d7403714": {
+    "translation": "Yeni tahta"
   },
   "c87aacf567": {
     "translation": "Oturumu kapat"
+  },
+  "c8a59e7135": {
+    "translation": "Kapat"
   },
   "c9cc8cce24": {
     "translation": "Kaydetmek"
@@ -498,17 +522,17 @@
   "d9100f3e10": {
     "translation": "İçeriği görmek için buraya gidin"
   },
-  "d9e35d0f55": {
-    "translation": "Maksimum grup sayısına ulaştınız. Yeni gruplar oluşturmadan önce eski grupları silmeniz gerekiyor."
-  },
   "dbbebf3c03": {
     "translation": "Yalnızca davetle"
   },
-  "dcdaa754fe": {
-    "translation": "Geçersiz tldraw dosya URL'si"
+  "dbf9b24193": {
+    "translation": "Çalışma alanından ayrılın"
   },
   "dfdb78a4e4": {
     "translation": "Uygulama hata ayıklama bayrakları"
+  },
+  "e0aa021e21": {
+    "translation": "TAMAM"
   },
   "e0c88179b3": {
     "translation": "Üyeleri davet et"
@@ -519,20 +543,26 @@
   "e2ae80a510": {
     "translation": "Hukuki özet"
   },
-  "e3afed0047": {
-    "translation": "Yönetici"
-  },
   "e404559826": {
     "translation": "Hizmet Şartları"
   },
+  "e615d52512": {
+    "translation": "Çalışma alanına katılmayı kabul et ve katıl"
+  },
   "e81c4e4f2b": {
     "translation": "veya"
+  },
+  "e9e0f16850": {
+    "translation": "Çalışma alanına katılmaya davet edildiniz:"
   },
   "ea0626ac5a": {
     "translation": "Tehlikeli bölge"
   },
   "ea4788705e": {
     "translation": "İptal"
+  },
+  "eb1e2b0542": {
+    "translation": "Çalışma alanı sahibinden yenisini isteyin."
   },
   "ebfe9ce86e": {
     "translation": "Dün"
@@ -573,14 +603,14 @@
   "f4f70727dc": {
     "translation": "Ayarlar"
   },
-  "f714e36843": {
-    "translation": "Bu gruptan ayrılmak istediğinize emin misiniz?"
-  },
   "fa2ead697d": {
     "translation": "Gizlilik Politikası"
   },
   "fb15c53f22": {
     "translation": "Görüntüleyici"
+  },
+  "fc9d47046b": {
+    "translation": "Bu çalışma alanından ayrılmak istediğinizden emin misiniz?"
   },
   "fd1be3efcf": {
     "translation": "Bu dosyayı silmek istediğinizden emin misiniz?"
@@ -588,8 +618,8 @@
   "fed5ec05eb": {
     "translation": "Bağlantı kopyalandı"
   },
-  "ff7a814974": {
-    "translation": "Dosya bağlantısı ekle…"
+  "ff2fefd3c6": {
+    "translation": "{name} öğesini bu çalışma alanından kaldırmak istediğinizden emin misiniz?"
   },
   "ffcd73e997": {
     "translation": "Dosyayı içe aktar…"

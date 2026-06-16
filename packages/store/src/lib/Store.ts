@@ -13,12 +13,12 @@ import {
 } from '@tldraw/utils'
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
+import { devFreeze } from './devFreeze'
+import { hasAnyKey, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { RecordScope } from './RecordType'
-import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { StoreSideEffects } from './StoreSideEffects'
-import { devFreeze } from './devFreeze'
 
 /**
  * Extracts the record type from a record ID type.
@@ -573,11 +573,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			updated: filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName)),
 			removed: filterEntries(change.removed, (_, r) => this.scopedTypes[scope].has(r.typeName)),
 		}
-		if (
-			Object.keys(result.added).length === 0 &&
-			Object.keys(result.updated).length === 0 &&
-			Object.keys(result.removed).length === 0
-		) {
+		if (!hasAnyKey(result.added) && !hasAnyKey(result.updated) && !hasAnyKey(result.removed)) {
 			return null
 		}
 		return result
@@ -656,7 +652,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 					if (validated === initialValue) continue
 
-					record = devFreeze(record)
+					record = devFreeze(validated)
 					this.records.set(record.id, record)
 
 					didChange = true
@@ -888,7 +884,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.clear()
 				this.put(Object.values(migrationResult.value))
 				this.ensureStoreIsUsable()
-			})
+			}, false)
 		} finally {
 			this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 		}
@@ -1252,7 +1248,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			this.pendingAfterEvents = new Map()
 			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
-			this.sideEffects.setIsEnabled(runCallbacks ?? prevSideEffectsEnabled)
+			// an operation may switch side effects off, but never on while they are disabled
+			this.sideEffects.setIsEnabled(runCallbacks && prevSideEffectsEnabled)
 			this._isInAtomicOp = true
 
 			if (isMergingRemoteChanges) {
@@ -1328,7 +1325,9 @@ function squashHistoryEntries<T extends UnknownRecord>(
 	return devFreeze(
 		chunked.map((chunk) => ({
 			source: chunk[0].source,
-			changes: squashRecordDiffs(chunk.map((e) => e.changes)),
+			// a single-entry chunk needs no squashing — skip the O(N) copy of its diff
+			changes:
+				chunk.length === 1 ? chunk[0].changes : squashRecordDiffs(chunk.map((e) => e.changes)),
 		}))
 	)
 }

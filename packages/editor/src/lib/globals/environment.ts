@@ -1,4 +1,5 @@
 import { atom } from '@tldraw/state'
+import { getGlobalWindow } from '../utils/dom'
 
 /**
  * An object that contains information about the current device and environment.
@@ -27,7 +28,7 @@ if (typeof window !== 'undefined') {
 		tlenv.isChromeForIos = /crios.*safari/i.test(navigator.userAgent)
 		tlenv.isFirefox = /firefox/i.test(navigator.userAgent)
 		tlenv.isAndroid = /android/i.test(navigator.userAgent)
-		tlenv.isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
+		tlenv.isDarwin = getGlobalWindow().navigator.userAgent.toLowerCase().indexOf('mac') > -1
 	}
 	tlenv.hasCanvasSupport = 'Promise' in window && 'HTMLCanvasElement' in window
 	isForcedFinePointer = tlenv.isFirefox && !tlenv.isAndroid && !tlenv.isIos
@@ -45,10 +46,28 @@ const tlenvReactive = atom('tlenvReactive', {
 	// on touch-screen laptops, which will become "coarse" if the user touches the screen.
 	// See https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/pointer#coarse
 	isCoarsePointer: false,
+	// Whether the user's display supports P3 color space. This is dynamic because a window can
+	// move between displays with different color gamut support.
+	supportsP3ColorSpace: false,
 })
 
+if (typeof window !== 'undefined') {
+	const canRenderP3 = typeof CSS !== 'undefined' && CSS.supports('color', 'color(display-p3 1 1 1)')
+	if (canRenderP3) {
+		const p3mql = window.matchMedia('(color-gamut: p3)')
+		const updateSupportsP3 = () => {
+			const supportsP3 = p3mql.matches
+			if (supportsP3 !== tlenvReactive.__unsafe__getWithoutCapture().supportsP3ColorSpace) {
+				tlenvReactive.update((prev) => ({ ...prev, supportsP3ColorSpace: supportsP3 }))
+			}
+		}
+		updateSupportsP3()
+		p3mql.addEventListener('change', updateSupportsP3)
+	}
+}
+
 if (typeof window !== 'undefined' && !isForcedFinePointer) {
-	const mql = window.matchMedia && window.matchMedia('(any-pointer: coarse)')
+	const mql = getGlobalWindow().matchMedia && getGlobalWindow().matchMedia('(any-pointer: coarse)')
 
 	const isCurrentCoarsePointer = () => tlenvReactive.__unsafe__getWithoutCapture().isCoarsePointer
 
@@ -66,7 +85,7 @@ if (typeof window !== 'undefined' && !isForcedFinePointer) {
 
 	// 2. Also update the coarse pointer state when a pointer down event occurs. We need `capture: true`
 	// here because the tldraw component itself stops propagation on pointer events it receives.
-	window.addEventListener(
+	getGlobalWindow().addEventListener(
 		'pointerdown',
 		(e: PointerEvent) => {
 			// when the user interacts with a mouse, we assume they have a fine pointer.

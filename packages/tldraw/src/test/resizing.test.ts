@@ -1,9 +1,11 @@
 import {
 	GapsSnapIndicator,
+	Mat,
 	PI,
 	PI2,
 	PointsSnapIndicator,
 	RotateCorner,
+	TLArrowShape,
 	TLGeoShape,
 	TLSelectionHandle,
 	TLShapeId,
@@ -16,11 +18,12 @@ import {
 	toRichText,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { getArrowBindings, getArrowTerminalsInArrowSpace } from '../lib/shapes/arrow/shared'
 import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
-import { TestEditor } from './TestEditor'
+import { createDrawSegments } from '../lib/utils/test-helpers'
 import { getSnapLines } from './getSnapLines'
 import { roundedBox } from './roundedBox'
-import { createDrawSegments } from './test-jsx'
+import { defaultHandleOverlays, TestEditor } from './TestEditor'
 
 vi.useFakeTimers()
 
@@ -81,7 +84,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	editor = new TestEditor()
+	editor = new TestEditor({ overlayUtils: defaultHandleOverlays })
 
 	editor.createShapes([
 		{
@@ -123,10 +126,7 @@ describe('When pointing a resizer handle...', () => {
 	it('enters and exits the pointing_resize_handle state', () => {
 		editor
 			.select(ids.boxA)
-			.pointerDown(60, 60, {
-				target: 'selection',
-				handle: 'bottom_right',
-			})
+			.pointerDownOnHandle('bottom_right')
 			.expectToBeIn('select.pointing_resize_handle')
 			.pointerUp()
 			.expectToBeIn('select.idle')
@@ -135,10 +135,7 @@ describe('When pointing a resizer handle...', () => {
 	it('exits the pointing_resize_handle state when cancelled', () => {
 		editor
 			.select(ids.boxA)
-			.pointerDown(60, 60, {
-				target: 'selection',
-				handle: 'bottom_right',
-			})
+			.pointerDownOnHandle('bottom_right')
 			.expectToBeIn('select.pointing_resize_handle')
 			.cancel()
 			.expectToBeIn('select.idle')
@@ -149,22 +146,16 @@ describe('When dragging a resize handle...', () => {
 	it('enters and exits the resizing state', () => {
 		editor
 			.select(ids.boxA)
-			.pointerDown(60, 60, {
-				target: 'selection',
-				handle: 'bottom_right',
-			})
-			.pointerMove(10, 10)
+			.pointerDownOnHandle('bottom_right')
+			.pointerMoveBy(-50, -50)
 			.expectToBeIn('select.resizing')
 	})
 
 	it('exits the resizing state on pointer up', () => {
 		editor
 			.select(ids.boxA)
-			.pointerDown(60, 60, {
-				target: 'selection',
-				handle: 'bottom_right',
-			})
-			.pointerMove(10, 10)
+			.pointerDownOnHandle('bottom_right')
+			.pointerMoveBy(-50, -50)
 			.pointerUp()
 			.expectToBeIn('select.idle')
 	})
@@ -172,11 +163,8 @@ describe('When dragging a resize handle...', () => {
 	it('exits the resizing state when cancelled', () => {
 		editor
 			.select(ids.boxA)
-			.pointerDown(60, 60, {
-				target: 'selection',
-				handle: 'bottom_right',
-			})
-			.pointerMove(10, 10)
+			.pointerDownOnHandle('bottom_right')
+			.pointerMoveBy(-50, -50)
 			.cancel()
 			.expectToBeIn('select.idle')
 	})
@@ -186,49 +174,36 @@ describe('When resizing...', () => {
 	it('Resizes a single shape from the top left', () => {
 		editor
 			.select(ids.boxA)
-			.pointerDown(10, 10, {
-				type: 'pointer',
-				target: 'selection',
-				handle: 'top_left',
-			})
+			.pointerDownOnHandle('top_left')
 			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 10, props: { w: 100, h: 100 } })
-			.pointerMove(0, 0)
+			.pointerMoveBy(-10, -10)
 			.expectShapeToMatch({ id: ids.boxA, x: 0, y: 0, props: { w: 110, h: 110 } })
 	})
 
 	it('Resizes a single shape from the top right', () => {
 		editor
 			.select(ids.boxA)
-			.pointerDown(60, 10, {
-				target: 'selection',
-				handle: 'top_right',
-			})
+			.pointerDownOnHandle('top_right')
 			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 10, props: { w: 100, h: 100 } })
-			.pointerMove(70, 0)
+			.pointerMoveBy(10, -10)
 			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 0, props: { w: 110, h: 110 } })
 	})
 
 	it('Resizes a single shape from the bottom right', () => {
 		editor
 			.select(ids.boxA)
-			.pointerDown(60, 60, {
-				target: 'selection',
-				handle: 'bottom_right',
-			})
+			.pointerDownOnHandle('bottom_right')
 			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 10, props: { w: 100, h: 100 } })
-			.pointerMove(70, 70)
+			.pointerMoveBy(10, 10)
 			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 10, props: { w: 110, h: 110 } })
 	})
 
 	it('Resizes a single shape from the bottom left', () => {
 		editor
 			.select(ids.boxA)
-			.pointerDown(10, 60, {
-				target: 'selection',
-				handle: 'bottom_left',
-			})
+			.pointerDownOnHandle('bottom_left')
 			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 10, props: { w: 100, h: 100 } })
-			.pointerMove(0, 70)
+			.pointerMoveBy(-10, 10)
 			.expectShapeToMatch({ id: ids.boxA, x: 0, y: 10, props: { w: 110, h: 110 } })
 	})
 })
@@ -246,38 +221,28 @@ describe('When resizing a rotated shape...', () => {
 		editor.select(ids.boxA)
 
 		const initialPagePoint = editor.getShapePageTransform(ids.boxA)!.point()
+		const center = editor.getSelectionPageBounds()!.center
+		const pt1 = Vec.RotWith(initialPagePoint, center, rotation)
+		const pt2 = Vec.Sub(initialPagePoint, offset).rotWith(center, rotation)
 
-		const pt0 = Vec.From(initialPagePoint)
-		const pt1 = Vec.RotWith(initialPagePoint, editor.getSelectionPageBounds()!.center, rotation)
-		const pt2 = Vec.Sub(initialPagePoint, offset).rotWith(
-			editor.getSelectionPageBounds()!.center!,
-			rotation
-		)
-
-		editor
-			.pointerDown(pt0.x, pt0.y, {
-				target: 'selection',
-				handle: 'top_left_rotate',
-			})
-			.pointerMove(pt1.x, pt1.y)
-			.pointerUp()
+		// Click the top_left_rotate handle and rotate around center by `rotation`
+		const r0 = editor.getSelectionHandlePagePoint('top_left_rotate')
+		const r1 = Vec.RotWith(new Vec(r0.x, r0.y), center, rotation)
+		editor.pointerMove(r0.x, r0.y).pointerDown().pointerMove(r1.x, r1.y).pointerUp()
 
 		// The shape's point should now be at pt1 (it rotates from the top left corner)
 
 		expect(editor.getShapePageTransform(ids.boxA)!.rotation()).toBeCloseTo(rotation)
 		expect(editor.getShapePageTransform(ids.boxA)!.point()).toCloselyMatchObject(pt1)
 
-		// Resize by moving the top left resize handle to pt2. Should be a delta of [10, 10].
+		// Resize by moving the top left resize handle by -offset (in rotated frame).
 
 		expect(Vec.Dist(editor.getShapePageTransform(ids.boxA)!.point(), pt2)).toBeCloseTo(offset.len())
 
-		editor
-			.pointerDown(pt1.x, pt1.y, {
-				target: 'selection',
-				handle: 'top_left',
-			})
-			.pointerMove(pt2.x, pt2.y)
-			.pointerUp()
+		// The selection's top_left handle is now at the rotated pt1; moving it to pt2 resizes by offset.
+		const tl = editor.getSelectionHandlePagePoint('top_left')
+		const tlEnd = Vec.Add(new Vec(tl.x, tl.y), Vec.Sub(pt2, pt1))
+		editor.pointerMove(tl.x, tl.y).pointerDown().pointerMove(tlEnd.x, tlEnd.y).pointerUp()
 
 		// The shape should have moved its point to pt2 and be delta bigger.
 
@@ -325,20 +290,8 @@ describe('When resizing mulitple shapes...', () => {
 				},
 			])
 
-			// Rotate the shape by $rotation from its top left corner
-
-			const rotateStart = editor.getShapePageTransform(ids.boxA)!.point()
-			const rotateCenter = editor.getPageCenter(shapeA)!
-			const rotateEnd = Vec.RotWith(rotateStart, rotateCenter, rotation)
-
-			editor
-				.select(ids.boxA)
-				.pointerDown(rotateStart.x, rotateStart.y, {
-					target: 'selection',
-					handle: rotateRotateCorner('top_left_rotate', -editor.getSelectionRotation()),
-				})
-				.pointerMove(rotateEnd.x, rotateEnd.y)
-				.pointerUp()
+			// boxA's rotation is already set above via updateShapes; no interactive rotation needed.
+			editor.select(ids.boxA)
 
 			expect(canonicalizeRotation(shapeA.rotation) % Math.PI).toBeCloseTo(
 				canonicalizeRotation(rotation) % Math.PI
@@ -364,13 +317,14 @@ describe('When resizing mulitple shapes...', () => {
 				Vec.Min(editor.getShapePageBounds(shapeB)!.point, editor.getShapePageBounds(shapeC)!.point)
 			).toCloselyMatchObject(resizeStart)
 
+			const resizeHandle = rotateSelectionHandle('top_left', -editor.getSelectionRotation())
+			const h = editor.getSelectionHandlePagePoint(resizeHandle)
+			const hOffset = Vec.Sub(h, resizeStart)
 			editor
-				.pointerDown(resizeStart.x, resizeStart.y, {
-					target: 'selection',
-					handle: rotateSelectionHandle('top_left', -editor.getSelectionRotation()),
-				})
-				.pointerMove(resizeStart.x - 10, resizeStart.y - 10)
-				.pointerMove(resizeEnd.x, resizeEnd.y)
+				.pointerMove(h.x, h.y)
+				.pointerDown()
+				.pointerMove(h.x - 10, h.y - 10)
+				.pointerMove(resizeEnd.x + hOffset.x, resizeEnd.y + hOffset.y)
 				.pointerUp()
 
 			expect(editor.getSelectionPageBounds()!.point).toCloselyMatchObject(resizeEnd)
@@ -420,8 +374,8 @@ describe('Reisizing a selection of multiple shapes', () => {
 		// │           └───┘  │
 		// └──────────────────O
 
-		editor.pointerDown(30, 30, { target: 'selection', handle: 'bottom_right' })
-		editor.pointerMove(15, 15)
+		editor.pointerDownOnHandle('bottom_right')
+		editor.pointerMoveBy(-15, -15)
 
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 5, h: 5 })
@@ -582,21 +536,14 @@ describe('Reisizing a selection of multiple shapes', () => {
 	})
 
 	it('works the same when shapes are rotated by a multiple of 90 degrees', () => {
-		// rotate A by 90 degrees
+		// Rotate A by 90 degrees and B by -90 degrees, around their centers
+		// (equivalent to the interactive rotation the original test used)
 		editor.select(ids.boxA)
-		editor.pointerDown(0, 0, { target: 'selection', handle: 'top_left_rotate' })
-		editor.pointerMove(10, 0, { shiftKey: true })
-		editor.pointerUp(10, 0, { shiftKey: false })
-
+		editor.rotateShapesBy([ids.boxA], PI / 2)
 		expect(editor.getShape(ids.boxA)!.rotation).toBeCloseTo(PI / 2)
 
-		// rotate B by -90 degrees
 		editor.select(ids.boxB)
-		editor.pointerDown(30, 20, { target: 'selection', handle: 'top_left_rotate' })
-		editor.pointerMove(20, 20, { shiftKey: true })
-		editor.pointerUp(20, 20, { shiftKey: false })
-		vi.advanceTimersByTime(200)
-
+		editor.rotateShapesBy([ids.boxB], -PI / 2)
 		expect(editor.getShape(ids.boxB)!.rotation).toBeCloseTo(canonicalizeRotation(-PI / 2))
 
 		editor.select(ids.boxA, ids.boxB)
@@ -613,10 +560,9 @@ describe('Reisizing a selection of multiple shapes', () => {
 		// │           └───┘  │
 		// └──────────────────O
 
-		editor.pointerDown(30, 30, {
-			target: 'selection',
-			handle: rotateSelectionHandle('bottom_right', -editor.getSelectionRotation()),
-		})
+		editor.pointerDownOnHandle(
+			rotateSelectionHandle('bottom_right', -editor.getSelectionRotation())
+		)
 		editor.pointerMove(15, 15)
 
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 5, h: 5 })
@@ -777,11 +723,9 @@ describe('Reisizing a selection of multiple shapes', () => {
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 25, y: 25, w: 20, h: 20 })
 	})
 	it('will not change the apsect ratio on shapes that have been rotated by some number that is not a multiple of 90 degrees', () => {
-		// rotate B a tiny bit
-		editor.select(ids.boxB)
-		editor.pointerDown(30, 20, { target: 'selection', handle: 'top_left_rotate' })
-		editor.pointerMove(30, 21)
-		editor.pointerUp(30, 21)
+		// Note: the original test attempted an interactive rotation of box B, but
+		// box B is 10x10 — too small for rotate handles to be shown — so the
+		// rotation was a no-op. Preserve the original (no-rotation) behavior.
 		// strech horizontally
 
 		//  0                       20               40                     60
@@ -801,7 +745,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//  └──────────────────────────────────────────────────────────────────O
 
 		editor.select(ids.boxA, ids.boxB)
-		editor.pointerDown(30, 30, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerDownOnHandle('bottom_right')
 		editor.pointerMove(60, 30)
 		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 60, h: 30 })
 		// A should stretch
@@ -822,10 +766,7 @@ describe('When resizing a shape with children', () => {
 				},
 			])
 			.select(ids.boxA)
-			.pointerDown(10, 10, {
-				target: 'selection',
-				handle: 'top_left',
-			})
+			.pointerDownOnHandle('top_left')
 			.pointerMove(0, 0)
 			// A's model should have changed by the offset
 			.expectShapeToMatch({
@@ -857,10 +798,7 @@ describe('When resizing a shape with children', () => {
 				},
 			])
 			.select(ids.boxA)
-			.pointerDown(10, 10, {
-				target: 'selection',
-				handle: 'top_left',
-			})
+			.pointerDownOnHandle('top_left')
 			.pointerMove(0, 0)
 			.expectToBeIn('select.resizing')
 			// A's model should have changed by the offset
@@ -917,12 +855,8 @@ describe('When resizing a shape with children', () => {
 			.select(ids.boxB, ids.lineA)
 
 		editor
-			.pointerDown(10, 10, {
-				target: 'selection',
-				handle: 'top_left',
-			})
+			.pointerDownOnHandle('top_left')
 			.pointerMove(0, 0)
-			// .pointerMove(10, 10)
 			.expectToBeIn('select.resizing')
 			// A's model should have changed by the offset
 			.expectShapeToMatch({
@@ -933,6 +867,253 @@ describe('When resizing a shape with children', () => {
 		// B's model should have changed by the offset
 
 		expect(editor.getShape(ids.lineA)).toMatchSnapshot('draw shape after rotating')
+	})
+})
+
+describe('When resizing nested shapes', () => {
+	// A document with the common kinds of nesting: a geo shape on the page, a
+	// group of two geo shapes, a frame with a geo child, and arrows bound from
+	// the page shape to a group child and from a group child to the frame child.
+	//
+	//      0    100   200             500
+	//
+	//   0             ┌─group1─────────┐
+	//                 │ ┌─────┐        │
+	//                 │ │  A  │ ┌─────┐│
+	// 100             │ └─────┘ │  B  ││
+	// 200  ┌─────┐    └─────────┴─────┘│
+	//      │page │
+	// 300  └─────┘
+	// 400             ┌─frame1─────────┐
+	//                 │ ┌─────┐        │
+	//                 │ │  C  │        │
+	// 600             └─┴─────┴────────┘
+	const nestedIds = {
+		pageBox: createShapeId('pageBox'),
+		group1: createShapeId('group1'),
+		groupBoxA: createShapeId('groupBoxA'),
+		groupBoxB: createShapeId('groupBoxB'),
+		frame1: createShapeId('frame1'),
+		frameBox: createShapeId('frameBox'),
+		arrowPageToGroup: createShapeId('arrowPageToGroup'),
+		arrowGroupToFrame: createShapeId('arrowGroupToFrame'),
+	}
+
+	beforeEach(() => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		editor
+			.createShapes([
+				{ id: nestedIds.pageBox, type: 'geo', x: 0, y: 200, props: { w: 100, h: 100 } },
+				{ id: nestedIds.groupBoxA, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } },
+				{ id: nestedIds.groupBoxB, type: 'geo', x: 400, y: 100, props: { w: 100, h: 100 } },
+				{ id: nestedIds.frame1, type: 'frame', x: 200, y: 400, props: { w: 300, h: 200 } },
+				{
+					id: nestedIds.frameBox,
+					type: 'geo',
+					parentId: nestedIds.frame1,
+					x: 50,
+					y: 50,
+					props: { w: 100, h: 100 },
+				},
+			])
+			.groupShapes([nestedIds.groupBoxA, nestedIds.groupBoxB], { groupId: nestedIds.group1 })
+			.createShapes([
+				{
+					id: nestedIds.arrowPageToGroup,
+					type: 'arrow',
+					x: 150,
+					y: 200,
+					props: { start: { x: 0, y: 0 }, end: { x: 50, y: -100 } },
+				},
+				{
+					id: nestedIds.arrowGroupToFrame,
+					type: 'arrow',
+					x: 450,
+					y: 250,
+					props: { start: { x: 0, y: 0 }, end: { x: -150, y: 250 } },
+				},
+			])
+			.createBindings([
+				{
+					type: 'arrow',
+					fromId: nestedIds.arrowPageToGroup,
+					toId: nestedIds.pageBox,
+					props: {
+						terminal: 'start',
+						isExact: false,
+						isPrecise: true,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+				{
+					type: 'arrow',
+					fromId: nestedIds.arrowPageToGroup,
+					toId: nestedIds.groupBoxA,
+					props: {
+						terminal: 'end',
+						isExact: false,
+						isPrecise: true,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+				{
+					type: 'arrow',
+					fromId: nestedIds.arrowGroupToFrame,
+					toId: nestedIds.groupBoxB,
+					props: {
+						terminal: 'start',
+						isExact: false,
+						isPrecise: true,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+				{
+					type: 'arrow',
+					fromId: nestedIds.arrowGroupToFrame,
+					toId: nestedIds.frameBox,
+					props: {
+						terminal: 'end',
+						isExact: false,
+						isPrecise: true,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+			])
+			.selectNone()
+	})
+
+	const getArrowTerminalPagePoints = (arrowId: TLShapeId) => {
+		const arrow = editor.getShape<TLArrowShape>(arrowId)!
+		const bindings = getArrowBindings(editor, arrow)
+		const terminals = getArrowTerminalsInArrowSpace(editor, arrow, bindings)
+		const pageTransform = editor.getShapePageTransform(arrowId)!
+		return {
+			start: Mat.applyToPoint(pageTransform, terminals.start),
+			end: Mat.applyToPoint(pageTransform, terminals.end),
+		}
+	}
+
+	it('resizes the children of a group', () => {
+		editor
+			.select(nestedIds.group1)
+			// the group's page bounds are (200,0) -> (500,200); double them
+			.pointerDownOnHandle('bottom_right')
+			.pointerMove(800, 400)
+
+		expect(roundedPageBounds(nestedIds.group1)).toMatchObject({ x: 200, y: 0, w: 600, h: 400 })
+		expect(roundedPageBounds(nestedIds.groupBoxA)).toMatchObject({ x: 200, y: 0, w: 200, h: 200 })
+		expect(roundedPageBounds(nestedIds.groupBoxB)).toMatchObject({
+			x: 600,
+			y: 200,
+			w: 200,
+			h: 200,
+		})
+
+		// shapes outside of the group are unaffected
+		expect(roundedPageBounds(nestedIds.pageBox)).toMatchObject({ x: 0, y: 200, w: 100, h: 100 })
+		expect(roundedPageBounds(nestedIds.frameBox)).toMatchObject({ x: 250, y: 450, w: 100, h: 100 })
+	})
+
+	it('resizes the children of nested groups on every pointer move', () => {
+		const boxP = createShapeId('boxP')
+		const boxQ = createShapeId('boxQ')
+		const boxR = createShapeId('boxR')
+		const innerGroup = createShapeId('innerGroup')
+		const outerGroup = createShapeId('outerGroup')
+
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes([
+				{ id: boxP, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+				{ id: boxQ, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+			])
+			.groupShapes([boxP, boxQ], { groupId: innerGroup })
+			.createShapes([{ id: boxR, type: 'geo', x: 400, y: 400, props: { w: 100, h: 100 } }])
+			.groupShapes([innerGroup, boxR], { groupId: outerGroup })
+			.select(outerGroup)
+
+		expect(roundedPageBounds(outerGroup)).toMatchObject({ x: 0, y: 0, w: 500, h: 500 })
+
+		// grow to double the size; each pointer move must update the outer
+		// group, then the inner group, then the innermost children, since each
+		// level's new position depends on its parent's committed transform
+		editor.pointerDownOnHandle('bottom_right').pointerMove(1000, 1000)
+
+		expect(roundedPageBounds(outerGroup)).toMatchObject({ x: 0, y: 0, w: 1000, h: 1000 })
+		expect(roundedPageBounds(innerGroup)).toMatchObject({ x: 0, y: 0, w: 600, h: 600 })
+		expect(roundedPageBounds(boxP)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
+		expect(roundedPageBounds(boxQ)).toMatchObject({ x: 400, y: 400, w: 200, h: 200 })
+		expect(roundedPageBounds(boxR)).toMatchObject({ x: 800, y: 800, w: 200, h: 200 })
+
+		// then shrink to half the original size in the same gesture
+		editor.pointerMove(250, 250)
+
+		expect(roundedPageBounds(outerGroup)).toMatchObject({ x: 0, y: 0, w: 250, h: 250 })
+		expect(roundedPageBounds(innerGroup)).toMatchObject({ x: 0, y: 0, w: 150, h: 150 })
+		expect(roundedPageBounds(boxP)).toMatchObject({ x: 0, y: 0, w: 50, h: 50 })
+		expect(roundedPageBounds(boxQ)).toMatchObject({ x: 100, y: 100, w: 50, h: 50 })
+		expect(roundedPageBounds(boxR)).toMatchObject({ x: 200, y: 200, w: 50, h: 50 })
+
+		editor.pointerUp()
+
+		expect(roundedPageBounds(boxP)).toMatchObject({ x: 0, y: 0, w: 50, h: 50 })
+		expect(roundedPageBounds(boxQ)).toMatchObject({ x: 100, y: 100, w: 50, h: 50 })
+		expect(roundedPageBounds(boxR)).toMatchObject({ x: 200, y: 200, w: 50, h: 50 })
+	})
+
+	it('keeps arrows bound to shapes inside a resized group', () => {
+		editor
+			.select(nestedIds.group1)
+			.pointerDownOnHandle('bottom_right')
+			.pointerMove(800, 400)
+			.pointerUp()
+
+		const bindings = getArrowBindings(
+			editor,
+			editor.getShape<TLArrowShape>(nestedIds.arrowPageToGroup)!
+		)
+		expect(bindings.start).toMatchObject({ toId: nestedIds.pageBox })
+		expect(bindings.end).toMatchObject({ toId: nestedIds.groupBoxA })
+
+		const terminals = getArrowTerminalPagePoints(nestedIds.arrowPageToGroup)
+		// the start terminal stays at the center of the unselected page shape
+		expect(terminals.start).toCloselyMatchObject({ x: 50, y: 250 })
+		// the end terminal follows the center of the resized group child
+		expect(terminals.end).toCloselyMatchObject({ x: 300, y: 100 })
+	})
+
+	it('resizes a mixed selection of page, group, and frame shapes', () => {
+		editor
+			.selectAll()
+			// the selection's page bounds are (0,0) -> (500,600); double them
+			.pointerDownOnHandle('bottom_right')
+			.pointerMove(1000, 1200)
+			.pointerUp()
+
+		expect(roundedPageBounds(nestedIds.pageBox)).toMatchObject({ x: 0, y: 400, w: 200, h: 200 })
+		expect(roundedPageBounds(nestedIds.group1)).toMatchObject({ x: 400, y: 0, w: 600, h: 400 })
+		expect(roundedPageBounds(nestedIds.groupBoxA)).toMatchObject({ x: 400, y: 0, w: 200, h: 200 })
+		expect(roundedPageBounds(nestedIds.groupBoxB)).toMatchObject({
+			x: 800,
+			y: 200,
+			w: 200,
+			h: 200,
+		})
+		expect(roundedPageBounds(nestedIds.frame1)).toMatchObject({ x: 400, y: 800, w: 600, h: 400 })
+
+		// the frame's child is not resized; it keeps its position within the frame
+		expect(editor.getShape(nestedIds.frameBox)).toMatchObject({ x: 50, y: 50 })
+		expect(roundedPageBounds(nestedIds.frameBox)).toMatchObject({ x: 450, y: 850, w: 100, h: 100 })
+
+		// the arrow terminals follow the shapes they are bound to
+		const pageToGroup = getArrowTerminalPagePoints(nestedIds.arrowPageToGroup)
+		expect(pageToGroup.start).toCloselyMatchObject({ x: 100, y: 500 })
+		expect(pageToGroup.end).toCloselyMatchObject({ x: 500, y: 100 })
+
+		const groupToFrame = getArrowTerminalPagePoints(nestedIds.arrowGroupToFrame)
+		expect(groupToFrame.start).toCloselyMatchObject({ x: 900, y: 300 })
+		expect(groupToFrame.end).toCloselyMatchObject({ x: 500, y: 900 })
 	})
 })
 
@@ -977,13 +1158,7 @@ describe('snapping while resizing', () => {
 
 	it('works for dragging the top edge', () => {
 		// snap to top edges of D and B
-		editor
-			.select(ids.boxX)
-			.pointerDown(115, 80, {
-				target: 'selection',
-				handle: 'top',
-			})
-			.pointerMove(115, 59, { ctrlKey: true })
+		editor.select(ids.boxX).pointerDownOnHandle('top').pointerMove(115, 59, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 60, props: { w: 60, h: 80 } })
 		expect(editor.snaps.getIndicators().length).toBe(1)
@@ -1007,13 +1182,7 @@ describe('snapping while resizing', () => {
 	it('works for dragging the right edge', () => {
 		// Snap to right edges of A and C
 
-		editor
-			.select(ids.boxX)
-			.pointerDown(140, 115, {
-				target: 'selection',
-				handle: 'right',
-			})
-			.pointerMove(156, 115, { ctrlKey: true })
+		editor.select(ids.boxX).pointerDownOnHandle('right').pointerMove(156, 115, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 80, props: { w: 80, h: 60 } })
 		expect(editor.snaps.getIndicators().length).toBe(1)
@@ -1033,13 +1202,7 @@ describe('snapping while resizing', () => {
 
 	it('works for dragging the bottom edge', () => {
 		// snap to bottom edges of B and D
-		editor
-			.select(ids.boxX)
-			.pointerDown(115, 140, {
-				target: 'selection',
-				handle: 'bottom',
-			})
-			.pointerMove(115, 159, { ctrlKey: true })
+		editor.select(ids.boxX).pointerDownOnHandle('bottom').pointerMove(115, 159, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 80, props: { w: 60, h: 80 } })
 		expect(editor.snaps.getIndicators().length).toBe(1)
@@ -1061,13 +1224,7 @@ describe('snapping while resizing', () => {
 
 	it('works for dragging the left edge', () => {
 		// snap to left edges of A and C
-		editor
-			.select(ids.boxX)
-			.pointerDown(80, 115, {
-				target: 'selection',
-				handle: 'left',
-			})
-			.pointerMove(59, 115, { ctrlKey: true })
+		editor.select(ids.boxX).pointerDownOnHandle('left').pointerMove(59, 115, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 60, y: 80, props: { w: 80, h: 60 } })
 
@@ -1111,10 +1268,7 @@ describe('snapping while resizing', () => {
 		//           │ │                           │
 		//           x └───────────────────────────┘
 
-		editor.select(ids.boxX).pointerDown(80, 80, {
-			target: 'selection',
-			handle: 'top_left',
-		})
+		editor.select(ids.boxX).pointerDownOnHandle('top_left')
 
 		editor.pointerMove(62, 81, { ctrlKey: true })
 
@@ -1227,13 +1381,7 @@ describe('snapping while resizing', () => {
 		//             │                    │ │
 		//             └────────────────────┘ x
 
-		editor
-			.select(ids.boxX)
-			.pointerDown(140, 80, {
-				target: 'selection',
-				handle: 'top_right',
-			})
-			.pointerMove(161, 59, { ctrlKey: true })
+		editor.select(ids.boxX).pointerDownOnHandle('top_right').pointerMove(161, 59, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 60, props: { w: 80, h: 80 } })
 	})
@@ -1267,10 +1415,7 @@ describe('snapping while resizing', () => {
 
 		editor
 			.select(ids.boxX)
-			.pointerDown(140, 140, {
-				target: 'selection',
-				handle: 'bottom_right',
-			})
+			.pointerDownOnHandle('bottom_right')
 			.pointerMove(161, 159, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 80, y: 80, props: { w: 80, h: 80 } })
@@ -1306,10 +1451,7 @@ describe('snapping while resizing', () => {
 
 		editor
 			.select(ids.boxX)
-			.pointerDown(80, 140, {
-				target: 'selection',
-				handle: 'bottom_left',
-			})
+			.pointerDownOnHandle('bottom_left')
 			.pointerMove(59, 159, { ctrlKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 60, y: 80, props: { w: 80, h: 80 } })
@@ -1346,10 +1488,7 @@ describe('snapping while resizing from center', () => {
 	it('should work from the top', () => {
 		editor
 			.select(ids.boxX)
-			.pointerDown(70, 40, {
-				target: 'selection',
-				handle: 'top',
-			})
+			.pointerDownOnHandle('top')
 			.pointerMove(70, 21, { ctrlKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -1367,10 +1506,7 @@ describe('snapping while resizing from center', () => {
 	it('should work from the right', () => {
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 70, {
-				target: 'selection',
-				handle: 'right',
-			})
+			.pointerDownOnHandle('right')
 			.pointerMove(121, 70, { ctrlKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -1382,10 +1518,7 @@ describe('snapping while resizing from center', () => {
 	it('should work from the bottom', () => {
 		editor
 			.select(ids.boxX)
-			.pointerDown(70, 100, {
-				target: 'selection',
-				handle: 'bottom',
-			})
+			.pointerDownOnHandle('bottom')
 			.pointerMove(70, 121, { ctrlKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -1397,10 +1530,7 @@ describe('snapping while resizing from center', () => {
 	it('should work from the left', () => {
 		editor
 			.select(ids.boxX)
-			.pointerDown(40, 70, {
-				target: 'selection',
-				handle: 'left',
-			})
+			.pointerDownOnHandle('left')
 			.pointerMove(21, 70, { ctrlKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -1429,10 +1559,7 @@ describe('snapping while resizing from center', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 40, {
-				target: 'selection',
-				handle: 'top_right',
-			})
+			.pointerDownOnHandle('top_right')
 			.pointerMove(123, 40, { ctrlKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -1498,10 +1625,7 @@ describe('snapping while resizing from center', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 100, {
-				target: 'selection',
-				handle: 'bottom_right',
-			})
+			.pointerDownOnHandle('bottom_right')
 			.pointerMove(123, 100, { ctrlKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -1569,10 +1693,7 @@ describe('snapping while resizing from center', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(40, 100, {
-				target: 'selection',
-				handle: 'bottom_left',
-			})
+			.pointerDownOnHandle('bottom_left')
 			.pointerMove(23, 100, { ctrlKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -1640,10 +1761,7 @@ describe('snapping while resizing from center', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(40, 40, {
-				target: 'selection',
-				handle: 'top_left',
-			})
+			.pointerDownOnHandle('top_left')
 			.pointerMove(23, 40, { ctrlKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -1740,10 +1858,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(70, 40, {
-				target: 'selection',
-				handle: 'top',
-			})
+			.pointerDownOnHandle('top')
 			.pointerMove(70, 18, { ctrlKey: true, shiftKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 30, y: 20, props: { w: 80, h: 80 } })
@@ -1773,10 +1888,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 70, {
-				target: 'selection',
-				handle: 'right',
-			})
+			.pointerDownOnHandle('right')
 			.pointerMove(123, 79, { ctrlKey: true, shiftKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 40, y: 30, props: { w: 80, h: 80 } })
@@ -1807,10 +1919,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(70, 100, {
-				target: 'selection',
-				handle: 'bottom',
-			})
+			.pointerDownOnHandle('bottom')
 			.pointerMove(70, 123, { ctrlKey: true, shiftKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 30, y: 40, props: { w: 80, h: 80 } })
@@ -1841,10 +1950,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 
 		editor
 			.select(ids.boxX)
-			.pointerDown(40, 70, {
-				target: 'selection',
-				handle: 'left',
-			})
+			.pointerDownOnHandle('left')
 			.pointerMove(18, 70, { ctrlKey: true, shiftKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 20, y: 30, props: { w: 80, h: 80 } })
@@ -1874,10 +1980,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 40, {
-				target: 'selection',
-				handle: 'top_right',
-			})
+			.pointerDownOnHandle('top_right')
 			.pointerMove(100, 18, { ctrlKey: true, shiftKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 40, y: 20, props: { w: 80, h: 80 } })
@@ -1908,10 +2011,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 100, {
-				target: 'selection',
-				handle: 'bottom_right',
-			})
+			.pointerDownOnHandle('bottom_right')
 			.pointerMove(118, 100, { ctrlKey: true, shiftKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 40, y: 40, props: { w: 80, h: 80 } })
@@ -1942,10 +2042,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(40, 100, {
-				target: 'selection',
-				handle: 'bottom_left',
-			})
+			.pointerDownOnHandle('bottom_left')
 			.pointerMove(18, 100, { ctrlKey: true, shiftKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 20, y: 40, props: { w: 80, h: 80 } })
@@ -1976,10 +2073,7 @@ describe('snapping while resizing with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(40, 40, {
-				target: 'selection',
-				handle: 'top_left',
-			})
+			.pointerDownOnHandle('top_left')
 			.pointerMove(40, 18, { ctrlKey: true, shiftKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({ x: 20, y: 20, props: { w: 80, h: 80 } })
@@ -2046,10 +2140,7 @@ describe('snapping while resizing from center with aspect ratio locked', () => {
 
 		editor
 			.select(ids.boxX)
-			.pointerDown(70, 40, {
-				target: 'selection',
-				handle: 'top',
-			})
+			.pointerDownOnHandle('top')
 			.pointerMove(70, 18, { ctrlKey: true, shiftKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -2079,10 +2170,7 @@ describe('snapping while resizing from center with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 70, {
-				target: 'selection',
-				handle: 'right',
-			})
+			.pointerDownOnHandle('right')
 			.pointerMove(123, 40, { ctrlKey: true, shiftKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -2112,10 +2200,7 @@ describe('snapping while resizing from center with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(70, 100, {
-				target: 'selection',
-				handle: 'bottom',
-			})
+			.pointerDownOnHandle('bottom')
 			.pointerMove(70, 121, { ctrlKey: true, shiftKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -2145,10 +2230,7 @@ describe('snapping while resizing from center with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(40, 70, {
-				target: 'selection',
-				handle: 'left',
-			})
+			.pointerDownOnHandle('left')
 			.pointerMove(18, 87, { ctrlKey: true, shiftKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -2180,10 +2262,7 @@ describe('snapping while resizing from center with aspect ratio locked', () => {
 
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 40, {
-				target: 'selection',
-				handle: 'top_right',
-			})
+			.pointerDownOnHandle('top_right')
 			.pointerMove(100, 18, { ctrlKey: true, shiftKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -2213,10 +2292,7 @@ describe('snapping while resizing from center with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 100, {
-				target: 'selection',
-				handle: 'bottom_right',
-			})
+			.pointerDownOnHandle('bottom_right')
 			.pointerMove(123, 118, { ctrlKey: true, shiftKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -2246,10 +2322,7 @@ describe('snapping while resizing from center with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(40, 100, {
-				target: 'selection',
-				handle: 'bottom_left',
-			})
+			.pointerDownOnHandle('bottom_left')
 			.pointerMove(18, 125, { ctrlKey: true, shiftKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -2279,10 +2352,7 @@ describe('snapping while resizing from center with aspect ratio locked', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(40, 40, {
-				target: 'selection',
-				handle: 'top_left',
-			})
+			.pointerDownOnHandle('top_left')
 			.pointerMove(23, 18, { ctrlKey: true, shiftKey: true, altKey: true })
 
 		expect(editor.getShape(ids.boxX)).toMatchObject({
@@ -2325,12 +2395,9 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 
 	function rotateX(times: number) {
 		editor.select(ids.boxX)
-		for (let i = 0; i < times; i++) {
-			editor
-				.pointerDown(40, 40, { target: 'selection', handle: 'top_left_rotate' })
-				.pointerMove(100, 40, { shiftKey: true })
-				.pointerUp(100, 40, { shiftKey: true })
-		}
+		// Rotate boxX in 90deg steps around its center, equivalent to the
+		// original interactive rotation from the top-left rotate handle.
+		editor.rotateShapesBy([ids.boxX], (PI / 2) * times)
 
 		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(40)
 		expect(editor.getShapePageBounds(ids.boxX)!.y).toBeCloseTo(40)
@@ -2361,8 +2428,8 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 70, { target: 'selection', handle: 'top' })
-			.pointerMove(121, 70, { ctrlKey: true, shiftKey: false })
+			.pointerDownOnHandle('top')
+			.pointerMoveBy(21, 0, { ctrlKey: true, shiftKey: false })
 		vi.advanceTimersByTime(200)
 
 		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
@@ -2429,8 +2496,8 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(70, 40, { target: 'selection', handle: 'bottom' })
-			.pointerMove(70, 18, { ctrlKey: true, shiftKey: false })
+			.pointerDownOnHandle('bottom')
+			.pointerMoveBy(0, -22, { ctrlKey: true, shiftKey: false })
 		vi.advanceTimersByTime(200)
 
 		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(40)
@@ -2493,8 +2560,8 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 
 		editor
 			.select(ids.boxX)
-			.pointerDown(40, 100, { target: 'selection', handle: 'top_left' })
-			.pointerMove(18, 118, { ctrlKey: true, shiftKey: false })
+			.pointerDownOnHandle('top_left')
+			.pointerMoveBy(-22, 18, { ctrlKey: true, shiftKey: false })
 
 		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(20)
 		expect(editor.getShapePageBounds(ids.boxX)!.y).toBeCloseTo(40)
@@ -2561,8 +2628,8 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 70, { target: 'selection', handle: 'right' })
-			.pointerMove(121, 70, { ctrlKey: true, shiftKey: false })
+			.pointerDownOnHandle('right')
+			.pointerMoveBy(21, 0, { ctrlKey: true, shiftKey: false })
 		vi.advanceTimersByTime(200)
 
 		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(40)
@@ -2652,13 +2719,7 @@ describe('snapping while resizing an inverted shape', () => {
 		// 120           x────x─O─x────x
 		//                    │ C │
 		// 140                └───┘
-		editor
-			.select(ids.boxX)
-			.pointerDown(70, 40, {
-				target: 'selection',
-				handle: 'top',
-			})
-			.pointerMove(70, 123, { ctrlKey: true })
+		editor.select(ids.boxX).pointerDownOnHandle('top').pointerMove(70, 123, { ctrlKey: true })
 
 		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 40,
@@ -2691,13 +2752,7 @@ describe('snapping while resizing an inverted shape', () => {
 		// 120                ┌───┐
 		//                    │ C │
 		// 140                └───┘
-		editor
-			.select(ids.boxX)
-			.pointerDown(100, 70, {
-				target: 'selection',
-				handle: 'right',
-			})
-			.pointerMove(18, 70, { ctrlKey: true })
+		editor.select(ids.boxX).pointerDownOnHandle('right').pointerMove(18, 70, { ctrlKey: true })
 
 		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 20,
@@ -2730,13 +2785,7 @@ describe('snapping while resizing an inverted shape', () => {
 		// 120                ┌───┐
 		//                    │ C │
 		// 140                └───┘
-		editor
-			.select(ids.boxX)
-			.pointerDown(70, 100, {
-				target: 'selection',
-				handle: 'bottom',
-			})
-			.pointerMove(70, 23, { ctrlKey: true })
+		editor.select(ids.boxX).pointerDownOnHandle('bottom').pointerMove(70, 23, { ctrlKey: true })
 
 		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 40,
@@ -2769,13 +2818,7 @@ describe('snapping while resizing an inverted shape', () => {
 		// 120                ┌───┐
 		//                    │ C │
 		// 140                └───┘
-		editor
-			.select(ids.boxX)
-			.pointerDown(40, 70, {
-				target: 'selection',
-				handle: 'left',
-			})
-			.pointerMove(122, 70, { ctrlKey: true })
+		editor.select(ids.boxX).pointerDownOnHandle('left').pointerMove(122, 70, { ctrlKey: true })
 
 		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 100,
@@ -2807,13 +2850,7 @@ describe('snapping while resizing an inverted shape', () => {
 		// 120      O────x    x───x
 		//                    │ C │
 		// 140                └───┘
-		editor
-			.select(ids.boxX)
-			.pointerDown(100, 40, {
-				target: 'selection',
-				handle: 'top_right',
-			})
-			.pointerMove(19, 121, { ctrlKey: true })
+		editor.select(ids.boxX).pointerDownOnHandle('top_right').pointerMove(19, 121, { ctrlKey: true })
 
 		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 20,
@@ -2849,10 +2886,7 @@ describe('snapping while resizing an inverted shape', () => {
 
 		editor
 			.select(ids.boxX)
-			.pointerDown(100, 100, {
-				target: 'selection',
-				handle: 'bottom_right',
-			})
+			.pointerDownOnHandle('bottom_right')
 			.pointerMove(19, 21, { ctrlKey: true })
 
 		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
@@ -2887,10 +2921,7 @@ describe('snapping while resizing an inverted shape', () => {
 		// 140                └───┘
 		editor
 			.select(ids.boxX)
-			.pointerDown(40, 100, {
-				target: 'selection',
-				handle: 'bottom_left',
-			})
+			.pointerDownOnHandle('bottom_left')
 			.pointerMove(123, 21, { ctrlKey: true })
 
 		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
@@ -2923,13 +2954,7 @@ describe('snapping while resizing an inverted shape', () => {
 		// 120                x───x    x────O
 		//                    │ C │
 		// 140                └───┘
-		editor
-			.select(ids.boxX)
-			.pointerDown(40, 40, {
-				target: 'selection',
-				handle: 'top_left',
-			})
-			.pointerMove(123, 118, { ctrlKey: true })
+		editor.select(ids.boxX).pointerDownOnHandle('top_left').pointerMove(123, 118, { ctrlKey: true })
 
 		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 100,
@@ -2965,13 +2990,7 @@ describe('snapping while the grid is enabled', () => {
 		//  │ A        O│ B │
 		//  └──────────┘└───┘
 
-		editor
-			.select(ids.boxA)
-			.pointerDown(20, 10, {
-				target: 'selection',
-				handle: 'right',
-			})
-			.pointerMove(59, 10)
+		editor.select(ids.boxA).pointerDownOnHandle('right').pointerMove(59, 10)
 
 		// rounds up to nearest 10
 		expect(editor.getShapePageBounds(ids.boxA)!.w).toEqual(60)
@@ -3016,10 +3035,7 @@ describe('resizing a shape with a child', () => {
 			box(ids.boxA, 0, 0, 50, 50),
 			{ ...box(ids.boxB, 1, 1), parentId: ids.boxA },
 		])
-		editor
-			.select(ids.boxA)
-			.pointerDown(0, 0, { target: 'selection', handle: 'top_left' })
-			.pointerMove(25, 25, { ctrlKey: true })
+		editor.select(ids.boxA).pointerDownOnHandle('top_left').pointerMove(25, 25, { ctrlKey: true })
 
 		expect(editor.snaps.getIndicators().length).toBe(0)
 		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 25, y: 25, props: { w: 25, h: 25 } })
@@ -3068,12 +3084,7 @@ describe('reisizing shapes with aspect ratio locked', () => {
 		// 50    │ └───┘           └───┘ │
 		//       └───────────────────────┘
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
-		editor
-			.pointerDown(0, 25, {
-				target: 'selection',
-				handle: 'left',
-			})
-			.pointerMove(75, 25, { shiftKey: true })
+		editor.pointerDownOnHandle('left').pointerMove(75, 25, { shiftKey: true })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 70, y: 12.5, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 50, y: 12.5, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxC)).toMatchObject({ x: 50, y: 32.5, w: 5, h: 5 })
@@ -3094,12 +3105,7 @@ describe('reisizing shapes with aspect ratio locked', () => {
 		// 50    │ └───┘           └───┘ │
 		//       └───────────────────────┘
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
-		editor
-			.pointerDown(50, 25, {
-				target: 'selection',
-				handle: 'right',
-			})
-			.pointerMove(-25, 25, { shiftKey: true })
+		editor.pointerDownOnHandle('right').pointerMove(-25, 25, { shiftKey: true })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: -5, y: 12.5, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: -25, y: 12.5, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxC)).toMatchObject({ x: -25, y: 32.5, w: 5, h: 5 })
@@ -3135,12 +3141,7 @@ describe('reisizing shapes with aspect ratio locked', () => {
 		// 75          └────┼┼┼────┘
 		//                  └─┘
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
-		editor
-			.pointerDown(25, 0, {
-				target: 'selection',
-				handle: 'top',
-			})
-			.pointerMove(25, 75, { shiftKey: true })
+		editor.pointerDownOnHandle('top').pointerMove(25, 75, { shiftKey: true })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 12.5, y: 70, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 32.5, y: 70, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxC)).toMatchObject({ x: 32.5, y: 50, w: 5, h: 5 })
@@ -3180,12 +3181,7 @@ describe('reisizing shapes with aspect ratio locked', () => {
 		//             │ A       B │
 		//  0          └───────────┘
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
-		editor
-			.pointerDown(25, 50, {
-				target: 'selection',
-				handle: 'bottom',
-			})
-			.pointerMove(25, -25, { shiftKey: true })
+		editor.pointerDownOnHandle('bottom').pointerMove(25, -25, { shiftKey: true })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 12.5, y: -5, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 32.5, y: -5, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxC)).toMatchObject({ x: 32.5, y: -25, w: 5, h: 5 })
@@ -3193,7 +3189,7 @@ describe('reisizing shapes with aspect ratio locked', () => {
 	})
 	it('preserves the correct alignment when dragging the top left corner around', () => {
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
-		editor.pointerDown(0, 0, { target: 'selection', handle: 'top_left' })
+		editor.pointerDownOnHandle('top_left')
 		//       25 30      45 50
 		//         ┌───────────┐   50
 		//         │ D       C │
@@ -3249,7 +3245,7 @@ describe('reisizing shapes with aspect ratio locked', () => {
 	})
 	it('preserves the correct alignment when dragging the top right corner around', () => {
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
-		editor.pointerDown(50, 0, { target: 'selection', handle: 'top_right' })
+		editor.pointerDownOnHandle('top_right')
 		//       -25 -20    -5 0
 		//         ┌───────────┐   50
 		//         │ C       D │
@@ -3304,7 +3300,7 @@ describe('reisizing shapes with aspect ratio locked', () => {
 	})
 	it('preserves the correct alignment when dragging the bottom right corner around', () => {
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
-		editor.pointerDown(50, 50, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerDownOnHandle('bottom_right')
 		//       -25 -20    -5 0
 		//         ┌───────────┐    0
 		//         │ B       A │
@@ -3357,7 +3353,7 @@ describe('reisizing shapes with aspect ratio locked', () => {
 	})
 	it('preserves the correct alignment when dragging the bottom left corner around', () => {
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
-		editor.pointerDown(0, 50, { target: 'selection', handle: 'bottom_left' })
+		editor.pointerDownOnHandle('bottom_left')
 		//        50 55     70 75
 		//         ┌───────────┐    0
 		//         │ B       A │
@@ -3444,7 +3440,7 @@ describe('resizing a selection of mixed rotations', () => {
 		//     │ │   D   │              │   C   │ │
 		// 25  │ └───────┘              └───────┘ │
 		//     └──────────────────────────────────x drag
-		editor.pointerDown(50, 50, { target: 'selection', handle: 'bottom_right' }).pointerMove(100, 25)
+		editor.pointerDownOnHandle('bottom_right').pointerMove(100, 25)
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 20, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 80, y: 0, w: 20, h: 5 })
 		expect(roundedPageBounds(ids.boxC)).toMatchObject({ x: 80, y: 20, w: 20, h: 5 })
@@ -3453,7 +3449,7 @@ describe('resizing a selection of mixed rotations', () => {
 	it('does lock the aspect ratio if the rotations are not compatible', () => {
 		editor.updateShapes([{ id: ids.boxC, type: 'geo', rotation: Math.PI + Math.PI / 180 }])
 		editor.select(ids.boxA, ids.boxB, ids.boxC, ids.boxD)
-		editor.pointerDown(50, 50, { target: 'selection', handle: 'bottom_right' }).pointerMove(100, 25)
+		editor.pointerDownOnHandle('bottom_right').pointerMove(100, 25)
 		expect(roundedPageBounds(ids.boxA, 0.5)).toMatchObject({ x: 0, y: 0, w: 20, h: 20 })
 	})
 
@@ -3463,7 +3459,7 @@ describe('resizing a selection of mixed rotations', () => {
 		])
 
 		editor.select(ids.boxA, ids.boxB, ids.boxD)
-		editor.pointerDown(50, 50, { target: 'selection', handle: 'bottom_right' }).pointerMove(100, 25)
+		editor.pointerDownOnHandle('bottom_right').pointerMove(100, 25)
 		expect(roundedPageBounds(ids.boxA, 0.5)).toMatchObject({ x: 0, y: 0, w: 20, h: 20 })
 	})
 })
@@ -3884,9 +3880,9 @@ describe('Resizing text from the right edge', () => {
 		editor.updateInstanceState({ isCoarsePointer: false })
 
 		// Resize from the right edge
-		editor.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
+		editor.pointerDownOnHandle('right')
 		editor.expectToBeIn('select.pointing_resize_handle')
-		editor.pointerMove(bounds.maxX + 5, bounds.midY, { target: 'selection', handle: 'right' })
+		editor.pointerMoveBy(5, 0)
 		editor.expectToBeIn('select.resizing')
 		editor.pointerUp()
 
@@ -3908,12 +3904,20 @@ describe('Resizing text from the right edge', () => {
 
 		const bounds = editor.getShapeGeometry(id).bounds
 
-		// Resize from the right edge
-		editor.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
+		// Resize from the right edge - in coarse mode the drag threshold is higher
+		// (about 6px), so the first move keeps us in pointing_resize_handle, and the
+		// second tips us into resizing.
+		editor.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' })
 		editor.expectToBeIn('select.pointing_resize_handle')
-		editor.pointerMove(bounds.maxX + 5, bounds.midY, { target: 'selection', handle: 'right' })
+		editor.pointerMove(bounds.maxX + 5, bounds.midY, {
+			target: 'selection',
+			handle: 'right',
+		})
 		editor.expectToBeIn('select.pointing_resize_handle')
-		editor.pointerMove(bounds.maxX + 10, bounds.midY, { target: 'selection', handle: 'right' })
+		editor.pointerMove(bounds.maxX + 10, bounds.midY, {
+			target: 'selection',
+			handle: 'right',
+		})
 		editor.expectToBeIn('select.resizing')
 		editor.pointerUp()
 
@@ -3929,14 +3933,7 @@ describe('When resizing near the edges of the screen', () => {
 	it('resizes past the edge of the screen', () => {
 		editor.user.updateUserPreferences({ edgeScrollSpeed: 1 })
 		const before = editor.getShape<TLGeoShape>(ids.boxA)!
-		editor
-			.select(ids.boxA)
-			.pointerDown(10, 10, {
-				type: 'pointer',
-				target: 'selection',
-				handle: 'top_left',
-			})
-			.pointerMove(-1, -1) // into the edge scrolling distance
+		editor.select(ids.boxA).pointerDownOnHandle('top_left').pointerMove(-1, -1) // into the edge scrolling distance
 		vi.advanceTimersByTime(1000)
 		const after = editor.getShape<TLGeoShape>(ids.boxA)!
 		expect(after.x).toBeLessThan(before.x)
@@ -3964,7 +3961,7 @@ describe('resizing text with autosize true', () => {
 		const bounds = editor.getShapePageBounds(shape.id)!
 		editor
 			.select(shape)
-			.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
+			.pointerDownOnHandle('right')
 			.expectToBeIn('select.pointing_resize_handle')
 			.pointerMove(bounds.maxX + 100, bounds.midY)
 			.expectToBeIn('select.resizing')
@@ -3991,7 +3988,7 @@ describe('resizing text with autosize true', () => {
 		editor
 			.select(shape)
 			.keyDown('Alt')
-			.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
+			.pointerDownOnHandle('right')
 			.expectToBeIn('select.pointing_resize_handle')
 			.pointerMove(bounds.maxX + 100, bounds.midY)
 			.expectToBeIn('select.resizing')
@@ -4017,7 +4014,7 @@ describe('resizing text with autosize true', () => {
 		const bounds = editor.getShapePageBounds(shape.id)!
 		editor
 			.select(shape)
-			.pointerDown(bounds.minX, bounds.midY, { target: 'selection', handle: 'left' }) // right edge
+			.pointerDownOnHandle('left')
 			.expectToBeIn('select.pointing_resize_handle')
 			.pointerMove(bounds.minX - 100, bounds.midY)
 			.expectToBeIn('select.resizing')
@@ -4044,7 +4041,7 @@ describe('resizing text with autosize true', () => {
 		editor
 			.select(shape)
 			.keyDown('Alt')
-			.pointerDown(bounds.minX, bounds.midY, { target: 'selection', handle: 'left' }) // right edge
+			.pointerDownOnHandle('left')
 			.expectToBeIn('select.pointing_resize_handle')
 			.pointerMove(bounds.minX - 100, bounds.midY)
 			.expectToBeIn('select.resizing')
@@ -4071,7 +4068,7 @@ describe('cancelling a resize operation', () => {
 		editor.select(shape)
 
 		const bounds = editor.getShapePageBounds(shape.id)!
-		editor.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
+		editor.pointerDownOnHandle('right')
 		editor.pointerMove(bounds.maxX + 100, bounds.midY)
 		expect(editor.getShapePageBounds(shape.id)).toMatchObject({ x: 0, y: 0, w: 200, h: 100 })
 		editor.cancel()

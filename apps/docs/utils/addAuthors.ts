@@ -1,6 +1,6 @@
-import { Authors } from '@/types/content-types'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
+import { Authors } from '@/types/content-types'
 
 // Adding content
 export async function addAuthors(

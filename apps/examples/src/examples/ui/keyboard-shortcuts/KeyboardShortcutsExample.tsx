@@ -31,7 +31,7 @@ export default function KeyboardShortcuts() {
 	)
 }
 
-/* 
+/*
 This example shows how you can replace tldraw's default keyboard shortcuts with your own,
 or add a shortcut for an action that doesn't have one. An example of how to add shortcuts
 for custom tools can be found in the custom-config example.

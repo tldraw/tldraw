@@ -1,9 +1,8 @@
-import { useEditor } from 'tldraw'
-
 import { memo, useLayoutEffect, useRef } from 'react'
+import { useEditor } from 'tldraw'
 import { WebGLCanvas } from '../WebGLCanvas'
-import { MinimalShaderManager } from './MinimalShaderManager'
 import { shaderConfig } from './config'
+import { MinimalShaderManager } from './MinimalShaderManager'
 
 export const MinimalRenderer = memo(() => {
 	const editor = useEditor()

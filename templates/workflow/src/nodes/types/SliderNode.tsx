@@ -27,7 +27,7 @@ export class SliderNodeDefinition extends NodeDefinition<SliderNode> {
 	static validator = SliderNode
 	title = 'Slider'
 	heading = 'Slider'
-	icon = (<SliderIcon />)
+	icon = <SliderIcon />
 	getDefault(): SliderNode {
 		return {
 			type: 'slider',

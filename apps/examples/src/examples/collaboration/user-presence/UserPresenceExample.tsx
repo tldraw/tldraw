@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { InstancePresenceRecordType, Tldraw } from 'tldraw'
+import { createUserId, InstancePresenceRecordType, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -22,7 +22,7 @@ export default function UserPresenceExample() {
 					const peerPresence = InstancePresenceRecordType.create({
 						id: InstancePresenceRecordType.createId(editor.store.id),
 						currentPageId: editor.getCurrentPageId(),
-						userId: 'peer-1',
+						userId: createUserId('peer-1'),
 						userName: USER_NAME,
 						cursor: { x: 0, y: 0, type: 'default', rotation: 0 },
 						chatMessage: CURSOR_CHAT_MESSAGE,
@@ -100,7 +100,7 @@ export default function UserPresenceExample() {
 	)
 }
 
-/* 
+/*
 This example shows how to add instance presence records to the store to show other users' cursors.
 It is not an example of how to implement user presence, check out the collaboration examples for that:
 https://tldraw.dev/examples/sync-demo

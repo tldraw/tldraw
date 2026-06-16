@@ -1,4 +1,4 @@
-/* eslint-disable react/jsx-no-literals */
+/* eslint-disable tldraw/jsx-no-literals */
 import { memo } from 'react'
 import { ExampleDialog, TldrawUiMenuItem, useDialogs } from 'tldraw'
 

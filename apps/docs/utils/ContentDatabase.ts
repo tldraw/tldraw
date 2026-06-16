@@ -1,7 +1,7 @@
-import { connect } from '@/scripts/lib/connect'
 import { assert } from '@tldraw/utils'
 import type { Database } from 'sqlite'
 import type sqlite3 from 'sqlite3'
+import { connect } from '@/scripts/lib/connect'
 import type {
 	Article,
 	ArticleHeading,

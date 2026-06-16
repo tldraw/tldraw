@@ -37,7 +37,7 @@ export default function BasicExample() {
 	)
 }
 
-/* 
+/*
 Tldraw's actions can be fired via keyboard shortcuts, or from anywhere in the user interface via 
 the `useActions` hook. This example shows how you can override tldraw's actions object via the Tldraw
 component's `overrides` prop. To learn more about using this actions via a customized menu, see the 

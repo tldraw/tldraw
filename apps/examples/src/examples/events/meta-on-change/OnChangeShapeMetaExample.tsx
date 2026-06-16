@@ -12,7 +12,7 @@ export default function OnChangeShapeMetaExample() {
 					// [1]
 					editor.getInitialMetaForShape = (_shape) => {
 						return {
-							updatedBy: editor.user.getId(),
+							updatedBy: editor.user.getExternalId(),
 							updatedAt: Date.now(),
 						}
 					}
@@ -22,7 +22,7 @@ export default function OnChangeShapeMetaExample() {
 						return {
 							...next,
 							meta: {
-								updatedBy: editor.user.getId(),
+								updatedBy: editor.user.getExternalId(),
 								updatedAt: Date.now(),
 							},
 						}
@@ -52,7 +52,7 @@ export const MetaUiHelper = track(function MetaUiHelper() {
 	)
 })
 
-/* 
+/*
 This example shows how to add meta data to shapes when they are created and
 updated. In this case we are adding `updatedBy` and `updatedAt` fields.
 

@@ -1,7 +1,7 @@
-import { SearchEntry } from '@/utils/algolia'
 import { Hit } from 'instantsearch.js'
 import { getHighlightedParts, getPropertyByPath, unescape } from 'instantsearch.js/es/lib/utils'
 import { memo } from 'react'
+import { SearchEntry } from '@/utils/algolia'
 
 export const ContentHighlight = memo(function ContentHighlight({ hit }: { hit: Hit<SearchEntry> }) {
 	const descriptionHighlight = getHighlights(hit, 'description', 40)

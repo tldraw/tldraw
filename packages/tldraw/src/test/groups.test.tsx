@@ -19,7 +19,6 @@ import {
 } from '@tldraw/editor'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
 
 let nextNanoId = 0
 mockUniqueId(() => `${nextNanoId++}`)
@@ -671,14 +670,32 @@ describe('the bounds of a group', () => {
 	})
 
 	it('accounts for label-only geometry', () => {
-		const { groupId } = editor.createShapesFromJsx([
-			<TL.group ref="groupId">
-				<TL.text ref="textId" x={10} y={10} richText={toRichText('Hello')} />
-				<TL.geo ref="geoId" w={100} h={100} x={0} y={100} />
-			</TL.group>,
+		const ids = {
+			groupId: createShapeId('groupId'),
+			textId: createShapeId('textId'),
+			geoId: createShapeId('geoId'),
+		}
+		editor.createShapes([
+			{ id: ids.groupId, type: 'group', x: 0, y: 0, props: {} },
+			{
+				id: ids.textId,
+				type: 'text',
+				x: 10,
+				y: 10,
+				parentId: ids.groupId,
+				props: { richText: toRichText('Hello') },
+			},
+			{
+				id: ids.geoId,
+				type: 'geo',
+				x: 0,
+				y: 100,
+				parentId: ids.groupId,
+				props: { w: 100, h: 100 },
+			},
 		])
 
-		expect(editor.getShapePageBounds(groupId)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(ids.groupId)!).toCloselyMatchObject({
 			x: 0,
 			y: 10,
 			w: 100,
@@ -902,7 +919,7 @@ describe('right clicking in detail', () => {
 
 	// TODO: fix this
 	it('should select the group by right-clicking the margin of a hollow shape', () => {
-		editor.pointerMove(4, 4).pointerDown(4, 4, { target: 'canvas', button: 2 }).pointerUp()
+		editor.pointerMove(4, 4).rightClick(4, 4)
 		expect(onlySelectedId()).toBe(groupId)
 	})
 })
@@ -950,21 +967,15 @@ describe('the select tool', () => {
 	it('should select the outermost non-selected group when you right-click on one of the shapes in that group', () => {
 		const boxA = editor.getShape(ids.boxA)
 
-		editor
-			.pointerDown(0, 0, { target: 'shape', shape: boxA, button: 2 })
-			.pointerUp(0, 0, { button: 2 })
+		editor.rightClick(0, 0, { target: 'shape', shape: boxA })
 		expect(onlySelectedId()).toBe(groupCId)
 		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
-		editor
-			.pointerDown(0, 0, { target: 'shape', shape: boxA, button: 2 })
-			.pointerUp(0, 0, { button: 2 })
+		editor.rightClick(0, 0, { target: 'shape', shape: boxA })
 		expect(onlySelectedId()).toBe(groupCId)
 		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 		editor.select(groupAId)
 		expect(editor.getFocusedGroupId()).toBe(groupCId)
-		editor
-			.pointerDown(0, 0, { target: 'shape', shape: boxA, button: 2 })
-			.pointerUp(0, 0, { button: 2 })
+		editor.rightClick(0, 0, { target: 'shape', shape: boxA })
 		expect(onlySelectedId()).toBe(groupAId)
 		expect(editor.getFocusedGroupId()).toBe(groupCId)
 	})
@@ -1145,6 +1156,22 @@ describe("when a group's children are deleted", () => {
 		expect(editor.getShape(groupBId)).toBeUndefined()
 		expect(editor.getShape(groupCId)).toBeUndefined()
 		expect(editor.getShape(groupAId)).not.toBeUndefined()
+	})
+
+	it('preserves the collapsed group z-index when reparenting the last child', () => {
+		// Page contains: groupC (lower) then boxX (on top). Deleting boxA collapses
+		// groupA inside groupC, so boxB should take groupA's z-index in groupC and
+		// stay below groupB instead of jumping to the top of groupC's children.
+		editor.createShapes([box(ids.boxX, 80, 0)])
+
+		const pageId = editor.getCurrentPageId()
+		expect(editor.getSortedChildIdsForParent(pageId)).toEqual([groupCId, ids.boxX])
+		expect(editor.getSortedChildIdsForParent(groupCId)).toEqual([groupAId, groupBId])
+
+		editor.deleteShapes([ids.boxA])
+
+		expect(editor.getShape(groupAId)).toBeUndefined()
+		expect(editor.getSortedChildIdsForParent(groupCId)).toEqual([ids.boxB, groupBId])
 	})
 })
 

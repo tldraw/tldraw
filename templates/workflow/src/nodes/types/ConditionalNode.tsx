@@ -81,7 +81,7 @@ export class ConditionalNodeDefinition extends NodeDefinition<ConditionalNode> {
 	static validator = ConditionalNode
 	title = 'Conditional'
 	heading = 'If'
-	icon = (<ConditionalIcon />)
+	icon = <ConditionalIcon />
 	getDefault(): ConditionalNode {
 		return {
 			type: 'conditional',

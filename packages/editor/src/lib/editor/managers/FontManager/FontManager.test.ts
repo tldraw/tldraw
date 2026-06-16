@@ -1,19 +1,28 @@
-import { TLParentId, TLShape, TLShapeId, createShapeId, toRichText } from '@tldraw/tlschema'
+import {
+	TLFontFace,
+	TLParentId,
+	TLShape,
+	TLShapeId,
+	createShapeId,
+	toRichText,
+} from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { Mock, Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
-import { FontManager, TLFontFace } from './FontManager'
+import { FontManager } from './FontManager'
 
 // Mock the Editor class
 vi.mock('../../Editor')
 
 // Mock globals
-global.FontFace = vi.fn().mockImplementation((family, src, descriptors) => ({
-	family,
-	src,
-	...descriptors,
-	load: vi.fn(() => Promise.resolve()),
-}))
+global.FontFace = vi.fn().mockImplementation(function (family: any, src: any, descriptors: any) {
+	return {
+		family,
+		src,
+		...descriptors,
+		load: vi.fn(() => Promise.resolve()),
+	}
+})
 
 Object.defineProperty(global.document, 'fonts', {
 	value: {
@@ -29,6 +38,8 @@ describe('FontManager', () => {
 	let editor: Mocked<Editor>
 	let fontManager: FontManager
 	let mockAssetUrls: { [key: string]: string }
+	let mockShapeFontFacesCacheGet: Mock
+	let mockShapeFontLoadStateCacheGet: Mock
 
 	const createMockFont = (overrides: Partial<TLFontFace> = {}): TLFontFace => ({
 		family: 'Test Font',
@@ -71,12 +82,15 @@ describe('FontManager', () => {
 			getFontFaces: vi.fn(() => []),
 		}
 
+		mockShapeFontFacesCacheGet = vi.fn(() => [])
+		mockShapeFontLoadStateCacheGet = vi.fn(() => ({ get: vi.fn(() => []) }))
+
 		const mockStore = {
 			createComputedCache: vi.fn(() => ({
-				get: vi.fn(() => []),
+				get: mockShapeFontFacesCacheGet,
 			})),
 			createCache: vi.fn(() => ({
-				get: vi.fn(() => ({ get: vi.fn(() => []) })),
+				get: mockShapeFontLoadStateCacheGet,
 			})),
 		}
 
@@ -85,6 +99,7 @@ describe('FontManager', () => {
 			getShapeUtil: vi.fn(() => mockShapeUtil),
 			getCurrentPageShapeIds: vi.fn(() => new Set()),
 			getShape: vi.fn(),
+			getContainerDocument: vi.fn(() => document),
 			isDisposed: false,
 		} as any
 
@@ -99,6 +114,32 @@ describe('FontManager', () => {
 		it('should initialize without assetUrls', () => {
 			const managerWithoutUrls = new FontManager(editor)
 			expect(managerWithoutUrls).toBeDefined()
+		})
+	})
+
+	describe('dispose', () => {
+		it('clears font state and caches', async () => {
+			const font = createMockFont()
+			const shapeId = createShapeId('test')
+			mockShapeFontFacesCacheGet.mockReturnValue([font])
+			const firstPromise = fontManager.ensureFontIsLoaded(font)
+
+			expect(fontManager.getShapeFontFaces(shapeId)).toEqual([font])
+			fontManager.trackFontsForShape(shapeId)
+			fontManager.requestFonts([font])
+			await firstPromise
+			fontManager.dispose()
+			fontManager.requestFonts([font])
+			const secondPromise = fontManager.ensureFontIsLoaded(font)
+
+			expect(fontManager.getShapeFontFaces(shapeId)).toEqual([])
+			fontManager.trackFontsForShape(shapeId)
+			expect(mockShapeFontFacesCacheGet).toHaveBeenCalledTimes(1)
+			expect(mockShapeFontLoadStateCacheGet).toHaveBeenCalledTimes(1)
+			expect(queueMicrotask).toHaveBeenCalledTimes(2)
+			expect(secondPromise).not.toBe(firstPromise)
+
+			await secondPromise
 		})
 	})
 
@@ -161,9 +202,11 @@ describe('FontManager', () => {
 			const font = createMockFont()
 			const error = new Error('Font load failed')
 
-			;(global.FontFace as Mock).mockReturnValue({
-				family: font.family,
-				load: vi.fn(() => Promise.reject(error)),
+			;(global.FontFace as Mock).mockImplementationOnce(function () {
+				return {
+					family: font.family,
+					load: vi.fn(() => Promise.reject(error)),
+				}
 			})
 
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
