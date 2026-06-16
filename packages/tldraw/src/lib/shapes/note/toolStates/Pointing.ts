@@ -83,6 +83,10 @@ export class Pointing extends StateNode {
 		this.cancel()
 	}
 
+	override onLongPress() {
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
+	}
+
 	override onComplete() {
 		this.complete()
 	}
