@@ -40,7 +40,6 @@ export class TickManager {
 		const elapsed = now - this.now
 		this.now = now
 
-		this.editor.inputs.updatePointerVelocity(elapsed)
 		this.editor.emit('frame', elapsed)
 		this.editor.emit('tick', elapsed)
 		this.cancelRaf = throttleToNextFrame(this.tick)
