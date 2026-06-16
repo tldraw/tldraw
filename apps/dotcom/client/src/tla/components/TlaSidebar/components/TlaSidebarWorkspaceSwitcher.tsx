@@ -40,8 +40,6 @@ export function TlaSidebarWorkspaceSwitcher() {
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const isHome = activeWorkspaceId === homeWorkspaceId
 	const myFilesLabel = useMsg(messages.myFiles)
-	const inviteTeammatesLabel = useMsg(messages.inviteTeammates)
-	const workspaceSettingsLabel = useMsg(messages.workspaceSettings)
 
 	const workspaces = useValue(
 		'workspaceMemberships',
@@ -152,8 +150,6 @@ export function TlaSidebarWorkspaceSwitcher() {
 									handleSettings(g.group.id)
 									closeMenu()
 								}}
-								inviteLabel={inviteTeammatesLabel}
-								settingsLabel={workspaceSettingsLabel}
 							>
 								{g.group.name}
 							</WorkspaceSwitcherItem>
@@ -194,8 +190,6 @@ function WorkspaceSwitcherItem({
 	onSelect,
 	onInvite,
 	onSettings,
-	inviteLabel,
-	settingsLabel,
 	testId,
 	children,
 }: {
@@ -205,11 +199,11 @@ function WorkspaceSwitcherItem({
 	// handler it provides (the home workspace provides none).
 	onInvite?(): void
 	onSettings?(): void
-	inviteLabel?: string
-	settingsLabel?: string
 	testId?: string
 	children: ReactNode
 }) {
+	const inviteLabel = useMsg(messages.inviteTeammates)
+	const settingsLabel = useMsg(messages.workspaceSettings)
 	return (
 		<_DropdownMenu.Item
 			className={classNames(
@@ -263,7 +257,7 @@ function WorkspaceActionButton({
 	testId,
 }: {
 	icon: string
-	label?: string
+	label: string
 	onClick(): void
 	testId: string
 }) {
