@@ -405,12 +405,14 @@ export class Sidebar {
 
 	@step
 	async openWorkspaceSettings(name: string) {
-		// The settings action lives in the active workspace's action rows, so
-		// switch to the workspace first if needed.
+		// The settings action lives on the active workspace's row inside the
+		// workspace switcher, so switch to the workspace first if needed, then
+		// open the switcher to reach it.
 		const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
 		if (activeName !== name) {
 			await this.switchToWorkspace(name)
 		}
+		await this.openWorkspaceSwitcher()
 		await this.page.getByTestId('tla-sidebar-workspace-settings').click()
 	}
 
@@ -442,12 +444,14 @@ export class Sidebar {
 
 	@step
 	async copyWorkspaceInviteLink(name: string): Promise<string> {
-		// The invite action lives in the active workspace's action rows, so
-		// switch to the workspace first if needed.
+		// The invite action lives on the active workspace's row inside the
+		// workspace switcher, so switch to the workspace first if needed, then
+		// open the switcher to reach it.
 		const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
 		if (activeName !== name) {
 			await this.switchToWorkspace(name)
 		}
+		await this.openWorkspaceSwitcher()
 		await this.page.getByTestId('tla-sidebar-invite-teammates').click()
 		return await this.readClipboardUrl()
 	}

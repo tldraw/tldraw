@@ -308,6 +308,9 @@
   "801ab24683": {
     "translation": "Download"
   },
+  "8030793ce3": {
+    "translation": "New workspace"
+  },
   "815e116a2e": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
   },
@@ -334,9 +337,6 @@
   },
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
-  },
-  "8cf04a9734": {
-    "translation": "Home"
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
@@ -476,9 +476,6 @@
   },
   "c6a00f137b": {
     "translation": "Invite"
-  },
-  "c7d7403714": {
-    "translation": "New board"
   },
   "c87aacf567": {
     "translation": "Sign out"
