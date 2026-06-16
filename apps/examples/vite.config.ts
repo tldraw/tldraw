@@ -72,8 +72,31 @@ const TLDRAW_BEMO_URL_STRING =
 				? `https://pr-${PR_NUMBER}-demo.tldraw.xyz`
 				: undefined
 
+const TLDRAW_INDEX = path.resolve(__dirname, '../../packages/tldraw/src/index.ts')
+const EXAMPLE_TLDRAW_IMPORT = path
+	.relative(path.dirname(TLDRAW_INDEX), path.join(__dirname, 'src/exampleTldraw.tsx'))
+	.replace(/\\/g, '/')
+	.replace(/\.tsx$/, '')
+
+/** Swap the SDK Tldraw export for the examples-site wrapper (sidebar focus). */
+function exampleTldrawPlugin(): Plugin {
+	return {
+		name: 'example-tldraw',
+		enforce: 'pre',
+		transform(code, id) {
+			const filePath = id.split('?')[0]
+			if (path.resolve(filePath) !== TLDRAW_INDEX) return
+
+			return code.replace(
+				"export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'",
+				`export { Tldraw } from '${EXAMPLE_TLDRAW_IMPORT}'\nexport { type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'`
+			)
+		},
+	}
+}
+
 export default defineConfig(({ mode }) => ({
-	plugins: [spaFallbackPlugin(), react(), exampleReadmePlugin()],
+	plugins: [spaFallbackPlugin(), react(), exampleTldrawPlugin(), exampleReadmePlugin()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {
