@@ -672,11 +672,15 @@
 }
 
 /* Invite + settings actions pinned to the right of the active row. The
-   buttons sit flush so there's no dead gap between their hover targets. */
+   buttons sit flush so there's no dead gap between their hover targets. The
+   -2px pulls the trailing button so its hover square is inset from the row
+   highlight by 4px on the right, matching the 4px top/bottom (the row pads
+   12px but the highlight insets only 6px horizontally). */
 .sidebarWorkspaceSwitcherItemActions {
 	display: flex;
 	align-items: center;
 	margin-left: auto;
+	margin-right: -2px;
 	flex-shrink: 0;
 	z-index: 1;
 }
