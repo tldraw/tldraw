@@ -625,6 +625,12 @@
       "value": "Download"
     }
   ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "New workspace"
+    }
+  ],
   "815e116a2e": [
     {
       "type": 0,
@@ -1069,12 +1075,6 @@
     {
       "type": 0,
       "value": "Invite"
-    }
-  ],
-  "c7d7403714": [
-    {
-      "type": 0,
-      "value": "New board"
     }
   ],
   "c87aacf567": [
