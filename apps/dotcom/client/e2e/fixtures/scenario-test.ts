@@ -501,7 +501,7 @@ class DotcomScenario {
 		await this.switchToHomeIfAvailable(opts.owner)
 		await opts.owner.sidebar.createNewDocument(fileName)
 		await opts.owner.sidebar.createWorkspace(workspaceName)
-		await opts.owner.sidebar.switchToWorkspace('My workspace')
+		await opts.owner.sidebar.switchToHomeWorkspace()
 		await opts.owner.sidebar.moveFileToWorkspace(fileName, workspaceName)
 
 		const inviteUrl = await opts.owner.sidebar.copyWorkspaceInviteLink(workspaceName)
@@ -576,7 +576,7 @@ class DotcomScenario {
 				.isVisible()
 				.catch(() => false)
 		) {
-			await actor.sidebar.switchToWorkspace('My workspace')
+			await actor.sidebar.switchToHomeWorkspace()
 		}
 	}
 }

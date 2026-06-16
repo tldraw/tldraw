@@ -336,6 +336,16 @@ export class Sidebar {
 		return this.page.locator('[data-element="workspace-link"]').filter({ hasText: name })
 	}
 
+	async getHomeWorkspaceName() {
+		const name = await this.page.evaluate(() => {
+			const app = (window as any).app
+			const homeWorkspaceId = app?.getHomeWorkspaceId?.()
+			return app?.getWorkspaceMembership?.(homeWorkspaceId)?.group?.name
+		})
+		if (!name) throw new Error('Could not resolve home workspace name')
+		return name
+	}
+
 	@step
 	async expectWorkspaceVisible(name: string) {
 		// Gate on cross-client sync at the data layer first — immune to dropdown churn — then assert
@@ -393,6 +403,11 @@ export class Sidebar {
 	}
 
 	@step
+	async expectActiveHomeWorkspace() {
+		await this.expectActiveWorkspace(await this.getHomeWorkspaceName())
+	}
+
+	@step
 	async switchToWorkspace(name: string) {
 		// Re-open and click together: a settling re-render can dismiss the menu between opening it and
 		// clicking the workspace, leaving the click waiting on an item that no longer exists.
@@ -401,6 +416,16 @@ export class Sidebar {
 			await this.getWorkspaceLink(name).click({ timeout: 2000 })
 		}).toPass({ timeout: 20000 })
 		await this.expectActiveWorkspace(name)
+	}
+
+	@step
+	async switchToHomeWorkspace() {
+		// The home workspace is renameable, so target its stable switcher item rather than a label.
+		await expect(async () => {
+			await this.ensureWorkspaceSwitcherOpen()
+			await this.page.getByTestId('tla-workspace-switcher-home').click({ timeout: 2000 })
+		}).toPass({ timeout: 20000 })
+		await this.expectActiveHomeWorkspace()
 	}
 
 	@step
@@ -467,13 +492,17 @@ export class Sidebar {
 		// A file can appear in a member's list via cross-client sync (workspace files, shared guest
 		// files), so allow the same propagation budget the rest of the suite uses rather than the
 		// default 5s assertion timeout.
-		await expect(this.getFileByName(fileName)).toBeVisible({ timeout: 10000 })
+		await expect(this.getFileByName(fileName)).toBeVisible({
+			timeout: WORKSPACE_MEMBERSHIP_SYNC_TIMEOUT,
+		})
 	}
 
 	@step
 	async expectFileNotVisible(fileName: string) {
 		// File removal (deletion, losing workspace access) also propagates via cross-client sync.
-		await expect(this.getFileByName(fileName)).not.toBeVisible({ timeout: 10000 })
+		await expect(this.getFileByName(fileName)).not.toBeVisible({
+			timeout: WORKSPACE_MEMBERSHIP_SYNC_TIMEOUT,
+		})
 	}
 
 	@step
@@ -641,6 +670,6 @@ export class Sidebar {
 
 	@step
 	async moveFileToHome(fileName: string) {
-		await this.moveFileToWorkspace(fileName, 'My workspace')
+		await this.moveFileToWorkspace(fileName, await this.getHomeWorkspaceName())
 	}
 }

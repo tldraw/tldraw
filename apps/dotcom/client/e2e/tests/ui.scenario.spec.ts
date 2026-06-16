@@ -133,19 +133,19 @@ test.describe('UI scenarios', () => {
 		await owner.sidebar.expectActiveWorkspace(workspaceName)
 		await owner.sidebar.expectWorkspaceVisible(workspaceName)
 
-		await owner.sidebar.switchToWorkspace('My workspace')
+		await owner.sidebar.switchToHomeWorkspace()
 		await owner.sidebar.moveFileToWorkspace(fileName, workspaceName)
 		await owner.sidebar.expectActiveWorkspace(workspaceName)
 		await owner.sidebar.expectFileVisible(fileName)
 
-		await owner.sidebar.switchToWorkspace('My workspace')
+		await owner.sidebar.switchToHomeWorkspace()
 		await owner.sidebar.expectFileNotVisible(fileName)
 		await owner.sidebar.switchToWorkspace(workspaceName)
 
 		await owner.sidebar.deleteWorkspace(workspaceName)
 		await owner.sidebar.expectWorkspaceNotVisible(workspaceName)
 		await owner.sidebar.expectFileNotVisible(fileName)
-		await owner.sidebar.expectActiveWorkspace('My workspace')
+		await owner.sidebar.expectActiveHomeWorkspace()
 	})
 
 	test('share and publish controls expose current access and published URLs', async ({
@@ -238,7 +238,7 @@ test.describe('UI scenarios', () => {
 		await expect(ownerDialog.getByPlaceholder('Workspace name')).toBeVisible()
 		await expect(ownerDialog.getByText('Invite members')).toBeVisible()
 		await expect(ownerDialog.getByRole('button', { name: 'Copy invite link' })).toBeVisible()
-		await expect(ownerDialog.getByText(/Members\s*\(2\)/)).toBeVisible()
+		await expect(ownerDialog.getByText('Members', { exact: true })).toBeVisible()
 		await expect(ownerDialog.getByText(/\(you\)/)).toBeVisible()
 		await expect(ownerDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)).toHaveText(
 			'Member'

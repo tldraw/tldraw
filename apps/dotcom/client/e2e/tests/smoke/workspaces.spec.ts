@@ -1,7 +1,7 @@
 import { getRandomName, openNewTab } from '../../fixtures/helpers'
 import { expect, test } from '../../fixtures/tla-test'
 
-// The sidebar has a workspace switcher dropdown at the top ("My workspace" + the
+// The sidebar has a workspace switcher dropdown at the top (home workspace + the
 // user's workspaces + a create item), action rows for the active non-home
 // workspace (new board, invite teammates, workspace settings), and the active
 // workspace's files below. Switching to a workspace opens its top file — first pinned,
@@ -64,7 +64,7 @@ test.describe('workspaces', () => {
 			// rewrites the URL with `?d=`, and steals focus — that focus steal is what
 			// used to dismiss it.
 			await page.waitForURL(/[?&]d=/, { timeout: 15000 })
-			await sidebar.expectActiveWorkspace('My workspace')
+			await sidebar.expectActiveHomeWorkspace()
 			await expect(homeItem).toBeVisible()
 		})
 
@@ -78,7 +78,7 @@ test.describe('workspaces', () => {
 			await sidebar.createNewDocument(homeFileName)
 
 			await sidebar.createWorkspace(workspaceName)
-			await sidebar.switchToWorkspace('My workspace')
+			await sidebar.switchToHomeWorkspace()
 			await sidebar.moveFileToWorkspace(file1, workspaceName)
 
 			await sidebar.switchToWorkspace(workspaceName)
@@ -89,7 +89,7 @@ test.describe('workspaces', () => {
 			expect(filesInWorkspace).toContain(file1)
 			expect(filesInWorkspace).toContain(file2)
 
-			await sidebar.switchToWorkspace('My workspace')
+			await sidebar.switchToHomeWorkspace()
 			await sidebar.expectFileNotVisible(file2)
 			await sidebar.expectFileVisible(homeFileName)
 		})
@@ -109,7 +109,7 @@ test.describe('workspaces', () => {
 
 			await sidebar.createWorkspace(workspace1)
 			await sidebar.createWorkspace(workspace2)
-			await sidebar.switchToWorkspace('My workspace')
+			await sidebar.switchToHomeWorkspace()
 			await sidebar.moveFileToWorkspace(file1, workspace1)
 			await sidebar.moveFileToWorkspace(file2, workspace1)
 
@@ -147,7 +147,7 @@ test.describe('workspaces', () => {
 			await sidebar.createNewDocument(homeFileName)
 
 			await sidebar.createWorkspace(workspaceName)
-			await sidebar.switchToWorkspace('My workspace')
+			await sidebar.switchToHomeWorkspace()
 			await sidebar.moveFileToWorkspace(file1, workspaceName)
 			await sidebar.moveFileToWorkspace(file2, workspaceName)
 
@@ -160,7 +160,7 @@ test.describe('workspaces', () => {
 			await sidebar.expectFileNotVisible(file1)
 			await sidebar.expectFileVisible(file2)
 
-			await sidebar.switchToWorkspace('My workspace')
+			await sidebar.switchToHomeWorkspace()
 			await sidebar.expectFileVisible(file1)
 			await sidebar.expectFileVisible(homeFileName)
 		})
@@ -173,14 +173,15 @@ test.describe('workspaces', () => {
 			await sidebar.createNewDocument(file1)
 			await sidebar.createWorkspace(workspace1)
 			await sidebar.createWorkspace(workspace2)
-			await sidebar.switchToWorkspace('My workspace')
+			await sidebar.switchToHomeWorkspace()
+			const homeWorkspaceName = await sidebar.getHomeWorkspaceName()
 
 			// In Home: the file lives in the home workspace, which is checked; every other
 			// workspace is offered unchecked (an unchecked item's accessible name is
 			// just its label, so exact matching works for those).
 			await sidebar.openMoveToMenu(file1)
 			await expect(
-				page.getByRole('menuitemcheckbox', { name: 'My workspace', checked: true })
+				page.getByRole('menuitemcheckbox', { name: homeWorkspaceName, checked: true })
 			).toBeVisible()
 			await expect(
 				page.getByRole('menuitemcheckbox', { name: workspace1, exact: true })
@@ -200,7 +201,7 @@ test.describe('workspaces', () => {
 				page.getByRole('menuitemcheckbox', { name: workspace1, checked: true })
 			).toBeVisible()
 			await expect(
-				page.getByRole('menuitemcheckbox', { name: 'My workspace', exact: true })
+				page.getByRole('menuitemcheckbox', { name: homeWorkspaceName, exact: true })
 			).toBeVisible()
 			await expect(
 				page.getByRole('menuitemcheckbox', { name: workspace2, exact: true })
@@ -289,7 +290,7 @@ test.describe('workspaces', () => {
 			await sidebar.createNewDocument(homeFileName)
 
 			await sidebar.createWorkspace(workspaceName)
-			await sidebar.switchToWorkspace('My workspace')
+			await sidebar.switchToHomeWorkspace()
 			await sidebar.moveFileToWorkspace(file1, workspaceName)
 			await sidebar.moveFileToWorkspace(file2, workspaceName)
 
@@ -323,7 +324,7 @@ test.describe('workspaces', () => {
 			await sidebar.createNewDocument(fileName)
 			await sidebar.createNewDocument(homeFileName)
 			await sidebar.createWorkspace(workspaceName)
-			await sidebar.switchToWorkspace('My workspace')
+			await sidebar.switchToHomeWorkspace()
 			await sidebar.moveFileToWorkspace(fileName, workspaceName)
 
 			const inviteUrl = await sidebar.copyWorkspaceInviteLink(workspaceName)
