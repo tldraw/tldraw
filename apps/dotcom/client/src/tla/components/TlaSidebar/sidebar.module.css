@@ -824,8 +824,8 @@
 	content: '';
 	position: absolute;
 	bottom: 0px;
-	inset: 0px;
-	border-radius: 6px;
+	inset: 2px 0px;
+	border-radius: 4px;
 	border: 1px solid var(--tla-color-primary);
 }
 
