@@ -222,11 +222,7 @@ function WorkspaceSwitcherItem({
 			onSelect={onSelect}
 			data-testid={testId}
 		>
-			<TlaIcon
-				icon="check"
-				className={styles.sidebarWorkspaceSwitcherCheck}
-				style={{ visibility: isActive ? 'visible' : 'hidden' }}
-			/>
+			<TlaIcon icon="check" className={styles.sidebarWorkspaceSwitcherCheck} />
 			<span className={styles.sidebarWorkspaceSwitcherItemLabel}>{children}</span>
 			{isActive && (onInvite || onSettings) && (
 				<span

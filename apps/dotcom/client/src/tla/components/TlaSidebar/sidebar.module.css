@@ -617,11 +617,16 @@
 	z-index: 1;
 }
 
-/* The active row's check. Always laid out (visibility toggles) so workspace
-   names align across rows, and so the create row's plus sits in the same
-   column. */
+/* The active row's check. Always laid out (only its visibility toggles) so
+   workspace names align across rows, and so the create row's plus sits in the
+   same column. Shown only on the active row, driven by the row's data-active. */
 .sidebarWorkspaceSwitcherCheck {
 	flex-shrink: 0;
+	visibility: hidden;
+}
+
+.sidebarWorkspaceSwitcherItem[data-active='true'] .sidebarWorkspaceSwitcherCheck {
+	visibility: visible;
 }
 
 .sidebarWorkspaceSwitcherMenu > * {
