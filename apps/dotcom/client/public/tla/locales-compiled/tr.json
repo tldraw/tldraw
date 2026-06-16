@@ -21,6 +21,18 @@
       "value": "GetHelpLink"
     }
   ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Takım arkadaşlarınızı davet edin"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Maksimum çalışma alanı sayısına ulaştınız. Yeni çalışma alanları oluşturmadan önce eski çalışma alanlarını silmeniz gerekiyor."
+    }
+  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -63,22 +75,28 @@
       "value": "Dosya menüsü"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Bu davetiye yüklenirken bir sorun oluştu. Lütfen tekrar deneyin."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Geri bildirim gönder"
     }
   ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Kaldırmak"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
       "value": "Yayınla"
-    }
-  ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Gruptan ayrıl"
     }
   ],
   "12a6766ba1": [
@@ -99,22 +117,22 @@
       "value": "Dışa aktarma formatı"
     }
   ],
-  "146ffe2fd9": [
+  "1764571547": [
     {
       "type": 0,
-      "value": "Daha fazlasını göster"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Grubu sil"
+      "value": "Bu çalışma alanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
     }
   ],
   "181b90f889": [
     {
       "type": 0,
       "value": "Dosya oluştur"
+    }
+  ],
+  "1d2591253e": [
+    {
+      "type": 0,
+      "value": "Çalışma alanı ayarları"
     }
   ],
   "1da2e8106b": [
@@ -129,10 +147,10 @@
       "value": "Bugün"
     }
   ],
-  "2445e5e347": [
+  "21f66c9c00": [
     {
       "type": 0,
-      "value": "Grup oluştur"
+      "value": "Çalışma alanı adı"
     }
   ],
   "250ddea65c": [
@@ -171,12 +189,6 @@
       "value": "i18n: Vurgu Eksik"
     }
   ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Bağlantı ekle"
-    }
-  ],
   "324a0f3182": [
     {
       "type": 0,
@@ -193,6 +205,12 @@
     {
       "type": 0,
       "value": "Düzenleyici"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Üyeyi kaldır"
     }
   ],
   "3bc7d6ea2f": [
@@ -237,6 +255,12 @@
       "value": "Erişim isteğinde bulunmak için sahibiyle iletişime geçin."
     }
   ],
+  "44680c1fa7": [
+    {
+      "type": 0,
+      "value": "Çalışma alanından ayrılın…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -267,12 +291,6 @@
       "value": "Pin dosyası"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "tldraw dosya URL'sini yapıştır..."
-    }
-  ],
   "4908687e50": [
     {
       "type": 0,
@@ -295,24 +313,6 @@
     {
       "type": 0,
       "value": "Tekrar yükle"
-    }
-  ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Grubu sil…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Daha fazla seçenek"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Bu grubu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
     }
   ],
   "5097d89907": [
@@ -379,40 +379,6 @@
       "value": "Gizlilik Politikası"
     }
   ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Başlamak için dosyaları buraya sürükleyin, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "bir dosya oluşturun"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": " veya "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "davet bağlantısını kopyalayın"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": "."
-    }
-  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -423,6 +389,12 @@
     {
       "type": 0,
       "value": "Eski tarayıcı algılandı. Bu uygulamayı kullanmak için lütfen tarayıcınızı güncelleyin."
+    }
+  ],
+  "5bff3c9c88": [
+    {
+      "type": 0,
+      "value": "Çalışma alanım"
     }
   ],
   "5c6fe42bc2": [
@@ -441,12 +413,6 @@
     {
       "type": 0,
       "value": "Oturum açmadan önce oluşturduğunuz bazı içerikleri yükleyemedik."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Gruba katılmaya davet edildiniz:"
     }
   ],
   "5f3c333678": [
@@ -503,6 +469,12 @@
       "value": "E-posta adresinizi girin"
     }
   ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Çalışma alanını sil"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
@@ -519,12 +491,6 @@
     {
       "type": 0,
       "value": "İçeriği manuel olarak içe aktarmak için şu adımları izleyin:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Grup ayarları"
     }
   ],
   "70a6facb9d": [
@@ -641,12 +607,6 @@
       "value": "Unut"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Gruptan ayrıl…"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -699,6 +659,12 @@
       "value": "."
     }
   ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Üye"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -721,6 +687,18 @@
       "value": "Dosyayı yeniden adlandır"
     }
   ],
+  "87fdb09de6": [
+    {
+      "type": 0,
+      "value": "Zaten bu çalışma alanının bir üyesisiniz."
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Bu davet bağlantısının süresi doldu."
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -731,6 +709,12 @@
     {
       "type": 0,
       "value": "Doğrulama kodu için e-postanızı kontrol edin."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Ev"
     }
   ],
   "8eb2c00e96": [
@@ -763,22 +747,16 @@
       "value": "Dosyalarıma kopyala"
     }
   ],
-  "930390d222": [
-    {
-      "type": 0,
-      "value": "Davet bağlantısı kopyalandı"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Zaten bu grubun üyesisiniz"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Google ile oturum açın"
+    }
+  ],
+  "95b56f4cd6": [
+    {
+      "type": 0,
+      "value": "Çalışma alanını sil…"
     }
   ],
   "95d2109dc8": [
@@ -797,12 +775,6 @@
     {
       "type": 0,
       "value": "Kullanım Şartları"
-    }
-  ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Dosya bağlantısı ekle"
     }
   ],
   "9914a0ce04": [
@@ -927,6 +899,12 @@
       "value": "Arka plan"
     }
   ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Çalışma alanı oluşturun"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -963,12 +941,6 @@
       "value": "E-posta adresi"
     }
   ],
-  "b3d2db69fe": [
-    {
-      "type": 0,
-      "value": "Dosya URL'si"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -991,12 +963,6 @@
     {
       "type": 0,
       "value": "Paylaşmak için oturum açın"
-    }
-  ],
-  "bb93a7590f": [
-    {
-      "type": 0,
-      "value": "Kabul et ve gruba katıl"
     }
   ],
   "bbbcefd7ce": [
@@ -1085,12 +1051,6 @@
       "value": "Temel çerezler"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Grup adı"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1103,10 +1063,10 @@
       "value": "Davet et"
     }
   ],
-  "c74ea6dbff": [
+  "c7d7403714": [
     {
       "type": 0,
-      "value": "Daha az göster"
+      "value": "Yeni tahta"
     }
   ],
   "c87aacf567": [
@@ -1227,28 +1187,28 @@
       "value": "İçeriği görmek için buraya gidin"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Maksimum grup sayısına ulaştınız. Yeni gruplar oluşturmadan önce eski grupları silmeniz gerekiyor."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Yalnızca davetle"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "Geçersiz tldraw dosya URL'si"
+      "value": "Çalışma alanından ayrılın"
     }
   ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Uygulama hata ayıklama bayrakları"
+    }
+  ],
+  "e0aa021e21": [
+    {
+      "type": 0,
+      "value": "TAMAM"
     }
   ],
   "e0c88179b3": [
@@ -1269,22 +1229,28 @@
       "value": "Hukuki özet"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Yönetici"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Hizmet Şartları"
     }
   ],
+  "e615d52512": [
+    {
+      "type": 0,
+      "value": "Çalışma alanına katılmayı kabul et ve katıl"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "veya"
+    }
+  ],
+  "e9e0f16850": [
+    {
+      "type": 0,
+      "value": "Çalışma alanına katılmaya davet edildiniz:"
     }
   ],
   "ea0626ac5a": [
@@ -1297,6 +1263,12 @@
     {
       "type": 0,
       "value": "İptal"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Çalışma alanı sahibinden yenisini isteyin."
     }
   ],
   "ebfe9ce86e": [
@@ -1391,12 +1363,6 @@
       "value": "Ayarlar"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Bu gruptan ayrılmak istediğinize emin misiniz?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1407,6 +1373,12 @@
     {
       "type": 0,
       "value": "Görüntüleyici"
+    }
+  ],
+  "fc9d47046b": [
+    {
+      "type": 0,
+      "value": "Bu çalışma alanından ayrılmak istediğinizden emin misiniz?"
     }
   ],
   "fd1be3efcf": [
@@ -1421,10 +1393,14 @@
       "value": "Bağlantı kopyalandı"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
+    {
+      "type": 1,
+      "value": "name"
+    },
     {
       "type": 0,
-      "value": "Dosya bağlantısı ekle…"
+      "value": " öğesini bu çalışma alanından kaldırmak istediğinizden emin misiniz?"
     }
   ],
   "ffcd73e997": [

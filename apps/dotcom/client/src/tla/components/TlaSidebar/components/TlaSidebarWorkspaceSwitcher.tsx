@@ -282,8 +282,22 @@ function useSwitchToWorkspace() {
 				navigate(routes.tlaFile(files[0]!.fileId))
 				return
 			}
-			// Empty workspace: create a file in it and open that, so selecting a
-			// workspace always lands you on a file within it.
+			// A workspace created moments ago may still be seeding its welcome file: the
+			// createWorkspace mutation lands before the file does, so it briefly appears empty.
+			// Await that in-flight seed and open its result rather than racing it with a duplicate
+			// blank file. (On seed failure we fall through to the blank-file path below.)
+			const pendingWelcome = app.getPendingWorkspaceWelcomeFile(workspaceId)
+			if (pendingWelcome) {
+				const seeded = await pendingWelcome
+				if (seeded.ok) {
+					navigate(routes.tlaFile(seeded.value.fileId))
+					return
+				}
+			}
+			// Empty workspace: create a blank file and open it, so selecting a workspace always
+			// lands you on a file within it. The welcome file is seeded only when a workspace is
+			// first created (see useCreateWorkspaceDialog), so an emptied workspace — like the
+			// home workspace — just gets a fresh blank file to rename, not another welcome doc.
 			const res = await app.createFile({ workspaceId })
 			if (res.ok) {
 				if (!getIsCoarsePointer()) {
@@ -301,6 +315,7 @@ function useSwitchToWorkspace() {
 
 function useCreateWorkspaceDialog() {
 	const app = useApp()
+	const navigate = useNavigate()
 	const { addDialog } = useDialogs()
 	const switchToWorkspace = useSwitchToWorkspace()
 
@@ -317,10 +332,21 @@ function useCreateWorkspaceDialog() {
 							app.showMutationRejectionToast((e as Error).message as ZErrorCode)
 							return
 						}
-						await switchToWorkspace(id)
+						// Seed the workspace's welcome file once, here at creation, and open it
+						// directly (not via switchToWorkspace, whose empty-workspace path would
+						// otherwise create a blank file before the welcome file lands).
+						const res = await app.createWorkspaceWelcomeFile(id)
+						if (res.ok) {
+							navigate(routes.tlaFile(res.value.fileId))
+						} else {
+							// Seeding failed; still land the user in the new workspace rather than
+							// leaving them stranded. switchToWorkspace creates a blank file for the
+							// (now empty) workspace and opens it.
+							await switchToWorkspace(id)
+						}
 					}}
 				/>
 			),
 		})
-	}, [app, addDialog, switchToWorkspace])
+	}, [app, addDialog, navigate, switchToWorkspace])
 }

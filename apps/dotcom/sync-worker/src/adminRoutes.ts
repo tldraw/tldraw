@@ -318,6 +318,61 @@ export const adminRoutes = createRouter<Environment>()
 		assert(typeof fileSlug === 'string', 'fileSlug is required')
 		return await returnFileSnapshot(env, fileSlug, false)
 	})
+	// The current welcome template (the file new workspaces fork their first file from), or
+	// null when none is set and the committed default is used. Also reports whether the marked
+	// file is still live and published: the resolver silently falls back to the default if it
+	// isn't, so the admin needs to see a stale pointer rather than assume it's working. See
+	// resolveWelcomeSnapshot.
+	.get('/app/admin/welcome-template', async (_res, env) => {
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		const row = await pg.selectFrom('welcome_template').selectAll().executeTakeFirst()
+		if (!row) return json(null)
+		const file = await pg
+			.selectFrom('file')
+			.where('id', '=', row.fileId)
+			.select(['published', 'isDeleted'])
+			.executeTakeFirst()
+		const live = !!file && !file.isDeleted && file.published
+		return json({ ...row, live })
+	})
+	// Mark a published file as the welcome template. We store its publishedSlug, so the file
+	// must be published first; new workspaces then fork its published snapshot.
+	.post('/app/admin/welcome-template', async (req, env) => {
+		const { fileId } = (await req.json()) as { fileId?: unknown }
+		assert(typeof fileId === 'string' && fileId.length > 0, 'fileId (string) is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		const file = await pg
+			.selectFrom('file')
+			.where('id', '=', fileId)
+			.select(['id', 'published', 'publishedSlug', 'isDeleted'])
+			.executeTakeFirst()
+		if (!file) throw new StatusError(404, `File not found: ${fileId}`)
+		if (!file.published) {
+			throw new StatusError(400, 'File must be published before it can be the welcome template')
+		}
+
+		const updatedAt = Date.now()
+		await pg
+			.insertInto('welcome_template')
+			.values({ id: true, fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
+			.onConflict((oc) =>
+				oc
+					.column('id')
+					.doUpdateSet({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
+			)
+			.execute()
+		// Return the same shape as GET, including `live`, so the admin UI doesn't flash the
+		// "not published" warning right after a successful set.
+		const live = !file.isDeleted && file.published
+		return json({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt, live })
+	})
+	// Clear the welcome template, reverting new workspaces to the committed default snapshot.
+	.post('/app/admin/welcome-template/clear', async (_res, env) => {
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		await pg.deleteFrom('welcome_template').execute()
+		return json({ cleared: true })
+	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {
 	return await getRoomDurableObject(env, id).__admin__hardDeleteIfLegacy()

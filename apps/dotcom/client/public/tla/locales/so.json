@@ -1,4 +1,7 @@
 {
+  "1764571547": {
+    "translation": "Ma hubtaa inaad rabto inaad tirtirto goobta shaqada? Tallaabadan lama celin karo."
+  },
   "0095a9fa74": {
     "translation": "Dhoofinta"
   },
@@ -7,6 +10,12 @@
   },
   "043973ec1f": {
     "translation": "Weli dhib baa haysta? {GetHelpLink}"
+  },
+  "04a2dd56d6": {
+    "translation": "Ku martiqaad asxaabta kooxda"
+  },
+  "05f43078e9": {
+    "translation": "Waxaad gaartay tirada ugu badan ee goobaha shaqada. Waxaad u baahan tahay inaad tirtirto goobaha shaqada ee hore ka hor intaadan abuurin kuwo cusub."
   },
   "06b9281e39": {
     "translation": "Baabuur"
@@ -29,14 +38,17 @@
   "0b9a4cde72": {
     "translation": "Liiska faylka"
   },
+  "0c4383617a": {
+    "translation": "Wax baa qaldamay soo rarista martiqaadkan. Fadlan isku day mar kale."
+  },
   "0d1f2bb523": {
     "translation": "Soo dir jawaab celin"
   },
+  "1063e38cb5": {
+    "translation": "Ka saar"
+  },
   "110a4b01be": {
     "translation": "Daabac"
-  },
-  "129b9e34ea": {
-    "translation": "Ka tag kooxda"
   },
   "12a6766ba1": {
     "translation": "Furaha faylka"
@@ -47,14 +59,11 @@
   "13ddd375ad": {
     "translation": "Dhoofinta sida"
   },
-  "146ffe2fd9": {
-    "translation": "Wax badan muuji"
-  },
-  "14d65465b7": {
-    "translation": "Kooxda tirtir"
-  },
   "181b90f889": {
     "translation": "Samee fayl"
+  },
+  "1d2591253e": {
+    "translation": "Dejinta goobta shaqada"
   },
   "1da2e8106b": {
     "translation": "Khalad lama filaan ah ayaa dhacay"
@@ -62,8 +71,8 @@
   "1dd1c5fb7f": {
     "translation": "Maanta"
   },
-  "2445e5e347": {
-    "translation": "Abuur koox"
+  "21f66c9c00": {
+    "translation": "Magaca goobta shaqada"
   },
   "250ddea65c": {
     "translation": "Ku saabsan tldraw"
@@ -83,9 +92,6 @@
   "31418ce4ad": {
     "translation": "i18n: Iftiimin Maqan"
   },
-  "32210b37e4": {
-    "translation": "Kudar xiriiriyaha"
-  },
   "324a0f3182": {
     "translation": "Ku laabo tldraw"
   },
@@ -94,6 +100,9 @@
   },
   "344a7f427f": {
     "translation": "Tafatire"
+  },
+  "375396d6e5": {
+    "translation": "Ka saar xubinta"
   },
   "3bc7d6ea2f": {
     "translation": "Ku sii wad iimaylka"
@@ -116,6 +125,9 @@
   "42e53c47c1": {
     "translation": "La xidhiidh mulkiilaha si aad u codsato gelitaanka"
   },
+  "44680c1fa7": {
+    "translation": "Ka bax goobta shaqada…"
+  },
   "44db318ee5": {
     "translation": "Caawimo ka hel Discord"
   },
@@ -131,12 +143,6 @@
   "47f493a590": {
     "translation": "Gal gal"
   },
-  "49049467ff": {
-    "translation": "Ku dheji URL faylka tldraw..."
-  },
-  "4908687e50": {
-    "translation": "Ma hubtaa inaad rabto inaad ilowdo faylkan?"
-  },
   "49ee308734": {
     "translation": "Magaca"
   },
@@ -145,15 +151,6 @@
   },
   "4d1c8263ba": {
     "translation": "Dib u soo deji"
-  },
-  "4da5988a2e": {
-    "translation": "Tirtir kooxda…"
-  },
-  "4dab36ac83": {
-    "translation": "Xulasho badan"
-  },
-  "4e6fbf032b": {
-    "translation": "Ma hubtaa inaad doonayso inaad tirtirto kooxdan? Tallaabadan lama noqon karo."
   },
   "5097d89907": {
     "translation": "Jaantus aan la taageerin, ayaa beddelka soo saari doona SVG"
@@ -182,14 +179,14 @@
   "56c34c6410": {
     "translation": "Siyaasada gaarka ah"
   },
-  "5a86b22fa0": {
-    "translation": "Halkan ku soo jiid faylasha, <create>abuur fayl</create>, ama <invite>koobiyi xidhiidhka martiqaadka</invite> si aad u bilowdo."
-  },
   "5a95a425f7": {
     "translation": "La wadaag"
   },
   "5bec508475": {
     "translation": "browser hore waa la helay Fadlan cusboonaysii biraawsarkaaga si aad u isticmaasho abkan."
+  },
+  "5bff3c9c88": {
+    "translation": "Goobta shaqadayda"
   },
   "5c6fe42bc2": {
     "translation": "Ka noqo xiriirkan oo samee mid cusub."
@@ -199,9 +196,6 @@
   },
   "5d26ae7550": {
     "translation": "Waanu ku guuldareysanay inaan soo rarno qayb ka mid ah macluumaadka aad abuurtay ka hor inta aanad soo galin"
-  },
-  "5ea8bb44be": {
-    "translation": "Waxaa lagugu martiqaaday inaad ku biirto kooxda:"
   },
   "5f3c333678": {
     "translation": "Jawaab celin waa la gudbiyay"
@@ -230,6 +224,9 @@
   "6832ac5936": {
     "translation": "Geli ciwaanka iimaylkaaga"
   },
+  "694f82ed9d": {
+    "translation": "Tirtir goobta shaqada"
+  },
   "6a26f54883": {
     "translation": "Caawin"
   },
@@ -238,9 +235,6 @@
   },
   "6dfc62f621": {
     "translation": "Raac tillaabooyinkan si aad gacanta ugu soo dejiso waxa ku jira:"
-  },
-  "70222abcfc": {
-    "translation": "Dejinta kooxda"
   },
   "70a6facb9d": {
     "translation": "Todobaadkan"
@@ -268,6 +262,9 @@
   },
   "764671e008": {
     "translation": "Nagala hadal Discord"
+  },
+  "4908687e50": {
+    "translation": "Ma hubtaa inaad rabto inaad ilowdo faylkan?"
   },
   "76dea3c9ca": {
     "translation": "tldraw waa sabuur cad oo online ah oo bilaash ah. Samee akoon si aad u kaydsato faylashaada oo ula shaqeyso asxaabtaada."
@@ -299,9 +296,6 @@
   "7cb5f8b4a5": {
     "translation": "Iska ilow"
   },
-  "7cfe6c43dc": {
-    "translation": "Ka bax kooxda…"
-  },
   "7daeced9ff": {
     "translation": "Daabac isbeddellada"
   },
@@ -314,6 +308,9 @@
   "815e116a2e": {
     "translation": "Ma haysaa bug, arin, ama fikrad tldraw? Aan ogaano! Buuxi foomkan waxaanu kula socon doonaa iimaylka haddii loo baahdo. Waxa kale oo aad <discord>nagula sheekaysan kartaa Discord </discord>ama <github>gudbi arrin ku saabsan GitHub</github>."
   },
+  "858ba4765e": {
+    "translation": "Xubin"
+  },
   "85a082de1b": {
     "translation": "Fadlan dib u cusbooneysii bogga si aad u hesho nuqulkii ugu dambeeyay ee tldraw."
   },
@@ -323,11 +320,20 @@
   "86c66437fd": {
     "translation": "Magaca beddelo faylka"
   },
+  "87fdb09de6": {
+    "translation": "Waxaad horey xubin uga ahayd goobta shaqadan"
+  },
+  "88bf6ab42c": {
+    "translation": "Xiriirintan martiqaadku way dhacday"
+  },
   "8ad4303b83": {
     "translation": "Maya mahadsanid"
   },
   "8c2d3d730c": {
     "translation": "Hubi iimaylkaga koodka xaqiijinta"
+  },
+  "8cf04a9734": {
+    "translation": "Bogga Hore"
   },
   "8eb2c00e96": {
     "translation": "kula wadaagay"
@@ -344,14 +350,11 @@
   "91e49bb0eb": {
     "translation": "Ku koobbi faylalkayga"
   },
-  "930390d222": {
-    "translation": "Xiriirinta martiqaadka oo la guuriyay"
-  },
-  "9489b2f82a": {
-    "translation": "Horay ayaad xubin uga ahayd kooxdan"
-  },
   "95aacd4d4a": {
     "translation": "Ku gal Google"
+  },
+  "95b56f4cd6": {
+    "translation": "Tirtir goobta shaqada…"
   },
   "95d2109dc8": {
     "translation": "Ku dhis tldraw SDK"
@@ -361,9 +364,6 @@
   },
   "985a4b720f": {
     "translation": "Shuruudaha Isticmaalka"
-  },
-  "98c997a27e": {
-    "translation": "Kudar xiriirinta faylka"
   },
   "9914a0ce04": {
     "translation": "Iftiin"
@@ -419,6 +419,9 @@
   "a9ded1e5ce": {
     "translation": "Asalkii hore"
   },
+  "aac449eef6": {
+    "translation": "Samee goobta shaqada"
+  },
   "ab0df9ba36": {
     "translation": "Xadka faylka waa la gaarey"
   },
@@ -435,9 +438,6 @@
   "b357b524e7": {
     "translation": "Ciwaanka iimaylka"
   },
-  "b3d2db69fe": {
-    "translation": "URL faylka"
-  },
   "b6d4223e60": {
     "translation": "Soo gal"
   },
@@ -449,9 +449,6 @@
   },
   "ba0318cb81": {
     "translation": "Saxiix si aad ula wadaagto"
-  },
-  "bb93a7590f": {
-    "translation": "Aqbal oo ku biir kooxda"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Soo dejinaya faylka .tldr…} other {Soo dejinta {uploaded} ee {total} .tldr files…}}"
@@ -471,17 +468,14 @@
   "c4b39a1cc3": {
     "translation": "Kukiyada muhiimka ah"
   },
-  "c6155aaecc": {
-    "translation": "Magaca kooxda"
-  },
   "c655b27b1e": {
     "translation": "i18n: Xarig dheer"
   },
   "c6a00f137b": {
     "translation": "martiqaad"
   },
-  "c74ea6dbff": {
-    "translation": "Muuji wax yar"
+  "c7d7403714": {
+    "translation": "Guddi cusub"
   },
   "c87aacf567": {
     "translation": "Saxiix"
@@ -528,17 +522,17 @@
   "d9100f3e10": {
     "translation": "Tag halkan si aad u aragto waxa ku jira"
   },
-  "d9e35d0f55": {
-    "translation": "Waxaad gaadhay tirada ugu badan ee kooxaha Waxaad u baahan tahay inaad tirtirto kooxihii hore ka hor inta aanad abuurin kuwa cusub."
-  },
   "dbbebf3c03": {
     "translation": "martiqaad kaliya"
   },
-  "dcdaa754fe": {
-    "translation": "URL faylka tldraw aan sax ahayn"
+  "dbf9b24193": {
+    "translation": "Ka bax goobta shaqada"
   },
   "dfdb78a4e4": {
     "translation": "Calaamadaha cilladaha abka"
+  },
+  "e0aa021e21": {
+    "translation": "Hagaag"
   },
   "e0c88179b3": {
     "translation": "martiqaad xubnaha"
@@ -549,20 +543,26 @@
   "e2ae80a510": {
     "translation": "Soo koobid sharci ah"
   },
-  "e3afed0047": {
-    "translation": "Admin"
-  },
   "e404559826": {
     "translation": "Shuruudaha adeegga"
   },
+  "e615d52512": {
+    "translation": "Aqbal oo ku biir goobta shaqada"
+  },
   "e81c4e4f2b": {
     "translation": "ama"
+  },
+  "e9e0f16850": {
+    "translation": "Waxaa laguugu casuumay inaad ku biirto goobta shaqada:"
   },
   "ea0626ac5a": {
     "translation": "Aagga khatarta ah"
   },
   "ea4788705e": {
     "translation": "Jooji"
+  },
+  "eb1e2b0542": {
+    "translation": "Weydii milkiilaha goobta shaqada mid cusub."
   },
   "ebfe9ce86e": {
     "translation": "Shalay"
@@ -603,14 +603,14 @@
   "f4f70727dc": {
     "translation": "Dejinta"
   },
-  "f714e36843": {
-    "translation": "Ma hubtaa inaad doonayso inaad ka baxdo kooxdan?"
-  },
   "fa2ead697d": {
     "translation": "Siyaasadda Qarsoonnimada"
   },
   "fb15c53f22": {
     "translation": "Daawade"
+  },
+  "fc9d47046b": {
+    "translation": "Ma hubtaa inaad rabto inaad ka baxdo goobta shaqada?"
   },
   "fd1be3efcf": {
     "translation": "Ma hubtaa inaad rabto inaad tirtirto faylkan?"
@@ -618,8 +618,8 @@
   "fed5ec05eb": {
     "translation": "Xiriirinta la guuriyay"
   },
-  "ff7a814974": {
-    "translation": "Kudar xiriirinta faylka…"
+  "ff2fefd3c6": {
+    "translation": "Ma hubtaa inaad rabto inaad ka saarto {name} goobta shaqada?"
   },
   "ffcd73e997": {
     "translation": "Soo rar faylka…"
