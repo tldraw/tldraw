@@ -91,6 +91,8 @@ export class Editor {
 	async createTextShape(text: string) {
 		await this.page.getByTestId('tools.select').click()
 		await this.page.locator('.tl-background').click({ clickCount: 2 })
-		await this.page.locator('div[contenteditable="true"]').fill(text)
+		// The editor's hidden keyboard sink is also contenteditable; target the
+		// shape's text editor specifically.
+		await this.page.locator('div[contenteditable="true"]:not([data-tl-keyboard-sink])').fill(text)
 	}
 }

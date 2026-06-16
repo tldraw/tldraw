@@ -104,6 +104,11 @@ export function setStyleProperty(
 export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMenus = true) {
 	if (!el) return false
 
+	// The editor's hidden keyboard sink (see FocusManager) is contenteditable
+	// so that iOS Safari delivers Cmd/Ctrl-modified key events, but it is not a
+	// real text input: keyboard shortcuts must stay enabled while it has focus.
+	if (el.hasAttribute('data-tl-keyboard-sink')) return false
+
 	const tagName = el.tagName.toLowerCase()
 	return (
 		(el as HTMLElement).isContentEditable ||

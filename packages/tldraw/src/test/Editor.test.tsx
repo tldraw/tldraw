@@ -483,6 +483,9 @@ describe('isFocused', () => {
 		vi.advanceTimersByTime(100)
 		expect(editor.getInstanceState().isFocused).toBe(true)
 
+		// Focus on the container is forwarded to the keyboard sink, so blur
+		// whichever element actually holds focus.
+		;(document.activeElement as HTMLElement | null)?.blur()
 		editor.elm.blur()
 
 		vi.advanceTimersByTime(100)

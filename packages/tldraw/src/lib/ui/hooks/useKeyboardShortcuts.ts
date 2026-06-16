@@ -413,6 +413,10 @@ function shouldSkipEvent(e: KeyboardEvent): boolean {
 	if (e.isComposing) return true
 	const target = e.target as HTMLElement | null
 	if (!target) return false
+	// The editor's hidden keyboard sink (see FocusManager) is contenteditable
+	// so that iOS Safari delivers Cmd/Ctrl-modified key events, but it is not a
+	// real text input: shortcuts must keep firing while it has focus.
+	if (target.hasAttribute?.('data-tl-keyboard-sink')) return false
 	if (target.isContentEditable) return true
 	const tagName = target.tagName
 	if (tagName === 'SELECT') return true
