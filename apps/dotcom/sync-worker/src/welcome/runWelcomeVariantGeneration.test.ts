@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../types'
 import { defaultWelcomeSnapshotJson } from './defaultWelcomeSnapshot'
 import { runWelcomeVariantGeneration } from './runWelcomeVariantGeneration'
-import { welcomeVariantR2Key } from './welcomeVariants'
+import { WelcomeCatalog, welcomeVariantR2Key } from './welcomeVariants'
 
 vi.mock('../routes/tla/getPublishedFile', () => ({ getPublishedRoomSnapshot: vi.fn() }))
 vi.mock('./loadWelcomeCatalog', async (orig) => ({
@@ -60,10 +60,11 @@ describe('runWelcomeVariantGeneration', () => {
 	it('writes a variant only for locales that actually have welcome translations', async () => {
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(source())
 		// fr is translated; everything else returns a catalog with no welcome.* keys → skipped.
-		vi.mocked(loadWelcomeCatalog).mockImplementation(async (_env, locale) =>
-			locale === 'fr'
-				? { 'welcome.title': 'Bienvenue dans votre espace de travail' }
-				: { 'some.other.key': 'x' }
+		vi.mocked(loadWelcomeCatalog).mockImplementation(
+			async (_env, locale): Promise<WelcomeCatalog> =>
+				locale === 'fr'
+					? { 'welcome.title': 'Bienvenue dans votre espace de travail' }
+					: { 'some.other.key': 'x' }
 		)
 
 		const generated = await runWelcomeVariantGeneration(env, 'pub_abc')

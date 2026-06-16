@@ -49,9 +49,14 @@ export function applyWelcomeText(
 		const state = doc.state as { id?: string; props?: Record<string, unknown> }
 		const parts = state.id ? partsById.get(state.id) : undefined
 		if (!parts) return doc
+		// `state` is an opaque record (shape); we only swap its richText prop, so cast back to the
+		// record type rather than widening the documents array to a structural object.
 		return {
 			...doc,
-			state: { ...state, props: { ...state.props, richText: richTextDoc(parts) } },
+			state: {
+				...state,
+				props: { ...state.props, richText: richTextDoc(parts) },
+			} as unknown as typeof doc.state,
 		}
 	})
 	return { ...snapshot, documents }
