@@ -55,12 +55,34 @@ export const WELCOME_COPY = {
 } as const
 
 export type WelcomeCopyEntry = (typeof WELCOME_COPY)[keyof typeof WELCOME_COPY]
+export type WelcomeCopyShapeId = keyof typeof WELCOME_COPY
 
 /**
- * Return a copy of the welcome snapshot with its instructional text shapes rewritten using
- * `format`, which turns a copy entry into localized parts (plain + bold runs). Art and layout are
- * untouched — only the richText of the mapped shapes changes. Pure and locale-agnostic, so it can
- * run on the client (with the user's intl) or on the worker (with a passed-in locale catalog).
+ * The injection half: return a copy of the snapshot with the given text shapes' richText replaced
+ * by the provided parts (plain + bold runs). Only the mapped shapes change — art and layout are
+ * untouched. Pure and locale-agnostic: the caller decides where `partsById` comes from (the user's
+ * intl on the client, or a compiled locale catalog wherever variants are generated). This is the
+ * shared plug point both the default-localization and the per-locale-variant paths end at.
+ */
+export function applyWelcomeText(
+	snapshot: RoomSnapshot,
+	partsById: Map<string, WelcomePart[]>
+): RoomSnapshot {
+	const documents = snapshot.documents.map((doc) => {
+		const state = doc.state as { id?: string; props?: Record<string, unknown> }
+		const parts = state.id ? partsById.get(state.id) : undefined
+		if (!parts) return doc
+		return {
+			...doc,
+			state: { ...state, props: { ...state.props, richText: richTextDoc(parts) } },
+		}
+	})
+	return { ...snapshot, documents }
+}
+
+/**
+ * Convenience over {@link applyWelcomeText} for the fixed welcome copy: rewrite every shape in
+ * {@link WELCOME_COPY} using `format`, which turns a copy entry into localized parts.
  *
  * The react-intl call site looks like:
  *   format = (entry) => intl.formatMessage(entry, { strong: (chunks) => ({ bold: chunks.join('') }) })
@@ -70,15 +92,8 @@ export function localizeWelcomeSnapshot(
 	snapshot: RoomSnapshot,
 	format: (entry: WelcomeCopyEntry) => WelcomePart[]
 ): RoomSnapshot {
-	const copy = WELCOME_COPY as Record<string, WelcomeCopyEntry>
-	const documents = snapshot.documents.map((doc) => {
-		const state = doc.state as { id?: string; props?: Record<string, unknown> }
-		const entry = state.id ? copy[state.id] : undefined
-		if (!entry) return doc
-		return {
-			...doc,
-			state: { ...state, props: { ...state.props, richText: richTextDoc(format(entry)) } },
-		}
-	})
-	return { ...snapshot, documents }
+	const partsById = new Map<string, WelcomePart[]>(
+		Object.entries(WELCOME_COPY).map(([shapeId, entry]) => [shapeId, format(entry)])
+	)
+	return applyWelcomeText(snapshot, partsById)
 }
