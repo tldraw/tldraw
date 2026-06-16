@@ -1,19 +1,22 @@
-import { Atom, atom } from '@tldraw/state'
-import { Store } from '@tldraw/store'
+import { Atom, Signal, atom, computed } from '@tldraw/state'
+import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
 import {
+	CameraRecordType,
 	DocumentRecordType,
+	InstancePresenceRecordType,
 	PageRecordType,
 	TLDOCUMENT_ID,
 	TLRecord,
 	createTLSchema,
 } from '@tldraw/tlschema'
-/// <reference types="vitest" />
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { RecordOpType } from './diff'
+import { TestServer } from '../test/TestServer'
+import { TestSocketPair } from '../test/TestSocketPair'
+import { NetworkDiff, RecordOpType, ValueOpType } from './diff'
 import {
+	TLConnectRequest,
 	TLPushRequest,
 	TLSocketClientSentEvent,
-	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
 	getTlsyncProtocolVersion,
 } from './protocol'
@@ -24,7 +27,9 @@ import {
 	TLSyncClient,
 } from './TLSyncClient'
 
-// Mock store and schema setup
+// These tests express the rules in SPEC.md sections 19 (CL), 20 (CP), and 21 (CR).
+// Each test name cites the rule(s) it expresses.
+
 const schema = createTLSchema()
 const protocolVersion = getTlsyncProtocolVersion()
 type TestRecord = TLRecord
@@ -108,6 +113,23 @@ class MockSocket implements TLPersistentClientSocket<
 	}
 }
 
+function makePage(name = 'Test Page', index = 'a1') {
+	return PageRecordType.create({
+		id: PageRecordType.createId(),
+		name,
+		index: index as any,
+	})
+}
+
+function makePeerPresence() {
+	return InstancePresenceRecordType.create({
+		id: InstancePresenceRecordType.createId('peer'),
+		userId: 'user:peer' as any,
+		userName: 'Peer',
+		currentPageId: 'page:main' as any,
+	})
+}
+
 describe('TLSyncClient', () => {
 	let store: Store<TestRecord, any>
 	let socket: MockSocket
@@ -139,11 +161,17 @@ describe('TLSyncClient', () => {
 			},
 		})
 
-		// Add basic document record
+		// Add basic document and page records so the tldraw schema's integrity checker
+		// has nothing to create on its own
 		store.put([
 			DocumentRecordType.create({
 				id: TLDOCUMENT_ID,
 				gridSize: 10,
+			}),
+			PageRecordType.create({
+				id: PageRecordType.createId('page'),
+				name: 'Page 1',
+				index: 'a1' as any,
 			}),
 		])
 
@@ -162,9 +190,24 @@ describe('TLSyncClient', () => {
 
 	afterEach(() => {
 		client?.close()
+		client = undefined as any
 		vi.useRealTimers()
 		vi.clearAllMocks()
 	})
+
+	/**
+	 * A server diff that mirrors the store's current document records. Using this as the default
+	 * connect diff means a wipe_all hydration round-trips to no change, keeping the tldraw schema's
+	 * integrity checker quiet (it would otherwise recreate the document/page records as new local
+	 * changes).
+	 */
+	function documentScopeDiff(): NetworkDiff<TestRecord> {
+		const diff: NetworkDiff<TestRecord> = {}
+		for (const [id, record] of Object.entries(store.serialize('document'))) {
+			diff[id] = [RecordOpType.Put, record as TestRecord]
+		}
+		return diff
+	}
 
 	function createConnectMessage(
 		overrides: Partial<Extract<TLSocketServerSentEvent<TestRecord>, { type: 'connect' }>> = {}
@@ -177,7 +220,7 @@ describe('TLSyncClient', () => {
 			schema: schema.serialize(),
 			isReadonly: false,
 			serverClock: 1,
-			diff: {},
+			diff: documentScopeDiff(),
 			...overrides,
 		}
 	}
@@ -211,28 +254,27 @@ describe('TLSyncClient', () => {
 		})
 	}
 
-	describe('Construction and Initialization', () => {
-		it('creates a client with required configuration', () => {
-			client = createClient()
-			expect(client).toBeInstanceOf(TLSyncClient)
-			expect(client.store).toBe(store)
-			expect(client.socket).toBe(socket)
-			expect(client.presenceState).toBe(presence)
-			expect(client.presenceMode).toBe(presenceMode)
-		})
+	/** Create a client, complete the connect handshake, and clear the sent messages. */
+	function connectClient(
+		overrides: Partial<Extract<TLSocketServerSentEvent<TestRecord>, { type: 'connect' }>> = {}
+	) {
+		client = createClient()
+		socket.mockServerMessage(createConnectMessage(overrides))
+		socket.clearSentMessages()
+	}
 
-		it('initializes with correct default state', () => {
-			client = createClient()
-			expect(client.isConnectedToRoom).toBe(false)
-		})
+	function getSentPushes() {
+		return socket.getSentMessages().filter((m): m is TLPushRequest<TestRecord> => m.type === 'push')
+	}
 
-		it('sends connect message when socket is already online', () => {
+	describe('19. connection lifecycle (CL)', () => {
+		it('[CL1] sends a connect message immediately when the socket is already online at construction', () => {
 			client = createClient()
 			expect(socket.getSentMessages()).toHaveLength(1)
 			expect(socket.getLastSentMessage().type).toBe('connect')
 		})
 
-		it('waits for socket to come online before sending connect message', () => {
+		it('[CL1] sends the connect message when the socket first reports online', () => {
 			socket.connectionStatus = 'offline'
 			client = createClient()
 			expect(socket.getSentMessages()).toHaveLength(0)
@@ -242,86 +284,320 @@ describe('TLSyncClient', () => {
 			expect(socket.getLastSentMessage().type).toBe('connect')
 		})
 
-		it('sets up window.tlsync for debugging', () => {
+		it('[CL2] connect message carries a fresh request id, the serialized schema, protocol version 8, and lastServerClock -1', () => {
 			client = createClient()
-			expect((globalThis as any).tlsync).toBe(client)
+			const msg = socket.getLastSentMessage() as TLConnectRequest
+			expect(msg.type).toBe('connect')
+			expect(msg.connectRequestId).toBe(client.latestConnectRequestId)
+			expect(msg.schema).toEqual(schema.serialize())
+			expect(msg.protocolVersion).toBe(8)
+			expect(msg.protocolVersion).toBe(getTlsyncProtocolVersion())
+			expect(msg.lastServerClock).toBe(-1)
 		})
 
-		it('handles optional callbacks', () => {
-			client = createClient({
-				onCustomMessageReceived: undefined,
-				onAfterConnect: undefined,
-			})
-			expect(client).toBeInstanceOf(TLSyncClient)
-		})
-
-		it('handles optional presence mode', () => {
-			client = createClient({
-				presenceMode: undefined,
-			})
-			expect(client.presenceMode).toBeUndefined()
-		})
-	})
-
-	describe('Connection Lifecycle', () => {
-		beforeEach(() => {
+		it('[CL2] generates a new unique connectRequestId for each connection attempt', () => {
 			client = createClient()
-			socket.clearSentMessages()
+			const first = (socket.getLastSentMessage() as TLConnectRequest).connectRequestId
+
+			socket.mockConnectionStatus('offline')
+			socket.mockConnectionStatus('online')
+
+			const second = (socket.getLastSentMessage() as TLConnectRequest).connectRequestId
+			expect(second).toBeDefined()
+			expect(second).not.toBe(first)
+			expect(second).toBe(client.latestConnectRequestId)
 		})
 
-		it('handles successful connection', () => {
-			const connectMessage = createConnectMessage()
+		it('[CL3] fires onLoad on the first message received from the server, of any type', () => {
+			client = createClient()
+			expect(onLoad).not.toHaveBeenCalled()
 
-			socket.mockServerMessage(connectMessage)
-
-			expect(client.isConnectedToRoom).toBe(true)
+			// even a pong counts as the first server message
+			socket.mockServerMessage({ type: 'pong' })
+			expect(onLoad).toHaveBeenCalledTimes(1)
 			expect(onLoad).toHaveBeenCalledWith(client)
-			expect(onAfterConnect).toHaveBeenCalledWith(client, { isReadonly: false })
+
+			// it only fires once
+			socket.mockServerMessage(createConnectMessage())
+			expect(onLoad).toHaveBeenCalledTimes(1)
 		})
 
-		it('handles connection with readonly mode', () => {
-			const connectMessage = createConnectMessage({ isReadonly: true })
+		it('[CL4] ignores a connect response with a stale connectRequestId', () => {
+			client = createClient()
 
-			socket.mockServerMessage(connectMessage)
+			socket.mockServerMessage(createConnectMessage({ connectRequestId: 'stale-request-id' }))
+			expect(client.isConnectedToRoom).toBe(false)
+			expect(onAfterConnect).not.toHaveBeenCalled()
 
-			expect(onAfterConnect).toHaveBeenCalledWith(client, { isReadonly: true })
-		})
-
-		it('handles socket going offline', () => {
-			// First connect
+			// the matching response still works afterwards
 			socket.mockServerMessage(createConnectMessage())
 			expect(client.isConnectedToRoom).toBe(true)
+			expect(onAfterConnect).toHaveBeenCalledTimes(1)
+		})
 
-			// Then go offline
+		it('[CL5][CP3] wipe_presence reconnect keeps confirmed documents and re-pushes speculative changes', () => {
+			connectClient()
+
+			// a server-confirmed document record
+			const serverPage = makePage('Server Page', 'a2')
+			socket.mockServerMessage({
+				type: 'data',
+				data: [
+					{
+						type: 'patch',
+						serverClock: 2,
+						diff: { [serverPage.id]: [RecordOpType.Put, serverPage] },
+					},
+				],
+			})
+			vi.advanceTimersByTime(100)
+
+			// speculative change made while offline
+			socket.mockConnectionStatus('offline')
+			const localPage = makePage('Offline Page')
+			store.put([localPage])
+			vi.advanceTimersByTime(100)
+
+			socket.mockConnectionStatus('online')
+			socket.clearSentMessages()
+			socket.mockServerMessage(
+				createConnectMessage({ hydrationType: 'wipe_presence', serverClock: 2, diff: {} })
+			)
+			vi.advanceTimersByTime(100)
+
+			// confirmed server data is kept (not wiped, unlike wipe_all)
+			expect(store.get(serverPage.id)).toEqual(serverPage)
+			// the speculative change is re-applied on top
+			expect(store.get(localPage.id)?.name).toBe('Offline Page')
+			// and pushed as a new push request
+			const pushWithPage = getSentPushes().find((msg) => msg.diff?.[localPage.id])
+			expect(pushWithPage).toBeDefined()
+			expect(pushWithPage!.diff![localPage.id][0]).toBe(RecordOpType.Put)
+		})
+
+		it('[CL6] wipe_all reconnect wipes document records before applying the server diff', () => {
+			client = createClient()
+
+			const serverDoc = DocumentRecordType.create({ id: TLDOCUMENT_ID, gridSize: 20 })
+			const serverPage = makePage('Server Page')
+			socket.mockServerMessage(
+				createConnectMessage({
+					diff: {
+						[TLDOCUMENT_ID]: [RecordOpType.Put, serverDoc],
+						[serverPage.id]: [RecordOpType.Put, serverPage],
+					},
+				})
+			)
+			// the wipe_all hydration replaced the local document state with the server's
+			expect((store.get(TLDOCUMENT_ID) as any)?.gridSize).toBe(20)
+
+			// another server-confirmed page arrives
+			const extraPage = makePage('Extra Page', 'a2')
+			socket.mockServerMessage({
+				type: 'data',
+				data: [
+					{
+						type: 'patch',
+						serverClock: 2,
+						diff: { [extraPage.id]: [RecordOpType.Put, extraPage] },
+					},
+				],
+			})
+			vi.advanceTimersByTime(100)
+			expect(store.has(extraPage.id)).toBe(true)
+
+			socket.mockConnectionStatus('offline')
+			socket.mockConnectionStatus('online')
+			socket.clearSentMessages()
+
+			// the server's wipe_all diff no longer contains the extra page
+			socket.mockServerMessage(
+				createConnectMessage({
+					hydrationType: 'wipe_all',
+					serverClock: 3,
+					diff: {
+						[TLDOCUMENT_ID]: [RecordOpType.Put, serverDoc],
+						[serverPage.id]: [RecordOpType.Put, serverPage],
+					},
+				})
+			)
+			vi.advanceTimersByTime(100)
+
+			expect(store.has(extraPage.id)).toBe(false)
+			expect(store.get(TLDOCUMENT_ID)).toEqual(serverDoc)
+			expect(store.get(serverPage.id)).toEqual(serverPage)
+		})
+
+		it('[CL6][CP3] re-applies offline changes after a wipe_all reconnect and pushes them to the server', () => {
+			client = createClient()
+			socket.mockServerMessage(createConnectMessage())
+			socket.clearSentMessages()
+
+			// make a change while offline - this is a truly speculative change
+			socket.mockConnectionStatus('offline')
+			socket.clearSentMessages()
+
+			const pageId = PageRecordType.createId()
+			store.put([PageRecordType.create({ id: pageId, name: 'Offline Page', index: 'a1' as any })])
+			vi.advanceTimersByTime(100)
+
+			// page exists locally, no messages sent (offline)
+			expect(store.has(pageId)).toBe(true)
+			expect(socket.getSentMessages()).toHaveLength(0)
+
+			// come back online
+			socket.mockConnectionStatus('online')
+			const connectMsg = socket.getSentMessages().find((m) => m.type === 'connect')
+			expect(connectMsg).toBeDefined()
+			socket.clearSentMessages()
+
+			// server responds with wipe_all (simulating fresh sync)
+			socket.mockServerMessage(
+				createConnectMessage({
+					connectRequestId: (connectMsg as TLConnectRequest).connectRequestId,
+					hydrationType: 'wipe_all',
+					diff: {}, // server has no pages
+				})
+			)
+			vi.advanceTimersByTime(100)
+
+			// the page should still exist locally
+			expect(store.has(pageId)).toBe(true)
+			expect(store.get(pageId)?.name).toBe('Offline Page')
+
+			// the speculative change should have been pushed to the server
+			const pushWithPage = getSentPushes().find((msg) => msg.diff?.[pageId])
+			expect(pushWithPage).toBeDefined()
+			expect(pushWithPage!.diff![pageId][0]).toBe(RecordOpType.Put)
+			expect((pushWithPage!.diff![pageId][1] as any).name).toBe('Offline Page')
+		})
+
+		it('[CL7] calls onAfterConnect with the isReadonly flag from the connect message', () => {
+			client = createClient()
+			socket.mockServerMessage(createConnectMessage({ isReadonly: false }))
+			expect(client.isConnectedToRoom).toBe(true)
+			expect(onAfterConnect).toHaveBeenCalledWith(client, { isReadonly: false })
+
+			// reconnect as readonly
+			socket.mockConnectionStatus('offline')
+			socket.mockConnectionStatus('online')
+			socket.mockServerMessage(createConnectMessage({ isReadonly: true }))
+			expect(onAfterConnect).toHaveBeenLastCalledWith(client, { isReadonly: true })
+		})
+
+		it('[CL7] pushes the current presence state after connecting', () => {
+			client = createClient()
+			const presenceRecord = {
+				id: 'presence:user1' as any,
+				typeName: 'instance_presence',
+				cursor: { x: 100, y: 200 },
+			} as TestRecord
+			presence.set(presenceRecord)
+			socket.clearSentMessages()
+
+			socket.mockServerMessage(createConnectMessage())
+
+			const pushWithPresence = getSentPushes().find((msg) => msg.presence)
+			expect(pushWithPresence).toBeDefined()
+			expect(pushWithPresence!.presence).toEqual([RecordOpType.Put, presenceRecord])
+		})
+
+		it('[CL8] removes presence records from the store when the socket goes offline', () => {
+			connectClient()
+
+			const peerPresence = makePeerPresence()
+			socket.mockServerMessage({
+				type: 'data',
+				data: [
+					{
+						type: 'patch',
+						serverClock: 2,
+						diff: { [peerPresence.id]: [RecordOpType.Put, peerPresence] },
+					},
+				],
+			})
+			vi.advanceTimersByTime(100)
+			expect(store.has(peerPresence.id)).toBe(true)
+
 			socket.mockConnectionStatus('offline')
 			expect(client.isConnectedToRoom).toBe(false)
+			expect(store.has(peerPresence.id)).toBe(false)
 		})
 
-		it('handles socket errors', () => {
-			socket.mockConnectionStatus('error', 'Connection failed')
-			expect(onSyncError).toHaveBeenCalledWith('Connection failed')
-		})
+		it('[CL8] drops pending pushes when going offline and re-pushes the speculative diff after reconnect', () => {
+			connectClient()
 
-		it('sends ping messages periodically', () => {
-			// Connect first
-			socket.mockServerMessage(createConnectMessage())
+			// an in-flight (pending, unacknowledged) push
+			const page = makePage()
+			store.put([page])
+			vi.advanceTimersByTime(100)
+			expect(getSentPushes()).toHaveLength(1)
 
+			socket.mockConnectionStatus('offline')
+			socket.mockConnectionStatus('online')
 			socket.clearSentMessages()
 
-			// Advance time to trigger ping
-			vi.advanceTimersByTime(5000)
-			expect(socket.getSentMessages()).toHaveLength(1)
-			expect(socket.getLastSentMessage().type).toBe('ping')
+			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			socket.mockServerMessage(
+				createConnectMessage({ hydrationType: 'wipe_presence', serverClock: 2, diff: {} })
+			)
+			vi.advanceTimersByTime(100)
+
+			// the pending push queue was emptied by the reset (no internal error logged)
+			expect(errorSpy).not.toHaveBeenCalled()
+			expect(client.isConnectedToRoom).toBe(true)
+			// the still-speculative change is pushed again
+			const pushWithPage = getSentPushes().find((msg) => msg.diff?.[page.id])
+			expect(pushWithPage).toBeDefined()
+			errorSpy.mockRestore()
 		})
 
-		it('resets connection if no server interaction for too long', () => {
-			const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		it('[CL8] fires onSyncError and closes permanently when the socket reports an error', () => {
+			client = createClient()
+			expect((globalThis as any).tlsync).toBe(client)
 
-			// Connect first
+			socket.mockConnectionStatus('error', 'Connection failed')
+
+			expect(onSyncError).toHaveBeenCalledWith('Connection failed')
+			// the client closed itself
+			expect((globalThis as any).tlsync).toBeUndefined()
+		})
+
+		it('[CL8] handles rapid connection status changes ending in an error', () => {
+			connectClient()
+			socket.mockConnectionStatus('offline')
+			socket.mockConnectionStatus('online')
+			socket.mockConnectionStatus('error', 'Test error')
+			expect(onSyncError).toHaveBeenCalledWith('Test error')
+		})
+
+		it('[CL9] sends a ping every 5 seconds while connected', () => {
+			client = createClient()
+			socket.clearSentMessages()
+
+			// no pings before the room connection is established
+			vi.advanceTimersByTime(5000)
+			expect(socket.getSentMessages()).toHaveLength(0)
+
+			socket.mockServerMessage(createConnectMessage())
+			socket.clearSentMessages()
+
+			vi.advanceTimersByTime(5000)
+			expect(socket.getSentMessages().filter((m) => m.type === 'ping')).toHaveLength(1)
+
+			// keep the connection healthy and observe the next ping
+			socket.mockServerMessage({ type: 'pong' })
+			vi.advanceTimersByTime(5000)
+			expect(socket.getSentMessages().filter((m) => m.type === 'ping')).toHaveLength(2)
+		})
+
+		it('[CL9] warns and resets the connection after 10 seconds without server interaction', () => {
+			const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+			client = createClient()
 			socket.mockServerMessage(createConnectMessage())
 
-			// Advance time beyond health check threshold
-			vi.advanceTimersByTime(15000) // Greater than MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION
+			// advance time beyond the health check threshold
+			vi.advanceTimersByTime(15000)
 
 			expect(consoleSpy).toHaveBeenCalledWith(
 				expect.stringContaining("Haven't heard from the server in a while")
@@ -330,458 +606,169 @@ describe('TLSyncClient', () => {
 
 			consoleSpy.mockRestore()
 		})
-	})
 
-	describe('Message Handling', () => {
-		beforeEach(() => {
+		it('[CL10] a pong refreshes the server interaction timestamp and defers the health reset', () => {
+			const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 			client = createClient()
-			// Connect first
 			socket.mockServerMessage(createConnectMessage())
-			socket.clearSentMessages()
+
+			vi.advanceTimersByTime(6000)
+			socket.mockServerMessage({ type: 'pong' })
+
+			// at t=10s the health check passes because the pong was only 4s ago
+			vi.advanceTimersByTime(4000)
+			expect(client.isConnectedToRoom).toBe(true)
+
+			// at t=20s nothing has been heard since the pong, so the connection resets
+			vi.advanceTimersByTime(10000)
+			expect(client.isConnectedToRoom).toBe(false)
+
+			consoleSpy.mockRestore()
 		})
 
-		it('handles pong messages', () => {
-			const pongMessage: Extract<TLSocketServerSentEvent<TestRecord>, { type: 'pong' }> = {
-				type: 'pong',
-			}
+		it('[CL11] closes instead of processing the next event when didCancel returns true', () => {
+			let cancelled = false
+			client = createClient({ didCancel: () => cancelled })
+			socket.mockServerMessage(createConnectMessage())
+			expect((globalThis as any).tlsync).toBe(client)
 
-			socket.mockServerMessage(pongMessage)
-			// Pong messages are just used to update lastServerInteractionTimestamp
-			// No specific assertion needed beyond not throwing
+			cancelled = true
+			socket.mockServerMessage({ type: 'pong' })
+
+			// the client closed itself instead of processing the event
+			expect((globalThis as any).tlsync).toBeUndefined()
 		})
 
-		it('handles custom messages', () => {
-			const customData = { type: 'chat', message: 'Hello world' }
-			const customMessage: Extract<TLSocketServerSentEvent<TestRecord>, { type: 'custom' }> = {
-				type: 'custom',
-				data: customData,
-			}
-
-			socket.mockServerMessage(customMessage)
-
-			expect(onCustomMessageReceived).toHaveBeenCalledWith(customData)
+		it('[CL12] construction installs window.tlsync and close removes it', () => {
+			client = createClient()
+			expect((globalThis as any).tlsync).toBe(client)
+			client.close()
+			expect((globalThis as any).tlsync).toBeUndefined()
 		})
 
-		it('handles data messages and triggers rebase', () => {
-			const dataMessage: Extract<TLSocketServerSentEvent<TestRecord>, { type: 'data' }> = {
-				type: 'data',
-				data: [
-					{
-						type: 'patch',
-						serverClock: 2,
-						diff: {},
-					},
-				],
-			}
+		it('[CL12] close disposes store listeners and timers', () => {
+			connectClient()
+			client.close()
 
-			socket.mockServerMessage(dataMessage)
-			// Rebase is throttled, so advance timers
-			vi.advanceTimersByTime(100)
+			// no pushes for store changes, and no pings, after close
+			expect(() => {
+				store.put([makePage()])
+				vi.advanceTimersByTime(20000)
+			}).not.toThrow()
+			expect(socket.getSentMessages()).toHaveLength(0)
 		})
 
-		it('handles legacy patch messages', () => {
-			const patchMessage: Extract<TLSocketServerSentEvent<TestRecord>, { type: 'patch' }> = {
-				type: 'patch',
-				serverClock: 2,
-				diff: {},
-			}
-
-			socket.mockServerMessage(patchMessage)
-			vi.advanceTimersByTime(100)
-		})
-
-		it('ignores messages when not connected to room', () => {
-			// Reset connection
-			client.isConnectedToRoom = false
-
-			const dataMessage: Extract<TLSocketServerSentEvent<TestRecord>, { type: 'data' }> = {
-				type: 'data',
-				data: [],
-			}
-
-			socket.mockServerMessage(dataMessage)
-			// Should not process the message or throw
-		})
-
-		it('handles incompatibility_error messages', () => {
+		it('[CL13] logs incompatibility_error messages without closing or raising a sync error', () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			connectClient()
 
-			const errorMessage: Extract<
-				TLSocketServerSentEvent<TestRecord>,
-				{ type: 'incompatibility_error' }
-			> = {
-				type: 'incompatibility_error',
-				reason: 'clientTooOld',
-			}
-
-			socket.mockServerMessage(errorMessage)
+			socket.mockServerMessage({ type: 'incompatibility_error', reason: 'clientTooOld' })
 
 			expect(consoleSpy).toHaveBeenCalledWith(
 				expect.stringContaining('incompatibility error is legacy')
 			)
+			expect(onSyncError).not.toHaveBeenCalled()
+			expect(client.isConnectedToRoom).toBe(true)
 
 			consoleSpy.mockRestore()
 		})
 	})
 
-	describe('Store Synchronization', () => {
-		beforeEach(() => {
-			client = createClient()
-			// Connect first
-			socket.mockServerMessage(createConnectMessage())
-			socket.clearSentMessages()
-		})
+	describe('20. pushing changes (CP)', () => {
+		it('[CP1] pushes user changes to document-scope records', () => {
+			connectClient()
 
-		it('sends push requests for local changes', () => {
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test Page',
-					index: 'a1' as any,
-				}),
-			])
-
+			const page = makePage()
+			store.put([page])
 			vi.advanceTimersByTime(100)
 
-			expect(socket.getSentMessages()).toHaveLength(1)
-			const message = socket.getLastSentMessage() as TLPushRequest<TestRecord>
-			expect(message.type).toBe('push')
-			expect(message.diff).toBeDefined()
+			const pushes = getSentPushes()
+			expect(pushes).toHaveLength(1)
+			expect(pushes[0].diff).toBeDefined()
+			expect(pushes[0].diff![page.id]).toBeDefined()
 		})
 
-		it('does not send push requests when offline', () => {
-			socket.mockConnectionStatus('offline')
+		it('[CP1] does not push changes made with a remote source', () => {
+			connectClient()
 
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test Page',
-					index: 'a1' as any,
-				}),
-			])
+			const page = makePage()
+			store.mergeRemoteChanges(() => {
+				store.put([page])
+			})
+			vi.advanceTimersByTime(100)
 
+			expect(store.has(page.id)).toBe(true)
+			expect(socket.getSentMessages()).toHaveLength(0)
+		})
+
+		it('[CP1] does not push changes to non-document-scope records', () => {
+			connectClient()
+
+			// camera records are session-scoped
+			store.put([CameraRecordType.create({ id: CameraRecordType.createId() })])
 			vi.advanceTimersByTime(100)
 
 			expect(socket.getSentMessages()).toHaveLength(0)
 		})
 
-		it('throttles push request sending', () => {
-			// Make multiple rapid changes without waiting for timers
-			for (let i = 0; i < 5; i++) {
-				const pageId = PageRecordType.createId()
-				store.put([
-					PageRecordType.create({
-						id: pageId,
-						name: `Test Page ${i}`,
-						index: `a${i}` as any,
-					}),
-				])
-			}
+		it('[CP3] accumulates changes while offline without sending anything', () => {
+			connectClient()
+			socket.mockConnectionStatus('offline')
+			socket.clearSentMessages()
 
-			// After throttle resolves
+			const page = makePage('Offline Page')
+			store.put([page])
 			vi.advanceTimersByTime(100)
-			// Should have sent at least one message but possibly consolidated multiple changes
-			const messages = socket.getSentMessages()
-			expect(messages.length).toBeGreaterThan(0)
-			expect(messages.length).toBeLessThanOrEqual(5)
+
+			expect(socket.getSentMessages()).toHaveLength(0)
+			// but the page exists locally
+			expect(store.has(page.id)).toBe(true)
 		})
-	})
 
-	describe('Presence Management', () => {
-		let presenceRecord: TestRecord
+		it('[CP4] increments the client clock by exactly one per sent push', () => {
+			connectClient()
 
-		beforeEach(() => {
-			// Mock a presence record type
-			presenceRecord = {
+			store.put([makePage('One', 'a1')])
+			vi.advanceTimersByTime(100)
+			store.put([makePage('Two', 'a2')])
+			vi.advanceTimersByTime(100)
+			store.put([makePage('Three', 'a3')])
+			vi.advanceTimersByTime(100)
+
+			const pushes = getSentPushes()
+			expect(pushes.map((p) => p.clientClock)).toEqual([0, 1, 2])
+		})
+
+		it('[CP5] sends the first presence as a put and subsequent presence as patches', () => {
+			connectClient()
+			const presenceRecord = {
 				id: 'presence:user1' as any,
 				typeName: 'instance_presence',
 				cursor: { x: 100, y: 200 },
 				userName: 'Test User',
-			} as any
-
-			client = createClient()
-
-			// Connect first
-			socket.mockServerMessage(createConnectMessage())
-			socket.clearSentMessages()
-		})
-
-		it('sends presence updates when presence changes', () => {
-			presence.set(presenceRecord)
-			vi.advanceTimersByTime(100)
-
-			const messages = socket.getSentMessages()
-			const pushMessages = messages.filter(
-				(msg) => msg.type === 'push'
-			) as TLPushRequest<TestRecord>[]
-			expect(pushMessages.length).toBeGreaterThan(0)
-
-			const messageWithPresence = pushMessages.find((msg) => msg.presence)
-			expect(messageWithPresence).toBeDefined()
-			expect(messageWithPresence!.presence).toBeDefined()
-		})
-
-		it('does not send presence when mode is solo', () => {
-			presenceMode.set('solo')
-			presence.set(presenceRecord)
-			vi.advanceTimersByTime(100)
-
-			expect(socket.getSentMessages()).toHaveLength(0)
-		})
-
-		it('sends full presence on first update', () => {
-			presence.set(presenceRecord)
-			vi.advanceTimersByTime(100)
-
-			const messages = socket.getSentMessages()
-			const pushMessages = messages.filter(
-				(msg) => msg.type === 'push'
-			) as TLPushRequest<TestRecord>[]
-			const messageWithPresence = pushMessages.find((msg) => msg.presence)
-
-			expect(messageWithPresence).toBeDefined()
-			expect(messageWithPresence!.presence![0]).toBe(RecordOpType.Put)
-			expect(messageWithPresence!.presence![1]).toBe(presenceRecord)
-		})
-
-		it('sends presence diffs for subsequent updates', () => {
-			// Set initial presence
-			presence.set(presenceRecord)
-			vi.advanceTimersByTime(100)
-			socket.clearSentMessages()
-
-			// Update presence
-			const updatedPresence = { ...presenceRecord, cursor: { x: 150, y: 250 } }
-			presence.set(updatedPresence as TestRecord)
-			vi.advanceTimersByTime(100)
-
-			const messages = socket.getSentMessages()
-			const pushMessages = messages.filter(
-				(msg) => msg.type === 'push'
-			) as TLPushRequest<TestRecord>[]
-			const messageWithPresence = pushMessages.find((msg) => msg.presence)
-
-			expect(messageWithPresence).toBeDefined()
-			expect(messageWithPresence!.presence![0]).toBe(RecordOpType.Patch)
-		})
-
-		it('does not send presence when offline', () => {
-			socket.mockConnectionStatus('offline')
+			} as TestRecord
 
 			presence.set(presenceRecord)
 			vi.advanceTimersByTime(100)
 
-			expect(socket.getSentMessages()).toHaveLength(0)
-		})
-	})
-
-	describe('Error Handling', () => {
-		beforeEach(() => {
-			client = createClient()
-		})
-
-		it('handles rebase errors gracefully', () => {
-			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-			// Connect first
-			socket.mockServerMessage(createConnectMessage())
-
-			// Simulate a corrupted message that causes rebase to fail
-			const malformedMessage: TLSocketServerSentDataEvent<TestRecord> = {
-				type: 'push_result',
-				action: 'commit',
-				serverClock: 2,
-				clientClock: 999999, // Non-existent client clock
-			}
-
-			socket.mockServerMessage({
-				type: 'data',
-				data: [malformedMessage],
-			})
-
-			vi.advanceTimersByTime(100)
-
-			expect(consoleSpy).toHaveBeenCalled()
-			consoleSpy.mockRestore()
-		})
-
-		it('handles store corruption recovery', () => {
-			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-			// Connect first
-			socket.mockServerMessage(createConnectMessage())
-
-			// Clear initial messages
+			const firstPush = getSentPushes().find((msg) => msg.presence)
+			expect(firstPush).toBeDefined()
+			expect(firstPush!.presence).toEqual([RecordOpType.Put, presenceRecord])
 			socket.clearSentMessages()
 
-			// Mock store as corrupted
-			vi.spyOn(store, 'isPossiblyCorrupted').mockReturnValue(true)
-
-			// Try to make a change
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test',
-					index: 'a1' as any,
-				}),
-			])
-
+			const updatedPresence = { ...presenceRecord, cursor: { x: 150, y: 250 } } as TestRecord
+			presence.set(updatedPresence)
 			vi.advanceTimersByTime(100)
 
-			// Should not send new messages when store is corrupted
-			expect(socket.getSentMessages()).toHaveLength(0)
-
-			consoleSpy.mockRestore()
+			const secondPush = getSentPushes().find((msg) => msg.presence)
+			expect(secondPush).toBeDefined()
+			// the patch is a diff against the last pushed state
+			expect(secondPush!.presence![0]).toBe(RecordOpType.Patch)
+			expect(secondPush!.presence![1]).toEqual({ cursor: [ValueOpType.Put, { x: 150, y: 250 }] })
 		})
 
-		it('handles didCancel function', () => {
-			const didCancel = vi.fn(() => true)
-			client = createClient({ didCancel })
-
-			// Make a change that would trigger cancellation
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test',
-					index: 'a1' as any,
-				}),
-			])
-
-			expect(didCancel).toHaveBeenCalled()
-		})
-	})
-
-	describe('Cleanup and Disposal', () => {
-		beforeEach(() => {
-			client = createClient()
-		})
-
-		it('properly cleans up resources on close', () => {
-			client.close()
-
-			// Should not throw errors after close
-			expect(() => {
-				const pageId = PageRecordType.createId()
-				store.put([
-					PageRecordType.create({
-						id: pageId,
-						name: 'Test',
-						index: 'a1' as any,
-					}),
-				])
-				vi.advanceTimersByTime(100)
-			}).not.toThrow()
-		})
-
-		it('cancels throttled functions on close', () => {
-			// Reset and ensure we're connected
-			socket.clearSentMessages()
-
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test',
-					index: 'a1' as any,
-				}),
-			])
-
-			// Close before throttle resolves
-			client.close()
-
-			// Should not send new messages after close (except the connect message that was already sent)
-			const messagesBefore = socket.getSentMessages().length
-			vi.advanceTimersByTime(100)
-			expect(socket.getSentMessages().length).toBe(messagesBefore)
-		})
-	})
-
-	describe('Connection Recovery', () => {
-		beforeEach(() => {
-			client = createClient()
-		})
-
-		it('handles reconnection with speculative changes', () => {
-			// Connect initially
-			socket.mockServerMessage(createConnectMessage())
-
-			// Make local changes while online
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test',
-					index: 'a1' as any,
-				}),
-			])
-
-			// Go offline
-			socket.mockConnectionStatus('offline')
-
-			// Make more changes while offline
-			store.update(pageId, (p) => ({ ...p, name: 'Updated Offline' }))
-
-			// Reconnect
-			socket.mockConnectionStatus('online')
-
-			// Should send a new connect message
-			expect(socket.getSentMessages().some((msg) => msg.type === 'connect')).toBe(true)
-		})
-
-		it('handles wipe_all reconnection', () => {
-			// Connect initially with some data
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test',
-					index: 'a1' as any,
-				}),
-			])
-
-			socket.mockServerMessage(
-				createConnectMessage({
-					diff: {
-						[TLDOCUMENT_ID]: [
-							RecordOpType.Put,
-							DocumentRecordType.create({
-								id: TLDOCUMENT_ID,
-								gridSize: 20,
-							}),
-						],
-					},
-				})
-			)
-
-			// Should apply server data
-			const doc = store.get(TLDOCUMENT_ID)
-			expect(doc?.gridSize).toBe(20)
-		})
-	})
-
-	describe('Complex Scenarios', () => {
-		beforeEach(() => {
-			client = createClient()
-			// Connect first
-			socket.mockServerMessage(createConnectMessage())
-			socket.clearSentMessages()
-		})
-
-		it('handles rapid connection state changes', () => {
-			// Rapidly change connection states
-			socket.mockConnectionStatus('offline')
-			socket.mockConnectionStatus('online')
-			socket.mockConnectionStatus('error', 'Test error')
-
-			expect(onSyncError).toHaveBeenCalledWith('Test error')
-		})
-
-		it('handles multiple simultaneous presence and document changes', () => {
-			// Set presence
+		it('[CP5] sends nothing when the presence state is unchanged', () => {
+			connectClient()
 			const presenceRecord = {
 				id: 'presence:user1' as any,
 				typeName: 'instance_presence',
@@ -789,434 +776,551 @@ describe('TLSyncClient', () => {
 			} as TestRecord
 
 			presence.set(presenceRecord)
-
-			// Make document changes
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test',
-					index: 'a1' as any,
-				}),
-			])
-
 			vi.advanceTimersByTime(100)
-
-			// Should send messages
-			const messages = socket.getSentMessages()
-			expect(messages.length).toBeGreaterThan(0)
-
-			// Check if any push messages contain presence or document data
-			const pushMessages = messages.filter(
-				(msg) => msg.type === 'push'
-			) as TLPushRequest<TestRecord>[]
-			const hasPresenceOrDocument = pushMessages.some((msg) => msg.presence || msg.diff)
-			expect(hasPresenceOrDocument).toBe(true)
-		})
-
-		it('handles server clock advancement correctly', () => {
-			// Send multiple server messages with advancing clocks
-			for (let i = 1; i <= 5; i++) {
-				socket.mockServerMessage({
-					type: 'data',
-					data: [
-						{
-							type: 'patch',
-							serverClock: i + 1,
-							diff: {},
-						},
-					],
-				})
-			}
-
-			vi.advanceTimersByTime(100)
-			// Should track the latest server clock internally
-		})
-	})
-
-	describe('Offline and Reconnection Behavior', () => {
-		beforeEach(() => {
-			client = createClient()
-			socket.mockServerMessage(createConnectMessage())
-			socket.clearSentMessages()
-		})
-
-		it('does not send changes made while offline', () => {
-			// Go offline
-			socket.mockConnectionStatus('offline')
+			expect(getSentPushes()).toHaveLength(1)
 			socket.clearSentMessages()
 
-			// Make changes while offline
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Offline Page',
-					index: 'a1' as any,
-				}),
-			])
-
+			// a deep-equal copy produces no diff and therefore no push
+			presence.set({ ...presenceRecord, cursor: { x: 100, y: 200 } } as any)
 			vi.advanceTimersByTime(100)
-
-			// Should not have sent any messages
 			expect(socket.getSentMessages()).toHaveLength(0)
-
-			// But the page should exist locally
-			expect(store.has(pageId)).toBe(true)
 		})
 
-		it('re-applies offline changes after reconnection and pushes them to server', () => {
-			// Make a change while offline - this is a truly speculative change
-			socket.mockConnectionStatus('offline')
-			socket.clearSentMessages()
+		it('[CP5] re-puts presence in full after a reconnect', () => {
+			connectClient()
+			const presenceRecord = {
+				id: 'presence:user1' as any,
+				typeName: 'instance_presence',
+				cursor: { x: 1, y: 1 },
+			} as TestRecord
 
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Offline Page',
-					index: 'a1' as any,
-				}),
-			])
+			presence.set(presenceRecord)
 			vi.advanceTimersByTime(100)
+			const updatedPresence = { ...presenceRecord, cursor: { x: 2, y: 2 } } as TestRecord
+			presence.set(updatedPresence)
+			vi.advanceTimersByTime(100)
+			// sanity: we are in patch mode by now
+			expect(getSentPushes().at(-1)!.presence![0]).toBe(RecordOpType.Patch)
 
-			// Page exists locally, no messages sent (offline)
-			expect(store.has(pageId)).toBe(true)
-			expect(socket.getSentMessages()).toHaveLength(0)
-
-			// Come back online
+			socket.mockConnectionStatus('offline')
 			socket.mockConnectionStatus('online')
-
-			// Get the connect message
-			const connectMsg = socket.getSentMessages().find((m) => m.type === 'connect')
-			expect(connectMsg).toBeDefined()
-
-			// Clear messages before server response
 			socket.clearSentMessages()
-
-			// Server responds with wipe_all (simulating fresh sync)
 			socket.mockServerMessage(
-				createConnectMessage({
-					connectRequestId: (connectMsg as any).connectRequestId,
-					hydrationType: 'wipe_all',
-					diff: {}, // Server has no pages
-				})
+				createConnectMessage({ hydrationType: 'wipe_presence', serverClock: 2, diff: {} })
 			)
 			vi.advanceTimersByTime(100)
 
-			// The page should still exist locally
-			expect(store.has(pageId)).toBe(true)
-			expect(store.get(pageId)?.name).toBe('Offline Page')
-
-			// The speculative change should have been pushed to the server
-			const messages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			const pushWithPage = messages.find(
-				(msg) => msg.type === 'push' && msg.diff && msg.diff[pageId]
-			)
-			expect(pushWithPage).toBeDefined()
-			expect(pushWithPage!.diff![pageId][0]).toBe(RecordOpType.Put)
-			expect((pushWithPage!.diff![pageId][1] as any).name).toBe('Offline Page')
+			const pushWithPresence = getSentPushes().find((msg) => msg.presence)
+			expect(pushWithPresence).toBeDefined()
+			expect(pushWithPresence!.presence).toEqual([RecordOpType.Put, updatedPresence])
 		})
-	})
 
-	describe('Push Coalescing (Multiple push() calls → single network message)', () => {
-		/**
-		 * These tests verify that multiple store changes (each triggering push())
-		 * get coalesced into a single TLPushRequest when the throttle fires.
-		 *
-		 * We enable RAF mode so the throttle actually delays execution,
-		 * allowing changes to accumulate before sending.
-		 */
+		it('[CP6] does not push presence in solo mode', () => {
+			presenceMode.set('solo')
+			connectClient()
 
-		let rafCallbacks: Array<FrameRequestCallback>
-		let rafId: number
+			presence.set({
+				id: 'presence:user1' as any,
+				typeName: 'instance_presence',
+				cursor: { x: 100, y: 200 },
+			} as TestRecord)
+			vi.advanceTimersByTime(2000)
 
-		function flushOneRaf() {
-			if (rafCallbacks.length > 0) {
-				const callbacks = rafCallbacks.splice(0, rafCallbacks.length)
-				const now = performance.now()
-				for (const callback of callbacks) {
-					callback(now)
+			expect(getSentPushes().filter((msg) => msg.presence)).toHaveLength(0)
+		})
+
+		it('[CP6] still pushes document changes in solo mode', () => {
+			presenceMode.set('solo')
+			connectClient()
+
+			const page = makePage('Solo Page')
+			store.put([page])
+			vi.advanceTimersByTime(2000)
+
+			const docPushes = getSentPushes().filter((msg) => msg.diff?.[page.id])
+			expect(docPushes.length).toBeGreaterThan(0)
+		})
+
+		it('[CP6] drops the network throttle from 30fps to 1fps in solo mode', () => {
+			client = createClient()
+			expect((client as any).fpsScheduler.targetFps).toBe(30)
+
+			presenceMode.set('solo')
+			expect((client as any).fpsScheduler.targetFps).toBe(1)
+
+			presenceMode.set('full')
+			expect((client as any).fpsScheduler.targetFps).toBe(30)
+		})
+
+		it('[CP7] stops sending pushes when the store reports possible corruption', () => {
+			connectClient()
+			vi.spyOn(store, 'isPossiblyCorrupted').mockReturnValue(true)
+
+			store.put([makePage()])
+			vi.advanceTimersByTime(100)
+
+			expect(socket.getSentMessages()).toHaveLength(0)
+		})
+
+		describe('push coalescing (multiple push() calls become a single network message)', () => {
+			/**
+			 * These tests verify that multiple store changes (each triggering push())
+			 * get coalesced into a single TLPushRequest when the throttle fires.
+			 *
+			 * We enable RAF mode so the throttle actually delays execution,
+			 * allowing changes to accumulate before sending.
+			 */
+
+			let rafCallbacks: Array<FrameRequestCallback>
+			let rafId: number
+
+			function flushOneRaf() {
+				if (rafCallbacks.length > 0) {
+					const callbacks = rafCallbacks.splice(0, rafCallbacks.length)
+					const now = performance.now()
+					for (const callback of callbacks) {
+						callback(now)
+					}
 				}
 			}
-		}
 
-		function flushThrottle() {
-			// FpsScheduler needs: advance time + flush RAF (potentially twice for tick + flush)
-			// Also need to clear any stale callbacks and keep flushing until stable
-			for (let i = 0; i < 10 && rafCallbacks.length > 0; i++) {
-				vi.advanceTimersByTime(100)
-				flushOneRaf()
+			function flushThrottle() {
+				// FpsScheduler needs: advance time + flush RAF (potentially twice for tick + flush)
+				// Also need to clear any stale callbacks and keep flushing until stable
+				for (let i = 0; i < 10 && rafCallbacks.length > 0; i++) {
+					vi.advanceTimersByTime(100)
+					flushOneRaf()
+				}
 			}
-		}
 
-		beforeEach(() => {
-			// Reset timer to a known state to avoid pollution from previous tests
-			vi.setSystemTime(0)
+			beforeEach(() => {
+				// Reset timer to a known state to avoid pollution from previous tests
+				vi.setSystemTime(0)
 
-			// Force RAF behavior so throttle actually delays
-			// @ts-expect-error - testing flag
-			globalThis.__FORCE_RAF_IN_TESTS__ = true
+				// Force RAF behavior so throttle actually delays
+				// @ts-expect-error - testing flag
+				globalThis.__FORCE_RAF_IN_TESTS__ = true
 
-			rafCallbacks = []
-			rafId = 0
+				rafCallbacks = []
+				rafId = 0
 
-			vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
-				const id = ++rafId
-				rafCallbacks.push(callback)
-				return id
+				vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+					const id = ++rafId
+					rafCallbacks.push(callback)
+					return id
+				})
+
+				vi.stubGlobal('cancelAnimationFrame', (_id: number) => {})
+
+				// Create client with RAF mode enabled
+				client = createClient()
+				socket.mockServerMessage(createConnectMessage())
+
+				// Flush initial setup and clear
+				flushThrottle()
+				socket.clearSentMessages()
 			})
 
-			vi.stubGlobal('cancelAnimationFrame', (_id: number) => {})
+			afterEach(() => {
+				// @ts-expect-error - testing flag
+				delete globalThis.__FORCE_RAF_IN_TESTS__
+				vi.unstubAllGlobals()
+			})
 
-			// Create client with RAF mode enabled
-			client = createClient()
-			socket.mockServerMessage(createConnectMessage())
+			it('[CP2] coalesces 5 store.put() calls into 1 push request', () => {
+				expect(client.isConnectedToRoom).toBe(true)
 
-			// Flush initial setup and clear
-			flushThrottle()
-			socket.clearSentMessages()
-		})
+				// Make 5 separate store changes synchronously
+				const pageIds: string[] = []
+				for (let i = 0; i < 5; i++) {
+					const pageId = PageRecordType.createId()
+					pageIds.push(pageId)
+					store.put([
+						PageRecordType.create({
+							id: pageId,
+							name: `Page ${i}`,
+							index: `a${i}` as any,
+						}),
+					])
+				}
 
-		afterEach(() => {
-			// @ts-expect-error - testing flag
-			delete globalThis.__FORCE_RAF_IN_TESTS__
-			vi.unstubAllGlobals()
-		})
+				// Before throttle fires: no messages should be sent yet
+				expect(socket.getSentMessages()).toHaveLength(0)
 
-		it('coalesces 5 store.put() calls into 1 push request', () => {
-			expect((client as any).isConnectedToRoom).toBe(true)
+				// Flush the throttle
+				flushThrottle()
 
-			// Make 5 separate store changes synchronously
-			const pageIds: string[] = []
-			for (let i = 0; i < 5; i++) {
+				// Should have sent exactly ONE push request containing all 5 pages
+				const messages = getSentPushes()
+				expect(messages).toHaveLength(1)
+				expect(messages[0].type).toBe('push')
+
+				// The single message should contain all 5 page IDs
+				const diff = messages[0].diff || {}
+				expect(Object.keys(diff)).toHaveLength(5)
+				for (const pageId of pageIds) {
+					expect(diff[pageId]).toBeDefined()
+				}
+			})
+
+			it('[CP2] coalesces create + multiple updates into 1 push with the final state', () => {
+				expect(client.isConnectedToRoom).toBe(true)
+
 				const pageId = PageRecordType.createId()
-				pageIds.push(pageId)
+
+				// Create and update the same record multiple times synchronously
 				store.put([
 					PageRecordType.create({
 						id: pageId,
-						name: `Page ${i}`,
-						index: `a${i}` as any,
+						name: 'Version 1',
+						index: 'a1' as any,
 					}),
 				])
-			}
+				store.update(pageId, (p) => ({ ...p, name: 'Version 2' }))
+				store.update(pageId, (p) => ({ ...p, name: 'Version 3' }))
+				store.update(pageId, (p) => ({ ...p, name: 'Final Version' }))
 
-			// Before throttle fires: no messages should be sent yet
-			expect(socket.getSentMessages()).toHaveLength(0)
+				// Before throttle fires: no messages
+				expect(socket.getSentMessages()).toHaveLength(0)
 
-			// Flush the throttle
-			flushThrottle()
+				// Flush the throttle
+				flushThrottle()
 
-			// Should have sent exactly ONE push request containing all 5 pages
-			const messages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			expect(messages).toHaveLength(1)
-			expect(messages[0].type).toBe('push')
+				// Should have exactly ONE push request
+				const messages = getSentPushes()
+				expect(messages).toHaveLength(1)
 
-			// The single message should contain all 5 page IDs
-			const diff = messages[0].diff || {}
-			expect(Object.keys(diff)).toHaveLength(5)
-			for (const pageId of pageIds) {
+				// The diff should have the final state
+				const diff = messages[0].diff!
 				expect(diff[pageId]).toBeDefined()
+				expect(diff[pageId][0]).toBe(RecordOpType.Put)
+				expect((diff[pageId][1] as any).name).toBe('Final Version')
+			})
+
+			it('[CP2] coalesces create + delete into no push at all (changes cancel out)', () => {
+				const pageId = PageRecordType.createId()
+
+				// Create then immediately delete
+				store.put([
+					PageRecordType.create({
+						id: pageId,
+						name: 'Ephemeral',
+						index: 'a1' as any,
+					}),
+				])
+				store.remove([pageId])
+
+				// Before throttle fires: no messages
+				expect(socket.getSentMessages()).toHaveLength(0)
+
+				// Flush the throttle
+				flushThrottle()
+
+				// add + remove = no-op, so nothing is sent
+				expect(socket.getSentMessages()).toHaveLength(0)
+			})
+
+			it('[CP2][CP5] coalesces multiple presence updates into 1 push with the final presence (first is put)', () => {
+				// Multiple presence updates synchronously - first presence ever sent
+				presence.set({
+					id: 'presence:u1' as any,
+					typeName: 'instance_presence',
+					cursor: { x: 0, y: 0 },
+				} as any)
+				presence.set({
+					id: 'presence:u1' as any,
+					typeName: 'instance_presence',
+					cursor: { x: 50, y: 50 },
+				} as any)
+				presence.set({
+					id: 'presence:u1' as any,
+					typeName: 'instance_presence',
+					cursor: { x: 100, y: 100 },
+				} as any)
+
+				// Before throttle fires: no messages
+				expect(socket.getSentMessages()).toHaveLength(0)
+
+				// Flush the throttle
+				flushThrottle()
+
+				// Should have exactly ONE push with final presence
+				const messages = getSentPushes()
+				expect(messages).toHaveLength(1)
+				expect(messages[0].presence).toBeDefined()
+				// First presence is always a Put (full record)
+				expect(messages[0].presence![0]).toBe(RecordOpType.Put)
+				expect((messages[0].presence![1] as any).cursor).toEqual({ x: 100, y: 100 })
+			})
+
+			it('[CP2][CP5] sends subsequent presence updates as patch after the initial put', () => {
+				// Send initial presence
+				presence.set({
+					id: 'presence:u1' as any,
+					typeName: 'instance_presence',
+					cursor: { x: 0, y: 0 },
+				} as any)
+				flushThrottle()
+
+				// Verify first presence was a Put
+				const firstMessages = getSentPushes()
+				expect(firstMessages).toHaveLength(1)
+				expect(firstMessages[0].presence![0]).toBe(RecordOpType.Put)
+
+				socket.clearSentMessages()
+
+				// Now send multiple presence updates
+				presence.set({
+					id: 'presence:u1' as any,
+					typeName: 'instance_presence',
+					cursor: { x: 50, y: 50 },
+				} as any)
+				presence.set({
+					id: 'presence:u1' as any,
+					typeName: 'instance_presence',
+					cursor: { x: 100, y: 100 },
+				} as any)
+
+				// Before throttle fires: no messages
+				expect(socket.getSentMessages()).toHaveLength(0)
+
+				// Flush the throttle
+				flushThrottle()
+
+				// Should have exactly ONE push with final presence as a Patch
+				const messages = getSentPushes()
+				expect(messages).toHaveLength(1)
+				expect(messages[0].presence).toBeDefined()
+				// Subsequent presence updates should be Patches (only changed fields)
+				expect(messages[0].presence![0]).toBe(RecordOpType.Patch)
+				// The patch should contain the cursor update
+				expect((messages[0].presence![1] as any).cursor).toBeDefined()
+			})
+
+			it('[CP2][CP5] coalesces document changes + presence into 1 push request', () => {
+				const pageId = PageRecordType.createId()
+
+				// Document change
+				store.put([
+					PageRecordType.create({
+						id: pageId,
+						name: 'Test Page',
+						index: 'a1' as any,
+					}),
+				])
+
+				// Presence change
+				presence.set({
+					id: 'presence:u1' as any,
+					typeName: 'instance_presence',
+					cursor: { x: 42, y: 42 },
+				} as any)
+
+				// Before throttle fires: no messages
+				expect(socket.getSentMessages()).toHaveLength(0)
+
+				// Flush the throttle
+				flushThrottle()
+
+				// Should have exactly ONE push with both document and presence
+				const messages = getSentPushes()
+				expect(messages).toHaveLength(1)
+
+				// Has document diff
+				expect(messages[0].diff).toBeDefined()
+				expect(messages[0].diff![pageId]).toBeDefined()
+
+				// Has presence
+				expect(messages[0].presence).toBeDefined()
+			})
+		})
+
+		describe('presence mode integration with a real server', () => {
+			interface IntegrationUser extends BaseRecord<'user', RecordId<IntegrationUser>> {
+				name: string
+				age: number
 			}
-		})
 
-		it('coalesces create + multiple updates into 1 push with final state', () => {
-			expect((client as any).isConnectedToRoom).toBe(true)
-
-			const pageId = PageRecordType.createId()
-
-			// Create and update the same record multiple times synchronously
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Version 1',
-					index: 'a1' as any,
-				}),
-			])
-			store.update(pageId, (p) => ({ ...p, name: 'Version 2' }))
-			store.update(pageId, (p) => ({ ...p, name: 'Version 3' }))
-			store.update(pageId, (p) => ({ ...p, name: 'Final Version' }))
-
-			// Before throttle fires: no messages
-			expect(socket.getSentMessages()).toHaveLength(0)
-
-			// Flush the throttle
-			flushThrottle()
-
-			// Should have exactly ONE push request
-			const messages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			expect(messages).toHaveLength(1)
-
-			// The diff should have the final state
-			const diff = messages[0].diff!
-			expect(diff[pageId]).toBeDefined()
-			expect(diff[pageId][0]).toBe(RecordOpType.Put)
-			expect((diff[pageId][1] as any).name).toBe('Final Version')
-		})
-
-		it('coalesces create + delete into no diff (cancels out)', () => {
-			const pageId = PageRecordType.createId()
-
-			// Create then immediately delete
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Ephemeral',
-					index: 'a1' as any,
-				}),
-			])
-			store.remove([pageId])
-
-			// Before throttle fires: no messages
-			expect(socket.getSentMessages()).toHaveLength(0)
-
-			// Flush the throttle
-			flushThrottle()
-
-			// Either no message, or message with empty/no diff for this page
-			const messages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			if (messages.length > 0) {
-				const diff = messages[0].diff || {}
-				// The page should NOT be in the diff (add + remove = no-op)
-				expect(diff[pageId]).toBeUndefined()
+			interface IntegrationPresence extends BaseRecord<'presence', RecordId<IntegrationPresence>> {
+				name: string
+				age: number
 			}
-		})
 
-		it('coalesces multiple presence updates into 1 push with final presence (first is Put)', () => {
-			// Multiple presence updates synchronously - first presence ever sent
-			presence.set({
-				id: 'presence:u1' as any,
-				typeName: 'instance_presence',
-				cursor: { x: 0, y: 0 },
-			} as any)
-			presence.set({
-				id: 'presence:u1' as any,
-				typeName: 'instance_presence',
-				cursor: { x: 50, y: 50 },
-			} as any)
-			presence.set({
-				id: 'presence:u1' as any,
-				typeName: 'instance_presence',
-				cursor: { x: 100, y: 100 },
-			} as any)
+			const IntegrationPresenceType = createRecordType<IntegrationPresence>('presence', {
+				scope: 'presence',
+				validator: { validate: (value) => value as IntegrationPresence },
+			})
 
-			// Before throttle fires: no messages
-			expect(socket.getSentMessages()).toHaveLength(0)
+			const IntegrationUserType = createRecordType<IntegrationUser>('user', {
+				scope: 'document',
+				validator: { validate: (value) => value as IntegrationUser },
+			})
 
-			// Flush the throttle
-			flushThrottle()
+			type R = IntegrationUser | IntegrationPresence
 
-			// Should have exactly ONE push with final presence
-			const messages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			expect(messages).toHaveLength(1)
-			expect(messages[0].presence).toBeDefined()
-			// First presence is always a Put (full record)
-			expect(messages[0].presence![0]).toBe(RecordOpType.Put)
-			expect((messages[0].presence![1] as any).cursor).toEqual({ x: 100, y: 100 })
-		})
+			const integrationSchema = StoreSchema.create<R>({
+				user: IntegrationUserType,
+				presence: IntegrationPresenceType,
+			})
 
-		it('sends subsequent presence updates as Patch after initial Put', () => {
-			// Send initial presence
-			presence.set({
-				id: 'presence:u1' as any,
-				typeName: 'instance_presence',
-				cursor: { x: 0, y: 0 },
-			} as any)
-			flushThrottle()
+			const disposables: Array<() => void> = []
 
-			// Verify first presence was a Put
-			const firstMessages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			expect(firstMessages).toHaveLength(1)
-			expect(firstMessages[0].presence![0]).toBe(RecordOpType.Put)
+			afterEach(() => {
+				for (const dispose of disposables) {
+					dispose()
+				}
+				disposables.length = 0
+			})
 
-			socket.clearSentMessages()
+			class TestInstance {
+				server: TestServer<R>
+				socketPair: TestSocketPair<R>
+				client: TLSyncClient<R>
 
-			// Now send multiple presence updates
-			presence.set({
-				id: 'presence:u1' as any,
-				typeName: 'instance_presence',
-				cursor: { x: 50, y: 50 },
-			} as any)
-			presence.set({
-				id: 'presence:u1' as any,
-				typeName: 'instance_presence',
-				cursor: { x: 100, y: 100 },
-			} as any)
+				hasLoaded = false
 
-			// Before throttle fires: no messages
-			expect(socket.getSentMessages()).toHaveLength(0)
+				constructor(
+					presenceSignal: Signal<IntegrationPresence | null>,
+					presenceMode?: 'solo' | 'full'
+				) {
+					this.server = new TestServer(integrationSchema)
+					this.socketPair = new TestSocketPair('test_presence_mode', this.server)
+					this.socketPair.connect()
 
-			// Flush the throttle
-			flushThrottle()
+					this.client = new TLSyncClient<R>({
+						store: new Store({ schema: integrationSchema, props: {} }),
+						socket: this.socketPair.clientSocket,
+						onLoad: () => {
+							this.hasLoaded = true
+						},
+						onSyncError: vi.fn((reason) => {
+							throw new Error('onSyncError: ' + reason)
+						}),
+						presence: presenceSignal,
+						presenceMode: presenceMode ? computed('', () => presenceMode) : undefined,
+					})
 
-			// Should have exactly ONE push with final presence as a Patch
-			const messages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			expect(messages).toHaveLength(1)
-			expect(messages[0].presence).toBeDefined()
-			// Subsequent presence updates should be Patches (only changed fields)
-			expect(messages[0].presence![0]).toBe(RecordOpType.Patch)
-			// The patch should contain the cursor update
-			expect((messages[0].presence![1] as any).cursor).toBeDefined()
-		})
+					disposables.push(() => {
+						this.client.close()
+					})
+				}
 
-		it('coalesces document changes + presence into 1 push request', () => {
-			const pageId = PageRecordType.createId()
+				flush() {
+					this.server.flushDebouncingMessages()
 
-			// Document change
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Test Page',
-					index: 'a1' as any,
-				}),
-			])
+					while (this.socketPair.getNeedsFlushing()) {
+						this.socketPair.flushClientSentEvents()
+						this.socketPair.flushServerSentEvents()
+					}
+				}
+			}
 
-			// Presence change
-			presence.set({
-				id: 'presence:u1' as any,
-				typeName: 'instance_presence',
-				cursor: { x: 42, y: 42 },
-			} as any)
+			it('[CP5] presence updates reach the server presence store when mode is full', () => {
+				const presence = IntegrationPresenceType.create({ name: 'bob', age: 10 })
+				const presenceSignal = atom('', presence)
 
-			// Before throttle fires: no messages
-			expect(socket.getSentMessages()).toHaveLength(0)
+				const t = new TestInstance(presenceSignal, 'full')
+				t.socketPair.connect()
+				t.flush()
 
-			// Flush the throttle
-			flushThrottle()
+				const session = t.server.room.sessions.values().next().value
+				expect(session).toBeDefined()
+				expect(session?.presenceId).toBeDefined()
+				expect(t.server.room.presenceStore.get(session!.presenceId!)).toMatchObject({
+					name: 'bob',
+					age: 10,
+				})
 
-			// Should have exactly ONE push with both document and presence
-			const messages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			expect(messages).toHaveLength(1)
+				presenceSignal.set(IntegrationPresenceType.create({ name: 'bob', age: 11 }))
+				t.flush()
+				expect(t.server.room.presenceStore.get(session!.presenceId!)).toMatchObject({
+					name: 'bob',
+					age: 11,
+				})
 
-			// Has document diff
-			expect(messages[0].diff).toBeDefined()
-			expect(messages[0].diff![pageId]).toBeDefined()
+				presenceSignal.set(IntegrationPresenceType.create({ name: 'bob', age: 12 }))
+				t.flush()
+				expect(t.server.room.presenceStore.get(session!.presenceId!)).toMatchObject({
+					name: 'bob',
+					age: 12,
+				})
+			})
 
-			// Has presence
-			expect(messages[0].presence).toBeDefined()
+			it('[CP6] presence is only pushed once on connect when mode is solo', () => {
+				const presence = IntegrationPresenceType.create({ name: 'bob', age: 10 })
+				const presenceSignal = atom('', presence)
+
+				const t = new TestInstance(presenceSignal, 'solo')
+				t.socketPair.connect()
+				t.flush()
+
+				const session = t.server.room.sessions.values().next().value
+				expect(session).toBeDefined()
+				expect(session?.presenceId).toBeDefined()
+				expect(t.server.room.presenceStore.get(session!.presenceId!)).toMatchObject({
+					name: 'bob',
+					age: 10,
+				})
+
+				presenceSignal.set(IntegrationPresenceType.create({ name: 'bob', age: 11 }))
+				t.flush()
+				expect(t.server.room.presenceStore.get(session!.presenceId!)).not.toMatchObject({
+					name: 'bob',
+					age: 11,
+				})
+
+				presenceSignal.set(IntegrationPresenceType.create({ name: 'bob', age: 12 }))
+				t.flush()
+				expect(t.server.room.presenceStore.get(session!.presenceId!)).not.toMatchObject({
+					name: 'bob',
+					age: 12,
+				})
+			})
 		})
 	})
 
-	describe('Rebase Behavior', () => {
-		beforeEach(() => {
+	describe('21. receiving and rebasing (CR)', () => {
+		it('[CR1] drops data events that arrive before the room connection is established', () => {
 			client = createClient()
+
+			const page = makePage('Early Page')
+			socket.mockServerMessage({
+				type: 'data',
+				data: [{ type: 'patch', serverClock: 5, diff: { [page.id]: [RecordOpType.Put, page] } }],
+			})
+			vi.advanceTimersByTime(100)
+			expect(store.has(page.id)).toBe(false)
+
+			// the event was dropped entirely, not buffered until the connect succeeds
 			socket.mockServerMessage(createConnectMessage())
-			socket.clearSentMessages()
+			vi.advanceTimersByTime(100)
+			expect(client.isConnectedToRoom).toBe(true)
+			expect(store.has(page.id)).toBe(false)
 		})
 
-		it('preserves local changes when receiving server patches for other records', () => {
-			// Make a local change
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Local Page',
-					index: 'a1' as any,
-				}),
-			])
+		it('[CR1] processes legacy top-level patch events like buffered data events', () => {
+			connectClient()
+
+			const page = makePage('Legacy Page')
+			socket.mockServerMessage({
+				type: 'patch',
+				serverClock: 2,
+				diff: { [page.id]: [RecordOpType.Put, page] },
+			})
 			vi.advanceTimersByTime(100)
 
-			// Receive a server patch for a different record
+			expect(store.get(page.id)).toEqual(page)
+		})
+
+		it('[CR2] preserves local speculative changes when the server patches other records', () => {
+			connectClient()
+
+			// make a local change
+			const pageId = PageRecordType.createId()
+			store.put([PageRecordType.create({ id: pageId, name: 'Local Page', index: 'a1' as any })])
+			vi.advanceTimersByTime(100)
+
+			// receive a server patch for a different record
 			const serverPageId = PageRecordType.createId()
 			socket.mockServerMessage({
 				type: 'data',
@@ -1239,69 +1343,233 @@ describe('TLSyncClient', () => {
 			})
 			vi.advanceTimersByTime(100)
 
-			// Both local and server pages should coexist
-			expect(store.has(pageId)).toBe(true)
+			// both local and server pages should coexist
 			expect(store.get(pageId)?.name).toBe('Local Page')
-			expect(store.has(serverPageId)).toBe(true)
 			expect(store.get(serverPageId)?.name).toBe('Server Page')
 		})
-	})
 
-	describe('Solo Mode FPS Optimization', () => {
-		it('does not send presence in solo mode', () => {
-			presenceMode.set('solo')
-			client = createClient()
-			socket.mockServerMessage(createConnectMessage())
-			socket.clearSentMessages()
+		it('[CR2] does not generate new push requests for changes applied during a rebase', () => {
+			connectClient()
 
-			const presenceRecord = {
-				id: 'presence:user1' as any,
-				typeName: 'instance_presence',
-				cursor: { x: 100, y: 200 },
-			} as TestRecord
-			presence.set(presenceRecord)
+			const serverPage = makePage('Server Page')
+			socket.mockServerMessage({
+				type: 'data',
+				data: [
+					{
+						type: 'patch',
+						serverClock: 2,
+						diff: { [serverPage.id]: [RecordOpType.Put, serverPage] },
+					},
+				],
+			})
+			vi.advanceTimersByTime(100)
 
-			vi.advanceTimersByTime(2000)
-
-			// Should not have sent any presence updates
-			const messages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			const presenceMessages = messages.filter((msg) => msg.presence)
-			expect(presenceMessages).toHaveLength(0)
+			expect(store.has(serverPage.id)).toBe(true)
+			expect(getSentPushes()).toHaveLength(0)
 		})
 
-		it('still sends document changes in solo mode', () => {
-			presenceMode.set('solo')
-			client = createClient()
-			socket.mockServerMessage(createConnectMessage())
+		it('[CR3] a commit push_result confirms the pending push without changing the store', () => {
+			connectClient()
+
+			const page = makePage('Local Page')
+			store.put([page])
+			vi.advanceTimersByTime(100)
+			const push = getSentPushes()[0]
+			expect(push).toBeDefined()
+
+			socket.mockServerMessage({
+				type: 'data',
+				data: [
+					{ type: 'push_result', clientClock: push.clientClock, serverClock: 2, action: 'commit' },
+				],
+			})
+			vi.advanceTimersByTime(100)
+			expect(store.get(page.id)?.name).toBe('Local Page')
+
+			// the change is now confirmed: a reconnect neither reverts nor re-pushes it
+			socket.mockConnectionStatus('offline')
+			socket.mockConnectionStatus('online')
 			socket.clearSentMessages()
+			socket.mockServerMessage(
+				createConnectMessage({ hydrationType: 'wipe_presence', serverClock: 2, diff: {} })
+			)
+			vi.advanceTimersByTime(100)
 
-			const pageId = PageRecordType.createId()
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Solo Page',
-					index: 'a1' as any,
-				}),
-			])
-
-			vi.advanceTimersByTime(2000)
-
-			// Should have sent the document change
-			const messages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			const docMessages = messages.filter((msg) => msg.diff && Object.keys(msg.diff).length > 0)
-			expect(docMessages.length).toBeGreaterThan(0)
-		})
-	})
-
-	describe('Edge Cases', () => {
-		beforeEach(() => {
-			client = createClient()
-			socket.mockServerMessage(createConnectMessage())
-			socket.clearSentMessages()
+			expect(store.get(page.id)?.name).toBe('Local Page')
+			expect(getSentPushes()).toHaveLength(0)
 		})
 
-		it('handles update-then-delete of server record correctly', () => {
-			// Create a page via server
+		it('[CR3] a discard push_result drops the pending push and reverts the local change', () => {
+			connectClient()
+
+			const page = makePage('Discarded Page')
+			store.put([page])
+			vi.advanceTimersByTime(100)
+			const push = getSentPushes()[0]
+			expect(store.has(page.id)).toBe(true)
+
+			socket.mockServerMessage({
+				type: 'data',
+				data: [
+					{ type: 'push_result', clientClock: push.clientClock, serverClock: 2, action: 'discard' },
+				],
+			})
+			vi.advanceTimersByTime(100)
+
+			expect(store.has(page.id)).toBe(false)
+		})
+
+		it("[CR3] a rebaseWithDiff push_result applies the server's modified diff instead", () => {
+			connectClient()
+
+			const page = makePage('Local Name')
+			store.put([page])
+			vi.advanceTimersByTime(100)
+			const push = getSentPushes()[0]
+
+			const serverVersion = { ...page, name: 'Server Name' }
+			socket.mockServerMessage({
+				type: 'data',
+				data: [
+					{
+						type: 'push_result',
+						clientClock: push.clientClock,
+						serverClock: 2,
+						action: { rebaseWithDiff: { [page.id]: [RecordOpType.Put, serverVersion] } },
+					},
+				],
+			})
+			vi.advanceTimersByTime(100)
+
+			expect(store.get(page.id)?.name).toBe('Server Name')
+		})
+
+		it('[CR4] resets the connection on a push_result with no pending pushes', () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			connectClient()
+
+			socket.mockServerMessage({
+				type: 'data',
+				data: [{ type: 'push_result', clientClock: 0, serverClock: 2, action: 'commit' }],
+			})
+
+			expect(consoleSpy).toHaveBeenCalled()
+			expect(client.isConnectedToRoom).toBe(false)
+
+			// the reset restarts the socket, leading to a fresh connect attempt
+			vi.advanceTimersByTime(100)
+			expect(socket.getSentMessages().some((m) => m.type === 'connect')).toBe(true)
+
+			consoleSpy.mockRestore()
+		})
+
+		it('[CR4] resets the connection on a push_result with a mismatched clientClock', () => {
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			connectClient()
+
+			// create a pending push with clientClock 0
+			store.put([makePage()])
+			vi.advanceTimersByTime(100)
+			expect(getSentPushes()).toHaveLength(1)
+
+			socket.mockServerMessage({
+				type: 'data',
+				data: [{ type: 'push_result', clientClock: 999999, serverClock: 2, action: 'commit' }],
+			})
+			vi.advanceTimersByTime(100)
+
+			expect(consoleSpy).toHaveBeenCalled()
+			expect(client.isConnectedToRoom).toBe(false)
+
+			consoleSpy.mockRestore()
+		})
+
+		it("[CR5][CL2] advances lastServerClock to the last buffered event's serverClock and reuses it on reconnect", () => {
+			connectClient({ serverClock: 1 })
+
+			socket.mockServerMessage({
+				type: 'data',
+				data: [
+					{ type: 'patch', serverClock: 7, diff: {} },
+					{ type: 'patch', serverClock: 12, diff: {} },
+				],
+			})
+			vi.advanceTimersByTime(100)
+
+			socket.mockConnectionStatus('offline')
+			socket.mockConnectionStatus('online')
+
+			const connectMsg = socket
+				.getSentMessages()
+				.find((m): m is TLConnectRequest => m.type === 'connect')
+			expect(connectMsg).toBeDefined()
+			expect(connectMsg!.lastServerClock).toBe(12)
+		})
+
+		it('[CR6] a put equal to the stored record does not notify store listeners', () => {
+			connectClient()
+
+			const page = makePage('Server Page')
+			socket.mockServerMessage({
+				type: 'data',
+				data: [{ type: 'patch', serverClock: 2, diff: { [page.id]: [RecordOpType.Put, page] } }],
+			})
+			vi.advanceTimersByTime(100)
+			expect(store.get(page.id)).toEqual(page)
+
+			const listener = vi.fn()
+			const unsubscribe = store.listen(listener)
+
+			// a deep-equal (but referentially distinct) put is a no-op
+			const equalCopy = JSON.parse(JSON.stringify(page))
+			socket.mockServerMessage({
+				type: 'data',
+				data: [
+					{ type: 'patch', serverClock: 3, diff: { [page.id]: [RecordOpType.Put, equalCopy] } },
+				],
+			})
+			vi.advanceTimersByTime(100)
+
+			expect(listener).not.toHaveBeenCalled()
+			expect(store.get(page.id)).toEqual(page)
+			unsubscribe()
+		})
+
+		it('[CR6] patch and remove ops for missing records are skipped', () => {
+			connectClient()
+
+			const missingPatchId = PageRecordType.createId()
+			const missingRemoveId = PageRecordType.createId()
+			const listener = vi.fn()
+			const unsubscribe = store.listen(listener)
+
+			expect(() => {
+				socket.mockServerMessage({
+					type: 'data',
+					data: [
+						{
+							type: 'patch',
+							serverClock: 2,
+							diff: {
+								[missingPatchId]: [RecordOpType.Patch, { name: [ValueOpType.Put, 'x'] }],
+								[missingRemoveId]: [RecordOpType.Remove],
+							},
+						},
+					],
+				})
+				vi.advanceTimersByTime(100)
+			}).not.toThrow()
+
+			expect(store.has(missingPatchId)).toBe(false)
+			expect(store.has(missingRemoveId)).toBe(false)
+			expect(listener).not.toHaveBeenCalled()
+			unsubscribe()
+		})
+
+		it('[CR6] handles update-then-delete of a server record correctly', () => {
+			connectClient()
+
+			// create a page via server
 			const pageId = PageRecordType.createId()
 			socket.mockServerMessage({
 				type: 'data',
@@ -1312,11 +1580,7 @@ describe('TLSyncClient', () => {
 						diff: {
 							[pageId]: [
 								RecordOpType.Put,
-								PageRecordType.create({
-									id: pageId,
-									name: 'Server Page',
-									index: 'a1' as any,
-								}),
+								PageRecordType.create({ id: pageId, name: 'Server Page', index: 'a1' as any }),
 							],
 						},
 					},
@@ -1325,7 +1589,7 @@ describe('TLSyncClient', () => {
 			vi.advanceTimersByTime(100)
 			socket.clearSentMessages()
 
-			// Update then delete
+			// update then delete
 			store.update(pageId, (p) => ({ ...p, name: 'Updated' }))
 			vi.advanceTimersByTime(100)
 			socket.clearSentMessages()
@@ -1333,19 +1597,20 @@ describe('TLSyncClient', () => {
 			store.remove([pageId])
 			vi.advanceTimersByTime(100)
 
-			// Page should not exist locally
+			// page should not exist locally
 			expect(store.has(pageId)).toBe(false)
 
-			// Should have sent a remove operation
-			const messages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			const removeMsg = messages.find(
-				(msg) => msg.diff && msg.diff[pageId] && msg.diff[pageId][0] === RecordOpType.Remove
+			// should have sent a remove operation
+			const removeMsg = getSentPushes().find(
+				(msg) => msg.diff?.[pageId] && msg.diff[pageId][0] === RecordOpType.Remove
 			)
 			expect(removeMsg).toBeDefined()
 		})
 
-		it('handles delete-then-recreate of server record with same ID', () => {
-			// Create a page via server
+		it('[CR6] handles delete-then-recreate of a server record with the same id', () => {
+			connectClient()
+
+			// create a page via server
 			const pageId = PageRecordType.createId()
 			socket.mockServerMessage({
 				type: 'data',
@@ -1356,11 +1621,7 @@ describe('TLSyncClient', () => {
 						diff: {
 							[pageId]: [
 								RecordOpType.Put,
-								PageRecordType.create({
-									id: pageId,
-									name: 'Original',
-									index: 'a1' as any,
-								}),
+								PageRecordType.create({ id: pageId, name: 'Original', index: 'a1' as any }),
 							],
 						},
 					},
@@ -1369,24 +1630,19 @@ describe('TLSyncClient', () => {
 			vi.advanceTimersByTime(100)
 			socket.clearSentMessages()
 
-			// Delete then recreate with same ID
+			// delete then recreate with same ID
 			store.remove([pageId])
-			store.put([
-				PageRecordType.create({
-					id: pageId,
-					name: 'Recreated',
-					index: 'a1' as any,
-				}),
-			])
+			store.put([PageRecordType.create({ id: pageId, name: 'Recreated', index: 'a1' as any })])
 			vi.advanceTimersByTime(100)
 
-			// Page should exist with new name
-			expect(store.has(pageId)).toBe(true)
+			// page should exist with new name
 			expect(store.get(pageId)?.name).toBe('Recreated')
 		})
 
-		it('sends patches (not full puts) for updates to server records', () => {
-			// Create a page via server
+		it('[CR6] sends patches (not full puts) for updates to server records', () => {
+			connectClient()
+
+			// create a page via server
 			const pageId = PageRecordType.createId()
 			socket.mockServerMessage({
 				type: 'data',
@@ -1397,11 +1653,7 @@ describe('TLSyncClient', () => {
 						diff: {
 							[pageId]: [
 								RecordOpType.Put,
-								PageRecordType.create({
-									id: pageId,
-									name: 'Server Name',
-									index: 'a1' as any,
-								}),
+								PageRecordType.create({ id: pageId, name: 'Server Name', index: 'a1' as any }),
 							],
 						},
 					},
@@ -1410,18 +1662,47 @@ describe('TLSyncClient', () => {
 			vi.advanceTimersByTime(100)
 			socket.clearSentMessages()
 
-			// Local user updates only the name
+			// local user updates only the name
 			store.update(pageId, (p) => ({ ...p, name: 'Local Name' }))
 			vi.advanceTimersByTime(100)
 
-			// Should send a Patch operation (not Put)
-			const messages = socket.getSentMessages() as TLPushRequest<TestRecord>[]
-			const pushWithPage = messages.find((msg) => msg.diff && msg.diff[pageId])
+			// should send a Patch operation (not Put)
+			const pushWithPage = getSentPushes().find((msg) => msg.diff?.[pageId])
 			expect(pushWithPage).toBeDefined()
 
 			const op = pushWithPage!.diff![pageId]
 			expect(op[0]).toBe(RecordOpType.Patch)
 			expect((op[1] as any).name).toBeDefined()
+		})
+
+		it('[CR7] invokes onCustomMessageReceived with this bound to null', () => {
+			let captured: { thisArg: any; data: any } | undefined
+			client = createClient({
+				onCustomMessageReceived: function (this: any, data: any) {
+					captured = { thisArg: this, data }
+				},
+			})
+			socket.mockServerMessage(createConnectMessage())
+
+			const customData = { type: 'chat', message: 'Hello world' }
+			socket.mockServerMessage({ type: 'custom', data: customData })
+
+			expect(captured).toBeDefined()
+			expect(captured!.data).toEqual(customData)
+			expect(captured!.thisArg).toBeNull()
+		})
+
+		it('[CR7][CL7] tolerates omitted optional callbacks', () => {
+			client = createClient({
+				onCustomMessageReceived: undefined,
+				onAfterConnect: undefined,
+			})
+			socket.mockServerMessage(createConnectMessage())
+			expect(client.isConnectedToRoom).toBe(true)
+
+			expect(() => {
+				socket.mockServerMessage({ type: 'custom', data: { hello: true } })
+			}).not.toThrow()
 		})
 	})
 })

@@ -7,11 +7,11 @@ import styles from '../sidebar.module.css'
 
 export function TlaSidebarFileLinkMenu({
 	fileId,
-	groupId,
+	workspaceId,
 	onRenameAction,
 }: {
 	fileId: string
-	groupId: string | null
+	workspaceId: string | null
 	onRenameAction(): void
 }) {
 	const fileMenuLbl = useMsg(messages.fileMenu)
@@ -19,7 +19,7 @@ export function TlaSidebarFileLinkMenu({
 	return (
 		<TlaFileMenu
 			fileId={fileId}
-			groupId={groupId}
+			workspaceId={workspaceId}
 			source="sidebar"
 			onRenameAction={onRenameAction}
 			trigger={

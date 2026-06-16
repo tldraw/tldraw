@@ -137,7 +137,7 @@
 }
 
 /* need to target the parent div, ugh, can't target via a className */
-div:has(> .menuSelectContent) {
+div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	position: absolute !important;
 	top: 17px;
 	right: -8px;
@@ -146,12 +146,22 @@ div:has(> .menuSelectContent) {
 }
 
 .menuSelectContent {
+	/* Match the layer `.tlui-dialog__overlay` renders at — it reuses
+	   --tl-layer-canvas-overlays — so the portaled (popper) dropdown isn't hidden
+	   behind a containing dialog. A lower z-index would lose: both the dialog and
+	   the select portal into the same container as siblings, so they compete in one
+	   stacking context; at equal z-index the dropdown wins only because it mounts
+	   later. Radix copies this z-index onto its popper wrapper, so setting it on the
+	   content (not the wrapper, which Radix styles inline) avoids needing
+	   !important. Harmless inline (item-aligned), where the wrapper's z-index governs. */
+	z-index: var(--tl-layer-canvas-overlays);
 	border-radius: var(--tl-radius-3);
 	background-color: var(--tl-color-panel);
 	box-shadow: var(--tl-shadow-3);
 }
 
 .menuSelectOption {
+	white-space: nowrap;
 	position: relative;
 	display: flex;
 	align-items: center;
@@ -211,6 +221,16 @@ div:has(> .menuSelectContent) {
 
 .menuSelectTrigger[data-disabled] .menuSelectChevron {
 	display: none;
+}
+
+.menuSelectSeparator {
+	height: 1px;
+	margin: 4px;
+	background-color: var(--tl-color-divider);
+}
+
+.menuSelectOptionDestructive {
+	color: var(--tl-color-danger);
 }
 
 [data-radix-focus-guard] {

@@ -29,23 +29,28 @@ An [OverlayUtil](?) is an abstract class with four responsibilities:
 3. **Rendering** — `render()` draws overlays into a canvas 2D context
 4. **Hit testing** (optional) — `getGeometry()` returns geometry for interactive overlays
 
-The editor calls these methods reactively. When `isActive()` returns `false`, the overlay is skipped entirely. When it returns `true`, the editor calls `getOverlays()` and `render()` on each frame.
+The editor calls these methods reactively. When `isActive()` returns `false`, the overlay is skipped entirely. When it returns `true`, the editor calls `getOverlays()` and `render()` whenever the editor state they depend on changes, including camera movement.
 
 ## Default overlay utils
 
 The `tldraw` package includes these overlay utils by default:
 
-| Overlay util                         | Purpose                                |
-| ------------------------------------ | -------------------------------------- |
-| [SelectionForegroundOverlayUtil](?)  | Selection box, resize handles, corners |
-| [ShapeHandleOverlayUtil](?)          | Shape handles (arrows, lines, etc.)    |
-| [BrushOverlayUtil](?)                | Selection brush rectangle              |
-| [ZoomBrushOverlayUtil](?)            | Zoom brush rectangle                   |
-| [SnapIndicatorOverlayUtil](?)        | Snap alignment guides                  |
-| [ScribbleOverlayUtil](?)             | Eraser and lasso scribbles             |
-| [CollaboratorBrushOverlayUtil](?)    | Remote users' brush rectangles         |
-| [CollaboratorScribbleOverlayUtil](?) | Remote users' scribbles                |
-| [CollaboratorHintOverlayUtil](?)     | Remote users' viewport hints           |
+| Overlay util                               | Purpose                                       |
+| ------------------------------------------ | --------------------------------------------- |
+| [ShapeIndicatorOverlayUtil](?)             | Selection, hover, and hint outlines on shapes |
+| [SelectionForegroundOverlayUtil](?)        | Selection box, resize handles, corners        |
+| [ShapeHandleOverlayUtil](?)                | Shape handles (arrows, lines, etc.)           |
+| [BrushOverlayUtil](?)                      | Selection brush rectangle                     |
+| [ZoomBrushOverlayUtil](?)                  | Zoom brush rectangle                          |
+| [SnapIndicatorOverlayUtil](?)              | Snap alignment guides                         |
+| [ScribbleOverlayUtil](?)                   | Eraser and lasso scribbles                    |
+| [ArrowHintOverlayUtil](?)                  | Target hints while drawing arrows             |
+| [ArrowBindingHintOverlayUtil](?)           | Binding hints when dragging arrow handles     |
+| [CollaboratorCursorOverlayUtil](?)         | Remote users' cursors, name tags, and chat    |
+| [CollaboratorBrushOverlayUtil](?)          | Remote users' brush rectangles                |
+| [CollaboratorScribbleOverlayUtil](?)       | Remote users' scribbles                       |
+| [CollaboratorHintOverlayUtil](?)           | Remote users' viewport hints                  |
+| [CollaboratorShapeIndicatorOverlayUtil](?) | Remote users' selection indicators            |
 
 These are exported as [defaultOverlayUtils](?) from `tldraw`.
 
@@ -118,7 +123,7 @@ interface TLOverlay {
 }
 ```
 
-Define a custom interface extending [TLOverlay](?) to type your props. The `id` should be unique across all overlays of this type — for single-instance overlays like a brush, a fixed string works. For per-item overlays like shape handles, include the item's identity in the id.
+Define a custom interface extending [TLOverlay](?) to type your props. The `id` must be globally unique across all overlay utils — hit testing and hover lookup use the `id` alone. Namespace your ids to avoid collisions: a fixed string like `'highlight'` works for single-instance overlays, while per-item overlays should include the item's identity (e.g. `'handle:<shapeId>:<handleId>'`).
 
 ### Rendering
 
@@ -252,3 +257,9 @@ const hoveredId = editor.overlays.getHoveredOverlayId()
 - [Shapes](/sdk-features/shapes) - The shape system that overlays interact with
 - [Indicators](/sdk-features/indicators) - Shape indicators rendered alongside overlays
 - [Scribble](/sdk-features/scribble) - Scribble system rendered via overlay utils
+
+## Related examples
+
+- **[Custom overlay](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/custom-overlay)** — Draw a custom canvas overlay on top of the editor.
+- **[Replace a built-in overlay](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/replace-brush-overlay)** — Swap out the brush overlay for a custom implementation.
+- **[Hovered overlay](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/hovered-overlay)** — Read the overlay that the user is hovering.

@@ -19,7 +19,7 @@ status: published
 date: 1/31/2026
 ---
 
-The geo shape is one of the default shapes in tldraw. It renders geometric primitives with optional text labels. Geo shapes support 20 different geometric forms—from basic shapes like rectangles and ellipses to specialized forms like stars, clouds, and directional arrows. They can display rich text labels with configurable alignment. These capabilities make geo shapes the foundation for flowcharts, diagrams, and annotated illustrations.
+The geo shape is one of the default shapes in tldraw. It renders geometric primitives—rectangles, ellipses, stars, clouds, and 16 other forms—with optional rich text labels. Geo shapes are the usual building blocks for flowcharts and diagrams.
 
 ## Geometric forms
 
@@ -161,11 +161,11 @@ Click and drag to create a shape at a custom size. The shape's corner follows yo
 
 ### Editing labels
 
-Press Enter while a geo shape is selected to edit its label. The shape enters edit mode, allowing you to type or modify the rich text content. Press Escape to exit edit mode.
+Press Enter while a geo shape is selected to edit its label. The shape enters edit mode, where you can type or modify the rich text content. Press Escape to exit edit mode.
 
 ### Tool lock
 
-When tool lock is enabled (via the toolbar or [Editor#setCurrentTool](?)), you can create multiple shapes without returning to the select tool after each one.
+When tool lock is enabled (via the toolbar or `editor.updateInstanceState({ isToolLocked: true })`), you can create multiple shapes without returning to the select tool after each one.
 
 ## Shape properties
 
@@ -177,7 +177,7 @@ When tool lock is enabled (via the toolbar or [Editor#setCurrentTool](?)), you c
 | `richText`      | `TLRichText`                    | Text label displayed inside the shape                       |
 | `color`         | `TLDefaultColorStyle`           | Stroke/outline color                                        |
 | `labelColor`    | `TLDefaultColorStyle`           | Text label color (separate from stroke)                     |
-| `fill`          | `TLDefaultFillStyle`            | Fill style: `none`, `semi`, `solid`, `pattern`              |
+| `fill`          | `TLDefaultFillStyle`            | Fill style, e.g. `none`, `semi`, `solid`, `pattern`         |
 | `dash`          | `TLDefaultDashStyle`            | Stroke pattern: `draw`, `solid`, `dashed`, `dotted`, `none` |
 | `size`          | `TLDefaultSizeStyle`            | Size preset affecting stroke width                          |
 | `font`          | `TLDefaultFontStyle`            | Font family for the label                                   |
@@ -331,13 +331,9 @@ Click the link button to open the URL in a new tab.
 
 ## Path rendering
 
-Geo shapes use a path-based rendering system. Each geometric form has a corresponding path definition in `getGeoShapePath`, which generates the outline used for both fill rendering and stroke styles. The path system supports:
+Geo shapes use a path-based rendering system. Each geometric form—built-in or custom—has a `GeoTypeDefinition` whose `getPath` method generates the outline used for both fills and strokes. The same path drives solid, semi-transparent, and pattern fills as well as solid, dashed, and dotted stroke styles. Path calculations are cached per shape.
 
-- **Fill rendering**: Solid, semi-transparent, or pattern fills
-- **Stroke styles**: Solid lines, dashed patterns, dotted patterns, and hand-drawn "draw" style
-- **Efficient caching**: Path calculations are cached per shape instance
-
-When the `dash` property is set to `'draw'`, the shape renders with organic, hand-drawn strokes that vary slightly based on the shape's position and size.
+When the `dash` property is set to `'draw'`, the shape renders with organic, hand-drawn strokes. The randomness is seeded by the shape's ID, so each shape's hand-drawn look stays stable across renders.
 
 ## Geometry
 

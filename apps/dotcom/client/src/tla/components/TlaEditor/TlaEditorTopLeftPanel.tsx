@@ -252,7 +252,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			<DefaultPageMenu />
 			<TlaFileMenu
 				fileId={fileId}
-				groupId={null}
+				workspaceId={null}
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
@@ -273,7 +273,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 							source="file-header"
 							fileId={fileId}
 							onRenameAction={handleRenameAction}
-							groupId={null}
+							workspaceId={null}
 						/>
 					</TldrawUiMenuSubmenu>
 					<EditSubmenu />

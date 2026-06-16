@@ -218,7 +218,7 @@ class TestInstance {
 	}
 }
 
-test('the server can handle receiving v1 stuff from the client', () => {
+it('[MG2] the server can handle receiving v1 stuff from the client', () => {
 	const t = new TestInstance()
 	t.oldSocketPair.connect()
 	t.newSocketPair.connect()
@@ -244,7 +244,7 @@ test('the server can handle receiving v1 stuff from the client', () => {
 	expect(t.newClient.store.get(user.id as any)).not.toMatchObject({ name: 'bob', age: 10 })
 })
 
-test('the server can send v2 stuff to the v1 client', () => {
+it('[MG1] the server can send v2 stuff to the v1 client', () => {
 	const t = new TestInstance()
 	t.oldSocketPair.connect()
 	t.newSocketPair.connect()
@@ -269,7 +269,7 @@ test('the server can send v2 stuff to the v1 client', () => {
 	})
 })
 
-test('the server will run schema migrations on a snapshot', () => {
+it('[RC3] the server will run schema migrations on a snapshot', () => {
 	const bob = UserV1.create({ name: 'bob', age: 10 })
 	// joe will be deleted
 	const joe = UserV1.create({ name: 'joe', age: 10 })
@@ -298,7 +298,7 @@ test('the server will run schema migrations on a snapshot', () => {
 	expect(snapshot.documents.find((u: any) => u.state.name === 'steve')).toBeDefined()
 })
 
-test('clients will receive updates from a snapshot migration upon connection', () => {
+it('[MG1] clients will receive updates from a snapshot migration upon connection', () => {
 	const t = new TestInstance()
 	t.oldSocketPair.connect()
 	t.newSocketPair.connect()
@@ -347,7 +347,7 @@ test('clients will receive updates from a snapshot migration upon connection', (
 	})
 })
 
-test('out-of-date clients will receive incompatibility errors', () => {
+it('[HS3] out-of-date clients will receive incompatibility errors', () => {
 	const v3server = new TestServer(schemaV3)
 
 	const id = 'test_upgrade_v2'
@@ -365,7 +365,7 @@ test('out-of-date clients will receive incompatibility errors', () => {
 	expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 })
 
-test('clients using an out-of-date protocol will receive compatibility errors', () => {
+it('[HS2] clients using an out-of-date protocol will receive compatibility errors', () => {
 	const actualVersion = getTlsyncProtocolVersion()
 	mockGetTlsyncProtocolVersion.mockReturnValue(actualVersion + 1)
 	try {
@@ -390,14 +390,12 @@ test('clients using an out-of-date protocol will receive compatibility errors', 
 	}
 })
 
-// this can be deleted when the protocol gets to v7
-test('v5 special case should allow connections', () => {
-	const actualVersion = getTlsyncProtocolVersion()
-	if (actualVersion > 6) return
-
+// protocol v5 is treated as v6: accepted, but with the legacy rejection scheme
+// and without string-append support
+it('[HS2] v5 special case should allow connections', () => {
 	const v2server = new TestServer(schemaV2)
 
-	const id = 'test_upgrade_v3'
+	const id = 'test_upgrade_v5'
 	const socket = mockSocket()
 
 	v2server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
@@ -409,24 +407,21 @@ test('v5 special case should allow connections', () => {
 		schema: schemaV2.serialize(),
 	})
 
-	expect(socket.sendMessage).toHaveBeenCalledWith({
-		connectRequestId: 'test',
-		diff: {},
-		hydrationType: 'wipe_all',
-		protocolVersion: 6,
-		schema: {
-			schemaVersion: 2,
-			sequences: {
-				'com.tldraw.user': 1,
-			},
-		},
-		serverClock: 1,
+	expect(socket.close).not.toHaveBeenCalled()
+	expect((socket.sendMessage as Mock).mock.calls[0][0]).toMatchObject({
 		type: 'connect',
+		connectRequestId: 'test',
+		protocolVersion: getTlsyncProtocolVersion(),
 		isReadonly: false,
-	} satisfies TLSocketServerSentEvent<RV2>)
+	})
+
+	const session = v2server.room.sessions.get(id) as any
+	expect(session?.state).toBe('connected')
+	expect(session?.requiresLegacyRejection).toBe(true)
+	expect(session?.supportsStringAppend).toBe(false)
 })
 
-test('clients using a too-new protocol will receive compatibility errors', () => {
+it('[HS2] clients using a too-new protocol will receive compatibility errors', () => {
 	const v2server = new TestServer(schemaV2)
 
 	const id = 'test_upgrade_v3'
@@ -444,7 +439,7 @@ test('clients using a too-new protocol will receive compatibility errors', () =>
 	expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.SERVER_TOO_OLD)
 })
 
-test('when the client is too new it cannot connect', () => {
+it('[HS3] when the client is too new it cannot connect', () => {
 	const steve = UserV1.create({ id: UserV1.createId('steve'), name: 'steve', age: 23 })
 	const jeff = UserV1.create({ id: UserV1.createId('jeff'), name: 'jeff', age: 23 })
 	const annie = UserV1.create({ id: UserV1.createId('annie'), name: 'annie', age: 23 })
@@ -607,8 +602,8 @@ describe('when the client is too old', () => {
 		data = setup()
 	})
 
-	it('allows deletions from v1 client', () => {
-		data.v2Server.room.handleMessage(data.v2Id, {
+	it('[MG2] allows deletions from v1 client', () => {
+		data.v2Server.room.handleMessage(data.v1Id, {
 			type: 'push',
 			clientClock: 1,
 			diff: {
@@ -616,7 +611,7 @@ describe('when the client is too old', () => {
 			},
 		})
 
-		expect(data.v2SendMessage).toHaveBeenCalledWith({
+		expect(data.v1SendMessage).toHaveBeenCalledWith({
 			type: 'data',
 			data: [
 				{
@@ -627,9 +622,22 @@ describe('when the client is too old', () => {
 				},
 			],
 		} satisfies TLSocketServerSentEvent<RV2>)
+
+		expect(data.v2SendMessage).toHaveBeenCalledWith({
+			type: 'data',
+			data: [
+				{
+					type: 'patch',
+					diff: {
+						[data.steve.id]: [RecordOpType.Remove],
+					},
+					serverClock: 11,
+				},
+			],
+		} satisfies TLSocketServerSentEvent<RV2>)
 	})
 
-	it('can handle patches from older clients', () => {
+	it('[MG2] can handle patches from older clients', () => {
 		data.v2Server.room.handleMessage(data.v1Id, {
 			type: 'push',
 			clientClock: 1,
@@ -670,7 +678,7 @@ describe('when the client is too old', () => {
 	})
 })
 
-describe('migration failure during push (TLSyncError handling)', () => {
+describe('migration failure (TLSyncError handling)', () => {
 	let consoleSpy: ReturnType<typeof vi.spyOn>
 	beforeEach(() => {
 		consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -755,7 +763,7 @@ describe('migration failure during push (TLSyncError handling)', () => {
 		}
 	)
 
-	it('rejects session when addDocument UP migration throws during PUT', () => {
+	it('[MG2] rejects session when addDocument up migration throws during put', () => {
 		const server = new TestServer(serverSchemaWithThrowingMigration)
 
 		const sessionId = 'failing-migration-session'
@@ -798,7 +806,7 @@ describe('migration failure during push (TLSyncError handling)', () => {
 		expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 	})
 
-	it('successfully migrates records when migration does not throw', () => {
+	it('[MG2] successfully migrates records when migration does not throw', () => {
 		const server = new TestServer(serverSchemaWithThrowingMigration)
 
 		const sessionId = 'successful-migration-session'
@@ -846,7 +854,7 @@ describe('migration failure during push (TLSyncError handling)', () => {
 		expect(storedRecord.nickname).toBe('VALIDNAME') // Uppercase from migration
 	})
 
-	it('rejects session when patchDocument DOWN migration throws', () => {
+	it('[MG2] rejects session when patchDocument down migration throws', () => {
 		// Create a server with a document that has a nickname that will fail DOWN migration
 		const existingUser = UserWithNicknameType.create({
 			id: UserWithNicknameType.createId('existing_down_fail'),
@@ -897,7 +905,7 @@ describe('migration failure during push (TLSyncError handling)', () => {
 		expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 	})
 
-	it('rejects session when patchDocument UP migration throws (after successful DOWN migration)', () => {
+	it('[MG2] rejects session when patchDocument up migration throws (after successful down migration)', () => {
 		// Create a server with a document that will pass DOWN migration but fail UP migration
 		const existingUser = UserWithNicknameType.create({
 			id: UserWithNicknameType.createId('existing_up_fail'),
@@ -949,6 +957,84 @@ describe('migration failure during push (TLSyncError handling)', () => {
 
 		// Session should be rejected due to UP migration failure during patch
 		expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+	})
+
+	it('[MG1] rejects only the affected session when down migration fails during broadcast', () => {
+		const server = new TestServer(serverSchemaWithThrowingMigration)
+
+		// An old-schema client whose outgoing diffs require down migration
+		const oldId = 'broadcast-old-schema-session'
+		const oldSocket = mockSocket<UserWithNickname>()
+		server.room.handleNewSession({
+			sessionId: oldId,
+			socket: oldSocket as any,
+			meta: undefined,
+			isReadonly: false,
+		})
+		server.room.handleMessage(oldId, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: clientSchemaWithoutNickname.serialize(),
+		})
+
+		// An up-to-date client that pushes a record whose down migration throws
+		const newId = 'broadcast-new-schema-session'
+		const newSocket = mockSocket<UserWithNickname>()
+		server.room.handleNewSession({
+			sessionId: newId,
+			socket: newSocket as any,
+			meta: undefined,
+			isReadonly: false,
+		})
+		server.room.handleMessage(newId, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: serverSchemaWithThrowingMigration.serialize(),
+		})
+
+		expect(server.room.sessions.get(oldId)?.state).toBe('connected')
+		expect(server.room.sessions.get(newId)?.state).toBe('connected')
+		;(oldSocket.sendMessage as Mock).mockClear()
+		;(newSocket.sendMessage as Mock).mockClear()
+
+		const failingRecord = UserWithNicknameType.create({
+			id: UserWithNicknameType.createId('broadcast_fail'),
+			name: 'BroadcastUser',
+			nickname: 'FAIL_DOWN_MIGRATION', // triggers the DOWN throw when broadcast to old client
+		})
+
+		server.room.handleMessage(newId, {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[failingRecord.id]: [RecordOpType.Put, failingRecord as any],
+			},
+		})
+
+		// The push itself succeeds: the record is stored and the pusher gets a commit
+		expect(server.storage.documents.get(failingRecord.id)?.state).toMatchObject({
+			nickname: 'FAIL_DOWN_MIGRATION',
+		})
+		expect(newSocket.close).not.toHaveBeenCalled()
+		expect(newSocket.sendMessage).toHaveBeenCalledWith({
+			type: 'data',
+			data: [
+				{
+					type: 'push_result',
+					action: 'commit',
+					clientClock: 1,
+					serverClock: 1,
+				},
+			],
+		})
+
+		// Only the old-schema session is rejected, because broadcasting the put to it
+		// requires a down migration that throws
+		expect(oldSocket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 	})
 })
 
@@ -1045,7 +1131,21 @@ describe('when the client is the same version', () => {
 		data = setup()
 	})
 
-	it('sends minimal patches', () => {
+	it('[MG3] accepts client with same schema version', () => {
+		// both clients connected with a deep-equal (but not reference-equal) serialized
+		// schema; they are accepted (see setup assertions) and share the server's schema
+		// object so migration is skipped entirely
+		const aSession = data.v2Server.room.sessions.get(data.aId) as any
+		const bSession = data.v2Server.room.sessions.get(data.bId) as any
+		expect(aSession?.state).toBe('connected')
+		expect(bSession?.state).toBe('connected')
+		expect(aSession?.serializedSchema).toBe(data.v2Server.room.serializedSchema)
+		expect(bSession?.serializedSchema).toBe(data.v2Server.room.serializedSchema)
+		expect(aSession?.requiresDownMigrations).toBe(false)
+		expect(bSession?.requiresDownMigrations).toBe(false)
+	})
+
+	it('[MG3] sends minimal patches', () => {
 		data.v2Server.room.handleMessage(data.aId, {
 			type: 'push',
 			clientClock: 1,

@@ -223,7 +223,7 @@ The editor shows appropriate UI for each status. The possible values are:
 
 | Status          | Meaning                                                             |
 | --------------- | ------------------------------------------------------------------- |
-| `loading`       | Store is being loaded                                               |
+| `loading`       | The store is loading                                                |
 | `error`         | Loading failed                                                      |
 | `not-synced`    | Store created without persistence                                   |
 | `synced-local`  | Store loaded from local storage                                     |
@@ -249,7 +249,7 @@ const cleanup = editor.store.listen((entry) => {
 })
 ```
 
-The listener returns a cleanup function you should call when unmounting.
+The `listen` method returns a cleanup function you should call when unmounting.
 
 ### Filtering changes
 
@@ -302,7 +302,7 @@ myRemoteSource.on('change', (changes) => {
 })
 ```
 
-Changes inside `mergeRemoteChanges` are tagged with `source: 'remote'`. This lets you filter them out when listening, avoiding infinite sync loops:
+Changes inside `mergeRemoteChanges` are tagged with `source: 'remote'`. This lets you filter them out when listening, so you don't create an infinite sync loop:
 
 ```ts
 // Only save user changes, not remote changes
@@ -414,9 +414,9 @@ Most migrations use `record` scope. Use `store` when you need to read or modify 
 
 ## Examples
 
-- [Persistence key](/examples/data/persistence-key) - Automatic local persistence with a single prop
-- [Snapshots](/examples/data/snapshots) - Saving and loading editor state
-- [Local storage](/examples/data/local-storage) - Custom persistence with throttled auto-save
-- [Store events](/examples/data/store-events) - Listening to store changes
-- [Shape with migrations](/examples/data/shape-with-migrations) - Migrations for custom shape props
-- [Meta migrations](/examples/data/meta-migrations) - General migrations for meta properties
+- [Persistence key](/examples/configuration/persistence-key) - Automatic local persistence with a single prop
+- [Snapshots](/examples/editor-api/snapshots) - Saving and loading editor state
+- [Local storage](/examples/data/assets/local-storage) - Custom persistence with throttled auto-save
+- [Store events](/examples/events/store-events) - Listening to store changes
+- [Shape with migrations](/examples/shapes/tools/shape-with-migrations) - Migrations for custom shape props
+- [Meta migrations](/examples/data/assets/meta-migrations) - General migrations for meta properties
