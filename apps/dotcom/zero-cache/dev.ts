@@ -17,6 +17,11 @@ const children: ChildProcess[] = []
 let migrationsReady = false
 let shuttingDown = false
 
+// Host ports the branch-scoped Docker stack publishes (see docker/docker-compose.yml). The dev
+// stack is scoped per branch, but these ports are not, so a stack left running on another branch
+// keeps holding them and blocks `docker compose up`.
+const DOCKER_PUBLISHED_PORTS = [DOTCOM_DEV_PORTS.pgbouncer, DOTCOM_DEV_PORTS.postgres]
+
 function delay(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -147,6 +152,48 @@ async function runOnce(name: string, command: string, args: string[]) {
 	})
 }
 
+/**
+ * `docker compose up` binds fixed host ports (postgres, pgbouncer). Because the dev stack is
+ * branch-scoped but those ports are not, a stack left running on another branch holds them and
+ * makes `up` fail with "port is already allocated". Previously that surfaced only as the client
+ * polling "Waiting for migrations..." for minutes while the orchestrator had already exited.
+ * Detect the conflict up front and print an actionable message instead.
+ */
+function preflightDockerPorts() {
+	const result = spawnSync(
+		'docker',
+		['ps', '--format', '{{.Names}}\t{{.Label "com.docker.compose.project"}}\t{{.Ports}}'],
+		{ encoding: 'utf8' }
+	)
+	// Docker not running/available yet: let `docker compose up` surface its own error.
+	if (result.status !== 0) return
+
+	const conflicts: { name: string; project: string; ports: number[] }[] = []
+	for (const line of (result.stdout ?? '').split('\n')) {
+		const [name, project, ports] = line.split('\t')
+		if (!name || !ports) continue
+		// Our own stack is fine: `docker compose up` just attaches to the existing containers.
+		if (project === env.composeProjectName) continue
+		const held = DOCKER_PUBLISHED_PORTS.filter((port) => ports.includes(`:${port}->`))
+		if (held.length > 0) conflicts.push({ name, project, ports: held })
+	}
+
+	if (conflicts.length === 0) return
+
+	console.error('\nCannot start the dotcom dev stack: required host ports are already in use.')
+	for (const { name, ports } of conflicts) {
+		console.error(`  • ${name} is holding port(s) ${ports.join(', ')}`)
+	}
+	console.error(
+		'\nThis usually means a dev stack from another branch is still running. Stop it with:'
+	)
+	for (const project of new Set(conflicts.map((c) => c.project).filter(Boolean))) {
+		console.error(`  docker compose -p ${project} down --remove-orphans`)
+	}
+	console.error('or remove all dotcom dev stacks with: yarn dev-app:clean:all\n')
+	process.exit(1)
+}
+
 async function waitForPostgres() {
 	const connectionString =
 		childEnv.ZERO_UPSTREAM_DB ??
@@ -215,6 +262,8 @@ async function main() {
 			if (!child.killed) child.kill('SIGKILL')
 		}
 	})
+
+	preflightDockerPorts()
 
 	spawnManaged(
 		'Docker compose',
