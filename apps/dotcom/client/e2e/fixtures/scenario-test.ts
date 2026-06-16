@@ -38,6 +38,7 @@ interface ScenarioFixtures {
 	member: DotcomActor
 	visitor: DotcomActor
 	scenario: DotcomScenario
+	setupAndCleanup: void
 }
 
 interface LegacyRouteFixture {
@@ -499,8 +500,31 @@ class DotcomScenario {
 
 		await opts.owner.editor.ensureSidebarOpen()
 		await this.switchToHomeIfAvailable(opts.owner)
-		await opts.owner.sidebar.createWorkspace(workspaceName)
-		await opts.owner.sidebar.createNewDocument(fileName)
+		const { fileId } = await opts.owner.page.evaluate(
+			async ({ workspaceName, fileName }) => {
+				const app = (window as any).app
+				const uniqueId = () => {
+					const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz-'
+					const bytes = crypto.getRandomValues(new Uint8Array(21))
+					return Array.from(bytes, (byte) => alphabet[byte & 63]).join('')
+				}
+				const workspaceId = uniqueId()
+				const fileId = uniqueId()
+				await app.z.mutate.createWorkspace({ id: workspaceId, name: workspaceName }).client
+				await app.z.mutate.createFile({
+					fileId,
+					workspaceId,
+					name: fileName,
+					createSource: null,
+					time: Date.now(),
+				}).client
+				await app.z.__e2e__waitForMutationResolution?.()
+				return { fileId }
+			},
+			{ workspaceName, fileName }
+		)
+		await opts.owner.goto(`${ROOT_URL}/f/${fileId}`)
+		await opts.owner.editor.ensureSidebarOpen()
 
 		const inviteUrl = await opts.owner.sidebar.copyWorkspaceInviteLink(workspaceName)
 
@@ -588,6 +612,14 @@ export const test = base.extend<ScenarioFixtures, ScenarioWorkerFixtures>({
 			await testUse({ owner, member })
 		},
 		{ scope: 'worker' },
+	],
+	setupAndCleanup: [
+		async ({ actorAccounts: _actorAccounts }, testUse, testInfo) => {
+			const database = new Database(null, getScenarioUserIndex(testInfo.parallelIndex))
+			await database.reset()
+			await testUse()
+		},
+		{ auto: true },
 	],
 	actors: async ({ browser, actorAccounts }, testUse) => {
 		const actors = new DotcomActors(browser, actorAccounts)
