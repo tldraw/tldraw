@@ -442,14 +442,19 @@ export class Sidebar {
 
 	@step
 	async copyWorkspaceInviteLink(name: string): Promise<string> {
-		// The invite action lives in the active workspace's action rows, so
-		// switch to the workspace first if needed.
-		const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
-		if (activeName !== name) {
-			await this.switchToWorkspace(name)
-		}
-		await this.page.getByTestId('tla-sidebar-invite-teammates').click()
-		return await this.readClipboardUrl()
+		// The invite link now lives in the workspace settings dialog rather than a
+		// dedicated sidebar action, so open settings and read it from there.
+		await this.openWorkspaceSettings(name)
+		const dialog = this.page.getByRole('dialog', { name: 'Workspace settings' })
+		const inviteInput = dialog.locator('input[readonly]').first()
+		// The invite secret can load asynchronously, so poll until the input holds a valid URL.
+		let inviteUrl = ''
+		await expect(async () => {
+			inviteUrl = await inviteInput.inputValue()
+			expect(new URL(inviteUrl).pathname).toMatch(/^\/invite\//)
+		}).toPass({ timeout: 10000 })
+		await this.page.getByRole('button', { name: 'Close' }).click()
+		return inviteUrl
 	}
 
 	// File visibility methods
