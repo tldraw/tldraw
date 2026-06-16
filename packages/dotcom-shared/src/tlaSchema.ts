@@ -266,6 +266,17 @@ export interface TlaAsset {
 	userId: string | null
 }
 
+/**
+ * The welcome-template pointer (see migration 035). Worker-side config only — not a Zero
+ * table (absent from `createSchema` below), so it never replicates to clients.
+ */
+export interface TlaWelcomeTemplate {
+	id: boolean
+	fileId: string
+	publishedSlug: string
+	updatedAt: number
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -275,6 +286,7 @@ export interface DB {
 	group_file: TlaGroupFile
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
+	welcome_template: TlaWelcomeTemplate
 }
 
 export const schema = createSchema({

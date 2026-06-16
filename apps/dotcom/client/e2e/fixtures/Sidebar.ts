@@ -291,7 +291,7 @@ export class Sidebar {
 	}
 
 	@step
-	async createWorkspace(name: string, { dismissRename = true } = {}) {
+	async createWorkspace(name: string) {
 		// The standalone button is only shown while the user has no workspaces;
 		// after that, creating happens from the workspace switcher dropdown.
 		if (await this.createWorkspaceButton.isVisible()) {
@@ -308,14 +308,9 @@ export class Sidebar {
 		await this.page.getByRole('button', { name: 'Create workspace' }).click()
 		await this.mutationResolution()
 
-		// Creating a workspace switches to it, creates its first file, and
-		// starts renaming that file.
+		// Creating a workspace switches to it and opens its seeded welcome file. That file
+		// arrives named, so (unlike a blank file) there is no inline rename to dismiss.
 		await this.expectActiveWorkspace(name)
-		const renameInput = this.page.getByTestId('tla-sidebar-rename-input')
-		await expect(renameInput).toBeVisible()
-		if (dismissRename) {
-			await this.page.keyboard.press('Escape')
-		}
 	}
 
 	getWorkspaceLink(name: string) {

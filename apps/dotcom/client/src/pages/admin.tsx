@@ -254,6 +254,12 @@ export function Component() {
 					<FeatureFlags />
 				</section>
 
+				{/* Welcome Template Section */}
+				<section className={styles.adminSection}>
+					<h3 className="tla-text_ui__title">Welcome template</h3>
+					<WelcomeTemplate />
+				</section>
+
 				{/* File Operations Section */}
 				<section className={styles.adminSection}>
 					<h3 className="tla-text_ui__title">File Operations</h3>
@@ -271,6 +277,127 @@ export function Component() {
 					<DeleteUser />
 				</section>
 			</main>
+		</div>
+	)
+}
+
+function WelcomeTemplate() {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [current, setCurrent] = useState(
+		null as { fileId: string; publishedSlug: string; live?: boolean } | null
+	)
+	const [isLoading, setIsLoading] = useState(true)
+	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const load = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
+		try {
+			const res = await fetch('/api/app/admin/welcome-template')
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setCurrent(await res.json())
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to load welcome template')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		load()
+	}, [load])
+
+	const onSet = useCallback(async () => {
+		const fileId = inputRef.current?.value?.trim()
+		if (!fileId) {
+			setError('Please enter a published file ID')
+			return
+		}
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/welcome-template', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ fileId }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setCurrent(await res.json())
+			setSuccessMessage('Welcome template set ✨')
+			inputRef.current!.value = ''
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to set welcome template')
+		}
+	}, [])
+
+	const onClear = useCallback(async () => {
+		if (
+			!window.confirm('Clear the welcome template? New workspaces will use the built-in default.')
+		)
+			return
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/welcome-template/clear', { method: 'POST' })
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setCurrent(null)
+			setSuccessMessage('Welcome template cleared — using the built-in default')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to clear welcome template')
+		}
+	}, [])
+
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			<p className="tla-text_ui__regular">
+				The file new workspaces fork their first file from. Publish the file first, then set it here
+				by its file ID. Clear it to use the built-in default.
+			</p>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			<div className={styles.summaryItem}>
+				<span className={styles.fieldLabel}>Current:</span>
+				<span className={styles.fieldValue}>
+					{isLoading
+						? 'Loading…'
+						: current
+							? `${current.fileId} (published slug ${current.publishedSlug})${
+									current.live ? '' : ' ⚠️ not published — new workspaces fall back to the default'
+								}`
+							: 'none — using the built-in default'}
+				</span>
+			</div>
+			<div className={styles.searchContainer}>
+				<input
+					type="text"
+					placeholder="Published file ID"
+					ref={inputRef}
+					className={styles.searchInput}
+				/>
+				<TlaButton onClick={onSet} variant="primary">
+					Set as welcome template
+				</TlaButton>
+				<TlaButton onClick={onClear} variant="secondary" disabled={!current}>
+					Clear
+				</TlaButton>
+			</div>
 		</div>
 	)
 }
