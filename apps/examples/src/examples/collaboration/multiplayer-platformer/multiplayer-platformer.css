@@ -1,0 +1,96 @@
+/* The player avatar. The container is sized to the shape by tldraw; we draw the
+   body inside it and hang the name tag above. */
+.platformer-player__body {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 16%;
+	/* Fixed radius so the corners stay round on a narrow player instead of
+	   stretching into ellipses the way a percentage radius would. */
+	border-radius: 12px;
+	box-shadow:
+		inset 0 -6px 0 rgba(0, 0, 0, 0.18),
+		inset 0 0 0 2px rgba(0, 0, 0, 0.12),
+		0 3px 6px rgba(0, 0, 0, 0.2);
+	/* Let the body receive the pointer so it shows the move cursor and can be
+	   grabbed like any other shape. */
+	pointer-events: all;
+}
+
+.platformer-player__eye {
+	position: relative;
+	/* aspect-ratio keeps the eye a circle regardless of the body's proportions. */
+	width: 26%;
+	aspect-ratio: 1;
+	background: #fff;
+	border-radius: 50%;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.platformer-player__pupil {
+	position: absolute;
+	top: 27%;
+	width: 46%;
+	aspect-ratio: 1;
+	background: #1d1d1d;
+	border-radius: 50%;
+	transition: left 0.08s ease-out;
+}
+
+.platformer-player__name {
+	position: absolute;
+	bottom: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	margin-bottom: 6px;
+	padding: 2px 8px;
+	max-width: 160px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 12px;
+	font-weight: 600;
+	color: #1d1d1d;
+	background: rgba(255, 255, 255, 0.92);
+	border-radius: 999px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	pointer-events: none;
+}
+
+/* Heads-up display in the top panel slot. */
+.platformer-hud {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin: 8px;
+	padding: 8px 12px;
+	background: var(--color-panel);
+	border-radius: 10px;
+	box-shadow: var(--shadow-2);
+	font-size: 12px;
+	color: var(--color-text);
+	pointer-events: all;
+}
+
+.platformer-hud__title {
+	font-size: 13px;
+}
+
+.platformer-hud__hint {
+	color: var(--color-text-3);
+}
+
+.platformer-hud kbd {
+	display: inline-block;
+	min-width: 16px;
+	margin: 0 1px;
+	padding: 1px 5px;
+	text-align: center;
+	font-family: inherit;
+	font-size: 11px;
+	background: var(--color-muted-2);
+	border-radius: 4px;
+	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+}
