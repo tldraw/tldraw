@@ -6,6 +6,7 @@ import { useEditor } from '../hooks/useEditor'
 import { Vec } from '../primitives/Vec'
 import { releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
+import { getRightClickLikeButton } from '../utils/pointer'
 
 /**
  * When a menu is open, this component prevents the user from interacting with the canvas.
@@ -68,18 +69,19 @@ export function MenuClickCapture() {
 
 	const handlePointerDown = useCallback(
 		(e: PointerEvent) => {
-			if (e.button !== 0 && e.button !== 2) return
+			const button = getRightClickLikeButton(e)
+			if (button !== 0 && button !== 2) return
 
 			flushSync(() => setIsPointing(true))
 			setPointerCapture(e.currentTarget, e)
 			rPointerState.current = {
 				isDown: true,
 				isDragging: false,
-				button: e.button,
+				button,
 				start: new Vec(e.clientX, e.clientY),
 			}
 
-			if (e.button === 2) {
+			if (button === 2) {
 				if (!editor.options.rightClickPanning) {
 					// Right-click panning off: close the open menu and swallow the native
 					// contextmenu that would otherwise briefly open a new one (causing a flash).
@@ -141,13 +143,15 @@ export function MenuClickCapture() {
 
 	const handlePointerUp = useCallback(
 		(e: PointerEvent) => {
-			const isStaticRightClick = e.button === 2 && !rPointerState.current.isDragging
+			const isStaticRightClick =
+				rPointerState.current.button === 2 && !rPointerState.current.isDragging
 
 			editor.dispatch({
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_up',
 				...getPointerInfo(editor, e),
+				button: rPointerState.current.button === 2 ? 2 : getRightClickLikeButton(e),
 			})
 
 			if (isStaticRightClick && editor.options.rightClickPanning) {
