@@ -14,7 +14,7 @@ import styles from './dialogs.module.css'
 const messages = defineMessages({
 	title: { defaultMessage: 'Create workspace' },
 	name: { defaultMessage: 'Name' },
-	defaultName: { defaultMessage: 'My workspace' },
+	defaultName: { defaultMessage: 'New workspace' },
 	placeholder: { defaultMessage: 'Workspace name' },
 	cancel: { defaultMessage: 'Cancel' },
 	create: { defaultMessage: 'Create workspace' },

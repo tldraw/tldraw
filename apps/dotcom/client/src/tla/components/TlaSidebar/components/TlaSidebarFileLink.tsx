@@ -1,7 +1,7 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { KeyboardEvent, MouseEvent, useEffect, useRef } from 'react'
+import { KeyboardEvent, MouseEvent, ReactNode, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
 	TldrawUiMenuContextProvider,
@@ -186,6 +186,14 @@ export function TlaSidebarFileLinkInner({
 		if (!isActive || !linkRef.current) return
 		// Don't focus if any menus are open to prevent dismissing them
 		if (editor?.menus.hasAnyOpenMenus()) return
+		// Don't steal focus from a text field the user is typing in. The active
+		// link remounts as files filter in and out of the sidebar search results,
+		// and its mount-time focus would otherwise blur the search input.
+		const activeEl = linkRef.current.ownerDocument.activeElement as HTMLElement | null
+		if (activeEl && activeEl !== linkRef.current) {
+			const tagName = activeEl.tagName.toLowerCase()
+			if (tagName === 'input' || tagName === 'textarea' || activeEl.isContentEditable) return
+		}
 		linkRef.current.focus({ preventScroll: preventScrollOnNavigation })
 	}, [isActive, linkRef, editor])
 
@@ -203,7 +211,14 @@ export function TlaSidebarFileLinkInner({
 	if (!file) return null
 
 	if (isRenaming) {
-		return <TlaSidebarRenameInline source="sidebar" fileId={fileId} onClose={onClose} />
+		return (
+			<TlaSidebarRenameInline
+				source="sidebar"
+				fileId={fileId}
+				onClose={onClose}
+				active={isActive}
+			/>
+		)
 	}
 
 	return (
@@ -273,7 +288,7 @@ export function TlaSidebarFileLinkInner({
 					)}
 					data-testid={`${testId}-name`}
 				>
-					{fileName}
+					<HighlightedFileName name={fileName} />
 				</div>
 				{!hasAdminRights && <GuestBadge file={file} href={href} />}
 			</div>
@@ -284,6 +299,42 @@ export function TlaSidebarFileLinkInner({
 			/>
 		</div>
 	)
+}
+
+/**
+ * Renders a file name, bolding any portions that match the active sidebar
+ * search query. With no query it just renders the plain name.
+ */
+function HighlightedFileName({ name }: { name: string }) {
+	const app = useApp()
+	const query = useValue('sidebar search query', () => app.sidebarState.get().searchQuery.trim(), [
+		app,
+	])
+
+	if (!query) return <>{name}</>
+
+	const lowerName = name.toLowerCase()
+	const lowerQuery = query.toLowerCase()
+	const parts: ReactNode[] = []
+	let start = 0
+	let matchIndex = lowerName.indexOf(lowerQuery)
+	if (matchIndex === -1) return <>{name}</>
+
+	let key = 0
+	while (matchIndex !== -1) {
+		if (matchIndex > start) parts.push(name.slice(start, matchIndex))
+		const end = matchIndex + query.length
+		parts.push(
+			<strong key={key++} className={styles.sidebarFileListItemLabelMatch}>
+				{name.slice(matchIndex, end)}
+			</strong>
+		)
+		start = end
+		matchIndex = lowerName.indexOf(lowerQuery, start)
+	}
+	if (start < name.length) parts.push(name.slice(start))
+
+	return <>{parts}</>
 }
 
 function GuestBadge({ file, href }: { file: TlaFile; href: string }) {

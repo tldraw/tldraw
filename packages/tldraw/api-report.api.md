@@ -5246,6 +5246,8 @@ export interface TLUiIconProps extends React.HTMLAttributes<HTMLDivElement> {
     label: string;
     // (undocumented)
     small?: boolean;
+    // (undocumented)
+    tiny?: boolean;
 }
 
 // @public (undocumented)

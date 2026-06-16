@@ -149,7 +149,7 @@
 /* ---------------------- Text ---------------------- */
 
 .tla-text_ui__title {
-	font-size: 14px;
+	font-size: 12px;
 	line-height: 1.3;
 	font-weight: 700;
 	letter-spacing: 0.2px;
@@ -191,7 +191,7 @@
 }
 
 .tla-text_ui__regular {
-	font-size: 14px;
+	font-size: 12px;
 	line-height: 1.3;
 	font-weight: 500;
 	font-family: var(--tla-font-ui);
@@ -360,4 +360,11 @@
 
 .tlui-dialog__footer__file-link-checkbox {
 	flex: 2;
+}
+
+/* The "New workspace" item in the file "Move to" menu is a plain menu item, so it
+   uses the base 12px left padding while the workspace checkbox items above it use
+   8px. Match it so its plus icon lines up with the checkmarks. */
+[data-testid='dialog.create-new-workspace'] {
+	padding-left: 8px;
 }
