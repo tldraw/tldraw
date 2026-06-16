@@ -133,19 +133,19 @@ test.describe('UI scenarios', () => {
 		await owner.sidebar.expectActiveWorkspace(workspaceName)
 		await owner.sidebar.expectWorkspaceVisible(workspaceName)
 
-		await owner.sidebar.switchToWorkspace('My files')
+		await owner.sidebar.switchToWorkspace('Home')
 		await owner.sidebar.moveFileToWorkspace(fileName, workspaceName)
 		await owner.sidebar.expectActiveWorkspace(workspaceName)
 		await owner.sidebar.expectFileVisible(fileName)
 
-		await owner.sidebar.switchToWorkspace('My files')
+		await owner.sidebar.switchToWorkspace('Home')
 		await owner.sidebar.expectFileNotVisible(fileName)
 		await owner.sidebar.switchToWorkspace(workspaceName)
 
 		await owner.sidebar.deleteWorkspace(workspaceName)
 		await owner.sidebar.expectWorkspaceNotVisible(workspaceName)
 		await owner.sidebar.expectFileNotVisible(fileName)
-		await owner.sidebar.expectActiveWorkspace('My files')
+		await owner.sidebar.expectActiveWorkspace('Home')
 	})
 
 	test('share and publish controls expose current access and published URLs', async ({
