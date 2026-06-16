@@ -18,8 +18,13 @@ function detectFileOperations(
 		return operations
 	}
 
-	const reorderOp = detectFileReorderOperation(elements.activeWorkspace, mousePosition)
+	// Only already-pinned files can be reordered by dragging. Dragging an
+	// unpinned file into the pinned section no longer pins it; pinning happens
+	// through the file menu instead.
 	const isPinned = elements.draggedElement.getAttribute('data-is-pinned') === 'true'
+	const reorderOp = isPinned
+		? detectFileReorderOperation(elements.activeWorkspace, mousePosition)
+		: null
 	if (reorderOp) {
 		operations.reorder = reorderOp
 	} else if (isPinned) {
