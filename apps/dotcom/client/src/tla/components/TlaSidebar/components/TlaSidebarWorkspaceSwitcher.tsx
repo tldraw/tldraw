@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { CSSProperties, ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { uniqueId, useDialogs, useGlobalMenuIsOpen, useValue } from 'tldraw'
+import { uniqueId, useDialogs, useGlobalMenuIsOpen, useMaybeEditor, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
@@ -54,7 +54,19 @@ export function TlaSidebarWorkspaceSwitcher() {
 	// via globalEditor and it is replaced on every file/workspace switch. That made
 	// the switcher's open state churn with — and get cleared by the dispose of — the
 	// outgoing editor, so reopening it mid-switch auto-dismissed once the new canvas loaded.
-	const [isOpen, onOpenChange] = useGlobalMenuIsOpen('sidebar-workspace-switcher')
+	// We still complete any in-progress canvas interaction on open (the one useful side
+	// effect useMenuIsOpen gave us) by running it against the current editor, without
+	// scoping the menu state itself to that editor.
+	const editor = useMaybeEditor()
+	const [isOpen, onOpenChange] = useGlobalMenuIsOpen(
+		'sidebar-workspace-switcher',
+		useCallback(
+			(nextIsOpen: boolean) => {
+				if (nextIsOpen) editor?.complete()
+			},
+			[editor]
+		)
+	)
 	const switchToWorkspace = useSwitchToWorkspace()
 	const handleCreateWorkspace = useCreateWorkspaceDialog()
 	const createWorkspaceLbl = useMsg(messages.createWorkspace)
