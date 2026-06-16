@@ -291,19 +291,22 @@ export class Sidebar {
 
 	// Workspace-related methods
 
+	// A single attempt at opening the switcher: click only when it isn't already open, then confirm
+	// the menu content mounted (Home is always present). Callers that also act on a menu item should
+	// run this *inside* their own retry loop alongside that action — re-renders and navigation that
+	// fire while the app settles after a cross-client change can dismiss the menu between opening it
+	// and acting, so the open and the action have to be retried together, not in sequence.
+	private async ensureWorkspaceSwitcherOpen() {
+		const home = this.page.getByTestId('tla-workspace-switcher-home')
+		if (!(await home.isVisible())) {
+			await this.page.getByTestId('tla-workspace-switcher').click()
+		}
+		await expect(home).toBeVisible({ timeout: 2000 })
+	}
+
 	@step
 	async openWorkspaceSwitcher() {
-		// A single fire-and-forget click is unreliable: it can be lost to a re-render, and the menu
-		// closes on any outside pointer-down. Click only when it isn't already open, and retry until
-		// the menu content (Home is always present) is actually mounted, so callers can rely on the
-		// switcher being open rather than racing a click that may not have registered.
-		const home = this.page.getByTestId('tla-workspace-switcher-home')
-		await expect(async () => {
-			if (!(await home.isVisible())) {
-				await this.page.getByTestId('tla-workspace-switcher').click()
-			}
-			await expect(home).toBeVisible({ timeout: 2000 })
-		}).toPass({ timeout: 15000 })
+		await expect(() => this.ensureWorkspaceSwitcherOpen()).toPass({ timeout: 15000 })
 	}
 
 	@step
@@ -340,26 +343,29 @@ export class Sidebar {
 
 	@step
 	async expectWorkspaceVisible(name: string) {
-		// A workspace appears for a member via cross-client sync (e.g. after accepting an invite).
-		// Wait for the membership to land in the app's data layer first — that is the genuine,
-		// variable-latency sync gate — then open the switcher and assert the UI renders it. Keeping
-		// the slow wait off the dropdown avoids racing its open state, which can churn on re-render.
+		// Gate on cross-client sync at the data layer first — immune to dropdown churn — then assert
+		// the switcher renders the workspace. Re-open and re-check together: the membership can be
+		// fully synced (the member may even be active in the workspace) yet the assertion still fails
+		// because a settling re-render dismissed the menu, and a closed switcher has no link items.
 		await this.waitForWorkspaceMembershipSync(name, true)
-		await this.openWorkspaceSwitcher()
-		await expect(this.getWorkspaceLink(name)).toBeVisible({ timeout: 10000 })
+		await expect(async () => {
+			await this.ensureWorkspaceSwitcherOpen()
+			await expect(this.getWorkspaceLink(name)).toBeVisible({ timeout: 2000 })
+		}).toPass({ timeout: 20000 })
 		await this.page.keyboard.press('Escape')
 	}
 
 	@step
 	async expectWorkspaceNotVisible(name: string) {
 		// Workspace removal (member removed, workspace deleted) reaches an active member via
-		// cross-client sync too. Wait for the membership to leave the data layer before asserting the
-		// switcher no longer lists it, so the absence check can't race ahead of the sync.
+		// cross-client sync too. Wait for the membership to leave the data layer first, then confirm
+		// the switcher no longer lists it. Keep the menu open while checking (Home is always present)
+		// so the absence can't pass vacuously against a dropdown that closed under us mid-settle.
 		await this.waitForWorkspaceMembershipSync(name, false)
-		// openWorkspaceSwitcher only returns once the menu content is mounted (Home is always
-		// present), so the absence check below can't pass vacuously against an unopened dropdown.
-		await this.openWorkspaceSwitcher()
-		await expect(this.getWorkspaceLink(name)).not.toBeVisible()
+		await expect(async () => {
+			await this.ensureWorkspaceSwitcherOpen()
+			await expect(this.getWorkspaceLink(name)).toHaveCount(0)
+		}).toPass({ timeout: 20000 })
 		await this.page.keyboard.press('Escape')
 	}
 
@@ -393,8 +399,12 @@ export class Sidebar {
 
 	@step
 	async switchToWorkspace(name: string) {
-		await this.openWorkspaceSwitcher()
-		await this.getWorkspaceLink(name).click()
+		// Re-open and click together: a settling re-render can dismiss the menu between opening it and
+		// clicking the workspace, leaving the click waiting on an item that no longer exists.
+		await expect(async () => {
+			await this.ensureWorkspaceSwitcherOpen()
+			await this.getWorkspaceLink(name).click({ timeout: 2000 })
+		}).toPass({ timeout: 20000 })
 		await this.expectActiveWorkspace(name)
 	}
 
