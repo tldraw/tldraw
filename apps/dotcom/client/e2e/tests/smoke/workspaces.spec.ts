@@ -33,6 +33,41 @@ test.describe('workspaces', () => {
 			await page.keyboard.press('Escape')
 		})
 
+		test('reopening the switcher right after switching keeps it open', async ({
+			page,
+			sidebar,
+		}) => {
+			// Regression test for the workspace switcher dismissing itself when reopened
+			// mid-switch. Selecting a workspace navigates immediately, but the target
+			// file's canvas loads asynchronously and (deep links are on for the file
+			// route) rewrites the URL with a `?d=` param once its editor mounts. The
+			// switcher's open state used to be scoped to the active file editor's
+			// context, so when the outgoing editor was disposed as the incoming canvas
+			// loaded, it cleared the just-reopened switcher's menu state.
+			const workspaceName = getRandomName()
+			await sidebar.createWorkspace(workspaceName)
+
+			const trigger = page.getByTestId('tla-workspace-switcher')
+			const homeItem = page.getByTestId('tla-workspace-switcher-home')
+
+			// Begin switching back to Home; the selection closes the menu.
+			await sidebar.openWorkspaceSwitcher()
+			await homeItem.click()
+			await expect(homeItem).toBeHidden()
+
+			// Reopen immediately, before the incoming canvas has finished loading. Use a
+			// single click, not sidebar.openWorkspaceSwitcher(), whose retry loop would
+			// mask a dismissal by simply reopening the menu.
+			await trigger.click()
+			await expect(homeItem).toBeVisible()
+
+			// The switcher must stay open while the incoming canvas finishes loading and
+			// rewrites the URL with `?d=` — that load is what used to dismiss it.
+			await page.waitForURL(/[?&]d=/, { timeout: 15000 })
+			await sidebar.expectActiveWorkspace('Home')
+			await expect(homeItem).toBeVisible()
+		})
+
 		test('create file button creates in the active workspace', async ({ sidebar }) => {
 			const workspaceName = getRandomName()
 			const file1 = getRandomName()
