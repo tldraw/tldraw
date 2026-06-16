@@ -1091,8 +1091,8 @@ describe('home workspace special case', () => {
 		)
 	})
 
-	// The home workspace (group id === userId) can't be renamed, invited to, left,
-	// deleted, or have its members managed.
+	// The home workspace (group id === userId) can't be invited to, left, deleted,
+	// or have its members managed. (It can be renamed.)
 	function homeState(extra?: { secondOwnerId?: string }) {
 		const group_user: TlaGroupUser[] = [makeGroupUser({ userId, groupId: userId, role: 'owner' })]
 		const user = [makeUser({ id: userId, flags: 'groups_backend' })]
@@ -1112,10 +1112,10 @@ describe('home workspace special case', () => {
 		} satisfies TableStore
 	}
 
-	it('cannot rename home workspace', async () => {
+	it('can rename home workspace', async () => {
 		const { tx } = createMockTx(homeState())
 		const m = createMutators(userId)
-		await expectForbidden(() => m.updateWorkspace(tx, { id: userId, name: 'My Home' }))
+		await expectValid(() => m.updateWorkspace(tx, { id: userId, name: 'My Home' }))
 	})
 
 	it('cannot regenerate invite secret on home workspace', async () => {
