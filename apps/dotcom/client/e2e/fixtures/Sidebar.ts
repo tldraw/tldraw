@@ -1,6 +1,12 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect, step } from './tla-test'
 
+// Cross-client Zero sync (accepting an invite, being removed, a workspace being deleted) delivers
+// workspace-membership rows asynchronously and with variable latency on a busy CI machine. This is
+// the budget for the data-layer wait that actually gates on that sync; it is intentionally generous
+// while still bounded, so a genuine sync regression fails with a clear signal rather than hanging.
+const WORKSPACE_MEMBERSHIP_SYNC_TIMEOUT = 30_000
+
 export class Sidebar {
 	public readonly fileLink = '[data-element="file-link"]'
 
@@ -324,21 +330,47 @@ export class Sidebar {
 
 	@step
 	async expectWorkspaceVisible(name: string) {
+		// A workspace appears for a member via cross-client sync (e.g. after accepting an invite).
+		// Wait for the membership to land in the app's data layer first — that is the genuine,
+		// variable-latency sync gate — then open the switcher and assert the UI renders it. Keeping
+		// the slow wait off the dropdown avoids racing its open state, which can churn on re-render.
+		await this.waitForWorkspaceMembershipSync(name, true)
 		await this.openWorkspaceSwitcher()
-		// A workspace can appear via cross-client sync (e.g. after accepting an invite), which can
-		// take longer than the default assertion timeout on CI.
-		await expect(this.getWorkspaceLink(name)).toBeVisible({ timeout: 15000 })
+		await expect(this.getWorkspaceLink(name)).toBeVisible({ timeout: 10000 })
 		await this.page.keyboard.press('Escape')
 	}
 
 	@step
 	async expectWorkspaceNotVisible(name: string) {
+		// Workspace removal (member removed, workspace deleted) reaches an active member via
+		// cross-client sync too. Wait for the membership to leave the data layer before asserting the
+		// switcher no longer lists it, so the absence check can't race ahead of the sync.
+		await this.waitForWorkspaceMembershipSync(name, false)
 		await this.openWorkspaceSwitcher()
 		// Wait for the dropdown to actually render (Home is always present)
 		// so the absence check below can't pass vacuously.
 		await expect(this.page.getByTestId('tla-workspace-switcher-home')).toBeVisible()
 		await expect(this.getWorkspaceLink(name)).not.toBeVisible()
 		await this.page.keyboard.press('Escape')
+	}
+
+	/**
+	 * Poll the app's data layer until a workspace membership with the given name is present (or
+	 * absent). The membership backs the workspace switcher reactively via `getWorkspaceMemberships`,
+	 * so once it settles the UI follows immediately — this lets callers gate on cross-client sync
+	 * without depending on the dropdown being open at the moment the row arrives.
+	 */
+	private async waitForWorkspaceMembershipSync(name: string, present: boolean) {
+		await expect
+			.poll(
+				() =>
+					this.page.evaluate((workspaceName) => {
+						const memberships = (window as any).app?.getWorkspaceMemberships?.() ?? []
+						return memberships.some((m: any) => m?.group?.name === workspaceName)
+					}, name),
+				{ timeout: WORKSPACE_MEMBERSHIP_SYNC_TIMEOUT }
+			)
+			.toBe(present)
 	}
 
 	@step
@@ -409,12 +441,16 @@ export class Sidebar {
 
 	@step
 	async expectFileVisible(fileName: string) {
-		await expect(this.getFileByName(fileName)).toBeVisible()
+		// A file can appear in a member's list via cross-client sync (workspace files, shared guest
+		// files), so allow the same propagation budget the rest of the suite uses rather than the
+		// default 5s assertion timeout.
+		await expect(this.getFileByName(fileName)).toBeVisible({ timeout: 10000 })
 	}
 
 	@step
 	async expectFileNotVisible(fileName: string) {
-		await expect(this.getFileByName(fileName)).not.toBeVisible()
+		// File removal (deletion, losing workspace access) also propagates via cross-client sync.
+		await expect(this.getFileByName(fileName)).not.toBeVisible({ timeout: 10000 })
 	}
 
 	@step
