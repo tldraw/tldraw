@@ -12,6 +12,7 @@ import { BaseFrameLikeShapeUtil } from '@tldraw/editor';
 import { BindingOnChangeOptions } from '@tldraw/editor';
 import { BindingOnCreateOptions } from '@tldraw/editor';
 import { BindingOnShapeChangeOptions } from '@tldraw/editor';
+import { BindingOnShapeDeleteOptions } from '@tldraw/editor';
 import { BindingOnShapeIsolateOptions } from '@tldraw/editor';
 import { BindingUtil } from '@tldraw/editor';
 import { Box } from '@tldraw/editor';
@@ -234,6 +235,8 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     onAfterChangeToShape({ binding, shapeBefore, shapeAfter, reason }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
     // (undocumented)
     onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>): void;
+    // (undocumented)
+    onBeforeDeleteToShape({ binding, shape }: BindingOnShapeDeleteOptions<TLArrowBinding>): void;
     // (undocumented)
     onBeforeIsolateFromShape({ binding }: BindingOnShapeIsolateOptions<TLArrowBinding>): void;
     // (undocumented)

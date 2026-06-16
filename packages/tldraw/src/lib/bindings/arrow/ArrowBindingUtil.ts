@@ -2,6 +2,7 @@ import {
 	BindingOnChangeOptions,
 	BindingOnCreateOptions,
 	BindingOnShapeChangeOptions,
+	BindingOnShapeDeleteOptions,
 	BindingOnShapeIsolateOptions,
 	BindingUtil,
 	Editor,
@@ -103,6 +104,29 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 			arrow,
 			terminal: binding.props.terminal,
 		})
+	}
+
+	// When a frame is deleted, delete an arrow bound to it on both ends *only if the arrow
+	// sits inside the frame*. Such an arrow is part of the frame's contents, like any shape
+	// drawn inside it, so it goes with the frame. An arrow that is bound to the frame but
+	// routes outside it is a connector that happens to use the frame, so it is isolated and
+	// survives instead. The arrow stays parented to the page either way, so it is never
+	// clipped to the frame's bounds.
+	override onBeforeDeleteToShape({
+		binding,
+		shape,
+	}: BindingOnShapeDeleteOptions<TLArrowBinding>): void {
+		if (!this.editor.isShapeOfType(shape, 'frame')) return
+		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
+		if (!arrow) return
+		const { start, end } = getArrowBindings(this.editor, arrow)
+		if (start?.toId !== shape.id || end?.toId !== shape.id) return
+
+		const frameBounds = this.editor.getShapePageBounds(shape)
+		const arrowBounds = this.editor.getShapePageBounds(arrow)
+		if (frameBounds && arrowBounds && frameBounds.contains(arrowBounds)) {
+			this.editor.deleteShape(arrow.id)
+		}
 	}
 }
 

@@ -691,6 +691,128 @@ describe('frame shapes', () => {
 		expect(arrow.parentId).toBe(editor.getCurrentPageId())
 	})
 
+	it('deletes an arrow bound to the frame on both ends and sitting inside the frame', () => {
+		editor.setCurrentTool('frame')
+		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
+		const frameId = editor.getOnlySelectedShape()!.id
+
+		// Draw an arrow across empty space within the frame, so both terminals
+		// bind to the frame shape itself rather than to any child.
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(130, 130).pointerMove(170, 170).pointerUp(170, 170)
+
+		const arrow = editor.getOnlySelectedShape()! as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
+
+		expect(bindings.start).toMatchObject({ toId: frameId })
+		expect(bindings.end).toMatchObject({ toId: frameId })
+
+		// The arrow stays parented to the page (not the frame) so it is never clipped.
+		expect(arrow.parentId).toBe(editor.getCurrentPageId())
+
+		// It sits inside the frame, so it is part of the frame's contents and is deleted with it.
+		editor.deleteShapes([frameId])
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(arrow.id)).toBeUndefined()
+	})
+
+	it('keeps an arrow bound to the frame on both ends when the arrow routes outside the frame', () => {
+		editor.setCurrentTool('frame')
+		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
+		const frameId = editor.getOnlySelectedShape()!.id
+
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(130, 130).pointerMove(170, 170).pointerUp(170, 170)
+		const arrow = editor.getOnlySelectedShape()! as TLArrowShape
+
+		// Bow the arrow well outside the frame's bounds while keeping both bindings.
+		editor.updateShapes([{ id: arrow.id, type: 'arrow', props: { bend: 200 } }])
+
+		const bindings = getArrowBindings(editor, arrow)
+		expect(bindings.start).toMatchObject({ toId: frameId })
+		expect(bindings.end).toMatchObject({ toId: frameId })
+
+		// Sanity check: the arrow now extends beyond the frame.
+		const frameBounds = editor.getShapePageBounds(frameId)!
+		const arrowBounds = editor.getShapePageBounds(arrow.id)!
+		expect(frameBounds.contains(arrowBounds)).toBe(false)
+
+		// Because it routes outside the frame, it is a connector that uses the frame, not
+		// frame content — so it is isolated rather than deleted.
+		editor.deleteShapes([frameId])
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(arrow.id)).toBeDefined()
+	})
+
+	it('keeps an arrow bound to the frame on only one end when the frame is deleted', () => {
+		editor.setCurrentTool('frame')
+		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
+		const frameId = editor.getOnlySelectedShape()!.id
+
+		// Draw an arrow that starts inside the frame (bound to it) and ends outside it.
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(150, 150).pointerMove(300, 300).pointerUp(300, 300)
+
+		const arrow = editor.getOnlySelectedShape()! as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
+
+		expect(bindings.start).toMatchObject({ toId: frameId })
+		expect(bindings.end).toBeUndefined()
+
+		// Only one end depends on the frame, so the arrow is isolated, not deleted.
+		editor.deleteShapes([frameId])
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(arrow.id)).toBeDefined()
+	})
+
+	it('arrows with both ends bound to a non-frame shape survive its deletion', () => {
+		// A geo shape is not a frame, so a self-loop arrow on it should not be deleted
+		// when the shape is deleted — it is isolated and left on the page.
+		editor.setCurrentTool('geo')
+		editor
+			.pointerDown(100, 100)
+			.pointerMove(200, 200)
+			.pointerUp(200, 200)
+			.setStyleForSelectedShapes(DefaultFillStyle, 'solid')
+			.setStyleForNextShapes(DefaultFillStyle, 'solid')
+		const boxId = editor.getOnlySelectedShape()!.id
+
+		// Draw an arrow that starts and ends on the same box.
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(130, 130).pointerMove(170, 170).pointerUp(170, 170)
+
+		const arrow = editor.getOnlySelectedShape()! as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
+
+		expect(bindings.start).toMatchObject({ toId: boxId })
+		expect(bindings.end).toMatchObject({ toId: boxId })
+
+		// Deleting the box unbinds the arrow but leaves it on the page.
+		editor.deleteShapes([boxId])
+		expect(editor.getShape(boxId)).toBeUndefined()
+		expect(editor.getShape(arrow.id)).toBeDefined()
+	})
+
+	it('restores both the frame and its deleted arrow with a single undo', () => {
+		editor.setCurrentTool('frame')
+		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
+		const frameId = editor.getOnlySelectedShape()!.id
+
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(130, 130).pointerMove(170, 170).pointerUp(170, 170)
+		const arrowId = editor.getOnlySelectedShape()!.id
+
+		editor.markHistoryStoppingPoint()
+		editor.deleteShapes([frameId])
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(arrowId)).toBeUndefined()
+
+		// The cascade delete happens in the same history batch, so one undo brings both back.
+		editor.undo()
+		expect(editor.getShape(frameId)).toBeDefined()
+		expect(editor.getShape(arrowId)).toBeDefined()
+	})
+
 	it('can be edited', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
