@@ -696,12 +696,12 @@
 	border: none;
 	border-radius: 4px;
 	cursor: pointer;
-	color: var(--tla-color-text-2);
+	/* Match the row's text color (the icon fills with currentColor). */
+	color: inherit;
 }
 
 .sidebarWorkspaceSwitcherActionButton:hover {
 	background-color: var(--tla-color-hover-1);
-	color: var(--tla-color-text-1);
 }
 
 /* Separates the workspace list from the create row. Spans the full menu width
