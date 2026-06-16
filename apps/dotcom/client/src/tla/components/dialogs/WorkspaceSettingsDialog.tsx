@@ -293,12 +293,8 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 				{/* Members Section */}
 				<hr className={styles.divider} />
 				<div className={styles.section}>
-					<label className={styles.sectionLabelLarge}>
-						<F {...messages.members} />{' '}
-						<span className={styles.memberCount}>
-							{/* eslint-disable-next-line tldraw/jsx-no-literals */}
-							{`(${workspaceMembership.groupMembers.length})`}
-						</span>
+					<label className={styles.sectionLabel}>
+						<F {...messages.members} />
 					</label>
 					<div className={styles.membersList}>
 						{[...workspaceMembership.groupMembers]
@@ -374,7 +370,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 				{/* Danger Zone */}
 				<hr className={styles.divider} />
 				<div>
-					<label className={styles.sectionLabelLarge}>
+					<label className={styles.sectionLabel}>
 						<F {...messages.dangerZone} />
 					</label>
 					<div className={styles.dangerZoneActions}>
