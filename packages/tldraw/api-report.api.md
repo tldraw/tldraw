@@ -5036,6 +5036,8 @@ export interface TLUiEventMap {
         operation: 'horizontal' | 'vertical';
     };
     // (undocumented)
+    'frame-selection': null;
+    // (undocumented)
     'group-shapes': null;
     // (undocumented)
     'image-manipulate': null;
