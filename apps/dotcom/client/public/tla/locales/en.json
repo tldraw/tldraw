@@ -626,5 +626,20 @@
   },
   "ffcd73e997": {
     "translation": "Import file…"
+  },
+  "welcome.caption1": {
+    "translation": "A workspace is a <strong>shared space</strong> for your team. Everyone in it can see and edit its files."
+  },
+  "welcome.caption2": {
+    "translation": "Invite your team with an invite link from the workspace menu in the sidebar. Shared it by accident? Revoke it there too."
+  },
+  "welcome.caption3": {
+    "translation": "Move files in by dragging them onto this workspace in the sidebar, or with a file's 'Move to' menu."
+  },
+  "welcome.teamLabel": {
+    "translation": "your team"
+  },
+  "welcome.title": {
+    "translation": "Welcome to your workspace"
   }
 }

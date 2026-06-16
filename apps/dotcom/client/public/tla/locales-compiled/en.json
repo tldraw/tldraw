@@ -1426,5 +1426,49 @@
       "type": 0,
       "value": "Import file…"
     }
+  ],
+  "welcome.caption1": [
+    {
+      "type": 0,
+      "value": "A workspace is a "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "shared space"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " for your team. Everyone in it can see and edit its files."
+    }
+  ],
+  "welcome.caption2": [
+    {
+      "type": 0,
+      "value": "Invite your team with an invite link from the workspace menu in the sidebar. Shared it by accident? Revoke it there too."
+    }
+  ],
+  "welcome.caption3": [
+    {
+      "type": 0,
+      "value": "Move files in by dragging them onto this workspace in the sidebar, or with a file's 'Move to' menu."
+    }
+  ],
+  "welcome.teamLabel": [
+    {
+      "type": 0,
+      "value": "your team"
+    }
+  ],
+  "welcome.title": [
+    {
+      "type": 0,
+      "value": "Welcome to your workspace"
+    }
   ]
 }

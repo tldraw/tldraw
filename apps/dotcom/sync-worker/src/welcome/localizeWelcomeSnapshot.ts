@@ -1,9 +1,15 @@
+import { WELCOME_COPY } from '@tldraw/dotcom-shared'
+import type { WelcomeCopyEntry } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 
 // SPIKE (jessica/welcome-i18n-spike): proving the "art baked, text dynamic" approach for the
 // welcome document. The hand-drawn comic stays a frozen snapshot; only the instructional copy is
-// rewritten from message keys at generation time. See the spike notes for the open delivery
-// question (generate on the client with the user's intl, vs. pass a locale to the worker).
+// rewritten from message keys at generation time. The shapeId -> message binding lives in
+// @tldraw/dotcom-shared (WELCOME_COPY) so the client and worker share the same stable ids.
+
+// Re-export the shared binding so callers in this package keep a single import site.
+export { WELCOME_COPY } from '@tldraw/dotcom-shared'
+export type { WelcomeCopyEntry, WelcomeCopyShapeId } from '@tldraw/dotcom-shared'
 
 /** A run of welcome copy: plain text, or text that should render bold. */
 export type WelcomePart = string | { bold: string }
@@ -27,35 +33,6 @@ function richTextDoc(parts: WelcomePart[]) {
 		],
 	}
 }
-
-/**
- * The welcome document's instructional copy, keyed by the stable shape id it lives in. Only these
- * shapes are localized; the comic's in-world flavor text (sticky-note labels, drawn file names) is
- * part of the illustration and left as drawn. Messages use `<strong>…</strong>` for the bold runs
- * the hand-drawn captions already use, so emphasis survives translation.
- */
-export const WELCOME_COPY = {
-	'shape:welcome-title': { id: 'welcome.title', defaultMessage: 'Welcome to your workspace' },
-	'shape:welcome-caption-1': {
-		id: 'welcome.caption1',
-		defaultMessage:
-			'A workspace is a <strong>shared space</strong> for your team. Everyone in it can see and edit its files.',
-	},
-	'shape:welcome-caption-2': {
-		id: 'welcome.caption2',
-		defaultMessage:
-			'Invite your team with an invite link from the workspace menu in the sidebar. Shared it by accident? Revoke it there too.',
-	},
-	'shape:welcome-caption-3': {
-		id: 'welcome.caption3',
-		defaultMessage:
-			"Move files in by dragging them onto this workspace in the sidebar, or with a file's 'Move to' menu.",
-	},
-	'shape:welcome-team-label': { id: 'welcome.teamLabel', defaultMessage: 'your team' },
-} as const
-
-export type WelcomeCopyEntry = (typeof WELCOME_COPY)[keyof typeof WELCOME_COPY]
-export type WelcomeCopyShapeId = keyof typeof WELCOME_COPY
 
 /**
  * The injection half: return a copy of the snapshot with the given text shapes' richText replaced
