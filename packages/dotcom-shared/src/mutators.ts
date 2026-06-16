@@ -136,8 +136,8 @@ async function getRole(
 
 /**
  * The home workspace (group id === its owner's user id) is private: it can't be
- * invited to, renamed, left, deleted, or have its members managed. Throw if
- * `workspaceId` is a home workspace, i.e. a user exists with a matching id.
+ * invited to, left, deleted, or have its members managed. (It can be renamed.)
+ * Throw if `workspaceId` is a home workspace, i.e. a user exists with a matching id.
  */
 async function assertNotHomeWorkspace(tx: Transaction<TlaSchema>, workspaceId: string) {
 	const user = await tx.run(zql.user.where('id', '=', workspaceId).one())
@@ -596,7 +596,8 @@ export function createMutators(userId: string) {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			assert(name && name.trim(), ZErrorCode.bad_request)
-			await assertNotHomeWorkspace(tx, id)
+			// The home workspace can be renamed (unlike other home-workspace actions),
+			// so it's intentionally not guarded by assertNotHomeWorkspace here.
 			const role = await getRole(tx, userId, id)
 			assert(can(role, 'editWorkspace'), ZErrorCode.forbidden)
 
