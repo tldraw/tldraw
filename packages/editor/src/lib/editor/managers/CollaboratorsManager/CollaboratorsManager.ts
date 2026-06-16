@@ -37,7 +37,7 @@ export class CollaboratorsManager {
 	@computed
 	private _getCollaboratorsQuery() {
 		return this.editor.store.query.records('instance_presence', () => ({
-			userId: { neq: this.editor.user.getId() },
+			userId: { neq: this.editor.user.getRecordId() },
 		}))
 	}
 
@@ -88,14 +88,17 @@ export class CollaboratorsManager {
 		if (!collaborators.length) return EMPTY_ARRAY
 
 		const { followingUserId, highlightedUserIds } = this.editor.getInstanceState()
-		const currentUserId = this.editor.user.getId()
+		const currentUserId = this.editor.user.getRecordId()
 
 		return collaborators.filter((presence) => {
 			const { lastActivityTimestamp, userId, chatMessage } = presence
 
-			// Treat a missing `lastActivityTimestamp` as "active right now" (elapsed = 0)
-			// so newly-joined peers aren't immediately classified as idle/inactive.
-			const elapsed = Math.max(0, now - (lastActivityTimestamp ?? now))
+			// Treat a missing or zero `lastActivityTimestamp` as "active right now"
+			// (elapsed = 0) so newly-joined peers aren't immediately classified as
+			// idle/inactive. The broadcast default for peers who haven't moved their
+			// pointer yet is `0` (e.g. someone on a touch device who joins and just
+			// watches), so a plain `?? now` would leave them hidden. See issue #9017.
+			const elapsed = lastActivityTimestamp ? Math.max(0, now - lastActivityTimestamp) : 0
 
 			if (elapsed > collaboratorInactiveTimeoutMs) {
 				// Inactive: If they're inactive, only show if we're following them or they're highlighted

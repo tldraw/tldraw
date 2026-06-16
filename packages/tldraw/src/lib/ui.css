@@ -12,9 +12,8 @@
 	 * (which creates its own stacking context at z-index 300), so their
 	 * z-indices are relative to the layout, not the container.
 	 *
-	 * cursor and following-indicator are rendered inside canvas-in-front
-	 * (stacking context at z-index 250), so their z-indices are relative
-	 * to that context.
+	 * cursor is rendered inside canvas-in-front (stacking context at
+	 * z-index 250), so their z-indices are relative to that context.
 	 */
 	--tl-layer-above: 1;
 	--tl-layer-focused-input: 10;
@@ -24,7 +23,6 @@
 	--tl-layer-toasts: 650;
 	--tl-layer-cursor: 700;
 	--tl-layer-header-footer: 999;
-	--tl-layer-following-indicator: 1000;
 }
 
 /* Button */
@@ -54,14 +52,14 @@
 
 .tlui-button:disabled,
 .tlui-button[data-disabled] {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-disabled);
 	text-shadow: none;
 	cursor: default;
 }
 
 .tlui-button:disabled .tlui-kbd,
 .tlui-button[data-disabled] .tlui-kbd {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-disabled);
 }
 
 .tlui-button > * {
@@ -1043,7 +1041,7 @@
 	left: 8px;
 }
 
-/* 
+/*
  * focusing skip-to-main-content hide top ui buttons to make sure we avoid
  * z-index clashes on hover (see issue #8328)
  */
@@ -2181,7 +2179,6 @@ tldraw? probably.
 	inset: 0px;
 	border-width: 2px;
 	border-style: solid;
-	z-index: var(--tl-layer-following-indicator);
 	pointer-events: none;
 }
 

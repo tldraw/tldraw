@@ -107,6 +107,10 @@ export class Pointing extends StateNode {
 		this.cancel()
 	}
 
+	override onLongPress() {
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
+	}
+
 	private complete() {
 		this.editor.markHistoryStoppingPoint('creating text shape')
 		const id = createShapeId()

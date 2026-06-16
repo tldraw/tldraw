@@ -18,7 +18,7 @@ import {
 } from '@tldraw/editor'
 import {
 	DEFAULT_EMBED_DEFINITIONS,
-	EmbedDefinition,
+	DefaultEmbedConfig,
 	TLEmbedDefinition,
 	TLEmbedShapePermissions,
 	embedShapePermissionDefaults,
@@ -41,6 +41,15 @@ export interface EmbedShapeOptions extends ShapeOptionsWithDisplayValues<
 > {
 	/** The embed definitions to use for this shape util. */
 	readonly embedDefinitions: readonly TLEmbedDefinition[]
+	/**
+	 * Per-embed configuration, keyed by embed type. Passed to each definition's `toEmbedUrl` when
+	 * building its embed URL — for example, an API key for the default Google Maps embed:
+	 *
+	 * ```ts
+	 * EmbedShapeUtil.configure({ embedConfig: { google_maps: { apiKey: '...' } } })
+	 * ```
+	 */
+	readonly embedConfig?: DefaultEmbedConfig & Record<string, unknown>
 }
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
@@ -58,6 +67,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override options: EmbedShapeOptions = {
 		embedDefinitions: DEFAULT_EMBED_DEFINITIONS,
+		embedConfig: {},
 		getDefaultDisplayValues(): EmbedShapeUtilDisplayValues {
 			return {
 				showShadow: true,
@@ -74,10 +84,10 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return result.definition.canEditWhileLocked ?? true
 	}
 
-	private static legacyEmbedDefinitions: readonly EmbedDefinition[] | null = null
+	private static legacyEmbedDefinitions: readonly TLEmbedDefinition[] | null = null
 
 	/** @deprecated - Use `EmbedShapeUtil.configure({ embedDefinitions: [...] })` instead. */
-	static setEmbedDefinitions(embedDefinitions: readonly EmbedDefinition[]) {
+	static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]) {
 		EmbedShapeUtil.legacyEmbedDefinitions = embedDefinitions
 	}
 
@@ -90,7 +100,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	getEmbedDefinition(url: string): TLEmbedResult {
-		return getEmbedInfo(this.getEmbedDefs(), url)
+		return getEmbedInfo(this.getEmbedDefs(), url, this.options.embedConfig)
 	}
 
 	override getText(shape: TLEmbedShape) {

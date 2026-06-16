@@ -72,6 +72,10 @@ export class Pointing extends StateNode {
 		this.cancel()
 	}
 
+	override onLongPress() {
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
+	}
+
 	private complete() {
 		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 

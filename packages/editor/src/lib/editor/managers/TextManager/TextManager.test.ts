@@ -82,20 +82,22 @@ const mockEditor = {
 	getContainerDocument: vi.fn(() => mockDocument),
 } as unknown as Editor
 
-global.Range = vi.fn(() => ({
-	setStart: vi.fn(),
-	setEnd: vi.fn(),
-	getClientRects: vi.fn(() => [
-		{
-			width: 10,
-			height: 16,
-			left: 0,
-			top: 0,
-			right: 10,
-			bottom: 16,
-		},
-	]),
-})) as any
+global.Range = vi.fn(function () {
+	return {
+		setStart: vi.fn(),
+		setEnd: vi.fn(),
+		getClientRects: vi.fn(() => [
+			{
+				width: 10,
+				height: 16,
+				left: 0,
+				top: 0,
+				right: 10,
+				bottom: 16,
+			},
+		]),
+	}
+}) as any
 
 describe('TextManager', () => {
 	let textManager: TextManager

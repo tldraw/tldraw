@@ -55,10 +55,11 @@ export async function createMermaidDiagram(
 	text: string,
 	options: MermaidDiagramOptions = {}
 ): Promise<void> {
-	// load mermaid lazily so @tldraw/mermaid stays requirable from CommonJS:
-	// mermaid is ESM-only, and a static `import` would compile to `require(<esm>)`
-	// in the CJS build (throws ERR_REQUIRE_ESM on Node <20.19, Jest, ts-node). a
-	// dynamic import() works from CJS and only loads mermaid when this runs.
+	// load mermaid lazily: it's a large, ESM-only dependency only needed when a
+	// diagram is actually created. a dynamic import() works from CommonJS (unlike
+	// a static import, which compiles to require(<esm>) and throws
+	// ERR_REQUIRE_ESM on Node <20.19, Jest, and ts-node) and avoids pulling
+	// mermaid in when @tldraw/mermaid is merely imported.
 	const mermaid = (await import('mermaid')).default
 
 	mermaid.initialize({
