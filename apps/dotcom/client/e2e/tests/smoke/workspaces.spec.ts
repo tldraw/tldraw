@@ -1,7 +1,7 @@
 import { getRandomName, openNewTab } from '../../fixtures/helpers'
 import { expect, test } from '../../fixtures/tla-test'
 
-// The sidebar has a workspace switcher dropdown at the top ("Home" + the
+// The sidebar has a workspace switcher dropdown at the top ("My files" + the
 // user's workspaces + a create item), action rows for the active non-home
 // workspace (new board, invite teammates, workspace settings), and the active
 // workspace's files below. Switching to a workspace opens its top file — first pinned,
@@ -43,7 +43,7 @@ test.describe('workspaces', () => {
 			await sidebar.createNewDocument(homeFileName)
 
 			await sidebar.createWorkspace(workspaceName)
-			await sidebar.switchToWorkspace('Home')
+			await sidebar.switchToWorkspace('My files')
 			await sidebar.moveFileToWorkspace(file1, workspaceName)
 
 			await sidebar.switchToWorkspace(workspaceName)
@@ -54,7 +54,7 @@ test.describe('workspaces', () => {
 			expect(filesInWorkspace).toContain(file1)
 			expect(filesInWorkspace).toContain(file2)
 
-			await sidebar.switchToWorkspace('Home')
+			await sidebar.switchToWorkspace('My files')
 			await sidebar.expectFileNotVisible(file2)
 			await sidebar.expectFileVisible(homeFileName)
 		})
@@ -74,7 +74,7 @@ test.describe('workspaces', () => {
 
 			await sidebar.createWorkspace(workspace1)
 			await sidebar.createWorkspace(workspace2)
-			await sidebar.switchToWorkspace('Home')
+			await sidebar.switchToWorkspace('My files')
 			await sidebar.moveFileToWorkspace(file1, workspace1)
 			await sidebar.moveFileToWorkspace(file2, workspace1)
 
@@ -112,7 +112,7 @@ test.describe('workspaces', () => {
 			await sidebar.createNewDocument(homeFileName)
 
 			await sidebar.createWorkspace(workspaceName)
-			await sidebar.switchToWorkspace('Home')
+			await sidebar.switchToWorkspace('My files')
 			await sidebar.moveFileToWorkspace(file1, workspaceName)
 			await sidebar.moveFileToWorkspace(file2, workspaceName)
 
@@ -125,7 +125,7 @@ test.describe('workspaces', () => {
 			await sidebar.expectFileNotVisible(file1)
 			await sidebar.expectFileVisible(file2)
 
-			await sidebar.switchToWorkspace('Home')
+			await sidebar.switchToWorkspace('My files')
 			await sidebar.expectFileVisible(file1)
 			await sidebar.expectFileVisible(homeFileName)
 		})
@@ -138,7 +138,7 @@ test.describe('workspaces', () => {
 			await sidebar.createNewDocument(file1)
 			await sidebar.createWorkspace(workspace1)
 			await sidebar.createWorkspace(workspace2)
-			await sidebar.switchToWorkspace('Home')
+			await sidebar.switchToWorkspace('My files')
 
 			// In Home: the current workspace is hidden, others offered (the move-to
 			// menu still labels home as "My files")
@@ -234,7 +234,7 @@ test.describe('workspaces', () => {
 			await sidebar.createNewDocument(homeFileName)
 
 			await sidebar.createWorkspace(workspaceName)
-			await sidebar.switchToWorkspace('Home')
+			await sidebar.switchToWorkspace('My files')
 			await sidebar.moveFileToWorkspace(file1, workspaceName)
 			await sidebar.moveFileToWorkspace(file2, workspaceName)
 
@@ -268,7 +268,7 @@ test.describe('workspaces', () => {
 			await sidebar.createNewDocument(fileName)
 			await sidebar.createNewDocument(homeFileName)
 			await sidebar.createWorkspace(workspaceName)
-			await sidebar.switchToWorkspace('Home')
+			await sidebar.switchToWorkspace('My files')
 			await sidebar.moveFileToWorkspace(fileName, workspaceName)
 
 			const inviteUrl = await sidebar.copyWorkspaceInviteLink(workspaceName)

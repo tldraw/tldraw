@@ -16,7 +16,7 @@ import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
-	home: { defaultMessage: 'Home' },
+	myFiles: { defaultMessage: 'My files' },
 	createWorkspace: { defaultMessage: 'Create workspace' },
 	newWorkspace: { defaultMessage: 'New workspace' },
 	inviteTeammates: { defaultMessage: 'Invite teammates' },
@@ -39,7 +39,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const isHome = activeWorkspaceId === homeWorkspaceId
-	const homeLbl = useMsg(messages.home)
+	const myFilesLbl = useMsg(messages.myFiles)
 	const inviteTeammatesLbl = useMsg(messages.inviteTeammates)
 	const workspaceSettingsLbl = useMsg(messages.workspaceSettings)
 
@@ -117,7 +117,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 								className={classNames(styles.sidebarWorkspaceSwitcherLabel, 'notranslate')}
 								data-testid="tla-active-workspace-name"
 							>
-								{isHome ? homeLbl : (activeWorkspaceName ?? homeLbl)}
+								{isHome ? myFilesLbl : (activeWorkspaceName ?? myFilesLbl)}
 							</span>
 							<TlaIcon icon="chevron-up-down" className={styles.sidebarWorkspaceSwitcherChevrons} />
 						</button>
@@ -141,7 +141,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 							settingsLabel={workspaceSettingsLbl}
 							testId="tla-workspace-switcher-home"
 						>
-							{homeLbl}
+							{myFilesLbl}
 						</WorkspaceSwitcherItem>
 						{workspaces.map((g) => (
 							<WorkspaceSwitcherItem
