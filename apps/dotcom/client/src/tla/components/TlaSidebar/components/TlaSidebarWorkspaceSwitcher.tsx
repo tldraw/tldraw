@@ -39,9 +39,9 @@ export function TlaSidebarWorkspaceSwitcher() {
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const isHome = activeWorkspaceId === homeWorkspaceId
-	const myFilesLbl = useMsg(messages.myFiles)
-	const inviteTeammatesLbl = useMsg(messages.inviteTeammates)
-	const workspaceSettingsLbl = useMsg(messages.workspaceSettings)
+	const myFilesLabel = useMsg(messages.myFiles)
+	const inviteTeammatesLabel = useMsg(messages.inviteTeammates)
+	const workspaceSettingsLabel = useMsg(messages.workspaceSettings)
 
 	const workspaces = useValue(
 		'workspaceMemberships',
@@ -57,8 +57,8 @@ export function TlaSidebarWorkspaceSwitcher() {
 	const [isOpen, onOpenChange] = useMenuIsOpen('sidebar-workspace-switcher')
 	const switchToWorkspace = useSwitchToWorkspace()
 	const handleCreateWorkspace = useCreateWorkspaceDialog()
-	const createWorkspaceLbl = useMsg(messages.createWorkspace)
-	const newWorkspaceLbl = useMsg(messages.newWorkspace)
+	const createWorkspaceLabel = useMsg(messages.createWorkspace)
+	const newWorkspaceLabel = useMsg(messages.newWorkspace)
 
 	const closeMenu = useCallback(() => onOpenChange(false), [onOpenChange])
 
@@ -117,7 +117,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 								className={classNames(styles.sidebarWorkspaceSwitcherLabel, 'notranslate')}
 								data-testid="tla-active-workspace-name"
 							>
-								{isHome ? myFilesLbl : (activeWorkspaceName ?? myFilesLbl)}
+								{isHome ? myFilesLabel : (activeWorkspaceName ?? myFilesLabel)}
 							</span>
 							<TlaIcon icon="chevron-up-down" className={styles.sidebarWorkspaceSwitcherChevrons} />
 						</button>
@@ -137,7 +137,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 							onSelect={() => switchToWorkspace(homeWorkspaceId)}
 							testId="tla-workspace-switcher-home"
 						>
-							{myFilesLbl}
+							{myFilesLabel}
 						</WorkspaceSwitcherItem>
 						{workspaces.map((g) => (
 							<WorkspaceSwitcherItem
@@ -152,8 +152,8 @@ export function TlaSidebarWorkspaceSwitcher() {
 									handleSettings(g.group.id)
 									closeMenu()
 								}}
-								inviteLabel={inviteTeammatesLbl}
-								settingsLabel={workspaceSettingsLbl}
+								inviteLabel={inviteTeammatesLabel}
+								settingsLabel={workspaceSettingsLabel}
 							>
 								{g.group.name}
 							</WorkspaceSwitcherItem>
@@ -166,7 +166,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 						>
 							<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
 								<TlaIcon icon="plus" />
-								{newWorkspaceLbl}
+								{newWorkspaceLabel}
 							</span>
 						</_DropdownMenu.Item>
 					</_DropdownMenu.Content>
@@ -182,7 +182,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 					onClick={handleCreateWorkspace}
 					data-testid="tla-create-workspace"
 				>
-					{createWorkspaceLbl}
+					{createWorkspaceLabel}
 				</button>
 			)}
 		</div>
