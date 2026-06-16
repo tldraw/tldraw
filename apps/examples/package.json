@@ -60,6 +60,7 @@
 		"d3-geo": "^3.1.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
+		"mammoth": "^1.9.0",
 		"mermaid": "11.12.2",
 		"pdf-lib": "^1.17.1",
 		"pdfjs-dist": "^4.10.38",

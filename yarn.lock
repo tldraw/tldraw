@@ -14830,6 +14830,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmldom/xmldom@npm:^0.8.6":
+  version: 0.8.13
+  resolution: "@xmldom/xmldom@npm:0.8.13"
+  checksum: 10/f8f3d56fa91d5026885c0c5c00b07eae47647bda0d742ecbf8e51e06bb287ab30222977b20529ee15c364031606225ebca58907a8ecc76a3add6b3f10e6ddfc6
+  languageName: node
+  linkType: hard
+
 "@xstate/react@npm:^6.0.0":
   version: 6.0.0
   resolution: "@xstate/react@npm:6.0.0"
@@ -15413,7 +15420,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"argparse@npm:^1.0.7, argparse@npm:~1.0.9":
+"argparse@npm:^1.0.7, argparse@npm:~1.0.3, argparse@npm:~1.0.9":
   version: 1.0.10
   resolution: "argparse@npm:1.0.10"
   dependencies:
@@ -15715,7 +15722,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base64-js@npm:^1.0.2, base64-js@npm:^1.3.0, base64-js@npm:^1.3.1":
+"base64-js@npm:^1.0.2, base64-js@npm:^1.3.0, base64-js@npm:^1.3.1, base64-js@npm:^1.5.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
   checksum: 10/669632eb3745404c2f822a18fc3a0122d2f9a7a13f7fb8b5823ee19d1d2ff9ee5b52c53367176ea4ad093c332fd5ab4bd0ebae5a8e27917a4105a4cfc86b1005
@@ -15863,6 +15870,13 @@ __metadata:
   version: 2.1.5
   resolution: "blake3-wasm@npm:2.1.5"
   checksum: 10/7138aa209ac8411755ba07df7d035974886aac1fb4bb8cf710d354732037069bacc9984c19b3bc68bf5e17cc203f454cc9cfcb7115393aaf21ce865630dbf920
+  languageName: node
+  linkType: hard
+
+"bluebird@npm:~3.4.0":
+  version: 3.4.7
+  resolution: "bluebird@npm:3.4.7"
+  checksum: 10/340e4d11d4b6a26d90371180effb4e500197c2943e5426472d6b6bffca0032a534226ad10255fc0e39c025bea197341c6b2a4258f8c0f18217c7b3a254c76c14
   languageName: node
   linkType: hard
 
@@ -17999,6 +18013,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dingbat-to-unicode@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "dingbat-to-unicode@npm:1.0.1"
+  checksum: 10/2b3d956d2fcbfc258ca33b0b32b1b16f53547576eddfb81fb2adf3887f86e803a39a080121f1f232dfe5e398f26d35532ab2d539278378bb4aff7aca755edf09
+  languageName: node
+  linkType: hard
+
 "discord-api-types@npm:^0.37.118":
   version: 0.37.118
   resolution: "discord-api-types@npm:0.37.118"
@@ -18200,6 +18221,15 @@ __metadata:
   version: 16.4.7
   resolution: "dotenv@npm:16.4.7"
   checksum: 10/f13bfe97db88f0df4ec505eeffb8925ec51f2d56a3d0b6d916964d8b4af494e6fb1633ba5d09089b552e77ab2a25de58d70259b2c5ed45ec148221835fc99a0c
+  languageName: node
+  linkType: hard
+
+"duck@npm:^0.1.12":
+  version: 0.1.12
+  resolution: "duck@npm:0.1.12"
+  dependencies:
+    underscore: "npm:^1.13.1"
+  checksum: 10/2b0df97a4022f8106f89bc8724ffbf4f7cba8a39d113389a5d475743ee406a2f140bd427f9cc3a0755374070816c2ebdd4c4c11789fa34150a3e4b1e79097c00
   languageName: node
   linkType: hard
 
@@ -19401,6 +19431,7 @@ __metadata:
     dotenv: "npm:^16.4.7"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash: "npm:^4.17.21"
+    mammoth: "npm:^1.9.0"
     mermaid: "npm:11.12.2"
     pdf-lib: "npm:^1.17.1"
     pdfjs-dist: "npm:^4.10.38"
@@ -22373,7 +22404,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jszip@npm:^3.10.1":
+"jszip@npm:^3.10.1, jszip@npm:^3.7.1":
   version: 3.10.1
   resolution: "jszip@npm:3.10.1"
   dependencies:
@@ -23075,6 +23106,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lop@npm:^0.4.2":
+  version: 0.4.2
+  resolution: "lop@npm:0.4.2"
+  dependencies:
+    duck: "npm:^0.1.12"
+    option: "npm:~0.2.1"
+    underscore: "npm:^1.13.1"
+  checksum: 10/a8663c2a9341e2acdb06a42a2780b924657e45e27fb4af2542c22c27852bf4b08429bdccd5c285586b9672d81bc9ebe88468c4dcc06c22537742baf59175b0e8
+  languageName: node
+  linkType: hard
+
 "loud-rejection@npm:2, loud-rejection@npm:^2.2.0":
   version: 2.2.0
   resolution: "loud-rejection@npm:2.2.0"
@@ -23239,6 +23281,26 @@ __metadata:
     socks-proxy-agent: "npm:^6.0.0"
     ssri: "npm:^8.0.0"
   checksum: 10/a868e74fc223a78afb7a1f8115133befdffae84f07a5f5dd9317cbf9f784a8373f28829a73ae3f31060e1b0cb4944e73257733c3b10c314354060fab412b6028
+  languageName: node
+  linkType: hard
+
+"mammoth@npm:^1.9.0":
+  version: 1.12.0
+  resolution: "mammoth@npm:1.12.0"
+  dependencies:
+    "@xmldom/xmldom": "npm:^0.8.6"
+    argparse: "npm:~1.0.3"
+    base64-js: "npm:^1.5.1"
+    bluebird: "npm:~3.4.0"
+    dingbat-to-unicode: "npm:^1.0.1"
+    jszip: "npm:^3.7.1"
+    lop: "npm:^0.4.2"
+    path-is-absolute: "npm:^1.0.0"
+    underscore: "npm:^1.13.1"
+    xmlbuilder: "npm:^10.0.0"
+  bin:
+    mammoth: bin/mammoth
+  checksum: 10/7e07ad78bbd87c914dc510cec8f92f0d6a2f7e40214f2a9571816da582a9a5a85f8f03a67cd9cc9ce1e1d4db2e19cbc4002a0e41bc56c196a480ebf80d667203
   languageName: node
   linkType: hard
 
@@ -25325,6 +25387,13 @@ __metadata:
     is-docker: "npm:^2.0.0"
     is-wsl: "npm:^2.1.1"
   checksum: 10/4fc02ed3368dcd5d7247ad3566433ea2695b0713b041ebc0eeb2f0f9e5d4e29fc2068f5cdd500976b3464e77fe8b61662b1b059c73233ccc601fe8b16d6c1cd6
+  languageName: node
+  linkType: hard
+
+"option@npm:~0.2.1":
+  version: 0.2.4
+  resolution: "option@npm:0.2.4"
+  checksum: 10/4380db94f0657ca1b1540681c93a12ef59847bfa482f85929e5bb717bab6ba2e570ef500a71540b7c002735332846a03eca59af362d1aae6cb3cd66dc0d02435
   languageName: node
   linkType: hard
 
@@ -31155,7 +31224,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"underscore@npm:^1.12.1":
+"underscore@npm:^1.12.1, underscore@npm:^1.13.1":
   version: 1.13.8
   resolution: "underscore@npm:1.13.8"
   checksum: 10/b50ac5806d059cc180b1bd9adea6f7ed500021f4dc782dfc75d66a90337f6f0506623c1b37863f4a9bf64ffbeb5769b638a54b7f2f5966816189955815953139
@@ -32715,6 +32784,13 @@ __metadata:
   version: 1.0.1
   resolution: "xml@npm:1.0.1"
   checksum: 10/6c4c31a1308e45732e5ac6b50edbca0e8f7abe5cb5de10215d8e3c688819fe7c7706e056f6fb59b1a23fdf1000c2d7a8bba0a89e94aa1796cd2376d9a5ba401e
+  languageName: node
+  linkType: hard
+
+"xmlbuilder@npm:^10.0.0":
+  version: 10.1.1
+  resolution: "xmlbuilder@npm:10.1.1"
+  checksum: 10/f6fdfe87d221a7388718fa339e0d12323c0f62d6f9422df1d6af31bb1166ea40fb0b15a9c9e9b495e0c62da6c75ae7bbd26d171041fa6064e2d1840e0445c55f
   languageName: node
   linkType: hard
 
