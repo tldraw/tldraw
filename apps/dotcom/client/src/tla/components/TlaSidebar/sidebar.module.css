@@ -671,16 +671,15 @@
 	text-overflow: ellipsis;
 }
 
-/* Invite + settings actions pinned to the right of the active row. The
-   buttons sit flush so there's no dead gap between their hover targets. The
-   -2px pulls the trailing button so its hover square is inset from the row
-   highlight by 4px on the right, matching the 4px top/bottom (the row pads
-   12px but the highlight insets only 6px horizontally). */
+/* Invite + settings actions pinned to the right of the active row. The icons
+   have no hover background or visible box, matching the file menu's ellipsis
+   trigger; the -4px aligns the trailing icon's art with the row's 12px
+   padding, mirroring the check on the left. */
 .sidebarWorkspaceSwitcherItemActions {
 	display: flex;
 	align-items: center;
 	margin-left: auto;
-	margin-right: -2px;
+	margin-right: -4px;
 	flex-shrink: 0;
 	z-index: 1;
 }
@@ -694,14 +693,20 @@
 	padding: 0px;
 	background: none;
 	border: none;
-	border-radius: 4px;
 	cursor: pointer;
 	color: var(--tla-color-text-2);
 }
 
 .sidebarWorkspaceSwitcherActionButton:hover {
-	background-color: var(--tla-color-hover-1);
 	color: var(--tla-color-text-1);
+}
+
+/* The invite/settings icons draw ~12px of art inside their 15px box, so at the
+   default size they read smaller than icons that fill their box (like the file
+   menu's strong ellipsis). Scale them up so the art lands at ~15px. */
+.sidebarWorkspaceSwitcherActionButton > span[role='img'] {
+	width: 19px;
+	height: 19px;
 }
 
 /* Separates the workspace list from the create row. Spans the full menu width
