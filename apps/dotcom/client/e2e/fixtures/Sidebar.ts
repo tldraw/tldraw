@@ -329,7 +329,13 @@ export class Sidebar {
 
 		// Creating a workspace switches to it and opens its seeded welcome file. That file
 		// arrives named, so (unlike a blank file) there is no inline rename to dismiss.
-		await this.expectActiveWorkspace(name)
+		await expect(async () => {
+			const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
+			if (activeName !== name) {
+				await this.switchToWorkspace(name)
+			}
+			await this.expectActiveWorkspace(name)
+		}).toPass({ timeout: 20000 })
 	}
 
 	getWorkspaceLink(name: string) {
@@ -658,13 +664,17 @@ export class Sidebar {
 
 	@step
 	async moveFileToWorkspace(fileName: string, targetWorkspaceName: string) {
-		await this.openMoveToMenu(fileName)
 		// The move-to menu is a checklist: each destination is a checkbox item, and the
 		// destination we're moving to is never the current (checked) one, so its accessible
 		// name is just the workspace name (an unchecked item adds no "checked" prefix).
-		await this.page
-			.getByRole('menuitemcheckbox', { name: targetWorkspaceName, exact: true })
-			.click()
+		await expect(async () => {
+			await this.page.keyboard.press('Escape')
+			await this.page.keyboard.press('Escape')
+			await this.openMoveToMenu(fileName)
+			await this.page
+				.getByRole('menuitemcheckbox', { name: targetWorkspaceName, exact: true })
+				.click({ timeout: 2000 })
+		}).toPass({ timeout: 20000 })
 		await this.mutationResolution()
 	}
 

@@ -499,10 +499,8 @@ class DotcomScenario {
 
 		await opts.owner.editor.ensureSidebarOpen()
 		await this.switchToHomeIfAvailable(opts.owner)
-		await opts.owner.sidebar.createNewDocument(fileName)
 		await opts.owner.sidebar.createWorkspace(workspaceName)
-		await opts.owner.sidebar.switchToHomeWorkspace()
-		await opts.owner.sidebar.moveFileToWorkspace(fileName, workspaceName)
+		await opts.owner.sidebar.createNewDocument(fileName)
 
 		const inviteUrl = await opts.owner.sidebar.copyWorkspaceInviteLink(workspaceName)
 

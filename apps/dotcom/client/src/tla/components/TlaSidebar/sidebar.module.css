@@ -767,7 +767,11 @@
 .sidebarSearchInput {
 	flex: 1 1 auto;
 	min-width: 0;
-	height: 36px;
+	/* Size by the line box and let the flex row center it, the same way the
+	   search action button's label is centered. Giving the input an explicit
+	   36px height makes it center its text internally, which rounds ~1px lower
+	   than the label and shifts the placeholder down. */
+	height: auto;
 	background: none;
 	border: none;
 	padding: 0px;
