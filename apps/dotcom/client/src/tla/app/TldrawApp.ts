@@ -10,7 +10,8 @@ import {
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	TlaFile,
-	WELCOME_CREATE_SOURCE,
+	parseWelcomeCreateSource,
+	welcomeCreateSource,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
@@ -673,7 +674,8 @@ export class TldrawApp {
 		const seed = this.createFile({
 			workspaceId,
 			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
-			createSource: WELCOME_CREATE_SOURCE,
+			// Tag the creator's locale so the worker seeds the welcome content localized.
+			createSource: welcomeCreateSource(this.getIntl().locale),
 		})
 		this.workspaceWelcomeFileSeeds.set(workspaceId, seed)
 		seed.finally(() => {
@@ -748,7 +750,7 @@ export class TldrawApp {
 
 		if (!createSource) {
 			analyticsSource = 'create-blank-file' // Default for button clicks
-		} else if (createSource === WELCOME_CREATE_SOURCE) {
+		} else if (parseWelcomeCreateSource(createSource)) {
 			analyticsSource = 'welcome'
 		} else if (createSource.startsWith(`${LOCAL_FILE_PREFIX}/`)) {
 			analyticsSource = 'slurp'

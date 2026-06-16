@@ -12,3 +12,27 @@ export const ROOM_SIZE_LIMIT_MB = 25
  * client change.
  */
 export const WELCOME_CREATE_SOURCE = 'welcome'
+
+/**
+ * Build the welcome `createSource`, optionally tagged with the creating user's locale (e.g.
+ * `welcome:fr`) so the sync worker can seed localized content. See {@link parseWelcomeCreateSource}.
+ */
+export function welcomeCreateSource(locale?: string): string {
+	return locale ? `${WELCOME_CREATE_SOURCE}:${locale}` : WELCOME_CREATE_SOURCE
+}
+
+/**
+ * Parse a `createSource`: returns `{ locale }` (locale possibly undefined) when it's a welcome
+ * marker, or `null` when it isn't. The locale is whatever the client tagged at creation time.
+ */
+export function parseWelcomeCreateSource(
+	createSource: string | null | undefined
+): { locale: string | undefined } | null {
+	if (!createSource) return null
+	if (createSource === WELCOME_CREATE_SOURCE) return { locale: undefined }
+	const prefix = `${WELCOME_CREATE_SOURCE}:`
+	if (createSource.startsWith(prefix)) {
+		return { locale: createSource.slice(prefix.length) || undefined }
+	}
+	return null
+}

@@ -16,7 +16,7 @@ import {
 	SNAPSHOT_PREFIX,
 	TLCustomServerEvent,
 	TlaFile,
-	WELCOME_CREATE_SOURCE,
+	parseWelcomeCreateSource,
 	can,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
@@ -928,10 +928,14 @@ export class TLFileDurableObject extends DurableObject {
 	): Promise<RoomSnapshot | string | null | undefined> {
 		// A new workspace's first file: a fixed marker (no prefix/id) the worker resolves to the
 		// welcome template's content, or a committed default — see resolveWelcomeSnapshot.
-		if (createSource === WELCOME_CREATE_SOURCE) {
-			// TODO(welcome-i18n): thread the creating user's locale through createSource
-			// (`welcome:<locale>`) so the welcome content is seeded localized; English until then.
-			return await resolveWelcomeSnapshot(this.env, { reportError: (e) => this.reportError(e) })
+		const welcome = parseWelcomeCreateSource(createSource)
+		if (welcome) {
+			// `welcome` or `welcome:<locale>` — seed from the welcome template/default, localized to
+			// the locale the client tagged at creation time (undefined → English source content).
+			return await resolveWelcomeSnapshot(this.env, {
+				locale: welcome.locale,
+				reportError: (e) => this.reportError(e),
+			})
 		}
 
 		const split = createSource?.split('/')
