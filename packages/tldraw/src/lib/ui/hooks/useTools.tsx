@@ -1,5 +1,4 @@
 import {
-	assertExists,
 	createShapeId,
 	Editor,
 	GeoShapeGeoStyle,
@@ -385,6 +384,9 @@ export function onDragFromToolbarToCreateShape(
 	info: TLPointerEventInfo,
 	opts: OnDragFromToolbarToCreateShapesOpts
 ) {
+	// Creating shapes is a no-op in read-only mode, so there's nothing to drag.
+	if (editor.getIsReadonly()) return
+
 	const { x, y } = editor.inputs.getCurrentPagePoint()
 
 	const stoppingPoint = editor.markHistoryStoppingPoint('drag shape tool')
@@ -392,7 +394,14 @@ export function onDragFromToolbarToCreateShape(
 
 	const id = createShapeId()
 	opts.createShape(id)
-	const shape = assertExists(editor.getShape(id), 'Shape not found')
+	const shape = editor.getShape(id)
+	if (!shape) {
+		// Shape creation didn't take effect (for example it was blocked by a side
+		// effect). Bail out gracefully instead of crashing the app.
+		editor.bailToMark(stoppingPoint)
+		editor.setCurrentTool('select.idle')
+		return
+	}
 
 	const { w, h } = editor.getShapePageBounds(id)!
 	editor.updateShape({ id, type: shape.type, x: x - w / 2, y: y - h / 2 })
