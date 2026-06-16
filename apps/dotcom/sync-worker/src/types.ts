@@ -66,6 +66,9 @@ export interface Environment {
 	ASSET_UPLOAD_ORIGIN: string | undefined
 	USER_CONTENT_URL: string | undefined
 	MULTIPLAYER_SERVER: string | undefined
+	// Origin of the dotcom client app, used to fetch the published i18n catalogs
+	// (`/tla/locales/<locale>.json`) when localizing welcome content. See loadWelcomeCatalog.
+	APP_ORIGIN: string | undefined
 
 	HEALTH_CHECK_BEARER_TOKEN: string | undefined
 	HEALTH_CHECK_DB_SIZE_THRESHOLD_GB: string | undefined

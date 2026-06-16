@@ -929,7 +929,9 @@ export class TLFileDurableObject extends DurableObject {
 		// A new workspace's first file: a fixed marker (no prefix/id) the worker resolves to the
 		// welcome template's content, or a committed default — see resolveWelcomeSnapshot.
 		if (createSource === WELCOME_CREATE_SOURCE) {
-			return await resolveWelcomeSnapshot(this.env, (e) => this.reportError(e))
+			// TODO(welcome-i18n): thread the creating user's locale through createSource
+			// (`welcome:<locale>`) so the welcome content is seeded localized; English until then.
+			return await resolveWelcomeSnapshot(this.env, { reportError: (e) => this.reportError(e) })
 		}
 
 		const split = createSource?.split('/')
