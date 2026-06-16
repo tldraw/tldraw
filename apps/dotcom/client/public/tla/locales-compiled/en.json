@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Invite teammates"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Remove"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copy to personal workspace"
     }
   ],
   "110a4b01be": [
@@ -171,10 +171,10 @@
       "value": "Welcome to your workspace"
     }
   ],
-  "2c3ef76333": [
+  "2a37324bb4": [
     {
       "type": 0,
-      "value": "My files"
+      "value": "Search..."
     }
   ],
   "2e2b3c700b": [
@@ -333,6 +333,12 @@
       "value": "Unable to unpublish the file."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "This is your private workspace. Create a new workspace to invite teammates."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -433,6 +439,12 @@
       "value": "Copy"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Create a free account to save your files, create workspaces, and invite your teammates."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -467,6 +479,12 @@
     {
       "type": 0,
       "value": "A new version of tldraw is available. Please reload the page to continue."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "New file"
     }
   ],
   "6832ac5936": [
@@ -523,6 +541,12 @@
       "value": "Please reload the page"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "No files found"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -551,12 +575,6 @@
     {
       "type": 0,
       "value": "Please reload"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw is a free online whiteboard. Create an account to save your files and work with your friends."
     }
   ],
   "777f9e90cf": [
@@ -751,12 +769,6 @@
       "value": "Rename"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copy to my files"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -791,6 +803,12 @@
     {
       "type": 0,
       "value": "Light"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Clear search"
     }
   ],
   "9b33f5c63c": [
@@ -1075,6 +1093,12 @@
     {
       "type": 0,
       "value": "Invite"
+    }
+  ],
+  "c6f16003f2": [
+    {
+      "type": 0,
+      "value": "Copy to my workspace"
     }
   ],
   "c87aacf567": [

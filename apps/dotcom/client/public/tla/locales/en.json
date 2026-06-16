@@ -8,9 +8,6 @@
   "043973ec1f": {
     "translation": "Still having trouble? {GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "Invite teammates"
-  },
   "05f43078e9": {
     "translation": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
   },
@@ -43,6 +40,9 @@
   },
   "1063e38cb5": {
     "translation": "Remove"
+  },
+  "10fb1df194": {
+    "translation": "Copy to personal workspace"
   },
   "110a4b01be": {
     "translation": "Publish"
@@ -83,8 +83,8 @@
   "2a1167f869": {
     "translation": "Welcome to your workspace"
   },
-  "2c3ef76333": {
-    "translation": "My files"
+  "2a37324bb4": {
+    "translation": "Search..."
   },
   "2e2b3c700b": {
     "translation": "Include link to current file"
@@ -164,6 +164,9 @@
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
   },
+  "51317dcad5": {
+    "translation": "This is your private workspace. Create a new workspace to invite teammates."
+  },
   "517bb809d9": {
     "translation": "Page menu"
   },
@@ -209,6 +212,9 @@
   "5fb63579fc": {
     "translation": "Copy"
   },
+  "5fd0972432": {
+    "translation": "Create a free account to save your files, create workspaces, and invite your teammates."
+  },
   "61057a0c84": {
     "translation": "Later"
   },
@@ -226,6 +232,9 @@
   },
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
+  },
+  "681e10aecb": {
+    "translation": "New file"
   },
   "6832ac5936": {
     "translation": "Enter your email address"
@@ -254,6 +263,9 @@
   "7408cf0d7b": {
     "translation": "Please reload the page"
   },
+  "74ff4bad28": {
+    "translation": "No files found"
+  },
   "752b79f137": {
     "translation": "You have reached the maximum number of files. You need to delete old files before creating new ones."
   },
@@ -268,9 +280,6 @@
   },
   "7697920637": {
     "translation": "Please reload"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw is a free online whiteboard. Create an account to save your files and work with your friends."
   },
   "777f9e90cf": {
     "translation": "Invalid request."
@@ -350,9 +359,6 @@
   "904a830405": {
     "translation": "Rename"
   },
-  "91e49bb0eb": {
-    "translation": "Copy to my files"
-  },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
   },
@@ -370,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "Light"
+  },
+  "9983381c21": {
+    "translation": "Clear search"
   },
   "9b33f5c63c": {
     "translation": "Didn’t receive a code? <resend>Resend</resend>."
@@ -476,6 +485,9 @@
   },
   "c6a00f137b": {
     "translation": "Invite"
+  },
+  "c6f16003f2": {
+    "translation": "Copy to my workspace"
   },
   "c87aacf567": {
     "translation": "Sign out"
