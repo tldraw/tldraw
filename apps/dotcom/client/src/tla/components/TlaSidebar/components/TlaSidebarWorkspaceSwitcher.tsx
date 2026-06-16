@@ -18,7 +18,7 @@ import { TlaSidebarSearch } from './TlaSidebarSearch'
 import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
-	home: { defaultMessage: 'Home' },
+	myWorkspace: { defaultMessage: 'My workspace' },
 	createWorkspace: { defaultMessage: 'New workspace' },
 	newFile: { defaultMessage: 'New file' },
 	workspaceSettings: { defaultMessage: 'Workspace settings' },
@@ -36,7 +36,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const isHome = activeWorkspaceId === homeWorkspaceId
-	const homeLbl = useMsg(messages.home)
+	const myWorkspaceLbl = useMsg(messages.myWorkspace)
 
 	const workspaces = useValue(
 		'workspaceMemberships',
@@ -104,7 +104,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 									className={classNames(styles.sidebarWorkspaceSwitcherLabel, 'notranslate')}
 									data-testid="tla-active-workspace-name"
 								>
-									{activeWorkspaceName ?? homeLbl}
+									{activeWorkspaceName ?? myWorkspaceLbl}
 								</span>
 								<TlaIcon
 									icon="chevron-up-down"
@@ -130,7 +130,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 								onSelect={() => switchToWorkspace(homeWorkspaceId)}
 								testId="tla-workspace-switcher-home"
 							>
-								{homeWorkspaceName ?? homeLbl}
+								{homeWorkspaceName ?? myWorkspaceLbl}
 							</WorkspaceSwitcherItem>
 							{workspaces.map((g) => (
 								<WorkspaceSwitcherItem
@@ -229,6 +229,9 @@ function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
 			component: ({ onClose }) => (
 				<WorkspaceSettingsDialog workspaceId={workspaceId} onClose={onClose} />
 			),
+			// The dialog contains nested TlaMenuSelect popups; interacting with one
+			// would otherwise register as a background click and dismiss the dialog.
+			preventBackgroundClose: true,
 		})
 		trackEvent('open-share-menu', { source: 'sidebar' })
 	}, [addDialog, workspaceId, trackEvent])

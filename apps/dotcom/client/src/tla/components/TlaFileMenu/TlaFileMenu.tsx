@@ -43,7 +43,7 @@ const messages = defineMessages({
 	copy: { defaultMessage: 'Copy' },
 	pin: { defaultMessage: 'Pin file' },
 	unpin: { defaultMessage: 'Unpin file' },
-	home: { defaultMessage: 'Home' },
+	myWorkspace: { defaultMessage: 'My workspace' },
 })
 
 function getDuplicateName(file: TlaFile, app: TldrawApp) {
@@ -199,7 +199,7 @@ export function FileItems({
 	const unpinMsg = useMsg(messages.unpin)
 	const deleteOrForgetMsg = useMsg(hasAdminRights ? messages.delete : messages.forget)
 	const downloadFile = useMsg(editorMessages.downloadFile)
-	const homeMsg = useMsg(messages.home)
+	const myWorkspaceMsg = useMsg(messages.myWorkspace)
 
 	return (
 		<Fragment>
@@ -245,7 +245,7 @@ export function FileItems({
 						<TldrawUiMenuGroup id="workspaces">
 							<TldrawUiMenuCheckboxItem
 								key="my-files"
-								label={homeWorkspaceName ?? homeMsg}
+								label={homeWorkspaceName ?? myWorkspaceMsg}
 								id="my-files"
 								readonlyOk
 								checked={currentWorkspaceId === app.getHomeWorkspaceId()}

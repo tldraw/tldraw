@@ -240,6 +240,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						className={styles.dialogInput}
 						defaultValue={workspace.name}
 						disabled={!can(role, 'editWorkspace')}
+						autoSelect
 						onValueChange={(value) => {
 							const name = value.trim()
 							if (name && name !== workspace.name) {

@@ -154,7 +154,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							.values({
 								id,
 								// The home/private workspace defaults to "Home" and is renameable from there.
-								name: 'Home',
+								name: 'My workspace',
 								createdAt: now,
 								updatedAt: now,
 								isDeleted: false,
@@ -762,7 +762,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				.insertInto('group')
 				.values({
 					id: userId,
-					name: 'Home',
+					name: 'My workspace',
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 					isDeleted: false,

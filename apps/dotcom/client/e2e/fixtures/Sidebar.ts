@@ -641,6 +641,6 @@ export class Sidebar {
 
 	@step
 	async moveFileToHome(fileName: string) {
-		await this.moveFileToWorkspace(fileName, 'Home')
+		await this.moveFileToWorkspace(fileName, 'My workspace')
 	}
 }
