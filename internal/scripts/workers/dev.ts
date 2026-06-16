@@ -78,6 +78,14 @@ class MiniflareMonitor {
 		}
 	}
 
+	/** Synchronously kill the wrangler process. Safe to call from signal and `exit` handlers. */
+	public dispose(): void {
+		if (this.process) {
+			this.process.kill('SIGTERM')
+			this.process = null
+		}
+	}
+
 	private _lockPromise?: Promise<() => Promise<void>>
 	private isLocked() {
 		return !!this._lockPromise
@@ -227,7 +235,7 @@ async function main() {
 	const port = getDevPort(process.argv.slice(2))
 	if (port != null) await ensurePortFreeOrExit(port)
 
-	new MiniflareMonitor('wrangler', [
+	const monitor = new MiniflareMonitor('wrangler', [
 		'dev',
 		'--env',
 		'dev',
@@ -237,9 +245,24 @@ async function main() {
 		'--var',
 		'IS_LOCAL:true',
 		...process.argv.slice(2),
-	]).start()
+	])
+	monitor.start()
 
 	new SizeReporter().start()
+
+	// Tear down wrangler (and its workerd child) when this process is asked to stop or exits. Without
+	// this the worker keeps holding its inspector/dev port after the parent goes away, blocking reruns.
+	let shuttingDown = false
+	const shutdown = () => {
+		if (shuttingDown) return
+		shuttingDown = true
+		monitor.dispose()
+		process.exit(0)
+	}
+	process.on('SIGINT', shutdown)
+	process.on('SIGTERM', shutdown)
+	process.on('SIGHUP', shutdown)
+	process.on('exit', () => monitor.dispose())
 }
 
 main()
