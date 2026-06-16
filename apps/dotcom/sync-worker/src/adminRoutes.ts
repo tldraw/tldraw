@@ -362,6 +362,10 @@ export const adminRoutes = createRouter<Environment>()
 					.doUpdateSet({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
 			)
 			.execute()
+		// Kick off generating the per-locale welcome variants for this template; they're read back
+		// at seed time by resolveWelcomeSnapshot. Best-effort — seeding falls back to the
+		// source-language template (or default) for any locale whose variant isn't ready.
+		await env.QUEUE.send({ type: 'welcome-variant-generate', publishedSlug: file.publishedSlug })
 		// Return the same shape as GET, including `live`, so the admin UI doesn't flash the
 		// "not published" warning right after a successful set.
 		const live = !file.isDeleted && file.published

@@ -179,9 +179,13 @@ export type TLUserDurableObjectEvent =
 	| { type: 'reboot_duration'; id: string; duration: number }
 	| { type: 'cold_start_time'; id: string; duration: number }
 
-export interface QueueMessage {
-	type: 'asset-upload'
-	objectName: string
-	fileId: string
-	userId: string | null
-}
+export type QueueMessage =
+	| {
+			type: 'asset-upload'
+			objectName: string
+			fileId: string
+			userId: string | null
+	  }
+	// Regenerate the per-locale welcome variants for the marked template (enqueued when the welcome
+	// template is set/published). See runWelcomeVariantGeneration.
+	| { type: 'welcome-variant-generate'; publishedSlug: string }

@@ -51,6 +51,7 @@ import { getLogger, getReplicator, getUserDurableObject } from './utils/durableO
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
 import { getRole } from './utils/tla/getRole'
+import { runWelcomeVariantGeneration } from './welcome/runWelcomeVariantGeneration'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
@@ -315,15 +316,23 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
-		const db = createPostgresConnectionPool(this.env, 'sync-worker-queue')
+		// asset-upload messages share one pool per batch; created lazily so a batch of only
+		// welcome-variant-generate messages opens no Postgres connection.
+		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
 		for (const message of batch.messages) {
-			const { objectName, fileId, userId } = message.body
 			try {
-				await db
-					.insertInto('asset')
-					.values({ objectName, fileId, userId })
-					.onConflict((oc) => oc.column('objectName').doNothing())
-					.execute()
+				const body = message.body
+				if (body.type === 'welcome-variant-generate') {
+					await runWelcomeVariantGeneration(this.env, body.publishedSlug)
+				} else {
+					const { objectName, fileId, userId } = body
+					db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
+					await db
+						.insertInto('asset')
+						.values({ objectName, fileId, userId })
+						.onConflict((oc) => oc.column('objectName').doNothing())
+						.execute()
+				}
 				message.ack()
 			} catch (_e) {
 				message.retry({
