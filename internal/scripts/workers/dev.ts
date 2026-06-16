@@ -79,9 +79,9 @@ class MiniflareMonitor {
 	}
 
 	/** Synchronously kill the wrangler process. Safe to call from signal and `exit` handlers. */
-	public dispose(): void {
+	public dispose(signal: NodeJS.Signals = 'SIGTERM'): void {
 		if (this.process) {
-			this.process.kill('SIGTERM')
+			this.process.kill(signal)
 			this.process = null
 		}
 	}
@@ -262,7 +262,9 @@ async function main() {
 	process.on('SIGINT', shutdown)
 	process.on('SIGTERM', shutdown)
 	process.on('SIGHUP', shutdown)
-	process.on('exit', () => monitor.dispose())
+	// Last resort if we exit through a path that bypassed shutdown(): SIGKILL so wrangler can't catch
+	// it and linger holding its dev port. The graceful SIGTERM is only for the signal path above.
+	process.on('exit', () => monitor.dispose('SIGKILL'))
 }
 
 main()
