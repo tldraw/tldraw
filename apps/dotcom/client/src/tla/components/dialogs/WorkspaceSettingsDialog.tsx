@@ -290,7 +290,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						<div className={styles.sectionLabel}>
 							<F defaultMessage="Invite teammates" />
 						</div>
-						<TlaButton iconRight="copy" variant="secondary" disabled>
+						<TlaButton iconRight="copy" variant="secondary" big disabled>
 							<F defaultMessage="Copy invite link" />
 						</TlaButton>
 						<p className={styles.sectionHelp}>
@@ -311,12 +311,13 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 									iconRight={copiedInviteLink ? 'check' : 'copy'}
 									iconRightClassName={styles.copyInviteLinkIconRight}
 									variant="primary"
+									big
 									onClick={handleCopyInviteLink}
 								>
 									<F defaultMessage="Copy invite link" />
 								</TlaButton>
 							) : (
-								<TlaButton variant="primary" disabled>
+								<TlaButton variant="secondary" big disabled>
 									<F defaultMessage="Invites are disabled" />
 								</TlaButton>
 							)}

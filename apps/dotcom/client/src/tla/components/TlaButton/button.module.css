@@ -29,6 +29,13 @@
 	opacity: 0.5;
 }
 
+/* A large, full-width button. Used for the invite-link action so it keeps the same size
+   across its enabled ("copy") and disabled states instead of shrinking to its content. */
+.big {
+	width: 100%;
+	height: 40px;
+}
+
 .tlaButton > .spinner {
 	position: absolute;
 	top: calc(50% - 20px);
