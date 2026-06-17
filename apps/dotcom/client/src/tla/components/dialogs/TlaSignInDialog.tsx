@@ -20,7 +20,7 @@ import styles from './auth.module.css'
 const messages = defineMessages({
 	enterEmailAddress: { defaultMessage: 'Enter your email address' },
 	inviteMessage: {
-		defaultMessage: 'You have been invited to join workspace:',
+		defaultMessage: 'You have been invited to join <strong>{workspaceName}</strong>',
 	},
 })
 
@@ -193,7 +193,13 @@ function TlaEnterEmailStep({
 			<div className={styles.authDescription}>
 				{inviteInfo ? (
 					<>
-						<F {...messages.inviteMessage} /> {inviteInfo.workspaceName}
+						<F
+							{...messages.inviteMessage}
+							values={{
+								workspaceName: inviteInfo.workspaceName,
+								strong: (chunks) => <strong>{chunks}</strong>,
+							}}
+						/>
 						<br />
 						<br />
 						<F defaultMessage="Create a free account to save your files, create workspaces, and invite your teammates." />
