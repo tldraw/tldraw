@@ -1,4 +1,4 @@
-import { expect, test } from '../fixtures/scenario-test'
+import { expect, selectTlaMenuOption, test } from '../fixtures/scenario-test'
 
 const ROOT_URL = 'http://localhost:3000'
 
@@ -240,9 +240,12 @@ test.describe('UI scenarios', () => {
 		await expect(ownerDialog.getByRole('button', { name: 'Copy invite link' })).toBeVisible()
 		await expect(ownerDialog.getByText(/Members \(\d+\)/)).toBeVisible()
 		await expect(ownerDialog.getByText(/\(you\)/)).toBeVisible()
-		await expect(ownerDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)).toHaveText(
-			'Member'
-		)
+		const memberRoleSelect = ownerDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)
+		await expect(memberRoleSelect).toHaveText('Member')
+
+		// Interacting with the portalled role select should not count as a background click.
+		await selectTlaMenuOption(owner.page, memberRoleSelect, 'Member')
+		await expect(ownerDialog).toBeVisible()
 
 		// The dialog exposes the invite link only through the Copy button (no visible URL
 		// field), so read it from the clipboard. Regenerating from the Settings tab

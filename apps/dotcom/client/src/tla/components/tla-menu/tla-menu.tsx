@@ -170,7 +170,7 @@ export function TlaMenuSelect<T extends string>({
 
 		document.body.addEventListener('pointerdown', handlePointerDown, { capture: true })
 		return () => {
-			document.body.removeEventListener('pointerdown', handlePointerDown)
+			document.body.removeEventListener('pointerdown', handlePointerDown, { capture: true })
 		}
 	}, [isOpen])
 

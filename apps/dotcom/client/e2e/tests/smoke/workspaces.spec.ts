@@ -1,4 +1,6 @@
+import { OTHER_USERS } from '../../consts'
 import { getRandomName, openNewTab } from '../../fixtures/helpers'
+import { SignInDialog } from '../../fixtures/SignInDialog'
 import { expect, test } from '../../fixtures/tla-test'
 
 // The sidebar has a workspace switcher dropdown at the top (home workspace + the
@@ -362,6 +364,53 @@ test.describe('workspaces', () => {
 			await newTab.newSidebar.expectFileVisible(fileName)
 
 			await newTab.newContext.close()
+			await newContext.close()
+		})
+
+		test('signing in through the invite dialog completes the workspace join', async ({
+			sidebar,
+			browser,
+			database,
+		}) => {
+			const workspaceName = getRandomName()
+			const fileName = getRandomName()
+			const homeFileName = getRandomName()
+
+			await sidebar.createNewDocument(fileName)
+			await sidebar.createNewDocument(homeFileName)
+			await sidebar.createWorkspace(workspaceName)
+			await sidebar.switchToWorkspace('Home')
+			await sidebar.moveFileToWorkspace(fileName, workspaceName)
+
+			const inviteUrl = await sidebar.copyWorkspaceInviteLink(workspaceName)
+
+			// Migrate invitee to groups backend but not frontend (tests auto-enable)
+			await database.migrateUser(true)
+
+			const parallelIndex = test.info().parallelIndex
+			const { newPage, newSidebar, newEditor, newWorkspaceInviteDialog, newContext } =
+				await openNewTab(browser, {
+					url: inviteUrl,
+					allowClipboard: true,
+					userProps: undefined,
+				})
+
+			// Signed out, the invite link shows the sign-in dialog naming the
+			// workspace. Sign in through it: the invite token survives the dialog, so
+			// the signed-in invite flow picks it up and offers the join afterwards.
+			await expect(newPage.locator('strong', { hasText: workspaceName })).toBeVisible()
+			const signInDialog = new SignInDialog(newPage)
+			await signInDialog.continueWithEmail(OTHER_USERS[parallelIndex])
+			await signInDialog.expectCodeStageVisible()
+			await signInDialog.fillCode('424242')
+
+			await newEditor.isLoaded()
+			await newEditor.ensureSidebarOpen()
+			await newWorkspaceInviteDialog.acceptInvitation()
+
+			await newSidebar.expectWorkspaceVisible(workspaceName)
+			await newSidebar.expectFileVisible(fileName)
+
 			await newContext.close()
 		})
 	})

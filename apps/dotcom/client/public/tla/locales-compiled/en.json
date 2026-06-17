@@ -135,12 +135,6 @@
       "value": "Create file"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Workspace settings"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -931,6 +925,22 @@
     {
       "type": 0,
       "value": "File is getting large"
+    }
+  ],
+  "a8c9ad7ea5": [
+    {
+      "type": 0,
+      "value": "You have been invited to join "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
     }
   ],
   "a9ded1e5ce": [

@@ -65,9 +65,6 @@
   "181b90f889": {
     "translation": "Create file"
   },
-  "1d2591253e": {
-    "translation": "Workspace settings"
-  },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
   },
@@ -433,6 +430,9 @@
   },
   "a8873770ab": {
     "translation": "File is getting large"
+  },
+  "a8c9ad7ea5": {
+    "translation": "You have been invited to join <strong>{workspaceName}</strong>"
   },
   "a9ded1e5ce": {
     "translation": "Background"
