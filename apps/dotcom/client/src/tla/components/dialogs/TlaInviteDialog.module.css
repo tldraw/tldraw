@@ -6,13 +6,10 @@
 }
 
 .dialogBody {
-	text-align: center;
 	display: flex;
 	flex-direction: column;
-	align-items: center;
-	gap: 8px;
-	padding: 0 24px 24px;
 	width: 300px;
+	padding: 0px 20px 20px 20px;
 }
 
 .icon {
@@ -24,6 +21,7 @@
 	font-size: 12px;
 	text-align: center;
 	padding-right: var(--tl-space-4);
+	margin-bottom: 24px;
 	min-height: 20px;
 	word-break: break-word;
 	overflow-wrap: break-word;

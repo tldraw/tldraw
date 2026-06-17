@@ -204,13 +204,10 @@ function TlaEnterEmailStep({
 								strong: (chunks) => <strong>{chunks}</strong>,
 							}}
 						/>
-						{/* <br />
-						<br /> */}
-						{/* <F defaultMessage="Create a free account to save your files, create workspaces, and invite your teammates." /> */}
 					</>
 				) : (
 					<>
-						<F defaultMessage="Create a free account to save your files, create workspaces, and invite your teammates." />
+						<F defaultMessage="Create a free account to save your files and tldraw with your teammates." />
 					</>
 				)}
 			</div>

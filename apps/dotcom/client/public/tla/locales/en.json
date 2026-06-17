@@ -2,6 +2,9 @@
   "0095a9fa74": {
     "translation": "Export"
   },
+  "00b177e080": {
+    "translation": "Accept invitation"
+  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -218,9 +221,6 @@
   "5fb63579fc": {
     "translation": "Copy"
   },
-  "5fd0972432": {
-    "translation": "Create a free account to save your files, create workspaces, and invite your teammates."
-  },
   "61057a0c84": {
     "translation": "Later"
   },
@@ -308,9 +308,6 @@
   "7b1329f5ca": {
     "translation": "User manual"
   },
-  "7bcdfeab70": {
-    "translation": "You have been invited to join:"
-  },
   "7be10fc592": {
     "translation": "Restore version"
   },
@@ -353,9 +350,6 @@
   "88bf6ab42c": {
     "translation": "This invite link has expired"
   },
-  "8ad4303b83": {
-    "translation": "No thanks"
-  },
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
   },
@@ -392,6 +386,9 @@
   "9b33f5c63c": {
     "translation": "Didn’t receive a code? <resend>Resend</resend>."
   },
+  "9b3e24d1fc": {
+    "translation": "Join workspace"
+  },
   "9bef626805": {
     "translation": "Delete file"
   },
@@ -406,6 +403,9 @@
   },
   "9e93c98d88": {
     "translation": "Opt out"
+  },
+  "a078644c42": {
+    "translation": "You have been invited to join <strong>{workspaceName}</strong>."
   },
   "a0da245992": {
     "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
@@ -573,9 +573,6 @@
   "e404559826": {
     "translation": "Terms of service"
   },
-  "e615d52512": {
-    "translation": "Accept and join workspace"
-  },
   "e81c4e4f2b": {
     "translation": "or"
   },
@@ -641,6 +638,9 @@
   },
   "ff2fefd3c6": {
     "translation": "Are you sure you want to remove {name} from this workspace?"
+  },
+  "ff52811b98": {
+    "translation": "Create a free account to save your files and tldraw with your teammates."
   },
   "ffcd73e997": {
     "translation": "Import file…"

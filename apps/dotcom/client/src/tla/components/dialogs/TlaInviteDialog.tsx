@@ -12,7 +12,10 @@ import styles from './TlaInviteDialog.module.css'
 
 const messages = defineMessages({
 	inviteDialogTitle: {
-		defaultMessage: 'You have been invited to join:',
+		defaultMessage: 'Join workspace',
+	},
+	inviteDialogDescription: {
+		defaultMessage: 'You have been invited to join <strong>{workspaceName}</strong>.',
 	},
 })
 
@@ -35,14 +38,19 @@ export function TlaInviteDialog({
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.dialogBody}>
-				<img
-					className={styles.icon}
-					src="/tldraw-white-on-black.svg"
-					loading="lazy"
-					role="presentation"
-				/>
 				<div className={styles.message}>
-					<F {...messages.inviteDialogTitle} /> {inviteInfo.workspaceName}
+					<F
+						{...messages.inviteDialogDescription}
+						values={{
+							workspaceName: inviteInfo.workspaceName,
+							strong: (chunks) => (
+								<strong>
+									<br />
+									{chunks}
+								</strong>
+							),
+						}}
+					/>
 				</div>
 
 				<button
@@ -57,10 +65,7 @@ export function TlaInviteDialog({
 						onClose()
 					}}
 				>
-					<F defaultMessage="Accept and join workspace" />
-				</button>
-				<button className={styles.declineButton} onClick={onClose}>
-					<F defaultMessage="No thanks" />
+					<F defaultMessage="Accept invitation" />
 				</button>
 			</TldrawUiDialogBody>
 		</>

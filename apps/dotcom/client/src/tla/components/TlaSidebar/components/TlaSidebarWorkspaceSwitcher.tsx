@@ -149,20 +149,6 @@ export function TlaSidebarWorkspaceSwitcher() {
 					</_DropdownMenu.Content>
 				</_DropdownMenu.Root>
 			</div>
-			{workspaces.length === 0 && (
-				<button
-					className={classNames(
-						styles.sidebarCreateWorkspaceButton,
-						styles.hoverable,
-						'tla-text_ui__regular'
-					)}
-					onClick={handleCreateWorkspace}
-					data-testid="tla-create-workspace"
-				>
-					<TlaIcon icon="plus" />
-					<span className={styles.sidebarTruncatedText}>{createWorkspaceLbl}</span>
-				</button>
-			)}
 		</div>
 	)
 }
