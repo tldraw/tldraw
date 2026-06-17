@@ -13,7 +13,7 @@ import { defineMessages, F, useMsg } from '../../utils/i18n'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
-	title: { defaultMessage: 'Create workspace' },
+	title: { defaultMessage: 'New workspace' },
 	name: { defaultMessage: 'Name' },
 	defaultName: { defaultMessage: 'New workspace' },
 	placeholder: { defaultMessage: 'Workspace name' },
