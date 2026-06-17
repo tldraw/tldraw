@@ -69,7 +69,7 @@ export function TlaUserSettingsMenu() {
 						</div>
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={4} sideOffset={4}>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={-18} sideOffset={4}>
 					{user && (
 						<>
 							<TldrawUiMenuGroup id="files">
