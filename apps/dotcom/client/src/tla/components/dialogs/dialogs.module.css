@@ -210,6 +210,10 @@
 }
 
 .section {
+	/* Sections are separated by spacing alone (no dividers), so the gap needs to be
+	   clearly larger than the ~8px spacing within a section. The tab strip below relies
+	   on the preceding section's bottom margin for its top gap (no margin-top of its own). */
+	margin-bottom: 20px;
 	display: flex;
 	flex-direction: column;
 }
@@ -272,7 +276,7 @@
    also equals that 12px, the strip now spans the body's full width — so drop the tab
    nav's bottom rule inset to 0 and let it bleed to the modal edges. */
 .workspaceTabs {
-	margin: 20px -12px 0px -12px;
+	margin: 0 -12px;
 	--tabs-line-inset: 0px;
 	/* Tighten the gap between the Members and Settings tabs (default leaves too much). */
 	--tabs-tab-gap: -12px;
