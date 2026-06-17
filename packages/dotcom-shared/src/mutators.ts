@@ -293,6 +293,7 @@ export function createMutators(userId: string) {
 				updatedAt: time,
 				isDeleted: false,
 				inviteSecret: null,
+				inviteLinkEnabled: true,
 			})
 			await tx.mutate.group_user.insert({
 				userId,
@@ -562,6 +563,7 @@ export function createMutators(userId: string) {
 				id,
 				name,
 				inviteSecret: tx.location === 'server' ? uniqueId() : null,
+				inviteLinkEnabled: true,
 				isDeleted: false,
 				createdAt: Date.now(),
 				updatedAt: Date.now(),
@@ -614,6 +616,21 @@ export function createMutators(userId: string) {
 			if (tx.location === 'server') {
 				await tx.mutate.group.update({ id, inviteSecret: uniqueId() })
 			}
+		},
+		setWorkspaceInviteLinkEnabled: async (
+			tx: Tx,
+			{ id, enabled }: { id: string; enabled: boolean }
+		) => {
+			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(id, ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, id)
+
+			const role = await getRole(tx, userId, id)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
+
+			// Flip the flag only; inviteSecret is preserved so re-enabling restores the
+			// same link.
+			await tx.mutate.group.update({ id, inviteLinkEnabled: enabled })
 		},
 		setWorkspaceMemberRole: async (
 			tx: Tx,
