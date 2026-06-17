@@ -56,9 +56,6 @@
   "13ddd375ad": {
     "translation": "Export as"
   },
-  "1764571547": {
-    "translation": "Are you sure you want to delete this workspace? This action cannot be undone."
-  },
   "181b90f889": {
     "translation": "Create file"
   },
@@ -113,6 +110,9 @@
   "344a7f427f": {
     "translation": "Editor"
   },
+  "371ce8cf11": {
+    "translation": "Are you sure you want to forget {fileName}?"
+  },
   "375396d6e5": {
     "translation": "Remove member"
   },
@@ -151,9 +151,6 @@
   },
   "47f493a590": {
     "translation": "Pin file"
-  },
-  "4908687e50": {
-    "translation": "Are you sure you want to forget this file?"
   },
   "49ee308734": {
     "translation": "Name"
@@ -377,6 +374,9 @@
   "96165d6df5": {
     "translation": "This month"
   },
+  "97a9bd4350": {
+    "translation": "Are you sure you want to delete {workspaceName}? This action cannot be undone."
+  },
   "985a4b720f": {
     "translation": "Terms of Use"
   },
@@ -594,6 +594,9 @@
   "ec611e9a08": {
     "translation": "Account menu"
   },
+  "ecfced1d96": {
+    "translation": "Are you sure you want to delete {fileName}?"
+  },
   "ed53713239": {
     "translation": "i18n: Accented"
   },
@@ -629,9 +632,6 @@
   },
   "fc9d47046b": {
     "translation": "Are you sure you want to leave this workspace?"
-  },
-  "fd1be3efcf": {
-    "translation": "Are you sure you want to delete this file?"
   },
   "fed5ec05eb": {
     "translation": "Copied link"
