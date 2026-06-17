@@ -434,8 +434,25 @@ export class TldrawApp {
 		const membership = this.getWorkspaceMembership(workspaceId)
 		if (!membership) return []
 
-		const pinned = membership.groupFiles.filter((f) => f.index !== null)
-		const unpinned = membership.groupFiles.filter((f) => f.index === null)
+		// Decide which of the membership's group_file rows actually belong in this list.
+		// A file owned by this workspace always belongs. A non-home workspace lists only the
+		// files it owns. The home workspace additionally lists legacy files (no owning group)
+		// and "guest files" — shared files the user opened that are owned by a workspace they
+		// are NOT a member of. It must NOT list a file owned by a workspace the user IS a
+		// member of: that's a mislinked row (a guest file whose workspace was later joined, or
+		// a workspace's welcome file mirrored during the create-workspace race), and opening it
+		// from home would bounce the user into that workspace. Guarding here keeps such rows out
+		// of the list even before they're cleaned up.
+		const homeWorkspaceId = this.getHomeWorkspaceId()
+		const groupFiles = membership.groupFiles.filter((f) => {
+			const owningGroupId = f.file.owningGroupId
+			if (owningGroupId === workspaceId) return true
+			if (workspaceId !== homeWorkspaceId) return false
+			return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
+		})
+
+		const pinned = groupFiles.filter((f) => f.index !== null)
+		const unpinned = groupFiles.filter((f) => f.index === null)
 
 		const lastOrdering = this.lastWorkspaceFileOrderings.get(workspaceId)
 		const retainedOrdering =
