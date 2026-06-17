@@ -267,7 +267,7 @@ test.describe('UI scenarios', () => {
 		await expect
 			.poll(() => owner.page.evaluate(() => navigator.clipboard.readText()))
 			.toBe(regeneratedInviteUrl)
-		await ownerDialog.getByLabel('Close').click()
+		await owner.page.keyboard.press('Escape')
 
 		// Non-owners can inspect settings but cannot access owner-only controls.
 		await member.sidebar.openWorkspaceSettings(workspaceName)
