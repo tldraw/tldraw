@@ -267,8 +267,7 @@ test.describe('UI scenarios', () => {
 		await expect
 			.poll(() => owner.page.evaluate(() => navigator.clipboard.readText()))
 			.toBe(regeneratedInviteUrl)
-		await owner.page.locator('.tlui-dialog__overlay').click({ position: { x: 5, y: 5 } })
-		await expect(ownerDialog).not.toBeVisible()
+		await ownerDialog.getByLabel('Close').click()
 
 		// Non-owners can inspect settings but cannot access owner-only controls.
 		await member.sidebar.openWorkspaceSettings(workspaceName)
