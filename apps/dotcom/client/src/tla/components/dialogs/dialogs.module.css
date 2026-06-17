@@ -190,12 +190,6 @@
 	border: 1px solid var(--tla-color-primary);
 }
 
-.dialogFooter {
-	display: flex;
-	justify-content: flex-end;
-	flex-shrink: 0;
-}
-
 /* ----------------- Group Settings Dialog ---------------- */
 
 .workspaceSettingsBody {
@@ -219,19 +213,6 @@
 	margin: 8px 0 0;
 	text-align: center;
 	text-wrap: balance;
-}
-
-.inviteHeader {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.helpIcon {
-	width: 16px;
-	height: 16px;
-	color: #666;
-	cursor: help;
 }
 
 .disabledIcon {
@@ -310,37 +291,6 @@
 }
 .inlineButton:hover {
 	text-decoration: underline;
-}
-
-.modalOverlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.5);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 1000;
-}
-
-.modalContent {
-	background-color: white;
-	padding: 24px;
-	border-radius: 8px;
-	max-width: 400px;
-	text-align: center;
-}
-
-.modalMessage {
-	margin-bottom: 16px;
-}
-
-.modalActions {
-	display: flex;
-	gap: 8px;
-	justify-content: center;
 }
 
 .copyInviteLinkIconRight {

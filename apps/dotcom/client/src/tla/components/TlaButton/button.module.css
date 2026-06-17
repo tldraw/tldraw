@@ -82,11 +82,6 @@
 	color: var(--tla-color-text-1);
 }
 
-.warning {
-	background-color: var(--tla-color-secondary);
-	color: var(--tla-color-warning);
-}
-
 .iconRight {
 	position: absolute;
 	right: 8px;
@@ -120,11 +115,6 @@
 	color: var(--tla-color-secondary);
 	background-color: transparent;
 	border: none;
-}
-
-.warning.ghost {
-	color: var(--tla-color-warning);
-	background-color: transparent;
 }
 
 @media (hover: hover) {

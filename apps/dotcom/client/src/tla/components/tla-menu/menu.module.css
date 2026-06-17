@@ -87,21 +87,8 @@
 	white-space: nowrap;
 }
 
-.menuPopover {
-	padding: 40px 12px 12px 12px;
-	min-width: 160px;
-	max-width: 160px;
-	overflow: hidden;
-}
-
 .menuLabel + .menuInfoTrigger {
 	margin-left: -12px;
-}
-
-.menuPopoverClose {
-	position: absolute;
-	top: 0px;
-	right: 0px;
 }
 
 .menuDetailCentered {
@@ -209,10 +196,6 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	border-radius: 10px;
 	outline: 2px solid var(--tl-color-focus);
 	outline-offset: -5px;
-}
-
-.menuSelectSelect:disabled {
-	cursor: default;
 }
 
 .menuSelectTrigger[data-disabled] .menuSelectLabel {

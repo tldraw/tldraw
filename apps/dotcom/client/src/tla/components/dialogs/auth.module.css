@@ -1,16 +1,3 @@
-/* Utility Classes */
-.sr-only {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	padding: 0;
-	margin: -1px;
-	overflow: hidden;
-	clip: rect(0, 0, 0, 0);
-	white-space: nowrap;
-	border-width: 0;
-}
-
 /* Auth Dialog Container */
 .authContainer {
 	width: 450px;
@@ -46,16 +33,6 @@
 .authLogo span {
 	width: 100%;
 	height: 100%;
-}
-
-.authVerificationTitle {
-	text-align: center;
-	color: var(--tl-color-text-2);
-	font-size: 12px;
-	margin: 0;
-	line-height: 1.5;
-	text-wrap: balance;
-	font-weight: 600;
 }
 
 /* Description Text */
@@ -169,29 +146,8 @@
 	text-wrap: balance;
 	font-weight: 500;
 }
-/* Continue Button */
-/* .authContinueButton {
-	width: 100%;
-	position: relative;
-	padding: 0;
-	font-size: 12px;
-	font-weight: 500;
-	justify-content: center;
-	color: var(--tl-color-text-1);
-	background-color: var(--tl-color-muted-2);
-	border: 1px solid var(--tl-color-muted-1);
-	border-radius: var(--tl-radius-2);
-	transition: background-color 0.12s ease;
-	margin-top: 16px;
-} */
-
 .authContinueWithEmailButton {
 	margin-top: var(--tl-space-4);
-}
-
-.authButtonArrow {
-	margin-left: var(--tl-space-2);
-	font-size: 12px;
 }
 
 /* Checkbox */
@@ -225,10 +181,6 @@
 	justify-content: center;
 	margin: var(--tl-space-4) 0;
 	position: relative;
-}
-
-.authVerificationInput {
-	display: none;
 }
 
 /* OTP boxes */
@@ -308,25 +260,6 @@
 .authResendButton:disabled {
 	color: var(--tl-color-text-3);
 	cursor: not-allowed;
-}
-
-/* Switch Mode */
-.authSwitchMode {
-	text-align: center;
-	font-size: 12px;
-	color: var(--tl-color-text-2);
-	margin-top: var(--tl-space-2);
-}
-
-.authSwitchModeButton {
-	background: none;
-	border: none;
-	color: var(--tl-color-selected);
-	text-decoration: underline;
-	cursor: pointer;
-	padding: 0;
-	font-size: 12px;
-	font-weight: 500;
 }
 
 .authTermsAcceptAndContinueButton {
