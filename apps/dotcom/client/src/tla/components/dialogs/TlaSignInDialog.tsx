@@ -107,6 +107,22 @@ function TlaEnterEmailStep({
 
 	const enterEmailAddressMsg = useMsg(messages.enterEmailAddress)
 
+	// When the user starts the Google flow we redirect to Google's OAuth page.
+	// Pressing the browser back button can restore this page from the bfcache,
+	// which leaves Clerk's sign-in state machine frozen mid-redirect so the
+	// "Sign in with Google" button stops responding. Bump a key on bfcache
+	// restore to remount SignIn.Root with a fresh state machine. See #9103.
+	const [signInResetKey, setSignInResetKey] = useState(0)
+	useEffect(() => {
+		function handlePageShow(e: PageTransitionEvent) {
+			if (e.persisted) {
+				setSignInResetKey((k) => k + 1)
+			}
+		}
+		window.addEventListener('pageshow', handlePageShow)
+		return () => window.removeEventListener('pageshow', handlePageShow)
+	}, [])
+
 	const [state, setState] = useState<{
 		identifier: string
 		isSubmitting: boolean
@@ -204,7 +220,7 @@ function TlaEnterEmailStep({
 					</>
 				)}
 			</div>
-			<SignIn.Root routing="virtual">
+			<SignIn.Root key={signInResetKey} routing="virtual">
 				<SignIn.Step name="start">
 					<div className={styles.authGoogleButtonWrapper}>
 						{/* @ts-ignore this is fine */}
