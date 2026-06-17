@@ -22,13 +22,16 @@ type WorkspaceMemberRole = 'owner' | 'member'
 
 const SCENARIO_USER_POOL_START = 4
 const ROOT_URL = 'http://localhost:3000'
+const MENU_INTERACTION_TIMEOUT = 5_000
 
 export async function selectTlaMenuOption(page: Page, select: Locator, optionLabel: string) {
-	await select.click()
+	await select.click({ timeout: MENU_INTERACTION_TIMEOUT })
 	const openListbox = page.locator('[role="listbox"][data-state="open"]')
-	await expect(openListbox).toBeVisible()
-	await openListbox.getByText(optionLabel, { exact: true }).click()
-	await expect(openListbox).not.toBeVisible()
+	await expect(openListbox).toBeVisible({ timeout: MENU_INTERACTION_TIMEOUT })
+	await openListbox
+		.getByRole('option', { name: optionLabel, exact: true })
+		.click({ timeout: MENU_INTERACTION_TIMEOUT })
+	await expect(openListbox).not.toBeVisible({ timeout: MENU_INTERACTION_TIMEOUT })
 }
 
 interface SignedInActorAccount {
