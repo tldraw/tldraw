@@ -113,6 +113,9 @@
   "344a7f427f": {
     "translation": "Editor"
   },
+  "34e34c43ec": {
+    "translation": "Manage"
+  },
   "375396d6e5": {
     "translation": "Remove member"
   },
@@ -296,9 +299,6 @@
   "78e9815992": {
     "translation": "Got it"
   },
-  "78faf88f4d": {
-    "translation": "Enable invite link"
-  },
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
   },
@@ -464,6 +464,9 @@
   },
   "b357b524e7": {
     "translation": "Email address"
+  },
+  "b48becc771": {
+    "translation": "Enable invites"
   },
   "b6d4223e60": {
     "translation": "Sign in"
