@@ -233,6 +233,15 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	color: var(--tl-color-danger);
 }
 
+.menuSelectOption[data-disabled] {
+	color: var(--tla-color-text-3);
+	cursor: default;
+}
+
+.menuSelectOption[data-disabled]:hover::after {
+	opacity: 0;
+}
+
 [data-radix-focus-guard] {
 	inset: 0;
 }
@@ -401,7 +410,9 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 }
 
 .menuTabsTab:nth-of-type(n + 2) {
-	margin-left: calc(var(--tab-padding) * -0.5);
+	/* Tabs after the first overlap their neighbour by half the padding; consumers can
+	   override --tabs-tab-gap to tighten or loosen the spacing between tabs. */
+	margin-left: var(--tabs-tab-gap, calc(var(--tab-padding) * -0.5));
 }
 
 .menuTabsLine {
