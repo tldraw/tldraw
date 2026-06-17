@@ -47,6 +47,11 @@
 	animation: tla-spin 1.5s linear infinite;
 }
 
+.big {
+	height: 36px;
+	border-radius: var(--tl-radius-2);
+}
+
 @keyframes tla-spin {
 	0% {
 		transform: rotate(0deg);

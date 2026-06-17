@@ -257,7 +257,12 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						<div className={styles.sectionLabel}>
 							<F {...messages.inviteMembers} />
 						</div>
-						<TlaButton iconRight="copy" variant="secondary" disabled>
+						<TlaButton
+							className={styles.inviteButton}
+							iconRight="copy"
+							variant="secondary"
+							disabled
+						>
 							<F {...messages.copyInviteLink} />
 						</TlaButton>
 						<p className={styles.sectionHelp}>
@@ -300,9 +305,11 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 							</TldrawUiTooltip>
 						</div>
 						<TlaButton
+							className={styles.inviteButton}
 							iconRight={copiedInviteLink ? 'check' : 'copy'}
 							iconRightClassName={styles.copyInviteLinkIconRight}
 							variant="primary"
+							big
 							onClick={handleCopyInviteLink}
 						>
 							<F {...messages.copyInviteLink} />

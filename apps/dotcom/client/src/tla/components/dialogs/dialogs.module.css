@@ -1,3 +1,5 @@
+@value tlaButton from "../TlaButton/button.module.css";
+
 .dialogContainer {
 	width: 350px;
 	min-width: 350px;
@@ -203,17 +205,18 @@
 .workspaceSettingsBody {
 	max-width: 360px;
 	width: calc(100vw - 48px);
+	padding-top: 0px;
 }
 
 .section {
-	margin-bottom: 12px;
 	display: flex;
 	flex-direction: column;
 }
 
 .sectionLabel {
-	display: block;
-	margin-bottom: 8px;
+	height: 36px;
+	display: flex;
+	align-items: center;
 	font-weight: 500;
 }
 
@@ -238,7 +241,11 @@
 	border-radius: var(--tl-radius-2);
 	padding: 0px 0px 0px var(--tl-space-3);
 	background-color: var(--tl-color-muted-0);
-	height: 40px;
+	height: 36px;
+}
+
+.inviteInputContainer input {
+	height: 36px;
 }
 
 .divider {
