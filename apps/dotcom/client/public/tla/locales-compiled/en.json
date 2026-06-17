@@ -359,6 +359,12 @@
       "value": "Unable to unpublish the file."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "This is your private workspace. Create a new workspace to invite teammates."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -1025,20 +1031,6 @@
       "value": "Copy link"
     }
   ],
-  "b9a68fbd56": [
-    {
-      "type": 0,
-      "value": "Members ("
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": ")"
-    }
-  ],
   "ba0318cb81": [
     {
       "type": 0,
@@ -1391,6 +1383,12 @@
     {
       "type": 0,
       "value": " to learn more."
+    }
+  ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Members"
     }
   ],
   "ef7de3f485": [

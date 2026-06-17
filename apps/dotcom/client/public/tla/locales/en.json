@@ -170,6 +170,9 @@
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
   },
+  "51317dcad5": {
+    "translation": "This is your private workspace. Create a new workspace to invite teammates."
+  },
   "517bb809d9": {
     "translation": "Page menu"
   },
@@ -471,9 +474,6 @@
   "b758336699": {
     "translation": "Copy link"
   },
-  "b9a68fbd56": {
-    "translation": "Members ({count})"
-  },
   "ba0318cb81": {
     "translation": "Sign in to share"
   },
@@ -602,6 +602,9 @@
   },
   "ede55d955f": {
     "translation": "Read our <a>cookie policy</a> to learn more."
+  },
+  "ef53538ae4": {
+    "translation": "Members"
   },
   "ef7de3f485": {
     "translation": "selected"

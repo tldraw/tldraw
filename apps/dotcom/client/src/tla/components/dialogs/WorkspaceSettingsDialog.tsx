@@ -3,8 +3,6 @@ import { Tooltip as _Tooltip } from 'radix-ui'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-	TldrawUiButton,
-	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
@@ -85,10 +83,12 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	})
 
 	if (!workspaceMembership) return null
-	// The home workspace has no settings to manage.
-	if (workspaceId === app.getHomeWorkspaceId()) return null
 	const workspace = workspaceMembership.group
 	if (!workspace) return null
+	// The home workspace is a private, single-member space: it can be renamed but not shared,
+	// joined, or deleted, so it shows the name field and a disabled "private workspace" invite
+	// note — no shareable invite link, members list, or settings tabs.
+	const isHomeWorkspace = workspaceId === app.getHomeWorkspaceId()
 
 	const currentUser = workspaceMembership.groupMembers.find(
 		(member) => member.userId === app.getUser().id
@@ -283,178 +283,204 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					/>
 				</div>
 
-				<div className={styles.section}>
-					<div className={styles.sectionLabel}>
-						<F defaultMessage="Invite teammates" />
-					</div>
-					{inviteLinkEnabled ? (
-						<TlaButton
-							iconRight={copiedInviteLink ? 'check' : 'copy'}
-							iconRightClassName={styles.copyInviteLinkIconRight}
-							variant="primary"
-							onClick={handleCopyInviteLink}
-						>
+				{/* The home workspace is private and can't be shared, so show a disabled invite
+				    control with a note pointing the user to creating a shared workspace instead. */}
+				{isHomeWorkspace && (
+					<div className={styles.section}>
+						<div className={styles.sectionLabel}>
+							<F defaultMessage="Invite teammates" />
+						</div>
+						<TlaButton iconRight="copy" variant="secondary" big disabled>
 							<F defaultMessage="Copy invite link" />
 						</TlaButton>
-					) : (
-						<TlaButton variant="primary" disabled>
-							<F defaultMessage="Invites are disabled" />
-						</TlaButton>
-					)}
-				</div>
+						<p className={styles.sectionHelp}>
+							<F defaultMessage="This is your private workspace. Create a new workspace to invite teammates." />
+						</p>
+					</div>
+				)}
 
-				<TlaMenuTabsRoot activeTab={activeTab} onTabChange={setActiveTab}>
-					{/* The shared tabs inset their labels by the tab padding; pull the strip out
+				{/* Invite link, members, and settings apply only to shared workspaces. */}
+				{!isHomeWorkspace && (
+					<>
+						<div className={styles.section}>
+							<div className={styles.sectionLabel}>
+								<F defaultMessage="Invite teammates" />
+							</div>
+							{inviteLinkEnabled ? (
+								<TlaButton
+									iconRight={copiedInviteLink ? 'check' : 'copy'}
+									iconRightClassName={styles.copyInviteLinkIconRight}
+									variant="primary"
+									big
+									onClick={handleCopyInviteLink}
+								>
+									<F defaultMessage="Copy invite link" />
+								</TlaButton>
+							) : (
+								<TlaButton variant="secondary" big disabled>
+									<F defaultMessage="Invites are disabled" />
+								</TlaButton>
+							)}
+						</div>
+
+						<TlaMenuTabsRoot activeTab={activeTab} onTabChange={setActiveTab}>
+							{/* The shared tabs inset their labels by the tab padding; pull the strip out
 					    by that amount so the first tab's label lines up with the headings, button,
 					    and member rows. The underline still spans the content width. */}
-					<div className={styles.workspaceTabs}>
-						<TlaMenuTabsTabs>
-							<TlaMenuTabsTab id="members">
-								<F defaultMessage="Members ({count})" values={{ count: members.length }} />
-							</TlaMenuTabsTab>
-							<TlaMenuTabsTab id="settings">
-								<F defaultMessage="Settings" />
-							</TlaMenuTabsTab>
-						</TlaMenuTabsTabs>
-					</div>
+							<div className={styles.workspaceTabs}>
+								<TlaMenuTabsTabs>
+									<TlaMenuTabsTab id="members">
+										<F defaultMessage="Members" />
+									</TlaMenuTabsTab>
+									<TlaMenuTabsTab id="settings">
+										<F defaultMessage="Settings" />
+									</TlaMenuTabsTab>
+								</TlaMenuTabsTabs>
+							</div>
 
-					<TlaMenuTabsPage id="members">
-						<div className={styles.tabPage}>
-							<div className={styles.membersList}>
-								{members.map((member) => {
-									const isSelf = member.userId === app.getUser().id
-									// Whether this member is an owner; used to hide non-owner roles from
-									// viewers who can't manage the workspace.
-									const memberIsOwner = can(member.role, 'manageWorkspace')
-									// A workspace must keep at least one owner, so the last owner can't be
-									// removed (this also covers an owner removing themselves).
-									const canRemoveMember = !memberIsOwner || ownersCount > 1
-									// For the same reason the last owner can't be demoted to member, so
-									// disable that option rather than letting the change silently no-op.
-									const memberRoleOptions = canRemoveMember
-										? roleOptions
-										: roleOptions.map((option) =>
-												option.value === 'member' ? { ...option, disabled: true } : option
+							<TlaMenuTabsPage id="members">
+								<div className={styles.tabPage}>
+									<div className={styles.membersList}>
+										{members.map((member) => {
+											const isSelf = member.userId === app.getUser().id
+											// Whether this member is an owner; used to hide non-owner roles from
+											// viewers who can't manage the workspace.
+											const memberIsOwner = can(member.role, 'manageWorkspace')
+											// A workspace must keep at least one owner, so the last owner can't be
+											// removed (this also covers an owner removing themselves).
+											const canRemoveMember = !memberIsOwner || ownersCount > 1
+											// For the same reason the last owner can't be demoted to member, so
+											// disable that option rather than letting the change silently no-op.
+											const memberRoleOptions = canRemoveMember
+												? roleOptions
+												: roleOptions.map((option) =>
+														option.value === 'member' ? { ...option, disabled: true } : option
+													)
+											return (
+												<div key={member.userId} className={styles.memberItem}>
+													<div
+														className={styles.memberAvatar}
+														style={{ backgroundColor: member.userColor || '#ff6b35' }}
+													>
+														{member.userName.charAt(0).toUpperCase()}
+													</div>
+													<span className={styles.memberName}>
+														{member.userName}
+														{isSelf ? ` (${youMsg})` : ''}
+													</span>
+													{canManageWorkspace ? (
+														<TlaMenuSelect
+															id={`workspace-member-role-${member.userId}`}
+															label={roleLabels[member.role]}
+															value={member.role}
+															usePortal
+															options={memberRoleOptions}
+															// Everyone — including yourself — can be removed; it's disabled when
+															// removal would leave the workspace without an owner. On your own
+															// row this is "Leave" and routes to the leave flow.
+															actions={[
+																{
+																	id: 'remove',
+																	label: isSelf ? (
+																		<F defaultMessage="Leave" />
+																	) : (
+																		<F defaultMessage="Remove" />
+																	),
+																	destructive: true,
+																	disabled: !canRemoveMember,
+																	tooltip: canRemoveMember ? undefined : (
+																		<F defaultMessage="A workspace must keep at least one owner. Make someone else an owner first." />
+																	),
+																	onSelect: () =>
+																		isSelf
+																			? openLeaveConfirmDialog()
+																			: openRemoveConfirmDialog(member),
+																},
+															]}
+															onChange={async (value) => {
+																if (value === member.role) return
+																try {
+																	await app.z.mutate.setWorkspaceMemberRole({
+																		workspaceId,
+																		targetUserId: member.userId,
+																		role: value,
+																	}).client
+																} catch (err) {
+																	console.error('Failed to change member role', err)
+																	app.showMutationRejectionToast(
+																		(err as Error).message as ZErrorCode
+																	)
+																}
+															}}
+														/>
+													) : memberIsOwner ? (
+														<span className={styles.memberRole}>{roleLabels[member.role]}</span>
+													) : null}
+												</div>
 											)
-									return (
-										<div key={member.userId} className={styles.memberItem}>
-											<div
-												className={styles.memberAvatar}
-												style={{ backgroundColor: member.userColor || '#ff6b35' }}
-											>
-												{member.userName.charAt(0).toUpperCase()}
-											</div>
-											<span className={styles.memberName}>
-												{member.userName}
-												{isSelf ? ` (${youMsg})` : ''}
-											</span>
-											{canManageWorkspace ? (
-												<TlaMenuSelect
-													id={`workspace-member-role-${member.userId}`}
-													label={roleLabels[member.role]}
-													value={member.role}
-													usePortal
-													options={memberRoleOptions}
-													// Everyone — including yourself — can be removed; it's disabled when
-													// removal would leave the workspace without an owner. On your own
-													// row this is "Leave" and routes to the leave flow.
-													actions={[
-														{
-															id: 'remove',
-															label: isSelf ? (
-																<F defaultMessage="Leave" />
-															) : (
-																<F defaultMessage="Remove" />
-															),
-															destructive: true,
-															disabled: !canRemoveMember,
-															tooltip: canRemoveMember ? undefined : (
-																<F defaultMessage="A workspace must keep at least one owner. Make someone else an owner first." />
-															),
-															onSelect: () =>
-																isSelf ? openLeaveConfirmDialog() : openRemoveConfirmDialog(member),
-														},
-													]}
-													onChange={async (value) => {
-														if (value === member.role) return
-														try {
-															await app.z.mutate.setWorkspaceMemberRole({
-																workspaceId,
-																targetUserId: member.userId,
-																role: value,
-															}).client
-														} catch (err) {
-															console.error('Failed to change member role', err)
-															app.showMutationRejectionToast((err as Error).message as ZErrorCode)
-														}
-													}}
-												/>
-											) : memberIsOwner ? (
-												<span className={styles.memberRole}>{roleLabels[member.role]}</span>
-											) : null}
-										</div>
-									)
-								})}
-							</div>
-						</div>
-					</TlaMenuTabsPage>
+										})}
+									</div>
+								</div>
+							</TlaMenuTabsPage>
 
-					<TlaMenuTabsPage id="settings">
-						<div className={styles.tabPage}>
-							<div className={styles.settingsPage}>
-								{canManageWorkspace && (
-									<>
-										<TlaMenuControl className={styles.settingsControl}>
-											<TlaMenuControlLabel htmlFor="workspace-invite-enabled-switch">
-												<F defaultMessage="Enable invite link" />
-											</TlaMenuControlLabel>
-											<TlaMenuSwitch
-												id="workspace-invite-enabled-switch"
-												checked={inviteLinkEnabled}
-												onChange={handleToggleInviteLink}
-											/>
-										</TlaMenuControl>
-										<TldrawUiButton type="menu" onClick={openRegenerateConfirmDialog}>
-											<TldrawUiButtonLabel>
-												<F defaultMessage="Regenerate invite link" />
-											</TldrawUiButtonLabel>
-										</TldrawUiButton>
-									</>
-								)}
-								{canLeave ? (
-									<TldrawUiButton type="menu" onClick={openLeaveConfirmDialog}>
-										<TldrawUiButtonLabel>
-											<F defaultMessage="Leave workspace" />
-										</TldrawUiButtonLabel>
-									</TldrawUiButton>
-								) : (
-									<TldrawUiTooltip
-										content={
-											<F defaultMessage="A workspace must keep at least one owner. Make someone else an owner first." />
-										}
-									>
-										<TldrawUiButton type="menu" disabled>
-											<TldrawUiButtonLabel>
+							<TlaMenuTabsPage id="settings">
+								<div className={styles.tabPage}>
+									<div className={styles.settingsPage}>
+										{canManageWorkspace && (
+											<>
+												<TlaMenuControl>
+													<TlaMenuControlLabel htmlFor="workspace-invite-enabled-switch">
+														<F defaultMessage="Enable invite link" />
+													</TlaMenuControlLabel>
+													<TlaMenuSwitch
+														id="workspace-invite-enabled-switch"
+														checked={inviteLinkEnabled}
+														onChange={handleToggleInviteLink}
+													/>
+												</TlaMenuControl>
+												<button
+													type="button"
+													className={styles.inlineButton}
+													onClick={openRegenerateConfirmDialog}
+												>
+													<F defaultMessage="Regenerate invite link" />
+												</button>
+											</>
+										)}
+										{canLeave ? (
+											<button
+												type="button"
+												className={styles.inlineButton}
+												onClick={openLeaveConfirmDialog}
+											>
 												<F defaultMessage="Leave workspace" />
-											</TldrawUiButtonLabel>
-										</TldrawUiButton>
-									</TldrawUiTooltip>
-								)}
-								{canManageWorkspace && (
-									<TldrawUiButton
-										type="menu"
-										className={styles.settingsDanger}
-										onClick={openDeleteConfirmDialog}
-									>
-										<TldrawUiButtonLabel>
-											<F defaultMessage="Delete workspace" />
-										</TldrawUiButtonLabel>
-									</TldrawUiButton>
-								)}
-							</div>
-						</div>
-					</TlaMenuTabsPage>
-				</TlaMenuTabsRoot>
+											</button>
+										) : (
+											<TldrawUiTooltip
+												content={
+													<F defaultMessage="A workspace must keep at least one owner. Make someone else an owner first." />
+												}
+											>
+												<button type="button" className={styles.inlineButton} disabled>
+													<F defaultMessage="Leave workspace" />
+												</button>
+											</TldrawUiTooltip>
+										)}
+										{canManageWorkspace && (
+											<button
+												type="button"
+												className={`${styles.inlineButton} ${styles.inlineButtonDanger}`}
+												onClick={openDeleteConfirmDialog}
+											>
+												<F defaultMessage="Delete workspace" />
+											</button>
+										)}
+									</div>
+								</div>
+							</TlaMenuTabsPage>
+						</TlaMenuTabsRoot>
+					</>
+				)}
 			</TldrawUiDialogBody>
 		</_Tooltip.Provider>
 	)
