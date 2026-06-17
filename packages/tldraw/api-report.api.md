@@ -2873,7 +2873,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             };
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            textFirstEditedBy: null | string;
+            textLastEditedBy: null | string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
         };

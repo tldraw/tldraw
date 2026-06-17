@@ -4426,7 +4426,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Collect user IDs referenced by a set of shapes via shape-specific props
-	 * (e.g. `textFirstEditedBy` on notes).
+	 * (e.g. `textLastEditedBy` on notes).
 	 *
 	 * @internal
 	 */
