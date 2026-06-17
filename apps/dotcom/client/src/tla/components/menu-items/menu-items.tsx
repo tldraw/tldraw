@@ -4,7 +4,6 @@ import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-	ColorSchemeMenu,
 	TLDRAW_FILE_EXTENSION,
 	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
@@ -41,7 +40,6 @@ const messages = defineMessages({
 	accountMenu: { defaultMessage: 'User settings' },
 	signOut: { defaultMessage: 'Sign out' },
 	importFile: { defaultMessage: 'Import file…' },
-	dotdev: { defaultMessage: 'Try the tldraw SDK' },
 	// account menu
 	getHelp: { defaultMessage: 'User manual' },
 	legalSummary: { defaultMessage: 'Legal summary' },
@@ -86,12 +84,6 @@ export function SignOutMenuItem() {
 			/>
 		</TldrawUiMenuGroup>
 	)
-}
-
-export function ColorThemeSubmenu() {
-	const editor = useMaybeEditor()
-	if (!editor) return null
-	return <ColorSchemeMenu />
 }
 
 const COLOR_SCHEMES = [
@@ -316,24 +308,6 @@ export function GiveUsFeedbackMenuItem() {
 			readonlyOk
 			onSelect={() => {
 				addDialog({ component: SubmitFeedbackDialog })
-			}}
-		/>
-	)
-}
-
-export function DotDevMenuItem() {
-	const openAndTrack = useOpenUrlAndTrack('main-menu')
-	return (
-		<TldrawUiMenuItem
-			id="tos"
-			label={useMsg(messages.dotdev)}
-			iconLeft="external-link"
-			readonlyOk
-			onSelect={() => {
-				openAndTrack(
-					'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-menu',
-					true
-				)
 			}}
 		/>
 	)

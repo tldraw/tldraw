@@ -47,6 +47,11 @@
 	animation: tla-spin 1.5s linear infinite;
 }
 
+.big {
+	height: 36px;
+	border-radius: var(--tl-radius-2);
+}
+
 @keyframes tla-spin {
 	0% {
 		transform: rotate(0deg);
@@ -82,11 +87,6 @@
 	color: var(--tla-color-text-1);
 }
 
-.warning {
-	background-color: var(--tla-color-secondary);
-	color: var(--tla-color-warning);
-}
-
 .iconRight {
 	position: absolute;
 	right: 8px;
@@ -120,11 +120,6 @@
 	color: var(--tla-color-secondary);
 	background-color: transparent;
 	border: none;
-}
-
-.warning.ghost {
-	color: var(--tla-color-warning);
-	background-color: transparent;
 }
 
 @media (hover: hover) {
