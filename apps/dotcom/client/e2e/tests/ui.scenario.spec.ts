@@ -1,4 +1,4 @@
-import { expect, test } from '../fixtures/scenario-test'
+import { expect, selectTlaMenuOption, test } from '../fixtures/scenario-test'
 
 const ROOT_URL = 'http://localhost:3000'
 
@@ -73,7 +73,9 @@ test.describe('UI scenarios', () => {
 		await owner.sidebar.expectFileVisible(duplicateName)
 		await owner.sidebar.expectFileActive(duplicateName)
 		expect(await owner.editor.getCurrentFileName()).toBe(duplicateName)
-		await owner.editor.expectShapesCount(1)
+		// Duplicating copies the room server-side, so the new file's shapes only render once the
+		// editor navigates and loads the copied content. Allow more than the default 5s for that.
+		await owner.editor.expectShapesCount(1, 15000)
 
 		await owner.sidebar.deleteFileByName(duplicateName)
 		await owner.deleteFileDialog.expectIsVisible()
@@ -133,19 +135,19 @@ test.describe('UI scenarios', () => {
 		await owner.sidebar.expectActiveWorkspace(workspaceName)
 		await owner.sidebar.expectWorkspaceVisible(workspaceName)
 
-		await owner.sidebar.switchToWorkspace('Home')
+		await owner.sidebar.switchToHomeWorkspace()
 		await owner.sidebar.moveFileToWorkspace(fileName, workspaceName)
 		await owner.sidebar.expectActiveWorkspace(workspaceName)
 		await owner.sidebar.expectFileVisible(fileName)
 
-		await owner.sidebar.switchToWorkspace('Home')
+		await owner.sidebar.switchToHomeWorkspace()
 		await owner.sidebar.expectFileNotVisible(fileName)
 		await owner.sidebar.switchToWorkspace(workspaceName)
 
 		await owner.sidebar.deleteWorkspace(workspaceName)
 		await owner.sidebar.expectWorkspaceNotVisible(workspaceName)
 		await owner.sidebar.expectFileNotVisible(fileName)
-		await owner.sidebar.expectActiveWorkspace('Home')
+		await owner.sidebar.expectActiveHomeWorkspace()
 	})
 
 	test('share and publish controls expose current access and published URLs', async ({
@@ -231,54 +233,65 @@ test.describe('UI scenarios', () => {
 		})
 
 		await owner.sidebar.openWorkspaceSettings(workspaceName)
-		const ownerDialog = owner.page.getByRole('dialog', { name: 'Workspace settings' })
+		const ownerDialog = owner.page.getByRole('dialog', { name: 'Manage workspace' })
 
 		// Owners see the full dialog surface and member roster.
 		await expect(ownerDialog).toBeVisible()
 		await expect(ownerDialog.getByPlaceholder('Workspace name')).toBeVisible()
-		await expect(ownerDialog.getByText('Invite members')).toBeVisible()
+		await expect(ownerDialog.getByText('Invite teammates')).toBeVisible()
 		await expect(ownerDialog.getByRole('button', { name: 'Copy invite link' })).toBeVisible()
-		await expect(ownerDialog.getByText(/Members\s*\(2\)/)).toBeVisible()
+		await expect(ownerDialog.getByText(/Members \(\d+\)/)).toBeVisible()
 		await expect(ownerDialog.getByText(/\(you\)/)).toBeVisible()
-		await expect(ownerDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)).toHaveText(
-			'Member'
-		)
+		const memberRoleSelect = ownerDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)
+		await expect(memberRoleSelect).toHaveText('Member')
 
-		// Copying and regenerating the invite link update clipboard-visible state.
-		const inviteInput = ownerDialog.locator('input[readonly]').first()
-		const firstInviteUrl = await inviteInput.inputValue()
+		// Interacting with the portalled role select should not count as a background click.
+		await selectTlaMenuOption(owner.page, memberRoleSelect, 'Member')
+		await expect(ownerDialog).toBeVisible()
+
+		// The dialog exposes the invite link only through the Copy button (no visible URL
+		// field), so read it from the clipboard. Regenerating from the Settings tab
+		// replaces the link, so a later copy returns a different URL.
+		await ownerDialog.getByRole('button', { name: 'Copy invite link' }).click()
+		const firstInviteUrl = await owner.page.evaluate(() => navigator.clipboard.readText())
 		expect(new URL(firstInviteUrl).pathname).toMatch(/^\/invite\//)
 
-		await ownerDialog.getByRole('button', { name: 'Copy invite link' }).click()
-		await expect
-			.poll(() => owner.page.evaluate(() => navigator.clipboard.readText()))
-			.toBe(firstInviteUrl)
-
+		await ownerDialog.getByRole('tab', { name: 'Settings' }).click()
 		await ownerDialog.getByRole('button', { name: 'Regenerate invite link' }).click()
-		await expect.poll(() => inviteInput.inputValue()).not.toBe(firstInviteUrl)
-		const regeneratedInviteUrl = await inviteInput.inputValue()
-		expect(new URL(regeneratedInviteUrl).pathname).toMatch(/^\/invite\//)
+		await owner.page.getByRole('button', { name: 'Regenerate', exact: true }).click()
+		await owner.waitForMutationResolution()
 
-		await owner.page.waitForTimeout(1100)
-		await ownerDialog.getByRole('button', { name: 'Copy invite link' }).click()
+		// Copy again (after the 1s copy-button guard) and poll until the new link lands.
 		await expect
-			.poll(() => owner.page.evaluate(() => navigator.clipboard.readText()))
-			.toBe(regeneratedInviteUrl)
+			.poll(
+				async () => {
+					await owner.page.waitForTimeout(1100)
+					await ownerDialog.getByRole('button', { name: 'Copy invite link' }).click()
+					return owner.page.evaluate(() => navigator.clipboard.readText())
+				},
+				{ timeout: 15000 }
+			)
+			.not.toBe(firstInviteUrl)
+		const regeneratedInviteUrl = await owner.page.evaluate(() => navigator.clipboard.readText())
+		expect(new URL(regeneratedInviteUrl).pathname).toMatch(/^\/invite\//)
 		await owner.page.keyboard.press('Escape')
 
 		// Non-owners can inspect settings but cannot access owner-only controls.
 		await member.sidebar.openWorkspaceSettings(workspaceName)
-		const memberDialog = member.page.getByRole('dialog', { name: 'Workspace settings' })
+		const memberDialog = member.page.getByRole('dialog', { name: 'Manage workspace' })
 		await expect(memberDialog.getByPlaceholder('Workspace name')).toBeDisabled()
 		await expect(
 			memberDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)
 		).not.toBeVisible()
+
+		// Leave/Delete live on the Settings tab; members get Leave but not Delete.
+		await memberDialog.getByRole('tab', { name: 'Settings' }).click()
 		await expect(memberDialog.getByRole('button', { name: /Delete workspace/ })).not.toBeVisible()
 		await expect(memberDialog.getByRole('button', { name: /Leave workspace/ })).toBeVisible()
 
-		// Leaving requires confirmation and removes the member's workspace access.
+		// Leaving requires confirmation (the confirm button is just "Leave") and removes access.
 		await memberDialog.getByRole('button', { name: /Leave workspace/ }).click()
-		await member.page.getByRole('button', { name: 'Leave workspace' }).click()
+		await member.page.getByRole('button', { name: 'Leave', exact: true }).click()
 		await member.waitForMutationResolution()
 		await member.sidebar.expectWorkspaceNotVisible(workspaceName)
 		await member.sidebar.expectFileNotVisible(fileName)

@@ -21,6 +21,9 @@ dotenv.config({ path: path.resolve(__dirname, '.env.local') })
  */
 export default defineConfig({
 	testDir: './e2e',
+	// In CI the webServer below starts the full dotcom dev stack (including Docker). Tear it down
+	// afterwards so containers and ports do not leak between runs. No-op locally (reused server).
+	globalTeardown: process.env.CI ? require.resolve('./e2e/global.teardown.ts') : undefined,
 	// Run files in parallel, but tests within a file in sequence. This is important for certain
 	// tests that use shared system resources like the clipboard, which should all be kept in the
 	// same file.

@@ -93,6 +93,12 @@
       "value": "Remove"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copy to personal workspace"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +109,6 @@
     {
       "type": 0,
       "value": "Unpin file"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Try the tldraw SDK"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +129,6 @@
       "value": "Create file"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Workspace settings"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +141,36 @@
       "value": "Today"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "A workspace must keep at least one owner. Make someone else an owner first."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Workspace name"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "You have been invited to join "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Create a free account to continue."
     }
   ],
   "250ddea65c": [
@@ -171,16 +191,28 @@
       "value": "Welcome to your workspace"
     }
   ],
-  "2c3ef76333": [
+  "2a37324bb4": [
     {
       "type": 0,
-      "value": "My files"
+      "value": "Search..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Regenerating replaces the current invite link with a new one. Anyone using the old link will need the new one to join."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Include link to current file"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Regenerate invite link"
     }
   ],
   "31246941ad": [
@@ -259,12 +291,6 @@
     {
       "type": 0,
       "value": "Contact the owner to request access."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Leave workspace…"
     }
   ],
   "44db318ee5": [
@@ -373,6 +399,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Create a workspace"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -403,12 +435,6 @@
       "value": "My workspace"
     }
   ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Revoke this link and create a new one."
-    }
-  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -431,6 +457,12 @@
     {
       "type": 0,
       "value": "Copy"
+    }
+  ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Create a free account to save your files, create workspaces, and invite your teammates."
     }
   ],
   "61057a0c84": [
@@ -467,6 +499,12 @@
     {
       "type": 0,
       "value": "A new version of tldraw is available. Please reload the page to continue."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "New file"
     }
   ],
   "6832ac5936": [
@@ -523,6 +561,12 @@
       "value": "Please reload the page"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "No files found"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -553,12 +597,6 @@
       "value": "Please reload"
     }
   ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw is a free online whiteboard. Create an account to save your files and work with your friends."
-    }
-  ],
   "777f9e90cf": [
     {
       "type": 0,
@@ -577,6 +615,12 @@
       "value": "Got it"
     }
   ],
+  "78faf88f4d": [
+    {
+      "type": 0,
+      "value": "Enable invite link"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -593,6 +637,12 @@
     {
       "type": 0,
       "value": "User manual"
+    }
+  ],
+  "7bcdfeab70": [
+    {
+      "type": 0,
+      "value": "You have been invited to join:"
     }
   ],
   "7be10fc592": [
@@ -629,6 +679,12 @@
     {
       "type": 0,
       "value": "Download"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "New workspace"
     }
   ],
   "815e116a2e": [
@@ -721,12 +777,6 @@
       "value": "Check your email for a verification code."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Home"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -751,22 +801,10 @@
       "value": "Rename"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copy to my files"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Sign in with Google"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Delete workspace…"
     }
   ],
   "95d2109dc8": [
@@ -791,6 +829,12 @@
     {
       "type": 0,
       "value": "Light"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Clear search"
     }
   ],
   "9b33f5c63c": [
@@ -885,6 +929,12 @@
       "value": "Submit"
     }
   ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Leave"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -939,6 +989,12 @@
       "value": "Guest user"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenerate"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -969,10 +1025,30 @@
       "value": "Copy link"
     }
   ],
+  "b9a68fbd56": [
+    {
+      "type": 0,
+      "value": "Members ("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
+    }
+  ],
   "ba0318cb81": [
     {
       "type": 0,
       "value": "Sign in to share"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Invites are disabled"
     }
   ],
   "bbbcefd7ce": [
@@ -1027,6 +1103,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Manage workspace"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1077,10 +1159,10 @@
       "value": "Invite"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "New board"
+      "value": "Copy to my workspace"
     }
   ],
   "c87aacf567": [
@@ -1093,12 +1175,6 @@
     {
       "type": 0,
       "value": "Dismiss"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Save"
     }
   ],
   "cceaefbc20": [
@@ -1225,12 +1301,6 @@
       "value": "OK"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Invite members"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1259,18 +1329,6 @@
     {
       "type": 0,
       "value": "or"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "You have been invited to join workspace:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Danger zone"
     }
   ],
   "ea4788705e": [
@@ -1333,12 +1391,6 @@
     {
       "type": 0,
       "value": " to learn more."
-    }
-  ],
-  "ef53538ae4": [
-    {
-      "type": 0,
-      "value": "Members"
     }
   ],
   "ef7de3f485": [

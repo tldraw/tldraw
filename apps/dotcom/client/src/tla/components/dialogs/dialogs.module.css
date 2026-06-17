@@ -175,10 +175,19 @@
 	padding: 0px;
 }
 
+.dialogFieldLabelRow {
+	height: 40px;
+	display: flex;
+	align-items: center;
+}
+
 .dialogInput {
+	height: 36px;
 	border: 1px solid var(--tla-color-border);
 	border-radius: var(--tl-radius-2);
+	background-color: var(--tl-color-muted-0);
 	padding: 0px var(--tl-space-3);
+	margin: 2px 0px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -189,71 +198,33 @@
 	border: 1px solid var(--tla-color-primary);
 }
 
-.dialogFooter {
-	display: flex;
-	justify-content: flex-end;
-	flex-shrink: 0;
-}
-
 /* ----------------- Group Settings Dialog ---------------- */
 
 .workspaceSettingsBody {
 	max-width: 360px;
 	width: calc(100vw - 48px);
+	/* Even-width digits for the member count (e.g. the "Members (12)" tab). */
+	font-variant-numeric: tabular-nums;
 }
 
 .section {
-	margin-bottom: 12px;
+	/* Sections are separated by spacing alone (no dividers), so the gap needs to be
+	   clearly larger than the ~8px spacing within a section. */
+	margin-bottom: 20px;
 	display: flex;
 	flex-direction: column;
 }
+/* No trailing gap when a section is the last thing in the dialog (e.g. the member
+   list, for non-owners who have no destroy action below it). */
+.section:last-child {
+	margin-bottom: 0;
+}
 
 .sectionLabel {
-	display: block;
-	margin-bottom: 8px;
-	font-weight: 500;
-}
-
-.sectionLabelLarge {
-	display: block;
-	margin-bottom: 12px;
-	font-weight: 500;
-}
-
-.inviteHeader {
+	height: 36px;
 	display: flex;
 	align-items: center;
-	gap: 8px;
-}
-
-.helpIcon {
-	width: 16px;
-	height: 16px;
-	color: #666;
-	cursor: help;
-}
-
-.disabledIcon {
-	width: 16px;
-	height: 16px;
-	color: #ccc;
-	cursor: not-allowed;
-}
-
-.inviteInputContainer {
-	display: flex;
-	align-items: center;
-	margin-bottom: 8px;
-	border: 1px solid var(--tla-color-border);
-	border-radius: var(--tl-radius-2);
-	padding: 0px 0px 0px var(--tl-space-3);
-	height: 40px;
-}
-
-.divider {
-	margin: 12px 0;
-	border: none;
-	border-top: 1px solid #e0e0e0;
+	font-weight: 500;
 }
 
 .membersList {
@@ -289,56 +260,54 @@
 	font-size: 12px;
 }
 
-.dangerZoneActions {
+/* Pull the tab strip out by the shared 12px tab padding so the first tab's label
+   aligns with the headings, button, and member rows. Since the dialog body's padding
+   also equals that 12px, the strip now spans the body's full width — so drop the tab
+   nav's bottom rule inset to 0 and let it bleed to the modal edges. */
+.workspaceTabs {
+	margin: 0 -12px;
+	--tabs-line-inset: 0px;
+	/* Tighten the gap between the Members and Settings tabs (default leaves too much). */
+	--tabs-tab-gap: -12px;
+}
+
+/* Tab pages sit below the tab bar, which already provides the horizontal rule.
+   The page sizes to its content (so neither tab leaves an empty gap), growing until the
+   dialog reaches its max-height (see WorkspaceSettingsDialog: 20vh top anchor + 70vh max),
+   past which the members list scrolls while the name/invite/tabs stay put. The 70vh − 280px
+   bound matches the dialog's max-height minus the fixed content above this page, so the
+   list fills exactly the available space. The scroll container clips both axes (CSS forces
+   overflow-x to clip when overflow-y is auto), so bleed it 12px past the content on each
+   side — matching the tab strip — and pad it back, giving row hover highlights and the
+   member role select room to render without clipping their corners. */
+.tabPage {
+	padding: 16px 12px 0;
+	margin: 0 -12px;
+	max-height: calc(70vh - 280px);
+	overflow-y: auto;
+}
+
+/* Pull the rows out 12px so the menu buttons' built-in 12px label padding (and the
+   matching padded toggle row) land their labels back on the content edge, aligned
+   with the headings and tab labels. */
+.settingsPage {
 	display: flex;
 	flex-direction: column;
-	align-items: flex-start;
-	gap: 8px;
+	margin: 0 -12px;
 }
 
-.inlineButton {
-	background: none;
-	border: none;
-	cursor: pointer;
-	font-size: 12px;
-	font-weight: 500;
-	display: inline-block;
-	padding: 4px 0px;
-	color: var(--tla-color-text-1);
-}
-.inlineButton:hover {
-	text-decoration: underline;
+/* The action rows reuse TldrawUiButton type="menu", whose label sits 12px in (the
+   button's own padding). Pad the toggle row to match so every label lines up, and
+   match their 40px height (the control row is otherwise 32px) so the Settings rows
+   are evenly spaced. */
+.settingsControl {
+	padding: 0 12px;
+	min-height: 40px;
 }
 
-.modalOverlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.5);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	z-index: 1000;
-}
-
-.modalContent {
-	background-color: white;
-	padding: 24px;
-	border-radius: 8px;
-	max-width: 400px;
-	text-align: center;
-}
-
-.modalMessage {
-	margin-bottom: 16px;
-}
-
-.modalActions {
-	display: flex;
-	gap: 8px;
-	justify-content: center;
+/* Destructive action ("Delete workspace") — red label on the reused menu button. */
+.settingsDanger :global(.tlui-button__label) {
+	color: var(--tl-color-danger);
 }
 
 .copyInviteLinkIconRight {

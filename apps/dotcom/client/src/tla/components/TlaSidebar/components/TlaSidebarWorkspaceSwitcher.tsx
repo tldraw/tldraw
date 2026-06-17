@@ -1,42 +1,36 @@
 import { ZErrorCode } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { CSSProperties, ReactNode, useCallback } from 'react'
+import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { uniqueId, useDialogs, useGlobalMenuIsOpen, useMaybeEditor, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
-import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { defineMessages, useMsg } from '../../../utils/i18n'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
-import { WorkspaceSettingsDialog } from '../../dialogs/WorkspaceSettingsDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { useHandleSidebarCreateFile } from './TlaSidebarCreateFileButton'
 import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
-	home: { defaultMessage: 'Home' },
-	createWorkspace: { defaultMessage: 'Create workspace' },
-	newBoard: { defaultMessage: 'New board' },
-	inviteTeammates: { defaultMessage: 'Invite teammates' },
-	workspaceSettings: { defaultMessage: 'Workspace settings' },
+	myWorkspace: { defaultMessage: 'My workspace' },
+	createWorkspace: { defaultMessage: 'New workspace' },
 })
 
 /**
  * The fixed top region of the sidebar: a dropdown for switching between the
- * home workspace and the user's other workspaces, followed by action rows
- * when a non-home workspace is active. Selecting a workspace opens its top
- * file (first pinned file, otherwise the most recent one), which makes it
- * active (the active workspace is derived from the open file).
+ * home workspace and the user's other workspaces, followed by action rows for
+ * the active workspace. Selecting a workspace opens its top file (first pinned
+ * file, otherwise the most recent one), which makes it active (the active
+ * workspace is derived from the open file).
  */
 export function TlaSidebarWorkspaceSwitcher() {
 	const app = useApp()
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const isHome = activeWorkspaceId === homeWorkspaceId
-	const homeLbl = useMsg(messages.home)
+	const myWorkspaceLbl = useMsg(messages.myWorkspace)
 
 	const workspaces = useValue(
 		'workspaceMemberships',
@@ -47,6 +41,11 @@ export function TlaSidebarWorkspaceSwitcher() {
 		'active workspace name',
 		() => app.getWorkspaceMembership(activeWorkspaceId)?.group.name,
 		[app, activeWorkspaceId]
+	)
+	const homeWorkspaceName = useValue(
+		'home workspace name',
+		() => app.getWorkspaceMembership(homeWorkspaceId)?.group.name,
+		[app, homeWorkspaceId]
 	)
 
 	// Use a stable, editor-independent menu id. useMenuIsOpen would suffix the id
@@ -72,103 +71,99 @@ export function TlaSidebarWorkspaceSwitcher() {
 	const createWorkspaceLbl = useMsg(messages.createWorkspace)
 
 	return (
-		<>
-			<div className={styles.sidebarSection}>
-				{isOpen && (
-					<div
-						className={styles.sidebarWorkspaceSwitcherOverlay}
-						onPointerDown={(e) => {
-							e.preventDefault()
-							e.stopPropagation()
-							onOpenChange(false)
-						}}
-					/>
-				)}
-				<div className={styles.sidebarWorkspaceSwitcherRoot}>
-					<_DropdownMenu.Root open={isOpen} onOpenChange={onOpenChange} modal>
-						<_DropdownMenu.Trigger asChild>
-							<button
-								className={classNames(
-									styles.sidebarWorkspaceSwitcherTrigger,
-									styles.hoverable,
-									'tla-text_ui__regular'
-								)}
-								data-testid="tla-workspace-switcher"
-							>
-								<span
-									className={classNames(styles.sidebarWorkspaceSwitcherLabel, 'notranslate')}
-									data-testid="tla-active-workspace-name"
-								>
-									{isHome ? homeLbl : (activeWorkspaceName ?? homeLbl)}
-								</span>
-								<TlaIcon
-									icon="chevron-up-down"
-									className={styles.sidebarWorkspaceSwitcherChevrons}
-								/>
-							</button>
-						</_DropdownMenu.Trigger>
-						<_DropdownMenu.Content
-							className={classNames('tlui-menu', styles.sidebarWorkspaceSwitcherMenu)}
-							side="bottom"
-							align="start"
-							sideOffset={4}
-							alignOffset={-4}
-							collisionPadding={8}
-						>
-							<WorkspaceSwitcherItem
-								isActive={isHome}
-								onSelect={() => switchToWorkspace(homeWorkspaceId)}
-								testId="tla-workspace-switcher-home"
-							>
-								{homeLbl}
-							</WorkspaceSwitcherItem>
-							{workspaces.map((g) => (
-								<WorkspaceSwitcherItem
-									key={`workspace-${g.group.id}`}
-									isActive={g.group.id === activeWorkspaceId}
-									onSelect={() => switchToWorkspace(g.group.id)}
-								>
-									{g.group.name}
-								</WorkspaceSwitcherItem>
-							))}
-							<_DropdownMenu.Item
-								className={classNames(
-									styles.sidebarWorkspaceSwitcherItem,
-									styles.sidebarWorkspaceSwitcherItemCreate,
-									'tla-text_ui__regular'
-								)}
-								onSelect={handleCreateWorkspace}
-								data-testid="tla-create-workspace-menu-item"
-							>
-								<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
-									<TlaIcon icon="plus" />
-									{createWorkspaceLbl}
-								</span>
-							</_DropdownMenu.Item>
-						</_DropdownMenu.Content>
-					</_DropdownMenu.Root>
-				</div>
-				{workspaces.length === 0 && (
-					<button
-						className={classNames(
-							styles.sidebarCreateWorkspaceButton,
-							styles.hoverable,
-							'tla-text_ui__regular'
-						)}
-						onClick={handleCreateWorkspace}
-						data-testid="tla-create-workspace"
-					>
-						{createWorkspaceLbl}
-					</button>
-				)}
-			</div>
-			{!isHome && (
-				<>
-					<div className={styles.sidebarDivider} />
-					<TlaSidebarWorkspaceActions workspaceId={activeWorkspaceId} />
-				</>
+		<div className={styles.sidebarSection}>
+			{isOpen && (
+				<div
+					className={styles.sidebarWorkspaceSwitcherOverlay}
+					onPointerDown={(e) => {
+						e.preventDefault()
+						e.stopPropagation()
+						onOpenChange(false)
+					}}
+				/>
 			)}
-		</>
+			<div className={styles.sidebarWorkspaceSwitcherRoot}>
+				<_DropdownMenu.Root open={isOpen} onOpenChange={onOpenChange} modal>
+					<_DropdownMenu.Trigger asChild>
+						<button
+							className={classNames(
+								styles.sidebarWorkspaceSwitcherTrigger,
+								styles.hoverable,
+								'tla-text_ui__regular'
+							)}
+							data-testid="tla-workspace-switcher"
+						>
+							<span
+								className={classNames(styles.sidebarWorkspaceSwitcherLabel, 'notranslate')}
+								data-testid="tla-active-workspace-name"
+							>
+								{activeWorkspaceName ?? myWorkspaceLbl}
+							</span>
+							<TlaIcon icon="chevron-up-down" className={styles.sidebarWorkspaceSwitcherChevrons} />
+						</button>
+					</_DropdownMenu.Trigger>
+					<_DropdownMenu.Content
+						className={classNames('tlui-menu', styles.sidebarWorkspaceSwitcherMenu)}
+						side="bottom"
+						align="start"
+						sideOffset={4}
+						alignOffset={-4}
+						collisionPadding={8}
+						// Switching workspaces mounts a new canvas that steals focus as it
+						// loads. Without this the focus shift would dismiss the switcher mid-
+						// switch. The open state is driven externally (useGlobalMenuIsOpen), so
+						// the menu still closes via the trigger, the overlay, or Escape.
+						onFocusOutside={(e) => e.preventDefault()}
+					>
+						<WorkspaceSwitcherItem
+							isActive={isHome}
+							onSelect={() => switchToWorkspace(homeWorkspaceId)}
+							testId="tla-workspace-switcher-home"
+						>
+							{homeWorkspaceName ?? myWorkspaceLbl}
+						</WorkspaceSwitcherItem>
+						{workspaces.map((g) => (
+							<WorkspaceSwitcherItem
+								key={`workspace-${g.group.id}`}
+								isActive={g.group.id === activeWorkspaceId}
+								onSelect={() => switchToWorkspace(g.group.id)}
+							>
+								{g.group.name}
+							</WorkspaceSwitcherItem>
+						))}
+						<_DropdownMenu.Separator className={styles.sidebarWorkspaceSwitcherSeparator} />
+						<_DropdownMenu.Item
+							className={classNames(
+								styles.sidebarWorkspaceSwitcherItem,
+								styles.sidebarWorkspaceSwitcherItemCreate,
+								'tla-text_ui__regular'
+							)}
+							onSelect={handleCreateWorkspace}
+							data-testid="tla-create-workspace-menu-item"
+						>
+							<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
+								<TlaIcon icon="plus" />
+								<span className={styles.sidebarTruncatedText}>{createWorkspaceLbl}</span>
+							</span>
+						</_DropdownMenu.Item>
+					</_DropdownMenu.Content>
+				</_DropdownMenu.Root>
+			</div>
+			{workspaces.length === 0 && (
+				<button
+					className={classNames(
+						styles.sidebarCreateWorkspaceButton,
+						styles.hoverable,
+						'tla-text_ui__regular'
+					)}
+					onClick={handleCreateWorkspace}
+					data-testid="tla-create-workspace"
+				>
+					<TlaIcon icon="plus" />
+					<span className={styles.sidebarTruncatedText}>{createWorkspaceLbl}</span>
+				</button>
+			)}
+		</div>
 	)
 }
 
@@ -195,96 +190,11 @@ function WorkspaceSwitcherItem({
 			onSelect={onSelect}
 			data-testid={testId}
 		>
-			<span className={styles.sidebarWorkspaceSwitcherItemLabel}>{children}</span>
+			<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
+				<TlaIcon icon={isActive ? 'check' : 'none'} />
+				<span className={styles.sidebarTruncatedText}>{children}</span>
+			</span>
 		</_DropdownMenu.Item>
-	)
-}
-
-/**
- * The action rows shown below the workspace switcher when a non-home
- * workspace is active: creating a new board in it, copying the workspace
- * invite link, and opening the workspace settings.
- */
-function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: string }) {
-	const app = useApp()
-	const { addDialog } = useDialogs()
-	const trackEvent = useTldrawAppUiEvents()
-	const handleCreateFile = useHandleSidebarCreateFile()
-	const newBoardLbl = useMsg(messages.newBoard)
-	const inviteTeammatesLbl = useMsg(messages.inviteTeammates)
-	const settingsLbl = useMsg(messages.workspaceSettings)
-
-	const handleCopyInviteLink = useCallback(() => {
-		// Right after creating a workspace the invite secret only exists on the
-		// server, so there may be nothing to copy for a moment.
-		if (!app.copyWorkspaceInvite(workspaceId)) {
-			app.toasts?.addToast({
-				id: 'invite-link-not-ready',
-				title: 'Invite link not ready yet',
-				description: 'Try again in a moment.',
-			})
-		}
-	}, [app, workspaceId])
-
-	const handleSettings = useCallback(() => {
-		addDialog({
-			component: ({ onClose }) => (
-				<WorkspaceSettingsDialog workspaceId={workspaceId} onClose={onClose} />
-			),
-			preventBackgroundClose: true,
-		})
-		trackEvent('open-share-menu', { source: 'sidebar' })
-	}, [addDialog, workspaceId, trackEvent])
-
-	return (
-		<div className={styles.sidebarSection}>
-			<TlaSidebarActionButton
-				icon="edit-strong"
-				// edit-strong fills its 15px box while the other action icons draw
-				// 12px art inside it; scale it down so they optically match.
-				iconStyle={{ width: 12, height: 12, margin: 0 }}
-				label={newBoardLbl}
-				onClick={handleCreateFile}
-				testId="tla-sidebar-new-board"
-			/>
-			<TlaSidebarActionButton
-				icon="invite"
-				label={inviteTeammatesLbl}
-				onClick={handleCopyInviteLink}
-				testId="tla-sidebar-invite-teammates"
-			/>
-			<TlaSidebarActionButton
-				icon="settings"
-				label={settingsLbl}
-				onClick={handleSettings}
-				testId="tla-sidebar-workspace-settings"
-			/>
-		</div>
-	)
-}
-
-function TlaSidebarActionButton({
-	icon,
-	iconStyle,
-	label,
-	onClick,
-	testId,
-}: {
-	icon: string
-	iconStyle?: CSSProperties
-	label: string
-	onClick(): void
-	testId: string
-}) {
-	return (
-		<button
-			className={classNames(styles.sidebarActionButton, styles.hoverable, 'tla-text_ui__regular')}
-			onClick={onClick}
-			data-testid={testId}
-		>
-			<TlaIcon icon={icon} style={iconStyle} />
-			<span className={styles.sidebarActionButtonLabel}>{label}</span>
-		</button>
 	)
 }
 

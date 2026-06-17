@@ -4,7 +4,6 @@ import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
-	DragFileOperation,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
@@ -79,13 +78,6 @@ import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
-
-type DragState = null | {
-	type: 'file'
-	id: string
-	operation: DragFileOperation
-	hasDragStarted: boolean
-}
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -563,7 +555,7 @@ export class TldrawApp {
 				continue
 			}
 
-			// if the file is in a workspace we have access to, we don't want to show it in my files
+			// if the file is in a workspace we have access to, we don't want to show it in my workspace
 			if (myWorkspaceMemberships.some((g) => g.groupFiles.some((gf) => gf.fileId === fileId))) {
 				continue
 			}
@@ -587,7 +579,7 @@ export class TldrawApp {
 			// If this was previously unpinned and we have existing ordering,
 			// preserve its position in the unpinned section to avoid real-time reordering
 			if (!isPinned && existing && !existing.isPinned) {
-				// Keep the old date to preserve ordering in "My files"
+				// Keep the old date to preserve ordering in "My workspace"
 				newEntry.date = existing.date
 			}
 
@@ -1201,7 +1193,8 @@ export class TldrawApp {
 			fileId: string
 			workspaceId: string
 		},
-		dragState: null as DragState,
+		// The current sidebar file-search query. Empty string means no filter.
+		searchQuery: '',
 	})
 
 	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
@@ -1267,14 +1260,14 @@ export class TldrawApp {
 		}
 	}
 
-	navigateToWorkspaceFiles(workspaceId: string) {
+	navigateToWorkspaceFiles(workspaceId: string, opts: { replace?: boolean } = {}) {
 		const files = this.getWorkspaceFilesSorted(workspaceId)
 
 		if (!files.length) {
 			return false
 		}
 
-		this.navigate(routes.tlaFile(files[0]!.fileId))
+		this.navigate(routes.tlaFile(files[0]!.fileId), opts)
 		return true
 	}
 }

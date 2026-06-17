@@ -1,7 +1,9 @@
+import { createHash } from 'crypto'
 import fs from 'fs'
 import { setupClerkTestingToken } from '@clerk/testing/playwright'
 import { expect, test as base } from '@playwright/test'
-import type { Browser, BrowserContext, Download, Page, TestInfo } from '@playwright/test'
+import type { Browser, BrowserContext, Download, Locator, Page, TestInfo } from '@playwright/test'
+import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { NUMBER_OF_USERS } from '../consts'
 import { Database, getTestUserEmail } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
@@ -22,6 +24,17 @@ type WorkspaceMemberRole = 'owner' | 'member'
 
 const SCENARIO_USER_POOL_START = 4
 const ROOT_URL = 'http://localhost:3000'
+const MENU_INTERACTION_TIMEOUT = 5_000
+
+export async function selectTlaMenuOption(page: Page, select: Locator, optionLabel: string) {
+	await select.click({ timeout: MENU_INTERACTION_TIMEOUT })
+	const openListbox = page.locator('[role="listbox"][data-state="open"]')
+	await expect(openListbox).toBeVisible({ timeout: MENU_INTERACTION_TIMEOUT })
+	await openListbox
+		.getByRole('option', { name: optionLabel, exact: true })
+		.click({ timeout: MENU_INTERACTION_TIMEOUT })
+	await expect(openListbox).not.toBeVisible({ timeout: MENU_INTERACTION_TIMEOUT })
+}
 
 interface SignedInActorAccount {
 	email: string
@@ -38,6 +51,7 @@ interface ScenarioFixtures {
 	member: DotcomActor
 	visitor: DotcomActor
 	scenario: DotcomScenario
+	setupAndCleanup: void
 }
 
 interface LegacyRouteFixture {
@@ -358,8 +372,7 @@ class DotcomScenario {
 		const select = actor.page.getByTestId('shared-link-type-select')
 		const expectedLabel = linkType === 'edit' ? 'Editor' : 'Viewer'
 		if ((await select.innerText()) !== expectedLabel) {
-			await select.click()
-			await actor.page.getByRole('option', { name: expectedLabel }).click()
+			await selectTlaMenuOption(actor.page, select, expectedLabel)
 		}
 		await expect(select).toHaveText(expectedLabel)
 		await actor.waitForMutationResolution()
@@ -487,7 +500,12 @@ class DotcomScenario {
 		workspaceName?: string
 		fileName?: string
 	}) {
-		const workspaceName = opts.workspaceName ?? this.name('workspace')
+		// The createWorkspace mutator clamps names to MAX_WORKSPACE_NAME_LENGTH, so mirror that here:
+		// otherwise a long scenario id makes the stored (and displayed) name diverge from what the
+		// sidebar helpers search for, and the workspace link never matches.
+		const workspaceName = (opts.workspaceName ?? this.name('workspace'))
+			.trim()
+			.slice(0, MAX_WORKSPACE_NAME_LENGTH)
 		const fileName = opts.fileName ?? this.name('workspace file')
 
 		await this.ensureGroupsReady(opts.owner)
@@ -499,10 +517,31 @@ class DotcomScenario {
 
 		await opts.owner.editor.ensureSidebarOpen()
 		await this.switchToHomeIfAvailable(opts.owner)
-		await opts.owner.sidebar.createNewDocument(fileName)
-		await opts.owner.sidebar.createWorkspace(workspaceName)
-		await opts.owner.sidebar.switchToWorkspace('Home')
-		await opts.owner.sidebar.moveFileToWorkspace(fileName, workspaceName)
+		const { fileId } = await opts.owner.page.evaluate(
+			async ({ workspaceName, fileName }) => {
+				const app = (window as any).app
+				const uniqueId = () => {
+					const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz-'
+					const bytes = crypto.getRandomValues(new Uint8Array(21))
+					return Array.from(bytes, (byte) => alphabet[byte & 63]).join('')
+				}
+				const workspaceId = uniqueId()
+				const fileId = uniqueId()
+				await app.z.mutate.createWorkspace({ id: workspaceId, name: workspaceName }).client
+				await app.z.mutate.createFile({
+					fileId,
+					workspaceId,
+					name: fileName,
+					createSource: null,
+					time: Date.now(),
+				}).client
+				await app.z.__e2e__waitForMutationResolution?.()
+				return { fileId }
+			},
+			{ workspaceName, fileName }
+		)
+		await opts.owner.goto(`${ROOT_URL}/f/${fileId}`)
+		await opts.owner.editor.ensureSidebarOpen()
 
 		const inviteUrl = await opts.owner.sidebar.copyWorkspaceInviteLink(workspaceName)
 
@@ -515,9 +554,13 @@ class DotcomScenario {
 		memberUserId: string
 	}) {
 		await opts.owner.sidebar.openWorkspaceSettings(opts.workspaceName)
-		await opts.owner.page.locator(`[id="workspace-member-role-${opts.memberUserId}"]`).click()
-		await opts.owner.page.getByRole('option', { name: 'Remove' }).click()
-		await opts.owner.page.getByRole('button', { name: 'Remove member' }).click()
+		await selectTlaMenuOption(
+			opts.owner.page,
+			opts.owner.page.locator(`[id="workspace-member-role-${opts.memberUserId}"]`),
+			'Remove'
+		)
+		// The remove confirmation dialog's button is just "Remove".
+		await opts.owner.page.getByRole('button', { name: 'Remove', exact: true }).click()
 		await opts.owner.waitForMutationResolution()
 		await opts.owner.page.keyboard.press('Escape')
 	}
@@ -533,8 +576,7 @@ class DotcomScenario {
 			`[id="workspace-member-role-${opts.memberUserId}"]`
 		)
 		const roleLabel = opts.role === 'owner' ? 'Owner' : 'Member'
-		await memberRoleSelect.click()
-		await opts.owner.page.getByRole('option', { name: roleLabel }).click()
+		await selectTlaMenuOption(opts.owner.page, memberRoleSelect, roleLabel)
 		await expect(memberRoleSelect).toHaveText(roleLabel)
 		await opts.owner.waitForMutationResolution()
 		await opts.owner.page.keyboard.press('Escape')
@@ -576,7 +618,7 @@ class DotcomScenario {
 				.isVisible()
 				.catch(() => false)
 		) {
-			await actor.sidebar.switchToWorkspace('Home')
+			await actor.sidebar.switchToHomeWorkspace()
 		}
 	}
 }
@@ -590,6 +632,14 @@ export const test = base.extend<ScenarioFixtures, ScenarioWorkerFixtures>({
 			await testUse({ owner, member })
 		},
 		{ scope: 'worker' },
+	],
+	setupAndCleanup: [
+		async ({ actorAccounts: _actorAccounts }, testUse, testInfo) => {
+			const database = new Database(null, getScenarioUserIndex(testInfo.parallelIndex))
+			await database.reset()
+			await testUse()
+		},
+		{ auto: true },
 	],
 	actors: async ({ browser, actorAccounts }, testUse) => {
 		const actors = new DotcomActors(browser, actorAccounts)
@@ -638,13 +688,20 @@ async function ensureStorageState(
 }
 
 function getScenarioId(testInfo: TestInfo) {
-	const slug = testInfo.titlePath
+	const fullSlug = testInfo.titlePath
 		.slice(1)
 		.join(' ')
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-+|-+$/g, '')
-		.slice(0, 64)
+
+	// Keep the id compact: workspace names are capped at MAX_WORKSPACE_NAME_LENGTH, and a name is
+	// `${id} ${label}`, so a long id leaves no room for a distinguishing label — two labels that
+	// differ only past the cap would collide once the mutator clamps the stored name. A short
+	// readable prefix keeps debugging tractable; a hash of the full title preserves the cross-test
+	// uniqueness that a truncated prefix alone would lose.
+	const titleHash = createHash('sha1').update(fullSlug).digest('hex').slice(0, 6)
+	const slug = `${fullSlug.slice(0, 24).replace(/-+$/g, '')}-${titleHash}`
 
 	const runId = process.env.GITHUB_RUN_ID ?? Date.now().toString(36)
 	return `e2e-${runId}-w${testInfo.parallelIndex}-x${testInfo.repeatEachIndex}-r${testInfo.retry}-${slug}`

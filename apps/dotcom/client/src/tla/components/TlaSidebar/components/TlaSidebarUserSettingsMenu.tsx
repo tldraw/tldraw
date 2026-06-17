@@ -1,12 +1,14 @@
 import classNames from 'classnames'
 import {
 	LanguageMenu,
+	preventDefault,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	useMenuIsOpen,
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
@@ -27,13 +29,19 @@ const messages = defineMessages({
 	userMenu: { defaultMessage: 'User settings' },
 })
 
+const USER_SETTINGS_MENU_ID = 'user-settings-sidebar'
+
 export function TlaUserSettingsMenu() {
 	const app = useApp()
 	const userMenuLbl = useMsg(messages.userMenu)
 	const user = useValue('auth', () => app.getUser(), [app])
 
+	// The dropdown's open state is keyed globally by its id, so we can reuse the
+	// same hook to open the menu when the user right-clicks the row.
+	const [, onMenuOpenChange] = useMenuIsOpen(USER_SETTINGS_MENU_ID)
+
 	return (
-		<TldrawUiDropdownMenuRoot id={`user-settings-sidebar`}>
+		<TldrawUiDropdownMenuRoot id={USER_SETTINGS_MENU_ID}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
@@ -42,6 +50,10 @@ export function TlaUserSettingsMenu() {
 						title={userMenuLbl}
 						className={classNames(styles.sidebarUserSettingsTrigger, styles.hoverable)}
 						data-testid="tla-sidebar-user-settings-trigger"
+						onContextMenu={(e) => {
+							preventDefault(e)
+							onMenuOpenChange(true)
+						}}
 					>
 						<div
 							className={classNames(
@@ -57,7 +69,7 @@ export function TlaUserSettingsMenu() {
 						</div>
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={4} sideOffset={4}>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={-18} sideOffset={4}>
 					{user && (
 						<>
 							<TldrawUiMenuGroup id="files">
