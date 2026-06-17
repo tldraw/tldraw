@@ -41,7 +41,7 @@
 		"refresh-assets": "lazy refresh-assets",
 		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/bemo-worker' --filter='apps/dotcom/image-resize-worker'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
-		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/dotcom/*' --filter='packages/tldraw'",
+		"dev-app": "yarn run -T tsx apps/dotcom/dev-app.ts",
 		"dev-app:clean": "yarn workspace @tldraw/zero-cache dev:clean",
 		"dev-app:clean:all": "yarn workspace @tldraw/zero-cache dev:clean:all",
 		"dev-app:doctor": "yarn workspace @tldraw/zero-cache dev:doctor",

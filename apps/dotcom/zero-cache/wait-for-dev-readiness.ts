@@ -1,9 +1,11 @@
 /* eslint-disable no-console */
 import {
 	DOTCOM_DEV_MIGRATIONS_READY_TIMEOUT_MS,
-	DOTCOM_DEV_PORTS,
 	DOTCOM_DEV_READINESS_TIMEOUT_MS,
+	getDotcomDevEnv,
 } from './dev-env'
+
+const { ports } = getDotcomDevEnv()
 
 function delay(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
@@ -43,19 +45,19 @@ async function waitForResponse({
 
 async function main() {
 	await waitForResponse({
-		url: `http://localhost:${DOTCOM_DEV_PORTS.migrations}`,
+		url: `http://localhost:${ports.migrations}`,
 		label: 'migrations',
 		timeoutMs: DOTCOM_DEV_MIGRATIONS_READY_TIMEOUT_MS,
 		requireOk: true,
 	})
 	await waitForResponse({
-		url: `http://localhost:${DOTCOM_DEV_PORTS.zero}/`,
+		url: `http://localhost:${ports.zero}/`,
 		label: 'Zero',
 		timeoutMs: DOTCOM_DEV_READINESS_TIMEOUT_MS,
 		requireOk: true,
 	})
 	await waitForResponse({
-		url: `http://localhost:${DOTCOM_DEV_PORTS.syncWorker}/`,
+		url: `http://localhost:${ports.syncWorker}/`,
 		label: 'sync worker',
 		timeoutMs: DOTCOM_DEV_READINESS_TIMEOUT_MS,
 		requireOk: false,

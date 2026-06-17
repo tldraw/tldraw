@@ -4,6 +4,7 @@ import formatjs from '@formatjs/unplugin/vite'
 import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
 import { defineConfig, Plugin } from 'vite'
+import { getDotcomDevPorts } from '../zero-cache/dev-env'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 
@@ -12,6 +13,9 @@ export { getMultiplayerServerURL }
 config({
 	path: './.env.local',
 })
+
+// `yarn dev-app` exports DOTCOM_DEV_INSTANCE so each worktree's stack talks to its own workers.
+const devPorts = getDotcomDevPorts(Number(process.env.DOTCOM_DEV_INSTANCE) || 0)
 
 /**
  * Plugin to enable SPA fallback for vite preview.
@@ -88,12 +92,16 @@ export default defineConfig((env) => ({
 				.filter(([key]) => key.startsWith('NEXT_PUBLIC_'))
 				.map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
 		),
-		'process.env.MULTIPLAYER_SERVER': urlOrLocalFallback(env.mode, getMultiplayerServerURL(), 8787),
-		'process.env.ZERO_SERVER': urlOrLocalFallback(env.mode, process.env.ZERO_SERVER, 4848),
+		'process.env.MULTIPLAYER_SERVER': urlOrLocalFallback(
+			env.mode,
+			getMultiplayerServerURL(),
+			devPorts.syncWorker
+		),
+		'process.env.ZERO_SERVER': urlOrLocalFallback(env.mode, process.env.ZERO_SERVER, devPorts.zero),
 		'process.env.USER_CONTENT_URL': urlOrLocalFallback(
 			env.mode,
 			process.env.USER_CONTENT_URL,
-			8789
+			devPorts.userContentWorker
 		),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
 		'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
@@ -107,7 +115,7 @@ export default defineConfig((env) => ({
 	server: {
 		proxy: {
 			'/api': {
-				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+				target: getMultiplayerServerURL() || `http://127.0.0.1:${devPorts.syncWorker}`,
 				rewrite: (path) => path.replace(/^\/api/, ''),
 				ws: false, // we talk to the websocket directly via workers.dev
 				// Useful for debugging proxy issues
@@ -135,7 +143,7 @@ export default defineConfig((env) => ({
 	preview: {
 		proxy: {
 			'/api': {
-				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+				target: getMultiplayerServerURL() || `http://127.0.0.1:${devPorts.syncWorker}`,
 				rewrite: (path) => path.replace(/^\/api/, ''),
 			},
 		},

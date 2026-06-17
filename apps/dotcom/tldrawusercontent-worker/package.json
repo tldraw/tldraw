@@ -9,7 +9,7 @@
 	},
 	"main": "src/index.ts",
 	"scripts": {
-		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --inspector-port 9450",
+		"dev": "yarn run -T tsx ../zero-cache/run-dotcom-worker.ts userContentWorker",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",

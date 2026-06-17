@@ -1,8 +1,10 @@
 import { spawn } from 'child_process'
 import { createServer } from 'net'
 import { pathToFileURL } from 'url'
+import { getDotcomDevEnv } from '../../zero-cache/dev-env'
 
-const CLIENT_PORT = 3000
+// `yarn dev-app` exports DOTCOM_DEV_INSTANCE so each worktree's stack uses its own port block.
+const CLIENT_PORT = getDotcomDevEnv().ports.client
 const SKIPPABLE_PROBE_ERROR_CODES = new Set(['EADDRNOTAVAIL', 'EAFNOSUPPORT'])
 
 type PortProbe = (port: number, host: string) => Promise<void>

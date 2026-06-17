@@ -24,6 +24,8 @@ const child = spawn(
 	{
 		cwd: env.zeroCacheDir,
 		stdio: 'inherit',
+		// Publish this instance's host ports (substituted into docker-compose.yml).
+		env: { ...process.env, ...env.dockerEnv },
 	}
 )
 

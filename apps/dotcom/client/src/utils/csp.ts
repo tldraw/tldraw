@@ -76,9 +76,12 @@ export const csp = Object.keys(cspDirectives)
 export const cspDev = Object.keys(cspDirectives)
 	.filter((key) => key !== 'report-uri')
 	.map((directive) => {
-		const values = cspDirectives[directive]
+		const values = [...cspDirectives[directive]]
 		// We allow data: urls for frame-src to allow debugging SVG embeds in dev.
-		if (directive === 'frame-src') return `${directive} ${[...values, 'data:'].join(' ')}`
+		if (directive === 'frame-src') values.push('data:')
+		// Allow any localhost port so per-worktree dev stacks (which offset the worker ports) can
+		// reach their own zero/asset/usercontent workers without hardcoding each instance's ports.
+		if (directive === 'connect-src') values.push('http://localhost:*', 'http://127.0.0.1:*')
 		return `${directive} ${values.join(' ')}`
 	})
 	.join('; ')

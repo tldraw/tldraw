@@ -116,7 +116,11 @@ export default defineConfig({
 
 	/* Run your local dev server before starting the tests */
 	webServer: {
-		command: process.env.CI ? 'VITE_PREVIEW=1 yarn dev-app' : 'yarn preview-app',
+		// Pin to dev instance 0 so the client is deterministically on localhost:3000, regardless of
+		// which instance this worktree would otherwise be allocated.
+		command: process.env.CI
+			? 'DOTCOM_DEV_INSTANCE=0 VITE_PREVIEW=1 yarn dev-app'
+			: 'DOTCOM_DEV_INSTANCE=0 yarn preview-app',
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),

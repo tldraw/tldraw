@@ -2,14 +2,10 @@
 import { spawnSync } from 'child_process'
 import { existsSync, statSync } from 'fs'
 import { Socket } from 'net'
-import {
-	DOTCOM_DEV_PORTS,
-	getDotcomDevCleanTargets,
-	getDotcomDevEnv,
-	type DotcomDevEnv,
-} from './dev-env'
+import { buildDotcomDevEnv, getDotcomDevCleanTargets, type DotcomDevEnv } from './dev-env'
+import { resolveDotcomDevInstance } from './dev-instance'
 
-const env = getDotcomDevEnv()
+const env = buildDotcomDevEnv({ instance: resolveDotcomDevInstance({ allocate: false }) })
 const targets = getDotcomDevCleanTargets(env)
 
 function formatStatus(ok: boolean, detail?: string) {
@@ -69,16 +65,17 @@ function checkSchemaFreshness(devEnv: DotcomDevEnv) {
 }
 
 async function main() {
-	const postgresPort = await checkPort(DOTCOM_DEV_PORTS.postgres)
-	const pgbouncerPort = await checkPort(DOTCOM_DEV_PORTS.pgbouncer)
-	const migrations = await checkHttp(`http://localhost:${DOTCOM_DEV_PORTS.migrations}`, true)
-	const zero = await checkHttp(`http://localhost:${DOTCOM_DEV_PORTS.zero}/`, true)
-	const syncWorker = await checkHttp(`http://localhost:${DOTCOM_DEV_PORTS.syncWorker}/`, false)
+	const postgresPort = await checkPort(env.ports.postgres)
+	const pgbouncerPort = await checkPort(env.ports.pgbouncer)
+	const migrations = await checkHttp(`http://localhost:${env.ports.migrations}`, true)
+	const zero = await checkHttp(`http://localhost:${env.ports.zero}/`, true)
+	const syncWorker = await checkHttp(`http://localhost:${env.ports.syncWorker}/`, false)
 	const volume = checkDockerVolume(targets.postgresVolumeName)
 	const schema = checkSchemaFreshness(env)
 
 	console.log('Dotcom dev doctor')
 	console.log('')
+	console.log(`Instance: ${env.instance} (ports ${env.portBlockStart}+)`)
 	console.log(`Compose project: ${env.composeProjectName}`)
 	console.log(
 		`Postgres volume: ${env.postgresVolumeName} - ${formatStatus(volume.ok, volume.detail)}`
@@ -92,14 +89,14 @@ async function main() {
 	console.log(`Generated schema: ${env.schemaFile} - ${formatStatus(schema.ok, schema.detail)}`)
 	console.log('')
 	console.log('Ports and services')
-	console.log(`Postgres ${DOTCOM_DEV_PORTS.postgres}: ${formatStatus(postgresPort)}`)
-	console.log(`PgBouncer ${DOTCOM_DEV_PORTS.pgbouncer}: ${formatStatus(pgbouncerPort)}`)
+	console.log(`Postgres ${env.ports.postgres}: ${formatStatus(postgresPort)}`)
+	console.log(`PgBouncer ${env.ports.pgbouncer}: ${formatStatus(pgbouncerPort)}`)
 	console.log(
-		`Migrations ${DOTCOM_DEV_PORTS.migrations}: ${formatStatus(migrations.ok, migrations.detail)}`
+		`Migrations ${env.ports.migrations}: ${formatStatus(migrations.ok, migrations.detail)}`
 	)
-	console.log(`Zero ${DOTCOM_DEV_PORTS.zero}: ${formatStatus(zero.ok, zero.detail)}`)
+	console.log(`Zero ${env.ports.zero}: ${formatStatus(zero.ok, zero.detail)}`)
 	console.log(
-		`Sync worker ${DOTCOM_DEV_PORTS.syncWorker}: ${formatStatus(syncWorker.ok, syncWorker.detail)}`
+		`Sync worker ${env.ports.syncWorker}: ${formatStatus(syncWorker.ok, syncWorker.detail)}`
 	)
 	console.log('')
 	console.log('Suggested cleanup: yarn dev-app:clean')

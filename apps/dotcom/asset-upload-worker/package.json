@@ -9,7 +9,7 @@
 	},
 	"main": "src/index.ts",
 	"scripts": {
-		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --persist-to tmp-assets --inspector-port 9449",
+		"dev": "yarn run -T tsx ../zero-cache/run-dotcom-worker.ts assetUploadWorker --persist-to tmp-assets",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",

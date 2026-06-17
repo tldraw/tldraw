@@ -2,9 +2,10 @@
 import { spawnSync } from 'child_process'
 import { existsSync, readdirSync, rmSync } from 'fs'
 import { join } from 'path'
-import { getDotcomDevCleanAllTargets, getDotcomDevCleanTargets, getDotcomDevEnv } from './dev-env'
+import { buildDotcomDevEnv, getDotcomDevCleanAllTargets, getDotcomDevCleanTargets } from './dev-env'
+import { resolveDotcomDevInstance } from './dev-instance'
 
-const env = getDotcomDevEnv()
+const env = buildDotcomDevEnv({ instance: resolveDotcomDevInstance({ allocate: false }) })
 const targets = getDotcomDevCleanTargets(env)
 const allTargets = getDotcomDevCleanAllTargets(env)
 
@@ -103,6 +104,7 @@ function cleanCurrent() {
 	}
 	removePath(targets.schemaFile)
 	removePath(targets.wranglerPersistDir)
+	removePath(targets.wranglerRegistryDir)
 
 	console.log('')
 	console.log('Server-side dotcom dev state is clean.')
@@ -153,8 +155,11 @@ function cleanAll() {
 			(entry.endsWith('.db') || entry.endsWith('.db-shm') || entry.endsWith('.db-wal'))
 	)
 	removePath(allTargets.schemaFile)
-	removeMatchingPaths(allTargets.wranglerStateDir, (entry) =>
-		entry.startsWith(allTargets.wranglerPersistDirPrefix)
+	removeMatchingPaths(
+		allTargets.wranglerStateDir,
+		(entry) =>
+			entry.startsWith(allTargets.wranglerPersistDirPrefix) ||
+			entry.startsWith(allTargets.wranglerRegistryDirPrefix)
 	)
 
 	console.log('')

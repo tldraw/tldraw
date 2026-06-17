@@ -3,10 +3,13 @@ import { existsSync, readFileSync, readdirSync } from 'fs'
 import { createServer } from 'http'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
+import { getDotcomDevEnv } from './dev-env'
+
+const devEnv = getDotcomDevEnv()
 
 const postgresConnectionString: string =
 	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
-	'postgresql://user:password@127.0.0.1:6543/postgres'
+	`postgresql://user:password@127.0.0.1:${devEnv.ports.postgres}/postgres`
 
 if (!postgresConnectionString) {
 	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
@@ -177,7 +180,7 @@ async function run() {
 			const s = createServer((_, res) => {
 				res.end('ok')
 			})
-			s.listen(7654)
+			s.listen(devEnv.ports.migrations)
 		} else {
 			process.exit(0)
 		}

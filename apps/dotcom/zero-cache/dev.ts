@@ -2,25 +2,27 @@
 import { ChildProcess, spawn, spawnSync } from 'child_process'
 import dotenv from 'dotenv'
 import pg from 'pg'
-import { DOTCOM_DEV_PORTS, DOTCOM_DEV_READINESS_TIMEOUT_MS, getDotcomDevEnv } from './dev-env'
+import { DOTCOM_DEV_READINESS_TIMEOUT_MS, getDotcomDevEnv } from './dev-env'
 
 const env = getDotcomDevEnv()
 const dotEnv = dotenv.config({ path: env.dockerEnvFile }).parsed ?? {}
 const childEnv = {
 	...dotEnv,
 	...process.env,
-	// Fixed dev values intentionally win over shell vars for deterministic local state.
+	// Per-instance dev values intentionally win over shell vars for deterministic local state.
 	...env.zeroEnv,
+	...env.dockerEnv,
 }
 
 const children: ChildProcess[] = []
 let migrationsReady = false
 let shuttingDown = false
 
-// Host ports the Docker stack publishes (see docker/docker-compose.yml). Our own stack is reused
-// in place across runs, but a stack from an older per-branch setup will hold these ports and block
-// `docker compose up`, so we reconcile those away on startup.
-const DOCKER_PUBLISHED_PORTS = [DOTCOM_DEV_PORTS.pgbouncer, DOTCOM_DEV_PORTS.postgres]
+// Host ports this instance's Docker stack publishes (see docker/docker-compose.yml). Our own stack
+// is reused in place across runs, but a stack from an older per-branch setup will hold these ports
+// and block `docker compose up`, so we reconcile those away on startup. Sibling instances publish
+// different ports, so they are never disturbed.
+const DOCKER_PUBLISHED_PORTS = [env.ports.pgbouncer, env.ports.postgres]
 
 function delay(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
@@ -209,7 +211,7 @@ function reconcileDockerStacks() {
 async function waitForPostgres() {
 	const connectionString =
 		childEnv.ZERO_UPSTREAM_DB ??
-		`postgresql://user:password@127.0.0.1:${DOTCOM_DEV_PORTS.postgres}/postgres`
+		`postgresql://user:password@127.0.0.1:${env.ports.postgres}/postgres`
 	const pool = new pg.Pool({ connectionString, max: 1 })
 	const deadline = Date.now() + DOTCOM_DEV_READINESS_TIMEOUT_MS
 	let attempts = 0
@@ -259,6 +261,7 @@ async function waitForHttpOk(url: string, label: string) {
 }
 
 async function main() {
+	console.log(`Dotcom dev instance: ${env.instance} (ports ${env.portBlockStart}+)`)
 	console.log(`Docker compose project: ${env.composeProjectName}`)
 	console.log(`Postgres volume: ${env.postgresVolumeName}`)
 	console.log(`Zero replica: ${env.zeroReplicaFile}`)
@@ -296,7 +299,7 @@ async function main() {
 	await runOnce('schema bundle', 'yarn', ['bundle-schema'])
 
 	spawnManaged('migrations', 'yarn', ['migrate', '--signal-success'])
-	await waitForHttpOk(`http://localhost:${DOTCOM_DEV_PORTS.migrations}`, 'migrations')
+	await waitForHttpOk(`http://localhost:${env.ports.migrations}`, 'migrations')
 	migrationsReady = true
 
 	spawnManaged('schema watch', 'yarn', ['bundle-schema:watch'])
@@ -311,8 +314,8 @@ async function main() {
 		'SIGINT',
 	])
 
-	await waitForHttpOk(`http://localhost:${DOTCOM_DEV_PORTS.zero}/`, 'Zero')
-	console.log(`Zero is ready at http://localhost:${DOTCOM_DEV_PORTS.zero}/`)
+	await waitForHttpOk(`http://localhost:${env.ports.zero}/`, 'Zero')
+	console.log(`Zero is ready at http://localhost:${env.ports.zero}/`)
 
 	await new Promise(() => {
 		// Keep the orchestration process alive while child processes run.

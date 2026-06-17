@@ -184,12 +184,7 @@ class SizeReporter {
 	}
 }
 
-function getDevPort(args: string[]): number | null {
-	const portIdx = args.findIndex((a) => a === '--port')
-	if (portIdx >= 0 && args[portIdx + 1]) {
-		const fromArg = Number(args[portIdx + 1])
-		return Number.isFinite(fromArg) ? fromArg : null
-	}
+function readWranglerDevPort(): number | null {
 	try {
 		const parsed = toml.parse(readFileSync(resolve(process.cwd(), 'wrangler.toml'), 'utf8'))
 		const port = parsed?.dev?.port
@@ -197,6 +192,16 @@ function getDevPort(args: string[]): number | null {
 	} catch {
 		return null
 	}
+}
+
+/** Read the numeric value of `flag <value>` from `args`, if present. */
+function readArgPort(args: string[], flag: string): number | null {
+	const idx = args.findIndex((a) => a === flag)
+	if (idx >= 0 && args[idx + 1] != null) {
+		const value = Number(args[idx + 1])
+		return Number.isFinite(value) ? value : null
+	}
+	return null
 }
 
 function probePortFree(port: number): Promise<void> {
@@ -209,17 +214,24 @@ function probePortFree(port: number): Promise<void> {
 	})
 }
 
-async function ensurePortFreeOrExit(port: number) {
+async function ensurePortFreeOrExit(port: number, what: 'serving' | 'inspector') {
 	try {
 		await probePortFree(port)
 	} catch (err: any) {
 		if (err?.code === 'EADDRINUSE') {
+			const detail =
+				what === 'inspector'
+					? `process is already listening on it. Wrangler would silently fail to bind its\n` +
+						`serving port — the worker would never come up, with no error in the log. This is\n` +
+						`usually another dev stack running on the same instance; give this one a different\n` +
+						`DOTCOM_DEV_INSTANCE (or run it from its own worktree).`
+					: `process is already listening on it. Wrangler would silently fall back to a random\n` +
+						`port, but the rest of the dev stack expects ${port} — so /api requests from the\n` +
+						`client would either 404 or hit the wrong worker.`
 			console.error(
-				`\n${kleur.red(kleur.bold(`✖ Port ${port} is already in use.`))}\n\n` +
-					`This worker (${kleur.cyan(process.cwd())}) needs port ${port}, but another\n` +
-					`process is already listening on it. Wrangler would silently fall back to a random\n` +
-					`port, but the rest of the dev stack expects ${port} — so /api requests from the\n` +
-					`client would either 404 or hit the wrong worker.\n\n` +
+				`\n${kleur.red(kleur.bold(`✖ ${what === 'inspector' ? 'Inspector port' : 'Port'} ${port} is already in use.`))}\n\n` +
+					`This worker (${kleur.cyan(process.cwd())}) needs ${what} port ${port}, but another\n` +
+					`${detail}\n\n` +
 					`Find what's holding it:\n` +
 					`  ${kleur.bold(`lsof -nP -iTCP:${port} -sTCP:LISTEN`)}\n\n` +
 					`Then stop that process and re-run.\n`
@@ -232,8 +244,18 @@ async function ensurePortFreeOrExit(port: number) {
 }
 
 async function main() {
-	const port = getDevPort(process.argv.slice(2))
-	if (port != null) await ensurePortFreeOrExit(port)
+	// The dotcom dev stack passes each worker an explicit per-instance `--port` and
+	// `--inspector-port` (see apps/dotcom/zero-cache/run-dotcom-worker.ts) so worktrees don't collide.
+	// Other workers (examples, bemo) just use their wrangler.toml port. Probe both ports up front:
+	// wrangler otherwise silently falls back to a random serving port, and a clashing inspector port
+	// makes the worker fail to bind with no error in the log.
+	const args = process.argv.slice(2)
+
+	const servingPort = readArgPort(args, '--port') ?? readWranglerDevPort()
+	if (servingPort != null) await ensurePortFreeOrExit(servingPort, 'serving')
+
+	const inspectorPort = readArgPort(args, '--inspector-port')
+	if (inspectorPort != null) await ensurePortFreeOrExit(inspectorPort, 'inspector')
 
 	const monitor = new MiniflareMonitor('wrangler', [
 		'dev',
@@ -244,7 +266,7 @@ async function main() {
 		'info',
 		'--var',
 		'IS_LOCAL:true',
-		...process.argv.slice(2),
+		...args,
 	])
 	monitor.start()
 
