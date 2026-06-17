@@ -11,7 +11,7 @@ import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
 	newFile: { defaultMessage: 'New file' },
-	workspaceSettings: { defaultMessage: 'Settings' },
+	workspaceSettings: { defaultMessage: 'Manage' },
 })
 
 /**

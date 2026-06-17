@@ -344,18 +344,3 @@
 .copyInviteLinkIconRight {
 	right: 12.5px !important;
 }
-
-.divider {
-	position: relative;
-	height: 24px;
-}
-
-.divider::after {
-	content: '';
-	display: block;
-	position: absolute;
-	top: 16px;
-	width: 100%;
-	height: 1px;
-	background-color: var(--tla-color-border);
-}
