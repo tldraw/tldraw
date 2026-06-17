@@ -5,12 +5,6 @@ import React from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection } from '../../hooks/useTranslation/useTranslation'
 
-function shouldPreventPopoverDismiss(event: Event) {
-	const target = event.target
-	// Portaled controls can opt into behaving like part of the popover content.
-	return target instanceof Element && target.closest('[data-tlui-prevent-dismiss]') !== null
-}
-
 /** @public */
 export interface TLUiPopoverProps {
 	id: string
@@ -93,11 +87,6 @@ export function TldrawUiPopoverContent({
 				ref={ref}
 				onOpenAutoFocus={handleOpenAutoFocus}
 				onEscapeKeyDown={(e) => disableEscapeKeyDown && e.preventDefault()}
-				onInteractOutside={(e) => {
-					if (shouldPreventPopoverDismiss(e)) {
-						e.preventDefault()
-					}
-				}}
 			>
 				{children}
 				{/* <StyledArrow /> */}

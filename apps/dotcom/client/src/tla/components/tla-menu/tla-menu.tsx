@@ -188,7 +188,6 @@ export function TlaMenuSelect<T extends string>({
 				<TlaSelectPortal usePortal={usePortal} container={container}>
 					<_Select.Content
 						className={styles.menuSelectContent}
-						data-tlui-prevent-dismiss
 						position={usePortal ? 'popper' : undefined}
 						side={usePortal ? 'bottom' : undefined}
 						align={usePortal ? 'end' : undefined}
