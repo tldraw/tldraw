@@ -1,7 +1,7 @@
 import fs from 'fs'
 import { setupClerkTestingToken } from '@clerk/testing/playwright'
 import { expect, test as base } from '@playwright/test'
-import type { Browser, BrowserContext, Download, Page, TestInfo } from '@playwright/test'
+import type { Browser, BrowserContext, Download, Locator, Page, TestInfo } from '@playwright/test'
 import { NUMBER_OF_USERS } from '../consts'
 import { Database, getTestUserEmail } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
@@ -22,6 +22,17 @@ type WorkspaceMemberRole = 'owner' | 'member'
 
 const SCENARIO_USER_POOL_START = 4
 const ROOT_URL = 'http://localhost:3000'
+const MENU_INTERACTION_TIMEOUT = 5_000
+
+export async function selectTlaMenuOption(page: Page, select: Locator, optionLabel: string) {
+	await select.click({ timeout: MENU_INTERACTION_TIMEOUT })
+	const openListbox = page.locator('[role="listbox"][data-state="open"]')
+	await expect(openListbox).toBeVisible({ timeout: MENU_INTERACTION_TIMEOUT })
+	await openListbox
+		.getByRole('option', { name: optionLabel, exact: true })
+		.click({ timeout: MENU_INTERACTION_TIMEOUT })
+	await expect(openListbox).not.toBeVisible({ timeout: MENU_INTERACTION_TIMEOUT })
+}
 
 interface SignedInActorAccount {
 	email: string
@@ -359,8 +370,7 @@ class DotcomScenario {
 		const select = actor.page.getByTestId('shared-link-type-select')
 		const expectedLabel = linkType === 'edit' ? 'Editor' : 'Viewer'
 		if ((await select.innerText()) !== expectedLabel) {
-			await select.click()
-			await actor.page.getByRole('option', { name: expectedLabel }).click()
+			await selectTlaMenuOption(actor.page, select, expectedLabel)
 		}
 		await expect(select).toHaveText(expectedLabel)
 		await actor.waitForMutationResolution()
@@ -537,8 +547,11 @@ class DotcomScenario {
 		memberUserId: string
 	}) {
 		await opts.owner.sidebar.openWorkspaceSettings(opts.workspaceName)
-		await opts.owner.page.locator(`[id="workspace-member-role-${opts.memberUserId}"]`).click()
-		await opts.owner.page.getByRole('option', { name: 'Remove' }).click()
+		await selectTlaMenuOption(
+			opts.owner.page,
+			opts.owner.page.locator(`[id="workspace-member-role-${opts.memberUserId}"]`),
+			'Remove'
+		)
 		await opts.owner.page.getByRole('button', { name: 'Remove member' }).click()
 		await opts.owner.waitForMutationResolution()
 		await opts.owner.page.keyboard.press('Escape')
@@ -555,8 +568,7 @@ class DotcomScenario {
 			`[id="workspace-member-role-${opts.memberUserId}"]`
 		)
 		const roleLabel = opts.role === 'owner' ? 'Owner' : 'Member'
-		await memberRoleSelect.click()
-		await opts.owner.page.getByRole('option', { name: roleLabel }).click()
+		await selectTlaMenuOption(opts.owner.page, memberRoleSelect, roleLabel)
 		await expect(memberRoleSelect).toHaveText(roleLabel)
 		await opts.owner.waitForMutationResolution()
 		await opts.owner.page.keyboard.press('Escape')
