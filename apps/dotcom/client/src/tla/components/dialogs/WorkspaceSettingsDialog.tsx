@@ -88,7 +88,8 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const workspace = workspaceMembership.group
 	if (!workspace) return null
 	// The home workspace is a private, single-member space: it can be renamed but not shared,
-	// joined, or deleted, so it shows only the name field — no invite, members, or settings tabs.
+	// joined, or deleted, so it shows the name field and a disabled "private workspace" invite
+	// note — no shareable invite link, members list, or settings tabs.
 	const isHomeWorkspace = workspaceId === app.getHomeWorkspaceId()
 
 	const currentUser = workspaceMembership.groupMembers.find(
@@ -284,8 +285,23 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					/>
 				</div>
 
-				{/* Invite, members, and settings apply only to shared workspaces; the home
-				    workspace is private, so it shows only the name field above. */}
+				{/* The home workspace is private and can't be shared, so show a disabled invite
+				    control with a note pointing the user to creating a shared workspace instead. */}
+				{isHomeWorkspace && (
+					<div className={styles.section}>
+						<div className={styles.sectionLabel}>
+							<F defaultMessage="Invite teammates" />
+						</div>
+						<TlaButton iconRight="copy" variant="secondary" disabled>
+							<F defaultMessage="Copy invite link" />
+						</TlaButton>
+						<p className={styles.sectionHelp}>
+							<F defaultMessage="This is your private workspace. Create a new workspace to invite teammates." />
+						</p>
+					</div>
+				)}
+
+				{/* Invite link, members, and settings apply only to shared workspaces. */}
 				{!isHomeWorkspace && (
 					<>
 						<div className={styles.section}>

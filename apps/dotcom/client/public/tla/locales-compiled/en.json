@@ -345,6 +345,12 @@
       "value": "Unable to unpublish the file."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "This is your private workspace. Create a new workspace to invite teammates."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,

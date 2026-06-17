@@ -224,6 +224,14 @@
 	font-weight: 500;
 }
 
+/* Help text under a section's control (e.g. the home workspace's private note). */
+.sectionHelp {
+	margin: 8px 0 0;
+	text-align: center;
+	text-wrap: balance;
+	color: var(--tla-color-text-3);
+}
+
 .membersList {
 	display: flex;
 	flex-direction: column;
