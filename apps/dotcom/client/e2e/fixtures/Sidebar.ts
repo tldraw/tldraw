@@ -1,5 +1,14 @@
 import type { Locator, Page } from '@playwright/test'
+import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { expect, step } from './tla-test'
+
+// The createWorkspace/updateWorkspace mutators clamp names to MAX_WORKSPACE_NAME_LENGTH, so the
+// stored (and therefore displayed and synced) name diverges from a longer requested name. Scenario
+// ids alone run close to that limit, so workspace helpers must match against the clamped form or
+// they search for a name the app never renders.
+function clampWorkspaceName(name: string) {
+	return name.trim().slice(0, MAX_WORKSPACE_NAME_LENGTH)
+}
 
 // Cross-client Zero sync (accepting an invite, being removed, a workspace being deleted) delivers
 // workspace-membership rows asynchronously and with variable latency on a busy CI machine. This is
@@ -311,6 +320,7 @@ export class Sidebar {
 
 	@step
 	async createWorkspace(name: string) {
+		name = clampWorkspaceName(name)
 		// The standalone button is only shown while the user has no workspaces;
 		// after that, creating happens from the workspace switcher dropdown.
 		if (await this.createWorkspaceButton.isVisible()) {
@@ -339,7 +349,9 @@ export class Sidebar {
 	}
 
 	getWorkspaceLink(name: string) {
-		return this.page.locator('[data-element="workspace-link"]').filter({ hasText: name })
+		return this.page
+			.locator('[data-element="workspace-link"]')
+			.filter({ hasText: clampWorkspaceName(name) })
 	}
 
 	async getHomeWorkspaceName() {
@@ -354,6 +366,7 @@ export class Sidebar {
 
 	@step
 	async expectWorkspaceVisible(name: string) {
+		name = clampWorkspaceName(name)
 		// Gate on cross-client sync at the data layer first — immune to dropdown churn — then assert
 		// the switcher renders the workspace. Re-open and re-check together: the membership can be
 		// fully synced (the member may even be active in the workspace) yet the assertion still fails
@@ -368,6 +381,7 @@ export class Sidebar {
 
 	@step
 	async expectWorkspaceNotVisible(name: string) {
+		name = clampWorkspaceName(name)
 		// Workspace removal (member removed, workspace deleted) reaches an active member via
 		// cross-client sync too. Wait for the membership to leave the data layer first, then confirm
 		// the switcher no longer lists it. Keep the menu open while checking (Home is always present)
@@ -387,6 +401,7 @@ export class Sidebar {
 	 * without depending on the dropdown being open at the moment the row arrives.
 	 */
 	private async waitForWorkspaceMembershipSync(name: string, present: boolean) {
+		name = clampWorkspaceName(name)
 		await expect
 			.poll(
 				() =>
@@ -401,6 +416,7 @@ export class Sidebar {
 
 	@step
 	async expectActiveWorkspace(name: string) {
+		name = clampWorkspaceName(name)
 		// Switching workspaces navigates to (or creates) a file in the target before the active name
 		// updates, so allow the suite's cross-client budget rather than the default 5s.
 		await expect(this.page.getByTestId('tla-active-workspace-name')).toHaveText(name, {
@@ -415,6 +431,7 @@ export class Sidebar {
 
 	@step
 	async switchToWorkspace(name: string) {
+		name = clampWorkspaceName(name)
 		// Re-open and click together: a settling re-render can dismiss the menu between opening it and
 		// clicking the workspace, leaving the click waiting on an item that no longer exists.
 		await expect(async () => {
@@ -436,6 +453,7 @@ export class Sidebar {
 
 	@step
 	async openWorkspaceSettings(name: string) {
+		name = clampWorkspaceName(name)
 		// The settings action lives in the active workspace's action rows, so
 		// switch to the workspace first if needed.
 		const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
@@ -447,6 +465,7 @@ export class Sidebar {
 
 	@step
 	async renameWorkspace(oldName: string, newName: string) {
+		newName = clampWorkspaceName(newName)
 		await this.openWorkspaceSettings(oldName)
 
 		// Find the name input and change it (use placeholder as user sees it)
@@ -634,6 +653,7 @@ export class Sidebar {
 
 	@step
 	async moveFileToWorkspace(fileName: string, targetWorkspaceName: string) {
+		targetWorkspaceName = clampWorkspaceName(targetWorkspaceName)
 		// The move-to menu is a checklist: each destination is a checkbox item, and the
 		// destination we're moving to is never the current (checked) one, so its accessible
 		// name is just the workspace name (an unchecked item adds no "checked" prefix).
