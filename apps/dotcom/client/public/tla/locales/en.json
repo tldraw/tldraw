@@ -471,9 +471,6 @@
   "b758336699": {
     "translation": "Copy link"
   },
-  "b9a68fbd56": {
-    "translation": "Members ({count})"
-  },
   "ba0318cb81": {
     "translation": "Sign in to share"
   },
@@ -605,6 +602,9 @@
   },
   "ede55d955f": {
     "translation": "Read our <a>cookie policy</a> to learn more."
+  },
+  "ef53538ae4": {
+    "translation": "Members"
   },
   "ef7de3f485": {
     "translation": "selected"

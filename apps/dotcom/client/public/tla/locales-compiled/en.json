@@ -1021,20 +1021,6 @@
       "value": "Copy link"
     }
   ],
-  "b9a68fbd56": [
-    {
-      "type": 0,
-      "value": "Members ("
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": ")"
-    }
-  ],
   "ba0318cb81": [
     {
       "type": 0,
@@ -1393,6 +1379,12 @@
     {
       "type": 0,
       "value": " to learn more."
+    }
+  ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Members"
     }
   ],
   "ef7de3f485": [

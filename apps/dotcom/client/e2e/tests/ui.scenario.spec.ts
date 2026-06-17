@@ -240,7 +240,7 @@ test.describe('UI scenarios', () => {
 		await expect(ownerDialog.getByPlaceholder('Workspace name')).toBeVisible()
 		await expect(ownerDialog.getByText('Invite teammates')).toBeVisible()
 		await expect(ownerDialog.getByRole('button', { name: 'Copy invite link' })).toBeVisible()
-		await expect(ownerDialog.getByText(/Members \(\d+\)/)).toBeVisible()
+		await expect(ownerDialog.getByRole('tab', { name: 'Members' })).toBeVisible()
 		await expect(ownerDialog.getByText(/\(you\)/)).toBeVisible()
 		const memberRoleSelect = ownerDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)
 		await expect(memberRoleSelect).toHaveText('Member')

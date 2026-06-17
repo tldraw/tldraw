@@ -331,7 +331,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 							<div className={styles.workspaceTabs}>
 								<TlaMenuTabsTabs>
 									<TlaMenuTabsTab id="members">
-										<F defaultMessage="Members ({count})" values={{ count: members.length }} />
+										<F defaultMessage="Members" />
 									</TlaMenuTabsTab>
 									<TlaMenuTabsTab id="settings">
 										<F defaultMessage="Settings" />

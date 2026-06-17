@@ -201,8 +201,6 @@
 .workspaceSettingsBody {
 	max-width: 360px;
 	width: calc(100vw - 48px);
-	/* Even-width digits for the member count (e.g. the "Members (12)" tab). */
-	font-variant-numeric: tabular-nums;
 }
 
 .section {
