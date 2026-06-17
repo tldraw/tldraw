@@ -539,7 +539,8 @@ class DotcomScenario {
 		await opts.owner.sidebar.openWorkspaceSettings(opts.workspaceName)
 		await opts.owner.page.locator(`[id="workspace-member-role-${opts.memberUserId}"]`).click()
 		await opts.owner.page.getByRole('option', { name: 'Remove' }).click()
-		await opts.owner.page.getByRole('button', { name: 'Remove member' }).click()
+		// The remove confirmation dialog's button is just "Remove".
+		await opts.owner.page.getByRole('button', { name: 'Remove', exact: true }).click()
 		await opts.owner.waitForMutationResolution()
 		await opts.owner.page.keyboard.press('Escape')
 	}
