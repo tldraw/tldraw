@@ -111,12 +111,6 @@
       "value": "Unpin file"
     }
   ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Try the tldraw SDK"
-    }
-  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -157,6 +151,26 @@
     {
       "type": 0,
       "value": "Workspace name"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "You have been invited to join "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Create a free account to continue."
     }
   ],
   "250ddea65c": [
@@ -383,6 +397,12 @@
     {
       "type": 0,
       "value": "PNG"
+    }
+  ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Create a workspace"
     }
   ],
   "5677e381d2": [
@@ -617,6 +637,12 @@
     {
       "type": 0,
       "value": "User manual"
+    }
+  ],
+  "7bcdfeab70": [
+    {
+      "type": 0,
+      "value": "You have been invited to join:"
     }
   ],
   "7be10fc592": [
@@ -925,22 +951,6 @@
     {
       "type": 0,
       "value": "File is getting large"
-    }
-  ],
-  "a8c9ad7ea5": [
-    {
-      "type": 0,
-      "value": "You have been invited to join "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "workspaceName"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
     }
   ],
   "a9ded1e5ce": [
@@ -1319,12 +1329,6 @@
     {
       "type": 0,
       "value": "or"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "You have been invited to join workspace:"
     }
   ],
   "ea4788705e": [

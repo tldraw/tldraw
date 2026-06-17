@@ -140,22 +140,6 @@
 	color: var(--tla-color-text-1);
 }
 
-.tla-text_ui__section {
-	font-size: 12px;
-	line-height: 1.3;
-	font-weight: 500;
-	font-family: var(--tla-font-ui);
-	color: var(--tla-color-text-3);
-}
-
-.tla-text_ui__tiny {
-	font-size: 6px;
-	line-height: 1.3;
-	font-weight: 800;
-	font-family: var(--tla-font-ui);
-	color: var(--tla-color-text-1);
-}
-
 .tla-text_ui__small {
 	font-size: 11px;
 	line-height: 1.3;
@@ -184,27 +168,6 @@
 	font-family: var(--tla-font-ui);
 	color: var(--tla-color-text-1);
 	text-rendering: optimizeLegibility;
-}
-
-/* ---------------------- Auth ---------------------- */
-
-.tla-auth_detail {
-	text-align: center;
-	color: var(--tla-color-text-3);
-}
-
-.tla-auth_detail button {
-	background: none;
-	border: none;
-	display: inline;
-	cursor: pointer;
-	color: var(--tla-color-primary);
-}
-
-.tla-file-header__share {
-	display: flex;
-	gap: 8px;
-	align-items: center;
 }
 
 /* --------------------- Editor --------------------- */
@@ -319,14 +282,6 @@
 	border-radius: 10px;
 	outline: 2px solid var(--tl-color-focus);
 	outline-offset: -5px;
-}
-
-/** Checkbox */
-.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	:is(nav, .tlui-popover__content, .tlui-dialog__overlay)
-	.tla-form-checkbox:has(input:focus-visible)
-	> label {
-	outline: 2px solid var(--tl-color-focus);
 }
 
 /** Text buttons, specifically from the cookie consent */

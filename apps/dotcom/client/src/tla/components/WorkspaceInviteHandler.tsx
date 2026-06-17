@@ -89,6 +89,7 @@ export function WorkspaceInviteHandler() {
 			dialogs.addDialog({
 				id: 'workspace-invite-sign-in',
 				component: (props) => <TlaSignInDialog {...props} inviteInfo={inviteInfo} skipRedirect />,
+				preventBackgroundClose: true,
 				// Push, not replace: dismissing leaves the ?invite URL behind in
 				// history, so the invite stays a real back-navigable state rather than
 				// being erased.
