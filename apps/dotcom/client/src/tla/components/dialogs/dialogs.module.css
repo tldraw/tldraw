@@ -290,26 +290,42 @@
 	overflow-y: auto;
 }
 
-/* Pull the rows out 12px so the menu buttons' built-in 12px label padding (and the
-   matching padded toggle row) land their labels back on the content edge, aligned
-   with the headings and tab labels. */
+/* The toggle row and the action links below it sit at the content edge (no inset), so
+   their labels line up with the section headings and tab labels above. */
 .settingsPage {
 	display: flex;
 	flex-direction: column;
-	margin: 0 -12px;
+	gap: 8px;
 }
 
-/* The action rows reuse TldrawUiButton type="menu", whose label sits 12px in (the
-   button's own padding). Pad the toggle row to match so every label lines up, and
-   match their 40px height (the control row is otherwise 32px) so the Settings rows
-   are evenly spaced. */
-.settingsControl {
-	padding: 0 12px;
-	min-height: 40px;
+/* Regenerate / leave / delete render as text links rather than full menu buttons.
+   align-self keeps each one's hit target tight to its text, while the toggle row above
+   still stretches full width for its label + switch. */
+.inlineButton {
+	align-self: flex-start;
+	padding: 4px 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--tla-color-text-1);
+	text-align: left;
 }
 
-/* Destructive action ("Delete workspace") — red label on the reused menu button. */
-.settingsDanger :global(.tlui-button__label) {
+@media (hover: hover) {
+	.inlineButton:hover:not(:disabled) {
+		text-decoration: underline;
+	}
+}
+
+.inlineButton:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Destructive action ("Delete workspace"). */
+.inlineButtonDanger {
 	color: var(--tl-color-danger);
 }
 

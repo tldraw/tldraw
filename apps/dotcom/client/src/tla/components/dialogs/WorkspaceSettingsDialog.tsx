@@ -3,8 +3,6 @@ import { Tooltip as _Tooltip } from 'radix-ui'
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-	TldrawUiButton,
-	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
@@ -429,7 +427,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 									<div className={styles.settingsPage}>
 										{canManageWorkspace && (
 											<>
-												<TlaMenuControl className={styles.settingsControl}>
+												<TlaMenuControl>
 													<TlaMenuControlLabel htmlFor="workspace-invite-enabled-switch">
 														<F defaultMessage="Enable invite link" />
 													</TlaMenuControlLabel>
@@ -439,42 +437,42 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 														onChange={handleToggleInviteLink}
 													/>
 												</TlaMenuControl>
-												<TldrawUiButton type="menu" onClick={openRegenerateConfirmDialog}>
-													<TldrawUiButtonLabel>
-														<F defaultMessage="Regenerate invite link" />
-													</TldrawUiButtonLabel>
-												</TldrawUiButton>
+												<button
+													type="button"
+													className={styles.inlineButton}
+													onClick={openRegenerateConfirmDialog}
+												>
+													<F defaultMessage="Regenerate invite link" />
+												</button>
 											</>
 										)}
 										{canLeave ? (
-											<TldrawUiButton type="menu" onClick={openLeaveConfirmDialog}>
-												<TldrawUiButtonLabel>
-													<F defaultMessage="Leave workspace" />
-												</TldrawUiButtonLabel>
-											</TldrawUiButton>
+											<button
+												type="button"
+												className={styles.inlineButton}
+												onClick={openLeaveConfirmDialog}
+											>
+												<F defaultMessage="Leave workspace" />
+											</button>
 										) : (
 											<TldrawUiTooltip
 												content={
 													<F defaultMessage="A workspace must keep at least one owner. Make someone else an owner first." />
 												}
 											>
-												<TldrawUiButton type="menu" disabled>
-													<TldrawUiButtonLabel>
-														<F defaultMessage="Leave workspace" />
-													</TldrawUiButtonLabel>
-												</TldrawUiButton>
+												<button type="button" className={styles.inlineButton} disabled>
+													<F defaultMessage="Leave workspace" />
+												</button>
 											</TldrawUiTooltip>
 										)}
 										{canManageWorkspace && (
-											<TldrawUiButton
-												type="menu"
-												className={styles.settingsDanger}
+											<button
+												type="button"
+												className={`${styles.inlineButton} ${styles.inlineButtonDanger}`}
 												onClick={openDeleteConfirmDialog}
 											>
-												<TldrawUiButtonLabel>
-													<F defaultMessage="Delete workspace" />
-												</TldrawUiButtonLabel>
-											</TldrawUiButton>
+												<F defaultMessage="Delete workspace" />
+											</button>
 										)}
 									</div>
 								</div>
