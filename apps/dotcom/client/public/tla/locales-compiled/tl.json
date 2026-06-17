@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Mag-imbita ng mga kasamahan sa koponan"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Alisin"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopyahin sa personal na workspace"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Nabigo ang pag-upload"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Aking mga file"
+      "value": "Maligayang pagdating sa iyong workspace"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Maghanap..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Hindi ma-unpublish ang file."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ito ang iyong pribadong workspace. Gumawa ng bagong workspace para imbitahan ang mga kasamahan sa koponan."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Kopyahin"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Gumawa ng libreng account para i-save ang iyong mga file, gumawa ng mga workspace, at imbitahan ang iyong mga kasamahan sa koponan."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Available ang bagong bersyon ng tldraw. Paki-reload ang page para magpatuloy."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Bagong file"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Paki-reload ang page"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Walang nakitang mga file"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Paki-reload"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "Ang tldraw ay isang libreng online na whiteboard. Gumawa ng account para i-save ang iyong mga file at magtrabaho kasama ang iyong mga kaibigan."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "I-download"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Bagong lugar ng trabaho"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Tingnan ang iyong email para sa isang verification code."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Tahanan"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Palitan ang pangalan"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopyahin sa aking mga file"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Liwanag"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "I-clear ang paghahanap"
     }
   ],
   "9b33f5c63c": [
@@ -895,6 +919,22 @@
     {
       "type": 0,
       "value": "Lumalaki ang file"
+    }
+  ],
+  "a8c9ad7ea5": [
+    {
+      "type": 0,
+      "value": "Inaanyayahan kang sumali sa "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
     }
   ],
   "a9ded1e5ce": [
@@ -1087,10 +1127,10 @@
       "value": "Mag-imbita"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Bagong board"
+      "value": "Kopyahin sa aking workspace"
     }
   ],
   "c87aacf567": [

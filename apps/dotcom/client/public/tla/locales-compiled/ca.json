@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Convida els companys d'equip"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Elimina"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copia a l'espai de treball personal"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "La càrrega ha fallat"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Els meus fitxers"
+      "value": "Benvingut/da al teu espai de treball"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Cerca..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "No es pot anul·lar la publicació del fitxer."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Aquest és el teu espai de treball privat. Crea'n un de nou per convidar els companys d'equip."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Còpia"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Crea un compte gratuït per desar els teus fitxers, crear espais de treball i convidar els teus companys d'equip."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Hi ha disponible una nova versió de tldraw. Torneu a carregar la pàgina per continuar."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Fitxer nou"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Torneu a carregar la pàgina"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "No s'han trobat fitxers"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Torneu a carregar"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw és una pissarra blanca en línia gratuïta. Crea un compte per desar els teus fitxers i treballar amb els teus amics."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Descarrega"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nou espai de treball"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Revisa el teu correu electrònic per obtenir un codi de verificació."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Inici"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Canvia el nom"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copia als meus fitxers"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Llum"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Esborra la cerca"
     }
   ],
   "9b33f5c63c": [
@@ -895,6 +919,22 @@
     {
       "type": 0,
       "value": "El fitxer s'està fent gran"
+    }
+  ],
+  "a8c9ad7ea5": [
+    {
+      "type": 0,
+      "value": "Has estat convidat a unir-te a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
     }
   ],
   "a9ded1e5ce": [
@@ -1071,10 +1111,10 @@
       "value": "Convidar"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nova junta"
+      "value": "Copia al meu espai de treball"
     }
   ],
   "c87aacf567": [

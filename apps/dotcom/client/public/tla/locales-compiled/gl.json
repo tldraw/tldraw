@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Convidar aos compañeiros de equipo"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Eliminar"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copiar no espazo de traballo persoal"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Produciuse un erro na carga"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Os meus ficheiros"
+      "value": "Benvido ao teu espazo de traballo"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Buscar..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Non se puido anular a publicación do ficheiro."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Este é o teu espazo de traballo privado. Crea un novo espazo de traballo para convidar aos compañeiros de equipo."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Copiar"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Crea unha conta gratuíta para gardar os teus ficheiros, crear espazos de traballo e convidar os teus compañeiros de equipo."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Hai unha nova versión de tldraw dispoñible. Volve cargar a páxina para continuar."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Novo ficheiro"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Volve cargar a páxina"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Non se atoparon ficheiros"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Volve cargar"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw é unha pizarra branca en liña gratuíta. Crea unha conta para gardar os teus ficheiros e traballar cos teus amigos."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Descargar"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Novo espazo de traballo"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Consulta o teu correo electrónico para obter un código de verificación."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Inicio"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Cambiar o nome"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copiar nos meus ficheiros"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Luz"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Limpar busca"
     }
   ],
   "9b33f5c63c": [
@@ -895,6 +919,22 @@
     {
       "type": 0,
       "value": "O ficheiro está a facerse grande"
+    }
+  ],
+  "a8c9ad7ea5": [
+    {
+      "type": 0,
+      "value": "Convidáronte a unirte a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
     }
   ],
   "a9ded1e5ce": [
@@ -1071,10 +1111,10 @@
       "value": "Invitar"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nova xunta directiva"
+      "value": "Copiar no meu espazo de traballo"
     }
   ],
   "c87aacf567": [

@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "Weli dhib baa haysta? {GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "Ku martiqaad asxaabta kooxda"
-  },
   "05f43078e9": {
     "translation": "Waxaad gaartay tirada ugu badan ee goobaha shaqada. Waxaad u baahan tahay inaad tirtirto goobaha shaqada ee hore ka hor intaadan abuurin kuwo cusub."
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "Ka saar"
+  },
+  "10fb1df194": {
+    "translation": "Nuqul u dir goobta shaqada ee shaqsiga ah"
   },
   "110a4b01be": {
     "translation": "Daabac"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "Soo dejintu waa fashilantay"
   },
-  "2c3ef76333": {
-    "translation": "Galalkayga"
+  "2a1167f869": {
+    "translation": "Ku soo dhawoow goobtaada shaqada"
+  },
+  "2a37324bb4": {
+    "translation": "Raadi..."
   },
   "2e2b3c700b": {
     "translation": "Ku dar xiriirinta faylka hadda jira"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "Lama daabici karo faylka"
   },
+  "51317dcad5": {
+    "translation": "Kani waa goobtaada shaqada gaarka ah. Samee goob shaqo oo cusub si aad ugu martiqaado asxaabtaada."
+  },
   "517bb809d9": {
     "translation": "Liiska bogga"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "Nuqul"
   },
+  "5fd0972432": {
+    "translation": "Samee akoon bilaash ah si aad u keydiso faylashaada, u abuurto goobaha shaqada, oo aad ugu martiqaaddo asxaabtaada."
+  },
   "61057a0c84": {
     "translation": "Ka dib"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "Nooc cusub oo tldraw ah ayaa diyaar ah. Fadlan dib u soo deji bogga si aad u sii waddo."
+  },
+  "681e10aecb": {
+    "translation": "Faylka cusub"
   },
   "6832ac5936": {
     "translation": "Geli ciwaanka iimaylkaaga"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "Fadlan dib u soo deji bogga"
   },
+  "74ff4bad28": {
+    "translation": "Faylal lama helin"
+  },
   "752b79f137": {
     "translation": "Waxaad gaadhay tirada ugu badan ee faylasha Waxaad u baahan tahay inaad tirtirto faylal hore ka hor intaadan abuurin kuwo cusub."
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "Ma hubtaa inaad rabto inaad ilowdo faylkan?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw waa sabuur cad oo online ah oo bilaash ah. Samee akoon si aad u kaydsato faylashaada oo ula shaqeyso asxaabtaada."
   },
   "777f9e90cf": {
     "translation": "Codsi aan sax ahayn"
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "Download"
   },
+  "8030793ce3": {
+    "translation": "Goobta shaqada cusub"
+  },
   "815e116a2e": {
     "translation": "Ma haysaa bug, arin, ama fikrad tldraw? Aan ogaano! Buuxi foomkan waxaanu kula socon doonaa iimaylka haddii loo baahdo. Waxa kale oo aad <discord>nagula sheekaysan kartaa Discord </discord>ama <github>gudbi arrin ku saabsan GitHub</github>."
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "Hubi iimaylkaga koodka xaqiijinta"
   },
-  "8cf04a9734": {
-    "translation": "Bogga Hore"
-  },
   "8eb2c00e96": {
     "translation": "kula wadaagay"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "Magacaabista"
-  },
-  "91e49bb0eb": {
-    "translation": "Ku koobbi faylalkayga"
   },
   "95aacd4d4a": {
     "translation": "Ku gal Google"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "Iftiin"
+  },
+  "9983381c21": {
+    "translation": "Nadiifi raadinta"
   },
   "9b33f5c63c": {
     "translation": "kood ma helin? <resend>dib u dir </resend>."
@@ -415,6 +427,9 @@
   },
   "a8873770ab": {
     "translation": "Faylku wuu weynaaday"
+  },
+  "a8c9ad7ea5": {
+    "translation": "Waxaa laguugu martiqaaday inaad ku biirto <strong>{workspaceName}</strong>"
   },
   "a9ded1e5ce": {
     "translation": "Asalkii hore"
@@ -474,8 +489,8 @@
   "c6a00f137b": {
     "translation": "martiqaad"
   },
-  "c7d7403714": {
-    "translation": "Guddi cusub"
+  "c6f16003f2": {
+    "translation": "Nuqul u dir goobta shaqadayda"
   },
   "c87aacf567": {
     "translation": "Saxiix"

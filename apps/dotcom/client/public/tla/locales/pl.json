@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "Nadal masz problem? {GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "Zaproś członków drużyny"
-  },
   "05f43078e9": {
     "translation": "Osiągnięto maksymalną liczbę obszarów roboczych. Przed utworzeniem nowych obszarów roboczych należy usunąć stare."
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "Usunąć"
+  },
+  "10fb1df194": {
+    "translation": "Kopiuj do osobistej przestrzeni roboczej"
   },
   "110a4b01be": {
     "translation": "Opublikuj"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "Przesyłanie nie powiodło się"
   },
-  "2c3ef76333": {
-    "translation": "Moje pliki"
+  "2a1167f869": {
+    "translation": "Witamy w Twoim miejscu pracy"
+  },
+  "2a37324bb4": {
+    "translation": "Szukaj..."
   },
   "2e2b3c700b": {
     "translation": "Dołącz link do bieżącego pliku"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "Nie można cofnąć publikacji pliku."
   },
+  "51317dcad5": {
+    "translation": "To Twoja prywatna przestrzeń robocza. Utwórz nową przestrzeń roboczą, aby zaprosić członków zespołu."
+  },
   "517bb809d9": {
     "translation": "Menu strony"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "Kopia"
   },
+  "5fd0972432": {
+    "translation": "Załóż bezpłatne konto, aby zapisać pliki, utworzyć obszary robocze i zaprosić członków zespołu."
+  },
   "61057a0c84": {
     "translation": "Później"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "Dostępna jest nowa wersja tldraw. Aby kontynuować, odśwież stronę."
+  },
+  "681e10aecb": {
+    "translation": "Nowy plik"
   },
   "6832ac5936": {
     "translation": "Podaj swój adres e-mail"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "Odśwież stronę"
   },
+  "74ff4bad28": {
+    "translation": "Nie znaleziono plików"
+  },
   "752b79f137": {
     "translation": "Osiągnięto maksymalną liczbę plików. Musisz usunąć stare pliki przed utworzeniem nowych."
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "Czy na pewno chcesz zapomnieć ten plik?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw to darmowa tablica online. Załóż konto, aby zapisać pliki i pracować ze znajomymi."
   },
   "777f9e90cf": {
     "translation": "Nieprawidłowe żądanie."
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "Pobierać"
   },
+  "8030793ce3": {
+    "translation": "Nowe miejsce pracy"
+  },
   "815e116a2e": {
     "translation": "Masz błąd, problem lub pomysł na tldraw? Daj nam znać! Wypełnij ten formularz, a my skontaktujemy się z Tobą przez e-mail, jeśli będzie to konieczne. Możesz również <discord>porozmawiać z nami na Discordzie</discord> lub <github>zgłosić problem na GitHub</github>."
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "Sprawdź swoją skrzynkę e-mail, aby uzyskać kod weryfikacyjny."
   },
-  "8cf04a9734": {
-    "translation": "Dom"
-  },
   "8eb2c00e96": {
     "translation": "Udostępniono Tobie"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "Zmień nazwę"
-  },
-  "91e49bb0eb": {
-    "translation": "Kopiuj do moich plików"
   },
   "95aacd4d4a": {
     "translation": "Zaloguj się za pomocą Google"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "Jasny"
+  },
+  "9983381c21": {
+    "translation": "Wyczyść wyszukiwanie"
   },
   "9b33f5c63c": {
     "translation": "Nie otrzymałeś kodu? <resend>Wyślij ponownie</resend>."
@@ -415,6 +427,9 @@
   },
   "a8873770ab": {
     "translation": "Plik staje się duży"
+  },
+  "a8c9ad7ea5": {
+    "translation": "Zostałeś zaproszony do dołączenia do <strong>{workspaceName}</strong>"
   },
   "a9ded1e5ce": {
     "translation": "Tło"
@@ -474,8 +489,8 @@
   "c6a00f137b": {
     "translation": "Zaproś"
   },
-  "c7d7403714": {
-    "translation": "Nowa tablica"
+  "c6f16003f2": {
+    "translation": "Kopiuj do mojego obszaru roboczego"
   },
   "c87aacf567": {
     "translation": "Wyloguj się"

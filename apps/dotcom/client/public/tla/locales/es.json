@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "¿Sigue teniendo problemas? {GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "Invita a tus compañeros de equipo"
-  },
   "05f43078e9": {
     "translation": "Has alcanzado el número máximo de espacios de trabajo. Debes eliminar los espacios de trabajo antiguos antes de crear otros nuevos."
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "Eliminar"
+  },
+  "10fb1df194": {
+    "translation": "Copiar al espacio de trabajo personal"
   },
   "110a4b01be": {
     "translation": "Publicar"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "Error al cargar"
   },
-  "2c3ef76333": {
-    "translation": "Mis archivos"
+  "2a1167f869": {
+    "translation": "Bienvenido a tu espacio de trabajo"
+  },
+  "2a37324bb4": {
+    "translation": "Buscar..."
   },
   "2e2b3c700b": {
     "translation": "Incluir enlace al archivo actual"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "No se ha podido anular la publicación del archivo."
   },
+  "51317dcad5": {
+    "translation": "Este es tu espacio de trabajo privado. Crea un nuevo espacio de trabajo para invitar a tus compañeros de equipo."
+  },
   "517bb809d9": {
     "translation": "Menú de página"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "Copiar"
   },
+  "5fd0972432": {
+    "translation": "Crea una cuenta gratuita para guardar tus archivos, crear espacios de trabajo e invitar a tus compañeros de equipo."
+  },
   "61057a0c84": {
     "translation": "Más tarde"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "Hay una nueva versión de tldraw disponible. Vuelva a cargar la página para continuar."
+  },
+  "681e10aecb": {
+    "translation": "Nuevo archivo"
   },
   "6832ac5936": {
     "translation": "Introduce tu dirección de correo electrónico"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "Vuelva a cargar la página"
   },
+  "74ff4bad28": {
+    "translation": "No se encontraron archivos"
+  },
   "752b79f137": {
     "translation": "Has alcanzado el número máximo de archivos. Debes eliminar los archivos antiguos antes de crear los nuevos."
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "¿Seguro que quiere olvidar este archivo?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw es una pizarra virtual gratuita. Crea una cuenta para guardar tus archivos y colaborar con tus amigos."
   },
   "777f9e90cf": {
     "translation": "Solicitud no válida."
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "Descargar"
   },
+  "8030793ce3": {
+    "translation": "Nuevo espacio de trabajo"
+  },
   "815e116a2e": {
     "translation": "¿Tienes algún error, problema o idea para tldraw? ¡Háznoslo saber! Completa este formulario y nos pondremos en contacto por correo electrónico si es necesario. También puedes <discord>chatear con nosotros en Discord</discord> o <github>enviar un problema en GitHub</github>."
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "Comprueba tu correo electrónico para encontrar un código de verificación."
   },
-  "8cf04a9734": {
-    "translation": "Hogar"
-  },
   "8eb2c00e96": {
     "translation": "Compartido con usted"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "Renombrar"
-  },
-  "91e49bb0eb": {
-    "translation": "Copiar en mis archivos"
   },
   "95aacd4d4a": {
     "translation": "Inicia sesión con Google"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "Claro"
+  },
+  "9983381c21": {
+    "translation": "Borrar búsqueda"
   },
   "9b33f5c63c": {
     "translation": "¿No recibiste un código? <resend>Reenviar</resend>."
@@ -415,6 +427,9 @@
   },
   "a8873770ab": {
     "translation": "El archivo está creciendo mucho"
+  },
+  "a8c9ad7ea5": {
+    "translation": "Has sido invitado a unirte a <strong>{workspaceName}</strong>"
   },
   "a9ded1e5ce": {
     "translation": "Fondo"
@@ -474,8 +489,8 @@
   "c6a00f137b": {
     "translation": "Invitar"
   },
-  "c7d7403714": {
-    "translation": "Nueva junta directiva"
+  "c6f16003f2": {
+    "translation": "Copiar a mi espacio de trabajo"
   },
   "c87aacf567": {
     "translation": "Cerrar sesión"

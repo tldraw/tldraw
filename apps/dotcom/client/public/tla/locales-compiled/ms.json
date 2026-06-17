@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Jemput rakan sepasukan"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Alih keluar"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Salin ke ruang kerja peribadi"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Muat naik gagal"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Fail saya"
+      "value": "Selamat datang ke ruang kerja anda"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Cari..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Tidak dapat menyahterbitkan fail."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ini ruang kerja peribadi anda. Cipta ruang kerja baharu untuk menjemput rakan sepasukan."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "salin"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Cipta akaun percuma untuk menyimpan fail anda, mencipta ruang kerja dan menjemput rakan sepasukan anda."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Versi baharu tldraw tersedia. Sila muat semula halaman untuk meneruskan."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Fail baharu"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Sila muat semula halaman"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Tiada fail ditemui"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Sila muat semula"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw ialah papan putih dalam talian percuma. Buat akaun untuk menyimpan fail anda dan bekerjasama dengan rakan anda."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Muat turun"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Ruang kerja baharu"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Semak e-mel anda untuk mendapatkan kod pengesahan."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Laman Utama"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Namakan semula"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Salin ke fail saya"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Cahaya"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Kosongkan carian"
     }
   ],
   "9b33f5c63c": [
@@ -895,6 +919,22 @@
     {
       "type": 0,
       "value": "Fail semakin besar"
+    }
+  ],
+  "a8c9ad7ea5": [
+    {
+      "type": 0,
+      "value": "Anda telah dijemput untuk menyertai "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
     }
   ],
   "a9ded1e5ce": [
@@ -1063,10 +1103,10 @@
       "value": "Jemput"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Papan baharu"
+      "value": "Salin ke ruang kerja saya"
     }
   ],
   "c87aacf567": [

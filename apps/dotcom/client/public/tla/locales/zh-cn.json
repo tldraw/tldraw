@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "仍然有问题？{GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "邀请队友"
-  },
   "05f43078e9": {
     "translation": "您已达到工作区数量上限。您需要先删除旧工作区，才能创建新工作区。"
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "消除"
+  },
+  "10fb1df194": {
+    "translation": "复制到个人工作区"
   },
   "110a4b01be": {
     "translation": "发布"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "上传失败"
   },
-  "2c3ef76333": {
-    "translation": "我的文件"
+  "2a1167f869": {
+    "translation": "欢迎来到您的工作区"
+  },
+  "2a37324bb4": {
+    "translation": "搜索..."
   },
   "2e2b3c700b": {
     "translation": "包含当前文件的链接"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "无法取消发布文件。"
   },
+  "51317dcad5": {
+    "translation": "这是您的私人工作区。创建新工作区即可邀请团队成员。"
+  },
   "517bb809d9": {
     "translation": "页面菜单"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "复制"
   },
+  "5fd0972432": {
+    "translation": "创建免费帐户，即可保存文件、创建工作区并邀请团队成员。"
+  },
   "61057a0c84": {
     "translation": "稍后"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "tldraw 有新版本可用。请重新加载页面以继续。"
+  },
+  "681e10aecb": {
+    "translation": "新文件"
   },
   "6832ac5936": {
     "translation": "请输入您的电子邮件地址"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "请重新加载页面"
   },
+  "74ff4bad28": {
+    "translation": "未找到文件"
+  },
   "752b79f137": {
     "translation": "您已达到文件数量上限。您需要先删除旧文件，然后才能创建新文件。"
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "确定要忘记该文件吗？"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw 是一款免费的在线白板工具。创建账户即可保存文件并与朋友协作。"
   },
   "777f9e90cf": {
     "translation": "无效请求。"
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "下载"
   },
+  "8030793ce3": {
+    "translation": "新工作区"
+  },
   "815e116a2e": {
     "translation": "tldraw 有 bug、问题或想法吗？请告诉我们！填写此表单，如有需要，我们会通过电子邮件与您联系。您也可以<discord>在 Discord 上与我们聊天</discord>，或<github>在 GitHub 上提交问题</github>。"
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "请查看您的电子邮件，您会收到验证码。"
   },
-  "8cf04a9734": {
-    "translation": "家"
-  },
   "8eb2c00e96": {
     "translation": "与您分享"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "重命名"
-  },
-  "91e49bb0eb": {
-    "translation": "复制到我的文件"
   },
   "95aacd4d4a": {
     "translation": "使用 Google 登录"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "浅色"
+  },
+  "9983381c21": {
+    "translation": "清除搜索"
   },
   "9b33f5c63c": {
     "translation": "没有收到验证码？<resend>重新发送</resend>。"
@@ -415,6 +427,9 @@
   },
   "a8873770ab": {
     "translation": "文件越来越大"
+  },
+  "a8c9ad7ea5": {
+    "translation": "您已受邀加入<strong>{workspaceName}</strong>"
   },
   "a9ded1e5ce": {
     "translation": "背景"
@@ -474,8 +489,8 @@
   "c6a00f137b": {
     "translation": "邀请"
   },
-  "c7d7403714": {
-    "translation": "新董事会"
+  "c6f16003f2": {
+    "translation": "复制到我的工作区"
   },
   "c87aacf567": {
     "translation": "退出登录"

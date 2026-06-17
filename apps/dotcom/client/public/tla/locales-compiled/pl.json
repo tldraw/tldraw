@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Zaproś członków drużyny"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Usunąć"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopiuj do osobistej przestrzeni roboczej"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Przesyłanie nie powiodło się"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Moje pliki"
+      "value": "Witamy w Twoim miejscu pracy"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Szukaj..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Nie można cofnąć publikacji pliku."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "To Twoja prywatna przestrzeń robocza. Utwórz nową przestrzeń roboczą, aby zaprosić członków zespołu."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Kopia"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Załóż bezpłatne konto, aby zapisać pliki, utworzyć obszary robocze i zaprosić członków zespołu."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Dostępna jest nowa wersja tldraw. Aby kontynuować, odśwież stronę."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Nowy plik"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Odśwież stronę"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Nie znaleziono plików"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Proszę odświeżyć"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw to darmowa tablica online. Załóż konto, aby zapisać pliki i pracować ze znajomymi."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Pobierać"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nowe miejsce pracy"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Sprawdź swoją skrzynkę e-mail, aby uzyskać kod weryfikacyjny."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Dom"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Zmień nazwę"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopiuj do moich plików"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Jasny"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Wyczyść wyszukiwanie"
     }
   ],
   "9b33f5c63c": [
@@ -895,6 +919,22 @@
     {
       "type": 0,
       "value": "Plik staje się duży"
+    }
+  ],
+  "a8c9ad7ea5": [
+    {
+      "type": 0,
+      "value": "Zostałeś zaproszony do dołączenia do "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
     }
   ],
   "a9ded1e5ce": [
@@ -1079,10 +1119,10 @@
       "value": "Zaproś"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nowa tablica"
+      "value": "Kopiuj do mojego obszaru roboczego"
     }
   ],
   "c87aacf567": [

@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Inviter lagkamerater"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Fjerne"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopier til personlig arbeidsområde"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Opplasting mislyktes"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Mine filer"
+      "value": "Velkommen til arbeidsplassen din"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Søk..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Kan ikke oppheve publiseringen av filen."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Dette er ditt private arbeidsområde. Opprett et nytt arbeidsområde for å invitere lagkamerater."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Kopiere"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Opprett en gratis konto for å lagre filene dine, opprette arbeidsområder og invitere lagkameratene dine."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "En ny versjon av tldraw er tilgjengelig. Last inn siden på nytt for å fortsette."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Ny fil"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Last inn siden på nytt"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Ingen filer funnet"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Last inn på nytt"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw er en gratis tavle på nett. Opprett en konto for å lagre filene dine og samarbeide med vennene dine."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Last ned"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nytt arbeidsområde"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Sjekk e-posten din for en bekreftelseskode."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Hjem"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Gi nytt navn"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopier til filene mine"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Lys"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Tøm søk"
     }
   ],
   "9b33f5c63c": [
@@ -895,6 +919,22 @@
     {
       "type": 0,
       "value": "Filen blir stor"
+    }
+  ],
+  "a8c9ad7ea5": [
+    {
+      "type": 0,
+      "value": "Du har blitt invitert til å bli med i "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
     }
   ],
   "a9ded1e5ce": [
@@ -1071,10 +1111,10 @@
       "value": "Invitere"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nytt styre"
+      "value": "Kopier til arbeidsområdet mitt"
     }
   ],
   "c87aacf567": [

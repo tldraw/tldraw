@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Inviter des coéquipiers"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Retirer"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copier dans l'espace de travail personnel"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Échec de l'importation"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Mes fichiers"
+      "value": "Bienvenue dans votre espace de travail"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Recherche..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Impossible d'annuler la publication du fichier."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ceci est votre espace de travail privé. Créez un nouvel espace de travail pour inviter vos collègues."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Copier"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Créez un compte gratuit pour sauvegarder vos fichiers, créer des espaces de travail et inviter vos coéquipiers."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Une nouvelle version de tldraw est disponible. Veuillez recharger la page pour continuer."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Nouveau fichier"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Veuillez recharger la page"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Aucun fichier trouvé"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Veuillez recharger"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "TLDRAW est un tableau blanc en ligne gratuit. Créez un compte pour sauvegarder vos fichiers et collaborer avec vos amis."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Télécharger"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nouvel espace de travail"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Consultez votre boîte mail pour obtenir un code de vérification."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Maison"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Renommer"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copier dans mes fichiers"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Clair"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Recherche propre"
     }
   ],
   "9b33f5c63c": [
@@ -895,6 +919,22 @@
     {
       "type": 0,
       "value": "Le fichier devient volumineux."
+    }
+  ],
+  "a8c9ad7ea5": [
+    {
+      "type": 0,
+      "value": "Vous avez été invité à rejoindre "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
     }
   ],
   "a9ded1e5ce": [
@@ -1071,10 +1111,10 @@
       "value": "Inviter"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nouveau conseil d'administration"
+      "value": "Copier dans mon espace de travail"
     }
   ],
   "c87aacf567": [

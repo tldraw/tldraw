@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "Mai ai probleme? {GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "Invită coechipieri"
-  },
   "05f43078e9": {
     "translation": "Ați atins numărul maxim de spații de lucru. Trebuie să ștergeți spațiile de lucru vechi înainte de a crea altele noi."
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "Elimina"
+  },
+  "10fb1df194": {
+    "translation": "Copiază în spațiul de lucru personal"
   },
   "110a4b01be": {
     "translation": "Publica"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "Încărcarea nu a reușit"
   },
-  "2c3ef76333": {
-    "translation": "Fișierele mele"
+  "2a1167f869": {
+    "translation": "Bine ați venit în spațiul dvs. de lucru"
+  },
+  "2a37324bb4": {
+    "translation": "Căutare..."
   },
   "2e2b3c700b": {
     "translation": "Includeți linkul către fișierul curent"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "Nu se poate anula publicarea fișierului."
   },
+  "51317dcad5": {
+    "translation": "Acesta este spațiul tău de lucru privat. Creează un spațiu de lucru nou pentru a invita colegi de echipă."
+  },
   "517bb809d9": {
     "translation": "Meniul paginii"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "Copie"
   },
+  "5fd0972432": {
+    "translation": "Creează un cont gratuit pentru a salva fișierele, a crea spații de lucru și a-ți invita colegii de echipă."
+  },
   "61057a0c84": {
     "translation": "Mai târziu"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "Este disponibilă o nouă versiune de tldraw. Vă rugăm să reîncărcați pagina pentru a continua."
+  },
+  "681e10aecb": {
+    "translation": "Fișier nou"
   },
   "6832ac5936": {
     "translation": "Introdu adresa ta de e-mail"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "Vă rugăm să reîncărcați pagina"
   },
+  "74ff4bad28": {
+    "translation": "Nu s-au găsit fișiere"
+  },
   "752b79f137": {
     "translation": "Ați atins numărul maxim de fișiere. Trebuie să ștergeți fișierele vechi înainte de a crea altele noi."
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "Sigur vrei să uiți acest fișier?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw este o tablă albă online gratuită. Creează-ți un cont pentru a salva fișierele și a lucra cu prietenii tăi."
   },
   "777f9e90cf": {
     "translation": "Solicitare nevalidă."
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "Descărcare"
   },
+  "8030793ce3": {
+    "translation": "Spațiu de lucru nou"
+  },
   "815e116a2e": {
     "translation": "Aveți o eroare, o problemă sau o idee pentru tldraw? Anunțați-ne! Completați acest formular și vă vom contacta prin e-mail, dacă este necesar. De asemenea, puteți <discord>să discutați cu noi pe Discord</discord> sau <github>să trimiteți o problemă pe GitHub</github>."
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "Verifică-ți e-mailul pentru un cod de verificare."
   },
-  "8cf04a9734": {
-    "translation": "Acasă"
-  },
   "8eb2c00e96": {
     "translation": "Împărtășită cu tine"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "Redenumiți"
-  },
-  "91e49bb0eb": {
-    "translation": "Copiați în fișierele mele"
   },
   "95aacd4d4a": {
     "translation": "Conectați-vă cu Google"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "Aprinde"
+  },
+  "9983381c21": {
+    "translation": "Șterge căutarea"
   },
   "9b33f5c63c": {
     "translation": "Nu ați primit un cod? <resend>Retrimiteți</resend>."
@@ -415,6 +427,9 @@
   },
   "a8873770ab": {
     "translation": "Fișierul devine mare"
+  },
+  "a8c9ad7ea5": {
+    "translation": "Ai fost invitat să te alături la <strong>{workspaceName}</strong>"
   },
   "a9ded1e5ce": {
     "translation": "Fundal"
@@ -474,8 +489,8 @@
   "c6a00f137b": {
     "translation": "Invita"
   },
-  "c7d7403714": {
-    "translation": "Noua tablă"
+  "c6f16003f2": {
+    "translation": "Copiază în spațiul meu de lucru"
   },
   "c87aacf567": {
     "translation": "Sign out"

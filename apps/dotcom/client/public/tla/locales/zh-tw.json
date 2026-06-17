@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "仍有問題嗎？{GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "邀請隊友"
-  },
   "05f43078e9": {
     "translation": "您已達到工作區數量上限。您需要先刪除舊工作區，才能建立新工作區。"
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "消除"
+  },
+  "10fb1df194": {
+    "translation": "複製到個人工作區"
   },
   "110a4b01be": {
     "translation": "發布"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "上傳失敗"
   },
-  "2c3ef76333": {
-    "translation": "我的文件"
+  "2a1167f869": {
+    "translation": "歡迎來到您的工作區"
+  },
+  "2a37324bb4": {
+    "translation": "搜尋..."
   },
   "2e2b3c700b": {
     "translation": "包含當前文件的連結"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "無法取消發布檔案。"
   },
+  "51317dcad5": {
+    "translation": "這是您的私人工作區。建立新工作區即可邀請團隊成員。"
+  },
   "517bb809d9": {
     "translation": "頁面選單"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "複製"
   },
+  "5fd0972432": {
+    "translation": "建立免費帳戶，即可儲存文件、建立工作區並邀請團隊成員。"
+  },
   "61057a0c84": {
     "translation": "稍後"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "tldraw 有新版本可用。請重新加載頁面以繼續。"
+  },
+  "681e10aecb": {
+    "translation": "新文件"
   },
   "6832ac5936": {
     "translation": "請輸入您的電子郵件地址"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "請重新載入頁面"
   },
+  "74ff4bad28": {
+    "translation": "未找到文件"
+  },
   "752b79f137": {
     "translation": "您已達到最大文件數。您需要在建立新文件之前刪除舊文件。"
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "您確定要遺忘此檔案嗎？"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw 是一款免費的線上白板工具。建立帳戶即可儲存文件並與朋友協作。"
   },
   "777f9e90cf": {
     "translation": "無效的請求。"
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "下載"
   },
+  "8030793ce3": {
+    "translation": "新工作區"
+  },
   "815e116a2e": {
     "translation": "對於 tldraw 有錯誤、問題或想法嗎？讓我們知道！填寫此表格，如有需要，我們將透過電子郵件跟進。您也可以<discord>在 Discord 上與我們聊天</discord>或<github>在 GitHub 上提交問題</github>。"
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "請查看您的電子郵件，您會收到驗證碼。"
   },
-  "8cf04a9734": {
-    "translation": "家"
-  },
   "8eb2c00e96": {
     "translation": "已與您共享"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "重新命名"
-  },
-  "91e49bb0eb": {
-    "translation": "複製到我的檔案"
   },
   "95aacd4d4a": {
     "translation": "使用 Google 登入"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "淺色"
+  },
+  "9983381c21": {
+    "translation": "清除搜尋"
   },
   "9b33f5c63c": {
     "translation": "沒有收到驗證碼？ <resend>重新傳送</resend>。"
@@ -415,6 +427,9 @@
   },
   "a8873770ab": {
     "translation": "文件越來越大"
+  },
+  "a8c9ad7ea5": {
+    "translation": "您已受邀加入<strong>{workspaceName}</strong>"
   },
   "a9ded1e5ce": {
     "translation": "背景"
@@ -474,8 +489,8 @@
   "c6a00f137b": {
     "translation": "邀請"
   },
-  "c7d7403714": {
-    "translation": "新董事會"
+  "c6f16003f2": {
+    "translation": "複製到我的工作區"
   },
   "c87aacf567": {
     "translation": "登出"
