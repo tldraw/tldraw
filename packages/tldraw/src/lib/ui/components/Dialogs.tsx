@@ -7,7 +7,7 @@ import { useDirection } from '../hooks/useTranslation/useTranslation'
 function shouldPreventDialogDismiss(event: Event) {
 	const target = event.target
 	// Portaled controls can opt into behaving like part of the dialog content.
-	return target instanceof Element && target.closest('[data-tlui-dialog-prevent-dismiss]') !== null
+	return target instanceof Element && target.closest('[data-tlui-prevent-dismiss]') !== null
 }
 
 /** @internal */

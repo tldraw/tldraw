@@ -32,6 +32,9 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 			component: ({ onClose }) => (
 				<WorkspaceSettingsDialog workspaceId={workspaceId} onClose={onClose} />
 			),
+			// The dialog contains nested TlaMenuSelect popups; interacting with one
+			// would otherwise register as a background click and dismiss the dialog.
+			preventBackgroundClose: true,
 		})
 		trackEvent('open-share-menu', { source: 'sidebar' })
 	}, [addDialog, workspaceId, trackEvent])
