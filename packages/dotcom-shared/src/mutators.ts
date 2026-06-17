@@ -554,6 +554,7 @@ export function createMutators(userId: string) {
 			assertValidId(id)
 
 			const clampedName = name.trim().slice(0, MAX_WORKSPACE_NAME_LENGTH)
+			assert(clampedName, ZErrorCode.bad_request)
 
 			// Enforce the workspace limit before creating anything.
 			const existingWorkspaces = await tx.run(zql.group_user.where('userId', '=', userId))

@@ -636,6 +636,22 @@ describe('workspace mutations', () => {
 		expect((s.group_user as TlaGroupUser[])[0]?.role).toBe('owner')
 	})
 
+	it('cannot create workspace with an empty name', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [],
+			group_user: [],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		const groupId = 'group_new123456789ab'
+		await expectBadRequest(() => m.createWorkspace(tx, { id: groupId, name: '   ' }))
+		expect(s.group.length).toBe(0)
+	})
+
 	it('owner can update workspace name', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
