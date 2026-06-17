@@ -5,8 +5,8 @@ const shapeUtils = [
 	// Enable colors for frame shapes
 	FrameShapeUtil.configure({ showColors: true }),
 
-	// Enable resizing for note shapes
-	NoteShapeUtil.configure({ resizeMode: 'scale' }),
+	// Enable resizing for note shapes, and hide the author attribution badge
+	NoteShapeUtil.configure({ resizeMode: 'scale', showAttribution: false }),
 ]
 
 export default function ConfigureShapeUtilExample() {
