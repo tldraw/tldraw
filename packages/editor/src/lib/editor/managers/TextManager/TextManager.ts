@@ -309,7 +309,17 @@ export class TextManager {
 				// first char in a new line - one for the line break, and one for
 				// the character itself. we're only interested in the character.
 				const rects = range.getClientRects()
-				const rect = rects[rects.length - 1]!
+				const rect = rects[rects.length - 1]
+
+				// some characters produce no layout rectangles in some browsers
+				// (e.g. zero-width or combining characters). skip them rather than
+				// crashing, but keep advancing the index so later characters stay
+				// aligned with their text node offsets.
+				// See https://github.com/tldraw/tldraw/issues/9112.
+				if (!rect) {
+					idx += char.length
+					continue
+				}
 
 				// calculate the position of the character relative to the element
 				const top = rect.top + offsetY

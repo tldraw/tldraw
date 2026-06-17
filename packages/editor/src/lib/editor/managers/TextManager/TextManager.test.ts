@@ -247,6 +247,38 @@ describe('TextManager', () => {
 			expect(result.spans).toHaveLength(0)
 		})
 
+		it('should skip characters that produce no layout rectangles', () => {
+			const RangeMock = global.Range as unknown as ReturnType<typeof vi.fn>
+			RangeMock.mockImplementationOnce(function () {
+				return {
+					setStart: vi.fn(),
+					setEnd: vi.fn(),
+					// simulate a browser returning no rects for a measured character,
+					// which previously crashed with "Cannot read properties of
+					// undefined (reading 'top')". See issue #9112.
+					getClientRects: vi.fn(() => []),
+				}
+			})
+
+			const mockTextNode = {
+				nodeType: 3, // TEXT_NODE
+				textContent: 'Hello',
+			}
+
+			const mockElementWithText = {
+				childNodes: [mockTextNode],
+				getBoundingClientRect: () => ({ left: 0, top: 0 }),
+			}
+
+			let result
+			expect(() => {
+				result = textManager.measureElementTextNodeSpans(mockElementWithText as any)
+			}).not.toThrow()
+
+			expect(result!.spans).toHaveLength(0)
+			expect(result!.didTruncate).toBe(false)
+		})
+
 		it('should handle truncation option', () => {
 			const mockTextNode = {
 				nodeType: 3, // TEXT_NODE
