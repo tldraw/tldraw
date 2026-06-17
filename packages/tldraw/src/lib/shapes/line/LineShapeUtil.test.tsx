@@ -385,3 +385,56 @@ describe('Misc', () => {
 		expect(ids[0]).toEqual(id)
 	})
 })
+
+describe('Points keyed differently from their indices', () => {
+	// The points map allows any string keys, and they need not match each point's
+	// `index`. Dragging a vertex handle on such a line used to insert a new point
+	// keyed by the handle id (the index), producing two points that share an index
+	// and crashing getHandles() via fractional indexing ("a2 >= a2"). See #9267.
+	const mismatchedId = createShapeId('line-mismatched')
+
+	it('updates the dragged point in place instead of duplicating its index', () => {
+		editor.createShapes([
+			{
+				id: mismatchedId,
+				type: 'line',
+				x: 100,
+				y: 100,
+				props: {
+					points: {
+						a: { id: 'a', index: 'a1' as IndexKey, x: 0, y: 0 },
+						b: { id: 'b', index: 'a2' as IndexKey, x: 100, y: 0 },
+					},
+				},
+			},
+		])
+		editor.select(mismatchedId)
+
+		// the endpoint handle's id is its index ('a2'), which differs from its key ('b')
+		const endHandle = getHandlesFor(mismatchedId).find((h) => h.id === 'a2')!
+		const inParent = editor.getShapePageTransform(mismatchedId)!.applyToPoint(endHandle)
+
+		editor
+			.pointerMove(inParent.x, inParent.y)
+			.pointerDown(inParent.x, inParent.y, {
+				target: 'handle',
+				shape: editor.getShape(mismatchedId),
+				handle: endHandle,
+			})
+			.pointerMove(inParent.x + 100, inParent.y)
+			.pointerUp()
+
+		// still exactly two points, keyed as before — no duplicate index introduced
+		expect(editor.getShape<TLLineShape>(mismatchedId)!.props.points).toStrictEqual({
+			a: { id: 'a', index: 'a1', x: 0, y: 0 },
+			b: { id: 'b', index: 'a2', x: 200, y: 0 },
+		})
+
+		// recomputing handles must not throw
+		expect(() => editor.getShapeHandles(mismatchedId)).not.toThrow()
+	})
+})
+
+function getHandlesFor(shapeId: TLLineShape['id']) {
+	return editor.getShapeHandles<TLLineShape>(shapeId)!
+}

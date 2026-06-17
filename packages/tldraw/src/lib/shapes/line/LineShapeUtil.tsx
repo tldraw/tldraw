@@ -177,13 +177,26 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	override onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>) {
 		const newPoint = maybeSnapToGrid(new Vec(handle.x, handle.y), this.editor)
+		// A vertex handle's id is the point's index, which is not necessarily the
+		// same as the point's key in the points map. Locate the point by its index
+		// and update it in place, rather than keying by handle.id — otherwise a line
+		// whose keys differ from their indices would gain a duplicate point that
+		// shares an index, which breaks fractional indexing in getHandles().
+		const points = shape.props.points
+		const key = Object.keys(points).find((k) => points[k].index === handle.index) ?? handle.id
+		const point = points[key]
 		return {
 			...shape,
 			props: {
 				...shape.props,
 				points: {
-					...shape.props.points,
-					[handle.id]: { id: handle.id, index: handle.index, x: newPoint.x, y: newPoint.y },
+					...points,
+					[key]: {
+						id: point?.id ?? handle.id,
+						index: handle.index,
+						x: newPoint.x,
+						y: newPoint.y,
+					},
 				},
 			},
 		}
