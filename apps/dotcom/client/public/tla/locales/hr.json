@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "Još uvijek imate problema? {GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "Pozovi suigrače"
-  },
   "05f43078e9": {
     "translation": "Dosegli ste maksimalan broj radnih prostora. Morate izbrisati stare radne prostore prije nego što stvorite nove."
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "Ukloniti"
+  },
+  "10fb1df194": {
+    "translation": "Kopiraj u osobni radni prostor"
   },
   "110a4b01be": {
     "translation": "Objaviti"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "Prijenos nije uspio"
   },
-  "2c3ef76333": {
-    "translation": "Moje datoteke"
+  "2a1167f869": {
+    "translation": "Dobrodošli u vaš radni prostor"
+  },
+  "2a37324bb4": {
+    "translation": "Pretraživanje..."
   },
   "2e2b3c700b": {
     "translation": "Uključi vezu na trenutnu datoteku"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "Nije moguće poništiti objavu datoteke."
   },
+  "51317dcad5": {
+    "translation": "Ovo je vaš privatni radni prostor. Izradite novi radni prostor kako biste pozvali suigrače."
+  },
   "517bb809d9": {
     "translation": "Izbornik stranice"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "Kopirati"
   },
+  "5fd0972432": {
+    "translation": "Izradite besplatan račun za spremanje datoteka, stvaranje radnih prostora i pozivanje suigrača."
+  },
   "61057a0c84": {
     "translation": "Kasnije"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "Dostupna je nova verzija tldraw-a. Ponovno učitajte stranicu za nastavak."
+  },
+  "681e10aecb": {
+    "translation": "Nova datoteka"
   },
   "6832ac5936": {
     "translation": "Unesite svoju adresu e-pošte"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "Molimo ponovno učitajte stranicu"
   },
+  "74ff4bad28": {
+    "translation": "Nisu pronađene datoteke"
+  },
   "752b79f137": {
     "translation": "Dosegli ste maksimalan broj datoteka. Morate izbrisati stare datoteke prije stvaranja novih."
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "Jeste li sigurni da želite zaboraviti ovu datoteku?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw je besplatna online bijela ploča. Izradite račun za spremanje datoteka i suradnju s prijateljima."
   },
   "777f9e90cf": {
     "translation": "Neispravan zahtjev."
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "Preuzmi"
   },
+  "8030793ce3": {
+    "translation": "Novi radni prostor"
+  },
   "815e116a2e": {
     "translation": "Imate li grešku, problem ili ideju za tldraw? Javite nam! Ispunite ovaj obrazac i po potrebi ćemo vam se javiti putem e-pošte. Također možete <discord>razgovarati s nama na Discordu</discord> ili <github>postaviti problem na GitHubu</github>."
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "Provjerite svoju e-poštu za kod za potvrdu."
   },
-  "8cf04a9734": {
-    "translation": "Dom"
-  },
   "8eb2c00e96": {
     "translation": "Podijeljeno s vama"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "Preimenovati"
-  },
-  "91e49bb0eb": {
-    "translation": "Kopiraj u moje datoteke"
   },
   "95aacd4d4a": {
     "translation": "Prijava putem Googlea"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "Svjetlo"
+  },
+  "9983381c21": {
+    "translation": "Obriši pretragu"
   },
   "9b33f5c63c": {
     "translation": "Niste primili kôd? <resend>Ponovno pošalji</resend>."
@@ -474,8 +486,8 @@
   "c6a00f137b": {
     "translation": "Pozvati"
   },
-  "c7d7403714": {
-    "translation": "Nova ploča"
+  "c6f16003f2": {
+    "translation": "Kopiraj u moj radni prostor"
   },
   "c87aacf567": {
     "translation": "Odjavi se"

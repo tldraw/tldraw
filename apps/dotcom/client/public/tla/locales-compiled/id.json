@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Undang rekan satu tim"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Menghapus"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Salin ke ruang kerja pribadi"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Pengunggahan gagal"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "File saya"
+      "value": "Selamat datang di ruang kerja Anda."
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Mencari..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Tidak dapat membatalkan penerbitan file."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ini adalah ruang kerja pribadi Anda. Buat ruang kerja baru untuk mengundang rekan tim."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Salin"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Buat akun gratis untuk menyimpan file Anda, membuat ruang kerja, dan mengundang rekan tim Anda."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Versi baru tldraw telah tersedia. Silakan muat ulang halaman untuk melanjutkan."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Berkas baru"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Muat ulang halaman"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Tidak ada berkas yang ditemukan."
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Silakan muat ulang"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw adalah papan tulis online gratis. Buat akun untuk menyimpan berkas Anda dan bekerja dengan teman-teman Anda."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Unduh"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Ruang kerja baru"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Periksa email Anda untuk mendapatkan kode verifikasi."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Rumah"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Ganti nama"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Salin ke file saya"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Cahaya"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Hapus pencarian"
     }
   ],
   "9b33f5c63c": [
@@ -1063,10 +1087,10 @@
       "value": "Undang"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Papan baru"
+      "value": "Salin ke ruang kerja saya"
     }
   ],
   "c87aacf567": [

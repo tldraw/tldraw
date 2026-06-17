@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Convide seus colegas de equipe"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Remover"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copiar para o espaço de trabalho pessoal"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "O carregamento falhou"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Meus arquivos"
+      "value": "Bem-vindo(a) ao seu espaço de trabalho."
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Procurar..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Não foi possível anular a publicação do ficheiro."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Este é o seu espaço de trabalho privado. Crie um novo espaço de trabalho para convidar colegas de equipe."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Copiar"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Crie uma conta gratuita para salvar seus arquivos, criar espaços de trabalho e convidar seus colegas de equipe."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Uma nova versão do tldraw está disponível. Recarregue a página para continuar."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Novo arquivo"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Recarregue a página"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Nenhum arquivo encontrado"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Por favor recarregue"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "O tldraw é um quadro branco online gratuito. Crie uma conta para salvar seus arquivos e trabalhar com seus amigos."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Download"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Novo espaço de trabalho"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Verifique seu e-mail para obter um código de verificação."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Lar"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Mudar o nome"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copiar para os meus ficheiros"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Claro"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Limpar pesquisa"
     }
   ],
   "9b33f5c63c": [
@@ -1071,10 +1095,10 @@
       "value": "Convidar"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Novo conselho"
+      "value": "Copiar para o meu espaço de trabalho"
     }
   ],
   "c87aacf567": [

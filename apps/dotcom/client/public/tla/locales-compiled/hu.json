@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Csapattársak meghívása"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Eltávolítás"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Másolás a személyes munkaterületre"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "A feltöltés sikertelen"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Saját fájlok"
+      "value": "Üdvözöljük a munkaterületén"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Keresés..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Nem lehet visszavonni a fájl közzétételét."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ez a te privát munkaterületed. Hozz létre egy új munkaterületet csapattársak meghívásához."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Másolat"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Hozz létre egy ingyenes fiókot fájlaid mentéséhez, munkaterületek létrehozásához és csapattársaid meghívásához."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Elérhető a tldraw új verziója. A folytatáshoz töltse be újra az oldalt."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Új fájl"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Kérjük, töltse be újra az oldalt"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Nem találhatók fájlok"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Kérjük, töltse újra"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "A tldraw egy ingyenes online tábla. Hozz létre egy fiókot, hogy menthesd a fájljaidat és együtt dolgozhass a barátaiddal."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Letöltés"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Új munkaterület"
     }
   ],
   "815e116a2e": [
@@ -711,12 +741,6 @@
       "value": "Ellenőrizd az e-mailjeidet, hogy érkezett-e egy ellenőrző kód."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Otthon"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -739,12 +763,6 @@
     {
       "type": 0,
       "value": "Átnevezés"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Másolás a fájljaim közé"
     }
   ],
   "95aacd4d4a": [
@@ -781,6 +799,12 @@
     {
       "type": 0,
       "value": "Fény"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Keresés törlése"
     }
   ],
   "9b33f5c63c": [
@@ -1063,10 +1087,10 @@
       "value": "Meghív"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Új tábla"
+      "value": "Másolás a munkaterületemre"
     }
   ],
   "c87aacf567": [

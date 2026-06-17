@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Invită coechipieri"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Elimina"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copiază în spațiul de lucru personal"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Încărcarea nu a reușit"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Fișierele mele"
+      "value": "Bine ați venit în spațiul dvs. de lucru"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Căutare..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Nu se poate anula publicarea fișierului."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Acesta este spațiul tău de lucru privat. Creează un spațiu de lucru nou pentru a invita colegi de echipă."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Copie"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Creează un cont gratuit pentru a salva fișierele, a crea spații de lucru și a-ți invita colegii de echipă."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Este disponibilă o nouă versiune de tldraw. Vă rugăm să reîncărcați pagina pentru a continua."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Fișier nou"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Vă rugăm să reîncărcați pagina"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Nu s-au găsit fișiere"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Vă rugăm să reîncărcați"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw este o tablă albă online gratuită. Creează-ți un cont pentru a salva fișierele și a lucra cu prietenii tăi."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Descărcare"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Spațiu de lucru nou"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Verifică-ți e-mailul pentru un cod de verificare."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Acasă"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Redenumiți"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copiați în fișierele mele"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Aprinde"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Șterge căutarea"
     }
   ],
   "9b33f5c63c": [
@@ -1075,10 +1099,10 @@
       "value": "Invita"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Noua tablă"
+      "value": "Copiază în spațiul meu de lucru"
     }
   ],
   "c87aacf567": [

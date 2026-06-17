@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Nodig teamgenoten uit"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Verwijderen"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopieer naar je persoonlijke werkruimte"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Uploaden mislukt"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Mijn bestanden"
+      "value": "Welkom in je werkruimte"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Zoekopdracht..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "De publicatie van het bestand kan niet ongedaan worden gemaakt."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Dit is je privéwerkruimte. Maak een nieuwe werkruimte aan om teamgenoten uit te nodigen."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Kopiëren"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Maak een gratis account aan om je bestanden op te slaan, werkruimtes te creëren en je teamgenoten uit te nodigen."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Er is een nieuwe versie van tldraw beschikbaar. Laad de pagina opnieuw om verder te gaan."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Nieuw bestand"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Laad de pagina opnieuw"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Geen bestanden gevonden"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Gelieve opnieuw te laden"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw is een gratis online whiteboard. Maak een account aan om je bestanden op te slaan en met je vrienden te werken."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Download"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nieuwe werkplek"
     }
   ],
   "815e116a2e": [
@@ -711,12 +741,6 @@
       "value": "Controleer uw e-mail voor een verificatiecode."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Thuis"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -739,12 +763,6 @@
     {
       "type": 0,
       "value": "Hernoemen"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopieer naar mijn bestanden"
     }
   ],
   "95aacd4d4a": [
@@ -781,6 +799,12 @@
     {
       "type": 0,
       "value": "Licht"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Zoekopdracht wissen"
     }
   ],
   "9b33f5c63c": [
@@ -1067,10 +1091,10 @@
       "value": "Uitnodiging"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nieuw bestuur"
+      "value": "Kopieer naar mijn werkruimte"
     }
   ],
   "c87aacf567": [

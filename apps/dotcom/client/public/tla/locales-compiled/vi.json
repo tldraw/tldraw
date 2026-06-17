@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Mời đồng đội"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Di dời"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Sao chép vào không gian làm việc cá nhân"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Tải lên thất bại"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Các tập tin của tôi"
+      "value": "Chào mừng bạn đến với không gian làm việc của bạn"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Tìm kiếm..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Không thể hủy xuất bản tệp này."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Đây là không gian làm việc riêng của bạn. Hãy tạo một không gian làm việc mới để mời các đồng đội."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Sao chép"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Tạo tài khoản miễn phí để lưu tệp của bạn, tạo không gian làm việc và mời đồng đội."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Phiên bản mới của tldraw đã có sẵn. Vui lòng tải lại trang để tiếp tục."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Tệp mới"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Vui lòng tải lại trang"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Không tìm thấy tệp nào"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Vui lòng tải lại"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw là một bảng trắng trực tuyến miễn phí. Tạo tài khoản để lưu tệp và làm việc cùng bạn bè."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Tải về"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Không gian làm việc mới"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Kiểm tra email của bạn để lấy mã xác minh."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Trang chủ"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Đổi tên"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Sao chép vào tệp của tôi"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Sáng"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Xóa tìm kiếm"
     }
   ],
   "9b33f5c63c": [
@@ -1063,10 +1087,10 @@
       "value": "Mời"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Bảng mới"
+      "value": "Sao chép vào không gian làm việc của tôi"
     }
   ],
   "c87aacf567": [

@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Lade Teamkollegen ein"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Entfernen"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "In den persönlichen Arbeitsbereich kopieren"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Hochladen fehlgeschlagen"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Meine Dateien"
+      "value": "Willkommen in Ihrem Arbeitsbereich"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Suchen..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Die Veröffentlichung für diese Datei kann nicht aufgehoben werden."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Dies ist Ihr privater Arbeitsbereich. Erstellen Sie einen neuen Arbeitsbereich, um Teammitglieder einzuladen."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Kopieren"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Erstellen Sie ein kostenloses Konto, um Ihre Dateien zu speichern, Arbeitsbereiche anzulegen und Ihre Teammitglieder einzuladen."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Eine neue Version von tldraw ist verfügbar. Bitte laden Sie die Seite neu, um fortzufahren."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Neue Datei"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Bitte laden Sie die Seite neu"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Keine Dateien gefunden"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Bitte neu laden"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw ist ein kostenloses Online-Whiteboard. Erstelle ein Konto, um deine Dateien zu speichern und mit deinen Freunden zusammenzuarbeiten."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Herunterladen"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Neuer Arbeitsbereich"
     }
   ],
   "815e116a2e": [
@@ -711,12 +741,6 @@
       "value": "Prüfen Sie Ihr E-Mail-Postfach auf einen Bestätigungscode."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Heim"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -739,12 +763,6 @@
     {
       "type": 0,
       "value": "Umbenennen"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "In meine Dateien kopieren"
     }
   ],
   "95aacd4d4a": [
@@ -781,6 +799,12 @@
     {
       "type": 0,
       "value": "Hell"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Suche löschen"
     }
   ],
   "9b33f5c63c": [
@@ -1071,10 +1095,10 @@
       "value": "Einladen"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Neues Board"
+      "value": "In meinen Arbeitsbereich kopieren"
     }
   ],
   "c87aacf567": [

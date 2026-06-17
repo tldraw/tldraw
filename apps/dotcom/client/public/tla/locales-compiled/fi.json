@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Kutsu tiimikavereita"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Poistaa"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopioi henkilökohtaiseen työtilaan"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Lataus epäonnistui"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Omat tiedostoni"
+      "value": "Tervetuloa työtilaasi"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Haku..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Tiedoston julkaisua ei voi peruuttaa."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Tämä on yksityinen työtilasi. Luo uusi työtila kutsuaksesi tiimikavereita."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Kopioida"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Luo ilmainen tili tallentaaksesi tiedostosi, luodaksesi työtiloja ja kutsuaksesi tiimikavereitasi."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Uusi versio tldraw:sta on saatavilla. Jatka lataamalla sivu uudelleen."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Uusi tiedosto"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Lataa sivu uudelleen"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Ei tiedostoja löytynyt"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Lataa uudelleen"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw on ilmainen verkkopohjainen valkotaulu. Luo tili tallentaaksesi tiedostosi ja työskennelläksesi ystäviesi kanssa."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Lataa"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Uusi työtila"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Tarkista sähköpostistasi vahvistuskoodi."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Kotiin"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Nimeä uudelleen"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopioi tiedostoihini"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Kevyt"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Tyhjennä haku"
     }
   ],
   "9b33f5c63c": [
@@ -1071,10 +1095,10 @@
       "value": "Kutsu"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Uusi hallitus"
+      "value": "Kopioi työtilaani"
     }
   ],
   "c87aacf567": [

@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "Aínda tes problemas? {GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "Convidar aos compañeiros de equipo"
-  },
   "05f43078e9": {
     "translation": "Alcanzaches o número máximo de espazos de traballo. Debes eliminar os espazos de traballo antigos antes de crear outros novos."
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "Eliminar"
+  },
+  "10fb1df194": {
+    "translation": "Copiar no espazo de traballo persoal"
   },
   "110a4b01be": {
     "translation": "Publicar"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "Produciuse un erro na carga"
   },
-  "2c3ef76333": {
-    "translation": "Os meus ficheiros"
+  "2a1167f869": {
+    "translation": "Benvido ao teu espazo de traballo"
+  },
+  "2a37324bb4": {
+    "translation": "Buscar..."
   },
   "2e2b3c700b": {
     "translation": "Incluír unha ligazón ao ficheiro actual"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "Non se puido anular a publicación do ficheiro."
   },
+  "51317dcad5": {
+    "translation": "Este é o teu espazo de traballo privado. Crea un novo espazo de traballo para convidar aos compañeiros de equipo."
+  },
   "517bb809d9": {
     "translation": "Menú da páxina"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "Copiar"
   },
+  "5fd0972432": {
+    "translation": "Crea unha conta gratuíta para gardar os teus ficheiros, crear espazos de traballo e convidar os teus compañeiros de equipo."
+  },
   "61057a0c84": {
     "translation": "Máis tarde"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "Hai unha nova versión de tldraw dispoñible. Volve cargar a páxina para continuar."
+  },
+  "681e10aecb": {
+    "translation": "Novo ficheiro"
   },
   "6832ac5936": {
     "translation": "Introduce o teu enderezo de correo electrónico"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "Volve cargar a páxina"
   },
+  "74ff4bad28": {
+    "translation": "Non se atoparon ficheiros"
+  },
   "752b79f137": {
     "translation": "Alcanzaches o número máximo de ficheiros. Debes eliminar ficheiros antigos antes de crear outros novos."
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "Estás seguro de que queres esquecer este ficheiro?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw é unha pizarra branca en liña gratuíta. Crea unha conta para gardar os teus ficheiros e traballar cos teus amigos."
   },
   "777f9e90cf": {
     "translation": "Solicitude non válida."
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "Descargar"
   },
+  "8030793ce3": {
+    "translation": "Novo espazo de traballo"
+  },
   "815e116a2e": {
     "translation": "Tes algún erro, problema ou idea para tldraw? Avísanos! Completa este formulario e poñerémonos en contacto connosco por correo electrónico se é necesario. Tamén podes <discord>chatear connosco en Discord</discord> ou <github>enviar un problema en GitHub</github>."
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "Consulta o teu correo electrónico para obter un código de verificación."
   },
-  "8cf04a9734": {
-    "translation": "Inicio"
-  },
   "8eb2c00e96": {
     "translation": "Compartido contigo"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "Cambiar o nome"
-  },
-  "91e49bb0eb": {
-    "translation": "Copiar nos meus ficheiros"
   },
   "95aacd4d4a": {
     "translation": "Iniciar sesión con Google"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "Luz"
+  },
+  "9983381c21": {
+    "translation": "Limpar busca"
   },
   "9b33f5c63c": {
     "translation": "Non recibiches o código? <resend>Volver enviar</resend>."
@@ -474,8 +486,8 @@
   "c6a00f137b": {
     "translation": "Invitar"
   },
-  "c7d7403714": {
-    "translation": "Nova xunta directiva"
+  "c6f16003f2": {
+    "translation": "Copiar no meu espazo de traballo"
   },
   "c87aacf567": {
     "translation": "Pechar sesión"

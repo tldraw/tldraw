@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "Har du fortfarande problem? {GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "Bjud in lagkamrater"
-  },
   "05f43078e9": {
     "translation": "Du har nått det maximala antalet arbetsytor. Du måste ta bort gamla arbetsytor innan du skapar nya."
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "Ta bort"
+  },
+  "10fb1df194": {
+    "translation": "Kopiera till personlig arbetsyta"
   },
   "110a4b01be": {
     "translation": "Publicera"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "Uppladdningen misslyckades"
   },
-  "2c3ef76333": {
-    "translation": "Mina filer"
+  "2a1167f869": {
+    "translation": "Välkommen till din arbetsplats"
+  },
+  "2a37324bb4": {
+    "translation": "Söka..."
   },
   "2e2b3c700b": {
     "translation": "Inkludera länk till aktuell fil"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "Det gick inte att avpublicera filen."
   },
+  "51317dcad5": {
+    "translation": "Detta är din privata arbetsyta. Skapa en ny arbetsyta för att bjuda in lagkamrater."
+  },
   "517bb809d9": {
     "translation": "Sidmenyn"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "Kopiera"
   },
+  "5fd0972432": {
+    "translation": "Skapa ett gratis konto för att spara dina filer, skapa arbetsytor och bjuda in dina lagkamrater."
+  },
   "61057a0c84": {
     "translation": "Senare"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "En ny version av tldraw är tillgänglig. Ladda om sidan för att fortsätta."
+  },
+  "681e10aecb": {
+    "translation": "Ny fil"
   },
   "6832ac5936": {
     "translation": "Ange din e-postadress"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "Vänligen ladda om sidan"
   },
+  "74ff4bad28": {
+    "translation": "Inga filer hittades"
+  },
   "752b79f137": {
     "translation": "Du har nått det maximala antalet filer. Du måste ta bort gamla filer innan du skapar nya."
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "Är du säker på att du vill glömma den här filen?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw är en gratis whiteboardtavla online. Skapa ett konto för att spara dina filer och arbeta med dina vänner."
   },
   "777f9e90cf": {
     "translation": "Ogiltig begäran."
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "Ladda ner"
   },
+  "8030793ce3": {
+    "translation": "Ny arbetsyta"
+  },
   "815e116a2e": {
     "translation": "Har du en bugg, ett problem eller en idé för tldraw? Låt oss veta! Fyll i det här formuläret så återkommer vi via e-post om det behövs. Du kan också <discord>chatta med oss ​​på Discord</discord> eller <github>skicka in ett ärende på GitHub</github>."
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "Kontrollera din e-post för en verifieringskod."
   },
-  "8cf04a9734": {
-    "translation": "Hem"
-  },
   "8eb2c00e96": {
     "translation": "Delas med dig"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "Döp om"
-  },
-  "91e49bb0eb": {
-    "translation": "Kopiera till mina filer"
   },
   "95aacd4d4a": {
     "translation": "Logga in med Google"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "Ljus"
+  },
+  "9983381c21": {
+    "translation": "Rensa sökningen"
   },
   "9b33f5c63c": {
     "translation": "Fick du ingen kod? <resend>Skicka igen</resend>."
@@ -474,8 +486,8 @@
   "c6a00f137b": {
     "translation": "Bjud in"
   },
-  "c7d7403714": {
-    "translation": "Ny styrelse"
+  "c6f16003f2": {
+    "translation": "Kopiera till min arbetsyta"
   },
   "c87aacf567": {
     "translation": "Logga ut"

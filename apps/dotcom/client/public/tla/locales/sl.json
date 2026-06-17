@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "Še vedno imate težave? {GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "Povabi soigralce"
-  },
   "05f43078e9": {
     "translation": "Dosegli ste največje dovoljeno število delovnih prostorov. Preden ustvarite nove, morate izbrisati stare delovne prostore."
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "Odstrani"
+  },
+  "10fb1df194": {
+    "translation": "Kopiraj v osebni delovni prostor"
   },
   "110a4b01be": {
     "translation": "Objavi"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "Nalaganje ni uspelo"
   },
-  "2c3ef76333": {
-    "translation": "Moje datoteke"
+  "2a1167f869": {
+    "translation": "Dobrodošli v vašem delovnem prostoru"
+  },
+  "2a37324bb4": {
+    "translation": "Iskanje ..."
   },
   "2e2b3c700b": {
     "translation": "Vključi povezavo do trenutne datoteke"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "Ni mogoče preklicati objave datoteke."
   },
+  "51317dcad5": {
+    "translation": "To je vaš zasebni delovni prostor. Ustvarite nov delovni prostor, da povabite soigralce."
+  },
   "517bb809d9": {
     "translation": "Meni strani"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "Kopiraj"
   },
+  "5fd0972432": {
+    "translation": "Ustvarite brezplačen račun za shranjevanje datotek, ustvarjanje delovnih prostorov in povabilo soigralcev."
+  },
   "61057a0c84": {
     "translation": "Kasneje"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "Na voljo je nova različica tldraw. Za nadaljevanje znova naložite stran."
+  },
+  "681e10aecb": {
+    "translation": "Nova datoteka"
   },
   "6832ac5936": {
     "translation": "Vnesite svoj e-poštni naslov"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "Ponovno naložite stran"
   },
+  "74ff4bad28": {
+    "translation": "Ni najdenih datotek"
+  },
   "752b79f137": {
     "translation": "Dosegli ste največje število datotek. Preden ustvarite nove, morate izbrisati stare datoteke."
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "Ali ste prepričani, da želite pozabiti to datoteko?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw je brezplačna spletna tabla. Ustvarite račun za shranjevanje datotek in sodelovanje s prijatelji."
   },
   "777f9e90cf": {
     "translation": "Neveljavna zahteva."
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "Prenesi"
   },
+  "8030793ce3": {
+    "translation": "Nov delovni prostor"
+  },
   "815e116a2e": {
     "translation": "Imate hrošča, težavo ali idejo za tldraw? Sporočite nam! Izpolnite ta obrazec in po potrebi se vam bomo oglasili po e-pošti. Lahko pa tudi <discord>klepetate z nami na Discordu</discord> ali <github>oddate težavo na GitHubu</github>."
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "Preverite svojo e-pošto za potrditveno kodo."
   },
-  "8cf04a9734": {
-    "translation": "Domov"
-  },
   "8eb2c00e96": {
     "translation": "V skupni rabi z vami"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "Preimenuj"
-  },
-  "91e49bb0eb": {
-    "translation": "Kopiraj v moje datoteke"
   },
   "95aacd4d4a": {
     "translation": "Prijava z Googlom"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "Svetlo"
+  },
+  "9983381c21": {
+    "translation": "Počisti iskanje"
   },
   "9b33f5c63c": {
     "translation": "Niste prejeli kode? <resend>Ponovno pošlji</resend>."
@@ -474,8 +486,8 @@
   "c6a00f137b": {
     "translation": "Povabi"
   },
-  "c7d7403714": {
-    "translation": "Nova tabla"
+  "c6f16003f2": {
+    "translation": "Kopiraj v moj delovni prostor"
   },
   "c87aacf567": {
     "translation": "Odjava"

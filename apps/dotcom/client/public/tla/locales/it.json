@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "Hai ancora difficoltà? {GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "Invita i compagni di squadra"
-  },
   "05f43078e9": {
     "translation": "Hai raggiunto il numero massimo di aree di lavoro. Devi eliminare le aree di lavoro precedenti prima di poterne creare di nuove."
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "Rimuovere"
+  },
+  "10fb1df194": {
+    "translation": "Copia nella tua area di lavoro personale"
   },
   "110a4b01be": {
     "translation": "Pubblica"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "Caricamento non riuscito"
   },
-  "2c3ef76333": {
-    "translation": "I miei file"
+  "2a1167f869": {
+    "translation": "Benvenuto nel tuo spazio di lavoro"
+  },
+  "2a37324bb4": {
+    "translation": "Ricerca..."
   },
   "2e2b3c700b": {
     "translation": "Includi il collegamento al file corrente"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "Impossibile annullare la pubblicazione del file."
   },
+  "51317dcad5": {
+    "translation": "Questo è il tuo spazio di lavoro privato. Crea un nuovo spazio di lavoro per invitare i tuoi colleghi."
+  },
   "517bb809d9": {
     "translation": "Menu pagina"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "Copia"
   },
+  "5fd0972432": {
+    "translation": "Crea un account gratuito per salvare i tuoi file, creare spazi di lavoro e invitare i tuoi colleghi."
+  },
   "61057a0c84": {
     "translation": "Più tardi"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "È disponibile una nuova versione di tldraw. Ricarica la pagina per continuare."
+  },
+  "681e10aecb": {
+    "translation": "Nuovo file"
   },
   "6832ac5936": {
     "translation": "Inserisci il tuo indirizzo email"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "Ricarica la pagina"
   },
+  "74ff4bad28": {
+    "translation": "Nessun file trovato"
+  },
   "752b79f137": {
     "translation": "Hai raggiunto il numero massimo di file. Devi eliminare i vecchi file prima di crearne di nuovi."
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "Confermi di voler dimenticare questo file?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw è una lavagna online gratuita. Crea un account per salvare i tuoi file e lavorare con i tuoi amici."
   },
   "777f9e90cf": {
     "translation": "Richiesta non valida."
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "Scaricamento"
   },
+  "8030793ce3": {
+    "translation": "Nuovo spazio di lavoro"
+  },
   "815e116a2e": {
     "translation": "Hai un bug, un problema o un'idea per tldraw? Faccelo sapere! Compila questo modulo e ti contatteremo via email se necessario. Puoi anche <discord>chattare con noi su Discord</discord> o <github>segnalare un problema su GitHub</github>."
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "Controlla la tua email per un codice di verifica."
   },
-  "8cf04a9734": {
-    "translation": "Casa"
-  },
   "8eb2c00e96": {
     "translation": "Condivisi con te"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "Rinomina"
-  },
-  "91e49bb0eb": {
-    "translation": "Copia nei miei file"
   },
   "95aacd4d4a": {
     "translation": "Accedi con Google"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "Chiaro"
+  },
+  "9983381c21": {
+    "translation": "Cancella ricerca"
   },
   "9b33f5c63c": {
     "translation": "Non hai ricevuto il codice? <resend>Invia di nuovo</resend>."
@@ -474,8 +486,8 @@
   "c6a00f137b": {
     "translation": "Invita"
   },
-  "c7d7403714": {
-    "translation": "Nuova tavola"
+  "c6f16003f2": {
+    "translation": "Copia nella mia area di lavoro"
   },
   "c87aacf567": {
     "translation": "Esci"

@@ -21,12 +21,6 @@
       "value": "GetHelpLink"
     }
   ],
-  "04a2dd56d6": [
-    {
-      "type": 0,
-      "value": "Invita i compagni di squadra"
-    }
-  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -91,6 +85,12 @@
     {
       "type": 0,
       "value": "Rimuovere"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copia nella tua area di lavoro personale"
     }
   ],
   "110a4b01be": [
@@ -165,10 +165,16 @@
       "value": "Caricamento non riuscito"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "I miei file"
+      "value": "Benvenuto nel tuo spazio di lavoro"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Ricerca..."
     }
   ],
   "2e2b3c700b": [
@@ -327,6 +333,12 @@
       "value": "Impossibile annullare la pubblicazione del file."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Questo è il tuo spazio di lavoro privato. Crea un nuovo spazio di lavoro per invitare i tuoi colleghi."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -427,6 +439,12 @@
       "value": "Copia"
     }
   ],
+  "5fd0972432": [
+    {
+      "type": 0,
+      "value": "Crea un account gratuito per salvare i tuoi file, creare spazi di lavoro e invitare i tuoi colleghi."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "È disponibile una nuova versione di tldraw. Ricarica la pagina per continuare."
+    }
+  ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Nuovo file"
     }
   ],
   "6832ac5936": [
@@ -517,6 +541,12 @@
       "value": "Ricarica la pagina"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Nessun file trovato"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +575,6 @@
     {
       "type": 0,
       "value": "Per favore ricarica"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw è una lavagna online gratuita. Crea un account per salvare i tuoi file e lavorare con i tuoi amici."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +647,12 @@
     {
       "type": 0,
       "value": "Scaricamento"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nuovo spazio di lavoro"
     }
   ],
   "815e116a2e": [
@@ -715,12 +745,6 @@
       "value": "Controlla la tua email per un codice di verifica."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Casa"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -743,12 +767,6 @@
     {
       "type": 0,
       "value": "Rinomina"
-    }
-  ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copia nei miei file"
     }
   ],
   "95aacd4d4a": [
@@ -785,6 +803,12 @@
     {
       "type": 0,
       "value": "Chiaro"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Cancella ricerca"
     }
   ],
   "9b33f5c63c": [
@@ -1071,10 +1095,10 @@
       "value": "Invita"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nuova tavola"
+      "value": "Copia nella mia area di lavoro"
     }
   ],
   "c87aacf567": [

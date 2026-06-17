@@ -11,9 +11,6 @@
   "043973ec1f": {
     "translation": "Har du stadig problemer? {GetHelpLink}"
   },
-  "04a2dd56d6": {
-    "translation": "Inviter holdkammerater"
-  },
   "05f43078e9": {
     "translation": "Du har nået det maksimale antal arbejdsområder. Du skal slette gamle arbejdsområder, før du opretter nye."
   },
@@ -46,6 +43,9 @@
   },
   "1063e38cb5": {
     "translation": "Fjerne"
+  },
+  "10fb1df194": {
+    "translation": "Kopiér til personligt arbejdsområde"
   },
   "110a4b01be": {
     "translation": "Offentliggøre"
@@ -80,8 +80,11 @@
   "299cb00a7a": {
     "translation": "Upload mislykkedes"
   },
-  "2c3ef76333": {
-    "translation": "Mine filer"
+  "2a1167f869": {
+    "translation": "Velkommen til din arbejdsplads"
+  },
+  "2a37324bb4": {
+    "translation": "Søge..."
   },
   "2e2b3c700b": {
     "translation": "Inkluder link til den aktuelle fil"
@@ -158,6 +161,9 @@
   "50db1b7e1e": {
     "translation": "Filen kunne ikke fjernes."
   },
+  "51317dcad5": {
+    "translation": "Dette er dit private arbejdsområde. Opret et nyt arbejdsområde for at invitere teammedlemmer."
+  },
   "517bb809d9": {
     "translation": "Sidemenu"
   },
@@ -203,6 +209,9 @@
   "5fb63579fc": {
     "translation": "Kopi"
   },
+  "5fd0972432": {
+    "translation": "Opret en gratis konto for at gemme dine filer, oprette arbejdsområder og invitere dine holdkammerater."
+  },
   "61057a0c84": {
     "translation": "Senere"
   },
@@ -220,6 +229,9 @@
   },
   "6637a98151": {
     "translation": "En ny version af tldraw er tilgængelig. Genindlæs siden for at fortsætte."
+  },
+  "681e10aecb": {
+    "translation": "Ny fil"
   },
   "6832ac5936": {
     "translation": "Indtast din e-mailadresse"
@@ -248,6 +260,9 @@
   "7408cf0d7b": {
     "translation": "Genindlæs venligst siden"
   },
+  "74ff4bad28": {
+    "translation": "Ingen filer fundet"
+  },
   "752b79f137": {
     "translation": "Du har nået det maksimale antal filer. Du skal slette gamle filer, før du opretter nye."
   },
@@ -265,9 +280,6 @@
   },
   "4908687e50": {
     "translation": "Er du sikker på, at du vil glemme denne fil?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw er et gratis online whiteboard. Opret en konto for at gemme dine filer og arbejde med dine venner."
   },
   "777f9e90cf": {
     "translation": "Ugyldig anmodning."
@@ -305,6 +317,9 @@
   "801ab24683": {
     "translation": "Download"
   },
+  "8030793ce3": {
+    "translation": "Ny arbejdsplads"
+  },
   "815e116a2e": {
     "translation": "Har du en fejl, et problem eller en idé til tldraw? Fortæl os det! Udfyld denne formular, så følger vi op via e-mail, hvis det er nødvendigt. Du kan også <discord>chatte med os på Discord</discord> eller <github>indsende et problem på GitHub</github>."
   },
@@ -332,9 +347,6 @@
   "8c2d3d730c": {
     "translation": "Tjek din e-mail for en bekræftelseskode."
   },
-  "8cf04a9734": {
-    "translation": "Hjem"
-  },
   "8eb2c00e96": {
     "translation": "Delt med dig"
   },
@@ -346,9 +358,6 @@
   },
   "904a830405": {
     "translation": "Omdøb"
-  },
-  "91e49bb0eb": {
-    "translation": "Kopier til mine filer"
   },
   "95aacd4d4a": {
     "translation": "Log ind med Google"
@@ -367,6 +376,9 @@
   },
   "9914a0ce04": {
     "translation": "Lys"
+  },
+  "9983381c21": {
+    "translation": "Ryd søgning"
   },
   "9b33f5c63c": {
     "translation": "Har du ikke modtaget en kode? <resend>Send igen</resend>."
@@ -474,8 +486,8 @@
   "c6a00f137b": {
     "translation": "Invitere"
   },
-  "c7d7403714": {
-    "translation": "Nyt bestyrelse"
+  "c6f16003f2": {
+    "translation": "Kopiér til mit arbejdsområde"
   },
   "c87aacf567": {
     "translation": "Log ud"
