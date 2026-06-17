@@ -4,7 +4,6 @@ import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
-	DragFileOperation,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
@@ -79,13 +78,6 @@ import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
-
-type DragState = null | {
-	type: 'file'
-	id: string
-	operation: DragFileOperation
-	hasDragStarted: boolean
-}
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -1201,7 +1193,6 @@ export class TldrawApp {
 			fileId: string
 			workspaceId: string
 		},
-		dragState: null as DragState,
 		// The current sidebar file-search query. Empty string means no filter.
 		searchQuery: '',
 	})

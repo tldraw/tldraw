@@ -3,7 +3,6 @@ import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
 import { getRelevantDates } from '../../../utils/dates'
 import { F } from '../../../utils/i18n'
-import { ReorderCursor } from './ReorderCursor'
 import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarFileSection } from './TlaSidebarFileSection'
@@ -151,8 +150,6 @@ export function TlaSidebarRecentFilesNew() {
 					<F defaultMessage="No files found" />
 				</div>
 			) : null}
-			{/* Global drag cursor for file reordering */}
-			<ReorderCursor />
 		</div>
 	)
 }

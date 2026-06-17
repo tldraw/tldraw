@@ -1,7 +1,9 @@
+import { createHash } from 'crypto'
 import fs from 'fs'
 import { setupClerkTestingToken } from '@clerk/testing/playwright'
 import { expect, test as base } from '@playwright/test'
 import type { Browser, BrowserContext, Download, Locator, Page, TestInfo } from '@playwright/test'
+import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { NUMBER_OF_USERS } from '../consts'
 import { Database, getTestUserEmail } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
@@ -498,7 +500,12 @@ class DotcomScenario {
 		workspaceName?: string
 		fileName?: string
 	}) {
-		const workspaceName = opts.workspaceName ?? this.name('workspace')
+		// The createWorkspace mutator clamps names to MAX_WORKSPACE_NAME_LENGTH, so mirror that here:
+		// otherwise a long scenario id makes the stored (and displayed) name diverge from what the
+		// sidebar helpers search for, and the workspace link never matches.
+		const workspaceName = (opts.workspaceName ?? this.name('workspace'))
+			.trim()
+			.slice(0, MAX_WORKSPACE_NAME_LENGTH)
 		const fileName = opts.fileName ?? this.name('workspace file')
 
 		await this.ensureGroupsReady(opts.owner)
@@ -680,13 +687,20 @@ async function ensureStorageState(
 }
 
 function getScenarioId(testInfo: TestInfo) {
-	const slug = testInfo.titlePath
+	const fullSlug = testInfo.titlePath
 		.slice(1)
 		.join(' ')
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-+|-+$/g, '')
-		.slice(0, 64)
+
+	// Keep the id compact: workspace names are capped at MAX_WORKSPACE_NAME_LENGTH, and a name is
+	// `${id} ${label}`, so a long id leaves no room for a distinguishing label — two labels that
+	// differ only past the cap would collide once the mutator clamps the stored name. A short
+	// readable prefix keeps debugging tractable; a hash of the full title preserves the cross-test
+	// uniqueness that a truncated prefix alone would lose.
+	const titleHash = createHash('sha1').update(fullSlug).digest('hex').slice(0, 6)
+	const slug = `${fullSlug.slice(0, 24).replace(/-+$/g, '')}-${titleHash}`
 
 	const runId = process.env.GITHUB_RUN_ID ?? Date.now().toString(36)
 	return `e2e-${runId}-w${testInfo.parallelIndex}-x${testInfo.repeatEachIndex}-r${testInfo.retry}-${slug}`

@@ -257,25 +257,21 @@ test.describe('workspaces', () => {
 			expect(fileOrder[0]).toBe(file1)
 		})
 
-		test('drag to unpin a file in a workspace', async ({ sidebar }) => {
+		test('dragging a pinned file does not unpin it', async ({ sidebar }) => {
 			const workspaceName = getRandomName()
 			const file1 = getRandomName()
 
 			await sidebar.createWorkspace(workspaceName)
 			await sidebar.createNewDocument(file1)
 
-			// Dragging an unpinned file to the pinned section no longer pins it.
-			await sidebar.expectFileNotPinned(file1)
-			await sidebar.dragFileToPinnedSection(file1)
-			await sidebar.expectFileNotPinned(file1)
-
-			// Pinning happens through the file menu, but a pinned file can still
-			// be unpinned by dragging it out of the pinned section.
+			// Pinning happens through the file menu.
 			await sidebar.pinFile(file1)
 			await sidebar.expectFilePinned(file1)
 
+			// Dragging a file is now just native link dragging, so dragging a
+			// pinned file out of the pinned section no longer unpins it.
 			await sidebar.dragFileToUnpinnedSection(file1)
-			await sidebar.expectFileNotPinned(file1)
+			await sidebar.expectFilePinned(file1)
 		})
 
 		test('deleting the active file in a workspace stays in the workspace', async ({

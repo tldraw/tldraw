@@ -1,4 +1,4 @@
-import { Role, ZErrorCode, can } from '@tldraw/dotcom-shared'
+import { MAX_WORKSPACE_NAME_LENGTH, Role, ZErrorCode, can } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { MouseEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -248,6 +248,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 							}
 						}}
 						placeholder={namePlaceholderMsg}
+						maxLength={MAX_WORKSPACE_NAME_LENGTH}
 					/>
 				</div>
 

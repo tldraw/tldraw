@@ -280,6 +280,13 @@
 	display: flex;
 }
 
+/* The file menu's "Move to" submenu lists workspace names, which can be long.
+   Cap its width so a long name truncates (the .tlui-button__label inside
+   already ellipsizes) instead of stretching the menu across the screen. */
+[data-testid$='move-to-workspace-content'] {
+	max-width: 260px;
+}
+
 .tla-lang-highlight-missing *:not(.notranslate) {
 	text-shadow: 3px 3px red;
 }

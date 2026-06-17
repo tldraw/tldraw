@@ -143,7 +143,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 						>
 							<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
 								<TlaIcon icon="plus" />
-								{createWorkspaceLbl}
+								<span className={styles.sidebarTruncatedText}>{createWorkspaceLbl}</span>
 							</span>
 						</_DropdownMenu.Item>
 					</_DropdownMenu.Content>
@@ -160,7 +160,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 					data-testid="tla-create-workspace"
 				>
 					<TlaIcon icon="plus" />
-					{createWorkspaceLbl}
+					<span className={styles.sidebarTruncatedText}>{createWorkspaceLbl}</span>
 				</button>
 			)}
 		</div>
@@ -192,7 +192,7 @@ function WorkspaceSwitcherItem({
 		>
 			<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
 				<TlaIcon icon={isActive ? 'check' : 'none'} />
-				{children}
+				<span className={styles.sidebarTruncatedText}>{children}</span>
 			</span>
 		</_DropdownMenu.Item>
 	)

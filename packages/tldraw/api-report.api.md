@@ -5285,6 +5285,7 @@ export interface TLUiInputProps {
     iconLeft?: Exclude<string, TLUiIconType> | TLUiIconType;
     // (undocumented)
     label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
+    maxLength?: number;
     // (undocumented)
     onBlur?(value: string): void;
     // (undocumented)
