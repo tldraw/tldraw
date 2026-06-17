@@ -26,6 +26,7 @@ export function ReadyWrapper({
 	const parent = useContext(ReadyContext)
 	const [isReady, _setIsReady] = React.useState(false)
 	const [showSpinner, setShowSpinner] = React.useState(false)
+	const hasLoadingScreen = !!loadingScreen
 	const setIsReady = useCallback(async () => {
 		_setIsReady(true)
 	}, [])
@@ -50,15 +51,22 @@ export function ReadyWrapper({
 					isReady && styles.isReady,
 					// There's already an editor (the placeholder) on screen, so the real
 					// editor hard-cuts in instead of fading.
-					loadingScreen && styles.withLoadingScreen
+					hasLoadingScreen && styles.withLoadingScreen
 				)}
 			>
-				<div className={classNames(styles.innerContainer, isReady && styles.isReady)}>
+				<div
+					className={classNames(styles.innerContainer, isReady && styles.isReady)}
+					inert={!isReady}
+				>
 					{children}
 				</div>
 				{/* While loading, show the inert placeholder editor (if provided) with
 				    the spinner layered in front of it. */}
-				{!isReady && loadingScreen && <div className={styles.loadingScreen}>{loadingScreen}</div>}
+				{!isReady && hasLoadingScreen && (
+					<div className={styles.loadingScreen} inert aria-hidden="true">
+						{loadingScreen}
+					</div>
+				)}
 				{!isReady && (
 					<div className={classNames(styles.spinner, showSpinner && styles.showSpinner)}>
 						<Spinner />
