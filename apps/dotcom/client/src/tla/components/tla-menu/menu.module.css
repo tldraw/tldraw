@@ -26,9 +26,9 @@
 	height: 32px;
 }
 
-.menuControlRow > *:not(:only-child):nth-last-of-type(1) {
+/* .menuControlRow > *:not(:only-child):nth-last-of-type(1) {
 	padding-left: 4px;
-}
+} */
 
 .menuInfoTriggerContainer {
 	flex-grow: 2;

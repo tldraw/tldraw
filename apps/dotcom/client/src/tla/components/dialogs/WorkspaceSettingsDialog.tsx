@@ -292,12 +292,13 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 							iconRight={copiedInviteLink ? 'check' : 'copy'}
 							iconRightClassName={styles.copyInviteLinkIconRight}
 							variant="primary"
+							big
 							onClick={handleCopyInviteLink}
 						>
 							<F defaultMessage="Copy invite link" />
 						</TlaButton>
 					) : (
-						<TlaButton variant="primary" disabled>
+						<TlaButton variant="primary" big disabled>
 							<F defaultMessage="Invites are disabled" />
 						</TlaButton>
 					)}
