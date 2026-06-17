@@ -217,7 +217,6 @@ export function Component() {
 							<TlaButton
 								disabled={isRebooting}
 								onClick={doReboot}
-								variant="warning"
 								isLoading={isRebooting}
 								className={styles.userActionButton}
 							>
@@ -685,7 +684,7 @@ function HardDeleteFile() {
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			<div className={styles.deleteContainer}>
 				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
-				<TlaButton onClick={onDelete} variant="warning" className={styles.deleteButton}>
+				<TlaButton onClick={onDelete} className={styles.deleteButton}>
 					Delete (cannot be undone)
 				</TlaButton>
 			</div>
@@ -1206,7 +1205,6 @@ function RolloutWorkspacesUi() {
 			<div className={styles.deleteContainer}>
 				<TlaButton
 					onClick={isMigrating ? stopMigration : onMigrate}
-					variant="warning"
 					className={styles.deleteButton}
 					// Require a loaded count: until then the percentage input still
 					// has its initial 0 and submitting would unenroll everyone
@@ -1318,7 +1316,6 @@ function DeleteUser() {
 				/>
 				<TlaButton
 					onClick={onDelete}
-					variant="warning"
 					className={styles.deleteButton}
 					disabled={isDeleting}
 					isLoading={isDeleting}

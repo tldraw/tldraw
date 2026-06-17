@@ -89,21 +89,8 @@
 	white-space: nowrap;
 }
 
-.menuPopover {
-	padding: 40px 12px 12px 12px;
-	min-width: 160px;
-	max-width: 160px;
-	overflow: hidden;
-}
-
 .menuLabel + .menuInfoTrigger {
 	margin-left: -12px;
-}
-
-.menuPopoverClose {
-	position: absolute;
-	top: 0px;
-	right: 0px;
 }
 
 .menuDetailCentered {
@@ -213,10 +200,6 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	outline-offset: -5px;
 }
 
-.menuSelectSelect:disabled {
-	cursor: default;
-}
-
 .menuSelectTrigger[data-disabled] .menuSelectLabel {
 	color: var(--tla-color-text-3);
 }
@@ -283,11 +266,6 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	cursor: pointer;
 	pointer-events: all;
 }
-.menuSwitchContainer.disabled input[type='checkbox'] {
-	pointer-events: none;
-	cursor: default;
-}
-
 .menuSwitch {
 	--switch-h: 20px;
 	--switch-w: calc(var(--switch-h) * 1.618);
@@ -337,11 +315,11 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 }
 
 @media (hover: hover) {
-	.menuSwitchContainer:not(.disabled):hover > .menuSwitch[data-checked='false'] {
+	.menuSwitchContainer:hover > .menuSwitch[data-checked='false'] {
 		background-color: var(--tla-color-inactive-hover);
 	}
 
-	.menuSwitchContainer:not(.disabled):hover > .menuSwitch[data-checked='true'] {
+	.menuSwitchContainer:hover > .menuSwitch[data-checked='true'] {
 		background-color: var(--tla-color-primary-hover);
 	}
 }

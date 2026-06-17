@@ -12,7 +12,7 @@ import styles from './TlaInviteDialog.module.css'
 
 const messages = defineMessages({
 	inviteDialogTitle: {
-		defaultMessage: 'You have been invited to join workspace:',
+		defaultMessage: 'You have been invited to join:',
 	},
 })
 

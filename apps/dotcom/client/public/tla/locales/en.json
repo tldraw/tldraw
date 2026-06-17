@@ -53,9 +53,6 @@
   "12a6766ba1": {
     "translation": "Unpin file"
   },
-  "12c8a9838c": {
-    "translation": "Try the tldraw SDK"
-  },
   "13ddd375ad": {
     "translation": "Export as"
   },
@@ -76,6 +73,9 @@
   },
   "21f66c9c00": {
     "translation": "Workspace name"
+  },
+  "23dcace54a": {
+    "translation": "You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
   },
   "250ddea65c": {
     "translation": "About tldraw"
@@ -187,6 +187,9 @@
   },
   "55505ba281": {
     "translation": "PNG"
+  },
+  "5638176be5": {
+    "translation": "Create a workspace"
   },
   "5677e381d2": {
     "translation": "We use analytics cookies to make tldraw better."
@@ -304,6 +307,9 @@
   },
   "7b1329f5ca": {
     "translation": "User manual"
+  },
+  "7bcdfeab70": {
+    "translation": "You have been invited to join:"
   },
   "7be10fc592": {
     "translation": "Restore version"
@@ -433,9 +439,6 @@
   },
   "a8873770ab": {
     "translation": "File is getting large"
-  },
-  "a8c9ad7ea5": {
-    "translation": "You have been invited to join <strong>{workspaceName}</strong>"
   },
   "a9ded1e5ce": {
     "translation": "Background"
@@ -575,9 +578,6 @@
   },
   "e81c4e4f2b": {
     "translation": "or"
-  },
-  "e9e0f16850": {
-    "translation": "You have been invited to join workspace:"
   },
   "ea4788705e": {
     "translation": "Cancel"
