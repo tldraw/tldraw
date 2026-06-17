@@ -102,6 +102,12 @@ export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<
 	 * but you can set it to be user-resizable using scale.
 	 */
 	resizeMode: 'none' | 'scale'
+
+	/**
+	 * Whether to show the attribution (the display name of the user who first edited the note's text)
+	 * in the corner of the note. Defaults to `true`.
+	 */
+	showAttribution: boolean
 }
 
 /** @public */
@@ -112,6 +118,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override options: NoteShapeOptions = {
 		resizeMode: 'none',
+		showAttribution: true,
 		getDefaultDisplayValues(_editor, shape, theme, colorMode): NoteShapeUtilDisplayValues {
 			const { color, labelColor, font, size, align, verticalAlign } = shape.props
 			const colors = theme.colors[colorMode]
@@ -345,15 +352,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const isReadyForEditing = useIsReadyForEditing(this.editor, shape.id)
 		const isEmpty = isEmptyRichText(richText)
 
+		const showAttribution = this.options.showAttribution
 		const attribution = useValue(
 			'attribution',
 			() => {
-				if (!textFirstEditedBy || isEmpty) return null
+				if (!showAttribution || !textFirstEditedBy || isEmpty) return null
 				const name = this.editor.getAttributionDisplayName(textFirstEditedBy)
 				if (!name) return null
 				return { short: name.split(' ')[0], full: name }
 			},
-			[textFirstEditedBy, isEmpty, this.editor]
+			[showAttribution, textFirstEditedBy, isEmpty, this.editor]
 		)
 
 		return (
@@ -462,7 +470,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 		const { textFirstEditedBy } = shape.props
 		const attributionFirstName =
-			textFirstEditedBy && !isEmptyRichText(shape.props.richText)
+			this.options.showAttribution && textFirstEditedBy && !isEmptyRichText(shape.props.richText)
 				? this.editor.getAttributionDisplayName(textFirstEditedBy)?.split(' ')[0]
 				: null
 		const attributionName = attributionFirstName

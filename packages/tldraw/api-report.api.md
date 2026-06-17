@@ -2807,6 +2807,7 @@ export interface NonePathBuilderOpts extends BasePathBuilderOpts {
 // @public (undocumented)
 export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
     resizeMode: 'none' | 'scale';
+    showAttribution: boolean;
 }
 
 // @public (undocumented)
