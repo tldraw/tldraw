@@ -297,6 +297,61 @@ test.describe('UI scenarios', () => {
 		await member.sidebar.expectFileNotVisible(fileName)
 	})
 
+	test('home workspace settings show a private rename dialog, not an empty one', async ({
+		owner,
+		scenario,
+	}) => {
+		// Regression: the home workspace ("My workspace") used to render an empty dialog — the
+		// component returned null for it while the sidebar still opened the dialog, so the page
+		// just dimmed with no content. It's private: it can be renamed, but not shared or managed.
+		await scenario.ensureGroupsReady(owner)
+		await owner.sidebar.switchToHomeWorkspace()
+		await owner.page.getByTestId('tla-sidebar-workspace-settings').click()
+
+		const dialog = owner.page.getByRole('dialog', { name: 'Manage workspace' })
+		await expect(dialog).toBeVisible()
+		// Renameable: the name field is present and editable.
+		await expect(dialog.getByPlaceholder('Workspace name')).toBeEnabled()
+		// Private: a disabled invite control with an explanatory note (no shareable link).
+		await expect(
+			dialog.getByText(
+				'This is your private workspace. Create a new workspace to invite teammates.'
+			)
+		).toBeVisible()
+		await expect(dialog.getByRole('button', { name: 'Copy invite link' })).toBeDisabled()
+		// Nothing to manage, so the dialog has no Members/Settings tabs at all.
+		await expect(dialog.getByRole('tab')).toHaveCount(0)
+
+		await owner.page.keyboard.press('Escape')
+	})
+
+	test('the home workspace can be renamed from its settings dialog', async ({
+		owner,
+		scenario,
+	}) => {
+		// Regression: the home workspace is renameable (the reason its settings dialog exists at
+		// all), so the rename must apply. Restore the name afterwards so later serial tests still
+		// see the original.
+		await scenario.ensureGroupsReady(owner)
+		await owner.sidebar.switchToHomeWorkspace()
+		const originalName = await owner.page.getByTestId('tla-active-workspace-name').innerText()
+		const newName = scenario.name('home renamed')
+
+		await owner.page.getByTestId('tla-sidebar-workspace-settings').click()
+		const dialog = owner.page.getByRole('dialog', { name: 'Manage workspace' })
+		await dialog.getByPlaceholder('Workspace name').fill(newName)
+		await owner.page.getByRole('button', { name: 'Close' }).click()
+		await owner.waitForMutationResolution()
+		await owner.sidebar.expectActiveWorkspace(newName)
+
+		// Restore the original home workspace name.
+		await owner.page.getByTestId('tla-sidebar-workspace-settings').click()
+		await dialog.getByPlaceholder('Workspace name').fill(originalName)
+		await owner.page.getByRole('button', { name: 'Close' }).click()
+		await owner.waitForMutationResolution()
+		await owner.sidebar.expectActiveWorkspace(originalName)
+	})
+
 	test('workspace settings rename updates labels and persists', async ({ owner, scenario }) => {
 		const workspaceName = scenario.name('settings rename old')
 		const newWorkspaceName = scenario.name('settings rename new')
