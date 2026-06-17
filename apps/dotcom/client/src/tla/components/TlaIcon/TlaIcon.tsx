@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { CSSProperties, HtmlHTMLAttributes, useLayoutEffect, useRef } from 'react'
+import { CSSProperties, useLayoutEffect, useRef } from 'react'
 import mergedSpriteUrl from '../../../assets/0_merged_tla.svg'
 import styles from './icon.module.css'
 
@@ -59,8 +59,4 @@ export function TlaIcon({
 			}}
 		/>
 	)
-}
-
-export function TlaIconWrapper(props: HtmlHTMLAttributes<HTMLDivElement>) {
-	return <span {...props} className={classNames(styles.iconWrapper, props.className)} />
 }
