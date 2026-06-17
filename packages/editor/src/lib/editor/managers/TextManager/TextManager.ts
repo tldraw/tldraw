@@ -93,6 +93,10 @@ export interface TLMeasureTextSpanOpts {
 
 const spaceCharacterRegex = /\s/
 
+// Iterate by grapheme cluster (e.g. emoji sequences, flags, accented letters)
+// rather than by code point, so a single glyph is measured as one unit.
+const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+
 const initialDefaultStyles = Object.freeze({
 	'overflow-wrap': 'break-word',
 	'word-break': 'auto',
@@ -301,15 +305,24 @@ export class TextManager {
 		for (const childNode of element.childNodes) {
 			if (childNode.nodeType !== Node.TEXT_NODE) continue
 
-			for (const char of childNode.textContent ?? '') {
-				// place the range around the characters we're interested in
+			for (const { segment } of graphemeSegmenter.segment(childNode.textContent ?? '')) {
+				// place the range around the grapheme we're interested in
 				range.setStart(textNode, idx)
-				range.setEnd(textNode, idx + char.length)
+				range.setEnd(textNode, idx + segment.length)
 				// measure the range. some browsers return multiple rects for the
 				// first char in a new line - one for the line break, and one for
 				// the character itself. we're only interested in the character.
 				const rects = range.getClientRects()
-				const rect = rects[rects.length - 1]!
+				const rect = rects[rects.length - 1]
+
+				// some graphemes produce no layout rectangle (e.g. zero-width
+				// spaces or newlines). skip them rather than crashing, but keep
+				// advancing the index so later graphemes stay aligned.
+				// See https://github.com/tldraw/tldraw/issues/9112.
+				if (!rect) {
+					idx += segment.length
+					continue
+				}
 
 				// calculate the position of the character relative to the element
 				const top = rect.top + offsetY
@@ -317,7 +330,7 @@ export class TextManager {
 				const right = rect.right + offsetX
 				const isRTL = left < prevCharLeftForRTLTest
 
-				const isSpaceCharacter = spaceCharacterRegex.test(char)
+				const isSpaceCharacter = spaceCharacterRegex.test(segment)
 				if (
 					// If we're at a word boundary...
 					isSpaceCharacter !== prevCharWasSpaceCharacter ||
@@ -341,7 +354,7 @@ export class TextManager {
 					// start a new span
 					currentSpan = {
 						box: { x: left, y: top, w: rect.width, h: rect.height },
-						text: char,
+						text: segment,
 					}
 					prevCharLeftForRTLTest = left
 				} else {
@@ -352,16 +365,16 @@ export class TextManager {
 
 					// otherwise we just need to extend the current span with the next character
 					currentSpan.box.w = isRTL ? currentSpan.box.w + rect.width : right - currentSpan.box.x
-					currentSpan.text += char
+					currentSpan.text += segment
 				}
 
-				if (char === '\n') {
+				if (segment === '\n') {
 					prevCharLeftForRTLTest = 0
 				}
 
 				prevCharWasSpaceCharacter = isSpaceCharacter
 				prevCharTop = top
-				idx += char.length
+				idx += segment.length
 			}
 		}
 
