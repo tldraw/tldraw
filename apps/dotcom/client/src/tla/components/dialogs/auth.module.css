@@ -153,6 +153,11 @@
 	font-weight: 500;
 }
 
+.clerkCaptcha:not(:empty) {
+	padding: var(--tl-space-8);
+	margin-top: calc(-1 * var(--tl-space-8));
+}
+
 .authTermsOfUse {
 	margin-top: var(--tl-space-8);
 	text-align: center;
