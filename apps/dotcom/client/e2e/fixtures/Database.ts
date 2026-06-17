@@ -3,16 +3,17 @@ import { Page } from '@playwright/test'
 import { DB, userHasFlag } from '@tldraw/dotcom-shared'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
-import { getDotcomDevPorts } from '../../../zero-cache/dev-env'
 import { OTHER_USERS, USERS } from '../consts'
 import { getStorageStateFileName } from './helpers'
 
-// e2e pins the dev stack to instance 0 (see playwright.config.ts), so its pgbouncer is on instance
-// 0's port.
+// e2e pins the dev stack to instance 0 (see playwright.config.ts), so pgbouncer is on instance 0's
+// port: DOTCOM_DEV_PORT_BASE (3000) + pgbouncer slot (6) = 3006. Keep in sync with
+// zero-cache/dev-env.ts (not imported here: that module uses import.meta and breaks Playwright's
+// CommonJS test transpile).
 const db = new Kysely<DB>({
 	dialect: new PostgresDialect({
 		pool: new pg.Pool({
-			connectionString: `postgresql://user:password@127.0.0.1:${getDotcomDevPorts(0).pgbouncer}/postgres`,
+			connectionString: 'postgresql://user:password@127.0.0.1:3006/postgres',
 			application_name: 'migrate',
 			idleTimeoutMillis: 10_000,
 			max: 10,
