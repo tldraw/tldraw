@@ -2,6 +2,7 @@ import fs from 'fs'
 import { setupClerkTestingToken } from '@clerk/testing/playwright'
 import { expect, test as base } from '@playwright/test'
 import type { Browser, BrowserContext, Download, Locator, Page, TestInfo } from '@playwright/test'
+import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { NUMBER_OF_USERS } from '../consts'
 import { Database, getTestUserEmail } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
@@ -498,7 +499,12 @@ class DotcomScenario {
 		workspaceName?: string
 		fileName?: string
 	}) {
-		const workspaceName = opts.workspaceName ?? this.name('workspace')
+		// The createWorkspace mutator clamps names to MAX_WORKSPACE_NAME_LENGTH, so mirror that here:
+		// otherwise a long scenario id makes the stored (and displayed) name diverge from what the
+		// sidebar helpers search for, and the workspace link never matches.
+		const workspaceName = (opts.workspaceName ?? this.name('workspace'))
+			.trim()
+			.slice(0, MAX_WORKSPACE_NAME_LENGTH)
 		const fileName = opts.fileName ?? this.name('workspace file')
 
 		await this.ensureGroupsReady(opts.owner)

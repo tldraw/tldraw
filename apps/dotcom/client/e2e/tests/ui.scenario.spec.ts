@@ -73,7 +73,9 @@ test.describe('UI scenarios', () => {
 		await owner.sidebar.expectFileVisible(duplicateName)
 		await owner.sidebar.expectFileActive(duplicateName)
 		expect(await owner.editor.getCurrentFileName()).toBe(duplicateName)
-		await owner.editor.expectShapesCount(1)
+		// Duplicating copies the room server-side, so the new file's shapes only render once the
+		// editor navigates and loads the copied content. Allow more than the default 5s for that.
+		await owner.editor.expectShapesCount(1, 15000)
 
 		await owner.sidebar.deleteFileByName(duplicateName)
 		await owner.deleteFileDialog.expectIsVisible()
