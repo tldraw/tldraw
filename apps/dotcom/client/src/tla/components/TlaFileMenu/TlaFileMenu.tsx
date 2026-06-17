@@ -240,7 +240,7 @@ export function FileItems({
 				)}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
-				{workspacesEnabled && (
+				{workspacesEnabled && hasAdminRights && (
 					<TldrawUiMenuSubmenu id="move-to-workspace" label={'Move to'} size="small">
 						<TldrawUiMenuGroup id="workspaces">
 							<TldrawUiMenuCheckboxItem
