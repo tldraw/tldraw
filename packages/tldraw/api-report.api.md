@@ -2953,6 +2953,7 @@ export function onDragFromToolbarToCreateShape(editor: Editor, info: TLPointerEv
 export interface OnDragFromToolbarToCreateShapesOpts {
     createShape(id: TLShapeId): void;
     onDragEnd?(id: TLShapeId): void;
+    toolId?: string;
 }
 
 // @public (undocumented)
