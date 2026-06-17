@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect } from 'react'
+import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useHasFlag } from '../../hooks/useHasFlag'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -15,6 +16,7 @@ import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
+import { TlaSidebarWorkspaceActions } from './components/TlaSidebarWorkspaceActions'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
 import { TlaSidebarWorkspaceSwitcher } from './components/TlaSidebarWorkspaceSwitcher'
 import styles from './sidebar.module.css'
@@ -47,6 +49,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
 	const workspacesEnabled = useHasFlag('groups_frontend')
+	const activeWorkspaceId = useActiveWorkspaceId()
 
 	return (
 		<nav aria-hidden={!isSidebarOpen} style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}>
@@ -72,7 +75,9 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				</div>
 				{/* The workspace switcher is fixed; only the file list below it scrolls. */}
 				{workspacesEnabled && <TlaSidebarWorkspaceSwitcher />}
-				{workspacesEnabled && <div className={styles.sidebarDivider} />}
+				{/* {workspacesEnabled && <div className={styles.sidebarDivider} />} */}
+				{workspacesEnabled && <TlaSidebarWorkspaceActions workspaceId={activeWorkspaceId} />}
+				{/* {workspacesEnabled && <div className={styles.sidebarDivider} />} */}
 				<div className={styles.sidebarContent} data-sidebar-scroll-container>
 					<div className={styles.sidebarContentInner}>
 						{workspacesEnabled ? <TlaSidebarRecentFilesNew /> : <TlaSidebarRecentFiles />}

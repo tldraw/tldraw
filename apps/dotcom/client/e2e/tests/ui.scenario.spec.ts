@@ -240,9 +240,13 @@ test.describe('UI scenarios', () => {
 		await expect(ownerDialog.getByRole('button', { name: 'Copy invite link' })).toBeVisible()
 		await expect(ownerDialog.getByText('Members', { exact: true })).toBeVisible()
 		await expect(ownerDialog.getByText(/\(you\)/)).toBeVisible()
-		await expect(ownerDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)).toHaveText(
-			'Member'
-		)
+		const memberRoleSelect = ownerDialog.locator(`[id="workspace-member-role-${memberUserId}"]`)
+		await expect(memberRoleSelect).toHaveText('Member')
+
+		// Interacting with the portalled role select should not count as a background click.
+		await memberRoleSelect.click()
+		await owner.page.getByRole('option', { name: 'Member' }).click()
+		await expect(ownerDialog).toBeVisible()
 
 		// Copying and regenerating the invite link update clipboard-visible state.
 		const inviteInput = ownerDialog.locator('input[readonly]').first()
@@ -264,7 +268,8 @@ test.describe('UI scenarios', () => {
 		await expect
 			.poll(() => owner.page.evaluate(() => navigator.clipboard.readText()))
 			.toBe(regeneratedInviteUrl)
-		await owner.page.keyboard.press('Escape')
+		await owner.page.locator('.tlui-dialog__overlay').click({ position: { x: 5, y: 5 } })
+		await expect(ownerDialog).not.toBeVisible()
 
 		// Non-owners can inspect settings but cannot access owner-only controls.
 		await member.sidebar.openWorkspaceSettings(workspaceName)

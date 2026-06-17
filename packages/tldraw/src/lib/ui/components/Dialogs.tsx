@@ -4,6 +4,12 @@ import { memo, useCallback, useRef } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
 import { useDirection } from '../hooks/useTranslation/useTranslation'
 
+function shouldPreventDialogDismiss(event: Event) {
+	const target = event.target
+	// Portaled controls can opt into behaving like part of the dialog content.
+	return target instanceof Element && target.closest('[data-tlui-dialog-prevent-dismiss]') !== null
+}
+
 /** @internal */
 const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }: TLUiDialog) => {
 	const { removeDialog } = useDialogs()
@@ -43,7 +49,7 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 						onMouseUp={() => (mouseDownInsideContentRef.current = false)}
 						onInteractOutside={(e) => {
 							mouseDownInsideContentRef.current = false
-							if (preventBackgroundClose) {
+							if (preventBackgroundClose || shouldPreventDialogDismiss(e)) {
 								e.preventDefault()
 							}
 						}}
