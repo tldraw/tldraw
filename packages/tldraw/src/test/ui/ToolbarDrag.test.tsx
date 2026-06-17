@@ -12,11 +12,13 @@ if (typeof (globalThis as any).PointerEvent === 'undefined') {
 	;(globalThis as any).PointerEvent = class PointerEvent extends MouseEvent {
 		pointerId: number
 		pointerType: string
+		pressure: number
 		isPrimary: boolean
 		constructor(type: string, params: any = {}) {
 			super(type, params)
 			this.pointerId = params.pointerId ?? 0
 			this.pointerType = params.pointerType ?? ''
+			this.pressure = params.pressure ?? 0
 			this.isPrimary = params.isPrimary ?? false
 		}
 	}
@@ -39,6 +41,7 @@ function pointerEvent(
 		button: 0,
 		pointerId: 1,
 		pointerType,
+		pressure: 0,
 		isPrimary: true,
 	})
 }
