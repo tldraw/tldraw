@@ -21,6 +21,12 @@
       "value": "GetHelpLink"
     }
   ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Invite teammates"
+    }
+  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -129,12 +135,6 @@
       "value": "Create file"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Workspace settings"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -145,6 +145,12 @@
     {
       "type": 0,
       "value": "Today"
+    }
+  ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "A workspace must keep at least one owner. Make someone else an owner first."
     }
   ],
   "21f66c9c00": [
@@ -177,10 +183,22 @@
       "value": "Search..."
     }
   ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Regenerating replaces the current invite link with a new one. Anyone using the old link will need the new one to join."
+    }
+  ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Include link to current file"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Regenerate invite link"
     }
   ],
   "31246941ad": [
@@ -261,12 +279,6 @@
       "value": "Contact the owner to request access."
     }
   ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Leave workspace…"
-    }
-  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -331,12 +343,6 @@
     {
       "type": 0,
       "value": "Unable to unpublish the file."
-    }
-  ],
-  "51317dcad5": [
-    {
-      "type": 0,
-      "value": "This is your private workspace. Create a new workspace to invite teammates."
     }
   ],
   "517bb809d9": [
@@ -407,12 +413,6 @@
     {
       "type": 0,
       "value": "My workspace"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Revoke this link and create a new one."
     }
   ],
   "5d04a002ea": [
@@ -595,6 +595,12 @@
       "value": "Got it"
     }
   ],
+  "78faf88f4d": [
+    {
+      "type": 0,
+      "value": "Enable invite link"
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -775,12 +781,6 @@
       "value": "Sign in with Google"
     }
   ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Delete workspace…"
-    }
-  ],
   "95d2109dc8": [
     {
       "type": 0,
@@ -903,6 +903,12 @@
       "value": "Submit"
     }
   ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Leave"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -973,6 +979,12 @@
       "value": "Guest user"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenerate"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -1003,10 +1015,30 @@
       "value": "Copy link"
     }
   ],
+  "b9a68fbd56": [
+    {
+      "type": 0,
+      "value": "Members ("
+    },
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": ")"
+    }
+  ],
   "ba0318cb81": [
     {
       "type": 0,
       "value": "Sign in to share"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Invites are disabled"
     }
   ],
   "bbbcefd7ce": [
@@ -1059,6 +1091,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Manage workspace"
     }
   ],
   "c2276c9127": [
@@ -1127,12 +1165,6 @@
     {
       "type": 0,
       "value": "Dismiss"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Save"
     }
   ],
   "cceaefbc20": [
@@ -1259,12 +1291,6 @@
       "value": "OK"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Invite members"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1299,12 +1325,6 @@
     {
       "type": 0,
       "value": "You have been invited to join workspace:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Danger zone"
     }
   ],
   "ea4788705e": [
@@ -1367,12 +1387,6 @@
     {
       "type": 0,
       "value": " to learn more."
-    }
-  ],
-  "ef53538ae4": [
-    {
-      "type": 0,
-      "value": "Members"
     }
   ],
   "ef7de3f485": [

@@ -30,9 +30,17 @@ export function TlaMenuControlGroup({ children }: { children: ReactNode }) {
 }
 
 // A row for a single control, usually label + input
-export function TlaMenuControl({ children, title }: { children: ReactNode; title?: string }) {
+export function TlaMenuControl({
+	children,
+	title,
+	className,
+}: {
+	children: ReactNode
+	title?: string
+	className?: string
+}) {
 	return (
-		<div className={classNames('tla-control', styles.menuControlRow)} title={title}>
+		<div className={classNames('tla-control', styles.menuControlRow, className)} title={title}>
 			{children}
 		</div>
 	)
@@ -114,10 +122,18 @@ export function TlaMenuSelect<T extends string>({
 	value: T
 	disabled?: boolean
 	onChange(value: T): void
-	options: { value: T; label: ReactNode }[]
+	options: { value: T; label: ReactNode; disabled?: boolean }[]
 	// Extra actions shown in their own section below the options (e.g. a
 	// destructive "remove"). Selecting one runs its onSelect instead of onChange.
-	actions?: { id: string; label: ReactNode; onSelect(): void; destructive?: boolean }[]
+	actions?: {
+		id: string
+		label: ReactNode
+		onSelect(): void
+		destructive?: boolean
+		disabled?: boolean
+		// Shown on hover when the action is disabled (e.g. why it can't be used).
+		tooltip?: ReactNode
+	}[]
 	// When set, render the dropdown in a portal (popper-positioned) so it isn't
 	// clipped by / doesn't overflow a constrained container like a modal dialog.
 	usePortal?: boolean
@@ -129,7 +145,7 @@ export function TlaMenuSelect<T extends string>({
 		(value: string) => {
 			const action = actions?.find((a) => a.id === value)
 			if (action) {
-				action.onSelect()
+				if (!action.disabled) action.onSelect()
 				return
 			}
 			onChange(value as T)
@@ -200,6 +216,7 @@ export function TlaMenuSelect<T extends string>({
 									key={option.value}
 									className={styles.menuSelectOption}
 									value={option.value}
+									disabled={option.disabled}
 								>
 									<_Select.ItemIndicator>
 										<TlaIcon icon="check" />
@@ -210,18 +227,27 @@ export function TlaMenuSelect<T extends string>({
 							{actions && actions.length > 0 && (
 								<>
 									<_Select.Separator className={styles.menuSelectSeparator} />
-									{actions.map((action) => (
-										<_Select.Item
-											key={action.id}
-											className={classNames(
-												styles.menuSelectOption,
-												action.destructive && styles.menuSelectOptionDestructive
-											)}
-											value={action.id}
-										>
-											<_Select.ItemText>{action.label}</_Select.ItemText>
-										</_Select.Item>
-									))}
+									{actions.map((action) => {
+										const item = (
+											<_Select.Item
+												key={action.id}
+												className={classNames(
+													styles.menuSelectOption,
+													action.destructive && styles.menuSelectOptionDestructive
+												)}
+												value={action.id}
+												disabled={action.disabled}
+											>
+												<_Select.ItemText>{action.label}</_Select.ItemText>
+											</_Select.Item>
+										)
+										if (!action.tooltip) return item
+										return (
+											<TldrawUiTooltip key={action.id} content={action.tooltip}>
+												{item}
+											</TldrawUiTooltip>
+										)
+									})}
 								</>
 							)}
 						</_Select.Viewport>

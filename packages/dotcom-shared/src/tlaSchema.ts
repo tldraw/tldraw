@@ -86,6 +86,11 @@ export const group = table('group')
 		id: string(),
 		name: string(),
 		inviteSecret: string().optional(),
+		// Whether the invite link currently lets people join. Toggling this off
+		// disables the link without discarding inviteSecret, so re-enabling restores
+		// the same link (cf. a file's `shared` flag). Optional so older cached rows
+		// without the column read as enabled (defaulted true) until they refetch.
+		inviteLinkEnabled: boolean().optional(),
 		isDeleted: boolean(),
 		createdAt: number(),
 		updatedAt: number(),
