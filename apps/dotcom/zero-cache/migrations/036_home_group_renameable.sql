@@ -23,6 +23,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 3. Reset existing home group names to "My workspace". Home workspaces couldn't be
---    renamed before this change, so no existing name is an intentional choice.
+-- 3. Reset existing home group names to "My workspace". Before this migration,
+--    home group names were generated from profile names, so no existing name is
+--    an intentional workspace-name choice.
 UPDATE "group" SET "name" = 'My workspace' WHERE "id" IN (SELECT "id" FROM public."user");
