@@ -38,6 +38,7 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 
 	return (
 		<div className={styles.sidebarSection}>
+			<TlaSidebarSearch />
 			<TlaSidebarActionButton
 				icon="edit"
 				iconStyle={{ width: 12, height: 12, margin: 0 }}
@@ -51,7 +52,6 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 				onClick={handleSettings}
 				testId="tla-sidebar-workspace-settings"
 			/>
-			<TlaSidebarSearch />
 		</div>
 	)
 }
