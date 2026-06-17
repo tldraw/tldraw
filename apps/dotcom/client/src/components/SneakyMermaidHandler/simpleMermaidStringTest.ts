@@ -12,8 +12,16 @@
  * pulling in the heavy mermaid library.
  */
 const FRONTMATTER_REGEX = /^-{3}\s*[\n\r]([\s\S]*?)[\n\r]-{3}\s*[\n\r]+/
+
+/**
+ * A diagram keyword at the start of the text, optionally followed by a known
+ * variant suffix (`-beta`, `-v2`). The trailing `(?![\w-])` is a word boundary
+ * that rejects keywords glued to more text: "kanban-board", "gantt-chart" and
+ * "information" do not match, while "sankey-beta" and "graph LR" do. Group 1 is
+ * the keyword, group 2 the variant suffix (if any).
+ */
 const DIAGRAM_KEYWORD_REGEX =
-	/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|erDiagram|journey|gantt|pie|gitGraph|mindmap|timeline|sankey|xychart|block|quadrantChart|requirement|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|packet|kanban|architecture|treemap|radar|info)/
+	/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|erDiagram|journey|gantt|pie|gitGraph|mindmap|timeline|sankey|xychart|block|quadrantChart|requirement|C4Context|C4Container|C4Component|C4Dynamic|C4Deployment|packet|kanban|architecture|treemap|radar|info)(-beta|-v\d+)?(?![\w-])/
 
 /**
  * Leading ```mermaid (or longer run) fence, closed by the first line that ends
@@ -42,5 +50,22 @@ export function stripMarkdownMermaidFence(text: string): string {
 }
 
 export function simpleMermaidStringTest(text: string): boolean {
-	return DIAGRAM_KEYWORD_REGEX.test(stripMermaidBoilerplate(stripMarkdownMermaidFence(text)))
+	const unfenced = stripMarkdownMermaidFence(text)
+	const cleaned = stripMermaidBoilerplate(unfenced).trim()
+	const match = cleaned.match(DIAGRAM_KEYWORD_REGEX)
+	if (!match) return false
+
+	// An explicit ```mermaid fence means the user has declared their intent, so
+	// a bare keyword inside it is enough.
+	if (unfenced !== text) return true
+
+	// A recognized variant suffix (e.g. "sankey-beta", "stateDiagram-v2") is a
+	// clear diagram signal on its own.
+	if (match[2]) return true
+
+	// Otherwise require multi-line diagram structure: a line break followed by
+	// real content. This rejects single-line prose like "graph paper" or
+	// "pie in the sky" while still accepting "graph LR\n  A --> B".
+	const remainder = cleaned.slice(match[0].length)
+	return /[\n\r]\s*\S/.test(remainder)
 }
