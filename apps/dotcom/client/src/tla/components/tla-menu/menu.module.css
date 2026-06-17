@@ -255,11 +255,6 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	cursor: pointer;
 	pointer-events: all;
 }
-.menuSwitchContainer.disabled input[type='checkbox'] {
-	pointer-events: none;
-	cursor: default;
-}
-
 .menuSwitch {
 	--switch-h: 20px;
 	--switch-w: calc(var(--switch-h) * 1.618);
@@ -309,11 +304,11 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 }
 
 @media (hover: hover) {
-	.menuSwitchContainer:not(.disabled):hover > .menuSwitch[data-checked='false'] {
+	.menuSwitchContainer:hover > .menuSwitch[data-checked='false'] {
 		background-color: var(--tla-color-inactive-hover);
 	}
 
-	.menuSwitchContainer:not(.disabled):hover > .menuSwitch[data-checked='true'] {
+	.menuSwitchContainer:hover > .menuSwitch[data-checked='true'] {
 		background-color: var(--tla-color-primary-hover);
 	}
 }

@@ -39,7 +39,6 @@ const messages = defineMessages({
 	owner: { defaultMessage: 'Owner' },
 	member: { defaultMessage: 'Member' },
 	you: { defaultMessage: 'you' },
-	dangerZone: { defaultMessage: 'Danger zone' },
 	leaveWorkspace: { defaultMessage: 'Leave workspace…' },
 	deleteWorkspaceMsg: { defaultMessage: 'Delete workspace…' },
 	save: { defaultMessage: 'Save' },
@@ -393,9 +392,6 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						{/* Danger Zone */}
 						<hr className={styles.divider} />
 						<div>
-							<label className={styles.sectionLabel}>
-								<F {...messages.dangerZone} />
-							</label>
 							<div className={styles.dangerZoneActions}>
 								{canLeave && (
 									<button className={styles.inlineButton} onClick={openLeaveConfirmDialog}>

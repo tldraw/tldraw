@@ -48,7 +48,7 @@
 
 /* Cta button */
 .authCtaButton {
-	height: 40px;
+	height: 36px;
 	width: 100%;
 	font-size: 12px;
 	font-weight: 500;
@@ -106,7 +106,7 @@
 	border: 1px solid var(--tl-color-muted-2);
 	border-radius: var(--tl-radius-2);
 	font-size: 12px;
-	height: 40px;
+	height: 36px;
 	color: var(--tl-color-text-0);
 }
 

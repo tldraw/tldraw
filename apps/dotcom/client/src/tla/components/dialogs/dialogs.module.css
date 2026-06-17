@@ -175,11 +175,19 @@
 	padding: 0px;
 }
 
+.dialogFieldLabelRow {
+	height: 40px;
+	display: flex;
+	align-items: center;
+}
+
 .dialogInput {
+	height: 36px;
 	border: 1px solid var(--tla-color-border);
 	border-radius: var(--tl-radius-2);
 	background-color: var(--tl-color-muted-0);
 	padding: 0px var(--tl-space-3);
+	margin: 2px 0px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
