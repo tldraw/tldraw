@@ -940,8 +940,11 @@
 }
 
 .sidebarFileListItemRenameInput {
-	height: 36px;
-	align-self: flex-start;
+	/* Size by the line box and let the 36px wrapper center it, the same way the
+	   file label is centered in its row. Giving the input an explicit 36px
+	   height makes it center its text internally, which rounds ~1px lower than
+	   the label and shifts the name down when entering rename mode. */
+	height: auto;
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
