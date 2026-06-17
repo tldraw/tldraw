@@ -98,7 +98,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	// Leaving is allowed for everyone except the last owner — a workspace invariant
 	// (it must always keep at least one owner), not a capability.
 	const canLeave = role !== 'owner' || ownersCount > 1
-	const canEditMembers = can(role, 'editMembers')
+	const canEditMembers = can(role, 'manageWorkspace')
 	const roleLabels: Record<Role, string> = { owner: ownerMsg, member: memberMsg }
 	// Owners sort above members; within a role the current user is pinned to the top.
 	const roleOrder: Record<Role, number> = { owner: 0, member: 1 }
@@ -239,7 +239,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					<TldrawUiInput
 						className={styles.dialogInput}
 						defaultValue={workspace.name}
-						disabled={!can(role, 'editWorkspace')}
+						disabled={!can(role, 'manageWorkspace')}
 						autoSelect
 						onValueChange={(value) => {
 							const name = value.trim()
@@ -401,7 +401,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 										<F {...messages.leaveWorkspace} />
 									</button>
 								)}
-								{can(role, 'deleteWorkspace') && (
+								{can(role, 'manageWorkspace') && (
 									<button className={styles.inlineButton} onClick={openDeleteConfirmDialog}>
 										<F {...messages.deleteWorkspaceMsg} />
 									</button>

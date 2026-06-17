@@ -1154,7 +1154,23 @@ describe('regenerateWorkspaceInviteSecret', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
 
-	it('member can regenerate invite secret', async () => {
+	it('owner can regenerate invite secret', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId, inviteSecret: 'old_secret_1234567' })],
+			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await m.regenerateWorkspaceInviteSecret(tx, { id: groupId })
+		// inviteSecret should have changed
+		expect(s.group[0]?.inviteSecret).not.toBe('old_secret_1234567')
+	})
+
+	it('member cannot regenerate invite secret', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -1165,9 +1181,7 @@ describe('regenerateWorkspaceInviteSecret', () => {
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
-		await m.regenerateWorkspaceInviteSecret(tx, { id: groupId })
-		// inviteSecret should have changed
-		expect(s.group[0]?.inviteSecret).not.toBe('old_secret_1234567')
+		await expectForbidden(() => m.regenerateWorkspaceInviteSecret(tx, { id: groupId }))
 	})
 
 	it('non-member cannot regenerate invite secret', async () => {
