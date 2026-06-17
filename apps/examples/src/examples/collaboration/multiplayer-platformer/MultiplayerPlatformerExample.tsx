@@ -157,8 +157,8 @@ function PlatformerEngine() {
 			e.stopPropagation()
 
 			if (JUMP_KEYS.has(key)) {
-				// Edge-triggered: one key press is one jump, so holding the key
-				// doesn't auto-bounce when you land.
+				// One press, one jump (ignore auto-repeat) — it fires next tick if we're
+				// on the ground, otherwise it's ignored.
 				if (!e.repeat) jumpRequested.current = true
 			} else {
 				pressed.current.add(key)
@@ -219,16 +219,19 @@ function PlatformerEngine() {
 			const input = { left, right, jump: jumpRequested.current }
 			jumpRequested.current = false
 
-			const result = stepPlayer(
-				{ x: me.x, y: me.y, w: me.props.w, h: me.props.h },
-				motion.current,
-				input,
-				colliders,
-				dt
-			)
+			// The player is its own rotated outline, so its hitbox matches what you
+			// see even after you spin the character around.
+			const playerTransform = editor.getShapePageTransform(me)
+			const playerVertices = editor.getShapeGeometry(me).vertices.map((v) => {
+				const page = playerTransform.applyToPoint(v)
+				return { x: page.x, y: page.y }
+			})
+
+			const result = stepPlayer(playerVertices, motion.current, input, colliders, dt)
 			motion.current = { vx: result.vx, vy: result.vy, grounded: result.grounded }
 
-			let { x, y } = result.box
+			let x = me.x + result.dx
+			let y = me.y + result.dy
 			if (y > VOID_Y) {
 				x = SPAWN.x
 				y = SPAWN.y
@@ -376,8 +379,10 @@ resizing, or rotating our own player we pause physics so the interaction wins.
 Each collider is a shape's real outline — its geometry vertices mapped into page
 space via the shape's transform — not its bounding box. So a rotated rectangle
 collides as a rotated rectangle, and the player can land on a tilted shape and
-slide down it. We skip open shapes (lines, arrows) since they have no interior to
-stand on. Collision is solved with SAT in `physics.ts`: exact for convex shapes
+slide down it. The player is passed through the same path (its own rotated
+outline), so its hitbox matches what you see even after you rotate the character.
+We skip open shapes (lines, arrows) since they have no interior to stand on.
+Collision is solved with SAT in `physics.ts`: exact for convex shapes
 (rectangles, triangles), approximate for the many-sided polygons used for
 ellipses, and rough for concave shapes.
 
