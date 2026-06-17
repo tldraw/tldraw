@@ -86,6 +86,9 @@ export function TlaSignInDialog({
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.authDialogBody}>
 				<div className={styles.authBody}>{innerContent}</div>
+
+				{/* Clerk's CAPTCHA widget */}
+				<div id="clerk-captcha" className={styles.clerkCaptcha} />
 			</TldrawUiDialogBody>
 		</div>
 	)
