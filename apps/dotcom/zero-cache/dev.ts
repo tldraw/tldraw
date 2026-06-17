@@ -2,7 +2,12 @@
 import { ChildProcess, spawn, spawnSync } from 'child_process'
 import dotenv from 'dotenv'
 import pg from 'pg'
-import { DOTCOM_DEV_PORTS, DOTCOM_DEV_READINESS_TIMEOUT_MS, getDotcomDevEnv } from './dev-env'
+import {
+	assertDockerDaemonRunning,
+	DOTCOM_DEV_PORTS,
+	DOTCOM_DEV_READINESS_TIMEOUT_MS,
+	getDotcomDevEnv,
+} from './dev-env'
 
 const env = getDotcomDevEnv()
 const dotEnv = dotenv.config({ path: env.dockerEnvFile }).parsed ?? {}
@@ -259,6 +264,10 @@ async function waitForHttpOk(url: string, label: string) {
 }
 
 async function main() {
+	// The whole stack runs in Docker. Fail fast with a clear message if the daemon is down rather
+	// than letting `docker compose up` error cryptically and the client poll readiness for minutes.
+	assertDockerDaemonRunning('the dotcom dev stack')
+
 	console.log(`Docker compose project: ${env.composeProjectName}`)
 	console.log(`Postgres volume: ${env.postgresVolumeName}`)
 	console.log(`Zero replica: ${env.zeroReplicaFile}`)

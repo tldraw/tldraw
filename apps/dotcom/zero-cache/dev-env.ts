@@ -1,3 +1,4 @@
+import { spawnSync } from 'child_process'
 import { dirname, join, resolve } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -106,6 +107,47 @@ export function buildDotcomDevEnv({
 
 export function getDotcomDevEnv() {
 	return buildDotcomDevEnv()
+}
+
+/**
+ * Check whether the Docker daemon is reachable. The dotcom dev stack (Postgres, PgBouncer, Zero)
+ * runs in Docker, so with no daemon `docker compose up` never starts and the dev/e2e processes
+ * otherwise sit polling "Waiting for migrations..." until they time out minutes later. Probing here
+ * lets callers fail fast with an actionable message instead. Returns `{ ok: true }` when the daemon
+ * answers, or `{ ok: false, message }` describing why it could not be reached.
+ */
+export function checkDockerDaemon(): { ok: boolean; message?: string } {
+	const result = spawnSync('docker', ['info'], { stdio: 'ignore' })
+	if (result.error) {
+		const notFound = (result.error as NodeJS.ErrnoException).code === 'ENOENT'
+		return {
+			ok: false,
+			message: notFound
+				? 'Docker CLI not found. Install Docker Desktop and make sure `docker` is on your PATH.'
+				: `Could not run Docker: ${result.error.message}`,
+		}
+	}
+	if (result.status !== 0) {
+		return {
+			ok: false,
+			message:
+				'Docker daemon is not running. Start Docker Desktop (or your Docker daemon) and try again.',
+		}
+	}
+	return { ok: true }
+}
+
+/**
+ * Exit immediately with a clear message when Docker is unavailable. Call this before any work that
+ * needs the Docker-based dotcom dev stack, so a missing daemon fails fast instead of hanging on
+ * readiness polling. `context` names the thing that needs Docker, for the error message.
+ */
+export function assertDockerDaemonRunning(context: string) {
+	const result = checkDockerDaemon()
+	if (result.ok) return
+	// eslint-disable-next-line no-console
+	console.error(`\nCannot start ${context}: ${result.message}\n`)
+	process.exit(1)
 }
 
 export function getDotcomDevCleanTargets(env: DotcomDevEnv): DotcomDevCleanTargets {

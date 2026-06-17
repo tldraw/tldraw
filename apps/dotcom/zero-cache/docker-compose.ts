@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import { spawn } from 'child_process'
-import { getDotcomDevEnv } from './dev-env'
+import { assertDockerDaemonRunning, getDotcomDevEnv } from './dev-env'
+
+assertDockerDaemonRunning('docker compose')
 
 const env = getDotcomDevEnv()
 const composeCommand = process.argv[2] ?? 'up'

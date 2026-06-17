@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import {
+	assertDockerDaemonRunning,
 	DOTCOM_DEV_MIGRATIONS_READY_TIMEOUT_MS,
 	DOTCOM_DEV_PORTS,
 	DOTCOM_DEV_READINESS_TIMEOUT_MS,
@@ -42,6 +43,10 @@ async function waitForResponse({
 }
 
 async function main() {
+	// The dev stack we are waiting on lives in Docker. Without a daemon it never comes up, so bail
+	// now instead of polling for minutes.
+	assertDockerDaemonRunning('the dotcom dev stack')
+
 	await waitForResponse({
 		url: `http://localhost:${DOTCOM_DEV_PORTS.migrations}`,
 		label: 'migrations',
