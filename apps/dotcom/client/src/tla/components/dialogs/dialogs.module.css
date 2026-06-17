@@ -269,17 +269,18 @@
 }
 
 /* Tab pages sit below the tab bar, which already provides the horizontal rule.
-   The page sizes to its content (so neither tab leaves an empty gap) up to a max
-   height, past which the members list scrolls. The dialog is pinned in place on open
-   (see WorkspaceSettingsDialog) so this height variation doesn't re-center it. The
-   scroll container clips both axes (CSS forces overflow-x to clip when overflow-y is
-   auto), so bleed it 12px past the content on each side — matching the tab strip — and
-   pad it back, giving row hover highlights and the member role select room to render
-   without clipping their corners. */
+   The page sizes to its content (so neither tab leaves an empty gap), growing until the
+   dialog reaches its max-height (see WorkspaceSettingsDialog: 20vh top anchor + 70vh max),
+   past which the members list scrolls while the name/invite/tabs stay put. The 70vh − 280px
+   bound matches the dialog's max-height minus the fixed content above this page, so the
+   list fills exactly the available space. The scroll container clips both axes (CSS forces
+   overflow-x to clip when overflow-y is auto), so bleed it 12px past the content on each
+   side — matching the tab strip — and pad it back, giving row hover highlights and the
+   member role select room to render without clipping their corners. */
 .tabPage {
 	padding: 16px 12px 0;
 	margin: 0 -12px;
-	max-height: 320px;
+	max-height: calc(70vh - 280px);
 	overflow-y: auto;
 }
 

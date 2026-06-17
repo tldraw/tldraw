@@ -96,17 +96,21 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const navigate = useNavigate()
 
 	// The overlay grid-centers the dialog, so it re-centers (and visibly jumps) whenever its
-	// height changes between tabs. Pin it once — to the position it opened at — and let it
-	// grow/shrink in place from there (up to the tab page's max height) instead.
+	// height changes between tabs. Anchor it near the top instead (Raycast-style): a stable
+	// position that grows/shrinks downward as content changes. The max-height keeps a margin
+	// below it so it never reaches the bottom of the viewport — past that the members list
+	// scrolls (see .tabPage) while the name/invite/tabs stay put. vh keeps these correct
+	// across window resizes.
 	const anchorRef = useRef<HTMLDivElement>(null)
-	const hasPinnedRef = useRef(false)
+	const hasAnchoredRef = useRef(false)
 	useLayoutEffect(() => {
-		if (hasPinnedRef.current) return
+		if (hasAnchoredRef.current) return
 		const content = anchorRef.current?.closest('.tlui-dialog__content')
 		if (!(content instanceof HTMLElement)) return
-		hasPinnedRef.current = true
+		hasAnchoredRef.current = true
 		content.style.alignSelf = 'start'
-		content.style.marginTop = `${content.getBoundingClientRect().top}px`
+		content.style.marginTop = '20vh'
+		content.style.maxHeight = '70vh'
 	})
 
 	if (!workspaceMembership) return null
