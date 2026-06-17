@@ -1,6 +1,6 @@
 import { Role, ZErrorCode, can } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiButton,
@@ -94,6 +94,20 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	)
 	const currentFileId = useCurrentFileId()
 	const navigate = useNavigate()
+
+	// The overlay grid-centers the dialog, so it re-centers (and visibly jumps) whenever its
+	// height changes between tabs. Pin it once — to the position it opened at — and let it
+	// grow/shrink in place from there (up to the tab page's max height) instead.
+	const anchorRef = useRef<HTMLDivElement>(null)
+	const hasPinnedRef = useRef(false)
+	useLayoutEffect(() => {
+		if (hasPinnedRef.current) return
+		const content = anchorRef.current?.closest('.tlui-dialog__content')
+		if (!(content instanceof HTMLElement)) return
+		hasPinnedRef.current = true
+		content.style.alignSelf = 'start'
+		content.style.marginTop = `${content.getBoundingClientRect().top}px`
+	})
 
 	if (!workspaceMembership) return null
 	// The home workspace has no settings to manage.
@@ -255,6 +269,8 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 
 	return (
 		<_Tooltip.Provider>
+			{/* Marker used to find the dialog content element and pin its position (see above). */}
+			<div ref={anchorRef} hidden />
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
 					<F {...messages.title} />
