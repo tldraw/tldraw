@@ -245,6 +245,12 @@
       "value": "Editor"
     }
   ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Manage"
+    }
+  ],
   "375396d6e5": [
     {
       "type": 0,
@@ -619,12 +625,6 @@
     {
       "type": 0,
       "value": "Got it"
-    }
-  ],
-  "78faf88f4d": [
-    {
-      "type": 0,
-      "value": "Enable invite link"
     }
   ],
   "797799f35e": [
@@ -1011,6 +1011,12 @@
     {
       "type": 0,
       "value": "Email address"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Enable invites"
     }
   ],
   "b6d4223e60": [

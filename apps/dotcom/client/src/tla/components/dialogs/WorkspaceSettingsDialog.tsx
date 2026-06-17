@@ -1,6 +1,6 @@
 import { MAX_WORKSPACE_NAME_LENGTH, Role, ZErrorCode, can } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiDialogBody,
@@ -45,11 +45,31 @@ interface WorkspaceSettingsDialogProps {
 	onClose(): void
 }
 
+// Returns a callback ref for a scroll container that shows its scrollbar only when the
+// content actually overflows. The container stays `overflow: hidden` (see .tabPage) and
+// gets the `.scrollable` class — flipping overflow to auto — once measurement shows the
+// content is taller than the (max-height-capped) container. A ResizeObserver on the
+// container and its content re-checks as members are added/removed or the window resizes.
+function useScrollbarWhenScrollable() {
+	return useCallback((el: HTMLDivElement | null) => {
+		if (!el) return
+		const update = () =>
+			el.classList.toggle(styles.scrollable, el.scrollHeight > el.clientHeight + 1)
+		update()
+		const observer = new ResizeObserver(update)
+		observer.observe(el)
+		for (const child of el.children) observer.observe(child)
+		return () => observer.disconnect()
+	}, [])
+}
+
 export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSettingsDialogProps) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const [activeTab, setActiveTab] = useState('members')
 	const [copiedInviteLink, setCopiedInviteLink] = useState(false)
+
+	const scrollableRef = useScrollbarWhenScrollable()
 
 	const namePlaceholderMsg = useMsg(messages.namePlaceholder)
 	const ownerMsg = useMsg(messages.owner)
@@ -339,7 +359,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 							</div>
 
 							<TlaMenuTabsPage id="members">
-								<div className={styles.tabPage}>
+								<div className={styles.tabPage} ref={scrollableRef}>
 									<div className={styles.membersList}>
 										{members.map((member) => {
 											const isSelf = member.userId === app.getUser().id
@@ -424,13 +444,13 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 							</TlaMenuTabsPage>
 
 							<TlaMenuTabsPage id="settings">
-								<div className={styles.tabPage}>
+								<div className={styles.tabPage} ref={scrollableRef}>
 									<div className={styles.settingsPage}>
 										{canManageWorkspace && (
 											<>
 												<TlaMenuControl>
 													<TlaMenuControlLabel htmlFor="workspace-invite-enabled-switch">
-														<F defaultMessage="Enable invite link" />
+														<F defaultMessage="Enable invites" />
 													</TlaMenuControlLabel>
 													<TlaMenuSwitch
 														id="workspace-invite-enabled-switch"
