@@ -14,9 +14,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
-import { useDragTracking } from '../../../hooks/useDragTracking'
 import { useHasFlag } from '../../../hooks/useHasFlag'
-import { useIsDragging } from '../../../hooks/useIsDragging'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -173,8 +171,6 @@ export function TlaSidebarFileLinkInner({
 		editor,
 	])
 
-	const { startDragTracking } = useDragTracking()
-
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (!isActive) return
 		if (e.key === 'Enter') {
@@ -200,7 +196,6 @@ export function TlaSidebarFileLinkInner({
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
 	const hasAdminRights = useHasFileAdminRights(fileId)
 
-	const isDragging = useIsDragging(fileId)
 	// disable dragging on mobile
 	const isCoarsePointer = getIsCoarsePointer()
 
@@ -232,7 +227,6 @@ export function TlaSidebarFileLinkInner({
 			data-is-own-file={hasAdminRights}
 			onDoubleClick={hasAdminRights ? handleRenameAction : undefined}
 			data-drop-target-id={`file:${fileId}`}
-			data-is-dragging={isDragging}
 			data-is-pinned={isPinned}
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
@@ -241,16 +235,13 @@ export function TlaSidebarFileLinkInner({
 			onDragStart={
 				isDragEnabled
 					? (event) => {
-							// Set native drag data for drag-to-new-tab functionality
+							// Dragging a file just drags its URL, like dragging a link. This
+							// lets the user drag a file out to a new tab or another app; it no
+							// longer reorders or unpins files (that happens via the file menu).
 							const fileUrl = routes.tlaFile(fileId, { asUrl: true })
-							event.dataTransfer.effectAllowed = 'move'
+							event.dataTransfer.effectAllowed = 'copyLink'
 							event.dataTransfer.setData('text/uri-list', fileUrl)
-							startDragTracking({
-								workspaceId,
-								fileId,
-								clientX: event.clientX,
-								clientY: event.clientY,
-							})
+							event.dataTransfer.setData('text/plain', fileUrl)
 						}
 					: undefined
 			}

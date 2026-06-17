@@ -1,3 +1,4 @@
+import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { useEffect, useRef, useState } from 'react'
 import {
 	TldrawUiButton,
@@ -71,6 +72,7 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 						onComplete={handleCreate}
 						onCancel={onClose}
 						placeholder={placeholderMsg}
+						maxLength={MAX_WORKSPACE_NAME_LENGTH}
 						autoFocus
 					/>
 				</div>

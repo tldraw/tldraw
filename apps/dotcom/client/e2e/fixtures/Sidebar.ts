@@ -520,36 +520,6 @@ export class Sidebar {
 	}
 
 	@step
-	async dragFileToPinnedSection(fileName: string) {
-		const fileElement = this.getFileByName(fileName)
-		const fileBox = await fileElement.boundingBox()
-		const topFile = this.sidebar.locator('[data-drop-target-id^="file:"]').first()
-		const topBox = await topFile.boundingBox()
-
-		if (!fileBox || !topBox) throw new Error('Could not get bounding boxes')
-
-		// Move to file
-		await this.page.mouse.move(fileBox.x + fileBox.width / 2, fileBox.y + fileBox.height / 2)
-
-		// Press and hold
-		await this.page.mouse.down()
-
-		// Small delay to let browser detect drag intent
-		await this.page.waitForTimeout(100)
-
-		// Drop just above the top of the file list, inside the pin zone
-		await this.page.mouse.move(topBox.x + topBox.width / 2, topBox.y - 5, { steps: 10 })
-
-		// Small delay before release
-		await this.page.waitForTimeout(50)
-
-		// Release
-		await this.page.mouse.up()
-
-		await this.mutationResolution()
-	}
-
-	@step
 	async dragFileToUnpinnedSection(fileName: string) {
 		const fileElement = this.getFileByName(fileName)
 		const fileBox = await fileElement.boundingBox()

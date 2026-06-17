@@ -1,15 +1,17 @@
 import { createBuilder, type CustomMutatorDefs, type Transaction } from '@rocicorp/zero'
 import {
 	assert,
-	getIndexAbove,
 	getIndexBelow,
-	getIndexBetween,
 	IndexKey,
 	sortByIndex,
 	sortByMaybeIndex,
 	uniqueId,
 } from '@tldraw/utils'
-import { MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_WORKSPACES } from './constants'
+import {
+	MAX_NUMBER_OF_FILES,
+	MAX_NUMBER_OF_WORKSPACES,
+	MAX_WORKSPACE_NAME_LENGTH,
+} from './constants'
 import { Role, can, isRole } from './roles'
 import { FILE_PREFIX } from './routes'
 import {
@@ -551,6 +553,8 @@ export function createMutators(userId: string) {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assertValidId(id)
 
+			const clampedName = name.trim().slice(0, MAX_WORKSPACE_NAME_LENGTH)
+
 			// Enforce the workspace limit before creating anything.
 			const existingWorkspaces = await tx.run(zql.group_user.where('userId', '=', userId))
 			assert(
@@ -560,7 +564,7 @@ export function createMutators(userId: string) {
 
 			await tx.mutate.group.insert({
 				id,
-				name,
+				name: clampedName,
 				inviteSecret: tx.location === 'server' ? uniqueId() : null,
 				isDeleted: false,
 				createdAt: Date.now(),
@@ -601,7 +605,10 @@ export function createMutators(userId: string) {
 			const role = await getRole(tx, userId, id)
 			assert(can(role, 'editWorkspace'), ZErrorCode.forbidden)
 
-			await tx.mutate.group.update({ id, name: name.trim() })
+			await tx.mutate.group.update({
+				id,
+				name: name.trim().slice(0, MAX_WORKSPACE_NAME_LENGTH),
+			})
 		},
 		regenerateWorkspaceInviteSecret: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
@@ -765,102 +772,6 @@ export function createMutators(userId: string) {
 				index: null,
 			})
 		},
-		handleFileDragOperation: async (
-			tx: Tx,
-			{
-				fileId,
-				workspaceId,
-				operation,
-			}: { fileId: string; workspaceId: string; operation: DragFileOperation }
-		) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(fileId, ZErrorCode.bad_request)
-			assert(workspaceId, ZErrorCode.bad_request)
-			const file = await tx.run(zql.file.where('id', '=', fileId).one())
-			if (!file) return
-			await assertUserCanAccessFile(tx, userId, file)
-			const role = await getRole(tx, userId, workspaceId)
-			assert(can(role, 'addFiles'), ZErrorCode.forbidden)
-			const finalWorkspaceId = operation.move?.targetId ?? workspaceId
-			if (finalWorkspaceId !== workspaceId) {
-				const finalRole = await getRole(tx, userId, finalWorkspaceId)
-				assert(can(finalRole, 'addFiles'), ZErrorCode.forbidden)
-			}
-			const isFileLink = file.owningGroupId !== workspaceId
-
-			// Execute move operation first (if any)
-			if (finalWorkspaceId !== workspaceId) {
-				// Move to specific group
-				if (isFileLink) {
-					await tx.mutate.group_file.delete({ fileId, groupId: workspaceId })
-					const existing = await tx.run(
-						zql.group_file
-							.where('fileId', '=', fileId)
-							.where('groupId', '=', finalWorkspaceId)
-							.one()
-					)
-					if (!existing) {
-						await tx.mutate.group_file.insert({
-							fileId,
-							groupId: finalWorkspaceId,
-							createdAt: Date.now(),
-							updatedAt: Date.now(),
-						})
-					}
-				} else {
-					await mutators.moveFileToWorkspace(tx, { fileId, workspaceId: finalWorkspaceId })
-				}
-			}
-
-			if (operation.reorder && operation.reorder.insertBeforeId !== fileId) {
-				const { insertBeforeId } = operation.reorder
-				let nextIndex = 'a0' as IndexKey
-				if (insertBeforeId === null) {
-					// insert at end
-					const lastPinnedFile = (
-						await tx.run(zql.group_file.where('groupId', '=', finalWorkspaceId))
-					)
-						.filter((f) => f.index !== null)
-						.sort(sortByMaybeIndex)
-						.pop()
-					if (lastPinnedFile) {
-						nextIndex = getIndexAbove(lastPinnedFile.index)
-					}
-				} else {
-					// insert before specific file
-					const files = (await tx.run(zql.group_file.where('groupId', '=', finalWorkspaceId)))
-						.filter((f) => f.index !== null)
-						.sort(sortByMaybeIndex)
-					const targetIdx = files.findIndex((f) => f.fileId === insertBeforeId)
-					const afterIndex = files[targetIdx]?.index
-					const beforeIndex = files[targetIdx - 1]?.index
-
-					nextIndex = getIndexBetween(beforeIndex, afterIndex)
-				}
-				await tx.mutate.group_file.update({
-					fileId,
-					groupId: finalWorkspaceId,
-					index: nextIndex,
-				})
-			} else if (!operation.reorder) {
-				await tx.mutate.group_file.update({
-					fileId,
-					groupId: finalWorkspaceId,
-					index: null,
-					updatedAt: Date.now(),
-				})
-			}
-		},
 	} as const satisfies CustomMutatorDefs
 	return mutators
-}
-
-export interface DragReorderOperation {
-	insertBeforeId: string | null // file ID to insert before, null for end
-	indicatorY: number
-}
-
-export interface DragFileOperation {
-	move?: { targetId: string }
-	reorder?: DragReorderOperation
 }
