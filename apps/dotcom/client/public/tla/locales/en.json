@@ -8,6 +8,9 @@
   "043973ec1f": {
     "translation": "Still having trouble? {GetHelpLink}"
   },
+  "04a2dd56d6": {
+    "translation": "Invite teammates"
+  },
   "05f43078e9": {
     "translation": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
   },
@@ -50,9 +53,6 @@
   "12a6766ba1": {
     "translation": "Unpin file"
   },
-  "12c8a9838c": {
-    "translation": "Try the tldraw SDK"
-  },
   "13ddd375ad": {
     "translation": "Export as"
   },
@@ -62,17 +62,20 @@
   "181b90f889": {
     "translation": "Create file"
   },
-  "1d2591253e": {
-    "translation": "Workspace settings"
-  },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
   },
   "1dd1c5fb7f": {
     "translation": "Today"
   },
+  "1ffd709937": {
+    "translation": "A workspace must keep at least one owner. Make someone else an owner first."
+  },
   "21f66c9c00": {
     "translation": "Workspace name"
+  },
+  "23dcace54a": {
+    "translation": "You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
   },
   "250ddea65c": {
     "translation": "About tldraw"
@@ -86,8 +89,14 @@
   "2a37324bb4": {
     "translation": "Search..."
   },
+  "2de510be71": {
+    "translation": "Regenerating replaces the current invite link with a new one. Anyone using the old link will need the new one to join."
+  },
   "2e2b3c700b": {
     "translation": "Include link to current file"
+  },
+  "2e9856a31e": {
+    "translation": "Regenerate invite link"
   },
   "31246941ad": {
     "translation": "You need to sign in to view this file."
@@ -128,9 +137,6 @@
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
   },
-  "44680c1fa7": {
-    "translation": "Leave workspace…"
-  },
   "44db318ee5": {
     "translation": "Get help on Discord"
   },
@@ -164,9 +170,6 @@
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
   },
-  "51317dcad5": {
-    "translation": "This is your private workspace. Create a new workspace to invite teammates."
-  },
   "517bb809d9": {
     "translation": "Page menu"
   },
@@ -182,6 +185,9 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5638176be5": {
+    "translation": "Create a workspace"
+  },
   "5677e381d2": {
     "translation": "We use analytics cookies to make tldraw better."
   },
@@ -196,9 +202,6 @@
   },
   "5bff3c9c88": {
     "translation": "My workspace"
-  },
-  "5c6fe42bc2": {
-    "translation": "Revoke this link and create a new one."
   },
   "5d04a002ea": {
     "translation": "Unable to connect"
@@ -290,6 +293,9 @@
   "78e9815992": {
     "translation": "Got it"
   },
+  "78faf88f4d": {
+    "translation": "Enable invite link"
+  },
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
   },
@@ -298,6 +304,9 @@
   },
   "7b1329f5ca": {
     "translation": "User manual"
+  },
+  "7bcdfeab70": {
+    "translation": "You have been invited to join:"
   },
   "7be10fc592": {
     "translation": "Restore version"
@@ -362,9 +371,6 @@
   "95aacd4d4a": {
     "translation": "Sign in with Google"
   },
-  "95b56f4cd6": {
-    "translation": "Delete workspace…"
-  },
   "95d2109dc8": {
     "translation": "Build with the tldraw SDK"
   },
@@ -419,6 +425,9 @@
   "a4d3b161ce": {
     "translation": "Submit"
   },
+  "a52945dbe2": {
+    "translation": "Leave"
+  },
   "a6cc403d56": {
     "translation": "Anyone with the link"
   },
@@ -427,9 +436,6 @@
   },
   "a8873770ab": {
     "translation": "File is getting large"
-  },
-  "a8c9ad7ea5": {
-    "translation": "You have been invited to join <strong>{workspaceName}</strong>"
   },
   "a9ded1e5ce": {
     "translation": "Background"
@@ -447,6 +453,9 @@
   "b028909917": {
     "translation": "Guest user"
   },
+  "b2326c3a34": {
+    "translation": "Regenerate"
+  },
   "b2c3c2e30c": {
     "translation": "File is full"
   },
@@ -462,14 +471,23 @@
   "b758336699": {
     "translation": "Copy link"
   },
+  "b9a68fbd56": {
+    "translation": "Members ({count})"
+  },
   "ba0318cb81": {
     "translation": "Sign in to share"
+  },
+  "bbaaf8b6bf": {
+    "translation": "Invites are disabled"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}"
   },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
+  },
+  "c17466812d": {
+    "translation": "Manage workspace"
   },
   "c2276c9127": {
     "translation": "Learn more about sharing."
@@ -497,9 +515,6 @@
   },
   "c8a59e7135": {
     "translation": "Dismiss"
-  },
-  "c9cc8cce24": {
-    "translation": "Save"
   },
   "cceaefbc20": {
     "translation": "Share this file"
@@ -549,9 +564,6 @@
   "e0aa021e21": {
     "translation": "OK"
   },
-  "e0c88179b3": {
-    "translation": "Invite members"
-  },
   "e2198d6228": {
     "translation": "Copy invite link"
   },
@@ -566,12 +578,6 @@
   },
   "e81c4e4f2b": {
     "translation": "or"
-  },
-  "e9e0f16850": {
-    "translation": "You have been invited to join workspace:"
-  },
-  "ea0626ac5a": {
-    "translation": "Danger zone"
   },
   "ea4788705e": {
     "translation": "Cancel"
@@ -596,9 +602,6 @@
   },
   "ede55d955f": {
     "translation": "Read our <a>cookie policy</a> to learn more."
-  },
-  "ef53538ae4": {
-    "translation": "Members"
   },
   "ef7de3f485": {
     "translation": "selected"

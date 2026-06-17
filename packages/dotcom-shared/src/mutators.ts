@@ -295,6 +295,7 @@ export function createMutators(userId: string) {
 				updatedAt: time,
 				isDeleted: false,
 				inviteSecret: null,
+				inviteLinkEnabled: true,
 			})
 			await tx.mutate.group_user.insert({
 				userId,
@@ -567,6 +568,7 @@ export function createMutators(userId: string) {
 				id,
 				name: clampedName,
 				inviteSecret: tx.location === 'server' ? uniqueId() : null,
+				inviteLinkEnabled: true,
 				isDeleted: false,
 				createdAt: Date.now(),
 				updatedAt: Date.now(),
@@ -604,7 +606,7 @@ export function createMutators(userId: string) {
 			// The home workspace can be renamed (unlike other home-workspace actions),
 			// so it's intentionally not guarded by assertNotHomeWorkspace here.
 			const role = await getRole(tx, userId, id)
-			assert(can(role, 'editWorkspace'), ZErrorCode.forbidden)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
 
 			await tx.mutate.group.update({
 				id,
@@ -617,11 +619,26 @@ export function createMutators(userId: string) {
 			await assertNotHomeWorkspace(tx, id)
 
 			const role = await getRole(tx, userId, id)
-			assert(can(role, 'manageInvites'), ZErrorCode.forbidden)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
 
 			if (tx.location === 'server') {
 				await tx.mutate.group.update({ id, inviteSecret: uniqueId() })
 			}
+		},
+		setWorkspaceInviteLinkEnabled: async (
+			tx: Tx,
+			{ id, enabled }: { id: string; enabled: boolean }
+		) => {
+			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(id, ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, id)
+
+			const role = await getRole(tx, userId, id)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
+
+			// Flip the flag only; inviteSecret is preserved so re-enabling restores the
+			// same link.
+			await tx.mutate.group.update({ id, inviteLinkEnabled: enabled })
 		},
 		setWorkspaceMemberRole: async (
 			tx: Tx,
@@ -638,7 +655,7 @@ export function createMutators(userId: string) {
 			await assertNotHomeWorkspace(tx, workspaceId)
 
 			const role = await getRole(tx, userId, workspaceId)
-			assert(can(role, 'editMembers'), ZErrorCode.forbidden)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
 
 			// Target must be a member
 			const targetMembership = await tx.run(
@@ -672,7 +689,7 @@ export function createMutators(userId: string) {
 			assert(targetUserId, ZErrorCode.bad_request)
 
 			const role = await getRole(tx, userId, workspaceId)
-			assert(can(role, 'editMembers'), ZErrorCode.forbidden)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
 
 			// Target must be a member
 			const targetMembership = await tx.run(
@@ -709,7 +726,7 @@ export function createMutators(userId: string) {
 			assert(id, ZErrorCode.bad_request)
 			await assertNotHomeWorkspace(tx, id)
 			const role = await getRole(tx, userId, id)
-			assert(can(role, 'deleteWorkspace'), ZErrorCode.forbidden)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
 
 			// Delete all workspace files
 			const workspaceFileRows = await tx.run(zql.group_file.where('groupId', '=', id))

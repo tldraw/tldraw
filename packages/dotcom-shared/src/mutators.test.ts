@@ -96,6 +96,7 @@ function makeGroup(overrides: Partial<TlaGroup> & { id: string }): TlaGroup {
 	return {
 		name: 'Test Group',
 		inviteSecret: null,
+		inviteLinkEnabled: true,
 		isDeleted: false,
 		createdAt: 1,
 		updatedAt: 1,
@@ -1102,7 +1103,23 @@ describe('regenerateWorkspaceInviteSecret', () => {
 	const userId = 'user_aaaa11112222bbbb'
 	const groupId = 'group_aaa11112222bbb'
 
-	it('member can regenerate invite secret', async () => {
+	it('owner can regenerate invite secret', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId, inviteSecret: 'old_secret_1234567' })],
+			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await m.regenerateWorkspaceInviteSecret(tx, { id: groupId })
+		// inviteSecret should have changed
+		expect(s.group[0]?.inviteSecret).not.toBe('old_secret_1234567')
+	})
+
+	it('member cannot regenerate invite secret', async () => {
 		const s = {
 			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [],
@@ -1113,9 +1130,7 @@ describe('regenerateWorkspaceInviteSecret', () => {
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
-		await m.regenerateWorkspaceInviteSecret(tx, { id: groupId })
-		// inviteSecret should have changed
-		expect(s.group[0]?.inviteSecret).not.toBe('old_secret_1234567')
+		await expectForbidden(() => m.regenerateWorkspaceInviteSecret(tx, { id: groupId }))
 	})
 
 	it('non-member cannot regenerate invite secret', async () => {
@@ -1132,6 +1147,44 @@ describe('regenerateWorkspaceInviteSecret', () => {
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(nonMemberId)
 		await expectForbidden(() => m.regenerateWorkspaceInviteSecret(tx, { id: groupId }))
+	})
+})
+
+describe('setWorkspaceInviteLinkEnabled', () => {
+	const userId = 'user_aaaa11112222bbbb'
+	const groupId = 'group_aaa11112222bbb'
+
+	it('owner can toggle the invite link', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId, inviteLinkEnabled: true })],
+			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await m.setWorkspaceInviteLinkEnabled(tx, { id: groupId, enabled: false })
+		expect(s.group[0]?.inviteLinkEnabled).toBe(false)
+		await m.setWorkspaceInviteLinkEnabled(tx, { id: groupId, enabled: true })
+		expect(s.group[0]?.inviteLinkEnabled).toBe(true)
+	})
+
+	it('member cannot toggle the invite link', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: groupId, inviteLinkEnabled: true })],
+			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await expectForbidden(() =>
+			m.setWorkspaceInviteLinkEnabled(tx, { id: groupId, enabled: false })
+		)
 	})
 })
 

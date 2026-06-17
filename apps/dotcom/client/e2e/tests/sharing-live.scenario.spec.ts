@@ -213,6 +213,9 @@ test.describe('live sharing scenarios', () => {
 		await member.sidebar.expectFileVisible(fileName)
 
 		await member.sidebar.openWorkspaceSettings(workspaceName)
+		// Delete lives on the Settings tab and only for owners; promoting the member should
+		// surface it there reactively, without a reload.
+		await member.page.getByRole('tab', { name: 'Settings' }).click()
 		const deleteWorkspaceButton = member.page.getByRole('button', { name: /Delete workspace/ })
 		await expect(deleteWorkspaceButton).not.toBeVisible()
 

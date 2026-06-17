@@ -482,26 +482,26 @@ export class Sidebar {
 	async deleteWorkspace(name: string) {
 		await this.openWorkspaceSettings(name)
 
-		// Click the Delete workspace button (exact text as user sees it)
-		await this.page.getByRole('button', { name: 'Delete workspace…' }).click()
+		// Delete lives on the Settings tab of the Manage workspace dialog.
+		await this.page.getByRole('tab', { name: 'Settings' }).click()
+		await this.page.getByRole('button', { name: 'Delete workspace', exact: true }).click()
 
-		// Confirm deletion in the confirmation dialog
-		await this.page.getByRole('button', { name: 'Delete workspace' }).click()
+		// Confirm in the confirmation dialog, whose button is just "Delete".
+		await this.page.getByRole('button', { name: 'Delete', exact: true }).click()
 		await this.mutationResolution()
 	}
 
 	@step
 	async copyWorkspaceInviteLink(name: string): Promise<string> {
-		// The invite link now lives in the workspace settings dialog rather than a
-		// dedicated sidebar action, so open settings and read it from there.
+		// The invite link lives in the Manage workspace dialog and is only exposed via
+		// the Copy button (no visible URL field), so copy it and read it back from the
+		// clipboard. The invite secret can load asynchronously, so poll until valid.
 		await this.openWorkspaceSettings(name)
-		const dialog = this.page.getByRole('dialog', { name: 'Workspace settings' })
-		const inviteInput = dialog.locator('input[readonly]').first()
-		// The invite secret can load asynchronously, so poll until the input holds a valid URL.
+		const dialog = this.page.getByRole('dialog', { name: 'Manage workspace' })
 		let inviteUrl = ''
 		await expect(async () => {
-			inviteUrl = await inviteInput.inputValue()
-			expect(new URL(inviteUrl).pathname).toMatch(/^\/invite\//)
+			await dialog.getByRole('button', { name: 'Copy invite link' }).click()
+			inviteUrl = await this.readClipboardUrl(/^\/invite\//)
 		}).toPass({ timeout: 10000 })
 		await this.page.getByRole('button', { name: 'Close' }).click()
 		return inviteUrl
