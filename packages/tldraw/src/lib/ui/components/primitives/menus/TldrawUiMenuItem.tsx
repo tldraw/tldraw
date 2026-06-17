@@ -325,6 +325,10 @@ function useDraggableEvents(
 		function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
 			if ((e as any).isSpecialRedispatchedEvent) return
 
+			// Disable drag-out-of-toolbar for pen input
+			// Issues #6906 and #7666
+			if (e.pointerType === 'pen') return
+
 			if (state.name === 'pointing') {
 				const distanceSq = Vec.Dist2(state.screenSpaceStart, { x: e.clientX, y: e.clientY })
 				if (
