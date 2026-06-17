@@ -30,7 +30,7 @@
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.14",
 		"@cloudflare/vite-plugin": "^1.29.1",
-		"ai": "^5.0.63",
+		"ai": "^6.0.207",
 		"classnames": "^2.5.1",
 		"itty-router": "^5.0.18",
 		"radix-ui": "^1.4.2",
