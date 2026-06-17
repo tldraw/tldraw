@@ -1,4 +1,4 @@
-import { expect, test } from '../fixtures/scenario-test'
+import { expect, selectTlaMenuOption, test } from '../fixtures/scenario-test'
 
 const ROOT_URL = 'http://localhost:3000'
 
@@ -244,8 +244,7 @@ test.describe('UI scenarios', () => {
 		await expect(memberRoleSelect).toHaveText('Member')
 
 		// Interacting with the portalled role select should not count as a background click.
-		await memberRoleSelect.click()
-		await owner.page.getByRole('option', { name: 'Member' }).click()
+		await selectTlaMenuOption(owner.page, memberRoleSelect, 'Member')
 		await expect(ownerDialog).toBeVisible()
 
 		// Copying and regenerating the invite link update clipboard-visible state.
