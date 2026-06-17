@@ -1,7 +1,24 @@
-import { useEditor, useQuickReactor } from '@tldraw/editor'
+import { Editor, EditorAtom, useEditor, useQuickReactor } from '@tldraw/editor'
 import { useRef, useState } from 'react'
 import { useActions } from '../../context/actions'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
+
+const backToContentSuppressed = new EditorAtom('backToContentSuppressed', () => false)
+
+/**
+ * Hide the "back to content" helper button right away, regardless of where the
+ * camera currently is. This is used when the user has explicitly chosen to
+ * navigate back to the content (e.g. via the "move focus to canvas" button): the
+ * button should disappear on intent rather than waiting for the camera animation
+ * to physically bring a shape back into the viewport. The button falls back to
+ * its normal reactive logic after `durationMs`, by which point the camera has
+ * arrived and the content is visible.
+ * @internal
+ */
+export function suppressBackToContent(editor: Editor, durationMs: number) {
+	backToContentSuppressed.set(editor, true)
+	editor.timers.setTimeout(() => backToContentSuppressed.set(editor, false), durationMs)
+}
 
 export function BackToContent() {
 	const editor = useEditor()
@@ -15,10 +32,12 @@ export function BackToContent() {
 		'toggle showback to content',
 		() => {
 			const showBackToContentPrev = rIsShowing.current
-			const shapeIds = editor.getCurrentPageShapeIds()
 			let showBackToContentNow = false
-			if (shapeIds.size) {
-				showBackToContentNow = shapeIds.size === editor.getNotVisibleShapes().size
+			if (!backToContentSuppressed.get(editor)) {
+				const shapeIds = editor.getCurrentPageShapeIds()
+				if (shapeIds.size) {
+					showBackToContentNow = shapeIds.size === editor.getNotVisibleShapes().size
+				}
 			}
 
 			if (showBackToContentPrev !== showBackToContentNow) {
