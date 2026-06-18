@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
-import { ChildProcess, spawn, spawnSync } from 'child_process'
+import { spawn, spawnSync } from 'child_process'
 import dotenv from 'dotenv'
 import pg from 'pg'
+import { killProcessTree } from '../../../internal/scripts/lib/kill-tree'
 import { DOTCOM_DEV_PORTS, DOTCOM_DEV_READINESS_TIMEOUT_MS, getDotcomDevEnv } from './dev-env'
 
 const env = getDotcomDevEnv()
@@ -13,7 +14,6 @@ const childEnv = {
 	...env.zeroEnv,
 }
 
-const children: ChildProcess[] = []
 let migrationsReady = false
 let shuttingDown = false
 
@@ -30,35 +30,12 @@ function statusFromExit(code: number | null, signal: NodeJS.Signals | null) {
 	return signal ? `signal ${signal}` : `code ${code ?? 1}`
 }
 
-/** Collect every descendant PID of `pid` by walking the process tree with `pgrep -P`. */
-function descendantPids(pid: number): number[] {
-	const result = spawnSync('pgrep', ['-P', String(pid)], { encoding: 'utf8' })
-	const childPids = (result.stdout ?? '')
-		.split('\n')
-		.map((line) => Number(line.trim()))
-		.filter((n) => Number.isInteger(n) && n > 0)
-	return childPids.flatMap((childPid) => [childPid, ...descendantPids(childPid)])
-}
-
 function killChildren() {
-	// Reap the whole descendant tree, not just our direct children. The zero-cache dev server spawns
-	// worker subprocesses (change-streamer, replicator, syncer, ...) in their own process groups, so a
-	// terminal/group signal misses them and they orphan, holding port 4848. Walking by PID crosses
-	// those group boundaries. Collect PIDs before killing so the tree does not reparent out from under
-	// us, then SIGKILL deepest-first.
-	const descendants = descendantPids(process.pid).reverse()
-	for (const pid of descendants) {
-		try {
-			process.kill(pid, 'SIGKILL')
-		} catch {
-			// already gone
-		}
-	}
-	for (const child of [...children].reverse()) {
-		if (!child.killed) {
-			child.kill('SIGKILL')
-		}
-	}
+	// Reap the whole descendant tree, not just our direct children, and do it here on the shutdown
+	// path while the tree is still alive. The zero-cache dev server spawns worker subprocesses
+	// (change-streamer, replicator, syncer, ...) in their own process groups, so a terminal/group
+	// signal misses them and they orphan, holding port 4848.
+	killProcessTree(process.pid)
 }
 
 function composeDown() {
@@ -110,7 +87,6 @@ function spawnManaged(
 		env: childEnv,
 		stdio: 'inherit',
 	})
-	children.push(child)
 
 	child.once('error', (error) => {
 		if (shuttingDown) return
@@ -266,13 +242,11 @@ async function main() {
 	process.on('SIGINT', () => shutdown(0))
 	process.on('SIGTERM', () => shutdown(0))
 	process.on('SIGHUP', () => shutdown(0))
-	// Last-resort sync cleanup if we ever exit through a path that bypassed shutdown(). Keep this light
-	// (no subprocess spawning, which is unreliable from an 'exit' handler): just kill our direct children.
-	process.on('exit', () => {
-		for (const child of children) {
-			if (!child.killed) child.kill('SIGKILL')
-		}
-	})
+	// Backstop if we ever exit through a path that bypassed shutdown(). `killProcessTree` only uses
+	// `spawnSync`, which is synchronous and so runs to completion in an 'exit' handler — unlike the
+	// async `spawn` in composeDown(), which an 'exit' handler would not wait for, so that stays on the
+	// shutdown() path only.
+	process.on('exit', () => killProcessTree(process.pid))
 
 	reconcileDockerStacks()
 
