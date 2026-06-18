@@ -236,7 +236,13 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 				<ConfirmDialog
 					title={<F {...messages.deleteWorkspace} />}
 					description={
-						<F defaultMessage="Are you sure you want to delete this workspace? This action cannot be undone." />
+						<F
+							defaultMessage="Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
+							values={{
+								workspaceName: workspace.name || namePlaceholderMsg,
+								strong: (chunks) => <strong>{chunks}</strong>,
+							}}
+						/>
 					}
 					confirmLabel={<F defaultMessage="Delete" />}
 					cancelLabel={<F {...messages.cancel} />}
