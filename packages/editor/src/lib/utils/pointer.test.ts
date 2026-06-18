@@ -22,18 +22,17 @@ describe('isSecondaryClickEvent', () => {
 })
 
 describe('isDirectDisplayPen', () => {
-	// Implicit capture is applied to the hit `target`, not the `currentTarget` the listener is bound
-	// to, so the capture check must read from `target`.
-	function fakeEvent(pointerType: string, targetHasCapture: boolean) {
+	// Implicit capture lands on the hit `target` per spec, but browsers differ on where it's
+	// observable, so the check accepts capture on either `target` or `currentTarget`.
+	function fakeEvent(pointerType: string, targetHasCapture: boolean, currentTargetHasCapture = false) {
 		return {
 			pointerType,
 			pointerId: 1,
 			target: {
 				hasPointerCapture: (_id: number) => targetHasCapture,
 			},
-			// currentTarget never holds the implicit capture; it should be ignored.
 			currentTarget: {
-				hasPointerCapture: (_id: number) => false,
+				hasPointerCapture: (_id: number) => currentTargetHasCapture,
 			},
 		} as unknown as PointerEvent
 	}
@@ -42,13 +41,17 @@ describe('isDirectDisplayPen', () => {
 		expect(isDirectDisplayPen(fakeEvent('pen', true))).toBe(true)
 	})
 
-	it('treats a pen without implicit capture as indirect', () => {
-		expect(isDirectDisplayPen(fakeEvent('pen', false))).toBe(false)
+	it('treats a pen with implicit capture on the currentTarget as a direct-display pen', () => {
+		expect(isDirectDisplayPen(fakeEvent('pen', false, true))).toBe(true)
+	})
+
+	it('treats a pen without implicit capture on either element as indirect', () => {
+		expect(isDirectDisplayPen(fakeEvent('pen', false, false))).toBe(false)
 	})
 
 	it('is never true for mouse or touch input', () => {
-		expect(isDirectDisplayPen(fakeEvent('mouse', true))).toBe(false)
-		expect(isDirectDisplayPen(fakeEvent('touch', true))).toBe(false)
+		expect(isDirectDisplayPen(fakeEvent('mouse', true, true))).toBe(false)
+		expect(isDirectDisplayPen(fakeEvent('touch', true, true))).toBe(false)
 	})
 })
 

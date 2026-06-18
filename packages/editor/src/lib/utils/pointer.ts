@@ -6,20 +6,29 @@ import { tlenv } from '../globals/environment'
  * Pencil on an iPad or a Surface Pen on a touchscreen) rather than indirect input from a desktop
  * graphics tablet (e.g. a Wacom Intuos).
  *
- * Direct-manipulation pointers receive implicit pointer capture on `pointerdown`, so if the
- * pointerdown's `target` already holds the capture before we take explicit capture ourselves, we
- * treat it as a direct-display pen. This must be checked before calling {@link setPointerCapture}.
+ * Direct-manipulation pointers receive implicit pointer capture on `pointerdown`, so if an element
+ * already holds the capture before we take explicit capture ourselves, we treat it as a
+ * direct-display pen. This must be checked before calling {@link setPointerCapture}.
  *
- * Implicit capture is applied to the event's `target` (the hit element), not its `currentTarget`
- * (the canvas element the listener is bound to), so we must check `target` here.
+ * Per the spec, implicit capture is applied to the event's `target` (the hit element), but browsers
+ * differ in practice — WebKit in particular has quirks around where implicit capture lands relative
+ * to ancestors — so we check both the `target` and the `currentTarget` the listener is bound to. An
+ * indirect tablet stylus receives no implicit capture on either, so this stays false for it.
  *
  * @internal
  */
 export function isDirectDisplayPen(e: React.PointerEvent | PointerEvent): boolean {
 	if (e.pointerType !== 'pen') return false
-	const target = e.target
-	if (!target || typeof (target as Element).hasPointerCapture !== 'function') return false
-	return (target as Element).hasPointerCapture(e.pointerId)
+	for (const el of [e.target, e.currentTarget]) {
+		if (
+			el &&
+			typeof (el as Element).hasPointerCapture === 'function' &&
+			(el as Element).hasPointerCapture(e.pointerId)
+		) {
+			return true
+		}
+	}
+	return false
 }
 
 /** @internal */
