@@ -242,11 +242,15 @@ async function main() {
 	process.on('SIGINT', () => shutdown(0))
 	process.on('SIGTERM', () => shutdown(0))
 	process.on('SIGHUP', () => shutdown(0))
-	// Backstop if we ever exit through a path that bypassed shutdown(). `killProcessTree` only uses
-	// `spawnSync`, which is synchronous and so runs to completion in an 'exit' handler — unlike the
-	// async `spawn` in composeDown(), which an 'exit' handler would not wait for, so that stays on the
-	// shutdown() path only.
-	process.on('exit', () => killProcessTree(process.pid))
+	// Backstop only for exits that bypassed shutdown() (e.g. the port-preflight `process.exit(1)`,
+	// which runs before any children spawn). `killProcessTree` uses `spawnSync`, which is synchronous
+	// and so runs to completion in an 'exit' handler. We must NOT reap once shutdown() has run: it
+	// spawns the detached `docker compose down` teardown, which is a child of this process until we
+	// exit, so reaping the tree here would SIGKILL it mid-teardown and leak the Docker ports. The
+	// live-tree reap for the shutdown() path already happened in killChildren(), before composeDown().
+	process.on('exit', () => {
+		if (!shuttingDown) killProcessTree(process.pid)
+	})
 
 	reconcileDockerStacks()
 
