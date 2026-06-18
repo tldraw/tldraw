@@ -1,0 +1,97 @@
+.perf-panel {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	margin: 8px;
+	padding: 4px 8px;
+	border-radius: 8px;
+	background: var(--tl-color-low);
+	box-shadow: var(--tl-shadow-2);
+	pointer-events: all;
+}
+
+.perf-panel__row {
+	display: flex;
+}
+
+.perf-panel__readouts {
+	display: flex;
+	gap: 8px;
+	padding: 2px 0;
+}
+
+.perf-panel__readout {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1px;
+	padding: 4px 10px;
+	border-radius: 6px;
+	background: var(--tl-color-panel);
+	font-size: 11px;
+	color: var(--tl-color-text-1);
+}
+
+.perf-panel__readout code {
+	font-size: 10px;
+	color: var(--tl-color-text-3);
+}
+
+.perf-panel__status {
+	font-size: 11px;
+	color: var(--tl-color-text-1);
+	padding-bottom: 4px;
+}
+
+.perf-panel__status--at-limit {
+	color: #c92a2a;
+	font-weight: 600;
+}
+
+.perf-panel__warning {
+	font-size: 11px;
+	font-weight: 600;
+	color: #c92a2a;
+	background: #ffe3e3;
+	padding: 2px 8px;
+	border-radius: 4px;
+	margin-bottom: 4px;
+}
+
+/* This panel lives outside the tldraw container, so the theme variables
+   aren't inherited here — each use provides a fallback value. */
+.perf-config {
+	position: absolute;
+	bottom: 80px;
+	left: 8px;
+	z-index: var(--tl-layer-panels, 300);
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 240px;
+	padding: 12px;
+	border-radius: 8px;
+	background: var(--tl-color-panel, #fcfcfc);
+	box-shadow: var(--tl-shadow-2, 0 1px 3px rgba(0, 0, 0, 0.2));
+}
+
+.perf-config__title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tl-color-text-1, #2e2e2e);
+}
+
+.perf-config__row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
+	color: var(--tl-color-text-1, #2e2e2e);
+}
+
+.perf-config__row--slider {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 2px;
+}
