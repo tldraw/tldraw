@@ -108,7 +108,7 @@
 	position: relative;
 	display: flex;
 	align-items: center;
-	height: 36px;
+	height: 24px;
 	gap: 4px;
 	justify-content: flex-end;
 	cursor: pointer;
