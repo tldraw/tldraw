@@ -108,18 +108,16 @@ function TlaEnterEmailStep({
 	const enterEmailAddressMsg = useMsg(messages.enterEmailAddress)
 
 	// When the user starts the Google flow we redirect to Google's OAuth page.
-	// Pressing the browser back button can restore this page from the bfcache,
-	// which leaves Clerk's sign-in state machine frozen mid-redirect so the
-	// "Sign in with Google" button stops responding. Bump a key on bfcache
-	// restore to remount SignIn.Root with a fresh state machine. See #9103.
-	const [signInResetKey, setSignInResetKey] = useState(0)
+	// Pressing the browser back button restores this page from the bfcache, which
+	// restores the in-memory Clerk client with its sign-in attempt frozen
+	// mid-redirect (clerk.client.signIn.status stays "needs_first_factor"). Clerk
+	// Elements derives the active step from that status, so the "Sign in with
+	// Google" button stops responding — and remounting SignIn.Root can't help,
+	// because the fresh state machine reads the same frozen clerk-js singleton.
+	// A full reload re-initialises Clerk with a clean client. See #9103.
 	useEffect(() => {
 		function handlePageShow(e: PageTransitionEvent) {
-			console.log('handlePageShow', e)
-			if (e.persisted) {
-				console.log('handlePageShow persisted')
-				setSignInResetKey((k) => k + 1)
-			}
+			if (e.persisted) window.location.reload()
 		}
 		window.addEventListener('pageshow', handlePageShow)
 		return () => window.removeEventListener('pageshow', handlePageShow)
@@ -222,7 +220,7 @@ function TlaEnterEmailStep({
 					</>
 				)}
 			</div>
-			<SignIn.Root key={signInResetKey} routing="virtual">
+			<SignIn.Root routing="virtual">
 				<SignIn.Step name="start">
 					<div className={styles.authGoogleButtonWrapper}>
 						{/* @ts-ignore this is fine */}
