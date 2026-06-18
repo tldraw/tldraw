@@ -137,19 +137,6 @@ async function migrate(summary: string[], dryRun: boolean) {
 						`Migration ${migration} contains a transaction block. Migrations run in transactions, so you don't need to include them in the migration file.`
 					)
 				}
-				// Adding a column WITH a DEFAULT forces the current Zero version to re-copy
-				// the whole column into its replica before the column becomes visible to
-				// the view-syncers. That backfill holds the Postgres replication slot open
-				// (WAL accumulates) and, if client code ships before it finishes, clients
-				// hit SchemaVersionNotSupported. Use expand/contract instead: add the column
-				// nullable with no default (visible immediately), backfill values in batches,
-				// then set the default / NOT NULL in a later migration. Remove this guard once
-				// Zero is upgraded to a version that applies scalar defaults without a backfill.
-				if (/\bADD\s+COLUMN\b[^;]*\bDEFAULT\b/is.test(migrationSql)) {
-					throw new Error(
-						`Migration ${migration} adds a column with a DEFAULT, which triggers a blocking column backfill in Zero's replica: the new column stays invisible to view-syncers until the backfill finishes and the replication slot is held open meanwhile. Split it — add the column nullable with no default, backfill values in batches, then set the default / NOT NULL in a separate migration.`
-					)
-				}
 				await sql.raw(migrationSql).execute(tx)
 				await sql`INSERT INTO migrations.applied_migrations (filename) VALUES (${migration})`.execute(
 					tx
