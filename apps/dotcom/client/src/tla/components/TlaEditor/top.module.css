@@ -1,7 +1,7 @@
 /* ------------------- Top left panel ------------------- */
 
 .topLeftOfflineLogo {
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	margin-top: -4px;
 	padding: 4px 8px 4px 10px;
 	height: 40px;
@@ -24,7 +24,7 @@
 	max-width: 100%;
 	min-width: 0px;
 	overflow: hidden;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .topLeftPanelButtons {
@@ -110,7 +110,7 @@ button.topLeftInputNameWidthSetter {
 	pointer-events: all;
 	height: 100%;
 	min-width: 0px;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .topLeftInputWrapper > div:nth-of-type(1) {
@@ -125,7 +125,7 @@ button.topLeftInputNameWidthSetter {
 	padding: 0px 12px 1px 12px;
 	height: 100%;
 	font-weight: 800;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .topLeftInputWrapper input:focus-visible {
@@ -188,7 +188,7 @@ button.topLeftInputNameWidthSetter {
 
 @media (hover: hover) {
 	.topLeftMainMenuTrigger:hover {
-		color: var(--tl-color-text);
+		color: var(--tl-color-text-0);
 	}
 
 	.topLeftMainMenuTrigger:hover::after {
@@ -235,7 +235,7 @@ button.topLeftInputNameWidthSetter {
 	position: relative;
 	cursor: pointer;
 	z-index: 1;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .topRightAnonShareButton::before {

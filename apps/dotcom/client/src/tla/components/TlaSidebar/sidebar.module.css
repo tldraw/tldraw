@@ -136,11 +136,11 @@
 	}
 
 	.hoverable {
-		color: var(--tl-color-text-1);
+		color: var(--tl-color-text-0);
 	}
 	.hoverable[data-active='true'],
 	.hoverable:hover {
-		color: var(--tl-color-text);
+		color: var(--tl-color-text-0);
 	}
 }
 
@@ -153,7 +153,7 @@
 	cursor: pointer;
 	width: 40px;
 	height: 40px;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -352,7 +352,7 @@
 	background: none;
 	border: none;
 	cursor: pointer;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	padding: 0px 8px;
 	text-align: left;
 	text-decoration: none;
@@ -405,7 +405,7 @@
 
 .sidebarUserSettingsAvatarIcon {
 	flex: 0 0 auto;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	margin-inline-end: 6px;
 }
 
@@ -414,7 +414,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarUserSettingsIcon {
@@ -431,7 +431,7 @@
 
 @media (hover: hover) {
 	.sidebarUserSettingsTrigger:hover {
-		color: var(--tl-color-text);
+		color: var(--tl-color-text-0);
 	}
 
 	.sidebarUserSettingsIcon {
@@ -439,7 +439,7 @@
 	}
 
 	.sidebarUserSettingsTrigger:hover .sidebarUserSettingsIcon {
-		color: var(--tl-color-text);
+		color: var(--tl-color-text-0);
 	}
 }
 
@@ -507,7 +507,7 @@
 	background: none;
 	border: none;
 	cursor: pointer;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	padding: 0px 8px;
 	text-align: left;
 	min-width: 0;
@@ -565,7 +565,7 @@
 	align-items: center;
 	height: 40px;
 	padding: 0px 12px;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	cursor: pointer;
 	outline: none;
 	min-width: 0;
@@ -646,7 +646,7 @@
 	background: none;
 	border: none;
 	cursor: pointer;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	padding: 0px 8px;
 	text-align: left;
 }
@@ -674,13 +674,14 @@
 	cursor: pointer;
 	padding: 0px 8px;
 	text-align: left;
+	color: var(--tl-color-text-0);
 }
 
 .sidebarActionButton span[role='img'] {
 	width: 15px;
 	height: 15px;
 	position: relative;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarActionButtonLabel {
@@ -709,7 +710,7 @@
 	flex: 0 0 auto;
 	/* Match the file rows below so the clear button lines up with their menu triggers. */
 	padding: 0px 4px 0px 8px;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarSearch::before {
@@ -732,7 +733,7 @@
 	z-index: 1;
 	height: 15px;
 	width: 15px;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarSearchInput {
@@ -746,7 +747,7 @@
 	background: none;
 	border: none;
 	padding: 0px;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	position: relative;
 	z-index: 1;
 }
@@ -768,7 +769,7 @@
 	flex: 0 0 auto;
 	z-index: 3;
 	cursor: pointer;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarSearchClear:after {
@@ -832,7 +833,7 @@
 
 .sidebarFileListItem[data-active='true'][data-enhanced-a11y-mode='true'] {
 	border-radius: 4px;
-	outline: 2px solid var(--tl-color-text);
+	outline: 2px solid var(--tl-color-text-0);
 	outline-offset: -2px;
 }
 
@@ -860,7 +861,7 @@
 }
 
 .sidebar[data-workspaces='true'] .sidebarFileListItemLabel {
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 /* The selected file reads as the current one with a heavier weight. */
@@ -871,7 +872,7 @@
 /* The portion of a file name that matches the active search query. */
 .sidebarFileListItemLabelMatch {
 	font-weight: 700;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarFileListItemRenameInputWrapper {
@@ -989,7 +990,7 @@
 	}
 
 	.sidebarFileListItemMenuTrigger:hover {
-		color: var(--tl-color-text);
+		color: var(--tl-color-text-0);
 	}
 }
 
@@ -1017,7 +1018,7 @@
 	background: none;
 	pointer-events: all;
 	cursor: pointer;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarFileSectionTitleText {
