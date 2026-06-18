@@ -19,10 +19,6 @@ import styles from './auth.module.css'
 
 const messages = defineMessages({
 	enterEmailAddress: { defaultMessage: 'Enter your email address' },
-	inviteMessage: {
-		defaultMessage:
-			'You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue.',
-	},
 })
 
 export function TlaSignInDialog({
@@ -198,19 +194,16 @@ function TlaEnterEmailStep({
 				{inviteInfo ? (
 					<>
 						<F
-							{...messages.inviteMessage}
+							defaultMessage="You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
 							values={{
 								workspaceName: inviteInfo.workspaceName,
 								strong: (chunks) => <strong>{chunks}</strong>,
 							}}
 						/>
-						{/* <br />
-						<br /> */}
-						{/* <F defaultMessage="Create a free account to save your files, create workspaces, and invite your teammates." /> */}
 					</>
 				) : (
 					<>
-						<F defaultMessage="Create a free account to save your files, create workspaces, and invite your teammates." />
+						<F defaultMessage="Create a free account to save your files and tldraw with your teammates." />
 					</>
 				)}
 			</div>

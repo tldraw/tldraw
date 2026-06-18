@@ -5,6 +5,12 @@
       "value": "Export"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accept invitation"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -471,12 +477,6 @@
       "value": "Copy"
     }
   ],
-  "5fd0972432": [
-    {
-      "type": 0,
-      "value": "Create a free account to save your files, create workspaces, and invite your teammates."
-    }
-  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -645,12 +645,6 @@
       "value": "User manual"
     }
   ],
-  "7bcdfeab70": [
-    {
-      "type": 0,
-      "value": "You have been invited to join:"
-    }
-  ],
   "7be10fc592": [
     {
       "type": 0,
@@ -771,12 +765,6 @@
       "value": "This invite link has expired"
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "No thanks"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
@@ -891,6 +879,26 @@
     {
       "type": 0,
       "value": "Opt out"
+    }
+  ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "You have been invited to join "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "a0da245992": [
@@ -1317,12 +1325,6 @@
       "value": "Terms of service"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Accept and join workspace"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1475,6 +1477,12 @@
     {
       "type": 0,
       "value": " from this workspace?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Create a free account to save your files and tldraw with your teammates."
     }
   ],
   "ffcd73e997": [

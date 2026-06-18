@@ -29,14 +29,21 @@ import { TlaButton } from '../TlaButton/TlaButton'
 import { ConfirmDialog } from './ConfirmDialog'
 import styles from './dialogs.module.css'
 
-// Only the strings needed imperatively as plain text live here (an input placeholder, the
-// role select's string `label` prop, and the inline "(you)" suffix); these need a descriptor
-// with an id, which the formatjs plugin only generates for defineMessages. Everything else is
-// written inline as <F defaultMessage="…" /> at its use site.
 const messages = defineMessages({
+	cancel: { defaultMessage: 'Cancel' },
+	copyInviteLink: { defaultMessage: 'Copy invite link' },
+	deleteWorkspace: { defaultMessage: 'Delete workspace' },
+	inviteTeammates: { defaultMessage: 'Invite teammates' },
+	leave: { defaultMessage: 'Leave' },
+	leaveWorkspace: { defaultMessage: 'Leave workspace' },
+	member: { defaultMessage: 'Member' },
+	mustKeepOwner: {
+		defaultMessage: 'A workspace must keep at least one owner. Make someone else an owner first.',
+	},
 	namePlaceholder: { defaultMessage: 'Workspace name' },
 	owner: { defaultMessage: 'Owner' },
-	member: { defaultMessage: 'Member' },
+	regenerateInviteLink: { defaultMessage: 'Regenerate invite link' },
+	remove: { defaultMessage: 'Remove' },
 	you: { defaultMessage: 'you' },
 })
 
@@ -193,12 +200,12 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 		addDialog({
 			component: ({ onClose }) => (
 				<ConfirmDialog
-					title={<F defaultMessage="Regenerate invite link" />}
+					title={<F {...messages.regenerateInviteLink} />}
 					description={
 						<F defaultMessage="Regenerating replaces the current invite link with a new one. Anyone using the old link will need the new one to join." />
 					}
 					confirmLabel={<F defaultMessage="Regenerate" />}
-					cancelLabel={<F defaultMessage="Cancel" />}
+					cancelLabel={<F {...messages.cancel} />}
 					confirmType="danger"
 					onConfirm={handleRegenerateInviteLink}
 					onClose={onClose}
@@ -211,10 +218,10 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 		addDialog({
 			component: ({ onClose }) => (
 				<ConfirmDialog
-					title={<F defaultMessage="Leave workspace" />}
+					title={<F {...messages.leaveWorkspace} />}
 					description={<F defaultMessage="Are you sure you want to leave this workspace?" />}
-					confirmLabel={<F defaultMessage="Leave" />}
-					cancelLabel={<F defaultMessage="Cancel" />}
+					confirmLabel={<F {...messages.leave} />}
+					cancelLabel={<F {...messages.cancel} />}
 					confirmType="danger"
 					onConfirm={handleLeaveWorkspace}
 					onClose={onClose}
@@ -227,12 +234,12 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 		addDialog({
 			component: ({ onClose }) => (
 				<ConfirmDialog
-					title={<F defaultMessage="Delete workspace" />}
+					title={<F {...messages.deleteWorkspace} />}
 					description={
 						<F defaultMessage="Are you sure you want to delete this workspace? This action cannot be undone." />
 					}
 					confirmLabel={<F defaultMessage="Delete" />}
-					cancelLabel={<F defaultMessage="Cancel" />}
+					cancelLabel={<F {...messages.cancel} />}
 					confirmType="danger"
 					onConfirm={handleDeleteWorkspace}
 					onClose={onClose}
@@ -252,8 +259,8 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 							values={{ name: member.userName }}
 						/>
 					}
-					confirmLabel={<F defaultMessage="Remove" />}
-					cancelLabel={<F defaultMessage="Cancel" />}
+					confirmLabel={<F {...messages.remove} />}
+					cancelLabel={<F {...messages.cancel} />}
 					confirmType="danger"
 					onConfirm={() => handleRemoveMember(member.userId)}
 					onClose={onClose}
@@ -300,6 +307,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						}}
 						placeholder={namePlaceholderMsg}
 						maxLength={MAX_WORKSPACE_NAME_LENGTH}
+						autoSelect
 					/>
 				</div>
 
@@ -308,10 +316,10 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 				{isHomeWorkspace && (
 					<div className={styles.section}>
 						<div className={styles.sectionLabel}>
-							<F defaultMessage="Invite teammates" />
+							<F {...messages.inviteTeammates} />
 						</div>
 						<TlaButton iconRight="copy" variant="secondary" big disabled>
-							<F defaultMessage="Copy invite link" />
+							<F {...messages.copyInviteLink} />
 						</TlaButton>
 						<p className={styles.sectionHelp}>
 							<F defaultMessage="This is your private workspace. Create a new workspace to invite teammates." />
@@ -324,7 +332,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					<>
 						<div className={styles.section}>
 							<div className={styles.sectionLabel}>
-								<F defaultMessage="Invite teammates" />
+								<F {...messages.inviteTeammates} />
 							</div>
 							{inviteLinkEnabled ? (
 								<TlaButton
@@ -334,7 +342,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 									big
 									onClick={handleCopyInviteLink}
 								>
-									<F defaultMessage="Copy invite link" />
+									<F {...messages.copyInviteLink} />
 								</TlaButton>
 							) : (
 								<TlaButton variant="secondary" big disabled>
@@ -402,14 +410,14 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 																{
 																	id: 'remove',
 																	label: isSelf ? (
-																		<F defaultMessage="Leave" />
+																		<F {...messages.leave} />
 																	) : (
-																		<F defaultMessage="Remove" />
+																		<F {...messages.remove} />
 																	),
 																	destructive: true,
 																	disabled: !canRemoveMember,
 																	tooltip: canRemoveMember ? undefined : (
-																		<F defaultMessage="A workspace must keep at least one owner. Make someone else an owner first." />
+																		<F {...messages.mustKeepOwner} />
 																	),
 																	onSelect: () =>
 																		isSelf
@@ -463,7 +471,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 													className={styles.inlineButton}
 													onClick={openRegenerateConfirmDialog}
 												>
-													<F defaultMessage="Regenerate invite link" />
+													<F {...messages.regenerateInviteLink} />
 												</button>
 											</>
 										)}
@@ -473,16 +481,12 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 												className={styles.inlineButton}
 												onClick={openLeaveConfirmDialog}
 											>
-												<F defaultMessage="Leave workspace" />
+												<F {...messages.leaveWorkspace} />
 											</button>
 										) : (
-											<TldrawUiTooltip
-												content={
-													<F defaultMessage="A workspace must keep at least one owner. Make someone else an owner first." />
-												}
-											>
+											<TldrawUiTooltip content={<F {...messages.mustKeepOwner} />}>
 												<button type="button" className={styles.inlineButton} disabled>
-													<F defaultMessage="Leave workspace" />
+													<F {...messages.leaveWorkspace} />
 												</button>
 											</TldrawUiTooltip>
 										)}
@@ -492,7 +496,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 												className={`${styles.inlineButton} ${styles.inlineButtonDanger}`}
 												onClick={openDeleteConfirmDialog}
 											>
-												<F defaultMessage="Delete workspace" />
+												<F {...messages.deleteWorkspace} />
 											</button>
 										)}
 									</div>

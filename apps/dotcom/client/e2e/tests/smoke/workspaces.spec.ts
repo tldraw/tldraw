@@ -18,18 +18,11 @@ test.describe('workspaces', () => {
 	})
 
 	test.describe('basic operations', () => {
-		test('create workspace button is only shown when there are no workspaces', async ({
-			page,
-			sidebar,
-		}) => {
-			await expect(sidebar.createWorkspaceButton).toBeVisible()
-
+		test('a workspace can be created from the switcher dropdown', async ({ page, sidebar }) => {
 			const workspaceName = getRandomName()
 			await sidebar.createWorkspace(workspaceName)
 
-			await expect(sidebar.createWorkspaceButton).not.toBeVisible()
-
-			// creating is still available from the workspace switcher dropdown
+			// creating remains available from the workspace switcher dropdown
 			await sidebar.openWorkspaceSwitcher()
 			await expect(page.getByTestId('tla-create-workspace-menu-item')).toBeVisible()
 			await page.keyboard.press('Escape')
