@@ -10,6 +10,8 @@ env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
   TLDRAW_ENV: 'development'
+  # process-compose (the dev-app orchestrator) has no TTY in CI — run it headless.
+  PC_DISABLE_TUI: '1'
 
 defaults:
   run:
@@ -63,6 +65,12 @@ jobs:
 
       - name: Run our setup
         uses: ./.github/actions/setup
+
+      # `yarn dev-app` (the e2e webServer) is orchestrated by process-compose, a single static
+      # binary. The stack itself still runs as host processes (+ the postgres container), same as
+      # before — process-compose just replaces the hand-rolled supervisor.
+      - name: Install process-compose
+        run: sh -c "$(curl --location https://raw.githubusercontent.com/F1bonacc1/process-compose/main/scripts/get-pc.sh)" -- -d -b /usr/local/bin
 
       - name: Get installed Playwright version
         id: playwright-version
