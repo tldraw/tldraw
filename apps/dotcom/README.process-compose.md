@@ -5,6 +5,11 @@ friends) with a declarative [`process-compose`](https://github.com/F1bonacc1/pro
 ([`process-compose.yaml`](process-compose.yaml)) — keeping everything **host-native** (the way dev
 runs today), just declaratively orchestrated.
 
+> **This branch also implements parallel worktrees** (per-worktree port blocks) on top of that — the
+> original motivation for the whole exploration. Skip to
+> [Multiple instances / parallel worktrees](#multiple-instances--parallel-worktrees--built-here-this-is-the-real-cost)
+> for the real cost, which is the most useful thing here.
+
 It's the **lighter-weight sibling** of the full-Docker spike
 ([#9296](https://github.com/tldraw/tldraw/pull/9296)). Both delete the same ~1,000 lines of
 hand-rolled supervision; the difference is what you run on:
@@ -97,12 +102,54 @@ The `wal2json` / logical-replication image is the one piece that genuinely wants
 process-compose runs `docker compose up` for it as a managed process (with a `shutdown:` hook to
 `docker compose down`), and gates `migrate` on a TCP readiness probe against `:6543`.
 
-### Multiple instances — **same problem as today (#9273)**
+### Multiple instances / parallel worktrees — **built here; this is the real cost**
 
-process-compose is a process supervisor, not a network namespace. Two stacks on one host collide on
-`3000`/`8787`/`6543`/… exactly as they do now. process-compose can _carry_ a port offset cleanly
-(env-templated commands), but you still renumber every port + rewrite every inter-service URL — i.e.
-it's still #9273. This is the one axis where Docker's isolation is structurally better.
+> This is the original motivation behind the whole exploration, so this spike actually **implements**
+> it (commit "add per-worktree port blocks") rather than hand-waving. The point is to show how much
+> machinery it takes — because Docker's network isolation makes almost all of it vanish.
+
+process-compose is a process supervisor, not a network namespace, so two stacks on one host collide on
+`3000`/`8787`/`6543`/… It _can_ carry a port offset, but you have to compute and thread that offset
+through **everything**. What it took:
+
+- **A port-allocation wrapper** ([`internal/scripts/dotcom-dev-parallel.ts`](../../internal/scripts/dotcom-dev-parallel.ts),
+  ~120 lines) that `yarn dev-app` now runs. It assigns each worktree a stable **100-port block**
+  (block 0 = the natural ports, so a single worktree is unchanged) and derives **~25 env values** from
+  the one offset. _Deleting `dev.ts` bought us out of supervision; parallel support hands a chunk of
+  bespoke config logic right back._
+- **A persistent allocation registry** (`~/.tldraw-dotcom-dev-ports.json`, worktree → block) so blocks
+  are stable across runs and don't collide. (Needing this at all is part of the cost.)
+- **Every service port** offset and passed through (`--port` / `--inspector-port` for the 4 workers,
+  `ZERO_PORT` for zero, published ports for postgres/pgbouncer) — _plus process-compose's own API port_
+  (`:8080`), which collides too.
+- **Every inter-service URL rewired** to the block: the sync-worker's `--var` postgres/asset/usercontent
+  URLs, `ZERO_MUTATE_URL`/`ZERO_QUERY_URL`, and the client's baked `MULTIPLAYER_SERVER`/`ZERO_SERVER`/
+  `USER_CONTENT_URL`.
+- **Host-global state made per-worktree**: a per-worktree `WRANGLER_REGISTRY_PATH` (without it, two
+  worktrees' identically-named `dev-tldraw-multiplayer` workers clobber each other in the shared
+  registry and service bindings cross-talk between stacks), the zero replica file, and the postgres
+  docker **compose project** (distinct project ⇒ distinct volume + ports).
+- **Four committed files had to change** to honor the offset:
+  - `wrangler.toml` ports/vars — overridden at runtime via `--port`/`--var` (not edited).
+  - [`client/scripts/dev-app.ts`](client/scripts/dev-app.ts) — read `CLIENT_PORT` from env.
+  - [`client/src/utils/config.ts`](client/src/utils/config.ts) — dev `ZERO_SERVER` was hard-coded to
+    `localhost:4848`; now honors the offset env.
+  - [`client/src/utils/csp.ts`](client/src/utils/csp.ts) — the **dev Content-Security-Policy hard-codes
+    the worker/zero ports**, so an offset worktree's browser silently blocks its own workers until you
+    widen `connect-src` to `http://localhost:*` in dev. (This one is easy to miss and produces
+    confusing "it loads but nothing connects" failures.)
+
+**Verified:** the allocator produces correct, non-colliding blocks (block 0 = 3000/8787/4848/6543…,
+block 1 = 3100/8887/4948/6643…); the parameterized `process-compose.yaml` validates with a block's env
+(`--dry-run`: 10 processes); and **two parallel postgres booted on offset ports (6643 + 6743) with
+isolated volumes**, each answering independently. Not booted as two _full_ stacks end-to-end (would
+collide with a running host stack), but the stateful tier + the wiring are proven.
+
+**The contrast with Docker (#9296) is the whole point.** There, parallel = a second compose project;
+internal ports and every inter-service URL stay **fixed** (network isolation), and you template only
+the handful of **published** host ports. No URL rewiring, no registry isolation, no CSP problem, no
+allocation registry. So: process-compose wins the single-stack inner loop; **Docker wins parallel
+stacks** decisively — this spike is the evidence for exactly how decisively.
 
 ### CI — **install one binary**
 
