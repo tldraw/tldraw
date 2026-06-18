@@ -1066,16 +1066,9 @@ input,
 	border-bottom: 1px solid var(--tl-color-muted-2);
 }
 
-.tl-bookmark__placeholder > .tl-spinner {
-	opacity: 0;
-	animation: tl-fade-in 0.2s ease-in-out forwards;
-	animation-delay: 0.2s;
-}
-
 @media (prefers-reduced-motion: reduce) {
 	.tl-bookmark__placeholder > .tl-spinner {
 		animation: none;
-		opacity: 1;
 	}
 }
 
