@@ -118,6 +118,7 @@ Store and schema:
 
 - Store changes should respect migrations, validators, and schema versioning.
 - Schema-affecting changes usually need updates in `packages/tlschema` and focused migration tests.
+- When adding a column to a Zero-replicated table (`apps/dotcom/zero-cache/migrations`), add it nullable with no default, backfill values in batches, then set the default / NOT NULL in a later migration. A single `ADD COLUMN ... NOT NULL DEFAULT` forces a blocking replica backfill that hides the column from view-syncers and holds the Postgres replication slot open until it finishes. The migration runner enforces this.
 
 ## Where to work
 
