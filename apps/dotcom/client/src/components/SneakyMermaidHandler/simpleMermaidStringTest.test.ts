@@ -204,6 +204,17 @@ describe('simpleMermaidStringTest', () => {
 				expect(simpleMermaidStringTest(phrase)).toBe(false)
 			}
 		})
+
+		it('rejects multi-line prose that starts with a keyword', () => {
+			for (const phrase of [
+				'journey home\nto my heart',
+				'pie in\nthe sky',
+				'graph paper\nis nice to draw on',
+				'block party\nthis weekend',
+			]) {
+				expect(simpleMermaidStringTest(phrase)).toBe(false)
+			}
+		})
 	})
 })
 

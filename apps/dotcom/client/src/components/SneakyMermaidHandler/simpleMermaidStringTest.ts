@@ -63,9 +63,17 @@ export function simpleMermaidStringTest(text: string): boolean {
 	// clear diagram signal on its own.
 	if (match[2]) return true
 
-	// Otherwise require multi-line diagram structure: a line break followed by
-	// real content. This rejects single-line prose like "graph paper" or
-	// "pie in the sky" while still accepting "graph LR\n  A --> B".
+	// Otherwise require multi-line diagram structure. Real diagrams put the type
+	// keyword on its own line, optionally followed by a flowchart direction
+	// ("graph LR") or a pie modifier ("pie title ..."). The keyword line must
+	// match that shape and be followed by a body line. This rejects prose that
+	// merely starts with a keyword and trails into more text, whether on one
+	// line ("pie in the sky") or several ("journey home\nto my heart"), while
+	// still accepting "graph LR\n  A --> B" and "journey\n  title My day".
 	const remainder = cleaned.slice(match[0].length)
+	const keywordLine = remainder.match(/^[^\n\r]*/)![0].trim()
+	const isDiagramKeywordLine =
+		keywordLine === '' || /^(?:TB|TD|BT|RL|LR|title\b|showData\b)/i.test(keywordLine)
+	if (!isDiagramKeywordLine) return false
 	return /[\n\r]\s*\S/.test(remainder)
 }
