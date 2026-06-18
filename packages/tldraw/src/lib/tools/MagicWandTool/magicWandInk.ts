@@ -30,6 +30,60 @@ const INK_DRY_DURATION_MS = 350
 /** How long the lasso ink takes to fade away after selecting, in ms. */
 const LASSO_FADE_DURATION_MS = 300
 
+/** Class on the <style> element that holds the magic wand's per-stroke opacity rule. */
+export const INK_STYLE_ELEMENT_CLASS = 'tl-magic-wand-ink-style'
+
+// One style element per editor (keyed by instance, not a shared DOM id, so
+// multiple editors on a page don't collide).
+const inkStyleElements = new WeakMap<Editor, HTMLStyleElement>()
+
+function getInkStyleElement(editor: Editor): HTMLStyleElement {
+	let el = inkStyleElements.get(editor)
+	if (!el || !el.isConnected) {
+		const container = editor.getContainer()
+		el = container.ownerDocument.createElement('style')
+		el.className = INK_STYLE_ELEMENT_CLASS
+		container.appendChild(el)
+		inkStyleElements.set(editor, el)
+	}
+	return el
+}
+
+/**
+ * Shows the in-progress stroke at half opacity using CSS only, so the shape's
+ * real `opacity` is left untouched (the translucency is purely a visual effect
+ * and never leaks into undo/redo, cancel, etc). `!important` is needed to beat
+ * the shape's inline opacity. No transition here, so the stroke appears
+ * translucent immediately rather than fading in.
+ */
+export function setWetInk(editor: Editor, shapeId: TLShapeId) {
+	getInkStyleElement(editor).textContent =
+		`.tl-shape[data-shape-id="${shapeId}"]{opacity:${MAGIC_WAND_INK_OPACITY}!important}`
+}
+
+/**
+ * Drops the translucency so the stroke eases back to its real opacity — a quick
+ * "ink drying" effect, done entirely in CSS. Clears the rule once the transition
+ * finishes (unless a newer stroke has since taken over the style element).
+ */
+export function dryWetInk(editor: Editor, shapeId: TLShapeId) {
+	getInkStyleElement(editor).textContent =
+		`.tl-shape[data-shape-id="${shapeId}"]{transition:opacity ${INK_DRY_DURATION_MS}ms ease}`
+	editor.timers.setTimeout(() => clearWetInk(editor, shapeId), INK_DRY_DURATION_MS)
+}
+
+/**
+ * Removes the wet-ink styling immediately. Pass `onlyForShapeId` to clear only if
+ * the rule still targets that shape, so a pending dry-clear doesn't wipe a newer
+ * stroke's styling.
+ */
+export function clearWetInk(editor: Editor, onlyForShapeId?: TLShapeId) {
+	const el = inkStyleElements.get(editor)
+	if (!el) return
+	if (onlyForShapeId && !el.textContent?.includes(onlyForShapeId)) return
+	el.textContent = ''
+}
+
 /**
  * Animates a shape's opacity from `from` to `to` over `durationMs`, using
  * history-ignored updates so the tween never pollutes the undo stack. Stops
@@ -69,14 +123,6 @@ function animateShapeOpacity(
 	}
 
 	editor.timers.requestAnimationFrame(frame)
-}
-
-/**
- * Fades a just-drawn magic wand stroke from its translucent in-progress opacity
- * up to fully solid — a quick "ink drying" effect.
- */
-export function dryMagicWandInk(editor: Editor, shapeId: TLShapeId) {
-	animateShapeOpacity(editor, shapeId, MAGIC_WAND_INK_OPACITY, 1, INK_DRY_DURATION_MS)
 }
 
 /**

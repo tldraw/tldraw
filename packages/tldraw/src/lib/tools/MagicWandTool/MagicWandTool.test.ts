@@ -36,11 +36,29 @@ describe('MagicWandTool', () => {
 		editor.expectToBeIn('magic-wand.idle')
 	})
 
-	it('draws the in-progress stroke at half opacity', () => {
+	it('shows the in-progress stroke as translucent via CSS, not the shape opacity', () => {
 		editor.setCurrentTool('magic-wand')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(60, 60)
-		expect(editor.getCurrentPageShapes().at(-1)!.opacity).toBe(0.5)
+		const shape = editor.getCurrentPageShapes().at(-1)!
+		// The shape's real opacity is left proper; the translucency is CSS-only.
+		expect(shape.opacity).toBe(1)
+		const style = editor.getContainer().querySelector('style.tl-magic-wand-ink-style')
+		expect(style?.textContent).toContain(shape.id)
+		expect(style?.textContent).toContain('opacity:0.5')
+	})
+
+	it('leaves the stroke at proper opacity (and clears the CSS) when cancelled', () => {
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(50, 50)
+		editor.pointerMove(60, 60)
+		editor.pointerMove(70, 70)
+		editor.cancel()
+
+		const drawShape = editor.getCurrentPageShapes().find((s) => s.type === 'draw')
+		if (drawShape) expect(drawShape.opacity).toBe(1)
+		const style = editor.getContainer().querySelector('style.tl-magic-wand-ink-style')
+		expect(style?.textContent ?? '').toBe('')
 	})
 
 	it('tints the ink the selection colour while the stroke would lasso, and reverts', () => {

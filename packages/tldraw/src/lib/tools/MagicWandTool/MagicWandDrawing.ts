@@ -12,10 +12,11 @@ import {
 import { Drawing } from '../../shapes/draw/toolStates/Drawing'
 import {
 	MAGIC_WAND_INKING_CLASS,
-	MAGIC_WAND_INK_OPACITY,
 	MAGIC_WAND_LASSO_COLOR,
-	dryMagicWandInk,
+	clearWetInk,
+	dryWetInk,
 	fadeOutLassoInk,
+	setWetInk,
 } from './magicWandInk'
 
 /**
@@ -38,27 +39,24 @@ export class MagicWandDrawing extends Drawing {
 	private inkShowsLassoColor = false
 	// The shapes currently previewed as "would be selected" (blue hint outline).
 	private hintedShapeIds: TLShapeId[] = []
+	// Whether the stroke is mid "ink drying" fade, so onExit shouldn't clear it.
+	private isDryingInk = false
 
 	override onEnter(info: TLPointerEventInfo) {
 		this.shapeIdsBeforeGesture = new Set(this.editor.getCurrentPageShapeIds())
 		this.inkShowsLassoColor = false
 		this.hintedShapeIds = []
+		this.isDryingInk = false
 		// Enable the CSS colour transition for the in-progress stroke.
 		this.editor.getContainer().classList.add(MAGIC_WAND_INKING_CLASS)
 		super.onEnter(info)
-		// Draw the in-progress stroke at half opacity (the "wet ink" look).
+		// Show the in-progress stroke at half opacity (the "wet ink" look). This is
+		// purely a CSS effect — the shape's real opacity is left untouched so it
+		// stays correct through undo/redo, cancel, etc.
 		const inkShape = this.initialShape && this.editor.getShape<TLDrawShape>(this.initialShape.id)
 		if (inkShape) {
 			this.inkColor = inkShape.props.color
-			this.editor.run(
-				() =>
-					this.editor.updateShape({
-						id: inkShape.id,
-						type: 'draw',
-						opacity: MAGIC_WAND_INK_OPACITY,
-					}),
-				{ history: 'ignore' }
-			)
+			setWetInk(this.editor, inkShape.id)
 		}
 	}
 
@@ -68,6 +66,11 @@ export class MagicWandDrawing extends Drawing {
 		if (this.hintedShapeIds.length) {
 			this.editor.setHintingShapes([])
 			this.hintedShapeIds = []
+		}
+		// Drop the wet-ink translucency immediately unless we're mid dry-fade (a
+		// normal draw completion), e.g. on cancel, interrupt, or tool switch.
+		if (!this.isDryingInk) {
+			clearWetInk(this.editor)
 		}
 		super.onExit()
 	}
@@ -123,10 +126,11 @@ export class MagicWandDrawing extends Drawing {
 			return
 		}
 
-		// Draw gesture: keep the stroke and dry the ink to solid.
+		// Draw gesture: keep the stroke and dry the ink (CSS-only) to solid.
 		const inkId = this.initialShape?.id
+		if (inkId) this.isDryingInk = true
 		super.complete()
-		if (inkId) dryMagicWandInk(this.editor, inkId)
+		if (inkId) dryWetInk(this.editor, inkId)
 	}
 
 	/**
