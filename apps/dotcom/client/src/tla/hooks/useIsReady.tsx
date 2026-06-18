@@ -1,6 +1,5 @@
 import classNames from 'classnames'
-import React, { PropsWithChildren, ReactNode, useCallback, useContext, useEffect } from 'react'
-import { Spinner } from 'tldraw'
+import React, { PropsWithChildren, ReactNode, useCallback, useContext } from 'react'
 import styles from './useIsReady.module.css'
 
 /*
@@ -25,19 +24,11 @@ export function ReadyWrapper({
 }: PropsWithChildren<{ loadingScreen?: ReactNode }>) {
 	const parent = useContext(ReadyContext)
 	const [isReady, _setIsReady] = React.useState(false)
-	const [showSpinner, setShowSpinner] = React.useState(false)
 	const hasLoadingScreen = !!loadingScreen
 	const setIsReady = useCallback(async () => {
 		_setIsReady(true)
 	}, [])
-	useEffect(() => {
-		const timeout = setTimeout(() => {
-			setShowSpinner(true)
-		}, 500)
-		return () => {
-			clearTimeout(timeout)
-		}
-	}, [])
+
 	if (!parent.isRoot) {
 		// already wrapped at a higher level
 		return children
@@ -65,11 +56,6 @@ export function ReadyWrapper({
 				{!isReady && hasLoadingScreen && (
 					<div className={styles.loadingScreen} inert aria-hidden="true">
 						{loadingScreen}
-					</div>
-				)}
-				{!isReady && (
-					<div className={classNames(styles.spinner, showSpinner && styles.showSpinner)}>
-						<Spinner />
 					</div>
 				)}
 			</div>

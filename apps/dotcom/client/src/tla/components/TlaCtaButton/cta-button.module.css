@@ -60,7 +60,7 @@
 }
 
 .ctaButtonSecondary {
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-0);
 }
 
 .ctaButtonSecondary::after {

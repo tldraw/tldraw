@@ -4,7 +4,7 @@
 	height: 100vh;
 	overflow: auto;
 	background-color: var(--tla-color-sidebar);
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	font-family: var(--tla-font-ui);
 	max-width: 100vw;
 }
@@ -31,7 +31,7 @@
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 	font-size: 11px;
 	font-weight: 500;
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-0);
 	word-break: break-all;
 }
 
@@ -62,7 +62,7 @@
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tla-radius-2);
 	background-color: var(--tl-color-selected-contrast);
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	font-family: var(--tla-font-ui);
 	font-size: 12px;
 	font-weight: 500;
@@ -120,7 +120,7 @@
 	font-family: 'IBMPlexMono', monospace;
 	font-size: 11px;
 	line-height: 1.4;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	overflow: auto;
 	max-height: 400px;
 	user-select: text;
@@ -181,7 +181,7 @@
 	margin: 0 0 12px 0;
 	font-size: 12px;
 	font-weight: 600;
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-0);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 }
@@ -192,7 +192,7 @@
 	font-family: 'IBMPlexMono', monospace;
 	font-size: 11px;
 	line-height: 1.4;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	background-color: var(--tl-color-selected-contrast);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tla-radius-2);
@@ -256,7 +256,7 @@
 .fieldValue {
 	font-size: 12px;
 	font-weight: 500;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	word-break: break-word;
 }
 
@@ -296,7 +296,7 @@
 .statValue {
 	font-size: 16px;
 	font-weight: 600;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 /* Count Container */
@@ -308,7 +308,7 @@
 
 .countDisplay {
 	font-size: 12px;
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-0);
 }
 
 /* Config Container */

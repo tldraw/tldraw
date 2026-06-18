@@ -6,6 +6,17 @@
 	box-sizing: border-box;
 }
 
+/* On iOS, Safari zooms into any focused form field whose computed font-size is
+   below 16px. Bump form fields to 16px on iOS to prevent that. This only affects
+   iOS rendering; other platforms keep their smaller sizes. */
+@supports (-webkit-touch-callout: none) {
+	.tla input,
+	.tla textarea,
+	.tla select {
+		font-size: 16px;
+	}
+}
+
 /* Variables */
 :root {
 	/* Border radii */
@@ -27,7 +38,7 @@
 	height: 100%;
 	font-family: var(--tla-font-ui);
 	background-color: var(--tla-color-sidebar);
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .tla-theme__light {
@@ -97,7 +108,7 @@
 	position: relative;
 	top: 1px;
 	font-family: var(--tla-font-ui);
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .tla-text_ui__small {
@@ -126,7 +137,7 @@
 	font-size: 24px;
 	line-height: 1.3;
 	font-family: var(--tla-font-ui);
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	text-rendering: optimizeLegibility;
 }
 
