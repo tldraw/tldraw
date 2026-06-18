@@ -264,6 +264,7 @@ export function getAssetUrlsByImport(opts) {
 			'tool-highlight': iconsIcon0MergedSvg2 + '#tool-highlight',
 			'tool-laser': iconsIcon0MergedSvg2 + '#tool-laser',
 			'tool-line': iconsIcon0MergedSvg2 + '#tool-line',
+			'tool-magic-wand': iconsIcon0MergedSvg2 + '#tool-magic-wand',
 			'tool-media': iconsIcon0MergedSvg2 + '#tool-media',
 			'tool-note': iconsIcon0MergedSvg2 + '#tool-note',
 			'tool-pencil': iconsIcon0MergedSvg2 + '#tool-pencil',

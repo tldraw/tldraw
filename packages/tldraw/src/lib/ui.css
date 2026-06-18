@@ -2310,3 +2310,13 @@ tldraw? probably.
 		transform: translateX(calc(-100% - var(--tl-space-3)));
 	}
 }
+
+/* While drawing with the magic wand, smoothly tween the in-progress stroke's
+ * colour as it previews whether the gesture would lasso-select. The class is
+ * toggled on the container by the magic wand tool only while a stroke is live,
+ * so other shapes' colour changes are unaffected. */
+.tl-magic-wand-inking .tl-shape[data-shape-type='draw'] path {
+	transition:
+		fill 150ms ease,
+		stroke 150ms ease;
+}

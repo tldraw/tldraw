@@ -304,6 +304,7 @@ export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'
 export { HandTool } from './lib/tools/HandTool/HandTool'
 export { LaserTool } from './lib/tools/LaserTool/LaserTool'
+export { MagicWandTool } from './lib/tools/MagicWandTool/MagicWandTool'
 export { getHitShapeOnCanvasPointerDown } from './lib/tools/selection-logic/getHitShapeOnCanvasPointerDown'
 export { SelectTool } from './lib/tools/SelectTool/SelectTool'
 export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
@@ -672,6 +673,7 @@ export {
 	HighlightToolbarItem,
 	LaserToolbarItem,
 	LineToolbarItem,
+	MagicWandToolbarItem,
 	NoteToolbarItem,
 	OvalToolbarItem,
 	RectangleToolbarItem,

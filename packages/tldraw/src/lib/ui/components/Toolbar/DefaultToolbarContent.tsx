@@ -9,6 +9,7 @@ export function DefaultToolbarContent() {
 			<SelectToolbarItem />
 			<HandToolbarItem />
 			<DrawToolbarItem />
+			<MagicWandToolbarItem />
 			<EraserToolbarItem />
 			<ArrowToolbarItem />
 			<TextToolbarItem />
@@ -87,6 +88,11 @@ export function HandToolbarItem() {
 /** @public @react */
 export function DrawToolbarItem() {
 	return <ToolbarItem tool="draw" />
+}
+
+/** @public @react */
+export function MagicWandToolbarItem() {
+	return <ToolbarItem tool="magic-wand" />
 }
 
 /** @public @react */
