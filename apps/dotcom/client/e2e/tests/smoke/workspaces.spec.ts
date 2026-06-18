@@ -63,6 +63,106 @@ test.describe('workspaces', () => {
 			await expect(homeItem).toBeVisible()
 		})
 
+		test('dismissing the switcher does not click a file underneath', async ({ page, sidebar }) => {
+			const file1 = getRandomName()
+			const file2 = getRandomName()
+			const file3 = getRandomName()
+
+			await sidebar.createNewDocument(file1)
+			await sidebar.createNewDocument(file2)
+			await sidebar.createNewDocument(file3)
+			await sidebar.expectFileActive(file3)
+
+			await sidebar.openWorkspaceSwitcher()
+			const overlay = page.getByTestId('tla-workspace-switcher-overlay')
+			await expect(overlay).toBeVisible()
+
+			const target = await page.evaluate(() => {
+				const overlay = document.querySelector<HTMLElement>(
+					'[data-testid="tla-workspace-switcher-overlay"]'
+				)
+				if (!overlay) throw new Error('Missing workspace switcher overlay')
+
+				const links = Array.from(
+					document.querySelectorAll<HTMLElement>('[data-element="file-link"]')
+				)
+				for (const link of links.reverse()) {
+					if (link.dataset.active === 'true') continue
+
+					const rect = link.getBoundingClientRect()
+					const x = rect.left + rect.width / 2
+					const y = rect.top + rect.height / 2
+					if (
+						!document
+							.elementFromPoint(x, y)
+							?.closest('[data-testid="tla-workspace-switcher-overlay"]')
+					) {
+						continue
+					}
+
+					return {
+						name: link.querySelector('[data-testid*="-name"]')?.textContent?.trim() ?? '',
+						x,
+						y,
+					}
+				}
+
+				throw new Error('Could not find a file link behind the workspace switcher overlay')
+			})
+
+			await page.evaluate(({ x, y }) => {
+				const overlay = document.querySelector<HTMLElement>(
+					'[data-testid="tla-workspace-switcher-overlay"]'
+				)
+				if (!overlay) throw new Error('Missing workspace switcher overlay')
+
+				overlay.dispatchEvent(
+					new PointerEvent('pointerdown', {
+						bubbles: true,
+						cancelable: true,
+						clientX: x,
+						clientY: y,
+						pointerId: 1,
+						pointerType: 'touch',
+						isPrimary: true,
+					})
+				)
+			}, target)
+
+			await expect(overlay).toBeVisible()
+
+			await page.evaluate(({ x, y }) => {
+				const target = document.elementFromPoint(x, y)
+				target?.dispatchEvent(
+					new PointerEvent('pointerup', {
+						bubbles: true,
+						cancelable: true,
+						clientX: x,
+						clientY: y,
+						pointerId: 1,
+						pointerType: 'touch',
+						isPrimary: true,
+					})
+				)
+				target?.dispatchEvent(
+					new MouseEvent('click', {
+						bubbles: true,
+						cancelable: true,
+						clientX: x,
+						clientY: y,
+					})
+				)
+			}, target)
+
+			await expect(overlay).toBeHidden()
+			await sidebar.expectFileActive(file3)
+			await sidebar.expectFileNotActive(target.name)
+
+			await sidebar.openWorkspaceSwitcher()
+			await page.getByTestId('tla-workspace-switcher').click()
+			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeHidden()
+		})
+
 		test('create file button creates in the active workspace', async ({ sidebar }) => {
 			const workspaceName = getRandomName()
 			const file1 = getRandomName()
