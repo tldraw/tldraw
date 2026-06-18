@@ -109,6 +109,23 @@ const generateImage = (dpr: number, currentZoom: number, solid: string) => {
 	})
 }
 
+// Pattern-fill tiles are a pure function of (dpr, zoom LOD, solid color), so each one can be
+// generated once and reused for the lifetime of the page. Generating a tile rasterizes a canvas
+// and encodes it with `canvas.toBlob`, which is expensive — on mobile Safari the full set of LODs
+// can take over a second. Without this cache, every editor that mounts regenerates the whole set;
+// in apps that remount the editor to switch documents that cost is paid on every switch. Caching
+// the resulting object URLs keeps the work to at most once per (dpr, zoom, color).
+const patternImageUrlCache = new Map<string, Promise<string>>()
+function getOrCreatePatternImageUrl(dpr: number, zoom: number, solid: string): Promise<string> {
+	const key = `${dpr}_${zoom}_${solid}`
+	let url = patternImageUrlCache.get(key)
+	if (!url) {
+		url = generateImage(dpr, zoom, solid).then((blob) => URL.createObjectURL(blob))
+		patternImageUrlCache.set(key, url)
+	}
+	return url
+}
+
 const canvasBlob = (size: [number, number], fn: (ctx: CanvasRenderingContext2D) => void) => {
 	const canvas = getGlobalDocument().createElement('canvas')
 	canvas.width = size[0]
@@ -208,15 +225,15 @@ function usePattern() {
 
 		const promise = Promise.all(
 			getPatternLodsToGenerate(maxEffectiveZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateImage(dpr, zoom, lightSolid).then((blob) => ({
+				getOrCreatePatternImageUrl(dpr, zoom, lightSolid).then((url) => ({
 					zoom,
 					theme: 'light',
-					url: URL.createObjectURL(blob),
+					url,
 				})),
-				generateImage(dpr, zoom, darkSolid).then((blob) => ({
+				getOrCreatePatternImageUrl(dpr, zoom, darkSolid).then((url) => ({
 					zoom,
 					theme: 'dark',
-					url: URL.createObjectURL(blob),
+					url,
 				})),
 			])
 		)
@@ -230,11 +247,8 @@ function usePattern() {
 		return () => {
 			isCancelled = true
 			setIsReady(false)
-			promise.then((patterns) => {
-				for (const { url } of patterns) {
-					URL.revokeObjectURL(url)
-				}
-			})
+			// The object URLs are cached and shared across editor instances, so we must not
+			// revoke them here — they are reused by later mounts and kept for the page lifetime.
 		}
 	}, [dpr, maxEffectiveZoom, editor])
 
