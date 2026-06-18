@@ -629,8 +629,9 @@ export class TldrawApp {
 		if (this.isWorkspacesMigrated()) {
 			// Count only files the workspace actually owns — not guest files (shared files the
 			// user opened) or mislinked rows that getWorkspaceFilesSorted hides. Counting those
-			// would let the limit fire on files the user can neither see nor remove, and would
-			// disagree with the server's own limit check (assertNotMaxFiles counts owningGroupId).
+			// would let the limit fire on files the user can neither see nor remove. For migrated
+			// users createFile runs no server-side file-limit check, so this is the only gate;
+			// scoping it to owned files keeps it to what the user can actually manage.
 			const membership = this.getWorkspaceMembership(workspaceId)
 			if (!membership) return true
 			const nonDeletedCount = membership.groupFiles.filter(
