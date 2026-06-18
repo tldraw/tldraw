@@ -309,4 +309,80 @@ describe('createBookmarkFromUrl', () => {
 		expect(second.value.props.assetId).not.toBeNull()
 		expect(fetchSpy).toHaveBeenCalledTimes(1)
 	})
+
+	it('does not patch the asset if the shape URL changed before metadata resolved', async () => {
+		const url = 'https://example.com'
+		const center = { x: 100, y: 200 }
+
+		let resolveAsset: (asset: any) => void = () => {}
+		const assetPromise = new Promise<any>((resolve) => {
+			resolveAsset = resolve
+		})
+		vi.spyOn(editor, 'getAssetForExternalContent').mockReturnValue(assetPromise)
+
+		const result = await createBookmarkFromUrl(editor, { url, center })
+		assert(result.ok, 'Failed to create bookmark')
+		const shape = result.value
+
+		// Change the URL before the original fetch resolves.
+		editor.updateShapes([{ id: shape.id, type: 'bookmark', props: { url: 'https://changed.com' } }])
+
+		// Now resolve the original fetch — its metadata is for the stale URL.
+		resolveAsset({
+			id: 'asset:test-asset-id' as any,
+			typeName: 'asset' as const,
+			type: 'bookmark' as const,
+			props: {
+				src: url,
+				title: 'Example Site',
+				description: 'An example website',
+				image: 'https://example.com/image.jpg',
+				favicon: 'https://example.com/favicon.ico',
+			},
+			meta: {},
+		})
+		await assetPromise
+		await Promise.resolve()
+
+		// The shape should keep its current (changed) URL and not be patched with
+		// the stale asset.
+		const after = editor.getShape<TLBookmarkShape>(shape.id)
+		expect(after?.props.url).toBe('https://changed.com')
+		expect(after?.props.assetId).toBe(null)
+	})
+
+	it('removes the placeholder cleanly on undo without an extra metadata undo step', async () => {
+		const url = 'https://example.com'
+		const center = { x: 100, y: 200 }
+
+		const assetPromise = Promise.resolve({
+			id: 'asset:test-asset-id' as any,
+			typeName: 'asset' as const,
+			type: 'bookmark' as const,
+			props: {
+				src: url,
+				title: 'Example Site',
+				description: 'An example website',
+				image: 'https://example.com/image.jpg',
+				favicon: 'https://example.com/favicon.ico',
+			},
+			meta: {},
+		})
+		vi.spyOn(editor, 'getAssetForExternalContent').mockReturnValue(assetPromise)
+
+		editor.markHistoryStoppingPoint()
+		const result = await createBookmarkFromUrl(editor, { url, center })
+		assert(result.ok, 'Failed to create bookmark')
+		const shape = result.value
+
+		// Let hydration (history: 'ignore') run.
+		await assetPromise
+		await Promise.resolve()
+		expect(editor.getShape<TLBookmarkShape>(shape.id)?.props.assetId).toBe('asset:test-asset-id')
+
+		// A single undo should remove the placeholder entirely; the metadata patch
+		// must not have created its own undo step.
+		editor.undo()
+		expect(editor.getShape(shape.id)).toBeUndefined()
+	})
 })

@@ -196,10 +196,12 @@ async function hydrateBookmarkShape(editor: Editor, shapeId: TLShapeId, url: str
 	if (editor.isDisposed) return
 	if (!asset) return
 
-	// The shape may have been deleted (e.g. via undo) or had its asset replaced
-	// before the fetch resolved.
+	// The shape may have been deleted (e.g. via undo), had its URL changed, or
+	// had its asset replaced before the fetch resolved. In any of those cases we
+	// don't want to attach metadata for the old URL.
 	const shape = editor.getShape<TLBookmarkShape>(shapeId)
 	if (!shape) return
+	if (shape.props.url !== url) return
 	if (shape.props.assetId) return
 
 	editor.run(
