@@ -1,7 +1,6 @@
 // oxlint-disable typescript/no-empty-object-type
 import {
 	BaseBoxShapeUtil,
-	DefaultSpinner,
 	HTMLContainer,
 	T,
 	TLAssetId,
@@ -187,9 +186,7 @@ export function BookmarkShapeComponent({
 								alt={asset?.props.title || ''}
 							/>
 						) : (
-							<div className="tl-bookmark__placeholder">
-								<DefaultSpinner />
-							</div>
+							<div className="tl-bookmark__placeholder" />
 						)}
 						{asset?.props.image && <HyperlinkButton url={url} />}
 					</div>
