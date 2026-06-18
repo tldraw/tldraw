@@ -111,8 +111,10 @@ function animateShapeOpacity(
 
 		const t = durationMs <= 0 ? 1 : Math.min(1, (time - startTime) / durationMs)
 		const opacity = from + (to - from) * EASINGS.easeOutCubic(t)
+		// `ignoreShapeLock` so we can keep animating the (locked) ghost.
 		editor.run(() => editor.updateShape({ id: shapeId, type: shape.type, opacity }), {
 			history: 'ignore',
+			ignoreShapeLock: true,
 		})
 
 		if (t < 1) {
@@ -141,6 +143,9 @@ export function fadeOutLassoInk(editor: Editor, inkSnapshot: TLDrawShape) {
 				editor.createShape<TLDrawShape>({
 					id: ghostId,
 					type: 'draw',
+					// Locked so the fading ink can't be clicked, selected, or moved
+					// while it's on screen — it's a visual effect, not content.
+					isLocked: true,
 					x: inkSnapshot.x,
 					y: inkSnapshot.y,
 					rotation: inkSnapshot.rotation,
@@ -153,7 +158,7 @@ export function fadeOutLassoInk(editor: Editor, inkSnapshot: TLDrawShape) {
 		)
 
 		animateShapeOpacity(editor, ghostId, MAGIC_WAND_INK_OPACITY, 0, LASSO_FADE_DURATION_MS, () => {
-			editor.run(() => editor.deleteShape(ghostId), { history: 'ignore' })
+			editor.run(() => editor.deleteShape(ghostId), { history: 'ignore', ignoreShapeLock: true })
 		})
 	})
 }
