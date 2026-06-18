@@ -85,6 +85,28 @@ export function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmark
 	}
 }
 
+/**
+ * Resolve the asset id to render for a bookmark. Bookmark assets are keyed
+ * deterministically by URL, so if the shape has no `assetId` but an asset for
+ * its URL already exists in the store, use that.
+ *
+ * This keeps a bookmark from staying stuck on its placeholder after the shape
+ * is recreated outside of the hydration flow — e.g. on redo, where the
+ * placeholder is restored with a null `assetId` but its hydrated asset (created
+ * with `history: 'ignore'`) still lives in the store.
+ */
+export function getResolvedBookmarkAssetId(
+	editor: Editor,
+	assetId: TLAssetId | null,
+	url: string
+): TLAssetId | null {
+	if (assetId) return assetId
+	if (!url) return null
+
+	const derivedId: TLAssetId = AssetRecordType.createId(getHashForString(url))
+	return editor.getAsset(derivedId) ? derivedId : null
+}
+
 async function _createBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
 	if (editor.isDisposed) return
 

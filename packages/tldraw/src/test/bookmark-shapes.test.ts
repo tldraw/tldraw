@@ -1,6 +1,10 @@
 import { AssetRecordType, TLBookmarkShape, createShapeId, getHashForString } from '@tldraw/editor'
 import { vi } from 'vitest'
-import { createBookmarkFromUrl, getHumanReadableAddress } from '../lib/shapes/bookmark/bookmarks'
+import {
+	createBookmarkFromUrl,
+	getHumanReadableAddress,
+	getResolvedBookmarkAssetId,
+} from '../lib/shapes/bookmark/bookmarks'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -384,5 +388,50 @@ describe('createBookmarkFromUrl', () => {
 		// must not have created its own undo step.
 		editor.undo()
 		expect(editor.getShape(shape.id)).toBeUndefined()
+	})
+
+	it('renders the hydrated asset after redo even though the asset patch was history-ignored', async () => {
+		const url = 'https://example.com'
+		const center = { x: 100, y: 200 }
+		const assetId = AssetRecordType.createId(getHashForString(url))
+
+		const assetPromise = Promise.resolve({
+			id: assetId,
+			typeName: 'asset' as const,
+			type: 'bookmark' as const,
+			props: {
+				src: url,
+				title: 'Example Site',
+				description: 'An example website',
+				image: 'https://example.com/image.jpg',
+				favicon: 'https://example.com/favicon.ico',
+			},
+			meta: {},
+		})
+		vi.spyOn(editor, 'getAssetForExternalContent').mockReturnValue(assetPromise)
+
+		editor.markHistoryStoppingPoint()
+		const result = await createBookmarkFromUrl(editor, { url, center })
+		assert(result.ok, 'Failed to create bookmark')
+		const shape = result.value
+
+		// Let hydration (history: 'ignore') run.
+		await assetPromise
+		await Promise.resolve()
+		expect(editor.getShape<TLBookmarkShape>(shape.id)?.props.assetId).toBe(assetId)
+
+		// Undo removes the placeholder; the hydrated asset stays in the store
+		// because it was created with history: 'ignore'.
+		editor.undo()
+		expect(editor.getShape(shape.id)).toBeUndefined()
+		expect(editor.getAsset(assetId)).toBeDefined()
+
+		// Redo restores the placeholder shape with a null assetId (the asset patch
+		// was history-ignored). The shape should still resolve its asset by URL so
+		// it doesn't stay stuck on the placeholder.
+		editor.redo()
+		const redone = editor.getShape<TLBookmarkShape>(shape.id)
+		assert(redone, 'Expected the bookmark to be restored on redo')
+		expect(getResolvedBookmarkAssetId(editor, redone.props.assetId, redone.props.url)).toBe(assetId)
 	})
 })

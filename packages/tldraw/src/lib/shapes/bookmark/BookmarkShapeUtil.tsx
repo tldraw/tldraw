@@ -25,6 +25,7 @@ import {
 	BOOKMARK_HEIGHT,
 	BOOKMARK_WIDTH,
 	getHumanReadableAddress,
+	getResolvedBookmarkAssetId,
 	setBookmarkHeight,
 	updateBookmarkAssetOnUrlChange,
 } from './bookmarks'
@@ -147,7 +148,8 @@ export function BookmarkShapeComponent({
 }) {
 	const editor = useEditor()
 
-	const asset = assetId ? (editor.getAsset(assetId) as TLBookmarkAsset) : null
+	const resolvedAssetId = getResolvedBookmarkAssetId(editor, assetId, url)
+	const asset = resolvedAssetId ? (editor.getAsset(resolvedAssetId) as TLBookmarkAsset) : null
 
 	const isSafariExport = !!useSvgExportContext() && tlenv.isSafari
 
