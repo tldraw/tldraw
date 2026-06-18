@@ -5,7 +5,7 @@
 	padding: 0px 12px;
 	background: none;
 	outline: none;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	border-radius: var(--tla-radius-2);
 	cursor: pointer;
 	display: flex;
@@ -84,7 +84,7 @@
 .secondary {
 	background-color: var(--tla-color-secondary);
 	border: 1px solid var(--tla-color-secondary-border);
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .iconRight {

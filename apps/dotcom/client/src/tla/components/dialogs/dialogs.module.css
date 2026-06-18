@@ -73,7 +73,7 @@
 	padding: 8px;
 	padding-bottom: 12px;
 	font-size: 12px;
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-0);
 	line-height: 1.4;
 }
 
@@ -111,7 +111,7 @@
 
 .cookieAcceptButton {
 	color: var(--tla-color-sidebar);
-	background-color: var(--tl-color-text);
+	background-color: var(--tl-color-text-0);
 	overflow: hidden;
 	position: relative;
 }
@@ -155,7 +155,7 @@
 @media (hover: hover) {
 	.cookieAcceptButton:hover {
 		color: var(--tla-color-sidebar);
-		background-color: var(--tl-color-text);
+		background-color: var(--tl-color-text-0);
 	}
 }
 
@@ -231,7 +231,7 @@
 	margin: 8px 0 0;
 	text-align: center;
 	text-wrap: balance;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .membersList {
@@ -319,7 +319,7 @@
 	cursor: pointer;
 	font-size: 12px;
 	font-weight: 500;
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	text-align: left;
 	height: 36px;
 }

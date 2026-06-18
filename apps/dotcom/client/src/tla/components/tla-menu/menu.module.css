@@ -74,7 +74,7 @@
 @media (hover: hover) {
 	.menuInfoTrigger:not(:disabled):hover {
 		z-index: 1;
-		color: var(--tl-color-text);
+		color: var(--tl-color-text-0);
 	}
 
 	.menuInfoTrigger:not(:disabled):hover::after {
@@ -83,7 +83,7 @@
 }
 
 .menuLabel {
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -347,7 +347,7 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	display: flex;
 	align-items: center;
 	padding: var(--tab-padding);
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-0);
 }
 
 .menuTabsTab::after {
@@ -359,7 +359,7 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	right: var(--tab-padding);
 	height: var(--line-height);
 	z-index: 3;
-	background-color: var(--tl-color-text);
+	background-color: var(--tl-color-text-0);
 	visibility: hidden;
 }
 
@@ -368,7 +368,7 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 }
 
 .menuTabsTab[data-active='true'] {
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	/* active tab in front of peers */
 	z-index: 2;
 }
@@ -385,7 +385,7 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 
 @media (hover: hover) {
 	.menuTabsTab:not(:disabled):hover {
-		color: var(--tl-color-text);
+		color: var(--tl-color-text-0);
 	}
 }
 
