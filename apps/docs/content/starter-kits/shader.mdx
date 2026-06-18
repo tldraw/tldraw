@@ -4,7 +4,7 @@ sidebarTitle: Shader
 status: published
 author: tldraw
 date: 10/14/2024
-order: 7
+order: 8
 description: The Shader Starter Kit demonstrates how to integrate WebGL shaders with [tldraw](https://github.com/tldraw/tldraw). It creates dynamic backgrounds that respond to canvas interactions, and includes four complete examples and a reusable `WebGLManager` base class for building custom shader effects.
 embed: shader
 githubLink: https://github.com/tldraw/tldraw/tree/main/templates/shader
@@ -46,40 +46,12 @@ The config panel components ([`src/config-panel/`](https://github.com/tldraw/tld
 
 The template ships with four complete demos that follow the same pattern of manager, renderer, config panel, and GLSL files:
 
-- **Fluid simulation** ([`src/fluid/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/)) — Navier-Stokes-based flow that turns pointer movement into velocity splats. Includes an in-depth [guide](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/fluid.md).
+- **Fluid simulation** ([`src/fluid/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/)) — Navier-Stokes-based flow, built on Pavel Dobryakov's WebGL fluid implementation, that turns shape and pointer movement into velocity splats. Includes an in-depth [guide](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/fluid.md).
 - **Rainbow** ([`src/rainbow/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/rainbow/)) — Gradient animation that demonstrates time-based uniforms and color cycling.
 - **Shadows** ([`src/shadow/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/shadow/)) — Raymarched shadow effect using signed distance fields derived from canvas geometry.
 - **Minimal** ([`src/minimal/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/minimal/)) — Dark-mode-aware solid color shader that makes it easy to start your own effect, with a [step-by-step walkthrough](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/minimal/minimal-example.md).
 
 Switch between demos from the example menu next to the style panel to see how different managers plug into the same infrastructure.
-
-#### Fluid simulation
-
-A real-time fluid simulation based on Pavel Dobryakov's WebGL fluid implementation. Shape movements create dynamic flows in the simulation.
-
-- Navier-Stokes fluid dynamics
-- Shape movements create velocity-based splats
-- Configurable physics and visual effects
-
-**See:** [`src/fluid/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/) | [Documentation](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/fluid/fluid.md)
-
-#### Rainbow
-
-An animated gradient shader demonstrating time-based effects and uniform management.
-
-**See:** [`src/rainbow/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/rainbow/)
-
-#### Shadows
-
-Dynamic shadow casting from tldraw shapes using raymarching and signed distance fields.
-
-**See:** [`src/shadow/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/shadow/)
-
-#### Minimal
-
-A bare-bones template for starting new shader projects. Renders a solid color that adapts to dark mode.
-
-**See:** [`src/minimal/`](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/minimal/) | [Documentation](https://github.com/tldraw/tldraw/tree/main/templates/shader/src/minimal/minimal-example.md)
 
 ---
 
@@ -129,7 +101,7 @@ See [`src/fluid/FluidManager.ts`](https://github.com/tldraw/tldraw/tree/main/tem
 
 ## Further reading
 
-For multi-user shader environments, see the [Multiplayer Starter Kit](/starter-kits/multiplayer). To create custom shapes with advanced geometry and rendering, see [Shape Utilities](/docs/shapes#custom-shapes). For working with tldraw's reactive state system and event handling, see [Editor State Management](/docs/editor).
+For multi-user shader environments, see the [Multiplayer starter kit](/starter-kits/multiplayer). To create custom shapes with advanced geometry and rendering, see [Shape utilities](/docs/shapes#custom-shapes). For working with tldraw's reactive state system and event handling, see [Editor state management](/docs/editor).
 
 ---
 

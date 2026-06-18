@@ -3,7 +3,6 @@ import { useCallback } from 'react'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
@@ -45,23 +44,23 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 	return (
 		<>
 			{!isReadonly && (
-				<TldrawUiButton
+				<TldrawUiToolbarButton
 					type="icon"
 					title={msg('tool.replace-media')}
 					onClick={handleVideoReplace}
 					data-testid="tool.video-replace"
 				>
 					<TldrawUiButtonIcon small icon="tool-media" />
-				</TldrawUiButton>
+				</TldrawUiToolbarButton>
 			)}
-			<TldrawUiButton
+			<TldrawUiToolbarButton
 				type="icon"
 				title={msg('action.download-original')}
 				onClick={handleVideoDownload}
 				data-testid="tool.video-download"
 			>
 				<TldrawUiButtonIcon small icon="download" />
-			</TldrawUiButton>
+			</TldrawUiToolbarButton>
 			{(altText || !isReadonly) && (
 				<TldrawUiToolbarButton
 					type="icon"

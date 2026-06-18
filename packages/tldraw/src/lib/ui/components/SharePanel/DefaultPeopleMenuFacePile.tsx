@@ -1,10 +1,11 @@
+import { TLUserId } from '@tldraw/editor'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
 
 /** @public */
 export interface TLUiPeopleMenuFacePileProps {
-	userIds: string[]
+	userIds: TLUserId[]
 	userName: string
 	userColor: string
 }

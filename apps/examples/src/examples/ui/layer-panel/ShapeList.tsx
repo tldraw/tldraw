@@ -1,4 +1,4 @@
-import { capitalize } from 'lodash'
+import capitalize from 'lodash/capitalize'
 import { useRef, useState } from 'react'
 import { Editor, TLShapeId, useEditor, useValue } from 'tldraw'
 import { VisibilityOff, VisibilityOn } from '../../../icons/icons'

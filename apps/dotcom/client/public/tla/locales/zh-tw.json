@@ -1,4 +1,7 @@
 {
+  "1764571547": {
+    "translation": "您確定要刪除此工作區嗎？此操作無法撤銷。"
+  },
   "0095a9fa74": {
     "translation": "匯出"
   },
@@ -7,6 +10,12 @@
   },
   "043973ec1f": {
     "translation": "仍有問題嗎？{GetHelpLink}"
+  },
+  "04a2dd56d6": {
+    "translation": "邀請隊友"
+  },
+  "05f43078e9": {
+    "translation": "您已達到工作區數量上限。您需要先刪除舊工作區，才能建立新工作區。"
   },
   "06b9281e39": {
     "translation": "自動"
@@ -29,14 +38,17 @@
   "0b9a4cde72": {
     "translation": "檔案選單"
   },
+  "0c4383617a": {
+    "translation": "載入此邀請時出錯，請重試。"
+  },
   "0d1f2bb523": {
     "translation": "傳送回饋"
   },
+  "1063e38cb5": {
+    "translation": "消除"
+  },
   "110a4b01be": {
     "translation": "發布"
-  },
-  "129b9e34ea": {
-    "translation": "離開群組"
   },
   "12a6766ba1": {
     "translation": "解壓縮文件"
@@ -47,14 +59,11 @@
   "13ddd375ad": {
     "translation": "匯出為"
   },
-  "146ffe2fd9": {
-    "translation": "顯示更多"
-  },
-  "14d65465b7": {
-    "translation": "刪除群組"
-  },
   "181b90f889": {
     "translation": "建立檔案"
+  },
+  "1d2591253e": {
+    "translation": "工作區設定"
   },
   "1da2e8106b": {
     "translation": "發生未預期的錯誤。"
@@ -62,8 +71,8 @@
   "1dd1c5fb7f": {
     "translation": "今天"
   },
-  "2445e5e347": {
-    "translation": "建立群組"
+  "21f66c9c00": {
+    "translation": "工作區名稱"
   },
   "250ddea65c": {
     "translation": "關於tldraw"
@@ -74,14 +83,14 @@
   "2c3ef76333": {
     "translation": "我的文件"
   },
+  "2e2b3c700b": {
+    "translation": "包含當前文件的連結"
+  },
   "31246941ad": {
     "translation": "您必須登入才能檢視此檔案。"
   },
   "31418ce4ad": {
     "translation": "i18n：醒目顯示遺失"
-  },
-  "32210b37e4": {
-    "translation": "添加連結"
   },
   "324a0f3182": {
     "translation": "返回tldraw"
@@ -91,6 +100,9 @@
   },
   "344a7f427f": {
     "translation": "編輯器"
+  },
+  "375396d6e5": {
+    "translation": "移除成員"
   },
   "3bc7d6ea2f": {
     "translation": "繼續透過電子郵件"
@@ -107,8 +119,14 @@
   "3e2ae04ff0": {
     "translation": "不支持的 Mermaid 圖"
   },
+  "402bf0c47e": {
+    "translation": "顏色主題"
+  },
   "42e53c47c1": {
     "translation": "請聯絡擁有者請求存取權限。"
+  },
+  "44680c1fa7": {
+    "translation": "離開工作區…"
   },
   "44db318ee5": {
     "translation": "在 Discord 上獲得協助"
@@ -125,12 +143,6 @@
   "47f493a590": {
     "translation": "針文件"
   },
-  "49049467ff": {
-    "translation": "貼上tldraw文件URL..."
-  },
-  "4908687e50": {
-    "translation": "您確定要遺忘此檔案嗎？"
-  },
   "49ee308734": {
     "translation": "姓名"
   },
@@ -139,15 +151,6 @@
   },
   "4d1c8263ba": {
     "translation": "重新載入"
-  },
-  "4da5988a2e": {
-    "translation": "刪除群組…"
-  },
-  "4dab36ac83": {
-    "translation": "更多選項"
-  },
-  "4e6fbf032b": {
-    "translation": "您確定要刪除此群組嗎？此操作無法撤銷。"
   },
   "5097d89907": {
     "translation": "不支援的圖表，將產生 SVG 格式的圖表。"
@@ -176,14 +179,14 @@
   "56c34c6410": {
     "translation": "隱私權政策"
   },
-  "5a86b22fa0": {
-    "translation": "將檔案拖曳到這裡，<create>建立檔案</create>，或<invite>複製邀請連結</invite>即可開始。"
-  },
   "5a95a425f7": {
     "translation": "共享"
   },
   "5bec508475": {
     "translation": "偵測到舊版瀏覽器。請更新您的瀏覽器以使用此應用程式。"
+  },
+  "5bff3c9c88": {
+    "translation": "我的工作區"
   },
   "5c6fe42bc2": {
     "translation": "撤銷此連結並建立新連結。"
@@ -193,9 +196,6 @@
   },
   "5d26ae7550": {
     "translation": "我們無法上傳您登入之前所建立的部分內容。"
-  },
-  "5ea8bb44be": {
-    "translation": "您已被邀請加入以下群組："
   },
   "5f3c333678": {
     "translation": "已提交回饋"
@@ -224,6 +224,9 @@
   "6832ac5936": {
     "translation": "請輸入您的電子郵件地址"
   },
+  "694f82ed9d": {
+    "translation": "刪除工作區"
+  },
   "6a26f54883": {
     "translation": "幫助"
   },
@@ -232,9 +235,6 @@
   },
   "6dfc62f621": {
     "translation": "按照以下步驟手動匯入內容："
-  },
-  "70222abcfc": {
-    "translation": "群組設定"
   },
   "70a6facb9d": {
     "translation": "本週"
@@ -263,6 +263,9 @@
   "764671e008": {
     "translation": "在 Discord 上與我們聊天"
   },
+  "4908687e50": {
+    "translation": "您確定要遺忘此檔案嗎？"
+  },
   "76dea3c9ca": {
     "translation": "tldraw 是一款免費的線上白板工具。建立帳戶即可儲存文件並與朋友協作。"
   },
@@ -278,6 +281,9 @@
   "797799f35e": {
     "translation": "在 GitHub 上提交問題"
   },
+  "7a1920d611": {
+    "translation": "預設"
+  },
   "7b1329f5ca": {
     "translation": "使用者手冊"
   },
@@ -289,9 +295,6 @@
   },
   "7cb5f8b4a5": {
     "translation": "遺忘"
-  },
-  "7cfe6c43dc": {
-    "translation": "離開群組…"
   },
   "7daeced9ff": {
     "translation": "發布變更內容"
@@ -305,6 +308,9 @@
   "815e116a2e": {
     "translation": "對於 tldraw 有錯誤、問題或想法嗎？讓我們知道！填寫此表格，如有需要，我們將透過電子郵件跟進。您也可以<discord>在 Discord 上與我們聊天</discord>或<github>在 GitHub 上提交問題</github>。"
   },
+  "858ba4765e": {
+    "translation": "成員"
+  },
   "85a082de1b": {
     "translation": "請重新整理頁面以取得最新版本的 tldraw。"
   },
@@ -314,11 +320,20 @@
   "86c66437fd": {
     "translation": "重新命名文件"
   },
+  "87fdb09de6": {
+    "translation": "您已經是此工作區的成員。"
+  },
+  "88bf6ab42c": {
+    "translation": "此邀請連結已過期。"
+  },
   "8ad4303b83": {
     "translation": "不，謝謝"
   },
   "8c2d3d730c": {
     "translation": "請查看您的電子郵件，您會收到驗證碼。"
+  },
+  "8cf04a9734": {
+    "translation": "家"
   },
   "8eb2c00e96": {
     "translation": "已與您共享"
@@ -335,14 +350,11 @@
   "91e49bb0eb": {
     "translation": "複製到我的檔案"
   },
-  "930390d222": {
-    "translation": "複製的邀請連結"
-  },
-  "9489b2f82a": {
-    "translation": "您已經是該群組的成員了。"
-  },
   "95aacd4d4a": {
     "translation": "使用 Google 登入"
+  },
+  "95b56f4cd6": {
+    "translation": "刪除工作區…"
   },
   "95d2109dc8": {
     "translation": "使用 tldraw SDK 構建"
@@ -352,9 +364,6 @@
   },
   "985a4b720f": {
     "translation": "使用條款"
-  },
-  "98c997a27e": {
-    "translation": "添加文件連結"
   },
   "9914a0ce04": {
     "translation": "淺色"
@@ -410,6 +419,9 @@
   "a9ded1e5ce": {
     "translation": "背景"
   },
+  "aac449eef6": {
+    "translation": "建立工作區"
+  },
   "ab0df9ba36": {
     "translation": "已達到文件限制"
   },
@@ -426,9 +438,6 @@
   "b357b524e7": {
     "translation": "電子郵件"
   },
-  "b3d2db69fe": {
-    "translation": "文件 URL"
-  },
   "b6d4223e60": {
     "translation": "登入"
   },
@@ -440,9 +449,6 @@
   },
   "ba0318cb81": {
     "translation": "登入以分享"
-  },
-  "bb93a7590f": {
-    "translation": "接受並加入群組"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, other {正在上傳 {uploaded} 個 .tldr 檔案（共 {total} 個）…}}"
@@ -462,17 +468,14 @@
   "c4b39a1cc3": {
     "translation": "必備 Cookie"
   },
-  "c6155aaecc": {
-    "translation": "組名"
-  },
   "c655b27b1e": {
     "translation": "i18n：長字串"
   },
   "c6a00f137b": {
     "translation": "邀請"
   },
-  "c74ea6dbff": {
-    "translation": "顯示更少"
+  "c7d7403714": {
+    "translation": "新董事會"
   },
   "c87aacf567": {
     "translation": "登出"
@@ -519,17 +522,17 @@
   "d9100f3e10": {
     "translation": "前往此處查看內容"
   },
-  "d9e35d0f55": {
-    "translation": "您已達到群組數量上限。建立新群組前，您需要先刪除舊群組。"
-  },
   "dbbebf3c03": {
     "translation": "限受邀者"
   },
-  "dcdaa754fe": {
-    "translation": "無效的tldraw檔案URL"
+  "dbf9b24193": {
+    "translation": "離開工作區"
   },
   "dfdb78a4e4": {
     "translation": "應用程式的偵錯旗標"
+  },
+  "e0aa021e21": {
+    "translation": "好的"
   },
   "e0c88179b3": {
     "translation": "邀請成員"
@@ -540,20 +543,26 @@
   "e2ae80a510": {
     "translation": "法律摘要"
   },
-  "e3afed0047": {
-    "translation": "行政"
-  },
   "e404559826": {
     "translation": "服務條款"
   },
+  "e615d52512": {
+    "translation": "接受並加入工作區"
+  },
   "e81c4e4f2b": {
     "translation": "或者"
+  },
+  "e9e0f16850": {
+    "translation": "您已受邀加入工作區："
   },
   "ea0626ac5a": {
     "translation": "危險區域"
   },
   "ea4788705e": {
     "translation": "取消"
+  },
+  "eb1e2b0542": {
+    "translation": "請向工作空間所有者申請新的。"
   },
   "ebfe9ce86e": {
     "translation": "昨天"
@@ -594,14 +603,14 @@
   "f4f70727dc": {
     "translation": "設定"
   },
-  "f714e36843": {
-    "translation": "你確定要退出這個群組嗎？"
-  },
   "fa2ead697d": {
     "translation": "隱私權政策"
   },
   "fb15c53f22": {
     "translation": "閱覽者"
+  },
+  "fc9d47046b": {
+    "translation": "您確定要離開此工作區嗎？"
   },
   "fd1be3efcf": {
     "translation": "您確定要刪除此檔案嗎？"
@@ -609,8 +618,8 @@
   "fed5ec05eb": {
     "translation": "已複製連結"
   },
-  "ff7a814974": {
-    "translation": "新增文件連結…"
+  "ff2fefd3c6": {
+    "translation": "您確定要從此工作區中刪除 {name} 嗎？"
   },
   "ffcd73e997": {
     "translation": "導入文件…"

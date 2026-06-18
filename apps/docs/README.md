@@ -34,7 +34,7 @@ A section looks like this:
 {
 	"id": "community",
 	"title": "Community",
-	"description": "Guides for contributing to tldraw's open source project.",
+	"description": "Community resources for tldraw.",
 	"categories": []
 }
 ```
@@ -131,14 +131,14 @@ Release notes live in `content/releases/` and are the source of truth for SDK re
 
 ### Workflow
 
-1. As PRs merge to main, update `next.mdx` with release notes using the `/update-changelog` command or `write-changelog` skill
+1. As PRs merge to main, update `next.mdx` with release notes using the `update-release-notes` skill
 2. When publishing a release:
    - Rename `next.mdx` to `vX.Y.0.mdx`
    - Update the frontmatter `order` field
    - Create a new `next.mdx` for the next version
 3. The release notes can then be copied to GitHub releases
 
-See `.claude/skills/write-changelog/` for detailed formatting guidelines.
+See `skills/update-release-notes/` for the maintenance workflow and `skills/write-release-notes/` for writing guidance.
 
 ## Developing the docs
 
@@ -148,7 +148,7 @@ When developing the docs, any change to the `content` folder will cause the page
 
 ## Contribution
 
-Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## License
 

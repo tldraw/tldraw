@@ -146,8 +146,8 @@ BaseBoxShapeUtil class instead, we wouldn't have define methods such as `getGeom
 	lot of flexibility here, and you can use any React hooks you want and return any valid JSX.
 
 	[g]
-	The indicator is the blue outline around a selected shape. We're just returning a rectangle with the
-	same width and height as the shape here. You can return any valid JSX here.
+	The indicator is the blue outline around a selected shape. We're returning a Path2D for a rectangle
+	with the same width and height as the shape. The path is stroked onto the canvas overlay.
 
 [4]
 This is where we render the Tldraw component with our custom shape. We're passing in our custom shape

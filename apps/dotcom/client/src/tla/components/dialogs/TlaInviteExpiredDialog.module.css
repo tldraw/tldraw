@@ -1,0 +1,35 @@
+.dialogHeader {
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.dialogBody {
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 0 24px 24px;
+	width: 300px;
+}
+
+.dialogBody .header {
+	flex: 0 0 auto;
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--tl-color-text-1);
+	margin: 8px 0 0;
+}
+
+.message {
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+	margin: 0;
+}
+
+.okButton {
+	margin-top: 8px;
+	width: 100%;
+}

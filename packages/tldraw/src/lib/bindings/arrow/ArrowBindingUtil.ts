@@ -92,10 +92,14 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		reparentArrow(this.editor, binding.fromId)
 	}
 
-	// when the arrow is isolated we need to update it's x,y positions
+	// when the arrow is isolated we need to update its (x,y) positions
 	override onBeforeIsolateFromShape({
 		binding,
 	}: BindingOnShapeIsolateOptions<TLArrowBinding>): void {
+		// during undo/redo the history diff already contains the arrow's correct
+		// state, so adjusting the terminal here would corrupt the replay
+		if (this.editor.isReplayingHistory()) return
+
 		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
 		if (!arrow) return
 		updateArrowTerminal({

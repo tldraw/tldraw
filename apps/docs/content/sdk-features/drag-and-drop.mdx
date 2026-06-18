@@ -169,7 +169,7 @@ Only shapes that implement drag callbacks are considered as drop targets. If you
 
 ## Controlling which shapes can be dropped
 
-Use the [ShapeUtil#canReceiveNewChildrenOfType](?) method to control which shape types your container accepts:
+Use the [ShapeUtil#canReceiveNewChildrenOfType](?) method to control which shape types your container accepts. The editor uses it to decide whether `onDragShapesIn` and `onDropShapesOver` fire for a dragged shape:
 
 ```typescript
 override canReceiveNewChildrenOfType(shape: MyContainerShape, type: TLShape['type']) {
@@ -178,7 +178,20 @@ override canReceiveNewChildrenOfType(shape: MyContainerShape, type: TLShape['typ
 }
 ```
 
-You must check this yourself in your drag callbacks. The editor does not call it automatically.
+The default is `false`, so any shape that should accept dropped children must override this method. `onDragShapesOver` is not gated by this method, which lets you provide visual feedback even when the target won't accept the drop.
+
+## Controlling which shapes can be dragged out
+
+Use the [ShapeUtil#canRemoveChildrenOfType](?) method to control which child shape types can be dragged out of your container. The editor uses it to decide whether `onDragShapesOut` fires for a child shape, and to decide whether the editor should automatically reparent a child that has moved outside its parent's geometry:
+
+```typescript
+override canRemoveChildrenOfType(shape: MyContainerShape, type: TLShape['type']) {
+	// Pin certain children in place; allow others to be removed
+	return type !== 'pinned-item'
+}
+```
+
+The default is `true`, so children can be dragged out of any container unless this method is overridden.
 
 ## Example: slot container
 

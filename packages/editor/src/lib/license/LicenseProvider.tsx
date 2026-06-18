@@ -6,7 +6,9 @@ import { LicenseManager } from './LicenseManager'
 export const LicenseContext = createContext({} as LicenseManager)
 
 /** @internal */
-export const useLicenseContext = () => useContext(LicenseContext)
+export function useLicenseContext() {
+	return useContext(LicenseContext)
+}
 
 function shouldHideEditorAfterDelay(licenseState: string): boolean {
 	return licenseState === 'expired' || licenseState === 'unlicensed-production'

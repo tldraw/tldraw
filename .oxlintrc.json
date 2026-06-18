@@ -20,7 +20,10 @@
 		}
 	},
 	"ignorePatterns": [
+		"skills/**/*",
 		".claude/**/*",
+		".agents/**/*",
+		".cursor/**/*",
 		"**/node_modules/*",
 		"**/out/*",
 		"**/dist/*",
@@ -210,6 +213,18 @@
 			}
 		],
 
+		"no-restricted-imports": [
+			"error",
+			{
+				"paths": [
+					{
+						"name": "lodash",
+						"message": "The main `lodash` package is CommonJS and does not tree-shake. Use a deep import (e.g. `import throttle from 'lodash/throttle'`), `lodash-es`, a per-method package, or inline the helper."
+					}
+				]
+			}
+		],
+
 		"tldraw/no-export-star": "error",
 		"tldraw/no-internal-imports": "error",
 		"tldraw/tagged-components": "error",
@@ -258,7 +273,6 @@
 		{
 			"files": ["packages/editor/**/*", "packages/tldraw/**/*", "packages/utils/**/*"],
 			"rules": {
-				"tldraw/no-exported-arrow-const": "off",
 				"no-restricted-globals": [
 					"error",
 					{
@@ -369,6 +383,10 @@
 							{
 								"name": "react-intl",
 								"message": "Please import useIntl from src/utils/intl instead."
+							},
+							{
+								"name": "lodash",
+								"message": "The main `lodash` package is CommonJS and does not tree-shake. Use a deep import (e.g. `import throttle from 'lodash/throttle'`), `lodash-es`, a per-method package, or inline the helper."
 							}
 						]
 					}
@@ -414,7 +432,6 @@
 			"rules": {
 				"tldraw/no-setter-getter": "off",
 				"tldraw/no-direct-storage": "off",
-				"tldraw/no-exported-arrow-const": "off",
 				"tldraw/img-referrer-policy": "off"
 			}
 		},
@@ -424,7 +441,6 @@
 				"tldraw/prefer-class-methods": "off",
 				"tldraw/no-setter-getter": "off",
 				"tldraw/no-direct-storage": "off",
-				"tldraw/no-exported-arrow-const": "off",
 				"tldraw/img-referrer-policy": "off",
 				"no-console": "off",
 				"tldraw/method-signature-style": "off"

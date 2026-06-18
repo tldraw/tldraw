@@ -21,6 +21,18 @@
       "value": "GetHelpLink"
     }
   ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Mag-imbita ng mga kasamahan sa koponan"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Naabot mo na ang pinakamataas na bilang ng mga workspace. Kailangan mong burahin ang mga lumang workspace bago gumawa ng mga bago."
+    }
+  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -63,22 +75,28 @@
       "value": "Menu ng file"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Nagkaroon ng problema sa paglo-load ng imbitasyong ito. Pakisubukang muli."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Magpadala ng feedback"
     }
   ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Alisin"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
       "value": "I-publish"
-    }
-  ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Umalis sa grupo"
     }
   ],
   "12a6766ba1": [
@@ -99,22 +117,22 @@
       "value": "I-export bilang"
     }
   ],
-  "146ffe2fd9": [
+  "1764571547": [
     {
       "type": 0,
-      "value": "Magpakita ng higit pa"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Tanggalin ang pangkat"
+      "value": "Sigurado ka bang gusto mong burahin ang workspace na ito? Hindi na maaaring bawiin ang aksyon na ito."
     }
   ],
   "181b90f889": [
     {
       "type": 0,
       "value": "Lumikha ng file"
+    }
+  ],
+  "1d2591253e": [
+    {
+      "type": 0,
+      "value": "Mga setting ng workspace"
     }
   ],
   "1da2e8106b": [
@@ -129,10 +147,10 @@
       "value": "Ngayong araw"
     }
   ],
-  "2445e5e347": [
+  "21f66c9c00": [
     {
       "type": 0,
-      "value": "Lumikha ng pangkat"
+      "value": "Pangalan ng lugar ng trabaho"
     }
   ],
   "250ddea65c": [
@@ -153,6 +171,12 @@
       "value": "Aking mga file"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Isama ang link sa kasalukuyang file"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -163,12 +187,6 @@
     {
       "type": 0,
       "value": "i18n: Nawawala ang Highlight"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Magdagdag ng link"
     }
   ],
   "324a0f3182": [
@@ -187,6 +205,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Alisin ang miyembro"
     }
   ],
   "3bc7d6ea2f": [
@@ -219,10 +243,22 @@
       "value": "Hindi sinusuportahang Mermaid diagram"
     }
   ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Tema ng kulay"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Makipag-ugnayan sa may-ari para humiling ng access."
+    }
+  ],
+  "44680c1fa7": [
+    {
+      "type": 0,
+      "value": "Umalis sa workspace…"
     }
   ],
   "44db318ee5": [
@@ -255,12 +291,6 @@
       "value": "Pin file"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "I-paste ang URL ng tldraw file..."
-    }
-  ],
   "4908687e50": [
     {
       "type": 0,
@@ -283,24 +313,6 @@
     {
       "type": 0,
       "value": "I-reload"
-    }
-  ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Tanggalin ang pangkat…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Higit pang mga opsyon"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Sigurado ka bang gusto mong tanggalin ang pangkat na ito? Ang pagkilos na ito ay hindi maaaring i-undo."
     }
   ],
   "5097d89907": [
@@ -367,40 +379,6 @@
       "value": "Patakaran sa privacy"
     }
   ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "I-drag ang mga file dito, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "lumikha ng file"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": ", o "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "copy invite link"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " para makapagsimula."
-    }
-  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -411,6 +389,12 @@
     {
       "type": 0,
       "value": "Nakita ang lumang browser. Mangyaring i-update ang iyong browser upang magamit ang app na ito."
+    }
+  ],
+  "5bff3c9c88": [
+    {
+      "type": 0,
+      "value": "Ang aking lugar ng trabaho"
     }
   ],
   "5c6fe42bc2": [
@@ -429,12 +413,6 @@
     {
       "type": 0,
       "value": "Nabigo kaming mag-upload ng ilan sa nilalamang ginawa mo bago ka mag-sign in."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Inimbitahan kang sumali sa grupo:"
     }
   ],
   "5f3c333678": [
@@ -491,6 +469,12 @@
       "value": "Ilagay ang iyong email address"
     }
   ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Burahin ang workspace"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
@@ -507,12 +491,6 @@
     {
       "type": 0,
       "value": "Sundin ang mga hakbang na ito upang manu-manong i-import ang nilalaman:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Mga setting ng pangkat"
     }
   ],
   "70a6facb9d": [
@@ -599,6 +577,12 @@
       "value": "Magsumite ng isyu sa GitHub"
     }
   ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Default"
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -621,12 +605,6 @@
     {
       "type": 0,
       "value": "Kalimutan"
-    }
-  ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Umalis sa grupo..."
     }
   ],
   "7daeced9ff": [
@@ -681,6 +659,12 @@
       "value": "."
     }
   ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Miyembro"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -707,6 +691,18 @@
       "value": "Palitan ang pangalan ng file"
     }
   ],
+  "87fdb09de6": [
+    {
+      "type": 0,
+      "value": "Miyembro ka na ng workspace na ito"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Nag-expire na ang link ng imbitasyon na ito"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -717,6 +713,12 @@
     {
       "type": 0,
       "value": "Tingnan ang iyong email para sa isang verification code."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Tahanan"
     }
   ],
   "8eb2c00e96": [
@@ -749,22 +751,16 @@
       "value": "Kopyahin sa aking mga file"
     }
   ],
-  "930390d222": [
-    {
-      "type": 0,
-      "value": "Kinopya ang link ng imbitasyon"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Miyembro ka na ng grupong ito"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Mag-sign in gamit ang Google"
+    }
+  ],
+  "95b56f4cd6": [
+    {
+      "type": 0,
+      "value": "Burahin ang workspace…"
     }
   ],
   "95d2109dc8": [
@@ -783,12 +779,6 @@
     {
       "type": 0,
       "value": "Mga Tuntunin sa Paggamit"
-    }
-  ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Magdagdag ng link ng file"
     }
   ],
   "9914a0ce04": [
@@ -913,6 +903,12 @@
       "value": "Background"
     }
   ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Gumawa ng workspace"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -949,12 +945,6 @@
       "value": "Email address"
     }
   ],
-  "b3d2db69fe": [
-    {
-      "type": 0,
-      "value": "URL ng file"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -977,12 +967,6 @@
     {
       "type": 0,
       "value": "Mag-sign in upang ibahagi"
-    }
-  ],
-  "bb93a7590f": [
-    {
-      "type": 0,
-      "value": "Tanggapin at sumali sa grupo"
     }
   ],
   "bbbcefd7ce": [
@@ -1091,12 +1075,6 @@
       "value": "Mahahalagang cookies"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Pangalan ng grupo"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1109,10 +1087,10 @@
       "value": "Mag-imbita"
     }
   ],
-  "c74ea6dbff": [
+  "c7d7403714": [
     {
       "type": 0,
-      "value": "Magpakita ng mas kaunti"
+      "value": "Bagong board"
     }
   ],
   "c87aacf567": [
@@ -1233,28 +1211,28 @@
       "value": "Pumunta dito upang makita ang nilalaman"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Naabot mo na ang maximum na bilang ng mga pangkat. Kailangan mong tanggalin ang mga lumang grupo bago gumawa ng mga bago."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Mag-imbita lang"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "Di-wastong tldraw file URL"
+      "value": "Umalis sa workspace"
     }
   ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Mga flag ng pag-debug ng app"
+    }
+  ],
+  "e0aa021e21": [
+    {
+      "type": 0,
+      "value": "Sige"
     }
   ],
   "e0c88179b3": [
@@ -1275,22 +1253,28 @@
       "value": "Legal na buod"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Admin"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Mga tuntunin ng serbisyo"
     }
   ],
+  "e615d52512": [
+    {
+      "type": 0,
+      "value": "Tanggapin at sumali sa workspace"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "o"
+    }
+  ],
+  "e9e0f16850": [
+    {
+      "type": 0,
+      "value": "Inaanyayahan kang sumali sa workspace:"
     }
   ],
   "ea0626ac5a": [
@@ -1303,6 +1287,12 @@
     {
       "type": 0,
       "value": "Kanselahin"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Humingi ng bago sa may-ari ng workspace."
     }
   ],
   "ebfe9ce86e": [
@@ -1397,12 +1387,6 @@
       "value": "Mga setting"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Sigurado ka bang gusto mong umalis sa grupong ito?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1413,6 +1397,12 @@
     {
       "type": 0,
       "value": "manonood"
+    }
+  ],
+  "fc9d47046b": [
+    {
+      "type": 0,
+      "value": "Sigurado ka bang gusto mong umalis sa workspace na ito?"
     }
   ],
   "fd1be3efcf": [
@@ -1427,10 +1417,18 @@
       "value": "Kinopya ang link"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Magdagdag ng link ng file…"
+      "value": "Sigurado ka bang gusto mong alisin ang "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " mula sa workspace na ito?"
     }
   ],
   "ffcd73e997": [

@@ -63,8 +63,7 @@ export class FocusManager {
 		const activeEl = container.ownerDocument.activeElement
 		// Edit mode should remove the focus ring, however if the active element's
 		// parent is the contextual toolbar, then allow it.
-		if (this.editor.isIn('select.editing_shape') && !activeEl?.closest('.tlui-contextual-toolbar'))
-			return
+		if (this.editor.getEditingShapeId() && !activeEl?.closest('.tlui-contextual-toolbar')) return
 		if (activeEl === container && this.editor.getSelectedShapeIds().length > 0) return
 		if (['Tab', 'ArrowUp', 'ArrowDown'].includes(keyEvent.key)) {
 			container.classList.remove('tl-container__no-focus-ring')
@@ -80,9 +79,9 @@ export class FocusManager {
 		this.editor.getContainer().focus()
 	}
 
-	blur() {
+	blur({ blurContainer = true } = {}) {
 		this.editor.complete() // stop any interaction
-		this.editor.getContainer().blur() // blur the container
+		if (blurContainer) this.editor.getContainer().blur() // blur the container
 	}
 
 	dispose() {

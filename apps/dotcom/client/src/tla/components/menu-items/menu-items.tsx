@@ -4,7 +4,6 @@ import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-	ColorSchemeMenu,
 	TLDRAW_FILE_EXTENSION,
 	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
@@ -15,6 +14,7 @@ import {
 	useDirection,
 	useMaybeEditor,
 	useTranslation,
+	useUiEvents,
 	useValue,
 } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
@@ -40,7 +40,6 @@ const messages = defineMessages({
 	accountMenu: { defaultMessage: 'User settings' },
 	signOut: { defaultMessage: 'Sign out' },
 	importFile: { defaultMessage: 'Import file…' },
-	dotdev: { defaultMessage: 'Try the tldraw SDK' },
 	// account menu
 	getHelp: { defaultMessage: 'User manual' },
 	legalSummary: { defaultMessage: 'Legal summary' },
@@ -50,6 +49,9 @@ const messages = defineMessages({
 	manageCookies: { defaultMessage: 'Manage cookies' },
 	about: { defaultMessage: 'About tldraw' },
 	submitFeedback: { defaultMessage: 'Send feedback' },
+	// color theme
+	colorTheme: { defaultMessage: 'Color theme' },
+	colorThemeDefault: { defaultMessage: 'Default' },
 	// debug
 	appDebugFlags: { defaultMessage: 'App debug flags' },
 	langAccented: { defaultMessage: 'i18n: Accented' },
@@ -84,16 +86,49 @@ export function SignOutMenuItem() {
 	)
 }
 
-export function ColorThemeSubmenu() {
+const COLOR_SCHEMES = [
+	{ colorScheme: 'light' as const, label: 'theme.light' },
+	{ colorScheme: 'dark' as const, label: 'theme.dark' },
+	{ colorScheme: 'system' as const, label: 'theme.system' },
+]
+
+function ThemeMenuGroup() {
 	const editor = useMaybeEditor()
+	const trackEvent = useUiEvents()
+	const currentColorScheme = useValue(
+		'colorScheme',
+		() =>
+			editor
+				? (editor.user.getUserPreferences().colorScheme ??
+					(editor.user.getIsDarkMode() ? 'dark' : 'light'))
+				: 'system',
+		[editor]
+	)
+
 	if (!editor) return null
-	return <ColorSchemeMenu />
+
+	return (
+		<TldrawUiMenuGroup id="theme">
+			{COLOR_SCHEMES.map(({ colorScheme, label }) => (
+				<TldrawUiMenuCheckboxItem
+					id={`color-scheme-${colorScheme}`}
+					key={colorScheme}
+					label={label}
+					checked={colorScheme === currentColorScheme}
+					readonlyOk
+					onSelect={() => {
+						editor.user.updateUserPreferences({ colorScheme })
+						trackEvent('color-scheme', { source: 'menu', value: colorScheme })
+					}}
+				/>
+			))}
+		</TldrawUiMenuGroup>
+	)
 }
 
-const THEME_NAMES: Record<string, string> = {
-	default: 'Default',
-	...Object.fromEntries(UI_THEMES.map(({ id, name }) => [id, name])),
-}
+const THEME_NAMES: Record<string, string> = Object.fromEntries(
+	UI_THEMES.map(({ id, name }) => [id, name])
+)
 
 function UIThemeMenuCheckboxItem({
 	checked,
@@ -140,6 +175,8 @@ export function UIThemeSubmenu() {
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 	const trackEvent = useTldrawAppUiEvents()
 	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
+	const colorThemeLabel = useMsg(messages.colorTheme)
+	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
 
 	const themeIds = useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [
 		editor,
@@ -150,7 +187,7 @@ export function UIThemeSubmenu() {
 	if (!editor || themeIds.length === 0) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="ui-theme" label="Color theme">
+		<TldrawUiMenuSubmenu id="ui-theme" label={colorThemeLabel}>
 			<div
 				className="tlui-menu__group"
 				onPointerCancel={clearThemePreview}
@@ -159,7 +196,7 @@ export function UIThemeSubmenu() {
 				{themeIds.map((id) => (
 					<UIThemeMenuCheckboxItem
 						key={id}
-						label={THEME_NAMES[id] ?? id}
+						label={id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id)}
 						checked={colorTheme === id}
 						onPreview={() => setColorThemePreview(id)}
 						onSelect={() => {
@@ -172,6 +209,61 @@ export function UIThemeSubmenu() {
 						}}
 					/>
 				))}
+			</div>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+function UIThemeMenuGroup() {
+	const editor = useMaybeEditor()
+	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const trackEvent = useTldrawAppUiEvents()
+	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
+	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
+
+	const themeIds = useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [
+		editor,
+	])
+
+	useEffect(() => clearThemePreview, [clearThemePreview])
+
+	if (!editor || themeIds.length === 0) return null
+
+	return (
+		<div
+			className="tlui-menu__group"
+			onPointerCancel={clearThemePreview}
+			onPointerLeave={clearThemePreview}
+		>
+			{themeIds.map((id) => (
+				<UIThemeMenuCheckboxItem
+					key={id}
+					label={id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id)}
+					checked={colorTheme === id}
+					onPreview={() => setColorThemePreview(id)}
+					onSelect={() => {
+						updateLocalSessionState(() => ({ colorTheme: id }))
+						clearThemePreview()
+						trackEvent('set-color-theme', {
+							source: 'user-preferences',
+							theme: id,
+						})
+					}}
+				/>
+			))}
+		</div>
+	)
+}
+
+export function ThemeSubmenu() {
+	const editor = useMaybeEditor()
+	if (!editor) return null
+
+	return (
+		<TldrawUiMenuSubmenu id="theme" label="menu.theme">
+			<div className="tlui-language-menu">
+				<ThemeMenuGroup />
+				<UIThemeMenuGroup />
 			</div>
 		</TldrawUiMenuSubmenu>
 	)
@@ -191,13 +283,13 @@ export function CookieConsentMenuItem() {
 	)
 }
 
-export function UserManualMenuItem() {
+export function UserManualMenuItem({ icon = true }: { icon?: boolean } = {}) {
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	return (
 		<TldrawUiMenuItem
 			id="user-manual"
 			label={useMsg(messages.getHelp)}
-			iconLeft="manual"
+			iconLeft={icon ? 'manual' : undefined}
 			readonlyOk
 			onSelect={() => {
 				openAndTrack('https://tldraw.notion.site/support')
@@ -216,24 +308,6 @@ export function GiveUsFeedbackMenuItem() {
 			readonlyOk
 			onSelect={() => {
 				addDialog({ component: SubmitFeedbackDialog })
-			}}
-		/>
-	)
-}
-
-export function DotDevMenuItem() {
-	const openAndTrack = useOpenUrlAndTrack('main-menu')
-	return (
-		<TldrawUiMenuItem
-			id="tos"
-			label={useMsg(messages.dotdev)}
-			iconLeft="external-link"
-			readonlyOk
-			onSelect={() => {
-				openAndTrack(
-					'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-menu',
-					true
-				)
 			}}
 		/>
 	)

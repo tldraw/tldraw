@@ -4,6 +4,7 @@ import { ComponentType } from 'react'
 export type TLShapeErrorFallbackComponent = ComponentType<{ error: any }>
 
 /** @internal */
-export const DefaultShapeErrorFallback: TLShapeErrorFallbackComponent = () => {
-	return <div className="tl-shape-error-boundary" />
-}
+export const DefaultShapeErrorFallback: TLShapeErrorFallbackComponent =
+	function DefaultShapeErrorFallback() {
+		return <div className="tl-shape-error-boundary" />
+	}

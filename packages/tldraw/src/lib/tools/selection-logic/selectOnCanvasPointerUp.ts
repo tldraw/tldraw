@@ -9,12 +9,14 @@ export function selectOnCanvasPointerUp(
 	const { shiftKey, altKey, accelKey } = info
 	const additiveSelectionKey = shiftKey || accelKey
 
+	const selectLockedShapes = editor.options.selectLockedShapes
 	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
 		hitInside: false,
 		margin: editor.options.hitTestMargin / editor.getZoomLevel(),
 		hitLabels: true,
+		hitLocked: selectLockedShapes,
 		renderingOnly: true,
-		filter: (shape) => !shape.isLocked,
+		filter: (shape) => selectLockedShapes || !shape.isLocked,
 	})
 
 	// Note at the start: if we select a shape that is inside of a group,

@@ -21,6 +21,18 @@
       "value": "GetHelpLink"
     }
   ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Pozovi suigrače"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Dosegli ste maksimalan broj radnih prostora. Morate izbrisati stare radne prostore prije nego što stvorite nove."
+    }
+  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -63,22 +75,28 @@
       "value": "Izbornik datoteka"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Došlo je do pogreške prilikom učitavanja ove pozivnice. Pokušajte ponovno."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Pošalji povratne informacije"
     }
   ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Ukloniti"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
       "value": "Objaviti"
-    }
-  ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Napusti grupu"
     }
   ],
   "12a6766ba1": [
@@ -99,22 +117,22 @@
       "value": "Izvezi kao"
     }
   ],
-  "146ffe2fd9": [
+  "1764571547": [
     {
       "type": 0,
-      "value": "Prikaži više"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Izbriši grupu"
+      "value": "Jeste li sigurni da želite izbrisati ovaj radni prostor? Ovu radnju nije moguće poništiti."
     }
   ],
   "181b90f889": [
     {
       "type": 0,
       "value": "Stvori datoteku"
+    }
+  ],
+  "1d2591253e": [
+    {
+      "type": 0,
+      "value": "Postavke radnog prostora"
     }
   ],
   "1da2e8106b": [
@@ -129,10 +147,10 @@
       "value": "Danas"
     }
   ],
-  "2445e5e347": [
+  "21f66c9c00": [
     {
       "type": 0,
-      "value": "Stvori grupu"
+      "value": "Naziv radnog prostora"
     }
   ],
   "250ddea65c": [
@@ -153,6 +171,12 @@
       "value": "Moje datoteke"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Uključi vezu na trenutnu datoteku"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -163,12 +187,6 @@
     {
       "type": 0,
       "value": "i18n: Oznaka nedostaje"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Dodaj vezu"
     }
   ],
   "324a0f3182": [
@@ -187,6 +205,12 @@
     {
       "type": 0,
       "value": "Urednik"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Ukloni člana"
     }
   ],
   "3bc7d6ea2f": [
@@ -219,10 +243,22 @@
       "value": "Nepodržani Mermaid dijagram"
     }
   ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Tema boja"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Kontaktirajte vlasnika da zatražite pristup."
+    }
+  ],
+  "44680c1fa7": [
+    {
+      "type": 0,
+      "value": "Napustite radni prostor…"
     }
   ],
   "44db318ee5": [
@@ -255,12 +291,6 @@
       "value": "Prikvači datoteku"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Zalijepi URL tldraw datoteke..."
-    }
-  ],
   "4908687e50": [
     {
       "type": 0,
@@ -283,24 +313,6 @@
     {
       "type": 0,
       "value": "Ponovno učitaj"
-    }
-  ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Izbriši grupu…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Više opcija"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Jeste li sigurni da želite izbrisati ovu grupu? Ova se radnja ne može poništiti."
     }
   ],
   "5097d89907": [
@@ -367,40 +379,6 @@
       "value": "Politika privatnosti"
     }
   ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Povucite datoteke ovdje, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "izradite datoteku"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": " ili "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "kopirajte poveznicu za poziv"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " da biste započeli."
-    }
-  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -411,6 +389,12 @@
     {
       "type": 0,
       "value": "Otkriven je stari preglednik. Ažurirajte preglednik da biste mogli koristiti ovu aplikaciju."
+    }
+  ],
+  "5bff3c9c88": [
+    {
+      "type": 0,
+      "value": "Moj radni prostor"
     }
   ],
   "5c6fe42bc2": [
@@ -429,12 +413,6 @@
     {
       "type": 0,
       "value": "Nismo uspjeli prenijeti dio sadržaja koji ste izradili prije nego što ste se prijavili."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Pozvani ste da se pridružite grupi:"
     }
   ],
   "5f3c333678": [
@@ -491,6 +469,12 @@
       "value": "Unesite svoju adresu e-pošte"
     }
   ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Izbriši radni prostor"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
@@ -507,12 +491,6 @@
     {
       "type": 0,
       "value": "Slijedite ove korake za ručni uvoz sadržaja:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Postavke grupe"
     }
   ],
   "70a6facb9d": [
@@ -599,6 +577,12 @@
       "value": "Pošaljite problem na GitHub"
     }
   ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Zadano"
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -621,12 +605,6 @@
     {
       "type": 0,
       "value": "Zaboraviti"
-    }
-  ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Napusti grupu…"
     }
   ],
   "7daeced9ff": [
@@ -681,6 +659,12 @@
       "value": "."
     }
   ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Član"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -707,6 +691,18 @@
       "value": "Preimenuj datoteku"
     }
   ],
+  "87fdb09de6": [
+    {
+      "type": 0,
+      "value": "Već ste član ovog radnog prostora"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Ova pozivnica je istekla"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -717,6 +713,12 @@
     {
       "type": 0,
       "value": "Provjerite svoju e-poštu za kod za potvrdu."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Dom"
     }
   ],
   "8eb2c00e96": [
@@ -749,22 +751,16 @@
       "value": "Kopiraj u moje datoteke"
     }
   ],
-  "930390d222": [
-    {
-      "type": 0,
-      "value": "Kopirana je poveznica za poziv"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Već ste član ove grupe"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Prijava putem Googlea"
+    }
+  ],
+  "95b56f4cd6": [
+    {
+      "type": 0,
+      "value": "Izbriši radni prostor…"
     }
   ],
   "95d2109dc8": [
@@ -783,12 +779,6 @@
     {
       "type": 0,
       "value": "Uvjeti korištenja"
-    }
-  ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Dodaj vezu do datoteke"
     }
   ],
   "9914a0ce04": [
@@ -913,6 +903,12 @@
       "value": "Pozadina"
     }
   ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Izradi radni prostor"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -949,12 +945,6 @@
       "value": "E-mail adresa"
     }
   ],
-  "b3d2db69fe": [
-    {
-      "type": 0,
-      "value": "URL datoteke"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -977,12 +967,6 @@
     {
       "type": 0,
       "value": "Prijavite se za dijeljenje"
-    }
-  ],
-  "bb93a7590f": [
-    {
-      "type": 0,
-      "value": "Prihvati i pridruži se grupi"
     }
   ],
   "bbbcefd7ce": [
@@ -1079,12 +1063,6 @@
       "value": "Osnovni kolačići"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Naziv grupe"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1097,10 +1075,10 @@
       "value": "Pozvati"
     }
   ],
-  "c74ea6dbff": [
+  "c7d7403714": [
     {
       "type": 0,
-      "value": "Prikaži manje"
+      "value": "Nova ploča"
     }
   ],
   "c87aacf567": [
@@ -1221,28 +1199,28 @@
       "value": "Idite ovdje da vidite sadržaj"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Dosegli ste maksimalan broj grupa. Morate izbrisati stare grupe prije nego što stvorite nove."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Samo na poziv"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "Nevažeći URL datoteke tldraw"
+      "value": "Napustite radni prostor"
     }
   ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Oznake za otklanjanje pogrešaka aplikacije"
+    }
+  ],
+  "e0aa021e21": [
+    {
+      "type": 0,
+      "value": "U REDU"
     }
   ],
   "e0c88179b3": [
@@ -1263,22 +1241,28 @@
       "value": "Pravni sažetak"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Administrator"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Uvjeti usluge"
     }
   ],
+  "e615d52512": [
+    {
+      "type": 0,
+      "value": "Prihvati i pridruži se radnom prostoru"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "ili"
+    }
+  ],
+  "e9e0f16850": [
+    {
+      "type": 0,
+      "value": "Pozvani ste da se pridružite radnom prostoru:"
     }
   ],
   "ea0626ac5a": [
@@ -1291,6 +1275,12 @@
     {
       "type": 0,
       "value": "Otkazati"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Zatražite novi od vlasnika radnog prostora."
     }
   ],
   "ebfe9ce86e": [
@@ -1385,12 +1375,6 @@
       "value": "Postavke"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Jeste li sigurni da želite napustiti ovu grupu?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1401,6 +1385,12 @@
     {
       "type": 0,
       "value": "Gledatelj"
+    }
+  ],
+  "fc9d47046b": [
+    {
+      "type": 0,
+      "value": "Jeste li sigurni da želite napustiti ovaj radni prostor?"
     }
   ],
   "fd1be3efcf": [
@@ -1415,10 +1405,18 @@
       "value": "Kopirana veza"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Dodaj poveznicu na datoteku…"
+      "value": "Jeste li sigurni da želite ukloniti "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " iz ovog radnog prostora?"
     }
   ],
   "ffcd73e997": [

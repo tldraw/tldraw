@@ -15,8 +15,7 @@ import {
 import { ChatPanel } from './components/ChatPanel'
 import { ChatPanelFallback } from './components/ChatPanelFallback'
 import { CustomHelperButtons } from './components/CustomHelperButtons'
-import { AgentViewportBoundsHighlights } from './components/highlights/AgentViewportBoundsHighlights'
-import { AllContextHighlights } from './components/highlights/ContextHighlights'
+import { AgentHighlightOverlayUtil } from './overlays/AgentHighlightOverlayUtil'
 import { TargetAreaTool } from './tools/TargetAreaTool'
 import { TargetShapeTool } from './tools/TargetShapeTool'
 
@@ -25,6 +24,7 @@ DefaultSizeStyle.setDefaultValue('s')
 
 // Custom tools for picking context items
 const tools = [TargetShapeTool, TargetAreaTool]
+const overlayUtils = [AgentHighlightOverlayUtil]
 const overrides: TLUiOverrides = {
 	tools: (editor, tools) => {
 		return {
@@ -58,8 +58,7 @@ function App() {
 		setApp(null)
 	}, [])
 
-	// Custom components to visualize what the agent is doing
-	// These use TldrawAgentAppContextProvider to access the app/agent
+	// Custom components that need the agent app's React context
 	const components: TLComponents = useMemo(() => {
 		return {
 			HelperButtons: () =>
@@ -68,13 +67,6 @@ function App() {
 						<CustomHelperButtons />
 					</TldrawAgentAppContextProvider>
 				),
-			OnTheCanvas: () =>
-				app ? (
-					<TldrawAgentAppContextProvider app={app}>
-						<AgentViewportBoundsHighlights />
-						<AllContextHighlights />
-					</TldrawAgentAppContextProvider>
-				) : null,
 		}
 	}, [app])
 
@@ -85,6 +77,7 @@ function App() {
 					<Tldraw
 						persistenceKey="tldraw-agent-demo"
 						tools={tools}
+						overlayUtils={overlayUtils}
 						overrides={overrides}
 						components={components}
 					>

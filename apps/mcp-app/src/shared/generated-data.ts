@@ -1,4 +1,4 @@
-export type ArgKind =
+type ArgKind =
 	| 'id'
 	| 'id-or-shape'
 	| 'ids-or-shapes'
@@ -18,7 +18,7 @@ export type RetKind =
 	| 'ids'
 	| 'id-set'
 
-export interface MethodSpec {
+interface MethodSpec {
 	args: ArgKind[]
 	ret: RetKind
 }

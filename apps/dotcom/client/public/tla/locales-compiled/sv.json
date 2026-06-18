@@ -21,6 +21,18 @@
       "value": "GetHelpLink"
     }
   ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Bjud in lagkamrater"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Du har nått det maximala antalet arbetsytor. Du måste ta bort gamla arbetsytor innan du skapar nya."
+    }
+  ],
   "06b9281e39": [
     {
       "type": 0,
@@ -63,22 +75,28 @@
       "value": "Arkivmenyn"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Något gick fel när inbjudan skulle laddas. Försök igen."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Skicka feedback"
     }
   ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Ta bort"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
       "value": "Publicera"
-    }
-  ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Lämna gruppen"
     }
   ],
   "12a6766ba1": [
@@ -99,22 +117,22 @@
       "value": "Exportera som"
     }
   ],
-  "146ffe2fd9": [
+  "1764571547": [
     {
       "type": 0,
-      "value": "Visa mer"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Ta bort grupp"
+      "value": "Är du säker på att du vill ta bort den här arbetsytan? Den här åtgärden kan inte ångras."
     }
   ],
   "181b90f889": [
     {
       "type": 0,
       "value": "Skapa fil"
+    }
+  ],
+  "1d2591253e": [
+    {
+      "type": 0,
+      "value": "Arbetsyteinställningar"
     }
   ],
   "1da2e8106b": [
@@ -129,10 +147,10 @@
       "value": "Idag"
     }
   ],
-  "2445e5e347": [
+  "21f66c9c00": [
     {
       "type": 0,
-      "value": "Skapa grupp"
+      "value": "Arbetsytans namn"
     }
   ],
   "250ddea65c": [
@@ -153,6 +171,12 @@
       "value": "Mina filer"
     }
   ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Inkludera länk till aktuell fil"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -163,12 +187,6 @@
     {
       "type": 0,
       "value": "i18n: Markering saknas"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Lägg till länk"
     }
   ],
   "324a0f3182": [
@@ -187,6 +205,12 @@
     {
       "type": 0,
       "value": "Redigeringsverktyg"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Ta bort medlem"
     }
   ],
   "3bc7d6ea2f": [
@@ -219,10 +243,22 @@
       "value": "Ostödd Mermaid-diagram"
     }
   ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Färgtema"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Kontakta ägaren för att begära åtkomst."
+    }
+  ],
+  "44680c1fa7": [
+    {
+      "type": 0,
+      "value": "Lämna arbetsytan…"
     }
   ],
   "44db318ee5": [
@@ -255,12 +291,6 @@
       "value": "Fäst fil"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Klistra in tldraw-filens URL..."
-    }
-  ],
   "4908687e50": [
     {
       "type": 0,
@@ -283,24 +313,6 @@
     {
       "type": 0,
       "value": "Ladda om"
-    }
-  ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Radera grupp…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Fler alternativ"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Är du säker på att du vill ta bort den här gruppen? Åtgärden kan inte ångras."
     }
   ],
   "5097d89907": [
@@ -367,40 +379,6 @@
       "value": "Sekretesspolicy"
     }
   ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Dra filer hit, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "skapa en fil"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": " eller "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "kopiera inbjudningslänken"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " för att komma igång."
-    }
-  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -411,6 +389,12 @@
     {
       "type": 0,
       "value": "Gammal webbläsare upptäckt. Uppdatera din webbläsare för att använda den här appen."
+    }
+  ],
+  "5bff3c9c88": [
+    {
+      "type": 0,
+      "value": "Min arbetsyta"
     }
   ],
   "5c6fe42bc2": [
@@ -429,12 +413,6 @@
     {
       "type": 0,
       "value": "Vi kunde inte ladda upp en del av innehållet du skapade innan du loggade in."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Du har blivit inbjuden att gå med i gruppen:"
     }
   ],
   "5f3c333678": [
@@ -491,6 +469,12 @@
       "value": "Ange din e-postadress"
     }
   ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Ta bort arbetsyta"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
@@ -507,12 +491,6 @@
     {
       "type": 0,
       "value": "Följ dessa steg för att importera innehållet manuellt:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Gruppinställningar"
     }
   ],
   "70a6facb9d": [
@@ -599,6 +577,12 @@
       "value": "Skicka ett problem på GitHub"
     }
   ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Standard"
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -621,12 +605,6 @@
     {
       "type": 0,
       "value": "Glöm"
-    }
-  ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Lämna gruppen…"
     }
   ],
   "7daeced9ff": [
@@ -681,6 +659,12 @@
       "value": "."
     }
   ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Medlem"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -707,6 +691,18 @@
       "value": "Byt namn på filen"
     }
   ],
+  "87fdb09de6": [
+    {
+      "type": 0,
+      "value": "Du är redan medlem i den här arbetsytan"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Den här inbjudningslänken har gått ut"
+    }
+  ],
   "8ad4303b83": [
     {
       "type": 0,
@@ -717,6 +713,12 @@
     {
       "type": 0,
       "value": "Kontrollera din e-post för en verifieringskod."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Hem"
     }
   ],
   "8eb2c00e96": [
@@ -749,22 +751,16 @@
       "value": "Kopiera till mina filer"
     }
   ],
-  "930390d222": [
-    {
-      "type": 0,
-      "value": "Kopierad inbjudningslänk"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Du är redan medlem i den här gruppen"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Logga in med Google"
+    }
+  ],
+  "95b56f4cd6": [
+    {
+      "type": 0,
+      "value": "Ta bort arbetsytan…"
     }
   ],
   "95d2109dc8": [
@@ -783,12 +779,6 @@
     {
       "type": 0,
       "value": "Användarvillkor"
-    }
-  ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Lägg till fillänk"
     }
   ],
   "9914a0ce04": [
@@ -913,6 +903,12 @@
       "value": "Bakgrund"
     }
   ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Skapa arbetsyta"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -949,12 +945,6 @@
       "value": "E-postadress"
     }
   ],
-  "b3d2db69fe": [
-    {
-      "type": 0,
-      "value": "Fil-URL"
-    }
-  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -977,12 +967,6 @@
     {
       "type": 0,
       "value": "Logga in för att dela"
-    }
-  ],
-  "bb93a7590f": [
-    {
-      "type": 0,
-      "value": "Godkänn och gå med i gruppen"
     }
   ],
   "bbbcefd7ce": [
@@ -1075,12 +1059,6 @@
       "value": "Viktiga cookies"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Gruppnamn"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1093,10 +1071,10 @@
       "value": "Bjud in"
     }
   ],
-  "c74ea6dbff": [
+  "c7d7403714": [
     {
       "type": 0,
-      "value": "Visa mindre"
+      "value": "Ny styrelse"
     }
   ],
   "c87aacf567": [
@@ -1217,28 +1195,28 @@
       "value": "Gå hit för att se innehållet"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Du har nått det maximala antalet grupper. Du måste ta bort gamla grupper innan du skapar nya."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Endast inbjudan"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "Ogiltig URL för tldraw-fil"
+      "value": "Lämna arbetsytan"
     }
   ],
   "dfdb78a4e4": [
     {
       "type": 0,
       "value": "Appfelsökningsflaggor"
+    }
+  ],
+  "e0aa021e21": [
+    {
+      "type": 0,
+      "value": "OK"
     }
   ],
   "e0c88179b3": [
@@ -1259,22 +1237,28 @@
       "value": "Juridisk sammanfattning"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Administration"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
       "value": "Användarvillkor"
     }
   ],
+  "e615d52512": [
+    {
+      "type": 0,
+      "value": "Godkänn och gå med i arbetsytan"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "eller"
+    }
+  ],
+  "e9e0f16850": [
+    {
+      "type": 0,
+      "value": "Du har blivit inbjuden att gå med i arbetsytan:"
     }
   ],
   "ea0626ac5a": [
@@ -1287,6 +1271,12 @@
     {
       "type": 0,
       "value": "Avbryt"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Be arbetsytans ägare om en ny."
     }
   ],
   "ebfe9ce86e": [
@@ -1381,12 +1371,6 @@
       "value": "Inställningar"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Är du säker på att du vill lämna den här gruppen?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1397,6 +1381,12 @@
     {
       "type": 0,
       "value": "Visningsverktyg"
+    }
+  ],
+  "fc9d47046b": [
+    {
+      "type": 0,
+      "value": "Är du säker på att du vill lämna den här arbetsytan?"
     }
   ],
   "fd1be3efcf": [
@@ -1411,10 +1401,18 @@
       "value": "Länk kopierad"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Lägg till fillänk…"
+      "value": "Är du säker på att du vill ta bort "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " från den här arbetsytan?"
     }
   ],
   "ffcd73e997": [

@@ -155,6 +155,10 @@ const components: TLComponents = {
 	},
 }
 
+type PointingHandleState = StateNode & {
+	info?: TLPointerEventInfo & { target: 'handle' }
+}
+
 const shapes = [NodeShapeUtil, GlobShapeUtil]
 const tools = [GlobTool]
 const bindings = [GlobBindingUtil]
@@ -182,7 +186,8 @@ export default function GlobsExample() {
 
 					// Override pointing_handle state to allow handle dragging with modifier keys, otherwise
 					// it starts brushing instead
-					const pointingHandleState = editor.getStateDescendant<StateNode>('select.pointing_handle')
+					const pointingHandleState =
+						editor.getStateDescendant<PointingHandleState>('select.pointing_handle')
 
 					if (!pointingHandleState) {
 						throw new Error('SelectTool pointing_handle state not found')
@@ -191,14 +196,26 @@ export default function GlobsExample() {
 					// Store original handlers with proper binding
 					const originalOnPointerMove = pointingHandleState.onPointerMove?.bind(pointingHandleState)
 
-					// Return to idle state after dragging a handle
+					// Begin dragging the glob handle as soon as the user starts dragging.
+					// The live move event has target 'canvas' (no shape/handle), so read the
+					// shape and handle from the state node's stored info from when the user
+					// pointed down on the handle.
 					pointingHandleState.onPointerMove = (info: TLPointerEventInfo) => {
-						if (!info.shape) return
+						if (!editor.inputs.getIsDragging()) {
+							originalOnPointerMove?.(info)
+							return
+						}
 
-						if (editor.isShapeOfType<GlobShape>(info.shape, 'glob')) {
+						const handleInfo = pointingHandleState.info
+						if (handleInfo?.target !== 'handle') {
+							originalOnPointerMove?.(info)
+							return
+						}
+
+						if (editor.isShapeOfType<GlobShape>(handleInfo.shape, 'glob')) {
 							editor.updateInstanceState({ isToolLocked: true })
 							editor.setCurrentTool('select.dragging_handle', {
-								...info,
+								...handleInfo,
 							})
 							return
 						}

@@ -1,4 +1,3 @@
-import { round } from 'lodash'
 import {
 	createComputedCache,
 	Editor,
@@ -716,8 +715,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 			const snapPoint = Vec.NearestPointOnLineSegment(start, end, handle, true)
 			const distance = Vec.Dist(handle, snapPoint)
 
-			if (round(distance) <= round(minDistance)) {
-				if (round(distance) < round(minDistance)) {
+			if (Math.round(distance) <= Math.round(minDistance)) {
+				if (Math.round(distance) < Math.round(minDistance)) {
 					endPoints.length = 0
 					minDistance = distance
 					nearestPoint = snapPoint
@@ -757,8 +756,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		)
 		const outerLineDistance = Vec.Dist(handle, outerLineSnapPoint)
 
-		if (round(outerLineDistance) <= round(minDistance)) {
-			if (round(outerLineDistance) < round(minDistance)) {
+		if (Math.round(outerLineDistance) <= Math.round(minDistance)) {
+			if (Math.round(outerLineDistance) < Math.round(minDistance)) {
 				minDistance = outerLineDistance
 				nearestPoint = outerLineSnapPoint
 			}
@@ -770,8 +769,8 @@ export class GlobShapeUtil extends ShapeUtil<GlobShape> {
 		const perpLineSnapPoint = Vec.NearestPointOnLineSegment(normalDStart, normalDEnd, handle, true)
 		const perpLineDistance = Vec.Dist(handle, perpLineSnapPoint)
 
-		if (round(perpLineDistance) <= round(minDistance)) {
-			if (round(perpLineDistance) < round(minDistance)) {
+		if (Math.round(perpLineDistance) <= Math.round(minDistance)) {
+			if (Math.round(perpLineDistance) < Math.round(minDistance)) {
 				minDistance = perpLineDistance
 				nearestPoint = perpLineSnapPoint
 			}
@@ -898,6 +897,12 @@ export const GlobShape = track(function GlobShape({
 	// Use reactive inputs to track if space key is pressed
 	const fillGlob = useValue('space key pressed', () => editor.inputs.keys.has('Space'), [editor])
 
+	const isSelected = useValue(
+		'is glob selected',
+		() => editor.getSelectedShapeIds().includes(shape.id),
+		[editor, shape.id]
+	)
+
 	const globPoints = getGlobInfo(editor, shape)
 	if (!globPoints) return null
 
@@ -936,6 +941,7 @@ export const GlobShape = track(function GlobShape({
 				opacity={fillGlob ? 1 : 0.75}
 				strokeWidth={2 / zoomLevel}
 			/>
+			{isSelected && <path d={pathBuilder.toD()} pointerEvents="none" fill="blue" opacity={0.25} />}
 		</SVGContainer>
 	)
 })
@@ -974,7 +980,7 @@ const getHandleData = (id: string) => {
 	return { edgeType, point }
 }
 
-export const getNeighborGlobs = (editor: Editor, shape: GlobShape) => {
+export function getNeighborGlobs(editor: Editor, shape: GlobShape) {
 	const currentGlobBindings = editor.getBindingsFromShape<GlobBinding>(shape.id, 'glob')
 
 	const neighborGlobs: Set<GlobShape> = new Set()

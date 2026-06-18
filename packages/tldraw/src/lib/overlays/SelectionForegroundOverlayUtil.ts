@@ -1,7 +1,6 @@
 import {
 	Box,
 	Circle2d,
-	Edge2d,
 	Geometry2d,
 	HALF_PI,
 	Mat,
@@ -47,9 +46,7 @@ export interface TLSelectionForegroundOverlay extends TLOverlay {
 
 interface SelectionState {
 	bounds: Box
-	expandedBounds: Box
 	onlyShape: TLShape | null
-	isLockedShape: boolean
 	isCoarsePointer: boolean
 	zoom: number
 	rotation: number
@@ -61,10 +58,7 @@ interface SelectionState {
 	targetSizeY: number
 	expandDx: number
 	expandDy: number
-	isTinyX: boolean
-	isTinyY: boolean
 	isSmallX: boolean
-	isSmallY: boolean
 	shouldDisplayControls: boolean
 	shouldDisplayBox: boolean
 	showCropHandles: boolean
@@ -75,6 +69,11 @@ interface SelectionState {
 	hideAlternateCornerHandles: boolean
 	hideAlternateCropHandles: boolean
 	showOnlyOneHandle: boolean
+}
+
+interface SelectionForegroundColors {
+	strokeColor: string
+	bgColor: string
 }
 
 /**
@@ -98,6 +97,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			'select.pointing_selection',
 			'select.pointing_shape',
 			'select.pointing_resize_handle',
+			'select.pointing_rotate_handle',
 			'select.resizing',
 			'select.crop.idle',
 			'select.crop.pointing_crop',
@@ -150,11 +150,12 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		ctx.rotate(state.rotation)
 		ctx.translate(state.expandDx, state.expandDy)
 
-		this._renderSelectionBox(ctx, state)
-		this._renderResizeCorners(ctx, state)
-		this._renderCropHandles(ctx, state)
-		this._renderMobileRotateHandle(ctx, state)
-		this._renderTextResizeHandles(ctx, state)
+		const colors = this._getThemeColors()
+		this._renderSelectionBox(ctx, state, colors)
+		this._renderResizeCorners(ctx, state, colors)
+		this._renderCropHandles(ctx, state, colors)
+		this._renderMobileRotateHandle(ctx, state, colors)
+		this._renderTextResizeHandles(ctx, state, colors)
 
 		ctx.restore()
 	}
@@ -244,10 +245,12 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		transform: Mat
 	): Geometry2d {
 		if (handle === 'top' || handle === 'bottom' || handle === 'left' || handle === 'right') {
-			const edge = this._getEdgeLocalPoints(handle, state.width, state.height)
-			return new Edge2d({
-				start: Mat.applyToPoint(transform, edge.start),
-				end: Mat.applyToPoint(transform, edge.end),
+			const rect = this._getEdgeLocalRect(handle, state)
+			return new Polygon2d({
+				points: this._localRectToPoints(rect.x, rect.y, rect.w, rect.h).map((p) =>
+					Mat.applyToPoint(transform, p)
+				),
+				isFilled: true,
 			})
 		}
 
@@ -268,7 +271,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	): Geometry2d {
 		const cornerSize = Math.max(state.targetSizeX, state.targetSizeY) * 1.5
 		const center = this._getRotateHandleLocalCenter(handle, state.width, state.height, cornerSize)
-		const radius = (state.targetSize * 3) / 2
+		const radius = cornerSize
 		return new Circle2d({
 			x: center.x - radius,
 			y: center.y - radius,
@@ -290,22 +293,28 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 	// --- Rendering (all helpers assume ctx is in local selection space) ---
 
-	private _renderSelectionBox(ctx: CanvasRenderingContext2D, state: SelectionState) {
+	private _renderSelectionBox(
+		ctx: CanvasRenderingContext2D,
+		state: SelectionState,
+		colors: SelectionForegroundColors
+	) {
 		if (!state.shouldDisplayBox) return
-		const { strokeColor } = this._getThemeColors()
-		ctx.strokeStyle = strokeColor
+		ctx.strokeStyle = colors.strokeColor
 		ctx.lineWidth = this.options.lineWidth / state.zoom
 		ctx.strokeRect(0, 0, state.width, state.height)
 	}
 
-	private _renderResizeCorners(ctx: CanvasRenderingContext2D, state: SelectionState) {
+	private _renderResizeCorners(
+		ctx: CanvasRenderingContext2D,
+		state: SelectionState,
+		colors: SelectionForegroundColors
+	) {
 		if (!state.showResizeHandles) return
 
-		const { strokeColor, bgColor } = this._getThemeColors()
 		const { size, width, height, hideAlternateCornerHandles, showOnlyOneHandle, zoom } = state
 
-		ctx.fillStyle = bgColor
-		ctx.strokeStyle = strokeColor
+		ctx.fillStyle = colors.bgColor
+		ctx.strokeStyle = colors.strokeColor
 		ctx.lineWidth = this.options.lineWidth / zoom
 
 		const drawCorner = (x: number, y: number, hidden: boolean) => {
@@ -320,16 +329,19 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		drawCorner(0, height, hideAlternateCornerHandles) // bottom-left
 	}
 
-	private _renderCropHandles(ctx: CanvasRenderingContext2D, state: SelectionState) {
+	private _renderCropHandles(
+		ctx: CanvasRenderingContext2D,
+		state: SelectionState,
+		colors: SelectionForegroundColors
+	) {
 		if (!state.showCropHandles) return
 
-		const { strokeColor } = this._getThemeColors()
 		const { size, width, height, hideAlternateCropHandles } = state
 		const cropStrokeWidth = size / 3
 		const offset = cropStrokeWidth / 2
 
 		ctx.beginPath()
-		ctx.strokeStyle = strokeColor
+		ctx.strokeStyle = colors.strokeColor
 		ctx.lineWidth = cropStrokeWidth
 		ctx.lineCap = 'butt'
 		ctx.lineJoin = 'miter'
@@ -375,15 +387,18 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		ctx.stroke()
 	}
 
-	private _renderMobileRotateHandle(ctx: CanvasRenderingContext2D, state: SelectionState) {
+	private _renderMobileRotateHandle(
+		ctx: CanvasRenderingContext2D,
+		state: SelectionState,
+		colors: SelectionForegroundColors
+	) {
 		if (!state.showMobileRotateHandle) return
 
-		const { strokeColor, bgColor } = this._getThemeColors()
 		const { cx, cy } = this._getMobileRotateCenter(state)
 		const fgRadius = state.size / SQUARE_ROOT_PI
 
-		ctx.fillStyle = bgColor
-		ctx.strokeStyle = strokeColor
+		ctx.fillStyle = colors.bgColor
+		ctx.strokeStyle = colors.strokeColor
 		ctx.lineWidth = this.options.lineWidth / state.zoom
 		ctx.beginPath()
 		ctx.arc(cx, cy, fgRadius, 0, Math.PI * 2)
@@ -391,7 +406,11 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		ctx.stroke()
 	}
 
-	private _renderTextResizeHandles(ctx: CanvasRenderingContext2D, state: SelectionState) {
+	private _renderTextResizeHandles(
+		ctx: CanvasRenderingContext2D,
+		state: SelectionState,
+		colors: SelectionForegroundColors
+	) {
 		const {
 			shouldDisplayControls,
 			isCoarsePointer,
@@ -409,11 +428,10 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		const textHandleHeight = Math.min(24 / zoom, height - targetSizeY * 3)
 		if (textHandleHeight * zoom < 4) return
 
-		const { strokeColor } = this._getThemeColors()
 		const hw = size / 2
 		const r = size / 4
 
-		ctx.fillStyle = strokeColor
+		ctx.fillStyle = colors.strokeColor
 		ctx.beginPath()
 		ctx.roundRect(0 - hw / 2, height / 2 - textHandleHeight / 2, hw, textHandleHeight, r)
 		ctx.fill()
@@ -438,18 +456,20 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		const onlyShape = editor.getOnlySelectedShape()
 		if (onlyShape && editor.isShapeHidden(onlyShape)) return null
 
+		const onlyShapeUtil = onlyShape ? editor.getShapeUtil(onlyShape) : null
 		const isLockedShape = !!(onlyShape && editor.isShapeOrAncestorLocked(onlyShape))
 
-		const expandOutlineBy = onlyShape
-			? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
-			: 0
+		const expandOutlineBy =
+			onlyShape && onlyShapeUtil ? onlyShapeUtil.expandSelectionOutlinePx(onlyShape) : 0
 		const expandedBounds =
 			expandOutlineBy instanceof Box
 				? bounds.clone().expand(expandOutlineBy).zeroFix()
 				: bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
-		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
-		const isChangingStyle = editor.getInstanceState().isChangingStyle
+		const instanceState = editor.getInstanceState()
+		const isCoarsePointer = instanceState.isCoarsePointer
+		const isChangingStyle = instanceState.isChangingStyle
+		const isReadonly = editor.getIsReadonly()
 		const zoom = editor.getZoomLevel()
 		const rotation = editor.getSelectionRotation()
 
@@ -476,49 +496,52 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 				'select.idle',
 				'select.pointing_selection',
 				'select.pointing_shape',
+				'select.pointing_resize_handle',
+				'select.pointing_rotate_handle',
 				'select.crop.idle'
 			) &&
 			!isChangingStyle &&
-			!editor.getIsReadonly()
+			!isReadonly
 
 		const showCropHandles =
 			editor.isInAny(
 				'select.crop.idle',
 				'select.crop.pointing_crop',
 				'select.crop.pointing_crop_handle'
-			) && !editor.getIsReadonly()
+			) && !isReadonly
+
+		const canOnlyShapeResize =
+			onlyShape && onlyShapeUtil
+				? onlyShapeUtil.canResize(onlyShape) && !onlyShapeUtil.hideResizeHandles(onlyShape)
+				: true
+		const hideOnlyShapeRotateHandle =
+			onlyShape && onlyShapeUtil ? onlyShapeUtil.hideRotateHandle(onlyShape) : false
+		const hideOnlyShapeSelectionBounds =
+			onlyShape && onlyShapeUtil ? onlyShapeUtil.hideSelectionBoundsFg(onlyShape) : false
 
 		const showResizeHandles =
-			shouldDisplayControls &&
-			!isLockedShape &&
-			!showCropHandles &&
-			(onlyShape
-				? editor.getShapeUtil(onlyShape).canResize(onlyShape) &&
-					!editor.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
-				: true)
+			shouldDisplayControls && !isLockedShape && !showCropHandles && canOnlyShapeResize
 
 		const showCornerRotateHandles =
 			shouldDisplayControls &&
 			!isLockedShape &&
 			!isCoarsePointer &&
 			!(isTinyX || isTinyY) &&
-			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+			!hideOnlyShapeRotateHandle
 
 		const showMobileRotateHandle =
 			shouldDisplayControls &&
 			!isLockedShape &&
 			isCoarsePointer &&
 			(!isSmallX || !isSmallY) &&
-			(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+			!hideOnlyShapeRotateHandle
 
 		const hideAlternateCornerHandles = isTinyX || isTinyY
 		const hideAlternateCropHandles = isSmallCropX || isSmallCropY
 		const showOnlyOneHandle = isTinyX && isTinyY
 		const showHandles = showResizeHandles || showCropHandles
 
-		const showSelectionBounds =
-			(onlyShape ? !editor.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
-			!isChangingStyle
+		const showSelectionBounds = !hideOnlyShapeSelectionBounds && !isChangingStyle
 
 		const shouldDisplayBox =
 			(showSelectionBounds &&
@@ -532,7 +555,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 					'select.crop.idle',
 					'select.crop.pointing_crop',
 					'select.crop.pointing_crop_handle',
-					'select.pointing_resize_handle'
+					'select.pointing_resize_handle',
+					'select.pointing_rotate_handle'
 				)) ||
 			(showSelectionBounds &&
 				editor.isIn('select.resizing') &&
@@ -540,9 +564,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 		return {
 			bounds,
-			expandedBounds,
 			onlyShape,
-			isLockedShape,
 			isCoarsePointer,
 			zoom,
 			rotation,
@@ -554,10 +576,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			targetSizeY,
 			expandDx,
 			expandDy,
-			isTinyX,
-			isTinyY,
 			isSmallX,
-			isSmallY,
 			shouldDisplayControls,
 			shouldDisplayBox,
 			showCropHandles,
@@ -588,7 +607,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		return { cx, cy }
 	}
 
-	private _getThemeColors(): { strokeColor: string; bgColor: string } {
+	private _getThemeColors(): SelectionForegroundColors {
 		const editor = this.editor
 		const themeColors = editor.getCurrentTheme().colors[editor.getColorMode()]
 		return {
@@ -608,20 +627,20 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		}
 	}
 
-	private _getEdgeLocalPoints(
+	private _getEdgeLocalRect(
 		edge: SelectionEdge,
-		width: number,
-		height: number
-	): { start: Vec; end: Vec } {
+		state: SelectionState
+	): { x: number; y: number; w: number; h: number } {
+		const { width, height, targetSizeX, targetSizeY } = state
 		switch (edge) {
 			case 'top':
-				return { start: new Vec(0, 0), end: new Vec(width, 0) }
+				return { x: 0, y: -targetSizeY, w: width, h: targetSizeY * 2 }
 			case 'right':
-				return { start: new Vec(width, 0), end: new Vec(width, height) }
+				return { x: width - targetSizeX, y: 0, w: targetSizeX * 2, h: height }
 			case 'bottom':
-				return { start: new Vec(0, height), end: new Vec(width, height) }
+				return { x: 0, y: height - targetSizeY, w: width, h: targetSizeY * 2 }
 			case 'left':
-				return { start: new Vec(0, 0), end: new Vec(0, height) }
+				return { x: -targetSizeX, y: 0, w: targetSizeX * 2, h: height }
 		}
 	}
 

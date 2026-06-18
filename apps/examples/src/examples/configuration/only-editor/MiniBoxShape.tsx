@@ -65,6 +65,6 @@ The shape util itself.
 	[b] The default props for our shape. These will be used when creating a new shape.
 	[c] The component for our shape. This returns JSX and is what will be rendered on the
 		canvas. The HtmlContainer component is a div that provides some useful styles.
-	[d] The indicator for our shape, this also returns JSX. This is what will be rendered
-		on the canvas when the shape is selected.
+	[d] The indicator path for our shape. This returns a Path2D that's stroked on the
+		canvas overlay when the shape is selected.
 */

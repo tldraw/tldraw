@@ -128,6 +128,7 @@ export {
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
 export {
 	TextManager,
+	resolveLineHeightPx,
 	type BatchMeasurementRequest,
 	type TLMeasuredTextSize,
 	type TLMeasureTextOpts,
@@ -136,6 +137,7 @@ export {
 export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
 export { ThemeManager, resolveThemes } from './lib/editor/managers/ThemeManager/ThemeManager'
 export { TickManager } from './lib/editor/managers/TickManager/TickManager'
+export { CollaboratorsManager } from './lib/editor/managers/CollaboratorsManager/CollaboratorsManager'
 export { PerformanceApiAdapter } from './lib/editor/managers/PerformanceManager/PerformanceApiAdapter'
 export { PerformanceManager } from './lib/editor/managers/PerformanceManager/PerformanceManager'
 export {
@@ -173,6 +175,10 @@ export {
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
 } from './lib/editor/shapes/ShapeUtil'
+export {
+	getOverlayDisplayValues,
+	type OverlayOptionsWithDisplayValues,
+} from './lib/editor/overlays/getOverlayDisplayValues'
 export { OverlayManager, type TLOverlayEntry } from './lib/editor/overlays/OverlayManager'
 export {
 	OverlayUtil,
@@ -180,10 +186,7 @@ export {
 	type TLOverlay,
 	type TLOverlayUtilConstructor,
 } from './lib/editor/overlays/OverlayUtil'
-export {
-	ShapeIndicatorOverlayUtil,
-	type TLShapeIndicatorOverlay,
-} from './lib/editor/overlays/ShapeIndicatorOverlayUtil'
+export { strokeShapeIndicators } from './lib/editor/overlays/strokeShapeIndicators'
 export {
 	getPerfectDashProps,
 	type PerfectDashTerminal,
@@ -318,7 +321,6 @@ export {
 	useUniqueSafeId,
 	type SafeId,
 } from './lib/hooks/useSafeId'
-export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'

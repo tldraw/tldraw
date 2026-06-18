@@ -25,7 +25,7 @@ const ids = {
 
 describe('getAttributionDisplayName', () => {
 	it('returns current user name for own userId', () => {
-		const userId = editor.user.getId()
+		const userId = editor.user.getExternalId()
 		const name = editor.getAttributionDisplayName(userId)
 		expect(name).toBe(editor.user.getName())
 	})
@@ -51,7 +51,7 @@ describe('note shape textFirstEditedBy', () => {
 			},
 		])
 
-		const userId = editor.user.getId()
+		const userId = editor.user.getExternalId()
 
 		editor.updateShape<TLNoteShape>({
 			id: ids.note1,
@@ -73,7 +73,7 @@ describe('note shape textFirstEditedBy', () => {
 			},
 		])
 
-		const userId = editor.user.getId()
+		const userId = editor.user.getExternalId()
 
 		editor.updateShape<TLNoteShape>({
 			id: ids.note1,
@@ -186,7 +186,7 @@ describe('TLUserStore', () => {
 	})
 
 	it('falls back to default user store when none provided', () => {
-		const userId = editor.user.getId()
+		const userId = editor.user.getExternalId()
 		expect(editor.getAttributionUserId()).toBe(userId)
 		expect(editor.getAttributionDisplayName(userId)).toBe(editor.user.getName())
 	})

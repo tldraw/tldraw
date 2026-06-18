@@ -58,13 +58,18 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 
 /** Parse flowchart-specific SVG layout data for use by {@link flowchartToBlueprint}. */
 export function parseFlowchartLayout(root: Element): ParsedDiagramLayout {
+	// Mermaid 11.15 prefixes node and cluster dom ids with the diagram id (e.g.
+	// `mermaid-0-flowchart-s1-0` instead of `flowchart-s1-0`), so tolerate that
+	// optional `mermaid-<n>-` prefix when reading the clean id.
 	const nodes = parseNodesFromSvg(root, '.node', (domId) => {
-		const match = domId.match(/^flowchart-(.+)-\d+$/)
+		const match = domId.match(/^(?:mermaid-\d+-)?flowchart-(.+)-\d+$/)
 		return match ? match[1] : domId
 	})
-	const clusters = parseClustersFromSvg(root, '.cluster')
+	const clusters = parseClustersFromSvg(root, '.cluster', (domId) =>
+		domId.replace(/^mermaid-\d+-/, '')
+	)
 	const edges = parseAllEdgePointsFromSvg(root, (dataId) => {
-		const match = dataId.match(/^L_(.+)_([^_]+)_\d+$/)
+		const match = dataId.match(/(?:^|-)L_(.+)_([^_]+)_\d+$/)
 		return match ? { start: match[1], end: match[2] } : null
 	})
 	scaleLayout(nodes, clusters, edges, LAYOUT_SCALE)

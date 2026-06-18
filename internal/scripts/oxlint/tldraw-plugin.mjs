@@ -210,7 +210,7 @@ function getAssignableIdentifier(node) {
 }
 
 // ---------------------------------------------------------------------------
-// Rules ported from internal/scripts/eslint/eslint-plugin.mts
+// Rules ported from the legacy ESLint plugin
 // ---------------------------------------------------------------------------
 
 const rules = {

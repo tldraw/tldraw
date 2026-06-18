@@ -122,7 +122,7 @@ describe('ClickManager', () => {
 			expect(result.type).toBe('click')
 			expect(result.name).toBe('double_click')
 			expect(result.phase).toBe('down')
-			expect(clickManager.clickState).toBe('pendingTriple')
+			expect(clickManager.clickState).toBe('pendingOverflow')
 		})
 
 		it('should generate double_click up event on pointer_up after double_click down', () => {
@@ -139,12 +139,13 @@ describe('ClickManager', () => {
 			expect(result.phase).toBe('up')
 		})
 
-		it('should dispatch double_click settle event after timeout in pendingTriple', () => {
+		it('should dispatch double_click settle-down event after timeout in pendingOverflow (pointer held)', () => {
 			const firstDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 			const secondDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 
 			clickManager.handlePointerEvent(firstDown)
 			clickManager.handlePointerEvent(secondDown)
+			// no pointer_up between or after — pointer is still down at settle time
 
 			vi.advanceTimersByTime(350)
 
@@ -152,124 +153,105 @@ describe('ClickManager', () => {
 				expect.objectContaining({
 					type: 'click',
 					name: 'double_click',
-					phase: 'settle',
+					phase: 'settle-down',
+				})
+			)
+			expect(clickManager.clickState).toBe('idle')
+		})
+
+		it('should dispatch double_click settle-up event after timeout in pendingOverflow (pointer released)', () => {
+			const down = createPointerEvent('pointer_down', { x: 100, y: 100 })
+			const up = createPointerEvent('pointer_up', { x: 100, y: 100 })
+
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+
+			vi.advanceTimersByTime(350)
+
+			expect(editor.dispatch).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: 'click',
+					name: 'double_click',
+					phase: 'settle-up',
 				})
 			)
 			expect(clickManager.clickState).toBe('idle')
 		})
 	})
 
-	describe('triple and quadruple click detection', () => {
-		it('should detect triple click on third pointer_down', () => {
+	describe('overflow click handling', () => {
+		it('should enter overflow on the third pointer_down without emitting another click', () => {
 			const firstDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 			const secondDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 			const thirdDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 
 			clickManager.handlePointerEvent(firstDown)
 			clickManager.handlePointerEvent(secondDown)
-			const result = clickManager.handlePointerEvent(thirdDown) as TLClickEventInfo
+			const result = clickManager.handlePointerEvent(thirdDown)
 
-			expect(result.type).toBe('click')
-			expect(result.name).toBe('triple_click')
-			expect(result.phase).toBe('down')
-			expect(clickManager.clickState).toBe('pendingQuadruple')
+			expect(result).toBe(thirdDown)
+			expect(clickManager.clickState).toBe('overflow')
 		})
 
-		it('should detect quadruple click on fourth pointer_down', () => {
+		it('should keep overflow active on further clicks', () => {
 			const pointerDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 
 			clickManager.handlePointerEvent(pointerDown) // first
 			clickManager.handlePointerEvent(pointerDown) // second (double_click)
-			clickManager.handlePointerEvent(pointerDown) // third (triple_click)
-			const result = clickManager.handlePointerEvent(pointerDown) as TLClickEventInfo // fourth
-
-			expect(result.type).toBe('click')
-			expect(result.name).toBe('quadruple_click')
-			expect(result.phase).toBe('down')
-			expect(clickManager.clickState).toBe('pendingOverflow')
-		})
-
-		it('should handle overflow state after quadruple click', () => {
-			const pointerDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
-
-			clickManager.handlePointerEvent(pointerDown) // first
-			clickManager.handlePointerEvent(pointerDown) // second
-			clickManager.handlePointerEvent(pointerDown) // third
-			clickManager.handlePointerEvent(pointerDown) // fourth
-			const result = clickManager.handlePointerEvent(pointerDown) // fifth
+			clickManager.handlePointerEvent(pointerDown) // third (overflow)
+			const result = clickManager.handlePointerEvent(pointerDown) // fourth
 
 			expect(result).toBe(pointerDown)
 			expect(clickManager.clickState).toBe('overflow')
 		})
 
-		it('should generate triple_click up event on pointer_up after triple_click down', () => {
+		it('should not emit double_click up events while in overflow', () => {
 			const pointerDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
 			const pointerUp = createPointerEvent('pointer_up', { x: 100, y: 100 })
 
 			clickManager.handlePointerEvent(pointerDown) // first
 			clickManager.handlePointerEvent(pointerDown) // second
 			clickManager.handlePointerEvent(pointerDown) // third
-			const result = clickManager.handlePointerEvent(pointerUp) as TLClickEventInfo
+			const result = clickManager.handlePointerEvent(pointerUp)
 
-			expect(result.type).toBe('click')
-			expect(result.name).toBe('triple_click')
-			expect(result.phase).toBe('up')
+			expect(result).toBe(pointerUp)
+			expect(clickManager.clickState).toBe('overflow')
 		})
 
-		it('should generate quadruple_click up event on pointer_up after quadruple_click down', () => {
+		it('should return to idle after overflow timeout without dispatching a settle event', () => {
 			const pointerDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
-			const pointerUp = createPointerEvent('pointer_up', { x: 100, y: 100 })
 
 			clickManager.handlePointerEvent(pointerDown) // first
 			clickManager.handlePointerEvent(pointerDown) // second
-			clickManager.handlePointerEvent(pointerDown) // third
-			clickManager.handlePointerEvent(pointerDown) // fourth
-			const result = clickManager.handlePointerEvent(pointerUp) as TLClickEventInfo
+			clickManager.handlePointerEvent(pointerDown) // third -> overflow
 
-			expect(result.type).toBe('click')
-			expect(result.name).toBe('quadruple_click')
-			expect(result.phase).toBe('up')
+			vi.advanceTimersByTime(350)
+
+			expect(editor.dispatch).not.toHaveBeenCalled()
+			expect(clickManager.clickState).toBe('idle')
 		})
 	})
 
 	describe('timeout behavior and settle events', () => {
-		it('should dispatch triple_click settle event after timeout in pendingQuadruple', () => {
-			const pointerDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
+		it('should track press/release state across the pending window (settle-down then release → settle-up)', () => {
+			const down = createPointerEvent('pointer_down', { x: 100, y: 100 })
+			const up = createPointerEvent('pointer_up', { x: 100, y: 100 })
 
-			clickManager.handlePointerEvent(pointerDown) // first
-			clickManager.handlePointerEvent(pointerDown) // second
-			clickManager.handlePointerEvent(pointerDown) // third
-
-			vi.advanceTimersByTime(350)
-
-			expect(editor.dispatch).toHaveBeenCalledWith(
-				expect.objectContaining({
-					type: 'click',
-					name: 'triple_click',
-					phase: 'settle',
-				})
-			)
-			expect(clickManager.clickState).toBe('idle')
-		})
-
-		it('should dispatch quadruple_click settle event after timeout in pendingOverflow', () => {
-			const pointerDown = createPointerEvent('pointer_down', { x: 100, y: 100 })
-
-			clickManager.handlePointerEvent(pointerDown) // first
-			clickManager.handlePointerEvent(pointerDown) // second
-			clickManager.handlePointerEvent(pointerDown) // third
-			clickManager.handlePointerEvent(pointerDown) // fourth
+			clickManager.handlePointerEvent(down)
+			clickManager.handlePointerEvent(up)
+			clickManager.handlePointerEvent(down) // second press — pointer is down...
+			clickManager.handlePointerEvent(up) // ...but released before timeout
 
 			vi.advanceTimersByTime(350)
 
 			expect(editor.dispatch).toHaveBeenCalledWith(
 				expect.objectContaining({
-					type: 'click',
-					name: 'quadruple_click',
-					phase: 'settle',
+					name: 'double_click',
+					phase: 'settle-up',
 				})
 			)
-			expect(clickManager.clickState).toBe('idle')
 		})
 
 		it('should use different timeout durations for different states', () => {
@@ -316,7 +298,7 @@ describe('ClickManager', () => {
 
 			expect(result.type).toBe('click')
 			expect(result.name).toBe('double_click')
-			expect(clickManager.clickState).toBe('pendingTriple')
+			expect(clickManager.clickState).toBe('pendingOverflow')
 		})
 	})
 
@@ -396,7 +378,7 @@ describe('ClickManager', () => {
 
 			clickManager.handlePointerEvent(pointerDown)
 			clickManager.handlePointerEvent(pointerDown) // double click
-			expect(clickManager.clickState).toBe('pendingTriple')
+			expect(clickManager.clickState).toBe('pendingOverflow')
 
 			clickManager.cancelDoubleClickTimeout()
 
@@ -416,9 +398,7 @@ describe('ClickManager', () => {
 			// Get to overflow state
 			clickManager.handlePointerEvent(pointerDown) // 1
 			clickManager.handlePointerEvent(pointerDown) // 2
-			clickManager.handlePointerEvent(pointerDown) // 3
-			clickManager.handlePointerEvent(pointerDown) // 4
-			clickManager.handlePointerEvent(pointerDown) // 5 -> overflow
+			clickManager.handlePointerEvent(pointerDown) // 3 -> overflow
 
 			expect(clickManager.clickState).toBe('overflow')
 
