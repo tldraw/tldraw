@@ -88,6 +88,20 @@ const MAX_CONNECTIONS = 50
 // https://developers.cloudflare.com/workers/platform/limits/#simultaneous-open-connections
 const MAX_CONCURRENT_R2_OPERATIONS = 2
 
+// The shared R2 queue normally sits near empty (two operations in flight, nothing waiting). We only
+// emit a depth metric once it backs up past this many operations, to keep the common case out of
+// analytics — Grafana can then graph how deep the queue gets, in total and broken down by operation
+// type.
+const R2_QUEUE_DEPTH_METRIC_THRESHOLD = 30
+// If the queue ever backs up this far, operations are arriving far faster than the two-at-a-time
+// budget can drain them and a pass is likely to outlast the durable object. Surface it to Sentry
+// (once per sustained spike) so it can alert.
+const R2_QUEUE_DEPTH_ALERT_THRESHOLD = 100
+
+// The kinds of R2 operation that share the connection budget, used to break queue depth down per
+// type in metrics.
+type R2OperationType = 'asset_copy' | 'snapshot_upload'
+
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
 interface DocumentInfo {
@@ -1098,6 +1112,51 @@ export class TLFileDurableObject extends DurableObject {
 	// MAX_CONCURRENT_R2_OPERATIONS. Both asset copies and snapshot uploads draw from this queue.
 	private readonly r2ConnectionQueue = new PQueue({ concurrency: MAX_CONCURRENT_R2_OPERATIONS })
 
+	// In-flight (queued + running) R2 operations on the shared queue, broken down by type. We track
+	// this ourselves rather than reading r2ConnectionQueue.size/pending because the queue can't tell
+	// us which kind of operation is backed up. Drives the queue-depth metric and alert.
+	private readonly r2QueueDepthByType = new Map<R2OperationType, number>()
+	// Whether we've already alerted for the current spike, so a sustained backlog reports once rather
+	// than on every enqueue. Reset when the queue drains back below the metric threshold.
+	private r2QueueAlerted = false
+
+	// Funnel an R2 operation through the shared connection budget while tracking how deep the queue
+	// gets. `type` lets us break the depth down per operation in Grafana.
+	private addR2Operation<T>(type: R2OperationType, task: () => Promise<T>): Promise<T | void> {
+		this.r2QueueDepthByType.set(type, (this.r2QueueDepthByType.get(type) ?? 0) + 1)
+		this.reportR2QueueDepth(type)
+		return this.r2ConnectionQueue.add(task).finally(() => {
+			const remaining = (this.r2QueueDepthByType.get(type) ?? 1) - 1
+			if (remaining <= 0) this.r2QueueDepthByType.delete(type)
+			else this.r2QueueDepthByType.set(type, remaining)
+		})
+	}
+
+	// Report the current shared-queue depth when it's backed up. Writes a metric once the total
+	// passes R2_QUEUE_DEPTH_METRIC_THRESHOLD (with the total and the just-enqueued type's depth, so
+	// Grafana can graph both overall and per-type peaks) and reports to Sentry once per spike past
+	// R2_QUEUE_DEPTH_ALERT_THRESHOLD.
+	private reportR2QueueDepth(type: R2OperationType) {
+		let total = 0
+		for (const count of this.r2QueueDepthByType.values()) total += count
+		if (total < R2_QUEUE_DEPTH_METRIC_THRESHOLD) {
+			this.r2QueueAlerted = false
+			return
+		}
+		this.writeEvent('r2_queue_depth', {
+			blobs: [type],
+			doubles: [total, this.r2QueueDepthByType.get(type) ?? 0],
+		})
+		if (total >= R2_QUEUE_DEPTH_ALERT_THRESHOLD && !this.r2QueueAlerted) {
+			this.r2QueueAlerted = true
+			this.reportError(
+				new Error(
+					`R2 connection queue depth reached ${total} (>= ${R2_QUEUE_DEPTH_ALERT_THRESHOLD}) for file ${this.documentInfo.slug}`
+				)
+			)
+		}
+	}
+
 	// We use this to make sure that all of the assets in a tldraw app file are associated with that file.
 	// This is needed for a few cases like duplicating a file, copy pasting images between files, slurping legacy files.
 	// Also migrates old-format asset URLs to tldrawusercontent.com.
@@ -1181,7 +1240,7 @@ export class TLFileDurableObject extends DurableObject {
 		const rows: { objectName: string; fileId: string }[] = []
 		await Promise.allSettled(
 			assetsToReplace.map((asset) =>
-				this.r2ConnectionQueue.add(async () => {
+				this.addR2Operation('asset_copy', async () => {
 					try {
 						const currentAsset = await this.env.UPLOADS.get(asset.objectName)
 						if (!currentAsset) return
@@ -1324,7 +1383,7 @@ export class TLFileDurableObject extends DurableObject {
 	): Promise<number | null> {
 		// Funnel through the shared connection budget so the upload can't contend with a concurrent
 		// asset-association pass (or the version-cache upload) and exhaust Cloudflare's connections.
-		const result = await this.r2ConnectionQueue.add(async () => {
+		const result = await this.addR2Operation('snapshot_upload', async () => {
 			try {
 				// Try multipart upload first, retrying transient connection drops before falling back.
 				return await retry(() => this._uploadSnapshotToBucketMultipart(bucket, snapshot, key), {
