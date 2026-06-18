@@ -404,6 +404,12 @@
 	inset: 2px 0px;
 }
 
+.sidebarUserSettingsAvatarIcon {
+	flex: 0 0 auto;
+	color: var(--tla-color-text-1);
+	margin-inline-end: 6px;
+}
+
 .sidebarUserSettingsName {
 	flex: 1 1 auto;
 	white-space: nowrap;
@@ -431,20 +437,14 @@
 
 	.sidebarUserSettingsIcon {
 		color: var(--tla-color-text-3);
-		visibility: hidden;
 	}
 
 	.sidebarUserSettingsTrigger:hover .sidebarUserSettingsIcon {
-		visibility: visible;
 		color: var(--tla-color-text-1);
 	}
 }
 
 .sidebarUserSettingsTrigger[data-state='open']::after {
-	visibility: visible;
-}
-
-.sidebarUserSettingsTrigger[data-state='open'] .sidebarUserSettingsIcon {
 	visibility: visible;
 }
 
@@ -634,7 +634,7 @@
 .sidebarWorkspaceSwitcherMenu > .sidebarWorkspaceSwitcherSeparator {
 	height: 1px;
 	margin: 6px 0px;
-	background-color: var(--tl-color-divider, rgba(232, 232, 232, 1));
+	background-color: var(--tla-color-border, rgba(232, 232, 232, 1));
 }
 
 .sidebarCreateWorkspaceButton {
@@ -798,7 +798,7 @@
 	content: '';
 	width: 100%;
 	height: 1px;
-	background-color: var(--tl-color-divider, rgba(232, 232, 232, 1));
+	background-color: var(--tla-color-border);
 }
 
 .sidebarFileSectionTitlePadding span[role='img'] {

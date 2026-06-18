@@ -22,6 +22,7 @@ export type TLUiIconType =
 	| 'arrowhead-square'
 	| 'arrowhead-triangle-inverted'
 	| 'arrowhead-triangle'
+	| 'avatar'
 	| 'blob'
 	| 'bold'
 	| 'bookmark'
@@ -187,6 +188,7 @@ export const iconTypes = [
 	'arrowhead-square',
 	'arrowhead-triangle-inverted',
 	'arrowhead-triangle',
+	'avatar',
 	'blob',
 	'bold',
 	'bookmark',

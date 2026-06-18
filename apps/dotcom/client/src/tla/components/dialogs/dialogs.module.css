@@ -188,7 +188,7 @@
 	border-radius: var(--tl-radius-2);
 	background-color: var(--tl-color-muted-0);
 	padding: 0px var(--tl-space-3);
-	margin: 2px 0px;
+	margin: 0px 0px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -205,13 +205,13 @@
 	padding-top: 0px;
 	max-width: 360px;
 	max-height: max(420px, 80%);
-	min-height: 420px;
 	width: calc(100vw - 48px);
 }
 
 .section {
 	display: flex;
 	flex-direction: column;
+	padding: 6px 0px;
 }
 /* No trailing gap when a section is the last thing in the dialog (e.g. the member
    list, for non-owners who have no destroy action below it). */
@@ -237,14 +237,13 @@
 .membersList {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
 }
 
 .memberItem {
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	padding: 6px 0;
+	height: 36px;
 }
 
 .memberAvatar {
@@ -272,7 +271,7 @@
    also equals that 12px, the strip now spans the body's full width — so drop the tab
    nav's bottom rule inset to 0 and let it bleed to the modal edges. */
 .workspaceTabs {
-	margin: 20px -12px 0px -12px;
+	margin: 12px -12px 0px -12px;
 	--tabs-line-inset: 0px;
 	/* Tighten the gap between the Members and Settings tabs (default leaves too much). */
 	--tabs-tab-gap: -12px;
@@ -307,7 +306,6 @@
 .settingsPage {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
 }
 
 /* Regenerate / leave / delete render as text links rather than full menu buttons.
@@ -323,6 +321,7 @@
 	font-weight: 500;
 	color: var(--tla-color-text-1);
 	text-align: left;
+	height: 36px;
 }
 
 @media (hover: hover) {

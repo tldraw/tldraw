@@ -139,6 +139,7 @@ export function getAssetUrlsByImport(opts) {
 			'arrowhead-square': iconsIcon0MergedSvg2 + '#arrowhead-square',
 			'arrowhead-triangle-inverted': iconsIcon0MergedSvg2 + '#arrowhead-triangle-inverted',
 			'arrowhead-triangle': iconsIcon0MergedSvg2 + '#arrowhead-triangle',
+			avatar: iconsIcon0MergedSvg2 + '#avatar',
 			blob: iconsIcon0MergedSvg2 + '#blob',
 			bold: iconsIcon0MergedSvg2 + '#bold',
 			bookmark: iconsIcon0MergedSvg2 + '#bookmark',

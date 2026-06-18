@@ -108,7 +108,7 @@
 	position: relative;
 	display: flex;
 	align-items: center;
-	height: 100%;
+	height: 36px;
 	gap: 4px;
 	justify-content: flex-end;
 	cursor: pointer;
@@ -120,7 +120,7 @@
 	display: block;
 	position: absolute;
 	background-color: var(--tl-color-muted-2);
-	inset: -4px;
+	inset: 0px -4px;
 	border-radius: 6px;
 	opacity: 0;
 }
@@ -211,7 +211,7 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 .menuSelectSeparator {
 	height: 1px;
 	margin: 4px;
-	background-color: var(--tl-color-divider);
+	background-color: var(--tla-color-border);
 }
 
 .menuSelectOptionDestructive {
@@ -401,7 +401,7 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	left: var(--tab-padding);
 	right: var(--tab-padding);
 	height: var(--line-height);
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--tla-color-low);
 }
 
 .menuLabel + .menuInfoTriggerContainer {

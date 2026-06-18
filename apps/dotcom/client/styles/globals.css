@@ -107,6 +107,7 @@ select {
 
 html {
 	height: 100%;
+	overflow: hidden;
 }
 
 html,
@@ -117,6 +118,7 @@ body {
 body {
 	display: flex;
 	height: 100%;
+	overflow: hidden;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	font-smooth: antialiased;

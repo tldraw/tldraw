@@ -6,6 +6,7 @@ import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiIcon,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	useMenuIsOpen,
@@ -55,6 +56,9 @@ export function TlaUserSettingsMenu() {
 							onMenuOpenChange(true)
 						}}
 					>
+						<span className={styles.sidebarUserSettingsAvatarIcon}>
+							<TldrawUiIcon icon="avatar" label={userMenuLbl} small />
+						</span>
 						<div
 							className={classNames(
 								styles.sidebarUserSettingsName,
@@ -65,7 +69,7 @@ export function TlaUserSettingsMenu() {
 							{user?.name || <F defaultMessage="Account" />}
 						</div>
 						<div className={styles.sidebarUserSettingsIcon}>
-							<TlaIcon icon="dots-vertical-strong" />
+							<TlaIcon icon="help-circle" />
 						</div>
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>

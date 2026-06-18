@@ -40,7 +40,7 @@
 	--tla-color-text-3: hsl(204, 4%, 45%);
 	--tla-color-contrast: hsl(0, 0%, 100%);
 	--tla-color-low: hsl(204, 16%, 94%);
-	--tla-color-border: hsl(204, 16%, 85%);
+	--tla-color-border: hsl(204, 16%, 94%);
 	--tla-color-hover-1: hsl(204, 16%, 4%, 3%);
 	--tla-color-hover-2: hsl(204, 16%, 4%, 4.5%);
 	--tla-color-hover-3: hsla(0, 0%, 100%, 32.5%);
@@ -84,7 +84,7 @@
 	--tla-color-text-3: hsl(204, 4%, 75%);
 	--tla-color-contrast: hsl(0, 0%, 100%);
 	--tla-color-low: hsl(240, 4%, 11%);
-	--tla-color-border: hsl(240, 12%, 20%);
+	--tla-color-border: hsl(240, 4%, 11%);
 	--tla-color-hover-1: hsl(240, 8%, 100%, 3%);
 	--tla-color-hover-2: hsl(240, 8%, 100%, 5%);
 	--tla-color-hover-3: hsl(204, 16%, 4%, 3%);
