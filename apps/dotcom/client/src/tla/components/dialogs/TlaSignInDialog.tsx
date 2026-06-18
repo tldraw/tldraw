@@ -109,25 +109,31 @@ function TlaEnterEmailStep({
 
 	// When the user starts the Google flow we redirect to Google's OAuth page.
 	// Pressing the browser back button restores this page from the bfcache, which
-	// also restores Clerk's in-memory sign-in resource frozen mid-redirect with
-	// status "needs_first_factor". Clerk Elements routes from that status, so it
-	// lands on the first-factor step instead of "start" and the "Sign in with
-	// Google" button goes dead. Remounting SignIn.Root alone can't fix it: the
-	// fresh state machine reads the same frozen clerk-js resource. So on bfcache
-	// restore we reset the resource (back to status null) and bump a key to
-	// remount SignIn.Root, which then routes back to the "start" step. See #9103.
+	// also restores Clerk's in-memory sign-in resource frozen mid-redirect (e.g.
+	// status "needs_first_factor"). Clerk Elements routes the SignIn.Root state
+	// machine from that status, so it no longer sits on the "start" step and the
+	// "Sign in with Google" button goes dead. Remounting SignIn.Root alone can't
+	// fix it: the fresh state machine reads the same frozen clerk-js resource. So
+	// on bfcache restore we start a fresh sign-in attempt (resetting status back
+	// to "needs_identifier") and bump a key to remount SignIn.Root, which then
+	// routes back to the "start" step. See #9103.
 	const [signInResetKey, setSignInResetKey] = useState(0)
 	useEffect(() => {
-		function handlePageShow(e: PageTransitionEvent) {
+		async function handlePageShow(e: PageTransitionEvent) {
 			if (!e.persisted) return
-			// `resetSignIn` exists on clerk-js' Client but isn't on the public type.
-			const clientWithReset = client as unknown as { resetSignIn?(): void }
-			clientWithReset.resetSignIn?.()
+			// Only reset when there's a stale in-progress attempt to clear.
+			if (signIn?.status) {
+				try {
+					await signIn.create({})
+				} catch {
+					// Network/validation failure: fall through to the remount anyway.
+				}
+			}
 			setSignInResetKey((k) => k + 1)
 		}
 		window.addEventListener('pageshow', handlePageShow)
 		return () => window.removeEventListener('pageshow', handlePageShow)
-	}, [client])
+	}, [signIn])
 
 	const [state, setState] = useState<{
 		identifier: string
