@@ -1,3 +1,4 @@
+import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { useEffect, useRef, useState } from 'react'
 import {
 	TldrawUiButton,
@@ -12,9 +13,9 @@ import { defineMessages, F, useMsg } from '../../utils/i18n'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
-	title: { defaultMessage: 'Create workspace' },
+	title: { defaultMessage: 'Create a workspace' },
 	name: { defaultMessage: 'Name' },
-	defaultName: { defaultMessage: 'My workspace' },
+	defaultName: { defaultMessage: 'New workspace' },
 	placeholder: { defaultMessage: 'Workspace name' },
 	cancel: { defaultMessage: 'Cancel' },
 	create: { defaultMessage: 'Create workspace' },
@@ -58,11 +59,13 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				<div style={{ marginBottom: 16 }}>
-					<label style={{ display: 'block', marginBottom: 8 }}>
-						<F {...messages.name} />
-					</label>
+			<TldrawUiDialogBody style={{ maxWidth: 350, paddingTop: 0 }}>
+				<div>
+					<div className={styles.dialogFieldLabelRow}>
+						<label style={{ display: 'block' }}>
+							<F {...messages.name} />
+						</label>
+					</div>
 					<TldrawUiInput
 						ref={inputRef}
 						className={styles.dialogInput}
@@ -71,6 +74,7 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 						onComplete={handleCreate}
 						onCancel={onClose}
 						placeholder={placeholderMsg}
+						maxLength={MAX_WORKSPACE_NAME_LENGTH}
 						autoFocus
 					/>
 				</div>

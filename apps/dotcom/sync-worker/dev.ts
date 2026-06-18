@@ -35,3 +35,7 @@ child.once('error', (error) => {
 
 process.on('SIGINT', () => child.kill('SIGINT'))
 process.on('SIGTERM', () => child.kill('SIGTERM'))
+process.on('SIGHUP', () => child.kill('SIGHUP'))
+process.on('exit', () => {
+	if (!child.killed) child.kill('SIGKILL')
+})

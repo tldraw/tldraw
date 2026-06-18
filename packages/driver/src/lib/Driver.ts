@@ -217,7 +217,7 @@ export class Driver {
 		} else if (options === undefined) {
 			options = { target: 'canvas' }
 		}
-		return {
+		const info = {
 			name: 'pointer_down',
 			type: 'pointer',
 			pointerId: 1,
@@ -232,6 +232,12 @@ export class Driver {
 			...options,
 			...modifiers,
 		} as TLPointerEventInfo
+
+		if (tlenv.isDarwin && info.button === 0 && info.ctrlKey && !info.metaKey) {
+			info.button = 2
+		}
+
+		return info
 	}
 
 	/**

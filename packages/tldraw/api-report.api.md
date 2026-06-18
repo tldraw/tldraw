@@ -5246,6 +5246,8 @@ export interface TLUiIconProps extends React.HTMLAttributes<HTMLDivElement> {
     label: string;
     // (undocumented)
     small?: boolean;
+    // (undocumented)
+    tiny?: boolean;
 }
 
 // @public (undocumented)
@@ -5283,6 +5285,7 @@ export interface TLUiInputProps {
     iconLeft?: Exclude<string, TLUiIconType> | TLUiIconType;
     // (undocumented)
     label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
+    maxLength?: number;
     // (undocumented)
     onBlur?(value: string): void;
     // (undocumented)

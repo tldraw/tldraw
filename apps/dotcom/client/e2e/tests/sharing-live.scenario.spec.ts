@@ -1,7 +1,12 @@
 import { expect, test } from '../fixtures/scenario-test'
 
 // Live share and workspace membership scenarios.
-test.describe.configure({ mode: 'parallel' })
+//
+// These scenarios drive two browser contexts and assert on state that propagates between them via
+// Zero sync. The membership/file waits gate on the data layer first (see Sidebar), but the heavy
+// per-test setup plus genuinely variable cross-client sync latency on CI needs more than the default
+// 30s per-test budget, so raise it for the suite.
+test.describe.configure({ mode: 'parallel', timeout: 60_000 })
 
 test.describe('live sharing scenarios', () => {
 	test('owner and visitor see live edits through an edit link', async ({
@@ -208,6 +213,9 @@ test.describe('live sharing scenarios', () => {
 		await member.sidebar.expectFileVisible(fileName)
 
 		await member.sidebar.openWorkspaceSettings(workspaceName)
+		// Delete lives on the Settings tab and only for owners; promoting the member should
+		// surface it there reactively, without a reload.
+		await member.page.getByRole('tab', { name: 'Settings' }).click()
 		const deleteWorkspaceButton = member.page.getByRole('button', { name: /Delete workspace/ })
 		await expect(deleteWorkspaceButton).not.toBeVisible()
 

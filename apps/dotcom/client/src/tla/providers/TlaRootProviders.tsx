@@ -158,10 +158,6 @@ export function Component() {
 				</IntlWrapper>
 			</RefreshErrorBoundary>
 			<WatermarkOverride />
-			{/* Always-mounted target for Clerk's CAPTCHA widget, so any Clerk call
-			    anywhere in the app can attach its challenge. Stays empty (and so
-			    invisible) unless Clerk injects a visible challenge. */}
-			<div id="clerk-captcha" />
 		</div>
 	)
 }

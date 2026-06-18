@@ -4,12 +4,12 @@ import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
-	DragFileOperation,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	TlaFile,
+	WELCOME_CREATE_SOURCE,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
@@ -78,13 +78,6 @@ import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
-
-type DragState = null | {
-	type: 'file'
-	id: string
-	operation: DragFileOperation
-	hasDragStarted: boolean
-}
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -327,6 +320,8 @@ export class TldrawApp {
 			defaultMessage:
 				'You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones.',
 		},
+		// the name of a workspace's seeded first (welcome) file
+		new_workspace_file_name: { defaultMessage: 'Welcome to your workspace' },
 		// toast title
 		mutation_error_toast_title: { defaultMessage: 'Error' },
 		// toast descriptions
@@ -560,7 +555,7 @@ export class TldrawApp {
 				continue
 			}
 
-			// if the file is in a workspace we have access to, we don't want to show it in my files
+			// if the file is in a workspace we have access to, we don't want to show it in my workspace
 			if (myWorkspaceMemberships.some((g) => g.groupFiles.some((gf) => gf.fileId === fileId))) {
 				continue
 			}
@@ -584,7 +579,7 @@ export class TldrawApp {
 			// If this was previously unpinned and we have existing ordering,
 			// preserve its position in the unpinned section to avoid real-time reordering
 			if (!isPinned && existing && !existing.isPinned) {
-				// Keep the old date to preserve ordering in "My files"
+				// Keep the old date to preserve ordering in "My workspace"
 				newEntry.date = existing.date
 			}
 
@@ -645,6 +640,51 @@ export class TldrawApp {
 		return this.getFileState(fileId)?.isPinned ?? false
 	}
 
+	// A workspace's welcome file is seeded once, when the workspace is created. Its
+	// `createWorkspace` mutation lands before the file does, so the workspace briefly appears
+	// empty; this single-flights the seed per workspace so a double-submit (or any concurrent
+	// caller) shares one creation and all receive its result, rather than creating duplicates.
+	// Cleared once settled.
+	private readonly workspaceWelcomeFileSeeds = new Map<
+		string,
+		Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>>
+	>()
+
+	/**
+	 * Seed a newly-created workspace's welcome file: a named file whose content the sync worker
+	 * resolves from the welcome template (or a committed default). Called once at workspace
+	 * creation — not on later empty opens, which get a blank file (see useSwitchToWorkspace) —
+	 * and single-flighted so a double-submit shares the same creation.
+	 */
+	createWorkspaceWelcomeFile(
+		workspaceId: string
+	): Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>> {
+		const inFlight = this.workspaceWelcomeFileSeeds.get(workspaceId)
+		if (inFlight) return inFlight
+
+		const seed = this.createFile({
+			workspaceId,
+			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+			createSource: WELCOME_CREATE_SOURCE,
+		})
+		this.workspaceWelcomeFileSeeds.set(workspaceId, seed)
+		seed.finally(() => {
+			if (this.workspaceWelcomeFileSeeds.get(workspaceId) === seed) {
+				this.workspaceWelcomeFileSeeds.delete(workspaceId)
+			}
+		})
+		return seed
+	}
+
+	/**
+	 * The in-flight welcome-file seed for a workspace, if one is still creating. The empty-workspace
+	 * open path uses this to await a just-created workspace's welcome file rather than racing it with
+	 * a duplicate blank file. Returns undefined once the seed settles (or if none was started).
+	 */
+	getPendingWorkspaceWelcomeFile(workspaceId: string) {
+		return this.workspaceWelcomeFileSeeds.get(workspaceId)
+	}
+
 	async createFile({
 		fileId = uniqueId(),
 		workspaceId = this.getHomeWorkspaceId(),
@@ -700,6 +740,8 @@ export class TldrawApp {
 
 		if (!createSource) {
 			analyticsSource = 'create-blank-file' // Default for button clicks
+		} else if (createSource === WELCOME_CREATE_SOURCE) {
+			analyticsSource = 'welcome'
 		} else if (createSource.startsWith(`${LOCAL_FILE_PREFIX}/`)) {
 			analyticsSource = 'slurp'
 		} else if (createSource.startsWith(`${FILE_PREFIX}/`)) {
@@ -1151,7 +1193,8 @@ export class TldrawApp {
 			fileId: string
 			workspaceId: string
 		},
-		dragState: null as DragState,
+		// The current sidebar file-search query. Empty string means no filter.
+		searchQuery: '',
 	})
 
 	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
@@ -1217,14 +1260,14 @@ export class TldrawApp {
 		}
 	}
 
-	navigateToWorkspaceFiles(workspaceId: string) {
+	navigateToWorkspaceFiles(workspaceId: string, opts: { replace?: boolean } = {}) {
 		const files = this.getWorkspaceFilesSorted(workspaceId)
 
 		if (!files.length) {
 			return false
 		}
 
-		this.navigate(routes.tlaFile(files[0]!.fileId))
+		this.navigate(routes.tlaFile(files[0]!.fileId), opts)
 		return true
 	}
 }

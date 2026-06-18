@@ -29,30 +29,6 @@
 	border-left: 1px solid transparent;
 }
 
-.sidebarDragOverlay {
-	position: absolute;
-	inset: 0px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 12px;
-	font-weight: 600;
-	z-index: 1000;
-	background-color: var(--tla-color-sidebar);
-	content: 'Upload .tldr files';
-	opacity: 0;
-	animation: 0.2s fade-in 0.25s forwards;
-}
-
-@keyframes fade-in {
-	0% {
-		opacity: 0;
-	}
-	100% {
-		opacity: 1;
-	}
-}
-
 .sidebarOverlayMobile {
 	all: unset;
 	position: absolute;
@@ -152,10 +128,6 @@
 .hoverable[data-active='true']::after {
 	background-color: var(--tla-color-hover-2);
 	visibility: visible;
-}
-
-.hoverable:has(*[data-state='open']) .collaborator {
-	display: none;
 }
 
 @media (hover: hover) {
@@ -281,21 +253,7 @@
 }
 
 .sidebar[data-workspaces='true'] .sidebarWorkspaceButton span[role='img'] {
-	height: 16px;
-	width: 59px;
-}
-
-.sidebarWorkspaceButtonLabel {
-	/* for alignment with other buttons */
-	display: block;
-	flex-grow: 2;
-	flex: 1 1 auto;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	padding: 0 0px;
-	position: relative;
-	z-index: 1;
+	width: 64px;
 }
 
 /* Create file button */
@@ -306,7 +264,7 @@
 	cursor: pointer;
 	position: relative;
 	top: 0px;
-	right: -8px;
+	right: -4px;
 	height: 40px;
 	width: 40px;
 	display: flex;
@@ -369,7 +327,7 @@
 }
 
 .sidebar[data-workspaces='true'] .sidebarBottomArea .sidebarDivider {
-	margin: 0;
+	margin: 0px 0px 6px 0px;
 }
 
 /* ------------------- Bottom row ------------------- */
@@ -381,9 +339,9 @@
 	flex: 0 0 auto;
 }
 
-/* ----------------- Feedback button ---------------- */
+/* ----------------- Link button ---------------- */
 
-.sidebarFeedbackButton {
+.sidebarLinkButton {
 	position: relative;
 	display: flex;
 	flex-direction: row;
@@ -400,12 +358,12 @@
 	text-decoration: none;
 }
 
-.sidebarFeedbackButton > span[role='img'] {
+.sidebarLinkButton > span[role='img'] {
 	flex-shrink: 0;
 	margin: -1.5px;
 }
 
-.sidebarFeedbackButtonLabel {
+.sidebarLinkButtonLabel {
 	flex: 0 1 auto;
 	min-width: 0;
 	white-space: nowrap;
@@ -413,7 +371,7 @@
 	text-overflow: ellipsis;
 }
 
-.sidebarFeedbackButton:focus-visible {
+.sidebarLinkButton:focus-visible {
 	outline-offset: -2px;
 }
 
@@ -510,7 +468,6 @@
 	flex-direction: row;
 	align-items: center;
 	gap: 4px;
-	font-weight: bold;
 	color: var(--tla-color-text-3);
 }
 
@@ -574,7 +531,7 @@
 	text-overflow: ellipsis;
 	position: relative;
 	z-index: 1;
-	font-weight: 600;
+	font-weight: 800;
 }
 
 .sidebarWorkspaceSwitcherChevrons {
@@ -584,7 +541,7 @@
 }
 
 .sidebarWorkspaceSwitcherMenu {
-	min-width: calc(var(--tla-sidebar-width) - 4px);
+	min-width: max(260px, calc(var(--tla-sidebar-width) - 4px));
 	max-width: calc(var(--tla-sidebar-width) - 4px);
 	max-height: 70vh;
 	overflow-y: auto;
@@ -659,26 +616,44 @@
 	align-items: center;
 	gap: 6px;
 	min-width: 0;
+}
+
+/* These labels are flex rows (icon + text), so the ellipsis must live on the
+   text node itself — text-overflow does nothing on a flex container whose text
+   is a flex item. */
+.sidebarTruncatedText {
+	flex: 0 1 auto;
+	min-width: 0;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-.sidebarWorkspaceSwitcherItemCreate {
-	color: var(--tla-color-text-3);
+/* Override the menu's negative item margins so the separator sits flush
+   between the workspace list and the "New workspace" row. */
+.sidebarWorkspaceSwitcherMenu > .sidebarWorkspaceSwitcherSeparator {
+	height: 1px;
+	margin: 6px 0px;
+	background-color: var(--tl-color-divider, rgba(232, 232, 232, 1));
 }
 
 .sidebarCreateWorkspaceButton {
 	position: relative;
 	display: flex;
 	align-items: center;
+	gap: 6px;
 	height: 32px;
+	min-width: 0;
 	background: none;
 	border: none;
 	cursor: pointer;
-	color: var(--tla-color-text-3);
+	color: var(--tla-color-text-1);
 	padding: 0px 8px;
 	text-align: left;
+}
+
+.sidebarCreateWorkspaceButton > span[role='img'] {
+	flex-shrink: 0;
 }
 
 .sidebarCreateWorkspaceButton:focus-visible {
@@ -720,6 +695,95 @@
 
 .sidebarActionButton:focus-visible {
 	outline-offset: -2px;
+}
+
+/* ------------------- Sidebar search ------------------ */
+
+/* Sits in the same 36px row as the search action button it replaces. The focus
+   ring is drawn by ::before so it matches the rename input's bordered box. */
+.sidebarSearch {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+	height: 36px;
+	flex: 0 0 auto;
+	/* Match the file rows below so the clear button lines up with their menu triggers. */
+	padding: 0px 4px 0px 8px;
+	color: var(--tla-color-text-1);
+}
+
+.sidebarSearch::before {
+	content: '';
+	position: absolute;
+	inset: 2px 0px;
+	border-radius: 4px;
+	border: 1px solid transparent;
+	pointer-events: none;
+}
+
+.sidebarSearch:focus-within::before {
+	border-color: var(--tla-color-primary);
+}
+
+/* Match the action button's 12px icon grid alignment. Sits above the hover
+   highlight (.hoverable::after, z-index 0). */
+.sidebarSearchIcon {
+	flex-shrink: 0;
+	margin: -1.5px;
+	z-index: 1;
+	color: var(--tla-color-text-1);
+}
+
+.sidebarSearchInput {
+	flex: 1 1 auto;
+	min-width: 0;
+	/* Size by the line box and let the flex row center it, the same way the
+	   search action button's label is centered. Giving the input an explicit
+	   36px height makes it center its text internally, which rounds ~1px lower
+	   than the label and shifts the placeholder down. */
+	height: auto;
+	background: none;
+	border: none;
+	padding: 0px;
+	color: var(--tla-color-text-1);
+	position: relative;
+	z-index: 1;
+}
+
+/* Identical to the file item menu trigger, but with an X icon. */
+.sidebarSearchClear {
+	padding: 0px;
+	background: none;
+	border: none;
+	position: relative;
+	outline: none;
+	margin-inline-end: -10px;
+	width: 36px;
+	height: 36px;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	z-index: 3;
+	cursor: pointer;
+	color: var(--tla-color-text-1);
+}
+
+.sidebarSearchClear:after {
+	content: none;
+}
+
+.sidebarSearchClear:focus-visible {
+	border-radius: 8px;
+	outline-offset: -4px;
+}
+
+.sidebarSearchEmpty {
+	padding: 8px;
+	color: var(--tla-color-text-3);
 }
 
 /* An 8px-tall block with the 1px line sitting in its middle. */
@@ -773,11 +837,6 @@
 	outline-offset: -2px;
 }
 
-.sidebarFileListItem[data-is-dragging='true'] {
-	opacity: 0.5;
-	background: transparent;
-}
-
 .sidebarFileListItemContent {
 	flex: 1 1 auto;
 	min-width: 0;
@@ -805,6 +864,17 @@
 	color: var(--tla-color-text-1);
 }
 
+/* The selected file reads as the current one with a heavier weight. */
+.sidebarFileListItem[data-active='true'] .sidebarFileListItemLabel {
+	font-weight: 600;
+}
+
+/* The portion of a file name that matches the active search query. */
+.sidebarFileListItemLabelMatch {
+	font-weight: 700;
+	color: var(--tla-color-text);
+}
+
 .sidebarFileListItemRenameInputWrapper {
 	display: flex;
 	align-items: center;
@@ -819,8 +889,8 @@
 	content: '';
 	position: absolute;
 	bottom: 0px;
-	inset: 0px;
-	border-radius: 6px;
+	inset: 2px 0px;
+	border-radius: 4px;
 	border: 1px solid var(--tla-color-primary);
 }
 
@@ -829,14 +899,22 @@
 }
 
 .sidebarFileListItemRenameInput {
-	height: 36px;
-	align-self: flex-start;
+	/* Size by the line box and let the 36px wrapper center it, the same way the
+	   file label is centered in its row. Giving the input an explicit 36px
+	   height makes it center its text internally, which rounds ~1px lower than
+	   the label and shifts the name down when entering rename mode. */
+	height: auto;
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	position: relative;
 	z-index: 1;
+}
+
+/* Match the selected file's heavier label weight while renaming it. */
+.sidebarFileListItemRenameInputActive {
+	font-weight: 600;
 }
 
 .sidebarFileListItemButton {
@@ -865,7 +943,7 @@
 	border: none;
 	position: relative;
 	outline: none;
-	margin-inline-end: -10px;
+	margin-inline-end: -6px;
 	width: 36px;
 	height: 36px;
 	min-width: 0;
@@ -900,8 +978,7 @@
 		display: flex;
 	}
 	:global(.tla:has(.tl-container__focused:not(.tl-container__no-focus-ring)))
-		.sidebarFileListItemMenuTrigger,
-	.sidebarFileListItem[data-is-dragging='true'] .sidebarFileListItemMenuTrigger {
+		.sidebarFileListItemMenuTrigger {
 		visibility: visible;
 		display: flex;
 	}
@@ -915,30 +992,6 @@
 	.sidebarFileListItemMenuTrigger:hover {
 		color: var(--tla-color-text-1);
 	}
-}
-
-/* Renaming */
-
-.sidebarFileLinkRenameInputWrapper {
-	background-color: var(--tla-color-sidebar);
-	outline: 1px solid var(--tl-color-primary);
-	outline-offset: -2px;
-	border-radius: 6px;
-}
-
-.sidebarFileLinkRenameInputWrapper > div {
-	height: 36px;
-	padding: 0px 8px 0px 8px;
-}
-
-.sidebarFileLinkRenameInput {
-	height: 36px;
-	flex: 1 1 auto;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	position: relative;
-	z-index: 1;
 }
 
 /* Guest badge */
@@ -968,111 +1021,9 @@
 	color: var(--tla-color-text-1);
 }
 
-/* Dot dev link */
-
-.sidebarDotDevLink {
-	position: relative;
-	font-size: 12px;
-	border: 1px solid var(--tla-color-text-2);
-	border-radius: 2px;
-	margin-left: -4px;
-	margin-right: -6px;
-	margin-bottom: 8px;
-	padding: 2px;
-	display: flex;
-	align-items: center;
-	height: 36px;
-	justify-content: space-between;
-	background-color: var(--tla-color-sidebar);
-}
-
-.sidebarDotDevLink:after {
-	content: '';
-	position: absolute;
-	top: 4px;
-	left: -4px;
-	right: 4px;
-	bottom: -4px;
-	border-radius: 2px;
-	border: 1px dashed var(--tla-color-text-2);
-	z-index: -2;
-	pointer-events: none;
-}
-
-.sidebarDotDevLink a {
-	position: relative;
-	height: 100%;
-	padding: 0px 8px;
-	display: flex;
-	align-items: center;
-	flex: 1;
-	gap: 4px;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.sidebarDotDevLink a div {
-	position: relative;
-	transform: rotate(180deg);
-	flex-shrink: 0;
-	transition: transform 3s ease-in-out 0s;
-}
-
-.sidebarDotDevDismissButton {
-	background: none;
-	border: none;
-	cursor: pointer;
-	position: relative;
-	height: 28px;
-	width: 28px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--tla-color-inactive);
-	transition: opacity 0.2s ease-in-out;
-	min-width: 0;
-}
-
-.sidebarDotDevDismissButton div {
-	width: 12px;
-	height: 12px;
-}
-
-@media (hover: hover) {
-	.sidebarDotDevLink:hover a div {
-		transform: translate(200px, 0px) rotate(180deg);
-		transition: transform 8s ease-in-out 1s;
-	}
-
-	.sidebarDotDevLink:has(a:hover) .sidebarDotDevDismissButton {
-		opacity: 0;
-	}
-
-	.sidebarDotDevLink:has(a:hover):after {
-		background-color: var(--tla-color-hover-2);
-	}
-}
-
 .sidebarFileSectionTitleText {
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-}
-
-/* ------------------- Drop targets ------------------- */
-
-.dropCursorLine {
-	height: 2px;
-	/* translateZ() is required to render at a consistent visual size */
-	transform: translateZ(0) translateY(-50%);
-	will-change: top;
-	background-color: rgba(0, 122, 255, 0.7);
-	border-radius: 1.5px;
-	width: calc(100% - 32px);
-	left: 16px;
-	z-index: 1000;
-	pointer-events: none;
-	position: fixed;
 }

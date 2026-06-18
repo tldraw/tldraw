@@ -409,9 +409,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._tickManager = new TickManager(this)
 		this.disposables.add(() => this._tickManager.dispose())
 		this.disposables.add(() => {
-			// Reset camera state to 'idle' so the store isn't left stuck at 'moving'
-			// when tick events stop (e.g. React strict mode disposes while camera is moving)
-			this.off('tick', this._decayCameraStateTimeout)
 			this._setCameraState('idle')
 		})
 
@@ -419,6 +416,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(() => this.fonts.dispose())
 
 		this.inputs = new InputsManager(this)
+		this.disposables.add(() => this.inputs.dispose())
 		this.performance = new PerformanceManager(this)
 		this.disposables.add(() => this.performance.dispose())
 		this.collaborators = new CollaboratorsManager(this)
@@ -1179,6 +1177,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.dispose()
 		this.isDisposed = true
 		this.emit('dispose')
+		this.removeAllListeners()
 	}
 
 	/* ------------------ Themes (shadowing the theme manager) ------------------ */
@@ -1549,6 +1548,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getMarkIdMatching(idSubstring: string) {
 		return this.history.getMarkIdMatching(idSubstring)
+	}
+
+	/**
+	 * Whether the editor is currently replaying history (i.e. an undo or redo is being applied).
+	 *
+	 * @internal
+	 */
+	isReplayingHistory(): boolean {
+		return this.history.isReplaying()
 	}
 
 	/**
