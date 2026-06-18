@@ -2188,6 +2188,19 @@ describe('control pointing', () => {
 		// ...and expect menu to be open, but that's a native thing
 	})
 
+	it('selects locked shapes on ctrl click when on a mac', () => {
+		tlenv.isDarwin = true
+
+		editor.createShape({ id: ids.box4, type: 'geo', x: 600, isLocked: true })
+
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.keyDown('Control')
+		editor.pointerMove(650, 50) // inside of locked box 4
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
+	})
+
 	it('selects on ctrl click when on a pc or other device', () => {
 		tlenv.isDarwin = false
 

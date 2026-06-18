@@ -1,4 +1,7 @@
 {
+  "1764571547": {
+    "translation": "Er du sikker på at du vil slette dette arbeidsområdet? Denne handlingen kan ikke angres."
+  },
   "0095a9fa74": {
     "translation": "Eksport"
   },
@@ -7,6 +10,12 @@
   },
   "043973ec1f": {
     "translation": "Har du fortsatt problemer? {GetHelpLink}"
+  },
+  "04a2dd56d6": {
+    "translation": "Inviter lagkamerater"
+  },
+  "05f43078e9": {
+    "translation": "Du har nådd maksimalt antall arbeidsområder. Du må slette gamle arbeidsområder før du oppretter nye."
   },
   "06b9281e39": {
     "translation": "Auto"
@@ -29,14 +38,17 @@
   "0b9a4cde72": {
     "translation": "Fil-menyen"
   },
+  "0c4383617a": {
+    "translation": "Noe gikk galt da denne invitasjonen skulle lastes inn. Prøv på nytt."
+  },
   "0d1f2bb523": {
     "translation": "Send tilbakemelding"
   },
+  "1063e38cb5": {
+    "translation": "Fjerne"
+  },
   "110a4b01be": {
     "translation": "Utgi"
-  },
-  "129b9e34ea": {
-    "translation": "Forlat gruppen"
   },
   "12a6766ba1": {
     "translation": "Løsne filen"
@@ -47,14 +59,11 @@
   "13ddd375ad": {
     "translation": "Eksporter som"
   },
-  "146ffe2fd9": {
-    "translation": "Vis mer"
-  },
-  "14d65465b7": {
-    "translation": "Slett gruppe"
-  },
   "181b90f889": {
     "translation": "Opprett fil"
+  },
+  "1d2591253e": {
+    "translation": "Innstillinger for arbeidsområde"
   },
   "1da2e8106b": {
     "translation": "Det oppstod en uventet feil."
@@ -62,8 +71,8 @@
   "1dd1c5fb7f": {
     "translation": "I dag"
   },
-  "2445e5e347": {
-    "translation": "Opprett gruppe"
+  "21f66c9c00": {
+    "translation": "Navn på arbeidsområde"
   },
   "250ddea65c": {
     "translation": "Om tldraw"
@@ -83,9 +92,6 @@
   "31418ce4ad": {
     "translation": "i18n: Utheving mangler"
   },
-  "32210b37e4": {
-    "translation": "Legg til lenke"
-  },
   "324a0f3182": {
     "translation": "Tilbake til tldraw"
   },
@@ -94,6 +100,9 @@
   },
   "344a7f427f": {
     "translation": "Redaktør"
+  },
+  "375396d6e5": {
+    "translation": "Fjern medlem"
   },
   "3bc7d6ea2f": {
     "translation": "Fortsett med e-post"
@@ -116,6 +125,9 @@
   "42e53c47c1": {
     "translation": "Kontakt eieren for å be om tilgang."
   },
+  "44680c1fa7": {
+    "translation": "Forlat arbeidsområdet …"
+  },
   "44db318ee5": {
     "translation": "Få hjelp på Discord"
   },
@@ -131,12 +143,6 @@
   "47f493a590": {
     "translation": "Fest filen"
   },
-  "49049467ff": {
-    "translation": "Lim inn URL-en til tldraw-filen..."
-  },
-  "4908687e50": {
-    "translation": "Er du sikker på at du vil glemme denne filen?"
-  },
   "49ee308734": {
     "translation": "Navn"
   },
@@ -145,15 +151,6 @@
   },
   "4d1c8263ba": {
     "translation": "Last inn på nytt"
-  },
-  "4da5988a2e": {
-    "translation": "Slett gruppe…"
-  },
-  "4dab36ac83": {
-    "translation": "Flere alternativer"
-  },
-  "4e6fbf032b": {
-    "translation": "Er du sikker på at du vil slette denne gruppen? Denne handlingen kan ikke angres."
   },
   "5097d89907": {
     "translation": "Diagrammet støttes ikke, det genereres SVG i stedet"
@@ -182,14 +179,14 @@
   "56c34c6410": {
     "translation": "Personvernerklæring"
   },
-  "5a86b22fa0": {
-    "translation": "Dra filer hit, <create>opprett en fil</create>, eller <invite>kopier invitasjonslenken</invite> for å komme i gang."
-  },
   "5a95a425f7": {
     "translation": "Dele"
   },
   "5bec508475": {
     "translation": "Gammel nettleser oppdaget. Oppdater nettleseren din for å bruke denne appen."
+  },
+  "5bff3c9c88": {
+    "translation": "Mitt arbeidsområde"
   },
   "5c6fe42bc2": {
     "translation": "Tilbakekalle denne lenken og opprett en ny."
@@ -199,9 +196,6 @@
   },
   "5d26ae7550": {
     "translation": "Vi klarte ikke å laste opp noe av innholdet du opprettet før du logget på."
-  },
-  "5ea8bb44be": {
-    "translation": "Du har blitt invitert til å bli med i gruppen:"
   },
   "5f3c333678": {
     "translation": "Tilbakemelding sendt"
@@ -230,6 +224,9 @@
   "6832ac5936": {
     "translation": "Skriv inn e-postadressen din"
   },
+  "694f82ed9d": {
+    "translation": "Slett arbeidsområde"
+  },
   "6a26f54883": {
     "translation": "Hjelp"
   },
@@ -238,9 +235,6 @@
   },
   "6dfc62f621": {
     "translation": "Følg disse trinnene for å importere innholdet manuelt:"
-  },
-  "70222abcfc": {
-    "translation": "Gruppeinnstillinger"
   },
   "70a6facb9d": {
     "translation": "Denne uken"
@@ -268,6 +262,9 @@
   },
   "764671e008": {
     "translation": "Chat med oss ​​på Discord"
+  },
+  "4908687e50": {
+    "translation": "Er du sikker på at du vil glemme denne filen?"
   },
   "76dea3c9ca": {
     "translation": "tldraw er en gratis tavle på nett. Opprett en konto for å lagre filene dine og samarbeide med vennene dine."
@@ -299,9 +296,6 @@
   "7cb5f8b4a5": {
     "translation": "Glemme"
   },
-  "7cfe6c43dc": {
-    "translation": "Forlat gruppen…"
-  },
   "7daeced9ff": {
     "translation": "Publiser endringer"
   },
@@ -314,6 +308,9 @@
   "815e116a2e": {
     "translation": "Har du en feil, et problem eller en idé for tldraw? Gi oss beskjed! Fyll ut dette skjemaet, så følger vi opp via e-post om nødvendig. Du kan også <discord>chatte med oss ​​på Discord</discord> eller <github>sende inn et problem på GitHub</github>."
   },
+  "858ba4765e": {
+    "translation": "Medlem"
+  },
   "85a082de1b": {
     "translation": "Oppdater siden for å få den nyeste versjonen av tldraw."
   },
@@ -323,11 +320,20 @@
   "86c66437fd": {
     "translation": "Gi nytt navn til filen"
   },
+  "87fdb09de6": {
+    "translation": "Du er allerede medlem av dette arbeidsområdet"
+  },
+  "88bf6ab42c": {
+    "translation": "Denne invitasjonslenken er utløpt"
+  },
   "8ad4303b83": {
     "translation": "Nei takk"
   },
   "8c2d3d730c": {
     "translation": "Sjekk e-posten din for en bekreftelseskode."
+  },
+  "8cf04a9734": {
+    "translation": "Hjem"
   },
   "8eb2c00e96": {
     "translation": "Delt med deg"
@@ -344,14 +350,11 @@
   "91e49bb0eb": {
     "translation": "Kopier til filene mine"
   },
-  "930390d222": {
-    "translation": "Kopierte invitasjonslenken"
-  },
-  "9489b2f82a": {
-    "translation": "Du er allerede medlem av denne gruppen"
-  },
   "95aacd4d4a": {
     "translation": "Logg inn med Google"
+  },
+  "95b56f4cd6": {
+    "translation": "Slett arbeidsområde…"
   },
   "95d2109dc8": {
     "translation": "Bygg med tldraw SDK"
@@ -361,9 +364,6 @@
   },
   "985a4b720f": {
     "translation": "Bruksvilkår"
-  },
-  "98c997a27e": {
-    "translation": "Legg til fillenke"
   },
   "9914a0ce04": {
     "translation": "Lys"
@@ -419,6 +419,9 @@
   "a9ded1e5ce": {
     "translation": "Bakgrunn"
   },
+  "aac449eef6": {
+    "translation": "Opprett arbeidsområde"
+  },
   "ab0df9ba36": {
     "translation": "Filgrense nådd"
   },
@@ -435,9 +438,6 @@
   "b357b524e7": {
     "translation": "E-postadresse"
   },
-  "b3d2db69fe": {
-    "translation": "Fil-URL"
-  },
   "b6d4223e60": {
     "translation": "Logg på"
   },
@@ -449,9 +449,6 @@
   },
   "ba0318cb81": {
     "translation": "Logg inn for å dele"
-  },
-  "bb93a7590f": {
-    "translation": "Godta og bli med i gruppen"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Laster opp .tldr-fil …} other {Laster opp {uploaded} av {total} .tldr-filer …}}"
@@ -471,17 +468,14 @@
   "c4b39a1cc3": {
     "translation": "Viktige informasjonskapsler"
   },
-  "c6155aaecc": {
-    "translation": "Gruppenavn"
-  },
   "c655b27b1e": {
     "translation": "i18n: Lang streng"
   },
   "c6a00f137b": {
     "translation": "Invitere"
   },
-  "c74ea6dbff": {
-    "translation": "Vis mindre"
+  "c7d7403714": {
+    "translation": "Nytt styre"
   },
   "c87aacf567": {
     "translation": "Logg ut"
@@ -528,17 +522,17 @@
   "d9100f3e10": {
     "translation": "Gå hit for å se innholdet"
   },
-  "d9e35d0f55": {
-    "translation": "Du har nådd maksimalt antall grupper. Du må slette gamle grupper før du oppretter nye."
-  },
   "dbbebf3c03": {
     "translation": "Kun invitasjon"
   },
-  "dcdaa754fe": {
-    "translation": "Ugyldig URL-adresse for tldraw-filen"
+  "dbf9b24193": {
+    "translation": "Forlat arbeidsområdet"
   },
   "dfdb78a4e4": {
     "translation": "App-feilsøkingsflagg"
+  },
+  "e0aa021e21": {
+    "translation": "OK"
   },
   "e0c88179b3": {
     "translation": "Inviter medlemmer"
@@ -549,20 +543,26 @@
   "e2ae80a510": {
     "translation": "Juridisk sammendrag"
   },
-  "e3afed0047": {
-    "translation": "Admin"
-  },
   "e404559826": {
     "translation": "Vilkår for bruk"
   },
+  "e615d52512": {
+    "translation": "Godta og bli med i arbeidsområdet"
+  },
   "e81c4e4f2b": {
     "translation": "eller"
+  },
+  "e9e0f16850": {
+    "translation": "Du har blitt invitert til å bli med i arbeidsområdet:"
   },
   "ea0626ac5a": {
     "translation": "Faresone"
   },
   "ea4788705e": {
     "translation": "Kansellere"
+  },
+  "eb1e2b0542": {
+    "translation": "Be eieren av arbeidsområdet om en ny."
   },
   "ebfe9ce86e": {
     "translation": "I går"
@@ -603,14 +603,14 @@
   "f4f70727dc": {
     "translation": "Innstillinger"
   },
-  "f714e36843": {
-    "translation": "Er du sikker på at du vil forlate denne gruppen?"
-  },
   "fa2ead697d": {
     "translation": "Personvernerklæring"
   },
   "fb15c53f22": {
     "translation": "Seer"
+  },
+  "fc9d47046b": {
+    "translation": "Er du sikker på at du vil forlate dette arbeidsområdet?"
   },
   "fd1be3efcf": {
     "translation": "Er du sikker på at du vil slette denne filen?"
@@ -618,8 +618,8 @@
   "fed5ec05eb": {
     "translation": "Kopiert lenke"
   },
-  "ff7a814974": {
-    "translation": "Legg til fillenke…"
+  "ff2fefd3c6": {
+    "translation": "Er du sikker på at du vil fjerne {name} fra dette arbeidsområdet?"
   },
   "ffcd73e997": {
     "translation": "Importer fil…"

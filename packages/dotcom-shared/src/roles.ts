@@ -1,7 +1,7 @@
 import { Capability } from './capabilities'
 
 /**
- * Group authorization, expressed as capabilities rather than role names.
+ * Workspace authorization, expressed as capabilities rather than role names.
  *
  * Authorization asks `can(role, capability)` — never `role === 'owner'` — so the
  * meaning of a role lives in exactly one place: the `roles` table below. Read a
@@ -9,34 +9,21 @@ import { Capability } from './capabilities'
  *
  * The role is stored in the DB as a plain string (`group_user.role`);
  * capabilities are never persisted — they're derived from that string here.
- *
- * NOTE: `'admin'` is in the process of being renamed to `'member'`. No
- * authorization logic branches on that name — the only role literals left in
- * logic are the last-owner invariant, which checks `'owner'` (not renamed). So
- * the rename is relabeling this key, the `acceptInvite` default, the display
- * labels, and a data migration of stored values.
  */
 
 /**
  * What each role can do — the single source of truth. The role name is the key,
  * and {@link Role} is derived from these keys. Today the only difference between
- * `admin` and `owner` is the three administrative capabilities at the end of the
- * owner list.
+ * `member` and `owner` is the `manageWorkspace` capability: owners administer the
+ * workspace (invite link, members' roles, name, deletion); members only work with
+ * its files.
  */
 const roles = {
-	admin: ['accessFiles', 'addFiles', 'removeFiles', 'manageInvites'],
-	owner: [
-		'accessFiles',
-		'addFiles',
-		'removeFiles',
-		'manageInvites',
-		'editGroup',
-		'editMembers',
-		'deleteGroup',
-	],
+	member: ['accessFiles', 'addFiles', 'removeFiles'],
+	owner: ['accessFiles', 'addFiles', 'removeFiles', 'manageWorkspace'],
 } satisfies Record<string, readonly Capability[]>
 
-/** A role a member can have in a group — the string stored in `group_user.role`. */
+/** A role a member can have in a workspace — the string stored in `group_user.role`. */
 export type Role = keyof typeof roles
 
 /**

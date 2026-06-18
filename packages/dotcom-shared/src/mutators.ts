@@ -1,15 +1,17 @@
 import { createBuilder, type CustomMutatorDefs, type Transaction } from '@rocicorp/zero'
 import {
 	assert,
-	getIndexAbove,
 	getIndexBelow,
-	getIndexBetween,
 	IndexKey,
 	sortByIndex,
 	sortByMaybeIndex,
 	uniqueId,
 } from '@tldraw/utils'
-import { MAX_NUMBER_OF_FILES, MAX_NUMBER_OF_GROUPS } from './constants'
+import {
+	MAX_NUMBER_OF_FILES,
+	MAX_NUMBER_OF_WORKSPACES,
+	MAX_WORKSPACE_NAME_LENGTH,
+} from './constants'
 import { Role, can, isRole } from './roles'
 import { FILE_PREFIX } from './routes'
 import {
@@ -70,7 +72,10 @@ function disallowImmutableMutations<
 
 export type TlaMutators = ReturnType<typeof createMutators>
 
-async function isGroupsMigrated(tx: Transaction<TlaSchema>, userId: string): Promise<boolean> {
+async function isMigratedToWorkspaces(
+	tx: Transaction<TlaSchema>,
+	userId: string
+): Promise<boolean> {
 	const user = await tx.run(zql.user.where('id', '=', userId).one())
 	return userHasFlag(user?.flags, 'groups_backend')
 }
@@ -85,7 +90,7 @@ function ensureSensibleTimestamp(time: number) {
 }
 
 async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
-	const migrated = await isGroupsMigrated(tx, userId)
+	const migrated = await isMigratedToWorkspaces(tx, userId)
 
 	if (tx.location === 'client') {
 		const files = await tx.run(zql.file)
@@ -114,21 +119,31 @@ async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
 }
 
 /**
- * Resolve the user's role in a group, or null if they aren't a member. Pair it
+ * Resolve the user's role in a workspace, or null if they aren't a member. Pair it
  * with `can` from ./roles: `const role = await getRole(...); assert(can(role, 'x'))`.
  */
 async function getRole(
 	tx: Transaction<TlaSchema>,
 	userId: string,
-	groupId: string | null | undefined
+	workspaceId: string | null | undefined
 ): Promise<Role | null> {
-	if (!groupId) return null
-	// A user's personal/home group has groupId === userId; they own it.
-	if (groupId === userId) return 'owner'
-	const groupUser = await tx.run(
-		zql.group_user.where('userId', '=', userId).where('groupId', '=', groupId).one()
+	if (!workspaceId) return null
+	// A user's personal/home workspace has an id equal to their userId; they own it.
+	if (workspaceId === userId) return 'owner'
+	const workspaceUser = await tx.run(
+		zql.group_user.where('userId', '=', userId).where('groupId', '=', workspaceId).one()
 	)
-	return groupUser?.role ?? null
+	return workspaceUser?.role ?? null
+}
+
+/**
+ * The home workspace (group id === its owner's user id) is private: it can't be
+ * invited to, left, deleted, or have its members managed. (It can be renamed.)
+ * Throw if `workspaceId` is a home workspace, i.e. a user exists with a matching id.
+ */
+async function assertNotHomeWorkspace(tx: Transaction<TlaSchema>, workspaceId: string) {
+	const user = await tx.run(zql.user.where('id', '=', workspaceId).one())
+	assert(!user, ZErrorCode.forbidden)
 }
 
 function assertValidId(id: string) {
@@ -162,7 +177,7 @@ async function assertUserCanAccessFileInternal(
 		// Legacy model: user must own the file
 		assert(file.ownerId === userId, ZErrorCode.forbidden)
 	} else if (file.owningGroupId) {
-		// New model: user must be a member of the owning group
+		// New model: user must be a member of the owning workspace
 		const role = await getRole(tx, userId, file.owningGroupId)
 		assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
 	} else {
@@ -175,7 +190,7 @@ async function assertUserCanAccessFileInternal(
  * Check if a user can access (read) a file.
  * A user can access a file if:
  * - They own it (legacy model: file.ownerId matches userId)
- * - They are a member of the owning group (new model: user is in file.owningGroupId)
+ * - They are a member of the owning workspace (new model: user is in file.owningGroupId)
  * - The file is shared (regardless of ownership model)
  */
 async function assertUserCanAccessFile(tx: Transaction<TlaSchema>, userId: string, file: TlaFile) {
@@ -186,7 +201,7 @@ async function assertUserCanAccessFile(tx: Transaction<TlaSchema>, userId: strin
  * Check if a user can update (write to) a file.
  * A user can update a file if:
  * - They own it (legacy model: file.ownerId matches userId)
- * - They are a member of the owning group (new model: user is in file.owningGroupId)
+ * - They are a member of the owning workspace (new model: user is in file.owningGroupId)
  * Note: Sharing only grants read access, not write access
  */
 async function assertUserCanUpdateFile(tx: Transaction<TlaSchema>, userId: string, file: TlaFile) {
@@ -280,6 +295,7 @@ export function createMutators(userId: string) {
 				updatedAt: time,
 				isDeleted: false,
 				inviteSecret: null,
+				inviteLinkEnabled: true,
 			})
 			await tx.mutate.group_user.insert({
 				userId,
@@ -297,13 +313,13 @@ export function createMutators(userId: string) {
 			tx: Tx,
 			{
 				fileId,
-				groupId,
+				workspaceId,
 				name,
 				time,
 				createSource,
 			}: {
 				fileId: string
-				groupId: string
+				workspaceId: string
 				name: string
 				time: number
 				createSource: string | null
@@ -330,7 +346,7 @@ export function createMutators(userId: string) {
 				}
 			}
 
-			const migrated = await isGroupsMigrated(tx, userId)
+			const migrated = await isMigratedToWorkspaces(tx, userId)
 			if (!migrated) {
 				// Legacy (user-owned) file creation. ownerId, id and the file_state
 				// keys are constructed here to match userId/fileId, so the only checks
@@ -373,19 +389,23 @@ export function createMutators(userId: string) {
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(!file, ZErrorCode.bad_request)
 			assertValidId(fileId)
-			assertValidId(groupId)
+			assertValidId(workspaceId)
 			assert(name.trim(), ZErrorCode.bad_request)
-			const hasGroupAccess = await tx.run(
-				zql.group_user.where('userId', '=', userId).where('groupId', '=', groupId).one()
-			)
-			assert(hasGroupAccess, ZErrorCode.forbidden)
+			// Authorize via getRole, not a raw group_user lookup: the home workspace
+			// (id === userId) is implicitly owned and may have no group_user row, yet
+			// the user must still be able to create files in it. A raw row check would
+			// reject that case, leaving an empty home un-switchable (selecting it from
+			// the switcher creates-then-opens a file, which silently fails). Every other
+			// workspace op already authorizes through getRole/can for the same reason.
+			const role = await getRole(tx, userId, workspaceId)
+			assert(can(role, 'addFiles'), ZErrorCode.forbidden)
 
 			// create file row, group_file row, file_state row
 			await tx.mutate.file.insert({
 				id: fileId,
 				name,
 				ownerId: null,
-				owningGroupId: groupId,
+				owningGroupId: workspaceId,
 				ownerName: '',
 				ownerAvatar: '',
 				thumbnail: '',
@@ -402,7 +422,7 @@ export function createMutators(userId: string) {
 			})
 			await tx.mutate.group_file.insert({
 				fileId,
-				groupId,
+				groupId: workspaceId,
 				createdAt: time,
 				updatedAt: time,
 				index: null,
@@ -422,22 +442,21 @@ export function createMutators(userId: string) {
 
 		pinFile: async (
 			tx: Tx,
-			{ fileId, groupId, index }: { fileId: string; groupId: string; index?: IndexKey }
+			{ fileId, workspaceId, index }: { fileId: string; workspaceId: string; index?: IndexKey }
 		) => {
 			assert(fileId, ZErrorCode.bad_request)
 			assert(typeof index === 'string' || index == null, ZErrorCode.bad_request)
-			assert(groupId, ZErrorCode.bad_request)
+			assert(workspaceId, ZErrorCode.bad_request)
 
-			const migrated = await isGroupsMigrated(tx, userId)
+			const migrated = await isMigratedToWorkspaces(tx, userId)
 
 			if (migrated) {
-				assert(groupId, ZErrorCode.bad_request)
-				// Migrated users: use group_file.index in home group
-
+				// Migrated users: pinned files are group_file rows with a non-null index.
+				// New pins go above the workspace's current top pinned file.
 				let indexToUse = index
 				if (indexToUse == null) {
-					const allGroupFiles = await tx.run(zql.group_file.where('groupId', '=', userId))
-					const otherPinnedFiles = allGroupFiles.filter((gf: TlaGroupFile) => gf.index !== null)
+					const allWorkspaceFiles = await tx.run(zql.group_file.where('groupId', '=', workspaceId))
+					const otherPinnedFiles = allWorkspaceFiles.filter((gf: TlaGroupFile) => gf.index !== null)
 
 					otherPinnedFiles.sort(sortByMaybeIndex)
 					indexToUse = getIndexBelow(otherPinnedFiles[0]?.index) ?? ('a1' as IndexKey)
@@ -445,7 +464,7 @@ export function createMutators(userId: string) {
 
 				await tx.mutate.group_file.update({
 					fileId,
-					groupId,
+					groupId: workspaceId,
 					index: indexToUse,
 				})
 			} else {
@@ -458,15 +477,15 @@ export function createMutators(userId: string) {
 			}
 		},
 
-		unpinFile: async (tx: Tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
+		unpinFile: async (tx: Tx, { fileId, workspaceId }: { fileId: string; workspaceId: string }) => {
 			assert(fileId, ZErrorCode.bad_request)
 
-			const migrated = await isGroupsMigrated(tx, userId)
+			const migrated = await isMigratedToWorkspaces(tx, userId)
 
 			if (migrated) {
 				await tx.mutate.group_file.update({
 					fileId,
-					groupId,
+					groupId: workspaceId,
 					index: null,
 				})
 			} else {
@@ -478,27 +497,27 @@ export function createMutators(userId: string) {
 			}
 		},
 
-		removeFileFromGroup: async (
+		removeFileFromWorkspace: async (
 			tx: Tx,
-			{ fileId, groupId }: { fileId: string; groupId: string }
+			{ fileId, workspaceId }: { fileId: string; workspaceId: string }
 		) => {
 			assert(fileId, ZErrorCode.bad_request)
-			assert(groupId, ZErrorCode.bad_request)
-			const migrated = await isGroupsMigrated(tx, userId)
+			assert(workspaceId, ZErrorCode.bad_request)
+			const migrated = await isMigratedToWorkspaces(tx, userId)
 			if (!migrated) {
 				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				await mutators.file.deleteOrForget(tx, { id: fileId })
 				return
 			}
 
-			const role = await getRole(tx, userId, groupId)
+			const role = await getRole(tx, userId, workspaceId)
 			assert(can(role, 'removeFiles'), ZErrorCode.forbidden)
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(file, ZErrorCode.bad_request)
 
 			await tx.mutate.file_state.delete({ fileId, userId })
-			await tx.mutate.group_file.delete({ fileId, groupId })
-			if (file.owningGroupId === groupId) {
+			await tx.mutate.group_file.delete({ fileId, groupId: workspaceId })
+			if (file.owningGroupId === workspaceId) {
 				await tx.mutate.file.update({ id: fileId, isDeleted: true })
 			}
 		},
@@ -515,14 +534,18 @@ export function createMutators(userId: string) {
 			// If we get here, the user has legitimate access to the file
 			await tx.mutate.file_state.upsert({ fileId, userId, firstVisitAt: time })
 
-			const migrated = await isGroupsMigrated(tx, userId)
+			const migrated = await isMigratedToWorkspaces(tx, userId)
 			if (migrated) {
-				const groupFiles = await tx.run(zql.group_file.where('fileId', '=', fileId))
-				const userGroups = await tx.run(zql.group_user.where('userId', '=', userId))
-				// Only add to home group if not already in any of the user's groups
+				const workspaceFileRows = await tx.run(zql.group_file.where('fileId', '=', fileId))
+				const userWorkspaceMemberships = await tx.run(zql.group_user.where('userId', '=', userId))
+				// Add a visited file to the user's home group unless it already belongs to one of
+				// their groups. This is what surfaces a shared file the user opened as a "guest
+				// file" in their sidebar. (Files owned by a workspace the user is a member of are
+				// not mirrored here — and the sidebar read path also filters out any that slip
+				// through, see getWorkspaceFilesSorted — so a workspace file never shows in home.)
 				if (
-					!userGroups.some((g: TlaGroupUser) =>
-						groupFiles.some((gf: TlaGroupFile) => gf.groupId === g.groupId)
+					!userWorkspaceMemberships.some((g: TlaGroupUser) =>
+						workspaceFileRows.some((gf: TlaGroupFile) => gf.groupId === g.groupId)
 					)
 				) {
 					await tx.mutate.group_file.insert({
@@ -535,33 +558,40 @@ export function createMutators(userId: string) {
 				}
 			}
 		},
-		createGroup: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+		createWorkspace: async (tx: Tx, { id, name }: { id: string; name: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assertValidId(id)
 
-			// Enforce the group limit before creating anything.
-			const existingGroups = await tx.run(zql.group_user.where('userId', '=', userId))
-			assert(existingGroups.length < MAX_NUMBER_OF_GROUPS, ZErrorCode.max_groups_reached)
+			const clampedName = name.trim().slice(0, MAX_WORKSPACE_NAME_LENGTH)
+			assert(clampedName, ZErrorCode.bad_request)
+
+			// Enforce the workspace limit before creating anything.
+			const existingWorkspaces = await tx.run(zql.group_user.where('userId', '=', userId))
+			assert(
+				existingWorkspaces.length < MAX_NUMBER_OF_WORKSPACES,
+				ZErrorCode.max_workspaces_reached
+			)
 
 			await tx.mutate.group.insert({
 				id,
-				name,
+				name: clampedName,
 				inviteSecret: tx.location === 'server' ? uniqueId() : null,
+				inviteLinkEnabled: true,
 				isDeleted: false,
 				createdAt: Date.now(),
 				updatedAt: Date.now(),
 			})
 
-			// Use tldraw's fractional indexing to place new group at the top
+			// Use tldraw's fractional indexing to place the new workspace at the top
+			// (the workspace list sorts ascending, so the lowest index renders first)
 			let index: IndexKey
-			if (existingGroups.length === 0) {
-				// First group gets 'a1'
+			if (existingWorkspaces.length === 0) {
+				// First workspace gets 'a1'
 				index = 'a1' as IndexKey
 			} else {
-				// Find the highest index and place above it using proper fractional indexing
-				const sortedGroups = existingGroups.sort(sortByIndex)
-				const lowest = sortedGroups[0]?.index as IndexKey | undefined
-				// Generate a new index above the current highest
+				const sortedWorkspaces = existingWorkspaces.sort(sortByIndex)
+				const lowest = sortedWorkspaces[0]?.index as IndexKey | undefined
+				// Generate a new index below the current lowest
 				index = getIndexBelow(lowest)
 			}
 
@@ -577,45 +607,67 @@ export function createMutators(userId: string) {
 				index,
 			})
 		},
-		updateGroup: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+		updateWorkspace: async (tx: Tx, { id, name }: { id: string; name: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			assert(name && name.trim(), ZErrorCode.bad_request)
+			// The home workspace can be renamed (unlike other home-workspace actions),
+			// so it's intentionally not guarded by assertNotHomeWorkspace here.
 			const role = await getRole(tx, userId, id)
-			assert(can(role, 'editGroup'), ZErrorCode.forbidden)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
 
-			await tx.mutate.group.update({ id, name: name.trim() })
+			await tx.mutate.group.update({
+				id,
+				name: name.trim().slice(0, MAX_WORKSPACE_NAME_LENGTH),
+			})
 		},
-		regenerateGroupInviteSecret: async (tx: Tx, { id }: { id: string }) => {
+		regenerateWorkspaceInviteSecret: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, id)
 
 			const role = await getRole(tx, userId, id)
-			assert(can(role, 'manageInvites'), ZErrorCode.forbidden)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
 
 			if (tx.location === 'server') {
 				await tx.mutate.group.update({ id, inviteSecret: uniqueId() })
 			}
 		},
-		setGroupMemberRole: async (
+		setWorkspaceInviteLinkEnabled: async (
 			tx: Tx,
-			{
-				groupId,
-				targetUserId,
-				role: targetRole,
-			}: { groupId: string; targetUserId: string; role: Role }
+			{ id, enabled }: { id: string; enabled: boolean }
 		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(groupId, ZErrorCode.bad_request)
+			assert(id, ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, id)
+
+			const role = await getRole(tx, userId, id)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
+
+			// Flip the flag only; inviteSecret is preserved so re-enabling restores the
+			// same link.
+			await tx.mutate.group.update({ id, inviteLinkEnabled: enabled })
+		},
+		setWorkspaceMemberRole: async (
+			tx: Tx,
+			{
+				workspaceId,
+				targetUserId,
+				role: targetRole,
+			}: { workspaceId: string; targetUserId: string; role: Role }
+		) => {
+			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(workspaceId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
 			assert(isRole(targetRole), ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, workspaceId)
 
-			const role = await getRole(tx, userId, groupId)
-			assert(can(role, 'editMembers'), ZErrorCode.forbidden)
+			const role = await getRole(tx, userId, workspaceId)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
 
 			// Target must be a member
 			const targetMembership = await tx.run(
-				zql.group_user.where('userId', '=', targetUserId).where('groupId', '=', groupId).one()
+				zql.group_user.where('userId', '=', targetUserId).where('groupId', '=', workspaceId).one()
 			)
 			assert(targetMembership, ZErrorCode.bad_request)
 
@@ -625,38 +677,72 @@ export function createMutators(userId: string) {
 			// owner, so the last owner can't be demoted away from owner.
 			if (targetMembership.role === 'owner' && targetRole !== 'owner') {
 				const owners = await tx.run(
-					zql.group_user.where('groupId', '=', groupId).where('role', '=', 'owner')
+					zql.group_user.where('groupId', '=', workspaceId).where('role', '=', 'owner')
 				)
 				assert(owners.length > 1, ZErrorCode.forbidden)
 			}
 
-			await tx.mutate.group_user.update({ userId: targetUserId, groupId, role: targetRole })
+			await tx.mutate.group_user.update({
+				userId: targetUserId,
+				groupId: workspaceId,
+				role: targetRole,
+			})
 		},
-		leaveGroup: async (tx: Tx, { groupId }: { groupId: string }) => {
+		removeWorkspaceMember: async (
+			tx: Tx,
+			{ workspaceId, targetUserId }: { workspaceId: string; targetUserId: string }
+		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(groupId, ZErrorCode.bad_request)
+			assert(workspaceId, ZErrorCode.bad_request)
+			assert(targetUserId, ZErrorCode.bad_request)
+
+			const role = await getRole(tx, userId, workspaceId)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
+
+			// Target must be a member
+			const targetMembership = await tx.run(
+				zql.group_user.where('userId', '=', targetUserId).where('groupId', '=', workspaceId).one()
+			)
+			assert(targetMembership, ZErrorCode.bad_request)
+
+			// Invariant (not a capability): a group must always keep at least one
+			// owner, so the last owner can't be removed.
+			if (targetMembership.role === 'owner') {
+				const owners = await tx.run(
+					zql.group_user.where('groupId', '=', workspaceId).where('role', '=', 'owner')
+				)
+				assert(owners.length > 1, ZErrorCode.forbidden)
+			}
+
+			await tx.mutate.group_user.delete({ userId: targetUserId, groupId: workspaceId })
+		},
+		leaveWorkspace: async (tx: Tx, { workspaceId }: { workspaceId: string }) => {
+			await assertUserHasFlag(tx, userId, 'groups_backend')
+			assert(workspaceId, ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, workspaceId)
 			const owners = await tx.run(
-				zql.group_user.where('groupId', '=', groupId).where('role', '=', 'owner')
+				zql.group_user.where('groupId', '=', workspaceId).where('role', '=', 'owner')
 			)
 			const isOnlyOwner = owners.length === 1 && owners[0].userId === userId
 			// Invariant (not a capability): a group must always keep at least one
 			// owner, so the last owner can't leave — they must delete the group instead.
 			assert(!isOnlyOwner, ZErrorCode.forbidden)
-			await tx.mutate.group_user.delete({ userId, groupId })
+			await tx.mutate.group_user.delete({ userId, groupId: workspaceId })
 		},
-		deleteGroup: async (tx: Tx, { id }: { id: string }) => {
+		deleteWorkspace: async (tx: Tx, { id }: { id: string }) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, id)
 			const role = await getRole(tx, userId, id)
-			assert(can(role, 'deleteGroup'), ZErrorCode.forbidden)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
 
-			// Delete all group files
-			const groupFiles = await tx.run(zql.group_file.where('groupId', '=', id))
-			for (const groupFile of groupFiles) {
-				await tx.mutate.group_file.delete({ fileId: groupFile.fileId, groupId: id })
+			// Delete all workspace files
+			const workspaceFileRows = await tx.run(zql.group_file.where('groupId', '=', id))
+			for (const workspaceFile of workspaceFileRows) {
+				await tx.mutate.group_file.delete({ fileId: workspaceFile.fileId, groupId: id })
 			}
 
-			// Mark all files owned by this group as deleted
+			// Mark all files owned by this workspace as deleted
 			const files = await tx.run(zql.file.where('owningGroupId', '=', id))
 			for (const file of files) {
 				await tx.mutate.file.update({ id: file.id, isDeleted: true })
@@ -670,24 +756,27 @@ export function createMutators(userId: string) {
 				await tx.mutate.group_user.delete({ userId, groupId: id })
 			}
 		},
-		moveFileToGroup: async (tx: Tx, { fileId, groupId }: { fileId: string; groupId: string }) => {
+		moveFileToWorkspace: async (
+			tx: Tx,
+			{ fileId, workspaceId }: { fileId: string; workspaceId: string }
+		) => {
 			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(fileId, ZErrorCode.bad_request)
-			assert(groupId, ZErrorCode.bad_request)
+			assert(workspaceId, ZErrorCode.bad_request)
 
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(file, ZErrorCode.bad_request)
 
-			// No-op if file is already in the target group
-			if (file.owningGroupId === groupId) {
+			// No-op if file is already in the target workspace
+			if (file.owningGroupId === workspaceId) {
 				return
 			}
 
-			// User must be allowed to take the file out of its current group and
-			// to add files to the destination group.
+			// User must be allowed to take the file out of its current workspace and
+			// to add files to the destination workspace.
 			const fromRole = await getRole(tx, userId, file.owningGroupId)
 			assert(can(fromRole, 'removeFiles'), ZErrorCode.forbidden)
-			const toRole = await getRole(tx, userId, groupId)
+			const toRole = await getRole(tx, userId, workspaceId)
 			assert(can(toRole, 'addFiles'), ZErrorCode.forbidden)
 
 			// Remove file from current group association if it exists
@@ -698,159 +787,17 @@ export function createMutators(userId: string) {
 			// Transfer file ownership from user to group
 			await tx.mutate.file.update({
 				id: fileId,
-				owningGroupId: groupId,
+				owningGroupId: workspaceId,
 				updatedAt: Date.now(),
 			})
 			await tx.mutate.group_file.insert({
 				fileId,
-				groupId,
+				groupId: workspaceId,
 				createdAt: Date.now(),
 				updatedAt: Date.now(),
 				index: null,
 			})
-		},
-		addFileLinkToGroup: async (
-			tx: Tx,
-			{ fileId, groupId }: { fileId: string; groupId: string }
-		) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(fileId, ZErrorCode.bad_request)
-			assert(groupId, ZErrorCode.bad_request)
-
-			// User must be allowed to add files to the target group
-			const role = await getRole(tx, userId, groupId)
-			assert(can(role, 'addFiles'), ZErrorCode.forbidden)
-
-			// On server, verify the user has access to this file (owns it, is member of owning group, or it's shared)
-			if (tx.location === 'server') {
-				const file = await tx.run(zql.file.where('id', '=', fileId).one())
-				assert(file, ZErrorCode.bad_request)
-				await assertUserCanAccessFile(tx, userId, file)
-			}
-
-			// Check if file link already exists
-			const existing = await tx.run(
-				zql.group_file.where('fileId', '=', fileId).where('groupId', '=', groupId).one()
-			)
-
-			if (existing) {
-				// Already exists, no-op
-				return
-			}
-
-			// Create the file link
-			await tx.mutate.group_file.insert({
-				fileId,
-				groupId,
-				createdAt: Date.now(),
-				updatedAt: Date.now(),
-				index: null,
-			})
-		},
-		updateOwnGroupUser: async (
-			tx: Tx,
-			{ groupId, index }: { groupId: string; index: IndexKey }
-		) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(groupId, ZErrorCode.bad_request)
-			const role = await getRole(tx, userId, groupId)
-			assert(can(role, 'accessFiles'), ZErrorCode.forbidden)
-			await tx.mutate.group_user.update({ userId, groupId, index })
-		},
-		handleFileDragOperation: async (
-			tx: Tx,
-			{
-				fileId,
-				groupId,
-				operation,
-			}: { fileId: string; groupId: string; operation: DragFileOperation }
-		) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
-			assert(fileId, ZErrorCode.bad_request)
-			assert(groupId, ZErrorCode.bad_request)
-			const file = await tx.run(zql.file.where('id', '=', fileId).one())
-			if (!file) return
-			await assertUserCanAccessFile(tx, userId, file)
-			const role = await getRole(tx, userId, groupId)
-			assert(can(role, 'addFiles'), ZErrorCode.forbidden)
-			const finalGroupId = operation.move?.targetId ?? groupId
-			if (finalGroupId !== groupId) {
-				const finalRole = await getRole(tx, userId, finalGroupId)
-				assert(can(finalRole, 'addFiles'), ZErrorCode.forbidden)
-			}
-			const isFileLink = file.owningGroupId !== groupId
-
-			// Execute move operation first (if any)
-			if (finalGroupId !== groupId) {
-				// Move to specific group
-				if (isFileLink) {
-					await tx.mutate.group_file.delete({ fileId, groupId })
-					const existing = await tx.run(
-						zql.group_file.where('fileId', '=', fileId).where('groupId', '=', finalGroupId).one()
-					)
-					if (!existing) {
-						await tx.mutate.group_file.insert({
-							fileId,
-							groupId: finalGroupId,
-							createdAt: Date.now(),
-							updatedAt: Date.now(),
-						})
-					}
-				} else {
-					await mutators.moveFileToGroup(tx, { fileId, groupId: finalGroupId })
-				}
-			}
-
-			if (operation.reorder && operation.reorder.insertBeforeId !== fileId) {
-				const { insertBeforeId } = operation.reorder
-				let nextIndex = 'a0' as IndexKey
-				if (insertBeforeId === null) {
-					// insert at end
-					const lastPinnedFile = (await tx.run(zql.group_file.where('groupId', '=', finalGroupId)))
-						.filter((f) => f.index !== null)
-						.sort(sortByMaybeIndex)
-						.pop()
-					if (lastPinnedFile) {
-						nextIndex = getIndexAbove(lastPinnedFile.index)
-					}
-				} else {
-					// insert before specific file
-					const files = (await tx.run(zql.group_file.where('groupId', '=', finalGroupId)))
-						.filter((f) => f.index !== null)
-						.sort(sortByMaybeIndex)
-					const targetIdx = files.findIndex((f) => f.fileId === insertBeforeId)
-					const afterIndex = files[targetIdx]?.index
-					const beforeIndex = files[targetIdx - 1]?.index
-
-					nextIndex = getIndexBetween(beforeIndex, afterIndex)
-				}
-				await tx.mutate.group_file.update({
-					fileId,
-					groupId: finalGroupId,
-					index: nextIndex,
-				})
-			} else if (!operation.reorder) {
-				await tx.mutate.group_file.update({
-					fileId,
-					groupId: finalGroupId,
-					index: null,
-					updatedAt: Date.now(),
-				})
-			}
 		},
 	} as const satisfies CustomMutatorDefs
 	return mutators
-}
-
-export interface DragReorderOperation {
-	insertBeforeId: string | null // file ID to insert before, null for end
-	indicatorY: number
-}
-
-export interface DragFileOperation {
-	move?: { targetId: string }
-	reorder?: DragReorderOperation
-}
-export interface DragGroupOperation {
-	reorder?: DragReorderOperation
 }

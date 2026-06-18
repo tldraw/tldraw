@@ -153,7 +153,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							.insertInto('group')
 							.values({
 								id,
-								name: clerkUser.fullName ?? '',
+								// The home/private workspace defaults to "My workspace" and is renameable.
+								name: 'My workspace',
 								createdAt: now,
 								updatedAt: now,
 								isDeleted: false,
@@ -761,7 +762,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				.insertInto('group')
 				.values({
 					id: userId,
-					name: '',
+					name: 'My workspace',
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 					isDeleted: false,
@@ -785,6 +786,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				.execute()
 		})
 
+		// Drop the stale user snapshot so the reboot pulls fresh post-reset state
+		// instead of resurrecting deleted files and groups.
+		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
 	}
 

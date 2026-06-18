@@ -1,22 +1,26 @@
 import classNames from 'classnames'
 import {
 	LanguageMenu,
+	preventDefault,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	useMenuIsOpen,
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
-	ColorThemeSubmenu,
+	CookieConsentMenuItem,
 	DebugMenuGroup,
 	ImportFileActionItem,
+	LegalSummaryMenuItem,
 	SignOutMenuItem,
-	UIThemeSubmenu,
+	ThemeSubmenu,
+	UserManualMenuItem,
 } from '../../menu-items/menu-items'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
@@ -25,15 +29,19 @@ const messages = defineMessages({
 	userMenu: { defaultMessage: 'User settings' },
 })
 
+const USER_SETTINGS_MENU_ID = 'user-settings-sidebar'
+
 export function TlaUserSettingsMenu() {
 	const app = useApp()
 	const userMenuLbl = useMsg(messages.userMenu)
 	const user = useValue('auth', () => app.getUser(), [app])
 
-	if (!user) return null
+	// The dropdown's open state is keyed globally by its id, so we can reuse the
+	// same hook to open the menu when the user right-clicks the row.
+	const [, onMenuOpenChange] = useMenuIsOpen(USER_SETTINGS_MENU_ID)
 
 	return (
-		<TldrawUiDropdownMenuRoot id={`user-settings-sidebar`}>
+		<TldrawUiDropdownMenuRoot id={USER_SETTINGS_MENU_ID}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
@@ -42,7 +50,12 @@ export function TlaUserSettingsMenu() {
 						title={userMenuLbl}
 						className={classNames(styles.sidebarUserSettingsTrigger, styles.hoverable)}
 						data-testid="tla-sidebar-user-settings-trigger"
+						onContextMenu={(e) => {
+							preventDefault(e)
+							onMenuOpenChange(true)
+						}}
 					>
+						<TlaIcon icon="avatar" className={styles.sidebarUserSettingsAvatarIcon} />
 						<div
 							className={classNames(
 								styles.sidebarUserSettingsName,
@@ -50,26 +63,36 @@ export function TlaUserSettingsMenu() {
 								'notranslate'
 							)}
 						>
-							{user.name || <F defaultMessage="Account" />}
+							{user?.name || <F defaultMessage="Account" />}
 						</div>
 						<div className={styles.sidebarUserSettingsIcon}>
-							<TlaIcon icon="dots-vertical-strong" />
+							<TlaIcon icon="help-circle" />
 						</div>
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={4} sideOffset={4}>
-					<TldrawUiMenuGroup id="files">
-						<ImportFileActionItem />
+				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={-18} sideOffset={4}>
+					{user && (
+						<>
+							<TldrawUiMenuGroup id="files">
+								<ImportFileActionItem />
+							</TldrawUiMenuGroup>
+							<TldrawUiMenuGroup id="preferences">
+								<ThemeSubmenu />
+								<LanguageMenu />
+							</TldrawUiMenuGroup>
+							<DebugMenuGroup />
+						</>
+					)}
+					<TldrawUiMenuGroup id="legal">
+						<UserManualMenuItem icon={false} />
+						<LegalSummaryMenuItem />
+						<CookieConsentMenuItem />
 					</TldrawUiMenuGroup>
-					<TldrawUiMenuGroup id="preferences">
-						<ColorThemeSubmenu />
-						<UIThemeSubmenu />
-						<LanguageMenu />
-					</TldrawUiMenuGroup>
-					<DebugMenuGroup />
-					<TldrawUiMenuGroup id="signout">
-						<SignOutMenuItem />
-					</TldrawUiMenuGroup>
+					{user && (
+						<TldrawUiMenuGroup id="signout">
+							<SignOutMenuItem />
+						</TldrawUiMenuGroup>
+					)}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>

@@ -4,13 +4,12 @@ import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
-	DragFileOperation,
-	DragReorderOperation,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	TlaFile,
+	WELCOME_CREATE_SOURCE,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
@@ -80,25 +79,6 @@ import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
 
-interface DragGroupOperation {
-	reorder?: DragReorderOperation
-}
-
-type DragState =
-	| null
-	| {
-			type: 'file'
-			id: string
-			operation: DragFileOperation
-			hasDragStarted: boolean
-	  }
-	| {
-			type: 'group'
-			id: string
-			operation: DragGroupOperation
-			hasDragStarted: boolean
-	  }
-
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
@@ -143,7 +123,7 @@ export class TldrawApp {
 
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
-	private readonly groupMemberships$: Signal<
+	private readonly workspaceMemberships$: Signal<
 		(TlaGroupUser & {
 			group: TlaGroup
 			groupFiles: Array<TlaGroupFile & { file: TlaFile }>
@@ -291,9 +271,9 @@ export class TldrawApp {
 
 		this.user$ = this.signalizeQuery('user signal', this.userQuery())
 		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
-		this.groupMemberships$ = this.signalizeQuery(
-			'group memberships signal',
-			this.groupMembershipsQuery()
+		this.workspaceMemberships$ = this.signalizeQuery(
+			'workspace memberships signal',
+			this.workspaceMembershipsQuery()
 		)
 	}
 
@@ -305,8 +285,8 @@ export class TldrawApp {
 		return queries.fileStates()
 	}
 
-	private groupMembershipsQuery() {
-		return queries.groupUsers()
+	private workspaceMembershipsQuery() {
+		return queries.workspaceMemberships()
 	}
 
 	async preload() {
@@ -331,15 +311,17 @@ export class TldrawApp {
 		})
 		await Promise.all([
 			this.z.preload(this.fileStateQuery()).complete,
-			this.z.preload(this.groupMembershipsQuery()).complete,
+			this.z.preload(this.workspaceMembershipsQuery()).complete,
 		])
 	}
 
 	messages = defineMessages({
-		max_groups_reached: {
+		max_workspaces_reached: {
 			defaultMessage:
-				'You have reached the maximum number of groups. You need to delete old groups before creating new ones.',
+				'You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones.',
 		},
+		// the name of a workspace's seeded first (welcome) file
+		new_workspace_file_name: { defaultMessage: 'Welcome to your workspace' },
 		// toast title
 		mutation_error_toast_title: { defaultMessage: 'Error' },
 		// toast descriptions
@@ -422,40 +404,57 @@ export class TldrawApp {
 	}
 
 	/**
-	 * Check if the user has been migrated to the new groups-based data model.
+	 * Check if the user has been migrated to the new workspaces-based data model.
 	 * Users with the 'groups_backend' flag use group_file for access control and pinning.
 	 * Users without the flag use the legacy file_state-based approach.
 	 */
-	isGroupsMigrated() {
+	isWorkspacesMigrated() {
 		return this.hasFlag('groups_backend')
 	}
 
 	/**
-	 * Get the user's home group ID.
+	 * Get the user's home workspace ID.
 	 * For migrated users, this is used to store shared files and pinned files.
-	 * The home group ID is the same as the user ID.
+	 * The home workspace ID is the same as the user ID.
 	 */
-	getHomeGroupId() {
+	getHomeWorkspaceId() {
 		return this.userId
 	}
 
 	@computed({ isEqual })
-	getGroupMemberships() {
-		return this.groupMemberships$.get().slice(0).sort(sortByIndex)
+	getWorkspaceMemberships() {
+		return this.workspaceMemberships$.get().slice(0).sort(sortByIndex)
 	}
 
-	getGroupMembership(groupId: string) {
-		return this.groupMemberships$.get().find((g) => g.groupId === groupId)
+	getWorkspaceMembership(workspaceId: string) {
+		return this.workspaceMemberships$.get().find((g) => g.groupId === workspaceId)
 	}
 
-	getGroupFilesSorted(groupId: string) {
-		const group = this.getGroupMembership(groupId)
-		if (!group) return []
+	getWorkspaceFilesSorted(workspaceId: string) {
+		const membership = this.getWorkspaceMembership(workspaceId)
+		if (!membership) return []
 
-		const pinned = group.groupFiles.filter((f) => f.index !== null)
-		const unpinned = group.groupFiles.filter((f) => f.index === null)
+		// Decide which of the membership's group_file rows actually belong in this list.
+		// A file owned by this workspace always belongs. A non-home workspace lists only the
+		// files it owns. The home workspace additionally lists legacy files (no owning group)
+		// and "guest files" — shared files the user opened that are owned by a workspace they
+		// are NOT a member of. It must NOT list a file owned by a workspace the user IS a
+		// member of: that's a mislinked row (a guest file whose workspace was later joined, or
+		// a workspace's welcome file mirrored during the create-workspace race), and opening it
+		// from home would bounce the user into that workspace. Guarding here keeps such rows out
+		// of the list even before they're cleaned up.
+		const homeWorkspaceId = this.getHomeWorkspaceId()
+		const groupFiles = membership.groupFiles.filter((f) => {
+			const owningGroupId = f.file.owningGroupId
+			if (owningGroupId === workspaceId) return true
+			if (workspaceId !== homeWorkspaceId) return false
+			return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
+		})
 
-		const lastOrdering = this.lastGroupFileOrderings.get(groupId)
+		const pinned = groupFiles.filter((f) => f.index !== null)
+		const unpinned = groupFiles.filter((f) => f.index === null)
+
+		const lastOrdering = this.lastWorkspaceFileOrderings.get(workspaceId)
 		const retainedOrdering =
 			lastOrdering?.filter((f) => unpinned.some((p) => p.fileId === f.fileId)) ?? []
 		const newOrdering: typeof retainedOrdering = []
@@ -479,7 +478,7 @@ export class TldrawApp {
 
 		const nextOrdering = [...newOrdering, ...retainedOrdering]
 		// Store the ordering for next time
-		this.lastGroupFileOrderings.set(groupId, nextOrdering)
+		this.lastWorkspaceFileOrderings.set(workspaceId, nextOrdering)
 
 		// Return the actual file objects in the stable order
 		return pinned
@@ -487,9 +486,9 @@ export class TldrawApp {
 			.concat(nextOrdering.map((f) => ({ fileId: f.fileId, isPinned: false, date: f.date })))
 	}
 
-	// Clear group file ordering to refresh on expand (like recent files on page reload)
-	clearGroupFileOrdering(groupId: string) {
-		this.lastGroupFileOrderings.delete(groupId)
+	// Clear workspace file ordering to refresh on expand (like recent files on page reload)
+	clearWorkspaceFileOrdering(workspaceId: string) {
+		this.lastWorkspaceFileOrderings.delete(workspaceId)
 	}
 
 	tlUser = createTLCurrentUser({
@@ -533,8 +532,8 @@ export class TldrawApp {
 		date: number
 	}>
 
-	// Store stable group file ordering for each group to prevent jumping when files are edited
-	lastGroupFileOrderings = new Map<
+	// Store stable workspace file ordering for each workspace to prevent jumping when files are edited
+	lastWorkspaceFileOrderings = new Map<
 		string,
 		Array<{
 			fileId: TlaFile['id']
@@ -544,14 +543,14 @@ export class TldrawApp {
 
 	@computed({ isEqual })
 	getMyFiles() {
-		if (this.isGroupsMigrated()) {
-			return this.getGroupFilesSorted(this.getHomeGroupId())
+		if (this.isWorkspacesMigrated()) {
+			return this.getWorkspaceFilesSorted(this.getHomeWorkspaceId())
 		}
 		const myFiles = objectMapFromEntries(this.getUserOwnFiles().map((f) => [f.id, f]))
 		const myStates = objectMapFromEntries(this.getUserFileStates().map((f) => [f.fileId, f]))
 
 		const myFileIds = new Set<string>([...objectMapKeys(myFiles), ...objectMapKeys(myStates)])
-		const myGroupMemberships = this.getGroupMemberships()
+		const myWorkspaceMemberships = this.getWorkspaceMemberships()
 
 		const nextRecentFileOrdering: {
 			fileId: TlaFile['id']
@@ -573,8 +572,8 @@ export class TldrawApp {
 				continue
 			}
 
-			// if the file is in a group we have access to, we don't want to show it in my files
-			if (myGroupMemberships.some((g) => g.groupFiles.some((gf) => gf.fileId === fileId))) {
+			// if the file is in a workspace we have access to, we don't want to show it in my workspace
+			if (myWorkspaceMemberships.some((g) => g.groupFiles.some((gf) => gf.fileId === fileId))) {
 				continue
 			}
 
@@ -597,7 +596,7 @@ export class TldrawApp {
 			// If this was previously unpinned and we have existing ordering,
 			// preserve its position in the unpinned section to avoid real-time reordering
 			if (!isPinned && existing && !existing.isPinned) {
-				// Keep the old date to preserve ordering in "My files"
+				// Keep the old date to preserve ordering in "My workspace"
 				newEntry.date = existing.date
 			}
 
@@ -626,12 +625,18 @@ export class TldrawApp {
 		return sortedFiles
 	}
 
-	private canCreateNewFile(groupId: string) {
-		if (this.isGroupsMigrated()) {
-			// For migrated users, count non-deleted files in the home group
-			const group = this.getGroupMembership(groupId)
-			if (!group) return true
-			const nonDeletedCount = group.groupFiles.filter((gf) => !gf.file.isDeleted).length
+	private canCreateNewFile(workspaceId: string) {
+		if (this.isWorkspacesMigrated()) {
+			// Count only files the workspace actually owns — not guest files (shared files the
+			// user opened) or mislinked rows that getWorkspaceFilesSorted hides. Counting those
+			// would let the limit fire on files the user can neither see nor remove. For migrated
+			// users createFile runs no server-side file-limit check, so this is the only gate;
+			// scoping it to owned files keeps it to what the user can actually manage.
+			const membership = this.getWorkspaceMembership(workspaceId)
+			if (!membership) return true
+			const nonDeletedCount = membership.groupFiles.filter(
+				(gf) => !gf.file.isDeleted && gf.file.owningGroupId === workspaceId
+			).length
 			return nonDeletedCount < this.config.maxNumberOfFiles
 		} else {
 			// For unmigrated users, count non-deleted files owned by the user
@@ -649,37 +654,86 @@ export class TldrawApp {
 		})
 	}
 
-	isPinned(fileId: string, groupId: string) {
-		if (this.isGroupsMigrated()) {
-			return this.getGroupFilesSorted(groupId).some((f) => f.fileId === fileId && f.isPinned)
+	isPinned(fileId: string, workspaceId: string) {
+		if (this.isWorkspacesMigrated()) {
+			return this.getWorkspaceFilesSorted(workspaceId).some(
+				(f) => f.fileId === fileId && f.isPinned
+			)
 		}
 		return this.getFileState(fileId)?.isPinned ?? false
 	}
 
+	// A workspace's welcome file is seeded once, when the workspace is created. Its
+	// `createWorkspace` mutation lands before the file does, so the workspace briefly appears
+	// empty; this single-flights the seed per workspace so a double-submit (or any concurrent
+	// caller) shares one creation and all receive its result, rather than creating duplicates.
+	// Cleared once settled.
+	private readonly workspaceWelcomeFileSeeds = new Map<
+		string,
+		Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>>
+	>()
+
+	/**
+	 * Seed a newly-created workspace's welcome file: a named file whose content the sync worker
+	 * resolves from the welcome template (or a committed default). Called once at workspace
+	 * creation — not on later empty opens, which get a blank file (see useSwitchToWorkspace) —
+	 * and single-flighted so a double-submit shares the same creation.
+	 */
+	createWorkspaceWelcomeFile(
+		workspaceId: string
+	): Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>> {
+		const inFlight = this.workspaceWelcomeFileSeeds.get(workspaceId)
+		if (inFlight) return inFlight
+
+		const seed = this.createFile({
+			workspaceId,
+			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+			createSource: WELCOME_CREATE_SOURCE,
+		})
+		this.workspaceWelcomeFileSeeds.set(workspaceId, seed)
+		seed.finally(() => {
+			if (this.workspaceWelcomeFileSeeds.get(workspaceId) === seed) {
+				this.workspaceWelcomeFileSeeds.delete(workspaceId)
+			}
+		})
+		return seed
+	}
+
+	/**
+	 * The in-flight welcome-file seed for a workspace, if one is still creating. The empty-workspace
+	 * open path uses this to await a just-created workspace's welcome file rather than racing it with
+	 * a duplicate blank file. Returns undefined once the seed settles (or if none was started).
+	 */
+	getPendingWorkspaceWelcomeFile(workspaceId: string) {
+		return this.workspaceWelcomeFileSeeds.get(workspaceId)
+	}
+
 	async createFile({
 		fileId = uniqueId(),
-		groupId = this.getHomeGroupId(),
+		workspaceId = this.getHomeWorkspaceId(),
 		name = this.getFallbackFileName(Date.now()),
 		createSource = null,
 	}: {
 		fileId?: string
-		groupId?: string
+		workspaceId?: string
 		name?: string
 		createSource?: string | null
-	} = {}): Promise<Result<{ fileId: string }, 'max number of files reached'>> {
-		if (!this.canCreateNewFile(groupId)) {
+	} = {}): Promise<
+		Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>
+	> {
+		if (!this.canCreateNewFile(workspaceId)) {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
 
 		this.storeNewRoomCreationTracking(fileId, createSource, Date.now())
-		this.z.mutate.createFile({ fileId, groupId, name, createSource, time: Date.now() })
-		// todo: add server error handling for real Zero
-		// .server.catch((res: { error: string; details: string }) => {
-		// 	if (res.details === ZErrorCode.max_files_reached) {
-		// 		this.showMaxFilesToast()
-		// 	}
-		// })
+		try {
+			await this.z.mutate.createFile({ fileId, workspaceId, name, createSource, time: Date.now() })
+				.client
+		} catch (e) {
+			this.showMutationRejectionToast((e as Error).message as ZErrorCode)
+			return Result.err('mutation rejected')
+		}
 
 		return Result.ok({ fileId })
 	}
@@ -709,6 +763,8 @@ export class TldrawApp {
 
 		if (!createSource) {
 			analyticsSource = 'create-blank-file' // Default for button clicks
+		} else if (createSource === WELCOME_CREATE_SOURCE) {
+			analyticsSource = 'welcome'
 		} else if (createSource.startsWith(`${LOCAL_FILE_PREFIX}/`)) {
 			analyticsSource = 'slurp'
 		} else if (createSource.startsWith(`${FILE_PREFIX}/`)) {
@@ -800,9 +856,9 @@ export class TldrawApp {
 
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		if (this.isGroupsMigrated()) {
+		if (this.isWorkspacesMigrated()) {
 			return (
-				this.getGroupMemberships()
+				this.getWorkspaceMemberships()
 					.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
 					?.groupFiles.find((gf) => gf.fileId === fileId)?.file ?? null
 			)
@@ -815,7 +871,7 @@ export class TldrawApp {
 		if (!file) return false
 		if (file.ownerId) return file.ownerId === this.userId
 		if (file.owningGroupId) {
-			const role = this.getGroupMembership(file.owningGroupId)?.role
+			const role = this.getWorkspaceMembership(file.owningGroupId)?.role
 			return can(role, 'accessFiles')
 		}
 		return false
@@ -847,13 +903,9 @@ export class TldrawApp {
 	/**
 	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
 	 */
-	async deleteOrForgetFile(fileId: string, groupId: string = this.getHomeGroupId()) {
+	async deleteOrForgetFile(fileId: string, workspaceId: string = this.getHomeWorkspaceId()) {
 		// Optimistic update, remove file and file states
-		await this.z.mutate.removeFileFromGroup({ fileId, groupId }).client
-	}
-
-	async addFileLinkToGroup(fileId: string, groupId: string) {
-		await this.z.mutate.addFileLinkToGroup({ fileId, groupId }).client
+		await this.z.mutate.removeFileFromWorkspace({ fileId, workspaceId }).client
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
@@ -984,7 +1036,7 @@ export class TldrawApp {
 	async uploadTldrFiles(
 		files: File[],
 		onFirstFileUploaded?: (fileId: string) => void,
-		groupId?: string,
+		workspaceId?: string,
 		onUploadError?: () => void
 	) {
 		const totalFiles = files.length
@@ -1043,7 +1095,7 @@ export class TldrawApp {
 					bytesUploaded += bytes
 					updateProgress()
 				},
-				groupId
+				workspaceId
 			).catch((e) => Result.err(e))
 			if (!res.ok) {
 				clearTimeout(uploadingToastTimeout)
@@ -1088,7 +1140,7 @@ export class TldrawApp {
 	private async uploadTldrFile(
 		file: File,
 		onProgress?: (bytesUploadedSinceLastProgressUpdate: number) => void,
-		groupId?: string
+		workspaceId?: string
 	) {
 		const json = await file.text()
 		const parseFileResult = parseTldrawJsonFile({
@@ -1156,89 +1208,26 @@ export class TldrawApp {
 			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
 			''
 
-		return this.createFile({ fileId, name, groupId })
+		return this.createFile({ fileId, name, workspaceId })
 	}
 
 	sidebarState = atom('sidebar state', {
-		expandedGroups: {} as Record<string, 'closed' | 'expanded_show_less' | 'expanded_show_more'>,
-		recentFilesShowMore: false,
-		noAnimationGroups: [] as string[],
 		renameState: null as null | {
 			fileId: string
-			groupId: string
+			workspaceId: string
 		},
-		dragState: null as DragState,
+		// The current sidebar file-search query. Empty string means no filter.
+		searchQuery: '',
 	})
 
-	ensureSidebarGroupExpanded(groupId: string) {
-		const currentExpansionState = this.sidebarState.get().expandedGroups[groupId]
-		if (!currentExpansionState || currentExpansionState === 'closed') {
-			this.sidebarState.update((prev) => ({
-				...prev,
-				expandedGroups: { ...prev.expandedGroups, [groupId]: 'expanded_show_less' },
-			}))
-		}
-	}
+	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
+	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
+		// The home workspace can't be invited to.
+		if (workspaceId === this.getHomeWorkspaceId()) return false
+		const membership = this.getWorkspaceMembership(workspaceId)
+		if (!membership?.group.inviteSecret) return false
 
-	ensureFileVisibleInSidebar(fileId: string) {
-		const file = this.getFile(fileId)
-		if (!file) return
-
-		// If file is pinned, nothing to do
-		if (this.getFileState(fileId)?.isPinned) {
-			return
-		}
-
-		// If file is in a group
-		if (file.owningGroupId) {
-			const group = this.getGroupMembership(file.owningGroupId)
-			if (!group) return
-
-			const groupFiles = this.getGroupFilesSorted(file.owningGroupId)
-			const MAX_FILES_TO_SHOW = 4
-			const fileIndex = groupFiles.findIndex((f) => f?.fileId === fileId)
-
-			if (fileIndex >= MAX_FILES_TO_SHOW) {
-				// File is in the "show more" section, expand fully
-				this.sidebarState.update((prev) => ({
-					...prev,
-					expandedGroups: { ...prev.expandedGroups, [file.owningGroupId!]: 'expanded_show_more' },
-				}))
-			} else {
-				// File is in the "show less" section, ensure group is expanded
-				this.ensureSidebarGroupExpanded(file.owningGroupId)
-			}
-			return
-		}
-
-		// // If file is in recent files (not in a group)
-		// const recentFiles = this.getMyFiles()
-		// if (!recentFiles) return
-
-		// const groupMemberships = this.getGroupMemberships()
-		// const otherFiles = recentFiles.filter(
-		// 	(item) =>
-		// 		!this.isPinned(item.id) &&
-		// 		!groupMemberships.some(
-		// 			(group) => group.group.id === this.getFile(item.fileId)?.owningGroupId
-		// 		)
-		// )
-
-		// const MAX_FILES_TO_SHOW = groupMemberships.length > 0 ? 6 : +Infinity
-		// const fileIndex = otherFiles.findIndex((item) => item.fileId === fileId)
-
-		// if (fileIndex >= MAX_FILES_TO_SHOW) {
-		// 	// File is in the "show more" section of recent files
-		// 	patch(this.sidebarState).recentFilesShowMore(true)
-		// }
-		// If file is in the "show less" section, nothing to do
-	}
-
-	copyGroupInvite(groupId: string, showToast = true) {
-		const group = this.getGroupMembership(groupId)
-		if (!group?.group.inviteSecret) return
-
-		const inviteText = `${location.origin}/invite/${group.group.inviteSecret}`
+		const inviteText = `${location.origin}/invite/${membership.group.inviteSecret}`
 		navigator.clipboard.writeText(inviteText)
 
 		if (showToast) {
@@ -1249,9 +1238,10 @@ export class TldrawApp {
 		}
 
 		this.trackEvent('copy-share-link', { source: 'sidebar' })
+		return true
 	}
 
-	async acceptGroupInvite(inviteSecret: string) {
+	async acceptWorkspaceInvite(inviteSecret: string) {
 		const response = await fetch(`/api/app/invite/${inviteSecret}/accept`, {
 			method: 'POST',
 		})
@@ -1268,34 +1258,39 @@ export class TldrawApp {
 			return
 		}
 
-		this.trackEvent('accept-group-invite', { source: 'sidebar' })
+		this.trackEvent('accept-workspace-invite', { source: 'sidebar' })
 
-		// wait for the group to appear in the store
-		while (!this.getGroupMembership(payload.groupId)) {
-			await sleep(50)
+		// wait for the workspace to appear in the store, but not forever
+		let attempts = 0
+		while (!this.getWorkspaceMembership(payload.workspaceId)) {
+			if (attempts++ > 100) {
+				this.toasts?.addToast({
+					severity: 'error',
+					title: 'Error accepting invite',
+					description: 'Please try again.',
+				})
+				this.navigate(routes.tlaRoot())
+				return
+			}
+			await sleep(100)
 		}
 
-		this.sidebarState.update((prev) => ({
-			...prev,
-			expandedGroups: { ...prev.expandedGroups, [payload.groupId]: 'expanded_show_less' },
-		}))
+		// Clear any existing ordering for this new workspace to get fresh ordering
+		this.lastWorkspaceFileOrderings.delete(payload.workspaceId)
 
-		// Clear any existing ordering for this new group to get fresh ordering
-		this.lastGroupFileOrderings.delete(payload.groupId)
-
-		if (!this.navigateToGroupFiles(payload.groupId)) {
+		if (!this.navigateToWorkspaceFiles(payload.workspaceId)) {
 			this.navigate(routes.tlaRoot())
 		}
 	}
 
-	navigateToGroupFiles(groupId: string) {
-		const files = this.getGroupFilesSorted(groupId)
+	navigateToWorkspaceFiles(workspaceId: string, opts: { replace?: boolean } = {}) {
+		const files = this.getWorkspaceFilesSorted(workspaceId)
 
 		if (!files.length) {
 			return false
 		}
 
-		this.navigate(routes.tlaFile(files[0]!.fileId))
+		this.navigate(routes.tlaFile(files[0]!.fileId), opts)
 		return true
 	}
 }

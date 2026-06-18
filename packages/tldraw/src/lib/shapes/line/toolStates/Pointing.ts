@@ -150,6 +150,10 @@ export class Pointing extends StateNode {
 		this.editor.snaps.clearIndicators()
 	}
 
+	override onLongPress() {
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
+	}
+
 	complete() {
 		this.parent.transition('idle', { shapeId: this.shape.id })
 		this.editor.snaps.clearIndicators()

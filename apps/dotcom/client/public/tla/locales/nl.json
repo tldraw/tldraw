@@ -1,4 +1,7 @@
 {
+  "1764571547": {
+    "translation": "Weet je zeker dat je deze werkruimte wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+  },
   "0095a9fa74": {
     "translation": "Exporteren"
   },
@@ -7,6 +10,12 @@
   },
   "043973ec1f": {
     "translation": "Nog steeds problemen? {GetHelpLink}"
+  },
+  "04a2dd56d6": {
+    "translation": "Nodig teamgenoten uit"
+  },
+  "05f43078e9": {
+    "translation": "Je hebt het maximale aantal werkruimtes bereikt. Je moet oude werkruimtes verwijderen voordat je nieuwe kunt aanmaken."
   },
   "06b9281e39": {
     "translation": "Auto"
@@ -29,14 +38,17 @@
   "0b9a4cde72": {
     "translation": "Bestandsmenu"
   },
+  "0c4383617a": {
+    "translation": "Er is iets misgegaan bij het laden van deze uitnodiging. Probeer het opnieuw."
+  },
   "0d1f2bb523": {
     "translation": "Feedback sturen"
   },
+  "1063e38cb5": {
+    "translation": "Verwijderen"
+  },
   "110a4b01be": {
     "translation": "Publiceren"
-  },
-  "129b9e34ea": {
-    "translation": "Groep verlaten"
   },
   "12a6766ba1": {
     "translation": "Bestand losmaken"
@@ -47,14 +59,11 @@
   "13ddd375ad": {
     "translation": "Exporteren als"
   },
-  "146ffe2fd9": {
-    "translation": "Meer weergeven"
-  },
-  "14d65465b7": {
-    "translation": "Groep verwijderen"
-  },
   "181b90f889": {
     "translation": "Bestand aanmaken"
+  },
+  "1d2591253e": {
+    "translation": "Werkruimte-instellingen"
   },
   "1da2e8106b": {
     "translation": "Er is een onverwachte fout opgetreden."
@@ -62,8 +71,8 @@
   "1dd1c5fb7f": {
     "translation": "Vandaag"
   },
-  "2445e5e347": {
-    "translation": "Groep aanmaken"
+  "21f66c9c00": {
+    "translation": "Werkruimtenaam"
   },
   "250ddea65c": {
     "translation": "Over tldraw"
@@ -83,9 +92,6 @@
   "31418ce4ad": {
     "translation": "i18n: Markering ontbreekt"
   },
-  "32210b37e4": {
-    "translation": "Link toevoegen"
-  },
   "324a0f3182": {
     "translation": "Terug naar tldraw"
   },
@@ -94,6 +100,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "375396d6e5": {
+    "translation": "Lid verwijderen"
   },
   "3bc7d6ea2f": {
     "translation": "Doorgaan met e-mail"
@@ -116,6 +125,9 @@
   "42e53c47c1": {
     "translation": "Neem contact op met de eigenaar om toegang aan te vragen."
   },
+  "44680c1fa7": {
+    "translation": "Verlaat de werkplek…"
+  },
   "44db318ee5": {
     "translation": "Krijg hulp op Discord"
   },
@@ -131,12 +143,6 @@
   "47f493a590": {
     "translation": "Pinbestand"
   },
-  "49049467ff": {
-    "translation": "Plak de URL van het tldraw-bestand..."
-  },
-  "4908687e50": {
-    "translation": "Weet u zeker dat u dit bestand wilt vergeten?"
-  },
   "49ee308734": {
     "translation": "Naam"
   },
@@ -145,15 +151,6 @@
   },
   "4d1c8263ba": {
     "translation": "Opnieuw laden"
-  },
-  "4da5988a2e": {
-    "translation": "Groep verwijderen…"
-  },
-  "4dab36ac83": {
-    "translation": "Meer opties"
-  },
-  "4e6fbf032b": {
-    "translation": "Weet u zeker dat u deze groep wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
   },
   "5097d89907": {
     "translation": "Niet-ondersteund diagram, er wordt in plaats daarvan een SVG-bestand gegenereerd."
@@ -182,14 +179,14 @@
   "56c34c6410": {
     "translation": "Privacybeleid"
   },
-  "5a86b22fa0": {
-    "translation": "Sleep bestanden hierheen, <create>maak een bestand</create> of <invite>kopieer de uitnodigingslink</invite> om te beginnen."
-  },
   "5a95a425f7": {
     "translation": "Deel"
   },
   "5bec508475": {
     "translation": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken."
+  },
+  "5bff3c9c88": {
+    "translation": "Mijn werkplek"
   },
   "5c6fe42bc2": {
     "translation": "Trek deze link in en maak een nieuwe."
@@ -199,9 +196,6 @@
   },
   "5d26ae7550": {
     "translation": "Een deel van de content die u hebt gemaakt voordat u zich aanmeldde, is niet geüpload."
-  },
-  "5ea8bb44be": {
-    "translation": "U bent uitgenodigd om deel te nemen aan de groep:"
   },
   "5f3c333678": {
     "translation": "Feedback verzonden"
@@ -230,6 +224,9 @@
   "6832ac5936": {
     "translation": "Voer uw e-mailadres in"
   },
+  "694f82ed9d": {
+    "translation": "Werkruimte verwijderen"
+  },
   "6a26f54883": {
     "translation": "Hulp"
   },
@@ -238,9 +235,6 @@
   },
   "6dfc62f621": {
     "translation": "Volg deze stappen om de inhoud handmatig te importeren:"
-  },
-  "70222abcfc": {
-    "translation": "Groepsinstellingen"
   },
   "70a6facb9d": {
     "translation": "Deze week"
@@ -268,6 +262,9 @@
   },
   "764671e008": {
     "translation": "Chat met ons op Discord"
+  },
+  "4908687e50": {
+    "translation": "Weet u zeker dat u dit bestand wilt vergeten?"
   },
   "76dea3c9ca": {
     "translation": "tldraw is een gratis online whiteboard. Maak een account aan om je bestanden op te slaan en met je vrienden te werken."
@@ -299,9 +296,6 @@
   "7cb5f8b4a5": {
     "translation": "Vergeten"
   },
-  "7cfe6c43dc": {
-    "translation": "Groep verlaten…"
-  },
   "7daeced9ff": {
     "translation": "Wijzigingen publiceren"
   },
@@ -314,6 +308,9 @@
   "815e116a2e": {
     "translation": "Heb je een bug, probleem of idee voor tldraw? Laat het ons weten! Vul dit formulier in en we nemen indien nodig per e-mail contact met je op. Je kunt ook <discord>met ons chatten op Discord</discord> of <github>een probleem melden op GitHub</github>."
   },
+  "858ba4765e": {
+    "translation": "Lid"
+  },
   "85a082de1b": {
     "translation": "Vernieuw de pagina om de nieuwste versie van tldraw te verkrijgen."
   },
@@ -323,11 +320,20 @@
   "86c66437fd": {
     "translation": "Bestand hernoemen"
   },
+  "87fdb09de6": {
+    "translation": "Je bent al lid van deze werkruimte."
+  },
+  "88bf6ab42c": {
+    "translation": "Deze uitnodigingslink is verlopen."
+  },
   "8ad4303b83": {
     "translation": "Nee bedankt"
   },
   "8c2d3d730c": {
     "translation": "Controleer uw e-mail voor een verificatiecode."
+  },
+  "8cf04a9734": {
+    "translation": "Thuis"
   },
   "8eb2c00e96": {
     "translation": "Gedeeld met jou"
@@ -344,14 +350,11 @@
   "91e49bb0eb": {
     "translation": "Kopieer naar mijn bestanden"
   },
-  "930390d222": {
-    "translation": "Gekopieerde uitnodigingslink"
-  },
-  "9489b2f82a": {
-    "translation": "Je bent al lid van deze groep"
-  },
   "95aacd4d4a": {
     "translation": "Aanmelden met Google"
+  },
+  "95b56f4cd6": {
+    "translation": "Werkruimte verwijderen…"
   },
   "95d2109dc8": {
     "translation": "Bouwen met de tldraw SDK"
@@ -361,9 +364,6 @@
   },
   "985a4b720f": {
     "translation": "Gebruiksvoorwaarden"
-  },
-  "98c997a27e": {
-    "translation": "Bestandslink toevoegen"
   },
   "9914a0ce04": {
     "translation": "Licht"
@@ -419,6 +419,9 @@
   "a9ded1e5ce": {
     "translation": "Achtergrond"
   },
+  "aac449eef6": {
+    "translation": "Werkruimte creëren"
+  },
   "ab0df9ba36": {
     "translation": "Bestandslimiet bereikt"
   },
@@ -435,9 +438,6 @@
   "b357b524e7": {
     "translation": "E-mailadres"
   },
-  "b3d2db69fe": {
-    "translation": "Bestands-URL"
-  },
   "b6d4223e60": {
     "translation": "Aanmelden"
   },
@@ -449,9 +449,6 @@
   },
   "ba0318cb81": {
     "translation": "Meld je aan om te delen"
-  },
-  "bb93a7590f": {
-    "translation": "Accepteren en lid worden van de groep"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Uploaden van .tldr-bestand…} other {Uploaden van {uploaded} van {total} .tldr-bestanden…}}"
@@ -471,17 +468,14 @@
   "c4b39a1cc3": {
     "translation": "Essentiële cookies"
   },
-  "c6155aaecc": {
-    "translation": "Groepsnaam"
-  },
   "c655b27b1e": {
     "translation": "i18n: Lange reeks"
   },
   "c6a00f137b": {
     "translation": "Uitnodiging"
   },
-  "c74ea6dbff": {
-    "translation": "Minder weergeven"
+  "c7d7403714": {
+    "translation": "Nieuw bestuur"
   },
   "c87aacf567": {
     "translation": "Afmelden"
@@ -528,17 +522,17 @@
   "d9100f3e10": {
     "translation": "Ga hierheen om de inhoud te bekijken"
   },
-  "d9e35d0f55": {
-    "translation": "Je hebt het maximale aantal groepen bereikt. Je moet oude groepen verwijderen voordat je nieuwe kunt aanmaken."
-  },
   "dbbebf3c03": {
     "translation": "Alleen op uitnodiging"
   },
-  "dcdaa754fe": {
-    "translation": "Ongeldige tldraw-bestands-URL"
+  "dbf9b24193": {
+    "translation": "Verlaat de werkruimte"
   },
   "dfdb78a4e4": {
     "translation": "App-debug vlaggen"
+  },
+  "e0aa021e21": {
+    "translation": "OK"
   },
   "e0c88179b3": {
     "translation": "Nodig leden uit"
@@ -549,20 +543,26 @@
   "e2ae80a510": {
     "translation": "Juridische samenvatting"
   },
-  "e3afed0047": {
-    "translation": "Beheerder"
-  },
   "e404559826": {
     "translation": "Servicevoorwaarden"
   },
+  "e615d52512": {
+    "translation": "Accepteer en word lid van de werkruimte"
+  },
   "e81c4e4f2b": {
     "translation": "of"
+  },
+  "e9e0f16850": {
+    "translation": "Je bent uitgenodigd om deel te nemen aan de werkruimte:"
   },
   "ea0626ac5a": {
     "translation": "Gevarenzone"
   },
   "ea4788705e": {
     "translation": "Annuleren"
+  },
+  "eb1e2b0542": {
+    "translation": "Vraag de eigenaar van de werkplek om een ​​nieuwe."
   },
   "ebfe9ce86e": {
     "translation": "Gisteren"
@@ -603,14 +603,14 @@
   "f4f70727dc": {
     "translation": "Instellingen"
   },
-  "f714e36843": {
-    "translation": "Weet u zeker dat u deze groep wilt verlaten?"
-  },
   "fa2ead697d": {
     "translation": "Privacybeleid"
   },
   "fb15c53f22": {
     "translation": "Kijker"
+  },
+  "fc9d47046b": {
+    "translation": "Weet je zeker dat je deze werkruimte wilt verlaten?"
   },
   "fd1be3efcf": {
     "translation": "Weet u zeker dat u dit bestand wilt verwijderen?"
@@ -618,8 +618,8 @@
   "fed5ec05eb": {
     "translation": "Gekopieerde link"
   },
-  "ff7a814974": {
-    "translation": "Bestandskoppeling toevoegen…"
+  "ff2fefd3c6": {
+    "translation": "Weet je zeker dat je {name} uit deze werkruimte wilt verwijderen?"
   },
   "ffcd73e997": {
     "translation": "Bestand importeren…"

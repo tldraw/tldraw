@@ -1,126 +1,155 @@
-import { Collapsible } from 'radix-ui'
-import { Fragment } from 'react'
 import { useValue } from 'tldraw'
+import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
+import { getRelevantDates } from '../../../utils/dates'
 import { F } from '../../../utils/i18n'
-import { ReorderCursor } from './ReorderCursor'
+import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
-import { TlaSidebarGroupItem } from './TlaSidebarGroupItem'
+import { TlaSidebarFileSection } from './TlaSidebarFileSection'
 import styles from '../sidebar.module.css'
 
+/**
+ * The scrollable lower region of the sidebar: the files of whichever space is
+ * currently active (derived from the open file). Pinned files come first, then
+ * the remaining files grouped by recency. There is no per-workspace expand/collapse.
+ */
 export function TlaSidebarRecentFilesNew() {
 	const app = useApp()
-	// Demo flag to switch between inline input and dialog
+	const activeWorkspaceId = useActiveWorkspaceId()
+	const homeWorkspaceId = app.getHomeWorkspaceId()
+	const isHome = activeWorkspaceId === homeWorkspaceId
 
-	const isShowingAll = useValue('isShowingAll', () => app.sidebarState.get().recentFilesShowMore, [
-		app,
-	])
-
-	const handleShowMore = () => {
-		app.sidebarState.update((prev) => ({ ...prev, recentFilesShowMore: true }))
-	}
-
-	const handleShowLess = () => {
-		app.sidebarState.update((prev) => ({ ...prev, recentFilesShowMore: false }))
-	}
-
-	// Get group memberships from the server
-	const groupMemberships = useValue('groupMemberships', () => app.getGroupMemberships(), [app])
-
-	const files = useValue('my files', () => app.getMyFiles(), [app])
-	const homeGroupId = app.getHomeGroupId()
-	const showMyFilesDropState = useValue(
-		'showMyFilesDropState',
+	const results = useValue(
+		'active workspace files',
 		() => {
-			const dragState = app.sidebarState.get().dragState
-			if (!dragState?.hasDragStarted) return false
-			return (
-				dragState.type === 'file' &&
-				dragState.operation.move?.targetId === homeGroupId &&
-				!dragState.operation.reorder
-			)
+			let files = app.getWorkspaceFilesSorted(activeWorkspaceId)
+
+			// Filter by the sidebar search query, if any. Reading the signal here keeps
+			// the list reactive to the query without threading it through props.
+			const query = app.sidebarState.get().searchQuery.trim().toLowerCase()
+			if (query) {
+				files = files.filter((item) => app.getFileName(item.fileId).toLowerCase().includes(query))
+			}
+
+			const { today, yesterday, thisWeek, thisMonth } = getRelevantDates()
+
+			const pinnedFiles: RecentFile[] = []
+			const todayFiles: RecentFile[] = []
+			const yesterdayFiles: RecentFile[] = []
+			const thisWeekFiles: RecentFile[] = []
+			const thisMonthFiles: RecentFile[] = []
+			const olderFiles: RecentFile[] = []
+
+			for (const item of files) {
+				const { date, isPinned } = item
+				if (isPinned) pinnedFiles.push(item)
+				else if (date >= today) todayFiles.push(item)
+				else if (date >= yesterday) yesterdayFiles.push(item)
+				else if (date >= thisWeek) thisWeekFiles.push(item)
+				else if (date >= thisMonth) thisMonthFiles.push(item)
+				else olderFiles.push(item)
+			}
+
+			return { pinnedFiles, todayFiles, yesterdayFiles, thisWeekFiles, thisMonthFiles, olderFiles }
 		},
-		[app, homeGroupId]
+		[app, activeWorkspaceId]
 	)
 
-	if (!files) throw Error('Could not get files')
-	const numPinnedFiles = files.filter((f) => f.isPinned).length
-
-	const MAX_FILES_TO_SHOW = Math.max(
-		groupMemberships.length > 0 ? 6 : +Infinity,
-		numPinnedFiles + 4
+	const isSearching = useValue(
+		'is searching',
+		() => app.sidebarState.get().searchQuery.trim().length > 0,
+		[app]
 	)
-	const slop = 2
-	const isOverflowing = files.length > MAX_FILES_TO_SHOW + slop
-	const filesToShow = isOverflowing ? files.slice(0, MAX_FILES_TO_SHOW) : files
-	const hiddenFiles = isOverflowing ? files.slice(MAX_FILES_TO_SHOW) : []
+	const hasResults = Object.values(results).some((group) => group.length > 0)
 
 	return (
-		<Fragment>
-			<div
-				data-drop-target-id={homeGroupId}
-				className={showMyFilesDropState ? styles.dropping : ''}
-			>
-				<div
-					style={{ fontSize: 12, paddingLeft: 8, paddingTop: 12, color: 'var(--tla-color-text-3)' }}
+		<div
+			data-drop-target-id={isHome ? homeWorkspaceId : `workspace:${activeWorkspaceId}`}
+			data-workspace-id={activeWorkspaceId}
+		>
+			{results.pinnedFiles.length ? (
+				<TlaSidebarFileSection
+					iconLeft="pin"
+					title={<F defaultMessage="Pinned" />}
+					onePixelOfPaddingAtTheTop
 				>
-					<F defaultMessage="My files" />
-				</div>
-				<div style={{ height: 8 }}></div>
-				{filesToShow.length > 0 &&
-					filesToShow.map((item, i) => (
+					{results.pinnedFiles.map((item, i) => (
 						<TlaSidebarFileLink
-							groupId={homeGroupId}
-							key={'file_link_today_' + item.fileId}
+							workspaceId={activeWorkspaceId}
+							key={'pinned_' + item.fileId}
+							item={item}
+							testId={`tla-file-link-pinned-${i}`}
+						/>
+					))}
+				</TlaSidebarFileSection>
+			) : null}
+			{results.todayFiles.length ? (
+				<TlaSidebarFileSection title={<F defaultMessage="Today" />}>
+					{results.todayFiles.map((item, i) => (
+						<TlaSidebarFileLink
+							workspaceId={activeWorkspaceId}
+							key={'today_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-today-${i}`}
 						/>
 					))}
-				{hiddenFiles.length > 0 && (
-					<Collapsible.Root open={isShowingAll}>
-						<Collapsible.Content className={styles.CollapsibleContent}>
-							{hiddenFiles.map((item, i) => (
-								<TlaSidebarFileLink
-									groupId={homeGroupId}
-									key={'file_link_today_' + item.fileId}
-									item={item}
-									testId={`tla-file-link-today-${i}`}
-								/>
-							))}
-						</Collapsible.Content>
-						<Collapsible.Trigger asChild>
-							{isOverflowing &&
-								(isShowingAll ? (
-									<button className={styles.showAllButton} onClick={handleShowLess}>
-										<F defaultMessage="Show less" />
-									</button>
-								) : (
-									<button className={styles.showAllButton} onClick={handleShowMore}>
-										<F defaultMessage="Show more" />
-									</button>
-								))}
-						</Collapsible.Trigger>
-					</Collapsible.Root>
-				)}
-			</div>
-			<div style={{ height: 12 }}></div>
-			{groupMemberships.map((group, i) =>
-				group.groupId === app.getHomeGroupId() ? null : (
-					// Include the array index in the key to force a remount when the order changes
-					// this prevents a bug where the collapsible open animation replays when react moves
-					// an open group item within the list. I guess the browser thinks it's a new dom node
-					// or whatever.
-					// If radix's Collapsible had 'opening' and 'closing' states instead of just 'open' and 'closed'
-					// we wouldn't need this.
-					<TlaSidebarGroupItem
-						key={`group-${group.group.id}-${i}`}
-						groupId={group.group.id}
-						index={i}
-					/>
-				)
-			)}
-			{/* Global drag cursor for group reordering */}
-			<ReorderCursor />
-		</Fragment>
+				</TlaSidebarFileSection>
+			) : null}
+			{results.yesterdayFiles.length ? (
+				<TlaSidebarFileSection title={<F defaultMessage="Yesterday" />}>
+					{results.yesterdayFiles.map((item, i) => (
+						<TlaSidebarFileLink
+							workspaceId={activeWorkspaceId}
+							key={'yesterday_' + item.fileId}
+							item={item}
+							testId={`tla-file-link-yesterday-${i}`}
+						/>
+					))}
+				</TlaSidebarFileSection>
+			) : null}
+			{results.thisWeekFiles.length ? (
+				<TlaSidebarFileSection title={<F defaultMessage="This week" />}>
+					{results.thisWeekFiles.map((item, i) => (
+						<TlaSidebarFileLink
+							workspaceId={activeWorkspaceId}
+							key={'this-week_' + item.fileId}
+							item={item}
+							testId={`tla-file-link-this-week-${i}`}
+						/>
+					))}
+				</TlaSidebarFileSection>
+			) : null}
+			{results.thisMonthFiles.length ? (
+				<TlaSidebarFileSection title={<F defaultMessage="This month" />}>
+					{results.thisMonthFiles.map((item, i) => (
+						<TlaSidebarFileLink
+							workspaceId={activeWorkspaceId}
+							key={'this-month_' + item.fileId}
+							item={item}
+							testId={`tla-file-link-this-month-${i}`}
+						/>
+					))}
+				</TlaSidebarFileSection>
+			) : null}
+			{results.olderFiles.length ? (
+				<TlaSidebarFileSection title={<F defaultMessage="Older" />}>
+					{results.olderFiles
+						.sort((a, b) => b.date - a.date)
+						.map((item, i) => (
+							<TlaSidebarFileLink
+								workspaceId={activeWorkspaceId}
+								key={'older_' + item.fileId}
+								item={item}
+								testId={`tla-file-link-older-${i}`}
+							/>
+						))}
+				</TlaSidebarFileSection>
+			) : null}
+			{isSearching && !hasResults ? (
+				<div className={styles.sidebarSearchEmpty} data-testid="tla-sidebar-search-empty">
+					<F defaultMessage="No files found" />
+				</div>
+			) : null}
+		</div>
 	)
 }
