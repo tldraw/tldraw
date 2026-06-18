@@ -5,6 +5,7 @@ import {
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
+	areArraysShallowEqual,
 	b64Vecs,
 	pointInPolygon,
 } from '@tldraw/editor'
@@ -35,10 +36,13 @@ export class MagicWandDrawing extends Drawing {
 	private inkColor: TLDefaultColorStyle = 'black'
 	// Whether the ink is currently showing the selection (lasso) colour.
 	private inkShowsLassoColor = false
+	// The shapes currently previewed as "would be selected" (blue hint outline).
+	private hintedShapeIds: TLShapeId[] = []
 
 	override onEnter(info: TLPointerEventInfo) {
 		this.shapeIdsBeforeGesture = new Set(this.editor.getCurrentPageShapeIds())
 		this.inkShowsLassoColor = false
+		this.hintedShapeIds = []
 		// Enable the CSS colour transition for the in-progress stroke.
 		this.editor.getContainer().classList.add(MAGIC_WAND_INKING_CLASS)
 		super.onEnter(info)
@@ -60,30 +64,48 @@ export class MagicWandDrawing extends Drawing {
 
 	override onExit() {
 		this.editor.getContainer().classList.remove(MAGIC_WAND_INKING_CLASS)
+		// Clear the lasso preview hint (the selection happens in `complete`).
+		if (this.hintedShapeIds.length) {
+			this.editor.setHintingShapes([])
+			this.hintedShapeIds = []
+		}
 		super.onExit()
 	}
 
 	override onPointerMove() {
 		super.onPointerMove()
-		this.updateInkColor()
+		this.updateLassoPreview()
 	}
 
 	/**
-	 * Previews the gesture's outcome: tint the ink the selection colour while the
-	 * stroke would lasso-select, and restore its natural colour otherwise.
+	 * Previews the gesture's outcome while drawing: tint the ink the selection
+	 * colour and outline the shapes that would be lasso-selected on release (the
+	 * same blue indicator the brush selection shows), restoring both otherwise.
 	 */
-	private updateInkColor() {
+	private updateLassoPreview() {
 		const inkId = this.initialShape?.id
 		if (!inkId) return
 
-		const wouldLasso = this.getEnclosedShapeIds().length > 0
-		if (wouldLasso === this.inkShowsLassoColor) return
-		this.inkShowsLassoColor = wouldLasso
+		const enclosedShapeIds = this.getEnclosedShapeIds()
+		const wouldLasso = enclosedShapeIds.length > 0
 
-		const color = wouldLasso ? MAGIC_WAND_LASSO_COLOR : this.inkColor
-		this.editor.run(() => this.editor.updateShape({ id: inkId, type: 'draw', props: { color } }), {
-			history: 'ignore',
-		})
+		// Tint the in-progress ink.
+		if (wouldLasso !== this.inkShowsLassoColor) {
+			this.inkShowsLassoColor = wouldLasso
+			const color = wouldLasso ? MAGIC_WAND_LASSO_COLOR : this.inkColor
+			this.editor.run(
+				() => this.editor.updateShape({ id: inkId, type: 'draw', props: { color } }),
+				{
+					history: 'ignore',
+				}
+			)
+		}
+
+		// Outline the shapes that would be selected.
+		if (!areArraysShallowEqual(enclosedShapeIds, this.hintedShapeIds)) {
+			this.hintedShapeIds = enclosedShapeIds
+			this.editor.setHintingShapes(enclosedShapeIds)
+		}
 	}
 
 	override complete() {

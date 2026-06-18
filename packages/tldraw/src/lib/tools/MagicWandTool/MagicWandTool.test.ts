@@ -67,6 +67,36 @@ describe('MagicWandTool', () => {
 		editor.pointerUp()
 	})
 
+	it('previews which shapes would be lasso-selected with a hint, and reverts', () => {
+		const boxId = createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		// Open stroke: nothing hinted yet.
+		expect(editor.getHintingShapeIds()).toEqual([])
+
+		// Close the loop around the box: it's hinted.
+		editor.pointerMove(102, 100)
+		expect(editor.getHintingShapeIds()).toEqual([boxId])
+
+		// Re-open the loop: hint cleared.
+		editor.pointerMove(300, 100)
+		expect(editor.getHintingShapeIds()).toEqual([])
+
+		editor.pointerUp()
+	})
+
+	it('clears the hint and selects the shapes on lasso completion', () => {
+		const boxId = createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(editor.getHintingShapeIds()).toEqual([])
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+	})
+
 	it('draws a normal stroke when the loop does not encircle anything', () => {
 		editor.setCurrentTool('magic-wand')
 		const before = editor.getCurrentPageShapes().length
