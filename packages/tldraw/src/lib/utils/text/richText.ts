@@ -108,7 +108,12 @@ const plainTextFromRichTextCache = new WeakCache<TLRichText, string>()
 
 export function isEmptyRichText(richText: TLRichText) {
 	if (richText.content.length === 1) {
-		if (!(richText.content[0] as any).content) return true
+		// An empty paragraph can be encoded as either a missing `content` key or an
+		// empty `content` array. The interactive editor emits the former; programmatic
+		// authoring (snapshot load, agents emitting tldraw JSON) often emits the latter.
+		// Both mean "no text", so treat them the same.
+		const node = richText.content[0] as any
+		if (!node.content || node.content.length === 0) return true
 	}
 	return false
 }

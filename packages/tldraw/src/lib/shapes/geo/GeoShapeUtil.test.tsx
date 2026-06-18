@@ -182,6 +182,48 @@ describe('Resizing geo shapes with labels', () => {
 	})
 })
 
+describe('Geo shapes with programmatically-authored empty rich text', () => {
+	const geoId = createShapeId('geo')
+
+	function getGeo() {
+		return editor.getShape<TLGeoShape>(geoId)!
+	}
+
+	// An empty paragraph can be encoded two equally-valid ways. The interactive
+	// editor emits the first (no `content` key); programmatic authoring (snapshot
+	// load, agents emitting tldraw JSON) commonly emits the second (`content: []`).
+	// Both mean "no label", so neither should grow the shape to fit a phantom line.
+	const emptyForms = [
+		{
+			label: 'paragraph with no content key (toRichText output)',
+			richText: toRichText(''),
+		},
+		{
+			label: 'paragraph with empty content array',
+			richText: {
+				type: 'doc',
+				content: [{ type: 'paragraph', attrs: { dir: 'auto' }, content: [] }],
+			} as TLGeoShape['props']['richText'],
+		},
+	]
+
+	for (const { label, richText } of emptyForms) {
+		test(`does not grow height for an empty label: ${label}`, () => {
+			editor.createShapes([
+				{
+					id: geoId,
+					type: 'geo',
+					props: { w: 110, h: 24, geo: 'rectangle', size: 's', richText },
+				},
+			])
+
+			const geo = getGeo()
+			expect(geo.props.h).toBe(24)
+			expect(geo.props.growY).toBe(0)
+		})
+	}
+})
+
 describe('GeoShapeUtil.configure with customGeoTypes', () => {
 	// Snapshot the built-in geo values so we can clean up any custom keys added
 	// during these tests. `GeoShapeUtil.configure({ customGeoTypes })` mutates
