@@ -5,6 +5,12 @@
       "value": "Izvozi"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Sprejmi povabilo"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Odstrani"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopiraj v osebni delovni prostor"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Odpri datoteko"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Preizkusite SDK tldraw"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Ustvari datoteko"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Nastavitve delovnega prostora"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Danes"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Delovni prostor mora imeti vsaj enega lastnika. Najprej za lastnika določite nekoga drugega."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Ime delovnega prostora"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Povabljeni ste bili, da se pridružite "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Za nadaljevanje ustvarite brezplačen račun."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Nalaganje ni uspelo"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Moje datoteke"
+      "value": "Dobrodošli v vašem delovnem prostoru"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Iskanje ..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Z obnovo se trenutna povezava s povabilom nadomesti z novo. Vsakdo, ki uporablja staro povezavo, bo za pridružitev potreboval novo."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Vključi povezavo do trenutne datoteke"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Ponovno ustvari povezavo za povabilo"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Urednik"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Upravljanje"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Za dostop zaprosite lastnika."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Zapustite delovno mesto …"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Ni mogoče preklicati objave datoteke."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "To je vaš zasebni delovni prostor. Ustvarite nov delovni prostor, da povabite soigralce."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Ustvarite delovni prostor"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Moj delovni prostor"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Prekliči to povezavo in ustvari novo."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "Na voljo je nova različica tldraw. Za nadaljevanje znova naložite stran."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Nova datoteka"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Ponovno naložite stran"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Ni najdenih datotek"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Ponovno naložite"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw je brezplačna spletna tabla. Ustvarite račun za shranjevanje datotek in sodelovanje s prijatelji."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Prenesi"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nov delovni prostor"
     }
   ],
   "815e116a2e": [
@@ -703,22 +765,10 @@
       "value": "Ta povezava za povabilo je potekla"
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Ne, hvala."
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Preverite svojo e-pošto za potrditveno kodo."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Domov"
     }
   ],
   "8eb2c00e96": [
@@ -745,22 +795,10 @@
       "value": "Preimenuj"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopiraj v moje datoteke"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Prijava z Googlom"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Izbriši delovni prostor …"
     }
   ],
   "95d2109dc8": [
@@ -785,6 +823,12 @@
     {
       "type": 0,
       "value": "Svetlo"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Počisti iskanje"
     }
   ],
   "9b33f5c63c": [
@@ -837,6 +881,26 @@
       "value": "Odjavi se"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Povabljeni ste bili, da se pridružite "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +941,12 @@
     {
       "type": 0,
       "value": "Predloži"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Odidi"
     }
   ],
   "a6cc403d56": [
@@ -933,6 +1003,12 @@
       "value": "Gostujoči uporabnik"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regeneriraj"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -943,6 +1019,12 @@
     {
       "type": 0,
       "value": "E-poštni naslov"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Omogoči povabila"
     }
   ],
   "b6d4223e60": [
@@ -967,6 +1049,12 @@
     {
       "type": 0,
       "value": "Prijavite se za skupno rabo"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Povabila so onemogočena"
     }
   ],
   "bbbcefd7ce": [
@@ -1029,6 +1117,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Upravljanje delovnega prostora"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1079,10 +1173,10 @@
       "value": "Povabi"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nova tabla"
+      "value": "Kopiraj v moj delovni prostor"
     }
   ],
   "c87aacf567": [
@@ -1095,12 +1189,6 @@
     {
       "type": 0,
       "value": "Zavrzi"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Shrani"
     }
   ],
   "cceaefbc20": [
@@ -1227,12 +1315,6 @@
       "value": "V redu"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Povabi člane"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1251,28 +1333,10 @@
       "value": "Pogoji storitve"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Sprejmi in se pridruži delovnemu prostoru"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "ali"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Povabljeni ste bili, da se pridružite delovnemu prostoru:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Nevarno območje"
     }
   ],
   "ea4788705e": [
@@ -1421,6 +1485,12 @@
     {
       "type": 0,
       "value": " iz tega delovnega prostora?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Ustvarite brezplačen račun za shranjevanje datotek in risanje s soigralci."
     }
   ],
   "ffcd73e997": [
