@@ -434,8 +434,25 @@ export class TldrawApp {
 		const membership = this.getWorkspaceMembership(workspaceId)
 		if (!membership) return []
 
-		const pinned = membership.groupFiles.filter((f) => f.index !== null)
-		const unpinned = membership.groupFiles.filter((f) => f.index === null)
+		// Decide which of the membership's group_file rows actually belong in this list.
+		// A file owned by this workspace always belongs. A non-home workspace lists only the
+		// files it owns. The home workspace additionally lists legacy files (no owning group)
+		// and "guest files" — shared files the user opened that are owned by a workspace they
+		// are NOT a member of. It must NOT list a file owned by a workspace the user IS a
+		// member of: that's a mislinked row (a guest file whose workspace was later joined, or
+		// a workspace's welcome file mirrored during the create-workspace race), and opening it
+		// from home would bounce the user into that workspace. Guarding here keeps such rows out
+		// of the list even before they're cleaned up.
+		const homeWorkspaceId = this.getHomeWorkspaceId()
+		const groupFiles = membership.groupFiles.filter((f) => {
+			const owningGroupId = f.file.owningGroupId
+			if (owningGroupId === workspaceId) return true
+			if (workspaceId !== homeWorkspaceId) return false
+			return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
+		})
+
+		const pinned = groupFiles.filter((f) => f.index !== null)
+		const unpinned = groupFiles.filter((f) => f.index === null)
 
 		const lastOrdering = this.lastWorkspaceFileOrderings.get(workspaceId)
 		const retainedOrdering =
@@ -610,10 +627,16 @@ export class TldrawApp {
 
 	private canCreateNewFile(workspaceId: string) {
 		if (this.isWorkspacesMigrated()) {
-			// For migrated users, count non-deleted files in the home workspace
+			// Count only files the workspace actually owns — not guest files (shared files the
+			// user opened) or mislinked rows that getWorkspaceFilesSorted hides. Counting those
+			// would let the limit fire on files the user can neither see nor remove. For migrated
+			// users createFile runs no server-side file-limit check, so this is the only gate;
+			// scoping it to owned files keeps it to what the user can actually manage.
 			const membership = this.getWorkspaceMembership(workspaceId)
 			if (!membership) return true
-			const nonDeletedCount = membership.groupFiles.filter((gf) => !gf.file.isDeleted).length
+			const nonDeletedCount = membership.groupFiles.filter(
+				(gf) => !gf.file.isDeleted && gf.file.owningGroupId === workspaceId
+			).length
 			return nonDeletedCount < this.config.maxNumberOfFiles
 		} else {
 			// For unmigrated users, count non-deleted files owned by the user
