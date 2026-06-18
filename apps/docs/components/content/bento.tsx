@@ -1,3 +1,4 @@
+import { assetUrl } from '@/utils/asset-url'
 import { cn } from '@/utils/cn'
 
 // Content definitions
@@ -185,7 +186,11 @@ export function StarterKitBento({
 					href={href}
 					className="block relative mb-2 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50"
 				>
-					<img src={img.src} alt={img.alt || type} className="!my-0 h-auto w-full object-cover" />
+					<img
+						src={assetUrl(img.src)}
+						alt={img.alt || type}
+						className="!my-0 h-auto w-full object-cover"
+					/>
 				</a>
 			)}
 

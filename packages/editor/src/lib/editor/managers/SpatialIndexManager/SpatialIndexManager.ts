@@ -28,51 +28,63 @@ export class SpatialIndexManager {
 	private spatialIndexComputed: Computed<number>
 	private lastPageId: TLPageId | null = null
 
+	// Bumps only when the rbush content may have changed. Consumers subscribe
+	// via the computed; a stable epoch lets prop-only diffs skip downstream
+	// invalidations.
+	private _boundsEpoch = 0
+
 	constructor(public readonly editor: Editor) {
 		this.rbush = new RBushIndex()
 		this.spatialIndexComputed = this.createSpatialIndexComputed()
 	}
 
+	private rebuildAndBumpEpoch(): number {
+		this.buildFromScratch()
+		this._boundsEpoch++
+		return this._boundsEpoch
+	}
+
 	private createSpatialIndexComputed() {
 		const shapeHistory = this.editor.store.query.filterHistory('shape')
+		// Binding changes can move a shape's derived bounds (e.g. creating or
+		// deleting an arrow binding relocates the arrow's body) without
+		// touching any shape record, so they must also invalidate the index.
+		const bindingHistory = this.editor.store.query.filterHistory('binding')
 
 		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {
 			if (isUninitialized(_prevValue)) {
-				return this.buildFromScratch(lastComputedEpoch)
+				return this.rebuildAndBumpEpoch()
 			}
 
 			const shapeDiff = shapeHistory.getDiffSince(lastComputedEpoch)
+			const bindingDiff = bindingHistory.getDiffSince(lastComputedEpoch)
 
-			if (shapeDiff === RESET_VALUE) {
-				return this.buildFromScratch(lastComputedEpoch)
+			if (shapeDiff === RESET_VALUE || bindingDiff === RESET_VALUE) {
+				return this.rebuildAndBumpEpoch()
 			}
 
 			const currentPageId = this.editor.getCurrentPageId()
 			if (this.lastPageId !== currentPageId) {
-				return this.buildFromScratch(lastComputedEpoch)
+				return this.rebuildAndBumpEpoch()
 			}
 
-			// No shape changes - index is already up to date
-			if (shapeDiff.length === 0) {
-				return lastComputedEpoch
+			if (shapeDiff.length === 0 && bindingDiff.length === 0) return this._boundsEpoch
+
+			// A binding-only diff passes an empty shape diff: step 1 is a no-op
+			// and the step-2 sweep re-checks the indexed bounds of every shape.
+			if (this.processIncrementalUpdate(shapeDiff)) {
+				this._boundsEpoch++
 			}
-
-			// Process incremental updates
-			this.processIncrementalUpdate(shapeDiff)
-
-			return lastComputedEpoch
+			return this._boundsEpoch
 		})
 	}
 
-	private buildFromScratch(epoch: number): number {
+	private buildFromScratch(): void {
 		this.rbush.clear()
 		this.lastPageId = this.editor.getCurrentPageId()
 
-		const shapes = this.editor.getCurrentPageShapes()
 		const elements: SpatialElement[] = []
-
-		// Collect all shape elements for bulk loading
-		for (const shape of shapes) {
+		for (const shape of this.editor.getCurrentPageShapes()) {
 			const bounds = this.editor.getShapePageBounds(shape.id)
 			if (bounds && bounds.isValid()) {
 				elements.push({
@@ -87,36 +99,38 @@ export class SpatialIndexManager {
 
 		// Bulk load for efficiency
 		this.rbush.bulkLoad(elements)
-
-		return epoch
 	}
 
-	private processIncrementalUpdate(shapeDiff: RecordsDiff<TLRecord>[]): void {
-		// Track shapes we've already processed from the diff
+	private processIncrementalUpdate(shapeDiff: RecordsDiff<TLRecord>[]): boolean {
 		const processedShapeIds = new Set<TLShapeId>()
+		let changed = false
 
-		// 1. Process shape additions, removals, and updates from diff
+		// Step 1: apply diff entries directly. `changed` flips only on real
+		// rbush mutations, so prop-only updates and no-op removes (e.g. shapes
+		// from other pages, or never-indexed shapes with invalid bounds) don't
+		// bump the epoch.
 		for (const changes of shapeDiff) {
-			// Handle additions (only for shapes on current page)
 			for (const shape of objectMapValues(changes.added) as TLShape[]) {
 				if (isShape(shape) && this.editor.getAncestorPageId(shape) === this.lastPageId) {
 					const bounds = this.editor.getShapePageBounds(shape.id)
 					if (bounds && bounds.isValid()) {
 						this.rbush.upsert(shape.id, bounds)
+						changed = true
 					}
 					processedShapeIds.add(shape.id)
 				}
 			}
 
-			// Handle removals
 			for (const shape of objectMapValues(changes.removed) as TLShape[]) {
 				if (isShape(shape)) {
-					this.rbush.remove(shape.id)
+					if (this.rbush.has(shape.id)) {
+						this.rbush.remove(shape.id)
+						changed = true
+					}
 					processedShapeIds.add(shape.id)
 				}
 			}
 
-			// Handle updated shapes: page changes and bounds updates
 			for (const [, to] of objectMapValues(changes.updated) as [TLShape, TLShape][]) {
 				if (!isShape(to)) continue
 				processedShapeIds.add(to.id)
@@ -126,35 +140,55 @@ export class SpatialIndexManager {
 				if (isOnPage) {
 					const bounds = this.editor.getShapePageBounds(to.id)
 					if (bounds && bounds.isValid()) {
-						this.rbush.upsert(to.id, bounds)
+						const indexedElement = this.rbush.getElement(to.id)
+						if (!this.areBoundsEqualToSpatialElement(bounds, indexedElement)) {
+							this.rbush.upsert(to.id, bounds)
+							changed = true
+						}
+					} else if (this.rbush.has(to.id)) {
+						this.rbush.remove(to.id)
+						changed = true
 					}
-				} else {
+				} else if (this.rbush.has(to.id)) {
 					this.rbush.remove(to.id)
+					changed = true
 				}
 			}
 		}
 
-		// 2. Check remaining shapes in index for bounds changes
-		// This handles shapes with computed bounds (arrows bound to moved shapes, groups with moved children, etc.)
-		const allShapeIds = this.rbush.getAllShapeIds()
-
-		for (const shapeId of allShapeIds) {
+		// Step 2: must always run. Diff entries can dirty derived bounds —
+		// arrows bound to moved shapes, groups with moved children — without
+		// touching any record visited in step 1. Also catches outline-only
+		// changes (e.g. geo rectangle→ellipse at the same w/h) that shift a
+		// bound arrow's intersection points: step 1 sees the geo's
+		// axis-aligned bounds unchanged and skips, but the dependent arrow's
+		// bounds have moved.
+		//
+		// Iterating the rbush's element map directly avoids allocating a
+		// shape-id array per pointer move. Mutation here is limited to
+		// upserts of existing keys and deletions, both safe during Map
+		// iteration.
+		for (const [shapeId, indexedElement] of this.rbush.entries()) {
 			if (processedShapeIds.has(shapeId)) continue
 
 			const currentBounds = this.editor.getShapePageBounds(shapeId)
-			const indexedBounds = this.rbush.getBounds(shapeId)
+			if (this.areBoundsEqualToSpatialElement(currentBounds, indexedElement)) continue
 
-			if (!this.areBoundsEqual(currentBounds, indexedBounds)) {
-				if (currentBounds && currentBounds.isValid()) {
-					this.rbush.upsert(shapeId, currentBounds)
-				} else {
-					this.rbush.remove(shapeId)
-				}
+			if (currentBounds && currentBounds.isValid()) {
+				this.rbush.upsert(shapeId, currentBounds)
+			} else {
+				this.rbush.remove(shapeId)
 			}
+			changed = true
 		}
+
+		return changed
 	}
 
-	private areBoundsEqual(a: Box | undefined, b: Box | undefined): boolean {
+	private areBoundsEqualToSpatialElement(
+		a: Box | undefined,
+		b: SpatialElement | undefined
+	): boolean {
 		if (!a && !b) return true
 		if (!a || !b) return false
 		return a.minX === b.minX && a.minY === b.minY && a.maxX === b.maxX && a.maxY === b.maxY

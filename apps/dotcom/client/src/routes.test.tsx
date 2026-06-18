@@ -2,7 +2,7 @@ import { join } from 'path'
 import { ReactElement } from 'react'
 import { Route, RouteObject, createRoutesFromElements } from 'react-router-dom'
 import 'vitest'
-import { router } from './routes'
+import { createAppRouter } from './routes'
 
 declare module 'vitest' {
 	interface Assertion<T = any> {
@@ -94,20 +94,32 @@ function extract(...routes: ReactElement[]) {
 		.sort()
 }
 
-const spaRoutes = router
-	.flatMap(extractContentPaths)
-	.sort()
-	// ignore the root catch-all route
-	.filter((path) => path !== '/*' && path !== '*')
-	.map((path) => ({
-		reactRouterPattern: path,
-		vercelRouterPattern: convertReactToVercel(path),
-	}))
+function getSpaRoutes(routeObjects: RouteObject[]) {
+	return (
+		routeObjects
+			.flatMap(extractContentPaths)
+			.sort()
+			// ignore the root catch-all route
+			.filter((path) => path !== '/*' && path !== '*')
+			.map((path) => ({
+				reactRouterPattern: path,
+				vercelRouterPattern: convertReactToVercel(path),
+			}))
+	)
+}
+
+const spaRoutes = getSpaRoutes(createAppRouter({ includeDevRoutes: false }))
+const devSpaRoutes = getSpaRoutes(createAppRouter({ includeDevRoutes: true }))
 
 const allVercelRouterPatterns = spaRoutes.map((route) => route.vercelRouterPattern)
 
 test('the_routes', () => {
 	expect(spaRoutes).toMatchSnapshot()
+})
+
+test('dev reset route exists only in development routing', () => {
+	expect(devSpaRoutes.map((route) => route.reactRouterPattern)).toContain('/dev/reset-local-state')
+	expect(spaRoutes.map((route) => route.reactRouterPattern)).not.toContain('/dev/reset-local-state')
 })
 
 test('all React routes match', () => {

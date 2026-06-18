@@ -188,7 +188,16 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const x = magnitude * Math.cos(angle)
 			const y = magnitude * Math.sin(angle)
 
-			editor.setCurrentTool(toolType).keyDown('Meta').pointerDown(0, 0).pointerMove(x, y)
+			// Shift held during pointerDown enters straight-line (angle-snapping) mode.
+			// Cmd pressed after pointerDown disables the angle snap. We press cmd
+			// after pointerDown so the accel-to-erase shortcut (which fires from
+			// the tool's idle state) doesn't intercept it.
+			editor
+				.setCurrentTool(toolType)
+				.keyDown('Shift')
+				.pointerDown(0, 0)
+				.keyDown('Meta')
+				.pointerMove(x, y)
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]

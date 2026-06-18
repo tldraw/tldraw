@@ -4,6 +4,7 @@ import { assert, getFromSessionStorage, omit, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
+import { TlaAnonDotDevLink } from '../components/TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebugModeToast'
 import { components } from '../components/TlaEditor/TlaEditor'
@@ -40,7 +41,6 @@ export function Component() {
 				const state = omit(location.state, ['importUrl'])
 				const result = await importFromUrl(app, pendingImportUrl)
 				if (result.ok) {
-					app.ensureFileVisibleInSidebar(result.fileId)
 					navigate(routes.tlaFile(result.fileId), {
 						replace: true,
 						state,
@@ -65,7 +65,6 @@ export function Component() {
 				const res = await app.slurpFile()
 				if (res.ok) {
 					clearShouldSlurpFile()
-					app.ensureFileVisibleInSidebar(res.value.fileId)
 					navigate(routes.tlaFile(res.value.fileId), {
 						replace: true,
 						state: location.state,
@@ -86,7 +85,6 @@ export function Component() {
 				// result is only false if the user reached their file limit so
 				// we don't need to handle that case here since they have no files
 				if (result.ok) {
-					app.ensureFileVisibleInSidebar(result.value.fileId)
 					navigate(routes.tlaFile(result.value.fileId), {
 						replace: true,
 						state: location.state,
@@ -95,7 +93,6 @@ export function Component() {
 				return
 			}
 
-			app.ensureFileVisibleInSidebar(recentFiles[0].fileId)
 			navigate(routes.tlaFile(recentFiles[0].fileId), { replace: true, state: location.state })
 		}
 
@@ -130,6 +127,7 @@ function LocalTldraw() {
 			>
 				<SneakyDarkModeSync />
 				<SneakyDebugModeToast />
+				<TlaAnonDotDevLink />
 			</LocalEditor>
 		</TlaAnonLayout>
 	)

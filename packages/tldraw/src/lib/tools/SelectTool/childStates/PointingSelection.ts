@@ -32,7 +32,16 @@ export class PointingSelection extends StateNode {
 		this.parent.transition('translating', info)
 	}
 
-	override onDoubleClick?(info: TLClickEventInfo) {
+	override onDoubleClick(info: TLClickEventInfo) {
+		if (
+			this.editor.inputs.getShiftKey() ||
+			info.phase !== 'down' ||
+			info.ctrlKey ||
+			info.shiftKey
+		) {
+			return
+		}
+
 		const hoveredShape = this.editor.getHoveredShape()
 		const hitShape =
 			hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
@@ -46,7 +55,7 @@ export class PointingSelection extends StateNode {
 		if (hitShape) {
 			// todo: extract the double click shape logic from idle so that we can share it here
 			this.parent.transition('idle')
-			this.parent.onDoubleClick?.({
+			this.parent.getCurrent()?.handleEvent({
 				...info,
 				target: 'shape',
 				shape: this.editor.getShape(hitShape)!,

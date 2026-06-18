@@ -63,32 +63,38 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 		[editor]
 	)
 
-	const rMemoizedStuff = useRef({ lodDisableTextOutline: false, allowTextOutline: true })
+	const rMemoizedStuff = useRef({ lodDisableTextOutline: false, canUpdateTextOutline: true })
+
+	useQuickReactor(
+		'set text outline',
+		function setTextOutline() {
+			if (rMemoizedStuff.current.canUpdateTextOutline) {
+				if (tlenv.isSafari) {
+					// We don't allow text outlines on safari for performance reasons
+					container.style.setProperty('--tl-text-outline', 'none')
+					rMemoizedStuff.current.canUpdateTextOutline = false // will prevent this check in the future
+				} else {
+					const efficientZoom = editor.getEfficientZoomLevel()
+					// If we're zoomed way out, and have this option enabled, then we hide text outline
+					const lodDisableTextOutline = efficientZoom < editor.options.textShadowLod
+					// Skip the style update if the property is the same as it was before
+					if (lodDisableTextOutline !== rMemoizedStuff.current.lodDisableTextOutline) {
+						container.style.setProperty(
+							'--tl-text-outline',
+							lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
+						)
+					}
+					rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
+				}
+			}
+		},
+		[editor, container]
+	)
 
 	useQuickReactor(
 		'position layers',
 		function positionLayersWhenCameraMoves() {
 			const { x, y, z } = editor.getCamera()
-
-			// This should only run once on first load
-			if (rMemoizedStuff.current.allowTextOutline && tlenv.isSafari) {
-				container.style.setProperty('--tl-text-outline', 'none')
-				rMemoizedStuff.current.allowTextOutline = false
-			}
-
-			// And this should only run if we're not in Safari;
-			// If we're below the lod distance for text shadows, turn them off
-			if (
-				rMemoizedStuff.current.allowTextOutline &&
-				z < editor.options.textShadowLod !== rMemoizedStuff.current.lodDisableTextOutline
-			) {
-				const lodDisableTextOutline = z < editor.options.textShadowLod
-				container.style.setProperty(
-					'--tl-text-outline',
-					lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
-				)
-				rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
-			}
 
 			// Because the html container has a width/height of 1px, we
 			// need to create a small offset when zoomed to ensure that
@@ -96,11 +102,13 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			const offset =
 				z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
 
-			const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-				x + offset
-			)}px,${toDomPrecision(y + offset)}px)`
-
-			setStyleProperty(rHtmlLayer.current, 'transform', transform)
+			setStyleProperty(
+				rHtmlLayer.current,
+				'transform',
+				`scale(${toDomPrecision(z)}) translate(${toDomPrecision(
+					x + offset
+				)}px,${toDomPrecision(y + offset)}px)`
+			)
 		},
 		[editor, container]
 	)
@@ -155,29 +163,30 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 					{SelectionBackground && <SelectionBackgroundWrapper />}
 					{hideShapes ? null : <ShapesLayer canvasRef={rCanvas} />}
 				</div>
-				<div className="tl-overlays">
-					<CanvasOverlays />
-				</div>
+				<CanvasOverlays />
 				<MovingCameraHitTestBlocker />
 			</div>
-			<div
-				className="tl-canvas__in-front"
-				onPointerDown={editor.markEventAsHandled}
-				onPointerUp={editor.markEventAsHandled}
-				onTouchStart={editor.markEventAsHandled}
-				onTouchEnd={editor.markEventAsHandled}
-			>
-				<InFrontOfTheCanvasWrapper />
-			</div>
+			<InFrontOfTheCanvasWrapper />
 			<MenuClickCapture />
 		</>
 	)
 }
 
 function InFrontOfTheCanvasWrapper() {
+	const editor = useEditor()
 	const { InFrontOfTheCanvas } = useEditorComponents()
 	if (!InFrontOfTheCanvas) return null
-	return <InFrontOfTheCanvas />
+	return (
+		<div
+			className="tl-canvas__in-front"
+			onPointerDown={editor.markEventAsHandled}
+			onPointerUp={editor.markEventAsHandled}
+			onTouchStart={editor.markEventAsHandled}
+			onTouchEnd={editor.markEventAsHandled}
+		>
+			<InFrontOfTheCanvas />
+		</div>
+	)
 }
 
 function GridWrapper() {

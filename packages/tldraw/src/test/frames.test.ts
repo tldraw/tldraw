@@ -4,6 +4,7 @@ import {
 	TLArrowShape,
 	TLFrameShape,
 	TLGeoShape,
+	TLShape,
 	TLShapeId,
 	createShapeId,
 	toRichText,
@@ -27,6 +28,22 @@ afterEach(() => {
 
 const ids = {
 	boxA: createShapeId('boxA'),
+}
+
+class GeoRejectingFrameShapeUtil extends FrameShapeUtil {
+	static override type = 'frame' as const
+
+	override canReceiveNewChildrenOfType(_shape: TLFrameShape, type: TLShape['type']) {
+		return type !== 'geo'
+	}
+}
+
+class GeoPinningFrameShapeUtil extends FrameShapeUtil {
+	static override type = 'frame' as const
+
+	override canRemoveChildrenOfType(_shape: TLFrameShape, type: TLShape['type']) {
+		return type !== 'geo'
+	}
 }
 
 describe('creating frames', () => {
@@ -137,6 +154,78 @@ describe('creating frames', () => {
 		editor.pointerUp(0, 0)
 		const parent = editor.getShape(rectId)?.parentId
 		expect(parent).toBe('page:page')
+	})
+
+	it('hints the shapes that would be enclosed while drag-creating a frame', () => {
+		const boxA = createRect({ pos: [10, 10], size: [20, 20] })
+		const boxB = createRect({ pos: [60, 60], size: [20, 20] })
+
+		editor.setCurrentTool('frame')
+		editor.pointerDown(0, 0)
+
+		// The drag rectangle encloses box A only
+		editor.pointerMove(40, 40)
+		expect(editor.getHintingShapeIds()).toEqual([boxA])
+
+		// Grown to enclose both boxes
+		editor.pointerMove(100, 100)
+		expect(editor.getHintingShapeIds()).toEqual([boxA, boxB])
+
+		// Shrunk back to enclose box A only
+		editor.pointerMove(40, 40)
+		expect(editor.getHintingShapeIds()).toEqual([boxA])
+
+		// On pointer up, the hints clear and the hinted shape becomes a child of the frame
+		editor.pointerUp(40, 40)
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+		const frameId = editor.getOnlySelectedShape()!.id
+		expect(editor.getShape(boxA)?.parentId).toBe(frameId)
+		expect(editor.getShape(boxB)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('does not hint shapes that are only partially enclosed', () => {
+		createRect({ pos: [10, 10], size: [20, 20] })
+
+		editor.setCurrentTool('frame')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(20, 20)
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+	})
+
+	it('does not hint locked shapes', () => {
+		const rectId = createRect({ pos: [10, 10], size: [20, 20] })
+		editor.updateShape({ id: rectId, type: 'geo', isLocked: true })
+
+		editor.setCurrentTool('frame')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(100, 100)
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+	})
+
+	it('clears the hints when the drag is cancelled', () => {
+		createRect({ pos: [10, 10], size: [20, 20] })
+
+		editor.setCurrentTool('frame')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(100, 100)
+		expect(editor.getHintingShapeIds()).toHaveLength(1)
+
+		editor.cancel()
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+	})
+
+	it('clears the hints between successive frame creations when tool locked', () => {
+		editor.updateInstanceState({ isToolLocked: true })
+		createRect({ pos: [10, 10], size: [20, 20] })
+
+		editor.setCurrentTool('frame')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(100, 100)
+		expect(editor.getHintingShapeIds()).toHaveLength(1)
+		editor.pointerUp(100, 100)
+
+		expect(editor.getCurrentToolId()).toBe('frame')
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
 	})
 
 	it('can snap', () => {
@@ -442,6 +531,51 @@ describe('frame shapes', () => {
 		// On pointer up, the shape should be dropped into the frame
 		editor.pointerUp()
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
+	})
+
+	it("doesn't drag shapes into a frame that rejects their type", () => {
+		editor.dispose()
+		editor = new TestEditor({ shapeUtils: [GeoRejectingFrameShapeUtil] })
+
+		const frameId = dragCreateFrame({ down: [0, 0], move: [200, 200], up: [200, 200] })
+
+		editor.createShapes([
+			{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50, fill: 'solid' } },
+		])
+
+		expect(editor.getShape(ids.boxA)!.parentId).toBe(editor.getCurrentPageId())
+
+		editor.setCurrentTool('select')
+		editor.pointerDown(275, 275, ids.boxA).pointerMove(100, 100)
+		vi.advanceTimersByTime(300)
+
+		expect(editor.getShape(ids.boxA)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+
+		editor.pointerUp(100, 100)
+
+		expect(editor.getShape(ids.boxA)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShape(frameId)!.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it("doesn't drag shapes out of a frame that pins their type", () => {
+		editor.dispose()
+		editor = new TestEditor({ shapeUtils: [GeoPinningFrameShapeUtil] })
+
+		// Create a frame and a geo shape that extends partially outside the frame so we
+		// can grab it by its outside portion (clicking inside the frame would select the frame).
+		const frameId = dragCreateFrame({ down: [0, 0], move: [100, 100], up: [100, 100] })
+		const rectId = dragCreateRect({ down: [80, 50], move: [120, 60], up: [120, 60] })
+		expect(editor.getShape(rectId)!.parentId).toBe(frameId)
+
+		// Drag the rect entirely out of the frame by clicking on the part that's outside
+		editor.pointerDown(110, 50)
+		editor.pointerMove(140, 50)
+		expect(editor.getShape(rectId)!.parentId).toBe(frameId)
+		editor.pointerUp(140, 50)
+
+		// The rect should still be parented to the frame because the frame pins geo shapes
+		expect(editor.getShape(rectId)!.parentId).toBe(frameId)
 	})
 
 	it('can be snapped to when dragging other shapes', () => {

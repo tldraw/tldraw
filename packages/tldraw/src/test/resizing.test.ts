@@ -1,9 +1,11 @@
 import {
 	GapsSnapIndicator,
+	Mat,
 	PI,
 	PI2,
 	PointsSnapIndicator,
 	RotateCorner,
+	TLArrowShape,
 	TLGeoShape,
 	TLSelectionHandle,
 	TLShapeId,
@@ -16,6 +18,7 @@ import {
 	toRichText,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { getArrowBindings, getArrowTerminalsInArrowSpace } from '../lib/shapes/arrow/shared'
 import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
 import { createDrawSegments } from '../lib/utils/test-helpers'
 import { getSnapLines } from './getSnapLines'
@@ -864,6 +867,253 @@ describe('When resizing a shape with children', () => {
 		// B's model should have changed by the offset
 
 		expect(editor.getShape(ids.lineA)).toMatchSnapshot('draw shape after rotating')
+	})
+})
+
+describe('When resizing nested shapes', () => {
+	// A document with the common kinds of nesting: a geo shape on the page, a
+	// group of two geo shapes, a frame with a geo child, and arrows bound from
+	// the page shape to a group child and from a group child to the frame child.
+	//
+	//      0    100   200             500
+	//
+	//   0             ┌─group1─────────┐
+	//                 │ ┌─────┐        │
+	//                 │ │  A  │ ┌─────┐│
+	// 100             │ └─────┘ │  B  ││
+	// 200  ┌─────┐    └─────────┴─────┘│
+	//      │page │
+	// 300  └─────┘
+	// 400             ┌─frame1─────────┐
+	//                 │ ┌─────┐        │
+	//                 │ │  C  │        │
+	// 600             └─┴─────┴────────┘
+	const nestedIds = {
+		pageBox: createShapeId('pageBox'),
+		group1: createShapeId('group1'),
+		groupBoxA: createShapeId('groupBoxA'),
+		groupBoxB: createShapeId('groupBoxB'),
+		frame1: createShapeId('frame1'),
+		frameBox: createShapeId('frameBox'),
+		arrowPageToGroup: createShapeId('arrowPageToGroup'),
+		arrowGroupToFrame: createShapeId('arrowGroupToFrame'),
+	}
+
+	beforeEach(() => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		editor
+			.createShapes([
+				{ id: nestedIds.pageBox, type: 'geo', x: 0, y: 200, props: { w: 100, h: 100 } },
+				{ id: nestedIds.groupBoxA, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } },
+				{ id: nestedIds.groupBoxB, type: 'geo', x: 400, y: 100, props: { w: 100, h: 100 } },
+				{ id: nestedIds.frame1, type: 'frame', x: 200, y: 400, props: { w: 300, h: 200 } },
+				{
+					id: nestedIds.frameBox,
+					type: 'geo',
+					parentId: nestedIds.frame1,
+					x: 50,
+					y: 50,
+					props: { w: 100, h: 100 },
+				},
+			])
+			.groupShapes([nestedIds.groupBoxA, nestedIds.groupBoxB], { groupId: nestedIds.group1 })
+			.createShapes([
+				{
+					id: nestedIds.arrowPageToGroup,
+					type: 'arrow',
+					x: 150,
+					y: 200,
+					props: { start: { x: 0, y: 0 }, end: { x: 50, y: -100 } },
+				},
+				{
+					id: nestedIds.arrowGroupToFrame,
+					type: 'arrow',
+					x: 450,
+					y: 250,
+					props: { start: { x: 0, y: 0 }, end: { x: -150, y: 250 } },
+				},
+			])
+			.createBindings([
+				{
+					type: 'arrow',
+					fromId: nestedIds.arrowPageToGroup,
+					toId: nestedIds.pageBox,
+					props: {
+						terminal: 'start',
+						isExact: false,
+						isPrecise: true,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+				{
+					type: 'arrow',
+					fromId: nestedIds.arrowPageToGroup,
+					toId: nestedIds.groupBoxA,
+					props: {
+						terminal: 'end',
+						isExact: false,
+						isPrecise: true,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+				{
+					type: 'arrow',
+					fromId: nestedIds.arrowGroupToFrame,
+					toId: nestedIds.groupBoxB,
+					props: {
+						terminal: 'start',
+						isExact: false,
+						isPrecise: true,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+				{
+					type: 'arrow',
+					fromId: nestedIds.arrowGroupToFrame,
+					toId: nestedIds.frameBox,
+					props: {
+						terminal: 'end',
+						isExact: false,
+						isPrecise: true,
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+					},
+				},
+			])
+			.selectNone()
+	})
+
+	const getArrowTerminalPagePoints = (arrowId: TLShapeId) => {
+		const arrow = editor.getShape<TLArrowShape>(arrowId)!
+		const bindings = getArrowBindings(editor, arrow)
+		const terminals = getArrowTerminalsInArrowSpace(editor, arrow, bindings)
+		const pageTransform = editor.getShapePageTransform(arrowId)!
+		return {
+			start: Mat.applyToPoint(pageTransform, terminals.start),
+			end: Mat.applyToPoint(pageTransform, terminals.end),
+		}
+	}
+
+	it('resizes the children of a group', () => {
+		editor
+			.select(nestedIds.group1)
+			// the group's page bounds are (200,0) -> (500,200); double them
+			.pointerDownOnHandle('bottom_right')
+			.pointerMove(800, 400)
+
+		expect(roundedPageBounds(nestedIds.group1)).toMatchObject({ x: 200, y: 0, w: 600, h: 400 })
+		expect(roundedPageBounds(nestedIds.groupBoxA)).toMatchObject({ x: 200, y: 0, w: 200, h: 200 })
+		expect(roundedPageBounds(nestedIds.groupBoxB)).toMatchObject({
+			x: 600,
+			y: 200,
+			w: 200,
+			h: 200,
+		})
+
+		// shapes outside of the group are unaffected
+		expect(roundedPageBounds(nestedIds.pageBox)).toMatchObject({ x: 0, y: 200, w: 100, h: 100 })
+		expect(roundedPageBounds(nestedIds.frameBox)).toMatchObject({ x: 250, y: 450, w: 100, h: 100 })
+	})
+
+	it('resizes the children of nested groups on every pointer move', () => {
+		const boxP = createShapeId('boxP')
+		const boxQ = createShapeId('boxQ')
+		const boxR = createShapeId('boxR')
+		const innerGroup = createShapeId('innerGroup')
+		const outerGroup = createShapeId('outerGroup')
+
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes([
+				{ id: boxP, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+				{ id: boxQ, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+			])
+			.groupShapes([boxP, boxQ], { groupId: innerGroup })
+			.createShapes([{ id: boxR, type: 'geo', x: 400, y: 400, props: { w: 100, h: 100 } }])
+			.groupShapes([innerGroup, boxR], { groupId: outerGroup })
+			.select(outerGroup)
+
+		expect(roundedPageBounds(outerGroup)).toMatchObject({ x: 0, y: 0, w: 500, h: 500 })
+
+		// grow to double the size; each pointer move must update the outer
+		// group, then the inner group, then the innermost children, since each
+		// level's new position depends on its parent's committed transform
+		editor.pointerDownOnHandle('bottom_right').pointerMove(1000, 1000)
+
+		expect(roundedPageBounds(outerGroup)).toMatchObject({ x: 0, y: 0, w: 1000, h: 1000 })
+		expect(roundedPageBounds(innerGroup)).toMatchObject({ x: 0, y: 0, w: 600, h: 600 })
+		expect(roundedPageBounds(boxP)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
+		expect(roundedPageBounds(boxQ)).toMatchObject({ x: 400, y: 400, w: 200, h: 200 })
+		expect(roundedPageBounds(boxR)).toMatchObject({ x: 800, y: 800, w: 200, h: 200 })
+
+		// then shrink to half the original size in the same gesture
+		editor.pointerMove(250, 250)
+
+		expect(roundedPageBounds(outerGroup)).toMatchObject({ x: 0, y: 0, w: 250, h: 250 })
+		expect(roundedPageBounds(innerGroup)).toMatchObject({ x: 0, y: 0, w: 150, h: 150 })
+		expect(roundedPageBounds(boxP)).toMatchObject({ x: 0, y: 0, w: 50, h: 50 })
+		expect(roundedPageBounds(boxQ)).toMatchObject({ x: 100, y: 100, w: 50, h: 50 })
+		expect(roundedPageBounds(boxR)).toMatchObject({ x: 200, y: 200, w: 50, h: 50 })
+
+		editor.pointerUp()
+
+		expect(roundedPageBounds(boxP)).toMatchObject({ x: 0, y: 0, w: 50, h: 50 })
+		expect(roundedPageBounds(boxQ)).toMatchObject({ x: 100, y: 100, w: 50, h: 50 })
+		expect(roundedPageBounds(boxR)).toMatchObject({ x: 200, y: 200, w: 50, h: 50 })
+	})
+
+	it('keeps arrows bound to shapes inside a resized group', () => {
+		editor
+			.select(nestedIds.group1)
+			.pointerDownOnHandle('bottom_right')
+			.pointerMove(800, 400)
+			.pointerUp()
+
+		const bindings = getArrowBindings(
+			editor,
+			editor.getShape<TLArrowShape>(nestedIds.arrowPageToGroup)!
+		)
+		expect(bindings.start).toMatchObject({ toId: nestedIds.pageBox })
+		expect(bindings.end).toMatchObject({ toId: nestedIds.groupBoxA })
+
+		const terminals = getArrowTerminalPagePoints(nestedIds.arrowPageToGroup)
+		// the start terminal stays at the center of the unselected page shape
+		expect(terminals.start).toCloselyMatchObject({ x: 50, y: 250 })
+		// the end terminal follows the center of the resized group child
+		expect(terminals.end).toCloselyMatchObject({ x: 300, y: 100 })
+	})
+
+	it('resizes a mixed selection of page, group, and frame shapes', () => {
+		editor
+			.selectAll()
+			// the selection's page bounds are (0,0) -> (500,600); double them
+			.pointerDownOnHandle('bottom_right')
+			.pointerMove(1000, 1200)
+			.pointerUp()
+
+		expect(roundedPageBounds(nestedIds.pageBox)).toMatchObject({ x: 0, y: 400, w: 200, h: 200 })
+		expect(roundedPageBounds(nestedIds.group1)).toMatchObject({ x: 400, y: 0, w: 600, h: 400 })
+		expect(roundedPageBounds(nestedIds.groupBoxA)).toMatchObject({ x: 400, y: 0, w: 200, h: 200 })
+		expect(roundedPageBounds(nestedIds.groupBoxB)).toMatchObject({
+			x: 800,
+			y: 200,
+			w: 200,
+			h: 200,
+		})
+		expect(roundedPageBounds(nestedIds.frame1)).toMatchObject({ x: 400, y: 800, w: 600, h: 400 })
+
+		// the frame's child is not resized; it keeps its position within the frame
+		expect(editor.getShape(nestedIds.frameBox)).toMatchObject({ x: 50, y: 50 })
+		expect(roundedPageBounds(nestedIds.frameBox)).toMatchObject({ x: 450, y: 850, w: 100, h: 100 })
+
+		// the arrow terminals follow the shapes they are bound to
+		const pageToGroup = getArrowTerminalPagePoints(nestedIds.arrowPageToGroup)
+		expect(pageToGroup.start).toCloselyMatchObject({ x: 100, y: 500 })
+		expect(pageToGroup.end).toCloselyMatchObject({ x: 500, y: 100 })
+
+		const groupToFrame = getArrowTerminalPagePoints(nestedIds.arrowGroupToFrame)
+		expect(groupToFrame.start).toCloselyMatchObject({ x: 900, y: 300 })
+		expect(groupToFrame.end).toCloselyMatchObject({ x: 500, y: 900 })
 	})
 })
 

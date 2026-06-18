@@ -304,7 +304,7 @@ const zeroVmSizes = {
 		rm: { cpus: 2, memory: '4gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
-		vsMinMachines: 4,
+		vsMinMachines: 7,
 		killTimeout: '5m',
 	},
 	preview: { single: { cpus: 2, memory: '2gb' } },
@@ -372,7 +372,9 @@ async function main() {
 		await withTiming('prebuild assets', () => exec('yarn', ['lazy', 'prebuild']))
 
 		// link to vercel and supabase projects:
-		await withTiming('vercel link', () => vercelCli('link', ['--project', env.VERCEL_PROJECT_ID]))
+		await withTiming('vercel link', () =>
+			vercelCli('link', ['--yes', '--project', env.VERCEL_PROJECT_ID])
+		)
 	})
 
 	// deploy pre-flight steps:
@@ -456,13 +458,8 @@ async function main() {
 
 function getZeroUrl() {
 	switch (env.TLDRAW_ENV) {
-		case 'preview': {
-			if (deployZero === 'flyio') {
-				return `https://${flyioAppName}.fly.dev/`
-			} else {
-				return 'https://zero-backend-not-deployed.tldraw.com'
-			}
-		}
+		case 'preview':
+			return `https://${flyioAppName}.fly.dev/`
 		case 'staging':
 			if (deployZero === 'flyio-multinode') {
 				return `https://${flyioAppName}.fly.dev/`
@@ -658,6 +655,11 @@ async function deployHealthWorker({ dryRun }: { dryRun: boolean }) {
 }
 
 type ExecOpts = NonNullable<Parameters<typeof exec>[2]>
+// `--yes` is per-subcommand in the vercel CLI, not a global flag. it is valid
+// for `link`, `deploy`, and `alias rm`; passing it to other subcommands like
+// `alias set` now hard-errors with "unknown or unexpected option: --yes" since
+// vercel removed permissive arg parsing. callers add `--yes` to `args` when
+// they want the non-interactive prompt skip.
 async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 	return exec(
 		'yarn',
@@ -670,7 +672,6 @@ async function vercelCli(command: string, args: string[], opts?: ExecOpts) {
 			env.VERCEL_TOKEN,
 			'--scope',
 			env.VERCEL_ORG_ID,
-			'--yes',
 			...args,
 		],
 		{
@@ -905,7 +906,7 @@ async function deploySpa(): Promise<{ deploymentUrl: string; inspectUrl: string 
 	// both 'staging' and 'production' are deployed to vercel as 'production' deploys
 	// in separate 'projects'
 	const prod = env.TLDRAW_ENV !== 'preview'
-	const out = await vercelCli('deploy', ['--prebuilt', ...(prod ? ['--prod'] : [])], {
+	const out = await vercelCli('deploy', ['--yes', '--prebuilt', ...(prod ? ['--prod'] : [])], {
 		pwd: dotcom,
 	})
 

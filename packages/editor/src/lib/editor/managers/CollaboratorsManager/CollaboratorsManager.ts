@@ -1,10 +1,6 @@
 import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
-import { TLInstancePresence } from '@tldraw/tlschema'
+import type { TLInstancePresence } from '@tldraw/tlschema'
 import { maxBy } from '@tldraw/utils'
-import {
-	getCollaboratorStateFromElapsedTime,
-	shouldShowCollaborator,
-} from '../../../utils/collaboratorState'
 import type { Editor } from '../../Editor'
 
 /**
@@ -17,12 +13,19 @@ import type { Editor } from '../../Editor'
  * @public
  */
 export class CollaboratorsManager {
-	constructor(private readonly editor: Editor) {
+	constructor(private readonly editor: Editor) {}
+
+	private _visibilityClockStarted = false
+
+	private _startVisibilityClock() {
+		if (this._visibilityClockStarted) return
+		this._visibilityClockStarted = true
+
 		// Editor disposes `editor.timers` on its own teardown, so the interval is
 		// automatically cleared when the editor is disposed.
-		editor.timers.setInterval(() => {
+		this.editor.timers.setInterval(() => {
 			this._visibilityClock.set(Date.now())
-		}, editor.options.collaboratorCheckIntervalMs)
+		}, this.editor.options.collaboratorCheckIntervalMs)
 	}
 
 	/**
@@ -34,7 +37,7 @@ export class CollaboratorsManager {
 	@computed
 	private _getCollaboratorsQuery() {
 		return this.editor.store.query.records('instance_presence', () => ({
-			userId: { neq: this.editor.user.getId() },
+			userId: { neq: this.editor.user.getRecordId() },
 		}))
 	}
 
@@ -75,14 +78,42 @@ export class CollaboratorsManager {
 	 */
 	@computed
 	getVisibleCollaborators(): TLInstancePresence[] {
+		const { editor } = this
+		const { collaboratorInactiveTimeoutMs, collaboratorIdleTimeoutMs } = editor.options
+
+		this._startVisibilityClock()
 		this._visibilityClock.get()
 		const now = Date.now()
-		return this.getCollaborators().filter((presence) => {
-			// Treat a missing `lastActivityTimestamp` as "active right now" (elapsed = 0)
-			// so newly-joined peers aren't immediately classified as idle/inactive.
-			const elapsed = Math.max(0, now - (presence.lastActivityTimestamp ?? now))
-			const state = getCollaboratorStateFromElapsedTime(this.editor, elapsed)
-			return shouldShowCollaborator(this.editor, presence, state)
+		const collaborators = this.getCollaborators()
+		if (!collaborators.length) return EMPTY_ARRAY
+
+		const { followingUserId, highlightedUserIds } = this.editor.getInstanceState()
+		const currentUserId = this.editor.user.getRecordId()
+
+		return collaborators.filter((presence) => {
+			const { lastActivityTimestamp, userId, chatMessage } = presence
+
+			// Treat a missing or zero `lastActivityTimestamp` as "active right now"
+			// (elapsed = 0) so newly-joined peers aren't immediately classified as
+			// idle/inactive. The broadcast default for peers who haven't moved their
+			// pointer yet is `0` (e.g. someone on a touch device who joins and just
+			// watches), so a plain `?? now` would leave them hidden. See issue #9017.
+			const elapsed = lastActivityTimestamp ? Math.max(0, now - lastActivityTimestamp) : 0
+
+			if (elapsed > collaboratorInactiveTimeoutMs) {
+				// Inactive: If they're inactive, only show if we're following them or they're highlighted
+				return followingUserId === userId || highlightedUserIds.includes(userId)
+			}
+
+			if (elapsed > collaboratorIdleTimeoutMs) {
+				// Idle: If they're idle and following us, hide them unless they have a chat message or are highlighted
+				if (presence.followingUserId === currentUserId) {
+					return !!(chatMessage || highlightedUserIds.includes(userId))
+				}
+			}
+
+			// Active
+			return true
 		})
 	}
 

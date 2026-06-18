@@ -9,6 +9,7 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	can,
 	createMutators,
 	queries,
 	schema,
@@ -49,11 +50,16 @@ import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
+import { getRole } from './utils/tla/getRole'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'
 export { TLUserDurableObject } from './TLUserDurableObject'
+// no-op stub. wrangler.toml v1 created TLDrawDurableObject and v10 deletes it.
+// staging/prod still have it in their applied-migration history, so removing
+// this export breaks their deploys (see #8124). preview skips both v1 and v10,
+// so this export is just an unbound class on preview - harmless.
 export class TLDrawDurableObject {}
 
 const { preflight, corsify } = cors({
@@ -196,14 +202,15 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
-		const result = await handleQueryRequest(
-			(name, args) => {
+		const result = await handleQueryRequest({
+			handler: (name, args) => {
 				const query = mustGetQuery(queries, name)
 				return query.fn({ args, ctx: { userId: auth.userId } })
 			},
 			schema,
-			req
-		)
+			request: req,
+			userID: auth.userId,
+		})
 		return json(result)
 	})
 	.all('*', notFound)
@@ -288,13 +295,10 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			} else if (isSharedEdit) {
 				// shared for editing
 			} else if (userId && file.owningGroupId) {
-				const member = await db
-					.selectFrom('group_user')
-					.select('role')
-					.where('groupId', '=', file.owningGroupId)
-					.where('userId', '=', userId)
-					.executeTakeFirst()
-				if (!member) return { ok: false, error: 'Forbidden' }
+				const role = await getRole(db, userId, file.owningGroupId)
+				if (!can(role, 'accessFiles')) {
+					return { ok: false, error: 'Forbidden' }
+				}
 			} else {
 				return { ok: false, error: 'Forbidden' }
 			}

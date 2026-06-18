@@ -4,7 +4,7 @@ import { OverlayUtil, strokeShapeIndicators, TLOverlay, TLShapeId } from '@tldra
 export interface TLCollaboratorShapeIndicatorOverlay extends TLOverlay {
 	props: {
 		// One entry per peer, batching the shape IDs they have selected so the
-		// renderer can issue a single stroke call per color.
+		// renderer can issue a single stroke call per collaborator.
 		indicators: Array<{ color: string; shapeIds: TLShapeId[] }>
 	}
 }
@@ -25,15 +25,22 @@ export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollabo
 	override options = { zIndex: 49, lineWidth: 1.5, alpha: 0.7 }
 
 	override isActive(): boolean {
-		return this.editor.getVisibleCollaboratorsOnCurrentPage().length > 0
+		return this.editor
+			.getVisibleCollaboratorsOnCurrentPage()
+			.some((presence) => presence.selectedShapeIds.length > 0)
 	}
 
 	override getOverlays(): TLCollaboratorShapeIndicatorOverlay[] {
 		const editor = this.editor
+		const selectedPresences = editor
+			.getVisibleCollaboratorsOnCurrentPage()
+			.filter((presence) => presence.selectedShapeIds.length > 0)
+		if (selectedPresences.length === 0) return []
+
 		const renderingShapeIds = new Set(editor.getRenderingShapes().map((s) => s.id))
 
 		const indicators: TLCollaboratorShapeIndicatorOverlay['props']['indicators'] = []
-		for (const presence of editor.getVisibleCollaboratorsOnCurrentPage()) {
+		for (const presence of selectedPresences) {
 			const visibleShapeIds = presence.selectedShapeIds.filter(
 				(id) => renderingShapeIds.has(id) && !editor.isShapeHidden(id)
 			)
@@ -67,7 +74,7 @@ export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollabo
 		ctx.lineWidth = this.options.lineWidth / zoom
 		ctx.globalAlpha = this.options.alpha
 
-		// One stroke call per peer (per unique color).
+		// One stroke call per collaborator.
 		for (const { color, shapeIds } of overlay.props.indicators) {
 			ctx.strokeStyle = color
 			strokeShapeIndicators(editor, ctx, shapeIds)

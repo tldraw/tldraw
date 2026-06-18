@@ -1562,17 +1562,17 @@ describe('When double clicking an editable shape', () => {
 		editor.expectToBeIn('select.editing_shape')
 	})
 
-	it('starts editing a child of a group on triple (not double!) click', () => {
+	it('starts editing a child of a group after selecting into the group', () => {
 		editor.createShape({ id: ids.box2, type: 'geo', x: 300, y: 0 })
 		editor.groupShapes([ids.box1, ids.box2], { groupId: ids.group1 })
 		editor.selectNone()
-		editor.pointerMove(50, 50).click() // clicks on the shape label
+		editor.pointerMove(50, 50).click() // selects the group
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
 		expect(editor.getEditingShapeId()).toBe(null)
-		editor.pointerMove(50, 50).click() // clicks on the shape label
+		editor.pointerMove(50, 50).click() // selects the child shape
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		expect(editor.getEditingShapeId()).toBe(null)
-		editor.pointerMove(50, 50).click() // clicks on the shape label
+		editor.pointerMove(50, 50).click() // edits the selected child shape
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		expect(editor.getEditingShapeId()).toBe(ids.box1)
 		editor.expectToBeIn('select.editing_shape')
@@ -2186,6 +2186,19 @@ describe('control pointing', () => {
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
 		// ...and expect menu to be open, but that's a native thing
+	})
+
+	it('selects locked shapes on ctrl click when on a mac', () => {
+		tlenv.isDarwin = true
+
+		editor.createShape({ id: ids.box4, type: 'geo', x: 600, isLocked: true })
+
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.keyDown('Control')
+		editor.pointerMove(650, 50) // inside of locked box 4
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
 	})
 
 	it('selects on ctrl click when on a pc or other device', () => {

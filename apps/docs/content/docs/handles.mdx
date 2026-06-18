@@ -43,18 +43,18 @@ Handle coordinates are in the shape's local coordinate system, where `(0, 0)` is
 
 There are four handle types:
 
-| Type      | Description                                                                 |
-| --------- | --------------------------------------------------------------------------- |
-| `vertex`  | A primary control point that defines part of the shape's geometry           |
-| `virtual` | A secondary handle between vertices, often used for adding new points       |
-| `create`  | A handle for extending geometry, like adding a point to the end of a line   |
-| `clone`   | A handle for duplicating the shape, used by notes for quick adjacent copies |
+| Type      | Description                                                                   |
+| --------- | ----------------------------------------------------------------------------- |
+| `vertex`  | A primary control point that defines part of the shape's geometry             |
+| `virtual` | A secondary handle that isn't a vertex, like the arrow's midpoint bend handle |
+| `create`  | A handle for adding new geometry, like inserting a point into a line segment  |
+| `clone`   | A handle for duplicating the shape, used by notes for quick adjacent copies   |
 
-Most custom shapes use `vertex` handles. The `virtual` and `create` types are used by the line shape to let users add points to a path.
+Most custom shapes use `vertex` handles. The arrow shape uses a `virtual` handle for its midpoint, and the line shape uses `create` handles to let users add points between vertices.
 
 ## Responding to handle drags
 
-When a user drags a handle, tldraw calls `onHandleDrag` with the updated handle position. Return the new shape props:
+When a user drags a handle, tldraw calls `onHandleDrag` with the updated handle position. Return the updated shape:
 
 ```tsx
 import { ShapeUtil, TLHandleDragInfo } from 'tldraw'
@@ -111,7 +111,7 @@ The `snapType` options are:
 
 ### Angle snapping
 
-When the user holds Shift while dragging, handles snap to 15-degree angles. By default, this is relative to the shape's position. You can snap relative to another handle by setting `snapReferenceHandleId`:
+When the user holds Shift while dragging, handles snap to 15-degree angles. By default, the angle is measured relative to an adjacent vertex handle on the shape. You can use a different reference handle by setting `snapReferenceHandleId`:
 
 ```tsx
 {
@@ -168,7 +168,15 @@ The `HandleSnapGeometry` object has these properties:
 Here's a speech bubble shape with a draggable tail handle:
 
 ```tsx
-import { Polygon2d, ShapeUtil, TLHandle, TLHandleDragInfo, TLShape, ZERO_INDEX_KEY } from 'tldraw'
+import {
+	Polygon2d,
+	ShapeUtil,
+	TLHandle,
+	TLHandleDragInfo,
+	TLShape,
+	Vec,
+	ZERO_INDEX_KEY,
+} from 'tldraw'
 
 const SPEECH_BUBBLE_TYPE = 'speech-bubble'
 
@@ -191,13 +199,13 @@ class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		const { w, h, tailX, tailY } = shape.props
 		return new Polygon2d({
 			points: [
-				{ x: 0, y: 0 },
-				{ x: w, y: 0 },
-				{ x: w, y: h },
-				{ x: w * 0.7, y: h },
-				{ x: tailX, y: tailY },
-				{ x: w * 0.3, y: h },
-				{ x: 0, y: h },
+				new Vec(0, 0),
+				new Vec(w, 0),
+				new Vec(w, h),
+				new Vec(w * 0.7, h),
+				new Vec(tailX, tailY),
+				new Vec(w * 0.3, h),
+				new Vec(0, h),
 			],
 			isFilled: true,
 		})

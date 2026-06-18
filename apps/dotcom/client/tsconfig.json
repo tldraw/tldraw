@@ -15,7 +15,6 @@
 		"jsxImportSource": "react",
 		"incremental": true,
 		"downlevelIteration": true,
-		"plugins": [{ "name": "next" }],
 		"experimentalDecorators": true,
 		"types": ["vitest/globals"]
 	},

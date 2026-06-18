@@ -1,4 +1,7 @@
 {
+  "1764571547": {
+    "translation": "Czy na pewno chcesz usunąć ten obszar roboczy? Tej czynności nie można cofnąć."
+  },
   "0095a9fa74": {
     "translation": "Eksportuj"
   },
@@ -7,6 +10,12 @@
   },
   "043973ec1f": {
     "translation": "Nadal masz problem? {GetHelpLink}"
+  },
+  "04a2dd56d6": {
+    "translation": "Zaproś członków drużyny"
+  },
+  "05f43078e9": {
+    "translation": "Osiągnięto maksymalną liczbę obszarów roboczych. Przed utworzeniem nowych obszarów roboczych należy usunąć stare."
   },
   "06b9281e39": {
     "translation": "Automatyczny"
@@ -29,14 +38,17 @@
   "0b9a4cde72": {
     "translation": "Menu pliku"
   },
+  "0c4383617a": {
+    "translation": "Wystąpił błąd podczas ładowania tego zaproszenia. Spróbuj ponownie."
+  },
   "0d1f2bb523": {
     "translation": "Wyślij opinię"
   },
+  "1063e38cb5": {
+    "translation": "Usunąć"
+  },
   "110a4b01be": {
     "translation": "Opublikuj"
-  },
-  "129b9e34ea": {
-    "translation": "Opuść grupę"
   },
   "12a6766ba1": {
     "translation": "Odepnij plik"
@@ -47,14 +59,11 @@
   "13ddd375ad": {
     "translation": "Eksportuj jako"
   },
-  "146ffe2fd9": {
-    "translation": "Pokaż więcej"
-  },
-  "14d65465b7": {
-    "translation": "Usuń grupę"
-  },
   "181b90f889": {
     "translation": "Utwórz plik"
+  },
+  "1d2591253e": {
+    "translation": "Ustawienia obszaru roboczego"
   },
   "1da2e8106b": {
     "translation": "Wystąpił nieoczekiwany błąd."
@@ -62,8 +71,8 @@
   "1dd1c5fb7f": {
     "translation": "Dzisiaj"
   },
-  "2445e5e347": {
-    "translation": "Utwórz grupę"
+  "21f66c9c00": {
+    "translation": "Nazwa obszaru roboczego"
   },
   "250ddea65c": {
     "translation": "O tldraw"
@@ -74,14 +83,14 @@
   "2c3ef76333": {
     "translation": "Moje pliki"
   },
+  "2e2b3c700b": {
+    "translation": "Dołącz link do bieżącego pliku"
+  },
   "31246941ad": {
     "translation": "Musisz się zalogować, aby zobaczyć ten plik."
   },
   "31418ce4ad": {
     "translation": "i18n: Brak wyróżnienia"
-  },
-  "32210b37e4": {
-    "translation": "Dodaj link"
   },
   "324a0f3182": {
     "translation": "Powrót do tldraw"
@@ -91,6 +100,9 @@
   },
   "344a7f427f": {
     "translation": "Edytor"
+  },
+  "375396d6e5": {
+    "translation": "Usuń członka"
   },
   "3bc7d6ea2f": {
     "translation": "Kontynuuj z e-mailem"
@@ -107,8 +119,14 @@
   "3e2ae04ff0": {
     "translation": "Nieobsługiwany diagram Mermaid"
   },
+  "402bf0c47e": {
+    "translation": "Motyw kolorystyczny"
+  },
   "42e53c47c1": {
     "translation": "Skontaktuj się z właścicielem, aby poprosić o dostęp."
+  },
+  "44680c1fa7": {
+    "translation": "Opuść przestrzeń roboczą…"
   },
   "44db318ee5": {
     "translation": "Uzyskaj pomoc na Discordzie"
@@ -125,12 +143,6 @@
   "47f493a590": {
     "translation": "Przypnij plik"
   },
-  "49049467ff": {
-    "translation": "Wklej adres URL pliku tldraw..."
-  },
-  "4908687e50": {
-    "translation": "Czy na pewno chcesz zapomnieć ten plik?"
-  },
   "49ee308734": {
     "translation": "Nazwa"
   },
@@ -139,15 +151,6 @@
   },
   "4d1c8263ba": {
     "translation": "Załaduj ponownie"
-  },
-  "4da5988a2e": {
-    "translation": "Usuń grupę…"
-  },
-  "4dab36ac83": {
-    "translation": "Więcej opcji"
-  },
-  "4e6fbf032b": {
-    "translation": "Czy na pewno chcesz usunąć tę grupę? Tej czynności nie można cofnąć."
   },
   "5097d89907": {
     "translation": "Nieobsługiwany diagram, zamiast tego zostanie wygenerowany plik SVG"
@@ -176,14 +179,14 @@
   "56c34c6410": {
     "translation": "Polityka prywatności"
   },
-  "5a86b22fa0": {
-    "translation": "Przeciągnij pliki tutaj, <create>utwórz plik</create> lub <invite>skopiuj link zaproszenia</invite>, aby rozpocząć."
-  },
   "5a95a425f7": {
     "translation": "Podziel się"
   },
   "5bec508475": {
     "translation": "Wykryto starą przeglądarkę. Zaktualizuj przeglądarkę, aby korzystać z tej aplikacji."
+  },
+  "5bff3c9c88": {
+    "translation": "Moje miejsce pracy"
   },
   "5c6fe42bc2": {
     "translation": "Usuń ten link i utwórz nowy."
@@ -193,9 +196,6 @@
   },
   "5d26ae7550": {
     "translation": "Nie udało nam się przesłać części treści utworzonych przed zalogowaniem."
-  },
-  "5ea8bb44be": {
-    "translation": "Zostałeś zaproszony do dołączenia do grupy:"
   },
   "5f3c333678": {
     "translation": "Opinia wysłana"
@@ -224,6 +224,9 @@
   "6832ac5936": {
     "translation": "Podaj swój adres e-mail"
   },
+  "694f82ed9d": {
+    "translation": "Usuń obszar roboczy"
+  },
   "6a26f54883": {
     "translation": "Pomoc"
   },
@@ -232,9 +235,6 @@
   },
   "6dfc62f621": {
     "translation": "Aby ręcznie zaimportować zawartość, wykonaj następujące czynności:"
-  },
-  "70222abcfc": {
-    "translation": "Ustawienia grupy"
   },
   "70a6facb9d": {
     "translation": "W tym tygodniu"
@@ -263,6 +263,9 @@
   "764671e008": {
     "translation": "Porozmawiaj z nami na Discordzie"
   },
+  "4908687e50": {
+    "translation": "Czy na pewno chcesz zapomnieć ten plik?"
+  },
   "76dea3c9ca": {
     "translation": "tldraw to darmowa tablica online. Załóż konto, aby zapisać pliki i pracować ze znajomymi."
   },
@@ -278,6 +281,9 @@
   "797799f35e": {
     "translation": "Prześlij problem na GitHub"
   },
+  "7a1920d611": {
+    "translation": "Domyślny"
+  },
   "7b1329f5ca": {
     "translation": "Instrukcja obsługi"
   },
@@ -289,9 +295,6 @@
   },
   "7cb5f8b4a5": {
     "translation": "Zapomnij"
-  },
-  "7cfe6c43dc": {
-    "translation": "Opuść grupę…"
   },
   "7daeced9ff": {
     "translation": "Opublikuj zmiany"
@@ -305,6 +308,9 @@
   "815e116a2e": {
     "translation": "Masz błąd, problem lub pomysł na tldraw? Daj nam znać! Wypełnij ten formularz, a my skontaktujemy się z Tobą przez e-mail, jeśli będzie to konieczne. Możesz również <discord>porozmawiać z nami na Discordzie</discord> lub <github>zgłosić problem na GitHub</github>."
   },
+  "858ba4765e": {
+    "translation": "Członek"
+  },
   "85a082de1b": {
     "translation": "Odśwież stronę, aby pobrać najnowszą wersję tldraw."
   },
@@ -314,11 +320,20 @@
   "86c66437fd": {
     "translation": "Zmień nazwę pliku"
   },
+  "87fdb09de6": {
+    "translation": "Jesteś już członkiem tej przestrzeni roboczej"
+  },
+  "88bf6ab42c": {
+    "translation": "Ten link z zaproszeniem wygasł"
+  },
   "8ad4303b83": {
     "translation": "Nie, dziękuję"
   },
   "8c2d3d730c": {
     "translation": "Sprawdź swoją skrzynkę e-mail, aby uzyskać kod weryfikacyjny."
+  },
+  "8cf04a9734": {
+    "translation": "Dom"
   },
   "8eb2c00e96": {
     "translation": "Udostępniono Tobie"
@@ -335,14 +350,11 @@
   "91e49bb0eb": {
     "translation": "Kopiuj do moich plików"
   },
-  "930390d222": {
-    "translation": "Skopiowano link zaproszenia"
-  },
-  "9489b2f82a": {
-    "translation": "Jesteś już członkiem tej grupy"
-  },
   "95aacd4d4a": {
     "translation": "Zaloguj się za pomocą Google"
+  },
+  "95b56f4cd6": {
+    "translation": "Usuń obszar roboczy…"
   },
   "95d2109dc8": {
     "translation": "Kompilacja z użyciem zestawu SDK tldraw"
@@ -352,9 +364,6 @@
   },
   "985a4b720f": {
     "translation": "Warunki korzystania"
-  },
-  "98c997a27e": {
-    "translation": "Dodaj link do pliku"
   },
   "9914a0ce04": {
     "translation": "Jasny"
@@ -410,6 +419,9 @@
   "a9ded1e5ce": {
     "translation": "Tło"
   },
+  "aac449eef6": {
+    "translation": "Utwórz obszar roboczy"
+  },
   "ab0df9ba36": {
     "translation": "Osiągnięto limit plików"
   },
@@ -426,9 +438,6 @@
   "b357b524e7": {
     "translation": "Adres e-mail"
   },
-  "b3d2db69fe": {
-    "translation": "Adres URL pliku"
-  },
   "b6d4223e60": {
     "translation": "Zaloguj się"
   },
@@ -440,9 +449,6 @@
   },
   "ba0318cb81": {
     "translation": "Zaloguj się, aby udostępnić"
-  },
-  "bb93a7590f": {
-    "translation": "Zaakceptuj i dołącz do grupy"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Przesyłanie pliku .tldr…} few {} many {} other {Przesyłanie {uploaded} z {total} plików .tldr…}}"
@@ -462,17 +468,14 @@
   "c4b39a1cc3": {
     "translation": "Niezbędne pliki cookie"
   },
-  "c6155aaecc": {
-    "translation": "Nazwa grupy"
-  },
   "c655b27b1e": {
     "translation": "i18n: Długi ciąg"
   },
   "c6a00f137b": {
     "translation": "Zaproś"
   },
-  "c74ea6dbff": {
-    "translation": "Pokaż mniej"
+  "c7d7403714": {
+    "translation": "Nowa tablica"
   },
   "c87aacf567": {
     "translation": "Wyloguj się"
@@ -519,17 +522,17 @@
   "d9100f3e10": {
     "translation": "Kliknij tutaj, aby zobaczyć zawartość"
   },
-  "d9e35d0f55": {
-    "translation": "Osiągnięto maksymalną liczbę grup. Aby utworzyć nowe, należy usunąć stare grupy."
-  },
   "dbbebf3c03": {
     "translation": "Tylko z zaproszeniem"
   },
-  "dcdaa754fe": {
-    "translation": "Nieprawidłowy adres URL pliku tldraw"
+  "dbf9b24193": {
+    "translation": "Opuść miejsce pracy"
   },
   "dfdb78a4e4": {
     "translation": "Oznaczenia debugowania aplikacji"
+  },
+  "e0aa021e21": {
+    "translation": "OK"
   },
   "e0c88179b3": {
     "translation": "Zaproś członków"
@@ -540,20 +543,26 @@
   "e2ae80a510": {
     "translation": "Podsumowanie prawne"
   },
-  "e3afed0047": {
-    "translation": "Administrator"
-  },
   "e404559826": {
     "translation": "Warunki korzystania z usługi"
   },
+  "e615d52512": {
+    "translation": "Zaakceptuj i dołącz do obszaru roboczego"
+  },
   "e81c4e4f2b": {
     "translation": "Lub"
+  },
+  "e9e0f16850": {
+    "translation": "Zostałeś zaproszony do dołączenia do obszaru roboczego:"
   },
   "ea0626ac5a": {
     "translation": "Strefa niebezpieczna"
   },
   "ea4788705e": {
     "translation": "Anuluj"
+  },
+  "eb1e2b0542": {
+    "translation": "Poproś właściciela miejsca pracy o nowe."
   },
   "ebfe9ce86e": {
     "translation": "Wczoraj"
@@ -594,14 +603,14 @@
   "f4f70727dc": {
     "translation": "Ustawienia"
   },
-  "f714e36843": {
-    "translation": "Czy na pewno chcesz opuścić tę grupę?"
-  },
   "fa2ead697d": {
     "translation": "Polityka prywatności"
   },
   "fb15c53f22": {
     "translation": "Oglądający"
+  },
+  "fc9d47046b": {
+    "translation": "Czy na pewno chcesz opuścić tę przestrzeń roboczą?"
   },
   "fd1be3efcf": {
     "translation": "Czy na pewno chcesz usunąć ten plik?"
@@ -609,8 +618,8 @@
   "fed5ec05eb": {
     "translation": "Skopiowany link"
   },
-  "ff7a814974": {
-    "translation": "Dodaj link do pliku…"
+  "ff2fefd3c6": {
+    "translation": "Czy na pewno chcesz usunąć {name} z tego obszaru roboczego?"
   },
   "ffcd73e997": {
     "translation": "Importuj plik…"

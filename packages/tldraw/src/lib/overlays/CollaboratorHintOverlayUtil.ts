@@ -95,7 +95,7 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 	}
 
 	/** @internal */
-	_isCursorInViewport(
+	private _isCursorInViewport(
 		cursor: { x: number; y: number },
 		viewport: { minX: number; minY: number; maxX: number; maxY: number },
 		zoom: number

@@ -3,6 +3,7 @@ import {
 	DefaultColorStyle,
 	DefaultFillStyle,
 	Editor,
+	GeoShapeGeoStyle,
 	HALF_PI,
 	PageRecordType,
 	Result,
@@ -584,9 +585,67 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'frame-selection',
+				label: 'action.frame-selection',
+				kbd: 'cmd+alt+g',
+				onSelect(source) {
+					if (!canApplySelectionAction()) return
+					if (mustGoBackToSelectToolFirst()) return
+
+					const selectedShapes = editor.getSelectedShapes()
+
+					// If all selected shapes are frames, remove them (toggle behavior)
+					if (
+						selectedShapes.length > 0 &&
+						selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
+					) {
+						trackEvent('remove-frame', { source })
+						editor.markHistoryStoppingPoint('remove-frame')
+						removeFrame(
+							editor,
+							selectedShapes.map((shape) => shape.id)
+						)
+						return
+					}
+
+					const ids = editor.getSelectedShapeIds()
+					if (ids.length < 2) return
+
+					const shapes = compact(ids.map((id) => editor.getShape(id)))
+					const pageBounds = editor.getSelectionPageBounds()
+					if (!pageBounds) return
+
+					trackEvent('frame-selection', { source })
+					editor.markHistoryStoppingPoint('frame-selection')
+
+					const parentId = editor.findCommonAncestor(shapes) ?? editor.getCurrentPageId()
+
+					const frameId = createShapeId()
+					const padding = 25 / editor.getZoomLevel()
+
+					editor.run(() => {
+						editor.createShapes([
+							{
+								id: frameId,
+								type: 'frame',
+								parentId,
+								x: pageBounds.x,
+								y: pageBounds.y,
+								props: {
+									w: pageBounds.w,
+									h: pageBounds.h,
+								},
+							},
+						])
+						editor.reparentShapes(ids, frameId)
+						fitFrameToContent(editor, frameId, { padding })
+						editor.select(frameId)
+					})
+				},
+			},
+			{
 				id: 'remove-frame',
 				label: 'action.remove-frame',
-				kbd: 'cmd+shift+f,ctrl+shift+f',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
 
@@ -1846,6 +1905,34 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					}
 
 					trackEvent('download-original', { source })
+				},
+			},
+			{
+				id: 'copy-hovered-styles',
+				label: 'action.copy-hovered-styles',
+				kbd: 'shift+q',
+				async onSelect(source) {
+					const shape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
+						hitInside: false,
+						hitLabels: false,
+						hitLocked: editor.options.selectLockedShapes,
+						margin: editor.options.hitTestMargin / editor.getZoomLevel(),
+					})
+
+					const path = editor.getPath()
+					if (!shape || !path.endsWith('.idle')) return
+
+					// Setting styles for the next shape is instance state, not document state, so it
+					// isn't undoable and doesn't need a history stopping point.
+					editor.run(() => {
+						for (const style of editor.styleProps[shape.type].keys()) {
+							const value = editor.getShapeStyleIfExists(shape, style)
+							if (value === undefined || style === GeoShapeGeoStyle) continue
+							editor.setStyleForNextShapes(style, value)
+						}
+					})
+
+					trackEvent('copy-hovered-styles', { source })
 				},
 			},
 		]

@@ -114,6 +114,15 @@ export function isEmptyRichText(richText: TLRichText) {
 }
 
 /**
+ * Whether the editor's active rich text selection is inside a bullet or ordered list.
+ * @internal
+ */
+export function isEditingRichTextList(editor: Editor) {
+	const textEditor = editor.getRichTextEditor()
+	return !!(textEditor?.isActive('bulletList') || textEditor?.isActive('orderedList'))
+}
+
+/**
  * Renders plaintext from a rich text string.
  * @param editor - The editor instance.
  * @param richText - The rich text content.

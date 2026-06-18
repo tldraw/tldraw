@@ -153,10 +153,6 @@ button.topLeftInputNameWidthSetter {
 	}
 }
 
-/* .inputWrapper:focus-within::after {
-	background-color: var(--tl-color-muted-2);
-} */
-
 /* -------------------- Main Menu ------------------- */
 
 .topLeftMainMenuTrigger {
@@ -202,6 +198,7 @@ button.topLeftInputNameWidthSetter {
 
 .topLeftMainMenuTrigger[data-state='open']::after {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
 }
 
 /* ------------------- Top right ------------------ */

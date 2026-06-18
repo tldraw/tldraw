@@ -1,15 +1,31 @@
 import { atom, computed, unsafe__withoutCapture } from '@tldraw/state'
 import { AtomSet } from '@tldraw/store'
 import { TLINSTANCE_ID, TLPOINTER_ID } from '@tldraw/tlschema'
+import { bind } from '@tldraw/utils'
 import { INTERNAL_POINTER_IDS } from '../../../constants'
 import { Vec } from '../../../primitives/Vec'
 import { isAccelKey } from '../../../utils/keyboard'
 import type { Editor } from '../../Editor'
 import { TLPinchEventInfo, TLPointerEventInfo, TLWheelEventInfo } from '../../types/event-types'
 
+const POINTER_VELOCITY_REFERENCE_INTERVAL_MS = 16
+const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
+
 /** @public */
 export class InputsManager {
-	constructor(private readonly editor: Editor) {}
+	constructor(private readonly editor: Editor) {
+		this.editor.on('frame', this._onFrame)
+	}
+
+	/** @internal */
+	dispose() {
+		this.editor.off('frame', this._onFrame)
+	}
+
+	@bind
+	private _onFrame(elapsed: number) {
+		this.updatePointerVelocity(elapsed)
+	}
 
 	private _originPagePoint = atom<Vec>('originPagePoint', new Vec())
 	/**
@@ -117,8 +133,7 @@ export class InputsManager {
 	}
 
 	/**
-	 * Normally you shouldn't need to set the pointer velocity directly, this is set by the tick manager.
-	 * However, this is currently used in tests to fake pointer velocity.
+	 * Normally you shouldn't need to set the pointer velocity directly. Used in tests to fake pointer velocity.
 	 * @param pointerVelocity - The pointer velocity.
 	 * @internal
 	 */
@@ -457,7 +472,7 @@ export class InputsManager {
 	private _velocityPrevPoint = new Vec()
 
 	/**
-	 * Update the pointer velocity based on elapsed time. Called by the tick manager.
+	 * Update the pointer velocity based on elapsed time. Called each frame.
 	 * @param elapsed - The time elapsed since the last tick in milliseconds.
 	 * @internal
 	 */
@@ -473,8 +488,14 @@ export class InputsManager {
 		const length = delta.len()
 		const direction = length ? delta.div(length) : new Vec(0, 0)
 
-		// consider adjusting this with an easing rather than a linear interpolation
-		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), 0.5)
+		// Preserve the old 16ms smoothing with alpha = 1 - (1 - 0.5)^(elapsed / 16).
+		const smoothing =
+			1 -
+			Math.pow(
+				1 - POINTER_VELOCITY_REFERENCE_SMOOTHING,
+				elapsed / POINTER_VELOCITY_REFERENCE_INTERVAL_MS
+			)
+		const next = pointerVelocity.clone().lrp(direction.mul(length / elapsed), smoothing)
 
 		// if the velocity is very small, just set it to 0
 		if (Math.abs(next.x) < 0.01) next.x = 0

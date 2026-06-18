@@ -79,7 +79,7 @@ editor.createShape({
 For richer AI output, create a custom shape that renders generated content. This approach works well for live HTML previews, interactive prototypes, or any content that needs special rendering:
 
 ```tsx
-// Abbreviated example—a full ShapeUtil also requires getDefaultProps, getGeometry, and indicator
+// Abbreviated example—a full ShapeUtil also requires getDefaultProps, getGeometry, and getIndicatorPath
 class PreviewShapeUtil extends ShapeUtil<PreviewShape> {
 	static override type = 'preview' as const
 
@@ -149,7 +149,8 @@ The [Agent starter kit](/starter-kits/agent) provides a complete implementation.
 The agent exposes a simple API for triggering canvas operations:
 
 ```tsx
-const agent = useTldrawAgent(editor)
+// Inside a component wrapped by TldrawAgentAppProvider
+const agent = useAgent()
 
 // Simple prompt
 agent.prompt('Draw a flowchart showing user authentication')
@@ -178,8 +179,8 @@ This dual approach—visual screenshots plus structured data—gives the model b
 Agents perform operations through typed action schemas. Each action has a defined structure, and the agent system validates, sanitizes, and applies actions to the editor:
 
 ```tsx
-// Simplified illustration—the actual implementation converts through a SimpleShape
-// intermediate format. See CreateActionUtil in the agent starter kit for the full code.
+// Simplified illustration—the actual implementation converts through an intermediate
+// shape format. See CreateActionUtil in the agent starter kit for the full code.
 class CreateActionUtil extends AgentActionUtil<CreateAction> {
 	override applyAction(action: Streaming<CreateAction>, helpers: AgentHelpers) {
 		if (!action.complete) return
@@ -213,19 +214,17 @@ const { blob } = await editor.toImage(editor.getCurrentPageShapes(), { format: '
 
 ### Structured data
 
-Access shape data directly from the store for text extraction or structured analysis:
+Access shape data directly from the store for text extraction or structured analysis. Use [ShapeUtil#getText](?) to extract a shape's text content as a plain string:
 
 ```tsx
 const shapes = editor.getCurrentPageShapes()
 
-const textContent = shapes
-	.filter((s) => s.type === 'text' || s.type === 'note' || s.type === 'geo')
-	.map((s) => ({
-		id: s.id,
-		type: s.type,
-		text: s.props.text,
-		bounds: editor.getShapePageBounds(s),
-	}))
+const textContent = shapes.map((shape) => ({
+	id: shape.id,
+	type: shape.type,
+	text: editor.getShapeUtil(shape).getText(shape),
+	bounds: editor.getShapePageBounds(shape),
+}))
 ```
 
 ### Combining approaches

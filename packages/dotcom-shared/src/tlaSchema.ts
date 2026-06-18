@@ -9,6 +9,7 @@ import {
 	table,
 } from '@rocicorp/zero'
 import { IndexKey, stringEnum } from '@tldraw/utils'
+import { Role } from './roles'
 
 export interface ZColumn {
 	optional?: boolean
@@ -85,6 +86,11 @@ export const group = table('group')
 		id: string(),
 		name: string(),
 		inviteSecret: string().optional(),
+		// Whether the invite link currently lets people join. Toggling this off
+		// disables the link without discarding inviteSecret, so re-enabling restores
+		// the same link (cf. a file's `shared` flag). Optional so older cached rows
+		// without the column read as enabled (defaulted true) until they refetch.
+		inviteLinkEnabled: boolean().optional(),
 		isDeleted: boolean(),
 		createdAt: number(),
 		updatedAt: number(),
@@ -97,7 +103,7 @@ export const group_user = table('group_user')
 		groupId: string(),
 		createdAt: number(),
 		updatedAt: number(),
-		role: enumeration<'admin' | 'owner'>(),
+		role: enumeration<Role>(),
 		userName: string(),
 		userColor: string(),
 		index: string<IndexKey>(),
@@ -265,6 +271,17 @@ export interface TlaAsset {
 	userId: string | null
 }
 
+/**
+ * The welcome-template pointer (see migration 035). Worker-side config only — not a Zero
+ * table (absent from `createSchema` below), so it never replicates to clients.
+ */
+export interface TlaWelcomeTemplate {
+	id: boolean
+	fileId: string
+	publishedSlug: string
+	updatedAt: number
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -274,6 +291,7 @@ export interface DB {
 	group_file: TlaGroupFile
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
+	welcome_template: TlaWelcomeTemplate
 }
 
 export const schema = createSchema({

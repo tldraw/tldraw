@@ -15,6 +15,7 @@ import { scribbleValidator, TLScribble } from '../misc/TLScribble'
 import { StyleProp } from '../styles/StyleProp'
 import { pageIdValidator, TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
+import { TLUserId, userIdValidator } from './TLUser'
 
 /**
  * State that is particular to a single browser tab. The TLInstance record stores
@@ -43,8 +44,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	currentPageId: TLPageId
 	opacityForNextShape: TLOpacityType
 	stylesForNextShape: Record<string, unknown>
-	followingUserId: string | null
-	highlightedUserIds: string[]
+	followingUserId: TLUserId | null
+	highlightedUserIds: TLUserId[]
 	brush: BoxModel | null
 	cursor: TLCursor
 	scribbles: TLScribble[]
@@ -211,7 +212,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			typeName: T.literal('instance'),
 			id: idValidator<TLInstanceId>('instance'),
 			currentPageId: pageIdValidator,
-			followingUserId: T.string.nullable(),
+			followingUserId: userIdValidator.nullable(),
 			brush: boxModelValidator.nullable(),
 			opacityForNextShape: opacityValidator,
 			stylesForNextShape: T.object(stylesForNextShapeValidators),
@@ -228,7 +229,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isGridMode: T.boolean,
 			chatMessage: T.string,
 			isChatting: T.boolean,
-			highlightedUserIds: T.arrayOf(T.string),
+			highlightedUserIds: T.arrayOf(userIdValidator),
 			isFocused: T.boolean,
 			devicePixelRatio: T.number,
 			isCoarsePointer: T.boolean,

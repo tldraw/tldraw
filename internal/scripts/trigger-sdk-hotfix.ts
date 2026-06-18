@@ -98,7 +98,7 @@ async function main() {
 			await exec('yarn', ['install'])
 			await exec('yarn', ['refresh-assets', '--force'])
 
-			const diff = await getAnyPackageDiff()
+			const diff = await getAnyPackageDiff(version.format())
 			if (diff) {
 				let message = kleur.red().bold(`・ERROR・`)
 				message += `\nCannot cherry-pick docs changes from PR '${kleur.cyan().bold(pr.title)}' https://github.com/tldraw/tldraw/pulls/${pr}`
