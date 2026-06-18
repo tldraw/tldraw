@@ -82,6 +82,7 @@
 		"i18n-check": "i18n-check",
 		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
 		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts",
+		"i18n-fix-strings": "tsx internal/scripts/i18n-fix-strings.ts",
 		"add-framer-rewrites": "tsx apps/docs/scripts/add-framer-rewrites.ts"
 	},
 	"engines": {
