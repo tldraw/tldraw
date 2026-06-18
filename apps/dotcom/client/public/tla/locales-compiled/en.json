@@ -239,20 +239,6 @@
       "value": "Editor"
     }
   ],
-  "371ce8cf11": [
-    {
-      "type": 0,
-      "value": "Are you sure you want to forget "
-    },
-    {
-      "type": 1,
-      "value": "fileName"
-    },
-    {
-      "type": 0,
-      "value": "?"
-    }
-  ],
   "375396d6e5": [
     {
       "type": 0,
@@ -305,6 +291,26 @@
     {
       "type": 0,
       "value": "Get help on Discord"
+    }
+  ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "46137245cd": [
@@ -723,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to forget "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -803,6 +829,26 @@
       "value": "Rename"
     }
   ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Are you sure you want to delete "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? This action cannot be undone."
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -819,20 +865,6 @@
     {
       "type": 0,
       "value": "This month"
-    }
-  ],
-  "97a9bd4350": [
-    {
-      "type": 0,
-      "value": "Are you sure you want to delete "
-    },
-    {
-      "type": 1,
-      "value": "workspaceName"
-    },
-    {
-      "type": 0,
-      "value": "? This action cannot be undone."
     }
   ],
   "985a4b720f": [
@@ -1375,20 +1407,6 @@
     {
       "type": 0,
       "value": "Account menu"
-    }
-  ],
-  "ecfced1d96": [
-    {
-      "type": 0,
-      "value": "Are you sure you want to delete "
-    },
-    {
-      "type": 1,
-      "value": "fileName"
-    },
-    {
-      "type": 0,
-      "value": "?"
     }
   ],
   "ed53713239": [

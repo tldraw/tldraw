@@ -110,9 +110,6 @@
   "344a7f427f": {
     "translation": "Editor"
   },
-  "371ce8cf11": {
-    "translation": "Are you sure you want to forget {fileName}?"
-  },
   "375396d6e5": {
     "translation": "Remove member"
   },
@@ -139,6 +136,9 @@
   },
   "44db318ee5": {
     "translation": "Get help on Discord"
+  },
+  "454aad3b3c": {
+    "translation": "Are you sure you want to delete <strong>{fileName}</strong>?"
   },
   "46137245cd": {
     "translation": "Thanks for helping us improve tldraw!"
@@ -329,6 +329,9 @@
   "815e116a2e": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Are you sure you want to forget <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Member"
   },
@@ -365,6 +368,9 @@
   "904a830405": {
     "translation": "Rename"
   },
+  "90646db02d": {
+    "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
+  },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
   },
@@ -373,9 +379,6 @@
   },
   "96165d6df5": {
     "translation": "This month"
-  },
-  "97a9bd4350": {
-    "translation": "Are you sure you want to delete {workspaceName}? This action cannot be undone."
   },
   "985a4b720f": {
     "translation": "Terms of Use"
@@ -593,9 +596,6 @@
   },
   "ec611e9a08": {
     "translation": "Account menu"
-  },
-  "ecfced1d96": {
-    "translation": "Are you sure you want to delete {fileName}?"
   },
   "ed53713239": {
     "translation": "i18n: Accented"
