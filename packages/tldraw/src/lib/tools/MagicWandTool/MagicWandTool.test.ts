@@ -61,7 +61,7 @@ describe('MagicWandTool', () => {
 		expect(style?.textContent ?? '').toBe('')
 	})
 
-	it('tints the ink the selection colour while the stroke would lasso, and reverts', () => {
+	it('tints the ink the selection colour and fills it while the stroke would lasso, and reverts', () => {
 		createBox(130, 130)
 		editor.setCurrentTool('magic-wand')
 		editor.pointerDown(100, 100)
@@ -70,17 +70,20 @@ describe('MagicWandTool', () => {
 		editor.pointerMove(100, 200)
 
 		const inkId = editor.getCurrentPageShapes().find((s) => s.type === 'draw')!.id
-		// Open stroke so far: still the natural colour.
+		// Open stroke so far: still the natural colour and fill.
 		expect(editor.getShape<TLDrawShape>(inkId)!.props.color).toBe('black')
+		expect(editor.getShape<TLDrawShape>(inkId)!.props.fill).toBe('none')
 
-		// Close the loop around the box: ink previews the selection colour.
+		// Close the loop around the box: ink previews the selection colour, filled.
 		editor.pointerMove(102, 100)
 		editor.expectToBeIn('magic-wand.drawing')
 		expect(editor.getShape<TLDrawShape>(inkId)!.props.color).toBe('blue')
+		expect(editor.getShape<TLDrawShape>(inkId)!.props.fill).toBe('solid')
 
-		// Re-open the loop: ink reverts to its natural colour.
+		// Re-open the loop: ink reverts to its natural colour and fill.
 		editor.pointerMove(300, 100)
 		expect(editor.getShape<TLDrawShape>(inkId)!.props.color).toBe('black')
+		expect(editor.getShape<TLDrawShape>(inkId)!.props.fill).toBe('none')
 
 		editor.pointerUp()
 	})

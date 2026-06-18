@@ -1,6 +1,7 @@
 import {
 	Mat,
 	TLDefaultColorStyle,
+	TLDefaultFillStyle,
 	TLDrawShape,
 	TLPointerEventInfo,
 	TLShapeId,
@@ -33,8 +34,10 @@ export class MagicWandDrawing extends Drawing {
 	// the stroke shape(s) created during the gesture.
 	private shapeIdsBeforeGesture = new Set<TLShapeId>()
 
-	// The stroke's natural colour, restored when the gesture stops being a lasso.
+	// The stroke's natural colour and fill, restored when the gesture stops being
+	// a lasso.
 	private inkColor: TLDefaultColorStyle = 'black'
+	private inkFill: TLDefaultFillStyle = 'none'
 	// Whether the ink is currently showing the selection (lasso) colour.
 	private inkShowsLassoColor = false
 	// The shapes currently previewed as "would be selected" (blue hint outline).
@@ -56,6 +59,7 @@ export class MagicWandDrawing extends Drawing {
 		const inkShape = this.initialShape && this.editor.getShape<TLDrawShape>(this.initialShape.id)
 		if (inkShape) {
 			this.inkColor = inkShape.props.color
+			this.inkFill = inkShape.props.fill
 			setWetInk(this.editor, inkShape.id)
 		}
 	}
@@ -92,15 +96,15 @@ export class MagicWandDrawing extends Drawing {
 		const enclosedShapeIds = this.getEnclosedShapeIds()
 		const wouldLasso = enclosedShapeIds.length > 0
 
-		// Tint the in-progress ink.
+		// Tint the in-progress ink, and fill the loop with solid colour so the
+		// lasso region reads clearly as a visual aid.
 		if (wouldLasso !== this.inkShowsLassoColor) {
 			this.inkShowsLassoColor = wouldLasso
 			const color = wouldLasso ? MAGIC_WAND_LASSO_COLOR : this.inkColor
+			const fill = wouldLasso ? 'solid' : this.inkFill
 			this.editor.run(
-				() => this.editor.updateShape({ id: inkId, type: 'draw', props: { color } }),
-				{
-					history: 'ignore',
-				}
+				() => this.editor.updateShape({ id: inkId, type: 'draw', props: { color, fill } }),
+				{ history: 'ignore' }
 			)
 		}
 

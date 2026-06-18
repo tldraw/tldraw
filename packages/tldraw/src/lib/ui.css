@@ -2320,3 +2320,16 @@ tldraw? probably.
 		fill 150ms ease,
 		stroke 150ms ease;
 }
+
+/* The lasso fill is a fresh <path> that mounts when the fill flips to solid, so
+ * it can't tween its colour like the persistent stroke path. Fade it in via an
+ * @starting-style entry transition instead, matching the colour tween's timing
+ * so the fill and border change together. The interior fill path is the one
+ * without a stroke-linecap (the stroke path has stroke-linecap="round"). */
+.tl-magic-wand-inking .tl-shape[data-shape-type='draw'] path:not([stroke-linecap]) {
+	transition: opacity 150ms ease;
+
+	@starting-style {
+		opacity: 0;
+	}
+}
