@@ -4470,9 +4470,9 @@ export type TLPointerEvent = (info: TLPointerEventInfo) => void;
 
 // @public (undocumented)
 export type TLPointerEventInfo = TLBaseEventInfo & {
+    isPenDirect?: boolean;
     button: number;
     isPen: boolean;
-    isPenDirect?: boolean;
     name: TLPointerEventName;
     point: VecLike;
     pointerId: number;

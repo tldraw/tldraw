@@ -22,17 +22,23 @@ describe('isSecondaryClickEvent', () => {
 })
 
 describe('isDirectDisplayPen', () => {
-	function fakeEvent(pointerType: string, hasCapture: boolean) {
+	// Implicit capture is applied to the hit `target`, not the `currentTarget` the listener is bound
+	// to, so the capture check must read from `target`.
+	function fakeEvent(pointerType: string, targetHasCapture: boolean) {
 		return {
 			pointerType,
 			pointerId: 1,
+			target: {
+				hasPointerCapture: (_id: number) => targetHasCapture,
+			},
+			// currentTarget never holds the implicit capture; it should be ignored.
 			currentTarget: {
-				hasPointerCapture: (_id: number) => hasCapture,
+				hasPointerCapture: (_id: number) => false,
 			},
 		} as unknown as PointerEvent
 	}
 
-	it('treats a pen with implicit capture as a direct-display pen', () => {
+	it('treats a pen with implicit capture on the target as a direct-display pen', () => {
 		expect(isDirectDisplayPen(fakeEvent('pen', true))).toBe(true)
 	})
 
