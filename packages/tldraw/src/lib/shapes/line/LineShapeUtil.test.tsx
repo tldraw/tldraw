@@ -433,6 +433,32 @@ describe('Points keyed differently from their indices', () => {
 		// recomputing handles must not throw
 		expect(() => editor.getShapeHandles(mismatchedId)).not.toThrow()
 	})
+
+	it('tolerates a line that already has a duplicate index without crashing', () => {
+		// Malformed data: points 'b' and 'a2' share index 'a2'. This used to throw
+		// "a2 >= a2" from getHandles via getIndexBetween, crashing on render.
+		const corruptId = createShapeId('line-corrupt')
+		editor.createShapes([
+			{
+				id: corruptId,
+				type: 'line',
+				x: 100,
+				y: 100,
+				props: {
+					points: {
+						a: { id: 'a', index: 'a1' as IndexKey, x: 0, y: 0 },
+						b: { id: 'b', index: 'a2' as IndexKey, x: 100, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 200, y: 0 },
+					},
+				},
+			},
+		])
+
+		expect(() => editor.getShapeHandles(corruptId)).not.toThrow()
+		// the duplicate index is collapsed to a single vertex
+		const vertexHandles = getHandlesFor(corruptId).filter((h) => h.type === 'vertex')
+		expect(vertexHandles.map((h) => h.id)).toEqual(['a1', 'a2'])
+	})
 })
 
 function getHandlesFor(shapeId: TLLineShape['id']) {
