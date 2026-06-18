@@ -5,6 +5,12 @@
       "value": "Exportera"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Acceptera inbjudan"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Ta bort"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopiera till personlig arbetsyta"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Lossa filen"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Testa tldraw SDK:et"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Skapa fil"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Arbetsyteinställningar"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Idag"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "En arbetsyta måste ha minst en ägare. Gör först någon annan till ägare."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Arbetsytans namn"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Du har blivit inbjuden att gå med i "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Skapa ett gratis konto för att fortsätta."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Uppladdningen misslyckades"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Mina filer"
+      "value": "Välkommen till din arbetsplats"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Söka..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Omgenereringen ersätter den nuvarande inbjudningslänken med en ny. Alla som använder den gamla länken behöver den nya för att gå med."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Inkludera länk till aktuell fil"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Återskapa inbjudningslänken"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Redigeringsverktyg"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Hantera"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Kontakta ägaren för att begära åtkomst."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Lämna arbetsytan…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Det gick inte att avpublicera filen."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Detta är din privata arbetsyta. Skapa en ny arbetsyta för att bjuda in lagkamrater."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Skapa en arbetsyta"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Min arbetsyta"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Återkalla den här länken och skapa en ny."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "En ny version av tldraw är tillgänglig. Ladda om sidan för att fortsätta."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Ny fil"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Vänligen ladda om sidan"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Inga filer hittades"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Vänligen ladda om"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw är en gratis whiteboardtavla online. Skapa ett konto för att spara dina filer och arbeta med dina vänner."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Ladda ner"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Ny arbetsyta"
     }
   ],
   "815e116a2e": [
@@ -703,22 +765,10 @@
       "value": "Den här inbjudningslänken har gått ut"
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Nej tack"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Kontrollera din e-post för en verifieringskod."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Hem"
     }
   ],
   "8eb2c00e96": [
@@ -745,22 +795,10 @@
       "value": "Döp om"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopiera till mina filer"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Logga in med Google"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Ta bort arbetsytan…"
     }
   ],
   "95d2109dc8": [
@@ -785,6 +823,12 @@
     {
       "type": 0,
       "value": "Ljus"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Rensa sökningen"
     }
   ],
   "9b33f5c63c": [
@@ -837,6 +881,26 @@
       "value": "Välj bort"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Du har blivit inbjuden att gå med i "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +941,12 @@
     {
       "type": 0,
       "value": "Överlämna"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Lämna"
     }
   ],
   "a6cc403d56": [
@@ -933,6 +1003,12 @@
       "value": "Gästanvändare"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenerera"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -943,6 +1019,12 @@
     {
       "type": 0,
       "value": "E-postadress"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Aktivera inbjudningar"
     }
   ],
   "b6d4223e60": [
@@ -967,6 +1049,12 @@
     {
       "type": 0,
       "value": "Logga in för att dela"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Inbjudningar är inaktiverade"
     }
   ],
   "bbbcefd7ce": [
@@ -1021,6 +1109,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Hantera arbetsyta"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1071,10 +1165,10 @@
       "value": "Bjud in"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Ny styrelse"
+      "value": "Kopiera till min arbetsyta"
     }
   ],
   "c87aacf567": [
@@ -1087,12 +1181,6 @@
     {
       "type": 0,
       "value": "Avfärda"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Spara"
     }
   ],
   "cceaefbc20": [
@@ -1219,12 +1307,6 @@
       "value": "OK"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Bjud in medlemmar"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1243,28 +1325,10 @@
       "value": "Användarvillkor"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Godkänn och gå med i arbetsytan"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "eller"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Du har blivit inbjuden att gå med i arbetsytan:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Riskzon"
     }
   ],
   "ea4788705e": [
@@ -1413,6 +1477,12 @@
     {
       "type": 0,
       "value": " från den här arbetsytan?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Skapa ett gratis konto för att spara dina filer och spela tldraw med dina lagkamrater."
     }
   ],
   "ffcd73e997": [

@@ -5,6 +5,12 @@
       "value": "Izvoz"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Prihvati pozivnicu"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Ukloniti"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopiraj u osobni radni prostor"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Otkvači datoteku"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Isprobajte tldraw SDK"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Stvori datoteku"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Postavke radnog prostora"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Danas"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Radni prostor mora imati barem jednog vlasnika. Prvo nekome drugome dajte status vlasnika."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Naziv radnog prostora"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Pozvani ste da se pridružite "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Izradite besplatni račun za nastavak."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Prijenos nije uspio"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Moje datoteke"
+      "value": "Dobrodošli u vaš radni prostor"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Pretraživanje..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Regeneriranjem se trenutna pozivnica zamjenjuje novom. Svatko tko koristi staru vezu trebat će novu za pridruživanje."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Uključi vezu na trenutnu datoteku"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Ponovno generiraj poveznicu za poziv"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Urednik"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Upravljati"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Kontaktirajte vlasnika da zatražite pristup."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Napustite radni prostor…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Nije moguće poništiti objavu datoteke."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ovo je vaš privatni radni prostor. Izradite novi radni prostor kako biste pozvali suigrače."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Izradite radni prostor"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Moj radni prostor"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Poništi ovu vezu i stvori novu."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "Dostupna je nova verzija tldraw-a. Ponovno učitajte stranicu za nastavak."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Nova datoteka"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Molimo ponovno učitajte stranicu"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Nisu pronađene datoteke"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Molimo ponovno učitajte"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw je besplatna online bijela ploča. Izradite račun za spremanje datoteka i suradnju s prijateljima."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Preuzmi"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Novi radni prostor"
     }
   ],
   "815e116a2e": [
@@ -703,22 +765,10 @@
       "value": "Ova pozivnica je istekla"
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Ne hvala"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Provjerite svoju e-poštu za kod za potvrdu."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Dom"
     }
   ],
   "8eb2c00e96": [
@@ -745,22 +795,10 @@
       "value": "Preimenovati"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopiraj u moje datoteke"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Prijava putem Googlea"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Izbriši radni prostor…"
     }
   ],
   "95d2109dc8": [
@@ -785,6 +823,12 @@
     {
       "type": 0,
       "value": "Svjetlo"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Obriši pretragu"
     }
   ],
   "9b33f5c63c": [
@@ -837,6 +881,26 @@
       "value": "Isključi se"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Pozvani ste da se pridružite "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +941,12 @@
     {
       "type": 0,
       "value": "Pošalji"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Ostavite"
     }
   ],
   "a6cc403d56": [
@@ -933,6 +1003,12 @@
       "value": "Gostujući korisnik"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenerirati"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -943,6 +1019,12 @@
     {
       "type": 0,
       "value": "E-mail adresa"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Omogući pozivnice"
     }
   ],
   "b6d4223e60": [
@@ -967,6 +1049,12 @@
     {
       "type": 0,
       "value": "Prijavite se za dijeljenje"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Pozivnice su onemogućene"
     }
   ],
   "bbbcefd7ce": [
@@ -1025,6 +1113,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Upravljanje radnim prostorom"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1075,10 +1169,10 @@
       "value": "Pozvati"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nova ploča"
+      "value": "Kopiraj u moj radni prostor"
     }
   ],
   "c87aacf567": [
@@ -1091,12 +1185,6 @@
     {
       "type": 0,
       "value": "Odbaciti"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Uštedjeti"
     }
   ],
   "cceaefbc20": [
@@ -1223,12 +1311,6 @@
       "value": "U REDU"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Pozovi članove"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1247,28 +1329,10 @@
       "value": "Uvjeti usluge"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Prihvati i pridruži se radnom prostoru"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "ili"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Pozvani ste da se pridružite radnom prostoru:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Opasna zona"
     }
   ],
   "ea4788705e": [
@@ -1417,6 +1481,12 @@
     {
       "type": 0,
       "value": " iz ovog radnog prostora?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Izradite besplatni račun za spremanje datoteka i crtanje sa suigračima."
     }
   ],
   "ffcd73e997": [

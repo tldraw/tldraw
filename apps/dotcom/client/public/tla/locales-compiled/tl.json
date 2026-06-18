@@ -5,6 +5,12 @@
       "value": "I-export"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Tanggapin ang imbitasyon"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Alisin"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopyahin sa personal na workspace"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "I-unpin ang file"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Subukan ang tldraw SDK"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Lumikha ng file"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Mga setting ng workspace"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Ngayong araw"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Dapat mayroong kahit isang may-ari sa isang workspace. Gawin munang may-ari ang ibang tao."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Pangalan ng lugar ng trabaho"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Inaanyayahan kang sumali sa "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Gumawa ng libreng account para magpatuloy."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Nabigo ang pag-upload"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Aking mga file"
+      "value": "Maligayang pagdating sa iyong workspace"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Maghanap..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Ang muling pagbuo ay papalitan ang kasalukuyang link ng imbitasyon ng bago. Kakailanganin ng sinumang gumagamit ng lumang link ang bago para makasali."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Isama ang link sa kasalukuyang file"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Buuin muli ang link ng imbitasyon"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Pamahalaan"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Makipag-ugnayan sa may-ari para humiling ng access."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Umalis sa workspace…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Hindi ma-unpublish ang file."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ito ang iyong pribadong workspace. Gumawa ng bagong workspace para imbitahan ang mga kasamahan sa koponan."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Gumawa ng workspace"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Ang aking lugar ng trabaho"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Bawiin ang link na ito at gumawa ng bago."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "Available ang bagong bersyon ng tldraw. Paki-reload ang page para magpatuloy."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Bagong file"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Paki-reload ang page"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Walang nakitang mga file"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Paki-reload"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "Ang tldraw ay isang libreng online na whiteboard. Gumawa ng account para i-save ang iyong mga file at magtrabaho kasama ang iyong mga kaibigan."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "I-download"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Bagong lugar ng trabaho"
     }
   ],
   "815e116a2e": [
@@ -703,22 +765,10 @@
       "value": "Nag-expire na ang link ng imbitasyon na ito"
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Hindi salamat"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Tingnan ang iyong email para sa isang verification code."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Tahanan"
     }
   ],
   "8eb2c00e96": [
@@ -745,22 +795,10 @@
       "value": "Palitan ang pangalan"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopyahin sa aking mga file"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Mag-sign in gamit ang Google"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Burahin ang workspace…"
     }
   ],
   "95d2109dc8": [
@@ -785,6 +823,12 @@
     {
       "type": 0,
       "value": "Liwanag"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "I-clear ang paghahanap"
     }
   ],
   "9b33f5c63c": [
@@ -837,6 +881,26 @@
       "value": "Mag-opt out"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Inaanyayahan kang sumali sa "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +941,12 @@
     {
       "type": 0,
       "value": "Isumite"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Umalis"
     }
   ],
   "a6cc403d56": [
@@ -933,6 +1003,12 @@
       "value": "Guest user"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Magbagong-buhay"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -943,6 +1019,12 @@
     {
       "type": 0,
       "value": "Email address"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Paganahin ang mga imbitasyon"
     }
   ],
   "b6d4223e60": [
@@ -967,6 +1049,12 @@
     {
       "type": 0,
       "value": "Mag-sign in upang ibahagi"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Hindi pinagana ang mga imbitasyon"
     }
   ],
   "bbbcefd7ce": [
@@ -1037,6 +1125,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Pamahalaan ang workspace"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1087,10 +1181,10 @@
       "value": "Mag-imbita"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Bagong board"
+      "value": "Kopyahin sa aking workspace"
     }
   ],
   "c87aacf567": [
@@ -1103,12 +1197,6 @@
     {
       "type": 0,
       "value": "I-dismiss"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "I-save"
     }
   ],
   "cceaefbc20": [
@@ -1235,12 +1323,6 @@
       "value": "Sige"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Mag-imbita ng mga miyembro"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1259,28 +1341,10 @@
       "value": "Mga tuntunin ng serbisyo"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Tanggapin at sumali sa workspace"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "o"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Inaanyayahan kang sumali sa workspace:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Danger zone"
     }
   ],
   "ea4788705e": [
@@ -1348,7 +1412,7 @@
   "ef53538ae4": [
     {
       "type": 0,
-      "value": "Mga miyembro"
+      "value": "Mga Miyembro"
     }
   ],
   "ef7de3f485": [
@@ -1429,6 +1493,12 @@
     {
       "type": 0,
       "value": " mula sa workspace na ito?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Gumawa ng libreng account para i-save ang iyong mga file at makipaglaro sa iyong mga kasamahan sa team gamit ang tldraw."
     }
   ],
   "ffcd73e997": [

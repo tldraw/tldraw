@@ -5,6 +5,12 @@
       "value": "Exporta"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accepta la invitació"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Elimina"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copia a l'espai de treball personal"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Desfixar fitxer"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Prova el SDK de tldraw"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Crea un fitxer"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Configuració de l'espai de treball"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Avui"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Un espai de treball ha de tenir com a mínim un propietari. Primer, fes que algú altre sigui el propietari."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Nom de l'espai de treball"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Has estat convidat a unir-te a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Crea un compte gratuït per continuar."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "La càrrega ha fallat"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Els meus fitxers"
+      "value": "Benvingut/da al teu espai de treball"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Cerca..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "La regeneració substitueix l'enllaç d'invitació actual per un de nou. Tothom qui utilitzi l'enllaç antic necessitarà el nou per unir-s'hi."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Inclou un enllaç al fitxer actual"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Regenera l'enllaç d'invitació"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Gestiona"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Contacta amb el propietari per sol·licitar accés."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Sortir de l'espai de treball…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "No es pot anul·lar la publicació del fitxer."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Aquest és el teu espai de treball privat. Crea'n un de nou per convidar els companys d'equip."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Crea un espai de treball"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "El meu espai de treball"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Revoca aquest enllaç i crea'n un de nou."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "Hi ha disponible una nova versió de tldraw. Torneu a carregar la pàgina per continuar."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Fitxer nou"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Torneu a carregar la pàgina"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "No s'han trobat fitxers"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Torneu a carregar"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw és una pissarra blanca en línia gratuïta. Crea un compte per desar els teus fitxers i treballar amb els teus amics."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Descarrega"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nou espai de treball"
     }
   ],
   "815e116a2e": [
@@ -703,22 +765,10 @@
       "value": "Aquest enllaç d'invitació ha caducat"
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "No, gràcies."
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Revisa el teu correu electrònic per obtenir un codi de verificació."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Inici"
     }
   ],
   "8eb2c00e96": [
@@ -745,22 +795,10 @@
       "value": "Canvia el nom"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copia als meus fitxers"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Inicia la sessió amb Google"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Suprimeix l'espai de treball…"
     }
   ],
   "95d2109dc8": [
@@ -785,6 +823,12 @@
     {
       "type": 0,
       "value": "Llum"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Esborra la cerca"
     }
   ],
   "9b33f5c63c": [
@@ -837,6 +881,26 @@
       "value": "Desactivar"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Has estat convidat a unir-te a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +941,12 @@
     {
       "type": 0,
       "value": "Envia"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Marxar"
     }
   ],
   "a6cc403d56": [
@@ -933,6 +1003,12 @@
       "value": "Usuari convidat"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenerar"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -943,6 +1019,12 @@
     {
       "type": 0,
       "value": "Adreça electrònica"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Activa les invitacions"
     }
   ],
   "b6d4223e60": [
@@ -967,6 +1049,12 @@
     {
       "type": 0,
       "value": "Inicia la sessió per compartir"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Les invitacions estan desactivades"
     }
   ],
   "bbbcefd7ce": [
@@ -1021,6 +1109,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Gestiona l'espai de treball"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1071,10 +1165,10 @@
       "value": "Convidar"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nova junta"
+      "value": "Copia al meu espai de treball"
     }
   ],
   "c87aacf567": [
@@ -1087,12 +1181,6 @@
     {
       "type": 0,
       "value": "Ignora"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Desa"
     }
   ],
   "cceaefbc20": [
@@ -1219,12 +1307,6 @@
       "value": "D'acord"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Convida membres"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1243,28 +1325,10 @@
       "value": "Condicions del servei"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Accepta i uneix-te a l'espai de treball"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "o"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Has estat convidat a unir-te a l'espai de treball:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Zona de perill"
     }
   ],
   "ea4788705e": [
@@ -1413,6 +1477,12 @@
     {
       "type": 0,
       "value": " d'aquest espai de treball?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Crea un compte gratuït per desar els teus fitxers i jugar a tldraw amb els teus companys d'equip."
     }
   ],
   "ffcd73e997": [

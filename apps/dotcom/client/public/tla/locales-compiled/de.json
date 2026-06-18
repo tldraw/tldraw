@@ -5,6 +5,12 @@
       "value": "Exportieren"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Einladung annehmen"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Entfernen"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "In den persönlichen Arbeitsbereich kopieren"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Datei aufheben"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Testen Sie das tldraw SDK"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Datei erstellen"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Arbeitsbereichseinstellungen"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Heute"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Ein Arbeitsbereich muss mindestens einen Eigentümer haben. Weisen Sie zunächst jemand anderen den Eigentümer zu."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Arbeitsbereichsname"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Sie wurden eingeladen, dem "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " beizutreten. Erstellen Sie ein kostenloses Konto, um fortzufahren."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Hochladen fehlgeschlagen"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Meine Dateien"
+      "value": "Willkommen in Ihrem Arbeitsbereich"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Suchen..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Durch die Neugenerierung wird der aktuelle Einladungslink durch einen neuen ersetzt. Alle, die den alten Link verwenden, benötigen den neuen, um beitreten zu können."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Link zur aktuellen Datei einfügen"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Einladungslink neu generieren"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Verwalten"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Kontaktieren Sie den Eigentümer, um Zugriff anzufordern."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Verlassen Sie den Arbeitsbereich…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Die Veröffentlichung für diese Datei kann nicht aufgehoben werden."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Dies ist Ihr privater Arbeitsbereich. Erstellen Sie einen neuen Arbeitsbereich, um Teammitglieder einzuladen."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Einen Arbeitsbereich erstellen"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Mein Arbeitsbereich"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Diese Verknüpfung löschen und eine neue erstellen."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "Eine neue Version von tldraw ist verfügbar. Bitte laden Sie die Seite neu, um fortzufahren."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Neue Datei"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Bitte laden Sie die Seite neu"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Keine Dateien gefunden"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Bitte neu laden"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw ist ein kostenloses Online-Whiteboard. Erstelle ein Konto, um deine Dateien zu speichern und mit deinen Freunden zusammenzuarbeiten."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Herunterladen"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Neuer Arbeitsbereich"
     }
   ],
   "815e116a2e": [
@@ -699,22 +761,10 @@
       "value": "Dieser Einladungslink ist abgelaufen."
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Nein danke"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Prüfen Sie Ihr E-Mail-Postfach auf einen Bestätigungscode."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Heim"
     }
   ],
   "8eb2c00e96": [
@@ -741,22 +791,10 @@
       "value": "Umbenennen"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "In meine Dateien kopieren"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Mit Google anmelden"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Arbeitsbereich löschen…"
     }
   ],
   "95d2109dc8": [
@@ -781,6 +819,12 @@
     {
       "type": 0,
       "value": "Hell"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Suche löschen"
     }
   ],
   "9b33f5c63c": [
@@ -833,6 +877,26 @@
       "value": "Opt-out"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Sie wurden eingeladen, dem "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " beizutreten."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -873,6 +937,12 @@
     {
       "type": 0,
       "value": "Einreichen"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Verlassen"
     }
   ],
   "a6cc403d56": [
@@ -929,6 +999,12 @@
       "value": "Gastbenutzer"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenerieren"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -939,6 +1015,12 @@
     {
       "type": 0,
       "value": "E-Mail-Adresse"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Einladungen aktivieren"
     }
   ],
   "b6d4223e60": [
@@ -963,6 +1045,12 @@
     {
       "type": 0,
       "value": "Zum Teilen anmelden"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Einladungen sind deaktiviert"
     }
   ],
   "bbbcefd7ce": [
@@ -1021,6 +1109,12 @@
       "value": " geteilt"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Arbeitsbereich verwalten"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1071,10 +1165,10 @@
       "value": "Einladen"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Neues Board"
+      "value": "In meinen Arbeitsbereich kopieren"
     }
   ],
   "c87aacf567": [
@@ -1087,12 +1181,6 @@
     {
       "type": 0,
       "value": "Schließen"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Speichern"
     }
   ],
   "cceaefbc20": [
@@ -1219,12 +1307,6 @@
       "value": "OK"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Mitglieder einladen"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1243,28 +1325,10 @@
       "value": "Servicebedingungen"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Akzeptieren und dem Arbeitsbereich beitreten"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "oder"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Sie wurden eingeladen, dem Arbeitsbereich beizutreten:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Gefahrenzone"
     }
   ],
   "ea4788705e": [
@@ -1413,6 +1477,12 @@
     {
       "type": 0,
       "value": " wirklich aus diesem Arbeitsbereich entfernen?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Erstelle ein kostenloses Konto, um deine Dateien zu speichern und mit deinen Teamkollegen zu zeichnen."
     }
   ],
   "ffcd73e997": [

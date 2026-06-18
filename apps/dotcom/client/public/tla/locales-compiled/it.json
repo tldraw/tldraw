@@ -5,6 +5,12 @@
       "value": "Esporta"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accetta l'invito"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Rimuovere"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copia nella tua area di lavoro personale"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Sblocca il file"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Prova l'SDK tldraw"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Crea file"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Impostazioni dell'area di lavoro"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Oggi"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Uno spazio di lavoro deve avere almeno un proprietario. Prima di tutto, assegna il proprietario a qualcun altro."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Nome dell'area di lavoro"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Hai ricevuto un invito a unirti a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Crea un account gratuito per continuare."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Caricamento non riuscito"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "I miei file"
+      "value": "Benvenuto nel tuo spazio di lavoro"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Ricerca..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "La rigenerazione sostituisce il link di invito corrente con uno nuovo. Chiunque utilizzi il vecchio link dovrà utilizzare quello nuovo per partecipare."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Includi il collegamento al file corrente"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Rigenera il link di invito"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Maneggio"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Contatta il proprietario per richiedere l'accesso."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Lascia la postazione di lavoro…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Impossibile annullare la pubblicazione del file."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Questo è il tuo spazio di lavoro privato. Crea un nuovo spazio di lavoro per invitare i tuoi colleghi."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Crea uno spazio di lavoro"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Il mio spazio di lavoro"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Revoca questo collegamento e creane uno nuovo."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "È disponibile una nuova versione di tldraw. Ricarica la pagina per continuare."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Nuovo file"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Ricarica la pagina"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Nessun file trovato"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Per favore ricarica"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw è una lavagna online gratuita. Crea un account per salvare i tuoi file e lavorare con i tuoi amici."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Scaricamento"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nuovo spazio di lavoro"
     }
   ],
   "815e116a2e": [
@@ -703,22 +765,10 @@
       "value": "Questo link di invito è scaduto."
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "No grazie"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Controlla la tua email per un codice di verifica."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Casa"
     }
   ],
   "8eb2c00e96": [
@@ -745,22 +795,10 @@
       "value": "Rinomina"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copia nei miei file"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Accedi con Google"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Elimina l'area di lavoro…"
     }
   ],
   "95d2109dc8": [
@@ -785,6 +823,12 @@
     {
       "type": 0,
       "value": "Chiaro"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Cancella ricerca"
     }
   ],
   "9b33f5c63c": [
@@ -837,6 +881,26 @@
       "value": "Decidere di uscire"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Sei stato invitato a unirti a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +941,12 @@
     {
       "type": 0,
       "value": "Invia"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Partire"
     }
   ],
   "a6cc403d56": [
@@ -933,6 +1003,12 @@
       "value": "Utente ospite"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Rigenerare"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -943,6 +1019,12 @@
     {
       "type": 0,
       "value": "Indirizzo e-mail"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Abilita gli inviti"
     }
   ],
   "b6d4223e60": [
@@ -967,6 +1049,12 @@
     {
       "type": 0,
       "value": "Accedi per condividere"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Gli inviti sono disabilitati"
     }
   ],
   "bbbcefd7ce": [
@@ -1021,6 +1109,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Gestisci l'area di lavoro"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1071,10 +1165,10 @@
       "value": "Invita"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nuova tavola"
+      "value": "Copia nella mia area di lavoro"
     }
   ],
   "c87aacf567": [
@@ -1087,12 +1181,6 @@
     {
       "type": 0,
       "value": "Chiudi"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Salva"
     }
   ],
   "cceaefbc20": [
@@ -1219,12 +1307,6 @@
       "value": "OK"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Invita i membri"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1243,28 +1325,10 @@
       "value": "Termini di servizio"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Accetta e unisciti allo spazio di lavoro"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "O"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Hai ricevuto un invito ad accedere allo spazio di lavoro:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Zona pericolosa"
     }
   ],
   "ea4788705e": [
@@ -1413,6 +1477,12 @@
     {
       "type": 0,
       "value": " da quest'area di lavoro?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Crea un account gratuito per salvare i tuoi file e disegnare insieme ai tuoi compagni di squadra."
     }
   ],
   "ffcd73e997": [

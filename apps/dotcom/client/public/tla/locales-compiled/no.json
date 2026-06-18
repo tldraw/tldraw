@@ -5,6 +5,12 @@
       "value": "Eksport"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Godta invitasjonen"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Fjerne"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopier til personlig arbeidsområde"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Løsne filen"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Prøv tldraw SDK"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Opprett fil"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Innstillinger for arbeidsområde"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "I dag"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Et arbeidsområde må ha minst én eier. Gjør først noen andre til eier."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Navn på arbeidsområde"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Du har blitt invitert til å bli med i "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Opprett en gratis konto for å fortsette."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Opplasting mislyktes"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Mine filer"
+      "value": "Velkommen til arbeidsplassen din"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Søk..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Regenerering erstatter den nåværende invitasjonslenken med en ny. Alle som bruker den gamle lenken trenger den nye for å bli med."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Inkluder lenke til gjeldende fil"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Generer invitasjonslenken på nytt"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Redaktør"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Administrer"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Kontakt eieren for å be om tilgang."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Forlat arbeidsområdet …"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Kan ikke oppheve publiseringen av filen."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Dette er ditt private arbeidsområde. Opprett et nytt arbeidsområde for å invitere lagkamerater."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Opprett et arbeidsområde"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Mitt arbeidsområde"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Tilbakekalle denne lenken og opprett en ny."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "En ny versjon av tldraw er tilgjengelig. Last inn siden på nytt for å fortsette."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Ny fil"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Last inn siden på nytt"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Ingen filer funnet"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Last inn på nytt"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw er en gratis tavle på nett. Opprett en konto for å lagre filene dine og samarbeide med vennene dine."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Last ned"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nytt arbeidsområde"
     }
   ],
   "815e116a2e": [
@@ -703,22 +765,10 @@
       "value": "Denne invitasjonslenken er utløpt"
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Nei takk"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Sjekk e-posten din for en bekreftelseskode."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Hjem"
     }
   ],
   "8eb2c00e96": [
@@ -745,22 +795,10 @@
       "value": "Gi nytt navn"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopier til filene mine"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Logg inn med Google"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Slett arbeidsområde…"
     }
   ],
   "95d2109dc8": [
@@ -785,6 +823,12 @@
     {
       "type": 0,
       "value": "Lys"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Tøm søk"
     }
   ],
   "9b33f5c63c": [
@@ -837,6 +881,26 @@
       "value": "Velg bort"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Du har blitt invitert til å bli med i "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +941,12 @@
     {
       "type": 0,
       "value": "Send inn"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Forlate"
     }
   ],
   "a6cc403d56": [
@@ -933,6 +1003,12 @@
       "value": "Gjestebruker"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenerer"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -943,6 +1019,12 @@
     {
       "type": 0,
       "value": "E-postadresse"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Aktiver invitasjoner"
     }
   ],
   "b6d4223e60": [
@@ -967,6 +1049,12 @@
     {
       "type": 0,
       "value": "Logg inn for å dele"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Invitasjoner er deaktivert"
     }
   ],
   "bbbcefd7ce": [
@@ -1021,6 +1109,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Administrer arbeidsområde"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1071,10 +1165,10 @@
       "value": "Invitere"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nytt styre"
+      "value": "Kopier til arbeidsområdet mitt"
     }
   ],
   "c87aacf567": [
@@ -1087,12 +1181,6 @@
     {
       "type": 0,
       "value": "Lukk"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Spare"
     }
   ],
   "cceaefbc20": [
@@ -1219,12 +1307,6 @@
       "value": "OK"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Inviter medlemmer"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1243,28 +1325,10 @@
       "value": "Vilkår for bruk"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Godta og bli med i arbeidsområdet"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "eller"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Du har blitt invitert til å bli med i arbeidsområdet:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Faresone"
     }
   ],
   "ea4788705e": [
@@ -1413,6 +1477,12 @@
     {
       "type": 0,
       "value": " fra dette arbeidsområdet?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Opprett en gratis konto for å lagre filene dine og tegne med lagkameratene dine."
     }
   ],
   "ffcd73e997": [

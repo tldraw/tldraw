@@ -5,6 +5,9 @@
   "0095a9fa74": {
     "translation": "Eksport"
   },
+  "00b177e080": {
+    "translation": "Terima jemputan"
+  },
   "03b3e13197": {
     "translation": "Seret fail ke dalam bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu pengguna."
   },
@@ -47,14 +50,14 @@
   "1063e38cb5": {
     "translation": "Alih keluar"
   },
+  "10fb1df194": {
+    "translation": "Salin ke ruang kerja peribadi"
+  },
   "110a4b01be": {
     "translation": "Terbitkan"
   },
   "12a6766ba1": {
     "translation": "Nyahsemat fail"
-  },
-  "12c8a9838c": {
-    "translation": "Cuba tldraw SDK"
   },
   "13ddd375ad": {
     "translation": "Eksport sebagai"
@@ -62,17 +65,20 @@
   "181b90f889": {
     "translation": "Buat fail"
   },
-  "1d2591253e": {
-    "translation": "Tetapan ruang kerja"
-  },
   "1da2e8106b": {
     "translation": "Ralat yang tidak dijangka berlaku."
   },
   "1dd1c5fb7f": {
     "translation": "Hari ini"
   },
+  "1ffd709937": {
+    "translation": "Ruang kerja mesti mempunyai sekurang-kurangnya seorang pemilik. Jadikan orang lain sebagai pemilik terlebih dahulu."
+  },
   "21f66c9c00": {
     "translation": "Nama ruang kerja"
+  },
+  "23dcace54a": {
+    "translation": "Anda telah dijemput untuk menyertai <strong>{workspaceName}</strong>. Cipta akaun percuma untuk meneruskan."
   },
   "250ddea65c": {
     "translation": "Mengenai tldraw"
@@ -80,11 +86,20 @@
   "299cb00a7a": {
     "translation": "Muat naik gagal"
   },
-  "2c3ef76333": {
-    "translation": "Fail saya"
+  "2a1167f869": {
+    "translation": "Selamat datang ke ruang kerja anda"
+  },
+  "2a37324bb4": {
+    "translation": "Cari..."
+  },
+  "2de510be71": {
+    "translation": "Penjanaan semula akan menggantikan pautan jemputan semasa dengan yang baharu. Sesiapa sahaja yang menggunakan pautan lama memerlukan pautan baharu untuk menyertai."
   },
   "2e2b3c700b": {
     "translation": "Sertakan pautan ke fail semasa"
+  },
+  "2e9856a31e": {
+    "translation": "Jana semula pautan jemputan"
   },
   "31246941ad": {
     "translation": "Anda perlu log masuk untuk melihat fail ini."
@@ -100,6 +115,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "34e34c43ec": {
+    "translation": "Urus"
   },
   "375396d6e5": {
     "translation": "Alih keluar ahli"
@@ -125,9 +143,6 @@
   "42e53c47c1": {
     "translation": "Hubungi pemilik untuk meminta akses."
   },
-  "44680c1fa7": {
-    "translation": "Tinggalkan ruang kerja…"
-  },
   "44db318ee5": {
     "translation": "Dapatkan bantuan tentang Discord"
   },
@@ -142,6 +157,9 @@
   },
   "47f493a590": {
     "translation": "Pin fail"
+  },
+  "4908687e50": {
+    "translation": "Adakah anda pasti mahu melupakan fail ini?"
   },
   "49ee308734": {
     "translation": "Nama"
@@ -158,6 +176,9 @@
   "50db1b7e1e": {
     "translation": "Tidak dapat menyahterbitkan fail."
   },
+  "51317dcad5": {
+    "translation": "Ini ruang kerja peribadi anda. Cipta ruang kerja baharu untuk menjemput rakan sepasukan."
+  },
   "517bb809d9": {
     "translation": "Menu halaman"
   },
@@ -173,6 +194,9 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5638176be5": {
+    "translation": "Cipta ruang kerja"
+  },
   "5677e381d2": {
     "translation": "Kami menggunakan kuki analitik untuk menjadikan tldraw lebih baik."
   },
@@ -187,9 +211,6 @@
   },
   "5bff3c9c88": {
     "translation": "Ruang kerja saya"
-  },
-  "5c6fe42bc2": {
-    "translation": "Batalkan pautan ini dan buat yang baharu."
   },
   "5d04a002ea": {
     "translation": "Tidak dapat menyambung"
@@ -221,6 +242,9 @@
   "6637a98151": {
     "translation": "Versi baharu tldraw tersedia. Sila muat semula halaman untuk meneruskan."
   },
+  "681e10aecb": {
+    "translation": "Fail baharu"
+  },
   "6832ac5936": {
     "translation": "Masukkan alamat e-mel anda"
   },
@@ -248,6 +272,9 @@
   "7408cf0d7b": {
     "translation": "Sila muat semula halaman"
   },
+  "74ff4bad28": {
+    "translation": "Tiada fail ditemui"
+  },
   "752b79f137": {
     "translation": "Anda telah mencapai bilangan maksimum fail. Anda perlu memadam fail lama sebelum membuat yang baharu."
   },
@@ -262,12 +289,6 @@
   },
   "764671e008": {
     "translation": "Berbual dengan kami di Discord"
-  },
-  "4908687e50": {
-    "translation": "Adakah anda pasti mahu melupakan fail ini?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw ialah papan putih dalam talian percuma. Buat akaun untuk menyimpan fail anda dan bekerjasama dengan rakan anda."
   },
   "777f9e90cf": {
     "translation": "Permintaan tidak sah."
@@ -305,6 +326,9 @@
   "801ab24683": {
     "translation": "Muat turun"
   },
+  "8030793ce3": {
+    "translation": "Ruang kerja baharu"
+  },
   "815e116a2e": {
     "translation": "Mempunyai pepijat, isu atau idea untuk tldraw? Beritahu kami! Isi borang ini dan kami akan membuat susulan melalui e-mel jika perlu. Anda juga boleh <discord>berbual dengan kami di Discord</discord> atau <github>menyerahkan isu pada GitHub</github>."
   },
@@ -326,14 +350,8 @@
   "88bf6ab42c": {
     "translation": "Pautan jemputan ini telah tamat tempoh"
   },
-  "8ad4303b83": {
-    "translation": "Tidak terima kasih"
-  },
   "8c2d3d730c": {
     "translation": "Semak e-mel anda untuk mendapatkan kod pengesahan."
-  },
-  "8cf04a9734": {
-    "translation": "Laman Utama"
   },
   "8eb2c00e96": {
     "translation": "Dikongsi dengan anda"
@@ -347,14 +365,8 @@
   "904a830405": {
     "translation": "Namakan semula"
   },
-  "91e49bb0eb": {
-    "translation": "Salin ke fail saya"
-  },
   "95aacd4d4a": {
     "translation": "Log masuk dengan Google"
-  },
-  "95b56f4cd6": {
-    "translation": "Padam ruang kerja…"
   },
   "95d2109dc8": {
     "translation": "Bina dengan tldraw SDK"
@@ -367,6 +379,9 @@
   },
   "9914a0ce04": {
     "translation": "Cahaya"
+  },
+  "9983381c21": {
+    "translation": "Kosongkan carian"
   },
   "9b33f5c63c": {
     "translation": "Tidak menerima kod? <resend>Hantar semula</resend>."
@@ -385,6 +400,9 @@
   },
   "9e93c98d88": {
     "translation": "Pilih keluar"
+  },
+  "a078644c42": {
+    "translation": "Anda telah dijemput untuk menyertai <strong>{workspaceName}</strong>."
   },
   "a0da245992": {
     "translation": "Eksport kandungan sebagai fail .tldr: Pilih 'Muat turun' dalam menu kiri atas."
@@ -406,6 +424,9 @@
   },
   "a4d3b161ce": {
     "translation": "Hantar"
+  },
+  "a52945dbe2": {
+    "translation": "Tinggalkan"
   },
   "a6cc403d56": {
     "translation": "Sesiapa sahaja yang mempunyai pautan"
@@ -432,11 +453,17 @@
   "b028909917": {
     "translation": "Pengguna tetamu"
   },
+  "b2326c3a34": {
+    "translation": "Menjana semula"
+  },
   "b2c3c2e30c": {
     "translation": "Fail sudah penuh"
   },
   "b357b524e7": {
     "translation": "Alamat e-mel"
+  },
+  "b48becc771": {
+    "translation": "Dayakan jemputan"
   },
   "b6d4223e60": {
     "translation": "Log masuk"
@@ -450,11 +477,17 @@
   "ba0318cb81": {
     "translation": "Log masuk untuk berkongsi"
   },
+  "bbaaf8b6bf": {
+    "translation": "Jemputan dilumpuhkan"
+  },
   "bbbcefd7ce": {
     "translation": "{total, plural, other {Memuat naik {uploaded} daripada {total} fail .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Dikongsi oleh {ownerName}"
+  },
+  "c17466812d": {
+    "translation": "Urus ruang kerja"
   },
   "c2276c9127": {
     "translation": "Ketahui lebih lanjut tentang perkongsian."
@@ -474,17 +507,14 @@
   "c6a00f137b": {
     "translation": "Jemput"
   },
-  "c7d7403714": {
-    "translation": "Papan baharu"
+  "c6f16003f2": {
+    "translation": "Salin ke ruang kerja saya"
   },
   "c87aacf567": {
     "translation": "Log keluar"
   },
   "c8a59e7135": {
     "translation": "Ketepikan"
-  },
-  "c9cc8cce24": {
-    "translation": "Jimat"
   },
   "cceaefbc20": {
     "translation": "Kongsi fail ini"
@@ -534,9 +564,6 @@
   "e0aa021e21": {
     "translation": "OK"
   },
-  "e0c88179b3": {
-    "translation": "Jemput ahli"
-  },
   "e2198d6228": {
     "translation": "Salin pautan jemputan"
   },
@@ -546,17 +573,8 @@
   "e404559826": {
     "translation": "Syarat perkhidmatan"
   },
-  "e615d52512": {
-    "translation": "Terima dan sertai ruang kerja"
-  },
   "e81c4e4f2b": {
     "translation": "atau"
-  },
-  "e9e0f16850": {
-    "translation": "Anda telah dijemput untuk menyertai ruang kerja:"
-  },
-  "ea0626ac5a": {
-    "translation": "Zon bahaya"
   },
   "ea4788705e": {
     "translation": "Batal"
@@ -583,7 +601,7 @@
     "translation": "Baca <a>dasar kuki</a> kami untuk mengetahui lebih lanjut."
   },
   "ef53538ae4": {
-    "translation": "ahli"
+    "translation": "Ahli"
   },
   "ef7de3f485": {
     "translation": "dipilih"
@@ -620,6 +638,9 @@
   },
   "ff2fefd3c6": {
     "translation": "Adakah anda pasti mahu mengalih keluar {name} daripada ruang kerja ini?"
+  },
+  "ff52811b98": {
+    "translation": "Cipta akaun percuma untuk menyimpan fail anda dan tldraw bersama rakan sepasukan anda."
   },
   "ffcd73e997": {
     "translation": "Import fail…"
