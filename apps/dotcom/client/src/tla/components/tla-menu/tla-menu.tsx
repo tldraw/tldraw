@@ -177,7 +177,12 @@ export function TlaMenuSelect<T extends string>({
 	return (
 		<div
 			className={styles.menuSelectWrapper}
-			onClickCapture={(e) => {
+			// Stop clicks from reaching ancestor handlers (e.g. a background-dismiss),
+			// but use the bubble phase, not capture: Radix Select opens on `click` for
+			// touch/pen input (it only opens on `pointerdown` for mouse). Capturing here
+			// would swallow that click before it reaches the trigger, so the menu would
+			// never open on iOS. Bubbling lets the trigger handle the click first.
+			onClick={(e) => {
 				e.stopPropagation()
 			}}
 		>
