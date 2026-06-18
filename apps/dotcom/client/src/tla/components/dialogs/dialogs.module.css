@@ -9,6 +9,7 @@
 	flex-direction: column;
 	gap: var(--tl-space-4);
 	max-width: 500px;
+	overflow: auto;
 }
 
 /* ----------------- Feedback dialog ---------------- */
@@ -201,7 +202,10 @@
 /* ----------------- Group Settings Dialog ---------------- */
 
 .workspaceSettingsBody {
+	padding-top: 0px;
 	max-width: 360px;
+	max-height: max(420px, 80%);
+	min-height: 420px;
 	width: calc(100vw - 48px);
 }
 
@@ -227,7 +231,7 @@
 	margin: 8px 0 0;
 	text-align: center;
 	text-wrap: balance;
-	color: var(--tla-color-text-3);
+	color: var(--tla-color-text-1);
 }
 
 .membersList {
@@ -287,6 +291,14 @@
 	padding: 16px 12px 0;
 	margin: 0 -12px;
 	max-height: calc(70vh - 280px);
+	/* Hidden by default so no scrollbar shows when the content fits. The component
+	   measures the content and adds .scrollable to flip overflow to auto only when it
+	   actually overflows — avoids a permanent scrollbar/gutter on systems that always
+	   render scrollbars. */
+	overflow-y: hidden;
+}
+
+.tabPage.scrollable {
 	overflow-y: auto;
 }
 
@@ -320,7 +332,7 @@
 }
 
 .inlineButton:disabled {
-	opacity: 0.5;
+	color: var(--tla-color-text-3);
 	cursor: not-allowed;
 }
 
