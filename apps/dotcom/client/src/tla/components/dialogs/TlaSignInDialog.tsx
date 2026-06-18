@@ -115,7 +115,9 @@ function TlaEnterEmailStep({
 	const [signInResetKey, setSignInResetKey] = useState(0)
 	useEffect(() => {
 		function handlePageShow(e: PageTransitionEvent) {
+			console.log('handlePageShow', e)
 			if (e.persisted) {
+				console.log('handlePageShow persisted')
 				setSignInResetKey((k) => k + 1)
 			}
 		}
