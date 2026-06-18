@@ -109,19 +109,25 @@ function TlaEnterEmailStep({
 
 	// When the user starts the Google flow we redirect to Google's OAuth page.
 	// Pressing the browser back button restores this page from the bfcache, which
-	// restores the in-memory Clerk client with its sign-in attempt frozen
-	// mid-redirect (clerk.client.signIn.status stays "needs_first_factor"). Clerk
-	// Elements derives the active step from that status, so the "Sign in with
-	// Google" button stops responding — and remounting SignIn.Root can't help,
-	// because the fresh state machine reads the same frozen clerk-js singleton.
-	// A full reload re-initialises Clerk with a clean client. See #9103.
+	// also restores Clerk's in-memory sign-in resource frozen mid-redirect with
+	// status "needs_first_factor". Clerk Elements routes from that status, so it
+	// lands on the first-factor step instead of "start" and the "Sign in with
+	// Google" button goes dead. Remounting SignIn.Root alone can't fix it: the
+	// fresh state machine reads the same frozen clerk-js resource. So on bfcache
+	// restore we reset the resource (back to status null) and bump a key to
+	// remount SignIn.Root, which then routes back to the "start" step. See #9103.
+	const [signInResetKey, setSignInResetKey] = useState(0)
 	useEffect(() => {
 		function handlePageShow(e: PageTransitionEvent) {
-			if (e.persisted) window.location.reload()
+			if (!e.persisted) return
+			// `resetSignIn` exists on clerk-js' Client but isn't on the public type.
+			const clientWithReset = client as unknown as { resetSignIn?(): void }
+			clientWithReset.resetSignIn?.()
+			setSignInResetKey((k) => k + 1)
 		}
 		window.addEventListener('pageshow', handlePageShow)
 		return () => window.removeEventListener('pageshow', handlePageShow)
-	}, [])
+	}, [client])
 
 	const [state, setState] = useState<{
 		identifier: string
@@ -220,7 +226,7 @@ function TlaEnterEmailStep({
 					</>
 				)}
 			</div>
-			<SignIn.Root routing="virtual">
+			<SignIn.Root key={signInResetKey} routing="virtual">
 				<SignIn.Step name="start">
 					<div className={styles.authGoogleButtonWrapper}>
 						{/* @ts-ignore this is fine */}
