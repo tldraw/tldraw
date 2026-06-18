@@ -24,6 +24,7 @@ export function DefaultMinimap() {
 	const rCanvas = React.useRef<HTMLCanvasElement>(null!)
 	const rPointing = React.useRef(false)
 	const rActivePointerId = React.useRef<number | null>(null)
+	const rOriginScreenPoint = React.useRef(new Vec())
 
 	const minimapRef = React.useRef<MinimapManager | undefined>(undefined)
 
@@ -82,6 +83,7 @@ export function DefaultMinimap() {
 
 			rPointing.current = true
 			rActivePointerId.current = e.pointerId
+			rOriginScreenPoint.current = new Vec(e.clientX, e.clientY)
 
 			minimapRef.current.isInViewport = false
 
@@ -162,6 +164,13 @@ export function DefaultMinimap() {
 			)
 
 			if (rPointing.current) {
+				// Ignore sub-pixel pointer jitter that often accompanies a click, so it
+				// doesn't recenter the camera instantly and cut off the easing animation
+				// started on pointer down.
+				if (Vec.Dist2(rOriginScreenPoint.current, new Vec(e.clientX, e.clientY)) <= 1) {
+					return
+				}
+
 				if (minimapRef.current.isInViewport) {
 					const delta = minimapRef.current.originPagePoint
 						.clone()
