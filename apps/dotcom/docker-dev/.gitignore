@@ -1,0 +1,4 @@
+# Local secrets for the Docker dev spike (never commit).
+.env
+# The root .gitignore's `.env*` rule would also hide the template — keep it tracked.
+!.env.example
