@@ -36,8 +36,10 @@ const FIXES: StringFix[] = [
 	// key a8c9ad7ea5, which no longer exists in Lokalise — the English string was edited
 	// (now key 23dcace54a, "...Create a free account to continue.") and is currently
 	// untranslated. Re-review those invite strings after the next translation order.
-	// When adding placeholder-bearing fixes, use Lokalise's native format, e.g.
-	// `[%1$s:workspaceName]`, not the ICU `{workspaceName}` that the export produces.
+	// When adding placeholder-bearing fixes, write `value` in Lokalise's native
+	// format, e.g. `[%1$s:workspaceName]`. Validation matches it against the ICU
+	// `{workspaceName}` that the export produces by variable name, so the two forms
+	// line up — but the value written to Lokalise must be the native one.
 ]
 
 function formatError(error: unknown) {
@@ -71,28 +73,59 @@ function keyNameMatches(key: Key, name: string) {
 	return false
 }
 
-/** Pull out ICU placeholders, Lokalise placeholders, printf specifiers, and HTML tags. */
-function extractTokens(text: string): string[] {
-	const tokens: string[] = []
-	const patterns = [/\{[^}]+\}/g, /\[%[^\]]*%\]/g, /%\d*\$?[sd@]/g, /<\/?[a-zA-Z][^>]*>/g]
-	for (const re of patterns) {
-		const matches = text.match(re)
-		if (matches) tokens.push(...matches)
+/**
+ * Reduce a placeholder or tag to a format-independent identity, so the same
+ * variable matches across the formats this pipeline mixes:
+ *   - ICU `{workspaceName}` — what the Lokalise export produces (used in `english`)
+ *   - Lokalise native `[%1$s:workspaceName]` — preferred in corrected `value`s
+ *   - bare printf `%1$s` / `%s` / `%d` / `%@`
+ * Named placeholders collapse to `var:<name>`; unnamed positional ones to
+ * `pos:<n>` (or `pos:<order>` when unindexed). HTML tags become `tag:<name>` /
+ * `tag:/<name>`, attributes ignored, so open/close balance is still checked.
+ */
+function placeholderIdentities(text: string): string[] {
+	const ids: string[] = []
+	let unnamed = 0
+
+	// HTML tags: <b> / </b> / <br/>, attributes ignored.
+	for (const m of text.matchAll(/<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/g)) {
+		ids.push(`tag:${m[1]}${m[2].toLowerCase()}`)
 	}
-	return tokens
+
+	// Lokalise placeholders `[% … ]`: named -> var:<name>, otherwise positional.
+	// Strip them so the bare-printf scan below doesn't also match their insides.
+	const stripped = text.replace(/\[%([^\]]*)\]/g, (_full, inner: string) => {
+		const named = inner.match(/:([a-zA-Z0-9_]+)\s*$/)
+		if (named) {
+			ids.push(`var:${named[1]}`)
+		} else {
+			const indexed = inner.match(/(\d+)\$/)
+			ids.push(indexed ? `pos:${indexed[1]}` : `pos:${unnamed++}`)
+		}
+		return ''
+	})
+
+	// ICU placeholders `{name}`.
+	for (const m of stripped.matchAll(/\{([a-zA-Z0-9_]+)\}/g)) ids.push(`var:${m[1]}`)
+
+	// Bare printf specifiers: `%1$s` (indexed) and `%s` / `%d` / `%@` (unindexed).
+	for (const m of stripped.matchAll(/%(\d+)\$?[sd@]/g)) ids.push(`pos:${m[1]}`)
+	for (const _m of stripped.matchAll(/%[sd@]/g)) ids.push(`pos:${unnamed++}`)
+
+	return ids
 }
 
-/** Tokens that exist in `required` but are missing (or under-counted) in `candidate`. */
-function missingTokens(required: string, candidate: string): string[] {
+/** Placeholder/tag identities present in `required` but missing (or under-counted) in `candidate`. */
+function missingPlaceholders(required: string, candidate: string): string[] {
 	const have = new Map<string, number>()
-	for (const token of extractTokens(candidate)) {
-		have.set(token, (have.get(token) ?? 0) + 1)
+	for (const id of placeholderIdentities(candidate)) {
+		have.set(id, (have.get(id) ?? 0) + 1)
 	}
 	const missing: string[] = []
-	for (const token of extractTokens(required)) {
-		const count = have.get(token) ?? 0
-		if (count <= 0) missing.push(token)
-		else have.set(token, count - 1)
+	for (const id of placeholderIdentities(required)) {
+		const count = have.get(id) ?? 0
+		if (count <= 0) missing.push(id)
+		else have.set(id, count - 1)
 	}
 	return missing
 }
@@ -147,7 +180,7 @@ async function i18nFixStrings() {
 				continue
 			}
 
-			const missing = missingTokens(fix.english, value)
+			const missing = missingPlaceholders(fix.english, value)
 			if (missing.length) {
 				console.error(
 					`  ${locale}: REFUSED — corrected value is missing placeholder(s)/tag(s): ${missing.join(', ')}`
