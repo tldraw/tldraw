@@ -1,4 +1,11 @@
-import { IndexKey, ShapeUtil, TLFrameShape, createShapeId, toRichText } from '@tldraw/editor'
+import {
+	IndexKey,
+	ShapeUtil,
+	TLArrowShape,
+	TLFrameShape,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
 import { defaultHandleExternalTldrawContent } from '../lib/defaultExternalContentHandlers'
 import { defaultOverlayUtils } from '../lib/defaultOverlayUtils'
@@ -642,6 +649,34 @@ describe('When double clicking a selection handle that registers as a canvas eve
 
 		expect(spy).toHaveBeenCalledTimes(1)
 		expect(spy.mock.calls[0][1]).toMatchObject({ target: 'selection', handle: 'bottom_right' })
+	})
+
+	it('Routes a canvas-targeted double-click on an arrow handle to onDoubleClickHandle', () => {
+		const id = createShapeId()
+		overlayEditor
+			.createShapes([
+				{
+					id,
+					type: 'arrow',
+					x: 100,
+					y: 100,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+				},
+			])
+			.select(id)
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
+
+		// Double-click on the end handle without specifying target — defaults to
+		// target: 'canvas', the payload a real DOM double-click produces when the
+		// press lands on the handle overlay. This should toggle the arrowhead.
+		overlayEditor.doubleClick(200, 200)
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('none')
+
+		overlayEditor.doubleClick(200, 200)
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
 	})
 })
 

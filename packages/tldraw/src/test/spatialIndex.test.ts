@@ -223,6 +223,138 @@ describe('SpatialIndexManager - step-2 transitive bounds sweep', () => {
 	})
 })
 
+describe('SpatialIndexManager - binding-only diffs', () => {
+	it('refreshes arrow bounds when bindings are created in a separate step from the shapes', () => {
+		// Regression: an arrow's bounds derive from its bindings, but a
+		// binding-only transaction contains no shape diff. If the index was
+		// queried between createShapes and createBindings (the hover side
+		// effect does this on every store change), the arrow stayed indexed
+		// at its unbound bounds and parts of the bound body were
+		// un-hoverable.
+		const boxAId = createShapeId('boxA')
+		const boxBId = createShapeId('boxB')
+		const arrowId = createShapeId('arrow')
+
+		editor.createShapes([
+			{ id: boxAId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100, fill: 'none' } },
+			{ id: boxBId, type: 'geo', x: 500, y: 0, props: { w: 100, h: 100, fill: 'none' } },
+			// The arrow's own terminals are far from the shapes it will be
+			// bound to, as happens when content is created via the API.
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 2000,
+				y: 2000,
+				props: { kind: 'arc', bend: -50, start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+			},
+		])
+
+		const unboundBounds = editor.getShapePageBounds(arrowId)!
+
+		// Pull the spatial index so the arrow is indexed at its unbound
+		// bounds before the bindings exist.
+		expect(editor.getShapeIdsInsideBounds(unboundBounds).has(arrowId)).toBe(true)
+
+		editor.createBindings([
+			{
+				type: 'arrow',
+				fromId: arrowId,
+				toId: boxAId,
+				props: {
+					terminal: 'start',
+					isExact: false,
+					isPrecise: false,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+			},
+			{
+				type: 'arrow',
+				fromId: arrowId,
+				toId: boxBId,
+				props: {
+					terminal: 'end',
+					isExact: false,
+					isPrecise: false,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+			},
+		])
+
+		const boundBounds = editor.getShapePageBounds(arrowId)!
+		expect(boundBounds.equals(unboundBounds)).toBe(false)
+
+		// The index must reflect the bound bounds...
+		expect(editor.getShapeIdsInsideBounds(boundBounds).has(arrowId)).toBe(true)
+
+		// ...and the arrow must be hit-testable on its bound body.
+		const apex = { x: boundBounds.midX, y: boundBounds.minY + 1 }
+		expect(editor.getShapeAtPoint(apex, { hitInside: false, margin: 8 })?.id).toBe(arrowId)
+	})
+
+	it('ticks the epoch and refreshes arrow bounds when a binding update moves the arrow', () => {
+		const boxAId = createShapeId('boxA')
+		const boxBId = createShapeId('boxB')
+		const arrowId = createShapeId('arrow')
+
+		editor.createShapes([
+			{ id: boxAId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100, fill: 'none' } },
+			{ id: boxBId, type: 'geo', x: 500, y: 500, props: { w: 100, h: 100, fill: 'none' } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+			},
+		])
+		editor.createBindings([
+			{
+				type: 'arrow',
+				fromId: arrowId,
+				toId: boxAId,
+				props: {
+					terminal: 'start',
+					isExact: false,
+					isPrecise: true,
+					normalizedAnchor: { x: 0, y: 0 },
+				},
+			},
+			{
+				type: 'arrow',
+				fromId: arrowId,
+				toId: boxBId,
+				props: {
+					terminal: 'end',
+					isExact: false,
+					isPrecise: true,
+					normalizedAnchor: { x: 0, y: 0 },
+				},
+			},
+		])
+
+		const boundsBefore = editor.getShapePageBounds(arrowId)!
+		const tracker = trackSpatialIndexInvalidations(editor, boundsBefore.clone())
+
+		// Move the end terminal across the target shape with a binding-only
+		// update; the arrow record itself is untouched.
+		const binding = editor
+			.getBindingsFromShape(arrowId, 'arrow')
+			.find((b) => b.props.terminal === 'end')!
+		editor.updateBinding({
+			...binding,
+			props: { ...binding.props, normalizedAnchor: { x: 0.5, y: 1 } },
+		})
+
+		const boundsAfter = editor.getShapePageBounds(arrowId)!
+		expect(boundsAfter.equals(boundsBefore)).toBe(false)
+		expect(tracker.delta).toBe(1)
+
+		const probe = probeOnlyInAfter(boundsBefore, boundsAfter)
+		expect(editor.getShapeIdsInsideBounds(probe).has(arrowId)).toBe(true)
+		tracker.stop()
+	})
+})
+
 describe('SpatialIndexManager - basic queries', () => {
 	it('returns shapes inside the queried bounds', () => {
 		const insideId = createShapeId('inside')

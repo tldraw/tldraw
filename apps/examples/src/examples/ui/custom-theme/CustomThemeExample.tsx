@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	DEFAULT_THEME,
+	Editor,
 	TLDefaultColor,
 	TLTheme,
 	TLThemeFont,
@@ -143,27 +144,41 @@ const DEFAULTS = {
 	strokeWidth: 2,
 }
 
+// [4] A stable `themes` object passed once to `<Tldraw>`. It registers the
+// custom "pink" color and custom fonts at store creation time and provides the
+// starting display values. Keeping this reference stable means the store is
+// never recreated — runtime adjustments are applied with `editor.updateTheme()`
+// instead (see below).
+const themes: Partial<TLThemes> = {
+	default: {
+		id: 'default',
+		fontSize: DEFAULTS.fontSize,
+		lineHeight: DEFAULTS.lineHeight,
+		strokeWidth: DEFAULTS.strokeWidth,
+		fonts: customFonts,
+		colors: {
+			light: colorsWithoutLightVariants(DEFAULT_THEME.colors.light, pinkLight),
+			dark: colorsWithoutLightVariants(DEFAULT_THEME.colors.dark, pinkDark),
+		},
+	},
+}
+
 export default function CustomThemeExample() {
 	const [fontSize, setFontSize] = useState(DEFAULTS.fontSize)
 	const [lineHeight, setLineHeight] = useState(DEFAULTS.lineHeight)
 	const [strokeWidth, setStrokeWidth] = useState(DEFAULTS.strokeWidth)
+	const editorRef = useRef<Editor | null>(null)
 
-	// [4] Customize the default theme: add the custom "pink" color,
-	// custom fonts, and merge slider overrides so adjustments apply to both modes.
-	const themes = useMemo<Partial<TLThemes>>(() => {
-		return {
-			default: {
-				id: 'default',
-				fontSize,
-				lineHeight,
-				strokeWidth,
-				fonts: customFonts,
-				colors: {
-					light: colorsWithoutLightVariants(DEFAULT_THEME.colors.light, pinkLight),
-					dark: colorsWithoutLightVariants(DEFAULT_THEME.colors.dark, pinkDark),
-				},
-			},
-		}
+	// Apply slider values to the theme programmatically. Rather than passing
+	// a new `themes` object whenever a value changes (which would recreate the
+	// store and reload the canvas from persistence), we update the existing
+	// "default" theme in place via `editor.updateTheme()`. Spreading the current
+	// theme preserves the custom colors and fonts while overriding the adjusted
+	// values. Shapes re-render reactively without the board flashing.
+	useEffect(() => {
+		const editor = editorRef.current
+		if (!editor) return
+		editor.updateTheme({ ...editor.getTheme('default')!, fontSize, lineHeight, strokeWidth })
 	}, [fontSize, lineHeight, strokeWidth])
 
 	return (
@@ -173,6 +188,7 @@ export default function CustomThemeExample() {
 				themes={themes}
 				overrides={uiOverrides}
 				onMount={(editor) => {
+					editorRef.current = editor
 					if (editor.getCurrentPageShapeIds().size > 0) return
 
 					editor.createShape({
@@ -379,11 +395,14 @@ Default values for the adjustable theme properties. These match the defaults
 in `DEFAULT_THEME`.
 
 [4]
-The `themes` object is recomputed whenever a slider changes.
-Because `Tldraw` accepts `themes` as a prop, updating the object
-triggers a reactive theme change — shapes immediately re-render with the
-new values. The active color mode (light or dark) is determined by the
-user's color scheme preference.
+The `themes` prop is a stable object passed once to `<Tldraw>`. It registers
+the custom color and fonts at store creation and seeds the starting values.
+Slider adjustments are applied at runtime with `editor.updateTheme()` rather
+than by passing a new `themes` prop — passing a new object would recreate the
+store and reload the canvas from persistence. `updateTheme` mutates the active
+theme reactively, so shapes immediately re-render with the new values. The
+active color mode (light or dark) is determined by the user's color scheme
+preference.
 
 [5]
 Create a shape using the custom "pink" color. Because the theme definition

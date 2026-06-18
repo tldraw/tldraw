@@ -29,9 +29,9 @@ import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/a
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
-import { GroupInviteHandler } from '../components/GroupInviteHandler'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
+import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { useUITheme } from '../hooks/useUITheme'
 import { UserProvider } from '../hooks/useUser'
@@ -158,10 +158,6 @@ export function Component() {
 				</IntlWrapper>
 			</RefreshErrorBoundary>
 			<WatermarkOverride />
-			{/* Always-mounted target for Clerk's CAPTCHA widget, so any Clerk call
-			    anywhere in the app can attach its challenge. Stays empty (and so
-			    invisible) unless Clerk injects a visible challenge. */}
-			<div id="clerk-captcha" />
 		</div>
 	)
 }
@@ -216,7 +212,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultToasts />
 					<DefaultA11yAnnouncer />
 					<PutToastsInApp />
-					<GroupInviteHandler />
+					<WorkspaceInviteHandler />
 					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>

@@ -12,10 +12,73 @@ status: draft
 date: 1/31/2026
 ---
 
-TODO: Document pen mode including:
+Pen mode restricts canvas input to stylus events. When a stylus like an Apple Pencil touches the canvas, the editor turns on pen mode and ignores other pointer input. Users can rest their palm on the screen while drawing without triggering accidental touches.
 
-- What pen mode does (touch rejection, stylus-only input)
-- Enabling/disabling pen mode
-- Pressure sensitivity support
-- User preferences for pen mode
-- Detecting stylus vs touch vs mouse input
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					// Check whether pen mode is active
+					const { isPenMode } = editor.getInstanceState()
+
+					// Turn pen mode off
+					editor.updateInstanceState({ isPenMode: false })
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+## How pen mode activates
+
+The editor detects stylus input from the browser's pointer events: any pointer with `pointerType: 'pen'` is treated as a pen. The first time a pen touches the canvas, the editor sets `isPenMode` to `true` on the [instance state](/sdk-features/instance-state).
+
+Pen mode is session state. It doesn't persist across reloads, and it isn't synced between collaborators.
+
+## Touch rejection
+
+While pen mode is on, the editor drops pointer down, move, and up events from any non-pen input. Finger touches and mouse clicks on the canvas do nothing. This is what makes palm rejection work: a hand resting on a tablet screen produces touch events, and pen mode filters them all out.
+
+The rest of the UI still works normally. Pen mode only filters events on the canvas, so users can still tap toolbar buttons and menus with a finger.
+
+## Exiting pen mode
+
+While pen mode is active, the default UI shows an "Exit pen mode" helper button over the canvas. Clicking it runs the `exit-pen-mode` action, which sets `isPenMode` back to `false`.
+
+You can do the same from code:
+
+```tsx
+editor.updateInstanceState({ isPenMode: false })
+```
+
+There's no way to turn pen mode off with a finger on the canvas itself, since that input is rejected. If your custom UI replaces the default one, keep the helper button or an equivalent control available.
+
+## Pressure sensitivity
+
+Pen pressure arrives on pointer events as the `z` component of the pointer's position, taken from the browser's `PointerEvent.pressure` value (0 to 1).
+
+The draw and highlighter tools use this pressure to vary stroke thickness. When a stroke is drawn with a real pen, the resulting draw shape records `isPen: true` in its props and keeps the raw pressure data in its points. Strokes drawn with a mouse or finger use simulated pressure instead.
+
+```tsx
+// Read the current pointer's pressure
+const { z } = editor.inputs.getCurrentPagePoint()
+
+// Check whether the most recent input was a pen
+const isPen = editor.inputs.getIsPen()
+```
+
+## Stylus erasers
+
+Some styluses, like the Surface Pen or Wacom pens, have a hardware eraser. When the editor receives a pointer down from an eraser button (button 5), it switches to the eraser tool, then restores the previous tool when the eraser lifts.
+
+## Related articles
+
+- [Instance state](/sdk-features/instance-state) — Where `isPenMode` lives, along with other session state
+- [Input handling](/sdk-features/input-handling) — How the editor processes pointer events
+- [Draw shape](/sdk-features/draw-shape) — The freehand shape that records pen pressure

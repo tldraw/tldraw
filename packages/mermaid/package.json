@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/mermaid",
 	"description": "Mermaid diagram to tldraw shape conversion.",
-	"version": "5.1.0",
+	"version": "5.1.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -42,7 +42,7 @@
 	"dependencies": {
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"mermaid": "11.12.2"
+		"mermaid": "11.15.0"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",
@@ -51,6 +51,6 @@
 	},
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
 	}
 }

@@ -32,3 +32,38 @@
 .spinner:not(.showSpinner) {
 	opacity: 0;
 }
+
+.loadingScreen {
+	position: absolute;
+	inset: 0;
+	/* The placeholder editor is purely visual: never let it receive input. */
+	pointer-events: none;
+}
+
+/*
+ * When a placeholder editor is shown during loading there's already an editor on
+ * screen, so the real editor hard-cuts in rather than fading.
+ */
+.withLoadingScreen .innerContainer {
+	transition: none;
+}
+
+.withLoadingScreen .innerContainer:not(.isReady) {
+	opacity: 1;
+}
+
+/*
+ * Fade just the file content in once the editor is ready, leaving the main UI,
+ * background, and grid untouched so they line up with the placeholder.
+ */
+.withLoadingScreen .innerContainer :global(.tl-shapes),
+.withLoadingScreen .innerContainer :global(.tl-canvas-overlays),
+.withLoadingScreen .innerContainer :global(.tl-canvas__in-front) {
+	transition: opacity 0.2s ease-in;
+}
+
+.withLoadingScreen .innerContainer:not(.isReady) :global(.tl-shapes),
+.withLoadingScreen .innerContainer:not(.isReady) :global(.tl-canvas-overlays),
+.withLoadingScreen .innerContainer:not(.isReady) :global(.tl-canvas__in-front) {
+	opacity: 0;
+}

@@ -153,10 +153,6 @@ button.topLeftInputNameWidthSetter {
 	}
 }
 
-/* .inputWrapper:focus-within::after {
-	background-color: var(--tl-color-muted-2);
-} */
-
 /* -------------------- Main Menu ------------------- */
 
 .topLeftMainMenuTrigger {
