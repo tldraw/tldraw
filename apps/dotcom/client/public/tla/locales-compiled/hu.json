@@ -5,6 +5,12 @@
       "value": "Export"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Meghívás elfogadása"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Eltávolítás"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Másolás a személyes munkaterületre"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Fájl rögzítésének feloldása"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Próbáld ki a tldraw SDK-t"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Fájl létrehozása"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Munkaterület beállításai"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Ma"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Egy munkaterületnek legalább egy tulajdonossal kell rendelkeznie. Először tegyél valaki mást tulajdonossá."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Munkaterület neve"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Meghívtak a(z) "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " munkaterületre. A folytatáshoz hozzon létre egy ingyenes fiókot."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "A feltöltés sikertelen"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Saját fájlok"
+      "value": "Üdvözöljük a munkaterületén"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Keresés..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Az újragenerálás a jelenlegi meghívólinket egy újra cseréli. Bárki, aki a régi linket használja, az újra lesz szüksége a csatlakozáshoz."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Hivatkozás hozzáadása az aktuális fájlra"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Meghívólink újragenerálása"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Szerkesztő"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Kezelés"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Hozzáférés kéréséhez forduljon a tulajdonoshoz."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Munkaterület elhagyása…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Nem lehet visszavonni a fájl közzétételét."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ez a te privát munkaterületed. Hozz létre egy új munkaterületet csapattársak meghívásához."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Munkaterület létrehozása"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "A munkaterületem"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Vonja vissza ezt a linket, és hozzon létre egy újat."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "Elérhető a tldraw új verziója. A folytatáshoz töltse be újra az oldalt."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Új fájl"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Kérjük, töltse be újra az oldalt"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Nem találhatók fájlok"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Kérjük, töltse újra"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "A tldraw egy ingyenes online tábla. Hozz létre egy fiókot, hogy menthesd a fájljaidat és együtt dolgozhass a barátaiddal."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Letöltés"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Új munkaterület"
     }
   ],
   "815e116a2e": [
@@ -699,22 +761,10 @@
       "value": "Ez a meghívólink lejárt"
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Nem, köszönöm"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Ellenőrizd az e-mailjeidet, hogy érkezett-e egy ellenőrző kód."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Otthon"
     }
   ],
   "8eb2c00e96": [
@@ -741,22 +791,10 @@
       "value": "Átnevezés"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Másolás a fájljaim közé"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Bejelentkezés Google-fiókkal"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Munkaterület törlése…"
     }
   ],
   "95d2109dc8": [
@@ -781,6 +819,12 @@
     {
       "type": 0,
       "value": "Fény"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Keresés törlése"
     }
   ],
   "9b33f5c63c": [
@@ -833,6 +877,26 @@
       "value": "Leiratkozás"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Meghívtak a(z) "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " munkaterületre."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -873,6 +937,12 @@
     {
       "type": 0,
       "value": "Beküld"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Elhagyás"
     }
   ],
   "a6cc403d56": [
@@ -929,6 +999,12 @@
       "value": "Vendégfelhasználó"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Újragenerálás"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -939,6 +1015,12 @@
     {
       "type": 0,
       "value": "E-mail cím"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Meghívók engedélyezése"
     }
   ],
   "b6d4223e60": [
@@ -963,6 +1045,12 @@
     {
       "type": 0,
       "value": "Jelentkezzen be a megosztáshoz"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "A meghívók le vannak tiltva"
     }
   ],
   "bbbcefd7ce": [
@@ -1011,6 +1099,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Munkaterület kezelése"
     }
   ],
   "c2276c9127": [
@@ -1063,10 +1157,10 @@
       "value": "Meghív"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Új tábla"
+      "value": "Másolás a munkaterületemre"
     }
   ],
   "c87aacf567": [
@@ -1079,12 +1173,6 @@
     {
       "type": 0,
       "value": "Elvetés"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Megtakarítás"
     }
   ],
   "cceaefbc20": [
@@ -1211,12 +1299,6 @@
       "value": "RENDBEN"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Tagok meghívása"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1235,28 +1317,10 @@
       "value": "Szolgáltatási feltételek"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Elfogadás és csatlakozás munkaterülethez"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "vagy"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Meghívtak a következő munkaterületre:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Veszélyes zóna"
     }
   ],
   "ea4788705e": [
@@ -1405,6 +1469,12 @@
     {
       "type": 0,
       "value": " felhasználót erről a munkaterületről?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Hozz létre egy ingyenes fiókot, hogy menthesd a fájljaidat és rajzolhass a csapattársaiddal."
     }
   ],
   "ffcd73e997": [
