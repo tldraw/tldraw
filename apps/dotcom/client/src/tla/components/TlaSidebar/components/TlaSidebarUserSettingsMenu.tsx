@@ -57,7 +57,7 @@ export function TlaUserSettingsMenu() {
 						}}
 					>
 						<span className={styles.sidebarUserSettingsAvatarIcon}>
-							<TldrawUiIcon icon="avatar" label={userMenuLbl} small />
+							<TldrawUiIcon icon="avatar" label={userMenuLbl} tiny />
 						</span>
 						<div
 							className={classNames(
