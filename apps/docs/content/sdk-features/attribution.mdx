@@ -91,6 +91,14 @@ Attribution is opt-in per shape type. Each shape util decides what to track and 
 
 The built-in note shape tracks who first added text. When a user types in an empty note, `NoteShapeUtil` sets the `textFirstEditedBy` prop to the current user's ID via `editor.getAttributionUserId()`. Subsequent edits by other users don't change this value. Clearing the text resets it to `null`. The note renders the first editor's name as a small label in the corner.
 
+To hide this label, configure the note shape util with `showAttribution: false`:
+
+```tsx
+import { NoteShapeUtil } from 'tldraw'
+
+const NoteUtil = NoteShapeUtil.configure({ showAttribution: false })
+```
+
 ## Reading attribution
 
 The [Editor](?) provides three methods for working with attribution. These methods check the `TLUserStore` first, then fall back to `user:` records in the store:
