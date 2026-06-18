@@ -71,10 +71,26 @@ export async function flattenShapesToImages(
 			if (ri !== rj) parents[ri] = rj
 		}
 
-		for (let i = 0; i < expandedBounds.length; i++) {
-			for (let j = i + 1; j < expandedBounds.length; j++) {
+		// Broad-phase sweep: sort by minX and, for each box, only compare against
+		// later boxes until one starts past the current box's maxX. Boxes that
+		// don't overlap on the x-axis can't intersect, so this skips the bulk of
+		// the pairwise checks for spread-out selections while still finding every
+		// intersecting pair (Box.includes is symmetric, so each pair is tested once).
+		const order = expandedBounds
+			.map((_, i) => i)
+			.sort((a, b) => {
+				return expandedBounds[a].bounds.minX - expandedBounds[b].bounds.minX
+			})
+
+		for (let a = 0; a < order.length; a++) {
+			const i = order[a]
+			const boundsI = expandedBounds[i].bounds
+			for (let b = a + 1; b < order.length; b++) {
+				const j = order[b]
+				// sorted by minX, so once a box starts past i's maxX no later box can overlap i
+				if (expandedBounds[j].bounds.minX > boundsI.maxX) break
 				if (find(i) === find(j)) continue
-				if (expandedBounds[i].bounds.includes(expandedBounds[j].bounds)) {
+				if (boundsI.includes(expandedBounds[j].bounds)) {
 					union(i, j)
 				}
 			}
