@@ -7,17 +7,8 @@ import {
 	TldrawUiDialogTitle,
 } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { defineMessages, F } from '../../utils/i18n'
+import { F } from '../../utils/i18n'
 import styles from './TlaInviteDialog.module.css'
-
-const messages = defineMessages({
-	inviteDialogTitle: {
-		defaultMessage: 'Join workspace',
-	},
-	inviteDialogDescription: {
-		defaultMessage: 'You have been invited to join <strong>{workspaceName}</strong>.',
-	},
-})
 
 export function TlaInviteDialog({
 	inviteInfo,
@@ -40,7 +31,7 @@ export function TlaInviteDialog({
 			<TldrawUiDialogBody className={styles.dialogBody}>
 				<div className={styles.message}>
 					<F
-						{...messages.inviteDialogDescription}
+						defaultMessage="You have been invited to join <strong>{workspaceName}</strong>."
 						values={{
 							workspaceName: inviteInfo.workspaceName,
 							strong: (chunks) => (
