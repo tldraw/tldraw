@@ -107,6 +107,22 @@ export function getResolvedBookmarkAssetId(
 	return editor.getAsset(derivedId) ? derivedId : null
 }
 
+/**
+ * The effective height to render and measure a bookmark at.
+ *
+ * Normally this is the stored `props.h`. But when the shape's `assetId` resolves
+ * to a different asset than it stores — e.g. a placeholder restored on redo with
+ * a null `assetId` whose asset already exists in the store — `props.h` is stale
+ * (it still holds the placeholder height). In that case recompute the height
+ * from the resolved asset so rendering, the indicator, and the geometry/selection
+ * bounds all stay in sync.
+ */
+export function getBookmarkShapeHeight(editor: Editor, shape: TLBookmarkShape): number {
+	const resolvedAssetId = getResolvedBookmarkAssetId(editor, shape.props.assetId, shape.props.url)
+	if (resolvedAssetId === shape.props.assetId) return shape.props.h
+	return getBookmarkHeight(editor, resolvedAssetId)
+}
+
 async function _createBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
 	if (editor.isDisposed) return
 

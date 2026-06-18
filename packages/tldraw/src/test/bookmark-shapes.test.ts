@@ -2,6 +2,7 @@ import { AssetRecordType, TLBookmarkShape, createShapeId, getHashForString } fro
 import { vi } from 'vitest'
 import {
 	createBookmarkFromUrl,
+	getBookmarkShapeHeight,
 	getHumanReadableAddress,
 	getResolvedBookmarkAssetId,
 } from '../lib/shapes/bookmark/bookmarks'
@@ -433,5 +434,51 @@ describe('createBookmarkFromUrl', () => {
 		const redone = editor.getShape<TLBookmarkShape>(shape.id)
 		assert(redone, 'Expected the bookmark to be restored on redo')
 		expect(getResolvedBookmarkAssetId(editor, redone.props.assetId, redone.props.url)).toBe(assetId)
+	})
+
+	it('measures a short bookmark at its resolved height after redo, not the placeholder height', async () => {
+		const url = 'https://example.com'
+		const center = { x: 100, y: 200 }
+		const assetId = AssetRecordType.createId(getHashForString(url))
+
+		// A no-image unfurl produces a shorter bookmark than the placeholder.
+		const assetPromise = Promise.resolve({
+			id: assetId,
+			typeName: 'asset' as const,
+			type: 'bookmark' as const,
+			props: {
+				src: url,
+				title: 'Example Site',
+				description: 'An example website',
+				image: '',
+				favicon: 'https://example.com/favicon.ico',
+			},
+			meta: {},
+		})
+		vi.spyOn(editor, 'getAssetForExternalContent').mockReturnValue(assetPromise)
+
+		editor.markHistoryStoppingPoint()
+		const result = await createBookmarkFromUrl(editor, { url, center })
+		assert(result.ok, 'Failed to create bookmark')
+		const shape = result.value
+
+		await assetPromise
+		await Promise.resolve()
+		const hydrated = editor.getShape<TLBookmarkShape>(shape.id)
+		assert(hydrated, 'Expected the bookmark to hydrate')
+		const shortHeight = hydrated.props.h
+		expect(shortHeight).toBeLessThan(320)
+
+		editor.undo()
+		editor.redo()
+
+		const redone = editor.getShape<TLBookmarkShape>(shape.id)
+		assert(redone, 'Expected the bookmark to be restored on redo')
+
+		// props.h is stale (the history entry recorded the placeholder height), but
+		// the effective height and the geometry/selection bounds should match the
+		// resolved short bookmark, not the 320px placeholder.
+		expect(getBookmarkShapeHeight(editor, redone)).toBe(shortHeight)
+		expect(editor.getShapeGeometry(redone.id).bounds.height).toBe(shortHeight)
 	})
 })

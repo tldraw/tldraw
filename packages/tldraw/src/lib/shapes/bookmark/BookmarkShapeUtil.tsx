@@ -2,6 +2,7 @@
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
+	Rectangle2d,
 	T,
 	TLAssetId,
 	TLBookmarkAsset,
@@ -24,6 +25,7 @@ import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 import {
 	BOOKMARK_HEIGHT,
 	BOOKMARK_WIDTH,
+	getBookmarkShapeHeight,
 	getHumanReadableAddress,
 	getResolvedBookmarkAssetId,
 	setBookmarkHeight,
@@ -88,8 +90,17 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		}
 	}
 
+	override getGeometry(shape: TLBookmarkShape) {
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: getBookmarkShapeHeight(this.editor, shape),
+			isFilled: true,
+		})
+	}
+
 	override component(shape: TLBookmarkShape) {
-		const { assetId, url, h } = shape.props
+		const { assetId, url } = shape.props
+		const h = getBookmarkShapeHeight(this.editor, shape)
 		const rotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		return <BookmarkShapeComponent assetId={assetId} url={url} h={h} rotation={rotation} />
@@ -97,7 +108,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 	override getIndicatorPath(shape: TLBookmarkShape): Path2D {
 		const path = new Path2D()
-		path.rect(0, 0, shape.props.w, shape.props.h)
+		path.rect(0, 0, shape.props.w, getBookmarkShapeHeight(this.editor, shape))
 		return path
 	}
 
