@@ -22,13 +22,3 @@ yarn dev-app:clean    # tear the stack down and drop its volumes (DB + deps)
 ```
 
 Browser-side state is separate. After starting the stack, visit `http://localhost:3000/dev/reset-local-state` to clear local storage, IndexedDB, caches, service workers, accessible cookies, and Clerk session state for the current origin.
-
-### Host-native stack (`dev-app:host`)
-
-The previous host-native stack (workers and zero-cache as host processes, postgres in Docker) is still available as a fallback and is what CI e2e uses:
-
-```bash
-yarn dev-app:host
-```
-
-Its server state is scoped to the current git branch (own Docker Compose project, Postgres volume, Zero replica file, and Wrangler state directory), and its ports are fixed, so only one host stack can run at a time.

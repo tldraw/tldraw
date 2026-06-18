@@ -6,16 +6,23 @@ each on its conventional default port inside the compose network, reaching each 
 name. It exists to answer one question: _what would full containerization of the dotcom dev stack
 look like, and is it worth it?_
 
-It is deliberately built **alongside** the existing host-based `yarn dev-app` flow and changes
-nothing about it. It is an alternative to [#9273](https://github.com/tldraw/tldraw/pull/9273)
-(`frolic/parallel-dotcom-dev`), which solves a related problem (running multiple stacks at once)
-by staying host-native and giving each worktree a contiguous 100-port block. See
+This branch now implements the **full end state**: Docker is the only dev path (`yarn dev-app`), CI
+e2e included, and the host-native orchestration is deleted (~1,450 lines — see
+[what it removes](#what-this-makes-the-default-and-what-it-removes)). The commit history shows the
+progression — spike alongside → default with a host fallback → all-in — so you can see the shape and
+cost at each step before deciding. It's an alternative to
+[#9273](https://github.com/tldraw/tldraw/pull/9273) (`frolic/parallel-dotcom-dev`), which solves a
+related problem (parallel stacks) by staying host-native with per-worktree port blocks. See
 [How this compares to #9273](#how-this-compares-to-9273) at the bottom.
 
 ## Bottom line
 
 **Not worth replacing the host flow with for day-to-day local dev — but worth keeping as an
 opt-in target for onboarding, CI-parity, and "works on my machine" reproduction.**
+
+_(This branch implements the all-in version regardless — Docker as the only path — so the end state
+is concrete to evaluate. The recommendation below is the analysis that should drive the decision, not
+a description of what the branch does.)_
 
 The two things people fear most about containerizing this stack both turned out **fine**:
 
@@ -53,9 +60,9 @@ machines. If the goal is **fastest inner loop on a Mac**, the host flow (and #92
 
 ## How to run
 
-This stack is wired up as the default `yarn dev-app` (from the repo root). The host-native stack is
-still available as `yarn dev-app:host` (CI e2e + fallback) — don't run both at once, they collide on
-`6432`/`4848`/… (see [trade-off 5](#5-running-multiple-instances)).
+This stack is wired up as the default `yarn dev-app` (from the repo root) — it's the only dev path now;
+the host-native stack has been removed. Don't run it alongside another copy (or a leftover host
+postgres) — they collide on `6432`/`4848`/… (see [trade-off 5](#5-running-multiple-instances)).
 
 One-time setup:
 
@@ -341,26 +348,48 @@ than native. A native multi-arch wal2json image (or building one) would remove t
 
 ## What this makes the default (and what it removes)
 
-This branch wires the Docker stack in as the **default dev path**, keeping the host-native stack only
-where it's still needed:
+This branch goes **all-in**: Docker is the only dev path, CI e2e included. That lets the entire host
+orchestration be deleted. (The git history shows the intermediate, more conservative option too — the
+commit before this one kept a `dev-app:host` fallback for CI; this commit removes it.)
 
-- **`yarn dev-app`** → this Docker stack (was: host-native lazyrepo orchestration).
-- **`yarn dev-app:host`** → the previous host-native stack, retained for **CI e2e** and as a fallback.
-- **`yarn dev-app:clean` / `:doctor`** → `docker compose down --volumes` / `ps` (were host-stack helpers).
-- **Local e2e** (Playwright, non-CI) now brings up the Docker stack; **CI e2e is unchanged** (uses
-  `dev-app:host`).
+New wiring:
 
-Because CI e2e still rides on the host orchestrator, the core orchestration (`zero-cache/dev.ts`,
-`dev-env.ts`, `wait-for-dev-readiness.ts`, `sync-worker/dev.ts`, `zero-cache/docker/`) **has to stay**
-— deleting it would mean migrating CI e2e to Docker too, which is intentionally out of scope here.
+- **`yarn dev-app`** → the Docker stack (was: host-native lazyrepo orchestration). The only dev path.
+- **`yarn dev-app:clean` / `:doctor`** → `docker compose down --volumes` / `ps`.
+- **Playwright e2e** (local **and CI**) → the Docker stack via the webServer command. The CI workflow
+  (`.github/workflows/playwright-dotcom.yml`) drops its host build step; the stack builds in-container.
+- **`preview-app`** → `build-app` + the client's own `start` (host vite preview); no longer depends on
+  any host backend orchestration.
 
-What did get deleted (host-only manual helpers Docker supersedes, ~320 lines): `zero-cache/dev-clean.ts`,
-`zero-cache/dev-doctor.ts`, `zero-cache/docker-compose.ts`, and their `package.json` scripts
-(`dev:clean`, `dev:clean:all`, `dev:doctor`, `docker-up`, `docker-down`, `dev-app:clean:all`).
+Deleted — the full host orchestration cluster (~1,000 lines), now that nothing uses it:
 
-The bigger structural deletion (the ~1,000-line orchestration cluster + #9273 becoming moot) only
-unlocks if CI e2e also moves to Docker. This is the one-way door that keeps the host orchestration
-alive for now.
+| Deleted                                                                        | Lines |
+| ------------------------------------------------------------------------------ | ----- |
+| `zero-cache/dev.ts` (the orchestrator)                                         | 325   |
+| `zero-cache/dev-env.ts`                                                        | ~80   |
+| `zero-cache/dev-env.test.ts`                                                   | ~30   |
+| `zero-cache/wait-for-dev-readiness.ts`                                         | 69    |
+| `zero-cache/dev-clean.ts` + `dev-doctor.ts` + `docker-compose.ts` + `clean.sh` | ~320  |
+| `zero-cache/docker/` (host postgres compose + configs)                         | —     |
+| `sync-worker/dev.ts`                                                           | 41    |
+| Plus the `package.json` dev/clean/doctor/readiness scripts they backed         | —     |
+
+And **#9273 (per-worktree host port blocks) becomes moot** — parallel stacks are separate compose
+projects with templated host ports, not renumbered internal ports.
+
+Kept (still needed): `internal/scripts/workers/dev.ts` (the shared worker runner — `bemo-worker`,
+`analytics-worker`, and `image-resize-worker` under `yarn dev` still use it on the host),
+`zero-cache/migrate.ts` + `migrations/` + `bundle-schema` (schema/deploy), and the zero-cache
+fly.io deploy artifacts. The dotcom workers' host `dev` scripts are repointed straight at the shared
+runner (no `dev-env` dependency).
+
+> **CI caveat (the least-verified part of this spike).** The `playwright-dotcom.yml` change runs the
+> Docker stack in CI. CI runners are linux/amd64, so the wal2json postgres image runs **native** there
+> (no emulation — better than Apple Silicon). Secrets already flow (the workflow writes
+> `sync-worker/.dev.vars` and passes `VITE_CLERK_PUBLISHABLE_KEY`, which the client service reads). The
+> open risks are first-run wall-clock (image build + ~2.6 GB install + boot, hence the 20→30 min
+> bump) and that e2e now runs against `vite dev` rather than a production preview build. Treat the CI
+> result on this PR as the experiment.
 
 ---
 

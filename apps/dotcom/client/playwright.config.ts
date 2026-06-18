@@ -7,11 +7,9 @@ const scenarioTestMatch = /.*\.scenario\.spec\.ts/
 // scenario runner. See e2e/README.md.
 const smokeTestMatch = /tests\/smoke\/.*\.spec\.ts/
 
-// Fail fast if the dev stack does not come up: not a single test runs until http://localhost:3000
-// responds, so a stuck server otherwise burns CI minutes. The dotcom server should boot well within
-// this. If a CI cold start ever legitimately needs longer, raise this (and the readiness budgets in
-// zero-cache/dev-env.ts) rather than reverting to a multi-minute stuck wait.
-const CI_WEB_SERVER_TIMEOUT_MS = 180_000
+// Must cover the Docker dev stack's cold first-run (image build + linux node_modules install + boot
+// every service) before the client answers on :3000. Kept under the job's timeout-minutes.
+const CI_WEB_SERVER_TIMEOUT_MS = 1_200_000
 
 /**
  * Read environment variables from file.
@@ -24,9 +22,9 @@ dotenv.config({ path: path.resolve(__dirname, '.env.local') })
  */
 export default defineConfig({
 	testDir: './e2e',
-	// CI keeps the host-native dev stack (`dev-app:host`: postgres-in-Docker + host workers/zero).
-	// Locally the webServer starts the full Docker dev stack (`dev-app`). Tear it down in CI
-	// afterwards so containers and ports do not leak between runs. No-op locally (reused server).
+	// The webServer starts the full Docker dev stack (`yarn dev-app`) in both CI and local. Tear it
+	// down in CI afterwards so containers and volumes do not leak between runs. No-op locally, where
+	// `reuseExistingServer` shares the developer's already-running stack.
 	globalTeardown: process.env.CI ? require.resolve('./e2e/global.teardown.ts') : undefined,
 	// Run files in parallel, but tests within a file in sequence. This is important for certain
 	// tests that use shared system resources like the clipboard, which should all be kept in the
@@ -120,7 +118,7 @@ export default defineConfig({
 
 	/* Run your local dev server before starting the tests */
 	webServer: {
-		command: process.env.CI ? 'VITE_PREVIEW=1 yarn dev-app:host' : 'yarn dev-app',
+		command: 'yarn dev-app',
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),

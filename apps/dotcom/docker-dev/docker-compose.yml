@@ -78,7 +78,8 @@ services:
       - >
         yarn install --inline-builds &&
         yarn refresh-assets &&
-        yarn lazy run predev --filter='packages/*'
+        yarn lazy run predev --filter='packages/*' &&
+        yarn lazy run build-i18n --filter='apps/dotcom/client'
 
   # -------------------------------------------------------------------------
   # Postgres with logical replication (wal2json) — required by Zero.

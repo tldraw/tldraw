@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # SPIKE: zero-cache container entrypoint.
 #
-# Mirrors the host orchestrator (apps/dotcom/zero-cache/dev.ts) but WITHOUT the
-# Docker-from-Docker bring-up, port reconciliation, and process-tree reaping that
-# the host version needs — here Compose owns postgres and the container lifecycle.
+# Brings zero-cache up the same way the old host orchestrator did (bundle schema -> migrate ->
+# zero-cache-dev) but WITHOUT the Docker-from-Docker bring-up, port reconciliation, and process-tree
+# reaping it needed — here Compose owns postgres and the container lifecycle.
 set -euo pipefail
 
 cd /repo/apps/dotcom/zero-cache
