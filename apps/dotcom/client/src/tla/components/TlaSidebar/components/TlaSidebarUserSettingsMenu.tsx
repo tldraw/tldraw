@@ -6,7 +6,6 @@ import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	TldrawUiIcon,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	useMenuIsOpen,
@@ -56,9 +55,7 @@ export function TlaUserSettingsMenu() {
 							onMenuOpenChange(true)
 						}}
 					>
-						<span className={styles.sidebarUserSettingsAvatarIcon}>
-							<TldrawUiIcon icon="avatar" label={userMenuLbl} tiny />
-						</span>
+						<TlaIcon icon="avatar" className={styles.sidebarUserSettingsAvatarIcon} />
 						<div
 							className={classNames(
 								styles.sidebarUserSettingsName,

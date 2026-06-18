@@ -42,7 +42,6 @@ export type AssetUrls = {
 		'arrowhead-square': string
 		'arrowhead-triangle-inverted': string
 		'arrowhead-triangle': string
-		avatar: string
 		blob: string
 		bold: string
 		bookmark: string

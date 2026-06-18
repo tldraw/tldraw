@@ -101,7 +101,6 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'arrowhead-square': iconsIcon0MergedSvg + '#arrowhead-square',
 			'arrowhead-triangle-inverted': iconsIcon0MergedSvg + '#arrowhead-triangle-inverted',
 			'arrowhead-triangle': iconsIcon0MergedSvg + '#arrowhead-triangle',
-			avatar: iconsIcon0MergedSvg + '#avatar',
 			blob: iconsIcon0MergedSvg + '#blob',
 			bold: iconsIcon0MergedSvg + '#bold',
 			bookmark: iconsIcon0MergedSvg + '#bookmark',

@@ -360,7 +360,6 @@
 
 .sidebarLinkButton > span[role='img'] {
 	flex-shrink: 0;
-	margin: -1.5px;
 }
 
 .sidebarLinkButtonLabel {
