@@ -26,5 +26,8 @@
 		"test": "yarn run -T vitest --passWithNoTests",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }
