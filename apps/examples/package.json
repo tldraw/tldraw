@@ -62,7 +62,7 @@
 		"d3-geo": "^3.1.1",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
-		"mermaid": "11.12.2",
+		"mermaid": "11.15.0",
 		"pdf-lib": "^1.17.1",
 		"pdfjs-dist": "^4.10.38",
 		"radix-ui": "^1.4.2",

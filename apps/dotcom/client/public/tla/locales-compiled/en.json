@@ -245,6 +245,12 @@
       "value": "Editor"
     }
   ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Manage"
+    }
+  ],
   "375396d6e5": [
     {
       "type": 0,
@@ -357,6 +363,12 @@
     {
       "type": 0,
       "value": "Unable to unpublish the file."
+    }
+  ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "This is your private workspace. Create a new workspace to invite teammates."
     }
   ],
   "517bb809d9": [
@@ -613,12 +625,6 @@
     {
       "type": 0,
       "value": "Got it"
-    }
-  ],
-  "78faf88f4d": [
-    {
-      "type": 0,
-      "value": "Enable invite link"
     }
   ],
   "797799f35e": [
@@ -1007,6 +1013,12 @@
       "value": "Email address"
     }
   ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Enable invites"
+    }
+  ],
   "b6d4223e60": [
     {
       "type": 0,
@@ -1023,20 +1035,6 @@
     {
       "type": 0,
       "value": "Copy link"
-    }
-  ],
-  "b9a68fbd56": [
-    {
-      "type": 0,
-      "value": "Members ("
-    },
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": ")"
     }
   ],
   "ba0318cb81": [
@@ -1391,6 +1389,12 @@
     {
       "type": 0,
       "value": " to learn more."
+    }
+  ],
+  "ef53538ae4": [
+    {
+      "type": 0,
+      "value": "Members"
     }
   ],
   "ef7de3f485": [

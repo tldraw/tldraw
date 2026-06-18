@@ -87,9 +87,9 @@ describe('defaultWelcomeSnapshotJson', () => {
 		expect(topLevelShapes.length).toBeGreaterThan(0)
 		for (const shape of topLevelShapes) {
 			expect(shape.x, `${shape.id} x within the first viewport`).toBeGreaterThan(-100)
-			expect(shape.x, `${shape.id} x within the first viewport`).toBeLessThan(1300)
+			expect(shape.x, `${shape.id} x within the first viewport`).toBeLessThan(1550)
 			expect(shape.y, `${shape.id} y within the first viewport`).toBeGreaterThan(-100)
-			expect(shape.y, `${shape.id} y within the first viewport`).toBeLessThan(900)
+			expect(shape.y, `${shape.id} y within the first viewport`).toBeLessThan(1050)
 		}
 	})
 

@@ -26,9 +26,11 @@
 	height: 32px;
 }
 
-.menuControlRow > *:not(:only-child):nth-last-of-type(1) {
+/* This 4px nudge on the last control threw off the left alignment of the rows it's used
+   in (workspace settings, the file share menu, the cookie dialog), so it's disabled. */
+/* .menuControlRow > *:not(:only-child):nth-last-of-type(1) {
 	padding-left: 4px;
-}
+} */
 
 .menuInfoTriggerContainer {
 	flex-grow: 2;

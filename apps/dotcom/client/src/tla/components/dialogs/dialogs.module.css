@@ -9,6 +9,7 @@
 	flex-direction: column;
 	gap: var(--tl-space-4);
 	max-width: 500px;
+	overflow: auto;
 }
 
 /* ----------------- Feedback dialog ---------------- */
@@ -201,16 +202,14 @@
 /* ----------------- Group Settings Dialog ---------------- */
 
 .workspaceSettingsBody {
+	padding-top: 0px;
 	max-width: 360px;
+	max-height: max(420px, 80%);
+	min-height: 420px;
 	width: calc(100vw - 48px);
-	/* Even-width digits for the member count (e.g. the "Members (12)" tab). */
-	font-variant-numeric: tabular-nums;
 }
 
 .section {
-	/* Sections are separated by spacing alone (no dividers), so the gap needs to be
-	   clearly larger than the ~8px spacing within a section. */
-	margin-bottom: 20px;
 	display: flex;
 	flex-direction: column;
 }
@@ -225,6 +224,14 @@
 	display: flex;
 	align-items: center;
 	font-weight: 500;
+}
+
+/* Help text under a section's control (e.g. the home workspace's private note). */
+.sectionHelp {
+	margin: 8px 0 0;
+	text-align: center;
+	text-wrap: balance;
+	color: var(--tla-color-text-1);
 }
 
 .membersList {
@@ -265,7 +272,7 @@
    also equals that 12px, the strip now spans the body's full width — so drop the tab
    nav's bottom rule inset to 0 and let it bleed to the modal edges. */
 .workspaceTabs {
-	margin: 0 -12px;
+	margin: 20px -12px 0px -12px;
 	--tabs-line-inset: 0px;
 	/* Tighten the gap between the Members and Settings tabs (default leaves too much). */
 	--tabs-tab-gap: -12px;
@@ -284,29 +291,53 @@
 	padding: 16px 12px 0;
 	margin: 0 -12px;
 	max-height: calc(70vh - 280px);
+	/* Hidden by default so no scrollbar shows when the content fits. The component
+	   measures the content and adds .scrollable to flip overflow to auto only when it
+	   actually overflows — avoids a permanent scrollbar/gutter on systems that always
+	   render scrollbars. */
+	overflow-y: hidden;
+}
+
+.tabPage.scrollable {
 	overflow-y: auto;
 }
 
-/* Pull the rows out 12px so the menu buttons' built-in 12px label padding (and the
-   matching padded toggle row) land their labels back on the content edge, aligned
-   with the headings and tab labels. */
+/* The toggle row and the action links below it sit at the content edge (no inset), so
+   their labels line up with the section headings and tab labels above. */
 .settingsPage {
 	display: flex;
 	flex-direction: column;
-	margin: 0 -12px;
+	gap: 8px;
 }
 
-/* The action rows reuse TldrawUiButton type="menu", whose label sits 12px in (the
-   button's own padding). Pad the toggle row to match so every label lines up, and
-   match their 40px height (the control row is otherwise 32px) so the Settings rows
-   are evenly spaced. */
-.settingsControl {
-	padding: 0 12px;
-	min-height: 40px;
+/* Regenerate / leave / delete render as text links rather than full menu buttons.
+   align-self keeps each one's hit target tight to its text, while the toggle row above
+   still stretches full width for its label + switch. */
+.inlineButton {
+	align-self: flex-start;
+	padding: 4px 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--tla-color-text-1);
+	text-align: left;
 }
 
-/* Destructive action ("Delete workspace") — red label on the reused menu button. */
-.settingsDanger :global(.tlui-button__label) {
+@media (hover: hover) {
+	.inlineButton:hover:not(:disabled) {
+		text-decoration: underline;
+	}
+}
+
+.inlineButton:disabled {
+	color: var(--tla-color-text-3);
+	cursor: not-allowed;
+}
+
+/* Destructive action ("Delete workspace"). */
+.inlineButtonDanger {
 	color: var(--tl-color-danger);
 }
 
