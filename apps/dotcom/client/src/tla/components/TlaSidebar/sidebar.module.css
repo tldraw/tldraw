@@ -118,7 +118,7 @@
 	right: 0px;
 	bottom: 2px;
 	border-radius: 4px;
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--tl-color-muted-0);
 	z-index: 0;
 	pointer-events: none;
 	visibility: hidden;
@@ -126,7 +126,7 @@
 
 .hoverable:has(*[data-state='open'])::after,
 .hoverable[data-active='true']::after {
-	background-color: var(--tla-color-hover-2);
+	background-color: var(--tl-color-muted-2);
 	visibility: visible;
 }
 
@@ -136,11 +136,11 @@
 	}
 
 	.hoverable {
-		color: var(--tla-color-text-2);
+		color: var(--tl-color-text-0);
 	}
 	.hoverable[data-active='true'],
 	.hoverable:hover {
-		color: var(--tla-color-text-1);
+		color: var(--tl-color-text-0);
 	}
 }
 
@@ -153,7 +153,7 @@
 	cursor: pointer;
 	width: 40px;
 	height: 40px;
-	color: var(--tla-color-text-1);
+	color: var(--tl-color-text-0);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -174,7 +174,7 @@
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--tl-color-muted-0);
 }
 
 .sidebarToggle:focus-visible {
@@ -293,7 +293,7 @@
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--tl-color-muted-0);
 }
 
 .sidebarCreateFileButton:focus-visible {
@@ -352,7 +352,7 @@
 	background: none;
 	border: none;
 	cursor: pointer;
-	color: var(--tla-color-text-1);
+	color: var(--tl-color-text-0);
 	padding: 0px 8px;
 	text-align: left;
 	text-decoration: none;
@@ -360,7 +360,6 @@
 
 .sidebarLinkButton > span[role='img'] {
 	flex-shrink: 0;
-	margin: -1.5px;
 }
 
 .sidebarLinkButtonLabel {
@@ -404,12 +403,18 @@
 	inset: 2px 0px;
 }
 
+.sidebarUserSettingsAvatarIcon {
+	flex: 0 0 auto;
+	color: var(--tl-color-text-0);
+	margin-inline-end: 6px;
+}
+
 .sidebarUserSettingsName {
 	flex: 1 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	color: var(--tla-color-text-1);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarUserSettingsIcon {
@@ -421,30 +426,24 @@
 	align-items: center;
 	justify-content: center;
 	flex: 0 0 auto;
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 }
 
 @media (hover: hover) {
 	.sidebarUserSettingsTrigger:hover {
-		color: var(--tla-color-text-1);
+		color: var(--tl-color-text-0);
 	}
 
 	.sidebarUserSettingsIcon {
-		color: var(--tla-color-text-3);
-		visibility: hidden;
+		color: var(--tl-color-text-3);
 	}
 
 	.sidebarUserSettingsTrigger:hover .sidebarUserSettingsIcon {
-		visibility: visible;
-		color: var(--tla-color-text-1);
+		color: var(--tl-color-text-0);
 	}
 }
 
 .sidebarUserSettingsTrigger[data-state='open']::after {
-	visibility: visible;
-}
-
-.sidebarUserSettingsTrigger[data-state='open'] .sidebarUserSettingsIcon {
 	visibility: visible;
 }
 
@@ -468,7 +467,7 @@
 	flex-direction: row;
 	align-items: center;
 	gap: 4px;
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 }
 
 .sidebar[data-workspaces='true'] .sidebarFileSectionTitle {
@@ -508,7 +507,7 @@
 	background: none;
 	border: none;
 	cursor: pointer;
-	color: var(--tla-color-text-1);
+	color: var(--tl-color-text-0);
 	padding: 0px 8px;
 	text-align: left;
 	min-width: 0;
@@ -519,7 +518,7 @@
 }
 
 .sidebarWorkspaceSwitcherTrigger[data-state='open']::after {
-	background-color: var(--tla-color-hover-2);
+	background-color: var(--tl-color-muted-2);
 	visibility: visible;
 }
 
@@ -566,7 +565,7 @@
 	align-items: center;
 	height: 40px;
 	padding: 0px 12px;
-	color: var(--tla-color-text-1);
+	color: var(--tl-color-text-0);
 	cursor: pointer;
 	outline: none;
 	min-width: 0;
@@ -601,12 +600,12 @@
 
 .sidebarWorkspaceSwitcherItem[data-highlighted]::after {
 	opacity: 1;
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--tl-color-muted-0);
 }
 
 .sidebarWorkspaceSwitcherItem[data-highlighted]::after {
 	opacity: 1;
-	background-color: var(--tla-color-hover-2);
+	background-color: var(--tl-color-muted-2);
 }
 
 .sidebarWorkspaceSwitcherItemLabel {
@@ -647,7 +646,7 @@
 	background: none;
 	border: none;
 	cursor: pointer;
-	color: var(--tla-color-text-1);
+	color: var(--tl-color-text-0);
 	padding: 0px 8px;
 	text-align: left;
 }
@@ -673,16 +672,16 @@
 	background: none;
 	border: none;
 	cursor: pointer;
-	color: var(--tla-color-text-1);
 	padding: 0px 8px;
 	text-align: left;
+	color: var(--tl-color-text-0);
 }
 
-/* The outline icons draw 12px art centered in a 15px box; pull the box in so
-   the art lines up with the design's 12px icon grid. */
-.sidebarActionButton > span[role='img'] {
-	flex-shrink: 0;
-	margin: -1.5px;
+.sidebarActionButton span[role='img'] {
+	width: 15px;
+	height: 15px;
+	position: relative;
+	color: var(--tl-color-text-0);
 }
 
 .sidebarActionButtonLabel {
@@ -711,7 +710,7 @@
 	flex: 0 0 auto;
 	/* Match the file rows below so the clear button lines up with their menu triggers. */
 	padding: 0px 4px 0px 8px;
-	color: var(--tla-color-text-1);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarSearch::before {
@@ -724,16 +723,17 @@
 }
 
 .sidebarSearch:focus-within::before {
-	border-color: var(--tla-color-primary);
+	border-color: var(--tl-color-primary);
 }
 
 /* Match the action button's 12px icon grid alignment. Sits above the hover
    highlight (.hoverable::after, z-index 0). */
 .sidebarSearchIcon {
 	flex-shrink: 0;
-	margin: -1.5px;
 	z-index: 1;
-	color: var(--tla-color-text-1);
+	height: 15px;
+	width: 15px;
+	color: var(--tl-color-text-0);
 }
 
 .sidebarSearchInput {
@@ -747,7 +747,7 @@
 	background: none;
 	border: none;
 	padding: 0px;
-	color: var(--tla-color-text-1);
+	color: var(--tl-color-text-0);
 	position: relative;
 	z-index: 1;
 }
@@ -769,7 +769,7 @@
 	flex: 0 0 auto;
 	z-index: 3;
 	cursor: pointer;
-	color: var(--tla-color-text-1);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarSearchClear:after {
@@ -783,7 +783,7 @@
 
 .sidebarSearchEmpty {
 	padding: 8px;
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 }
 
 /* An 8px-tall block with the 1px line sitting in its middle. */
@@ -798,7 +798,7 @@
 	content: '';
 	width: 100%;
 	height: 1px;
-	background-color: var(--tl-color-divider, rgba(232, 232, 232, 1));
+	background-color: var(--tl-color-divider);
 }
 
 .sidebarFileSectionTitlePadding span[role='img'] {
@@ -833,7 +833,7 @@
 
 .sidebarFileListItem[data-active='true'][data-enhanced-a11y-mode='true'] {
 	border-radius: 4px;
-	outline: 2px solid var(--tl-color-text);
+	outline: 2px solid var(--tl-color-text-0);
 	outline-offset: -2px;
 }
 
@@ -861,7 +861,7 @@
 }
 
 .sidebar[data-workspaces='true'] .sidebarFileListItemLabel {
-	color: var(--tla-color-text-1);
+	color: var(--tl-color-text-0);
 }
 
 /* The selected file reads as the current one with a heavier weight. */
@@ -872,7 +872,7 @@
 /* The portion of a file name that matches the active search query. */
 .sidebarFileListItemLabelMatch {
 	font-weight: 700;
-	color: var(--tla-color-text);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarFileListItemRenameInputWrapper {
@@ -891,7 +891,7 @@
 	bottom: 0px;
 	inset: 2px 0px;
 	border-radius: 4px;
-	border: 1px solid var(--tla-color-primary);
+	border: 1px solid var(--tl-color-primary);
 }
 
 .sidebarFileListItemRenameInputWrapper div:global(.tlui-input__wrapper) {
@@ -950,7 +950,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 	flex: 0 0 auto;
 	z-index: 3;
 	cursor: pointer;
@@ -990,7 +990,7 @@
 	}
 
 	.sidebarFileListItemMenuTrigger:hover {
-		color: var(--tla-color-text-1);
+		color: var(--tl-color-text-0);
 	}
 }
 
@@ -1018,7 +1018,7 @@
 	background: none;
 	pointer-events: all;
 	cursor: pointer;
-	color: var(--tla-color-text-1);
+	color: var(--tl-color-text-0);
 }
 
 .sidebarFileSectionTitleText {

@@ -11,7 +11,7 @@ import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
 	newFile: { defaultMessage: 'New file' },
-	workspaceSettings: { defaultMessage: 'Settings' },
+	workspaceSettings: { defaultMessage: 'Manage' },
 })
 
 /**
@@ -44,7 +44,6 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 			<TlaSidebarSearch />
 			<TlaSidebarActionButton
 				icon="edit"
-				iconStyle={{ width: 12, height: 12, margin: 0 }}
 				label={newBoardLbl}
 				onClick={handleCreateFile}
 				testId="tla-sidebar-new-board"

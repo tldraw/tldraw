@@ -5,6 +5,12 @@
       "value": "Xuất"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Chấp nhận lời mời"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -90,7 +96,13 @@
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Di dời"
+      "value": "Xóa"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Sao chép vào không gian làm việc cá nhân"
     }
   ],
   "110a4b01be": [
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Bỏ ghim tệp"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Hãy thử SDK tldraw"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Tạo tệp"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Cài đặt không gian làm việc"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Hôm nay"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Không gian làm việc phải có ít nhất một người sở hữu. Hãy để người khác làm chủ sở hữu trước."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Tên không gian làm việc"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Bạn đã được mời tham gia "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Hãy tạo tài khoản miễn phí để tiếp tục."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Tải lên thất bại"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Các tập tin của tôi"
+      "value": "Chào mừng bạn đến với không gian làm việc của bạn"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Tìm kiếm..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Quá trình tạo lại sẽ thay thế liên kết mời hiện tại bằng một liên kết mới. Bất kỳ ai đang sử dụng liên kết cũ sẽ cần liên kết mới để tham gia."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Bao gồm liên kết đến tệp hiện tại"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Tạo lại liên kết mời"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Biên tập viên"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Quản lý"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Liên hệ với chủ sở hữu để yêu cầu quyền truy cập."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Rời khỏi không gian làm việc…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Không thể hủy xuất bản tệp này."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Đây là không gian làm việc riêng của bạn. Hãy tạo một không gian làm việc mới để mời các đồng đội."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Tạo không gian làm việc"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Không gian làm việc của tôi"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Thu hồi liên kết này và tạo liên kết mới."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "Phiên bản mới của tldraw đã có sẵn. Vui lòng tải lại trang để tiếp tục."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Tệp mới"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Vui lòng tải lại trang"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Không tìm thấy tệp nào"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Vui lòng tải lại"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw là một bảng trắng trực tuyến miễn phí. Tạo tài khoản để lưu tệp và làm việc cùng bạn bè."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Tải về"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Không gian làm việc mới"
     }
   ],
   "815e116a2e": [
@@ -703,22 +765,10 @@
       "value": "Liên kết mời này đã hết hạn"
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Không, cảm ơn"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Kiểm tra email của bạn để lấy mã xác minh."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Trang chủ"
     }
   ],
   "8eb2c00e96": [
@@ -745,22 +795,10 @@
       "value": "Đổi tên"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Sao chép vào tệp của tôi"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Đăng nhập bằng Google"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Xóa không gian làm việc…"
     }
   ],
   "95d2109dc8": [
@@ -785,6 +823,12 @@
     {
       "type": 0,
       "value": "Sáng"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Xóa tìm kiếm"
     }
   ],
   "9b33f5c63c": [
@@ -837,6 +881,26 @@
       "value": "Từ chối"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Bạn đã được mời tham gia "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +941,12 @@
     {
       "type": 0,
       "value": "Nộp"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Rời khỏi"
     }
   ],
   "a6cc403d56": [
@@ -933,6 +1003,12 @@
       "value": "Người dùng khách"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Tái tạo"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -943,6 +1019,12 @@
     {
       "type": 0,
       "value": "Địa chỉ email"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Cho phép mời"
     }
   ],
   "b6d4223e60": [
@@ -967,6 +1049,12 @@
     {
       "type": 0,
       "value": "Đăng nhập để chia sẻ"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Chức năng mời đã bị vô hiệu hóa."
     }
   ],
   "bbbcefd7ce": [
@@ -1011,6 +1099,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Quản lý không gian làm việc"
     }
   ],
   "c2276c9127": [
@@ -1063,10 +1157,10 @@
       "value": "Mời"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Bảng mới"
+      "value": "Sao chép vào không gian làm việc của tôi"
     }
   ],
   "c87aacf567": [
@@ -1079,12 +1173,6 @@
     {
       "type": 0,
       "value": "Bỏ qua"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Cứu"
     }
   ],
   "cceaefbc20": [
@@ -1208,13 +1296,7 @@
   "e0aa021e21": [
     {
       "type": 0,
-      "value": "ĐƯỢC RỒI"
-    }
-  ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Mời thành viên"
+      "value": "OK"
     }
   ],
   "e2198d6228": [
@@ -1235,28 +1317,10 @@
       "value": "Điều khoản dịch vụ"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Chấp nhận và tham gia không gian làm việc"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "hoặc"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Bạn đã được mời tham gia không gian làm việc:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Khu vực nguy hiểm"
     }
   ],
   "ea4788705e": [
@@ -1405,6 +1469,12 @@
     {
       "type": 0,
       "value": " khỏi không gian làm việc này không?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Tạo tài khoản miễn phí để lưu tệp của bạn và sử dụng tldraw cùng đồng đội."
     }
   ],
   "ffcd73e997": [

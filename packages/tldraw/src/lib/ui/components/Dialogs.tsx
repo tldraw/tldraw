@@ -5,7 +5,12 @@ import { TLUiDialog, useDialogs } from '../context/dialogs'
 import { useDirection } from '../hooks/useTranslation/useTranslation'
 
 /** @internal */
-const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }: TLUiDialog) => {
+const TldrawUiDialog = ({
+	id,
+	component: ModalContent,
+	preventBackgroundClose,
+	isModal,
+}: TLUiDialog & { isModal: boolean }) => {
 	const { removeDialog } = useDialogs()
 	const mouseDownInsideContentRef = useRef(false)
 
@@ -22,7 +27,7 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 	)
 
 	return (
-		<_Dialog.Root onOpenChange={handleOpenChange} defaultOpen>
+		<_Dialog.Root onOpenChange={handleOpenChange} defaultOpen modal={isModal}>
 			<_Dialog.Portal container={container}>
 				<_Dialog.Overlay
 					dir={dir}
@@ -65,5 +70,11 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 export const DefaultDialogs = memo(function DefaultDialogs() {
 	const { dialogs } = useDialogs()
 	const dialogsArray = useValue('dialogs', () => dialogs.get(), [dialogs])
-	return dialogsArray.map((dialog) => <TldrawUiDialog key={dialog.id} {...dialog} />)
+	// Only the topmost dialog should be modal. Stacking multiple modal Radix
+	// dialogs makes lower ones intercept pointer/touch events (via their own
+	// focus traps and scroll-locking), which leaves a nested dialog unresponsive
+	// to taps on mobile.
+	return dialogsArray.map((dialog, i) => (
+		<TldrawUiDialog key={dialog.id} {...dialog} isModal={i === dialogsArray.length - 1} />
+	))
 })

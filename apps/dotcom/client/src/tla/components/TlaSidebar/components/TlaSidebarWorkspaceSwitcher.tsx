@@ -75,7 +75,14 @@ export function TlaSidebarWorkspaceSwitcher() {
 			{isOpen && (
 				<div
 					className={styles.sidebarWorkspaceSwitcherOverlay}
+					data-testid="tla-workspace-switcher-overlay"
 					onPointerDown={(e) => {
+						e.stopPropagation()
+					}}
+					onPointerUp={(e) => {
+						e.stopPropagation()
+					}}
+					onClick={(e) => {
 						e.preventDefault()
 						e.stopPropagation()
 						onOpenChange(false)
@@ -113,6 +120,8 @@ export function TlaSidebarWorkspaceSwitcher() {
 						// loads. Without this the focus shift would dismiss the switcher mid-
 						// switch. The open state is driven externally (useGlobalMenuIsOpen), so
 						// the menu still closes via the trigger, the overlay, or Escape.
+						onPointerDownOutside={(e) => e.preventDefault()}
+						onInteractOutside={(e) => e.preventDefault()}
 						onFocusOutside={(e) => e.preventDefault()}
 					>
 						<WorkspaceSwitcherItem
@@ -149,20 +158,6 @@ export function TlaSidebarWorkspaceSwitcher() {
 					</_DropdownMenu.Content>
 				</_DropdownMenu.Root>
 			</div>
-			{workspaces.length === 0 && (
-				<button
-					className={classNames(
-						styles.sidebarCreateWorkspaceButton,
-						styles.hoverable,
-						'tla-text_ui__regular'
-					)}
-					onClick={handleCreateWorkspace}
-					data-testid="tla-create-workspace"
-				>
-					<TlaIcon icon="plus" />
-					<span className={styles.sidebarTruncatedText}>{createWorkspaceLbl}</span>
-				</button>
-			)}
 		</div>
 	)
 }

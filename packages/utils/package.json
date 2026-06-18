@@ -56,5 +56,8 @@
 		"@types/lodash.uniq": "^4.5.9",
 		"lazyrepo": "0.0.0-alpha.27",
 		"vitest": "^4.1.7"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }
