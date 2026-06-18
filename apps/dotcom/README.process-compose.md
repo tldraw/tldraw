@@ -75,13 +75,14 @@ Deleted in this spike (~1,000 lines): `zero-cache/dev.ts`, `dev-env.ts` (+test),
 
 ## How this compares — the axes that actually differ from #9296
 
-### Inter-service wiring — **nothing to rewire**
+### Inter-service wiring — **always `localhost`, never service names**
 
-Because every service runs on the host, all the existing URLs are already correct: workers talk to
-`localhost:6543` / `localhost:8787`, the browser hits `localhost:*`, zero connects to
-`127.0.0.1:6543`. The Docker spike had to repoint server-to-server URLs at compose service names and
-add `/etc/hosts` aliases for the browser; **here that whole class of work disappears** — the env in
-`process-compose.yaml` is just the same values `zero-cache/.env` already used.
+Because every service runs on the host, every URL is just `localhost:<port>` — the browser and the
+server-side processes resolve the same address. The Docker spike had to repoint server-to-server URLs
+at compose **service names** and add `/etc/hosts` aliases so the browser could resolve them; **that
+whole class of work disappears here.** (Parallel-by-default does still rewire the _ports_ inside those
+`localhost` URLs per worktree — that's the cost detailed below — but it never needs DNS, service names,
+or `/etc/hosts`, which is the part that made the Docker wiring fiddly.)
 
 ### Worker→worker service bindings — **they work**
 
@@ -113,12 +114,14 @@ process-compose is a process supervisor, not a network namespace, so two stacks 
 through **everything**. What it took:
 
 - **A port-allocation wrapper** ([`internal/scripts/dotcom-dev-parallel.ts`](../../internal/scripts/dotcom-dev-parallel.ts),
-  ~120 lines) that `yarn dev-app` now runs. It gives each worktree a stable **block index** and shifts
-  every service's existing default port by **index × 100** — so worktree 0 uses the unchanged default
-  ports, worktree 1 adds 100 to each, etc. (The ports stay scattered — client 3000, zero 4848,
-  postgres 6543 — they're not a contiguous 3100–3199 block; only the per-worktree _spacing_ is 100.)
-  From that one offset it derives **~25 env values**. _Deleting `dev.ts` bought us out of supervision;
-  parallel support hands a chunk of bespoke config logic right back._
+  ~120 lines) that `yarn dev-app` now runs. Parallel-by-default: each worktree gets a stable **block
+  index** and a **contiguous 20-port band** — worktree 0 is `3000–3019` (client `:3000`, sync `:3001`,
+  asset `:3002`, image `:3003`, usercontent `:3004`, zero `:3005`, postgres `:3008`, …), worktree 1 is
+  `3020–3039`, etc. Bands are disjoint, so N stacks never collide — collision-free by construction
+  rather than by lucky port spacing. (The one subtlety consecutive can't ignore: zero-cache binds its
+  port **and +1/+2** for its change-streamer/litestream, so those two slots are reserved.) From the band
+  it derives **~25 env values**. _Deleting `dev.ts` bought us out of supervision; parallel support hands
+  a chunk of bespoke config logic right back._
 - **A persistent allocation registry** (`~/.tldraw-dotcom-dev-ports.json`, worktree → block) so blocks
   are stable across runs and don't collide. (Needing this at all is part of the cost.)
 - **Every service port** offset and passed through (`--port` / `--inspector-port` for the 4 workers,
@@ -141,11 +144,11 @@ through **everything**. What it took:
     widen `connect-src` to `http://localhost:*` in dev. (This one is easy to miss and produces
     confusing "it loads but nothing connects" failures.)
 
-**Verified:** the allocator produces correct, non-colliding blocks (block 0 = 3000/8787/4848/6543…,
-block 1 = 3100/8887/4948/6643…); the parameterized `process-compose.yaml` validates with a block's env
-(`--dry-run`: 10 processes); and **two parallel postgres booted on offset ports (6643 + 6743) with
-isolated volumes**, each answering independently. Not booted as two _full_ stacks end-to-end (would
-collide with a running host stack), but the stateful tier + the wiring are proven.
+**Verified:** the allocator produces disjoint bands (worktree 0 = `3000–3014`, worktree 1 =
+`3020–3034`); the parameterized `process-compose.yaml` validates with a band's env (`--dry-run`: 10
+processes); and **two parallel postgres booted on consecutive PG ports (3008 + 3028) with isolated
+volumes**, each answering independently. Not booted as two _full_ stacks end-to-end (would collide
+with a running host stack), but the stateful tier + the wiring are proven.
 
 **The contrast with Docker (#9296) is the whole point.** There, parallel = a second compose project;
 internal ports and every inter-service URL stay **fixed** (network isolation), and you template only

@@ -12,9 +12,10 @@
 // postgres docker project) has to be offset per worktree, and every inter-service URL rewired to
 // match. Container network isolation (the Docker spike) makes almost all of this disappear.
 //
-// `yarn dev-app` runs this; it gives the current worktree a stable block index, shifts every
-// service's default port by index*100, derives ~25 env values, and execs process-compose with them.
-// The first worktree gets index 0 (the unshifted default ports), so nothing changes for a single stack.
+// `yarn dev-app` runs this; it gives the current worktree a stable block index, assigns it a
+// contiguous band of ports (one slot per service), derives ~25 env values, and execs process-compose
+// with them. Parallel-by-default: the client stays on :3000 for worktree 0, the rest are packed
+// consecutively, and every worktree's band is disjoint — so N stacks never collide.
 
 import { spawn } from 'child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
@@ -24,25 +25,28 @@ import { fileURLToPath } from 'url'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
-// Each service keeps its own existing default port ("natural" port); a worktree just shifts ALL of
-// them by blockIndex * 100. So these are NOT consecutive (client 3000, zero 4848, postgres 6543, …);
-// worktree 0 uses them as-is (unchanged from today), worktree 1 adds 100 to each, worktree 2 adds 200.
-// Collision-free because every natural port below has distinct last-two-digits, and the shift is
-// always a multiple of 100.
-const NATURAL_PORTS = {
-	CLIENT_PORT: 3000,
-	SYNC_PORT: 8787,
-	ASSET_PORT: 8788,
-	IMAGE_PORT: 8786,
-	USERCONTENT_PORT: 8789,
-	ZERO_PORT: 4848,
-	PG_PORT: 6543,
-	PGBOUNCER_PORT: 6432,
-	PC_PORT: 8080, // process-compose's own API/TUI port collides across instances too
-	SYNC_INSPECTOR: 9229,
-	ASSET_INSPECTOR: 9449,
-	IMAGE_INSPECTOR: 9339,
-	USERCONTENT_INSPECTOR: 9450,
+// Parallel-by-default: every worktree gets a contiguous 20-port band and each service a fixed slot
+// in it. Band for worktree N is [3000 + N*20 .. +19]; the client keeps :3000 for worktree 0 (the one
+// port people actually type), everything else is packed consecutively after it. Collision-free by
+// construction — no reliance on lucky port spacing, and adding a service is just the next slot.
+// NOTE: zero-cache binds its port AND port+1/+2 (change-streamer, litestream), so slots 6 & 7 are
+// left empty after ZERO_PORT (slot 5). That per-service span is the one thing consecutive can't ignore.
+const BLOCK_BASE = 3000
+const BLOCK_SIZE = 20
+const PORT_SLOTS = {
+	CLIENT_PORT: 0,
+	SYNC_PORT: 1,
+	ASSET_PORT: 2,
+	IMAGE_PORT: 3,
+	USERCONTENT_PORT: 4,
+	ZERO_PORT: 5, // also uses slots 6 & 7 (zero's change-streamer + litestream)
+	PG_PORT: 8,
+	PGBOUNCER_PORT: 9,
+	PC_PORT: 10, // process-compose's own API/TUI port
+	SYNC_INSPECTOR: 11,
+	ASSET_INSPECTOR: 12,
+	IMAGE_INSPECTOR: 13,
+	USERCONTENT_INSPECTOR: 14,
 } as const
 
 // A registry mapping worktree path -> block index, so each worktree keeps a stable block across runs.
@@ -64,10 +68,10 @@ function allocateBlockIndex(worktree: string): number {
 }
 
 function buildEnv(idx: number, worktree: string) {
-	const off = idx * 100
+	const base = BLOCK_BASE + idx * BLOCK_SIZE
 	const p = Object.fromEntries(
-		Object.entries(NATURAL_PORTS).map(([k, v]) => [k, String(v + off)])
-	) as Record<keyof typeof NATURAL_PORTS, string>
+		Object.entries(PORT_SLOTS).map(([k, slot]) => [k, String(base + slot)])
+	) as Record<keyof typeof PORT_SLOTS, string>
 
 	const pgConn = `postgresql://user:password@127.0.0.1:${p.PG_PORT}/postgres`
 
