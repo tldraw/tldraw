@@ -1,7 +1,7 @@
 import { tlenv } from '../globals/environment'
 import { TestEditor } from '../test/TestEditor'
 import { getPointerInfo } from './getPointerInfo'
-import { isSecondaryClickEvent } from './pointer'
+import { isDirectDisplayPen, isSecondaryClickEvent } from './pointer'
 
 const originalIsDarwin = tlenv.isDarwin
 
@@ -18,6 +18,31 @@ describe('isSecondaryClickEvent', () => {
 	it('does not treat ctrl + left-click as a secondary click off macOS', () => {
 		tlenv.isDarwin = false
 		expect(isSecondaryClickEvent({ button: 0, ctrlKey: true, metaKey: false })).toBe(false)
+	})
+})
+
+describe('isDirectDisplayPen', () => {
+	function fakeEvent(pointerType: string, hasCapture: boolean) {
+		return {
+			pointerType,
+			pointerId: 1,
+			currentTarget: {
+				hasPointerCapture: (_id: number) => hasCapture,
+			},
+		} as unknown as PointerEvent
+	}
+
+	it('treats a pen with implicit capture as a direct-display pen', () => {
+		expect(isDirectDisplayPen(fakeEvent('pen', true))).toBe(true)
+	})
+
+	it('treats a pen without implicit capture as indirect', () => {
+		expect(isDirectDisplayPen(fakeEvent('pen', false))).toBe(false)
+	})
+
+	it('is never true for mouse or touch input', () => {
+		expect(isDirectDisplayPen(fakeEvent('mouse', true))).toBe(false)
+		expect(isDirectDisplayPen(fakeEvent('touch', true))).toBe(false)
 	})
 })
 

@@ -233,6 +233,10 @@ export class Driver {
 			...modifiers,
 		} as TLPointerEventInfo
 
+		// In simulated input, a pen is assumed to be a direct-display pen (which auto-enables pen
+		// mode) unless a test explicitly opts out with `isPenDirect: false`.
+		if (info.isPenDirect === undefined) info.isPenDirect = info.isPen
+
 		if (tlenv.isDarwin && info.button === 0 && info.ctrlKey && !info.metaKey) {
 			info.button = 2
 		}

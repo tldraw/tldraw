@@ -1,4 +1,23 @@
+import type React from 'react'
 import { tlenv } from '../globals/environment'
+
+/**
+ * Decide whether a pen pointer event looks like direct manipulation on the display (e.g. Apple
+ * Pencil on an iPad or a Surface Pen on a touchscreen) rather than indirect input from a desktop
+ * graphics tablet (e.g. a Wacom Intuos).
+ *
+ * Direct-manipulation pointers receive implicit pointer capture on `pointerdown`, so if the event's
+ * `currentTarget` already holds the capture before we take explicit capture ourselves, we treat it
+ * as a direct-display pen. This must be checked before calling {@link setPointerCapture}.
+ *
+ * @internal
+ */
+export function isDirectDisplayPen(e: React.PointerEvent | PointerEvent): boolean {
+	if (e.pointerType !== 'pen') return false
+	const target = e.currentTarget
+	if (!target || typeof (target as Element).hasPointerCapture !== 'function') return false
+	return (target as Element).hasPointerCapture(e.pointerId)
+}
 
 /** @internal */
 interface PointerLike {
