@@ -162,6 +162,7 @@ export function TlaSidebarFileLinkInner({
 	className?: string
 }) {
 	const trackEvent = useTldrawAppUiEvents()
+	const navigate = useNavigate()
 	const linkRef = useRef<HTMLAnchorElement | null>(null)
 	const app = useApp()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
@@ -262,7 +263,30 @@ export function TlaSidebarFileLinkInner({
 						setPreventScrollOnNavigation(true)
 					}
 					if (isSidebarOpenMobile) {
-						toggleMobileSidebar(false)
+						// On mobile the sidebar overlays the file, so opening one should
+						// close it. Opening a file is expensive — the editor tears down and
+						// remounts — and that work runs synchronously in this click handler,
+						// which blocks the sidebar from closing until it finishes (~1s),
+						// making the menu look stuck open. For a plain tap, close the sidebar
+						// and defer navigation until after the close has painted, so the menu
+						// snaps shut immediately and the file loads after. Modifier and
+						// non-primary clicks fall through to the native link (e.g. new tab).
+						const isPlainNavigation =
+							!isActive &&
+							event.button === 0 &&
+							!event.ctrlKey &&
+							!event.metaKey &&
+							!event.shiftKey &&
+							!event.altKey
+						if (isPlainNavigation) {
+							preventDefault(event)
+							toggleMobileSidebar(false)
+							// Two frames: the first paints the closed sidebar, the second
+							// starts the expensive navigation once that paint has landed.
+							requestAnimationFrame(() => requestAnimationFrame(() => navigate(href)))
+						} else {
+							toggleMobileSidebar(false)
+						}
 					}
 					trackEvent('click-file-link', { source: 'sidebar' })
 				}}
