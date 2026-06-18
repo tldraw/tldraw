@@ -59,7 +59,7 @@ export const defaultWelcomeSnapshotJson = `{
 			"com.tldraw.shape.highlight": 3,
 			"com.tldraw.shape.image": 5,
 			"com.tldraw.shape.line": 5,
-			"com.tldraw.shape.note": 12,
+			"com.tldraw.shape.note": 13,
 			"com.tldraw.shape.text": 4,
 			"com.tldraw.shape.video": 4,
 			"com.tldraw.binding.arrow": 1
