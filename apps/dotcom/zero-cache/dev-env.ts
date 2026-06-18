@@ -26,16 +26,6 @@ export const DOTCOM_DEV_POSTGRES_VOLUME = `${DOTCOM_DEV_COMPOSE_PROJECT}_tlapp_p
 export const DOTCOM_DEV_ZERO_REPLICA_FILE = '/tmp/tldraw-dotcom-zero-dev.db'
 export const DOTCOM_DEV_WRANGLER_STATE_DIR = 'state-dev'
 
-// Identifiers for resources left behind by older dev setups (per-branch scoping and the original
-// `docker` compose project). `yarn dev-app` reconciles these on startup and `dev-app:clean:all`
-// removes them.
-export const DOTCOM_DEV_DOCKER_PROJECT_PREFIX = 'tldraw_dotcom_'
-export const DOTCOM_DEV_POSTGRES_VOLUME_SUFFIX = '_tlapp_pgdata'
-export const DOTCOM_DEV_ZERO_REPLICA_FILE_PREFIX = 'tldraw-dotcom-zero-'
-export const DOTCOM_DEV_WRANGLER_STATE_PREFIX = 'state'
-export const DOTCOM_DEV_LEGACY_DOCKER_PROJECT_NAMES = ['docker']
-export const DOTCOM_DEV_LEGACY_POSTGRES_VOLUME_NAMES = ['docker_tlapp_pgdata']
-
 export interface DotcomDevEnv {
 	repoRoot: string
 	dotcomDir: string
@@ -51,27 +41,6 @@ export interface DotcomDevEnv {
 	schemaSourceFile: string
 	wranglerPersistDir: string
 	resetLocalStateUrl: string
-}
-
-export interface DotcomDevCleanTargets {
-	composeProjectName: string
-	postgresVolumeName: string
-	zeroReplicaFiles: string[]
-	schemaFile: string
-	wranglerPersistDir: string
-}
-
-export interface DotcomDevCleanAllTargets {
-	composeProjectNamePrefix: string
-	legacyComposeProjectNames: string[]
-	postgresVolumeNamePrefix: string
-	postgresVolumeNameSuffix: string
-	legacyPostgresVolumeNames: string[]
-	zeroReplicaDir: string
-	zeroReplicaFilePrefix: string
-	schemaFile: string
-	wranglerStateDir: string
-	wranglerPersistDirPrefix: string
 }
 
 export function buildDotcomDevEnv({
@@ -106,33 +75,4 @@ export function buildDotcomDevEnv({
 
 export function getDotcomDevEnv() {
 	return buildDotcomDevEnv()
-}
-
-export function getDotcomDevCleanTargets(env: DotcomDevEnv): DotcomDevCleanTargets {
-	return {
-		composeProjectName: env.composeProjectName,
-		postgresVolumeName: env.postgresVolumeName,
-		zeroReplicaFiles: [
-			env.zeroReplicaFile,
-			`${env.zeroReplicaFile}-shm`,
-			`${env.zeroReplicaFile}-wal`,
-		],
-		schemaFile: env.schemaFile,
-		wranglerPersistDir: env.wranglerPersistDir,
-	}
-}
-
-export function getDotcomDevCleanAllTargets(env: DotcomDevEnv): DotcomDevCleanAllTargets {
-	return {
-		composeProjectNamePrefix: DOTCOM_DEV_DOCKER_PROJECT_PREFIX,
-		legacyComposeProjectNames: DOTCOM_DEV_LEGACY_DOCKER_PROJECT_NAMES,
-		postgresVolumeNamePrefix: DOTCOM_DEV_DOCKER_PROJECT_PREFIX,
-		postgresVolumeNameSuffix: DOTCOM_DEV_POSTGRES_VOLUME_SUFFIX,
-		legacyPostgresVolumeNames: DOTCOM_DEV_LEGACY_POSTGRES_VOLUME_NAMES,
-		zeroReplicaDir: dirname(env.zeroReplicaFile),
-		zeroReplicaFilePrefix: DOTCOM_DEV_ZERO_REPLICA_FILE_PREFIX,
-		schemaFile: env.schemaFile,
-		wranglerStateDir: join(env.syncWorkerDir, '.wrangler'),
-		wranglerPersistDirPrefix: DOTCOM_DEV_WRANGLER_STATE_PREFIX,
-	}
 }

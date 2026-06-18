@@ -4,8 +4,6 @@ import {
 	DOTCOM_DEV_MIGRATIONS_READY_TIMEOUT_MS,
 	DOTCOM_DEV_READINESS_TIMEOUT_MS,
 	buildDotcomDevEnv,
-	getDotcomDevCleanAllTargets,
-	getDotcomDevCleanTargets,
 } from './dev-env'
 
 describe('dotcom dev env', () => {
@@ -28,38 +26,5 @@ describe('dotcom dev env', () => {
 			ZERO_NUM_SYNC_WORKERS: '1',
 		})
 		expect(env.wranglerPersistDir).toBe('/repo/apps/dotcom/sync-worker/.wrangler/state-dev')
-	})
-
-	it('selects clean targets for the single dev stack', () => {
-		const env = buildDotcomDevEnv({ repoRoot: '/repo' })
-
-		expect(getDotcomDevCleanTargets(env)).toEqual({
-			composeProjectName: 'tldraw_dotcom_dev',
-			postgresVolumeName: 'tldraw_dotcom_dev_tlapp_pgdata',
-			zeroReplicaFiles: [
-				'/tmp/tldraw-dotcom-zero-dev.db',
-				'/tmp/tldraw-dotcom-zero-dev.db-shm',
-				'/tmp/tldraw-dotcom-zero-dev.db-wal',
-			],
-			schemaFile: '/repo/apps/dotcom/zero-cache/.schema.js',
-			wranglerPersistDir: '/repo/apps/dotcom/sync-worker/.wrangler/state-dev',
-		})
-	})
-
-	it('selects clean-all target patterns that also cover legacy per-branch state', () => {
-		const env = buildDotcomDevEnv({ repoRoot: '/repo' })
-
-		expect(getDotcomDevCleanAllTargets(env)).toEqual({
-			composeProjectNamePrefix: 'tldraw_dotcom_',
-			legacyComposeProjectNames: ['docker'],
-			postgresVolumeNamePrefix: 'tldraw_dotcom_',
-			postgresVolumeNameSuffix: '_tlapp_pgdata',
-			legacyPostgresVolumeNames: ['docker_tlapp_pgdata'],
-			zeroReplicaDir: '/tmp',
-			zeroReplicaFilePrefix: 'tldraw-dotcom-zero-',
-			schemaFile: '/repo/apps/dotcom/zero-cache/.schema.js',
-			wranglerStateDir: '/repo/apps/dotcom/sync-worker/.wrangler',
-			wranglerPersistDirPrefix: 'state',
-		})
 	})
 })

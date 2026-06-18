@@ -53,16 +53,22 @@ machines. If the goal is **fastest inner loop on a Mac**, the host flow (and #92
 
 ## How to run
 
-> Requires Docker Desktop. Stop the host stack first (`yarn dev-app`) — it publishes `6432`/`6543`
-> and will collide (see [trade-off 5](#5-running-multiple-instances)).
+This stack is wired up as the default `yarn dev-app` (from the repo root). The host-native stack is
+still available as `yarn dev-app:host` (CI e2e + fallback) — don't run both at once, they collide on
+`6432`/`4848`/… (see [trade-off 5](#5-running-multiple-instances)).
+
+One-time setup:
 
 ```bash
-cd apps/dotcom/docker-dev
-cp .env.example .env            # fill in VITE_CLERK_PUBLISHABLE_KEY
+cp apps/dotcom/docker-dev/.env.example apps/dotcom/docker-dev/.env   # fill in VITE_CLERK_PUBLISHABLE_KEY
 # also create apps/dotcom/sync-worker/.dev.vars with CLERK_PUBLISHABLE_KEY + CLERK_SECRET_KEY
 #   (same file the host flow needs; it is bind-mounted into the sync-worker container)
+```
 
-docker compose up --build      # first run installs a linux node_modules into a volume (slow)
+Then from the repo root:
+
+```bash
+yarn dev-app                   # = docker compose up --build; first run installs a linux node_modules volume (slow)
 ```
 
 Then add these aliases to `/etc/hosts` so the browser resolves the same service names the
@@ -77,7 +83,7 @@ Open http://localhost:3000.
 To reset everything (including the DB and the linux `node_modules`):
 
 ```bash
-docker compose down --volumes
+yarn dev-app:clean             # = docker compose down --volumes
 ```
 
 ---
@@ -330,6 +336,31 @@ One platform note: `simonfuhrer/postgresql:16.1-wal2json` is published **linux/a
 Apple Silicon it runs under **QEMU emulation** (Docker warns: _"image platform (linux/amd64) does not
 match the detected host platform (linux/arm64/v8)"_). It works, but DB-heavy operations are slower
 than native. A native multi-arch wal2json image (or building one) would remove that.
+
+---
+
+## What this makes the default (and what it removes)
+
+This branch wires the Docker stack in as the **default dev path**, keeping the host-native stack only
+where it's still needed:
+
+- **`yarn dev-app`** → this Docker stack (was: host-native lazyrepo orchestration).
+- **`yarn dev-app:host`** → the previous host-native stack, retained for **CI e2e** and as a fallback.
+- **`yarn dev-app:clean` / `:doctor`** → `docker compose down --volumes` / `ps` (were host-stack helpers).
+- **Local e2e** (Playwright, non-CI) now brings up the Docker stack; **CI e2e is unchanged** (uses
+  `dev-app:host`).
+
+Because CI e2e still rides on the host orchestrator, the core orchestration (`zero-cache/dev.ts`,
+`dev-env.ts`, `wait-for-dev-readiness.ts`, `sync-worker/dev.ts`, `zero-cache/docker/`) **has to stay**
+— deleting it would mean migrating CI e2e to Docker too, which is intentionally out of scope here.
+
+What did get deleted (host-only manual helpers Docker supersedes, ~320 lines): `zero-cache/dev-clean.ts`,
+`zero-cache/dev-doctor.ts`, `zero-cache/docker-compose.ts`, and their `package.json` scripts
+(`dev:clean`, `dev:clean:all`, `dev:doctor`, `docker-up`, `docker-down`, `dev-app:clean:all`).
+
+The bigger structural deletion (the ~1,000-line orchestration cluster + #9273 becoming moot) only
+unlocks if CI e2e also moves to Docker. This is the one-way door that keeps the host orchestration
+alive for now.
 
 ---
 

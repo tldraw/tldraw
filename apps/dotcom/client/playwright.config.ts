@@ -24,7 +24,8 @@ dotenv.config({ path: path.resolve(__dirname, '.env.local') })
  */
 export default defineConfig({
 	testDir: './e2e',
-	// In CI the webServer below starts the full dotcom dev stack (including Docker). Tear it down
+	// CI keeps the host-native dev stack (`dev-app:host`: postgres-in-Docker + host workers/zero).
+	// Locally the webServer starts the full Docker dev stack (`dev-app`). Tear it down in CI
 	// afterwards so containers and ports do not leak between runs. No-op locally (reused server).
 	globalTeardown: process.env.CI ? require.resolve('./e2e/global.teardown.ts') : undefined,
 	// Run files in parallel, but tests within a file in sequence. This is important for certain
@@ -119,7 +120,7 @@ export default defineConfig({
 
 	/* Run your local dev server before starting the tests */
 	webServer: {
-		command: process.env.CI ? 'VITE_PREVIEW=1 yarn dev-app' : 'yarn preview-app',
+		command: process.env.CI ? 'VITE_PREVIEW=1 yarn dev-app:host' : 'yarn dev-app',
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
