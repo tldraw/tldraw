@@ -4,6 +4,7 @@ import { useActions } from '../../context/actions'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 
 const backToContentSuppressed = new EditorAtom('backToContentSuppressed', () => false)
+const suppressTimeout = new EditorAtom<number | null>('backToContentSuppressTimeout', () => null)
 
 /**
  * Hide the "back to content" helper button right away, regardless of where the
@@ -17,7 +18,15 @@ const backToContentSuppressed = new EditorAtom('backToContentSuppressed', () => 
  */
 export function suppressBackToContent(editor: Editor, durationMs: number) {
 	backToContentSuppressed.set(editor, true)
-	editor.timers.setTimeout(() => backToContentSuppressed.set(editor, false), durationMs)
+	// Cancel any pending timeout so an earlier (shorter) timer can't clear the
+	// suppression while a newer camera animation is still running.
+	const pending = suppressTimeout.get(editor)
+	if (pending !== null) clearTimeout(pending)
+	const id = editor.timers.setTimeout(() => {
+		backToContentSuppressed.set(editor, false)
+		suppressTimeout.set(editor, null)
+	}, durationMs)
+	suppressTimeout.set(editor, id)
 }
 
 export function BackToContent() {
