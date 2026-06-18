@@ -12,9 +12,9 @@
 // postgres docker project) has to be offset per worktree, and every inter-service URL rewired to
 // match. Container network isolation (the Docker spike) makes almost all of this disappear.
 //
-// `yarn dev-app` runs this; it allocates a stable 100-port block for the current worktree, derives
-// ~25 env values from it, and execs process-compose with them. The first worktree gets the natural
-// ports (offset 0 == today's setup, so nothing changes for a single stack).
+// `yarn dev-app` runs this; it gives the current worktree a stable block index, shifts every
+// service's default port by index*100, derives ~25 env values, and execs process-compose with them.
+// The first worktree gets index 0 (the unshifted default ports), so nothing changes for a single stack.
 
 import { spawn } from 'child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
@@ -24,8 +24,11 @@ import { fileURLToPath } from 'url'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
-// One contiguous 100-port block per worktree. offset = blockIndex * 100; the natural dev ports are
-// block 0, so a single worktree is unchanged.
+// Each service keeps its own existing default port ("natural" port); a worktree just shifts ALL of
+// them by blockIndex * 100. So these are NOT consecutive (client 3000, zero 4848, postgres 6543, …);
+// worktree 0 uses them as-is (unchanged from today), worktree 1 adds 100 to each, worktree 2 adds 200.
+// Collision-free because every natural port below has distinct last-two-digits, and the shift is
+// always a multiple of 100.
 const NATURAL_PORTS = {
 	CLIENT_PORT: 3000,
 	SYNC_PORT: 8787,

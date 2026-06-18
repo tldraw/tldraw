@@ -113,10 +113,12 @@ process-compose is a process supervisor, not a network namespace, so two stacks 
 through **everything**. What it took:
 
 - **A port-allocation wrapper** ([`internal/scripts/dotcom-dev-parallel.ts`](../../internal/scripts/dotcom-dev-parallel.ts),
-  ~120 lines) that `yarn dev-app` now runs. It assigns each worktree a stable **100-port block**
-  (block 0 = the natural ports, so a single worktree is unchanged) and derives **~25 env values** from
-  the one offset. _Deleting `dev.ts` bought us out of supervision; parallel support hands a chunk of
-  bespoke config logic right back._
+  ~120 lines) that `yarn dev-app` now runs. It gives each worktree a stable **block index** and shifts
+  every service's existing default port by **index × 100** — so worktree 0 uses the unchanged default
+  ports, worktree 1 adds 100 to each, etc. (The ports stay scattered — client 3000, zero 4848,
+  postgres 6543 — they're not a contiguous 3100–3199 block; only the per-worktree _spacing_ is 100.)
+  From that one offset it derives **~25 env values**. _Deleting `dev.ts` bought us out of supervision;
+  parallel support hands a chunk of bespoke config logic right back._
 - **A persistent allocation registry** (`~/.tldraw-dotcom-dev-ports.json`, worktree → block) so blocks
   are stable across runs and don't collide. (Needing this at all is part of the cost.)
 - **Every service port** offset and passed through (`--port` / `--inspector-port` for the 4 workers,
