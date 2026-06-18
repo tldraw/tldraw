@@ -49,6 +49,12 @@ function getInkStyleElement(editor: Editor): HTMLStyleElement {
 	return el
 }
 
+// A selector matching every given shape (the draw tool can split one long
+// stroke into several shapes, so the wet ink may cover more than one).
+function inkSelector(shapeIds: TLShapeId[]): string {
+	return shapeIds.map((id) => `.tl-shape[data-shape-id="${id}"]`).join(',')
+}
+
 /**
  * Shows the in-progress stroke at half opacity using CSS only, so the shape's
  * real `opacity` is left untouched (the translucency is purely a visual effect
@@ -56,9 +62,13 @@ function getInkStyleElement(editor: Editor): HTMLStyleElement {
  * the shape's inline opacity. No transition here, so the stroke appears
  * translucent immediately rather than fading in.
  */
-export function setWetInk(editor: Editor, shapeId: TLShapeId) {
+export function setWetInk(editor: Editor, shapeIds: TLShapeId[]) {
+	if (shapeIds.length === 0) {
+		clearWetInk(editor)
+		return
+	}
 	getInkStyleElement(editor).textContent =
-		`.tl-shape[data-shape-id="${shapeId}"]{opacity:${MAGIC_WAND_INK_OPACITY}!important}`
+		`${inkSelector(shapeIds)}{opacity:${MAGIC_WAND_INK_OPACITY}!important}`
 }
 
 /**
@@ -66,10 +76,11 @@ export function setWetInk(editor: Editor, shapeId: TLShapeId) {
  * "ink drying" effect, done entirely in CSS. Clears the rule once the transition
  * finishes (unless a newer stroke has since taken over the style element).
  */
-export function dryWetInk(editor: Editor, shapeId: TLShapeId) {
+export function dryWetInk(editor: Editor, shapeIds: TLShapeId[]) {
+	if (shapeIds.length === 0) return
 	getInkStyleElement(editor).textContent =
-		`.tl-shape[data-shape-id="${shapeId}"]{transition:opacity ${INK_DRY_DURATION_MS}ms ease}`
-	editor.timers.setTimeout(() => clearWetInk(editor, shapeId), INK_DRY_DURATION_MS)
+		`${inkSelector(shapeIds)}{transition:opacity ${INK_DRY_DURATION_MS}ms ease}`
+	editor.timers.setTimeout(() => clearWetInk(editor, shapeIds[0]), INK_DRY_DURATION_MS)
 }
 
 /**

@@ -143,6 +143,28 @@ describe('MagicWandTool', () => {
 		editor.expectToBeIn('select.idle')
 	})
 
+	it('still lassos when a long stroke is split into multiple shapes', () => {
+		// Force the draw tool to split the stroke after just a few points.
+		;(editor.getShapeUtil('draw') as any).options.maxPointsPerShape = 2
+		const boxId = createBox(130, 130) // center ~(150,150), inside the loop
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		// The stroke should have split into more than one draw shape by now.
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'draw').length).toBeGreaterThan(1)
+
+		editor.pointerMove(102, 100) // close the loop near the start
+		editor.pointerUp()
+
+		// Despite the split, the loop still lasso-selects the encircled box.
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('select.idle')
+	})
+
 	it('lasso-selects multiple encircled shapes', () => {
 		const a = createBox(120, 120, 20, 20) // center ~(130,130)
 		const b = createBox(160, 160, 20, 20) // center ~(170,170)
