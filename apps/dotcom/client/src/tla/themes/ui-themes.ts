@@ -22,28 +22,14 @@ interface UITheme {
 }
 
 const TLA_COLOR_KEYS_TO_OMIT = new Set([
-	'tla-color-canvas',
 	'tla-color-panel',
 	'tla-color-text',
 	'tla-color-text-1',
-	'tla-color-text-2',
-	'tla-color-text-3',
-	'tla-color-contrast',
-	'tla-color-low',
-	'tla-color-border',
-	'tla-color-hover-1',
-	'tla-color-hover-2',
-	'tla-color-hover-3',
-	'tla-color-cta',
 	'tla-color-cta-hover',
 	'tla-color-primary',
 	'tla-color-focus',
-	'tla-color-accent-1',
-	'tla-color-accent-2',
 	'tla-color-accent-3',
 	'tla-color-warning',
-	'tla-color-tooltip',
-	'tla-color-drop-zone',
 ])
 
 const THEMES: UITheme[] = [

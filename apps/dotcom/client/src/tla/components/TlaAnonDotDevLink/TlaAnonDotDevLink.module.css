@@ -80,7 +80,7 @@
 	}
 
 	.anonDotDevLink:has(a:hover)::after {
-		background-color: var(--tl-color-hover);
+		background-color: var(--tl-color-muted-2);
 	}
 }
 
