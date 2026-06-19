@@ -74,7 +74,10 @@ const generateImage = (dpr: number, currentZoom: number, solid: string) => {
 		canvasEl.height = size
 
 		const ctx = canvasEl.getContext('2d')
-		if (!ctx) return
+		if (!ctx) {
+			reject()
+			return
+		}
 
 		ctx.fillStyle = solid
 		ctx.fillRect(0, 0, size, size)
