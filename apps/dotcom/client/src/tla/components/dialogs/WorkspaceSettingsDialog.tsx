@@ -407,7 +407,6 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 															id={`workspace-member-role-${member.userId}`}
 															label={roleLabels[member.role]}
 															value={member.role}
-															usePortal
 															options={memberRoleOptions}
 															// Everyone — including yourself — can be removed; it's disabled when
 															// removal would leave the workspace without an owner. On your own
