@@ -111,19 +111,37 @@ const generateImage = (dpr: number, currentZoom: number, solid: string) => {
 
 // Pattern-fill tiles are a pure function of (dpr, zoom LOD, solid color), so each one can be
 // generated once and reused for the lifetime of the page. Generating a tile rasterizes a canvas
-// and encodes it with `canvas.toBlob`, which is expensive — on mobile Safari the full set of LODs
+// and encodes it with `canvas.toBlob`, which is expensive - on mobile Safari the full set of LODs
 // can take over a second. Without this cache, every editor that mounts regenerates the whole set;
 // in apps that remount the editor to switch documents that cost is paid on every switch. Caching
 // the resulting object URLs keeps the work to at most once per (dpr, zoom, color).
 const patternImageUrlCache = new Map<string, Promise<string>>()
-function getOrCreatePatternImageUrl(dpr: number, zoom: number, solid: string): Promise<string> {
+/**
+ * Returns a cached object URL for a pattern tile, generating it on first request. The
+ * `generate` parameter is a seam for tests; production callers use the default.
+ * @internal
+ */
+export function getOrCreatePatternImageUrl(
+	dpr: number,
+	zoom: number,
+	solid: string,
+	generate: (dpr: number, zoom: number, solid: string) => Promise<Blob> = generateImage
+): Promise<string> {
 	const key = `${dpr}_${zoom}_${solid}`
 	let url = patternImageUrlCache.get(key)
 	if (!url) {
-		url = generateImage(dpr, zoom, solid).then((blob) => URL.createObjectURL(blob))
+		url = generate(dpr, zoom, solid).then((blob) => URL.createObjectURL(blob))
 		patternImageUrlCache.set(key, url)
 	}
 	return url
+}
+
+/**
+ * Clears the pattern-tile cache. Only intended for tests.
+ * @internal
+ */
+export function clearPatternImageUrlCacheForTests() {
+	patternImageUrlCache.clear()
 }
 
 const canvasBlob = (size: [number, number], fn: (ctx: CanvasRenderingContext2D) => void) => {
