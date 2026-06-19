@@ -68,6 +68,9 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
+	// No loading screen on tla editors: the chrome and placeholder appear
+	// instantly, so a spinner would only flash before the content cuts in.
+	LoadingScreen: null,
 }
 
 interface TlaEditorProps {
@@ -75,12 +78,6 @@ interface TlaEditorProps {
 	isEmbed?: boolean
 	deepLinks?: boolean
 }
-
-// Components for the inert placeholder editor shown while the real file syncs.
-// Same UI as the real editor (toolbar, menus, panels) so the chrome appears
-// instantly, plus a nulled loading screen to avoid a flash of its own spinner
-// before the (instant) empty local store finishes loading.
-const placeholderComponents: TLComponents = { ...components, LoadingScreen: null }
 
 /**
  * An empty, non-interactive tldraw editor shown immediately while the real file
@@ -100,7 +97,7 @@ function TlaEditorLoadingPlaceholder() {
 				// Match the user's theme so the placeholder doesn't flash light/dark.
 				user={app?.tlUser}
 				autoFocus={false}
-				components={placeholderComponents}
+				components={components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 			/>
 		</TlaEditorWrapper>

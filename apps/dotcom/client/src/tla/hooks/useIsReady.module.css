@@ -13,23 +13,9 @@
 .innerContainer {
 	flex-grow: 1;
 	height: 100%;
-	transition: opacity 0.12s ease-in;
 }
 
 .innerContainer:not(.isReady) {
-	opacity: 0;
-}
-
-.spinner {
-	transition: opacity 1s ease-in;
-	position: absolute;
-	inset: 0;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-}
-
-.spinner:not(.showSpinner) {
 	opacity: 0;
 }
 
@@ -53,15 +39,10 @@
 }
 
 /*
- * Fade just the file content in once the editor is ready, leaving the main UI,
- * background, and grid untouched so they line up with the placeholder.
+ * Keep just the file content hidden until the editor is ready, then hard-cut it
+ * in (no fade), leaving the main UI, background, and grid untouched so they line
+ * up with the placeholder.
  */
-.withLoadingScreen .innerContainer :global(.tl-shapes),
-.withLoadingScreen .innerContainer :global(.tl-canvas-overlays),
-.withLoadingScreen .innerContainer :global(.tl-canvas__in-front) {
-	transition: opacity 0.2s ease-in;
-}
-
 .withLoadingScreen .innerContainer:not(.isReady) :global(.tl-shapes),
 .withLoadingScreen .innerContainer:not(.isReady) :global(.tl-canvas-overlays),
 .withLoadingScreen .innerContainer:not(.isReady) :global(.tl-canvas__in-front) {
