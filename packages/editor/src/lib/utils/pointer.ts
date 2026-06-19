@@ -1,6 +1,5 @@
 import type React from 'react'
 import { tlenv } from '../globals/environment'
-import { getGlobalWindow } from './dom'
 
 /**
  * Decide whether a pen pointer event looks like direct manipulation on the display (e.g. Apple
@@ -14,21 +13,15 @@ import { getGlobalWindow } from './dom'
  * a non-touch desktop alongside a mouse. A device with no touch input therefore can't host a
  * direct-display pen.
  *
- * Note this is intentionally the device's touch capability, not the editor's dynamic
- * `isCoarsePointer` state, which a pen `pointerdown` flips to coarse regardless of device.
+ * Note this uses {@link tlenv.isTouchDevice} — the device's fixed touch capability — not the
+ * editor's dynamic `isCoarsePointer` state, which a pen `pointerdown` flips to coarse regardless
+ * of device.
  *
  * @internal
  */
 export function isDirectDisplayPen(e: React.PointerEvent | PointerEvent): boolean {
 	if (e.pointerType !== 'pen') return false
-	return isTouchCapableDevice()
-}
-
-/** Whether the device has a touch screen (an integrated coarse pointer). @internal */
-function isTouchCapableDevice(): boolean {
-	const win = getGlobalWindow()
-	if (win.navigator && win.navigator.maxTouchPoints > 0) return true
-	return typeof win.matchMedia === 'function' && win.matchMedia('(any-pointer: coarse)').matches
+	return tlenv.isTouchDevice
 }
 
 /** @internal */

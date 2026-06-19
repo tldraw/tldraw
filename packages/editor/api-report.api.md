@@ -3962,6 +3962,7 @@ export const tlenv: {
     isFirefox: boolean;
     isIos: boolean;
     isSafari: boolean;
+    isTouchDevice: boolean;
     isWebview: boolean;
 };
 

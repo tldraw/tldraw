@@ -22,30 +22,10 @@ describe('isSecondaryClickEvent', () => {
 })
 
 describe('isDirectDisplayPen', () => {
-	const originalMaxTouchPoints = Object.getOwnPropertyDescriptor(
-		window.navigator,
-		'maxTouchPoints'
-	)
-	const originalMatchMedia = window.matchMedia
-
-	function setTouchCapable(isTouch: boolean) {
-		Object.defineProperty(window.navigator, 'maxTouchPoints', {
-			configurable: true,
-			value: isTouch ? 5 : 0,
-		})
-		window.matchMedia = ((query: string) => ({
-			matches: isTouch && query.includes('coarse'),
-			media: query,
-			addEventListener: () => {},
-			removeEventListener: () => {},
-		})) as unknown as typeof window.matchMedia
-	}
+	const originalIsTouchDevice = tlenv.isTouchDevice
 
 	afterEach(() => {
-		if (originalMaxTouchPoints) {
-			Object.defineProperty(window.navigator, 'maxTouchPoints', originalMaxTouchPoints)
-		}
-		window.matchMedia = originalMatchMedia
+		tlenv.isTouchDevice = originalIsTouchDevice
 	})
 
 	function event(pointerType: string) {
@@ -53,17 +33,17 @@ describe('isDirectDisplayPen', () => {
 	}
 
 	it('treats a pen on a touch-capable device as a direct-display pen', () => {
-		setTouchCapable(true)
+		tlenv.isTouchDevice = true
 		expect(isDirectDisplayPen(event('pen'))).toBe(true)
 	})
 
 	it('treats a pen on a non-touch device as indirect', () => {
-		setTouchCapable(false)
+		tlenv.isTouchDevice = false
 		expect(isDirectDisplayPen(event('pen'))).toBe(false)
 	})
 
 	it('is never true for mouse or touch input, even on a touch-capable device', () => {
-		setTouchCapable(true)
+		tlenv.isTouchDevice = true
 		expect(isDirectDisplayPen(event('mouse'))).toBe(false)
 		expect(isDirectDisplayPen(event('touch'))).toBe(false)
 	})
