@@ -530,7 +530,7 @@
 	text-overflow: ellipsis;
 	position: relative;
 	z-index: 1;
-	font-weight: 800;
+	font-weight: 600;
 }
 
 .sidebarWorkspaceSwitcherChevrons {
