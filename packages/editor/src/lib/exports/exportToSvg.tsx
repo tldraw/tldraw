@@ -23,6 +23,13 @@ export async function exportToSvg(
 	const result = getSvgJsx(editor, shapeIds, opts)
 	if (!result) return undefined
 
+	// Text geometry is measured synchronously while we render the SVG below. If a
+	// font used by the export is still loading, that measurement falls back to
+	// system-font metrics and the exported layout drifts - text ends up in the
+	// right font but at slightly wrong positions. Wait for the fonts to load
+	// first so the measurement, and therefore the export, is deterministic.
+	await Promise.all(Array.from(result.fonts, (font) => editor.fonts.ensureFontIsLoaded(font)))
+
 	// we need to render that SVG into a real DOM element that's actually laid out in the document.
 	// without this CSS and layout aren't computed correctly, which we need to make sure any
 	// <foreignObject> elements have their styles and content inlined correctly.

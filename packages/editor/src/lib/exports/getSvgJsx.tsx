@@ -83,6 +83,17 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	// no unmasked shapes to export
 	if (!bbox) return
 
+	// Collect the fonts used by the shapes we're exporting. The caller awaits
+	// these before rendering so that text is measured against the real fonts
+	// rather than system fallbacks - measuring before a font has loaded produces
+	// slightly different glyph widths and drifts the exported layout.
+	const fonts = new Set<TLFontFace>()
+	for (const { id } of renderingShapes) {
+		for (const font of editor.fonts.getShapeFontFaces(id)) {
+			fonts.add(font)
+		}
+	}
+
 	// When auto-trim is active and padding was applied by getExportDefaultBounds,
 	// the padding region is trimmable: exports will scan pixels from each edge inward
 	// and trim to the actual visual content bounds. This ensures visual overflow
@@ -123,7 +134,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		</SvgExport>
 	)
 
-	return { jsx: svg, width: w, height: h, exportDelay, trimPadding }
+	return { jsx: svg, width: w, height: h, exportDelay, trimPadding, fonts }
 }
 
 /**

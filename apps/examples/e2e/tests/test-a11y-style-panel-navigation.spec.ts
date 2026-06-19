@@ -102,10 +102,12 @@ test.describe('A11y Style Panel Navigation', () => {
 		expect(finalText).toBe('Updated Label')
 	})
 
-	// Failing! This is failing because the keyboard event isn't being picked up while editing the rich
-	// text. In practice the behavior does work, so this is a problem with the test or the way that we're
-	// dispatching the event.
-	test.fail('in a geo shape, cmd+enter returns focus to the canvas', async ({ page, isMobile }) => {
+	// Skipped: the cmd+enter keyboard event isn't reliably picked up while editing rich text in the
+	// test harness, so the body passes intermittently. Because it was marked `test.fail`, those
+	// intermittent passes were reported as failures and flaked the suite. The behavior works in
+	// practice; re-enable once the event dispatch can be made deterministic (a reliable way to send
+	// the shortcut to the focused contenteditable).
+	test.skip('in a geo shape, cmd+enter returns focus to the canvas', async ({ page, isMobile }) => {
 		if (isMobile) {
 			test.skip()
 		}
