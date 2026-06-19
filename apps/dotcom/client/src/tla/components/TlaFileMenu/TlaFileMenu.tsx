@@ -128,9 +128,10 @@ export function FileItems({
 	// labelled with its own name like any other workspace.
 	const currentWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
 	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === app.getHomeWorkspaceId())
-		?.group.name
+		?.group?.name
 	const moveToWorkspaces = workspaceMemberships.filter(
-		(g) => g.groupId !== app.getHomeWorkspaceId()
+		(g): g is typeof g & { group: NonNullable<(typeof g)['group']> } =>
+			g.groupId !== app.getHomeWorkspaceId() && !!g.group
 	)
 
 	const handleCopyLinkClick = useCallback(() => {

@@ -34,17 +34,23 @@ export function TlaSidebarWorkspaceSwitcher() {
 
 	const workspaces = useValue(
 		'workspaceMemberships',
-		() => app.getWorkspaceMemberships().filter((g) => g.groupId !== homeWorkspaceId),
+		() =>
+			app
+				.getWorkspaceMemberships()
+				.filter(
+					(g): g is typeof g & { group: NonNullable<(typeof g)['group']> } =>
+						g.groupId !== homeWorkspaceId && !!g.group
+				),
 		[app, homeWorkspaceId]
 	)
 	const activeWorkspaceName = useValue(
 		'active workspace name',
-		() => app.getWorkspaceMembership(activeWorkspaceId)?.group.name,
+		() => app.getWorkspaceMembership(activeWorkspaceId)?.group?.name,
 		[app, activeWorkspaceId]
 	)
 	const homeWorkspaceName = useValue(
 		'home workspace name',
-		() => app.getWorkspaceMembership(homeWorkspaceId)?.group.name,
+		() => app.getWorkspaceMembership(homeWorkspaceId)?.group?.name,
 		[app, homeWorkspaceId]
 	)
 
