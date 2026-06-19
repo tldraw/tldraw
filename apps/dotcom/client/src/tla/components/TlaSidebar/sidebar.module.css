@@ -548,7 +548,7 @@
 }
 
 .sidebarWorkspaceSwitcherOverlay {
-	position: absolute;
+	position: fixed;
 	inset: 0;
 	z-index: calc(var(--tl-layer-menus) - 1);
 	pointer-events: all;
