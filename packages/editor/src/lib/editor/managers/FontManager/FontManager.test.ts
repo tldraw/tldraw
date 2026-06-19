@@ -9,7 +9,7 @@ import {
 import { IndexKey } from '@tldraw/utils'
 import { Mock, Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
-import { FontManager } from './FontManager'
+import { clearFontFaceCacheForTests, FontManager } from './FontManager'
 
 // Mock the Editor class
 vi.mock('../../Editor')
@@ -73,6 +73,7 @@ describe('FontManager', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
+		clearFontFaceCacheForTests()
 
 		mockAssetUrls = {
 			'test-font.woff2': 'https://example.com/fonts/test-font.woff2',
@@ -312,6 +313,28 @@ describe('FontManager', () => {
 			}
 
 			await expect(fontManager.ensureFontIsLoaded(minimalFont)).resolves.toBeUndefined()
+		})
+	})
+
+	describe('findOrCreateFontFace caching', () => {
+		it('reuses a font face across manager instances instead of recreating it on remount', async () => {
+			const font = createMockFont()
+			await fontManager.ensureFontIsLoaded(font)
+			expect(global.FontFace).toHaveBeenCalledTimes(1)
+
+			// A fresh manager on the same document simulates an editor remount.
+			const remounted = new FontManager(editor, mockAssetUrls)
+			await remounted.ensureFontIsLoaded(font)
+
+			// The per-document cache lets the second manager reuse the existing face
+			// rather than re-scanning document.fonts and creating a new one.
+			expect(global.FontFace).toHaveBeenCalledTimes(1)
+		})
+
+		it('creates separate font faces for fonts with different descriptors', async () => {
+			await fontManager.ensureFontIsLoaded(createMockFont({ weight: 'normal' }))
+			await fontManager.ensureFontIsLoaded(createMockFont({ weight: 'bold' }))
+			expect(global.FontFace).toHaveBeenCalledTimes(2)
 		})
 	})
 })
