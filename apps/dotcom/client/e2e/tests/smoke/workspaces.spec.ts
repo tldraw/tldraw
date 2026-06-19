@@ -163,6 +163,74 @@ test.describe('workspaces', () => {
 			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeHidden()
 		})
 
+		test('clicking the canvas closes the workspace switcher without reaching the canvas', async ({
+			page,
+			sidebar,
+		}) => {
+			const shapeId = await page.evaluate(() => {
+				const editor = (window as any).editor
+				editor.createShapes([
+					{
+						type: 'geo',
+						x: 100,
+						y: 100,
+						props: { geo: 'rectangle', w: 100, h: 100 },
+					},
+				])
+				const shape = editor.getCurrentPageShapes()[0]
+				editor.select(shape.id)
+				return shape.id
+			})
+
+			await sidebar.openWorkspaceSwitcher()
+			const homeItem = page.getByTestId('tla-workspace-switcher-home')
+			await expect(homeItem).toBeVisible()
+
+			await page.mouse.click(600, 300)
+			await expect(homeItem).toBeHidden()
+			expect(
+				await page.evaluate(() => {
+					const editor = (window as any).editor
+					return editor.getSelectedShapeIds()
+				})
+			).toEqual([shapeId])
+		})
+
+		test('closing the mobile sidebar closes open sidebar menus', async ({ page, sidebar }) => {
+			const fileName = getRandomName()
+			await sidebar.createNewDocument(fileName)
+
+			await page.setViewportSize({ width: 390, height: 844 })
+
+			const mobileToggle = page.getByTestId('tla-sidebar-toggle-mobile')
+			const mobileOverlay = page.getByTestId('tla-sidebar-overlay-mobile')
+			const closeMobileSidebar = async () => {
+				await mobileOverlay.click({ position: { x: 380, y: 422 } })
+				await expect(mobileOverlay).toBeHidden()
+			}
+
+			await expect(mobileToggle).toBeVisible()
+			await mobileToggle.click()
+			await expect(mobileOverlay).toBeVisible()
+
+			await sidebar.openWorkspaceSwitcher()
+			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeVisible()
+
+			await closeMobileSidebar()
+			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeHidden()
+
+			await mobileToggle.click()
+			await expect(mobileOverlay).toBeVisible()
+
+			const fileLink = sidebar.getFileByName(fileName)
+			await fileLink.hover()
+			await fileLink.getByRole('button').click()
+			await expect(page.getByRole('menuitem', { name: 'Rename' })).toBeVisible()
+
+			await closeMobileSidebar()
+			await expect(page.getByRole('menuitem', { name: 'Rename' })).toBeHidden()
+		})
+
 		test('create file button creates in the active workspace', async ({ sidebar }) => {
 			const workspaceName = getRandomName()
 			const file1 = getRandomName()
