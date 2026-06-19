@@ -163,13 +163,37 @@ test.describe('workspaces', () => {
 			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeHidden()
 		})
 
-		test('clicking the canvas closes the workspace switcher', async ({ page, sidebar }) => {
+		test('clicking the canvas closes the workspace switcher without reaching the canvas', async ({
+			page,
+			sidebar,
+		}) => {
+			const shapeId = await page.evaluate(() => {
+				const editor = (window as any).editor
+				editor.createShapes([
+					{
+						type: 'geo',
+						x: 100,
+						y: 100,
+						props: { geo: 'rectangle', w: 100, h: 100 },
+					},
+				])
+				const shape = editor.getCurrentPageShapes()[0]
+				editor.select(shape.id)
+				return shape.id
+			})
+
 			await sidebar.openWorkspaceSwitcher()
 			const homeItem = page.getByTestId('tla-workspace-switcher-home')
 			await expect(homeItem).toBeVisible()
 
-			await page.getByTestId('canvas').click({ position: { x: 600, y: 300 } })
+			await page.mouse.click(600, 300)
 			await expect(homeItem).toBeHidden()
+			expect(
+				await page.evaluate(() => {
+					const editor = (window as any).editor
+					return editor.getSelectedShapeIds()
+				})
+			).toEqual([shapeId])
 		})
 
 		test('closing the mobile sidebar closes open sidebar menus', async ({ page, sidebar }) => {
