@@ -68,8 +68,8 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
-	// No loading screen on tla editors: the chrome and placeholder appear
-	// instantly, so a spinner would only flash before the content cuts in.
+	// No loading screen on tla editors: the editor only mounts once it's ready,
+	// so a spinner would only flash before the content appears.
 	LoadingScreen: null,
 }
 
