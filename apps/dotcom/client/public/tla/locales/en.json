@@ -191,9 +191,6 @@
   "55505ba281": {
     "translation": "PNG"
   },
-  "5638176be5": {
-    "translation": "Create a workspace"
-  },
   "5677e381d2": {
     "translation": "We use analytics cookies to make tldraw better."
   },
@@ -244,6 +241,9 @@
   },
   "6832ac5936": {
     "translation": "Enter your email address"
+  },
+  "686e697538": {
+    "translation": "Create"
   },
   "694f82ed9d": {
     "translation": "Delete workspace"

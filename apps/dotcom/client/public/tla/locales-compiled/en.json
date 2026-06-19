@@ -425,12 +425,6 @@
       "value": "PNG"
     }
   ],
-  "5638176be5": [
-    {
-      "type": 0,
-      "value": "Create a workspace"
-    }
-  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -531,6 +525,12 @@
     {
       "type": 0,
       "value": "Enter your email address"
+    }
+  ],
+  "686e697538": [
+    {
+      "type": 0,
+      "value": "Create"
     }
   ],
   "694f82ed9d": [

@@ -327,7 +327,7 @@ export class Sidebar {
 		await expect(input).toBeVisible()
 		await input.fill(name)
 
-		await this.page.getByRole('button', { name: 'Create workspace' }).click()
+		await this.page.getByRole('button', { name: 'Create', exact: true }).click()
 		await this.mutationResolution()
 
 		// Creating a workspace switches to it and opens its seeded welcome file. That file

@@ -51,7 +51,7 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F defaultMessage="Create a workspace" />
+					<F defaultMessage="Create workspace" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
@@ -80,7 +80,7 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 					<F defaultMessage="Cancel" />
 				</TldrawUiButton>
 				<TldrawUiButton type="primary" onClick={handleCreate}>
-					<F defaultMessage="Create workspace" />
+					<F defaultMessage="Create" />
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
 		</>

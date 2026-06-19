@@ -26,7 +26,7 @@ If you already have a workspace, click the workspace switcher at the top of the 
 
 Enter a workspace name.
 
-Click **Create workspace**.
+Click **Create**.
 
 tldraw creates the workspace, makes you the owner, creates a welcome file, and opens that file.
 
