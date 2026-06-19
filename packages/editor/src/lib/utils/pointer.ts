@@ -1,34 +1,34 @@
 import type React from 'react'
 import { tlenv } from '../globals/environment'
+import { getGlobalWindow } from './dom'
 
 /**
  * Decide whether a pen pointer event looks like direct manipulation on the display (e.g. Apple
  * Pencil on an iPad or a Surface Pen on a touchscreen) rather than indirect input from a desktop
  * graphics tablet (e.g. a Wacom Intuos).
  *
- * Direct-manipulation pointers receive implicit pointer capture on `pointerdown`, so if an element
- * already holds the capture before we take explicit capture ourselves, we treat it as a
- * direct-display pen. This must be checked before calling {@link setPointerCapture}.
+ * We can't tell the two apart from the pointer event itself: both report `pointerType: 'pen'`, and
+ * implicit pointer capture — which in theory distinguishes direct-manipulation pointers — isn't
+ * reliably observable across browsers (notably WebKit/iPad). Instead we key off the device: a
+ * direct-display pen draws on a touch-capable screen, while an indirect graphics tablet is used on
+ * a non-touch desktop alongside a mouse. A device with no touch input therefore can't host a
+ * direct-display pen.
  *
- * Per the spec, implicit capture is applied to the event's `target` (the hit element), but browsers
- * differ in practice — WebKit in particular has quirks around where implicit capture lands relative
- * to ancestors — so we check both the `target` and the `currentTarget` the listener is bound to. An
- * indirect tablet stylus receives no implicit capture on either, so this stays false for it.
+ * Note this is intentionally the device's touch capability, not the editor's dynamic
+ * `isCoarsePointer` state, which a pen `pointerdown` flips to coarse regardless of device.
  *
  * @internal
  */
 export function isDirectDisplayPen(e: React.PointerEvent | PointerEvent): boolean {
 	if (e.pointerType !== 'pen') return false
-	for (const el of [e.target, e.currentTarget]) {
-		if (
-			el &&
-			typeof (el as Element).hasPointerCapture === 'function' &&
-			(el as Element).hasPointerCapture(e.pointerId)
-		) {
-			return true
-		}
-	}
-	return false
+	return isTouchCapableDevice()
+}
+
+/** Whether the device has a touch screen (an integrated coarse pointer). @internal */
+function isTouchCapableDevice(): boolean {
+	const win = getGlobalWindow()
+	if (win.navigator && win.navigator.maxTouchPoints > 0) return true
+	return typeof win.matchMedia === 'function' && win.matchMedia('(any-pointer: coarse)').matches
 }
 
 /** @internal */

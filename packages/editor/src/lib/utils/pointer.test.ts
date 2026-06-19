@@ -22,36 +22,50 @@ describe('isSecondaryClickEvent', () => {
 })
 
 describe('isDirectDisplayPen', () => {
-	// Implicit capture lands on the hit `target` per spec, but browsers differ on where it's
-	// observable, so the check accepts capture on either `target` or `currentTarget`.
-	function fakeEvent(pointerType: string, targetHasCapture: boolean, currentTargetHasCapture = false) {
-		return {
-			pointerType,
-			pointerId: 1,
-			target: {
-				hasPointerCapture: (_id: number) => targetHasCapture,
-			},
-			currentTarget: {
-				hasPointerCapture: (_id: number) => currentTargetHasCapture,
-			},
-		} as unknown as PointerEvent
+	const originalMaxTouchPoints = Object.getOwnPropertyDescriptor(
+		window.navigator,
+		'maxTouchPoints'
+	)
+	const originalMatchMedia = window.matchMedia
+
+	function setTouchCapable(isTouch: boolean) {
+		Object.defineProperty(window.navigator, 'maxTouchPoints', {
+			configurable: true,
+			value: isTouch ? 5 : 0,
+		})
+		window.matchMedia = ((query: string) => ({
+			matches: isTouch && query.includes('coarse'),
+			media: query,
+			addEventListener: () => {},
+			removeEventListener: () => {},
+		})) as unknown as typeof window.matchMedia
 	}
 
-	it('treats a pen with implicit capture on the target as a direct-display pen', () => {
-		expect(isDirectDisplayPen(fakeEvent('pen', true))).toBe(true)
+	afterEach(() => {
+		if (originalMaxTouchPoints) {
+			Object.defineProperty(window.navigator, 'maxTouchPoints', originalMaxTouchPoints)
+		}
+		window.matchMedia = originalMatchMedia
 	})
 
-	it('treats a pen with implicit capture on the currentTarget as a direct-display pen', () => {
-		expect(isDirectDisplayPen(fakeEvent('pen', false, true))).toBe(true)
+	function event(pointerType: string) {
+		return { pointerType, pointerId: 1 } as unknown as PointerEvent
+	}
+
+	it('treats a pen on a touch-capable device as a direct-display pen', () => {
+		setTouchCapable(true)
+		expect(isDirectDisplayPen(event('pen'))).toBe(true)
 	})
 
-	it('treats a pen without implicit capture on either element as indirect', () => {
-		expect(isDirectDisplayPen(fakeEvent('pen', false, false))).toBe(false)
+	it('treats a pen on a non-touch device as indirect', () => {
+		setTouchCapable(false)
+		expect(isDirectDisplayPen(event('pen'))).toBe(false)
 	})
 
-	it('is never true for mouse or touch input', () => {
-		expect(isDirectDisplayPen(fakeEvent('mouse', true, true))).toBe(false)
-		expect(isDirectDisplayPen(fakeEvent('touch', true, true))).toBe(false)
+	it('is never true for mouse or touch input, even on a touch-capable device', () => {
+		setTouchCapable(true)
+		expect(isDirectDisplayPen(event('mouse'))).toBe(false)
+		expect(isDirectDisplayPen(event('touch'))).toBe(false)
 	})
 })
 

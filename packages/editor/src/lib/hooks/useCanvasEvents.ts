@@ -39,9 +39,8 @@ export function useCanvasEvents() {
 
 				if (button !== 0 && button !== 1 && button !== 2 && button !== 5) return
 
-				// Detect direct-display pen input (Apple Pencil, Surface Pen on a touchscreen) before
-				// we take explicit pointer capture: direct-manipulation pointers receive implicit
-				// capture on pointerdown, indirect desktop tablet styluses do not.
+				// Detect direct-display pen input (Apple Pencil, Surface Pen on a touchscreen) so we
+				// only auto-enable pen mode for it, not for an indirect desktop tablet stylus.
 				const isPenDirect = isDirectDisplayPen(e)
 
 				setPointerCapture(e.currentTarget, e)
