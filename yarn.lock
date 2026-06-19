@@ -12220,7 +12220,6 @@ __metadata:
     "@types/lodash.isequalwith": "npm:^4.4.9"
     "@types/lodash.throttle": "npm:^4.1.9"
     "@types/lodash.uniq": "npm:^4.5.9"
-    jittered-fractional-indexing: "npm:^1.0.0"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.isequal: "npm:^4.5.0"
     lodash.isequalwith: "npm:^4.4.0"
@@ -20701,13 +20700,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fractional-indexing@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "fractional-indexing@npm:3.2.0"
-  checksum: 10/9c35f80cd3c9c40d22ae245f23d6fa4da77b0a0296b35a7af46c06b7f7cd57ea5db676df88cdce9e268424622c7910b1550052de2819d23b44c2005958e1ac03
-  languageName: node
-  linkType: hard
-
 "framer-motion@npm:^11.18.2":
   version: 11.18.2
   resolution: "framer-motion@npm:11.18.2"
@@ -22876,15 +22868,6 @@ __metadata:
   bin:
     jiti: lib/jiti-cli.mjs
   checksum: 10/6d75a8dbd61dbee031aa0937fabb748ff8ddf370b971958cc704f5cf26b4c5bdc9dcd0563059b2627a2bd41d946fa0bc64f912fdc8981ca7945a9d63c74ad0f9
-  languageName: node
-  linkType: hard
-
-"jittered-fractional-indexing@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "jittered-fractional-indexing@npm:1.0.0"
-  dependencies:
-    fractional-indexing: "npm:^3.2.0"
-  checksum: 10/fa479654ec02629638cf9284e459682d3593ced2d4f7791636465d0546a16d1a57cac4d98754d7ac9244d4c98c7340ccaea4a546d9db71d670e39738ec481b63
   languageName: node
   linkType: hard
 
