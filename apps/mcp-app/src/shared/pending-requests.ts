@@ -17,6 +17,11 @@ interface PendingEntry {
 export class PendingRequests {
 	private pending = new Map<string, PendingEntry>()
 
+	/** The set of currently-pending channel names. */
+	channels(): string[] {
+		return [...this.pending.keys()]
+	}
+
 	/**
 	 * Create a pending request for the given channel.
 	 * Returns a promise that resolves when `resolve()` is called,

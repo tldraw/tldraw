@@ -1,6 +1,7 @@
 import type { App } from '@modelcontextprotocol/ext-apps/react'
 import { Editor, structuredClone } from 'tldraw'
 import type { TLAsset, TLBindingCreate, TLShape } from 'tldraw'
+import { ROUTING_DO_NAME_ARG } from '../shared/types'
 import { isPlainObject } from '../shared/utils'
 import { convertTldrawShapeToFocusedShape } from './focused/to-focused'
 
@@ -14,6 +15,28 @@ export interface CanvasSnapshot {
 
 let currentSessionId: string | null = null
 let currentCanvasId: string | null = null
+
+// --- Canonical DO routing key ---
+//
+// The widget echoes this on every app-only callServerTool so the call reaches
+// the DO that actually holds this session's state, regardless of how the host
+// routes widget-initiated calls. Seeded from the bootstrap and re-pinned from
+// each exec result's `_meta` (the ground-truth canonical DO name).
+
+let routingDoName: string | null = null
+
+export function setRoutingDoName(name: string | null | undefined): void {
+	if (name) routingDoName = name
+}
+
+export function getRoutingDoName(): string | null {
+	return routingDoName
+}
+
+/** Attach the routing key to app-only callServerTool arguments, when known. */
+export function pinnedArgs(args: Record<string, unknown>): Record<string, unknown> {
+	return routingDoName ? { ...args, [ROUTING_DO_NAME_ARG]: routingDoName } : args
+}
 
 export function setCurrentSessionId(id: string): void {
 	currentSessionId = id
@@ -130,7 +153,7 @@ export function getEmbeddedBootstrap(): {
 	checkpointId?: string
 	isDev: boolean
 	workerOrigin?: string
-	mcpSessionId?: string
+	doName?: string
 	snapshot?: CanvasSnapshot
 } | null {
 	const data = window.__TLDRAW_BOOTSTRAP__
@@ -142,7 +165,7 @@ export function getEmbeddedBootstrap(): {
 	const checkpointId = typeof data.checkpointId === 'string' ? data.checkpointId : undefined
 	const isDev = data.isDev === true
 	const workerOrigin = typeof data.workerOrigin === 'string' ? data.workerOrigin : undefined
-	const mcpSessionId = typeof data.mcpSessionId === 'string' ? data.mcpSessionId : undefined
+	const doName = typeof data.doName === 'string' ? data.doName : undefined
 
 	let snapshot: CanvasSnapshot | undefined
 	if (Array.isArray(data.shapes)) {
@@ -159,7 +182,7 @@ export function getEmbeddedBootstrap(): {
 		}
 	}
 
-	return { sessionId, canvasId, checkpointId, isDev, workerOrigin, mcpSessionId, snapshot }
+	return { sessionId, canvasId, checkpointId, isDev, workerOrigin, doName, snapshot }
 }
 
 // --- Tool result parsing ---
@@ -324,7 +347,7 @@ export async function saveCheckpointToServer(
 	try {
 		const result = await app.callServerTool({
 			name: 'save_checkpoint',
-			arguments: args,
+			arguments: pinnedArgs(args),
 		})
 		return result.isError !== true
 	} catch {

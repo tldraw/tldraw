@@ -1,3 +1,4 @@
+import type { AppEventMap } from '@modelcontextprotocol/ext-apps'
 import { type App, McpUiDisplayMode, useApp } from '@modelcontextprotocol/ext-apps/react'
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -40,11 +41,13 @@ import {
 	loadLocalSnapshot,
 	parseCheckpointFromToolResult,
 	clearCanvasContext,
+	pinnedArgs,
 	pushCanvasContext,
 	saveCheckpointToServer,
 	saveLocalSnapshot,
 	setCurrentCanvasId,
 	setCurrentSessionId,
+	setRoutingDoName,
 	syncEditorState,
 } from './persistence'
 import { applySnapshot, zoomToFitRequestShapes } from './snapshot'
@@ -368,6 +371,10 @@ function TldrawCanvas({ app }: { app: App }) {
 
 		if (bootstrap) {
 			setCurrentSessionId(bootstrap.sessionId)
+			// Seed the canonical DO routing key so app-only calls reach the DO that
+			// holds this session's state even if the host misroutes them. Re-pinned
+			// from each exec result's `_meta` in `ontoolresult` below.
+			setRoutingDoName(bootstrap.doName)
 			if (bootstrap.canvasId) {
 				setCurrentCanvasId(bootstrap.canvasId)
 			}
@@ -416,7 +423,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			}
 		}
 
-		app.onhostcontextchanged = (ctx) => {
+		const handleHostContextChanged = (ctx: AppEventMap['hostcontextchanged']) => {
 			const nextContext = app.getHostContext() ?? ctx
 			setHostContext(nextContext)
 			const nextTheme = parseHostTheme(
@@ -469,7 +476,7 @@ function TldrawCanvas({ app }: { app: App }) {
 						try {
 							const response = await app.callServerTool({
 								name: '_get_canvas_state',
-								arguments: { canvasId },
+								arguments: pinnedArgs({ canvasId }),
 							})
 							const res = response as any
 							let data: any = null
@@ -518,14 +525,17 @@ function TldrawCanvas({ app }: { app: App }) {
 					`Exec ${execResult.success ? 'succeeded' : 'failed'}: ${JSON.stringify(execResult.result ?? execResult.error)}`
 				)
 
+				// Channel must match the server's exec channel: keyed by the input
+				// canvasId for existing canvases, shared 'exec' for new ones.
+				const execChannel = canvasId ? `exec:${canvasId}` : 'exec'
 				// Call _exec_callback FIRST to get the server-assigned canvasId
 				const callbackArgs = execResult.success
-					? { channel: 'exec', result: { success: true, result: execResult.result } }
-					: { channel: 'exec', result: { success: false, error: execResult.error } }
+					? { channel: execChannel, result: { success: true, result: execResult.result } }
+					: { channel: execChannel, result: { success: false, error: execResult.error } }
 				try {
 					const cbResponse = await app.callServerTool({
 						name: '_exec_callback',
-						arguments: callbackArgs,
+						arguments: pinnedArgs(callbackArgs),
 					})
 					const cbRes = cbResponse as any
 					let cbData: any = null
@@ -577,7 +587,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			})()
 		}
 
-		app.ontoolinput = (params) => {
+		const handleToolInput = (params: AppEventMap['toolinput']) => {
 			logIfDevMode('Exec: ontoolinput called')
 			const code = params.arguments?.code
 			if (typeof code !== 'string' || !code.trim()) return
@@ -593,7 +603,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			}, 500)
 		}
 
-		app.ontoolinputpartial = (params) => {
+		const handleToolInputPartial = (params: AppEventMap['toolinputpartial']) => {
 			const code = params.arguments?.code
 			if (typeof code !== 'string' || !code.trim()) return
 			const canvasId =
@@ -612,10 +622,18 @@ function TldrawCanvas({ app }: { app: App }) {
 			return {}
 		}
 
-		app.ontoolresult = async (result) => {
+		const handleToolResult = async (result: AppEventMap['toolresult']) => {
 			logIfDevMode('Exec: ontoolresult called')
 			hasExecRunRef.current = false
 			markAiActivity()
+
+			// Re-pin the routing key from the exec result's `_meta`: the ground-truth
+			// canonical DO (the one that actually ran exec). Corrects the bootstrap key
+			// if the resource read happened on a different session than exec. Runs
+			// before the checkpoint early-return since exec results carry no checkpoint.
+			const metaDoName = (result as { _meta?: { tldraw?: { doName?: unknown } } } | undefined)
+				?._meta?.tldraw?.doName
+			if (typeof metaDoName === 'string') setRoutingDoName(metaDoName)
 
 			const checkpoint = parseCheckpointFromToolResult(result)
 			if (!checkpoint) return
@@ -671,7 +689,7 @@ function TldrawCanvas({ app }: { app: App }) {
 			pushCanvasContext(app, editor)
 		}
 
-		app.ontoolcancelled = (_params) => {
+		const handleToolCancelled = (_params: AppEventMap['toolcancelled']) => {
 			hasExecRunRef.current = false
 			if (execPartialDebounceRef.current !== null) {
 				window.clearTimeout(execPartialDebounceRef.current)
@@ -681,7 +699,22 @@ function TldrawCanvas({ app }: { app: App }) {
 			logIfDevMode('Tool invocation cancelled')
 		}
 
+		// ext-apps 1.7+: addEventListener replaces the deprecated on* setters. It
+		// appends (rather than replaces) listeners, so removeEventListener in the
+		// cleanup below keeps this safe if the effect re-runs. `onteardown` stays a
+		// setter — it's a request handler, not an AppEventMap event.
+		app.addEventListener('hostcontextchanged', handleHostContextChanged)
+		app.addEventListener('toolinput', handleToolInput)
+		app.addEventListener('toolinputpartial', handleToolInputPartial)
+		app.addEventListener('toolresult', handleToolResult)
+		app.addEventListener('toolcancelled', handleToolCancelled)
+
 		return () => {
+			app.removeEventListener('hostcontextchanged', handleHostContextChanged)
+			app.removeEventListener('toolinput', handleToolInput)
+			app.removeEventListener('toolinputpartial', handleToolInputPartial)
+			app.removeEventListener('toolresult', handleToolResult)
+			app.removeEventListener('toolcancelled', handleToolCancelled)
 			teardownEditor()
 		}
 	}, [

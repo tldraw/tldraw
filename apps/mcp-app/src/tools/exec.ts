@@ -14,7 +14,8 @@ export function registerExecTool(
 		analytics?: AnalyticsEngineDataset
 		log(...args: unknown[]): void
 		pendingRequests: PendingRequests
-		setCurrentExecCanvasId(id: string): void
+		execChannelCanvasIds: Map<string, string>
+		getDoName(): string
 	}
 ) {
 	registerAppTool(
@@ -67,12 +68,24 @@ Examples:
 			writeToolAnalytics(opts.analytics, 'exec', code)
 
 			const canvasId = inputCanvasId || generateCanvasId()
-			opts.setCurrentExecCanvasId(canvasId)
+			// Channel is keyed by the *input* canvasId so concurrent execs on distinct
+			// existing canvases don't collide on a single 'exec' channel. New canvases
+			// (no inputCanvasId) share the 'exec' channel; the widget derives the same
+			// key from the same tool arguments it receives via `ontoolinput`.
+			const channel = inputCanvasId ? `exec:${inputCanvasId}` : 'exec'
+			opts.execChannelCanvasIds.set(channel, canvasId)
 
-			opts.log(`[tldraw-mcp] exec called: canvasId=${canvasId}, existing=${Boolean(inputCanvasId)}`)
+			// The canonical DO name. Stamped into the result `_meta` so the widget can
+			// (re)pin every subsequent callback to this exact DO regardless of how the
+			// host routes widget-initiated calls.
+			const doName = opts.getDoName()
+
+			opts.log(
+				`[tldraw-mcp] exec called: canvasId=${canvasId}, existing=${Boolean(inputCanvasId)}, channel=${channel}`
+			)
 
 			try {
-				const result = (await opts.pendingRequests.create('exec', EXEC_CALLBACK_TIMEOUT_MS)) as {
+				const result = (await opts.pendingRequests.create(channel, EXEC_CALLBACK_TIMEOUT_MS)) as {
 					success: boolean
 					result?: unknown
 					error?: string
@@ -88,6 +101,7 @@ Examples:
 							},
 						],
 						isError: true,
+						_meta: { tldraw: { doName } },
 					}
 				}
 
@@ -101,8 +115,14 @@ Examples:
 				]
 
 				opts.log(`[tldraw-mcp] exec succeeded, canvasId=${canvasId}`)
-				return { content: [{ type: 'text', text: lines.join('\n') }] }
+				return {
+					content: [{ type: 'text', text: lines.join('\n') }],
+					_meta: { tldraw: { doName } },
+				}
 			} catch (err) {
+				// On timeout (no callback) the channel→canvasId entry was never consumed
+				// by `_exec_callback`; drop it so it doesn't leak.
+				opts.execChannelCanvasIds.delete(channel)
 				const message = err instanceof Error ? err.message : String(err)
 				opts.log(`[tldraw-mcp] exec error: ${message}`)
 				return {
@@ -113,6 +133,7 @@ Examples:
 						},
 					],
 					isError: true,
+					_meta: { tldraw: { doName } },
 				}
 			}
 		}
