@@ -126,7 +126,7 @@ export class TldrawApp {
 	private readonly workspaceMemberships$: Signal<
 		(TlaGroupUser & {
 			group: TlaGroup
-			groupFiles: Array<TlaGroupFile & { file: TlaFile }>
+			groupFiles: Array<TlaGroupFile & { file: TlaFile | undefined }>
 			groupMembers: Array<TlaGroupUser>
 		})[]
 	>
@@ -444,7 +444,12 @@ export class TldrawApp {
 		// from home would bounce the user into that workspace. Guarding here keeps such rows out
 		// of the list even before they're cleaned up.
 		const homeWorkspaceId = this.getHomeWorkspaceId()
-		const groupFiles = membership.groupFiles.filter((f) => {
+		const groupFiles = membership.groupFiles.filter((f): f is TlaGroupFile & { file: TlaFile } => {
+			// A group_file row can outlive (or arrive before) its file: the file may be deleted,
+			// not yet synced, or filtered out server-side because the user can no longer read it.
+			// The `file` relationship is a nullable Zero `.one()`, so guard before dereferencing.
+			// The type predicate narrows `file` to non-undefined for the rest of the function.
+			if (!f.file) return false
 			const owningGroupId = f.file.owningGroupId
 			if (owningGroupId === workspaceId) return true
 			if (workspaceId !== homeWorkspaceId) return false
@@ -635,7 +640,7 @@ export class TldrawApp {
 			const membership = this.getWorkspaceMembership(workspaceId)
 			if (!membership) return true
 			const nonDeletedCount = membership.groupFiles.filter(
-				(gf) => !gf.file.isDeleted && gf.file.owningGroupId === workspaceId
+				(gf) => gf.file && !gf.file.isDeleted && gf.file.owningGroupId === workspaceId
 			).length
 			return nonDeletedCount < this.config.maxNumberOfFiles
 		} else {
