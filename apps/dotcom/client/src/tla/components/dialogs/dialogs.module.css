@@ -68,7 +68,7 @@
 	padding: 8px;
 	padding-bottom: 12px;
 	font-size: 12px;
-	color: var(--tla-color-text-2);
+	color: var(--tl-color-text-1);
 	line-height: 1.4;
 }
 
@@ -172,7 +172,7 @@
 }
 
 .dialogInput {
-	border: 1px solid var(--tla-color-border);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-2);
 	padding: 0px var(--tl-space-3);
 	display: flex;
@@ -240,7 +240,7 @@
 	display: flex;
 	align-items: center;
 	margin-bottom: 8px;
-	border: 1px solid var(--tla-color-border);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-2);
 	padding: 0px 0px 0px var(--tl-space-3);
 	height: 40px;
@@ -362,7 +362,7 @@
 	display: flex;
 	position: absolute;
 	inset: 0px -6px 0px 0px;
-	background-color: var(--tla-color-hover-2);
+	background-color: var(--tl-color-muted-2);
 	border-radius: var(--tl-radius-1);
 }
 

@@ -6,7 +6,7 @@
 }
 
 .menuSection:nth-of-type(n + 2) {
-	border-top: 1px solid var(--tla-color-border);
+	border-top: 1px solid var(--tl-color-divider);
 }
 
 .menuControlGroup {
@@ -338,7 +338,7 @@ div:has(> .menuSelectContent) {
 	display: flex;
 	align-items: center;
 	padding: var(--tab-padding);
-	color: var(--tla-color-text-2);
+	color: var(--tl-color-text-1);
 }
 
 .menuTabsTab::after {
@@ -390,7 +390,7 @@ div:has(> .menuSelectContent) {
 	left: var(--tab-padding);
 	right: var(--tab-padding);
 	height: var(--line-height);
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--tl-color-muted-0);
 }
 
 .menuLabel + .menuInfoTriggerContainer {

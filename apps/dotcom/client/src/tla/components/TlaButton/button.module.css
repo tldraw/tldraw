@@ -52,7 +52,7 @@
 }
 
 .cta {
-	background-color: var(--tla-color-cta);
+	background-color: var(--tl-color-primary);
 	color: var(--tl-color-selected-contrast);
 	font-weight: 600;
 }

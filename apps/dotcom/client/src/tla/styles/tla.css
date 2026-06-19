@@ -31,13 +31,7 @@
 	--tla-color-sidebar: hsl(0, 0%, 99%);
 	--tla-color-panel: hsl(0, 0%, 100%);
 	--tla-color-text-1: hsl(204, 8%, 5%);
-	--tla-color-text-2: hsl(204, 2%, 20%);
-	--tla-color-low: hsl(204, 16%, 94%);
-	--tla-color-border: hsl(204, 16%, 85%);
-	--tla-color-hover-1: hsl(204, 16%, 4%, 3%);
-	--tla-color-hover-2: hsl(204, 16%, 4%, 4.5%);
 	--tla-color-overlay: hsla(240, 16%, 2%, 30%);
-	--tla-color-cta: hsl(214, 92%, 50%);
 	--tla-color-cta-hover: hsl(214, 92%, 53%);
 	--tla-color-inactive: hsl(204, 4%, 55%);
 	--tla-color-inactive-hover: hsl(204, 4%, 59%);
@@ -48,7 +42,6 @@
 	--tla-color-secondary-border: hsl(0, 0%, 80%);
 	--tla-color-accent-3: hsl(135, 59%, 49%);
 	--tla-color-warning: hsl(0, 88%, 57%);
-	--tla-color-drop-zone: hsl(204, 16%, 4%, 2.5%);
 	/* Shadows */
 	--tla-shadow-3:
 		0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
@@ -59,13 +52,7 @@
 	--tla-color-sidebar: hsl(0, 0%, 5%);
 	--tla-color-panel: hsl(240, 6%, 13%);
 	--tla-color-text-1: hsl(204, 8%, 98%);
-	--tla-color-text-2: hsl(204, 5%, 85%);
-	--tla-color-low: hsl(240, 4%, 11%);
-	--tla-color-border: hsl(240, 12%, 20%);
-	--tla-color-hover-1: hsl(240, 8%, 100%, 3%);
-	--tla-color-hover-2: hsl(240, 8%, 100%, 5%);
 	--tla-color-overlay: hsla(240, 0%, 0%, 81%);
-	--tla-color-cta: hsl(214, 100%, 50%);
 	--tla-color-cta-hover: hsl(214, 100%, 52%);
 	--tla-color-inactive: hsl(204, 4%, 45%);
 	--tla-color-inactive-hover: hsl(204, 4%, 49%);
@@ -76,7 +63,6 @@
 	--tla-color-secondary-border: hsl(0, 0%, 25%);
 	--tla-color-accent-3: hsl(135, 59%, 39%);
 	--tla-color-warning: hsl(0, 95%, 65%);
-	--tla-color-drop-zone: hsl(204, 16%, 4%, 2.5%);
 	/* Shadows */
 	--tla-shadow-3:
 		0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),

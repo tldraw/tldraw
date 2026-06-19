@@ -260,7 +260,7 @@ button.topLeftInputNameWidthSetter {
 	right: 4px;
 	bottom: 4px;
 	border-radius: 6px;
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--tl-color-muted-0);
 	z-index: 0;
 	pointer-events: none;
 	visibility: hidden;

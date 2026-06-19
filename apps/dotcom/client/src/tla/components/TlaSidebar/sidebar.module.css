@@ -130,7 +130,7 @@
 	right: 0px;
 	bottom: 2px;
 	border-radius: 4px;
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--tl-color-muted-0);
 	z-index: 0;
 	pointer-events: none;
 	visibility: hidden;
@@ -138,7 +138,7 @@
 
 .hoverable:has(*[data-state='open'])::after,
 .hoverable[data-active='true']::after {
-	background-color: var(--tla-color-hover-2);
+	background-color: var(--tl-color-muted-2);
 	visibility: visible;
 }
 
@@ -152,7 +152,7 @@
 	}
 
 	.hoverable {
-		color: var(--tla-color-text-2);
+		color: var(--tl-color-text-1);
 	}
 	.hoverable[data-active='true'],
 	.hoverable:hover {
@@ -190,7 +190,7 @@
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--tl-color-muted-0);
 }
 
 .sidebarToggle:focus-visible {
@@ -303,7 +303,7 @@
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--tl-color-muted-0);
 }
 
 .sidebarCreateFileButton:focus-visible {
@@ -424,18 +424,18 @@
 	border-radius: 100%;
 	inset: 4px;
 	visibility: visible;
-	border: 1px solid var(--tla-color-border);
+	border: 1px solid var(--tl-color-divider);
 	background-color: transparent;
 }
 
 @media (hover: hover) {
 	.helpMenuTrigger:hover::after {
-		background-color: var(--tla-color-hover-1);
+		background-color: var(--tl-color-muted-0);
 	}
 }
 
 .sidebarHelpMenuTrigger[data-state='open']::after {
-	background-color: var(--tla-color-hover-1);
+	background-color: var(--tl-color-muted-0);
 	visibility: visible;
 }
 
@@ -688,7 +688,7 @@
 .sidebarDotDevLink {
 	position: relative;
 	font-size: 12px;
-	border: 1px solid var(--tla-color-text-2);
+	border: 1px solid var(--tl-color-text-1);
 	border-radius: 2px;
 	margin-left: -4px;
 	margin-right: -6px;
@@ -709,7 +709,7 @@
 	right: 4px;
 	bottom: -4px;
 	border-radius: 2px;
-	border: 1px dashed var(--tla-color-text-2);
+	border: 1px dashed var(--tl-color-text-1);
 	z-index: -2;
 	pointer-events: none;
 }
@@ -765,7 +765,7 @@
 	}
 
 	.sidebarDotDevLink:has(a:hover):after {
-		background-color: var(--tla-color-hover-2);
+		background-color: var(--tl-color-muted-2);
 	}
 }
 
@@ -857,7 +857,7 @@
 	right: -4px;
 	bottom: -2px;
 	border-radius: 4px;
-	background-color: var(--tla-color-drop-zone);
+	background-color: var(--tl-color-muted-0);
 	z-index: 0;
 	pointer-events: none;
 	visibility: visible;
@@ -1031,7 +1031,7 @@
 
 .sidebarGroupItemButtonInline {
 	display: inline-flex;
-	color: var(--tla-color-text-2);
+	color: var(--tl-color-text-1);
 	align-items: center;
 	justify-content: center;
 	border-radius: 4px;

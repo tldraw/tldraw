@@ -11,7 +11,7 @@
 	position: relative;
 	flex-grow: 2;
 	overflow: hidden;
-	border-top: 1px solid var(--tla-color-border);
+	border-top: 1px solid var(--tl-color-divider);
 	background-color: var(--tl-color-background);
 }
 
@@ -23,7 +23,7 @@
 @media (min-width: 768px) {
 	.editorWrapper[data-sidebar='true'] {
 		border-top-left-radius: 9px;
-		border-left: 1px solid var(--tla-color-border);
+		border-left: 1px solid var(--tl-color-divider);
 	}
 }
 

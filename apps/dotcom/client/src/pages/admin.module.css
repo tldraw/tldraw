@@ -11,7 +11,7 @@
 
 .adminHeader {
 	padding: 24px 32px 16px 32px;
-	border-bottom: 1px solid var(--tla-color-border);
+	border-bottom: 1px solid var(--tl-color-divider);
 	background-color: var(--tla-color-panel);
 }
 
@@ -31,7 +31,7 @@
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 	font-size: 11px;
 	font-weight: 500;
-	color: var(--tla-color-text-2);
+	color: var(--tl-color-text-1);
 	word-break: break-all;
 }
 
@@ -59,7 +59,7 @@
 .searchInput {
 	height: 32px;
 	padding: 0 12px;
-	border: 1px solid var(--tla-color-border);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
 	background-color: var(--tl-color-selected-contrast);
 	color: var(--tla-color-text-1);
@@ -113,8 +113,8 @@
 }
 
 .dataDisplay {
-	background-color: var(--tla-color-low);
-	border: 1px solid var(--tla-color-border);
+	background-color: var(--tl-color-low);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
 	padding: 16px;
 	font-family: 'IBMPlexMono', monospace;
@@ -138,7 +138,7 @@
 	gap: 12px;
 	padding: 16px;
 	background-color: var(--tla-color-panel);
-	border: 1px solid var(--tla-color-border);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
 }
 
@@ -172,8 +172,8 @@
 .progressLog {
 	margin-top: 16px;
 	padding: 16px;
-	background-color: var(--tla-color-low);
-	border: 1px solid var(--tla-color-border);
+	background-color: var(--tl-color-low);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
 }
 
@@ -181,7 +181,7 @@
 	margin: 0 0 12px 0;
 	font-size: 12px;
 	font-weight: 600;
-	color: var(--tla-color-text-2);
+	color: var(--tl-color-text-1);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 }
@@ -194,7 +194,7 @@
 	line-height: 1.4;
 	color: var(--tla-color-text-1);
 	background-color: var(--tl-color-selected-contrast);
-	border: 1px solid var(--tla-color-border);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
 	padding: 8px;
 }
@@ -202,7 +202,7 @@
 .logEntry {
 	margin-bottom: 4px;
 	padding: 2px 0;
-	border-bottom: 1px solid var(--tla-color-border);
+	border-bottom: 1px solid var(--tl-color-divider);
 }
 
 .logEntry:last-child {
@@ -229,7 +229,7 @@
 .userSummary {
 	padding: 16px;
 	background-color: var(--tla-color-panel);
-	border: 1px solid var(--tla-color-border);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
 }
 
@@ -308,7 +308,7 @@
 
 .countDisplay {
 	font-size: 12px;
-	color: var(--tla-color-text-2);
+	color: var(--tl-color-text-1);
 }
 
 /* Config Container */
@@ -323,7 +323,7 @@
 	width: 100%;
 	border-collapse: collapse;
 	background-color: var(--tla-color-panel);
-	border: 1px solid var(--tla-color-border);
+	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
 	overflow: hidden;
 }
@@ -331,8 +331,8 @@
 .invitesTable th {
 	text-align: left;
 	padding: 12px;
-	background-color: var(--tla-color-low);
-	border-bottom: 1px solid var(--tla-color-border);
+	background-color: var(--tl-color-low);
+	border-bottom: 1px solid var(--tl-color-divider);
 	font-size: 11px;
 	font-weight: 600;
 	color: var(--tl-color-text-3);
@@ -343,7 +343,7 @@
 .invitesTable td {
 	text-align: left;
 	padding: 12px;
-	border-bottom: 1px solid var(--tla-color-border);
+	border-bottom: 1px solid var(--tl-color-divider);
 	font-size: 12px;
 	color: var(--tla-color-text-1);
 }
@@ -353,7 +353,7 @@
 }
 
 .invitesTable tbody tr:hover {
-	background-color: var(--tla-color-low);
+	background-color: var(--tl-color-low);
 }
 
 .tableActions {

@@ -40,7 +40,7 @@
 	position: absolute;
 	inset: 0px;
 	color: var(--tl-color-selected-contrast);
-	background-color: var(--tla-color-cta);
+	background-color: var(--tl-color-primary);
 	border-radius: 6px;
 	z-index: 2;
 }
