@@ -44,6 +44,9 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	}, [trackEvent])
 
 	const handleOverlayClick = useCallback(() => {
+		// The sidebar only hides (CSS transform), it doesn't unmount, so its open menus
+		// (workspace switcher, file menus) would otherwise stay open behind the closed
+		// sidebar. Clear them as the mobile sidebar closes.
 		tlmenus.clearOpenMenus()
 		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
 	}, [])
