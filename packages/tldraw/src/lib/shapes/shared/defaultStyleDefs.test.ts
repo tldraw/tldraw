@@ -38,4 +38,17 @@ describe('getOrCreatePatternImageUrl cache', () => {
 		await getOrCreatePatternImageUrl(2, 8, '#ffffff', generate)
 		expect(generate).toHaveBeenCalledTimes(3)
 	})
+
+	it('does not cache a failed generation, so a later request retries', async () => {
+		const generate = vi
+			.fn()
+			.mockReturnValueOnce(Promise.reject(new Error('boom')))
+			.mockReturnValue(Promise.resolve(new Blob()))
+
+		await expect(getOrCreatePatternImageUrl(2, 4, '#ffffff', generate)).rejects.toThrow('boom')
+		// the rejected entry is evicted, so the next request regenerates rather than
+		// returning the cached rejection
+		await getOrCreatePatternImageUrl(2, 4, '#ffffff', generate)
+		expect(generate).toHaveBeenCalledTimes(2)
+	})
 })

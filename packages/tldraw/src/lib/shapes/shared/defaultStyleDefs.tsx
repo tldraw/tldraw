@@ -131,6 +131,11 @@ export function getOrCreatePatternImageUrl(
 	let url = patternImageUrlCache.get(key)
 	if (!url) {
 		url = generate(dpr, zoom, solid).then((blob) => URL.createObjectURL(blob))
+		// Don't cache failures: if generation rejects (e.g. toBlob returns null), drop the
+		// entry so a later request can retry rather than being stuck with a rejected promise.
+		url.catch(() => {
+			if (patternImageUrlCache.get(key) === url) patternImageUrlCache.delete(key)
+		})
 		patternImageUrlCache.set(key, url)
 	}
 	return url
