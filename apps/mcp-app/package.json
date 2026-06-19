@@ -19,9 +19,9 @@
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
-		"@modelcontextprotocol/ext-apps": "^1.0.0",
-		"@modelcontextprotocol/sdk": "1.26.0",
-		"agents": "^0.5.0",
+		"@modelcontextprotocol/ext-apps": "^1.7.4",
+		"@modelcontextprotocol/sdk": "1.29.0",
+		"agents": "^0.15.0",
 		"zod": "^4.1.8"
 	},
 	"devDependencies": {
