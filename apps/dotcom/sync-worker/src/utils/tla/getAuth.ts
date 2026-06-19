@@ -40,24 +40,24 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 	const clerk = getClerkClient(env)
 	const authorizedParties = getAuthorizedParties(env)
 
-	const state = await clerk.authenticateRequest(request, { authorizedParties })
-	if (state.isSignedIn) return state.toAuth() as SignedInAuth
-
 	// we can't send headers with websockets, so for those connections we need to pass the token in
 	// the query string. `authenticateRequest` only works with headers/cookies though, so we need to
 	// copy the query string into the headers.
-	const cloned = new Request(request.url, { headers: request.headers })
-	const url = new URL(cloned.url)
-	if (!cloned.headers.has('Authorization')) {
-		if (url.searchParams.has('accessToken')) {
-			cloned.headers.set('Authorization', `Bearer ${url.searchParams.get('accessToken')}`)
-		} else {
-			return null
-		}
+	const url = new URL(request.url)
+	let requestToAuthenticate: Request = request
+	const accessToken = url.searchParams.get('accessToken')
+	if (!request.headers.has('Authorization') && accessToken !== null) {
+		const headers = new Headers(request.headers)
+		headers.set('Authorization', `Bearer ${accessToken}`)
+		requestToAuthenticate = new Request(request.url, { method: request.method, headers })
 	}
 
-	const res = await clerk.authenticateRequest(cloned, { authorizedParties })
+	const res = await clerk.authenticateRequest(requestToAuthenticate, { authorizedParties })
 	if (!res.isSignedIn) {
+		if (requestToAuthenticate !== request && request.headers.has('Cookie')) {
+			const cookieRes = await clerk.authenticateRequest(request, { authorizedParties })
+			if (cookieRes.isSignedIn) return cookieRes.toAuth() as SignedInAuth
+		}
 		return null
 	}
 

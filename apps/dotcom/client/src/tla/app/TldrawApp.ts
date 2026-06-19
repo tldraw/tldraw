@@ -73,6 +73,7 @@ import { MULTIPLAYER_SERVER, ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
+import type { TlaGetToken } from '../utils/authTokenCache'
 import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
@@ -134,7 +135,7 @@ export class TldrawApp {
 	private readonly useProperZero: boolean
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
-	private getToken: () => Promise<string | undefined>
+	private getToken: TlaGetToken
 
 	changes: Map<Atom<any, unknown>, any> = new Map()
 	changesFlushed = null as null | ReturnType<typeof promiseWithResolve>
@@ -179,7 +180,7 @@ export class TldrawApp {
 	private constructor(
 		public readonly userId: string,
 		initialToken: string | undefined,
-		getToken: () => Promise<string | undefined>,
+		getToken: TlaGetToken,
 		onClientTooOld: () => void,
 		trackEvent: TLAppUiContextType,
 		navigate: ReturnType<typeof useNavigate>,
@@ -210,7 +211,7 @@ export class TldrawApp {
 			})
 			this.z = z
 			const refreshToken = () =>
-				getToken().then((token) => {
+				getToken({ forceRefresh: true }).then((token) => {
 					if (token) {
 						z.connection.connect({ auth: token })
 						return true
@@ -259,7 +260,7 @@ export class TldrawApp {
 						sessionId,
 						protocolVersion: String(Z_PROTOCOL_VERSION),
 					})
-					const token = await getToken()
+					const token = await getToken({ minTimeToExpiryMs: 10_000 })
 					params.set('accessToken', token || 'no-token-found')
 					return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
 				},
@@ -267,6 +268,13 @@ export class TldrawApp {
 				onClientTooOld: () => onClientTooOld(),
 				trackEvent,
 			}) as unknown as Zero<TlaSchema, TlaMutators, ZeroContext>
+			const TOKEN_REFRESH_INTERVAL = 50_000
+			const refreshInterval = setInterval(() => {
+				getToken({ forceRefresh: true }).catch((err) => {
+					console.error('Failed to proactively refresh auth token:', err)
+				})
+			}, TOKEN_REFRESH_INTERVAL)
+			this.disposables.push(() => clearInterval(refreshInterval))
 		}
 
 		this.user$ = this.signalizeQuery('user signal', this.userQuery())
@@ -292,7 +300,7 @@ export class TldrawApp {
 	async preload() {
 		if (this.useProperZero) {
 			// Ensure user exists in DB before Zero can query
-			const token = await this.getToken()
+			const token = await this.getToken({ minTimeToExpiryMs: 10_000 })
 			if (!token) {
 				throw new Error('No auth token available for init')
 			} else {
@@ -972,11 +980,15 @@ export class TldrawApp {
 		this.updateFileState(fileId, { lastVisitAt: Date.now() })
 	}
 
+	getAuthToken() {
+		return this.getToken({ minTimeToExpiryMs: 10_000 })
+	}
+
 	static async create(opts: {
 		userId: string
 		email?: string | null
 		flags: FeatureFlags
-		getToken(): Promise<string | undefined>
+		getToken: TlaGetToken
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
 		navigate: ReturnType<typeof useNavigate>
@@ -987,7 +999,8 @@ export class TldrawApp {
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
 		// Get initial token before creating Zero instance
-		const initialToken = await opts.getToken()
+		const initialToken = await opts.getToken({ minTimeToExpiryMs: 10_000 })
+		if (!initialToken) throw new Error('no token')
 		const app = new TldrawApp(
 			opts.userId,
 			initialToken,

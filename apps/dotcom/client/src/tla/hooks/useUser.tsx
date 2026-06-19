@@ -19,7 +19,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 	// and was causing downstream react components to remount unnecessarily and lose state.
 	// I tracked it down to being useAuth().has which was being updated randomly for some reason.
 	// Destructuring the bits we need here fixes the issue as they seem to be stable.
-	const { getToken, isSignedIn, isLoaded: isAuthLoaded } = useAuth()
+	const { isSignedIn, isLoaded: isAuthLoaded } = useAuth()
 
 	// app can be null during hot reloading sometimes?
 	const app = useMaybeApp()
@@ -37,12 +37,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
 				user?.primaryEmailAddress?.verification.status === 'verified' &&
 				user.primaryEmailAddress.emailAddress.endsWith('@tldraw.com'),
 			getToken: async () => {
-				const token = await getToken()
+				const token = await app.getAuthToken()
 				assert(token)
 				return token
 			},
 		}
-	}, [getToken, isSignedIn, user, app])
+	}, [isSignedIn, user, app])
 
 	if (!isLoaded || !isAuthLoaded || !app) {
 		return (
