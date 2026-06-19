@@ -90,6 +90,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 				/>
 			)}
 			<div className={styles.sidebarWorkspaceSwitcherRoot}>
+				{/* Modal doesn't really work for us here because other elements have explicit pointer-events on. Thus the switcher overlay.*/}
 				<_DropdownMenu.Root open={isOpen} onOpenChange={onOpenChange} modal>
 					<_DropdownMenu.Trigger asChild>
 						<button
