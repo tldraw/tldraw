@@ -14,6 +14,11 @@ describe('isEmptyRichText', () => {
 		expect(isEmptyRichText(richText)).toBe(true)
 	})
 
+	it('treats a doc with an empty content array as empty (hand-authored / importer form)', () => {
+		const richText: TLRichText = { type: 'doc', content: [] }
+		expect(isEmptyRichText(richText)).toBe(true)
+	})
+
 	it('treats a paragraph with text as non-empty', () => {
 		expect(isEmptyRichText(toRichText('Hello'))).toBe(false)
 	})

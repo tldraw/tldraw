@@ -205,6 +205,10 @@ describe('Geo shapes with programmatically-authored empty rich text', () => {
 				content: [{ type: 'paragraph', attrs: { dir: 'auto' }, content: [] }],
 			} as TLGeoShape['props']['richText'],
 		},
+		{
+			label: 'doc with empty content array',
+			richText: { type: 'doc', content: [] } as TLGeoShape['props']['richText'],
+		},
 	]
 
 	for (const { label, richText } of emptyForms) {
