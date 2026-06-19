@@ -163,6 +163,15 @@ test.describe('workspaces', () => {
 			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeHidden()
 		})
 
+		test('clicking the canvas closes the workspace switcher', async ({ page, sidebar }) => {
+			await sidebar.openWorkspaceSwitcher()
+			const homeItem = page.getByTestId('tla-workspace-switcher-home')
+			await expect(homeItem).toBeVisible()
+
+			await page.getByTestId('canvas').click({ position: { x: 600, y: 300 } })
+			await expect(homeItem).toBeHidden()
+		})
+
 		test('closing the mobile sidebar closes open sidebar menus', async ({ page, sidebar }) => {
 			const fileName = getRandomName()
 			await sidebar.createNewDocument(fileName)

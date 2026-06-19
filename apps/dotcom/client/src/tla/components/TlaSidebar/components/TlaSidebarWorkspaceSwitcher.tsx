@@ -116,12 +116,9 @@ export function TlaSidebarWorkspaceSwitcher() {
 						sideOffset={4}
 						alignOffset={-4}
 						collisionPadding={8}
-						// Switching workspaces mounts a new canvas that steals focus as it
-						// loads. Without this the focus shift would dismiss the switcher mid-
-						// switch. The open state is driven externally (useGlobalMenuIsOpen), so
-						// the menu still closes via the trigger, the overlay, or Escape.
-						onPointerDownOutside={(e) => e.preventDefault()}
-						onInteractOutside={(e) => e.preventDefault()}
+						// Switching workspaces mounts a new canvas that steals focus as it loads.
+						// Ignore that focus shift while still allowing real outside pointer clicks
+						// (for example, clicking the canvas) to dismiss the switcher.
 						onFocusOutside={(e) => e.preventDefault()}
 					>
 						<WorkspaceSwitcherItem
