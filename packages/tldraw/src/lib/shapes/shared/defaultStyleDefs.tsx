@@ -116,17 +116,19 @@ const generateImage = (dpr: number, currentZoom: number, solid: string) => {
 // in apps that remount the editor to switch documents that cost is paid on every switch. Caching
 // the resulting object URLs keeps the work to at most once per (dpr, zoom, color).
 //
-// The key space is bounded in normal use: `zoom` is a small set of power-of-two LODs, `dpr` is a
-// handful of device/zoom values, and `solid` is the theme's solid colors (two for the default
-// light/dark theme). The one way it can grow without limit is an app that varies the theme's solid
-// color at runtime (themes are runtime-customizable), which would add a new entry - and a retained
-// object URL - per distinct color. To stay bounded regardless, the cache evicts least-recently-used
-// tiles past a cap and revokes their object URLs. The cap far exceeds any single theme's
-// (dpr x LOD) tiles, so eviction only happens under runtime theme churn, where the evicted tiles
-// belong to stale themes no longer on screen.
-/** @internal */
-export const PATTERN_IMAGE_CACHE_MAX = 256
+// The cache is intentionally uncapped and does not revoke its object URLs. The URLs are shared
+// across editor instances and referenced by live <image> elements, so there is no safe moment to
+// revoke a tile without reference counting it (an LRU cap can't tell "least recently requested"
+// from "still on screen", and would revoke active tiles). In practice the key space is small and
+// bounded: `zoom` is a handful of power-of-two LODs, `dpr` is a few device/zoom values, and `solid`
+// is the theme's solid colors (two for the default light/dark theme). Shape colors are NOT part of
+// the key - the tile is a monochrome hatch tinted by the theme solid, and a shape's own color is
+// applied as a separate fill in PatternFill - so a document with thousands of distinct colors adds
+// no tiles. The only way the cache can grow without bound is an app that varies the theme's solid
+// color at runtime; if that ever matters, the fix is to reference-count the URLs so they can be
+// revoked once no editor references them.
 const patternImageUrlCache = new Map<string, Promise<string>>()
+
 /**
  * Returns a cached object URL for a pattern tile, generating it on first request. The
  * `generate` parameter is a seam for tests; production callers use the default.
@@ -139,32 +141,16 @@ export function getOrCreatePatternImageUrl(
 	generate: (dpr: number, zoom: number, solid: string) => Promise<Blob> = generateImage
 ): Promise<string> {
 	const key = `${dpr}_${zoom}_${solid}`
-	const existing = patternImageUrlCache.get(key)
-	if (existing) {
-		// Refresh recency so frequently-used tiles aren't the ones evicted by the cap below.
-		patternImageUrlCache.delete(key)
-		patternImageUrlCache.set(key, existing)
-		return existing
+	let url = patternImageUrlCache.get(key)
+	if (!url) {
+		url = generate(dpr, zoom, solid).then((blob) => URL.createObjectURL(blob))
+		// Don't cache failures: if generation rejects (e.g. toBlob returns null), drop the
+		// entry so a later request can retry rather than being stuck with a rejected promise.
+		url.catch(() => {
+			if (patternImageUrlCache.get(key) === url) patternImageUrlCache.delete(key)
+		})
+		patternImageUrlCache.set(key, url)
 	}
-
-	const url = generate(dpr, zoom, solid).then((blob) => URL.createObjectURL(blob))
-	// Don't cache failures: if generation rejects (e.g. toBlob returns null), drop the
-	// entry so a later request can retry rather than being stuck with a rejected promise.
-	url.catch(() => {
-		if (patternImageUrlCache.get(key) === url) patternImageUrlCache.delete(key)
-	})
-	patternImageUrlCache.set(key, url)
-
-	// Evict the least-recently-used tiles if the cache grows past the cap, revoking their object
-	// URLs so the backing blobs are freed (see the note above - only reachable via runtime theme
-	// color churn).
-	while (patternImageUrlCache.size > PATTERN_IMAGE_CACHE_MAX) {
-		const oldestKey = patternImageUrlCache.keys().next().value!
-		const oldest = patternImageUrlCache.get(oldestKey)
-		patternImageUrlCache.delete(oldestKey)
-		oldest?.then((u) => URL.revokeObjectURL(u)).catch(() => {})
-	}
-
 	return url
 }
 
