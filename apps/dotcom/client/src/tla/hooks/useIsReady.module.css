@@ -18,33 +18,3 @@
 .innerContainer:not(.isReady) {
 	opacity: 0;
 }
-
-.loadingScreen {
-	position: absolute;
-	inset: 0;
-	/* The placeholder editor is purely visual: never let it receive input. */
-	pointer-events: none;
-}
-
-/*
- * When a placeholder editor is shown during loading there's already an editor on
- * screen, so the real editor hard-cuts in rather than fading.
- */
-.withLoadingScreen .innerContainer {
-	transition: none;
-}
-
-.withLoadingScreen .innerContainer:not(.isReady) {
-	opacity: 1;
-}
-
-/*
- * Keep just the file content hidden until the editor is ready, then hard-cut it
- * in (no fade), leaving the main UI, background, and grid untouched so they line
- * up with the placeholder.
- */
-.withLoadingScreen .innerContainer:not(.isReady) :global(.tl-shapes),
-.withLoadingScreen .innerContainer:not(.isReady) :global(.tl-canvas-overlays),
-.withLoadingScreen .innerContainer:not(.isReady) :global(.tl-canvas__in-front) {
-	opacity: 0;
-}
