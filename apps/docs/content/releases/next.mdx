@@ -24,6 +24,7 @@ This release simplifies multi-click handling down to a single double-click event
 
 ## Improvements
 
+- Actions that act on a shape as an object — duplicate, delete, group, align, distribute, rotate, flip, reorder, move to a new page, and similar — now end text editing before they run. Actions that change a shape's content or appearance, such as style changes, leave you editing. ([#0000](https://github.com/tldraw/tldraw/pull/0000))
 - Add a `shift+q` shortcut that copies the styles of the hovered shape and applies them to the next shapes you create. ([#9028](https://github.com/tldraw/tldraw/pull/9028))
 - Keep sync at full speed when the same multiplayer room is open in multiple tabs, windows, or devices — previously a room with no other users throttled network sync to once per second. ([#8988](https://github.com/tldraw/tldraw/pull/8988))
 - Include `DOCS.md` documentation in published npm packages, and a generated docs and release notes rollup in the `tldraw` package, so documentation is available when browsing package artifacts. ([#8503](https://github.com/tldraw/tldraw/pull/8503))

@@ -54,6 +54,13 @@ export interface TLUiActionItem<
 	readonlyOk?: boolean
 	checkbox?: boolean
 	isRequiredA11yAction?: boolean
+	/**
+	 * If true, any active text-editing session is ended before this action runs. Use this for
+	 * actions that treat a shape as an object (move, transform, restructure, remove, relocate).
+	 * Leave it off for actions that change a shape's content/appearance (style, formatting) or are
+	 * view-only, so the user can keep editing while using them.
+	 */
+	completeEditing?: boolean
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
@@ -155,6 +162,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
 			{
 				id: 'edit-link',
+				completeEditing: true,
 				label: 'action.edit-link',
 				icon: 'link',
 				onSelect(source) {
@@ -505,6 +513,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'duplicate',
+				completeEditing: true,
 				kbd: 'cmd+d,ctrl+d',
 				label: 'action.duplicate',
 				icon: 'duplicate',
@@ -552,6 +561,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'ungroup',
+				completeEditing: true,
 				label: 'action.ungroup',
 				kbd: 'cmd+shift+g,ctrl+shift+g',
 				icon: 'ungroup',
@@ -566,6 +576,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'group',
+				completeEditing: true,
 				label: 'action.group',
 				kbd: 'cmd+g,ctrl+g',
 				icon: 'group',
@@ -586,6 +597,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'frame-selection',
+				completeEditing: true,
 				label: 'action.frame-selection',
 				kbd: 'cmd+alt+g',
 				onSelect(source) {
@@ -645,6 +657,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'remove-frame',
+				completeEditing: true,
 				label: 'action.remove-frame',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -665,6 +678,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'fit-frame-to-content',
+				completeEditing: true,
 				label: 'action.fit-frame-to-content',
 				onSelect(source) {
 					if (!canApplySelectionAction()) return
@@ -679,6 +693,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'align-left',
+				completeEditing: true,
 				label: 'action.align-left',
 				kbd: 'alt+A',
 				icon: 'align-left',
@@ -697,6 +712,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'align-center-horizontal',
+				completeEditing: true,
 				label: {
 					default: 'action.align-center-horizontal',
 					['context-menu']: 'action.align-center-horizontal.short',
@@ -718,6 +734,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'align-right',
+				completeEditing: true,
 				label: 'action.align-right',
 				kbd: 'alt+D',
 				icon: 'align-right',
@@ -736,6 +753,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'align-center-vertical',
+				completeEditing: true,
 				label: {
 					default: 'action.align-center-vertical',
 					['context-menu']: 'action.align-center-vertical.short',
@@ -757,6 +775,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'align-top',
+				completeEditing: true,
 				label: 'action.align-top',
 				icon: 'align-top',
 				kbd: 'alt+W',
@@ -775,6 +794,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'align-bottom',
+				completeEditing: true,
 				label: 'action.align-bottom',
 				icon: 'align-bottom',
 				kbd: 'alt+S',
@@ -793,6 +813,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'distribute-horizontal',
+				completeEditing: true,
 				label: {
 					default: 'action.distribute-horizontal',
 					['context-menu']: 'action.distribute-horizontal.short',
@@ -814,6 +835,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'distribute-vertical',
+				completeEditing: true,
 				label: {
 					default: 'action.distribute-vertical',
 					['context-menu']: 'action.distribute-vertical.short',
@@ -835,6 +857,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'stretch-horizontal',
+				completeEditing: true,
 				label: {
 					default: 'action.stretch-horizontal',
 					['context-menu']: 'action.stretch-horizontal.short',
@@ -855,6 +878,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'stretch-vertical',
+				completeEditing: true,
 				label: {
 					default: 'action.stretch-vertical',
 					['context-menu']: 'action.stretch-vertical.short',
@@ -875,6 +899,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'flip-horizontal',
+				completeEditing: true,
 				label: {
 					default: 'action.flip-horizontal',
 					['context-menu']: 'action.flip-horizontal.short',
@@ -895,6 +920,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'flip-vertical',
+				completeEditing: true,
 				label: { default: 'action.flip-vertical', ['context-menu']: 'action.flip-vertical.short' },
 				kbd: 'shift+v',
 				onSelect(source) {
@@ -912,6 +938,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'pack',
+				completeEditing: true,
 				label: 'action.pack',
 				icon: 'pack',
 				onSelect(source) {
@@ -929,6 +956,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'stack-vertical',
+				completeEditing: true,
 				label: {
 					default: 'action.stack-vertical',
 					['context-menu']: 'action.stack-vertical.short',
@@ -949,6 +977,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'stack-horizontal',
+				completeEditing: true,
 				label: {
 					default: 'action.stack-horizontal',
 					['context-menu']: 'action.stack-horizontal.short',
@@ -969,6 +998,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'bring-to-front',
+				completeEditing: true,
 				label: 'action.bring-to-front',
 				kbd: ']',
 				icon: 'bring-to-front',
@@ -983,6 +1013,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'bring-forward',
+				completeEditing: true,
 				label: 'action.bring-forward',
 				icon: 'bring-forward',
 				kbd: 'alt+]',
@@ -997,6 +1028,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'send-backward',
+				completeEditing: true,
 				label: 'action.send-backward',
 				icon: 'send-backward',
 				kbd: 'alt+[',
@@ -1011,6 +1043,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'send-to-back',
+				completeEditing: true,
 				label: 'action.send-to-back',
 				icon: 'send-to-back',
 				kbd: '[',
@@ -1025,6 +1058,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'cut',
+				completeEditing: true,
 				label: 'action.cut',
 				kbd: 'cmd+x,ctrl+x',
 				onSelect(source) {
@@ -1150,6 +1184,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'delete',
+				completeEditing: true,
 				label: 'action.delete',
 				kbd: '⌫,del',
 				icon: 'trash',
@@ -1164,6 +1199,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'rotate-cw',
+				completeEditing: true,
 				label: 'action.rotate-cw',
 				icon: 'rotate-cw',
 				kbd: 'shift+.,shift+alt+.',
@@ -1186,6 +1222,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'rotate-ccw',
+				completeEditing: true,
 				label: 'action.rotate-ccw',
 				icon: 'rotate-ccw',
 				// omg double comma
@@ -1583,6 +1620,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-lock',
+				completeEditing: true,
 				label: 'action.toggle-lock',
 				kbd: 'shift+l',
 				onSelect(source) {
@@ -1594,6 +1632,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'move-to-new-page',
+				completeEditing: true,
 				label: 'context.pages.new-page',
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
@@ -1662,6 +1701,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'flatten-to-image',
+				completeEditing: true,
 				label: 'action.flatten-to-image',
 				kbd: 'shift+f',
 				onSelect: async (source) => {
@@ -1801,6 +1841,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'enlarge-shapes',
+				completeEditing: true,
 				label: 'a11y.enlarge-shape',
 				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
 				onSelect: async (source) => {
@@ -1811,6 +1852,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'shrink-shapes',
+				completeEditing: true,
 				label: 'a11y.shrink-shape',
 				kbd: 'cmd+alt+shift+-,ctrl+alt+shift+-',
 				onSelect: async (source) => {
@@ -1961,11 +2003,35 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 		const actions = makeActions(actionItems)
 
-		if (overrides) {
-			return overrides(editor, actions, helpers)
+		const finalActions = overrides ? overrides(editor, actions, helpers) : actions
+
+		// For actions flagged with `completeEditing`, end any active text-editing session before
+		// the action runs. Doing it here (after overrides) keeps the exit logic in one place and
+		// applies it to custom and overridden actions too. Clearing `editingShapeId` alone does not
+		// leave the `select.editing_shape` state, so we transition the tool out as well.
+		const wrappedActions: TLUiActionsContextType = {}
+		for (const [id, action] of Object.entries(finalActions)) {
+			if (!action.completeEditing) {
+				wrappedActions[id] = action
+				continue
+			}
+			const onSelect = action.onSelect
+			wrappedActions[id] = {
+				...action,
+				onSelect(source) {
+					// `editor.complete()` is the canonical way to finish an editing session: it
+					// leaves the `select.editing_shape` state and clears the editing shape.
+					if (editor.isIn('select.editing_shape')) {
+						editor.complete()
+					} else if (editor.getEditingShapeId()) {
+						editor.setEditingShape(null)
+					}
+					return onSelect(source)
+				},
+			}
 		}
 
-		return actions
+		return wrappedActions
 	}, [
 		helpers,
 		_editor,

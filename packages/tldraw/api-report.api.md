@@ -4569,6 +4569,7 @@ export interface TLUiA11yContextType {
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checkbox?: boolean;
+    completeEditing?: boolean;
     // (undocumented)
     icon?: IconType | React_2.ReactElement;
     // (undocumented)
