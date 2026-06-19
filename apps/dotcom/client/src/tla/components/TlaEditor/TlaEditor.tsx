@@ -79,37 +79,12 @@ interface TlaEditorProps {
 	deepLinks?: boolean
 }
 
-/**
- * An empty, non-interactive tldraw editor shown immediately while the real file
- * connects and syncs. It renders the full editor chrome (toolbar, menus, panels)
- * over its own ephemeral empty store, so the UI pops in instantly and only the
- * document content fills in once synced. It never autofocuses, and the
- * ReadyWrapper overlay disables pointer events so nothing here is interactive.
- */
-function TlaEditorLoadingPlaceholder() {
-	const app = useMaybeApp()
-	return (
-		<TlaEditorWrapper>
-			<Tldraw
-				className="tla-editor"
-				licenseKey={getLicenseKey()}
-				assetUrls={assetUrls}
-				// Match the user's theme so the placeholder doesn't flash light/dark.
-				user={app?.tlUser}
-				autoFocus={false}
-				components={components}
-				options={{ actionShortcutsLocation: 'toolbar' }}
-			/>
-		</TlaEditorWrapper>
-	)
-}
-
 export function TlaEditor(props: TlaEditorProps) {
 	// force re-mount when the file slug changes to prevent state from leaking between files
 	return (
 		<>
 			<SneakySetDocumentTitle />
-			<ReadyWrapper key={props.fileSlug} loadingScreen={<TlaEditorLoadingPlaceholder />}>
+			<ReadyWrapper key={props.fileSlug}>
 				<TlaEditorInner {...props} key={props.fileSlug} />
 			</ReadyWrapper>
 		</>
