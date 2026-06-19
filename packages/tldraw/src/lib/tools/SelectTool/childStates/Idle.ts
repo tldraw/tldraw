@@ -652,6 +652,11 @@ export class Idle extends StateNode {
 	override onKeyUp(info: TLKeyboardEventInfo) {
 		switch (info.key) {
 			case 'Enter': {
+				// cmd/ctrl+enter never starts editing: while a shape is selected it focuses the style
+				// panel (the "adjust shape styles" shortcut), and while editing a label it completes
+				// editing and returns focus to the canvas. Only a plain Enter begins editing.
+				if (info.accelKey) break
+
 				// Because Enter onKeyDown can happen outside the canvas (but then focus the canvas potentially),
 				// we need to check if the canvas was initially selecting something before continuing.
 				if (!this.selectedShapesOnKeyDown.length) return

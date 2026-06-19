@@ -102,10 +102,7 @@ test.describe('A11y Style Panel Navigation', () => {
 		expect(finalText).toBe('Updated Label')
 	})
 
-	// Failing! This is failing because the keyboard event isn't being picked up while editing the rich
-	// text. In practice the behavior does work, so this is a problem with the test or the way that we're
-	// dispatching the event.
-	test.fail('in a geo shape, cmd+enter returns focus to the canvas', async ({ page, isMobile }) => {
+	test('in a geo shape, cmd+enter returns focus to the canvas', async ({ page, isMobile }) => {
 		if (isMobile) {
 			test.skip()
 		}
@@ -115,21 +112,19 @@ test.describe('A11y Style Panel Navigation', () => {
 		await page.mouse.click(200, 200)
 		await page.keyboard.press('v') // Select tool
 
-		// press enter
+		// press enter to start editing the label
 		await page.keyboard.press('Enter')
 
-		expect(await isFocusedOnRichTextEditor(page)).toBe(true)
+		// the editor is in the editing state with the rich text editor focused. Focus is
+		// asynchronous, so poll rather than asserting immediately.
+		await expect.poll(() => page.evaluate(() => editor.isIn('select.editing_shape'))).toBe(true)
+		await expect.poll(() => isFocusedOnRichTextEditor(page)).toBe(true)
 
-		// expect editor to be in the editing state
-		expect(await page.evaluate(() => editor.isIn('select.editing_shape'))).toBe(true)
-
-		// dispatch cmd+enter to the active element
+		// cmd+enter completes editing and returns focus to the canvas
 		await page.keyboard.press('ControlOrMeta+Enter')
-		await page.waitForTimeout(100)
 
-		expect(await page.evaluate(() => editor.isIn('select.editing_shape'))).toBe(false)
-
-		expect(await isFocusedOnCanvas(page)).toBe(true)
+		await expect.poll(() => page.evaluate(() => editor.isIn('select.editing_shape'))).toBe(false)
+		await expect.poll(() => isFocusedOnCanvas(page)).toBe(true)
 	})
 
 	test('in a note shape, cmd+enter creates the next shape and does not focus on the style panel', async ({
