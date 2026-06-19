@@ -37,7 +37,7 @@
 	width: 100%;
 	height: 100%;
 	z-index: 99;
-	background-color: var(--tla-color-overlay);
+	background-color: var(--tl-color-overlay);
 	display: none;
 }
 

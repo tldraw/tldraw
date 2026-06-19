@@ -2,10 +2,9 @@ import { DEFAULT_THEME, TLTheme } from 'tldraw'
 
 /**
  * CSS variable overrides for one color mode. `tl` retints the editor canvas
- * wrapper (`.tl-container`); `tla` retints tldraw.com app shell colors. When
- * exported, `tla` is stripped down to keys that do not resolve through shared
- * `tl-color-*` tokens. Applied as inline styles at runtime and cleared when
- * switching back to the default theme.
+ * wrapper (`.tl-container`); `tla` retints tldraw.com app shell colors. Applied
+ * as inline styles at runtime and cleared when switching back to the default
+ * theme.
  */
 export interface UIThemeVariant {
 	tl: Record<string, string>
@@ -20,17 +19,6 @@ interface UITheme {
 	light: UIThemeVariant
 	dark: UIThemeVariant
 }
-
-const TLA_COLOR_KEYS_TO_OMIT = new Set([
-	'tla-color-panel',
-	'tla-color-text',
-	'tla-color-text-1',
-	'tla-color-cta-hover',
-	'tla-color-primary',
-	'tla-color-focus',
-	'tla-color-accent-3',
-	'tla-color-warning',
-])
 
 const THEMES: UITheme[] = [
 	{
@@ -78,7 +66,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#eee8d5',
-				'tla-color-overlay': 'hsla(192, 100%, 11%, 0.3)',
 				'tla-color-inactive': '#93a1a1',
 				'tla-color-inactive-hover': '#839496',
 				'tla-color-primary-hover': '#2d99e8',
@@ -127,7 +114,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#00212b',
-				'tla-color-overlay': 'hsla(192, 100%, 5%, 0.81)',
 				'tla-color-inactive': '#586e75',
 				'tla-color-inactive-hover': '#657b83',
 				'tla-color-primary-hover': '#2d99e8',
@@ -182,7 +168,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#ededea',
-				'tla-color-overlay': 'hsla(231, 15%, 18%, 0.3)',
 				'tla-color-inactive': '#6272a4',
 				'tla-color-inactive-hover': '#7283b5',
 				'tla-color-primary-hover': '#c9a5fa',
@@ -231,7 +216,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#21222c',
-				'tla-color-overlay': 'hsla(231, 15%, 10%, 0.81)',
 				'tla-color-inactive': '#6272a4',
 				'tla-color-inactive-hover': '#7283b5',
 				'tla-color-primary-hover': '#bd93f9',
@@ -286,7 +270,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#e5e9f0',
-				'tla-color-overlay': 'hsla(220, 16%, 22%, 0.3)',
 				'tla-color-inactive': '#7b88a1',
 				'tla-color-inactive-hover': '#8c97ae',
 				'tla-color-primary-hover': '#6b8db5',
@@ -335,7 +318,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#272d38',
-				'tla-color-overlay': 'hsla(220, 16%, 12%, 0.81)',
 				'tla-color-inactive': '#7b88a1',
 				'tla-color-inactive-hover': '#8c97ae',
 				'tla-color-primary-hover': '#88c0d0',
@@ -390,7 +372,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#f0f0ec',
-				'tla-color-overlay': 'hsla(70, 8%, 15%, 0.3)',
 				'tla-color-inactive': '#8f908a',
 				'tla-color-inactive-hover': '#9e9f9a',
 				'tla-color-primary-hover': '#77ddf1',
@@ -439,7 +420,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#1e1f1a',
-				'tla-color-overlay': 'hsla(70, 8%, 8%, 0.81)',
 				'tla-color-inactive': '#75715e',
 				'tla-color-inactive-hover': '#8a8578',
 				'tla-color-primary-hover': '#66d9ef',
@@ -494,7 +474,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#f2e5bc',
-				'tla-color-overlay': 'hsla(0, 0%, 16%, 0.3)',
 				'tla-color-inactive': '#928374',
 				'tla-color-inactive-hover': '#a39485',
 				'tla-color-primary-hover': '#539698',
@@ -543,7 +522,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#1d2021',
-				'tla-color-overlay': 'hsla(0, 0%, 8%, 0.81)',
 				'tla-color-inactive': '#928374',
 				'tla-color-inactive-hover': '#a39485',
 				'tla-color-primary-hover': '#83a598',
@@ -598,7 +576,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#e6e9ef',
-				'tla-color-overlay': 'hsla(234, 16%, 35%, 0.3)',
 				'tla-color-inactive': '#9ca0b0',
 				'tla-color-inactive-hover': '#8c8fa2',
 				'tla-color-primary-hover': '#9548f5',
@@ -647,7 +624,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#181825',
-				'tla-color-overlay': 'hsla(240, 21%, 10%, 0.81)',
 				'tla-color-inactive': '#6c7086',
 				'tla-color-inactive-hover': '#7f849c',
 				'tla-color-primary-hover': '#cba6f7',
@@ -702,7 +678,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#f0f0f0',
-				'tla-color-overlay': 'hsla(230, 8%, 24%, 0.3)',
 				'tla-color-inactive': '#a0a1a7',
 				'tla-color-inactive-hover': '#8c8d93',
 				'tla-color-primary-hover': '#5288f5',
@@ -751,7 +726,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#21252b',
-				'tla-color-overlay': 'hsla(220, 13%, 10%, 0.81)',
 				'tla-color-inactive': '#5c6370',
 				'tla-color-inactive-hover': '#6b727f',
 				'tla-color-primary-hover': '#61afef',
@@ -806,7 +780,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#cbccd1',
-				'tla-color-overlay': 'hsla(232, 25%, 27%, 0.3)',
 				'tla-color-inactive': '#9699a3',
 				'tla-color-inactive-hover': '#86898f',
 				'tla-color-primary-hover': '#8aacf8',
@@ -855,7 +828,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#16161e',
-				'tla-color-overlay': 'hsla(235, 24%, 10%, 0.81)',
 				'tla-color-inactive': '#565f89',
 				'tla-color-inactive-hover': '#6b7394',
 				'tla-color-primary-hover': '#7aa2f7',
@@ -910,7 +882,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#f4ebd0',
-				'tla-color-overlay': 'hsla(195, 14%, 20%, 0.3)',
 				'tla-color-inactive': '#939f91',
 				'tla-color-inactive-hover': '#828e80',
 				'tla-color-primary-hover': '#3fb88b',
@@ -959,7 +930,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#272e33',
-				'tla-color-overlay': 'hsla(195, 14%, 12%, 0.81)',
 				'tla-color-inactive': '#7a8478',
 				'tla-color-inactive-hover': '#8a9488',
 				'tla-color-primary-hover': '#83c092',
@@ -1014,7 +984,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#f6f8fa',
-				'tla-color-overlay': 'hsla(210, 13%, 16%, 0.3)',
 				'tla-color-inactive': '#656d76',
 				'tla-color-inactive-hover': '#57606a',
 				'tla-color-primary-hover': '#1177e5',
@@ -1063,7 +1032,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#010409',
-				'tla-color-overlay': 'hsla(215, 28%, 5%, 0.81)',
 				'tla-color-inactive': '#484f58',
 				'tla-color-inactive-hover': '#57606a',
 				'tla-color-primary-hover': '#58a6ff',
@@ -1118,7 +1086,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#f2f0e5',
-				'tla-color-overlay': 'hsla(30, 5%, 10%, 0.3)',
 				'tla-color-inactive': '#878580',
 				'tla-color-inactive-hover': '#6f6e69',
 				'tla-color-primary-hover': '#286bb5',
@@ -1167,7 +1134,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#0b0a0a',
-				'tla-color-overlay': 'hsla(0, 0%, 4%, 0.81)',
 				'tla-color-inactive': '#575653',
 				'tla-color-inactive-hover': '#6f6e69',
 				'tla-color-primary-hover': '#4385be',
@@ -1222,7 +1188,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#f0f0f0',
-				'tla-color-overlay': 'hsla(241, 16%, 29%, 0.3)',
 				'tla-color-inactive': '#989fb1',
 				'tla-color-inactive-hover': '#888fa0',
 				'tla-color-primary-hover': '#32b5aa',
@@ -1271,7 +1236,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#00101f',
-				'tla-color-overlay': 'hsla(207, 95%, 5%, 0.81)',
 				'tla-color-inactive': '#5f7e97',
 				'tla-color-inactive-hover': '#708ea5',
 				'tla-color-primary-hover': '#7fdbca',
@@ -1326,7 +1290,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#f0f0f0',
-				'tla-color-overlay': 'hsla(0, 0%, 0%, 0.3)',
 				'tla-color-inactive': '#555555',
 				'tla-color-inactive-hover': '#333333',
 				'tla-color-primary-hover': '#3333ff',
@@ -1375,7 +1338,6 @@ const THEMES: UITheme[] = [
 			},
 			tla: {
 				'tla-color-sidebar': '#000000',
-				'tla-color-overlay': 'hsla(0, 0%, 0%, 0.81)',
 				'tla-color-inactive': '#aaaaaa',
 				'tla-color-inactive-hover': '#cccccc',
 				'tla-color-primary-hover': '#00ff00',
@@ -1419,18 +1381,7 @@ function buildTLTheme(def: UITheme): TLTheme {
 	}
 }
 
-function minimizeTlaColors(variant: UIThemeVariant): UIThemeVariant {
-	return {
-		tl: variant.tl,
-		tla: Object.fromEntries(
-			Object.entries(variant.tla).filter(([key]) => !TLA_COLOR_KEYS_TO_OMIT.has(key))
-		),
-	}
-}
-
 export const UI_THEMES: Array<UITheme & { theme: TLTheme }> = THEMES.map((def) => ({
 	...def,
-	light: minimizeTlaColors(def.light),
-	dark: minimizeTlaColors(def.dark),
 	theme: buildTLTheme(def),
 }))

@@ -40,7 +40,6 @@
 
 .tla-theme__light {
 	--tla-color-sidebar: hsl(0, 0%, 99%);
-	--tla-color-overlay: hsla(240, 16%, 2%, 30%);
 	--tla-color-inactive: hsl(204, 4%, 55%);
 	--tla-color-inactive-hover: hsl(204, 4%, 59%);
 	--tla-color-primary-hover: hsl(214, 84%, 58%);
@@ -62,7 +61,6 @@
 
 .tla-theme__dark {
 	--tla-color-sidebar: hsl(0, 0%, 5%);
-	--tla-color-overlay: hsla(240, 0%, 0%, 81%);
 	--tla-color-inactive: hsl(204, 4%, 45%);
 	--tla-color-inactive-hover: hsl(204, 4%, 49%);
 	--tla-color-primary-hover: hsl(214, 84%, 50%);
