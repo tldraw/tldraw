@@ -95,7 +95,7 @@
 	position: relative;
 	border: none;
 	padding: 4px 8px;
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 	font-size: 12px;
 	cursor: pointer;
 	text-decoration: none;
@@ -225,14 +225,14 @@
 .helpIcon {
 	width: 16px;
 	height: 16px;
-	color: #666;
+	color: var(--tl-color-text-3);
 	cursor: help;
 }
 
 .disabledIcon {
 	width: 16px;
 	height: 16px;
-	color: #ccc;
+	color: var(--tl-color-muted-1);
 	cursor: not-allowed;
 }
 
@@ -249,7 +249,7 @@
 .divider {
 	margin: 12px 0;
 	border: none;
-	border-top: 1px solid #e0e0e0;
+	border-top: 1px solid var(--tl-color-divider);
 }
 
 .membersList {
@@ -272,7 +272,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: white;
+	color: var(--tl-color-selected-contrast);
 	font-weight: bold;
 }
 
@@ -281,7 +281,7 @@
 }
 
 .memberRole {
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 	font-size: 12px;
 }
 
@@ -320,7 +320,7 @@
 }
 
 .modalContent {
-	background-color: white;
+	background-color: var(--tl-color-panel-contrast);
 	padding: 24px;
 	border-radius: 8px;
 	max-width: 400px;

@@ -6,7 +6,7 @@
 	background: none;
 	outline: none;
 	color: var(--tla-color-text-1);
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 	cursor: pointer;
 	display: flex;
 	flex-direction: row;
@@ -38,7 +38,7 @@
 }
 
 .spinner {
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 	animation: tla-spin 1.5s linear infinite;
 }
 
@@ -53,14 +53,13 @@
 
 .cta {
 	background-color: var(--tla-color-cta);
-	color: var(--tla-color-contrast);
+	color: var(--tl-color-selected-contrast);
 	font-weight: 600;
 }
 
 .primary {
 	background-color: var(--tla-color-primary);
-	box-shadow: var(--tla-shadow-primary-highlight);
-	color: var(--tla-color-contrast);
+	color: var(--tl-color-selected-contrast);
 }
 
 .primary[data-state='loading'] {
@@ -68,7 +67,7 @@
 }
 
 .primary[data-state='loading'] > .spinner {
-	color: var(--tla-color-contrast);
+	color: var(--tl-color-selected-contrast);
 }
 
 .secondary {
@@ -146,7 +145,7 @@
 }
 
 .tlaButton:focus-visible {
-	outline: 2px solid var(--tla-color-focus);
+	outline: 2px solid var(--tl-color-focus);
 	outline-offset: 2px;
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 }

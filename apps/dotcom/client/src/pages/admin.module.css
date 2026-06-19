@@ -19,7 +19,7 @@
 	margin: 10px 0 0 0;
 	font-size: 12px;
 	line-height: 1.4;
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 }
 
 .adminReleaseLabel {
@@ -60,8 +60,8 @@
 	height: 32px;
 	padding: 0 12px;
 	border: 1px solid var(--tla-color-border);
-	border-radius: var(--tla-radius-2);
-	background-color: var(--tla-color-contrast);
+	border-radius: var(--tl-radius-1);
+	background-color: var(--tl-color-selected-contrast);
 	color: var(--tla-color-text-1);
 	font-family: var(--tla-font-ui);
 	font-size: 12px;
@@ -84,7 +84,7 @@
 	font-weight: 500;
 	padding: 8px 12px;
 	background-color: var(--tla-color-secondary);
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 	border: 1px solid var(--tla-color-warning);
 }
 
@@ -94,7 +94,7 @@
 	font-weight: 500;
 	padding: 8px 12px;
 	background-color: var(--tla-color-secondary);
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 	border: 1px solid var(--tla-color-accent-3);
 }
 
@@ -109,13 +109,13 @@
 }
 
 .userActionButton:hover:not(:disabled) {
-	border-color: var(--tla-color-text-3) !important;
+	border-color: var(--tl-color-text-3) !important;
 }
 
 .dataDisplay {
 	background-color: var(--tla-color-low);
 	border: 1px solid var(--tla-color-border);
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 	padding: 16px;
 	font-family: 'IBMPlexMono', monospace;
 	font-size: 11px;
@@ -139,7 +139,7 @@
 	padding: 16px;
 	background-color: var(--tla-color-panel);
 	border: 1px solid var(--tla-color-border);
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 }
 
 .downloadContainer {
@@ -155,7 +155,7 @@
 	padding: 16px;
 	background-color: var(--tla-color-panel);
 	border: 1px solid var(--tla-color-warning);
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 }
 
 .deleteContainer {
@@ -174,7 +174,7 @@
 	padding: 16px;
 	background-color: var(--tla-color-low);
 	border: 1px solid var(--tla-color-border);
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 }
 
 .progressLog h5 {
@@ -193,9 +193,9 @@
 	font-size: 11px;
 	line-height: 1.4;
 	color: var(--tla-color-text-1);
-	background-color: var(--tla-color-contrast);
+	background-color: var(--tl-color-selected-contrast);
 	border: 1px solid var(--tla-color-border);
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 	padding: 8px;
 }
 
@@ -230,7 +230,7 @@
 	padding: 16px;
 	background-color: var(--tla-color-panel);
 	border: 1px solid var(--tla-color-border);
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 }
 
 .summaryGrid {
@@ -248,7 +248,7 @@
 .fieldLabel {
 	font-size: 11px;
 	font-weight: 600;
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 }
@@ -268,7 +268,7 @@
 	padding: 16px;
 	background-color: var(--tla-color-panel);
 	border: 1px solid var(--tla-color-primary);
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 	margin-top: 16px;
 }
 
@@ -289,7 +289,7 @@
 .statLabel {
 	font-size: 11px;
 	font-weight: 600;
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 	text-transform: uppercase;
 }
 
@@ -324,7 +324,7 @@
 	border-collapse: collapse;
 	background-color: var(--tla-color-panel);
 	border: 1px solid var(--tla-color-border);
-	border-radius: var(--tla-radius-2);
+	border-radius: var(--tl-radius-1);
 	overflow: hidden;
 }
 
@@ -335,7 +335,7 @@
 	border-bottom: 1px solid var(--tla-color-border);
 	font-size: 11px;
 	font-weight: 600;
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 }
@@ -367,7 +367,7 @@
 }
 
 .featureFlagsDescription {
-	color: var(--tla-color-text-3);
+	color: var(--tl-color-text-3);
 }
 
 .featureFlagsContainer {

@@ -79,7 +79,7 @@ export function AddFileLinkDialog({ onClose, groupId }: { onClose(): void; group
 						autoFocus
 					/>
 					{error && (
-						<div style={{ color: 'var(--color-warn)', marginTop: 8, fontSize: 12 }}>
+						<div style={{ color: 'var(--tl-color-danger)', marginTop: 8, fontSize: 12 }}>
 							<F {...messages.invalidUrl} />
 						</div>
 					)}
