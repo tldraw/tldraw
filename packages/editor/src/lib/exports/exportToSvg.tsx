@@ -1,4 +1,4 @@
-import { TLFontFace, TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
@@ -17,20 +17,6 @@ export async function exportToSvg(
 	shapeIds: TLShapeId[],
 	opts: TLSvgExportOptions = {}
 ) {
-	// Text geometry - including the export's overall bounding box - is measured
-	// synchronously from each shape's loaded font, both when we compute the bounds
-	// below and when we render the text. If a font is still loading at that point,
-	// the shape falls back to system-font metrics, so the export comes out a
-	// slightly different size and layout. Load the fonts used by the exported
-	// shapes first so the measurement, and therefore the export, is deterministic.
-	const fonts = new Set<TLFontFace>()
-	for (const id of editor.getShapeAndDescendantIds(shapeIds)) {
-		for (const font of editor.fonts.getShapeFontFaces(id)) {
-			fonts.add(font)
-		}
-	}
-	await Promise.all(Array.from(fonts, (font) => editor.fonts.ensureFontIsLoaded(font)))
-
 	// when rendering to SVG, we start by creating a JSX representation of the SVG that we can
 	// render with react. Hopefully elements will have a `toSvg` method that renders them to SVG,
 	// but if they don't we'll render their normal HTML content into an svg <foreignObject> element.
