@@ -1,4 +1,4 @@
-import { Zero } from '@rocicorp/zero'
+import { QueryResultType, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
@@ -10,12 +10,9 @@ import {
 	ROOM_PREFIX,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
-	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
-	TlaGroup,
 	TlaGroupFile,
-	TlaGroupUser,
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
@@ -122,13 +119,13 @@ export class TldrawApp {
 	readonly z: Zero<TlaSchema, TlaMutators, ZeroContext>
 
 	private readonly user$: Signal<TlaUser | undefined>
-	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+	// These signal types are derived from the query definitions in dotcom-shared rather than
+	// hand-written, so the shape (and the nullability of `.one()` joins like `file`) stays in
+	// sync with the queries automatically. A previous hand-written annotation claimed `file` was
+	// always present, which hid a production crash when a `.one()` join resolved to undefined.
+	private readonly fileStates$: Signal<QueryResultType<typeof queries.fileStates>>
 	private readonly workspaceMemberships$: Signal<
-		(TlaGroupUser & {
-			group: TlaGroup
-			groupFiles: Array<TlaGroupFile & { file: TlaFile | undefined }>
-			groupMembers: Array<TlaGroupUser>
-		})[]
+		QueryResultType<typeof queries.workspaceMemberships>
 	>
 
 	private readonly useProperZero: boolean
@@ -1229,10 +1226,10 @@ export class TldrawApp {
 	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
 		// The home workspace can't be invited to.
 		if (workspaceId === this.getHomeWorkspaceId()) return false
-		const membership = this.getWorkspaceMembership(workspaceId)
-		if (!membership?.group.inviteSecret) return false
+		const group = this.getWorkspaceMembership(workspaceId)?.group
+		if (!group?.inviteSecret) return false
 
-		const inviteText = `${location.origin}/invite/${membership.group.inviteSecret}`
+		const inviteText = `${location.origin}/invite/${group.inviteSecret}`
 		navigator.clipboard.writeText(inviteText)
 
 		if (showToast) {
