@@ -35,7 +35,7 @@ test.describe('A11y Style Panel Navigation', () => {
 		// Verify we're in editing mode
 		const isEditingShape = await page.evaluate(() => editor.getEditingShapeId() !== null)
 		expect(isEditingShape).toBe(true)
-		expect(await isFocusedOnRichTextEditor(page)).toBe(true)
+		await expect.poll(() => isFocusedOnRichTextEditor(page)).toBe(true)
 
 		// Type some text
 		await page.keyboard.type('Test Label')
@@ -51,25 +51,27 @@ test.describe('A11y Style Panel Navigation', () => {
 		await page.keyboard.press('Meta+Enter')
 
 		// Verify that the first button in the style panel is focused
-		const isStylePanelFocused = await page.evaluate(() => {
-			const activeEl = document.activeElement
-			return activeEl?.closest('.tlui-style-panel') !== null && activeEl?.tagName === 'BUTTON'
-		})
-		expect(isStylePanelFocused).toBe(true)
+		await expect
+			.poll(() =>
+				page.evaluate(() => {
+					const activeEl = document.activeElement
+					return activeEl?.closest('.tlui-style-panel') !== null && activeEl?.tagName === 'BUTTON'
+				})
+			)
+			.toBe(true)
 
 		// Step 4: Use arrow keys to navigate to a different color (assuming color buttons are first)
 		await page.keyboard.press('ArrowRight')
 
 		// Verify focus has moved to the next button
-		const newActiveElement = await page.evaluate(() => {
-			const activeEl = document.activeElement
-			return {
-				tagName: activeEl?.tagName,
-				inStylePanel: activeEl?.closest('.tlui-style-panel') !== null,
-			}
-		})
-		expect(newActiveElement.tagName).toBe('BUTTON')
-		expect(newActiveElement.inStylePanel).toBe(true)
+		await expect
+			.poll(() =>
+				page.evaluate(() => {
+					const activeEl = document.activeElement
+					return activeEl?.tagName === 'BUTTON' && activeEl?.closest('.tlui-style-panel') !== null
+				})
+			)
+			.toBe(true)
 
 		// Step 5: Press Enter to select the color
 		await page.keyboard.press('Enter')
@@ -78,7 +80,7 @@ test.describe('A11y Style Panel Navigation', () => {
 		await page.keyboard.press('Escape')
 
 		// Verify focus is back on the canvas/shape
-		expect(await isFocusedOnCanvas(page)).toBe(true)
+		await expect.poll(() => isFocusedOnCanvas(page)).toBe(true)
 
 		// Step 7: Press Enter again to edit the label
 		await page.keyboard.press('Enter')
@@ -120,7 +122,7 @@ test.describe('A11y Style Panel Navigation', () => {
 		// press enter
 		await page.keyboard.press('Enter')
 
-		expect(await isFocusedOnRichTextEditor(page)).toBe(true)
+		await expect.poll(() => isFocusedOnRichTextEditor(page)).toBe(true)
 
 		// expect editor to be in the editing state
 		expect(await page.evaluate(() => editor.isIn('select.editing_shape'))).toBe(true)
@@ -131,7 +133,7 @@ test.describe('A11y Style Panel Navigation', () => {
 
 		expect(await page.evaluate(() => editor.isIn('select.editing_shape'))).toBe(false)
 
-		expect(await isFocusedOnCanvas(page)).toBe(true)
+		await expect.poll(() => isFocusedOnCanvas(page)).toBe(true)
 	})
 
 	test('in a note shape, cmd+enter creates the next shape and does not focus on the style panel', async ({
@@ -147,7 +149,7 @@ test.describe('A11y Style Panel Navigation', () => {
 		await page.mouse.click(200, 200)
 		await page.waitForTimeout(200)
 
-		expect(await isFocusedOnRichTextEditor(page)).toBe(true)
+		await expect.poll(() => isFocusedOnRichTextEditor(page)).toBe(true)
 
 		const firstShapeId = await page.evaluate(() => {
 			return editor.getOnlySelectedShape()?.id
@@ -164,14 +166,14 @@ test.describe('A11y Style Panel Navigation', () => {
 		expect(finalShapeId).toBeDefined()
 		expect(finalShapeId).not.toBe(firstShapeId)
 
-		expect(await isFocusedOnStylePanel(page)).toBe(false)
-		expect(await isFocusedOnCanvas(page)).toBe(false)
-		expect(await isFocusedOnRichTextEditor(page)).toBe(true)
+		await expect.poll(() => isFocusedOnStylePanel(page)).toBe(false)
+		await expect.poll(() => isFocusedOnCanvas(page)).toBe(false)
+		await expect.poll(() => isFocusedOnRichTextEditor(page)).toBe(true)
 
 		// Press escape
 		await page.keyboard.press('Escape')
 
-		expect(await isFocusedOnCanvas(page)).toBe(true)
+		await expect.poll(() => isFocusedOnCanvas(page)).toBe(true)
 	})
 
 	test('style panel focus works with different geo shapes', async ({ page, isMobile }) => {
@@ -187,7 +189,7 @@ test.describe('A11y Style Panel Navigation', () => {
 		// Verify we can focus style panel
 		await page.keyboard.press('Meta+Enter')
 
-		expect(await isFocusedOnStylePanel(page)).toBe(true)
+		await expect.poll(() => isFocusedOnStylePanel(page)).toBe(true)
 
 		// Return to shape and test editing
 		await page.keyboard.press('Escape')
@@ -207,24 +209,24 @@ test.describe('A11y Style Panel Navigation', () => {
 		await page.mouse.click(200, 200)
 		await page.keyboard.press('v') // Select tool
 
-		expect(await isFocusedOnCanvas(page)).toBe(true)
+		await expect.poll(() => isFocusedOnCanvas(page)).toBe(true)
 
 		// Test that cmd+enter focuses the style panel even without editing first
 		await page.keyboard.press('Meta+Enter')
 
-		expect(await isFocusedOnStylePanel(page)).toBe(true)
+		await expect.poll(() => isFocusedOnStylePanel(page)).toBe(true)
 
 		// Navigate in the style panel
 		await page.keyboard.press('ArrowRight')
 
 		// Verify focus is still in style panel
-		expect(await isFocusedOnStylePanel(page)).toBe(true)
+		await expect.poll(() => isFocusedOnStylePanel(page)).toBe(true)
 
 		// Return to canvas
 		await page.keyboard.press('Escape')
 
 		// Verify focus is back on canvas
-		expect(await isFocusedOnCanvas(page)).toBe(true)
+		await expect.poll(() => isFocusedOnCanvas(page)).toBe(true)
 	})
 })
 
