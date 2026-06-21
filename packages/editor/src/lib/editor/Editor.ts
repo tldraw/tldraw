@@ -4165,6 +4165,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		const doc = this.getContainerDocument()
+		// If the container's document has been torn down (e.g. an iframe being
+		// removed), its body is null and there's nothing meaningful to measure.
+		if (!doc.body) return this
+
 		const insets = [
 			// top
 			screenBounds.minY !== 0,
