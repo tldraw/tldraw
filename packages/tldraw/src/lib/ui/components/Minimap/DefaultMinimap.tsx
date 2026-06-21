@@ -167,7 +167,7 @@ export function DefaultMinimap() {
 				// Ignore sub-pixel pointer jitter that often accompanies a click, so it
 				// doesn't recenter the camera instantly and cut off the easing animation
 				// started on pointer down.
-				if (Vec.Dist2(rOriginScreenPoint.current, new Vec(e.clientX, e.clientY)) <= 1) {
+				if (Vec.Dist2(rOriginScreenPoint.current, new Vec(e.clientX, e.clientY)) <= 4) {
 					return
 				}
 
