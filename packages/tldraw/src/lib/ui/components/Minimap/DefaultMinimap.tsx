@@ -15,6 +15,11 @@ import * as React from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { MinimapManager } from './MinimapManager'
 
+// Squared distance (in screen pixels) the pointer can move after pointer down before
+// it counts as a drag. Sub-pixel jitter that accompanies a click stays below this, so
+// it doesn't recenter the camera instantly and cut off the easing animation.
+const CLICK_JITTER_THRESHOLD_SQ = 4
+
 /** @public @react */
 export function DefaultMinimap() {
 	const editor = useEditor()
@@ -48,25 +53,18 @@ export function DefaultMinimap() {
 	const onDoubleClick = React.useCallback(
 		(e: React.MouseEvent<HTMLCanvasElement>) => {
 			if (!editor.getCurrentPageShapeIds().size) return
-			if (!minimapRef.current) return
+			const minimap = minimapRef.current
+			if (!minimap) return
 
-			const point = minimapRef.current.minimapScreenPointToPagePoint(
-				e.clientX,
-				e.clientY,
-				false,
-				false
-			)
+			const { clientX: x, clientY: y } = e
 
-			const clampedPoint = minimapRef.current.minimapScreenPointToPagePoint(
-				e.clientX,
-				e.clientY,
-				false,
-				true
-			)
+			// Stash the clamped point / clamped viewport page center
+			const clampedPoint = minimap.minimapScreenPointToPagePoint(x, y, false, true)
+			minimap.originPagePoint.setTo(clampedPoint)
+			minimap.originPageCenter.setTo(editor.getViewportPageBounds().center)
 
-			minimapRef.current.originPagePoint.setTo(clampedPoint)
-			minimapRef.current.originPageCenter.setTo(editor.getViewportPageBounds().center)
-
+			// Then center on the unclamped point
+			const point = minimap.minimapScreenPointToPagePoint(x, y, false, false)
 			editor.centerOnPoint(point, { animation: { duration: editor.options.animationMediumMs } })
 		},
 		[editor]
@@ -74,54 +72,48 @@ export function DefaultMinimap() {
 
 	const onPointerDown = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
-			if (!minimapRef.current) return
+			const minimap = minimapRef.current
+			if (!minimap) return
 			if (e.button !== 0) return
 
 			const elm = e.currentTarget
 			setPointerCapture(elm, e)
 			if (!editor.getCurrentPageShapeIds().size) return
 
+			const { clientX: x, clientY: y } = e
+
 			rPointing.current = true
 			rActivePointerId.current = e.pointerId
-			rOriginScreenPoint.current = new Vec(e.clientX, e.clientY)
+			rOriginScreenPoint.current = new Vec(x, y)
 
-			minimapRef.current.isInViewport = false
+			minimap.isInViewport = false
 
-			const point = minimapRef.current.minimapScreenPointToPagePoint(
-				e.clientX,
-				e.clientY,
-				false,
-				false
-			)
+			const point = minimap.minimapScreenPointToPagePoint(x, y, false, false)
 
-			const _vpPageBounds = editor.getViewportPageBounds()
-			const commonBounds = minimapRef.current.getContentPageBounds()
+			const vpPageBounds = editor.getViewportPageBounds()
+			const commonBounds = minimap.getContentPageBounds()
 			const allowedBounds = new Box(
-				commonBounds.x - _vpPageBounds.width / 2,
-				commonBounds.y - _vpPageBounds.height / 2,
-				commonBounds.width + _vpPageBounds.width,
-				commonBounds.height + _vpPageBounds.height
+				commonBounds.x - vpPageBounds.width / 2,
+				commonBounds.y - vpPageBounds.height / 2,
+				commonBounds.width + vpPageBounds.width,
+				commonBounds.height + vpPageBounds.height
 			)
 
 			// If we clicked inside of the allowed area, but outside of the viewport
-			if (allowedBounds.containsPoint(point) && !_vpPageBounds.containsPoint(point)) {
-				minimapRef.current.isInViewport = _vpPageBounds.containsPoint(point)
-				const delta = Vec.Sub(_vpPageBounds.center, _vpPageBounds.point)
+			if (allowedBounds.containsPoint(point) && !vpPageBounds.containsPoint(point)) {
+				const delta = Vec.Sub(vpPageBounds.center, vpPageBounds.point)
 				const pagePoint = Vec.Add(point, delta)
-				minimapRef.current.originPagePoint.setTo(pagePoint)
-				minimapRef.current.originPageCenter.setTo(point)
+				minimap.originPagePoint.setTo(pagePoint)
+				minimap.originPageCenter.setTo(point)
 				editor.centerOnPoint(point, { animation: { duration: editor.options.animationMediumMs } })
 			} else {
-				const clampedPoint = minimapRef.current.minimapScreenPointToPagePoint(
-					e.clientX,
-					e.clientY,
-					false,
-					true
-				)
-				minimapRef.current.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
-				minimapRef.current.originPagePoint.setTo(clampedPoint)
-				minimapRef.current.originPageCenter.setTo(_vpPageBounds.center)
+				const clampedPoint = minimap.minimapScreenPointToPagePoint(x, y, false, true)
+				minimap.isInViewport = vpPageBounds.containsPoint(clampedPoint)
+				minimap.originPagePoint.setTo(clampedPoint)
+				minimap.originPageCenter.setTo(vpPageBounds.center)
 			}
+
+			const body = editor.getContainerDocument().body
 
 			function endDrag() {
 				if (rActivePointerId.current !== null && elm.hasPointerCapture(rActivePointerId.current)) {
@@ -130,51 +122,36 @@ export function DefaultMinimap() {
 
 				rPointing.current = false
 				rActivePointerId.current = null
-				body.removeEventListener('pointerup', onPointerUp)
-				body.removeEventListener('pointercancel', onPointerCancel)
-				body.removeEventListener('contextmenu', onContextMenu, true)
+				body.removeEventListener('pointerup', endDrag)
+				body.removeEventListener('pointercancel', endDrag)
+				body.removeEventListener('contextmenu', endDrag, true)
 			}
 
-			function onPointerUp() {
-				endDrag()
-			}
-			function onPointerCancel() {
-				endDrag()
-			}
-			function onContextMenu() {
-				endDrag()
-			}
-
-			const body = editor.getContainerDocument().body
-			body.addEventListener('pointerup', onPointerUp)
-			body.addEventListener('pointercancel', onPointerCancel)
-			body.addEventListener('contextmenu', onContextMenu, true)
+			body.addEventListener('pointerup', endDrag)
+			body.addEventListener('pointercancel', endDrag)
+			body.addEventListener('contextmenu', endDrag, true)
 		},
 		[editor]
 	)
 
 	const onPointerMove = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
-			if (!minimapRef.current) return
-			const point = minimapRef.current.minimapScreenPointToPagePoint(
-				e.clientX,
-				e.clientY,
-				e.shiftKey,
-				true
-			)
+			const minimap = minimapRef.current
+			if (!minimap) return
+
+			const { clientX: x, clientY: y } = e
+
+			const point = minimap.minimapScreenPointToPagePoint(x, y, e.shiftKey, true)
 
 			if (rPointing.current) {
-				// Ignore sub-pixel pointer jitter that often accompanies a click, so it
-				// doesn't recenter the camera instantly and cut off the easing animation
-				// started on pointer down.
-				if (Vec.Dist2(rOriginScreenPoint.current, new Vec(e.clientX, e.clientY)) <= 4) {
+				// Ignore the sub-pixel pointer jitter that accompanies a click, so it doesn't
+				// cut off the easing animation started on pointer down.
+				if (Vec.Dist2(rOriginScreenPoint.current, new Vec(x, y)) <= CLICK_JITTER_THRESHOLD_SQ) {
 					return
 				}
 
-				if (minimapRef.current.isInViewport) {
-					const delta = minimapRef.current.originPagePoint
-						.clone()
-						.sub(minimapRef.current.originPageCenter)
+				if (minimap.isInViewport) {
+					const delta = minimap.originPagePoint.clone().sub(minimap.originPageCenter)
 					editor.centerOnPoint(Vec.Sub(point, delta))
 					return
 				}
@@ -182,7 +159,7 @@ export function DefaultMinimap() {
 				editor.centerOnPoint(point)
 			}
 
-			const pagePoint = minimapRef.current.getMinimapPagePoint(e.clientX, e.clientY)
+			const pagePoint = minimap.getMinimapPagePoint(x, y)
 
 			const screenPoint = editor.pageToScreen(pagePoint)
 
@@ -234,10 +211,10 @@ export function DefaultMinimap() {
 	return (
 		<div className="tlui-minimap">
 			<canvas
+				ref={rCanvas}
 				role="img"
 				aria-label={msg('navigation-zone.minimap')}
 				data-testid="minimap.canvas"
-				ref={rCanvas}
 				className="tlui-minimap__canvas"
 				onDoubleClick={onDoubleClick}
 				onPointerMove={onPointerMove}
