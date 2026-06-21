@@ -38,7 +38,7 @@ Apps and examples:
 
 ## Setup
 
-Requires Node `^20.0.0`. Enable Corepack before installing dependencies:
+Requires Node `>=22.12.0`. Enable Corepack before installing dependencies:
 
 ```bash
 npm i -g corepack && yarn

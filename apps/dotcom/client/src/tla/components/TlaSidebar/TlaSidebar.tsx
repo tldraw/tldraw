@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect } from 'react'
+import { tlmenus } from 'tldraw'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useHasFlag } from '../../hooks/useHasFlag'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
@@ -43,6 +44,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	}, [trackEvent])
 
 	const handleOverlayClick = useCallback(() => {
+		tlmenus.clearOpenMenus()
 		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
 	}, [])
 
@@ -56,6 +58,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			<button
 				className={styles.sidebarOverlayMobile}
 				data-visiblemobile={isSidebarOpenMobile}
+				data-testid="tla-sidebar-overlay-mobile"
 				onClick={handleOverlayClick}
 			/>
 			<div

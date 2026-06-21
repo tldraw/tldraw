@@ -5,6 +5,9 @@
   "0095a9fa74": {
     "translation": "Exporter"
   },
+  "00b177e080": {
+    "translation": "Accepter l'invitation"
+  },
   "03b3e13197": {
     "translation": "Faites glisser le fichier vers la barre latérale de cette page. Vous pouvez également sélectionner l'option « Importer un fichier » dans le menu utilisateur."
   },
@@ -45,7 +48,10 @@
     "translation": "Envoyer des commentaires"
   },
   "1063e38cb5": {
-    "translation": "Retirer"
+    "translation": "Supprimer"
+  },
+  "10fb1df194": {
+    "translation": "Copier dans l'espace de travail personnel"
   },
   "110a4b01be": {
     "translation": "Publier"
@@ -53,17 +59,11 @@
   "12a6766ba1": {
     "translation": "Détacher le fichier"
   },
-  "12c8a9838c": {
-    "translation": "Essayez le SDK tldraw"
-  },
   "13ddd375ad": {
     "translation": "Exporter en tant que"
   },
   "181b90f889": {
     "translation": "Créer un fichier"
-  },
-  "1d2591253e": {
-    "translation": "Paramètres de l'espace de travail"
   },
   "1da2e8106b": {
     "translation": "Une erreur inattendue s'est produite."
@@ -71,8 +71,14 @@
   "1dd1c5fb7f": {
     "translation": "Aujourd'hui"
   },
+  "1ffd709937": {
+    "translation": "Un espace de travail doit avoir au moins un propriétaire. Commencez par désigner quelqu'un d'autre comme propriétaire."
+  },
   "21f66c9c00": {
     "translation": "Nom de l'espace de travail"
+  },
+  "23dcace54a": {
+    "translation": "Vous avez été invité à rejoindre <strong>{workspaceName}</strong>. Créez un compte gratuit pour continuer."
   },
   "250ddea65c": {
     "translation": "À propos de tldraw"
@@ -80,11 +86,20 @@
   "299cb00a7a": {
     "translation": "Échec de l'importation"
   },
-  "2c3ef76333": {
-    "translation": "Mes fichiers"
+  "2a1167f869": {
+    "translation": "Bienvenue dans votre espace de travail"
+  },
+  "2a37324bb4": {
+    "translation": "Recherche..."
+  },
+  "2de510be71": {
+    "translation": "La régénération remplace le lien d'invitation actuel par un nouveau. Toute personne utilisant l'ancien lien aura besoin du nouveau pour s'inscrire."
   },
   "2e2b3c700b": {
     "translation": "Inclure le lien vers le fichier actuel"
+  },
+  "2e9856a31e": {
+    "translation": "Régénérer le lien d'invitation"
   },
   "31246941ad": {
     "translation": "Vous devez vous connecter pour consulter ce fichier."
@@ -100,6 +115,9 @@
   },
   "344a7f427f": {
     "translation": "Éditeur"
+  },
+  "34e34c43ec": {
+    "translation": "Gérer"
   },
   "375396d6e5": {
     "translation": "Supprimer un membre"
@@ -125,9 +143,6 @@
   "42e53c47c1": {
     "translation": "Contactez le propriétaire pour demander l'accès."
   },
-  "44680c1fa7": {
-    "translation": "Quitter l'espace de travail…"
-  },
   "44db318ee5": {
     "translation": "Obtenir de l'aide sur Discord"
   },
@@ -142,6 +157,9 @@
   },
   "47f493a590": {
     "translation": "Épingler le fichier"
+  },
+  "4908687e50": {
+    "translation": "Voulez-vous vraiment oublier ce fichier ?"
   },
   "49ee308734": {
     "translation": "Nom"
@@ -158,6 +176,9 @@
   "50db1b7e1e": {
     "translation": "Impossible d'annuler la publication du fichier."
   },
+  "51317dcad5": {
+    "translation": "Ceci est votre espace de travail privé. Créez un nouvel espace de travail pour inviter vos collègues."
+  },
   "517bb809d9": {
     "translation": "Menu de la page"
   },
@@ -173,6 +194,9 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5638176be5": {
+    "translation": "Créer un espace de travail"
+  },
   "5677e381d2": {
     "translation": "Nous utilisons des cookies analytiques pour améliorer tldraw."
   },
@@ -187,9 +211,6 @@
   },
   "5bff3c9c88": {
     "translation": "Mon espace de travail"
-  },
-  "5c6fe42bc2": {
-    "translation": "Révoquez ce lien et créez-en un nouveau."
   },
   "5d04a002ea": {
     "translation": "Impossible de se connecter"
@@ -221,6 +242,9 @@
   "6637a98151": {
     "translation": "Une nouvelle version de tldraw est disponible. Veuillez recharger la page pour continuer."
   },
+  "681e10aecb": {
+    "translation": "Nouveau fichier"
+  },
   "6832ac5936": {
     "translation": "Saisissez votre adresse e-mail"
   },
@@ -248,6 +272,9 @@
   "7408cf0d7b": {
     "translation": "Veuillez recharger la page"
   },
+  "74ff4bad28": {
+    "translation": "Aucun fichier trouvé"
+  },
   "752b79f137": {
     "translation": "Vous avez atteint le nombre maximum de fichiers. Vous devez supprimer les anciens fichiers avant d'en créer de nouveaux."
   },
@@ -262,12 +289,6 @@
   },
   "764671e008": {
     "translation": "Discutez avec nous sur Discord"
-  },
-  "4908687e50": {
-    "translation": "Voulez-vous vraiment oublier ce fichier ?"
-  },
-  "76dea3c9ca": {
-    "translation": "TLDRAW est un tableau blanc en ligne gratuit. Créez un compte pour sauvegarder vos fichiers et collaborer avec vos amis."
   },
   "777f9e90cf": {
     "translation": "Demande invalide."
@@ -305,6 +326,9 @@
   "801ab24683": {
     "translation": "Télécharger"
   },
+  "8030793ce3": {
+    "translation": "Nouvel espace de travail"
+  },
   "815e116a2e": {
     "translation": "Vous avez un bug, un problème ou une idée pour tldraw ? N'hésitez pas à nous le faire savoir ! Remplissez ce formulaire et nous vous répondrons par e-mail si nécessaire. Vous pouvez également <discord>discuter avec nous sur Discord</discord> ou <github>soumettre un problème sur GitHub</github>."
   },
@@ -326,14 +350,8 @@
   "88bf6ab42c": {
     "translation": "Ce lien d'invitation a expiré."
   },
-  "8ad4303b83": {
-    "translation": "Non merci"
-  },
   "8c2d3d730c": {
     "translation": "Consultez votre boîte mail pour obtenir un code de vérification."
-  },
-  "8cf04a9734": {
-    "translation": "Maison"
   },
   "8eb2c00e96": {
     "translation": "Partagé avec vous"
@@ -347,14 +365,8 @@
   "904a830405": {
     "translation": "Renommer"
   },
-  "91e49bb0eb": {
-    "translation": "Copier dans mes fichiers"
-  },
   "95aacd4d4a": {
     "translation": "Se connecter avec Google"
-  },
-  "95b56f4cd6": {
-    "translation": "Supprimer l'espace de travail…"
   },
   "95d2109dc8": {
     "translation": "Construire avec le SDK tldraw"
@@ -367,6 +379,9 @@
   },
   "9914a0ce04": {
     "translation": "Clair"
+  },
+  "9983381c21": {
+    "translation": "Effacer la recherche"
   },
   "9b33f5c63c": {
     "translation": "Vous n'avez pas reçu de code ? <resend>Renvoyer</resend>."
@@ -385,6 +400,9 @@
   },
   "9e93c98d88": {
     "translation": "Se désengager"
+  },
+  "a078644c42": {
+    "translation": "Vous avez été invité à rejoindre <strong>{workspaceName}</strong>."
   },
   "a0da245992": {
     "translation": "Exporter le contenu sous forme de fichier .tldr : sélectionnez « Télécharger » dans le menu en haut à gauche."
@@ -406,6 +424,9 @@
   },
   "a4d3b161ce": {
     "translation": "Soumettre"
+  },
+  "a52945dbe2": {
+    "translation": "Quitter"
   },
   "a6cc403d56": {
     "translation": "N'importe qui disposant du lien"
@@ -432,11 +453,17 @@
   "b028909917": {
     "translation": "Utilisateur invité"
   },
+  "b2326c3a34": {
+    "translation": "Régénérer"
+  },
   "b2c3c2e30c": {
     "translation": "Le fichier est plein"
   },
   "b357b524e7": {
     "translation": "Adresse email"
+  },
+  "b48becc771": {
+    "translation": "Activer les invitations"
   },
   "b6d4223e60": {
     "translation": "Se connecter"
@@ -450,11 +477,17 @@
   "ba0318cb81": {
     "translation": "Connectez-vous pour partager"
   },
+  "bbaaf8b6bf": {
+    "translation": "Les invitations sont désactivées"
+  },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Téléchargement du fichier .tldr…} other {Téléchargement de {uploaded} sur {total} fichiers .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Partagé par {ownerName}"
+  },
+  "c17466812d": {
+    "translation": "Gérer l'espace de travail"
   },
   "c2276c9127": {
     "translation": "En savoir plus sur le partage."
@@ -474,17 +507,14 @@
   "c6a00f137b": {
     "translation": "Inviter"
   },
-  "c7d7403714": {
-    "translation": "Nouveau conseil d'administration"
+  "c6f16003f2": {
+    "translation": "Copier dans mon espace de travail"
   },
   "c87aacf567": {
     "translation": "Se déconnecter"
   },
   "c8a59e7135": {
     "translation": "Fermer"
-  },
-  "c9cc8cce24": {
-    "translation": "Sauvegarder"
   },
   "cceaefbc20": {
     "translation": "Partager ce fichier"
@@ -532,10 +562,7 @@
     "translation": "Indicateurs de débogage de l'application"
   },
   "e0aa021e21": {
-    "translation": "D'ACCORD"
-  },
-  "e0c88179b3": {
-    "translation": "Inviter des membres"
+    "translation": "D'accord"
   },
   "e2198d6228": {
     "translation": "Copier le lien d'invitation"
@@ -546,17 +573,8 @@
   "e404559826": {
     "translation": "Conditions d'utilisation"
   },
-  "e615d52512": {
-    "translation": "Accepter et rejoindre l'espace de travail"
-  },
   "e81c4e4f2b": {
     "translation": "ou"
-  },
-  "e9e0f16850": {
-    "translation": "Vous avez été invité à rejoindre l'espace de travail :"
-  },
-  "ea0626ac5a": {
-    "translation": "Zone dangereuse"
   },
   "ea4788705e": {
     "translation": "Annuler"
@@ -620,6 +638,9 @@
   },
   "ff2fefd3c6": {
     "translation": "Êtes-vous sûr de vouloir supprimer {name} de cet espace de travail ?"
+  },
+  "ff52811b98": {
+    "translation": "Créez un compte gratuit pour sauvegarder vos fichiers et dessiner avec vos coéquipiers."
   },
   "ffcd73e997": {
     "translation": "Importer un fichier…"

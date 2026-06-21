@@ -2,6 +2,9 @@
   "0095a9fa74": {
     "translation": "Export"
   },
+  "00b177e080": {
+    "translation": "Accept invitation"
+  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -55,9 +58,6 @@
   },
   "13ddd375ad": {
     "translation": "Export as"
-  },
-  "1764571547": {
-    "translation": "Are you sure you want to delete this workspace? This action cannot be undone."
   },
   "181b90f889": {
     "translation": "Create file"
@@ -113,6 +113,9 @@
   "344a7f427f": {
     "translation": "Editor"
   },
+  "34e34c43ec": {
+    "translation": "Manage"
+  },
   "375396d6e5": {
     "translation": "Remove member"
   },
@@ -140,6 +143,9 @@
   "44db318ee5": {
     "translation": "Get help on Discord"
   },
+  "454aad3b3c": {
+    "translation": "Are you sure you want to delete <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Thanks for helping us improve tldraw!"
   },
@@ -151,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Pin file"
-  },
-  "4908687e50": {
-    "translation": "Are you sure you want to forget this file?"
   },
   "49ee308734": {
     "translation": "Name"
@@ -169,6 +172,9 @@
   },
   "50db1b7e1e": {
     "translation": "Unable to unpublish the file."
+  },
+  "51317dcad5": {
+    "translation": "This is your private workspace. Create a new workspace to invite teammates."
   },
   "517bb809d9": {
     "translation": "Page menu"
@@ -214,9 +220,6 @@
   },
   "5fb63579fc": {
     "translation": "Copy"
-  },
-  "5fd0972432": {
-    "translation": "Create a free account to save your files, create workspaces, and invite your teammates."
   },
   "61057a0c84": {
     "translation": "Later"
@@ -293,9 +296,6 @@
   "78e9815992": {
     "translation": "Got it"
   },
-  "78faf88f4d": {
-    "translation": "Enable invite link"
-  },
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
   },
@@ -304,9 +304,6 @@
   },
   "7b1329f5ca": {
     "translation": "User manual"
-  },
-  "7bcdfeab70": {
-    "translation": "You have been invited to join:"
   },
   "7be10fc592": {
     "translation": "Restore version"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Are you sure you want to forget <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Member"
   },
@@ -350,9 +350,6 @@
   "88bf6ab42c": {
     "translation": "This invite link has expired"
   },
-  "8ad4303b83": {
-    "translation": "No thanks"
-  },
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
   },
@@ -367,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Rename"
+  },
+  "90646db02d": {
+    "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
   },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
@@ -403,6 +403,9 @@
   },
   "9e93c98d88": {
     "translation": "Opt out"
+  },
+  "a078644c42": {
+    "translation": "You have been invited to join <strong>{workspaceName}</strong>."
   },
   "a0da245992": {
     "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
@@ -462,6 +465,9 @@
   "b357b524e7": {
     "translation": "Email address"
   },
+  "b48becc771": {
+    "translation": "Enable invites"
+  },
   "b6d4223e60": {
     "translation": "Sign in"
   },
@@ -470,9 +476,6 @@
   },
   "b758336699": {
     "translation": "Copy link"
-  },
-  "b9a68fbd56": {
-    "translation": "Members ({count})"
   },
   "ba0318cb81": {
     "translation": "Sign in to share"
@@ -573,9 +576,6 @@
   "e404559826": {
     "translation": "Terms of service"
   },
-  "e615d52512": {
-    "translation": "Accept and join workspace"
-  },
   "e81c4e4f2b": {
     "translation": "or"
   },
@@ -602,6 +602,9 @@
   },
   "ede55d955f": {
     "translation": "Read our <a>cookie policy</a> to learn more."
+  },
+  "ef53538ae4": {
+    "translation": "Members"
   },
   "ef7de3f485": {
     "translation": "selected"
@@ -630,14 +633,14 @@
   "fc9d47046b": {
     "translation": "Are you sure you want to leave this workspace?"
   },
-  "fd1be3efcf": {
-    "translation": "Are you sure you want to delete this file?"
-  },
   "fed5ec05eb": {
     "translation": "Copied link"
   },
   "ff2fefd3c6": {
     "translation": "Are you sure you want to remove {name} from this workspace?"
+  },
+  "ff52811b98": {
+    "translation": "Create a free account to save your files and tldraw with your teammates."
   },
   "ffcd73e997": {
     "translation": "Import file…"
