@@ -15,6 +15,8 @@ import * as React from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { MinimapManager } from './MinimapManager'
 
+const TAP_JITTER_DISTANCE_SQUARED = 4
+
 /** @public @react */
 export function DefaultMinimap() {
 	const editor = useEditor()
@@ -164,10 +166,14 @@ export function DefaultMinimap() {
 			)
 
 			if (rPointing.current) {
-				// Ignore sub-pixel pointer jitter that often accompanies a click, so it
-				// doesn't recenter the camera instantly and cut off the easing animation
-				// started on pointer down.
-				if (Vec.Dist2(rOriginScreenPoint.current, new Vec(e.clientX, e.clientY)) <= 4) {
+				// Ignore tiny pointer jitter that often accompanies a click, so it doesn't
+				// recenter the camera instantly and cut off the easing animation started on
+				// pointer down. Keep this smaller than the regular drag threshold so minimap
+				// drags still start promptly.
+				if (
+					Vec.Dist2(rOriginScreenPoint.current, new Vec(e.clientX, e.clientY)) <=
+					TAP_JITTER_DISTANCE_SQUARED
+				) {
 					return
 				}
 
