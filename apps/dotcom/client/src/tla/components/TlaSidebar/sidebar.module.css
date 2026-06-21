@@ -246,6 +246,20 @@
 	padding-bottom: 1px;
 }
 
+.sidebarWorkspaceLogoLink {
+	display: flex;
+	flex: 0 0 auto;
+	align-items: center;
+	color: inherit;
+	text-decoration: none;
+}
+
+.sidebarWorkspaceLogoLink:focus-visible {
+	border-radius: var(--tla-radius-1);
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: 4px;
+}
+
 /* In the workspaces layout the logo is 16px tall, with its mark centered on
    the same vertical axis as the action-row icons below. */
 .sidebar[data-workspaces='true'] .sidebarWorkspaceButton {
