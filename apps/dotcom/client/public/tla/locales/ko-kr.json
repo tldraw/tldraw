@@ -5,6 +5,9 @@
   "0095a9fa74": {
     "translation": "내보내기"
   },
+  "00b177e080": {
+    "translation": "초대 수락"
+  },
   "03b3e13197": {
     "translation": "이 페이지의 사이드바로 파일을 드래그하세요. 또는 사용자 메뉴에서 '파일 가져오기' 옵션을 선택합니다."
   },
@@ -45,7 +48,10 @@
     "translation": "피드백 보내기"
   },
   "1063e38cb5": {
-    "translation": "제거하다"
+    "translation": "제거"
+  },
+  "10fb1df194": {
+    "translation": "개인 작업 공간에 복사"
   },
   "110a4b01be": {
     "translation": "게시"
@@ -53,17 +59,11 @@
   "12a6766ba1": {
     "translation": "파일 고정 해제"
   },
-  "12c8a9838c": {
-    "translation": "tldraw SDK를 사용해 보세요"
-  },
   "13ddd375ad": {
     "translation": "내보내기 형식"
   },
   "181b90f889": {
     "translation": "파일 생성"
-  },
-  "1d2591253e": {
-    "translation": "작업 공간 설정"
   },
   "1da2e8106b": {
     "translation": "예기치 못한 오류가 발생했습니다."
@@ -71,8 +71,14 @@
   "1dd1c5fb7f": {
     "translation": "오늘"
   },
+  "1ffd709937": {
+    "translation": "워크스페이스에는 최소 한 명의 소유자가 있어야 합니다. 먼저 다른 사람을 소유자로 지정하세요."
+  },
   "21f66c9c00": {
     "translation": "작업 공간 이름"
+  },
+  "23dcace54a": {
+    "translation": "<strong>{workspaceName}</strong>에 초대되었습니다. 계속하려면 무료 계정을 만드세요."
   },
   "250ddea65c": {
     "translation": "tldraw에 대하여"
@@ -80,11 +86,20 @@
   "299cb00a7a": {
     "translation": "업로드 실패"
   },
-  "2c3ef76333": {
-    "translation": "내 파일"
+  "2a1167f869": {
+    "translation": "워크스페이스에 오신 것을 환영합니다."
+  },
+  "2a37324bb4": {
+    "translation": "찾다..."
+  },
+  "2de510be71": {
+    "translation": "링크를 갱신하면 기존 초대 링크가 새 링크로 대체됩니다. 기존 링크를 사용하는 사용자는 가입하려면 새 링크가 필요합니다."
   },
   "2e2b3c700b": {
     "translation": "현재 파일 링크를 포함하세요"
+  },
+  "2e9856a31e": {
+    "translation": "초대 링크 재생성"
   },
   "31246941ad": {
     "translation": "이 파일을 보려면 로그인해야 합니다."
@@ -100,6 +115,9 @@
   },
   "344a7f427f": {
     "translation": "편집기"
+  },
+  "34e34c43ec": {
+    "translation": "관리"
   },
   "375396d6e5": {
     "translation": "멤버를 삭제합니다"
@@ -125,9 +143,6 @@
   "42e53c47c1": {
     "translation": "액세스 권한 요청은 소유주에게 문의하세요."
   },
-  "44680c1fa7": {
-    "translation": "작업 공간을 떠나세요…"
-  },
   "44db318ee5": {
     "translation": "Discord에서 도움 받기"
   },
@@ -142,6 +157,9 @@
   },
   "47f493a590": {
     "translation": "핀 파일"
+  },
+  "4908687e50": {
+    "translation": "이 파일을 무시하시겠습니까?"
   },
   "49ee308734": {
     "translation": "이름"
@@ -158,6 +176,9 @@
   "50db1b7e1e": {
     "translation": "파일 게시를 취소할 수 없습니다."
   },
+  "51317dcad5": {
+    "translation": "이곳은 개인 작업 공간입니다. 팀원을 초대하려면 새 작업 공간을 만드세요."
+  },
   "517bb809d9": {
     "translation": "페이지 메뉴"
   },
@@ -173,6 +194,9 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5638176be5": {
+    "translation": "워크스페이스 만들기"
+  },
   "5677e381d2": {
     "translation": "tldraw를 개선하기 위해 분석 쿠키를 사용합니다."
   },
@@ -187,9 +211,6 @@
   },
   "5bff3c9c88": {
     "translation": "내 작업 공간"
-  },
-  "5c6fe42bc2": {
-    "translation": "이 링크를 취소하고 새 링크를 만드세요."
   },
   "5d04a002ea": {
     "translation": "연결할 수 없습니다"
@@ -221,6 +242,9 @@
   "6637a98151": {
     "translation": "tldraw의 새 버전이 출시되었습니다. 계속하려면 페이지를 다시 로드하세요."
   },
+  "681e10aecb": {
+    "translation": "새 파일"
+  },
   "6832ac5936": {
     "translation": "이메일 주소를 입력하세요"
   },
@@ -248,6 +272,9 @@
   "7408cf0d7b": {
     "translation": "페이지를 다시 로드해 주세요"
   },
+  "74ff4bad28": {
+    "translation": "파일을 찾을 수 없습니다."
+  },
   "752b79f137": {
     "translation": "최대 파일 수에 도달했습니다. 새 파일을 만들기 전에 이전 파일을 삭제해야 합니다."
   },
@@ -262,12 +289,6 @@
   },
   "764671e008": {
     "translation": "Discord에서 우리와 채팅하세요"
-  },
-  "4908687e50": {
-    "translation": "이 파일을 무시하시겠습니까?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw는 무료 온라인 화이트보드입니다. 계정을 만들어 파일을 저장하고 친구들과 함께 작업하세요."
   },
   "777f9e90cf": {
     "translation": "유효하지 않은 요청입니다."
@@ -305,6 +326,9 @@
   "801ab24683": {
     "translation": "다운로드"
   },
+  "8030793ce3": {
+    "translation": "새로운 작업 공간"
+  },
   "815e116a2e": {
     "translation": "tldraw 관련 버그, 문제 또는 아이디어가 있으신가요? 알려주세요! 이 양식을 작성해 주시면 필요 시 이메일로 답변해 드리겠습니다. <discord>Discord에서 채팅</discord>하거나 <github>GitHub에서 문제를 제출</github>하실 수도 있습니다."
   },
@@ -326,14 +350,8 @@
   "88bf6ab42c": {
     "translation": "이 초대 링크는 만료되었습니다."
   },
-  "8ad4303b83": {
-    "translation": "아니요, 고맙습니다"
-  },
   "8c2d3d730c": {
     "translation": "이메일에서 인증 코드를 확인하세요."
-  },
-  "8cf04a9734": {
-    "translation": "집"
   },
   "8eb2c00e96": {
     "translation": "나와 공유됨"
@@ -347,14 +365,8 @@
   "904a830405": {
     "translation": "이름 바꾸기"
   },
-  "91e49bb0eb": {
-    "translation": "내 파일로 복사"
-  },
   "95aacd4d4a": {
     "translation": "Google로 로그인"
-  },
-  "95b56f4cd6": {
-    "translation": "작업 공간 삭제…"
   },
   "95d2109dc8": {
     "translation": "tldraw SDK로 빌드"
@@ -367,6 +379,9 @@
   },
   "9914a0ce04": {
     "translation": "라이트"
+  },
+  "9983381c21": {
+    "translation": "검색 결과 지우기"
   },
   "9b33f5c63c": {
     "translation": "코드를 받지 못하셨나요? <resend>다시 보내기</resend>."
@@ -385,6 +400,9 @@
   },
   "9e93c98d88": {
     "translation": "거부하기"
+  },
+  "a078644c42": {
+    "translation": "귀하는 <strong>{workspaceName}</strong>에 초대되었습니다."
   },
   "a0da245992": {
     "translation": "콘텐츠를 .tldr 파일로 내보내려면 왼쪽 상단 메뉴에서 '다운로드'를 선택하세요."
@@ -406,6 +424,9 @@
   },
   "a4d3b161ce": {
     "translation": "제출하다"
+  },
+  "a52945dbe2": {
+    "translation": "나가기"
   },
   "a6cc403d56": {
     "translation": "링크가 있는 사람"
@@ -432,11 +453,17 @@
   "b028909917": {
     "translation": "게스트 사용자"
   },
+  "b2326c3a34": {
+    "translation": "재생성"
+  },
   "b2c3c2e30c": {
     "translation": "파일이 가득 찼습니다"
   },
   "b357b524e7": {
     "translation": "이메일 주소"
+  },
+  "b48becc771": {
+    "translation": "초대 기능을 활성화하세요"
   },
   "b6d4223e60": {
     "translation": "로그인"
@@ -450,11 +477,17 @@
   "ba0318cb81": {
     "translation": "공유하려면 로그인하세요"
   },
+  "bbaaf8b6bf": {
+    "translation": "초대 기능이 비활성화되었습니다"
+  },
   "bbbcefd7ce": {
     "translation": "{total, plural, other {{uploaded}개 중 {total}개의 .tldr 파일을 업로드하는 중…}}"
   },
   "bc88b0e89e": {
     "translation": "{ownerName} 님이 공유함"
+  },
+  "c17466812d": {
+    "translation": "워크스페이스 관리"
   },
   "c2276c9127": {
     "translation": "공유에 대해 자세히 알아보세요."
@@ -474,17 +507,14 @@
   "c6a00f137b": {
     "translation": "초대"
   },
-  "c7d7403714": {
-    "translation": "새 게시판"
+  "c6f16003f2": {
+    "translation": "내 작업 공간에 복사"
   },
   "c87aacf567": {
     "translation": "로그아웃"
   },
   "c8a59e7135": {
     "translation": "닫기"
-  },
-  "c9cc8cce24": {
-    "translation": "구하다"
   },
   "cceaefbc20": {
     "translation": "이 파일 공유"
@@ -526,16 +556,13 @@
     "translation": "초대만"
   },
   "dbf9b24193": {
-    "translation": "작업 공간을 비우세요"
+    "translation": "작업 공간 나가기"
   },
   "dfdb78a4e4": {
     "translation": "앱 디버그 신고"
   },
   "e0aa021e21": {
     "translation": "좋아요"
-  },
-  "e0c88179b3": {
-    "translation": "회원 초대"
   },
   "e2198d6228": {
     "translation": "초대 링크 복사"
@@ -546,23 +573,14 @@
   "e404559826": {
     "translation": "서비스 약관"
   },
-  "e615d52512": {
-    "translation": "수락하고 워크스페이스에 참여하세요"
-  },
   "e81c4e4f2b": {
     "translation": "또는"
-  },
-  "e9e0f16850": {
-    "translation": "워크스페이스에 초대되었습니다."
-  },
-  "ea0626ac5a": {
-    "translation": "위험 구역"
   },
   "ea4788705e": {
     "translation": "취소"
   },
   "eb1e2b0542": {
-    "translation": "워크스페이스 소유자에게 새 계정을 요청하세요."
+    "translation": "워크스페이스 소유자에게 새 링크를 요청하세요."
   },
   "ebfe9ce86e": {
     "translation": "어제"
@@ -620,6 +638,9 @@
   },
   "ff2fefd3c6": {
     "translation": "이 작업 공간에서 {name}을 제거하시겠습니까?"
+  },
+  "ff52811b98": {
+    "translation": "무료 계정을 만들어 파일을 저장하고 팀원들과 함께 그림을 그려보세요."
   },
   "ffcd73e997": {
     "translation": "파일 가져오기…"

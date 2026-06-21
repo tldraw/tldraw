@@ -1,4 +1,4 @@
-import { Zero } from '@rocicorp/zero'
+import { QueryResultType, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
@@ -10,12 +10,9 @@ import {
 	ROOM_PREFIX,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
-	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
-	TlaGroup,
 	TlaGroupFile,
-	TlaGroupUser,
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
@@ -122,13 +119,13 @@ export class TldrawApp {
 	readonly z: Zero<TlaSchema, TlaMutators, ZeroContext>
 
 	private readonly user$: Signal<TlaUser | undefined>
-	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+	// These signal types are derived from the query definitions in dotcom-shared rather than
+	// hand-written, so the shape (and the nullability of `.one()` joins like `file`) stays in
+	// sync with the queries automatically. A previous hand-written annotation claimed `file` was
+	// always present, which hid a production crash when a `.one()` join resolved to undefined.
+	private readonly fileStates$: Signal<QueryResultType<typeof queries.fileStates>>
 	private readonly workspaceMemberships$: Signal<
-		(TlaGroupUser & {
-			group: TlaGroup
-			groupFiles: Array<TlaGroupFile & { file: TlaFile }>
-			groupMembers: Array<TlaGroupUser>
-		})[]
+		QueryResultType<typeof queries.workspaceMemberships>
 	>
 
 	private readonly useProperZero: boolean
@@ -434,8 +431,30 @@ export class TldrawApp {
 		const membership = this.getWorkspaceMembership(workspaceId)
 		if (!membership) return []
 
-		const pinned = membership.groupFiles.filter((f) => f.index !== null)
-		const unpinned = membership.groupFiles.filter((f) => f.index === null)
+		// Decide which of the membership's group_file rows actually belong in this list.
+		// A file owned by this workspace always belongs. A non-home workspace lists only the
+		// files it owns. The home workspace additionally lists legacy files (no owning group)
+		// and "guest files" — shared files the user opened that are owned by a workspace they
+		// are NOT a member of. It must NOT list a file owned by a workspace the user IS a
+		// member of: that's a mislinked row (a guest file whose workspace was later joined, or
+		// a workspace's welcome file mirrored during the create-workspace race), and opening it
+		// from home would bounce the user into that workspace. Guarding here keeps such rows out
+		// of the list even before they're cleaned up.
+		const homeWorkspaceId = this.getHomeWorkspaceId()
+		const groupFiles = membership.groupFiles.filter((f): f is TlaGroupFile & { file: TlaFile } => {
+			// A group_file row can outlive (or arrive before) its file: the file may be deleted,
+			// not yet synced, or filtered out server-side because the user can no longer read it.
+			// The `file` relationship is a nullable Zero `.one()`, so guard before dereferencing.
+			// The type predicate narrows `file` to non-undefined for the rest of the function.
+			if (!f.file) return false
+			const owningGroupId = f.file.owningGroupId
+			if (owningGroupId === workspaceId) return true
+			if (workspaceId !== homeWorkspaceId) return false
+			return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
+		})
+
+		const pinned = groupFiles.filter((f) => f.index !== null)
+		const unpinned = groupFiles.filter((f) => f.index === null)
 
 		const lastOrdering = this.lastWorkspaceFileOrderings.get(workspaceId)
 		const retainedOrdering =
@@ -610,10 +629,16 @@ export class TldrawApp {
 
 	private canCreateNewFile(workspaceId: string) {
 		if (this.isWorkspacesMigrated()) {
-			// For migrated users, count non-deleted files in the home workspace
+			// Count only files the workspace actually owns — not guest files (shared files the
+			// user opened) or mislinked rows that getWorkspaceFilesSorted hides. Counting those
+			// would let the limit fire on files the user can neither see nor remove. For migrated
+			// users createFile runs no server-side file-limit check, so this is the only gate;
+			// scoping it to owned files keeps it to what the user can actually manage.
 			const membership = this.getWorkspaceMembership(workspaceId)
 			if (!membership) return true
-			const nonDeletedCount = membership.groupFiles.filter((gf) => !gf.file.isDeleted).length
+			const nonDeletedCount = membership.groupFiles.filter(
+				(gf) => gf.file && !gf.file.isDeleted && gf.file.owningGroupId === workspaceId
+			).length
 			return nonDeletedCount < this.config.maxNumberOfFiles
 		} else {
 			// For unmigrated users, count non-deleted files owned by the user
@@ -1201,10 +1226,10 @@ export class TldrawApp {
 	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
 		// The home workspace can't be invited to.
 		if (workspaceId === this.getHomeWorkspaceId()) return false
-		const membership = this.getWorkspaceMembership(workspaceId)
-		if (!membership?.group.inviteSecret) return false
+		const group = this.getWorkspaceMembership(workspaceId)?.group
+		if (!group?.inviteSecret) return false
 
-		const inviteText = `${location.origin}/invite/${membership.group.inviteSecret}`
+		const inviteText = `${location.origin}/invite/${group.inviteSecret}`
 		navigator.clipboard.writeText(inviteText)
 
 		if (showToast) {

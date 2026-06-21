@@ -7,8 +7,11 @@ const scenarioTestMatch = /.*\.scenario\.spec\.ts/
 // scenario runner. See e2e/README.md.
 const smokeTestMatch = /tests\/smoke\/.*\.spec\.ts/
 
-// Must cover `DOTCOM_DEV_APP_READY_TIMEOUT_MS` in zero-cache/dev-env.ts plus a Vite startup buffer.
-const CI_WEB_SERVER_TIMEOUT_MS = 840_000
+// Fail fast if the dev stack does not come up: not a single test runs until http://localhost:3000
+// responds, so a stuck server otherwise burns CI minutes. The dotcom server should boot well within
+// this. If a CI cold start ever legitimately needs longer, raise this (and the readiness budgets in
+// zero-cache/dev-env.ts) rather than reverting to a multi-minute stuck wait.
+const CI_WEB_SERVER_TIMEOUT_MS = 180_000
 
 /**
  * Read environment variables from file.

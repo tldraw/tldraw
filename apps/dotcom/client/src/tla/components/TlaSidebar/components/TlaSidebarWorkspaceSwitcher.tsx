@@ -34,17 +34,23 @@ export function TlaSidebarWorkspaceSwitcher() {
 
 	const workspaces = useValue(
 		'workspaceMemberships',
-		() => app.getWorkspaceMemberships().filter((g) => g.groupId !== homeWorkspaceId),
+		() =>
+			app
+				.getWorkspaceMemberships()
+				.filter(
+					(g): g is typeof g & { group: NonNullable<(typeof g)['group']> } =>
+						g.groupId !== homeWorkspaceId && !!g.group
+				),
 		[app, homeWorkspaceId]
 	)
 	const activeWorkspaceName = useValue(
 		'active workspace name',
-		() => app.getWorkspaceMembership(activeWorkspaceId)?.group.name,
+		() => app.getWorkspaceMembership(activeWorkspaceId)?.group?.name,
 		[app, activeWorkspaceId]
 	)
 	const homeWorkspaceName = useValue(
 		'home workspace name',
-		() => app.getWorkspaceMembership(homeWorkspaceId)?.group.name,
+		() => app.getWorkspaceMembership(homeWorkspaceId)?.group?.name,
 		[app, homeWorkspaceId]
 	)
 
@@ -75,7 +81,14 @@ export function TlaSidebarWorkspaceSwitcher() {
 			{isOpen && (
 				<div
 					className={styles.sidebarWorkspaceSwitcherOverlay}
+					data-testid="tla-workspace-switcher-overlay"
 					onPointerDown={(e) => {
+						e.stopPropagation()
+					}}
+					onPointerUp={(e) => {
+						e.stopPropagation()
+					}}
+					onClick={(e) => {
 						e.preventDefault()
 						e.stopPropagation()
 						onOpenChange(false)
@@ -83,6 +96,7 @@ export function TlaSidebarWorkspaceSwitcher() {
 				/>
 			)}
 			<div className={styles.sidebarWorkspaceSwitcherRoot}>
+				{/* Modal doesn't really work for us here because other elements have explicit pointer-events on. Thus the switcher overlay.*/}
 				<_DropdownMenu.Root open={isOpen} onOpenChange={onOpenChange} modal>
 					<_DropdownMenu.Trigger asChild>
 						<button
@@ -109,10 +123,9 @@ export function TlaSidebarWorkspaceSwitcher() {
 						sideOffset={4}
 						alignOffset={-4}
 						collisionPadding={8}
-						// Switching workspaces mounts a new canvas that steals focus as it
-						// loads. Without this the focus shift would dismiss the switcher mid-
-						// switch. The open state is driven externally (useGlobalMenuIsOpen), so
-						// the menu still closes via the trigger, the overlay, or Escape.
+						// Switching workspaces mounts a new canvas that steals focus as it loads.
+						// Ignore that focus shift while still allowing real outside pointer clicks
+						// (for example, clicking the canvas) to dismiss the switcher.
 						onFocusOutside={(e) => e.preventDefault()}
 					>
 						<WorkspaceSwitcherItem
@@ -149,20 +162,6 @@ export function TlaSidebarWorkspaceSwitcher() {
 					</_DropdownMenu.Content>
 				</_DropdownMenu.Root>
 			</div>
-			{workspaces.length === 0 && (
-				<button
-					className={classNames(
-						styles.sidebarCreateWorkspaceButton,
-						styles.hoverable,
-						'tla-text_ui__regular'
-					)}
-					onClick={handleCreateWorkspace}
-					data-testid="tla-create-workspace"
-				>
-					<TlaIcon icon="plus" />
-					<span className={styles.sidebarTruncatedText}>{createWorkspaceLbl}</span>
-				</button>
-			)}
 		</div>
 	)
 }

@@ -504,6 +504,32 @@ describe('file creation', () => {
 			})
 		)
 	})
+
+	it('migrated user can create file in their home workspace without a group_user row', async () => {
+		// The home workspace (id === userId) is implicitly owned, so it may have no
+		// group_user row. createFile must still allow it — otherwise an empty home is
+		// un-switchable, since selecting it creates-then-opens a file. Regression test:
+		// authorize via getRole (home => owner), not a raw group_user lookup.
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [],
+			file_state: [],
+			group: [makeGroup({ id: userId })],
+			group_user: [], // no explicit home membership row
+			group_file: [],
+		}
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectValid(() =>
+			m.createFile(tx, {
+				fileId: 'file_aaaa11112222bbbb',
+				workspaceId: userId, // home workspace
+				name: 'New File',
+				time: Date.now(),
+				createSource: null,
+			})
+		)
+	})
 })
 
 describe('file_state mutations', () => {
@@ -613,6 +639,58 @@ describe('onEnterFile', () => {
 		await m.onEnterFile(tx, { fileId, time: Date.now() })
 		// Should NOT create a new group_file since it's already in user's group
 		expect(s.group_file.length).toBe(1)
+	})
+
+	it("mirrors another group's shared file into home as a guest file", async () => {
+		// Opening a shared file owned by a group the user is NOT a member of links it into
+		// their home group, which is what surfaces it as a "guest file" in the sidebar.
+		const otherGroup = 'group_other123456789'
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [makeFile({ id: fileId, owningGroupId: otherGroup, shared: true })],
+			file_state: [],
+			group: [makeGroup({ id: userId }), makeGroup({ id: otherGroup })],
+			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })], // home only
+			group_file: [makeGroupFile({ fileId, groupId: otherGroup })],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await m.onEnterFile(tx, { fileId, time: Date.now() })
+		expect((s.group_file as TlaGroupFile[]).some((gf) => gf.groupId === userId)).toBe(true)
+	})
+
+	it('does not mirror a file the user already has via a group they belong to', async () => {
+		const workspaceId = 'group_workspace1234ab'
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [makeFile({ id: fileId, owningGroupId: workspaceId, shared: true })],
+			file_state: [],
+			group: [makeGroup({ id: userId }), makeGroup({ id: workspaceId })],
+			group_user: [
+				makeGroupUser({ userId, groupId: userId, role: 'owner' }),
+				makeGroupUser({ userId, groupId: workspaceId, role: 'member' }),
+			],
+			group_file: [makeGroupFile({ fileId, groupId: workspaceId })],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await m.onEnterFile(tx, { fileId, time: Date.now() })
+		expect((s.group_file as TlaGroupFile[]).some((gf) => gf.groupId === userId)).toBe(false)
+	})
+
+	it('mirrors a group-less (legacy) file into home so it stays findable', async () => {
+		const s = {
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			file: [makeFile({ id: fileId, owningGroupId: null, ownerId: userId, shared: true })],
+			file_state: [],
+			group: [makeGroup({ id: userId })],
+			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
+			group_file: [],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await m.onEnterFile(tx, { fileId, time: Date.now() })
+		expect((s.group_file as TlaGroupFile[]).some((gf) => gf.groupId === userId)).toBe(true)
 	})
 })
 

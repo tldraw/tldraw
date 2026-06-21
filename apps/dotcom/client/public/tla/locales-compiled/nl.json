@@ -5,6 +5,12 @@
       "value": "Exporteren"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accepteer de uitnodiging"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Verwijderen"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopieer naar je persoonlijke werkruimte"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Bestand losmaken"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Probeer de tldraw SDK"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Bestand aanmaken"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Werkruimte-instellingen"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Vandaag"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Een werkruimte moet minimaal één eigenaar hebben. Wijs eerst iemand anders aan als eigenaar."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Werkruimtenaam"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Je bent uitgenodigd om lid te worden van "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Maak een gratis account aan om verder te gaan."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Uploaden mislukt"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Mijn bestanden"
+      "value": "Welkom in je werkruimte"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Zoekopdracht..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Door de link opnieuw te genereren, wordt de huidige uitnodigingslink vervangen door een nieuwe. Iedereen die de oude link gebruikt, heeft de nieuwe link nodig om deel te nemen."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Voeg een link naar het huidige bestand toe"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Genereer de uitnodigingslink opnieuw"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Beheren"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Neem contact op met de eigenaar om toegang aan te vragen."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Verlaat de werkplek…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "De publicatie van het bestand kan niet ongedaan worden gemaakt."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Dit is je privéwerkruimte. Maak een nieuwe werkruimte aan om teamgenoten uit te nodigen."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Maak een werkruimte aan"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Mijn werkplek"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Trek deze link in en maak een nieuwe."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "Er is een nieuwe versie van tldraw beschikbaar. Laad de pagina opnieuw om verder te gaan."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Nieuw bestand"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Laad de pagina opnieuw"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Geen bestanden gevonden"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Gelieve opnieuw te laden"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw is een gratis online whiteboard. Maak een account aan om je bestanden op te slaan en met je vrienden te werken."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Download"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nieuwe werkplek"
     }
   ],
   "815e116a2e": [
@@ -699,22 +761,10 @@
       "value": "Deze uitnodigingslink is verlopen."
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Nee bedankt"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Controleer uw e-mail voor een verificatiecode."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Thuis"
     }
   ],
   "8eb2c00e96": [
@@ -741,22 +791,10 @@
       "value": "Hernoemen"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopieer naar mijn bestanden"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Aanmelden met Google"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Werkruimte verwijderen…"
     }
   ],
   "95d2109dc8": [
@@ -781,6 +819,12 @@
     {
       "type": 0,
       "value": "Licht"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Zoekopdracht wissen"
     }
   ],
   "9b33f5c63c": [
@@ -833,6 +877,26 @@
       "value": "Afmelden"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Je bent uitgenodigd om deel te nemen aan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -873,6 +937,12 @@
     {
       "type": 0,
       "value": "Verzenden"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Verlaten"
     }
   ],
   "a6cc403d56": [
@@ -929,6 +999,12 @@
       "value": "Gastgebruiker"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenereren"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -939,6 +1015,12 @@
     {
       "type": 0,
       "value": "E-mailadres"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Schakel uitnodigingen in"
     }
   ],
   "b6d4223e60": [
@@ -963,6 +1045,12 @@
     {
       "type": 0,
       "value": "Meld je aan om te delen"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Uitnodigingen zijn uitgeschakeld"
     }
   ],
   "bbbcefd7ce": [
@@ -1017,6 +1105,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Werkruimte beheren"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1067,10 +1161,10 @@
       "value": "Uitnodiging"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Nieuw bestuur"
+      "value": "Kopieer naar mijn werkruimte"
     }
   ],
   "c87aacf567": [
@@ -1083,12 +1177,6 @@
     {
       "type": 0,
       "value": "Sluiten"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Redden"
     }
   ],
   "cceaefbc20": [
@@ -1215,12 +1303,6 @@
       "value": "OK"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Nodig leden uit"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1239,28 +1321,10 @@
       "value": "Servicevoorwaarden"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Accepteer en word lid van de werkruimte"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "of"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Je bent uitgenodigd om deel te nemen aan de werkruimte:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Gevarenzone"
     }
   ],
   "ea4788705e": [
@@ -1409,6 +1473,12 @@
     {
       "type": 0,
       "value": " uit deze werkruimte wilt verwijderen?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Maak een gratis account aan om je bestanden op te slaan en samen met je teamgenoten te tekenen (tldraw)."
     }
   ],
   "ffcd73e997": [
