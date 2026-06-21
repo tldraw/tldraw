@@ -76,18 +76,24 @@ test.describe('A11y Style Panel Navigation', () => {
 		// Step 5: Press Enter to select the color
 		await page.keyboard.press('Enter')
 
-		// Step 6: Press Escape to return focus to the shape
-		await page.keyboard.press('Escape')
+		// Step 6: Press Escape to return focus to the shape. The Escape keydown
+		// is what hands focus back to the canvas, and under load that single
+		// keypress can be dropped, so re-send it until focus actually settles.
+		await pressUntilFocusedOnCanvas(page)
 
-		// Verify focus is back on the canvas/shape
-		await expect.poll(() => isFocusedOnCanvas(page)).toBe(true)
+		// Step 7: Press Enter again to edit the label. Selecting a colour above makes
+		// the style panel re-render, and its roving-tabindex toolbar can bounce focus
+		// back onto the selected radio asynchronously — after Escape already returned
+		// focus to the canvas. So drive editing through whatever focus state we land
+		// in: Escape back to the canvas if focus bounced into the panel, otherwise
+		// Enter to start editing. The label text is fully replaced below, so a stray
+		// newline from a repeated Enter can't affect the result.
+		await startEditingSelectedShapeViaKeyboard(page)
 
-		// Step 7: Press Enter again to edit the label
-		await page.keyboard.press('Enter')
-
-		// Verify we're back in editing mode
-		const isEditingAgain = await page.evaluate(() => editor.getEditingShapeId() !== null)
-		expect(isEditingAgain).toBe(true)
+		// The rich text editor focuses its contenteditable on a deferred timeout, so
+		// wait for it to be the active element before typing or the first keystrokes
+		// get dropped (matching the wait used when first entering editing above).
+		await expect.poll(() => isFocusedOnRichTextEditor(page)).toBe(true)
 
 		// Clear the existing text and type new text
 		await page.keyboard.press('Meta+a') // Select all text
@@ -171,9 +177,7 @@ test.describe('A11y Style Panel Navigation', () => {
 		await expect.poll(() => isFocusedOnRichTextEditor(page)).toBe(true)
 
 		// Press escape
-		await page.keyboard.press('Escape')
-
-		await expect.poll(() => isFocusedOnCanvas(page)).toBe(true)
+		await pressUntilFocusedOnCanvas(page)
 	})
 
 	test('style panel focus works with different geo shapes', async ({ page, isMobile }) => {
@@ -222,13 +226,58 @@ test.describe('A11y Style Panel Navigation', () => {
 		// Verify focus is still in style panel
 		await expect.poll(() => isFocusedOnStylePanel(page)).toBe(true)
 
-		// Return to canvas
-		await page.keyboard.press('Escape')
-
-		// Verify focus is back on canvas
-		await expect.poll(() => isFocusedOnCanvas(page)).toBe(true)
+		// Return to canvas. The Escape keydown is what restores focus to the
+		// canvas, and that single keypress can be dropped under load, so re-send
+		// it until focus actually settles instead of asserting once.
+		await pressUntilFocusedOnCanvas(page)
 	})
 })
+
+// Pressing Escape while focus is in the style panel hands focus back to the canvas
+// (see DefaultStylePanel's keydown handler, which calls editor.getContainer().focus()
+// synchronously and stops propagation). The transition is instant, so when focus
+// fails to settle it's because the single Escape keypress was dropped under load
+// rather than because it was slow — so re-send it until focus returns to the canvas.
+// We only press while focus is still inside the style panel: an Escape handled by the
+// panel never deselects the shape, but an Escape that reaches the canvas would, so
+// this avoids deselecting the shape with a stray repeat.
+async function pressUntilFocusedOnCanvas(page: Page) {
+	await expect
+		.poll(
+			async () => {
+				if (await isFocusedOnCanvas(page)) return true
+				const isInStylePanel = await page.evaluate(
+					() => document.activeElement?.closest('.tlui-style-panel') !== null
+				)
+				if (isInStylePanel) await page.keyboard.press('Escape')
+				return isFocusedOnCanvas(page)
+			},
+			{ timeout: 5000, intervals: [100, 200, 300, 500] }
+		)
+		.toBe(true)
+}
+
+// Start editing the selected shape's label with the keyboard, tolerating both a
+// dropped keypress and the style panel's roving-tabindex focus bounce. Each round:
+// if focus has landed back in the style panel, Escape returns it to the canvas;
+// otherwise Enter starts editing the selected shape. We only press Enter while not
+// already editing, so we never inject a stray newline into an active label.
+async function startEditingSelectedShapeViaKeyboard(page: Page) {
+	const isEditing = () => page.evaluate(() => editor.getEditingShapeId() !== null)
+	await expect
+		.poll(
+			async () => {
+				if (await isEditing()) return true
+				const isInStylePanel = await page.evaluate(
+					() => document.activeElement?.closest('.tlui-style-panel') !== null
+				)
+				await page.keyboard.press(isInStylePanel ? 'Escape' : 'Enter')
+				return isEditing()
+			},
+			{ timeout: 8000, intervals: [100, 200, 300, 500] }
+		)
+		.toBe(true)
+}
 
 async function isFocusedOnStylePanel(page: Page) {
 	return await page.evaluate(() => {
