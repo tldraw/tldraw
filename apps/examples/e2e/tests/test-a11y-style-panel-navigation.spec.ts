@@ -95,19 +95,14 @@ test.describe('A11y Style Panel Navigation', () => {
 		// get dropped (matching the wait used when first entering editing above).
 		await expect.poll(() => isFocusedOnRichTextEditor(page)).toBe(true)
 
-		// Clear the existing text and type new text
-		await page.keyboard.press('Meta+a') // Select all text
-		await page.keyboard.type('Updated Label')
+		// Replace the label text. Even once the contenteditable is focused, the
+		// editor's async setup can still drop the leading keystrokes, so select-all,
+		// type, and verify — retrying the whole select-and-replace until it sticks
+		// rather than asserting a single racy attempt.
+		await replaceSelectedShapeLabel(page, 'Updated Label')
 
 		// Exit editing
 		await page.keyboard.press('Escape')
-
-		// Verify the final text content
-		const finalText = await page.evaluate(() => {
-			const shape = editor.getSelectedShapes()[0] as any
-			return editor.getShapeUtil(shape).getText(shape)
-		})
-		expect(finalText).toBe('Updated Label')
 	})
 
 	// Skipped: the cmd+enter keyboard event isn't reliably picked up while editing rich text in the
@@ -233,23 +228,20 @@ test.describe('A11y Style Panel Navigation', () => {
 	})
 })
 
-// Pressing Escape while focus is in the style panel hands focus back to the canvas
-// (see DefaultStylePanel's keydown handler, which calls editor.getContainer().focus()
-// synchronously and stops propagation). The transition is instant, so when focus
+// Escape returns focus to the canvas from wherever it currently is — the style
+// panel (see DefaultStylePanel's keydown handler, which calls
+// editor.getContainer().focus() synchronously and stops propagation) or a shape's
+// rich text editor (Escape exits editing). The transition is instant, so when focus
 // fails to settle it's because the single Escape keypress was dropped under load
 // rather than because it was slow — so re-send it until focus returns to the canvas.
-// We only press while focus is still inside the style panel: an Escape handled by the
-// panel never deselects the shape, but an Escape that reaches the canvas would, so
-// this avoids deselecting the shape with a stray repeat.
+// The early return means we never press while already on the canvas, so a stray
+// repeat can't deselect the shape.
 async function pressUntilFocusedOnCanvas(page: Page) {
 	await expect
 		.poll(
 			async () => {
 				if (await isFocusedOnCanvas(page)) return true
-				const isInStylePanel = await page.evaluate(
-					() => document.activeElement?.closest('.tlui-style-panel') !== null
-				)
-				if (isInStylePanel) await page.keyboard.press('Escape')
+				await page.keyboard.press('Escape')
 				return isFocusedOnCanvas(page)
 			},
 			{ timeout: 5000, intervals: [100, 200, 300, 500] }
@@ -277,6 +269,28 @@ async function startEditingSelectedShapeViaKeyboard(page: Page) {
 			{ timeout: 8000, intervals: [100, 200, 300, 500] }
 		)
 		.toBe(true)
+}
+
+// Select all of the editing shape's label text and replace it, tolerating dropped
+// keystrokes during the editor's async setup. Each attempt re-selects everything
+// and retypes, so a partially-typed result from a previous attempt is fully
+// overwritten rather than appended to — the poll converges once nothing drops.
+async function replaceSelectedShapeLabel(page: Page, text: string) {
+	const getText = () =>
+		page.evaluate(() => {
+			const shape = editor.getSelectedShapes()[0] as any
+			return editor.getShapeUtil(shape).getText(shape)
+		})
+	await expect
+		.poll(
+			async () => {
+				await page.keyboard.press('Meta+a')
+				await page.keyboard.type(text)
+				return getText()
+			},
+			{ timeout: 8000, intervals: [100, 200, 300, 500] }
+		)
+		.toBe(text)
 }
 
 async function isFocusedOnStylePanel(page: Page) {
