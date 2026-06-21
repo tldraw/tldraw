@@ -44,30 +44,27 @@ describe('replicatorMigrations', () => {
 			const tables = sqlStorage.exec(tableQuery).toArray()
 
 			expect(tables).toMatchInlineSnapshot(`
-				[
-				  {
-				    "name": "active_user",
-				  },
-				  {
-				    "name": "migrations",
-				  },
-				  {
-				    "name": "meta",
-				  },
-				  {
-				    "name": "sqlite_stat1",
-				  },
-				  {
-				    "name": "sqlite_stat4",
-				  },
-				  {
-				    "name": "history",
-				  },
-				  {
-				    "name": "topic_subscription",
-				  },
-				]
-			`)
+			[
+			  {
+			    "name": "active_user",
+			  },
+			  {
+			    "name": "migrations",
+			  },
+			  {
+			    "name": "meta",
+			  },
+			  {
+			    "name": "sqlite_stat1",
+			  },
+			  {
+			    "name": "history",
+			  },
+			  {
+			    "name": "topic_subscription",
+			  },
+			]
+		`)
 		})
 
 		it('should not re-run already applied migrations', async () => {
