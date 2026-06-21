@@ -24,7 +24,7 @@
 //   })
 //
 // Keep only document/page/shape (and asset/binding) records: drop any `user` records and
-// reset any `textFirstEditedBy` props to null, since those carry the authoring user's
+// reset any `textLastEditedBy` props to null, since those carry the authoring user's
 // identity.
 //
 // Keep the content near the origin and inside roughly 1200×800 page units: new files open
