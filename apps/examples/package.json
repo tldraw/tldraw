@@ -73,7 +73,7 @@
 		"tldraw": "workspace:*",
 		"topojson-client": "^3.1.0",
 		"us-atlas": "^3.0.1",
-		"vite": "^8.0.1"
+		"vite": "^8.0.16"
 	},
 	"devDependencies": {
 		"@types/d3-geo": "^3.1.0",
@@ -87,10 +87,12 @@
 		"@wdio/cli": "^9.0.0",
 		"@wdio/globals": "^9.0.0",
 		"@wdio/local-runner": "^9.0.0",
+		"@wdio/logger": "^9.0.0",
 		"@wdio/mocha-framework": "^9.0.0",
 		"@wdio/spec-reporter": "^9.0.0",
 		"@wdio/types": "^9.0.0",
 		"dotenv": "^16.4.7",
+		"expect-webdriverio": "^5.6.8",
 		"remark": "^15.0.1",
 		"remark-frontmatter": "^5.0.0",
 		"remark-html": "^16.0.1",

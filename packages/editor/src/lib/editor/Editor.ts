@@ -11223,8 +11223,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.setIsPointing(true)
 						inputs.setIsDragging(false)
 
-						// If pen mode is off but we're not already in pen mode, turn that on
-						if (!isPenMode && isPen) {
+						// If pen mode is off, turn it on for direct-display pen input only (e.g. Apple
+						// Pencil on an iPad or a Surface Pen on a touchscreen). Indirect desktop tablet
+						// styluses still draw as pens, but should not auto-enable pen mode.
+						if (!isPenMode && info.isPenDirect) {
 							this.updateInstanceState({ isPenMode: true })
 							// Once pen mode is on, touch input is ignored, so we discard the
 							// in-progress touch interaction .

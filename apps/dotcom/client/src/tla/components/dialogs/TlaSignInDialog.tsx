@@ -13,6 +13,7 @@ import {
 } from 'tldraw'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { setRedirectOnSignIn } from '../../utils/redirect'
+import { ExternalLink } from '../ExternalLink/ExternalLink'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import styles from './auth.module.css'
@@ -266,14 +267,14 @@ function TlaEnterEmailStep({
 				</TlaCtaButton>
 
 				<p className={styles.authTermsOfUse}>
-					<a href="/tos.html" target="_blank" rel="noopener noreferrer">
+					<ExternalLink to="/tos.html">
 						<F defaultMessage="Terms of Use" />
-					</a>
+					</ExternalLink>
 					{/* eslint-disable-next-line tldraw/jsx-no-literals */}
 					{' · '}
-					<a href="/privacy.html" target="_blank" rel="noopener noreferrer">
+					<ExternalLink to="/privacy.html">
 						<F defaultMessage="Privacy Policy" />
-					</a>
+					</ExternalLink>
 				</p>
 			</form>
 		</>

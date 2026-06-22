@@ -37,7 +37,7 @@
 	width: 100%;
 	height: 100%;
 	z-index: 99;
-	background-color: var(--tla-color-overlay);
+	background-color: var(--tl-color-overlay);
 	display: none;
 }
 
@@ -226,7 +226,7 @@
 .sidebar[data-workspaces='true'] .sidebarTopRow {
 	height: 44px;
 	padding: 3px 8px 0px 4px;
-	gap: 8px;
+	gap: var(--tl-space-3);
 }
 
 /* Workspace link */
@@ -466,7 +466,7 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	gap: 4px;
+	gap: var(--tl-space-2);
 	color: var(--tl-color-text-3);
 }
 
@@ -548,7 +548,7 @@
 }
 
 .sidebarWorkspaceSwitcherOverlay {
-	position: absolute;
+	position: fixed;
 	inset: 0;
 	z-index: calc(var(--tl-layer-menus) - 1);
 	pointer-events: all;
@@ -782,7 +782,7 @@
 }
 
 .sidebarSearchEmpty {
-	padding: 8px;
+	padding: var(--tl-space-3);
 	color: var(--tl-color-text-3);
 }
 
@@ -844,7 +844,7 @@
 	flex-direction: row;
 	align-items: center;
 	justify-content: flex-start;
-	gap: 8px;
+	gap: var(--tl-space-3);
 	position: relative;
 	pointer-events: none;
 	z-index: 2;
@@ -881,7 +881,7 @@
 	justify-content: flex-start;
 	padding: 0px 8px 0px calc(8px + var(--tla-sidebar-group-item-padding-left, 0px));
 	outline-offset: -2px;
-	gap: 8px;
+	gap: var(--tl-space-3);
 	position: relative;
 }
 
