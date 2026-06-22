@@ -12,7 +12,6 @@ import {
 	VecModel,
 	b64Vecs,
 	createShapeId,
-	handleShapeCreationLongPress,
 	last,
 	snapAngle,
 	structuredClone,
@@ -736,16 +735,6 @@ export class Drawing extends StateNode {
 
 	override onPointerUp() {
 		this.complete()
-	}
-
-	override onLongPress() {
-		handleShapeCreationLongPress(this.editor, () => {
-			// The draw shape is started in onEnter, so unlike its plain cancel()
-			// we must bail to the mark to remove the started stroke (matching the
-			// non-dragging branch of onInterrupt).
-			if (this.markId) this.editor.bailToMark(this.markId)
-			this.cancel()
-		})
 	}
 
 	override onCancel() {

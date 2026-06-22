@@ -6,7 +6,7 @@ import {
 	Vec,
 	createShapeId,
 	getIndexAbove,
-	handleShapeCreationLongPress,
+	cancelShapeCreationOnLongPress,
 	last,
 	maybeSnapToGrid,
 	sortByIndex,
@@ -143,7 +143,7 @@ export class Pointing extends StateNode {
 	}
 
 	override onLongPress() {
-		handleShapeCreationLongPress(this.editor, () => this.cancel())
+		cancelShapeCreationOnLongPress(this.editor, () => this.cancel())
 	}
 
 	override onCancel() {

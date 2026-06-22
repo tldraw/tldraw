@@ -2,7 +2,7 @@ import {
 	StateNode,
 	TLArrowShape,
 	createShapeId,
-	handleShapeCreationLongPress,
+	cancelShapeCreationOnLongPress,
 	maybeSnapToGrid,
 } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
@@ -76,7 +76,7 @@ export class Pointing extends StateNode {
 	}
 
 	override onLongPress() {
-		handleShapeCreationLongPress(this.editor, () => this.cancel())
+		cancelShapeCreationOnLongPress(this.editor, () => this.cancel())
 	}
 
 	override onCancel() {

@@ -457,6 +457,9 @@ export class Box {
 // @public (undocumented)
 export type BoxLike = Box | BoxModel;
 
+// @internal
+export function cancelShapeCreationOnLongPress(editor: Editor, cancelPendingCreation: () => void): void;
+
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
 
@@ -2092,9 +2095,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 // @public (undocumented)
 export const HALF_PI: number;
-
-// @internal
-export function handleShapeCreationLongPress(editor: Editor, cancelPendingCreation: () => void): void;
 
 // @public
 export interface HandleSnapGeometry {

@@ -1,4 +1,10 @@
-import { preventDefault, useContainer, useEditor, useEditorComponents } from '@tldraw/editor'
+import {
+	preventDefault,
+	useContainer,
+	useEditor,
+	useEditorComponents,
+	useValue,
+} from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
@@ -21,6 +27,17 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	const msg = useTranslation()
 
 	const { Canvas } = useEditorComponents()
+
+	// The context menu is a select-tool surface — every item acts on the selection.
+	// A long-press only opens it in the select tool; in any other tool a long-press
+	// is that tool's own gesture (creating, erasing, drawing, panning), so the menu
+	// stays closed. A right-click still opens it anywhere, because the editor routes
+	// right-clicks through the select tool before the menu opens.
+	const appliesToCurrentTool = useValue(
+		'context menu applies to current tool',
+		() => editor.isIn('select'),
+		[editor]
+	)
 
 	// When hitting `Escape` while the context menu is open, we want to prevent
 	// the default behavior of losing focus on the shape. Otherwise,
@@ -112,7 +129,14 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 
 	return (
 		<_ContextMenu.Root dir={dir} onOpenChange={handleOpenChange} modal={false}>
-			<_ContextMenu.Trigger onContextMenu={undefined} dir="ltr" disabled={disabled}>
+			<_ContextMenu.Trigger
+				// When suppressed, disabling the trigger stops Radix from opening the
+				// menu, but it also stops Radix from preventing the native contextmenu —
+				// so prevent the browser's own menu ourselves in that case.
+				onContextMenu={appliesToCurrentTool ? undefined : preventDefault}
+				dir="ltr"
+				disabled={disabled || !appliesToCurrentTool}
+			>
 				{Canvas ? <Canvas /> : null}
 			</_ContextMenu.Trigger>
 			{isOpen && (
