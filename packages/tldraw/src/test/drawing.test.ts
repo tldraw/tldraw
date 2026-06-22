@@ -276,6 +276,47 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			expect(shape.props.segments.length).toBe(1)
 		})
+
+		describe('chooses the segment encoding from the input device', () => {
+			const getFirstSegment = () => {
+				const shape = editor.getCurrentPageShapes()[0] as DrawableShape
+				return shape.props.segments[0]
+			}
+
+			it('drops pressure (2D) for a non-pressure device like a mouse', () => {
+				editor.setCurrentTool(toolType).pointerDown(0, 0).pointerMove(10, 10).pointerMove(20, 5)
+
+				const segment = getFirstSegment()
+				expect(segment.dim).toBe(2)
+
+				const zs = base64ToPoints(segment.path, segment.dim).map((p) => p.z!)
+				expect(zs.every((z) => Math.abs(z - 0.5) < 0.01)).toBe(true)
+			})
+
+			it('keeps full 3D and preserves varying pressure for a pen', () => {
+				editor
+					.setCurrentTool(toolType)
+					.pointerDown(0, 0, { isPen: true, point: { x: 0, y: 0, z: 0.3 } })
+					.pointerMove(10, 10, { isPen: true, point: { x: 10, y: 10, z: 0.6 } })
+					.pointerMove(20, 5, { isPen: true, point: { x: 20, y: 5, z: 0.9 } })
+
+				const segment = getFirstSegment()
+				expect(segment.dim).toBeUndefined()
+
+				const zs = base64ToPoints(segment.path, segment.dim).map((p) => p.z!)
+				expect(zs.some((z) => Math.abs(z - 0.5) > 0.01)).toBe(true)
+				expect(new Set(zs.map((z) => z.toFixed(2))).size).toBeGreaterThan(1)
+			})
+
+			it('keeps 3D for a stylus that reports as a mouse (pressure that is not the fabricated 0.5)', () => {
+				editor
+					.setCurrentTool(toolType)
+					.pointerDown(0, 0, { point: { x: 0, y: 0, z: 0.7 } })
+					.pointerMove(10, 10, { point: { x: 10, y: 10, z: 0.7 } })
+
+				expect(getFirstSegment().dim).toBeUndefined()
+			})
+		})
 	})
 }
 
