@@ -1,0 +1,168 @@
+/* Grass is the canvas background so the rail draw shapes paint on top of it. */
+.unrailed-root .tl-theme__light .tl-background {
+	background-color: #dceccf;
+}
+.unrailed-root .tl-theme__dark .tl-background {
+	background-color: #283426;
+}
+
+.unrailed-hud {
+	position: absolute;
+	top: 12px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 300;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	pointer-events: none;
+	font-family: var(--tl-font-body, sans-serif);
+}
+
+.unrailed-hud__stats {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 8px 14px;
+	background: var(--color-panel, #fff);
+	border-radius: 10px;
+	box-shadow: var(--shadow-2, 0 1px 3px rgba(0, 0, 0, 0.2));
+	pointer-events: all;
+}
+
+.unrailed-stat {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 16px;
+	color: var(--color-text, #1d1d1d);
+}
+
+.unrailed-stat strong {
+	font-size: 18px;
+	min-width: 16px;
+	text-align: left;
+}
+
+.unrailed-stat--dist {
+	padding-left: 12px;
+	border-left: 1px solid var(--color-divider, #e8e8e8);
+}
+
+.unrailed-hud__hint {
+	padding: 5px 12px;
+	background: var(--color-panel, rgba(255, 255, 255, 0.9));
+	border-radius: 8px;
+	font-size: 12px;
+	color: var(--color-text-1, #5c5c5c);
+	box-shadow: var(--shadow-1, 0 1px 2px rgba(0, 0, 0, 0.15));
+}
+
+.unrailed-hud__hint kbd {
+	display: inline-block;
+	margin: 0 1px;
+	padding: 1px 5px;
+	font-size: 11px;
+	font-family: inherit;
+	background: var(--color-muted-2, #f0f0f0);
+	border: 1px solid var(--color-divider, #ddd);
+	border-radius: 4px;
+}
+
+.unrailed-btn {
+	pointer-events: all;
+	padding: 5px 12px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--color-text, #1d1d1d);
+	background: var(--color-muted-2, #f0f0f0);
+	border: 1px solid var(--color-divider, #ddd);
+	border-radius: 7px;
+	cursor: pointer;
+}
+
+.unrailed-btn:hover {
+	background: var(--color-hint, #e6e6e6);
+}
+
+.unrailed-btn--primary {
+	color: #fff;
+	background: var(--color-selected, #4465e9);
+	border-color: transparent;
+}
+
+.unrailed-toolbar {
+	position: absolute;
+	bottom: 18px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 300;
+	display: flex;
+	gap: 8px;
+	padding: 6px;
+	background: var(--color-panel, #fff);
+	border-radius: 12px;
+	box-shadow: var(--shadow-2, 0 1px 3px rgba(0, 0, 0, 0.2));
+}
+
+.unrailed-tool {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 14px;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--color-text, #1d1d1d);
+	background: transparent;
+	border: 2px solid transparent;
+	border-radius: 8px;
+	cursor: pointer;
+}
+
+.unrailed-tool:hover {
+	background: var(--color-muted-2, #f0f0f0);
+}
+
+.unrailed-tool.is-active {
+	background: var(--color-muted-2, #eef);
+	border-color: var(--color-selected, #4465e9);
+}
+
+.unrailed-tool kbd {
+	padding: 1px 5px;
+	font-size: 11px;
+	font-family: inherit;
+	background: var(--color-muted-1, #e8e8e8);
+	border-radius: 4px;
+}
+
+.unrailed-gameover {
+	position: absolute;
+	inset: 0;
+	z-index: 400;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.35);
+}
+
+.unrailed-gameover__card {
+	padding: 28px 36px;
+	text-align: center;
+	background: var(--color-panel, #fff);
+	border-radius: 14px;
+	box-shadow: var(--shadow-3, 0 4px 20px rgba(0, 0, 0, 0.3));
+	font-family: var(--tl-font-body, sans-serif);
+}
+
+.unrailed-gameover__card h2 {
+	margin: 0 0 6px;
+	font-size: 24px;
+	color: var(--color-text, #1d1d1d);
+}
+
+.unrailed-gameover__card p {
+	margin: 0 0 16px;
+	color: var(--color-text-1, #5c5c5c);
+}
