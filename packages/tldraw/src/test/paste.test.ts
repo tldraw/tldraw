@@ -664,4 +664,49 @@ describe('When pasting into frames...', () => {
 		expect(left.parentId).toBe(editor.getCurrentPageId())
 		expect(right.parentId).toBe(editor.getCurrentPageId())
 	})
+
+	it('Pastes a copied child shape back in place when it is still selected and on screen', () => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		// Frame at the origin with a small shape inside it
+		editor.createShapes([{ id: ids.frame1, type: 'frame', x: 0, y: 0, props: { w: 400, h: 400 } }])
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', parentId: ids.frame1, x: 150, y: 150, props: { w: 10, h: 10 } },
+		])
+
+		// Copy the shape and paste it while it is still selected
+		editor.select(ids.box1).copy()
+		editor.paste()
+
+		const pasted = editor.getCurrentPageShapes().find((s) => s.type === 'geo' && s.id !== ids.box1)!
+		// It stays parented to the frame, in the same spot as the original
+		expect(pasted.parentId).toBe(ids.frame1)
+		expect({ x: pasted.x, y: pasted.y }).toMatchObject({ x: 150, y: 150 })
+	})
+
+	it('Pastes a copied child shape at the viewport center when its original position is off screen', () => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+
+		// Frame at the origin with a small shape inside it
+		editor.createShapes([{ id: ids.frame1, type: 'frame', x: 0, y: 0, props: { w: 400, h: 400 } }])
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', parentId: ids.frame1, x: 150, y: 150, props: { w: 10, h: 10 } },
+		])
+
+		editor.select(ids.box1).copy()
+
+		// Scroll far away so the shape's original position is off screen
+		editor.setCamera({ x: -3000, y: -3000, z: 1 })
+		const viewportCenter = editor.getViewportPageBounds().center
+
+		// The shape is still selected, so the frame is the paste parent, but
+		// because the original position is off screen the paste lands at the
+		// viewport center instead of in place.
+		editor.paste()
+
+		const pasted = editor.getCurrentPageShapes().find((s) => s.type === 'geo' && s.id !== ids.box1)!
+		const pastedCenter = editor.getShapePageBounds(pasted.id)!.center
+		expect(approximately(pastedCenter.x, viewportCenter.x)).toBe(true)
+		expect(approximately(pastedCenter.y, viewportCenter.y)).toBe(true)
+	})
 })

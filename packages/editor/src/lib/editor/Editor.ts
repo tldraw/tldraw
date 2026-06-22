@@ -10074,15 +10074,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const rootBounds = Box.Common(compact(rootShapes.map((s) => this.getShapePageBounds(s.id))))
 
 			if (point === undefined) {
+				const viewportPageBounds = this.getViewportPageBounds()
+				const isOnScreen = rootShapes.some((s) => {
+					const b = this.getShapePageBounds(s.id)
+					return b && viewportPageBounds.collides(b)
+				})
+
 				if (!isPageId(pasteParentId)) {
 					const parent = this.getShape(pasteParentId)!
 					const parentPageBounds = this.getShapePageBounds(parent)
 					// If the copied shapes already sit inside the paste target (e.g. you
 					// copied a shape from this frame and pasted it back with that shape
-					// still selected), keep them where they are. Only recenter when
-					// pasting into a different container than the content came from.
+					// still selected), keep them where they are — unless that position is
+					// off screen, in which case paste at the viewport center. Only recenter
+					// in the container when pasting into a different container than the
+					// content came from.
 					if (parentPageBounds?.containsPoint(rootBounds.center)) {
-						point = rootBounds.center
+						point = isOnScreen ? rootBounds.center : viewportPageBounds.center
 					} else {
 						// Paste into selected parent → center in that shape
 						point = Mat.applyToPoint(
@@ -10094,13 +10102,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// preservePosition (page duplication) → keep original coords
 					point = rootBounds.center
 				} else {
-					// Standard paste to page: check viewport overlap
-					const viewportPageBounds = this.getViewportPageBounds()
-					const anyOverlap = rootShapes.some((s) => {
-						const b = this.getShapePageBounds(s.id)
-						return b && viewportPageBounds.collides(b)
-					})
-					point = anyOverlap ? rootBounds.center : viewportPageBounds.center
+					// Standard paste to page: paste in place if on screen, else at the viewport center
+					point = isOnScreen ? rootBounds.center : viewportPageBounds.center
 				}
 			}
 
