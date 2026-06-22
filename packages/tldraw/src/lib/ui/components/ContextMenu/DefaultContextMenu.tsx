@@ -28,16 +28,20 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 
 	const { Canvas } = useEditorComponents()
 
-	// The context menu is a right-click surface. A right-click (fine pointer) opens
-	// it in any tool — the editor routes the click through the select tool first. A
-	// touch long-press (coarse pointer) does not open it: that gesture belongs to the
-	// active tool (creating, erasing, drawing, panning). We key off the pointer type,
-	// not the tool, on purpose: a right-click switches to select synchronously within
-	// the same gesture, so gating on the tool would race the React render and wrongly
-	// suppress the menu (the bug where a desktop right-click stopped opening it).
+	// The context menu opens from a right-click in any tool, and from a touch
+	// long-press only in the select tool (where it acts on the selection). A
+	// right-click (fine pointer) is routed through the select tool by the editor; a
+	// long-press in any other tool belongs to that tool's gesture (creating, erasing,
+	// drawing, panning), so it opens nothing.
+	//
+	// The right-click case keys off the pointer type, not the tool, on purpose: a
+	// right-click switches to select synchronously within the same gesture, so gating
+	// it on the tool would race the React render and wrongly suppress the menu. The
+	// select-tool long-press case is safe to gate on the tool — a long-press never
+	// switches tools, so there is nothing to race.
 	const menuCanOpen = useValue(
-		'context menu can open for pointer',
-		() => !editor.getInstanceState().isCoarsePointer,
+		'context menu can open',
+		() => !editor.getInstanceState().isCoarsePointer || editor.isIn('select'),
 		[editor]
 	)
 

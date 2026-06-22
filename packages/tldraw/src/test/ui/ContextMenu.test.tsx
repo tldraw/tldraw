@@ -26,9 +26,8 @@ it('opens on right-click', async () => {
 	expect(screen.queryByTestId('context-menu')).toBeNull()
 })
 
-// A touch long-press (coarse pointer) must not open the menu in ANY tool — the menu
-// is a right-click surface. This holds in the select tool too: a long-press belongs
-// to the active gesture, not the menu. (A right-click is a fine pointer; see below.)
+// A touch long-press (coarse pointer) opens the menu only in the select tool. In any
+// other tool the long-press belongs to that tool's gesture, so the menu stays closed.
 // The instance's isCoarsePointer is synced from tlenv, so flip that to simulate touch.
 describe('on a coarse pointer (touch long-press)', () => {
 	beforeEach(() => {
@@ -38,8 +37,22 @@ describe('on a coarse pointer (touch long-press)', () => {
 		tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: false }))
 	})
 
+	it('opens the menu in the select tool', async () => {
+		await renderTldrawComponent(
+			<Tldraw
+				onMount={(editor) => {
+					editor.createShape({ id: createShapeId(), type: 'geo' })
+				}}
+			/>,
+			{ waitForPatterns: false }
+		)
+		const canvas = await screen.findByTestId('canvas')
+
+		fireEvent.contextMenu(canvas)
+		await screen.findByTestId('context-menu')
+	})
+
 	it.each([
-		'select',
 		'geo',
 		'note',
 		'line',
