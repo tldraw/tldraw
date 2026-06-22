@@ -1,6 +1,6 @@
 import { MAX_WORKSPACE_NAME_LENGTH, Role, ZErrorCode, can } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiDialogBody,
@@ -111,6 +111,30 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 		content.style.maxHeight = '70vh'
 	})
 
+	// The name input live-saves on each keystroke, but we only want one `rename-workspace`
+	// analytics event per edit session. Capture the name on open and the latest on each render,
+	// then fire a single event when the dialog unmounts (closes) if the name actually changed.
+	const initialWorkspaceNameRef = useRef<string | null>(null)
+	const latestWorkspaceNameRef = useRef<string | null>(null)
+	const workspaceName = workspaceMembership?.group?.name ?? null
+	if (initialWorkspaceNameRef.current === null && workspaceName !== null) {
+		initialWorkspaceNameRef.current = workspaceName
+	}
+	if (workspaceName !== null) {
+		latestWorkspaceNameRef.current = workspaceName
+	}
+	const trackEventRef = useRef(trackEvent)
+	trackEventRef.current = trackEvent
+	useEffect(() => {
+		return () => {
+			const initial = initialWorkspaceNameRef.current
+			const latest = latestWorkspaceNameRef.current
+			if (initial !== null && latest !== null && latest !== initial) {
+				trackEventRef.current('rename-workspace', { source: 'workspace-settings' })
+			}
+		}
+	}, [])
+
 	if (!workspaceMembership) return null
 	const workspace = workspaceMembership.group
 	if (!workspace) return null
@@ -146,9 +170,14 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 		setTimeout(() => setCopiedInviteLink(false), 1000)
 	}
 
-	const handleToggleInviteLink = (enabled: boolean) => {
-		app.z.mutate.setWorkspaceInviteLinkEnabled({ id: workspaceId, enabled })
-		trackEvent('set-workspace-invite-link-enabled', { source: 'workspace-settings', enabled })
+	const handleToggleInviteLink = async (enabled: boolean) => {
+		try {
+			await app.z.mutate.setWorkspaceInviteLinkEnabled({ id: workspaceId, enabled }).client
+			trackEvent('set-workspace-invite-link-enabled', { source: 'workspace-settings', enabled })
+		} catch (error) {
+			console.error('Error toggling invite link:', error)
+			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
+		}
 	}
 
 	const handleRegenerateInviteLink = async () => {
@@ -316,7 +345,6 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 							const name = value.trim()
 							if (name && name !== workspace.name) {
 								app.z.mutate.updateWorkspace({ id: workspaceId, name })
-								trackEvent('rename-workspace', { source: 'workspace-settings' })
 							}
 						}}
 						placeholder={namePlaceholderMsg}
