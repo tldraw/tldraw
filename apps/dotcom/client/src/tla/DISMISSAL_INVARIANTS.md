@@ -16,6 +16,11 @@ knobs differ, so treat the **Behavior matrix** below as the contract and re-deri
 > is underneath the press** (navigate to a file, open a second menu, create a shape, hit a button).
 > To then interact, you press again.
 
+Dismissal is judged at pointer-**down**, not on a full click: it fires on an outside pointer-down. A
+gesture that _begins inside_ a dismissable and releases outside (e.g. selecting text in a dialog and
+dragging onto the backdrop) does **not** dismiss. (Enforced by `Dialogs.test.tsx` /
+`test-dialogs.spec.ts`.)
+
 The one deliberate exception is **dragging on the canvas** — see the matrix.
 
 ---
@@ -138,9 +143,10 @@ on the region overlays for the drag-forward.
   does **not** block the page or consume the press. (The overlays add the "only dismiss" on top.)
 - **Modal select:** blocks outside pointer events (no click-through) + focus trap; native-`<select>`
   feel.
-- **Modal dialog:** all-stacked-modal, **layer-aware** dismissal (Escape / background press closes
-  only the topmost layer; a nested select/dialog dismisses inner-first), a background overlay that is
-  the press target, and `preventBackgroundClose` (background press ignored, Escape still closes).
+- **Modal dialog:** all-stacked-modal (each stacked layer stays interactive over its parent),
+  **layer-aware** dismissal (Escape / background press closes only the topmost layer; a nested
+  select/dialog dismisses inner-first), a background overlay that is the press target, and
+  `preventBackgroundClose` (background press ignored, Escape still closes).
 - **Positioning:** portal into `useContainer()` (the app container), `side`/`align`/offsets, and
   `collisionPadding` so menus stay in view.
 
@@ -153,6 +159,11 @@ on the region overlays for the drag-forward.
   Radix.
 - The **hide-dismissal**: when the sidebar hides, its menus are cleared (they're rendered by the
   still-mounted sidebar). Driven by the sidebar's visibility flags, not by any menu library.
+- The **stable global menu id** for the workspace switcher — its open state lives in `tlmenus` under
+  a fixed id (not scoped to the active editor's context), so a workspace switch (editor remount +
+  focus steal) does **not** dismiss it. This is the inverse invariant: a thing that must _not_
+  trigger dismissal. (workspaces.spec.ts "reopening the switcher right after switching keeps it
+  open".)
 
 **Open gap (intentional follow-up):** the editor header is the one chrome surface still above
 `MenuClickCapture` without an overlay; clicking header buttons while a header menu is open can still
