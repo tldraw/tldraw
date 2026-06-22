@@ -7,6 +7,7 @@ import { uniqueId, useDialogs, useGlobalMenuIsOpen, useMaybeEditor, useValue } f
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
+import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { defineMessages, useMsg } from '../../../utils/i18n'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
@@ -244,6 +245,7 @@ function useCreateWorkspaceDialog() {
 	const navigate = useNavigate()
 	const { addDialog } = useDialogs()
 	const switchToWorkspace = useSwitchToWorkspace()
+	const trackEvent = useTldrawAppUiEvents()
 
 	return useCallback(() => {
 		addDialog({
@@ -258,6 +260,7 @@ function useCreateWorkspaceDialog() {
 							app.showMutationRejectionToast((e as Error).message as ZErrorCode)
 							return
 						}
+						trackEvent('create-workspace', { source: 'sidebar' })
 						// Seed the workspace's welcome file once, here at creation, and open it
 						// directly (not via switchToWorkspace, whose empty-workspace path would
 						// otherwise create a blank file before the welcome file lands).
@@ -274,5 +277,5 @@ function useCreateWorkspaceDialog() {
 				/>
 			),
 		})
-	}, [app, addDialog, navigate, switchToWorkspace])
+	}, [app, addDialog, navigate, switchToWorkspace, trackEvent])
 }

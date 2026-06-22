@@ -14,6 +14,7 @@ import {
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import {
 	TlaMenuControl,
@@ -73,6 +74,7 @@ function useScrollbarWhenScrollable() {
 export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSettingsDialogProps) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
+	const trackEvent = useTldrawAppUiEvents()
 	const [activeTab, setActiveTab] = useState('members')
 	const [copiedInviteLink, setCopiedInviteLink] = useState(false)
 
@@ -146,11 +148,13 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 
 	const handleToggleInviteLink = (enabled: boolean) => {
 		app.z.mutate.setWorkspaceInviteLinkEnabled({ id: workspaceId, enabled })
+		trackEvent('set-workspace-invite-link-enabled', { source: 'workspace-settings', enabled })
 	}
 
 	const handleRegenerateInviteLink = async () => {
 		try {
 			await app.z.mutate.regenerateWorkspaceInviteSecret({ id: workspaceId }).server
+			trackEvent('regenerate-workspace-invite-secret', { source: 'workspace-settings' })
 		} catch (error) {
 			console.error('Error regenerating invite link:', error)
 			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
@@ -162,6 +166,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			const isCurrentlyOnAFileInThisWorkspace =
 				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
 			await app.z.mutate.leaveWorkspace({ workspaceId }).client
+			trackEvent('leave-workspace', { source: 'workspace-settings' })
 			onClose()
 			if (isCurrentlyOnAFileInThisWorkspace) {
 				navigate('/')
@@ -177,6 +182,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			const isCurrentlyOnAFileInThisWorkspace =
 				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
 			await app.z.mutate.deleteWorkspace({ id: workspaceId }).client
+			trackEvent('delete-workspace', { source: 'workspace-settings' })
 			onClose()
 			if (isCurrentlyOnAFileInThisWorkspace) {
 				navigate('/')
@@ -190,6 +196,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const handleRemoveMember = async (targetUserId: string) => {
 		try {
 			await app.z.mutate.removeWorkspaceMember({ workspaceId, targetUserId }).client
+			trackEvent('remove-workspace-member', { source: 'workspace-settings' })
 		} catch (error) {
 			console.error('Error removing member:', error)
 			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
@@ -309,6 +316,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 							const name = value.trim()
 							if (name && name !== workspace.name) {
 								app.z.mutate.updateWorkspace({ id: workspaceId, name })
+								trackEvent('rename-workspace', { source: 'workspace-settings' })
 							}
 						}}
 						placeholder={namePlaceholderMsg}
@@ -439,6 +447,10 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 																		targetUserId: member.userId,
 																		role: value,
 																	}).client
+																	trackEvent('set-workspace-member-role', {
+																		source: 'workspace-settings',
+																		role: value,
+																	})
 																} catch (err) {
 																	console.error('Failed to change member role', err)
 																	app.showMutationRejectionToast(
