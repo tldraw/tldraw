@@ -10181,6 +10181,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (ids.length === 0) return undefined
 
+		// Text geometry is measured from the loaded font, so the export's bounds - and the
+		// layout of any text within it - depend on the right fonts having loaded. Wait for them
+		// before we measure; otherwise an export taken before fonts finish loading (e.g. right
+		// after the editor mounts) is sized and laid out with fallback-font metrics.
+		await this.fonts.loadRequiredFontsForCurrentPage(this.options.maxFontsToLoadBeforeRender)
+
 		return exportToSvg(this, ids, opts)
 	}
 
