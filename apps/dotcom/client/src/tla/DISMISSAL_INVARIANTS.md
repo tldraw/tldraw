@@ -143,10 +143,15 @@ on the region overlays for the drag-forward.
   does **not** block the page or consume the press. (The overlays add the "only dismiss" on top.)
 - **Modal select:** blocks outside pointer events (no click-through) + focus trap; native-`<select>`
   feel.
-- **Modal dialog:** all-stacked-modal (each stacked layer stays interactive over its parent),
-  **layer-aware** dismissal (Escape / background press closes only the topmost layer; a nested
-  select/dialog dismisses inner-first), a background overlay that is the press target, and
-  `preventBackgroundClose` (background press ignored, Escape still closes).
+- **Modal dialog:** **every stacked dialog stays modal** — never make a lower one non-modal. That one
+  rule yields both behaviors below. (a) **Layer-aware** dismissal: Radix's focus-scope stack _pauses_
+  lower dialogs instead of dismissing them, so Escape / a background press closes only the topmost (a
+  nested select/dialog dismisses inner-first). (b) **Stays interactive**: opening a nested dialog
+  doesn't collapse its parent, and the topmost dialog's controls keep responding — taps on mobile
+  included. A non-modal lower dialog has no focus scope, so it dismisses on the focus shift when a
+  child opens, collapsing the whole stack (and it broke nested taps on mobile). Plus a background
+  overlay that is the press target, and `preventBackgroundClose` (background press ignored, Escape
+  still closes).
 - **Positioning:** portal into `useContainer()` (the app container), `side`/`align`/offsets, and
   `collisionPadding` so menus stay in view.
 
