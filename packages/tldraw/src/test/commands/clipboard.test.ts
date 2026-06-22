@@ -478,6 +478,6 @@ describe('When copying and pasting', () => {
 		const pastedShape = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		const pastedPoint = { x: pastedShape.x, y: pastedShape.y }
 
-		expect(pastedPoint).toMatchObject({ x: 150, y: 150 }) // center of group
+		expect(pastedPoint).toMatchObject({ x: 0, y: 0 }) // pasted in place, same spot as the copied shape
 	})
 })

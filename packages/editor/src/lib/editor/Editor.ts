@@ -10075,12 +10075,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (point === undefined) {
 				if (!isPageId(pasteParentId)) {
-					// Paste into selected parent → center in that shape
-					const shape = this.getShape(pasteParentId)!
-					point = Mat.applyToPoint(
-						this.getShapePageTransform(shape),
-						this.getShapeGeometry(shape).bounds.center
-					)
+					const parent = this.getShape(pasteParentId)!
+					const parentPageBounds = this.getShapePageBounds(parent)
+					// If the copied shapes already sit inside the paste target (e.g. you
+					// copied a shape from this frame and pasted it back with that shape
+					// still selected), keep them where they are. Only recenter when
+					// pasting into a different container than the content came from.
+					if (parentPageBounds?.containsPoint(rootBounds.center)) {
+						point = rootBounds.center
+					} else {
+						// Paste into selected parent → center in that shape
+						point = Mat.applyToPoint(
+							this.getShapePageTransform(parent),
+							this.getShapeGeometry(parent).bounds.center
+						)
+					}
 				} else if (preservePosition) {
 					// preservePosition (page duplication) → keep original coords
 					point = rootBounds.center
