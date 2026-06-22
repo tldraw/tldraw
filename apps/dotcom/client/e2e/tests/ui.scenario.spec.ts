@@ -181,6 +181,29 @@ test.describe('UI scenarios', () => {
 		await expect(visitor.page.getByTestId('tla-error-icon')).toBeVisible()
 	})
 
+	test('pressing the canvas with a select open dismisses the menus without drawing', async ({
+		owner,
+		scenario,
+	}) => {
+		await scenario.createPersonalFile(owner, scenario.name('select audit file'))
+
+		await owner.shareMenu.open()
+		await owner.shareMenu.exportTabButton.click()
+		await expect(owner.shareMenu.exportTabPage).toBeVisible()
+
+		// Open the export-format select (Radix `Select` is always modal).
+		await owner.page.locator('#tla-export-format-select').click()
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeVisible()
+
+		// Press the canvas — outside both the select and the share menu. The whole stack dismisses
+		// (the canvas's MenuClickCapture clears open menus), and crucially the press does not click
+		// through to the canvas: no shape is drawn.
+		await owner.page.mouse.click(600, 300)
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeHidden()
+		await expect(owner.shareMenu.exportTabPage).toBeHidden()
+		await owner.editor.expectShapesCount(0)
+	})
+
 	test('missing files show not-found UI to signed-in and signed-out users', async ({
 		owner,
 		visitor,

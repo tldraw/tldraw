@@ -98,9 +98,14 @@ Given **an open menu/popover** (dropdown, file menu, switcher, share popover), a
 | **Escape key**                                                                                          | dismiss the **topmost** dismissable only (layer-aware)                                   | —                                                                              |
 | **the menu's owner hides** (sidebar slides away via toggle / `Cmd+\` / focus mode / mobile-overlay tap) | the menu dismisses with it (it's rendered by the still-mounted sidebar; cleared on hide) | —                                                                              |
 
-For **selects** (modal today): an outside press dismisses only — already no click-through. A select
-opened **inside a dialog** is its own dismissable layer: pressing outside the select but inside the
-dialog dismisses **only the select**, not the dialog.
+For **selects** (modal today): an outside press dismisses only — already no click-through to
+ordinary elements (the modal blocks them). A select opened **inside a dialog** is its own
+dismissable layer: pressing outside the select but inside the dialog dismisses **only the select**,
+not the dialog. The one place the modal is (intentionally) defeated is the **canvas**: a press there
+hits `MenuClickCapture` — `pointer-events: all`, which overrides the select's body-level
+`pointer-events: none` — so a canvas press clears the _whole_ open stack (the select **and** any
+menu it sits inside) rather than just the topmost select. That's correct: the canvas is outside
+everything, and it still doesn't draw (verified by e2e).
 
 For **dialogs** (modal today): the overlay/positioner is the press target, so a background press
 dismisses the dialog with **no click-through**; Escape / background press dismisses **only the
