@@ -20,6 +20,7 @@ import { MetroTool } from './MetroTool'
 import { LinePreviewOverlayUtil } from './overlays/LinePreviewOverlayUtil'
 import { PassengerOverlayUtil } from './overlays/PassengerOverlayUtil'
 import { TrainOverlayUtil } from './overlays/TrainOverlayUtil'
+import RideView from './RideView'
 import { linePoints, stepWorld, World } from './sim'
 import './mini-metro.css'
 
@@ -249,6 +250,7 @@ export default function MiniMetroExample() {
 				<GameRunner />
 				<Hud />
 				<Hint />
+				<RideView />
 				<GameOver />
 			</Tldraw>
 		</div>
