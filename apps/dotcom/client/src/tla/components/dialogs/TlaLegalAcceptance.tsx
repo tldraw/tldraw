@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react'
 import { TldrawUiDialogBody, TldrawUiDialogHeader, TldrawUiDialogTitle } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
+import { ExternalLink } from '../ExternalLink/ExternalLink'
 import { TlaMenuSwitch } from '../tla-menu/tla-menu'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
@@ -74,16 +75,8 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 					<F
 						defaultMessage="Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>."
 						values={{
-							tos: (chunks) => (
-								<a href="/tos.html" target="_blank" rel="noopener noreferrer">
-									{chunks}
-								</a>
-							),
-							privacy: (chunks) => (
-								<a href="/privacy.html" target="_blank" rel="noopener noreferrer">
-									{chunks}
-								</a>
-							),
+							tos: (chunks) => <ExternalLink to="/tos.html">{chunks}</ExternalLink>,
+							privacy: (chunks) => <ExternalLink to="/privacy.html">{chunks}</ExternalLink>,
 						}}
 					/>
 				</p>
@@ -94,11 +87,7 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 							<F
 								defaultMessage="Allow <cookies>analytics</cookies> to help us improve tldraw."
 								values={{
-									cookies: (chunks) => (
-										<a href="/cookies.html" target="_blank" rel="noopener noreferrer">
-											{chunks}
-										</a>
-									),
+									cookies: (chunks) => <ExternalLink to="/cookies.html">{chunks}</ExternalLink>,
 								}}
 							/>
 						</span>

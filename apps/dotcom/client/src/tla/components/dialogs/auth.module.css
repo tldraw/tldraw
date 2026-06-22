@@ -58,7 +58,7 @@
 .authCtaButton img {
 	width: 22px;
 	height: 22px;
-	padding: 4px;
+	padding: var(--tl-space-2);
 	z-index: 2;
 	background-color: var(--tl-color-selected-contrast);
 	border-radius: 100%;
@@ -187,7 +187,7 @@
 .authOtpBoxes {
 	display: grid;
 	grid-template-columns: repeat(6, 40px);
-	gap: 8px;
+	gap: var(--tl-space-3);
 }
 
 .authOtpBox {

@@ -988,7 +988,7 @@ test.describe('Export snapshots', () => {
 				)
 
 				await page.evaluate(
-					({
+					async ({
 						colorScheme,
 						name,
 						snapshot,
@@ -1064,6 +1064,13 @@ test.describe('Export snapshots', () => {
 
 							y = bottom + 40
 						}
+
+						// Wait for every font used on the page to finish loading before exporting.
+						// Text geometry - and therefore the export's bounding box - is measured from
+						// the loaded font; while a font is still loading the shapes fall back to
+						// system-font metrics, which gives the export a slightly different size and
+						// makes the screenshot diff flaky.
+						await editor.fonts.loadRequiredFontsForCurrentPage()
 
 						tldrawApi.markAllArrowBindings()
 						editor.selectAll()

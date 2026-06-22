@@ -1,8 +1,8 @@
 .menuSection {
 	display: flex;
-	padding: 12px;
+	padding: var(--tl-space-4);
 	flex-direction: column;
-	gap: 12px;
+	gap: var(--tl-space-4);
 }
 
 .menuSection:nth-of-type(n + 2) {
@@ -12,7 +12,7 @@
 .menuControlGroup {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: var(--tl-space-2);
 }
 
 .menuControlGroup + .menuControlGroup {
@@ -109,7 +109,7 @@
 	display: flex;
 	align-items: center;
 	height: 24px;
-	gap: 4px;
+	gap: var(--tl-space-2);
 	justify-content: flex-end;
 	cursor: pointer;
 	padding-left: 2px;
@@ -154,8 +154,8 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	position: relative;
 	display: flex;
 	align-items: center;
-	padding: 8px;
-	gap: 4px;
+	padding: var(--tl-space-3);
+	gap: var(--tl-space-2);
 	cursor: pointer;
 	z-index: 1;
 	margin-bottom: -4px;
@@ -210,7 +210,7 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 
 .menuSelectSeparator {
 	height: 1px;
-	margin: 4px;
+	margin: var(--tl-space-2);
 	background-color: var(--tl-color-divider);
 }
 
@@ -334,7 +334,7 @@ div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
 	position: relative;
 	overflow-x: auto;
 	flex: 1;
-	--tab-padding: 12px;
+	--tab-padding: var(--tl-space-4);
 	--line-height: 2px;
 }
 
