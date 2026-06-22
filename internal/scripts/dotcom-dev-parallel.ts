@@ -125,6 +125,11 @@ function main() {
 
 	mkdirSync(env.WRANGLER_REGISTRY_PATH, { recursive: true })
 
+	// Publish the block's ports for tools that run in a separate process and can't inherit this env —
+	// notably the e2e harness (apps/dotcom/client/e2e/fixtures/Database.ts), which connects straight
+	// to this block's postgres.
+	writeFileSync(join(repoRoot, '.dev-ports.json'), JSON.stringify(env, null, 2))
+
 	const child = spawn(
 		'process-compose',
 		['-f', 'apps/dotcom/process-compose.yaml', 'up', '--port', env.PC_PORT],
