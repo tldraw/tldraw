@@ -66,6 +66,21 @@ describe('long press on shape-creation tools', () => {
 			editor.pointerUp(100, 100)
 			expect(editor.getCurrentPageShapes()).toHaveLength(1)
 		})
+
+		it('defers note creation so a long press never flashes a note', () => {
+			// The note creates on press, so without deferral the long-press cancel
+			// would briefly show then remove it. On a coarse pointer it is created on
+			// release (or drag) instead, so nothing appears during the press.
+			editor.setCurrentTool('note')
+			editor.pointerDown(100, 100)
+			expect(editor.getCurrentPageShapes()).toHaveLength(0)
+
+			// a tap still creates the note on release
+			editor.pointerUp(100, 100)
+			const shapes = editor.getCurrentPageShapes()
+			expect(shapes).toHaveLength(1)
+			expect(shapes[0].type).toBe('note')
+		})
 	})
 
 	describe('with a fine pointer, the long press is ignored', () => {
