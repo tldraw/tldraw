@@ -372,7 +372,7 @@ export interface OnDragFromToolbarToCreateShapesOpts {
 	 * type. Set this when the dragged shape's type differs from the tool it's dragged from — for
 	 * example, dragging a `draw` shape out from the select tool.
 	 */
-	toolId?: string
+	maskedToolId?: string
 }
 
 /**
@@ -411,5 +411,7 @@ export function onDragFromToolbarToCreateShape(
 		},
 	})
 
-	editor.getCurrentTool().setCurrentToolIdMask(opts.toolId ?? shape.type)
+	if (opts.maskedToolId) {
+		editor.getCurrentTool().setCurrentToolIdMask(opts.maskedToolId)
+	}
 }

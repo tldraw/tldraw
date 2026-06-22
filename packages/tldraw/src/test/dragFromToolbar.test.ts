@@ -43,7 +43,7 @@ describe('onDragFromToolbarToCreateShape', () => {
 		// reproduces #9221: dragging a `draw` shape out from the select tool should keep
 		// the select tool highlighted, not the draw (pen) tool.
 		onDragFromToolbarToCreateShape(editor, dragInfo(), {
-			toolId: 'select',
+			maskedToolId: 'select',
 			createShape: (id) =>
 				editor.createShape({
 					id,
