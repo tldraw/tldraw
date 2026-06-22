@@ -1,5 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react'
-import { createShapeId } from '@tldraw/editor'
+import { createShapeId, tlenvReactive } from '@tldraw/editor'
 import { TLComponents, Tldraw } from '../../lib/Tldraw'
 import { DefaultContextMenu } from '../../lib/ui/components/ContextMenu/DefaultContextMenu'
 import {
@@ -26,40 +26,70 @@ it('opens on right-click', async () => {
 	expect(screen.queryByTestId('context-menu')).toBeNull()
 })
 
-// A long-press (a bare contextmenu event, with no switch to select) must not open
-// the menu in any non-select tool — the menu is a select-tool surface. This covers
-// the discrete shape-creation tools (whose long-press cancels back to idle) and the
-// continuous-gesture tools (eraser erases, draw/highlight/laser draw, hand/zoom
-// navigate). A right-click is different: the editor routes it through select first,
-// so it opens the menu in any tool (see the right-click test below).
-it.each([
-	'geo',
-	'note',
-	'line',
-	'text',
-	'arrow',
-	'frame',
-	'eraser',
-	'draw',
-	'highlight',
-	'laser',
-	'hand',
-	'zoom',
-])('does not open on long-press in the %s tool', async (tool) => {
-	await renderTldrawComponent(
-		<Tldraw
-			onMount={(editor) => {
-				editor.createShape({ id: createShapeId(), type: 'geo' })
-				editor.setCurrentTool(tool)
-			}}
-		/>,
-		{ waitForPatterns: false }
-	)
-	const canvas = await screen.findByTestId('canvas')
+// A touch long-press (coarse pointer) must not open the menu in ANY tool — the menu
+// is a right-click surface. This holds in the select tool too: a long-press belongs
+// to the active gesture, not the menu. (A right-click is a fine pointer; see below.)
+// The instance's isCoarsePointer is synced from tlenv, so flip that to simulate touch.
+describe('on a coarse pointer (touch long-press)', () => {
+	beforeEach(() => {
+		tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: true }))
+	})
+	afterEach(() => {
+		tlenvReactive.update((prev) => ({ ...prev, isCoarsePointer: false }))
+	})
 
-	fireEvent.contextMenu(canvas)
-	expect(screen.queryByTestId('context-menu')).toBeNull()
+	it.each([
+		'select',
+		'geo',
+		'note',
+		'line',
+		'text',
+		'arrow',
+		'frame',
+		'eraser',
+		'draw',
+		'highlight',
+		'laser',
+		'hand',
+		'zoom',
+	])('does not open the menu in the %s tool', async (tool) => {
+		await renderTldrawComponent(
+			<Tldraw
+				onMount={(editor) => {
+					editor.createShape({ id: createShapeId(), type: 'geo' })
+					editor.setCurrentTool(tool)
+				}}
+			/>,
+			{ waitForPatterns: false }
+		)
+		const canvas = await screen.findByTestId('canvas')
+
+		fireEvent.contextMenu(canvas)
+		expect(screen.queryByTestId('context-menu')).toBeNull()
+	})
 })
+
+// A right-click (fine pointer) opens the menu in any tool — the editor routes the
+// click through the select tool. Regression guard: gating on the tool instead of the
+// pointer type used to suppress this because the switch-to-select lagged the render.
+it.each(['select', 'geo', 'note', 'eraser', 'draw'])(
+	'opens on right-click in the %s tool',
+	async (tool) => {
+		await renderTldrawComponent(
+			<Tldraw
+				onMount={(editor) => {
+					editor.createShape({ id: createShapeId(), type: 'geo' })
+					editor.setCurrentTool(tool)
+				}}
+			/>,
+			{ waitForPatterns: false }
+		)
+		const canvas = await screen.findByTestId('canvas')
+
+		fireEvent.contextMenu(canvas)
+		await screen.findByTestId('context-menu')
+	}
+)
 
 it('right-click in a shape tool reveals shape actions (rightClickPanning off)', async () => {
 	// Regression for #8277: a right-click while a shape-creation tool is active

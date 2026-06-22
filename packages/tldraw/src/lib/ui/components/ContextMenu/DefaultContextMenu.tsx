@@ -28,14 +28,16 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 
 	const { Canvas } = useEditorComponents()
 
-	// The context menu is a select-tool surface — every item acts on the selection.
-	// A long-press only opens it in the select tool; in any other tool a long-press
-	// is that tool's own gesture (creating, erasing, drawing, panning), so the menu
-	// stays closed. A right-click still opens it anywhere, because the editor routes
-	// right-clicks through the select tool before the menu opens.
-	const appliesToCurrentTool = useValue(
-		'context menu applies to current tool',
-		() => editor.isIn('select'),
+	// The context menu is a right-click surface. A right-click (fine pointer) opens
+	// it in any tool — the editor routes the click through the select tool first. A
+	// touch long-press (coarse pointer) does not open it: that gesture belongs to the
+	// active tool (creating, erasing, drawing, panning). We key off the pointer type,
+	// not the tool, on purpose: a right-click switches to select synchronously within
+	// the same gesture, so gating on the tool would race the React render and wrongly
+	// suppress the menu (the bug where a desktop right-click stopped opening it).
+	const menuCanOpen = useValue(
+		'context menu can open for pointer',
+		() => !editor.getInstanceState().isCoarsePointer,
 		[editor]
 	)
 
@@ -133,9 +135,9 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 				// When suppressed, disabling the trigger stops Radix from opening the
 				// menu, but it also stops Radix from preventing the native contextmenu —
 				// so prevent the browser's own menu ourselves in that case.
-				onContextMenu={appliesToCurrentTool ? undefined : preventDefault}
+				onContextMenu={menuCanOpen ? undefined : preventDefault}
 				dir="ltr"
-				disabled={disabled || !appliesToCurrentTool}
+				disabled={disabled || !menuCanOpen}
 			>
 				{Canvas ? <Canvas /> : null}
 			</_ContextMenu.Trigger>
