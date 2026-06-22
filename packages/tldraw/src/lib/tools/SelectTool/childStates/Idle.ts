@@ -367,9 +367,9 @@ export class Idle extends StateNode {
 						// The shape is a child of a group that the user hasn't
 						// drilled into yet (it's outside the focused group and
 						// not an ancestor of it). The user's double-click is a
-						// drill action, not an edit action: select the right
-						// shape via `selectOnCanvasPointerUp` and stop.
-						selectOnCanvasPointerUp(this.editor, info)
+						// drill action, not an edit action: drill one level and
+						// stop.
+						this.drillIntoGroupOnDoubleClick(hitShape)
 						return
 					}
 
@@ -404,6 +404,10 @@ export class Idle extends StateNode {
 					this.editor.isShapeOfType(parent, 'group') &&
 					!this.isGroupInPreviousDrillContext(parent.id)
 				) {
+					// The shape is a child of a group the user hasn't drilled into
+					// yet. Treat the double-click as a drill action — drill one
+					// level — but don't start editing.
+					this.drillIntoGroupOnDoubleClick(onlySelectedShape)
 					break
 				}
 
@@ -480,6 +484,10 @@ export class Idle extends StateNode {
 					this.editor.isShapeOfType(parent, 'group') &&
 					!this.isGroupInPreviousDrillContext(parent.id)
 				) {
+					// The shape is a child of a group the user hasn't drilled into
+					// yet. Treat the double-click as a drill action — drill one
+					// level — but don't start editing.
+					this.drillIntoGroupOnDoubleClick(shape)
 					break
 				}
 
@@ -783,6 +791,64 @@ export class Idle extends StateNode {
 		// focused group, so a shape whose parent is `groupId` is at the
 		// user's effective level (e.g. siblings of the inner focused group).
 		return this.editor.hasAncestor(focusedGroup, groupId)
+	}
+
+	/**
+	 * Drill exactly one level into a group on double-click: select the shape
+	 * one level deeper than a single click would.
+	 *
+	 * A single click from a given focus selects that focus's child on the path
+	 * down to `hitShape`; a double-click should select one level deeper. We
+	 * compute both **structurally** from the focused group captured at the
+	 * start of the click sequence (`focusedGroupIdBeforePointerDown`) rather
+	 * than from the live focused group. The live focus is unreliable here: the
+	 * first click of the double-click has already drilled and moved the focused
+	 * group, so reading it now (or asking `getOutermostSelectableShape`, which
+	 * reads it internally) drills an inconsistent number of levels — e.g. a
+	 * shape nested two groups below the focused group would jump straight to the
+	 * leaf instead of stepping in one level.
+	 *
+	 * The focused group follows the selection automatically (see the
+	 * selection-change reactor in `Editor`), so we only need to select.
+	 */
+	private drillIntoGroupOnDoubleClick(hitShape: TLShape) {
+		const snapshotFocus = this.focusedGroupIdBeforePointerDown ?? this.editor.getCurrentPageId()
+
+		// The outermost *selectable group* ancestor of `hitShape` below the
+		// captured focus — i.e. what a single click selects. We count levels by
+		// group, not raw parent, so non-group parents (e.g. frames) don't act as
+		// a drill level.
+		let outermostGroup: TLShape | null = null
+		let node = this.editor.getShapeParent(hitShape)
+		while (node && node.id !== snapshotFocus) {
+			if (this.editor.isShapeOfType(node, 'group')) outermostGroup = node
+			node = this.editor.getShapeParent(node)
+		}
+		if (!outermostGroup) return
+
+		// One level deeper than the single-click selection: the child of that
+		// group on the path down to `hitShape` (which is `hitShape` itself when
+		// the group directly contains it, or the next nested group when it
+		// doesn't).
+		const target = this.getChildOnPathToShape(outermostGroup.id, hitShape) ?? hitShape
+
+		if (!this.editor.getSelectedShapeIds().includes(target.id)) {
+			this.editor.markHistoryStoppingPoint('drilling into group')
+			this.editor.select(target.id)
+		}
+	}
+
+	/**
+	 * Returns the ancestor-or-self of `shape` whose direct parent is
+	 * `ancestorId`, or `null` if `ancestorId` is not an ancestor of `shape`.
+	 */
+	private getChildOnPathToShape(ancestorId: TLShapeId | TLPageId, shape: TLShape): TLShape | null {
+		let node: TLShape | undefined = shape
+		while (node) {
+			if (node.parentId === ancestorId) return node
+			node = this.editor.getShapeParent(node)
+		}
+		return null
 	}
 
 	private startEditingShape(

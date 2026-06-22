@@ -1010,6 +1010,128 @@ describe('When double clicking the selection edge', () => {
 		editor.expectToBeIn('select.editing_shape')
 	})
 
+	it('drills a fresh double-click into a group consistently across canvas and shape targets', () => {
+		// A rapid double-click on a filled shape inside an un-entered group
+		// should drill in — select the child and focus the group — without
+		// entering editing. This must hold whether the double-click event
+		// arrives with target 'canvas' (hollow shapes / margins) or 'shape'
+		// (filled shapes), so the two paths can't disagree.
+		const setup = () => {
+			const childAId = createShapeId()
+			const childBId = createShapeId()
+			editor
+				.selectAll()
+				.deleteShapes(editor.getSelectedShapeIds())
+				.selectNone()
+				.createShapes([
+					{ id: childAId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100, fill: 'solid' } },
+					{ id: childBId, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100, fill: 'solid' } },
+				])
+				.groupShapes([childAId, childBId])
+			const groupId = editor.getOnlySelectedShapeId()!
+			editor.selectNone()
+			return { childAId, groupId }
+		}
+
+		const viaCanvas = setup()
+		editor.pointerMove(150, 150).doubleClick(150, 150)
+		expect(editor.getOnlySelectedShapeId()).toBe(viaCanvas.childAId)
+		expect(editor.getFocusedGroupId()).toBe(viaCanvas.groupId)
+		expect(editor.getEditingShapeId()).toBe(null)
+
+		const viaShape = setup()
+		editor
+			.pointerMove(150, 150)
+			.doubleClick(150, 150, { target: 'shape', shape: editor.getShape(viaShape.childAId)! })
+		expect(editor.getOnlySelectedShapeId()).toBe(viaShape.childAId)
+		expect(editor.getFocusedGroupId()).toBe(viaShape.groupId)
+		expect(editor.getEditingShapeId()).toBe(null)
+	})
+
+	it('drills a fresh double-click only one level into a group-inside-a-group', () => {
+		// page -> outerGroup -> { innerGroup -> { childA, childB }, sibling }
+		// A fresh double-click on childA should drill a single level: select the
+		// inner group (and focus the outer group), NOT jump straight to the leaf
+		// childA. This must hold for both canvas and shape targets.
+		const setup = () => {
+			const childAId = createShapeId()
+			const childBId = createShapeId()
+			const siblingId = createShapeId()
+			const innerGroupId = createShapeId()
+			const outerGroupId = createShapeId()
+			editor
+				.selectAll()
+				.deleteShapes(editor.getSelectedShapeIds())
+				.selectNone()
+				.createShapes([
+					{ id: childAId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100, fill: 'solid' } },
+					{ id: childBId, type: 'geo', x: 300, y: 100, props: { w: 100, h: 100, fill: 'solid' } },
+					{ id: siblingId, type: 'geo', x: 600, y: 100, props: { w: 100, h: 100, fill: 'solid' } },
+				])
+				.groupShapes([childAId, childBId], { groupId: innerGroupId })
+				.groupShapes([innerGroupId, siblingId], { groupId: outerGroupId })
+				.selectNone()
+			return { childAId, innerGroupId, outerGroupId }
+		}
+
+		const viaCanvas = setup()
+		editor.pointerMove(150, 150).doubleClick(150, 150)
+		expect(editor.getOnlySelectedShapeId()).toBe(viaCanvas.innerGroupId)
+		expect(editor.getFocusedGroupId()).toBe(viaCanvas.outerGroupId)
+		expect(editor.getEditingShapeId()).toBe(null)
+
+		const viaShape = setup()
+		editor
+			.pointerMove(150, 150)
+			.doubleClick(150, 150, { target: 'shape', shape: editor.getShape(viaShape.childAId)! })
+		expect(editor.getOnlySelectedShapeId()).toBe(viaShape.innerGroupId)
+		expect(editor.getFocusedGroupId()).toBe(viaShape.outerGroupId)
+		expect(editor.getEditingShapeId()).toBe(null)
+	})
+
+	it('drills only one level per double-click when already drilled into an outer group', () => {
+		// page -> G1 -> { G2 -> { G3 -> { leaf, leafB }, leafC }, sibling }
+		// The user has already drilled into G1 (G2 selected, G1 focused). A
+		// rapid double-click on `leaf` must drill exactly one more level —
+		// select G3 (and focus G2) — not jump straight to the leaf. This guards
+		// against reading the live focused group (which the first click already
+		// advanced) instead of the focus captured at the start of the sequence.
+		const leafId = createShapeId()
+		const leafBId = createShapeId()
+		const leafCId = createShapeId()
+		const siblingId = createShapeId()
+		const g3 = createShapeId()
+		const g2 = createShapeId()
+		const g1 = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([
+				{ id: leafId, type: 'geo', x: 100, y: 100, props: { w: 80, h: 80, fill: 'solid' } },
+				{ id: leafBId, type: 'geo', x: 200, y: 100, props: { w: 80, h: 80, fill: 'solid' } },
+				{ id: leafCId, type: 'geo', x: 320, y: 100, props: { w: 80, h: 80, fill: 'solid' } },
+				{ id: siblingId, type: 'geo', x: 500, y: 100, props: { w: 80, h: 80, fill: 'solid' } },
+			])
+			.groupShapes([leafId, leafBId], { groupId: g3 })
+			.groupShapes([g3, leafCId], { groupId: g2 })
+			.groupShapes([g2, siblingId], { groupId: g1 })
+			.selectNone()
+
+		// Drill into G1: selecting G2 focuses G1 (its nearest group ancestor).
+		editor.select(g2)
+		expect(editor.getFocusedGroupId()).toBe(g1)
+		editor.cancelDoubleClick()
+
+		editor
+			.pointerMove(130, 130)
+			.doubleClick(130, 130, { target: 'shape', shape: editor.getShape(leafId)! })
+
+		expect(editor.getOnlySelectedShapeId()).toBe(g3)
+		expect(editor.getFocusedGroupId()).toBe(g2)
+		expect(editor.getEditingShapeId()).toBe(null)
+	})
+
 	it('Resets the cursor to default when entering editing mode from a resize handle', () => {
 		const id = createShapeId()
 		editor
