@@ -522,18 +522,18 @@ export async function defaultHandleExternalTextContent(
 		maxWidth: null,
 	})
 
-	const minWidth = Math.min(
-		isMultiLine ? editor.getViewportPageBounds().width * 0.9 : 920,
-		Math.max(200, editor.getViewportPageBounds().width * 0.9)
-	)
+	const vpb = editor.getViewportPageBounds()
+	const padding = 40 / editor.getZoomLevel()
+	const maxWidth = vpb.width - padding * 2
 
-	if (rawSize.w > minWidth) {
+	if (rawSize.w > maxWidth) {
+		// The text is wider than the viewport, so wrap it to fit on screen.
 		const shrunkSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 			...TEXT_PROPS,
 			lineHeight: theme.lineHeight,
 			fontFamily: getFontFamily(theme, defaultProps.font),
 			fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
-			maxWidth: minWidth,
+			maxWidth,
 		})
 		w = shrunkSize.w
 		h = shrunkSize.h
@@ -546,40 +546,21 @@ export async function defaultHandleExternalTextContent(
 		autoSize = true
 	}
 
-	const vpb = editor.getViewportPageBounds()
-	const PADDING = 40
-	const availableWidth = vpb.width - PADDING * 2
-
-	// If the text is wider than the space available on screen, squeeze it horizontally to fit.
-	let didSqueeze = false
-	if (w > availableWidth) {
-		const resized = editor.textMeasure.measureHtml(htmlToMeasure, {
-			...TEXT_PROPS,
-			lineHeight: theme.lineHeight,
-			fontFamily: getFontFamily(theme, defaultProps.font),
-			fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
-			maxWidth: availableWidth,
-		})
-		w = resized.w
-		h = resized.h
-		autoSize = false
-		align = isRtl ? 'end' : 'start'
-		didSqueeze = true
+	// Offset horizontally to keep the text within the viewport.
+	if (p.x - w / 2 < vpb.minX + padding) {
+		p.x = vpb.minX + padding + w / 2
+	} else if (p.x + w / 2 > vpb.maxX - padding) {
+		p.x = vpb.maxX - padding - w / 2
 	}
 
-	// Offset horizontally to keep the text on screen.
-	if (p.x - w / 2 < vpb.minX + PADDING) {
-		p.x = vpb.minX + PADDING + w / 2
-	} else if (p.x + w / 2 > vpb.maxX - PADDING) {
-		p.x = vpb.maxX - PADDING - w / 2
-	}
-
-	// Vertically, always offset down so the top stays visible.
-	// Offset up when the text wasn't squeezed
-	if (p.y - h / 2 < vpb.minY + PADDING) {
-		p.y = vpb.minY + PADDING + h / 2
-	} else if (!didSqueeze && p.y + h / 2 > vpb.maxY - PADDING) {
-		p.y = vpb.maxY - PADDING - h / 2
+	// Offset up or down vertically to keep the text within the viewport,
+	// but don't let the top cross the top safe zone.
+	const topSafe = vpb.minY + padding
+	const bottomSafe = vpb.maxY - padding
+	if (p.y - h / 2 < topSafe) {
+		p.y = topSafe + h / 2
+	} else if (p.y + h / 2 > bottomSafe) {
+		p.y = Math.max(bottomSafe - h / 2, topSafe + h / 2)
 	}
 
 	const newPoint = maybeSnapToGrid(new Vec(p.x - w / 2, p.y - h / 2), editor)
