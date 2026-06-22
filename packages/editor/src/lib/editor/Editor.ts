@@ -9904,13 +9904,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			for (const shape of selectedShapes) {
-				// Find the nearest container: the shape itself if it can accept,
-				// an accepting ancestor, or fall back to the shape's parent
-				// (handles groups and other non-frame containers)
-				const candidate = canAcceptAll(shape)
-					? shape
-					: (this.findShapeAncestor(shape, canAcceptAll) ??
-						(isShapeId(shape.parentId) ? this.getShape(shape.parentId)! : null))
+				// Only an explicitly selected container counts as a paste target.
+				// A selected leaf shape does not pull in its container ancestor —
+				// that case falls through to a page-level paste, which then
+				// reparents by position if the shape lands inside a frame.
+				const candidate = canAcceptAll(shape) ? shape : null
 
 				if (!candidate) {
 					selectedParent = null
@@ -10074,36 +10072,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const rootBounds = Box.Common(compact(rootShapes.map((s) => this.getShapePageBounds(s.id))))
 
 			if (point === undefined) {
-				const viewportPageBounds = this.getViewportPageBounds()
-				const isOnScreen = rootShapes.some((s) => {
-					const b = this.getShapePageBounds(s.id)
-					return b && viewportPageBounds.collides(b)
-				})
-
 				if (!isPageId(pasteParentId)) {
-					const parent = this.getShape(pasteParentId)!
-					const parentPageBounds = this.getShapePageBounds(parent)
-					// If the copied shapes already sit inside the paste target (e.g. you
-					// copied a shape from this frame and pasted it back with that shape
-					// still selected), keep them where they are — unless that position is
-					// off screen, in which case paste at the viewport center. Only recenter
-					// in the container when pasting into a different container than the
-					// content came from.
-					if (parentPageBounds?.containsPoint(rootBounds.center)) {
-						point = isOnScreen ? rootBounds.center : viewportPageBounds.center
-					} else {
-						// Paste into selected parent → center in that shape
-						point = Mat.applyToPoint(
-							this.getShapePageTransform(parent),
-							this.getShapeGeometry(parent).bounds.center
-						)
-					}
+					// Paste into selected parent → center in that shape
+					const shape = this.getShape(pasteParentId)!
+					point = Mat.applyToPoint(
+						this.getShapePageTransform(shape),
+						this.getShapeGeometry(shape).bounds.center
+					)
 				} else if (preservePosition) {
 					// preservePosition (page duplication) → keep original coords
 					point = rootBounds.center
 				} else {
-					// Standard paste to page: paste in place if on screen, else at the viewport center
-					point = isOnScreen ? rootBounds.center : viewportPageBounds.center
+					// Standard paste to page: check viewport overlap
+					const viewportPageBounds = this.getViewportPageBounds()
+					const anyOverlap = rootShapes.some((s) => {
+						const b = this.getShapePageBounds(s.id)
+						return b && viewportPageBounds.collides(b)
+					})
+					point = anyOverlap ? rootBounds.center : viewportPageBounds.center
 				}
 			}
 

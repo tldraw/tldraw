@@ -277,7 +277,7 @@ describe('When pasting', () => {
 		)
 	})
 
-	it('pastes shapes as children of the most common ancestor', () => {
+	it('does not paste leaf shapes into their ancestor frame (pastes at page level instead)', () => {
 		editor.reparentShapes([ids.frame3], ids.frame1)
 		editor.reparentShapes([ids.frame4], ids.frame1)
 		editor.reparentShapes([ids.box1], ids.frame3)
@@ -285,26 +285,26 @@ describe('When pasting', () => {
 		/*
     Before:
     page
-      - frame1 
+      - frame1
         - frame3
           - box1 *
         - frame4
           - box2 *
-      - frame2 
+      - frame2
       - box3
 
-    After:
+    After (box1/box2 sit at 500,500 / 600,600 — outside every frame — so the
+    pasted copies stay at the page level, in place):
     page
-      - frame1 
+      - frame1
         - frame3
-          - box1  
+          - box1
         - frame4
-          - box2 
-        - box1copy *
-        - box2copy *
-      - frame2 
-      - box2
+          - box2
+      - frame2
       - box3
+      - box1copy *
+      - box2copy *
     */
 
 		editor.select(ids.box1, ids.box2)
@@ -313,13 +313,18 @@ describe('When pasting', () => {
 
 		const shapes = getShapes()
 
-		// Should make the pasted shapes the children of the frame
-		expect(shapes.new.box1?.parentId).toBe(shapes.old.frame1.id)
-		expect(shapes.new.box2?.parentId).toBe(shapes.old.frame1.id)
+		// Selecting leaf shapes does not paste into their common ancestor frame;
+		// the copies land at the page level.
+		expect(shapes.new.box1?.parentId).toBe(editor.getCurrentPageId())
+		expect(shapes.new.box2?.parentId).toBe(editor.getCurrentPageId())
 
-		// Should put the pasted shapes centered in the frame
-		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
-		expect(editor.getSelectionPageCenter()).toMatchObject(editor.getPageCenter(shapes.old.frame1)!)
+		// And they are pasted in place, at the originals' positions.
+		expect(editor.getShapePageBounds(shapes.new.box1)).toMatchObject(
+			editor.getShapePageBounds(shapes.old.box1)!
+		)
+		expect(editor.getShapePageBounds(shapes.new.box2)).toMatchObject(
+			editor.getShapePageBounds(shapes.old.box2)!
+		)
 	})
 })
 
