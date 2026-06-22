@@ -5,6 +5,12 @@
       "value": "Export"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Acceptă invitația"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Elimina"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copiază în spațiul de lucru personal"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Anulează fixarea fișierului"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Încercați SDK-ul tldraw"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Creați fișier"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Setări spațiu de lucru"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Astăzi"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Un spațiu de lucru trebuie să aibă cel puțin un proprietar. Mai întâi, setează pe altcineva drept proprietar."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Numele spațiului de lucru"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Ai fost invitat să te alături la "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Creează un cont gratuit pentru a continua."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Încărcarea nu a reușit"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Fișierele mele"
+      "value": "Bine ați venit în spațiul dvs. de lucru"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Căutare..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Regenerarea înlocuiește linkul de invitație actual cu unul nou. Oricine folosește linkul vechi va avea nevoie de cel nou pentru a se alătura."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Includeți linkul către fișierul curent"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Regenerați linkul de invitație"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Gestionează"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Contactați proprietarul pentru a solicita acces."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Părăsiți spațiul de lucru…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Nu se poate anula publicarea fișierului."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Acesta este spațiul tău de lucru privat. Creează un spațiu de lucru nou pentru a invita colegi de echipă."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Creați un spațiu de lucru"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Spațiul meu de lucru"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Revocați acest link și creați unul nou."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "Este disponibilă o nouă versiune de tldraw. Vă rugăm să reîncărcați pagina pentru a continua."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Fișier nou"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Vă rugăm să reîncărcați pagina"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Nu s-au găsit fișiere"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Vă rugăm să reîncărcați"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw este o tablă albă online gratuită. Creează-ți un cont pentru a salva fișierele și a lucra cu prietenii tăi."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Descărcare"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Spațiu de lucru nou"
     }
   ],
   "815e116a2e": [
@@ -703,22 +765,10 @@
       "value": "Acest link de invitație a expirat"
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Nu, mulțumesc"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Verifică-ți e-mailul pentru un cod de verificare."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Acasă"
     }
   ],
   "8eb2c00e96": [
@@ -745,22 +795,10 @@
       "value": "Redenumiți"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copiați în fișierele mele"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Conectați-vă cu Google"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Șterge spațiul de lucru…"
     }
   ],
   "95d2109dc8": [
@@ -785,6 +823,12 @@
     {
       "type": 0,
       "value": "Aprinde"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Șterge căutarea"
     }
   ],
   "9b33f5c63c": [
@@ -837,6 +881,26 @@
       "value": "A renunța"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Ai fost invitat(ă) să te alături la "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +941,12 @@
     {
       "type": 0,
       "value": "Trimiteți"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Părăsește"
     }
   ],
   "a6cc403d56": [
@@ -933,6 +1003,12 @@
       "value": "Utilizator invitat"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenera"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -943,6 +1019,12 @@
     {
       "type": 0,
       "value": "Adresa de e-mail"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Activează invitațiile"
     }
   ],
   "b6d4223e60": [
@@ -967,6 +1049,12 @@
     {
       "type": 0,
       "value": "Conectați-vă pentru a partaja"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Invitațiile sunt dezactivate"
     }
   ],
   "bbbcefd7ce": [
@@ -1025,6 +1113,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Gestionați spațiul de lucru"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1075,10 +1169,10 @@
       "value": "Invita"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Noua tablă"
+      "value": "Copiază în spațiul meu de lucru"
     }
   ],
   "c87aacf567": [
@@ -1091,12 +1185,6 @@
     {
       "type": 0,
       "value": "Închide"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Salva"
     }
   ],
   "cceaefbc20": [
@@ -1223,12 +1311,6 @@
       "value": "Bine"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Invită membri"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1247,28 +1329,10 @@
       "value": "Termeni și condiții"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Acceptați și alăturați-vă spațiului de lucru"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "sau"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Ai fost invitat să te alături spațiului de lucru:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Zonă periculoasă"
     }
   ],
   "ea4788705e": [
@@ -1417,6 +1481,12 @@
     {
       "type": 0,
       "value": " din acest spațiu de lucru?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Creează-ți un cont gratuit pentru a salva fișierele și a desena cu tldraw alături de coechipierii tăi."
     }
   ],
   "ffcd73e997": [

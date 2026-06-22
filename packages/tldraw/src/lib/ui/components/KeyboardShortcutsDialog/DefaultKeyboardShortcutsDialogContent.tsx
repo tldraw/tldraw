@@ -12,8 +12,10 @@ export function DefaultKeyboardShortcutsDialogContent() {
 			<TldrawUiMenuGroup label="shortcuts-dialog.tools" id="tools">
 				<TldrawUiMenuActionItem actionId="toggle-tool-lock" />
 				<TldrawUiMenuActionItem actionId="insert-media" />
+				<TldrawUiMenuActionItem actionId="insert-embed" />
 				<TldrawUiMenuToolItem toolId="select" />
 				<TldrawUiMenuToolItem toolId="draw" />
+				<TldrawUiMenuToolItem toolId="highlight" />
 				<TldrawUiMenuToolItem toolId="eraser" />
 				<TldrawUiMenuToolItem toolId="hand" />
 				<TldrawUiMenuToolItem toolId="rectangle" />
@@ -43,11 +45,13 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="redo" />
 				<TldrawUiMenuActionItem actionId="cut" />
 				<TldrawUiMenuActionItem actionId="copy" />
+				<TldrawUiMenuActionItem actionId="copy-as-png" />
 				<TldrawUiMenuActionItem actionId="copy-hovered-styles" />
 				<TldrawUiMenuActionItem actionId="paste" />
 				<TldrawUiMenuActionItem actionId="select-all" />
 				<TldrawUiMenuActionItem actionId="delete" />
 				<TldrawUiMenuActionItem actionId="duplicate" />
+				<TldrawUiMenuActionItem actionId="print" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.view" id="view">
 				<TldrawUiMenuActionItem actionId="select-zoom-tool" />
@@ -72,6 +76,9 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="send-to-back" />
 				<TldrawUiMenuActionItem actionId="group" />
 				<TldrawUiMenuActionItem actionId="ungroup" />
+				<TldrawUiMenuActionItem actionId="frame-selection" />
+				<TldrawUiMenuActionItem actionId="flatten-to-image" />
+				<TldrawUiMenuActionItem actionId="toggle-lock" />
 				<TldrawUiMenuActionItem actionId="flip-horizontal" />
 				<TldrawUiMenuActionItem actionId="flip-vertical" />
 				<TldrawUiMenuActionItem actionId="align-top" />
@@ -80,6 +87,8 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="align-left" />
 				<TldrawUiMenuActionItem actionId="align-center-horizontal" />
 				<TldrawUiMenuActionItem actionId="align-right" />
+				<TldrawUiMenuActionItem actionId="distribute-horizontal" />
+				<TldrawUiMenuActionItem actionId="distribute-vertical" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.text-formatting" id="text">
 				<TldrawUiMenuItem

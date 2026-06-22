@@ -13,7 +13,7 @@ runs:
     - name: Setup Node.js Environment
       uses: actions/setup-node@v6
       with:
-        node-version: 24.13.1
+        node-version: 24.17.0
 
     - name: Restore node_modules cache
       uses: actions/cache@v5
@@ -25,9 +25,9 @@ runs:
           .yarn/cache
           .yarn/unplugged
           .yarn/install-state.gz
-        key: ${{ runner.os }}-node-24.13.1-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}
+        key: ${{ runner.os }}-node-24.17.0-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}
         restore-keys: |
-          ${{ runner.os }}-node-24.13.1-yarn-
+          ${{ runner.os }}-node-24.17.0-yarn-
 
     - name: Install dependencies
       run: yarn install --immutable

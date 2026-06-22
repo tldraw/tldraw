@@ -5,6 +5,12 @@
       "value": "Eksport"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Terima jemputan"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Alih keluar"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Salin ke ruang kerja peribadi"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Nyahsemat fail"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Cuba tldraw SDK"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Buat fail"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Tetapan ruang kerja"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Hari ini"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Ruang kerja mesti mempunyai sekurang-kurangnya seorang pemilik. Jadikan orang lain sebagai pemilik terlebih dahulu."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Nama ruang kerja"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Anda telah dijemput untuk menyertai "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Cipta akaun percuma untuk meneruskan."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Muat naik gagal"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Fail saya"
+      "value": "Selamat datang ke ruang kerja anda"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Cari..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Penjanaan semula akan menggantikan pautan jemputan semasa dengan yang baharu. Sesiapa sahaja yang menggunakan pautan lama memerlukan pautan baharu untuk menyertai."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Sertakan pautan ke fail semasa"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Jana semula pautan jemputan"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Urus"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Hubungi pemilik untuk meminta akses."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Tinggalkan ruang kerja…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Tidak dapat menyahterbitkan fail."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ini ruang kerja peribadi anda. Cipta ruang kerja baharu untuk menjemput rakan sepasukan."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Cipta ruang kerja"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Ruang kerja saya"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Batalkan pautan ini dan buat yang baharu."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "Versi baharu tldraw tersedia. Sila muat semula halaman untuk meneruskan."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Fail baharu"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Sila muat semula halaman"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Tiada fail ditemui"
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Sila muat semula"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw ialah papan putih dalam talian percuma. Buat akaun untuk menyimpan fail anda dan bekerjasama dengan rakan anda."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Muat turun"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Ruang kerja baharu"
     }
   ],
   "815e116a2e": [
@@ -703,22 +765,10 @@
       "value": "Pautan jemputan ini telah tamat tempoh"
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Tidak terima kasih"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Semak e-mel anda untuk mendapatkan kod pengesahan."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Laman Utama"
     }
   ],
   "8eb2c00e96": [
@@ -745,22 +795,10 @@
       "value": "Namakan semula"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Salin ke fail saya"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Log masuk dengan Google"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Padam ruang kerja…"
     }
   ],
   "95d2109dc8": [
@@ -785,6 +823,12 @@
     {
       "type": 0,
       "value": "Cahaya"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Kosongkan carian"
     }
   ],
   "9b33f5c63c": [
@@ -837,6 +881,26 @@
       "value": "Pilih keluar"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Anda telah dijemput untuk menyertai "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +941,12 @@
     {
       "type": 0,
       "value": "Hantar"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Tinggalkan"
     }
   ],
   "a6cc403d56": [
@@ -933,6 +1003,12 @@
       "value": "Pengguna tetamu"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Menjana semula"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -943,6 +1019,12 @@
     {
       "type": 0,
       "value": "Alamat e-mel"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Dayakan jemputan"
     }
   ],
   "b6d4223e60": [
@@ -967,6 +1049,12 @@
     {
       "type": 0,
       "value": "Log masuk untuk berkongsi"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Jemputan dilumpuhkan"
     }
   ],
   "bbbcefd7ce": [
@@ -1011,6 +1099,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Urus ruang kerja"
     }
   ],
   "c2276c9127": [
@@ -1063,10 +1157,10 @@
       "value": "Jemput"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Papan baharu"
+      "value": "Salin ke ruang kerja saya"
     }
   ],
   "c87aacf567": [
@@ -1079,12 +1173,6 @@
     {
       "type": 0,
       "value": "Ketepikan"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Jimat"
     }
   ],
   "cceaefbc20": [
@@ -1211,12 +1299,6 @@
       "value": "OK"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Jemput ahli"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1235,28 +1317,10 @@
       "value": "Syarat perkhidmatan"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Terima dan sertai ruang kerja"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "atau"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Anda telah dijemput untuk menyertai ruang kerja:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Zon bahaya"
     }
   ],
   "ea4788705e": [
@@ -1324,7 +1388,7 @@
   "ef53538ae4": [
     {
       "type": 0,
-      "value": "ahli"
+      "value": "Ahli"
     }
   ],
   "ef7de3f485": [
@@ -1405,6 +1469,12 @@
     {
       "type": 0,
       "value": " daripada ruang kerja ini?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Cipta akaun percuma untuk menyimpan fail anda dan tldraw bersama rakan sepasukan anda."
     }
   ],
   "ffcd73e997": [

@@ -5,6 +5,12 @@
       "value": "Dışa aktar"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Daveti kabul et"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Kaldırmak"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kişisel çalışma alanına kopyala"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Dosyayı sabitle"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "tldraw SDK'sını deneyin"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Dosya oluştur"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Çalışma alanı ayarları"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,32 @@
       "value": "Bugün"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Bir çalışma alanının en az bir sahibi olmalıdır. Önce başka birini sahip yapın."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Çalışma alanı adı"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "'e katılmaya davet edildiniz. Devam etmek için ücretsiz bir hesap oluşturun."
     }
   ],
   "250ddea65c": [
@@ -165,16 +187,34 @@
       "value": "Yüklenemedi"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Dosyalarım"
+      "value": "Çalışma alanınıza hoş geldiniz."
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Aramak..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Yeniden oluşturma işlemi, mevcut davet bağlantısını yeni bir bağlantıyla değiştirir. Eski bağlantıyı kullanan herkesin katılabilmesi için yeni bağlantıya ihtiyacı olacaktır."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Mevcut dosyaya bağlantı ekleyin"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Davet bağlantısını yeniden oluştur"
     }
   ],
   "31246941ad": [
@@ -205,6 +245,12 @@
     {
       "type": 0,
       "value": "Düzenleyici"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Yönet"
     }
   ],
   "375396d6e5": [
@@ -253,12 +299,6 @@
     {
       "type": 0,
       "value": "Erişim isteğinde bulunmak için sahibiyle iletişime geçin."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Çalışma alanından ayrılın…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +367,12 @@
       "value": "Dosya yayından kaldırılamıyor."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Bu sizin özel çalışma alanınız. Ekip arkadaşlarınızı davet etmek için yeni bir çalışma alanı oluşturun."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +413,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Bir çalışma alanı oluşturun"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +447,6 @@
     {
       "type": 0,
       "value": "Çalışma alanım"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Bu bağlantıyı iptal edin ve yeni bir bağlantı oluşturun."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +509,12 @@
       "value": "tldraw'ın yeni bir sürümü mevcut. Devam etmek için lütfen sayfayı yeniden yükleyin."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Yeni dosya"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +569,12 @@
       "value": "Lütfen sayfayı tekrar yükleyin"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Dosya bulunamadı."
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +603,6 @@
     {
       "type": 0,
       "value": "Lütfen yeniden yükleyin"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw ücretsiz bir çevrimiçi beyaz tahtadır. Dosyalarınızı kaydetmek ve arkadaşlarınızla birlikte çalışmak için bir hesap oluşturun."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +675,12 @@
     {
       "type": 0,
       "value": "İndirmek"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Yeni çalışma alanı"
     }
   ],
   "815e116a2e": [
@@ -699,22 +757,10 @@
       "value": "Bu davet bağlantısının süresi doldu."
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Hayır, teşekkürler"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Doğrulama kodu için e-postanızı kontrol edin."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Ev"
     }
   ],
   "8eb2c00e96": [
@@ -741,22 +787,10 @@
       "value": "Yeniden Adlandır"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Dosyalarıma kopyala"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Google ile oturum açın"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Çalışma alanını sil…"
     }
   ],
   "95d2109dc8": [
@@ -781,6 +815,12 @@
     {
       "type": 0,
       "value": "Açık"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Arama sonuçlarını temizle"
     }
   ],
   "9b33f5c63c": [
@@ -833,6 +873,22 @@
       "value": "Vazgeçmek"
     }
   ],
+  "a078644c42": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "'e katılmaya davet edildiniz."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -873,6 +929,12 @@
     {
       "type": 0,
       "value": "Göndermek"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Ayrılmak"
     }
   ],
   "a6cc403d56": [
@@ -929,6 +991,12 @@
       "value": "Misafir kullanıcı"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Yeniden oluştur"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -939,6 +1007,12 @@
     {
       "type": 0,
       "value": "E-posta adresi"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Davetiyeleri etkinleştirin"
     }
   ],
   "b6d4223e60": [
@@ -963,6 +1037,12 @@
     {
       "type": 0,
       "value": "Paylaşmak için oturum açın"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Davetiyeler devre dışı bırakıldı."
     }
   ],
   "bbbcefd7ce": [
@@ -1011,6 +1091,12 @@
     {
       "type": 0,
       "value": " tarafından paylaşıldı"
+    }
+  ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Çalışma alanını yönetin"
     }
   ],
   "c2276c9127": [
@@ -1063,10 +1149,10 @@
       "value": "Davet et"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Yeni tahta"
+      "value": "Çalışma alanıma kopyala"
     }
   ],
   "c87aacf567": [
@@ -1079,12 +1165,6 @@
     {
       "type": 0,
       "value": "Kapat"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Kaydetmek"
     }
   ],
   "cceaefbc20": [
@@ -1211,12 +1291,6 @@
       "value": "TAMAM"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Üyeleri davet et"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1235,28 +1309,10 @@
       "value": "Hizmet Şartları"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Çalışma alanına katılmayı kabul et ve katıl"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "veya"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Çalışma alanına katılmaya davet edildiniz:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Tehlikeli bölge"
     }
   ],
   "ea4788705e": [
@@ -1401,6 +1457,12 @@
     {
       "type": 0,
       "value": " öğesini bu çalışma alanından kaldırmak istediğinizden emin misiniz?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Dosyalarınızı kaydetmek ve takım arkadaşlarınızla birlikte çizim yapmak için ücretsiz bir hesap oluşturun."
     }
   ],
   "ffcd73e997": [

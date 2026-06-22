@@ -391,10 +391,14 @@ export function createMutators(userId: string) {
 			assertValidId(fileId)
 			assertValidId(workspaceId)
 			assert(name.trim(), ZErrorCode.bad_request)
-			const hasWorkspaceAccess = await tx.run(
-				zql.group_user.where('userId', '=', userId).where('groupId', '=', workspaceId).one()
-			)
-			assert(hasWorkspaceAccess, ZErrorCode.forbidden)
+			// Authorize via getRole, not a raw group_user lookup: the home workspace
+			// (id === userId) is implicitly owned and may have no group_user row, yet
+			// the user must still be able to create files in it. A raw row check would
+			// reject that case, leaving an empty home un-switchable (selecting it from
+			// the switcher creates-then-opens a file, which silently fails). Every other
+			// workspace op already authorizes through getRole/can for the same reason.
+			const role = await getRole(tx, userId, workspaceId)
+			assert(can(role, 'addFiles'), ZErrorCode.forbidden)
 
 			// create file row, group_file row, file_state row
 			await tx.mutate.file.insert({
@@ -534,7 +538,11 @@ export function createMutators(userId: string) {
 			if (migrated) {
 				const workspaceFileRows = await tx.run(zql.group_file.where('fileId', '=', fileId))
 				const userWorkspaceMemberships = await tx.run(zql.group_user.where('userId', '=', userId))
-				// Only add to home group if not already in any of the user's groups
+				// Add a visited file to the user's home group unless it already belongs to one of
+				// their groups. This is what surfaces a shared file the user opened as a "guest
+				// file" in their sidebar. (Files owned by a workspace the user is a member of are
+				// not mirrored here — and the sidebar read path also filters out any that slip
+				// through, see getWorkspaceFilesSorted — so a workspace file never shows in home.)
 				if (
 					!userWorkspaceMemberships.some((g: TlaGroupUser) =>
 						workspaceFileRows.some((gf: TlaGroupFile) => gf.groupId === g.groupId)

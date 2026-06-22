@@ -5,6 +5,12 @@
       "value": "Ekspor"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Terima undangan"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -93,6 +99,12 @@
       "value": "Menghapus"
     }
   ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Salin ke ruang kerja pribadi"
+    }
+  ],
   "110a4b01be": [
     {
       "type": 0,
@@ -103,12 +115,6 @@
     {
       "type": 0,
       "value": "Lepaskan sematan file"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Coba tldraw SDK"
     }
   ],
   "13ddd375ad": [
@@ -129,12 +135,6 @@
       "value": "Buat file"
     }
   ],
-  "1d2591253e": [
-    {
-      "type": 0,
-      "value": "Pengaturan ruang kerja"
-    }
-  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -147,10 +147,36 @@
       "value": "Hari ini"
     }
   ],
+  "1ffd709937": [
+    {
+      "type": 0,
+      "value": "Suatu ruang kerja harus memiliki setidaknya satu pemilik. Jadikan orang lain sebagai pemilik terlebih dahulu."
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
       "value": "Nama ruang kerja"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Anda telah diundang untuk bergabung dengan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Buat akun gratis untuk melanjutkan."
     }
   ],
   "250ddea65c": [
@@ -165,16 +191,34 @@
       "value": "Pengunggahan gagal"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "File saya"
+      "value": "Selamat datang di ruang kerja Anda."
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Mencari..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Proses pembuatan ulang tautan undangan akan menggantinya dengan yang baru. Siapa pun yang menggunakan tautan lama perlu menggunakan tautan baru untuk bergabung."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Sertakan tautan ke file saat ini"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Buat ulang tautan undangan"
     }
   ],
   "31246941ad": [
@@ -205,6 +249,12 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Mengelola"
     }
   ],
   "375396d6e5": [
@@ -253,12 +303,6 @@
     {
       "type": 0,
       "value": "Hubungi pemilik untuk meminta akses."
-    }
-  ],
-  "44680c1fa7": [
-    {
-      "type": 0,
-      "value": "Tinggalkan ruang kerja…"
     }
   ],
   "44db318ee5": [
@@ -327,6 +371,12 @@
       "value": "Tidak dapat membatalkan penerbitan file."
     }
   ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ini adalah ruang kerja pribadi Anda. Buat ruang kerja baru untuk mengundang rekan tim."
+    }
+  ],
   "517bb809d9": [
     {
       "type": 0,
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Buat ruang kerja"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -395,12 +451,6 @@
     {
       "type": 0,
       "value": "Ruang kerja saya"
-    }
-  ],
-  "5c6fe42bc2": [
-    {
-      "type": 0,
-      "value": "Cabut tautan ini dan buat yang baru."
     }
   ],
   "5d04a002ea": [
@@ -463,6 +513,12 @@
       "value": "Versi baru tldraw telah tersedia. Silakan muat ulang halaman untuk melanjutkan."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Berkas baru"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -517,6 +573,12 @@
       "value": "Muat ulang halaman"
     }
   ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Tidak ada berkas yang ditemukan."
+    }
+  ],
   "752b79f137": [
     {
       "type": 0,
@@ -545,12 +607,6 @@
     {
       "type": 0,
       "value": "Silakan muat ulang"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw adalah papan tulis online gratis. Buat akun untuk menyimpan berkas Anda dan bekerja dengan teman-teman Anda."
     }
   ],
   "777f9e90cf": [
@@ -623,6 +679,12 @@
     {
       "type": 0,
       "value": "Unduh"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Ruang kerja baru"
     }
   ],
   "815e116a2e": [
@@ -703,22 +765,10 @@
       "value": "Tautan undangan ini telah kedaluwarsa."
     }
   ],
-  "8ad4303b83": [
-    {
-      "type": 0,
-      "value": "Tidak, terima kasih"
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
       "value": "Periksa email Anda untuk mendapatkan kode verifikasi."
-    }
-  ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Rumah"
     }
   ],
   "8eb2c00e96": [
@@ -745,22 +795,10 @@
       "value": "Ganti nama"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Salin ke file saya"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
       "value": "Masuk dengan Google"
-    }
-  ],
-  "95b56f4cd6": [
-    {
-      "type": 0,
-      "value": "Hapus ruang kerja…"
     }
   ],
   "95d2109dc8": [
@@ -785,6 +823,12 @@
     {
       "type": 0,
       "value": "Cahaya"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Hapus pencarian"
     }
   ],
   "9b33f5c63c": [
@@ -837,6 +881,26 @@
       "value": "Memilih keluar"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Anda telah diundang untuk bergabung dengan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -877,6 +941,12 @@
     {
       "type": 0,
       "value": "Kirim"
+    }
+  ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Meninggalkan"
     }
   ],
   "a6cc403d56": [
@@ -933,6 +1003,12 @@
       "value": "Pengguna tamu"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Buat ulang"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -943,6 +1019,12 @@
     {
       "type": 0,
       "value": "Alamat email"
+    }
+  ],
+  "b48becc771": [
+    {
+      "type": 0,
+      "value": "Aktifkan undangan"
     }
   ],
   "b6d4223e60": [
@@ -967,6 +1049,12 @@
     {
       "type": 0,
       "value": "Masuk untuk berbagi"
+    }
+  ],
+  "bbaaf8b6bf": [
+    {
+      "type": 0,
+      "value": "Undangan dinonaktifkan"
     }
   ],
   "bbbcefd7ce": [
@@ -1011,6 +1099,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Kelola ruang kerja"
     }
   ],
   "c2276c9127": [
@@ -1063,10 +1157,10 @@
       "value": "Undang"
     }
   ],
-  "c7d7403714": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Papan baru"
+      "value": "Salin ke ruang kerja saya"
     }
   ],
   "c87aacf567": [
@@ -1079,12 +1173,6 @@
     {
       "type": 0,
       "value": "Tutup"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Menyimpan"
     }
   ],
   "cceaefbc20": [
@@ -1211,12 +1299,6 @@
       "value": "OKE"
     }
   ],
-  "e0c88179b3": [
-    {
-      "type": 0,
-      "value": "Undang anggota"
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1235,28 +1317,10 @@
       "value": "Ketentuan Layanan"
     }
   ],
-  "e615d52512": [
-    {
-      "type": 0,
-      "value": "Terima dan bergabunglah dengan ruang kerja."
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "atau"
-    }
-  ],
-  "e9e0f16850": [
-    {
-      "type": 0,
-      "value": "Anda telah diundang untuk bergabung dengan ruang kerja:"
-    }
-  ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Zona bahaya"
     }
   ],
   "ea4788705e": [
@@ -1405,6 +1469,12 @@
     {
       "type": 0,
       "value": " dari ruang kerja ini?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Buat akun gratis untuk menyimpan file Anda dan menggambar bersama rekan tim Anda."
     }
   ],
   "ffcd73e997": [
