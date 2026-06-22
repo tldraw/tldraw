@@ -78,14 +78,9 @@ Then from the repo root:
 yarn dev-app                   # = docker compose up --build; first run installs a linux node_modules volume (slow)
 ```
 
-Then add these aliases to `/etc/hosts` so the browser resolves the same service names the
-containers use (see [trade-off 4](#4-inter-service-wiring-what-actually-simplifies)):
-
-```
-127.0.0.1 sync-worker zero-cache tldrawusercontent-worker asset-upload-worker image-resize-worker
-```
-
-Open http://localhost:3000.
+Open http://localhost:3000. (No `/etc/hosts` aliases needed: the browser uses `localhost:<published
+port>` for the workers/zero, while the Vite `/api` proxy reaches the sync-worker by compose service
+name via `MULTIPLAYER_PROXY_TARGET` — see [trade-off 4](#4-inter-service-wiring-what-actually-simplifies).)
 
 To reset everything (including the DB and the linux `node_modules`):
 

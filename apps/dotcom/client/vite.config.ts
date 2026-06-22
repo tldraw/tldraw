@@ -107,7 +107,14 @@ export default defineConfig((env) => ({
 	server: {
 		proxy: {
 			'/api': {
-				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+				// MULTIPLAYER_PROXY_TARGET lets the server-side /api proxy reach the sync-worker at a
+				// different address than the browser-facing MULTIPLAYER_SERVER. They're the same on the
+				// host, but differ in the Docker stack: the browser uses localhost:<published port> while
+				// this proxy (running in the client container) reaches it by compose service name.
+				target:
+					process.env.MULTIPLAYER_PROXY_TARGET ||
+					getMultiplayerServerURL() ||
+					'http://127.0.0.1:8787',
 				rewrite: (path) => path.replace(/^\/api/, ''),
 				ws: false, // we talk to the websocket directly via workers.dev
 				// Useful for debugging proxy issues
@@ -135,7 +142,14 @@ export default defineConfig((env) => ({
 	preview: {
 		proxy: {
 			'/api': {
-				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+				// MULTIPLAYER_PROXY_TARGET lets the server-side /api proxy reach the sync-worker at a
+				// different address than the browser-facing MULTIPLAYER_SERVER. They're the same on the
+				// host, but differ in the Docker stack: the browser uses localhost:<published port> while
+				// this proxy (running in the client container) reaches it by compose service name.
+				target:
+					process.env.MULTIPLAYER_PROXY_TARGET ||
+					getMultiplayerServerURL() ||
+					'http://127.0.0.1:8787',
 				rewrite: (path) => path.replace(/^\/api/, ''),
 			},
 		},

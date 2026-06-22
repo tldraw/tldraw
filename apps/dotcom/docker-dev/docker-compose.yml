@@ -291,12 +291,16 @@ services:
     ports:
       - '3000:3000'
     environment:
-      # Server-side (Vite /api proxy target) AND browser bundle both read these.
-      # Service names resolve in-container via Docker DNS and on the host via the
-      # /etc/hosts aliases documented in the README.
-      MULTIPLAYER_SERVER: http://sync-worker:8787
-      ZERO_SERVER: http://zero-cache:4848
-      USER_CONTENT_URL: http://tldrawusercontent-worker:8789
+      # Browser-facing URLs: the browser runs on the host, so it must use localhost:<published port>,
+      # NOT compose service names (which only resolve inside the network). The ports below are all
+      # published to the host by their services.
+      MULTIPLAYER_SERVER: http://localhost:8787
+      ZERO_SERVER: http://localhost:4848
+      USER_CONTENT_URL: http://localhost:8789
+      # Server-side only: the Vite /api proxy runs inside this container, so it reaches the sync-worker
+      # by compose service name (see vite.config.ts MULTIPLAYER_PROXY_TARGET). This split is what lets
+      # the browser ws and the proxied REST both work without /etc/hosts aliases.
+      MULTIPLAYER_PROXY_TARGET: http://sync-worker:8787
       # Browser auth — Vite inlines VITE_* from the process env. Sourced from .env.
       VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
     volumes:
