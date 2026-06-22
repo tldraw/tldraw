@@ -5,6 +5,9 @@
   "0095a9fa74": {
     "translation": "Exportar"
   },
+  "00b177e080": {
+    "translation": "Aceptar a invitación"
+  },
   "03b3e13197": {
     "translation": "Arrastra o ficheiro á barra lateral desta páxina. Ou selecciona a opción \"Importar ficheiro\" no menú de usuario."
   },
@@ -47,14 +50,14 @@
   "1063e38cb5": {
     "translation": "Eliminar"
   },
+  "10fb1df194": {
+    "translation": "Copiar no espazo de traballo persoal"
+  },
   "110a4b01be": {
     "translation": "Publicar"
   },
   "12a6766ba1": {
     "translation": "Desfixar ficheiro"
-  },
-  "12c8a9838c": {
-    "translation": "Proba o SDK de tldraw"
   },
   "13ddd375ad": {
     "translation": "Exportar como"
@@ -62,17 +65,20 @@
   "181b90f889": {
     "translation": "Crear ficheiro"
   },
-  "1d2591253e": {
-    "translation": "Configuración do espazo de traballo"
-  },
   "1da2e8106b": {
     "translation": "Produciuse un erro inesperado."
   },
   "1dd1c5fb7f": {
     "translation": "Hoxe"
   },
+  "1ffd709937": {
+    "translation": "Un espazo de traballo debe ter polo menos un propietario. Primeiro, converte a outra persoa en propietario."
+  },
   "21f66c9c00": {
     "translation": "Nome do espazo de traballo"
+  },
+  "23dcace54a": {
+    "translation": "Convidáronte a unirte a <strong>{workspaceName}</strong>. Crea unha conta gratuíta para continuar."
   },
   "250ddea65c": {
     "translation": "Acerca de tldraw"
@@ -80,11 +86,20 @@
   "299cb00a7a": {
     "translation": "Produciuse un erro na carga"
   },
-  "2c3ef76333": {
-    "translation": "Os meus ficheiros"
+  "2a1167f869": {
+    "translation": "Benvido ao teu espazo de traballo"
+  },
+  "2a37324bb4": {
+    "translation": "Buscar..."
+  },
+  "2de510be71": {
+    "translation": "Ao rexenerar, a ligazón de invitación actual substitúese por unha nova. Calquera persoa que use a ligazón antiga necesitará a nova para unirse."
   },
   "2e2b3c700b": {
     "translation": "Incluír unha ligazón ao ficheiro actual"
+  },
+  "2e9856a31e": {
+    "translation": "Rexenerar ligazón de invitación"
   },
   "31246941ad": {
     "translation": "Debes iniciar sesión para ver este ficheiro."
@@ -100,6 +115,9 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "34e34c43ec": {
+    "translation": "Xestionar"
   },
   "375396d6e5": {
     "translation": "Eliminar membro"
@@ -125,9 +143,6 @@
   "42e53c47c1": {
     "translation": "Ponte en contacto co propietario para solicitar acceso."
   },
-  "44680c1fa7": {
-    "translation": "Abandonar o espazo de traballo…"
-  },
   "44db318ee5": {
     "translation": "Obtén axuda en Discord"
   },
@@ -142,6 +157,9 @@
   },
   "47f493a590": {
     "translation": "Ficheiro fixado"
+  },
+  "4908687e50": {
+    "translation": "Estás seguro de que queres esquecer este ficheiro?"
   },
   "49ee308734": {
     "translation": "Nome"
@@ -158,6 +176,9 @@
   "50db1b7e1e": {
     "translation": "Non se puido anular a publicación do ficheiro."
   },
+  "51317dcad5": {
+    "translation": "Este é o teu espazo de traballo privado. Crea un novo espazo de traballo para convidar aos compañeiros de equipo."
+  },
   "517bb809d9": {
     "translation": "Menú da páxina"
   },
@@ -173,6 +194,9 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5638176be5": {
+    "translation": "Crear un espazo de traballo"
+  },
   "5677e381d2": {
     "translation": "Usamos cookies analíticas para mellorar tldraw."
   },
@@ -187,9 +211,6 @@
   },
   "5bff3c9c88": {
     "translation": "O meu espazo de traballo"
-  },
-  "5c6fe42bc2": {
-    "translation": "Revoga esta ligazón e crea unha nova."
   },
   "5d04a002ea": {
     "translation": "Non se pode conectar"
@@ -221,6 +242,9 @@
   "6637a98151": {
     "translation": "Hai unha nova versión de tldraw dispoñible. Volve cargar a páxina para continuar."
   },
+  "681e10aecb": {
+    "translation": "Novo ficheiro"
+  },
   "6832ac5936": {
     "translation": "Introduce o teu enderezo de correo electrónico"
   },
@@ -248,6 +272,9 @@
   "7408cf0d7b": {
     "translation": "Volve cargar a páxina"
   },
+  "74ff4bad28": {
+    "translation": "Non se atoparon ficheiros"
+  },
   "752b79f137": {
     "translation": "Alcanzaches o número máximo de ficheiros. Debes eliminar ficheiros antigos antes de crear outros novos."
   },
@@ -262,12 +289,6 @@
   },
   "764671e008": {
     "translation": "Chatea connosco en Discord"
-  },
-  "4908687e50": {
-    "translation": "Estás seguro de que queres esquecer este ficheiro?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw é unha pizarra branca en liña gratuíta. Crea unha conta para gardar os teus ficheiros e traballar cos teus amigos."
   },
   "777f9e90cf": {
     "translation": "Solicitude non válida."
@@ -305,6 +326,9 @@
   "801ab24683": {
     "translation": "Descargar"
   },
+  "8030793ce3": {
+    "translation": "Novo espazo de traballo"
+  },
   "815e116a2e": {
     "translation": "Tes algún erro, problema ou idea para tldraw? Avísanos! Completa este formulario e poñerémonos en contacto connosco por correo electrónico se é necesario. Tamén podes <discord>chatear connosco en Discord</discord> ou <github>enviar un problema en GitHub</github>."
   },
@@ -326,14 +350,8 @@
   "88bf6ab42c": {
     "translation": "Esta ligazón de invitación caducou"
   },
-  "8ad4303b83": {
-    "translation": "Non, grazas."
-  },
   "8c2d3d730c": {
     "translation": "Consulta o teu correo electrónico para obter un código de verificación."
-  },
-  "8cf04a9734": {
-    "translation": "Inicio"
   },
   "8eb2c00e96": {
     "translation": "Compartido contigo"
@@ -347,14 +365,8 @@
   "904a830405": {
     "translation": "Cambiar o nome"
   },
-  "91e49bb0eb": {
-    "translation": "Copiar nos meus ficheiros"
-  },
   "95aacd4d4a": {
     "translation": "Iniciar sesión con Google"
-  },
-  "95b56f4cd6": {
-    "translation": "Eliminar espazo de traballo…"
   },
   "95d2109dc8": {
     "translation": "Compilar co SDK de tldraw"
@@ -367,6 +379,9 @@
   },
   "9914a0ce04": {
     "translation": "Luz"
+  },
+  "9983381c21": {
+    "translation": "Limpar busca"
   },
   "9b33f5c63c": {
     "translation": "Non recibiches o código? <resend>Volver enviar</resend>."
@@ -385,6 +400,9 @@
   },
   "9e93c98d88": {
     "translation": "Desactivar"
+  },
+  "a078644c42": {
+    "translation": "Convidáronte a unirte a <strong>{workspaceName}</strong>."
   },
   "a0da245992": {
     "translation": "Exportar o contido como un ficheiro .tldr: selecciona \"Descargar\" no menú superior esquerdo."
@@ -406,6 +424,9 @@
   },
   "a4d3b161ce": {
     "translation": "Enviar"
+  },
+  "a52945dbe2": {
+    "translation": "Abandonar"
   },
   "a6cc403d56": {
     "translation": "Calquera persoa coa ligazón"
@@ -432,11 +453,17 @@
   "b028909917": {
     "translation": "Usuario convidado"
   },
+  "b2326c3a34": {
+    "translation": "Rexenerar"
+  },
   "b2c3c2e30c": {
     "translation": "O ficheiro está cheo"
   },
   "b357b524e7": {
     "translation": "Enderezo de correo electrónico"
+  },
+  "b48becc771": {
+    "translation": "Activar invitacións"
   },
   "b6d4223e60": {
     "translation": "Inicia sesión"
@@ -450,11 +477,17 @@
   "ba0318cb81": {
     "translation": "Inicia sesión para compartir"
   },
+  "bbaaf8b6bf": {
+    "translation": "As invitacións están desactivadas"
+  },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Cargando ficheiro .tldr...} other {Cargando {uploaded} de {total} ficheiros .tldr...}}"
   },
   "bc88b0e89e": {
     "translation": "Compartido por {ownerName}"
+  },
+  "c17466812d": {
+    "translation": "Xestionar o espazo de traballo"
   },
   "c2276c9127": {
     "translation": "Obtén máis información sobre como compartir."
@@ -474,17 +507,14 @@
   "c6a00f137b": {
     "translation": "Invitar"
   },
-  "c7d7403714": {
-    "translation": "Nova xunta directiva"
+  "c6f16003f2": {
+    "translation": "Copiar no meu espazo de traballo"
   },
   "c87aacf567": {
     "translation": "Pechar sesión"
   },
   "c8a59e7135": {
     "translation": "Rexeitar"
-  },
-  "c9cc8cce24": {
-    "translation": "Gardar"
   },
   "cceaefbc20": {
     "translation": "Comparte este ficheiro"
@@ -534,9 +564,6 @@
   "e0aa021e21": {
     "translation": "De acordo"
   },
-  "e0c88179b3": {
-    "translation": "Convidar membros"
-  },
   "e2198d6228": {
     "translation": "Copiar ligazón de invitación"
   },
@@ -546,17 +573,8 @@
   "e404559826": {
     "translation": "Condicións do servizo"
   },
-  "e615d52512": {
-    "translation": "Aceptar e unirse ao espazo de traballo"
-  },
   "e81c4e4f2b": {
     "translation": "ou"
-  },
-  "e9e0f16850": {
-    "translation": "Convidáronte a unirte ao espazo de traballo:"
-  },
-  "ea0626ac5a": {
-    "translation": "Zona de perigo"
   },
   "ea4788705e": {
     "translation": "Cancelar"
@@ -620,6 +638,9 @@
   },
   "ff2fefd3c6": {
     "translation": "Seguro que queres eliminar {name} deste espazo de traballo?"
+  },
+  "ff52811b98": {
+    "translation": "Crea unha conta gratuíta para gardar os teus ficheiros e debuxar cos teus compañeiros de equipo."
   },
   "ffcd73e997": {
     "translation": "Importar ficheiro…"

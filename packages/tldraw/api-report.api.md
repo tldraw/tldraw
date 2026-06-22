@@ -534,6 +534,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     getDefaultProps(): TLBookmarkShape['props'];
     // (undocumented)
+    getGeometry(shape: TLBookmarkShape): Rectangle2d;
+    // (undocumented)
     getIndicatorPath(shape: TLBookmarkShape): Path2D;
     // (undocumented)
     getInterpolatedProps(startShape: TLBookmarkShape, endShape: TLBookmarkShape, t: number): TLBookmarkShapeProps;
