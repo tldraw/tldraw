@@ -41,7 +41,6 @@ import {
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
-import pick from 'lodash.pick'
 import { useNavigate } from 'react-router-dom'
 import {
 	Atom,
@@ -497,7 +496,9 @@ export class TldrawApp {
 		userPreferences: computed('user prefs', () => {
 			const user = this.getUser()
 			return {
-				...(pick(user, UserPreferencesKeys) as TLUserPreferences),
+				...(Object.fromEntries(
+					UserPreferencesKeys.map((key) => [key, user[key]])
+				) as unknown as TLUserPreferences),
 				id: this.userId,
 			}
 		}),
