@@ -170,4 +170,8 @@ panels/menus.
 - `packages/tldraw/src/lib/ui/components/Dialogs.tsx` — modal, layer-aware dialog dismissal
 - `apps/dotcom/client/src/tla/components/tla-menu/` — the dotcom menu/select primitives
 - `packages/editor/src/lib/globals/menus.ts` — the `tlmenus` registry
-- e2e: `apps/dotcom/client/e2e/tests/smoke/workspaces.spec.ts` (sidebar + canvas cases)
+- e2e: `apps/dotcom/client/e2e/tests/smoke/workspaces.spec.ts` (sidebar + canvas cases),
+  `apps/dotcom/client/e2e/tests/ui.scenario.spec.ts` (select over the canvas)
+- dialog dismissal (modal, layer-aware, select-in-dialog, `preventBackgroundClose`) is enforced by
+  the SDK tests `packages/tldraw/src/test/ui/Dialogs.test.tsx` and
+  `apps/examples/e2e/tests/test-dialogs.spec.ts`; dotcom dialogs use the same primitive
