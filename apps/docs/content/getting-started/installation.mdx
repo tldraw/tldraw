@@ -182,7 +182,7 @@ The [Tldraw](?) component combines two lower-level components: [TldrawEditor](?)
 
 ### Customizing components
 
-You can customize the appearance of the tldraw editor and UI using the [Tldraw](?) (or [TldrawEditor](?)) component's `components` prop. This prop accepts a [TLComponents](?) object, which combines [TLEditorComponents](?) (canvas-level components like the background, grid, and selection) with [TLUiComponents](?) (UI elements like toolbar, menus, and panels).
+You can customize the appearance of the tldraw editor and UI using the [Tldraw](?) (or [TldrawEditor](?)) component's `components` prop. This prop accepts a [TLComponents](?) object, which combines [TLEditorComponents](?) (canvas-level components like the background and grid) with [TLUiComponents](?) (UI elements like toolbar, menus, and panels).
 
 ```tsx
 import { TLComponents } from 'tldraw'
@@ -191,7 +191,6 @@ const components: TLComponents = {
 	// Editor components
 	Background: YourCustomBackground,
 	Grid: YourCustomGrid,
-	SelectionBackground: YourCustomSelectionBackground,
 
 	// UI components
 	Toolbar: YourCustomToolbar,
