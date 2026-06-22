@@ -11,6 +11,7 @@ runs:
       shell: bash
 
     - name: Setup Node.js Environment
+      id: setup-node
       uses: actions/setup-node@v6
       with:
         node-version: 24.17.0
@@ -25,9 +26,9 @@ runs:
           .yarn/cache
           .yarn/unplugged
           .yarn/install-state.gz
-        key: ${{ runner.os }}-node-24.17.0-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}
+        key: ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.setup-node.outputs.node-version }}-yarn-${{ hashFiles('yarn.lock', '.yarnrc.yml', '.yarn/patches/*') }}
         restore-keys: |
-          ${{ runner.os }}-node-24.17.0-yarn-
+          ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.setup-node.outputs.node-version }}-yarn-
 
     - name: Install dependencies
       run: yarn install --immutable

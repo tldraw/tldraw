@@ -11,6 +11,9 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement | null>) {
 		const updateBounds = throttle(
 			() => {
 				if (!ref.current) return
+				// If the container's document has been torn down (e.g. an iframe
+				// being removed), there's nothing to measure — bail.
+				if (!ref.current.ownerDocument.body) return
 				editor.updateViewportScreenBounds(ref.current)
 			},
 			200,
