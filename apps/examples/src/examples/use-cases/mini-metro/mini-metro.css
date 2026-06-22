@@ -72,6 +72,39 @@
 	user-select: none;
 }
 
+.mm-ride {
+	position: absolute;
+	right: 16px;
+	bottom: 16px;
+	border-radius: 12px;
+	overflow: hidden;
+	background: var(--color-panel);
+	box-shadow: var(--shadow-2);
+	z-index: 300;
+	pointer-events: none;
+	user-select: none;
+	line-height: 0;
+}
+
+.mm-ride canvas {
+	display: block;
+}
+
+.mm-ride__label {
+	position: absolute;
+	left: 10px;
+	bottom: 8px;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: var(--color-panel);
+	color: var(--color-text-3);
+	font-family: var(--tl-font-draw, sans-serif);
+	font-size: 11px;
+	line-height: 1.4;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
 .mm-modal {
 	position: absolute;
 	inset: 0;
