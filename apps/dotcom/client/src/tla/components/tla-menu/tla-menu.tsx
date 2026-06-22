@@ -7,8 +7,6 @@ import {
 	ReactNode,
 	useCallback,
 	useContext,
-	useEffect,
-	useState,
 } from 'react'
 import { TldrawUiButton, TldrawUiIcon, TldrawUiTooltip, useContainer } from 'tldraw'
 import { defineMessages, useMsg } from '../../utils/i18n'
@@ -18,6 +16,18 @@ import styles from './menu.module.css'
 const messages = defineMessages({
 	help: { defaultMessage: 'Help' },
 })
+
+/**
+ * Shared positioning for tla dropdowns, popovers, and selects so they sit consistently
+ * relative to their triggers. Spread onto a Radix/SDK content element (e.g.
+ * `{...TLA_MENU_POSITION}`); tweak here to adjust every tla menu at once. `side` and
+ * `align` stay per-menu since they depend on the trigger's placement.
+ */
+export const TLA_MENU_POSITION = {
+	sideOffset: 4,
+	alignOffset: -4,
+	collisionPadding: 4,
+} as const
 
 // Used to section areas of the menu, ie links vs snapshots
 export function TlaMenuSection({ children }: { children: ReactNode }) {
@@ -114,7 +124,6 @@ export function TlaMenuSelect<T extends string>({
 	onChange,
 	options,
 	actions,
-	usePortal,
 	'data-testid': dataTestId,
 }: {
 	id: string
@@ -134,12 +143,8 @@ export function TlaMenuSelect<T extends string>({
 		// Shown on hover when the action is disabled (e.g. why it can't be used).
 		tooltip?: ReactNode
 	}[]
-	// When set, render the dropdown in a portal (popper-positioned) so it isn't
-	// clipped by / doesn't overflow a constrained container like a modal dialog.
-	usePortal?: boolean
 	'data-testid'?: string
 }) {
-	const [isOpen, setIsOpen] = useState(false)
 	const container = useContainer()
 	const handleChange = useCallback(
 		(value: string) => {
@@ -153,45 +158,9 @@ export function TlaMenuSelect<T extends string>({
 		[actions, onChange]
 	)
 
-	const handleOpenChange = (open: boolean) => {
-		setIsOpen(open)
-	}
-
-	useEffect(() => {
-		if (!isOpen) return
-		// Close the select menu when the user clicks outside of it
-		// This is a workaround for an issue in Radix Select when combined with a popper menu.
-		const handlePointerDown = (event: MouseEvent) => {
-			const target = event.target as HTMLElement
-			if (!target.closest(`.${styles.menuSelectContent}`)) {
-				setIsOpen(false)
-			}
-		}
-
-		document.body.addEventListener('pointerdown', handlePointerDown, { capture: true })
-		return () => {
-			document.body.removeEventListener('pointerdown', handlePointerDown, { capture: true })
-		}
-	}, [isOpen])
-
 	return (
-		<div
-			className={styles.menuSelectWrapper}
-			// Stop clicks from reaching ancestor handlers (e.g. a background-dismiss),
-			// but use the bubble phase, not capture: Radix Select opens on `click` for
-			// touch/pen input (it only opens on `pointerdown` for mouse). Capturing here
-			// would swallow that click before it reaches the trigger, so the menu would
-			// never open on iOS. Bubbling lets the trigger handle the click first.
-			onClick={(e) => {
-				e.stopPropagation()
-			}}
-		>
-			<_Select.Root
-				open={isOpen}
-				value={value}
-				onOpenChange={handleOpenChange}
-				onValueChange={handleChange}
-			>
+		<div className={styles.menuSelectWrapper}>
+			<_Select.Root value={value} onValueChange={handleChange}>
 				<_Select.Trigger
 					id={id}
 					className={styles.menuSelectTrigger}
@@ -206,14 +175,13 @@ export function TlaMenuSelect<T extends string>({
 						<TlaIcon icon="chevron-down" className={styles.menuSelectChevron} />
 					</_Select.Icon>
 				</_Select.Trigger>
-				<TlaSelectPortal usePortal={usePortal} container={container}>
+				<_Select.Portal container={container}>
 					<_Select.Content
 						className={styles.menuSelectContent}
-						position={usePortal ? 'popper' : undefined}
-						side={usePortal ? 'bottom' : undefined}
-						align={usePortal ? 'end' : undefined}
-						sideOffset={usePortal ? 4 : undefined}
-						collisionPadding={usePortal ? 4 : undefined}
+						position="popper"
+						side="bottom"
+						align="end"
+						{...TLA_MENU_POSITION}
 					>
 						<_Select.Viewport>
 							{options.map((option) => (
@@ -257,25 +225,10 @@ export function TlaMenuSelect<T extends string>({
 							)}
 						</_Select.Viewport>
 					</_Select.Content>
-				</TlaSelectPortal>
+				</_Select.Portal>
 			</_Select.Root>
 		</div>
 	)
-}
-
-function TlaSelectPortal({
-	usePortal,
-	container,
-	children,
-}: {
-	usePortal?: boolean
-	container: HTMLElement
-	children: ReactNode
-}) {
-	if (usePortal) {
-		return <_Select.Portal container={container}>{children}</_Select.Portal>
-	}
-	return <>{children}</>
 }
 
 /* --------------------- Switch --------------------- */

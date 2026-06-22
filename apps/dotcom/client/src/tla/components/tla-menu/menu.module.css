@@ -125,28 +125,29 @@
 	opacity: 0;
 }
 
-/* need to target the parent div, ugh, can't target via a className */
-div:has(> .menuSelectContent):not([data-radix-popper-content-wrapper]) {
-	position: absolute !important;
-	top: 17px;
-	right: -8px;
-	left: auto !important;
-	z-index: 2 !important;
-}
-
 .menuSelectContent {
-	/* Match the layer `.tlui-dialog__overlay` renders at — it reuses
-	   --tl-layer-canvas-overlays — so the portaled (popper) dropdown isn't hidden
-	   behind a containing dialog. A lower z-index would lose: both the dialog and
-	   the select portal into the same container as siblings, so they compete in one
-	   stacking context; at equal z-index the dropdown wins only because it mounts
-	   later. Radix copies this z-index onto its popper wrapper, so setting it on the
-	   content (not the wrapper, which Radix styles inline) avoids needing
-	   !important. Harmless inline (item-aligned), where the wrapper's z-index governs. */
+	/* The dropdown portals into the editor container as a sibling of any containing
+	   dialog/popover, so they share one stacking context. Match the canvas-overlays
+	   layer the dialog/popover use so the dropdown isn't hidden behind them. Radix
+	   copies this z-index onto its popper wrapper, so setting it on the content (not
+	   the wrapper, which Radix styles inline) avoids needing !important. */
 	z-index: var(--tl-layer-canvas-overlays);
 	border-radius: var(--tl-radius-3);
 	background-color: var(--tl-color-panel);
 	box-shadow: var(--tl-shadow-3);
+}
+
+/* This select uses `position="popper"` (drops below the trigger, end-aligned, with our shared
+   offsets) instead of Radix's default `position="item-aligned"`. Both modes cost a CSS override,
+   just in a different spot: item-aligned sizes itself to the trigger for free but overlays the
+   trigger and ignores side/align/offsets (so it needs CSS to place it below); popper places it
+   correctly but writes `min-width: max-content` inline on its wrapper, so it hugs the option
+   text. We pick popper — placement consistency with the other tla menus — and pay its tax here.
+   !important is not a shortcut: an inline style outranks every selector and @layer, so it is the
+   only way to widen the (class-less) wrapper. Reuses Radix's own --radix-popper-anchor-width;
+   the +1.5rem restores the checkmark offset the old item-aligned layout had. */
+:global([data-radix-popper-content-wrapper]):has(> .menuSelectContent) {
+	min-width: calc(var(--radix-popper-anchor-width) + 1.5rem) !important;
 }
 
 .menuSelectOption {
