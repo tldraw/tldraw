@@ -1,0 +1,229 @@
+/* tldraw palette accents, reused on the level-up cards so the menu speaks the
+   same color language as the canvas. */
+.vs-hud,
+.vs-modal {
+	--vs-blue: #4465e9;
+	--vs-green: #099268;
+	--vs-orange: #e16919;
+	--vs-violet: #ae3ec9;
+	--vs-red: #e03131;
+	--vs-yellow: #f1ac4b;
+	--vs-light-blue: #4ba1f1;
+}
+
+/* --- HUD ------------------------------------------------------------------ */
+
+.vs-hud {
+	position: absolute;
+	top: 8px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 300;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	pointer-events: none;
+	font-family: var(--tl-font-sans, 'Inter', sans-serif);
+}
+
+.vs-hud__bars {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	width: 280px;
+}
+
+.vs-bar {
+	position: relative;
+	height: 18px;
+	border-radius: 9px;
+	overflow: hidden;
+	background: var(--color-low);
+	box-shadow: var(--shadow-1);
+}
+
+.vs-bar__fill {
+	position: absolute;
+	inset: 0;
+	transform-origin: left;
+	transition: width 80ms linear;
+}
+
+.vs-bar--hp .vs-bar__fill {
+	background: var(--vs-red);
+}
+
+.vs-bar--xp {
+	height: 12px;
+	border-radius: 6px;
+}
+
+.vs-bar--xp .vs-bar__fill {
+	background: var(--vs-blue);
+}
+
+.vs-bar__label {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--color-text);
+	text-shadow: 0 1px 2px var(--color-background);
+}
+
+.vs-hud__stats {
+	display: flex;
+	gap: 16px;
+	font-variant-numeric: tabular-nums;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--color-text);
+	text-shadow: 0 1px 2px var(--color-background);
+}
+
+/* --- first-person picture-in-picture ------------------------------------- */
+
+.vs-fp {
+	position: absolute;
+	right: 12px;
+	bottom: 12px;
+	z-index: 300;
+	border-radius: 12px;
+	overflow: hidden;
+	background: var(--color-panel);
+	box-shadow: var(--shadow-2);
+	border: 2px solid var(--color-low);
+	pointer-events: none;
+	font-family: var(--tl-font-sans, 'Inter', sans-serif);
+}
+
+.vs-fp__label {
+	position: absolute;
+	top: 6px;
+	left: 8px;
+	z-index: 1;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	color: var(--color-text);
+	background: color-mix(in srgb, var(--color-panel) 70%, transparent);
+	padding: 1px 6px;
+	border-radius: 5px;
+}
+
+.vs-fp canvas {
+	display: block;
+}
+
+/* --- modals (level up + game over) --------------------------------------- */
+
+.vs-modal {
+	position: absolute;
+	inset: 0;
+	z-index: 400;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: color-mix(in srgb, var(--color-background) 55%, transparent);
+	font-family: var(--tl-font-sans, 'Inter', sans-serif);
+}
+
+.vs-modal__panel {
+	background: var(--color-panel);
+	border-radius: 14px;
+	padding: 24px;
+	box-shadow: var(--shadow-3);
+	text-align: center;
+	max-width: 540px;
+}
+
+.vs-modal__title {
+	margin: 0;
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--color-text);
+}
+
+.vs-modal__sub {
+	margin: 4px 0 18px;
+	font-size: 14px;
+	color: var(--color-text-3);
+}
+
+.vs-cards {
+	display: flex;
+	gap: 12px;
+}
+
+.vs-card {
+	all: unset;
+	cursor: pointer;
+	box-sizing: border-box;
+	width: 150px;
+	padding: 16px 14px;
+	border-radius: 12px;
+	border: 2px solid var(--vs-card-color);
+	background: var(--color-low);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	text-align: center;
+	transition:
+		transform 80ms ease,
+		background 80ms ease;
+}
+
+.vs-card:hover {
+	transform: translateY(-3px);
+	background: color-mix(in srgb, var(--vs-card-color) 14%, var(--color-low));
+}
+
+.vs-card__key {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	border-radius: 6px;
+	background: var(--vs-card-color);
+	color: #fff;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.vs-card__title {
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--color-text);
+}
+
+.vs-card__desc {
+	font-size: 12px;
+	color: var(--color-text-3);
+	line-height: 1.3;
+}
+
+.vs-restart {
+	all: unset;
+	cursor: pointer;
+	margin-top: 4px;
+	padding: 10px 20px;
+	border-radius: 10px;
+	background: var(--vs-blue);
+	color: #fff;
+	font-size: 15px;
+	font-weight: 700;
+}
+
+.vs-restart kbd {
+	margin-left: 6px;
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: rgba(255, 255, 255, 0.25);
+	font-size: 12px;
+}

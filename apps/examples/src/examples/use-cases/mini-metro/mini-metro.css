@@ -1,0 +1,129 @@
+/* HUD and overlays for the Mini Metro example. The container lets pointer
+ * events through to the canvas; only the interactive bits re-enable them. */
+
+.mm-hud {
+	position: absolute;
+	top: 16px;
+	left: 16px;
+	display: flex;
+	gap: 24px;
+	align-items: center;
+	padding: 12px 18px;
+	border-radius: 12px;
+	background: var(--color-panel);
+	box-shadow: var(--shadow-2);
+	font-family: var(--tl-font-draw, sans-serif);
+	z-index: 300;
+	pointer-events: none;
+	user-select: none;
+}
+
+.mm-hud__stat {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	line-height: 1.1;
+}
+
+.mm-hud__value {
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--color-text);
+}
+
+.mm-hud__label {
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--color-text-3);
+}
+
+.mm-hud__lines {
+	display: flex;
+	gap: 6px;
+}
+
+.mm-hud__line {
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	border: 2px solid var(--color-text-3);
+}
+
+.mm-hud__line--used {
+	background: var(--color-text);
+	border-color: var(--color-text);
+}
+
+.mm-hint {
+	position: absolute;
+	bottom: 28px;
+	left: 50%;
+	transform: translateX(-50%);
+	padding: 10px 18px;
+	border-radius: 999px;
+	background: var(--color-panel);
+	box-shadow: var(--shadow-2);
+	color: var(--color-text);
+	font-family: var(--tl-font-draw, sans-serif);
+	font-size: 14px;
+	z-index: 300;
+	pointer-events: none;
+	user-select: none;
+}
+
+.mm-modal {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.35);
+	z-index: 400;
+}
+
+.mm-modal__panel {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 28px 36px;
+	border-radius: 16px;
+	background: var(--color-panel);
+	box-shadow: var(--shadow-3);
+	text-align: center;
+	font-family: var(--tl-font-draw, sans-serif);
+}
+
+.mm-modal__title {
+	margin: 0;
+	font-size: 22px;
+	color: var(--color-text);
+}
+
+.mm-modal__sub {
+	margin: 0;
+	font-size: 14px;
+	color: var(--color-text-3);
+}
+
+.mm-restart {
+	margin-top: 12px;
+	padding: 10px 20px;
+	border: none;
+	border-radius: 999px;
+	background: var(--color-text);
+	color: var(--color-panel);
+	font-size: 15px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.mm-restart kbd {
+	margin-left: 6px;
+	padding: 1px 6px;
+	border-radius: 5px;
+	background: var(--color-muted-1);
+	color: var(--color-text);
+	font-size: 12px;
+}
