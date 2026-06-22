@@ -411,7 +411,5 @@ export function onDragFromToolbarToCreateShape(
 		},
 	})
 
-	if (opts.maskedToolId) {
-		editor.getCurrentTool().setCurrentToolIdMask(opts.maskedToolId)
-	}
+	editor.getCurrentTool().setCurrentToolIdMask(opts.maskedToolId ?? shape.type)
 }
