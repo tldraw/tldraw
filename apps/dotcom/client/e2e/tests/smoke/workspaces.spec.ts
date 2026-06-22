@@ -167,6 +167,18 @@ test.describe('workspaces', () => {
 			).toBeGreaterThan(0)
 		})
 
+		test('toggling the sidebar closed dismisses its open menus', async ({ page, sidebar }) => {
+			await sidebar.openWorkspaceSwitcher()
+			const homeItem = page.getByTestId('tla-workspace-switcher-home')
+			await expect(homeItem).toBeVisible()
+
+			// Ctrl/Cmd+\ toggles the sidebar closed. The switcher must close with it — it's rendered
+			// by the (still-mounted) sidebar, so it would otherwise hang over the canvas. No outside
+			// click is involved here, so this exercises the hide-driven dismissal specifically.
+			await page.keyboard.press('Control+\\')
+			await expect(homeItem).toBeHidden()
+		})
+
 		test('closing the mobile sidebar closes open sidebar menus', async ({ page, sidebar }) => {
 			const fileName = getRandomName()
 			await sidebar.createNewDocument(fileName)
