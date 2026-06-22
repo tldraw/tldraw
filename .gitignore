@@ -105,6 +105,9 @@ apps/docs/api
 .env.development.local
 .env*
 
+# Per-worktree dev port block written by internal/scripts/dotcom-dev-parallel.ts
+.dev-ports.json
+
 .wrangler
 /vercel.json
 license-report-prod.html

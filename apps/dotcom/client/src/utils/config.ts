@@ -22,4 +22,5 @@ export const MULTIPLAYER_SERVER =
 export const ZERO_SERVER =
 	(isStagingEnv || isProductionEnv || isPreviewEnv) && typeof location !== 'undefined'
 		? process.env.ZERO_SERVER
-		: 'http://localhost:4848/'
+		: // SPIKE (parallel worktrees): honor the offset ZERO_SERVER in dev instead of hard-coding 4848.
+			process.env.ZERO_SERVER || 'http://localhost:4848/'

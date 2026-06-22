@@ -41,7 +41,7 @@
 		"refresh-assets": "lazy refresh-assets",
 		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/bemo-worker' --filter='apps/dotcom/image-resize-worker'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
-		"dev-app": "process-compose -f apps/dotcom/process-compose.yaml up",
+		"dev-app": "tsx internal/scripts/dotcom-dev-parallel.ts",
 		"dev-app:clean": "docker compose -f apps/dotcom/zero-cache/docker/docker-compose.yml down --volumes && rm -f /tmp/tldraw-dotcom-zero-dev.db /tmp/tldraw-dotcom-zero-dev.db-shm /tmp/tldraw-dotcom-zero-dev.db-wal && rm -rf apps/dotcom/sync-worker/.wrangler/state-dev apps/dotcom/zero-cache/.schema.js",
 		"dev-app:doctor": "process-compose -f apps/dotcom/process-compose.yaml process list",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",

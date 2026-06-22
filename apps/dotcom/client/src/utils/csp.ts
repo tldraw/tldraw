@@ -79,6 +79,12 @@ export const cspDev = Object.keys(cspDirectives)
 		const values = cspDirectives[directive]
 		// We allow data: urls for frame-src to allow debugging SVG embeds in dev.
 		if (directive === 'frame-src') return `${directive} ${[...values, 'data:'].join(' ')}`
+		// SPIKE (parallel worktrees): the worker/zero ports above are hard-coded to the natural
+		// block (8788/8789/4848). A parallel worktree runs on an offset block, so allow any localhost
+		// port in dev for connect-src — otherwise the browser blocks the offset workers/zero.
+		if (directive === 'connect-src') {
+			return `${directive} ${[...values, 'http://localhost:*', 'ws://localhost:*'].join(' ')}`
+		}
 		return `${directive} ${values.join(' ')}`
 	})
 	.join('; ')
