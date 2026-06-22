@@ -120,7 +120,12 @@ export default defineConfig({
 
 	/* Run your local dev server before starting the tests */
 	webServer: {
-		command: process.env.CI ? 'VITE_PREVIEW=1 yarn dev-app' : 'yarn preview-app',
+		// `yarn dev-app` runs the parallel-dev wrapper, which picks this worktree's port block at
+		// runtime and starts vite in dev mode. We must NOT use a pre-built preview (VITE_PREVIEW) here:
+		// the build bakes the browser's MULTIPLAYER_SERVER/ZERO_SERVER URLs at build time, before the
+		// block's ports are known, so a preview client would point the multiplayer ws at the wrong
+		// ports. vite dev reads the block env when it boots, so the baked URLs match the running stack.
+		command: 'yarn dev-app',
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
