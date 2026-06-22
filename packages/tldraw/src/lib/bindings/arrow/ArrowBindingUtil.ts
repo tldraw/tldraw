@@ -83,14 +83,14 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		shapeAfter,
 		reason,
 	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
-		// The bound shape's geometry may have changed in a way that leaves the anchor outside the
-		// shape (e.g. its geo type changed from a rectangle to a triangle). If so, re-snap the anchor
-		// to the new geometry so the arrow keeps pointing at the shape instead of floating off it.
-		// Only precise bindings can float (imprecise ones target the center and intersect the edge),
-		// only do it while idle (not mid-interaction), and never during history replay (the diff
-		// already holds the correct anchor).
+		// When a bound geo shape's geo type changes (e.g. rectangle to triangle) its outline can move
+		// out from under a precise anchor, leaving the arrow floating off the shape. Re-snap the anchor
+		// to the new geometry.
 		if (
 			binding.props.isPrecise &&
+			shapeBefore.type === 'geo' &&
+			shapeAfter.type === 'geo' &&
+			shapeBefore.props.geo !== shapeAfter.props.geo &&
 			this.editor.isIn('select.idle') &&
 			!this.editor.isReplayingHistory()
 		) {
