@@ -1,12 +1,24 @@
 {
+  "1764571547": {
+    "translation": "Opravdu chcete tento pracovní prostor smazat? Tuto akci nelze vrátit zpět."
+  },
   "0095a9fa74": {
     "translation": "Vývozní"
+  },
+  "00b177e080": {
+    "translation": "Přijmout pozvání"
   },
   "03b3e13197": {
     "translation": "Přetáhněte soubor na postranní panel na této stránce. Nebo vyberte možnost Importovat soubor z uživatelské nabídky."
   },
   "043973ec1f": {
     "translation": "Stále máte potíže? {GetHelpLink}"
+  },
+  "04a2dd56d6": {
+    "translation": "Pozvěte spoluhráče"
+  },
+  "05f43078e9": {
+    "translation": "Dosáhli jste maximálního počtu pracovních prostorů. Před vytvořením nových pracovních prostorů je třeba smazat staré."
   },
   "06b9281e39": {
     "translation": "Auto"
@@ -29,29 +41,26 @@
   "0b9a4cde72": {
     "translation": "Nabídka Soubor"
   },
+  "0c4383617a": {
+    "translation": "Při načítání této pozvánky se něco pokazilo. Zkuste to prosím znovu."
+  },
   "0d1f2bb523": {
     "translation": "Odeslat zpětnou vazbu"
+  },
+  "1063e38cb5": {
+    "translation": "Odstranit"
+  },
+  "10fb1df194": {
+    "translation": "Kopírovat do osobního pracovního prostoru"
   },
   "110a4b01be": {
     "translation": "Publikovat"
   },
-  "129b9e34ea": {
-    "translation": "Opustit skupinu"
-  },
   "12a6766ba1": {
     "translation": "Odepnout soubor"
   },
-  "12c8a9838c": {
-    "translation": "Vyzkoušejte sadu SDK tldraw"
-  },
   "13ddd375ad": {
     "translation": "Exportovat jako"
-  },
-  "146ffe2fd9": {
-    "translation": "Zobrazit více"
-  },
-  "14d65465b7": {
-    "translation": "Smazat skupinu"
   },
   "181b90f889": {
     "translation": "Vytvořit soubor"
@@ -62,8 +71,14 @@
   "1dd1c5fb7f": {
     "translation": "Dnes"
   },
-  "2445e5e347": {
-    "translation": "Vytvořit skupinu"
+  "1ffd709937": {
+    "translation": "Pracovní prostor musí mít alespoň jednoho vlastníka. Nejprve nastavte vlastníkem někoho jiného."
+  },
+  "21f66c9c00": {
+    "translation": "Název pracovního prostoru"
+  },
+  "23dcace54a": {
+    "translation": "Byli jste pozváni k připojení k <strong>{workspaceName}</strong>. Pro pokračování si vytvořte bezplatný účet."
   },
   "250ddea65c": {
     "translation": "O tldraw"
@@ -71,20 +86,26 @@
   "299cb00a7a": {
     "translation": "Nahrání se nezdařilo"
   },
-  "2c3ef76333": {
-    "translation": "Moje soubory"
+  "2a1167f869": {
+    "translation": "Vítejte ve vašem pracovním prostoru"
+  },
+  "2a37324bb4": {
+    "translation": "Vyhledávání..."
+  },
+  "2de510be71": {
+    "translation": "Regenerováním se aktuální odkaz s pozvánkou nahradí novým. Každý, kdo používá starý odkaz, bude k připojení potřebovat nový."
   },
   "2e2b3c700b": {
     "translation": "Přidat odkaz na aktuální soubor"
+  },
+  "2e9856a31e": {
+    "translation": "Znovu vygenerovat odkaz na pozvánku"
   },
   "31246941ad": {
     "translation": "Chcete-li zobrazit tento soubor, musíte se přihlásit."
   },
   "31418ce4ad": {
     "translation": "i18n: Zvýraznění chybí"
-  },
-  "32210b37e4": {
-    "translation": "Přidat odkaz"
   },
   "324a0f3182": {
     "translation": "Zpět na tldraw"
@@ -94,6 +115,12 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "34e34c43ec": {
+    "translation": "Spravovat"
+  },
+  "375396d6e5": {
+    "translation": "Odebrat člena"
   },
   "3bc7d6ea2f": {
     "translation": "Pokračovat s e-mailem"
@@ -131,9 +158,6 @@
   "47f493a590": {
     "translation": "Připnout soubor"
   },
-  "49049467ff": {
-    "translation": "Vložit URL soubor tldraw..."
-  },
   "4908687e50": {
     "translation": "Opravdu chcete tento soubor zapomenout?"
   },
@@ -146,20 +170,14 @@
   "4d1c8263ba": {
     "translation": "Znovu načíst"
   },
-  "4da5988a2e": {
-    "translation": "Smazat skupinu…"
-  },
-  "4dab36ac83": {
-    "translation": "Více možností"
-  },
-  "4e6fbf032b": {
-    "translation": "Jste si jisti, že chcete tuto skupinu smazat? Tuto akci nelze vrátit zpět."
-  },
   "5097d89907": {
     "translation": "Nepodporovaný diagram, místo toho se vygeneruje SVG."
   },
   "50db1b7e1e": {
     "translation": "Publikování souboru nelze zrušit."
+  },
+  "51317dcad5": {
+    "translation": "Toto je váš soukromý pracovní prostor. Vytvořte nový pracovní prostor pro pozvání spoluhráčů."
   },
   "517bb809d9": {
     "translation": "Nabídka stránek"
@@ -176,14 +194,14 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5638176be5": {
+    "translation": "Vytvořte pracovní prostor"
+  },
   "5677e381d2": {
     "translation": "Pro zlepšení webu tldraw používáme analytické soubory cookie."
   },
   "56c34c6410": {
     "translation": "Zásady ochrany osobních údajů"
-  },
-  "5a86b22fa0": {
-    "translation": "Přetáhněte soubory sem, <create>vytvořte soubor</create> nebo <invite>zkopírujte odkaz na pozvánku</invite> a začněte."
   },
   "5a95a425f7": {
     "translation": "Podíl"
@@ -191,17 +209,14 @@
   "5bec508475": {
     "translation": "Byl detekován starý prohlížeč. Pro použití této aplikace prosím aktualizujte prohlížeč."
   },
-  "5c6fe42bc2": {
-    "translation": "Zrušte toto propojení a vytvořte nové."
+  "5bff3c9c88": {
+    "translation": "Můj pracovní prostor"
   },
   "5d04a002ea": {
     "translation": "Nelze se připojit"
   },
   "5d26ae7550": {
     "translation": "Nepodařilo se nám nahrát část obsahu, který jste vytvořili, než jste se přihlásili."
-  },
-  "5ea8bb44be": {
-    "translation": "Byli jste pozváni do skupiny:"
   },
   "5f3c333678": {
     "translation": "Odeslaná zpětná vazba"
@@ -227,8 +242,14 @@
   "6637a98151": {
     "translation": "K dispozici je nová verze tldraw. Chcete-li pokračovat, znovu načtěte stránku."
   },
+  "681e10aecb": {
+    "translation": "Nový soubor"
+  },
   "6832ac5936": {
     "translation": "Zadejte svou e-mailovou adresu"
+  },
+  "694f82ed9d": {
+    "translation": "Smazat pracovní prostor"
   },
   "6a26f54883": {
     "translation": "Pomoc"
@@ -238,9 +259,6 @@
   },
   "6dfc62f621": {
     "translation": "Chcete-li obsah importovat ručně, postupujte takto:"
-  },
-  "70222abcfc": {
-    "translation": "Nastavení skupiny"
   },
   "70a6facb9d": {
     "translation": "Tento týden"
@@ -253,6 +271,9 @@
   },
   "7408cf0d7b": {
     "translation": "Načtěte stránku znovu"
+  },
+  "74ff4bad28": {
+    "translation": "Nenalezeny žádné soubory"
   },
   "752b79f137": {
     "translation": "Dosáhli jste maximálního počtu souborů. Před vytvořením nových je třeba odstranit staré soubory."
@@ -268,9 +289,6 @@
   },
   "764671e008": {
     "translation": "Chatujte s námi na Discordu"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw je bezplatná online bílá tabule. Vytvořte si účet pro ukládání souborů a spolupráci s přáteli."
   },
   "777f9e90cf": {
     "translation": "Neplatný požadavek."
@@ -299,9 +317,6 @@
   "7cb5f8b4a5": {
     "translation": "Zapomenout"
   },
-  "7cfe6c43dc": {
-    "translation": "Opustit skupinu…"
-  },
   "7daeced9ff": {
     "translation": "Publikovat změny"
   },
@@ -311,8 +326,14 @@
   "801ab24683": {
     "translation": "Stáhnout"
   },
+  "8030793ce3": {
+    "translation": "Nový pracovní prostor"
+  },
   "815e116a2e": {
     "translation": "Máte chybu, problém nebo nápad ohledně tldraw? Dejte nám vědět! Vyplňte tento formulář a v případě potřeby se vám ozveme e-mailem. Můžete si také <discord>chatovat s námi na Discordu</discord> nebo <github>nahlásit problém na GitHubu</github>."
+  },
+  "858ba4765e": {
+    "translation": "Člen"
   },
   "85a082de1b": {
     "translation": "Po aktualizaci stránky získáte nejnovější verzi tldraw."
@@ -323,8 +344,11 @@
   "86c66437fd": {
     "translation": "Přejmenovat soubor"
   },
-  "8ad4303b83": {
-    "translation": "Ne, děkuji."
+  "87fdb09de6": {
+    "translation": "Již jste členem tohoto pracovního prostoru."
+  },
+  "88bf6ab42c": {
+    "translation": "Platnost tohoto odkazu na pozvánku vypršela."
   },
   "8c2d3d730c": {
     "translation": "Zkontrolujte si e-mail, kde vám bude doručen ověřovací kód."
@@ -341,15 +365,6 @@
   "904a830405": {
     "translation": "Přejmenovat"
   },
-  "91e49bb0eb": {
-    "translation": "Kopírovat do mých souborů"
-  },
-  "930390d222": {
-    "translation": "Zkopírován odkaz na pozvánku"
-  },
-  "9489b2f82a": {
-    "translation": "Již jste členem této skupiny"
-  },
   "95aacd4d4a": {
     "translation": "Přihlásit se pomocí Googlu"
   },
@@ -362,11 +377,11 @@
   "985a4b720f": {
     "translation": "Podmínky použití"
   },
-  "98c997a27e": {
-    "translation": "Přidat odkaz na soubor"
-  },
   "9914a0ce04": {
     "translation": "Světlo"
+  },
+  "9983381c21": {
+    "translation": "Vymazat vyhledávání"
   },
   "9b33f5c63c": {
     "translation": "Neobdrželi jste kód? <resend>Znovu odeslat</resend>."
@@ -385,6 +400,9 @@
   },
   "9e93c98d88": {
     "translation": "Odhlásit se"
+  },
+  "a078644c42": {
+    "translation": "Byli jste pozváni k připojení k <strong>{workspaceName}</strong>."
   },
   "a0da245992": {
     "translation": "Export obsahu jako souboru .tldr: V levé horní nabídce vyberte možnost „Stáhnout“."
@@ -407,6 +425,9 @@
   "a4d3b161ce": {
     "translation": "Předložit"
   },
+  "a52945dbe2": {
+    "translation": "Opustit"
+  },
   "a6cc403d56": {
     "translation": "Kdokoli s odkazem"
   },
@@ -419,6 +440,9 @@
   "a9ded1e5ce": {
     "translation": "Pozadí"
   },
+  "aac449eef6": {
+    "translation": "Vytvořit pracovní prostor"
+  },
   "ab0df9ba36": {
     "translation": "Byl dosažen limit souborů"
   },
@@ -429,14 +453,17 @@
   "b028909917": {
     "translation": "Hostující uživatel"
   },
+  "b2326c3a34": {
+    "translation": "Znovu vygenerovat"
+  },
   "b2c3c2e30c": {
     "translation": "Soubor je plný"
   },
   "b357b524e7": {
     "translation": "E-mailová adresa"
   },
-  "b3d2db69fe": {
-    "translation": "URL souboru"
+  "b48becc771": {
+    "translation": "Povolit pozvánky"
   },
   "b6d4223e60": {
     "translation": "Přihlaste se"
@@ -450,14 +477,17 @@
   "ba0318cb81": {
     "translation": "Přihlaste se pro sdílení"
   },
-  "bb93a7590f": {
-    "translation": "Přijmout a připojit se ke skupině"
+  "bbaaf8b6bf": {
+    "translation": "Pozvánky jsou zakázány"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Nahrávání souboru .tldr…} few {} many {} other {Nahrávání {uploaded} z {total} souborů .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Sdílel {ownerName}"
+  },
+  "c17466812d": {
+    "translation": "Správa pracovního prostoru"
   },
   "c2276c9127": {
     "translation": "Další informace o sdílení."
@@ -471,26 +501,20 @@
   "c4b39a1cc3": {
     "translation": "Základní soubory cookie"
   },
-  "c6155aaecc": {
-    "translation": "Název skupiny"
-  },
   "c655b27b1e": {
     "translation": "i18n: Dlouhá struna"
   },
   "c6a00f137b": {
     "translation": "Pozvat"
   },
-  "c74ea6dbff": {
-    "translation": "Zobrazit méně"
+  "c6f16003f2": {
+    "translation": "Kopírovat do mého pracovního prostoru"
   },
   "c87aacf567": {
     "translation": "Odhlaste se"
   },
   "c8a59e7135": {
     "translation": "Zavřít"
-  },
-  "c9cc8cce24": {
-    "translation": "Uložit"
   },
   "cceaefbc20": {
     "translation": "Sdílet tento soubor"
@@ -528,20 +552,17 @@
   "d9100f3e10": {
     "translation": "Přejděte sem a podívejte se na obsah"
   },
-  "d9e35d0f55": {
-    "translation": "Dosáhli jste maximálního počtu skupin. Před vytvořením nových skupin je třeba smazat staré skupiny."
-  },
   "dbbebf3c03": {
     "translation": "Pouze na pozvání"
   },
-  "dcdaa754fe": {
-    "translation": "Neplatná adresa URL souboru tldraw"
+  "dbf9b24193": {
+    "translation": "Opusťte pracovní prostor"
   },
   "dfdb78a4e4": {
     "translation": "Příznaky ladění aplikace"
   },
-  "e0c88179b3": {
-    "translation": "Pozvat členy"
+  "e0aa021e21": {
+    "translation": "OK"
   },
   "e2198d6228": {
     "translation": "Kopírovat odkaz na pozvánku"
@@ -549,20 +570,17 @@
   "e2ae80a510": {
     "translation": "Právní shrnutí"
   },
-  "e3afed0047": {
-    "translation": "Administrátor"
-  },
   "e404559826": {
     "translation": "Podmínky služby"
   },
   "e81c4e4f2b": {
     "translation": "nebo"
   },
-  "ea0626ac5a": {
-    "translation": "Nebezpečná zóna"
-  },
   "ea4788705e": {
     "translation": "Zrušit"
+  },
+  "eb1e2b0542": {
+    "translation": "Požádejte vlastníka pracovního prostoru o nový."
   },
   "ebfe9ce86e": {
     "translation": "Včera"
@@ -603,14 +621,14 @@
   "f4f70727dc": {
     "translation": "Nastavení"
   },
-  "f714e36843": {
-    "translation": "Jste si jistý/á, že chcete tuto skupinu opustit?"
-  },
   "fa2ead697d": {
     "translation": "Zásady ochrany osobních údajů"
   },
   "fb15c53f22": {
     "translation": "Prohlížeč"
+  },
+  "fc9d47046b": {
+    "translation": "Jste si jisti, že chcete opustit tento pracovní prostor?"
   },
   "fd1be3efcf": {
     "translation": "Opravdu chcete tento soubor smazat?"
@@ -618,8 +636,11 @@
   "fed5ec05eb": {
     "translation": "Zkopírován odkaz"
   },
-  "ff7a814974": {
-    "translation": "Přidat odkaz na soubor…"
+  "ff2fefd3c6": {
+    "translation": "Opravdu chcete odstranit {name} z tohoto pracovního prostoru?"
+  },
+  "ff52811b98": {
+    "translation": "Vytvořte si bezplatný účet pro ukládání souborů a kreslení se spoluhráči."
   },
   "ffcd73e997": {
     "translation": "Importovat soubor…"

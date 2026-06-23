@@ -217,7 +217,6 @@ export function Component() {
 							<TlaButton
 								disabled={isRebooting}
 								onClick={doReboot}
-								variant="warning"
 								isLoading={isRebooting}
 								className={styles.userActionButton}
 							>
@@ -242,16 +241,22 @@ export function Component() {
 					</section>
 				)}
 
-				{/* Batch Migration Section */}
+				{/* Workspaces UI rollout section */}
 				<section className={styles.adminSection}>
-					<h3 className="tla-text_ui__title">Batch Migration</h3>
-					<BatchMigrateUsersToGroups />
+					<h3 className="tla-text_ui__title">Workspaces UI rollout</h3>
+					<RolloutWorkspacesUi />
 				</section>
 
 				{/* Feature Flags Section */}
 				<section className={styles.adminSection}>
 					<h3 className="tla-text_ui__title">Feature Flags</h3>
 					<FeatureFlags />
+				</section>
+
+				{/* Welcome Template Section */}
+				<section className={styles.adminSection}>
+					<h3 className="tla-text_ui__title">Welcome template</h3>
+					<WelcomeTemplate />
 				</section>
 
 				{/* File Operations Section */}
@@ -271,6 +276,127 @@ export function Component() {
 					<DeleteUser />
 				</section>
 			</main>
+		</div>
+	)
+}
+
+function WelcomeTemplate() {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [current, setCurrent] = useState(
+		null as { fileId: string; publishedSlug: string; live?: boolean } | null
+	)
+	const [isLoading, setIsLoading] = useState(true)
+	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const load = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
+		try {
+			const res = await fetch('/api/app/admin/welcome-template')
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setCurrent(await res.json())
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to load welcome template')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		load()
+	}, [load])
+
+	const onSet = useCallback(async () => {
+		const fileId = inputRef.current?.value?.trim()
+		if (!fileId) {
+			setError('Please enter a published file ID')
+			return
+		}
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/welcome-template', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ fileId }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setCurrent(await res.json())
+			setSuccessMessage('Welcome template set ✨')
+			inputRef.current!.value = ''
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to set welcome template')
+		}
+	}, [])
+
+	const onClear = useCallback(async () => {
+		if (
+			!window.confirm('Clear the welcome template? New workspaces will use the built-in default.')
+		)
+			return
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/welcome-template/clear', { method: 'POST' })
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setCurrent(null)
+			setSuccessMessage('Welcome template cleared — using the built-in default')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to clear welcome template')
+		}
+	}, [])
+
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			<p className="tla-text_ui__regular">
+				The file new workspaces fork their first file from. Publish the file first, then set it here
+				by its file ID. Clear it to use the built-in default.
+			</p>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			<div className={styles.summaryItem}>
+				<span className={styles.fieldLabel}>Current:</span>
+				<span className={styles.fieldValue}>
+					{isLoading
+						? 'Loading…'
+						: current
+							? `${current.fileId} (published slug ${current.publishedSlug})${
+									current.live ? '' : ' ⚠️ not published — new workspaces fall back to the default'
+								}`
+							: 'none — using the built-in default'}
+				</span>
+			</div>
+			<div className={styles.searchContainer}>
+				<input
+					type="text"
+					placeholder="Published file ID"
+					ref={inputRef}
+					className={styles.searchInput}
+				/>
+				<TlaButton onClick={onSet} variant="primary">
+					Set as welcome template
+				</TlaButton>
+				<TlaButton onClick={onClear} variant="secondary" disabled={!current}>
+					Clear
+				</TlaButton>
+			</div>
 		</div>
 	)
 }
@@ -558,7 +684,7 @@ function HardDeleteFile() {
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			<div className={styles.deleteContainer}>
 				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
-				<TlaButton onClick={onDelete} variant="warning" className={styles.deleteButton}>
+				<TlaButton onClick={onDelete} className={styles.deleteButton}>
 					Delete (cannot be undone)
 				</TlaButton>
 			</div>
@@ -796,7 +922,7 @@ function EnrollUserInGroups({
 	)
 }
 
-function BatchMigrateUsersToGroups() {
+function RolloutWorkspacesUi() {
 	const [isMigrating, setIsMigrating] = useState(false)
 	const [progressLog, setProgressLog] = useState<string[]>([])
 	const [error, setError] = useState(null as string | null)
@@ -811,9 +937,12 @@ function BatchMigrateUsersToGroups() {
 		}
 	)
 	const [unmigratedCount, setUnmigratedCount] = useState<number | null>(null)
+	const [totalUsers, setTotalUsers] = useState<number | null>(null)
+	const percentageTouchedRef = useRef(false)
 	const [isLoadingCount, setIsLoadingCount] = useState(false)
 	const [eventSource, setEventSource] = useState<EventSource | null>(null)
 	const [sleepMs, setSleepMs] = useState(100)
+	const [percentage, setPercentage] = useState(0)
 	const logContainerRef = useRef<HTMLDivElement>(null)
 	const shouldContinueRef = useRef(true)
 
@@ -844,12 +973,23 @@ function BatchMigrateUsersToGroups() {
 			}
 			const data = await res.json()
 			setUnmigratedCount(data.count)
+			setTotalUsers(data.total)
+			// Prefill the input with the current share so the default action is
+			// (nearly) a no-op instead of unenrolling everyone. Ceil so any
+			// rounding error enrolls a few users rather than unenrolls them.
+			if (!percentageTouchedRef.current && data.total > 0) {
+				setPercentage(Math.ceil(((data.total - data.count) / data.total) * 100))
+			}
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Failed to fetch count')
 		} finally {
 			setIsLoadingCount(false)
 		}
 	}, [])
+
+	useEffect(() => {
+		fetchUnmigratedCount()
+	}, [fetchUnmigratedCount])
 
 	const stopMigration = useCallback(() => {
 		shouldContinueRef.current = false
@@ -861,7 +1001,17 @@ function BatchMigrateUsersToGroups() {
 	}, [eventSource])
 
 	const onMigrate = useCallback(async () => {
-		const migrationMessage = `Are you sure you want to migrate ALL users without the groups_backend flag? This action cannot be undone.`
+		// Validate here — a worker 400 only surfaces as a generic EventSource error
+		if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+			setError('Target percentage must be between 0 and 100')
+			return
+		}
+		if (isNaN(sleepMs) || sleepMs < 0) {
+			setError('Sleep must be a non-negative number')
+			return
+		}
+
+		const migrationMessage = `Set workspaces UI enrollment to ${percentage}% of all users? If more than ${percentage}% are currently enrolled, users will be UNENROLLED to reach the target.`
 
 		if (!window.confirm(migrationMessage)) {
 			return
@@ -879,6 +1029,7 @@ function BatchMigrateUsersToGroups() {
 				try {
 					const params = new URLSearchParams({
 						sleepMs: sleepMs.toString(),
+						percentage: percentage.toString(),
 					})
 					const es = new EventSource(`/api/app/admin/migrate_users_batch?${params}`)
 					setEventSource(es)
@@ -912,12 +1063,20 @@ function BatchMigrateUsersToGroups() {
 						if (data.type === 'complete') {
 							es.close()
 							setEventSource(null)
-							if (data.hasMore && shouldContinueRef.current) {
+							if (data.failed) {
+								setIsMigrating(false)
+								// Refresh first — fetchUnmigratedCount clears the error state,
+								// so setting the banner before it would wipe it
+								await fetchUnmigratedCount()
+								setError('Rollout stopped due to a failure — see the progress log')
+								resolve()
+							} else if (data.hasMore && shouldContinueRef.current) {
 								// Start next batch
 								setTimeout(() => startBatch().then(resolve).catch(reject), 100)
 							} else {
 								setIsComplete(true)
 								setIsMigrating(false)
+								fetchUnmigratedCount()
 								resolve()
 							}
 						} else if (data.type === 'error') {
@@ -950,13 +1109,13 @@ function BatchMigrateUsersToGroups() {
 		} catch (_err) {
 			// Error already handled in startBatch
 		}
-	}, [sleepMs])
+	}, [sleepMs, percentage, fetchUnmigratedCount])
 
 	return (
 		<div className={styles.dangerZone}>
-			<h4 className="tla-text_ui__medium">Migrate All Users to Groups Backend</h4>
+			<h4 className="tla-text_ui__medium">Roll out workspaces UI</h4>
 
-			{/* Unmigrated Users Count */}
+			{/* Unenrolled users count */}
 			<div className={styles.countContainer}>
 				<TlaButton
 					onClick={fetchUnmigratedCount}
@@ -964,19 +1123,23 @@ function BatchMigrateUsersToGroups() {
 					isLoading={isLoadingCount}
 					disabled={isMigrating}
 				>
-					Check Unmigrated Users Count
+					Refresh enrollment count
 				</TlaButton>
-				{unmigratedCount !== null && (
+				{unmigratedCount !== null && totalUsers !== null && (
 					<span className={styles.countDisplay}>
-						{unmigratedCount} user{unmigratedCount !== 1 ? 's' : ''} need migration
+						{totalUsers - unmigratedCount}/{totalUsers} users enrolled (
+						{totalUsers > 0 ? Math.round(((totalUsers - unmigratedCount) / totalUsers) * 100) : 0}
+						%)
 					</span>
 				)}
 			</div>
 
 			<p className="tla-text_ui__small">
-				This will migrate all users who don&apos;t have the groups_backend flag. The process will
-				run sequentially (one user at a time) and report progress in real-time. Configure the sleep
-				duration (milliseconds to wait between each user migration) below.
+				This adjusts how many users have the groups_frontend flag (the workspaces UI) to match the
+				target percentage: raising it enrolls the difference, lowering it unenrolls users —
+				including any who got the flag by accepting a workspace invite. Clients pick changes up live
+				through Zero, so no reboot is needed, and reruns with the same target are no-ops. Users are
+				updated in chunks of 200 with a configurable pause between chunks.
 			</p>
 
 			{error && <div className={styles.errorMessage}>{error}</div>}
@@ -984,7 +1147,23 @@ function BatchMigrateUsersToGroups() {
 			{/* Configuration Inputs */}
 			<div className={styles.configContainer}>
 				<div>
-					<label htmlFor="sleepMs">Sleep between migrations (ms):</label>
+					<label htmlFor="rolloutPercentage">Target percentage of all users:</label>
+					<input
+						id="rolloutPercentage"
+						type="number"
+						value={percentage}
+						onChange={(e) => {
+							percentageTouchedRef.current = true
+							setPercentage(Number(e.target.value))
+						}}
+						disabled={isMigrating}
+						min={0}
+						max={100}
+						className={`${styles.searchInput} ${styles.sleepInput}`}
+					/>
+				</div>
+				<div>
+					<label htmlFor="sleepMs">Sleep between chunks (ms):</label>
 					<input
 						id="sleepMs"
 						type="number"
@@ -1005,7 +1184,7 @@ function BatchMigrateUsersToGroups() {
 						<span className={styles.statValue}>{stats.totalUsers}</span>
 					</div>
 					<div className={styles.statItem}>
-						<span className={styles.statLabel}>Users to Migrate:</span>
+						<span className={styles.statLabel}>Users to update:</span>
 						<span className={styles.statValue}>{stats.usersToMigrate}</span>
 					</div>
 					<div className={styles.statItem}>
@@ -1026,25 +1205,26 @@ function BatchMigrateUsersToGroups() {
 			<div className={styles.deleteContainer}>
 				<TlaButton
 					onClick={isMigrating ? stopMigration : onMigrate}
-					variant="warning"
 					className={styles.deleteButton}
-					disabled={!isMigrating && isLoadingCount}
+					// Require a loaded count: until then the percentage input still
+					// has its initial 0 and submitting would unenroll everyone
+					disabled={!isMigrating && (isLoadingCount || totalUsers === null)}
 				>
-					{isMigrating ? 'Stop Migration' : 'Start Batch Migration'}
+					{isMigrating ? 'Stop' : 'Update rollout percentage'}
 				</TlaButton>
 			</div>
 
 			{isComplete && (
 				<div className={styles.successMessage}>
-					Migration completed! {stats.successCount} user{stats.successCount !== 1 ? 's' : ''}{' '}
-					migrated successfully, {stats.failureCount} failed
+					Rollout completed! {stats.successCount} user{stats.successCount !== 1 ? 's' : ''} updated
+					successfully, {stats.failureCount} failed
 				</div>
 			)}
 
 			{/* Progress Log */}
 			{progressLog.length > 0 && (
 				<div className={styles.progressLog}>
-					<h5>Migration Progress:</h5>
+					<h5>Rollout progress:</h5>
 					<div ref={logContainerRef} className={styles.logContainer}>
 						{progressLog.map((log, index) => (
 							<div key={index} className={styles.logEntry}>
@@ -1136,7 +1316,6 @@ function DeleteUser() {
 				/>
 				<TlaButton
 					onClick={onDelete}
-					variant="warning"
 					className={styles.deleteButton}
 					disabled={isDeleting}
 					isLoading={isDeleting}

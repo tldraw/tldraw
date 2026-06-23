@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
+import { useEffect, useRef, useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiDialogBody,
@@ -12,11 +13,8 @@ import { defineMessages, F, useMsg } from '../../utils/i18n'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
-	title: { defaultMessage: 'Create workspace' },
-	name: { defaultMessage: 'Name' },
+	defaultName: { defaultMessage: 'New workspace' },
 	placeholder: { defaultMessage: 'Workspace name' },
-	cancel: { defaultMessage: 'Cancel' },
-	create: { defaultMessage: 'Create workspace' },
 })
 
 interface CreateWorkspaceDialogProps {
@@ -26,8 +24,20 @@ interface CreateWorkspaceDialogProps {
 }
 
 export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDialogProps) {
-	const [workspaceName, setWorkspaceName] = useState('')
+	const defaultName = useMsg(messages.defaultName)
+	const [workspaceName, setWorkspaceName] = useState(defaultName)
 	const placeholderMsg = useMsg(messages.placeholder)
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	useEffect(() => {
+		// This dialog is opened from a Radix dropdown item. Native autoFocus can run
+		// before the dropdown finishes closing and restores focus to its trigger.
+		const timeout = window.setTimeout(() => {
+			inputRef.current?.focus()
+			inputRef.current?.select()
+		}, 0)
+		return () => window.clearTimeout(timeout)
+	}, [])
 
 	const handleCreate = () => {
 		const trimmedName = workspaceName.trim()
@@ -41,32 +51,36 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F {...messages.title} />
+					<F defaultMessage="Create a workspace" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				<div style={{ marginBottom: 16 }}>
-					<label style={{ display: 'block', marginBottom: 8 }}>
-						<F {...messages.name} />
-					</label>
+			<TldrawUiDialogBody style={{ maxWidth: 350, paddingTop: 0 }}>
+				<div>
+					<div className={styles.dialogFieldLabelRow}>
+						<label style={{ display: 'block' }}>
+							<F defaultMessage="Name" />
+						</label>
+					</div>
 					<TldrawUiInput
+						ref={inputRef}
 						className={styles.dialogInput}
 						value={workspaceName}
 						onValueChange={setWorkspaceName}
 						onComplete={handleCreate}
 						onCancel={onClose}
 						placeholder={placeholderMsg}
+						maxLength={MAX_WORKSPACE_NAME_LENGTH}
 						autoFocus
 					/>
 				</div>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={onClose}>
-					<F {...messages.cancel} />
+					<F defaultMessage="Cancel" />
 				</TldrawUiButton>
 				<TldrawUiButton type="primary" onClick={handleCreate}>
-					<F {...messages.create} />
+					<F defaultMessage="Create workspace" />
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
 		</>

@@ -71,7 +71,9 @@ export class ShapeIndicatorOverlayUtil extends OverlayUtil<TLShapeIndicatorOverl
 			'select.scribble_brushing',
 			'select.pointing_shape',
 			'select.pointing_selection',
-			'select.pointing_handle'
+			'select.pointing_handle',
+			'select.pointing_resize_handle',
+			'select.pointing_rotate_handle'
 		)
 
 		if (!isChangingStyle && (isIdleOrEditing || isInSelectState)) {

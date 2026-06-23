@@ -5,6 +5,12 @@
       "value": "Eksportuj"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Zaakceptuj zaproszenie"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,6 +25,18 @@
     {
       "type": 1,
       "value": "GetHelpLink"
+    }
+  ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Zaproś członków drużyny"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Osiągnięto maksymalną liczbę obszarów roboczych. Przed utworzeniem nowych obszarów roboczych należy usunąć stare."
     }
   ],
   "06b9281e39": [
@@ -63,10 +81,28 @@
       "value": "Menu pliku"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Wystąpił błąd podczas ładowania tego zaproszenia. Spróbuj ponownie."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Wyślij opinię"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Usuń"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopiuj do osobistej przestrzeni roboczej"
     }
   ],
   "110a4b01be": [
@@ -75,22 +111,10 @@
       "value": "Opublikuj"
     }
   ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Opuść grupę"
-    }
-  ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Odepnij plik"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Wypróbuj zestaw SDK tldraw"
     }
   ],
   "13ddd375ad": [
@@ -99,16 +123,10 @@
       "value": "Eksportuj jako"
     }
   ],
-  "146ffe2fd9": [
+  "1764571547": [
     {
       "type": 0,
-      "value": "Pokaż więcej"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Usuń grupę"
+      "value": "Czy na pewno chcesz usunąć ten obszar roboczy? Tej czynności nie można cofnąć."
     }
   ],
   "181b90f889": [
@@ -129,10 +147,36 @@
       "value": "Dzisiaj"
     }
   ],
-  "2445e5e347": [
+  "1ffd709937": [
     {
       "type": 0,
-      "value": "Utwórz grupę"
+      "value": "Przestrzeń robocza musi mieć co najmniej jednego właściciela. Najpierw niech ktoś inny zostanie właścicielem."
+    }
+  ],
+  "21f66c9c00": [
+    {
+      "type": 0,
+      "value": "Nazwa obszaru roboczego"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Zostałeś zaproszony do dołączenia do "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Utwórz bezpłatne konto, aby kontynuować."
     }
   ],
   "250ddea65c": [
@@ -147,16 +191,34 @@
       "value": "Przesyłanie nie powiodło się"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Moje pliki"
+      "value": "Witamy w Twoim miejscu pracy"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Szukaj..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Regeneracja zastępuje obecny link z zaproszeniem nowym. Każdy, kto korzysta ze starego linku, będzie potrzebował nowego, aby dołączyć."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Dołącz link do bieżącego pliku"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Wygeneruj ponownie link zaproszenia"
     }
   ],
   "31246941ad": [
@@ -169,12 +231,6 @@
     {
       "type": 0,
       "value": "i18n: Brak wyróżnienia"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Dodaj link"
     }
   ],
   "324a0f3182": [
@@ -193,6 +249,18 @@
     {
       "type": 0,
       "value": "Edytor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Zarządzaj"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Usuń członka"
     }
   ],
   "3bc7d6ea2f": [
@@ -267,12 +335,6 @@
       "value": "Przypnij plik"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Wklej adres URL pliku tldraw..."
-    }
-  ],
   "4908687e50": [
     {
       "type": 0,
@@ -297,24 +359,6 @@
       "value": "Załaduj ponownie"
     }
   ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Usuń grupę…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Więcej opcji"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Czy na pewno chcesz usunąć tę grupę? Tej czynności nie można cofnąć."
-    }
-  ],
   "5097d89907": [
     {
       "type": 0,
@@ -325,6 +369,12 @@
     {
       "type": 0,
       "value": "Nie można cofnąć publikacji pliku."
+    }
+  ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "To Twoja prywatna przestrzeń robocza. Utwórz nową przestrzeń roboczą, aby zaprosić członków zespołu."
     }
   ],
   "517bb809d9": [
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Utwórz przestrzeń roboczą"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -377,40 +433,6 @@
     {
       "type": 0,
       "value": "Polityka prywatności"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Przeciągnij pliki tutaj, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "utwórz plik"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": " lub "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "skopiuj link zaproszenia"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": ", aby rozpocząć."
     }
   ],
   "5a95a425f7": [
@@ -425,10 +447,10 @@
       "value": "Wykryto starą przeglądarkę. Zaktualizuj przeglądarkę, aby korzystać z tej aplikacji."
     }
   ],
-  "5c6fe42bc2": [
+  "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Usuń ten link i utwórz nowy."
+      "value": "Moje miejsce pracy"
     }
   ],
   "5d04a002ea": [
@@ -441,12 +463,6 @@
     {
       "type": 0,
       "value": "Nie udało nam się przesłać części treści utworzonych przed zalogowaniem."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Zostałeś zaproszony do dołączenia do grupy:"
     }
   ],
   "5f3c333678": [
@@ -497,10 +513,22 @@
       "value": "Dostępna jest nowa wersja tldraw. Aby kontynuować, odśwież stronę."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Nowy plik"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Podaj swój adres e-mail"
+    }
+  ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Usuń obszar roboczy"
     }
   ],
   "6a26f54883": [
@@ -519,12 +547,6 @@
     {
       "type": 0,
       "value": "Aby ręcznie zaimportować zawartość, wykonaj następujące czynności:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Ustawienia grupy"
     }
   ],
   "70a6facb9d": [
@@ -549,6 +571,12 @@
     {
       "type": 0,
       "value": "Odśwież stronę"
+    }
+  ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Nie znaleziono plików"
     }
   ],
   "752b79f137": [
@@ -579,12 +607,6 @@
     {
       "type": 0,
       "value": "Proszę odświeżyć"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw to darmowa tablica online. Załóż konto, aby zapisać pliki i pracować ze znajomymi."
     }
   ],
   "777f9e90cf": [
@@ -641,12 +663,6 @@
       "value": "Zapomnij"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Opuść grupę…"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -663,6 +679,12 @@
     {
       "type": 0,
       "value": "Pobierać"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nowe miejsce pracy"
     }
   ],
   "815e116a2e": [
@@ -699,6 +721,12 @@
       "value": "."
     }
   ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Członek"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -725,10 +753,16 @@
       "value": "Zmień nazwę pliku"
     }
   ],
-  "8ad4303b83": [
+  "87fdb09de6": [
     {
       "type": 0,
-      "value": "Nie, dziękuję"
+      "value": "Jesteś już członkiem tej przestrzeni roboczej"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Ten link z zaproszeniem wygasł"
     }
   ],
   "8c2d3d730c": [
@@ -761,24 +795,6 @@
       "value": "Zmień nazwę"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Kopiuj do moich plików"
-    }
-  ],
-  "930390d222": [
-    {
-      "type": 0,
-      "value": "Skopiowano link zaproszenia"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Jesteś już członkiem tej grupy"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -803,16 +819,16 @@
       "value": "Warunki korzystania"
     }
   ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Dodaj link do pliku"
-    }
-  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Jasny"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Wyczyść wyszukiwanie"
     }
   ],
   "9b33f5c63c": [
@@ -865,6 +881,26 @@
       "value": "Zrezygnuj"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Zostałeś zaproszony do dołączenia do "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -907,6 +943,12 @@
       "value": "Składać"
     }
   ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Opuść"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -929,6 +971,12 @@
     {
       "type": 0,
       "value": "Tło"
+    }
+  ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Utwórz obszar roboczy"
     }
   ],
   "ab0df9ba36": [
@@ -955,6 +1003,12 @@
       "value": "Użytkownik gość"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Wygeneruj ponownie"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -967,10 +1021,10 @@
       "value": "Adres e-mail"
     }
   ],
-  "b3d2db69fe": [
+  "b48becc771": [
     {
       "type": 0,
-      "value": "Adres URL pliku"
+      "value": "Włącz zaproszenia"
     }
   ],
   "b6d4223e60": [
@@ -997,10 +1051,10 @@
       "value": "Zaloguj się, aby udostępnić"
     }
   ],
-  "bb93a7590f": [
+  "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Zaakceptuj i dołącz do grupy"
+      "value": "Zaproszenia są wyłączone"
     }
   ],
   "bbbcefd7ce": [
@@ -1063,6 +1117,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Zarządzaj obszarem roboczym"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1101,12 +1161,6 @@
       "value": "Niezbędne pliki cookie"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Nazwa grupy"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1119,10 +1173,10 @@
       "value": "Zaproś"
     }
   ],
-  "c74ea6dbff": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Pokaż mniej"
+      "value": "Kopiuj do mojego obszaru roboczego"
     }
   ],
   "c87aacf567": [
@@ -1135,12 +1189,6 @@
     {
       "type": 0,
       "value": "Zamknij"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Ratować"
     }
   ],
   "cceaefbc20": [
@@ -1243,22 +1291,16 @@
       "value": "Kliknij tutaj, aby zobaczyć zawartość"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Osiągnięto maksymalną liczbę grup. Aby utworzyć nowe, należy usunąć stare grupy."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Tylko z zaproszeniem"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "Nieprawidłowy adres URL pliku tldraw"
+      "value": "Opuść miejsce pracy"
     }
   ],
   "dfdb78a4e4": [
@@ -1267,10 +1309,10 @@
       "value": "Oznaczenia debugowania aplikacji"
     }
   ],
-  "e0c88179b3": [
+  "e0aa021e21": [
     {
       "type": 0,
-      "value": "Zaproś członków"
+      "value": "OK"
     }
   ],
   "e2198d6228": [
@@ -1285,12 +1327,6 @@
       "value": "Podsumowanie prawne"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Administrator"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
@@ -1303,16 +1339,16 @@
       "value": "Lub"
     }
   ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Strefa niebezpieczna"
-    }
-  ],
   "ea4788705e": [
     {
       "type": 0,
       "value": "Anuluj"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Poproś właściciela miejsca pracy o nowe."
     }
   ],
   "ebfe9ce86e": [
@@ -1407,12 +1443,6 @@
       "value": "Ustawienia"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Czy na pewno chcesz opuścić tę grupę?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1423,6 +1453,12 @@
     {
       "type": 0,
       "value": "Oglądający"
+    }
+  ],
+  "fc9d47046b": [
+    {
+      "type": 0,
+      "value": "Czy na pewno chcesz opuścić tę przestrzeń roboczą?"
     }
   ],
   "fd1be3efcf": [
@@ -1437,10 +1473,24 @@
       "value": "Skopiowany link"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Dodaj link do pliku…"
+      "value": "Czy na pewno chcesz usunąć "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " z tego obszaru roboczego?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Załóż bezpłatne konto, aby zapisywać pliki i rysować je wspólnie z członkami drużyny."
     }
   ],
   "ffcd73e997": [

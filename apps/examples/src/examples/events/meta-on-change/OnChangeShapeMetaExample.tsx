@@ -12,7 +12,7 @@ export default function OnChangeShapeMetaExample() {
 					// [1]
 					editor.getInitialMetaForShape = (_shape) => {
 						return {
-							updatedBy: editor.user.getId(),
+							updatedBy: editor.user.getExternalId(),
 							updatedAt: Date.now(),
 						}
 					}
@@ -22,7 +22,7 @@ export default function OnChangeShapeMetaExample() {
 						return {
 							...next,
 							meta: {
-								updatedBy: editor.user.getId(),
+								updatedBy: editor.user.getExternalId(),
 								updatedAt: Date.now(),
 							},
 						}

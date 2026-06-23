@@ -156,6 +156,78 @@ describe('creating frames', () => {
 		expect(parent).toBe('page:page')
 	})
 
+	it('hints the shapes that would be enclosed while drag-creating a frame', () => {
+		const boxA = createRect({ pos: [10, 10], size: [20, 20] })
+		const boxB = createRect({ pos: [60, 60], size: [20, 20] })
+
+		editor.setCurrentTool('frame')
+		editor.pointerDown(0, 0)
+
+		// The drag rectangle encloses box A only
+		editor.pointerMove(40, 40)
+		expect(editor.getHintingShapeIds()).toEqual([boxA])
+
+		// Grown to enclose both boxes
+		editor.pointerMove(100, 100)
+		expect(editor.getHintingShapeIds()).toEqual([boxA, boxB])
+
+		// Shrunk back to enclose box A only
+		editor.pointerMove(40, 40)
+		expect(editor.getHintingShapeIds()).toEqual([boxA])
+
+		// On pointer up, the hints clear and the hinted shape becomes a child of the frame
+		editor.pointerUp(40, 40)
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+		const frameId = editor.getOnlySelectedShape()!.id
+		expect(editor.getShape(boxA)?.parentId).toBe(frameId)
+		expect(editor.getShape(boxB)?.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('does not hint shapes that are only partially enclosed', () => {
+		createRect({ pos: [10, 10], size: [20, 20] })
+
+		editor.setCurrentTool('frame')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(20, 20)
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+	})
+
+	it('does not hint locked shapes', () => {
+		const rectId = createRect({ pos: [10, 10], size: [20, 20] })
+		editor.updateShape({ id: rectId, type: 'geo', isLocked: true })
+
+		editor.setCurrentTool('frame')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(100, 100)
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+	})
+
+	it('clears the hints when the drag is cancelled', () => {
+		createRect({ pos: [10, 10], size: [20, 20] })
+
+		editor.setCurrentTool('frame')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(100, 100)
+		expect(editor.getHintingShapeIds()).toHaveLength(1)
+
+		editor.cancel()
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+	})
+
+	it('clears the hints between successive frame creations when tool locked', () => {
+		editor.updateInstanceState({ isToolLocked: true })
+		createRect({ pos: [10, 10], size: [20, 20] })
+
+		editor.setCurrentTool('frame')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(100, 100)
+		expect(editor.getHintingShapeIds()).toHaveLength(1)
+		editor.pointerUp(100, 100)
+
+		expect(editor.getCurrentToolId()).toBe('frame')
+		expect(editor.getHintingShapeIds()).toHaveLength(0)
+	})
+
 	it('can snap', () => {
 		editor.createShapes([
 			{ type: 'geo', id: ids.boxA, x: 0, y: 0, props: { w: 50, h: 50, fill: 'solid' } },

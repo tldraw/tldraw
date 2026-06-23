@@ -1,19 +1,6 @@
-/* Utility Classes */
-.sr-only {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	padding: 0;
-	margin: -1px;
-	overflow: hidden;
-	clip: rect(0, 0, 0, 0);
-	white-space: nowrap;
-	border-width: 0;
-}
-
 /* Auth Dialog Container */
 .authContainer {
-	width: 450px;
+	width: 360px;
 	max-width: 95vw;
 	overflow-y: auto;
 }
@@ -25,7 +12,7 @@
 .authBody {
 	display: flex;
 	flex-direction: column;
-	padding: 8px 40px 36px 40px;
+	padding: 8px 20px 24px 20px;
 	gap: 24px;
 }
 
@@ -36,12 +23,11 @@
 }
 
 .authLogo {
-	width: 128px;
+	width: 108px;
 	height: 36px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin-bottom: 8px;
 }
 
 .authLogo span {
@@ -49,31 +35,22 @@
 	height: 100%;
 }
 
-.authVerificationTitle {
-	text-align: center;
-	color: var(--tl-color-text-2);
-	font-size: 14px;
-	margin: 0;
-	line-height: 1.5;
-	text-wrap: balance;
-	font-weight: 600;
-}
-
 /* Description Text */
 .authDescription {
 	text-align: center;
 	color: var(--tl-color-text-2);
-	font-size: 14px;
+	font-size: 12px;
 	margin: 0;
 	line-height: 1.5;
 	text-wrap: balance;
+	margin-bottom: 12px;
 }
 
 /* Cta button */
 .authCtaButton {
-	height: 40px;
+	height: 36px;
 	width: 100%;
-	font-size: 14px;
+	font-size: 12px;
 	font-weight: 500;
 }
 
@@ -81,7 +58,7 @@
 .authCtaButton img {
 	width: 22px;
 	height: 22px;
-	padding: 4px;
+	padding: var(--tl-space-2);
 	z-index: 2;
 	background-color: var(--tl-color-selected-contrast);
 	border-radius: 100%;
@@ -93,8 +70,9 @@
 	align-items: center;
 	text-align: center;
 	color: var(--tl-color-text-3);
-	font-size: 14px;
+	font-size: 12px;
 	margin: var(--tl-space-2) 0;
+	font-style: italic;
 }
 
 .authDivider::before,
@@ -116,9 +94,9 @@
 }
 
 .authLabel {
-	font-size: 14px;
+	font-size: 12px;
 	font-weight: 500;
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-0);
 }
 
 .authInput {
@@ -127,8 +105,8 @@
 	background-color: var(--tl-color-muted-0);
 	border: 1px solid var(--tl-color-muted-2);
 	border-radius: var(--tl-radius-2);
-	font-size: 14px;
-	height: 40px;
+	font-size: 12px;
+	height: 36px;
 	color: var(--tl-color-text-0);
 }
 
@@ -152,38 +130,24 @@
 	font-weight: 500;
 }
 
+.clerkCaptcha:not(:empty) {
+	padding: var(--tl-space-8);
+	margin-top: calc(-1 * var(--tl-space-8));
+}
+
 .authTermsOfUse {
-	font-size: 12px;
-	color: var(--tl-color-text-2);
 	margin-top: var(--tl-space-8);
 	text-align: center;
+}
+
+.authTermsOfUse a {
+	font-size: 12px;
+	color: var(--tl-color-text-3);
 	text-wrap: balance;
 	font-weight: 500;
 }
-
-/* Continue Button */
-/* .authContinueButton {
-	width: 100%;
-	position: relative;
-	padding: 0;
-	font-size: 14px;
-	font-weight: 500;
-	justify-content: center;
-	color: var(--tl-color-text-1);
-	background-color: var(--tl-color-muted-2);
-	border: 1px solid var(--tl-color-muted-1);
-	border-radius: var(--tl-radius-2);
-	transition: background-color 0.12s ease;
-	margin-top: 16px;
-} */
-
 .authContinueWithEmailButton {
 	margin-top: var(--tl-space-4);
-}
-
-.authButtonArrow {
-	margin-left: var(--tl-space-2);
-	font-size: 14px;
 }
 
 /* Checkbox */
@@ -193,8 +157,8 @@
 	justify-content: center;
 	gap: var(--tl-space-4);
 	cursor: pointer;
-	font-size: 14px;
-	color: var(--tl-color-text-1);
+	font-size: 12px;
+	color: var(--tl-color-text-0);
 	line-height: 1.5;
 }
 
@@ -219,15 +183,11 @@
 	position: relative;
 }
 
-.authVerificationInput {
-	display: none;
-}
-
 /* OTP boxes */
 .authOtpBoxes {
 	display: grid;
 	grid-template-columns: repeat(6, 40px);
-	gap: 8px;
+	gap: var(--tl-space-3);
 }
 
 .authOtpBox {
@@ -279,7 +239,7 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	font-size: 14px;
+	font-size: 12px;
 	margin-top: var(--tl-space-3);
 }
 
@@ -293,32 +253,13 @@
 	color: var(--tl-color-selected);
 	cursor: pointer;
 	padding: 0;
-	font-size: 14px;
+	font-size: 12px;
 	font-weight: 500;
 }
 
 .authResendButton:disabled {
 	color: var(--tl-color-text-3);
 	cursor: not-allowed;
-}
-
-/* Switch Mode */
-.authSwitchMode {
-	text-align: center;
-	font-size: 14px;
-	color: var(--tl-color-text-2);
-	margin-top: var(--tl-space-2);
-}
-
-.authSwitchModeButton {
-	background: none;
-	border: none;
-	color: var(--tl-color-selected);
-	text-decoration: underline;
-	cursor: pointer;
-	padding: 0;
-	font-size: 14px;
-	font-weight: 500;
 }
 
 .authTermsAcceptAndContinueButton {
@@ -339,11 +280,6 @@
 		height: 36px;
 	}
 
-	.authBody {
-		gap: 24px;
-		padding: 8px 32px 24px 32px;
-	}
-
 	.authCtaButton img {
 		height: 18px;
 		width: 18px;
@@ -355,6 +291,6 @@
 	}
 
 	.authInput::placeholder {
-		font-size: 14px;
+		font-size: 12px;
 	}
 }

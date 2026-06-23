@@ -4,6 +4,10 @@ Type definitions, schema migrations, and other type metadata for the tldraw edit
 
 ## Documentation
 
+Documentation for the most recent release can be found on [tldraw.dev/docs](https://tldraw.dev/docs), including [reference docs](https://tldraw.dev/reference/editor/Editor). Our release notes can be found [here](https://tldraw.dev/releases).
+
+For more agent-friendly docs, see our [LLMs.txt](https://tldraw.dev/llms.txt).
+
 A `DOCS.md` file is included alongside this README in the published package, with detailed API documentation and usage examples.
 
 ## Records

@@ -65,7 +65,7 @@ export interface ParsedMindmapLayout {
 }
 
 function parseMindmapNodeId(domId: string): string {
-	const match = domId.match(/^node_(\d+)$/)
+	const match = domId.match(/^(?:mermaid-\d+-)?node_(\d+)$/)
 	return match ? match[1] : domId
 }
 

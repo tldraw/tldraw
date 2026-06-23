@@ -104,6 +104,14 @@ export function UngroupMenuItem() {
 }
 
 /** @public @react */
+export function FrameSelectionMenuItem() {
+	const shouldDisplay = useAllowGroup()
+	if (!shouldDisplay) return null
+
+	return <TldrawUiMenuActionItem actionId="frame-selection" />
+}
+
+/** @public @react */
 export function RemoveFrameMenuItem() {
 	const editor = useEditor()
 	const shouldDisplay = useValue(
@@ -343,6 +351,7 @@ export function EditMenuSubmenu() {
 			<GroupMenuItem />
 			<UngroupMenuItem />
 			<FlattenMenuItem />
+			<FrameSelectionMenuItem />
 			<EditLinkMenuItem />
 			<FitFrameToContentMenuItem />
 			<RemoveFrameMenuItem />

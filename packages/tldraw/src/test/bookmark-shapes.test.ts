@@ -1,6 +1,11 @@
-import { TLBookmarkShape, createShapeId } from '@tldraw/editor'
+import { AssetRecordType, TLBookmarkShape, createShapeId, getHashForString } from '@tldraw/editor'
 import { vi } from 'vitest'
-import { createBookmarkFromUrl, getHumanReadableAddress } from '../lib/shapes/bookmark/bookmarks'
+import {
+	createBookmarkFromUrl,
+	getBookmarkShapeHeight,
+	getHumanReadableAddress,
+	getResolvedBookmarkAssetId,
+} from '../lib/shapes/bookmark/bookmarks'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -135,11 +140,16 @@ describe('The URL formatter', () => {
 })
 
 describe('createBookmarkFromUrl', () => {
-	it('creates a bookmark shape with unfurled metadata', async () => {
+	it('creates a placeholder bookmark shape immediately and patches the asset once metadata resolves', async () => {
 		const url = 'https://example.com'
 		const center = { x: 100, y: 200 }
 
-		// Mock the asset creation to return a test asset
+		// Use a deferred promise so we can observe state before the asset resolves.
+		let resolveAsset: (asset: any) => void = () => {}
+		const assetPromise = new Promise<any>((resolve) => {
+			resolveAsset = resolve
+		})
+
 		const mockAsset = {
 			id: 'asset:test-asset-id' as any,
 			typeName: 'asset' as const,
@@ -154,27 +164,32 @@ describe('createBookmarkFromUrl', () => {
 			meta: {},
 		}
 
-		// Mock the getAssetForExternalContent method
-		vi.spyOn(editor, 'getAssetForExternalContent').mockResolvedValue(mockAsset)
+		vi.spyOn(editor, 'getAssetForExternalContent').mockReturnValue(assetPromise)
 
 		const result = await createBookmarkFromUrl(editor, { url, center })
 
 		assert(result.ok, 'Failed to create bookmark')
 		const shape = result.value
+
+		// Placeholder should exist before the asset resolves.
 		expect(shape.type).toBe('bookmark')
 		expect(shape.props.url).toBe(url)
-		expect(shape.props.assetId).toBe('asset:test-asset-id')
+		expect(shape.props.assetId).toBe(null)
 		expect(shape.props.w).toBe(300)
 		expect(shape.props.h).toBe(320)
-		expect(shape.x).toBe(center.x - 150) // BOOKMARK_WIDTH / 2
-		expect(shape.y).toBe(center.y - 160) // BOOKMARK_HEIGHT / 2
+		expect(shape.x).toBe(center.x - 150)
+		expect(shape.y).toBe(center.y - 160)
 
-		// Verify the shape was created in the editor
-		const createdShape = editor.getShape(result.value.id)
-		expect(createdShape).toBeDefined()
-		expect(createdShape?.type).toBe('bookmark')
+		const placeholderInStore = editor.getShape<TLBookmarkShape>(shape.id)
+		expect(placeholderInStore?.props.assetId).toBe(null)
+		expect(editor.getAsset('asset:test-asset-id' as any)).toBeUndefined()
 
-		// Verify the asset was created
+		// Resolve the asset and let the microtask queue flush.
+		resolveAsset(mockAsset)
+		await assetPromise
+
+		const hydrated = editor.getShape<TLBookmarkShape>(shape.id)
+		expect(hydrated?.props.assetId).toBe('asset:test-asset-id')
 		const createdAsset = editor.getAsset('asset:test-asset-id' as any)
 		expect(createdAsset).toBeDefined()
 		expect(createdAsset?.type).toBe('bookmark')
@@ -184,7 +199,6 @@ describe('createBookmarkFromUrl', () => {
 		const url = 'https://example.com'
 		const viewportCenter = { x: 500, y: 300 }
 
-		// Mock getViewportPageBounds to return a known center
 		vi.spyOn(editor, 'getViewportPageBounds').mockReturnValue({
 			x: 0,
 			y: 0,
@@ -193,7 +207,7 @@ describe('createBookmarkFromUrl', () => {
 			center: viewportCenter,
 		} as any)
 
-		const mockAsset = {
+		vi.spyOn(editor, 'getAssetForExternalContent').mockResolvedValue({
 			id: 'asset:test-asset-id' as any,
 			typeName: 'asset' as const,
 			type: 'bookmark' as const,
@@ -205,9 +219,7 @@ describe('createBookmarkFromUrl', () => {
 				favicon: '',
 			},
 			meta: {},
-		}
-
-		vi.spyOn(editor, 'getAssetForExternalContent').mockResolvedValue(mockAsset)
+		})
 
 		const result = await createBookmarkFromUrl(editor, { url })
 
@@ -217,28 +229,35 @@ describe('createBookmarkFromUrl', () => {
 		expect(shape.y).toBe(viewportCenter.y - 160)
 	})
 
-	it('handles asset creation failure gracefully', async () => {
+	it('keeps the placeholder bookmark when the asset fetch rejects', async () => {
 		const url = 'https://invalid-url.com'
 		const center = { x: 100, y: 200 }
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		// Mock the asset creation to fail
 		vi.spyOn(editor, 'getAssetForExternalContent').mockRejectedValue(new Error('Failed to fetch'))
 
 		const result = await createBookmarkFromUrl(editor, { url, center })
 
-		assert(!result.ok, 'Failed to create bookmark')
-		expect(result.error).toBe('Failed to fetch')
+		assert(result.ok, 'Expected placeholder bookmark to be created even when fetch fails')
+		const shape = result.value
+		expect(shape.type).toBe('bookmark')
+		expect(shape.props.url).toBe(url)
+		expect(shape.props.assetId).toBe(null)
 
-		// Verify no shape was created
-		const shapes = editor.getCurrentPageShapes()
-		expect(shapes).toHaveLength(0)
+		// Wait for the rejected promise to be observed.
+		await Promise.resolve()
+		await Promise.resolve()
+
+		const stillPlaceholder = editor.getShape<TLBookmarkShape>(shape.id)
+		expect(stillPlaceholder?.props.assetId).toBe(null)
+
+		consoleSpy.mockRestore()
 	})
 
 	it('creates bookmark shape even when asset creation returns null', async () => {
 		const url = 'https://example.com'
 		const center = { x: 100, y: 200 }
 
-		// Mock the asset creation to return null
 		vi.spyOn(editor, 'getAssetForExternalContent').mockResolvedValue(null as any)
 
 		const result = await createBookmarkFromUrl(editor, { url, center })
@@ -249,8 +268,217 @@ describe('createBookmarkFromUrl', () => {
 		expect(shape.props.url).toBe(url)
 		expect(shape.props.assetId).toBe(null)
 
-		// Verify the shape was created
 		const createdShape = editor.getShape(result.value.id)
 		expect(createdShape).toBeDefined()
+	})
+
+	it('reuses an existing bookmark asset for the same URL without re-fetching', async () => {
+		const url = 'https://example.com'
+		const center = { x: 100, y: 200 }
+
+		let resolveFirst: (asset: any) => void = () => {}
+		const firstPromise = new Promise<any>((resolve) => {
+			resolveFirst = resolve
+		})
+
+		const fetchSpy = vi.spyOn(editor, 'getAssetForExternalContent')
+		fetchSpy.mockReturnValueOnce(firstPromise)
+
+		const first = await createBookmarkFromUrl(editor, { url, center })
+		assert(first.ok)
+
+		resolveFirst({
+			id: AssetRecordType.createId(getHashForString(url)),
+			typeName: 'asset',
+			type: 'bookmark',
+			props: {
+				src: url,
+				title: 'Example Site',
+				description: 'desc',
+				image: 'https://example.com/image.jpg',
+				favicon: 'https://example.com/favicon.ico',
+			},
+			meta: {},
+		})
+		await firstPromise
+		// Yield once more so the hydrate continuation runs after the resolver.
+		await Promise.resolve()
+
+		const hydrated = editor.getShape<TLBookmarkShape>(first.value.id)
+		expect(hydrated?.props.assetId).not.toBeNull()
+		expect(fetchSpy).toHaveBeenCalledTimes(1)
+
+		// Second creation for the same URL should reuse the asset and not fetch again.
+		const second = await createBookmarkFromUrl(editor, { url, center: { x: 400, y: 500 } })
+		assert(second.ok)
+		expect(second.value.props.assetId).not.toBeNull()
+		expect(fetchSpy).toHaveBeenCalledTimes(1)
+	})
+
+	it('does not patch the asset if the shape URL changed before metadata resolved', async () => {
+		const url = 'https://example.com'
+		const center = { x: 100, y: 200 }
+
+		let resolveAsset: (asset: any) => void = () => {}
+		const assetPromise = new Promise<any>((resolve) => {
+			resolveAsset = resolve
+		})
+		vi.spyOn(editor, 'getAssetForExternalContent').mockReturnValue(assetPromise)
+
+		const result = await createBookmarkFromUrl(editor, { url, center })
+		assert(result.ok, 'Failed to create bookmark')
+		const shape = result.value
+
+		// Change the URL before the original fetch resolves.
+		editor.updateShapes([{ id: shape.id, type: 'bookmark', props: { url: 'https://changed.com' } }])
+
+		// Now resolve the original fetch — its metadata is for the stale URL.
+		resolveAsset({
+			id: 'asset:test-asset-id' as any,
+			typeName: 'asset' as const,
+			type: 'bookmark' as const,
+			props: {
+				src: url,
+				title: 'Example Site',
+				description: 'An example website',
+				image: 'https://example.com/image.jpg',
+				favicon: 'https://example.com/favicon.ico',
+			},
+			meta: {},
+		})
+		await assetPromise
+		await Promise.resolve()
+
+		// The shape should keep its current (changed) URL and not be patched with
+		// the stale asset.
+		const after = editor.getShape<TLBookmarkShape>(shape.id)
+		expect(after?.props.url).toBe('https://changed.com')
+		expect(after?.props.assetId).toBe(null)
+	})
+
+	it('removes the placeholder cleanly on undo without an extra metadata undo step', async () => {
+		const url = 'https://example.com'
+		const center = { x: 100, y: 200 }
+
+		const assetPromise = Promise.resolve({
+			id: 'asset:test-asset-id' as any,
+			typeName: 'asset' as const,
+			type: 'bookmark' as const,
+			props: {
+				src: url,
+				title: 'Example Site',
+				description: 'An example website',
+				image: 'https://example.com/image.jpg',
+				favicon: 'https://example.com/favicon.ico',
+			},
+			meta: {},
+		})
+		vi.spyOn(editor, 'getAssetForExternalContent').mockReturnValue(assetPromise)
+
+		editor.markHistoryStoppingPoint()
+		const result = await createBookmarkFromUrl(editor, { url, center })
+		assert(result.ok, 'Failed to create bookmark')
+		const shape = result.value
+
+		// Let hydration (history: 'ignore') run.
+		await assetPromise
+		await Promise.resolve()
+		expect(editor.getShape<TLBookmarkShape>(shape.id)?.props.assetId).toBe('asset:test-asset-id')
+
+		// A single undo should remove the placeholder entirely; the metadata patch
+		// must not have created its own undo step.
+		editor.undo()
+		expect(editor.getShape(shape.id)).toBeUndefined()
+	})
+
+	it('renders the hydrated asset after redo even though the asset patch was history-ignored', async () => {
+		const url = 'https://example.com'
+		const center = { x: 100, y: 200 }
+		const assetId = AssetRecordType.createId(getHashForString(url))
+
+		const assetPromise = Promise.resolve({
+			id: assetId,
+			typeName: 'asset' as const,
+			type: 'bookmark' as const,
+			props: {
+				src: url,
+				title: 'Example Site',
+				description: 'An example website',
+				image: 'https://example.com/image.jpg',
+				favicon: 'https://example.com/favicon.ico',
+			},
+			meta: {},
+		})
+		vi.spyOn(editor, 'getAssetForExternalContent').mockReturnValue(assetPromise)
+
+		editor.markHistoryStoppingPoint()
+		const result = await createBookmarkFromUrl(editor, { url, center })
+		assert(result.ok, 'Failed to create bookmark')
+		const shape = result.value
+
+		// Let hydration (history: 'ignore') run.
+		await assetPromise
+		await Promise.resolve()
+		expect(editor.getShape<TLBookmarkShape>(shape.id)?.props.assetId).toBe(assetId)
+
+		// Undo removes the placeholder; the hydrated asset stays in the store
+		// because it was created with history: 'ignore'.
+		editor.undo()
+		expect(editor.getShape(shape.id)).toBeUndefined()
+		expect(editor.getAsset(assetId)).toBeDefined()
+
+		// Redo restores the placeholder shape with a null assetId (the asset patch
+		// was history-ignored). The shape should still resolve its asset by URL so
+		// it doesn't stay stuck on the placeholder.
+		editor.redo()
+		const redone = editor.getShape<TLBookmarkShape>(shape.id)
+		assert(redone, 'Expected the bookmark to be restored on redo')
+		expect(getResolvedBookmarkAssetId(editor, redone.props.assetId, redone.props.url)).toBe(assetId)
+	})
+
+	it('measures a short bookmark at its resolved height after redo, not the placeholder height', async () => {
+		const url = 'https://example.com'
+		const center = { x: 100, y: 200 }
+		const assetId = AssetRecordType.createId(getHashForString(url))
+
+		// A no-image unfurl produces a shorter bookmark than the placeholder.
+		const assetPromise = Promise.resolve({
+			id: assetId,
+			typeName: 'asset' as const,
+			type: 'bookmark' as const,
+			props: {
+				src: url,
+				title: 'Example Site',
+				description: 'An example website',
+				image: '',
+				favicon: 'https://example.com/favicon.ico',
+			},
+			meta: {},
+		})
+		vi.spyOn(editor, 'getAssetForExternalContent').mockReturnValue(assetPromise)
+
+		editor.markHistoryStoppingPoint()
+		const result = await createBookmarkFromUrl(editor, { url, center })
+		assert(result.ok, 'Failed to create bookmark')
+		const shape = result.value
+
+		await assetPromise
+		await Promise.resolve()
+		const hydrated = editor.getShape<TLBookmarkShape>(shape.id)
+		assert(hydrated, 'Expected the bookmark to hydrate')
+		const shortHeight = hydrated.props.h
+		expect(shortHeight).toBeLessThan(320)
+
+		editor.undo()
+		editor.redo()
+
+		const redone = editor.getShape<TLBookmarkShape>(shape.id)
+		assert(redone, 'Expected the bookmark to be restored on redo')
+
+		// props.h is stale (the history entry recorded the placeholder height), but
+		// the effective height and the geometry/selection bounds should match the
+		// resolved short bookmark, not the 320px placeholder.
+		expect(getBookmarkShapeHeight(editor, redone)).toBe(shortHeight)
+		expect(editor.getShapeGeometry(redone.id).bounds.height).toBe(shortHeight)
 	})
 })

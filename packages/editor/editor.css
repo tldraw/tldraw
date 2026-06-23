@@ -764,17 +764,17 @@ input,
 .tl-rich-text ol {
 	text-align: left;
 	margin: 0;
-	padding-left: 3.25ch;
+	padding-left: 1.625ch;
 	/* Some resets, like Tailwind, nix the list styling. */
 	list-style: revert;
 }
 
 .tl-rich-text ol:has(> li:nth-child(10)) {
-	padding-left: 4.25ch;
+	padding-left: 2.625ch;
 }
 
 .tl-rich-text ol:has(> li:nth-child(100)) {
-	padding-left: 5.25ch;
+	padding-left: 3.625ch;
 }
 
 .tl-rich-text h1,
@@ -813,6 +813,7 @@ input,
 .tl-theme__dark .tl-rich-text mark {
 	background-color: var(--tl-color-text-highlight);
 	color: currentColor;
+	text-shadow: none;
 }
 
 @supports (color: color(display-p3 1 1 1)) {

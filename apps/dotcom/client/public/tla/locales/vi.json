@@ -1,12 +1,24 @@
 {
+  "1764571547": {
+    "translation": "Bạn có chắc chắn muốn xóa không gian làm việc này không? Thao tác này không thể hoàn tác."
+  },
   "0095a9fa74": {
     "translation": "Xuất"
+  },
+  "00b177e080": {
+    "translation": "Chấp nhận lời mời"
   },
   "03b3e13197": {
     "translation": "Kéo tệp vào thanh bên ở trang này. Hoặc chọn tùy chọn 'Nhập tệp' từ menu người dùng."
   },
   "043973ec1f": {
     "translation": "Bạn vẫn gặp sự cố? {GetHelpLink}"
+  },
+  "04a2dd56d6": {
+    "translation": "Mời đồng đội"
+  },
+  "05f43078e9": {
+    "translation": "Bạn đã đạt đến số lượng không gian làm việc tối đa. Bạn cần xóa các không gian làm việc cũ trước khi tạo không gian làm việc mới."
   },
   "06b9281e39": {
     "translation": "Tự động"
@@ -29,29 +41,26 @@
   "0b9a4cde72": {
     "translation": "Menu tệp"
   },
+  "0c4383617a": {
+    "translation": "Đã xảy ra lỗi khi tải lời mời này. Vui lòng thử lại."
+  },
   "0d1f2bb523": {
     "translation": "Gửi phản hồi"
+  },
+  "1063e38cb5": {
+    "translation": "Xóa"
+  },
+  "10fb1df194": {
+    "translation": "Sao chép vào không gian làm việc cá nhân"
   },
   "110a4b01be": {
     "translation": "Xuất bản"
   },
-  "129b9e34ea": {
-    "translation": "Rời khỏi nhóm"
-  },
   "12a6766ba1": {
     "translation": "Bỏ ghim tệp"
   },
-  "12c8a9838c": {
-    "translation": "Hãy thử SDK tldraw"
-  },
   "13ddd375ad": {
     "translation": "Xuất dưới dạng"
-  },
-  "146ffe2fd9": {
-    "translation": "Hiển thị thêm"
-  },
-  "14d65465b7": {
-    "translation": "Xóa nhóm"
   },
   "181b90f889": {
     "translation": "Tạo tệp"
@@ -62,8 +71,14 @@
   "1dd1c5fb7f": {
     "translation": "Hôm nay"
   },
-  "2445e5e347": {
-    "translation": "Tạo nhóm"
+  "1ffd709937": {
+    "translation": "Không gian làm việc phải có ít nhất một người sở hữu. Hãy để người khác làm chủ sở hữu trước."
+  },
+  "21f66c9c00": {
+    "translation": "Tên không gian làm việc"
+  },
+  "23dcace54a": {
+    "translation": "Bạn đã được mời tham gia <strong>{workspaceName}</strong>. Hãy tạo tài khoản miễn phí để tiếp tục."
   },
   "250ddea65c": {
     "translation": "Giới thiệu về tldraw"
@@ -71,20 +86,26 @@
   "299cb00a7a": {
     "translation": "Tải lên thất bại"
   },
-  "2c3ef76333": {
-    "translation": "Các tập tin của tôi"
+  "2a1167f869": {
+    "translation": "Chào mừng bạn đến với không gian làm việc của bạn"
+  },
+  "2a37324bb4": {
+    "translation": "Tìm kiếm..."
+  },
+  "2de510be71": {
+    "translation": "Quá trình tạo lại sẽ thay thế liên kết mời hiện tại bằng một liên kết mới. Bất kỳ ai đang sử dụng liên kết cũ sẽ cần liên kết mới để tham gia."
   },
   "2e2b3c700b": {
     "translation": "Bao gồm liên kết đến tệp hiện tại"
+  },
+  "2e9856a31e": {
+    "translation": "Tạo lại liên kết mời"
   },
   "31246941ad": {
     "translation": "Bạn cần đăng nhập để xem tệp này."
   },
   "31418ce4ad": {
     "translation": "i18n: Thiếu đánh dấu"
-  },
-  "32210b37e4": {
-    "translation": "Thêm liên kết"
   },
   "324a0f3182": {
     "translation": "Quay lại tldraw"
@@ -94,6 +115,12 @@
   },
   "344a7f427f": {
     "translation": "Biên tập viên"
+  },
+  "34e34c43ec": {
+    "translation": "Quản lý"
+  },
+  "375396d6e5": {
+    "translation": "Xóa thành viên"
   },
   "3bc7d6ea2f": {
     "translation": "Tiếp tục với email"
@@ -131,9 +158,6 @@
   "47f493a590": {
     "translation": "Tệp ghim"
   },
-  "49049467ff": {
-    "translation": "Dán URL tệp tldraw..."
-  },
   "4908687e50": {
     "translation": "Bạn có chắc chắn muốn quên tệp này không?"
   },
@@ -146,20 +170,14 @@
   "4d1c8263ba": {
     "translation": "Tải lại"
   },
-  "4da5988a2e": {
-    "translation": "Xóa nhóm…"
-  },
-  "4dab36ac83": {
-    "translation": "Nhiều tùy chọn hơn"
-  },
-  "4e6fbf032b": {
-    "translation": "Bạn có chắc chắn muốn xóa nhóm này không? Thao tác này không thể hoàn tác."
-  },
   "5097d89907": {
     "translation": "Sơ đồ không được hỗ trợ, thay vào đó sẽ tạo ra file SVG."
   },
   "50db1b7e1e": {
     "translation": "Không thể hủy xuất bản tệp này."
+  },
+  "51317dcad5": {
+    "translation": "Đây là không gian làm việc riêng của bạn. Hãy tạo một không gian làm việc mới để mời các đồng đội."
   },
   "517bb809d9": {
     "translation": "Menu trang"
@@ -176,14 +194,14 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5638176be5": {
+    "translation": "Tạo không gian làm việc"
+  },
   "5677e381d2": {
     "translation": "Chúng tôi sử dụng cookie phân tích để cải thiện tldraw."
   },
   "56c34c6410": {
     "translation": "Chính sách bảo mật"
-  },
-  "5a86b22fa0": {
-    "translation": "Kéo tệp vào đây, <create>tạo tệp</create> hoặc <invite>sao chép liên kết mời</invite> để bắt đầu."
   },
   "5a95a425f7": {
     "translation": "Chia sẻ"
@@ -191,17 +209,14 @@
   "5bec508475": {
     "translation": "Đã phát hiện trình duyệt cũ. Vui lòng cập nhật trình duyệt của bạn để sử dụng ứng dụng này."
   },
-  "5c6fe42bc2": {
-    "translation": "Thu hồi liên kết này và tạo liên kết mới."
+  "5bff3c9c88": {
+    "translation": "Không gian làm việc của tôi"
   },
   "5d04a002ea": {
     "translation": "Không thể kết nối"
   },
   "5d26ae7550": {
     "translation": "Chúng tôi không tải lên được một số nội dung bạn đã tạo trước khi bạn đăng nhập."
-  },
-  "5ea8bb44be": {
-    "translation": "Bạn đã được mời tham gia nhóm:"
   },
   "5f3c333678": {
     "translation": "Phản hồi đã gửi"
@@ -227,8 +242,14 @@
   "6637a98151": {
     "translation": "Phiên bản mới của tldraw đã có sẵn. Vui lòng tải lại trang để tiếp tục."
   },
+  "681e10aecb": {
+    "translation": "Tệp mới"
+  },
   "6832ac5936": {
     "translation": "Nhập địa chỉ email của bạn"
+  },
+  "694f82ed9d": {
+    "translation": "Xóa không gian làm việc"
   },
   "6a26f54883": {
     "translation": "Trợ giúp"
@@ -238,9 +259,6 @@
   },
   "6dfc62f621": {
     "translation": "Làm theo các bước sau để nhập nội dung theo cách thủ công:"
-  },
-  "70222abcfc": {
-    "translation": "Cài đặt nhóm"
   },
   "70a6facb9d": {
     "translation": "Tuần này"
@@ -253,6 +271,9 @@
   },
   "7408cf0d7b": {
     "translation": "Vui lòng tải lại trang"
+  },
+  "74ff4bad28": {
+    "translation": "Không tìm thấy tệp nào"
   },
   "752b79f137": {
     "translation": "Bạn đã đạt đến số lượng tệp tối đa. Bạn cần xóa các tệp cũ trước khi tạo tệp mới."
@@ -268,9 +289,6 @@
   },
   "764671e008": {
     "translation": "Trò chuyện với chúng tôi trên Discord"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw là một bảng trắng trực tuyến miễn phí. Tạo tài khoản để lưu tệp và làm việc cùng bạn bè."
   },
   "777f9e90cf": {
     "translation": "Yêu cầu không hợp lệ."
@@ -299,9 +317,6 @@
   "7cb5f8b4a5": {
     "translation": "Quên"
   },
-  "7cfe6c43dc": {
-    "translation": "Rời khỏi nhóm…"
-  },
   "7daeced9ff": {
     "translation": "Xuất bản các thay đổi"
   },
@@ -311,8 +326,14 @@
   "801ab24683": {
     "translation": "Tải về"
   },
+  "8030793ce3": {
+    "translation": "Không gian làm việc mới"
+  },
   "815e116a2e": {
     "translation": "Bạn có lỗi, vấn đề hoặc ý tưởng cho tldraw? Hãy cho chúng tôi biết! Hãy điền vào biểu mẫu này và chúng tôi sẽ liên hệ qua email nếu cần. Bạn cũng có thể <discord>trò chuyện với chúng tôi trên Discord</discord> hoặc <github>gửi vấn đề trên GitHub</github>."
+  },
+  "858ba4765e": {
+    "translation": "Thành viên"
   },
   "85a082de1b": {
     "translation": "Vui lòng làm mới trang để tải phiên bản mới nhất của tldraw."
@@ -323,8 +344,11 @@
   "86c66437fd": {
     "translation": "Đổi tên tập tin"
   },
-  "8ad4303b83": {
-    "translation": "Không, cảm ơn"
+  "87fdb09de6": {
+    "translation": "Bạn đã là thành viên của không gian làm việc này."
+  },
+  "88bf6ab42c": {
+    "translation": "Liên kết mời này đã hết hạn"
   },
   "8c2d3d730c": {
     "translation": "Kiểm tra email của bạn để lấy mã xác minh."
@@ -341,15 +365,6 @@
   "904a830405": {
     "translation": "Đổi tên"
   },
-  "91e49bb0eb": {
-    "translation": "Sao chép vào tệp của tôi"
-  },
-  "930390d222": {
-    "translation": "Đã sao chép liên kết mời"
-  },
-  "9489b2f82a": {
-    "translation": "Bạn đã là thành viên của nhóm này"
-  },
   "95aacd4d4a": {
     "translation": "Đăng nhập bằng Google"
   },
@@ -362,11 +377,11 @@
   "985a4b720f": {
     "translation": "Điều khoản sử dụng"
   },
-  "98c997a27e": {
-    "translation": "Thêm liên kết tệp"
-  },
   "9914a0ce04": {
     "translation": "Sáng"
+  },
+  "9983381c21": {
+    "translation": "Xóa tìm kiếm"
   },
   "9b33f5c63c": {
     "translation": "Không nhận được mã? <resend>Gửi lại</resend>."
@@ -385,6 +400,9 @@
   },
   "9e93c98d88": {
     "translation": "Từ chối"
+  },
+  "a078644c42": {
+    "translation": "Bạn đã được mời tham gia <strong>{workspaceName}</strong>."
   },
   "a0da245992": {
     "translation": "Xuất nội dung dưới dạng tệp .tldr: Chọn 'Tải xuống' ở menu trên cùng bên trái."
@@ -407,6 +425,9 @@
   "a4d3b161ce": {
     "translation": "Nộp"
   },
+  "a52945dbe2": {
+    "translation": "Rời khỏi"
+  },
   "a6cc403d56": {
     "translation": "Bất kỳ ai có liên kết"
   },
@@ -419,6 +440,9 @@
   "a9ded1e5ce": {
     "translation": "Cơ sở"
   },
+  "aac449eef6": {
+    "translation": "Tạo không gian làm việc"
+  },
   "ab0df9ba36": {
     "translation": "Đã đạt đến giới hạn tập tin"
   },
@@ -429,14 +453,17 @@
   "b028909917": {
     "translation": "Người dùng khách"
   },
+  "b2326c3a34": {
+    "translation": "Tái tạo"
+  },
   "b2c3c2e30c": {
     "translation": "Tệp đã đầy"
   },
   "b357b524e7": {
     "translation": "Địa chỉ email"
   },
-  "b3d2db69fe": {
-    "translation": "URL tệp"
+  "b48becc771": {
+    "translation": "Cho phép mời"
   },
   "b6d4223e60": {
     "translation": "Đăng nhập"
@@ -450,14 +477,17 @@
   "ba0318cb81": {
     "translation": "Đăng nhập để chia sẻ"
   },
-  "bb93a7590f": {
-    "translation": "Chấp nhận và tham gia nhóm"
+  "bbaaf8b6bf": {
+    "translation": "Chức năng mời đã bị vô hiệu hóa."
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, other {Đang tải lên {uploaded} trong tổng số {total} tệp .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Chia sẻ bởi {ownerName}"
+  },
+  "c17466812d": {
+    "translation": "Quản lý không gian làm việc"
   },
   "c2276c9127": {
     "translation": "Tìm hiểu thêm về chia sẻ."
@@ -471,26 +501,20 @@
   "c4b39a1cc3": {
     "translation": "Cookie thiết yếu"
   },
-  "c6155aaecc": {
-    "translation": "Tên nhóm"
-  },
   "c655b27b1e": {
     "translation": "i18n: Chuỗi dài"
   },
   "c6a00f137b": {
     "translation": "Mời"
   },
-  "c74ea6dbff": {
-    "translation": "Hiển thị ít hơn"
+  "c6f16003f2": {
+    "translation": "Sao chép vào không gian làm việc của tôi"
   },
   "c87aacf567": {
     "translation": "Đăng xuất"
   },
   "c8a59e7135": {
     "translation": "Bỏ qua"
-  },
-  "c9cc8cce24": {
-    "translation": "Cứu"
   },
   "cceaefbc20": {
     "translation": "Chia sẻ tệp này"
@@ -528,20 +552,17 @@
   "d9100f3e10": {
     "translation": "Vào đây để xem nội dung"
   },
-  "d9e35d0f55": {
-    "translation": "Bạn đã đạt đến số lượng nhóm tối đa. Bạn cần xóa nhóm cũ trước khi tạo nhóm mới."
-  },
   "dbbebf3c03": {
     "translation": "Chỉ mời"
   },
-  "dcdaa754fe": {
-    "translation": "URL tệp tldraw không hợp lệ"
+  "dbf9b24193": {
+    "translation": "Rời khỏi không gian làm việc"
   },
   "dfdb78a4e4": {
     "translation": "Cờ gỡ lỗi ứng dụng"
   },
-  "e0c88179b3": {
-    "translation": "Mời thành viên"
+  "e0aa021e21": {
+    "translation": "OK"
   },
   "e2198d6228": {
     "translation": "Sao chép liên kết mời"
@@ -549,20 +570,17 @@
   "e2ae80a510": {
     "translation": "Tóm tắt pháp lý"
   },
-  "e3afed0047": {
-    "translation": "Quản trị viên"
-  },
   "e404559826": {
     "translation": "Điều khoản dịch vụ"
   },
   "e81c4e4f2b": {
     "translation": "hoặc"
   },
-  "ea0626ac5a": {
-    "translation": "Khu vực nguy hiểm"
-  },
   "ea4788705e": {
     "translation": "Hủy"
+  },
+  "eb1e2b0542": {
+    "translation": "Hãy yêu cầu chủ sở hữu không gian làm việc cung cấp cho bạn một cái mới."
   },
   "ebfe9ce86e": {
     "translation": "Hôm qua"
@@ -603,14 +621,14 @@
   "f4f70727dc": {
     "translation": "Cài đặt"
   },
-  "f714e36843": {
-    "translation": "Bạn có chắc chắn muốn rời khỏi nhóm này không?"
-  },
   "fa2ead697d": {
     "translation": "Chính sách bảo mật"
   },
   "fb15c53f22": {
     "translation": "Người xem"
+  },
+  "fc9d47046b": {
+    "translation": "Bạn có chắc chắn muốn rời khỏi không gian làm việc này không?"
   },
   "fd1be3efcf": {
     "translation": "Bạn có chắc muốn xóa tệp này?"
@@ -618,8 +636,11 @@
   "fed5ec05eb": {
     "translation": "Đã sao chép liên kết"
   },
-  "ff7a814974": {
-    "translation": "Thêm liên kết tệp…"
+  "ff2fefd3c6": {
+    "translation": "Bạn có chắc chắn muốn xóa {name} khỏi không gian làm việc này không?"
+  },
+  "ff52811b98": {
+    "translation": "Tạo tài khoản miễn phí để lưu tệp của bạn và sử dụng tldraw cùng đồng đội."
   },
   "ffcd73e997": {
     "translation": "Nhập tập tin…"

@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/store",
 	"description": "tldraw infinite canvas SDK (store).",
-	"version": "5.1.0",
+	"version": "5.1.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -54,5 +54,8 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"raf": "^3.4.1",
 		"vitest": "^4.1.7"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }
