@@ -19,21 +19,24 @@ function isDismissOnlyTarget(target: EventTarget | null) {
 
 /**
  * Makes "a press outside an open menu only dismisses it" consistent across the whole dotcom app,
- * without an overlay. While any menu is open, a single set of capture-phase document listeners
- * inspects the element under each press:
+ * without an overlay. Call once at the app root (it installs global, capture-phase document
+ * listeners). While any menu is open it inspects the element under each press:
  *
- * - on the **canvas** → do nothing; the SDK's `MenuClickCapture` already dismisses and forwards drags
- * - inside an **open menu / dialog / popover / select** → do nothing; let it work
- * - anywhere else (**chrome** — sidebar, editor top panels, buttons) → swallow the press and dismiss
+ * - on the **canvas** → does nothing; the SDK's `MenuClickCapture` already dismisses and forwards drags
+ * - inside an **open menu / dialog / popover / select** → does nothing; lets it work
+ * - anywhere else (**chrome** — sidebar, editor top panels, buttons) → swallows the press and dismisses
  *
- * This replaces per-region overlays: it needs no z-index placement (a listener isn't in the stacking
- * order), so it can't accidentally cover a menu, and it works for touch as well as mouse. The press is
- * resolved by the browser's own hit-testing (`event.target`), so it respects whatever is actually on
- * top. The listeners stay attached regardless of menu state — gated internally by `hasAnyOpenMenus()`
- * — so the `click` born from a swallowed chrome press is still suppressed after the menu has closed
+ * It's a listener rather than an overlay because no single app-level z-index sits above all chrome yet
+ * below all menus (the editor nests its panels and menus in one stacking context), and because the
+ * press is resolved by the browser's own hit-testing (`event.target`) it works for touch as well as
+ * mouse with no cursor tracking. Mounting at the app root (not a per-page layout) means it also covers
+ * editor pages without a sidebar — published files, snapshots, embeds.
+ *
+ * The listeners stay attached regardless of menu state — gated internally by `hasAnyOpenMenus()` — so
+ * the `click` born from a swallowed chrome press is still suppressed after the menu has closed
  * (dismissing unmounts the menu, which would otherwise tear down a menu-scoped listener too early).
  */
-export function TlaMenuClickCapture() {
+export function useMenuClickCapture() {
 	useEffect(() => {
 		// Set on a swallowed chrome pointerdown, consumed by the click it generates. A physical overlay
 		// gets this for free (pointerdown + pointerup land on different elements, so no click forms);
@@ -71,6 +74,4 @@ export function TlaMenuClickCapture() {
 			document.removeEventListener('contextmenu', onContextMenu, true)
 		}
 	}, [])
-
-	return null
 }

@@ -1,6 +1,5 @@
 import React, { ReactNode, useCallback, useLayoutEffect, useRef } from 'react'
 import { clamp, tltime, useGlobalMenuIsOpen, useQuickReactor } from 'tldraw'
-import { TlaMenuClickCapture } from '../../components/TlaMenuClickCapture'
 import { TlaSidebarToggle } from '../../components/TlaSidebar/components/TlaSidebarToggle'
 import { TlaSidebarToggleMobile } from '../../components/TlaSidebar/components/TlaSidebarToggleMobile'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
@@ -173,7 +172,6 @@ export function TlaSidebarLayout({
 			data-sidebarmobile={!isEmbed && isSidebarOpenMobile}
 			data-testid="tla-sidebar-layout"
 		>
-			<TlaMenuClickCapture />
 			{isEmbed ? (
 				children
 			) : (

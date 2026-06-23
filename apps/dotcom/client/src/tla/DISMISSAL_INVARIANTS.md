@@ -64,7 +64,7 @@ dismisses" with **overlays**, scoped per region.
   sidebar and editor, and an overlay portaled/placed there can sit just under them.
 - `MenuClickCapture` (SDK) is `position: fixed; inset: 0` and its z-index (`250`) lives **inside the
   editor's** stacking context, so it covers the canvas. It owns the canvas press (dismiss + drag).
-- `TlaMenuClickCapture` (dotcom) is **not a layer** — it's a set of capture-phase document listeners,
+- `useMenuClickCapture` (dotcom) is **not a layer** — it's a set of capture-phase document listeners,
   so it has no z-index and doesn't appear in this stacking model at all. That's deliberate: a single
   app-level _overlay_ can't work here, because the editor's panels **and** its menus both live inside
   one `canvas-in-front` stacking context (z 250) while the sidebar is a separate one — so there is no
@@ -82,8 +82,9 @@ Two cooperating pieces, both keyed only off **`tlmenus.hasAnyOpenMenus()`** and 
   it dismisses and swallows; on a click-**drag** it dismisses **and forwards** a `pointer_down` to the
   canvas at the original press point, then forwards moves — so the drag draws/selects/pans. This is
   why the menus are non-modal: only a live canvas can take the drag.
-- **`TlaMenuClickCapture` (dotcom, everything else).** A single set of **capture-phase document
-  listeners** (`pointerdown`, `click`, `contextmenu`) — _not_ an overlay. While a menu is open it
+- **`useMenuClickCapture` (dotcom, everything else).** A single set of **capture-phase document
+  listeners** (`pointerdown`, `click`, `contextmenu`), installed once at the app root (`TlaRootProviders`,
+  so it covers every page — including editor pages with no sidebar) — _not_ an overlay. While a menu is open it
   reads the element under each press (`event.target`, i.e. the browser's own hit result) and:
   - **canvas** (`.tl-canvas` / `.tlui-menu-click-capture`) → does nothing; the SDK overlay above
     handles it (so click-to-draw and drag are untouched, mouse **and** touch).
@@ -175,7 +176,7 @@ on the region overlays for the drag-forward.
   and the editor-context scoping (so an arg-less clear doesn't evict open dialogs registered under
   the `'tla'` context).
 - The dismiss mechanism keys off `tlmenus`, not Radix: the SDK's `MenuClickCapture` overlay (canvas)
-  and dotcom's `TlaMenuClickCapture` document listeners (everything else). One Radix-specific detail
+  and dotcom's `useMenuClickCapture` document listeners (everything else). One Radix-specific detail
   to re-point under Base UI: the listener recognises "inside an open dismissable" via Radix selectors
   (`[data-radix-popper-content-wrapper]`, `[role="menu" | "dialog" | "listbox"]`); update that set to
   Base UI's equivalents. The canvas selectors (`.tl-canvas` / `.tlui-menu-click-capture`) are SDK and
@@ -201,9 +202,9 @@ lifting `MenuClickCapture` above the panels and making it region-aware — out o
 ## Quick reference: where the behavior lives
 
 - `packages/editor/src/lib/components/MenuClickCapture.tsx` — SDK canvas overlay (dismiss + drag-forward)
-- `apps/dotcom/client/src/tla/components/TlaMenuClickCapture.tsx` — dotcom global dismiss listeners
-  (classifies each press by `event.target`); mounted once in
-  `.../tla/layouts/TlaSidebarLayout/TlaSidebarLayout.tsx`
+- `apps/dotcom/client/src/tla/hooks/useMenuClickCapture.ts` — dotcom global dismiss listeners
+  (classifies each press by `event.target`); called once at the app root in
+  `.../tla/providers/TlaRootProviders.tsx`
 - `apps/dotcom/client/src/tla/components/TlaSidebar/TlaSidebar.tsx` — hide-dismissal effects
 - `packages/tldraw/src/lib/ui/components/Dialogs.tsx` — modal, layer-aware dialog dismissal
 - `apps/dotcom/client/src/tla/components/tla-menu/` — the dotcom menu/select primitives

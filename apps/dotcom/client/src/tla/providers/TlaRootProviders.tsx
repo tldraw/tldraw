@@ -34,6 +34,7 @@ import { TlaButton } from '../components/TlaButton/TlaButton'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
+import { useMenuClickCapture } from '../hooks/useMenuClickCapture'
 import { useUITheme } from '../hooks/useUITheme'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
@@ -121,6 +122,11 @@ export function Component() {
 		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
 		[]
 	)
+
+	// App-wide: while any menu is open, a press on chrome only dismisses it (no click-through). Mounted
+	// here rather than in a page layout so it also covers editor pages without a sidebar (published
+	// files, snapshots, embeds).
+	useMenuClickCapture()
 
 	// Set the data-coarse attribute on the container based on the pointer type
 	// we use a layout effect because we don't want there to be any perceptible delay between the
