@@ -66,8 +66,6 @@ jobs:
 
       - name: Set up Playwright
         uses: ./.github/actions/setup-playwright
-        with:
-          working-directory: 'apps/dotcom/client'
 
       - name: Build dotcom client
         run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && yarn run -T lazy run build-i18n && cd apps/dotcom/client && yarn build

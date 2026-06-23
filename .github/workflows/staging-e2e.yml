@@ -36,8 +36,6 @@ jobs:
 
       - name: Set up Playwright
         uses: ./.github/actions/setup-playwright
-        with:
-          working-directory: 'apps/dotcom/client'
 
       - name: Run cleanup of test files
         run: yarn tsx internal/scripts/dotcom/cleanup-test-files.ts
