@@ -170,6 +170,12 @@ export class TestEditor extends Editor {
 			return this.textMeasure.measureText(textToMeasure, opts)
 		}
 
+		// jsdom can't lay text out, so derive the advance from the mock above and report no ink
+		// overflow (the canvas ink pass is a browser-only refinement).
+		this.textMeasure.measureHtmlBounds = (html: string, opts: TLMeasureTextOpts) => {
+			return { advance: this.textMeasure.measureHtml(html, opts), ink: null }
+		}
+
 		this.textMeasure.measureTextSpans = (textToMeasure, opts) => {
 			const box = this.textMeasure.measureText(textToMeasure, {
 				...opts,

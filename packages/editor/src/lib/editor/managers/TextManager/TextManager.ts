@@ -106,6 +106,7 @@ const initialDefaultStyles = Object.freeze({
 export class TextManager {
 	private elm: HTMLDivElement
 	private poolElms: PoolItem[] = []
+	private inkCtx: CanvasRenderingContext2D | null | undefined
 
 	constructor(public editor: Editor) {
 		this.elm = this.createMeasurementEl()
@@ -449,6 +450,149 @@ export class TextManager {
 			}
 
 			return spans
+		} finally {
+			restoreStyles()
+		}
+	}
+
+	private getInkContext(): CanvasRenderingContext2D | null {
+		if (this.inkCtx !== undefined) return this.inkCtx
+		const canvas = this.editor.getContainerDocument().createElement('canvas')
+		this.inkCtx = canvas.getContext('2d')
+		return this.inkCtx
+	}
+
+	/**
+	 * Measure the actual ink bounds of the text rendered inside an element, in element-local
+	 * coordinates (relative to the element's bounding rect). Unlike the layout (advance) box, this
+	 * includes the glyph side bearings, italic slant, and tall diacritics that paint outside the
+	 * advance width — the overflow that otherwise clips cursive, RTL, and italic text at the edge
+	 * of its shape (see https://github.com/tldraw/tldraw/issues/8803).
+	 *
+	 * The element must already be laid out (attached, with client rects). Wrapping, bidi,
+	 * alignment, and per-run bold/italic are all read back from the browser's layout; only the ink
+	 * delta is measured with canvas. Returns null when there's no measurable text (or no canvas,
+	 * e.g. in a headless environment).
+	 *
+	 * @public
+	 */
+	measureTextInkBounds(element: HTMLElement): BoxModel | null {
+		const ctx = this.getInkContext()
+		if (!ctx) return null
+
+		const doc = this.editor.getContainerDocument()
+		const view = doc.defaultView ?? window
+		const range = doc.createRange()
+		// Some non-rendering environments (e.g. jsdom under test) provide a canvas context but
+		// don't lay text out, so ranges have no client rects and there's nothing to measure.
+		if (typeof range.getClientRects !== 'function') return null
+
+		const ref = element.getBoundingClientRect()
+		const walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+
+		let minX = Infinity
+		let minY = Infinity
+		let maxX = -Infinity
+		let maxY = -Infinity
+
+		for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+			const text = node.textContent
+			const parent = node.parentElement
+			if (!text || !text.trim() || !parent) continue
+
+			// Computed style is already resolved — CSS vars are expanded, and a bold/italic run
+			// reports its own weight/style because it lives in its own element.
+			const cs = view.getComputedStyle(parent)
+			ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+			ctx.direction = cs.direction as CanvasDirection
+			ctx.textAlign = 'left'
+			ctx.textBaseline = 'alphabetic'
+
+			// Fast path: a single visual line (the common autosize case) needs no per-character
+			// work — measure the whole run in one canvas call. Only wrapped runs fall back to the
+			// per-character line split.
+			range.selectNodeContents(node)
+			const lineRects = range.getClientRects()
+			const lines =
+				lineRects.length <= 1
+					? [
+							(() => {
+								const r = lineRects[0] ?? range.getBoundingClientRect()
+								return { text, left: r.left, top: r.top, height: r.height }
+							})(),
+						]
+					: this.splitNodeIntoLines(node, range, text)
+
+			for (const line of lines) {
+				const m = ctx.measureText(line.text)
+				const fontAscent = m.fontBoundingBoxAscent || parseFloat(cs.fontSize) || 0
+				const fontDescent = m.fontBoundingBoxDescent || 0
+				// Anchor the pen at the line's physical left edge and place the baseline within the
+				// line box the way CSS line-height does (half-leading above the font ascent).
+				const penX = line.left - ref.left
+				const baseline =
+					line.top - ref.top + (line.height - (fontAscent + fontDescent)) / 2 + fontAscent
+				const left = penX - (m.actualBoundingBoxLeft || 0)
+				const right = penX + (m.actualBoundingBoxRight || 0)
+				const top = baseline - (m.actualBoundingBoxAscent || 0)
+				const bottom = baseline + (m.actualBoundingBoxDescent || 0)
+				if (left < minX) minX = left
+				if (right > maxX) maxX = right
+				if (top < minY) minY = top
+				if (bottom > maxY) maxY = bottom
+			}
+		}
+
+		if (!Number.isFinite(minX)) return null
+		return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
+	}
+
+	// Split a wrapped text node into per-line fragments using the browser's layout: a change in a
+	// character's `top` means the text moved to a new line. `left` tracks the line's physical left
+	// edge (the minimum, so RTL lines anchor correctly).
+	private splitNodeIntoLines(node: Node, range: Range, text: string) {
+		const lines: { text: string; left: number; top: number; height: number }[] = []
+		let idx = 0
+		for (const char of text) {
+			range.setStart(node, idx)
+			range.setEnd(node, idx + char.length)
+			idx += char.length
+			const rects = range.getClientRects()
+			const rect = rects[rects.length - 1]
+			if (!rect) continue
+			const last = lines[lines.length - 1]
+			if (!last || rect.top !== last.top) {
+				lines.push({ text: char, left: rect.left, top: rect.top, height: rect.height })
+			} else {
+				last.text += char
+				if (rect.left < last.left) last.left = rect.left
+			}
+		}
+		return lines
+	}
+
+	/**
+	 * Render html into the measurement element once and return both its layout (advance) size and
+	 * the actual ink bounds (relative to the advance box's top-left). A single-pass convenience
+	 * over {@link TextManager.measureHtml} + {@link TextManager.measureTextInkBounds} for callers
+	 * that need both, e.g. a text shape sizing its geometry. `ink` is null when there's no
+	 * measurable text or no canvas (headless).
+	 *
+	 * @internal
+	 */
+	measureHtmlBounds(
+		html: string,
+		opts: TLMeasureTextOpts
+	): { advance: TLMeasuredTextSize; ink: BoxModel | null } {
+		const { elm } = this
+		const restoreStyles = this.setElementStyles(elm, this.getMeasureStyles(opts))
+		try {
+			elm.innerHTML = html
+			const scrollWidth = opts.measureScrollWidth ? elm.scrollWidth : 0
+			const rect = elm.getBoundingClientRect()
+			const advance = { x: 0, y: 0, w: rect.width, h: rect.height, scrollWidth }
+			const ink = this.measureTextInkBounds(elm)
+			return { advance, ink }
 		} finally {
 			restoreStyles()
 		}
