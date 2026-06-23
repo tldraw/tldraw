@@ -1,7 +1,7 @@
 import { VecModel } from '@tldraw/tlschema'
+import { EASINGS } from './easings'
 
-const easeInQuad = (t: number) => t * t
-const easeInOutQuad = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t)
+const { easeInQuad, easeInOutQuad } = EASINGS
 
 function clamp(n: number, min: number, max?: number): number {
 	return Math.max(min, typeof max !== 'undefined' ? Math.min(n, max) : n)
