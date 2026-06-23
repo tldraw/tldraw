@@ -290,6 +290,22 @@ test.describe('text shape ink bounds', () => {
 		expect(autoInk.h).toBeGreaterThanOrEqual(wideInk.h - 3)
 	})
 
+	test('export does not clip forced-italic RTL Arabic glyph ink (#8802)', async ({ page }) => {
+		// Arabic has no italic face, so `font-style: italic` makes the browser synthesize oblique —
+		// slanting the cursive RTL glyphs and pushing ink further past the advance box. The fix
+		// measures ink with the canvas TextMetrics API, so this guards that the synthesized slant is
+		// accounted for and the rendered export isn't clipped (it compares the real painted bounds of
+		// the autosize export against an unclippable wide box, so it catches a clip even if canvas
+		// and DOM disagree about synthesizing oblique).
+		const { autoInk, wideInk } = await measureExportClipping(page, {
+			text: 'مرحباً بكم في تلدرو',
+			font: 'draw',
+			italic: true,
+		})
+		expect(autoInk.w).toBeGreaterThanOrEqual(wideInk.w - 3)
+		expect(autoInk.h).toBeGreaterThanOrEqual(wideInk.h - 3)
+	})
+
 	test('leaves LTR latin text unchanged', async ({ page }) => {
 		// Plain Latin sits inside its advance box, so the fix must not pad it or shift its origin.
 		const r = await measureInk(page, { text: 'Hello world', font: 'sans' })

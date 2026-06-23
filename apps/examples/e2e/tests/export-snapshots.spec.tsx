@@ -147,6 +147,26 @@ const snapshots: Snapshots = {
 					color="black"
 				/>
 			),
+			// Forced italic on Arabic (no italic face) → the browser synthesizes oblique, slanting
+			// the cursive RTL glyphs; the export must still enclose them.
+			'italic arabic': (
+				<TL.text
+					richText={{
+						type: 'doc',
+						content: [
+							{
+								type: 'paragraph',
+								content: [
+									{ type: 'text', text: 'مرحباً بكم في تلدرو', marks: [{ type: 'italic' }] },
+								],
+							},
+						],
+					}}
+					font="draw"
+					size="xl"
+					color="black"
+				/>
+			),
 		},
 	},
 	Fills: Object.fromEntries(
