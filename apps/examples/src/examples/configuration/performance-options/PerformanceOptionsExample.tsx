@@ -14,8 +14,8 @@ import './performance-options.css'
 
 // There's a guide at the bottom of this file!
 
-const MAX_SHAPES = 750
-const ADD_BATCH = 250
+const MAX_SHAPES = 6000
+const ADD_BATCH = 2000
 const COLORS = ['blue', 'green', 'orange', 'violet'] as const
 
 const getLiveZoom = (editor: Editor) => editor.getZoomLevel()
@@ -86,14 +86,17 @@ function PerformancePanel() {
 
 	const addShapes = () => {
 		const start = shapeCount
+		// lay the whole page out as a square, sized to the shape cap so the
+		// grid stays stable as batches are added
+		const cols = Math.ceil(Math.sqrt(editor.options.maxShapesPerPage))
 		editor.run(() => {
 			for (let i = 0; i < ADD_BATCH; i++) {
 				const n = start + i
 				editor.createShape<TLGeoShape>({
 					type: 'geo',
-					x: (n % 12) * 70,
-					y: Math.floor(n / 12) * 70,
-					props: { w: 50, h: 50, fill: 'solid', color: COLORS[n % COLORS.length] },
+					x: (n % cols) * 30,
+					y: Math.floor(n / cols) * 30,
+					props: { w: 20, h: 20, fill: 'solid', color: COLORS[n % COLORS.length] },
 				})
 			}
 		})
@@ -168,9 +171,9 @@ function PerformanceConfigPanel({
 				</span>
 				<input
 					type="range"
-					min={250}
-					max={2000}
-					step={50}
+					min={2000}
+					max={12000}
+					step={500}
 					value={pendingMaxShapes}
 					onChange={(e) => setPendingMaxShapes(Number(e.currentTarget.value))}
 					onPointerUp={(e) => commitMaxShapes(e.currentTarget)}
@@ -259,14 +262,14 @@ during it.
 
 This component makes the difference countable. It reads one of the two zoom
 signals and counts how many times the value changed. Every one of those
-changes is a re-render for each component that reads the signal. Add 50+
-shapes, grab the zoom with the mouse wheel, and compare: the live counter
+changes is a re-render for each component that reads the signal. Add a
+batch of shapes, grab the zoom with the mouse wheel, and compare: the live counter
 climbs with every frame of the gesture while the efficient counter ticks
 up once or twice.
 
 [2]
 When an operation would push a page past maxShapesPerPage (default 4000,
-lowered to 750 here), the editor rejects it and emits a 'max-shapes' event
+lowered to 6000 here), the editor rejects it and emits a 'max-shapes' event
 with the page name and the limit. Listen for it to tell users why nothing
 happened. Here it becomes a temporary warning banner; tldraw's default UI
 turns the same event into a toast.
@@ -284,7 +287,7 @@ them so you can measure a single gesture.
 [5]
 The bottom-left panel reconfigures the performance options at runtime.
 
-- maxShapesPerPage (default 4000, lowered to 750 here) caps how many shapes
+- maxShapesPerPage (default 4000, lowered to 6000 here) caps how many shapes
   a page can hold. Raise or lower it and the at-limit feedback above tracks
   the new value: the counter turns red and the add button disables once the
   page reaches it.
