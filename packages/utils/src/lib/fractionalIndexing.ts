@@ -22,9 +22,16 @@ const SMALLEST_INTEGER = 'A' + ZERO.repeat(26)
 // reducing the chance of collisions when multiple clients insert into the same
 // gap at once. Each bit costs one extra key generation and ~0.17 characters of
 // key length, so this trades collision resistance against compute and key size.
-// 16 keeps collisions below ~0.1% even for ~10 simultaneous same-position
-// inserts, which is ample headroom for real multiplayer use.
-const JITTER_BITS = 16
+//
+// This is the upstream `jittered-fractional-indexing` default. The collision
+// margin has to cover the worst case of many keys generated into the *same*
+// gap at once — e.g. an offline client that reordered a heavily-populated page
+// reconnecting and merging its keys in one batch. At our 4000-shape ceiling the
+// birthday-collision odds for that worst case are ~0.7% at 30 bits, versus
+// effectively certain at 16. Colliding index keys are what caused the duplicate
+// z-order bugs that motivated jitter in the first place (#3932, #4126, #4210,
+// #5864, #6141), so we keep the conservative margin.
+const JITTER_BITS = 30
 
 function getIntegerLength(head: string): number {
 	if (head >= 'a' && head <= 'z') {
