@@ -3278,6 +3278,9 @@ export function RhombusToolbarItem(): JSX.Element;
 export const RichTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLDivElement>>;
 
 // @public
+export function richTextHasMarkEverywhere(richText: TLRichText, markName: string): boolean;
+
+// @public
 export const RichTextLabel: React_3.NamedExoticComponent<RichTextLabelProps>;
 
 // @public (undocumented)
@@ -3440,6 +3443,9 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
+
+// @public
+export function setMarkOnRichText(richText: TLRichText, markName: string, enabled: boolean): TLRichText;
 
 // @public (undocumented)
 export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
@@ -5099,7 +5105,7 @@ export interface TLUiEventMap {
     'reset-zoom': null;
     // (undocumented)
     'rich-text': {
-        operation: 'bold' | 'bulletList' | 'heading' | 'link-edit' | 'link-remove' | 'link-visit' | 'link' | 'strike';
+        operation: 'bold' | 'bulletList' | 'heading' | 'italic' | 'link-edit' | 'link-remove' | 'link-visit' | 'link' | 'strike';
     };
     // (undocumented)
     'rotate-ccw': {

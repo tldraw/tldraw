@@ -154,6 +154,80 @@ export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText
 	return generateJSON(html, tipTapExtensions) as TLRichText
 }
 
+/**
+ * Whether every text node in a rich text document has the given mark. Returns `false` if there are
+ * no text nodes. Useful for deciding whether toggling a mark should add or remove it.
+ *
+ * @param richText - The rich text content.
+ * @param markName - The mark type name, e.g. `'bold'` or `'italic'`.
+ *
+ * @public
+ */
+export function richTextHasMarkEverywhere(richText: TLRichText, markName: string): boolean {
+	let hasTextNode = false
+	let allMarked = true
+
+	const visit = (node: any) => {
+		if (!node || typeof node !== 'object') return
+		if (node.type === 'text') {
+			hasTextNode = true
+			const marks: any[] = Array.isArray(node.marks) ? node.marks : []
+			if (!marks.some((mark) => mark?.type === markName)) {
+				allMarked = false
+			}
+			return
+		}
+		if (Array.isArray(node.content)) {
+			for (const child of node.content) visit(child)
+		}
+	}
+
+	visit(richText)
+
+	return hasTextNode && allMarked
+}
+
+/**
+ * Returns a copy of the rich text content with the given mark added to or removed from every text
+ * node. Does not mutate the input.
+ *
+ * @param richText - The rich text content.
+ * @param markName - The mark type name, e.g. `'bold'` or `'italic'`.
+ * @param enabled - Whether the mark should be present (`true`) or absent (`false`) on every text node.
+ *
+ * @public
+ */
+export function setMarkOnRichText(
+	richText: TLRichText,
+	markName: string,
+	enabled: boolean
+): TLRichText {
+	const visit = (node: any): any => {
+		if (!node || typeof node !== 'object') return node
+
+		if (node.type === 'text') {
+			const marks: any[] = Array.isArray(node.marks) ? node.marks : []
+			let nextMarks: any[]
+			if (enabled) {
+				if (marks.some((mark) => mark?.type === markName)) return node
+				nextMarks = [...marks, { type: markName }]
+			} else {
+				if (!marks.some((mark) => mark?.type === markName)) return node
+				nextMarks = marks.filter((mark) => mark?.type !== markName)
+			}
+			return { ...node, marks: nextMarks }
+		}
+
+		if (Array.isArray(node.content)) {
+			return { ...node, content: node.content.map(visit) }
+		}
+
+		return node
+	}
+
+	return visit(richText) as TLRichText
+}
+
 /** @public */
 export function defaultAddFontsFromNode(
 	node: Node,
