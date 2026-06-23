@@ -12,9 +12,9 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    # @playwright/test is a root devDependency, so Node resolves it from the repo root (no
-    # per-workspace cwd, nothing written to the tree). The version keys the cache so it
-    # invalidates on upgrade.
+    # @playwright/test is hoisted to the root node_modules (it's a devDependency of the e2e
+    # workspaces), so Node resolves it from the repo root — no per-workspace cwd, nothing written
+    # to the tree. The version keys the cache so it invalidates on upgrade.
     - name: Resolve Playwright version
       shell: bash
       run: echo "PLAYWRIGHT_VERSION=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_ENV"
