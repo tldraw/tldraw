@@ -181,6 +181,13 @@ on the region overlays for the drag-forward.
   (`[data-radix-popper-content-wrapper]`, `[role="menu" | "dialog" | "listbox"]`); update that set to
   Base UI's equivalents. The canvas selectors (`.tl-canvas` / `.tlui-menu-click-capture`) are SDK and
   unchanged.
+- **Keep the dotcom listener at the app level** (a hook at `TlaRootProviders`), _not_ folded into the
+  SDK's `MenuClickCapture` component. That consolidation is tempting — the SDK component already has
+  `editor.menus` and could host the same listener — but the SDK component only mounts where there's an
+  editor. A hook at the app root carries the core invariant (_a press outside a dismissable only
+  dismisses, never interacts with what's underneath_) to **any** dotcom page, including future
+  non-canvas pages with no editor. So: the SDK keeps its canvas overlay; dotcom keeps the app-wide
+  listener.
 - The **hide-dismissal**: when the sidebar hides, its menus are cleared (they're rendered by the
   still-mounted sidebar). Driven by the sidebar's visibility flags, not by any menu library.
 - The **stable global menu id** for the workspace switcher — its open state lives in `tlmenus` under
