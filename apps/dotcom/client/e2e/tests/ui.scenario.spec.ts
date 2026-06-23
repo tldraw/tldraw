@@ -204,6 +204,32 @@ test.describe('UI scenarios', () => {
 		await owner.editor.expectShapesCount(0)
 	})
 
+	test('pressing a top-bar button with a menu open only dismisses it', async ({
+		owner,
+		scenario,
+	}) => {
+		await scenario.createPersonalFile(owner, scenario.name('top-bar dismiss file'))
+
+		// Open the top-left main menu (a dropdown that registers in the menu registry).
+		await owner.page.getByTestId('tla-main-menu').click()
+		await expect(owner.page.getByRole('menu')).toHaveCount(1)
+
+		// Press the top-right share button while the menu is open. The top-right panel's dismiss
+		// overlay sits on top, so click at the button's location rather than via its (now-covered)
+		// element. The press must only dismiss the menu — the share menu must not open.
+		const shareButton = owner.page.getByTestId('tla-share-button')
+		const box = await shareButton.boundingBox()
+		if (!box) throw new Error('Missing share button')
+		await owner.page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+
+		await expect(owner.page.getByRole('menu')).toHaveCount(0)
+		await expect(owner.page.getByTestId('tla-share-tab-page-share')).toBeHidden()
+
+		// With no menu open the overlay is gone, so a second press opens the share menu normally.
+		await shareButton.click()
+		await expect(owner.page.getByTestId('tla-share-tab-page-share')).toBeVisible()
+	})
+
 	test('missing files show not-found UI to signed-in and signed-out users', async ({
 		owner,
 		visitor,
