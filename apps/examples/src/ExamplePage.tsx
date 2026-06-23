@@ -72,6 +72,10 @@ export function ExamplePage({
 									onChange={handleFilterChange}
 								/>
 							</label>
+							<a className="example__sidebar__action-row hoverable" href="/develop">
+								<CodeIcon />
+								<span>Develop</span>
+							</a>
 						</div>
 						<div className="example__sidebar__divider" />
 					</div>
