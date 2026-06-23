@@ -470,6 +470,13 @@
 	color: var(--tl-color-text-3);
 }
 
+/* In dark mode, text-3 alone is too low-contrast on the darkest theme sidebars
+   (e.g. GitHub, One Dark, Flexoki); blend toward the primary text color to lift
+   the floor. Light themes keep plain text-3, where it reads fine and stays subtle. */
+:global(.tla-theme__dark) .sidebarFileSectionTitle {
+	color: color-mix(in srgb, var(--tl-color-text-3) 60%, var(--tl-color-text));
+}
+
 .sidebar[data-workspaces='true'] .sidebarFileSectionTitle {
 	padding: 0px 8px;
 	font-weight: 500;
