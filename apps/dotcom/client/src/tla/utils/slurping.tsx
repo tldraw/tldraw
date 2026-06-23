@@ -1,4 +1,4 @@
-// import { deleteDB } from 'idb'
+import { deleteDB } from 'idb'
 import {
 	Editor,
 	ExecutionQueue,
@@ -19,6 +19,8 @@ import { SlurpFailure } from '../components/TlaEditor/SlurpFailure'
 
 const UPLOAD_CONCURRENCY = 3
 const SHOULD_SLURP_FILE = 'SHOULD_SLURP_FILE'
+// Must match STORE_PREFIX in packages/editor LocalIndexedDb.ts
+const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'
 
 export function getShouldSlurpFile() {
 	return getFromLocalStorage(SHOULD_SLURP_FILE)
@@ -223,15 +225,22 @@ export class Slurper {
 			// .every returns true if the array is empty, so this will run if there
 			// were no assets to upload!
 
-			// all uploads succeeded, clear the local db
-			// (temporarily do not delete the db in case something goes wrong and people lose their stuffs)
-			// deleteDB('TLDRAW_DOCUMENT_v2' + this.opts.slurpPersistenceKey)
+			// the document data has been loaded into the (now cloud-synced) editor and
+			// every asset has been uploaded to the cloud, so the local db is fully
+			// redundant. Mark the slurp as finished first so we never re-slurp, then
+			// delete the local db to reclaim the storage.
 			this.opts.editor.updateDocumentSettings({
 				meta: {
 					...this.opts.editor.getDocumentSettings().meta,
 					slurpFinished: true,
 				},
 			})
+			try {
+				await deleteDB(STORE_PREFIX + this.opts.slurpPersistenceKey)
+			} catch (e) {
+				// non-fatal: the slurp is already finished, this just leaves stale local data behind
+				console.error('Failed to delete local db after slurp', e)
+			}
 			return
 		}
 
