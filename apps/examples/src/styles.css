@@ -78,7 +78,7 @@ html,
 
 @media screen and (max-width: 700px) {
 	.example {
-		display: block;
+		display: flex;
 	}
 
 	.example__sidebar {
