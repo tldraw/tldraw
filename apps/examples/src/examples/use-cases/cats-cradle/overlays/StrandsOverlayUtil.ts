@@ -90,7 +90,7 @@ export class StrandsOverlayUtil extends OverlayUtil<TLStrandsOverlay> {
 
 			// Casing: a wider, dim streak trailing the head, in a tldraw colour.
 			ctx.globalAlpha = 0.4 * flick
-			ctx.strokeStyle = (theme['light-blue' as keyof ThemeColors] as { solid: string }).solid
+			ctx.strokeStyle = theme.blue.solid
 			ctx.lineWidth = px(9)
 			strokeAlong(ctx, strand, pulse.dir, pulse.dist - px(34), pulse.dist, px(7))
 
