@@ -1,0 +1,43 @@
+name: 'Setup Playwright'
+description: 'Install Playwright browsers with version-keyed caching shared across workflows.'
+
+inputs:
+  working-directory:
+    description: 'Workspace directory used to resolve the installed @playwright/test version.'
+    required: false
+    default: 'apps/examples'
+  browsers:
+    description: 'Space-separated browsers to install (passed to `playwright install`).'
+    required: false
+    default: 'chromium chrome'
+
+runs:
+  using: 'composite'
+  steps:
+    # Resolve the installed Playwright version so the cache key invalidates on upgrade. The info
+    # file goes to the runner temp dir, not the workspace, so it can't be picked up by a later
+    # `git add -A` (the update-snapshots workflow commits the tree).
+    - name: Get installed Playwright version
+      id: playwright-version
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        yarn info @playwright/test --json > "$RUNNER_TEMP/playwright-info.json"
+        echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('$RUNNER_TEMP/playwright-info.json').children.Version)")" >> "$GITHUB_ENV"
+
+    # Cache keyed on os + arch + version. The arch matters: ARM and x64 runners need different
+    # browser binaries, and a key without it can restore the wrong ones.
+    - name: Check for Playwright browsers cache
+      id: playwright-cache
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cache/ms-playwright
+        key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
+    # Only on a cache miss — a cold `--with-deps` install is slow and occasionally hangs on the
+    # runner's apt lock, so we skip it entirely when the browsers are already cached.
+    - name: Install Playwright browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: npx playwright install --with-deps ${{ inputs.browsers }}
