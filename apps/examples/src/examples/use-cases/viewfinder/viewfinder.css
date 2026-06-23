@@ -1,0 +1,63 @@
+/* No cursor: the game is played entirely by moving the camera and aiming the
+   viewfinder; restart is a keyboard shortcut (R). */
+.vf-root,
+.vf-root * {
+	cursor: none !important;
+}
+
+/* The HUD covers the whole canvas and is purely visual — fully click-through. */
+.vf-hud {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 300;
+	font-family: 'Shantell Sans', 'Comic Sans MS', system-ui, sans-serif;
+	color: #2b2b2b;
+}
+
+/* The viewfinder: a centred square defined by four red corner brackets. */
+.vf-reticle {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 240px;
+	height: 240px;
+	transform: translate(-50%, -50%);
+	transition: opacity 0.2s;
+}
+
+.vf-brackets {
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+.vf-brackets path {
+	fill: none;
+	stroke: #e15241;
+	stroke-width: 7;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.vf-reticle--found .vf-brackets path {
+	stroke: #3aa655;
+}
+
+.vf-hint {
+	position: absolute;
+	top: 24px;
+	left: 0;
+	right: 0;
+	text-align: center;
+	font-size: 16px;
+	opacity: 0.75;
+}
+
+.vf-banner {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, calc(-50% + 170px));
+	font-size: 28px;
+	color: #3aa655;
+}
