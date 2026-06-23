@@ -7789,14 +7789,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.58.2":
-  version: 1.58.2
-  resolution: "@playwright/test@npm:1.58.2"
+"@playwright/test@npm:^1.61.0":
+  version: 1.61.0
+  resolution: "@playwright/test@npm:1.61.0"
   dependencies:
-    playwright: "npm:1.58.2"
+    playwright: "npm:1.61.0"
   bin:
     playwright: cli.js
-  checksum: 10/58bf90139280a0235eeeb6049e9fb4db6425e98be1bf0cc17913b068eef616cf67be57bfb36dc4cb56bcf116f498ffd0225c4916e85db404b343ea6c5efdae13
+  checksum: 10/359a9a4a59a87361d416818966bb810a38970d9f2b8364349d22099fb23eb043530714374a83010f9f3471c7e758df43c49bf32128745af13277adfb211aa752
   languageName: node
   linkType: hard
 
@@ -18606,7 +18606,7 @@ __metadata:
     "@clerk/testing": "npm:^1.4.15"
     "@formatjs/cli": "npm:^6.5.1"
     "@formatjs/unplugin": "npm:^1.1.0"
-    "@playwright/test": "npm:^1.58.2"
+    "@playwright/test": "npm:^1.61.0"
     "@rocicorp/zero": "npm:1.6.1"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
@@ -19936,7 +19936,7 @@ __metadata:
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
     "@dimforge/rapier2d-compat": "npm:^0.19.3"
-    "@playwright/test": "npm:^1.58.2"
+    "@playwright/test": "npm:^1.61.0"
     "@tiptap/core": "npm:^3.12.1"
     "@tiptap/extension-font-family": "npm:^3.12.1"
     "@tiptap/extension-text-style": "npm:^3.12.1"
@@ -27419,27 +27419,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.58.2":
-  version: 1.58.2
-  resolution: "playwright-core@npm:1.58.2"
+"playwright-core@npm:1.61.0":
+  version: 1.61.0
+  resolution: "playwright-core@npm:1.61.0"
   bin:
     playwright-core: cli.js
-  checksum: 10/8a98fcf122167e8703d525db2252de0e3da4ab9110ab6ea9951247e52d846310eb25ea2c805e1b7ccb54b4010c44e5adc3a76aae6da02f34324ccc3e76683bb1
+  checksum: 10/e7ac4b2ef1c5f1701ec8086e47bc341988a3f753009d450e2a62daab5ade1fa943f1ef7fb48c721618dd7bd42667a11ff73c2e5dbd0674c20a3397b3c5be2f61
   languageName: node
   linkType: hard
 
-"playwright@npm:1.58.2":
-  version: 1.58.2
-  resolution: "playwright@npm:1.58.2"
+"playwright@npm:1.61.0":
+  version: 1.61.0
+  resolution: "playwright@npm:1.61.0"
   dependencies:
     fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.58.2"
+    playwright-core: "npm:1.61.0"
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: 10/d89d6c8a32388911b9aff9ee0f1a90076219f15c804f2b287db048b9e9cde182aea3131fac1959051d25189ed4218ec4272b137c83cd7f9cd24781cbc77edd86
+  checksum: 10/b5faf97391315334a30e88e03216fd6090988b99896e71b341995a27c49d49dcebc825ec389dabc9b2d2cab6368c418cad9cbb925a88de35fb3b26a19bf05bea
   languageName: node
   linkType: hard
 
