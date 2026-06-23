@@ -1,0 +1,45 @@
+# TEMPORARY debug workflow — isolate why `playwright install` hangs at "extracting archive" on the
+# larger runners. Delete once root-caused.
+name: _debug playwright install
+
+on:
+  push:
+    branches: [frolic/playwright-setup-action]
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest-32-cores-open
+    timeout-minutes: 15
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Environment
+        run: |
+          echo "== node ==";   node --version || true
+          echo "== nproc =="; nproc
+          echo "== df -h =="; df -h
+          echo "== free -h =="; free -h
+          echo "== mounts =="; mount | grep -E ' (/|/home|/tmp|/mnt) ' || mount | head -20
+          echo "== ulimit =="; ulimit -a
+          echo "== RUNNER_TEMP=$RUNNER_TEMP =="; df -h "$RUNNER_TEMP"
+
+      - name: Manual download + system unzip (isolates filesystem vs Playwright's extractor)
+        run: |
+          set -x
+          URL=https://cdn.playwright.dev/builds/cft/145.0.7632.6/linux64/chrome-linux64.zip
+          cd "$RUNNER_TEMP"
+          time curl -sSL "$URL" -o cft.zip
+          ls -la cft.zip
+          time (timeout 180 unzip -q cft.zip -d sys-extract && echo "SYSTEM_UNZIP_OK" || echo "SYSTEM_UNZIP_FAILED rc=$?")
+          du -sh sys-extract 2>/dev/null || true
+          df -h "$RUNNER_TEMP"
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Playwright install (DEBUG + timeout)
+        env:
+          DEBUG: 'pw:install'
+        run: timeout --verbose 300 npx playwright install chromium || echo "PLAYWRIGHT_INSTALL_FAILED rc=$?"
