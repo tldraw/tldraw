@@ -364,6 +364,11 @@ li.examples__sidebar__item {
 	font-weight: 600;
 }
 
+.examples__sidebar__item__title__match {
+	font-weight: 700;
+	color: var(--example-sidebar-text);
+}
+
 .examples__sidebar__item__link {
 	font-weight: 500;
 	margin: 0;

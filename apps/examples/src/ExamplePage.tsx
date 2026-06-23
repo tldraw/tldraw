@@ -30,6 +30,7 @@ export function ExamplePage({
 }) {
 	const categories = examples.map((e) => e.id)
 	const [filterValue, setFilterValue] = useState('')
+	const searchTerms = getSearchTerms(filterValue)
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
 		history.replaceState(
@@ -82,24 +83,14 @@ export function ExamplePage({
 									{examples
 										.find((category) => category.id === currentCategory)
 										?.value.filter((example) => {
-											const excludedWords = ['a', 'the', '', ' ']
-											const terms = filterValue
-												.toLowerCase()
-												.split(' ')
-												.filter((term) => !excludedWords.includes(term))
-											if (!terms.length) return true
-											return (
-												terms.some((term) => example.title.toLowerCase().includes(term)) ||
-												example.keywords.some((keyword) =>
-													terms.some((term) => keyword.toLowerCase().includes(term))
-												)
-											)
+											return exampleMatchesSearch(example, searchTerms)
 										})
 										.map((sidebarExample) => (
 											<ExampleSidebarListItem
 												key={sidebarExample.path}
 												example={sidebarExample}
 												isActive={sidebarExample.path === example.path}
+												searchTerms={searchTerms}
 											/>
 										))}
 								</ul>
@@ -143,9 +134,11 @@ export function ExamplePage({
 function ExampleSidebarListItem({
 	example,
 	isActive,
+	searchTerms,
 }: {
 	example: Example
 	isActive?: boolean
+	searchTerms: string[]
 	showDescriptionWhenInactive?: boolean
 }) {
 	const ref = useRef<HTMLLIElement>(null)
@@ -169,7 +162,9 @@ function ExampleSidebarListItem({
 				aria-label={example.title}
 			/>
 			<div className="examples__sidebar__item__content">
-				<span className="examples__sidebar__item__title">{example.title}</span>
+				<span className="examples__sidebar__item__title">
+					<HighlightedSearchText text={example.title} searchTerms={searchTerms} />
+				</span>
 			</div>
 			{isActive && (
 				<div className="example__sidebar__item__buttons">
@@ -193,6 +188,82 @@ function ExampleSidebarListItem({
 			)}
 		</li>
 	)
+}
+
+const ignoredSearchTerms = new Set(['a', 'the'])
+
+function getSearchTerms(value: string) {
+	return value
+		.trim()
+		.toLowerCase()
+		.split(/\s+/)
+		.filter((term) => term.length > 0 && !ignoredSearchTerms.has(term))
+}
+
+function exampleMatchesSearch(example: Example, searchTerms: string[]) {
+	if (!searchTerms.length) return true
+
+	const title = example.title.toLowerCase()
+	const keywords = example.keywords.map((keyword) => keyword.toLowerCase())
+
+	return searchTerms.some((term) => {
+		return title.includes(term) || keywords.some((keyword) => keyword.includes(term))
+	})
+}
+
+function HighlightedSearchText({ text, searchTerms }: { text: string; searchTerms: string[] }) {
+	const matchRanges = getSearchMatchRanges(text, searchTerms)
+	if (!matchRanges.length) return <>{text}</>
+
+	const parts: React.ReactNode[] = []
+	let cursor = 0
+
+	for (const [start, end] of matchRanges) {
+		if (start > cursor) {
+			parts.push(text.slice(cursor, start))
+		}
+		parts.push(
+			<strong key={`${start}-${end}`} className="examples__sidebar__item__title__match">
+				{text.slice(start, end)}
+			</strong>
+		)
+		cursor = end
+	}
+
+	if (cursor < text.length) {
+		parts.push(text.slice(cursor))
+	}
+
+	return <>{parts}</>
+}
+
+function getSearchMatchRanges(text: string, searchTerms: string[]) {
+	const lowerText = text.toLowerCase()
+	const ranges: Array<[number, number]> = []
+
+	for (const term of searchTerms) {
+		let matchIndex = lowerText.indexOf(term)
+		while (matchIndex !== -1) {
+			ranges.push([matchIndex, matchIndex + term.length])
+			matchIndex = lowerText.indexOf(term, matchIndex + term.length)
+		}
+	}
+
+	if (!ranges.length) return ranges
+
+	ranges.sort((a, b) => a[0] - b[0] || b[1] - a[1])
+
+	const mergedRanges: Array<[number, number]> = []
+	for (const [start, end] of ranges) {
+		const previous = mergedRanges[mergedRanges.length - 1]
+		if (!previous || start > previous[1]) {
+			mergedRanges.push([start, end])
+		} else if (end > previous[1]) {
+			previous[1] = end
+		}
+	}
+
+	return mergedRanges
 }
 
 function Markdown({
