@@ -386,17 +386,19 @@ describe('Misc', () => {
 	})
 })
 
-describe('Points keyed differently from their indices', () => {
-	// The points map allows any string keys, and they need not match each point's
-	// `index`. Dragging a vertex handle on such a line used to insert a new point
-	// keyed by the handle id (the index), producing two points that share an index
-	// and crashing getHandles() via fractional indexing ("a2 >= a2"). See #9267.
-	const mismatchedId = createShapeId('line-mismatched')
+describe('Line points: id-mapped object with a decoupled index', () => {
+	// `points` is an "id-mapped object": each entry's key === its `id`. The `index`
+	// is a separate fractional index used only for ordering. A vertex handle's id is
+	// the point's id (not its index), so a handle round-trips to the right point even
+	// when key !== index. Invalid points (key !== id, or duplicate indices) are
+	// rejected by the validator and repaired by the store rather than crashing. See #9267.
 
-	it('updates the dragged point in place instead of duplicating its index', () => {
+	it('drags a point in place on a line whose keys differ from their indices', () => {
+		// valid: key === id ('a'/'b'), but the index is decoupled ('a1'/'a2')
+		const id = createShapeId('line-divergent')
 		editor.createShapes([
 			{
-				id: mismatchedId,
+				id,
 				type: 'line',
 				x: 100,
 				y: 100,
@@ -408,39 +410,37 @@ describe('Points keyed differently from their indices', () => {
 				},
 			},
 		])
-		editor.select(mismatchedId)
+		editor.select(id)
 
-		// the endpoint handle's id is its index ('a2'), which differs from its key ('b')
-		const endHandle = getHandlesFor(mismatchedId).find((h) => h.id === 'a2')!
-		const inParent = editor.getShapePageTransform(mismatchedId)!.applyToPoint(endHandle)
+		// the endpoint handle's id is the point's id ('b'), not its index ('a2')
+		const endHandle = getHandlesFor(id).find((h) => h.id === 'b')!
+		const inParent = editor.getShapePageTransform(id)!.applyToPoint(endHandle)
 
 		editor
 			.pointerMove(inParent.x, inParent.y)
 			.pointerDown(inParent.x, inParent.y, {
 				target: 'handle',
-				shape: editor.getShape(mismatchedId),
+				shape: editor.getShape(id),
 				handle: endHandle,
 			})
 			.pointerMove(inParent.x + 100, inParent.y)
 			.pointerUp()
 
-		// still exactly two points, keyed as before — no duplicate index introduced
-		expect(editor.getShape<TLLineShape>(mismatchedId)!.props.points).toStrictEqual({
+		// the dragged point updated in place — still two points, keyed as before
+		expect(editor.getShape<TLLineShape>(id)!.props.points).toStrictEqual({
 			a: { id: 'a', index: 'a1', x: 0, y: 0 },
 			b: { id: 'b', index: 'a2', x: 200, y: 0 },
 		})
-
-		// recomputing handles must not throw
-		expect(() => editor.getShapeHandles(mismatchedId)).not.toThrow()
+		expect(() => editor.getShapeHandles(id)).not.toThrow()
 	})
 
-	it('tolerates a line that already has a duplicate index without crashing', () => {
-		// Malformed data: points 'b' and 'a2' share index 'a2'. This used to throw
-		// "a2 >= a2" from getHandles via getIndexBetween, crashing on render.
-		const corruptId = createShapeId('line-corrupt')
+	it('self-heals a line created with duplicate indices', () => {
+		// invalid: points 'b' and 'a2' share index 'a2'. The validator rejects it and
+		// the store re-indexes the collision instead of crashing.
+		const id = createShapeId('line-dup-index')
 		editor.createShapes([
 			{
-				id: corruptId,
+				id,
 				type: 'line',
 				x: 100,
 				y: 100,
@@ -454,10 +454,37 @@ describe('Points keyed differently from their indices', () => {
 			},
 		])
 
-		expect(() => editor.getShapeHandles(corruptId)).not.toThrow()
-		// the duplicate index is collapsed to a single vertex
-		const vertexHandles = getHandlesFor(corruptId).filter((h) => h.type === 'vertex')
-		expect(vertexHandles.map((h) => h.id)).toEqual(['a1', 'a2'])
+		const points = editor.getShape<TLLineShape>(id)!.props.points
+		// all three points kept, re-keyed by id, with unique indices
+		expect(Object.keys(points).sort()).toEqual(['a', 'a2', 'b'])
+		for (const key in points) expect(points[key].id).toBe(key)
+		const indices = Object.values(points).map((p) => p.index)
+		expect(new Set(indices).size).toBe(indices.length)
+		expect(() => editor.getShapeHandles(id)).not.toThrow()
+	})
+
+	it('self-heals a line created with key !== id', () => {
+		// invalid: the map key 'x'/'y' does not match the point's id 'a'/'b'.
+		const id = createShapeId('line-key-mismatch')
+		editor.createShapes([
+			{
+				id,
+				type: 'line',
+				x: 100,
+				y: 100,
+				props: {
+					points: {
+						x: { id: 'a', index: 'a1' as IndexKey, x: 0, y: 0 },
+						y: { id: 'b', index: 'a2' as IndexKey, x: 100, y: 0 },
+					},
+				},
+			},
+		])
+
+		const points = editor.getShape<TLLineShape>(id)!.props.points
+		// re-keyed so key === id
+		expect(Object.keys(points).sort()).toEqual(['a', 'b'])
+		for (const key in points) expect(points[key].id).toBe(key)
 	})
 })
 

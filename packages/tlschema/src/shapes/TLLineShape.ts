@@ -1,4 +1,10 @@
-import { IndexKey, getIndices, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
+import {
+	IndexKey,
+	getIndexAbove,
+	getIndices,
+	objectMapFromEntries,
+	sortByIndex,
+} from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -68,6 +74,50 @@ const lineShapePointValidator: T.ObjectValidator<TLLineShapePoint> = T.object({
 	x: T.number,
 	y: T.number,
 })
+
+/**
+ * Find the first way a line's points map violates its invariant: it must be an
+ * "id-mapped" object (every entry's key equals its `id`) with unique `index`
+ * values. Returns a message describing the violation, or `null` if valid.
+ *
+ * @internal
+ */
+export function findLinePointsViolation(points: Record<string, TLLineShapePoint>): string | null {
+	const seenIndices = new Set<IndexKey>()
+	for (const key in points) {
+		const point = points[key]
+		if (point.id !== key) return `point id "${point.id}" does not match its key "${key}"`
+		if (seenIndices.has(point.index)) return `duplicate point index "${point.index}"`
+		seenIndices.add(point.index)
+	}
+	return null
+}
+
+/**
+ * Repair a line's points map into a valid id-mapped object: re-key each point by
+ * its `id`, and bump any duplicate or out-of-order `index` to a fresh key strictly
+ * above the previous one. A no-op for well-formed points.
+ *
+ * @internal
+ */
+export function repairLinePoints(
+	points: Record<string, TLLineShapePoint>
+): Record<string, TLLineShapePoint> {
+	const repaired: Record<string, TLLineShapePoint> = {}
+	let prevIndex: IndexKey | null = null
+	for (const point of Object.values(points).sort(sortByIndex)) {
+		let index = point.index
+		if (prevIndex !== null && index <= prevIndex) {
+			index = getIndexAbove(prevIndex)
+		}
+		prevIndex = index
+		// id-mapped: key === id. If two points share an id, keep the first.
+		if (!repaired[point.id]) {
+			repaired[point.id] = { id: point.id, index, x: point.x, y: point.y }
+		}
+	}
+	return repaired
+}
 
 /**
  * Properties for a line shape. Line shapes represent multi-point lines or splines
@@ -159,7 +209,10 @@ export const lineShapeProps: RecordProps<TLLineShape> = {
 	dash: DefaultDashStyle,
 	size: DefaultSizeStyle,
 	spline: LineShapeSplineStyle,
-	points: T.dict(T.string, lineShapePointValidator),
+	points: T.dict(T.string, lineShapePointValidator).check((points) => {
+		const violation = findLinePointsViolation(points)
+		if (violation) throw new T.ValidationError(violation)
+	}),
 	scale: T.nonZeroNumber,
 }
 

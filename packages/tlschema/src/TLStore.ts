@@ -15,7 +15,9 @@ import { PageRecordType, TLPageId } from './records/TLPage'
 import { InstancePageStateRecordType, TLInstancePageStateId } from './records/TLPageState'
 import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
 import { TLRecord } from './records/TLRecord'
+import { TLShape } from './records/TLShape'
 import { TLUser } from './records/TLUser'
+import { TLLineShape, findLinePointsViolation, repairLinePoints } from './shapes/TLLineShape'
 
 /**
  * Redacts the source of an asset record for error reporting.
@@ -400,6 +402,21 @@ export function onValidationFailure({
 	record,
 	recordBefore,
 }: StoreValidationFailure<TLRecord>): TLRecord {
+	// Self-heal line shapes whose points violate the id-mapped / unique-index
+	// invariant. The points validator enforces it, but malformed data can still
+	// arrive from older snapshots, sync peers on older code, or SDK callers —
+	// repairing the points is a better outcome than crashing the editor (or, on a
+	// sync update, the receiving client).
+	if (record.typeName === 'shape' && (record as TLShape).type === 'line') {
+		const lineShape = record as TLLineShape
+		if (findLinePointsViolation(lineShape.props.points)) {
+			return {
+				...lineShape,
+				props: { ...lineShape.props, points: repairLinePoints(lineShape.props.points) },
+			}
+		}
+	}
+
 	const isExistingValidationIssue =
 		// if we're initializing the store for the first time, we should
 		// allow invalid records so people can load old buggy data:
