@@ -154,7 +154,13 @@
 		"canvas": "npm:empty-npm-package@1.0.0",
 		"@microsoft/tsdoc@npm:~0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
 		"@microsoft/tsdoc@npm:0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
-		"@types/node": "^22.15.31"
+		"@types/node": "^22.15.31",
+		"ws": "8.21.0",
+		"js-cookie": "3.0.7",
+		"postcss": "8.5.10",
+		"react-router": "6.30.4",
+		"@remix-run/router": "1.23.2",
+		"@octokit/plugin-paginate-rest@11.3.1": "11.4.1"
 	},
 	"dependencies": {
 		"@sentry/cli": "^2.41.1",
