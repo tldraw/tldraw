@@ -620,6 +620,7 @@ li.examples__sidebar__item {
 
 .example__dialog__body {
 	flex: 0 1 auto;
+	min-height: 0;
 	overflow-y: auto;
 	overflow-x: hidden;
 	max-width: 100%;
