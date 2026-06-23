@@ -300,6 +300,7 @@ export function FileItems({
 														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
 														return
 													}
+													trackEvent('create-workspace', { source })
 													try {
 														await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id })
 															.client

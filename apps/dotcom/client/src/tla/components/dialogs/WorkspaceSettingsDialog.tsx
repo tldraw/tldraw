@@ -1,6 +1,6 @@
 import { MAX_WORKSPACE_NAME_LENGTH, Role, ZErrorCode, can } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiDialogBody,
@@ -14,6 +14,7 @@ import {
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import {
 	TlaMenuControl,
@@ -73,6 +74,7 @@ function useScrollbarWhenScrollable() {
 export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSettingsDialogProps) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
+	const trackEvent = useTldrawAppUiEvents()
 	const [activeTab, setActiveTab] = useState('members')
 	const [copiedInviteLink, setCopiedInviteLink] = useState(false)
 
@@ -109,6 +111,32 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 		content.style.maxHeight = '70vh'
 	})
 
+	// The name input live-saves on each keystroke, but we only want one `rename-workspace`
+	// analytics event per edit session. Capture the name on open in the effect closure and
+	// compare it against the latest name when the dialog unmounts.
+	const workspaceName = workspaceMembership?.group?.name ?? null
+	const latestWorkspaceNameRef = useRef(workspaceName)
+	if (workspaceName !== null) {
+		latestWorkspaceNameRef.current = workspaceName
+	}
+	const trackEventRef = useRef(trackEvent)
+	trackEventRef.current = trackEvent
+	useEffect(() => {
+		const initialWorkspaceName = workspaceName
+		return () => {
+			const latestWorkspaceName = latestWorkspaceNameRef.current
+			if (
+				initialWorkspaceName !== null &&
+				latestWorkspaceName !== null &&
+				latestWorkspaceName !== initialWorkspaceName
+			) {
+				trackEventRef.current('rename-workspace', { source: 'workspace-settings' })
+			}
+		}
+		// We intentionally capture the workspace name from the dialog's initial render.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
 	if (!workspaceMembership) return null
 	const workspace = workspaceMembership.group
 	if (!workspace) return null
@@ -144,13 +172,20 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 		setTimeout(() => setCopiedInviteLink(false), 1000)
 	}
 
-	const handleToggleInviteLink = (enabled: boolean) => {
-		app.z.mutate.setWorkspaceInviteLinkEnabled({ id: workspaceId, enabled })
+	const handleToggleInviteLink = async (enabled: boolean) => {
+		try {
+			await app.z.mutate.setWorkspaceInviteLinkEnabled({ id: workspaceId, enabled }).client
+			trackEvent('set-workspace-invite-link-enabled', { source: 'workspace-settings', enabled })
+		} catch (error) {
+			console.error('Error toggling invite link:', error)
+			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
+		}
 	}
 
 	const handleRegenerateInviteLink = async () => {
 		try {
 			await app.z.mutate.regenerateWorkspaceInviteSecret({ id: workspaceId }).server
+			trackEvent('regenerate-workspace-invite-secret', { source: 'workspace-settings' })
 		} catch (error) {
 			console.error('Error regenerating invite link:', error)
 			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
@@ -162,6 +197,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			const isCurrentlyOnAFileInThisWorkspace =
 				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
 			await app.z.mutate.leaveWorkspace({ workspaceId }).client
+			trackEvent('leave-workspace', { source: 'workspace-settings' })
 			onClose()
 			if (isCurrentlyOnAFileInThisWorkspace) {
 				navigate('/')
@@ -177,6 +213,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 			const isCurrentlyOnAFileInThisWorkspace =
 				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
 			await app.z.mutate.deleteWorkspace({ id: workspaceId }).client
+			trackEvent('delete-workspace', { source: 'workspace-settings' })
 			onClose()
 			if (isCurrentlyOnAFileInThisWorkspace) {
 				navigate('/')
@@ -190,6 +227,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	const handleRemoveMember = async (targetUserId: string) => {
 		try {
 			await app.z.mutate.removeWorkspaceMember({ workspaceId, targetUserId }).client
+			trackEvent('remove-workspace-member', { source: 'workspace-settings' })
 		} catch (error) {
 			console.error('Error removing member:', error)
 			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
@@ -438,6 +476,10 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 																		targetUserId: member.userId,
 																		role: value,
 																	}).client
+																	trackEvent('set-workspace-member-role', {
+																		source: 'workspace-settings',
+																		role: value,
+																	})
 																} catch (err) {
 																	console.error('Failed to change member role', err)
 																	app.showMutationRejectionToast(
