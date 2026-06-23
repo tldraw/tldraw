@@ -88,8 +88,9 @@ Two cooperating pieces, both keyed only off **`tlmenus.hasAnyOpenMenus()`** and 
   reads the element under each press (`event.target`, i.e. the browser's own hit result) and:
   - **canvas** (`.tl-canvas` / `.tlui-menu-click-capture`) → does nothing; the SDK overlay above
     handles it (so click-to-draw and drag are untouched, mouse **and** touch).
-  - **inside an open menu / dialog / popover / select** (`[data-radix-popper-content-wrapper]`,
-    `[role="menu" | "dialog" | "listbox"]`) → does nothing; the press works normally.
+  - **inside an open menu / dialog / popover / select** (`[role="menu" | "dialog" | "listbox"]` —
+    every dismissable's content carries one of these roles; popovers and dialogs are both `dialog`) →
+    does nothing; the press works normally.
   - **anything else (chrome)** → `preventDefault` + `stopPropagation` + `clearOpenMenus()`, dismiss
     only. The `click` the press would spawn is cancelled too (a chrome press lands on the chrome
     element itself, unlike an overlay where down/up land on different nodes and no click forms).
@@ -176,11 +177,11 @@ on the region overlays for the drag-forward.
   and the editor-context scoping (so an arg-less clear doesn't evict open dialogs registered under
   the `'tla'` context).
 - The dismiss mechanism keys off `tlmenus`, not Radix: the SDK's `MenuClickCapture` overlay (canvas)
-  and dotcom's `useMenuClickCapture` document listeners (everything else). One Radix-specific detail
-  to re-point under Base UI: the listener recognises "inside an open dismissable" via Radix selectors
-  (`[data-radix-popper-content-wrapper]`, `[role="menu" | "dialog" | "listbox"]`); update that set to
-  Base UI's equivalents. The canvas selectors (`.tl-canvas` / `.tlui-menu-click-capture`) are SDK and
-  unchanged.
+  and dotcom's `useMenuClickCapture` document listeners (everything else). One detail to re-check under
+  Base UI: the listener recognises "inside an open dismissable" via the ARIA roles its content carries
+  (`[role="menu" | "dialog" | "listbox"]`); confirm Base UI's primitives still set those (Radix does —
+  menus `menu`, selects `listbox`, popovers + dialogs `dialog`). The canvas selectors (`.tl-canvas` /
+  `.tlui-menu-click-capture`) are SDK and unchanged.
 - **Keep the dotcom listener at the app level** (a hook at `TlaRootProviders`), _not_ folded into the
   SDK's `MenuClickCapture` component. That consolidation is tempting — the SDK component already has
   `editor.menus` and could host the same listener — but the SDK component only mounts where there's an

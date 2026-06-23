@@ -5,8 +5,11 @@ import { tlmenus } from 'tldraw'
 // while a menu is open and handles dismiss + drag-forward (so click-to-draw keeps working). A press
 // inside an open dismissable must keep working too. Everything else is chrome.
 const CANVAS_SELECTOR = '.tl-canvas, .tlui-menu-click-capture'
-const DISMISSABLE_SELECTOR =
-	'[data-radix-popper-content-wrapper], [role="menu"], [role="dialog"], [role="listbox"]'
+// Every open dismissable's content carries one of these ARIA roles, so a press inside any of them
+// matches via `closest`: dropdowns/menus are `menu`, selects are `listbox`, and popovers + dialogs
+// are `dialog` (Radix `Popover.Content` is a non-modal dialog). The role element is always a child of
+// the popper wrapper, so there's no need to also match `[data-radix-popper-content-wrapper]`.
+const DISMISSABLE_SELECTOR = '[role="menu"], [role="dialog"], [role="listbox"]'
 
 function isDismissOnlyTarget(target: EventTarget | null) {
 	const el = target as Element | null
