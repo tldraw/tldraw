@@ -112,27 +112,29 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	})
 
 	// The name input live-saves on each keystroke, but we only want one `rename-workspace`
-	// analytics event per edit session. Capture the name on open and the latest on each render,
-	// then fire a single event when the dialog unmounts (closes) if the name actually changed.
-	const initialWorkspaceNameRef = useRef<string | null>(null)
-	const latestWorkspaceNameRef = useRef<string | null>(null)
+	// analytics event per edit session. Capture the name on open in the effect closure and
+	// compare it against the latest name when the dialog unmounts.
 	const workspaceName = workspaceMembership?.group?.name ?? null
-	if (initialWorkspaceNameRef.current === null && workspaceName !== null) {
-		initialWorkspaceNameRef.current = workspaceName
-	}
+	const latestWorkspaceNameRef = useRef(workspaceName)
 	if (workspaceName !== null) {
 		latestWorkspaceNameRef.current = workspaceName
 	}
 	const trackEventRef = useRef(trackEvent)
 	trackEventRef.current = trackEvent
 	useEffect(() => {
+		const initialWorkspaceName = workspaceName
 		return () => {
-			const initial = initialWorkspaceNameRef.current
-			const latest = latestWorkspaceNameRef.current
-			if (initial !== null && latest !== null && latest !== initial) {
+			const latestWorkspaceName = latestWorkspaceNameRef.current
+			if (
+				initialWorkspaceName !== null &&
+				latestWorkspaceName !== null &&
+				latestWorkspaceName !== initialWorkspaceName
+			) {
 				trackEventRef.current('rename-workspace', { source: 'workspace-settings' })
 			}
 		}
+		// We intentionally capture the workspace name from the dialog's initial render.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	if (!workspaceMembership) return null
