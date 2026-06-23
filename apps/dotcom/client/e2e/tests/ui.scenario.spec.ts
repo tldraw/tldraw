@@ -214,9 +214,9 @@ test.describe('UI scenarios', () => {
 		await owner.page.getByTestId('tla-main-menu').click()
 		await expect(owner.page.getByRole('menu')).toHaveCount(1)
 
-		// Press the top-right share button while the menu is open. The top-right panel's dismiss
-		// overlay sits on top, so click at the button's location rather than via its (now-covered)
-		// element. The press must only dismiss the menu — the share menu must not open.
+		// Press the top-right share button while the menu is open. The global dismiss listener treats
+		// the share button as chrome, so the press must only dismiss the menu — the share menu must
+		// not open (and the click it would spawn is suppressed too).
 		const shareButton = owner.page.getByTestId('tla-share-button')
 		const box = await shareButton.boundingBox()
 		if (!box) throw new Error('Missing share button')
@@ -225,7 +225,7 @@ test.describe('UI scenarios', () => {
 		await expect(owner.page.getByRole('menu')).toHaveCount(0)
 		await expect(owner.page.getByTestId('tla-share-tab-page-share')).toBeHidden()
 
-		// With no menu open the overlay is gone, so a second press opens the share menu normally.
+		// With no menu open the listener is inert, so a second press opens the share menu normally.
 		await shareButton.click()
 		await expect(owner.page.getByTestId('tla-share-tab-page-share')).toBeVisible()
 	})

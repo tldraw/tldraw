@@ -10,7 +10,6 @@
 }
 
 .topLeftPanel {
-	position: relative;
 	flex: 0 0 auto;
 	border-top: 4px solid var(--tl-color-background);
 	height: 44px;
@@ -205,7 +204,6 @@ button.topLeftInputNameWidthSetter {
 /* ------------------- Top right ------------------ */
 
 .topRightPanel {
-	position: relative;
 	height: 44px;
 	display: flex;
 	align-items: center;
@@ -213,16 +211,6 @@ button.topLeftInputNameWidthSetter {
 	pointer-events: all;
 	padding-top: 4px;
 	padding-right: 6px;
-}
-
-/* Dismiss-only overlay over a top panel while a menu is open (see TlaMenuClickCapture). It sits above
-   the panel's own buttons but below the open menu — which portals above the editor's whole stacking
-   context — so the menu stays clickable. The canvas keeps its own SDK capture, so click-to-draw and
-   drag are unaffected. Mirrors the sidebar overlay's stacking. */
-.topPanelMenuClickCapture {
-	position: absolute;
-	inset: 0;
-	z-index: calc(var(--tl-layer-menus) + 1);
 }
 
 @media (max-width: 767px) {

@@ -15,18 +15,6 @@
 	transition: transform 0.16s ease-in-out;
 }
 
-/* The sidebar twin of the SDK's MenuClickCapture (see TlaSidebarMenuClickCapture). While a menu is
-   open it covers the sidebar so a press only dismisses, never clicks through to a file link or
-   another trigger; the canvas is left to MenuClickCapture so click-to-drag still works. The
-   z-index is within .sidebar's own stacking context, so it's measured against the sidebar's
-   content (the switcher root reaches --tl-layer-menus) — not the global menu layer; the portaled
-   menus live in the higher app-container context and stay above it. */
-.sidebarMenuClickCapture {
-	position: absolute;
-	inset: 0;
-	z-index: calc(var(--tl-layer-menus) + 1);
-}
-
 /* The workspaces UI (groups_frontend flag) restyles the sidebar to the new
    design; the rules below must not leak to users without the flag. */
 .sidebar[data-workspaces='true'] {

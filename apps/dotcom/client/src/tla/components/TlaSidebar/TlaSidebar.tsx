@@ -15,7 +15,6 @@ import {
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
 import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
-import { TlaSidebarMenuClickCapture } from './components/TlaSidebarMenuClickCapture'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
@@ -94,7 +93,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				onDragEnter={onDragEnter}
 				onDragLeave={onDragLeave}
 			>
-				<TlaSidebarMenuClickCapture />
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
 					<TlaSidebarCreateFileButton />
