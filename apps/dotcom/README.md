@@ -6,13 +6,7 @@ You'll need a clerk publishable and secret key.
 
 In `sync-worker/.dev.vars`, set `CLERK_PUBLISHABLE_KEY` & `CLERK_SECRET_KEY`. In `client/.env.local`, set `VITE_CLERK_PUBLISHABLE_KEY`.
 
-The dev stack is orchestrated by [process-compose](https://github.com/F1bonacc1/process-compose), a single static binary. Install it once:
-
-```bash
-brew install f1bonacc1/tap/process-compose
-```
-
-Then run the app from the repo root:
+The dev stack is orchestrated by [process-compose](https://github.com/F1bonacc1/process-compose). You don't need to install it — `yarn dev-app` fetches the pinned binary on first use. Run the app from the repo root:
 
 ```bash
 yarn dev-app

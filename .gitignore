@@ -105,6 +105,9 @@ apps/docs/api
 .env.development.local
 .env*
 
+# process-compose binary fetched on demand by internal/scripts/process-compose.mjs
+.process-compose/
+
 .wrangler
 /vercel.json
 license-report-prod.html

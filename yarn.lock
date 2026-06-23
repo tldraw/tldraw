@@ -11940,6 +11940,7 @@ __metadata:
     "@microsoft/api-extractor": "npm:^7.55.2"
     "@sentry/cli": "npm:^2.41.1"
     "@swc/core": "npm:^1.15.18"
+    "@tldraw/scripts": "workspace:*"
     "@types/adm-zip": "npm:^0.5.7"
     "@types/aws-lambda": "npm:8.10.148"
     "@types/glob": "npm:^8.1.0"
@@ -11982,7 +11983,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/scripts@workspace:internal/scripts":
+"@tldraw/scripts@workspace:*, @tldraw/scripts@workspace:internal/scripts":
   version: 0.0.0-use.local
   resolution: "@tldraw/scripts@workspace:internal/scripts"
   dependencies:
@@ -12018,6 +12019,8 @@ __metadata:
     tmp: "npm:^0.2.3"
     toml: "npm:^3.0.0"
     typescript: "npm:^5.8.3"
+  bin:
+    process-compose: ./process-compose-bin.cjs
   languageName: unknown
   linkType: soft
 

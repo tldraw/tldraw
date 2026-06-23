@@ -22,25 +22,28 @@ log multiplexing for free_ — **without** any of the container taxes. The inner
 fast as today (it _is_ today's host execution).
 
 What it does **not** give you (and #9296 does): network isolation. So parallel multi-worktree stacks
-still need port offsets (#9273's job), and you don't get container reproducibility / CI-parity. You
-also add one tool to install (a single static binary).
+still need port offsets (#9273's job), and you don't get container reproducibility / CI-parity. (The
+one ergonomic wrinkle — process-compose has no npm package — is handled by fetching the binary on
+first `yarn dev-app`, so there's no separate install step.)
 
 If the team's priority is **fast daily inner loop + less hand-rolled orchestration**, this wins. If
 it's **reproducibility / onboarding / parallel stacks**, lean toward #9296 / #9273.
 
 ## How to run
 
-Install process-compose once (single static binary — [docs](https://github.com/F1bonacc1/process-compose#installation)):
+No install step — from the repo root (same secrets as before — `sync-worker/.dev.vars` +
+`client/.env.local`):
 
 ```bash
-brew install f1bonacc1/tap/process-compose      # or: the get-pc.sh script, or a release binary
+yarn dev-app          # fetches process-compose on first use, then runs apps/dotcom/process-compose.yaml
 ```
 
-Then, from the repo root (same secrets as before — `sync-worker/.dev.vars` + `client/.env.local`):
-
-```bash
-yarn dev-app          # = process-compose -f apps/dotcom/process-compose.yaml up
-```
+`process-compose` here is the `bin` of the `@tldraw/scripts` workspace
+([`internal/scripts/process-compose-bin.cjs`](../../internal/scripts/process-compose-bin.cjs)) — a tiny
+wrapper that downloads the pinned binary into a gitignored `.process-compose/` on first use, then execs
+it. process-compose has no npm package, so this vendors the "install" into a normal workspace bin (Yarn
+doesn't run a workspace's postinstall, so the fetch is lazy on first `dev-app` rather than eager). Only
+people who run the dotcom stack pay the one-time download.
 
 That opens the process-compose TUI: every service with its status, logs, and health. `yarn
 dev-app:doctor` lists process state; `yarn dev-app:clean` tears the postgres container + dev state
@@ -104,11 +107,11 @@ process-compose is a process supervisor, not a network namespace. Two stacks on 
 (env-templated commands), but you still renumber every port + rewrite every inter-service URL — i.e.
 it's still #9273. This is the one axis where Docker's isolation is structurally better.
 
-### CI — **install one binary**
+### CI — **nothing extra**
 
-The dotcom e2e workflow gains a single "Install process-compose" step; everything else is unchanged
-(the stack is host-native, exactly what CI already runs). Compare the Docker spike, which had to
-build images + install a linux `node_modules` volume in CI.
+The dotcom e2e workflow is unchanged: `yarn dev-app` fetches process-compose on first use, so there's
+no install step, and the stack is host-native — exactly what CI already runs. Compare the Docker
+spike, which had to build images + install a linux `node_modules` volume in CI.
 
 ## Status — verified
 
@@ -132,5 +135,5 @@ build images + install a linux `node_modules` volume in CI.
 | URL rewiring                | none                                 | service names + /etc/hosts | none                               |
 | Parallel stacks             | needs #9273 port offsets             | compose projects (easy)    | needs #9273                        |
 | Reproducibility / CI-parity | weak                                 | strong                     | weak                               |
-| Extra tooling               | process-compose binary               | Docker (already have)      | none                               |
+| Extra tooling               | process-compose (auto-fetched)       | Docker (already have)      | none                               |
 | Postgres                    | 1 container                          | container                  | 1 container                        |
