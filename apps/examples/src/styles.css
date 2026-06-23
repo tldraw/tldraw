@@ -531,6 +531,11 @@ li.examples__sidebar__item {
 	}
 }
 
+.hoverable__small::after {
+	inset: 4px;
+	border-radius: 4px;
+}
+
 /* --------------------- Dialog --------------------- */
 
 .example__dialog__overlay {
@@ -657,6 +662,7 @@ li.examples__sidebar__item {
 	justify-content: space-between;
 	min-height: 12px;
 	padding: 0 0px 0px 0px;
+	flex-shrink: 0;
 	gap: 0;
 }
 

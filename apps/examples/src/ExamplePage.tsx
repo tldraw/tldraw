@@ -103,7 +103,7 @@ export function ExamplePage({
 							<span>Build with the tldraw SDK</span>
 						</a>
 						<a
-							className="example__sidebar__footer-link hoverable"
+							className="example__sidebar__footer-link hoverable hoverable__small"
 							target="_blank"
 							rel="noopener noreferrer"
 							href="https://github.com/tldraw/tldraw/issues/new?assignees=&labels=Example%20Request&projects=&template=example_request.yml&title=%5BExample Request%5D%3A+"
@@ -112,7 +112,7 @@ export function ExamplePage({
 							<span>Request an example</span>
 						</a>
 						<a
-							className="example__sidebar__footer-link hoverable"
+							className="example__sidebar__footer-link hoverable hoverable__small"
 							target="_blank"
 							rel="noopener noreferrer"
 							href="https://tldraw.dev/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
@@ -170,7 +170,7 @@ function ExampleSidebarListItem({
 				<div className="example__sidebar__item__buttons">
 					<button
 						type="button"
-						className="example__sidebar__item__button hoverable"
+						className="example__sidebar__item__button hoverable hoverable__small"
 						onClick={() => setExampleDialog(example)}
 						aria-label="Info"
 					>
@@ -178,7 +178,7 @@ function ExampleSidebarListItem({
 					</button>
 					<Link
 						to={`${example.path}/full`}
-						className="example__sidebar__item__button hoverable"
+						className="example__sidebar__item__button hoverable hoverable__small"
 						aria-label="Standalone"
 						title="View standalone example"
 					>
