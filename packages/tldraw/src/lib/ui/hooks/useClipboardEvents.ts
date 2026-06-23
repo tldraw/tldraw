@@ -138,10 +138,10 @@ const isSvgText = (text: string) => {
  *
  * @internal
  */
-function areShortcutsDisabled(editor: Editor) {
+function areShortcutsDisabled(editor: Editor, { ignoreFocusedElement = false } = {}) {
 	return (
 		editor.menus.hasAnyOpenMenus() ||
-		activeElementShouldCaptureKeys(false, editor.getContainerDocument())
+		(!ignoreFocusedElement && activeElementShouldCaptureKeys(false, editor.getContainerDocument()))
 	)
 }
 
@@ -927,8 +927,15 @@ export function useNativeClipboardEvents() {
 
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
-			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) return
+			// input instead; e.g. when pasting text into a text shape's content.
+			// While cropping, the crop zoom slider holds keyboard focus; don't let
+			// that suppress paste, so pasting an image can replace the cropped image.
+			const isCroppingImage = editor.getCroppingShapeId() !== null
+			if (
+				editor.getEditingShapeId() !== null ||
+				areShortcutsDisabled(editor, { ignoreFocusedElement: isCroppingImage })
+			)
+				return
 
 			// Cmd+Shift+V / Ctrl+Shift+V = paste as plain text (no formatting).
 			// If there's no plain text on the clipboard (e.g., a copied PNG), fall
