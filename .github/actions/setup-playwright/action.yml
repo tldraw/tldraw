@@ -45,4 +45,9 @@ runs:
       shell: bash
       env:
         BROWSERS: ${{ inputs.browsers }}
-      run: npx playwright install $BROWSERS
+        # DEBUG=pw:install: verbose install trace (the install has been hanging ~20m after the
+        # browser download hits 100% — this shows whether it's extraction or a follow-up fetch).
+        DEBUG: 'pw:install'
+      # `timeout --verbose` fails the step in 5m instead of letting it ride to the 20m job timeout,
+      # and prints which command it killed.
+      run: timeout --verbose 300 npx playwright install $BROWSERS
