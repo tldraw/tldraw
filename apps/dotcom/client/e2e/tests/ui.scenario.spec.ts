@@ -204,6 +204,57 @@ test.describe('UI scenarios', () => {
 		await owner.editor.expectShapesCount(0)
 	})
 
+	test('a sidebar file press with a select open dismisses without navigating', async ({
+		owner,
+		scenario,
+	}) => {
+		const fileA = scenario.name('select-nav-a')
+		const fileB = scenario.name('select-nav-b')
+		await scenario.createPersonalFile(owner, fileA)
+		await scenario.createPersonalFile(owner, fileB)
+		await owner.sidebar.expectFileActive(fileB)
+
+		// Open the modal export-format select on file B.
+		await owner.shareMenu.open()
+		await owner.shareMenu.exportTabButton.click()
+		await expect(owner.shareMenu.exportTabPage).toBeVisible()
+		await owner.page.locator('#tla-export-format-select').click()
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeVisible()
+
+		// Press file A in the sidebar — outside the select. Even under a modal layer the press must
+		// only dismiss: no click-through to the file (we stay on file B).
+		const link = owner.sidebar.getFileByName(fileA)
+		const box = await link.boundingBox()
+		if (!box) throw new Error('missing sidebar file link')
+		await owner.page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeHidden()
+		await owner.sidebar.expectFileActive(fileB)
+	})
+
+	test('a top-bar menu press with a select open dismisses without opening it', async ({
+		owner,
+		scenario,
+	}) => {
+		await scenario.createPersonalFile(owner, scenario.name('select-topbar'))
+
+		await owner.shareMenu.open()
+		await owner.shareMenu.exportTabButton.click()
+		await expect(owner.shareMenu.exportTabPage).toBeVisible()
+		await owner.page.locator('#tla-export-format-select').click()
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeVisible()
+
+		// Press the top-left main-menu trigger — outside the select. Only dismiss: the menu must not
+		// open (no click-through to the trigger).
+		const trigger = owner.page.getByTestId('tla-main-menu')
+		const box = await trigger.boundingBox()
+		if (!box) throw new Error('missing main menu trigger')
+		await owner.page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeHidden()
+		await expect(owner.page.getByRole('menu')).toHaveCount(0)
+	})
+
 	test('pressing a top-bar button with a menu open only dismisses it', async ({
 		owner,
 		scenario,

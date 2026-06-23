@@ -128,6 +128,15 @@ hits `MenuClickCapture` — `pointer-events: all`, which overrides the select's 
 menu it sits inside) rather than just the topmost select. That's correct: the canvas is outside
 everything, and it still doesn't draw (verified by e2e).
 
+Pressing other **chrome** (sidebar links, the editor top bar) while a select is open is dismiss-only
+too — the listener swallows it (verified by e2e: a sidebar-file press and a top-bar-menu press under
+an open select each only dismiss, with no navigation and no second menu). A tempting optimisation —
+have the listener _bail_ whenever a modal is open (`body { pointer-events: none }`) and let the modal
+handle its own outside-press — is **wrong here**: explicit `pointer-events: all` chrome (e.g. sidebar
+links) escapes the modal's body-level `none`, so bailing re-opens click-through (a sidebar press would
+navigate). This was confirmed by adding the bail and watching the sidebar test fail, so the listener
+must stay active even under a modal.
+
 For **dialogs** (modal today): the overlay/positioner is the press target, so a background press
 dismisses the dialog with **no click-through**; Escape / background press dismisses **only the
 topmost** dialog when stacked; `preventBackgroundClose` dialogs ignore the background press but still
