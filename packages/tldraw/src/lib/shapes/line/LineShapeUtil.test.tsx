@@ -486,6 +486,51 @@ describe('Line points: id-mapped object with a decoupled index', () => {
 		expect(Object.keys(points).sort()).toEqual(['a', 'b'])
 		for (const key in points) expect(points[key].id).toBe(key)
 	})
+
+	it('never writes invalid points to the store while animating to a different point count (#9397)', () => {
+		// getInterpolatedProps' converge branch produces duplicate indices when the
+		// point count changes; the self-heal repairs each frame on write, so the store
+		// always holds valid id-mapped points mid-animation.
+		const id = createShapeId('line-animate')
+		editor.createShapes([
+			{
+				id,
+				type: 'line',
+				x: 0,
+				y: 0,
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 0 },
+					},
+				},
+			},
+		])
+
+		editor.animateShape(
+			{
+				id,
+				type: 'line',
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 50, y: 0 },
+						a3: { id: 'a3', index: 'a3' as IndexKey, x: 100, y: 0 },
+					},
+				},
+			},
+			{ animation: { duration: 200 } }
+		)
+
+		for (let i = 0; i < 12; i++) {
+			editor.emit('tick', 16)
+			const points = editor.getShape<TLLineShape>(id)!.props.points
+			const indices = Object.values(points).map((p) => p.index)
+			expect(new Set(indices).size).toBe(indices.length) // unique indices
+			for (const key in points) expect(points[key].id).toBe(key) // id-mapped
+			expect(() => editor.getShapeHandles(id)).not.toThrow()
+		}
+	})
 })
 
 function getHandlesFor(shapeId: TLLineShape['id']) {
