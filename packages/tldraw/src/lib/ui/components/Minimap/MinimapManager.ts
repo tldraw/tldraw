@@ -83,16 +83,21 @@ export class MinimapManager {
 		return new Box(x, y, width, height)
 	}
 
-	private readonly canvasBoundingClientRect = atom('canvasBoundingClientRect', new Box())
+	private readonly canvasBoundingClientRect = atom('canvasBoundingClientRect', new Box(), {
+		isEqual: (a, b) => a.equals(b),
+	})
 
 	getCanvasScreenBounds() {
 		return this.canvasBoundingClientRect.get()
 	}
 
+	updateCanvasScreenBounds() {
+		this.canvasBoundingClientRect.set(this._getCanvasBoundingRect())
+	}
+
 	private _listenForCanvasResize() {
 		const observer = new ResizeObserver(() => {
-			const rect = this._getCanvasBoundingRect()
-			this.canvasBoundingClientRect.set(rect)
+			this.updateCanvasScreenBounds()
 		})
 		observer.observe(this.elem)
 		observer.observe(this.container)

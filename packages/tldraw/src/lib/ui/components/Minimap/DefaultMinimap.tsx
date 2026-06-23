@@ -76,6 +76,8 @@ export function DefaultMinimap() {
 			if (!minimap) return
 			if (e.button !== 0) return
 
+			minimap.updateCanvasScreenBounds()
+
 			const elm = e.currentTarget
 			setPointerCapture(elm, e)
 			if (!editor.getCurrentPageShapeIds().size) return
