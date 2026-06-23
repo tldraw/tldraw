@@ -55,6 +55,7 @@ import {
 import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
+import { TlaMenuClickCapture } from '../TlaMenuClickCapture'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
@@ -75,6 +76,10 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 
 	return (
 		<div ref={ref} className={classNames(styles.topLeftPanel)}>
+			<TlaMenuClickCapture
+				className={styles.topPanelMenuClickCapture}
+				testId="tla-top-left-menu-click-capture"
+			/>
 			<div className={classNames(styles.topLeftPanelButtons)}>
 				{isAnonUser ? <TlaEditorTopLeftPanelAnonymous /> : <TlaEditorTopLeftPanelSignedIn />}
 			</div>

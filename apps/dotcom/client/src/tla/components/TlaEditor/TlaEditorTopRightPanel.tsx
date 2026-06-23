@@ -25,6 +25,7 @@ import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TlaMenuClickCapture } from '../TlaMenuClickCapture'
 import styles from './top.module.css'
 
 const ctaMessages = defineMessages({
@@ -48,6 +49,10 @@ export function TlaEditorTopRightPanel({
 	if (isAnonUser) {
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
+				<TlaMenuClickCapture
+					className={styles.topPanelMenuClickCapture}
+					testId="tla-top-right-menu-click-capture"
+				/>
 				<PeopleMenu />
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<TlaCtaButton
@@ -69,6 +74,10 @@ export function TlaEditorTopRightPanel({
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
+			<TlaMenuClickCapture
+				className={styles.topPanelMenuClickCapture}
+				testId="tla-top-right-menu-click-capture"
+			/>
 			<PeopleMenu />
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
