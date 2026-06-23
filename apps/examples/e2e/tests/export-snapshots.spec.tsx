@@ -75,6 +75,51 @@ const snapshots: Snapshots = {
 			'rich text': <TL.geo dash="solid" richText={richText} align="start" w={300} h={300} />,
 		},
 	},
+	// A dedicated group (its own snapshot image) for RTL export alignment (#7720): `start` must
+	// flush lines to the right and `end` to the left for RTL — matching the canvas, not the
+	// reversed physical mapping that used to ship. The LTR pair is the mirror-image control.
+	'Text alignment': {
+		rtl: {
+			'start (flush right)': (
+				<TL.text
+					richText={toRichText('مرحباً بكم في تطبيق تلدرو\nسطر قصير')}
+					font="draw"
+					size="l"
+					textAlign="start"
+					color="black"
+				/>
+			),
+			'end (flush left)': (
+				<TL.text
+					richText={toRichText('مرحباً بكم في تطبيق تلدرو\nسطر قصير')}
+					font="draw"
+					size="l"
+					textAlign="end"
+					color="black"
+				/>
+			),
+		},
+		ltr: {
+			'start (flush left)': (
+				<TL.text
+					richText={toRichText('The quick brown fox\nshort')}
+					font="draw"
+					size="l"
+					textAlign="start"
+					color="black"
+				/>
+			),
+			'end (flush right)': (
+				<TL.text
+					richText={toRichText('The quick brown fox\nshort')}
+					font="draw"
+					size="l"
+					textAlign="end"
+					color="black"
+				/>
+			),
+		},
+	},
 	Fills: Object.fromEntries(
 		DefaultFillStyle.values.map((fill) => [
 			`fill=${fill}`,
