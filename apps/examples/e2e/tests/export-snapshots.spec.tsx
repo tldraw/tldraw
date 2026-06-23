@@ -967,13 +967,18 @@ interface SnapshotWithoutJsx {
 test.describe('Export snapshots', () => {
 	const snapshotsToTest = Object.entries(snapshots)
 
-	test.beforeEach(async ({ page, context }) => {
+	test.beforeEach(async ({ page, context, api }) => {
 		const url = page.url()
 		if (!url.includes('end-to-end')) {
 			await setup({ page, context } as any)
 		} else {
 			await hardResetEditor(page)
 		}
+		// These snapshots lay shapes out by their measured bounds, and text is measured from
+		// the loaded font - so load the fonts before anything is measured. Otherwise a shape
+		// can be measured with fallback-font metrics, which shifts the layout and the export's
+		// size and makes the screenshot diff flaky.
+		await api.preloadFonts()
 	})
 
 	for (const [name, snapshotWithJsx] of snapshotsToTest) {
@@ -988,7 +993,7 @@ test.describe('Export snapshots', () => {
 				)
 
 				await page.evaluate(
-					async ({
+					({
 						colorScheme,
 						name,
 						snapshot,
@@ -1064,13 +1069,6 @@ test.describe('Export snapshots', () => {
 
 							y = bottom + 40
 						}
-
-						// Wait for every font used on the page to finish loading before exporting.
-						// Text geometry - and therefore the export's bounding box - is measured from
-						// the loaded font; while a font is still loading the shapes fall back to
-						// system-font metrics, which gives the export a slightly different size and
-						// makes the screenshot diff flaky.
-						await editor.fonts.loadRequiredFontsForCurrentPage()
 
 						tldrawApi.markAllArrowBindings()
 						editor.selectAll()

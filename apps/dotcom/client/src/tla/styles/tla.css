@@ -230,7 +230,7 @@
 
 /** Buttons/A tags */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	:is(nav, .tlui-menu, .tlui-popover__content, .tlui-dialog__overlay)
+	:is(nav, .tlui-menu, .tlui-popover__content, .tlui-dialog__content)
 	button:not(.tla-button-text):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) button:not(.tlui-button):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-layout__top a:focus-visible {
