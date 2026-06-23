@@ -35,9 +35,10 @@ runs:
           ~/.cache/ms-playwright
         key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ env.PLAYWRIGHT_BROWSERS_KEY }}
 
-    # Cache miss only. No `--with-deps`: that runs apt (which hangs on the runner's dpkg lock), and
-    # the runner images already ship Chromium's system libraries — cache-hit runs skip this step
-    # entirely and still launch the browser.
+    # Cache miss only. No `--with-deps`: GitHub's runner images already ship Chromium's system
+    # libraries (both cache-hit runs and a cold deps-free install launch the browser and pass), so
+    # the apt step is redundant and only risks stalling on the runner's dpkg lock. If a
+    # non-Chromium browser (webkit/firefox) is ever added via `browsers`, install its deps then.
     - name: Install Playwright browsers
       if: steps.playwright-cache.outputs.cache-hit != 'true'
       shell: bash
