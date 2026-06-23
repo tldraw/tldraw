@@ -1,19 +1,12 @@
 name: 'Setup Playwright'
 description: 'Install Playwright browsers with version-keyed caching shared across workflows.'
 
-inputs:
-  browsers:
-    description: 'Space-separated browsers to install (passed to `playwright install`).'
-    required: false
-    default: 'chromium chrome'
-
 runs:
   using: 'composite'
   steps:
-    # Resolve the installed Playwright version so the cache key invalidates on upgrade. Node
-    # resolves it from the hoisted root node_modules, so this works from the repo root regardless
-    # of which workspace declares @playwright/test — no per-workspace cwd needed, and nothing is
-    # written to the tree.
+    # Resolve the installed Playwright version so the cache key invalidates on upgrade.
+    # @playwright/test is a root devDependency, so Node resolves it from the repo root — no
+    # per-workspace cwd, and nothing is written to the tree.
     - name: Get installed Playwright version
       id: playwright-version
       shell: bash
@@ -36,4 +29,4 @@ runs:
     - name: Install Playwright browsers
       if: steps.playwright-cache.outputs.cache-hit != 'true'
       shell: bash
-      run: npx playwright install --with-deps ${{ inputs.browsers }}
+      run: npx playwright install --with-deps chromium chrome

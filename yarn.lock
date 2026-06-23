@@ -11938,6 +11938,7 @@ __metadata:
   dependencies:
     "@lingual/i18n-check": "npm:^0.5.5"
     "@microsoft/api-extractor": "npm:^7.55.2"
+    "@playwright/test": "npm:^1.58.2"
     "@sentry/cli": "npm:^2.41.1"
     "@swc/core": "npm:^1.15.18"
     "@types/adm-zip": "npm:^0.5.7"
@@ -18606,7 +18607,6 @@ __metadata:
     "@clerk/testing": "npm:^1.4.15"
     "@formatjs/cli": "npm:^6.5.1"
     "@formatjs/unplugin": "npm:^1.1.0"
-    "@playwright/test": "npm:^1.58.2"
     "@rocicorp/zero": "npm:1.6.1"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
@@ -19936,7 +19936,6 @@ __metadata:
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
     "@dimforge/rapier2d-compat": "npm:^0.19.3"
-    "@playwright/test": "npm:^1.58.2"
     "@tiptap/core": "npm:^3.12.1"
     "@tiptap/extension-font-family": "npm:^3.12.1"
     "@tiptap/extension-text-style": "npm:^3.12.1"
