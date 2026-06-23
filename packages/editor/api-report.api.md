@@ -704,9 +704,6 @@ export const DefaultErrorFallback: TLErrorFallbackComponent;
 export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultSelectionBackground({ bounds, rotation }: TLSelectionBackgroundProps): JSX.Element;
-
-// @public (undocumented)
 export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
@@ -1460,6 +1457,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): boolean;
+    // @internal
+    isReplayingHistory(): boolean;
     isShapeFrameLike(shape: TLShape | TLShapeId): boolean;
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
@@ -2159,6 +2158,8 @@ export class HistoryManager<R extends UnknownRecord> {
     // @internal (undocumented)
     _isInBatch: boolean;
     // @internal (undocumented)
+    isReplaying(): boolean;
+    // @internal (undocumented)
     _mark(id: string): void;
     // (undocumented)
     redo(): this;
@@ -2198,6 +2199,8 @@ export class InputsManager {
     get currentPagePoint(): Vec;
     // @deprecated (undocumented)
     get currentScreenPoint(): Vec;
+    // @internal (undocumented)
+    dispose(): void;
     getAccelKey(): boolean;
     getAltKey(): boolean;
     getCtrlKey(): boolean;
@@ -3874,8 +3877,6 @@ export interface TLEditorComponents {
     // (undocumented)
     OnTheCanvas?: ComponentType | null;
     // (undocumented)
-    SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null;
-    // (undocumented)
     ShapeErrorFallback?: TLShapeErrorFallbackComponent;
     // (undocumented)
     ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null;
@@ -3956,6 +3957,7 @@ export const tlenv: {
     isFirefox: boolean;
     isIos: boolean;
     isSafari: boolean;
+    isTouchDevice: boolean;
     isWebview: boolean;
 };
 
@@ -4464,6 +4466,7 @@ export type TLPointerEvent = (info: TLPointerEventInfo) => void;
 
 // @public (undocumented)
 export type TLPointerEventInfo = TLBaseEventInfo & {
+    isPenDirect?: boolean;
     button: number;
     isPen: boolean;
     name: TLPointerEventName;
@@ -4562,14 +4565,6 @@ export interface TLRotationSnapshot {
         initialPagePoint: Vec;
         shape: TLShape;
     }[];
-}
-
-// @public (undocumented)
-export interface TLSelectionBackgroundProps {
-    // (undocumented)
-    bounds: Box;
-    // (undocumented)
-    rotation: number;
 }
 
 // @public (undocumented)
@@ -5133,9 +5128,6 @@ export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TL
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions): TLStore;
-
-// @public (undocumented)
-export function useTransform(ref: React.RefObject<HTMLElement | null | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
 // @public
 export function useUniqueSafeId(suffix?: string): SafeId;

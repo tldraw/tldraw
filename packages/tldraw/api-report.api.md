@@ -534,6 +534,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     getDefaultProps(): TLBookmarkShape['props'];
     // (undocumented)
+    getGeometry(shape: TLBookmarkShape): Rectangle2d;
+    // (undocumented)
     getIndicatorPath(shape: TLBookmarkShape): Path2D;
     // (undocumented)
     getInterpolatedProps(startShape: TLBookmarkShape, endShape: TLBookmarkShape, t: number): TLBookmarkShapeProps;
@@ -4223,7 +4225,7 @@ export function TldrawUiDialogTitle({ className, children, style }: TLUiDialogTi
 export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, children }: TLUiDropdownMenuContentProps): JSX.Element;
+export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, collisionPadding, children }: TLUiDropdownMenuContentProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownMenuGroupProps): JSX.Element;
@@ -4316,7 +4318,7 @@ export interface TldrawUiOrientationProviderProps {
 export function TldrawUiPopover({ id, children, onOpenChange, open, className }: TLUiPopoverProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, disableEscapeKeyDown, autoFocusFirstButton }: TLUiPopoverContentProps): JSX.Element;
+export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, collisionPadding, disableEscapeKeyDown, autoFocusFirstButton }: TLUiPopoverContentProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX.Element;
@@ -4861,6 +4863,8 @@ export interface TLUiDropdownMenuContentProps {
     // (undocumented)
     className?: string;
     // (undocumented)
+    collisionPadding?: number;
+    // (undocumented)
     id?: string;
     // (undocumented)
     side?: 'bottom' | 'left' | 'right' | 'top';
@@ -5246,6 +5250,8 @@ export interface TLUiIconProps extends React.HTMLAttributes<HTMLDivElement> {
     label: string;
     // (undocumented)
     small?: boolean;
+    // (undocumented)
+    tiny?: boolean;
 }
 
 // @public (undocumented)
@@ -5283,6 +5289,7 @@ export interface TLUiInputProps {
     iconLeft?: Exclude<string, TLUiIconType> | TLUiIconType;
     // (undocumented)
     label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
+    maxLength?: number;
     // (undocumented)
     onBlur?(value: string): void;
     // (undocumented)
@@ -5478,6 +5485,7 @@ export interface TLUiPopoverContentProps {
     autoFocusFirstButton?: boolean;
     // (undocumented)
     children: React_3.ReactNode;
+    collisionPadding?: number;
     // (undocumented)
     disableEscapeKeyDown?: boolean;
     // (undocumented)

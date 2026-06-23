@@ -1,3 +1,4 @@
+import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { useEffect, useRef, useState } from 'react'
 import {
 	TldrawUiButton,
@@ -12,12 +13,8 @@ import { defineMessages, F, useMsg } from '../../utils/i18n'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
-	title: { defaultMessage: 'Create workspace' },
-	name: { defaultMessage: 'Name' },
-	defaultName: { defaultMessage: 'My workspace' },
+	defaultName: { defaultMessage: 'New workspace' },
 	placeholder: { defaultMessage: 'Workspace name' },
-	cancel: { defaultMessage: 'Cancel' },
-	create: { defaultMessage: 'Create workspace' },
 })
 
 interface CreateWorkspaceDialogProps {
@@ -54,15 +51,17 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
-					<F {...messages.title} />
+					<F defaultMessage="Create a workspace" />
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				<div style={{ marginBottom: 16 }}>
-					<label style={{ display: 'block', marginBottom: 8 }}>
-						<F {...messages.name} />
-					</label>
+			<TldrawUiDialogBody style={{ maxWidth: 350, paddingTop: 0 }}>
+				<div>
+					<div className={styles.dialogFieldLabelRow}>
+						<label style={{ display: 'block' }}>
+							<F defaultMessage="Name" />
+						</label>
+					</div>
 					<TldrawUiInput
 						ref={inputRef}
 						className={styles.dialogInput}
@@ -71,16 +70,17 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 						onComplete={handleCreate}
 						onCancel={onClose}
 						placeholder={placeholderMsg}
+						maxLength={MAX_WORKSPACE_NAME_LENGTH}
 						autoFocus
 					/>
 				</div>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={onClose}>
-					<F {...messages.cancel} />
+					<F defaultMessage="Cancel" />
 				</TldrawUiButton>
 				<TldrawUiButton type="primary" onClick={handleCreate}>
-					<F {...messages.create} />
+					<F defaultMessage="Create workspace" />
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
 		</>

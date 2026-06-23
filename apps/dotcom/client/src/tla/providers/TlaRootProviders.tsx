@@ -30,6 +30,7 @@ import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
+import { TlaButton } from '../components/TlaButton/TlaButton'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
@@ -158,10 +159,6 @@ export function Component() {
 				</IntlWrapper>
 			</RefreshErrorBoundary>
 			<WatermarkOverride />
-			{/* Always-mounted target for Clerk's CAPTCHA widget, so any Clerk call
-			    anywhere in the app can attach its challenge. Stays empty (and so
-			    invisible) unless Clerk injects a visible challenge. */}
-			<div id="clerk-captcha" />
 		</div>
 	)
 }
@@ -286,9 +283,9 @@ function SignedInProvider({
 						para1: intl.formatMessage(appMessages.clerkUnavailablePara),
 					}}
 					cta={
-						<button onClick={() => window.location.reload()}>
+						<TlaButton variant="primary" onClick={() => window.location.reload()}>
 							{intl.formatMessage(appMessages.refresh)}
-						</button>
+						</TlaButton>
 					}
 				/>
 			)

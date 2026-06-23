@@ -64,5 +64,8 @@
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",
 		"react-dom": "^18.2.0 || ^19.2.1"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

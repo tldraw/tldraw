@@ -6,7 +6,7 @@
 	justify-content: center;
 	height: 100%;
 	text-align: center;
-	gap: 20px;
+	gap: var(--tl-space-6);
 }
 
 .content {

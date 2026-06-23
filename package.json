@@ -82,11 +82,12 @@
 		"i18n-check": "i18n-check",
 		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
 		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts",
+		"i18n-fix-strings": "tsx internal/scripts/i18n-fix-strings.ts",
 		"add-framer-rewrites": "tsx apps/docs/scripts/add-framer-rewrites.ts"
 	},
 	"engines": {
 		"npm": ">=7.0.0",
-		"node": "^20.0.0"
+		"node": ">=22.12.0"
 	},
 	"packageManager": "yarn@4.12.0",
 	"lint-staged": {
@@ -124,7 +125,7 @@
 		"open-cli": "^8.0.0",
 		"oxfmt": "^0.41.0",
 		"oxlint": "^1.66.0",
-		"oxlint-tsgolint": "^0.18.0",
+		"oxlint-tsgolint": "^0.23.0",
 		"rimraf": "^4.4.1",
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3",

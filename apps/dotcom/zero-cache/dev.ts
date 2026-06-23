@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
-import { ChildProcess, spawn } from 'child_process'
+import { spawn, spawnSync } from 'child_process'
 import dotenv from 'dotenv'
 import pg from 'pg'
+import { killProcessTree } from '../../../internal/scripts/lib/kill-tree'
 import { DOTCOM_DEV_PORTS, DOTCOM_DEV_READINESS_TIMEOUT_MS, getDotcomDevEnv } from './dev-env'
 
 const env = getDotcomDevEnv()
@@ -9,13 +10,17 @@ const dotEnv = dotenv.config({ path: env.dockerEnvFile }).parsed ?? {}
 const childEnv = {
 	...dotEnv,
 	...process.env,
-	// Branch-scoped dev values intentionally win over shell vars for deterministic local state.
+	// Fixed dev values intentionally win over shell vars for deterministic local state.
 	...env.zeroEnv,
 }
 
-const children: ChildProcess[] = []
 let migrationsReady = false
 let shuttingDown = false
+
+// Host ports the Docker stack publishes (see docker/docker-compose.yml). Our own stack is reused
+// in place across runs, but a stack from an older per-branch setup will hold these ports and block
+// `docker compose up`, so we reconcile those away on startup.
+const DOCKER_PUBLISHED_PORTS = [DOTCOM_DEV_PORTS.pgbouncer, DOTCOM_DEV_PORTS.postgres]
 
 function delay(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
@@ -25,17 +30,49 @@ function statusFromExit(code: number | null, signal: NodeJS.Signals | null) {
 	return signal ? `signal ${signal}` : `code ${code ?? 1}`
 }
 
+function killChildren() {
+	// Reap the whole descendant tree, not just our direct children, and do it here on the shutdown
+	// path while the tree is still alive. The zero-cache dev server spawns worker subprocesses
+	// (change-streamer, replicator, syncer, ...) in their own process groups, so a terminal/group
+	// signal misses them and they orphan, holding port 4848.
+	killProcessTree(process.pid)
+}
+
+function composeDown() {
+	// Bring the branch-scoped Docker stack down so its containers and ports (postgres, pgbouncer)
+	// are released when the orchestrator stops. SIGINT to the attached `compose up` alone can leave
+	// containers running if we were not stopped cleanly.
+	//
+	// We `dev-app` under lazyrepo, where Ctrl+C delivers SIGINT to the whole process group at once,
+	// so a blocking teardown here would race the group being torn down and never finish. Spawn the
+	// teardown detached (its own session, immune to that group signal) and unref it so it runs to
+	// completion after we exit. The postgres volume is kept (no --volumes) so local data survives a
+	// restart; `yarn dev-app:clean` removes it.
+	const child = spawn(
+		'docker',
+		[
+			'compose',
+			'--env-file',
+			env.dockerEnvFile,
+			'-f',
+			env.dockerComposeFile,
+			'--project-name',
+			env.composeProjectName,
+			'down',
+			'--remove-orphans',
+		],
+		{ cwd: env.zeroCacheDir, detached: true, stdio: 'ignore' }
+	)
+	child.unref()
+}
+
 function shutdown(code: number) {
 	if (shuttingDown) return
 	shuttingDown = true
 
-	for (const child of [...children].reverse()) {
-		if (!child.killed) {
-			child.kill('SIGINT')
-		}
-	}
-
-	setTimeout(() => process.exit(code), 500).unref()
+	killChildren()
+	composeDown()
+	process.exit(code)
 }
 
 function spawnManaged(
@@ -50,7 +87,6 @@ function spawnManaged(
 		env: childEnv,
 		stdio: 'inherit',
 	})
-	children.push(child)
 
 	child.once('error', (error) => {
 		if (shuttingDown) return
@@ -90,6 +126,60 @@ async function runOnce(name: string, command: string, args: string[]) {
 			}
 		})
 	})
+}
+
+/**
+ * `docker compose up` binds fixed host ports (postgres, pgbouncer). Our own stack
+ * (`tldraw_dotcom_dev`) is fine — compose just reattaches to it — but a stack from the old
+ * per-branch setup (`tldraw_dotcom_<branch>`) or another Compose project will hold those ports and
+ * make `up` fail with "port is already allocated". Previously that surfaced only as the client
+ * polling "Waiting for migrations..." for minutes while the orchestrator had already exited.
+ *
+ * So before bringing our stack up we self-heal: any *other* dotcom dev stack holding our ports is
+ * stopped automatically (containers only — its volume is kept). A non-dotcom process holding a port
+ * is something we can't safely stop, so we fail fast with an actionable message instead.
+ */
+function reconcileDockerStacks() {
+	const result = spawnSync(
+		'docker',
+		['ps', '--format', '{{.Names}}\t{{.Label "com.docker.compose.project"}}\t{{.Ports}}'],
+		{ encoding: 'utf8' }
+	)
+	// Docker not running/available yet: let `docker compose up` surface its own error.
+	if (result.status !== 0) return
+
+	const dotcomProjects = new Set<string>()
+	const foreignHolders: { name: string; ports: number[] }[] = []
+	for (const line of (result.stdout ?? '').split('\n')) {
+		const [name, project, ports] = line.split('\t')
+		if (!name || !ports) continue
+		// Our own stack is fine: `docker compose up` just reattaches to the existing containers.
+		if (project === env.composeProjectName) continue
+		const held = DOCKER_PUBLISHED_PORTS.filter((port) => ports.includes(`:${port}->`))
+		if (held.length === 0) continue
+		if (project?.startsWith('tldraw_dotcom_')) {
+			dotcomProjects.add(project)
+		} else {
+			foreignHolders.push({ name, ports: held })
+		}
+	}
+
+	for (const project of dotcomProjects) {
+		console.log(`Stopping old dev stack "${project}" (it is holding required ports)...`)
+		spawnSync('docker', ['compose', '--project-name', project, 'down', '--remove-orphans'], {
+			cwd: env.zeroCacheDir,
+			stdio: 'inherit',
+		})
+	}
+
+	if (foreignHolders.length > 0) {
+		console.error('\nCannot start the dotcom dev stack: required host ports are in use.')
+		for (const { name, ports } of foreignHolders) {
+			console.error(`  • ${name} is holding port(s) ${ports.join(', ')}`)
+		}
+		console.error('\nStop whatever owns those ports and try again.\n')
+		process.exit(1)
+	}
 }
 
 async function waitForPostgres() {
@@ -145,13 +235,24 @@ async function waitForHttpOk(url: string, label: string) {
 }
 
 async function main() {
-	console.log(`Dotcom Zero dev branch key: ${env.branchKey}`)
 	console.log(`Docker compose project: ${env.composeProjectName}`)
 	console.log(`Postgres volume: ${env.postgresVolumeName}`)
 	console.log(`Zero replica: ${env.zeroReplicaFile}`)
 
 	process.on('SIGINT', () => shutdown(0))
 	process.on('SIGTERM', () => shutdown(0))
+	process.on('SIGHUP', () => shutdown(0))
+	// Backstop only for exits that bypassed shutdown() (e.g. the port-preflight `process.exit(1)`,
+	// which runs before any children spawn). `killProcessTree` uses `spawnSync`, which is synchronous
+	// and so runs to completion in an 'exit' handler. We must NOT reap once shutdown() has run: it
+	// spawns the detached `docker compose down` teardown, which is a child of this process until we
+	// exit, so reaping the tree here would SIGKILL it mid-teardown and leak the Docker ports. The
+	// live-tree reap for the shutdown() path already happened in killChildren(), before composeDown().
+	process.on('exit', () => {
+		if (!shuttingDown) killProcessTree(process.pid)
+	})
+
+	reconcileDockerStacks()
 
 	spawnManaged(
 		'Docker compose',

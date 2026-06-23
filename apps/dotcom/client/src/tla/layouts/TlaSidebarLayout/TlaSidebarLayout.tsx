@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback, useLayoutEffect, useRef } from 'react'
-import { clamp, tltime, useMenuIsOpen, useQuickReactor } from 'tldraw'
+import { clamp, tltime, useGlobalMenuIsOpen, useQuickReactor } from 'tldraw'
 import { TlaSidebarToggle } from '../../components/TlaSidebar/components/TlaSidebarToggle'
 import { TlaSidebarToggleMobile } from '../../components/TlaSidebar/components/TlaSidebarToggleMobile'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
@@ -28,7 +28,8 @@ export function TlaSidebarLayout({
 }) {
 	const isSidebarOpen = useIsSidebarOpen()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
-	const [isWorkspaceSwitcherOpen] = useMenuIsOpen('sidebar-workspace-switcher')
+	// Must match the stable id used by TlaSidebarWorkspaceSwitcher (see note there).
+	const [isWorkspaceSwitcherOpen] = useGlobalMenuIsOpen('sidebar-workspace-switcher')
 
 	usePreventAccidentalDrops()
 

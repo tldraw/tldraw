@@ -212,7 +212,13 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 				this._ws === ws,
 				"sockets must only be orphaned when they are CLOSING or CLOSED, so they can't receive messages"
 			)
-			const parsed = JSON.parse(ev.data.toString())
+			let parsed: TLSocketServerSentEvent<TLRecord>
+			try {
+				parsed = JSON.parse(ev.data.toString())
+			} catch {
+				warnOnce('Received malformed WebSocket message. Dropping message.')
+				return
+			}
 			this.messageListeners.forEach((cb) => cb(parsed))
 		}
 

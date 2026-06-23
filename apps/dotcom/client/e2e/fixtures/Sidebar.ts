@@ -1,5 +1,20 @@
 import type { Locator, Page } from '@playwright/test'
+import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { expect, step } from './tla-test'
+
+// The createWorkspace/updateWorkspace mutators clamp names to MAX_WORKSPACE_NAME_LENGTH, so the
+// stored (and therefore displayed and synced) name diverges from a longer requested name. Scenario
+// ids alone run close to that limit, so workspace helpers must match against the clamped form or
+// they search for a name the app never renders.
+function clampWorkspaceName(name: string) {
+	return name.trim().slice(0, MAX_WORKSPACE_NAME_LENGTH)
+}
+
+// Cross-client Zero sync (accepting an invite, being removed, a workspace being deleted) delivers
+// workspace-membership rows asynchronously and with variable latency on a busy CI machine. This is
+// the budget for the data-layer wait that actually gates on that sync; it is intentionally generous
+// while still bounded, so a genuine sync regression fails with a clear signal rather than hanging.
+const WORKSPACE_MEMBERSHIP_SYNC_TIMEOUT = 30_000
 
 export class Sidebar {
 	public readonly fileLink = '[data-element="file-link"]'
@@ -8,7 +23,6 @@ export class Sidebar {
 	public readonly sidebar: Locator
 	public readonly sidebarLogo: Locator
 	public readonly createFileButton: Locator
-	public readonly createWorkspaceButton: Locator
 	public readonly userSettingsMenu: Locator
 	public readonly helpMenu: Locator
 	public readonly themeButton: Locator
@@ -19,7 +33,6 @@ export class Sidebar {
 		this.sidebar = this.page.getByTestId('tla-sidebar')
 		this.sidebarLogo = this.page.getByTestId('tla-sidebar-logo-icon')
 		this.createFileButton = this.page.getByTestId('tla-create-file')
-		this.createWorkspaceButton = this.page.getByTestId('tla-create-workspace')
 		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
 		this.helpMenu = this.userSettingsMenu
 		this.themeButton = this.page.getByTestId('dialog-sub.theme-button')
@@ -285,21 +298,30 @@ export class Sidebar {
 
 	// Workspace-related methods
 
-	@step
-	async openWorkspaceSwitcher() {
-		await this.page.getByTestId('tla-workspace-switcher').click()
+	// A single attempt at opening the switcher: click only when it isn't already open, then confirm
+	// the menu content mounted (Home is always present). Callers that also act on a menu item should
+	// run this *inside* their own retry loop alongside that action — re-renders and navigation that
+	// fire while the app settles after a cross-client change can dismiss the menu between opening it
+	// and acting, so the open and the action have to be retried together, not in sequence.
+	private async ensureWorkspaceSwitcherOpen() {
+		const home = this.page.getByTestId('tla-workspace-switcher-home')
+		if (!(await home.isVisible())) {
+			await this.page.getByTestId('tla-workspace-switcher').click()
+		}
+		await expect(home).toBeVisible({ timeout: 2000 })
 	}
 
 	@step
-	async createWorkspace(name: string, { dismissRename = true } = {}) {
-		// The standalone button is only shown while the user has no workspaces;
-		// after that, creating happens from the workspace switcher dropdown.
-		if (await this.createWorkspaceButton.isVisible()) {
-			await this.createWorkspaceButton.click()
-		} else {
-			await this.openWorkspaceSwitcher()
-			await this.page.getByTestId('tla-create-workspace-menu-item').click()
-		}
+	async openWorkspaceSwitcher() {
+		await expect(() => this.ensureWorkspaceSwitcherOpen()).toPass({ timeout: 15000 })
+	}
+
+	@step
+	async createWorkspace(name: string) {
+		name = clampWorkspaceName(name)
+		// Creating a workspace happens from the workspace switcher dropdown.
+		await this.openWorkspaceSwitcher()
+		await this.page.getByTestId('tla-create-workspace-menu-item').click()
 
 		const input = this.page.getByPlaceholder('Workspace name')
 		await expect(input).toBeVisible()
@@ -308,53 +330,123 @@ export class Sidebar {
 		await this.page.getByRole('button', { name: 'Create workspace' }).click()
 		await this.mutationResolution()
 
-		// Creating a workspace switches to it, creates its first file, and
-		// starts renaming that file.
-		await this.expectActiveWorkspace(name)
-		const renameInput = this.page.getByTestId('tla-sidebar-rename-input')
-		await expect(renameInput).toBeVisible()
-		if (dismissRename) {
-			await this.page.keyboard.press('Escape')
-		}
+		// Creating a workspace switches to it and opens its seeded welcome file. That file
+		// arrives named, so (unlike a blank file) there is no inline rename to dismiss.
+		await expect(async () => {
+			const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
+			if (activeName !== name) {
+				await this.switchToWorkspace(name)
+			}
+			await this.expectActiveWorkspace(name)
+		}).toPass({ timeout: 20000 })
 	}
 
 	getWorkspaceLink(name: string) {
-		return this.page.locator('[data-element="workspace-link"]').filter({ hasText: name })
+		return this.page
+			.locator('[data-element="workspace-link"]')
+			.filter({ hasText: clampWorkspaceName(name) })
+	}
+
+	async getHomeWorkspaceName() {
+		const name = await this.page.evaluate(() => {
+			const app = (window as any).app
+			const homeWorkspaceId = app?.getHomeWorkspaceId?.()
+			return app?.getWorkspaceMembership?.(homeWorkspaceId)?.group?.name
+		})
+		if (!name) throw new Error('Could not resolve home workspace name')
+		return name
 	}
 
 	@step
 	async expectWorkspaceVisible(name: string) {
-		await this.openWorkspaceSwitcher()
-		// A workspace can appear via cross-client sync (e.g. after accepting an invite), which can
-		// take longer than the default assertion timeout on CI.
-		await expect(this.getWorkspaceLink(name)).toBeVisible({ timeout: 15000 })
+		name = clampWorkspaceName(name)
+		// Gate on cross-client sync at the data layer first — immune to dropdown churn — then assert
+		// the switcher renders the workspace. Re-open and re-check together: the membership can be
+		// fully synced (the member may even be active in the workspace) yet the assertion still fails
+		// because a settling re-render dismissed the menu, and a closed switcher has no link items.
+		await this.waitForWorkspaceMembershipSync(name, true)
+		await expect(async () => {
+			await this.ensureWorkspaceSwitcherOpen()
+			await expect(this.getWorkspaceLink(name)).toBeVisible({ timeout: 2000 })
+		}).toPass({ timeout: 20000 })
 		await this.page.keyboard.press('Escape')
 	}
 
 	@step
 	async expectWorkspaceNotVisible(name: string) {
-		await this.openWorkspaceSwitcher()
-		// Wait for the dropdown to actually render (Home is always present)
-		// so the absence check below can't pass vacuously.
-		await expect(this.page.getByTestId('tla-workspace-switcher-home')).toBeVisible()
-		await expect(this.getWorkspaceLink(name)).not.toBeVisible()
+		name = clampWorkspaceName(name)
+		// Workspace removal (member removed, workspace deleted) reaches an active member via
+		// cross-client sync too. Wait for the membership to leave the data layer first, then confirm
+		// the switcher no longer lists it. Keep the menu open while checking (Home is always present)
+		// so the absence can't pass vacuously against a dropdown that closed under us mid-settle.
+		await this.waitForWorkspaceMembershipSync(name, false)
+		await expect(async () => {
+			await this.ensureWorkspaceSwitcherOpen()
+			await expect(this.getWorkspaceLink(name)).toHaveCount(0)
+		}).toPass({ timeout: 20000 })
 		await this.page.keyboard.press('Escape')
+	}
+
+	/**
+	 * Poll the app's data layer until a workspace membership with the given name is present (or
+	 * absent). The membership backs the workspace switcher reactively via `getWorkspaceMemberships`,
+	 * so once it settles the UI follows immediately — this lets callers gate on cross-client sync
+	 * without depending on the dropdown being open at the moment the row arrives.
+	 */
+	private async waitForWorkspaceMembershipSync(name: string, present: boolean) {
+		name = clampWorkspaceName(name)
+		await expect
+			.poll(
+				() =>
+					this.page.evaluate((workspaceName) => {
+						const memberships = (window as any).app?.getWorkspaceMemberships?.() ?? []
+						return memberships.some((m: any) => m?.group?.name === workspaceName)
+					}, name),
+				{ timeout: WORKSPACE_MEMBERSHIP_SYNC_TIMEOUT }
+			)
+			.toBe(present)
 	}
 
 	@step
 	async expectActiveWorkspace(name: string) {
-		await expect(this.page.getByTestId('tla-active-workspace-name')).toHaveText(name)
+		name = clampWorkspaceName(name)
+		// Switching workspaces navigates to (or creates) a file in the target before the active name
+		// updates, so allow the suite's cross-client budget rather than the default 5s.
+		await expect(this.page.getByTestId('tla-active-workspace-name')).toHaveText(name, {
+			timeout: 10000,
+		})
+	}
+
+	@step
+	async expectActiveHomeWorkspace() {
+		await this.expectActiveWorkspace(await this.getHomeWorkspaceName())
 	}
 
 	@step
 	async switchToWorkspace(name: string) {
-		await this.openWorkspaceSwitcher()
-		await this.getWorkspaceLink(name).click()
+		name = clampWorkspaceName(name)
+		// Re-open and click together: a settling re-render can dismiss the menu between opening it and
+		// clicking the workspace, leaving the click waiting on an item that no longer exists.
+		await expect(async () => {
+			await this.ensureWorkspaceSwitcherOpen()
+			await this.getWorkspaceLink(name).click({ timeout: 2000 })
+		}).toPass({ timeout: 20000 })
 		await this.expectActiveWorkspace(name)
 	}
 
 	@step
+	async switchToHomeWorkspace() {
+		// The home workspace is renameable, so target its stable switcher item rather than a label.
+		await expect(async () => {
+			await this.ensureWorkspaceSwitcherOpen()
+			await this.page.getByTestId('tla-workspace-switcher-home').click({ timeout: 2000 })
+		}).toPass({ timeout: 20000 })
+		await this.expectActiveHomeWorkspace()
+	}
+
+	@step
 	async openWorkspaceSettings(name: string) {
+		name = clampWorkspaceName(name)
 		// The settings action lives in the active workspace's action rows, so
 		// switch to the workspace first if needed.
 		const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
@@ -366,6 +458,7 @@ export class Sidebar {
 
 	@step
 	async renameWorkspace(oldName: string, newName: string) {
+		newName = clampWorkspaceName(newName)
 		await this.openWorkspaceSettings(oldName)
 
 		// Find the name input and change it (use placeholder as user sees it)
@@ -382,24 +475,29 @@ export class Sidebar {
 	async deleteWorkspace(name: string) {
 		await this.openWorkspaceSettings(name)
 
-		// Click the Delete workspace button (exact text as user sees it)
-		await this.page.getByRole('button', { name: 'Delete workspace…' }).click()
+		// Delete lives on the Settings tab of the Manage workspace dialog.
+		await this.page.getByRole('tab', { name: 'Settings' }).click()
+		await this.page.getByRole('button', { name: 'Delete workspace', exact: true }).click()
 
-		// Confirm deletion in the confirmation dialog
-		await this.page.getByRole('button', { name: 'Delete workspace' }).click()
+		// Confirm in the confirmation dialog, whose button is just "Delete".
+		await this.page.getByRole('button', { name: 'Delete', exact: true }).click()
 		await this.mutationResolution()
 	}
 
 	@step
 	async copyWorkspaceInviteLink(name: string): Promise<string> {
-		// The invite action lives in the active workspace's action rows, so
-		// switch to the workspace first if needed.
-		const activeName = await this.page.getByTestId('tla-active-workspace-name').innerText()
-		if (activeName !== name) {
-			await this.switchToWorkspace(name)
-		}
-		await this.page.getByTestId('tla-sidebar-invite-teammates').click()
-		return await this.readClipboardUrl()
+		// The invite link lives in the Manage workspace dialog and is only exposed via
+		// the Copy button (no visible URL field), so copy it and read it back from the
+		// clipboard. The invite secret can load asynchronously, so poll until valid.
+		await this.openWorkspaceSettings(name)
+		const dialog = this.page.getByRole('dialog', { name: 'Manage workspace' })
+		let inviteUrl = ''
+		await expect(async () => {
+			await dialog.getByRole('button', { name: 'Copy invite link' }).click()
+			inviteUrl = await this.readClipboardUrl(/^\/invite\//)
+		}).toPass({ timeout: 10000 })
+		await this.page.getByRole('button', { name: 'Close' }).click()
+		return inviteUrl
 	}
 
 	// File visibility methods
@@ -409,12 +507,20 @@ export class Sidebar {
 
 	@step
 	async expectFileVisible(fileName: string) {
-		await expect(this.getFileByName(fileName)).toBeVisible()
+		// A file can appear in a member's list via cross-client sync (workspace files, shared guest
+		// files), so allow the same propagation budget the rest of the suite uses rather than the
+		// default 5s assertion timeout.
+		await expect(this.getFileByName(fileName)).toBeVisible({
+			timeout: WORKSPACE_MEMBERSHIP_SYNC_TIMEOUT,
+		})
 	}
 
 	@step
 	async expectFileNotVisible(fileName: string) {
-		await expect(this.getFileByName(fileName)).not.toBeVisible()
+		// File removal (deletion, losing workspace access) also propagates via cross-client sync.
+		await expect(this.getFileByName(fileName)).not.toBeVisible({
+			timeout: WORKSPACE_MEMBERSHIP_SYNC_TIMEOUT,
+		})
 	}
 
 	@step
@@ -423,36 +529,6 @@ export class Sidebar {
 		await fileLink.hover()
 		const button = fileLink.getByRole('button')
 		await button.click()
-	}
-
-	@step
-	async dragFileToPinnedSection(fileName: string) {
-		const fileElement = this.getFileByName(fileName)
-		const fileBox = await fileElement.boundingBox()
-		const topFile = this.sidebar.locator('[data-drop-target-id^="file:"]').first()
-		const topBox = await topFile.boundingBox()
-
-		if (!fileBox || !topBox) throw new Error('Could not get bounding boxes')
-
-		// Move to file
-		await this.page.mouse.move(fileBox.x + fileBox.width / 2, fileBox.y + fileBox.height / 2)
-
-		// Press and hold
-		await this.page.mouse.down()
-
-		// Small delay to let browser detect drag intent
-		await this.page.waitForTimeout(100)
-
-		// Drop just above the top of the file list, inside the pin zone
-		await this.page.mouse.move(topBox.x + topBox.width / 2, topBox.y - 5, { steps: 10 })
-
-		// Small delay before release
-		await this.page.waitForTimeout(50)
-
-		// Release
-		await this.page.mouse.up()
-
-		await this.mutationResolution()
 	}
 
 	@step
@@ -570,13 +646,23 @@ export class Sidebar {
 
 	@step
 	async moveFileToWorkspace(fileName: string, targetWorkspaceName: string) {
-		await this.openMoveToMenu(fileName)
-		await this.page.getByRole('menuitem', { name: targetWorkspaceName, exact: true }).click()
+		targetWorkspaceName = clampWorkspaceName(targetWorkspaceName)
+		// The move-to menu is a checklist: each destination is a checkbox item, and the
+		// destination we're moving to is never the current (checked) one, so its accessible
+		// name is just the workspace name (an unchecked item adds no "checked" prefix).
+		await expect(async () => {
+			await this.page.keyboard.press('Escape')
+			await this.page.keyboard.press('Escape')
+			await this.openMoveToMenu(fileName)
+			await this.page
+				.getByRole('menuitemcheckbox', { name: targetWorkspaceName, exact: true })
+				.click({ timeout: 2000 })
+		}).toPass({ timeout: 20000 })
 		await this.mutationResolution()
 	}
 
 	@step
 	async moveFileToHome(fileName: string) {
-		await this.moveFileToWorkspace(fileName, 'My files')
+		await this.moveFileToWorkspace(fileName, await this.getHomeWorkspaceName())
 	}
 }

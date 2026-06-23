@@ -410,6 +410,25 @@ describe('ClientWebSocketAdapter', () => {
 			expect(onMessage).toHaveBeenCalledWith({ type: 'message', data: 'hello' })
 		})
 
+		it('[CW7] drops malformed JSON messages without closing the socket', async () => {
+			const warnOnceMock = vi.mocked(warnOnce)
+			const onMessage = vi.fn()
+			adapter.onReceiveMessage(onMessage)
+
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			warnOnceMock.mockClear()
+
+			connectedServerSocket.send('{ "type": "message",')
+			connectedServerSocket.send('{ "type": "message", "data": "hello" }')
+
+			await waitFor(() => onMessage.mock.calls.length === 1)
+			expect(onMessage).toHaveBeenCalledWith({ type: 'message', data: 'hello' })
+			expect(adapter.connectionStatus).toBe('online')
+			expect(warnOnceMock).toHaveBeenCalledWith(
+				'Received malformed WebSocket message. Dropping message.'
+			)
+		})
+
 		it('[CW7] stops delivering messages after unsubscribe', async () => {
 			const onMessage = vi.fn()
 			const unsubscribe = adapter.onReceiveMessage(onMessage)

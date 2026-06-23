@@ -1,7 +1,6 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
-import { glob } from 'fast-glob'
 import json5 from 'json5'
 import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
@@ -53,7 +52,10 @@ async function build() {
 	await exec('rm', ['-rf', '.vercel/output'])
 	mkdirSync('.vercel/output', { recursive: true })
 	await exec('cp', ['-r', 'dist', '.vercel/output/static'])
-	await exec('rm', ['-rf', ...glob.sync('.vercel/output/static/**/*.js.map')])
+	// We serve the .js.map files publicly. The client source is open at tldraw/tldraw, so
+	// there's nothing to hide, and serving the maps lets anyone debugging a deployed build get
+	// real names and lines in devtools without going through Sentry. Sentry still gets its own
+	// copy via the upload step, which reads from dist/assets before this point.
 
 	// Add fonts to preload into index.html
 	const assetsList = readdirSync('dist/assets')
@@ -92,7 +94,9 @@ async function build() {
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 
-	const assetsToCache = assetsList.filter((f) => !f.endsWith('.js.map')).map((f) => `/assets/${f}`)
+	// Includes the .js.map files: they're content-hashed like the chunks they describe, so they're
+	// safe to cache immutably, and we now serve them rather than stripping them from the deploy.
+	const assetsToCache = assetsList.map((f) => `/assets/${f}`)
 	// need to batch these because Vercel's route limit is 4096 characters
 	const assetsBatches: string[][] = []
 	for (let i = 0; i < assetsToCache.length; i += 50) {

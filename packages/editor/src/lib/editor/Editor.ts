@@ -409,9 +409,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._tickManager = new TickManager(this)
 		this.disposables.add(() => this._tickManager.dispose())
 		this.disposables.add(() => {
-			// Reset camera state to 'idle' so the store isn't left stuck at 'moving'
-			// when tick events stop (e.g. React strict mode disposes while camera is moving)
-			this.off('tick', this._decayCameraStateTimeout)
 			this._setCameraState('idle')
 		})
 
@@ -419,6 +416,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(() => this.fonts.dispose())
 
 		this.inputs = new InputsManager(this)
+		this.disposables.add(() => this.inputs.dispose())
 		this.performance = new PerformanceManager(this)
 		this.disposables.add(() => this.performance.dispose())
 		this.collaborators = new CollaboratorsManager(this)
@@ -1179,6 +1177,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.dispose()
 		this.isDisposed = true
 		this.emit('dispose')
+		this.removeAllListeners()
 	}
 
 	/* ------------------ Themes (shadowing the theme manager) ------------------ */
@@ -1549,6 +1548,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getMarkIdMatching(idSubstring: string) {
 		return this.history.getMarkIdMatching(idSubstring)
+	}
+
+	/**
+	 * Whether the editor is currently replaying history (i.e. an undo or redo is being applied).
+	 *
+	 * @internal
+	 */
+	isReplayingHistory(): boolean {
+		return this.history.isReplaying()
 	}
 
 	/**
@@ -4157,6 +4165,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		const doc = this.getContainerDocument()
+		// If the container's document has been torn down (e.g. an iframe being
+		// removed), its body is null and there's nothing meaningful to measure.
+		if (!doc.body) return this
+
 		const insets = [
 			// top
 			screenBounds.minY !== 0,
@@ -10169,6 +10181,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (ids.length === 0) return undefined
 
+		// Text geometry is measured from the loaded font, so the export's bounds - and the
+		// layout of any text within it - depend on the right fonts having loaded. Wait for them
+		// before we measure; otherwise an export taken before fonts finish loading (e.g. right
+		// after the editor mounts) is sized and laid out with fallback-font metrics.
+		await this.fonts.loadRequiredFontsForCurrentPage(this.options.maxFontsToLoadBeforeRender)
+
 		return exportToSvg(this, ids, opts)
 	}
 
@@ -11215,8 +11233,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.setIsPointing(true)
 						inputs.setIsDragging(false)
 
-						// If pen mode is off but we're not already in pen mode, turn that on
-						if (!isPenMode && isPen) {
+						// If pen mode is off, turn it on for direct-display pen input only (e.g. Apple
+						// Pencil on an iPad or a Surface Pen on a touchscreen). Indirect desktop tablet
+						// styluses still draw as pens, but should not auto-enable pen mode.
+						if (!isPenMode && info.isPenDirect) {
 							this.updateInstanceState({ isPenMode: true })
 							// Once pen mode is on, touch input is ignored, so we discard the
 							// in-progress touch interaction .

@@ -146,14 +146,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								exportPadding: true,
 								createdAt: now,
 								updatedAt: now,
-								flags: 'groups_backend',
+								flags: 'groups_backend,groups_frontend',
 							})
 							.execute()
 						await tx
 							.insertInto('group')
 							.values({
 								id,
-								name: clerkUser.fullName ?? '',
+								// The home/private workspace defaults to "My workspace" and is renameable.
+								name: 'My workspace',
 								createdAt: now,
 								updatedAt: now,
 								isDeleted: false,
@@ -761,7 +762,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				.insertInto('group')
 				.values({
 					id: userId,
-					name: '',
+					name: 'My workspace',
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 					isDeleted: false,

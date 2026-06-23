@@ -79,9 +79,6 @@ async function main() {
 
 	console.log('Dotcom dev doctor')
 	console.log('')
-	console.log(`Branch: ${env.branchName ?? '(detached)'}`)
-	console.log(`Commit: ${env.shortCommitSha ?? '(unknown)'}`)
-	console.log(`Branch key: ${env.branchKey}`)
 	console.log(`Compose project: ${env.composeProjectName}`)
 	console.log(
 		`Postgres volume: ${env.postgresVolumeName} - ${formatStatus(volume.ok, volume.detail)}`

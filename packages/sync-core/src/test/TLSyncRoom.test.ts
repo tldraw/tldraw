@@ -845,6 +845,48 @@ describe('23. Connect handshake (HS)', () => {
 		)
 	})
 
+	it('rejects a client running a newer schema with SERVER_TOO_OLD, not CLIENT_TOO_OLD', () => {
+		// Regression test for #6169
+		// A client running a newer SDK than the server: its schema has a sequence version higher
+		// than anything this server knows about. The server can't reconcile it, but the server is
+		// the one that's behind, so it should report SERVER_TOO_OLD (not CLIENT_TOO_OLD).
+		const serializedSchema = schema.serialize()
+		const newerSerializedSchema: SerializedSchemaV2 = {
+			schemaVersion: 2,
+			sequences: {
+				...serializedSchema.sequences,
+				'com.tldraw.shape.arrow': 999,
+			},
+		}
+
+		const { room } = makeRoom()
+		const socket = makeSocket()
+
+		room.handleNewSession({
+			sessionId: 'newer-client-session',
+			socket,
+			meta: undefined,
+			isReadonly: false,
+		})
+
+		room.handleMessage('newer-client-session', {
+			connectRequestId: 'connect-1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: newerSerializedSchema,
+			type: 'connect',
+		})
+
+		// Session should not be connected - it was rejected due to incompatible schema
+		expect(room.sessions.get('newer-client-session')?.state).not.toBe(RoomSessionState.Connected)
+
+		// Socket should be closed with SERVER_TOO_OLD, since the client is on a newer version
+		expect(socket.close).toHaveBeenCalledWith(
+			TLSyncErrorCloseEventCode,
+			TLSyncErrorCloseEventReason.SERVER_TOO_OLD
+		)
+	})
+
 	it('[HS4] handles a client with lastServerClock greater than the current documentClock', () => {
 		const { room } = makeRoom({ snapshot: makeSnapshot(records, { documentClock: 10 }) })
 

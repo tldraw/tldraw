@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { spawn } from 'child_process'
+import { killProcessTree } from '../../../internal/scripts/lib/kill-tree'
 import { getDotcomDevEnv } from '../zero-cache/dev-env'
 
 const env = getDotcomDevEnv()
@@ -27,11 +28,29 @@ const child = spawn(
 	}
 )
 
-child.once('exit', (code) => process.exit(code ?? 1))
+// On shutdown, reap the whole subtree while it is still alive. The direct child is a
+// `yarn run -T tsx …` wrapper, so just signalling it would let the tsx → node → wrangler → workerd
+// processes beneath it reparent to launchd and keep holding the dev port. Walking by PID,
+// deepest-first, crosses those wrapper boundaries. We do this in the signal handler (not on `exit`)
+// so the tree is still enumerable.
+let shuttingDown = false
+const shutdown = () => {
+	if (shuttingDown) return
+	shuttingDown = true
+	killProcessTree(process.pid)
+	process.exit(0)
+}
+process.on('SIGINT', shutdown)
+process.on('SIGTERM', shutdown)
+process.on('SIGHUP', shutdown)
+// Backstop for any exit path that bypassed the signal handler.
+process.on('exit', () => killProcessTree(process.pid))
+
+child.once('exit', (code) => {
+	if (shuttingDown) return
+	process.exit(code ?? 1)
+})
 child.once('error', (error) => {
 	console.error(error)
 	process.exit(1)
 })
-
-process.on('SIGINT', () => child.kill('SIGINT'))
-process.on('SIGTERM', () => child.kill('SIGTERM'))
