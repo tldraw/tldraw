@@ -44,7 +44,7 @@ export const SAFE_COLS = 10
 
 // Rivers: a full-height band of water every RIVER_INTERVAL columns that must be
 // bridged before track can cross. Bridges are geo rectangles and cost iron.
-export const RIVER_FIRST_COL = 11
+export const RIVER_FIRST_COL = 24
 export const RIVER_INTERVAL = 28
 export const RIVER_WIDTH = 2
 export const BRIDGE_COST_IRON = 2

@@ -1,0 +1,64 @@
+/* HUD and hint for the Shape Factory example. The elements let pointer events
+ * through to the canvas so the whole map stays interactive. */
+
+.sf-hud {
+	position: absolute;
+	top: 16px;
+	left: 16px;
+	display: flex;
+	gap: 24px;
+	align-items: center;
+	padding: 12px 18px;
+	border-radius: 12px;
+	background: var(--color-panel);
+	box-shadow: var(--shadow-2);
+	font-family: var(--tl-font-draw, sans-serif);
+	z-index: 300;
+	pointer-events: none;
+	user-select: none;
+}
+
+.sf-hud__stat {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	line-height: 1.1;
+}
+
+.sf-hud__stat--goal {
+	align-items: center;
+}
+
+.sf-badge {
+	display: block;
+}
+
+.sf-hud__value {
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--color-text);
+}
+
+.sf-hud__label {
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--color-text-3);
+}
+
+.sf-hint {
+	position: absolute;
+	bottom: 28px;
+	left: 50%;
+	transform: translateX(-50%);
+	padding: 10px 18px;
+	border-radius: 999px;
+	background: var(--color-panel);
+	box-shadow: var(--shadow-2);
+	color: var(--color-text);
+	font-family: var(--tl-font-draw, sans-serif);
+	font-size: 14px;
+	z-index: 300;
+	pointer-events: none;
+	user-select: none;
+}
