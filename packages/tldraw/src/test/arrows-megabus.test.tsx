@@ -196,7 +196,7 @@ describe('When binding an arrow to a shape', () => {
 		expect(bindings().end).toBeUndefined()
 	})
 
-	it('should use timer on keyup when using control key to skip binding', () => {
+	it('toggles binding immediately with the control key', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(100, 50)
@@ -206,18 +206,18 @@ describe('When binding an arrow to a shape', () => {
 		editor.keyDown('Control')
 		expect(bindings().end).toBeUndefined()
 
+		// releasing control restores the binding immediately (no debounce)
 		editor.keyUp('Control')
-		expect(bindings().end).toBeUndefined() // there's a short delay here, it should still be a point
-		vi.advanceTimersByTime(1000) // once the timer runs out...
 		expect(bindings().end).toBeDefined()
 
-		editor.keyDown('Control') // no delay when pressing control again though
+		// pressing control again removes it again
+		editor.keyDown('Control')
 		expect(bindings().end).toBeUndefined()
 
+		// control released before the pointer is up, so the arrow ends bound
 		editor.keyUp('Control')
 		editor.pointerUp()
-		vi.advanceTimersByTime(1000) // once the timer runs out...
-		expect(bindings().end).toBeUndefined() // still a point because interaction ended before timer ended
+		expect(bindings().end).toBeDefined()
 	})
 
 	it('respects shouldIgnoreTargets option when control key is held', () => {
@@ -234,10 +234,8 @@ describe('When binding an arrow to a shape', () => {
 		editor.keyDown('Control')
 		expect(bindings().end).toBeUndefined()
 
-		// Releasing ctrl should restore binding (after timer)
+		// Releasing ctrl restores the binding immediately
 		editor.keyUp('Control')
-		expect(bindings().end).toBeUndefined() // Still no binding immediately
-		vi.advanceTimersByTime(1000)
 		expect(bindings().end).toBeDefined()
 	})
 })

@@ -295,7 +295,7 @@ describe('editor modifier delay vs native modifier state', () => {
 		vi.useRealTimers()
 	})
 
-	it('editor getShiftKey stays true for 150ms after shift is released (demonstrating the delay)', () => {
+	it('editor getShiftKey clears immediately when shift is released', () => {
 		// Press shift
 		editor.dispatch({
 			type: 'keyboard',
@@ -325,16 +325,8 @@ describe('editor modifier delay vs native modifier state', () => {
 		})
 		editor.forceTick()
 
-		// Editor still thinks shift is held due to 150ms delay
-		expect(editor.inputs.getShiftKey()).toBe(true)
-
-		// A native keydown event would report shiftKey=false immediately.
-		// This is the race condition: if cmd+v fires within this 150ms window,
-		// using editor.inputs.getShiftKey() would incorrectly return true,
-		// causing a plain text paste when the user wanted a regular paste.
-
-		// After 150ms, the editor finally catches up
-		vi.advanceTimersByTime(150)
+		// The editor now mirrors the event flags immediately, so there's no 150ms window where a
+		// cmd+v could read a stale shiftKey and trigger a plain-text paste.
 		expect(editor.inputs.getShiftKey()).toBe(false)
 	})
 })
