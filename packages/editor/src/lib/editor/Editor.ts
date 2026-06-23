@@ -4165,6 +4165,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		const doc = this.getContainerDocument()
+		// If the container's document has been torn down (e.g. an iframe being
+		// removed), its body is null and there's nothing meaningful to measure.
+		if (!doc.body) return this
+
 		const insets = [
 			// top
 			screenBounds.minY !== 0,
@@ -10176,6 +10180,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					: (shapes as TLShape[]).map((s) => s.id)
 
 		if (ids.length === 0) return undefined
+
+		// Text geometry is measured from the loaded font, so the export's bounds - and the
+		// layout of any text within it - depend on the right fonts having loaded. Wait for them
+		// before we measure; otherwise an export taken before fonts finish loading (e.g. right
+		// after the editor mounts) is sized and laid out with fallback-font metrics.
+		await this.fonts.loadRequiredFontsForCurrentPage(this.options.maxFontsToLoadBeforeRender)
 
 		return exportToSvg(this, ids, opts)
 	}

@@ -8,6 +8,7 @@ import {
 	TldrawUiTooltip,
 	isEqual,
 	preventDefault,
+	useContainer,
 	useMaybeEditor,
 	useMenuIsOpen,
 	useValue,
@@ -96,6 +97,7 @@ export function TlaSidebarFileLink({
 	}
 
 	const [_, handleOpenChange] = useMenuIsOpen(`file-context-menu-${fileId}`)
+	const container = useContainer()
 
 	return (
 		<_ContextMenu.Root onOpenChange={handleOpenChange} modal={false}>
@@ -114,19 +116,21 @@ export function TlaSidebarFileLink({
 					className={className}
 				/>
 			</_ContextMenu.Trigger>
-			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
-				{/* Don't show the context menu on mobile */}
-				{!isMobile && (
-					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-						<FileItems
-							source="sidebar-context-menu"
-							fileId={fileId}
-							onRenameAction={handleRenameAction}
-							workspaceId={workspaceId}
-						/>
-					</TldrawUiMenuContextProvider>
-				)}
-			</_ContextMenu.Content>
+			<_ContextMenu.Portal container={container}>
+				<_ContextMenu.Content className="tlui-menu tlui-scrollable">
+					{/* Don't show the context menu on mobile */}
+					{!isMobile && (
+						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+							<FileItems
+								source="sidebar-context-menu"
+								fileId={fileId}
+								onRenameAction={handleRenameAction}
+								workspaceId={workspaceId}
+							/>
+						</TldrawUiMenuContextProvider>
+					)}
+				</_ContextMenu.Content>
+			</_ContextMenu.Portal>
 		</_ContextMenu.Root>
 	)
 }

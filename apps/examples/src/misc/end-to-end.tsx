@@ -6,6 +6,7 @@ import {
 	TLShape,
 	Tldraw,
 	VecModel,
+	allDefaultFontFaces,
 	b64Vecs,
 	createShapeId,
 	exportAs,
@@ -161,6 +162,13 @@ function SneakyExportButton() {
 				})
 			},
 			toRichText: (text: string) => toRichText(text),
+			preloadFonts: async () => {
+				// Load every default font face up front. Text geometry is measured from the
+				// loaded font, so anything that measures a shape before its font loads (e.g.
+				// laying out shapes by their measured bounds) would otherwise get fallback-font
+				// metrics until the real font swaps in.
+				await Promise.all(allDefaultFontFaces.map((font) => editor.fonts.ensureFontIsLoaded(font)))
+			},
 			b64VecsEncodePoints: (points: VecModel[]) => b64Vecs.encodePoints(points),
 			markAllArrowBindings: () => {
 				const markRadius = 3
