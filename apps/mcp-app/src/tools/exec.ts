@@ -6,7 +6,14 @@ import type { PendingRequests } from '../shared/pending-requests'
 import { CANVAS_RESOURCE_URI } from '../shared/types'
 import { generateCanvasId, writeToolAnalytics } from '../shared/utils'
 
-const EXEC_CALLBACK_TIMEOUT_MS = 30_000
+// How long the exec tool waits for the widget's synchronous `_exec_callback`
+// before returning a graceful "still executing" result. This is intentionally
+// short: the widget runs the code and pushes the resulting canvas state to the
+// model context independently of this callback, so a missed/slow/misrouted
+// callback must never hang the tool. When the callback does arrive promptly
+// (the common case on well-behaved hosts) the model still gets the full
+// synchronous result, including any return value or runtime error.
+const EXEC_CALLBACK_WAIT_MS = 4_000
 
 export function registerExecTool(
 	server: McpServer,
@@ -84,57 +91,68 @@ Examples:
 				`[tldraw-mcp] exec called: canvasId=${canvasId}, existing=${Boolean(inputCanvasId)}, channel=${channel}`
 			)
 
+			// `_meta` the widget reads from the tool result: the canonical DO name (to
+			// pin future callbacks) and the canvasId (so the widget adopts the
+			// server-assigned id even when the synchronous callback never resolves).
+			const meta = { tldraw: { doName, canvasId } }
+
+			let result: { success: boolean; result?: unknown; error?: string } | undefined
 			try {
-				const result = (await opts.pendingRequests.create(channel, EXEC_CALLBACK_TIMEOUT_MS)) as {
+				result = (await opts.pendingRequests.create(channel, EXEC_CALLBACK_WAIT_MS)) as {
 					success: boolean
 					result?: unknown
 					error?: string
 				}
-
-				if (!result.success) {
-					opts.log(`[tldraw-mcp] exec failed: ${result.error}`)
-					return {
-						content: [
-							{
-								type: 'text',
-								text: `Runtime error executing code on canvas. The code was NOT applied successfully. Fix the error and try again.\n\nCanvas ID: ${canvasId} — to retry on this canvas, pass this canvasId.\n\nError: ${result.error}`,
-							},
-						],
-						isError: true,
-						_meta: { tldraw: { doName } },
-					}
-				}
-
-				const resultStr =
-					result.result !== undefined ? JSON.stringify(result.result, null, 2) : undefined
-				const lines = [
-					resultStr
-						? `Code executed successfully on canvas. Return value:\n${resultStr}`
-						: 'Code executed successfully on canvas.',
-					`\nCanvas ID: ${canvasId} — to edit this canvas again, pass this as the canvasId parameter.`,
-				]
-
-				opts.log(`[tldraw-mcp] exec succeeded, canvasId=${canvasId}`)
-				return {
-					content: [{ type: 'text', text: lines.join('\n') }],
-					_meta: { tldraw: { doName } },
-				}
 			} catch (err) {
-				// On timeout (no callback) the channel→canvasId entry was never consumed
-				// by `_exec_callback`; drop it so it doesn't leak.
+				// No synchronous callback arrived within the bounded window — timeout,
+				// a callback that was routed to a different DO, or a concurrent exec on
+				// this channel. This is NOT a failure: the widget still runs the code and
+				// pushes the resulting canvas state into the model context on its own, so
+				// we return a graceful (non-error) message instead of hanging.
 				opts.execChannelCanvasIds.delete(channel)
-				const message = err instanceof Error ? err.message : String(err)
-				opts.log(`[tldraw-mcp] exec error: ${message}`)
+				opts.log(
+					`[tldraw-mcp] exec callback not received within ${EXEC_CALLBACK_WAIT_MS}ms (graceful): ${err instanceof Error ? err.message : String(err)}`
+				)
 				return {
 					content: [
 						{
 							type: 'text',
-							text: `Exec failed: ${message}`,
+							text:
+								`Canvas ${canvasId} is rendering and your code is executing. The resulting canvas state will be attached to the conversation shortly (it may already be present).\n\n` +
+								`Canvas ID: ${canvasId} — pass this canvasId to edit the same canvas again. If the expected shapes don't appear in the next canvas-state update, re-run exec with a corrected script.`,
+						},
+					],
+					_meta: meta,
+				}
+			}
+
+			if (!result.success) {
+				opts.log(`[tldraw-mcp] exec failed: ${result.error}`)
+				return {
+					content: [
+						{
+							type: 'text',
+							text: `Runtime error executing code on canvas. The code was NOT applied successfully. Fix the error and try again.\n\nCanvas ID: ${canvasId} — to retry on this canvas, pass this canvasId.\n\nError: ${result.error}`,
 						},
 					],
 					isError: true,
-					_meta: { tldraw: { doName } },
+					_meta: meta,
 				}
+			}
+
+			const resultStr =
+				result.result !== undefined ? JSON.stringify(result.result, null, 2) : undefined
+			const lines = [
+				resultStr
+					? `Code executed successfully on canvas. Return value:\n${resultStr}`
+					: 'Code executed successfully on canvas.',
+				`\nCanvas ID: ${canvasId} — to edit this canvas again, pass this as the canvasId parameter.`,
+			]
+
+			opts.log(`[tldraw-mcp] exec succeeded, canvasId=${canvasId}`)
+			return {
+				content: [{ type: 'text', text: lines.join('\n') }],
+				_meta: meta,
 			}
 		}
 	)
