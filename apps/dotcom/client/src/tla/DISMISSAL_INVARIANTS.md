@@ -65,10 +65,13 @@ dismisses" with **overlays**, scoped per region.
 - `MenuClickCapture` is `position: fixed; inset: 0` but its z-index (`250`) lives **inside the
   editor's** stacking context, so it covers the canvas but **not** the sidebar (which is a sibling
   above the editor) — that's the gap the sidebar overlay fills.
-- `TlaSidebarMenuClickCapture` is `position: absolute; inset: 0` inside `.sidebar` (itself a
-  `z-index: 100` stacking context) at `calc(var(--tl-layer-menus) + 1)`. That value is measured
-  against the sidebar's own children (the switcher root reaches `--tl-layer-menus`), **not** the
-  global layer — the portaled menus are in the higher app-container context and stay above it.
+- `TlaMenuClickCapture` is the shared dotcom overlay. It mounts `position: absolute; inset: 0` at
+  `calc(var(--tl-layer-menus) + 1)` inside whichever chrome region renders it: the sidebar (`.sidebar`,
+  a `z-index: 100` stacking context) and the editor's top panels (`.topLeftPanel` / `.topRightPanel` —
+  the SDK `MenuPanel` / `SharePanel` slots). That value is measured against the region's own children
+  (covering its buttons), **not** the global layer — the portaled menus sit in the higher app-container
+  context and stay above it. It deliberately never covers the **canvas**: the SDK's `MenuClickCapture`
+  keeps that (with its drag-forward), so click-to-draw is untouched.
 
 ---
 
@@ -78,10 +81,10 @@ Both mount when **`tlmenus.hasAnyOpenMenus()`** is true and dismiss via **`tlmen
 They are **independent of Radix** — they only need "is any menu open?" — so they survive the Base UI
 refactor unchanged.
 
-| Overlay                               | Region  | On a click                                                       | On a click-drag                                                                                                                                      |
-| ------------------------------------- | ------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MenuClickCapture` (SDK)              | canvas  | `clearOpenMenus()`, swallow                                      | `clearOpenMenus()` **and forwards** a `pointer_down` to the canvas at the original press point, then forwards moves — so the drag draws/selects/pans |
-| `TlaSidebarMenuClickCapture` (dotcom) | sidebar | `clearOpenMenus()`, swallow (`preventDefault`+`stopPropagation`) | same — swallow, **no forward** (a chrome drag has nothing to forward to)                                                                             |
+| Overlay                        | Region                      | On a click                                                       | On a click-drag                                                                                                                                      |
+| ------------------------------ | --------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MenuClickCapture` (SDK)       | canvas                      | `clearOpenMenus()`, swallow                                      | `clearOpenMenus()` **and forwards** a `pointer_down` to the canvas at the original press point, then forwards moves — so the drag draws/selects/pans |
+| `TlaMenuClickCapture` (dotcom) | sidebar + editor top panels | `clearOpenMenus()`, swallow (`preventDefault`+`stopPropagation`) | same — swallow, **no forward** (a chrome drag has nothing to forward to)                                                                             |
 
 The press lands on the overlay (it's the top-of-stack target via z-index, robust regardless of the
 underlying elements' `pointer-events`), so the element beneath never receives a `pointerdown`; a
@@ -99,7 +102,7 @@ Given **an open menu/popover** (dropdown, file menu, switcher, share popover), a
 | **the menu content itself**                                                                             | normal — selects the item                                                                | normal                                                                         |
 | **the canvas**                                                                                          | dismiss only — **no shape/dot created**                                                  | **dismiss AND start the drag from the press point** (draw/select/pan per tool) |
 | **the sidebar** (file link, another menu's trigger, empty area)                                         | dismiss only — **no navigation, no second menu opens** (strict; press again to act)      | dismiss only — no forward                                                      |
-| **the editor header / top-bar buttons**                                                                 | _today_: click-through (KNOWN GAP — follow-up); _desired_: dismiss only                  | same                                                                           |
+| **the editor top panels** (top-left menu / file name, top-right share / people)                         | dismiss only — **no second menu opens, share/etc. doesn't fire** (strict; press again)   | dismiss only — no forward                                                      |
 | **Escape key**                                                                                          | dismiss the **topmost** dismissable only (layer-aware)                                   | —                                                                              |
 | **the menu's owner hides** (sidebar slides away via toggle / `Cmd+\` / focus mode / mobile-overlay tap) | the menu dismisses with it (it's rendered by the still-mounted sidebar; cleared on hide) | —                                                                              |
 
@@ -127,7 +130,7 @@ This is the whole reason the menus are non-modal + overlay rather than modal:
 - **Click-drag on canvas** → dismiss **and** the drag becomes a real canvas interaction **starting
   from the original press location** (so you can immediately draw, brush-select, or pan). The overlay
   waits for the drag threshold, then replays `pointer_down` at the start point and forwards moves.
-- Over the **sidebar/chrome**, both click and drag are dismiss-only (no forward).
+- Over the **sidebar and editor top panels** (chrome), both click and drag are dismiss-only (no forward).
 
 A modal approach **cannot** express this: `pointer-events: none` on the body makes the canvas inert,
 so the drag could never reach it. Any replacement (Base UI) must keep the canvas interactive and rely
@@ -160,8 +163,8 @@ on the region overlays for the drag-forward.
 - The `tlmenus` registry — `hasAnyOpenMenus()`, `clearOpenMenus()`, `addOpenMenu`/`deleteOpenMenu`,
   and the editor-context scoping (so an arg-less clear doesn't evict open dialogs registered under
   the `'tla'` context).
-- The two overlays (`MenuClickCapture`, `TlaSidebarMenuClickCapture`) — they key off `tlmenus`, not
-  Radix.
+- The overlays (`MenuClickCapture` in the SDK; `TlaMenuClickCapture` in dotcom, covering the sidebar
+  and the editor top panels) — they key off `tlmenus`, not Radix.
 - The **hide-dismissal**: when the sidebar hides, its menus are cleared (they're rendered by the
   still-mounted sidebar). Driven by the sidebar's visibility flags, not by any menu library.
 - The **stable global menu id** for the workspace switcher — its open state lives in `tlmenus` under
@@ -170,24 +173,28 @@ on the region overlays for the drag-forward.
   trigger dismissal. (workspaces.spec.ts "reopening the switcher right after switching keeps it
   open".)
 
-**Open gap (intentional follow-up):** the editor header is the one chrome surface still above
-`MenuClickCapture` without an overlay; clicking header buttons while a header menu is open can still
-click-through. The fix mirrors the sidebar overlay but needs care to not block the editor's own
-panels/menus.
+**Remaining gap (by design):** the dotcom chrome is fully covered — `TlaMenuClickCapture` handles the
+sidebar **and** the editor's top panels, and the SDK's `MenuClickCapture` is deliberately left
+untouched. So the residual gap is in the **plain SDK** (no dotcom chrome): the SDK's own top
+bar/panels sit above `MenuClickCapture` (panels `300` > capture `250`) with no overlay, so a press on
+them while a menu is open can still click through. Closing that means an SDK-scoped change — lifting
+`MenuClickCapture` above the panels and making it region-aware (canvas → forward; chrome → dismiss
+only) — out of scope here.
 
 ---
 
 ## Quick reference: where the behavior lives
 
 - `packages/editor/src/lib/components/MenuClickCapture.tsx` — canvas overlay (dismiss + drag-forward)
-- `apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarMenuClickCapture.tsx` —
-  sidebar overlay (dismiss-only)
+- `apps/dotcom/client/src/tla/components/TlaMenuClickCapture.tsx` — shared dotcom dismiss-only overlay
+- `.../TlaSidebar/components/TlaSidebarMenuClickCapture.tsx` — sidebar usage;
+  `.../TlaEditor/TlaEditorTopLeftPanel.tsx` + `TlaEditorTopRightPanel.tsx` — editor top-panel usage
 - `apps/dotcom/client/src/tla/components/TlaSidebar/TlaSidebar.tsx` — hide-dismissal effects
 - `packages/tldraw/src/lib/ui/components/Dialogs.tsx` — modal, layer-aware dialog dismissal
 - `apps/dotcom/client/src/tla/components/tla-menu/` — the dotcom menu/select primitives
 - `packages/editor/src/lib/globals/menus.ts` — the `tlmenus` registry
 - e2e: `apps/dotcom/client/e2e/tests/smoke/workspaces.spec.ts` (sidebar + canvas cases),
-  `apps/dotcom/client/e2e/tests/ui.scenario.spec.ts` (select over the canvas)
+  `apps/dotcom/client/e2e/tests/ui.scenario.spec.ts` (select over the canvas; top-bar button dismiss)
 - dialog dismissal (modal, layer-aware, select-in-dialog, `preventBackgroundClose`) is enforced by
   the SDK tests `packages/tldraw/src/test/ui/Dialogs.test.tsx` and
   `apps/examples/e2e/tests/test-dialogs.spec.ts`; dotcom dialogs use the same primitive
