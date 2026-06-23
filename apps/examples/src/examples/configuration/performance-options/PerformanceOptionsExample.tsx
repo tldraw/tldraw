@@ -14,7 +14,8 @@ import './performance-options.css'
 
 // There's a guide at the bottom of this file!
 
-const MAX_SHAPES = 120
+const MAX_SHAPES = 750
+const ADD_BATCH = 250
 const COLORS = ['blue', 'green', 'orange', 'violet'] as const
 
 const getLiveZoom = (editor: Editor) => editor.getZoomLevel()
@@ -86,7 +87,7 @@ function PerformancePanel() {
 	const addShapes = () => {
 		const start = shapeCount
 		editor.run(() => {
-			for (let i = 0; i < 50; i++) {
+			for (let i = 0; i < ADD_BATCH; i++) {
 				const n = start + i
 				editor.createShape<TLGeoShape>({
 					type: 'geo',
@@ -103,7 +104,7 @@ function PerformancePanel() {
 		<div className="perf-panel">
 			<div className="perf-panel__row">
 				<TldrawUiButton type="primary" disabled={atLimit} onClick={addShapes}>
-					{atLimit ? 'Page is full' : 'Add 50 shapes'}
+					{atLimit ? 'Page is full' : `Add ${ADD_BATCH} shapes`}
 				</TldrawUiButton>
 				<TldrawUiButton
 					type="normal"
@@ -167,9 +168,9 @@ function PerformanceConfigPanel({
 				</span>
 				<input
 					type="range"
-					min={50}
-					max={500}
-					step={10}
+					min={250}
+					max={2000}
+					step={50}
 					value={pendingMaxShapes}
 					onChange={(e) => setPendingMaxShapes(Number(e.currentTarget.value))}
 					onPointerUp={(e) => commitMaxShapes(e.currentTarget)}
@@ -265,7 +266,7 @@ up once or twice.
 
 [2]
 When an operation would push a page past maxShapesPerPage (default 4000,
-lowered to 120 here), the editor rejects it and emits a 'max-shapes' event
+lowered to 750 here), the editor rejects it and emits a 'max-shapes' event
 with the page name and the limit. Listen for it to tell users why nothing
 happened. Here it becomes a temporary warning banner; tldraw's default UI
 turns the same event into a toast.
@@ -283,7 +284,7 @@ them so you can measure a single gesture.
 [5]
 The bottom-left panel reconfigures the performance options at runtime.
 
-- maxShapesPerPage (default 4000, lowered to 120 here) caps how many shapes
+- maxShapesPerPage (default 4000, lowered to 750 here) caps how many shapes
   a page can hold. Raise or lower it and the at-limit feedback above tracks
   the new value: the counter turns red and the add button disables once the
   page reaches it.
