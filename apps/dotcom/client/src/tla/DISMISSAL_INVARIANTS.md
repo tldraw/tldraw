@@ -62,34 +62,45 @@ dismisses" with **overlays**, scoped per region.
 - **Portal target = the app container** (`.tl-container` from `TlaRootProviders`, exposed via
   `useContainer()`). It wraps **both** the sidebar and the editor, so menus portal _above_ the
   sidebar and editor, and an overlay portaled/placed there can sit just under them.
-- `MenuClickCapture` is `position: fixed; inset: 0` but its z-index (`250`) lives **inside the
-  editor's** stacking context, so it covers the canvas but **not** the sidebar (which is a sibling
-  above the editor) — that's the gap the sidebar overlay fills.
-- `TlaMenuClickCapture` is the shared dotcom overlay. It mounts `position: absolute; inset: 0` at
-  `calc(var(--tl-layer-menus) + 1)` inside whichever chrome region renders it: the sidebar (`.sidebar`,
-  a `z-index: 100` stacking context) and the editor's top panels (`.topLeftPanel` / `.topRightPanel` —
-  the SDK `MenuPanel` / `SharePanel` slots). That value is measured against the region's own children
-  (covering its buttons), **not** the global layer — the portaled menus sit in the higher app-container
-  context and stay above it. It deliberately never covers the **canvas**: the SDK's `MenuClickCapture`
-  keeps that (with its drag-forward), so click-to-draw is untouched.
+- `MenuClickCapture` (SDK) is `position: fixed; inset: 0` and its z-index (`250`) lives **inside the
+  editor's** stacking context, so it covers the canvas. It owns the canvas press (dismiss + drag).
+- `TlaMenuClickCapture` (dotcom) is **not a layer** — it's a set of capture-phase document listeners,
+  so it has no z-index and doesn't appear in this stacking model at all. That's deliberate: a single
+  app-level _overlay_ can't work here, because the editor's panels **and** its menus both live inside
+  one `canvas-in-front` stacking context (z 250) while the sidebar is a separate one — so there is no
+  single app-level z that sits above all chrome yet below all menus (an overlay high enough to cover
+  the top-bar chrome also covers the open menus). A listener avoids the stacking question entirely.
 
 ---
 
-## The overlays (how "press only dismisses" is achieved on non-modal menus)
+## The dismiss mechanism (how "press only dismisses" is achieved on non-modal menus)
 
-Both mount when **`tlmenus.hasAnyOpenMenus()`** is true and dismiss via **`tlmenus.clearOpenMenus()`**.
-They are **independent of Radix** — they only need "is any menu open?" — so they survive the Base UI
-refactor unchanged.
+Two cooperating pieces, both keyed only off **`tlmenus.hasAnyOpenMenus()`** and dismissing via
+**`tlmenus.clearOpenMenus()`** — so they're independent of Radix and survive the Base UI refactor:
 
-| Overlay                        | Region                      | On a click                                                       | On a click-drag                                                                                                                                      |
-| ------------------------------ | --------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MenuClickCapture` (SDK)       | canvas                      | `clearOpenMenus()`, swallow                                      | `clearOpenMenus()` **and forwards** a `pointer_down` to the canvas at the original press point, then forwards moves — so the drag draws/selects/pans |
-| `TlaMenuClickCapture` (dotcom) | sidebar + editor top panels | `clearOpenMenus()`, swallow (`preventDefault`+`stopPropagation`) | same — swallow, **no forward** (a chrome drag has nothing to forward to)                                                                             |
+- **`MenuClickCapture` (SDK, the canvas).** A real overlay at z `250` covering the canvas. On a click
+  it dismisses and swallows; on a click-**drag** it dismisses **and forwards** a `pointer_down` to the
+  canvas at the original press point, then forwards moves — so the drag draws/selects/pans. This is
+  why the menus are non-modal: only a live canvas can take the drag.
+- **`TlaMenuClickCapture` (dotcom, everything else).** A single set of **capture-phase document
+  listeners** (`pointerdown`, `click`, `contextmenu`) — _not_ an overlay. While a menu is open it
+  reads the element under each press (`event.target`, i.e. the browser's own hit result) and:
+  - **canvas** (`.tl-canvas` / `.tlui-menu-click-capture`) → does nothing; the SDK overlay above
+    handles it (so click-to-draw and drag are untouched, mouse **and** touch).
+  - **inside an open menu / dialog / popover / select** (`[data-radix-popper-content-wrapper]`,
+    `[role="menu" | "dialog" | "listbox"]`) → does nothing; the press works normally.
+  - **anything else (chrome)** → `preventDefault` + `stopPropagation` + `clearOpenMenus()`, dismiss
+    only. The `click` the press would spawn is cancelled too (a chrome press lands on the chrome
+    element itself, unlike an overlay where down/up land on different nodes and no click forms).
 
-The press lands on the overlay (it's the top-of-stack target via z-index, robust regardless of the
-underlying elements' `pointer-events`), so the element beneath never receives a `pointerdown`; a
-`click` can't even form on it. The dismiss is explicit because `stopPropagation` would otherwise stop
-Radix's own bubble-phase outside-detection.
+The listeners stay attached regardless of menu state, gated internally by `hasAnyOpenMenus()`, so the
+follow-up `click` is still suppressed after `clearOpenMenus()` has unmounted the menu. The dismiss is
+explicit because `stopPropagation` would otherwise stop Radix's own outside-detection.
+
+Why a listener and not one app-wide overlay: see the z-index note above — no single app-level z sits
+above all chrome but below all menus, so an overlay either covers the menus or misses the chrome. A
+listener sidesteps stacking entirely and classifies by the real hit target, which also makes touch
+behave exactly like mouse (no cursor-tracking needed).
 
 ---
 
@@ -163,8 +174,12 @@ on the region overlays for the drag-forward.
 - The `tlmenus` registry — `hasAnyOpenMenus()`, `clearOpenMenus()`, `addOpenMenu`/`deleteOpenMenu`,
   and the editor-context scoping (so an arg-less clear doesn't evict open dialogs registered under
   the `'tla'` context).
-- The overlays (`MenuClickCapture` in the SDK; `TlaMenuClickCapture` in dotcom, covering the sidebar
-  and the editor top panels) — they key off `tlmenus`, not Radix.
+- The dismiss mechanism keys off `tlmenus`, not Radix: the SDK's `MenuClickCapture` overlay (canvas)
+  and dotcom's `TlaMenuClickCapture` document listeners (everything else). One Radix-specific detail
+  to re-point under Base UI: the listener recognises "inside an open dismissable" via Radix selectors
+  (`[data-radix-popper-content-wrapper]`, `[role="menu" | "dialog" | "listbox"]`); update that set to
+  Base UI's equivalents. The canvas selectors (`.tl-canvas` / `.tlui-menu-click-capture`) are SDK and
+  unchanged.
 - The **hide-dismissal**: when the sidebar hides, its menus are cleared (they're rendered by the
   still-mounted sidebar). Driven by the sidebar's visibility flags, not by any menu library.
 - The **stable global menu id** for the workspace switcher — its open state lives in `tlmenus` under
@@ -173,22 +188,22 @@ on the region overlays for the drag-forward.
   trigger dismissal. (workspaces.spec.ts "reopening the switcher right after switching keeps it
   open".)
 
-**Remaining gap (by design):** the dotcom chrome is fully covered — `TlaMenuClickCapture` handles the
-sidebar **and** the editor's top panels, and the SDK's `MenuClickCapture` is deliberately left
-untouched. So the residual gap is in the **plain SDK** (no dotcom chrome): the SDK's own top
-bar/panels sit above `MenuClickCapture` (panels `300` > capture `250`) with no overlay, so a press on
-them while a menu is open can still click through. Closing that means an SDK-scoped change — lifting
-`MenuClickCapture` above the panels and making it region-aware (canvas → forward; chrome → dismiss
-only) — out of scope here.
+**Remaining gap (by design):** _all_ dotcom chrome is now covered — the listener treats everything
+that isn't the canvas or an open dismissable as chrome, so the sidebar, the editor top panels, and any
+future chrome are handled with no per-region wiring. The SDK's `MenuClickCapture` is deliberately left
+untouched. So the residual gap is only in the **plain SDK** (no dotcom listener): the SDK's own top
+bar/panels sit above `MenuClickCapture` (panels `300` > capture `250`) with no equivalent, so a press
+on them while a menu is open can still click through. Closing that means an SDK-scoped change —
+lifting `MenuClickCapture` above the panels and making it region-aware — out of scope here.
 
 ---
 
 ## Quick reference: where the behavior lives
 
-- `packages/editor/src/lib/components/MenuClickCapture.tsx` — canvas overlay (dismiss + drag-forward)
-- `apps/dotcom/client/src/tla/components/TlaMenuClickCapture.tsx` — shared dotcom dismiss-only overlay
-- `.../TlaSidebar/components/TlaSidebarMenuClickCapture.tsx` — sidebar usage;
-  `.../TlaEditor/TlaEditorTopLeftPanel.tsx` + `TlaEditorTopRightPanel.tsx` — editor top-panel usage
+- `packages/editor/src/lib/components/MenuClickCapture.tsx` — SDK canvas overlay (dismiss + drag-forward)
+- `apps/dotcom/client/src/tla/components/TlaMenuClickCapture.tsx` — dotcom global dismiss listeners
+  (classifies each press by `event.target`); mounted once in
+  `.../tla/layouts/TlaSidebarLayout/TlaSidebarLayout.tsx`
 - `apps/dotcom/client/src/tla/components/TlaSidebar/TlaSidebar.tsx` — hide-dismissal effects
 - `packages/tldraw/src/lib/ui/components/Dialogs.tsx` — modal, layer-aware dialog dismissal
 - `apps/dotcom/client/src/tla/components/tla-menu/` — the dotcom menu/select primitives
