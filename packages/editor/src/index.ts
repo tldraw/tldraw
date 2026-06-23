@@ -23,10 +23,6 @@ export {
 	type TLErrorFallbackComponent,
 } from './lib/components/default-components/DefaultErrorFallback'
 export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
-export {
-	DefaultSelectionBackground,
-	type TLSelectionBackgroundProps,
-} from './lib/components/default-components/DefaultSelectionBackground'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
 export {
 	DefaultShapeWrapper,
@@ -322,7 +318,6 @@ export {
 	type SafeId,
 } from './lib/hooks/useSafeId'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
-export { useTransform } from './lib/hooks/useTransform'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
 	LicenseManager,

@@ -18,7 +18,7 @@ import { TLShape, rootShapeVersions } from './records/TLShape'
 import { userVersions } from './records/TLUser'
 import { arrowShapeVersions } from './shapes/TLArrowShape'
 import { bookmarkShapeVersions } from './shapes/TLBookmarkShape'
-import { drawShapeVersions } from './shapes/TLDrawShape'
+import { DrawShapeSegment, drawShapeVersions } from './shapes/TLDrawShape'
 import { embedShapeVersions } from './shapes/TLEmbedShape'
 import { frameShapeVersions } from './shapes/TLFrameShape'
 import { geoShapeVersions } from './shapes/TLGeoShape'
@@ -2666,6 +2666,119 @@ describe('TLUser initial migration', () => {
 	test('up is a no-op', () => {
 		const record = { id: 'user:123', name: 'Test', color: '#000', imageUrl: '', meta: {} }
 		expect(up(record)).toEqual(record)
+	})
+})
+
+describe('OmitNonPressureZ migration for draw shape', () => {
+	const { up, down } = getTestMigration(drawShapeVersions.OmitNonPressureZ)
+
+	test('up is a no-op for 3D segments (absent dim reads as 3D)', () => {
+		const path = b64Vecs.encodePoints([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.5 },
+		])
+		const result = up({ props: { segments: [{ type: 'free', path }] } })
+		expect(result.props.segments[0]).toEqual({ type: 'free', path })
+	})
+
+	test('up leaves a 2D segment untouched', () => {
+		const path = b64Vecs.encodePoints2D([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.5 },
+		])
+		const result = up({ props: { segments: [{ type: 'free', path, dim: 2 }] } })
+		expect(result.props.segments[0]).toEqual({ type: 'free', path, dim: 2 })
+	})
+
+	test('down re-encodes a 2D segment to 3D and strips dim', () => {
+		const points = [
+			{ x: 5, y: 6, z: 0.5 },
+			{ x: 12, y: 9, z: 0.5 },
+			{ x: 20, y: 4, z: 0.5 },
+		]
+		const result = down({
+			props: { segments: [{ type: 'free', path: b64Vecs.encodePoints2D(points), dim: 2 }] },
+		})
+
+		expect(result.props.segments[0].dim).toBeUndefined()
+		const decoded = b64Vecs.decodePoints(result.props.segments[0].path)
+		expect(decoded.length).toBe(3)
+		expect(decoded[2].x).toBeCloseTo(20, 0)
+		expect(decoded[0].z).toBe(0.5)
+	})
+
+	test('down leaves a 3D segment (no dim) unchanged', () => {
+		const path = b64Vecs.encodePoints([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.6 },
+		])
+		const result = down({ props: { segments: [{ type: 'free', path }] } })
+		expect(result.props.segments[0]).toEqual({ type: 'free', path })
+	})
+
+	test('down strips an explicit dim: 3 without re-encoding the (already 3D) path', () => {
+		const path = b64Vecs.encodePoints([
+			{ x: 1, y: 2, z: 0.6 },
+			{ x: 3, y: 4, z: 0.7 },
+		])
+		const result = down({ props: { segments: [{ type: 'free', path, dim: 3 }] } })
+		expect(result.props.segments[0].dim).toBeUndefined()
+		expect(result.props.segments[0].path).toBe(path) // already 3D — field dropped, bytes untouched
+	})
+
+	test('down handles mixed 2D and 3D segments', () => {
+		const path3D = b64Vecs.encodePoints([
+			{ x: 1, y: 2, z: 0.6 },
+			{ x: 3, y: 4, z: 0.7 },
+		])
+		const path2D = b64Vecs.encodePoints2D([
+			{ x: 5, y: 6, z: 0.5 },
+			{ x: 7, y: 8, z: 0.5 },
+		])
+		const result = down({
+			props: {
+				segments: [
+					{ type: 'free', path: path3D },
+					{ type: 'straight', path: path2D, dim: 2 },
+				],
+			},
+		})
+		expect(result.props.segments[0]).toEqual({ type: 'free', path: path3D })
+		expect(result.props.segments[1].dim).toBeUndefined()
+		expect(b64Vecs.decodePoints(result.props.segments[1].path).length).toBe(2)
+	})
+})
+
+describe('OmitNonPressureZ migration for highlight shape', () => {
+	const { up, down } = getTestMigration(highlightShapeVersions.OmitNonPressureZ)
+
+	test('up is a no-op', () => {
+		const path = b64Vecs.encodePoints2D([
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 10, y: 10, z: 0.5 },
+		])
+		const result = up({ props: { segments: [{ type: 'free', path, dim: 2 }] } })
+		expect(result.props.segments[0]).toEqual({ type: 'free', path, dim: 2 })
+	})
+
+	test('down re-encodes a 2D segment to 3D and strips dim', () => {
+		const path2D = b64Vecs.encodePoints2D([
+			{ x: 5, y: 6, z: 0.5 },
+			{ x: 12, y: 9, z: 0.5 },
+		])
+		const result = down({ props: { segments: [{ type: 'free', path: path2D, dim: 2 }] } })
+		expect(result.props.segments[0].dim).toBeUndefined()
+		expect(b64Vecs.decodePoints(result.props.segments[0].path).length).toBe(2)
+	})
+})
+
+describe('DrawShapeSegment dim validation', () => {
+	test('accepts dim 2, 3, or absent; rejects other values', () => {
+		expect(() => DrawShapeSegment.validate({ type: 'free', path: 'AAAA', dim: 2 })).not.toThrow()
+		expect(() => DrawShapeSegment.validate({ type: 'free', path: 'AAAA', dim: 3 })).not.toThrow()
+		expect(() => DrawShapeSegment.validate({ type: 'free', path: 'AAAA' })).not.toThrow()
+		expect(() => DrawShapeSegment.validate({ type: 'free', path: 'AAAA', dim: 0 })).toThrow()
+		expect(() => DrawShapeSegment.validate({ type: 'free', path: 'AAAA', dim: 4 })).toThrow()
 	})
 })
 

@@ -1,18 +1,12 @@
 import { useContainer, useValue } from '@tldraw/editor'
 import { Dialog as _Dialog } from 'radix-ui'
-import { memo, useCallback, useRef } from 'react'
+import { memo, useCallback } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
 import { useDirection } from '../hooks/useTranslation/useTranslation'
 
 /** @internal */
-const TldrawUiDialog = ({
-	id,
-	component: ModalContent,
-	preventBackgroundClose,
-	isModal,
-}: TLUiDialog & { isModal: boolean }) => {
+const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }: TLUiDialog) => {
 	const { removeDialog } = useDialogs()
-	const mouseDownInsideContentRef = useRef(false)
 
 	const container = useContainer()
 	const dir = useDirection()
@@ -27,40 +21,32 @@ const TldrawUiDialog = ({
 	)
 
 	return (
-		<_Dialog.Root onOpenChange={handleOpenChange} defaultOpen modal={isModal}>
+		<_Dialog.Root onOpenChange={handleOpenChange} defaultOpen>
 			<_Dialog.Portal container={container}>
-				<_Dialog.Overlay
-					dir={dir}
-					className="tlui-dialog__overlay"
-					onClick={(e) => {
-						// We pressed mouse down inside the content of the dialog then moved the mouse
-						// outside it and let go of the mouse button. This should not close the dialog.
-						if (mouseDownInsideContentRef.current) return
-						// only close if the click is on the overlay itself, ignore bubbling clicks
-						if (!preventBackgroundClose && e.target === e.currentTarget) handleOpenChange(false)
-					}}
-				>
+				{/* Radix renders the scrim and content as siblings. The positioner sits on
+				    top of the scrim and centers the content, scrolling and padding it when
+				    it's taller than the viewport. */}
+				<_Dialog.Overlay dir={dir} className="tlui-dialog__overlay" />
+				<div dir={dir} className="tlui-dialog__positioner">
 					<_Dialog.Content
 						dir={dir}
 						className="tlui-dialog__content"
 						aria-describedby={undefined}
-						onMouseDown={() => (mouseDownInsideContentRef.current = true)}
-						onMouseUp={() => (mouseDownInsideContentRef.current = false)}
 						onInteractOutside={(e) => {
-							mouseDownInsideContentRef.current = false
+							// Radix's dismissable layers are layer-aware: an interaction outside the
+							// topmost layer dismisses only that layer — an open select, or a dialog
+							// stacked on top — leaving lower layers open. onInteractOutside fires for
+							// both a pointer press and a focus shift outside the dialog; opt out of both
+							// when the dialog asks to stay open on background interactions (escape still
+							// closes it).
 							if (preventBackgroundClose) {
 								e.preventDefault()
 							}
 						}}
 					>
-						<ModalContent
-							onClose={() => {
-								mouseDownInsideContentRef.current = false
-								handleOpenChange(false)
-							}}
-						/>
+						<ModalContent onClose={() => handleOpenChange(false)} />
 					</_Dialog.Content>
-				</_Dialog.Overlay>
+				</div>
 			</_Dialog.Portal>
 		</_Dialog.Root>
 	)
@@ -70,11 +56,11 @@ const TldrawUiDialog = ({
 export const DefaultDialogs = memo(function DefaultDialogs() {
 	const { dialogs } = useDialogs()
 	const dialogsArray = useValue('dialogs', () => dialogs.get(), [dialogs])
-	// Only the topmost dialog should be modal. Stacking multiple modal Radix
-	// dialogs makes lower ones intercept pointer/touch events (via their own
-	// focus traps and scroll-locking), which leaves a nested dialog unresponsive
-	// to taps on mobile.
-	return dialogsArray.map((dialog, i) => (
-		<TldrawUiDialog key={dialog.id} {...dialog} isModal={i === dialogsArray.length - 1} />
-	))
+	// Every stacked dialog stays modal (Radix's default). That's what keeps dismiss
+	// layer-aware: a background press or escape closes only the topmost layer, because
+	// Radix's focus-scope stack pauses lower dialogs rather than dismissing them. Don't
+	// make a lower dialog non-modal to work around anything — without a focus scope it
+	// dismisses on the focus shift when a nested dialog or select opens, collapsing the
+	// whole stack.
+	return dialogsArray.map((dialog) => <TldrawUiDialog key={dialog.id} {...dialog} />)
 })

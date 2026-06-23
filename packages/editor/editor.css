@@ -813,6 +813,7 @@ input,
 .tl-theme__dark .tl-rich-text mark {
 	background-color: var(--tl-color-text-highlight);
 	color: currentColor;
+	text-shadow: none;
 }
 
 @supports (color: color(display-p3 1 1 1)) {

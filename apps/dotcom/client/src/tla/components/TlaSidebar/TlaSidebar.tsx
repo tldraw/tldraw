@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect } from 'react'
-import { tlmenus } from 'tldraw'
+import { tlmenus, useMaybeEditor } from 'tldraw'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useHasFlag } from '../../hooks/useHasFlag'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
@@ -26,6 +26,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const isSidebarOpen = useIsSidebarOpen()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 	const trackEvent = useTldrawAppUiEvents()
+	const editor = useMaybeEditor()
 
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
@@ -44,9 +45,17 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	}, [trackEvent])
 
 	const handleOverlayClick = useCallback(() => {
-		tlmenus.clearOpenMenus()
+		// The sidebar only hides (CSS transform), it doesn't unmount, so its portaled menus
+		// (workspace switcher, file/user menus) would otherwise stay open over the canvas once the
+		// sidebar is closed. Close them — scoped to this editor's menus plus the global switcher id.
+		// The scope matters: open SDK dialogs register in the same tlmenus registry under the 'tla'
+		// context, and an arg-less clearOpenMenus() would evict them while they stay mounted, leaving
+		// the editor's menu-gated behavior (canvas click-capture, shortcuts, clipboard guards)
+		// thinking nothing is open.
+		if (editor) tlmenus.clearOpenMenus(editor.contextId)
+		tlmenus.deleteOpenMenu('sidebar-workspace-switcher')
 		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
-	}, [])
+	}, [editor])
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 

@@ -30,6 +30,7 @@ import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
+import { TLA_MENU_POSITION } from '../tla-menu/tla-menu'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { downloadAppFile } from '../TlaEditor/useFileEditorOverrides'
 
@@ -83,7 +84,15 @@ export function TlaFileMenu({
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}-${id}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={-16} sideOffset={4}>
+				{/* Sidebar menus hang ~8px over the sidebar's right edge, so they keep the shared
+				    side/collision offsets but override alignOffset (the default is tuned for the
+				    share/select menus, which would leave these looking inset). */}
+				<TldrawUiDropdownMenuContent
+					side="bottom"
+					align="end"
+					{...TLA_MENU_POSITION}
+					alignOffset={-16}
+				>
 					{children ?? fileItemsWhenNoChildren}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
@@ -291,6 +300,7 @@ export function FileItems({
 														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
 														return
 													}
+													trackEvent('create-workspace', { source })
 													try {
 														await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id })
 															.client
