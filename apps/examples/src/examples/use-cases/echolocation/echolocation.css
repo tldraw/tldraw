@@ -1,0 +1,27 @@
+.echolocation {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	background: #f9fafb;
+}
+
+.echolocation__canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+	touch-action: none;
+	cursor: crosshair;
+}
+
+.echolocation__hint {
+	position: absolute;
+	bottom: 24px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-family: 'Shantell Sans', 'Comic Sans MS', system-ui, sans-serif;
+	font-size: 14px;
+	color: #2b2b2b;
+	opacity: 0.5;
+	pointer-events: none;
+	user-select: none;
+}
