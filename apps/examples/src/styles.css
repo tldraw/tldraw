@@ -558,7 +558,6 @@ li.examples__sidebar__item {
 	background-color: hsl(0, 0%, 99%);
 	color: hsl(0, 0%, 18%);
 	font-size: 12px;
-	line-height: 1.3;
 }
 
 .example__dialog__header {
@@ -567,7 +566,7 @@ li.examples__sidebar__item {
 	align-items: center;
 	flex: 0 0 auto;
 	min-height: 40px;
-	padding: 0 12px;
+	padding: 0 0 0 12px;
 	color: hsl(0, 0%, 18%);
 }
 
@@ -576,8 +575,42 @@ li.examples__sidebar__item {
 	margin: 0;
 	font-size: 12px;
 	font-weight: 500;
-	line-height: 1.3;
+	line-height: inherit;
 	color: hsl(0, 0%, 18%);
+}
+
+.example__dialog__header__close {
+	all: unset;
+	position: relative;
+	cursor: pointer;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	color: hsl(0, 0%, 18%);
+}
+
+.example__dialog__header__close::after {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	border-radius: 4px;
+	background: hsl(0, 0%, 0%, 4.3%);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.example__dialog__header__close > * {
+	position: relative;
+	z-index: 1;
+}
+
+@media (hover: hover) {
+	.example__dialog__header__close:hover::after {
+		opacity: 1;
+	}
 }
 
 .example__dialog__body {
@@ -592,8 +625,8 @@ li.examples__sidebar__item {
 }
 
 .example__dialog__markdown {
-	line-height: 1.4;
 	font-size: 12px;
+	line-height: 1.6;
 }
 
 .example__dialog__markdown p {
@@ -615,9 +648,9 @@ li.examples__sidebar__item {
 .example__dialog__actions {
 	display: flex;
 	align-items: center;
-	justify-content: flex-end;
+	justify-content: space-between;
 	min-height: 12px;
-	padding: 0 8px 8px 8px;
+	padding: 0 0px 0px 0px;
 	gap: 0;
 }
 
