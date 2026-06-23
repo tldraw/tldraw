@@ -155,11 +155,21 @@ export function useKeyboardShortcuts() {
 				if (!reg.onKeyDown) continue
 				for (const p of reg.parsed) {
 					if (matchesEvent(e, p)) {
-						const prev = code ? heldKeyRegistrations.get(code) : undefined
-						// The held key already triggered a different shortcut; don't fall back to
-						// this one (or anything else) just because a modifier was released.
-						if (prev && prev !== reg) return
-						if (code) heldKeyRegistrations.set(code, reg)
+						if (code) {
+							// We only guard auto-repeat events. A fresh keypress (`e.repeat` is
+							// false) is always free to trigger whatever it matches, even on the same
+							// physical key — e.g. cmd+z (undo) then cmd+shift+z (redo), where macOS
+							// swallows the `z` keyup while cmd stays held, so we can't rely on keyup
+							// to clear the previous registration.
+							if (e.repeat) {
+								const prev = heldKeyRegistrations.get(code)
+								// The held key already triggered a different shortcut; don't fall back
+								// to this one (or anything else) just because a modifier was released.
+								if (prev && prev !== reg) return
+							} else {
+								heldKeyRegistrations.set(code, reg)
+							}
+						}
 						reg.onKeyDown(e)
 						break
 					}

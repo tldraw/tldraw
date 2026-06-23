@@ -147,7 +147,7 @@ function LegacyImportButton() {
 
 	return (
 		<TlaCtaButton canvas data-testid="tla-import-button" onClick={handleClick}>
-			<F defaultMessage="Copy to my files" />
+			<F defaultMessage="Copy to my workspace" />
 		</TlaCtaButton>
 	)
 }

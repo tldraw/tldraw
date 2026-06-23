@@ -1,4 +1,4 @@
-import { InstancePresenceRecordType } from '@tldraw/tlschema'
+import { createUserId, InstancePresenceRecordType } from '@tldraw/tlschema'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
 import { CollaboratorBrushOverlayUtil } from '../../lib/overlays/CollaboratorBrushOverlayUtil'
 import { TestEditor } from '../TestEditor'
@@ -22,7 +22,7 @@ describe('CollaboratorBrushOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer1'),
-					userId: 'peer1',
+					userId: createUserId('peer1'),
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					brush: { x: 1, y: 2, w: 3, h: 4 },
@@ -46,7 +46,7 @@ describe('CollaboratorBrushOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer1'),
-					userId: 'peer1',
+					userId: createUserId('peer1'),
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					color: '#123456',
@@ -54,7 +54,7 @@ describe('CollaboratorBrushOverlayUtil', () => {
 				}),
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer2'),
-					userId: 'peer2',
+					userId: createUserId('peer2'),
 					userName: 'Peer 2',
 					currentPageId: pageId,
 					color: '#abcdef',

@@ -1,4 +1,11 @@
-import { IndexKey, ShapeUtil, TLFrameShape, createShapeId, toRichText } from '@tldraw/editor'
+import {
+	IndexKey,
+	ShapeUtil,
+	TLArrowShape,
+	TLFrameShape,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
 import { defaultHandleExternalTldrawContent } from '../lib/defaultExternalContentHandlers'
 import { defaultOverlayUtils } from '../lib/defaultOverlayUtils'
@@ -510,6 +517,34 @@ describe('When pressing enter on a selected shape', () => {
 	})
 })
 
+describe('When undo/redo restores an invalid editing shape', () => {
+	// Regression: https://github.com/tldraw/tldraw/issues/9113
+	// Setting the editing shape is not recorded in history, but clearing it on delete is.
+	// When create + edit + delete of the same shape collapse into a single history entry,
+	// the shape's add/remove cancel out while the editingShapeId update survives. Undoing
+	// then restores editingShapeId pointing at a shape that no longer exists, which used to
+	// crash with "Entered editing state without an editing shape". The editor must never
+	// enter the editing state without a valid editing shape.
+	it('does not crash when undo restores editingShapeId for a deleted shape', () => {
+		const id = createShapeId()
+		editor.markHistoryStoppingPoint('start')
+		editor.createShape({ id, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+		editor.setEditingShape(id)
+		editor.deleteShapes([id])
+
+		expect(() => editor.undo()).not.toThrow()
+
+		editor.expectToBeIn('select.idle')
+		expect(editor.getEditingShapeId()).toBe(null)
+		expect(editor.getShape(id)).toBeUndefined()
+
+		// Redoing back through the same history entry must also stay safe.
+		expect(() => editor.redo()).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getEditingShapeId()).toBe(null)
+	})
+})
+
 // it('selects the child of a group', () => {
 //   const id1 = createShapeId()
 //   const id2 = createShapeId()
@@ -642,6 +677,34 @@ describe('When double clicking a selection handle that registers as a canvas eve
 
 		expect(spy).toHaveBeenCalledTimes(1)
 		expect(spy.mock.calls[0][1]).toMatchObject({ target: 'selection', handle: 'bottom_right' })
+	})
+
+	it('Routes a canvas-targeted double-click on an arrow handle to onDoubleClickHandle', () => {
+		const id = createShapeId()
+		overlayEditor
+			.createShapes([
+				{
+					id,
+					type: 'arrow',
+					x: 100,
+					y: 100,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+				},
+			])
+			.select(id)
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
+
+		// Double-click on the end handle without specifying target — defaults to
+		// target: 'canvas', the payload a real DOM double-click produces when the
+		// press lands on the handle overlay. This should toggle the arrowhead.
+		overlayEditor.doubleClick(200, 200)
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('none')
+
+		overlayEditor.doubleClick(200, 200)
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
 	})
 })
 

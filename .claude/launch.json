@@ -1,0 +1,23 @@
+{
+	"version": "0.0.1",
+	"configurations": [
+		{
+			"name": "examples",
+			"runtimeExecutable": "yarn",
+			"runtimeArgs": ["dev"],
+			"port": 5420
+		},
+		{
+			"name": "dotcom-app",
+			"runtimeExecutable": "yarn",
+			"runtimeArgs": ["dev-app"],
+			"port": 3000
+		},
+		{
+			"name": "docs",
+			"runtimeExecutable": "yarn",
+			"runtimeArgs": ["dev-docs"],
+			"port": 3001
+		}
+	]
+}

@@ -5,6 +5,12 @@
       "value": "Exportieren"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Einladung annehmen"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,6 +25,18 @@
     {
       "type": 1,
       "value": "GetHelpLink"
+    }
+  ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Lade Teamkollegen ein"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Sie haben die maximale Anzahl an Arbeitsbereichen erreicht. Sie müssen alte Arbeitsbereiche löschen, bevor Sie neue erstellen können."
     }
   ],
   "06b9281e39": [
@@ -63,10 +81,28 @@
       "value": "Dateimenü"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Beim Laden dieser Einladung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Feedback senden"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Entfernen"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "In den persönlichen Arbeitsbereich kopieren"
     }
   ],
   "110a4b01be": [
@@ -75,22 +111,10 @@
       "value": "Veröffentlichen"
     }
   ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Gruppe verlassen"
-    }
-  ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Datei aufheben"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Testen Sie das tldraw SDK"
     }
   ],
   "13ddd375ad": [
@@ -99,16 +123,10 @@
       "value": "Exportieren als"
     }
   ],
-  "146ffe2fd9": [
+  "1764571547": [
     {
       "type": 0,
-      "value": "Mehr anzeigen"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Gruppe löschen"
+      "value": "Sind Sie sicher, dass Sie diesen Arbeitsbereich löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
     }
   ],
   "181b90f889": [
@@ -129,10 +147,36 @@
       "value": "Heute"
     }
   ],
-  "2445e5e347": [
+  "1ffd709937": [
     {
       "type": 0,
-      "value": "Gruppe erstellen"
+      "value": "Ein Arbeitsbereich muss mindestens einen Eigentümer haben. Machen Sie zunächst jemand anderen zum Eigentümer."
+    }
+  ],
+  "21f66c9c00": [
+    {
+      "type": 0,
+      "value": "Arbeitsbereichsname"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Sie wurden eingeladen, dem "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " beizutreten. Erstellen Sie ein kostenloses Konto, um fortzufahren."
     }
   ],
   "250ddea65c": [
@@ -147,16 +191,34 @@
       "value": "Hochladen fehlgeschlagen"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Meine Dateien"
+      "value": "Willkommen in Ihrem Arbeitsbereich"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Suchen..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Durch die Neugenerierung wird der aktuelle Einladungslink durch einen neuen ersetzt. Alle, die den alten Link verwenden, benötigen den neuen, um beitreten zu können."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Link zur aktuellen Datei einfügen"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Einladungslink neu generieren"
     }
   ],
   "31246941ad": [
@@ -169,12 +231,6 @@
     {
       "type": 0,
       "value": "i18n: Markierung fehlt"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Link hinzufügen"
     }
   ],
   "324a0f3182": [
@@ -193,6 +249,18 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Verwalten"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Mitglied entfernen"
     }
   ],
   "3bc7d6ea2f": [
@@ -267,12 +335,6 @@
       "value": "Pin-Datei"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "URL der tldraw-Datei einfügen..."
-    }
-  ],
   "4908687e50": [
     {
       "type": 0,
@@ -297,24 +359,6 @@
       "value": "Neu laden"
     }
   ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Gruppe löschen…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Mehr Optionen"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Sind Sie sicher, dass Sie diese Gruppe löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
-    }
-  ],
   "5097d89907": [
     {
       "type": 0,
@@ -325,6 +369,12 @@
     {
       "type": 0,
       "value": "Die Veröffentlichung für diese Datei kann nicht aufgehoben werden."
+    }
+  ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Dies ist Ihr privater Arbeitsbereich. Erstellen Sie einen neuen Arbeitsbereich, um Teammitglieder einzuladen."
     }
   ],
   "517bb809d9": [
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Einen Arbeitsbereich erstellen"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -377,40 +433,6 @@
     {
       "type": 0,
       "value": "Datenschutzrichtlinie"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Ziehen Sie Dateien hierher, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Datei erstellen"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": " oder "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "Einladungslink kopieren"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": ", um zu beginnen."
     }
   ],
   "5a95a425f7": [
@@ -425,10 +447,10 @@
       "value": "Alter Browser erkannt. Bitte aktualisieren Sie Ihren Browser, um diese App zu verwenden."
     }
   ],
-  "5c6fe42bc2": [
+  "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Diese Verknüpfung löschen und eine neue erstellen."
+      "value": "Mein Arbeitsbereich"
     }
   ],
   "5d04a002ea": [
@@ -441,12 +463,6 @@
     {
       "type": 0,
       "value": "Wir konnten den von Ihnen vor Ihrer Anmeldung erstellten Inhalt teilweise nicht hochladen."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Sie wurden eingeladen, der Gruppe beizutreten:"
     }
   ],
   "5f3c333678": [
@@ -497,10 +513,22 @@
       "value": "Eine neue Version von tldraw ist verfügbar. Bitte laden Sie die Seite neu, um fortzufahren."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Neue Datei"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Geben Sie Ihre E-Mail-Adresse ein."
+    }
+  ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Arbeitsbereich löschen"
     }
   ],
   "6a26f54883": [
@@ -519,12 +547,6 @@
     {
       "type": 0,
       "value": "Befolgen Sie diese Schritte, um den Inhalt manuell zu importieren:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Gruppeneinstellungen"
     }
   ],
   "70a6facb9d": [
@@ -549,6 +571,12 @@
     {
       "type": 0,
       "value": "Bitte laden Sie die Seite neu"
+    }
+  ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Keine Dateien gefunden"
     }
   ],
   "752b79f137": [
@@ -579,12 +607,6 @@
     {
       "type": 0,
       "value": "Bitte neu laden"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw ist ein kostenloses Online-Whiteboard. Erstelle ein Konto, um deine Dateien zu speichern und mit deinen Freunden zusammenzuarbeiten."
     }
   ],
   "777f9e90cf": [
@@ -641,12 +663,6 @@
       "value": "Vergessen"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Gruppe verlassen…"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -663,6 +679,12 @@
     {
       "type": 0,
       "value": "Herunterladen"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Neuer Arbeitsbereich"
     }
   ],
   "815e116a2e": [
@@ -699,6 +721,12 @@
       "value": "."
     }
   ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Mitglied"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -721,10 +749,16 @@
       "value": "Datei umbenennen"
     }
   ],
-  "8ad4303b83": [
+  "87fdb09de6": [
     {
       "type": 0,
-      "value": "Nein danke"
+      "value": "Sie sind bereits Mitglied dieses Arbeitsbereichs"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Dieser Einladungslink ist abgelaufen."
     }
   ],
   "8c2d3d730c": [
@@ -757,24 +791,6 @@
       "value": "Umbenennen"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "In meine Dateien kopieren"
-    }
-  ],
-  "930390d222": [
-    {
-      "type": 0,
-      "value": "Kopierter Einladungslink"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Sie sind bereits Mitglied dieser Gruppe"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -799,16 +815,16 @@
       "value": "Nutzungsbedingungen"
     }
   ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Dateilink hinzufügen"
-    }
-  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Hell"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Suche löschen"
     }
   ],
   "9b33f5c63c": [
@@ -861,6 +877,26 @@
       "value": "Opt-out"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Sie wurden eingeladen, dem "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " beizutreten."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -903,6 +939,12 @@
       "value": "Einreichen"
     }
   ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Verlassen"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -925,6 +967,12 @@
     {
       "type": 0,
       "value": "Hintergrund"
+    }
+  ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Arbeitsbereich erstellen"
     }
   ],
   "ab0df9ba36": [
@@ -951,6 +999,12 @@
       "value": "Gastbenutzer"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenerieren"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -963,10 +1017,10 @@
       "value": "E-Mail-Adresse"
     }
   ],
-  "b3d2db69fe": [
+  "b48becc771": [
     {
       "type": 0,
-      "value": "Datei-URL"
+      "value": "Einladungen aktivieren"
     }
   ],
   "b6d4223e60": [
@@ -993,10 +1047,10 @@
       "value": "Zum Teilen anmelden"
     }
   ],
-  "bb93a7590f": [
+  "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Akzeptiere und trete der Gruppe bei"
+      "value": "Einladungen sind deaktiviert"
     }
   ],
   "bbbcefd7ce": [
@@ -1055,6 +1109,12 @@
       "value": " geteilt"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Arbeitsbereich verwalten"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1093,12 +1153,6 @@
       "value": "Notwendige Cookies"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Gruppenname"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1111,10 +1165,10 @@
       "value": "Einladen"
     }
   ],
-  "c74ea6dbff": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Weniger anzeigen"
+      "value": "In meinen Arbeitsbereich kopieren"
     }
   ],
   "c87aacf567": [
@@ -1127,12 +1181,6 @@
     {
       "type": 0,
       "value": "Schließen"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Speichern"
     }
   ],
   "cceaefbc20": [
@@ -1235,22 +1283,16 @@
       "value": "Hier können Sie den Inhalt sehen"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Sie haben die maximale Anzahl an Gruppen erreicht. Sie müssen alte Gruppen löschen, bevor Sie neue erstellen können."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Nur einladen"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "Ungültige tldraw-Datei-URL"
+      "value": "Arbeitsbereich verlassen"
     }
   ],
   "dfdb78a4e4": [
@@ -1259,10 +1301,10 @@
       "value": "App-Debug-Markierungen"
     }
   ],
-  "e0c88179b3": [
+  "e0aa021e21": [
     {
       "type": 0,
-      "value": "Mitglieder einladen"
+      "value": "OK"
     }
   ],
   "e2198d6228": [
@@ -1277,12 +1319,6 @@
       "value": "Rechtliche Zusammenfassung"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Administrator"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
@@ -1295,16 +1331,16 @@
       "value": "oder"
     }
   ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Gefahrenzone"
-    }
-  ],
   "ea4788705e": [
     {
       "type": 0,
       "value": "Abbrechen"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Bitten Sie den Inhaber des Arbeitsbereichs um einen neuen."
     }
   ],
   "ebfe9ce86e": [
@@ -1399,12 +1435,6 @@
       "value": "Einstellungen"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Möchtest du diese Gruppe wirklich verlassen?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1415,6 +1445,12 @@
     {
       "type": 0,
       "value": "Viewer"
+    }
+  ],
+  "fc9d47046b": [
+    {
+      "type": 0,
+      "value": "Möchten Sie diesen Arbeitsbereich wirklich verlassen?"
     }
   ],
   "fd1be3efcf": [
@@ -1429,10 +1465,24 @@
       "value": "Link kopiert"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Dateiverknüpfung hinzufügen…"
+      "value": "Möchten Sie "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " wirklich aus diesem Arbeitsbereich entfernen?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Erstelle ein kostenloses Konto, um deine Dateien zu speichern und mit deinen Teamkollegen zu zeichnen."
     }
   ],
   "ffcd73e997": [

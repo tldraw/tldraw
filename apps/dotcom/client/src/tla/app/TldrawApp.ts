@@ -1,21 +1,18 @@
-import { Zero } from '@rocicorp/zero'
+import { QueryResultType, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
-	DragFileOperation,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	TlaFile,
-	TlaFileState,
+	WELCOME_CREATE_SOURCE,
 	TlaFileStatePartial,
 	TlaFlags,
-	TlaGroup,
 	TlaGroupFile,
-	TlaGroupUser,
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
@@ -44,7 +41,6 @@ import {
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
-import pick from 'lodash.pick'
 import { useNavigate } from 'react-router-dom'
 import {
 	Atom,
@@ -78,13 +74,6 @@ import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 import { Zero as ZeroPolyfill } from './zero-polyfill'
-
-type DragState = null | {
-	type: 'file'
-	id: string
-	operation: DragFileOperation
-	hasDragStarted: boolean
-}
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -129,13 +118,13 @@ export class TldrawApp {
 	readonly z: Zero<TlaSchema, TlaMutators, ZeroContext>
 
 	private readonly user$: Signal<TlaUser | undefined>
-	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+	// These signal types are derived from the query definitions in dotcom-shared rather than
+	// hand-written, so the shape (and the nullability of `.one()` joins like `file`) stays in
+	// sync with the queries automatically. A previous hand-written annotation claimed `file` was
+	// always present, which hid a production crash when a `.one()` join resolved to undefined.
+	private readonly fileStates$: Signal<QueryResultType<typeof queries.fileStates>>
 	private readonly workspaceMemberships$: Signal<
-		(TlaGroupUser & {
-			group: TlaGroup
-			groupFiles: Array<TlaGroupFile & { file: TlaFile }>
-			groupMembers: Array<TlaGroupUser>
-		})[]
+		QueryResultType<typeof queries.workspaceMemberships>
 	>
 
 	private readonly useProperZero: boolean
@@ -327,6 +316,8 @@ export class TldrawApp {
 			defaultMessage:
 				'You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones.',
 		},
+		// the name of a workspace's seeded first (welcome) file
+		new_workspace_file_name: { defaultMessage: 'Welcome to your workspace' },
 		// toast title
 		mutation_error_toast_title: { defaultMessage: 'Error' },
 		// toast descriptions
@@ -439,8 +430,30 @@ export class TldrawApp {
 		const membership = this.getWorkspaceMembership(workspaceId)
 		if (!membership) return []
 
-		const pinned = membership.groupFiles.filter((f) => f.index !== null)
-		const unpinned = membership.groupFiles.filter((f) => f.index === null)
+		// Decide which of the membership's group_file rows actually belong in this list.
+		// A file owned by this workspace always belongs. A non-home workspace lists only the
+		// files it owns. The home workspace additionally lists legacy files (no owning group)
+		// and "guest files" — shared files the user opened that are owned by a workspace they
+		// are NOT a member of. It must NOT list a file owned by a workspace the user IS a
+		// member of: that's a mislinked row (a guest file whose workspace was later joined, or
+		// a workspace's welcome file mirrored during the create-workspace race), and opening it
+		// from home would bounce the user into that workspace. Guarding here keeps such rows out
+		// of the list even before they're cleaned up.
+		const homeWorkspaceId = this.getHomeWorkspaceId()
+		const groupFiles = membership.groupFiles.filter((f): f is TlaGroupFile & { file: TlaFile } => {
+			// A group_file row can outlive (or arrive before) its file: the file may be deleted,
+			// not yet synced, or filtered out server-side because the user can no longer read it.
+			// The `file` relationship is a nullable Zero `.one()`, so guard before dereferencing.
+			// The type predicate narrows `file` to non-undefined for the rest of the function.
+			if (!f.file) return false
+			const owningGroupId = f.file.owningGroupId
+			if (owningGroupId === workspaceId) return true
+			if (workspaceId !== homeWorkspaceId) return false
+			return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
+		})
+
+		const pinned = groupFiles.filter((f) => f.index !== null)
+		const unpinned = groupFiles.filter((f) => f.index === null)
 
 		const lastOrdering = this.lastWorkspaceFileOrderings.get(workspaceId)
 		const retainedOrdering =
@@ -483,7 +496,9 @@ export class TldrawApp {
 		userPreferences: computed('user prefs', () => {
 			const user = this.getUser()
 			return {
-				...(pick(user, UserPreferencesKeys) as TLUserPreferences),
+				...(Object.fromEntries(
+					UserPreferencesKeys.map((key) => [key, user[key]])
+				) as unknown as TLUserPreferences),
 				id: this.userId,
 			}
 		}),
@@ -560,7 +575,7 @@ export class TldrawApp {
 				continue
 			}
 
-			// if the file is in a workspace we have access to, we don't want to show it in my files
+			// if the file is in a workspace we have access to, we don't want to show it in my workspace
 			if (myWorkspaceMemberships.some((g) => g.groupFiles.some((gf) => gf.fileId === fileId))) {
 				continue
 			}
@@ -584,7 +599,7 @@ export class TldrawApp {
 			// If this was previously unpinned and we have existing ordering,
 			// preserve its position in the unpinned section to avoid real-time reordering
 			if (!isPinned && existing && !existing.isPinned) {
-				// Keep the old date to preserve ordering in "My files"
+				// Keep the old date to preserve ordering in "My workspace"
 				newEntry.date = existing.date
 			}
 
@@ -615,10 +630,16 @@ export class TldrawApp {
 
 	private canCreateNewFile(workspaceId: string) {
 		if (this.isWorkspacesMigrated()) {
-			// For migrated users, count non-deleted files in the home workspace
+			// Count only files the workspace actually owns — not guest files (shared files the
+			// user opened) or mislinked rows that getWorkspaceFilesSorted hides. Counting those
+			// would let the limit fire on files the user can neither see nor remove. For migrated
+			// users createFile runs no server-side file-limit check, so this is the only gate;
+			// scoping it to owned files keeps it to what the user can actually manage.
 			const membership = this.getWorkspaceMembership(workspaceId)
 			if (!membership) return true
-			const nonDeletedCount = membership.groupFiles.filter((gf) => !gf.file.isDeleted).length
+			const nonDeletedCount = membership.groupFiles.filter(
+				(gf) => gf.file && !gf.file.isDeleted && gf.file.owningGroupId === workspaceId
+			).length
 			return nonDeletedCount < this.config.maxNumberOfFiles
 		} else {
 			// For unmigrated users, count non-deleted files owned by the user
@@ -643,6 +664,51 @@ export class TldrawApp {
 			)
 		}
 		return this.getFileState(fileId)?.isPinned ?? false
+	}
+
+	// A workspace's welcome file is seeded once, when the workspace is created. Its
+	// `createWorkspace` mutation lands before the file does, so the workspace briefly appears
+	// empty; this single-flights the seed per workspace so a double-submit (or any concurrent
+	// caller) shares one creation and all receive its result, rather than creating duplicates.
+	// Cleared once settled.
+	private readonly workspaceWelcomeFileSeeds = new Map<
+		string,
+		Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>>
+	>()
+
+	/**
+	 * Seed a newly-created workspace's welcome file: a named file whose content the sync worker
+	 * resolves from the welcome template (or a committed default). Called once at workspace
+	 * creation — not on later empty opens, which get a blank file (see useSwitchToWorkspace) —
+	 * and single-flighted so a double-submit shares the same creation.
+	 */
+	createWorkspaceWelcomeFile(
+		workspaceId: string
+	): Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>> {
+		const inFlight = this.workspaceWelcomeFileSeeds.get(workspaceId)
+		if (inFlight) return inFlight
+
+		const seed = this.createFile({
+			workspaceId,
+			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+			createSource: WELCOME_CREATE_SOURCE,
+		})
+		this.workspaceWelcomeFileSeeds.set(workspaceId, seed)
+		seed.finally(() => {
+			if (this.workspaceWelcomeFileSeeds.get(workspaceId) === seed) {
+				this.workspaceWelcomeFileSeeds.delete(workspaceId)
+			}
+		})
+		return seed
+	}
+
+	/**
+	 * The in-flight welcome-file seed for a workspace, if one is still creating. The empty-workspace
+	 * open path uses this to await a just-created workspace's welcome file rather than racing it with
+	 * a duplicate blank file. Returns undefined once the seed settles (or if none was started).
+	 */
+	getPendingWorkspaceWelcomeFile(workspaceId: string) {
+		return this.workspaceWelcomeFileSeeds.get(workspaceId)
 	}
 
 	async createFile({
@@ -700,6 +766,8 @@ export class TldrawApp {
 
 		if (!createSource) {
 			analyticsSource = 'create-blank-file' // Default for button clicks
+		} else if (createSource === WELCOME_CREATE_SOURCE) {
+			analyticsSource = 'welcome'
 		} else if (createSource.startsWith(`${LOCAL_FILE_PREFIX}/`)) {
 			analyticsSource = 'slurp'
 		} else if (createSource.startsWith(`${FILE_PREFIX}/`)) {
@@ -1151,17 +1219,18 @@ export class TldrawApp {
 			fileId: string
 			workspaceId: string
 		},
-		dragState: null as DragState,
+		// The current sidebar file-search query. Empty string means no filter.
+		searchQuery: '',
 	})
 
 	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
 	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
 		// The home workspace can't be invited to.
 		if (workspaceId === this.getHomeWorkspaceId()) return false
-		const membership = this.getWorkspaceMembership(workspaceId)
-		if (!membership?.group.inviteSecret) return false
+		const group = this.getWorkspaceMembership(workspaceId)?.group
+		if (!group?.inviteSecret) return false
 
-		const inviteText = `${location.origin}/invite/${membership.group.inviteSecret}`
+		const inviteText = `${location.origin}/invite/${group.inviteSecret}`
 		navigator.clipboard.writeText(inviteText)
 
 		if (showToast) {
@@ -1217,14 +1286,14 @@ export class TldrawApp {
 		}
 	}
 
-	navigateToWorkspaceFiles(workspaceId: string) {
+	navigateToWorkspaceFiles(workspaceId: string, opts: { replace?: boolean } = {}) {
 		const files = this.getWorkspaceFilesSorted(workspaceId)
 
 		if (!files.length) {
 			return false
 		}
 
-		this.navigate(routes.tlaFile(files[0]!.fileId))
+		this.navigate(routes.tlaFile(files[0]!.fileId), opts)
 		return true
 	}
 }

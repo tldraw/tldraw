@@ -1,22 +1,21 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { KeyboardEvent, MouseEvent, useEffect, useRef } from 'react'
+import { KeyboardEvent, MouseEvent, ReactNode, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
 	TldrawUiMenuContextProvider,
 	TldrawUiTooltip,
 	isEqual,
 	preventDefault,
+	useContainer,
 	useMaybeEditor,
 	useMenuIsOpen,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
-import { useDragTracking } from '../../../hooks/useDragTracking'
 import { useHasFlag } from '../../../hooks/useHasFlag'
-import { useIsDragging } from '../../../hooks/useIsDragging'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -98,6 +97,7 @@ export function TlaSidebarFileLink({
 	}
 
 	const [_, handleOpenChange] = useMenuIsOpen(`file-context-menu-${fileId}`)
+	const container = useContainer()
 
 	return (
 		<_ContextMenu.Root onOpenChange={handleOpenChange} modal={false}>
@@ -116,19 +116,21 @@ export function TlaSidebarFileLink({
 					className={className}
 				/>
 			</_ContextMenu.Trigger>
-			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
-				{/* Don't show the context menu on mobile */}
-				{!isMobile && (
-					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-						<FileItems
-							source="sidebar-context-menu"
-							fileId={fileId}
-							onRenameAction={handleRenameAction}
-							workspaceId={workspaceId}
-						/>
-					</TldrawUiMenuContextProvider>
-				)}
-			</_ContextMenu.Content>
+			<_ContextMenu.Portal container={container}>
+				<_ContextMenu.Content className="tlui-menu tlui-scrollable">
+					{/* Don't show the context menu on mobile */}
+					{!isMobile && (
+						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+							<FileItems
+								source="sidebar-context-menu"
+								fileId={fileId}
+								onRenameAction={handleRenameAction}
+								workspaceId={workspaceId}
+							/>
+						</TldrawUiMenuContextProvider>
+					)}
+				</_ContextMenu.Content>
+			</_ContextMenu.Portal>
 		</_ContextMenu.Root>
 	)
 }
@@ -173,8 +175,6 @@ export function TlaSidebarFileLinkInner({
 		editor,
 	])
 
-	const { startDragTracking } = useDragTracking()
-
 	const handleKeyDown = (e: KeyboardEvent) => {
 		if (!isActive) return
 		if (e.key === 'Enter') {
@@ -186,13 +186,20 @@ export function TlaSidebarFileLinkInner({
 		if (!isActive || !linkRef.current) return
 		// Don't focus if any menus are open to prevent dismissing them
 		if (editor?.menus.hasAnyOpenMenus()) return
+		// Don't steal focus from a text field the user is typing in. The active
+		// link remounts as files filter in and out of the sidebar search results,
+		// and its mount-time focus would otherwise blur the search input.
+		const activeEl = linkRef.current.ownerDocument.activeElement as HTMLElement | null
+		if (activeEl && activeEl !== linkRef.current) {
+			const tagName = activeEl.tagName.toLowerCase()
+			if (tagName === 'input' || tagName === 'textarea' || activeEl.isContentEditable) return
+		}
 		linkRef.current.focus({ preventScroll: preventScrollOnNavigation })
 	}, [isActive, linkRef, editor])
 
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
 	const hasAdminRights = useHasFileAdminRights(fileId)
 
-	const isDragging = useIsDragging(fileId)
 	// disable dragging on mobile
 	const isCoarsePointer = getIsCoarsePointer()
 
@@ -203,7 +210,14 @@ export function TlaSidebarFileLinkInner({
 	if (!file) return null
 
 	if (isRenaming) {
-		return <TlaSidebarRenameInline source="sidebar" fileId={fileId} onClose={onClose} />
+		return (
+			<TlaSidebarRenameInline
+				source="sidebar"
+				fileId={fileId}
+				onClose={onClose}
+				active={isActive}
+			/>
+		)
 	}
 
 	return (
@@ -217,7 +231,6 @@ export function TlaSidebarFileLinkInner({
 			data-is-own-file={hasAdminRights}
 			onDoubleClick={hasAdminRights ? handleRenameAction : undefined}
 			data-drop-target-id={`file:${fileId}`}
-			data-is-dragging={isDragging}
 			data-is-pinned={isPinned}
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
@@ -226,16 +239,13 @@ export function TlaSidebarFileLinkInner({
 			onDragStart={
 				isDragEnabled
 					? (event) => {
-							// Set native drag data for drag-to-new-tab functionality
+							// Dragging a file just drags its URL, like dragging a link. This
+							// lets the user drag a file out to a new tab or another app; it no
+							// longer reorders or unpins files (that happens via the file menu).
 							const fileUrl = routes.tlaFile(fileId, { asUrl: true })
-							event.dataTransfer.effectAllowed = 'move'
+							event.dataTransfer.effectAllowed = 'copyLink'
 							event.dataTransfer.setData('text/uri-list', fileUrl)
-							startDragTracking({
-								workspaceId,
-								fileId,
-								clientX: event.clientX,
-								clientY: event.clientY,
-							})
+							event.dataTransfer.setData('text/plain', fileUrl)
 						}
 					: undefined
 			}
@@ -273,7 +283,7 @@ export function TlaSidebarFileLinkInner({
 					)}
 					data-testid={`${testId}-name`}
 				>
-					{fileName}
+					<HighlightedFileName name={fileName} />
 				</div>
 				{!hasAdminRights && <GuestBadge file={file} href={href} />}
 			</div>
@@ -284,6 +294,42 @@ export function TlaSidebarFileLinkInner({
 			/>
 		</div>
 	)
+}
+
+/**
+ * Renders a file name, bolding any portions that match the active sidebar
+ * search query. With no query it just renders the plain name.
+ */
+function HighlightedFileName({ name }: { name: string }) {
+	const app = useApp()
+	const query = useValue('sidebar search query', () => app.sidebarState.get().searchQuery.trim(), [
+		app,
+	])
+
+	if (!query) return <>{name}</>
+
+	const lowerName = name.toLowerCase()
+	const lowerQuery = query.toLowerCase()
+	const parts: ReactNode[] = []
+	let start = 0
+	let matchIndex = lowerName.indexOf(lowerQuery)
+	if (matchIndex === -1) return <>{name}</>
+
+	let key = 0
+	while (matchIndex !== -1) {
+		if (matchIndex > start) parts.push(name.slice(start, matchIndex))
+		const end = matchIndex + query.length
+		parts.push(
+			<strong key={key++} className={styles.sidebarFileListItemLabelMatch}>
+				{name.slice(matchIndex, end)}
+			</strong>
+		)
+		start = end
+		matchIndex = lowerName.indexOf(lowerQuery, start)
+	}
+	if (start < name.length) parts.push(name.slice(start))
+
+	return <>{parts}</>
 }
 
 function GuestBadge({ file, href }: { file: TlaFile; href: string }) {

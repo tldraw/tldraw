@@ -96,6 +96,42 @@ describe('updateShape', () => {
 	})
 })
 
+describe('updateViewportScreenBounds', () => {
+	it('bails without crashing or updating bounds when the container document has no body', () => {
+		const documentSpy = vi
+			.spyOn(editor, 'getContainerDocument')
+			.mockReturnValue({ body: null } as unknown as Document)
+
+		const prevScreenBounds = editor.getInstanceState().screenBounds
+		const prevInsets = editor.getInstanceState().insets
+
+		try {
+			expect(() => editor.updateViewportScreenBounds(new Box(10, 20, 100, 200))).not.toThrow()
+			// A torn-down document is not measurable, so the bounds are left untouched.
+			expect(editor.getInstanceState().screenBounds).toEqual(prevScreenBounds)
+			expect(editor.getInstanceState().insets).toEqual(prevInsets)
+		} finally {
+			documentSpy.mockRestore()
+		}
+	})
+
+	it('uses the container document body to calculate right and bottom insets', () => {
+		const documentSpy = vi.spyOn(editor, 'getContainerDocument').mockReturnValue({
+			body: {
+				scrollWidth: 500,
+				scrollHeight: 400,
+			},
+		} as unknown as Document)
+
+		try {
+			editor.updateViewportScreenBounds(new Box(10, 20, 100, 200))
+			expect(editor.getInstanceState().insets).toEqual([true, true, true, true])
+		} finally {
+			documentSpy.mockRestore()
+		}
+	})
+})
+
 describe('zoomToFit', () => {
 	it('no-op when isLocked is set', () => {
 		editor.getCurrentPageShapeIds = vi.fn(() => new Set([createShapeId('box1')]))
