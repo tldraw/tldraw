@@ -4,31 +4,32 @@ description: 'Install Playwright browsers with version-keyed caching shared acro
 runs:
   using: 'composite'
   steps:
-    # Resolve the installed Playwright version so the cache key invalidates on upgrade.
-    # @playwright/test is a root devDependency, so Node resolves it from the repo root — no
-    # per-workspace cwd, and nothing is written to the tree.
-    - name: Get installed Playwright version
-      id: playwright-version
+    # Resolve the inputs to both the cache key and the install in one place, so they can't drift.
+    # - version: @playwright/test is a root devDependency, so Node resolves it from the repo root
+    #   (no per-workspace cwd, nothing written to the tree). The key invalidates on upgrade.
+    # - browsers: only bundled Chromium — every e2e project uses `devices['Desktop Chrome']` /
+    #   `['Pixel 5']` with no `channel`, so the branded `chrome` build is never launched. This is
+    #   part of the cache key too: adding a browser here changes the key, so the cache can't go
+    #   stale-hit and skip installing the newly-added browser.
+    - name: Resolve Playwright version and browsers
       shell: bash
       run: |
-        PLAYWRIGHT_VERSION="$(node -p "require('@playwright/test/package.json').version")"
-        echo "PLAYWRIGHT_VERSION=$PLAYWRIGHT_VERSION" >> "$GITHUB_ENV"
+        echo "PLAYWRIGHT_VERSION=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_ENV"
+        echo "PLAYWRIGHT_BROWSERS=chromium" >> "$GITHUB_ENV"
 
-    # Cache keyed on os + arch + version. The arch matters: ARM and x64 runners need different
-    # browser binaries, and a key without it can restore the wrong ones.
+    # Keyed on os + arch + version + browsers. The arch matters: ARM and x64 runners need
+    # different binaries, and a key without it can restore the wrong ones.
     - name: Check for Playwright browsers cache
       id: playwright-cache
       uses: actions/cache@v5
       with:
         path: |
           ~/.cache/ms-playwright
-        key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+        key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ env.PLAYWRIGHT_BROWSERS }}
 
     # Only on a cache miss — a cold `--with-deps` install is slow and occasionally hangs on the
-    # runner's apt lock, so we skip it entirely when the browsers are already cached. Only
-    # bundled Chromium is installed: every e2e project uses `devices['Desktop Chrome']` /
-    # `['Pixel 5']` (no `channel`), so the branded `chrome` build is never launched.
+    # runner's apt lock, so we skip it entirely when the browsers are already cached.
     - name: Install Playwright browsers
       if: steps.playwright-cache.outputs.cache-hit != 'true'
       shell: bash
-      run: npx playwright install --with-deps chromium
+      run: npx playwright install --with-deps $PLAYWRIGHT_BROWSERS
