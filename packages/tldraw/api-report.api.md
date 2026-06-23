@@ -3442,9 +3442,6 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
-// @public (undocumented)
-export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
-
 // @public
 export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
     // (undocumented)
@@ -3566,8 +3563,6 @@ export interface StrokePoint {
     radius: number;
     // (undocumented)
     runningLength: number;
-    // (undocumented)
-    vector: Vec;
 }
 
 // @public (undocumented)
