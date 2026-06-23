@@ -1,35 +1,40 @@
 name: 'Setup Playwright'
 description: 'Install Playwright browsers with version-keyed caching shared across workflows.'
 
+inputs:
+  browsers:
+    description: 'Space-separated Playwright browsers to install and cache.'
+    required: false
+    # Only bundled Chromium by default — every e2e project uses `devices['Desktop Chrome']` /
+    # `['Pixel 5']` with no `channel`, so the branded `chrome` build is never launched.
+    default: 'chromium'
+
 runs:
   using: 'composite'
   steps:
-    # Resolve the inputs to both the cache key and the install in one place, so they can't drift.
-    # - version: @playwright/test is a root devDependency, so Node resolves it from the repo root
-    #   (no per-workspace cwd, nothing written to the tree). The key invalidates on upgrade.
-    # - browsers: only bundled Chromium — every e2e project uses `devices['Desktop Chrome']` /
-    #   `['Pixel 5']` with no `channel`, so the branded `chrome` build is never launched. This is
-    #   part of the cache key too: adding a browser here changes the key, so the cache can't go
-    #   stale-hit and skip installing the newly-added browser.
-    - name: Resolve Playwright version and browsers
+    # @playwright/test is a root devDependency, so Node resolves it from the repo root (no
+    # per-workspace cwd, nothing written to the tree). The version keys the cache so it
+    # invalidates on upgrade.
+    - name: Resolve Playwright version
       shell: bash
-      run: |
-        echo "PLAYWRIGHT_VERSION=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_ENV"
-        echo "PLAYWRIGHT_BROWSERS=chromium" >> "$GITHUB_ENV"
+      run: echo "PLAYWRIGHT_VERSION=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_ENV"
 
-    # Keyed on os + arch + version + browsers. The arch matters: ARM and x64 runners need
-    # different binaries, and a key without it can restore the wrong ones.
+    # Keyed on os + arch + version + browsers. The arch matters (ARM vs x64 need different
+    # binaries); the browser set matters too — without it, adding a browser would be a stale cache
+    # hit that skips the install and never downloads the new one.
     - name: Check for Playwright browsers cache
       id: playwright-cache
       uses: actions/cache@v5
       with:
         path: |
           ~/.cache/ms-playwright
-        key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ env.PLAYWRIGHT_BROWSERS }}
+        key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ inputs.browsers }}
 
     # Only on a cache miss — a cold `--with-deps` install is slow and occasionally hangs on the
     # runner's apt lock, so we skip it entirely when the browsers are already cached.
     - name: Install Playwright browsers
       if: steps.playwright-cache.outputs.cache-hit != 'true'
       shell: bash
-      run: npx playwright install --with-deps $PLAYWRIGHT_BROWSERS
+      env:
+        BROWSERS: ${{ inputs.browsers }}
+      run: npx playwright install --with-deps $BROWSERS
