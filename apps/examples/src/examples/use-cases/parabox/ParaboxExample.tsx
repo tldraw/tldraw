@@ -11,7 +11,7 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { doMove, getWorld, hud$, loadLevel, restart, undo, version$ } from './game-state'
+import { doMove, getWorld, hud$, loadLevel, restart, undo } from './game-state'
 import { Dir, roomDepth, World } from './sim'
 import './parabox.css'
 
@@ -107,8 +107,14 @@ function buildScene(world: World): { shapes: TLShapePartial[]; playerRect: Box |
 	return { shapes, playerRect }
 }
 
-function render(editor: Editor) {
-	const { shapes, playerRect } = buildScene(getWorld())
+// The room the camera is currently framing. We only animate the camera when the
+// player changes rooms (entering/exiting a box) — within a room the camera holds
+// still, and re-zooming every move would just interrupt its own animation.
+let framedRoom: string | null = null
+
+function render(editor: Editor, force = false) {
+	const world = getWorld()
+	const { shapes, playerRect } = buildScene(world)
 	editor.run(
 		() => {
 			const old = editor.getCurrentPageShapes().filter((s) => s.meta?.pb)
@@ -117,7 +123,9 @@ function render(editor: Editor) {
 		},
 		{ history: 'ignore', ignoreShapeLock: true }
 	)
-	if (playerRect) {
+	const room = world.objects[world.playerId].roomId
+	if (playerRect && (force || room !== framedRoom)) {
+		framedRoom = room
 		editor.zoomToBounds(playerRect, { inset: 60, animation: { duration: 200 } })
 	}
 }
@@ -126,8 +134,18 @@ function Game() {
 	const editor = useEditor()
 
 	useEffect(() => {
-		loadLevel(0)
-		render(editor)
+		// Raise the zoom ceiling so the camera can dive more than one box deep
+		// (tldraw caps at 8x by default; two levels down needs ~30x). Deferred a
+		// frame so it lands after tldraw's initial camera fit rather than
+		// interrupting it.
+		const raf = requestAnimationFrame(() => {
+			editor.setCameraOptions({
+				...editor.getCameraOptions(),
+				zoomSteps: [0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512],
+			})
+			loadLevel(0)
+			render(editor, true)
+		})
 
 		const dirFor = (key: string): Dir | null => {
 			switch (key) {
@@ -162,18 +180,19 @@ function Game() {
 				render(editor)
 			} else if (key === 'r') {
 				restart()
-				render(editor)
+				render(editor, true)
 			} else if (key === 'n') {
 				loadLevel(hud$.get().level + 1)
-				render(editor)
+				render(editor, true)
 			} else if (key === 'p') {
 				loadLevel(hud$.get().level - 1)
-				render(editor)
+				render(editor, true)
 			}
 		}
 
 		window.addEventListener('keydown', onKeyDown)
 		return () => {
+			cancelAnimationFrame(raf)
 			window.removeEventListener('keydown', onKeyDown)
 			editor.run(
 				() => {
@@ -184,13 +203,6 @@ function Game() {
 			)
 		}
 	}, [editor])
-
-	// Redraw if the world changes for any reason (e.g. level load) outside keys.
-	const v = useValue('pb-version', () => version$.get(), [])
-	useEffect(() => {
-		render(editor)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [v])
 
 	return null
 }
@@ -225,7 +237,7 @@ function Hud() {
 						className="pb-next"
 						onClick={() => {
 							loadLevel(hud.level + 1)
-							render(editor)
+							render(editor, true)
 						}}
 					>
 						Next <kbd>N</kbd>

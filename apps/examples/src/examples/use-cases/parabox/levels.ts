@@ -89,19 +89,23 @@ export function parseLevel(def: LevelDef): World {
 
 export const LEVELS: LevelDef[] = [
 	{
-		name: 'Push',
+		// Warm-up, but it needs a turn: push the block right to the wall, then come
+		// round underneath and push it up onto the target.
+		name: 'Corner',
 		root: 'main',
 		rooms: {
 			main: [
-				'#######', //
-				'#.....#',
-				'#@$..=#',
-				'#.....#',
-				'#######',
+				'######', //
+				'#...=#',
+				'#@$..#',
+				'#....#',
+				'######',
 			],
 		},
 	},
 	{
+		// Push the block into the box, then follow it in and turn it down onto the
+		// target — you have to reposition inside the box.
 		name: 'Enter',
 		root: 'main',
 		rooms: {
@@ -114,26 +118,51 @@ export const LEVELS: LevelDef[] = [
 			],
 			A: [
 				'...', //
-				'.=.',
 				'...',
+				'.=.',
 			],
 		},
 	},
 	{
+		// A box that contains itself — entering loops forever (infinite zoom). Drive
+		// the block in, push it across, then up-and-over onto the target.
 		name: 'Recursion',
 		root: 'main',
 		rooms: {
 			main: [
-				'########', //
-				'#......#',
-				'#@$..R##',
-				'#......#',
-				'########',
+				'#######', //
+				'#.....#',
+				'#@$..R#',
+				'#.....#',
+				'#######',
 			],
-			// R contains itself: entering it loops forever (infinite zoom). Push the
-			// block onto the target inside.
 			R: [
-				'.R.', //
+				'...R.', //
+				'.....',
+				'..=..',
+			],
+		},
+	},
+	{
+		// Boxes nested two deep: the block (and you) have to descend main → A → B to
+		// reach the target. This is the one that exercises multiple real zooms.
+		name: 'Nest',
+		root: 'main',
+		rooms: {
+			main: [
+				'#######', //
+				'#.....#',
+				'#@$..A#',
+				'#.....#',
+				'#######',
+			],
+			A: [
+				'.....', //
+				'.B#..',
+				'.....',
+			],
+			B: [
+				'...', //
 				'.=.',
 				'...',
 			],
