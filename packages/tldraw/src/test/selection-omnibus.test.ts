@@ -1651,13 +1651,10 @@ describe('shift brushes to add to the selection', () => {
 		editor.pointerMove(1, 1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
 		editor.keyUp('Shift')
-		// there's a timer here—we should keep the shift mode until the timer expires
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
-		vi.advanceTimersByTime(500)
-		// once the timer expires, we should be back in regular mode
+		// a real keyup clears shift immediately, so we're back in regular mode right away
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Shift')
-		// there's no timer on key down, so go right into shift mode again
+		// go right back into shift mode
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box1])
 	})
 })
@@ -1738,9 +1735,7 @@ describe('scribble brushes to add to the selection', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
 		editor.pointerMove(450, 250) // below box 3
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
-		editor.keyUp('Alt') // scribble
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box4]) // still in timer
-		vi.advanceTimersByTime(1000) // let timer expire
+		editor.keyUp('Alt') // a real keyup clears alt immediately, switching to box brushing
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box3, ids.box4]) // brushed!
 		editor.keyDown('Alt') // scribble
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box4]) // back to brushed only

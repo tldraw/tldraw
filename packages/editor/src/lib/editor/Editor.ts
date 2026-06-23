@@ -10959,11 +10959,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return
 		}
 
+		const isKeyUp = info.type === 'keyboard' && info.name === 'key_up'
+
+		// Modifier (shift/alt/ctrl/meta) reactive state is reconciled here in two passes.
+		//
+		// TODO: the debounce timer below is a workaround we'd like to eventually remove. The
+		// clean model is for keyboard keydown/keyup to be the single source of truth for modifier
+		// state, with pointer/wheel events only reading it. The timer only exists because a keyup
+		// can never arrive (focus loss, cmd+tab, OS-level shortcuts), leaving a modifier stuck on;
+		// in that case a later event reporting the flag gone recovers the state. Historically this
+		// debounce also re-dispatched a synthetic keyup carrying sibling modifier flags, which on
+		// macOS (cmd sets both metaKey and ctrlKey) could resurrect a modifier that was already
+		// released — hence the explicit, authoritative keyup pass below.
+		//
+		// First pass — set modifiers ON. For non-keyup events that report a modifier gone, arm a
+		// debounced clear: this is purely the fallback for keyups we never receive, where a later
+		// event recovers the state. Real keyups skip this and are handled in the second pass.
 		if (info.shiftKey) {
 			clearTimeout(this._shiftKeyTimeout)
 			this._shiftKeyTimeout = -1
 			inputs.setShiftKey(true)
-		} else if (!info.shiftKey && inputs.getShiftKey() && this._shiftKeyTimeout === -1) {
+		} else if (!isKeyUp && inputs.getShiftKey() && this._shiftKeyTimeout === -1) {
 			this._shiftKeyTimeout = this.timers.setTimeout(this._setShiftKeyTimeout, 150)
 		}
 
@@ -10971,7 +10987,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			clearTimeout(this._altKeyTimeout)
 			this._altKeyTimeout = -1
 			inputs.setAltKey(true)
-		} else if (!info.altKey && inputs.getAltKey() && this._altKeyTimeout === -1) {
+		} else if (!isKeyUp && inputs.getAltKey() && this._altKeyTimeout === -1) {
 			this._altKeyTimeout = this.timers.setTimeout(this._setAltKeyTimeout, 150)
 		}
 
@@ -10979,7 +10995,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			clearTimeout(this._ctrlKeyTimeout)
 			this._ctrlKeyTimeout = -1
 			inputs.setCtrlKey(true)
-		} else if (!info.ctrlKey && inputs.getCtrlKey() && this._ctrlKeyTimeout === -1) {
+		} else if (!isKeyUp && inputs.getCtrlKey() && this._ctrlKeyTimeout === -1) {
 			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
 		}
 
@@ -10987,8 +11003,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 			clearTimeout(this._metaKeyTimeout)
 			this._metaKeyTimeout = -1
 			inputs.setMetaKey(true)
-		} else if (!info.metaKey && inputs.getMetaKey() && this._metaKeyTimeout === -1) {
+		} else if (!isKeyUp && inputs.getMetaKey() && this._metaKeyTimeout === -1) {
 			this._metaKeyTimeout = this.timers.setTimeout(this._setMetaKeyTimeout, 150)
+		}
+
+		// Second pass — a real keyup is authoritative: clear whatever it reports as released,
+		// immediately. No debounce, so a sibling's timer can't re-dispatch a stale keyup and
+		// resurrect a modifier (on macOS cmd reports both metaKey and ctrlKey; both clear here).
+		if (isKeyUp) {
+			if (!info.shiftKey) {
+				clearTimeout(this._shiftKeyTimeout)
+				this._shiftKeyTimeout = -1
+				inputs.setShiftKey(false)
+			}
+			if (!info.altKey) {
+				clearTimeout(this._altKeyTimeout)
+				this._altKeyTimeout = -1
+				inputs.setAltKey(false)
+			}
+			if (!info.ctrlKey) {
+				clearTimeout(this._ctrlKeyTimeout)
+				this._ctrlKeyTimeout = -1
+				inputs.setCtrlKey(false)
+			}
+			if (!info.metaKey) {
+				clearTimeout(this._metaKeyTimeout)
+				this._metaKeyTimeout = -1
+				inputs.setMetaKey(false)
+			}
 		}
 
 		if (!inputs.getIsPointing()) {
