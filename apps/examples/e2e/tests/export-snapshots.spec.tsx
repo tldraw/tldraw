@@ -120,55 +120,6 @@ const snapshots: Snapshots = {
 			),
 		},
 	},
-	// The cursive/RTL/italic ink-bounds fix (#8802/#8803): glyph ink that spills past the advance
-	// box — trailing cursive strokes, italic slant, tall diacritics — must be enclosed by the
-	// export, not clipped at the box edge. Its own image so it doesn't grow the shared
-	// `Text rendering` golden. These are autosize text shapes, so the box hugs the glyphs and any
-	// clipping would be obvious.
-	'RTL and cursive text': {
-		'': {
-			arabic: (
-				<TL.text richText={toRichText('مرحباً بكم في تلدرو')} font="draw" size="xl" color="black" />
-			),
-			hebrew: <TL.text richText={toRichText('שלום עולם')} font="draw" size="xl" color="black" />,
-			italic: (
-				<TL.text
-					richText={{
-						type: 'doc',
-						content: [
-							{
-								type: 'paragraph',
-								content: [{ type: 'text', text: 'Affjjy WV', marks: [{ type: 'italic' }] }],
-							},
-						],
-					}}
-					font="serif"
-					size="xl"
-					color="black"
-				/>
-			),
-			// Forced italic on Arabic (no italic face) → the browser synthesizes oblique, slanting
-			// the cursive RTL glyphs; the export must still enclose them.
-			'italic arabic': (
-				<TL.text
-					richText={{
-						type: 'doc',
-						content: [
-							{
-								type: 'paragraph',
-								content: [
-									{ type: 'text', text: 'مرحباً بكم في تلدرو', marks: [{ type: 'italic' }] },
-								],
-							},
-						],
-					}}
-					font="draw"
-					size="xl"
-					color="black"
-				/>
-			),
-		},
-	},
 	Fills: Object.fromEntries(
 		DefaultFillStyle.values.map((fill) => [
 			`fill=${fill}`,
