@@ -10,8 +10,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
 import { Logger } from './logger'
-import { dispatchForwardedCall, registerTools } from './register-tools'
-import type { AppToolContext } from './register-tools'
+import { registerTools } from './register-tools'
 import { loadEditorApiSpecFromAssets, loadMethodMapFromAssets } from './shared/generated-data'
 import { PendingRequests } from './shared/pending-requests'
 import {
@@ -23,13 +22,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './shared/types'
-import type {
-	ForwardOp,
-	ForwardResult,
-	MCP_APP_HOST_NAMES,
-	PendingBootstrap,
-	ServerDeps,
-} from './shared/types'
+import type { MCP_APP_HOST_NAMES, PendingBootstrap, ServerDeps } from './shared/types'
 import { resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 
 // --- Types ---
@@ -92,36 +85,10 @@ export class TldrawMCP extends McpAgent<Env> {
 	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
 	pendingRequests = new PendingRequests()
 	pendingBootstrap: PendingBootstrap | null = null
-	/** Maps an exec pending-request channel to the canvasId it created. */
-	execChannelCanvasIds = new Map<string, string>()
-	/** Server deps, retained so forwarded RPC calls reuse this DO's SQLite-backed state. */
-	deps: ServerDeps | null = null
 
-	/**
-	 * The full Durable Object name used for routing (e.g. `streamable-http:<id>`
-	 * or `sse:<id>`). This is the canonical key the widget echoes back so its
-	 * calls can be forwarded to this exact DO regardless of host session handling.
-	 */
-	getDoName(): string {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return (this as any).name ?? ''
-	}
-
-	/**
-	 * Native Durable Object RPC entry point. When a widget-initiated app-only call
-	 * lands on the wrong DO (the host didn't preserve the MCP session id), that DO
-	 * forwards the operation here — to the DO that actually holds this session's
-	 * pending exec promise and SQLite state. One hop only: this never re-forwards.
-	 */
-	async handleForwardedCall(op: ForwardOp, payload: unknown): Promise<ForwardResult> {
-		if (!this.deps) return { ok: false, data: { error: 'DO not initialized' } }
-		const ctx: AppToolContext = {
-			deps: this.deps,
-			pendingRequests: this.pendingRequests,
-			execChannelCanvasIds: this.execChannelCanvasIds,
-			log: this.logger.toLogFn(),
-		}
-		return dispatchForwardedCall(ctx, op, payload)
+	/** The MCP session ID used for DO routing (extracted from DO name). */
+	getMcpSessionId(): string {
+		return (this as any).name?.replace(/^streamable-http:/, '') ?? ''
 	}
 
 	async init() {
@@ -207,7 +174,7 @@ export class TldrawMCP extends McpAgent<Env> {
 				return b
 			},
 			getSessionId: () => this.sessionId,
-			getDoName: () => this.getDoName(),
+			getMcpSessionId: () => this.getMcpSessionId(),
 			loadWidgetHtml: async () => widgetHtml,
 			loadEditorApiSpec: async () => {
 				editorApiSpecPromise ??= loadEditorApiSpecFromAssets(this.env.ASSETS)
@@ -218,8 +185,6 @@ export class TldrawMCP extends McpAgent<Env> {
 				return methodMapPromise
 			},
 		}
-
-		this.deps = deps
 
 		const workerOrigin = this.env.WORKER_ORIGIN
 
@@ -233,8 +198,6 @@ export class TldrawMCP extends McpAgent<Env> {
 			analytics: this.env.MCP_ANALYTICS,
 			getClientHostName: () => this.clientHostName,
 			pendingRequests: this.pendingRequests,
-			mcpObject: this.env.MCP_OBJECT,
-			execChannelCanvasIds: this.execChannelCanvasIds,
 		})
 	}
 

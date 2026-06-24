@@ -18,13 +18,7 @@ export interface ServerDeps {
 	setPendingBootstrap(bootstrap: PendingBootstrap): void
 	consumePendingBootstrap(): PendingBootstrap | null
 	getSessionId(): string
-	/**
-	 * The full Durable Object name of this session's canonical DO, including its
-	 * transport prefix (e.g. `streamable-http:<id>` or `sse:<id>`). This is the
-	 * routing key the widget echoes back so widget-initiated calls can be
-	 * forwarded to the DO that actually holds this session's state.
-	 */
-	getDoName(): string
+	getMcpSessionId(): string
 	loadWidgetHtml(): Promise<string>
 	loadEditorApiSpec(): Promise<EditorApiSpec>
 	loadMethodMap(): Promise<MethodMap>
@@ -49,40 +43,6 @@ export interface RegisterToolsOptions {
 	getClientHostName(): MCP_APP_HOST_NAMES | undefined
 	/** Pending requests store for widget→server callback bridge. */
 	pendingRequests: PendingRequests
-	/**
-	 * Durable Object namespace, used to forward widget-initiated app-only calls
-	 * to the canonical session DO when they land on the wrong instance (hosts
-	 * are inconsistent about preserving the MCP session id). When omitted,
-	 * forwarding is disabled and calls are always handled locally.
-	 */
-	mcpObject?: DurableObjectNamespace
-	/**
-	 * Maps an exec pending-request channel to the canvasId it created. Lives on
-	 * the DO instance so both the `exec`/`_exec_callback` handlers and the
-	 * forwarded-call entry point ({@link ForwardTarget.handleForwardedCall})
-	 * read and clear the same entries.
-	 */
-	execChannelCanvasIds: Map<string, string>
-}
-
-/** Tool argument carrying the canonical DO name the widget should route to. */
-export const ROUTING_DO_NAME_ARG = '__doName'
-
-/** App-only operations that a non-canonical DO can forward to the canonical DO. */
-export type ForwardOp = 'exec_callback' | 'get_canvas_state' | 'read_checkpoint' | 'save_checkpoint'
-
-/** Result envelope returned by {@link ForwardTarget.handleForwardedCall}. */
-export interface ForwardResult {
-	ok: boolean
-	data?: unknown
-}
-
-/**
- * Minimal RPC surface of the canonical session DO, used to forward widget calls
- * without importing the worker class (avoids a circular import).
- */
-export interface ForwardTarget {
-	handleForwardedCall(op: ForwardOp, payload: unknown): Promise<ForwardResult>
 }
 
 export interface DynamicWorkerLoader {

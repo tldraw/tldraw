@@ -1,4 +1,3 @@
-import type { AppEventMap } from '@modelcontextprotocol/ext-apps'
 import { type App, McpUiDisplayMode, useApp } from '@modelcontextprotocol/ext-apps/react'
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -41,13 +40,11 @@ import {
 	loadLocalSnapshot,
 	parseCheckpointFromToolResult,
 	clearCanvasContext,
-	pinnedArgs,
 	pushCanvasContext,
 	saveCheckpointToServer,
 	saveLocalSnapshot,
 	setCurrentCanvasId,
 	setCurrentSessionId,
-	setRoutingDoName,
 	syncEditorState,
 } from './persistence'
 import { applySnapshot, zoomToFitRequestShapes } from './snapshot'
@@ -55,23 +52,6 @@ import { applySnapshot, zoomToFitRequestShapes } from './snapshot'
 const LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY as string
 
 const SAVE_DEBOUNCE_MS = 500
-
-/**
- * Carries the one-shot `toolinput`/`toolinputpartial` events between the
- * pre-connect listeners (registered in `onAppCreated`) and the real handlers
- * installed by `TldrawCanvas`. `early` latches the latest event seen before a
- * live handler exists; `live` holds the handlers once `TldrawCanvas` mounts.
- */
-interface ToolInputBridge {
-	live: {
-		toolinput?(params: AppEventMap['toolinput']): void
-		toolinputpartial?(params: AppEventMap['toolinputpartial']): void
-	}
-	early: {
-		toolinput?: AppEventMap['toolinput']
-		toolinputpartial?: AppEventMap['toolinputpartial']
-	}
-}
 
 function SharePanelContent() {
 	const editor = useEditor()
@@ -175,7 +155,7 @@ function parseHostTheme(value: unknown): 'light' | 'dark' | null {
 	return value === 'dark' || value === 'light' ? value : null
 }
 
-function TldrawCanvas({ app, bridge }: { app: App; bridge: ToolInputBridge }) {
+function TldrawCanvas({ app }: { app: App }) {
 	const [displayMode, setDisplayMode] =
 		useState<Extract<McpUiDisplayMode, 'inline' | 'fullscreen'>>('inline')
 	const [containerHeight, setContainerHeight] = useState<number | null>(null)
@@ -388,10 +368,6 @@ function TldrawCanvas({ app, bridge }: { app: App; bridge: ToolInputBridge }) {
 
 		if (bootstrap) {
 			setCurrentSessionId(bootstrap.sessionId)
-			// Seed the canonical DO routing key so app-only calls reach the DO that
-			// holds this session's state even if the host misroutes them. Re-pinned
-			// from each exec result's `_meta` in `ontoolresult` below.
-			setRoutingDoName(bootstrap.doName)
 			if (bootstrap.canvasId) {
 				setCurrentCanvasId(bootstrap.canvasId)
 			}
@@ -440,7 +416,7 @@ function TldrawCanvas({ app, bridge }: { app: App; bridge: ToolInputBridge }) {
 			}
 		}
 
-		const handleHostContextChanged = (ctx: AppEventMap['hostcontextchanged']) => {
+		app.onhostcontextchanged = (ctx) => {
 			const nextContext = app.getHostContext() ?? ctx
 			setHostContext(nextContext)
 			const nextTheme = parseHostTheme(
@@ -493,7 +469,7 @@ function TldrawCanvas({ app, bridge }: { app: App; bridge: ToolInputBridge }) {
 						try {
 							const response = await app.callServerTool({
 								name: '_get_canvas_state',
-								arguments: pinnedArgs({ canvasId }),
+								arguments: { canvasId },
 							})
 							const res = response as any
 							let data: any = null
@@ -542,17 +518,14 @@ function TldrawCanvas({ app, bridge }: { app: App; bridge: ToolInputBridge }) {
 					`Exec ${execResult.success ? 'succeeded' : 'failed'}: ${JSON.stringify(execResult.result ?? execResult.error)}`
 				)
 
-				// Channel must match the server's exec channel: keyed by the input
-				// canvasId for existing canvases, shared 'exec' for new ones.
-				const execChannel = canvasId ? `exec:${canvasId}` : 'exec'
 				// Call _exec_callback FIRST to get the server-assigned canvasId
 				const callbackArgs = execResult.success
-					? { channel: execChannel, result: { success: true, result: execResult.result } }
-					: { channel: execChannel, result: { success: false, error: execResult.error } }
+					? { channel: 'exec', result: { success: true, result: execResult.result } }
+					: { channel: 'exec', result: { success: false, error: execResult.error } }
 				try {
 					const cbResponse = await app.callServerTool({
 						name: '_exec_callback',
-						arguments: pinnedArgs(callbackArgs),
+						arguments: callbackArgs,
 					})
 					const cbRes = cbResponse as any
 					let cbData: any = null
@@ -604,7 +577,7 @@ function TldrawCanvas({ app, bridge }: { app: App; bridge: ToolInputBridge }) {
 			})()
 		}
 
-		const handleToolInput = (params: AppEventMap['toolinput']) => {
+		app.ontoolinput = (params) => {
 			logIfDevMode('Exec: ontoolinput called')
 			const code = params.arguments?.code
 			if (typeof code !== 'string' || !code.trim()) return
@@ -620,7 +593,7 @@ function TldrawCanvas({ app, bridge }: { app: App; bridge: ToolInputBridge }) {
 			}, 500)
 		}
 
-		const handleToolInputPartial = (params: AppEventMap['toolinputpartial']) => {
+		app.ontoolinputpartial = (params) => {
 			const code = params.arguments?.code
 			if (typeof code !== 'string' || !code.trim()) return
 			const canvasId =
@@ -639,22 +612,10 @@ function TldrawCanvas({ app, bridge }: { app: App; bridge: ToolInputBridge }) {
 			return {}
 		}
 
-		const handleToolResult = async (result: AppEventMap['toolresult']) => {
+		app.ontoolresult = async (result) => {
 			logIfDevMode('Exec: ontoolresult called')
 			hasExecRunRef.current = false
 			markAiActivity()
-
-			// Adopt routing key + canvasId from the exec result's `_meta`. This is the
-			// ground-truth canonical DO (the one that actually ran exec) and the
-			// server-assigned canvasId — delivered reliably via the tool result even
-			// when the synchronous `_exec_callback` never resolved (the graceful path).
-			// Runs before the checkpoint early-return since exec results carry no
-			// checkpoint.
-			const tldrawMeta = (
-				result as { _meta?: { tldraw?: { doName?: unknown; canvasId?: unknown } } } | undefined
-			)?._meta?.tldraw
-			if (typeof tldrawMeta?.doName === 'string') setRoutingDoName(tldrawMeta.doName)
-			if (typeof tldrawMeta?.canvasId === 'string') setCurrentCanvasId(tldrawMeta.canvasId)
 
 			const checkpoint = parseCheckpointFromToolResult(result)
 			if (!checkpoint) return
@@ -710,7 +671,7 @@ function TldrawCanvas({ app, bridge }: { app: App; bridge: ToolInputBridge }) {
 			pushCanvasContext(app, editor)
 		}
 
-		const handleToolCancelled = (_params: AppEventMap['toolcancelled']) => {
+		app.ontoolcancelled = (_params) => {
 			hasExecRunRef.current = false
 			if (execPartialDebounceRef.current !== null) {
 				window.clearTimeout(execPartialDebounceRef.current)
@@ -720,43 +681,11 @@ function TldrawCanvas({ app, bridge }: { app: App; bridge: ToolInputBridge }) {
 			logIfDevMode('Tool invocation cancelled')
 		}
 
-		// `toolinput`/`toolinputpartial` are bridged from `onAppCreated` (registered
-		// before connect) so the first event — which the host often fires during the
-		// init handshake, before this component mounts — is never dropped. Install
-		// the live handlers, then drain anything the bridge latched in the meantime
-		// (prefer the complete `toolinput` over a partial).
-		bridge.live.toolinput = handleToolInput
-		bridge.live.toolinputpartial = handleToolInputPartial
-		if (bridge.early.toolinput !== undefined) {
-			const params = bridge.early.toolinput
-			bridge.early.toolinput = undefined
-			bridge.early.toolinputpartial = undefined
-			handleToolInput(params)
-		} else if (bridge.early.toolinputpartial !== undefined) {
-			const params = bridge.early.toolinputpartial
-			bridge.early.toolinputpartial = undefined
-			handleToolInputPartial(params)
-		}
-
-		// ext-apps 1.7+: addEventListener replaces the deprecated on* setters. These
-		// fire after the widget is mounted (not in the pre-connect window), so they
-		// don't need the bridge. `onteardown` stays a setter — it's a request
-		// handler, not an AppEventMap event.
-		app.addEventListener('hostcontextchanged', handleHostContextChanged)
-		app.addEventListener('toolresult', handleToolResult)
-		app.addEventListener('toolcancelled', handleToolCancelled)
-
 		return () => {
-			bridge.live.toolinput = undefined
-			bridge.live.toolinputpartial = undefined
-			app.removeEventListener('hostcontextchanged', handleHostContextChanged)
-			app.removeEventListener('toolresult', handleToolResult)
-			app.removeEventListener('toolcancelled', handleToolCancelled)
 			teardownEditor()
 		}
 	}, [
 		app,
-		bridge,
 		applyHostThemeToEditor,
 		enableDevMode,
 		logIfDevMode,
@@ -887,28 +816,6 @@ function TldrawCanvas({ app, bridge }: { app: App; bridge: ToolInputBridge }) {
 }
 
 function McpApp() {
-	// Bridge for the one-shot `toolinput`/`toolinputpartial` events. We register
-	// listeners in `onAppCreated` (which runs BEFORE `app.connect()`), so a
-	// toolinput the host fires during/right after the init handshake is captured
-	// even though `TldrawCanvas` (which holds the real handlers) only mounts after
-	// the connection completes. ext-apps does not buffer one-shot events, so
-	// without this the first toolinput is dropped and the code never runs.
-	const bridge = useRef<ToolInputBridge>({ live: {}, early: {} }).current
-
-	const onAppCreated = useCallback(
-		(createdApp: App) => {
-			createdApp.addEventListener('toolinput', (p) => {
-				if (bridge.live.toolinput) bridge.live.toolinput(p)
-				else bridge.early.toolinput = p
-			})
-			createdApp.addEventListener('toolinputpartial', (p) => {
-				if (bridge.live.toolinputpartial) bridge.live.toolinputpartial(p)
-				else bridge.early.toolinputpartial = p
-			})
-		},
-		[bridge]
-	)
-
 	const { app, isConnected, error } = useApp({
 		appInfo: {
 			name: MCP_SERVER_NAME,
@@ -920,7 +827,6 @@ function McpApp() {
 		capabilities: {
 			availableDisplayModes: ['fullscreen', 'inline'],
 		},
-		onAppCreated,
 	})
 
 	const status = isConnected ? 'ready' : 'connecting'
@@ -932,7 +838,7 @@ function McpApp() {
 			) : !isConnected || !app ? (
 				<div className="mcp-app__status mcp-app__status--connecting">Status: {status}</div>
 			) : (
-				<TldrawCanvas app={app} bridge={bridge} />
+				<TldrawCanvas app={app} />
 			)}
 		</div>
 	)
