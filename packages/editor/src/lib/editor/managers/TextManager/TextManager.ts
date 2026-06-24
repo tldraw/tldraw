@@ -521,7 +521,7 @@ export class TextManager {
 								return { text, left: r.left, top: r.top, height: r.height }
 							})(),
 						]
-					: this.splitNodeIntoLines(node, range, text)
+					: this.splitNodeIntoLines(node, range, text, lineRects)
 
 			for (const line of lines) {
 				const m = ctx.measureText(line.text)
@@ -547,26 +547,91 @@ export class TextManager {
 		return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
 	}
 
-	// Split a wrapped text node into per-line fragments using the browser's layout: a change in a
-	// character's `top` means the text moved to a new line. `left` tracks the line's physical left
-	// edge (the minimum, so RTL lines anchor correctly).
-	private splitNodeIntoLines(node: Node, range: Range, text: string) {
-		const lines: { text: string; left: number; top: number; height: number }[] = []
-		let idx = 0
-		for (const char of text) {
-			range.setStart(node, idx)
-			range.setEnd(node, idx + char.length)
-			idx += char.length
+	// Split a wrapped text node into per-line fragments using the browser's layout. The browser has
+	// already broken the run into lines — `lineRects` is one rect per visual line (bidi can yield
+	// several rects sharing a `top`, so they're grouped) — giving each line's physical left edge and
+	// height directly. The only thing left to recover is where each line starts in the string. Since
+	// a line is a contiguous logical span and a character's `top` only increases from line to line,
+	// we binary-search the first character on each line instead of scanning every character. That
+	// turns the per-line-split from O(chars) layout reads into O(lines · log chars), which matters
+	// when resizing many wrapped shapes at once (each width change re-measures from scratch).
+	private splitNodeIntoLines(node: Node, range: Range, text: string, lineRects: DOMRectList) {
+		// Group line rects by their top edge into one entry per visual line.
+		const lineInfo = new Map<number, { left: number; height: number }>()
+		const tops: number[] = []
+		for (let i = 0; i < lineRects.length; i++) {
+			const r = lineRects[i]
+			const existing = lineInfo.get(r.top)
+			if (existing) {
+				if (r.left < existing.left) existing.left = r.left
+				if (r.height > existing.height) existing.height = r.height
+			} else {
+				lineInfo.set(r.top, { left: r.left, height: r.height })
+				tops.push(r.top)
+			}
+		}
+		tops.sort((a, b) => a - b)
+		if (tops.length === 0) return []
+
+		const chars = Array.from(text)
+		const total = chars.length
+		const offsets = new Array<number>(total)
+		for (let j = 0, o = 0; j < total; j++) {
+			offsets[j] = o
+			o += chars[j].length
+		}
+
+		// The `top` of the character at code-point index `j`, or null when it has no box (e.g. a
+		// collapsed wrap space). Collapsed characters are sparse, so `topNear` resolves the nearest
+		// real top in a probe or two — enough to keep the search monotonic without scanning.
+		const topAt = (j: number): number | null => {
+			range.setStart(node, offsets[j])
+			range.setEnd(node, offsets[j] + chars[j].length)
 			const rects = range.getClientRects()
 			const rect = rects[rects.length - 1]
-			if (!rect) continue
-			const last = lines[lines.length - 1]
-			if (!last || rect.top !== last.top) {
-				lines.push({ text: char, left: rect.left, top: rect.top, height: rect.height })
-			} else {
-				last.text += char
-				if (rect.left < last.left) last.left = rect.left
+			return rect ? rect.top : null
+		}
+		const topNear = (j: number): number | null => {
+			for (let d = 0; d < 5; d++) {
+				if (j - d >= 0) {
+					const t = topAt(j - d)
+					if (t !== null) return t
+				}
+				if (d > 0 && j + d < total) {
+					const t = topAt(j + d)
+					if (t !== null) return t
+				}
 			}
+			return null
+		}
+
+		// Binary-search the first character that sits on each line after the first, narrowing the
+		// search to the still-unassigned tail as we go.
+		const bounds = [0]
+		let lo = 0
+		for (let k = 1; k < tops.length; k++) {
+			let a = lo
+			let b = total
+			while (a < b) {
+				const mid = (a + b) >> 1
+				const top = topNear(mid)
+				if (top === null || top >= tops[k]) b = mid
+				else a = mid + 1
+			}
+			bounds.push(a)
+			lo = a
+		}
+		bounds.push(total)
+
+		const lines: { text: string; left: number; top: number; height: number }[] = []
+		for (let k = 0; k < tops.length; k++) {
+			const info = lineInfo.get(tops[k])!
+			lines.push({
+				text: chars.slice(bounds[k], bounds[k + 1]).join(''),
+				left: info.left,
+				top: tops[k],
+				height: info.height,
+			})
 		}
 		return lines
 	}
