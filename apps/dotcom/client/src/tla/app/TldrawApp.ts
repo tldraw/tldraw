@@ -10,6 +10,7 @@ import {
 	ROOM_PREFIX,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
+	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
 	TlaGroupFile,
@@ -106,6 +107,19 @@ window.zero = () => {
 	const current = getFromLocalStorage('useProperZero') === 'true'
 	setInLocalStorage('useProperZero', String(!current))
 	location.reload()
+}
+
+/** When the user last opened the file (visit, else edit, else first visit), or undefined if never. */
+export function getFileVisitDate(state: TlaFileState | undefined): number | undefined {
+	return state?.lastVisitAt ?? state?.lastEditAt ?? state?.firstVisitAt ?? undefined
+}
+
+/** Ranks a file for display: when it was last opened, else when it was created. */
+export function getFileRecencyDate(
+	state: TlaFileState | undefined,
+	file: TlaFile | undefined
+): number {
+	return getFileVisitDate(state) ?? file?.createdAt ?? 0
 }
 
 export class TldrawApp {
@@ -470,7 +484,7 @@ export class TldrawApp {
 			const state = this.getFileState(file.fileId)
 			newOrdering.push({
 				fileId: file.fileId,
-				date: Math.max(state?.lastEditAt ?? state?.firstVisitAt ?? file.file.createdAt),
+				date: getFileRecencyDate(state, file.file),
 			})
 		}
 
@@ -593,7 +607,7 @@ export class TldrawApp {
 			const newEntry = {
 				fileId,
 				isPinned,
-				date: state.lastEditAt ?? state.firstVisitAt ?? file.createdAt ?? 0,
+				date: getFileRecencyDate(state, file),
 			}
 
 			// If this was previously unpinned and we have existing ordering,
@@ -626,6 +640,35 @@ export class TldrawApp {
 		this.lastRecentFileOrdering = sortedFiles
 
 		return sortedFiles
+	}
+
+	/**
+	 * The id of the user's most recently visited file, or null if they have none. Skips files the
+	 * user can no longer access — their `file` relation comes back null (moved/revoked) or flagged
+	 * deleted — so the next available file wins; falls back to the top of the in-scope list when
+	 * none have been visited. Recency comes from per-user `file_state`, so it follows the user
+	 * across devices.
+	 *
+	 * @param workspaceId - When provided, only files visible in that workspace are considered.
+	 */
+	getMostRecentFileId(workspaceId?: string): string | null {
+		// In-scope files, also used as the fallback when none have been visited.
+		const scopedFiles = workspaceId ? this.getWorkspaceFilesSorted(workspaceId) : this.getMyFiles()
+		const fileIdsInScope = workspaceId ? new Set(scopedFiles.map((f) => f.fileId)) : null
+
+		let mostRecent: { fileId: string; date: number } | null = null
+		for (const state of this.getUserFileStates()) {
+			if (fileIdsInScope && !fileIdsInScope.has(state.fileId)) continue
+			if (!state.file || state.file.isDeleted) continue
+			// Rank by actual visits only. A created-but-never-opened file has null visit timestamps
+			// (its `createdAt` must not let it outrank a genuinely visited file); it defers to the
+			// `scopedFiles` fallback below.
+			const date = getFileVisitDate(state)
+			if (date === undefined) continue
+			if (!mostRecent || date > mostRecent.date) mostRecent = { fileId: state.fileId, date }
+		}
+
+		return mostRecent?.fileId ?? scopedFiles[0]?.fileId ?? null
 	}
 
 	private canCreateNewFile(workspaceId: string) {
