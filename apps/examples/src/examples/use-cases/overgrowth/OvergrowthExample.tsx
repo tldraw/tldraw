@@ -4,6 +4,7 @@ import {
 	TLAnyOverlayUtilConstructor,
 	TLComponents,
 	TLUiComponents,
+	TLUiOverrides,
 	Tldraw,
 	defaultOverlayUtils,
 	useEditor,
@@ -17,12 +18,13 @@ import {
 	getWorld,
 	GRID,
 	hint$,
-	hoveredVine$,
 	resetWorld,
+	SWIPE_IDLE_MS,
+	SWIPE_SHRINK,
 	winner$,
 } from './game-state'
 import { OvergrowthOverlayUtil } from './overlays/OvergrowthOverlayUtil'
-import { hoverHitTest, sliceCut, SPARK_POOL, stepSim, stepSparks } from './sim'
+import { sliceCut, SPARK_POOL, stepSim, stepSparks } from './sim'
 
 const overlayUtils: TLAnyOverlayUtilConstructor[] = [...defaultOverlayUtils, OvergrowthOverlayUtil]
 
@@ -41,6 +43,21 @@ const uiComponents: Partial<TLUiComponents> = {
 }
 const components: TLComponents = uiComponents
 
+// Disable ALL default tldraw keyboard shortcuts by stripping `kbd` from every
+// action and tool (useKeyboardShortcuts skips any entry with no kbd). The game's
+// own keys (Q = zoom to fit, R = reset) are handled by a window listener, and
+// Space-pan is native (not a kbd binding), so both still work.
+const overrides: TLUiOverrides = {
+	actions(_editor, actions) {
+		for (const id in actions) actions[id] = { ...actions[id], kbd: undefined }
+		return actions
+	},
+	tools(_editor, tools) {
+		for (const id in tools) tools[id] = { ...tools[id], kbd: undefined }
+		return tools
+	},
+}
+
 // Camera zoom multiplier. The game is about traveling between zoom levels (read
 // out, act in), so scroll/pinch zoom is sped up beyond the default. Applied via
 // editor.setCameraOptions on mount (the recommended path).
@@ -49,10 +66,6 @@ const ZOOM_SPEED = 2
 // Sparks only appear above this zoom; their target count scales with zoom so a
 // tight zoom gets a lively field and a wider one stays cheap. Capped at SPARK_POOL.
 const SPARK_VINE_ZOOM = 0.85
-
-// Pixel radius (screen px, divided by zoom to page units) within which the
-// cursor "hovers" a vine for the contextual cuttable cue.
-const HOVER_RADIUS = 16
 
 function boardBounds() {
 	return {
@@ -114,8 +127,27 @@ function GameRunner() {
 		}
 		editor.on('tick', onTick)
 
+		// Track Space (held = panning) so we can yield the cursor to tldraw's pan.
+		let spaceHeld = false
+		const onSpaceKey = (e: KeyboardEvent) => {
+			if (e.code === 'Space') spaceHeld = e.type === 'keydown'
+		}
+		window.addEventListener('keydown', onSpaceKey, true)
+		window.addEventListener('keyup', onSpaceKey, true)
+
+		// Game keys. All default tldraw shortcuts are disabled via `overrides` (see
+		// the export). The only keys are: Q = zoom to fit the board, R = reset.
+		// Space (pan) is handled natively by tldraw, not via a kbd binding.
 		const onKeyDown = (e: KeyboardEvent) => {
-			if (e.key.toLowerCase() === 'r') resetWorld()
+			const k = e.key.toLowerCase()
+			if (k === 'r') resetWorld()
+			else if (k === 'q') {
+				const b = boardBounds()
+				editor.zoomToBounds(new Box(b.x, b.y, b.w, b.h), {
+					inset: 24,
+					animation: { duration: 300 },
+				})
+			}
 		}
 		window.addEventListener('keydown', onKeyDown)
 
@@ -129,29 +161,23 @@ function GameRunner() {
 		let slicing = false
 		let pointerDown = false
 		let last = { x: 0, y: 0 }
-		let spaceHeld = false
 		// The active cut's SDK scribble session: the SDK eraser brush, darkened a
 		// bit. It fades out on its own when the session stops.
 		let scribble: { sessionId: string; scribbleId: string } | null = null
 
-		const onSpaceKey = (e: KeyboardEvent) => {
-			if (e.code === 'Space') spaceHeld = e.type === 'keydown'
-		}
-		window.addEventListener('keydown', onSpaceKey, true)
-		window.addEventListener('keyup', onSpaceKey, true)
-
-		// Begin cutting at page point `p`: set state + open one scribble session with
-		// the two composed brushes. Listeners are attached on pointerdown / removed
-		// on pointerup, so this can be called from down OR from the first qualifying
+		// Begin cutting at page point `p`: set state + open a scribble session with
+		// the SDK eraser brush. Listeners are attached on pointerdown / removed on
+		// pointerup, so this can be called from down OR from the first qualifying
 		// move.
 		const startSlice = (p: { x: number; y: number }) => {
 			slicing = true
-			hoveredVine$.set(null) // clear hover state + reset cursor while cutting
-			container.style.cursor = ''
 			last = p
+			// Laser-style trailing: the ScribbleManager already caps the live trail
+			// length and fades it. A short idleTimeoutMs keeps the tail tight when the
+			// pointer pauses; `shrink` tapers it away on release for a clean fade.
 			const sessionId = editor.scribbles.startSession({
 				selfConsume: false,
-				idleTimeoutMs: editor.options.laserDelayMs,
+				idleTimeoutMs: SWIPE_IDLE_MS,
 				fadeMode: 'grouped',
 				fadeEasing: 'ease-in',
 			})
@@ -162,6 +188,7 @@ function GameRunner() {
 				opacity: 0.45,
 				size: 12,
 				taper: true,
+				shrink: SWIPE_SHRINK,
 			})
 			scribble = { sessionId, scribbleId: eraser.id }
 			editor.scribbles.addPointToSession(sessionId, eraser.id, p.x, p.y)
@@ -188,7 +215,7 @@ function GameRunner() {
 
 		const onPointerUp = () => {
 			if (scribble) {
-				editor.scribbles.stopSession(scribble.sessionId) // both scribbles fade together
+				editor.scribbles.stopSession(scribble.sessionId) // fades out on its own
 				scribble = null
 			}
 			slicing = false
@@ -230,46 +257,28 @@ function GameRunner() {
 		}
 		container.addEventListener('pointerdown', onPointerDown, true)
 
-		// Contextual hover feedback via the CURSOR only (no on-canvas marks): while
-		// zoomed in past CUT_ZOOM_MIN and NOT cutting, hit-test the vine under the
-		// cursor (bounded to the cursor's cell ±1 via the spatial index). If it's an
-		// enemy vine out of reach, show the not-allowed cursor; otherwise default.
-		// hoveredVine$ is updated only when the hovered vine/kind changes.
-		const setCursor = (cursor: string) => {
-			if (container.style.cursor !== cursor) container.style.cursor = cursor
-		}
-		const onHoverMove = (e: PointerEvent) => {
-			if (slicing) return // the active-cut move handler owns the pointer
-			if (editor.getZoomLevel() < CUT_ZOOM_MIN) {
-				if (hoveredVine$.get()) hoveredVine$.set(null)
-				setCursor('')
-				return
+		// Cursor: the DRAW tool's cursor ('cross') is the ONLY canvas cursor — it
+		// signals "cut by drawing a swipe". tldraw re-asserts its own cursor whenever
+		// instance state changes, so we reassert ours each tick. EXCEPTION: while
+		// Space is held (panning), we leave tldraw's grab/grabbing cursor alone.
+		const enforceCursor = () => {
+			if (spaceHeld) return // let tldraw's space-pan grab/grabbing cursor show
+			if (editor.getInstanceState().cursor.type !== 'cross') {
+				editor.setCursor({ type: 'cross', rotation: 0 })
 			}
-			const world = getWorld()
-			const p = editor.screenToPage({ x: e.clientX, y: e.clientY })
-			const hit = hoverHitTest(world, p, HOVER_RADIUS / editor.getZoomLevel())
-			const next = hit ? { strandId: hit.strand.id, kind: hit.kind } : null
-			const cur = hoveredVine$.get()
-			// Only update on a real change (id or kind), to avoid re-render spam.
-			if ((cur?.strandId ?? null) !== (next?.strandId ?? null) || cur?.kind !== next?.kind) {
-				hoveredVine$.set(next)
-			}
-			// Out-of-reach enemy vine → "can't cut here". Everything else → default.
-			setCursor(next?.kind === 'enemy-out-of-reach' ? 'not-allowed' : '')
 		}
-		container.addEventListener('pointermove', onHoverMove)
+		editor.setCursor({ type: 'cross', rotation: 0 })
+		editor.on('tick', enforceCursor)
 
 		return () => {
 			editor.off('tick', onTick)
+			editor.off('tick', enforceCursor)
 			window.removeEventListener('keydown', onKeyDown)
 			window.removeEventListener('keydown', onSpaceKey, true)
 			window.removeEventListener('keyup', onSpaceKey, true)
 			container.removeEventListener('pointerdown', onPointerDown, true)
-			container.removeEventListener('pointermove', onHoverMove)
 			window.removeEventListener('pointermove', onPointerMove, true)
 			window.removeEventListener('pointerup', onPointerUp, true)
-			hoveredVine$.set(null)
-			container.style.cursor = ''
 		}
 	}, [editor])
 
@@ -352,7 +361,7 @@ function WinBanner() {
 export default function OvergrowthExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw overlayUtils={overlayUtils} components={components}>
+			<Tldraw overlayUtils={overlayUtils} components={components} overrides={overrides}>
 				<GameRunner />
 				<HintBanner />
 				<WinBanner />

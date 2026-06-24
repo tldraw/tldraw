@@ -535,64 +535,6 @@ export function hasPresence(world: World, owner: Owner, point: { x: number; y: n
 	return false
 }
 
-// Squared distance from point p to segment a→b (page units).
-function pointSegDist2(
-	px: number,
-	py: number,
-	ax: number,
-	ay: number,
-	bx: number,
-	by: number
-): number {
-	const dx = bx - ax
-	const dy = by - ay
-	const len2 = dx * dx + dy * dy || 1
-	let t = ((px - ax) * dx + (py - ay) * dy) / len2
-	t = t < 0 ? 0 : t > 1 ? 1 : t
-	const cx = ax + dx * t
-	const cy = ay + dy * t
-	const ex = px - cx
-	const ey = py - cy
-	return ex * ex + ey * ey
-}
-
-// Find the vine nearest to page point `p` within `radius` page units, restricted
-// to vines whose spatial-index cell is within ±1 of the cursor's cell (so we do
-// segment math only on the handful of vines actually near the cursor — bounded,
-// not a full geometric scan). Returns the strand and how the human relates to it
-// (in-reach enemy / out-of-reach enemy / other), or null.
-export function hoverHitTest(
-	world: World,
-	p: { x: number; y: number },
-	radius: number
-): { strand: Strand; kind: 'enemy-in-reach' | 'enemy-out-of-reach' | 'other' } | null {
-	const cc = Math.round((p.x - GRID.x0) / GRID.spacing)
-	const cr = Math.round((p.y - GRID.y0) / GRID.spacing)
-	const r2 = radius * radius
-	let best: Strand | null = null
-	let bestD2 = r2
-	for (const strand of world.strands) {
-		const c = strand.cell % GRID.cols
-		const r = (strand.cell / GRID.cols) | 0
-		if (c < cc - 1 || c > cc + 1 || r < cr - 1 || r > cr + 1) continue // cheap cell gate
-		const pts = strand.points
-		for (let i = 0; i < pts.length - 1; i++) {
-			const d2 = pointSegDist2(p.x, p.y, pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y)
-			if (d2 < bestD2) {
-				bestD2 = d2
-				best = strand
-			}
-		}
-	}
-	if (!best) return null
-	let kind: 'enemy-in-reach' | 'enemy-out-of-reach' | 'other' = 'other'
-	if (best.owner === 'b') {
-		const mid = best.points[(best.points.length / 2) | 0]
-		kind = hasPresence(world, 'a', mid) ? 'enemy-in-reach' : 'enemy-out-of-reach'
-	}
-	return { strand: best, kind }
-}
-
 // BFS the orphaned subtree from a set of seed pegs over remaining edges, and
 // remove any growth tips sitting on it. Used after a cut so severed branches
 // stop growing immediately (even before they finish withering).
