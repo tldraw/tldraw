@@ -65,6 +65,28 @@ describe('getMostRecentFileId', () => {
 		expect(app.getMostRecentFileId()).toBe('file:b')
 	})
 
+	it('ranks across recency fields, not just lastVisitAt', () => {
+		const app = createAppStub({
+			fileStates: [
+				makeState('file:visited', { lastVisitAt: 100 }),
+				// No visit, but edited more recently than file:visited was visited.
+				makeState('file:edited', { lastEditAt: 300 }),
+				makeState('file:created', { file: { createdAt: 200 } }),
+			],
+		})
+		expect(app.getMostRecentFileId()).toBe('file:edited')
+	})
+
+	it('keeps the first file on a recency tie', () => {
+		const app = createAppStub({
+			fileStates: [
+				makeState('file:first', { lastVisitAt: 500 }),
+				makeState('file:second', { lastVisitAt: 500 }),
+			],
+		})
+		expect(app.getMostRecentFileId()).toBe('file:first')
+	})
+
 	it('skips deleted and inaccessible files and picks the next most recent available one', () => {
 		const app = createAppStub({
 			fileStates: [

@@ -639,9 +639,10 @@ export class TldrawApp {
 
 	/**
 	 * The id of the user's most recently visited file, or null if they have none. Skips files the
-	 * user can no longer access (they drop out of `file_state` sync), so the next available file
-	 * wins; falls back to the top of the in-scope list when none have been visited. Recency comes
-	 * from per-user `file_state`, so it follows the user across devices.
+	 * user can no longer access — their `file` relation comes back null (moved/revoked) or flagged
+	 * deleted — so the next available file wins; falls back to the top of the in-scope list when
+	 * none have been visited. Recency comes from per-user `file_state`, so it follows the user
+	 * across devices.
 	 *
 	 * @param workspaceId - When provided, only files visible in that workspace are considered.
 	 */
