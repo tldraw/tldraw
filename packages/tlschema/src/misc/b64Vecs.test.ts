@@ -478,3 +478,115 @@ describe('b64Vecs legacy encoding', () => {
 		expect(uniqueXValues.size).toBeLessThanOrEqual(2) // Should collapse to 1-2 values, not 4
 	})
 })
+
+describe('2D encoding (skip-pressure)', () => {
+	it('round-trips x and y, supplies z = 0.5', () => {
+		const points: VecModel[] = [
+			{ x: 1000, y: 2000, z: 0.5 },
+			{ x: 1013, y: 2008, z: 0.5 },
+			{ x: 1027, y: 2011, z: 0.5 },
+		]
+		const decoded = b64Vecs.decodePoints2D(b64Vecs.encodePoints2D(points))
+		expect(decoded.length).toBe(3)
+		for (let i = 0; i < points.length; i++) {
+			expect(decoded[i].x).toBeCloseTo(points[i].x, 1)
+			expect(decoded[i].y).toBeCloseTo(points[i].y, 1)
+			expect(decoded[i].z).toBe(0.5)
+		}
+	})
+
+	it('encodePoints/decodePoints route through 2D when dim = 2', () => {
+		const points: VecModel[] = [
+			{ x: 10, y: 20, z: 0.5 },
+			{ x: 15, y: 28, z: 0.5 },
+		]
+		expect(b64Vecs.encodePoints(points, 2)).toBe(b64Vecs.encodePoints2D(points))
+		const decoded = b64Vecs.decodePoints(b64Vecs.encodePoints(points, 2), 2)
+		expect(decoded[1].z).toBe(0.5)
+		expect(decoded[1].x).toBeCloseTo(15, 1)
+	})
+
+	it('is ~33% smaller than 3D for the same points', () => {
+		const points: VecModel[] = Array.from({ length: 100 }, (_, i) => ({
+			x: i * 2.5,
+			y: 50 + i,
+			z: 0.5,
+		}))
+		const bytes3D = fallbackBase64ToUint8Array(b64Vecs.encodePoints(points)).length
+		const bytes2D = fallbackBase64ToUint8Array(b64Vecs.encodePoints2D(points)).length
+		const saving = 1 - bytes2D / bytes3D
+		expect(saving).toBeGreaterThan(0.3)
+		expect(saving).toBeLessThan(0.36)
+	})
+
+	it('decodeFirstPoint2D / decodeLastPoint2D match decodePoints2D (incl. via dim routing)', () => {
+		const points: VecModel[] = [
+			{ x: 5, y: 6, z: 0.5 },
+			{ x: 12, y: 9, z: 0.5 },
+			{ x: 20, y: 4, z: 0.5 },
+		]
+		const path = b64Vecs.encodePoints(points, 2)
+		const all = b64Vecs.decodePoints2D(path)
+		expect(b64Vecs.decodeFirstPoint(path, 2)).toEqual(all[0])
+		expect(b64Vecs.decodeLastPoint(path, 2)).toEqual(all[all.length - 1])
+	})
+
+	it('empty input returns empty', () => {
+		expect(b64Vecs.encodePoints2D([])).toBe('')
+		expect(b64Vecs.decodePoints2D('')).toEqual([])
+	})
+})
+
+describe('padding-aware fallback base64', () => {
+	it('matches Node Buffer for every trailing-byte remainder', () => {
+		for (let len = 0; len < 32; len++) {
+			const bytes = new Uint8Array(len)
+			for (let i = 0; i < len; i++) bytes[i] = (i * 37 + 11) & 0xff
+			expect(fallbackUint8ArrayToBase64(bytes)).toBe(Buffer.from(bytes).toString('base64'))
+			expect(fallbackBase64ToUint8Array(fallbackUint8ArrayToBase64(bytes))).toEqual(bytes)
+		}
+	})
+
+	it('round-trips 2D buffer lengths (8 + 4(n-1) bytes)', () => {
+		for (const n of [1, 2, 3, 4, 5]) {
+			const len = 8 + (n - 1) * 4
+			const bytes = new Uint8Array(len)
+			for (let i = 0; i < len; i++) bytes[i] = (i * 53 + 7) & 0xff
+			expect(fallbackBase64ToUint8Array(fallbackUint8ArrayToBase64(bytes))).toEqual(bytes)
+		}
+	})
+})
+
+describe('isSinglePoint', () => {
+	const mk = (n: number, dim?: 2 | 3) =>
+		b64Vecs.encodePoints(
+			Array.from({ length: n }, (_, i) => ({ x: i, y: i, z: 0.5 })),
+			dim
+		)
+
+	it('is true only for a single point, across 2D and 3D', () => {
+		expect(b64Vecs.isSinglePoint(mk(1, 3), 3)).toBe(true)
+		expect(b64Vecs.isSinglePoint(mk(2, 3), 3)).toBe(false)
+		expect(b64Vecs.isSinglePoint(mk(1, 2), 2)).toBe(true)
+		expect(b64Vecs.isSinglePoint(mk(2, 2), 2)).toBe(false)
+		expect(b64Vecs.isSinglePoint(mk(3, 2), 2)).toBe(false)
+	})
+
+	it('regression: a 2-point 2D stroke is not a dot (the old `< 24` check failed here)', () => {
+		const twoPoint2D = b64Vecs.encodePoints(
+			[
+				{ x: 0, y: 0, z: 0.5 },
+				{ x: 4, y: 1, z: 0.5 },
+			],
+			2
+		)
+		expect(twoPoint2D.length).toBe(16) // same length as a 3D dot
+		expect(twoPoint2D.length < 24).toBe(true) // the old buggy heuristic would call this a dot
+		expect(b64Vecs.isSinglePoint(twoPoint2D, 2)).toBe(false) // the fix
+	})
+
+	it('defaults to 3D when dim is omitted', () => {
+		expect(b64Vecs.isSinglePoint(mk(1), undefined)).toBe(true)
+		expect(b64Vecs.isSinglePoint(mk(2), undefined)).toBe(false)
+	})
+})

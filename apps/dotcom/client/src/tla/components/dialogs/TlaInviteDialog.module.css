@@ -52,7 +52,7 @@
 	border: none;
 	color: var(--tl-color-text-3);
 	cursor: pointer;
-	padding: 8px;
+	padding: var(--tl-space-3);
 	height: 32px;
 }
 

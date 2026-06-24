@@ -163,8 +163,8 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		const shapeIds = editor.getCurrentPageShapeIds()
 
 		async function setSvg() {
-			// We have to wait for the fonts to load so that we can correctly measure text sizes
-			await editor.fonts.loadRequiredFontsForCurrentPage(editor.options.maxFontsToLoadBeforeRender)
+			// toImage waits for the required fonts to load (so text is measured correctly) before
+			// it renders, so we don't need to do it here.
 			const imageResult = await editor.toImage([...shapeIds], {
 				bounds,
 				scale,

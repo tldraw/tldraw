@@ -37,7 +37,7 @@
 	width: 100%;
 	height: 100%;
 	z-index: 99;
-	background-color: var(--tla-color-overlay);
+	background-color: var(--tl-color-overlay);
 	display: none;
 }
 
@@ -226,7 +226,7 @@
 .sidebar[data-workspaces='true'] .sidebarTopRow {
 	height: 44px;
 	padding: 3px 8px 0px 4px;
-	gap: 8px;
+	gap: var(--tl-space-3);
 }
 
 /* Workspace link */
@@ -451,6 +451,7 @@
 
 .sidebarFileSectionWrapper {
 	margin-top: 8px;
+	margin-bottom: 28px;
 }
 
 .sidebarFileSection {
@@ -466,8 +467,15 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	gap: 4px;
+	gap: var(--tl-space-2);
 	color: var(--tl-color-text-3);
+}
+
+/* In dark mode, text-3 alone is too low-contrast on the darkest theme sidebars
+   (e.g. GitHub, One Dark, Flexoki); blend toward the primary text color to lift
+   the floor. Light themes keep plain text-3, where it reads fine and stays subtle. */
+:global(.tla-theme__dark) .sidebarFileSectionTitle {
+	color: color-mix(in srgb, var(--tl-color-text-3) 60%, var(--tl-color-text));
 }
 
 .sidebar[data-workspaces='true'] .sidebarFileSectionTitle {
@@ -540,18 +548,26 @@
 }
 
 .sidebarWorkspaceSwitcherMenu {
-	min-width: max(260px, calc(var(--tla-sidebar-width) - 4px));
-	max-width: calc(var(--tla-sidebar-width) - 4px);
+	/* Width is enforced on the popper wrapper below. Use --radix-popper-anchor-width (the
+	   trigger width, which Radix sets on the portaled wrapper) — NOT --tla-sidebar-width,
+	   which is declared on the sidebar layout and does NOT reach this menu once it's portaled
+	   out into the editor container. The trigger spans the sidebar minus its 2×12px padding,
+	   so +24px brings it back to the full sidebar width (so the picker hangs ~8px over the
+	   edge). The wrapper is sized below; stretch the panel to fill it (it would otherwise
+	   hug the workspace names). Cap it so long names truncate rather than grow past it. */
+	width: 100%;
+	max-width: max(260px, calc(var(--radix-popper-anchor-width) + 24px));
 	max-height: 70vh;
 	overflow-y: auto;
 	padding: 2px 0px;
 }
 
-.sidebarWorkspaceSwitcherOverlay {
-	position: fixed;
-	inset: 0;
-	z-index: calc(var(--tl-layer-menus) - 1);
-	pointer-events: all;
+/* Like the select dropdown, popper writes `min-width: max-content` inline on the wrapper, so it
+   hugs its content; widen it to the trigger width here. !important is unavoidable: an inline
+   style outranks every selector, so it is the only way to override it. (A DropdownMenu is always
+   popper-positioned, so unlike the select there is no item-aligned alternative to weigh.) */
+:global([data-radix-popper-content-wrapper]):has(> .sidebarWorkspaceSwitcherMenu) {
+	min-width: max(260px, calc(var(--radix-popper-anchor-width) + 24px)) !important;
 }
 
 .sidebarWorkspaceSwitcherRoot {
@@ -782,7 +798,7 @@
 }
 
 .sidebarSearchEmpty {
-	padding: 8px;
+	padding: var(--tl-space-3);
 	color: var(--tl-color-text-3);
 }
 
@@ -844,7 +860,7 @@
 	flex-direction: row;
 	align-items: center;
 	justify-content: flex-start;
-	gap: 8px;
+	gap: var(--tl-space-3);
 	position: relative;
 	pointer-events: none;
 	z-index: 2;
@@ -881,7 +897,7 @@
 	justify-content: flex-start;
 	padding: 0px 8px 0px calc(8px + var(--tla-sidebar-group-item-padding-left, 0px));
 	outline-offset: -2px;
-	gap: 8px;
+	gap: var(--tl-space-3);
 	position: relative;
 }
 

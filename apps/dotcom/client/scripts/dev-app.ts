@@ -1,6 +1,7 @@
 import { spawn } from 'child_process'
 import { createServer } from 'net'
 import { pathToFileURL } from 'url'
+import { killProcessTree } from '../../../../internal/scripts/lib/kill-tree'
 
 const CLIENT_PORT = 3000
 const SKIPPABLE_PROBE_ERROR_CODES = new Set(['EADDRNOTAVAIL', 'EAFNOSUPPORT'])
@@ -50,27 +51,29 @@ async function main() {
 	const args = getViteArgs(process.env.VITE_PREVIEW === '1' ? 'preview' : 'dev')
 	const child = spawn('vite', args, { stdio: 'inherit' })
 
-	// Forward termination signals to vite and make sure it is killed if this process exits for any
-	// other reason. Without this, an unclean exit (closed terminal, killed parent) leaves vite
-	// holding port 3000, which blocks the next `yarn dev-app`.
+	// On shutdown, reap vite *and its children* (esbuild/optimizer helpers) by walking the PID tree
+	// and killing deepest-first. This runs in the signal handler, while the tree is still alive —
+	// not on `exit` — because once vite exits its helpers reparent to launchd and a `pgrep` walk from
+	// us can no longer find them, so they would orphan and keep holding port 3000.
 	let shuttingDown = false
-	const stop = (signal: NodeJS.Signals) => {
+	const shutdown = () => {
 		if (shuttingDown) return
 		shuttingDown = true
-		if (!child.killed) child.kill(signal)
+		killProcessTree(process.pid)
+		process.exit(0)
 	}
-	process.on('SIGINT', () => stop('SIGINT'))
-	process.on('SIGTERM', () => stop('SIGTERM'))
-	process.on('SIGHUP', () => stop('SIGHUP'))
-	process.on('exit', () => {
-		if (!child.killed) child.kill('SIGKILL')
-	})
+	process.on('SIGINT', shutdown)
+	process.on('SIGTERM', shutdown)
+	process.on('SIGHUP', shutdown)
+	// Backstop for any exit path that bypassed the signal handler.
+	process.on('exit', () => killProcessTree(process.pid))
 
 	child.once('error', (error) => {
 		console.error(error)
 		process.exit(1)
 	})
 	child.once('exit', (code, signal) => {
+		if (shuttingDown) return
 		process.exit(signal ? 1 : (code ?? 0))
 	})
 }

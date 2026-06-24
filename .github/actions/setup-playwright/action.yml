@@ -1,0 +1,46 @@
+name: 'Setup Playwright'
+description: 'Install Playwright browsers with version-keyed caching shared across workflows.'
+
+inputs:
+  browsers:
+    description: 'Space-separated Playwright browsers to install and cache.'
+    required: false
+    # Only bundled Chromium by default — every e2e project uses `devices['Desktop Chrome']` /
+    # `['Pixel 5']` with no `channel`, so the branded `chrome` build is never launched.
+    default: 'chromium'
+
+runs:
+  using: 'composite'
+  steps:
+    # @playwright/test is hoisted to the root node_modules (it's a devDependency of the e2e
+    # workspaces), so Node resolves it from the repo root — no per-workspace cwd, nothing written
+    # to the tree. We also derive a key-safe browser token (spaces -> dashes) so multi-browser
+    # values like "chromium firefox" don't put a space in the cache key.
+    - name: Resolve Playwright version and browsers
+      shell: bash
+      env:
+        BROWSERS: ${{ inputs.browsers }}
+      run: |
+        echo "PLAYWRIGHT_VERSION=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_ENV"
+        echo "PLAYWRIGHT_BROWSERS_KEY=$(echo "$BROWSERS" | tr ' ' '-')" >> "$GITHUB_ENV"
+
+    # Keyed on os + arch + version + browsers. The arch matters (ARM vs x64 need different
+    # binaries); the browser set matters too — without it, adding a browser would be a stale cache
+    # hit that skips the install and never downloads the new one.
+    - name: Check for Playwright browsers cache
+      id: playwright-cache
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cache/ms-playwright
+        key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ env.PLAYWRIGHT_VERSION }}-${{ env.PLAYWRIGHT_BROWSERS_KEY }}
+
+    # Cache miss only. `--with-deps` also installs the OS libraries the browsers need — a no-op for
+    # Chromium on GitHub's runner images, but it means adding webkit/firefox via `browsers` later
+    # just works without extra setup.
+    - name: Install Playwright browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        BROWSERS: ${{ inputs.browsers }}
+      run: npx playwright install --with-deps $BROWSERS

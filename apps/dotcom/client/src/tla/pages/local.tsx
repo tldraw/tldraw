@@ -77,8 +77,9 @@ export function Component() {
 				}
 			}
 
-			const recentFiles = app.getMyFiles()
-			if (recentFiles.length === 0) {
+			// Land on the file the user last had open, across all workspaces, not just home.
+			const mostRecentFileId = app.getMostRecentFileId()
+			if (!mostRecentFileId) {
 				const result = await app.createFile()
 
 				assert(result.ok, 'Failed to create file')
@@ -93,7 +94,7 @@ export function Component() {
 				return
 			}
 
-			navigate(routes.tlaFile(recentFiles[0].fileId), { replace: true, state: location.state })
+			navigate(routes.tlaFile(mostRecentFileId), { replace: true, state: location.state })
 		}
 
 		handleFileOperations()

@@ -7,6 +7,7 @@ import {
 } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
+import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
@@ -35,11 +36,7 @@ export function TlaManageCookiesDialog() {
 						<F
 							defaultMessage="We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
 							values={{
-								a: (chunks) => (
-									<a href={COOKIE_POLICY_URL} target="_blank" rel="noreferrer">
-										{chunks}
-									</a>
-								),
+								a: (chunks) => <ExternalLink to={COOKIE_POLICY_URL}>{chunks}</ExternalLink>,
 							}}
 						/>
 					</p>
@@ -71,11 +68,7 @@ export function TlaManageCookiesDialog() {
 						<F
 							defaultMessage="Read our <a>cookie policy</a> to learn more."
 							values={{
-								a: (chunks) => (
-									<a href={COOKIE_POLICY_URL} target="_blank" rel="noreferrer">
-										{chunks}
-									</a>
-								),
+								a: (chunks) => <ExternalLink to={COOKIE_POLICY_URL}>{chunks}</ExternalLink>,
 							}}
 						/>
 					</p>

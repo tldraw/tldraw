@@ -19,9 +19,6 @@
 
 /* Variables */
 :root {
-	/* Border radii */
-	--tla-radius-1: 2px;
-	--tla-radius-2: 4px;
 	/* Fonts */
 	--tla-font-ui:
 		'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
@@ -43,7 +40,6 @@
 
 .tla-theme__light {
 	--tla-color-sidebar: hsl(0, 0%, 99%);
-	--tla-color-overlay: hsla(240, 16%, 2%, 30%);
 	--tla-color-inactive: hsl(204, 4%, 55%);
 	--tla-color-inactive-hover: hsl(204, 4%, 59%);
 	--tla-color-primary-hover: hsl(214, 84%, 58%);
@@ -51,8 +47,6 @@
 	--tla-color-secondary-hover: hsl(0, 0%, 93.5%);
 	--tla-color-secondary-border: hsl(0, 0%, 80%);
 	/* Shadows */
-	/* --tla-shadow-primary-highlight: inset 0px 4px 2px -4px hsl(214, 94%, 94%),
-		inset 4px 4px 4px -6px hsl(214, 94%, 100%); */
 	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
 	--tla-shadow-2:
 		0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
@@ -67,7 +61,6 @@
 
 .tla-theme__dark {
 	--tla-color-sidebar: hsl(0, 0%, 5%);
-	--tla-color-overlay: hsla(240, 0%, 0%, 81%);
 	--tla-color-inactive: hsl(204, 4%, 45%);
 	--tla-color-inactive-hover: hsl(204, 4%, 49%);
 	--tla-color-primary-hover: hsl(214, 84%, 50%);
@@ -75,8 +68,6 @@
 	--tla-color-secondary-hover: hsl(0, 0%, 22%);
 	--tla-color-secondary-border: hsl(0, 0%, 25%);
 	/* Shadows */
-	/* --tla-shadow-primary-highlight: inset 0px 1px 1px -1px hsl(214, 94%, 72%),
-		inset 4px 4px 4px -6px hsl(214, 94%, 80%); */
 	--tla-shadow-1:
 		0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
 		inset 0px 0px 0px 1px var(--tl-color-panel);
@@ -239,7 +230,7 @@
 
 /** Buttons/A tags */
 .tla:has(.tl-container__focused:not(.tl-container__no-focus-ring))
-	:is(nav, .tlui-menu, .tlui-popover__content, .tlui-dialog__overlay)
+	:is(nav, .tlui-menu, .tlui-popover__content, .tlui-dialog__content)
 	button:not(.tla-button-text):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) button:not(.tlui-button):focus-visible,
 .tl-container__focused:not(.tl-container__no-focus-ring) .tlui-layout__top a:focus-visible {
