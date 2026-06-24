@@ -5,9 +5,10 @@
 //
 // process-compose has no npm package, so installing it is normally a separate brew/curl step. Exposing
 // it as a workspace bin lets `yarn dev-app` (and anything else) call `process-compose` like any other
-// tool; on first use this downloads the pinned binary into a gitignored repo dir, then execs it. Only
-// people who actually run the dotcom stack pay the one-time download (Yarn doesn't run a workspace's
-// postinstall, so the fetch is lazy rather than eager).
+// tool; on first use this downloads the pinned binary into node_modules/.cache, then execs it. Caching
+// it there (rather than a top-level dir) treats it like any bundled-binary dep: nuking node_modules
+// re-fetches it. Only people who actually run the dotcom stack pay the one-time download (Yarn doesn't
+// run a workspace's postinstall, so the fetch is lazy rather than eager).
 
 const { spawn, spawnSync } = require('node:child_process')
 const { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } = require('node:fs')
@@ -18,7 +19,7 @@ const { join } = require('node:path')
 const VERSION = 'v1.116.0'
 
 const repoRoot = join(__dirname, '..', '..')
-const binDir = join(repoRoot, '.process-compose')
+const binDir = join(repoRoot, 'node_modules', '.cache', 'process-compose')
 const binPath = join(binDir, 'process-compose')
 const stampPath = join(binDir, '.version')
 
