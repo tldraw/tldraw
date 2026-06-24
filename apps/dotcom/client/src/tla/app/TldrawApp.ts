@@ -628,6 +628,46 @@ export class TldrawApp {
 		return sortedFiles
 	}
 
+	/**
+	 * The id of the user's most recently visited file, or null if they have none.
+	 *
+	 * Used to land the user on the file they last had open: across all workspaces when returning to
+	 * the root URL, or within a single workspace when switching to it. Recency comes from
+	 * `file_state`, which is synced per user, so the result follows the user across devices and
+	 * sessions. Files the user can no longer access (deleted, moved away, or revoked) drop out of
+	 * `file_state` sync or come back without a `file` relation, so they're skipped and the next most
+	 * recent available file wins.
+	 *
+	 * When the user has no visited files in scope, fall back to the most recent file in their home
+	 * workspace (root URL) or the top of the workspace's file list (workspace scope) — this covers
+	 * files the user has but has never opened on this account.
+	 *
+	 * @param workspaceId - When provided, only files visible in that workspace are considered.
+	 */
+	getMostRecentFileId(workspaceId?: string): string | null {
+		// Files in scope, ordered pinned-first then by recency. Used both to scope the recency
+		// search and as the fallback when the user has visited none of these files.
+		const scopedFiles = workspaceId ? this.getWorkspaceFilesSorted(workspaceId) : this.getMyFiles()
+		const fileIdsInScope = workspaceId ? new Set(scopedFiles.map((f) => f.fileId)) : null
+
+		let bestFileId: string | null = null
+		let bestDate = -Infinity
+		for (const state of this.getUserFileStates()) {
+			if (fileIdsInScope && !fileIdsInScope.has(state.fileId)) continue
+			const file = state.file
+			if (!file || file.isDeleted) continue
+			const date =
+				state.lastVisitAt ?? state.lastEditAt ?? state.firstVisitAt ?? file.createdAt ?? 0
+			if (date > bestDate) {
+				bestDate = date
+				bestFileId = state.fileId
+			}
+		}
+		if (bestFileId) return bestFileId
+
+		return scopedFiles[0]?.fileId ?? null
+	}
+
 	private canCreateNewFile(workspaceId: string) {
 		if (this.isWorkspacesMigrated()) {
 			// Count only files the workspace actually owns — not guest files (shared files the

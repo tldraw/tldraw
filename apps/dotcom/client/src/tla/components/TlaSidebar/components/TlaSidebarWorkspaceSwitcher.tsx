@@ -30,9 +30,9 @@ const messages = defineMessages({
 /**
  * The fixed top region of the sidebar: a dropdown for switching between the
  * home workspace and the user's other workspaces, followed by action rows for
- * the active workspace. Selecting a workspace opens its top file (first pinned
- * file, otherwise the most recent one), which makes it active (the active
- * workspace is derived from the open file).
+ * the active workspace. Selecting a workspace opens the file the user most
+ * recently had open in it (or its top file if they've visited none), which makes
+ * it active (the active workspace is derived from the open file).
  */
 export function TlaSidebarWorkspaceSwitcher() {
 	const app = useApp()
@@ -198,9 +198,11 @@ function useSwitchToWorkspace() {
 
 	return useCallback(
 		async (workspaceId: string) => {
-			const files = app.getWorkspaceFilesSorted(workspaceId)
-			if (files.length) {
-				navigate(routes.tlaFile(files[0]!.fileId))
+			// Open the file the user most recently had open in this workspace, not just the top of
+			// the pinned-first list, so switching picks up where they left off.
+			const mostRecentFileId = app.getMostRecentFileId(workspaceId)
+			if (mostRecentFileId) {
+				navigate(routes.tlaFile(mostRecentFileId))
 				return
 			}
 			// A workspace created moments ago may still be seeding its welcome file: the
