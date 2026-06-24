@@ -1,7 +1,8 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import type { UserResource } from '@clerk/types'
-import { ReactNode, createContext, useContext, useMemo } from 'react'
+import { ReactNode, createContext, useContext, useEffect, useMemo } from 'react'
 import { assert, useShallowObjectIdentity } from 'tldraw'
+import { createWarmTokenGetter } from '../utils/warmTokenCache'
 import { useMaybeApp } from './useAppState'
 
 interface TldrawUser {
@@ -24,6 +25,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
 	// app can be null during hot reloading sometimes?
 	const app = useMaybeApp()
 
+	// SPIKE (warm cache): wrap Clerk's getToken in a cache that stays warm across
+	// file navigations. Because UserProvider lives above the per-file routes, this
+	// cache survives the per-file editor remount (unlike a cache inside TlaEditor),
+	// so the per-file sync connection gets a token in ~0ms instead of waiting ~150ms
+	// on a Clerk refresh.
+	const tokenCache = useMemo(() => createWarmTokenGetter(() => getToken()), [getToken])
+	useEffect(() => {
+		// Prime immediately and keep the token hot ahead of expiry.
+		void tokenCache.keepWarm().catch(() => {})
+		const interval = setInterval(() => void tokenCache.keepWarm().catch(() => {}), 50_000)
+		return () => clearInterval(interval)
+	}, [tokenCache])
+
 	const value = useMemo(() => {
 		if (!user || !isSignedIn || !app) return null
 
@@ -37,12 +51,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
 				user?.primaryEmailAddress?.verification.status === 'verified' &&
 				user.primaryEmailAddress.emailAddress.endsWith('@tldraw.com'),
 			getToken: async () => {
-				const token = await getToken()
+				const token = await tokenCache.get()
 				assert(token)
 				return token
 			},
 		}
-	}, [getToken, isSignedIn, user, app])
+	}, [tokenCache, isSignedIn, user, app])
 
 	if (!isLoaded || !isAuthLoaded || !app) {
 		// Render a blank editor surface while auth loads, with no spinner or fade.

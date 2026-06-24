@@ -44,6 +44,7 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
+import { logElapsed, timeAsync } from '../../utils/spikeAuthPerf'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -218,10 +219,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [app?.tlUser.userPreferences])
 
 	const store = useSync({
+		// SPIKE (warm cache): the URL still carries the token, but getUserToken now
+		// resolves from a warm cache (see UserProvider), so this await is ~0ms after
+		// the first navigation instead of the ~150ms Clerk refresh.
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
 			if (hasUser) {
-				url.searchParams.set('accessToken', await getUserToken())
+				const token = await timeAsync('token fetch (warm cache)', getUserToken)
+				url.searchParams.set('accessToken', token)
 			}
 			return url.toString()
 		}, [fileSlug, hasUser, getUserToken]),
@@ -231,6 +236,14 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			trackEvent(message.type)
 		}, []),
 	})
+
+	// SPIKE INSTRUMENTATION — measure time from editor mount to first remote sync.
+	const mountedAtRef = useRef(performance.now())
+	useEffect(() => {
+		if (store.status === 'synced-remote') {
+			logElapsed('time to synced-remote (warm cache)', mountedAtRef.current)
+		}
+	}, [store.status])
 
 	// we need to prevent calling onFileExit if the store is in an error state
 	const storeError = useRef(false)
