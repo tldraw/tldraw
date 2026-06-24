@@ -68,13 +68,11 @@ const textBoundsCache = createComputedCache(
 		// Italic/bold widen a word's bleed, and the marks live on runs not on `opts`; measure
 		// conservatively in that style when any run uses it (a mixed-format word would otherwise
 		// under-measure and clip).
-		const words = renderPlaintextFromRichText(editor, shape.props.richText)
-			.split(/\s+/)
-			.filter(Boolean)
+		const { words, italic, bold } = getRichTextInkInputs(editor, shape.props.richText)
 		const overflow = editor.textMeasure.measureWordsInkOverflow(words, {
 			...opts,
-			fontStyle: richTextHasMark(shape.props.richText, 'italic') ? 'italic' : opts.fontStyle,
-			fontWeight: richTextHasMark(shape.props.richText, 'bold') ? 'bold' : opts.fontWeight,
+			fontStyle: italic ? 'italic' : opts.fontStyle,
+			fontWeight: bold ? 'bold' : opts.fontWeight,
 		})
 		return { width, height, overflow }
 	},
@@ -86,6 +84,28 @@ function richTextHasMark(node: any, type: string): boolean {
 	if (node?.marks?.some((m: any) => m.type === type)) return true
 	return Array.isArray(node?.content) && node.content.some((c: any) => richTextHasMark(c, type))
 }
+
+// The whitespace-delimited words of a rich-text doc plus whether any run is italic/bold: the inputs
+// the per-word ink overflow needs, memoized by the doc object. A shape's richText reference is stable
+// across width/scale changes, so resizing reuses this instead of re-parsing every frame; the memo is
+// shared across shapes and released with the doc.
+const richTextInkInputsCache = new WeakMap<
+	object,
+	{ words: string[]; italic: boolean; bold: boolean }
+>()
+function getRichTextInkInputs(editor: Editor, richText: TLTextShape['props']['richText']) {
+	let inputs = richTextInkInputsCache.get(richText)
+	if (!inputs) {
+		inputs = {
+			words: renderPlaintextFromRichText(editor, richText).split(/\s+/).filter(Boolean),
+			italic: richTextHasMark(richText, 'italic'),
+			bold: richTextHasMark(richText, 'bold'),
+		}
+		richTextInkInputsCache.set(richText, inputs)
+	}
+	return inputs
+}
+
 /** @public */
 export interface TextShapeUtilDisplayValues {
 	color: string

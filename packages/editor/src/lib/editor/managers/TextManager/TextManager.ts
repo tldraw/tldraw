@@ -123,10 +123,10 @@ export class TextManager {
 	private elm: HTMLDivElement
 	private poolElms: PoolItem[] = []
 	private inkCtx: CanvasRenderingContext2D | null | undefined
-	// Per-word ink bleed, keyed by font + word. A word shapes independently of its neighbours
-	// (whitespace breaks cursive joining), so its bleed is the same wherever it wraps — measure once,
-	// reuse across every shape and width.
-	private wordBleedCache = new Map<string, TextInkBleed>()
+	// Per-word ink bleed, nested font -> word -> bleed so the per-word lookup needs no string key.
+	// A word shapes independently of its neighbours (whitespace breaks cursive joining), so its bleed
+	// is the same wherever it wraps — measure once, reuse across every shape and width.
+	private wordBleedCache = new Map<string, Map<string, TextInkBleed>>()
 
 	constructor(public editor: Editor) {
 		this.elm = this.createMeasurementEl()
@@ -483,18 +483,11 @@ export class TextManager {
 	}
 
 	/**
-	 * How far a single word's glyph ink spills past its own advance box, on each side, measured with
-	 * canvas metrics only (no layout/reflow). Cached per font + word: because words shape
-	 * independently (whitespace breaks cursive joining), a word's bleed is the same wherever it lands
-	 * in a wrap, so this never needs recomputing as text reflows or scales.
+	 * Measure how far one word's glyph ink spills past its own advance box, on each side, using canvas
+	 * metrics only (no layout/reflow). The caller passes the already-built font shorthand and owns the
+	 * cache; this only runs on a miss.
 	 */
-	private measureWordInkBleed(word: string, opts: TLMeasureTextOpts): TextInkBleed {
-		if (!word) return ZERO_INK_BLEED
-		const font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${opts.fontFamily}`
-		const key = `${font} ${word}`
-		const cached = this.wordBleedCache.get(key)
-		if (cached) return cached
-
+	private measureWordInkBleed(word: string, font: string, opts: TLMeasureTextOpts): TextInkBleed {
 		const ctx = this.getInkContext()
 		if (!ctx) return ZERO_INK_BLEED
 		ctx.font = font
@@ -507,21 +500,20 @@ export class TextManager {
 		const fontDescent = m.fontBoundingBoxDescent || 0
 		// Where CSS line-height puts the baseline inside the line box (half-leading above the ascent).
 		const baseline = (lineBoxH - (fontAscent + fontDescent)) / 2 + fontAscent
-		const bleed: TextInkBleed = {
+		return {
 			left: Math.max(0, m.actualBoundingBoxLeft),
 			right: Math.max(0, m.actualBoundingBoxRight - m.width),
 			top: Math.max(0, m.actualBoundingBoxAscent - baseline),
 			bottom: Math.max(0, baseline + m.actualBoundingBoxDescent - lineBoxH),
 		}
-		this.wordBleedCache.set(key, bleed)
-		return bleed
 	}
 
 	/**
 	 * The ink overflow of wrapped text, derived from its words' cached bleeds rather than the current
-	 * layout. Lines only break at word boundaries, so any line edge is a word edge — taking the max
+	 * layout. Lines only break at word boundaries, so any line edge is a word edge; taking the max
 	 * bleed over the words bounds the spill past the advance box on every side, independent of how the
-	 * text happens to wrap. The result is whole-pixel-padded so the box always contains the ink.
+	 * text happens to wrap. The result is whole-pixel-padded so the box always contains the ink. Each
+	 * word is measured once and cached (font then word), shared across every shape.
 	 *
 	 * @public
 	 */
@@ -529,12 +521,25 @@ export class TextManager {
 		words: string[],
 		opts: TLMeasureTextOpts
 	): { left: number; right: number; top: number; bottom: number } {
+		// The font shorthand is identical for every word in the run, so build it and resolve its cache
+		// bucket once; the per-word lookup is then a plain Map.get with no string key to build.
+		const font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${opts.fontFamily}`
+		let byWord = this.wordBleedCache.get(font)
+		if (!byWord) {
+			byWord = new Map()
+			this.wordBleedCache.set(font, byWord)
+		}
 		let left = 0
 		let right = 0
 		let top = 0
 		let bottom = 0
 		for (const word of words) {
-			const b = this.measureWordInkBleed(word, opts)
+			if (!word) continue
+			let b = byWord.get(word)
+			if (b === undefined) {
+				b = this.measureWordInkBleed(word, font, opts)
+				byWord.set(word, b)
+			}
 			if (b.left > left) left = b.left
 			if (b.right > right) right = b.right
 			if (b.top > top) top = b.top
