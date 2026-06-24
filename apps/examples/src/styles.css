@@ -314,6 +314,7 @@ li.example__sidebar__category {
 	position: relative;
 	padding: 0;
 	margin-top: 8px;
+	margin-bottom: 28px;
 }
 
 .example__sidebar__category:has(> ul > li) {
