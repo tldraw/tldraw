@@ -1,15 +1,16 @@
 import { DEFAULT_THEME, OverlayUtil, TLOverlay } from 'tldraw'
 import {
+	CLAIM_CHARGE,
 	CORE_HP,
 	CUT_FLASH_TICKS,
 	frame$,
 	getWorld,
 	GRID,
-	hoveredVine$,
 	Owner,
 	pegOwner,
 	PLAYER_COLOR,
 	THICKNESS_SCALE,
+	WITHER_COLOR,
 } from '../game-state'
 import { chargeStrength, sparkPos, vineSubtreeSize } from '../sim'
 
@@ -199,21 +200,50 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 		// Vines — culled to the viewport via each strand's cell bucket. STROKE
 		// WIDTH scales with the vine's subtree size (trunks fat, leaves thin) so a
 		// player can see where the chokes are. All vines render at their NORMAL full
-		// color — the cuttable cue is CONTEXTUAL (only the single vine under the
-		// cursor; drawn separately below). We iterate all strands but reject
-		// off-screen ones with a cheap cell-range test before any work.
+		// color — there is NO on-canvas hover cue; the only "can't cut" feedback is
+		// the not-allowed cursor (driven from hoveredVine$ in the example). We
+		// iterate all strands but reject off-screen ones with a cheap cell-range
+		// test before any work.
 		ctx.lineCap = 'round'
 		ctx.lineJoin = 'round'
-		const widthOf = (strand: (typeof world.strands)[number]) =>
-			1.6 + THICKNESS_SCALE * Math.log(1 + (strand.owner ? vineSubtreeSize(world, strand) : 1))
+		const witherRgb = parseRgb(WITHER_COLOR)
 		for (const strand of world.strands) {
 			const c = strand.cell % GRID.cols
 			const r = (strand.cell / GRID.cols) | 0
 			if (c < c0 - 1 || c > c1 + 1 || r < r0 - 1 || r > r1 + 1) continue
 			const owner = strand.owner
+			let width = 1.6 + THICKNESS_SCALE * Math.log(1 + (owner ? vineSubtreeSize(world, strand) : 1))
+
+			if (owner) {
+				// Wither: an orphaned/cut-off vine's owner-charge decays toward 0. The
+				// vine reads alive while EITHER end still holds charge, so use the max.
+				// witherFactor 0 = healthy (full charge), 1 = dead. Healthy vines take
+				// the unchanged branch below (byte-identical to before).
+				const pa = strand.aId ? world.pegById.get(strand.aId) : null
+				const pb = strand.bId ? world.pegById.get(strand.bId) : null
+				const charge = Math.max(pa ? pa.charge[owner] : 0, pb ? pb.charge[owner] : 0)
+				const wither = 1 - Math.min(1, charge / CLAIM_CHARGE)
+				if (wither > 0.02) {
+					// Shrivel: thin toward ~1px, and blend the owner color toward a sere
+					// brown. Just modifies this one stroke's style — no extra passes.
+					width = width + (1 - width) * wither
+					ctx.globalAlpha = 0.7
+					ctx.strokeStyle = lerpColor(parseRgb(colorOf(owner)), witherRgb, wither)
+					ctx.lineWidth = px(width)
+					ctx.beginPath()
+					ctx.moveTo(strand.points[0].x, strand.points[0].y)
+					for (let i = 1; i < strand.points.length; i++) {
+						ctx.lineTo(strand.points[i].x, strand.points[i].y)
+					}
+					ctx.stroke()
+					continue
+				}
+			}
+
+			// Healthy / neutral vine — unchanged from before.
 			ctx.globalAlpha = owner ? 0.7 : 0.3
 			ctx.strokeStyle = owner ? colorOf(owner) : theme.text
-			ctx.lineWidth = px(owner ? widthOf(strand) : 1.4)
+			ctx.lineWidth = px(owner ? width : 1.4)
 			ctx.beginPath()
 			ctx.moveTo(strand.points[0].x, strand.points[0].y)
 			for (let i = 1; i < strand.points.length; i++) {
@@ -222,42 +252,6 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 			ctx.stroke()
 		}
 		ctx.globalAlpha = 1
-
-		// Contextual cuttable cue — only the single vine under the cursor:
-		//  • in-reach enemy vine  → redraw in a brighter blue tint (+1px): cuttable.
-		//  • out-of-reach enemy   → muted/desaturated stroke + a small ✕: can't cut.
-		//  • own/neutral          → no cue.
-		// One vine, so at most one extra solid stroke — no per-vine cost on the map.
-		const hovered = hoveredVine$.get()
-		if (hovered && hovered.kind !== 'other') {
-			const strand = world.strandById.get(hovered.strandId)
-			if (strand && strand.owner === 'b') {
-				const pts = strand.points
-				const inReach = hovered.kind === 'enemy-in-reach'
-				ctx.globalAlpha = inReach ? 0.95 : 0.55
-				ctx.strokeStyle = inReach ? lighten(colorOf('b'), 0.55) : desaturate(colorOf('b'), theme)
-				ctx.lineWidth = px(widthOf(strand) + (inReach ? 1 : 0))
-				ctx.beginPath()
-				ctx.moveTo(pts[0].x, pts[0].y)
-				for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y)
-				ctx.stroke()
-				if (!inReach) {
-					// Small ✕ at the vine midpoint to read as "can't cut here".
-					const m = pts[(pts.length / 2) | 0]
-					const s = px(5)
-					ctx.globalAlpha = 0.8
-					ctx.strokeStyle = theme.text
-					ctx.lineWidth = px(1.5)
-					ctx.beginPath()
-					ctx.moveTo(m.x - s, m.y - s)
-					ctx.lineTo(m.x + s, m.y + s)
-					ctx.moveTo(m.x + s, m.y - s)
-					ctx.lineTo(m.x - s, m.y + s)
-					ctx.stroke()
-				}
-				ctx.globalAlpha = 1
-			}
-		}
 
 		// Growth tips — small glowing buds at the active tendril frontier, pulsing
 		// in time so the discrete growth waves read. Culled to visible cells.
@@ -331,6 +325,9 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 		}
 		ctx.globalAlpha = 1
 
+		// (The cut swipe is drawn by tldraw's built-in scribble overlay, driven via
+		// editor.scribbles from the example — nothing to draw here.)
+
 		// Cores with HP rings, on top of everything. Size is screen-constant (via
 		// px) so the HP read stays legible. Drawn when on (or near) screen.
 		for (const owner of ['a', 'b'] as Owner[]) {
@@ -342,8 +339,7 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 	}
 }
 
-// Parse #rgb / #rrggbb / rgb()/rgba() to [r,g,b]. Only used for the single
-// hovered-vine tint, so the per-call parse cost is irrelevant (≤1 vine/frame).
+// Parse #rgb / #rrggbb / rgb()/rgba() to [r,g,b]. Used for the wither color lerp.
 function parseRgb(color: string): [number, number, number] {
 	const s = color.trim()
 	if (s[0] === '#') {
@@ -357,21 +353,16 @@ function parseRgb(color: string): [number, number, number] {
 	return m ? [+m[1], +m[2], +m[3]] : [255, 255, 255]
 }
 
-// Lighten a color toward white by fraction `t` (0..1) — the in-reach cuttable tint.
-function lighten(color: string, t: number): string {
-	const [r, g, b] = parseRgb(color)
-	const mix = (v: number) => Math.round(v + (255 - v) * t)
-	return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`
-}
-
-// Desaturate a color toward its grey (luminance) and blend toward the theme text
-// — the muted "can't cut here" treatment for an out-of-reach hovered enemy vine.
-function desaturate(color: string, theme: ThemeColors): string {
-	const [r, g, b] = parseRgb(color)
-	const grey = Math.round(0.3 * r + 0.59 * g + 0.11 * b)
-	const [tr, tg, tb] = parseRgb(theme.text)
-	const mix = (c: number) => Math.round(0.5 * grey + 0.5 * c) // half grey, half toward text
-	return `rgb(${mix(tr)}, ${mix(tg)}, ${mix(tb)})`
+// Lerp between two colors by t (0..1). Used only for withering vines (a small,
+// culled subset), so the per-call parse cost is negligible; no allocation beyond
+// the result string.
+function lerpColor(
+	from: [number, number, number],
+	to: [number, number, number],
+	t: number
+): string {
+	const m = (a: number, b: number) => Math.round(a + (b - a) * t)
+	return `rgb(${m(from[0], to[0])}, ${m(from[1], to[1])}, ${m(from[2], to[2])})`
 }
 
 // HP fraction [0..1] for a core.

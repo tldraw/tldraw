@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { CSSProperties, useEffect } from 'react'
 import {
 	Box,
 	TLAnyOverlayUtilConstructor,
@@ -18,12 +18,7 @@ import {
 	GRID,
 	hint$,
 	hoveredVine$,
-	hpA$,
-	hpB$,
 	resetWorld,
-	scoreA$,
-	scoreB$,
-	showHint,
 	winner$,
 } from './game-state'
 import { OvergrowthOverlayUtil } from './overlays/OvergrowthOverlayUtil'
@@ -132,9 +127,12 @@ function GameRunner() {
 		const container = editor.getContainer()
 		const toPage = (e: PointerEvent) => editor.screenToPage({ x: e.clientX, y: e.clientY })
 		let slicing = false
+		let pointerDown = false
 		let last = { x: 0, y: 0 }
-		let laser: { sessionId: string; scribbleId: string } | null = null
 		let spaceHeld = false
+		// The active cut's SDK scribble session: the SDK eraser brush, darkened a
+		// bit. It fades out on its own when the session stops.
+		let scribble: { sessionId: string; scribbleId: string } | null = null
 
 		const onSpaceKey = (e: KeyboardEvent) => {
 			if (e.code === 'Space') spaceHeld = e.type === 'keydown'
@@ -142,23 +140,59 @@ function GameRunner() {
 		window.addEventListener('keydown', onSpaceKey, true)
 		window.addEventListener('keyup', onSpaceKey, true)
 
+		// Begin cutting at page point `p`: set state + open one scribble session with
+		// the two composed brushes. Listeners are attached on pointerdown / removed
+		// on pointerup, so this can be called from down OR from the first qualifying
+		// move.
+		const startSlice = (p: { x: number; y: number }) => {
+			slicing = true
+			hoveredVine$.set(null) // clear hover state + reset cursor while cutting
+			container.style.cursor = ''
+			last = p
+			const sessionId = editor.scribbles.startSession({
+				selfConsume: false,
+				idleTimeoutMs: editor.options.laserDelayMs,
+				fadeMode: 'grouped',
+				fadeEasing: 'ease-in',
+			})
+			// The SDK eraser brush (chunky, tapered), in 'black' at a moderate opacity
+			// so it reads a bit darker than the eraser's default muted grey.
+			const eraser = editor.scribbles.addScribbleToSession(sessionId, {
+				color: 'black',
+				opacity: 0.45,
+				size: 12,
+				taper: true,
+			})
+			scribble = { sessionId, scribbleId: eraser.id }
+			editor.scribbles.addPointToSession(sessionId, eraser.id, p.x, p.y)
+		}
+
 		const onPointerMove = (e: PointerEvent) => {
-			if (!slicing || !laser) return
+			if (!pointerDown) return
 			const world = getWorld()
 			const p = toPage(e)
-			// Slicing only ever starts when already zoomed in past CUT_ZOOM_MIN (the
-			// too-far-out case auto-travels instead). The human is always cutter 'a'.
+			if (!slicing) {
+				// Not cutting yet. As soon as the camera has flown in (live zoom is at
+				// the cut threshold), begin the cut at the CURRENT pointer — no timer.
+				if (editor.getZoomLevel() >= CUT_ZOOM_MIN) startSlice(p)
+				return
+			}
+			// Slicing. Cutter is 'a'.
 			sliceCut(world, last, p, 'a')
-			editor.scribbles.addPointToSession(laser.sessionId, laser.scribbleId, p.x, p.y)
+			// Feed the eraser scribble the same point.
+			if (scribble) {
+				editor.scribbles.addPointToSession(scribble.sessionId, scribble.scribbleId, p.x, p.y)
+			}
 			last = p
 		}
 
 		const onPointerUp = () => {
-			if (slicing && laser) {
-				editor.scribbles.stopSession(laser.sessionId)
-				laser = null
+			if (scribble) {
+				editor.scribbles.stopSession(scribble.sessionId) // both scribbles fade together
+				scribble = null
 			}
 			slicing = false
+			pointerDown = false
 			window.removeEventListener('pointermove', onPointerMove, true)
 			window.removeEventListener('pointerup', onPointerUp, true)
 		}
@@ -168,60 +202,47 @@ function GameRunner() {
 			if (e.button !== 0 || spaceHeld) return
 
 			const p = toPage(e)
+			pointerDown = true
+			// Track movement from now, even before slicing begins (so a fly-in then
+			// drag starts the cut on the first qualifying move).
+			window.addEventListener('pointermove', onPointerMove, true)
+			window.addEventListener('pointerup', onPointerUp, true)
 
-			// Auto-zoom-to-cut: if too zoomed out to cut, this gesture instead
-			// TRAVELS — animate the camera to center on the attempted point and zoom
-			// just past the cut threshold, so the player lands at the right level.
-			// It does NOT cut; the next swipe will.
-			if (editor.getZoomLevel() < CUT_ZOOM_MIN) {
+			if (editor.getZoomLevel() >= CUT_ZOOM_MIN) {
+				// Already zoomed in enough → cut immediately.
+				startSlice(p)
+			} else {
+				// Too far out → auto-zoom-to-cut: fly the camera in and zoom just past
+				// the cut threshold. We DON'T slice yet; cutting begins once the user
+				// drags and the live zoom has reached the threshold (see onPointerMove).
+				// Press-and-release without dragging = just a zoom.
 				const targetZoom = CUT_ZOOM_MIN + CUT_ZOOM_EPSILON
-				// A small box centered on the point; with targetZoom set, the box
-				// center becomes the viewport center at exactly that zoom.
 				const half = GRID.spacing
 				editor.zoomToBounds(new Box(p.x - half, p.y - half, half * 2, half * 2), {
 					targetZoom,
 					animation: { duration: 320 },
 				})
-				showHint('zoomed in — swipe again to cut', 'info')
-				e.stopPropagation()
-				e.preventDefault()
-				return
 			}
-
-			slicing = true
-			hoveredVine$.set(null) // hide the hover cue while actively cutting
-			last = p
-			const sessionId = editor.scribbles.startSession({
-				selfConsume: false,
-				idleTimeoutMs: editor.options.laserDelayMs,
-				fadeMode: 'grouped',
-				fadeEasing: 'ease-in',
-			})
-			const scribble = editor.scribbles.addScribbleToSession(sessionId, {
-				color: 'laser',
-				opacity: 0.7,
-				size: 4,
-				taper: false,
-			})
-			laser = { sessionId, scribbleId: scribble.id }
-			editor.scribbles.addPointToSession(sessionId, scribble.id, last.x, last.y)
 
 			// Claim this gesture as a cut so tldraw doesn't also start a camera/select.
 			e.stopPropagation()
 			e.preventDefault()
-			window.addEventListener('pointermove', onPointerMove, true)
-			window.addEventListener('pointerup', onPointerUp, true)
 		}
 		container.addEventListener('pointerdown', onPointerDown, true)
 
-		// Contextual hover cue: while zoomed in past CUT_ZOOM_MIN and NOT cutting,
-		// hit-test the vine under the cursor (bounded to the cursor's cell ±1 via the
-		// spatial index) and publish it. Updated only when the hovered vine/kind
-		// changes, so it never spams re-renders.
+		// Contextual hover feedback via the CURSOR only (no on-canvas marks): while
+		// zoomed in past CUT_ZOOM_MIN and NOT cutting, hit-test the vine under the
+		// cursor (bounded to the cursor's cell ±1 via the spatial index). If it's an
+		// enemy vine out of reach, show the not-allowed cursor; otherwise default.
+		// hoveredVine$ is updated only when the hovered vine/kind changes.
+		const setCursor = (cursor: string) => {
+			if (container.style.cursor !== cursor) container.style.cursor = cursor
+		}
 		const onHoverMove = (e: PointerEvent) => {
 			if (slicing) return // the active-cut move handler owns the pointer
 			if (editor.getZoomLevel() < CUT_ZOOM_MIN) {
 				if (hoveredVine$.get()) hoveredVine$.set(null)
+				setCursor('')
 				return
 			}
 			const world = getWorld()
@@ -233,6 +254,8 @@ function GameRunner() {
 			if ((cur?.strandId ?? null) !== (next?.strandId ?? null) || cur?.kind !== next?.kind) {
 				hoveredVine$.set(next)
 			}
+			// Out-of-reach enemy vine → "can't cut here". Everything else → default.
+			setCursor(next?.kind === 'enemy-out-of-reach' ? 'not-allowed' : '')
 		}
 		container.addEventListener('pointermove', onHoverMove)
 
@@ -246,111 +269,44 @@ function GameRunner() {
 			window.removeEventListener('pointermove', onPointerMove, true)
 			window.removeEventListener('pointerup', onPointerUp, true)
 			hoveredVine$.set(null)
+			container.style.cursor = ''
 		}
 	}, [editor])
 
 	return null
 }
 
+// A clean tldraw-style panel surface used by both banners.
+const PANEL_STYLE: CSSProperties = {
+	background: 'var(--tl-color-panel)',
+	color: 'var(--tl-color-text)',
+	border: '1px solid var(--tl-color-muted-1)',
+	borderRadius: 8,
+	boxShadow: 'var(--tl-shadow-2, 0 1px 3px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.1))',
+	fontFamily: 'var(--tl-font-ui, system-ui)',
+}
+
 // Transient constraint-system feedback (zoom-in-to-cut, out-of-reach, choke,
-// hydra), shown centered. Auto-expires by comparing against the live frame.
+// hydra). A clean toast near the bottom-center so it doesn't block the action.
+// Auto-expires by comparing against the live frame.
 function HintBanner() {
 	const hint = useValue('hint', () => hint$.get(), [])
 	const frame = useValue('frame', () => frame$.get(), [])
 	if (!hint || frame > hint.until) return null
-	const color =
-		hint.tone === 'warn' ? '#ef4444' : hint.tone === 'good' ? '#22c55e' : 'var(--tl-color-text)'
 	return (
 		<div
 			style={{
 				position: 'absolute',
-				top: '14%',
-				left: 0,
-				right: 0,
+				bottom: 24,
+				left: '50%',
+				transform: 'translateX(-50%)',
 				zIndex: 1002,
 				pointerEvents: 'none',
-				display: 'flex',
-				justifyContent: 'center',
 			}}
 		>
-			<div
-				style={{
-					padding: '6px 14px',
-					borderRadius: 8,
-					background: 'var(--tl-color-panel, white)',
-					boxShadow: '0 2px 12px rgba(0,0,0,0.18)',
-					font: '600 14px var(--tl-font-ui, sans-serif)',
-					color,
-				}}
-			>
+			<div style={{ ...PANEL_STYLE, padding: '8px 12px', fontSize: 13, fontWeight: 500 }}>
 				{hint.text}
 			</div>
-		</div>
-	)
-}
-
-function HpBar({ hp, color }: { hp: number; color: string }) {
-	return (
-		<span
-			style={{
-				display: 'inline-block',
-				width: 70,
-				height: 7,
-				borderRadius: 4,
-				background: 'rgba(127,127,127,0.3)',
-				overflow: 'hidden',
-				verticalAlign: 'middle',
-			}}
-		>
-			<span
-				style={{
-					display: 'block',
-					width: `${Math.max(0, Math.min(100, hp))}%`,
-					height: '100%',
-					background: hp > 30 ? color : '#ef4444',
-				}}
-			/>
-		</span>
-	)
-}
-
-function Hud() {
-	const scoreA = useValue('scoreA', () => scoreA$.get(), [])
-	const scoreB = useValue('scoreB', () => scoreB$.get(), [])
-	const hpA = useValue('hpA', () => hpA$.get(), [])
-	const hpB = useValue('hpB', () => hpB$.get(), [])
-	const total = scoreA + scoreB || 1
-	const pctA = Math.round((scoreA / total) * 100)
-	const pctB = 100 - pctA
-	return (
-		<div
-			style={{
-				position: 'absolute',
-				top: 12,
-				left: 12,
-				zIndex: 1000,
-				pointerEvents: 'none',
-				display: 'flex',
-				flexDirection: 'column',
-				gap: 6,
-				font: '600 14px var(--tl-font-ui, sans-serif)',
-				color: 'var(--tl-color-text)',
-			}}
-		>
-			<div style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
-				<span style={{ color: 'crimson', display: 'flex', alignItems: 'center', gap: 6 }}>
-					<Dot color="crimson" /> Your core <HpBar hp={hpA} color="crimson" /> {hpA}
-				</span>
-				<span style={{ color: 'dodgerblue', display: 'flex', alignItems: 'center', gap: 6 }}>
-					<Dot color="dodgerblue" /> Enemy core <HpBar hp={hpB} color="dodgerblue" /> {hpB}
-				</span>
-			</div>
-			<span style={{ opacity: 0.6, fontWeight: 400, fontSize: 12 }}>
-				territory: red {pctA}% · blue {pctB}% — besiege the enemy core to win
-			</span>
-			<span style={{ opacity: 0.6, fontWeight: 400, fontSize: 12 }}>
-				left-drag to prune (zoom in) · scroll/pinch to zoom · space-drag to pan · R to reset
-			</span>
 		</div>
 	)
 }
@@ -360,36 +316,29 @@ function WinBanner() {
 	if (!winner) return null
 	// winner 'a' = the player besieged the enemy core. 'b' = the player's core fell.
 	const label = winner === 'a' ? 'You won — enemy core destroyed' : 'Your core fell'
-	const color = winner === 'a' ? 'crimson' : 'dodgerblue'
 	return (
 		<div
 			style={{
 				position: 'absolute',
-				inset: 0,
+				top: '50%',
+				left: '50%',
+				transform: 'translate(-50%, -50%)',
 				zIndex: 1001,
 				pointerEvents: 'none',
 				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
 				flexDirection: 'column',
+				alignItems: 'center',
 				gap: 8,
+				textAlign: 'center',
 			}}
 		>
-			<div
-				style={{
-					padding: '14px 28px',
-					borderRadius: 12,
-					background: 'var(--tl-color-panel, white)',
-					boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
-					font: '700 28px var(--tl-font-ui, sans-serif)',
-					color,
-				}}
-			>
+			<div style={{ ...PANEL_STYLE, padding: '12px 20px', fontSize: 20, fontWeight: 600 }}>
 				{label}
 			</div>
 			<div
 				style={{
-					font: '500 13px var(--tl-font-ui, sans-serif)',
+					fontFamily: 'var(--tl-font-ui, system-ui)',
+					fontSize: 13,
 					color: 'var(--tl-color-text)',
 					opacity: 0.7,
 				}}
@@ -400,27 +349,11 @@ function WinBanner() {
 	)
 }
 
-function Dot({ color }: { color: string }) {
-	return (
-		<span
-			style={{
-				display: 'inline-block',
-				width: 9,
-				height: 9,
-				borderRadius: 2,
-				background: color,
-				marginRight: 4,
-			}}
-		/>
-	)
-}
-
 export default function OvergrowthExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw overlayUtils={overlayUtils} components={components}>
 				<GameRunner />
-				<Hud />
 				<HintBanner />
 				<WinBanner />
 			</Tldraw>
