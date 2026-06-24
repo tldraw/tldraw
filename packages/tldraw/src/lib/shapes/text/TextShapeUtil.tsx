@@ -48,11 +48,14 @@ interface TextShapeBounds {
 	overflow: TextInkOverflow
 }
 
-// Measures a text shape's advance box and its glyph ink overflow in a single layout pass. The
-// browser handles wrapping, bidi, alignment, and bold/italic runs; we read the advance from
-// getBoundingClientRect and the ink delta back from the same rendered element, then derive how
-// far ink spills past each side of the box (cursive/RTL/italic side bearings and tall diacritics,
-// see #8803/#8802). Latin text fits its advance box, so its overflow is zero and nothing changes.
+// Measures a text shape's advance box (the wrapped layout, which genuinely changes with width) and
+// its glyph ink overflow (cursive/RTL/italic side bearings and tall diacritics that spill past the
+// box, see #8803/#8802). The overflow is derived from per-word bleeds (see
+// `measureWordsInkOverflow`): lines only break at word boundaries, so the box's spill on each side
+// is bounded by the max bleed over the text's words — which doesn't depend on the wrap. So a resize
+// re-measures only the advance (one reflow), while the ink padding comes from cached, wrap-invariant
+// per-word measurements. Latin text fits its advance box, so its overflow is zero and nothing
+// changes.
 const textBoundsCache = createComputedCache(
 	'text bounds',
 	(editor: Editor, shape: TLTextShape): TextShapeBounds => {
@@ -60,22 +63,29 @@ const textBoundsCache = createComputedCache(
 		const util = editor.getShapeUtil(shape) as TextShapeUtil
 		const dv = getDisplayValues(util, shape)
 		const { html, opts, maybeFixedWidth, minWidth } = getTextMeasureSpec(editor, shape.props, dv)
-		const { advance, ink } = editor.textMeasure.measureHtmlBounds(html, opts)
+		const advance = editor.textMeasure.measureHtml(html, opts)
 		const { width, height } = resolveTextSize(advance, maybeFixedWidth, minWidth, dv.fontSize)
-		// Round overflow up so the box always fully contains the ink (sub-pixel layout/metric
-		// differences across engines must never leave a glyph edge poking out).
-		const overflow = ink
-			? {
-					left: Math.ceil(Math.max(0, -ink.x)),
-					top: Math.ceil(Math.max(0, -ink.y)),
-					right: Math.ceil(Math.max(0, ink.x + ink.w - width)),
-					bottom: Math.ceil(Math.max(0, ink.y + ink.h - height)),
-				}
-			: ZERO_OVERFLOW
+		// Italic/bold widen a word's bleed, and the marks live on runs not on `opts`; measure
+		// conservatively in that style when any run uses it (a mixed-format word would otherwise
+		// under-measure and clip).
+		const words = renderPlaintextFromRichText(editor, shape.props.richText)
+			.split(/\s+/)
+			.filter(Boolean)
+		const overflow = editor.textMeasure.measureWordsInkOverflow(words, {
+			...opts,
+			fontStyle: richTextHasMark(shape.props.richText, 'italic') ? 'italic' : opts.fontStyle,
+			fontWeight: richTextHasMark(shape.props.richText, 'bold') ? 'bold' : opts.fontWeight,
+		})
 		return { width, height, overflow }
 	},
 	{ areRecordsEqual: (a, b) => a.props === b.props }
 )
+
+// Whether any run in the rich text carries a given mark (e.g. italic/bold).
+function richTextHasMark(node: any, type: string): boolean {
+	if (node?.marks?.some((m: any) => m.type === type)) return true
+	return Array.isArray(node?.content) && node.content.some((c: any) => richTextHasMark(c, type))
+}
 /** @public */
 export interface TextShapeUtilDisplayValues {
 	color: string

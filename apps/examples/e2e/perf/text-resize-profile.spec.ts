@@ -182,7 +182,7 @@ test.describe('text resize CPU profile', () => {
 		// the measurement JS in TextManager (incl. the fix's ink pass); layout is the synchronous
 		// reflow that the advance measurement forces; react/signals are the render/reactivity cost.
 		const buckets = {
-			textMeasure: bucket(/TextManager\.ts|measureHtml\b|measureText\b|measureTextInkBounds/),
+			textMeasure: bucket(/TextManager\.ts|measureHtml\b|measureText\b|measureWord/),
 			geometry: bucket(/TextShapeUtil\.tsx|getGeometry|Geometry2d|Rectangle2d/),
 			layout: bucket(/getBoundingClientRect|getClientRects|getComputedStyle|getBBox/),
 			react: bucket(/react-dom_client\.js|react_jsx|ReactElement|jsxDEV/),

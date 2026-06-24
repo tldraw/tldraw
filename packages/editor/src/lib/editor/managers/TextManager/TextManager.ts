@@ -93,6 +93,19 @@ export interface TLMeasureTextSpanOpts {
 
 const spaceCharacterRegex = /\s/
 
+// Strong RTL scripts (Hebrew, Arabic and its presentation forms). Used to measure a word's ink with
+// the same direction the browser would lay it out in.
+const rtlCharacterRegex = /[֐-׿؀-ۿݐ-ݿࢠ-ࣿיִ-﷿ﹰ-﻿]/
+
+/** How far a run of glyphs' ink spills past its own advance box, on each side, in unscaled px. */
+interface TextInkBleed {
+	left: number
+	right: number
+	top: number
+	bottom: number
+}
+const ZERO_INK_BLEED: TextInkBleed = { left: 0, right: 0, top: 0, bottom: 0 }
+
 const initialDefaultStyles = Object.freeze({
 	'overflow-wrap': 'break-word',
 	'word-break': 'auto',
@@ -107,6 +120,10 @@ export class TextManager {
 	private elm: HTMLDivElement
 	private poolElms: PoolItem[] = []
 	private inkCtx: CanvasRenderingContext2D | null | undefined
+	// Per-word ink bleed, keyed by font + word. A word shapes independently of its neighbours
+	// (whitespace breaks cursive joining), so its bleed is the same wherever it wraps — measure once,
+	// reuse across every shape and width.
+	private wordBleedCache = new Map<string, TextInkBleed>()
 
 	constructor(public editor: Editor) {
 		this.elm = this.createMeasurementEl()
@@ -463,203 +480,68 @@ export class TextManager {
 	}
 
 	/**
-	 * Measure the actual ink bounds of the text rendered inside an element, in element-local
-	 * coordinates (relative to the element's bounding rect). Unlike the layout (advance) box, this
-	 * includes the glyph side bearings, italic slant, and tall diacritics that paint outside the
-	 * advance width — the overflow that otherwise clips cursive, RTL, and italic text at the edge
-	 * of its shape (see https://github.com/tldraw/tldraw/issues/8803).
-	 *
-	 * The element must already be laid out (attached, with client rects). Wrapping, bidi,
-	 * alignment, and per-run bold/italic are all read back from the browser's layout; only the ink
-	 * delta is measured with canvas. Returns null when there's no measurable text (or no canvas,
-	 * e.g. in a headless environment).
-	 *
-	 * @public
+	 * How far a single word's glyph ink spills past its own advance box, on each side, measured with
+	 * canvas metrics only (no layout/reflow). Cached per font + word: because words shape
+	 * independently (whitespace breaks cursive joining), a word's bleed is the same wherever it lands
+	 * in a wrap, so this never needs recomputing as text reflows or scales.
 	 */
-	measureTextInkBounds(element: HTMLElement): BoxModel | null {
+	private measureWordInkBleed(word: string, opts: TLMeasureTextOpts): TextInkBleed {
+		if (!word) return ZERO_INK_BLEED
+		const font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${opts.fontFamily}`
+		const key = `${font} ${word}`
+		const cached = this.wordBleedCache.get(key)
+		if (cached) return cached
+
 		const ctx = this.getInkContext()
-		if (!ctx) return null
-
-		const doc = this.editor.getContainerDocument()
-		const view = doc.defaultView ?? window
-		const range = doc.createRange()
-		// Some non-rendering environments (e.g. jsdom under test) provide a canvas context but
-		// don't lay text out, so ranges have no client rects and there's nothing to measure.
-		if (typeof range.getClientRects !== 'function') return null
-
-		const ref = element.getBoundingClientRect()
-		const walker = doc.createTreeWalker(element, NodeFilter.SHOW_TEXT)
-
-		let minX = Infinity
-		let minY = Infinity
-		let maxX = -Infinity
-		let maxY = -Infinity
-
-		for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-			const text = node.textContent
-			const parent = node.parentElement
-			if (!text || !text.trim() || !parent) continue
-
-			// Computed style is already resolved — CSS vars are expanded, and a bold/italic run
-			// reports its own weight/style because it lives in its own element.
-			const cs = view.getComputedStyle(parent)
-			ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
-			ctx.direction = cs.direction as CanvasDirection
-			ctx.textAlign = 'left'
-			ctx.textBaseline = 'alphabetic'
-
-			// Fast path: a single visual line (the common autosize case) needs no per-character
-			// work — measure the whole run in one canvas call. Only wrapped runs fall back to the
-			// per-character line split.
-			range.selectNodeContents(node)
-			const lineRects = range.getClientRects()
-			const lines =
-				lineRects.length <= 1
-					? [
-							(() => {
-								const r = lineRects[0] ?? range.getBoundingClientRect()
-								return { text, left: r.left, top: r.top, height: r.height }
-							})(),
-						]
-					: this.splitNodeIntoLines(node, range, text, lineRects)
-
-			for (const line of lines) {
-				const m = ctx.measureText(line.text)
-				const fontAscent = m.fontBoundingBoxAscent || parseFloat(cs.fontSize) || 0
-				const fontDescent = m.fontBoundingBoxDescent || 0
-				// Anchor the pen at the line's physical left edge and place the baseline within the
-				// line box the way CSS line-height does (half-leading above the font ascent).
-				const penX = line.left - ref.left
-				const baseline =
-					line.top - ref.top + (line.height - (fontAscent + fontDescent)) / 2 + fontAscent
-				const left = penX - (m.actualBoundingBoxLeft || 0)
-				const right = penX + (m.actualBoundingBoxRight || 0)
-				const top = baseline - (m.actualBoundingBoxAscent || 0)
-				const bottom = baseline + (m.actualBoundingBoxDescent || 0)
-				if (left < minX) minX = left
-				if (right > maxX) maxX = right
-				if (top < minY) minY = top
-				if (bottom > maxY) maxY = bottom
-			}
+		if (!ctx) return ZERO_INK_BLEED
+		ctx.font = font
+		ctx.textAlign = 'left'
+		ctx.textBaseline = 'alphabetic'
+		ctx.direction = rtlCharacterRegex.test(word) ? 'rtl' : 'ltr'
+		const m = ctx.measureText(word)
+		const lineBoxH = resolveLineHeightPx(opts.fontSize, opts.lineHeight)
+		const fontAscent = m.fontBoundingBoxAscent || opts.fontSize
+		const fontDescent = m.fontBoundingBoxDescent || 0
+		// Where CSS line-height puts the baseline inside the line box (half-leading above the ascent).
+		const baseline = (lineBoxH - (fontAscent + fontDescent)) / 2 + fontAscent
+		const bleed: TextInkBleed = {
+			left: Math.max(0, m.actualBoundingBoxLeft),
+			right: Math.max(0, m.actualBoundingBoxRight - m.width),
+			top: Math.max(0, m.actualBoundingBoxAscent - baseline),
+			bottom: Math.max(0, baseline + m.actualBoundingBoxDescent - lineBoxH),
 		}
-
-		if (!Number.isFinite(minX)) return null
-		return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
-	}
-
-	// Split a wrapped text node into per-line fragments using the browser's layout. The browser has
-	// already broken the run into lines — `lineRects` is one rect per visual line (bidi can yield
-	// several rects sharing a `top`, so they're grouped) — giving each line's physical left edge and
-	// height directly. The only thing left to recover is where each line starts in the string. Since
-	// a line is a contiguous logical span and a character's `top` only increases from line to line,
-	// we binary-search the first character on each line instead of scanning every character. That
-	// turns the per-line-split from O(chars) layout reads into O(lines · log chars), which matters
-	// when resizing many wrapped shapes at once (each width change re-measures from scratch).
-	private splitNodeIntoLines(node: Node, range: Range, text: string, lineRects: DOMRectList) {
-		// Group line rects by their top edge into one entry per visual line.
-		const lineInfo = new Map<number, { left: number; height: number }>()
-		const tops: number[] = []
-		for (let i = 0; i < lineRects.length; i++) {
-			const r = lineRects[i]
-			const existing = lineInfo.get(r.top)
-			if (existing) {
-				if (r.left < existing.left) existing.left = r.left
-				if (r.height > existing.height) existing.height = r.height
-			} else {
-				lineInfo.set(r.top, { left: r.left, height: r.height })
-				tops.push(r.top)
-			}
-		}
-		tops.sort((a, b) => a - b)
-		if (tops.length === 0) return []
-
-		const chars = Array.from(text)
-		const total = chars.length
-		const offsets = new Array<number>(total)
-		for (let j = 0, o = 0; j < total; j++) {
-			offsets[j] = o
-			o += chars[j].length
-		}
-
-		// The `top` of the character at code-point index `j`, or null when it has no box (e.g. a
-		// collapsed wrap space). Collapsed characters are sparse, so `topNear` resolves the nearest
-		// real top in a probe or two — enough to keep the search monotonic without scanning.
-		const topAt = (j: number): number | null => {
-			range.setStart(node, offsets[j])
-			range.setEnd(node, offsets[j] + chars[j].length)
-			const rects = range.getClientRects()
-			const rect = rects[rects.length - 1]
-			return rect ? rect.top : null
-		}
-		const topNear = (j: number): number | null => {
-			for (let d = 0; d < 5; d++) {
-				if (j - d >= 0) {
-					const t = topAt(j - d)
-					if (t !== null) return t
-				}
-				if (d > 0 && j + d < total) {
-					const t = topAt(j + d)
-					if (t !== null) return t
-				}
-			}
-			return null
-		}
-
-		// Binary-search the first character that sits on each line after the first, narrowing the
-		// search to the still-unassigned tail as we go.
-		const bounds = [0]
-		let lo = 0
-		for (let k = 1; k < tops.length; k++) {
-			let a = lo
-			let b = total
-			while (a < b) {
-				const mid = (a + b) >> 1
-				const top = topNear(mid)
-				if (top === null || top >= tops[k]) b = mid
-				else a = mid + 1
-			}
-			bounds.push(a)
-			lo = a
-		}
-		bounds.push(total)
-
-		const lines: { text: string; left: number; top: number; height: number }[] = []
-		for (let k = 0; k < tops.length; k++) {
-			const info = lineInfo.get(tops[k])!
-			lines.push({
-				text: chars.slice(bounds[k], bounds[k + 1]).join(''),
-				left: info.left,
-				top: tops[k],
-				height: info.height,
-			})
-		}
-		return lines
+		this.wordBleedCache.set(key, bleed)
+		return bleed
 	}
 
 	/**
-	 * Render html into the measurement element once and return both its layout (advance) size and
-	 * the actual ink bounds (relative to the advance box's top-left). A single-pass convenience
-	 * over {@link TextManager.measureHtml} + {@link TextManager.measureTextInkBounds} for callers
-	 * that need both, e.g. a text shape sizing its geometry. `ink` is null when there's no
-	 * measurable text or no canvas (headless).
+	 * The ink overflow of wrapped text, derived from its words' cached bleeds rather than the current
+	 * layout. Lines only break at word boundaries, so any line edge is a word edge — taking the max
+	 * bleed over the words bounds the spill past the advance box on every side, independent of how the
+	 * text happens to wrap. The result is whole-pixel-padded so the box always contains the ink.
 	 *
-	 * @internal
+	 * @public
 	 */
-	measureHtmlBounds(
-		html: string,
+	measureWordsInkOverflow(
+		words: string[],
 		opts: TLMeasureTextOpts
-	): { advance: TLMeasuredTextSize; ink: BoxModel | null } {
-		const { elm } = this
-		const restoreStyles = this.setElementStyles(elm, this.getMeasureStyles(opts))
-		try {
-			elm.innerHTML = html
-			const scrollWidth = opts.measureScrollWidth ? elm.scrollWidth : 0
-			const rect = elm.getBoundingClientRect()
-			const advance = { x: 0, y: 0, w: rect.width, h: rect.height, scrollWidth }
-			const ink = this.measureTextInkBounds(elm)
-			return { advance, ink }
-		} finally {
-			restoreStyles()
+	): { left: number; right: number; top: number; bottom: number } {
+		let left = 0
+		let right = 0
+		let top = 0
+		let bottom = 0
+		for (const word of words) {
+			const b = this.measureWordInkBleed(word, opts)
+			if (b.left > left) left = b.left
+			if (b.right > right) right = b.right
+			if (b.top > top) top = b.top
+			if (b.bottom > bottom) bottom = b.bottom
+		}
+		return {
+			left: Math.ceil(left),
+			right: Math.ceil(right),
+			top: Math.ceil(top),
+			bottom: Math.ceil(bottom),
 		}
 	}
 }

@@ -3360,18 +3360,18 @@ export class TextManager {
     measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
     // (undocumented)
     measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
-    // @internal
-    measureHtmlBounds(html: string, opts: TLMeasureTextOpts): {
-        advance: TLMeasuredTextSize;
-        ink: BoxModel | null;
-    };
     // (undocumented)
     measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
-    measureTextInkBounds(element: HTMLElement): BoxModel | null;
     measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
         box: BoxModel;
         text: string;
     }[];
+    measureWordsInkOverflow(words: string[], opts: TLMeasureTextOpts): {
+        bottom: number;
+        left: number;
+        right: number;
+        top: number;
+    };
 }
 
 // @public
