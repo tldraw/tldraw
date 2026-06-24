@@ -1,22 +1,13 @@
 # ============================================================================
-# SPIKE: host-native dev orchestration for tldraw.com (dotcom) via process-compose
+# Dotcom dev stack — process-compose orchestration
 # ============================================================================
-# This replaces the hand-rolled supervisor in zero-cache/dev.ts with a declarative
-# process-compose config. Everything runs as a HOST PROCESS (native vite HMR, shared
-# node_modules, native workerd, working worker→worker service bindings) — only
-# postgres stays in its one container.
+# Brings up the dotcom dev stack (client, the four workers, zero-cache, postgres) as
+# host processes with declarative depends_on + readiness gating. Only postgres runs in
+# a container. process-compose is "docker-compose for processes":
+# https://github.com/F1bonacc1/process-compose
 #
-# process-compose is "docker-compose for processes": same depends_on / readiness
-# model, but no containers. https://github.com/F1bonacc1/process-compose
-#
-# Run via `yarn dev-app` (from the repo root), which is just:
-#   process-compose -f apps/dotcom/process-compose.yaml up
-#
-# This is the lighter-weight alternative to the full-Docker spike (#9296): you keep
-# the declarative-orchestration win (delete dev.ts) without the container taxes
-# (2.6 GB linux node_modules, macOS bind-mount HMR latency). Trade-off: no network
-# isolation, so parallel stacks still need port offsets, and no CI-parity. See
-# README.process-compose.md.
+# Run via `yarn dev-app` from the repo root. See README.process-compose.md for why this
+# exists and how to drive it (per-process logs, restart, headless).
 
 version: '0.5'
 
@@ -88,9 +79,9 @@ processes:
       period_seconds: 2
       failure_threshold: 90
 
-  # --- Workers (wrangler dev / workerd on the host). Because they share one host, the
-  #     wrangler dev registry works, so the image-resize / usercontent service bindings to
-  #     the sync-worker resolve — the thing the Docker spike couldn't do across containers. ---
+  # --- Workers (wrangler dev / workerd on the host). They share one host, so they share one
+  #     wrangler dev registry, which is what lets the image-resize / usercontent service bindings
+  #     to the sync-worker resolve. ---
   sync-worker:
     command: yarn workspace @tldraw/dotcom-worker dev
     depends_on:
