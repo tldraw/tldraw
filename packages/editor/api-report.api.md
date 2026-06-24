@@ -457,6 +457,9 @@ export class Box {
 // @public (undocumented)
 export type BoxLike = Box | BoxModel;
 
+// @internal
+export function cancelShapeCreationOnLongPress(editor: Editor, cancelPendingCreation: () => void): void;
+
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
 
