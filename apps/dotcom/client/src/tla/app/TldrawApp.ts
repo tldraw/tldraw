@@ -664,21 +664,15 @@ export class TldrawApp {
 		const scopedFiles = workspaceId ? this.getWorkspaceFilesSorted(workspaceId) : this.getMyFiles()
 		const fileIdsInScope = workspaceId ? new Set(scopedFiles.map((f) => f.fileId)) : null
 
-		let bestFileId: string | null = null
-		let bestDate = -Infinity
+		let mostRecent: { fileId: string; date: number } | null = null
 		for (const state of this.getUserFileStates()) {
 			if (fileIdsInScope && !fileIdsInScope.has(state.fileId)) continue
-			const file = state.file
-			if (!file || file.isDeleted) continue
-			const date = getFileRecencyDate(state, file)
-			if (date > bestDate) {
-				bestDate = date
-				bestFileId = state.fileId
-			}
+			if (!state.file || state.file.isDeleted) continue
+			const date = getFileRecencyDate(state, state.file)
+			if (!mostRecent || date > mostRecent.date) mostRecent = { fileId: state.fileId, date }
 		}
-		if (bestFileId) return bestFileId
 
-		return scopedFiles[0]?.fileId ?? null
+		return mostRecent?.fileId ?? scopedFiles[0]?.fileId ?? null
 	}
 
 	private canCreateNewFile(workspaceId: string) {
