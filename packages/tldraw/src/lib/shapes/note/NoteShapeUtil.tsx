@@ -1,9 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Box,
-	DefaultFontFamilies,
 	EMPTY_ARRAY,
-	Editor,
 	Group2d,
 	IndexKey,
 	Rectangle2d,
@@ -26,6 +24,7 @@ import {
 	noteShapeMigrations,
 	noteShapeProps,
 	resizeScaled,
+	resolveLineHeightPx,
 	rng,
 	toRichText,
 	useColorMode,
@@ -179,7 +178,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			fontSizeAdjustment: 1,
 			url: '',
 			scale: 1,
-			textFirstEditedBy: null,
+			textLastEditedBy: null,
 		}
 	}
 
@@ -297,7 +296,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getReferencedUserIds(shape: TLNoteShape) {
-		return shape.props.textFirstEditedBy ? [shape.props.textFirstEditedBy] : []
+		return shape.props.textLastEditedBy ? [shape.props.textLastEditedBy] : []
 	}
 
 	override getFontFaces(shape: TLNoteShape) {
@@ -309,7 +308,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					style: 'normal',
 				})
 
-		if (shape.props.textFirstEditedBy && !isEmptyRichText(shape.props.richText)) {
+		if (shape.props.textLastEditedBy && !isEmptyRichText(shape.props.richText)) {
 			return [...fonts, DefaultFontFaces.tldraw_sans.normal.normal]
 		}
 		const themeFaces = getThemeFontFaces(this.editor.getCurrentTheme(), shape.props.font)
@@ -320,7 +319,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	component(shape: TLNoteShape) {
 		const { id, type, props } = shape
-		const { scale, richText, fontSizeAdjustment, textFirstEditedBy } = props
+		const { scale, richText, fontSizeAdjustment, textLastEditedBy } = props
 
 		const handleKeyDown = useNoteKeydownHandler(id)
 
@@ -347,12 +346,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const attribution = useValue(
 			'attribution',
 			() => {
-				if (!textFirstEditedBy || isEmpty) return null
-				const name = this.editor.getAttributionDisplayName(textFirstEditedBy)
+				if (!textLastEditedBy || isEmpty) return null
+				const name = this.editor.getAttributionDisplayName(textLastEditedBy)
 				if (!name) return null
 				return { short: name.split(' ')[0], full: name }
 			},
-			[textFirstEditedBy, isEmpty, this.editor]
+			[textLastEditedBy, isEmpty, this.editor]
 		)
 
 		return (
@@ -459,14 +458,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			),
 		})
 
-		const { textFirstEditedBy } = shape.props
-		const attributionFirstName =
-			textFirstEditedBy && !isEmptyRichText(shape.props.richText)
-				? this.editor.getAttributionDisplayName(textFirstEditedBy)?.split(' ')[0]
+		const { textLastEditedBy } = shape.props
+		const attributionName =
+			textLastEditedBy && !isEmptyRichText(shape.props.richText)
+				? (this.editor.getAttributionDisplayName(textLastEditedBy)?.split(' ')[0] ?? null)
 				: null
-		const attributionName = attributionFirstName
-			? truncateAttributionForSvg(this.editor, attributionFirstName, dv.noteWidth)
-			: null
 
 		return (
 			<>
@@ -493,17 +489,26 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					showTextOutline={false}
 				/>
 				{attributionName && (
-					<text
-						x={dv.noteWidth - 8}
-						y={bounds.h - 6}
-						textAnchor="end"
-						fontFamily={DefaultFontFamilies['sans']}
-						fontSize={11}
-						fill={dv.labelColor}
-						opacity={0.6}
+					<foreignObject
+						x={0}
+						y={0}
+						width={dv.noteWidth}
+						height={bounds.h}
+						className="tl-export-embed-styles"
 					>
-						{attributionName}
-					</text>
+						<div style={{ position: 'relative', width: '100%', height: '100%' }}>
+							<div
+								className="tl-note__attribution"
+								style={{
+									fontSize: 11,
+									color: dv.labelColor,
+									opacity: 0.6,
+								}}
+							>
+								{attributionName}
+							</div>
+						</div>
+					</foreignObject>
 				)}
 			</>
 		)
@@ -529,12 +534,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			if (isEmptyRichText(next.props.richText)) {
 				shape = {
 					...shape,
-					props: { ...shape.props, textFirstEditedBy: null },
+					props: { ...shape.props, textLastEditedBy: null },
 				}
-			} else if (!prev.props.textFirstEditedBy) {
+			} else {
 				shape = {
 					...shape,
-					props: { ...shape.props, textFirstEditedBy: this.editor.getAttributionUserId() },
+					props: { ...shape.props, textLastEditedBy: this.editor.getAttributionUserId() },
 				}
 			}
 		}
@@ -596,7 +601,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const { richText } = shape.props
 
 		if (isEmptyRichText(richText)) {
-			const minHeight = dv.labelFontSize * dv.labelLineHeight + dv.labelPadding * 2
+			const minHeight =
+				resolveLineHeightPx(dv.labelFontSize, dv.labelLineHeight) + dv.labelPadding * 2
 			return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 1 }
 		}
 
@@ -735,27 +741,6 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 function getNoteHeight(shape: TLNoteShape, noteHeight: number) {
 	return (noteHeight + shape.props.growY) * shape.props.scale
-}
-
-// Matches `.tl-note__attribution { max-width: 60% }` so SVG export truncates the same way.
-const ATTRIBUTION_MAX_WIDTH_RATIO = 0.6
-
-function truncateAttributionForSvg(editor: Editor, name: string, noteWidth: number) {
-	if (process.env.NODE_ENV === 'test') return name
-	const spans = editor.textMeasure.measureTextSpans(name, {
-		fontSize: 11,
-		fontFamily: DefaultFontFamilies['sans'],
-		textAlign: 'end',
-		width: noteWidth * ATTRIBUTION_MAX_WIDTH_RATIO,
-		height: 16,
-		padding: 0,
-		lineHeight: 1,
-		fontStyle: 'normal',
-		fontWeight: 'normal',
-		overflow: 'truncate-ellipsis',
-	})
-	if (spans.length === 0) return name
-	return spans.map((s) => s.text).join('')
 }
 
 function getNoteShadow(id: string, rotation: number, scale: number) {

@@ -3,7 +3,6 @@ import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
 import { getRelevantDates } from '../../../utils/dates'
 import { F } from '../../../utils/i18n'
-import { ReorderCursor } from './ReorderCursor'
 import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarFileSection } from './TlaSidebarFileSection'
@@ -20,16 +19,18 @@ export function TlaSidebarRecentFilesNew() {
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const isHome = activeWorkspaceId === homeWorkspaceId
 
-	const membership = useValue(
-		'active workspace',
-		() => app.getWorkspaceMembership(activeWorkspaceId),
-		[app, activeWorkspaceId]
-	)
-
 	const results = useValue(
 		'active workspace files',
 		() => {
-			const files = app.getWorkspaceFilesSorted(activeWorkspaceId)
+			let files = app.getWorkspaceFilesSorted(activeWorkspaceId)
+
+			// Filter by the sidebar search query, if any. Reading the signal here keeps
+			// the list reactive to the query without threading it through props.
+			const query = app.sidebarState.get().searchQuery.trim().toLowerCase()
+			if (query) {
+				files = files.filter((item) => app.getFileName(item.fileId).toLowerCase().includes(query))
+			}
+
 			const { today, yesterday, thisWeek, thisMonth } = getRelevantDates()
 
 			const pinnedFiles: RecentFile[] = []
@@ -54,26 +55,18 @@ export function TlaSidebarRecentFilesNew() {
 		[app, activeWorkspaceId]
 	)
 
-	const workspaceName = isHome ? <F defaultMessage="My files" /> : membership?.group.name
-
-	// The header names which space's files are shown. Without any workspaces
-	// there is nothing to disambiguate, so it's omitted.
-	const hasWorkspaces = useValue(
-		'has workspaces',
-		() => app.getWorkspaceMemberships().some((m) => m.groupId !== homeWorkspaceId),
-		[app, homeWorkspaceId]
+	const isSearching = useValue(
+		'is searching',
+		() => app.sidebarState.get().searchQuery.trim().length > 0,
+		[app]
 	)
+	const hasResults = Object.values(results).some((group) => group.length > 0)
 
 	return (
 		<div
 			data-drop-target-id={isHome ? homeWorkspaceId : `workspace:${activeWorkspaceId}`}
 			data-workspace-id={activeWorkspaceId}
 		>
-			{hasWorkspaces && (
-				<div className={styles.sidebarActiveWorkspaceTitle} data-testid="tla-active-workspace-name">
-					{workspaceName}
-				</div>
-			)}
 			{results.pinnedFiles.length ? (
 				<TlaSidebarFileSection
 					iconLeft="pin"
@@ -152,8 +145,11 @@ export function TlaSidebarRecentFilesNew() {
 						))}
 				</TlaSidebarFileSection>
 			) : null}
-			{/* Global drag cursor for file reordering */}
-			<ReorderCursor />
+			{isSearching && !hasResults ? (
+				<div className={styles.sidebarSearchEmpty} data-testid="tla-sidebar-search-empty">
+					<F defaultMessage="No files found" />
+				</div>
+			) : null}
 		</div>
 	)
 }

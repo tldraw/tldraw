@@ -4,12 +4,10 @@ import { expect, step } from './tla-test'
 export class WorkspaceInviteDialog {
 	public readonly dialog: Locator
 	public readonly acceptButton: Locator
-	public readonly declineButton: Locator
 
 	constructor(public readonly page: Page) {
-		this.dialog = this.page.getByText('You have been invited to join workspace')
-		this.acceptButton = this.page.getByRole('button', { name: 'Accept and join workspace' })
-		this.declineButton = this.page.getByRole('button', { name: 'No thanks' })
+		this.dialog = this.page.getByText('You have been invited to join')
+		this.acceptButton = this.page.getByRole('button', { name: 'Accept invitation' })
 	}
 
 	async isVisible() {
@@ -27,10 +25,5 @@ export class WorkspaceInviteDialog {
 	@step
 	async acceptInvitation() {
 		await this.acceptButton.click()
-	}
-
-	@step
-	async declineInvitation() {
-		await this.declineButton.click()
 	}
 }

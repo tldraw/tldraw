@@ -7,10 +7,12 @@ export function TlaSidebarRenameInline({
 	fileId,
 	onClose,
 	source,
+	active,
 }: {
 	fileId: string
 	onClose(): void
 	source: TLAppUiEventSource
+	active?: boolean
 }) {
 	const app = useApp()
 	const trackEvent = useTldrawAppUiEvents()
@@ -31,6 +33,7 @@ export function TlaSidebarRenameInline({
 			defaultValue={app.getFileName(fileId)}
 			onComplete={handleComplete}
 			onCancel={onClose}
+			active={active}
 		/>
 	)
 }

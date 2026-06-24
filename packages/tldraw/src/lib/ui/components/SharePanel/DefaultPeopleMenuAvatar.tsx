@@ -1,8 +1,8 @@
-import { usePresence } from '@tldraw/editor'
+import { TLUserId, usePresence } from '@tldraw/editor'
 
 /** @public */
 export interface TLUiPeopleMenuAvatarProps {
-	userId: string
+	userId: TLUserId
 }
 
 /** @public @react */

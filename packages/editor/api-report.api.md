@@ -95,6 +95,7 @@ import { TLUnknownAsset } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLUser } from '@tldraw/tlschema';
+import { TLUserId } from '@tldraw/tlschema';
 import { TLUserStore } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
@@ -701,9 +702,6 @@ export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
 export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX.Element;
-
-// @public (undocumented)
-export function DefaultSelectionBackground({ bounds, rotation }: TLSelectionBackgroundProps): JSX.Element;
 
 // @public (undocumented)
 export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps & RefAttributes<HTMLDivElement>>;
@@ -1361,6 +1359,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     _getReferencedUserIds(shapes: TLShape[]): Set<string>;
     getRenderingShapes(): TLRenderingShape[];
     getResizeScaleFactor(): number;
+    // @internal
+    getResizeShapePartial(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): null | TLShapePartial;
     getRichTextEditor(): null | TiptapEditor;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
@@ -1470,6 +1470,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): boolean;
+    // @internal
+    isReplayingHistory(): boolean;
     isShapeFrameLike(shape: TLShape | TLShapeId): boolean;
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
@@ -1608,7 +1610,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly snaps: SnapManager;
     squashToMark(markId: string): this;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this;
-    startFollowingUser(userId: string): this;
+    startFollowingUser(userId: TLUserId): this;
     stopCameraAnimation(): this;
     stopFollowingUser(): this;
     readonly store: TLStore;
@@ -1683,7 +1685,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         inset?: number;
         targetZoom?: number;
     } & TLCameraMoveOptions): void;
-    zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
+    zoomToUser(userId: TLUserId, opts?: TLCameraMoveOptions): this;
 }
 
 // @public
@@ -2169,6 +2171,8 @@ export class HistoryManager<R extends UnknownRecord> {
     // @internal (undocumented)
     _isInBatch: boolean;
     // @internal (undocumented)
+    isReplaying(): boolean;
+    // @internal (undocumented)
     _mark(id: string): void;
     // (undocumented)
     redo(): this;
@@ -2208,6 +2212,8 @@ export class InputsManager {
     get currentPagePoint(): Vec;
     // @deprecated (undocumented)
     get currentScreenPoint(): Vec;
+    // @internal (undocumented)
+    dispose(): void;
     getAccelKey(): boolean;
     getAltKey(): boolean;
     getCtrlKey(): boolean;
@@ -2877,6 +2883,9 @@ export function resizeScaled(shape: TLBaseShape<any, {
     x: number;
     y: number;
 };
+
+// @public
+export function resolveLineHeightPx(fontSize: number, lineHeight: number): number;
 
 // @public
 export function resolveThemes(themes?: Partial<TLThemes>): TLThemes;
@@ -3883,8 +3892,6 @@ export interface TLEditorComponents {
     // (undocumented)
     OnTheCanvas?: ComponentType | null;
     // (undocumented)
-    SelectionBackground?: ComponentType<TLSelectionBackgroundProps> | null;
-    // (undocumented)
     ShapeErrorFallback?: TLShapeErrorFallbackComponent;
     // (undocumented)
     ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null;
@@ -3965,6 +3972,7 @@ export const tlenv: {
     isFirefox: boolean;
     isIos: boolean;
     isSafari: boolean;
+    isTouchDevice: boolean;
     isWebview: boolean;
 };
 
@@ -4473,6 +4481,7 @@ export type TLPointerEvent = (info: TLPointerEventInfo) => void;
 
 // @public (undocumented)
 export type TLPointerEventInfo = TLBaseEventInfo & {
+    isPenDirect?: boolean;
     button: number;
     isPen: boolean;
     name: TLPointerEventName;
@@ -4571,14 +4580,6 @@ export interface TLRotationSnapshot {
         initialPagePoint: Vec;
         shape: TLShape;
     }[];
-}
-
-// @public (undocumented)
-export interface TLSelectionBackgroundProps {
-    // (undocumented)
-    bounds: Box;
-    // (undocumented)
-    rotation: number;
 }
 
 // @public (undocumented)
@@ -5041,10 +5042,10 @@ export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement | null>
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement | null>): void;
 
 // @public
-export function usePeerIds(): string[];
+export function usePeerIds(): TLUserId[];
 
 // @public (undocumented)
-export function usePresence(userId: string): null | TLInstancePresence;
+export function usePresence(userId: TLUserId): null | TLInstancePresence;
 
 // @internal (undocumented)
 export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
@@ -5071,7 +5072,8 @@ export class UserPreferencesManager {
     getEdgeScrollSpeed(): number;
     // (undocumented)
     getEnhancedA11yMode(): boolean;
-    // (undocumented)
+    getExternalId(): string;
+    // @deprecated (undocumented)
     getId(): string;
     // (undocumented)
     getInputMode(): "mouse" | "trackpad" | null;
@@ -5091,6 +5093,7 @@ export class UserPreferencesManager {
     getLocale(): string;
     // (undocumented)
     getName(): string;
+    getRecordId(): TLUserId;
     // (undocumented)
     getUserPreferences(): {
         animationSpeed: number;
@@ -5140,9 +5143,6 @@ export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TL
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions): TLStore;
-
-// @public (undocumented)
-export function useTransform(ref: React.RefObject<HTMLElement | null | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
 // @public
 export function useUniqueSafeId(suffix?: string): SafeId;

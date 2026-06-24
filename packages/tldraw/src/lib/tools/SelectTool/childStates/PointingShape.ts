@@ -75,6 +75,14 @@ export class PointingShape extends StateNode {
 				renderingOnly: true,
 			}) ?? this.hitShape
 
+		// The hit shape may have been deleted between pointer down and pointer up
+		// (e.g. by a remote user or an undo), in which case the fallback hitShape
+		// is stale. Bail to idle so we don't dereference a missing shape.
+		if (!this.editor.getShape(hitShape.id)) {
+			this.parent.transition('idle', info)
+			return
+		}
+
 		const selectingShape = hitShape
 			? this.editor.getOutermostSelectableShape(hitShape)
 			: this.hitShapeForPointerUp

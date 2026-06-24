@@ -1785,7 +1785,7 @@ describe('right clicking', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 	})
 
-	it('keeps selection when right-clicking a selection background', () => {
+	it('keeps selection when right-clicking inside the selection bounds', () => {
 		editor.createShapes([{ id: ids.box1, type: 'geo' }])
 		editor.selectAll()
 		editor.pointerMove(30, 30)
@@ -1817,7 +1817,7 @@ describe('right clicking', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2, ids.box3])
 	})
 
-	it('keeps selection when right-clicking a selection background', () => {
+	it('clears selection when right-clicking outside the selected arrow', () => {
 		editor
 			.selectAll()
 			.deleteShapes(editor.getSelectedShapeIds())
@@ -2186,6 +2186,19 @@ describe('control pointing', () => {
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
 		// ...and expect menu to be open, but that's a native thing
+	})
+
+	it('selects locked shapes on ctrl click when on a mac', () => {
+		tlenv.isDarwin = true
+
+		editor.createShape({ id: ids.box4, type: 'geo', x: 600, isLocked: true })
+
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.keyDown('Control')
+		editor.pointerMove(650, 50) // inside of locked box 4
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box4])
 	})
 
 	it('selects on ctrl click when on a pc or other device', () => {

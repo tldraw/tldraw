@@ -808,7 +808,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	 */
 	getType(typeName: string) {
 		const type = getOwnProperty(this.types, typeName)
-		assert(type, 'record type does not exists')
+		assert(type, 'record type does not exist')
 		return type
 	}
 }

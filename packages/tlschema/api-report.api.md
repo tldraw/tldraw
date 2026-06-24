@@ -74,10 +74,15 @@ export const AssetRecordType: RecordType<TLAsset<"bookmark" | "image" | "video">
 
 // @public
 export class b64Vecs {
-    static decodeFirstPoint(b64Points: string): null | VecModel;
-    static decodeLastPoint(b64Points: string): null | VecModel;
-    static decodePoints(base64: string): VecModel[];
-    static encodePoints(points: VecModel[]): string;
+    static decodeFirstPoint(b64Points: string, dim?: 2 | 3): null | VecModel;
+    static decodeFirstPoint2D(b64Points: string): null | VecModel;
+    static decodeLastPoint(b64Points: string, dim?: 2 | 3): null | VecModel;
+    static decodeLastPoint2D(b64Points: string): null | VecModel;
+    static decodePoints(base64: string, dim?: 2 | 3): VecModel[];
+    static decodePoints2D(base64: string): VecModel[];
+    static encodePoints(points: VecModel[], dim?: 2 | 3): string;
+    static encodePoints2D(points: VecModel[]): string;
+    static isSinglePoint(b64Points: string, dim?: 2 | 3): boolean;
     // @internal
     static _legacyDecodePoints(base64: string): VecModel[];
     // @internal
@@ -381,6 +386,12 @@ export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 
 // @public
+export const DIM_2D = 2;
+
+// @public
+export const DIM_3D = 3;
+
+// @public
 export const DocumentRecordType: RecordType<TLDocument, never>;
 
 // @public
@@ -451,7 +462,7 @@ export function getDefaultUserPresence(store: TLStore, user: TLUser): {
         x: number;
         y: number;
     };
-    followingUserId: null | string;
+    followingUserId: TLUserId | null;
     lastActivityTimestamp: number;
     meta: {};
     screenBounds: BoxModel;
@@ -1147,6 +1158,7 @@ export interface TLDrawShapeProps {
 
 // @public
 export interface TLDrawShapeSegment {
+    dim?: 2 | 3;
     path: string;
     type: 'free' | 'straight';
 }
@@ -1355,9 +1367,9 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     exportBackground: boolean;
     // (undocumented)
-    followingUserId: null | string;
+    followingUserId: null | TLUserId;
     // (undocumented)
-    highlightedUserIds: string[];
+    highlightedUserIds: TLUserId[];
     // (undocumented)
     insets: boolean[];
     // (undocumented)
@@ -1451,7 +1463,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         y: number;
     } | null;
     // (undocumented)
-    followingUserId: null | string;
+    followingUserId: null | TLUserId;
     // (undocumented)
     lastActivityTimestamp: null | number;
     // (undocumented)
@@ -1463,7 +1475,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     selectedShapeIds: TLShapeId[];
     // (undocumented)
-    userId: string;
+    userId: TLUserId;
     // (undocumented)
     userName: string;
 }
@@ -1512,7 +1524,7 @@ export interface TLNoteShapeProps {
     richText: TLRichText;
     scale: number;
     size: TLDefaultSizeStyle;
-    textFirstEditedBy: null | string;
+    textLastEditedBy: null | string;
     url: string;
     verticalAlign: TLDefaultVerticalAlignStyle;
 }

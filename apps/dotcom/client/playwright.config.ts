@@ -1,19 +1,32 @@
 import path from 'path'
 import { defineConfig, devices } from '@playwright/test'
+import dotenv from 'dotenv'
+
+const scenarioTestMatch = /.*\.scenario\.spec\.ts/
+// Legacy smoke specs live in e2e/tests/smoke and are intentionally separate from the default
+// scenario runner. See e2e/README.md.
+const smokeTestMatch = /tests\/smoke\/.*\.spec\.ts/
+
+// Fail fast if the dev stack does not come up: not a single test runs until http://localhost:3000
+// responds, so a stuck server otherwise burns CI minutes. The dotcom server should boot well within
+// this. If a CI cold start ever legitimately needs longer, raise this (and the readiness budgets in
+// zero-cache/dev-env.ts) rather than reverting to a multi-minute stuck wait.
+const CI_WEB_SERVER_TIMEOUT_MS = 180_000
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+dotenv.config({ path: path.resolve(__dirname, '.env.local') })
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
 	testDir: './e2e',
+	// In CI the webServer below starts the full dotcom dev stack (including Docker). Tear it down
+	// afterwards so containers and ports do not leak between runs. No-op locally (reused server).
+	globalTeardown: process.env.CI ? require.resolve('./e2e/global.teardown.ts') : undefined,
 	// Run files in parallel, but tests within a file in sequence. This is important for certain
 	// tests that use shared system resources like the clipboard, which should all be kept in the
 	// same file.
@@ -48,6 +61,16 @@ export default defineConfig({
 		{ name: 'global-staging-setup', testMatch: /global-staging\.setup\.ts/ },
 		{
 			name: 'chromium',
+			testMatch: smokeTestMatch,
+			use: {
+				...devices['Desktop Chrome'],
+			},
+			dependencies: ['global-setup'],
+		},
+		{
+			name: 'chromium-scenarios',
+			testMatch: scenarioTestMatch,
+			fullyParallel: true,
 			use: {
 				...devices['Desktop Chrome'],
 			},
@@ -100,6 +123,6 @@ export default defineConfig({
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
-		timeout: process.env.CI ? 120_000 : 300_000,
+		timeout: process.env.CI ? CI_WEB_SERVER_TIMEOUT_MS : 300_000,
 	},
 })
