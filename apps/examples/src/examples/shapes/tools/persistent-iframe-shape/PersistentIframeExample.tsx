@@ -125,7 +125,7 @@ export default function PersistentIframeExample() {
 	const [isEditorMounted, setIsEditorMounted] = useState(true)
 
 	return (
-		<div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+		<div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
 			<div style={{ padding: 8 }}>
 				<button onClick={() => setIsEditorMounted((mounted) => !mounted)}>
 					{isEditorMounted ? 'Unmount editor' : 'Mount editor'}
