@@ -991,17 +991,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * `Node.moveBefore` where available so stateful content like cross-origin iframes keeps
 	 * its state across the move, falling back to `appendChild` elsewhere.
 	 *
-	 * Pair this with {@link ShapeUtil.onReleaseContentElement} to reclaim the element before
+	 * Pair this with {@link ShapeUtil.onReleaseAppOwnedElement} to reclaim the element before
 	 * the shape or editor unmounts.
 	 *
 	 * @param shape - The shape.
 	 * @returns The element to adopt, or null to render nothing.
 	 * @public
 	 */
-	getContentElement?(shape: Shape): HTMLElement | null
+	getAppOwnedElement?(shape: Shape): HTMLElement | null
 
 	/**
-	 * A callback called before the shape's content element slot is destroyed: when the shape
+	 * A callback called before the shape's app own's content element slot is destroyed: when the shape
 	 * unmounts (for example when it is deleted or the current page changes) or when the whole
 	 * editor unmounts, including error teardown. The slot is still connected to the document
 	 * when this is called, so the app can move the element to another connected parent with
@@ -1009,10 +1009,10 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * with it.
 	 *
 	 * @param shape - The shape.
-	 * @param element - The element returned by {@link ShapeUtil.getContentElement}.
+	 * @param element - The element returned by {@link ShapeUtil.getAppOwnedElement}.
 	 * @public
 	 */
-	onReleaseContentElement?(shape: Shape, element: HTMLElement): void
+	onReleaseAppOwnedElement?(shape: Shape, element: HTMLElement): void
 }
 
 /**

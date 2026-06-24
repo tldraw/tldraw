@@ -33,7 +33,7 @@ class PersistentShapeUtil extends BaseBoxShapeUtil<IPersistentShape> {
 	component() {
 		return null
 	}
-	override getContentElement(shape: IPersistentShape) {
+	override getAppOwnedElement(shape: IPersistentShape) {
 		let element = elements.get(shape.id)
 		if (!element) {
 			element = document.createElement('div')
@@ -42,7 +42,7 @@ class PersistentShapeUtil extends BaseBoxShapeUtil<IPersistentShape> {
 		}
 		return element
 	}
-	override onReleaseContentElement(shape: IPersistentShape, element: HTMLElement) {
+	override onReleaseAppOwnedElement(shape: IPersistentShape, element: HTMLElement) {
 		releaseCalls.push({
 			shapeId: shape.id,
 			element,

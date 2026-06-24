@@ -82,7 +82,7 @@ class PersistentIframeShapeUtil extends BaseBoxShapeUtil<IPersistentIframeShape>
 	}
 
 	// [4]
-	override getContentElement(shape: IPersistentIframeShape) {
+	override getAppOwnedElement(shape: IPersistentIframeShape) {
 		let iframe = iframes.get(shape.id)
 		if (!iframe) {
 			iframe = document.createElement('iframe')
@@ -99,7 +99,7 @@ class PersistentIframeShapeUtil extends BaseBoxShapeUtil<IPersistentIframeShape>
 	}
 
 	// [5]
-	override onReleaseContentElement(shape: IPersistentIframeShape, element: HTMLElement) {
+	override onReleaseAppOwnedElement(shape: IPersistentIframeShape, element: HTMLElement) {
 		moveElementInto(getParkingLot(), element)
 	}
 }

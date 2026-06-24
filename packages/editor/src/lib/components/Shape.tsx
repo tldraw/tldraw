@@ -154,7 +154,7 @@ export const Shape = memo(function Shape({
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 					<InnerShape shape={shape} util={util} />
 				</OptionalErrorBoundary>
-				{util.getContentElement && <ContentElementSlot id={id} util={util} />}
+				{util.getAppOwnedElement && <ContentElementSlot id={id} util={util} />}
 			</ShapeWrapper>
 		</>
 	)
@@ -189,7 +189,7 @@ const ContentElementSlot = memo(function ContentElementSlot({
 		const shape = editor.getShape(id)
 		if (!shape) return
 
-		const element = util.getContentElement?.(shape)
+		const element = util.getAppOwnedElement?.(shape)
 		if (!element) return
 
 		// An element that was connected before adoption (e.g. parked off-canvas by the
@@ -206,7 +206,7 @@ const ContentElementSlot = memo(function ContentElementSlot({
 
 		return () => {
 			const latestShape = editor.getShape(id) ?? shape
-			util.onReleaseContentElement?.(latestShape, element)
+			util.onReleaseAppOwnedElement?.(latestShape, element)
 			if (process.env.NODE_ENV !== 'production' && element.parentNode === slot) {
 				console.warn(
 					`[tldraw] The content element for shape "${id}" was not reclaimed by onReleaseContentElement and will be destroyed along with its slot, losing any state it holds.`
