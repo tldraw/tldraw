@@ -15,6 +15,22 @@
 	display: flex;
 }
 
+.perf-panel__fps {
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+	padding: 2px 0;
+}
+
+.perf-panel__fps b {
+	font-size: 20px;
+	font-variant-numeric: tabular-nums;
+	color: #2f9e44;
+}
+
+.perf-panel__fps--low b {
+	color: #c92a2a;
+}
+
 .perf-panel__readouts {
 	display: flex;
 	gap: 8px;

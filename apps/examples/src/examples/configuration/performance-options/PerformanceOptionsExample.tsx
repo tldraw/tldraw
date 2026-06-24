@@ -22,6 +22,35 @@ const getLiveZoom = (editor: Editor) => editor.getZoomLevel()
 const getEfficientZoom = (editor: Editor) => editor.getEfficientZoomLevel()
 
 // [1]
+function useFps(editor: Editor) {
+	const [fps, setFps] = useState(0)
+
+	useEffect(() => {
+		let frames = 0
+		let last = performance.now()
+		// the editor runs a single requestAnimationFrame loop and emits 'tick'
+		// once per frame, so counting ticks measures the real frame rate the
+		// canvas is achieving under load
+		function handleTick() {
+			frames++
+			const now = performance.now()
+			const elapsed = now - last
+			if (elapsed >= 500) {
+				setFps(Math.round((frames * 1000) / elapsed))
+				frames = 0
+				last = now
+			}
+		}
+		editor.on('tick', handleTick)
+		return () => {
+			editor.off('tick', handleTick)
+		}
+	}, [editor])
+
+	return fps
+}
+
+// [2]
 function ZoomReadout({
 	label,
 	getZoom,
@@ -63,8 +92,9 @@ function PerformancePanel() {
 	const [resetSignal, setResetSignal] = useState(0)
 
 	const shapeCount = useValue('shape count', () => editor.getCurrentPageShapeIds().size, [editor])
+	const fps = useFps(editor)
 
-	// [2]
+	// [3]
 	useEffect(() => {
 		function handleMaxShapes({ name, count }: { name: string; count: number }) {
 			setLimitMessage(`Rejected: page "${name}" is at its limit of ${count} shapes.`)
@@ -81,7 +111,7 @@ function PerformancePanel() {
 		return () => clearTimeout(timeout)
 	}, [limitMessage])
 
-	// [3]
+	// [4]
 	const atLimit = shapeCount >= editor.options.maxShapesPerPage
 
 	const addShapes = () => {
@@ -105,6 +135,10 @@ function PerformancePanel() {
 
 	return (
 		<div className="perf-panel">
+			{/* [5] */}
+			<div className={`perf-panel__fps ${fps > 0 && fps < 40 ? 'perf-panel__fps--low' : ''}`}>
+				<b>{fps}</b> fps
+			</div>
 			<div className="perf-panel__row">
 				<TldrawUiButton type="primary" disabled={atLimit} onClick={addShapes}>
 					{atLimit ? 'Page is full' : `Add ${ADD_BATCH} shapes`}
@@ -120,7 +154,6 @@ function PerformancePanel() {
 					Reset counters
 				</TldrawUiButton>
 			</div>
-			{/* [4] */}
 			<div className="perf-panel__readouts">
 				<ZoomReadout label="getZoomLevel()" getZoom={getLiveZoom} resetSignal={resetSignal} />
 				<ZoomReadout
@@ -141,7 +174,7 @@ const components: TLComponents = {
 	TopPanel: PerformancePanel,
 }
 
-// [5]
+// [6]
 function PerformanceConfigPanel({
 	maxShapes,
 	useDebouncedZoom,
@@ -216,7 +249,7 @@ export default function PerformanceOptionsExample() {
 	const [useDebouncedZoom, setUseDebouncedZoom] = useState(true)
 	const [threshold, setThreshold] = useState(50)
 
-	// [6]
+	// [7]
 	const options = useMemo<Partial<TldrawOptions>>(
 		() => ({
 			maxShapesPerPage: maxShapes,
@@ -247,6 +280,15 @@ TldrawOptions: the page shape limit (with the max-shapes event it emits) and
 the debounced zoom options.
 
 [1]
+The frame-rate readout makes the cost concrete. The editor runs a single
+requestAnimationFrame loop and emits a 'tick' event once per frame, so
+counting ticks over a short window measures the frame rate the canvas is
+actually achieving. Fill the page with thousands of shapes, turn
+debouncedZoom off, and zoom with the wheel: the counter drops as every
+zoom-dependent component re-renders each frame. Turn it back on and the
+frame rate holds.
+
+[2]
 Why debounced zoom matters: during a zoom gesture the camera changes on
 every frame, so anything that derives from the zoom level recomputes on
 every frame too. tldraw has many such consumers internally. Note shape
@@ -267,27 +309,28 @@ batch of shapes, grab the zoom with the mouse wheel, and compare: the live count
 climbs with every frame of the gesture while the efficient counter ticks
 up once or twice.
 
-[2]
+[3]
 When an operation would push a page past maxShapesPerPage (default 4000,
-lowered to 6000 here), the editor rejects it and emits a 'max-shapes' event
+raised to 6000 here), the editor rejects it and emits a 'max-shapes' event
 with the page name and the limit. Listen for it to tell users why nothing
 happened. Here it becomes a temporary warning banner; tldraw's default UI
 turns the same event into a toast.
 
-[3]
+[4]
 Feedback shouldn't only appear after a rejection. The panel also derives a
 persistent at-limit state from the live shape count and the editor's own
 options (editor.options.maxShapesPerPage): the counter turns red and the
 add button disables.
 
-[4]
-The two readouts, one per zoom signal. The "Reset counters" button zeroes
-them so you can measure a single gesture.
-
 [5]
+The panel's live readouts: the frame rate up top, then one readout per zoom
+signal. The "Reset counters" button zeroes the update counts so you can
+measure a single gesture.
+
+[6]
 The bottom-left panel reconfigures the performance options at runtime.
 
-- maxShapesPerPage (default 4000, lowered to 6000 here) caps how many shapes
+- maxShapesPerPage (default 4000, raised to 6000 here) caps how many shapes
   a page can hold. Raise or lower it and the at-limit feedback above tracks
   the new value: the counter turns red and the add button disables once the
   page reaches it.
@@ -304,9 +347,9 @@ The debounced zoom options:
   the efficient counter climbs like the live one again.
 
 The sliders commit on release rather than while dragging, since each commit
-recreates the editor (see [6]).
+recreates the editor (see [7]).
 
-[6]
+[7]
 Editor options are read once when the editor instance is created, so
 committing a change to the options prop tears down and recreates the
 editor. The document store survives recreation, which is why your shapes
