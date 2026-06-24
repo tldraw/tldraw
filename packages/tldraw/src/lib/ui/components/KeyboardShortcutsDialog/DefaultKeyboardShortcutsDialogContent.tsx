@@ -82,22 +82,8 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="align-right" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.text-formatting" id="text">
-				<TldrawUiMenuItem
-					id="text-bold"
-					label="tool.rich-text-bold"
-					kbd="cmd+b"
-					onSelect={() => {
-						/* do nothing */
-					}}
-				/>
-				<TldrawUiMenuItem
-					id="text-italic"
-					label="tool.rich-text-italic"
-					kbd="cmd+i"
-					onSelect={() => {
-						/* do nothing */
-					}}
-				/>
+				<TldrawUiMenuActionItem actionId="format-bold" />
+				<TldrawUiMenuActionItem actionId="format-italic" />
 				<TldrawUiMenuItem
 					id="text-code"
 					label="tool.rich-text-code"

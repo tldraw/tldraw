@@ -9,6 +9,7 @@ import {
 	Result,
 	TLEmbedShape,
 	TLImageShape,
+	TLRichText,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -28,7 +29,11 @@ import { defaultHandleExternalTextContent } from '../../defaultExternalContentHa
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
-import { richTextHasMarkEverywhere, setMarkOnRichText } from '../../utils/text/richText'
+import {
+	isEmptyRichText,
+	richTextHasMarkEverywhere,
+	setMarkOnRichText,
+} from '../../utils/text/richText'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -157,36 +162,40 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		 * Toggle a rich text mark (e.g. 'bold', 'italic') on every text-bearing shape in the
 		 * selection, without entering text edit mode. If every selected shape is already fully
 		 * marked, the mark is removed from all of them; otherwise it is added to all of them.
-		 * Returns `true` if there was at least one formattable shape to act on, so callers can fall
-		 * back to other behavior when nothing was formatted.
 		 */
 		function toggleRichTextMarkOnSelection(markName: 'bold' | 'italic', source: TLUiEventSource) {
-			if (!editor.isIn('select')) return false
+			if (!editor.isIn('select')) return
 
+			// Only act on shapes that actually have text to format. Shapes with a `richText` prop but
+			// no text content (e.g. an empty geo label or arrow) are skipped, so they don't keep the
+			// "is everything marked?" check from ever being true.
 			const shapes = editor
 				.getSelectedShapes()
-				.filter((shape) => 'richText' in shape.props && !editor.isShapeOrAncestorLocked(shape.id))
+				.filter(
+					(shape): shape is TLShape & { props: { richText: TLRichText } } =>
+						'richText' in shape.props &&
+						!editor.isShapeOrAncestorLocked(shape.id) &&
+						!isEmptyRichText(shape.props.richText)
+				)
 
-			if (shapes.length === 0) return false
+			if (shapes.length === 0) return
 
 			trackEvent('rich-text', { operation: markName, source })
 			editor.markHistoryStoppingPoint(`format ${markName}`)
 			editor.run(() => {
 				const allMarked = shapes.every((shape) =>
-					richTextHasMarkEverywhere((shape.props as any).richText, markName)
+					richTextHasMarkEverywhere(shape.props.richText, markName)
 				)
 				editor.updateShapes(
 					shapes.map((shape) => ({
 						id: shape.id,
 						type: shape.type,
 						props: {
-							richText: setMarkOnRichText((shape.props as any).richText, markName, !allMarked),
+							richText: setMarkOnRichText(shape.props.richText, markName, !allMarked),
 						},
 					})) as TLShapePartial[]
 				)
 			})
-
-			return true
 		}
 
 		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
@@ -216,8 +225,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'format-italic',
 				label: 'tool.rich-text-italic',
 				icon: 'italic',
-				// No kbd: cmd+i is owned by `insert-embed`, which dispatches to italic when a
-				// text-bearing shape is selected. This action stays available for menus/overrides.
+				kbd: 'cmd+i,ctrl+i',
 				onSelect(source) {
 					toggleRichTextMarkOnSelection('italic', source)
 				},
@@ -225,11 +233,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'insert-embed',
 				label: 'action.insert-embed',
-				kbd: 'cmd+i,ctrl+i',
+				kbd: 'cmd+e,ctrl+e',
 				onSelect(source) {
-					// When text-bearing shapes are selected, cmd+i toggles italic instead of opening
-					// the embed dialog. Falls back to the embed dialog otherwise.
-					if (toggleRichTextMarkOnSelection('italic', source)) return
 					trackEvent('insert-embed', { source })
 					helpers.addDialog({ component: EmbedDialog })
 				},

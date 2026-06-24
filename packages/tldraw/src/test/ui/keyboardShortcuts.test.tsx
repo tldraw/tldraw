@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { createShapeId, Editor } from '@tldraw/editor'
+import { createShapeId, Editor, TLRichText, TLShapeId, toRichText } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
 import { useActions } from '../../lib/ui/context/actions'
@@ -9,6 +9,7 @@ import {
 	parseKbd,
 } from '../../lib/ui/hooks/useKeyboardShortcuts'
 import { useTools } from '../../lib/ui/hooks/useTools'
+import { richTextHasMarkEverywhere } from '../../lib/utils/text/richText'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
@@ -203,5 +204,83 @@ describe('keyboard shortcuts with a held key', () => {
 		// trigger redo rather than being blocked by the stale undo registration on `KeyZ`.
 		keydown(editor, { key: 'z', code: 'KeyZ', metaKey: true, shiftKey: true })
 		expect(editor.getCurrentPageShapeIds().has(id)).toBe(true)
+	})
+})
+
+function createTextShape(editor: Editor, text: string): TLShapeId {
+	const id = createShapeId()
+	editor.createShape({ id, type: 'text', props: { richText: toRichText(text) } })
+	return id
+}
+
+function getRichText(editor: Editor, id: TLShapeId): TLRichText {
+	return (editor.getShape(id)!.props as { richText: TLRichText }).richText
+}
+
+describe('format shortcuts on selected shapes', () => {
+	it('toggles bold on a selected text shape with cmd+b', async () => {
+		const { editor } = await setupFocusedEditor()
+		const id = createTextShape(editor, 'hello')
+		editor.select(id)
+
+		keydown(editor, { key: 'b', code: 'KeyB', metaKey: true })
+		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'bold')).toBe(true)
+
+		keydown(editor, { key: 'b', code: 'KeyB', metaKey: true })
+		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'bold')).toBe(false)
+	})
+
+	it('toggles italic on a selected text shape with cmd+i', async () => {
+		const { editor } = await setupFocusedEditor()
+		const id = createTextShape(editor, 'hello')
+		editor.select(id)
+
+		keydown(editor, { key: 'i', code: 'KeyI', metaKey: true })
+		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'italic')).toBe(true)
+	})
+
+	it('toggles bold across a multi-selection, only unbolding when all are bold', async () => {
+		const { editor } = await setupFocusedEditor()
+		const a = createTextShape(editor, 'a')
+		const b = createTextShape(editor, 'b')
+		editor.select(a, b)
+
+		// Neither bold yet: pressing bold marks both.
+		keydown(editor, { key: 'b', code: 'KeyB', metaKey: true })
+		expect(richTextHasMarkEverywhere(getRichText(editor, a), 'bold')).toBe(true)
+		expect(richTextHasMarkEverywhere(getRichText(editor, b), 'bold')).toBe(true)
+
+		// Now all bold: pressing bold removes it from both.
+		keydown(editor, { key: 'b', code: 'KeyB', metaKey: true })
+		expect(richTextHasMarkEverywhere(getRichText(editor, a), 'bold')).toBe(false)
+		expect(richTextHasMarkEverywhere(getRichText(editor, b), 'bold')).toBe(false)
+	})
+
+	it('ignores empty-text shapes so a fully bold selection can still toggle off', async () => {
+		const { editor } = await setupFocusedEditor()
+		const text = createTextShape(editor, 'hello')
+		// An empty geo label has a `richText` prop but no text content.
+		const geo = createShapeId()
+		editor.createShape({ id: geo, type: 'geo' })
+		editor.select(text, geo)
+
+		// Bold the text shape (the empty geo is skipped).
+		keydown(editor, { key: 'b', code: 'KeyB', metaKey: true })
+		expect(richTextHasMarkEverywhere(getRichText(editor, text), 'bold')).toBe(true)
+
+		// The text shape is fully bold, so pressing bold again removes it even though the empty
+		// geo shape is also selected.
+		keydown(editor, { key: 'b', code: 'KeyB', metaKey: true })
+		expect(richTextHasMarkEverywhere(getRichText(editor, text), 'bold')).toBe(false)
+	})
+
+	it('does not bold a locked shape', async () => {
+		const { editor } = await setupFocusedEditor()
+		const id = createTextShape(editor, 'hello')
+		editor.updateShape({ id, type: 'text', isLocked: true })
+		editor.setSelectedShapes([id])
+
+		keydown(editor, { key: 'b', code: 'KeyB', metaKey: true })
+		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'bold')).toBe(false)
 	})
 })
