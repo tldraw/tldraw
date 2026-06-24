@@ -87,7 +87,7 @@ export function ExamplePage({
 						</div>
 						<div className="example__sidebar__divider" />
 					</div>
-					<ul className="example__sidebar__categories scroll-light">
+					<ul className="example__sidebar__categories">
 						{categories.map((currentCategory) => (
 							<li key={currentCategory} className="example__sidebar__category">
 								<h3 className="example__sidebar__category__header">{currentCategory}</h3>
