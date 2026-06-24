@@ -1512,9 +1512,9 @@ describe('createFile from source (duplicate) access control', () => {
 		await expectBadRequest(() => duplicate(m, tx, `${FILE_PREFIX}/${sourceId}`))
 	})
 
-	it('non-migrated user cannot duplicate an inaccessible legacy file', async () => {
+	it('cannot duplicate an inaccessible legacy (ownerId-owned) file', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: '' })],
+			user: [makeUser({ id: userId, flags: 'groups_backend' })],
 			file: [makeFile({ id: sourceId, ownerId: 'user_someoneElse1234', shared: false })],
 			file_state: [],
 			group: [],
@@ -1543,7 +1543,7 @@ describe('createFile from source (duplicate) access control', () => {
 	})
 })
 
-describe('legacy file creation (insertWithFileState removed as a mutator)', () => {
+describe('file creation security', () => {
 	const userId = 'user_aaaa11112222bbbb'
 
 	it('file.insertWithFileState is not exposed as a callable mutator', () => {
@@ -1551,31 +1551,5 @@ describe('legacy file creation (insertWithFileState removed as a mutator)', () =
 		// arbitrary file row (with an attacker-controlled createSource) directly.
 		const m = createMutators(userId)
 		expect((m.file as Record<string, unknown>).insertWithFileState).toBeUndefined()
-	})
-
-	it('non-migrated user can still create a blank file', async () => {
-		const s = {
-			user: [makeUser({ id: userId, flags: '' })],
-			file: [] as TlaFile[],
-			file_state: [] as TlaFileState[],
-			group: [],
-			group_user: [],
-			group_file: [],
-		}
-		const { tx } = createMockTx(s, { location: 'server' })
-		const m = createMutators(userId)
-		await expectValid(() =>
-			m.createFile(tx, {
-				fileId: 'file_legacy123456789',
-				workspaceId: userId,
-				name: 'Legacy file',
-				time: Date.now(),
-				createSource: null,
-			})
-		)
-		// the file and its file_state were created with legacy ownerId ownership
-		const created = s.file.find((f) => f.id === 'file_legacy123456789')
-		expect(created?.ownerId).toBe(userId)
-		expect(s.file_state.find((fs) => fs.fileId === 'file_legacy123456789')).toBeDefined()
 	})
 })

@@ -7,11 +7,7 @@ import {
 	sortByMaybeIndex,
 	uniqueId,
 } from '@tldraw/utils'
-import {
-	MAX_NUMBER_OF_FILES,
-	MAX_NUMBER_OF_WORKSPACES,
-	MAX_WORKSPACE_NAME_LENGTH,
-} from './constants'
+import { MAX_NUMBER_OF_WORKSPACES, MAX_WORKSPACE_NAME_LENGTH } from './constants'
 import { Role, can, isRole } from './roles'
 import { FILE_PREFIX } from './routes'
 import {
@@ -55,13 +51,6 @@ export function userHasFlag(flags: string | null | undefined, flag: TlaFlags): b
 	return parseFlags(flags).includes(flag)
 }
 
-async function assertUserHasFlag(tx: Transaction<TlaSchema>, userId: string, flag: TlaFlags) {
-	const user = await tx.run(zql.user.where('id', '=', userId).one())
-	assert(user, ZErrorCode.bad_request)
-	const flags = parseFlags(user.flags)
-	assert(flags.includes(flag), ZErrorCode.forbidden)
-}
-
 function disallowImmutableMutations<
 	S extends TlaFilePartial | TlaFileStatePartial | TlaUserPartial,
 >(data: S, immutableColumns: Set<keyof S>) {
@@ -72,14 +61,6 @@ function disallowImmutableMutations<
 
 export type TlaMutators = ReturnType<typeof createMutators>
 
-async function isMigratedToWorkspaces(
-	tx: Transaction<TlaSchema>,
-	userId: string
-): Promise<boolean> {
-	const user = await tx.run(zql.user.where('id', '=', userId).one())
-	return userHasFlag(user?.flags, 'groups_backend')
-}
-
 function ensureSensibleTimestamp(time: number) {
 	// if a mutation took more than 5 seconds to reach the server, or is in the future, let's use the server's time
 	const now = Date.now()
@@ -87,35 +68,6 @@ function ensureSensibleTimestamp(time: number) {
 		return now
 	}
 	return time
-}
-
-async function assertNotMaxFiles(tx: Transaction<TlaSchema>, userId: string) {
-	const migrated = await isMigratedToWorkspaces(tx, userId)
-
-	if (tx.location === 'client') {
-		const files = await tx.run(zql.file)
-		const count = files.filter((f: TlaFile) => {
-			if (f.isDeleted) return false
-			// For migrated users, count files owned by their home group
-			// For unmigrated users, count files owned directly by userId
-			if (migrated) {
-				return f.owningGroupId === userId
-			} else {
-				return f.ownerId === userId
-			}
-		}).length
-		assert(count < MAX_NUMBER_OF_FILES, ZErrorCode.max_files_reached)
-	} else {
-		// On the server, don't fetch all files because we don't need them
-		// Check both ownerId and owningGroupId to handle both migration states
-		const rows = Array.from(
-			await tx.dbTransaction.query(
-				`select count(*) from "file" where "isDeleted" = false and ("ownerId" = $1 OR "owningGroupId" = $1)`,
-				[userId]
-			)
-		) as { count: string }[]
-		assert(Number(rows[0].count) < MAX_NUMBER_OF_FILES, ZErrorCode.max_files_reached)
-	}
 }
 
 /**
@@ -346,46 +298,6 @@ export function createMutators(userId: string) {
 				}
 			}
 
-			const migrated = await isMigratedToWorkspaces(tx, userId)
-			if (!migrated) {
-				// Legacy (user-owned) file creation. ownerId, id and the file_state
-				// keys are constructed here to match userId/fileId, so the only checks
-				// that can fail are the file limit and id validity (createSource was
-				// gated above).
-				await assertNotMaxFiles(tx, userId)
-				assertValidId(fileId)
-				await tx.mutate.file.insert({
-					id: fileId,
-					name,
-					ownerId: userId,
-					owningGroupId: null,
-					ownerName: '',
-					ownerAvatar: '',
-					thumbnail: '',
-					shared: true,
-					sharedLinkType: 'edit',
-					published: false,
-					lastPublished: 0,
-					publishedSlug: uniqueId(),
-					createdAt: time,
-					updatedAt: time,
-					isEmpty: true,
-					isDeleted: false,
-					createSource,
-				})
-				await tx.mutate.file_state.upsert({
-					userId,
-					fileId,
-					firstVisitAt: null,
-					lastEditAt: null,
-					lastSessionState: null,
-					lastVisitAt: null,
-					isFileOwner: true,
-					isPinned: false,
-				})
-				return
-			}
-
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
 			assert(!file, ZErrorCode.bad_request)
 			assertValidId(fileId)
@@ -448,53 +360,32 @@ export function createMutators(userId: string) {
 			assert(typeof index === 'string' || index == null, ZErrorCode.bad_request)
 			assert(workspaceId, ZErrorCode.bad_request)
 
-			const migrated = await isMigratedToWorkspaces(tx, userId)
+			// Pinned files are group_file rows with a non-null index.
+			// New pins go above the workspace's current top pinned file.
+			let indexToUse = index
+			if (indexToUse == null) {
+				const allWorkspaceFiles = await tx.run(zql.group_file.where('groupId', '=', workspaceId))
+				const otherPinnedFiles = allWorkspaceFiles.filter((gf: TlaGroupFile) => gf.index !== null)
 
-			if (migrated) {
-				// Migrated users: pinned files are group_file rows with a non-null index.
-				// New pins go above the workspace's current top pinned file.
-				let indexToUse = index
-				if (indexToUse == null) {
-					const allWorkspaceFiles = await tx.run(zql.group_file.where('groupId', '=', workspaceId))
-					const otherPinnedFiles = allWorkspaceFiles.filter((gf: TlaGroupFile) => gf.index !== null)
-
-					otherPinnedFiles.sort(sortByMaybeIndex)
-					indexToUse = getIndexBelow(otherPinnedFiles[0]?.index) ?? ('a1' as IndexKey)
-				}
-
-				await tx.mutate.group_file.update({
-					fileId,
-					groupId: workspaceId,
-					index: indexToUse,
-				})
-			} else {
-				await tx.mutate.file_state.upsert({
-					fileId,
-					userId,
-					isPinned: true,
-					lastEditAt: Date.now(),
-				})
+				otherPinnedFiles.sort(sortByMaybeIndex)
+				indexToUse = getIndexBelow(otherPinnedFiles[0]?.index) ?? ('a1' as IndexKey)
 			}
+
+			await tx.mutate.group_file.update({
+				fileId,
+				groupId: workspaceId,
+				index: indexToUse,
+			})
 		},
 
 		unpinFile: async (tx: Tx, { fileId, workspaceId }: { fileId: string; workspaceId: string }) => {
 			assert(fileId, ZErrorCode.bad_request)
 
-			const migrated = await isMigratedToWorkspaces(tx, userId)
-
-			if (migrated) {
-				await tx.mutate.group_file.update({
-					fileId,
-					groupId: workspaceId,
-					index: null,
-				})
-			} else {
-				await tx.mutate.file_state.update({
-					fileId,
-					userId,
-					isPinned: false,
-				})
-			}
+			await tx.mutate.group_file.update({
+				fileId,
+				groupId: workspaceId,
+				index: null,
+			})
 		},
 
 		removeFileFromWorkspace: async (
@@ -503,13 +394,6 @@ export function createMutators(userId: string) {
 		) => {
 			assert(fileId, ZErrorCode.bad_request)
 			assert(workspaceId, ZErrorCode.bad_request)
-			const migrated = await isMigratedToWorkspaces(tx, userId)
-			if (!migrated) {
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				await mutators.file.deleteOrForget(tx, { id: fileId })
-				return
-			}
-
 			const role = await getRole(tx, userId, workspaceId)
 			assert(can(role, 'removeFiles'), ZErrorCode.forbidden)
 			const file = await tx.run(zql.file.where('id', '=', fileId).one())
@@ -534,32 +418,28 @@ export function createMutators(userId: string) {
 			// If we get here, the user has legitimate access to the file
 			await tx.mutate.file_state.upsert({ fileId, userId, firstVisitAt: time })
 
-			const migrated = await isMigratedToWorkspaces(tx, userId)
-			if (migrated) {
-				const workspaceFileRows = await tx.run(zql.group_file.where('fileId', '=', fileId))
-				const userWorkspaceMemberships = await tx.run(zql.group_user.where('userId', '=', userId))
-				// Add a visited file to the user's home group unless it already belongs to one of
-				// their groups. This is what surfaces a shared file the user opened as a "guest
-				// file" in their sidebar. (Files owned by a workspace the user is a member of are
-				// not mirrored here — and the sidebar read path also filters out any that slip
-				// through, see getWorkspaceFilesSorted — so a workspace file never shows in home.)
-				if (
-					!userWorkspaceMemberships.some((g: TlaGroupUser) =>
-						workspaceFileRows.some((gf: TlaGroupFile) => gf.groupId === g.groupId)
-					)
-				) {
-					await tx.mutate.group_file.insert({
-						fileId,
-						groupId: userId,
-						createdAt: time,
-						updatedAt: time,
-						index: null,
-					})
-				}
+			const workspaceFileRows = await tx.run(zql.group_file.where('fileId', '=', fileId))
+			const userWorkspaceMemberships = await tx.run(zql.group_user.where('userId', '=', userId))
+			// Add a visited file to the user's home group unless it already belongs to one of
+			// their groups. This is what surfaces a shared file the user opened as a "guest
+			// file" in their sidebar. (Files owned by a workspace the user is a member of are
+			// not mirrored here — and the sidebar read path also filters out any that slip
+			// through, see getWorkspaceFilesSorted — so a workspace file never shows in home.)
+			if (
+				!userWorkspaceMemberships.some((g: TlaGroupUser) =>
+					workspaceFileRows.some((gf: TlaGroupFile) => gf.groupId === g.groupId)
+				)
+			) {
+				await tx.mutate.group_file.insert({
+					fileId,
+					groupId: userId,
+					createdAt: time,
+					updatedAt: time,
+					index: null,
+				})
 			}
 		},
 		createWorkspace: async (tx: Tx, { id, name }: { id: string; name: string }) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assertValidId(id)
 
 			const clampedName = name.trim().slice(0, MAX_WORKSPACE_NAME_LENGTH)
@@ -608,7 +488,6 @@ export function createMutators(userId: string) {
 			})
 		},
 		updateWorkspace: async (tx: Tx, { id, name }: { id: string; name: string }) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			assert(name && name.trim(), ZErrorCode.bad_request)
 			// The home workspace can be renamed (unlike other home-workspace actions),
@@ -622,7 +501,6 @@ export function createMutators(userId: string) {
 			})
 		},
 		regenerateWorkspaceInviteSecret: async (tx: Tx, { id }: { id: string }) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			await assertNotHomeWorkspace(tx, id)
 
@@ -637,7 +515,6 @@ export function createMutators(userId: string) {
 			tx: Tx,
 			{ id, enabled }: { id: string; enabled: boolean }
 		) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			await assertNotHomeWorkspace(tx, id)
 
@@ -656,7 +533,6 @@ export function createMutators(userId: string) {
 				role: targetRole,
 			}: { workspaceId: string; targetUserId: string; role: Role }
 		) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(workspaceId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
 			assert(isRole(targetRole), ZErrorCode.bad_request)
@@ -692,7 +568,6 @@ export function createMutators(userId: string) {
 			tx: Tx,
 			{ workspaceId, targetUserId }: { workspaceId: string; targetUserId: string }
 		) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(workspaceId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
 
@@ -717,7 +592,6 @@ export function createMutators(userId: string) {
 			await tx.mutate.group_user.delete({ userId: targetUserId, groupId: workspaceId })
 		},
 		leaveWorkspace: async (tx: Tx, { workspaceId }: { workspaceId: string }) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(workspaceId, ZErrorCode.bad_request)
 			await assertNotHomeWorkspace(tx, workspaceId)
 			const owners = await tx.run(
@@ -730,7 +604,6 @@ export function createMutators(userId: string) {
 			await tx.mutate.group_user.delete({ userId, groupId: workspaceId })
 		},
 		deleteWorkspace: async (tx: Tx, { id }: { id: string }) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(id, ZErrorCode.bad_request)
 			await assertNotHomeWorkspace(tx, id)
 			const role = await getRole(tx, userId, id)
@@ -760,7 +633,6 @@ export function createMutators(userId: string) {
 			tx: Tx,
 			{ fileId, workspaceId }: { fileId: string; workspaceId: string }
 		) => {
-			await assertUserHasFlag(tx, userId, 'groups_backend')
 			assert(fileId, ZErrorCode.bad_request)
 			assert(workspaceId, ZErrorCode.bad_request)
 

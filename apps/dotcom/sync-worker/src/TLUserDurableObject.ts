@@ -138,6 +138,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								exportPadding: true,
 								createdAt: now,
 								updatedAt: now,
+								// Vestigial migration done-marker that migrate_user_to_groups (an applied,
+								// immutable migration) keys off; no longer read as a feature flag.
 								flags: 'groups_backend',
 							})
 							.execute()
@@ -723,6 +725,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await tx
 				.updateTable('user')
 				.set({
+					// Vestigial migration done-marker (see the insert above); not a feature flag.
 					flags: 'groups_backend',
 					allowAnalyticsCookie: null,
 					enhancedA11yMode: null,
@@ -782,29 +785,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		// instead of resurrecting deleted files and groups.
 		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
-	}
-
-	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
-		console.error('admin_migrateToGroups', userId, inviteSecret)
-		this.userId ??= userId
-
-		this.log.debug('migrating to groups', userId, inviteSecret)
-		// Call the Postgres migration function
-		const result = await sql<{
-			files_migrated: number
-			pinned_files_migrated: number
-			flag_added: boolean
-		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
-		console.error('admin_migrateToGroups result', result.rows)
-
-		this.log.debug('migration result', result.rows[0])
-
-		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
-		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
-
-		this.log.debug('migration complete, user rebooted')
-
-		return result.rows[0]
 	}
 
 	async admin_forceHardReboot(userId: string) {
