@@ -268,6 +268,10 @@ export interface World {
 	sparks: Spark[]
 	// Short-lived cut-flash markers (the "snip" flourish at each severed vine).
 	flashes: CutFlash[]
+	// True only while a cut is actively in progress (set by the input handler on
+	// startSlice, cleared on pointerup). The overlay reads it each frame to grey
+	// out the enemy vines the player can't currently reach. Contextual cue only.
+	slicing: boolean
 	sources: Record<Owner, string>
 	// Per-core hit points. A core at 0 HP means that color loses.
 	coreHp: { a: number; b: number }
@@ -600,6 +604,7 @@ export function createWorld(): World {
 		tips,
 		sparks: [],
 		flashes: [],
+		slicing: false,
 		sources: { a: sourceA, b: sourceB },
 		coreHp: { a: CORE_HP, b: CORE_HP },
 		tick: 0,

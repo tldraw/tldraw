@@ -24,7 +24,7 @@ import {
 	winner$,
 } from './game-state'
 import { OvergrowthOverlayUtil } from './overlays/OvergrowthOverlayUtil'
-import { sliceCut, SPARK_POOL, stepSim, stepSparks } from './sim'
+import { hasPresence, sliceCut, SPARK_POOL, stepSim, stepSparks } from './sim'
 
 const overlayUtils: TLAnyOverlayUtilConstructor[] = [...defaultOverlayUtils, OvergrowthOverlayUtil]
 
@@ -184,6 +184,7 @@ function GameRunner() {
 		// move.
 		const startSlice = (p: { x: number; y: number }) => {
 			slicing = true
+			getWorld().slicing = true // overlay greys out-of-reach enemy vines while cutting
 			last = p
 			// Laser-style trailing: the ScribbleManager already caps the live trail
 			// length and fades it. A short idleTimeoutMs keeps the tail tight when the
@@ -232,6 +233,7 @@ function GameRunner() {
 				scribble = null
 			}
 			slicing = false
+			getWorld().slicing = false
 			pointerDown = false
 			window.removeEventListener('pointermove', onPointerMove, true)
 			window.removeEventListener('pointerup', onPointerUp, true)
@@ -270,14 +272,52 @@ function GameRunner() {
 		}
 		container.addEventListener('pointerdown', onPointerDown, true)
 
-		// Cursor: the DRAW tool's cursor ('cross') is the ONLY canvas cursor — it
-		// signals "cut by drawing a swipe". tldraw re-asserts its own cursor whenever
-		// instance state changes, so we reassert ours each tick. EXCEPTION: while
-		// Space is held (panning), we leave tldraw's grab/grabbing cursor alone.
+		// Cursor: the DRAW tool's cursor ('cross') signals "cut by drawing a swipe".
+		// We also use the cursor to reveal the REACH rule: when zoomed in enough to
+		// cut and hovering ground your network can't reach, show 'not-allowed' — the
+		// SAME hasPresence(world,'a',pt) the cut uses, so the cursor flips exactly at
+		// the reach boundary.
+		//
+		// `'not-allowed'` isn't a tldraw TLCursorType, so we render the two states
+		// differently: in-reach uses the real draw cursor via editor.setCursor (which
+		// tldraw paints through --tl-cursor on .tl-canvas), and out-of-reach sets an
+		// inline `cursor: not-allowed` on .tl-canvas (which overrides --tl-cursor).
+		// We reassert each tick (tldraw re-asserts its own cursor on state changes).
+		// EXCEPTION: while Space is held (panning), yield to tldraw's grab cursor.
+		const canvasEl = container.querySelector('.tl-canvas') as HTMLElement | null
+		let outOfReach = false
+		const onHoverMove = (e: PointerEvent) => {
+			// The active-cut move handler owns the pointer while slicing; below the
+			// cut zoom there's no reach concept (a click auto-zooms in). In both cases
+			// keep the plain draw cursor — don't nag.
+			if (slicing || editor.getZoomLevel() < CUT_ZOOM_MIN) {
+				outOfReach = false
+				return
+			}
+			// Reach at the live cursor: in reach → cross, out of reach → not-allowed.
+			// hasPresence is a small bounded radius scan, cheap to call per move.
+			const p = editor.screenToPage({ x: e.clientX, y: e.clientY })
+			outOfReach = !hasPresence(getWorld(), 'a', p)
+		}
+		container.addEventListener('pointermove', onHoverMove)
+
 		const enforceCursor = () => {
-			if (spaceHeld) return // let tldraw's space-pan grab/grabbing cursor show
-			if (editor.getInstanceState().cursor.type !== 'cross') {
-				editor.setCursor({ type: 'cross', rotation: 0 })
+			if (spaceHeld) {
+				// Yield to tldraw's space-pan grab/grabbing cursor.
+				if (canvasEl) canvasEl.style.cursor = ''
+				return
+			}
+			const showNotAllowed = outOfReach && !slicing && editor.getZoomLevel() >= CUT_ZOOM_MIN
+			if (showNotAllowed) {
+				if (canvasEl && canvasEl.style.cursor !== 'not-allowed') {
+					canvasEl.style.cursor = 'not-allowed'
+				}
+			} else {
+				// In reach / zoomed out / slicing: clear our override, show the draw cross.
+				if (canvasEl && canvasEl.style.cursor) canvasEl.style.cursor = ''
+				if (editor.getInstanceState().cursor.type !== 'cross') {
+					editor.setCursor({ type: 'cross', rotation: 0 })
+				}
 			}
 		}
 		editor.setCursor({ type: 'cross', rotation: 0 })
@@ -290,8 +330,10 @@ function GameRunner() {
 			window.removeEventListener('keydown', onSpaceKey, true)
 			window.removeEventListener('keyup', onSpaceKey, true)
 			container.removeEventListener('pointerdown', onPointerDown, true)
+			container.removeEventListener('pointermove', onHoverMove)
 			window.removeEventListener('pointermove', onPointerMove, true)
 			window.removeEventListener('pointerup', onPointerUp, true)
+			if (canvasEl) canvasEl.style.cursor = ''
 		}
 	}, [editor])
 
