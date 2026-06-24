@@ -296,16 +296,10 @@ function expectBadRequest(fn: () => Promise<any>) {
 
 describe('parseFlags / userHasFlag', () => {
 	it('parses comma-separated', () => {
-		expect(parseFlags('groups_backend,groups_frontend')).toEqual([
-			'groups_backend',
-			'groups_frontend',
-		])
+		expect(parseFlags('groups_backend,other_flag')).toEqual(['groups_backend', 'other_flag'])
 	})
 	it('parses space-separated', () => {
-		expect(parseFlags('groups_backend groups_frontend')).toEqual([
-			'groups_backend',
-			'groups_frontend',
-		])
+		expect(parseFlags('groups_backend other_flag')).toEqual(['groups_backend', 'other_flag'])
 	})
 	it('handles null/undefined', () => {
 		expect(parseFlags(null)).toEqual([])
@@ -313,7 +307,7 @@ describe('parseFlags / userHasFlag', () => {
 	})
 	it('userHasFlag checks presence', () => {
 		expect(userHasFlag('groups_backend', 'groups_backend')).toBe(true)
-		expect(userHasFlag('groups_frontend', 'groups_backend')).toBe(false)
+		expect(userHasFlag('other_flag', 'groups_backend')).toBe(false)
 	})
 })
 
@@ -371,9 +365,7 @@ describe('user mutations', () => {
 		})
 		const m = createMutators(userId)
 		// flags is NOT in immutableColumns.user, so this should succeed
-		await expectValid(() =>
-			m.user.update(tx, { id: userId, flags: 'groups_backend,groups_frontend' })
-		)
+		await expectValid(() => m.user.update(tx, { id: userId, flags: 'groups_backend' }))
 	})
 })
 
