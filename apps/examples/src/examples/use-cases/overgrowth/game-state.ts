@@ -68,9 +68,9 @@ export const TIP_JITTER = 1.1
 // Slight perpendicular wiggle on intermediate vine points (page units) so vines
 // aren't dead-straight grid segments. Purely visual.
 export const VINE_WIGGLE = 6
-// Lifetime (ticks) of the subtle cut-flash "snip" played at each severed vine.
-// ~24 ticks ≈ 0.4s at 60fps: a quick expand-and-fade, not a flashy explosion.
-export const CUT_FLASH_TICKS = 24
+// Lifetime (ticks) of the cut-flash "snip" played at each severed vine. ~18
+// ticks ≈ 0.3s at 60fps: a quick, obvious scale-pop then fade.
+export const CUT_FLASH_TICKS = 18
 
 // --- cut swipe (SDK eraser scribble; laser-style bounded trailing) ---
 // The swipe is the SDK eraser brush in one scribbles session. The ScribbleManager

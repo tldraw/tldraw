@@ -300,27 +300,29 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 			ctx.globalAlpha = 1
 		}
 
-		// Cut flashes — the subtle "snip" at each severed vine: a small bright ring
-		// that quickly expands and fades, plus a brief central spark. Culled to the
-		// visible cell window; ages out in the sim.
+		// Cut flashes — an obvious "snip" pop at each severed vine: a crisp white
+		// ring that scale-pops out fast then fades, plus a bright central burst.
+		// Drawn here (on top of the vines) and culled to the visible cell window;
+		// ages out in the sim. White reads clearly over both red and blue vines.
 		for (const flash of world.flashes) {
 			const c = flash.cell % GRID.cols
 			const r = (flash.cell / GRID.cols) | 0
 			if (c < c0 - 1 || c > c1 + 1 || r < r0 - 1 || r > r1 + 1) continue
 			const t = Math.min(1, (world.tick - flash.born) / CUT_FLASH_TICKS) // 0..1 over life
+			const ease = 1 - (1 - t) * (1 - t) // ease-out: fast expand, then settle
 			const fade = 1 - t
-			// Expanding ring.
-			ctx.globalAlpha = 0.7 * fade
+			// Expanding ring — bigger (up to ~20px), thicker, higher starting opacity.
+			ctx.globalAlpha = Math.min(1, 0.95 * fade)
 			ctx.strokeStyle = theme.white.solid
-			ctx.lineWidth = px(2 * fade)
+			ctx.lineWidth = px(3.5 * fade + 0.5)
 			ctx.beginPath()
-			ctx.arc(flash.x, flash.y, px(3 + 12 * t), 0, Math.PI * 2)
+			ctx.arc(flash.x, flash.y, px(4 + 16 * ease), 0, Math.PI * 2)
 			ctx.stroke()
-			// Bright central spark, fading fastest.
-			ctx.globalAlpha = 0.9 * fade * fade
+			// Bright central burst, fading fastest, for the pop.
+			ctx.globalAlpha = Math.min(1, fade * fade)
 			ctx.fillStyle = theme.white.solid
 			ctx.beginPath()
-			ctx.arc(flash.x, flash.y, px(3 * fade), 0, Math.PI * 2)
+			ctx.arc(flash.x, flash.y, px(5 * fade), 0, Math.PI * 2)
 			ctx.fill()
 		}
 		ctx.globalAlpha = 1
