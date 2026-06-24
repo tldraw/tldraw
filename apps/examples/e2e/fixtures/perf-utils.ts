@@ -493,6 +493,80 @@ export class PerformanceTestSuite {
 		return this.finalizeTestResult('create_text_shapes', metrics, expectMinFps)
 	}
 
+	async testTextReflow(options: InteractionTestOptions = {}): Promise<PerformanceTestResult> {
+		const { warmupMs = 500, measureMs = 4000, expectMinFps } = options
+
+		// Lay out a grid of fixed-width, wrapping text shapes, then oscillate their width during the
+		// measurement window. A width change re-wraps the text (a reflow) and forces a fresh advance
+		// measurement plus geometry recompute every frame — the path a side-handle text resize hits,
+		// distinct from the uniform scale that testShapeResizing covers. This is where the per-word
+		// ink-overflow measurement (the cursive/RTL/italic clipping fix) does its work.
+		const SHAPES = 150
+		await this.getPage().evaluate((n) => {
+			const editor = (window as any).editor
+			const tldrawApi = (window as any).tldrawApi
+			if (!editor || !tldrawApi) return
+			editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+			const sample =
+				'The quick brown fox jumps over the lazy dog while the typography reflows across each line'
+			const cols = Math.ceil(Math.sqrt(n))
+			const shapes = []
+			for (let i = 0; i < n; i++) {
+				shapes.push({
+					id: `shape:reflow-${i}`,
+					type: 'text',
+					x: (i % cols) * 300,
+					y: Math.floor(i / cols) * 160,
+					props: {
+						richText: tldrawApi.toRichText(sample),
+						font: 'draw',
+						size: 'm',
+						autoSize: false,
+						w: 220,
+					},
+				})
+			}
+			editor.createShapes(shapes)
+			editor.selectAll()
+		}, SHAPES)
+
+		const { metrics } = await this.fpsTracker.measureInteraction(
+			async () => {
+				await this.getPage().evaluate(() => {
+					const editor = (window as any).editor
+					if (!editor) return
+					const ids = [...editor.getCurrentPageShapeIds()]
+					let tick = 0
+					const reflowInterval = setInterval(() => {
+						tick++
+						// Oscillate the width (130..320px) so every shape re-wraps on each frame.
+						const w = 130 + Math.round((Math.sin(tick / 6) + 1) * 95)
+						editor.run(
+							() => editor.updateShapes(ids.map((id) => ({ id, type: 'text', props: { w } }))),
+							{
+								history: 'ignore',
+							}
+						)
+					}, 16)
+					;(window as any).__reflowInterval = reflowInterval
+				})
+			},
+			{ warmupMs, measureMs }
+		)
+
+		const page = this.getPage()
+		await page.evaluate(() => {
+			const interval = (window as any).__reflowInterval
+			if (interval) {
+				clearInterval(interval)
+				delete (window as any).__reflowInterval
+			}
+		})
+		await page.keyboard.press('Escape')
+
+		return this.finalizeTestResult('text_reflow', metrics, expectMinFps)
+	}
+
 	async runFullPerformanceTest(): Promise<PerformanceTestResult[]> {
 		const results: PerformanceTestResult[] = []
 
@@ -508,6 +582,7 @@ export class PerformanceTestSuite {
 		await this.setupHeavyBoard()
 		results.push(await this.testCanvasZooming())
 		results.push(await this.testTextShapeCreation())
+		results.push(await this.testTextReflow())
 
 		return results
 	}
@@ -591,6 +666,7 @@ export class PerformanceTestSuite {
 			{ name: 'canvas_panning', testFn: () => this.testCanvasPanning() },
 			{ name: 'canvas_zooming', testFn: () => this.testCanvasZooming() },
 			{ name: 'create_text_shapes', testFn: () => this.testTextShapeCreation() },
+			{ name: 'text_reflow', testFn: () => this.testTextReflow() },
 		]
 
 		for (const { name, testFn } of interactions) {

@@ -150,6 +150,15 @@ test.describe('Performance Tests', () => {
 
 		testOutput(await perfSuite.testTextShapeCreation())
 	})
+
+	test('Text Reflow Performance', async ({ page, context, request, browserName, isMobile }) => {
+		if (isMobile) return
+
+		// The scenario creates its own wrapping text shapes, so no heavy board is needed.
+		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
+
+		testOutput(await perfSuite.testTextReflow())
+	})
 })
 
 test.describe('Baseline Management', () => {
