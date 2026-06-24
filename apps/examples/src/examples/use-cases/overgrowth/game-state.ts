@@ -72,6 +72,17 @@ export const VINE_WIGGLE = 6
 // ~24 ticks ≈ 0.4s at 60fps: a quick expand-and-fade, not a flashy explosion.
 export const CUT_FLASH_TICKS = 24
 
+// --- cut swipe (SDK eraser scribble; laser-style bounded trailing) ---
+// The swipe is the SDK eraser brush in one scribbles session. The ScribbleManager
+// already caps the live trail length and fades it (laser style); these tune that
+// trailing so a long drag stays a bounded, smoothly-fading streak (no smear).
+// Idle timeout (ms): if the pointer pauses this long mid-drag, the trail starts
+// retreating/fading. Shorter than the default laserDelayMs so the tail stays tight.
+export const SWIPE_IDLE_MS = 350
+// `shrink` per step while the stopped scribble fades — tapers the trail away for a
+// clean animated fade-out (0 = no shrink, higher = faster taper).
+export const SWIPE_SHRINK = 0.15
+
 // --- growth dynamism: seek open space, punch through gaps ---
 // Tips are attracted toward open NEUTRAL space so colonies flow into emptiness
 // and gaps instead of piling sideways along the enemy contact line (which froze
@@ -607,7 +618,6 @@ export function resetWorld() {
 	hpB$.set(CORE_HP)
 	winner$.set(null)
 	hint$.set(null)
-	hoveredVine$.set(null)
 	publishWorld()
 }
 
@@ -631,17 +641,6 @@ export interface Hint {
 	until: number // frame$ value after which it's stale
 }
 export const hint$ = atom<Hint | null>('og-hint', null)
-
-// The vine currently under the cursor (when zoomed in and not actively cutting),
-// with whether the human can cut it right now. Drives a contextual cue on just
-// that one vine in the overlay. Updated only when it changes, to avoid re-render
-// spam. `kind` distinguishes the cue: an in-reach enemy vine, an out-of-reach
-// enemy vine, or own/neutral.
-export interface HoveredVine {
-	strandId: string
-	kind: 'enemy-in-reach' | 'enemy-out-of-reach' | 'other'
-}
-export const hoveredVine$ = atom<HoveredVine | null>('og-hovered-vine', null)
 
 // Show a hint for ~`frames` frames from now.
 export function showHint(text: string, tone: Hint['tone'], frames = 90) {
