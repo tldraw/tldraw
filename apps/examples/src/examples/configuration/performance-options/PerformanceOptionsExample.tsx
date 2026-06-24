@@ -173,14 +173,14 @@ function PerformancePanel({
 				<div className="perf-compare">
 					<ReRenderMetric
 						editor={editor}
-						label="live"
+						label="without debounce"
 						code="getZoomLevel()"
 						getZoom={getLiveZoom}
 						resetSignal={resetSignal}
 					/>
 					<ReRenderMetric
 						editor={editor}
-						label="efficient"
+						label="with debounce"
 						code="getEfficientZoomLevel()"
 						getZoom={getEfficientZoom}
 						resetSignal={resetSignal}
