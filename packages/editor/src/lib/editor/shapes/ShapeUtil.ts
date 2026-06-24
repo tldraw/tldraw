@@ -994,6 +994,11 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * Pair this with {@link ShapeUtil.onReleaseAppOwnedElement} to reclaim the element before
 	 * the shape or editor unmounts.
 	 *
+	 * This is called once per shape mount, not on every prop change, so the adopted element is
+	 * not refreshed when the shape's props change. If the element's content depends on props,
+	 * return a stable element and mutate it in place (for example from {@link ShapeUtil.component}
+	 * or an effect) rather than returning a different element.
+	 *
 	 * @param shape - The shape.
 	 * @returns The element to adopt, or null to render nothing.
 	 * @public
@@ -1001,12 +1006,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	getAppOwnedElement?(shape: Shape): HTMLElement | null
 
 	/**
-	 * A callback called before the shape's app own's content element slot is destroyed: when the shape
+	 * A callback called before the shape's app-owned element slot is destroyed: when the shape
 	 * unmounts (for example when it is deleted or the current page changes) or when the whole
 	 * editor unmounts, including error teardown. The slot is still connected to the document
 	 * when this is called, so the app can move the element to another connected parent with
 	 * `Node.moveBefore` to preserve its state. An element left in the slot is destroyed along
 	 * with it.
+	 *
+	 * This is not only a "shape deleted" signal: it also fires on page changes, editor unmount,
+	 * and (in dev under React StrictMode) on the throwaway mount/unmount cycle while the shape
+	 * still exists. Make it safe to call when the shape is still present, and check the store
+	 * (`this.editor.getShape(shape.id)`) if you need to distinguish deletion from a remount.
 	 *
 	 * @param shape - The shape.
 	 * @param element - The element returned by {@link ShapeUtil.getAppOwnedElement}.

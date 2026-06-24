@@ -1,6 +1,7 @@
 import { react } from '@tldraw/state'
 import { useQuickReactor, useStateTracking } from '@tldraw/state-react'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import { warnOnce } from '@tldraw/utils'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { Editor } from '../editor/Editor'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
@@ -162,11 +163,11 @@ export const Shape = memo(function Shape({
 
 /*
 The content element slot hosts an app-owned element provided by the shape util's
-getContentElement method. The contract: while the shape is mounted, tldraw never
+getAppOwnedElement method. The contract: while the shape is mounted, tldraw never
 unmounts, recreates, or relocates the element (the canvas renders shapes in stable
 id-sorted DOM order, so reorders and reparenting never move DOM nodes), and before
 the slot is destroyed — shape deletion, page change, error teardown, or the whole
-editor unmounting — onReleaseContentElement is called while the slot is still
+editor unmounting — onReleaseAppOwnedElement is called while the slot is still
 connected to the document, so the app can move the element to a new parent with
 Node.moveBefore without resetting its state. That last guarantee relies on this
 being a layout effect: React runs layout effect cleanups before it detaches the
@@ -189,6 +190,12 @@ const ContentElementSlot = memo(function ContentElementSlot({
 		const shape = editor.getShape(id)
 		if (!shape) return
 
+		// getAppOwnedElement is called once per shape mount (the effect deps below are
+		// [editor, id, util], none of which change on a prop edit), so the adopted element is
+		// not refreshed when the shape's props change. A util whose element identity depends on
+		// props must mutate the existing element in place rather than return a new one. Likewise,
+		// if this returns null now and an element only later, the element is never adopted for
+		// this mount — return a stable element up front and populate it asynchronously instead.
 		const element = util.getAppOwnedElement?.(shape)
 		if (!element) return
 
@@ -205,11 +212,17 @@ const ContentElementSlot = memo(function ContentElementSlot({
 		}
 
 		return () => {
+			// Note: under React StrictMode (dev only) this effect runs mount → cleanup → mount,
+			// so onReleaseAppOwnedElement fires once even though the shape was not removed, and on
+			// the appendChild fallback path the element is detached and re-adopted (reloading it).
+			// onReleaseAppOwnedElement must therefore be safe to call when the shape still exists;
+			// don't treat it as a definitive "shape removed" signal (check the store if you need
+			// to know). With Node.moveBefore the re-adoption preserves state, so this is benign.
 			const latestShape = editor.getShape(id) ?? shape
 			util.onReleaseAppOwnedElement?.(latestShape, element)
 			if (process.env.NODE_ENV !== 'production' && element.parentNode === slot) {
-				console.warn(
-					`[tldraw] The content element for shape "${id}" was not reclaimed by onReleaseContentElement and will be destroyed along with its slot, losing any state it holds.`
+				warnOnce(
+					`The content element for shape "${id}" was not reclaimed by onReleaseAppOwnedElement and will be destroyed along with its slot, losing any state it holds.`
 				)
 			}
 		}
@@ -243,8 +256,8 @@ function moveElementInto(parent: HTMLElement, element: HTMLElement) {
 function warnIfContentElementReloads(editor: Editor, slot: HTMLElement, element: HTMLElement) {
 	const onLoad = (event: Event) => {
 		if (event.target !== element && !element.contains(event.target as Node)) return
-		console.warn(
-			'[tldraw] A load event fired on an adopted content element. The element reloaded when it was moved into the shape, losing its state. State-preserving moves need Node.moveBefore (Chromium 133+, Firefox 144+) and a continuously connected element.'
+		warnOnce(
+			'A load event fired on an adopted content element. The element reloaded when it was moved into the shape, losing its state. State-preserving moves need Node.moveBefore (Chromium 133+, Firefox 144+) and a continuously connected element.'
 		)
 	}
 	slot.addEventListener('load', onLoad, { capture: true })

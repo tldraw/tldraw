@@ -41,11 +41,23 @@ function getParkingLot() {
 
 // [2]
 function moveElementInto(parent: HTMLElement, element: HTMLElement) {
-	if (element.isConnected && parent.isConnected && 'moveBefore' in parent) {
-		;(parent as any).moveBefore(element, null)
-	} else {
-		parent.appendChild(element)
+	// Node.moveBefore (Chromium 133+, Firefox 144+) preserves iframe and media state across the
+	// move, but it needs both nodes connected to the same document and can still throw, so we
+	// guard the call and fall back to appendChild (which moves the element but reloads the iframe).
+	if (
+		element.isConnected &&
+		parent.isConnected &&
+		typeof (parent as any).moveBefore === 'function' &&
+		element.ownerDocument === parent.ownerDocument
+	) {
+		try {
+			;(parent as any).moveBefore(element, null)
+			return
+		} catch {
+			// fall through to appendChild
+		}
 	}
+	parent.appendChild(element)
 }
 
 const IFRAME_CONTENT = `
@@ -100,7 +112,16 @@ class PersistentIframeShapeUtil extends BaseBoxShapeUtil<IPersistentIframeShape>
 
 	// [5]
 	override onReleaseAppOwnedElement(shape: IPersistentIframeShape, element: HTMLElement) {
-		moveElementInto(getParkingLot(), element)
+		// onReleaseAppOwnedElement fires both when the shape goes away for good (deletion) and
+		// when the slot is torn down but the shape lives on (page change, editor unmount). If the
+		// shape is still in the store we park the iframe to reuse it later; otherwise it was
+		// deleted, so we destroy the iframe and drop it from the registry to avoid leaking it.
+		if (this.editor.getShape(shape.id)) {
+			moveElementInto(getParkingLot(), element)
+		} else {
+			iframes.delete(shape.id)
+			element.remove()
+		}
 	}
 }
 
@@ -152,8 +173,8 @@ Introduction:
 
 Shape content renders inside the editor's React tree, so unmounting the editor — to lazy-mount
 the canvas, reclaim memory, or recover from a crash — normally destroys any embedded content.
-This example keeps an iframe alive across editor sessions using the shape util's content
-element lifecycle: `getContentElement` and `onReleaseContentElement`.
+This example keeps an iframe alive across editor sessions using the shape util's app-owned
+element lifecycle: `getAppOwnedElement` and `onReleaseAppOwnedElement`.
 
 [1]
 The app owns the elements. We keep one iframe per shape in a registry, and a hidden "parking
@@ -171,17 +192,20 @@ A regular shape util. The shape stays a normal canvas citizen: geometry, hit-tes
 z-ordering, and the indicator all work as usual.
 
 [4]
-`getContentElement` returns the app-owned element for a shape. While the shape is mounted,
+`getAppOwnedElement` returns the app-owned element for a shape. While the shape is mounted,
 tldraw guarantees the element is never unmounted, recreated, or relocated — reorders,
 reparenting, and culling never move it, so the iframe never reloads. tldraw adopts the
 element with `moveBefore` where available, so re-mounting the editor picks the iframe up
 from the parking lot without a reload.
 
 [5]
-`onReleaseContentElement` is called before the element's slot is destroyed: when the shape
+`onReleaseAppOwnedElement` is called before the element's slot is destroyed: when the shape
 is deleted, when the page changes, and when the editor unmounts (including error teardown).
 It runs while the slot is still connected to the document, so moving the element to the
-parking lot here preserves its state.
+parking lot here preserves its state. The callback fires for all of those cases, so we use
+the store to tell them apart: if the shape is gone it was deleted, and we destroy the iframe
+and drop it from the registry instead of parking it — otherwise parked iframes for deleted
+shapes would leak forever.
 
 [6]
 The store is created outside the Tldraw component so the document survives unmounting the
