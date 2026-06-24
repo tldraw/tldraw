@@ -390,8 +390,8 @@ describe('Line points: id-mapped object with a decoupled index', () => {
 	// `points` is an "id-mapped object": each entry's key === its `id`. The `index`
 	// is a separate fractional index used only for ordering. A vertex handle's id is
 	// the point's id (not its index), so a handle round-trips to the right point even
-	// when key !== index. Invalid points (key !== id, or duplicate indices) are
-	// rejected by the validator and repaired by the store rather than crashing. See #9267.
+	// when key !== index. Malformed data (two points sharing an index) is tolerated on
+	// the read path rather than crashing. See #9267.
 
 	it('drags a point in place on a line whose keys differ from their indices', () => {
 		// valid: key === id ('a'/'b'), but the index is decoupled ('a1'/'a2')
@@ -434,9 +434,9 @@ describe('Line points: id-mapped object with a decoupled index', () => {
 		expect(() => editor.getShapeHandles(id)).not.toThrow()
 	})
 
-	it('self-heals a line created with duplicate indices', () => {
-		// invalid: points 'b' and 'a2' share index 'a2'. The validator rejects it and
-		// the store re-indexes the collision instead of crashing.
+	it('tolerates a line with duplicate indices on read without crashing', () => {
+		// malformed: points 'b' and 'a2' share index 'a2'. The store keeps it as-is;
+		// linePointsToArray dedupes on read so getHandles never throws "a2 >= a2".
 		const id = createShapeId('line-dup-index')
 		editor.createShapes([
 			{
@@ -454,43 +454,17 @@ describe('Line points: id-mapped object with a decoupled index', () => {
 			},
 		])
 
-		const points = editor.getShape<TLLineShape>(id)!.props.points
-		// all three points kept, re-keyed by id, with unique indices
-		expect(Object.keys(points).sort()).toEqual(['a', 'a2', 'b'])
-		for (const key in points) expect(points[key].id).toBe(key)
-		const indices = Object.values(points).map((p) => p.index)
-		expect(new Set(indices).size).toBe(indices.length)
+		// stored as-is (no repair) — all three points are still there
+		expect(Object.keys(editor.getShape<TLLineShape>(id)!.props.points)).toHaveLength(3)
+		// but reading handles does not throw; the duplicate index is collapsed on read
 		expect(() => editor.getShapeHandles(id)).not.toThrow()
+		const vertexHandles = getHandlesFor(id).filter((h) => h.type === 'vertex')
+		expect(vertexHandles).toHaveLength(2)
 	})
 
-	it('self-heals a line created with key !== id', () => {
-		// invalid: the map key 'x'/'y' does not match the point's id 'a'/'b'.
-		const id = createShapeId('line-key-mismatch')
-		editor.createShapes([
-			{
-				id,
-				type: 'line',
-				x: 100,
-				y: 100,
-				props: {
-					points: {
-						x: { id: 'a', index: 'a1' as IndexKey, x: 0, y: 0 },
-						y: { id: 'b', index: 'a2' as IndexKey, x: 100, y: 0 },
-					},
-				},
-			},
-		])
-
-		const points = editor.getShape<TLLineShape>(id)!.props.points
-		// re-keyed so key === id
-		expect(Object.keys(points).sort()).toEqual(['a', 'b'])
-		for (const key in points) expect(points[key].id).toBe(key)
-	})
-
-	it('never writes invalid points to the store while animating to a different point count (#9397)', () => {
-		// getInterpolatedProps' converge branch produces duplicate indices when the
-		// point count changes; the self-heal repairs each frame on write, so the store
-		// always holds valid id-mapped points mid-animation.
+	it('tolerates a line animation that transiently produces duplicate indices (#9397)', () => {
+		// animating to a different point count makes getInterpolatedProps emit duplicate
+		// indices each tick; reading handles must not throw while that is in the store.
 		const id = createShapeId('line-animate')
 		editor.createShapes([
 			{
@@ -524,37 +498,8 @@ describe('Line points: id-mapped object with a decoupled index', () => {
 
 		for (let i = 0; i < 12; i++) {
 			editor.emit('tick', 16)
-			const points = editor.getShape<TLLineShape>(id)!.props.points
-			const indices = Object.values(points).map((p) => p.index)
-			expect(new Set(indices).size).toBe(indices.length) // unique indices
-			for (const key in points) expect(points[key].id).toBe(key) // id-mapped
 			expect(() => editor.getShapeHandles(id)).not.toThrow()
 		}
-	})
-
-	it('rejects a line that is invalid beyond its points instead of storing a partial repair', () => {
-		// invalid points (duplicate index) AND an invalid scale: repairing the points
-		// must not let the still-invalid record through.
-		const id = createShapeId('line-bad-scale')
-		expect(() =>
-			editor.createShapes([
-				{
-					id,
-					type: 'line',
-					x: 0,
-					y: 0,
-					props: {
-						scale: 0, // invalid: scale must be non-zero
-						points: {
-							a: { id: 'a', index: 'a1' as IndexKey, x: 0, y: 0 },
-							b: { id: 'b', index: 'a2' as IndexKey, x: 100, y: 0 },
-							a2: { id: 'a2', index: 'a2' as IndexKey, x: 200, y: 0 }, // duplicate index
-						},
-					},
-				},
-			])
-		).toThrow()
-		expect(editor.getShape(id)).toBeUndefined() // nothing was stored
 	})
 })
 

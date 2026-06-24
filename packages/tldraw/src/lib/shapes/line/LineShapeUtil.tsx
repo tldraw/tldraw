@@ -347,7 +347,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 }
 
 function linePointsToArray(shape: TLLineShape) {
-	return Object.values(shape.props.points).sort(sortByIndex)
+	const sorted = Object.values(shape.props.points).sort(sortByIndex)
+	// Tolerate malformed data where two points share an index: keep only the first
+	// point at each index, so getHandles' getIndexBetween never sees equal adjacent
+	// indices (which would throw "a2 >= a2"). A no-op for well-formed lines.
+	return sorted.filter((point, i) => i === 0 || point.index !== sorted[i - 1].index)
 }
 
 const pathCache = new WeakCache<TLLineShape, PathBuilder>()
