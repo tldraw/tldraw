@@ -450,6 +450,7 @@ export {
 	getGlobalDocument,
 	getGlobalWindow,
 	loopToHtmlElement,
+	moveElementInto,
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,

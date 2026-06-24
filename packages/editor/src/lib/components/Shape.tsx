@@ -10,7 +10,7 @@ import { useEditor } from '../hooks/useEditor'
 import { useShapeCulling } from '../hooks/useShapeCulling'
 import { Mat } from '../primitives/Mat'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
-import { setStyleProperty } from '../utils/dom'
+import { moveElementInto, setStyleProperty } from '../utils/dom'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 /*
@@ -230,25 +230,6 @@ const ContentElementSlot = memo(function ContentElementSlot({
 
 	return <div ref={slotRef} className="tl-content-slot" draggable={false} />
 })
-
-function moveElementInto(parent: HTMLElement, element: HTMLElement) {
-	// Node.moveBefore (Chromium 133+, Firefox 144+) preserves iframe and media state
-	// across the move; it requires both nodes to be connected to the same document.
-	if (
-		element.isConnected &&
-		parent.isConnected &&
-		typeof (parent as any).moveBefore === 'function' &&
-		element.ownerDocument === parent.ownerDocument
-	) {
-		try {
-			;(parent as any).moveBefore(element, null)
-			return
-		} catch {
-			// fall through to appendChild
-		}
-	}
-	parent.appendChild(element)
-}
 
 // Dev-mode assertion that adoption kept the platform's state-preservation promise: a
 // load event firing on a previously-connected adopted element means the embed reloaded.

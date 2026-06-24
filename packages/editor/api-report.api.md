@@ -2611,6 +2611,9 @@ export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
 // @public
 export function MenuClickCapture(): false | JSX.Element;
 
+// @public
+export function moveElementInto(parent: HTMLElement, element: HTMLElement): void;
+
 // @internal
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
     x: number;

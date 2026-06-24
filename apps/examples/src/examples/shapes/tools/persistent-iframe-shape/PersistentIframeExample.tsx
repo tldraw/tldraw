@@ -4,6 +4,7 @@ import {
 	createTLStore,
 	defaultBindingUtils,
 	defaultShapeUtils,
+	moveElementInto,
 	RecordProps,
 	T,
 	Tldraw,
@@ -40,25 +41,9 @@ function getParkingLot() {
 }
 
 // [2]
-function moveElementInto(parent: HTMLElement, element: HTMLElement) {
-	// Node.moveBefore (Chromium 133+, Firefox 144+) preserves iframe and media state across the
-	// move, but it needs both nodes connected to the same document and can still throw, so we
-	// guard the call and fall back to appendChild (which moves the element but reloads the iframe).
-	if (
-		element.isConnected &&
-		parent.isConnected &&
-		typeof (parent as any).moveBefore === 'function' &&
-		element.ownerDocument === parent.ownerDocument
-	) {
-		try {
-			;(parent as any).moveBefore(element, null)
-			return
-		} catch {
-			// fall through to appendChild
-		}
-	}
-	parent.appendChild(element)
-}
+// We shuttle iframes between the parking lot and the shape's slot with tldraw's `moveElementInto`
+// (imported above), which uses Node.moveBefore where available to preserve iframe state and falls
+// back to appendChild otherwise — the same primitive tldraw uses to adopt the element.
 
 const IFRAME_CONTENT = `
 <style>body { font-family: sans-serif; margin: 16px; }</style>
@@ -183,9 +168,11 @@ hidden with `visibility: hidden` rather than removed from the DOM: `Node.moveBef
 preserves state when the element stays connected to the document.
 
 [2]
-`Node.moveBefore` (Chromium 133+, Firefox 144+) moves an element to a new parent without
-resetting its state — iframes don't reload, videos keep playing. In browsers without it we
-fall back to `appendChild`, which moves the element but reloads the iframe.
+We move iframes with tldraw's `moveElementInto` helper. It uses `Node.moveBefore` (Chromium 133+,
+Firefox 144+) to move an element to a new parent without resetting its state — iframes don't
+reload, videos keep playing — and falls back to `appendChild` (which reloads the iframe) in
+browsers without it. tldraw uses the same helper to adopt the element, so the example doesn't
+reimplement it.
 
 [3]
 A regular shape util. The shape stays a normal canvas citizen: geometry, hit-testing,
