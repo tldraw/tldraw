@@ -176,7 +176,7 @@ function GameRunner() {
 			// length and fades it. A short idleTimeoutMs keeps the tail tight when the
 			// pointer pauses; `shrink` tapers it away on release for a clean fade.
 			const sessionId = editor.scribbles.startSession({
-				selfConsume: false,
+				selfConsume: true,
 				idleTimeoutMs: SWIPE_IDLE_MS,
 				fadeMode: 'grouped',
 				fadeEasing: 'ease-in',

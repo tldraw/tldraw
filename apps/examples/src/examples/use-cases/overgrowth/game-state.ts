@@ -76,12 +76,14 @@ export const CUT_FLASH_TICKS = 18
 // The swipe is the SDK eraser brush in one scribbles session. The ScribbleManager
 // already caps the live trail length and fades it (laser style); these tune that
 // trailing so a long drag stays a bounded, smoothly-fading streak (no smear).
-// Idle timeout (ms): if the pointer pauses this long mid-drag, the trail starts
-// retreating/fading. Shorter than the default laserDelayMs so the tail stays tight.
-export const SWIPE_IDLE_MS = 350
+// Idle timeout (ms). 0 disables the manager's auto-stop, so the scribble session
+// lives for the whole hold (it only stops on pointerup). selfConsume already trims
+// the live trail and lets it retreat when the pointer pauses, so we don't want the
+// idle timer killing the session mid-drag (that made it vanish and then draw blank).
+export const SWIPE_IDLE_MS = 0
 // `shrink` per step while the stopped scribble fades — tapers the trail away for a
 // clean animated fade-out (0 = no shrink, higher = faster taper).
-export const SWIPE_SHRINK = 0.15
+export const SWIPE_SHRINK = 0.35
 
 // --- growth dynamism: seek open space, punch through gaps ---
 // Tips are attracted toward open NEUTRAL space so colonies flow into emptiness
