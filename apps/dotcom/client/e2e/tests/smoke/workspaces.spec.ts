@@ -12,7 +12,6 @@ import { expect, test } from '../../fixtures/tla-test'
 test.describe('workspaces', () => {
 	test.beforeEach(async ({ database, editor }) => {
 		await database.migrateUser()
-		await database.enableGroupsFrontend()
 		await editor.isLoaded()
 		await editor.ensureSidebarOpen()
 	})

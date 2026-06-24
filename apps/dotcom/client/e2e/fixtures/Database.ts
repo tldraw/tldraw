@@ -81,38 +81,8 @@ export class Database {
 		await sql`SELECT * FROM migrate_user_to_groups(${id}, ${inviteSecret})`.execute(db)
 	}
 
-	/**
-	 * Enable groups frontend flag for a user
-	 */
-	async enableGroupsFrontend(isOther: boolean = false): Promise<void> {
-		await this.enableGroupsFrontendByEmail(this.getEmail(isOther))
-	}
-
-	async enableGroupsFrontendByEmail(email: string): Promise<void> {
-		const id = await this.getUserIdByEmail(email)
-		if (!id) throw new Error(`User not found: ${email}`)
-
-		// Get current flags
-		const result = await sql<{
-			flags: string | null
-		}>`SELECT flags FROM public.user WHERE id = ${id}`.execute(db)
-
-		const currentFlags = result.rows[0]?.flags || ''
-		const flagsArray = currentFlags.split(/[,\s]+/).filter(Boolean)
-
-		// Add groups_frontend if not present
-		if (!flagsArray.includes('groups_frontend')) {
-			flagsArray.push('groups_frontend')
-		}
-
-		// Update with new flags
-		const newFlags = flagsArray.join(',')
-		await sql`UPDATE public.user SET flags = ${newFlags} WHERE id = ${id}`.execute(db)
-	}
-
 	async ensureGroupsReadyByEmail(email: string): Promise<void> {
 		await this.migrateUserByEmail(email)
-		await this.enableGroupsFrontendByEmail(email)
 	}
 
 	private async cleanUpUser(isOther: boolean) {
