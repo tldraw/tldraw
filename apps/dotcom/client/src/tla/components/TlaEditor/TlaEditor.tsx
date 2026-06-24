@@ -44,6 +44,7 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
+import { logElapsed } from '../../utils/spikeAuthPerf'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -196,7 +197,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const getUserToken = useEvent(async () => {
 		return (await user?.getToken()) ?? 'not-logged-in'
 	})
-	const hasUser = !!user
 	const assets = useMemo(() => {
 		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
 	}, [fileId, getUserToken])
@@ -218,19 +218,31 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	}, [app?.tlUser.userPreferences])
 
 	const store = useSync({
-		uri: useCallback(async () => {
-			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
-			if (hasUser) {
-				url.searchParams.set('accessToken', await getUserToken())
-			}
-			return url.toString()
-		}, [fileSlug, hasUser, getUserToken]),
+		// SPIKE (cookie-auth decouple): the document-room WebSocket is same-origin
+		// with the app in staging/production (MULTIPLAYER_SERVER === `${origin}/api`),
+		// so the browser already sends the Clerk `__session` cookie on the handshake
+		// and the worker's getAuth authenticates from it. We therefore drop the
+		// awaited `accessToken` from the URL entirely, removing the ~150ms Clerk
+		// token fetch from the navigation critical path. The callback is synchronous.
+		//
+		// Caveat: local dev is cross-origin (ws://localhost:8787), so the cookie is
+		// NOT sent and this will fail to authenticate locally — validate on a
+		// preview/staging deploy (dotcom-preview-please).
+		uri: useCallback(() => `${MULTIPLAYER_SERVER}/app/file/${fileSlug}`, [fileSlug]),
 		assets,
 		users,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)
 		}, []),
 	})
+
+	// SPIKE INSTRUMENTATION — measure time from editor mount to first remote sync.
+	const mountedAtRef = useRef(performance.now())
+	useEffect(() => {
+		if (store.status === 'synced-remote') {
+			logElapsed('time to synced-remote (cookie-auth)', mountedAtRef.current)
+		}
+	}, [store.status])
 
 	// we need to prevent calling onFileExit if the store is in an error state
 	const storeError = useRef(false)
