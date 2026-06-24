@@ -15,7 +15,6 @@ import {
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
-import { useHasFlag } from '../../../hooks/useHasFlag'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -204,8 +203,7 @@ export function TlaSidebarFileLinkInner({
 	const isCoarsePointer = getIsCoarsePointer()
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
-	const workspacesEnabled = useHasFlag('groups_frontend')
-	const isDragEnabled = workspacesEnabled && !isCoarsePointer
+	const isDragEnabled = !isCoarsePointer
 
 	if (!file) return null
 
