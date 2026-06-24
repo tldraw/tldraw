@@ -74,6 +74,7 @@ import {
 	annotateError,
 	assert,
 	assertExists,
+	bind,
 	compact,
 	debounce,
 	dedupe,
@@ -10746,6 +10747,86 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _prevCursor: TLCursorType = 'default'
 
 	/** @internal */
+	private _shiftKeyTimeout = -1 as any
+
+	/** @internal */
+	@bind
+	_setShiftKeyTimeout() {
+		this.inputs.setShiftKey(false)
+		this.dispatch({
+			type: 'keyboard',
+			name: 'key_up',
+			key: 'Shift',
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
+			accelKey: this.inputs.getAccelKey(),
+			code: 'ShiftLeft',
+		})
+	}
+
+	/** @internal */
+	private _altKeyTimeout = -1 as any
+
+	/** @internal */
+	@bind
+	_setAltKeyTimeout() {
+		this.inputs.setAltKey(false)
+		this.dispatch({
+			type: 'keyboard',
+			name: 'key_up',
+			key: 'Alt',
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
+			accelKey: this.inputs.getAccelKey(),
+			code: 'AltLeft',
+		})
+	}
+
+	/** @internal */
+	private _ctrlKeyTimeout = -1 as any
+
+	/** @internal */
+	@bind
+	_setCtrlKeyTimeout() {
+		this.inputs.setCtrlKey(false)
+		this.dispatch({
+			type: 'keyboard',
+			name: 'key_up',
+			key: 'Ctrl',
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
+			accelKey: this.inputs.getAccelKey(),
+			code: 'ControlLeft',
+		})
+	}
+
+	/** @internal */
+	private _metaKeyTimeout = -1 as any
+
+	/** @internal */
+	@bind
+	_setMetaKeyTimeout() {
+		this.inputs.setMetaKey(false)
+		this.dispatch({
+			type: 'keyboard',
+			name: 'key_up',
+			key: 'Meta',
+			shiftKey: this.inputs.getShiftKey(),
+			ctrlKey: this.inputs.getCtrlKey(),
+			altKey: this.inputs.getAltKey(),
+			metaKey: this.inputs.getMetaKey(),
+			accelKey: this.inputs.getAccelKey(),
+			code: 'MetaLeft',
+		})
+	}
+
+	/** @internal */
 	private _restoreToolId = 'select'
 
 	/** @internal */
@@ -10878,14 +10959,46 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return
 		}
 
-		// Modifier (shift/alt/ctrl/meta) reactive state simply mirrors the flags carried by the
-		// most recent event. Every event reports the live set of held modifiers — real DOM events
-		// always do, and the only synthetic events that reach here (internal pointer moves) copy
-		// the current state — so a modifier clears the instant any event reports it released.
-		inputs.setShiftKey(info.shiftKey)
-		inputs.setAltKey(info.altKey)
-		inputs.setCtrlKey(info.ctrlKey)
-		inputs.setMetaKey(info.metaKey)
+		// A keyup never reports its own modifier as still pressed, so don't let one assert a
+		// modifier ON. Clearing still goes through the 150ms debounce below, which other
+		// interactions rely on as a grace period after release (e.g. releasing a modifier and the
+		// pointer "at the same time" — the keyup can arrive just before pointerup). The guard
+		// matters because those timeouts re-dispatch a synthetic keyup carrying sibling modifier
+		// flags: on macOS cmd sets both metaKey and ctrlKey, so without it the ctrl clear would
+		// re-assert meta and leave it stuck true until the next pointer move.
+		const isKeyUp = info.type === 'keyboard' && info.name === 'key_up'
+
+		if (info.shiftKey && !isKeyUp) {
+			clearTimeout(this._shiftKeyTimeout)
+			this._shiftKeyTimeout = -1
+			inputs.setShiftKey(true)
+		} else if (!info.shiftKey && inputs.getShiftKey() && this._shiftKeyTimeout === -1) {
+			this._shiftKeyTimeout = this.timers.setTimeout(this._setShiftKeyTimeout, 150)
+		}
+
+		if (info.altKey && !isKeyUp) {
+			clearTimeout(this._altKeyTimeout)
+			this._altKeyTimeout = -1
+			inputs.setAltKey(true)
+		} else if (!info.altKey && inputs.getAltKey() && this._altKeyTimeout === -1) {
+			this._altKeyTimeout = this.timers.setTimeout(this._setAltKeyTimeout, 150)
+		}
+
+		if (info.ctrlKey && !isKeyUp) {
+			clearTimeout(this._ctrlKeyTimeout)
+			this._ctrlKeyTimeout = -1
+			inputs.setCtrlKey(true)
+		} else if (!info.ctrlKey && inputs.getCtrlKey() && this._ctrlKeyTimeout === -1) {
+			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
+		}
+
+		if (info.metaKey && !isKeyUp) {
+			clearTimeout(this._metaKeyTimeout)
+			this._metaKeyTimeout = -1
+			inputs.setMetaKey(true)
+		} else if (!info.metaKey && inputs.getMetaKey() && this._metaKeyTimeout === -1) {
+			this._metaKeyTimeout = this.timers.setTimeout(this._setMetaKeyTimeout, 150)
+		}
 
 		if (!inputs.getIsPointing()) {
 			inputs.setIsDragging(false)

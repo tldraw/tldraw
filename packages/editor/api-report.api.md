@@ -1571,10 +1571,14 @@ export class Editor extends EventEmitter<TLEventMap> {
         considerAllShapes?: boolean;
     }): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
+    // @internal (undocumented)
+    _setAltKeyTimeout(): void;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
     setCameraOptions(opts: Partial<TLCameraOptions>): this;
     setColorMode(mode: 'dark' | 'light'): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
+    // @internal (undocumented)
+    _setCtrlKeyTimeout(): void;
     setCurrentPage(page: TLPage | TLPageId): this;
     setCurrentTheme(id: TLThemeId): this;
     setCurrentTool(id: string, info?: {}): this;
@@ -1584,10 +1588,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
     setHintingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setHoveredShape(shape: null | TLShape | TLShapeId): this;
+    // @internal (undocumented)
+    _setMetaKeyTimeout(): void;
     setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
     setOpacityForSelectedShapes(opacity: number): this;
     setRichTextEditor(textEditor: null | TiptapEditor): this;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
+    // @internal (undocumented)
+    _setShiftKeyTimeout(): void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
     setTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;

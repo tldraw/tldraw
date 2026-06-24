@@ -197,7 +197,12 @@ describe('TLSelectTool.Translating', () => {
 
 		editor.keyUp('Alt')
 
-		// alt clears immediately on keyup, so the clone ends right away
+		// There's a timer here! We shouldn't end the clone until the timer is done
+		expect(editor.getCurrentPageShapes().length).toBe(2)
+
+		vi.advanceTimersByTime(250) // tick tock
+
+		// Timer is done! We should have ended the clone.
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 		editor.expectToBeIn('select.translating')
 
