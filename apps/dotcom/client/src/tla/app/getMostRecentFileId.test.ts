@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { getFileRecencyDate, TldrawApp } from './TldrawApp'
 
-// `getMostRecentFileId` reads only `getUserFileStates()` (via `fileStates$`) plus, for the
-// in-scope/fallback list, `getMyFiles()` or `getWorkspaceFilesSorted()`. We stub those three on a
-// bare prototype instance instead of constructing a full TldrawApp, which needs Zero, Clerk, and a
-// router (same approach as getWorkspaceFilesSorted.test.ts).
+// Stub the three members `getMostRecentFileId` reads on a bare prototype instance, avoiding a full
+// TldrawApp (Zero/Clerk/router). Same approach as getWorkspaceFilesSorted.test.ts.
 function createAppStub({
 	fileStates = [] as any[],
 	myFiles = [] as any[],
@@ -23,8 +21,7 @@ function createAppStub({
 
 function makeState(fileId: string, overrides: Partial<any> = {}) {
 	const { file: fileOverride, ...rest } = overrides
-	// `file: undefined` must stay undefined to model an inaccessible file; only merge defaults when
-	// a partial file is given, and use the default when the key is omitted entirely.
+	// `file: undefined` stays undefined to model an inaccessible file; a partial merges onto defaults.
 	const file =
 		'file' in overrides
 			? fileOverride && { id: fileId, isDeleted: false, createdAt: 1000, ...fileOverride }

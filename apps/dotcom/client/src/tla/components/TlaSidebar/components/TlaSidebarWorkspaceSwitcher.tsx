@@ -198,8 +198,7 @@ function useSwitchToWorkspace() {
 
 	return useCallback(
 		async (workspaceId: string) => {
-			// Open the file the user most recently had open in this workspace, not just the top of
-			// the pinned-first list, so switching picks up where they left off.
+			// Open the file the user last had open here, not just the top of the pinned-first list.
 			const mostRecentFileId = app.getMostRecentFileId(workspaceId)
 			if (mostRecentFileId) {
 				navigate(routes.tlaFile(mostRecentFileId))

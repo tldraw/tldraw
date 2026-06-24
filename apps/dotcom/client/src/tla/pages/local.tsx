@@ -77,9 +77,7 @@ export function Component() {
 				}
 			}
 
-			// Land on the file the user most recently had open, across all of their workspaces, so
-			// returning to the root URL picks up where they left off rather than dropping them on
-			// their home workspace.
+			// Land on the file the user last had open, across all workspaces, not just home.
 			const mostRecentFileId = app.getMostRecentFileId()
 			if (!mostRecentFileId) {
 				const result = await app.createFile()
