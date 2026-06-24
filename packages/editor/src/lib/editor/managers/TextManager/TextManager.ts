@@ -95,7 +95,8 @@ const spaceCharacterRegex = /\s/
 
 // Strong RTL scripts (Hebrew, Arabic and its presentation forms). Used to measure a word's ink with
 // the same direction the browser would lay it out in.
-const rtlCharacterRegex = /[֐-׿؀-ۿݐ-ݿࢠ-ࣿיִ-﷿ﹰ-﻿]/
+const rtlCharacterRegex =
+	/[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/
 
 /** How far a run of glyphs' ink spills past its own advance box, on each side, in unscaled px. */
 interface TextInkBleed {
