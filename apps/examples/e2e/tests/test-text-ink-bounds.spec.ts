@@ -290,16 +290,15 @@ test.describe('text shape ink bounds', () => {
 		expect(autoInk.h).toBeGreaterThanOrEqual(wideInk.h - 3)
 	})
 
-	test('export does not clip forced-italic RTL Arabic glyph ink (#8802)', async ({ page }) => {
-		// Arabic has no italic face, so `font-style: italic` makes the browser synthesize oblique —
-		// slanting the cursive RTL glyphs and pushing ink further past the advance box. The fix
-		// measures ink with the canvas TextMetrics API, so this guards that the synthesized slant is
-		// accounted for and the rendered export isn't clipped (it compares the real painted bounds of
-		// the autosize export against an unclippable wide box, so it catches a clip even if canvas
-		// and DOM disagree about synthesizing oblique).
+	test('export does not clip italic serif glyph ink (#8802)', async ({ page }) => {
+		// Italic glyphs slant past their advance box. Using an italic mark on a bundled tldraw serif
+		// (a real embedded italic face, so the slant is genuine type design with stable cross-platform
+		// metrics, not a synthesized oblique), the autosize export must paint the same glyph bounds as
+		// the unclippable wide box. On `main` the tight foreignObject clips the slanted ink, so the
+		// autosize ink comes up short. Measured at scale 2, so the tolerance is ~1.5 css px.
 		const { autoInk, wideInk } = await measureExportClipping(page, {
-			text: 'مرحباً بكم في تلدرو',
-			font: 'draw',
+			text: 'Affjjy WV',
+			font: 'serif',
 			italic: true,
 		})
 		expect(autoInk.w).toBeGreaterThanOrEqual(wideInk.w - 3)
