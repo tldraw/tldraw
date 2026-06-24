@@ -1111,54 +1111,47 @@ export class TLFileDurableObject extends DurableObject {
 	// this before each pass and loops again if it's set back to true while a pass is running.
 	private associateAssetsPending = false
 
-	// Shared connection budget for every R2 operation this durable object makes — see
-	// MAX_CONCURRENT_R2_OPERATIONS. Both asset copies and snapshot uploads draw from this queue.
-	private readonly r2ConnectionQueue = new PQueue({ concurrency: MAX_CONCURRENT_R2_OPERATIONS })
+	// Shared connection budget for every R2 operation this durable object makes. Both asset copies and
+	// snapshot uploads draw from this queue so together they can't exceed Cloudflare's simultaneous-
+	// connection limit (see MAX_CONCURRENT_R2_OPERATIONS).
+	private readonly r2Queue = new PQueue({ concurrency: MAX_CONCURRENT_R2_OPERATIONS })
 
-	// In-flight (queued + running) R2 operations on the shared queue, broken down by type. We track
-	// this ourselves rather than reading r2ConnectionQueue.size/pending because the queue can't tell
-	// us which kind of operation is backed up. Drives the queue-depth metric and alert.
-	private readonly r2QueueDepthByType = new Map<R2OperationType, number>()
-	// Whether we've already alerted for the current spike, so a sustained backlog reports once rather
-	// than on every enqueue. Reset when the queue drains back below the metric threshold.
-	private r2QueueAlerted = false
-
-	// Funnel an R2 operation through the shared connection budget while tracking how deep the queue
-	// gets. `type` lets us break the depth down per operation in Grafana.
-	private addR2Operation<T>(type: R2OperationType, task: () => Promise<T>): Promise<T | void> {
-		this.r2QueueDepthByType.set(type, (this.r2QueueDepthByType.get(type) ?? 0) + 1)
-		this.reportR2QueueDepth(type)
-		return this.r2ConnectionQueue.add(task).finally(() => {
-			const remaining = (this.r2QueueDepthByType.get(type) ?? 1) - 1
-			if (remaining <= 0) this.r2QueueDepthByType.delete(type)
-			else this.r2QueueDepthByType.set(type, remaining)
-		})
-	}
-
-	// Report the current shared-queue depth when it's backed up. Writes a metric once the total
-	// passes R2_QUEUE_DEPTH_METRIC_THRESHOLD (with the total and the just-enqueued type's depth, so
-	// Grafana can graph both overall and per-type peaks) and reports to Sentry once per spike past
-	// R2_QUEUE_DEPTH_ALERT_THRESHOLD.
-	private reportR2QueueDepth(type: R2OperationType) {
-		let total = 0
-		for (const count of this.r2QueueDepthByType.values()) total += count
-		if (total < R2_QUEUE_DEPTH_METRIC_THRESHOLD) {
-			this.r2QueueAlerted = false
-			return
+	// Wraps a queued R2 task so the queue's depth is counted against `type` from submit until the task
+	// settles. While the queue is backed up it writes a per-type depth metric for Grafana, and a
+	// runaway backlog reports to Sentry once per spike (re-arming after the queue drains). Depth and
+	// the alert flag live in this closure rather than on the durable object.
+	private readonly trackQueuedTask = (() => {
+		const depthByType = new Map<R2OperationType, number>()
+		let alerted = false
+		return <T>(type: R2OperationType, task: () => Promise<T>): (() => Promise<T>) => {
+			const typeDepth = (depthByType.get(type) ?? 0) + 1
+			depthByType.set(type, typeDepth)
+			let total = 0
+			for (const depth of depthByType.values()) total += depth
+			if (total < R2_QUEUE_DEPTH_METRIC_THRESHOLD) {
+				alerted = false
+			} else {
+				this.writeEvent('r2_queue_depth', { blobs: [type], doubles: [total, typeDepth] })
+				if (total >= R2_QUEUE_DEPTH_ALERT_THRESHOLD && !alerted) {
+					alerted = true
+					this.reportError(
+						new Error(
+							`R2 connection queue depth reached ${total} (>= ${R2_QUEUE_DEPTH_ALERT_THRESHOLD}) for file ${this.documentInfo.slug}`
+						)
+					)
+				}
+			}
+			return async () => {
+				try {
+					return await task()
+				} finally {
+					const depth = (depthByType.get(type) ?? 1) - 1
+					if (depth <= 0) depthByType.delete(type)
+					else depthByType.set(type, depth)
+				}
+			}
 		}
-		this.writeEvent('r2_queue_depth', {
-			blobs: [type],
-			doubles: [total, this.r2QueueDepthByType.get(type) ?? 0],
-		})
-		if (total >= R2_QUEUE_DEPTH_ALERT_THRESHOLD && !this.r2QueueAlerted) {
-			this.r2QueueAlerted = true
-			this.reportError(
-				new Error(
-					`R2 connection queue depth reached ${total} (>= ${R2_QUEUE_DEPTH_ALERT_THRESHOLD}) for file ${this.documentInfo.slug}`
-				)
-			)
-		}
-	}
+	})()
 
 	// Request a pass that associates every asset in this (app) file with the file. Needed for cases
 	// like duplicating a file, copy-pasting images between files, and slurping legacy files; also
@@ -1252,30 +1245,32 @@ export class TLFileDurableObject extends DurableObject {
 		const rows: { objectName: string; fileId: string }[] = []
 		await Promise.allSettled(
 			assetsToReplace.map((asset) =>
-				this.addR2Operation('asset_copy', async () => {
-					try {
-						const currentAsset = await this.env.UPLOADS.get(asset.objectName)
-						if (!currentAsset) return
-						await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {
-							httpMetadata: currentAsset.httpMetadata,
-						})
+				this.r2Queue.add(
+					this.trackQueuedTask('asset_copy', async () => {
+						try {
+							const currentAsset = await this.env.UPLOADS.get(asset.objectName)
+							if (!currentAsset) return
+							await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {
+								httpMetadata: currentAsset.httpMetadata,
+							})
 
-						storage.transaction((txn) => {
-							const assetRecord = txn.get(asset.assetId) as TLAsset | undefined
-							if (!assetRecord) return // extremely unlikely, not sure why this would happen
-							assetRecord.props.src = asset.newSrc
-							assetRecord.meta.fileId = slug
-							txn.set(asset.assetId, assetRecord)
-						})
+							storage.transaction((txn) => {
+								const assetRecord = txn.get(asset.assetId) as TLAsset | undefined
+								if (!assetRecord) return // extremely unlikely, not sure why this would happen
+								assetRecord.props.src = asset.newSrc
+								assetRecord.meta.fileId = slug
+								txn.set(asset.assetId, assetRecord)
+							})
 
-						rows.push({
-							objectName: asset.newObjectName,
-							fileId: slug,
-						})
-					} catch (e) {
-						this.reportError(e)
-					}
-				})
+							rows.push({
+								objectName: asset.newObjectName,
+								fileId: slug,
+							})
+						} catch (e) {
+							this.reportError(e)
+						}
+					})
+				)
 			)
 		)
 		if (rows.length === 0) return
@@ -1395,28 +1390,30 @@ export class TLFileDurableObject extends DurableObject {
 	): Promise<number | null> {
 		// Funnel through the shared connection budget so the upload can't contend with a concurrent
 		// asset-association pass (or the version-cache upload) and exhaust Cloudflare's connections.
-		const result = await this.addR2Operation('snapshot_upload', async () => {
-			try {
-				// Try multipart upload first, retrying transient connection drops before falling back.
-				return await retry(() => this._uploadSnapshotToBucketMultipart(bucket, snapshot, key), {
-					attempts: 3,
-					waitDuration: 500,
-				})
-			} catch (multipartError) {
-				// Falling back to a simple PUT is the designed recovery path, so it's a breadcrumb
-				// rather than a captured exception — only a failure of the fallback itself is reported.
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				this.sentry?.addBreadcrumb({
-					message: `Multipart upload failed, falling back to simple PUT: ${multipartError}`,
-				})
+		const result = await this.r2Queue.add(
+			this.trackQueuedTask('snapshot_upload', async () => {
 				try {
-					return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key)
-				} catch (putError) {
-					this.reportError(putError)
-					throw putError
+					// Try multipart upload first, retrying transient connection drops before falling back.
+					return await retry(() => this._uploadSnapshotToBucketMultipart(bucket, snapshot, key), {
+						attempts: 3,
+						waitDuration: 500,
+					})
+				} catch (multipartError) {
+					// Falling back to a simple PUT is the designed recovery path, so it's a breadcrumb
+					// rather than a captured exception — only a failure of the fallback itself is reported.
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
+					this.sentry?.addBreadcrumb({
+						message: `Multipart upload failed, falling back to simple PUT: ${multipartError}`,
+					})
+					try {
+						return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key)
+					} catch (putError) {
+						this.reportError(putError)
+						throw putError
+					}
 				}
-			}
-		})
+			})
+		)
 		return result ?? null
 	}
 
