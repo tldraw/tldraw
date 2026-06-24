@@ -1,6 +1,7 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 import { objectMapKeys } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
+import { EditorManager } from '../EditorManager'
 
 /**
  * The whole-pixel line-height for a given font size and tldraw's unitless line-height
@@ -107,13 +108,21 @@ const initialDefaultStyles = Object.freeze({
 })
 
 /** @public */
-export class TextManager {
+export class TextManager extends EditorManager {
 	private elm: HTMLDivElement
 	private poolElms: PoolItem[] = []
 
-	constructor(public editor: Editor) {
+	constructor(editor: Editor) {
+		super(editor)
 		this.elm = this.createMeasurementEl()
 		this.editor.getContainer().appendChild(this.elm)
+		this.register(() => {
+			this.elm.remove()
+			for (const { el } of this.poolElms) {
+				el.remove()
+			}
+			this.poolElms.length = 0
+		})
 	}
 
 	private createMeasurementEl(): HTMLDivElement {
@@ -180,14 +189,6 @@ export class TextManager {
 			'overflow-wrap': opts.disableOverflowWrapBreaking ? 'normal' : 'break-word',
 			...opts.otherStyles,
 		}
-	}
-
-	dispose() {
-		this.elm.remove()
-		for (const { el } of this.poolElms) {
-			el.remove()
-		}
-		this.poolElms.length = 0
 	}
 
 	private ensurePoolSize(size: number) {

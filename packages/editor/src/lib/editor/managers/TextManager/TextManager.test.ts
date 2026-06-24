@@ -110,7 +110,6 @@ describe('TextManager', () => {
 	describe('constructor', () => {
 		it('should create a TextManager instance', () => {
 			expect(textManager).toBeInstanceOf(TextManager)
-			expect(textManager.editor).toBe(mockEditor)
 		})
 	})
 
