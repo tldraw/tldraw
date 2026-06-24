@@ -107,9 +107,13 @@ const ARABIC_SHORT = 'سطر قصير'
 const LATIN_LONG = 'The quick brown fox jumps over'
 const LATIN_SHORT = 'short'
 
-// Edges align (same flush side) within a few px; the indent on the other side is large (the lines
-// differ a lot in length), so a generous gap keeps the direction check unambiguous.
-const FLUSH_TOL = 6
+// Edges align (same flush side) within a tolerance; the indent on the other side is huge (the lines
+// differ a lot in length — ~1300px vs this tolerance), so the direction check stays unambiguous.
+// The tolerance is generous on purpose: with the cursive/RTL ink fix (#8802/#8803), word-final
+// trailing strokes are now rendered instead of clipped flat against the box, so the flush-side ink
+// edge legitimately varies by a glyph's trailing flourish (~14px on CI). The old behaviour clipped
+// those strokes, which is the only reason the lines used to look pixel-flush.
+const FLUSH_TOL = 24
 const MIN_INDENT = 30
 
 test.describe('RTL text export alignment (#7720)', () => {
