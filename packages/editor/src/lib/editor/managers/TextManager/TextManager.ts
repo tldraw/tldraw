@@ -98,6 +98,22 @@ const spaceCharacterRegex = /\s/
 // rather than by code point, so a single glyph is measured as one unit.
 const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
 
+// Strong-RTL scripts, so each word's ink is measured in the direction the browser lays it out. The
+// character ranges, in order: Hebrew (U+0590-05FF), Arabic (U+0600-06FF), Arabic Supplement
+// (U+0750-077F), Arabic Extended-A (U+08A0-08FF), Hebrew + Arabic Presentation Forms-A
+// (U+FB1D-FDFF), and Arabic Presentation Forms-B (U+FE70-FEFF).
+const rtlCharacterRegex =
+	/[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/
+
+/** How far a run of glyphs' ink spills past its own advance box, on each side, in unscaled px. */
+interface TextInkBleed {
+	left: number
+	right: number
+	top: number
+	bottom: number
+}
+const ZERO_INK_BLEED: TextInkBleed = { left: 0, right: 0, top: 0, bottom: 0 }
+
 const initialDefaultStyles = Object.freeze({
 	'overflow-wrap': 'break-word',
 	'word-break': 'auto',
@@ -111,6 +127,11 @@ const initialDefaultStyles = Object.freeze({
 export class TextManager extends EditorManager {
 	private elm: HTMLDivElement
 	private poolElms: PoolItem[] = []
+	private inkCtx: CanvasRenderingContext2D | null | undefined
+	// Per-word ink bleed, nested font -> word -> bleed so the per-word lookup needs no string key.
+	// A word shapes independently of its neighbours (whitespace breaks cursive joining), so its bleed
+	// is the same wherever it wraps — measure once, reuse across every shape and width.
+	private wordBleedCache = new Map<string, Map<string, TextInkBleed>>()
 
 	constructor(editor: Editor) {
 		super(editor)
@@ -465,6 +486,84 @@ export class TextManager extends EditorManager {
 			return spans
 		} finally {
 			restoreStyles()
+		}
+	}
+
+	private getInkContext(): CanvasRenderingContext2D | null {
+		if (this.inkCtx !== undefined) return this.inkCtx
+		const canvas = this.editor.getContainerDocument().createElement('canvas')
+		this.inkCtx = canvas.getContext('2d')
+		return this.inkCtx
+	}
+
+	/**
+	 * Measure how far one word's glyph ink spills past its own advance box, on each side, using canvas
+	 * metrics only (no layout/reflow). The caller passes the already-built font shorthand and owns the
+	 * cache; this only runs on a miss.
+	 */
+	private measureWordInkBleed(word: string, font: string, opts: TLMeasureTextOpts): TextInkBleed {
+		const ctx = this.getInkContext()
+		if (!ctx) return ZERO_INK_BLEED
+		ctx.font = font
+		ctx.textAlign = 'left'
+		ctx.textBaseline = 'alphabetic'
+		ctx.direction = rtlCharacterRegex.test(word) ? 'rtl' : 'ltr'
+		const m = ctx.measureText(word)
+		const lineBoxH = resolveLineHeightPx(opts.fontSize, opts.lineHeight)
+		const fontAscent = m.fontBoundingBoxAscent || opts.fontSize
+		const fontDescent = m.fontBoundingBoxDescent || 0
+		// Where CSS line-height puts the baseline inside the line box (half-leading above the ascent).
+		const baseline = (lineBoxH - (fontAscent + fontDescent)) / 2 + fontAscent
+		return {
+			left: Math.max(0, m.actualBoundingBoxLeft),
+			right: Math.max(0, m.actualBoundingBoxRight - m.width),
+			top: Math.max(0, m.actualBoundingBoxAscent - baseline),
+			bottom: Math.max(0, baseline + m.actualBoundingBoxDescent - lineBoxH),
+		}
+	}
+
+	/**
+	 * The ink overflow of wrapped text, derived from its words' cached bleeds rather than the current
+	 * layout. Lines only break at word boundaries, so any line edge is a word edge; taking the max
+	 * bleed over the words bounds the spill past the advance box on every side, independent of how the
+	 * text happens to wrap. The result is whole-pixel-padded so the box always contains the ink. Each
+	 * word is measured once and cached (font then word), shared across every shape.
+	 *
+	 * @public
+	 */
+	measureWordsInkOverflow(
+		words: string[],
+		opts: TLMeasureTextOpts
+	): { left: number; right: number; top: number; bottom: number } {
+		// The font shorthand is identical for every word in the run, so build it and resolve its cache
+		// bucket once; the per-word lookup is then a plain Map.get with no string key to build.
+		const font = `${opts.fontStyle} ${opts.fontWeight} ${opts.fontSize}px ${opts.fontFamily}`
+		let byWord = this.wordBleedCache.get(font)
+		if (!byWord) {
+			byWord = new Map()
+			this.wordBleedCache.set(font, byWord)
+		}
+		let left = 0
+		let right = 0
+		let top = 0
+		let bottom = 0
+		for (const word of words) {
+			if (!word) continue
+			let b = byWord.get(word)
+			if (b === undefined) {
+				b = this.measureWordInkBleed(word, font, opts)
+				byWord.set(word, b)
+			}
+			if (b.left > left) left = b.left
+			if (b.right > right) right = b.right
+			if (b.top > top) top = b.top
+			if (b.bottom > bottom) bottom = b.bottom
+		}
+		return {
+			left: Math.ceil(left),
+			right: Math.ceil(right),
+			top: Math.ceil(top),
+			bottom: Math.ceil(bottom),
 		}
 	}
 }
