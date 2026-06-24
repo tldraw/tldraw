@@ -60,14 +60,12 @@ function useFps(editor: Editor) {
 function ReRenderMetric({
 	editor,
 	label,
-	code,
 	getZoom,
 	resetSignal,
 	accent,
 }: {
 	editor: Editor
 	label: string
-	code: string
 	getZoom(editor: Editor): number
 	resetSignal: number
 	accent?: boolean
@@ -90,7 +88,6 @@ function ReRenderMetric({
 		<div className={`perf-metric ${accent ? 'perf-metric--accent' : ''}`}>
 			<span className="perf-metric__label">{label}</span>
 			<span className="perf-metric__count">{updates}</span>
-			<code className="perf-metric__code">{code}</code>
 		</div>
 	)
 }
@@ -174,14 +171,12 @@ function PerformancePanel({
 					<ReRenderMetric
 						editor={editor}
 						label="without debounce"
-						code="getZoomLevel()"
 						getZoom={getLiveZoom}
 						resetSignal={resetSignal}
 					/>
 					<ReRenderMetric
 						editor={editor}
 						label="with debounce"
-						code="getEfficientZoomLevel()"
 						getZoom={getEfficientZoom}
 						resetSignal={resetSignal}
 						accent

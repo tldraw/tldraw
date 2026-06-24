@@ -116,12 +116,6 @@
 	color: #2f9e44;
 }
 
-.perf-metric__code {
-	font-size: 9px;
-	color: var(--tl-color-text-3, #9fa1a3);
-	word-break: break-all;
-}
-
 .perf-reset {
 	align-self: flex-start;
 	padding: 0;
