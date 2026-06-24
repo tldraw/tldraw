@@ -8,11 +8,16 @@ import {
 	CORE_HP,
 	CORE_REGEN,
 	CORE_SIEGE_RADIUS,
+	cellOf,
+	CUT_FLASH_TICKS,
 	CUT_LOCKOUT_TICKS,
+	GAP_SEEK_RADIUS,
+	GAP_SEEK_WEIGHT,
 	GRID,
 	GROWTH_PULSE_INTERVAL,
 	HYDRA_TIPS,
 	makeStrand,
+	OPENNESS_WEIGHT,
 	MAX_TIPS_ADVANCED_PER_PULSE,
 	ORPHAN_DECAY,
 	Owner,
@@ -219,13 +224,67 @@ export function vineSubtreeSize(world: World, strand: Strand): number {
 // chaotic and finite. Between pulses nothing grows, giving a prune window.
 // ============================================================================
 
-// Pick the claimable neighbour best aligned with `heading`. Claimable = in
-// bounds, not already this color's, not the enemy's living ground, not on cut
-// lockout. Returns null if boxed in.
+// Is a cell claimable by `owner` (open, not already its net, not enemy, not
+// locked out)?
+function isClaimable(world: World, owner: Owner, c: number, r: number): boolean {
+	const to = pegAt(world, c, r)
+	if (!to || to.blocked) return false
+	if (to.owner === owner) return false
+	if (to.owner === (owner === 'a' ? 'b' : 'a')) return false
+	if (to.cutLockout > 0) return false
+	return true
+}
+
+// Openness of a cell = how much open NEUTRAL (unowned, unblocked) ground is in
+// its 3×3 neighbourhood. 0..8, normalized to 0..1. Cells leading into emptiness
+// score high; cells wedged against the enemy seam or walls score low — so growth
+// flows into gaps and open space instead of piling along the contact line.
+function openness(world: World, c: number, r: number): number {
+	let n = 0
+	for (const [dc, dr] of NEIGHBORS) {
+		const to = pegAt(world, c + dc, r + dr)
+		if (to && !to.blocked && !to.owner) n++
+	}
+	return n / NEIGHBORS.length
+}
+
+// When a tip is obstructed straight ahead, find the direction (angle) toward the
+// nearest reachable NEUTRAL cell within GAP_SEEK_RADIUS, walking only through
+// open ground (a small bounded BFS). Returns null if no neutral cell is in
+// reach. Lets a tip route around enemy/rock and probe through 1–2 cell holes
+// instead of grinding sideways along the seam.
+function gapDirection(world: World, owner: Owner, peg: Peg): number | null {
+	const R = GAP_SEEK_RADIUS
+	const seen = new Set<string>()
+	const queue: Array<{ c: number; r: number; d: number }> = [{ c: peg.col, r: peg.row, d: 0 }]
+	seen.add(peg.id)
+	while (queue.length) {
+		const cur = queue.shift()!
+		if (cur.d >= R) continue
+		for (const [dc, dr] of NEIGHBORS) {
+			const nc = cur.c + dc
+			const nr = cur.r + dr
+			const to = pegAt(world, nc, nr)
+			if (!to || to.blocked || seen.has(to.id)) continue
+			seen.add(to.id)
+			// A claimable neutral cell that we can actually grow into: aim here.
+			if (!to.owner && to.cutLockout === 0) {
+				return Math.atan2(nr - peg.row, nc - peg.col)
+			}
+			// Walk onward only through open ground (neutral cells), so we route
+			// through gaps but don't tunnel through enemy/own territory.
+			if (!to.owner) queue.push({ c: nc, r: nr, d: cur.d + 1 })
+		}
+	}
+	return null
+}
+
+// Pick the claimable neighbour best aligned with `heading`, biased toward open
+// neutral space (openness) and, when boxed in straight ahead, toward the nearest
+// gap. Returns null if there is no claimable neighbour at all (truly boxed in).
 function pickTarget(world: World, owner: Owner, peg: Peg, heading: number): Peg | null {
 	const enemy: Owner = owner === 'a' ? 'b' : 'a'
-	// Blue (the AI) pulls its growth toward the player's (red's) core, so it's a
-	// real besieging threat. Computed once per pickTarget call.
+	// Blue (the AI) pulls its growth toward the player's (red's) core.
 	let pullAngle = 0
 	let pullW = 0
 	if (owner === 'b') {
@@ -235,20 +294,46 @@ function pickTarget(world: World, owner: Owner, peg: Peg, heading: number): Peg 
 			pullW = AI_CORE_PULL
 		}
 	}
+
+	// Is the heading-forward arc blocked (no claimable cell within ±45°)? If so,
+	// steer toward the nearest gap so the tip probes through holes instead of
+	// sliding along the seam.
+	let effHeading = heading
+	let gapW = 0
+	let forwardOpen = false
+	for (const [dc, dr] of NEIGHBORS) {
+		if (!isClaimable(world, owner, peg.col + dc, peg.row + dr)) continue
+		const ang = Math.atan2(dr, dc)
+		if (Math.cos(ang - heading) > 0.5) {
+			forwardOpen = true
+			break
+		}
+	}
+	if (!forwardOpen) {
+		const gap = gapDirection(world, owner, peg)
+		if (gap !== null) {
+			effHeading = gap
+			gapW = GAP_SEEK_WEIGHT
+		}
+	}
+
 	let best: Peg | null = null
 	let bestScore = -Infinity
 	for (const [dc, dr] of NEIGHBORS) {
 		const to = pegAt(world, peg.col + dc, peg.row + dr)
 		if (!to) continue
-		if (to.blocked) continue // wall/obstacle: vines can't grow into it
+		if (to.blocked) continue // wall/obstacle
 		if (to.owner === owner) continue // tree invariant: never re-enter own net
 		if (to.owner === enemy) continue // can't grow into enemy's living tendrils
 		if (to.cutLockout > 0) continue // freshly pruned: locked out
 		const ang = Math.atan2(dr, dc)
-		const align = Math.cos(ang - heading)
-		// AI core-pull blended in: reward stepping toward the player core.
+		// Alignment with the (possibly gap-steered) heading.
+		const align = (gapW ? gapW : 1) * Math.cos(ang - effHeading)
+		// AI core-pull toward the player core.
 		const pull = pullW ? pullW * Math.cos(ang - pullAngle) : 0
-		const score = align + pull + Math.random() * 0.5
+		// Openness: flow into open neutral space / gaps.
+		const open = OPENNESS_WEIGHT * openness(world, to.col, to.row)
+		const score = align + pull + open + Math.random() * 0.5
 		if (score > bestScore) {
 			bestScore = score
 			best = to
@@ -383,19 +468,26 @@ function frontierPegs(world: World, owner: Owner, limit: number): Peg[] {
 		if (canClaim) open.push(peg)
 		else if (bordersEnemy) contested.push(peg)
 	}
-	const sortByCore = (arr: Peg[]) => {
-		if (enemyCore && arr.length > 1) {
-			arr.sort(
-				(p, q) =>
-					Math.hypot(p.x - enemyCore.x, p.y - enemyCore.y) -
-					Math.hypot(q.x - enemyCore.x, q.y - enemyCore.y)
-			)
-		}
+	// Rank open frontier pegs by a blend of OPENNESS (reseed into the largest
+	// gaps/channels so the front breaks through rather than thickening) and
+	// proximity to the enemy core (head the right way). Diagonal of the board is
+	// the distance normalizer.
+	const diag = Math.hypot(GRID.cols, GRID.rows)
+	const score = (p: Peg) => {
+		const op = openness(world, p.col, p.row)
+		const near = enemyCore ? 1 - Math.hypot(p.col - enemyCore.col, p.row - enemyCore.row) / diag : 0
+		return op * 1.5 + near
 	}
-	sortByCore(open)
+	open.sort((p, q) => score(q) - score(p))
 	if (open.length >= limit) return open.slice(0, limit)
 	// Top up with contested-front pegs nearest the enemy core.
-	sortByCore(contested)
+	if (enemyCore && contested.length > 1) {
+		contested.sort(
+			(p, q) =>
+				Math.hypot(p.x - enemyCore.x, p.y - enemyCore.y) -
+				Math.hypot(q.x - enemyCore.x, q.y - enemyCore.y)
+		)
+	}
 	return open.concat(contested).slice(0, limit)
 }
 
@@ -441,6 +533,64 @@ export function hasPresence(world: World, owner: Owner, point: { x: number; y: n
 		}
 	}
 	return false
+}
+
+// Squared distance from point p to segment a→b (page units).
+function pointSegDist2(
+	px: number,
+	py: number,
+	ax: number,
+	ay: number,
+	bx: number,
+	by: number
+): number {
+	const dx = bx - ax
+	const dy = by - ay
+	const len2 = dx * dx + dy * dy || 1
+	let t = ((px - ax) * dx + (py - ay) * dy) / len2
+	t = t < 0 ? 0 : t > 1 ? 1 : t
+	const cx = ax + dx * t
+	const cy = ay + dy * t
+	const ex = px - cx
+	const ey = py - cy
+	return ex * ex + ey * ey
+}
+
+// Find the vine nearest to page point `p` within `radius` page units, restricted
+// to vines whose spatial-index cell is within ±1 of the cursor's cell (so we do
+// segment math only on the handful of vines actually near the cursor — bounded,
+// not a full geometric scan). Returns the strand and how the human relates to it
+// (in-reach enemy / out-of-reach enemy / other), or null.
+export function hoverHitTest(
+	world: World,
+	p: { x: number; y: number },
+	radius: number
+): { strand: Strand; kind: 'enemy-in-reach' | 'enemy-out-of-reach' | 'other' } | null {
+	const cc = Math.round((p.x - GRID.x0) / GRID.spacing)
+	const cr = Math.round((p.y - GRID.y0) / GRID.spacing)
+	const r2 = radius * radius
+	let best: Strand | null = null
+	let bestD2 = r2
+	for (const strand of world.strands) {
+		const c = strand.cell % GRID.cols
+		const r = (strand.cell / GRID.cols) | 0
+		if (c < cc - 1 || c > cc + 1 || r < cr - 1 || r > cr + 1) continue // cheap cell gate
+		const pts = strand.points
+		for (let i = 0; i < pts.length - 1; i++) {
+			const d2 = pointSegDist2(p.x, p.y, pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y)
+			if (d2 < bestD2) {
+				bestD2 = d2
+				best = strand
+			}
+		}
+	}
+	if (!best) return null
+	let kind: 'enemy-in-reach' | 'enemy-out-of-reach' | 'other' = 'other'
+	if (best.owner === 'b') {
+		const mid = best.points[(best.points.length / 2) | 0]
+		kind = hasPresence(world, 'a', mid) ? 'enemy-in-reach' : 'enemy-out-of-reach'
+	}
+	return { strand: best, kind }
 }
 
 // BFS the orphaned subtree from a set of seed pegs over remaining edges, and
@@ -536,6 +686,9 @@ export function sliceCut(
 		if (pa) pa.cutLockout = Math.max(pa.cutLockout, CUT_LOCKOUT_TICKS)
 		if (pb) pb.cutLockout = Math.max(pb.cutLockout, CUT_LOCKOUT_TICKS)
 		didCut = true
+
+		// Subtle "snip" flourish at the cut point (decoration; aged out in stepSim).
+		world.flashes.push({ x: mid.x, y: mid.y, cell: cellOf(mid.x, mid.y), born: world.tick })
 
 		// Identify child (orphaned) side and survivor (source) side.
 		let child: Peg | null = null
@@ -731,6 +884,11 @@ export function stepSim(world: World) {
 
 	for (const peg of world.pegs) {
 		if (peg.cutLockout > 0) peg.cutLockout--
+	}
+
+	// Age out expired cut-flash "snip" markers.
+	if (world.flashes.length) {
+		world.flashes = world.flashes.filter((f) => world.tick - f.born < CUT_FLASH_TICKS)
 	}
 
 	// Connectivity drives life/death every tick (cheap BFS over edges). If pegs

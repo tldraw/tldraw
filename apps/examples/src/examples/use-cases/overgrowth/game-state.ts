@@ -33,6 +33,15 @@ export const CORE_CHAMBER_RADIUS = 5
 // Half-width (cells) of the corridor carved between the chambers if the random
 // cave leaves them disconnected (connectivity guarantee).
 export const CORRIDOR_HALF_WIDTH = 1
+// Map variation: carve a few large open caverns (radius range below) into the
+// CA texture so the board mixes big rooms with smaller scattered rock, and add a
+// couple of deliberate narrow chokepoint passages between regions. Light touch —
+// not a maze. All applied to the canonical half then mirrored, so symmetry holds.
+export const MAP_CAVERN_COUNT = 4 // big open caverns carved per half
+export const MAP_CAVERN_MIN_RADIUS = 4
+export const MAP_CAVERN_MAX_RADIUS = 8
+export const MAP_CHOKE_COUNT = 2 // deliberate narrow passages per half
+export const MAP_CHOKE_HALF_WIDTH = 1 // 1 → 1-cell-wide chokes (passage = 1..2)
 
 // --- growth: discrete pulse-waves ---
 // Growth does NOT happen a little each tick. Every GROWTH_PULSE_INTERVAL ticks
@@ -59,6 +68,25 @@ export const TIP_JITTER = 1.1
 // Slight perpendicular wiggle on intermediate vine points (page units) so vines
 // aren't dead-straight grid segments. Purely visual.
 export const VINE_WIGGLE = 6
+// Lifetime (ticks) of the subtle cut-flash "snip" played at each severed vine.
+// ~24 ticks ≈ 0.4s at 60fps: a quick expand-and-fade, not a flashy explosion.
+export const CUT_FLASH_TICKS = 24
+
+// --- growth dynamism: seek open space, punch through gaps ---
+// Tips are attracted toward open NEUTRAL space so colonies flow into emptiness
+// and gaps instead of piling sideways along the enemy contact line (which froze
+// the front). Two mechanisms:
+// OPENNESS_WEIGHT: in pickTarget, how strongly a candidate is preferred for the
+// amount of open neutral space around it (its 3×3 neutral-cell count). Higher =
+// growth dives into open ground harder.
+export const OPENNESS_WEIGHT = 1.2
+// GAP_SEEK_WEIGHT: when a tip's forward cells are all enemy/blocked, its heading
+// is steered toward the nearest reachable NEUTRAL cell within GAP_SEEK_RADIUS so
+// it routes around the obstruction / through a 1–2 cell hole rather than turning
+// to grind the seam. This weight blends that gap direction into the heading.
+export const GAP_SEEK_WEIGHT = 1.6
+// How far (cells) a boxed-in tip looks for a neutral cell to aim at.
+export const GAP_SEEK_RADIUS = 4
 
 // --- claiming ---
 // A target cell is claimable by a color if it is unreached by that color and
@@ -93,6 +121,11 @@ export const CHARGE_NORM = CLAIM_CHARGE
 // to the overlay's VINE_ZOOM so cutting is enabled exactly when vines are drawn.
 // (The overlay re-declares VINE_ZOOM for its own use; keep the two in sync.)
 export const CUT_ZOOM_MIN = 0.85
+// When a player tries to cut while too zoomed out, the camera auto-travels to
+// the cut point and zooms to CUT_ZOOM_MIN + this epsilon (just past the cut
+// threshold), so the next swipe lands at the right level. That gesture does NOT
+// itself cut.
+export const CUT_ZOOM_EPSILON = 0.1
 // REACH_RADIUS (page units): to cut an ENEMY vine you must have a living vine of
 // your own within this radius of the cut point (~3 cells). You can always cut
 // your OWN vines (steering) regardless of reach, so self-steering is never
@@ -200,6 +233,16 @@ export interface Spark {
 	owner: Owner
 }
 
+// A short-lived "snip" marker spawned at each successful cut point — a small
+// flash that expands and fades over CUT_FLASH_TICKS. Pure decoration; culled to
+// the viewport like sparks. `born` is the world tick it was created.
+export interface CutFlash {
+	x: number
+	y: number
+	cell: number // spatial-index bucket for culling
+	born: number
+}
+
 export interface World {
 	pegs: Peg[]
 	pegById: Map<string, Peg>
@@ -207,6 +250,8 @@ export interface World {
 	strandById: Map<string, Strand>
 	tips: Tip[]
 	sparks: Spark[]
+	// Short-lived cut-flash markers (the "snip" flourish at each severed vine).
+	flashes: CutFlash[]
 	sources: Record<Owner, string>
 	// Per-core hit points. A core at 0 HP means that color loses.
 	coreHp: { a: number; b: number }
@@ -340,7 +385,7 @@ function generateMap(): boolean[][] {
 		mirror()
 	}
 
-	// Carve an open chamber around each core.
+	// Carve an open disk (used for chambers, caverns).
 	const carveDisk = (cc: number, cr: number, rad: number) => {
 		for (let dr = -rad; dr <= rad; dr++) {
 			for (let dc = -rad; dc <= rad; dc++) {
@@ -351,6 +396,64 @@ function generateMap(): boolean[][] {
 			}
 		}
 	}
+	// Carve a narrow open passage between two points (a deliberate chokepoint).
+	const carveLine = (x0: number, y0: number, x1: number, y1: number, w: number) => {
+		let x = x0
+		let y = y0
+		const dxa = Math.abs(x1 - x)
+		const dya = Math.abs(y1 - y)
+		const sx = x < x1 ? 1 : -1
+		const sy = y < y1 ? 1 : -1
+		let err = dxa - dya
+		for (;;) {
+			for (let oy = -w; oy <= w; oy++) {
+				for (let ox = -w; ox <= w; ox++) {
+					const c = x + ox
+					const r = y + oy
+					if (c > 0 && r > 0 && c < cols - 1 && r < rows - 1) wall[r][c] = false
+				}
+			}
+			if (x === x1 && y === y1) break
+			const e2 = 2 * err
+			if (e2 > -dya) {
+				err -= dya
+				x += sx
+			}
+			if (e2 < dxa) {
+				err += dxa
+				y += sy
+			}
+		}
+	}
+
+	// MAP VARIATION (light touch): carve a few large caverns of varied size into
+	// the canonical half so the board mixes big rooms with the smaller scattered
+	// CA rock, plus a couple of deliberate narrow chokepoint passages. Then
+	// re-mirror so symmetry is preserved exactly.
+	const randHalfCell = (): [number, number] => {
+		// Reject until we land in the canonical half (interior).
+		for (;;) {
+			const c = 2 + ((Math.random() * (cols - 4)) | 0)
+			const r = 2 + ((Math.random() * (rows - 4)) | 0)
+			if (half(c, r)) return [c, r]
+		}
+	}
+	for (let i = 0; i < MAP_CAVERN_COUNT; i++) {
+		const [c, r] = randHalfCell()
+		const rad =
+			MAP_CAVERN_MIN_RADIUS +
+			((Math.random() * (MAP_CAVERN_MAX_RADIUS - MAP_CAVERN_MIN_RADIUS + 1)) | 0)
+		carveDisk(c, r, rad)
+	}
+	for (let i = 0; i < MAP_CHOKE_COUNT; i++) {
+		const [c0, r0] = randHalfCell()
+		const [c1, r1] = randHalfCell()
+		carveLine(c0, r0, c1, r1, MAP_CHOKE_HALF_WIDTH)
+	}
+	mirror()
+
+	// Carve an open chamber around each core (after variation, so a stray cavern
+	// can't wall a core in).
 	carveDisk(CORE_A.col, CORE_A.row, CORE_CHAMBER_RADIUS)
 	carveDisk(CORE_B.col, CORE_B.row, CORE_CHAMBER_RADIUS)
 
@@ -480,6 +583,7 @@ export function createWorld(): World {
 		strandById,
 		tips,
 		sparks: [],
+		flashes: [],
 		sources: { a: sourceA, b: sourceB },
 		coreHp: { a: CORE_HP, b: CORE_HP },
 		tick: 0,
@@ -500,6 +604,7 @@ export function resetWorld() {
 	hpB$.set(CORE_HP)
 	winner$.set(null)
 	hint$.set(null)
+	hoveredVine$.set(null)
 	publishWorld()
 }
 
@@ -523,6 +628,17 @@ export interface Hint {
 	until: number // frame$ value after which it's stale
 }
 export const hint$ = atom<Hint | null>('og-hint', null)
+
+// The vine currently under the cursor (when zoomed in and not actively cutting),
+// with whether the human can cut it right now. Drives a contextual cue on just
+// that one vine in the overlay. Updated only when it changes, to avoid re-render
+// spam. `kind` distinguishes the cue: an in-reach enemy vine, an out-of-reach
+// enemy vine, or own/neutral.
+export interface HoveredVine {
+	strandId: string
+	kind: 'enemy-in-reach' | 'enemy-out-of-reach' | 'other'
+}
+export const hoveredVine$ = atom<HoveredVine | null>('og-hovered-vine', null)
 
 // Show a hint for ~`frames` frames from now.
 export function showHint(text: string, tone: Hint['tone'], frames = 90) {
