@@ -107,6 +107,9 @@ export const CONNECTED_REGEN = 0.5
 // Orphaned (disconnected) pegs lose charge at this multiplicative rate each
 // tick — fast, so a severed branch visibly fades to neutral within ~1s.
 export const ORPHAN_DECAY = 0.86
+// Sere/dead tint a withering vine blends toward as its charge decays (a
+// desaturated brown). Healthy connected vines are unaffected.
+export const WITHER_COLOR = '#6b5536'
 
 // --- ownership ---
 export const OWN_THRESHOLD = 0.5
