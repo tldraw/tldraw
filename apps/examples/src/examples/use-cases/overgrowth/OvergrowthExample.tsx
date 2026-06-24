@@ -147,6 +147,19 @@ function GameRunner() {
 					inset: 24,
 					animation: { duration: 300 },
 				})
+			} else if (k === 'w') {
+				// Pulled-back "density" view: 0.75x the zoom-to-fit level — the whole
+				// view at your current spot (center preserved), not recentered on the board.
+				const b = boardBounds()
+				const vsb = editor.getViewportScreenBounds()
+				const inset = 24
+				const fit = Math.min((vsb.w - inset * 2) / b.w, (vsb.h - inset * 2) / b.h)
+				// Keep the current viewport center; just set the zoom to 0.75x the fit zoom.
+				const c = editor.getViewportPageBounds().center
+				editor.zoomToBounds(new Box(c.x - 1, c.y - 1, 2, 2), {
+					targetZoom: fit * 1.55,
+					animation: { duration: 300 },
+				})
 			}
 		}
 		window.addEventListener('keydown', onKeyDown)
