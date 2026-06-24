@@ -93,8 +93,10 @@ export interface TLMeasureTextSpanOpts {
 
 const spaceCharacterRegex = /\s/
 
-// Strong RTL scripts (Hebrew, Arabic and its presentation forms). Used to measure a word's ink with
-// the same direction the browser would lay it out in.
+// Strong-RTL scripts, so each word's ink is measured in the direction the browser lays it out. The
+// character ranges, in order: Hebrew (U+0590-05FF), Arabic (U+0600-06FF), Arabic Supplement
+// (U+0750-077F), Arabic Extended-A (U+08A0-08FF), Hebrew + Arabic Presentation Forms-A
+// (U+FB1D-FDFF), and Arabic Presentation Forms-B (U+FE70-FEFF).
 const rtlCharacterRegex =
 	/[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/
 
