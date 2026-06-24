@@ -108,6 +108,22 @@ window.zero = () => {
 	location.reload()
 }
 
+/**
+ * The timestamp used to rank a file by recency. Prefers the user's most recent activity on the
+ * file — last visit, then last edit, then first visit — and falls back to when the file was
+ * created. This is the single source of truth for "how recent is this file" across recent-file
+ * lists and most-recent-file navigation, so the ordering stays consistent everywhere.
+ */
+function getFileRecencyDate(
+	state:
+		| { lastVisitAt?: number | null; lastEditAt?: number | null; firstVisitAt?: number | null }
+		| undefined
+		| null,
+	file: { createdAt?: number | null } | undefined | null
+): number {
+	return state?.lastVisitAt ?? state?.lastEditAt ?? state?.firstVisitAt ?? file?.createdAt ?? 0
+}
+
 export class TldrawApp {
 	config = {
 		maxNumberOfFiles: MAX_NUMBER_OF_FILES,
@@ -470,7 +486,7 @@ export class TldrawApp {
 			const state = this.getFileState(file.fileId)
 			newOrdering.push({
 				fileId: file.fileId,
-				date: Math.max(state?.lastEditAt ?? state?.firstVisitAt ?? file.file.createdAt),
+				date: getFileRecencyDate(state, file.file),
 			})
 		}
 
@@ -593,7 +609,7 @@ export class TldrawApp {
 			const newEntry = {
 				fileId,
 				isPinned,
-				date: state.lastEditAt ?? state.firstVisitAt ?? file.createdAt ?? 0,
+				date: getFileRecencyDate(state, file),
 			}
 
 			// If this was previously unpinned and we have existing ordering,
@@ -656,8 +672,7 @@ export class TldrawApp {
 			if (fileIdsInScope && !fileIdsInScope.has(state.fileId)) continue
 			const file = state.file
 			if (!file || file.isDeleted) continue
-			const date =
-				state.lastVisitAt ?? state.lastEditAt ?? state.firstVisitAt ?? file.createdAt ?? 0
+			const date = getFileRecencyDate(state, file)
 			if (date > bestDate) {
 				bestDate = date
 				bestFileId = state.fileId
