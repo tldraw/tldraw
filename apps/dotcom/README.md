@@ -12,13 +12,23 @@ The dev stack is orchestrated by [process-compose](https://github.com/F1bonacc1/
 yarn dev-app
 ```
 
-This brings up the whole stack — postgres (in a container), zero-cache, the workers, and the client — as host processes, with a TUI showing each service's status, logs, and health. The ports are fixed, so only one dotcom dev stack can run at a time. See [`process-compose.yaml`](process-compose.yaml) and [`README.process-compose.md`](README.process-compose.md).
+This brings up the whole stack — postgres (in a container), zero-cache, the workers, and the client — as host processes. The ports are fixed, so only one dotcom dev stack can run at a time. The services and their startup order are defined in [`process-compose.yaml`](process-compose.yaml).
 
-Diagnostics and reset:
+### Working with the stack
 
-```bash
-yarn dev-app:doctor   # list process state
-yarn dev-app:clean    # tear down the postgres container + volume, zero replica, and wrangler state
-```
+By default `yarn dev-app` opens the process-compose TUI, listing each service with its status, logs, and health.
+
+- **Quit:** `F10` or `Ctrl-C`. This stops every process and runs postgres's `docker compose down` — the clean way to stop. Closing the terminal tab instead can leave the postgres container and stray workers running.
+- **Inspect a service:** select it with the arrow keys to see its logs; press `F1` for the full key bindings (start / stop / restart a selected process).
+- **Plain interleaved logs, no TUI:** `PC_DISABLE_TUI=1 yarn dev-app` streams every service's logs to stdout (this is also how it runs in CI).
+- **Drive it from another terminal or a script** — the `process-compose` client connects to the running stack:
+
+  ```bash
+  yarn dev-app:doctor                                       # status of every service
+  yarn exec process-compose process logs zero-cache --tail 200
+  yarn exec process-compose process restart sync-worker
+  ```
+
+- **Reset server state:** `yarn dev-app:clean` tears down the postgres container + volume, the zero replica, and wrangler state.
 
 Browser-side state is separate. After starting the stack, visit `http://localhost:3000/dev/reset-local-state` to clear local storage, IndexedDB, caches, service workers, accessible cookies, and Clerk session state for the current origin.

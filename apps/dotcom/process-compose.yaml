@@ -1,22 +1,11 @@
-# ============================================================================
-# Dotcom dev stack — process-compose orchestration
-# ============================================================================
-# Brings up the dotcom dev stack (client, the four workers, zero-cache, postgres) as
-# host processes with declarative depends_on + readiness gating. Only postgres runs in
-# a container. process-compose is "docker-compose for processes":
-# https://github.com/F1bonacc1/process-compose
-#
-# Run via `yarn dev-app` from the repo root. See README.process-compose.md for why this
-# exists and how to drive it (per-process logs, restart, headless).
+# Dotcom dev stack, brought up by `yarn dev-app`. Usage notes in apps/dotcom/README.md.
 
 version: '0.5'
 
-# Readiness here is "is the port accepting connections", checked with a tiny node TCP
-# probe (node is always on PATH; avoids depending on pg_isready/nc, and avoids wrangler's
-# `/` returning 404 tripping an http_get probe). This is enough for dependency ordering.
+# Readiness = TCP connect (a portable node one-liner; wrangler's `/` 404s, so http_get won't do).
 
 processes:
-  # --- Postgres: the one piece that stays containerized (wal2json / logical replication) ---
+  # postgres — the one container (wal2json / logical replication)
   postgres:
     command: docker compose -f apps/dotcom/zero-cache/docker/docker-compose.yml up
     shutdown:
@@ -28,7 +17,7 @@ processes:
       period_seconds: 2
       failure_threshold: 30
 
-  # --- Zero schema bundle: one-shot (zero needs .schema.js) + a watcher to rebuild it ---
+  # zero needs .schema.js: build it once, then watch for changes
   bundle-schema:
     command: yarn workspace @tldraw/zero-cache bundle-schema
     availability:
@@ -40,8 +29,7 @@ processes:
       bundle-schema:
         condition: process_completed_successfully
 
-  # --- Migrations: one-shot. Replaces the `--signal-success` + :7654 readiness server,
-  #     which only existed to hand-shake with dev.ts; here it's just process_completed. ---
+  # migrations — one-shot; gates zero-cache
   migrate:
     command: yarn workspace @tldraw/zero-cache migrate
     depends_on:
@@ -50,8 +38,7 @@ processes:
     availability:
       restart: 'no'
 
-  # --- zero-cache: replicates from postgres, restarts on schema change (same nodemon
-  #     invocation dev.ts used). Env mirrors zero-cache/.env (host ports — no rewiring). ---
+  # zero-cache — replicates from postgres; restarts on schema change
   zero-cache:
     command: yarn workspace @tldraw/zero-cache exec nodemon --watch ./.schema.js --exec zero-cache-dev --signal SIGINT
     environment:
@@ -79,9 +66,7 @@ processes:
       period_seconds: 2
       failure_threshold: 90
 
-  # --- Workers (wrangler dev / workerd on the host). They share one host, so they share one
-  #     wrangler dev registry, which is what lets the image-resize / usercontent service bindings
-  #     to the sync-worker resolve. ---
+  # workers — wrangler dev / workerd on the host
   sync-worker:
     command: yarn workspace @tldraw/dotcom-worker dev
     depends_on:
@@ -97,8 +82,7 @@ processes:
   asset-upload-worker:
     command: yarn workspace dotcom-asset-upload dev
 
-  # image-resize + usercontent bind the sync-worker by name; start them after it so it's
-  # registered in the wrangler dev registry.
+  # image-resize + usercontent bind sync-worker by name, so it must come up first
   image-resize-worker:
     command: yarn workspace images.tldraw.com dev
     depends_on:
