@@ -12,7 +12,7 @@ class TestManager extends EditorManager {
 
 	cancelRaf = vi.fn()
 	startRaf() {
-		this._register(this.cancelRaf)
+		this.register(this.cancelRaf)
 	}
 }
 
@@ -38,7 +38,7 @@ describe('EditorManager', () => {
 		expect(off).toHaveBeenCalledWith('frame', manager.onTestEvent)
 	})
 
-	it('_register runs custom disposables on dispose', () => {
+	it('register runs custom disposables on dispose', () => {
 		manager.startRaf()
 		manager.dispose()
 		expect(manager.cancelRaf).toHaveBeenCalled()

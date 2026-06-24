@@ -112,7 +112,7 @@ export class TextManager extends EditorManager {
 		super(editor)
 		this.elm = this.createMeasurementEl()
 		this.editor.getContainer().appendChild(this.elm)
-		this._register(() => {
+		this.register(() => {
 			this.elm.remove()
 			for (const { el } of this.poolElms) {
 				el.remove()

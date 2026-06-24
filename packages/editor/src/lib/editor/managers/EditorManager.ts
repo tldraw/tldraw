@@ -12,10 +12,10 @@ import type { TLEventMap } from '../types/emit-types'
  * Register cleanup by what you're creating:
  *
  * - Editor bus event (`tick`, `frame`, `change`, …): {@link EditorManager.addEditorEvent}
- * - Store side effect (`editor.sideEffects.register…`): `this._register(disposer)`
- * - Reaction (`react(...)` from `@tldraw/state`): `this._register(react(...))`
- * - DOM listener: `this._register(() => el.removeEventListener(...))`
- * - Other resource (cache, index, child manager): `this._register(() => x.dispose())`
+ * - Store side effect (`editor.sideEffects.register…`): `this.register(disposer)`
+ * - Reaction (`react(...)` from `@tldraw/state`): `this.register(react(...))`
+ * - DOM listener: `this.register(() => el.removeEventListener(...))`
+ * - Other resource (cache, index, child manager): `this.register(() => x.dispose())`
  *
  * For timeouts, intervals, and animation frames prefer `editor.timers` (context-grouped
  * and auto-disposed) over raw `setTimeout`. For cleanup on the editor itself rather than a
@@ -35,7 +35,7 @@ export abstract class EditorManager {
 	 * Register a teardown function to run on `dispose()`. The universal way for a manager to
 	 * make a resource "see itself out". Returns the same function for convenience.
 	 */
-	protected _register(dispose: () => void): () => void {
+	protected register(dispose: () => void): () => void {
 		this.disposables.add(dispose)
 		return dispose
 	}
@@ -49,7 +49,7 @@ export abstract class EditorManager {
 		fn: (...args: TLEventMap[E]) => void
 	): void {
 		this.editor.on(event, fn as any)
-		this._register(() => this.editor.off(event, fn as any))
+		this.register(() => this.editor.off(event, fn as any))
 	}
 
 	/** @internal */

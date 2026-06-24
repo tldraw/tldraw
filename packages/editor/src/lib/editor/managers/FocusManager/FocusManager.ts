@@ -23,7 +23,7 @@ export class FocusManager extends EditorManager {
 				}
 			}
 		)
-		this._register(() => disposeSideEffectListener?.())
+		this.register(() => disposeSideEffectListener?.())
 
 		const currentFocusState = editor.getInstanceState().isFocused
 		if (autoFocus !== currentFocusState) {
@@ -34,7 +34,7 @@ export class FocusManager extends EditorManager {
 		const body = editor.getContainerDocument().body
 		body.addEventListener('keydown', this.handleKeyDown)
 		body.addEventListener('mousedown', this.handleMouseDown)
-		this._register(() => {
+		this.register(() => {
 			body.removeEventListener('keydown', this.handleKeyDown)
 			body.removeEventListener('mousedown', this.handleMouseDown)
 		})

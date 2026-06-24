@@ -46,7 +46,6 @@ export class TickManager extends EditorManager {
 		this.cancelRaf = throttleToNextFrame(this.tick)
 	}
 
-	@bind
 	dispose() {
 		this.isPaused = true
 		this.cancelRaf?.()

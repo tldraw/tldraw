@@ -1717,7 +1717,7 @@ export abstract class EditorManager {
     dispose(): void;
     // (undocumented)
     protected readonly editor: Editor;
-    protected _register(dispose: () => void): () => void;
+    protected register(dispose: () => void): () => void;
 }
 
 // @public (undocumented)
