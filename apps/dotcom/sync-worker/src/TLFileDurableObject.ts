@@ -1107,6 +1107,9 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private readonly associateAssetsQueue = new ExecutionQueue()
+	// Whether an association pass has been requested but not yet started. runAssociationPasses clears
+	// this before each pass and loops again if it's set back to true while a pass is running.
+	private associateAssetsPending = false
 
 	// Shared connection budget for every R2 operation this durable object makes — see
 	// MAX_CONCURRENT_R2_OPERATIONS. Both asset copies and snapshot uploads draw from this queue.
@@ -1157,17 +1160,26 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	// We use this to make sure that all of the assets in a tldraw app file are associated with that file.
-	// This is needed for a few cases like duplicating a file, copy pasting images between files, slurping legacy files.
-	// Also migrates old-format asset URLs to tldrawusercontent.com.
-	// Only one pass runs at a time: copying many assets can take longer than the persist interval,
-	// and each pass rescans the whole store, so overlapping passes would re-copy the same assets.
-	// Calls made while a pass is running are dropped; the next persist tick picks up anything
-	// that arrived in the meantime.
+	// Request a pass that associates every asset in this (app) file with the file. Needed for cases
+	// like duplicating a file, copy-pasting images between files, and slurping legacy files; also
+	// migrates old-format asset URLs to tldrawusercontent.com. The work runs in runAssociationPasses;
+	// if a pass is already running, this just flags that another is wanted.
 	async maybeAssociateFileAssets() {
 		if (!this.documentInfo.isApp) return
+		this.associateAssetsPending = true
 		if (!this.associateAssetsQueue.isEmpty()) return
-		await this.associateAssetsQueue.push(() => this.associateFileAssets())
+		await this.associateAssetsQueue.push(() => this.runAssociationPasses())
+	}
+
+	// Runs association passes one at a time until none are pending. Each pass rescans the whole store
+	// and only sees assets present when it starts, so re-running picks up anything that arrived during
+	// the previous pass. We loop here rather than relying on the next persist tick because a tick can
+	// advance _lastPersistedClock past those assets, leaving no later tick to re-trigger a pass.
+	private async runAssociationPasses() {
+		while (this.associateAssetsPending) {
+			this.associateAssetsPending = false
+			await this.associateFileAssets()
+		}
 	}
 
 	private async associateFileAssets() {
