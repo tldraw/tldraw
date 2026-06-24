@@ -397,6 +397,7 @@ export type TLStore = Store<TLRecord, TLStoreProps>
  * ```
  */
 export function onValidationFailure({
+	store,
 	error,
 	phase,
 	record,
@@ -410,9 +411,18 @@ export function onValidationFailure({
 	if (record.typeName === 'shape' && (record as TLShape).type === 'line') {
 		const lineShape = record as TLLineShape
 		if (findLinePointsViolation(lineShape.props.points)) {
-			return {
+			const repaired = {
 				...lineShape,
 				props: { ...lineShape.props, points: repairLinePoints(lineShape.props.points) },
+			}
+			// Only accept the repair if the record is now fully valid. If another
+			// field is still invalid (or the original failure was elsewhere), the
+			// repaired record is re-rejected and we fall through to the throw below,
+			// so a partially-bad line is never stored.
+			try {
+				return store.schema.types[record.typeName].validate(repaired)
+			} catch {
+				// still invalid — handled by the annotate + throw below
 			}
 		}
 	}

@@ -531,6 +531,31 @@ describe('Line points: id-mapped object with a decoupled index', () => {
 			expect(() => editor.getShapeHandles(id)).not.toThrow()
 		}
 	})
+
+	it('rejects a line that is invalid beyond its points instead of storing a partial repair', () => {
+		// invalid points (duplicate index) AND an invalid scale: repairing the points
+		// must not let the still-invalid record through.
+		const id = createShapeId('line-bad-scale')
+		expect(() =>
+			editor.createShapes([
+				{
+					id,
+					type: 'line',
+					x: 0,
+					y: 0,
+					props: {
+						scale: 0, // invalid: scale must be non-zero
+						points: {
+							a: { id: 'a', index: 'a1' as IndexKey, x: 0, y: 0 },
+							b: { id: 'b', index: 'a2' as IndexKey, x: 100, y: 0 },
+							a2: { id: 'a2', index: 'a2' as IndexKey, x: 200, y: 0 }, // duplicate index
+						},
+					},
+				},
+			])
+		).toThrow()
+		expect(editor.getShape(id)).toBeUndefined() // nothing was stored
+	})
 })
 
 function getHandlesFor(shapeId: TLLineShape['id']) {
