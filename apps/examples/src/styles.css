@@ -124,7 +124,7 @@ html,
 	display: flex;
 	height: 44px;
 	align-items: center;
-	padding: 3px 8px 0 4px;
+	padding: 0px 8px 3px 4px;
 	gap: 12px;
 }
 
@@ -287,9 +287,15 @@ ul.example__sidebar__categories {
 	list-style: none;
 	padding: 0 12px 40px 12px;
 	margin: 0;
-	overflow: auto;
+	overflow-y: scroll;
+	overflow-x: visible;
 	flex: 1 1 auto;
 	min-height: 0;
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
+}
+ul.example__sidebar__categories::-webkit-scrollbar {
+	display: none;
 }
 
 .example__sidebar__category__header {
