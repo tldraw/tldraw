@@ -1,5 +1,7 @@
 import { DEFAULT_THEME, OverlayUtil, TLOverlay } from 'tldraw'
 import {
+	CHOKE_MARK_COLOR,
+	CHOKE_THRESHOLD,
 	CLAIM_CHARGE,
 	CORE_HP,
 	CUT_FLASH_TICKS,
@@ -100,14 +102,14 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 		ctx.fillStyle = rockColor(theme)
 		for (let r = r0; r <= r1; r++) {
 			for (let c = c0; c <= c1; c++) {
-				const peg = world.pegById.get(`peg:${c},${r}`)
+				const peg = world.pegs[r * GRID.cols + c]
 				if (peg?.blocked) ctx.fillRect(peg.x - size / 2, peg.y - size / 2, size, size)
 			}
 		}
 		// Territory tint.
 		for (let r = r0; r <= r1; r++) {
 			for (let c = c0; c <= c1; c++) {
-				const peg = world.pegById.get(`peg:${c},${r}`)
+				const peg = world.pegs[r * GRID.cols + c]
 				if (!peg || peg.blocked) continue
 				const owner = pegOwner(peg)
 				if (!owner) continue
@@ -159,7 +161,7 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 		ctx.fillStyle = rockColor(theme)
 		for (let r = r0; r <= r1; r++) {
 			for (let c = c0; c <= c1; c++) {
-				const peg = world.pegById.get(`peg:${c},${r}`)
+				const peg = world.pegs[r * GRID.cols + c]
 				if (peg?.blocked) ctx.fillRect(peg.x - cell / 2, peg.y - cell / 2, cell, cell)
 			}
 		}
@@ -169,7 +171,7 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 		ctx.fillStyle = theme.text
 		for (let r = r0; r <= r1; r++) {
 			for (let c = c0; c <= c1; c++) {
-				const peg = world.pegById.get(`peg:${c},${r}`)
+				const peg = world.pegs[r * GRID.cols + c]
 				if (peg?.blocked) continue
 				const x = GRID.x0 + c * GRID.spacing
 				const y = GRID.y0 + r * GRID.spacing
@@ -181,7 +183,7 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 		// Owned-peg territory tint (visible cells only).
 		for (let r = r0; r <= r1; r++) {
 			for (let c = c0; c <= c1; c++) {
-				const peg = world.pegById.get(`peg:${c},${r}`)
+				const peg = world.pegs[r * GRID.cols + c]
 				if (!peg) continue
 				const owner = pegOwner(peg)
 				if (!owner) continue
@@ -212,7 +214,8 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 			const r = (strand.cell / GRID.cols) | 0
 			if (c < c0 - 1 || c > c1 + 1 || r < r0 - 1 || r > r1 + 1) continue
 			const owner = strand.owner
-			let width = 1.6 + THICKNESS_SCALE * Math.log(1 + (owner ? vineSubtreeSize(world, strand) : 1))
+			const subtree = owner ? vineSubtreeSize(world, strand) : 1
+			let width = 1.6 + THICKNESS_SCALE * Math.log(1 + subtree)
 
 			if (owner) {
 				// Wither: an orphaned/cut-off vine's owner-charge decays toward 0. The
@@ -238,6 +241,24 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 					ctx.stroke()
 					continue
 				}
+			}
+
+			// CHOKE CUE: an ENEMY (blue) vine whose orphaned subtree is big enough that
+			// cutting it CHOKES rather than hydra-ing gets a soft amber target halo,
+			// drawn under the colored stroke. Glowing = a cut that pays off; an un-glowed
+			// thin twig = a cut that backfires. The threshold here is the exact one the
+			// cut uses, so the player can read the trap honestly at cut time. (Player is
+			// red 'a'; the enemy to read is blue 'b'.)
+			if (owner === 'b' && subtree >= CHOKE_THRESHOLD) {
+				ctx.globalAlpha = 0.3
+				ctx.strokeStyle = CHOKE_MARK_COLOR
+				ctx.lineWidth = px(width + 6)
+				ctx.beginPath()
+				ctx.moveTo(strand.points[0].x, strand.points[0].y)
+				for (let i = 1; i < strand.points.length; i++) {
+					ctx.lineTo(strand.points[i].x, strand.points[i].y)
+				}
+				ctx.stroke()
 			}
 
 			// Healthy / neutral vine — unchanged from before.

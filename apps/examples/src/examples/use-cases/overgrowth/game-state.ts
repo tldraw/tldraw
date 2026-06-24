@@ -16,10 +16,11 @@ export const PLAYER_COLOR: Record<Owner, string> = { a: 'red', b: 'blue' }
 // ============================================================================
 
 // --- grid ---
-// 80×80 = 6400 cells. All spatial/LOD/culling code is O(visible), so size is
+// 120×120 = 14,400 cells. All spatial/LOD/culling code is O(visible), so size is
 // free to change here; generation + connectivity flood-fill run ONCE at world
-// creation, never per tick.
-export const GRID = { cols: 80, rows: 80, spacing: 46, x0: 0, y0: 0 }
+// creation, never per tick. (A couple of per-tick loops are O(pegs) but cheap —
+// even 160² is comfortable; larger boards mainly just lengthen games.)
+export const GRID = { cols: 120, rows: 120, spacing: 46, x0: 0, y0: 0 }
 
 // --- procedural map (cave: open chambers joined by corridor chokepoints) ---
 // Fraction of cells seeded as wall before smoothing. Higher = more rock / tighter
@@ -37,34 +38,74 @@ export const CORRIDOR_HALF_WIDTH = 1
 // CA texture so the board mixes big rooms with smaller scattered rock, and add a
 // couple of deliberate narrow chokepoint passages between regions. Light touch —
 // not a maze. All applied to the canonical half then mirrored, so symmetry holds.
-export const MAP_CAVERN_COUNT = 4 // big open caverns carved per half
+export const MAP_CAVERN_COUNT = 9 // big open caverns carved per half (scales with area)
 export const MAP_CAVERN_MIN_RADIUS = 4
-export const MAP_CAVERN_MAX_RADIUS = 8
-export const MAP_CHOKE_COUNT = 2 // deliberate narrow passages per half
+export const MAP_CAVERN_MAX_RADIUS = 11 // a few genuinely large rooms on the bigger board
+export const MAP_CHOKE_COUNT = 4 // deliberate narrow passages per half
 export const MAP_CHOKE_HALF_WIDTH = 1 // 1 → 1-cell-wide chokes (passage = 1..2)
 
-// --- growth: discrete pulse-waves ---
+// --- growth: discrete pulse-waves of a CONSERVED FLOW ---
 // Growth does NOT happen a little each tick. Every GROWTH_PULSE_INTERVAL ticks
 // all active tips advance together in one visible surge, then nothing grows
 // until the next pulse. This makes expansion read as rhythmic outward steps and
 // gives the player a window to prune between waves.
 export const GROWTH_PULSE_INTERVAL = 14 // ticks between growth pulses (~0.23s)
-// How many cells a tip jumps forward per pulse (advances outward fast).
-export const CELLS_PER_PULSE = 1
-// Global cap on tip extensions per color per pulse, so a huge frontier still
-// reads as a wave rather than an instant flood.
-export const MAX_TIPS_ADVANCED_PER_PULSE = 60
+//
+// THE GROWTH MENTAL MODEL — conservation of flow.
+// Each color's source emits a FIXED budget of forward motion per pulse
+// (GROWTH_FLOW, measured in cells), and ALL of that color's active tips SHARE it
+// equally. So a tip's speed is GROWTH_FLOW / (number of tips):
+//   • 1 tip    → the whole budget → a fast spear
+//   • many tips → a thin slice each → a slow creeping bush
+// This is the single rule the player steers by. Branching splits the flow (every
+// fork slows everyone), and pruning a branch RETURNS its flow to the survivors
+// (they visibly speed up). "Prune your own to drive deep in one direction" and
+// "small single vines travel faster" both fall straight out of this — they are
+// not special cases, they ARE the conservation law.
+export const GROWTH_FLOW = 6 // cells of advance per color per pulse, shared by its tips
+// Hard cap on how far ONE tip advances per pulse — a safety against a teleport,
+// not a brake on concentration. Set to the full GROWTH_FLOW so a lone line gets
+// the entire budget: committing down to a single vine is the fastest you can go
+// (2 lines → GROWTH_FLOW/2 each, 1 line → the whole GROWTH_FLOW), making the
+// depth payoff dramatic. Share above the cap (only possible if flow exceeds it)
+// is discarded, not banked.
+export const MAX_TIP_STEPS_PER_PULSE = 6
 
-// --- tips: organic, chaotic tendrils ---
-// Probability a tip forks into a second tip on a pulse (fractal branching).
-export const TIP_BRANCH_PROB = 0.22
-// Probability a tip simply dies on a pulse (finite, irregular tendril length).
-export const TIP_DEATH_PROB = 0.04
+// --- opening: a fan of tips so the player CHOOSES breadth vs depth ---
+// Each core starts with START_TIPS tips spread evenly across START_FAN radians,
+// centered on the heading toward the enemy core. The fan is the opening decision
+// made physical: it is BREADTH (every tip shares the budget, so all creep slowly
+// in different directions), and the player converts it into DEPTH by pruning the
+// lanes they don't want, concentrating the flow into one fast spear. A single
+// starter tip would instead force depth in one fixed direction with nothing to
+// choose. More tips / a wider fan = a broader, slower, more open-ended opening.
+export const START_TIPS = 5
+export const START_FAN = Math.PI * 0.8 // ~145° spread, fanned across the open board
+
+// Hard cap on a color's simultaneous growth tips. CRUCIAL with conserved flow:
+// without it, an open board lets tips branch without bound, and since the fixed
+// GROWTH_FLOW is shared, every line's speed collapses toward a crawl as the
+// network ages (and there are far too many tips to prune back). The cap keeps the
+// division meaningful — growth stays a few fast, readable, prunable lines whose
+// speed depends on how concentrated YOU keep them, not on elapsed time. At the
+// cap each tip gets GROWTH_FLOW / MAX_TIPS_PER_COLOR; prune toward one line to
+// spike that back up to the full budget.
+export const MAX_TIPS_PER_COLOR = 6
+
+// --- tips: directed, LEGIBLE tendrils ---
+// Growth has to be predictable enough that the player can steer it by pruning —
+// so tips travel in readable arcs and only end for reasons the player can see
+// (boxed in, or cut). No random death, low wander.
+// Probability a tip forks into a second tip on a pulse (branching). Each fork
+// splits the flow, so this is a real cost now, not free fractal decoration —
+// kept low so the network stays readable and prunable.
+export const TIP_BRANCH_PROB = 0.14
 // Directional persistence: how strongly a tip keeps its current heading vs
-// turning. Higher = straighter vines; lower = more wandering.
-export const TIP_PERSISTENCE = 0.78
-// Max heading jitter (radians) applied when a tip turns, for chaotic wander.
-export const TIP_JITTER = 1.1
+// turning. High → vines travel in a readable, near-straight arc you can steer.
+export const TIP_PERSISTENCE = 0.9
+// Max heading jitter (radians) applied when a tip turns. Small (~±9°) so a tip's
+// path is predictable — the precondition for "prune to send growth that way".
+export const TIP_JITTER = 0.3
 // Slight perpendicular wiggle on intermediate vine points (page units) so vines
 // aren't dead-straight grid segments. Purely visual.
 export const VINE_WIGGLE = 6
@@ -90,14 +131,16 @@ export const SWIPE_SHRINK = 0.35
 // and gaps instead of piling sideways along the enemy contact line (which froze
 // the front). Two mechanisms:
 // OPENNESS_WEIGHT: in pickTarget, how strongly a candidate is preferred for the
-// amount of open neutral space around it (its 3×3 neutral-cell count). Higher =
-// growth dives into open ground harder.
-export const OPENNESS_WEIGHT = 1.2
+// amount of open neutral space around it (its 3×3 neutral-cell count). Kept LOW
+// now — it's flavor (a gentle lean into open ground), not a primary steerer, so
+// the tip's heading stays the thing that decides direction and growth reads as
+// "it goes where it's pointed".
+export const OPENNESS_WEIGHT = 0.5
 // GAP_SEEK_WEIGHT: when a tip's forward cells are all enemy/blocked, its heading
 // is steered toward the nearest reachable NEUTRAL cell within GAP_SEEK_RADIUS so
 // it routes around the obstruction / through a 1–2 cell hole rather than turning
 // to grind the seam. This weight blends that gap direction into the heading.
-export const GAP_SEEK_WEIGHT = 1.6
+export const GAP_SEEK_WEIGHT = 1.2
 // How far (cells) a boxed-in tip looks for a neutral cell to aim at.
 export const GAP_SEEK_RADIUS = 4
 
@@ -159,6 +202,12 @@ export const HYDRA_TIPS = 2
 // trunks render fat and leaves thin — the affordance that lets a zoomed-out
 // player SEE the chokes to dive in and cut.
 export const THICKNESS_SCALE = 1.1
+// CHOKE_MARK_COLOR: warm amber halo the overlay paints around ENEMY vines whose
+// orphaned subtree ≥ CHOKE_THRESHOLD — i.e. the vines where a cut CHOKES instead
+// of hydra-ing. It makes the choke-vs-hydra trap readable at cut time: glowing =
+// pays off, un-glowed thin twig = backfires. Read off the same threshold the cut
+// uses, so the cue never lies.
+export const CHOKE_MARK_COLOR = '#ffb01f'
 
 // --- win condition: SIEGE the enemy core ---
 // You win by besieging the enemy core to 0 HP; you lose if yours falls. A core
@@ -239,6 +288,11 @@ export interface Tip {
 	owner: Owner
 	pegId: string // the peg the tip currently sits on
 	heading: number // radians; biased outward from the source
+	// Accumulated growth budget (cells). Each pulse the tip receives its share of
+	// the color's GROWTH_FLOW; whole cells are spent advancing and the fractional
+	// remainder carries, so a slow (low-share) tip creeps a cell every few pulses
+	// rather than never moving.
+	credit: number
 }
 
 // A spark is PURE DECORATION — bounded, viewport-local (see sim.ts).
@@ -326,7 +380,9 @@ export function makeStrand(a: Peg, b: Peg, owner: Owner | null): Strand {
 }
 
 // Core cell coordinates: symmetric under 180° rotation about the board center.
-const CORE_A = { col: 9, row: 9 }
+// Kept at roughly the same relative corner inset as the board scales, so there's
+// a large contested midfield between the two homes.
+const CORE_A = { col: 13, row: 13 }
 const CORE_B = { col: GRID.cols - 1 - CORE_A.col, row: GRID.rows - 1 - CORE_A.row }
 
 // ----------------------------------------------------------------------------
@@ -576,7 +632,8 @@ export function createWorld(): World {
 	const strandById = new Map<string, Strand>()
 
 	// Cores claim themselves (and are guaranteed open by the chamber carve). Each
-	// gets a starter tip heading toward the enemy core.
+	// opens with a FAN of tips spread across START_FAN, centered on the direction
+	// toward the enemy core (see START_TIPS) — breadth the player prunes into depth.
 	const a0 = pegById.get(sourceA)!
 	a0.owner = 'a'
 	a0.charge.a = CLAIM_CHARGE
@@ -587,10 +644,13 @@ export function createWorld(): World {
 	b0.blocked = false
 
 	const headingAB = Math.atan2(b0.y - a0.y, b0.x - a0.x)
-	const tips: Tip[] = [
-		{ owner: 'a', pegId: sourceA, heading: headingAB },
-		{ owner: 'b', pegId: sourceB, heading: headingAB + Math.PI },
-	]
+	const tips: Tip[] = []
+	for (let i = 0; i < START_TIPS; i++) {
+		// Spread evenly across the fan, centered on the enemy-core heading.
+		const offset = (START_TIPS > 1 ? i / (START_TIPS - 1) - 0.5 : 0) * START_FAN
+		tips.push({ owner: 'a', pegId: sourceA, heading: headingAB + offset, credit: 0 })
+		tips.push({ owner: 'b', pegId: sourceB, heading: headingAB + Math.PI + offset, credit: 0 })
+	}
 
 	return {
 		pegs,

@@ -33,6 +33,14 @@ strict tree rooted at its core, so **cutting any vine disconnects everything pas
 it** — the orphaned branch withers to neutral. Prune near a trunk to kill a whole
 limb; trim a leaf for almost nothing.
 
+**Growth is a conserved flow you steer by pruning.** Each color's core emits a
+fixed budget of forward motion each pulse, shared equally across its growing
+tips. So a vine's speed is that budget divided by the number of tips: one tip is
+a fast spear, a bushy network of many tips is a slow creep. Prune your own
+branches to **concentrate** the flow — the survivors visibly speed up and drive
+deep in one direction, trading breadth for depth. That is the whole mental model:
+fewer mouths, faster growth.
+
 **Kill the core to win.** Each core has HP (shown as a ring on the core and a bar
 in the HUD, readable at every zoom level). Push your vines across the map to the
 enemy core and **hold presence** there: while enemy vine-pegs sit next to a core
@@ -47,7 +55,10 @@ your core, so it's racing to besiege you while you race to besiege it.
 
 - **Growth comes in waves.** Every few ticks a growth pulse fires and all active
   tendril tips surge outward together, then pause — a rhythm you prune between.
-  Tips wander, fork, and die off, so vines look organic and chaotic, not a blob.
+  Tips travel in readable, near-straight arcs and only end where you can see why
+  (boxed in, or cut), so you can predict where growth goes — the precondition for
+  steering it. A pulse occasionally forks a tip, but each fork splits the shared
+  flow, so branching is a real cost you can prune back.
 - **Fronts breathe.** Tips are attracted toward open space and probe through
   gaps: when blocked straight ahead they route around toward the nearest hole
   rather than grinding sideways along the contact line. So colonies invade the
@@ -63,8 +74,10 @@ your core, so it's racing to besiege you while you race to besiege it.
   render dimmer. You can always cut your **own** vines to steer.
 - **Chokes and the hydra.** Cutting a thick enemy vine (a big orphaned subtree)
   is a devastating **choke**. Cutting a thin enemy leaf **backfires**: a hydra —
-  the enemy sprouts new tips on the surviving side and grows back bushier. Vine
-  thickness shows subtree size, so the trunks to cut are the fat ones.
+  the enemy sprouts new tips on the surviving side and grows back bushier. The
+  trap is readable at cut time: enemy vines that would choke wear a soft **amber
+  halo**, so glowing means a cut that pays off and an un-glowed thin twig means
+  one that backfires. (Vine thickness still shows subtree size too.)
 - **Pruning sticks.** Cutting kills the tips on the orphaned branch immediately
   and locks the cut cells out of re-sprouting, so a cleared area holds — and the
   freed neutral ground is a lane your own vines can then push through.

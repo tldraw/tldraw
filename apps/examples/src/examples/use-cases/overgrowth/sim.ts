@@ -1,6 +1,5 @@
 import {
 	AI_CORE_PULL,
-	CELLS_PER_PULSE,
 	CHARGE_NORM,
 	CHOKE_THRESHOLD,
 	CLAIM_CHARGE,
@@ -14,11 +13,13 @@ import {
 	GAP_SEEK_RADIUS,
 	GAP_SEEK_WEIGHT,
 	GRID,
+	GROWTH_FLOW,
 	GROWTH_PULSE_INTERVAL,
 	HYDRA_TIPS,
 	makeStrand,
+	MAX_TIP_STEPS_PER_PULSE,
+	MAX_TIPS_PER_COLOR,
 	OPENNESS_WEIGHT,
-	MAX_TIPS_ADVANCED_PER_PULSE,
 	ORPHAN_DECAY,
 	Owner,
 	Peg,
@@ -31,7 +32,6 @@ import {
 	Strand,
 	Tip,
 	TIP_BRANCH_PROB,
-	TIP_DEATH_PROB,
 	TIP_JITTER,
 	TIP_PERSISTENCE,
 	World,
@@ -361,55 +361,74 @@ function extendTip(world: World, owner: Owner, from: Peg, to: Peg, heading: numb
 	return next
 }
 
-// Fire one growth pulse. All tips advance together (capped per color); some
-// branch, some die; tips boxed in (no claimable neighbour) terminate.
+// Fire one growth pulse under the CONSERVED-FLOW rule: each color emits
+// GROWTH_FLOW cells of advance, split equally across its tips, so a tip's speed
+// is GROWTH_FLOW / tipCount. Some branch (splitting the flow further); tips boxed
+// in with budget to spend terminate.
 function growthPulse(world: World) {
-	const advancedThisPulse: Record<Owner, number> = { a: 0, b: 0 }
+	// Divide each color's fixed budget across its current tips.
+	const tipCount: Record<Owner, number> = { a: 0, b: 0 }
+	for (const tip of world.tips) tipCount[tip.owner]++
+	const share: Record<Owner, number> = {
+		a: tipCount.a > 0 ? GROWTH_FLOW / tipCount.a : 0,
+		b: tipCount.b > 0 ? GROWTH_FLOW / tipCount.b : 0,
+	}
+
 	const nextTips: Tip[] = []
-
+	// Running per-color count of tips committed this pulse, so branching can be
+	// stopped at the cap (see MAX_TIPS_PER_COLOR).
+	const grown: Record<Owner, number> = { a: 0, b: 0 }
 	for (const tip of world.tips) {
-		if (Math.random() < TIP_DEATH_PROB) continue // random termination
-
 		const owner = tip.owner
-		if (advancedThisPulse[owner] >= MAX_TIPS_ADVANCED_PER_PULSE) {
-			nextTips.push(tip) // over the per-pulse cap: keep, don't advance now
-			continue
-		}
 		let peg = world.pegById.get(tip.pegId)
 		if (!peg || peg.owner !== owner) continue // tip's base died; drop it
 
+		// Bank this tip's share, spend whole cells, carry the fraction (so a slow
+		// low-share tip still creeps a cell every few pulses). Cap the burst —
+		// whole cells above the cap are discarded, giving over-concentration
+		// diminishing returns rather than a teleport.
+		tip.credit += share[owner]
+		const want = Math.floor(tip.credit)
+		tip.credit -= want
+		const steps = Math.min(want, MAX_TIP_STEPS_PER_PULSE)
+
 		let heading = tip.heading
 		let advanced = false
-		for (let step = 0; step < CELLS_PER_PULSE; step++) {
+		for (let step = 0; step < steps; step++) {
 			const target = pickTarget(world, owner, peg, heading)
 			if (!target) break
 			heading = extendTip(world, owner, peg, target, heading)
 			peg = target
 			advanced = true
-			advancedThisPulse[owner]++
-			if (advancedThisPulse[owner] >= MAX_TIPS_ADVANCED_PER_PULSE) break
 		}
 
-		if (!advanced) continue // boxed in everywhere → terminate
+		// A tip that had cells to spend but is boxed in everywhere terminates; a
+		// tip still accumulating (steps === 0) just keeps banking for next pulse.
+		if (steps > 0 && !advanced) continue
 
-		nextTips.push({ owner, pegId: peg.id, heading })
+		nextTips.push({ owner, pegId: peg.id, heading, credit: tip.credit })
+		grown[owner]++
 
-		// Branch: occasionally fork a second tip at an angle for fractal vines.
-		if (Math.random() < TIP_BRANCH_PROB) {
+		// Branch: occasionally fork a second tip — but only while under the per-color
+		// tip cap. The fork splits the flow next pulse (slowing every tip), so
+		// branching is a real cost; the cap stops it running away and dividing every
+		// line into a crawl, keeping growth a few fast, prunable lines.
+		if (advanced && grown[owner] < MAX_TIPS_PER_COLOR && Math.random() < TIP_BRANCH_PROB) {
 			const fork = heading + (Math.random() < 0.5 ? 1 : -1) * (0.6 + Math.random() * 0.8)
-			nextTips.push({ owner, pegId: peg.id, heading: fork })
+			nextTips.push({ owner, pegId: peg.id, heading: fork, credit: 0 })
+			grown[owner]++
 		}
 	}
 
 	world.tips = nextTips
 
-	// Keep each color's frontier ALIVE. Tips terminate when they hit walls / their
-	// own net / the enemy, so a color that has filled its half would otherwise
-	// stall far from the enemy core. Each pulse we top a color back up to
-	// MIN_TIPS_PER_COLOR by spawning fresh tips on real FRONTIER pegs — owned pegs
-	// that still have a claimable neighbour — headed toward the enemy core. This
-	// is what lets growth keep pressing across contested ground (e.g. into a lane
-	// the player just cut open) instead of freezing at the midline.
+	// FLOOR ONLY — don't let a color die permanently. Under the flow model we do
+	// NOT top the frontier back up to a fixed width every pulse (that old behavior
+	// re-fanned the network and made pruning pointless — you could never
+	// concentrate, because cutting back to one vine just respawned ten). Instead we
+	// only intervene when a color has been wiped to ZERO tips: reseed a SINGLE
+	// probe on its frontier (or its source) headed at the enemy core, so a fully
+	// cut-back color comes back as one fast spear rather than staying dead.
 	for (const owner of ['a', 'b'] as Owner[]) {
 		let count = 0
 		for (const t of world.tips) if (t.owner === owner) count++
@@ -421,7 +440,7 @@ function growthPulse(world: World) {
 			const heading = enemyCore
 				? Math.atan2(enemyCore.y - peg.y, enemyCore.x - peg.x)
 				: Math.random() * Math.PI * 2
-			world.tips.push({ owner, pegId: peg.id, heading })
+			world.tips.push({ owner, pegId: peg.id, heading, credit: 0 })
 		}
 		// Fallback: nothing claimable anywhere (fully walled in) — re-seed at the
 		// source so the color isn't permanently dead if ground later frees up.
@@ -429,14 +448,15 @@ function growthPulse(world: World) {
 			const src = world.pegById.get(world.sources[owner])
 			if (src && src.owner === owner) {
 				const heading = enemyCore ? Math.atan2(enemyCore.y - src.y, enemyCore.x - src.x) : 0
-				world.tips.push({ owner, pegId: src.id, heading })
+				world.tips.push({ owner, pegId: src.id, heading, credit: 0 })
 			}
 		}
 	}
 }
 
-// Minimum live tips to keep per color so the frontier never goes dormant.
-const MIN_TIPS_PER_COLOR = 10
+// Floor on live tips per color: only reseed when a color is wiped to zero, so a
+// fully-cut color recovers but pruning otherwise genuinely concentrates growth.
+const MIN_TIPS_PER_COLOR = 1
 
 // Find up to `limit` owned FRONTIER pegs for `owner` — pegs that have at least
 // one claimable neighbour (somewhere growth can still push). We scan owned pegs
@@ -567,7 +587,7 @@ function spawnHydra(world: World, owner: Owner, peg: Peg) {
 	const baseHeading = src ? Math.atan2(peg.y - src.y, peg.x - src.x) : Math.random() * Math.PI * 2
 	for (let i = 0; i < HYDRA_TIPS; i++) {
 		const spread = (i - (HYDRA_TIPS - 1) / 2) * 0.8 + (Math.random() - 0.5) * 0.5
-		world.tips.push({ owner, pegId: peg.id, heading: baseHeading + spread })
+		world.tips.push({ owner, pegId: peg.id, heading: baseHeading + spread, credit: 0 })
 	}
 }
 

@@ -147,6 +147,17 @@ function GameRunner() {
 					inset: 24,
 					animation: { duration: 300 },
 				})
+			} else if (k === 'w') {
+				// Pulled-back "density" view: 0.75x the zoom-to-fit level — the whole
+				// board sits with margin so the overall path density reads at a glance.
+				const b = boardBounds()
+				const vsb = editor.getViewportScreenBounds()
+				const inset = 24
+				const fit = Math.min((vsb.w - inset * 2) / b.w, (vsb.h - inset * 2) / b.h)
+				editor.zoomToBounds(new Box(b.x, b.y, b.w, b.h), {
+					targetZoom: fit * 0.75,
+					animation: { duration: 300 },
+				})
 			}
 		}
 		window.addEventListener('keydown', onKeyDown)
