@@ -255,13 +255,20 @@ export class Driver {
 		name: TLKeyboardEventInfo['name'],
 		options = {} as Partial<Omit<TLKeyboardEventInfo, 'point'>>
 	): TLKeyboardEventInfo {
-		return {
-			shiftKey: key === 'Shift',
-			ctrlKey: key === 'Control' || key === 'Meta',
-			altKey: key === 'Alt',
-			metaKey: key === 'Meta',
-			accelKey: tlenv.isDarwin ? key === 'Meta' : key === 'Control' || key === 'Meta',
+		// Like a real DOM keyboard event, the flags reflect every modifier currently held — not
+		// just the key being pressed. We OR in the editor's current modifier state so that, e.g.,
+		// pressing Shift while Control is held still reports ctrlKey: true. (keyUp passes explicit
+		// flag overrides for its release semantics, so those win over these defaults.)
+		const flags = {
+			shiftKey: key === 'Shift' || this.editor.inputs.getShiftKey(),
+			ctrlKey: key === 'Control' || key === 'Meta' || this.editor.inputs.getCtrlKey(),
+			altKey: key === 'Alt' || this.editor.inputs.getAltKey(),
+			metaKey: key === 'Meta' || this.editor.inputs.getMetaKey(),
 			...options,
+		}
+		return {
+			...flags,
+			accelKey: flags.accelKey ?? (tlenv.isDarwin ? flags.metaKey : flags.ctrlKey || flags.metaKey),
 			name,
 			code:
 				key === 'Shift'
