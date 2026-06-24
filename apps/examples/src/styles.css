@@ -124,7 +124,7 @@ html,
 	display: flex;
 	height: 44px;
 	align-items: center;
-	padding: 3px 8px 0 4px;
+	padding: 0px 8px 3px 4px;
 	gap: 12px;
 }
 

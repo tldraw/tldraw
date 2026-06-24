@@ -58,6 +58,14 @@ export function ExamplePage({
 								<TldrawLogo />
 							</Link>
 							<span className="example__sidebar__header-title">Examples</span>
+							<Link
+								to={`${example.path}/full`}
+								className="example__sidebar__item__button hoverable hoverable__small"
+								aria-label="Collapse sidebar"
+								title="Collapse sidebar"
+							>
+								<CollapseSidebarIcon />
+							</Link>
 						</div>
 						<div className="example__sidebar__section">
 							<label className="example__sidebar__search hoverable">
@@ -352,6 +360,18 @@ function Dialogs() {
 				</div>
 			</_AlertDialog.Content>
 		</_AlertDialog.Root>
+	)
+}
+
+function CollapseSidebarIcon() {
+	return (
+		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path
+				d="M12.143 12.607V14H2.857v-1.393zm.464-.464V2.857a.464.464 0 0 0-.464-.464H2.857a.464.464 0 0 0-.464.464v9.286c0 .256.208.464.464.464V14l-.095-.002a1.857 1.857 0 0 1-1.76-1.76L1 12.143V2.857c0-.994.78-1.805 1.762-1.855L2.857 1h9.286l.095.002c.982.05 1.762.861 1.762 1.855v9.286l-.002.095a1.857 1.857 0 0 1-1.76 1.76l-.095.002v-1.393a.464.464 0 0 0 .464-.464"
+				fill="currentColor"
+			/>
+			<path d="M5 1h1.5v13H5z" fill="currentColor" />
+		</svg>
 	)
 }
 
