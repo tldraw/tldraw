@@ -25,9 +25,10 @@ A zoomable grow-and-prune siege war on a procedural cave: cut vines to direct yo
 
 ---
 
-Two colors creep across a large procedurally-generated cave — open chambers
-joined by corridor chokepoints — as branching tendrils. Red (you) and blue (the
-opponent) each defend a **core** in its own chamber. Each color's network is a
+Two colors creep across a large procedurally-generated cave — big caverns and
+scattered rock joined by corridors and a couple of narrow chokepoints — as
+branching tendrils. Red (you) and blue (the opponent) each defend a **core** in
+its own chamber. Each color's network is a
 strict tree rooted at its core, so **cutting any vine disconnects everything past
 it** — the orphaned branch withers to neutral. Prune near a trunk to kill a whole
 limb; trim a leaf for almost nothing.
@@ -47,13 +48,19 @@ your core, so it's racing to besiege you while you race to besiege it.
 - **Growth comes in waves.** Every few ticks a growth pulse fires and all active
   tendril tips surge outward together, then pause — a rhythm you prune between.
   Tips wander, fork, and die off, so vines look organic and chaotic, not a blob.
+- **Fronts breathe.** Tips are attracted toward open space and probe through
+  gaps: when blocked straight ahead they route around toward the nearest hole
+  rather than grinding sideways along the contact line. So colonies invade the
+  neutral seam between them and thrust salients through openings instead of
+  freezing into a static wall.
 - **Withering is connectivity.** Every tick a BFS from each home marks reachable
   cells. Reachable stay bright; orphaned ones fade fast (~1s). Cut a vine and the
   whole subtree beyond it goes dark.
-- **Cuts are gated.** A cut only registers when zoomed in past a threshold
-  ("zoom in to cut" otherwise). And to cut an **enemy** vine you need presence —
-  a living vine of your own nearby; out-of-reach enemy vines render dimmer. You
-  can always cut your **own** vines to steer.
+- **Cuts are gated.** A cut only registers when zoomed in past a threshold. Swipe
+  while too far out and the camera instead auto-travels to that spot and zooms in
+  to cutting range — the next swipe actually cuts. And to cut an **enemy** vine
+  you need presence — a living vine of your own nearby; out-of-reach enemy vines
+  render dimmer. You can always cut your **own** vines to steer.
 - **Chokes and the hydra.** Cutting a thick enemy vine (a big orphaned subtree)
   is a devastating **choke**. Cutting a thin enemy leaf **backfires**: a hydra —
   the enemy sprouts new tips on the surviving side and grows back bushier. Vine

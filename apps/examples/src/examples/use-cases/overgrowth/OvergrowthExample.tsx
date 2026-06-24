@@ -11,11 +11,13 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import {
+	CUT_ZOOM_EPSILON,
 	CUT_ZOOM_MIN,
 	frame$,
 	getWorld,
 	GRID,
 	hint$,
+	hoveredVine$,
 	hpA$,
 	hpB$,
 	resetWorld,
@@ -25,7 +27,7 @@ import {
 	winner$,
 } from './game-state'
 import { OvergrowthOverlayUtil } from './overlays/OvergrowthOverlayUtil'
-import { sliceCut, SPARK_POOL, stepSim, stepSparks } from './sim'
+import { hoverHitTest, sliceCut, SPARK_POOL, stepSim, stepSparks } from './sim'
 
 const overlayUtils: TLAnyOverlayUtilConstructor[] = [...defaultOverlayUtils, OvergrowthOverlayUtil]
 
@@ -52,6 +54,10 @@ const ZOOM_SPEED = 2
 // Sparks only appear above this zoom; their target count scales with zoom so a
 // tight zoom gets a lively field and a wider one stays cheap. Capped at SPARK_POOL.
 const SPARK_VINE_ZOOM = 0.85
+
+// Pixel radius (screen px, divided by zoom to page units) within which the
+// cursor "hovers" a vine for the contextual cuttable cue.
+const HOVER_RADIUS = 16
 
 function boardBounds() {
 	return {
@@ -126,7 +132,6 @@ function GameRunner() {
 		const container = editor.getContainer()
 		const toPage = (e: PointerEvent) => editor.screenToPage({ x: e.clientX, y: e.clientY })
 		let slicing = false
-		let canCut = false // zoom-lock: was the swipe started zoomed in enough?
 		let last = { x: 0, y: 0 }
 		let laser: { sessionId: string; scribbleId: string } | null = null
 		let spaceHeld = false
@@ -141,9 +146,9 @@ function GameRunner() {
 			if (!slicing || !laser) return
 			const world = getWorld()
 			const p = toPage(e)
-			// Zoom-lock: below CUT_ZOOM_MIN the swipe is drawn but severs nothing.
-			// The human is always cutter 'a'.
-			if (canCut) sliceCut(world, last, p, 'a')
+			// Slicing only ever starts when already zoomed in past CUT_ZOOM_MIN (the
+			// too-far-out case auto-travels instead). The human is always cutter 'a'.
+			sliceCut(world, last, p, 'a')
 			editor.scribbles.addPointToSession(laser.sessionId, laser.scribbleId, p.x, p.y)
 			last = p
 		}
@@ -162,10 +167,30 @@ function GameRunner() {
 			// Anything that isn't a plain left click is camera: let tldraw handle it.
 			if (e.button !== 0 || spaceHeld) return
 
+			const p = toPage(e)
+
+			// Auto-zoom-to-cut: if too zoomed out to cut, this gesture instead
+			// TRAVELS — animate the camera to center on the attempted point and zoom
+			// just past the cut threshold, so the player lands at the right level.
+			// It does NOT cut; the next swipe will.
+			if (editor.getZoomLevel() < CUT_ZOOM_MIN) {
+				const targetZoom = CUT_ZOOM_MIN + CUT_ZOOM_EPSILON
+				// A small box centered on the point; with targetZoom set, the box
+				// center becomes the viewport center at exactly that zoom.
+				const half = GRID.spacing
+				editor.zoomToBounds(new Box(p.x - half, p.y - half, half * 2, half * 2), {
+					targetZoom,
+					animation: { duration: 320 },
+				})
+				showHint('zoomed in — swipe again to cut', 'info')
+				e.stopPropagation()
+				e.preventDefault()
+				return
+			}
+
 			slicing = true
-			canCut = editor.getZoomLevel() >= CUT_ZOOM_MIN
-			if (!canCut) showHint('zoom in to cut', 'info')
-			last = toPage(e)
+			hoveredVine$.set(null) // hide the hover cue while actively cutting
+			last = p
 			const sessionId = editor.scribbles.startSession({
 				selfConsume: false,
 				idleTimeoutMs: editor.options.laserDelayMs,
@@ -189,14 +214,38 @@ function GameRunner() {
 		}
 		container.addEventListener('pointerdown', onPointerDown, true)
 
+		// Contextual hover cue: while zoomed in past CUT_ZOOM_MIN and NOT cutting,
+		// hit-test the vine under the cursor (bounded to the cursor's cell ±1 via the
+		// spatial index) and publish it. Updated only when the hovered vine/kind
+		// changes, so it never spams re-renders.
+		const onHoverMove = (e: PointerEvent) => {
+			if (slicing) return // the active-cut move handler owns the pointer
+			if (editor.getZoomLevel() < CUT_ZOOM_MIN) {
+				if (hoveredVine$.get()) hoveredVine$.set(null)
+				return
+			}
+			const world = getWorld()
+			const p = editor.screenToPage({ x: e.clientX, y: e.clientY })
+			const hit = hoverHitTest(world, p, HOVER_RADIUS / editor.getZoomLevel())
+			const next = hit ? { strandId: hit.strand.id, kind: hit.kind } : null
+			const cur = hoveredVine$.get()
+			// Only update on a real change (id or kind), to avoid re-render spam.
+			if ((cur?.strandId ?? null) !== (next?.strandId ?? null) || cur?.kind !== next?.kind) {
+				hoveredVine$.set(next)
+			}
+		}
+		container.addEventListener('pointermove', onHoverMove)
+
 		return () => {
 			editor.off('tick', onTick)
 			window.removeEventListener('keydown', onKeyDown)
 			window.removeEventListener('keydown', onSpaceKey, true)
 			window.removeEventListener('keyup', onSpaceKey, true)
 			container.removeEventListener('pointerdown', onPointerDown, true)
+			container.removeEventListener('pointermove', onHoverMove)
 			window.removeEventListener('pointermove', onPointerMove, true)
 			window.removeEventListener('pointerup', onPointerUp, true)
+			hoveredVine$.set(null)
 		}
 	}, [editor])
 
