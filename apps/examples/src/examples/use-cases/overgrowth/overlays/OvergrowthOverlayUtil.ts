@@ -1,4 +1,4 @@
-import { DEFAULT_THEME, OverlayUtil, TLOverlay } from 'tldraw'
+import { DEFAULT_THEME, getStroke, OverlayUtil, TLOverlay } from 'tldraw'
 import {
 	CLAIM_CHARGE,
 	CORE_HP,
@@ -10,7 +10,6 @@ import {
 	pegOwner,
 	PLAYER_COLOR,
 	THICKNESS_SCALE,
-	WITHER_COLOR,
 } from '../game-state'
 import { chargeStrength, hasPresence, sparkPos, vineSubtreeSize } from '../sim'
 
@@ -21,18 +20,60 @@ interface TLOvergrowthOverlay extends TLOverlay {
 type ThemeColors = (typeof DEFAULT_THEME.colors)['light']
 
 // ============================================================================
-// LEVEL-OF-DETAIL thresholds (zoom level = page units per screen unit; tldraw
-// zoom < 1 is zoomed out, > 1 is zoomed in).
-//   below HEATMAP_ZOOM        → heatmap only (filled cells, no lines/sparks)
-//   between HEATMAP and VINE  → thin vine lines, no sparks
-//   above VINE_ZOOM           → vines + animated sparks
+// PALETTE — drawn entirely from tldraw's DEFAULT_THEME so the board sits in
+// tldraw's own visual language and follows its light/dark color scheme. The two
+// sides are tldraw palette colors (blue vs orange, via PLAYER_COLOR); the growth
+// frontier is tldraw yellow; rock and withering use tldraw grey; the cut "snip"
+// and core ink use the theme's text color so they read on either scheme.
+//
+// `C` is the resolved color set for the current frame; render() rebuilds it from
+// the live theme before drawing, so the helpers below stay simple string reads.
 // ============================================================================
-const HEATMAP_ZOOM = 0.32
+function resolveColors(theme: ThemeColors) {
+	const named = (name: string) => (theme[name as keyof ThemeColors] as { solid: string }).solid
+	return {
+		a: named(PLAYER_COLOR.a),
+		b: named(PLAYER_COLOR.b),
+		tip: theme.yellow.solid, // growth-frontier bud
+		spark: theme.white.solid, // bright spark center
+		flash: theme.text, // cut "snip" ring + burst (ink; adapts to scheme)
+		ink: theme.text, // core outline, rock rim
+		neutral: theme.grey.solid, // unclaimed vine threads
+		rockFill: theme.grey.solid,
+		rockHi: theme.background, // lit top-edge bevel
+		danger: theme.red.solid, // low-HP core ring
+		wither: theme.grey.solid, // sere tint a cut-off vine fades toward
+	}
+}
+
+let C = resolveColors(DEFAULT_THEME.colors.light)
+const coreColor = (o: Owner) => (o === 'a' ? C.a : C.b)
+
+// ============================================================================
+// CONTINUOUS LEVEL OF DETAIL (zoom = page units per screen unit; <1 zoomed out).
+// Rather than hard-switching representations, a single eased factor `t` (0 when
+// zoomed out, 1 when zoomed in) crossfades the board across LOD_LO..LOD_HI:
+//
+//   t≈0 (far)  → territory is space-filling squares; no lines.
+//   t mid      → squares fade as owner-colored circles bloom & suffuse, and the
+//                hand-drawn vine mesh fades in.
+//   t≈1 (near) → crisp jewel-bead nodes + the full freehand vine mesh.
+//
+// So zooming (including the auto fly-in to cut) is a smooth morph, never a pop.
+// Sparks still gate on a higher zoom (they're a close-up flourish).
+// ============================================================================
+const LOD_LO = 0.26
+const LOD_HI = 0.6
 const VINE_ZOOM = 0.85
 
-// Render everything for the board on one canvas layer, culled to the viewport
-// and switched by zoom LOD. The overlay's `frame` prop is bumped each tick so
-// this re-runs every frame against live world state.
+const smoothstep = (lo: number, hi: number, x: number) => {
+	const u = Math.max(0, Math.min(1, (x - lo) / (hi - lo)))
+	return u * u * (3 - 2 * u)
+}
+
+// Render everything for the board on one canvas layer, culled to the viewport.
+// The overlay's `frame` prop is bumped each tick so this re-runs every frame
+// against live world state.
 export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 	static override type = 'og-overgrowth'
 	override options = { zIndex: 200 }
@@ -47,15 +88,13 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 
 	override render(ctx: CanvasRenderingContext2D): void {
 		const editor = this.editor
+		C = resolveColors(
+			editor.getColorMode() === 'dark' ? DEFAULT_THEME.colors.dark : DEFAULT_THEME.colors.light
+		)
 		const zoom = editor.getZoomLevel()
 		const px = (n: number) => n / zoom // keep stroke/size constant on screen
-		const theme =
-			editor.getColorMode() === 'dark' ? DEFAULT_THEME.colors.dark : DEFAULT_THEME.colors.light
 		const world = getWorld()
 		const frame = frame$.get()
-
-		const colorOf = (owner: Owner) =>
-			(theme[PLAYER_COLOR[owner] as keyof ThemeColors] as { solid: string }).solid
 
 		// --- viewport culling bounds, inflated by one cell so partly-visible
 		// elements still draw. All iteration below is gated by these so cost is
@@ -68,77 +107,90 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 		const maxY = vp.maxY + inset
 		const inView = (x: number, y: number) => x >= minX && x <= maxX && y >= minY && y <= maxY
 
-		// Visible grid column/row range, so peg/heatmap loops only touch on-screen
-		// cells instead of all 3600 pegs.
 		const c0 = Math.max(0, Math.floor((minX - GRID.x0) / GRID.spacing))
 		const c1 = Math.min(GRID.cols - 1, Math.ceil((maxX - GRID.x0) / GRID.spacing))
 		const r0 = Math.max(0, Math.floor((minY - GRID.y0) / GRID.spacing))
 		const r1 = Math.min(GRID.rows - 1, Math.ceil((maxY - GRID.y0) / GRID.spacing))
 
-		if (zoom < HEATMAP_ZOOM) {
-			this.renderHeatmap(ctx, world, c0, c1, r0, r1, colorOf, theme)
-		} else {
-			this.renderDetailed(ctx, world, inView, c0, c1, r0, r1, px, zoom, frame, colorOf, theme)
-		}
+		this.renderBoard(ctx, world, inView, c0, c1, r0, r1, px, zoom, frame)
 	}
 
-	// --- zoomed FAR OUT: territory as a colored heatmap, one filled cell per
-	// owned peg, tinted by owner + strength. No vines, no sparks. ---
-	private renderHeatmap(
+	// True if cell (c,r) is rock. Out-of-board reads as rock so the board edge
+	// gets no spurious rim. Used to outline rock *regions* rather than cells.
+	private isRock(world: ReturnType<typeof getWorld>, c: number, r: number): boolean {
+		if (c < 0 || r < 0 || c >= GRID.cols || r >= GRID.rows) return true
+		const peg = world.pegById.get(`peg:${c},${r}`)
+		return !!peg?.blocked
+	}
+
+	private outOfBoard(c: number, r: number): boolean {
+		return c < 0 || r < 0 || c >= GRID.cols || r >= GRID.rows
+	}
+
+	// Rock as a filled grey landmass (adjacent cells merge into one mass) with an
+	// ink rim drawn ONLY on edges facing open space — so rock reads like a tldraw
+	// grey rectangle with a hand-inked outline, not a field of tiles. Top edges get
+	// a lighter bevel. `px` is omitted when extremely far out (rims sub-pixel).
+	private renderRocks(
 		ctx: CanvasRenderingContext2D,
 		world: ReturnType<typeof getWorld>,
 		c0: number,
 		c1: number,
 		r0: number,
 		r1: number,
-		colorOf: (o: Owner) => string,
-		theme: ThemeColors
+		px?: (n: number) => number
 	) {
 		const size = GRID.spacing
-		// Obstacles first: solid dark rock cells (visible window only).
-		ctx.globalAlpha = 1
-		ctx.fillStyle = rockColor(theme)
+		ctx.globalAlpha = 0.9
+		ctx.fillStyle = C.rockFill
 		for (let r = r0; r <= r1; r++) {
 			for (let c = c0; c <= c1; c++) {
-				const peg = world.pegById.get(`peg:${c},${r}`)
-				if (peg?.blocked) ctx.fillRect(peg.x - size / 2, peg.y - size / 2, size, size)
-			}
-		}
-		// Territory tint.
-		for (let r = r0; r <= r1; r++) {
-			for (let c = c0; c <= c1; c++) {
-				const peg = world.pegById.get(`peg:${c},${r}`)
-				if (!peg || peg.blocked) continue
-				const owner = pegOwner(peg)
-				if (!owner) continue
-				const strength = chargeStrength(peg, owner)
-				ctx.globalAlpha = 0.25 + 0.6 * strength
-				ctx.fillStyle = colorOf(owner)
-				ctx.fillRect(peg.x - size / 2, peg.y - size / 2, size, size)
+				if (this.isRock(world, c, r) && !this.outOfBoard(c, r)) {
+					const x = GRID.x0 + c * GRID.spacing
+					const y = GRID.y0 + r * GRID.spacing
+					ctx.fillRect(x - size / 2, y - size / 2, size, size)
+				}
 			}
 		}
 		ctx.globalAlpha = 1
-
-		// Cores with HP rings — readable even zoomed all the way out (the win-read).
-		for (const owner of ['a', 'b'] as Owner[]) {
-			const peg = world.pegById.get(world.sources[owner])
-			if (!peg) continue
-			drawCore(
-				ctx,
-				peg.x,
-				peg.y,
-				size * 1.1,
-				size * 0.22,
-				hpFrac(world, owner),
-				colorOf(owner),
-				theme
-			)
+		if (!px) return
+		const h = size / 2
+		const rim = new Path2D()
+		const top = new Path2D()
+		for (let r = r0; r <= r1; r++) {
+			for (let c = c0; c <= c1; c++) {
+				if (!this.isRock(world, c, r) || this.outOfBoard(c, r)) continue
+				const x = GRID.x0 + c * GRID.spacing
+				const y = GRID.y0 + r * GRID.spacing
+				if (!this.isRock(world, c, r - 1)) {
+					top.moveTo(x - h, y - h)
+					top.lineTo(x + h, y - h)
+				}
+				if (!this.isRock(world, c, r + 1)) {
+					rim.moveTo(x - h, y + h)
+					rim.lineTo(x + h, y + h)
+				}
+				if (!this.isRock(world, c - 1, r)) {
+					rim.moveTo(x - h, y - h)
+					rim.lineTo(x - h, y + h)
+				}
+				if (!this.isRock(world, c + 1, r)) {
+					rim.moveTo(x + h, y - h)
+					rim.lineTo(x + h, y + h)
+				}
+			}
 		}
+		ctx.lineWidth = px(1.2)
+		ctx.globalAlpha = 0.4
+		ctx.strokeStyle = C.ink
+		ctx.stroke(rim)
+		ctx.globalAlpha = 0.5
+		ctx.strokeStyle = C.rockHi
+		ctx.stroke(top)
 		ctx.globalAlpha = 1
 	}
 
-	// --- MID / CLOSE zoom: vines + pegs (+ sparks only when zoomed in). ---
-	private renderDetailed(
+	private renderBoard(
 		ctx: CanvasRenderingContext2D,
 		world: ReturnType<typeof getWorld>,
 		inView: (x: number, y: number) => boolean,
@@ -148,150 +200,143 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 		r1: number,
 		px: (n: number) => number,
 		zoom: number,
-		frame: number,
-		colorOf: (o: Owner) => string,
-		theme: ThemeColors
+		frame: number
 	): void {
-		// Obstacles: solid dark rock cells (visible window only), drawn under
-		// everything else.
-		const cell = GRID.spacing
-		ctx.globalAlpha = 1
-		ctx.fillStyle = rockColor(theme)
-		for (let r = r0; r <= r1; r++) {
-			for (let c = c0; c <= c1; c++) {
-				const peg = world.pegById.get(`peg:${c},${r}`)
-				if (peg?.blocked) ctx.fillRect(peg.x - cell / 2, peg.y - cell / 2, cell, cell)
-			}
-		}
+		const size = GRID.spacing
+		const t = smoothstep(LOD_LO, LOD_HI, zoom) // 0 far → 1 near
 
-		// Faint grid dots only at open visible cells.
-		ctx.globalAlpha = 0.05
-		ctx.fillStyle = theme.text
-		for (let r = r0; r <= r1; r++) {
-			for (let c = c0; c <= c1; c++) {
-				const peg = world.pegById.get(`peg:${c},${r}`)
-				if (peg?.blocked) continue
-				const x = GRID.x0 + c * GRID.spacing
-				const y = GRID.y0 + r * GRID.spacing
-				ctx.fillRect(x - px(0.7), y - px(0.7), px(1.4), px(1.4))
-			}
-		}
-		ctx.globalAlpha = 1
+		// Rock landmasses, under everything (rim only once we're not extremely far).
+		this.renderRocks(ctx, world, c0, c1, r0, r1, zoom >= 0.18 ? px : undefined)
 
-		// Owned-peg territory tint (visible cells only).
-		for (let r = r0; r <= r1; r++) {
-			for (let c = c0; c <= c1; c++) {
-				const peg = world.pegById.get(`peg:${c},${r}`)
-				if (!peg) continue
-				const owner = pegOwner(peg)
-				if (!owner) continue
-				const strength = chargeStrength(peg, owner)
-				ctx.globalAlpha = 0.16 * strength
-				ctx.fillStyle = colorOf(owner)
-				ctx.beginPath()
-				ctx.arc(peg.x, peg.y, px(14), 0, Math.PI * 2)
-				ctx.fill()
-				ctx.globalAlpha = 0.5 + 0.5 * strength
-				ctx.fillRect(peg.x - px(3), peg.y - px(3), px(6), px(6))
-			}
-		}
-		ctx.globalAlpha = 1
-
-		// Vines — culled to the viewport via each strand's cell bucket. STROKE
-		// WIDTH scales with the vine's subtree size (trunks fat, leaves thin) so a
-		// player can see where the chokes are. CONTEXTUAL CUE: while a cut is in
-		// progress, ENEMY (blue) vines the player can't currently reach are greyed
-		// out (using the SAME hasPresence-at-midpoint test sliceCut refuses), so the
-		// cuttable ones stand out. Off-screen strands are rejected by a cheap
-		// cell-range test before any work.
-		ctx.lineCap = 'round'
-		ctx.lineJoin = 'round'
-		const witherRgb = parseRgb(WITHER_COLOR)
-		const greyRgb = parseRgb(theme.text) // muted grey target for out-of-reach enemy vines
-		const slicing = world.slicing
-		for (const strand of world.strands) {
-			const c = strand.cell % GRID.cols
-			const r = (strand.cell / GRID.cols) | 0
-			if (c < c0 - 1 || c > c1 + 1 || r < r0 - 1 || r > r1 + 1) continue
-			const owner = strand.owner
-			let width = 1.6 + THICKNESS_SCALE * Math.log(1 + (owner ? vineSubtreeSize(world, strand) : 1))
-
-			if (owner) {
-				// Wither: an orphaned/cut-off vine's owner-charge decays toward 0. The
-				// vine reads alive while EITHER end still holds charge, so use the max.
-				// witherFactor 0 = healthy (full charge), 1 = dead. Healthy vines take
-				// the unchanged branch below (byte-identical to before).
-				const pa = strand.aId ? world.pegById.get(strand.aId) : null
-				const pb = strand.bId ? world.pegById.get(strand.bId) : null
-				const charge = Math.max(pa ? pa.charge[owner] : 0, pb ? pb.charge[owner] : 0)
-				const wither = 1 - Math.min(1, charge / CLAIM_CHARGE)
-				if (wither > 0.02) {
-					// Shrivel: thin toward ~1px, and blend the owner color toward a sere
-					// brown. Just modifies this one stroke's style — no extra passes.
-					width = width + (1 - width) * wither
-					ctx.globalAlpha = 0.7
-					ctx.strokeStyle = lerpColor(parseRgb(colorOf(owner)), witherRgb, wither)
-					ctx.lineWidth = px(width)
-					ctx.beginPath()
-					ctx.moveTo(strand.points[0].x, strand.points[0].y)
-					for (let i = 1; i < strand.points.length; i++) {
-						ctx.lineTo(strand.points[i].x, strand.points[i].y)
-					}
-					ctx.stroke()
-					continue
+		// Territory FILL squares — the far-zoom read: owned cells tile to fill the
+		// space. Fades out as the mesh fades in.
+		if (t < 0.995) {
+			for (let r = r0; r <= r1; r++) {
+				for (let c = c0; c <= c1; c++) {
+					const peg = world.pegById.get(`peg:${c},${r}`)
+					if (!peg || peg.blocked) continue
+					const owner = pegOwner(peg)
+					if (!owner) continue
+					const a = (0.3 + 0.55 * chargeStrength(peg, owner)) * (1 - t)
+					if (a < 0.01) continue
+					ctx.globalAlpha = a
+					ctx.fillStyle = coreColor(owner)
+					ctx.fillRect(peg.x - size / 2, peg.y - size / 2, size, size)
 				}
 			}
-
-			// Out-of-reach greying: only ENEMY ('b') vines, only while slicing, when
-			// the player has no reach at the vine's midpoint — exactly the point/test
-			// sliceCut uses (hasPresence(world,'a',mid)), so the greyed set matches the
-			// set sliceCut refuses. (hasPresence is a small bounded scan; only enemy
-			// vines on screen reach this.)
-			let greyed = false
-			if (slicing && owner === 'b') {
-				const m = strand.points[(strand.points.length / 2) | 0]
-				greyed = !hasPresence(world, 'a', m)
-			}
-
-			// Healthy / neutral vine — normal, unless greyed out of reach.
-			ctx.globalAlpha = greyed ? 0.55 : owner ? 0.7 : 0.3
-			ctx.strokeStyle = greyed
-				? desaturate(parseRgb(colorOf(owner!)), greyRgb)
-				: owner
-					? colorOf(owner)
-					: theme.text
-			ctx.lineWidth = px(owner ? width : 1.4)
-			ctx.beginPath()
-			ctx.moveTo(strand.points[0].x, strand.points[0].y)
-			for (let i = 1; i < strand.points.length; i++) {
-				ctx.lineTo(strand.points[i].x, strand.points[i].y)
-			}
-			ctx.stroke()
+			ctx.globalAlpha = 1
 		}
-		ctx.globalAlpha = 1
 
-		// Growth tips — small glowing buds at the active tendril frontier, pulsing
-		// in time so the discrete growth waves read. Culled to visible cells.
-		for (const tip of world.tips) {
-			const peg = world.pegById.get(tip.pegId)
-			if (!peg || peg.col < c0 - 1 || peg.col > c1 + 1 || peg.row < r0 - 1 || peg.row > r1 + 1) {
-				continue
+		// Vines — the mesh, rendered with tldraw's own freehand (getStroke) so each
+		// vine is a filled brush stroke with rounded caps, not a plotted polyline.
+		// They keep a gentle hand-drawn wiggle (from makeStrand). STROKE WIDTH scales
+		// gently with subtree size (trunks fatter, leaves hairline) so chokes stay
+		// legible. The whole mesh fades in with `t`. There is NO on-canvas hover cue;
+		// the only "can't cut" feedback is the not-allowed cursor.
+		if (t > 0.01) {
+			const witherRgb = parseRgb(C.wither)
+			const greyRgb = parseRgb(C.ink) // muted target for out-of-reach enemy vines
+			const slicing = world.slicing
+			// Trunk emphasis grows with zoom: leaves stay ~1px at every zoom, but the
+			// fat-trunk bonus ramps up as you zoom in (where you actually cut), so the
+			// chokes pop clearly up close while the zoomed-out mesh stays even/legible.
+			const trunkAmp = 0.5 + 1.7 * smoothstep(0.5, 1.4, zoom)
+			for (const strand of world.strands) {
+				const c = strand.cell % GRID.cols
+				const r = (strand.cell / GRID.cols) | 0
+				if (c < c0 - 1 || c > c1 + 1 || r < r0 - 1 || r > r1 + 1) continue
+				const owner = strand.owner
+				let width = owner
+					? Math.min(
+							11,
+							1 + trunkAmp * THICKNESS_SCALE * Math.log(Math.max(1, vineSubtreeSize(world, strand)))
+						)
+					: 1
+				// Contextual cue: while a cut is in progress, ENEMY ('b') vines the
+				// player can't reach are greyed — the SAME hasPresence-at-midpoint test
+				// sliceCut refuses, so the greyed set matches the set the cut rejects.
+				let greyed = false
+				if (slicing && owner === 'b') {
+					const m = strand.points[(strand.points.length / 2) | 0]
+					greyed = !hasPresence(world, 'a', m)
+				}
+				let alpha: number
+				if (owner) {
+					const pa = strand.aId ? world.pegById.get(strand.aId) : null
+					const pb = strand.bId ? world.pegById.get(strand.bId) : null
+					const charge = Math.max(pa ? pa.charge[owner] : 0, pb ? pb.charge[owner] : 0)
+					const wither = 1 - Math.min(1, charge / CLAIM_CHARGE)
+					if (wither > 0.02) {
+						width = width + (1 - width) * wither
+						alpha = 0.5
+						ctx.fillStyle = lerpColor(parseRgb(coreColor(owner)), witherRgb, wither)
+					} else if (greyed) {
+						alpha = 0.5
+						ctx.fillStyle = desaturate(parseRgb(coreColor(owner)), greyRgb)
+					} else {
+						alpha = 0.92
+						ctx.fillStyle = coreColor(owner)
+					}
+				} else {
+					width = 1
+					alpha = 0.45
+					ctx.fillStyle = C.neutral
+				}
+				ctx.globalAlpha = alpha * t
+				strokeVine(ctx, strand.points, px(width))
 			}
-			const pulse = 0.6 + 0.4 * Math.sin(frame * 0.12)
-			ctx.globalAlpha = 0.5 * pulse
-			ctx.fillStyle = colorOf(tip.owner)
-			ctx.beginPath()
-			ctx.arc(peg.x, peg.y, px(7), 0, Math.PI * 2)
-			ctx.fill()
-			ctx.globalAlpha = 0.9
-			ctx.beginPath()
-			ctx.arc(peg.x, peg.y, px(2.5), 0, Math.PI * 2)
-			ctx.fill()
+			ctx.globalAlpha = 1
 		}
-		ctx.globalAlpha = 1
 
-		// Sparks — only when zoomed in. Drawn for the bounded pool the runner
-		// maintains; we skip any whose vine is off-screen (cheap guard).
+		// Nodes — owner-colored beads at owned pegs, ON TOP of the mesh. They bloom
+		// (grow) and fade as you zoom OUT, suffusing into the fill squares; near zoom
+		// they settle into small crisp dots. This is the smooth hand-off between the
+		// dot/mesh read and the square fill.
+		if (t > 0.03) {
+			const rad = px(1.8 + 4 * (1 - t))
+			for (let r = r0; r <= r1; r++) {
+				for (let c = c0; c <= c1; c++) {
+					const peg = world.pegById.get(`peg:${c},${r}`)
+					if (!peg) continue
+					const owner = pegOwner(peg)
+					if (!owner) continue
+					const a = (0.5 + 0.45 * chargeStrength(peg, owner)) * t
+					if (a < 0.01) continue
+					ctx.globalAlpha = a
+					ctx.fillStyle = coreColor(owner)
+					ctx.beginPath()
+					ctx.arc(peg.x, peg.y, rad, 0, Math.PI * 2)
+					ctx.fill()
+				}
+			}
+			ctx.globalAlpha = 1
+		}
+
+		// Growth buds — the active tendril frontier: a pulsing tldraw-yellow bud in a
+		// soft owner-tinted halo, so the growing edge reads warm and alive. Fades in
+		// with the mesh. Culled to visible cells.
+		if (t > 0.05) {
+			for (const tip of world.tips) {
+				const peg = world.pegById.get(tip.pegId)
+				if (!peg || peg.col < c0 - 1 || peg.col > c1 + 1 || peg.row < r0 - 1 || peg.row > r1 + 1) {
+					continue
+				}
+				const pulse = 0.6 + 0.4 * Math.sin(frame * 0.12)
+				ctx.globalAlpha = 0.35 * pulse * t
+				ctx.fillStyle = coreColor(tip.owner)
+				ctx.beginPath()
+				ctx.arc(peg.x, peg.y, px(4.5), 0, Math.PI * 2)
+				ctx.fill()
+				ctx.globalAlpha = 0.95 * t
+				ctx.fillStyle = C.tip
+				ctx.beginPath()
+				ctx.arc(peg.x, peg.y, px(2.2), 0, Math.PI * 2)
+				ctx.fill()
+			}
+			ctx.globalAlpha = 1
+		}
+
+		// Sparks — only when zoomed in close. Bright motes drifting the live mesh.
 		if (zoom >= VINE_ZOOM) {
 			for (const spark of world.sparks) {
 				const strand = world.strandById.get(spark.strandId)
@@ -301,43 +346,38 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 				if (c < c0 - 1 || c > c1 + 1 || r < r0 - 1 || r > r1 + 1) continue
 				const p = sparkPos(strand, spark.dir, spark.dist)
 				const flick = 0.6 + 0.4 * Math.sin(frame * 0.4 + spark.dist * 0.1)
-				// Glow casing.
 				ctx.globalAlpha = 0.5 * flick
-				ctx.fillStyle = colorOf(spark.owner)
+				ctx.fillStyle = coreColor(spark.owner)
 				ctx.beginPath()
 				ctx.arc(p.x, p.y, px(5), 0, Math.PI * 2)
 				ctx.fill()
-				// Bright core.
-				ctx.globalAlpha = 0.85
-				ctx.fillStyle = theme.white.solid
+				ctx.globalAlpha = 0.9
+				ctx.fillStyle = C.spark
 				ctx.beginPath()
-				ctx.arc(p.x, p.y, px(2), 0, Math.PI * 2)
+				ctx.arc(p.x, p.y, px(1.8), 0, Math.PI * 2)
 				ctx.fill()
 			}
 			ctx.globalAlpha = 1
 		}
 
-		// Cut flashes — an obvious "snip" pop at each severed vine: a crisp white
-		// ring that scale-pops out fast then fades, plus a bright central burst.
-		// Drawn here (on top of the vines) and culled to the visible cell window;
-		// ages out in the sim. White reads clearly over both red and blue vines.
+		// Cut flashes — an obvious "snip" pop at each severed vine: a crisp ink ring
+		// that scale-pops out fast then fades, plus a central burst. (Cuts only land
+		// at high zoom, so these only appear over the mesh.)
 		for (const flash of world.flashes) {
 			const c = flash.cell % GRID.cols
 			const r = (flash.cell / GRID.cols) | 0
 			if (c < c0 - 1 || c > c1 + 1 || r < r0 - 1 || r > r1 + 1) continue
-			const t = Math.min(1, (world.tick - flash.born) / CUT_FLASH_TICKS) // 0..1 over life
-			const ease = 1 - (1 - t) * (1 - t) // ease-out: fast expand, then settle
-			const fade = 1 - t
-			// Expanding ring — bigger (up to ~20px), thicker, higher starting opacity.
-			ctx.globalAlpha = Math.min(1, 0.95 * fade)
-			ctx.strokeStyle = theme.white.solid
-			ctx.lineWidth = px(3.5 * fade + 0.5)
+			const at = Math.min(1, (world.tick - flash.born) / CUT_FLASH_TICKS) // 0..1 over life
+			const ease = 1 - (1 - at) * (1 - at)
+			const fade = 1 - at
+			ctx.globalAlpha = Math.min(1, 0.8 * fade)
+			ctx.strokeStyle = C.flash
+			ctx.lineWidth = px(3 * fade + 0.5)
 			ctx.beginPath()
 			ctx.arc(flash.x, flash.y, px(4 + 16 * ease), 0, Math.PI * 2)
 			ctx.stroke()
-			// Bright central burst, fading fastest, for the pop.
-			ctx.globalAlpha = Math.min(1, fade * fade)
-			ctx.fillStyle = theme.white.solid
+			ctx.globalAlpha = Math.min(1, 0.85 * fade * fade)
+			ctx.fillStyle = C.flash
 			ctx.beginPath()
 			ctx.arc(flash.x, flash.y, px(5 * fade), 0, Math.PI * 2)
 			ctx.fill()
@@ -347,15 +387,31 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 		// (The cut swipe is drawn by tldraw's built-in scribble overlay, driven via
 		// editor.scribbles from the example — nothing to draw here.)
 
-		// Cores with HP rings, on top of everything. Size is screen-constant (via
-		// px) so the HP read stays legible. Drawn when on (or near) screen.
+		// Cores with HP rings, on top. Size eases from page-fixed (far, so it stays a
+		// readable landmark) to screen-fixed (near, so the HP arc is legible).
+		const coreR = size * 0.8 + (px(12) - size * 0.8) * t
+		const ringW = size * 0.22 + (px(4) - size * 0.22) * t
 		for (const owner of ['a', 'b'] as Owner[]) {
 			const peg = world.pegById.get(world.sources[owner])
-			if (!peg || !inView(peg.x, peg.y)) continue
-			drawCore(ctx, peg.x, peg.y, px(15), px(4), hpFrac(world, owner), colorOf(owner), theme)
+			if (!peg) continue
+			if (t > 0.5 && !inView(peg.x, peg.y)) continue
+			drawCore(ctx, peg.x, peg.y, coreR, ringW, hpFrac(world, owner), owner)
 		}
 		ctx.globalAlpha = 1
 	}
+}
+
+// Stroke a vine as a tldraw freehand brush stroke: getStroke turns the (wiggly)
+// point chain into a filled outline with rounded caps. thinning:0 keeps width
+// uniform so strands don't pinch to nothing where they meet at pegs.
+function strokeVine(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[], size: number) {
+	const outline = getStroke(pts, { size, thinning: 0, smoothing: 0.55, streamline: 0.5 })
+	if (outline.length < 2) return
+	ctx.beginPath()
+	ctx.moveTo(outline[0].x, outline[0].y)
+	for (let i = 1; i < outline.length; i++) ctx.lineTo(outline[i].x, outline[i].y)
+	ctx.closePath()
+	ctx.fill()
 }
 
 // Parse #rgb / #rrggbb / rgb()/rgba() to [r,g,b]. Used for the wither color lerp.
@@ -373,8 +429,7 @@ function parseRgb(color: string): [number, number, number] {
 }
 
 // Lerp between two colors by t (0..1). Used only for withering vines (a small,
-// culled subset), so the per-call parse cost is negligible; no allocation beyond
-// the result string.
+// culled subset), so the per-call cost is negligible.
 function lerpColor(
 	from: [number, number, number],
 	to: [number, number, number],
@@ -384,13 +439,12 @@ function lerpColor(
 	return `rgb(${m(from[0], to[0])}, ${m(from[1], to[1])}, ${m(from[2], to[2])})`
 }
 
-// Desaturate `color` toward its own luminance, then blend strongly toward the
+// Desaturate `color` toward its own luminance, then blend halfway toward the
 // muted theme `grey` — the "not a target" look for out-of-reach enemy vines.
-// Readable but clearly dimmed, and distinct from the brown WITHER tint.
+// Readable but clearly dimmed, and distinct from the wither tint.
 function desaturate(color: [number, number, number], grey: [number, number, number]): string {
 	const lum = 0.3 * color[0] + 0.59 * color[1] + 0.11 * color[2]
-	const flat: [number, number, number] = [lum, lum, lum]
-	return lerpColor(flat, grey, 0.5) // halfway between the color's own grey and theme grey
+	return lerpColor([lum, lum, lum], grey, 0.5)
 }
 
 // HP fraction [0..1] for a core.
@@ -398,14 +452,10 @@ function hpFrac(world: ReturnType<typeof getWorld>, owner: Owner): number {
 	return Math.max(0, Math.min(1, world.coreHp[owner] / CORE_HP))
 }
 
-// Dark rock color for obstacles, tuned per theme.
-function rockColor(theme: ThemeColors): string {
-	return theme === DEFAULT_THEME.colors.dark ? '#0c0e12' : '#3a3f47'
-}
-
-// Draw a core: a filled square in its color, ringed by an HP arc (full circle at
-// full HP, shrinking as HP drops). `radius` is the core block half-size, `ringW`
-// the ring stroke width — both already in page units.
+// Draw a core as a tldraw-style shape: a filled square in the owner color with a
+// hand-inked outline, ringed by an HP arc (full circle at full HP, shrinking and
+// turning red as HP drops). `radius` is the square half-size, `ringW` the HP-ring
+// stroke width — both already in page units.
 function drawCore(
 	ctx: CanvasRenderingContext2D,
 	x: number,
@@ -413,26 +463,27 @@ function drawCore(
 	radius: number,
 	ringW: number,
 	hp: number,
-	color: string,
-	theme: ThemeColors
+	owner: Owner
 ) {
-	ctx.globalAlpha = 1
-	ctx.fillStyle = color
-	ctx.fillRect(x - radius * 0.7, y - radius * 0.7, radius * 1.4, radius * 1.4)
-	ctx.lineWidth = ringW * 0.6
-	ctx.strokeStyle = theme.background
-	ctx.strokeRect(x - radius * 0.7, y - radius * 0.7, radius * 1.4, radius * 1.4)
+	const col = coreColor(owner)
 
-	// HP ring: dim full-circle track + bright remaining arc (turns red when low).
-	const rr = radius * 1.5
+	ctx.globalAlpha = 1
+	ctx.fillStyle = col
+	ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2)
+	ctx.lineWidth = Math.max(1, ringW * 0.4)
+	ctx.strokeStyle = C.ink
+	ctx.globalAlpha = 0.85
+	ctx.strokeRect(x - radius, y - radius, radius * 2, radius * 2)
+
+	const rr = radius * 2
 	ctx.lineWidth = ringW
-	ctx.globalAlpha = 0.25
-	ctx.strokeStyle = theme.text
+	ctx.globalAlpha = 0.18
+	ctx.strokeStyle = C.ink
 	ctx.beginPath()
 	ctx.arc(x, y, rr, 0, Math.PI * 2)
 	ctx.stroke()
 	ctx.globalAlpha = 1
-	ctx.strokeStyle = hp > 0.3 ? color : '#ef4444'
+	ctx.strokeStyle = hp > 0.3 ? col : C.danger
 	ctx.beginPath()
 	ctx.arc(x, y, rr, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * hp)
 	ctx.stroke()
