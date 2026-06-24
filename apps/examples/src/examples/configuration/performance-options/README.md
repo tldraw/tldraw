@@ -2,7 +2,7 @@
 title: Performance options
 component: ./PerformanceOptionsExample.tsx
 priority: 3
-keywords: [performance, options, maxshapesperpage, debouncedzoom, limits, optimization, max-shapes, fps, frame rate]
+keywords: [performance, options, maxshapesperpage, debouncedzoom, limits, max-shapes, fps]
 ---
 
 Configure shape limits and debounced zoom for performance.
