@@ -57,10 +57,12 @@ test.describe('geo label resize CPU profile', () => {
 			const ed = editor as any
 			ed.selectAll().deleteShapes(ed.getSelectedShapeIds())
 			const LABELS = [
-				'The quick brown fox jumps over the lazy dog while the label reflows', // LTR latin
-				'مرحباً بكم في تطبيق تلدرو الرائع جداً اليوم', // RTL Arabic (cursive)
-				'A short label', // narrow, re-wraps dramatically
-				'Reflowing typography across each and every line as the box gets narrower', // long
+				// A few dozen words each, so every label wraps to many lines and the per-frame
+				// reflow + render cost is realistic for a heavy board.
+				'The quick brown fox jumps over the lazy dog and then keeps on running across the open meadow while the typography in this label reflows across many lines as the surrounding box grows wider and narrower during the resize',
+				'Sticky note style content with several full sentences of text that wrap onto many lines at this width. Resizing the shape does not scale the text, so every width change reflows and re-renders the whole label from scratch each and every frame',
+				'Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat',
+				'مرحباً بكم في تطبيق تلدرو الرائع جداً اليوم مرحباً بكم في تطبيق تلدرو الرائع جداً اليوم مرحباً بكم في تطبيق تلدرو الرائع جداً اليوم مرحباً بكم في تطبيق تلدرو الرائع جداً اليوم', // RTL Arabic (cursive)
 			]
 			const cols = Math.ceil(Math.sqrt(n))
 			const shapes = []
