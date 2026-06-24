@@ -12,7 +12,7 @@ import {
 	THICKNESS_SCALE,
 	WITHER_COLOR,
 } from '../game-state'
-import { chargeStrength, sparkPos, vineSubtreeSize } from '../sim'
+import { chargeStrength, hasPresence, sparkPos, vineSubtreeSize } from '../sim'
 
 interface TLOvergrowthOverlay extends TLOverlay {
 	props: { frame: number }
@@ -199,14 +199,16 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 
 		// Vines — culled to the viewport via each strand's cell bucket. STROKE
 		// WIDTH scales with the vine's subtree size (trunks fat, leaves thin) so a
-		// player can see where the chokes are. All vines render at their NORMAL full
-		// color — there is NO on-canvas hover cue; the only "can't cut" feedback is
-		// the not-allowed cursor (driven from hoveredVine$ in the example). We
-		// iterate all strands but reject off-screen ones with a cheap cell-range
-		// test before any work.
+		// player can see where the chokes are. CONTEXTUAL CUE: while a cut is in
+		// progress, ENEMY (blue) vines the player can't currently reach are greyed
+		// out (using the SAME hasPresence-at-midpoint test sliceCut refuses), so the
+		// cuttable ones stand out. Off-screen strands are rejected by a cheap
+		// cell-range test before any work.
 		ctx.lineCap = 'round'
 		ctx.lineJoin = 'round'
 		const witherRgb = parseRgb(WITHER_COLOR)
+		const greyRgb = parseRgb(theme.text) // muted grey target for out-of-reach enemy vines
+		const slicing = world.slicing
 		for (const strand of world.strands) {
 			const c = strand.cell % GRID.cols
 			const r = (strand.cell / GRID.cols) | 0
@@ -240,9 +242,24 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 				}
 			}
 
-			// Healthy / neutral vine — unchanged from before.
-			ctx.globalAlpha = owner ? 0.7 : 0.3
-			ctx.strokeStyle = owner ? colorOf(owner) : theme.text
+			// Out-of-reach greying: only ENEMY ('b') vines, only while slicing, when
+			// the player has no reach at the vine's midpoint — exactly the point/test
+			// sliceCut uses (hasPresence(world,'a',mid)), so the greyed set matches the
+			// set sliceCut refuses. (hasPresence is a small bounded scan; only enemy
+			// vines on screen reach this.)
+			let greyed = false
+			if (slicing && owner === 'b') {
+				const m = strand.points[(strand.points.length / 2) | 0]
+				greyed = !hasPresence(world, 'a', m)
+			}
+
+			// Healthy / neutral vine — normal, unless greyed out of reach.
+			ctx.globalAlpha = greyed ? 0.55 : owner ? 0.7 : 0.3
+			ctx.strokeStyle = greyed
+				? desaturate(parseRgb(colorOf(owner!)), greyRgb)
+				: owner
+					? colorOf(owner)
+					: theme.text
 			ctx.lineWidth = px(owner ? width : 1.4)
 			ctx.beginPath()
 			ctx.moveTo(strand.points[0].x, strand.points[0].y)
@@ -365,6 +382,15 @@ function lerpColor(
 ): string {
 	const m = (a: number, b: number) => Math.round(a + (b - a) * t)
 	return `rgb(${m(from[0], to[0])}, ${m(from[1], to[1])}, ${m(from[2], to[2])})`
+}
+
+// Desaturate `color` toward its own luminance, then blend strongly toward the
+// muted theme `grey` — the "not a target" look for out-of-reach enemy vines.
+// Readable but clearly dimmed, and distinct from the brown WITHER tint.
+function desaturate(color: [number, number, number], grey: [number, number, number]): string {
+	const lum = 0.3 * color[0] + 0.59 * color[1] + 0.11 * color[2]
+	const flat: [number, number, number] = [lum, lum, lum]
+	return lerpColor(flat, grey, 0.5) // halfway between the color's own grey and theme grey
 }
 
 // HP fraction [0..1] for a core.
