@@ -33,7 +33,7 @@ import {
 } from '@tldraw/editor'
 import { useCallback, useContext } from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
-import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
+import { useTldrawUiComponents } from '../../ui/context/components'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEditingRichTextList,
@@ -54,6 +54,7 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
+import { getNoteShapeAttributionComponent } from './DefaultNoteShapeAttribution'
 import { CLONE_HANDLE_MARGIN, getNoteShapeForAdjacentPosition } from './noteHelpers'
 
 const NOTE_SHAPE_HORIZONTAL_ALIGNS = Object.freeze({
@@ -343,6 +344,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const isReadyForEditing = useIsReadyForEditing(this.editor, shape.id)
 		const isEmpty = isEmptyRichText(richText)
 
+		const { NoteShapeAttribution } = useTldrawUiComponents()
 		const attribution = useValue(
 			'attribution',
 			() => {
@@ -369,20 +371,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
 				>
-					{attribution && (
-						<TldrawUiTooltip content={attribution.full} side="bottom">
-							<div
-								className="tl-note__attribution"
-								style={{
-									['--note-attribution-scale' as string]: scale,
-									fontSize: 11 * scale,
-									color: dv.labelColor,
-									opacity: 0.6,
-								}}
-							>
-								{attribution.short}
-							</div>
-						</TldrawUiTooltip>
+					{attribution && NoteShapeAttribution && (
+						<NoteShapeAttribution
+							shape={shape}
+							name={attribution.full}
+							firstName={attribution.short}
+							color={dv.labelColor}
+							scale={scale}
+							variant="canvas"
+						/>
 					)}
 					{(isSelected || isReadyForEditing || !isEmpty) && (
 						<RichTextLabel
@@ -459,10 +456,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		})
 
 		const { textFirstEditedBy } = shape.props
-		const attributionName =
+		const attributionFullName =
 			textFirstEditedBy && !isEmptyRichText(shape.props.richText)
-				? (this.editor.getAttributionDisplayName(textFirstEditedBy)?.split(' ')[0] ?? null)
+				? (this.editor.getAttributionDisplayName(textFirstEditedBy) ?? null)
 				: null
+		const attributionFirstName = attributionFullName?.split(' ')[0] ?? null
+		const NoteShapeAttribution = getNoteShapeAttributionComponent(this.editor)
 
 		return (
 			<>
@@ -488,7 +487,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					padding={dv.labelPadding}
 					showTextOutline={false}
 				/>
-				{attributionName && (
+				{attributionFirstName && attributionFullName && NoteShapeAttribution && (
 					<foreignObject
 						x={0}
 						y={0}
@@ -497,16 +496,14 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						className="tl-export-embed-styles"
 					>
 						<div style={{ position: 'relative', width: '100%', height: '100%' }}>
-							<div
-								className="tl-note__attribution"
-								style={{
-									fontSize: 11,
-									color: dv.labelColor,
-									opacity: 0.6,
-								}}
-							>
-								{attributionName}
-							</div>
+							<NoteShapeAttribution
+								shape={shape}
+								name={attributionFullName}
+								firstName={attributionFirstName}
+								color={dv.labelColor}
+								scale={1}
+								variant="export"
+							/>
 						</div>
 					</foreignObject>
 				)}

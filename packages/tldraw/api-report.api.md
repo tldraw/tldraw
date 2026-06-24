@@ -1380,6 +1380,9 @@ export function DefaultMinimap(): JSX.Element;
 // @public (undocumented)
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
+// @public
+export function DefaultNoteShapeAttribution({ name, firstName, color, scale, variant }: TLNoteShapeAttributionProps): JSX.Element;
+
 // @public (undocumented)
 export const defaultOverlayUtils: readonly [typeof ArrowBindingHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof BrushOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorCursorOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorShapeIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof ShapeIndicatorOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ZoomBrushOverlayUtil];
 
@@ -4467,6 +4470,19 @@ export interface TLExternalContentProps {
     maxImageDimension?: number;
 }
 
+// @public
+export type TLNoteShapeAttributionComponent = ComponentType<TLNoteShapeAttributionProps> | null;
+
+// @public
+export interface TLNoteShapeAttributionProps {
+    color: string;
+    firstName: string;
+    name: string;
+    scale: number;
+    shape: TLNoteShape;
+    variant: 'canvas' | 'export';
+}
+
 // @public (undocumented)
 export interface TLScribbleOverlay extends TLOverlay {
     // (undocumented)
@@ -4680,6 +4696,8 @@ export interface TLUiComponents {
     Minimap?: ComponentType | null;
     // (undocumented)
     NavigationPanel?: ComponentType | null;
+    // (undocumented)
+    NoteShapeAttribution?: ComponentType<TLNoteShapeAttributionProps> | null;
     // (undocumented)
     PageMenu?: ComponentType | null;
     // (undocumented)

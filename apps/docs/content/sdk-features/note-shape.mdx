@@ -133,6 +133,10 @@ export default function App() {
 
 See the [note resizing example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/configuration/resize-note) for a working demo.
 
+### Attribution badge
+
+Notes show the name of the user who first edited their text as a small badge in the corner. This badge is rendered by the `NoteShapeAttribution` component, which you can override or hide through the `components` prop—it applies on the canvas and in image exports. See [attribution](/sdk-features/attribution) for details.
+
 ## Dynamic resize mode
 
 When `editor.user.getIsDynamicResizeMode()` is true, new notes are created at a scale inversely proportional to the current zoom level. Notes stay visually consistent regardless of zoom level when created.

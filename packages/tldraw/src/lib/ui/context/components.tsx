@@ -1,5 +1,9 @@
 import { useShallowObjectIdentity } from '@tldraw/editor'
 import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
+import {
+	DefaultNoteShapeAttribution,
+	TLNoteShapeAttributionProps,
+} from '../../shapes/note/DefaultNoteShapeAttribution'
 import { DefaultA11yAnnouncer } from '../components/A11y'
 import {
 	DefaultActionsMenu,
@@ -92,6 +96,7 @@ export interface TLUiComponents {
 	PeopleMenuItem?: ComponentType<TLUiPeopleMenuItemProps> | null
 	PeopleMenuFacePile?: ComponentType<TLUiPeopleMenuFacePileProps> | null
 	UserPresenceEditor?: ComponentType | null
+	NoteShapeAttribution?: ComponentType<TLNoteShapeAttributionProps> | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -145,6 +150,7 @@ export function TldrawUiComponentsProvider({
 					PeopleMenuItem: DefaultPeopleMenuItem,
 					PeopleMenuFacePile: DefaultPeopleMenuFacePile,
 					UserPresenceEditor: DefaultUserPresenceEditor,
+					NoteShapeAttribution: DefaultNoteShapeAttribution,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

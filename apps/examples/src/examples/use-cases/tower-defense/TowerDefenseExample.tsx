@@ -262,6 +262,7 @@ const components: Required<TLUiComponents> = {
 	PeopleMenuItem: null,
 	PeopleMenuFacePile: null,
 	UserPresenceEditor: null,
+	NoteShapeAttribution: null,
 }
 
 function onEditorMount(editor: Editor) {
