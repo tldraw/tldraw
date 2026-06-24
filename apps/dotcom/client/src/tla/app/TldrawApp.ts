@@ -10,6 +10,7 @@ import {
 	ROOM_PREFIX,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
+	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
 	TlaGroupFile,
@@ -114,12 +115,9 @@ window.zero = () => {
  * created. This is the single source of truth for "how recent is this file" across recent-file
  * lists and most-recent-file navigation, so the ordering stays consistent everywhere.
  */
-function getFileRecencyDate(
-	state:
-		| { lastVisitAt?: number | null; lastEditAt?: number | null; firstVisitAt?: number | null }
-		| undefined
-		| null,
-	file: { createdAt?: number | null } | undefined | null
+export function getFileRecencyDate(
+	state: TlaFileState | undefined,
+	file: TlaFile | undefined
 ): number {
 	return state?.lastVisitAt ?? state?.lastEditAt ?? state?.firstVisitAt ?? file?.createdAt ?? 0
 }
