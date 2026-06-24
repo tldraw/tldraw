@@ -17,27 +17,51 @@
 	pointer-events: all;
 }
 
-/* frame rate, the headline metric */
-.perf-panel__fps {
+/* the last zoom gesture's frame stats, the headline metric */
+.perf-panel__gesture {
 	display: flex;
-	align-items: baseline;
-	gap: 4px;
+	flex-direction: column;
+	gap: 2px;
 	padding-bottom: 10px;
 }
 
-.perf-panel__fps b {
+.perf-panel__gesture-label {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--tl-color-text-3, #9fa1a3);
+}
+
+.perf-panel__gesture-stats {
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+}
+
+.perf-panel__gesture-stats b {
 	font-size: 28px;
 	line-height: 1;
 	font-variant-numeric: tabular-nums;
 	color: #2f9e44;
 }
 
-.perf-panel__fps-value--low {
+.perf-panel__gesture-fps--low {
 	color: #c92a2a;
 }
 
-.perf-panel__fps span {
+.perf-panel__gesture-stats span {
 	font-size: 12px;
+	color: var(--tl-color-text-3, #9fa1a3);
+}
+
+.perf-panel__gesture-p95 {
+	margin-left: auto;
+	font-variant-numeric: tabular-nums;
+}
+
+.perf-panel__gesture-empty {
+	font-size: 13px;
 	color: var(--tl-color-text-3, #9fa1a3);
 }
 

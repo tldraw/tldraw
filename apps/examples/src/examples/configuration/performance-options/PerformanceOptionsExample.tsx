@@ -28,32 +28,24 @@ const components: TLComponents = {
 }
 
 // [2]
-function useFps(editor: Editor) {
-	const [fps, setFps] = useState(0)
+function useLastZoomGesture(editor: Editor) {
+	const [stats, setStats] = useState<{ fps: number; p95: number } | null>(null)
 
 	useEffect(() => {
-		let frames = 0
-		let last = performance.now()
-		// the editor runs a single requestAnimationFrame loop and emits 'tick'
-		// once per frame, so counting ticks measures the real frame rate the
-		// canvas is achieving under load
-		function handleTick() {
-			frames++
-			const now = performance.now()
-			const elapsed = now - last
-			if (elapsed >= 500) {
-				setFps(Math.round((frames * 1000) / elapsed))
-				frames = 0
-				last = now
-			}
-		}
-		editor.on('tick', handleTick)
+		// editor.performance emits a 'camera-end' event after each pan/zoom
+		// gesture with real frame-time stats measured during the gesture.
+		// Listeners are lazy, so this costs nothing until subscribed. We only
+		// care about zoom here, since that's what debounced zoom affects.
+		const unsubscribe = editor.performance.on('camera-end', (event) => {
+			if (event.type !== 'zooming') return
+			setStats({ fps: event.fps, p95: event.p95FrameTime })
+		})
 		return () => {
-			editor.off('tick', handleTick)
+			unsubscribe()
 		}
 	}, [editor])
 
-	return fps
+	return stats
 }
 
 // [3]
@@ -110,7 +102,7 @@ function PerformancePanel({
 	onChangeUseDebouncedZoom(next: boolean): void
 	onChangeThreshold(next: number): void
 }) {
-	const fps = useFps(editor)
+	const gesture = useLastZoomGesture(editor)
 	const shapeCount = useValue('shape count', () => editor.getCurrentPageShapeIds().size, [editor])
 	const [resetSignal, setResetSignal] = useState(0)
 	const [limitMessage, setLimitMessage] = useState('')
@@ -159,14 +151,24 @@ function PerformancePanel({
 
 	return (
 		<div className="perf-panel">
-			<div className="perf-panel__fps">
-				<b className={fps > 0 && fps < 40 ? 'perf-panel__fps-value--low' : ''}>{fps}</b>
-				<span>fps</span>
+			<div className="perf-panel__gesture">
+				<span className="perf-panel__gesture-label">last zoom gesture</span>
+				{gesture ? (
+					<div className="perf-panel__gesture-stats">
+						<b className={gesture.fps < 40 ? 'perf-panel__gesture-fps--low' : ''}>
+							{Math.round(gesture.fps)}
+						</b>
+						<span>fps</span>
+						<span className="perf-panel__gesture-p95">p95 {Math.round(gesture.p95)} ms</span>
+					</div>
+				) : (
+					<div className="perf-panel__gesture-empty">zoom to measure</div>
+				)}
 			</div>
 
 			{/* [5] */}
 			<div className="perf-section">
-				<div className="perf-section__title">Zoom re-renders / gesture</div>
+				<div className="perf-section__title">Zoom re-renders</div>
 				<div className="perf-compare">
 					<ReRenderMetric
 						editor={editor}
@@ -308,13 +310,17 @@ The style panel is hidden via the components prop — color and size pickers
 have nothing to do with this demo, so dropping them keeps the canvas clear.
 
 [2]
-The frame-rate readout makes the cost concrete. The editor runs a single
-requestAnimationFrame loop and emits a 'tick' event once per frame, so
-counting ticks over a short window measures the frame rate the canvas is
-actually achieving. Fill the page with thousands of shapes, turn
-debouncedZoom off, and zoom with the wheel: the counter drops as every
-zoom-dependent component re-renders each frame. Turn it back on and the
-frame rate holds.
+The frame-rate readout makes the cost concrete, using the real numbers the
+editor already measures. editor.performance emits a 'camera-end' event
+after each pan/zoom gesture carrying frame-time stats gathered during the
+gesture — fps, p95FrameTime, and more. Subscribing is lazy (the editor
+only does the measuring while something is listening), and the unsubscribe
+function it returns is the effect's cleanup. We keep the zoom gestures and
+show their frame rate and 95th-percentile frame time. Fill the page with
+thousands of shapes, turn debouncedZoom off, and zoom with the wheel: the
+frame rate drops as every zoom-dependent component re-renders each frame.
+Turn it back on and it holds. The full performance API has its own example,
+"Performance hooks".
 
 [3]
 Why debounced zoom matters: during a zoom gesture the camera changes on
