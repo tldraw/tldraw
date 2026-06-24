@@ -1,4 +1,4 @@
-import { CSSProperties, useEffect } from 'react'
+import { CSSProperties, useEffect, useState } from 'react'
 import {
 	Box,
 	TLAnyOverlayUtilConstructor,
@@ -148,16 +148,17 @@ function GameRunner() {
 					animation: { duration: 300 },
 				})
 			} else if (k === 'w') {
-				// Pulled-back "density" view: 0.75x the zoom-to-fit level — the whole
-				// view at your current spot (center preserved), not recentered on the board.
+				// Pulled-back "density" view at your current spot (center preserved, not
+				// recentered on the board). Tuned to ~2.4x the zoom-to-fit level so it
+				// lands in the resolved vine-mesh range — far enough out to read the whole
+				// network's density, but not so far it falls back to the square fill.
 				const b = boardBounds()
 				const vsb = editor.getViewportScreenBounds()
 				const inset = 24
 				const fit = Math.min((vsb.w - inset * 2) / b.w, (vsb.h - inset * 2) / b.h)
-				// Keep the current viewport center; just set the zoom to 0.75x the fit zoom.
 				const c = editor.getViewportPageBounds().center
 				editor.zoomToBounds(new Box(c.x - 1, c.y - 1, 2, 2), {
-					targetZoom: fit * 1.55,
+					targetZoom: fit * 2.4,
 					animation: { duration: 300 },
 				})
 			}
@@ -396,7 +397,15 @@ function WinBanner() {
 				textAlign: 'center',
 			}}
 		>
-			<div style={{ ...PANEL_STYLE, padding: '12px 20px', fontSize: 20, fontWeight: 600 }}>
+			<div
+				style={{
+					...PANEL_STYLE,
+					padding: '12px 22px',
+					fontSize: 22,
+					// tldraw's hand-drawn font for the headline — the draw-y flourish.
+					fontFamily: 'var(--tl-font-draw, var(--tl-font-ui, system-ui))',
+				}}
+			>
 				{label}
 			</div>
 			<div
@@ -413,14 +422,65 @@ function WinBanner() {
 	)
 }
 
+// Pushes the chosen scheme into the live editor. The `colorScheme` prop only
+// seeds the editor at mount, so toggling at runtime goes through setColorMode
+// (the overlay reads editor.getColorMode() each frame and reskins accordingly).
+function ThemeSync({ scheme }: { scheme: 'light' | 'dark' }) {
+	const editor = useEditor()
+	useEffect(() => {
+		editor.setColorMode(scheme)
+	}, [editor, scheme])
+	return null
+}
+
 export default function OvergrowthExample() {
+	// The board uses tldraw's own canvas background; the toggle just flips the
+	// editor's color scheme (the overlay follows it). The toggle button lives
+	// OUTSIDE the editor container so its clicks don't reach the cut handler, so it
+	// can't read tldraw's CSS vars — hence the tldraw-approximate colors per scheme.
+	const [scheme, setScheme] = useState<'light' | 'dark'>('light')
+	const dark = scheme === 'dark'
 	return (
 		<div className="tldraw__editor">
-			<Tldraw overlayUtils={overlayUtils} components={components} overrides={overrides}>
+			<Tldraw
+				// Fixed at the initial scheme — changing this prop would remount the
+				// editor (and reset the game). Runtime toggling goes through ThemeSync.
+				colorScheme="light"
+				overlayUtils={overlayUtils}
+				components={components}
+				overrides={overrides}
+			>
 				<GameRunner />
+				<ThemeSync scheme={scheme} />
 				<HintBanner />
 				<WinBanner />
 			</Tldraw>
+			{/* Small out-of-the-way light/dark toggle for testing both schemes. */}
+			<button
+				onClick={() => setScheme(dark ? 'light' : 'dark')}
+				title="Toggle light / dark"
+				style={{
+					position: 'absolute',
+					bottom: 12,
+					left: 12,
+					zIndex: 1003,
+					width: 32,
+					height: 32,
+					padding: 0,
+					borderRadius: 8,
+					cursor: 'pointer',
+					fontSize: 15,
+					lineHeight: '32px',
+					textAlign: 'center',
+					fontFamily: 'var(--tl-font-ui, system-ui)',
+					background: dark ? '#2a2a2c' : '#ffffff',
+					color: dark ? '#f0f0f0' : '#1d1d1d',
+					border: `1px solid ${dark ? '#3a3a3c' : '#e8e8e8'}`,
+					boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.1)',
+				}}
+			>
+				{dark ? '☀' : '☾'}
+			</button>
 		</div>
 	)
 }

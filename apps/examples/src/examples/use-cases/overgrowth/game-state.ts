@@ -1,14 +1,17 @@
 import { atom } from 'tldraw'
 
-// Two colors fight for a large peg grid. Red is the human (top-left home), blue
-// is the AI (the 180° rotation, bottom-right home). Territory grows on its own
-// as branching tendrils that advance in rhythmic pulse-waves. The player's only
-// verb is to CUT vines — and because each color's network is a strict TREE
+// Two colors fight for a large peg grid. Blue is the human (top-left home),
+// orange is the AI (the 180° rotation, bottom-right home). Territory grows on its
+// own as branching tendrils that advance in rhythmic pulse-waves. The player's
+// only verb is to CUT vines — and because each color's network is a strict TREE
 // (a forest, one tree per source), cutting any vine orphans everything beyond
 // it, which then withers to neutral.
 export type Owner = 'a' | 'b'
 
-export const PLAYER_COLOR: Record<Owner, string> = { a: 'red', b: 'blue' }
+// Faction → tldraw palette color name. Resolved to actual values through the
+// editor's DEFAULT_THEME in the overlay, so the game uses tldraw's own colors and
+// follows its light/dark color scheme.
+export const PLAYER_COLOR: Record<Owner, string> = { a: 'blue', b: 'orange' }
 
 // ============================================================================
 // TUNING CONSTANTS — all of the simulation's feel lives here. Declared at the
