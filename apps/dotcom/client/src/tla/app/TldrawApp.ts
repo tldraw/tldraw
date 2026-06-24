@@ -109,12 +109,17 @@ window.zero = () => {
 	location.reload()
 }
 
-/** Ranks a file by recency: last visit, else last edit, else first visit, else when it was created. */
+/** When the user last opened the file (visit, else edit, else first visit), or undefined if never. */
+export function getFileVisitDate(state: TlaFileState | undefined): number | undefined {
+	return state?.lastVisitAt ?? state?.lastEditAt ?? state?.firstVisitAt ?? undefined
+}
+
+/** Ranks a file for display: when it was last opened, else when it was created. */
 export function getFileRecencyDate(
 	state: TlaFileState | undefined,
 	file: TlaFile | undefined
 ): number {
-	return state?.lastVisitAt ?? state?.lastEditAt ?? state?.firstVisitAt ?? file?.createdAt ?? 0
+	return getFileVisitDate(state) ?? file?.createdAt ?? 0
 }
 
 export class TldrawApp {
@@ -655,7 +660,11 @@ export class TldrawApp {
 		for (const state of this.getUserFileStates()) {
 			if (fileIdsInScope && !fileIdsInScope.has(state.fileId)) continue
 			if (!state.file || state.file.isDeleted) continue
-			const date = getFileRecencyDate(state, state.file)
+			// Rank by actual visits only. A created-but-never-opened file has null visit timestamps
+			// (its `createdAt` must not let it outrank a genuinely visited file); it defers to the
+			// `scopedFiles` fallback below.
+			const date = getFileVisitDate(state)
+			if (date === undefined) continue
 			if (!mostRecent || date > mostRecent.date) mostRecent = { fileId: state.fileId, date }
 		}
 

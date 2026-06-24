@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getFileRecencyDate, TldrawApp } from './TldrawApp'
+import { getFileRecencyDate, getFileVisitDate, TldrawApp } from './TldrawApp'
 
 // Stub the three members `getMostRecentFileId` reads on a bare prototype instance, avoiding a full
 // TldrawApp (Zero/Clerk/router). Same approach as getWorkspaceFilesSorted.test.ts.
@@ -53,6 +53,17 @@ describe('getFileRecencyDate', () => {
 	})
 })
 
+describe('getFileVisitDate', () => {
+	it('returns the most recent visit/edit, or undefined when never opened', () => {
+		expect(getFileVisitDate({ lastVisitAt: 4, lastEditAt: 3, firstVisitAt: 2 } as any)).toBe(4)
+		expect(getFileVisitDate({ lastEditAt: 3, firstVisitAt: 2 } as any)).toBe(3)
+		expect(getFileVisitDate({ firstVisitAt: 2 } as any)).toBe(2)
+		// Never opened: createdAt is not a visit and must not appear here.
+		expect(getFileVisitDate({} as any)).toBeUndefined()
+		expect(getFileVisitDate(undefined)).toBeUndefined()
+	})
+})
+
 describe('getMostRecentFileId', () => {
 	it('returns the globally most recent file across all workspaces', () => {
 		const app = createAppStub({
@@ -75,6 +86,25 @@ describe('getMostRecentFileId', () => {
 			],
 		})
 		expect(app.getMostRecentFileId()).toBe('file:edited')
+	})
+
+	it('does not let a never-opened file outrank a genuinely visited one via createdAt', () => {
+		const app = createAppStub({
+			fileStates: [
+				makeState('file:visited', { lastVisitAt: 50 }),
+				// Just created, never opened (null visit timestamps, recent createdAt).
+				makeState('file:new', { file: { createdAt: 9999 } }),
+			],
+		})
+		expect(app.getMostRecentFileId()).toBe('file:visited')
+	})
+
+	it('falls back to the in-scope top file when the user has only never-opened files', () => {
+		const app = createAppStub({
+			fileStates: [makeState('file:new', { file: { createdAt: 9999 } })],
+			myFiles: [{ fileId: 'file:home-top' }, { fileId: 'file:new' }],
+		})
+		expect(app.getMostRecentFileId()).toBe('file:home-top')
 	})
 
 	it('keeps the first file on a recency tie', () => {
