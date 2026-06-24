@@ -184,6 +184,7 @@ Dependencies:
 
 - Keep dependencies workspace-appropriate.
 - If changing dependency manifests or lockfiles, make sure the lockfile update is intentional and included.
+- Dependency install/build scripts are off by default (`enableScripts: false` in `.yarnrc.yml`), which closes the main supply-chain `postinstall` code-execution path. Packages that genuinely need to build (native/napi modules, binary downloaders) are allowlisted with `built: true` under `dependenciesMeta` in the root `package.json`. When adding a dependency that ships a native addon or downloads a platform binary, add an allowlist entry — Yarn silently skips unlisted scripts, so a missing entry shows up as a runtime or build failure, not an install error.
 
 ## Writing style
 

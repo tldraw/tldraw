@@ -138,13 +138,54 @@
 		"our examples app depenends on pdf.js which pulls in canvas as an optional dependency.",
 		"it slows down installs quite a bit though, so we replace it with an empty package."
 	],
-	"// dependenciesMeta.workerd": [
-		"workerd's postinstall script runs the native binary to self-check it, which fails on",
-		"CI images without GLIBC 2.35+ (e.g. Vercel, which builds the docs site). Skipping the",
-		"build script doesn't affect wrangler at dev time — wrangler still invokes the platform",
+	"// dependenciesMeta": [
+		"enableScripts is false in .yarnrc.yml, so dependency build/install scripts don't run",
+		"unless allowlisted here with built: true. Add an entry when introducing a native or",
+		"binary-downloading dependency — Yarn silently skips unlisted scripts, so a missing entry",
+		"surfaces as a runtime/build failure, not an install error. See AGENTS.md.",
+		"",
+		"workerd stays built: false: its postinstall runs the native binary to self-check it, which",
+		"fails on CI images without GLIBC 2.35+ (e.g. Vercel, which builds the docs site). Skipping",
+		"the build script doesn't affect wrangler at dev time — wrangler still invokes the platform",
 		"binary normally on developer machines."
 	],
 	"dependenciesMeta": {
+		"@rocicorp/zero-sqlite3": {
+			"built": true
+		},
+		"@sentry/cli": {
+			"built": true
+		},
+		"@swc/core": {
+			"built": true
+		},
+		"@typescript/native-preview": {
+			"built": true
+		},
+		"@vscode/vsce-sign": {
+			"built": true
+		},
+		"better-sqlite3": {
+			"built": true
+		},
+		"edgedriver": {
+			"built": true
+		},
+		"esbuild": {
+			"built": true
+		},
+		"geckodriver": {
+			"built": true
+		},
+		"keytar": {
+			"built": true
+		},
+		"sharp": {
+			"built": true
+		},
+		"sqlite3": {
+			"built": true
+		},
 		"workerd": {
 			"built": false
 		}
