@@ -300,6 +300,17 @@ export function setWorld(w: World) {
 	world = w
 }
 
+// The local player's color ("which side am I"). Single-player is always 'a'; the
+// multiplayer example sets it to the local role so the overlay's reach-greying is
+// computed from the right perspective (enemy = the OTHER color). Client-local.
+let viewer: Owner = 'a'
+export function setViewer(o: Owner) {
+	viewer = o
+}
+export function getViewer(): Owner {
+	return viewer
+}
+
 function pegId(c: number, r: number) {
 	return `peg:${c},${r}`
 }

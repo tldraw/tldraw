@@ -4,6 +4,7 @@ import {
 	CORE_HP,
 	CUT_FLASH_TICKS,
 	frame$,
+	getViewer,
 	getWorld,
 	GRID,
 	Owner,
@@ -237,6 +238,11 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 			const witherRgb = parseRgb(C.wither)
 			const greyRgb = parseRgb(C.ink) // muted target for out-of-reach enemy vines
 			const slicing = world.slicing
+			// Reach-greying is from the LOCAL player's perspective: while I slice, the
+			// ENEMY vines I can't reach are greyed. `viewer` is my color ('a' in single-
+			// player; the local role in multiplayer), so this reads correctly for both.
+			const viewer = getViewer()
+			const enemy: Owner = viewer === 'a' ? 'b' : 'a'
 			// Trunk emphasis grows with zoom: leaves stay ~1px at every zoom, but the
 			// fat-trunk bonus ramps up as you zoom in (where you actually cut), so the
 			// chokes pop clearly up close while the zoomed-out mesh stays even/legible.
@@ -252,13 +258,13 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 							1 + trunkAmp * THICKNESS_SCALE * Math.log(Math.max(1, vineSubtreeSize(world, strand)))
 						)
 					: 1
-				// Contextual cue: while a cut is in progress, ENEMY ('b') vines the
+				// Contextual cue: while a cut is in progress, ENEMY vines the local
 				// player can't reach are greyed — the SAME hasPresence-at-midpoint test
 				// sliceCut refuses, so the greyed set matches the set the cut rejects.
 				let greyed = false
-				if (slicing && owner === 'b') {
+				if (slicing && owner === enemy) {
 					const m = strand.points[(strand.points.length / 2) | 0]
-					greyed = !hasPresence(world, 'a', m)
+					greyed = !hasPresence(world, viewer, m)
 				}
 				let alpha: number
 				if (owner) {

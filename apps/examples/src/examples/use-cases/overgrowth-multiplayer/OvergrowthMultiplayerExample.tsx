@@ -1,6 +1,8 @@
 import { useSyncDemo } from '@tldraw/sync'
 import { useEffect, useRef, useState } from 'react'
+import { CSSProperties } from 'react'
 import {
+	atom,
 	Box,
 	createShapeId,
 	TLAnyOverlayUtilConstructor,
@@ -11,6 +13,7 @@ import {
 	Tldraw,
 	defaultOverlayUtils,
 	useEditor,
+	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import {
@@ -23,6 +26,7 @@ import {
 	Owner,
 	publishScores,
 	resetWorld,
+	setViewer,
 	setWorld,
 	SWIPE_IDLE_MS,
 	SWIPE_SHRINK,
@@ -63,6 +67,22 @@ const overrides: TLUiOverrides = {
 const ZOOM_SPEED = 2
 const SPARK_VINE_ZOOM = 0.85
 
+// Local (client-only) UI state shared between the headless runner and the win
+// banner: the local player's role (for the banner's perspective) and whether the
+// local player has pressed "Ready" for a rematch.
+const localRole$ = atom<Owner | 'spectator'>('og-mp-role', 'spectator')
+const localReady$ = atom('og-mp-ready', false)
+
+// tldraw-native panel surface for the win banner.
+const PANEL_STYLE: CSSProperties = {
+	background: 'var(--tl-color-panel)',
+	color: 'var(--tl-color-text)',
+	border: '1px solid var(--tl-color-muted-1)',
+	borderRadius: 8,
+	boxShadow: 'var(--tl-shadow-2, 0 1px 3px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.1))',
+	fontFamily: 'var(--tl-font-ui, system-ui)',
+}
+
 // --- multiplayer wiring -----------------------------------------------------
 // State rides in shape `meta` on a useSyncDemo store (same pattern as the 3D
 // shooter example). The WORLD shape is owned by the host and carries the
@@ -88,6 +108,7 @@ interface PlayerMeta {
 	role: Owner | 'spectator'
 	seen: number
 	cuts: CutSeg[]
+	ready: boolean // pressed "Ready" for a rematch after a win
 }
 
 function boardBounds() {
@@ -157,6 +178,7 @@ function GameRunner({ clientId }: { clientId: string }) {
 			role: roleRef.current,
 			seen: Date.now(),
 			cuts: pendingCuts.slice(-64), // rolling window
+			ready: localReady$.get(),
 		})
 
 		// Read all present player shapes → assign roles → decide host. Roles are
@@ -169,10 +191,45 @@ function GameRunner({ clientId }: { clientId: string }) {
 			}
 			players.sort((p, q) => (p.clientId < q.clientId ? -1 : 1))
 			const meIdx = players.findIndex((p) => p.clientId === clientId)
-			roleRef.current = meIdx === 0 ? 'a' : meIdx === 1 ? 'b' : 'spectator'
+			const role = meIdx === 0 ? 'a' : meIdx === 1 ? 'b' : 'spectator'
+			roleRef.current = role
+			localRole$.set(role)
+			// Tell the overlay which side "we" are, so its reach-greying is computed
+			// from our perspective (enemy = the other color).
+			if (role === 'a' || role === 'b') setViewer(role)
 			// Host = the player assigned 'a' (lowest id present). If that's us, sim.
 			isHostRef.current = players.length > 0 && players[0].clientId === clientId
 			return players
+		}
+
+		// All active (non-spectator) players have pressed Ready.
+		const allReady = (players: PlayerMeta[]) => {
+			const active = players.filter((p) => p.role === 'a' || p.role === 'b')
+			return active.length > 0 && active.every((p) => p.ready)
+		}
+
+		// Sparks (decoration) for whatever world we're showing — the host's sim world
+		// or the guest's reconstructed one. Stable strand ids (see net.ts) let the
+		// guest's sparks persist across snapshot rebuilds.
+		const stepLocalSparks = () => {
+			const world = getWorld()
+			const zoom = editor.getZoomLevel()
+			let want = 0
+			const visible = new Set<string>()
+			if (zoom >= SPARK_VINE_ZOOM) {
+				const vp = editor.getViewportPageBounds()
+				const c0 = Math.floor((vp.minX - GRID.x0) / GRID.spacing) - 1
+				const c1 = Math.ceil((vp.maxX - GRID.x0) / GRID.spacing) + 1
+				const r0 = Math.floor((vp.minY - GRID.y0) / GRID.spacing) - 1
+				const r1 = Math.ceil((vp.maxY - GRID.y0) / GRID.spacing) + 1
+				for (const s of world.strands) {
+					const c = s.cell % GRID.cols
+					const r = (s.cell / GRID.cols) | 0
+					if (c >= c0 && c <= c1 && r >= r0 && r <= r1) visible.add(s.id)
+				}
+				want = Math.min(SPARK_POOL, Math.round(visible.size * 0.5 * Math.min(2, zoom)))
+			}
+			stepSparks(world, visible, want)
 		}
 
 		// Host: drain queued cut segments from every player shape and apply them.
@@ -208,14 +265,18 @@ function GameRunner({ clientId }: { clientId: string }) {
 		}
 
 		let lastSnapTick = -1 // guest: last snapshot tick we ingested
+		let readySent = false // whether our last-written meta carried ready=true
+		let prevWinner = false // to detect a new game starting (winner cleared)
 
 		const onTick = () => {
 			const now = Date.now()
 			const players = refreshRoom(now)
 
-			// Heartbeat (also flushes our queued cut segments to the room).
-			if (now - lastHeartbeat > HEARTBEAT_MS || pendingCuts.length) {
+			// Heartbeat — also flushes queued cut segments and ready-state changes.
+			const ready = localReady$.get()
+			if (now - lastHeartbeat > HEARTBEAT_MS || pendingCuts.length || ready !== readySent) {
 				lastHeartbeat = now
+				readySent = ready
 				writeMeta(myMeta())
 				if (pendingCuts.length > 128) pendingCuts = pendingCuts.slice(-64)
 			}
@@ -223,45 +284,48 @@ function GameRunner({ clientId }: { clientId: string }) {
 			if (isHostRef.current) {
 				const world = getWorld()
 				applyRemoteCuts(players)
-				stepSim(world)
-
-				// Sparks (host-local decoration), zoom-scaled like single-player.
-				const zoom = editor.getZoomLevel()
-				let want = 0
-				const visible = new Set<string>()
-				if (zoom >= SPARK_VINE_ZOOM) {
-					const vp = editor.getViewportPageBounds()
-					const c0 = Math.floor((vp.minX - GRID.x0) / GRID.spacing) - 1
-					const c1 = Math.ceil((vp.maxX - GRID.x0) / GRID.spacing) + 1
-					const r0 = Math.floor((vp.minY - GRID.y0) / GRID.spacing) - 1
-					const r1 = Math.ceil((vp.maxY - GRID.y0) / GRID.spacing) + 1
-					for (const s of world.strands) {
-						const c = s.cell % GRID.cols
-						const r = (s.cell / GRID.cols) | 0
-						if (c >= c0 && c <= c1 && r >= r0 && r <= r1) visible.add(s.id)
+				const hadWinner = !!world.winner
+				stepSim(world) // no-op once a winner is decided
+				publishScores(world) // mirrors world.winner → winner$
+				if (!hadWinner && world.winner) {
+					writeSnapshot() // game just ended — publish the result immediately
+				} else if (world.winner) {
+					// Game over: start a fresh game once every active player is ready.
+					if (allReady(players)) {
+						resetWorld()
+						localReady$.set(false)
+						writeSnapshot()
 					}
-					want = Math.min(SPARK_POOL, Math.round(visible.size * 0.5 * Math.min(2, zoom)))
+				} else if (world.tick % GROWTH_PULSE_INTERVAL === 0) {
+					writeSnapshot() // publish state on each growth pulse (≈4/sec)
 				}
-				stepSparks(world, visible, want)
-
-				publishScores(world)
-				// Publish the authoritative state on each growth pulse (≈4/sec).
-				if (world.tick % GROWTH_PULSE_INTERVAL === 0) writeSnapshot()
-				frame$.set(frame$.get() + 1)
 			} else {
 				// Guest: ingest the latest snapshot if it changed, rebuild the world.
 				const ws = editor.getShape(WORLD_SHAPE)
 				const snap = ws?.meta as unknown as WorldSnapshot | undefined
 				if (snap?.v === 1 && snap.tick !== lastSnapTick) {
+					const prevSparks = getWorld().sparks
 					lastSnapTick = snap.tick
-					setWorld(deserializeWorld(snap))
+					const w = deserializeWorld(snap)
+					// Carry sparks across the rebuild — stable strand ids (net.ts) keep
+					// them valid, so the guest's motes don't reset every snapshot.
+					w.sparks = prevSparks.filter((s) => w.strandById.has(s.strandId))
+					setWorld(w)
 					winner$.set(snap.winner)
 				}
-				// Keep our local slicing cue across snapshot swaps (greys out-of-reach
-				// enemy vines while we drag), since each snapshot rebuilds the world.
+				// Keep our local slicing cue across snapshot swaps.
 				getWorld().slicing = slicing
-				frame$.set(frame$.get() + 1)
 			}
+
+			// Sparks for whatever we're showing (host sim world or guest's rebuild).
+			stepLocalSparks()
+
+			// When a new game starts (winner cleared), drop our local ready flag.
+			const nowWinner = !!getWorld().winner
+			if (prevWinner && !nowWinner) localReady$.set(false)
+			prevWinner = nowWinner
+
+			frame$.set(frame$.get() + 1)
 		}
 		editor.on('tick', onTick)
 
@@ -369,6 +433,8 @@ function GameRunner({ clientId }: { clientId: string }) {
 		const onPointerDown = (e: PointerEvent) => {
 			if (e.button !== 0 || spaceHeld) return
 			if (roleRef.current === 'spectator') return
+			// Don't start a cut when clicking our own HUD (e.g. the rematch button).
+			if ((e.target as HTMLElement)?.closest?.('[data-og-ui]')) return
 			const p = toPage(e)
 			pointerDown = true
 			window.addEventListener('pointermove', onPointerMove, true)
@@ -440,6 +506,60 @@ function GameRunner({ clientId }: { clientId: string }) {
 	return null
 }
 
+// Win banner + rematch handshake. Shown once a core falls; both players press
+// "Ready" and the host starts a fresh game.
+function WinBanner() {
+	const winner = useValue('winner', () => winner$.get(), [])
+	const role = useValue('role', () => localRole$.get(), [])
+	const ready = useValue('ready', () => localReady$.get(), [])
+	if (!winner) return null
+	const playing = role === 'a' || role === 'b'
+	const label = playing
+		? winner === role
+			? 'You won'
+			: 'You lost'
+		: `${winner === 'a' ? 'Blue' : 'Orange'} won`
+	return (
+		<div
+			data-og-ui
+			style={{
+				position: 'absolute',
+				top: '50%',
+				left: '50%',
+				transform: 'translate(-50%, -50%)',
+				zIndex: 1001,
+				pointerEvents: 'none',
+				display: 'flex',
+				flexDirection: 'column',
+				alignItems: 'center',
+				gap: 10,
+				textAlign: 'center',
+			}}
+		>
+			<div style={{ ...PANEL_STYLE, padding: '12px 22px', fontSize: 22, fontWeight: 600 }}>
+				{label}
+			</div>
+			{playing && (
+				<button
+					onClick={() => localReady$.set(true)}
+					disabled={ready}
+					style={{
+						...PANEL_STYLE,
+						pointerEvents: 'auto',
+						padding: '8px 16px',
+						fontSize: 14,
+						fontWeight: 500,
+						cursor: ready ? 'default' : 'pointer',
+						opacity: ready ? 0.7 : 1,
+					}}
+				>
+					{ready ? 'Waiting for opponent…' : 'Ready for a rematch'}
+				</button>
+			)}
+		</div>
+	)
+}
+
 export default function OvergrowthMultiplayerExample({
 	roomId = 'tldraw-overgrowth',
 }: {
@@ -463,6 +583,7 @@ export default function OvergrowthMultiplayerExample({
 				overrides={overrides}
 			>
 				<GameRunner clientId={clientId} />
+				<WinBanner />
 			</Tldraw>
 		</div>
 	)

@@ -15,8 +15,61 @@
 // 80×80 = 6400 cells → ~6.4 KB raw, base64 in the shape meta, rewritten only on
 // growth pulses / cuts (a few times a second), not every frame.
 // ============================================================================
-import { CLAIM_CHARGE, GRID, makeStrand, Owner, Peg, Strand, World } from '../overgrowth/game-state'
+import {
+	cellOf,
+	CLAIM_CHARGE,
+	GRID,
+	Owner,
+	Peg,
+	Point,
+	Strand,
+	VINE_WIGGLE,
+	World,
+} from '../overgrowth/game-state'
 import { computeSubtreeSizes } from '../overgrowth/sim'
+
+// Deterministic [0,1) from an integer seed — so the guest rebuilds the SAME vine
+// geometry from every snapshot (the sim's makeStrand uses Math.random, which would
+// make a guest's vines jitter on each rebuild).
+function rand01(seed: number): number {
+	const x = Math.sin(seed * 12.9898) * 43758.5453
+	return x - Math.floor(x)
+}
+
+// Like game-state's makeStrand, but with a seeded wiggle and a STABLE id derived
+// from the edge's endpoints — so geometry doesn't shake and sparks (which key off
+// strand id) survive each snapshot rebuild.
+function makeStableStrand(a: Peg, b: Peg, owner: Owner | null): Strand {
+	const segs = 4
+	const dx = b.x - a.x
+	const dy = b.y - a.y
+	const len = Math.hypot(dx, dy) || 1
+	const nx = -dy / len
+	const ny = dx / len
+	const seed = (a.row * GRID.cols + a.col) * 100003 + (b.row * GRID.cols + b.col)
+	const points: Point[] = []
+	for (let i = 0; i <= segs; i++) {
+		const tt = i / segs
+		let x = a.x + dx * tt
+		let y = a.y + dy * tt
+		if (i !== 0 && i !== segs) {
+			const w = Math.sin(tt * Math.PI) * (rand01(seed + i * 7) - 0.5) * 2 * VINE_WIGGLE
+			x += nx * w
+			y += ny * w
+		}
+		points.push({ x, y, ox: x, oy: y, pinned: i === 0 || i === segs })
+	}
+	const mx = (a.x + b.x) / 2
+	const my = (a.y + b.y) / 2
+	return {
+		id: `vine:${a.col},${a.row}>${b.col},${b.row}`,
+		points,
+		owner,
+		aId: a.id,
+		bId: b.id,
+		cell: cellOf(mx, my),
+	}
+}
 
 // 8-neighbour offsets; index i → parentDir code (i + 1). 0 means "no parent".
 const DIRS: Array<[number, number]> = [
@@ -152,7 +205,7 @@ export function deserializeWorld(snap: WorldSnapshot): World {
 			child.parent = parent.id
 			child.adj.add(parent.id)
 			parent.adj.add(child.id)
-			const s = makeStrand(parent, child, child.owner)
+			const s = makeStableStrand(parent, child, child.owner)
 			strands.push(s)
 			strandById.set(s.id, s)
 		}
