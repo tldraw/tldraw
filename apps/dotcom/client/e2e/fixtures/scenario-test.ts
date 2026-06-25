@@ -599,7 +599,6 @@ class DotcomScenario {
 	async ensureGroupsReady(actor: DotcomActor) {
 		if (!actor.email) throw new Error(`Actor ${actor.name} is not signed in`)
 
-		await this.database.ensureGroupsReadyByEmail(actor.email)
 		await actor.goto()
 		await actor.editor.ensureSidebarOpen()
 	}
