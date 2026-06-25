@@ -15,7 +15,8 @@ processes:
         command: node -e "require('net').connect(6543,'127.0.0.1').on('connect',function(){this.end();process.exit(0)}).on('error',()=>process.exit(1))"
       initial_delay_seconds: 2
       period_seconds: 2
-      failure_threshold: 30
+      # ~180s budget: the first run pulls the postgres image, which can take minutes.
+      failure_threshold: 90
 
   # zero needs .schema.js: build it once, then watch for changes
   bundle-schema:
