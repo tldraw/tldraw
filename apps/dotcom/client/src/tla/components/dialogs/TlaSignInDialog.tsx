@@ -13,15 +13,13 @@ import {
 } from 'tldraw'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { setRedirectOnSignIn } from '../../utils/redirect'
+import { ExternalLink } from '../ExternalLink/ExternalLink'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import styles from './auth.module.css'
 
 const messages = defineMessages({
 	enterEmailAddress: { defaultMessage: 'Enter your email address' },
-	inviteMessage: {
-		defaultMessage: 'You have been invited to join <strong>{workspaceName}</strong>',
-	},
 })
 
 export function TlaSignInDialog({
@@ -197,19 +195,16 @@ function TlaEnterEmailStep({
 				{inviteInfo ? (
 					<>
 						<F
-							{...messages.inviteMessage}
+							defaultMessage="You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
 							values={{
 								workspaceName: inviteInfo.workspaceName,
 								strong: (chunks) => <strong>{chunks}</strong>,
 							}}
 						/>
-						<br />
-						<br />
-						<F defaultMessage="Create a free account to save your files, create workspaces, and invite your teammates." />
 					</>
 				) : (
 					<>
-						<F defaultMessage="Create a free account to save your files, create workspaces, and invite your teammates." />
+						<F defaultMessage="Create a free account to save your files and tldraw with your teammates." />
 					</>
 				)}
 			</div>
@@ -272,14 +267,14 @@ function TlaEnterEmailStep({
 				</TlaCtaButton>
 
 				<p className={styles.authTermsOfUse}>
-					<a href="/tos.html" target="_blank" rel="noopener noreferrer">
+					<ExternalLink to="/tos.html">
 						<F defaultMessage="Terms of Use" />
-					</a>
+					</ExternalLink>
 					{/* eslint-disable-next-line tldraw/jsx-no-literals */}
 					{' · '}
-					<a href="/privacy.html" target="_blank" rel="noopener noreferrer">
+					<ExternalLink to="/privacy.html">
 						<F defaultMessage="Privacy Policy" />
-					</a>
+					</ExternalLink>
 				</p>
 			</form>
 		</>

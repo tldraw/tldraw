@@ -1693,8 +1693,17 @@ tldraw? probably.
 	height: 100%;
 	z-index: var(--tl-layer-canvas-overlays);
 	background-color: var(--tl-color-overlay);
-	pointer-events: all;
 	animation: tl-fade-in 0.12s ease-out;
+}
+
+.tlui-dialog__positioner {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: var(--tl-layer-canvas-overlays);
+	pointer-events: all;
 	display: grid;
 	place-items: center;
 	overflow-y: auto;

@@ -534,6 +534,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     getDefaultProps(): TLBookmarkShape['props'];
     // (undocumented)
+    getGeometry(shape: TLBookmarkShape): Rectangle2d;
+    // (undocumented)
     getIndicatorPath(shape: TLBookmarkShape): Path2D;
     // (undocumented)
     getInterpolatedProps(startShape: TLBookmarkShape, endShape: TLBookmarkShape, t: number): TLBookmarkShapeProps;
@@ -1131,7 +1133,7 @@ export { DefaultContextMenu as ContextMenu }
 export { DefaultContextMenu }
 
 // @public (undocumented)
-export function DefaultContextMenuContent(): JSX.Element | null;
+export function DefaultContextMenuContent(): JSX.Element;
 
 // @public (undocumented)
 export function DefaultDebugMenu({ children }: TLUiDebugMenuProps): JSX.Element;
@@ -2894,7 +2896,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             };
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            textFirstEditedBy: null | string;
+            textLastEditedBy: null | string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
         };
@@ -2973,6 +2975,7 @@ export function onDragFromToolbarToCreateShape(editor: Editor, info: TLPointerEv
 // @public
 export interface OnDragFromToolbarToCreateShapesOpts {
     createShape(id: TLShapeId): void;
+    maskedToolId?: string;
     onDragEnd?(id: TLShapeId): void;
 }
 
@@ -3460,9 +3463,6 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
-// @public (undocumented)
-export function setStrokePointRadii(strokePoints: StrokePoint[], options: StrokeOptions): StrokePoint[];
-
 // @public
 export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
     // (undocumented)
@@ -3584,8 +3584,6 @@ export interface StrokePoint {
     radius: number;
     // (undocumented)
     runningLength: number;
-    // (undocumented)
-    vector: Vec;
 }
 
 // @public (undocumented)
@@ -4244,7 +4242,7 @@ export function TldrawUiDialogTitle({ className, children, style }: TLUiDialogTi
 export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, children }: TLUiDropdownMenuContentProps): JSX.Element;
+export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, collisionPadding, children }: TLUiDropdownMenuContentProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownMenuGroupProps): JSX.Element;
@@ -4337,7 +4335,7 @@ export interface TldrawUiOrientationProviderProps {
 export function TldrawUiPopover({ id, children, onOpenChange, open, className }: TLUiPopoverProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, disableEscapeKeyDown, autoFocusFirstButton }: TLUiPopoverContentProps): JSX.Element;
+export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, collisionPadding, disableEscapeKeyDown, autoFocusFirstButton }: TLUiPopoverContentProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX.Element;
@@ -4881,6 +4879,8 @@ export interface TLUiDropdownMenuContentProps {
     children: ReactNode;
     // (undocumented)
     className?: string;
+    // (undocumented)
+    collisionPadding?: number;
     // (undocumented)
     id?: string;
     // (undocumented)
@@ -5502,6 +5502,7 @@ export interface TLUiPopoverContentProps {
     autoFocusFirstButton?: boolean;
     // (undocumented)
     children: React_3.ReactNode;
+    collisionPadding?: number;
     // (undocumented)
     disableEscapeKeyDown?: boolean;
     // (undocumented)

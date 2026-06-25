@@ -12,24 +12,16 @@ import { expect, test } from '../../fixtures/tla-test'
 test.describe('workspaces', () => {
 	test.beforeEach(async ({ database, editor }) => {
 		await database.migrateUser()
-		await database.enableGroupsFrontend()
 		await editor.isLoaded()
 		await editor.ensureSidebarOpen()
 	})
 
 	test.describe('basic operations', () => {
-		test('create workspace button is only shown when there are no workspaces', async ({
-			page,
-			sidebar,
-		}) => {
-			await expect(sidebar.createWorkspaceButton).toBeVisible()
-
+		test('a workspace can be created from the switcher dropdown', async ({ page, sidebar }) => {
 			const workspaceName = getRandomName()
 			await sidebar.createWorkspace(workspaceName)
 
-			await expect(sidebar.createWorkspaceButton).not.toBeVisible()
-
-			// creating is still available from the workspace switcher dropdown
+			// creating remains available from the workspace switcher dropdown
 			await sidebar.openWorkspaceSwitcher()
 			await expect(page.getByTestId('tla-create-workspace-menu-item')).toBeVisible()
 			await page.keyboard.press('Escape')
@@ -68,6 +60,123 @@ test.describe('workspaces', () => {
 			await page.waitForURL(/[?&]d=/, { timeout: 15000 })
 			await sidebar.expectActiveHomeWorkspace()
 			await expect(homeItem).toBeVisible()
+		})
+
+		test('clicking a file while the switcher is open closes it and opens that file', async ({
+			page,
+			sidebar,
+		}) => {
+			const file1 = getRandomName()
+			const file2 = getRandomName()
+			const file3 = getRandomName()
+
+			await sidebar.createNewDocument(file1)
+			await sidebar.createNewDocument(file2)
+			await sidebar.createNewDocument(file3)
+			await sidebar.expectFileActive(file3)
+
+			await sidebar.openWorkspaceSwitcher()
+			const homeItem = page.getByTestId('tla-workspace-switcher-home')
+			await expect(homeItem).toBeVisible()
+
+			// Clicking a file link while the switcher is open should both dismiss the switcher
+			// and open that file — letting the click fall through to the sidebar is intended.
+			const menuBox = await page.locator('[role="menu"]').boundingBox()
+			if (!menuBox) throw new Error('Missing workspace switcher menu')
+
+			const target = await page.evaluate((menuBottom) => {
+				const links = Array.from(
+					document.querySelectorAll<HTMLElement>('[data-element="file-link"]')
+				)
+				for (const link of links) {
+					if (link.dataset.active === 'true') continue
+					const rect = link.getBoundingClientRect()
+					// Pick a link below the open menu so the click lands on the link, not the menu.
+					if (rect.top < menuBottom) continue
+					return {
+						name: link.querySelector('[data-testid*="-name"]')?.textContent?.trim() ?? '',
+						x: rect.left + rect.width / 2,
+						y: rect.top + rect.height / 2,
+					}
+				}
+
+				throw new Error('Could not find a non-active file link below the switcher menu')
+			}, menuBox.y + menuBox.height)
+
+			await page.mouse.click(target.x, target.y)
+
+			await expect(homeItem).toBeHidden()
+			await sidebar.expectFileActive(target.name)
+		})
+
+		test('closing the mobile sidebar closes open sidebar menus', async ({ page, sidebar }) => {
+			const fileName = getRandomName()
+			await sidebar.createNewDocument(fileName)
+
+			await page.setViewportSize({ width: 390, height: 844 })
+
+			const mobileToggle = page.getByTestId('tla-sidebar-toggle-mobile')
+			const mobileOverlay = page.getByTestId('tla-sidebar-overlay-mobile')
+			const closeMobileSidebar = async () => {
+				await mobileOverlay.click({ position: { x: 380, y: 422 } })
+				await expect(mobileOverlay).toBeHidden()
+			}
+
+			await expect(mobileToggle).toBeVisible()
+			await mobileToggle.click()
+			await expect(mobileOverlay).toBeVisible()
+
+			// The sidebar only CSS-hides (it doesn't unmount), so an open menu would otherwise
+			// stay open behind it. Closing the mobile sidebar must close the workspace switcher...
+			await sidebar.openWorkspaceSwitcher()
+			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeVisible()
+			await closeMobileSidebar()
+			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeHidden()
+
+			// ...and a file's context menu.
+			await mobileToggle.click()
+			await expect(mobileOverlay).toBeVisible()
+
+			const fileLink = sidebar.getFileByName(fileName)
+			await fileLink.hover()
+			await fileLink.getByRole('button').click()
+			await expect(page.getByRole('menuitem', { name: 'Rename' })).toBeVisible()
+
+			await closeMobileSidebar()
+			await expect(page.getByRole('menuitem', { name: 'Rename' })).toBeHidden()
+		})
+
+		test('clicking the canvas closes the workspace switcher without reaching the canvas', async ({
+			page,
+			sidebar,
+		}) => {
+			const shapeId = await page.evaluate(() => {
+				const editor = (window as any).editor
+				editor.createShapes([
+					{
+						type: 'geo',
+						x: 100,
+						y: 100,
+						props: { geo: 'rectangle', w: 100, h: 100 },
+					},
+				])
+				const shape = editor.getCurrentPageShapes()[0]
+				editor.select(shape.id)
+				return shape.id
+			})
+
+			await sidebar.openWorkspaceSwitcher()
+			const homeItem = page.getByTestId('tla-workspace-switcher-home')
+			await expect(homeItem).toBeVisible()
+
+			await page.mouse.click(600, 300)
+			await expect(homeItem).toBeHidden()
+			expect(
+				await page.evaluate(() => {
+					const editor = (window as any).editor
+					return editor.getSelectedShapeIds()
+				})
+			).toEqual([shapeId])
 		})
 
 		test('create file button creates in the active workspace', async ({ sidebar }) => {

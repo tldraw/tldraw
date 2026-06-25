@@ -7,9 +7,9 @@ import {
 	TLShapeId,
 	Vec,
 	areArraysShallowEqual,
-	b64Vecs,
 	pointInPolygon,
 } from '@tldraw/editor'
+import { getPointsFromDrawSegments } from '../../shapes/draw/getPath'
 import { Drawing } from '../../shapes/draw/toolStates/Drawing'
 import {
 	MAGIC_WAND_INKING_CLASS,
@@ -190,10 +190,13 @@ export class MagicWandDrawing extends Drawing {
 		for (const stroke of strokeShapes) {
 			const transform = this.editor.getShapePageTransform(stroke.id)
 			if (!transform) continue
-			for (const segment of stroke.props.segments) {
-				for (const point of b64Vecs.decodePoints(segment.path)) {
-					polygon.push(Mat.applyToPoint(transform, point))
-				}
+			const points = getPointsFromDrawSegments(
+				stroke.props.segments,
+				stroke.props.scaleX,
+				stroke.props.scaleY
+			)
+			for (const point of points) {
+				polygon.push(Mat.applyToPoint(transform, point))
 			}
 		}
 		if (polygon.length < 3) return []

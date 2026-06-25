@@ -5,6 +5,9 @@
   "0095a9fa74": {
     "translation": "Viedä"
   },
+  "00b177e080": {
+    "translation": "Hyväksy kutsu"
+  },
   "03b3e13197": {
     "translation": "Vedä tiedosto tämän sivun sivupalkkiin. Tai valitse käyttäjävalikosta vaihtoehto Tuo tiedosto."
   },
@@ -47,14 +50,14 @@
   "1063e38cb5": {
     "translation": "Poistaa"
   },
+  "10fb1df194": {
+    "translation": "Kopioi henkilökohtaiseen työtilaan"
+  },
   "110a4b01be": {
     "translation": "Julkaista"
   },
   "12a6766ba1": {
     "translation": "Irrota tiedosto"
-  },
-  "12c8a9838c": {
-    "translation": "Kokeile tldraw SDK:ta"
   },
   "13ddd375ad": {
     "translation": "Vie nimellä"
@@ -62,17 +65,20 @@
   "181b90f889": {
     "translation": "Luo tiedosto"
   },
-  "1d2591253e": {
-    "translation": "Työtilan asetukset"
-  },
   "1da2e8106b": {
     "translation": "Tapahtui odottamaton virhe."
   },
   "1dd1c5fb7f": {
     "translation": "Tänään"
   },
+  "1ffd709937": {
+    "translation": "Työtilalla on oltava vähintään yksi omistaja. Tee ensin omistajaksi joku muu."
+  },
   "21f66c9c00": {
     "translation": "Työtilan nimi"
+  },
+  "23dcace54a": {
+    "translation": "Sinut on kutsuttu liittymään työtilaan <strong>{workspaceName}</strong>. Luo ilmainen tili jatkaaksesi."
   },
   "250ddea65c": {
     "translation": "Tietoja tldraw'sta"
@@ -80,11 +86,20 @@
   "299cb00a7a": {
     "translation": "Lataus epäonnistui"
   },
-  "2c3ef76333": {
-    "translation": "Omat tiedostoni"
+  "2a1167f869": {
+    "translation": "Tervetuloa työtilaasi"
+  },
+  "2a37324bb4": {
+    "translation": "Haku..."
+  },
+  "2de510be71": {
+    "translation": "Uudelleenluonti korvaa nykyisen kutsulinkin uudella. Kaikki vanhaa linkkiä käyttävät tarvitsevat uuden liittyäkseen."
   },
   "2e2b3c700b": {
     "translation": "Sisällytä linkki nykyiseen tiedostoon"
+  },
+  "2e9856a31e": {
+    "translation": "Luo kutsulinkki uudelleen"
   },
   "31246941ad": {
     "translation": "Sinun on kirjauduttava sisään nähdäksesi tämän tiedoston."
@@ -100,6 +115,9 @@
   },
   "344a7f427f": {
     "translation": "Toimittaja"
+  },
+  "34e34c43ec": {
+    "translation": "Hallitse"
   },
   "375396d6e5": {
     "translation": "Poista jäsen"
@@ -125,9 +143,6 @@
   "42e53c47c1": {
     "translation": "Pyydä käyttöoikeutta ottamalla yhteyttä omistajaan."
   },
-  "44680c1fa7": {
-    "translation": "Poistu työtilasta…"
-  },
   "44db318ee5": {
     "translation": "Hanki apua Discordissa"
   },
@@ -142,6 +157,9 @@
   },
   "47f493a590": {
     "translation": "Kiinnitä tiedosto"
+  },
+  "4908687e50": {
+    "translation": "Haluatko varmasti unohtaa tämän tiedoston?"
   },
   "49ee308734": {
     "translation": "Nimi"
@@ -158,6 +176,9 @@
   "50db1b7e1e": {
     "translation": "Tiedoston julkaisua ei voi peruuttaa."
   },
+  "51317dcad5": {
+    "translation": "Tämä on yksityinen työtilasi. Luo uusi työtila kutsuaksesi tiimikavereita."
+  },
   "517bb809d9": {
     "translation": "Sivuvalikko"
   },
@@ -173,6 +194,9 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5638176be5": {
+    "translation": "Luo työtila"
+  },
   "5677e381d2": {
     "translation": "Käytämme analytiikkaevästeitä parantaaksemme tldraw'ta."
   },
@@ -187,9 +211,6 @@
   },
   "5bff3c9c88": {
     "translation": "Työtilani"
-  },
-  "5c6fe42bc2": {
-    "translation": "Peruuta tämä linkki ja luo uusi."
   },
   "5d04a002ea": {
     "translation": "Yhteyden muodostaminen epäonnistui"
@@ -221,6 +242,9 @@
   "6637a98151": {
     "translation": "Uusi versio tldraw:sta on saatavilla. Jatka lataamalla sivu uudelleen."
   },
+  "681e10aecb": {
+    "translation": "Uusi tiedosto"
+  },
   "6832ac5936": {
     "translation": "Anna sähköpostiosoitteesi"
   },
@@ -248,6 +272,9 @@
   "7408cf0d7b": {
     "translation": "Lataa sivu uudelleen"
   },
+  "74ff4bad28": {
+    "translation": "Ei tiedostoja löytynyt"
+  },
   "752b79f137": {
     "translation": "Olet saavuttanut tiedostojen enimmäismäärän. Sinun on poistettava vanhat tiedostot ennen uusien luomista."
   },
@@ -262,12 +289,6 @@
   },
   "764671e008": {
     "translation": "Keskustele kanssamme Discordissa"
-  },
-  "4908687e50": {
-    "translation": "Haluatko varmasti unohtaa tämän tiedoston?"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw on ilmainen verkkopohjainen valkotaulu. Luo tili tallentaaksesi tiedostosi ja työskennelläksesi ystäviesi kanssa."
   },
   "777f9e90cf": {
     "translation": "Virheellinen pyyntö."
@@ -305,6 +326,9 @@
   "801ab24683": {
     "translation": "Lataa"
   },
+  "8030793ce3": {
+    "translation": "Uusi työtila"
+  },
   "815e116a2e": {
     "translation": "Onko sinulla bugi, ongelma tai idea tldraw'hun liittyen? Kerro meille! Täytä tämä lomake, niin otamme sinuun tarvittaessa yhteyttä sähköpostitse. Voit myös <discord>chattailla kanssamme Discordissa</discord> tai <github>lähettää ongelman GitHubissa</github>."
   },
@@ -326,14 +350,8 @@
   "88bf6ab42c": {
     "translation": "Tämä kutsulinkki on vanhentunut"
   },
-  "8ad4303b83": {
-    "translation": "Ei kiitos"
-  },
   "8c2d3d730c": {
     "translation": "Tarkista sähköpostistasi vahvistuskoodi."
-  },
-  "8cf04a9734": {
-    "translation": "Kotiin"
   },
   "8eb2c00e96": {
     "translation": "Jaettu kanssasi"
@@ -347,14 +365,8 @@
   "904a830405": {
     "translation": "Nimeä uudelleen"
   },
-  "91e49bb0eb": {
-    "translation": "Kopioi tiedostoihini"
-  },
   "95aacd4d4a": {
     "translation": "Kirjaudu sisään Googlella"
-  },
-  "95b56f4cd6": {
-    "translation": "Poista työtila…"
   },
   "95d2109dc8": {
     "translation": "Rakenna tldraw SDK:lla"
@@ -367,6 +379,9 @@
   },
   "9914a0ce04": {
     "translation": "Kevyt"
+  },
+  "9983381c21": {
+    "translation": "Tyhjennä haku"
   },
   "9b33f5c63c": {
     "translation": "Etkö saanut koodia? <resend>Lähetä uudelleen</resend>."
@@ -385,6 +400,9 @@
   },
   "9e93c98d88": {
     "translation": "Poista käytöstä"
+  },
+  "a078644c42": {
+    "translation": "Sinut on kutsuttu liittymään työtilaan <strong>{workspaceName}</strong>."
   },
   "a0da245992": {
     "translation": "Vie sisältö .tldr-tiedostona: Valitse vasemman yläkulman valikosta \"Lataa\"."
@@ -406,6 +424,9 @@
   },
   "a4d3b161ce": {
     "translation": "Lähetä"
+  },
+  "a52945dbe2": {
+    "translation": "Poistu"
   },
   "a6cc403d56": {
     "translation": "Kaikki, joilla on linkki"
@@ -432,11 +453,17 @@
   "b028909917": {
     "translation": "Vieraskäyttäjä"
   },
+  "b2326c3a34": {
+    "translation": "Uudelleenluo"
+  },
   "b2c3c2e30c": {
     "translation": "Tiedosto on täynnä"
   },
   "b357b524e7": {
     "translation": "Sähköpostiosoite"
+  },
+  "b48becc771": {
+    "translation": "Ota kutsut käyttöön"
   },
   "b6d4223e60": {
     "translation": "Kirjaudu sisään"
@@ -450,11 +477,17 @@
   "ba0318cb81": {
     "translation": "Kirjaudu sisään jakaaksesi"
   },
+  "bbaaf8b6bf": {
+    "translation": "Kutsut on poistettu käytöstä"
+  },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Ladataan .tldr-tiedostoa…} other {Ladataan {uploaded} / {total} .tldr-tiedostosta…}}"
   },
   "bc88b0e89e": {
     "translation": "Jakaja {ownerName}"
+  },
+  "c17466812d": {
+    "translation": "Hallitse työtilaa"
   },
   "c2276c9127": {
     "translation": "Lisätietoja jakamisesta."
@@ -474,17 +507,14 @@
   "c6a00f137b": {
     "translation": "Kutsu"
   },
-  "c7d7403714": {
-    "translation": "Uusi hallitus"
+  "c6f16003f2": {
+    "translation": "Kopioi työtilaani"
   },
   "c87aacf567": {
     "translation": "Kirjaudu ulos"
   },
   "c8a59e7135": {
     "translation": "Hylkää"
-  },
-  "c9cc8cce24": {
-    "translation": "Tallentaa"
   },
   "cceaefbc20": {
     "translation": "Jaa tämä tiedosto"
@@ -534,9 +564,6 @@
   "e0aa021e21": {
     "translation": "OK"
   },
-  "e0c88179b3": {
-    "translation": "Kutsu jäseniä"
-  },
   "e2198d6228": {
     "translation": "Kopioi kutsulinkki"
   },
@@ -546,17 +573,8 @@
   "e404559826": {
     "translation": "Palveluehdot"
   },
-  "e615d52512": {
-    "translation": "Hyväksy ja liity työtilaan"
-  },
   "e81c4e4f2b": {
     "translation": "tai"
-  },
-  "e9e0f16850": {
-    "translation": "Sinut on kutsuttu liittymään työtilaan:"
-  },
-  "ea0626ac5a": {
-    "translation": "Vaara-alue"
   },
   "ea4788705e": {
     "translation": "Peruuttaa"
@@ -620,6 +638,9 @@
   },
   "ff2fefd3c6": {
     "translation": "Haluatko varmasti poistaa {name}:n tästä työtilasta?"
+  },
+  "ff52811b98": {
+    "translation": "Luo ilmainen tili tallentaaksesi tiedostosi ja piirtääksesi tiimikavereidesi kanssa."
   },
   "ffcd73e997": {
     "translation": "Tuo tiedosto…"

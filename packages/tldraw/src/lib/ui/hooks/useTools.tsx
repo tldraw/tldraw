@@ -377,6 +377,12 @@ export interface OnDragFromToolbarToCreateShapesOpts {
 	 * Called once the drag interaction has finished.
 	 */
 	onDragEnd?(id: TLShapeId): void
+	/**
+	 * The id of the toolbar tool to keep highlighted while dragging. Defaults to the created shape's
+	 * type. Set this when the dragged shape's type differs from the tool it's dragged from — for
+	 * example, dragging a `draw` shape out from the select tool.
+	 */
+	maskedToolId?: string
 }
 
 /**
@@ -415,5 +421,5 @@ export function onDragFromToolbarToCreateShape(
 		},
 	})
 
-	editor.getCurrentTool().setCurrentToolIdMask(shape.type)
+	editor.getCurrentTool().setCurrentToolIdMask(opts.maskedToolId ?? shape.type)
 }
