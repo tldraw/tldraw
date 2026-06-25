@@ -5120,6 +5120,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.query.records('asset')
 	}
 
+	/** @internal */
+	@computed private _getAllShapesQuery() {
+		return this.store.query.records('shape')
+	}
+
 	/**
 	 * Get all assets in the editor.
 	 *
@@ -5206,6 +5211,48 @@ export class Editor extends EventEmitter<TLEventMap> {
 			{ history: 'ignore' }
 		)
 		return this
+	}
+
+	/**
+	 * Get the ids of all assets (image, video, or bookmark) not referenced by any
+	 * shape on any page. Deleting a shape does not delete its asset, so these
+	 * orphans accumulate and inflate the document over time. Remove them with
+	 * {@link Editor.pruneUnusedAssets}.
+	 *
+	 * @public
+	 */
+	getUnusedAssetIds(): TLAssetId[] {
+		const usedAssetIds = new Set<TLAssetId>()
+		for (const shape of this._getAllShapesQuery().get()) {
+			if ('assetId' in shape.props && shape.props.assetId) {
+				usedAssetIds.add(shape.props.assetId)
+			}
+		}
+		return this.getAssets()
+			.filter((asset) => !usedAssetIds.has(asset.id))
+			.map((asset) => asset.id)
+	}
+
+	/**
+	 * Delete all assets not referenced by any shape on any page (see
+	 * {@link Editor.getUnusedAssetIds}), reclaiming the space they take in the
+	 * document. An external {@link @tldraw/tlschema#TLAssetStore | asset store}'s
+	 * `remove` is also called, but not awaited.
+	 *
+	 * This is not undoable, so only prune where a removed asset can't be needed
+	 * again — typically just after loading or before saving, and not while an
+	 * upload is in flight, a deletion is still undoable, or peers share the
+	 * document.
+	 *
+	 * @returns The ids of the removed assets.
+	 *
+	 * @public
+	 */
+	pruneUnusedAssets(): TLAssetId[] {
+		if (this.getIsReadonly()) return []
+		const unusedAssetIds = this.getUnusedAssetIds()
+		this.deleteAssets(unusedAssetIds)
+		return unusedAssetIds
 	}
 
 	/**
