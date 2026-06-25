@@ -7,6 +7,7 @@ import {
 	kickoutOccludedShapes,
 } from '@tldraw/editor'
 import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
+import { GestureShapeChangeTracker } from '../../../GestureShapeChangeTracker'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
@@ -25,6 +26,11 @@ export class Cropping extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
+	private changeTracker = new GestureShapeChangeTracker(
+		this.editor,
+		(id) => id === this.snapshot.shape?.id
+	)
+
 	override onEnter(
 		info: TLPointerEventInfo & {
 			target: 'selection'
@@ -38,6 +44,10 @@ export class Cropping extends StateNode {
 		}
 		this.markId = this.editor.markHistoryStoppingPoint('cropping')
 		this.snapshot = this.createSnapshot()
+
+		// Watch for changes made to the cropping shape from outside this interaction.
+		this.changeTracker.start()
+
 		this.updateShapes()
 	}
 
@@ -66,6 +76,7 @@ export class Cropping extends StateNode {
 	}
 
 	override onExit() {
+		this.changeTracker.stop()
 		this.parent.setCurrentToolIdMask(undefined)
 	}
 
@@ -78,42 +89,52 @@ export class Cropping extends StateNode {
 	}
 
 	private updateShapes() {
-		const { shape, cursorHandleOffset } = this.snapshot
+		this.changeTracker.ignoreChanges(() => {
+			// Cropping recomputes from `snapshot + change` every update, so a change
+			// made to the shape from outside this interaction would otherwise be
+			// stomped. When the tracker has noticed such a change, re-anchor the
+			// snapshot (resetting the origin to the current pointer) before updating.
+			if (this.changeTracker.getAndClearChanged()) {
+				this.snapshot = this.createSnapshot(this.editor.inputs.getCurrentPagePoint())
+			}
 
-		if (!shape) return
-		const util = this.editor.getShapeUtil<ShapeWithCrop>(shape.type)
-		if (!util) return
+			const { shape, cursorHandleOffset, originPagePoint: snapshotOriginPagePoint } = this.snapshot
 
-		const shiftKey = this.editor.inputs.getShiftKey()
-		const currentPagePoint = this.editor.inputs
-			.getCurrentPagePoint()
-			.clone()
-			.sub(cursorHandleOffset)
-		const originPagePoint = this.editor.inputs.getOriginPagePoint().clone().sub(cursorHandleOffset)
-		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
+			if (!shape) return
+			const util = this.editor.getShapeUtil<ShapeWithCrop>(shape.type)
+			if (!util) return
 
-		const crop = shape.props.crop ?? getDefaultCrop()
-		const uncroppedSize = getUncroppedSize(shape.props, crop)
+			const shiftKey = this.editor.inputs.getShiftKey()
+			const currentPagePoint = this.editor.inputs
+				.getCurrentPagePoint()
+				.clone()
+				.sub(cursorHandleOffset)
+			const originPagePoint = snapshotOriginPagePoint.clone().sub(cursorHandleOffset)
+			const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
 
-		const cropFn = util.onCrop?.bind(util) ?? getCropBox
-		const partial = cropFn(shape, {
-			handle: this.info.handle,
-			change,
-			crop,
-			uncroppedSize,
-			initialShape: this.snapshot.shape,
-			aspectRatioLocked: shiftKey,
+			const crop = shape.props.crop ?? getDefaultCrop()
+			const uncroppedSize = getUncroppedSize(shape.props, crop)
+
+			const cropFn = util.onCrop?.bind(util) ?? getCropBox
+			const partial = cropFn(shape, {
+				handle: this.info.handle,
+				change,
+				crop,
+				uncroppedSize,
+				initialShape: this.snapshot.shape,
+				aspectRatioLocked: shiftKey,
+			})
+			if (!partial) return
+
+			this.editor.updateShapes([
+				{
+					id: shape.id,
+					type: shape.type,
+					...partial,
+				},
+			])
+			this.updateCursor()
 		})
-		if (!partial) return
-
-		this.editor.updateShapes([
-			{
-				id: shape.id,
-				type: shape.type,
-				...partial,
-			},
-		])
-		this.updateCursor()
 	}
 
 	private complete() {
@@ -134,6 +155,7 @@ export class Cropping extends StateNode {
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
+		this.changeTracker.clear()
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
 			if (typeof onInteractionEnd === 'string') {
@@ -147,9 +169,8 @@ export class Cropping extends StateNode {
 		}
 	}
 
-	private createSnapshot() {
+	private createSnapshot(originPagePoint = this.editor.inputs.getOriginPagePoint()) {
 		const selectionRotation = this.editor.getSelectionRotation()
-		const originPagePoint = this.editor.inputs.getOriginPagePoint()
 
 		const shape = this.editor.getOnlySelectedShape() as ShapeWithCrop
 
@@ -166,6 +187,10 @@ export class Cropping extends StateNode {
 		return {
 			shape,
 			cursorHandleOffset,
+			// The page point the gesture is measured from. Normally the drag origin,
+			// but reset to the current pointer when the snapshot is re-anchored after
+			// an external change, so the change resolves to 0 there and doesn't jump.
+			originPagePoint,
 		}
 	}
 }
