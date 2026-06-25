@@ -1,8 +1,8 @@
 {
-	"busyMsPerMove": 62.71,
-	"labelMeasure %busy": 1.2,
-	"geometry %busy": 0.8,
-	"layout %busy": 36.4,
+	"busyMsPerMove": 61.41,
+	"labelMeasure %busy": 0.9,
+	"geometry %busy": 0.7,
+	"layout %busy": 36.1,
 	"react %busy": 0,
 	"signals %busy": 0
 }
