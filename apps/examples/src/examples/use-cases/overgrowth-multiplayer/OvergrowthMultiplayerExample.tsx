@@ -92,7 +92,8 @@ const PANEL_STYLE: CSSProperties = {
 const WORLD_SHAPE = createShapeId('og-world')
 const playerShapeId = (clientId: string) => createShapeId(`og-player-${clientId}`)
 const HEARTBEAT_MS = 800 // how often a client refreshes its player shape
-const CUT_SEND_MS = 60 // throttle for sending fresh cut segments (≤~16/sec)
+const CUT_SEND_MS = 35 // guest: throttle for sending fresh cut segments
+const CUT_SNAP_MS = 45 // host: min gap between prompt post-cut snapshots
 const ALIVE_MS = 4000 // a client is "present" if seen within this window
 const OFFSCREEN = -1_000_000
 
@@ -171,8 +172,9 @@ function GameRunner({ clientId }: { clientId: string }) {
 		let cutSeq = 0
 		let pendingCuts: CutSeg[] = [] // guest: segments awaiting send
 		let lastHeartbeat = 0
-		let lastCutSend = 0 // throttle clock for cut sends
-		let lastSentSeq = -1 // highest cut seq we've written to our shape
+		let lastCutSend = 0 // guest: throttle clock for cut sends
+		let lastSentSeq = -1 // guest: highest cut seq we've written to our shape
+		let lastCutSnap = 0 // host: throttle clock for prompt post-cut snapshots
 		const appliedSeq: Record<string, number> = {} // host: last applied cut seq per client
 
 		const myMeta = (): PlayerMeta => ({
@@ -236,8 +238,10 @@ function GameRunner({ clientId }: { clientId: string }) {
 		}
 
 		// Host: drain queued cut segments from every player shape and apply them.
-		const applyRemoteCuts = (players: PlayerMeta[]) => {
+		// Returns true if any cut was applied (so the host can publish promptly).
+		const applyRemoteCuts = (players: PlayerMeta[]): boolean => {
 			const world = getWorld()
+			let applied = false
 			for (const p of players) {
 				if (p.clientId === clientId) continue // our own cuts are applied locally
 				const role = p.role
@@ -248,9 +252,11 @@ function GameRunner({ clientId }: { clientId: string }) {
 					if (seg.seq <= last) continue
 					sliceCut(world, { x: seg.fx, y: seg.fy }, { x: seg.tx, y: seg.ty }, role)
 					if (seg.seq > maxSeq) maxSeq = seg.seq
+					applied = true
 				}
 				appliedSeq[p.clientId] = maxSeq
 			}
+			return applied
 		}
 
 		const writeSnapshot = () => {
@@ -296,7 +302,7 @@ function GameRunner({ clientId }: { clientId: string }) {
 
 			if (isHostRef.current) {
 				const world = getWorld()
-				applyRemoteCuts(players)
+				const cutApplied = applyRemoteCuts(players)
 				const hadWinner = !!world.winner
 				stepSim(world) // no-op once a winner is decided
 				publishScores(world) // mirrors world.winner → winner$
@@ -309,8 +315,15 @@ function GameRunner({ clientId }: { clientId: string }) {
 						localReady$.set(false)
 						writeSnapshot()
 					}
-				} else if (world.tick % GROWTH_PULSE_INTERVAL === 0) {
-					writeSnapshot() // publish state on each growth pulse (≈4/sec)
+				} else {
+					// Publish on each growth pulse (≈4/sec), and PROMPTLY (throttled) right
+					// after applying a guest's cut so the cut isn't stuck waiting for the
+					// next pulse — that wait is what made a guest's cuts feel laggy.
+					const promptCut = cutApplied && now - lastCutSnap > CUT_SNAP_MS
+					if (world.tick % GROWTH_PULSE_INTERVAL === 0 || promptCut) {
+						if (promptCut) lastCutSnap = now
+						writeSnapshot()
+					}
 				}
 			} else {
 				// Guest: ingest the latest snapshot if it changed, reusing the world in
