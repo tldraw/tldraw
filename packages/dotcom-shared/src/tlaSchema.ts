@@ -315,5 +315,5 @@ export type TlaGroupFile = Row<typeof schema.tables.group_file>
 
 // Permissions are now handled via Synced Queries in queries.ts
 
-export const TlaFlags = stringEnum('groups_backend', 'groups_frontend')
+export const TlaFlags = stringEnum('groups_backend')
 export type TlaFlags = keyof typeof TlaFlags

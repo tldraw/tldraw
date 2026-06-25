@@ -107,8 +107,16 @@ export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: T
 const plainTextFromRichTextCache = new WeakCache<TLRichText, string>()
 
 export function isEmptyRichText(richText: TLRichText) {
+	// An empty document has no text. It can be encoded several equally-valid ways:
+	// an empty `content` array at the doc level, or a single paragraph whose own
+	// `content` is missing or an empty array. The interactive editor emits the
+	// single-paragraph / missing-`content` form; programmatic authoring (snapshot
+	// loads, and agents/importers emitting tldraw JSON) commonly emits the
+	// empty-array forms. Treat them all as empty.
+	if (richText.content.length === 0) return true
 	if (richText.content.length === 1) {
-		if (!(richText.content[0] as any).content) return true
+		const node = richText.content[0] as any
+		if (!node.content || node.content.length === 0) return true
 	}
 	return false
 }

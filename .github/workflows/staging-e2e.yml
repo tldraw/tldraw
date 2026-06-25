@@ -34,24 +34,8 @@ jobs:
       - name: Run our setup
         uses: ./.github/actions/setup
 
-      - name: Get installed Playwright version
-        id: playwright-version
-        run: |
-          yarn info @playwright/test --json > playwright.json
-          echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
-        working-directory: 'apps/dotcom/client'
-
-      - uses: actions/cache@v5
-        name: Check for Playwright browsers cache
-        id: playwright-cache
-        with:
-          path: |
-            ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium chrome
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+      - name: Set up Playwright
+        uses: ./.github/actions/setup-playwright
 
       - name: Run cleanup of test files
         run: yarn tsx internal/scripts/dotcom/cleanup-test-files.ts

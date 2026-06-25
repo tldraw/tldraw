@@ -891,7 +891,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.edgeScrollManager = new EdgeScrollManager(this)
 		this.focusManager = new FocusManager(this, autoFocus)
-		this.disposables.add(this.focusManager.dispose.bind(this.focusManager))
+		this.disposables.add(() => this.focusManager.dispose())
 
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
@@ -4430,7 +4430,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Collect user IDs referenced by a set of shapes via shape-specific props
-	 * (e.g. `textFirstEditedBy` on notes).
+	 * (e.g. `textLastEditedBy` on notes).
 	 *
 	 * @internal
 	 */
@@ -10181,6 +10181,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (ids.length === 0) return undefined
 
+		// Text geometry is measured from the loaded font, so the export's bounds - and the
+		// layout of any text within it - depend on the right fonts having loaded. Wait for them
+		// before we measure; otherwise an export taken before fonts finish loading (e.g. right
+		// after the editor mounts) is sized and laid out with fallback-font metrics.
+		await this.fonts.loadRequiredFontsForCurrentPage(this.options.maxFontsToLoadBeforeRender)
+
 		return exportToSvg(this, ids, opts)
 	}
 
@@ -11513,6 +11519,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 				info.name = 'middle_click'
 			} else if (info.button === RIGHT_MOUSE_BUTTON) {
 				info.name = 'right_click'
+			}
+
+			// The context menu is a select-tool surface: every item acts on the
+			// current selection. Route a right-click through the select tool before
+			// the event reaches the state chart, so the select tool's idle resolves
+			// the selection at the click point (select the shape under the pointer,
+			// or clear it) no matter which tool was active. Without this, opening the
+			// menu from another tool leaves a stale selection that doesn't match the
+			// click (#8828). Guarded on the select tool existing, since the bare
+			// editor can be configured without it.
+			if (
+				info.name === 'right_click' &&
+				this.getCurrentToolId() !== 'select' &&
+				this.getStateDescendant('select')
+			) {
+				this.setCurrentTool('select')
 			}
 
 			// If a left click pointer event, send the event to the click manager.

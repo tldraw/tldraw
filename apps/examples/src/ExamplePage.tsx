@@ -1,6 +1,7 @@
 import { AlertDialog as _AlertDialog } from 'radix-ui'
 import { Dispatch, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import tldrawSdkLogoLight from '../../../assets/tldraw_sdk_logo_light.png'
 import { Example, examples } from './examples'
 
 const dialogContext = createContext<{
@@ -29,6 +30,7 @@ export function ExamplePage({
 }) {
 	const categories = examples.map((e) => e.id)
 	const [filterValue, setFilterValue] = useState('')
+	const searchTerms = getSearchTerms(filterValue)
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
 		history.replaceState(
@@ -50,52 +52,42 @@ export function ExamplePage({
 		<DialogContextProvider>
 			<div className="example">
 				<nav className="example__sidebar scroll-light">
-					<div className="example__sidebar__header">
-						<Link className="example__sidebar__header__logo" to="/">
-							<TldrawLogo />
-						</Link>
-						<div className="example__sidebar__header__socials">
-							<a
-								target="_blank"
-								href="https://twitter.com/tldraw"
-								rel="noopener noreferrer"
-								title="twitter"
-								className="hoverable"
+					<div className="example__sidebar__top">
+						<div className="example__sidebar__header">
+							<Link className="example__sidebar__header__logo" to="/" aria-label="tldraw examples">
+								<TldrawLogo />
+							</Link>
+							<span className="example__sidebar__header-title">Examples</span>
+							<Link
+								to={`${example.path}/full`}
+								className="example__sidebar__item__button hoverable hoverable__small"
+								aria-label="Collapse sidebar"
+								title="Collapse sidebar"
 							>
-								<SocialIcon icon="twitter" />
-							</a>
-							<a
-								target="_blank"
-								href="https://github.com/tldraw/tldraw"
-								rel="noopener noreferrer"
-								title="github"
-								className="hoverable"
-							>
-								<SocialIcon icon="github" />
-							</a>
-							<a
-								target="_blank"
-								href="https://discord.tldraw.com/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
-								rel="noopener noreferrer"
-								title="discord"
-								className="hoverable"
-							>
-								<SocialIcon icon="discord" />
+								<CollapseSidebarIcon />
+							</Link>
+						</div>
+						<div className="example__sidebar__section">
+							<label className="example__sidebar__search hoverable">
+								<SearchIcon />
+								<input
+									className="example__sidebar__filter"
+									id="example-sidebar-filter"
+									name="filter"
+									aria-label="Search examples"
+									placeholder="Search..."
+									value={filterValue}
+									onChange={handleFilterChange}
+								/>
+							</label>
+							<a className="example__sidebar__action-row hoverable" href="/develop">
+								<CodeIcon />
+								<span>Develop</span>
 							</a>
 						</div>
+						<div className="example__sidebar__divider" />
 					</div>
-					<div className="example__sidebar__header-links">
-						<a className="example__sidebar__header-link" href="/develop">
-							Develop
-						</a>
-					</div>
-					<input
-						className="example__sidebar__filter"
-						placeholder="Filter…"
-						value={filterValue}
-						onChange={handleFilterChange}
-					/>
-					<ul className="example__sidebar__categories scroll-light">
+					<ul className="example__sidebar__categories">
 						{categories.map((currentCategory) => (
 							<li key={currentCategory} className="example__sidebar__category">
 								<h3 className="example__sidebar__category__header">{currentCategory}</h3>
@@ -103,24 +95,14 @@ export function ExamplePage({
 									{examples
 										.find((category) => category.id === currentCategory)
 										?.value.filter((example) => {
-											const excludedWords = ['a', 'the', '', ' ']
-											const terms = filterValue
-												.toLowerCase()
-												.split(' ')
-												.filter((term) => !excludedWords.includes(term))
-											if (!terms.length) return true
-											return (
-												terms.some((term) => example.title.toLowerCase().includes(term)) ||
-												example.keywords.some((keyword) =>
-													terms.some((term) => keyword.toLowerCase().includes(term))
-												)
-											)
+											return exampleMatchesSearch(example, searchTerms)
 										})
 										.map((sidebarExample) => (
 											<ExampleSidebarListItem
 												key={sidebarExample.path}
 												example={sidebarExample}
 												isActive={sidebarExample.path === example.path}
+												searchTerms={searchTerms}
 											/>
 										))}
 								</ul>
@@ -128,21 +110,27 @@ export function ExamplePage({
 						))}
 					</ul>
 					<div className="example__sidebar__footer-links">
+						<a className="example__sidebar__footer-link hoverable" href="/develop">
+							<CodeIcon />
+							<span>Build with the tldraw SDK</span>
+						</a>
 						<a
-							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
+							className="example__sidebar__footer-link hoverable hoverable__small"
 							target="_blank"
 							rel="noopener noreferrer"
 							href="https://github.com/tldraw/tldraw/issues/new?assignees=&labels=Example%20Request&projects=&template=example_request.yml&title=%5BExample Request%5D%3A+"
 						>
-							Request an example
+							<RequestIcon />
+							<span>Request an example</span>
 						</a>
 						<a
-							className="example__sidebar__footer-link example__sidebar__footer-link--grey"
+							className="example__sidebar__footer-link hoverable hoverable__small"
 							target="_blank"
 							rel="noopener noreferrer"
 							href="https://tldraw.dev/?utm_source=examples&utm_medium=organic&utm_campaign=examples"
 						>
-							Visit the docs
+							<ExternalLinkIcon />
+							<span>Visit the docs</span>
 						</a>
 					</div>
 				</nav>
@@ -158,9 +146,11 @@ export function ExamplePage({
 function ExampleSidebarListItem({
 	example,
 	isActive,
+	searchTerms,
 }: {
 	example: Example
 	isActive?: boolean
+	searchTerms: string[]
 	showDescriptionWhenInactive?: boolean
 }) {
 	const ref = useRef<HTMLLIElement>(null)
@@ -178,30 +168,114 @@ function ExampleSidebarListItem({
 
 	return (
 		<li ref={ref} className="examples__sidebar__item" data-active={isActive}>
-			<Link to={example.path} className="examples__sidebar__item__link">
-				<span className="examples__sidebar__item__title">{example.title}</span>
-				{isActive && (
-					<div className="example__sidebar__item__buttons">
-						<button
-							className="example__sidebar__item__button hoverable"
-							onClick={() => setExampleDialog(example)}
-							aria-label="Info"
-						>
-							<InfoIcon />
-						</button>
-						<Link
-							to={`${example.path}/full`}
-							className="example__sidebar__item__button hoverable"
-							aria-label="Standalone"
-							title="View standalone example"
-						>
-							<StandaloneIcon />
-						</Link>
-					</div>
-				)}
-			</Link>
+			<Link
+				to={example.path}
+				className="examples__sidebar__item__link"
+				aria-label={example.title}
+			/>
+			<div className="examples__sidebar__item__content">
+				<span className="examples__sidebar__item__title">
+					<HighlightedSearchText text={example.title} searchTerms={searchTerms} />
+				</span>
+			</div>
+			{isActive && (
+				<div className="example__sidebar__item__buttons">
+					<button
+						type="button"
+						className="example__sidebar__item__button hoverable hoverable__small"
+						onClick={() => setExampleDialog(example)}
+						aria-label="Info"
+					>
+						<InfoIcon />
+					</button>
+					<Link
+						to={`${example.path}/full`}
+						className="example__sidebar__item__button hoverable hoverable__small"
+						aria-label="Standalone"
+						title="View standalone example"
+					>
+						<StandaloneIcon />
+					</Link>
+				</div>
+			)}
 		</li>
 	)
+}
+
+const ignoredSearchTerms = new Set(['a', 'the'])
+
+function getSearchTerms(value: string) {
+	return value
+		.trim()
+		.toLowerCase()
+		.split(/\s+/)
+		.filter((term) => term.length > 0 && !ignoredSearchTerms.has(term))
+}
+
+function exampleMatchesSearch(example: Example, searchTerms: string[]) {
+	if (!searchTerms.length) return true
+
+	const title = example.title.toLowerCase()
+	const keywords = example.keywords.map((keyword) => keyword.toLowerCase())
+
+	return searchTerms.some((term) => {
+		return title.includes(term) || keywords.some((keyword) => keyword.includes(term))
+	})
+}
+
+function HighlightedSearchText({ text, searchTerms }: { text: string; searchTerms: string[] }) {
+	const matchRanges = getSearchMatchRanges(text, searchTerms)
+	if (!matchRanges.length) return <>{text}</>
+
+	const parts: React.ReactNode[] = []
+	let cursor = 0
+
+	for (const [start, end] of matchRanges) {
+		if (start > cursor) {
+			parts.push(text.slice(cursor, start))
+		}
+		parts.push(
+			<strong key={`${start}-${end}`} className="examples__sidebar__item__title__match">
+				{text.slice(start, end)}
+			</strong>
+		)
+		cursor = end
+	}
+
+	if (cursor < text.length) {
+		parts.push(text.slice(cursor))
+	}
+
+	return <>{parts}</>
+}
+
+function getSearchMatchRanges(text: string, searchTerms: string[]) {
+	const lowerText = text.toLowerCase()
+	const ranges: Array<[number, number]> = []
+
+	for (const term of searchTerms) {
+		let matchIndex = lowerText.indexOf(term)
+		while (matchIndex !== -1) {
+			ranges.push([matchIndex, matchIndex + term.length])
+			matchIndex = lowerText.indexOf(term, matchIndex + term.length)
+		}
+	}
+
+	if (!ranges.length) return ranges
+
+	ranges.sort((a, b) => a[0] - b[0] || b[1] - a[1])
+
+	const mergedRanges: Array<[number, number]> = []
+	for (const [start, end] of ranges) {
+		const previous = mergedRanges[mergedRanges.length - 1]
+		if (!previous || start > previous[1]) {
+			mergedRanges.push([start, end])
+		} else if (end > previous[1]) {
+			previous[1] = end
+		}
+	}
+
+	return mergedRanges
 }
 
 function Markdown({
@@ -258,12 +332,26 @@ function Dialogs() {
 				onPointerDown={() => setExampleDialog(null)}
 			/>
 			<_AlertDialog.Content className="example__dialog__content">
-				<h1>{example.title}</h1>
-				<Markdown
-					sanitizedHtml={content?.description ?? ''}
-					className="example__dialog__markdown"
-				/>
-				<Markdown sanitizedHtml={content?.details ?? ''} className="example__dialog__markdown" />
+				<div className="example__dialog__header">
+					<_AlertDialog.Title className="example__dialog__title">
+						{example.title}
+					</_AlertDialog.Title>
+					<_AlertDialog.Cancel className="example__dialog__header__close" aria-label="Close">
+						<CloseIcon />
+					</_AlertDialog.Cancel>
+				</div>
+				<_AlertDialog.Description asChild>
+					<div className="example__dialog__body">
+						<Markdown
+							sanitizedHtml={content?.description ?? ''}
+							className="example__dialog__markdown"
+						/>
+						<Markdown
+							sanitizedHtml={content?.details ?? ''}
+							className="example__dialog__markdown"
+						/>
+					</div>
+				</_AlertDialog.Description>
 				<div className="example__dialog__actions">
 					<a href={example.codeUrl}>
 						View Source <ExternalLinkIcon />
@@ -275,17 +363,15 @@ function Dialogs() {
 	)
 }
 
-function SocialIcon({ icon }: { icon: string }) {
+function CollapseSidebarIcon() {
 	return (
-		<div
-			className="example__sidebar__icon"
-			style={{
-				mask: `url(/icons/${icon}.svg) center 100% / 100% no-repeat`,
-				WebkitMask: `url(/icons/${icon}.svg) center 100% / 100% no-repeat`,
-				width: 16,
-				height: 16,
-			}}
-		/>
+		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path
+				d="M12.143 12.607V14H2.857v-1.393zm.464-.464V2.857a.464.464 0 0 0-.464-.464H2.857a.464.464 0 0 0-.464.464v9.286c0 .256.208.464.464.464V14l-.095-.002a1.857 1.857 0 0 1-1.76-1.76L1 12.143V2.857c0-.994.78-1.805 1.762-1.855L2.857 1h9.286l.095.002c.982.05 1.762.861 1.762 1.855v9.286l-.002.095a1.857 1.857 0 0 1-1.76 1.76l-.095.002v-1.393a.464.464 0 0 0 .464-.464"
+				fill="currentColor"
+			/>
+			<path d="M5 1h1.5v13H5z" fill="currentColor" />
+		</svg>
 	)
 }
 
@@ -315,6 +401,58 @@ function InfoIcon() {
 	)
 }
 
+function CloseIcon() {
+	return (
+		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path
+				d="M11.7816 4.03157C12.0062 3.80702 12.0062 3.44295 11.7816 3.2184C11.5571 2.99385 11.193 2.99385 10.9685 3.2184L7.50005 6.68682L4.03164 3.2184C3.80708 2.99385 3.44301 2.99385 3.21846 3.2184C2.99391 3.44295 2.99391 3.80702 3.21846 4.03157L6.68688 7.49999L3.21846 10.9684C2.99391 11.193 2.99391 11.557 3.21846 11.7816C3.44301 12.0061 3.80708 12.0061 4.03164 11.7816L7.50005 8.31316L10.9685 11.7816C11.193 12.0061 11.5571 12.0061 11.7816 11.7816C12.0062 11.557 12.0062 11.193 11.7816 10.9684L8.31322 7.49999L11.7816 4.03157Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				clipRule="evenodd"
+			/>
+		</svg>
+	)
+}
+
+function SearchIcon() {
+	return (
+		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path
+				d="M6.5 1.5C3.73858 1.5 1.5 3.73858 1.5 6.5C1.5 9.26142 3.73858 11.5 6.5 11.5C7.65047 11.5 8.71022 11.1115 9.55542 10.4583L12.1464 13.0493C12.3417 13.2446 12.6583 13.2446 12.8536 13.0493C13.0488 12.8541 13.0488 12.5375 12.8536 12.3422L10.2929 9.78159C11.0454 8.90364 11.5 7.76158 11.5 6.5C11.5 3.73858 9.26142 1.5 6.5 1.5ZM2.5 6.5C2.5 4.29086 4.29086 2.5 6.5 2.5C8.70914 2.5 10.5 4.29086 10.5 6.5C10.5 8.70914 8.70914 10.5 6.5 10.5C4.29086 10.5 2.5 8.70914 2.5 6.5Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				clipRule="evenodd"
+			/>
+		</svg>
+	)
+}
+
+function CodeIcon() {
+	return (
+		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path
+				d="M5.08211 4.14645C5.27737 4.34171 5.27737 4.65829 5.08211 4.85355L2.93566 7L5.08211 9.14645C5.27737 9.34171 5.27737 9.65829 5.08211 9.85355C4.88684 10.0488 4.57026 10.0488 4.375 9.85355L1.875 7.35355C1.67974 7.15829 1.67974 6.84171 1.875 6.64645L4.375 4.14645C4.57026 3.95118 4.88684 3.95118 5.08211 4.14645ZM9.91789 4.14645C10.1132 3.95118 10.4297 3.95118 10.625 4.14645L13.125 6.64645C13.3203 6.84171 13.3203 7.15829 13.125 7.35355L10.625 9.85355C10.4297 10.0488 10.1132 10.0488 9.91789 9.85355C9.72263 9.65829 9.72263 9.34171 9.91789 9.14645L12.0643 7L9.91789 4.85355C9.72263 4.65829 9.72263 4.34171 9.91789 4.14645ZM8.10801 2.69231C8.37582 2.75926 8.53866 3.03064 8.4717 3.29846L6.4717 11.2985C6.40475 11.5663 6.13337 11.7291 5.86556 11.6622C5.59775 11.5952 5.43491 11.3238 5.50186 11.056L7.50186 3.056C7.56882 2.78819 7.8402 2.62535 8.10801 2.69231Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				clipRule="evenodd"
+			/>
+		</svg>
+	)
+}
+
+function RequestIcon() {
+	return (
+		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path
+				d="M7.5 1.25C4.32436 1.25 1.75 3.39594 1.75 6.04348C1.75 7.5002 2.52661 8.80393 3.75 9.68303V12.25C3.75 12.4336 3.85072 12.6024 4.01236 12.6895C4.174 12.7765 4.37074 12.7679 4.52414 12.6669L7.42728 10.75H7.5C10.6756 10.75 13.25 8.60406 13.25 5.95652C13.25 3.35395 10.6756 1.25 7.5 1.25ZM2.75 6.04348C2.75 3.99548 4.81219 2.25 7.5 2.25C10.1878 2.25 12.25 3.95051 12.25 5.95652C12.25 8.00452 10.1878 9.75 7.5 9.75H7.27698C7.17903 9.75 7.08325 9.77876 7.0015 9.83272L4.75 11.3192V9.42109C4.75 9.25249 4.6651 9.09525 4.52414 9.00259C3.43689 8.28784 2.75 7.22212 2.75 6.04348ZM5 5.75C5 5.47386 5.22386 5.25 5.5 5.25H9.5C9.77614 5.25 10 5.47386 10 5.75C10 6.02614 9.77614 6.25 9.5 6.25H5.5C5.22386 6.25 5 6.02614 5 5.75Z"
+				fill="currentColor"
+				fillRule="evenodd"
+				clipRule="evenodd"
+			/>
+		</svg>
+	)
+}
+
 function ExternalLinkIcon() {
 	return (
 		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -329,5 +467,12 @@ function ExternalLinkIcon() {
 }
 
 function TldrawLogo() {
-	return <img className="examples__tldraw__logo" src="tldraw_dev_light.png" alt="tldraw logo" />
+	return (
+		<img
+			className="examples__tldraw__logo"
+			src={tldrawSdkLogoLight}
+			alt="tldraw SDK"
+			draggable={false}
+		/>
+	)
 }
