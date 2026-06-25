@@ -51,11 +51,11 @@ interface TextShapeBounds {
 // Measures a text shape's advance box (the wrapped layout, which genuinely changes with width) and
 // its glyph ink overflow (cursive/RTL/italic side bearings and tall diacritics that spill past the
 // box, see #8803/#8802). The overflow is derived from per-word bleeds (see
-// `measureWordsInkOverflow`): lines only break at word boundaries, so the box's spill on each side
-// is bounded by the max bleed over the text's words — which doesn't depend on the wrap. So a resize
-// re-measures only the advance (one reflow), while the ink padding comes from cached, wrap-invariant
-// per-word measurements. Latin text fits its advance box, so its overflow is zero and nothing
-// changes.
+// `measureWordsInkOverflow`): a line edge is a word edge, or — for a word wider than the box, which
+// can wrap mid-word — that word's worst prefix/suffix overhang. Neither depends on where the text
+// wraps, so a resize re-measures only the advance (one reflow), while the ink padding comes from
+// cached, wrap-invariant per-word measurements. Latin text fits its advance box, so its overflow is
+// zero and nothing changes.
 const textBoundsCache = createComputedCache(
 	'text bounds',
 	(editor: Editor, shape: TLTextShape): TextShapeBounds => {

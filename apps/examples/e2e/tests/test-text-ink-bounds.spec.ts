@@ -354,4 +354,60 @@ test.describe('text shape ink bounds', () => {
 		})
 		expect(geometryWidth).toBeLessThan(215)
 	})
+
+	test('pads mid-word soft-wrap by the worst prefix/suffix overhang', async ({ page }) => {
+		// A word wider than the box can wrap mid-word (overflow-wrap: break-word), putting an interior
+		// glyph at a line edge. `office` ends in a near-upright `e`, but its interior italic `f` leans
+		// well past its advance — so a mid-word break exposes ink the word's own edges never do. The
+		// fix detects the break (advance > wrap width) and pads by the worst prefix/suffix overhang, so
+		// the wrapped measurement must exceed the unwrapped one. Without the fix they'd be identical.
+		const r = await page.evaluate(async () => {
+			const ed = editor as any
+			ed.selectAll().deleteShapes(ed.getSelectedShapeIds())
+			const word = 'office'
+			ed.createShape({
+				id: 'shape:midWord',
+				type: 'text',
+				x: 0,
+				y: 0,
+				props: {
+					richText: {
+						type: 'doc',
+						content: [
+							{
+								type: 'paragraph',
+								content: [{ type: 'text', text: word, marks: [{ type: 'italic' }] }],
+							},
+						],
+					},
+					font: 'serif',
+					size: 'xl',
+					autoSize: true,
+					color: 'black',
+				},
+			})
+			await ed.fonts.loadRequiredFontsForCurrentPage()
+			await ed.getContainerDocument().fonts.ready
+
+			const shape = ed.getShape('shape:midWord')
+			const dv = ed
+				.getShapeUtil(shape)
+				.options.getDefaultDisplayValues(ed, shape, ed.getCurrentTheme(), 'light')
+			const opts = {
+				fontStyle: 'italic',
+				fontWeight: dv.fontWeight,
+				fontFamily: dv.fontFamily,
+				fontSize: dv.fontSize,
+				lineHeight: dv.lineHeight,
+				padding: '0px',
+			}
+			// Unwrapped: only the word's own first/last glyph can sit at an edge.
+			const fits = ed.textMeasure.measureWordsInkOverflow([word], { ...opts, maxWidth: null })
+			// Forced to wrap mid-word: a narrow box the word can't fit on one line.
+			const breaks = ed.textMeasure.measureWordsInkOverflow([word], { ...opts, maxWidth: 20 })
+			return { fits, breaks }
+		})
+		expect(r.breaks.right).toBeGreaterThan(r.fits.right)
+		expect(r.breaks.left).toBeGreaterThanOrEqual(r.fits.left)
+	})
 })

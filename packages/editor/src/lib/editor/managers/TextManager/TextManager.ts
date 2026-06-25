@@ -111,8 +111,24 @@ interface TextInkBleed {
 	right: number
 	top: number
 	bottom: number
+	// A word wider than the box can wrap mid-word (overflow-wrap: break-word), putting an interior
+	// glyph at a line edge. `maxRight` is the largest right overhang over every prefix of the word
+	// (the most a line that ends inside the word could spill) and `maxLeft` the largest left overhang
+	// over every suffix; measured per prefix/suffix so contextual shaping is correct. `advance` is the
+	// word's width, so the caller knows when it's wide enough to break mid-word.
+	maxLeft: number
+	maxRight: number
+	advance: number
 }
-const ZERO_INK_BLEED: TextInkBleed = { left: 0, right: 0, top: 0, bottom: 0 }
+const ZERO_INK_BLEED: TextInkBleed = {
+	left: 0,
+	right: 0,
+	top: 0,
+	bottom: 0,
+	maxLeft: 0,
+	maxRight: 0,
+	advance: 0,
+}
 
 const initialDefaultStyles = Object.freeze({
 	'overflow-wrap': 'break-word',
@@ -514,20 +530,47 @@ export class TextManager extends EditorManager {
 		const fontDescent = m.fontBoundingBoxDescent || 0
 		// Where CSS line-height puts the baseline inside the line box (half-leading above the ascent).
 		const baseline = (lineBoxH - (fontAscent + fontDescent)) / 2 + fontAscent
+		const left = Math.max(0, m.actualBoundingBoxLeft)
+		const right = Math.max(0, m.actualBoundingBoxRight - m.width)
+		// A word wider than the box can wrap mid-word (overflow-wrap: break-word), so any prefix could
+		// end a line and any suffix could start one. Measure each (as a real run, so shaping and
+		// ligatures stay correct) and keep the largest right overhang over the prefixes and left
+		// overhang over the suffixes — the most a mid-word break could spill on either side. The whole
+		// word is the longest prefix and suffix, so `left`/`right` already seed both.
+		let maxLeft = left
+		let maxRight = right
+		const graphemes = Array.from(graphemeSegmenter.segment(word), (s) => s.segment)
+		let prefix = ''
+		let suffix = ''
+		for (let i = 0; i < graphemes.length - 1; i++) {
+			prefix += graphemes[i]
+			const pm = ctx.measureText(prefix)
+			if (pm.actualBoundingBoxRight - pm.width > maxRight) {
+				maxRight = pm.actualBoundingBoxRight - pm.width
+			}
+			suffix = graphemes[graphemes.length - 1 - i] + suffix
+			const sm = ctx.measureText(suffix)
+			if (sm.actualBoundingBoxLeft > maxLeft) maxLeft = sm.actualBoundingBoxLeft
+		}
 		return {
-			left: Math.max(0, m.actualBoundingBoxLeft),
-			right: Math.max(0, m.actualBoundingBoxRight - m.width),
+			left,
+			right,
 			top: Math.max(0, m.actualBoundingBoxAscent - baseline),
 			bottom: Math.max(0, baseline + m.actualBoundingBoxDescent - lineBoxH),
+			maxLeft: Math.max(0, maxLeft),
+			maxRight: Math.max(0, maxRight),
+			advance: m.width,
 		}
 	}
 
 	/**
 	 * The ink overflow of wrapped text, derived from its words' cached bleeds rather than the current
-	 * layout. Lines only break at word boundaries, so any line edge is a word edge; taking the max
-	 * bleed over the words bounds the spill past the advance box on every side, independent of how the
-	 * text happens to wrap. The result is whole-pixel-padded so the box always contains the ink. Each
-	 * word is measured once and cached (font then word), shared across every shape.
+	 * layout. A line normally breaks at a word boundary, so its edges are word edges; a word wider than
+	 * the box can also break mid-word and expose an interior glyph, so for those we use the word's worst
+	 * prefix/suffix overhang instead of its own edges. Taking the max over the words bounds the spill
+	 * past the advance box on every side, independent of how the text happens to wrap. The result is
+	 * whole-pixel-padded so the box always contains the ink. Each word is measured once and cached
+	 * (font then word), shared across every shape.
 	 *
 	 * @public
 	 */
@@ -543,6 +586,10 @@ export class TextManager extends EditorManager {
 			byWord = new Map()
 			this.wordBleedCache.set(font, byWord)
 		}
+		// A word wider than the wrap width breaks mid-word (overflow-wrap: break-word), so an interior
+		// glyph can land at a line edge; for those use the worst prefix/suffix spill. A word that fits
+		// only ever exposes its own first and last glyph, so its tight edge bleed is enough.
+		const wrapWidth = opts.maxWidth
 		let left = 0
 		let right = 0
 		let top = 0
@@ -554,8 +601,11 @@ export class TextManager extends EditorManager {
 				b = this.measureWordInkBleed(word, font, opts)
 				byWord.set(word, b)
 			}
-			if (b.left > left) left = b.left
-			if (b.right > right) right = b.right
+			const breaksMidWord = wrapWidth !== null && b.advance > wrapWidth
+			const wordLeft = breaksMidWord ? b.maxLeft : b.left
+			const wordRight = breaksMidWord ? b.maxRight : b.right
+			if (wordLeft > left) left = wordLeft
+			if (wordRight > right) right = wordRight
 			if (b.top > top) top = b.top
 			if (b.bottom > bottom) bottom = b.bottom
 		}
