@@ -9,7 +9,6 @@ export function DefaultToolbarContent() {
 			<SelectToolbarItem />
 			<HandToolbarItem />
 			<DrawToolbarItem />
-			<MagicWandToolbarItem />
 			<EraserToolbarItem />
 			<ArrowToolbarItem />
 			<TextToolbarItem />
@@ -40,6 +39,7 @@ export function DefaultToolbarContent() {
 			<HighlightToolbarItem />
 			<LaserToolbarItem />
 			<FrameToolbarItem />
+			<MagicWandToolbarItem />
 		</>
 	)
 }
