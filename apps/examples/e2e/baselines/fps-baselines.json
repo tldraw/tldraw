@@ -55,6 +55,28 @@
           "viewport": "1280x720",
           "browser": "chromium"
         }
+      },
+      "create_text_shapes": {
+        "avgFps": 60,
+        "minFps": 45,
+        "maxFps": 69,
+        "timestamp": "2026-06-25T12:51:36.398Z",
+        "environment": {
+          "platform": "linux",
+          "viewport": "1280x720",
+          "browser": "chromium"
+        }
+      },
+      "text_reflow": {
+        "avgFps": 16,
+        "minFps": 12,
+        "maxFps": 29,
+        "timestamp": "2026-06-25T12:51:41.247Z",
+        "environment": {
+          "platform": "linux",
+          "viewport": "1280x720",
+          "browser": "chromium"
+        }
       }
     },
     "darwin-1280x720": {
@@ -140,7 +162,7 @@
     }
   },
   "metadata": {
-    "lastUpdated": "2026-06-22T09:19:08.334Z",
+    "lastUpdated": "2026-06-25T12:51:41.247Z",
     "version": "1.0.0"
   }
 }
