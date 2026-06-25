@@ -5,24 +5,45 @@ import path from 'path'
 const here = path.dirname(new URL(import.meta.url).pathname)
 const BASELINE_DIR = path.join(here, '..', 'baselines', 'perf')
 
+// Perf numbers are noisy run-to-run even on a fixed CI runner, so a metric is only rewritten when it
+// moves more than this fraction. That keeps the committed baseline — and its PR diffs — reflecting
+// real changes instead of jitter: a regenerate with no real change produces no diff.
+const NOISE_TOLERANCE = 0.15
+
+// Bucket percentages round to whole numbers (sub-1% ones are pure jitter); timings keep one decimal.
+function round(key: string, value: number) {
+	return key.includes('%') ? Math.round(value) : Math.round(value * 10) / 10
+}
+
 /**
  * Record a set of perf numbers against a committed baseline so the cost/savings of a change show up
  * in a PR's diff.
  *
  * - With `PERF_UPDATE_BASELINE` set (CI, via the update-snapshots workflow on a consistent runner),
- *   it (over)writes the committed baseline file `e2e/baselines/perf/<name>.json`.
+ *   it writes `e2e/baselines/perf/<name>.json` — but keeps each committed value unless the metric
+ *   moved past NOISE_TOLERANCE, so a regenerate diffs only on real changes, not noise.
  * - Otherwise it reads the committed baseline and logs the per-metric delta — it does NOT assert and
  *   does NOT write, so ordinary runs never fail on perf noise or dirty the tree.
- *
- * Because the file only changes on a deliberate CI update, a "fix" PR that regenerates the baseline
- * shows exactly what moved (and by how much) in its diff, next to a known-consistent "before".
  */
 export function recordPerfBaseline(name: string, data: Record<string, number>) {
 	const file = path.join(BASELINE_DIR, `${name}.json`)
+	const current: Record<string, number> = {}
+	for (const [k, v] of Object.entries(data)) current[k] = round(k, v)
 
 	if (process.env.PERF_UPDATE_BASELINE) {
+		let next = current
+		if (fs.existsSync(file)) {
+			const old = JSON.parse(fs.readFileSync(file, 'utf-8')) as Record<string, number>
+			next = {}
+			for (const [k, v] of Object.entries(current)) {
+				const o = typeof old[k] === 'number' ? round(k, old[k]) : undefined
+				// Keep the committed value unless this metric moved past the noise floor.
+				const moved = o === undefined || o === 0 || Math.abs(v - o) / Math.abs(o) >= NOISE_TOLERANCE
+				next[k] = moved ? v : o
+			}
+		}
 		fs.mkdirSync(BASELINE_DIR, { recursive: true })
-		fs.writeFileSync(file, JSON.stringify(data, null, '\t') + '\n', 'utf-8')
+		fs.writeFileSync(file, JSON.stringify(next, null, '\t') + '\n', 'utf-8')
 		// eslint-disable-next-line no-console
 		console.log(`[perf-baseline] updated ${name}`)
 		return
@@ -37,7 +58,7 @@ export function recordPerfBaseline(name: string, data: Record<string, number>) {
 	}
 
 	const baseline = JSON.parse(fs.readFileSync(file, 'utf-8')) as Record<string, number>
-	const rows = Object.entries(data).map(([k, v]) => {
+	const rows = Object.entries(current).map(([k, v]) => {
 		const b = baseline[k]
 		const delta =
 			typeof b === 'number' && b !== 0
