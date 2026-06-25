@@ -1532,5 +1532,173 @@
       "type": 0,
       "value": "Import file…"
     }
+  ],
+  "welcome.createWorkspace": [
+    {
+      "type": 0,
+      "value": "Create a new workspace from the workspace menu in the sidebar. Click "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "New workspace"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ", give it a name, and it’s ready to go."
+    }
+  ],
+  "welcome.inviteTeam": [
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Invite your team"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " with an invite link from the workspace menu in the sidebar. Shared it by accident? Revoke it there too."
+    }
+  ],
+  "welcome.manageMembers": [
+    {
+      "type": 0,
+      "value": "Need to "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "remove someone"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Owners can change roles or remove people in Manage workspace."
+    }
+  ],
+  "welcome.moveFiles": [
+    {
+      "type": 0,
+      "value": "You can "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "move files"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " into your workspace with a file's 'Move to' menu."
+    }
+  ],
+  "welcome.pinFiles": [
+    {
+      "type": 0,
+      "value": "Pin files you use most. "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "Pinned files"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " stay at the top of the list, so they’re always easy to find."
+    }
+  ],
+  "welcome.shareLink": [
+    {
+      "type": 0,
+      "value": "Need to share with people outside your workspace? You can "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "share a link"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " for a single file so guests can edit it without joining the workspace."
+    }
+  ],
+  "welcome.signoff": [
+    {
+      "type": 0,
+      "value": "p.s. feel free to edit or delete this board now that you've mastered workspaces"
+    }
+  ],
+  "welcome.title": [
+    {
+      "type": 0,
+      "value": "Welcome to your workspace"
+    }
+  ],
+  "welcome.whatIsWorkspace": [
+    {
+      "type": 0,
+      "value": "A workspace is a "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "shared space"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " for your team. Everyone in it sees the same list of files and can open and edit them."
+    }
+  ],
+  "welcome.workspaceMenu": [
+    {
+      "type": 0,
+      "value": "Find everything in the "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "workspace menu"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ": create files, search, switch workspaces, and open settings."
+    }
   ]
 }
