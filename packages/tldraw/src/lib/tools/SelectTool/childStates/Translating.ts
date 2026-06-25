@@ -8,11 +8,9 @@ import {
 	TLNoteShape,
 	TLPointerEventInfo,
 	TLShape,
-	TLShapeId,
 	TLShapePartial,
 	TLTickEventInfo,
 	Vec,
-	approximately,
 	bind,
 	compact,
 	isPageId,
@@ -25,6 +23,7 @@ import {
 import type { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import { getDisplayValues } from '../../../shapes/shared/getDisplayValues'
 import { DragAndDropManager } from '../DragAndDropManager'
+import { GestureShapeChangeTracker } from '../GestureShapeChangeTracker'
 
 export type TranslatingInfo = TLPointerEventInfo & {
 	target: 'shape'
@@ -54,16 +53,10 @@ export class Translating extends StateNode {
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
-	// True while we're applying our own changes to the moving shapes, so the
-	// external-change listener can cheaply ignore them.
-	private isApplyingChange = false
-
-	// Set by the external-change listener when something outside this
-	// interaction modifies a moving shape (e.g. a `rotateShapesBy` keyboard
-	// shortcut). The next update rebases the snapshot onto the changed shapes.
-	private snapshotChangedExternally = false
-
-	private disposeExternalChangeListener?: () => void
+	private changeTracker = new GestureShapeChangeTracker(
+		this.editor,
+		(id) => this.snapshot.shapeSnapshots?.some((s) => s.shape.id === id) ?? false
+	)
 
 	override onEnter(info: TranslatingInfo) {
 		const { isCreating = false, creatingMarkId, onCreate = () => void null } = info
@@ -104,21 +97,8 @@ export class Translating extends StateNode {
 
 		this.editor.setCursor({ type: 'move', rotation: 0 })
 
-		// Watch for changes made to the moving shapes from outside this
-		// interaction. Detecting these from a listener keeps the per-frame update
-		// path cheap: our own frequent writes set `isApplyingChange` and are
-		// skipped in O(1), so the page-transform comparison below only runs on the
-		// rare change that originates outside this interaction.
-		this.snapshotChangedExternally = false
-		this.disposeExternalChangeListener = this.editor.sideEffects.registerAfterChangeHandler(
-			'shape',
-			(_prev, next) => {
-				if (this.isApplyingChange || this.snapshotChangedExternally) return
-				if (this.didShapeChangeExternally(next.id)) {
-					this.snapshotChangedExternally = true
-				}
-			}
-		)
+		// Watch for changes made to the moving shapes from outside this interaction.
+		this.changeTracker.start()
 
 		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
 
@@ -136,8 +116,7 @@ export class Translating extends StateNode {
 	}
 
 	override onExit() {
-		this.disposeExternalChangeListener?.()
-		this.disposeExternalChangeListener = undefined
+		this.changeTracker.stop()
 		this.parent.setCurrentToolIdMask(undefined)
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
@@ -214,26 +193,13 @@ export class Translating extends StateNode {
 		this.updateShapes()
 	}
 
-	// Run a callback that writes our own changes to the moving shapes, marking
-	// those writes so the external-change listener doesn't treat them as
-	// external.
-	private applyingChange<T>(fn: () => T): T {
-		const wasApplyingChange = this.isApplyingChange
-		this.isApplyingChange = true
-		try {
-			return fn()
-		} finally {
-			this.isApplyingChange = wasApplyingChange
-		}
-	}
-
 	reset() {
 		this.editor.bailToMark(this.markId)
 		// Bailing restores the shapes to their snapshot positions, so any
 		// previously applied drag offset no longer reflects the current shapes,
 		// and the bail itself isn't an external change to react to.
 		this.snapshot.lastAppliedOffset = null
-		this.snapshotChangedExternally = false
+		this.changeTracker.clear()
 	}
 
 	protected complete() {
@@ -291,78 +257,81 @@ export class Translating extends StateNode {
 	}
 
 	protected handleStart() {
-		const { movingShapes } = this.snapshot
+		this.changeTracker.ignoreChanges(() => {
+			const { movingShapes } = this.snapshot
 
-		const changes: TLShapePartial[] = []
+			const changes: TLShapePartial[] = []
 
-		movingShapes.forEach((shape) => {
-			const util = this.editor.getShapeUtil(shape)
-			const change = util.onTranslateStart?.(shape)
-			if (change) {
-				changes.push(change)
+			movingShapes.forEach((shape) => {
+				const util = this.editor.getShapeUtil(shape)
+				const change = util.onTranslateStart?.(shape)
+				if (change) {
+					changes.push(change)
+				}
+			})
+
+			if (changes.length > 0) {
+				this.editor.updateShapes(changes)
 			}
+
+			this.dragAndDropManager.startDraggingShapes(
+				// Get fresh shapes from the snapshot, in case onTranslateStart mutates the shape
+				compact(this.snapshot.movingShapes.map((s) => this.editor.getShape(s.id))),
+				// Start from the place where the user started dragging
+				this.editor.inputs.getOriginPagePoint(),
+				this.updateParentTransforms
+			)
+
+			this.editor.setHoveredShape(null)
 		})
-
-		if (changes.length > 0) {
-			this.editor.updateShapes(changes)
-		}
-
-		this.dragAndDropManager.startDraggingShapes(
-			// Get fresh shapes from the snapshot, in case onTranslateStart mutates the shape
-			compact(this.snapshot.movingShapes.map((s) => this.editor.getShape(s.id))),
-			// Start from the place where the user started dragging
-			this.editor.inputs.getOriginPagePoint(),
-			this.updateParentTransforms
-		)
-
-		this.editor.setHoveredShape(null)
 	}
 
 	protected handleEnd() {
-		const { movingShapes } = this.snapshot
+		this.changeTracker.ignoreChanges(() => {
+			const { movingShapes } = this.snapshot
 
-		if (this.isCloning && movingShapes.length > 0) {
-			const currentAveragePagePoint = Vec.Average(
-				movingShapes.map((s) => this.editor.getShapePageTransform(s.id)!.point())
-			)
-			const offset = Vec.Sub(currentAveragePagePoint, this.selectionSnapshot.averagePagePoint)
-			if (!Vec.IsNaN(offset)) {
-				this.editor.updateInstanceState({
-					duplicateProps: {
-						shapeIds: movingShapes.map((s) => s.id),
-						offset: { x: offset.x, y: offset.y },
-					},
-				})
+			if (this.isCloning && movingShapes.length > 0) {
+				const currentAveragePagePoint = Vec.Average(
+					movingShapes.map((s) => this.editor.getShapePageTransform(s.id)!.point())
+				)
+				const offset = Vec.Sub(currentAveragePagePoint, this.selectionSnapshot.averagePagePoint)
+				if (!Vec.IsNaN(offset)) {
+					this.editor.updateInstanceState({
+						duplicateProps: {
+							shapeIds: movingShapes.map((s) => s.id),
+							offset: { x: offset.x, y: offset.y },
+						},
+					})
+				}
 			}
-		}
 
-		const changes: TLShapePartial[] = []
+			const changes: TLShapePartial[] = []
 
-		movingShapes.forEach((shape) => {
-			const current = this.editor.getShape(shape.id)!
-			const util = this.editor.getShapeUtil(shape)
-			const change = util.onTranslateEnd?.(shape, current)
-			if (change) {
-				changes.push(change)
+			movingShapes.forEach((shape) => {
+				const current = this.editor.getShape(shape.id)!
+				const util = this.editor.getShapeUtil(shape)
+				const change = util.onTranslateEnd?.(shape, current)
+				if (change) {
+					changes.push(change)
+				}
+			})
+
+			if (changes.length > 0) {
+				this.editor.updateShapes(changes)
 			}
 		})
-
-		if (changes.length > 0) {
-			this.editor.updateShapes(changes)
-		}
 	}
 
 	protected updateShapes() {
-		this.applyingChange(() => {
+		this.changeTracker.ignoreChanges(() => {
 			// Translating computes shape positions from scratch on every update as
 			// `snapshot position + drag delta`, so a change made to the moving
 			// shapes from outside this interaction (e.g. `rotateShapesBy` bound to a
-			// keyboard shortcut) would otherwise be stomped here. When the listener
-			// has flagged such a change, re-anchor the snapshot onto the current
+			// keyboard shortcut) would otherwise be stomped here. When the tracker
+			// has noticed such a change, re-anchor the snapshot onto the current
 			// shapes first.
-			if (this.snapshotChangedExternally) {
+			if (this.changeTracker.getAndClearChanged()) {
 				this.foldExternalChangesIntoSnapshot()
-				this.snapshotChangedExternally = false
 			}
 
 			const { snapshot } = this
@@ -396,29 +365,6 @@ export class Translating extends StateNode {
 				this.editor.updateShapes(changes)
 			}
 		})
-	}
-
-	// A moving shape whose page transform no longer matches `snapshot +
-	// lastAppliedOffset` was changed by something other than this interaction:
-	// translation only ever moves shapes by the applied offset. Reparenting,
-	// which preserves a shape's page position, is intentionally not treated as an
-	// external change.
-	private didShapeChangeExternally(id: TLShapeId) {
-		const { editor, snapshot } = this
-		const { lastAppliedOffset } = snapshot
-		if (!lastAppliedOffset) return false
-
-		const shapeSnapshot = snapshot.shapeSnapshots.find((s) => s.shape.id === id)
-		if (!shapeSnapshot) return false
-
-		const pageTransform = editor.getShapePageTransform(id)
-		if (!pageTransform) return true
-		const pagePoint = pageTransform.point()
-		return (
-			!approximately(pagePoint.x, shapeSnapshot.pagePoint.x + lastAppliedOffset.x, 1e-4) ||
-			!approximately(pagePoint.y, shapeSnapshot.pagePoint.y + lastAppliedOffset.y, 1e-4) ||
-			!approximately(pageTransform.rotation(), shapeSnapshot.pageRotation, 1e-4)
-		)
 	}
 
 	// Re-anchor each shape's snapshot origin onto its current position after an
