@@ -94,6 +94,7 @@ const playerShapeId = (clientId: string) => createShapeId(`og-player-${clientId}
 const HEARTBEAT_MS = 800 // how often a client refreshes its player shape
 const CUT_SEND_MS = 35 // guest: throttle for sending fresh cut segments
 const CUT_SNAP_MS = 45 // host: min gap between prompt post-cut snapshots
+const PREDICT_MS = 300 // guest: re-apply an unconfirmed predicted cut for this long
 const ALIVE_MS = 4000 // a client is "present" if seen within this window
 const OFFSCREEN = -1_000_000
 
@@ -171,6 +172,14 @@ function GameRunner({ clientId }: { clientId: string }) {
 
 		let cutSeq = 0
 		let pendingCuts: CutSeg[] = [] // guest: segments awaiting send
+		// guest: predicted cuts applied locally but not yet confirmed by a snapshot —
+		// re-applied after each snapshot (for PREDICT_MS) so they don't flicker back.
+		let unconfirmedCuts: Array<{
+			from: { x: number; y: number }
+			to: { x: number; y: number }
+			role: Owner
+			t: number
+		}> = []
 		let lastHeartbeat = 0
 		let lastCutSend = 0 // guest: throttle clock for cut sends
 		let lastSentSeq = -1 // guest: highest cut seq we've written to our shape
@@ -335,6 +344,15 @@ function GameRunner({ clientId }: { clientId: string }) {
 					lastSnapTick = snap.tick
 					setWorld(applySnapshot(getWorld(), snap))
 					winner$.set(snap.winner)
+					// Reconcile: drop predicted cuts old enough that the host's state
+					// surely reflects them, then re-apply the rest on top of the fresh
+					// (authoritative) world so a just-made cut doesn't flicker back. Already
+					// reflected? sliceCut finds no vine there and no-ops.
+					if (unconfirmedCuts.length) {
+						unconfirmedCuts = unconfirmedCuts.filter((c) => now - c.t < PREDICT_MS)
+						const w = getWorld()
+						for (const c of unconfirmedCuts) sliceCut(w, c.from, c.to, c.role)
+					}
 				} else {
 					getWorld().tick++
 				}
@@ -404,6 +422,15 @@ function GameRunner({ clientId }: { clientId: string }) {
 				sliceCut(getWorld(), from, to, role)
 			} else {
 				pendingCuts.push({ seq: cutSeq++, fx: from.x, fy: from.y, tx: to.x, ty: to.y })
+				// Optimistic prediction: apply the cut on our own screen right away so it
+				// feels instant. We run the SAME sliceCut the host will, against our
+				// (near-identical) world, so an allowed cut succeeds here too — and a
+				// disallowed one (out of reach) is rejected here just like on the host, so
+				// there's nothing to mispredict. If it lands, remember it so we can
+				// re-apply it after snapshots until the host's state catches up.
+				if (sliceCut(getWorld(), from, to, role)) {
+					unconfirmedCuts.push({ from: { ...from }, to: { ...to }, role, t: Date.now() })
+				}
 			}
 		}
 
