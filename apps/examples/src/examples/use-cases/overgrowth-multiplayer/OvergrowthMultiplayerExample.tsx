@@ -34,7 +34,7 @@ import {
 } from '../overgrowth/game-state'
 import { OvergrowthOverlayUtil } from '../overgrowth/overlays/OvergrowthOverlayUtil'
 import { hasPresence, sliceCut, SPARK_POOL, stepSim, stepSparks } from '../overgrowth/sim'
-import { deserializeWorld, serializeWorld, WorldSnapshot } from './net'
+import { applySnapshot, serializeWorld, WorldSnapshot } from './net'
 
 const overlayUtils: TLAnyOverlayUtilConstructor[] = [...defaultOverlayUtils, OvergrowthOverlayUtil]
 
@@ -92,6 +92,7 @@ const PANEL_STYLE: CSSProperties = {
 const WORLD_SHAPE = createShapeId('og-world')
 const playerShapeId = (clientId: string) => createShapeId(`og-player-${clientId}`)
 const HEARTBEAT_MS = 800 // how often a client refreshes its player shape
+const CUT_SEND_MS = 60 // throttle for sending fresh cut segments (≤~16/sec)
 const ALIVE_MS = 4000 // a client is "present" if seen within this window
 const OFFSCREEN = -1_000_000
 
@@ -170,6 +171,8 @@ function GameRunner({ clientId }: { clientId: string }) {
 		let cutSeq = 0
 		let pendingCuts: CutSeg[] = [] // guest: segments awaiting send
 		let lastHeartbeat = 0
+		let lastCutSend = 0 // throttle clock for cut sends
+		let lastSentSeq = -1 // highest cut seq we've written to our shape
 		const appliedSeq: Record<string, number> = {} // host: last applied cut seq per client
 
 		const myMeta = (): PlayerMeta => ({
@@ -272,10 +275,20 @@ function GameRunner({ clientId }: { clientId: string }) {
 			const now = Date.now()
 			const players = refreshRoom(now)
 
-			// Heartbeat — also flushes queued cut segments and ready-state changes.
+			// Write our player shape when something actually changed — a slow presence
+			// heartbeat, a ready toggle, or NEW cut segments (throttled). The old
+			// `|| pendingCuts.length` rewrote the synced shape every single tick for the
+			// rest of the game after one cut (the rolling window never empties), which
+			// flooded the room and lagged the guest while cutting.
 			const ready = localReady$.get()
-			if (now - lastHeartbeat > HEARTBEAT_MS || pendingCuts.length || ready !== readySent) {
+			const maxSeq = pendingCuts.length ? pendingCuts[pendingCuts.length - 1].seq : lastSentSeq
+			const newCuts = maxSeq > lastSentSeq && now - lastCutSend > CUT_SEND_MS
+			if (now - lastHeartbeat > HEARTBEAT_MS || ready !== readySent || newCuts) {
 				lastHeartbeat = now
+				if (newCuts) {
+					lastCutSend = now
+					lastSentSeq = maxSeq
+				}
 				readySent = ready
 				writeMeta(myMeta())
 				if (pendingCuts.length > 128) pendingCuts = pendingCuts.slice(-64)
@@ -300,18 +313,17 @@ function GameRunner({ clientId }: { clientId: string }) {
 					writeSnapshot() // publish state on each growth pulse (≈4/sec)
 				}
 			} else {
-				// Guest: ingest the latest snapshot if it changed, rebuild the world.
+				// Guest: ingest the latest snapshot if it changed, reusing the world in
+				// place (cheap — see applySnapshot). Between snapshots, advance the local
+				// tick so transient cut-flashes animate (snapshots only arrive ≈4/sec).
 				const ws = editor.getShape(WORLD_SHAPE)
 				const snap = ws?.meta as unknown as WorldSnapshot | undefined
 				if (snap?.v === 1 && snap.tick !== lastSnapTick) {
-					const prevSparks = getWorld().sparks
 					lastSnapTick = snap.tick
-					const w = deserializeWorld(snap)
-					// Carry sparks across the rebuild — stable strand ids (net.ts) keep
-					// them valid, so the guest's motes don't reset every snapshot.
-					w.sparks = prevSparks.filter((s) => w.strandById.has(s.strandId))
-					setWorld(w)
+					setWorld(applySnapshot(getWorld(), snap))
 					winner$.set(snap.winner)
+				} else {
+					getWorld().tick++
 				}
 				// Keep our local slicing cue across snapshot swaps.
 				getWorld().slicing = slicing

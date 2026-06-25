@@ -96,6 +96,7 @@ export interface WorldSnapshot {
 	winner: Owner | null
 	cells: string // base64 of one byte per cell
 	tips: Array<[number, number]> // [cellIndex, ownerNum]
+	flashes: Array<[number, number, number, number]> // x, y, cell, born — the cut "snip" pops
 }
 
 function b64encode(bytes: Uint8Array): string {
@@ -147,20 +148,24 @@ export function serializeWorld(world: World): WorldSnapshot {
 		winner: world.winner,
 		cells: b64encode(cells),
 		tips,
+		flashes: world.flashes.map((f) => [f.x, f.y, f.cell, f.born]),
 	}
 }
 
-// Rebuild a render-only world from a snapshot. It carries everything the overlay
-// needs (peg ownership + the vine tree + cores + tips); charge is set full for
-// owned pegs (guests don't render the wither gradient), and vine geometry is
-// regenerated locally (the wiggle is cosmetic, so per-client variation is fine).
-export function deserializeWorld(snap: WorldSnapshot): World {
+// Apply a snapshot into a render-only world, REUSING the previous world's pegs and
+// strands wherever possible. Pegs are updated in place; a strand is reused when its
+// edge still exists (geometry is deterministic, so only the owner can flip) and a
+// new one is built only for freshly-grown edges. This avoids reallocating ~6400
+// pegs + thousands of strands on every snapshot — the churn that made the guest
+// feel slow. Pass prev=null for a fresh world.
+export function applySnapshot(prev: World | null, snap: WorldSnapshot): World {
 	const { cols, rows, spacing, x0, y0 } = GRID
 	const bytes = b64decode(snap.cells)
 
-	const pegs: Peg[] = []
-	const pegById = new Map<string, Peg>()
-	const dirOf = new Int8Array(cols * rows) // remember parentDir for a second pass
+	const reusePegs = prev != null && prev.pegs.length === cols * rows
+	const pegs: Peg[] = reusePegs ? prev!.pegs : new Array(cols * rows)
+	const pegById = reusePegs ? prev!.pegById : new Map<string, Peg>()
+	const dirOf = new Int8Array(cols * rows)
 
 	for (let r = 0; r < rows; r++) {
 		for (let c = 0; c < cols; c++) {
@@ -168,35 +173,42 @@ export function deserializeWorld(snap: WorldSnapshot): World {
 			const byte = bytes[idx] ?? 0
 			const owner = ownerFromNum(byte & 3)
 			dirOf[idx] = (byte >> 2) & 15
-			const peg: Peg = {
-				id: `peg:${c},${r}`,
-				x: x0 + c * spacing,
-				y: y0 + r * spacing,
-				col: c,
-				row: r,
-				owner,
-				parent: null,
-				charge: {
-					a: owner === 'a' ? CLAIM_CHARGE : 0,
-					b: owner === 'b' ? CLAIM_CHARGE : 0,
-				},
-				cutLockout: 0,
-				adj: new Set<string>(),
-				subtreeSize: 1,
-				blocked: !!((byte >> 6) & 1),
+			let peg = reusePegs ? pegs[idx] : undefined
+			if (!peg) {
+				peg = {
+					id: `peg:${c},${r}`,
+					x: x0 + c * spacing,
+					y: y0 + r * spacing,
+					col: c,
+					row: r,
+					owner: null,
+					parent: null,
+					charge: { a: 0, b: 0 },
+					cutLockout: 0,
+					adj: new Set<string>(),
+					subtreeSize: 1,
+					blocked: false,
+				}
+				pegs[idx] = peg
+				pegById.set(peg.id, peg)
 			}
-			pegs.push(peg)
-			pegById.set(peg.id, peg)
+			peg.owner = owner
+			peg.charge.a = owner === 'a' ? CLAIM_CHARGE : 0
+			peg.charge.b = owner === 'b' ? CLAIM_CHARGE : 0
+			peg.blocked = !!((byte >> 6) & 1)
+			peg.parent = null
+			peg.adj.clear()
+			peg.subtreeSize = 1
 		}
 	}
 
-	// Second pass: resolve parents + adjacency from the stored directions.
+	// Rebuild the tree, reusing the previous strand object for any edge that survives.
+	const prevStrands = prev?.strandById
 	const strands: Strand[] = []
 	const strandById = new Map<string, Strand>()
 	for (let r = 0; r < rows; r++) {
 		for (let c = 0; c < cols; c++) {
-			const idx = r * cols + c
-			const dir = dirOf[idx]
+			const dir = dirOf[r * cols + c]
 			if (!dir) continue
 			const [dc, dr] = DIRS[dir - 1]
 			const child = pegById.get(`peg:${c},${r}`)!
@@ -205,33 +217,43 @@ export function deserializeWorld(snap: WorldSnapshot): World {
 			child.parent = parent.id
 			child.adj.add(parent.id)
 			parent.adj.add(child.id)
-			const s = makeStableStrand(parent, child, child.owner)
+			const id = `vine:${parent.col},${parent.row}>${child.col},${child.row}`
+			let s = prevStrands?.get(id)
+			if (s) {
+				s.owner = child.owner // geometry unchanged; only the owner can flip
+			} else {
+				s = makeStableStrand(parent, child, child.owner)
+			}
 			strands.push(s)
-			strandById.set(s.id, s)
+			strandById.set(id, s)
 		}
 	}
 
-	const world: World = {
-		pegs,
-		pegById,
-		strands,
-		strandById,
-		tips: snap.tips.map(([cell, ownerNum]) => ({
-			owner: ownerFromNum(ownerNum) as Owner,
-			pegId: `peg:${cell % cols},${(cell / cols) | 0}`,
-			heading: 0,
-		})),
-		sparks: [],
-		flashes: [],
-		sources: { a: snap.sourceA, b: snap.sourceB },
-		coreHp: { a: snap.hpA, b: snap.hpB },
-		tick: snap.tick,
-		pulseTimer: 0,
-		winner: snap.winner,
-		slicing: false,
-	}
+	const world: World = prev ?? ({} as World)
+	world.pegs = pegs
+	world.pegById = pegById
+	world.strands = strands
+	world.strandById = strandById
+	world.tips = snap.tips.map(([cell, ownerNum]) => ({
+		owner: ownerFromNum(ownerNum) as Owner,
+		pegId: `peg:${cell % cols},${(cell / cols) | 0}`,
+		heading: 0,
+	}))
+	// Carry sparks whose strand still exists; take cut-flashes from the snapshot.
+	world.sparks = (prev?.sparks ?? []).filter((s) => strandById.has(s.strandId))
+	world.flashes = snap.flashes.map(([x, y, cell, born]) => ({ x, y, cell, born }))
+	world.sources = { a: snap.sourceA, b: snap.sourceB }
+	world.coreHp = { a: snap.hpA, b: snap.hpB }
+	world.tick = snap.tick
+	world.pulseTimer = 0
+	world.winner = snap.winner
+	world.slicing = prev?.slicing ?? false
 
-	// Recompute subtree sizes so vine thickness (trunks vs leaves) reads correctly.
 	computeSubtreeSizes(world)
 	return world
+}
+
+// Build a fresh render-only world from a snapshot (no reuse).
+export function deserializeWorld(snap: WorldSnapshot): World {
+	return applySnapshot(null, snap)
 }
