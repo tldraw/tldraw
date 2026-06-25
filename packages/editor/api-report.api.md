@@ -3607,6 +3607,8 @@ export interface TLCropInfo<T extends TLShape> {
     // (undocumented)
     initialShape: T;
     // (undocumented)
+    isResizingFromCenter?: boolean;
+    // (undocumented)
     uncroppedSize: {
         h: number;
         w: number;
