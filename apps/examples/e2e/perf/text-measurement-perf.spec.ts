@@ -27,7 +27,11 @@ test.describe('text measurement performance', () => {
 	test.beforeEach(setup)
 	test.setTimeout(120_000)
 
-	test('measure / geometry / resize hot paths', async ({ page }) => {
+	test('measure / geometry / resize hot paths', async ({ page }, testInfo) => {
+		// Desktop chromium only, like the sibling CPU-profile specs: emulated mobile timing is too
+		// noisy for the smoke ceilings (and would race the shared perf baseline file).
+		test.skip(testInfo.project.name !== 'chromium', 'microbenchmark runs on desktop chromium')
+
 		const results: Bench[] = await page.evaluate(async (iterations) => {
 			const ed = editor as any
 
