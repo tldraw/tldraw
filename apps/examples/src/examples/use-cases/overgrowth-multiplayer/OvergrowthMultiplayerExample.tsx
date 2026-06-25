@@ -1,0 +1,469 @@
+import { useSyncDemo } from '@tldraw/sync'
+import { useEffect, useRef, useState } from 'react'
+import {
+	Box,
+	createShapeId,
+	TLAnyOverlayUtilConstructor,
+	TLComponents,
+	TLShapeId,
+	TLUiComponents,
+	TLUiOverrides,
+	Tldraw,
+	defaultOverlayUtils,
+	useEditor,
+} from 'tldraw'
+import 'tldraw/tldraw.css'
+import {
+	CUT_ZOOM_EPSILON,
+	CUT_ZOOM_MIN,
+	frame$,
+	getWorld,
+	GRID,
+	GROWTH_PULSE_INTERVAL,
+	Owner,
+	publishScores,
+	resetWorld,
+	setWorld,
+	SWIPE_IDLE_MS,
+	SWIPE_SHRINK,
+	winner$,
+} from '../overgrowth/game-state'
+import { OvergrowthOverlayUtil } from '../overgrowth/overlays/OvergrowthOverlayUtil'
+import { hasPresence, sliceCut, SPARK_POOL, stepSim, stepSparks } from '../overgrowth/sim'
+import { deserializeWorld, serializeWorld, WorldSnapshot } from './net'
+
+const overlayUtils: TLAnyOverlayUtilConstructor[] = [...defaultOverlayUtils, OvergrowthOverlayUtil]
+
+// Bare canvas — same as single-player: the player only ever cuts.
+const uiComponents: Partial<TLUiComponents> = {
+	Toolbar: null,
+	StylePanel: null,
+	PageMenu: null,
+	MainMenu: null,
+	NavigationPanel: null,
+	HelpMenu: null,
+	ActionsMenu: null,
+	QuickActions: null,
+	ZoomMenu: null,
+	Minimap: null,
+}
+const components: TLComponents = uiComponents
+
+const overrides: TLUiOverrides = {
+	actions(_editor, actions) {
+		for (const id in actions) actions[id] = { ...actions[id], kbd: undefined }
+		return actions
+	},
+	tools(_editor, tools) {
+		for (const id in tools) tools[id] = { ...tools[id], kbd: undefined }
+		return tools
+	},
+}
+
+const ZOOM_SPEED = 2
+const SPARK_VINE_ZOOM = 0.85
+
+// --- multiplayer wiring -----------------------------------------------------
+// State rides in shape `meta` on a useSyncDemo store (same pattern as the 3D
+// shooter example). The WORLD shape is owned by the host and carries the
+// authoritative snapshot; each client owns one PLAYER shape carrying its
+// heartbeat, role, and a queue of cut segments for the host to apply. All data
+// shapes are tiny, locked, fully transparent and parked far off-screen.
+const WORLD_SHAPE = createShapeId('og-world')
+const playerShapeId = (clientId: string) => createShapeId(`og-player-${clientId}`)
+const HEARTBEAT_MS = 800 // how often a client refreshes its player shape
+const ALIVE_MS = 4000 // a client is "present" if seen within this window
+const OFFSCREEN = -1_000_000
+
+interface CutSeg {
+	seq: number
+	fx: number
+	fy: number
+	tx: number
+	ty: number
+}
+interface PlayerMeta {
+	kind: 'og-player'
+	clientId: string
+	role: Owner | 'spectator'
+	seen: number
+	cuts: CutSeg[]
+}
+
+function boardBounds() {
+	return {
+		x: GRID.x0 - GRID.spacing,
+		y: GRID.y0 - GRID.spacing,
+		w: (GRID.cols + 1) * GRID.spacing,
+		h: (GRID.rows + 1) * GRID.spacing,
+	}
+}
+
+// Off-screen, transparent geo rectangle used purely as a synced data carrier
+// (its `meta` holds the payload). NOT locked: tldraw ignores updateShape on
+// locked shapes, which would freeze every heartbeat and snapshot after creation.
+function dataShape(id: TLShapeId, meta: Record<string, unknown>) {
+	return {
+		id,
+		type: 'geo' as const,
+		x: OFFSCREEN,
+		y: OFFSCREEN,
+		opacity: 0,
+		props: { w: 1, h: 1, geo: 'rectangle' as const },
+		meta,
+	}
+}
+
+function GameRunner({ clientId }: { clientId: string }) {
+	const editor = useEditor()
+	// Live mirrors of role/host so the input closures (set up once) read current
+	// values as the room membership changes.
+	const roleRef = useRef<Owner | 'spectator'>('spectator')
+	const isHostRef = useRef(false)
+
+	useEffect(() => {
+		// The host owns the sim world; guests render a world rebuilt from snapshots.
+		// We start everyone with a fresh local world so there's something to draw
+		// before the first snapshot arrives; the host's becomes authoritative.
+		resetWorld()
+
+		editor.setCameraOptions({ ...editor.getCameraOptions(), zoomSpeed: ZOOM_SPEED })
+		const b = boardBounds()
+		editor.zoomToBounds(new Box(b.x, b.y, b.w, b.h), { inset: 24 })
+
+		// Create our player shape once.
+		const myShape = playerShapeId(clientId)
+		const writeMeta = (meta: PlayerMeta) => {
+			editor.run(
+				() => {
+					if (editor.getShape(myShape)) {
+						editor.updateShape({ id: myShape, type: 'geo', meta: meta as any })
+					} else {
+						editor.createShape(dataShape(myShape, meta as any))
+					}
+				},
+				{ history: 'ignore' }
+			)
+		}
+
+		let cutSeq = 0
+		let pendingCuts: CutSeg[] = [] // guest: segments awaiting send
+		let lastHeartbeat = 0
+		const appliedSeq: Record<string, number> = {} // host: last applied cut seq per client
+
+		const myMeta = (): PlayerMeta => ({
+			kind: 'og-player',
+			clientId,
+			role: roleRef.current,
+			seen: Date.now(),
+			cuts: pendingCuts.slice(-64), // rolling window
+		})
+
+		// Read all present player shapes → assign roles → decide host. Roles are
+		// stable by clientId sort: lowest = a (blue), next = b (orange), rest spectate.
+		const refreshRoom = (now: number) => {
+			const players: PlayerMeta[] = []
+			for (const s of editor.getCurrentPageShapes()) {
+				const m = s.meta as unknown as PlayerMeta
+				if (m?.kind === 'og-player' && now - m.seen < ALIVE_MS) players.push(m)
+			}
+			players.sort((p, q) => (p.clientId < q.clientId ? -1 : 1))
+			const meIdx = players.findIndex((p) => p.clientId === clientId)
+			roleRef.current = meIdx === 0 ? 'a' : meIdx === 1 ? 'b' : 'spectator'
+			// Host = the player assigned 'a' (lowest id present). If that's us, sim.
+			isHostRef.current = players.length > 0 && players[0].clientId === clientId
+			return players
+		}
+
+		// Host: drain queued cut segments from every player shape and apply them.
+		const applyRemoteCuts = (players: PlayerMeta[]) => {
+			const world = getWorld()
+			for (const p of players) {
+				if (p.clientId === clientId) continue // our own cuts are applied locally
+				const role = p.role
+				if (role !== 'a' && role !== 'b') continue
+				const last = appliedSeq[p.clientId] ?? -1
+				let maxSeq = last
+				for (const seg of p.cuts) {
+					if (seg.seq <= last) continue
+					sliceCut(world, { x: seg.fx, y: seg.fy }, { x: seg.tx, y: seg.ty }, role)
+					if (seg.seq > maxSeq) maxSeq = seg.seq
+				}
+				appliedSeq[p.clientId] = maxSeq
+			}
+		}
+
+		const writeSnapshot = () => {
+			const snap = serializeWorld(getWorld())
+			editor.run(
+				() => {
+					if (editor.getShape(WORLD_SHAPE)) {
+						editor.updateShape({ id: WORLD_SHAPE, type: 'geo', meta: snap as any })
+					} else {
+						editor.createShape(dataShape(WORLD_SHAPE, snap as any))
+					}
+				},
+				{ history: 'ignore' }
+			)
+		}
+
+		let lastSnapTick = -1 // guest: last snapshot tick we ingested
+
+		const onTick = () => {
+			const now = Date.now()
+			const players = refreshRoom(now)
+
+			// Heartbeat (also flushes our queued cut segments to the room).
+			if (now - lastHeartbeat > HEARTBEAT_MS || pendingCuts.length) {
+				lastHeartbeat = now
+				writeMeta(myMeta())
+				if (pendingCuts.length > 128) pendingCuts = pendingCuts.slice(-64)
+			}
+
+			if (isHostRef.current) {
+				const world = getWorld()
+				applyRemoteCuts(players)
+				stepSim(world)
+
+				// Sparks (host-local decoration), zoom-scaled like single-player.
+				const zoom = editor.getZoomLevel()
+				let want = 0
+				const visible = new Set<string>()
+				if (zoom >= SPARK_VINE_ZOOM) {
+					const vp = editor.getViewportPageBounds()
+					const c0 = Math.floor((vp.minX - GRID.x0) / GRID.spacing) - 1
+					const c1 = Math.ceil((vp.maxX - GRID.x0) / GRID.spacing) + 1
+					const r0 = Math.floor((vp.minY - GRID.y0) / GRID.spacing) - 1
+					const r1 = Math.ceil((vp.maxY - GRID.y0) / GRID.spacing) + 1
+					for (const s of world.strands) {
+						const c = s.cell % GRID.cols
+						const r = (s.cell / GRID.cols) | 0
+						if (c >= c0 && c <= c1 && r >= r0 && r <= r1) visible.add(s.id)
+					}
+					want = Math.min(SPARK_POOL, Math.round(visible.size * 0.5 * Math.min(2, zoom)))
+				}
+				stepSparks(world, visible, want)
+
+				publishScores(world)
+				// Publish the authoritative state on each growth pulse (≈4/sec).
+				if (world.tick % GROWTH_PULSE_INTERVAL === 0) writeSnapshot()
+				frame$.set(frame$.get() + 1)
+			} else {
+				// Guest: ingest the latest snapshot if it changed, rebuild the world.
+				const ws = editor.getShape(WORLD_SHAPE)
+				const snap = ws?.meta as unknown as WorldSnapshot | undefined
+				if (snap?.v === 1 && snap.tick !== lastSnapTick) {
+					lastSnapTick = snap.tick
+					setWorld(deserializeWorld(snap))
+					winner$.set(snap.winner)
+				}
+				// Keep our local slicing cue across snapshot swaps (greys out-of-reach
+				// enemy vines while we drag), since each snapshot rebuilds the world.
+				getWorld().slicing = slicing
+				frame$.set(frame$.get() + 1)
+			}
+		}
+		editor.on('tick', onTick)
+
+		// --- input: same cut/camera reconciliation as single-player -------------
+		let spaceHeld = false
+		const onSpaceKey = (e: KeyboardEvent) => {
+			if (e.code === 'Space') spaceHeld = e.type === 'keydown'
+		}
+		window.addEventListener('keydown', onSpaceKey, true)
+		window.addEventListener('keyup', onSpaceKey, true)
+
+		const onKeyDown = (e: KeyboardEvent) => {
+			const k = e.key.toLowerCase()
+			if (k === 'r') {
+				// Host-only reset; guests follow via the next snapshot.
+				if (isHostRef.current) resetWorld()
+			} else if (k === 'q') {
+				const bb = boardBounds()
+				editor.zoomToBounds(new Box(bb.x, bb.y, bb.w, bb.h), {
+					inset: 24,
+					animation: { duration: 300 },
+				})
+			} else if (k === 'w') {
+				const bb = boardBounds()
+				const vsb = editor.getViewportScreenBounds()
+				const inset = 24
+				const fit = Math.min((vsb.w - inset * 2) / bb.w, (vsb.h - inset * 2) / bb.h)
+				const c = editor.getViewportPageBounds().center
+				editor.zoomToBounds(new Box(c.x - 1, c.y - 1, 2, 2), {
+					targetZoom: fit * 2.4,
+					animation: { duration: 300 },
+				})
+			}
+		}
+		window.addEventListener('keydown', onKeyDown)
+
+		const container = editor.getContainer()
+		const toPage = (e: PointerEvent) => editor.screenToPage({ x: e.clientX, y: e.clientY })
+		let slicing = false
+		let pointerDown = false
+		let last = { x: 0, y: 0 }
+		let scribble: { sessionId: string; scribbleId: string } | null = null
+
+		// Apply a cut segment: host cuts its own world directly; guest queues it for
+		// the host. Both set their local world's `slicing` flag so the overlay greys
+		// out-of-reach enemy vines locally.
+		const doCut = (from: { x: number; y: number }, to: { x: number; y: number }) => {
+			const role = roleRef.current
+			if (role !== 'a' && role !== 'b') return
+			if (isHostRef.current) {
+				sliceCut(getWorld(), from, to, role)
+			} else {
+				pendingCuts.push({ seq: cutSeq++, fx: from.x, fy: from.y, tx: to.x, ty: to.y })
+			}
+		}
+
+		const startSlice = (p: { x: number; y: number }) => {
+			if (roleRef.current === 'spectator') return
+			slicing = true
+			getWorld().slicing = true
+			last = p
+			const sessionId = editor.scribbles.startSession({
+				selfConsume: true,
+				idleTimeoutMs: SWIPE_IDLE_MS,
+				fadeMode: 'grouped',
+				fadeEasing: 'ease-in',
+			})
+			const eraser = editor.scribbles.addScribbleToSession(sessionId, {
+				color: 'black',
+				opacity: 0.45,
+				size: 12,
+				taper: true,
+				shrink: SWIPE_SHRINK,
+			})
+			scribble = { sessionId, scribbleId: eraser.id }
+			editor.scribbles.addPointToSession(sessionId, eraser.id, p.x, p.y)
+		}
+
+		const onPointerMove = (e: PointerEvent) => {
+			if (!pointerDown) return
+			const p = toPage(e)
+			if (!slicing) {
+				if (editor.getZoomLevel() >= CUT_ZOOM_MIN) startSlice(p)
+				return
+			}
+			doCut(last, p)
+			if (scribble) {
+				editor.scribbles.addPointToSession(scribble.sessionId, scribble.scribbleId, p.x, p.y)
+			}
+			last = p
+		}
+
+		const onPointerUp = () => {
+			if (scribble) {
+				editor.scribbles.stopSession(scribble.sessionId)
+				scribble = null
+			}
+			slicing = false
+			getWorld().slicing = false
+			pointerDown = false
+			window.removeEventListener('pointermove', onPointerMove, true)
+			window.removeEventListener('pointerup', onPointerUp, true)
+		}
+
+		const onPointerDown = (e: PointerEvent) => {
+			if (e.button !== 0 || spaceHeld) return
+			if (roleRef.current === 'spectator') return
+			const p = toPage(e)
+			pointerDown = true
+			window.addEventListener('pointermove', onPointerMove, true)
+			window.addEventListener('pointerup', onPointerUp, true)
+			if (editor.getZoomLevel() >= CUT_ZOOM_MIN) {
+				startSlice(p)
+			} else {
+				const targetZoom = CUT_ZOOM_MIN + CUT_ZOOM_EPSILON
+				const half = GRID.spacing
+				editor.zoomToBounds(new Box(p.x - half, p.y - half, half * 2, half * 2), {
+					targetZoom,
+					animation: { duration: 320 },
+				})
+			}
+			e.stopPropagation()
+			e.preventDefault()
+		}
+		container.addEventListener('pointerdown', onPointerDown, true)
+
+		// Cursor: draw cross, with the reach cue (not-allowed when out of reach).
+		const canvasEl = container.querySelector('.tl-canvas') as HTMLElement | null
+		let outOfReach = false
+		const onHoverMove = (e: PointerEvent) => {
+			const role = roleRef.current
+			if (slicing || role === 'spectator' || editor.getZoomLevel() < CUT_ZOOM_MIN) {
+				outOfReach = false
+				return
+			}
+			const p = editor.screenToPage({ x: e.clientX, y: e.clientY })
+			outOfReach = !hasPresence(getWorld(), role, p)
+		}
+		container.addEventListener('pointermove', onHoverMove)
+
+		const enforceCursor = () => {
+			if (spaceHeld) {
+				if (canvasEl) canvasEl.style.cursor = ''
+				return
+			}
+			const showNotAllowed = outOfReach && !slicing && editor.getZoomLevel() >= CUT_ZOOM_MIN
+			if (showNotAllowed) {
+				if (canvasEl && canvasEl.style.cursor !== 'not-allowed')
+					canvasEl.style.cursor = 'not-allowed'
+			} else {
+				if (canvasEl && canvasEl.style.cursor) canvasEl.style.cursor = ''
+				if (editor.getInstanceState().cursor.type !== 'cross') {
+					editor.setCursor({ type: 'cross', rotation: 0 })
+				}
+			}
+		}
+		editor.setCursor({ type: 'cross', rotation: 0 })
+		editor.on('tick', enforceCursor)
+
+		return () => {
+			editor.off('tick', onTick)
+			editor.off('tick', enforceCursor)
+			window.removeEventListener('keydown', onKeyDown)
+			window.removeEventListener('keydown', onSpaceKey, true)
+			window.removeEventListener('keyup', onSpaceKey, true)
+			container.removeEventListener('pointerdown', onPointerDown, true)
+			container.removeEventListener('pointermove', onHoverMove)
+			window.removeEventListener('pointermove', onPointerMove, true)
+			window.removeEventListener('pointerup', onPointerUp, true)
+			if (canvasEl) canvasEl.style.cursor = ''
+			// Tidy up our player shape so peers prune us promptly.
+			editor.run(() => editor.deleteShape(playerShapeId(clientId)), { history: 'ignore' })
+		}
+	}, [editor, clientId])
+
+	return null
+}
+
+export default function OvergrowthMultiplayerExample({
+	roomId = 'tldraw-overgrowth',
+}: {
+	roomId?: string
+}) {
+	// Stable per-tab client id (two tabs of one browser are still distinct players).
+	const [clientId] = useState(() => Math.random().toString(36).slice(2, 10))
+	// Optional `?syncHost=` override points sync at your own server (e.g. a local
+	// bemo worker) instead of tldraw's public demo server — handy for development.
+	const [host] = useState(
+		() => new URLSearchParams(window.location.search).get('syncHost') ?? undefined
+	)
+	const store = useSyncDemo(host ? { roomId, host } : { roomId })
+	return (
+		<div className="tldraw__editor">
+			<Tldraw
+				store={store}
+				colorScheme="light"
+				overlayUtils={overlayUtils}
+				components={components}
+				overrides={overrides}
+			>
+				<GameRunner clientId={clientId} />
+			</Tldraw>
+		</div>
+	)
+}

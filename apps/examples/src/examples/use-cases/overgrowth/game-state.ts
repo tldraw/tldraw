@@ -293,6 +293,13 @@ export function getWorld() {
 	return world
 }
 
+// Replace the live world. Used by the multiplayer example so a guest can render a
+// world reconstructed from the host's synced snapshot through the same overlay
+// (which reads getWorld()). Single-player never calls this.
+export function setWorld(w: World) {
+	world = w
+}
+
 function pegId(c: number, r: number) {
 	return `peg:${c},${r}`
 }
