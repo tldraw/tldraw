@@ -7,6 +7,7 @@ import {
 	TLShapeId,
 	toRichText,
 	useMaybeEditor,
+	warnOnce,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
@@ -390,15 +391,17 @@ export function onDragFromToolbarToCreateShape(
 	const { x, y } = editor.inputs.getCurrentPagePoint()
 
 	const stoppingPoint = editor.markHistoryStoppingPoint('drag shape tool')
-	editor.setCurrentTool('select.translating')
 
 	const id = createShapeId()
 	opts.createShape(id)
 	const shape = editor.getShape(id)
 	if (!shape) {
-		// Shape creation didn't take effect (for example it was blocked by a side
-		// effect). Bail out gracefully instead of crashing the app.
-		editor.bailToMark(stoppingPoint)
+		// We've already bailed on read-only above, so reaching here means an
+		// editable context where createShape didn't take effect (for example it was
+		// blocked by a side effect). Nothing has changed yet, so there's nothing to
+		// roll back—warn for visibility and return to idle instead of entering a
+		// translate session with no shape.
+		warnOnce('onDragFromToolbarToCreateShape: createShape did not create a shape, ignoring drag.')
 		editor.setCurrentTool('select.idle')
 		return
 	}
