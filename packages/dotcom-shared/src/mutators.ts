@@ -239,7 +239,7 @@ export function createMutators(userId: string) {
 		init: async (tx: Tx, { user, time }: { user: TlaUser; time: number }) => {
 			assert(user.id === userId, ZErrorCode.forbidden)
 			time = ensureSensibleTimestamp(time)
-			await tx.mutate.user.insert({ ...user, flags: 'groups_backend' })
+			await tx.mutate.user.insert({ ...user, flags: '' })
 			await tx.mutate.group.insert({
 				id: userId,
 				name: user.name,

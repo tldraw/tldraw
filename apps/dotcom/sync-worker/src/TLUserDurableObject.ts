@@ -138,9 +138,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								exportPadding: true,
 								createdAt: now,
 								updatedAt: now,
-								// Vestigial migration done-marker that migrate_user_to_groups (an applied,
-								// immutable migration) keys off; no longer read as a feature flag.
-								flags: 'groups_backend',
+								// No feature flags on new users; the column is retained for future flags.
+								flags: '',
 							})
 							.execute()
 						await tx
@@ -725,8 +724,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await tx
 				.updateTable('user')
 				.set({
-					// Vestigial migration done-marker (see the insert above); not a feature flag.
-					flags: 'groups_backend',
+					flags: '',
 					allowAnalyticsCookie: null,
 					enhancedA11yMode: null,
 					colorScheme: null,
