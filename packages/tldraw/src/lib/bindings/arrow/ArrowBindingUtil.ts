@@ -123,8 +123,17 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 
 	let nextParentId: TLParentId
 	if (startShape && endShape) {
-		// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
-		nextParentId = editor.findCommonAncestor([startShape, endShape]) ?? parentPageId
+		// If arrow has two bindings, parent it to the closest common ancestor of the
+		// bound shapes. When one bound shape is an ancestor-or-self of the other (for
+		// example an arrow drawn across a frame's interior binds to the frame itself,
+		// or binds to the frame on one end and a child inside it on the other),
+		// findCommonAncestor can't return that shape because it only walks strict
+		// ancestors. In that case parent the arrow into the container so it lives
+		// inside the frame and cascade-deletes along with it.
+		nextParentId =
+			getCommonBindingContainer(editor, arrow, startShape, endShape) ??
+			editor.findCommonAncestor([startShape, endShape]) ??
+			parentPageId
 	} else if (startShape || endShape) {
 		const bindingParentId = (startShape || endShape)?.parentId
 		// If the arrow and the shape that it is bound to have the same parent, then keep that parent
@@ -198,6 +207,39 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 	if (finalIndex !== reparentedArrow.index) {
 		editor.updateShapes([{ id: arrowId, type: 'arrow', index: finalIndex }])
 	}
+}
+
+/**
+ * When an arrow's two bound shapes are in an ancestor-or-self relationship (the same
+ * shape on both ends, or a container and one of its descendants), return that container
+ * if it can contain the arrow. This lets arrows bound to a frame itself live inside the
+ * frame instead of falling through to the page. Returns undefined when there's no such
+ * relationship, or when the would-be container can't receive the arrow (for example a
+ * self-bound arrow on a plain shape), so the caller falls back to the common-ancestor walk.
+ */
+function getCommonBindingContainer(
+	editor: Editor,
+	arrow: TLArrowShape,
+	startShape: TLShape,
+	endShape: TLShape
+): TLShapeId | undefined {
+	let container: TLShape | undefined
+	if (startShape.id === endShape.id) {
+		container = startShape
+	} else if (editor.hasAncestor(startShape, endShape.id)) {
+		container = endShape
+	} else if (editor.hasAncestor(endShape, startShape.id)) {
+		container = startShape
+	}
+
+	if (
+		container &&
+		editor.getShapeUtil(container).canReceiveNewChildrenOfType(container, arrow.type)
+	) {
+		return container.id
+	}
+
+	return undefined
 }
 
 function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {

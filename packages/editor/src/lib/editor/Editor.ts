@@ -5805,10 +5805,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
 		const selectedShapeIds = this.getSelectedShapeIds()
+		// A selected shape can be grabbed anywhere on its geometry, even where an
+		// ancestor frame clips it (for example a curved arrow whose body bows outside
+		// the frame). This matches the selection indicator, which is drawn unclipped,
+		// so we hit test the geometry directly rather than going through isPointInShape,
+		// which would reject points outside the clip mask. We use the standard hit-test
+		// margin so thin shapes (like arrows) remain easy to grab.
+		const margin = this.options.hitTestMargin / this.getZoomLevel()
 		return this.getCurrentPageShapesSorted()
 			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
 			.reverse() // find last
-			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
+			.find((shape) =>
+				this.getShapeGeometry(shape).hitTestPoint(
+					this.getPointInShapeSpace(shape, point),
+					margin,
+					true
+				)
+			)
 	}
 
 	/**

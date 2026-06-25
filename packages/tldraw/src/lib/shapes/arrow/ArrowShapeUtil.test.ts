@@ -512,7 +512,9 @@ describe("an arrow's parents", () => {
 		editor.pointerDown(15, 15).pointerMove(50, 50)
 		const arrowId = editor.getOnlySelectedShape()!.id
 
-		expect(arrow(arrowId).parentId).toBe(editor.getCurrentPageId())
+		// start binds to box A (inside the frame) and end binds to the frame itself,
+		// so the arrow is parented into the frame
+		expect(arrow(arrowId).parentId).toBe(frameId)
 
 		// move arrow to b
 		editor.pointerMove(15, 85)
@@ -522,9 +524,9 @@ describe("an arrow's parents", () => {
 			end: { toId: boxBid },
 		})
 
-		// move back to empty space
+		// move back to empty space within the frame: still parented to the frame
 		editor.pointerMove(50, 50)
-		expect(arrow(arrowId).parentId).toBe(editor.getCurrentPageId())
+		expect(arrow(arrowId).parentId).toBe(frameId)
 		expect(bindings(arrowId)).toMatchObject({
 			start: { toId: boxAid },
 			end: { toId: frameId },

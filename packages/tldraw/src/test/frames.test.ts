@@ -761,7 +761,70 @@ describe('frame shapes', () => {
 		expect(bindings.start).toMatchObject({ toId: boxId })
 		expect(bindings.end).toMatchObject({ toId: frameId })
 
-		expect(arrow.parentId).toBe(editor.getCurrentPageId())
+		// both ends depend on the frame (a child inside it and the frame itself), so
+		// the arrow is parented into the frame
+		expect(arrow.parentId).toBe(frameId)
+	})
+
+	it('parents an arrow into a frame when both ends bind to the frame itself', () => {
+		editor.setCurrentTool('frame')
+		editor.pointerDown(100, 100).pointerMove(300, 300).pointerUp(300, 300)
+		const frameId = editor.getOnlySelectedShape()!.id
+
+		// draw an arrow across two empty areas of the frame so both ends bind to the frame
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(150, 150).pointerMove(250, 250).pointerUp(250, 250)
+
+		const arrow = editor.getOnlySelectedShape()! as TLArrowShape
+		const bindings = getArrowBindings(editor, arrow)
+		expect(bindings.start).toMatchObject({ toId: frameId })
+		expect(bindings.end).toMatchObject({ toId: frameId })
+
+		// the arrow is parented to the frame, not the page
+		expect(arrow.parentId).toBe(frameId)
+
+		// so deleting the frame deletes the arrow with it
+		editor.deleteShapes([frameId])
+		expect(editor.getShape(arrow.id)).toBeUndefined()
+	})
+
+	it('lets you grab and move a selected frame-bound arrow where it bows outside the frame', () => {
+		editor.setCurrentTool('frame')
+		editor.pointerDown(100, 100).pointerMove(300, 300).pointerUp(300, 300)
+		const frameId = editor.getOnlySelectedShape()!.id
+
+		// draw an arrow along the bottom edge of the frame, both ends bound to the frame
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(150, 290).pointerMove(250, 290).pointerUp(250, 290)
+		const arrowId = editor.getOnlySelectedShape()!.id
+		expect(editor.getShape(arrowId)!.parentId).toBe(frameId)
+
+		// bend it downward so the middle of the arrow bows below the frame (y > 300)
+		editor.updateShape({ id: arrowId, type: 'arrow', props: { bend: 60 } })
+
+		// the lowest point on the arrow's geometry sits below the frame, where the
+		// frame clips the arrow
+		const transform = editor.getShapePageTransform(arrowId)
+		const lowestPoint = transform
+			.applyToPoints(editor.getShapeGeometry(arrowId).vertices)
+			.reduce((lowest, p) => (p.y > lowest.y ? p : lowest))
+		expect(lowestPoint.y).toBeGreaterThan(300)
+
+		// a normal hit test misses the arrow there because it's clipped by the frame
+		expect(editor.getShapeAtPoint(lowestPoint, { hitInside: true, margin: 0 })).toBeUndefined()
+
+		// but once the arrow is selected it can be grabbed across its whole geometry,
+		// matching its (unclipped) selection indicator
+		editor.setCurrentTool('select')
+		editor.select(arrowId)
+		expect(editor.getSelectedShapeAtPoint(lowestPoint)?.id).toBe(arrowId)
+
+		// so pointing down outside the frame and dragging starts moving the arrow
+		// rather than starting a selection brush
+		editor.pointerDown(lowestPoint.x, lowestPoint.y)
+		editor.pointerMove(lowestPoint.x, lowestPoint.y + 40)
+		editor.expectToBeIn('select.translating')
+		editor.pointerUp()
 	})
 
 	it('can be edited', () => {
