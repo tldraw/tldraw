@@ -83,6 +83,7 @@ export function createAppRouter({
 						path="/dev/browser-run-thumbnail"
 						lazy={() => import('./pages/dev-browser-run-thumbnail')}
 					/>
+					<Route path="/dev/buttons" lazy={() => import('./pages/dev-buttons')} />
 				</>
 			)}
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
