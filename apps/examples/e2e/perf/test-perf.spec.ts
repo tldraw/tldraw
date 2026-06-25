@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test'
 import { createAnalyticsReporter, getTestContext } from '../fixtures/analytics-reporter'
 import test from '../fixtures/fixtures'
+import { recordPerfBaseline } from '../fixtures/perf-baseline'
 import {
 	formatPerformanceResults,
 	PerformanceTestResult,
@@ -157,7 +158,13 @@ test.describe('Performance Tests', () => {
 		// The scenario creates its own wrapping text shapes, so no heavy board is needed.
 		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
 
-		testOutput(await perfSuite.testTextReflow())
+		const result = await perfSuite.testTextReflow()
+		// Record the reflow FPS against a committed baseline too, so its diff is visible in a PR.
+		recordPerfBaseline('text-reflow-fps', {
+			avgFps: result.metrics.averageFps,
+			minFps: result.metrics.minFps,
+		})
+		testOutput(result)
 	})
 })
 

@@ -64,6 +64,15 @@ jobs:
         run: 'yarn e2e --update-snapshots'
         working-directory: 'apps/examples'
 
+      # Regenerate the committed perf baselines (e2e/baselines/perf/*.json) on the same consistent
+      # runner, so a PR that changes performance shows the before/after in its diff. This only
+      # records numbers; it never gates, so a perf blip can't block the snapshot update.
+      - name: Update perf baselines
+        if: always()
+        continue-on-error: true
+        run: 'PERF_UPDATE_BASELINE=1 yarn e2e-perf'
+        working-directory: 'apps/examples'
+
       - name: Commit and push changes
         if: always()
         run: |

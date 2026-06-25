@@ -1,6 +1,7 @@
 import { writeFileSync } from 'fs'
 import test from '@playwright/test'
 import { Editor } from 'tldraw'
+import { recordPerfBaseline } from '../fixtures/perf-baseline'
 import { setup } from '../shared-e2e'
 
 declare const editor: Editor
@@ -218,6 +219,15 @@ test.describe('text resize CPU profile', () => {
 		// the other test artifacts, so a CI run keeps them without cluttering the repo or /tmp.
 		writeFileSync(testInfo.outputPath(`perf-${LABEL}.json`), JSON.stringify(summary, null, 2))
 		writeFileSync(testInfo.outputPath(`perf-${LABEL}.cpuprofile`), JSON.stringify(profile))
+
+		// Record the headline numbers against a committed baseline so a change's cost/savings show up
+		// in the PR diff. Bucket %s are the stable signal; busyMsPerMove is the rough magnitude.
+		recordPerfBaseline('text-resize-profile', {
+			busyMsPerMove: summary.busyMsPerMove,
+			...Object.fromEntries(
+				Object.entries(summary.bucketsMs).map(([k, v]) => [`${k} %busy`, v.pctOfBusy])
+			),
+		})
 
 		const tbl = summary.top
 			.slice(0, 22)

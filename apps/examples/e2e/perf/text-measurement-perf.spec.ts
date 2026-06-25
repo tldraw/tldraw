@@ -1,5 +1,6 @@
 import test, { expect } from '@playwright/test'
 import { Editor } from 'tldraw'
+import { recordPerfBaseline } from '../fixtures/perf-baseline'
 import { setup } from '../shared-e2e'
 
 declare const editor: Editor
@@ -142,6 +143,16 @@ test.describe('text measurement performance', () => {
 		test
 			.info()
 			.annotations.push({ type: 'text-measurement-perf', description: JSON.stringify(results) })
+
+		// Record against the committed baseline so a change's cost shows up in the PR diff. The
+		// geometry recompute is the fix-relevant number — it includes the per-word ink pass.
+		const baseline: Record<string, number> = {}
+		for (const r of results) {
+			baseline[`${r.label} measureHtml`] = r.measureHtmlMsPerOp
+			baseline[`${r.label} geometry`] = r.geometryRecomputeMsPerOp
+			baseline[`${r.label} resizeStep`] = r.resizeStepMsPerOp
+		}
+		recordPerfBaseline('text-measurement', baseline)
 
 		// Loose smoke ceiling — a single text measurement should stay well under a frame budget.
 		// This guards against a pathological regression (e.g. an O(n^2) ink scan) without flaking.
