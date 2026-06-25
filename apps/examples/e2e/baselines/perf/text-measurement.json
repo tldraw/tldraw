@@ -1,11 +1,11 @@
 {
-	"LTR latin measureHtml": 0.2065,
-	"LTR latin geometry": 1.367,
-	"LTR latin resizeStep": 0.425,
-	"RTL arabic measureHtml": 0.204,
-	"RTL arabic geometry": 1.2335,
-	"RTL arabic resizeStep": 0.44,
-	"italic serif measureHtml": 0.1745,
-	"italic serif geometry": 1.11,
-	"italic serif resizeStep": 0.4325
+	"LTR latin measureHtml": 0.2,
+	"LTR latin geometry": 1.4,
+	"LTR latin resizeStep": 0.5,
+	"RTL arabic measureHtml": 0.2,
+	"RTL arabic geometry": 1.2,
+	"RTL arabic resizeStep": 0.4,
+	"italic serif measureHtml": 0.2,
+	"italic serif geometry": 1.1,
+	"italic serif resizeStep": 0.4
 }
