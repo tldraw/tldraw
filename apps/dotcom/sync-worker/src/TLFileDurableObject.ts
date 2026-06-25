@@ -1107,9 +1107,6 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private readonly associateAssetsQueue = new ExecutionQueue()
-	// Whether an association pass has been requested but not yet started. runAssociationPasses clears
-	// this before each pass and loops again if it's set back to true while a pass is running.
-	private associateAssetsPending = false
 
 	// Shared connection budget for every R2 operation this durable object makes. Both asset copies and
 	// snapshot uploads draw from this queue so together they can't exceed Cloudflare's simultaneous-
@@ -1153,33 +1150,35 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	})()
 
-	// Request a pass that associates every asset in this (app) file with the file. Needed for cases
-	// like duplicating a file, copy-pasting images between files, and slurping legacy files; also
-	// migrates old-format asset URLs to tldrawusercontent.com. The work runs in runAssociationPasses;
-	// if a pass is already running, this just flags that another is wanted.
+	// Associates every asset in this (app) file with the file. Needed for cases like duplicating a
+	// file, copy-pasting images between files, and slurping legacy files; also migrates old-format
+	// asset URLs to tldrawusercontent.com. Only one pass runs at a time; concurrent calls are dropped
+	// because the running pass already drains the whole store (see associateFileAssets).
 	async maybeAssociateFileAssets() {
 		if (!this.documentInfo.isApp) return
-		this.associateAssetsPending = true
 		if (!this.associateAssetsQueue.isEmpty()) return
-		await this.associateAssetsQueue.push(() => this.runAssociationPasses())
-	}
-
-	// Runs association passes one at a time until none are pending. Each pass rescans the whole store
-	// and only sees assets present when it starts, so re-running picks up anything that arrived during
-	// the previous pass. We loop here rather than relying on the next persist tick because a tick can
-	// advance _lastPersistedClock past those assets, leaving no later tick to re-trigger a pass.
-	private async runAssociationPasses() {
-		while (this.associateAssetsPending) {
-			this.associateAssetsPending = false
-			await this.associateFileAssets()
-		}
+		await this.associateAssetsQueue.push(() => this.associateFileAssets())
 	}
 
 	private async associateFileAssets() {
+		// Keep going until there's nothing left to associate. Copying takes a while and more assets can
+		// arrive in the meantime, so the running pass keeps draining rather than relying on a later
+		// trigger to pick up the stragglers.
+		while (true) {
+			const associated = await this.associatePendingAssets()
+			if (!associated) return
+		}
+	}
+
+	// Associates every asset that isn't linked to this file yet: copies it to a new object owned by the
+	// file and repoints the asset at it (and migrates old-format URLs in place). Returns how many
+	// assets it associated — 0 means there's nothing left to do, or nothing it can make progress on
+	// (e.g. an asset whose source object is missing), which is what stops the loop above.
+	private async associatePendingAssets(): Promise<number> {
 		const slug = this.documentInfo.slug
 		const storage = await this.getStorage()
-
 		const userContentUrl = this.getUserContentUrl()
+
 		const {
 			result: { assetsToReplace, assetsToMigrate },
 		} = storage.transaction((txn) => {
@@ -1242,6 +1241,8 @@ export class TLFileDurableObject extends DurableObject {
 			})
 		}
 
+		if (assetsToReplace.length === 0) return 0
+
 		const rows: { objectName: string; fileId: string }[] = []
 		await Promise.allSettled(
 			assetsToReplace.map((asset) =>
@@ -1273,7 +1274,9 @@ export class TLFileDurableObject extends DurableObject {
 				)
 			)
 		)
-		if (rows.length === 0) return
+
+		// Nothing copied, so there's no progress to be made.
+		if (rows.length === 0) return 0
 
 		await this.db
 			.insertInto('asset')
@@ -1282,6 +1285,8 @@ export class TLFileDurableObject extends DurableObject {
 				return oc.column('objectName').doUpdateSet({ fileId: slug })
 			})
 			.execute()
+
+		return rows.length
 	}
 
 	protected async setRoomStorageUsedPercentage(roomSizeMB: number) {
