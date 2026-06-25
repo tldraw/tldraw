@@ -522,9 +522,13 @@ export async function defaultHandleExternalTextContent(
 		maxWidth: null,
 	})
 
-	const vpb = editor.getViewportPageBounds()
-	const padding = 40 / editor.getZoomLevel()
-	const maxWidth = vpb.width - padding * 2
+	// Wrap the text if it's wider than the viewport, but don't let
+	// it wrap narrower than the viewport would be at 100% zoom.
+	const padding = 40
+	const maxWidth = Math.max(
+		editor.getViewportPageBounds().width - (padding * 2) / editor.getZoomLevel(),
+		editor.getViewportScreenBounds().width - padding * 2
+	)
 
 	if (rawSize.w > maxWidth) {
 		// The text is wider than the viewport, so wrap it to fit on screen.
@@ -546,21 +550,8 @@ export async function defaultHandleExternalTextContent(
 		autoSize = true
 	}
 
-	// Offset horizontally to keep the text within the viewport.
-	if (p.x - w / 2 < vpb.minX + padding) {
-		p.x = vpb.minX + padding + w / 2
-	} else if (p.x + w / 2 > vpb.maxX - padding) {
-		p.x = vpb.maxX - padding - w / 2
-	}
-
-	// Offset up or down vertically to keep the text within the viewport,
-	// but don't let the top cross the top safe zone.
-	const topSafe = vpb.minY + padding
-	const bottomSafe = vpb.maxY - padding
-	if (p.y - h / 2 < topSafe) {
-		p.y = topSafe + h / 2
-	} else if (p.y + h / 2 > bottomSafe) {
-		p.y = Math.max(bottomSafe - h / 2, topSafe + h / 2)
+	if (p.y - h / 2 < editor.getViewportPageBounds().minY + 40) {
+		p.y = editor.getViewportPageBounds().minY + 40 + h / 2
 	}
 
 	const newPoint = maybeSnapToGrid(new Vec(p.x - w / 2, p.y - h / 2), editor)
