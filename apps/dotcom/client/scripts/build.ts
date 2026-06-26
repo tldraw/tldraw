@@ -39,6 +39,9 @@ const SOCIAL_CRAWLER_USER_AGENTS = [
 	'SkypeUriPreview',
 	'Mastodon',
 	'Bluesky',
+	// tldraw's own link-unfurl service, so pasting a board link into a tldraw canvas shows the
+	// board name in the bookmark. See the cloudflare-workers-unfurl user-agent.
+	'tldraw-bot',
 ]
 
 // The board routes whose social preview should include the board name, mapped to the URL prefix the
