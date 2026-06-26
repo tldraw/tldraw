@@ -192,6 +192,27 @@ describe('recognizeRectangle', () => {
 		expect(recognize(pts)).toBe(null)
 	})
 
+	it('does not recognize a straight stroke with a sharp end hook', () => {
+		const pts: Vec[] = []
+		for (let i = 0; i <= 20; i++) pts.push(new Vec(40 + i * 10, 60)) // 200px straight body
+		for (const h of [6, 12, 18]) pts.push(new Vec(240, 60 + h)) // sharp upward hook
+		expect(recognize(pts)).toBe(null)
+	})
+
+	it('does not recognize a straight stroke with a sharp start hook', () => {
+		const pts: Vec[] = []
+		for (const h of [18, 12, 6]) pts.push(new Vec(40, 60 + h)) // sharp hook into the line
+		for (let i = 0; i <= 20; i++) pts.push(new Vec(40 + i * 10, 60)) // 200px straight body
+		expect(recognize(pts)).toBe(null)
+	})
+
+	it('still recognizes a straight stroke with only a tiny end flick', () => {
+		const pts: Vec[] = []
+		for (let i = 0; i <= 20; i++) pts.push(new Vec(40 + i * 10, 60)) // 200px body
+		pts.push(new Vec(240, 63)) // 3px flick — negligible, still a line
+		expect(recognize(pts)?.kind).toBe('line')
+	})
+
 	it('does not recognize an open (un-closed) rectangle path', () => {
 		// Perimeter that stops three-quarters of the way around — endpoints far apart.
 		const corners = rectCorners(0, 0, 100, 60)

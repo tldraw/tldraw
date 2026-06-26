@@ -666,6 +666,16 @@ describe('MagicWandTool hold-to-morph', () => {
 		expect(realShapes().some((s) => s.type === 'draw')).toBe(true)
 	})
 
+	it('does not morph a straight sketch that ends in a sharp hook', () => {
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		for (let i = 1; i <= 12; i++) editor.pointerMove(100 + i * 15, 100) // straight body
+		for (const h of [8, 16, 24]) editor.pointerMove(280, 100 - h) // sharp upward hook
+		vi.advanceTimersByTime(600)
+		expect(realShapes().some((s) => s.type === 'line')).toBe(false)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(true)
+	})
+
 	it('undo removes the morphed line and redo re-creates it', () => {
 		drawLineSketch(100, 100, 300, 100)
 		vi.advanceTimersByTime(600)

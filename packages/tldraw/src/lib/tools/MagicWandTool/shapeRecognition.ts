@@ -34,6 +34,13 @@ const ELLIPSE_SPIKE_RADIUS = 1.2
 const ELLIPSE_MAX_SPIKE_FRACTION = 0.1
 /** A stroke is a line if no point strays more than this fraction of its length from the chord. */
 const LINE_STRAIGHTNESS_RATIO = 0.1
+/** End stretch over which a line's entry/exit direction is checked, as a fraction of its length. */
+const LINE_END_SPAN_RATIO = 0.15
+/** Clamp (page units) for that end stretch, so hooks are caught on both short and long lines. */
+const LINE_END_SPAN_MIN = 6
+const LINE_END_SPAN_MAX = 16
+/** Max angle (radians) a line's entry/exit direction may turn from its body — rejects end hooks. */
+const LINE_END_MAX_ANGLE = (35 * Math.PI) / 180
 
 /** The normalized input handed to every recognizer. Points are in page space. */
 export interface RecognizerInput {
@@ -216,13 +223,18 @@ const recognizeLine: ShapeRecognizer = {
 		const length = Vec.Dist(start, end)
 		if (length < MIN_DIM) return null
 
-		// Every point must lie close to the straight chord between the endpoints.
+		// Global straightness: no point strays far from the chord (catches bows/curves).
 		let maxDeviation = 0
 		for (const p of input.points) {
 			const deviation = distanceToLine(p, start, end)
 			if (deviation > maxDeviation) maxDeviation = deviation
 		}
 		if (maxDeviation / length > LINE_STRAIGHTNESS_RATIO) return null
+
+		// End straightness: the stroke must run straight into each endpoint, so a
+		// sharp hook or flick disqualifies it. The global test barely notices a short
+		// hook (it changes the length-normalized average very little), so check angles.
+		if (!endpointsRunStraight(input.points, length)) return null
 
 		// Keep the exact freehand endpoints — no "closest match" fitting.
 		return { kind: 'line', start: start.clone(), end: end.clone() }
@@ -244,6 +256,58 @@ function distanceToLine(p: Vec, a: Vec, b: Vec): number {
 	const ap = Vec.Sub(p, a)
 	// |cross(ab, ap)| / |ab| is the height of the triangle on base ab.
 	return Math.abs(ab.x * ap.y - ab.y * ap.x) / lengthAb
+}
+
+/** Unsigned angle between two vectors, in radians [0, π]. Scale-invariant. */
+function angleBetween(a: Vec, b: Vec): number {
+	const dot = a.x * b.x + a.y * b.y
+	const cross = a.x * b.y - a.y * b.x
+	return Math.abs(Math.atan2(cross, dot))
+}
+
+/**
+ * Whether the stroke runs straight into each endpoint. We trim a short stretch
+ * off both ends; the trimmed middle gives the "body" direction, and each end's
+ * direction must align with it. A sharp hook or flick turns an end away from the
+ * body and fails this — even when it's too short to move the overall deviation.
+ *
+ * The body (not the endpoint chord) is the reference on purpose: a hook tilts the
+ * chord toward itself, which would otherwise hide it.
+ */
+function endpointsRunStraight(points: Vec[], chordLength: number): boolean {
+	const pStart = points[0]
+	const pEnd = points[points.length - 1]
+	const span = Math.min(
+		LINE_END_SPAN_MAX,
+		Math.max(LINE_END_SPAN_MIN, chordLength * LINE_END_SPAN_RATIO)
+	)
+
+	// First point at least `span` from the start, and (scanning back) from the end.
+	let innerStart: Vec | undefined
+	for (let i = 1; i < points.length; i++) {
+		if (Vec.Dist(points[i], pStart) >= span) {
+			innerStart = points[i]
+			break
+		}
+	}
+	let innerEnd: Vec | undefined
+	for (let i = points.length - 2; i >= 0; i--) {
+		if (Vec.Dist(points[i], pEnd) >= span) {
+			innerEnd = points[i]
+			break
+		}
+	}
+	if (!innerStart || !innerEnd) return true // too short to judge the ends
+
+	const bodyDir = Vec.Sub(innerEnd, innerStart)
+	if (bodyDir.len() < 1) return true // ends overlap; no meaningful body
+
+	const startDir = Vec.Sub(innerStart, pStart)
+	const endDir = Vec.Sub(pEnd, innerEnd)
+	return (
+		angleBetween(startDir, bodyDir) <= LINE_END_MAX_ANGLE &&
+		angleBetween(endDir, bodyDir) <= LINE_END_MAX_ANGLE
+	)
 }
 
 /** Absolute area of a polygon via the shoelace formula. */
