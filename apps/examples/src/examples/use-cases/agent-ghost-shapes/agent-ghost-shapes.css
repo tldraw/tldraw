@@ -1,0 +1,82 @@
+/* The agent prompt bar, injected through the TopPanel component slot. */
+.aga-panel {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: min(560px, 80vw);
+	padding: 10px;
+	border-radius: 12px;
+	background: white;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+	pointer-events: all;
+}
+
+.aga-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.aga-input {
+	flex: 1;
+	min-width: 180px;
+	border: 1px solid #d0d5dd;
+	border-radius: 8px;
+	padding: 8px 10px;
+	font-size: 14px;
+}
+
+.aga-status {
+	font-size: 12px;
+	color: #667085;
+	margin-right: auto;
+}
+
+/* Per-ghost accept/reject controls, rendered on the canvas above each ghost.
+   Position, scale and accent colour are set inline since they depend on the
+   ghost's bounds, the camera zoom and the proposal's colour. */
+.aga-controls {
+	position: absolute;
+	left: 0;
+	bottom: 100%;
+	transform-origin: bottom left;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding-bottom: 6px;
+	white-space: nowrap;
+}
+
+.aga-pill {
+	font-size: 12px;
+	font-weight: 600;
+	color: white;
+	padding: 4px 8px;
+	border-radius: 6px;
+}
+
+.aga-ghost-btn {
+	border-radius: 6px;
+	border: 1px solid #d0d5dd;
+	padding: 5px 12px;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	background: white;
+	color: #444;
+}
+
+.aga-ghost-btn.aga-ghost-btn--accept {
+	border: none;
+	color: white;
+}
+
+/* The dashed frame drawn around a ghost preview; border colour is set inline. */
+.aga-frame {
+	position: absolute;
+	border-style: dashed;
+	border-width: 2px;
+	border-radius: 12px;
+	pointer-events: none;
+}
