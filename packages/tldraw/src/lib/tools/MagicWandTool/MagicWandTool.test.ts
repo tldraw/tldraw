@@ -427,6 +427,47 @@ describe('MagicWandTool hold-to-morph', () => {
 		editor.pointerUp()
 	})
 
+	it('snaps a near-square sketch to a clean square (equal sides)', () => {
+		const nearSquare: Array<[number, number]> = [
+			[100, 100],
+			[210, 100],
+			[210, 200],
+			[100, 200],
+		] // 110 × 100, ratio 1.1 < 1.2
+		drawRectSketch(nearSquare)
+		vi.advanceTimersByTime(1100)
+
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geo.props.geo).toBe('rectangle')
+		expect(geo.props.w).toBeCloseTo(geo.props.h, 6)
+		editor.pointerUp()
+	})
+
+	it('keeps distinct sides for a clearly non-square sketch', () => {
+		const wide: Array<[number, number]> = [
+			[100, 100],
+			[280, 100],
+			[280, 200],
+			[100, 200],
+		] // 180 × 100, ratio 1.8 > 1.2
+		drawRectSketch(wide)
+		vi.advanceTimersByTime(1100)
+
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(Math.abs(geo.props.w - geo.props.h)).toBeGreaterThan(40)
+		editor.pointerUp()
+	})
+
+	it('snaps a near-circular sketch to a clean circle (equal axes)', () => {
+		drawEllipseSketch(150, 150, 60, 66) // ratio 1.1 < 1.2
+		vi.advanceTimersByTime(1100)
+
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geo.props.geo).toBe('ellipse')
+		expect(geo.props.w).toBeCloseTo(geo.props.h, 6)
+		editor.pointerUp()
+	})
+
 	it('snaps a near-axis-aligned sketch to an axis-aligned rectangle', () => {
 		const center: [number, number] = [150, 150]
 		const angle = (5 * Math.PI) / 180 // within the snap zone

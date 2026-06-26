@@ -19,6 +19,8 @@ const MIN_CLOSE_DISTANCE = 8
 const CORNER_TOLERANCE_RATIO = 0.3
 /** Rectangles/ellipses tilted within this many radians of an axis snap to axis-aligned. */
 const AXIS_ALIGN_SNAP_RADIANS = (7.5 * Math.PI) / 180
+/** Below this longer/shorter side ratio, a shape snaps to equal sides (square/circle). */
+const SQUARE_SNAP_RATIO = 1.2
 /** An ellipse fills ~π/4 (≈0.785) of its oriented box; accept within this band. */
 const ELLIPSE_FILL_MIN = 0.6
 const ELLIPSE_FILL_MAX = 0.92
@@ -104,6 +106,22 @@ export function recognizedShapeTopLeft(r: ShapeRecognitionResult): Vec {
 	return Vec.Sub(r.center, Vec.Rot(new Vec(r.w / 2, r.h / 2), r.rotation))
 }
 
+/**
+ * Snaps a near-square oriented box to equal sides. When the longer side is less
+ * than {@link SQUARE_SNAP_RATIO}× the shorter, both sides become their average —
+ * the closest equal-sided fit to the sketch, keeping the same center. Otherwise
+ * the sides are returned unchanged.
+ */
+function snapNearSquare(w: number, h: number): { w: number; h: number } {
+	const longer = Math.max(w, h)
+	const shorter = Math.min(w, h)
+	if (shorter > 0 && longer / shorter < SQUARE_SNAP_RATIO) {
+		const side = (w + h) / 2
+		return { w: side, h: side }
+	}
+	return { w, h }
+}
+
 const recognizeRectangle: ShapeRecognizer = {
 	kind: 'rectangle',
 	recognize(input) {
@@ -134,7 +152,9 @@ const recognizeRectangle: ShapeRecognizer = {
 		// A nearly upright rectangle is almost always meant to be axis-aligned, so
 		// snap small tilts to exactly 0 rather than spawning a subtly crooked shape.
 		const snappedRotation = Math.abs(rotation) <= AXIS_ALIGN_SNAP_RADIANS ? 0 : rotation
-		return { kind: 'rectangle', center, w, h, rotation: snappedRotation }
+		// A nearly square rectangle snaps to equal sides (a clean square).
+		const sides = snapNearSquare(w, h)
+		return { kind: 'rectangle', center, w: sides.w, h: sides.h, rotation: snappedRotation }
 	},
 }
 
@@ -163,9 +183,11 @@ const recognizeEllipse: ShapeRecognizer = {
 		// at corners — that's what separates a round shape from a rectangle.
 		if (!pointsHugEllipse(input.points, center, w, h, rotation)) return null
 
-		// Match the rectangle's behavior: snap a near-upright ellipse to upright.
+		// Match the rectangle's behavior: snap a near-upright ellipse to upright and
+		// a nearly circular ellipse to equal axes (a clean circle).
 		const snappedRotation = Math.abs(rotation) <= AXIS_ALIGN_SNAP_RADIANS ? 0 : rotation
-		return { kind: 'ellipse', center, w, h, rotation: snappedRotation }
+		const sides = snapNearSquare(w, h)
+		return { kind: 'ellipse', center, w: sides.w, h: sides.h, rotation: snappedRotation }
 	},
 }
 

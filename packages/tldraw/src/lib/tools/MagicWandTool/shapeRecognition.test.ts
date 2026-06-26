@@ -89,6 +89,22 @@ describe('recognizeRectangle', () => {
 		expect(Math.abs(r.rotation)).toBeGreaterThan(0.1)
 	})
 
+	it('snaps a near-square rectangle to equal sides (the average)', () => {
+		const corners = rectCorners(0, 0, 100, 115) // ratio 1.15 < 1.2
+		const result = recognize(samplePolygon(corners))
+		expect(result?.kind).toBe('rectangle')
+		const r = result as Extract<ShapeRecognitionResult, { kind: 'rectangle' }>
+		expect(r.w).toBeCloseTo(r.h, 6)
+		expect(r.w).toBeCloseTo(107.5, 0) // (100 + 115) / 2
+	})
+
+	it('keeps distinct sides for a clearly non-square rectangle', () => {
+		const corners = rectCorners(0, 0, 100, 150) // ratio 1.5 > 1.2
+		const result = recognize(samplePolygon(corners))
+		const r = result as Extract<ShapeRecognitionResult, { kind: 'rectangle' }>
+		expect(Math.abs(r.w - r.h)).toBeGreaterThan(40)
+	})
+
 	it('recognizes an ellipse and matches its bounds', () => {
 		const pts: Vec[] = []
 		for (let i = 0; i < 64; i++) {
@@ -107,17 +123,18 @@ describe('recognizeRectangle', () => {
 		expect(r.h).toBeLessThan(108)
 	})
 
-	it('recognizes a circle as a (roughly square) ellipse', () => {
+	it('snaps a near-circular ellipse to a perfect circle (equal axes)', () => {
 		const pts: Vec[] = []
 		for (let i = 0; i < 48; i++) {
 			const t = (i / 48) * Math.PI * 2
-			pts.push(new Vec(100 + 60 * Math.cos(t), 100 + 60 * Math.sin(t)))
+			// Slightly oval (60 × 66, ratio 1.1 < 1.2) — should snap to equal axes.
+			pts.push(new Vec(100 + 60 * Math.cos(t), 100 + 66 * Math.sin(t)))
 		}
 		pts.push(pts[0].clone())
 		const result = recognize(pts)
 		expect(result?.kind).toBe('ellipse')
 		const r = result as Extract<ShapeRecognitionResult, { kind: 'ellipse' }>
-		expect(Math.abs(r.w - r.h)).toBeLessThan(6)
+		expect(r.w).toBeCloseTo(r.h, 6)
 	})
 
 	it('recognizes a rotated ellipse', () => {
