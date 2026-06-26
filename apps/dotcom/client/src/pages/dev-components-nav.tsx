@@ -24,6 +24,9 @@ export function DevComponentsNav(): ReactNode {
 			<a href="/dev/components/typography" style={link}>
 				typography
 			</a>
+			<a href="/dev/components/dialogs" style={link}>
+				dialogs
+			</a>
 		</nav>
 	)
 }
