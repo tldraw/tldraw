@@ -27,6 +27,9 @@ export function DevComponentsNav(): ReactNode {
 			<a href="/dev/components/dialogs" style={link}>
 				dialogs
 			</a>
+			<a href="/dev/components/menus" style={link}>
+				menus
+			</a>
 		</nav>
 	)
 }
