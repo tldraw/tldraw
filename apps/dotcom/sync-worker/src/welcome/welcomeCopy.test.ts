@@ -25,11 +25,11 @@ describe('WELCOME_COPY', () => {
 		expect(new Set(ids).size).toBe(ids.length)
 	})
 
-	it('matches exactly one snapshot shape per entry', () => {
+	it('matches at least one snapshot shape per entry', () => {
 		const allEnglish = englishByShape()
 		for (const entry of WELCOME_COPY) {
 			const matches = allEnglish.filter((text) => text === entry.en)
-			expect(matches, `${entry.id} (${JSON.stringify(entry.en)})`).toHaveLength(1)
+			expect(matches.length, `${entry.id} (${JSON.stringify(entry.en)})`).toBeGreaterThanOrEqual(1)
 		}
 	})
 })

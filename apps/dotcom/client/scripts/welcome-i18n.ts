@@ -33,38 +33,34 @@ interface ShapeDoc {
 }
 
 /**
- * Resolve each manifest entry to the snapshot shape carrying its English, asserting a unique match.
- * Returns the message id, its shape id, and that shape's richText (the template the bake clones).
+ * Resolve each manifest entry to the snapshot shape(s) carrying its English, asserting at least one
+ * match. A string can appear on several shapes (e.g. a UI label shown twice); all are returned, each
+ * with its own richText (the template the bake clones), since occurrences can differ structurally.
  */
 function resolveCopyShapes() {
 	const snapshot = JSON.parse(defaultWelcomeSnapshotJson)
-	// English -> the ids of every text shape whose serialized richText equals it. A list, so a
-	// non-unique match becomes a reported error rather than a silently-picked shape.
+	// English -> the ids of every text shape whose serialized richText equals it.
 	const idsByEnglish = new Map<string, string[]>()
+	const templateById = new Map<string, WelcomeRichText>()
 	for (const { state } of snapshot.documents as ShapeDoc[]) {
 		if (state?.type !== 'text' || !state.props?.richText || !state.id) continue
 		const english = messageFromRichText(state.props.richText)
 		idsByEnglish.set(english, [...(idsByEnglish.get(english) ?? []), state.id])
-	}
-	const shapesById = new Map<string, WelcomeRichText>()
-	for (const { state } of snapshot.documents as ShapeDoc[]) {
-		if (state?.id && state.props?.richText) shapesById.set(state.id, state.props.richText)
+		templateById.set(state.id, state.props.richText)
 	}
 
 	return WELCOME_COPY.map((entry) => {
-		const matches = idsByEnglish.get(entry.en) ?? []
-		if (matches.length !== 1) {
+		const shapeIds = idsByEnglish.get(entry.en) ?? []
+		if (shapeIds.length === 0) {
 			throw new Error(
-				`welcome copy ${entry.id}: expected exactly one snapshot shape with text ` +
-					`${JSON.stringify(entry.en)}, found ${matches.length}. The manifest (welcomeCopy.ts) ` +
-					`has drifted from the default snapshot — update one to match the other.`
+				`welcome copy ${entry.id}: no snapshot shape has text ${JSON.stringify(entry.en)}. ` +
+					`The manifest (welcomeCopy.ts) has drifted from the default snapshot — update one to match the other.`
 			)
 		}
 		return {
 			id: entry.id,
 			en: entry.en,
-			shapeId: matches[0],
-			template: shapesById.get(matches[0])!,
+			shapes: shapeIds.map((shapeId) => ({ shapeId, template: templateById.get(shapeId)! })),
 		}
 	})
 }
@@ -105,12 +101,15 @@ function bakeVariants(resolved: ResolvedCopy) {
 			readFileSync(join(LOCALES_DIR, `${locale}.json`), 'utf-8')
 		)
 		const table: Record<string, WelcomeRichText> = {}
-		for (const { id, en, shapeId, template } of resolved) {
+		for (const { id, en, shapes } of resolved) {
 			const translation = catalog[id]?.translation
 			// Skip untranslated strings (and translations identical to English) so the artifact only
 			// carries genuinely localized copy; the worker leaves those shapes as the baked English.
 			if (!translation || translation === en) continue
-			table[shapeId] = localizeRichText(template, translation)
+			// Apply the translation to every shape carrying this string.
+			for (const { shapeId, template } of shapes) {
+				table[shapeId] = localizeRichText(template, translation)
+			}
 		}
 		if (Object.keys(table).length > 0) {
 			artifact[locale] = Object.fromEntries(

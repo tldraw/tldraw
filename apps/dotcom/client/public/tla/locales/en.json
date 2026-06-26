@@ -648,6 +648,18 @@
   "welcome.createWorkspace": {
     "translation": "Create a new workspace from the workspace menu in the sidebar. Click <strong>New workspace</strong>, give it a name, and it’s ready to go."
   },
+  "welcome.file.decisionTree": {
+    "translation": "Decision tree"
+  },
+  "welcome.file.packingChecklist": {
+    "translation": "Packing checklist"
+  },
+  "welcome.file.postTripRetrospective": {
+    "translation": "Post-trip retrospective"
+  },
+  "welcome.file.regionalMap": {
+    "translation": "Regional map"
+  },
   "welcome.inviteTeam": {
     "translation": "<strong>Invite your team</strong> with an invite link from the workspace menu in the sidebar. Shared it by accident? Revoke it there too."
   },
@@ -668,6 +680,51 @@
   },
   "welcome.title": {
     "translation": "Welcome to your workspace"
+  },
+  "welcome.ui.inviteLink": {
+    "translation": "Invite link"
+  },
+  "welcome.ui.lastWeek": {
+    "translation": "Last week"
+  },
+  "welcome.ui.member": {
+    "translation": "Member"
+  },
+  "welcome.ui.myFiles": {
+    "translation": "my files"
+  },
+  "welcome.ui.myWorkspace": {
+    "translation": "My workspace"
+  },
+  "welcome.ui.newFile": {
+    "translation": "New file"
+  },
+  "welcome.ui.newWorkspace": {
+    "translation": "New workspace"
+  },
+  "welcome.ui.owner": {
+    "translation": "Owner"
+  },
+  "welcome.ui.pinned": {
+    "translation": "Pinned"
+  },
+  "welcome.ui.remove": {
+    "translation": "Remove"
+  },
+  "welcome.ui.search": {
+    "translation": "Search..."
+  },
+  "welcome.ui.today": {
+    "translation": "Today"
+  },
+  "welcome.ui.workspaceSettings": {
+    "translation": "Workspace settings"
+  },
+  "welcome.ui.yesterday": {
+    "translation": "Yesterday"
+  },
+  "welcome.ui.yourWorkspace": {
+    "translation": "your workspace"
   },
   "welcome.whatIsWorkspace": {
     "translation": "A workspace is a <strong>shared space</strong> for your team. Everyone in it sees the same list of files and can open and edit them."

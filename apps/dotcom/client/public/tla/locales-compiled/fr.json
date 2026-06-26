@@ -1511,6 +1511,30 @@
       "value": ", donnez-lui un nom, et c'est prêt."
     }
   ],
+  "welcome.file.decisionTree": [
+    {
+      "type": 0,
+      "value": "Arbre de décision"
+    }
+  ],
+  "welcome.file.packingChecklist": [
+    {
+      "type": 0,
+      "value": "Liste de bagages"
+    }
+  ],
+  "welcome.file.postTripRetrospective": [
+    {
+      "type": 0,
+      "value": "Rétrospective de voyage"
+    }
+  ],
+  "welcome.file.regionalMap": [
+    {
+      "type": 0,
+      "value": "Carte régionale"
+    }
+  ],
   "welcome.inviteTeam": [
     {
       "children": [
@@ -1617,6 +1641,96 @@
     {
       "type": 0,
       "value": "Bienvenue dans votre espace de travail"
+    }
+  ],
+  "welcome.ui.inviteLink": [
+    {
+      "type": 0,
+      "value": "Lien d'invitation"
+    }
+  ],
+  "welcome.ui.lastWeek": [
+    {
+      "type": 0,
+      "value": "La semaine dernière"
+    }
+  ],
+  "welcome.ui.member": [
+    {
+      "type": 0,
+      "value": "Membre"
+    }
+  ],
+  "welcome.ui.myFiles": [
+    {
+      "type": 0,
+      "value": "mes fichiers"
+    }
+  ],
+  "welcome.ui.myWorkspace": [
+    {
+      "type": 0,
+      "value": "Mon espace de travail"
+    }
+  ],
+  "welcome.ui.newFile": [
+    {
+      "type": 0,
+      "value": "Nouveau fichier"
+    }
+  ],
+  "welcome.ui.newWorkspace": [
+    {
+      "type": 0,
+      "value": "Nouvel espace de travail"
+    }
+  ],
+  "welcome.ui.owner": [
+    {
+      "type": 0,
+      "value": "Propriétaire"
+    }
+  ],
+  "welcome.ui.pinned": [
+    {
+      "type": 0,
+      "value": "Épinglés"
+    }
+  ],
+  "welcome.ui.remove": [
+    {
+      "type": 0,
+      "value": "Retirer"
+    }
+  ],
+  "welcome.ui.search": [
+    {
+      "type": 0,
+      "value": "Recherche..."
+    }
+  ],
+  "welcome.ui.today": [
+    {
+      "type": 0,
+      "value": "Aujourd'hui"
+    }
+  ],
+  "welcome.ui.workspaceSettings": [
+    {
+      "type": 0,
+      "value": "Paramètres de l'espace de travail"
+    }
+  ],
+  "welcome.ui.yesterday": [
+    {
+      "type": 0,
+      "value": "Hier"
+    }
+  ],
+  "welcome.ui.yourWorkspace": [
+    {
+      "type": 0,
+      "value": "votre espace de travail"
     }
   ],
   "welcome.whatIsWorkspace": [

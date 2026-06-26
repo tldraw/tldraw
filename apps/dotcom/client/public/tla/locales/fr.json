@@ -648,6 +648,18 @@
   "welcome.createWorkspace": {
     "translation": "Créez un nouvel espace de travail depuis le menu de l'espace de travail dans la barre latérale. Cliquez sur <strong>Nouvel espace de travail</strong>, donnez-lui un nom, et c'est prêt."
   },
+  "welcome.file.decisionTree": {
+    "translation": "Arbre de décision"
+  },
+  "welcome.file.packingChecklist": {
+    "translation": "Liste de bagages"
+  },
+  "welcome.file.postTripRetrospective": {
+    "translation": "Rétrospective de voyage"
+  },
+  "welcome.file.regionalMap": {
+    "translation": "Carte régionale"
+  },
   "welcome.inviteTeam": {
     "translation": "<strong>Invitez votre équipe</strong> avec un lien d'invitation depuis le menu de l'espace de travail dans la barre latérale. Partagé par erreur ? Révoquez-le là aussi."
   },
@@ -668,6 +680,51 @@
   },
   "welcome.title": {
     "translation": "Bienvenue dans votre espace de travail"
+  },
+  "welcome.ui.inviteLink": {
+    "translation": "Lien d'invitation"
+  },
+  "welcome.ui.lastWeek": {
+    "translation": "La semaine dernière"
+  },
+  "welcome.ui.member": {
+    "translation": "Membre"
+  },
+  "welcome.ui.myFiles": {
+    "translation": "mes fichiers"
+  },
+  "welcome.ui.myWorkspace": {
+    "translation": "Mon espace de travail"
+  },
+  "welcome.ui.newFile": {
+    "translation": "Nouveau fichier"
+  },
+  "welcome.ui.newWorkspace": {
+    "translation": "Nouvel espace de travail"
+  },
+  "welcome.ui.owner": {
+    "translation": "Propriétaire"
+  },
+  "welcome.ui.pinned": {
+    "translation": "Épinglés"
+  },
+  "welcome.ui.remove": {
+    "translation": "Retirer"
+  },
+  "welcome.ui.search": {
+    "translation": "Recherche..."
+  },
+  "welcome.ui.today": {
+    "translation": "Aujourd'hui"
+  },
+  "welcome.ui.workspaceSettings": {
+    "translation": "Paramètres de l'espace de travail"
+  },
+  "welcome.ui.yesterday": {
+    "translation": "Hier"
+  },
+  "welcome.ui.yourWorkspace": {
+    "translation": "votre espace de travail"
   },
   "welcome.whatIsWorkspace": {
     "translation": "Un espace de travail est un <strong>espace partagé</strong> pour votre équipe. Tout le monde y voit la même liste de fichiers et peut les ouvrir et les modifier."
