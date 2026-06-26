@@ -6,10 +6,12 @@ export interface MorphTuningInfo {
 	/** Page-space center of the morphed rectangle (stays fixed during tuning). */
 	centerPagePos: Vec
 	/**
-	 * Vector from the center to the drag corner in page space at morph time.
-	 * Encodes both the initial half-diagonal length and the initial corner angle.
+	 * Vector from the center to the pointer in page space at the moment the morph
+	 * fired. This is the tuning reference: scale and rotation are measured against
+	 * it, so the drag starts as a no-op (scale 1, rotation 0) — the pointer keeps
+	 * the same grip on the shape it had when it spawned, with no jump.
 	 */
-	initialCornerOffset: Vec
+	initialPointerOffset: Vec
 	originalW: number
 	originalH: number
 	/** Mark set just before createShape in tryMorph; cancel uses this to remove the shape. */
@@ -18,15 +20,17 @@ export interface MorphTuningInfo {
 
 /**
  * Entered after a magic-wand morph fires while the pointer is still held. The
- * user can drag the nearest corner to fine-tune the rectangle's scale and
- * rotation; the center of the rectangle stays fixed.
+ * user can drag to fine-tune the rectangle's scale and rotation about its fixed
+ * center. The pointer keeps the same relative grip on the shape it had at morph
+ * time: as the pointer's distance and angle from the center change, the
+ * rectangle scales and rotates to match, so the grabbed point tracks the cursor.
  */
 export class MagicWandMorphTuning extends StateNode {
 	static override id = 'morph-tuning'
 
 	private shapeId: TLShapeId | null = null
 	private centerPagePos = new Vec(0, 0)
-	private initialCornerOffset = new Vec(0, 0)
+	private initialPointerOffset = new Vec(0, 0)
 	private originalW = 0
 	private originalH = 0
 	private morphMark: string | null = null
@@ -42,7 +46,7 @@ export class MagicWandMorphTuning extends StateNode {
 	override onEnter(info: MorphTuningInfo) {
 		this.shapeId = info.shapeId
 		this.centerPagePos = info.centerPagePos.clone()
-		this.initialCornerOffset = info.initialCornerOffset.clone()
+		this.initialPointerOffset = info.initialPointerOffset.clone()
 		this.originalW = info.originalW
 		this.originalH = info.originalH
 		this.morphMark = info.morphMark
@@ -79,21 +83,26 @@ export class MagicWandMorphTuning extends StateNode {
 	}
 
 	private computeNewRect(pointer: Vec) {
-		// Vector from the fixed center to the current pointer position.
+		// Current vector from the fixed center to the pointer, compared against the
+		// reference vector captured at morph time. Their ratio is the scale and
+		// their angle difference is the rotation delta — both zero at drag start.
 		const vec = Vec.Sub(pointer, this.centerPagePos)
 		const vecLen = Math.max(vec.len(), 1)
-		const initialLen = Math.max(this.initialCornerOffset.len(), 1)
+		const initialLen = Math.max(this.initialPointerOffset.len(), 1)
 
 		const scale = vecLen / initialLen
-		// Rotation delta = angle change from the initial corner direction.
 		const rotationDelta =
-			Math.atan2(vec.y, vec.x) - Math.atan2(this.initialCornerOffset.y, this.initialCornerOffset.x)
+			Math.atan2(vec.y, vec.x) -
+			Math.atan2(this.initialPointerOffset.y, this.initialPointerOffset.x)
 		const newRotation = (this.initialMorphState?.rotation ?? 0) + rotationDelta
 
+		// Uniform scale keeps the pointer's grip at the same normalized position
+		// inside the rectangle as it grows or shrinks.
 		const newW = Math.max(1, this.originalW * scale)
 		const newH = Math.max(1, this.originalH * scale)
 		// The shape's (x, y) is the page position of its local origin (0, 0); the
-		// center in page space is origin + Rot((w/2, h/2), rotation).
+		// center in page space is origin + Rot((w/2, h/2), rotation), so solve for
+		// the origin that keeps the center fixed.
 		const topLeft = Vec.Sub(this.centerPagePos, Vec.Rot(new Vec(newW / 2, newH / 2), newRotation))
 		return { newW, newH, newRotation, topLeft }
 	}

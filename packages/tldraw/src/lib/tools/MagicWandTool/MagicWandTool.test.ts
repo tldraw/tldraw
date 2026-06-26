@@ -389,19 +389,48 @@ describe('MagicWandTool hold-to-morph', () => {
 		editor.expectToBeIn('magic-wand.idle')
 	})
 
-	it('drag after morph scales the rectangle about the anchor corner', () => {
+	it('drag after morph scales the rectangle about its center', () => {
 		drawRectSketch(square)
 		vi.advanceTimersByTime(1100)
 		editor.expectToBeIn('magic-wand.morph-tuning')
 
-		const geoBefore = realShapes().find((s) => s.type === 'geo') as TLGeoShape
-		const w0 = geoBefore.props.w
+		const id = realShapes().find((s) => s.type === 'geo')!.id
+		const w0 = editor.getShape<TLGeoShape>(id)!.props.w
+		const center0 = editor.getShapePageBounds(id)!.center.clone()
 
-		// Drag to a point ~2x farther from the anchor (~200,200) than the original
-		// corner (~100,100); both dimensions should roughly double.
+		// Drag the pointer farther from the center; the rectangle should scale up
+		// while its center stays put (it pivots about the center, not a corner).
 		editor.pointerMove(-50, -50)
-		const geoAfter = realShapes().find((s) => s.type === 'geo') as TLGeoShape
-		expect(geoAfter.props.w).toBeGreaterThan(w0 * 1.5)
+		expect(editor.getShape<TLGeoShape>(id)!.props.w).toBeGreaterThan(w0 * 1.5)
+		const center1 = editor.getShapePageBounds(id)!.center
+		expect(center1.x).toBeCloseTo(center0.x, 1)
+		expect(center1.y).toBeCloseTo(center0.y, 1)
+
+		editor.pointerUp()
+	})
+
+	it('does not jump the rectangle when the drag begins', () => {
+		// The sketch helper leaves the pen held at (102, 100) — the morph-time
+		// pointer. Moving to exactly that point must leave the shape unchanged.
+		drawRectSketch(square)
+		vi.advanceTimersByTime(1100)
+
+		const before = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		const snap = {
+			x: before.x,
+			y: before.y,
+			rotation: before.rotation,
+			w: before.props.w,
+			h: before.props.h,
+		}
+
+		editor.pointerMove(102, 100)
+		const after = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(after.x).toBeCloseTo(snap.x, 1)
+		expect(after.y).toBeCloseTo(snap.y, 1)
+		expect(after.rotation).toBeCloseTo(snap.rotation, 3)
+		expect(after.props.w).toBeCloseTo(snap.w, 1)
+		expect(after.props.h).toBeCloseTo(snap.h, 1)
 
 		editor.pointerUp()
 	})

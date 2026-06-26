@@ -329,29 +329,18 @@ export class MagicWandDrawing extends Drawing {
 
 		this.editor.setSelectedShapes([id])
 
-		// While the pointer is still held, enter the drag-to-tune state so the
-		// user can pull a corner to adjust scale and rotation about the center.
+		// While the pointer is still held, enter the drag-to-tune state so the user
+		// can adjust scale and rotation about the center. The pointer keeps the
+		// grip it has right now (its offset from the center at morph time), so the
+		// drag starts without any jump.
 		const transform = this.editor.getShapePageTransform(id)
 		if (transform) {
 			const centerPage = Mat.applyToPoint(transform, new Vec(rect.w / 2, rect.h / 2))
-			const localCorners = [
-				new Vec(0, 0),
-				new Vec(rect.w, 0),
-				new Vec(rect.w, rect.h),
-				new Vec(0, rect.h),
-			]
-			const pageCorners = localCorners.map((c) => Mat.applyToPoint(transform, c))
 			const pointer = this.editor.inputs.getCurrentPagePoint()
-			let nearestIdx = 0
-			for (let i = 1; i < 4; i++) {
-				if (Vec.Dist(pageCorners[i], pointer) < Vec.Dist(pageCorners[nearestIdx], pointer)) {
-					nearestIdx = i
-				}
-			}
 			const tuningInfo: MorphTuningInfo = {
 				shapeId: id,
 				centerPagePos: centerPage,
-				initialCornerOffset: Vec.Sub(pageCorners[nearestIdx], centerPage),
+				initialPointerOffset: Vec.Sub(pointer, centerPage),
 				originalW: rect.w,
 				originalH: rect.h,
 				morphMark,
