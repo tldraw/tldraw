@@ -30,6 +30,9 @@ export function DevComponentsNav(): ReactNode {
 			<a href="/dev/components/menus" style={link}>
 				menus
 			</a>
+			<a href="/dev/components/icons" style={link}>
+				icons
+			</a>
 		</nav>
 	)
 }
