@@ -449,6 +449,28 @@ describe('MagicWandTool hold-to-morph', () => {
 		editor.pointerUp()
 	})
 
+	it('snaps rotation to the nearest 15° while shift is held during tuning', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(1100)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+		const id = realShapes().find((s) => s.type === 'geo')!.id
+		const fifteen = Math.PI / 12
+
+		// Drag to an awkward angle with no shift: rotation lands off a 15° step.
+		editor.pointerMove(260, 230)
+		const free = editor.getShape<TLGeoShape>(id)!.rotation
+		const freeRemainder = Math.abs(free / fifteen - Math.round(free / fifteen))
+		expect(freeRemainder).toBeGreaterThan(0.05)
+
+		// Same pointer with shift held: rotation snaps to an exact 15° multiple.
+		editor.pointerMove(260, 230, { shiftKey: true })
+		const snapped = editor.getShape<TLGeoShape>(id)!.rotation
+		const snappedRemainder = Math.abs(snapped / fifteen - Math.round(snapped / fifteen))
+		expect(snappedRemainder).toBeLessThan(1e-6)
+
+		editor.pointerUp()
+	})
+
 	it('cancel during tuning removes the morphed rectangle', () => {
 		drawRectSketch(square)
 		vi.advanceTimersByTime(1100)

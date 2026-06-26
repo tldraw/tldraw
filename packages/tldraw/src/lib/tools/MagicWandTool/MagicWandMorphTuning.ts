@@ -1,4 +1,7 @@
-import { StateNode, TLGeoShape, TLShapeId, Vec } from '@tldraw/editor'
+import { StateNode, TLGeoShape, TLShapeId, Vec, snapAngle } from '@tldraw/editor'
+
+/** Rotation snap increments while shift is held (24 segments = every 15°). */
+const ROTATION_SNAP_SEGMENTS = 24
 
 /** Info passed when transitioning into the morph-tuning state. */
 export interface MorphTuningInfo {
@@ -72,6 +75,16 @@ export class MagicWandMorphTuning extends StateNode {
 		this.applyTune(false)
 	}
 
+	// Pressing or releasing shift re-applies the tune so the rotation snap toggles
+	// without needing to move the pointer (matching the select tool's rotate).
+	override onKeyDown() {
+		this.applyTune(false)
+	}
+
+	override onKeyUp() {
+		this.applyTune(false)
+	}
+
 	override onPointerUp() {
 		this.applyTune(true)
 		this.parent.transition('idle')
@@ -94,7 +107,11 @@ export class MagicWandMorphTuning extends StateNode {
 		const rotationDelta =
 			Math.atan2(vec.y, vec.x) -
 			Math.atan2(this.initialPointerOffset.y, this.initialPointerOffset.x)
-		const newRotation = (this.initialMorphState?.rotation ?? 0) + rotationDelta
+		let newRotation = (this.initialMorphState?.rotation ?? 0) + rotationDelta
+		// Holding shift snaps to the nearest 15°, just like the select rotate tool.
+		if (this.editor.inputs.getShiftKey()) {
+			newRotation = snapAngle(newRotation, ROTATION_SNAP_SEGMENTS)
+		}
 
 		// Uniform scale keeps the pointer's grip at the same normalized position
 		// inside the rectangle as it grows or shrinks.
