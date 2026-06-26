@@ -17,6 +17,7 @@ import { createSupabaseClient } from '../utils/createSupabaseClient'
 import { getSnapshotsTable } from '../utils/getSnapshotsTable'
 import { getSlug } from '../utils/roomOpenMode'
 import { R2Snapshot } from './createRoomSnapshot'
+import { getPublishedRoomSnapshot } from './tla/getPublishedFile'
 
 // These mirror the static social preview metadata in apps/dotcom/client/index.html. They are used
 // as fallbacks so that bot-rendered previews stay consistent with the rest of the site.
@@ -101,23 +102,13 @@ async function getTlaFileName(env: Environment, slug: string): Promise<string | 
 	return getDocumentNameFromSnapshot((await object.json()) as RoomSnapshot)
 }
 
-// Published files (`/p/:slug`). The published slug maps to a parent file id.
+// Published files (`/p/:slug`). The published page serves a frozen snapshot from R2, and that's what
+// viewers see, so we take the name from the snapshot's document record rather than the live
+// `file.name` (which can differ after a rename without republish). getPublishedRoomSnapshot also
+// enforces that the file is actually published.
 async function getPublishedFileName(env: Environment, slug: string): Promise<string | null> {
-	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(slug)
-	if (!parentSlug) return null
-
-	const db = createPostgresConnectionPool(env, 'getSocialPreview')
-	try {
-		const file = await db
-			.selectFrom('file')
-			.select(['name', 'published'])
-			.where('id', '=', parentSlug)
-			.executeTakeFirst()
-		if (!file || !file.published) return null
-		return cleanName(file.name)
-	} finally {
-		await db.destroy()
-	}
+	const snapshot = await getPublishedRoomSnapshot(env, slug)
+	return getDocumentNameFromSnapshot(snapshot)
 }
 
 // Snapshot links (`/s/:slug`). The name lives in the snapshot's document record. Mirrors
