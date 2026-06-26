@@ -21,6 +21,9 @@ export function DevComponentsNav(): ReactNode {
 			<a href="/dev/components/inputs" style={link}>
 				inputs
 			</a>
+			<a href="/dev/components/typography" style={link}>
+				typography
+			</a>
 		</nav>
 	)
 }
