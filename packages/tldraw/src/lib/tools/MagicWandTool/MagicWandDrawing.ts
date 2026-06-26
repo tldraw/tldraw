@@ -24,6 +24,7 @@ import {
 	setWetInk,
 	showMorphPreview,
 } from './magicWandInk'
+import { MorphTuningInfo } from './MagicWandMorphTuning'
 import {
 	ShapeRecognitionResult,
 	buildRecognizerInput,
@@ -148,7 +149,9 @@ export class MagicWandDrawing extends Drawing {
 		const strokeIds = strokeShapes.map((s) => s.id)
 
 		const enclosedShapeIds = this.getEnclosedShapeIds()
-		const wouldLasso = enclosedShapeIds.length > 0
+		// When the morph charging preview is showing, morph will win over lasso on
+		// hold — suppress the lasso tint so only the morph signal is visible.
+		const wouldLasso = enclosedShapeIds.length > 0 && !this.morphPreviewId
 
 		// Keep the wet-ink translucency covering every piece of the stroke (the
 		// draw tool may have split it), and give any freshly split piece the
@@ -188,6 +191,7 @@ export class MagicWandDrawing extends Drawing {
 	}
 
 	override complete() {
+		if (this.didMorph) return
 		this.clearMorphTimers()
 		const enclosedShapeIds = this.getEnclosedShapeIds()
 		if (enclosedShapeIds.length > 0) {
@@ -245,12 +249,8 @@ export class MagicWandDrawing extends Drawing {
 		}
 	}
 
-	/**
-	 * The recognized rectangle for the current stroke, or null. Morph is
-	 * suppressed whenever the stroke would lasso instead (encircles shapes).
-	 */
+	/** The recognized rectangle for the current stroke, or null. */
 	private getMorphRectangle(): RecognizedRectangle | null {
-		if (this.getEnclosedShapeIds().length > 0) return null
 		const input = buildRecognizerInput(this.getGesturePolygon())
 		if (!input) return null
 		const result = recognizeShape(input)
@@ -299,6 +299,9 @@ export class MagicWandDrawing extends Drawing {
 		// step (mirrors the lasso): net undo = "create rectangle".
 		if (this.markId) this.editor.bailToMark(this.markId)
 
+		// Mark before createShape so the morph-tuning state can bail here on cancel.
+		const morphMark = this.editor.markHistoryStoppingPoint('morph-create')
+
 		const id = createShapeId()
 		const topLeft = rectangleTopLeft(rect)
 		this.editor.createShape<TLGeoShape>({
@@ -325,9 +328,41 @@ export class MagicWandDrawing extends Drawing {
 		for (const snapshot of strokeShapes) fadeOutInkGhost(this.editor, snapshot)
 
 		this.editor.setSelectedShapes([id])
-		// Stay in the magic wand; end this drawing gesture (the later pointer-up
-		// lands harmlessly in magic-wand.idle).
-		this.parent.transition('idle')
+
+		// While the pointer is still held, enter the drag-to-tune state so the
+		// user can pull a corner to adjust scale and rotation.
+		const transform = this.editor.getShapePageTransform(id)
+		if (transform) {
+			const localCorners = [
+				new Vec(0, 0),
+				new Vec(rect.w, 0),
+				new Vec(rect.w, rect.h),
+				new Vec(0, rect.h),
+			]
+			const pageCorners = localCorners.map((c) => Mat.applyToPoint(transform, c))
+			const pointer = this.editor.inputs.getCurrentPagePoint()
+			let nearestIdx = 0
+			for (let i = 1; i < 4; i++) {
+				if (Vec.Dist(pageCorners[i], pointer) < Vec.Dist(pageCorners[nearestIdx], pointer)) {
+					nearestIdx = i
+				}
+			}
+			const anchorIdx = (nearestIdx + 2) % 4
+			const anchor = pageCorners[anchorIdx]
+			const localDiag = Vec.Sub(localCorners[nearestIdx], localCorners[anchorIdx])
+			const tuningInfo: MorphTuningInfo = {
+				shapeId: id,
+				anchorPagePos: anchor,
+				localAspectAngle: Math.atan2(localDiag.y, localDiag.x),
+				originalW: rect.w,
+				originalH: rect.h,
+				originalDiagLen: localDiag.len(),
+				morphMark,
+			}
+			this.parent.transition('morph-tuning', tuningInfo)
+		} else {
+			this.parent.transition('idle')
+		}
 	}
 
 	/** The current gesture's page-space polygon across all stroke pieces. */

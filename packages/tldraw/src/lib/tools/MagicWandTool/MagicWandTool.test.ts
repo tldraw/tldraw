@@ -265,6 +265,9 @@ describe('MagicWandTool hold-to-morph', () => {
 		expect((geos[0] as TLGeoShape).props.geo).toBe('rectangle')
 		expect(editor.getSelectedShapeIds()).toEqual([geos[0].id])
 		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		// Still in the tuning state while the pointer is held; idle after release.
+		editor.expectToBeIn('magic-wand.morph-tuning')
+		editor.pointerUp()
 		editor.expectToBeIn('magic-wand.idle')
 
 		const style = editor.getContainer().querySelector('style.tl-magic-wand-ink-style')
@@ -281,16 +284,29 @@ describe('MagicWandTool hold-to-morph', () => {
 		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
 	})
 
-	it('lassos instead of morphing when the loop encircles a shape', () => {
+	it('morphs instead of lasso when held 1s, even while encircling a shape', () => {
 		const boxId = createBox(130, 130) // center ~(150,150), inside the square
 		drawRectSketch(square)
 
-		vi.advanceTimersByTime(1500) // hold well past the morph time
-		// Morph suppressed: no new rectangle, the box is untouched.
-		expect(realShapes().filter((s) => s.type === 'geo' && s.id !== boxId)).toEqual([])
-
+		vi.advanceTimersByTime(1100) // hold past the morph threshold
+		// Morph wins: a new rectangle exists, box untouched, draw stroke gone.
+		const geos = realShapes().filter((s) => s.type === 'geo')
+		expect(geos.some((s) => s.id !== boxId)).toBe(true)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('magic-wand.morph-tuning')
 		editor.pointerUp()
+	})
+
+	it('lassos when the loop encircles a shape but is released before 1s', () => {
+		const boxId = createBox(130, 130)
+		drawRectSketch(square)
+
+		vi.advanceTimersByTime(500) // not yet at morph threshold
+		editor.pointerUp() // release early → lasso wins
+
 		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('select.idle')
 	})
 
 	it('carries the sketch style onto the morphed rectangle', () => {
@@ -363,5 +379,62 @@ describe('MagicWandTool hold-to-morph', () => {
 		expect(geo).toBeTruthy()
 		expect(geo.props.geo).toBe('rectangle')
 		expect(Math.abs(Math.abs(geo.rotation) - angle)).toBeLessThan(0.2)
+	})
+
+	it('enters morph-tuning state after morph while pointer is held', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(1100)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+		editor.pointerUp()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('drag after morph scales the rectangle about the anchor corner', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(1100)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+
+		const geoBefore = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		const w0 = geoBefore.props.w
+
+		// Drag to a point ~2x farther from the anchor (~200,200) than the original
+		// corner (~100,100); both dimensions should roughly double.
+		editor.pointerMove(-50, -50)
+		const geoAfter = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geoAfter.props.w).toBeGreaterThan(w0 * 1.5)
+
+		editor.pointerUp()
+	})
+
+	it('cancel during tuning removes the morphed rectangle', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(1100)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(true)
+		editor.cancel()
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('pointer-up during tuning commits the shape at the dragged position', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(1100)
+
+		const geoBefore = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		editor.pointerMove(-50, -50)
+		editor.pointerUp()
+
+		const geoAfter = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geoAfter.props.w).toBeGreaterThan(geoBefore.props.w * 1.5)
+
+		// Undo should remove the shape entirely (one step for the whole morph+tune).
+		editor.undo()
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+
+		// Redo should restore it at the tuned (dragged) position.
+		editor.redo()
+		const geoRedo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geoRedo.props.w).toBeCloseTo(geoAfter.props.w, 0)
 	})
 })

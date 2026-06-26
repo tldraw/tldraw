@@ -2,6 +2,7 @@ import { StateNode, TLStateNodeConstructor } from '@tldraw/editor'
 import { Drawing } from '../../shapes/draw/toolStates/Drawing'
 import { Idle } from '../../shapes/draw/toolStates/Idle'
 import { MagicWandDrawing } from './MagicWandDrawing'
+import { MagicWandMorphTuning } from './MagicWandMorphTuning'
 
 /**
  * The magic wand tool. It draws like the draw tool, but recognizes gestures: a
@@ -17,7 +18,7 @@ export class MagicWandTool extends StateNode {
 	static override isLockable = false
 	static override useCoalescedEvents = true
 	static override children(): TLStateNodeConstructor[] {
-		return [Idle, MagicWandDrawing]
+		return [Idle, MagicWandDrawing, MagicWandMorphTuning]
 	}
 
 	override shapeType = 'draw'
