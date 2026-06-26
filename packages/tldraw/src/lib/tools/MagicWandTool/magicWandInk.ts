@@ -185,8 +185,9 @@ export function fadeOutInkGhost(
 	})
 }
 
-/** The geo rectangle params the hold preview / morph need (page space). */
-export interface MorphRectangle {
+/** The geo shape params the hold preview / morph need (page space). */
+export interface MorphPreviewShape {
+	geo: TLGeoShape['props']['geo']
 	x: number
 	y: number
 	w: number
@@ -196,14 +197,14 @@ export interface MorphRectangle {
 }
 
 /**
- * Shows the hold "charging" preview: a locked, ephemeral, outline-only rectangle
+ * Shows the hold "charging" preview: a locked, ephemeral, outline-only geo shape
  * at the recognized location whose opacity ramps up over `durationMs` so the user
  * sees a morph is imminent. History-ignored, so it never touches the document.
  * Returns its id; pass it to {@link removeMorphPreview}.
  */
 export function showMorphPreview(
 	editor: Editor,
-	rect: MorphRectangle,
+	shape: MorphPreviewShape,
 	durationMs: number
 ): TLShapeId {
 	const ghostId = createShapeId()
@@ -213,11 +214,11 @@ export function showMorphPreview(
 				id: ghostId,
 				type: 'geo',
 				isLocked: true,
-				x: rect.x,
-				y: rect.y,
-				rotation: rect.rotation,
+				x: shape.x,
+				y: shape.y,
+				rotation: shape.rotation,
 				opacity: 0,
-				props: { geo: 'rectangle', w: rect.w, h: rect.h, color: rect.color, fill: 'none' },
+				props: { geo: shape.geo, w: shape.w, h: shape.h, color: shape.color, fill: 'none' },
 				meta: { magicWandGhost: true },
 			})
 		},

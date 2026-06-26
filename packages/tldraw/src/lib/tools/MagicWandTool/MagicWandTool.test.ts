@@ -239,6 +239,16 @@ function rotateAround(
 	]
 }
 
+/** Draws a dense closed ellipse sketch (pen left down) around the given center. */
+function drawEllipseSketch(cx: number, cy: number, rx: number, ry: number, steps = 32) {
+	editor.setCurrentTool('magic-wand')
+	editor.pointerDown(cx + rx, cy)
+	for (let i = 1; i <= steps; i++) {
+		const t = (i / steps) * Math.PI * 2
+		editor.pointerMove(cx + rx * Math.cos(t), cy + ry * Math.sin(t))
+	}
+}
+
 describe('MagicWandTool hold-to-morph', () => {
 	beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }))
 	afterEach(() => vi.useRealTimers())
@@ -379,6 +389,42 @@ describe('MagicWandTool hold-to-morph', () => {
 		expect(geo).toBeTruthy()
 		expect(geo.props.geo).toBe('rectangle')
 		expect(Math.abs(Math.abs(geo.rotation) - angle)).toBeLessThan(0.2)
+	})
+
+	it('morphs a held circle sketch into a geo ellipse, staying in the tool', () => {
+		drawEllipseSketch(150, 150, 60, 60)
+
+		// Before the hold elapses: still a freehand stroke, no geo yet.
+		vi.advanceTimersByTime(500)
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+
+		// After the hold: the stroke morphs into one geo ellipse, selected.
+		vi.advanceTimersByTime(600)
+		const geos = realShapes().filter((s) => s.type === 'geo')
+		expect(geos).toHaveLength(1)
+		expect((geos[0] as TLGeoShape).props.geo).toBe('ellipse')
+		expect(editor.getSelectedShapeIds()).toEqual([geos[0].id])
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+		editor.pointerUp()
+	})
+
+	it('drag-tunes a morphed ellipse about its center', () => {
+		drawEllipseSketch(150, 150, 60, 40)
+		vi.advanceTimersByTime(1100)
+		editor.expectToBeIn('magic-wand.morph-tuning')
+
+		const id = realShapes().find((s) => s.type === 'geo')!.id
+		const w0 = editor.getShape<TLGeoShape>(id)!.props.w
+		const center0 = editor.getShapePageBounds(id)!.center.clone()
+
+		editor.pointerMove(-50, -50)
+		expect(editor.getShape<TLGeoShape>(id)!.props.w).toBeGreaterThan(w0)
+		const center1 = editor.getShapePageBounds(id)!.center
+		expect(center1.x).toBeCloseTo(center0.x, 1)
+		expect(center1.y).toBeCloseTo(center0.y, 1)
+
+		editor.pointerUp()
 	})
 
 	it('snaps a near-axis-aligned sketch to an axis-aligned rectangle', () => {

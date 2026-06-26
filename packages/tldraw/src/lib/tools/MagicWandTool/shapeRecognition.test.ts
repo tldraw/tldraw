@@ -89,14 +89,54 @@ describe('recognizeRectangle', () => {
 		expect(Math.abs(r.rotation)).toBeGreaterThan(0.1)
 	})
 
-	it('does not recognize an ellipse', () => {
+	it('recognizes an ellipse and matches its bounds', () => {
 		const pts: Vec[] = []
 		for (let i = 0; i < 64; i++) {
 			const t = (i / 64) * Math.PI * 2
 			pts.push(new Vec(80 + 80 * Math.cos(t), 50 + 50 * Math.sin(t)))
 		}
 		pts.push(pts[0].clone())
-		expect(recognize(pts)).toBe(null)
+		const result = recognize(pts)
+		expect(result?.kind).toBe('ellipse')
+		const r = result as Extract<ShapeRecognitionResult, { kind: 'ellipse' }>
+		expect(r.center.x).toBeCloseTo(80, 0)
+		expect(r.center.y).toBeCloseTo(50, 0)
+		expect(r.w).toBeGreaterThan(150)
+		expect(r.w).toBeLessThan(170)
+		expect(r.h).toBeGreaterThan(92)
+		expect(r.h).toBeLessThan(108)
+	})
+
+	it('recognizes a circle as a (roughly square) ellipse', () => {
+		const pts: Vec[] = []
+		for (let i = 0; i < 48; i++) {
+			const t = (i / 48) * Math.PI * 2
+			pts.push(new Vec(100 + 60 * Math.cos(t), 100 + 60 * Math.sin(t)))
+		}
+		pts.push(pts[0].clone())
+		const result = recognize(pts)
+		expect(result?.kind).toBe('ellipse')
+		const r = result as Extract<ShapeRecognitionResult, { kind: 'ellipse' }>
+		expect(Math.abs(r.w - r.h)).toBeLessThan(6)
+	})
+
+	it('recognizes a rotated ellipse', () => {
+		const center = new Vec(100, 100)
+		const angle = Math.PI / 5 // 36°, beyond the axis-snap zone
+		const pts: Vec[] = []
+		for (let i = 0; i < 64; i++) {
+			const t = (i / 64) * Math.PI * 2
+			const local = new Vec(90 * Math.cos(t), 45 * Math.sin(t))
+			pts.push(Vec.Add(center, Vec.Rot(local, angle)))
+		}
+		pts.push(pts[0].clone())
+		const result = recognize(pts)
+		expect(result?.kind).toBe('ellipse')
+		const r = result as Extract<ShapeRecognitionResult, { kind: 'ellipse' }>
+		// Major axis ≈ 180, minor ≈ 90 (axes may swap, so compare magnitudes).
+		const [major, minor] = r.w >= r.h ? [r.w, r.h] : [r.h, r.w]
+		expect(major).toBeGreaterThan(170)
+		expect(minor).toBeLessThan(100)
 	})
 
 	it('does not recognize a triangle', () => {

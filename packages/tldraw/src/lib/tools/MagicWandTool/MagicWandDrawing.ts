@@ -28,8 +28,8 @@ import { MorphTuningInfo } from './MagicWandMorphTuning'
 import {
 	ShapeRecognitionResult,
 	buildRecognizerInput,
+	recognizedShapeTopLeft,
 	recognizeShape,
-	rectangleTopLeft,
 } from './shapeRecognition'
 
 // Screen-space distance between the gesture's start and end for it to count as a
@@ -44,8 +44,6 @@ const MORPH_PREVIEW_DELAY_MS = 200
 /** Screen-space movement that resets the hold-to-morph timer ("held there"). */
 const MORPH_MOVE_TOLERANCE = 6
 
-type RecognizedRectangle = Extract<ShapeRecognitionResult, { kind: 'rectangle' }>
-
 /**
  * The drawing state for the magic wand tool. It behaves like the regular draw
  * tool while the stroke is in progress, but on completion it checks whether the
@@ -56,7 +54,7 @@ type RecognizedRectangle = Extract<ShapeRecognitionResult, { kind: 'rectangle' }
  * whenever releasing at the current point would lasso-select something.
  *
  * It also recognizes shapes: holding the pen roughly still for ~1s while the
- * sketch is approximately a rectangle morphs it into a real geo rectangle.
+ * sketch is approximately a rectangle or ellipse morphs it into a real geo shape.
  */
 export class MagicWandDrawing extends Drawing {
 	// Shapes that existed before this stroke started, so we never try to lasso
@@ -69,7 +67,7 @@ export class MagicWandDrawing extends Drawing {
 	private morphTimeout: number | null = null
 	private previewTimeout: number | null = null
 	private morphPreviewId: TLShapeId | null = null
-	private morphRecognition: RecognizedRectangle | null = null
+	private morphRecognition: ShapeRecognitionResult | null = null
 	private didMorph = false
 
 	// The stroke's natural colour and fill, restored when the gesture stops being
@@ -249,44 +247,44 @@ export class MagicWandDrawing extends Drawing {
 		}
 	}
 
-	/** The recognized rectangle for the current stroke, or null. */
-	private getMorphRectangle(): RecognizedRectangle | null {
+	/** The recognized shape (rectangle, ellipse, …) for the current stroke, or null. */
+	private getMorphShape(): ShapeRecognitionResult | null {
 		const input = buildRecognizerInput(this.getGesturePolygon())
 		if (!input) return null
-		const result = recognizeShape(input)
-		return result && result.kind === 'rectangle' ? result : null
+		return recognizeShape(input)
 	}
 
-	/** After a short pause, show the "charging" preview if the stroke is a rectangle. */
+	/** After a short pause, show the "charging" preview if the stroke is recognized. */
 	private previewMorph() {
 		this.previewTimeout = null
 		if (this.didMorph) return
-		const rect = this.getMorphRectangle()
-		if (!rect) return
-		this.morphRecognition = rect
-		const topLeft = rectangleTopLeft(rect)
+		const shape = this.getMorphShape()
+		if (!shape) return
+		this.morphRecognition = shape
+		const topLeft = recognizedShapeTopLeft(shape)
 		this.morphPreviewId = showMorphPreview(
 			this.editor,
 			{
+				geo: shape.kind,
 				x: topLeft.x,
 				y: topLeft.y,
-				w: rect.w,
-				h: rect.h,
-				rotation: rect.rotation,
+				w: shape.w,
+				h: shape.h,
+				rotation: shape.rotation,
 				color: MAGIC_WAND_LASSO_COLOR,
 			},
 			MORPH_HOLD_MS - MORPH_PREVIEW_DELAY_MS
 		)
 	}
 
-	/** Fires after the hold; replaces the sketch with the recognized rectangle. */
+	/** Fires after the hold; replaces the sketch with the recognized geo shape. */
 	private tryMorph() {
 		this.morphTimeout = null
 		if (this.didMorph) return
 
-		const rect = this.morphRecognition ?? this.getMorphRectangle()
+		const shape = this.morphRecognition ?? this.getMorphShape()
 		const strokeShapes = this.getGestureStrokeShapes()
-		if (!rect || strokeShapes.length === 0) return
+		if (!shape || strokeShapes.length === 0) return
 
 		this.didMorph = true
 		this.clearMorphTimers()
@@ -295,25 +293,25 @@ export class MagicWandDrawing extends Drawing {
 		const size = strokeShapes[0].props.size
 		const scale = strokeShapes[0].props.scale
 
-		// Discard the freehand stroke, then create the rectangle as one recorded
-		// step (mirrors the lasso): net undo = "create rectangle".
+		// Discard the freehand stroke, then create the geo shape as one recorded
+		// step (mirrors the lasso): net undo = "create shape".
 		if (this.markId) this.editor.bailToMark(this.markId)
 
 		// Mark before createShape so the morph-tuning state can bail here on cancel.
 		const morphMark = this.editor.markHistoryStoppingPoint('morph-create')
 
 		const id = createShapeId()
-		const topLeft = rectangleTopLeft(rect)
+		const topLeft = recognizedShapeTopLeft(shape)
 		this.editor.createShape<TLGeoShape>({
 			id,
 			type: 'geo',
 			x: topLeft.x,
 			y: topLeft.y,
-			rotation: rect.rotation,
+			rotation: shape.rotation,
 			props: {
-				geo: 'rectangle',
-				w: rect.w,
-				h: rect.h,
+				geo: shape.kind,
+				w: shape.w,
+				h: shape.h,
 				color: this.inkColor,
 				fill: this.inkFill,
 				dash,
@@ -322,8 +320,7 @@ export class MagicWandDrawing extends Drawing {
 			},
 		})
 
-		// Crossfade: fade the new rectangle in while ghost copies of the sketch
-		// fade out.
+		// Crossfade: fade the new shape in while ghost copies of the sketch fade out.
 		fadeInShape(this.editor, id)
 		for (const snapshot of strokeShapes) fadeOutInkGhost(this.editor, snapshot)
 
@@ -335,14 +332,14 @@ export class MagicWandDrawing extends Drawing {
 		// drag starts without any jump.
 		const transform = this.editor.getShapePageTransform(id)
 		if (transform) {
-			const centerPage = Mat.applyToPoint(transform, new Vec(rect.w / 2, rect.h / 2))
+			const centerPage = Mat.applyToPoint(transform, new Vec(shape.w / 2, shape.h / 2))
 			const pointer = this.editor.inputs.getCurrentPagePoint()
 			const tuningInfo: MorphTuningInfo = {
 				shapeId: id,
 				centerPagePos: centerPage,
 				initialPointerOffset: Vec.Sub(pointer, centerPage),
-				originalW: rect.w,
-				originalH: rect.h,
+				originalW: shape.w,
+				originalH: shape.h,
 				morphMark,
 			}
 			this.parent.transition('morph-tuning', tuningInfo)

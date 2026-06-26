@@ -17,8 +17,19 @@ const RECT_FILL_MIN = 0.85
 const MIN_CLOSE_DISTANCE = 8
 /** A recognized corner must have a stroke point within this fraction of the short side. */
 const CORNER_TOLERANCE_RATIO = 0.3
-/** Rectangles tilted within this many radians of an axis snap to exactly axis-aligned. */
+/** Rectangles/ellipses tilted within this many radians of an axis snap to axis-aligned. */
 const AXIS_ALIGN_SNAP_RADIANS = (7.5 * Math.PI) / 180
+/** An ellipse fills ~π/4 (≈0.785) of its oriented box; accept within this band. */
+const ELLIPSE_FILL_MIN = 0.6
+const ELLIPSE_FILL_MAX = 0.92
+/** A boundary point's normalized radius (1 = exactly on the outline) may stray this far. */
+const ELLIPSE_RADIUS_TOLERANCE = 0.2
+/** Fraction of stroke points that must sit near the inscribed ellipse's boundary. */
+const ELLIPSE_BOUNDARY_FRACTION = 0.75
+/** Normalized radius above which a point counts as a "spike" (a rectangle corner reaches √2). */
+const ELLIPSE_SPIKE_RADIUS = 1.2
+/** Reject as an ellipse if more than this fraction of points poke well outside the outline. */
+const ELLIPSE_MAX_SPIKE_FRACTION = 0.1
 
 /** The normalized input handed to every recognizer. Points are in page space. */
 export interface RecognizerInput {
@@ -29,17 +40,28 @@ export interface RecognizerInput {
 	isClosed: boolean
 }
 
-/** The result of recognizing a gesture as a shape. */
-export interface ShapeRecognitionResult {
-	kind: 'rectangle'
-	/** Page-space center of the oriented rectangle. */
+/** An oriented box (center, dimensions, tilt) — the geometry shared by recognized shapes. */
+interface OrientedBox {
+	/** Page-space center of the oriented box. */
 	center: Vec
 	w: number
 	h: number
 	/** Rotation in radians, normalized to (-π/4, π/4]. */
 	rotation: number
 }
-// Future kinds would be additional interface members unioned in here.
+
+/** A recognized rectangle. */
+export interface RecognizedRectangle extends OrientedBox {
+	kind: 'rectangle'
+}
+
+/** A recognized ellipse (also covers circles, where w ≈ h). */
+export interface RecognizedEllipse extends OrientedBox {
+	kind: 'ellipse'
+}
+
+/** The result of recognizing a gesture as a shape. New kinds are unioned in here. */
+export type ShapeRecognitionResult = RecognizedRectangle | RecognizedEllipse
 
 /** A single shape classifier. */
 export interface ShapeRecognizer {
@@ -74,11 +96,11 @@ export function recognizeShape(input: RecognizerInput): ShapeRecognitionResult |
 }
 
 /**
- * The page-space top-left origin for the geo shape of a recognized rectangle. A
- * geo shape rotates around its (x, y) origin, so we offset the center back by the
- * rotated half-extents.
+ * The page-space top-left origin for a recognized shape's geo shape. A geo shape
+ * rotates around its (x, y) origin, so we offset the center back by the rotated
+ * half-extents. Works for any oriented box (rectangle, ellipse, …).
  */
-export function rectangleTopLeft(r: Extract<ShapeRecognitionResult, { kind: 'rectangle' }>): Vec {
+export function recognizedShapeTopLeft(r: ShapeRecognitionResult): Vec {
 	return Vec.Sub(r.center, Vec.Rot(new Vec(r.w / 2, r.h / 2), r.rotation))
 }
 
@@ -116,8 +138,39 @@ const recognizeRectangle: ShapeRecognizer = {
 	},
 }
 
+const recognizeEllipse: ShapeRecognizer = {
+	kind: 'ellipse',
+	recognize(input) {
+		// An ellipse is a closed figure.
+		if (!input.isClosed) return null
+
+		const hull = convexHull(input.points)
+		if (hull.length < 3) return null
+
+		// The oriented box gives the ellipse's axes and tilt; the fill test is then
+		// rotation-invariant, so tilted ellipses are recognized too.
+		const { center, w, h, rotation } = minAreaRect(hull)
+
+		if (w < MIN_DIM || h < MIN_DIM) return null
+		if (Math.max(w, h) / Math.min(w, h) > MAX_ASPECT) return null
+
+		// An inscribed ellipse fills ~π/4 of its box — distinctly less than a
+		// rectangle (~1.0) and more than a triangle (~0.5).
+		const fill = input.area / (w * h)
+		if (fill < ELLIPSE_FILL_MIN || fill > ELLIPSE_FILL_MAX) return null
+
+		// The points must hug the inscribed ellipse's outline rather than poke out
+		// at corners — that's what separates a round shape from a rectangle.
+		if (!pointsHugEllipse(input.points, center, w, h, rotation)) return null
+
+		// Match the rectangle's behavior: snap a near-upright ellipse to upright.
+		const snappedRotation = Math.abs(rotation) <= AXIS_ALIGN_SNAP_RADIANS ? 0 : rotation
+		return { kind: 'ellipse', center, w, h, rotation: snappedRotation }
+	},
+}
+
 /** Ordered list of classifiers; first non-null result wins. */
-export const SHAPE_RECOGNIZERS: ShapeRecognizer[] = [recognizeRectangle]
+export const SHAPE_RECOGNIZERS: ShapeRecognizer[] = [recognizeRectangle, recognizeEllipse]
 
 /** Absolute area of a polygon via the shoelace formula. */
 function polygonArea(points: Vec[]): number {
@@ -235,4 +288,35 @@ function hasPointNearEachCorner(
 	}
 
 	return true
+}
+
+/**
+ * Whether the stroke points lie along the inscribed ellipse's outline: most
+ * points within a tolerance band of normalized radius 1, and few poking well
+ * outside it. A rectangle's corners reach a normalized radius of √2, so its
+ * corner points read as "spikes" and the shape is rejected.
+ */
+function pointsHugEllipse(
+	points: Vec[],
+	center: Vec,
+	w: number,
+	h: number,
+	rotation: number
+): boolean {
+	const rx = w / 2
+	const ry = h / 2
+	if (rx <= 0 || ry <= 0) return false
+
+	let nearBoundary = 0
+	let spikes = 0
+	for (const p of points) {
+		// Normalized radius in the ellipse's local frame: exactly 1 on the outline.
+		const local = Vec.Rot(Vec.Sub(p, center), -rotation)
+		const nr = Math.hypot(local.x / rx, local.y / ry)
+		if (Math.abs(nr - 1) <= ELLIPSE_RADIUS_TOLERANCE) nearBoundary++
+		if (nr > ELLIPSE_SPIKE_RADIUS) spikes++
+	}
+
+	const n = points.length
+	return nearBoundary / n >= ELLIPSE_BOUNDARY_FRACTION && spikes / n <= ELLIPSE_MAX_SPIKE_FRACTION
 }
