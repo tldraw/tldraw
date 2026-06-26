@@ -9,29 +9,20 @@ import { Box, Vec } from '@tldraw/editor'
 
 /** The smallest a recognized shape's oriented dimensions may be, in page units. */
 const MIN_DIM = 20
-/** Reject slivers above this width/height ratio (a future "line" classifier's job). */
+/** Reject slivers above this width/height ratio (handled by the line classifier instead). */
 const MAX_ASPECT = 20
-/** A stroke fills at least this fraction of its oriented bounding box to be a rectangle. */
-const RECT_FILL_MIN = 0.85
 /** Minimum gap (page units) below which the stroke's endpoints count as "closed". */
 const MIN_CLOSE_DISTANCE = 8
-/** A recognized corner must have a stroke point within this fraction of the short side. */
-const CORNER_TOLERANCE_RATIO = 0.3
 /** Rectangles/ellipses tilted within this many radians of an axis snap to axis-aligned. */
 const AXIS_ALIGN_SNAP_RADIANS = (7.5 * Math.PI) / 180
 /** Below this longer/shorter side ratio, a shape snaps to equal sides (square/circle). */
 const SQUARE_SNAP_RATIO = 1.2
-/** An ellipse fills ~π/4 (≈0.785) of its oriented box; accept within this band. */
-const ELLIPSE_FILL_MIN = 0.6
-const ELLIPSE_FILL_MAX = 0.92
-/** A boundary point's normalized radius (1 = exactly on the outline) may stray this far. */
-const ELLIPSE_RADIUS_TOLERANCE = 0.2
-/** Fraction of stroke points that must sit near the inscribed ellipse's boundary. */
-const ELLIPSE_BOUNDARY_FRACTION = 0.75
-/** Normalized radius above which a point counts as a "spike" (a rectangle corner reaches √2). */
-const ELLIPSE_SPIKE_RADIUS = 1.2
-/** Reject as an ellipse if more than this fraction of points poke well outside the outline. */
-const ELLIPSE_MAX_SPIKE_FRACTION = 0.1
+/** A closed shape must fill at least this fraction of its box (rejects triangles ~0.5). */
+const CLOSED_FILL_MIN = 0.6
+/** Classify as rectangle unless the points hug the ellipse more than this much better. */
+const RECT_VS_ELLIPSE_BIAS = 1.7
+/** The chosen outline's mean residual must be within this fraction of the short side. */
+const SHAPE_FIT_MAX_RATIO = 0.25
 /** A stroke is a line if no point strays more than this fraction of its length from the chord. */
 const LINE_STRAIGHTNESS_RATIO = 0.1
 /** End stretch over which a line's entry/exit direction is checked, as a fraction of its length. */
@@ -143,72 +134,85 @@ function snapNearSquare(w: number, h: number): { w: number; h: number } {
 	return { w, h }
 }
 
+/** A recognized closed shape's oriented box plus which outline its points follow. */
+interface ClosedShapeFit extends OrientedBox {
+	kind: 'rectangle' | 'ellipse'
+}
+
+/**
+ * Fits a closed gesture to an oriented box and decides whether its points follow
+ * a rectangle outline or an ellipse outline.
+ *
+ * Rather than the box fill ratio (which collapses for thin shapes: a little edge
+ * noise inflates the tiny short dimension, dragging a thin rectangle's fill down
+ * toward an ellipse's), it compares how closely the points hug each outline. The
+ * comparison is a ratio, so it's robust to the stroke's noise level and to the
+ * aspect ratio — a thin rectangle's points hug its straight edges far better than
+ * its inscribed ellipse, even though both look "long and flat".
+ */
+function fitClosedShape(input: RecognizerInput): ClosedShapeFit | null {
+	if (!input.isClosed) return null
+
+	const hull = convexHull(input.points)
+	if (hull.length < 3) return null
+
+	// The oriented (minimum-area) bounding box; everything below is in its frame.
+	const { center, w, h, rotation } = minAreaRect(hull)
+	if (w < MIN_DIM || h < MIN_DIM) return null
+	if (Math.max(w, h) / Math.min(w, h) > MAX_ASPECT) return null
+
+	// Coarse area gate: rejects triangles (~0.5) and sparse scribbles.
+	if (input.area / (w * h) < CLOSED_FILL_MIN) return null
+
+	// How closely the points hug a rectangle outline vs the inscribed ellipse.
+	const rectResidual = meanOutlineDist(input.points, center, w, h, rotation, distToRectOutline)
+	const ellipseResidual = meanOutlineDist(
+		input.points,
+		center,
+		w,
+		h,
+		rotation,
+		distToEllipseOutline
+	)
+
+	// A rectangle's points hug both outlines comparably (its edges run alongside
+	// the thin ellipse), so bias toward "rectangle" — only call it an ellipse when
+	// the points fit the curve clearly better.
+	const kind = rectResidual <= ellipseResidual * RECT_VS_ELLIPSE_BIAS ? 'rectangle' : 'ellipse'
+
+	// The chosen outline must actually fit (rejects blobs that are neither).
+	const residual = kind === 'rectangle' ? rectResidual : ellipseResidual
+	if (residual > SHAPE_FIT_MAX_RATIO * Math.min(w, h)) return null
+
+	return { kind, center, w, h, rotation }
+}
+
+/** Snaps a recognized box's rotation (near-axis → upright) and sides (near-square → equal). */
+function finishBoxShape<K extends 'rectangle' | 'ellipse'>(
+	fit: ClosedShapeFit,
+	kind: K
+): Extract<ShapeRecognitionResult, { kind: K }> {
+	const rotation = Math.abs(fit.rotation) <= AXIS_ALIGN_SNAP_RADIANS ? 0 : fit.rotation
+	const sides = snapNearSquare(fit.w, fit.h)
+	return { kind, center: fit.center, w: sides.w, h: sides.h, rotation } as Extract<
+		ShapeRecognitionResult,
+		{ kind: K }
+	>
+}
+
 const recognizeRectangle: ShapeRecognizer = {
 	kind: 'rectangle',
 	recognize(input) {
-		// A rectangle is a closed figure.
-		if (!input.isClosed) return null
-
-		const hull = convexHull(input.points)
-		if (hull.length < 3) return null
-
-		// The oriented (minimum-area) bounding rectangle makes the fill test
-		// rotation-invariant, so tilted rectangles are recognized too.
-		const { center, w, h, rotation } = minAreaRect(hull)
-
-		// Reject tiny shapes and extreme slivers (the latter are better classified
-		// as lines once that recognizer exists).
-		if (w < MIN_DIM || h < MIN_DIM) return null
-		if (Math.max(w, h) / Math.min(w, h) > MAX_ASPECT) return null
-
-		// A rectangle fills its oriented bounding box (~1.0); an ellipse fills
-		// ~0.785 and a triangle ~0.5, so this cleanly separates them.
-		const fill = input.area / (w * h)
-		if (fill < RECT_FILL_MIN) return null
-
-		// Each oriented corner should have a stroke point nearby — rejects rounded
-		// blobs that happen to fill their box.
-		if (!hasPointNearEachCorner(input.points, center, w, h, rotation)) return null
-
-		// A nearly upright rectangle is almost always meant to be axis-aligned, so
-		// snap small tilts to exactly 0 rather than spawning a subtly crooked shape.
-		const snappedRotation = Math.abs(rotation) <= AXIS_ALIGN_SNAP_RADIANS ? 0 : rotation
-		// A nearly square rectangle snaps to equal sides (a clean square).
-		const sides = snapNearSquare(w, h)
-		return { kind: 'rectangle', center, w: sides.w, h: sides.h, rotation: snappedRotation }
+		const fit = fitClosedShape(input)
+		return fit && fit.kind === 'rectangle' ? finishBoxShape(fit, 'rectangle') : null
 	},
 }
 
 const recognizeEllipse: ShapeRecognizer = {
 	kind: 'ellipse',
 	recognize(input) {
-		// An ellipse is a closed figure.
-		if (!input.isClosed) return null
-
-		const hull = convexHull(input.points)
-		if (hull.length < 3) return null
-
-		// The oriented box gives the ellipse's axes and tilt; the fill test is then
-		// rotation-invariant, so tilted ellipses are recognized too.
-		const { center, w, h, rotation } = minAreaRect(hull)
-
-		if (w < MIN_DIM || h < MIN_DIM) return null
-		if (Math.max(w, h) / Math.min(w, h) > MAX_ASPECT) return null
-
-		// An inscribed ellipse fills ~π/4 of its box — distinctly less than a
-		// rectangle (~1.0) and more than a triangle (~0.5).
-		const fill = input.area / (w * h)
-		if (fill < ELLIPSE_FILL_MIN || fill > ELLIPSE_FILL_MAX) return null
-
-		// The points must hug the inscribed ellipse's outline rather than poke out
-		// at corners — that's what separates a round shape from a rectangle.
-		if (!pointsHugEllipse(input.points, center, w, h, rotation)) return null
-
-		// Match the rectangle's behavior: snap a near-upright ellipse to upright and
-		// a nearly circular ellipse to equal axes (a clean circle).
-		const snappedRotation = Math.abs(rotation) <= AXIS_ALIGN_SNAP_RADIANS ? 0 : rotation
-		const sides = snapNearSquare(w, h)
-		return { kind: 'ellipse', center, w: sides.w, h: sides.h, rotation: snappedRotation }
+		const fit = fitClosedShape(input)
+		return fit && fit.kind === 'ellipse' ? finishBoxShape(fit, 'ellipse') : null
 	},
 }
 
@@ -310,6 +314,97 @@ function endpointsRunStraight(points: Vec[], chordLength: number): boolean {
 	)
 }
 
+/** A point transformed into an oriented box's local frame (centered, axis-aligned). */
+function toBoxLocal(p: Vec, center: Vec, rotation: number): Vec {
+	return Vec.Rot(Vec.Sub(p, center), -rotation)
+}
+
+/** Distance from a box-local point to the rectangle outline of size w×h. */
+function distToRectOutline(local: Vec, w: number, h: number): number {
+	const ax = w / 2
+	const ay = h / 2
+	const insideX = ax - Math.abs(local.x)
+	const insideY = ay - Math.abs(local.y)
+	if (insideX >= 0 && insideY >= 0) return Math.min(insideX, insideY) // inside: nearest edge
+	// outside: distance to the clamped point on the border
+	return Math.hypot(Math.max(-insideX, 0), Math.max(-insideY, 0))
+}
+
+/** Bisection root finder for {@link distToEllipseOutline} (Eberly's method). */
+function ellipseRoot(r0: number, z0: number, z1: number, g: number): number {
+	const n0 = r0 * z0
+	let s0 = z1 - 1
+	let s1 = g < 0 ? 0 : Math.hypot(n0, z1) - 1
+	let s = 0
+	for (let i = 0; i < 60; i++) {
+		s = (s0 + s1) / 2
+		if (s === s0 || s === s1) break
+		const ratio0 = n0 / (s + r0)
+		const ratio1 = z1 / (s + 1)
+		const gg = ratio0 * ratio0 + ratio1 * ratio1 - 1
+		if (gg > 0) s0 = s
+		else if (gg < 0) s1 = s
+		else break
+	}
+	return s
+}
+
+/**
+ * Accurate perpendicular distance from a box-local point to the inscribed ellipse
+ * outline (Eberly, "Distance from a Point to an Ellipse"). Stays accurate at any
+ * eccentricity — unlike the gradient or radial estimates — so the rectangle vs
+ * ellipse residual comparison is fair for thin shapes.
+ */
+function distToEllipseOutline(local: Vec, w: number, h: number): number {
+	let e0 = w / 2
+	let e1 = h / 2
+	let y0 = Math.abs(local.x)
+	let y1 = Math.abs(local.y)
+	// The algorithm assumes the first semi-axis is the larger one.
+	if (e0 < e1) {
+		;[e0, e1] = [e1, e0]
+		;[y0, y1] = [y1, y0]
+	}
+	if (e1 <= 0) return Math.abs(y1) // degenerate: a segment
+	if (y1 > 0) {
+		if (y0 > 0) {
+			const z0 = y0 / e0
+			const z1 = y1 / e1
+			const g = z0 * z0 + z1 * z1 - 1
+			if (g === 0) return 0
+			const r0 = (e0 / e1) ** 2
+			const sbar = ellipseRoot(r0, z0, z1, g)
+			const x0 = (r0 * y0) / (sbar + r0)
+			const x1 = y1 / (sbar + 1)
+			return Math.hypot(x0 - y0, x1 - y1)
+		}
+		return Math.abs(y1 - e1)
+	}
+	const numer0 = e0 * y0
+	const denom0 = e0 * e0 - e1 * e1
+	if (numer0 < denom0) {
+		const xde0 = numer0 / denom0
+		const x0 = e0 * xde0
+		const x1 = e1 * Math.sqrt(Math.max(0, 1 - xde0 * xde0))
+		return Math.hypot(x0 - y0, x1)
+	}
+	return Math.abs(y0 - e0)
+}
+
+/** Mean distance of the points to an outline (rectangle or ellipse), in page units. */
+function meanOutlineDist(
+	points: Vec[],
+	center: Vec,
+	w: number,
+	h: number,
+	rotation: number,
+	dist: (local: Vec, w: number, h: number) => number
+): number {
+	let sum = 0
+	for (const p of points) sum += dist(toBoxLocal(p, center, rotation), w, h)
+	return sum / points.length
+}
+
 /** Absolute area of a polygon via the shoelace formula. */
 function polygonArea(points: Vec[]): number {
 	let sum = 0
@@ -397,64 +492,4 @@ function minAreaRect(hull: Vec[]): { center: Vec; w: number; h: number; rotation
 	}
 
 	return { center: best!.center, w, h, rotation }
-}
-
-/** Whether the stroke has a point near each of the oriented rectangle's corners. */
-function hasPointNearEachCorner(
-	points: Vec[],
-	center: Vec,
-	w: number,
-	h: number,
-	rotation: number
-): boolean {
-	const tolerance = CORNER_TOLERANCE_RATIO * Math.min(w, h)
-	const halfExtents = [
-		new Vec(-w / 2, -h / 2),
-		new Vec(w / 2, -h / 2),
-		new Vec(w / 2, h / 2),
-		new Vec(-w / 2, h / 2),
-	]
-
-	for (const half of halfExtents) {
-		const corner = Vec.Add(center, Vec.Rot(half, rotation))
-		let nearest = Infinity
-		for (const p of points) {
-			const d = Vec.Dist(p, corner)
-			if (d < nearest) nearest = d
-		}
-		if (nearest > tolerance) return false
-	}
-
-	return true
-}
-
-/**
- * Whether the stroke points lie along the inscribed ellipse's outline: most
- * points within a tolerance band of normalized radius 1, and few poking well
- * outside it. A rectangle's corners reach a normalized radius of √2, so its
- * corner points read as "spikes" and the shape is rejected.
- */
-function pointsHugEllipse(
-	points: Vec[],
-	center: Vec,
-	w: number,
-	h: number,
-	rotation: number
-): boolean {
-	const rx = w / 2
-	const ry = h / 2
-	if (rx <= 0 || ry <= 0) return false
-
-	let nearBoundary = 0
-	let spikes = 0
-	for (const p of points) {
-		// Normalized radius in the ellipse's local frame: exactly 1 on the outline.
-		const local = Vec.Rot(Vec.Sub(p, center), -rotation)
-		const nr = Math.hypot(local.x / rx, local.y / ry)
-		if (Math.abs(nr - 1) <= ELLIPSE_RADIUS_TOLERANCE) nearBoundary++
-		if (nr > ELLIPSE_SPIKE_RADIUS) spikes++
-	}
-
-	const n = points.length
-	return nearBoundary / n >= ELLIPSE_BOUNDARY_FRACTION && spikes / n <= ELLIPSE_MAX_SPIKE_FRACTION
 }

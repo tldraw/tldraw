@@ -20,6 +20,44 @@ function rectCorners(x: number, y: number, w: number, h: number): Vec[] {
 	return [new Vec(x, y), new Vec(x + w, y), new Vec(x + w, y + h), new Vec(x, y + h)]
 }
 
+/** Deterministic pseudo-noise in [-amp, amp]. */
+function noise(i: number, amp: number): number {
+	return (((Math.sin(i * 12.9898) * 43758.5453) % 1) * 2 - 1) * amp * 0.5
+}
+
+/** Samples a closed polygon with small absolute perpendicular noise (a hand-drawn look). */
+function noisyPolygon(corners: Vec[], amp = 3, perEdge = 16): Vec[] {
+	const pts: Vec[] = []
+	let k = 0
+	for (let i = 0; i < corners.length; i++) {
+		const a = corners[i]
+		const b = corners[(i + 1) % corners.length]
+		const dir = Vec.Sub(b, a)
+		const len = dir.len() || 1
+		const perp = new Vec(-dir.y / len, dir.x / len)
+		for (let j = 0; j < perEdge; j++) {
+			const base = Vec.Add(a, Vec.Mul(dir, j / perEdge))
+			pts.push(Vec.Add(base, Vec.Mul(perp, noise(k++, amp))))
+		}
+	}
+	pts.push(pts[0].clone())
+	return pts
+}
+
+/** Samples an ellipse outline with small absolute radial noise. */
+function noisyEllipse(cx: number, cy: number, rx: number, ry: number, amp = 3, steps = 64): Vec[] {
+	const pts: Vec[] = []
+	for (let i = 0; i <= steps; i++) {
+		const t = (i / steps) * Math.PI * 2
+		const c = Math.cos(t)
+		const s = Math.sin(t)
+		const r = Math.hypot(c, s)
+		const n = noise(i, amp)
+		pts.push(new Vec(cx + rx * c + (c / r) * n, cy + ry * s + (s / r) * n))
+	}
+	return pts
+}
+
 function rotatePointsAround(points: Vec[], center: Vec, angle: number): Vec[] {
 	return points.map((p) => Vec.Add(center, Vec.Rot(Vec.Sub(p, center), angle)))
 }
@@ -103,6 +141,26 @@ describe('recognizeRectangle', () => {
 		const result = recognize(samplePolygon(corners))
 		const r = result as Extract<ShapeRecognitionResult, { kind: 'rectangle' }>
 		expect(Math.abs(r.w - r.h)).toBeGreaterThan(40)
+	})
+
+	it('recognizes a long, narrow (noisy) rectangle', () => {
+		// A thin rectangle's straight edges hug the box; small edge noise drops the
+		// box-fill toward an ellipse's, so fill alone misses it — the outline-fit
+		// comparison still catches it.
+		const result = recognize(noisyPolygon(rectCorners(0, 0, 300, 25), 3))
+		expect(result?.kind).toBe('rectangle')
+	})
+
+	it('recognizes a long, narrow rotated rectangle (noisy)', () => {
+		const corners = rectCorners(0, 0, 320, 26)
+		const rotated = rotatePointsAround(corners, new Vec(160, 13), Math.PI / 5)
+		const result = recognize(noisyPolygon(rotated, 3))
+		expect(result?.kind).toBe('rectangle')
+	})
+
+	it('still tells a long, narrow ellipse apart from a thin rectangle', () => {
+		const result = recognize(noisyEllipse(150, 60, 150, 13, 3))
+		expect(result?.kind).toBe('ellipse')
 	})
 
 	it('recognizes an ellipse and matches its bounds', () => {
