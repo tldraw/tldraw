@@ -14,7 +14,7 @@ This release simplifies multi-click handling down to a single double-click event
 
 - 💥 Simplify multi-click handling to double-click only. `ClickManager` no longer tracks triple or quadruple clicks: the `triple_click` and `quadruple_click` events and the `onTripleClick` / `onQuadrupleClick` handlers have been removed, and `TLClickEventName` is now just `'double_click'`. ([#8897](https://github.com/tldraw/tldraw/pull/8897))
 - 💥 Move `ShapeIndicatorOverlayUtil` and `TLShapeIndicatorOverlay` from `@tldraw/editor` to `tldraw`. Both are still exported from `tldraw`; update any imports of these symbols that came directly from `@tldraw/editor`. ([#9018](https://github.com/tldraw/tldraw/pull/9018))
-- Add an `embedConfig` option to `EmbedShapeUtil` for passing per-embed configuration such as API keys.([#9068](https://github.com/tldraw/tldraw/pull/9068))
+- Add an `embedConfig` option to `EmbedShapeUtil` for passing per-embed configuration such as API keys. The default Google Maps embed no longer reads `process.env.NEXT_PUBLIC_GC_API_KEY` — pass the key explicitly instead. ([#9068](https://github.com/tldraw/tldraw/pull/9068))
 
   ```ts
   EmbedShapeUtil.configure({
