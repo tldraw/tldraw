@@ -3,6 +3,7 @@ import {
 	Editor,
 	TLDefaultColorStyle,
 	TLDrawShape,
+	TLGeoShape,
 	TLShapeId,
 	createShapeId,
 } from '@tldraw/editor'
@@ -29,6 +30,12 @@ const INK_DRY_DURATION_MS = 350
 
 /** How long the lasso ink takes to fade away after selecting, in ms. */
 const LASSO_FADE_DURATION_MS = 300
+
+/** Opacity the hold "charging" preview ramps up to while the morph is pending. */
+const MORPH_PREVIEW_OPACITY = 0.4
+
+/** How long the sketch→shape crossfade takes when a morph fires, in ms. */
+const MORPH_FADE_DURATION_MS = 250
 
 /** Class on the <style> element that holds the magic wand's per-stroke opacity rule. */
 export const INK_STYLE_ELEMENT_CLASS = 'tl-magic-wand-ink-style'
@@ -139,13 +146,17 @@ function animateShapeOpacity(
 }
 
 /**
- * Plays the lasso-resolved ink effect: a throwaway copy of the stroke (already
- * the selection colour from the live gesture) fades out and is then removed. The
- * copy is created and destroyed with history ignored, so it's purely visual and
- * never undoable. We defer creation by a frame so the committed post-selection
- * state stays clean.
+ * Fades out and removes a throwaway copy of a finished stroke. The copy is
+ * created and destroyed with history ignored, so it's purely visual and never
+ * undoable. We defer creation by a frame so the committed post-gesture state
+ * stays clean. `color` defaults to the stroke's own colour (used by the morph
+ * crossfade); the lasso passes the selection colour.
  */
-export function fadeOutLassoInk(editor: Editor, inkSnapshot: TLDrawShape) {
+export function fadeOutInkGhost(
+	editor: Editor,
+	inkSnapshot: TLDrawShape,
+	color: TLDefaultColorStyle = inkSnapshot.props.color
+) {
 	editor.timers.requestAnimationFrame(() => {
 		const ghostId = createShapeId()
 
@@ -161,7 +172,7 @@ export function fadeOutLassoInk(editor: Editor, inkSnapshot: TLDrawShape) {
 					y: inkSnapshot.y,
 					rotation: inkSnapshot.rotation,
 					opacity: MAGIC_WAND_INK_OPACITY,
-					props: { ...inkSnapshot.props, color: MAGIC_WAND_LASSO_COLOR, isComplete: true },
+					props: { ...inkSnapshot.props, color, isComplete: true },
 					meta: { magicWandGhost: true },
 				})
 			},
@@ -172,4 +183,70 @@ export function fadeOutLassoInk(editor: Editor, inkSnapshot: TLDrawShape) {
 			editor.run(() => editor.deleteShape(ghostId), { history: 'ignore', ignoreShapeLock: true })
 		})
 	})
+}
+
+/** The geo rectangle params the hold preview / morph need (page space). */
+export interface MorphRectangle {
+	x: number
+	y: number
+	w: number
+	h: number
+	rotation: number
+	color: TLDefaultColorStyle
+}
+
+/**
+ * Shows the hold "charging" preview: a locked, ephemeral, outline-only rectangle
+ * at the recognized location whose opacity ramps up over `durationMs` so the user
+ * sees a morph is imminent. History-ignored, so it never touches the document.
+ * Returns its id; pass it to {@link removeMorphPreview}.
+ */
+export function showMorphPreview(
+	editor: Editor,
+	rect: MorphRectangle,
+	durationMs: number
+): TLShapeId {
+	const ghostId = createShapeId()
+	editor.run(
+		() => {
+			editor.createShape<TLGeoShape>({
+				id: ghostId,
+				type: 'geo',
+				isLocked: true,
+				x: rect.x,
+				y: rect.y,
+				rotation: rect.rotation,
+				opacity: 0,
+				props: { geo: 'rectangle', w: rect.w, h: rect.h, color: rect.color, fill: 'none' },
+				meta: { magicWandGhost: true },
+			})
+		},
+		{ history: 'ignore' }
+	)
+	animateShapeOpacity(editor, ghostId, 0, MORPH_PREVIEW_OPACITY, durationMs)
+	return ghostId
+}
+
+/** Removes the hold preview shape created by {@link showMorphPreview}. */
+export function removeMorphPreview(editor: Editor, ghostId: TLShapeId | null) {
+	if (!ghostId) return
+	editor.run(() => editor.deleteShape(ghostId), { history: 'ignore', ignoreShapeLock: true })
+}
+
+/**
+ * Fades a freshly created shape in from transparent to solid using
+ * history-ignored opacity updates (the shape's recorded opacity stays 1, so
+ * undo/redo are unaffected). Used for the morph target rectangle.
+ */
+export function fadeInShape(
+	editor: Editor,
+	shapeId: TLShapeId,
+	durationMs = MORPH_FADE_DURATION_MS
+) {
+	const shape = editor.getShape(shapeId)
+	if (!shape) return
+	editor.run(() => editor.updateShape({ id: shapeId, type: shape.type, opacity: 0 }), {
+		history: 'ignore',
+	})
+	animateShapeOpacity(editor, shapeId, 0, 1, durationMs)
 }

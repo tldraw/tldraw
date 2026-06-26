@@ -203,3 +203,165 @@ describe('MagicWandTool', () => {
 		editor.expectToBeIn('magic-wand.idle')
 	})
 })
+
+/** Shapes on the page that aren't transient magic-wand ghosts/previews. */
+function realShapes() {
+	return editor.getCurrentPageShapes().filter((s) => !s.meta?.magicWandGhost)
+}
+
+/** Draws a dense closed rectangle sketch (pen left down) from the given corners. */
+function drawRectSketch(corners: Array<[number, number]>, perEdge = 6) {
+	editor.setCurrentTool('magic-wand')
+	const [sx, sy] = corners[0]
+	editor.pointerDown(sx, sy)
+	let [px, py] = [sx, sy]
+	// Walk the corners, then back to ~2px from the start so the loop is closed.
+	const path: Array<[number, number]> = [...corners.slice(1), [sx + 2, sy]]
+	for (const [cx, cy] of path) {
+		for (let j = 1; j <= perEdge; j++) {
+			const t = j / perEdge
+			editor.pointerMove(px + (cx - px) * t, py + (cy - py) * t)
+		}
+		;[px, py] = [cx, cy]
+	}
+}
+
+function rotateAround(
+	[x, y]: [number, number],
+	[cx, cy]: [number, number],
+	angle: number
+): [number, number] {
+	const dx = x - cx
+	const dy = y - cy
+	return [
+		cx + dx * Math.cos(angle) - dy * Math.sin(angle),
+		cy + dx * Math.sin(angle) + dy * Math.cos(angle),
+	]
+}
+
+describe('MagicWandTool hold-to-morph', () => {
+	beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }))
+	afterEach(() => vi.useRealTimers())
+
+	const square: Array<[number, number]> = [
+		[100, 100],
+		[200, 100],
+		[200, 200],
+		[100, 200],
+	]
+
+	it('morphs a held rectangle sketch into a geo rectangle, staying in the tool', () => {
+		drawRectSketch(square)
+
+		// Before the hold elapses: still a freehand stroke, no real geo yet.
+		vi.advanceTimersByTime(500)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(true)
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+
+		// After the hold: the stroke morphs into one geo rectangle, selected.
+		vi.advanceTimersByTime(600)
+		const geos = realShapes().filter((s) => s.type === 'geo')
+		expect(geos).toHaveLength(1)
+		expect((geos[0] as TLGeoShape).props.geo).toBe('rectangle')
+		expect(editor.getSelectedShapeIds()).toEqual([geos[0].id])
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('magic-wand.idle')
+
+		const style = editor.getContainer().querySelector('style.tl-magic-wand-ink-style')
+		expect(style?.textContent ?? '').toBe('')
+	})
+
+	it('does not morph while the pen keeps moving', () => {
+		drawRectSketch(square)
+		// Nudge the pen past the move tolerance every 500ms; the timer keeps resetting.
+		for (let i = 0; i < 6; i++) {
+			vi.advanceTimersByTime(500)
+			editor.pointerMove(i % 2 ? 100 : 130, 100)
+		}
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+	})
+
+	it('lassos instead of morphing when the loop encircles a shape', () => {
+		const boxId = createBox(130, 130) // center ~(150,150), inside the square
+		drawRectSketch(square)
+
+		vi.advanceTimersByTime(1500) // hold well past the morph time
+		// Morph suppressed: no new rectangle, the box is untouched.
+		expect(realShapes().filter((s) => s.type === 'geo' && s.id !== boxId)).toEqual([])
+
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+	})
+
+	it('carries the sketch style onto the morphed rectangle', () => {
+		drawRectSketch(square)
+		const stroke = realShapes().find((s) => s.type === 'draw') as TLDrawShape
+		const expected = {
+			color: stroke.props.color,
+			fill: stroke.props.fill,
+			dash: stroke.props.dash,
+			size: stroke.props.size,
+		}
+
+		vi.advanceTimersByTime(1100)
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect({
+			color: geo.props.color,
+			fill: geo.props.fill,
+			dash: geo.props.dash,
+			size: geo.props.size,
+		}).toEqual(expected)
+		// The draw defaults differ from geo defaults (e.g. fill 'none' vs 'solid'),
+		// so this confirms the style was actually carried over.
+		expect(geo.props.fill).toBe('none')
+	})
+
+	it('undo removes the morphed rectangle and redo re-creates it', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(1100)
+		expect(realShapes().filter((s) => s.type === 'geo')).toHaveLength(1)
+
+		editor.undo()
+		expect(realShapes().filter((s) => s.type === 'geo')).toHaveLength(0)
+		expect(realShapes()).toHaveLength(0)
+
+		editor.redo()
+		expect(realShapes().filter((s) => s.type === 'geo')).toHaveLength(1)
+	})
+
+	it('does not morph an open (un-closed) stroke', () => {
+		editor.setCurrentTool('magic-wand')
+		// Three sides only — endpoints stay far apart.
+		editor.pointerDown(100, 100)
+		for (const [cx, cy] of [
+			[200, 100],
+			[200, 200],
+			[100, 200],
+		] as Array<[number, number]>) {
+			for (let j = 1; j <= 6; j++)
+				editor.pointerMove(100 + ((cx - 100) * j) / 6, 100 + ((cy - 100) * j) / 6)
+		}
+		vi.advanceTimersByTime(1100)
+		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(true)
+	})
+
+	it('morphs a rotated rectangle sketch at the matching angle', () => {
+		const center: [number, number] = [150, 140]
+		const angle = Math.PI / 6
+		const rotated = [
+			[80, 100],
+			[220, 100],
+			[220, 180],
+			[80, 180],
+		].map((c) => rotateAround(c as [number, number], center, angle))
+
+		drawRectSketch(rotated)
+		vi.advanceTimersByTime(1100)
+
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geo).toBeTruthy()
+		expect(geo.props.geo).toBe('rectangle')
+		expect(Math.abs(Math.abs(geo.rotation) - angle)).toBeLessThan(0.2)
+	})
+})

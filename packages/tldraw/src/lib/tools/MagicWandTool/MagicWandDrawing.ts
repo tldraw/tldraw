@@ -3,10 +3,12 @@ import {
 	TLDefaultColorStyle,
 	TLDefaultFillStyle,
 	TLDrawShape,
+	TLGeoShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
 	areArraysShallowEqual,
+	createShapeId,
 	pointInPolygon,
 } from '@tldraw/editor'
 import { getPointsFromDrawSegments } from '../../shapes/draw/getPath'
@@ -16,14 +18,32 @@ import {
 	MAGIC_WAND_LASSO_COLOR,
 	clearWetInk,
 	dryWetInk,
-	fadeOutLassoInk,
+	fadeInShape,
+	fadeOutInkGhost,
+	removeMorphPreview,
 	setWetInk,
+	showMorphPreview,
 } from './magicWandInk'
+import {
+	ShapeRecognitionResult,
+	buildRecognizerInput,
+	recognizeShape,
+	rectangleTopLeft,
+} from './shapeRecognition'
 
 // Screen-space distance between the gesture's start and end for it to count as a
 // closed loop. Only used when the stroke has been split into multiple shapes; a
 // single unsplit stroke uses the draw tool's own (zoom-aware) `isClosed` flag.
 const MAGIC_WAND_CLOSE_DISTANCE = 16
+
+/** How long the pen must be held roughly still to morph the sketch into a shape. */
+const MORPH_HOLD_MS = 1000
+/** Delay before the "charging" morph preview appears (so a brief pause doesn't flash it). */
+const MORPH_PREVIEW_DELAY_MS = 200
+/** Screen-space movement that resets the hold-to-morph timer ("held there"). */
+const MORPH_MOVE_TOLERANCE = 6
+
+type RecognizedRectangle = Extract<ShapeRecognitionResult, { kind: 'rectangle' }>
 
 /**
  * The drawing state for the magic wand tool. It behaves like the regular draw
@@ -33,11 +53,23 @@ const MAGIC_WAND_CLOSE_DISTANCE = 16
  *
  * While drawing, the ink previews the outcome: it turns the selection colour
  * whenever releasing at the current point would lasso-select something.
+ *
+ * It also recognizes shapes: holding the pen roughly still for ~1s while the
+ * sketch is approximately a rectangle morphs it into a real geo rectangle.
  */
 export class MagicWandDrawing extends Drawing {
 	// Shapes that existed before this stroke started, so we never try to lasso
 	// the stroke shape(s) created during the gesture.
 	private shapeIdsBeforeGesture = new Set<TLShapeId>()
+
+	// Hold-to-morph state. We count time since the last significant move; holding
+	// still for MORPH_HOLD_MS with a recognized shape triggers the morph.
+	private morphAnchorPagePoint: Vec | null = null
+	private morphTimeout: number | null = null
+	private previewTimeout: number | null = null
+	private morphPreviewId: TLShapeId | null = null
+	private morphRecognition: RecognizedRectangle | null = null
+	private didMorph = false
 
 	// The stroke's natural colour and fill, restored when the gesture stops being
 	// a lasso.
@@ -59,6 +91,7 @@ export class MagicWandDrawing extends Drawing {
 		this.hintedShapeIds = []
 		this.wetInkIds = []
 		this.isDryingInk = false
+		this.didMorph = false
 		// Enable the CSS colour transition for the in-progress stroke.
 		this.editor.getContainer().classList.add(MAGIC_WAND_INKING_CLASS)
 		super.onEnter(info)
@@ -72,10 +105,12 @@ export class MagicWandDrawing extends Drawing {
 			this.wetInkIds = [inkShape.id]
 			setWetInk(this.editor, this.wetInkIds)
 		}
+		this.armMorphTimers()
 	}
 
 	override onExit() {
 		this.editor.getContainer().classList.remove(MAGIC_WAND_INKING_CLASS)
+		this.clearMorphTimers()
 		// Clear the lasso preview hint (the selection happens in `complete`).
 		if (this.hintedShapeIds.length) {
 			this.editor.setHintingShapes([])
@@ -92,6 +127,14 @@ export class MagicWandDrawing extends Drawing {
 	override onPointerMove() {
 		super.onPointerMove()
 		this.updateLassoPreview()
+		// Reset the hold-to-morph clock whenever the pen moves meaningfully, so the
+		// morph only fires after the pen has been held roughly still.
+		if (this.didMorph) return
+		const point = this.editor.inputs.getCurrentPagePoint()
+		const tolerance = MORPH_MOVE_TOLERANCE / this.editor.getZoomLevel()
+		if (!this.morphAnchorPagePoint || Vec.Dist(point, this.morphAnchorPagePoint) > tolerance) {
+			this.armMorphTimers()
+		}
 	}
 
 	/**
@@ -145,6 +188,7 @@ export class MagicWandDrawing extends Drawing {
 	}
 
 	override complete() {
+		this.clearMorphTimers()
 		const enclosedShapeIds = this.getEnclosedShapeIds()
 		if (enclosedShapeIds.length > 0) {
 			// Lasso gesture: discard every stroke piece, select the encircled
@@ -154,7 +198,9 @@ export class MagicWandDrawing extends Drawing {
 			if (this.markId) this.editor.bailToMark(this.markId)
 			this.editor.setSelectedShapes(enclosedShapeIds)
 			this.editor.setCurrentTool('select')
-			for (const snapshot of inkSnapshots) fadeOutLassoInk(this.editor, snapshot)
+			for (const snapshot of inkSnapshots) {
+				fadeOutInkGhost(this.editor, snapshot, MAGIC_WAND_LASSO_COLOR)
+			}
 			return
 		}
 
@@ -163,6 +209,143 @@ export class MagicWandDrawing extends Drawing {
 		if (strokeIds.length) this.isDryingInk = true
 		super.complete()
 		if (strokeIds.length) dryWetInk(this.editor, strokeIds)
+	}
+
+	// --- Hold-to-morph -------------------------------------------------------
+
+	/** (Re)starts the hold timers from the current pen position. */
+	private armMorphTimers() {
+		this.clearMorphTimers()
+		this.morphAnchorPagePoint = this.editor.inputs.getCurrentPagePoint().clone()
+		this.previewTimeout = this.editor.timers.setTimeout(
+			() => this.previewMorph(),
+			MORPH_PREVIEW_DELAY_MS
+		)
+		this.morphTimeout = this.editor.timers.setTimeout(() => this.tryMorph(), MORPH_HOLD_MS)
+	}
+
+	/** Cancels both hold timers and removes any visible morph preview. */
+	private clearMorphTimers() {
+		if (this.previewTimeout !== null) {
+			clearTimeout(this.previewTimeout)
+			this.previewTimeout = null
+		}
+		if (this.morphTimeout !== null) {
+			clearTimeout(this.morphTimeout)
+			this.morphTimeout = null
+		}
+		this.morphRecognition = null
+		this.clearMorphPreview()
+	}
+
+	private clearMorphPreview() {
+		if (this.morphPreviewId) {
+			removeMorphPreview(this.editor, this.morphPreviewId)
+			this.morphPreviewId = null
+		}
+	}
+
+	/**
+	 * The recognized rectangle for the current stroke, or null. Morph is
+	 * suppressed whenever the stroke would lasso instead (encircles shapes).
+	 */
+	private getMorphRectangle(): RecognizedRectangle | null {
+		if (this.getEnclosedShapeIds().length > 0) return null
+		const input = buildRecognizerInput(this.getGesturePolygon())
+		if (!input) return null
+		const result = recognizeShape(input)
+		return result && result.kind === 'rectangle' ? result : null
+	}
+
+	/** After a short pause, show the "charging" preview if the stroke is a rectangle. */
+	private previewMorph() {
+		this.previewTimeout = null
+		if (this.didMorph) return
+		const rect = this.getMorphRectangle()
+		if (!rect) return
+		this.morphRecognition = rect
+		const topLeft = rectangleTopLeft(rect)
+		this.morphPreviewId = showMorphPreview(
+			this.editor,
+			{
+				x: topLeft.x,
+				y: topLeft.y,
+				w: rect.w,
+				h: rect.h,
+				rotation: rect.rotation,
+				color: MAGIC_WAND_LASSO_COLOR,
+			},
+			MORPH_HOLD_MS - MORPH_PREVIEW_DELAY_MS
+		)
+	}
+
+	/** Fires after the hold; replaces the sketch with the recognized rectangle. */
+	private tryMorph() {
+		this.morphTimeout = null
+		if (this.didMorph) return
+
+		const rect = this.morphRecognition ?? this.getMorphRectangle()
+		const strokeShapes = this.getGestureStrokeShapes()
+		if (!rect || strokeShapes.length === 0) return
+
+		this.didMorph = true
+		this.clearMorphTimers()
+
+		const dash = strokeShapes[0].props.dash
+		const size = strokeShapes[0].props.size
+		const scale = strokeShapes[0].props.scale
+
+		// Discard the freehand stroke, then create the rectangle as one recorded
+		// step (mirrors the lasso): net undo = "create rectangle".
+		if (this.markId) this.editor.bailToMark(this.markId)
+
+		const id = createShapeId()
+		const topLeft = rectangleTopLeft(rect)
+		this.editor.createShape<TLGeoShape>({
+			id,
+			type: 'geo',
+			x: topLeft.x,
+			y: topLeft.y,
+			rotation: rect.rotation,
+			props: {
+				geo: 'rectangle',
+				w: rect.w,
+				h: rect.h,
+				color: this.inkColor,
+				fill: this.inkFill,
+				dash,
+				size,
+				scale,
+			},
+		})
+
+		// Crossfade: fade the new rectangle in while ghost copies of the sketch
+		// fade out.
+		fadeInShape(this.editor, id)
+		for (const snapshot of strokeShapes) fadeOutInkGhost(this.editor, snapshot)
+
+		this.editor.setSelectedShapes([id])
+		// Stay in the magic wand; end this drawing gesture (the later pointer-up
+		// lands harmlessly in magic-wand.idle).
+		this.parent.transition('idle')
+	}
+
+	/** The current gesture's page-space polygon across all stroke pieces. */
+	private getGesturePolygon(): Vec[] {
+		const polygon: Vec[] = []
+		for (const stroke of this.getGestureStrokeShapes()) {
+			const transform = this.editor.getShapePageTransform(stroke.id)
+			if (!transform) continue
+			const points = getPointsFromDrawSegments(
+				stroke.props.segments,
+				stroke.props.scaleX,
+				stroke.props.scaleY
+			)
+			for (const point of points) {
+				polygon.push(Mat.applyToPoint(transform, point))
+			}
+		}
+		return polygon
 	}
 
 	/**
@@ -184,21 +367,9 @@ export class MagicWandDrawing extends Drawing {
 		const strokeShapes = this.getGestureStrokeShapes()
 		if (strokeShapes.length === 0) return []
 
-		// Build the lasso polygon across every piece of the gesture, in drawing
-		// order, so a stroke that the draw tool split still forms one loop.
-		const polygon: Vec[] = []
-		for (const stroke of strokeShapes) {
-			const transform = this.editor.getShapePageTransform(stroke.id)
-			if (!transform) continue
-			const points = getPointsFromDrawSegments(
-				stroke.props.segments,
-				stroke.props.scaleX,
-				stroke.props.scaleY
-			)
-			for (const point of points) {
-				polygon.push(Mat.applyToPoint(transform, point))
-			}
-		}
+		// The lasso polygon across every piece of the gesture (the draw tool may
+		// split one stroke into several shapes).
+		const polygon = this.getGesturePolygon()
 		if (polygon.length < 3) return []
 
 		// Only treat the stroke as a lasso if it loops back on itself. A single
