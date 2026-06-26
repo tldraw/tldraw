@@ -39,6 +39,15 @@ export function DevComponentsNav(): ReactNode {
 			<a href="/dev/components/overlays" style={link}>
 				overlays
 			</a>
+			<a href="/dev/components/form-controls" style={link}>
+				form controls
+			</a>
+			<a href="/dev/components/presence" style={link}>
+				presence
+			</a>
+			<a href="/dev/components/logo" style={link}>
+				logo
+			</a>
 		</nav>
 	)
 }
