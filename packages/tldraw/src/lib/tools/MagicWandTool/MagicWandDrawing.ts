@@ -27,6 +27,7 @@ import {
 	showMorphLinePreview,
 	showMorphPreview,
 } from './magicWandInk'
+import { LineTuningInfo } from './MagicWandLineTuning'
 import { MorphTuningInfo } from './MagicWandMorphTuning'
 import {
 	ShapeRecognitionResult,
@@ -318,6 +319,7 @@ export class MagicWandDrawing extends Drawing {
 		const morphMark = this.editor.markHistoryStoppingPoint('morph-create')
 
 		const id = createShapeId()
+		let lineTuningInfo: LineTuningInfo | undefined
 		if (shape.kind === 'line') {
 			const [startKey, endKey] = getIndices(2)
 			this.editor.createShape<TLLineShape>({
@@ -343,6 +345,14 @@ export class MagicWandDrawing extends Drawing {
 					},
 				},
 			})
+			lineTuningInfo = {
+				shapeId: id,
+				startPagePos: shape.start.clone(),
+				endPointKey: endKey,
+				// Pointer is at the line's end at morph time, so this offset is ~0.
+				pointerToEndOffset: Vec.Sub(shape.end, this.editor.inputs.getCurrentPagePoint()),
+				morphMark,
+			}
 		} else {
 			const topLeft = recognizedShapeTopLeft(shape)
 			this.editor.createShape<TLGeoShape>({
@@ -370,12 +380,11 @@ export class MagicWandDrawing extends Drawing {
 
 		this.editor.setSelectedShapes([id])
 
-		// A line keeps its exact endpoints, so there's nothing to tune — just end
-		// the gesture. Box shapes enter drag-to-tune while the pointer is held: the
-		// pointer keeps the grip it has right now (its offset from the center at
-		// morph time), so the drag starts without any jump.
+		// While the pointer is still held, enter drag-to-tune. A line drags its end
+		// vertex; a box scales/rotates about its center. Either way the pointer keeps
+		// the grip it has right now, so the drag starts without any jump.
 		if (shape.kind === 'line') {
-			this.parent.transition('idle')
+			this.parent.transition('line-tuning', lineTuningInfo!)
 			return
 		}
 

@@ -617,14 +617,14 @@ describe('MagicWandTool hold-to-morph', () => {
 		vi.advanceTimersByTime(300)
 		expect(realShapes().some((s) => s.type === 'line')).toBe(false)
 
-		// After the hold: the stroke morphs into one line, selected, tool idle (a
-		// line has nothing to tune, so it doesn't enter the tuning state).
+		// After the hold: the stroke morphs into one line, selected.
 		vi.advanceTimersByTime(300)
 		const lines = realShapes().filter((s) => s.type === 'line')
 		expect(lines).toHaveLength(1)
 		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
 		expect(editor.getSelectedShapeIds()).toEqual([lines[0].id])
-		editor.expectToBeIn('magic-wand.idle')
+		// Pointer still held: the line is now fine-tunable.
+		editor.expectToBeIn('magic-wand.line-tuning')
 
 		// The line spans the exact freehand endpoints (not a fitted approximation).
 		const { start, end } = linePageEndpoints(lines[0] as TLLineShape)
@@ -632,6 +632,9 @@ describe('MagicWandTool hold-to-morph', () => {
 		expect(start.y).toBeCloseTo(100, 0)
 		expect(end.x).toBeCloseTo(300, 0)
 		expect(end.y).toBeCloseTo(140, 0)
+
+		editor.pointerUp()
+		editor.expectToBeIn('magic-wand.idle')
 	})
 
 	it('carries the sketch style onto the morphed line', () => {
@@ -673,5 +676,88 @@ describe('MagicWandTool hold-to-morph', () => {
 
 		editor.redo()
 		expect(realShapes().filter((s) => s.type === 'line')).toHaveLength(1)
+	})
+
+	it('drag-tunes a morphed line by moving its end vertex, start fixed', () => {
+		drawLineSketch(100, 100, 300, 100)
+		vi.advanceTimersByTime(600)
+		editor.expectToBeIn('magic-wand.line-tuning')
+		const id = realShapes().find((s) => s.type === 'line')!.id
+
+		// Drag the pointer; the end follows it while the start stays put.
+		editor.pointerMove(300, 250)
+		const { start, end } = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		expect(start.x).toBeCloseTo(100, 0)
+		expect(start.y).toBeCloseTo(100, 0)
+		expect(end.x).toBeCloseTo(300, 0)
+		expect(end.y).toBeCloseTo(250, 0)
+
+		editor.pointerUp()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('does not jump the line end when the drag begins', () => {
+		drawLineSketch(100, 100, 300, 140)
+		vi.advanceTimersByTime(600)
+		const id = realShapes().find((s) => s.type === 'line')!.id
+		const before = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+
+		// Moving the pointer to exactly the morph-time pointer (the end) is a no-op.
+		editor.pointerMove(300, 140)
+		const after = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		expect(after.end.x).toBeCloseTo(before.end.x, 1)
+		expect(after.end.y).toBeCloseTo(before.end.y, 1)
+
+		editor.pointerUp()
+	})
+
+	it('snaps the line angle to 15° while shift is held during tuning', () => {
+		drawLineSketch(100, 100, 300, 100)
+		vi.advanceTimersByTime(600)
+		const id = realShapes().find((s) => s.type === 'line')!.id
+		const fifteen = Math.PI / 12
+
+		// Drag to an awkward angle, no shift: not a 15° multiple.
+		editor.pointerMove(300, 180)
+		let ends = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		const free = Math.atan2(ends.end.y - ends.start.y, ends.end.x - ends.start.x)
+		expect(Math.abs(free / fifteen - Math.round(free / fifteen))).toBeGreaterThan(0.05)
+
+		// Same pointer with shift held: the angle snaps to a 15° multiple.
+		editor.pointerMove(300, 180, { shiftKey: true })
+		ends = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		const snapped = Math.atan2(ends.end.y - ends.start.y, ends.end.x - ends.start.x)
+		expect(Math.abs(snapped / fifteen - Math.round(snapped / fifteen))).toBeLessThan(1e-6)
+
+		editor.pointerUp()
+	})
+
+	it('cancel during line tuning removes the morphed line', () => {
+		drawLineSketch(100, 100, 300, 100)
+		vi.advanceTimersByTime(600)
+		editor.expectToBeIn('magic-wand.line-tuning')
+
+		expect(realShapes().some((s) => s.type === 'line')).toBe(true)
+		editor.cancel()
+		expect(realShapes().some((s) => s.type === 'line')).toBe(false)
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('pointer-up during line tuning commits the dragged end as one undo step', () => {
+		drawLineSketch(100, 100, 300, 100)
+		vi.advanceTimersByTime(600)
+		const id = realShapes().find((s) => s.type === 'line')!.id
+
+		editor.pointerMove(300, 250)
+		editor.pointerUp()
+		const after = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		expect(after.end.y).toBeCloseTo(250, 0)
+
+		// Undo removes the whole morph+tune; redo restores the dragged position.
+		editor.undo()
+		expect(realShapes().some((s) => s.type === 'line')).toBe(false)
+		editor.redo()
+		const redo = linePageEndpoints(editor.getShape<TLLineShape>(id)!)
+		expect(redo.end.y).toBeCloseTo(250, 0)
 	})
 })
