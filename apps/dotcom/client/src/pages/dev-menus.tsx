@@ -5,6 +5,7 @@ import 'tldraw/tldraw.css'
 import { TlaMenuSwitch } from '../tla/components/tla-menu/tla-menu'
 import '../tla/styles/tla.css'
 import { DevComponentsNav } from './dev-components-nav'
+import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 
 /**
  * Dev-only inventory of the dotcom app's two menu systems. This family shows a
@@ -26,7 +27,7 @@ export function Component() {
 			<Helmet>
 				<title>Menu inventory — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS}</style>
+			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
 			<div className="page">
 				<DevComponentsNav />
@@ -64,6 +65,75 @@ export function Component() {
 							))}
 						</tbody>
 					</table>
+				</section>
+
+				<section className="section">
+					<h2 className="section__title">Overview</h2>
+					<p className="section__note">
+						Each system's controls and items, with their props — tla-menu controls live, SDK items as
+						mocks (they need the editor's menu context to render).
+					</p>
+					<div className="grid">
+						<Specimen
+							label="TlaMenuSwitch"
+							code={`<TlaMenuSwitch checked>`}
+							meta="tla-menu · role=switch"
+							source="tla-menu.tsx"
+						>
+							<TlaMenuSwitch id="ov-on" checked onChange={() => {}} />
+						</Specimen>
+						<Specimen
+							label="TlaMenuSwitch"
+							code={`<TlaMenuSwitch checked={false}>`}
+							meta="tla-menu · role=switch"
+							source="tla-menu.tsx"
+						>
+							<TlaMenuSwitch id="ov-off" checked={false} onChange={() => {}} />
+						</Specimen>
+						<Specimen
+							label="TlaMenuSelect"
+							code={`<TlaMenuSelect options={…} />`}
+							meta="tla-menu · Radix Select"
+							source="tla-menu.tsx"
+						>
+							<div className="ctrlMock">Everyone ▾</div>
+						</Specimen>
+						<Specimen
+							label="TlaMenuTabs"
+							code={`<TlaMenuTabsRoot>…`}
+							meta="tla-menu · role=tablist"
+							source="tla-menu.tsx"
+						>
+							<div className="tabMock">
+								<span data-active>Export</span>
+								<span>Publish</span>
+							</div>
+						</Specimen>
+						<Specimen
+							label="TldrawUiMenuItem"
+							code={`<TldrawUiMenuItem>`}
+							meta="SDK · action item"
+							source="tldraw"
+						>
+							<div className="rowMock">Rename</div>
+						</Specimen>
+						<Specimen
+							label="TldrawUiMenuCheckboxItem"
+							code={`<TldrawUiMenuCheckboxItem>`}
+							meta="SDK · toggle item"
+							source="tldraw"
+						>
+							<div className="rowMock">✓ Show grid</div>
+						</Specimen>
+						<Specimen
+							label="TldrawUiMenuSubmenu"
+							code={`<TldrawUiMenuSubmenu>`}
+							meta="SDK · nested"
+							source="tldraw"
+						>
+							<div className="rowMock">Export as ›</div>
+						</Specimen>
+					</div>
 				</section>
 
 				<section className="section">
@@ -189,6 +259,11 @@ const PAGE_CSS = `
 .menuMock__item:hover { background: var(--tl-color-muted-2); }
 .menuMock__danger { color: var(--tl-color-warning, #cb4b16); }
 .menuMock__sep { height: 1px; background: var(--tl-color-divider); margin: 6px 4px; }
+.ctrlMock { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--tla-color-secondary-border, var(--tl-color-divider)); border-radius: var(--tl-radius-2); background: var(--tl-color-panel); font-size: 12px; }
+.tabMock { display: inline-flex; gap: 4px; }
+.tabMock span { padding: 4px 10px; border-radius: var(--tl-radius-2); font-size: 12px; color: var(--tl-color-text-3); }
+.tabMock span[data-active] { background: var(--tl-color-muted-2); color: var(--tl-color-text); }
+.rowMock { padding: 6px 10px; border-radius: var(--tl-radius-2); font-size: 13px; background: var(--tl-color-panel); border: 1px solid var(--tl-color-divider); min-width: 130px; text-align: left; }
 .section__api { font-size: 11px; font-family: ui-monospace, monospace; line-height: 1.6; color: var(--tl-color-text-1); background: var(--tl-color-low); border: 1px solid var(--tl-color-divider); border-radius: 6px; padding: 10px 12px; max-width: 880px; }
 .section__api > div { display: flex; gap: 8px; }
 .section__api > div + div { margin-top: 4px; }
