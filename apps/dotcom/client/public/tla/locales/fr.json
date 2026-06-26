@@ -646,7 +646,7 @@
     "translation": "Importer un fichier…"
   },
   "welcome.createWorkspace": {
-    "translation": "Créez un nouvel espace de travail depuis le menu de l'espace de travail dans la barre latérale. Cliquez sur <strong>Nouvel espace de travail</strong>, donnez-lui un nom, et c'est prêt."
+    "translation": "Créez un nouvel espace de travail depuis le menu de l'espace de travail dans la barre latérale. Cliquez sur <mark><strong>Nouvel espace de travail</strong></mark>, donnez-lui un nom, et c'est prêt."
   },
   "welcome.file.decisionTree": {
     "translation": "Arbre de décision"
@@ -661,19 +661,19 @@
     "translation": "Carte régionale"
   },
   "welcome.inviteTeam": {
-    "translation": "<strong>Invitez votre équipe</strong> avec un lien d'invitation depuis le menu de l'espace de travail dans la barre latérale. Partagé par erreur ? Révoquez-le là aussi."
+    "translation": "<mark><strong>Invitez votre équipe</strong></mark> avec un lien d'invitation depuis le menu de l'espace de travail dans la barre latérale. Partagé par erreur ? Révoquez-le là aussi."
   },
   "welcome.manageMembers": {
-    "translation": "Besoin de <strong>retirer quelqu’un</strong> ? Les propriétaires peuvent changer les rôles ou retirer des personnes dans Gérer l'espace de travail."
+    "translation": "Besoin de <mark><strong>retirer quelqu’un</strong></mark> ? Les propriétaires peuvent changer les rôles ou retirer des personnes dans Gérer l'espace de travail."
   },
   "welcome.moveFiles": {
-    "translation": "Vous pouvez <strong>déplacer des fichiers</strong> dans votre espace de travail avec le menu « Déplacer vers » d’un fichier."
+    "translation": "Vous pouvez <mark><strong>déplacer des fichiers</strong></mark> dans votre espace de travail avec le menu « Déplacer vers » d’un fichier."
   },
   "welcome.pinFiles": {
-    "translation": "Épinglez les fichiers que vous utilisez le plus. <strong>Les fichiers épinglés</strong> restent en haut de la liste, toujours faciles à trouver."
+    "translation": "Épinglez les fichiers que vous utilisez le plus. <mark><strong>Les fichiers épinglés</strong></mark> restent en haut de la liste, toujours faciles à trouver."
   },
   "welcome.shareLink": {
-    "translation": "Besoin de partager avec des personnes extérieures à votre espace de travail ? Vous pouvez <strong>partager un lien</strong> vers un seul fichier pour que des invités le modifient sans rejoindre l'espace de travail."
+    "translation": "Besoin de partager avec des personnes extérieures à votre espace de travail ? Vous pouvez <mark><strong>partager un lien</strong></mark> vers un seul fichier pour que des invités le modifient sans rejoindre l'espace de travail."
   },
   "welcome.signoff": {
     "translation": "p.s. n’hésitez pas à modifier ou supprimer ce tableau maintenant que vous maîtrisez les espaces de travail"
@@ -727,9 +727,9 @@
     "translation": "votre espace de travail"
   },
   "welcome.whatIsWorkspace": {
-    "translation": "Un espace de travail est un <strong>espace partagé</strong> pour votre équipe. Tout le monde y voit la même liste de fichiers et peut les ouvrir et les modifier."
+    "translation": "Un espace de travail est un <mark><strong>espace partagé</strong></mark> pour votre équipe. Tout le monde y voit la même liste de fichiers et peut les ouvrir et les modifier."
   },
   "welcome.workspaceMenu": {
-    "translation": "Retrouvez tout dans le <strong>menu de l'espace de travail</strong> : créer des fichiers, rechercher, changer d'espace et ouvrir les paramètres."
+    "translation": "Retrouvez tout dans le <mark><strong>menu de l'espace de travail</strong></mark> : créer des fichiers, rechercher, changer d'espace et ouvrir les paramètres."
   }
 }

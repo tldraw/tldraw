@@ -1499,12 +1499,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "Nouvel espace de travail"
+          "children": [
+            {
+              "type": 0,
+              "value": "Nouvel espace de travail"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1539,12 +1545,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "Invitez votre équipe"
+          "children": [
+            {
+              "type": 0,
+              "value": "Invitez votre équipe"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1559,12 +1571,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "retirer quelqu’un"
+          "children": [
+            {
+              "type": 0,
+              "value": "retirer quelqu’un"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1579,12 +1597,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "déplacer des fichiers"
+          "children": [
+            {
+              "type": 0,
+              "value": "déplacer des fichiers"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1599,12 +1623,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "Les fichiers épinglés"
+          "children": [
+            {
+              "type": 0,
+              "value": "Les fichiers épinglés"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1619,12 +1649,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "partager un lien"
+          "children": [
+            {
+              "type": 0,
+              "value": "partager un lien"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1741,12 +1777,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "espace partagé"
+          "children": [
+            {
+              "type": 0,
+              "value": "espace partagé"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1761,12 +1803,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "menu de l'espace de travail"
+          "children": [
+            {
+              "type": 0,
+              "value": "menu de l'espace de travail"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,

@@ -646,7 +646,7 @@
     "translation": "Import file…"
   },
   "welcome.createWorkspace": {
-    "translation": "Create a new workspace from the workspace menu in the sidebar. Click <strong>New workspace</strong>, give it a name, and it’s ready to go."
+    "translation": "Create a new workspace from the workspace menu in the sidebar. Click <mark><strong>New workspace</strong></mark>, give it a name, and it’s ready to go."
   },
   "welcome.file.decisionTree": {
     "translation": "Decision tree"
@@ -661,19 +661,19 @@
     "translation": "Regional map"
   },
   "welcome.inviteTeam": {
-    "translation": "<strong>Invite your team</strong> with an invite link from the workspace menu in the sidebar. Shared it by accident? Revoke it there too."
+    "translation": "<mark><strong>Invite your team</strong></mark> with an invite link from the workspace menu in the sidebar. Shared it by accident? Revoke it there too."
   },
   "welcome.manageMembers": {
-    "translation": "Need to <strong>remove someone</strong>? Owners can change roles or remove people in Manage workspace."
+    "translation": "Need to <mark><strong>remove someone</strong></mark>? Owners can change roles or remove people in Manage workspace."
   },
   "welcome.moveFiles": {
-    "translation": "You can <strong>move files</strong> into your workspace with a file's 'Move to' menu."
+    "translation": "You can <mark><strong>move files</strong></mark> into your workspace with a file's 'Move to' menu."
   },
   "welcome.pinFiles": {
-    "translation": "Pin files you use most. <strong>Pinned files</strong> stay at the top of the list, so they’re always easy to find."
+    "translation": "Pin files you use most. <mark><strong>Pinned files</strong></mark> stay at the top of the list, so they’re always easy to find."
   },
   "welcome.shareLink": {
-    "translation": "Need to share with people outside your workspace? You can <strong>share a link</strong> for a single file so guests can edit it without joining the workspace."
+    "translation": "Need to share with people outside your workspace? You can <mark><strong>share a link</strong></mark> for a single file so guests can edit it without joining the workspace."
   },
   "welcome.signoff": {
     "translation": "p.s. feel free to edit or delete this board now that you've mastered workspaces"
@@ -727,9 +727,9 @@
     "translation": "your workspace"
   },
   "welcome.whatIsWorkspace": {
-    "translation": "A workspace is a <strong>shared space</strong> for your team. Everyone in it sees the same list of files and can open and edit them."
+    "translation": "A workspace is a <mark><strong>shared space</strong></mark> for your team. Everyone in it sees the same list of files and can open and edit them."
   },
   "welcome.workspaceMenu": {
-    "translation": "Find everything in the <strong>workspace menu</strong>: create files, search, switch workspaces, and open settings."
+    "translation": "Find everything in the <mark><strong>workspace menu</strong></mark>: create files, search, switch workspaces, and open settings."
   }
 }

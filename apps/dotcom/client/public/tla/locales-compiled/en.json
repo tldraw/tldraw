@@ -1541,12 +1541,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "New workspace"
+          "children": [
+            {
+              "type": 0,
+              "value": "New workspace"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1581,12 +1587,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "Invite your team"
+          "children": [
+            {
+              "type": 0,
+              "value": "Invite your team"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1601,12 +1613,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "remove someone"
+          "children": [
+            {
+              "type": 0,
+              "value": "remove someone"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1621,12 +1639,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "move files"
+          "children": [
+            {
+              "type": 0,
+              "value": "move files"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1641,12 +1665,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "Pinned files"
+          "children": [
+            {
+              "type": 0,
+              "value": "Pinned files"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1661,12 +1691,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "share a link"
+          "children": [
+            {
+              "type": 0,
+              "value": "share a link"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1783,12 +1819,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "shared space"
+          "children": [
+            {
+              "type": 0,
+              "value": "shared space"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,
@@ -1803,12 +1845,18 @@
     {
       "children": [
         {
-          "type": 0,
-          "value": "workspace menu"
+          "children": [
+            {
+              "type": 0,
+              "value": "workspace menu"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
         }
       ],
       "type": 8,
-      "value": "strong"
+      "value": "mark"
     },
     {
       "type": 0,

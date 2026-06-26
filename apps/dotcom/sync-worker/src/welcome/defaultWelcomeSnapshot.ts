@@ -204,37 +204,6 @@ export const defaultWelcomeSnapshotJson = `{
 		},
 		{
 			"state": {
-				"x": 229.53563550995602,
-				"y": 373.67185074726,
-				"rotation": 0,
-				"isLocked": false,
-				"opacity": 1,
-				"meta": {},
-				"id": "shape:y56ceL6ODJEoRYo1UuSK3",
-				"type": "highlight",
-				"props": {
-					"segments": [
-						{
-							"type": "free",
-							"path": "AAAAAAAAAAAAAAA/hTkAAAAAFD8AAAAAXEAAAAAAdkIAAAAAuEIAAAAAuEIAAAAAl0QAAAAAFEUAAAAA+0QAAAAACEUAAAAA/UQAAAAACEUAAAAAAEQAAAAALkIAAAAAJEMAAAAAF0YAAAAAe0AAAAAArkEAAAAAzUEUMgAAZkFmNgAA0kDhNgAAvUBcNwAAJEAKNwAACj64NgAAuDwUNgAAcTzsNQAAHzuaNQAAPThxMQAAUjgpMAAAcTl7MAAAZjgfKQAAPTZ7MAAAFDjNMAAAFDgfJQAAKTgAAAAAmjkAAAAAcTkAAAAAXD0AAAAA9joAAAAAcTwAAAAAmjwAAAAArjwAAAAAuDwAAAAAuDwAAAAAwzzDMQAAwzvDMQAAwzkfIQAAcTkfMQAA1zdxMQAArjMAAAAArjOuLwAA9jSuLwAA9jSuJwAAmjUfJQAA9jQAAAAAKTQAAAAAezQAAAAAzTQAAAAAHzUAAAAA9jTNsAAAHzX2tAAAzTQfsQAA1zdxsQAA4TYptAAArjMpsAAAzTTDsQAA9jQfsQAASDWupwAAHzUfsQAASDXNsAAAHzUfpQAAezQfoQAAUjQfoQAApDQpsAAAezR7sAAAezDNsAAAKTB7sAAAUjQAAAAAezB7sAAAzTDNsAAAzTAfsQAAHyH2tAAAKbAfsQAA"
-						}
-					],
-					"color": "yellow",
-					"size": "s",
-					"isComplete": true,
-					"isPen": false,
-					"scale": 1,
-					"scaleX": 1,
-					"scaleY": 1
-				},
-				"parentId": "page:page",
-				"index": "a7vsIGQV",
-				"typeName": "shape"
-			},
-			"lastChangedClock": 0
-		},
-		{
-			"state": {
 				"x": 33.46042767316371,
 				"y": 40.8940641697576,
 				"rotation": 0,
@@ -424,37 +393,6 @@ export const defaultWelcomeSnapshotJson = `{
 				},
 				"parentId": "shape:dgcWyk44ZTHFxW5gXZgFW",
 				"index": "a5NU8E5l",
-				"typeName": "shape"
-			},
-			"lastChangedClock": 0
-		},
-		{
-			"state": {
-				"x": 1416.11857367,
-				"y": 377.49172837992217,
-				"rotation": 0,
-				"isLocked": false,
-				"opacity": 1,
-				"meta": {},
-				"id": "shape:gXyLpDNNQFwwrgqzhIsa5",
-				"type": "highlight",
-				"props": {
-					"segments": [
-						{
-							"type": "free",
-							"path": "AAAAAAAAAAAAAAA/wzUAAAAAcTkAAAAACj0AAAAABUAAAAAAXEAAAAAA+0EAAAAA4UIAAAAASEIAAAAAPUIAAAAA10IftQAA8UH2tAAAwz/DsQAApECFtwAAUkHDtQAAvUBmrgAAqUCuqwAAXEEfpQAAcUEAAAAAuEAfoQAApEAfoQAAe0AAAAAAXEAfoQAAyEMAAAAAAD8AAAAAYUAAAAAAe0AAAAAAlEAAAAAAn0AAAAAAAEAAAAAA9j8AAAAAwz8AAAAAAD0AAAAAzTwAAAAACjwAAAAAPTgAAAAAcTkAAAAAXDkAAAAAADgAAAAAhTcAAAAACjcAAAAACjcAAAAA4TYAAAAA4TYAAAAAuDYAAAAA1zkAAAAAHzUAAAAAjzYAAAAAuDYAAAAAHzkAAAAASDkAAAAAmjkAAAAAmjkAAAAAmjkKMwAAcTlcMwAAjzYAAAAASDkKMwAAjzgKMwAASDUAAAAAjzYAAAAA"
-						}
-					],
-					"color": "yellow",
-					"size": "s",
-					"isComplete": true,
-					"isPen": false,
-					"scale": 1,
-					"scaleX": 1,
-					"scaleY": 1
-				},
-				"parentId": "page:page",
-				"index": "aSYATNvV",
 				"typeName": "shape"
 			},
 			"lastChangedClock": 0
@@ -992,6 +930,9 @@ export const defaultWelcomeSnapshotJson = `{
 										"marks": [
 											{
 												"type": "bold"
+											},
+											{
+												"type": "highlight"
 											}
 										],
 										"text": "share a link"
@@ -1204,6 +1145,9 @@ export const defaultWelcomeSnapshotJson = `{
 										"marks": [
 											{
 												"type": "bold"
+											},
+											{
+												"type": "highlight"
 											}
 										],
 										"text": "Invite your team"
@@ -1457,6 +1401,9 @@ export const defaultWelcomeSnapshotJson = `{
 										"marks": [
 											{
 												"type": "bold"
+											},
+											{
+												"type": "highlight"
 											}
 										]
 									},
@@ -3309,37 +3256,6 @@ export const defaultWelcomeSnapshotJson = `{
 		},
 		{
 			"state": {
-				"x": 22.35465003053355,
-				"y": 299.8998534350135,
-				"rotation": 0,
-				"isLocked": false,
-				"opacity": 1,
-				"meta": {},
-				"id": "shape:uAeIng3QCwtmyRSV9yfrE",
-				"type": "highlight",
-				"props": {
-					"segments": [
-						{
-							"type": "free",
-							"path": "AAAAAAAAAAAAAAA/ADgAAAAAHz4AAAAA3EIAAAAAE0gAAAAAsUkpuAAA4EjhuAAAeEkpsAAA00pmqgAAu0ofoQAAdkgfoQAAhUcAAAAAW0sAAAAAD0UAAAAAikQAAAAAD0MAAAAAAEMAAAAA0kEAAAAAV0AAAAAAmj17MAAAMz3NNAAA9jpSNAAA1zeuLwAAHzV7LAAAcTHDLQAAuDIfKQAAXDMfIQAArjMfIQAArjMAAAAAADQAAAAArjNmLgAACjOuLwAAZjIAAAAAZi7DLQAAri8KLwAAZjIAAAAAFDIAAAAACjMAAAAACjMAAAAAPTYAAAAAZjIAAAAACjMAAAAAXDMAAAAArjMAAAAACjMAAAAAXDMAAAAAXDMAAAAACjMAAAAAZjIAAAAACi/DLQAA"
-						}
-					],
-					"color": "yellow",
-					"size": "s",
-					"isComplete": true,
-					"isPen": false,
-					"scale": 1,
-					"scaleX": 1,
-					"scaleY": 1
-				},
-				"parentId": "shape:dgcWyk44ZTHFxW5gXZgFW",
-				"index": "a1",
-				"typeName": "shape"
-			},
-			"lastChangedClock": 0
-		},
-		{
-			"state": {
 				"x": 51.76825725127583,
 				"y": 25.628966200188415,
 				"rotation": 0,
@@ -3547,37 +3463,6 @@ export const defaultWelcomeSnapshotJson = `{
 		},
 		{
 			"state": {
-				"x": 627.3872360782091,
-				"y": 774.4675826150461,
-				"rotation": 0,
-				"isLocked": false,
-				"opacity": 1,
-				"meta": {},
-				"id": "shape:x7P-1CraTMRhp5I_ScWcM",
-				"type": "highlight",
-				"props": {
-					"segments": [
-						{
-							"type": "free",
-							"path": "AAAAAAAAAAAAAAA/hUwAAAAAhkwAAAAABk0AAAAAhkwAAAAAhUwAAAAA"
-						}
-					],
-					"color": "yellow",
-					"size": "s",
-					"isComplete": true,
-					"isPen": false,
-					"scale": 1,
-					"scaleX": 1,
-					"scaleY": 1
-				},
-				"parentId": "page:page",
-				"index": "b0Bh1qIZV",
-				"typeName": "shape"
-			},
-			"lastChangedClock": 0
-		},
-		{
-			"state": {
 				"x": 68,
 				"y": 172.40678836013603,
 				"rotation": 0,
@@ -3732,37 +3617,6 @@ export const defaultWelcomeSnapshotJson = `{
 		},
 		{
 			"state": {
-				"x": 87.08918666696331,
-				"y": 777.5875803198425,
-				"rotation": 0,
-				"isLocked": false,
-				"opacity": 1,
-				"meta": {},
-				"id": "shape:fIDjWK2ykMzqPuSHzu9-q",
-				"type": "highlight",
-				"props": {
-					"segments": [
-						{
-							"type": "free",
-							"path": "AAAAAAAAAAAAAAA/wzEAAAAAmjwAAAAAn0AAAAAA0kAAAAAAM0IAAAAALEQAAAAAoUQAAAAASEQAAAAABUEAAAAAZkAAAAAAD0AAAAAAhT0AAAAArj0AAAAArjsAAAAAPTgAAAAA9jQAAAAAUjQAAAAAZjIAAAAAcTEAAAAAwzEAAAAAHzUAAAAASDUAAAAArjMAAAAAXDMAAAAACjMAAAAACjMAAAAAuDIAAAAASDUAAAAApDQAAAAAHzEAAAAA9jQAAAAAHzUAAAAAXDMAAAAArjMAAAAAmjUKrwAAXDcKrwAACjkfoQAAKToAAAAAzT0foQAA7DkAAAAAhTsAAAAAmjsAAAAAzToAAAAAmjkAAAAAUjgAAAAAPTYAAAAAADQAAAAACjMAAAAAuDIAAAAAuDIAAAAAFDIAAAAAwy1mrgAAAABmsgAAAAC4sgAAw7FmrgAA"
-						}
-					],
-					"color": "yellow",
-					"size": "s",
-					"isComplete": true,
-					"isPen": false,
-					"scale": 1,
-					"scaleX": 1,
-					"scaleY": 1
-				},
-				"parentId": "page:page",
-				"index": "b0LZNxKEN",
-				"typeName": "shape"
-			},
-			"lastChangedClock": 0
-		},
-		{
-			"state": {
 				"x": 85.32000000000002,
 				"y": 151.67812500000005,
 				"rotation": 0,
@@ -3796,37 +3650,6 @@ export const defaultWelcomeSnapshotJson = `{
 				},
 				"parentId": "page:page",
 				"index": "aroHo9OV",
-				"typeName": "shape"
-			},
-			"lastChangedClock": 0
-		},
-		{
-			"state": {
-				"x": 936.3413948263201,
-				"y": 373.6794785153351,
-				"rotation": 0,
-				"isLocked": false,
-				"opacity": 1,
-				"meta": {},
-				"id": "shape:1LwySRXm4pYn2w9N1kpUG",
-				"type": "highlight",
-				"props": {
-					"segments": [
-						{
-							"type": "free",
-							"path": "AAAAAAAAAAAAAAA/AAAKrwAAzTQKrwAAjzwAAAAAOEEAAAAAZkQAAAAAe0YAAAAAUkcAAAAAV0UAAAAAJEkAAAAAFEIAAAAA8UIAAAAAs0MAAAAA7EEAAAAAdkAAAAAApD4AAAAApDwAAAAA9jgAAAAAZjYAAAAAwzUAAAAAFDIAAAAAcTEAAAAAFDIAAAAAXDMAAAAArjMAAAAA1zcAAAAArjwAAAAAez4AAAAAUkAAAAAArj/NMAAAgEK4OAAAjz5SNAAAjz9INQAAPT64MgAAKT4UMgAAUj2kNAAArjt7NAAASDsfMQAA9jofJQAAhTkAAAAAXDkAAAAAMzkAAAAAZjYAAAAAhTcAAAAAzTgAAAAArjkAAAAA4ToAAAAA4ToAAAAA4ToAAAAA4ToAAAAA9joAAAAAzTopsAAAKTwKswAAPTZmrgAAPTZmqgAAezQfpQAAADQfoQAAHzEKrwAAHylmsgAAAABmsgAAZq5mrgAAuLIfoQAAZrIAAAAAw7EAAAAA"
-						}
-					],
-					"color": "yellow",
-					"size": "s",
-					"isComplete": true,
-					"isPen": false,
-					"scale": 1,
-					"scaleX": 1,
-					"scaleY": 1
-				},
-				"parentId": "page:page",
-				"index": "aAzO5Bu2O",
 				"typeName": "shape"
 			},
 			"lastChangedClock": 0
@@ -4391,68 +4214,6 @@ export const defaultWelcomeSnapshotJson = `{
 		},
 		{
 			"state": {
-				"x": 283.26024815050204,
-				"y": 755.2951763245295,
-				"rotation": 0,
-				"isLocked": false,
-				"opacity": 1,
-				"meta": {},
-				"id": "shape:_GJWGmxgPZ0LaONiOB5-u",
-				"type": "highlight",
-				"props": {
-					"segments": [
-						{
-							"type": "free",
-							"path": "AAAAAAAAAAAAAAA/AACurwAApDiurwAAMzwAAAAAHz8AAAAACkIAAAAAvUMAAAAAYUQAAAAAg0QAAAAAO0QAAAAAdkEAAAAAe0AAAAAA0kQAAAAASDwAAAAAMzwAAAAAzTgAAAAAPTYAAAAAcTUAAAAApDQAAAAArjMAAAAArjMAAAAAXDMAAAAAKTQAAAAAXDMKrwAAZjJmrgAAXDMfoQAAKTQfpQAAZjYpsAAAwzkpsAAAcT0UsgAAez7DtQAAwz8UtgAAyEDNuAAAcT89tgAAcT2urwAArj4KtwAA9j4puAAACj4ptAAAUj0KswAAXDwftQAAzTrDsQAAADgfqQAA9jQfoQAAezQAAAAAADQfoQAA"
-						}
-					],
-					"color": "yellow",
-					"size": "m",
-					"isComplete": true,
-					"isPen": false,
-					"scale": 1,
-					"scaleX": 1.3273446341819206,
-					"scaleY": 1
-				},
-				"parentId": "page:page",
-				"index": "b0LToNWQr",
-				"typeName": "shape"
-			},
-			"lastChangedClock": 0
-		},
-		{
-			"state": {
-				"x": 447.8061172581525,
-				"y": 377.67107399753957,
-				"rotation": 0,
-				"isLocked": false,
-				"opacity": 1,
-				"meta": {},
-				"id": "shape:AqB9aA14gRhGnG2XlOes5",
-				"type": "highlight",
-				"props": {
-					"segments": [
-						{
-							"type": "free",
-							"path": "AAAAAAAAAAAAAAA/zTQAAAAAcT0AAAAA7D4AAAAAgEAAAAAAn0QAAAAAXEQAAAAAvUNcswAAtkg9uAAAc0SPtgAATUVxsQAAVEV7rAAAIUWupwAAgEQfoQAAbkQfoQAAEkQAAAAAZkMAAAAAD0MfoQAASEIAAAAA8UAAAAAABUEAAAAAs0IAAAAA9kIAAAAA+0IAAAAAgEMAAAAAs0IAAAAAAEIAAAAArkIAAAAAH0IAAAAAs0AAAAAAZkMAAAAApD4AAAAAAEEAAAAAOEEAAAAAmj8AAAAAKUEAAAAAYUIAAAAAM0AAAAAAPT8AAAAAw0AAAAAAqUAAAAAAJEAAAAAAAD4AAAAAMz0AAAAAcT0AAAAA4TwAAAAAmjwAAAAAzToAAAAAHzkAAAAAuDYAAAAAUjQAAAAAXDMAAAAACjMAAAAAuDIAAAAAZi5mLgAAAAAUMgAAAABmMgAAwy0KLwAAuDIfIQAAXDMAAAAAXDMAAAAA7DUAAAAAADgAAAAA1zcAAAAA1zcAAAAAMzkAAAAAKToAAAAApDoAAAAA1zkAAAAA1zkAAAAA1zkAAAAAZjgAAAAAjzYAAAAAFDYAAAAAwzUAAAAAZjauqwAAFDIKrwAAzTCuKwAAH63DLQAA"
-						}
-					],
-					"color": "yellow",
-					"size": "s",
-					"isComplete": true,
-					"isPen": false,
-					"scale": 1,
-					"scaleX": 1,
-					"scaleY": 1
-				},
-				"parentId": "page:page",
-				"index": "a9aRS4KV",
-				"typeName": "shape"
-			},
-			"lastChangedClock": 0
-		},
-		{
-			"state": {
 				"x": 486.5960404567261,
 				"y": 579.8175067242918,
 				"rotation": 0,
@@ -4628,6 +4389,9 @@ export const defaultWelcomeSnapshotJson = `{
 										"marks": [
 											{
 												"type": "bold"
+											},
+											{
+												"type": "highlight"
 											}
 										],
 										"text": "Pinned files"
@@ -4765,6 +4529,9 @@ export const defaultWelcomeSnapshotJson = `{
 										"marks": [
 											{
 												"type": "bold"
+											},
+											{
+												"type": "highlight"
 											}
 										],
 										"text": "shared space"
@@ -5037,6 +4804,9 @@ export const defaultWelcomeSnapshotJson = `{
 										"marks": [
 											{
 												"type": "bold"
+											},
+											{
+												"type": "highlight"
 											}
 										]
 									},
@@ -5269,6 +5039,9 @@ export const defaultWelcomeSnapshotJson = `{
 										"marks": [
 											{
 												"type": "bold"
+											},
+											{
+												"type": "highlight"
 											}
 										],
 										"text": "move files"
@@ -5326,37 +5099,6 @@ export const defaultWelcomeSnapshotJson = `{
 					}
 				},
 				"index": "aPhmc76V",
-				"typeName": "shape"
-			},
-			"lastChangedClock": 0
-		},
-		{
-			"state": {
-				"x": 1294.1885555037613,
-				"y": 754.735276225546,
-				"rotation": 0,
-				"isLocked": false,
-				"opacity": 1,
-				"meta": {},
-				"id": "shape:1yNUPDRw7Ur08jBDocjT-",
-				"type": "highlight",
-				"props": {
-					"segments": [
-						{
-							"type": "free",
-							"path": "AAAAAAAAAAAAAAA/zTQAAAAAcT0AAAAA7D4AAAAAgEAAAAAAn0QAAAAAXEQAAAAAvUNcswAAtkg9uAAAc0SPtgAATUVxsQAAVEV7rAAAIUWupwAAgEQfoQAAbkQfoQAAEkQAAAAAZkMAAAAAD0MfoQAASEIAAAAA8UAAAAAABUEAAAAAs0IAAAAA9kIAAAAA+0IAAAAAgEMAAAAAs0IAAAAAAEIAAAAArkIAAAAAH0IAAAAAs0AAAAAAZkMAAAAApD4AAAAAAEEAAAAAOEEAAAAAmj8AAAAAKUEAAAAAYUIAAAAAM0AAAAAAPT8AAAAAw0AAAAAAqUAAAAAAJEAAAAAAAD4AAAAAMz0AAAAAcT0AAAAA4TwAAAAAmjwAAAAAzToAAAAAHzkAAAAAuDYAAAAAUjQAAAAAXDMAAAAACjMAAAAAuDIAAAAAZi5mLgAAAAAUMgAAAABmMgAAwy0KLwAAuDIfIQAAXDMAAAAAXDMAAAAA7DUAAAAAADgAAAAA1zcAAAAA1zcAAAAAMzkAAAAAKToAAAAApDoAAAAA1zkAAAAA1zkAAAAA1zkAAAAAZjgAAAAAjzYAAAAAFDYAAAAAwzUAAAAAZjauqwAAFDIKrwAAzTCuKwAAH63DLQAA"
-						}
-					],
-					"color": "yellow",
-					"size": "s",
-					"isComplete": true,
-					"isPen": false,
-					"scale": 1,
-					"scaleX": 0.8918487014551457,
-					"scaleY": 1
-				},
-				"parentId": "page:page",
-				"index": "b0R2ZzSMG",
 				"typeName": "shape"
 			},
 			"lastChangedClock": 0
@@ -5676,6 +5418,9 @@ export const defaultWelcomeSnapshotJson = `{
 										"marks": [
 											{
 												"type": "bold"
+											},
+											{
+												"type": "highlight"
 											}
 										]
 									},
