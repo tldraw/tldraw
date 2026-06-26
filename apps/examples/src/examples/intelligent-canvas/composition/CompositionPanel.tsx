@@ -3,6 +3,8 @@ import {
 	Editor,
 	TLShapeId,
 	TLShapePartial,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
 	createShapeId,
 	toRichText,
 	track,
@@ -217,34 +219,38 @@ export const CompositionPanel = track(function CompositionPanel() {
 	return (
 		<div className="ic-composition-panel">
 			<div className="ic-composition-card">
-				<div className="ic-composition-title">Composition mode</div>
 				<div className="ic-composition-subtitle">
 					{domain === 'idea'
 						? 'Text-first idea lattice explorer'
 						: 'Description-first program logic composer'}
 				</div>
-				<div className="ic-row">
+				<div className="ic-segmented">
 					<button
-						className={`ic-button ic-button-small ${domain === 'idea' ? 'ic-button-active' : ''}`}
+						className="ic-seg-btn"
+						data-active={domain === 'idea'}
 						onClick={() => setDomain('idea')}
 					>
 						Idea domain
 					</button>
 					<button
-						className={`ic-button ic-button-small ${domain === 'code' ? 'ic-button-active' : ''}`}
+						className="ic-seg-btn"
+						data-active={domain === 'code'}
 						onClick={() => setDomain('code')}
 					>
 						Code domain
 					</button>
 				</div>
 				{allIdeaNodes.length >= 2 ? (
-					<button
-						className="ic-button ic-button-small"
+					<TldrawUiButton
+						type="normal"
+						className="ic-button-full"
 						disabled={reorganizing || !agentAvailable}
 						onClick={handleReorganize}
 					>
-						{reorganizing ? 'Reorganizing...' : 'Reorganize canvas'}
-					</button>
+						<TldrawUiButtonLabel>
+							{reorganizing ? 'Reorganizing…' : 'Reorganize canvas'}
+						</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				) : null}
 			</div>
 
@@ -262,48 +268,58 @@ export const CompositionPanel = track(function CompositionPanel() {
 					value={ideaText}
 					onChange={(e) => setIdeaText(e.target.value)}
 				/>
-				<button
-					className="ic-button"
+				<TldrawUiButton
+					type="primary"
+					className="ic-button-full"
 					disabled={parsing > 0 || !agentAvailable}
 					onClick={handleAddPrimitives}
 				>
-					{parsing > 0
-						? `Parsing ${parsing} ${domain === 'idea' ? 'idea' : 'block'}${parsing === 1 ? '' : 's'}...`
-						: domain === 'idea'
-							? 'Add ideas'
-							: 'Add logic blocks'}
-				</button>
+					<TldrawUiButtonLabel>
+						{parsing > 0
+							? `Parsing ${parsing} ${domain === 'idea' ? 'idea' : 'block'}${parsing === 1 ? '' : 's'}…`
+							: domain === 'idea'
+								? 'Add ideas'
+								: 'Add logic blocks'}
+					</TldrawUiButtonLabel>
+				</TldrawUiButton>
 			</div>
 
 			{selectedGroup ? (
 				<div className="ic-composition-card">
 					<div className="ic-composition-section-title">Compose selection</div>
-					<div className="ic-suggestion-title">
-						{selectedGroup.nodes.map((n) => n.title).join(' x ')}
+					<div className="ic-suggestion">
+						<div className="ic-suggestion-title">
+							{selectedGroup.nodes.map((n) => n.title).join(' × ')}
+						</div>
+						{(() => {
+							const temp = getPriorTemperature(selectedGroup.groupKey)
+							return temp ? (
+								<div className="ic-suggestion-meta">
+									T: {temp.toFixed(2)} — higher = wilder ideas
+								</div>
+							) : null
+						})()}
+						<TldrawUiButton
+							type="normal"
+							className="ic-button-full"
+							disabled={busyPairs.has(selectedGroup.groupKey) || !agentAvailable}
+							onClick={() =>
+								handleCompose(
+									editor,
+									selectedGroup.groupKey,
+									selectedGroup.nodes.map((n) => n.id)
+								)
+							}
+						>
+							<TldrawUiButtonLabel>
+								{busyPairs.has(selectedGroup.groupKey)
+									? 'Composing…'
+									: domain === 'idea'
+										? `Compose ${selectedGroup.nodes.length} ideas`
+										: `Compose ${selectedGroup.nodes.length} logic blocks`}
+							</TldrawUiButtonLabel>
+						</TldrawUiButton>
 					</div>
-					{(() => {
-						const temp = getPriorTemperature(selectedGroup.groupKey)
-						return temp ? (
-							<div className="ic-suggestion-meta">T: {temp.toFixed(2)} — higher = wilder ideas</div>
-						) : null
-					})()}
-					<button
-						className="ic-button"
-						disabled={busyPairs.has(selectedGroup.groupKey) || !agentAvailable}
-						onClick={() =>
-							handleCompose(
-								editor,
-								selectedGroup.groupKey,
-								selectedGroup.nodes.map((n) => n.id)
-							)
-						}
-					>
-						{busyPairs.has(selectedGroup.groupKey)
-							? 'Composing...'
-							: domain === 'idea'
-								? `Compose ${selectedGroup.nodes.length} ideas`
-								: `Compose ${selectedGroup.nodes.length} logic blocks`}
-					</button>
 				</div>
 			) : null}
 
@@ -312,7 +328,7 @@ export const CompositionPanel = track(function CompositionPanel() {
 					<div className="ic-composition-section-title">
 						Top suggestions ({suggestions.length})
 						{embeddedCount < ideaNodes.length ? (
-							<span className="ic-muted" style={{ fontWeight: 400, marginLeft: 6 }}>
+							<span className="ic-muted">
 								{embeddedCount}/{ideaNodes.length} embedded
 							</span>
 						) : null}
@@ -324,7 +340,7 @@ export const CompositionPanel = track(function CompositionPanel() {
 							return (
 								<div key={s.pairKey} className="ic-suggestion">
 									<div className="ic-suggestion-title">
-										{s.a.title} x {s.b.title}
+										{s.a.title} × {s.b.title}
 									</div>
 									<div className="ic-suggestion-scores">
 										<span title="Interface (I/O connectivity)">
@@ -344,13 +360,14 @@ export const CompositionPanel = track(function CompositionPanel() {
 											{(getPriorTemperature(s.pairKey) ?? 0) > 1.5 ? 'wild' : 'warm'}
 										</div>
 									) : null}
-									<button
-										className="ic-button ic-button-small"
+									<TldrawUiButton
+										type="normal"
+										className="ic-button-full"
 										disabled={isBusy || !agentAvailable}
 										onClick={() => handleCompose(editor, s.pairKey, [s.a.id, s.b.id])}
 									>
-										{isBusy ? 'Composing...' : 'Compose'}
-									</button>
+										<TldrawUiButtonLabel>{isBusy ? 'Composing…' : 'Compose'}</TldrawUiButtonLabel>
+									</TldrawUiButton>
 								</div>
 							)
 						})}
@@ -370,9 +387,9 @@ export const CompositionPanel = track(function CompositionPanel() {
 							return (
 								<div key={g.groupKey} className="ic-suggestion">
 									<div className="ic-suggestion-title">
-										{g.members.map((m) => m.title).join(' x ')}
+										{g.members.map((m) => m.title).join(' × ')}
 									</div>
-									<div className="ic-row" style={{ gap: 8 }}>
+									<div className="ic-row">
 										<span className="ic-suggestion-arity">{arityLabel}</span>
 										<span className="ic-suggestion-arity">{g.source}</span>
 									</div>
@@ -386,8 +403,9 @@ export const CompositionPanel = track(function CompositionPanel() {
 											{g.finalScore.toFixed(3)}
 										</span>
 									</div>
-									<button
-										className="ic-button ic-button-small"
+									<TldrawUiButton
+										type="normal"
+										className="ic-button-full"
 										disabled={isBusy || !agentAvailable}
 										onClick={() =>
 											handleCompose(
@@ -397,8 +415,10 @@ export const CompositionPanel = track(function CompositionPanel() {
 											)
 										}
 									>
-										{isBusy ? 'Composing...' : `Compose ${g.arity}`}
-									</button>
+										<TldrawUiButtonLabel>
+											{isBusy ? 'Composing…' : `Compose ${g.arity}`}
+										</TldrawUiButtonLabel>
+									</TldrawUiButton>
 								</div>
 							)
 						})}
@@ -414,14 +434,20 @@ export const CompositionPanel = track(function CompositionPanel() {
 					<>
 						<div className="ic-suggestion-title">{selectedIdea.title}</div>
 						<div className="ic-suggestion-meta">
-							Status: {selectedIdea.status} Depth: {selectedIdea.depth}
-							{selectedIdea.language ? ` Language: ${selectedIdea.language}` : ''}
+							Status: {selectedIdea.status} · Depth: {selectedIdea.depth}
+							{selectedIdea.language ? ` · ${selectedIdea.language}` : ''}
 						</div>
 						{selectedIdea.domain === 'code' && selectedIdea.code ? (
 							<>
-								<button className="ic-button ic-button-small" onClick={handleToggleCodePreview}>
-									{selectedCodePreviewShapeId ? 'Hide code' : 'View code'}
-								</button>
+								<TldrawUiButton
+									type="low"
+									className="ic-button-full"
+									onClick={handleToggleCodePreview}
+								>
+									<TldrawUiButtonLabel>
+										{selectedCodePreviewShapeId ? 'Hide code' : 'View code'}
+									</TldrawUiButtonLabel>
+								</TldrawUiButton>
 								<div className="ic-muted">
 									{selectedCodePreviewShapeId
 										? 'Code block is open on the canvas next to this node.'
@@ -431,7 +457,7 @@ export const CompositionPanel = track(function CompositionPanel() {
 						) : null}
 						<div className="ic-suggestion-meta">
 							{selectedIdea.description.slice(0, 120)}
-							{selectedIdea.description.length > 120 ? '...' : ''}
+							{selectedIdea.description.length > 120 ? '…' : ''}
 						</div>
 					</>
 				) : (
