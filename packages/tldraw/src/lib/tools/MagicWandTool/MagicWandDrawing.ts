@@ -330,9 +330,10 @@ export class MagicWandDrawing extends Drawing {
 		this.editor.setSelectedShapes([id])
 
 		// While the pointer is still held, enter the drag-to-tune state so the
-		// user can pull a corner to adjust scale and rotation.
+		// user can pull a corner to adjust scale and rotation about the center.
 		const transform = this.editor.getShapePageTransform(id)
 		if (transform) {
+			const centerPage = Mat.applyToPoint(transform, new Vec(rect.w / 2, rect.h / 2))
 			const localCorners = [
 				new Vec(0, 0),
 				new Vec(rect.w, 0),
@@ -347,16 +348,12 @@ export class MagicWandDrawing extends Drawing {
 					nearestIdx = i
 				}
 			}
-			const anchorIdx = (nearestIdx + 2) % 4
-			const anchor = pageCorners[anchorIdx]
-			const localDiag = Vec.Sub(localCorners[nearestIdx], localCorners[anchorIdx])
 			const tuningInfo: MorphTuningInfo = {
 				shapeId: id,
-				anchorPagePos: anchor,
-				localAspectAngle: Math.atan2(localDiag.y, localDiag.x),
+				centerPagePos: centerPage,
+				initialCornerOffset: Vec.Sub(pageCorners[nearestIdx], centerPage),
 				originalW: rect.w,
 				originalH: rect.h,
-				originalDiagLen: localDiag.len(),
 				morphMark,
 			}
 			this.parent.transition('morph-tuning', tuningInfo)
