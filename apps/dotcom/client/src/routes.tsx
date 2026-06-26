@@ -81,6 +81,7 @@ export function createAppRouter({
 					<Route path="/dev/components/typography" lazy={() => import('./pages/dev-typography')} />
 					<Route path="/dev/components/dialogs" lazy={() => import('./pages/dev-dialogs')} />
 					<Route path="/dev/components/menus" lazy={() => import('./pages/dev-menus')} />
+					<Route path="/dev/components/icons" lazy={() => import('./pages/dev-icons')} />
 				</>
 			)}
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
