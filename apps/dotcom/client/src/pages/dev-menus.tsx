@@ -4,19 +4,39 @@ import { Helmet } from 'react-helmet-async'
 import 'tldraw/tldraw.css'
 import { TlaMenuSwitch } from '../tla/components/tla-menu/tla-menu'
 import '../tla/styles/tla.css'
-import { DevComponentsNav } from './dev-components-nav'
 import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
+import { DevComponentsNav } from './dev-components-nav'
 
 /**
  * Dev-only inventory of the dotcom app's two menu systems. This family shows a
- * divergence mode the others don't: INTENTIONAL COEXISTENCE. The word "menu" is
- * overloaded — `tla-menu` is a settings-panel system (labeled Select/Switch/Tabs
- * controls), the SDK `TldrawUiMenu*` is an action-dropdown system (command
- * menus). They are different UI patterns, so two systems is correct, not drift.
+ * divergence mode the others don't: INTENTIONAL COEXISTENCE. tla-menu is a
+ * settings-panel system; the SDK TldrawUiMenu* is an action-dropdown system.
+ * Different UI patterns sharing the word "menu", deliberately separate. Every
+ * part of both systems (that the app uses) is shown.
  *
- * Relevant to tldraw/tldraw#9199, which explicitly excluded "consolidate the
- * menus" from the sweep. Route: /dev/components/menus.
+ * Relevant to tldraw/tldraw#9199. Route: /dev/components/menus.
  */
+
+type PartKind = 'switch' | 'select' | 'tab' | 'row' | 'wrap'
+
+const PartStage = ({ kind, sample }: { kind: PartKind; sample?: string }): ReactNode => {
+	switch (kind) {
+		case 'switch':
+			return <TlaMenuSwitch id="ov-switch" checked onChange={() => {}} />
+		case 'select':
+			return <div className="ctrlMock">Everyone ▾</div>
+		case 'tab':
+			return (
+				<div className="tabMock">
+					<span data-active>{sample ?? 'Tab'}</span>
+				</div>
+			)
+		case 'row':
+			return <div className="rowMock">{sample}</div>
+		case 'wrap':
+			return <div className="wrapMock">{sample}</div>
+	}
+}
 
 export function Component() {
 	return (
@@ -34,18 +54,18 @@ export function Component() {
 				<header className="page__header">
 					<h1 className="page__title">Menu inventory</h1>
 					<p className="page__lede">
-						Two systems share the word &ldquo;menu&rdquo; — and that&rsquo;s the point. Unlike the
-						other families, this divergence is <strong>intentional</strong>:{' '}
-						<code>tla-menu</code> is a settings-panel system, the SDK <code>TldrawUiMenu*</code> is an
-						action-dropdown system. Different patterns, deliberately separate.
+						Two systems share the word &ldquo;menu&rdquo; — and that&rsquo;s the point. This
+						divergence is <strong>intentional</strong>: <code>tla-menu</code> is a settings-panel
+						system, the SDK <code>TldrawUiMenu*</code> is an action-dropdown system. Different
+						patterns, deliberately separate.
 					</p>
 				</header>
 
 				<section className="section">
 					<h2 className="section__title">Two systems, one word</h2>
 					<p className="section__note">
-						The names collide on &ldquo;menu&rdquo;, but a <em>share menu</em> (a panel of settings)
-						and a <em>file menu</em> (a dropdown of actions) are different UI patterns.
+						A <em>share menu</em> (a panel of settings) and a <em>file menu</em> (a dropdown of
+						actions) are different UI patterns that happen to share a noun.
 					</p>
 					<table className="matrix matrix--wide">
 						<thead>
@@ -68,138 +88,33 @@ export function Component() {
 				</section>
 
 				<section className="section">
-					<h2 className="section__title">Overview</h2>
+					<h2 className="section__title">tla-menu — all {TLA_PARTS.length} parts</h2>
 					<p className="section__note">
-						Each system's controls and items, with their props — tla-menu controls live, SDK items as
-						mocks (they need the editor's menu context to render).
+						The settings-panel system (in <code>tla/components/tla-menu/tla-menu.tsx</code>). Switch
+						is live; the rest are mocked. <code>meta</code> shows the role and dotcom usage count.
 					</p>
 					<div className="grid">
-						<Specimen
-							label="TlaMenuSwitch"
-							code={`<TlaMenuSwitch checked>`}
-							meta="tla-menu · role=switch"
-							source="tla-menu.tsx"
-						>
-							<TlaMenuSwitch id="ov-on" checked onChange={() => {}} />
-						</Specimen>
-						<Specimen
-							label="TlaMenuSwitch"
-							code={`<TlaMenuSwitch checked={false}>`}
-							meta="tla-menu · role=switch"
-							source="tla-menu.tsx"
-						>
-							<TlaMenuSwitch id="ov-off" checked={false} onChange={() => {}} />
-						</Specimen>
-						<Specimen
-							label="TlaMenuSelect"
-							code={`<TlaMenuSelect options={…} />`}
-							meta="tla-menu · Radix Select"
-							source="tla-menu.tsx"
-						>
-							<div className="ctrlMock">Everyone ▾</div>
-						</Specimen>
-						<Specimen
-							label="TlaMenuTabs"
-							code={`<TlaMenuTabsRoot>…`}
-							meta="tla-menu · role=tablist"
-							source="tla-menu.tsx"
-						>
-							<div className="tabMock">
-								<span data-active>Export</span>
-								<span>Publish</span>
-							</div>
-						</Specimen>
-						<Specimen
-							label="TldrawUiMenuItem"
-							code={`<TldrawUiMenuItem>`}
-							meta="SDK · action item"
-							source="tldraw"
-						>
-							<div className="rowMock">Rename</div>
-						</Specimen>
-						<Specimen
-							label="TldrawUiMenuCheckboxItem"
-							code={`<TldrawUiMenuCheckboxItem>`}
-							meta="SDK · toggle item"
-							source="tldraw"
-						>
-							<div className="rowMock">✓ Show grid</div>
-						</Specimen>
-						<Specimen
-							label="TldrawUiMenuSubmenu"
-							code={`<TldrawUiMenuSubmenu>`}
-							meta="SDK · nested"
-							source="tldraw"
-						>
-							<div className="rowMock">Export as ›</div>
-						</Specimen>
+						{TLA_PARTS.map((p) => (
+							<Specimen key={p.name} label={p.name} code={`<${p.name}>`} meta={p.meta} source="tla-menu.tsx">
+								<PartStage kind={p.kind} sample={p.sample} />
+							</Specimen>
+						))}
 					</div>
 				</section>
 
 				<section className="section">
-					<h2 className="section__title">tla-menu — settings panel system</h2>
+					<h2 className="section__title">SDK TldrawUiMenu* — {SDK_PARTS.length} parts used in dotcom</h2>
 					<p className="section__note">
-						Declarative labeled controls inside a panel. Parts in{' '}
-						<code>tla/components/tla-menu/tla-menu.tsx</code>. Switch shown live:
+						The action-dropdown system (a declarative menu schema → Radix dropdown). Mocked — these
+						need the editor&rsquo;s menu context to render. The SDK exports more parts; these are
+						the ones dotcom uses.
 					</p>
-					<div className="demoRow">
-						<div className="demoRow__control">
-							<TlaMenuSwitch id="demo-on" checked onChange={() => {}} />
-							<span>checked</span>
-						</div>
-						<div className="demoRow__control">
-							<TlaMenuSwitch id="demo-off" checked={false} onChange={() => {}} />
-							<span>unchecked</span>
-						</div>
-					</div>
-					<div className="section__api">
-						<div>
-							<span className="k">layout</span>
-							TlaMenuSection, TlaMenuControlGroup, TlaMenuControl, TlaMenuControlLabel,
-							TlaMenuDetail, TlaMenuControlInfoTooltip
-						</div>
-						<div>
-							<span className="k">controls</span>
-							TlaMenuSelect (Radix Select), TlaMenuSwitch (role=switch), TlaMenuTabs Root / Tabs /
-							Tab / Page (role=tablist / tab / tabpanel)
-						</div>
-						<div>
-							<span className="k">used in</span>
-							TlaFileShareMenu (+ Publish / Invite / Export / AnonCopyLink tabs),
-							WorkspaceSettingsDialog, TlaManageCookiesDialog, TlaLegalAcceptance
-						</div>
-					</div>
-				</section>
-
-				<section className="section">
-					<h2 className="section__title">SDK TldrawUiMenu* — action dropdown system</h2>
-					<p className="section__note">
-						A declarative menu schema (groups + items) rendered into a Radix dropdown. Mock below
-						(it needs the editor&rsquo;s menu context to render live).
-					</p>
-					<div className="menuMock">
-						<div className="menuMock__item">Rename</div>
-						<div className="menuMock__item">Duplicate</div>
-						<div className="menuMock__item">Copy link</div>
-						<div className="menuMock__sep" />
-						<div className="menuMock__item menuMock__danger">Delete</div>
-					</div>
-					<div className="section__api">
-						<div>
-							<span className="k">schema</span>
-							TldrawUiMenuContextProvider, TldrawUiMenuGroup, TldrawUiMenuItem,
-							TldrawUiMenuSubmenu, TldrawUiMenuCheckboxItem, TldrawUiMenuActionItem
-						</div>
-						<div>
-							<span className="k">shell</span>
-							TldrawUiDropdownMenuRoot / Trigger / Content / Item / Sub / SubTrigger / SubContent
-							(Radix)
-						</div>
-						<div>
-							<span className="k">used in</span>
-							TlaFileMenu, TlaSidebarUserSettingsMenu, menu-items.tsx, TlaEditor context menus,
-							local-file
-						</div>
+					<div className="grid">
+						{SDK_PARTS.map((p) => (
+							<Specimen key={p.name} label={p.name} code={`<${p.name}>`} meta={p.meta} source="tldraw">
+								<PartStage kind={p.kind} sample={p.sample} />
+							</Specimen>
+						))}
 					</div>
 				</section>
 
@@ -217,10 +132,10 @@ export function Component() {
 				</section>
 
 				<footer className="page__footer">
-					The lesson this page adds to the gallery: not all divergence is drift. Buttons, inputs, and
-					type each hide a problem to fix; the two menu systems are a boundary to <em>respect</em>.
-					Telling the two apart — accidental inconsistency vs deliberate design — is the whole skill
-					of a design-system audit. See tldraw/tldraw#9199.
+					Not all divergence is drift. Buttons, inputs, and type each hide a problem to fix; the two
+					menu systems are a boundary to <em>respect</em>. Telling the two apart — accidental
+					inconsistency vs deliberate design — is the whole skill of a design-system audit. See
+					tldraw/tldraw#9199.
 				</footer>
 			</div>
 		</div>
@@ -233,6 +148,33 @@ const SYSTEMS: ReadonlyArray<readonly [string, string, string]> = [
 	['controls', 'Select · Switch · Tabs', 'Item · CheckboxItem · Submenu · ActionItem'],
 	['ARIA', 'role=switch / tab / tablist / tabpanel', 'role=menu / menuitem (Radix)'],
 	['where', 'share menu, settings & cookies dialogs', 'file menu, user menu, context menus'],
+]
+
+const TLA_PARTS: ReadonlyArray<{ name: string; kind: PartKind; meta: string; sample?: string }> = [
+	{ name: 'TlaMenuSwitch', kind: 'switch', meta: 'control · role=switch · ×8' },
+	{ name: 'TlaMenuSelect', kind: 'select', meta: 'control · Radix Select · ×4' },
+	{ name: 'TlaMenuTabsTab', kind: 'tab', meta: 'control · role=tab · ×6', sample: 'Export' },
+	{ name: 'TlaMenuControl', kind: 'row', meta: 'labeled control row · ×10', sample: 'Setting       ◉' },
+	{ name: 'TlaMenuControlLabel', kind: 'row', meta: 'control label · ×10', sample: 'Label' },
+	{ name: 'TlaMenuControlInfoTooltip', kind: 'row', meta: 'info tooltip · ×4', sample: 'ⓘ  more info' },
+	{ name: 'TlaMenuDetail', kind: 'row', meta: 'detail text · ×1', sample: 'detail copy' },
+	{ name: 'TlaMenuSection', kind: 'wrap', meta: 'layout wrapper · ×4', sample: 'section' },
+	{ name: 'TlaMenuControlGroup', kind: 'wrap', meta: 'layout wrapper · ×4', sample: 'control group' },
+	{ name: 'TlaMenuTabsRoot', kind: 'wrap', meta: 'tabs root · ×2', sample: 'tabs root' },
+	{ name: 'TlaMenuTabsTabs', kind: 'wrap', meta: 'role=tablist · ×2', sample: 'tablist' },
+	{ name: 'TlaMenuTabsPage', kind: 'wrap', meta: 'role=tabpanel · ×7', sample: 'tabpanel' },
+]
+
+const SDK_PARTS: ReadonlyArray<{ name: string; kind: PartKind; meta: string; sample?: string }> = [
+	{ name: 'TldrawUiMenuItem', kind: 'row', meta: 'action item · ×16', sample: 'Rename' },
+	{ name: 'TldrawUiMenuCheckboxItem', kind: 'row', meta: 'toggle item · ×4', sample: '✓ Show grid' },
+	{ name: 'TldrawUiMenuSubmenu', kind: 'row', meta: 'nested menu · ×6', sample: 'Export as ›' },
+	{ name: 'TldrawUiMenuActionItem', kind: 'row', meta: 'bound to an action · ×3', sample: 'Undo   ⌘Z' },
+	{ name: 'TldrawUiMenuGroup', kind: 'wrap', meta: 'item group · ×20', sample: 'group' },
+	{ name: 'TldrawUiMenuContextProvider', kind: 'wrap', meta: 'menu schema root · ×4', sample: 'context provider' },
+	{ name: 'TldrawUiDropdownMenuRoot', kind: 'wrap', meta: 'Radix shell · ×3', sample: 'dropdown root' },
+	{ name: 'TldrawUiDropdownMenuTrigger', kind: 'wrap', meta: 'Radix shell · ×3', sample: 'trigger' },
+	{ name: 'TldrawUiDropdownMenuContent', kind: 'wrap', meta: 'Radix shell · ×3', sample: 'content' },
 ]
 
 const PAGE_CSS = `
@@ -252,22 +194,12 @@ const PAGE_CSS = `
 .section__title { font-size: 18px; font-weight: 600; margin: 0 0 6px; }
 .section__note { font-size: 13px; line-height: 1.6; color: var(--tl-color-text-1); margin: 0 0 16px; max-width: 760px; }
 .section code, .callout code, .page__footer code, .section__note code, .page__lede code { font-family: ui-monospace, monospace; font-size: 0.92em; background: var(--tl-color-low); padding: 1px 4px; border-radius: 3px; }
-.demoRow { display: flex; gap: 32px; margin-bottom: 20px; padding: 18px; background: var(--tl-color-low); border-radius: 8px; }
-.demoRow__control { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--tl-color-text-1); }
-.menuMock { display: inline-block; min-width: 180px; padding: 6px; border: 1px solid var(--tl-color-divider); border-radius: var(--tl-radius-3); background: var(--tl-color-panel); box-shadow: 0 6px 24px rgba(0,0,0,0.12); margin-bottom: 20px; }
-.menuMock__item { padding: 7px 10px; border-radius: var(--tl-radius-2); font-size: 13px; cursor: default; }
-.menuMock__item:hover { background: var(--tl-color-muted-2); }
-.menuMock__danger { color: var(--tl-color-warning, #cb4b16); }
-.menuMock__sep { height: 1px; background: var(--tl-color-divider); margin: 6px 4px; }
 .ctrlMock { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--tla-color-secondary-border, var(--tl-color-divider)); border-radius: var(--tl-radius-2); background: var(--tl-color-panel); font-size: 12px; }
 .tabMock { display: inline-flex; gap: 4px; }
 .tabMock span { padding: 4px 10px; border-radius: var(--tl-radius-2); font-size: 12px; color: var(--tl-color-text-3); }
 .tabMock span[data-active] { background: var(--tl-color-muted-2); color: var(--tl-color-text); }
 .rowMock { padding: 6px 10px; border-radius: var(--tl-radius-2); font-size: 13px; background: var(--tl-color-panel); border: 1px solid var(--tl-color-divider); min-width: 130px; text-align: left; }
-.section__api { font-size: 11px; font-family: ui-monospace, monospace; line-height: 1.6; color: var(--tl-color-text-1); background: var(--tl-color-low); border: 1px solid var(--tl-color-divider); border-radius: 6px; padding: 10px 12px; max-width: 880px; }
-.section__api > div { display: flex; gap: 8px; }
-.section__api > div + div { margin-top: 4px; }
-.section__api .k { color: var(--tl-color-text-3); flex: 0 0 70px; }
+.wrapMock { font-size: 11px; font-family: ui-monospace, monospace; color: var(--tl-color-text-3); border: 1px dashed var(--tl-color-divider); border-radius: 5px; padding: 8px 12px; }
 .matrix { border-collapse: collapse; font-size: 12px; font-family: ui-monospace, monospace; }
 .matrix th, .matrix td { text-align: left; padding: 6px 18px 6px 0; border-bottom: 1px solid var(--tl-color-divider); vertical-align: top; }
 .matrix th { color: var(--tl-color-text-3); font-weight: 500; }
