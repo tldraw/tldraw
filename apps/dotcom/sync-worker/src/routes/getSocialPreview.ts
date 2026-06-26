@@ -78,17 +78,27 @@ async function getBoardName(
 // names of private boards into link previews.
 async function getTlaFileName(env: Environment, slug: string): Promise<string | null> {
 	const db = createPostgresConnectionPool(env, 'getSocialPreview')
+	let file
 	try {
-		const file = await db
+		file = await db
 			.selectFrom('file')
 			.select(['name', 'shared'])
 			.where('id', '=', slug)
 			.executeTakeFirst()
-		if (!file || !file.shared) return null
-		return cleanName(file.name)
 	} finally {
 		await db.destroy()
 	}
+	if (!file || !file.shared) return null
+
+	const name = cleanName(file.name)
+	if (name) return name
+
+	// The file has no name set, so fall back to the editor document name — this matches the in-app
+	// title, which uses the file name and then the document name. It lives on the document record in
+	// the file's persisted room snapshot.
+	const object = await env.ROOMS.get(getR2KeyForRoom({ slug, isApp: true }))
+	if (!object) return null
+	return getDocumentNameFromSnapshot((await object.json()) as RoomSnapshot)
 }
 
 // Published files (`/p/:slug`). The published slug maps to a parent file id.
