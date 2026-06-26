@@ -76,7 +76,8 @@ export function createAppRouter({
 			{includeDevRoutes && (
 				<>
 					<Route path="/dev/reset-local-state" lazy={() => import('./pages/dev-reset-local-state')} />
-					<Route path="/dev/buttons" lazy={() => import('./pages/dev-buttons')} />
+					<Route path="/dev/components/buttons" lazy={() => import('./pages/dev-buttons')} />
+					<Route path="/dev/components/inputs" lazy={() => import('./pages/dev-inputs')} />
 				</>
 			)}
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
