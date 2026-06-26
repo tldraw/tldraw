@@ -1,5 +1,10 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { getDocumentNameFromSnapshot, renderSocialPreview } from './getSocialPreview'
+import {
+	formatSocialTitle,
+	getBoardNameForUrl,
+	getDocumentNameFromSnapshot,
+	renderSocialPreview,
+} from './getSocialPreview'
 
 function snapshotWithDocumentName(name: string): RoomSnapshot {
 	return {
@@ -45,6 +50,39 @@ describe('renderSocialPreview', () => {
 			'<meta property="og:title" content="&lt;script&gt;&quot;&amp; • tldraw.com" />'
 		)
 		expect(html).not.toContain('<script>')
+	})
+})
+
+describe('formatSocialTitle', () => {
+	test('appends • tldraw.com to a name', () => {
+		expect(formatSocialTitle('My board')).toBe('My board • tldraw.com')
+	})
+	test('falls back to tldraw.com when unnamed', () => {
+		expect(formatSocialTitle(null)).toBe('tldraw.com')
+	})
+})
+
+describe('getBoardNameForUrl', () => {
+	// These URLs are rejected before any board lookup, so the env is never used.
+	const env = {} as any
+
+	test('returns null for non-tldraw hosts', async () => {
+		expect(await getBoardNameForUrl(env, 'https://example.com/f/abc123')).toBe(null)
+		expect(await getBoardNameForUrl(env, 'https://nottldraw.com/f/abc123')).toBe(null)
+	})
+
+	test('returns null for non-board paths on a tldraw host', async () => {
+		expect(await getBoardNameForUrl(env, 'https://www.tldraw.com/')).toBe(null)
+		expect(await getBoardNameForUrl(env, 'https://www.tldraw.com/f/abc/history')).toBe(null)
+		expect(await getBoardNameForUrl(env, 'https://www.tldraw.com/about/team')).toBe(null)
+	})
+
+	test('returns null for unknown prefixes', async () => {
+		expect(await getBoardNameForUrl(env, 'https://www.tldraw.com/lf/abc123')).toBe(null)
+	})
+
+	test('returns null for malformed urls', async () => {
+		expect(await getBoardNameForUrl(env, 'not a url')).toBe(null)
 	})
 })
 

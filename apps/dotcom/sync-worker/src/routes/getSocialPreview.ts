@@ -21,10 +21,54 @@ import { getPublishedRoomSnapshot } from './tla/getPublishedFile'
 
 // These mirror the static social preview metadata in apps/dotcom/client/index.html. They are used
 // as fallbacks so that bot-rendered previews stay consistent with the rest of the site.
-const SOCIAL_PREVIEW_DESCRIPTION = 'A free and instant collaborative whiteboarding tool.'
-const SOCIAL_PREVIEW_IMAGE = 'https://www.tldraw.com/social-og.png'
+export const SOCIAL_PREVIEW_DESCRIPTION = 'A free and instant collaborative whiteboarding tool.'
+export const SOCIAL_PREVIEW_IMAGE = 'https://www.tldraw.com/social-og.png'
 const SOCIAL_PREVIEW_IMAGE_ALT = 'A collaborative whiteboarding tool interface'
 const SOCIAL_PREVIEW_TWITTER_IMAGE = 'https://www.tldraw.com/social-twitter.png'
+
+// The board route prefixes that carry a name, keyed by the URL prefix used in board links.
+const BOARD_URL_PREFIXES = new Set([
+	FILE_PREFIX,
+	PUBLISH_PREFIX,
+	SNAPSHOT_PREFIX,
+	ROOM_PREFIX,
+	READ_ONLY_PREFIX,
+	READ_ONLY_LEGACY_PREFIX,
+])
+
+/** Formats the preview title for a board: `<name> • tldraw.com`, or `tldraw.com` when unnamed. */
+export function formatSocialTitle(name: string | null): string {
+	return name ? `${name} • tldraw.com` : 'tldraw.com'
+}
+
+/**
+ * Resolves a board's name from a full tldraw board URL (e.g. `https://www.tldraw.com/f/<slug>`).
+ * Returns null if the URL isn't a tldraw board link or the board has no usable name. Used by the
+ * bookmark unfurl endpoint so pasting a board link into a tldraw canvas resolves the board name
+ * directly, without relying on user-agent routing.
+ */
+export async function getBoardNameForUrl(env: Environment, url: string): Promise<string | null> {
+	let parsed: URL
+	try {
+		parsed = new URL(url)
+	} catch {
+		return null
+	}
+	const host = parsed.hostname
+	const isTldrawHost = host === 'tldraw.com' || host.endsWith('.tldraw.com') || host === 'localhost'
+	if (!isTldrawHost) return null
+
+	const match = parsed.pathname.match(/^\/([^/]+)\/([^/]+)\/?$/)
+	if (!match) return null
+	const [, prefix, slug] = match
+	if (!BOARD_URL_PREFIXES.has(prefix)) return null
+
+	try {
+		return await getBoardName(env, prefix, slug)
+	} catch {
+		return null
+	}
+}
 
 /**
  * Serves a minimal HTML document with social preview (Open Graph / Twitter card) metadata for a
@@ -174,8 +218,7 @@ function cleanName(name: string | null | undefined): string | null {
  * tldraw.com` as the title, otherwise we fall back to `tldraw.com`.
  */
 export function renderSocialPreview(name: string | null): string {
-	const title = name ? `${name} • tldraw.com` : 'tldraw.com'
-	const escapedTitle = escapeHtml(title)
+	const escapedTitle = escapeHtml(formatSocialTitle(name))
 	const description = escapeHtml(SOCIAL_PREVIEW_DESCRIPTION)
 	return `<!DOCTYPE html>
 <html lang="en">
