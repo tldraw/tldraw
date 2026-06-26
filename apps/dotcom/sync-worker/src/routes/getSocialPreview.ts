@@ -13,6 +13,8 @@ import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../postgres'
 import { getR2KeyForRoom, getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
+import { createSupabaseClient } from '../utils/createSupabaseClient'
+import { getSnapshotsTable } from '../utils/getSnapshotsTable'
 import { getSlug } from '../utils/roomOpenMode'
 import { R2Snapshot } from './createRoomSnapshot'
 
@@ -108,15 +110,26 @@ async function getPublishedFileName(env: Environment, slug: string): Promise<str
 	}
 }
 
-// Snapshot links (`/s/:slug`). The name lives in the snapshot's document record.
+// Snapshot links (`/s/:slug`). The name lives in the snapshot's document record. Mirrors
+// getRoomSnapshot: read from R2 first, then fall back to Supabase for older snapshots.
 async function getSnapshotName(env: Environment, slug: string): Promise<string | null> {
 	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(slug)
 	const object = await env.ROOM_SNAPSHOTS.get(
 		getR2KeyForSnapshot({ parentSlug, snapshotSlug: slug, isApp: false })
 	)
-	if (!object) return null
-	const data = ((await object.json()) as R2Snapshot)?.drawing
-	return getDocumentNameFromSnapshot(data)
+	if (object) {
+		const data = ((await object.json()) as R2Snapshot)?.drawing
+		if (data) return getDocumentNameFromSnapshot(data)
+	}
+
+	const supabase = createSupabaseClient(env)
+	if (!supabase) return null
+	const result = await supabase
+		.from(getSnapshotsTable(env))
+		.select('drawing')
+		.eq('slug', slug)
+		.maybeSingle()
+	return getDocumentNameFromSnapshot(result.data?.drawing as RoomSnapshot | undefined)
 }
 
 // Legacy multiplayer rooms (`/r/`, `/ro/`, `/v/`). The persisted room snapshot lives in R2 and the

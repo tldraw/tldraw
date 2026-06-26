@@ -37,7 +37,6 @@ const SOCIAL_CRAWLER_USER_AGENTS = [
 	'vkShare',
 	'W3C_Validator',
 	'SkypeUriPreview',
-	'Applebot',
 	'Mastodon',
 	'Bluesky',
 ]
