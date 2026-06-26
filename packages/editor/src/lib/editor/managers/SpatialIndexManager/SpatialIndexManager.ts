@@ -181,10 +181,16 @@ export class SpatialIndexManager {
 				markDirty(binding.fromId)
 				markDirty(binding.toId)
 			}
-			for (const [, to] of objectMapValues(changes.updated)) {
+			for (const [from, to] of objectMapValues(changes.updated)) {
 				if (!isBinding(to)) continue
 				markDirty(to.fromId)
 				markDirty(to.toId)
+				// A reassigned binding leaves its old endpoints needing a
+				// recheck too (mirrors the reparent case for shapes above).
+				if (isBinding(from) && (from.fromId !== to.fromId || from.toId !== to.toId)) {
+					markDirty(from.fromId)
+					markDirty(from.toId)
+				}
 			}
 		}
 

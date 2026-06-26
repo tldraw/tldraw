@@ -422,6 +422,59 @@ describe('SpatialIndexManager - binding-only diffs', () => {
 		expect(editor.getShapeIdsInsideBounds(boundsAfter).has(arrowId)).toBe(true)
 		tracker.stop()
 	})
+
+	it('rechecks the old arrow when a binding is reassigned to a different arrow', () => {
+		// Defensive: no built-in flow changes a binding's fromId in place, but
+		// a custom binding util could. Reassigning the binding must recheck the
+		// old arrow, whose bounds revert now that it has lost the binding.
+		const boxId = createShapeId('box')
+		const arrow1Id = createShapeId('arrow1')
+		const arrow2Id = createShapeId('arrow2')
+
+		editor.createShapes([
+			{ id: boxId, type: 'geo', x: 1000, y: 0, props: { w: 100, h: 100, fill: 'none' } },
+			{
+				id: arrow1Id,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: { kind: 'arc', bend: 40, start: { x: 0, y: 0 }, end: { x: 50, y: 0 } },
+			},
+			{
+				id: arrow2Id,
+				type: 'arrow',
+				x: 0,
+				y: 500,
+				props: { start: { x: 0, y: 0 }, end: { x: 50, y: 0 } },
+			},
+		])
+		editor.createBindings([
+			{
+				type: 'arrow',
+				fromId: arrow1Id,
+				toId: boxId,
+				props: {
+					terminal: 'end',
+					isExact: false,
+					isPrecise: true,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+			},
+		])
+
+		// arrow1 now reaches across to the box; arrow2 does not.
+		const boxRegion = new Box(930, -20, 220, 220)
+		expect(editor.getShapeIdsInsideBounds(boxRegion).has(arrow1Id)).toBe(true)
+		expect(editor.getShapeIdsInsideBounds(boxRegion).has(arrow2Id)).toBe(false)
+
+		// Reassign the binding from arrow1 to arrow2 in place (binding-only).
+		const binding = editor.getBindingsFromShape(arrow1Id, 'arrow')[0]
+		editor.updateBinding({ ...binding, fromId: arrow2Id })
+
+		// arrow2 inherits the reach toward the box; arrow1 must drop it.
+		expect(editor.getShapeIdsInsideBounds(boxRegion).has(arrow2Id)).toBe(true)
+		expect(editor.getShapeIdsInsideBounds(boxRegion).has(arrow1Id)).toBe(false)
+	})
 })
 
 describe('SpatialIndexManager - basic queries', () => {
