@@ -39,9 +39,11 @@ const SOCIAL_CRAWLER_USER_AGENTS = [
 	'SkypeUriPreview',
 	'Mastodon',
 	'Bluesky',
-	// tldraw's own link-unfurl service, so pasting a board link into a tldraw canvas shows the
-	// board name in the bookmark. See the cloudflare-workers-unfurl user-agent.
-	'tldraw-bot',
+	// tldraw's own link-unfurl service (user-agent `tldraw-bot/x.y.z`), so pasting a board link into
+	// a tldraw canvas shows the board name in the bookmark. We match the plain token `tldraw` rather
+	// than `tldraw-bot`: Vercel's `has` matching won't match the hyphenated token when it's followed
+	// by the version (`tldraw-bot/0.0.8`), but a plain token matches a versioned UA fine.
+	'tldraw',
 ]
 
 // The board routes whose social preview should include the board name, mapped to the URL prefix the
