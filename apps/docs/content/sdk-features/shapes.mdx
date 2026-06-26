@@ -18,7 +18,9 @@ accuracy: 10
 notes: ''
 ---
 
-Shapes are the fundamental content elements on the tldraw canvas. Every rectangle, arrow, text box, and freehand stroke is a shape. The shape system separates data from behavior: shape records store immutable data in the store, while ShapeUtil classes define how each shape type renders, responds to interaction, and computes its geometry. This separation keeps the data layer simple and portable while allowing complex per-shape behavior. Shapes support parent-child hierarchies for grouping and frames, participate in a reactive rendering pipeline, and integrate with the binding system to form relationships with other shapes.
+Shapes are the fundamental content elements on the tldraw canvas. Every rectangle, arrow, text box, and freehand stroke is a shape. The shape system separates data from behavior: shape records store immutable data in the store, while ShapeUtil classes define how each shape type renders, responds to interaction, and computes its geometry. This separation keeps the data layer simple and portable.
+
+Shapes support parent-child hierarchies for grouping and frames, participate in a reactive rendering pipeline, and integrate with the binding system to form relationships with other shapes.
 
 ## Shape records
 
@@ -102,7 +104,7 @@ ShapeUtils can override capability methods to declare what interactions the shap
 
 ### Lifecycle hooks
 
-ShapeUtils can respond to shape changes through lifecycle hooks. The `onBeforeCreate` and `onBeforeUpdate` hooks intercept shape creation and updates before they reach the store, allowing modification or validation. The `onResize`, `onRotate`, and `onTranslate` hooks respond to transformation operations. The `onChildrenChange` hook responds to changes in a shape's children. Interaction hooks like `onDoubleClick`, `onDragShapesOver`, and `onDropShapesOver` enable custom behavior for user interactions.
+ShapeUtils can respond to shape changes through lifecycle hooks. The `onBeforeCreate` and `onBeforeUpdate` hooks intercept shape creation and updates before they reach the store, where you can modify or validate the shape. The `onResize`, `onRotate`, and `onTranslate` hooks respond to transformation operations. The `onChildrenChange` hook responds to changes in a shape's children. Interaction hooks like `onDoubleClick`, `onDragShapesOver`, and `onDropShapesOver` enable custom behavior for user interactions.
 
 The `onResize` hook requires careful implementation. When a shape resizes, the hook receives resize information including the scale factors and the handle being dragged. It returns a partial update containing just the props you want to change (without the `id` or `type`):
 
@@ -122,6 +124,10 @@ onResize(shape: MyShape, info: TLResizeInfo<MyShape>) {
 ShapeUtil classes use static properties for type registration and schema configuration:
 
 ```typescript
+const versions = createShapePropsMigrationIds('my-shape', {
+	AddColor: 1,
+})
+
 class MyShapeUtil extends ShapeUtil<MyShape> {
 	static override type = 'my-shape' as const
 
@@ -133,40 +139,45 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 	}
 
 	// Define migrations for schema evolution
-	static override migrations = defineMigrations({
-		currentVersion: 1,
-		migrators: {
-			1: {
-				up: (shape) => ({ ...shape, props: { ...shape.props, newProp: 'default' } }),
-				down: (shape) => {
-					const { newProp, ...rest } = shape.props
-					return { ...shape, props: rest }
+	static override migrations = createShapePropsMigrationSequence({
+		sequence: [
+			{
+				id: versions.AddColor,
+				up(props) {
+					props.color = 'black'
+				},
+				down(props) {
+					delete props.color
 				},
 			},
-		},
+		],
 	})
 }
 ```
 
+See [Persistence](/sdk-features/persistence) for more on migrations.
+
 ### Configuring built-in shapes
 
-Use [ShapeUtil#configure](?) to customize options on built-in shape utilities without subclassing them:
+Use [ShapeUtil#configure](?) to customize the options of built-in shape utilities without subclassing them:
 
 ```typescript
-import { GeoShapeUtil, Tldraw } from 'tldraw'
+import { FrameShapeUtil, NoteShapeUtil, Tldraw } from 'tldraw'
 
-// Create a configured version with custom options
-const ConfiguredGeoShapeUtil = GeoShapeUtil.configure({
-	canCrop: false,
-	hideSelectionBoundsFg: true,
-})
+const shapeUtils = [
+	// Enable colors for frame shapes
+	FrameShapeUtil.configure({ showColors: true }),
+
+	// Enable resizing for note shapes
+	NoteShapeUtil.configure({ resizeMode: 'scale' }),
+]
 
 function App() {
-	return <Tldraw shapeUtils={[ConfiguredGeoShapeUtil]} />
+	return <Tldraw shapeUtils={shapeUtils} />
 }
 ```
 
-This is useful for changing behavior like `canCrop`, `canResize`, or `canEdit` without creating a full custom ShapeUtil.
+Each shape util declares its own `options` object, and `configure` returns a new class with your overrides merged in. Custom shape utils can declare their own options the same way.
 
 ### Registering ShapeUtils
 

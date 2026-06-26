@@ -250,6 +250,21 @@ test.describe('text measurement', () => {
 		expect(formatLines(spans)).toEqual([[' \n'], [' \n'], [' \n'], [' ']])
 	})
 
+	test('should keep emoji grapheme clusters together', async () => {
+		// 👨‍👩‍👧 is several code points joined by zero-width joiners; it must be
+		// measured as one grapheme so no code points get dropped from the span text.
+		const family = '\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}'
+		const spans = await page.evaluate<
+			{ text: string; box: BoxModel }[],
+			typeof measureTextSpansOptions
+		>(async (options) => {
+			const familyEmoji = '\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}'
+			return editor.textMeasure.measureTextSpans(`a${familyEmoji}b`, { ...options, width: 200 })
+		}, measureTextSpansOptions)
+
+		expect(formatLines(spans).flat().join('')).toBe(`a${family}b`)
+	})
+
 	test('for auto-font-sizing shapes, should do normal font size for text that does not have long words', async () => {
 		const shape = await page.evaluate(() => {
 			const id = 'shape:testShape' as TLShapeId

@@ -5,6 +5,7 @@ import {
 	TLTextShape,
 	Vec,
 	createShapeId,
+	cancelShapeCreationOnLongPress,
 	isShapeId,
 	maybeSnapToGrid,
 	toRichText,
@@ -93,6 +94,10 @@ export class Pointing extends StateNode {
 
 	override onPointerUp() {
 		this.complete()
+	}
+
+	override onLongPress() {
+		cancelShapeCreationOnLongPress(this.editor, () => this.cancel())
 	}
 
 	override onComplete() {

@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/state",
 	"description": "tldraw infinite canvas SDK (state).",
-	"version": "5.1.0",
+	"version": "5.1.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -55,5 +55,8 @@
 		"entryPoint": "./src/index.ts",
 		"displayName": "@tldraw/state",
 		"tsconfig": "./tsconfig.json"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

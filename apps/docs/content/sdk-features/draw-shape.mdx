@@ -72,7 +72,7 @@ Draw shapes can automatically close when you bring the endpoint near the startin
 The shape closes when:
 
 - The path length exceeds 4× the stroke width
-- The endpoint is within 2× the stroke width of the starting point
+- The endpoint is near the starting point, within a threshold based on stroke width and zoom level
 
 When a shape closes, the shape sets `isClosed` to true and fills according to its fill style. Highlight shapes don't support closing.
 
@@ -154,7 +154,7 @@ When a stroke exceeds the maximum point count, the draw tool completes the curre
 To create a draw shape through the editor API, you need to encode the point data:
 
 ```tsx
-import { b64Vecs, createShapeId } from '@tldraw/editor'
+import { b64Vecs, createShapeId } from 'tldraw'
 
 // Define your points with x, y, and z (pressure)
 const points = [

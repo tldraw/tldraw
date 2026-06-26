@@ -5,6 +5,12 @@
       "value": "Exportar"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Aceptar a invitación"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,6 +25,18 @@
     {
       "type": 1,
       "value": "GetHelpLink"
+    }
+  ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Convidar aos compañeiros de equipo"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Alcanzaches o número máximo de espazos de traballo. Debes eliminar os espazos de traballo antigos antes de crear outros novos."
     }
   ],
   "06b9281e39": [
@@ -63,10 +81,28 @@
       "value": "Menú Ficheiro"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Produciuse un erro ao cargar esta invitación. Téntao de novo."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Enviar comentarios"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Eliminar"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Copiar no espazo de traballo persoal"
     }
   ],
   "110a4b01be": [
@@ -75,22 +111,10 @@
       "value": "Publicar"
     }
   ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Abandonar o grupo"
-    }
-  ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Desfixar ficheiro"
-    }
-  ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Proba o SDK de tldraw"
     }
   ],
   "13ddd375ad": [
@@ -99,16 +123,10 @@
       "value": "Exportar como"
     }
   ],
-  "146ffe2fd9": [
+  "1764571547": [
     {
       "type": 0,
-      "value": "Mostrar máis"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Eliminar grupo"
+      "value": "Seguro que queres eliminar este espazo de traballo? Esta acción non se pode desfacer."
     }
   ],
   "181b90f889": [
@@ -129,10 +147,36 @@
       "value": "Hoxe"
     }
   ],
-  "2445e5e347": [
+  "1ffd709937": [
     {
       "type": 0,
-      "value": "Crear grupo"
+      "value": "Un espazo de traballo debe ter polo menos un propietario. Primeiro, converte a outra persoa en propietario."
+    }
+  ],
+  "21f66c9c00": [
+    {
+      "type": 0,
+      "value": "Nome do espazo de traballo"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Convidáronte a unirte a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Crea unha conta gratuíta para continuar."
     }
   ],
   "250ddea65c": [
@@ -147,16 +191,34 @@
       "value": "Produciuse un erro na carga"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Os meus ficheiros"
+      "value": "Benvido ao teu espazo de traballo"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Buscar..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Ao rexenerar, a ligazón de invitación actual substitúese por unha nova. Calquera persoa que use a ligazón antiga necesitará a nova para unirse."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Incluír unha ligazón ao ficheiro actual"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Rexenerar ligazón de invitación"
     }
   ],
   "31246941ad": [
@@ -169,12 +231,6 @@
     {
       "type": 0,
       "value": "i18n: Falta resaltar"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Engadir ligazón"
     }
   ],
   "324a0f3182": [
@@ -193,6 +249,18 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Xestionar"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Eliminar membro"
     }
   ],
   "3bc7d6ea2f": [
@@ -267,12 +335,6 @@
       "value": "Ficheiro fixado"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Pegar o URL do ficheiro tldraw..."
-    }
-  ],
   "4908687e50": [
     {
       "type": 0,
@@ -297,24 +359,6 @@
       "value": "Recarga"
     }
   ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Eliminar grupo…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Máis opcións"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Seguro que queres eliminar este grupo? Esta acción non se pode desfacer."
-    }
-  ],
   "5097d89907": [
     {
       "type": 0,
@@ -325,6 +369,12 @@
     {
       "type": 0,
       "value": "Non se puido anular a publicación do ficheiro."
+    }
+  ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Este é o teu espazo de traballo privado. Crea un novo espazo de traballo para convidar aos compañeiros de equipo."
     }
   ],
   "517bb809d9": [
@@ -367,6 +417,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Crear un espazo de traballo"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -377,40 +433,6 @@
     {
       "type": 0,
       "value": "Política de privacidade"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Arrastra ficheiros aquí, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "crea un ficheiro"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": " ou "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "copia a ligazón de invitación"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " para comezar."
     }
   ],
   "5a95a425f7": [
@@ -425,10 +447,10 @@
       "value": "Detectouse un navegador antigo. Actualízao para usar esta aplicación."
     }
   ],
-  "5c6fe42bc2": [
+  "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Revoga esta ligazón e crea unha nova."
+      "value": "O meu espazo de traballo"
     }
   ],
   "5d04a002ea": [
@@ -441,12 +463,6 @@
     {
       "type": 0,
       "value": "Non puidemos cargar parte do contido que creaches antes de iniciar sesión."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Convidáronte a unirte ao grupo:"
     }
   ],
   "5f3c333678": [
@@ -497,10 +513,22 @@
       "value": "Hai unha nova versión de tldraw dispoñible. Volve cargar a páxina para continuar."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Novo ficheiro"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Introduce o teu enderezo de correo electrónico"
+    }
+  ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Eliminar espazo de traballo"
     }
   ],
   "6a26f54883": [
@@ -519,12 +547,6 @@
     {
       "type": 0,
       "value": "Siga estes pasos para importar o contido manualmente:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Configuración do grupo"
     }
   ],
   "70a6facb9d": [
@@ -549,6 +571,12 @@
     {
       "type": 0,
       "value": "Volve cargar a páxina"
+    }
+  ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Non se atoparon ficheiros"
     }
   ],
   "752b79f137": [
@@ -579,12 +607,6 @@
     {
       "type": 0,
       "value": "Volve cargar"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw é unha pizarra branca en liña gratuíta. Crea unha conta para gardar os teus ficheiros e traballar cos teus amigos."
     }
   ],
   "777f9e90cf": [
@@ -641,12 +663,6 @@
       "value": "Esquece"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Abandonar o grupo…"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -663,6 +679,12 @@
     {
       "type": 0,
       "value": "Descargar"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Novo espazo de traballo"
     }
   ],
   "815e116a2e": [
@@ -699,6 +721,12 @@
       "value": "."
     }
   ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Membro"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -725,10 +753,16 @@
       "value": "Cambiar o nome do ficheiro"
     }
   ],
-  "8ad4303b83": [
+  "87fdb09de6": [
     {
       "type": 0,
-      "value": "Non, grazas."
+      "value": "Xa es membro deste espazo de traballo"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Esta ligazón de invitación caducou"
     }
   ],
   "8c2d3d730c": [
@@ -761,24 +795,6 @@
       "value": "Cambiar o nome"
     }
   ],
-  "91e49bb0eb": [
-    {
-      "type": 0,
-      "value": "Copiar nos meus ficheiros"
-    }
-  ],
-  "930390d222": [
-    {
-      "type": 0,
-      "value": "Ligazón de invitación copiada"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Xa es membro deste grupo"
-    }
-  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -803,16 +819,16 @@
       "value": "Condicións de uso"
     }
   ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Engadir ligazón ao ficheiro"
-    }
-  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Luz"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Limpar busca"
     }
   ],
   "9b33f5c63c": [
@@ -865,6 +881,26 @@
       "value": "Desactivar"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Convidáronte a unirte a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -907,6 +943,12 @@
       "value": "Enviar"
     }
   ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Abandonar"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -929,6 +971,12 @@
     {
       "type": 0,
       "value": "Fondo"
+    }
+  ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Crear espazo de traballo"
     }
   ],
   "ab0df9ba36": [
@@ -955,6 +1003,12 @@
       "value": "Usuario convidado"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Rexenerar"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -967,10 +1021,10 @@
       "value": "Enderezo de correo electrónico"
     }
   ],
-  "b3d2db69fe": [
+  "b48becc771": [
     {
       "type": 0,
-      "value": "URL do ficheiro"
+      "value": "Activar invitacións"
     }
   ],
   "b6d4223e60": [
@@ -997,10 +1051,10 @@
       "value": "Inicia sesión para compartir"
     }
   ],
-  "bb93a7590f": [
+  "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Aceptar e unirse ao grupo"
+      "value": "As invitacións están desactivadas"
     }
   ],
   "bbbcefd7ce": [
@@ -1055,6 +1109,12 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Xestionar o espazo de traballo"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
@@ -1093,12 +1153,6 @@
       "value": "Galletas esenciais"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Nome do grupo"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1111,10 +1165,10 @@
       "value": "Invitar"
     }
   ],
-  "c74ea6dbff": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Mostrar menos"
+      "value": "Copiar no meu espazo de traballo"
     }
   ],
   "c87aacf567": [
@@ -1127,12 +1181,6 @@
     {
       "type": 0,
       "value": "Rexeitar"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Gardar"
     }
   ],
   "cceaefbc20": [
@@ -1235,22 +1283,16 @@
       "value": "Entra aquí para ver o contido"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Alcanzaches o número máximo de grupos. Debes eliminar os grupos antigos antes de crear outros novos."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Só invitar"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "URL de ficheiro tldraw non válida"
+      "value": "Abandonar o espazo de traballo"
     }
   ],
   "dfdb78a4e4": [
@@ -1259,10 +1301,10 @@
       "value": "Marcadores de depuración de aplicacións"
     }
   ],
-  "e0c88179b3": [
+  "e0aa021e21": [
     {
       "type": 0,
-      "value": "Convidar membros"
+      "value": "De acordo"
     }
   ],
   "e2198d6228": [
@@ -1277,12 +1319,6 @@
       "value": "Resumo legal"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Administrador"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
@@ -1295,16 +1331,16 @@
       "value": "ou"
     }
   ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Zona de perigo"
-    }
-  ],
   "ea4788705e": [
     {
       "type": 0,
       "value": "Cancelar"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Pídelle un novo ao propietario do espazo de traballo."
     }
   ],
   "ebfe9ce86e": [
@@ -1399,12 +1435,6 @@
       "value": "Configuración"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Seguro que queres saír deste grupo?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1415,6 +1445,12 @@
     {
       "type": 0,
       "value": "Visor"
+    }
+  ],
+  "fc9d47046b": [
+    {
+      "type": 0,
+      "value": "Seguro que queres saír deste espazo de traballo?"
     }
   ],
   "fd1be3efcf": [
@@ -1429,10 +1465,24 @@
       "value": "Ligazón copiada"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Engadir ligazón ao ficheiro…"
+      "value": "Seguro que queres eliminar "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " deste espazo de traballo?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Crea unha conta gratuíta para gardar os teus ficheiros e debuxar cos teus compañeiros de equipo."
     }
   ],
   "ffcd73e997": [

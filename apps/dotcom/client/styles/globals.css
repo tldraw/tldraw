@@ -107,6 +107,7 @@ select {
 
 html {
 	height: 100%;
+	overflow: hidden;
 }
 
 html,
@@ -117,6 +118,7 @@ body {
 body {
 	display: flex;
 	height: 100%;
+	overflow: hidden;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	font-smooth: antialiased;
@@ -130,42 +132,6 @@ div {
 a {
 	color: inherit;
 	text-decoration: none;
-}
-
-.icon {
-	flex-shrink: 0;
-	width: 20px;
-	height: 20px;
-	background-color: currentColor;
-}
-
-.scroll-light {
-	scrollbar-width: thin;
-}
-.scroll-light::-webkit-scrollbar {
-	display: block;
-	width: 8px;
-	height: 8px;
-	position: absolute;
-	top: 0;
-	left: 0;
-	background-color: inherit;
-}
-.scroll-light::-webkit-scrollbar-button {
-	display: none;
-	width: 0;
-	height: 10px;
-}
-.scroll-light::-webkit-scrollbar-thumb {
-	background-clip: padding-box;
-	width: 0;
-	min-height: 36px;
-	border: 2px solid transparent;
-	border-radius: 6px;
-	background-color: rgba(0, 0, 0, 0.25);
-}
-.scroll-light::-webkit-scrollbar-thumb:hover {
-	background-color: rgba(0, 0, 0, 0.3);
 }
 
 /* ------------------- Error Page ------------------- */
@@ -248,13 +214,13 @@ a {
 .board-history__month-header {
 	font-size: 16px;
 	font-weight: 600;
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-0);
 	margin: 0 0 8px 0;
 	padding: 0;
 }
 
 .board-history__list a {
-	color: var(--tl-color-text);
+	color: var(--tl-color-text-0);
 	text-decoration: none;
 	padding: 8px 0;
 	display: block;
@@ -262,12 +228,6 @@ a {
 
 .board-history__list a:hover {
 	text-decoration: underline;
-}
-
-.board-history__restore {
-	position: fixed;
-	top: 8px;
-	right: 8px;
 }
 
 .board-history__load-more {
@@ -327,209 +287,8 @@ a {
 	height: 14px;
 }
 
-/* ------------------ Da Share Zone ----------------- */
-
 .tlui-style-panel__wrapper {
 	margin-top: 4px;
-}
-
-.tlui-share-zone__connection-status {
-	width: 8px;
-	height: 100%;
-	position: relative;
-	display: flex;
-	align-items: center;
-}
-
-.tlui-share-zone__connection-status::after {
-	content: '';
-	width: 8px;
-	height: 8px;
-	background-color: currentColor;
-	border-radius: 100%;
-}
-
-.tlui-share-zone__button-wrapper {
-	all: unset;
-	padding: 2px;
-	position: relative;
-	pointer-events: all;
-	position: relative;
-	cursor: pointer;
-}
-
-.tlui-share-zone__button {
-	font-family: inherit;
-	font-size: inherit;
-	height: 36px;
-	border: 2px solid var(--tl-color-background);
-	border-radius: 8px;
-	background-color: var(--tl-color-selected);
-	color: var(--tl-color-selected-contrast);
-	text-shadow: none;
-	pointer-events: all;
-	position: relative;
-	font-weight: 600;
-}
-
-.tlui-share-zone__export-button {
-	font-family: inherit;
-	font-size: inherit;
-	height: 36px;
-	border: 2px solid var(--tl-color-text);
-	border-radius: 8px;
-	background-color: var(--tl-color-text);
-	color: var(--tl-color-selected-contrast);
-	text-shadow: none;
-	pointer-events: all;
-	position: relative;
-	font-weight: 600;
-}
-
-.tlui-share-zone__button::before {
-	position: absolute;
-	display: block;
-	content: '';
-	inset: 0px;
-	background-color: var(--tl-color-background);
-	border-top-left-radius: var(--tl-radius-3);
-	border-bottom-right-radius: var(--tl-radius-3);
-	border-bottom-left-radius: var(--tl-radius-3);
-	z-index: -1;
-}
-
-.tlui-share-zone__button:active {
-	color: var(--tl-color-selected-contrast);
-}
-
-@media (hover: hover) {
-	.tlui-share-zone__button:hover {
-		color: var(--tl-color-selected-contrast);
-	}
-
-	.tlui-share-zone__button:not(:disabled, :focus-visible):hover {
-		color: var(--tl-color-selected-contrast);
-	}
-}
-
-.tlui-share-zone__popover {
-	font-size: 12px;
-	font-weight: inherit;
-	width: 200px;
-	max-width: 100%;
-	max-height: 100%;
-	position: relative;
-}
-
-.tlui-share-zone__qr-code {
-	width: 200px;
-	height: 200px;
-	cursor: pointer;
-	background: none;
-	background-color: var(--tl-color-muted-2);
-	background-size: cover;
-	border: none;
-}
-
-.tlui-share-zone__spinner {
-	width: 100%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.tlui-share-zone__details {
-	font-size: 11px;
-	font-weight: 400;
-	padding: var(--tl-space-4);
-	color: var(--tl-color-text-1);
-	line-height: 1.5;
-	margin: 0px;
-}
-
-.tlui-share-zone__status {
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 4px;
-	position: relative;
-	left: -4px;
-}
-
-.tlui-share-zone__status > div {
-	width: 8px;
-	height: 8px;
-	border-radius: 100%;
-}
-
-/* ------------------- People Menu ------------------- */
-
-/* Document Name */
-
-.tlui-document-name__inner {
-	border-radius: calc(var(--tl-radius-2) + var(--tl-space-2));
-	background-color: var(--tl-color-background);
-	padding: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: 36px;
-	margin-top: 4px;
-	padding-left: 4px;
-	max-width: 100%;
-	color: var(--tl-color-text);
-	text-shadow: 1px 1px 0px var(--tl-color-background);
-	pointer-events: all;
-}
-
-.tlui-document-name__input__wrapper {
-	position: relative;
-	max-width: calc(100% - 36px);
-	display: flex;
-	flex: auto;
-}
-
-.tlui-document-name__input,
-.tlui-document-name__text {
-	padding: var(--tl-space-2) var(--tl-space-3);
-	white-space: pre;
-	line-height: 24px;
-	min-width: 62px;
-}
-
-.tlui-document-name__input {
-	position: absolute;
-	padding: var(--tl-space-1) var(--tl-space-3);
-	margin-top: 2px;
-	width: 100%;
-	border-radius: var(--tl-radius-2);
-	color: var(--tl-color-text);
-	background: transparent;
-}
-.tlui-document-name__input:focus {
-	box-shadow: inset 0px 0px 0px 1px var(--tl-color-selected);
-	border: none;
-}
-
-.tlui-document-name__text {
-	width: 100%;
-	color: var(--tl-color-text);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.tlui-document-name__text__hidden {
-	opacity: 0;
-	pointer-events: none;
-}
-
-.tlui-document-name__menu {
-	width: 36px;
-	min-width: 36px;
-	height: 36px;
 }
 
 .tlui-guest-icon {

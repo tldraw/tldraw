@@ -1,6 +1,7 @@
 import { Component, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
+import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
 import { F, IntlProvider } from '../../tla/utils/i18n'
 import { isInIframe } from '../../utils/iFrame'
 
@@ -81,7 +82,11 @@ export class RefreshErrorBoundary extends Component<
 			return (
 				<ErrorPage
 					messages={this.props.messages}
-					cta={<button onClick={() => window.location.reload()}>{this.props.messages.cta}</button>}
+					cta={
+						<TlaButton variant="primary" onClick={() => window.location.reload()}>
+							{this.props.messages.cta}
+						</TlaButton>
+					}
 				/>
 			)
 		}

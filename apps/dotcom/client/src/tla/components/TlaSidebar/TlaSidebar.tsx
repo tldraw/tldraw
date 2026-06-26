@@ -1,4 +1,6 @@
 import { memo, useCallback, useEffect } from 'react'
+import { tlmenus, useMaybeEditor } from 'tldraw'
+import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import {
@@ -10,18 +12,19 @@ import {
 } from '../../utils/local-session-state'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
-import { TlaSidebarHelpMenu } from './components/TlaSidebarHelpMenu'
+import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
-import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
+import { TlaSidebarWorkspaceActions } from './components/TlaSidebarWorkspaceActions'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
+import { TlaSidebarWorkspaceSwitcher } from './components/TlaSidebarWorkspaceSwitcher'
 import styles from './sidebar.module.css'
 
 export const TlaSidebar = memo(function TlaSidebar() {
 	const isSidebarOpen = useIsSidebarOpen()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 	const trackEvent = useTldrawAppUiEvents()
-	const createGroupMsg = useMsg(messages.createGroup)
+	const editor = useMaybeEditor()
 
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
@@ -40,36 +43,28 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	}, [trackEvent])
 
 	const handleOverlayClick = useCallback(() => {
+		// The sidebar only hides (CSS transform), it doesn't unmount, so its portaled menus
+		// (workspace switcher, file/user menus) would otherwise stay open over the canvas once the
+		// sidebar is closed. Close them — scoped to this editor's menus plus the global switcher id.
+		// The scope matters: open SDK dialogs register in the same tlmenus registry under the 'tla'
+		// context, and an arg-less clearOpenMenus() would evict them while they stay mounted, leaving
+		// the editor's menu-gated behavior (canvas click-capture, shortcuts, clipboard guards)
+		// thinking nothing is open.
+		if (editor) tlmenus.clearOpenMenus(editor.contextId)
+		tlmenus.deleteOpenMenu('sidebar-workspace-switcher')
 		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
-	}, [])
+	}, [editor])
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
-	const hasGroups = useHasFlag('groups_frontend')
-	const addDialog = useDialogs().addDialog
-	const app = useApp()
-
-	const handleCreateGroup = () => {
-		// Use dialog if flag is set or on mobile
-		addDialog({
-			component: ({ onClose }) => (
-				<CreateGroupDialog
-					onClose={onClose}
-					onCreate={(name) => {
-						const id = uniqueId()
-						app.z.mutate.createGroup({ id, name })
-						app.ensureSidebarGroupExpanded(id)
-					}}
-				/>
-			),
-		})
-	}
+	const activeWorkspaceId = useActiveWorkspaceId()
 
 	return (
 		<nav aria-hidden={!isSidebarOpen} style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}>
 			<button
 				className={styles.sidebarOverlayMobile}
 				data-visiblemobile={isSidebarOpenMobile}
+				data-testid="tla-sidebar-overlay-mobile"
 				onClick={handleOverlayClick}
 			/>
 			<div
@@ -84,54 +79,27 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			>
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
-					{hasGroups && (
-						<TldrawUiButton
-							type="icon"
-							tooltip={createGroupMsg}
-							title={createGroupMsg}
-							className={styles.sidebarCreateFileButton}
-							onClick={handleCreateGroup}
-							data-testid="tla-create-group"
-							style={{ marginRight: -8, color: 'var(--tla-color-text-1)' }}
-						>
-							<TlaIcon icon="folder-new" />
-						</TldrawUiButton>
-					)}
 					<TlaSidebarCreateFileButton />
 				</div>
-				<div className={styles.sidebarContent}>
+				{/* The workspace switcher is fixed; only the file list below it scrolls. */}
+				<TlaSidebarWorkspaceSwitcher />
+				<div className={styles.sidebarDivider} />
+				<TlaSidebarWorkspaceActions workspaceId={activeWorkspaceId} />
+				<div className={styles.sidebarDivider} />
+				<div className={styles.sidebarContent} data-sidebar-scroll-container>
 					<div className={styles.sidebarContentInner}>
-						{hasGroups ? <NewSidebarLayout /> : <LegacySidebarLayout />}
+						<TlaSidebarRecentFiles />
 					</div>
 				</div>
 				<div className={styles.sidebarBottomArea}>
+					<div className={styles.sidebarDivider} />
 					<TlaSidebarDotDevLink />
+					<TlaSidebarFeedbackButton />
 					<div className={styles.sidebarBottomRow}>
 						<TlaUserSettingsMenu />
-						<TlaSidebarHelpMenu />
 					</div>
 				</div>
 			</div>
 		</nav>
 	)
 })
-
-function LegacySidebarLayout() {
-	return <TlaSidebarRecentFiles />
-}
-
-import { TldrawUiButton, uniqueId, useDialogs } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
-import { useHasFlag } from '../../hooks/useHasFlag'
-import { useMsg } from '../../utils/i18n'
-import { CreateGroupDialog } from '../dialogs/CreateGroupDialog'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
-import { messages } from './components/sidebar-shared'
-
-function NewSidebarLayout() {
-	return (
-		<>
-			<TlaSidebarRecentFilesNew />
-		</>
-	)
-}

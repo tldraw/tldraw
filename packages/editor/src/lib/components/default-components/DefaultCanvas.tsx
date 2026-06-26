@@ -32,7 +32,7 @@ export interface TLCanvasComponentProps {
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
-	const { SelectionBackground, Background, SvgDefs } = useEditorComponents()
+	const { Background, SvgDefs } = useEditorComponents()
 
 	const rCanvas = useRef<HTMLDivElement>(null)
 	const rHtmlLayer = useRef<HTMLDivElement>(null)
@@ -160,7 +160,6 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				{isGridMode && Grid && <GridWrapper />}
 				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 					<OnTheCanvasWrapper />
-					{SelectionBackground && <SelectionBackgroundWrapper />}
 					{hideShapes ? null : <ShapesLayer canvasRef={rCanvas} />}
 				</div>
 				<CanvasOverlays />
@@ -343,21 +342,6 @@ function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {
 			}}
 		/>
 	)
-}
-
-function SelectionBackgroundWrapper() {
-	const editor = useEditor()
-	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
-		editor,
-	])
-	const selectionBounds = useValue(
-		'selection bounds',
-		() => editor.getSelectionRotatedPageBounds(),
-		[editor]
-	)
-	const { SelectionBackground } = useEditorComponents()
-	if (!selectionBounds || !SelectionBackground) return null
-	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />
 }
 
 function OnTheCanvasWrapper() {

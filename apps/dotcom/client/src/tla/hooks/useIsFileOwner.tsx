@@ -13,7 +13,7 @@ export function useHasFileAdminRights(fileId?: string): boolean {
 			if (!file) return false
 			if (file.ownerId) return file.ownerId === app.userId
 			if (file.owningGroupId) {
-				const role = app.getGroupMembership(file.owningGroupId)?.role
+				const role = app.getWorkspaceMembership(file.owningGroupId)?.role
 				return can(role, 'accessFiles')
 			}
 			return false

@@ -107,7 +107,7 @@ The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that 
 
 `TLSocketRoom` is used to
 
-- Store an authoritative in-memory copy of the document state
+- Store an authoritative copy of the document state.
 - Transparently set up communication between multiple sync clients via WebSockets.
 - Provide hooks for persisting the document state when it changes.
 
@@ -177,8 +177,9 @@ const room = new TLSocketRoom({ storage })
 ```
 
 <Callout type="info">
-	`SQLiteSyncStorage` automatically creates and manages its database tables. You can use the
-	`tablePrefix` option to avoid conflicts if you're sharing a database with other data.
+	`SQLiteSyncStorage` automatically creates and manages its database tables. You can pass a
+	`tablePrefix` option to the SQL wrapper to avoid conflicts if you're sharing a database with other
+	data.
 </Callout>
 
 ### WebSocket hibernation
@@ -206,6 +207,8 @@ interface SocketAttachment {
 
 export class TldrawDurableObject extends DurableObject {
 	private room: TLSocketRoom<TLRecord, void> | null = null
+	// Maps sessionId → ws. Populate this in your webSocketMessage handler.
+	private readonly sessionIdToWs = new Map<string, WebSocket>()
 
 	private getOrCreateRoom() {
 		if (this.room) return this.room
@@ -242,6 +245,8 @@ export class TldrawDurableObject extends DurableObject {
 ```
 
 Three pieces make this work. The `onSessionSnapshot` callback persists each session's state to its WebSocket's attachment so the snapshot is still around after hibernation. When the object wakes up with sockets still open, `handleSocketResume` replays each saved snapshot and the session lands straight in `Connected` state without the client noticing. Setting `clientTimeout: Infinity` disables the room's idle timer; hibernating platforms handle keep-alive themselves and would otherwise see the room disconnect perfectly fine clients.
+
+For a complete implementation, including the hibernation event handlers that populate `sessionIdToWs`, see the [sync-cloudflare template](https://github.com/tldraw/tldraw/tree/main/templates/sync-cloudflare).
 
 For non-hibernating environments (Node servers, long-lived processes), you don't need any of this. The in-memory `TLSocketRoom` outlives individual sockets, and the default `clientTimeout` keeps idle sessions tidy.
 
@@ -290,6 +295,7 @@ these don't automatically include tldraw's default shapes like arrows and rectan
 pass those in explicitly if you're using them:
 
 ```tsx
+import { useMemo } from 'react'
 import { Tldraw, defaultShapeUtils, defaultBindingUtils } from 'tldraw'
 import { useSync } from '@tldraw/sync'
 
@@ -308,7 +314,7 @@ function MyApp() {
 #### On the server
 
 Use [`createTLSchema`](?) to create a store schema, and pass that into [`TLSocketRoom`](?). You can
-use shape/binding utils here, but schema will only look at two properties:
+use shape/binding utils here, but the schema will only look at two properties:
 [`props`](/reference/editor/ShapeUtil#props) and
 [`migrations`](/sdk-features/persistence#migrations). You need to provide the default shape
 schemas if you're using them.
@@ -322,7 +328,7 @@ const schema = createTLSchema({
 		...defaultShapeSchemas,
 
 		myCustomShape: {
-			// Validations for this shapes `props`.
+			// Validations for this shape's `props`.
 			props: myCustomShapeProps,
 			// Migrations between versions of this shape.
 			migrations: myCustomShapeMigrations,
@@ -341,7 +347,7 @@ const room = new TLSocketRoom({
 })
 ```
 
-Both `props` and `migration` are optional. If you omit `props`, you won't have any server-side
+Both `props` and `migrations` are optional. If you omit `props`, you won't have any server-side
 validation for your shape, which could result in bad data being stored. If you omit `migrations`,
 clients on different versions won't be able to collaborate without errors.
 

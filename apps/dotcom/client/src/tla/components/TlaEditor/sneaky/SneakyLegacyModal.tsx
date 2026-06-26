@@ -60,7 +60,7 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 				{isSignedIn && (
 					<TldrawUiButton type="primary" onClick={handleCopy}>
 						<TldrawUiButtonLabel>
-							<F defaultMessage="Copy to my files" />
+							<F defaultMessage="Copy to personal workspace" />
 						</TldrawUiButtonLabel>
 					</TldrawUiButton>
 				)}

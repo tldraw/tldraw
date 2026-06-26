@@ -31,7 +31,9 @@ import { RBushIndex, type SpatialElement } from './RBushIndex'
  * Known limitation: a custom shape whose geometry reads other shapes outside the
  * parent/child and binding relationships is not rechecked when those shapes change.
  * Core shapes only depend on other shapes via bindings (arrows) and parent/child
- * relationships (groups), which are both covered.
+ * relationships (groups), which are both covered. This narrows the previous
+ * approach, which rechecked every indexed shape on every update and so happened to
+ * cover such shapes; the structural expansion trades that for O(affected) updates.
  *
  * @internal
  */
@@ -58,6 +60,9 @@ export class SpatialIndexManager {
 
 	private createSpatialIndexComputed() {
 		const shapeHistory = this.editor.store.query.filterHistory('shape')
+		// Binding changes can move a shape's derived bounds (e.g. creating or
+		// deleting an arrow binding relocates the arrow's body) without
+		// touching any shape record, so they must also invalidate the index.
 		const bindingHistory = this.editor.store.query.filterHistory('binding')
 
 		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {

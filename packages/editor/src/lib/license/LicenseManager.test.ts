@@ -60,22 +60,30 @@ describe('LicenseManager', () => {
 			expect(result).toMatchObject({ isLicenseParseable: false, reason: 'no-key-provided' })
 		})
 
-		it('Signals that it is development mode when localhost', async () => {
-			const schemes = ['http', 'https']
-			for (const scheme of schemes) {
-				// @ts-ignore
-				delete window.location
-				// @ts-ignore
-				window.location = new URL(`${scheme}://localhost:3000`)
+		it('Signals that it is development mode for loopback hosts', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				const schemes = ['http', 'https']
+				const hosts = ['localhost', '127.0.0.1', '127.0.0.2', '[::1]']
+				for (const scheme of schemes) {
+					for (const host of hosts) {
+						// @ts-ignore
+						delete window.location
+						// @ts-ignore
+						window.location = new URL(`${scheme}://${host}:3000`)
 
-				const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
-				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
-				const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
-				expect(result).toMatchObject({
-					isLicenseParseable: true,
-					isDomainValid: false,
-					isDevelopment: true,
-				})
+						const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
+						const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+						const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+						expect(result).toMatchObject({
+							isLicenseParseable: true,
+							isDomainValid: false,
+							isDevelopment: true,
+						})
+					}
+				}
+			} finally {
+				process.env.NODE_ENV = 'test'
 			}
 		})
 

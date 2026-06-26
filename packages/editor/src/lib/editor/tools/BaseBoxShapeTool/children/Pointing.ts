@@ -4,6 +4,7 @@ import { Vec } from '../../../../primitives/Vec'
 import type { Editor } from '../../../Editor'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLPointerEventInfo } from '../../../types/event-types'
+import { cancelShapeCreationOnLongPress } from '../../cancelShapeCreationOnLongPress'
 import { StateNode } from '../../StateNode'
 import type { BaseBoxShapeTool } from '../BaseBoxShapeTool'
 
@@ -63,6 +64,10 @@ export class Pointing extends StateNode {
 
 	override onPointerUp() {
 		this.complete()
+	}
+
+	override onLongPress() {
+		cancelShapeCreationOnLongPress(this.editor, () => this.cancel())
 	}
 
 	override onCancel() {

@@ -93,6 +93,22 @@ describe('SelectionForegroundOverlayUtil', () => {
 			expect(idsSet.has('selection_fg:bottom_right_rotate')).toBe(true)
 		})
 
+		it.each(['top_left', 'top', 'top_left_rotate'] as const)(
+			'keeps selection foreground overlays visible while pointing the %s handle',
+			(handle) => {
+				editor.updateInstanceState({ isCoarsePointer: false })
+				editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
+				editor.select(ids.box1)
+				editor.pointerDown(0, 0, { target: 'selection', handle })
+
+				const overlays = editor.overlays.getCurrentOverlays()
+				const idsSet = new Set(overlays.map((o) => o.id))
+				expect(idsSet.has('selection_fg:top_left')).toBe(true)
+				expect(idsSet.has('selection_fg:top')).toBe(true)
+				expect(idsSet.has('selection_fg:top_left_rotate')).toBe(true)
+			}
+		)
+
 		it('includes mobile rotate handle for coarse pointer', () => {
 			editor.updateInstanceState({ isCoarsePointer: true })
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 60, h: 60 } }])
@@ -187,6 +203,48 @@ describe('SelectionForegroundOverlayUtil', () => {
 			expect(idsSet.has('selection_fg:left')).toBe(false)
 			expect(idsSet.has('selection_fg:top_left')).toBe(true)
 			expect(idsSet.has('selection_fg:bottom_right')).toBe(true)
+		})
+
+		it('keeps resize handles while pressing a resize edge', () => {
+			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
+			editor.select(ids.box1)
+			editor.pointerDownOnHandle('top')
+			expect(editor.getPath()).toBe('select.pointing_resize_handle')
+
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			const idsSet = new Set(util.getOverlays().map((o) => o.id))
+			expect(idsSet.has('selection_fg:top_left')).toBe(true)
+			expect(idsSet.has('selection_fg:top_right')).toBe(true)
+			expect(idsSet.has('selection_fg:bottom_left')).toBe(true)
+			expect(idsSet.has('selection_fg:bottom_right')).toBe(true)
+
+			// Once an actual resize begins, the handles hide
+			editor.pointerMoveBy(0, -30)
+			expect(editor.getPath()).toBe('select.resizing')
+			expect(util.getOverlays()).toEqual([])
+		})
+
+		it('keeps resize handles while pressing a rotate handle', () => {
+			editor.updateInstanceState({ isCoarsePointer: false })
+			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
+			editor.select(ids.box1)
+			editor.pointerDownOnHandle('top_left_rotate')
+			expect(editor.getPath()).toBe('select.pointing_rotate_handle')
+
+			const util =
+				editor.overlays.getOverlayUtil<SelectionForegroundOverlayUtil>('selection_foreground')
+			expect(util.isActive()).toBe(true)
+			const idsSet = new Set(util.getOverlays().map((o) => o.id))
+			expect(idsSet.has('selection_fg:top_left')).toBe(true)
+			expect(idsSet.has('selection_fg:top_right')).toBe(true)
+			expect(idsSet.has('selection_fg:bottom_left')).toBe(true)
+			expect(idsSet.has('selection_fg:bottom_right')).toBe(true)
+
+			// Once an actual rotation begins, the selection foreground hides
+			editor.pointerMoveBy(-30, -30)
+			expect(editor.getPath()).toBe('select.rotating')
+			expect(util.isActive()).toBe(false)
 		})
 
 		it('hides edge handles on coarse pointer', () => {
