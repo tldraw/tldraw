@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
 import { DevComponentsNav } from './dev-components-nav'
+import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 
 /**
  * Dev-only inventory of the dotcom app's dialogs. The healthiest family: nearly
@@ -24,7 +25,7 @@ export function Component() {
 			<Helmet>
 				<title>Dialog inventory — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS}</style>
+			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
 			<div className="page">
 				<DevComponentsNav />
@@ -116,26 +117,16 @@ export function Component() {
 					<p className="section__note">
 						Every dialog component, its mechanism, and the width it sets on the body.
 					</p>
-					<table className="matrix">
-						<thead>
-							<tr>
-								<th>dialog</th>
-								<th>mechanism</th>
-								<th>body width</th>
-								<th>purpose</th>
-							</tr>
-						</thead>
-						<tbody>
-							{DIALOGS.map((r) => (
-								<tr key={r[0]} data-off={r[1] === 'bespoke' || undefined}>
-									<td>{r[0]}</td>
-									<td>{r[1]}</td>
-									<td>{r[2]}</td>
-									<td>{r[3]}</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
+					<div className="grid">
+						{DIALOGS.map((r) => (
+							<Specimen key={r[0]} label={r[0]} code={r[1]} meta={`maxWidth ${r[2]} · ${r[3]}`}>
+								<div className="miniDialog" data-bespoke={r[1] === 'bespoke' || undefined}>
+									<div className="miniDialog__h" />
+									<div className="miniDialog__b" />
+								</div>
+							</Specimen>
+						))}
+					</div>
 				</section>
 
 				<section className="section">
@@ -251,6 +242,11 @@ const PAGE_CSS = `
 .dialogMock__x { color: var(--tl-color-text-3); }
 .dialogMock__body { padding: 16px 14px; font-size: 13px; color: var(--tl-color-text-1); }
 .dialogMock__footer { padding: 12px 14px; border-top: 1px solid var(--tl-color-divider); font-size: 12px; color: var(--tl-color-text-3); text-align: right; }
+.miniDialog { width: 96px; border: 1px solid var(--tl-color-divider); border-radius: 5px; overflow: hidden; background: var(--tl-color-panel); box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+.miniDialog__h { height: 14px; border-bottom: 1px solid var(--tl-color-divider); background: var(--tl-color-low); }
+.miniDialog__b { height: 30px; }
+.miniDialog[data-bespoke] { border-color: var(--tl-color-warning, #cb4b16); }
+.miniDialog[data-bespoke] .miniDialog__h { background: var(--tl-color-warning, #cb4b16); opacity: 0.25; }
 .section__api { font-size: 11px; font-family: ui-monospace, monospace; line-height: 1.6; color: var(--tl-color-text-1); background: var(--tl-color-low); border: 1px solid var(--tl-color-divider); border-radius: 6px; padding: 10px 12px; max-width: 860px; }
 .section__api > div { display: flex; gap: 8px; }
 .section__api > div + div { margin-top: 4px; }

@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
 import { DevComponentsNav } from './dev-components-nav'
+import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 
 /**
  * Dev-only inventory of the dotcom app's type scale, and how it sits next to the
@@ -16,27 +17,6 @@ import { DevComponentsNav } from './dev-components-nav'
  * Serves tldraw/tldraw#9196 (establish a typography system). Route:
  * /dev/components/typography.
  */
-
-const Rung = ({
-	cls,
-	sample,
-	meta,
-	dupe,
-}: {
-	cls: string
-	sample: string
-	meta: string
-	dupe?: boolean
-}): ReactNode => (
-	<div className="rung">
-		<div className={`rung__sample ${cls}`}>{sample}</div>
-		<div className="rung__meta">
-			<code>.{cls}</code>
-			<span>{meta}</span>
-			{dupe && <span className="rung__flag">⚠ identical to its pair</span>}
-		</div>
-	</div>
-)
 
 const Stat = ({ n, label, accent }: { n: string; label: string; accent?: boolean }): ReactNode => (
 	<div className="stat" data-accent={accent || undefined}>
@@ -54,7 +34,7 @@ export function Component() {
 			<Helmet>
 				<title>Typography inventory — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS}</style>
+			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
 			<div className="page">
 				<DevComponentsNav />
@@ -116,34 +96,47 @@ export function Component() {
 						Five global classes in <code>tla/styles/tla.css</code> — only three distinct sizes (11 /
 						12 / 24px), a 12→24 gap, and a byte-identical pair.
 					</p>
-					<div className="ladder">
-						<Rung
-							cls="tla-text_ui__big"
-							sample="Big — page heading"
+					<div className="grid">
+						<Specimen
+							label="big"
+							code={`className="tla-text_ui__big"`}
 							meta="24px · 400 · text-0 · 1 use"
-						/>
-						<Rung
-							cls="tla-text_ui__title"
-							sample="Title — section header"
-							meta="12px · 700 · +0.2px letter-spacing · text-0 · 7 uses"
-						/>
-						<Rung
-							cls="tla-text_ui__medium"
-							sample="Medium — body text"
-							meta="12px · 500 · 4 uses"
-							dupe
-						/>
-						<Rung
-							cls="tla-text_ui__regular"
-							sample="Regular — body text"
-							meta="12px · 500 · 12 uses"
-							dupe
-						/>
-						<Rung
-							cls="tla-text_ui__small"
-							sample="Small — muted caption"
+							source="tla.css"
+						>
+							<span className="tla-text_ui__big">Heading</span>
+						</Specimen>
+						<Specimen
+							label="title"
+							code={`className="tla-text_ui__title"`}
+							meta="12px · 700 · +0.2px letter-spacing · 7 uses"
+							source="tla.css"
+						>
+							<span className="tla-text_ui__title">Section title</span>
+						</Specimen>
+						<Specimen
+							label="medium ⚠ ≡ regular"
+							code={`className="tla-text_ui__medium"`}
+							meta="12px · 500 · 4 uses — identical to regular"
+							source="tla.css"
+						>
+							<span className="tla-text_ui__medium">Medium body</span>
+						</Specimen>
+						<Specimen
+							label="regular ⚠ ≡ medium"
+							code={`className="tla-text_ui__regular"`}
+							meta="12px · 500 · 12 uses — identical to medium"
+							source="tla.css"
+						>
+							<span className="tla-text_ui__regular">Regular body</span>
+						</Specimen>
+						<Specimen
+							label="small"
+							code={`className="tla-text_ui__small"`}
 							meta="11px · 500 · text-3 · 10 uses"
-						/>
+							source="tla.css"
+						>
+							<span className="tla-text_ui__small">Small caption</span>
+						</Specimen>
 					</div>
 				</section>
 
