@@ -27,7 +27,7 @@ function makeUser(overrides: Partial<TlaUser> & { id: string }): TlaUser {
 		exportPadding: true,
 		createdAt: 1,
 		updatedAt: 1,
-		flags: 'groups_backend',
+		flags: '',
 		locale: null,
 		animationSpeed: null,
 		areKeyboardShortcutsEnabled: null,
@@ -296,18 +296,18 @@ function expectBadRequest(fn: () => Promise<any>) {
 
 describe('parseFlags / userHasFlag', () => {
 	it('parses comma-separated', () => {
-		expect(parseFlags('groups_backend,other_flag')).toEqual(['groups_backend', 'other_flag'])
+		expect(parseFlags('flag_a,flag_b')).toEqual(['flag_a', 'flag_b'])
 	})
 	it('parses space-separated', () => {
-		expect(parseFlags('groups_backend other_flag')).toEqual(['groups_backend', 'other_flag'])
+		expect(parseFlags('flag_a flag_b')).toEqual(['flag_a', 'flag_b'])
 	})
 	it('handles null/undefined', () => {
 		expect(parseFlags(null)).toEqual([])
 		expect(parseFlags(undefined)).toEqual([])
 	})
 	it('userHasFlag checks presence', () => {
-		expect(userHasFlag('groups_backend', 'groups_backend')).toBe(true)
-		expect(userHasFlag('other_flag', 'groups_backend')).toBe(false)
+		expect(userHasFlag('flag_a', 'flag_a')).toBe(true)
+		expect(userHasFlag('flag_b', 'flag_a')).toBe(false)
 	})
 })
 
@@ -365,7 +365,7 @@ describe('user mutations', () => {
 		})
 		const m = createMutators(userId)
 		// flags is NOT in immutableColumns.user, so this should succeed
-		await expectValid(() => m.user.update(tx, { id: userId, flags: 'groups_backend' }))
+		await expectValid(() => m.user.update(tx, { id: userId, flags: 'example_flag' }))
 	})
 })
 
@@ -454,7 +454,7 @@ describe('file creation', () => {
 
 	it('migrated user can create file in own workspace', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -477,7 +477,7 @@ describe('file creation', () => {
 	it('migrated user cannot create file in another workspace', async () => {
 		const otherGroup = 'group_other123456789'
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId }), makeGroup({ id: otherGroup })],
@@ -503,7 +503,7 @@ describe('file creation', () => {
 		// un-switchable, since selecting it creates-then-opens a file. Regression test:
 		// authorize via getRole (home => owner), not a raw group_user lookup.
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: userId })],
@@ -638,7 +638,7 @@ describe('onEnterFile', () => {
 		// their home group, which is what surfaces it as a "guest file" in the sidebar.
 		const otherGroup = 'group_other123456789'
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: otherGroup, shared: true })],
 			file_state: [],
 			group: [makeGroup({ id: userId }), makeGroup({ id: otherGroup })],
@@ -654,7 +654,7 @@ describe('onEnterFile', () => {
 	it('does not mirror a file the user already has via a group they belong to', async () => {
 		const workspaceId = 'group_workspace1234ab'
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: workspaceId, shared: true })],
 			file_state: [],
 			group: [makeGroup({ id: userId }), makeGroup({ id: workspaceId })],
@@ -672,7 +672,7 @@ describe('onEnterFile', () => {
 
 	it('mirrors a group-less (legacy) file into home so it stays findable', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: null, ownerId: userId, shared: true })],
 			file_state: [],
 			group: [makeGroup({ id: userId })],
@@ -691,7 +691,7 @@ describe('workspace mutations', () => {
 
 	it('migrated user can create workspace', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [],
@@ -709,7 +709,7 @@ describe('workspace mutations', () => {
 
 	it('cannot create workspace with an empty name', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [],
@@ -726,7 +726,7 @@ describe('workspace mutations', () => {
 	it('owner can update workspace name', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -741,7 +741,7 @@ describe('workspace mutations', () => {
 	it('member cannot update workspace name', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -757,7 +757,7 @@ describe('workspace mutations', () => {
 		const groupId = 'group_aaa11112222bbb'
 		const fileId = 'file_aaaa11112222bbbb'
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupId })],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -775,7 +775,7 @@ describe('workspace mutations', () => {
 	it('non-owner cannot delete workspace', async () => {
 		const groupId = 'group_aaa11112222bbb'
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -795,7 +795,7 @@ describe('membership', () => {
 
 	it('owner can set member roles', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -817,7 +817,7 @@ describe('membership', () => {
 
 	it('member cannot set member roles', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -836,7 +836,7 @@ describe('membership', () => {
 
 	it('cannot demote last owner to member', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -855,7 +855,7 @@ describe('membership', () => {
 
 	it('last owner cannot leave workspace', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -869,7 +869,7 @@ describe('membership', () => {
 
 	it('non-owner member can leave workspace', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -887,7 +887,7 @@ describe('membership', () => {
 
 	it('owner can remove a member', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -905,7 +905,7 @@ describe('membership', () => {
 
 	it('member cannot remove members', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -924,7 +924,7 @@ describe('membership', () => {
 
 	it('cannot remove the last owner', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -950,7 +950,7 @@ describe('file operations across workspaces', () => {
 
 	it('member of both workspaces can move file between them', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
 			file_state: [],
 			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
@@ -968,7 +968,7 @@ describe('file operations across workspaces', () => {
 
 	it('member of source workspace only cannot move file to other workspace', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
 			file_state: [],
 			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
@@ -982,7 +982,7 @@ describe('file operations across workspaces', () => {
 
 	it('member of target workspace only cannot move file from other workspace', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
 			file_state: [],
 			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
@@ -996,7 +996,7 @@ describe('file operations across workspaces', () => {
 
 	it('member can remove file from workspace', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
 			file_state: [makeFileState({ userId, fileId })],
 			group: [makeGroup({ id: groupA })],
@@ -1011,7 +1011,7 @@ describe('file operations across workspaces', () => {
 
 	it('non-member cannot remove file from workspace', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupA })],
 			file_state: [makeFileState({ userId, fileId })],
 			group: [makeGroup({ id: groupA })],
@@ -1027,7 +1027,7 @@ describe('file operations across workspaces', () => {
 	it('removing a linked file deletes only the link, not the file', async () => {
 		// the file is owned by workspace B but linked into workspace A
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: fileId, owningGroupId: groupB })],
 			file_state: [makeFileState({ userId, fileId })],
 			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
@@ -1049,7 +1049,7 @@ describe('file operations across workspaces', () => {
 		const otherFileId = 'file_bbbb11112222cccc'
 		const homePinnedId = 'file_cccc11112222dddd'
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [
 				makeFile({ id: fileId, owningGroupId: groupA }),
 				makeFile({ id: otherFileId, owningGroupId: groupA }),
@@ -1089,7 +1089,7 @@ describe('home workspace special case', () => {
 		// createFile with groupId === userId should pass the membership check
 		// even without a group_user row, because of the userId === groupId shortcut
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: userId })],
@@ -1114,12 +1114,12 @@ describe('home workspace special case', () => {
 	// or have its members managed. (It can be renamed.)
 	function homeState(extra?: { secondOwnerId?: string }) {
 		const group_user: TlaGroupUser[] = [makeGroupUser({ userId, groupId: userId, role: 'owner' })]
-		const user = [makeUser({ id: userId, flags: 'groups_backend' })]
+		const user = [makeUser({ id: userId })]
 		if (extra?.secondOwnerId) {
 			group_user.push(
 				makeGroupUser({ userId: extra.secondOwnerId, groupId: userId, role: 'owner' })
 			)
-			user.push(makeUser({ id: extra.secondOwnerId, flags: 'groups_backend' }))
+			user.push(makeUser({ id: extra.secondOwnerId }))
 		}
 		return {
 			user,
@@ -1159,7 +1159,7 @@ describe('home workspace special case', () => {
 	it('cannot change member roles in home workspace', async () => {
 		const targetId = 'user_target123456789'
 		const s = homeState()
-		s.user.push(makeUser({ id: targetId, flags: 'groups_backend' }))
+		s.user.push(makeUser({ id: targetId }))
 		s.group_user.push(makeGroupUser({ userId: targetId, groupId: userId, role: 'member' }))
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1175,7 +1175,7 @@ describe('regenerateWorkspaceInviteSecret', () => {
 
 	it('owner can regenerate invite secret', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId, inviteSecret: 'old_secret_1234567' })],
@@ -1191,7 +1191,7 @@ describe('regenerateWorkspaceInviteSecret', () => {
 
 	it('member cannot regenerate invite secret', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId, inviteSecret: 'old_secret_1234567' })],
@@ -1206,7 +1206,7 @@ describe('regenerateWorkspaceInviteSecret', () => {
 	it('non-member cannot regenerate invite secret', async () => {
 		const nonMemberId = 'user_nonmember123456'
 		const s = {
-			user: [makeUser({ id: nonMemberId, flags: 'groups_backend' })],
+			user: [makeUser({ id: nonMemberId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId })],
@@ -1226,7 +1226,7 @@ describe('setWorkspaceInviteLinkEnabled', () => {
 
 	it('owner can toggle the invite link', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId, inviteLinkEnabled: true })],
@@ -1243,7 +1243,7 @@ describe('setWorkspaceInviteLinkEnabled', () => {
 
 	it('member cannot toggle the invite link', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [],
 			file_state: [],
 			group: [makeGroup({ id: groupId, inviteLinkEnabled: true })],
@@ -1453,7 +1453,7 @@ describe('createFile from source (duplicate) access control', () => {
 	// migrated user whose target group is their home group (groupId === userId)
 	function baseStore(sourceFile: TlaFile) {
 		return {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [sourceFile],
 			file_state: [],
 			group: [makeGroup({ id: userId }), makeGroup({ id: otherGroup })],
@@ -1500,7 +1500,7 @@ describe('createFile from source (duplicate) access control', () => {
 
 	it('cannot duplicate a file you only know the id of (source not present)', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [] as TlaFile[],
 			file_state: [],
 			group: [makeGroup({ id: userId })],
@@ -1514,7 +1514,7 @@ describe('createFile from source (duplicate) access control', () => {
 
 	it('cannot duplicate an inaccessible legacy (ownerId-owned) file', async () => {
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [makeFile({ id: sourceId, ownerId: 'user_someoneElse1234', shared: false })],
 			file_state: [],
 			group: [],
@@ -1530,7 +1530,7 @@ describe('createFile from source (duplicate) access control', () => {
 		// a published-doc copy uses a different prefix and must still work even
 		// when there is no readable `file` row for the source id
 		const s = {
-			user: [makeUser({ id: userId, flags: 'groups_backend' })],
+			user: [makeUser({ id: userId })],
 			file: [] as TlaFile[],
 			file_state: [],
 			group: [makeGroup({ id: userId })],

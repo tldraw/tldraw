@@ -413,7 +413,7 @@ export class TldrawApp {
 
 	/**
 	 * Get the user's home workspace ID.
-	 * For migrated users, this is used to store shared files and pinned files.
+	 * Used to store shared files and pinned files.
 	 * The home workspace ID is the same as the user ID.
 	 */
 	getHomeWorkspaceId() {
