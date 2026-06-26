@@ -9,6 +9,7 @@ import inviteStyles from '../tla/components/dialogs/TlaInviteDialog.module.css'
 import menuStyles from '../tla/components/tla-menu/menu.module.css'
 import sidebarStyles from '../tla/components/TlaSidebar/sidebar.module.css'
 import '../tla/styles/tla.css'
+import { DevComponentsNav } from './dev-components-nav'
 
 /**
  * Dev-only inventory of every button in the dotcom app, rendered together so
@@ -97,6 +98,7 @@ export function Component() {
 			<style>{PAGE_CSS}</style>
 
 			<div className="page">
+				<DevComponentsNav />
 				<header className="page__header">
 					<h1 className="page__title">Button inventory</h1>
 					<p className="page__lede">
