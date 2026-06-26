@@ -40,10 +40,10 @@ const SOCIAL_CRAWLER_USER_AGENTS = [
 	'Mastodon',
 	'Bluesky',
 	// tldraw's own link-unfurl service (user-agent `tldraw-bot/x.y.z`), so pasting a board link into
-	// a tldraw canvas shows the board name in the bookmark. We match the plain token `tldraw` rather
-	// than `tldraw-bot`: Vercel's `has` matching won't match the hyphenated token when it's followed
-	// by the version (`tldraw-bot/0.0.8`), but a plain token matches a versioned UA fine.
-	'tldraw',
+	// a tldraw canvas shows the board name in the bookmark. The value is a regex: a literal
+	// `tldraw-bot` won't match in Vercel's `has` rule once the version slash is present
+	// (`tldraw-bot/0.0.8`), so we use `.` for the hyphen position to sidestep that.
+	'tldraw.bot',
 ]
 
 // The board routes whose social preview should include the board name, mapped to the URL prefix the
