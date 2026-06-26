@@ -1,0 +1,192 @@
+/* eslint-disable tldraw/jsx-no-literals */
+import { ReactNode } from 'react'
+import { Helmet } from 'react-helmet-async'
+import 'tldraw/tldraw.css'
+import '../tla/styles/tla.css'
+import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
+import { DevComponentsNav } from './dev-components-nav'
+
+/**
+ * Dev-only inventory of the dotcom collaboration / presence UI: cursors, avatars,
+ * the people menu, the current user. This family is almost entirely DELEGATED to
+ * the SDK — dotcom wires up TldrawCurrentUser / PeopleMenu / TldrawUser and the
+ * editor renders the live cursors and presence. The app owns colour and wiring,
+ * not the UI. Mocked (the real components need a live editor / sync session).
+ *
+ * Route: /dev/components/presence.
+ */
+
+const Stat = ({ n, label }: { n: string; label: string }): ReactNode => (
+	<div className="stat">
+		<div className="stat__n">{n}</div>
+		<div className="stat__label">{label}</div>
+	</div>
+)
+
+export function Component() {
+	return (
+		<div
+			className="tla tl-container tla-theme-container tla-theme__light tl-theme__light"
+			style={{ position: 'absolute', inset: 0, display: 'block', overflow: 'auto' }}
+		>
+			<Helmet>
+				<title>Presence inventory — dev</title>
+			</Helmet>
+			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
+
+			<div className="page">
+				<DevComponentsNav />
+				<header className="page__header">
+					<h1 className="page__title">Presence &amp; collaboration</h1>
+					<p className="page__lede">
+						Cursors, avatars, the people menu, the current user — multiplayer UI the app{' '}
+						<strong>delegates</strong> to the SDK (the same mode as{' '}
+						<a href="/dev/components/overlays">overlays</a>). dotcom wires up the SDK presence
+						components and supplies the user colour; the editor draws the live cursors. The app owns
+						almost no collaboration UI of its own.
+					</p>
+				</header>
+
+				<section className="section">
+					<h2 className="section__title">What dotcom uses</h2>
+					<div className="stats">
+						<Stat n="9" label="TldrawCurrentUser" />
+						<Stat n="3" label="PeopleMenu" />
+						<Stat n="2" label="TldrawUser" />
+					</div>
+				</section>
+
+				<section className="section">
+					<h2 className="section__title">The presence UI (SDK-owned, mocked)</h2>
+					<p className="section__note">
+						These render inside the live editor / share panel; mocked here. dotcom supplies the
+						user&rsquo;s colour and identity, the SDK renders the rest.
+					</p>
+					<div className="grid">
+						<Specimen
+							label="live cursor"
+							code={`(SDK, from collaborator presence)`}
+							meta="name label in the user's colour"
+							source="editor — TlaEditor.tsx"
+						>
+							<div className="cursorMock">
+								<svg width="16" height="16" viewBox="0 0 16 16">
+									<path d="M2 2 L2 13 L5.5 9.5 L8 14 L10 13 L7.5 8.5 L12 8 Z" fill="#268bd2" />
+								</svg>
+								<span className="cursorMock__name">Casey</span>
+							</div>
+						</Specimen>
+						<Specimen
+							label="facepile / avatars"
+							code={`<PeopleMenu> (SDK share panel)`}
+							meta="collaborators' avatars, by colour"
+							source="TldrawUiSharePanel"
+						>
+							<div className="facepile">
+								<span className="avatar" style={{ background: '#268bd2' }}>
+									C
+								</span>
+								<span className="avatar" style={{ background: '#859900' }}>
+									J
+								</span>
+								<span className="avatar" style={{ background: '#cb4b16' }}>
+									M
+								</span>
+							</div>
+						</Specimen>
+						<Specimen
+							label="PeopleMenu trigger"
+							code={`<PeopleMenu>`}
+							meta="opens the collaborators list · ×3"
+							source="TlaInviteTab.tsx"
+						>
+							<div className="ctrlMock">People ▾</div>
+						</Specimen>
+						<Specimen
+							label="TldrawCurrentUser"
+							code={`<TldrawCurrentUser />`}
+							meta="the local user's presence record · ×9"
+							source="TlaEditorTopRightPanel.tsx"
+						>
+							<div className="facepile">
+								<span className="avatar" style={{ background: '#6c71c4' }}>
+									You
+								</span>
+							</div>
+						</Specimen>
+					</div>
+				</section>
+
+				<section className="section">
+					<h2 className="section__title">Where dotcom touches presence</h2>
+					<table className="matrix">
+						<thead>
+							<tr>
+								<th>what</th>
+								<th>who owns it</th>
+								<th>dotcom&rsquo;s part</th>
+							</tr>
+						</thead>
+						<tbody>
+							{ROWS.map((r) => (
+								<tr key={r[0]}>
+									<td>{r[0]}</td>
+									<td>{r[1]}</td>
+									<td>{r[2]}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</section>
+
+				<footer className="page__footer">
+					Presence is the deepest delegation in the app: live collaboration is hard and
+					stateful, so dotcom hands it entirely to the editor and contributes only identity and
+					colour. Like toasts, there&rsquo;s nothing to diverge on because there&rsquo;s no app-owned
+					implementation — the ownership-vs-divergence pattern again.
+				</footer>
+			</div>
+		</div>
+	)
+}
+
+const ROWS: ReadonlyArray<readonly [string, string, string]> = [
+	['live cursors', 'SDK editor', 'nothing — rendered from sync presence'],
+	['collaborator avatars', 'SDK share panel / PeopleMenu', 'wires PeopleMenu into the invite tab'],
+	['current user', 'SDK (TldrawCurrentUser)', 'supplies identity + colour via useUser'],
+	['user colour', 'dotcom + SDK', 'member.userColor seeds the presence colour'],
+]
+
+const PAGE_CSS = `
+.page {
+	min-height: 100vh;
+	background: var(--tl-color-background);
+	color: var(--tl-color-text);
+	font-family: var(--tla-font-ui);
+	padding: 24px 40px 80px;
+	box-sizing: border-box;
+}
+.page__header { max-width: 760px; margin-bottom: 40px; }
+.page__title { font-size: 28px; font-weight: 700; margin: 0 0 12px; }
+.page__lede { font-size: 14px; line-height: 1.6; color: var(--tl-color-text-1); margin: 0; }
+.page__lede strong { color: var(--tl-color-text-0); font-weight: 600; }
+.page__lede code, .page__footer code { font-family: ui-monospace, monospace; font-size: 0.92em; background: var(--tl-color-low); padding: 1px 4px; border-radius: 3px; }
+.page__lede a { color: var(--tl-color-primary); }
+.section { margin-bottom: 48px; }
+.section__title { font-size: 18px; font-weight: 600; margin: 0 0 6px; }
+.section__note { font-size: 13px; line-height: 1.6; color: var(--tl-color-text-1); margin: 0 0 16px; max-width: 760px; }
+.stats { display: flex; gap: 16px; flex-wrap: wrap; }
+.stat { border: 1px solid var(--tl-color-divider); border-radius: 8px; padding: 16px 20px; min-width: 180px; background: var(--tl-color-panel); }
+.stat__n { font-size: 26px; font-weight: 700; font-family: ui-monospace, monospace; }
+.stat__label { font-size: 12px; color: var(--tl-color-text-1); margin-top: 4px; font-family: ui-monospace, monospace; }
+.cursorMock { display: inline-flex; align-items: center; gap: 4px; }
+.cursorMock__name { background: #268bd2; color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+.facepile { display: inline-flex; }
+.avatar { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; color: #fff; font-size: 10px; font-weight: 600; border: 2px solid var(--tl-color-panel); margin-left: -6px; }
+.avatar:first-child { margin-left: 0; }
+.ctrlMock { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--tla-color-secondary-border, var(--tl-color-divider)); border-radius: var(--tl-radius-2); background: var(--tl-color-panel); font-size: 12px; }
+.matrix { border-collapse: collapse; font-size: 12px; font-family: ui-monospace, monospace; }
+.matrix th, .matrix td { text-align: left; padding: 6px 18px 6px 0; border-bottom: 1px solid var(--tl-color-divider); vertical-align: top; }
+.matrix th { color: var(--tl-color-text-3); font-weight: 500; }
+.page__footer { max-width: 760px; font-size: 13px; line-height: 1.7; color: var(--tl-color-text-1); border-top: 1px solid var(--tl-color-divider); padding-top: 20px; }
+`
