@@ -381,6 +381,20 @@ describe('MagicWandTool hold-to-morph', () => {
 		expect(Math.abs(Math.abs(geo.rotation) - angle)).toBeLessThan(0.2)
 	})
 
+	it('snaps a near-axis-aligned sketch to an axis-aligned rectangle', () => {
+		const center: [number, number] = [150, 150]
+		const angle = (5 * Math.PI) / 180 // within the snap zone
+		const tilted = square.map((c) => rotateAround(c, center, angle))
+
+		drawRectSketch(tilted)
+		vi.advanceTimersByTime(1100)
+
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geo).toBeTruthy()
+		expect(geo.rotation).toBe(0)
+		editor.pointerUp()
+	})
+
 	it('enters morph-tuning state after morph while pointer is held', () => {
 		drawRectSketch(square)
 		vi.advanceTimersByTime(1100)

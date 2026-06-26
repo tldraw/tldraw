@@ -17,6 +17,8 @@ const RECT_FILL_MIN = 0.85
 const MIN_CLOSE_DISTANCE = 8
 /** A recognized corner must have a stroke point within this fraction of the short side. */
 const CORNER_TOLERANCE_RATIO = 0.3
+/** Rectangles tilted within this many radians of an axis snap to exactly axis-aligned. */
+const AXIS_ALIGN_SNAP_RADIANS = (7.5 * Math.PI) / 180
 
 /** The normalized input handed to every recognizer. Points are in page space. */
 export interface RecognizerInput {
@@ -107,7 +109,10 @@ const recognizeRectangle: ShapeRecognizer = {
 		// blobs that happen to fill their box.
 		if (!hasPointNearEachCorner(input.points, center, w, h, rotation)) return null
 
-		return { kind: 'rectangle', center, w, h, rotation }
+		// A nearly upright rectangle is almost always meant to be axis-aligned, so
+		// snap small tilts to exactly 0 rather than spawning a subtly crooked shape.
+		const snappedRotation = Math.abs(rotation) <= AXIS_ALIGN_SNAP_RADIANS ? 0 : rotation
+		return { kind: 'rectangle', center, w, h, rotation: snappedRotation }
 	},
 }
 

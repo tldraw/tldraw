@@ -68,6 +68,27 @@ describe('recognizeRectangle', () => {
 		expect(Math.abs(Math.abs(r.rotation) - angle)).toBeLessThan(0.12)
 	})
 
+	it('snaps a near-axis-aligned rectangle to exactly axis-aligned', () => {
+		const corners = rectCorners(0, 0, 120, 70)
+		const center = new Vec(60, 35)
+		const angle = (5 * Math.PI) / 180 // within the 7.5° snap zone
+		const rotated = rotatePointsAround(corners, center, angle)
+		const result = recognize(samplePolygon(rotated))
+		expect(result?.kind).toBe('rectangle')
+		const r = result as Extract<ShapeRecognitionResult, { kind: 'rectangle' }>
+		expect(r.rotation).toBe(0)
+	})
+
+	it('keeps the tilt of a clearly rotated rectangle (outside the snap zone)', () => {
+		const corners = rectCorners(0, 0, 120, 70)
+		const center = new Vec(60, 35)
+		const angle = (15 * Math.PI) / 180 // beyond the 7.5° snap zone
+		const rotated = rotatePointsAround(corners, center, angle)
+		const result = recognize(samplePolygon(rotated))
+		const r = result as Extract<ShapeRecognitionResult, { kind: 'rectangle' }>
+		expect(Math.abs(r.rotation)).toBeGreaterThan(0.1)
+	})
+
 	it('does not recognize an ellipse', () => {
 		const pts: Vec[] = []
 		for (let i = 0; i < 64; i++) {
