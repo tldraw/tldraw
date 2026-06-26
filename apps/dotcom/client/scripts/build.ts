@@ -16,29 +16,24 @@ const commonSecurityHeaders = {
 	'Content-Security-Policy': csp,
 }
 
-// Social/link-unfurling crawlers that don't run JavaScript, so they never see the SPA's runtime
-// title updates. We route these to the multiplayer worker, which renders the board name into the
-// social preview metadata. Search-engine crawlers (Googlebot, bingbot) render JavaScript and are
-// intentionally excluded so they still index the real app.
-const SOCIAL_CRAWLER_USER_AGENTS = [
-	'facebookexternalhit',
-	'Facebot',
-	'Twitterbot',
-	'Slackbot',
-	'Slack-ImgProxy',
-	'Discordbot',
-	'LinkedInBot',
-	'WhatsApp',
-	'TelegramBot',
-	'redditbot',
-	'Pinterest',
-	'Embedly',
-	'Iframely',
-	'vkShare',
-	'W3C_Validator',
-	'SkypeUriPreview',
-	'Mastodon',
-	'Bluesky',
+// Social/link-unfurling crawlers don't run JavaScript, so they never see the SPA's runtime title
+// updates. We route them to the multiplayer worker, which renders the board name into the social
+// preview metadata. Rather than maintain a fragile allowlist of crawler user-agents (which always
+// misses some unfurler or preview tool), we route any request that *isn't* a real browser
+// navigation: browsers send `Sec-Fetch-Mode` on navigations, crawlers and link-preview fetchers
+// don't.
+//
+// Search-engine crawlers are the exception: they also don't send `Sec-Fetch-Mode`, but we want them
+// to index the real app, so we exclude them by user-agent. This denylist is small and stable,
+// unlike an allowlist of every social platform.
+const SEARCH_ENGINE_USER_AGENTS = [
+	'Googlebot',
+	'Google-InspectionTool',
+	'bingbot',
+	'DuckDuckBot',
+	'YandexBot',
+	'Baiduspider',
+	'Applebot',
 ]
 
 // The board routes whose social preview should include the board name, mapped to the URL prefix the
@@ -47,10 +42,15 @@ const SOCIAL_CRAWLER_USER_AGENTS = [
 const SOCIAL_PREVIEW_PREFIXES = ['f', 'p', 's', 'r', 'ro', 'v']
 
 function loadSocialPreviewRoutes(multiplayerServerUrl: string) {
-	const userAgent = SOCIAL_CRAWLER_USER_AGENTS.join('|')
+	const searchEngineUserAgent = SEARCH_ENGINE_USER_AGENTS.join('|')
 	return SOCIAL_PREVIEW_PREFIXES.map((prefix) => ({
 		src: `^/${prefix}/([^/]+)/?$`,
-		has: [{ type: 'header' as const, key: 'user-agent', value: userAgent }],
+		// Match when the request is neither a browser navigation (no `Sec-Fetch-Mode`) nor a known
+		// search engine. `missing` matches when the condition is absent/unmatched.
+		missing: [
+			{ type: 'header' as const, key: 'sec-fetch-mode' },
+			{ type: 'header' as const, key: 'user-agent', value: searchEngineUserAgent },
+		],
 		dest: `${multiplayerServerUrl}/app/social-preview/${prefix}/$1`,
 	}))
 }
