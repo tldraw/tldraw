@@ -1,7 +1,7 @@
 import {
-	AI_CORE_PULL,
 	CELLS_PER_PULSE,
 	CHARGE_NORM,
+	GROWTH_SAP_MIN,
 	CHOKE_THRESHOLD,
 	CLAIM_CHARGE,
 	CONNECTED_REGEN,
@@ -24,12 +24,14 @@ import {
 	Peg,
 	publishScores,
 	REACH_RADIUS,
+	SAP_BUDGET,
 	showHint,
 	SIEGE_DMG,
 	SIEGE_DMG_MAX,
 	Spark,
 	Strand,
 	Tip,
+	UPKEEP,
 	TIP_BRANCH_PROB,
 	TIP_DEATH_PROB,
 	TIP_JITTER,
@@ -96,10 +98,14 @@ function computeReachable(world: World): Record<Owner, Set<string>> {
 	return result
 }
 
-// Apply connectivity-driven life/death. Reachable pegs regen toward CLAIM_CHARGE
-// (stay bright); orphaned pegs decay FAST and, once their charge falls below the
-// ownership floor, relinquish the cell and its tree edges so it's reclaimable.
-// Returns true if any peg lost ownership (graph changed → prune stranded tips).
+// Apply connectivity- AND sap-driven life/death. A cell stays bright (regens
+// charge) only if it is connected to its source AND fed (receives ≥ UPKEEP sap).
+// Cells that are orphaned (disconnected) OR starved (connected but under-fed)
+// decay FAST and, once charge falls below the ownership floor, relinquish the
+// cell and its tree edges so it's reclaimable. Starvation is what caps territory
+// and keeps the contested middle alive — the seam is thinnest on sap, so it is
+// always dying back. Returns true if any peg lost ownership (→ prune stranded
+// tips).
 function applyConnectivity(world: World, reachable: Record<Owner, Set<string>>): boolean {
 	let changed = false
 	for (const peg of world.pegs) {
@@ -107,17 +113,20 @@ function applyConnectivity(world: World, reachable: Record<Owner, Set<string>>):
 		if (!owner) continue
 		const isSource = peg.id === world.sources[owner]
 		const connected = isSource || reachable[owner].has(peg.id)
-		if (connected) {
+		const fed = isSource || peg.sap >= UPKEEP
+		if (connected && fed) {
 			peg.charge[owner] += (CLAIM_CHARGE - peg.charge[owner]) * CONNECTED_REGEN
 			const other: Owner = owner === 'a' ? 'b' : 'a'
 			peg.charge[other] *= ORPHAN_DECAY
 			if (isSource) peg.charge[owner] = CLAIM_CHARGE
 		} else {
+			// orphaned OR starved → wither toward neutral
 			peg.charge[owner] *= ORPHAN_DECAY
 			if (peg.charge[owner] < 0.05) {
 				peg.charge[owner] = 0
 				peg.owner = null
 				peg.parent = null
+				peg.sap = 0
 				for (const nId of Array.from(peg.adj)) {
 					const n = world.pegById.get(nId)
 					if (n) n.adj.delete(peg.id)
@@ -156,12 +165,16 @@ function pruneDeadTips(world: World) {
 }
 
 // ----------------------------------------------------------------------------
-// SUBTREE SIZES — post-order over each source's tree, O(pegs).
-// Every peg gets subtreeSize = itself + the sizes of its children (children =
-// adjacent same-color pegs other than its parent). Drives vine thickness and the
-// choke-vs-hydra decision. Recomputed whenever the graph changes (grow / cut /
-// wither). We compute iteratively (no recursion) so deep trees can't blow the
-// stack on a big board.
+// TREE METRICS — subtreeSize AND sap, per source, O(pegs).
+// One BFS from the source establishes parent/child structure, then:
+//  • subtreeSize (reverse post-order): peg + its descendants. Drives vine
+//    thickness and the choke-vs-hydra decision.
+//  • sap (forward pre-order): the source's SAP_BUDGET flows down the tree,
+//    splitting EQUALLY among children; each cell keeps UPKEEP and passes the rest
+//    on. A connected cell that receives < UPKEEP is starved (withers in
+//    applyConnectivity). This caps territory and makes pruning concentrate reach.
+// Recomputed whenever the graph changes (grow / cut / wither). Iterative (no
+// recursion) so deep trees can't blow the stack on a big board.
 // ----------------------------------------------------------------------------
 export function computeSubtreeSizes(world: World) {
 	for (const owner of ['a', 'b'] as Owner[]) {
@@ -173,6 +186,7 @@ export function computeSubtreeSizes(world: World) {
 		// (this also re-roots the tree after a cut moved the source-connected side).
 		const order: string[] = []
 		const parentOf = new Map<string, string | null>()
+		const childrenOf = new Map<string, string[]>()
 		parentOf.set(sourceId, null)
 		const queue: string[] = [sourceId]
 		while (queue.length) {
@@ -186,6 +200,9 @@ export function computeSubtreeSizes(world: World) {
 				const n = world.pegById.get(nId)
 				if (!n || n.owner !== owner) continue
 				parentOf.set(nId, id)
+				let kids = childrenOf.get(id)
+				if (!kids) childrenOf.set(id, (kids = []))
+				kids.push(nId)
 				queue.push(nId)
 			}
 		}
@@ -198,6 +215,18 @@ export function computeSubtreeSizes(world: World) {
 			const peg = world.pegById.get(id)!
 			const par = world.pegById.get(parent)!
 			par.subtreeSize += peg.subtreeSize
+		}
+		// Pre-order sap flow: source holds the budget; each cell keeps UPKEEP and
+		// hands the rest to its children, split equally. BFS order guarantees a
+		// peg's sap is set (by its parent, or as the source) before we read it.
+		source.sap = SAP_BUDGET
+		for (const id of order) {
+			const kids = childrenOf.get(id)
+			if (!kids) continue
+			const peg = world.pegById.get(id)!
+			const leftover = peg.sap - UPKEEP
+			const perKid = leftover > 0 ? leftover / kids.length : 0
+			for (const kidId of kids) world.pegById.get(kidId)!.sap = perKid
 		}
 	}
 }
@@ -213,6 +242,18 @@ export function vineSubtreeSize(world: World, strand: Strand): number {
 	// Re-rooting may have flipped parent/child; the smaller side is the subtree
 	// that gets orphaned, so take the min as a safe estimate.
 	return Math.min(pa?.subtreeSize ?? 0, pb?.subtreeSize ?? 0) || 1
+}
+
+// Sap carried by a vine = the sap reaching its CHILD peg (the far, downstream end
+// — what's left after the flow split its way out here). Drives the in-world sap
+// readout (vine brightness): vivid near the well-fed core, dim toward starving
+// tips. Mirrors vineSubtreeSize's parent/child resolution.
+export function vineSap(world: World, strand: Strand): number {
+	const pa = strand.aId ? world.pegById.get(strand.aId) : null
+	const pb = strand.bId ? world.pegById.get(strand.bId) : null
+	if (pb && pa && pb.parent === pa.id) return pb.sap
+	if (pa && pb && pa.parent === pb.id) return pa.sap
+	return Math.min(pa?.sap ?? 0, pb?.sap ?? 0)
 }
 
 // ============================================================================
@@ -284,16 +325,10 @@ function gapDirection(world: World, owner: Owner, peg: Peg): number | null {
 // gap. Returns null if there is no claimable neighbour at all (truly boxed in).
 function pickTarget(world: World, owner: Owner, peg: Peg, heading: number): Peg | null {
 	const enemy: Owner = owner === 'a' ? 'b' : 'a'
-	// Blue (the AI) pulls its growth toward the player's (red's) core.
-	let pullAngle = 0
-	let pullW = 0
-	if (owner === 'b') {
-		const target = world.pegById.get(world.sources.a)
-		if (target) {
-			pullAngle = Math.atan2(target.y - peg.y, target.x - peg.x)
-			pullW = AI_CORE_PULL
-		}
-	}
+	// Both colors grow the SAME way — spread outward, contest the middle. Neither
+	// has a standing pull toward the enemy core (that asymmetry made the AI both
+	// out-grow the player and constantly spear its base). Autonomous core raids
+	// come only from the rare reseed core-rush, equally for both sides.
 
 	// Is the heading-forward arc blocked (no claimable cell within ±45°)? If so,
 	// steer toward the nearest gap so the tip probes through holes instead of
@@ -329,11 +364,9 @@ function pickTarget(world: World, owner: Owner, peg: Peg, heading: number): Peg 
 		const ang = Math.atan2(dr, dc)
 		// Alignment with the (possibly gap-steered) heading.
 		const align = (gapW ? gapW : 1) * Math.cos(ang - effHeading)
-		// AI core-pull toward the player core.
-		const pull = pullW ? pullW * Math.cos(ang - pullAngle) : 0
 		// Openness: flow into open neutral space / gaps.
 		const open = OPENNESS_WEIGHT * openness(world, to.col, to.row)
-		const score = align + pull + open + Math.random() * 0.5
+		const score = align + open + Math.random() * 0.5
 		if (score > bestScore) {
 			bestScore = score
 			best = to
@@ -349,6 +382,10 @@ function extendTip(world: World, owner: Owner, from: Peg, to: Peg, heading: numb
 	to.owner = owner
 	to.parent = from.id
 	to.charge[owner] = Math.max(to.charge[owner], CLAIM_CHARGE * 0.6)
+	// Seed enough sap to survive the tick or two until the flow recomputes and
+	// decides whether this cell is actually fed; otherwise it would read as starved
+	// (sap 0) and start withering the instant it's born.
+	to.sap = UPKEEP
 	const s = makeStrand(from, to, owner)
 	world.strands.push(s)
 	world.strandById.set(s.id, s)
@@ -380,7 +417,15 @@ function growthPulse(world: World) {
 
 		let heading = tip.heading
 		let advanced = false
+		let sapGated = false
 		for (let step = 0; step < CELLS_PER_PULSE; step++) {
+			// Sap gate: only extend if this cell can spare upkeep for a new child.
+			// Growth stops at the sustainable frontier instead of racing past it and
+			// starving. A gated tip waits here and resumes if sap later frees up.
+			if (peg.sap < GROWTH_SAP_MIN) {
+				sapGated = true
+				break
+			}
 			const target = pickTarget(world, owner, peg, heading)
 			if (!target) break
 			heading = extendTip(world, owner, peg, target, heading)
@@ -390,12 +435,15 @@ function growthPulse(world: World) {
 			if (advancedThisPulse[owner] >= MAX_TIPS_ADVANCED_PER_PULSE) break
 		}
 
-		if (!advanced) continue // boxed in everywhere → terminate
+		// Keep the tip if it grew OR is just waiting on sap (so it can resume); only
+		// drop it when it's genuinely boxed in with nowhere to go.
+		if (!advanced && !sapGated) continue
 
 		nextTips.push({ owner, pegId: peg.id, heading })
 
-		// Branch: occasionally fork a second tip at an angle for fractal vines.
-		if (Math.random() < TIP_BRANCH_PROB) {
+		// Branch: occasionally fork a second tip — only when we actually grew, so a
+		// sap-starved frontier doesn't accumulate idle forks.
+		if (advanced && Math.random() < TIP_BRANCH_PROB) {
 			const fork = heading + (Math.random() < 0.5 ? 1 : -1) * (0.6 + Math.random() * 0.8)
 			nextTips.push({ owner, pegId: peg.id, heading: fork })
 		}
@@ -404,39 +452,52 @@ function growthPulse(world: World) {
 	world.tips = nextTips
 
 	// Keep each color's frontier ALIVE. Tips terminate when they hit walls / their
-	// own net / the enemy, so a color that has filled its half would otherwise
-	// stall far from the enemy core. Each pulse we top a color back up to
-	// MIN_TIPS_PER_COLOR by spawning fresh tips on real FRONTIER pegs — owned pegs
-	// that still have a claimable neighbour — headed toward the enemy core. This
-	// is what lets growth keep pressing across contested ground (e.g. into a lane
-	// the player just cut open) instead of freezing at the midline.
+	// own net, so a color that has filled what it can feed would otherwise go
+	// dormant. Each pulse we top a color back up to MIN_TIPS_PER_COLOR by spawning
+	// fresh tips on real FRONTIER pegs. Reseeded tips spread OUTWARD from their own
+	// core (fill/contest territory); only RARELY does one rush the enemy core, so
+	// the autonomous swarm doesn't beeline the enemy base every pulse — reaching
+	// the core is something a player earns by steering a spear, not a default.
 	for (const owner of ['a', 'b'] as Owner[]) {
 		let count = 0
 		for (const t of world.tips) if (t.owner === owner) count++
 		if (count >= MIN_TIPS_PER_COLOR) continue
+		const ownSrc = world.pegById.get(world.sources[owner])
 		const enemyCore = world.pegById.get(world.sources[owner === 'a' ? 'b' : 'a'])
 		const need = MIN_TIPS_PER_COLOR - count
 		const fresh = frontierPegs(world, owner, need)
 		for (const peg of fresh) {
-			const heading = enemyCore
-				? Math.atan2(enemyCore.y - peg.y, enemyCore.x - peg.x)
-				: Math.random() * Math.PI * 2
-			world.tips.push({ owner, pegId: peg.id, heading })
+			world.tips.push({ owner, pegId: peg.id, heading: reseedHeading(peg, ownSrc, enemyCore) })
 		}
 		// Fallback: nothing claimable anywhere (fully walled in) — re-seed at the
 		// source so the color isn't permanently dead if ground later frees up.
-		if (fresh.length === 0) {
-			const src = world.pegById.get(world.sources[owner])
-			if (src && src.owner === owner) {
-				const heading = enemyCore ? Math.atan2(enemyCore.y - src.y, enemyCore.x - src.x) : 0
-				world.tips.push({ owner, pegId: src.id, heading })
-			}
+		if (fresh.length === 0 && ownSrc && ownSrc.owner === owner) {
+			world.tips.push({
+				owner,
+				pegId: ownSrc.id,
+				heading: reseedHeading(ownSrc, ownSrc, enemyCore),
+			})
 		}
 	}
 }
 
 // Minimum live tips to keep per color so the frontier never goes dormant.
 const MIN_TIPS_PER_COLOR = 10
+// Chance a reseeded frontier tip rushes the enemy core instead of spreading
+// outward. Low, so autonomous core raids are rare events, not a constant swarm.
+const CORE_RUSH_PROB = 0
+
+// Heading for a freshly reseeded tip: usually fan OUTWARD from our own core (so
+// growth fills and contests territory), rarely aim straight at the enemy core.
+function reseedHeading(peg: Peg, ownSrc: Peg | undefined, enemyCore: Peg | undefined): number {
+	if (enemyCore && Math.random() < CORE_RUSH_PROB) {
+		return Math.atan2(enemyCore.y - peg.y, enemyCore.x - peg.x)
+	}
+	const dx = ownSrc ? peg.x - ownSrc.x : 0
+	const dy = ownSrc ? peg.y - ownSrc.y : 0
+	const out = dx || dy ? Math.atan2(dy, dx) : Math.random() * Math.PI * 2
+	return out + (Math.random() - 0.5) * 1.2 // fan the spread so tips don't stack
+}
 
 // Find up to `limit` owned FRONTIER pegs for `owner` — pegs that have at least
 // one claimable neighbour (somewhere growth can still push). We scan owned pegs

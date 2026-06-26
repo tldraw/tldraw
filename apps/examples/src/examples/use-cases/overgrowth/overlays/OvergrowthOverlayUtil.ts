@@ -9,9 +9,10 @@ import {
 	Owner,
 	pegOwner,
 	PLAYER_COLOR,
+	SAP_BUDGET,
 	THICKNESS_SCALE,
 } from '../game-state'
-import { chargeStrength, hasPresence, sparkPos, vineSubtreeSize } from '../sim'
+import { chargeStrength, hasPresence, sparkPos, vineSap, vineSubtreeSize } from '../sim'
 
 interface TLOvergrowthOverlay extends TLOverlay {
 	props: { frame: number }
@@ -237,10 +238,13 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 			const witherRgb = parseRgb(C.wither)
 			const greyRgb = parseRgb(C.ink) // muted target for out-of-reach enemy vines
 			const slicing = world.slicing
-			// Trunk emphasis grows with zoom: leaves stay ~1px at every zoom, but the
-			// fat-trunk bonus ramps up as you zoom in (where you actually cut), so the
-			// chokes pop clearly up close while the zoomed-out mesh stays even/legible.
+			// Trunk emphasis grows with zoom: leaves stay ~LEAF px at every zoom, but
+			// the fat-trunk bonus ramps up as you zoom in (where you actually cut), so
+			// the chokes pop clearly up close while the zoomed-out mesh stays legible.
 			const trunkAmp = 0.5 + 1.7 * smoothstep(0.5, 1.4, zoom)
+			// Floor for the thinnest strands (leaves, neutral, fully withered) so the
+			// finest vines read as vines, not hairlines.
+			const LEAF = 1.6
 			for (const strand of world.strands) {
 				const c = strand.cell % GRID.cols
 				const r = (strand.cell / GRID.cols) | 0
@@ -249,9 +253,10 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 				let width = owner
 					? Math.min(
 							11,
-							1 + trunkAmp * THICKNESS_SCALE * Math.log(Math.max(1, vineSubtreeSize(world, strand)))
+							LEAF +
+								trunkAmp * THICKNESS_SCALE * Math.log(Math.max(1, vineSubtreeSize(world, strand)))
 						)
-					: 1
+					: LEAF
 				// Contextual cue: while a cut is in progress, ENEMY ('b') vines the
 				// player can't reach are greyed — the SAME hasPresence-at-midpoint test
 				// sliceCut refuses, so the greyed set matches the set the cut rejects.
@@ -267,18 +272,32 @@ export class OvergrowthOverlayUtil extends OverlayUtil<TLOvergrowthOverlay> {
 					const charge = Math.max(pa ? pa.charge[owner] : 0, pb ? pb.charge[owner] : 0)
 					const wither = 1 - Math.min(1, charge / CLAIM_CHARGE)
 					if (wither > 0.02) {
-						width = width + (1 - width) * wither
+						width = width + (LEAF - width) * wither
 						alpha = 0.5
 						ctx.fillStyle = lerpColor(parseRgb(coreColor(owner)), witherRgb, wither)
 					} else if (greyed) {
 						alpha = 0.5
 						ctx.fillStyle = desaturate(parseRgb(coreColor(owner)), greyRgb)
 					} else {
+						// Sap readout: a fed vine's brightness tracks how much sap reaches it
+						// (log-scaled to the budget). Vivid near the well-fed core, darkening
+						// toward starving tips — so a lean high-sap spear stays bright far out
+						// while a sap-fragmented bush dims everywhere.
+						const sapStrength = Math.min(
+							1,
+							Math.log(1 + vineSap(world, strand)) / Math.log(1 + SAP_BUDGET)
+						)
+						const ownerRgb = parseRgb(coreColor(owner))
+						const dim: [number, number, number] = [
+							ownerRgb[0] * 0.22,
+							ownerRgb[1] * 0.22,
+							ownerRgb[2] * 0.22,
+						]
 						alpha = 0.92
-						ctx.fillStyle = coreColor(owner)
+						ctx.fillStyle = lerpColor(dim, ownerRgb, sapStrength)
 					}
 				} else {
-					width = 1
+					width = LEAF
 					alpha = 0.45
 					ctx.fillStyle = C.neutral
 				}

@@ -19,8 +19,10 @@ import {
 	GRID,
 	hint$,
 	resetWorld,
+	SAP_BUDGET,
 	SWIPE_IDLE_MS,
 	SWIPE_SHRINK,
+	UPKEEP,
 	winner$,
 } from './game-state'
 import { OvergrowthOverlayUtil } from './overlays/OvergrowthOverlayUtil'
@@ -422,6 +424,58 @@ function WinBanner() {
 	)
 }
 
+// Live sap readout: how many cells each color is currently FEEDING (sap ≥ UPKEEP)
+// vs how many it owns — the gap is cells that are starving back to neutral — and
+// the per-side budget. The clearest read on "who is out-growing whom and why,"
+// alongside the in-world vine brightness (which tracks sap per vine).
+function SapReadout() {
+	useValue('sap-frame', () => frame$.get(), [])
+	const world = getWorld()
+	let fedA = 0
+	let fedB = 0
+	let cellsA = 0
+	let cellsB = 0
+	for (const peg of world.pegs) {
+		if (peg.owner === 'a') {
+			cellsA++
+			if (peg.sap >= UPKEEP) fedA++
+		} else if (peg.owner === 'b') {
+			cellsB++
+			if (peg.sap >= UPKEEP) fedB++
+		}
+	}
+	const row = (label: string, dot: string, fed: number, cells: number) => (
+		<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+			<span
+				style={{ display: 'inline-block', width: 9, height: 9, borderRadius: 9, background: dot }}
+			/>
+			<span>
+				{label}: {fed} fed
+				{cells > fed ? ` · ${cells - fed} starving` : ''}
+			</span>
+		</div>
+	)
+	return (
+		<div
+			style={{
+				...PANEL_STYLE,
+				position: 'absolute',
+				top: 12,
+				left: 12,
+				zIndex: 1002,
+				pointerEvents: 'none',
+				padding: '8px 12px',
+				fontSize: 12,
+				lineHeight: 1.6,
+			}}
+		>
+			{row('Blue', 'dodgerblue', fedA, cellsA)}
+			{row('Orange', 'darkorange', fedB, cellsB)}
+			<div style={{ opacity: 0.55, marginTop: 2 }}>sap budget {SAP_BUDGET} / side</div>
+		</div>
+	)
+}
+
 // Pushes the chosen scheme into the live editor. The `colorScheme` prop only
 // seeds the editor at mount, so toggling at runtime goes through setColorMode
 // (the overlay reads editor.getColorMode() each frame and reskins accordingly).
@@ -452,6 +506,7 @@ export default function OvergrowthExample() {
 			>
 				<GameRunner />
 				<ThemeSync scheme={scheme} />
+				<SapReadout />
 				<HintBanner />
 				<WinBanner />
 			</Tldraw>

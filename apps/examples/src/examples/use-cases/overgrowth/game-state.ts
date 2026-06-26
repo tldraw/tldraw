@@ -51,16 +51,16 @@ export const MAP_CHOKE_HALF_WIDTH = 1 // 1 → 1-cell-wide chokes (passage = 1..
 // all active tips advance together in one visible surge, then nothing grows
 // until the next pulse. This makes expansion read as rhythmic outward steps and
 // gives the player a window to prune between waves.
-export const GROWTH_PULSE_INTERVAL = 14 // ticks between growth pulses (~0.23s)
+export const GROWTH_PULSE_INTERVAL = 10 // ticks between growth pulses
 // How many cells a tip jumps forward per pulse (advances outward fast).
 export const CELLS_PER_PULSE = 1
 // Global cap on tip extensions per color per pulse, so a huge frontier still
 // reads as a wave rather than an instant flood.
-export const MAX_TIPS_ADVANCED_PER_PULSE = 60
+export const MAX_TIPS_ADVANCED_PER_PULSE = 90
 
 // --- tips: organic, chaotic tendrils ---
 // Probability a tip forks into a second tip on a pulse (fractal branching).
-export const TIP_BRANCH_PROB = 0.22
+export const TIP_BRANCH_PROB = 0.2
 // Probability a tip simply dies on a pulse (finite, irregular tendril length).
 export const TIP_DEATH_PROB = 0.04
 // Directional persistence: how strongly a tip keeps its current heading vs
@@ -126,6 +126,28 @@ export const ORPHAN_DECAY = 0.86
 // Sere/dead tint a withering vine blends toward as its charge decays (a
 // desaturated brown). Healthy connected vines are unaffected.
 export const WITHER_COLOR = '#6b5536'
+
+// --- sap upkeep: living territory costs supply, so it can't fill the map ---
+// Each core emits SAP_BUDGET of sap per recompute. It flows down the tree and
+// splits EQUALLY among a peg's children; each cell keeps UPKEEP and passes the
+// rest on. A connected cell that gets less than UPKEEP is STARVED and withers
+// (via the same pipeline as an orphaned cell). Consequences: a color sustains at
+// most ~SAP_BUDGET cells, so two colors can't partition the whole board — there
+// is always a neutral contested middle; the seam is where sap is thinnest, so it
+// constantly dies back and regrows (no freeze); and because sap splits at forks,
+// a lean spear reaches far while a sprawling bush starves shallow — pruning a
+// branch hands its sap to the survivors. Tune SAP_BUDGET so each territory holds
+// roughly a third to a half of the board with a persistent gap between them.
+export const SAP_BUDGET = 2500
+// Sap a living cell consumes to stay alive (normalizes SAP_BUDGET to ~cells fed).
+export const UPKEEP = 1
+// A tip only advances if its current cell has at least this much sap — enough to
+// keep itself AND feed the new child. Growth therefore HALTS at the sustainable
+// frontier instead of sprinting past it into low-sap ground and starving (which
+// sprayed dying vines into the far corners). Makes SAP_BUDGET a clean size dial:
+// territory grows to where sap runs out, then stops. A gated tip waits in place
+// and resumes if sap frees up (e.g. after you prune an interior branch).
+export const GROWTH_SAP_MIN = UPKEEP * 3
 
 // --- ownership ---
 export const OWN_THRESHOLD = 0.5
@@ -217,6 +239,13 @@ export interface Peg {
 	// Recomputed post-order from each source on graph change; drives vine
 	// thickness and the choke-vs-hydra decision.
 	subtreeSize: number
+	// Sap reaching this peg from its source. Each core emits a fixed budget that
+	// flows down the tree, splitting EQUALLY at every branch; a cell keeps UPKEEP
+	// for itself and passes the rest on. A connected cell that receives less than
+	// UPKEEP is STARVED and withers — so territory is capped at what a core can
+	// feed, the contested middle never fully fills, and pruning a branch reroutes
+	// its sap into the survivors (they reach further). Recomputed with subtreeSize.
+	sap: number
 	// Wall/obstacle: vines can't grow into or through this cell. Set once at world
 	// creation by the map generator; never changes during play.
 	blocked: boolean
@@ -569,6 +598,7 @@ export function createWorld(): World {
 				cutLockout: 0,
 				adj: new Set(),
 				subtreeSize: 1,
+				sap: 0,
 				blocked: wall[r][c],
 			}
 			pegs.push(peg)
