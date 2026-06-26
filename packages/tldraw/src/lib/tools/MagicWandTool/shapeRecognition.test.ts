@@ -161,6 +161,37 @@ describe('recognizeRectangle', () => {
 		expect(recognize(samplePolygon(corners))).toBe(null)
 	})
 
+	it('recognizes a straight open stroke as a line at its exact endpoints', () => {
+		const a = new Vec(40, 60)
+		const b = new Vec(240, 110)
+		const pts: Vec[] = []
+		const steps = 20
+		for (let i = 0; i <= steps; i++) {
+			const t = i / steps
+			// Tiny perpendicular wobble (well within the straightness tolerance).
+			pts.push(new Vec(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t + (i % 2 ? 1 : -1)))
+		}
+		const result = recognize(pts)
+		expect(result?.kind).toBe('line')
+		const r = result as Extract<ShapeRecognitionResult, { kind: 'line' }>
+		// Exact endpoints — the first and last sampled points, not a fitted average.
+		expect(r.start.x).toBeCloseTo(pts[0].x, 5)
+		expect(r.start.y).toBeCloseTo(pts[0].y, 5)
+		expect(r.end.x).toBeCloseTo(pts[pts.length - 1].x, 5)
+		expect(r.end.y).toBeCloseTo(pts[pts.length - 1].y, 5)
+	})
+
+	it('does not recognize a clearly curved open stroke as a line', () => {
+		const pts: Vec[] = []
+		const steps = 24
+		for (let i = 0; i <= steps; i++) {
+			const t = i / steps
+			// Arc bowing 70 off a 200-wide chord — far from straight.
+			pts.push(new Vec(100 + 200 * t, 200 - Math.sin(t * Math.PI) * 70))
+		}
+		expect(recognize(pts)).toBe(null)
+	})
+
 	it('does not recognize an open (un-closed) rectangle path', () => {
 		// Perimeter that stops three-quarters of the way around — endpoints far apart.
 		const corners = rectCorners(0, 0, 100, 60)

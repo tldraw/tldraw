@@ -1,4 +1,4 @@
-import { TLDrawShape, TLGeoShape, createShapeId } from '@tldraw/editor'
+import { TLDrawShape, TLGeoShape, TLLineShape, createShapeId, sortByIndex } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
@@ -249,6 +249,25 @@ function drawEllipseSketch(cx: number, cy: number, rx: number, ry: number, steps
 	}
 }
 
+/** Draws a near-straight open stroke (pen left down) from (x1,y1) to (x2,y2). */
+function drawLineSketch(x1: number, y1: number, x2: number, y2: number, steps = 12) {
+	editor.setCurrentTool('magic-wand')
+	editor.pointerDown(x1, y1)
+	for (let i = 1; i <= steps; i++) {
+		const t = i / steps
+		editor.pointerMove(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t)
+	}
+}
+
+/** The two page-space endpoints of a morphed line, ordered by point index. */
+function linePageEndpoints(line: TLLineShape) {
+	const [a, b] = Object.values(line.props.points).sort(sortByIndex)
+	return {
+		start: { x: line.x + a.x, y: line.y + a.y },
+		end: { x: line.x + b.x, y: line.y + b.y },
+	}
+}
+
 describe('MagicWandTool hold-to-morph', () => {
 	beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }))
 	afterEach(() => vi.useRealTimers())
@@ -264,7 +283,7 @@ describe('MagicWandTool hold-to-morph', () => {
 		drawRectSketch(square)
 
 		// Before the hold elapses: still a freehand stroke, no real geo yet.
-		vi.advanceTimersByTime(500)
+		vi.advanceTimersByTime(300)
 		expect(realShapes().some((s) => s.type === 'draw')).toBe(true)
 		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
 
@@ -286,19 +305,20 @@ describe('MagicWandTool hold-to-morph', () => {
 
 	it('does not morph while the pen keeps moving', () => {
 		drawRectSketch(square)
-		// Nudge the pen past the move tolerance every 500ms; the timer keeps resetting.
+		// Nudge the pen past the move tolerance before the hold elapses; the timer
+		// keeps resetting, so the morph never fires.
 		for (let i = 0; i < 6; i++) {
-			vi.advanceTimersByTime(500)
+			vi.advanceTimersByTime(300)
 			editor.pointerMove(i % 2 ? 100 : 130, 100)
 		}
 		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
 	})
 
-	it('morphs instead of lasso when held 1s, even while encircling a shape', () => {
+	it('morphs instead of lasso when held, even while encircling a shape', () => {
 		const boxId = createBox(130, 130) // center ~(150,150), inside the square
 		drawRectSketch(square)
 
-		vi.advanceTimersByTime(1100) // hold past the morph threshold
+		vi.advanceTimersByTime(600) // hold past the morph threshold
 		// Morph wins: a new rectangle exists, box untouched, draw stroke gone.
 		const geos = realShapes().filter((s) => s.type === 'geo')
 		expect(geos.some((s) => s.id !== boxId)).toBe(true)
@@ -307,11 +327,11 @@ describe('MagicWandTool hold-to-morph', () => {
 		editor.pointerUp()
 	})
 
-	it('lassos when the loop encircles a shape but is released before 1s', () => {
+	it('lassos when the loop encircles a shape but is released before the hold', () => {
 		const boxId = createBox(130, 130)
 		drawRectSketch(square)
 
-		vi.advanceTimersByTime(500) // not yet at morph threshold
+		vi.advanceTimersByTime(300) // not yet at morph threshold
 		editor.pointerUp() // release early → lasso wins
 
 		expect(editor.getSelectedShapeIds()).toEqual([boxId])
@@ -329,7 +349,7 @@ describe('MagicWandTool hold-to-morph', () => {
 			size: stroke.props.size,
 		}
 
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
 		expect({
 			color: geo.props.color,
@@ -344,7 +364,7 @@ describe('MagicWandTool hold-to-morph', () => {
 
 	it('undo removes the morphed rectangle and redo re-creates it', () => {
 		drawRectSketch(square)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 		expect(realShapes().filter((s) => s.type === 'geo')).toHaveLength(1)
 
 		editor.undo()
@@ -367,7 +387,7 @@ describe('MagicWandTool hold-to-morph', () => {
 			for (let j = 1; j <= 6; j++)
 				editor.pointerMove(100 + ((cx - 100) * j) / 6, 100 + ((cy - 100) * j) / 6)
 		}
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
 		expect(realShapes().some((s) => s.type === 'draw')).toBe(true)
 	})
@@ -383,7 +403,7 @@ describe('MagicWandTool hold-to-morph', () => {
 		].map((c) => rotateAround(c as [number, number], center, angle))
 
 		drawRectSketch(rotated)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 
 		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
 		expect(geo).toBeTruthy()
@@ -395,7 +415,7 @@ describe('MagicWandTool hold-to-morph', () => {
 		drawEllipseSketch(150, 150, 60, 60)
 
 		// Before the hold elapses: still a freehand stroke, no geo yet.
-		vi.advanceTimersByTime(500)
+		vi.advanceTimersByTime(300)
 		expect(realShapes().some((s) => s.type === 'geo')).toBe(false)
 
 		// After the hold: the stroke morphs into one geo ellipse, selected.
@@ -411,7 +431,7 @@ describe('MagicWandTool hold-to-morph', () => {
 
 	it('drag-tunes a morphed ellipse about its center', () => {
 		drawEllipseSketch(150, 150, 60, 40)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 		editor.expectToBeIn('magic-wand.morph-tuning')
 
 		const id = realShapes().find((s) => s.type === 'geo')!.id
@@ -435,7 +455,7 @@ describe('MagicWandTool hold-to-morph', () => {
 			[100, 200],
 		] // 110 × 100, ratio 1.1 < 1.2
 		drawRectSketch(nearSquare)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 
 		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
 		expect(geo.props.geo).toBe('rectangle')
@@ -451,7 +471,7 @@ describe('MagicWandTool hold-to-morph', () => {
 			[100, 200],
 		] // 180 × 100, ratio 1.8 > 1.2
 		drawRectSketch(wide)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 
 		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
 		expect(Math.abs(geo.props.w - geo.props.h)).toBeGreaterThan(40)
@@ -460,7 +480,7 @@ describe('MagicWandTool hold-to-morph', () => {
 
 	it('snaps a near-circular sketch to a clean circle (equal axes)', () => {
 		drawEllipseSketch(150, 150, 60, 66) // ratio 1.1 < 1.2
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 
 		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
 		expect(geo.props.geo).toBe('ellipse')
@@ -474,7 +494,7 @@ describe('MagicWandTool hold-to-morph', () => {
 		const tilted = square.map((c) => rotateAround(c, center, angle))
 
 		drawRectSketch(tilted)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 
 		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
 		expect(geo).toBeTruthy()
@@ -484,7 +504,7 @@ describe('MagicWandTool hold-to-morph', () => {
 
 	it('enters morph-tuning state after morph while pointer is held', () => {
 		drawRectSketch(square)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 		editor.expectToBeIn('magic-wand.morph-tuning')
 		editor.pointerUp()
 		editor.expectToBeIn('magic-wand.idle')
@@ -492,7 +512,7 @@ describe('MagicWandTool hold-to-morph', () => {
 
 	it('drag after morph scales the rectangle about its center', () => {
 		drawRectSketch(square)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 		editor.expectToBeIn('magic-wand.morph-tuning')
 
 		const id = realShapes().find((s) => s.type === 'geo')!.id
@@ -514,7 +534,7 @@ describe('MagicWandTool hold-to-morph', () => {
 		// The sketch helper leaves the pen held at (102, 100) — the morph-time
 		// pointer. Moving to exactly that point must leave the shape unchanged.
 		drawRectSketch(square)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 
 		const before = realShapes().find((s) => s.type === 'geo') as TLGeoShape
 		const snap = {
@@ -538,7 +558,7 @@ describe('MagicWandTool hold-to-morph', () => {
 
 	it('snaps rotation to the nearest 15° while shift is held during tuning', () => {
 		drawRectSketch(square)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 		editor.expectToBeIn('magic-wand.morph-tuning')
 		const id = realShapes().find((s) => s.type === 'geo')!.id
 		const fifteen = Math.PI / 12
@@ -560,7 +580,7 @@ describe('MagicWandTool hold-to-morph', () => {
 
 	it('cancel during tuning removes the morphed rectangle', () => {
 		drawRectSketch(square)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 		editor.expectToBeIn('magic-wand.morph-tuning')
 
 		expect(realShapes().some((s) => s.type === 'geo')).toBe(true)
@@ -571,7 +591,7 @@ describe('MagicWandTool hold-to-morph', () => {
 
 	it('pointer-up during tuning commits the shape at the dragged position', () => {
 		drawRectSketch(square)
-		vi.advanceTimersByTime(1100)
+		vi.advanceTimersByTime(600)
 
 		const geoBefore = realShapes().find((s) => s.type === 'geo') as TLGeoShape
 		editor.pointerMove(-50, -50)
@@ -588,5 +608,70 @@ describe('MagicWandTool hold-to-morph', () => {
 		editor.redo()
 		const geoRedo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
 		expect(geoRedo.props.w).toBeCloseTo(geoAfter.props.w, 0)
+	})
+
+	it('morphs a held straight sketch into a line at the exact endpoints', () => {
+		drawLineSketch(100, 100, 300, 140)
+
+		// Before the hold elapses: still a freehand stroke, no line yet.
+		vi.advanceTimersByTime(300)
+		expect(realShapes().some((s) => s.type === 'line')).toBe(false)
+
+		// After the hold: the stroke morphs into one line, selected, tool idle (a
+		// line has nothing to tune, so it doesn't enter the tuning state).
+		vi.advanceTimersByTime(300)
+		const lines = realShapes().filter((s) => s.type === 'line')
+		expect(lines).toHaveLength(1)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		expect(editor.getSelectedShapeIds()).toEqual([lines[0].id])
+		editor.expectToBeIn('magic-wand.idle')
+
+		// The line spans the exact freehand endpoints (not a fitted approximation).
+		const { start, end } = linePageEndpoints(lines[0] as TLLineShape)
+		expect(start.x).toBeCloseTo(100, 0)
+		expect(start.y).toBeCloseTo(100, 0)
+		expect(end.x).toBeCloseTo(300, 0)
+		expect(end.y).toBeCloseTo(140, 0)
+	})
+
+	it('carries the sketch style onto the morphed line', () => {
+		drawLineSketch(100, 100, 280, 100)
+		const stroke = realShapes().find((s) => s.type === 'draw') as TLDrawShape
+		const expected = {
+			color: stroke.props.color,
+			dash: stroke.props.dash,
+			size: stroke.props.size,
+		}
+		vi.advanceTimersByTime(600)
+		const line = realShapes().find((s) => s.type === 'line') as TLLineShape
+		expect({ color: line.props.color, dash: line.props.dash, size: line.props.size }).toEqual(
+			expected
+		)
+	})
+
+	it('does not morph a clearly curved open sketch into a line', () => {
+		editor.setCurrentTool('magic-wand')
+		// A pronounced arc: chord 200 wide, bowing up ~70 (sagitta well past straight).
+		editor.pointerDown(100, 200)
+		const steps = 16
+		for (let i = 1; i <= steps; i++) {
+			const t = i / steps
+			editor.pointerMove(100 + 200 * t, 200 - Math.sin(t * Math.PI) * 70)
+		}
+		vi.advanceTimersByTime(600)
+		expect(realShapes().some((s) => s.type === 'line')).toBe(false)
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(true)
+	})
+
+	it('undo removes the morphed line and redo re-creates it', () => {
+		drawLineSketch(100, 100, 300, 100)
+		vi.advanceTimersByTime(600)
+		expect(realShapes().filter((s) => s.type === 'line')).toHaveLength(1)
+
+		editor.undo()
+		expect(realShapes()).toHaveLength(0)
+
+		editor.redo()
+		expect(realShapes().filter((s) => s.type === 'line')).toHaveLength(1)
 	})
 })

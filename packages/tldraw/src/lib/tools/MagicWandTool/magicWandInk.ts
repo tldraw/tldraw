@@ -4,8 +4,11 @@ import {
 	TLDefaultColorStyle,
 	TLDrawShape,
 	TLGeoShape,
+	TLLineShape,
 	TLShapeId,
+	VecLike,
 	createShapeId,
+	getIndices,
 } from '@tldraw/editor'
 
 /** The opacity of magic wand ink while a stroke is in progress. */
@@ -219,6 +222,47 @@ export function showMorphPreview(
 				rotation: shape.rotation,
 				opacity: 0,
 				props: { geo: shape.geo, w: shape.w, h: shape.h, color: shape.color, fill: 'none' },
+				meta: { magicWandGhost: true },
+			})
+		},
+		{ history: 'ignore' }
+	)
+	animateShapeOpacity(editor, ghostId, 0, MORPH_PREVIEW_OPACITY, durationMs)
+	return ghostId
+}
+
+/**
+ * Shows the hold "charging" preview for a line morph: a locked, ephemeral line at
+ * the recognized endpoints whose opacity ramps up over `durationMs`. History-
+ * ignored, so it never touches the document. Returns its id; pass it to
+ * {@link removeMorphPreview}.
+ */
+export function showMorphLinePreview(
+	editor: Editor,
+	start: VecLike,
+	end: VecLike,
+	color: TLDefaultColorStyle,
+	durationMs: number
+): TLShapeId {
+	const ghostId = createShapeId()
+	const [startKey, endKey] = getIndices(2)
+	editor.run(
+		() => {
+			editor.createShape<TLLineShape>({
+				id: ghostId,
+				type: 'line',
+				isLocked: true,
+				x: start.x,
+				y: start.y,
+				opacity: 0,
+				props: {
+					color,
+					spline: 'line',
+					points: {
+						[startKey]: { id: startKey, index: startKey, x: 0, y: 0 },
+						[endKey]: { id: endKey, index: endKey, x: end.x - start.x, y: end.y - start.y },
+					},
+				},
 				meta: { magicWandGhost: true },
 			})
 		},

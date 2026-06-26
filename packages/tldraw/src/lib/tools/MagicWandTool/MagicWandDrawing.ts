@@ -4,11 +4,13 @@ import {
 	TLDefaultFillStyle,
 	TLDrawShape,
 	TLGeoShape,
+	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
 	areArraysShallowEqual,
 	createShapeId,
+	getIndices,
 	pointInPolygon,
 } from '@tldraw/editor'
 import { getPointsFromDrawSegments } from '../../shapes/draw/getPath'
@@ -22,6 +24,7 @@ import {
 	fadeOutInkGhost,
 	removeMorphPreview,
 	setWetInk,
+	showMorphLinePreview,
 	showMorphPreview,
 } from './magicWandInk'
 import { MorphTuningInfo } from './MagicWandMorphTuning'
@@ -38,7 +41,7 @@ import {
 const MAGIC_WAND_CLOSE_DISTANCE = 16
 
 /** How long the pen must be held roughly still to morph the sketch into a shape. */
-const MORPH_HOLD_MS = 1000
+const MORPH_HOLD_MS = 500
 /** Delay before the "charging" morph preview appears (so a brief pause doesn't flash it). */
 const MORPH_PREVIEW_DELAY_MS = 200
 /** Screen-space movement that resets the hold-to-morph timer ("held there"). */
@@ -53,8 +56,9 @@ const MORPH_MOVE_TOLERANCE = 6
  * While drawing, the ink previews the outcome: it turns the selection colour
  * whenever releasing at the current point would lasso-select something.
  *
- * It also recognizes shapes: holding the pen roughly still for ~1s while the
- * sketch is approximately a rectangle or ellipse morphs it into a real geo shape.
+ * It also recognizes shapes: holding the pen roughly still while the sketch is
+ * approximately a rectangle, ellipse, or straight line morphs it into a real
+ * geo/line shape.
  */
 export class MagicWandDrawing extends Drawing {
 	// Shapes that existed before this stroke started, so we never try to lasso
@@ -261,6 +265,19 @@ export class MagicWandDrawing extends Drawing {
 		const shape = this.getMorphShape()
 		if (!shape) return
 		this.morphRecognition = shape
+		const duration = MORPH_HOLD_MS - MORPH_PREVIEW_DELAY_MS
+
+		if (shape.kind === 'line') {
+			this.morphPreviewId = showMorphLinePreview(
+				this.editor,
+				shape.start,
+				shape.end,
+				MAGIC_WAND_LASSO_COLOR,
+				duration
+			)
+			return
+		}
+
 		const topLeft = recognizedShapeTopLeft(shape)
 		this.morphPreviewId = showMorphPreview(
 			this.editor,
@@ -273,11 +290,11 @@ export class MagicWandDrawing extends Drawing {
 				rotation: shape.rotation,
 				color: MAGIC_WAND_LASSO_COLOR,
 			},
-			MORPH_HOLD_MS - MORPH_PREVIEW_DELAY_MS
+			duration
 		)
 	}
 
-	/** Fires after the hold; replaces the sketch with the recognized geo shape. */
+	/** Fires after the hold; replaces the sketch with the recognized shape. */
 	private tryMorph() {
 		this.morphTimeout = null
 		if (this.didMorph) return
@@ -293,32 +310,59 @@ export class MagicWandDrawing extends Drawing {
 		const size = strokeShapes[0].props.size
 		const scale = strokeShapes[0].props.scale
 
-		// Discard the freehand stroke, then create the geo shape as one recorded
-		// step (mirrors the lasso): net undo = "create shape".
+		// Discard the freehand stroke, then create the recognized shape as one
+		// recorded step (mirrors the lasso): net undo = "create shape".
 		if (this.markId) this.editor.bailToMark(this.markId)
 
 		// Mark before createShape so the morph-tuning state can bail here on cancel.
 		const morphMark = this.editor.markHistoryStoppingPoint('morph-create')
 
 		const id = createShapeId()
-		const topLeft = recognizedShapeTopLeft(shape)
-		this.editor.createShape<TLGeoShape>({
-			id,
-			type: 'geo',
-			x: topLeft.x,
-			y: topLeft.y,
-			rotation: shape.rotation,
-			props: {
-				geo: shape.kind,
-				w: shape.w,
-				h: shape.h,
-				color: this.inkColor,
-				fill: this.inkFill,
-				dash,
-				size,
-				scale,
-			},
-		})
+		if (shape.kind === 'line') {
+			const [startKey, endKey] = getIndices(2)
+			this.editor.createShape<TLLineShape>({
+				id,
+				type: 'line',
+				// Exact endpoints: origin at the start, second vertex at the offset.
+				x: shape.start.x,
+				y: shape.start.y,
+				props: {
+					color: this.inkColor,
+					dash,
+					size,
+					scale,
+					spline: 'line',
+					points: {
+						[startKey]: { id: startKey, index: startKey, x: 0, y: 0 },
+						[endKey]: {
+							id: endKey,
+							index: endKey,
+							x: shape.end.x - shape.start.x,
+							y: shape.end.y - shape.start.y,
+						},
+					},
+				},
+			})
+		} else {
+			const topLeft = recognizedShapeTopLeft(shape)
+			this.editor.createShape<TLGeoShape>({
+				id,
+				type: 'geo',
+				x: topLeft.x,
+				y: topLeft.y,
+				rotation: shape.rotation,
+				props: {
+					geo: shape.kind,
+					w: shape.w,
+					h: shape.h,
+					color: this.inkColor,
+					fill: this.inkFill,
+					dash,
+					size,
+					scale,
+				},
+			})
+		}
 
 		// Crossfade: fade the new shape in while ghost copies of the sketch fade out.
 		fadeInShape(this.editor, id)
@@ -326,10 +370,15 @@ export class MagicWandDrawing extends Drawing {
 
 		this.editor.setSelectedShapes([id])
 
-		// While the pointer is still held, enter the drag-to-tune state so the user
-		// can adjust scale and rotation about the center. The pointer keeps the
-		// grip it has right now (its offset from the center at morph time), so the
-		// drag starts without any jump.
+		// A line keeps its exact endpoints, so there's nothing to tune — just end
+		// the gesture. Box shapes enter drag-to-tune while the pointer is held: the
+		// pointer keeps the grip it has right now (its offset from the center at
+		// morph time), so the drag starts without any jump.
+		if (shape.kind === 'line') {
+			this.parent.transition('idle')
+			return
+		}
+
 		const transform = this.editor.getShapePageTransform(id)
 		if (transform) {
 			const centerPage = Mat.applyToPoint(transform, new Vec(shape.w / 2, shape.h / 2))

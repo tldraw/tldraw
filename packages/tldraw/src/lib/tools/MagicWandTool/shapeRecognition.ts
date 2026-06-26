@@ -32,6 +32,8 @@ const ELLIPSE_BOUNDARY_FRACTION = 0.75
 const ELLIPSE_SPIKE_RADIUS = 1.2
 /** Reject as an ellipse if more than this fraction of points poke well outside the outline. */
 const ELLIPSE_MAX_SPIKE_FRACTION = 0.1
+/** A stroke is a line if no point strays more than this fraction of its length from the chord. */
+const LINE_STRAIGHTNESS_RATIO = 0.1
 
 /** The normalized input handed to every recognizer. Points are in page space. */
 export interface RecognizerInput {
@@ -62,8 +64,20 @@ export interface RecognizedEllipse extends OrientedBox {
 	kind: 'ellipse'
 }
 
+/** Recognized shapes backed by an oriented box (spawned as geo shapes). */
+export type RecognizedBoxShape = RecognizedRectangle | RecognizedEllipse
+
+/** A recognized straight line, kept at the sketch's exact endpoints (no fitting). */
+export interface RecognizedLine {
+	kind: 'line'
+	/** Page-space start point — the freehand stroke's first point. */
+	start: Vec
+	/** Page-space end point — the freehand stroke's last point. */
+	end: Vec
+}
+
 /** The result of recognizing a gesture as a shape. New kinds are unioned in here. */
-export type ShapeRecognitionResult = RecognizedRectangle | RecognizedEllipse
+export type ShapeRecognitionResult = RecognizedBoxShape | RecognizedLine
 
 /** A single shape classifier. */
 export interface ShapeRecognizer {
@@ -98,11 +112,11 @@ export function recognizeShape(input: RecognizerInput): ShapeRecognitionResult |
 }
 
 /**
- * The page-space top-left origin for a recognized shape's geo shape. A geo shape
- * rotates around its (x, y) origin, so we offset the center back by the rotated
+ * The page-space top-left origin for a box shape's geo shape. A geo shape rotates
+ * around its (x, y) origin, so we offset the center back by the rotated
  * half-extents. Works for any oriented box (rectangle, ellipse, …).
  */
-export function recognizedShapeTopLeft(r: ShapeRecognitionResult): Vec {
+export function recognizedShapeTopLeft(r: RecognizedBoxShape): Vec {
 	return Vec.Sub(r.center, Vec.Rot(new Vec(r.w / 2, r.h / 2), r.rotation))
 }
 
@@ -191,8 +205,46 @@ const recognizeEllipse: ShapeRecognizer = {
 	},
 }
 
+const recognizeLine: ShapeRecognizer = {
+	kind: 'line',
+	recognize(input) {
+		// A line is an open stroke; a closed loop is a rectangle/ellipse/lasso.
+		if (input.isClosed) return null
+
+		const start = input.points[0]
+		const end = input.points[input.points.length - 1]
+		const length = Vec.Dist(start, end)
+		if (length < MIN_DIM) return null
+
+		// Every point must lie close to the straight chord between the endpoints.
+		let maxDeviation = 0
+		for (const p of input.points) {
+			const deviation = distanceToLine(p, start, end)
+			if (deviation > maxDeviation) maxDeviation = deviation
+		}
+		if (maxDeviation / length > LINE_STRAIGHTNESS_RATIO) return null
+
+		// Keep the exact freehand endpoints — no "closest match" fitting.
+		return { kind: 'line', start: start.clone(), end: end.clone() }
+	},
+}
+
 /** Ordered list of classifiers; first non-null result wins. */
-export const SHAPE_RECOGNIZERS: ShapeRecognizer[] = [recognizeRectangle, recognizeEllipse]
+export const SHAPE_RECOGNIZERS: ShapeRecognizer[] = [
+	recognizeRectangle,
+	recognizeEllipse,
+	recognizeLine,
+]
+
+/** Perpendicular distance from point p to the infinite line through a and b. */
+function distanceToLine(p: Vec, a: Vec, b: Vec): number {
+	const ab = Vec.Sub(b, a)
+	const lengthAb = ab.len()
+	if (lengthAb === 0) return Vec.Dist(p, a)
+	const ap = Vec.Sub(p, a)
+	// |cross(ab, ap)| / |ab| is the height of the triangle on base ab.
+	return Math.abs(ab.x * ap.y - ab.y * ap.x) / lengthAb
+}
 
 /** Absolute area of a polygon via the shoelace formula. */
 function polygonArea(points: Vec[]): number {
