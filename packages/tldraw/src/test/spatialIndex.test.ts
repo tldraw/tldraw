@@ -47,8 +47,8 @@ describe('SpatialIndexManager - bounds epoch', () => {
 	})
 
 	it('does not tick on a prop-only update with unchanged bounds', () => {
-		// Color change doesn't move bounds — step-1 must short-circuit
-		// the upsert and the epoch must stay still.
+		// Color change doesn't move bounds — the recheck must leave the
+		// mutation batch empty and the epoch must stay still.
 		const id = createShapeId('prop-only')
 		editor.createShapes([
 			{ id, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100, color: 'black' } },
@@ -62,8 +62,8 @@ describe('SpatialIndexManager - bounds epoch', () => {
 		tracker.stop()
 	})
 
-	it('skips the rbush upsert call on a prop-only diff', () => {
-		// Direct check on the headline optimization: `RBushIndex.upsert`
+	it('skips the rbush mutation batch on a prop-only diff', () => {
+		// Direct check on the headline optimization: `RBushIndex.applyBatch`
 		// must not be called when only props change.
 		const id = createShapeId('upsert-spy')
 		editor.createShapes([{ id, type: 'geo', x: 100, y: 100 }])
@@ -72,13 +72,13 @@ describe('SpatialIndexManager - bounds epoch', () => {
 		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
 
 		const rbush = (editor as any)._spatialIndex.rbush
-		const spy = vi.spyOn(rbush, 'upsert')
+		const spy = vi.spyOn(rbush, 'applyBatch')
 
 		editor.updateShapes([{ id, type: 'geo', props: { color: 'red' } }])
 		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
 		expect(spy).not.toHaveBeenCalled()
 
-		// Sanity: a real bounds change does call upsert.
+		// Sanity: a real bounds change does apply a batch.
 		editor.updateShapes([{ id, type: 'geo', x: 200, y: 200 }])
 		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
 		expect(spy).toHaveBeenCalled()
