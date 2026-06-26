@@ -80,6 +80,9 @@
               "text": "Les fichiers épinglés",
               "marks": [
                 {
+                  "type": "highlight"
+                },
+                {
                   "type": "bold"
                 }
               ]
@@ -198,6 +201,9 @@
               "text": "Nouvel espace de travail",
               "marks": [
                 {
+                  "type": "highlight"
+                },
+                {
                   "type": "bold"
                 }
               ]
@@ -284,6 +290,9 @@
               "type": "text",
               "text": "espace partagé",
               "marks": [
+                {
+                  "type": "highlight"
+                },
                 {
                   "type": "bold"
                 }
@@ -387,6 +396,9 @@
               "text": "Invitez votre équipe",
               "marks": [
                 {
+                  "type": "highlight"
+                },
+                {
                   "type": "bold"
                 }
               ]
@@ -461,6 +473,9 @@
               "type": "text",
               "text": "menu de l'espace de travail",
               "marks": [
+                {
+                  "type": "highlight"
+                },
                 {
                   "type": "bold"
                 }
@@ -583,6 +598,9 @@
               "text": "partager un lien",
               "marks": [
                 {
+                  "type": "highlight"
+                },
+                {
                   "type": "bold"
                 }
               ]
@@ -626,6 +644,9 @@
               "type": "text",
               "text": "retirer quelqu’un",
               "marks": [
+                {
+                  "type": "highlight"
+                },
                 {
                   "type": "bold"
                 }
@@ -713,6 +734,9 @@
               "type": "text",
               "text": "déplacer des fichiers",
               "marks": [
+                {
+                  "type": "highlight"
+                },
                 {
                   "type": "bold"
                 }
