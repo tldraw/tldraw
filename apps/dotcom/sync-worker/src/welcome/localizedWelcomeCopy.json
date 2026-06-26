@@ -1,1 +1,280 @@
-{}
+{
+  "fr": {
+    "shape:6YQTFRGGE5PCu9pbeg8x_": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Épinglez les fichiers que vous utilisez le plus. "
+            },
+            {
+              "type": "text",
+              "text": "Les fichiers épinglés",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " restent en haut de la liste, toujours faciles à trouver."
+            }
+          ]
+        }
+      ]
+    },
+    "shape:FNTnbSWrpEBQ_Aa79YvZm": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Créez un nouvel espace de travail depuis le menu de l'espace de travail dans la barre latérale. Cliquez sur "
+            },
+            {
+              "type": "text",
+              "text": "Nouvel espace de travail",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": ", donnez-lui un nom, et c'est prêt."
+            }
+          ]
+        }
+      ]
+    },
+    "shape:H2UJSrDaKd8hwk_0Y3WR1": {
+      "type": "doc",
+      "attrs": {
+        "dir": "auto"
+      },
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Un espace de travail est un "
+            },
+            {
+              "type": "text",
+              "text": "espace partagé",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " pour votre équipe. Tout le monde y voit la même liste de fichiers et peut les ouvrir et les modifier."
+            }
+          ]
+        }
+      ]
+    },
+    "shape:lC5iGWdiF2kYebPJxooPZ": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Bienvenue dans votre espace de travail"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:mNRs-dGysnFu1oJEqs0R0": {
+      "type": "doc",
+      "attrs": {
+        "dir": "auto"
+      },
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Invitez votre équipe",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " avec un lien d'invitation depuis le menu de l'espace de travail dans la barre latérale. Partagé par erreur ? Révoquez-le là aussi."
+            }
+          ]
+        }
+      ]
+    },
+    "shape:pAm1WIeABAT1LGBQKRc7x": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Retrouvez tout dans le "
+            },
+            {
+              "type": "text",
+              "text": "menu de l'espace de travail",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " : créer des fichiers, rechercher, changer d'espace et ouvrir les paramètres."
+            }
+          ]
+        }
+      ]
+    },
+    "shape:Q_ib93MMvj7i6W98PrU6T": {
+      "type": "doc",
+      "attrs": {
+        "dir": "auto"
+      },
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "p.s. n’hésitez pas à modifier ou supprimer ce tableau maintenant que vous maîtrisez les espaces de travail"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:SybEK3UEl5UlHjUHCY4ZO": {
+      "type": "doc",
+      "attrs": {
+        "dir": "auto"
+      },
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Besoin de partager avec des personnes extérieures à votre espace de travail ? Vous pouvez "
+            },
+            {
+              "type": "text",
+              "text": "partager un lien",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " vers un seul fichier pour que des invités le modifient sans rejoindre l'espace de travail."
+            }
+          ]
+        }
+      ]
+    },
+    "shape:v1LgJFqRFgth6yiPcQDbv": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Besoin de "
+            },
+            {
+              "type": "text",
+              "text": "retirer quelqu’un",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " ? Les propriétaires peuvent changer les rôles ou retirer des personnes dans Gérer l'espace de travail."
+            }
+          ]
+        }
+      ]
+    },
+    "shape:zYnof-9e8Q0So7eAUSWh7": {
+      "type": "doc",
+      "attrs": {
+        "dir": "auto"
+      },
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Vous pouvez "
+            },
+            {
+              "type": "text",
+              "text": "déplacer des fichiers",
+              "marks": [
+                {
+                  "type": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " dans votre espace de travail avec le menu « Déplacer vers » d’un fichier."
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
