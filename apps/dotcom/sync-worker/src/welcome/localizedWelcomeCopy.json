@@ -1,5 +1,67 @@
 {
   "fr": {
+    "shape:-KZt3HsEYmPMgGnHqn-x9": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Retirer"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:0jnFnLMQHaMDA1p2DVtWW": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "votre espace de travail"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:2do0j0vq29ZZo--xyEapz": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Liste de bagages"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:3Au97FHr_KS0FpIxbno9W": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Hier"
+            }
+          ]
+        }
+      ]
+    },
     "shape:6YQTFRGGE5PCu9pbeg8x_": {
       "type": "doc",
       "content": [
@@ -30,6 +92,94 @@
         }
       ]
     },
+    "shape:9AKUXIWXK4Kh-nieFrPuW": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Épinglés"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:boMcsKUseavr7nvC3aWGz": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Carte régionale"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:CMMgfwD3VhmOcKHbAjgEV": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Rétrospective de voyage"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:cQzOUIFCqtK2jpysM6Sjy": {
+      "type": "doc",
+      "attrs": {
+        "dir": "auto"
+      },
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "mes fichiers"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:fb8rhgv5cVf536iDT2z85": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Carte régionale"
+            }
+          ]
+        }
+      ]
+    },
     "shape:FNTnbSWrpEBQ_Aa79YvZm": {
       "type": "doc",
       "content": [
@@ -55,6 +205,60 @@
             {
               "type": "text",
               "text": ", donnez-lui un nom, et c'est prêt."
+            }
+          ]
+        }
+      ]
+    },
+    "shape:gPZCqHxcToRWQPs_CgKUw": {
+      "type": "doc",
+      "attrs": {
+        "dir": "auto"
+      },
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Nouvel espace de travail"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:gS5tRXlgMypqd4ZP6y5ev": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Arbre de décision"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:gswfF0O4MlAgYKCkpZu3n": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Lien d'invitation"
             }
           ]
         }
@@ -93,6 +297,51 @@
         }
       ]
     },
+    "shape:HsfUzpGWXgKPgvnh3HDeq": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Paramètres de l'espace de travail"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:J5rz-Uc6_LivmWF4qtpQr": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Mon espace de travail"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:kINtILDRfQXBDPWItXjGu": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Rétrospective de voyage"
+            }
+          ]
+        }
+      ]
+    },
     "shape:lC5iGWdiF2kYebPJxooPZ": {
       "type": "doc",
       "content": [
@@ -102,6 +351,20 @@
             {
               "type": "text",
               "text": "Bienvenue dans votre espace de travail"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:lfpFH7AAQHIINJVwcRvp7": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Recherche..."
             }
           ]
         }
@@ -136,6 +399,54 @@
         }
       ]
     },
+    "shape:MY49oHBm1MX8jYarAEvNT": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Nouveau fichier"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:nD1q7HlxqRbjj7XveZqjw": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Aujourd'hui"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:P0nISYQdoNqkxxQYAilvQ": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Liste de bagages"
+            }
+          ]
+        }
+      ]
+    },
     "shape:pAm1WIeABAT1LGBQKRc7x": {
       "type": "doc",
       "content": [
@@ -163,6 +474,40 @@
         }
       ]
     },
+    "shape:PmjNvBHnFZcJ85DnLkzTO": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Aujourd'hui"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:pPxGrmBJOfdyCyysteEjG": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Membre"
+            }
+          ]
+        }
+      ]
+    },
     "shape:Q_ib93MMvj7i6W98PrU6T": {
       "type": "doc",
       "attrs": {
@@ -178,6 +523,40 @@
             {
               "type": "text",
               "text": "p.s. n’hésitez pas à modifier ou supprimer ce tableau maintenant que vous maîtrisez les espaces de travail"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:r45POciGTPmrfiZg_VMdS": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Arbre de décision"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:SVfAurjsff53EZiwNcRGB": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Propriétaire"
             }
           ]
         }
@@ -216,6 +595,23 @@
         }
       ]
     },
+    "shape:tlFyNtEV_goUu74b8JdkV": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Propriétaire"
+            }
+          ]
+        }
+      ]
+    },
     "shape:v1LgJFqRFgth6yiPcQDbv": {
       "type": "doc",
       "content": [
@@ -238,6 +634,60 @@
             {
               "type": "text",
               "text": " ? Les propriétaires peuvent changer les rôles ou retirer des personnes dans Gérer l'espace de travail."
+            }
+          ]
+        }
+      ]
+    },
+    "shape:v3YxcpgVjgY8KjWd0uSPJ": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Hier"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:wS7vH9LU9IzxDDELQjv_r": {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "La semaine dernière"
+            }
+          ]
+        }
+      ]
+    },
+    "shape:YeS_4JNIAtlbI38ro9ET8": {
+      "type": "doc",
+      "attrs": {
+        "dir": "auto"
+      },
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "dir": "auto"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "Mon espace de travail"
             }
           ]
         }
