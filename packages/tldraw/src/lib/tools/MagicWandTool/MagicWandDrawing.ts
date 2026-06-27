@@ -29,6 +29,7 @@ import {
 } from './magicWandInk'
 import { LineTuningInfo } from './MagicWandLineTuning'
 import { MorphTuningInfo } from './MagicWandMorphTuning'
+import type { MagicWandTool } from './MagicWandTool'
 import {
 	ShapeRecognitionResult,
 	buildRecognizerInput,
@@ -204,7 +205,10 @@ export class MagicWandDrawing extends Drawing {
 			const inkSnapshots = this.getGestureStrokeShapes()
 			if (this.markId) this.editor.bailToMark(this.markId)
 			this.editor.setSelectedShapes(enclosedShapeIds)
+			// Hand off to select, but keep the magic wand masked over it so it stays
+			// the active tool and reclaims control once the selection is cleared.
 			this.editor.setCurrentTool('select')
+			;(this.parent as MagicWandTool).maskSelectAfterLasso()
 			for (const snapshot of inkSnapshots) {
 				fadeOutInkGhost(this.editor, snapshot, MAGIC_WAND_LASSO_COLOR)
 			}

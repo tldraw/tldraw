@@ -136,11 +136,56 @@ describe('MagicWandTool', () => {
 		editor.setCurrentTool('magic-wand')
 		drawLoopAround()
 
-		// The stroke is discarded, the box is selected, and we switch to select.
+		// The stroke is discarded, the box is selected, and we hand off to select —
+		// but the magic wand stays the displayed (masked) tool.
 		expect(editor.getCurrentPageShapes()).toHaveLength(1)
 		expect(editor.getCurrentPageShapes()[0].id).toBe(boxId)
 		expect(editor.getSelectedShapeIds()).toEqual([boxId])
 		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+	})
+
+	it('returns to the magic wand once the lasso selection is cleared', () => {
+		createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		// Masked over select with the box selected.
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+
+		// Deselecting hands control back to the magic wand instead of staying in select.
+		editor.selectNone()
+		editor.expectToBeIn('magic-wand.idle')
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+		// The mask is cleared so a later plain select isn't masked.
+		expect(editor.getStateDescendant('select')!.getCurrentToolIdMask()).toBeUndefined()
+	})
+
+	it('keeps masking while the selection merely changes to another shape', () => {
+		createBox(130, 130)
+		const other = createBox(400, 400)
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+
+		// Selecting a different shape (still a non-empty selection) stays masked.
+		editor.select(other)
+		editor.expectToBeIn('select.idle')
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+	})
+
+	it('stops masking when the user switches to another tool', () => {
+		createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+		expect(editor.getCurrentToolId()).toBe('magic-wand')
+
+		// Switching tools clears the mask and does not bounce back to the magic wand.
+		editor.setCurrentTool('geo')
+		editor.expectToBeIn('geo.idle')
+		expect(editor.getCurrentToolId()).toBe('geo')
+		expect(editor.getStateDescendant('select')!.getCurrentToolIdMask()).toBeUndefined()
 	})
 
 	it('still lassos when a long stroke is split into multiple shapes', () => {

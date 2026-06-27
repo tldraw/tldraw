@@ -2792,6 +2792,8 @@ export class MagicWandTool extends StateNode {
     // (undocumented)
     static isLockable: boolean;
     // (undocumented)
+    maskSelectAfterLasso(): void;
+    // (undocumented)
     onExit(): void;
     // (undocumented)
     shapeType: string;
