@@ -21,6 +21,9 @@ export const MAGIC_WAND_INK_OPACITY = 0.5
  */
 export const MAGIC_WAND_LASSO_COLOR: TLDefaultColorStyle = 'blue'
 
+/** The colour the ink turns while a scribble over shapes would delete them on release. */
+export const MAGIC_WAND_DELETE_COLOR: TLDefaultColorStyle = 'red'
+
 /**
  * Class toggled on the editor container while a magic wand stroke is in progress.
  * A CSS rule keyed on this class (see ui.css) adds a colour transition to draw

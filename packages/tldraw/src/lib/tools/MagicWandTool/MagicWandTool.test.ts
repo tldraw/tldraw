@@ -26,6 +26,15 @@ function drawLoopAround() {
 	editor.pointerUp()
 }
 
+/** Scribbles back and forth across (cx, cy) so each sweep crosses it (pen left down). */
+function scribbleAcross(cx: number, cy: number, halfWidth = 35, sweeps = 5) {
+	editor.setCurrentTool('magic-wand')
+	editor.pointerDown(cx - halfWidth, cy - 6)
+	for (let i = 1; i <= sweeps; i++) {
+		editor.pointerMove(i % 2 ? cx + halfWidth : cx - halfWidth, cy - 6 + i * 3)
+	}
+}
+
 describe('MagicWandTool', () => {
 	it('is registered and enters its drawing state', () => {
 		editor.setCurrentTool('magic-wand')
@@ -275,6 +284,71 @@ describe('MagicWandTool', () => {
 		expect(draw().props.isClosed).toBe(true)
 
 		editor.pointerUp()
+	})
+
+	it('scribbles over a shape to delete it, staying in the tool', () => {
+		const boxId = createBox(130, 130) // spans 130–170
+		scribbleAcross(150, 150)
+		editor.pointerUp()
+
+		expect(editor.getShape(boxId)).toBeUndefined()
+		// No real stroke left behind (the scribble is discarded), and no selection.
+		expect(
+			editor.getCurrentPageShapes().some((s) => s.type === 'draw' && !s.meta?.magicWandGhost)
+		).toBe(false)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('tints the scribble ink red while it would delete', () => {
+		createBox(130, 130)
+		scribbleAcross(150, 150)
+		const ink = editor.getCurrentPageShapes().find((s) => s.type === 'draw') as TLDrawShape
+		expect(ink.props.color).toBe('red')
+		expect(ink.props.fill).toBe('none') // red stroke, not a filled region like the lasso
+		editor.pointerUp()
+	})
+
+	it('deletes every shape the scribble crosses', () => {
+		const a = createBox(120, 130, 20, 20) // x 120–140
+		const b = createBox(170, 130, 20, 20) // x 170–190
+		scribbleAcross(150, 140, 60, 7) // wide scribble crossing both
+		editor.pointerUp()
+
+		expect(editor.getShape(a)).toBeUndefined()
+		expect(editor.getShape(b)).toBeUndefined()
+	})
+
+	it('does not delete when scribbling over empty canvas', () => {
+		const boxId = createBox(400, 400) // far from the scribble
+		scribbleAcross(150, 150)
+		editor.pointerUp()
+
+		expect(editor.getShape(boxId)).toBeTruthy()
+		// On empty canvas the scribble is just a normal drawing.
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(true)
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('does not delete a shape crossed by a single straight line', () => {
+		const boxId = createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(110, 150)
+		editor.pointerMove(150, 150)
+		editor.pointerMove(190, 150) // straight across, no reversals → not a scribble
+		editor.pointerUp()
+
+		expect(editor.getShape(boxId)).toBeTruthy()
+	})
+
+	it('undo restores scribble-deleted shapes', () => {
+		const boxId = createBox(130, 130)
+		scribbleAcross(150, 150)
+		editor.pointerUp()
+		expect(editor.getShape(boxId)).toBeUndefined()
+
+		editor.undo()
+		expect(editor.getShape(boxId)).toBeTruthy()
 	})
 })
 

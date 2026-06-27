@@ -1,4 +1,5 @@
 import {
+	Box,
 	Mat,
 	TLDefaultColorStyle,
 	TLDefaultFillStyle,
@@ -16,6 +17,7 @@ import {
 import { getPointsFromDrawSegments } from '../../shapes/draw/getPath'
 import { Drawing } from '../../shapes/draw/toolStates/Drawing'
 import {
+	MAGIC_WAND_DELETE_COLOR,
 	MAGIC_WAND_INKING_CLASS,
 	MAGIC_WAND_LASSO_COLOR,
 	clearWetInk,
@@ -33,6 +35,7 @@ import type { MagicWandTool } from './MagicWandTool'
 import {
 	ShapeRecognitionResult,
 	buildRecognizerInput,
+	countStrokeReversals,
 	recognizedShapeTopLeft,
 	recognizeShape,
 } from './shapeRecognition'
@@ -48,6 +51,14 @@ const MORPH_HOLD_MS = 500
 const MORPH_PREVIEW_DELAY_MS = 200
 /** Screen-space movement that resets the hold-to-morph timer ("held there"). */
 const MORPH_MOVE_TOLERANCE = 6
+
+/** Screen-space distance the stroke is resampled to before counting scribble reversals. */
+const SCRIBBLE_RESAMPLE_DISTANCE = 6
+/** How many sharp reversals mark the stroke as a deliberate scribble (vs a line over a shape). */
+const SCRIBBLE_MIN_REVERSALS = 3
+
+/** What the in-progress ink currently previews: a plain draw, a lasso, or a delete. */
+type InkMode = 'none' | 'lasso' | 'delete'
 
 /**
  * The drawing state for the magic wand tool. It behaves like the regular draw
@@ -77,11 +88,13 @@ export class MagicWandDrawing extends Drawing {
 	private didMorph = false
 
 	// The stroke's natural colour and fill, restored when the gesture stops being
-	// a lasso.
+	// a lasso or scribble.
 	private inkColor: TLDefaultColorStyle = 'black'
 	private inkFill: TLDefaultFillStyle = 'none'
-	// Whether the ink is currently showing the selection (lasso) colour.
-	private inkShowsLassoColor = false
+	// What the ink is currently previewing (drives its tint/fill).
+	private inkMode: InkMode = 'none'
+	// Pre-existing shapes the scribble has passed over (accumulated as it's drawn).
+	private scribbledShapeIds = new Set<TLShapeId>()
 	// The shapes currently previewed as "would be selected" (blue hint outline).
 	private hintedShapeIds: TLShapeId[] = []
 	// The stroke pieces the wet-ink CSS currently covers (the draw tool may split
@@ -92,7 +105,8 @@ export class MagicWandDrawing extends Drawing {
 
 	override onEnter(info: TLPointerEventInfo) {
 		this.shapeIdsBeforeGesture = new Set(this.editor.getCurrentPageShapeIds())
-		this.inkShowsLassoColor = false
+		this.inkMode = 'none'
+		this.scribbledShapeIds = new Set()
 		this.hintedShapeIds = []
 		this.wetInkIds = []
 		this.isDryingInk = false
@@ -131,7 +145,8 @@ export class MagicWandDrawing extends Drawing {
 
 	override onPointerMove() {
 		super.onPointerMove()
-		this.updateLassoPreview()
+		this.accumulateScribbledShapes()
+		this.updateGesturePreview()
 		// Reset the hold-to-morph clock whenever the pen moves meaningfully, so the
 		// morph only fires after the pen has been held roughly still.
 		if (this.didMorph) return
@@ -143,56 +158,63 @@ export class MagicWandDrawing extends Drawing {
 	}
 
 	/**
-	 * Previews the gesture's outcome while drawing: tint the ink the selection
-	 * colour and outline the shapes that would be lasso-selected on release (the
-	 * same blue indicator the brush selection shows), restoring both otherwise.
+	 * Previews the gesture's outcome while drawing. A scribble over shapes tints the
+	 * ink red (they'll be deleted); a closed loop around shapes tints it the
+	 * selection colour and outlines them (they'll be selected); otherwise the ink
+	 * stays its natural colour. Scribble wins over lasso, since a scribble crosses
+	 * shapes while a lasso goes around them.
 	 */
-	private updateLassoPreview() {
+	private updateGesturePreview() {
 		const strokeShapes = this.getGestureStrokeShapes()
 		if (strokeShapes.length === 0) return
 		const strokeIds = strokeShapes.map((s) => s.id)
 
-		const enclosedShapeIds = this.getEnclosedShapeIds()
-		// When the morph charging preview is showing, morph will win over lasso on
-		// hold — suppress the lasso tint so only the morph signal is visible.
+		const wouldDelete = this.scribbledShapeIds.size > 0 && this.isScribble()
+		// Suppress lasso while a morph preview is charging (morph wins on hold).
+		const enclosedShapeIds = wouldDelete ? [] : this.getEnclosedShapeIds()
 		const wouldLasso = enclosedShapeIds.length > 0 && !this.morphPreviewId
+		const mode: InkMode = wouldDelete ? 'delete' : wouldLasso ? 'lasso' : 'none'
 
-		// Keep the wet-ink translucency covering every piece of the stroke (the
-		// draw tool may have split it), and give any freshly split piece the
-		// current lasso colour/fill so the whole stroke stays consistent.
+		// Keep the wet-ink translucency covering every piece of the stroke (the draw
+		// tool may have split it), re-tinting any freshly split piece to match.
 		if (!areArraysShallowEqual(strokeIds, this.wetInkIds)) {
 			this.wetInkIds = strokeIds
 			setWetInk(this.editor, strokeIds)
-			this.applyInkStyle(strokeShapes, this.inkShowsLassoColor)
+			this.applyInkStyle(strokeShapes, this.inkMode)
 		}
 
-		// Tint the ink and fill the loop with solid colour so the lasso region
-		// reads clearly as a visual aid.
-		if (wouldLasso !== this.inkShowsLassoColor) {
-			this.inkShowsLassoColor = wouldLasso
-			this.applyInkStyle(strokeShapes, wouldLasso)
+		// Animate the ink to the mode's colour (the CSS fill transition tweens it).
+		if (mode !== this.inkMode) {
+			this.inkMode = mode
+			this.applyInkStyle(strokeShapes, mode)
 		}
 
-		// While the solid fill shows, keep the stroke marked closed every move. The
-		// draw tool's `isClosed` flips on/off near the start point (its threshold is
-		// smaller than the lasso's), and the solid fill is a `<path>` that only
+		// While the solid lasso fill shows, keep the stroke marked closed every move.
+		// The draw tool's `isClosed` flips on/off near the start point (its threshold
+		// is smaller than the lasso's), and the solid fill is a `<path>` that only
 		// mounts while `isClosed` — so that flipping remounts it and re-triggers its
 		// fade-in (the flicker). Holding `isClosed` true keeps the fill mounted.
-		if (wouldLasso) {
+		if (mode === 'lasso') {
 			this.keepLassoStrokeClosed(strokeIds)
 		}
 
-		// Outline the shapes that would be selected.
-		if (!areArraysShallowEqual(enclosedShapeIds, this.hintedShapeIds)) {
-			this.hintedShapeIds = enclosedShapeIds
-			this.editor.setHintingShapes(enclosedShapeIds)
+		// Outline the shapes that would be lasso-selected (delete uses the red ink).
+		const hinted = mode === 'lasso' ? enclosedShapeIds : []
+		if (!areArraysShallowEqual(hinted, this.hintedShapeIds)) {
+			this.hintedShapeIds = hinted
+			this.editor.setHintingShapes(hinted)
 		}
 	}
 
-	/** Sets the colour and fill of every stroke piece for the given lasso state. */
-	private applyInkStyle(strokeShapes: TLDrawShape[], lasso: boolean) {
-		const color = lasso ? MAGIC_WAND_LASSO_COLOR : this.inkColor
-		const fill = lasso ? 'solid' : this.inkFill
+	/** Sets the colour and fill of every stroke piece for the given preview mode. */
+	private applyInkStyle(strokeShapes: TLDrawShape[], mode: InkMode) {
+		const color =
+			mode === 'delete'
+				? MAGIC_WAND_DELETE_COLOR
+				: mode === 'lasso'
+					? MAGIC_WAND_LASSO_COLOR
+					: this.inkColor
+		const fill = mode === 'lasso' ? 'solid' : this.inkFill
 		this.editor.run(
 			() => {
 				for (const shape of strokeShapes) {
@@ -201,6 +223,46 @@ export class MagicWandDrawing extends Drawing {
 			},
 			{ history: 'ignore' }
 		)
+	}
+
+	/**
+	 * Whether the stroke so far reads as a back-and-forth scribble (enough sharp
+	 * reversals). Combined with having crossed shapes, this means "delete".
+	 */
+	private isScribble(): boolean {
+		const minSegment = SCRIBBLE_RESAMPLE_DISTANCE / this.editor.getZoomLevel()
+		return countStrokeReversals(this.getGesturePolygon(), minSegment) >= SCRIBBLE_MIN_REVERSALS
+	}
+
+	/**
+	 * Adds any pre-existing top-level shapes that the latest stroke segment crossed
+	 * to {@link scribbledShapeIds}. Mirrors the eraser's per-segment hit test, so
+	 * the set grows to cover everything a scribble passes over.
+	 */
+	private accumulateScribbledShapes() {
+		const editor = this.editor
+		const a = editor.inputs.getPreviousPagePoint()
+		const b = editor.inputs.getCurrentPagePoint()
+		const minDist = editor.options.hitTestMargin / editor.getZoomLevel()
+		const candidateIds = editor.getShapeIdsInsideBounds(Box.FromPoints([a, b]).expandBy(minDist))
+		if (candidateIds.size === 0) return
+
+		const currentPageId = editor.getCurrentPageId()
+		for (const id of candidateIds) {
+			if (this.scribbledShapeIds.has(id)) continue
+			if (!this.shapeIdsBeforeGesture.has(id)) continue
+			const shape = editor.getShape(id)
+			if (!shape || shape.parentId !== currentPageId) continue
+			if (editor.isShapeOrAncestorLocked(shape)) continue
+
+			const geometry = editor.getShapeGeometry(shape)
+			const transform = editor.getShapePageTransform(shape)
+			if (!geometry || !transform) continue
+			const inv = transform.clone().invert()
+			if (geometry.hitTestLineSegment(inv.applyToPoint(a), inv.applyToPoint(b), minDist)) {
+				this.scribbledShapeIds.add(id)
+			}
+		}
 	}
 
 	/**
@@ -225,6 +287,27 @@ export class MagicWandDrawing extends Drawing {
 	override complete() {
 		if (this.didMorph) return
 		this.clearMorphTimers()
+
+		// Scribble-delete gesture: a back-and-forth scribble over shapes deletes
+		// them. Takes priority over lasso (a scribble crosses shapes; a lasso loops
+		// around them).
+		const scribbledIds = [...this.scribbledShapeIds].filter((id) => this.editor.getShape(id))
+		if (scribbledIds.length > 0 && this.isScribble()) {
+			const inkSnapshots = this.getGestureStrokeShapes()
+			// Discard the scribble stroke, then delete as one recorded step (mirrors
+			// the morph): net undo = "restore the deleted shapes".
+			if (this.markId) this.editor.bailToMark(this.markId)
+			this.editor.markHistoryStoppingPoint('scribble-delete')
+			this.editor.deleteShapes(scribbledIds)
+			// Fade out a red copy of the scribble (already red from the live preview).
+			for (const snapshot of inkSnapshots) {
+				fadeOutInkGhost(this.editor, snapshot, MAGIC_WAND_DELETE_COLOR)
+			}
+			// Stay in the magic wand, ready for the next gesture.
+			this.parent.transition('idle')
+			return
+		}
+
 		const enclosedShapeIds = this.getEnclosedShapeIds()
 		if (enclosedShapeIds.length > 0) {
 			// Lasso gesture: discard every stroke piece, select the encircled

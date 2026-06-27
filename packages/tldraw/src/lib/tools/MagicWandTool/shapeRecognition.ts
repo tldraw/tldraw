@@ -269,6 +269,33 @@ function angleBetween(a: Vec, b: Vec): number {
 	return Math.abs(Math.atan2(cross, dot))
 }
 
+/** A direction change sharper than this (radians, ~110°) counts as a scribble reversal. */
+const SCRIBBLE_REVERSAL_ANGLE = (110 * Math.PI) / 180
+
+/**
+ * Counts sharp direction reversals (U-turns) along a stroke — the signature of a
+ * back-and-forth scribble. Points are resampled to `minSegmentLength` apart first
+ * so per-point jitter doesn't register as reversals; a 90° corner (e.g. a
+ * rectangle lasso) stays under the threshold, while a scribble's U-turns clear it.
+ */
+export function countStrokeReversals(points: Vec[], minSegmentLength: number): number {
+	if (points.length < 3) return 0
+
+	const sampled: Vec[] = [points[0]]
+	for (const p of points) {
+		if (Vec.Dist(p, sampled[sampled.length - 1]) >= minSegmentLength) sampled.push(p)
+	}
+	if (sampled.length < 3) return 0
+
+	let reversals = 0
+	for (let i = 1; i < sampled.length - 1; i++) {
+		const into = Vec.Sub(sampled[i], sampled[i - 1])
+		const outOf = Vec.Sub(sampled[i + 1], sampled[i])
+		if (angleBetween(into, outOf) >= SCRIBBLE_REVERSAL_ANGLE) reversals++
+	}
+	return reversals
+}
+
 /**
  * Whether the stroke runs straight into each endpoint. We trim a short stretch
  * off both ends; the trimmed middle gives the "body" direction, and each end's
