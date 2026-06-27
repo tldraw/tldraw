@@ -247,6 +247,35 @@ describe('MagicWandTool', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([])
 		editor.expectToBeIn('magic-wand.idle')
 	})
+
+	it('holds the lasso stroke closed across the close band so the fill does not flicker', () => {
+		createBox(130, 130) // center ~(150,150), inside the loop
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+
+		const draw = () => editor.getCurrentPageShapes().find((s) => s.type === 'draw') as TLDrawShape
+
+		// Endpoint in the "close band": near enough that the lasso fill turns solid,
+		// but farther than the draw tool's own (smaller) close threshold. The stroke
+		// is held closed so the solid fill <path> stays mounted (no remount → no
+		// fade flicker).
+		editor.pointerMove(112, 100) // ~12px from the start
+		expect(draw().props.fill).toBe('solid')
+		expect(draw().props.isClosed).toBe(true)
+
+		// Wiggling in and out of that smaller threshold keeps isClosed steady while
+		// the fill stays solid (without the fix, isClosed would toggle here).
+		editor.pointerMove(104, 100) // ~4px
+		expect(draw().props.isClosed).toBe(true)
+		editor.pointerMove(113, 100) // ~13px
+		expect(draw().props.fill).toBe('solid')
+		expect(draw().props.isClosed).toBe(true)
+
+		editor.pointerUp()
+	})
 })
 
 /** Shapes on the page that aren't transient magic-wand ghosts/previews. */

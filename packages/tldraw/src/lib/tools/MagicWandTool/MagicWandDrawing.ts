@@ -173,6 +173,15 @@ export class MagicWandDrawing extends Drawing {
 			this.applyInkStyle(strokeShapes, wouldLasso)
 		}
 
+		// While the solid fill shows, keep the stroke marked closed every move. The
+		// draw tool's `isClosed` flips on/off near the start point (its threshold is
+		// smaller than the lasso's), and the solid fill is a `<path>` that only
+		// mounts while `isClosed` — so that flipping remounts it and re-triggers its
+		// fade-in (the flicker). Holding `isClosed` true keeps the fill mounted.
+		if (wouldLasso) {
+			this.keepLassoStrokeClosed(strokeIds)
+		}
+
 		// Outline the shapes that would be selected.
 		if (!areArraysShallowEqual(enclosedShapeIds, this.hintedShapeIds)) {
 			this.hintedShapeIds = enclosedShapeIds
@@ -188,6 +197,25 @@ export class MagicWandDrawing extends Drawing {
 			() => {
 				for (const shape of strokeShapes) {
 					this.editor.updateShape({ id: shape.id, type: 'draw', props: { color, fill } })
+				}
+			},
+			{ history: 'ignore' }
+		)
+	}
+
+	/**
+	 * Forces the gesture's stroke pieces to stay `isClosed` (history-ignored) so the
+	 * solid lasso fill doesn't flicker — see the call site. Skips pieces already
+	 * closed so it's a no-op on most moves. The stroke is discarded when the lasso
+	 * completes, so this never leaks into a committed shape.
+	 */
+	private keepLassoStrokeClosed(strokeIds: TLShapeId[]) {
+		const open = strokeIds.filter((id) => !this.editor.getShape<TLDrawShape>(id)?.props.isClosed)
+		if (open.length === 0) return
+		this.editor.run(
+			() => {
+				for (const id of open) {
+					this.editor.updateShape({ id, type: 'draw', props: { isClosed: true } })
 				}
 			},
 			{ history: 'ignore' }
@@ -452,13 +480,14 @@ export class MagicWandDrawing extends Drawing {
 		const polygon = this.getGesturePolygon()
 		if (polygon.length < 3) return []
 
-		// Only treat the stroke as a lasso if it loops back on itself. A single
-		// unsplit stroke carries the draw tool's own (zoom-aware) `isClosed` flag;
-		// once split, no single piece is closed, so compare the overall endpoints.
+		// Only treat the stroke as a lasso if it loops back on itself: the overall
+		// endpoints come within the close distance. (We deliberately don't read the
+		// draw tool's own `isClosed` flag here — its threshold is smaller than ours,
+		// so it's redundant, and `keepLassoStrokeClosed` forces it true while the
+		// lasso fill shows, which would otherwise make this always report closed.)
 		const isClosed =
-			strokeShapes.some((s) => s.props.isClosed) ||
 			Vec.Dist(polygon[0], polygon[polygon.length - 1]) <
-				MAGIC_WAND_CLOSE_DISTANCE / this.editor.getZoomLevel()
+			MAGIC_WAND_CLOSE_DISTANCE / this.editor.getZoomLevel()
 		if (!isClosed) return []
 
 		const currentPageId = this.editor.getCurrentPageId()
