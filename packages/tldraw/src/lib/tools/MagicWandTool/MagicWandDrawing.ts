@@ -1,5 +1,6 @@
 import {
 	Box,
+	Geometry2d,
 	Mat,
 	TLDefaultColorStyle,
 	TLDefaultFillStyle,
@@ -45,6 +46,18 @@ import {
 // single unsplit stroke uses the draw tool's own (zoom-aware) `isClosed` flag.
 const MAGIC_WAND_CLOSE_DISTANCE = 16
 
+/**
+ * Fraction of a shape's outline that must fall inside the lasso for it to be
+ * selected — "mostly enclosed", slightly more lenient than full containment. A
+ * big container the loop is drawn inside has ~none of its outline in the loop, so
+ * it's excluded; a shape with a small bit clipped out still clears this.
+ */
+const LASSO_COVERAGE_MIN = 0.8
+/** Per-axis grid resolution for sampling a closed shape's interior area for coverage. */
+const LASSO_COVERAGE_GRID = 6
+/** Open outlines (e.g. lines, which have no area) are densified to ~this many points for coverage. */
+const LASSO_OUTLINE_MIN_SAMPLES = 24
+
 /** How long the pen must be held roughly still to morph the sketch into a shape. */
 const MORPH_HOLD_MS = 500
 /** Delay before the "charging" morph preview appears (so a brief pause doesn't flash it). */
@@ -59,6 +72,48 @@ const SCRIBBLE_MIN_REVERSALS = 3
 
 /** What the in-progress ink currently previews: a plain draw, a lasso, or a delete. */
 type InkMode = 'none' | 'lasso' | 'delete'
+
+/**
+ * Local-space points covering a closed shape's interior, as an N×N grid over its
+ * bounds keeping only points actually inside the shape. This makes coverage
+ * area-representative: clipping one corner of a rectangle drops coverage a little
+ * (a few grid cells), not by half as an outline-only measure would.
+ */
+function sampleFilledArea(geometry: Geometry2d, grid: number): Vec[] {
+	const { bounds } = geometry
+	if (bounds.width === 0 || bounds.height === 0) return geometry.vertices
+	const points: Vec[] = []
+	for (let i = 0; i < grid; i++) {
+		for (let j = 0; j < grid; j++) {
+			const point = new Vec(
+				bounds.minX + ((i + 0.5) / grid) * bounds.width,
+				bounds.minY + ((j + 0.5) / grid) * bounds.height
+			)
+			if (geometry.hitTestPoint(point, 0, true)) points.push(point)
+		}
+	}
+	// Degenerate shapes whose interior no sample landed in: fall back to vertices.
+	return points.length > 0 ? points : geometry.vertices
+}
+
+/**
+ * Local-space points along an open outline (e.g. a line, which has no area),
+ * densified to ~`minSamples` so coverage isn't all-or-nothing on few vertices.
+ */
+function sampleOpenOutline(vertices: Vec[], minSamples: number): Vec[] {
+	const n = vertices.length
+	if (n < 2) return vertices
+	const subdivisions = Math.max(1, Math.ceil(minSamples / (n - 1)))
+	if (subdivisions === 1) return vertices
+	const samples: Vec[] = []
+	for (let i = 0; i < n - 1; i++) {
+		for (let j = 0; j < subdivisions; j++) {
+			samples.push(Vec.Lrp(vertices[i], vertices[i + 1], j / subdivisions))
+		}
+	}
+	samples.push(vertices[n - 1])
+	return samples
+}
 
 /**
  * The drawing state for the magic wand tool. It behaves like the regular draw
@@ -574,6 +629,7 @@ export class MagicWandDrawing extends Drawing {
 		if (!isClosed) return []
 
 		const currentPageId = this.editor.getCurrentPageId()
+		const polygonBounds = Box.FromPoints(polygon)
 		const enclosedShapeIds: TLShapeId[] = []
 
 		for (const id of this.shapeIdsBeforeGesture) {
@@ -583,14 +639,43 @@ export class MagicWandDrawing extends Drawing {
 			if (shape.parentId !== currentPageId) continue
 			if (this.editor.isShapeOrAncestorLocked(shape)) continue
 
+			// Fast reject: a shape whose bounds don't overlap the lasso's bounds
+			// can't be enclosed, so skip the geometry work.
 			const bounds = this.editor.getShapePageBounds(id)
-			if (!bounds) continue
+			if (!bounds || !polygonBounds.collides(bounds)) continue
 
-			if (pointInPolygon(bounds.center, polygon)) {
+			// Select the shape if most of its outline is inside the loop ("mostly
+			// enclosed"). This excludes a big container the loop is drawn inside (its
+			// outline is outside the loop) while still allowing a small bit to poke out.
+			if (this.getLassoCoverage(id, polygon) >= LASSO_COVERAGE_MIN) {
 				enclosedShapeIds.push(id)
 			}
 		}
 
 		return enclosedShapeIds
+	}
+
+	/**
+	 * The fraction (0–1) of a shape that lies inside the lasso polygon. For a closed
+	 * shape this is area coverage (an interior grid sampled in the shape's own
+	 * space, so it's correct for rotated shapes); for an open shape (e.g. a line)
+	 * it's outline coverage. A big container the loop is drawn inside has almost
+	 * none of its area in the loop, so it scores near 0.
+	 */
+	private getLassoCoverage(id: TLShapeId, polygon: Vec[]): number {
+		const geometry = this.editor.getShapeGeometry(id)
+		const transform = this.editor.getShapePageTransform(id)
+		if (!geometry || !transform) return 0
+
+		const localSamples = geometry.isClosed
+			? sampleFilledArea(geometry, LASSO_COVERAGE_GRID)
+			: sampleOpenOutline(geometry.vertices, LASSO_OUTLINE_MIN_SAMPLES)
+		if (localSamples.length === 0) return 0
+
+		let inside = 0
+		for (const local of localSamples) {
+			if (pointInPolygon(Mat.applyToPoint(transform, local), polygon)) inside++
+		}
+		return inside / localSamples.length
 	}
 }

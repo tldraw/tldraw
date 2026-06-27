@@ -257,6 +257,61 @@ describe('MagicWandTool', () => {
 		editor.expectToBeIn('magic-wand.idle')
 	})
 
+	it('does not lasso a big container the loop is drawn inside, only its inner shapes', () => {
+		// The big box's center (~250,250) is inside the loop, which the old
+		// center-based test wrongly selected. Its area is mostly outside the loop.
+		const big = createBox(50, 50, 400, 400)
+		const a = createBox(120, 120, 20, 20) // fully inside the loop
+		const b = createBox(160, 160, 20, 20) // fully inside the loop
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(new Set(editor.getSelectedShapeIds())).toEqual(new Set([a, b]))
+		expect(editor.getSelectedShapeIds()).not.toContain(big)
+	})
+
+	it('still lassos a shape with only a small bit clipped outside the loop', () => {
+		// Bottom ~1/6 pokes past the loop's bottom edge (y=200); a strict "fully
+		// enclosed" rule would reject it, but "mostly enclosed" keeps it.
+		const boxId = createBox(140, 165, 40, 40) // spans y 165–205
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+	})
+
+	it('does not lasso a shape that is mostly outside the loop', () => {
+		const boxId = createBox(140, 180, 40, 40) // ~half below the loop's bottom edge
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getShape(boxId)).toBeTruthy()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('lassos a rotated shape that sits inside the loop', () => {
+		// Centered ~(150,150), rotated 45°; its axis-aligned bbox is bigger than the
+		// shape, so coverage must use the real (rotated) geometry, not bbox corners.
+		const id = createShapeId()
+		editor.createShape<TLGeoShape>({
+			id,
+			type: 'geo',
+			x: 150,
+			y: 122,
+			rotation: Math.PI / 4,
+			props: { w: 40, h: 40, geo: 'rectangle' },
+		})
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+
+		expect(editor.getSelectedShapeIds()).toEqual([id])
+	})
+
 	it('holds the lasso stroke closed across the close band so the fill does not flicker', () => {
 		createBox(130, 130) // center ~(150,150), inside the loop
 		editor.setCurrentTool('magic-wand')
