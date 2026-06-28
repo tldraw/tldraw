@@ -64,15 +64,64 @@ interface FreehandWasmExports {
 		closed: number
 	): number
 	get_svg_path_from_points(nPoints: number, closed: number): number
+	stroke_points(
+		nPoints: number,
+		size: number,
+		thinning: number,
+		smoothing: number,
+		streamline: number,
+		simulatePressure: number,
+		easing: number,
+		last: number
+	): number
+	get_stroke(
+		nPoints: number,
+		size: number,
+		thinning: number,
+		smoothing: number,
+		streamline: number,
+		simulatePressure: number,
+		easing: number,
+		last: number,
+		taperStart: number,
+		taperEnd: number,
+		taperStartEase: number,
+		taperEndEase: number,
+		capStart: number,
+		capEnd: number
+	): number
+	stroke_outline_from_points(
+		nPoints: number,
+		size: number,
+		smoothing: number,
+		last: number,
+		taperStart: number,
+		taperEnd: number,
+		taperStartEase: number,
+		taperEndEase: number,
+		capStart: number,
+		capEnd: number
+	): number
+	svg_path_from_stroke_points(nPoints: number, closed: number): number
 	last_point_count(): number
 	output_ptr(): number
+	out_f64_ptr(): number
+	easing_lut_ptr(): number
 }
 
-// Easing ids understood by the Rust port. Custom easings can't cross the boundary, so a
-// stroke using one falls back to the JS implementation.
+// Easing ids understood by the Rust port — the known easings the SDK uses. A custom easing
+// (one this can't identify) is instead sampled into a lookup table (see resolveEasingSlot).
 const EASING_LINEAR = 0
 const EASING_OUT_SINE = 1
 const EASING_PEN = 2
+const EASING_OUT_QUAD = 3
+const EASING_OUT_CUBIC = 4
+const EASING_IN_OUT_SINE = 5
+// LUT sentinel ids, paired with a sampled table in the easing_lut buffer (slots 0/1/2).
+const EASING_LUT_MAIN = 100
+const EASING_LUT_TAPER_START = 101
+const EASING_LUT_TAPER_END = 102
+const EASING_LUT_SIZE = 1024
 
 let exportsCache: FreehandWasmExports | null = null
 let instantiateFailed = false
@@ -120,7 +169,50 @@ function resolveEasingId(easing: FreehandStrokeOptions['easing']): number {
 	if (near(a, sine(0.25)) && near(b, sine(0.6))) return EASING_OUT_SINE
 	const pen = (t: number) => t * 0.65 + sine(t) * 0.35
 	if (near(a, pen(0.25)) && near(b, pen(0.6))) return EASING_PEN
+	if (near(a, 0.25 * (2 - 0.25)) && near(b, 0.6 * (2 - 0.6))) return EASING_OUT_QUAD
+	const cubic = (t: number) => (t - 1) ** 3 + 1
+	if (near(a, cubic(0.25)) && near(b, cubic(0.6))) return EASING_OUT_CUBIC
+	const inOutSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2
+	if (near(a, inOutSine(0.25)) && near(b, inOutSine(0.6))) return EASING_IN_OUT_SINE
 	return -1
+}
+
+/**
+ * Resolve an easing for one of the WASM easing slots. Returns a known easing id when it can
+ * identify the function (or the default when none is given); otherwise samples the function
+ * into the slot's lookup table and returns the LUT sentinel id. `slotIndex` is 0 (main), 1
+ * (taper start) or 2 (taper end).
+ */
+function resolveEasingSlot(
+	wasm: FreehandWasmExports,
+	easing: FreehandStrokeOptions['easing'],
+	slotIndex: number,
+	lutSentinel: number,
+	defaultId: number
+): number {
+	const id = easing ? resolveEasingId(easing) : defaultId
+	if (id !== -1) return id
+	const lutPtr = wasm.easing_lut_ptr()
+	const lut = new Float64Array(
+		wasm.memory.buffer,
+		lutPtr + slotIndex * EASING_LUT_SIZE * 8,
+		EASING_LUT_SIZE
+	)
+	for (let i = 0; i < EASING_LUT_SIZE; i++) lut[i] = easing!(i / (EASING_LUT_SIZE - 1))
+	return lutSentinel
+}
+
+/** Encode a taper option for the ABI: 0 = none, Infinity = `true` (full), else the distance. */
+function taperValue(taper: number | boolean | undefined): number {
+	if (!taper) return 0
+	if (taper === true) return Infinity
+	return taper
+}
+
+/** Read `count` floats from the f64 output buffer as a fresh copy (the buffer is reused). */
+function readF64Output(wasm: FreehandWasmExports, count: number): Float64Array {
+	const ptr = wasm.out_f64_ptr()
+	return new Float64Array(wasm.memory.buffer, ptr, count).slice()
 }
 
 /**
@@ -265,6 +357,194 @@ export function getSvgPathFromPointsWasm(points: VecLike[], closed = true): stri
 		if (n < 2) return ''
 		writePoints(wasm, points)
 		const len = wasm.get_svg_path_from_points(n, closed ? 1 : 0)
+		return readOutput(wasm, len)
+	} catch {
+		instantiateFailed = true
+		return null
+	}
+}
+
+/**
+ * The shape of a perfect-freehand StrokePoint, declared structurally (no package dep).
+ *
+ * @internal
+ */
+export interface StrokePointLike {
+	point: VecLike
+	input: VecLike
+	pressure: number
+	distance: number
+	runningLength: number
+	radius: number
+}
+
+/**
+ * WASM port of getStrokePoints. Returns the streamlined points as a flat Float64Array, 8
+ * values per point [pointX, pointY, inputX, inputY, inputZ, pressure, distance,
+ * runningLength] (radius is always 1), or null if the module can't run.
+ *
+ * @internal
+ */
+export function strokePointsWasm(
+	rawInputPoints: VecLike[],
+	options: FreehandStrokeOptions = {}
+): Float64Array | null {
+	try {
+		const wasm = tryGetFreehandWasm()
+		if (!wasm) return null
+		const n = rawInputPoints.length
+		if (n === 0) return new Float64Array(0)
+		writePoints(wasm, rawInputPoints)
+		const { size = 16, thinning = 0.5, smoothing = 0.5, streamline = 0.5 } = options
+		// getStrokePoints does ingest only (no radii), so easing is irrelevant here.
+		const count = wasm.stroke_points(
+			n,
+			size,
+			thinning,
+			smoothing,
+			streamline,
+			options.simulatePressure ? 1 : 0,
+			EASING_LINEAR,
+			options.last ? 1 : 0
+		)
+		return readF64Output(wasm, count * 8)
+	} catch {
+		instantiateFailed = true
+		return null
+	}
+}
+
+/**
+ * WASM port of getStroke. Returns the outline polygon as a flat Float64Array (x, y per
+ * point), or null if the module can't run. Handles taper and custom easings.
+ *
+ * @internal
+ */
+export function strokeOutlineWasm(
+	rawInputPoints: VecLike[],
+	options: FreehandStrokeOptions = {}
+): Float64Array | null {
+	try {
+		const wasm = tryGetFreehandWasm()
+		if (!wasm) return null
+		const n = rawInputPoints.length
+		if (n === 0) return new Float64Array(0)
+		const {
+			size = 16,
+			thinning = 0.5,
+			smoothing = 0.5,
+			streamline = 0.5,
+			start = {},
+			end = {},
+		} = options
+		// Resolve easings (may write LUTs) before writing points.
+		const mainId = resolveEasingSlot(wasm, options.easing, 0, EASING_LUT_MAIN, EASING_LINEAR)
+		const tStartId = resolveEasingSlot(
+			wasm,
+			start.easing,
+			1,
+			EASING_LUT_TAPER_START,
+			EASING_OUT_QUAD
+		)
+		const tEndId = resolveEasingSlot(wasm, end.easing, 2, EASING_LUT_TAPER_END, EASING_OUT_CUBIC)
+		writePoints(wasm, rawInputPoints)
+		const count = wasm.get_stroke(
+			n,
+			size,
+			thinning,
+			smoothing,
+			streamline,
+			options.simulatePressure ? 1 : 0,
+			mainId,
+			options.last ? 1 : 0,
+			taperValue(start.taper),
+			taperValue(end.taper),
+			tStartId,
+			tEndId,
+			start.cap === false ? 0 : 1,
+			end.cap === false ? 0 : 1
+		)
+		return readF64Output(wasm, count * 2)
+	} catch {
+		instantiateFailed = true
+		return null
+	}
+}
+
+/**
+ * WASM port of getStrokeOutlinePoints (outline from already-computed StrokePoints). Returns
+ * the outline polygon as a flat Float64Array (x, y per point), or null.
+ *
+ * @internal
+ */
+export function strokeOutlineFromPointsWasm(
+	strokePoints: StrokePointLike[],
+	options: FreehandStrokeOptions = {}
+): Float64Array | null {
+	try {
+		const wasm = tryGetFreehandWasm()
+		if (!wasm) return null
+		const n = strokePoints.length
+		if (n === 0) return new Float64Array(0)
+		const { size = 16, smoothing = 0.5, start = {}, end = {} } = options
+		const tStartId = resolveEasingSlot(
+			wasm,
+			start.easing,
+			1,
+			EASING_LUT_TAPER_START,
+			EASING_OUT_QUAD
+		)
+		const tEndId = resolveEasingSlot(wasm, end.easing, 2, EASING_LUT_TAPER_END, EASING_OUT_CUBIC)
+		// 6 floats per point: pointX, pointY, inputX, inputY, radius, runningLength.
+		const ptr = wasm.points_ptr(n * 6)
+		const buf = new Float64Array(wasm.memory.buffer, ptr, n * 6)
+		for (let i = 0; i < n; i++) {
+			const sp = strokePoints[i]
+			buf[i * 6] = sp.point.x
+			buf[i * 6 + 1] = sp.point.y
+			buf[i * 6 + 2] = sp.input.x
+			buf[i * 6 + 3] = sp.input.y
+			buf[i * 6 + 4] = sp.radius
+			buf[i * 6 + 5] = sp.runningLength
+		}
+		const count = wasm.stroke_outline_from_points(
+			n,
+			size,
+			smoothing,
+			options.last ? 1 : 0,
+			taperValue(start.taper),
+			taperValue(end.taper),
+			tStartId,
+			tEndId,
+			start.cap === false ? 0 : 1,
+			end.cap === false ? 0 : 1
+		)
+		return readF64Output(wasm, count * 2)
+	} catch {
+		instantiateFailed = true
+		return null
+	}
+}
+
+/**
+ * WASM port of getSvgPathFromStrokePoints. Takes the points' centerline coordinates (the
+ * `.point` of each StrokePoint) and returns the path string, or null.
+ *
+ * @internal
+ */
+export function svgPathFromStrokePointsWasm(points: VecLike[], closed = false): string | null {
+	try {
+		const wasm = tryGetFreehandWasm()
+		if (!wasm) return null
+		const n = points.length
+		if (n < 2) return ''
+		const ptr = wasm.points_ptr(n * 2)
+		const buf = new Float64Array(wasm.memory.buffer, ptr, n * 2)
+		for (let i = 0; i < n; i++) {
+			buf[i * 2] = points[i].x
+			buf[i * 2 + 1] = points[i].y
+		}
+		const len = wasm.svg_path_from_stroke_points(n, closed ? 1 : 0)
 		return readOutput(wasm, len)
 	} catch {
 		instantiateFailed = true

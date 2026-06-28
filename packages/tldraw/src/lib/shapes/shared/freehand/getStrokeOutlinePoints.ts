@@ -1,4 +1,4 @@
-import { Vec, VecLike } from '@tldraw/editor'
+import { Vec, VecLike, strokeOutlineFromPointsWasm } from '@tldraw/editor'
 import {
 	loadSrcFromStrokePoints,
 	resolveTaper,
@@ -640,6 +640,15 @@ export function getStrokeOutlinePoints(
 	strokePoints: StrokePoint[],
 	options: StrokeOptions = {}
 ): Vec[] {
+	const data = strokeOutlineFromPointsWasm(strokePoints, options)
+	if (data) {
+		const n = data.length / 2
+		const out: Vec[] = new Array(n)
+		for (let i = 0; i < n; i++) out[i] = new Vec(data[i * 2], data[i * 2 + 1])
+		return out
+	}
+
+	// Fallback for environments that can't instantiate the WASM module.
 	loadSrcFromStrokePoints(strokePoints)
 	return outlineFromSrc(options)
 }

@@ -1,3 +1,4 @@
+import { svgPathFromStrokePointsWasm } from '@tldraw/editor'
 import { finishPath, resetPath, toCenti, writeCPair, writeStr } from './fmt'
 import { StrokePoint } from './types'
 
@@ -13,6 +14,12 @@ import { StrokePoint } from './types'
  * @public
  */
 export function getSvgPathFromStrokePoints(points: StrokePoint[], closed = false): string {
+	const wasm = svgPathFromStrokePointsWasm(
+		points.map((p) => p.point),
+		closed
+	)
+	if (wasm !== null) return wasm
+
 	const len = points.length
 
 	if (len < 2) {

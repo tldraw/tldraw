@@ -20,18 +20,83 @@ const RATE_OF_PRESSURE_CHANGE: f64 = 0.275;
 const FIXED_PI: f64 = PI + 0.0001;
 const TRACK_TOLERANCE_RATIO: f64 = 0.05;
 const SIMPLIFY_WINDOW: usize = 8;
+const MIN_ROUNDED_CORNER_STEPS: usize = 8;
 const MAX_ROUNDED_CORNER_STEPS: usize = 13;
+const MIN_CAP_STEPS: usize = 8;
+const MAX_CAP_STEPS: usize = 29;
 const HARD_CORNER_DPR: f64 = -0.62;
 
-// Easing selector. Matches EASINGS.linear / EASINGS.easeOutSine and the draw shape's
-// local PEN_EASING. These are the only easings the production svgInk path uses.
+// Rotate point (ax, ay) around center (cx, cy) by r radians (Vec.RotWith).
+#[inline]
+fn rot_with(ax: f64, ay: f64, cx: f64, cy: f64, r: f64) -> (f64, f64) {
+    let s = libm::sin(r);
+    let c = libm::cos(r);
+    let x = ax - cx;
+    let y = ay - cy;
+    (cx + (x * c - y * s), cy + (x * s + y * c))
+}
+
+// Pick a step count for a polygonal arc so its chord error stays within `tol`.
+#[inline]
+fn arc_steps(radius: f64, sweep: f64, tol: f64, min: usize, max: usize) -> usize {
+    if radius <= tol {
+        return min;
+    }
+    let max_angle = 2.0 * libm::acos(1.0 - tol / radius);
+    let steps = (sweep / max_angle).ceil();
+    if steps < min as f64 {
+        min
+    } else if steps > max as f64 {
+        max
+    } else {
+        steps as usize
+    }
+}
+
+// Number of samples per easing lookup table. Easing inputs are always in [0, 1] and easings
+// are smooth, so a 1024-entry table with linear interpolation is well below visible error.
+const EASING_LUT_SIZE: usize = 1024;
+// Easing id sentinels: 0..=5 are the known easings; LUT slots use these ids, paired with a
+// table written into State.easing_lut. Slot 0 = main easing, 1 = taper start, 2 = taper end.
+const EASING_LUT_MAIN: u32 = 100;
+const EASING_LUT_TAPER_START: u32 = 101;
+const EASING_LUT_TAPER_END: u32 = 102;
+
+// Known easings, matching @tldraw/editor's EASINGS plus the draw shape's local PEN_EASING.
+// These cover every easing the SDK passes to the freehand generators.
 #[inline]
 fn ease(id: u32, t: f64) -> f64 {
     match id {
-        1 => libm::sin((t * PI) / 2.0),                       // easeOutSine
-        2 => t * 0.65 + libm::sin((t * PI) / 2.0) * 0.35,     // PEN_EASING
-        _ => t,                                               // linear
+        1 => libm::sin((t * PI) / 2.0),                   // easeOutSine
+        2 => t * 0.65 + libm::sin((t * PI) / 2.0) * 0.35, // PEN_EASING
+        3 => t * (2.0 - t),                               // easeOutQuad
+        4 => {
+            let u = t - 1.0;
+            u * u * u + 1.0
+        } // easeOutCubic
+        5 => -(libm::cos(PI * t) - 1.0) / 2.0,            // easeInOutSine
+        _ => t,                                           // linear
     }
+}
+
+// Linear interpolation into an easing lookup table for arbitrary (custom) easings sampled by
+// the JS loader. Inputs are clamped to [0, 1].
+#[inline]
+fn lut_interp(lut: &[f64], t: f64) -> f64 {
+    let tt = if t < 0.0 {
+        0.0
+    } else if t > 1.0 {
+        1.0
+    } else {
+        t
+    };
+    let f = tt * (EASING_LUT_SIZE - 1) as f64;
+    let i = f as usize;
+    if i >= EASING_LUT_SIZE - 1 {
+        return lut[EASING_LUT_SIZE - 1];
+    }
+    let frac = f - i as f64;
+    lut[i] + (lut[i + 1] - lut[i]) * frac
 }
 
 // JS Math.round: round half up toward +infinity (NOT Rust's round-half-away-from-zero).
@@ -53,6 +118,58 @@ struct Options {
     simulate_pressure: bool,
     easing: u32,
     last: bool,
+    // Taper, used by the outline path (getStroke). taper_* encode the resolveTaper input:
+    // 0 = none, f64::INFINITY = `true` (taper over the whole stroke), else an explicit
+    // distance. cap_* select round vs flat end caps.
+    taper_start: f64,
+    taper_end: f64,
+    taper_start_ease: u32,
+    taper_end_ease: u32,
+    cap_start: bool,
+    cap_end: bool,
+}
+
+impl Options {
+    // Options for the paths that don't taper or expose caps (svg_ink, svg_from_points): no
+    // taper, round caps, default taper easings (unused).
+    fn basic(
+        size: f64,
+        thinning: f64,
+        smoothing: f64,
+        streamline: f64,
+        simulate_pressure: bool,
+        easing: u32,
+        last: bool,
+    ) -> Options {
+        Options {
+            size,
+            thinning,
+            smoothing,
+            streamline,
+            simulate_pressure,
+            easing,
+            last,
+            taper_start: 0.0,
+            taper_end: 0.0,
+            taper_start_ease: 3, // easeOutQuad
+            taper_end_ease: 4,   // easeOutCubic
+            cap_start: true,
+            cap_end: true,
+        }
+    }
+}
+
+// resolveTaper(taper, size, totalLength): 0 -> 0; INFINITY (`true`) -> max(size, total); else
+// the explicit distance.
+#[inline]
+fn resolve_taper(taper: f64, size: f64, total_length: f64) -> f64 {
+    if taper == 0.0 {
+        0.0
+    } else if taper.is_infinite() {
+        size.max(total_length)
+    } else {
+        taper
+    }
 }
 
 #[derive(Default)]
@@ -95,8 +212,13 @@ struct State {
     track_left_count: usize,
     track_right_count: usize,
 
-    // output path bytes
+    // output path bytes (string-returning functions)
     output: Vec<u8>,
+    // output floats (array-returning functions: getStrokePoints, getStroke outline)
+    out_f64: Vec<f64>,
+    // easing lookup tables for custom easings: [main | taper_start | taper_end], each
+    // EASING_LUT_SIZE entries, written by the JS loader when an easing isn't a known id.
+    easing_lut: Vec<f64>,
 }
 
 #[inline]
@@ -305,8 +427,17 @@ impl State {
         self.point_count = count;
     }
 
+    // Apply the main radius easing, routing custom easings through the LUT (slot 0).
+    #[inline]
+    fn ease_main(&self, easing: u32, t: f64) -> f64 {
+        if easing == EASING_LUT_MAIN {
+            lut_interp(&self.easing_lut[0..EASING_LUT_SIZE], t)
+        } else {
+            ease(easing, t)
+        }
+    }
+
     // ---- Phase 2: computeRadii (core.ts) ------------------------------------------------
-    // Taper is asserted off in svgInk, so the taper pass is omitted.
     fn compute_radii(&mut self, o: &Options) {
         let size = o.size;
         let thinning = o.thinning;
@@ -325,9 +456,10 @@ impl State {
             for i in 0..n {
                 max = max.max(self.pressures[i]);
             }
+            let eased = self.ease_main(easing, 0.5 - thinning * (0.5 - max));
             for i in 0..n {
                 self.pressures[i] = max;
-                self.radii[i] = size * ease(easing, 0.5 - thinning * (0.5 - max));
+                self.radii[i] = size * eased;
             }
             return;
         }
@@ -348,8 +480,12 @@ impl State {
             prev_pressure += (p - prev_pressure) * 0.5;
         }
 
+        let taper_start = resolve_taper(o.taper_start, size, total_length);
+        let taper_end = resolve_taper(o.taper_end, size, total_length);
+        let has_taper = taper_start != 0.0 || taper_end != 0.0;
+
         for i in 0..n {
-            let radius: f64;
+            let mut radius: f64;
             if thinning != 0.0 {
                 let mut pressure = self.pressures[i];
                 let sp = (self.distances[i] / size).min(1.0);
@@ -362,11 +498,37 @@ impl State {
                         + (pressure - prev_pressure) * (sp * RATE_OF_PRESSURE_CHANGE))
                         .min(1.0);
                 }
-                radius = size * ease(easing, 0.5 - thinning * (0.5 - pressure));
+                radius = size * self.ease_main(easing, 0.5 - thinning * (0.5 - pressure));
                 prev_pressure = pressure;
             } else {
                 radius = size / 2.0;
             }
+
+            if has_taper {
+                let running_length = self.running_lengths[i];
+                let ts = if running_length < taper_start {
+                    let x = running_length / taper_start;
+                    if o.taper_start_ease == EASING_LUT_TAPER_START {
+                        lut_interp(&self.easing_lut[EASING_LUT_SIZE..2 * EASING_LUT_SIZE], x)
+                    } else {
+                        ease(o.taper_start_ease, x)
+                    }
+                } else {
+                    1.0
+                };
+                let te = if total_length - running_length < taper_end {
+                    let x = (total_length - running_length) / taper_end;
+                    if o.taper_end_ease == EASING_LUT_TAPER_END {
+                        lut_interp(&self.easing_lut[2 * EASING_LUT_SIZE..3 * EASING_LUT_SIZE], x)
+                    } else {
+                        ease(o.taper_end_ease, x)
+                    }
+                } else {
+                    1.0
+                };
+                radius = (0.01_f64).max(radius * ts.min(te));
+            }
+
             self.radii[i] = radius;
         }
     }
@@ -1214,6 +1376,213 @@ impl State {
         self.ingest(n_points, o);
         self.write_svg_from_points(closed);
     }
+
+    // ---- outlineFromSrc (getStrokeOutlinePoints.ts) ------------------------------------
+    // Builds the full outline (tracks + caps) for the points in the src buffers and writes
+    // it to out_f64 as x,y pairs. Returns the outline point count. Shared by getStroke and
+    // getStrokeOutlinePoints.
+    fn outline_from_src(&mut self, o: &Options) -> usize {
+        self.out_f64.clear();
+        let size = o.size;
+        let n = self.src_count;
+        if n == 0 || size <= 0.0 {
+            return 0;
+        }
+
+        let total_length = self.src_running_length[n - 1];
+        let taper_start = resolve_taper(o.taper_start, size, total_length);
+        let taper_end = resolve_taper(o.taper_end, size, total_length);
+        let is_complete = o.last;
+        let cap_start = o.cap_start;
+        let cap_end = o.cap_end;
+
+        self.build_tracks(o, false, 0.0, 0.0);
+
+        let cap_tolerance = (0.05_f64).max(size * 0.02);
+        let first_radius = self.src_radius[0];
+        let first_x = self.src_x[0];
+        let first_y = self.src_y[0];
+        let (last_x, last_y) = if n > 1 {
+            (self.src_x[n - 1], self.src_y[n - 1])
+        } else {
+            (first_x + 1.0, first_y + 1.0)
+        };
+
+        // Dot for very short or completed strokes.
+        if n == 1 && (!(taper_start != 0.0 || taper_end != 0.0) || is_complete) {
+            let dx = first_x - last_x;
+            let dy = first_y - last_y;
+            let l = (dx * dx + dy * dy).sqrt();
+            let (ux, uy) = if l == 0.0 { (dx, dy) } else { (dx / l, dy / l) };
+            // start = firstPoint + uni.per() * -firstRadius;  per(v) = (v.y, -v.x)
+            let sx = first_x + uy * (-first_radius);
+            let sy = first_y + (-ux) * (-first_radius);
+            let steps = arc_steps(
+                first_radius,
+                FIXED_PI * 2.0,
+                cap_tolerance,
+                MIN_ROUNDED_CORNER_STEPS,
+                MAX_ROUNDED_CORNER_STEPS,
+            );
+            let step = 1.0 / steps as f64;
+            let mut t = step;
+            while t <= 1.0 {
+                let (rx, ry) = rot_with(sx, sy, first_x, first_y, FIXED_PI * 2.0 * t);
+                self.out_f64.push(rx);
+                self.out_f64.push(ry);
+                t += step;
+            }
+            return self.out_f64.len() / 2;
+        }
+
+        // Start cap (collected, pushed after the left track + end cap + right track).
+        let mut start_cap: Vec<(f64, f64)> = Vec::new();
+        if taper_start != 0.0 || (taper_end != 0.0 && n == 1) {
+            // tapered start: noop
+        } else if cap_start {
+            let frx = self.track_right_x[0];
+            let fry = self.track_right_y[0];
+            let steps = arc_steps(first_radius, FIXED_PI, cap_tolerance, 4, 8);
+            let step = 1.0 / steps as f64;
+            let mut t = step;
+            while t <= 1.0 {
+                start_cap.push(rot_with(frx, fry, first_x, first_y, FIXED_PI * t));
+                t += step;
+            }
+        } else {
+            let cvx = self.track_left_x[0] - self.track_right_x[0];
+            let cvy = self.track_left_y[0] - self.track_right_y[0];
+            let (oax, oay) = (cvx * 0.5, cvy * 0.5);
+            let (obx, oby) = (cvx * 0.51, cvy * 0.51);
+            start_cap.push((first_x - oax, first_y - oay));
+            start_cap.push((first_x - obx, first_y - oby));
+            start_cap.push((first_x + obx, first_y + oby));
+            start_cap.push((first_x + oax, first_y + oay));
+        }
+
+        // End cap.
+        let mut end_cap: Vec<(f64, f64)> = Vec::new();
+        let last_radius = self.src_radius[n - 1];
+        let (mut lvx, mut lvy) = (1.0, 1.0);
+        if n > 1 {
+            let dx = self.src_x[n - 2] - self.src_x[n - 1];
+            let dy = self.src_y[n - 2] - self.src_y[n - 1];
+            let l = (dx * dx + dy * dy).sqrt();
+            if l == 0.0 {
+                lvx = dx;
+                lvy = dy;
+            } else {
+                lvx = dx / l;
+                lvy = dy / l;
+            }
+        }
+        let dirx = -lvy;
+        let diry = lvx;
+        if taper_end != 0.0 || (taper_start != 0.0 && n == 1) {
+            end_cap.push((last_x, last_y));
+        } else if cap_end {
+            let sx = last_x + dirx * last_radius;
+            let sy = last_y + diry * last_radius;
+            let steps = arc_steps(last_radius, FIXED_PI * 3.0, cap_tolerance, MIN_CAP_STEPS, MAX_CAP_STEPS);
+            let step = 1.0 / steps as f64;
+            let mut t = step;
+            while t < 1.0 {
+                end_cap.push(rot_with(sx, sy, last_x, last_y, FIXED_PI * 3.0 * t));
+                t += step;
+            }
+        } else {
+            end_cap.push((last_x + dirx * last_radius, last_y + diry * last_radius));
+            end_cap.push((last_x + dirx * last_radius * 0.99, last_y + diry * last_radius * 0.99));
+            end_cap.push((last_x - dirx * last_radius * 0.99, last_y - diry * last_radius * 0.99));
+            end_cap.push((last_x - dirx * last_radius, last_y - diry * last_radius));
+        }
+
+        // Assemble: left track, end cap, right track reversed, start cap.
+        for i in 0..self.track_left_count {
+            self.out_f64.push(self.track_left_x[i]);
+            self.out_f64.push(self.track_left_y[i]);
+        }
+        for (x, y) in &end_cap {
+            self.out_f64.push(*x);
+            self.out_f64.push(*y);
+        }
+        for i in (0..self.track_right_count).rev() {
+            self.out_f64.push(self.track_right_x[i]);
+            self.out_f64.push(self.track_right_y[i]);
+        }
+        for (x, y) in &start_cap {
+            self.out_f64.push(*x);
+            self.out_f64.push(*y);
+        }
+        self.out_f64.len() / 2
+    }
+
+    // getStroke: ingest + computeRadii + outline. Writes outline x,y pairs to out_f64.
+    fn run_get_stroke(&mut self, n_points: usize, o: &Options) -> usize {
+        self.ingest(n_points, o);
+        if self.point_count == 0 {
+            self.out_f64.clear();
+            return 0;
+        }
+        self.compute_radii(o);
+        self.load_src_from_pipeline();
+        self.outline_from_src(o)
+    }
+
+    // getStrokePoints: ingest, then emit 8 floats per streamlined point
+    // [pointX, pointY, inputX, inputY, inputZ, pressure, distance, runningLength]. radius is
+    // always 1 (set by the JS caller). Returns the point count.
+    fn run_stroke_points(&mut self, n_points: usize, o: &Options) -> usize {
+        self.ingest(n_points, o);
+        let n = self.point_count;
+        self.out_f64.clear();
+        for i in 0..n {
+            self.out_f64.push(self.point_x[i]);
+            self.out_f64.push(self.point_y[i]);
+            self.out_f64.push(self.input_x[i]);
+            self.out_f64.push(self.input_y[i]);
+            self.out_f64.push(self.input_z[i]);
+            self.out_f64.push(self.pressures[i]);
+            self.out_f64.push(self.distances[i]);
+            self.out_f64.push(self.running_lengths[i]);
+        }
+        n
+    }
+
+    // Load the src buffers from a provided StrokePoint buffer (6 floats per point:
+    // pointX, pointY, inputX, inputY, radius, runningLength), for getStrokeOutlinePoints.
+    fn load_src_from_buffer(&mut self, n: usize) {
+        self.ensure_src(n);
+        for i in 0..n {
+            let b = i * 6;
+            self.src_x[i] = self.input[b];
+            self.src_y[i] = self.input[b + 1];
+            self.src_input_x[i] = self.input[b + 2];
+            self.src_input_y[i] = self.input[b + 3];
+            self.src_radius[i] = self.input[b + 4];
+            self.src_running_length[i] = self.input[b + 5];
+            self.src_is_cap[i] = if i == 0 || i == n - 1 { 1 } else { 0 };
+        }
+        self.src_count = n;
+    }
+
+    fn run_stroke_outline_from_points(&mut self, n: usize, o: &Options) -> usize {
+        self.load_src_from_buffer(n);
+        self.outline_from_src(o)
+    }
+
+    // getSvgPathFromStrokePoints from a provided point buffer (2 floats per point: x, y).
+    fn run_svg_path_from_stroke_points(&mut self, n: usize, closed: bool) {
+        self.output.clear();
+        ensure_f64(&mut self.point_x, n);
+        ensure_f64(&mut self.point_y, n);
+        for i in 0..n {
+            self.point_x[i] = self.input[i * 2];
+            self.point_y[i] = self.input[i * 2 + 1];
+        }
+        self.point_count = n;
+        self.write_svg_from_points(closed);
+    }
 }
 
 // ---- C ABI ----------------------------------------------------------------------------
@@ -1255,15 +1624,15 @@ pub extern "C" fn svg_ink(
     easing: u32,
     last: u32,
 ) -> usize {
-    let o = Options {
+    let o = Options::basic(
         size,
         thinning,
         smoothing,
         streamline,
-        simulate_pressure: simulate_pressure != 0,
+        simulate_pressure != 0,
         easing,
-        last: last != 0,
-    };
+        last != 0,
+    );
     let s = state();
     s.run_svg_ink(n_points, &o);
     s.output.len()
@@ -1290,15 +1659,15 @@ pub extern "C" fn svg_from_points(
     last: u32,
     closed: u32,
 ) -> usize {
-    let o = Options {
+    let o = Options::basic(
         size,
         thinning,
         smoothing,
         streamline,
-        simulate_pressure: simulate_pressure != 0,
+        simulate_pressure != 0,
         easing,
-        last: last != 0,
-    };
+        last != 0,
+    );
     let s = state();
     s.run_svg_from_points(n_points, &o, closed != 0);
     s.output.len()
@@ -1318,5 +1687,127 @@ pub extern "C" fn last_point_count() -> usize {
 pub extern "C" fn get_svg_path_from_points(n_points: usize, closed: u32) -> usize {
     let s = state();
     s.run_get_svg_path_from_points(n_points, closed != 0);
+    s.output.len()
+}
+
+/// Pointer to the f64 output buffer (array-returning functions write here).
+#[no_mangle]
+pub extern "C" fn out_f64_ptr() -> *const f64 {
+    state().out_f64.as_ptr()
+}
+
+/// Ensure the easing LUT buffer holds 3 tables and return its pointer. The JS loader writes
+/// [main | taper_start | taper_end], each EASING_LUT_SIZE samples, for custom easings.
+#[no_mangle]
+pub extern "C" fn easing_lut_ptr() -> *mut f64 {
+    let s = state();
+    ensure_f64(&mut s.easing_lut, 3 * EASING_LUT_SIZE);
+    s.easing_lut.as_mut_ptr()
+}
+
+/// getStrokePoints: ingest raw points and emit 8 floats per streamlined point. Returns the
+/// point count; read the floats from `out_f64_ptr()`.
+#[no_mangle]
+pub extern "C" fn stroke_points(
+    n_points: usize,
+    size: f64,
+    thinning: f64,
+    smoothing: f64,
+    streamline: f64,
+    simulate_pressure: u32,
+    easing: u32,
+    last: u32,
+) -> usize {
+    let o = Options::basic(
+        size,
+        thinning,
+        smoothing,
+        streamline,
+        simulate_pressure != 0,
+        easing,
+        last != 0,
+    );
+    state().run_stroke_points(n_points, &o)
+}
+
+/// getStroke: ingest raw points and emit the outline as x,y pairs. Returns the outline point
+/// count; read from `out_f64_ptr()`.
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub extern "C" fn get_stroke(
+    n_points: usize,
+    size: f64,
+    thinning: f64,
+    smoothing: f64,
+    streamline: f64,
+    simulate_pressure: u32,
+    easing: u32,
+    last: u32,
+    taper_start: f64,
+    taper_end: f64,
+    taper_start_ease: u32,
+    taper_end_ease: u32,
+    cap_start: u32,
+    cap_end: u32,
+) -> usize {
+    let o = Options {
+        size,
+        thinning,
+        smoothing,
+        streamline,
+        simulate_pressure: simulate_pressure != 0,
+        easing,
+        last: last != 0,
+        taper_start,
+        taper_end,
+        taper_start_ease,
+        taper_end_ease,
+        cap_start: cap_start != 0,
+        cap_end: cap_end != 0,
+    };
+    state().run_get_stroke(n_points, &o)
+}
+
+/// getStrokeOutlinePoints: build the outline from a provided StrokePoint buffer (6 floats
+/// per point: pointX, pointY, inputX, inputY, radius, runningLength). Returns the outline
+/// point count; read from `out_f64_ptr()`.
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub extern "C" fn stroke_outline_from_points(
+    n_points: usize,
+    size: f64,
+    smoothing: f64,
+    last: u32,
+    taper_start: f64,
+    taper_end: f64,
+    taper_start_ease: u32,
+    taper_end_ease: u32,
+    cap_start: u32,
+    cap_end: u32,
+) -> usize {
+    let o = Options {
+        size,
+        thinning: 0.0,
+        smoothing,
+        streamline: 0.0,
+        simulate_pressure: false,
+        easing: 0,
+        last: last != 0,
+        taper_start,
+        taper_end,
+        taper_start_ease,
+        taper_end_ease,
+        cap_start: cap_start != 0,
+        cap_end: cap_end != 0,
+    };
+    state().run_stroke_outline_from_points(n_points, &o)
+}
+
+/// getSvgPathFromStrokePoints: centerline path from a provided point buffer (2 floats per
+/// point: x, y). Returns the byte length of the path; read from `output_ptr()`.
+#[no_mangle]
+pub extern "C" fn svg_path_from_stroke_points(n_points: usize, closed: u32) -> usize {
+    let s = state();
+    s.run_svg_path_from_stroke_points(n_points, closed != 0);
     s.output.len()
 }

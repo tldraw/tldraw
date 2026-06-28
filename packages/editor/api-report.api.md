@@ -3345,6 +3345,31 @@ export function stopEventPropagation(e: any): any;
 // @internal (undocumented)
 export type StoreName = (typeof Table)[keyof typeof Table];
 
+// @internal
+export function strokeOutlineFromPointsWasm(strokePoints: StrokePointLike[], options?: FreehandStrokeOptions): Float64Array | null;
+
+// @internal
+export function strokeOutlineWasm(rawInputPoints: VecLike[], options?: FreehandStrokeOptions): Float64Array | null;
+
+// @internal
+export interface StrokePointLike {
+    // (undocumented)
+    distance: number;
+    // (undocumented)
+    input: VecLike;
+    // (undocumented)
+    point: VecLike;
+    // (undocumented)
+    pressure: number;
+    // (undocumented)
+    radius: number;
+    // (undocumented)
+    runningLength: number;
+}
+
+// @internal
+export function strokePointsWasm(rawInputPoints: VecLike[], options?: FreehandStrokeOptions): Float64Array | null;
+
 // @public
 export function strokeShapeIndicators(editor: Editor, ctx: CanvasRenderingContext2D, shapeIds: TLShapeId[]): void;
 
@@ -3384,6 +3409,9 @@ export function svgFromPointsWasm(rawInputPoints: VecLike[], options?: FreehandS
 
 // @internal
 export function svgInkWasm(rawInputPoints: VecLike[], options?: FreehandStrokeOptions): null | string;
+
+// @internal
+export function svgPathFromStrokePointsWasm(points: VecLike[], closed?: boolean): null | string;
 
 // @public
 export const TAB_ID: string;

@@ -1,4 +1,4 @@
-import { Vec, VecLike } from '@tldraw/editor'
+import { Vec, VecLike, strokePointsWasm } from '@tldraw/editor'
 import {
 	distances,
 	ingest,
@@ -28,6 +28,26 @@ export function getStrokePoints(
 	rawInputPoints: VecLike[],
 	options: StrokeOptions = {}
 ): StrokePoint[] {
+	const data = strokePointsWasm(rawInputPoints, options)
+	if (data) {
+		const count = data.length / 8
+		const strokePoints: StrokePoint[] = new Array(count)
+		for (let i = 0; i < count; i++) {
+			const b = i * 8
+			strokePoints[i] = {
+				// point.z and input.z are both the clamped input z.
+				point: new Vec(data[b], data[b + 1], data[b + 4]),
+				input: new Vec(data[b + 2], data[b + 3], data[b + 4]),
+				pressure: data[b + 5],
+				distance: data[b + 6],
+				runningLength: data[b + 7],
+				radius: 1,
+			}
+		}
+		return strokePoints
+	}
+
+	// Fallback for environments that can't instantiate the WASM module.
 	ingest(rawInputPoints, options)
 
 	const n = pointCount

@@ -466,9 +466,14 @@ export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export {
 	canUseFreehandWasm,
 	getSvgPathFromPointsWasm,
+	strokeOutlineFromPointsWasm,
+	strokeOutlineWasm,
+	strokePointsWasm,
 	svgFromPointsWasm,
 	svgInkWasm,
+	svgPathFromStrokePointsWasm,
 	type FreehandStrokeOptions,
+	type StrokePointLike,
 } from './lib/utils/freehand-wasm/svgInkWasm'
 export { isAccelKey } from './lib/utils/keyboard'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
