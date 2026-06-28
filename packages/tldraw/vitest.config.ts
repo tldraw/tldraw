@@ -10,7 +10,11 @@ export default mergeConfig(baseConfig, {
 				url: 'http://localhost/test',
 			},
 		},
-		setupFiles: ['../../internal/config/vitest/setup.ts', './setupVitest.js'],
+		setupFiles: [
+			'../../internal/config/vitest/setup.ts',
+			'../../internal/config/vitest/load-freehand-wasm.ts',
+			'./setupVitest.js',
+		],
 		// Global fake timers like Jest configuration
 		fakeTimers: {
 			toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],

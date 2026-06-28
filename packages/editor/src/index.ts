@@ -466,6 +466,8 @@ export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export {
 	canUseFreehandWasm,
 	getSvgPathFromPointsWasm,
+	instantiateFreehandWasm,
+	loadFreehandWasm,
 	strokeOutlineFromPointsWasm,
 	strokeOutlineWasm,
 	strokePointsWasm,

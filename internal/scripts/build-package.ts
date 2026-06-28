@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync } from 'fs'
+import { copyFileSync, existsSync, mkdirSync } from 'fs'
 import path from 'path'
 import { pathToFileURL } from 'url'
 import { build } from 'esbuild'
@@ -124,6 +124,15 @@ async function buildLibrary({
 		console.error(kleur.red('Build failed with errors:'))
 		console.error(res.errors)
 		throw new Error('esm build failed')
+	}
+
+	// Copy non-JS assets (e.g. .wasm modules loaded via `new URL(..., import.meta.url)`) next
+	// to the built modules, mirroring their position under src/.
+	const srcDir = path.join(sourcePackageDir, 'src')
+	for (const asset of glob.sync(path.join(srcDir, '**/*.wasm'))) {
+		const dest = path.join(outdir, path.relative(srcDir, asset))
+		mkdirSync(path.dirname(dest), { recursive: true })
+		copyFileSync(asset, dest)
 	}
 }
 

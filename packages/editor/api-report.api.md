@@ -2376,6 +2376,9 @@ export class InputsManager extends EditorManager {
     updatePointerVelocity(elapsed: number): void;
 }
 
+// @internal
+export function instantiateFreehandWasm(bytes: BufferSource): void;
+
 // @public
 export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];
 
@@ -2470,6 +2473,9 @@ export type LicenseState = 'expired' | 'licensed-with-watermark' | 'licensed' | 
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
+
+// @internal
+export function loadFreehandWasm(): Promise<boolean>;
 
 // @public (undocumented)
 export function LoadingScreen({ children }: LoadingScreenProps): JSX.Element;

@@ -6,7 +6,11 @@ import baseConfig from '../../internal/config/vitest/node-preset'
 export default mergeConfig(baseConfig, {
 	test: {
 		environment: 'jsdom',
-		setupFiles: ['../../internal/config/vitest/setup.ts', './setupVitest.js'],
+		setupFiles: [
+			'../../internal/config/vitest/setup.ts',
+			'../../internal/config/vitest/load-freehand-wasm.ts',
+			'./setupVitest.js',
+		],
 		fakeTimers: {
 			toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
 		},

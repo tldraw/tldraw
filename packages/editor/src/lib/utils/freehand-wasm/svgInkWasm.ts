@@ -1,10 +1,15 @@
+import { atom } from '@tldraw/state'
+import { fetch } from '@tldraw/utils'
 import { VecLike } from '../../primitives/Vec'
-import { freehandWasmBase64 } from './freehand-wasm.generated'
 
-// Loader for the Rust/WASM port of the freehand ink generators. The module is inlined as
-// base64 (see freehand-wasm.generated.ts) so it needs no asset loading or bundler config.
-// It exports a linear `memory` plus a few functions and has zero host imports, so
-// instantiation is just compile + new Instance.
+// Loader for the Rust/WASM port of the freehand ink generators. The module ships as a
+// `freehand.wasm` asset next to this file and is loaded at runtime via
+// `new URL('./freehand.wasm', import.meta.url)` — fetched in the browser, read from disk in
+// Node. It exports a linear `memory` plus a few functions and has zero host imports.
+//
+// Because the load is async but freehand generation runs synchronously during render, the
+// load is kicked off eagerly at import and a reactive readiness signal lets ink/geometry
+// re-render once the module is ready (the same way fonts swap in when they load).
 //
 // This lives in @tldraw/editor (the lowest package that needs freehand path generation, via
 // getSvgPathFromPoints); the tldraw package's freehand helpers call into it.
@@ -125,34 +130,92 @@ const EASING_LUT_SIZE = 1024
 
 let exportsCache: FreehandWasmExports | null = null
 let instantiateFailed = false
+let loadPromise: Promise<boolean> | null = null
 const textDecoder = new TextDecoder()
 
-function decodeBase64(b64: string): Uint8Array<ArrayBuffer> {
-	// atob is available in browsers and Node >= 16. Decoding into a freshly allocated
-	// Uint8Array keeps it ArrayBuffer-backed (what WebAssembly.Module wants).
-	const bin = atob(b64)
-	const bytes = new Uint8Array(bin.length)
-	for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
-	return bytes
+// Reactive readiness flag. Freehand generation runs synchronously during render, but the
+// module loads asynchronously (the ~70KB asset is fetched, not inlined). Callers read this
+// signal so that ink/geometry produced before the module is ready re-render reactively once
+// it loads — the same way fonts swap in when they finish loading.
+const isFreehandWasmReady = atom('isFreehandWasmReady', false)
+
+// Resolved against this module's location so bundlers (Vite/webpack) emit the asset and Node
+// gets a file: URL. The cast keeps TS happy about the BufferSource shape later.
+const wasmUrl = /* @__PURE__ */ new URL('./freehand.wasm', import.meta.url)
+
+function instantiate(bytes: BufferSource): FreehandWasmExports {
+	const wasmModule = new WebAssembly.Module(bytes)
+	const instance = new WebAssembly.Instance(wasmModule, {})
+	return instance.exports as unknown as FreehandWasmExports
 }
 
 /**
- * Instantiate the module (synchronously; it's ~60KB with no imports), or return null if the
- * environment can't run it. Cached after the first call; a failure is cached too so we don't
- * retry instantiation on every stroke.
+ * Load and instantiate the freehand WASM module. Idempotent and safe to call repeatedly; it
+ * is kicked off eagerly at import time so the module is usually ready before the first stroke
+ * renders. In Node (a `file:` URL) it reads the asset from disk; in the browser it fetches it.
+ * Resolves to true once the module is ready, or false if the environment can't run it.
+ *
+ * @internal
  */
-function tryGetFreehandWasm(): FreehandWasmExports | null {
-	if (exportsCache) return exportsCache
-	if (instantiateFailed) return null
+export function loadFreehandWasm(): Promise<boolean> {
+	if (loadPromise) return loadPromise
+	loadPromise = (async () => {
+		try {
+			if (exportsCache) return true
+			let bytes: BufferSource
+			if (wasmUrl.protocol === 'file:') {
+				// Node / SSR. The specifier is a variable so browser bundlers don't try to
+				// resolve node:fs into the client build.
+				const fsSpecifier = 'node:fs/promises'
+				const { readFile } = await import(/* @vite-ignore */ fsSpecifier)
+				bytes = await readFile(wasmUrl)
+			} else {
+				const response = await fetch(wasmUrl)
+				bytes = await response.arrayBuffer()
+			}
+			if (!exportsCache) {
+				exportsCache = instantiate(bytes)
+				isFreehandWasmReady.set(true)
+			}
+			return true
+		} catch {
+			instantiateFailed = true
+			return false
+		}
+	})()
+	return loadPromise
+}
+
+/**
+ * Instantiate the module from bytes already in hand, bypassing the asset fetch. Used by the
+ * test harness, where the bundler's `new URL(..., import.meta.url)` asset resolution isn't
+ * available. No-op if the module is already loaded.
+ *
+ * @internal
+ */
+export function instantiateFreehandWasm(bytes: BufferSource): void {
+	if (exportsCache) return
 	try {
-		const wasmModule = new WebAssembly.Module(decodeBase64(freehandWasmBase64))
-		const instance = new WebAssembly.Instance(wasmModule, {})
-		exportsCache = instance.exports as unknown as FreehandWasmExports
-		return exportsCache
+		exportsCache = instantiate(bytes)
+		isFreehandWasmReady.set(true)
 	} catch {
 		instantiateFailed = true
-		return null
 	}
+}
+
+// Start loading as soon as this module is imported.
+void loadFreehandWasm()
+
+/**
+ * The module's exports if it has finished loading, else null. Reads the reactive readiness
+ * signal so callers inside a reactive context (render, computed geometry) re-run when the
+ * module becomes available.
+ */
+function tryGetFreehandWasm(): FreehandWasmExports | null {
+	isFreehandWasmReady.get()
+	if (exportsCache) return exportsCache
+	if (!loadPromise && !instantiateFailed) void loadFreehandWasm()
+	return null
 }
 
 /**
