@@ -1,5 +1,5 @@
 import { VecLike } from '@tldraw/editor'
-import type { StrokeOptions, StrokePoint } from './types'
+import type { StrokeOptions, StrokePoint } from '../types'
 
 // The stroke pipeline's internal representation: one module-level set of reusable
 // struct-of-arrays buffers instead of per-point objects. Like fmt.ts's byte buffer, the

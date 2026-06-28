@@ -1,4 +1,5 @@
 import { VecLike, assert } from '@tldraw/editor'
+import { StrokeOptions } from '../types'
 import {
 	computeRadii,
 	ingest,
@@ -25,7 +26,6 @@ import {
 	trackRightX,
 	trackRightY,
 } from './getStrokeOutlinePoints'
-import { StrokeOptions } from './types'
 
 /**
  * Render a freehand stroke as svg path data in a single pass, from raw input points to a filled

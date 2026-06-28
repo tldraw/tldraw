@@ -1,9 +1,9 @@
 import { VecLike, svgFromPointsWasm, svgInkWasm } from '@tldraw/editor'
 import { describe, expect, it } from 'vitest'
 import { getFreehandOptions } from '../../draw/getPath'
-import { getStrokePoints } from './getStrokePoints'
-import { getSvgPathFromStrokePoints } from './svg'
-import { svgInk } from './svgInk'
+import { getStrokePoints } from './oracle/getStrokePoints'
+import { getSvgPathFromStrokePoints } from './oracle/svg'
+import { svgInk } from './oracle/svgInk'
 import { StrokeOptions } from './types'
 
 /**

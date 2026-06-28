@@ -1,10 +1,10 @@
 import { VecLike } from '@tldraw/editor'
 import { describe, expect, it } from 'vitest'
 import { getFreehandOptions, getHighlightFreehandSettings } from '../../draw/getPath'
-import { getStroke } from './getStroke'
-import { getStrokePoints } from './getStrokePoints'
-import { getSvgPathFromStrokePoints } from './svg'
-import { svgInk } from './svgInk'
+import { getStroke } from './oracle/getStroke'
+import { getStrokePoints } from './oracle/getStrokePoints'
+import { getSvgPathFromStrokePoints } from './oracle/svg'
+import { svgInk } from './oracle/svgInk'
 import { StrokeOptions } from './types'
 
 /**

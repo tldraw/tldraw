@@ -7,10 +7,10 @@ import {
 } from '@tldraw/editor'
 import { EASINGS } from '@tldraw/editor'
 import { describe, expect, it } from 'vitest'
-import { getStroke } from './getStroke'
-import { getStrokeOutlinePoints } from './getStrokeOutlinePoints'
-import { getStrokePoints } from './getStrokePoints'
-import { getSvgPathFromStrokePoints } from './svg'
+import { getStroke } from './oracle/getStroke'
+import { getStrokeOutlinePoints } from './oracle/getStrokeOutlinePoints'
+import { getStrokePoints } from './oracle/getStrokePoints'
+import { getSvgPathFromStrokePoints } from './oracle/svg'
 import { StrokeOptions } from './types'
 
 // Verifies the array-returning WASM ports (getStrokePoints, getStroke,
