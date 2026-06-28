@@ -24,9 +24,8 @@ import {
 } from '@tldraw/editor'
 import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
+import { getCenterlinePath } from '../shared/freehand/getFreehandPath'
 import { getStroke } from '../shared/freehand/getStroke'
-import { getStrokePoints } from '../shared/freehand/getStrokePoints'
-import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
@@ -169,19 +168,15 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const zoomLevel = this.editor.getEfficientZoomLevel()
 		const forceSolid = strokeWidth / zoomLevel < 1.5
 
-		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
-		const allPointsFromSegments = getPointsFromDrawSegments(
-			shape.props.segments,
-			shape.props.scaleX,
-			shape.props.scaleY
+		const { options, allPointsFromSegments, sw } = getHighlightStrokeInfo(
+			shape,
+			strokeWidth,
+			forceSolid
 		)
 
-		let strokePath
-		if (strokePoints.length < 2) {
-			strokePath = getIndicatorDot(allPointsFromSegments[0], sw)
-		} else {
-			strokePath = getSvgPathFromStrokePoints(strokePoints, false)
-		}
+		const strokePath =
+			getCenterlinePath(allPointsFromSegments, options, false) ??
+			getIndicatorDot(allPointsFromSegments[0], sw)
 
 		return new Path2D(strokePath)
 	}
@@ -262,11 +257,7 @@ function getIndicatorDot(point: VecLike, sw: number) {
 	},0`
 }
 
-function getHighlightStrokePoints(
-	shape: TLHighlightShape,
-	strokeWidth: number,
-	forceSolid: boolean
-) {
+function getHighlightStrokeInfo(shape: TLHighlightShape, strokeWidth: number, forceSolid: boolean) {
 	const allPointsFromSegments = getPointsFromDrawSegments(
 		shape.props.segments,
 		shape.props.scaleX,
@@ -284,9 +275,7 @@ function getHighlightStrokePoints(
 		showAsComplete,
 	})
 
-	const strokePoints = getStrokePoints(allPointsFromSegments, options)
-
-	return { strokePoints, sw }
+	return { options, allPointsFromSegments, sw }
 }
 
 function getIsDot(shape: TLHighlightShape) {
@@ -325,12 +314,9 @@ function HighlightRenderer({
 		showAsComplete: shape.props.isComplete || last(shape.props.segments)?.type === 'straight',
 	})
 
-	const strokePoints = getStrokePoints(allPointsFromSegments, options)
-
 	const solidStrokePath =
-		strokePoints.length > 1
-			? getSvgPathFromStrokePoints(strokePoints, false)
-			: getShapeDot(allPointsFromSegments[0])
+		getCenterlinePath(allPointsFromSegments, options, false) ??
+		getShapeDot(allPointsFromSegments[0])
 
 	return (
 		<path

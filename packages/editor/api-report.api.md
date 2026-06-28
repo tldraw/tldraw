@@ -463,6 +463,9 @@ export function cancelShapeCreationOnLongPress(editor: Editor, cancelPendingCrea
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
 
+// @internal
+export function canUseFreehandWasm(options: FreehandStrokeOptions): boolean;
+
 // @internal (undocumented)
 export interface CanvasMaxSize {
     // (undocumented)
@@ -1814,6 +1817,36 @@ export class FontManager {
     trackFontsForShape(shape: TLShape | TLShapeId): void;
 }
 
+// @internal
+export interface FreehandStrokeOptions {
+    // (undocumented)
+    easing?(pressure: number): number;
+    // (undocumented)
+    end?: {
+        cap?: boolean;
+        easing?(distance: number): number;
+        taper?: boolean | number;
+    };
+    // (undocumented)
+    last?: boolean;
+    // (undocumented)
+    simulatePressure?: boolean;
+    // (undocumented)
+    size?: number;
+    // (undocumented)
+    smoothing?: number;
+    // (undocumented)
+    start?: {
+        cap?: boolean;
+        easing?(distance: number): number;
+        taper?: boolean | number;
+    };
+    // (undocumented)
+    streamline?: number;
+    // (undocumented)
+    thinning?: number;
+}
+
 // @public (undocumented)
 export interface GapsSnapIndicator {
     // (undocumented)
@@ -2037,6 +2070,9 @@ export function getSvgAsImage(svgString: string, options: {
 
 // @public
 export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;
+
+// @internal
+export function getSvgPathFromPointsWasm(points: VecLike[], closed?: boolean): null | string;
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
@@ -3339,6 +3375,15 @@ export interface SvgExportDef {
     // (undocumented)
     key: string;
 }
+
+// @internal
+export function svgFromPointsWasm(rawInputPoints: VecLike[], options?: FreehandStrokeOptions, closed?: boolean): {
+    path: string;
+    pointCount: number;
+} | null;
+
+// @internal
+export function svgInkWasm(rawInputPoints: VecLike[], options?: FreehandStrokeOptions): null | string;
 
 // @public
 export const TAB_ID: string;

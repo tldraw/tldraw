@@ -463,6 +463,13 @@ export { EditorAtom } from './lib/utils/EditorAtom'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
+export {
+	canUseFreehandWasm,
+	getSvgPathFromPointsWasm,
+	svgFromPointsWasm,
+	svgInkWasm,
+	type FreehandStrokeOptions,
+} from './lib/utils/freehand-wasm/svgInkWasm'
 export { isAccelKey } from './lib/utils/keyboard'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { getDroppedShapesToNewParents, kickoutOccludedShapes } from './lib/utils/reparenting'

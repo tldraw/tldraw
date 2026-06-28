@@ -24,9 +24,8 @@ import {
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import { getCenterlinePath, getInkPath } from '../shared/freehand/getFreehandPath'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
-import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
-import { svgInk } from '../shared/freehand/svgInk'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { PatternFill } from '../shared/PatternFill'
@@ -198,11 +197,9 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 		const options = getFreehandOptions(shape.props, sw, showAsComplete, true)
-		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 		const solidStrokePath =
-			strokePoints.length > 1
-				? getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
-				: getDot(allPointsFromSegments[0], sw)
+			getCenterlinePath(allPointsFromSegments, options, shape.props.isClosed) ??
+			getDot(allPointsFromSegments[0], sw)
 
 		return new Path2D(solidStrokePath)
 	}
@@ -333,6 +330,7 @@ function DrawShapeSvg({
 	const options = getFreehandOptions(shape.props, sw, showAsComplete, forceSolid)
 
 	if (!forceSolid && shape.props.dash === 'draw') {
+		const fillPath = getCenterlinePath(allPointsFromSegments, options, shape.props.isClosed) ?? ''
 		return (
 			<>
 				{shape.props.isClosed &&
@@ -340,33 +338,26 @@ function DrawShapeSvg({
 					allPointsFromSegments.length > 1 &&
 					(shape.props.fill === 'pattern' ? (
 						<PatternFill
-							d={getSvgPathFromStrokePoints(
-								getStrokePoints(allPointsFromSegments, options),
-								shape.props.isClosed
-							)}
+							d={fillPath}
 							fillColor={fillColor}
 							patternFillFallbackColor={patternFillFallbackColor}
 							scale={shape.props.scale}
 						/>
 					) : (
-						<path
-							fill={fillColor}
-							d={getSvgPathFromStrokePoints(
-								getStrokePoints(allPointsFromSegments, options),
-								shape.props.isClosed
-							)}
-						/>
+						<path fill={fillColor} d={fillPath} />
 					))}
-				<path d={svgInk(allPointsFromSegments, options)} strokeLinecap="round" fill={strokeColor} />
+				<path
+					d={getInkPath(allPointsFromSegments, options)}
+					strokeLinecap="round"
+					fill={strokeColor}
+				/>
 			</>
 		)
 	}
 
-	const strokePoints = getStrokePoints(allPointsFromSegments, options)
-	const isDot = strokePoints.length < 2
-	const solidStrokePath = isDot
-		? getDot(allPointsFromSegments[0], 0)
-		: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
+	const centerlinePath = getCenterlinePath(allPointsFromSegments, options, shape.props.isClosed)
+	const isDot = centerlinePath === null
+	const solidStrokePath = isDot ? getDot(allPointsFromSegments[0], 0) : centerlinePath
 
 	const fill = isDot || shape.props.isClosed ? shape.props.fill : 'none'
 

@@ -1,5 +1,6 @@
 import { average, precise } from '../primitives/utils'
 import { VecLike } from '../primitives/Vec'
+import { getSvgPathFromPointsWasm } from './freehand-wasm/svgInkWasm'
 
 /**
  * Turn an array of points into a path of quadratic curves.
@@ -10,6 +11,11 @@ import { VecLike } from '../primitives/Vec'
  * @public
  */
 export function getSvgPathFromPoints(points: VecLike[], closed = true): string {
+	// The path generation is implemented in Rust/WASM (see freehand-wasm); this JS body is a
+	// fallback for environments that can't instantiate the module.
+	const wasm = getSvgPathFromPointsWasm(points, closed)
+	if (wasm !== null) return wasm
+
 	const len = points.length
 
 	if (len < 2) {
