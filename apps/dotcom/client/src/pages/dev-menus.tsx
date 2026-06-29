@@ -1,7 +1,20 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { TldrawUiContextProvider } from 'tldraw'
+import {
+	Tldraw,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	TldrawUiContextProvider,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuCheckboxItem,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	TldrawUiMenuSubmenu,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import {
 	TlaMenuControl,
@@ -110,6 +123,51 @@ const renderLive = (name: string): ReactNode => {
 	}
 }
 
+/**
+ * A genuinely real SDK action menu. The TldrawUiMenu* parts can't render
+ * individually (each calls useEditor and the 'menu' type emits a Radix
+ * DropdownMenu.Item), but composed inside a minimal in-memory <Tldraw> they
+ * work. hideUi drops the default chrome; debugOpen forces the dropdown open so
+ * the resolved menu shows with no click. Fake content, real function.
+ */
+const RealActionMenu = (): ReactNode => (
+	<div className="realMenuStage">
+		<Tldraw hideUi>
+			<TldrawUiContextProvider>
+				<div className="realMenuAnchor">
+					<TldrawUiDropdownMenuRoot id="dev-real-menu" debugOpen>
+						<TldrawUiDropdownMenuTrigger>
+							<TldrawUiButton type="normal">
+								<TldrawUiButtonLabel>Actions</TldrawUiButtonLabel>
+							</TldrawUiButton>
+						</TldrawUiDropdownMenuTrigger>
+						<TldrawUiDropdownMenuContent side="bottom" align="start">
+							<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+								<TldrawUiMenuGroup id="dev-edit">
+									<TldrawUiMenuItem id="rename" label="Rename" icon="edit" onSelect={noop} />
+									<TldrawUiMenuItem
+										id="duplicate"
+										label="Duplicate"
+										icon="duplicate"
+										onSelect={noop}
+									/>
+								</TldrawUiMenuGroup>
+								<TldrawUiMenuGroup id="dev-view">
+									<TldrawUiMenuCheckboxItem id="grid" label="Show grid" checked onSelect={noop} />
+									<TldrawUiMenuSubmenu id="export" label="Export as">
+										<TldrawUiMenuItem id="png" label="PNG" onSelect={noop} />
+										<TldrawUiMenuItem id="svg" label="SVG" onSelect={noop} />
+									</TldrawUiMenuSubmenu>
+								</TldrawUiMenuGroup>
+							</TldrawUiMenuContextProvider>
+						</TldrawUiDropdownMenuContent>
+					</TldrawUiDropdownMenuRoot>
+				</div>
+			</TldrawUiContextProvider>
+		</Tldraw>
+	</div>
+)
+
 export function Component() {
 	return (
 		<div
@@ -189,13 +247,25 @@ export function Component() {
 					</section>
 
 					<section className="section">
+						<h2 className="section__title">A real action menu (live)</h2>
+						<p className="section__note">
+							The parts below can&rsquo;t render on their own — each calls <code>useEditor</code>{' '}
+							and the <code>menu</code> type emits a Radix dropdown item. But composed inside a
+							minimal, in-memory <code>&lt;Tldraw&gt;</code> (fake content, real function) they
+							work. This is a genuine <code>TldrawUiDropdownMenu</code> forced open with{' '}
+							<code>debugOpen</code> — real <code>MenuItem</code> / <code>CheckboxItem</code> /{' '}
+							<code>Submenu</code>.
+						</p>
+						<RealActionMenu />
+					</section>
+
+					<section className="section">
 						<h2 className="section__title">
 							SDK TldrawUiMenu* — {SDK_PARTS.length} parts used in dotcom
 						</h2>
 						<p className="section__note">
-							The action-dropdown system (a declarative menu schema → Radix dropdown). Mocked —
-							these need the editor&rsquo;s menu context to render. The SDK exports more parts;
-							these are the ones dotcom uses.
+							The same system broken into parts. Each is mocked here because, alone, it needs the
+							editor&rsquo;s menu context — the live menu above shows them composed for real.
 						</p>
 						<div className="grid">
 							{SDK_PARTS.map((p) => (
@@ -329,6 +399,8 @@ const PAGE_CSS = `
 .section__note { font-size: 13px; line-height: 1.6; color: var(--tl-color-text-1); margin: 0 0 16px; max-width: 760px; }
 .section code, .callout code, .page__footer code, .section__note code, .page__lede code { font-family: ui-monospace, monospace; font-size: 0.92em; background: var(--tl-color-low); padding: 1px 4px; border-radius: 3px; }
 .mWide { width: 100%; }
+.realMenuStage { position: relative; height: 380px; max-width: 640px; border: 1px solid var(--tl-color-divider); border-radius: 8px; overflow: hidden; }
+.realMenuAnchor { position: absolute; top: 20px; left: 20px; z-index: 100; }
 .ctrlMock { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--tla-color-secondary-border, var(--tl-color-divider)); border-radius: var(--tl-radius-2); background: var(--tl-color-panel); font-size: 12px; }
 .tabMock { display: inline-flex; gap: 4px; }
 .tabMock span { padding: 4px 10px; border-radius: var(--tl-radius-2); font-size: 12px; color: var(--tl-color-text-3); }
