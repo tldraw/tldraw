@@ -119,7 +119,7 @@ export function Component() {
 					</p>
 					<div className="grid">
 						{DIALOGS.map((r) => (
-							<Specimen key={r[0]} label={r[0]} code={r[1]} meta={`maxWidth ${r[2]} · ${r[3]}`}>
+							<Specimen key={r[0]} label={r[0]} code={r[1]} meta={`maxWidth ${r[2]} · ${r[3]}`} mock>
 								<div className="miniDialog" data-bespoke={r[1] === 'bespoke' || undefined}>
 									<div className="miniDialog__h" />
 									<div className="miniDialog__b" />

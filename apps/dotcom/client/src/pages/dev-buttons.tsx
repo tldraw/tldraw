@@ -27,6 +27,7 @@ const Specimen = ({
 	code,
 	meta,
 	source,
+	mock,
 	children,
 }: {
 	label: string
@@ -35,9 +36,14 @@ const Specimen = ({
 	meta: string
 	/** Where this button's styling is defined and which component renders it. */
 	source?: string
+	/** True when the stage is a representation rather than a live render. */
+	mock?: boolean
 	children: ReactNode
 }): ReactNode => (
 	<div className="specimen">
+		<span className="specimen__badge" data-mock={mock || undefined}>
+			{mock ? 'mock' : 'live'}
+		</span>
 		<div className="specimen__stage">{children}</div>
 		<div className="specimen__label">{label}</div>
 		{code && <div className="specimen__code">{code}</div>}
@@ -366,6 +372,7 @@ const PAGE_CSS = `
 	gap: 20px;
 }
 .specimen {
+	position: relative;
 	border: 1px solid var(--tl-color-divider);
 	border-radius: 8px;
 	padding: 20px 16px 14px;
@@ -374,6 +381,8 @@ const PAGE_CSS = `
 	flex-direction: column;
 	gap: 12px;
 }
+.specimen__badge { position: absolute; top: 8px; right: 8px; font-size: 9px; font-family: ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.04em; padding: 1px 6px; border-radius: 999px; background: color-mix(in srgb, var(--tl-color-success, #2a9d3c) 16%, transparent); color: var(--tl-color-success, #2a9d3c); }
+.specimen__badge[data-mock] { background: color-mix(in srgb, var(--tl-color-text-3) 18%, transparent); color: var(--tl-color-text-3); }
 .specimen__stage {
 	min-height: 56px;
 	display: flex;

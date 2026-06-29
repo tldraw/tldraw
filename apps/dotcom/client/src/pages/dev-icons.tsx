@@ -144,6 +144,7 @@ export function Component() {
 							code={`<TldrawUiIcon icon="…" label="…" small />`}
 							meta="per-icon asset · small/tiny sizing · needs AssetUrlsProvider"
 							source="tldraw (packages/tldraw)"
+							mock
 						>
 							<span className="iconStage iconStage--mock">asset ctx</span>
 						</Specimen>

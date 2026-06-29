@@ -95,7 +95,14 @@ export function Component() {
 					</p>
 					<div className="grid">
 						{TLA_PARTS.map((p) => (
-							<Specimen key={p.name} label={p.name} code={`<${p.name}>`} meta={p.meta} source="tla-menu.tsx">
+							<Specimen
+								key={p.name}
+								label={p.name}
+								code={`<${p.name}>`}
+								meta={p.meta}
+								source="tla-menu.tsx"
+								mock={p.kind !== 'switch'}
+							>
 								<PartStage kind={p.kind} sample={p.sample} />
 							</Specimen>
 						))}
@@ -111,7 +118,7 @@ export function Component() {
 					</p>
 					<div className="grid">
 						{SDK_PARTS.map((p) => (
-							<Specimen key={p.name} label={p.name} code={`<${p.name}>`} meta={p.meta} source="tldraw">
+							<Specimen key={p.name} label={p.name} code={`<${p.name}>`} meta={p.meta} source="tldraw" mock>
 								<PartStage kind={p.kind} sample={p.sample} />
 							</Specimen>
 						))}
