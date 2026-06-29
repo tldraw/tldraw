@@ -50,9 +50,7 @@ const noop = () => {}
 /**
  * Every tla-menu part rendered live under the page's IsolationProviders
  * (react-intl + a container element + the SDK UI context). Select needs the
- * container, ControlInfoTooltip needs react-intl, the rest only the UI context —
- * all covered, so none fall back to PartStage. (PartStage still renders the SDK
- * TldrawUiMenu* mock cards, which are shown composed-live above instead.)
+ * container, ControlInfoTooltip needs react-intl, the rest only the UI context.
  */
 const renderLive = (name: string): ReactNode => {
 	switch (name) {
