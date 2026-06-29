@@ -62,6 +62,34 @@ function rotatePointsAround(points: Vec[], center: Vec, angle: number): Vec[] {
 	return points.map((p) => Vec.Add(center, Vec.Rot(Vec.Sub(p, center), angle)))
 }
 
+/** A rounded-corner rectangle outline (models hand-drawn soft corners). */
+function roundedRect(x: number, y: number, w: number, h: number, cr: number, amp = 2): Vec[] {
+	const pts: Vec[] = []
+	let k = 0
+	const push = (px: number, py: number) =>
+		pts.push(new Vec(x + px + noise(k, amp), y + py + noise(k++, amp)))
+	const edge = (ax: number, ay: number, bx: number, by: number, n = 8) => {
+		for (let j = 0; j < n; j++) push(ax + ((bx - ax) * j) / n, ay + ((by - ay) * j) / n)
+	}
+	const arc = (cx: number, cy: number, a0: number, a1: number, n = 5) => {
+		for (let j = 0; j <= n; j++) {
+			const t = a0 + ((a1 - a0) * j) / n
+			push(cx + cr * Math.cos(t), cy + cr * Math.sin(t))
+		}
+	}
+	const P = Math.PI
+	edge(cr, 0, w - cr, 0)
+	arc(w - cr, cr, -P / 2, 0)
+	edge(w, cr, w, h - cr)
+	arc(w - cr, h - cr, 0, P / 2)
+	edge(w - cr, h, cr, h)
+	arc(cr, h - cr, P / 2, P)
+	edge(0, h - cr, 0, cr)
+	arc(cr, cr, P, (3 * P) / 2)
+	pts.push(pts[0].clone())
+	return pts
+}
+
 /** Reconstructs the 4 corners of a recognized rectangle. */
 function reconstructCorners(r: Extract<ShapeRecognitionResult, { kind: 'rectangle' }>): Vec[] {
 	const halves = [
@@ -217,6 +245,38 @@ describe('recognizeRectangle', () => {
 	it('does not recognize a triangle', () => {
 		const corners = [new Vec(0, 0), new Vec(120, 0), new Vec(60, 100)]
 		expect(recognize(samplePolygon(corners))).toBe(null)
+	})
+
+	// Rectangle detection is decided by corner occupancy (the stroke filling the box
+	// corners), not by which outline the points hug best overall. These guard the
+	// cases an outline-fit comparison got wrong: small/noisy near-square circles and
+	// mid-aspect ellipses read as "rectangle-ish" and were stolen by the rectangle.
+	it('recognizes a small noisy circle as an ellipse, not a rectangle', () => {
+		expect(recognize(noisyEllipse(60, 60, 30, 30, 3))?.kind).toBe('ellipse')
+	})
+
+	it('recognizes a noisy circle as an ellipse, not a rectangle', () => {
+		expect(recognize(noisyEllipse(80, 80, 60, 60, 4))?.kind).toBe('ellipse')
+	})
+
+	it('recognizes a wobbly circle as an ellipse, not a rectangle', () => {
+		expect(recognize(noisyEllipse(120, 120, 100, 100, 4))?.kind).toBe('ellipse')
+	})
+
+	it('recognizes a mid-aspect ellipse as an ellipse, not a rectangle', () => {
+		// 160 × 80 — not thin enough for the old thin-ellipse path, was misread as a rect.
+		expect(recognize(noisyEllipse(100, 60, 80, 40, 3))?.kind).toBe('ellipse')
+	})
+
+	it('still recognizes a small noisy square as a rectangle', () => {
+		// The tightest rectangle case (small + noisy corners sit closest to the threshold).
+		expect(recognize(noisyPolygon(rectCorners(0, 0, 60, 60), 4))?.kind).toBe('rectangle')
+	})
+
+	it('recognizes a rounded-corner rectangle as a rectangle', () => {
+		// Hand-drawn corners are soft, but the stroke still reaches into them.
+		expect(recognize(roundedRect(0, 0, 120, 120, 24))?.kind).toBe('rectangle')
+		expect(recognize(roundedRect(0, 0, 80, 80, 16))?.kind).toBe('rectangle')
 	})
 
 	it('recognizes a straight open stroke as a line at its exact endpoints', () => {

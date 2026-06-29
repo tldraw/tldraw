@@ -19,8 +19,13 @@ const AXIS_ALIGN_SNAP_RADIANS = (7.5 * Math.PI) / 180
 const SQUARE_SNAP_RATIO = 1.2
 /** A closed shape must fill at least this fraction of its box (rejects triangles ~0.5). */
 const CLOSED_FILL_MIN = 0.6
-/** Classify as rectangle unless the points hug the ellipse more than this much better. */
-const RECT_VS_ELLIPSE_BIAS = 1.7
+/**
+ * Mean corner occupancy below which a closed shape reads as a rectangle (its
+ * stroke reaches into the box corners) rather than an ellipse (corners empty).
+ * See {@link meanCornerOccupancy}. Rectangles sit around 0.3–0.7 and ellipses
+ * around 0.8–1.1, so this threshold separates them even for small/noisy shapes.
+ */
+const CORNER_OCCUPANCY_MAX = 0.74
 /** The chosen outline's mean residual must be within this fraction of the short side. */
 const SHAPE_FIT_MAX_RATIO = 0.25
 /** A stroke is a line if no point strays more than this fraction of its length from the chord. */
@@ -143,12 +148,12 @@ interface ClosedShapeFit extends OrientedBox {
  * Fits a closed gesture to an oriented box and decides whether its points follow
  * a rectangle outline or an ellipse outline.
  *
- * Rather than the box fill ratio (which collapses for thin shapes: a little edge
- * noise inflates the tiny short dimension, dragging a thin rectangle's fill down
- * toward an ellipse's), it compares how closely the points hug each outline. The
- * comparison is a ratio, so it's robust to the stroke's noise level and to the
- * aspect ratio — a thin rectangle's points hug its straight edges far better than
- * its inscribed ellipse, even though both look "long and flat".
+ * The two are told apart by corner occupancy (see {@link meanCornerOccupancy}):
+ * a rectangle's stroke reaches into the box corners, an ellipse's leaves them
+ * empty. This is far more robust than comparing how closely the points hug each
+ * outline overall — for small or noisy near-square shapes the points sit about
+ * equally close to both, so that comparison flips a circle to a rectangle, while
+ * the corners stay decisive at any size or aspect.
  */
 function fitClosedShape(input: RecognizerInput): ClosedShapeFit | null {
 	if (!input.isClosed) return null
@@ -164,27 +169,46 @@ function fitClosedShape(input: RecognizerInput): ClosedShapeFit | null {
 	// Coarse area gate: rejects triangles (~0.5) and sparse scribbles.
 	if (input.area / (w * h) < CLOSED_FILL_MIN) return null
 
-	// How closely the points hug a rectangle outline vs the inscribed ellipse.
-	const rectResidual = meanOutlineDist(input.points, center, w, h, rotation, distToRectOutline)
-	const ellipseResidual = meanOutlineDist(
-		input.points,
-		center,
-		w,
-		h,
-		rotation,
-		distToEllipseOutline
-	)
+	const localPts = input.points.map((p) => toBoxLocal(p, center, rotation))
 
-	// A rectangle's points hug both outlines comparably (its edges run alongside
-	// the thin ellipse), so bias toward "rectangle" — only call it an ellipse when
-	// the points fit the curve clearly better.
-	const kind = rectResidual <= ellipseResidual * RECT_VS_ELLIPSE_BIAS ? 'rectangle' : 'ellipse'
+	// Filled corners → rectangle; empty corners → ellipse.
+	const kind = meanCornerOccupancy(localPts, w, h) <= CORNER_OCCUPANCY_MAX ? 'rectangle' : 'ellipse'
 
 	// The chosen outline must actually fit (rejects blobs that are neither).
-	const residual = kind === 'rectangle' ? rectResidual : ellipseResidual
+	const dist = kind === 'rectangle' ? distToRectOutline : distToEllipseOutline
+	const residual = meanOutlineDist(localPts, w, h, dist)
 	if (residual > SHAPE_FIT_MAX_RATIO * Math.min(w, h)) return null
 
 	return { kind, center, w, h, rotation }
+}
+
+/**
+ * Mean "corner occupancy" of a closed stroke (points already in box-local space):
+ * for each of the four box corners, the nearest stroke point's distance divided by
+ * the gap an inscribed ellipse would leave at that corner. Near 0 when the stroke
+ * fills the corners (a rectangle); near 1 when they're empty like the ellipse. The
+ * per-corner normalization makes it scale-, aspect-, and noise-independent, so it
+ * separates rectangles from ellipses even when both hug the outlines about equally.
+ */
+function meanCornerOccupancy(localPts: Vec[], w: number, h: number): number {
+	if (localPts.length === 0) return 0
+	const corners = [
+		new Vec(w / 2, h / 2),
+		new Vec(-w / 2, h / 2),
+		new Vec(-w / 2, -h / 2),
+		new Vec(w / 2, -h / 2),
+	]
+	let sum = 0
+	for (const corner of corners) {
+		let nearest = Infinity
+		for (const lp of localPts) {
+			const d = Vec.Dist(lp, corner)
+			if (d < nearest) nearest = d
+		}
+		const ellipseGap = distToEllipseOutline(corner, w, h)
+		sum += ellipseGap > 0 ? nearest / ellipseGap : 0
+	}
+	return sum / corners.length
 }
 
 /** Snaps a recognized box's rotation (near-axis → upright) and sides (near-square → equal). */
@@ -418,18 +442,17 @@ function distToEllipseOutline(local: Vec, w: number, h: number): number {
 	return Math.abs(y0 - e0)
 }
 
-/** Mean distance of the points to an outline (rectangle or ellipse), in page units. */
+/** Mean distance of box-local points to an outline (rectangle or ellipse), in page units. */
 function meanOutlineDist(
-	points: Vec[],
-	center: Vec,
+	localPts: Vec[],
 	w: number,
 	h: number,
-	rotation: number,
 	dist: (local: Vec, w: number, h: number) => number
 ): number {
+	if (localPts.length === 0) return 0
 	let sum = 0
-	for (const p of points) sum += dist(toBoxLocal(p, center, rotation), w, h)
-	return sum / points.length
+	for (const lp of localPts) sum += dist(lp, w, h)
+	return sum / localPts.length
 }
 
 /** Absolute area of a polygon via the shoelace formula. */
