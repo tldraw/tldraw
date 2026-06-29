@@ -1,9 +1,17 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { InstancePresenceRecordType, PeopleMenu, TLUserId, useEditor } from 'tldraw'
+import {
+	DefaultPeopleMenuAvatar,
+	DefaultPeopleMenuFacePile,
+	InstancePresenceRecordType,
+	PeopleMenu,
+	TLUserId,
+	useEditor,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
+import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
 import { MinimalEditorHarness } from './dev-editor-harness'
 
@@ -32,12 +40,19 @@ const Stat = ({ n, label }: { n: string; label: string }): ReactNode => (
  * they never time out). Real UI, fake collaborators — no multiplayer needed.
  */
 const COLLABORATORS = [
-	{ id: 'user:casey', name: 'Casey', color: '#268bd2', x: 130, y: 90 },
-	{ id: 'user:jordan', name: 'Jordan', color: '#859900', x: 320, y: 150 },
-	{ id: 'user:morgan', name: 'Morgan', color: '#cb4b16', x: 210, y: 220 },
+	{ id: 'user:casey', name: 'Casey', color: '#268bd2', x: 70, y: 50 },
+	{ id: 'user:jordan', name: 'Jordan', color: '#859900', x: 180, y: 95 },
+	{ id: 'user:morgan', name: 'Morgan', color: '#cb4b16', x: 120, y: 140 },
 ]
+const COLLAB_IDS = COLLABORATORS.map((c) => c.id as TLUserId)
 
-const InjectPresence = (): ReactNode => {
+/**
+ * Puts fake collaborators into the editor store so the real presence UI has data
+ * to render (lastActivityTimestamp: null = always active). cursors=false parks
+ * them off-screen so cards that show a DOM component (facepile / menu) aren't
+ * cluttered by cursors on the canvas behind.
+ */
+const InjectPresence = ({ cursors }: { cursors?: boolean }): ReactNode => {
 	const editor = useEditor()
 	useEffect(() => {
 		const currentPageId = editor.getCurrentPageId()
@@ -49,21 +64,29 @@ const InjectPresence = (): ReactNode => {
 					userName: c.name,
 					currentPageId,
 					color: c.color,
-					cursor: { x: c.x, y: c.y, type: 'default', rotation: 0 },
+					cursor: cursors
+						? { x: c.x, y: c.y, type: 'default', rotation: 0 }
+						: { x: -1000, y: -1000, type: 'default', rotation: 0 },
 					lastActivityTimestamp: null,
 				})
 			)
 		)
-	}, [editor])
+	}, [editor, cursors])
 	return null
 }
 
-const LivePresence = (): ReactNode => (
-	<MinimalEditorHarness height={320}>
-		<InjectPresence />
-		<div className="presenceOverlay">
-			<PeopleMenu />
-		</div>
+/** One presence card: a minimal editor (fake collaborators) with an optional
+ * DOM component overlaid. cursors shows the collaborator cursors on the canvas. */
+const PresenceCard = ({
+	cursors,
+	children,
+}: {
+	cursors?: boolean
+	children?: ReactNode
+}): ReactNode => (
+	<MinimalEditorHarness height={150} bare>
+		<InjectPresence cursors={cursors} />
+		{children && <div className="presenceOverlay">{children}</div>}
 	</MinimalEditorHarness>
 )
 
@@ -76,7 +99,7 @@ export function Component() {
 			<Helmet>
 				<title>Presence inventory — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS}</style>
+			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
 			<div className="page">
 				<DevComponentsNav />
@@ -103,13 +126,51 @@ export function Component() {
 				<section className="section">
 					<h2 className="section__title">Live presence — fake collaborators, real UI</h2>
 					<p className="section__note">
-						No multiplayer session. We put three fake <code>instance_presence</code> records into
-						the store (<code>lastActivityTimestamp: null</code> = always active); the editor then
-						draws the real collaborator cursors, and the real <code>PeopleMenu</code> (facepile +
-						current user, top-right) reads the same peers via <code>usePeerIds()</code>. All real UI
-						— only the collaborators are fake.
+						No multiplayer session. Each card is a minimal editor with three fake{' '}
+						<code>instance_presence</code> records (<code>lastActivityTimestamp: null</code> = always
+						active); the real SDK presence components then render from that data. Real UI — only the
+						collaborators are fake.
 					</p>
-					<LivePresence />
+					<div className="grid">
+						<Specimen
+							label="live cursor"
+							code={`(editor canvas · from presence)`}
+							meta="name label in the user's colour"
+							source="editor — TlaEditor.tsx"
+						>
+							<PresenceCard cursors />
+						</Specimen>
+						<Specimen
+							label="DefaultPeopleMenuAvatar"
+							code={`<DefaultPeopleMenuAvatar userId />`}
+							meta="one collaborator's avatar"
+							source="SharePanel"
+						>
+							<PresenceCard>
+								<DefaultPeopleMenuAvatar userId={COLLAB_IDS[0]} />
+							</PresenceCard>
+						</Specimen>
+						<Specimen
+							label="DefaultPeopleMenuFacePile"
+							code={`<DefaultPeopleMenuFacePile userIds />`}
+							meta="all collaborators' avatars"
+							source="TldrawUiSharePanel"
+						>
+							<PresenceCard>
+								<DefaultPeopleMenuFacePile userIds={COLLAB_IDS} />
+							</PresenceCard>
+						</Specimen>
+						<Specimen
+							label="PeopleMenu"
+							code={`<PeopleMenu />`}
+							meta="facepile + collaborators dropdown · ×3"
+							source="TlaInviteTab.tsx"
+						>
+							<PresenceCard>
+								<PeopleMenu />
+							</PresenceCard>
+						</Specimen>
+					</div>
 				</section>
 
 				<section className="section">

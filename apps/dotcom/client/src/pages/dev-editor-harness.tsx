@@ -52,17 +52,21 @@ export const IsolationProviders = ({ children }: { children: ReactNode }): React
 export const MinimalEditorHarness = ({
 	children,
 	height = 360,
+	bare,
 }: {
 	children: ReactNode
 	height?: number
+	/** Fill the parent with no frame — for embedding inside a card's own stage. */
+	bare?: boolean
 }): ReactNode => (
 	<div
 		style={{
 			position: 'relative',
 			height,
-			maxWidth: 640,
-			border: '1px solid var(--tl-color-divider)',
-			borderRadius: 8,
+			width: bare ? '100%' : undefined,
+			maxWidth: bare ? undefined : 640,
+			border: bare ? undefined : '1px solid var(--tl-color-divider)',
+			borderRadius: bare ? undefined : 8,
 			overflow: 'hidden',
 		}}
 	>
