@@ -112,13 +112,6 @@ export function Component() {
 					</div>
 				</section>
 
-				<footer className="page__footer">
-					The delegation pattern is why these families don&rsquo;t drift: the app holds no
-					implementation to diverge. Toasts are the purest case — 16 call sites, zero app-owned UI.
-					Set against the buttons page (three implementations of one button), it shows the gallery&rsquo;s
-					deepest pattern: <strong>divergence is a function of ownership</strong>. What the app owns,
-					it diverges on; what it delegates, it doesn&rsquo;t.
-				</footer>
 			</div>
 		</div>
 	)

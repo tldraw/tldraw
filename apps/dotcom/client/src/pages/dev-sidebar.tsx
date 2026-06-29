@@ -127,12 +127,6 @@ export function Component() {
 					</div>
 				</section>
 
-				<footer className="page__footer">
-					This is the feature-organized companion to the type-organized gallery: the buttons page says
-					&ldquo;these bespoke button classes exist&rdquo;; this page says &ldquo;they all live in one
-					feature, and here&rsquo;s the shape of it.&rdquo; The same debt, seen from the consumer
-					instead of the catalog. See tldraw/tldraw#9193 / #9194.
-				</footer>
 			</div>
 		</div>
 	)

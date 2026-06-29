@@ -131,12 +131,6 @@ export function Component() {
 					</div>
 				</section>
 
-				<footer className="page__footer">
-					Not all divergence is drift. Buttons, inputs, and type each hide a problem to fix; the two
-					menu systems are a boundary to <em>respect</em>. Telling the two apart — accidental
-					inconsistency vs deliberate design — is the whole skill of a design-system audit. See
-					tldraw/tldraw#9199.
-				</footer>
 			</div>
 		</div>
 	)

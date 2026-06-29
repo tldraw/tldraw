@@ -203,14 +203,6 @@ export function Component() {
 					</div>
 				</section>
 
-				<footer className="page__footer">
-					Notable quirk: <code>TlaIcon</code> sets <code>webkitMask</code> imperatively in a{' '}
-					<code>useLayoutEffect</code> — a documented fix (TLD-1700) for React re-rendering and
-					re-requesting the sprite on every hand-tool drag. A small reminder that even a 60-line
-					icon component carries hard-won performance scars. For #9199 / #9190: the inline svg is a
-					keeper; the real question is whether dotcom and the SDK should ever converge on one icon
-					pipeline.
-				</footer>
 			</div>
 		</div>
 	)

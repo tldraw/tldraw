@@ -127,13 +127,6 @@ export function Component() {
 					</div>
 				</section>
 
-				<footer className="page__footer">
-					These are the same parts the <a href="/dev/components/menus">menus</a> page lists under
-					&ldquo;tla-menu&rdquo; — this page is the control-level view (props + states) rather than
-					the two-systems view. Together they argue the same point: the settings-panel system is
-					deliberately its own thing, distinct from action dropdowns. See tldraw/tldraw#9191 /
-					#9199.
-				</footer>
 			</div>
 		</div>
 	)

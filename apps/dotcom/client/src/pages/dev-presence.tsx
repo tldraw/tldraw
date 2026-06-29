@@ -139,12 +139,6 @@ export function Component() {
 					</table>
 				</section>
 
-				<footer className="page__footer">
-					Presence is the deepest delegation in the app: live collaboration is hard and
-					stateful, so dotcom hands it entirely to the editor and contributes only identity and
-					colour. Like toasts, there&rsquo;s nothing to diverge on because there&rsquo;s no app-owned
-					implementation — the ownership-vs-divergence pattern again.
-				</footer>
 			</div>
 		</div>
 	)

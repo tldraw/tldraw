@@ -114,13 +114,6 @@ export function Component() {
 					))}
 				</Section>
 
-				<footer className="page__footer">
-					TldrawUiInput is a great <em>editable-text</em> field but not a general input — it
-					can&rsquo;t be a typed/native form field, a numeric input, a textarea, or a toggle. So
-					#9191 isn&rsquo;t a mechanical swap; it&rsquo;s blocked on richer shared form components.
-					The 8 admin inputs are an internal tool (imperative refs + Enter-to-search), lower priority
-					but shown for completeness. See tldraw/tldraw#9191.
-				</footer>
 			</div>
 		</div>
 	)

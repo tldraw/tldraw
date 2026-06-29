@@ -136,13 +136,6 @@ export function Component() {
 					</div>
 				</section>
 
-				<footer className="page__footer">
-					Three redesign takeaways: (1) a shared <code>&lt;ErrorState&gt;</code> so the four error
-					screens stop diverging (respecting ErrorPage&rsquo;s offline constraint); (2) a loading
-					convention (even if it stays inline-only — that&rsquo;s a deliberate choice worth stating);
-					(3) a single spinner + one keyframe. None are reusable-component gaps in the usual sense —
-					they&rsquo;re the cross-cutting state UX that a design system has to own too.
-				</footer>
 			</div>
 		</div>
 	)

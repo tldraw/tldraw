@@ -172,13 +172,6 @@ export function Component() {
 					</div>
 				</section>
 
-				<footer className="page__footer">
-					Takeaway for #9199: dialogs are the model the other families should reach — near-total
-					adoption of one primitive. The only worthwhile cleanup is a shared body-size convention (a{' '}
-					<code>size</code> prop or a small set of width classes) to retire the repeated{' '}
-					<code>maxWidth: 350</code>; the bespoke modal is a documented exception to keep. See
-					tldraw/tldraw#9199.
-				</footer>
 			</div>
 		</div>
 	)

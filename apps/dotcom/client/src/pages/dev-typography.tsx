@@ -226,14 +226,6 @@ export function Component() {
 					</div>
 				</section>
 
-				<footer className="page__footer">
-					Three decisions for #9196, none of them a sweep: (1) the canonical rungs — keep 11 / 12 /
-					24, or add the off-scale 14 / 16 / 20 and a 600 weight the app keeps reaching for? (2) how
-					to expose them — design tokens, a <code>&lt;TlaText&gt;</code> component, or both — so CSS
-					Modules and JSX can reference the scale instead of hardcoding it; (3) collapse the medium
-					≡ regular duplicate. (Whether to unify with the SDK&rsquo;s <code>tl</code> text layer at
-					all is a separate, larger question.) See tldraw/tldraw#9196.
-				</footer>
 			</div>
 		</div>
 	)
