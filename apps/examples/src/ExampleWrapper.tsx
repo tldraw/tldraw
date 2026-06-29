@@ -95,10 +95,23 @@ function MultiplayerExampleWrapper({
 				<button
 					className="MultiplayerExampleWrapper-copy"
 					onClick={() => {
-						// copy current url with roomId=roomId to clipboard
+						// copy current url with roomId=roomId to clipboard. When a public
+						// share origin is set (via `yarn dev-share`), rewrite the link onto
+						// that origin so it's reachable by a friend even while you browse on
+						// localhost.
+						const shareOrigin = process.env.TLDRAW_SHARE_ORIGIN
 						const url = new URL(window.location.href)
-						url.searchParams.set('roomId', roomId)
-						navigator.clipboard.writeText(url.toString())
+						if (shareOrigin) {
+							const shared = new URL(shareOrigin)
+							shared.pathname = url.pathname
+							shared.search = url.search
+							shared.hash = url.hash
+							shared.searchParams.set('roomId', roomId)
+							navigator.clipboard.writeText(shared.toString())
+						} else {
+							url.searchParams.set('roomId', roomId)
+							navigator.clipboard.writeText(url.toString())
+						}
 						confirmFn()
 					}}
 					aria-label="join"

@@ -323,7 +323,20 @@ export default function Engine3DMultiplayerExample({
 }: {
 	roomId?: string
 }) {
-	const store = useSyncDemo({ roomId })
+	// Which sync server to use. `?syncHost=` overrides everything. Otherwise: on
+	// localhost we use the local bemo worker (fast dev); when opened over a tunnel
+	// (any non-localhost host) the local worker isn't reachable from another
+	// machine, so we fall back to tldraw's public demo server — that way a shared
+	// link Just Works for a friend with no extra params.
+	const [host] = useState(() => {
+		const override = new URLSearchParams(window.location.search).get('syncHost')
+		if (override) return override
+		const { hostname } = window.location
+		return hostname === 'localhost' || hostname === '127.0.0.1'
+			? undefined
+			: 'https://demo.tldraw.xyz'
+	})
+	const store = useSyncDemo(host ? { roomId, host } : { roomId })
 	const [mapEditor, setMapEditor] = useState<Editor | null>(null)
 	const [viewEditor, setViewEditor] = useState<Editor | null>(null)
 

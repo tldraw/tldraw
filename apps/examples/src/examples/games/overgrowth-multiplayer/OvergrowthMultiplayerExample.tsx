@@ -6,8 +6,11 @@ import {
 	Box,
 	createShapeId,
 	TLAnyOverlayUtilConstructor,
+	JsonObject,
 	TLComponents,
+	TLGeoShape,
 	TLShapeId,
+	TLShapePartial,
 	TLUiComponents,
 	TLUiOverrides,
 	Tldraw,
@@ -126,14 +129,14 @@ function boardBounds() {
 // Off-screen, transparent geo rectangle used purely as a synced data carrier
 // (its `meta` holds the payload). NOT locked: tldraw ignores updateShape on
 // locked shapes, which would freeze every heartbeat and snapshot after creation.
-function dataShape(id: TLShapeId, meta: Record<string, unknown>) {
+function dataShape(id: TLShapeId, meta: JsonObject): TLShapePartial<TLGeoShape> {
 	return {
 		id,
-		type: 'geo' as const,
+		type: 'geo',
 		x: OFFSCREEN,
 		y: OFFSCREEN,
 		opacity: 0,
-		props: { w: 1, h: 1, geo: 'rectangle' as const },
+		props: { w: 1, h: 1, geo: 'rectangle' },
 		meta,
 	}
 }
@@ -619,11 +622,19 @@ export default function OvergrowthMultiplayerExample({
 }) {
 	// Stable per-tab client id (two tabs of one browser are still distinct players).
 	const [clientId] = useState(() => Math.random().toString(36).slice(2, 10))
-	// Optional `?syncHost=` override points sync at your own server (e.g. a local
-	// bemo worker) instead of tldraw's public demo server — handy for development.
-	const [host] = useState(
-		() => new URLSearchParams(window.location.search).get('syncHost') ?? undefined
-	)
+	// Which sync server to use. `?syncHost=` overrides everything. Otherwise: on
+	// localhost we use the local bemo worker (fast dev); when opened over a tunnel
+	// (any non-localhost host) the local worker isn't reachable from another
+	// machine, so we fall back to tldraw's public demo server — that way a shared
+	// link Just Works for a friend with no extra params.
+	const [host] = useState(() => {
+		const override = new URLSearchParams(window.location.search).get('syncHost')
+		if (override) return override
+		const { hostname } = window.location
+		return hostname === 'localhost' || hostname === '127.0.0.1'
+			? undefined
+			: 'https://demo.tldraw.xyz'
+	})
 	const store = useSyncDemo(host ? { roomId, host } : { roomId })
 	return (
 		<div className="tldraw__editor">

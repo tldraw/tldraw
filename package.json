@@ -46,6 +46,7 @@
 		"dev-app:clean:all": "yarn workspace @tldraw/zero-cache dev:clean:all",
 		"dev-app:doctor": "yarn workspace @tldraw/zero-cache dev:doctor",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
+		"dev-share": "./internal/scripts/dev-share.sh",
 		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'internal/huppy'",
 		"dev-template": "./internal/scripts/dev-template.sh",
 		"build": "lazy build",
