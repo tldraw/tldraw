@@ -13,8 +13,61 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
+import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
 import { IsolationProviders } from './dev-editor-harness'
+
+const preventDefault = (e: Event) => e.preventDefault()
+
+/** One real dialog per card: a non-modal Dialog.Root + the real TldrawUiDialog
+ * primitives, titled per dialog. The bespoke one isn't a TldrawUiDialog, so it's
+ * shown as a note. */
+const DialogCard = ({
+	name,
+	mechanism,
+	purpose,
+}: {
+	name: string
+	mechanism: string
+	purpose: string
+}): ReactNode => {
+	if (mechanism === 'bespoke') {
+		return (
+			<div className="dialogCardStage dialogCardStage--bespoke">
+				<div className="bespokeNote">
+					<strong>{name}</strong>
+					<span>bespoke full-screen overlay — not a TldrawUiDialog</span>
+				</div>
+			</div>
+		)
+	}
+	return (
+		<div className="dialogCardStage">
+			<RadixDialog.Root open modal={false}>
+				<RadixDialog.Content
+					className="tlui-dialog__content"
+					onInteractOutside={preventDefault}
+					onEscapeKeyDown={preventDefault}
+					onOpenAutoFocus={preventDefault}
+				>
+					<TldrawUiDialogHeader>
+						<TldrawUiDialogTitle>{name}</TldrawUiDialogTitle>
+						<TldrawUiDialogCloseButton />
+					</TldrawUiDialogHeader>
+					<TldrawUiDialogBody>{purpose}</TldrawUiDialogBody>
+					<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+						<TldrawUiButton type="normal">
+							<TldrawUiButtonLabel>Cancel</TldrawUiButtonLabel>
+						</TldrawUiButton>
+						<TldrawUiButton type="primary">
+							<TldrawUiButtonLabel>OK</TldrawUiButtonLabel>
+						</TldrawUiButton>
+					</TldrawUiDialogFooter>
+				</RadixDialog.Content>
+			</RadixDialog.Root>
+		</div>
+	)
+}
 
 /** A real dialog, no modal machinery. The Title/CloseButton are Radix Dialog
  * primitives so they need a Dialog.Root, but modal={false} + no Portal keeps it
@@ -67,7 +120,7 @@ export function Component() {
 			<Helmet>
 				<title>Dialog inventory — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS}</style>
+			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
 			<IsolationProviders>
 				<div className="page">
@@ -149,31 +202,23 @@ export function Component() {
 					</section>
 
 					<section className="section">
-						<h2 className="section__title">The dialogs</h2>
+						<h2 className="section__title">The dialogs — all {DIALOGS.length}, each live</h2>
 						<p className="section__note">
-							Every dialog component, its mechanism, and the width it sets on the body — the
-							catalogue (data) behind the one real dialog rendered above.
+							Every dialog, rendered as a real non-modal <code>TldrawUiDialog</code> titled with its
+							component name. <code>maxWidth</code> in the meta. One is bespoke (not a TldrawUiDialog).
 						</p>
-						<table className="matrix">
-							<thead>
-								<tr>
-									<th>dialog</th>
-									<th>mechanism</th>
-									<th>maxWidth</th>
-									<th>purpose</th>
-								</tr>
-							</thead>
-							<tbody>
-								{DIALOGS.map((r) => (
-									<tr key={r[0]} data-off={r[1] === 'bespoke' || undefined}>
-										<td>{r[0]}</td>
-										<td>{r[1]}</td>
-										<td>{r[2]}</td>
-										<td>{r[3]}</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
+						<div className="grid grid--dialogs">
+							{DIALOGS.map((r) => (
+								<Specimen
+									key={r[0]}
+									label={r[0]}
+									code={r[1]}
+									meta={`maxWidth ${r[2]} · ${r[3]}`}
+								>
+									<DialogCard name={r[0]} mechanism={r[1]} purpose={r[3]} />
+								</Specimen>
+							))}
+						</div>
 					</section>
 
 					<section className="section">
@@ -279,6 +324,12 @@ const PAGE_CSS = `
 .stat[data-good] .stat__n { color: var(--tl-color-success, #2a9d3c); }
 .stat__label { font-size: 12px; color: var(--tl-color-text-1); margin-top: 4px; }
 .dialogStage { position: relative; transform: translateZ(0); min-height: 260px; display: flex; align-items: center; justify-content: center; padding: 24px; border: 1px solid var(--tl-color-divider); border-radius: 8px; background: var(--tl-color-low); }
+.grid--dialogs { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
+.dialogCardStage { position: relative; transform: translateZ(0); width: 100%; min-height: 210px; display: flex; align-items: center; justify-content: center; padding: 16px; border-radius: 8px; background: var(--tl-color-low); overflow: hidden; }
+.dialogCardStage .tlui-dialog__content { position: static; width: 100%; min-width: 0; max-width: 340px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.dialogCardStage--bespoke { min-height: 120px; border: 1px dashed var(--tl-color-warning, #cb4b16); }
+.bespokeNote { display: flex; flex-direction: column; gap: 6px; text-align: center; font-size: 12px; color: var(--tl-color-warning, #cb4b16); }
+.bespokeNote strong { font-family: ui-monospace, monospace; }
 .dialogMock { max-width: 360px; border: 1px solid var(--tl-color-divider); border-radius: var(--tl-radius-3); overflow: hidden; box-shadow: 0 6px 24px rgba(0,0,0,0.12); background: var(--tl-color-panel); }
 .dialogMock__header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--tl-color-divider); font-weight: 600; font-size: 13px; }
 .dialogMock__x { color: var(--tl-color-text-3); }
