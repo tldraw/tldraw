@@ -16,7 +16,10 @@ interface CreateAppRouterOptions {
 
 function getDefaultIncludeDevRoutes() {
 	// @ts-ignore this is provided by Vite
-	return import.meta.env.DEV
+	if (import.meta.env.DEV) return true
+	// Also include them on PR preview deploys (pr-<N>-preview-deploy.tldraw.com) so
+	// the /dev/components gallery is shareable, without exposing it in production.
+	return typeof window !== 'undefined' && window.location.hostname.includes('preview-deploy')
 }
 
 export function createAppRouter({
