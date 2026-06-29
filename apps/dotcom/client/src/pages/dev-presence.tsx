@@ -1,10 +1,12 @@
 /* eslint-disable tldraw/jsx-no-literals */
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { InstancePresenceRecordType, TLUserId, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
 import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
+import { MinimalEditorHarness } from './dev-editor-harness'
 
 /**
  * Dev-only inventory of the dotcom collaboration / presence UI: cursors, avatars,
@@ -21,6 +23,46 @@ const Stat = ({ n, label }: { n: string; label: string }): ReactNode => (
 		<div className="stat__n">{n}</div>
 		<div className="stat__label">{label}</div>
 	</div>
+)
+
+/**
+ * Live presence with no sync session. The cursor UI is real — the editor renders
+ * a cursor for every collaborator in editor.getCollaborators(), which just reads
+ * instance_presence records from the store. We fake the data by putting three
+ * fake presence records in (lastActivityTimestamp: null = "active right now", so
+ * they never time out). Real UI, fake collaborators — no multiplayer needed.
+ */
+const COLLABORATORS = [
+	{ id: 'user:casey', name: 'Casey', color: '#268bd2', x: 130, y: 90 },
+	{ id: 'user:jordan', name: 'Jordan', color: '#859900', x: 320, y: 150 },
+	{ id: 'user:morgan', name: 'Morgan', color: '#cb4b16', x: 210, y: 220 },
+]
+
+const InjectPresence = (): ReactNode => {
+	const editor = useEditor()
+	useEffect(() => {
+		const currentPageId = editor.getCurrentPageId()
+		editor.store.put(
+			COLLABORATORS.map((c) =>
+				InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId(c.id),
+					userId: c.id as TLUserId,
+					userName: c.name,
+					currentPageId,
+					color: c.color,
+					cursor: { x: c.x, y: c.y, type: 'default', rotation: 0 },
+					lastActivityTimestamp: null,
+				})
+			)
+		)
+	}, [editor])
+	return null
+}
+
+const LiveCursors = (): ReactNode => (
+	<MinimalEditorHarness height={300}>
+		<InjectPresence />
+	</MinimalEditorHarness>
 )
 
 export function Component() {
@@ -57,7 +99,19 @@ export function Component() {
 				</section>
 
 				<section className="section">
-					<h2 className="section__title">The presence UI (SDK-owned, mocked)</h2>
+					<h2 className="section__title">Live cursors — fake collaborators, real UI</h2>
+					<p className="section__note">
+						No multiplayer session. The editor draws a cursor for every record in{' '}
+						<code>editor.getCollaborators()</code> — so we put three fake{' '}
+						<code>instance_presence</code> records into the store (
+						<code>lastActivityTimestamp: null</code> = always active). The cursors below are the
+						real SDK presence UI; only the collaborators are fake.
+					</p>
+					<LiveCursors />
+				</section>
+
+				<section className="section">
+					<h2 className="section__title">Share-panel presence (SDK-owned, mocked)</h2>
 					<p className="section__note">
 						These render inside the live editor / share panel; mocked here. dotcom supplies the
 						user&rsquo;s colour and identity, the SDK renders the rest.
@@ -142,7 +196,6 @@ export function Component() {
 						</tbody>
 					</table>
 				</section>
-
 			</div>
 		</div>
 	)
