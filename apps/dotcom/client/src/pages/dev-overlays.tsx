@@ -11,6 +11,7 @@ import {
 	TldrawUiPopoverTrigger,
 	useToasts,
 } from 'tldraw'
+import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
 import { DevComponentsNav } from './dev-components-nav'
@@ -26,50 +27,44 @@ import { IsolationProviders } from './dev-editor-harness'
  * Route: /dev/components/overlays.
  */
 
-const Stat = ({ n, label }: { n: string; label: string }): ReactNode => (
-	<div className="stat">
-		<div className="stat__n">{n}</div>
-		<div className="stat__label">{label}</div>
-	</div>
-)
-
-/**
- * Real toasts, no trigger. The SDK owns the toast UI (DefaultToasts is the real
- * viewport); we fake the state by firing one keepOpen toast per severity on
- * mount. So the UI is genuine — only the content is fake. The .toastStage's
- * transform makes it a containing block so the viewport's fixed positioning
- * stays inside the card instead of floating to the window corner.
- */
-const LIVE_TOASTS: ReadonlyArray<{
-	id: string
-	severity?: 'error' | 'warning' | 'info' | 'success'
-	title: string
-	description?: string
-}> = [
-	{
-		id: 'lt-error',
-		severity: 'error',
-		title: 'Could not load file',
-		description: 'Something went wrong. Please try again.',
-	},
-	{ id: 'lt-warning', severity: 'warning', title: 'Unsupported mermaid diagram' },
-	{ id: 'lt-info', severity: 'info', title: 'Uploading .tldr files…' },
-	{ id: 'lt-success', severity: 'success', title: 'Feedback submitted' },
-	{ id: 'lt-neutral', title: 'Copied invite link' },
-]
-
-const LiveToasts = (): ReactNode => {
+const FireToast = ({
+	toast,
+}: {
+	toast: { title: string; sev: Sev; keepOpen?: boolean; source: string }
+}): ReactNode => {
 	const { addToast, toasts } = useToasts()
 	useEffect(() => {
 		if (toasts.get().length > 0) return
-		for (const t of LIVE_TOASTS) addToast({ ...t, keepOpen: true })
-	}, [addToast, toasts])
-	return (
-		<div className="toastStage">
+		addToast({
+			id: toast.source,
+			title: toast.title,
+			severity: toast.sev === 'default' ? undefined : toast.sev,
+			keepOpen: true,
+		})
+	}, [addToast, toasts, toast])
+	return null
+}
+
+/**
+ * One real toast per card. The SDK owns the toast UI (DefaultToasts is the real
+ * viewport). Each card gets its OWN TldrawUiContextProvider so its toast state is
+ * isolated — TldrawUiToastsProvider reuses a parent context if one exists, so the
+ * card must not sit under a page-level provider (hence the toast section is
+ * outside the page IsolationProviders). The stage's transform is a containing
+ * block so the viewport's fixed positioning stays in the card.
+ */
+const ToastCard = ({
+	toast,
+}: {
+	toast: { title: string; sev: Sev; keepOpen?: boolean; source: string }
+}): ReactNode => (
+	<IsolationProviders>
+		<div className="toastCardStage">
+			<FireToast toast={toast} />
 			<DefaultToasts />
 		</div>
-	)
-}
+	</IsolationProviders>
+)
 
 /**
  * TldrawUiTooltip has no `open` prop (its open state is internal hover), so we
@@ -99,9 +94,8 @@ export function Component() {
 			<Helmet>
 				<title>Feedback & overlays — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS}</style>
+			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
-			<IsolationProviders>
 				<div className="page">
 					<DevComponentsNav />
 					<header className="page__header">
@@ -115,52 +109,28 @@ export function Component() {
 					</header>
 
 					<section className="section">
-						<h2 className="section__title">Toasts — live (no trigger)</h2>
+						<h2 className="section__title">Toasts — all {TOASTS.length}, each live</h2>
 						<p className="section__note">
-							The real SDK toast UI (<code>DefaultToasts</code>), one per severity. We don&rsquo;t
-							trigger them — we fake the <em>state</em> by firing a <code>keepOpen</code> toast of
-							each severity on mount. Real UI, fake content.
+							Every <code>addToast(&#123; title, severity?, keepOpen? &#125;)</code> call site,
+							rendered as a real toast. Each card has its own <code>TldrawUiToastsProvider</code> and
+							fires its one toast <code>keepOpen</code> on mount — real SDK toast UI, no trigger.
 						</p>
-						<LiveToasts />
-					</section>
-
-					<section className="section">
-						<h2 className="section__title">Toasts — all {TOASTS.length} call sites</h2>
-						<p className="section__note">
-							Where the app actually fires them: every{' '}
-							<code>addToast(&#123; title, severity?, keepOpen? &#125;)</code> call. dotcom renders
-							no toast component — it owns the call sites (the data), the SDK owns the UI (shown
-							live above). Cards below catalogue the call sites.
-						</p>
-						<div className="stats" style={{ marginBottom: 20 }}>
-							<Stat n="6" label="severity: error" />
-							<Stat n="6" label="no severity (neutral)" />
-							<Stat n="2" label="success" />
-							<Stat n="1" label="info" />
-							<Stat n="1" label="warning" />
+						<div className="grid grid--toasts">
+							{TOASTS.map((t) => (
+								<Specimen
+									key={t.source}
+									label={t.title}
+									code={`severity: ${t.sev}${t.keepOpen ? ' · keepOpen' : ''}`}
+									meta={t.keepOpen ? 'manual dismiss' : 'auto-dismiss'}
+									source={t.source}
+								>
+									<ToastCard toast={t} />
+								</Specimen>
+							))}
 						</div>
-						<table className="matrix">
-							<thead>
-								<tr>
-									<th>toast</th>
-									<th>severity</th>
-									<th>dismiss</th>
-									<th>source</th>
-								</tr>
-							</thead>
-							<tbody>
-								{TOASTS.map((t) => (
-									<tr key={t.source}>
-										<td>{t.title}</td>
-										<td>{t.sev}</td>
-										<td>{t.keepOpen ? 'keepOpen' : 'auto'}</td>
-										<td>{t.source}</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
 					</section>
 
+					<IsolationProviders>
 					<section className="section">
 						<h2 className="section__title">Tooltips — live (forced open)</h2>
 						<p className="section__note">
@@ -194,8 +164,8 @@ export function Component() {
 							</TldrawUiPopover>
 						</div>
 					</section>
+					</IsolationProviders>
 				</div>
-			</IsolationProviders>
 		</div>
 	)
 }
@@ -247,6 +217,8 @@ const PAGE_CSS = `
 .stat { border: 1px solid var(--tl-color-divider); border-radius: 8px; padding: 14px 18px; min-width: 130px; background: var(--tl-color-panel); }
 .stat__n { font-size: 24px; font-weight: 700; font-family: ui-monospace, monospace; }
 .stat__label { font-size: 11px; color: var(--tl-color-text-1); margin-top: 4px; }
+.grid--toasts { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+.toastCardStage { position: relative; transform: translateZ(0); width: 100%; min-height: 150px; overflow: hidden; }
 .toastStage { position: relative; transform: translateZ(0); min-height: 320px; border: 1px solid var(--tl-color-divider); border-radius: 8px; background: var(--tl-color-low); overflow: hidden; }
 .toastMock { padding: 9px 11px; border-radius: 6px; font-size: 12px; background: var(--tl-color-panel); border: 1px solid var(--tl-color-divider); border-left: 3px solid var(--tl-color-text-3); width: 100%; box-sizing: border-box; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .toastMock[data-sev=error] { border-left-color: var(--tl-color-danger, #dc322f); }
