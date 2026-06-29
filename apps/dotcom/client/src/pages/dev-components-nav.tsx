@@ -54,6 +54,9 @@ export function DevComponentsNav(): ReactNode {
 			<a href="/dev/components/sidebar" style={link}>
 				sidebar map
 			</a>
+			<a href="/dev/components/editor" style={link}>
+				editor map
+			</a>
 		</nav>
 	)
 }
