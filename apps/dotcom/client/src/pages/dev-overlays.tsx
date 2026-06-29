@@ -1,10 +1,18 @@
 /* eslint-disable tldraw/jsx-no-literals */
+import { Tooltip as RadixTooltip } from 'radix-ui'
 import { ReactNode, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { DefaultToasts, useToasts } from 'tldraw'
+import {
+	DefaultToasts,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+	useToasts,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
-import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
 import { IsolationProviders } from './dev-editor-harness'
 
@@ -63,6 +71,25 @@ const LiveToasts = (): ReactNode => {
 	)
 }
 
+/**
+ * TldrawUiTooltip has no `open` prop (its open state is internal hover), so we
+ * compose the same Radix Tooltip primitives it uses, with the SDK .tlui-tooltip
+ * styling, forced open. Real tooltip UI, no hover.
+ */
+const LiveTooltip = ({ label, content }: { label: string; content: string }): ReactNode => (
+	<RadixTooltip.Root open delayDuration={0}>
+		<RadixTooltip.Trigger asChild>
+			<button className="tipTrigger" type="button">
+				{label}
+			</button>
+		</RadixTooltip.Trigger>
+		<RadixTooltip.Content className="tlui-tooltip" side="top" sideOffset={6}>
+			{content}
+			<RadixTooltip.Arrow className="tlui-tooltip__arrow" />
+		</RadixTooltip.Content>
+	</RadixTooltip.Root>
+)
+
 export function Component() {
 	return (
 		<div
@@ -72,7 +99,7 @@ export function Component() {
 			<Helmet>
 				<title>Feedback & overlays — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
+			<style>{PAGE_CSS}</style>
 
 			<IsolationProviders>
 				<div className="page">
@@ -112,64 +139,59 @@ export function Component() {
 							<Stat n="1" label="info" />
 							<Stat n="1" label="warning" />
 						</div>
-						<div className="grid">
-							{TOASTS.map((t) => (
-								<Specimen
-									key={t.source}
-									label={t.title}
-									code={`addToast({ severity: '${t.sev}'${t.keepOpen ? ', keepOpen: true' : ''} })`}
-									meta={t.keepOpen ? 'keepOpen — manual dismiss' : 'auto-dismiss'}
-									source={t.source}
-									mock
-								>
-									<div className="toastMock" data-sev={t.sev}>
-										{t.title}
-									</div>
-								</Specimen>
-							))}
+						<table className="matrix">
+							<thead>
+								<tr>
+									<th>toast</th>
+									<th>severity</th>
+									<th>dismiss</th>
+									<th>source</th>
+								</tr>
+							</thead>
+							<tbody>
+								{TOASTS.map((t) => (
+									<tr key={t.source}>
+										<td>{t.title}</td>
+										<td>{t.sev}</td>
+										<td>{t.keepOpen ? 'keepOpen' : 'auto'}</td>
+										<td>{t.source}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</section>
+
+					<section className="section">
+						<h2 className="section__title">Tooltips — live (forced open)</h2>
+						<p className="section__note">
+							<code>TldrawUiTooltip</code> exposes no <code>open</code> prop (its state is internal
+							hover), so these compose the same Radix <code>Tooltip</code> primitives it uses with
+							the SDK <code>.tlui-tooltip</code> styling, forced open. Real tooltip UI, no hover.
+						</p>
+						<div className="tipStage">
+							<LiveTooltip label="Rename" content="Rename this file" />
+							<LiveTooltip label="ⓘ" content="More information about this setting" />
+							<LiveTooltip label="Copy" content="Copy link" />
 						</div>
 					</section>
 
 					<section className="section">
-						<h2 className="section__title">Tooltips</h2>
+						<h2 className="section__title">Popover — live (forced open)</h2>
 						<p className="section__note">
-							<code>TldrawUiTooltip</code> (SDK) used directly in 3 files, plus the{' '}
-							<code>TlaMenuControlInfoTooltip</code> app wrapper. Mocked.
+							The real <code>TldrawUiPopover</code> (Root / Trigger / Content), forced open via its{' '}
+							<code>open</code> prop — the share menu&rsquo;s one popover consumer.
 						</p>
-						<div className="grid">
-							{TOOLTIPS.map((t) => (
-								<Specimen
-									key={t.name + t.source}
-									label={t.name}
-									code={t.code}
-									meta={t.meta}
-									source={t.source}
-									mock
-								>
-									<div className="tipMock">{t.sample}</div>
-								</Specimen>
-							))}
-						</div>
-					</section>
-
-					<section className="section">
-						<h2 className="section__title">Popovers</h2>
-						<p className="section__note">
-							<code>TldrawUiPopover</code> (SDK: Root / Trigger / Content) — one consumer, the share
-							menu. Mocked.
-						</p>
-						<div className="grid">
-							<Specimen
-								label="TldrawUiPopover"
-								code={`<TldrawUiPopoverRoot><Trigger/><Content/>`}
-								meta="Radix popover · ×1 consumer"
-								source="TlaFileShareMenu.tsx"
-								mock
-							>
-								<div className="popMock">
-									<div className="popMock__trigger">Share ▾</div>
-								</div>
-							</Specimen>
+						<div className="popStage">
+							<TldrawUiPopover id="dev-popover" open>
+								<TldrawUiPopoverTrigger>
+									<TldrawUiButton type="normal">
+										<TldrawUiButtonLabel>Share</TldrawUiButtonLabel>
+									</TldrawUiButton>
+								</TldrawUiPopoverTrigger>
+								<TldrawUiPopoverContent side="bottom" align="start">
+									<div className="popoverDemo">Anyone with the link can view this file.</div>
+								</TldrawUiPopoverContent>
+							</TldrawUiPopover>
 						</div>
 					</section>
 				</div>
@@ -204,43 +226,6 @@ const TOASTS: ReadonlyArray<{ title: string; sev: Sev; keepOpen?: boolean; sourc
 	{ title: 'Import failed', sev: 'error', keepOpen: true, source: 'local.tsx:54' },
 ]
 
-const TOOLTIPS: ReadonlyArray<{
-	name: string
-	code: string
-	meta: string
-	sample: string
-	source: string
-}> = [
-	{
-		name: 'TldrawUiTooltip',
-		code: '<TldrawUiTooltip content>',
-		meta: 'SDK · sidebar file link',
-		sample: 'Rename',
-		source: 'TlaSidebarFileLink.tsx',
-	},
-	{
-		name: 'TldrawUiTooltip',
-		code: '<TldrawUiTooltip content>',
-		meta: 'SDK · menu control',
-		sample: 'Info',
-		source: 'tla-menu.tsx',
-	},
-	{
-		name: 'TldrawUiTooltip',
-		code: '<TldrawUiTooltip content>',
-		meta: 'SDK · workspace settings',
-		sample: 'Copy',
-		source: 'WorkspaceSettingsDialog.tsx',
-	},
-	{
-		name: 'TlaMenuControlInfoTooltip',
-		code: '<TlaMenuControlInfoTooltip>',
-		meta: 'app wrapper · ×4',
-		sample: 'ⓘ',
-		source: 'tla-menu.tsx',
-	},
-]
-
 const PAGE_CSS = `
 .page {
 	min-height: 100vh;
@@ -268,6 +253,13 @@ const PAGE_CSS = `
 .toastMock[data-sev=warning] { border-left-color: var(--tl-color-warning, #cb4b16); }
 .toastMock[data-sev=info] { border-left-color: var(--tl-color-primary); }
 .toastMock[data-sev=success] { border-left-color: var(--tl-color-success, #2a9d3c); }
+.matrix { border-collapse: collapse; font-size: 12px; font-family: ui-monospace, monospace; width: 100%; max-width: 760px; }
+.matrix th, .matrix td { text-align: left; padding: 6px 18px 6px 0; border-bottom: 1px solid var(--tl-color-divider); }
+.matrix th { color: var(--tl-color-text-3); font-weight: 500; }
+.tipStage { display: flex; gap: 64px; align-items: center; padding: 56px 32px 28px; border: 1px solid var(--tl-color-divider); border-radius: 8px; background: var(--tl-color-low); }
+.tipTrigger { font-size: 13px; padding: 6px 12px; border: 1px solid var(--tl-color-divider); border-radius: var(--tl-radius-2); background: var(--tl-color-panel); color: var(--tl-color-text); cursor: default; }
+.popStage { position: relative; min-height: 180px; padding: 20px; border: 1px solid var(--tl-color-divider); border-radius: 8px; background: var(--tl-color-low); }
+.popoverDemo { padding: 12px 14px; font-size: 13px; max-width: 240px; line-height: 1.5; }
 .tipMock { font-size: 12px; color: var(--tl-color-panel-contrast, #fff); background: var(--tl-color-tooltip, #1d1d1d); padding: 5px 9px; border-radius: 5px; }
 .popMock { display: inline-block; }
 .popMock__trigger { font-size: 13px; padding: 6px 12px; border: 1px solid var(--tl-color-divider); border-radius: var(--tl-radius-2); background: var(--tl-color-panel); }
