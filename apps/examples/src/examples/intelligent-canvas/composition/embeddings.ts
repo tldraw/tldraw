@@ -71,7 +71,7 @@ async function embedBatchRaw(texts: string[], taskType: string): Promise<Float32
 	return data.embeddings.map((e) => new Float32Array(e.values))
 }
 
-async function embedBatch(texts: string[], taskType: string): Promise<Float32Array[]> {
+export async function embedBatch(texts: string[], taskType: string): Promise<Float32Array[]> {
 	if (texts.length === 0) return []
 	if (texts.length <= BATCH_LIMIT) return embedBatchRaw(texts, taskType)
 

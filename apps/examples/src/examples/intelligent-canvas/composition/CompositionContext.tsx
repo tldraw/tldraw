@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Editor, TLShapeId, TLShapePartial } from 'tldraw'
 import { evaluateBridge } from './embeddings'
 import {
@@ -16,6 +16,7 @@ import {
 	composeIdeas,
 	priorTemperature,
 } from './llm'
+import { prewarmPatterns } from './patternRetrieval'
 import { CompositionDomain, IdeaNode } from './types'
 
 interface CompositionState {
@@ -48,6 +49,11 @@ export function CompositionProvider({ agentAvailable, children }: CompositionPro
 	const [priorCompositions, setPriorCompositions] = useState<Map<string, string[]>>(new Map())
 	const [busyPairs, setBusyPairs] = useState<Set<string>>(new Set())
 	const [error, setError] = useState<string | null>(null)
+
+	// Warm the game design pattern embeddings ahead of the first composition.
+	useEffect(() => {
+		if (agentAvailable) prewarmPatterns()
+	}, [agentAvailable])
 
 	const handleCompose = useCallback(
 		async (editor: Editor, groupKey: string, parentIds: TLShapeId[]) => {

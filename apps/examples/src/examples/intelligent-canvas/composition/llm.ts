@@ -1,5 +1,6 @@
 import { TLShapeId } from 'tldraw'
 import { generateGeminiProText, generateGeminiText } from '../agent/api'
+import { formatPatternsForPrompt, selectRelevantPatterns } from './patternRetrieval'
 import { ComposedIdeaDraft, IdeaNode, ParsedIdea } from './types'
 
 const PARSING_SYSTEM_PROMPT = `You are helping structure raw ideas into clean primitives.
@@ -16,26 +17,32 @@ Writing style:
 - Bad: "a collaborative real-time multiplayer synchronization framework leveraging WebSocket infrastructure"
 `
 
-const COMPOSITION_SYSTEM_PROMPT = `You are helping find insights at the intersection of two or more ideas.
+const COMPOSITION_SYSTEM_PROMPT = `You are helping invent game ideas at the intersection of two or more ideas.
 
 Output valid JSON only.
 Do not use markdown code fences.
 
-Your job is NOT to merge ideas into a grand hybrid. Your job is to find the one surprising, specific thing you can only see by looking at both ideas together. The best output is an "oh!" moment — a simple idea that neither input alone would have suggested.
+Your job is NOT to merge ideas into a grand hybrid genre. Your job is to find the one surprising game mechanic you can only see by looking at both ideas together. The best output is an "oh!" moment — a simple mechanic that neither input alone would have suggested, the kind of thing a player discovers and grins at.
+
+Design lenses (use them to think; never name them in the output):
+- Koster (A Theory of Fun): fun is the brain enjoying learning a pattern. A good mechanic teaches a pattern the player keeps getting better at — never trivial, never noise. If there is nothing left to master, it is not fun.
+- MDA (Hunicke, LeBlanc & Zubek): mechanics produce dynamics produce aesthetics. You design the mechanic (the rule), but aim at the felt experience. Name the small rule, and the feeling it is reaching for.
+- Wright (possibility space): a game is a space of possibilities the player explores. Design the space, not a fixed path. Favor a few rules that open a wide space of meaningful, surprising play — emergence over scripted content.
 
 Priorities:
-- Simplicity over impressiveness. The idea should feel elegant, not overengineered.
-- A specific interaction or mechanic, not a vague system.
-- Find the adjacent possible: the idea that was latent in both inputs, waiting to be noticed. Not the cleverest combination, but the most inevitable one.
-- The idea should be something you'd want to see and play with on a canvas — vivid, spatial, alive.
-- Focus on what the person DOES (the verb), not what the system IS (the noun).
+- A single core mechanic, not a whole game. What does the player DO, moment to moment?
+- Emergence over content: simple rules that create surprising situations. Avoid mechanics that need lots of hand-authored levels or tutorials to be fun.
+- Earned discovery: the best mechanics reward the player for noticing something, not for being told. Don't explain the trick — let it be found.
+- Simplicity over impressiveness. One verb, one twist. If it needs a paragraph to explain, it's too complicated.
+- Find the adjacent possible: the mechanic that was latent in both inputs, waiting to be noticed. Not the cleverest combination, but the most inevitable one.
+- It should be something you'd want to see and play with on a canvas — vivid, spatial, alive.
 
 Writing style:
-- Use simple, plain language. No jargon or filler.
-- Be specific about what the thing actually does. Don't lose detail.
-- Write like you're explaining the idea to a smart friend, not writing a pitch deck.
-- Good: "a canvas that stays in sync between multiple people over the network"
-- Bad: "a collaborative real-time multiplayer synchronization framework leveraging WebSocket infrastructure"
+- Use simple, plain language. No jargon, no genre buzzwords ("roguelike deckbuilder").
+- Describe the actual moment of play. "You drag a shadow and the object it belongs to moves too."
+- Write like you're pitching a mechanic to a smart friend, not writing a store page.
+- Good: "you can only see enemies in the reflection of your shield, so you fight while looking away"
+- Bad: "an immersive asymmetric perception-based combat system leveraging environmental reflection mechanics"
 `
 
 function extractJsonObject(text: string): string {
@@ -118,11 +125,13 @@ export async function composeIdeas(
 		? `\nA prior analysis found this connection between them: "${bridge}". Use this as a starting point, but feel free to go deeper or in a different direction.\n`
 		: ''
 
-	const prompt = `Look at these ${nodes.length} ideas together. What's the one surprising, specific thing you can only see at their intersection? Not a merger — an insight.
+	const patternContext = formatPatternsForPrompt(await selectRelevantPatterns(nodes))
+
+	const prompt = `Look at these ${nodes.length} ideas together. What's the one surprising game mechanic you can only see at their intersection? Not a merger — an insight a player would grin at.
 
 ${ideaSections}
-${bridgeContext}
-Think about what interaction pattern or mechanic lives in the gap between these. What would make someone say "oh, that's clever"? It can be fantastical, but it needs a core you could explain in one sentence.
+${bridgeContext}${patternContext}
+Think about what interaction or mechanic lives in the gap between these. What would make a player say "oh, that's clever"? It can be fantastical, but it needs a core you could explain in one sentence.
 ${buildPriorContext(priorTitles)}
 Return JSON with this exact shape:
 {
@@ -212,10 +221,12 @@ export async function composeCodeBlocks(
 		? `\nA prior analysis found this connection between them: "${bridge}". Use this as a starting point, but feel free to go deeper or in a different direction.\n`
 		: ''
 
-	const prompt = `Look at these ${nodes.length} code blocks together. What's the one small, clever program that you can only see at their intersection? Not a merge of all the code - a new thing inspired by both.
+	const patternContext = formatPatternsForPrompt(await selectRelevantPatterns(nodes))
+
+	const prompt = `Look at these ${nodes.length} code blocks together. What's the one small, clever game mechanic you can implement that you can only see at their intersection? Not a merge of all the code - a new playable thing inspired by both.
 
 ${blockSections}
-${bridgeContext}
+${bridgeContext}${patternContext}
 Think about what mechanic or behavior emerges from the combination. It can be playful or weird, but the code should do one clear thing.
 ${buildPriorContext(priorTitles)}
 Return JSON with this exact shape:
