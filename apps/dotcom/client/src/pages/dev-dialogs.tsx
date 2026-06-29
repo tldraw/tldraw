@@ -1,10 +1,52 @@
 /* eslint-disable tldraw/jsx-no-literals */
+import { Dialog as RadixDialog } from 'radix-ui'
 import { ReactNode } from 'react'
 import { Helmet } from 'react-helmet-async'
+import {
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
 import { DevComponentsNav } from './dev-components-nav'
-import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
+import { IsolationProviders } from './dev-editor-harness'
+
+/** A real dialog, no modal machinery. The Title/CloseButton are Radix Dialog
+ * primitives so they need a Dialog.Root, but modal={false} + no Portal keeps it
+ * inline (no scroll-lock, no backdrop) — the real dialog UI, resolved open. */
+const LiveDialog = (): ReactNode => (
+	<div className="dialogStage">
+		<RadixDialog.Root open modal={false}>
+			<RadixDialog.Content
+				className="tlui-dialog__content"
+				onInteractOutside={(e) => e.preventDefault()}
+				onEscapeKeyDown={(e) => e.preventDefault()}
+				onOpenAutoFocus={(e) => e.preventDefault()}
+			>
+				<TldrawUiDialogHeader>
+					<TldrawUiDialogTitle>Rename file</TldrawUiDialogTitle>
+					<TldrawUiDialogCloseButton />
+				</TldrawUiDialogHeader>
+				<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+					Give this file a new name. The body is the only part dialogs size differently.
+				</TldrawUiDialogBody>
+				<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+					<TldrawUiButton type="normal">
+						<TldrawUiButtonLabel>Cancel</TldrawUiButtonLabel>
+					</TldrawUiButton>
+					<TldrawUiButton type="primary">
+						<TldrawUiButtonLabel>Rename</TldrawUiButtonLabel>
+					</TldrawUiButton>
+				</TldrawUiDialogFooter>
+			</RadixDialog.Content>
+		</RadixDialog.Root>
+	</div>
+)
 
 /**
  * Dev-only inventory of the dotcom app's dialogs. The healthiest family: nearly
@@ -25,154 +67,160 @@ export function Component() {
 			<Helmet>
 				<title>Dialog inventory — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
+			<style>{PAGE_CSS}</style>
 
-			<div className="page">
-				<DevComponentsNav />
-				<header className="page__header">
-					<h1 className="page__title">Dialog inventory</h1>
-					<p className="page__lede">
-						Every dialog in the dotcom app. Unlike buttons / inputs / type, this family is well
-						consolidated: almost all use the SDK <code>TldrawUiDialog</code> primitive. The
-						divergence is configurational — inconsistent body widths — plus one justified bespoke
-						modal.
-					</p>
-				</header>
+			<IsolationProviders>
+				<div className="page">
+					<DevComponentsNav />
+					<header className="page__header">
+						<h1 className="page__title">Dialog inventory</h1>
+						<p className="page__lede">
+							Every dialog in the dotcom app. Unlike buttons / inputs / type, this family is well
+							consolidated: almost all use the SDK <code>TldrawUiDialog</code> primitive. The
+							divergence is configurational — inconsistent body widths — plus one justified bespoke
+							modal.
+						</p>
+					</header>
 
-				<section className="section">
-					<h2 className="section__title">Adoption</h2>
-					<p className="section__note">
-						12 of 13 dialogs compose the SDK <code>TldrawUiDialog*</code> parts. One is bespoke (and
-						documented).
-					</p>
-					<div className="stats">
-						<Stat n="12" label="use TldrawUiDialog primitive" good />
-						<Stat n="1" label="bespoke modal (justified)" />
-					</div>
-				</section>
+					<section className="section">
+						<h2 className="section__title">Adoption</h2>
+						<p className="section__note">
+							12 of 13 dialogs compose the SDK <code>TldrawUiDialog*</code> parts. One is bespoke
+							(and documented).
+						</p>
+						<div className="stats">
+							<Stat n="12" label="use TldrawUiDialog primitive" good />
+							<Stat n="1" label="bespoke modal (justified)" />
+						</div>
+					</section>
 
-				<section className="section">
-					<h2 className="section__title">The SDK primitive — anatomy</h2>
-					<p className="section__note">
-						<code>TldrawUiDialog</code> is a Radix-based compound:{' '}
-						<code>Header › Title + CloseButton</code>, <code>Body</code>, <code>Footer</code>. The
-						mock below uses the real <code>.tlui-dialog__*</code> classes.
-					</p>
-					<div className="dialogMock">
-						<div className="tlui-dialog__header dialogMock__header">
-							<span className="tlui-dialog__header__title">Dialog title</span>
-							<span className="dialogMock__x">✕</span>
+					<section className="section">
+						<h2 className="section__title">The SDK primitive — anatomy</h2>
+						<p className="section__note">
+							<code>TldrawUiDialog</code> is a Radix-based compound:{' '}
+							<code>Header › Title + CloseButton</code>, <code>Body</code>, <code>Footer</code>.
+							Below is the real thing — actual <code>TldrawUiDialog*</code> primitives, rendered
+							open (non-modal so it sits in the page instead of taking it over).
+						</p>
+						<LiveDialog />
+						<div className="section__api" style={{ marginTop: 20 }}>
+							<div>
+								<span className="k">parts</span>
+								TldrawUiDialogHeader, TldrawUiDialogTitle, TldrawUiDialogCloseButton,
+								TldrawUiDialogBody, TldrawUiDialogFooter
+							</div>
+							<div>
+								<span className="k">opened</span>
+								via the editor's dialogs manager (addDialog / useDialogs) — portalled by Radix
+							</div>
 						</div>
-						<div className="tlui-dialog__body dialogMock__body">
-							Body content — the only part dialogs size differently.
-						</div>
-						<div className="tlui-dialog__footer dialogMock__footer">Footer · actions</div>
-					</div>
-					<div className="section__api" style={{ marginTop: 20 }}>
-						<div>
-							<span className="k">parts</span>
-							TldrawUiDialogHeader, TldrawUiDialogTitle, TldrawUiDialogCloseButton,
-							TldrawUiDialogBody, TldrawUiDialogFooter
-						</div>
-						<div>
-							<span className="k">opened</span>
-							via the editor's dialogs manager (addDialog / useDialogs) — portalled by Radix
-						</div>
-					</div>
-				</section>
+					</section>
 
-				<section className="section">
-					<h2 className="section__title">Props in use</h2>
-					<p className="section__note">
-						The parts have a tiny API; the only behavioural prop lives in the open call.
-					</p>
-					<div className="section__api">
-						<div>
-							<span className="k">parts</span>
-							className + children + style (Body / Title) — that's the whole surface. Footer
-							consistently uses className="tlui-dialog__footer__actions".
+					<section className="section">
+						<h2 className="section__title">Props in use</h2>
+						<p className="section__note">
+							The parts have a tiny API; the only behavioural prop lives in the open call.
+						</p>
+						<div className="section__api">
+							<div>
+								<span className="k">parts</span>
+								className + children + style (Body / Title) — that's the whole surface. Footer
+								consistently uses className="tlui-dialog__footer__actions".
+							</div>
+							<div>
+								<span className="k">width</span>
+								body width set two ways — style={'{{'} maxWidth {'}}'} (6) vs className (8); see
+								below
+							</div>
 						</div>
-						<div>
-							<span className="k">width</span>
-							body width set two ways — style={'{{'} maxWidth {'}}'} (6) vs className (8); see below
+						<div className="section__api" style={{ marginTop: 12 }}>
+							<div>
+								<span className="k">open</span>
+								addDialog({'{'} id, component, onClose?, preventBackgroundClose? {'}'}) — id +
+								component always; onClose common
+							</div>
+							<div>
+								<span className="k">prevent</span>
+								preventBackgroundClose: true — only 2 dialogs (WorkspaceInviteHandler sign-in +
+								invite-join, SneakyLegacyModal). Opts out of backdrop dismiss for required-state
+								dialogs.
+							</div>
 						</div>
-					</div>
-					<div className="section__api" style={{ marginTop: 12 }}>
-						<div>
-							<span className="k">open</span>
-							addDialog({'{'} id, component, onClose?, preventBackgroundClose? {'}'}) — id +
-							component always; onClose common
-						</div>
-						<div>
-							<span className="k">prevent</span>
-							preventBackgroundClose: true — only 2 dialogs (WorkspaceInviteHandler sign-in +
-							invite-join, SneakyLegacyModal). Opts out of backdrop dismiss for required-state
-							dialogs.
-						</div>
-					</div>
-				</section>
+					</section>
 
-				<section className="section">
-					<h2 className="section__title">The dialogs</h2>
-					<p className="section__note">
-						Every dialog component, its mechanism, and the width it sets on the body.
-					</p>
-					<div className="grid">
-						{DIALOGS.map((r) => (
-							<Specimen key={r[0]} label={r[0]} code={r[1]} meta={`maxWidth ${r[2]} · ${r[3]}`} mock>
-								<div className="miniDialog" data-bespoke={r[1] === 'bespoke' || undefined}>
-									<div className="miniDialog__h" />
-									<div className="miniDialog__b" />
-								</div>
-							</Specimen>
-						))}
-					</div>
-				</section>
-
-				<section className="section">
-					<h2 className="section__title">Width divergence (the real cleanup)</h2>
-					<p className="section__note">
-						Two inconsistencies at once. <strong>Mechanism</strong>: 6 bodies set width via inline{' '}
-						<code>
-							style={'{{'} maxWidth {'}}'}
-						</code>
-						, 8 via a <code>className</code> — same goal, two idioms in sibling files.{' '}
-						<strong>Value</strong>: <code>maxWidth: 350</code> is hand-typed inline 5 times, with no
-						shared rung. A single <code>size</code> prop (or one width class) collapses both.
-					</p>
-					<table className="matrix">
-						<thead>
-							<tr>
-								<th>width</th>
-								<th>count</th>
-								<th>note</th>
-							</tr>
-						</thead>
-						<tbody>
-							{WIDTHS.map((r) => (
-								<tr key={r[0]} data-off={r[2].startsWith('drift') || undefined}>
-									<td>{r[0]}</td>
-									<td>{r[1]}</td>
-									<td>{r[2]}</td>
+					<section className="section">
+						<h2 className="section__title">The dialogs</h2>
+						<p className="section__note">
+							Every dialog component, its mechanism, and the width it sets on the body — the
+							catalogue (data) behind the one real dialog rendered above.
+						</p>
+						<table className="matrix">
+							<thead>
+								<tr>
+									<th>dialog</th>
+									<th>mechanism</th>
+									<th>maxWidth</th>
+									<th>purpose</th>
 								</tr>
-							))}
-						</tbody>
-					</table>
-				</section>
+							</thead>
+							<tbody>
+								{DIALOGS.map((r) => (
+									<tr key={r[0]} data-off={r[1] === 'bespoke' || undefined}>
+										<td>{r[0]}</td>
+										<td>{r[1]}</td>
+										<td>{r[2]}</td>
+										<td>{r[3]}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</section>
 
-				<section className="section">
-					<h2 className="section__title">The one bespoke modal — justified</h2>
-					<div className="callout">
-						<code>MaybeForceUserRefresh</code> is <strong>not</strong> a <code>TldrawUiDialog</code>
-						: it renders at the app-provider root to dim the whole app when the client is outdated —
-						a context where the Radix dialog primitives and their UI-context hooks (
-						<code>useTranslation</code>, <code>useDirection</code>) are not available. It&rsquo;s a
-						custom overlay by necessity, and it&rsquo;s documented in-code. This is a{' '}
-						<strong>justified</strong> divergence, not drift — the kind an audit should leave alone.
-					</div>
-				</section>
+					<section className="section">
+						<h2 className="section__title">Width divergence (the real cleanup)</h2>
+						<p className="section__note">
+							Two inconsistencies at once. <strong>Mechanism</strong>: 6 bodies set width via inline{' '}
+							<code>
+								style={'{{'} maxWidth {'}}'}
+							</code>
+							, 8 via a <code>className</code> — same goal, two idioms in sibling files.{' '}
+							<strong>Value</strong>: <code>maxWidth: 350</code> is hand-typed inline 5 times, with
+							no shared rung. A single <code>size</code> prop (or one width class) collapses both.
+						</p>
+						<table className="matrix">
+							<thead>
+								<tr>
+									<th>width</th>
+									<th>count</th>
+									<th>note</th>
+								</tr>
+							</thead>
+							<tbody>
+								{WIDTHS.map((r) => (
+									<tr key={r[0]} data-off={r[2].startsWith('drift') || undefined}>
+										<td>{r[0]}</td>
+										<td>{r[1]}</td>
+										<td>{r[2]}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</section>
 
-			</div>
+					<section className="section">
+						<h2 className="section__title">The one bespoke modal — justified</h2>
+						<div className="callout">
+							<code>MaybeForceUserRefresh</code> is <strong>not</strong> a{' '}
+							<code>TldrawUiDialog</code>: it renders at the app-provider root to dim the whole app
+							when the client is outdated — a context where the Radix dialog primitives and their
+							UI-context hooks (<code>useTranslation</code>, <code>useDirection</code>) are not
+							available. It&rsquo;s a custom overlay by necessity, and it&rsquo;s documented
+							in-code. This is a <strong>justified</strong> divergence, not drift — the kind an
+							audit should leave alone.
+						</div>
+					</section>
+				</div>
+			</IsolationProviders>
 		</div>
 	)
 }
@@ -230,6 +278,7 @@ const PAGE_CSS = `
 .stat__n { font-size: 28px; font-weight: 700; font-family: ui-monospace, monospace; }
 .stat[data-good] .stat__n { color: var(--tl-color-success, #2a9d3c); }
 .stat__label { font-size: 12px; color: var(--tl-color-text-1); margin-top: 4px; }
+.dialogStage { position: relative; transform: translateZ(0); min-height: 260px; display: flex; align-items: center; justify-content: center; padding: 24px; border: 1px solid var(--tl-color-divider); border-radius: 8px; background: var(--tl-color-low); }
 .dialogMock { max-width: 360px; border: 1px solid var(--tl-color-divider); border-radius: var(--tl-radius-3); overflow: hidden; box-shadow: 0 6px 24px rgba(0,0,0,0.12); background: var(--tl-color-panel); }
 .dialogMock__header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--tl-color-divider); font-weight: 600; font-size: 13px; }
 .dialogMock__x { color: var(--tl-color-text-3); }
