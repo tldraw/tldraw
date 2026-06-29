@@ -162,6 +162,18 @@ export interface Child {
 	readonly parentEpochs: number[]
 
 	/**
+	 * The global epoch when this child's parents were last checked for changes.
+	 * Used internally to avoid repeating the same parent validation during a
+	 * single propagation pass.
+	 */
+	lastParentCheckEpoch?: number
+
+	/**
+	 * The result of the parent check at lastParentCheckEpoch.
+	 */
+	lastParentCheckResult?: boolean
+
+	/**
 	 * Human-readable name for this child, used in debugging output.
 	 */
 	readonly name: string

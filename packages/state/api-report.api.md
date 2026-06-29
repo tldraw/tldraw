@@ -39,6 +39,8 @@ export interface AtomOptions<Value, Diff> {
 export interface Child {
     __debug_ancestor_epochs__: Map<Signal<any, any>, number> | null;
     isActivelyListening: boolean;
+    lastParentCheckEpoch?: number;
+    lastParentCheckResult?: boolean;
     lastTraversedEpoch: number;
     readonly name: string;
     readonly parentEpochs: number[];

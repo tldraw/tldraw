@@ -92,12 +92,13 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	maybeScheduleEffect() {
 		// bail out if we have been cancelled by another effect
 		if (!this._isActivelyListening) return
+		const globalEpoch = getGlobalEpoch()
 		// bail out if no atoms have changed since the last time we ran this effect
-		if (this.lastReactedEpoch === getGlobalEpoch()) return
+		if (this.lastReactedEpoch === globalEpoch) return
 
 		// bail out if we have parents and they have not changed since last time
-		if (this.parents.length && !haveParentsChanged(this)) {
-			this.lastReactedEpoch = getGlobalEpoch()
+		if (this.parents.length && !haveParentsChanged(this, globalEpoch)) {
+			this.lastReactedEpoch = globalEpoch
 			return
 		}
 		// if we don't have parents it's probably the first time this is running.

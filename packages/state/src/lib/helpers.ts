@@ -30,18 +30,42 @@ function isChild(x: any): x is Child {
  * ```
  * @internal
  */
-export function haveParentsChanged(child: Child): boolean {
+export function haveParentsChanged(child: Child, globalEpoch?: number): boolean {
+	if (
+		globalEpoch !== undefined &&
+		child.lastParentCheckEpoch === globalEpoch &&
+		child.lastParentCheckResult !== undefined
+	) {
+		return child.lastParentCheckResult
+	}
+
+	let parentsChanged = false
+
 	for (let i = 0, n = child.parents.length; i < n; i++) {
+		const parent = child.parents[i]
+
+		// If the parent's epoch already differs from the child's view, it has definitely changed.
+		if (parent.lastChangedEpoch !== child.parentEpochs[i]) {
+			parentsChanged = true
+			break
+		}
+
 		// Get the parent's value without capturing it.
-		child.parents[i].__unsafe__getWithoutCapture(true)
+		parent.__unsafe__getWithoutCapture(true)
 
 		// If the parent's epoch does not match the child's view of the parent's epoch, then the parent has changed.
-		if (child.parents[i].lastChangedEpoch !== child.parentEpochs[i]) {
-			return true
+		if (parent.lastChangedEpoch !== child.parentEpochs[i]) {
+			parentsChanged = true
+			break
 		}
 	}
 
-	return false
+	if (globalEpoch !== undefined) {
+		child.lastParentCheckEpoch = globalEpoch
+		child.lastParentCheckResult = parentsChanged
+	}
+
+	return parentsChanged
 }
 
 /**

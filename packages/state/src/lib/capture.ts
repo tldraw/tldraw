@@ -69,6 +69,8 @@ export function unsafe__withoutCapture<T>(fn: () => T): T {
  */
 export function startCapturingParents(child: Child) {
 	inst.stack = new CaptureStackFrame(inst.stack, child)
+	child.lastParentCheckEpoch = undefined
+	child.lastParentCheckResult = undefined
 	if (child.__debug_ancestor_epochs__) {
 		const previousAncestorEpochs = child.__debug_ancestor_epochs__
 		child.__debug_ancestor_epochs__ = null
@@ -100,6 +102,8 @@ export function startCapturingParents(child: Child) {
 export function stopCapturingParents() {
 	const frame = inst.stack!
 	inst.stack = frame.below
+	frame.child.lastParentCheckEpoch = undefined
+	frame.child.lastParentCheckResult = undefined
 
 	if (frame.offset < frame.child.parents.length) {
 		for (let i = frame.offset; i < frame.child.parents.length; i++) {

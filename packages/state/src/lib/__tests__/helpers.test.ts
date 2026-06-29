@@ -3,6 +3,7 @@ import { ArraySet } from '../ArraySet'
 import { atom } from '../Atom'
 import { reactor } from '../EffectScheduler'
 import { attach, detach, equals, hasReactors, haveParentsChanged, singleton } from '../helpers'
+import { getGlobalEpoch } from '../transactions'
 import { Child } from '../types'
 
 // Unit tests for the internal helpers behind SPEC.md rules EQ1/EQ2 (equals),
@@ -38,6 +39,21 @@ describe('helpers', () => {
 			expect(haveParentsChanged(child)).toBe(true)
 		})
 
+		it('does not read a parent whose changed epoch is already known', () => {
+			const parentAtom = atom('parent', 1)
+			const oldEpoch = parentAtom.lastChangedEpoch
+
+			const child = makeChild()
+			child.parents.push(parentAtom)
+			child.parentEpochs.push(oldEpoch)
+
+			parentAtom.set(2)
+			const getWithoutCapture = vi.spyOn(parentAtom, '__unsafe__getWithoutCapture')
+
+			expect(haveParentsChanged(child, getGlobalEpoch())).toBe(true)
+			expect(getWithoutCapture).not.toHaveBeenCalled()
+		})
+
 		it('returns true when any parent has changed among multiple parents', () => {
 			const parent1 = atom('parent1', 1)
 			const parent2 = atom('parent2', 2)
@@ -50,6 +66,21 @@ describe('helpers', () => {
 			parent2.set(3)
 
 			expect(haveParentsChanged(child)).toBe(true)
+		})
+
+		it('reuses the parent check result for a child within the same global epoch', () => {
+			const parent = atom('parent', 1)
+			const getWithoutCapture = vi.spyOn(parent, '__unsafe__getWithoutCapture')
+
+			const child = makeChild()
+			child.parents.push(parent)
+			child.parentEpochs.push(parent.lastChangedEpoch)
+
+			const epoch = getGlobalEpoch()
+			expect(haveParentsChanged(child, epoch)).toBe(false)
+			expect(haveParentsChanged(child, epoch)).toBe(false)
+
+			expect(getWithoutCapture).toHaveBeenCalledTimes(1)
 		})
 	})
 

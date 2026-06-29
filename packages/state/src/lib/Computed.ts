@@ -275,7 +275,7 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 				(this.isActivelyListening &&
 					getIsReacting() &&
 					this.lastTraversedEpoch < getReactionEpoch()) ||
-				!haveParentsChanged(this))
+				!haveParentsChanged(this, globalEpoch))
 		) {
 			this.lastCheckedEpoch = globalEpoch
 			if (this.error) {
