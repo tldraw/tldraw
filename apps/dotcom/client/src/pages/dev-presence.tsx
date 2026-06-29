@@ -1,10 +1,9 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { InstancePresenceRecordType, TLUserId, useEditor } from 'tldraw'
+import { InstancePresenceRecordType, PeopleMenu, TLUserId, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
-import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
 import { MinimalEditorHarness } from './dev-editor-harness'
 
@@ -59,9 +58,12 @@ const InjectPresence = (): ReactNode => {
 	return null
 }
 
-const LiveCursors = (): ReactNode => (
-	<MinimalEditorHarness height={300}>
+const LivePresence = (): ReactNode => (
+	<MinimalEditorHarness height={320}>
 		<InjectPresence />
+		<div className="presenceOverlay">
+			<PeopleMenu />
+		</div>
 	</MinimalEditorHarness>
 )
 
@@ -74,7 +76,7 @@ export function Component() {
 			<Helmet>
 				<title>Presence inventory — dev</title>
 			</Helmet>
-			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
+			<style>{PAGE_CSS}</style>
 
 			<div className="page">
 				<DevComponentsNav />
@@ -99,80 +101,15 @@ export function Component() {
 				</section>
 
 				<section className="section">
-					<h2 className="section__title">Live cursors — fake collaborators, real UI</h2>
+					<h2 className="section__title">Live presence — fake collaborators, real UI</h2>
 					<p className="section__note">
-						No multiplayer session. The editor draws a cursor for every record in{' '}
-						<code>editor.getCollaborators()</code> — so we put three fake{' '}
-						<code>instance_presence</code> records into the store (
-						<code>lastActivityTimestamp: null</code> = always active). The cursors below are the
-						real SDK presence UI; only the collaborators are fake.
+						No multiplayer session. We put three fake <code>instance_presence</code> records into
+						the store (<code>lastActivityTimestamp: null</code> = always active); the editor then
+						draws the real collaborator cursors, and the real <code>PeopleMenu</code> (facepile +
+						current user, top-right) reads the same peers via <code>usePeerIds()</code>. All real UI
+						— only the collaborators are fake.
 					</p>
-					<LiveCursors />
-				</section>
-
-				<section className="section">
-					<h2 className="section__title">Share-panel presence (SDK-owned, mocked)</h2>
-					<p className="section__note">
-						These render inside the live editor / share panel; mocked here. dotcom supplies the
-						user&rsquo;s colour and identity, the SDK renders the rest.
-					</p>
-					<div className="grid">
-						<Specimen
-							label="live cursor"
-							code={`(SDK, from collaborator presence)`}
-							meta="name label in the user's colour"
-							source="editor — TlaEditor.tsx"
-							mock
-						>
-							<div className="cursorMock">
-								<svg width="16" height="16" viewBox="0 0 16 16">
-									<path d="M2 2 L2 13 L5.5 9.5 L8 14 L10 13 L7.5 8.5 L12 8 Z" fill="#268bd2" />
-								</svg>
-								<span className="cursorMock__name">Casey</span>
-							</div>
-						</Specimen>
-						<Specimen
-							label="facepile / avatars"
-							code={`<PeopleMenu> (SDK share panel)`}
-							meta="collaborators' avatars, by colour"
-							source="TldrawUiSharePanel"
-							mock
-						>
-							<div className="facepile">
-								<span className="avatar" style={{ background: '#268bd2' }}>
-									C
-								</span>
-								<span className="avatar" style={{ background: '#859900' }}>
-									J
-								</span>
-								<span className="avatar" style={{ background: '#cb4b16' }}>
-									M
-								</span>
-							</div>
-						</Specimen>
-						<Specimen
-							label="PeopleMenu trigger"
-							code={`<PeopleMenu>`}
-							meta="opens the collaborators list · ×3"
-							source="TlaInviteTab.tsx"
-							mock
-						>
-							<div className="ctrlMock">People ▾</div>
-						</Specimen>
-						<Specimen
-							label="TldrawCurrentUser"
-							code={`<TldrawCurrentUser />`}
-							meta="the local user's presence record · ×9"
-							source="TlaEditorTopRightPanel.tsx"
-							mock
-						>
-							<div className="facepile">
-								<span className="avatar" style={{ background: '#6c71c4' }}>
-									You
-								</span>
-							</div>
-						</Specimen>
-					</div>
+					<LivePresence />
 				</section>
 
 				<section className="section">
@@ -230,6 +167,7 @@ const PAGE_CSS = `
 .stat { border: 1px solid var(--tl-color-divider); border-radius: 8px; padding: 16px 20px; min-width: 180px; background: var(--tl-color-panel); }
 .stat__n { font-size: 26px; font-weight: 700; font-family: ui-monospace, monospace; }
 .stat__label { font-size: 12px; color: var(--tl-color-text-1); margin-top: 4px; font-family: ui-monospace, monospace; }
+.presenceOverlay { position: absolute; top: 12px; right: 12px; z-index: 100; }
 .cursorMock { display: inline-flex; align-items: center; gap: 4px; }
 .cursorMock__name { background: #268bd2; color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 4px; }
 .facepile { display: inline-flex; }
