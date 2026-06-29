@@ -42,19 +42,30 @@ export function Component() {
 				<section className="section">
 					<h2 className="section__title">Error UIs — {ERRORS.length} bespoke screens</h2>
 					<p className="section__note">
-						Four error screens, no shared error-state component, split across two styling systems
-						(<code>ErrorPage</code> is BEM; <code>TlaFileError</code> is CSS-modules). Mocked.
+						Four full-page error screens, no shared error-state component, split across two styling
+						systems (<code>ErrorPage</code> is BEM; <code>TlaFileError</code> is CSS-modules). They
+						take over the viewport, so they&rsquo;re catalogued as data here.
 					</p>
-					<div className="grid">
-						{ERRORS.map((e) => (
-							<Specimen key={e.source} label={e.label} code={e.styling} meta={e.trigger} source={e.source} mock>
-								<div className="errMock">
-									<div className="errMock__face">{e.face}</div>
-									<div className="errMock__msg">{e.msg}</div>
-								</div>
-							</Specimen>
-						))}
-					</div>
+					<table className="matrix">
+						<thead>
+							<tr>
+								<th>screen</th>
+								<th>styling</th>
+								<th>trigger</th>
+								<th>source</th>
+							</tr>
+						</thead>
+						<tbody>
+							{ERRORS.map((e) => (
+								<tr key={e.source}>
+									<td>{e.label}</td>
+									<td>{e.styling}</td>
+									<td>{e.trigger}</td>
+									<td>{e.source}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
 					<div className="callout">
 						The gap for a redesign: there is <strong>no shared <code>&lt;ErrorState&gt;</code></strong>.{' '}
 						<code>StoreErrorScreen</code> reuses <code>ErrorPage</code>, but{' '}
@@ -84,20 +95,11 @@ export function Component() {
 								Saving
 							</TlaButton>
 						</Specimen>
-						<Specimen
-							label="isLoading consumers"
-							code={`isLoading={…}`}
-							meta={`${LOADERS.length} files, ad-hoc flags`}
-							source="(distributed)"
-							mock
-						>
-							<div className="listMock">
-								{LOADERS.map((l) => (
-									<div key={l}>{l}</div>
-								))}
-							</div>
-						</Specimen>
 					</div>
+					<p className="section__note" style={{ marginTop: 14 }}>
+						<code>isLoading</code> consumers — {LOADERS.length} files, each ad-hoc:{' '}
+						{LOADERS.join(' · ')}.
+					</p>
 				</section>
 
 				<section className="section">
@@ -115,17 +117,6 @@ export function Component() {
 							<span className="spinStage">
 								<TlaIcon icon="spinner" />
 							</span>
-						</Specimen>
-						<Specimen
-							label="⚠ duplicated keyframe"
-							code={`@keyframes tla-spin (×2)`}
-							meta="defined twice, used at 1.5s AND 1.2s"
-							source="button.module.css:55, :98"
-							mock
-						>
-							<div className="errMock errMock--warn">
-								<div className="errMock__msg">tla-spin lives in button CSS, defined 2×</div>
-							</div>
 						</Specimen>
 					</div>
 					<div className="callout">
@@ -183,6 +174,9 @@ const PAGE_CSS = `
 .section { margin-bottom: 48px; }
 .section__title { font-size: 18px; font-weight: 600; margin: 0 0 6px; }
 .section__note { font-size: 13px; line-height: 1.6; color: var(--tl-color-text-1); margin: 0 0 16px; max-width: 760px; }
+.matrix { border-collapse: collapse; font-size: 12px; font-family: ui-monospace, monospace; width: 100%; max-width: 820px; }
+.matrix th, .matrix td { text-align: left; padding: 6px 18px 6px 0; border-bottom: 1px solid var(--tl-color-divider); vertical-align: top; }
+.matrix th { color: var(--tl-color-text-3); font-weight: 500; }
 .errMock { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
 .errMock__face { font-size: 22px; font-family: ui-monospace, monospace; color: var(--tl-color-text-3); }
 .errMock__msg { font-size: 12px; color: var(--tl-color-text-1); }
