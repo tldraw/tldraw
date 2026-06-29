@@ -24,9 +24,11 @@ import {
 	clearWetInk,
 	dryWetInk,
 	fadeInShape,
+	fadeOutDeleteOverlay,
 	fadeOutInkGhost,
 	removeMorphPreview,
 	setWetInk,
+	showDeleteOverlay,
 	showMorphLinePreview,
 	showMorphPreview,
 } from './magicWandInk'
@@ -150,6 +152,8 @@ export class MagicWandDrawing extends Drawing {
 	private inkMode: InkMode = 'none'
 	// Pre-existing shapes the scribble has passed over (accumulated as it's drawn).
 	private scribbledShapeIds = new Set<TLShapeId>()
+	// Scribbled shape id -> its translucent-red "marked for deletion" overlay ghost.
+	private deleteOverlays = new Map<TLShapeId, TLShapeId>()
 	// The shapes currently previewed as "would be selected" (blue hint outline).
 	private hintedShapeIds: TLShapeId[] = []
 	// The stroke pieces the wet-ink CSS currently covers (the draw tool may split
@@ -162,6 +166,7 @@ export class MagicWandDrawing extends Drawing {
 		this.shapeIdsBeforeGesture = new Set(this.editor.getCurrentPageShapeIds())
 		this.inkMode = 'none'
 		this.scribbledShapeIds = new Set()
+		this.deleteOverlays = new Map()
 		this.hintedShapeIds = []
 		this.wetInkIds = []
 		this.isDryingInk = false
@@ -195,6 +200,12 @@ export class MagicWandDrawing extends Drawing {
 		if (!this.isDryingInk) {
 			clearWetInk(this.editor)
 		}
+		// Remove any delete overlays still showing (e.g. on cancel — a completed
+		// delete fades and clears them itself, so this only hits leftovers).
+		for (const ghostId of this.deleteOverlays.values()) {
+			removeMorphPreview(this.editor, ghostId)
+		}
+		this.deleteOverlays.clear()
 		super.onExit()
 	}
 
@@ -253,6 +264,12 @@ export class MagicWandDrawing extends Drawing {
 			this.keepLassoStrokeClosed(strokeIds)
 		}
 
+		// As shapes get marked for deletion, fade them to translucent red, matching
+		// the scribble ink's own tint.
+		if (mode === 'delete') {
+			this.updateDeleteOverlays()
+		}
+
 		// Outline the shapes that would be lasso-selected (delete uses the red ink).
 		const hinted = mode === 'lasso' ? enclosedShapeIds : []
 		if (!areArraysShallowEqual(hinted, this.hintedShapeIds)) {
@@ -278,6 +295,20 @@ export class MagicWandDrawing extends Drawing {
 			},
 			{ history: 'ignore' }
 		)
+	}
+
+	/**
+	 * Ensures every scribbled shape has a translucent-red overlay fading in, so the
+	 * elements marked for deletion fade to red the same way the scribble ink does.
+	 * Only colour-bearing shapes are tinted; others still delete, just without it.
+	 */
+	private updateDeleteOverlays() {
+		for (const id of this.scribbledShapeIds) {
+			if (this.deleteOverlays.has(id)) continue
+			const shape = this.editor.getShape(id)
+			if (!shape || !('color' in shape.props)) continue
+			this.deleteOverlays.set(id, showDeleteOverlay(this.editor, shape))
+		}
 	}
 
 	/**
@@ -354,10 +385,14 @@ export class MagicWandDrawing extends Drawing {
 			if (this.markId) this.editor.bailToMark(this.markId)
 			this.editor.markHistoryStoppingPoint('scribble-delete')
 			this.editor.deleteShapes(scribbledIds)
-			// Fade out a red copy of the scribble (already red from the live preview).
+			// Fade out a red copy of the scribble and the deleted shapes' red overlays.
 			for (const snapshot of inkSnapshots) {
 				fadeOutInkGhost(this.editor, snapshot, MAGIC_WAND_DELETE_COLOR)
 			}
+			for (const ghostId of this.deleteOverlays.values()) {
+				fadeOutDeleteOverlay(this.editor, ghostId)
+			}
+			this.deleteOverlays.clear()
 			// Stay in the magic wand, ready for the next gesture.
 			this.parent.transition('idle')
 			return

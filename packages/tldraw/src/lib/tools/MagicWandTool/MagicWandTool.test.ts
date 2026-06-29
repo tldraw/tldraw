@@ -364,6 +364,33 @@ describe('MagicWandTool', () => {
 		editor.pointerUp()
 	})
 
+	it('overlays scribbled shapes with a translucent-red "to be deleted" ghost', () => {
+		const boxId = createBox(130, 130)
+		scribbleAcross(150, 150) // pen left down, in delete mode
+
+		// A red ghost copy of the box covers it, and the original is still present
+		// (deletion happens on release).
+		const overlay = editor
+			.getCurrentPageShapes()
+			.find((s) => s.meta?.magicWandGhost && s.type === 'geo') as TLGeoShape
+		expect(overlay).toBeTruthy()
+		expect(overlay.props.color).toBe('red')
+		expect(editor.getShape(boxId)).toBeTruthy()
+
+		editor.pointerUp()
+	})
+
+	it('removes the delete overlays when the scribble is cancelled', () => {
+		const boxId = createBox(130, 130)
+		scribbleAcross(150, 150)
+		expect(editor.getCurrentPageShapes().some((s) => s.meta?.magicWandGhost)).toBe(true)
+
+		editor.cancel()
+
+		expect(editor.getCurrentPageShapes().some((s) => s.meta?.magicWandGhost)).toBe(false)
+		expect(editor.getShape(boxId)).toBeTruthy() // cancel doesn't delete
+	})
+
 	it('deletes every shape the scribble crosses', () => {
 		const a = createBox(120, 130, 20, 20) // x 120–140
 		const b = createBox(170, 130, 20, 20) // x 170–190

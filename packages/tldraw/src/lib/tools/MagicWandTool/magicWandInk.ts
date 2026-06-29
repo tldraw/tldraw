@@ -5,7 +5,9 @@ import {
 	TLDrawShape,
 	TLGeoShape,
 	TLLineShape,
+	TLShape,
 	TLShapeId,
+	TLShapePartial,
 	VecLike,
 	createShapeId,
 	getIndices,
@@ -39,6 +41,9 @@ const LASSO_FADE_DURATION_MS = 300
 
 /** Opacity the hold "charging" preview ramps up to while the morph is pending. */
 const MORPH_PREVIEW_OPACITY = 0.4
+
+/** How long a scribble-delete overlay takes to fade in to translucent red (matches the scribble tint). */
+const DELETE_OVERLAY_FADE_IN_MS = 150
 
 /** How long the sketch→shape crossfade takes when a morph fires, in ms. */
 const MORPH_FADE_DURATION_MS = 250
@@ -188,6 +193,48 @@ export function fadeOutInkGhost(
 		animateShapeOpacity(editor, ghostId, MAGIC_WAND_INK_OPACITY, 0, LASSO_FADE_DURATION_MS, () => {
 			editor.run(() => editor.deleteShape(ghostId), { history: 'ignore', ignoreShapeLock: true })
 		})
+	})
+}
+
+/**
+ * Shows a translucent-red overlay for a shape the scribble has marked for
+ * deletion, fading it in so the element appears to fade to translucent red the
+ * same way the scribble ink does. The overlay is a locked, history-ignored clone
+ * of the shape forced to the delete colour (and filled where it has a fill), so
+ * it's purely a visual effect. Returns its id; remove it with
+ * {@link fadeOutDeleteOverlay} (on delete) or {@link removeMorphPreview} (on cancel).
+ */
+export function showDeleteOverlay(editor: Editor, shape: TLShape): TLShapeId {
+	const ghostId = createShapeId()
+	const props = { ...(shape.props as Record<string, unknown>) }
+	props.color = MAGIC_WAND_DELETE_COLOR
+	if (props.fill === 'none') props.fill = 'solid'
+	editor.run(
+		() => {
+			editor.createShape({
+				id: ghostId,
+				type: shape.type,
+				x: shape.x,
+				y: shape.y,
+				rotation: shape.rotation,
+				isLocked: true,
+				opacity: 0,
+				meta: { magicWandGhost: true },
+				props,
+			} as TLShapePartial)
+		},
+		{ history: 'ignore' }
+	)
+	animateShapeOpacity(editor, ghostId, 0, MAGIC_WAND_INK_OPACITY, DELETE_OVERLAY_FADE_IN_MS)
+	return ghostId
+}
+
+/** Fades a scribble-delete overlay out from its current opacity and removes it. */
+export function fadeOutDeleteOverlay(editor: Editor, ghostId: TLShapeId) {
+	const shape = editor.getShape(ghostId)
+	if (!shape) return
+	animateShapeOpacity(editor, ghostId, shape.opacity, 0, LASSO_FADE_DURATION_MS, () => {
+		editor.run(() => editor.deleteShape(ghostId), { history: 'ignore', ignoreShapeLock: true })
 	})
 }
 
