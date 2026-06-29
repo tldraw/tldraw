@@ -3,6 +3,7 @@ import { ReactNode } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { TldrawUiInput } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { TlaMenuSwitch } from '../tla/components/tla-menu/tla-menu'
 import '../tla/styles/tla.css'
 import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
@@ -16,7 +17,15 @@ import { DevComponentsNav } from './dev-components-nav'
  * Serves tldraw/tldraw#9191. Route: /dev/components/inputs.
  */
 
-const Section = ({ title, note, children }: { title: string; note: string; children: ReactNode }) => (
+const Section = ({
+	title,
+	note,
+	children,
+}: {
+	title: string
+	note: string
+	children: ReactNode
+}) => (
 	<section className="section">
 		<h2 className="section__title">{title}</h2>
 		<p className="section__note">{note}</p>
@@ -26,10 +35,18 @@ const Section = ({ title, note, children }: { title: string; note: string; child
 
 /** Renders a raw input element faithfully by kind. */
 const RawInput = ({ el, placeholder }: { el: RawKind; placeholder?: string }): ReactNode => {
-	if (el === 'checkbox') return <input type="checkbox" role="switch" defaultChecked className="rawSwitch" />
+	// The sharing toggle is a real TlaMenuSwitch (a styled switch), not a bare
+	// checkbox — render the actual component so the preview matches the app.
+	if (el === 'switch') return <TlaMenuSwitch id="inp-sharing-switch" checked onChange={() => {}} />
+	// The admin toggles are genuinely plain, unstyled checkboxes.
+	if (el === 'checkbox') return <input type="checkbox" defaultChecked />
 	if (el === 'textarea')
 		return (
-			<textarea placeholder={placeholder} className="rawInput" style={{ minHeight: 44, resize: 'vertical' }} />
+			<textarea
+				placeholder={placeholder}
+				className="rawInput"
+				style={{ minHeight: 44, resize: 'vertical' }}
+			/>
 		)
 	return (
 		<input
@@ -113,13 +130,12 @@ export function Component() {
 						</Specimen>
 					))}
 				</Section>
-
 			</div>
 		</div>
 	)
 }
 
-type RawKind = 'text' | 'email' | 'numeric' | 'checkbox' | 'textarea'
+type RawKind = 'text' | 'email' | 'numeric' | 'checkbox' | 'switch' | 'textarea'
 
 const SDK_INPUTS: ReadonlyArray<{
 	label: string
@@ -129,11 +145,41 @@ const SDK_INPUTS: ReadonlyArray<{
 	placeholder?: string
 	defaultValue?: string
 }> = [
-	{ label: 'sidebar search', code: 'placeholder · onValueChange · autoFocus · autoSelect', meta: 'search box', source: 'TlaSidebarSearch:87', placeholder: 'Search files…' },
-	{ label: 'inline file rename', code: 'defaultValue · onComplete · onCancel', meta: 'inline rename', source: 'TlaSidebarInlineInput:53', defaultValue: 'My file' },
-	{ label: 'create workspace', code: 'value · onValueChange · onComplete · placeholder', meta: 'workspace name', source: 'CreateWorkspaceDialog:65', placeholder: 'Workspace name' },
-	{ label: 'rename workspace', code: 'defaultValue · onValueChange', meta: 'settings rename', source: 'WorkspaceSettingsDialog:342', defaultValue: 'Acme Inc' },
-	{ label: 'rename current file', code: 'value · onValueChange · autoFocus · autoSelect', meta: 'editor file name', source: 'TlaEditorTopLeftPanel:407', defaultValue: 'Untitled' },
+	{
+		label: 'sidebar search',
+		code: 'placeholder · onValueChange · autoFocus · autoSelect',
+		meta: 'search box',
+		source: 'TlaSidebarSearch:87',
+		placeholder: 'Search files…',
+	},
+	{
+		label: 'inline file rename',
+		code: 'defaultValue · onComplete · onCancel',
+		meta: 'inline rename',
+		source: 'TlaSidebarInlineInput:53',
+		defaultValue: 'My file',
+	},
+	{
+		label: 'create workspace',
+		code: 'value · onValueChange · onComplete · placeholder',
+		meta: 'workspace name',
+		source: 'CreateWorkspaceDialog:65',
+		placeholder: 'Workspace name',
+	},
+	{
+		label: 'rename workspace',
+		code: 'defaultValue · onValueChange',
+		meta: 'settings rename',
+		source: 'WorkspaceSettingsDialog:342',
+		defaultValue: 'Acme Inc',
+	},
+	{
+		label: 'rename current file',
+		code: 'value · onValueChange · autoFocus · autoSelect',
+		meta: 'editor file name',
+		source: 'TlaEditorTopLeftPanel:407',
+		defaultValue: 'Untitled',
+	},
 ]
 
 const RAW_INPUTS: ReadonlyArray<{
@@ -144,18 +190,99 @@ const RAW_INPUTS: ReadonlyArray<{
 	source: string
 	placeholder?: string
 }> = [
-	{ label: 'sharing toggle', el: 'checkbox', code: 'type="checkbox" role="switch" name="shared"', meta: 'TlaMenuSwitch — not a text field', source: 'tla-menu.tsx:260' },
-	{ label: 'sign-in email', el: 'email', code: 'type="email" name="identifier"', meta: 'needs type + name (Clerk form)', source: 'TlaSignInDialog:244', placeholder: 'you@example.com' },
-	{ label: 'verification code', el: 'numeric', code: 'type="text" inputMode="numeric"', meta: 'needs inputMode', source: 'TlaSignInDialog:449', placeholder: '123456' },
-	{ label: 'admin: user lookup', el: 'text', code: 'type="text" ref placeholder="Email or ID"', meta: 'imperative ref + Enter', source: 'admin.tsx:175', placeholder: 'Email or ID' },
-	{ label: 'admin: published file', el: 'text', code: 'type="text" ref placeholder="Published file ID"', meta: 'ref read', source: 'admin.tsx:367', placeholder: 'Published file ID' },
-	{ label: 'admin: toggle', el: 'checkbox', code: 'type="checkbox"', meta: 'admin toggle', source: 'admin.tsx:509' },
-	{ label: 'admin: toggle', el: 'checkbox', code: 'type="checkbox"', meta: 'admin toggle', source: 'admin.tsx:574' },
-	{ label: 'admin: text field', el: 'text', code: 'type="text"', meta: 'admin field', source: 'admin.tsx:586', placeholder: '…' },
-	{ label: 'admin: file ID', el: 'text', code: 'type="text" ref .searchInput', meta: 'Enter-to-search', source: 'admin.tsx:666', placeholder: 'File ID' },
-	{ label: 'admin: file ID', el: 'text', code: 'type="text" ref .searchInput', meta: 'Enter-to-search', source: 'admin.tsx:766', placeholder: 'File ID' },
-	{ label: 'admin: user lookup', el: 'text', code: 'type="text" ref placeholder="User ID or Email"', meta: 'ref read', source: 'admin.tsx:844', placeholder: 'User ID or Email' },
-	{ label: 'feedback', el: 'textarea', code: '<textarea defaultValue · onInput · ref>', meta: 'multi-line — TldrawUiInput is input-only', source: 'SubmitFeedbackDialog:159', placeholder: 'Tell us more…' },
+	{
+		label: 'sharing toggle',
+		el: 'switch',
+		code: '<TlaMenuSwitch> (wraps type="checkbox" role="switch")',
+		meta: 'real TlaMenuSwitch — not a text field',
+		source: 'tla-menu.tsx:260',
+	},
+	{
+		label: 'sign-in email',
+		el: 'email',
+		code: 'type="email" name="identifier"',
+		meta: 'needs type + name (Clerk form)',
+		source: 'TlaSignInDialog:244',
+		placeholder: 'you@example.com',
+	},
+	{
+		label: 'verification code',
+		el: 'numeric',
+		code: 'type="text" inputMode="numeric"',
+		meta: 'needs inputMode',
+		source: 'TlaSignInDialog:449',
+		placeholder: '123456',
+	},
+	{
+		label: 'admin: user lookup',
+		el: 'text',
+		code: 'type="text" ref placeholder="Email or ID"',
+		meta: 'imperative ref + Enter',
+		source: 'admin.tsx:175',
+		placeholder: 'Email or ID',
+	},
+	{
+		label: 'admin: published file',
+		el: 'text',
+		code: 'type="text" ref placeholder="Published file ID"',
+		meta: 'ref read',
+		source: 'admin.tsx:367',
+		placeholder: 'Published file ID',
+	},
+	{
+		label: 'admin: toggle',
+		el: 'checkbox',
+		code: 'type="checkbox"',
+		meta: 'admin toggle',
+		source: 'admin.tsx:509',
+	},
+	{
+		label: 'admin: toggle',
+		el: 'checkbox',
+		code: 'type="checkbox"',
+		meta: 'admin toggle',
+		source: 'admin.tsx:574',
+	},
+	{
+		label: 'admin: text field',
+		el: 'text',
+		code: 'type="text"',
+		meta: 'admin field',
+		source: 'admin.tsx:586',
+		placeholder: '…',
+	},
+	{
+		label: 'admin: file ID',
+		el: 'text',
+		code: 'type="text" ref .searchInput',
+		meta: 'Enter-to-search',
+		source: 'admin.tsx:666',
+		placeholder: 'File ID',
+	},
+	{
+		label: 'admin: file ID',
+		el: 'text',
+		code: 'type="text" ref .searchInput',
+		meta: 'Enter-to-search',
+		source: 'admin.tsx:766',
+		placeholder: 'File ID',
+	},
+	{
+		label: 'admin: user lookup',
+		el: 'text',
+		code: 'type="text" ref placeholder="User ID or Email"',
+		meta: 'ref read',
+		source: 'admin.tsx:844',
+		placeholder: 'User ID or Email',
+	},
+	{
+		label: 'feedback',
+		el: 'textarea',
+		code: '<textarea defaultValue · onInput · ref>',
+		meta: 'multi-line — TldrawUiInput is input-only',
+		source: 'SubmitFeedbackDialog:159',
+		placeholder: 'Tell us more…',
+	},
 ]
 
 const MATRIX: ReadonlyArray<readonly [string, string, string]> = [
