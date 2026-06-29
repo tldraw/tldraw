@@ -24,6 +24,7 @@ const categories = [
 	['collaboration', 'Collaboration'],
 	['data/assets', 'Data & assets'],
 	['use-cases', 'Use cases'],
+	['games', 'Games'],
 ] as const
 
 type Category = (typeof categories)[number][0]

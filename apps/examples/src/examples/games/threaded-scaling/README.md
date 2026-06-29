@@ -1,7 +1,6 @@
 ---
 title: Threaded object scaling
 component: ./ThreadedScalingExample.tsx
-category: use-cases
 priority: 5
 keywords: [game, puzzle, scaling, resize, conservation, threads, overlay]
 ---
