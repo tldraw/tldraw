@@ -1,8 +1,17 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { TldrawUiContextProvider } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { TlaMenuSwitch } from '../tla/components/tla-menu/tla-menu'
+import {
+	TlaMenuControl,
+	TlaMenuControlLabel,
+	TlaMenuDetail,
+	TlaMenuSwitch,
+	TlaMenuTabsRoot,
+	TlaMenuTabsTab,
+	TlaMenuTabsTabs,
+} from '../tla/components/tla-menu/tla-menu'
 import '../tla/styles/tla.css'
 import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
@@ -11,7 +20,10 @@ import { DevComponentsNav } from './dev-components-nav'
  * Dev-only inventory of the dotcom form controls — the tla-menu settings-control
  * set (Switch / Select / Tabs / Control rows). These are the inputs of the
  * "settings panel" half of the menus story, shown here with their full props
- * and states. Switch is live; the rest are mocked (Select needs editor context).
+ * and states. Switch, Tabs, Control, ControlLabel and Detail render live under a
+ * TldrawUiContextProvider (editor-less). Two stay mocked: Select (calls
+ * useContainer(), needs a real <Tldraw>) and ControlInfoTooltip (calls useMsg,
+ * needs the dotcom react-intl IntlProvider, a separate i18n system).
  *
  * Route: /dev/components/form-controls. Companion to the menus page.
  */
@@ -27,6 +39,7 @@ export function Component() {
 			</Helmet>
 			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
+			<TldrawUiContextProvider forceMobile={false}>
 			<div className="page">
 				<DevComponentsNav />
 				<header className="page__header">
@@ -88,18 +101,25 @@ export function Component() {
 				</section>
 
 				<section className="section">
-					<h2 className="section__title">TlaMenuTabs — Root / Tabs / Tab / Page (mocked)</h2>
+					<h2 className="section__title">TlaMenuTabs — Root / Tabs / Tab / Page (live)</h2>
 					<p className="section__note">
 						ARIA tabs (<code>role=tablist / tab / tabpanel</code>). The share menu&rsquo;s
-						Invite / Export / Publish tabs.
+						Invite / Export / Publish tabs, rendered with the real components (Invite active).
 					</p>
 					<div className="grid">
-						<Specimen label="TlaMenuTabsTab" code={`active`} meta="role=tab" source="tla-menu.tsx:313" mock>
-							<div className="tabMock">
-								<span data-active>Invite</span>
-								<span>Export</span>
-								<span>Publish</span>
-							</div>
+						<Specimen
+							label="TlaMenuTabs"
+							code={`<Root activeTab><Tabs><Tab id>`}
+							meta="role=tablist · Invite active"
+							source="tla-menu.tsx:296"
+						>
+							<TlaMenuTabsRoot activeTab="invite" onTabChange={() => {}}>
+								<TlaMenuTabsTabs>
+									<TlaMenuTabsTab id="invite">Invite</TlaMenuTabsTab>
+									<TlaMenuTabsTab id="export">Export</TlaMenuTabsTab>
+									<TlaMenuTabsTab id="publish">Publish</TlaMenuTabsTab>
+								</TlaMenuTabsTabs>
+							</TlaMenuTabsRoot>
 						</Specimen>
 					</div>
 				</section>
@@ -111,25 +131,26 @@ export function Component() {
 						text.
 					</p>
 					<div className="grid">
-						<Specimen label="TlaMenuControl" code={`<TlaMenuControl>`} meta="labeled row · ×10" source="tla-menu.tsx:43" mock>
-							<div className="rowMock rowMock--wide">
-								<span>Share this file</span>
-								<TlaMenuSwitch id="fc-row" checked onChange={() => {}} />
-							</div>
+						<Specimen label="TlaMenuControl" code={`<TlaMenuControl>`} meta="labeled row · ×10" source="tla-menu.tsx:43">
+							<TlaMenuControl className="fcWide">
+								<TlaMenuControlLabel htmlFor="fc-ctrl">Share this file</TlaMenuControlLabel>
+								<TlaMenuSwitch id="fc-ctrl" checked onChange={() => {}} />
+							</TlaMenuControl>
 						</Specimen>
-						<Specimen label="TlaMenuControlLabel" code={`<TlaMenuControlLabel>`} meta="control label · ×10" source="tla-menu.tsx:96" mock>
-							<div className="rowMock">Label text</div>
+						<Specimen label="TlaMenuControlLabel" code={`<TlaMenuControlLabel>`} meta="control label · ×10" source="tla-menu.tsx:96">
+							<TlaMenuControlLabel htmlFor="fc-lbl">Label text</TlaMenuControlLabel>
 						</Specimen>
-						<Specimen label="TlaMenuControlInfoTooltip" code={`<TlaMenuControlInfoTooltip>`} meta="info tooltip · ×4" source="tla-menu.tsx:60" mock>
+						<Specimen label="TlaMenuControlInfoTooltip" code={`<TlaMenuControlInfoTooltip>`} meta="needs dotcom IntlProvider (useMsg)" source="tla-menu.tsx:60" mock>
 							<div className="rowMock">ⓘ more info</div>
 						</Specimen>
-						<Specimen label="TlaMenuDetail" code={`<TlaMenuDetail>`} meta="detail text · ×1" source="tla-menu.tsx:111" mock>
-							<div className="rowMock">supporting detail copy</div>
+						<Specimen label="TlaMenuDetail" code={`<TlaMenuDetail>`} meta="detail text · ×1" source="tla-menu.tsx:111">
+							<TlaMenuDetail>Supporting detail copy</TlaMenuDetail>
 						</Specimen>
 					</div>
 				</section>
 
 			</div>
+			</TldrawUiContextProvider>
 		</div>
 	)
 }
@@ -151,6 +172,7 @@ const PAGE_CSS = `
 .section { margin-bottom: 48px; }
 .section__title { font-size: 18px; font-weight: 600; margin: 0 0 6px; }
 .section__note { font-size: 13px; line-height: 1.6; color: var(--tl-color-text-1); margin: 0 0 16px; max-width: 760px; }
+.fcWide { width: 100%; }
 .ctrlMock { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--tla-color-secondary-border, var(--tl-color-divider)); border-radius: var(--tl-radius-2); background: var(--tl-color-panel); font-size: 12px; }
 .tabMock { display: inline-flex; gap: 4px; }
 .tabMock span { padding: 4px 10px; border-radius: var(--tl-radius-2); font-size: 12px; color: var(--tl-color-text-3); }
