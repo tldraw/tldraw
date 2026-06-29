@@ -1,0 +1,259 @@
+// ============================================================================
+// MULTIPLAYER SNAPSHOT (de)serialization.
+//
+// The host runs the real sim and serializes its `world` to a compact blob that
+// rides in a synced tldraw shape's `meta`; guests deserialize it back into a
+// render-only `world` and draw it through the same overlay (which reads
+// getWorld()). The encoding leans on one fact from the sim: a vine's parent is
+// always one of the 8 ADJACENT cells (extendTip claims a neighbour), so the whole
+// vine tree fits in one byte per cell:
+//
+//   bits 0-1  owner      (0 = neutral, 1 = a, 2 = b)
+//   bits 2-5  parentDir  (0 = none/source, 1-8 = direction to parent cell)
+//   bit  6    blocked    (rock)
+//
+// 80×80 = 6400 cells → ~6.4 KB raw, base64 in the shape meta, rewritten only on
+// growth pulses / cuts (a few times a second), not every frame.
+// ============================================================================
+import {
+	cellOf,
+	CLAIM_CHARGE,
+	GRID,
+	Owner,
+	Peg,
+	Point,
+	Strand,
+	VINE_WIGGLE,
+	World,
+} from '../overgrowth/game-state'
+import { computeSubtreeSizes } from '../overgrowth/sim'
+
+// Deterministic [0,1) from an integer seed — so the guest rebuilds the SAME vine
+// geometry from every snapshot (the sim's makeStrand uses Math.random, which would
+// make a guest's vines jitter on each rebuild).
+function rand01(seed: number): number {
+	const x = Math.sin(seed * 12.9898) * 43758.5453
+	return x - Math.floor(x)
+}
+
+// Like game-state's makeStrand, but with a seeded wiggle and a STABLE id derived
+// from the edge's endpoints — so geometry doesn't shake and sparks (which key off
+// strand id) survive each snapshot rebuild.
+function makeStableStrand(a: Peg, b: Peg, owner: Owner | null): Strand {
+	const segs = 4
+	const dx = b.x - a.x
+	const dy = b.y - a.y
+	const len = Math.hypot(dx, dy) || 1
+	const nx = -dy / len
+	const ny = dx / len
+	const seed = (a.row * GRID.cols + a.col) * 100003 + (b.row * GRID.cols + b.col)
+	const points: Point[] = []
+	for (let i = 0; i <= segs; i++) {
+		const tt = i / segs
+		let x = a.x + dx * tt
+		let y = a.y + dy * tt
+		if (i !== 0 && i !== segs) {
+			const w = Math.sin(tt * Math.PI) * (rand01(seed + i * 7) - 0.5) * 2 * VINE_WIGGLE
+			x += nx * w
+			y += ny * w
+		}
+		points.push({ x, y, ox: x, oy: y, pinned: i === 0 || i === segs })
+	}
+	const mx = (a.x + b.x) / 2
+	const my = (a.y + b.y) / 2
+	return {
+		id: `vine:${a.col},${a.row}>${b.col},${b.row}`,
+		points,
+		owner,
+		aId: a.id,
+		bId: b.id,
+		cell: cellOf(mx, my),
+	}
+}
+
+// 8-neighbour offsets; index i → parentDir code (i + 1). 0 means "no parent".
+const DIRS: Array<[number, number]> = [
+	[-1, -1],
+	[0, -1],
+	[1, -1],
+	[-1, 0],
+	[1, 0],
+	[-1, 1],
+	[0, 1],
+	[1, 1],
+]
+
+const OWNER_NUM: Record<Owner, number> = { a: 1, b: 2 }
+const ownerFromNum = (n: number): Owner | null => (n === 1 ? 'a' : n === 2 ? 'b' : null)
+
+export interface WorldSnapshot {
+	v: 1
+	tick: number
+	hpA: number
+	hpB: number
+	sourceA: string
+	sourceB: string
+	winner: Owner | null
+	cells: string // base64 of one byte per cell
+	tips: Array<[number, number]> // [cellIndex, ownerNum]
+	flashes: Array<[number, number, number, number]> // x, y, cell, born — the cut "snip" pops
+}
+
+function b64encode(bytes: Uint8Array): string {
+	let s = ''
+	for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i])
+	return btoa(s)
+}
+
+function b64decode(str: string): Uint8Array {
+	const s = atob(str)
+	const a = new Uint8Array(s.length)
+	for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i)
+	return a
+}
+
+// Serialize the host's live world into a compact, structured snapshot.
+export function serializeWorld(world: World): WorldSnapshot {
+	const { cols, rows } = GRID
+	const cells = new Uint8Array(cols * rows)
+	for (const peg of world.pegs) {
+		const idx = peg.row * cols + peg.col
+		let dir = 0
+		if (peg.parent) {
+			const p = world.pegById.get(peg.parent)
+			if (p) {
+				const dc = p.col - peg.col
+				const dr = p.row - peg.row
+				const i = DIRS.findIndex(([oc, or]) => oc === dc && or === dr)
+				if (i >= 0) dir = i + 1
+			}
+		}
+		const ownerNum = peg.owner ? OWNER_NUM[peg.owner] : 0
+		cells[idx] = ownerNum | (dir << 2) | ((peg.blocked ? 1 : 0) << 6)
+	}
+
+	const tips: Array<[number, number]> = []
+	for (const tip of world.tips) {
+		const peg = world.pegById.get(tip.pegId)
+		if (peg) tips.push([peg.row * cols + peg.col, OWNER_NUM[tip.owner]])
+	}
+
+	return {
+		v: 1,
+		tick: world.tick,
+		hpA: world.coreHp.a,
+		hpB: world.coreHp.b,
+		sourceA: world.sources.a,
+		sourceB: world.sources.b,
+		winner: world.winner,
+		cells: b64encode(cells),
+		tips,
+		flashes: world.flashes.map((f) => [f.x, f.y, f.cell, f.born]),
+	}
+}
+
+// Apply a snapshot into a render-only world, REUSING the previous world's pegs and
+// strands wherever possible. Pegs are updated in place; a strand is reused when its
+// edge still exists (geometry is deterministic, so only the owner can flip) and a
+// new one is built only for freshly-grown edges. This avoids reallocating ~6400
+// pegs + thousands of strands on every snapshot — the churn that made the guest
+// feel slow. Pass prev=null for a fresh world.
+export function applySnapshot(prev: World | null, snap: WorldSnapshot): World {
+	const { cols, rows, spacing, x0, y0 } = GRID
+	const bytes = b64decode(snap.cells)
+
+	const reusePegs = prev != null && prev.pegs.length === cols * rows
+	const pegs: Peg[] = reusePegs ? prev!.pegs : new Array(cols * rows)
+	const pegById = reusePegs ? prev!.pegById : new Map<string, Peg>()
+	const dirOf = new Int8Array(cols * rows)
+
+	for (let r = 0; r < rows; r++) {
+		for (let c = 0; c < cols; c++) {
+			const idx = r * cols + c
+			const byte = bytes[idx] ?? 0
+			const owner = ownerFromNum(byte & 3)
+			dirOf[idx] = (byte >> 2) & 15
+			let peg = reusePegs ? pegs[idx] : undefined
+			if (!peg) {
+				peg = {
+					id: `peg:${c},${r}`,
+					x: x0 + c * spacing,
+					y: y0 + r * spacing,
+					col: c,
+					row: r,
+					owner: null,
+					parent: null,
+					charge: { a: 0, b: 0 },
+					cutLockout: 0,
+					adj: new Set<string>(),
+					subtreeSize: 1,
+					blocked: false,
+				}
+				pegs[idx] = peg
+				pegById.set(peg.id, peg)
+			}
+			peg.owner = owner
+			peg.charge.a = owner === 'a' ? CLAIM_CHARGE : 0
+			peg.charge.b = owner === 'b' ? CLAIM_CHARGE : 0
+			peg.blocked = !!((byte >> 6) & 1)
+			peg.parent = null
+			peg.adj.clear()
+			peg.subtreeSize = 1
+		}
+	}
+
+	// Rebuild the tree, reusing the previous strand object for any edge that survives.
+	const prevStrands = prev?.strandById
+	const strands: Strand[] = []
+	const strandById = new Map<string, Strand>()
+	for (let r = 0; r < rows; r++) {
+		for (let c = 0; c < cols; c++) {
+			const dir = dirOf[r * cols + c]
+			if (!dir) continue
+			const [dc, dr] = DIRS[dir - 1]
+			const child = pegById.get(`peg:${c},${r}`)!
+			const parent = pegById.get(`peg:${c + dc},${r + dr}`)
+			if (!parent) continue
+			child.parent = parent.id
+			child.adj.add(parent.id)
+			parent.adj.add(child.id)
+			const id = `vine:${parent.col},${parent.row}>${child.col},${child.row}`
+			let s = prevStrands?.get(id)
+			if (s) {
+				s.owner = child.owner // geometry unchanged; only the owner can flip
+			} else {
+				s = makeStableStrand(parent, child, child.owner)
+			}
+			strands.push(s)
+			strandById.set(id, s)
+		}
+	}
+
+	const world: World = prev ?? ({} as World)
+	world.pegs = pegs
+	world.pegById = pegById
+	world.strands = strands
+	world.strandById = strandById
+	world.tips = snap.tips.map(([cell, ownerNum]) => ({
+		owner: ownerFromNum(ownerNum) as Owner,
+		pegId: `peg:${cell % cols},${(cell / cols) | 0}`,
+		heading: 0,
+	}))
+	// Carry sparks whose strand still exists; take cut-flashes from the snapshot.
+	world.sparks = (prev?.sparks ?? []).filter((s) => strandById.has(s.strandId))
+	world.flashes = snap.flashes.map(([x, y, cell, born]) => ({ x, y, cell, born }))
+	world.sources = { a: snap.sourceA, b: snap.sourceB }
+	world.coreHp = { a: snap.hpA, b: snap.hpB }
+	world.tick = snap.tick
+	world.pulseTimer = 0
+	world.winner = snap.winner
+	world.slicing = prev?.slicing ?? false
+
+	computeSubtreeSizes(world)
+	return world
+}
+
+// Build a fresh render-only world from a snapshot (no reuse).
+export function deserializeWorld(snap: WorldSnapshot): World {
+	return applySnapshot(null, snap)
+}
