@@ -45,25 +45,6 @@ import { IsolationProviders, MinimalEditorHarness } from './dev-editor-harness'
 
 type PartKind = 'switch' | 'select' | 'tab' | 'row' | 'wrap'
 
-const PartStage = ({ kind, sample }: { kind: PartKind; sample?: string }): ReactNode => {
-	switch (kind) {
-		case 'switch':
-			return <TlaMenuSwitch id="ov-switch" checked onChange={() => {}} />
-		case 'select':
-			return <div className="ctrlMock">Everyone ▾</div>
-		case 'tab':
-			return (
-				<div className="tabMock">
-					<span data-active>{sample ?? 'Tab'}</span>
-				</div>
-			)
-		case 'row':
-			return <div className="rowMock">{sample}</div>
-		case 'wrap':
-			return <div className="wrapMock">{sample}</div>
-	}
-}
-
 const noop = () => {}
 
 /**
@@ -150,33 +131,28 @@ const renderLive = (name: string): ReactNode => {
 const RealActionMenu = (): ReactNode => (
 	<MinimalEditorHarness>
 		<div className="realMenuAnchor">
-					<TldrawUiDropdownMenuRoot id="dev-real-menu" debugOpen>
-						<TldrawUiDropdownMenuTrigger>
-							<TldrawUiButton type="normal">
-								<TldrawUiButtonLabel>Actions</TldrawUiButtonLabel>
-							</TldrawUiButton>
-						</TldrawUiDropdownMenuTrigger>
-						<TldrawUiDropdownMenuContent side="bottom" align="start">
-							<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-								<TldrawUiMenuGroup id="dev-edit">
-									<TldrawUiMenuItem id="rename" label="Rename" icon="edit" onSelect={noop} />
-									<TldrawUiMenuItem
-										id="duplicate"
-										label="Duplicate"
-										icon="duplicate"
-										onSelect={noop}
-									/>
-								</TldrawUiMenuGroup>
-								<TldrawUiMenuGroup id="dev-view">
-									<TldrawUiMenuCheckboxItem id="grid" label="Show grid" checked onSelect={noop} />
-									<TldrawUiMenuSubmenu id="export" label="Export as">
-										<TldrawUiMenuItem id="png" label="PNG" onSelect={noop} />
-										<TldrawUiMenuItem id="svg" label="SVG" onSelect={noop} />
-									</TldrawUiMenuSubmenu>
-								</TldrawUiMenuGroup>
-							</TldrawUiMenuContextProvider>
-						</TldrawUiDropdownMenuContent>
-					</TldrawUiDropdownMenuRoot>
+			<TldrawUiDropdownMenuRoot id="dev-real-menu" debugOpen>
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton type="normal">
+						<TldrawUiButtonLabel>Actions</TldrawUiButtonLabel>
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent side="bottom" align="start">
+					<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+						<TldrawUiMenuGroup id="dev-edit">
+							<TldrawUiMenuItem id="rename" label="Rename" icon="edit" onSelect={noop} />
+							<TldrawUiMenuItem id="duplicate" label="Duplicate" icon="duplicate" onSelect={noop} />
+						</TldrawUiMenuGroup>
+						<TldrawUiMenuGroup id="dev-view">
+							<TldrawUiMenuCheckboxItem id="grid" label="Show grid" checked onSelect={noop} />
+							<TldrawUiMenuSubmenu id="export" label="Export as">
+								<TldrawUiMenuItem id="png" label="PNG" onSelect={noop} />
+								<TldrawUiMenuItem id="svg" label="SVG" onSelect={noop} />
+							</TldrawUiMenuSubmenu>
+						</TldrawUiMenuGroup>
+					</TldrawUiMenuContextProvider>
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiDropdownMenuRoot>
 		</div>
 	</MinimalEditorHarness>
 )
@@ -251,7 +227,7 @@ export function Component() {
 										source="tla-menu.tsx"
 										mock={!live}
 									>
-										{live ?? <PartStage kind={p.kind} sample={p.sample} />}
+										{live}
 									</Specimen>
 								)
 							})}
@@ -276,23 +252,26 @@ export function Component() {
 							SDK TldrawUiMenu* — {SDK_PARTS.length} parts used in dotcom
 						</h2>
 						<p className="section__note">
-							The same system broken into parts. Each is mocked here because, alone, it needs the
-							editor&rsquo;s menu context — the live menu above shows them composed for real.
+							The same system broken into parts — catalogued as data here, because each only has a
+							resolved state <em>composed</em> (a lone menu item must live inside a dropdown). The
+							live menu above is these parts, real.
 						</p>
-						<div className="grid">
-							{SDK_PARTS.map((p) => (
-								<Specimen
-									key={p.name}
-									label={p.name}
-									code={`<${p.name}>`}
-									meta={p.meta}
-									source="tldraw"
-									mock
-								>
-									<PartStage kind={p.kind} sample={p.sample} />
-								</Specimen>
-							))}
-						</div>
+						<table className="matrix matrix--wide">
+							<thead>
+								<tr>
+									<th>part</th>
+									<th>role · usage</th>
+								</tr>
+							</thead>
+							<tbody>
+								{SDK_PARTS.map((p) => (
+									<tr key={p.name}>
+										<td>{p.name}</td>
+										<td>{p.meta}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
 					</section>
 
 					<section className="section">
