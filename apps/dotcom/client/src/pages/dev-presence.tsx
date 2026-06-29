@@ -157,7 +157,7 @@ export function Component() {
 							source="TldrawUiSharePanel"
 						>
 							<PresenceCard>
-								<DefaultPeopleMenuFacePile userIds={COLLAB_IDS} />
+								<DefaultPeopleMenuFacePile userIds={COLLAB_IDS} userName="You" userColor="#6c71c4" />
 							</PresenceCard>
 						</Specimen>
 						<Specimen
