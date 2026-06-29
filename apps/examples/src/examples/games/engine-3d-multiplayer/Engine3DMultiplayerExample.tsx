@@ -332,9 +332,11 @@ export default function Engine3DMultiplayerExample({
 		const override = new URLSearchParams(window.location.search).get('syncHost')
 		if (override) return override
 		const { hostname } = window.location
-		return hostname === 'localhost' || hostname === '127.0.0.1'
-			? undefined
-			: 'https://demo.tldraw.xyz'
+		if (hostname === 'localhost' || hostname === '127.0.0.1') return undefined
+		// Opened over a tunnel. Prefer the host's own bemo worker exposed by
+		// `yarn dev-share` so localhost and the shared link are the SAME game (and
+		// versions always match); fall back to tldraw's public demo server.
+		return process.env.TLDRAW_SHARE_SYNC_HOST || 'https://demo.tldraw.xyz'
 	})
 	const store = useSyncDemo(host ? { roomId, host } : { roomId })
 	const [mapEditor, setMapEditor] = useState<Editor | null>(null)

@@ -102,6 +102,7 @@ export default defineConfig(({ mode }) => ({
 			process.env.VERCEL_GIT_COMMIT_SHA ?? `local-${Date.now()}`
 		),
 		'process.env.TLDRAW_SHARE_ORIGIN': JSON.stringify(process.env.TLDRAW_SHARE_ORIGIN ?? ''),
+		'process.env.TLDRAW_SHARE_SYNC_HOST': JSON.stringify(process.env.TLDRAW_SHARE_SYNC_HOST ?? ''),
 		'process.env.TLDRAW_BEMO_URL': urlOrLocalFallback(mode, TLDRAW_BEMO_URL_STRING, 8989),
 		'process.env.TLDRAW_IMAGE_URL': urlOrLocalFallback(
 			mode,

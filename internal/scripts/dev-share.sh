@@ -1,16 +1,21 @@
 #!/bin/bash
 
-# Runs the normal dev stack behind a public cloudflared "quick tunnel" so you can
-# share a multiplayer example with a friend over the internet.
+# Runs the dev stack behind public cloudflared "quick tunnels" so you can play a
+# multiplayer example with a friend over the internet — in the SAME game you see
+# on localhost.
 #
-# How it works:
-#   1. Opens a cloudflared quick tunnel to the examples app (port 5420) and grabs
-#      its public https://<...>.trycloudflare.com URL.
-#   2. Starts `yarn dev` with TLDRAW_SHARE_ORIGIN set to that URL. The examples
-#      app's "Copy link" button rewrites links onto that origin, so the link you
-#      copy is shareable even while you browse on localhost.
-#   3. The multiplayer examples auto-sync through tldraw's public demo server when
-#      opened over the tunnel, so the friend's side connects with no extra params.
+# It opens two tunnels:
+#   - the examples app (port 5420)        -> friends load the app here
+#   - your local bemo sync worker (8989)  -> all sync (yours + theirs) goes here
+#
+# Because everyone syncs through YOUR bemo worker, localhost and the shared link
+# are the same room/game, and the versions always match (no public-server drift).
+#
+# How the pieces connect:
+#   - TLDRAW_SHARE_ORIGIN: the "Copy link" button rewrites links onto this origin
+#     so a link you copy on localhost is reachable by a friend.
+#   - TLDRAW_SHARE_SYNC_HOST: when an example is opened over the tunnel it syncs
+#     through this (your bemo tunnel) instead of the public demo server.
 #
 # Usage: yarn dev-share
 # Requires cloudflared (`brew install cloudflared`).
@@ -22,44 +27,47 @@ if ! command -v cloudflared >/dev/null 2>&1; then
 	exit 1
 fi
 
-tunnel_pid=""
-tunnel_log="$(mktemp -t tldraw-dev-share)"
+app_pid="" ; bemo_pid=""
+app_log="$(mktemp -t tldraw-share-app)"
+bemo_log="$(mktemp -t tldraw-share-bemo)"
 cleanup() {
-	[ -n "$tunnel_pid" ] && kill "$tunnel_pid" 2>/dev/null || true
-	rm -f "$tunnel_log" 2>/dev/null || true
+	[ -n "$app_pid" ] && kill "$app_pid" 2>/dev/null || true
+	[ -n "$bemo_pid" ] && kill "$bemo_pid" 2>/dev/null || true
+	rm -f "$app_log" "$bemo_log" 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
-# A quick tunnel allocates its public URL as soon as it connects to Cloudflare's
-# edge — it doesn't wait for the local upstream — so we can start it first and
-# read the URL before launching the dev stack.
-echo "Opening public tunnel..."
-cloudflared tunnel --url http://localhost:5420 >"$tunnel_log" 2>&1 &
-tunnel_pid=$!
+# Reads the first https://<...>.trycloudflare.com URL out of a cloudflared log,
+# waiting until it appears (the URL is allocated on edge-connect, before the
+# local upstream needs to be up).
+wait_for_url() {
+	local log="$1" pid="$2" url=""
+	for _ in $(seq 1 60); do
+		url="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$log" | head -1 || true)"
+		[ -n "$url" ] && { echo "$url"; return 0; }
+		if ! kill -0 "$pid" 2>/dev/null; then return 1; fi
+		sleep 1
+	done
+	return 1
+}
 
-share_origin=""
-for _ in $(seq 1 60); do
-	share_origin="$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$tunnel_log" | head -1 || true)"
-	[ -n "$share_origin" ] && break
-	if ! kill -0 "$tunnel_pid" 2>/dev/null; then
-		echo "cloudflared exited before producing a URL. Log:"
-		cat "$tunnel_log"
-		exit 1
-	fi
-	sleep 1
-done
+echo "Opening public tunnels (app + sync)..."
+cloudflared tunnel --url http://localhost:5420 >"$app_log" 2>&1 &
+app_pid=$!
+cloudflared tunnel --url http://localhost:8989 >"$bemo_log" 2>&1 &
+bemo_pid=$!
 
-if [ -z "$share_origin" ]; then
-	echo "Timed out waiting for the tunnel URL. Log:"
-	cat "$tunnel_log"
-	exit 1
-fi
+app_origin="$(wait_for_url "$app_log" "$app_pid")" || { echo "app tunnel failed:"; cat "$app_log"; exit 1; }
+bemo_origin="$(wait_for_url "$bemo_log" "$bemo_pid")" || { echo "sync tunnel failed:"; cat "$bemo_log"; exit 1; }
 
 echo ""
-echo "  Public URL:  $share_origin"
-echo "  Share a multiplayer example by opening it (on localhost is fine) and"
-echo "  clicking \"Copy link\" — the copied link will use the public URL above."
+echo "  App URL:   $app_origin"
+echo "  Sync host: $bemo_origin  (your local bemo worker, version-matched)"
+echo ""
+echo "  Open a multiplayer example (localhost is fine), click \"Copy link\", and"
+echo "  send it. You and your friend will be in the same game."
 echo ""
 
-export TLDRAW_SHARE_ORIGIN="$share_origin"
+export TLDRAW_SHARE_ORIGIN="$app_origin"
+export TLDRAW_SHARE_SYNC_HOST="$bemo_origin"
 yarn dev
