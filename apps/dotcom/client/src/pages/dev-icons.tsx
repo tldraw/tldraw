@@ -1,6 +1,7 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { TldrawUiContextProvider, TldrawUiIcon } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { TlaIcon } from '../tla/components/TlaIcon/TlaIcon'
 import '../tla/styles/tla.css'
@@ -35,6 +36,7 @@ export function Component() {
 			</Helmet>
 			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
+			<TldrawUiContextProvider forceMobile={false}>
 			<div className="page">
 				<DevComponentsNav />
 				<header className="page__header">
@@ -141,12 +143,13 @@ export function Component() {
 						</Specimen>
 						<Specimen
 							label="TldrawUiIcon (SDK)"
-							code={`<TldrawUiIcon icon="…" label="…" small />`}
-							meta="per-icon asset · small/tiny sizing · needs AssetUrlsProvider"
+							code={`<TldrawUiIcon icon="chevron-right" />`}
+							meta="per-icon asset · resolves via AssetUrlsProvider"
 							source="tldraw (packages/tldraw)"
-							mock
 						>
-							<span className="iconStage iconStage--mock">asset ctx</span>
+							<span className="iconStage">
+								<TldrawUiIcon icon="chevron-right" label="chevron-right" />
+							</span>
 						</Specimen>
 						<Specimen
 							label="inline <svg>"
@@ -205,6 +208,7 @@ export function Component() {
 				</section>
 
 			</div>
+			</TldrawUiContextProvider>
 		</div>
 	)
 }
