@@ -315,12 +315,6 @@ export function Component() {
 					</Specimen>
 				</Section>
 
-				<footer className="page__footer">
-					Source of the divergence: there is no single owner of &ldquo;a button.&rdquo; Accent-solid
-					is expressed three ways, hover has at least four treatments (primary-hover,
-					secondary-hover, muted halo, underline, cta-hover), and height takes four values. See
-					tldraw/tldraw#9194.
-				</footer>
 			</div>
 		</div>
 	)

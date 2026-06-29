@@ -68,11 +68,6 @@ export function Component() {
 					</div>
 				</section>
 
-				<footer className="page__footer">
-					The single cleanest component in the gallery: one file, one asset, five call sites, no
-					variants. Branding is the one place where having exactly one implementation is obviously
-					correct — there is only one logo.
-				</footer>
 			</div>
 		</div>
 	)

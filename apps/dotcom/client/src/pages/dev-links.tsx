@@ -116,14 +116,6 @@ export function Component() {
 					</div>
 				</section>
 
-				<footer className="page__footer">
-					A latent design question worth noting: <code>ExternalLink</code> wraps react-router{' '}
-					<code>Link</code> even for <em>absolute external</em> URLs, where a plain{' '}
-					<code>&lt;a href&gt;</code> would be the more natural primitive — and the lone exception (
-					<code>IFrameProtector</code>) is, ironically, the &ldquo;more correct&rdquo; form for an
-					external link. So the adoption is excellent, but the abstraction itself slightly conflates
-					in-app navigation with external links. See tldraw/tldraw#9198.
-				</footer>
 			</div>
 		</div>
 	)
