@@ -284,11 +284,11 @@
   "761e93ede9": {
     "translation": "Gérer les cookies"
   },
-  "764671e008": {
-    "translation": "Discutez avec nous sur Discord"
-  },
   "7697920637": {
     "translation": "Veuillez recharger"
+  },
+  "764671e008": {
+    "translation": "Discutez avec nous sur Discord"
   },
   "777f9e90cf": {
     "translation": "Demande invalide."
@@ -644,92 +644,5 @@
   },
   "ffcd73e997": {
     "translation": "Importer un fichier…"
-  },
-  "welcome.createWorkspace": {
-    "translation": "Créez un nouvel espace de travail depuis le menu de l'espace de travail dans la barre latérale. Cliquez sur <mark><strong>Nouvel espace de travail</strong></mark>, donnez-lui un nom, et c'est prêt."
-  },
-  "welcome.file.decisionTree": {
-    "translation": "Arbre de décision"
-  },
-  "welcome.file.packingChecklist": {
-    "translation": "Liste de bagages"
-  },
-  "welcome.file.postTripRetrospective": {
-    "translation": "Rétrospective de voyage"
-  },
-  "welcome.file.regionalMap": {
-    "translation": "Carte régionale"
-  },
-  "welcome.inviteTeam": {
-    "translation": "<mark><strong>Invitez votre équipe</strong></mark> avec un lien d'invitation depuis le menu de l'espace de travail dans la barre latérale. Partagé par erreur ? Révoquez-le là aussi."
-  },
-  "welcome.manageMembers": {
-    "translation": "Besoin de <mark><strong>retirer quelqu’un</strong></mark> ? Les propriétaires peuvent changer les rôles ou retirer des personnes dans Gérer l'espace de travail."
-  },
-  "welcome.moveFiles": {
-    "translation": "Vous pouvez <mark><strong>déplacer des fichiers</strong></mark> dans votre espace de travail avec le menu « Déplacer vers » d’un fichier."
-  },
-  "welcome.pinFiles": {
-    "translation": "Épinglez les fichiers que vous utilisez le plus. <mark><strong>Les fichiers épinglés</strong></mark> restent en haut de la liste, toujours faciles à trouver."
-  },
-  "welcome.shareLink": {
-    "translation": "Besoin de partager avec des personnes extérieures à votre espace de travail ? Vous pouvez <mark><strong>partager un lien</strong></mark> vers un seul fichier pour que des invités le modifient sans rejoindre l'espace de travail."
-  },
-  "welcome.signoff": {
-    "translation": "p.s. n’hésitez pas à modifier ou supprimer ce tableau maintenant que vous maîtrisez les espaces de travail"
-  },
-  "welcome.title": {
-    "translation": "Bienvenue dans votre espace de travail"
-  },
-  "welcome.ui.inviteLink": {
-    "translation": "Lien d'invitation"
-  },
-  "welcome.ui.lastWeek": {
-    "translation": "La semaine dernière"
-  },
-  "welcome.ui.member": {
-    "translation": "Membre"
-  },
-  "welcome.ui.myFiles": {
-    "translation": "mes fichiers"
-  },
-  "welcome.ui.myWorkspace": {
-    "translation": "Mon espace de travail"
-  },
-  "welcome.ui.newFile": {
-    "translation": "Nouveau fichier"
-  },
-  "welcome.ui.newWorkspace": {
-    "translation": "Nouvel espace de travail"
-  },
-  "welcome.ui.owner": {
-    "translation": "Propriétaire"
-  },
-  "welcome.ui.pinned": {
-    "translation": "Épinglés"
-  },
-  "welcome.ui.remove": {
-    "translation": "Retirer"
-  },
-  "welcome.ui.search": {
-    "translation": "Recherche..."
-  },
-  "welcome.ui.today": {
-    "translation": "Aujourd'hui"
-  },
-  "welcome.ui.workspaceSettings": {
-    "translation": "Paramètres de l'espace de travail"
-  },
-  "welcome.ui.yesterday": {
-    "translation": "Hier"
-  },
-  "welcome.ui.yourWorkspace": {
-    "translation": "votre espace de travail"
-  },
-  "welcome.whatIsWorkspace": {
-    "translation": "Un espace de travail est un <mark><strong>espace partagé</strong></mark> pour votre équipe. Tout le monde y voit la même liste de fichiers et peut les ouvrir et les modifier."
-  },
-  "welcome.workspaceMenu": {
-    "translation": "Retrouvez tout dans le <mark><strong>menu de l'espace de travail</strong></mark> : créer des fichiers, rechercher, changer d'espace et ouvrir les paramètres."
   }
 }
