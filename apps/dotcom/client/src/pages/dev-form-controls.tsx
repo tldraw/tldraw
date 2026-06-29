@@ -1,12 +1,13 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { TldrawUiContextProvider } from 'tldraw'
 import 'tldraw/tldraw.css'
 import {
 	TlaMenuControl,
+	TlaMenuControlInfoTooltip,
 	TlaMenuControlLabel,
 	TlaMenuDetail,
+	TlaMenuSelect,
 	TlaMenuSwitch,
 	TlaMenuTabsRoot,
 	TlaMenuTabsTab,
@@ -15,15 +16,16 @@ import {
 import '../tla/styles/tla.css'
 import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
+import { IsolationProviders } from './dev-editor-harness'
 
 /**
  * Dev-only inventory of the dotcom form controls — the tla-menu settings-control
  * set (Switch / Select / Tabs / Control rows). These are the inputs of the
  * "settings panel" half of the menus story, shown here with their full props
- * and states. Switch, Tabs, Control, ControlLabel and Detail render live under a
- * TldrawUiContextProvider (editor-less). Two stay mocked: Select (calls
- * useContainer(), needs a real <Tldraw>) and ControlInfoTooltip (calls useMsg,
- * needs the dotcom react-intl IntlProvider, a separate i18n system).
+ * and states. All render live under IsolationProviders (dotcom react-intl + a
+ * container element + the SDK UI context), no editor needed: Select needs the
+ * container for its portal, ControlInfoTooltip needs react-intl for useMsg, the
+ * rest need only the SDK UI context.
  *
  * Route: /dev/components/form-controls. Companion to the menus page.
  */
@@ -39,7 +41,7 @@ export function Component() {
 			</Helmet>
 			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
-			<TldrawUiContextProvider forceMobile={false}>
+			<IsolationProviders>
 			<div className="page">
 				<DevComponentsNav />
 				<header className="page__header">
@@ -72,11 +74,11 @@ export function Component() {
 				</section>
 
 				<section className="section">
-					<h2 className="section__title">TlaMenuSelect — API (mocked)</h2>
+					<h2 className="section__title">TlaMenuSelect — live</h2>
 					<p className="section__note">
 						A generic <code>TlaMenuSelect&lt;T&gt;</code> over a Radix Select. Notable: an{' '}
-						<code>actions</code> slot for a destructive option below the choices. Needs editor
-						context to render, so mocked.
+						<code>actions</code> slot for a destructive option below the choices. Rendered live — it
+						needs a container element for its portal, which the page&rsquo;s providers supply.
 					</p>
 					<div className="grid">
 						<Specimen
@@ -84,18 +86,37 @@ export function Component() {
 							code={`label · value · options[] · onChange`}
 							meta="generic <T> · Radix Select · ×4"
 							source="tla-menu.tsx:119"
-							mock
 						>
-							<div className="ctrlMock">Everyone ▾</div>
+							<TlaMenuSelect
+								id="fc-select"
+								label="Access"
+								value="editor"
+								onChange={() => {}}
+								options={[
+									{ value: 'editor', label: 'Can edit' },
+									{ value: 'viewer', label: 'Can view' },
+								]}
+							/>
 						</Specimen>
 						<Specimen
 							label="with actions"
 							code={`actions={[{ label: 'Remove', onSelect }]}`}
 							meta="destructive action below options"
 							source="tla-menu.tsx:119"
-							mock
 						>
-							<div className="ctrlMock">Members ▾</div>
+							<TlaMenuSelect
+								id="fc-select-actions"
+								label="Member"
+								value="editor"
+								onChange={() => {}}
+								options={[
+									{ value: 'editor', label: 'Can edit' },
+									{ value: 'viewer', label: 'Can view' },
+								]}
+								actions={[
+									{ id: 'remove', label: 'Remove member', onSelect: () => {}, destructive: true },
+								]}
+							/>
 						</Specimen>
 					</div>
 				</section>
@@ -140,8 +161,8 @@ export function Component() {
 						<Specimen label="TlaMenuControlLabel" code={`<TlaMenuControlLabel>`} meta="control label · ×10" source="tla-menu.tsx:96">
 							<TlaMenuControlLabel htmlFor="fc-lbl">Label text</TlaMenuControlLabel>
 						</Specimen>
-						<Specimen label="TlaMenuControlInfoTooltip" code={`<TlaMenuControlInfoTooltip>`} meta="needs dotcom IntlProvider (useMsg)" source="tla-menu.tsx:60" mock>
-							<div className="rowMock">ⓘ more info</div>
+						<Specimen label="TlaMenuControlInfoTooltip" code={`<TlaMenuControlInfoTooltip>`} meta="info icon · tooltip on hover" source="tla-menu.tsx:60">
+							<TlaMenuControlInfoTooltip>More information about this setting</TlaMenuControlInfoTooltip>
 						</Specimen>
 						<Specimen label="TlaMenuDetail" code={`<TlaMenuDetail>`} meta="detail text · ×1" source="tla-menu.tsx:111">
 							<TlaMenuDetail>Supporting detail copy</TlaMenuDetail>
@@ -150,7 +171,7 @@ export function Component() {
 				</section>
 
 			</div>
-			</TldrawUiContextProvider>
+			</IsolationProviders>
 		</div>
 	)
 }
