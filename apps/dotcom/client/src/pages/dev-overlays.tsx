@@ -1,10 +1,12 @@
 /* eslint-disable tldraw/jsx-no-literals */
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { DefaultToasts, useToasts } from 'tldraw'
 import 'tldraw/tldraw.css'
 import '../tla/styles/tla.css'
 import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
+import { IsolationProviders } from './dev-editor-harness'
 
 /**
  * Dev-only inventory of the dotcom app's transient feedback & overlay UI:
@@ -23,6 +25,44 @@ const Stat = ({ n, label }: { n: string; label: string }): ReactNode => (
 	</div>
 )
 
+/**
+ * Real toasts, no trigger. The SDK owns the toast UI (DefaultToasts is the real
+ * viewport); we fake the state by firing one keepOpen toast per severity on
+ * mount. So the UI is genuine — only the content is fake. The .toastStage's
+ * transform makes it a containing block so the viewport's fixed positioning
+ * stays inside the card instead of floating to the window corner.
+ */
+const LIVE_TOASTS: ReadonlyArray<{
+	id: string
+	severity?: 'error' | 'warning' | 'info' | 'success'
+	title: string
+	description?: string
+}> = [
+	{
+		id: 'lt-error',
+		severity: 'error',
+		title: 'Could not load file',
+		description: 'Something went wrong. Please try again.',
+	},
+	{ id: 'lt-warning', severity: 'warning', title: 'Unsupported mermaid diagram' },
+	{ id: 'lt-info', severity: 'info', title: 'Uploading .tldr files…' },
+	{ id: 'lt-success', severity: 'success', title: 'Feedback submitted' },
+	{ id: 'lt-neutral', title: 'Copied invite link' },
+]
+
+const LiveToasts = (): ReactNode => {
+	const { addToast, toasts } = useToasts()
+	useEffect(() => {
+		if (toasts.get().length > 0) return
+		for (const t of LIVE_TOASTS) addToast({ ...t, keepOpen: true })
+	}, [addToast, toasts])
+	return (
+		<div className="toastStage">
+			<DefaultToasts />
+		</div>
+	)
+}
+
 export function Component() {
 	return (
 		<div
@@ -34,87 +74,106 @@ export function Component() {
 			</Helmet>
 			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
-			<div className="page">
-				<DevComponentsNav />
-				<header className="page__header">
-					<h1 className="page__title">Feedback &amp; overlays</h1>
-					<p className="page__lede">
-						Toasts, tooltips, popovers — transient UI the app <strong>delegates</strong> to the SDK.
-						A new mode: not "own and diverge" (buttons) but "call and render nothing." For toasts the
-						app owns <em>no</em> component at all — it calls <code>addToast()</code> and the SDK draws
-						it.
-					</p>
-				</header>
+			<IsolationProviders>
+				<div className="page">
+					<DevComponentsNav />
+					<header className="page__header">
+						<h1 className="page__title">Feedback &amp; overlays</h1>
+						<p className="page__lede">
+							Toasts, tooltips, popovers — transient UI the app <strong>delegates</strong> to the
+							SDK. A new mode: not "own and diverge" (buttons) but "call and render nothing." For
+							toasts the app owns <em>no</em> component at all — it calls <code>addToast()</code>{' '}
+							and the SDK draws it.
+						</p>
+					</header>
 
-				<section className="section">
-					<h2 className="section__title">Toasts — all {TOASTS.length} call sites</h2>
-					<p className="section__note">
-						Every <code>addToast(&#123; title, severity?, keepOpen? &#125;)</code> in the app. No toast
-						component is rendered by dotcom; the SDK&rsquo;s toast manager owns the UI. Mocks below
-						are coloured by severity.
-					</p>
-					<div className="stats" style={{ marginBottom: 20 }}>
-						<Stat n="6" label="severity: error" />
-						<Stat n="6" label="no severity (neutral)" />
-						<Stat n="2" label="success" />
-						<Stat n="1" label="info" />
-						<Stat n="1" label="warning" />
-					</div>
-					<div className="grid">
-						{TOASTS.map((t) => (
+					<section className="section">
+						<h2 className="section__title">Toasts — live (no trigger)</h2>
+						<p className="section__note">
+							The real SDK toast UI (<code>DefaultToasts</code>), one per severity. We don&rsquo;t
+							trigger them — we fake the <em>state</em> by firing a <code>keepOpen</code> toast of
+							each severity on mount. Real UI, fake content.
+						</p>
+						<LiveToasts />
+					</section>
+
+					<section className="section">
+						<h2 className="section__title">Toasts — all {TOASTS.length} call sites</h2>
+						<p className="section__note">
+							Where the app actually fires them: every{' '}
+							<code>addToast(&#123; title, severity?, keepOpen? &#125;)</code> call. dotcom renders
+							no toast component — it owns the call sites (the data), the SDK owns the UI (shown
+							live above). Cards below catalogue the call sites.
+						</p>
+						<div className="stats" style={{ marginBottom: 20 }}>
+							<Stat n="6" label="severity: error" />
+							<Stat n="6" label="no severity (neutral)" />
+							<Stat n="2" label="success" />
+							<Stat n="1" label="info" />
+							<Stat n="1" label="warning" />
+						</div>
+						<div className="grid">
+							{TOASTS.map((t) => (
+								<Specimen
+									key={t.source}
+									label={t.title}
+									code={`addToast({ severity: '${t.sev}'${t.keepOpen ? ', keepOpen: true' : ''} })`}
+									meta={t.keepOpen ? 'keepOpen — manual dismiss' : 'auto-dismiss'}
+									source={t.source}
+									mock
+								>
+									<div className="toastMock" data-sev={t.sev}>
+										{t.title}
+									</div>
+								</Specimen>
+							))}
+						</div>
+					</section>
+
+					<section className="section">
+						<h2 className="section__title">Tooltips</h2>
+						<p className="section__note">
+							<code>TldrawUiTooltip</code> (SDK) used directly in 3 files, plus the{' '}
+							<code>TlaMenuControlInfoTooltip</code> app wrapper. Mocked.
+						</p>
+						<div className="grid">
+							{TOOLTIPS.map((t) => (
+								<Specimen
+									key={t.name + t.source}
+									label={t.name}
+									code={t.code}
+									meta={t.meta}
+									source={t.source}
+									mock
+								>
+									<div className="tipMock">{t.sample}</div>
+								</Specimen>
+							))}
+						</div>
+					</section>
+
+					<section className="section">
+						<h2 className="section__title">Popovers</h2>
+						<p className="section__note">
+							<code>TldrawUiPopover</code> (SDK: Root / Trigger / Content) — one consumer, the share
+							menu. Mocked.
+						</p>
+						<div className="grid">
 							<Specimen
-								key={t.source}
-								label={t.title}
-								code={`addToast({ severity: '${t.sev}'${t.keepOpen ? ', keepOpen: true' : ''} })`}
-								meta={t.keepOpen ? 'keepOpen — manual dismiss' : 'auto-dismiss'}
-								source={t.source}
+								label="TldrawUiPopover"
+								code={`<TldrawUiPopoverRoot><Trigger/><Content/>`}
+								meta="Radix popover · ×1 consumer"
+								source="TlaFileShareMenu.tsx"
 								mock
 							>
-								<div className="toastMock" data-sev={t.sev}>
-									{t.title}
+								<div className="popMock">
+									<div className="popMock__trigger">Share ▾</div>
 								</div>
 							</Specimen>
-						))}
-					</div>
-				</section>
-
-				<section className="section">
-					<h2 className="section__title">Tooltips</h2>
-					<p className="section__note">
-						<code>TldrawUiTooltip</code> (SDK) used directly in 3 files, plus the{' '}
-						<code>TlaMenuControlInfoTooltip</code> app wrapper. Mocked.
-					</p>
-					<div className="grid">
-						{TOOLTIPS.map((t) => (
-							<Specimen key={t.name + t.source} label={t.name} code={t.code} meta={t.meta} source={t.source} mock>
-								<div className="tipMock">{t.sample}</div>
-							</Specimen>
-						))}
-					</div>
-				</section>
-
-				<section className="section">
-					<h2 className="section__title">Popovers</h2>
-					<p className="section__note">
-						<code>TldrawUiPopover</code> (SDK: Root / Trigger / Content) — one consumer, the share
-						menu. Mocked.
-					</p>
-					<div className="grid">
-						<Specimen
-							label="TldrawUiPopover"
-							code={`<TldrawUiPopoverRoot><Trigger/><Content/>`}
-							meta="Radix popover · ×1 consumer"
-							source="TlaFileShareMenu.tsx"
-							mock
-						>
-							<div className="popMock">
-								<div className="popMock__trigger">Share ▾</div>
-							</div>
-						</Specimen>
-					</div>
-				</section>
-
-			</div>
+						</div>
+					</section>
+				</div>
+			</IsolationProviders>
 		</div>
 	)
 }
@@ -133,18 +192,53 @@ const TOASTS: ReadonlyArray<{ title: string; sev: Sev; keepOpen?: boolean; sourc
 	{ title: 'Error accepting invite', sev: 'error', source: 'TldrawApp:1298' },
 	{ title: 'Error accepting invite', sev: 'error', source: 'TldrawApp:1313' },
 	{ title: 'Copied link', sev: 'default', source: 'TlaFileMenu:147' },
-	{ title: 'Workspace invite error', sev: 'error', keepOpen: true, source: 'WorkspaceInviteHandler:122' },
+	{
+		title: 'Workspace invite error',
+		sev: 'error',
+		keepOpen: true,
+		source: 'WorkspaceInviteHandler:122',
+	},
 	{ title: 'Already a member', sev: 'default', source: 'WorkspaceInviteHandler:155' },
 	{ title: 'Feedback submitted', sev: 'success', source: 'SubmitFeedbackDialog:107' },
 	{ title: 'Debug mode', sev: 'default', keepOpen: true, source: 'SneakyDebugModeToast:26' },
 	{ title: 'Import failed', sev: 'error', keepOpen: true, source: 'local.tsx:54' },
 ]
 
-const TOOLTIPS: ReadonlyArray<{ name: string; code: string; meta: string; sample: string; source: string }> = [
-	{ name: 'TldrawUiTooltip', code: '<TldrawUiTooltip content>', meta: 'SDK · sidebar file link', sample: 'Rename', source: 'TlaSidebarFileLink.tsx' },
-	{ name: 'TldrawUiTooltip', code: '<TldrawUiTooltip content>', meta: 'SDK · menu control', sample: 'Info', source: 'tla-menu.tsx' },
-	{ name: 'TldrawUiTooltip', code: '<TldrawUiTooltip content>', meta: 'SDK · workspace settings', sample: 'Copy', source: 'WorkspaceSettingsDialog.tsx' },
-	{ name: 'TlaMenuControlInfoTooltip', code: '<TlaMenuControlInfoTooltip>', meta: 'app wrapper · ×4', sample: 'ⓘ', source: 'tla-menu.tsx' },
+const TOOLTIPS: ReadonlyArray<{
+	name: string
+	code: string
+	meta: string
+	sample: string
+	source: string
+}> = [
+	{
+		name: 'TldrawUiTooltip',
+		code: '<TldrawUiTooltip content>',
+		meta: 'SDK · sidebar file link',
+		sample: 'Rename',
+		source: 'TlaSidebarFileLink.tsx',
+	},
+	{
+		name: 'TldrawUiTooltip',
+		code: '<TldrawUiTooltip content>',
+		meta: 'SDK · menu control',
+		sample: 'Info',
+		source: 'tla-menu.tsx',
+	},
+	{
+		name: 'TldrawUiTooltip',
+		code: '<TldrawUiTooltip content>',
+		meta: 'SDK · workspace settings',
+		sample: 'Copy',
+		source: 'WorkspaceSettingsDialog.tsx',
+	},
+	{
+		name: 'TlaMenuControlInfoTooltip',
+		code: '<TlaMenuControlInfoTooltip>',
+		meta: 'app wrapper · ×4',
+		sample: 'ⓘ',
+		source: 'tla-menu.tsx',
+	},
 ]
 
 const PAGE_CSS = `
@@ -168,6 +262,7 @@ const PAGE_CSS = `
 .stat { border: 1px solid var(--tl-color-divider); border-radius: 8px; padding: 14px 18px; min-width: 130px; background: var(--tl-color-panel); }
 .stat__n { font-size: 24px; font-weight: 700; font-family: ui-monospace, monospace; }
 .stat__label { font-size: 11px; color: var(--tl-color-text-1); margin-top: 4px; }
+.toastStage { position: relative; transform: translateZ(0); min-height: 320px; border: 1px solid var(--tl-color-divider); border-radius: 8px; background: var(--tl-color-low); overflow: hidden; }
 .toastMock { padding: 9px 11px; border-radius: 6px; font-size: 12px; background: var(--tl-color-panel); border: 1px solid var(--tl-color-divider); border-left: 3px solid var(--tl-color-text-3); width: 100%; box-sizing: border-box; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .toastMock[data-sev=error] { border-left-color: var(--tl-color-danger, #dc322f); }
 .toastMock[data-sev=warning] { border-left-color: var(--tl-color-warning, #cb4b16); }
