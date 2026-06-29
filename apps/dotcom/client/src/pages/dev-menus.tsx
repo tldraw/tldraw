@@ -2,10 +2,8 @@
 import { ReactNode } from 'react'
 import { Helmet } from 'react-helmet-async'
 import {
-	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
-	TldrawUiContextProvider,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -19,9 +17,11 @@ import 'tldraw/tldraw.css'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
+	TlaMenuControlInfoTooltip,
 	TlaMenuControlLabel,
 	TlaMenuDetail,
 	TlaMenuSection,
+	TlaMenuSelect,
 	TlaMenuSwitch,
 	TlaMenuTabsPage,
 	TlaMenuTabsRoot,
@@ -31,6 +31,7 @@ import {
 import '../tla/styles/tla.css'
 import { Specimen, SPECIMEN_CSS } from './dev-components-kit'
 import { DevComponentsNav } from './dev-components-nav'
+import { IsolationProviders, MinimalEditorHarness } from './dev-editor-harness'
 
 /**
  * Dev-only inventory of the dotcom app's two menu systems. This family shows a
@@ -66,10 +67,11 @@ const PartStage = ({ kind, sample }: { kind: PartKind; sample?: string }): React
 const noop = () => {}
 
 /**
- * Real, editor-less-safe tla-menu parts rendered live under the page's
- * TldrawUiContextProvider. Returns null for the two that need a heavier provider
- * (Select → useContainer/editor, ControlInfoTooltip → useMsg/dotcom intl), which
- * fall back to PartStage and keep their mock badge.
+ * Every tla-menu part rendered live under the page's IsolationProviders
+ * (react-intl + a container element + the SDK UI context). Select needs the
+ * container, ControlInfoTooltip needs react-intl, the rest only the UI context —
+ * all covered, so none fall back to PartStage. (PartStage still renders the SDK
+ * TldrawUiMenu* mock cards, which are shown composed-live above instead.)
  */
 const renderLive = (name: string): ReactNode => {
 	switch (name) {
@@ -118,6 +120,21 @@ const renderLive = (name: string): ReactNode => {
 					<TlaMenuTabsPage id="p">tab page content</TlaMenuTabsPage>
 				</TlaMenuTabsRoot>
 			)
+		case 'TlaMenuSelect':
+			return (
+				<TlaMenuSelect
+					id="m-select"
+					label="Access"
+					value="editor"
+					onChange={noop}
+					options={[
+						{ value: 'editor', label: 'Can edit' },
+						{ value: 'viewer', label: 'Can view' },
+					]}
+				/>
+			)
+		case 'TlaMenuControlInfoTooltip':
+			return <TlaMenuControlInfoTooltip>More info about this setting</TlaMenuControlInfoTooltip>
 		default:
 			return null
 	}
@@ -131,10 +148,8 @@ const renderLive = (name: string): ReactNode => {
  * the resolved menu shows with no click. Fake content, real function.
  */
 const RealActionMenu = (): ReactNode => (
-	<div className="realMenuStage">
-		<Tldraw hideUi>
-			<TldrawUiContextProvider>
-				<div className="realMenuAnchor">
+	<MinimalEditorHarness>
+		<div className="realMenuAnchor">
 					<TldrawUiDropdownMenuRoot id="dev-real-menu" debugOpen>
 						<TldrawUiDropdownMenuTrigger>
 							<TldrawUiButton type="normal">
@@ -162,10 +177,8 @@ const RealActionMenu = (): ReactNode => (
 							</TldrawUiMenuContextProvider>
 						</TldrawUiDropdownMenuContent>
 					</TldrawUiDropdownMenuRoot>
-				</div>
-			</TldrawUiContextProvider>
-		</Tldraw>
-	</div>
+		</div>
+	</MinimalEditorHarness>
 )
 
 export function Component() {
@@ -179,7 +192,7 @@ export function Component() {
 			</Helmet>
 			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
-			<TldrawUiContextProvider forceMobile={false}>
+			<IsolationProviders>
 				<div className="page">
 					<DevComponentsNav />
 					<header className="page__header">
@@ -221,11 +234,10 @@ export function Component() {
 					<section className="section">
 						<h2 className="section__title">tla-menu — all {TLA_PARTS.length} parts</h2>
 						<p className="section__note">
-							The settings-panel system (in <code>tla/components/tla-menu/tla-menu.tsx</code>). Most
-							parts render live under a <code>TldrawUiContextProvider</code>; only{' '}
-							<code>TlaMenuSelect</code> (needs the editor via <code>useContainer</code>) and{' '}
-							<code>TlaMenuControlInfoTooltip</code> (needs the dotcom <code>IntlProvider</code>)
-							stay mocked. <code>meta</code> shows the role and dotcom usage count.
+							The settings-panel system (in <code>tla/components/tla-menu/tla-menu.tsx</code>). All
+							parts render live under <code>IsolationProviders</code> (react-intl for{' '}
+							<code>useMsg</code>, a container element for <code>useContainer</code>, and the SDK UI
+							context) — no editor needed. <code>meta</code> shows the role and dotcom usage count.
 						</p>
 						<div className="grid">
 							{TLA_PARTS.map((p) => {
@@ -296,7 +308,7 @@ export function Component() {
 						</div>
 					</section>
 				</div>
-			</TldrawUiContextProvider>
+			</IsolationProviders>
 		</div>
 	)
 }
