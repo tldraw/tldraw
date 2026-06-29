@@ -32,12 +32,24 @@ interface ShapeDoc {
 	state: { id?: string; type?: string; props?: { richText?: WelcomeRichText } }
 }
 
+/** English -> the app's existing lokalise message id, built from the non-`welcome.*` catalog keys. */
+function buildAppIdIndex(): Map<string, string> {
+	const catalog: LokaliseCatalog = JSON.parse(readFileSync(EN_CATALOG, 'utf-8'))
+	const byEnglish = new Map<string, string>()
+	for (const [id, entry] of Object.entries(catalog)) {
+		if (id.startsWith('welcome.') || !entry?.translation) continue
+		byEnglish.set(entry.translation, id)
+	}
+	return byEnglish
+}
+
 /**
- * Resolve each manifest entry to the snapshot shape(s) carrying its English, asserting at least one
- * match. A string can appear on several shapes (e.g. a UI label shown twice); all are returned, each
- * with its own richText (the template the bake clones), since occurrences can differ structurally.
+ * Resolve each manifest entry to: its lokalise message id (`welcome.*` when owned, else the app's
+ * existing id matched by English — see WelcomeCopyEntry), and the snapshot shape(s) carrying its
+ * English (asserting at least one match; a string can appear on several shapes, each kept with its
+ * own richText template). A shared entry whose English is no longer a live app string is an error.
  */
-function resolveCopyShapes() {
+function resolveCopyShapes(appIds: Map<string, string>) {
 	const snapshot = JSON.parse(defaultWelcomeSnapshotJson)
 	// English -> the ids of every text shape whose serialized richText equals it.
 	const idsByEnglish = new Map<string, string[]>()
@@ -50,15 +62,24 @@ function resolveCopyShapes() {
 	}
 
 	return WELCOME_COPY.map((entry) => {
+		const owned = entry.id !== undefined
+		const messageId = entry.id ?? appIds.get(entry.en)
+		if (!messageId) {
+			throw new Error(
+				`welcome copy ${JSON.stringify(entry.en)} is shared (no welcome id) but no app message ` +
+					`has that English — it is not (or no longer) a live app string. Give it a welcome.* id, or fix the text.`
+			)
+		}
 		const shapeIds = idsByEnglish.get(entry.en) ?? []
 		if (shapeIds.length === 0) {
 			throw new Error(
-				`welcome copy ${entry.id}: no snapshot shape has text ${JSON.stringify(entry.en)}. ` +
+				`welcome copy ${messageId}: no snapshot shape has text ${JSON.stringify(entry.en)}. ` +
 					`The manifest (welcomeCopy.ts) has drifted from the default snapshot — update one to match the other.`
 			)
 		}
 		return {
-			id: entry.id,
+			messageId,
+			owned,
 			en: entry.en,
 			shapes: shapeIds.map((shapeId) => ({ shapeId, template: templateById.get(shapeId)! })),
 		}
@@ -67,15 +88,17 @@ function resolveCopyShapes() {
 
 type ResolvedCopy = ReturnType<typeof resolveCopyShapes>
 
-/** Step 1: write the welcome English into the lokalise source catalog, keyed by message id. */
+/** Step 1: write the OWNED welcome English into the lokalise source catalog, keyed by `welcome.*` id.
+ *  Shared entries are skipped — their English is already in the catalog under the app's own id. */
 function extractEnglish() {
 	const catalog: LokaliseCatalog = JSON.parse(readFileSync(EN_CATALOG, 'utf-8'))
-	for (const entry of WELCOME_COPY) catalog[entry.id] = { translation: entry.en }
+	const owned = WELCOME_COPY.filter((entry) => entry.id !== undefined)
+	for (const entry of owned) catalog[entry.id!] = { translation: entry.en }
 	// Match formatjs's lokalise output: keys sorted ascending, 2-space indent, trailing newline.
 	const sorted: LokaliseCatalog = {}
 	for (const key of Object.keys(catalog).sort()) sorted[key] = catalog[key]
 	writeFileSync(EN_CATALOG, JSON.stringify(sorted, null, 2) + '\n')
-	nicelog(`welcome i18n: wrote ${WELCOME_COPY.length} English strings into en.json`)
+	nicelog(`welcome i18n: wrote ${owned.length} owned English strings into en.json`)
 }
 
 /** Localize one shape by templating off its English doc and swapping the paragraph content. */
@@ -101,8 +124,8 @@ function bakeVariants(resolved: ResolvedCopy) {
 			readFileSync(join(LOCALES_DIR, `${locale}.json`), 'utf-8')
 		)
 		const table: Record<string, WelcomeRichText> = {}
-		for (const { id, en, shapes } of resolved) {
-			const translation = catalog[id]?.translation
+		for (const { messageId, en, shapes } of resolved) {
+			const translation = catalog[messageId]?.translation
 			// Skip untranslated strings (and translations identical to English) so the artifact only
 			// carries genuinely localized copy; the worker leaves those shapes as the baked English.
 			if (!translation || translation === en) continue
@@ -129,6 +152,8 @@ function writeArtifact(artifact: Record<string, Record<string, WelcomeRichText>>
 	nicelog(`welcome i18n: baked variants for ${Object.keys(artifact).length} locale(s)`)
 }
 
-const resolved = resolveCopyShapes()
+// Runs after formatjs `i18n:extract`, so en.json already holds the app's strings (the shared
+// entries bind to those by English).
+const resolved = resolveCopyShapes(buildAppIdIndex())
 extractEnglish()
 writeArtifact(bakeVariants(resolved))

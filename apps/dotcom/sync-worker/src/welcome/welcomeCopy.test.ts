@@ -20,16 +20,21 @@ function englishByShape(): string[] {
 }
 
 describe('WELCOME_COPY', () => {
-	it('has a unique message id per entry', () => {
-		const ids = WELCOME_COPY.map((e) => e.id)
+	it('has a unique welcome.* id per owned entry', () => {
+		const ids = WELCOME_COPY.map((e) => e.id).filter((id): id is string => id !== undefined)
 		expect(new Set(ids).size).toBe(ids.length)
+	})
+
+	it('has a unique English per entry (the shape match / app-id key)', () => {
+		const ens = WELCOME_COPY.map((e) => e.en)
+		expect(new Set(ens).size).toBe(ens.length)
 	})
 
 	it('matches at least one snapshot shape per entry', () => {
 		const allEnglish = englishByShape()
 		for (const entry of WELCOME_COPY) {
 			const matches = allEnglish.filter((text) => text === entry.en)
-			expect(matches.length, `${entry.id} (${JSON.stringify(entry.en)})`).toBeGreaterThanOrEqual(1)
+			expect(matches.length, `${entry.id ?? entry.en}`).toBeGreaterThanOrEqual(1)
 		}
 	})
 })

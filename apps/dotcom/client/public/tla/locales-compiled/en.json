@@ -1733,76 +1733,10 @@
       "value": "Last week"
     }
   ],
-  "welcome.ui.member": [
-    {
-      "type": 0,
-      "value": "Member"
-    }
-  ],
   "welcome.ui.myFiles": [
     {
       "type": 0,
       "value": "my files"
-    }
-  ],
-  "welcome.ui.myWorkspace": [
-    {
-      "type": 0,
-      "value": "My workspace"
-    }
-  ],
-  "welcome.ui.newFile": [
-    {
-      "type": 0,
-      "value": "New file"
-    }
-  ],
-  "welcome.ui.newWorkspace": [
-    {
-      "type": 0,
-      "value": "New workspace"
-    }
-  ],
-  "welcome.ui.owner": [
-    {
-      "type": 0,
-      "value": "Owner"
-    }
-  ],
-  "welcome.ui.pinned": [
-    {
-      "type": 0,
-      "value": "Pinned"
-    }
-  ],
-  "welcome.ui.remove": [
-    {
-      "type": 0,
-      "value": "Remove"
-    }
-  ],
-  "welcome.ui.search": [
-    {
-      "type": 0,
-      "value": "Search..."
-    }
-  ],
-  "welcome.ui.today": [
-    {
-      "type": 0,
-      "value": "Today"
-    }
-  ],
-  "welcome.ui.workspaceSettings": [
-    {
-      "type": 0,
-      "value": "Workspace settings"
-    }
-  ],
-  "welcome.ui.yesterday": [
-    {
-      "type": 0,
-      "value": "Yesterday"
     }
   ],
   "welcome.ui.yourWorkspace": [

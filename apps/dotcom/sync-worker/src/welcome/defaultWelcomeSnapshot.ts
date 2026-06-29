@@ -1057,7 +1057,7 @@ export const defaultWelcomeSnapshotJson = `{
 								"content": [
 									{
 										"type": "text",
-										"text": "Workspace settings"
+										"text": "Manage"
 									}
 								]
 							}

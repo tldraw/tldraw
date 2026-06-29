@@ -687,41 +687,8 @@
   "welcome.ui.lastWeek": {
     "translation": "Last week"
   },
-  "welcome.ui.member": {
-    "translation": "Member"
-  },
   "welcome.ui.myFiles": {
     "translation": "my files"
-  },
-  "welcome.ui.myWorkspace": {
-    "translation": "My workspace"
-  },
-  "welcome.ui.newFile": {
-    "translation": "New file"
-  },
-  "welcome.ui.newWorkspace": {
-    "translation": "New workspace"
-  },
-  "welcome.ui.owner": {
-    "translation": "Owner"
-  },
-  "welcome.ui.pinned": {
-    "translation": "Pinned"
-  },
-  "welcome.ui.remove": {
-    "translation": "Remove"
-  },
-  "welcome.ui.search": {
-    "translation": "Search..."
-  },
-  "welcome.ui.today": {
-    "translation": "Today"
-  },
-  "welcome.ui.workspaceSettings": {
-    "translation": "Workspace settings"
-  },
-  "welcome.ui.yesterday": {
-    "translation": "Yesterday"
   },
   "welcome.ui.yourWorkspace": {
     "translation": "your workspace"

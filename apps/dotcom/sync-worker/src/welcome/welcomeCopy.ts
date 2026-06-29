@@ -19,12 +19,22 @@
 // text through localization — unlike the standalone highlight shapes this replaced (see welcomeMarkup).
 
 export interface WelcomeCopyEntry {
-	/** Stable lokalise message id, written into the catalog under `welcome.*`. */
-	id: string
+	/**
+	 * The welcome-owned lokalise message id (`welcome.*`). Present for strings the welcome doc owns —
+	 * the captions, the example file names, and UI labels with no app equivalent — which the build
+	 * writes into the catalog for translators.
+	 *
+	 * Omitted for *shared* strings: depicted app-UI labels that already exist as app messages (e.g.
+	 * "Search...", "Manage"). The build resolves those to the app's existing message id by matching
+	 * `en`, so the illustration inherits the app's official translation in every locale with no extra
+	 * work — and the build fails if the app string ever disappears.
+	 */
+	id?: string
 	/**
 	 * The English source, with `<strong>` wrapping bold runs and `<mark>` wrapping highlighted runs.
-	 * Both the lokalise seed and the key used to locate the shape(s) in the snapshot — it MUST equal
-	 * a shape's serialized richText, an invariant the build step asserts.
+	 * Both the lokalise key (for owned strings) / the app-message match key (for shared strings) and
+	 * the key used to locate the shape(s) in the snapshot — it MUST equal a shape's serialized
+	 * richText, an invariant the build step asserts.
 	 */
 	en: string
 }
@@ -69,23 +79,26 @@ export const WELCOME_COPY: readonly WelcomeCopyEntry[] = [
 		en: "p.s. feel free to edit or delete this board now that you've mastered workspaces",
 	},
 
-	// Depicted app UI labels. These mirror the real app chrome (already translated elsewhere), so
-	// leaving them English reads as inconsistent next to the localized sidebar. Several appear on
-	// more than one shape; each occurrence is localized.
-	{ id: 'welcome.ui.myWorkspace', en: 'My workspace' },
+	// Depicted app UI labels that ARE app strings — shared (no id): the build binds each to the app's
+	// existing message by matching `en`, so the illustration shows the app's official translation in
+	// every locale. (The illustration text "Workspace settings" was renamed to "Manage" to match the
+	// real sidebar item, so it has an app match.)
+	{ en: 'My workspace' },
+	{ en: 'New file' },
+	{ en: 'New workspace' },
+	{ en: 'Search...' },
+	{ en: 'Manage' },
+	{ en: 'Pinned' },
+	{ en: 'Owner' },
+	{ en: 'Member' },
+	{ en: 'Remove' },
+	{ en: 'Today' },
+	{ en: 'Yesterday' },
+
+	// Depicted UI labels with no exact app string — welcome-owned (translated as welcome.*).
 	{ id: 'welcome.ui.myFiles', en: 'my files' },
 	{ id: 'welcome.ui.yourWorkspace', en: 'your workspace' },
-	{ id: 'welcome.ui.newFile', en: 'New file' },
-	{ id: 'welcome.ui.newWorkspace', en: 'New workspace' },
-	{ id: 'welcome.ui.search', en: 'Search...' },
-	{ id: 'welcome.ui.workspaceSettings', en: 'Workspace settings' },
-	{ id: 'welcome.ui.pinned', en: 'Pinned' },
-	{ id: 'welcome.ui.owner', en: 'Owner' },
-	{ id: 'welcome.ui.member', en: 'Member' },
-	{ id: 'welcome.ui.remove', en: 'Remove' },
 	{ id: 'welcome.ui.inviteLink', en: 'Invite link' },
-	{ id: 'welcome.ui.today', en: 'Today' },
-	{ id: 'welcome.ui.yesterday', en: 'Yesterday' },
 	{ id: 'welcome.ui.lastWeek', en: 'Last week' },
 
 	// Example file names shown in the drawn file list.
