@@ -71,6 +71,7 @@ export function Component() {
 							code={`label · value · options[] · onChange`}
 							meta="generic <T> · Radix Select · ×4"
 							source="tla-menu.tsx:119"
+							mock
 						>
 							<div className="ctrlMock">Everyone ▾</div>
 						</Specimen>
@@ -79,6 +80,7 @@ export function Component() {
 							code={`actions={[{ label: 'Remove', onSelect }]}`}
 							meta="destructive action below options"
 							source="tla-menu.tsx:119"
+							mock
 						>
 							<div className="ctrlMock">Members ▾</div>
 						</Specimen>
@@ -92,7 +94,7 @@ export function Component() {
 						Invite / Export / Publish tabs.
 					</p>
 					<div className="grid">
-						<Specimen label="TlaMenuTabsTab" code={`active`} meta="role=tab" source="tla-menu.tsx:313">
+						<Specimen label="TlaMenuTabsTab" code={`active`} meta="role=tab" source="tla-menu.tsx:313" mock>
 							<div className="tabMock">
 								<span data-active>Invite</span>
 								<span>Export</span>
@@ -109,19 +111,19 @@ export function Component() {
 						text.
 					</p>
 					<div className="grid">
-						<Specimen label="TlaMenuControl" code={`<TlaMenuControl>`} meta="labeled row · ×10" source="tla-menu.tsx:43">
+						<Specimen label="TlaMenuControl" code={`<TlaMenuControl>`} meta="labeled row · ×10" source="tla-menu.tsx:43" mock>
 							<div className="rowMock rowMock--wide">
 								<span>Share this file</span>
 								<TlaMenuSwitch id="fc-row" checked onChange={() => {}} />
 							</div>
 						</Specimen>
-						<Specimen label="TlaMenuControlLabel" code={`<TlaMenuControlLabel>`} meta="control label · ×10" source="tla-menu.tsx:96">
+						<Specimen label="TlaMenuControlLabel" code={`<TlaMenuControlLabel>`} meta="control label · ×10" source="tla-menu.tsx:96" mock>
 							<div className="rowMock">Label text</div>
 						</Specimen>
-						<Specimen label="TlaMenuControlInfoTooltip" code={`<TlaMenuControlInfoTooltip>`} meta="info tooltip · ×4" source="tla-menu.tsx:60">
+						<Specimen label="TlaMenuControlInfoTooltip" code={`<TlaMenuControlInfoTooltip>`} meta="info tooltip · ×4" source="tla-menu.tsx:60" mock>
 							<div className="rowMock">ⓘ more info</div>
 						</Specimen>
-						<Specimen label="TlaMenuDetail" code={`<TlaMenuDetail>`} meta="detail text · ×1" source="tla-menu.tsx:111">
+						<Specimen label="TlaMenuDetail" code={`<TlaMenuDetail>`} meta="detail text · ×1" source="tla-menu.tsx:111" mock>
 							<div className="rowMock">supporting detail copy</div>
 						</Specimen>
 					</div>

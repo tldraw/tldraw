@@ -47,7 +47,7 @@ export function Component() {
 					</p>
 					<div className="grid">
 						{ERRORS.map((e) => (
-							<Specimen key={e.source} label={e.label} code={e.styling} meta={e.trigger} source={e.source}>
+							<Specimen key={e.source} label={e.label} code={e.styling} meta={e.trigger} source={e.source} mock>
 								<div className="errMock">
 									<div className="errMock__face">{e.face}</div>
 									<div className="errMock__msg">{e.msg}</div>
@@ -89,6 +89,7 @@ export function Component() {
 							code={`isLoading={…}`}
 							meta={`${LOADERS.length} files, ad-hoc flags`}
 							source="(distributed)"
+							mock
 						>
 							<div className="listMock">
 								{LOADERS.map((l) => (
@@ -120,6 +121,7 @@ export function Component() {
 							code={`@keyframes tla-spin (×2)`}
 							meta="defined twice, used at 1.5s AND 1.2s"
 							source="button.module.css:55, :98"
+							mock
 						>
 							<div className="errMock errMock--warn">
 								<div className="errMock__msg">tla-spin lives in button CSS, defined 2×</div>

@@ -68,6 +68,7 @@ export function Component() {
 								code={`addToast({ severity: '${t.sev}'${t.keepOpen ? ', keepOpen: true' : ''} })`}
 								meta={t.keepOpen ? 'keepOpen — manual dismiss' : 'auto-dismiss'}
 								source={t.source}
+								mock
 							>
 								<div className="toastMock" data-sev={t.sev}>
 									{t.title}
@@ -85,7 +86,7 @@ export function Component() {
 					</p>
 					<div className="grid">
 						{TOOLTIPS.map((t) => (
-							<Specimen key={t.name + t.source} label={t.name} code={t.code} meta={t.meta} source={t.source}>
+							<Specimen key={t.name + t.source} label={t.name} code={t.code} meta={t.meta} source={t.source} mock>
 								<div className="tipMock">{t.sample}</div>
 							</Specimen>
 						))}
@@ -104,6 +105,7 @@ export function Component() {
 							code={`<TldrawUiPopoverRoot><Trigger/><Content/>`}
 							meta="Radix popover · ×1 consumer"
 							source="TlaFileShareMenu.tsx"
+							mock
 						>
 							<div className="popMock">
 								<div className="popMock__trigger">Share ▾</div>

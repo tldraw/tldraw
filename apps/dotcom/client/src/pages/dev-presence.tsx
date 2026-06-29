@@ -68,6 +68,7 @@ export function Component() {
 							code={`(SDK, from collaborator presence)`}
 							meta="name label in the user's colour"
 							source="editor — TlaEditor.tsx"
+							mock
 						>
 							<div className="cursorMock">
 								<svg width="16" height="16" viewBox="0 0 16 16">
@@ -81,6 +82,7 @@ export function Component() {
 							code={`<PeopleMenu> (SDK share panel)`}
 							meta="collaborators' avatars, by colour"
 							source="TldrawUiSharePanel"
+							mock
 						>
 							<div className="facepile">
 								<span className="avatar" style={{ background: '#268bd2' }}>
@@ -99,6 +101,7 @@ export function Component() {
 							code={`<PeopleMenu>`}
 							meta="opens the collaborators list · ×3"
 							source="TlaInviteTab.tsx"
+							mock
 						>
 							<div className="ctrlMock">People ▾</div>
 						</Specimen>
@@ -107,6 +110,7 @@ export function Component() {
 							code={`<TldrawCurrentUser />`}
 							meta="the local user's presence record · ×9"
 							source="TlaEditorTopRightPanel.tsx"
+							mock
 						>
 							<div className="facepile">
 								<span className="avatar" style={{ background: '#6c71c4' }}>
