@@ -7,20 +7,17 @@ import { WelcomeRichText } from './welcomeMarkup'
 // something to match. The baked artifact is mocked so the test doesn't depend on which locales have
 // landed real translations.
 const TITLE_SHAPE = 'shape:lC5iGWdiF2kYebPJxooPZ'
+// The artifact stores the localized MESSAGE; the worker rebuilds the richText from the shape's doc.
+const frenchMessage = 'Bienvenue dans votre espace de travail'
 const frenchTitle: WelcomeRichText = {
 	type: 'doc',
-	content: [
-		{
-			type: 'paragraph',
-			content: [{ type: 'text', text: 'Bienvenue dans votre espace de travail' }],
-		},
-	],
+	content: [{ type: 'paragraph', content: [{ type: 'text', text: frenchMessage }] }],
 }
 
 vi.mock('./localizedWelcomeCopy', () => ({
 	localizedWelcomeCopy: {
-		fr: { [TITLE_SHAPE]: frenchTitle },
-		'pt-br': { [TITLE_SHAPE]: frenchTitle },
+		fr: { [TITLE_SHAPE]: frenchMessage },
+		'pt-br': { [TITLE_SHAPE]: frenchMessage },
 	},
 }))
 

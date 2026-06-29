@@ -3,11 +3,7 @@ import { join } from 'path'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
 import { defaultWelcomeSnapshotJson } from '../../sync-worker/src/welcome/defaultWelcomeSnapshot'
 import { WELCOME_COPY } from '../../sync-worker/src/welcome/welcomeCopy'
-import {
-	inlineContentFromMessage,
-	messageFromRichText,
-	WelcomeRichText,
-} from '../../sync-worker/src/welcome/welcomeMarkup'
+import { messageFromRichText, WelcomeRichText } from '../../sync-worker/src/welcome/welcomeMarkup'
 
 // The welcome i18n build step. It replaces what #9237 did at runtime in the sync worker (fetch the
 // translation catalogs over HTTP and fill the copy shapes per request) with a step that resolves
@@ -45,24 +41,21 @@ function buildAppIdIndex(): Map<string, string> {
 
 /**
  * Resolve each manifest entry to: its lokalise message id (`welcome.*` when owned, else the app's
- * existing id matched by English — see WelcomeCopyEntry), and the snapshot shape(s) carrying its
- * English (asserting at least one match; a string can appear on several shapes, each kept with its
- * own richText template). A shared entry whose English is no longer a live app string is an error.
+ * existing id matched by English — see WelcomeCopyEntry), and the ids of the snapshot shape(s)
+ * carrying its English (asserting at least one match; a string can appear on several shapes). A
+ * shared entry whose English is no longer a live app string is an error.
  */
 function resolveCopyShapes(appIds: Map<string, string>) {
 	const snapshot = JSON.parse(defaultWelcomeSnapshotJson)
 	// English -> the ids of every text shape whose serialized richText equals it.
 	const idsByEnglish = new Map<string, string[]>()
-	const templateById = new Map<string, WelcomeRichText>()
 	for (const { state } of snapshot.documents as ShapeDoc[]) {
 		if (state?.type !== 'text' || !state.props?.richText || !state.id) continue
 		const english = messageFromRichText(state.props.richText)
 		idsByEnglish.set(english, [...(idsByEnglish.get(english) ?? []), state.id])
-		templateById.set(state.id, state.props.richText)
 	}
 
 	return WELCOME_COPY.map((entry) => {
-		const owned = entry.id !== undefined
 		const messageId = entry.id ?? appIds.get(entry.en)
 		if (!messageId) {
 			throw new Error(
@@ -77,12 +70,7 @@ function resolveCopyShapes(appIds: Map<string, string>) {
 					`The manifest (welcomeCopy.ts) has drifted from the default snapshot — update one to match the other.`
 			)
 		}
-		return {
-			messageId,
-			owned,
-			en: entry.en,
-			shapes: shapeIds.map((shapeId) => ({ shapeId, template: templateById.get(shapeId)! })),
-		}
+		return { messageId, en: entry.en, shapeIds }
 	})
 }
 
@@ -101,16 +89,9 @@ function extractEnglish() {
 	nicelog(`welcome i18n: wrote ${owned.length} owned English strings into en.json`)
 }
 
-/** Localize one shape by templating off its English doc and swapping the paragraph content. */
-function localizeRichText(template: WelcomeRichText, message: string): WelcomeRichText {
-	if (template.content.length !== 1) {
-		throw new Error(`welcome copy shapes must be single-paragraph; got ${template.content.length}`)
-	}
-	const [paragraph] = template.content
-	return { ...template, content: [{ ...paragraph, content: inlineContentFromMessage(message) }] }
-}
-
-/** Step 2: bake the per-locale copy tables for every locale that has welcome translations. */
+/** Step 2: bake the per-locale copy tables — shapeId -> localized message string — for every locale
+ *  that has welcome translations. The worker rebuilds the richText from the message (see
+ *  injectWelcomeCopy); storing the message, not the assembled doc, keeps the bundled artifact small. */
 function bakeVariants(resolved: ResolvedCopy) {
 	const locales = readdirSync(LOCALES_DIR)
 		.filter((f) => f.endsWith('.json'))
@@ -118,21 +99,19 @@ function bakeVariants(resolved: ResolvedCopy) {
 		.filter((locale) => !locale.startsWith('en'))
 		.sort()
 
-	const artifact: Record<string, Record<string, WelcomeRichText>> = {}
+	const artifact: Record<string, Record<string, string>> = {}
 	for (const locale of locales) {
 		const catalog: LokaliseCatalog = JSON.parse(
 			readFileSync(join(LOCALES_DIR, `${locale}.json`), 'utf-8')
 		)
-		const table: Record<string, WelcomeRichText> = {}
-		for (const { messageId, en, shapes } of resolved) {
+		const table: Record<string, string> = {}
+		for (const { messageId, en, shapeIds } of resolved) {
 			const translation = catalog[messageId]?.translation
 			// Skip untranslated strings (and translations identical to English) so the artifact only
 			// carries genuinely localized copy; the worker leaves those shapes as the baked English.
 			if (!translation || translation === en) continue
-			// Apply the translation to every shape carrying this string.
-			for (const { shapeId, template } of shapes) {
-				table[shapeId] = localizeRichText(template, translation)
-			}
+			// Store the message against every shape carrying this string.
+			for (const shapeId of shapeIds) table[shapeId] = translation
 		}
 		if (Object.keys(table).length > 0) {
 			artifact[locale] = Object.fromEntries(
@@ -143,7 +122,7 @@ function bakeVariants(resolved: ResolvedCopy) {
 	return artifact
 }
 
-function writeArtifact(artifact: Record<string, Record<string, WelcomeRichText>>) {
+function writeArtifact(artifact: Record<string, Record<string, string>>) {
 	// Emit as data (.json), not a .ts module: like the compiled locale catalogs it is generated and
 	// committed, and JSON keeps the formatter (which would rewrite a regenerated .ts every build) out
 	// of it. The typed entry point is the hand-written localizedWelcomeCopy.ts wrapper. 2-space indent

@@ -27,8 +27,9 @@ function snapshot(): RoomSnapshot {
 }
 
 describe('injectWelcomeCopy', () => {
-	it('replaces richText on mapped shapes and leaves others untouched', () => {
-		const result = injectWelcomeCopy(snapshot(), { 'shape:a': richText('Bonjour') })
+	it('rebuilds richText from the message on mapped shapes, leaving others untouched', () => {
+		// The table holds messages; the richText is reconstructed from each shape's own doc template.
+		const result = injectWelcomeCopy(snapshot(), { 'shape:a': 'Bonjour' })
 		const [a, b] = result.documents
 		expect((a.state as any).props.richText).toEqual(richText('Bonjour'))
 		// other props on the mapped shape survive
@@ -37,14 +38,31 @@ describe('injectWelcomeCopy', () => {
 		expect((b.state as any).props.richText).toEqual(richText('World'))
 	})
 
+	it('preserves marks in the message (rebuilt via the codec)', () => {
+		const result = injectWelcomeCopy(snapshot(), { 'shape:a': 'a <strong>bold</strong> word' })
+		expect((result.documents[0].state as any).props.richText).toEqual({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [
+						{ type: 'text', text: 'a ' },
+						{ type: 'text', text: 'bold', marks: [{ type: 'bold' }] },
+						{ type: 'text', text: ' word' },
+					],
+				},
+			],
+		})
+	})
+
 	it('does not mutate the input snapshot', () => {
 		const input = snapshot()
-		injectWelcomeCopy(input, { 'shape:a': richText('Bonjour') })
+		injectWelcomeCopy(input, { 'shape:a': 'Bonjour' })
 		expect((input.documents[0].state as any).props.richText).toEqual(richText('Hello'))
 	})
 
 	it('ignores shape ids that are not in the snapshot', () => {
-		const result = injectWelcomeCopy(snapshot(), { 'shape:missing': richText('x') })
+		const result = injectWelcomeCopy(snapshot(), { 'shape:missing': 'x' })
 		expect(result.documents.map((d) => (d.state as any).props.richText)).toEqual([
 			richText('Hello'),
 			richText('World'),
