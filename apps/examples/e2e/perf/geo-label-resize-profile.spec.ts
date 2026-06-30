@@ -46,12 +46,13 @@ interface CpuProfile {
 	endTime: number
 }
 
-// Reduce one CPU profile to headline self-time numbers: busy ms/move, the per-bucket share of busy
-// time, and the top self-time functions. Buckets are keyed off the source file/function (kept
-// disjoint so percentages add up). labelMeasure is the geo-label measurement (the batch pre-pass +
-// any per-shape fallback); geometry is the geo shape's geometry recompute; layout is the synchronous
-// reflow the measurement forces; react/signals are render and reactivity. Percentages are of busy
-// (non-idle) time so they don't shrink as idle time varies.
+// Reduce one CPU profile to headline self-time numbers: busy ms/move overall, then per bucket the
+// self-time spent in that category per move (ms), plus the top self-time functions. Buckets are keyed
+// off the source file/function (kept disjoint so they don't double-count). labelMeasure is the
+// geo-label measurement (the batch pre-pass + any per-shape fallback); geometry is the geo shape's
+// geometry recompute; layout is the synchronous reflow the measurement forces; react/signals are
+// render and reactivity. Reported as ms/move (not % of busy) so each number reads as the actual time
+// that category costs a resize step.
 function summarize(profile: CpuProfile, moves: number) {
 	const byId = new Map(profile.nodes.map((nd) => [nd.id, nd]))
 	const fnKey = (nd: ProfileNode) => {
@@ -95,7 +96,7 @@ function summarize(profile: CpuProfile, moves: number) {
 		busyMsPerMove: +(busyUs / 1000 / moves).toFixed(3),
 		busyPctOfWall: +((100 * busyUs) / totalUs).toFixed(1),
 		buckets: Object.fromEntries(
-			Object.entries(buckets).map(([k, v]) => [k, +((100 * v) / busyUs).toFixed(2)])
+			Object.entries(buckets).map(([k, v]) => [k, +(v / 1000 / moves).toFixed(3)])
 		) as Record<string, number>,
 		top: rows.slice(0, 30).map(([fn, us]) => ({
 			fn,
@@ -257,14 +258,15 @@ test.describe('geo label resize CPU profile', () => {
 		writeFileSync(testInfo.outputPath(`perf-${LABEL}.cpuprofile`), JSON.stringify(lastProfile))
 
 		// Record the median headline numbers against a committed baseline so a change's cost/savings
-		// show up in the PR diff. Bucket %s are the stable signal; busyMsPerMove is the rough magnitude.
+		// show up in the PR diff. busyMsPerMove is the total working time per move; the buckets break
+		// it down by category, all in ms per resize move.
 		recordPerfBaseline('geo-label-resize-profile', {
 			busyMsPerMove,
-			...Object.fromEntries(Object.entries(buckets).map(([k, v]) => [`${k} %busy`, v])),
+			...Object.fromEntries(Object.entries(buckets).map(([k, v]) => [`${k} ms/move`, v])),
 		})
 
 		const bkt = Object.entries(buckets)
-			.map(([k, v]) => `  ${k.padEnd(12)} ${String(v).padStart(6)}% of busy (median)`)
+			.map(([k, v]) => `  ${k.padEnd(12)} ${String(v).padStart(8)} ms/move (median)`)
 			.join('\n')
 		const tbl = last.top
 			.slice(0, 22)
