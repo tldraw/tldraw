@@ -4,12 +4,12 @@ import { Helmet } from 'react-helmet-async'
 import 'tldraw/tldraw.css'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { TlaCtaButton } from '../tla/components/TlaCtaButton/TlaCtaButton'
+import { DevComponentsNav } from './dev-components-nav'
 import dialogStyles from '../tla/components/dialogs/dialogs.module.css'
 import inviteStyles from '../tla/components/dialogs/TlaInviteDialog.module.css'
 import menuStyles from '../tla/components/tla-menu/menu.module.css'
-import sidebarStyles from '../tla/components/TlaSidebar/sidebar.module.css'
 import '../tla/styles/tla.css'
-import { DevComponentsNav } from './dev-components-nav'
+import sidebarStyles from '../tla/components/TlaSidebar/sidebar.module.css'
 
 /**
  * Dev-only inventory of every button in the dotcom app, rendered together so
@@ -320,7 +320,6 @@ export function Component() {
 						<button className="tla-button-text">Opt out</button>
 					</Specimen>
 				</Section>
-
 			</div>
 		</div>
 	)

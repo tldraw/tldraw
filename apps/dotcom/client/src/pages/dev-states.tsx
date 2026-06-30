@@ -67,13 +67,16 @@ export function Component() {
 						</tbody>
 					</table>
 					<div className="callout">
-						The gap for a redesign: there is <strong>no shared <code>&lt;ErrorState&gt;</code></strong>.{' '}
-						<code>StoreErrorScreen</code> reuses <code>ErrorPage</code>, but{' '}
+						The gap for a redesign: there is{' '}
+						<strong>
+							no shared <code>&lt;ErrorState&gt;</code>
+						</strong>
+						. <code>StoreErrorScreen</code> reuses <code>ErrorPage</code>, but{' '}
 						<code>TlaFileError</code> and <code>TlaEditorErrorFallback</code> each roll their own
 						layout — and <code>ErrorPage</code> is deliberately on BEM CSS with its own{' '}
 						<code>IntlProvider</code> and an inline SVG (so it works offline / outside providers).
-						That low-dependency constraint is real, but it means &ldquo;an error screen&rdquo; has no
-						single owner.
+						That low-dependency constraint is real, but it means &ldquo;an error screen&rdquo; has
+						no single owner.
 					</div>
 				</section>
 
@@ -121,14 +124,13 @@ export function Component() {
 					</div>
 					<div className="callout">
 						The redesign finding: the spin animation (<code>@keyframes tla-spin</code>) is{' '}
-						<strong>defined twice in one file</strong> (<code>button.module.css</code>) and applied at
-						two different speeds (1.5s and 1.2s). The spinner isn&rsquo;t a component at all — it&rsquo;s
-						a sprite icon plus an animation that happens to live in the button&rsquo;s stylesheet. A
-						design system would want one <code>&lt;Spinner&gt;</code> (or one shared keyframe + token
-						for speed), not an animation coupled to a button.
+						<strong>defined twice in one file</strong> (<code>button.module.css</code>) and applied
+						at two different speeds (1.5s and 1.2s). The spinner isn&rsquo;t a component at all —
+						it&rsquo;s a sprite icon plus an animation that happens to live in the button&rsquo;s
+						stylesheet. A design system would want one <code>&lt;Spinner&gt;</code> (or one shared
+						keyframe + token for speed), not an animation coupled to a button.
 					</div>
 				</section>
-
 			</div>
 		</div>
 	)
@@ -142,10 +144,38 @@ const ERRORS: ReadonlyArray<{
 	face: string
 	msg: string
 }> = [
-	{ label: 'ErrorPage', styling: 'BEM (.error-page__*)', trigger: 'top-level error boundary · offline-safe', source: 'components/ErrorPage', face: ':(', msg: 'Something went wrong' },
-	{ label: 'StoreErrorScreen', styling: 'reuses ErrorPage', trigger: 'store / sync failure', source: 'components/StoreErrorScreen.tsx', face: ':(', msg: 'Could not load · Reload' },
-	{ label: 'TlaFileError', styling: 'CSS modules', trigger: 'file not-found / forbidden (TLRemoteSyncError)', source: 'tla/components/TlaFileError', face: '∅', msg: 'File not available' },
-	{ label: 'TlaEditorErrorFallback', styling: 'own layout', trigger: 'editor render crash', source: 'TlaEditor/editor-components', face: '!', msg: 'The editor crashed' },
+	{
+		label: 'ErrorPage',
+		styling: 'BEM (.error-page__*)',
+		trigger: 'top-level error boundary · offline-safe',
+		source: 'components/ErrorPage',
+		face: ':(',
+		msg: 'Something went wrong',
+	},
+	{
+		label: 'StoreErrorScreen',
+		styling: 'reuses ErrorPage',
+		trigger: 'store / sync failure',
+		source: 'components/StoreErrorScreen.tsx',
+		face: ':(',
+		msg: 'Could not load · Reload',
+	},
+	{
+		label: 'TlaFileError',
+		styling: 'CSS modules',
+		trigger: 'file not-found / forbidden (TLRemoteSyncError)',
+		source: 'tla/components/TlaFileError',
+		face: '∅',
+		msg: 'File not available',
+	},
+	{
+		label: 'TlaEditorErrorFallback',
+		styling: 'own layout',
+		trigger: 'editor render crash',
+		source: 'TlaEditor/editor-components',
+		face: '!',
+		msg: 'The editor crashed',
+	},
 ]
 
 const LOADERS = [

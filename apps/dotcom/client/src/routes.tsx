@@ -78,7 +78,10 @@ export function createAppRouter({
 		>
 			{includeDevRoutes && (
 				<>
-					<Route path="/dev/reset-local-state" lazy={() => import('./pages/dev-reset-local-state')} />
+					<Route
+						path="/dev/reset-local-state"
+						lazy={() => import('./pages/dev-reset-local-state')}
+					/>
 					<Route path="/dev/components/buttons" lazy={() => import('./pages/dev-buttons')} />
 					<Route path="/dev/components/inputs" lazy={() => import('./pages/dev-inputs')} />
 					<Route path="/dev/components/typography" lazy={() => import('./pages/dev-typography')} />
@@ -87,7 +90,10 @@ export function createAppRouter({
 					<Route path="/dev/components/icons" lazy={() => import('./pages/dev-icons')} />
 					<Route path="/dev/components/links" lazy={() => import('./pages/dev-links')} />
 					<Route path="/dev/components/overlays" lazy={() => import('./pages/dev-overlays')} />
-					<Route path="/dev/components/form-controls" lazy={() => import('./pages/dev-form-controls')} />
+					<Route
+						path="/dev/components/form-controls"
+						lazy={() => import('./pages/dev-form-controls')}
+					/>
 					<Route path="/dev/components/presence" lazy={() => import('./pages/dev-presence')} />
 					<Route path="/dev/components/logo" lazy={() => import('./pages/dev-logo')} />
 					<Route path="/dev/components/states" lazy={() => import('./pages/dev-states')} />

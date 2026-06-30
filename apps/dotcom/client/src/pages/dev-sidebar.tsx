@@ -39,9 +39,9 @@ export function Component() {
 					<h1 className="page__title">Sidebar — consumption map</h1>
 					<p className="page__lede">
 						A different lens: the file-navigation sidebar isn&rsquo;t a component to inventory,
-						it&rsquo;s a feature that <em>consumes</em> the design system. Per component below: the DS
-						primitives it uses (green) and where it rolls a bespoke class (orange). The pattern is
-						stark — icons are fully adopted, but almost every clickable element is bespoke.
+						it&rsquo;s a feature that <em>consumes</em> the design system. Per component below: the
+						DS primitives it uses (green) and where it rolls a bespoke class (orange). The pattern
+						is stark — icons are fully adopted, but almost every clickable element is bespoke.
 					</p>
 				</header>
 
@@ -123,10 +123,9 @@ export function Component() {
 						triggers, and links each have their own <code>.sidebar*</code> class. So a redesign that
 						adds a complete TlaButton (the #9194 / orthogonal-variant work) would have its biggest
 						single payoff <em>here</em> — nine bespoke classes collapsing into button variants. The
-                        sidebar is the test case for whether the button rework actually lands.
+						sidebar is the test case for whether the button rework actually lands.
 					</div>
 				</section>
-
 			</div>
 		</div>
 	)
@@ -135,19 +134,51 @@ export function Component() {
 const ROWS: ReadonlyArray<{ name: string; ds: string[]; bespoke: string[] }> = [
 	{ name: 'TlaSidebar (parent)', ds: [], bespoke: ['<button> overlay (all:unset, keep-raw)'] },
 	{ name: 'TlaSidebarWorkspaceLink', ds: ['TlaLogo'], bespoke: ['.sidebarWorkspaceButton'] },
-	{ name: 'TlaSidebarWorkspaceSwitcher', ds: ['TlaIcon'], bespoke: ['<button> .sidebarWorkspaceSwitcherTrigger'] },
-	{ name: 'TlaSidebarWorkspaceActions', ds: ['TlaIcon'], bespoke: ['<button> .sidebarActionButton'] },
-	{ name: 'TlaSidebarCreateFileButton', ds: ['TlaIcon', 'TldrawUiButton'], bespoke: ['.sidebarCreateFileButton'] },
+	{
+		name: 'TlaSidebarWorkspaceSwitcher',
+		ds: ['TlaIcon'],
+		bespoke: ['<button> .sidebarWorkspaceSwitcherTrigger'],
+	},
+	{
+		name: 'TlaSidebarWorkspaceActions',
+		ds: ['TlaIcon'],
+		bespoke: ['<button> .sidebarActionButton'],
+	},
+	{
+		name: 'TlaSidebarCreateFileButton',
+		ds: ['TlaIcon', 'TldrawUiButton'],
+		bespoke: ['.sidebarCreateFileButton'],
+	},
 	{ name: 'TlaSidebarRecentFiles', ds: [], bespoke: [] },
-	{ name: 'TlaSidebarFileSection', ds: ['TlaIcon', 'TldrawUiButton'], bespoke: ['.sidebarCreateFileButton'] },
-	{ name: 'TlaSidebarFileLink', ds: ['TlaIcon', 'TldrawUiTooltip'], bespoke: ['.sidebarFileListItemButton', '.sidebarFileListItemGuestBadgeTrigger'] },
-	{ name: 'TlaSidebarFileLinkMenu', ds: ['TlaIcon', 'TldrawUiButton'], bespoke: ['.sidebarFileListItemMenuTrigger'] },
-	{ name: 'TlaSidebarSearch', ds: ['TlaIcon', 'TldrawUiButton', 'TldrawUiInput'], bespoke: ['<button> .sidebarActionButton'] },
+	{
+		name: 'TlaSidebarFileSection',
+		ds: ['TlaIcon', 'TldrawUiButton'],
+		bespoke: ['.sidebarCreateFileButton'],
+	},
+	{
+		name: 'TlaSidebarFileLink',
+		ds: ['TlaIcon', 'TldrawUiTooltip'],
+		bespoke: ['.sidebarFileListItemButton', '.sidebarFileListItemGuestBadgeTrigger'],
+	},
+	{
+		name: 'TlaSidebarFileLinkMenu',
+		ds: ['TlaIcon', 'TldrawUiButton'],
+		bespoke: ['.sidebarFileListItemMenuTrigger'],
+	},
+	{
+		name: 'TlaSidebarSearch',
+		ds: ['TlaIcon', 'TldrawUiButton', 'TldrawUiInput'],
+		bespoke: ['<button> .sidebarActionButton'],
+	},
 	{ name: 'TlaSidebarInlineInput', ds: ['TldrawUiInput'], bespoke: [] },
 	{ name: 'TlaSidebarRenameInline', ds: ['TlaSidebarInlineInput'], bespoke: [] },
 	{ name: 'TlaSidebarDotDevLink', ds: ['ExternalLink'], bespoke: ['.sidebarLinkButton'] },
 	{ name: 'TlaSidebarFeedbackButton', ds: ['TlaIcon'], bespoke: ['<button> .sidebarLinkButton'] },
-	{ name: 'TlaSidebarUserSettingsMenu', ds: ['TlaIcon', 'TldrawUiButton', 'TldrawUiDropdownMenu'], bespoke: ['.sidebarUserSettingsTrigger'] },
+	{
+		name: 'TlaSidebarUserSettingsMenu',
+		ds: ['TlaIcon', 'TldrawUiButton', 'TldrawUiDropdownMenu'],
+		bespoke: ['.sidebarUserSettingsTrigger'],
+	},
 	{ name: 'TlaSidebarToggle', ds: ['TlaIcon', 'TldrawUiButton'], bespoke: [] },
 	{ name: 'TlaSidebarToggleMobile', ds: ['TlaIcon', 'TldrawUiButton'], bespoke: [] },
 ]

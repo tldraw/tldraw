@@ -31,9 +31,9 @@ export function Component() {
 					<h1 className="page__title">Logo inventory</h1>
 					<p className="page__lede">
 						One component — <code>TlaLogo</code> — a <code>&lt;span&gt;</code> that masks{' '}
-						<code>/tldraw_sidebar_logo.svg</code> with <code>currentColor</code>. The same
-						mask-tint trick as <code>TlaIcon</code>, so the wordmark inherits text colour and
-						adapts to light/dark for free.
+						<code>/tldraw_sidebar_logo.svg</code> with <code>currentColor</code>. The same mask-tint
+						trick as <code>TlaIcon</code>, so the wordmark inherits text colour and adapts to
+						light/dark for free.
 					</p>
 				</header>
 
@@ -45,7 +45,13 @@ export function Component() {
 					</p>
 					<div className="grid">
 						{USES.map((u) => (
-							<Specimen key={u.source} label={u.label} code={u.code} meta={u.meta} source={u.source}>
+							<Specimen
+								key={u.source}
+								label={u.label}
+								code={u.code}
+								meta={u.meta}
+								source={u.source}
+							>
 								<span className="logoStage" style={{ color: u.color }}>
 									<TlaLogo style={{ width: u.w, height: u.h }} />
 								</span>
@@ -67,7 +73,6 @@ export function Component() {
 						the call site.
 					</div>
 				</section>
-
 			</div>
 		</div>
 	)
@@ -82,11 +87,47 @@ const USES: ReadonlyArray<{
 	h: number
 	color?: string
 }> = [
-	{ label: 'sidebar workspace', code: '<TlaLogo />', meta: 'default · inherits text colour', source: 'TlaSidebarWorkspaceLink.tsx', w: 76, h: 16 },
-	{ label: 'editor top-left', code: '<TlaLogo /> (in ExternalLink)', meta: 'links to tldraw.dev', source: 'TlaEditorTopLeftPanel.tsx', w: 76, h: 16 },
-	{ label: 'sign-in dialog', code: '<TlaLogo />', meta: 'auth header', source: 'TlaSignInDialog.tsx', w: 100, h: 21 },
-	{ label: 'legal acceptance', code: '<TlaLogo />', meta: 'legal dialog', source: 'TlaLegalAcceptance.tsx', w: 100, h: 21 },
-	{ label: 'tinted (primary)', code: '<TlaLogo style={{ color }} />', meta: 'mask tints with currentColor', source: 'any call site', w: 100, h: 21, color: 'var(--tl-color-primary)' },
+	{
+		label: 'sidebar workspace',
+		code: '<TlaLogo />',
+		meta: 'default · inherits text colour',
+		source: 'TlaSidebarWorkspaceLink.tsx',
+		w: 76,
+		h: 16,
+	},
+	{
+		label: 'editor top-left',
+		code: '<TlaLogo /> (in ExternalLink)',
+		meta: 'links to tldraw.dev',
+		source: 'TlaEditorTopLeftPanel.tsx',
+		w: 76,
+		h: 16,
+	},
+	{
+		label: 'sign-in dialog',
+		code: '<TlaLogo />',
+		meta: 'auth header',
+		source: 'TlaSignInDialog.tsx',
+		w: 100,
+		h: 21,
+	},
+	{
+		label: 'legal acceptance',
+		code: '<TlaLogo />',
+		meta: 'legal dialog',
+		source: 'TlaLegalAcceptance.tsx',
+		w: 100,
+		h: 21,
+	},
+	{
+		label: 'tinted (primary)',
+		code: '<TlaLogo style={{ color }} />',
+		meta: 'mask tints with currentColor',
+		source: 'any call site',
+		w: 100,
+		h: 21,
+		color: 'var(--tl-color-primary)',
+	},
 ]
 
 const PAGE_CSS = `
