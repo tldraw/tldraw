@@ -100,8 +100,8 @@ describe('defaultWelcomeSnapshotJson', () => {
 		expect(records.filter((r) => r.typeName === 'user')).toHaveLength(0)
 		for (const record of records) {
 			const props = (record as any).props
-			if (props && 'textFirstEditedBy' in props) {
-				expect(props.textFirstEditedBy, `${record.id} textFirstEditedBy`).toBeNull()
+			if (props && 'textLastEditedBy' in props) {
+				expect(props.textLastEditedBy, `${record.id} textLastEditedBy`).toBeNull()
 			}
 		}
 	})

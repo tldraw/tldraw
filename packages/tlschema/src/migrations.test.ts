@@ -2638,6 +2638,28 @@ describe('Adding textFirstEditedBy to note shape', () => {
 	})
 })
 
+describe('Renaming textFirstEditedBy to textLastEditedBy on note shape', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.RenameFirstEditedByToLast)
+
+	test('up renames the prop, preserving its value', () => {
+		expect(up({ props: { textFirstEditedBy: 'user:1' } })).toEqual({
+			props: { textLastEditedBy: 'user:1' },
+		})
+		expect(up({ props: { textFirstEditedBy: null } })).toEqual({
+			props: { textLastEditedBy: null },
+		})
+	})
+
+	test('down renames the prop back, preserving its value', () => {
+		expect(down({ props: { textLastEditedBy: 'user:1' } })).toEqual({
+			props: { textFirstEditedBy: 'user:1' },
+		})
+		expect(down({ props: { textLastEditedBy: null } })).toEqual({
+			props: { textFirstEditedBy: null },
+		})
+	})
+})
+
 describe('TLUser initial migration', () => {
 	const { up } = getTestMigration(userVersions.Initial)
 

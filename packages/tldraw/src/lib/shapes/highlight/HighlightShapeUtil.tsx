@@ -24,9 +24,8 @@ import {
 } from '@tldraw/editor'
 import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
-import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
+import { getStroke } from '../shared/freehand/getStroke'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
-import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { getDisplayValues } from '../shared/getDisplayValues'
@@ -114,12 +113,16 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			})
 		}
 
-		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, true)
-		const opts = getHighlightFreehandSettings({ strokeWidth: sw, showAsComplete: true })
-		setStrokePointRadii(strokePoints, opts)
+		const allPointsFromSegments = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
+		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
+		const opts = getHighlightFreehandSettings({ strokeWidth, showAsComplete })
 
 		return new Polygon2d({
-			points: getStrokeOutlinePoints(strokePoints, opts),
+			points: getStroke(allPointsFromSegments, opts),
 			isFilled: true,
 		})
 	}

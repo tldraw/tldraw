@@ -128,7 +128,7 @@ test.describe('UI scenarios', () => {
 		const workspaceName = scenario.name('workspace nav')
 		const fileName = scenario.name('workspace movable file')
 
-		await scenario.ensureGroupsReady(owner)
+		await scenario.goToAndOpenSidebar(owner)
 		await scenario.createPersonalFile(owner, fileName)
 
 		await owner.sidebar.createWorkspace(workspaceName)
@@ -304,7 +304,7 @@ test.describe('UI scenarios', () => {
 		// Regression: the home workspace ("My workspace") used to render an empty dialog — the
 		// component returned null for it while the sidebar still opened the dialog, so the page
 		// just dimmed with no content. It's private: it can be renamed, but not shared or managed.
-		await scenario.ensureGroupsReady(owner)
+		await scenario.goToAndOpenSidebar(owner)
 		await owner.sidebar.switchToHomeWorkspace()
 		await owner.page.getByTestId('tla-sidebar-workspace-settings').click()
 
@@ -332,7 +332,7 @@ test.describe('UI scenarios', () => {
 		// Regression: the home workspace is renameable (the reason its settings dialog exists at
 		// all), so the rename must apply. Restore the name afterwards so later serial tests still
 		// see the original.
-		await scenario.ensureGroupsReady(owner)
+		await scenario.goToAndOpenSidebar(owner)
 		await owner.sidebar.switchToHomeWorkspace()
 		const originalName = await owner.page.getByTestId('tla-active-workspace-name').innerText()
 		const newName = scenario.name('home renamed')
@@ -356,7 +356,7 @@ test.describe('UI scenarios', () => {
 		const workspaceName = scenario.name('settings rename old')
 		const newWorkspaceName = scenario.name('settings rename new')
 
-		await scenario.ensureGroupsReady(owner)
+		await scenario.goToAndOpenSidebar(owner)
 		await owner.sidebar.createWorkspace(workspaceName)
 		await owner.sidebar.renameWorkspace(workspaceName, newWorkspaceName)
 

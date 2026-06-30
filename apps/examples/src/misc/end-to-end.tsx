@@ -3,6 +3,7 @@ import { createMermaidDiagram } from '@tldraw/mermaid'
 import { useEffect, useLayoutEffect } from 'react'
 import {
 	BaseBoxShapeUtil,
+	Editor,
 	TLShape,
 	Tldraw,
 	VecModel,
@@ -171,7 +172,6 @@ function SneakyExportButton() {
 			},
 			b64VecsEncodePoints: (points: VecModel[]) => b64Vecs.encodePoints(points),
 			markAllArrowBindings: () => {
-				const markRadius = 3
 				for (const shape of editor.getCurrentPageShapes()) {
 					if (!editor.isShapeOfType(shape, 'arrow')) continue
 
@@ -181,39 +181,11 @@ function SneakyExportButton() {
 					const transform = editor.getShapePageTransform(shape.id)
 
 					if (info.bindings.start) {
-						const pagePoint = transform.applyToPoint(info.start.handle)
-						editor.createShape({
-							type: 'geo',
-							x: pagePoint.x - markRadius,
-							y: pagePoint.y - markRadius,
-							props: {
-								geo: 'ellipse',
-								w: markRadius * 2,
-								h: markRadius * 2,
-								color: 'light-blue',
-								fill: 'none',
-								dash: 'solid',
-								size: 's',
-							},
-						})
+						createArrowBindingMarker(editor, transform.applyToPoint(info.start.handle))
 					}
 
 					if (info.bindings.end) {
-						const pagePoint = transform.applyToPoint(info.end.handle)
-						editor.createShape({
-							type: 'geo',
-							x: pagePoint.x - markRadius,
-							y: pagePoint.y - markRadius,
-							props: {
-								geo: 'ellipse',
-								w: markRadius * 2,
-								h: markRadius * 2,
-								color: 'light-blue',
-								fill: 'none',
-								dash: 'solid',
-								size: 's',
-							},
-						})
+						createArrowBindingMarker(editor, transform.applyToPoint(info.end.handle))
 					}
 				}
 			},
@@ -222,4 +194,22 @@ function SneakyExportButton() {
 	}, [actions, editor])
 
 	return null
+}
+
+function createArrowBindingMarker(editor: Editor, pagePoint: VecModel) {
+	const markRadius = 3
+	editor.createShape({
+		type: 'geo',
+		x: pagePoint.x - markRadius,
+		y: pagePoint.y - markRadius,
+		props: {
+			geo: 'ellipse',
+			w: markRadius * 2,
+			h: markRadius * 2,
+			color: 'light-blue',
+			fill: 'none',
+			dash: 'solid',
+			size: 's',
+		},
+	})
 }

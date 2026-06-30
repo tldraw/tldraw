@@ -24,7 +24,7 @@
 //   })
 //
 // Keep only document/page/shape (and asset/binding) records: drop any `user` records and
-// reset any `textFirstEditedBy` props to null, since those carry the authoring user's
+// reset any `textLastEditedBy` props to null, since those carry the authoring user's
 // identity.
 //
 // Keep the content near the origin and inside roughly 1200×800 page units: new files open
@@ -60,7 +60,7 @@ export const defaultWelcomeSnapshotJson = `{
 			"com.tldraw.shape.highlight": 4,
 			"com.tldraw.shape.image": 5,
 			"com.tldraw.shape.line": 5,
-			"com.tldraw.shape.note": 12,
+			"com.tldraw.shape.note": 13,
 			"com.tldraw.shape.text": 4,
 			"com.tldraw.shape.video": 4,
 			"com.tldraw.binding.arrow": 1

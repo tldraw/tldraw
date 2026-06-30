@@ -43,7 +43,7 @@
 	},
 	"dependencies": {
 		"@dimforge/rapier2d-compat": "^0.19.3",
-		"@playwright/test": "^1.58.2",
+		"@playwright/test": "^1.61.0",
 		"@tiptap/core": "^3.12.1",
 		"@tiptap/extension-font-family": "^3.12.1",
 		"@tiptap/extension-text-style": "^3.12.1",
