@@ -1,5 +1,4 @@
 /* eslint-disable tldraw/jsx-no-literals */
-import { ReactNode } from 'react'
 import { Helmet } from 'react-helmet-async'
 import 'tldraw/tldraw.css'
 import { TlaButton } from '../tla/components/TlaButton/TlaButton'

@@ -1,5 +1,4 @@
-/* eslint-disable tldraw/jsx-no-literals */
-import { ReactNode } from 'react'
+/* eslint-disable tldraw/jsx-no-literals, react/no-unescaped-entities */
 import { Helmet } from 'react-helmet-async'
 import 'tldraw/tldraw.css'
 import {
