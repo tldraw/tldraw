@@ -5897,17 +5897,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/core@npm:2.5.1, @opentelemetry/core@npm:^2.0.0":
-  version: 2.5.1
-  resolution: "@opentelemetry/core@npm:2.5.1"
-  dependencies:
-    "@opentelemetry/semantic-conventions": "npm:^1.29.0"
-  peerDependencies:
-    "@opentelemetry/api": ">=1.0.0 <1.10.0"
-  checksum: 10/35c8493d07aebfc9c7b39e487a0e55232a18ee84b2c8cfdaef0f9a3432f8e98e691f4c34548e554c0c5d45363820f20244f6cd1a6bae2bb1aeadf2cacc48f532
-  languageName: node
-  linkType: hard
-
 "@opentelemetry/core@npm:2.7.1":
   version: 2.7.1
   resolution: "@opentelemetry/core@npm:2.7.1"
@@ -5919,7 +5908,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/core@npm:2.8.0":
+"@opentelemetry/core@npm:2.8.0, @opentelemetry/core@npm:^2.0.0":
   version: 2.8.0
   resolution: "@opentelemetry/core@npm:2.8.0"
   dependencies:
@@ -6763,7 +6752,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/resources@npm:2.8.0, @opentelemetry/resources@npm:^2.7.1":
+"@opentelemetry/resources@npm:2.8.0, @opentelemetry/resources@npm:^2.0.0, @opentelemetry/resources@npm:^2.7.1":
   version: 2.8.0
   resolution: "@opentelemetry/resources@npm:2.8.0"
   dependencies:
@@ -6772,18 +6761,6 @@ __metadata:
   peerDependencies:
     "@opentelemetry/api": ">=1.3.0 <1.10.0"
   checksum: 10/e2655aef279f026da34d31fde51d414a724203b399391c96b92efbebda96ea091fe94a8ffaff70bb059b3e1f725af993d80b66da872452b51ebaa075c4099ad0
-  languageName: node
-  linkType: hard
-
-"@opentelemetry/resources@npm:^2.0.0":
-  version: 2.5.1
-  resolution: "@opentelemetry/resources@npm:2.5.1"
-  dependencies:
-    "@opentelemetry/core": "npm:2.5.1"
-    "@opentelemetry/semantic-conventions": "npm:^1.29.0"
-  peerDependencies:
-    "@opentelemetry/api": ">=1.3.0 <1.10.0"
-  checksum: 10/5a9fc07fede70eb9b72d25c654b1ab0e7133e1ed0f7940418e9e637b9298a07c7a7db38b5765d6690865aeb88934b1544631ca183e32e518fd012ca7ffa6ee87
   languageName: node
   linkType: hard
 
@@ -6912,17 +6889,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@opentelemetry/semantic-conventions@npm:^1.24.0, @opentelemetry/semantic-conventions@npm:^1.33.0, @opentelemetry/semantic-conventions@npm:^1.36.0, @opentelemetry/semantic-conventions@npm:^1.37.0, @opentelemetry/semantic-conventions@npm:^1.41.1":
+"@opentelemetry/semantic-conventions@npm:^1.24.0, @opentelemetry/semantic-conventions@npm:^1.27.0, @opentelemetry/semantic-conventions@npm:^1.29.0, @opentelemetry/semantic-conventions@npm:^1.30.0, @opentelemetry/semantic-conventions@npm:^1.33.0, @opentelemetry/semantic-conventions@npm:^1.33.1, @opentelemetry/semantic-conventions@npm:^1.34.0, @opentelemetry/semantic-conventions@npm:^1.36.0, @opentelemetry/semantic-conventions@npm:^1.37.0, @opentelemetry/semantic-conventions@npm:^1.41.1":
   version: 1.41.1
   resolution: "@opentelemetry/semantic-conventions@npm:1.41.1"
   checksum: 10/3b80fba5b0f28884326966a7b0dfc228c55698531db08834ece2c0ef7537aaaa83cba3f933731c14ffa6b0162b72cc14fee4a0ba68a1858837a590b49be23ee5
-  languageName: node
-  linkType: hard
-
-"@opentelemetry/semantic-conventions@npm:^1.27.0, @opentelemetry/semantic-conventions@npm:^1.29.0, @opentelemetry/semantic-conventions@npm:^1.30.0, @opentelemetry/semantic-conventions@npm:^1.33.1, @opentelemetry/semantic-conventions@npm:^1.34.0":
-  version: 1.40.0
-  resolution: "@opentelemetry/semantic-conventions@npm:1.40.0"
-  checksum: 10/edb58894590e42e631006a9f5741955fad248e3589aa334a5e59080c535ead44ee9f376c444ef2be094d1e6c1a2e596538c1df0a31a04508551e91b1a5d5c93c
   languageName: node
   linkType: hard
 
@@ -12433,17 +12403,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/aws-lambda@npm:^8.10.155":
+"@types/aws-lambda@npm:^8.10.155, @types/aws-lambda@npm:^8.10.83":
   version: 8.10.162
   resolution: "@types/aws-lambda@npm:8.10.162"
   checksum: 10/f952247c4edc3cf0948022a21a80ea704bb5602b620f9d15535b3cb06aaf931ae1eb87fc0708b35b71fa3035bc73bb6a7424df5a7c5197268ee0ed28b9fc30c4
-  languageName: node
-  linkType: hard
-
-"@types/aws-lambda@npm:^8.10.83":
-  version: 8.10.161
-  resolution: "@types/aws-lambda@npm:8.10.161"
-  checksum: 10/0ded8b107765dcf7f04a551d2ec174863c060d58194615cba2e85b2e0e1ba0a6e8fbdb1e2ebe33b27b42e973c5d2ae76751ac55cb61d4dead6444e6b27064c77
   languageName: node
   linkType: hard
 
@@ -25598,14 +25561,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"module-details-from-path@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "module-details-from-path@npm:1.0.3"
-  checksum: 10/f93226e9154fc8cb91f4609b639167ec7ad9155b30be4924d9717656648a3ae5f181d4e2338434d4c5afc7b5f4c10dd3b64109e5b89a4be70b20a25ba3573d54
-  languageName: node
-  linkType: hard
-
-"module-details-from-path@npm:^1.0.4":
+"module-details-from-path@npm:^1.0.3, module-details-from-path@npm:^1.0.4":
   version: 1.0.4
   resolution: "module-details-from-path@npm:1.0.4"
   checksum: 10/2ebfada5358492f6ab496b70f70a1042f2ee7a4c79d29467f59ed6704f741fb4461d7cecb5082144ed39a05fec4d19e9ff38b731c76228151be97227240a05b2
@@ -27352,13 +27308,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-cloudflare@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "pg-cloudflare@npm:1.1.1"
-  checksum: 10/45ca0c7926967ec9e66a9efc73ca57e3e933671b541bc774631a02ce683e7f658d0a4e881119b3f61486f38e344ae1b008d3a20eb5e21701c5fa8ff8382c5538
-  languageName: node
-  linkType: hard
-
 "pg-cloudflare@npm:^1.4.0":
   version: 1.4.0
   resolution: "pg-cloudflare@npm:1.4.0"
@@ -27370,13 +27319,6 @@ __metadata:
   version: 2.14.0
   resolution: "pg-connection-string@npm:2.14.0"
   checksum: 10/9434e5fbb918b9224a18ad8b739c3da83940ec95c113a0e38371dbd3e8f84c6e3cbaf4dbfaf36d02a1281b0e844af290a1bc240b8d865a98cae6864d89ee11a0
-  languageName: node
-  linkType: hard
-
-"pg-connection-string@npm:^2.7.0":
-  version: 2.7.0
-  resolution: "pg-connection-string@npm:2.7.0"
-  checksum: 10/68015a8874b7ca5dad456445e4114af3d2602bac2fdb8069315ecad0ff9660ec93259b9af7186606529ac4f6f72a06831e6f20897a689b16cc7fda7ca0e247fd
   languageName: node
   linkType: hard
 
@@ -27413,30 +27355,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-pool@npm:^3.7.1":
-  version: 3.7.1
-  resolution: "pg-pool@npm:3.7.1"
-  peerDependencies:
-    pg: ">=8.0"
-  checksum: 10/496c8eea3b66aac33e5ea4ad8d2bb2d39ef5a45ad4b3411ddc587f5fc1446bdb4a381e75846f51b9a9bf2b9ef7b8849078dc9f2b600c7d1a205df20ad71b459e
-  languageName: node
-  linkType: hard
-
-"pg-protocol@npm:*, pg-protocol@npm:^1.7.1":
-  version: 1.7.1
-  resolution: "pg-protocol@npm:1.7.1"
-  checksum: 10/5ccb6e01381261f2f4a995ccc9b135c6071ffe63c0b4bf0b6078dab2ab8567b1a5f64407a0a444ff3e4b689b9b91b2533b930f1a041afcdae8fca5345a18c30d
-  languageName: node
-  linkType: hard
-
-"pg-protocol@npm:^1.15.0":
+"pg-protocol@npm:*, pg-protocol@npm:^1.15.0":
   version: 1.15.0
   resolution: "pg-protocol@npm:1.15.0"
   checksum: 10/be9a534a45cbae8edfa1766f7ee261cb63e8bd136e0e9e216656853ae2ab6acfb281e467c7b362ac0eb5270dad146fd9a553e25ef5c425749114630b79aca8fd
   languageName: node
   linkType: hard
 
-"pg-types@npm:2.2.0, pg-types@npm:^2.1.0, pg-types@npm:^2.2.0":
+"pg-types@npm:2.2.0, pg-types@npm:^2.2.0":
   version: 2.2.0
   resolution: "pg-types@npm:2.2.0"
   dependencies:
@@ -27449,29 +27375,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg@npm:>=6.2.2":
-  version: 8.13.3
-  resolution: "pg@npm:8.13.3"
-  dependencies:
-    pg-cloudflare: "npm:^1.1.1"
-    pg-connection-string: "npm:^2.7.0"
-    pg-pool: "npm:^3.7.1"
-    pg-protocol: "npm:^1.7.1"
-    pg-types: "npm:^2.1.0"
-    pgpass: "npm:1.x"
-  peerDependencies:
-    pg-native: ">=3.0.1"
-  dependenciesMeta:
-    pg-cloudflare:
-      optional: true
-  peerDependenciesMeta:
-    pg-native:
-      optional: true
-  checksum: 10/be1be61fa46f7ccc3441794e390c41fc548f1bbee9744e3e7fae00b3d91e3974c4c51e25c1013075ec3a289d9290cd01ee926357e68ba20fcbb15308dbdef87c
-  languageName: node
-  linkType: hard
-
-"pg@npm:^8.16.3":
+"pg@npm:>=6.2.2, pg@npm:^8.16.3":
   version: 8.22.0
   resolution: "pg@npm:8.22.0"
   dependencies:
@@ -27493,7 +27397,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pgpass@npm:1.0.5, pgpass@npm:1.x":
+"pgpass@npm:1.0.5":
   version: 1.0.5
   resolution: "pgpass@npm:1.0.5"
   dependencies:
