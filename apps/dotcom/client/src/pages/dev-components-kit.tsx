@@ -6,7 +6,7 @@ import { ReactNode } from 'react'
  * family shows the same overview shape: a rendered instance, the literal props
  * that produced it, the divergence note, and where it lives.
  */
-export const Specimen = ({
+export function Specimen({
 	label,
 	code,
 	meta,
@@ -28,18 +28,20 @@ export const Specimen = ({
 	 */
 	mock?: boolean
 	children: ReactNode
-}): ReactNode => (
-	<div className="specimen">
-		<span className="specimen__badge" data-mock={mock || undefined}>
-			{mock ? 'mock' : 'live'}
-		</span>
-		<div className="specimen__stage">{children}</div>
-		<div className="specimen__label">{label}</div>
-		{code && <div className="specimen__code">{code}</div>}
-		{meta && <div className="specimen__meta">{meta}</div>}
-		{source && <div className="specimen__source">{source}</div>}
-	</div>
-)
+}): ReactNode {
+	return (
+		<div className="specimen">
+			<span className="specimen__badge" data-mock={mock || undefined}>
+				{mock ? 'mock' : 'live'}
+			</span>
+			<div className="specimen__stage">{children}</div>
+			<div className="specimen__label">{label}</div>
+			{code && <div className="specimen__code">{code}</div>}
+			{meta && <div className="specimen__meta">{meta}</div>}
+			{source && <div className="specimen__source">{source}</div>}
+		</div>
+	)
+}
 
 /** The shared card + grid styling. Append to each page's <style>. */
 export const SPECIMEN_CSS = `

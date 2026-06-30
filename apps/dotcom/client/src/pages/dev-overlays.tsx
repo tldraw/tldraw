@@ -1,4 +1,4 @@
-/* eslint-disable tldraw/jsx-no-literals */
+/* eslint-disable tldraw/jsx-no-literals, react/no-unescaped-entities */
 import { Tooltip as RadixTooltip } from 'radix-ui'
 import { ReactNode, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'

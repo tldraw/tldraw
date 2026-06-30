@@ -37,11 +37,13 @@ const Providers = ({
  * e.g. TlaMenuSelect). No editor. Use to wrap a whole page so its components
  * render live. document.body is a fine portal container for a dev page.
  */
-export const IsolationProviders = ({ children }: { children: ReactNode }): ReactNode => (
-	<Providers container={typeof document !== 'undefined' ? document.body : undefined}>
-		{children}
-	</Providers>
-)
+export function IsolationProviders({ children }: { children: ReactNode }): ReactNode {
+	return (
+		<Providers container={typeof document !== 'undefined' ? document.body : undefined}>
+			{children}
+		</Providers>
+	)
+}
 
 /**
  * Full: a minimal, empty, in-memory <Tldraw hideUi> supplying editor + container
@@ -49,7 +51,7 @@ export const IsolationProviders = ({ children }: { children: ReactNode }): React
  * TldrawUiMenu* action-dropdown system). Heavier — mounts a real editor — so use
  * only when a component needs one. Fake content, real function.
  */
-export const MinimalEditorHarness = ({
+export function MinimalEditorHarness({
 	children,
 	height = 360,
 	bare,
@@ -58,20 +60,22 @@ export const MinimalEditorHarness = ({
 	height?: number
 	/** Fill the parent with no frame — for embedding inside a card's own stage. */
 	bare?: boolean
-}): ReactNode => (
-	<div
-		style={{
-			position: 'relative',
-			height,
-			width: bare ? '100%' : undefined,
-			maxWidth: bare ? undefined : 640,
-			border: bare ? undefined : '1px solid var(--tl-color-divider)',
-			borderRadius: bare ? undefined : 8,
-			overflow: 'hidden',
-		}}
-	>
-		<Tldraw hideUi>
-			<Providers>{children}</Providers>
-		</Tldraw>
-	</div>
-)
+}): ReactNode {
+	return (
+		<div
+			style={{
+				position: 'relative',
+				height,
+				width: bare ? '100%' : undefined,
+				maxWidth: bare ? undefined : 640,
+				border: bare ? undefined : '1px solid var(--tl-color-divider)',
+				borderRadius: bare ? undefined : 8,
+				overflow: 'hidden',
+			}}
+		>
+			<Tldraw hideUi>
+				<Providers>{children}</Providers>
+			</Tldraw>
+		</div>
+	)
+}
