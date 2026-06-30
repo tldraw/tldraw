@@ -1,11 +1,11 @@
 {
-	"LTR latin measureHtml": 0.191,
-	"LTR latin geometry": 1.192,
+	"LTR latin measureHtml": 0.175,
+	"LTR latin geometry": 1.306,
 	"LTR latin resizeStep": 0.362,
-	"RTL arabic measureHtml": 0.296,
-	"RTL arabic geometry": 1.289,
+	"RTL arabic measureHtml": 0.219,
+	"RTL arabic geometry": 1.166,
 	"RTL arabic resizeStep": 0.48,
 	"italic serif measureHtml": 0.244,
 	"italic serif geometry": 1.226,
-	"italic serif resizeStep": 0.376
+	"italic serif resizeStep": 0.408
 }
