@@ -50,9 +50,10 @@ interface CpuProfile {
 // self-time spent in that category per move (ms), plus the top self-time functions. Buckets are keyed
 // off the source file/function (kept disjoint so they don't double-count). labelMeasure is the
 // geo-label measurement (the batch pre-pass + any per-shape fallback); geometry is the geo shape's
-// geometry recompute; layout is the synchronous reflow the measurement forces; react/signals are
-// render and reactivity. Reported as ms/move (not % of busy) so each number reads as the actual time
-// that category costs a resize step.
+// geometry recompute; layout is the synchronous reflow the measurement forces. Render and reactivity
+// aren't bucketed: their source names don't survive minification in the built profile, so that time
+// stays in the unbucketed remainder (still visible in `top`). Reported as ms/move (not % of busy) so
+// each number reads as the actual time that category costs a resize step.
 function summarize(profile: CpuProfile, moves: number) {
 	const byId = new Map(profile.nodes.map((nd) => [nd.id, nd]))
 	const fnKey = (nd: ProfileNode) => {
@@ -82,8 +83,6 @@ function summarize(profile: CpuProfile, moves: number) {
 		),
 		geometry: bucket(/GeoShapeUtil\.tsx|getGeometry|Geometry2d|Rectangle2d|Polygon2d/),
 		layout: bucket(/getBoundingClientRect|getClientRects|getComputedStyle|getBBox/),
-		react: bucket(/react-dom_client\.js|react_jsx|ReactElement|jsxDEV/),
-		signals: bucket(/Computed\.ts|Atom\.ts|capture\.ts|EffectScheduler|transactions\.ts/),
 	}
 	const busyUs = totalUs - idleUs
 
@@ -261,7 +260,7 @@ test.describe('geo label resize CPU profile', () => {
 		// show up in the PR diff. busyMsPerMove is the total working time per move; the buckets break
 		// it down by category, all in ms per resize move.
 		recordPerfBaseline('geo-label-resize-profile', {
-			busyMsPerMove,
+			'busy ms/move': busyMsPerMove,
 			...Object.fromEntries(Object.entries(buckets).map(([k, v]) => [`${k} ms/move`, v])),
 		})
 
