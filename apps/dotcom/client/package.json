@@ -68,7 +68,7 @@
 		"@clerk/testing": "^1.4.15",
 		"@formatjs/cli": "^6.5.1",
 		"@formatjs/unplugin": "^1.1.0",
-		"@playwright/test": "^1.58.2",
+		"@playwright/test": "^1.61.0",
 		"@sentry/cli": "^2.41.1",
 		"@tldraw/validate": "workspace:*",
 		"@types/md5": "^2.3.5",
