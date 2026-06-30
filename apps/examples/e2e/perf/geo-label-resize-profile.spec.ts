@@ -1,7 +1,7 @@
 import { writeFileSync } from 'fs'
 import test from '@playwright/test'
 import { Editor } from 'tldraw'
-import { recordPerfBaseline } from '../fixtures/perf-baseline'
+import { median, recordPerfBaseline } from '../fixtures/perf-baseline'
 import { setup } from '../shared-e2e'
 
 declare const editor: Editor
@@ -15,16 +15,19 @@ declare const editor: Editor
 // captures that whole pointer -> resize -> batch-measure -> geometry -> React pipeline so we have a
 // baseline to compare against.
 //
-// Run with `yarn e2e-perf`. It prints a self-time-by-function table plus named buckets, and writes
-// the summary (perf-<label>.json) and the raw .cpuprofile (loadable in the devtools Performance
-// panel) as test artifacts. PERF_N / PERF_MOVES / PERF_LABEL tune the run; to compare a change, run
-// it on each side (e.g. PERF_LABEL=before vs PERF_LABEL=after) and diff the summaries.
+// Run with `yarn e2e-perf`. It runs PERF_PASSES sweeps and reports the median per-bucket self-time,
+// so an outlier pass (a GC pause, a noisy frame) is dropped rather than averaged in. It writes the
+// summary (perf-<label>.json, including each pass) and the last raw .cpuprofile (loadable in the
+// devtools Performance panel) as test artifacts. PERF_N / PERF_MOVES / PERF_PASSES / PERF_LABEL tune
+// the run; to compare a change, run it on each side and diff the committed baseline.
 
 const N = Number(process.env.PERF_N || 200)
 // Fixed number of resize steps (not a fixed duration): each step fully renders before the next, so
 // before/after do identical work and the comparison isn't confounded by the faster arm doing more
 // moves in the same wall-clock window.
 const MOVES = Number(process.env.PERF_MOVES || 60)
+// Number of profiled sweeps; the committed numbers are the median across them.
+const PASSES = Number(process.env.PERF_PASSES || 5)
 const LABEL = process.env.PERF_LABEL || 'run'
 // V8 sampling interval in microseconds. Finer = better attribution at a little more overhead.
 const SAMPLE_US = Number(process.env.PERF_SAMPLE_US || 120)
@@ -41,6 +44,65 @@ interface CpuProfile {
 	timeDeltas: number[]
 	startTime: number
 	endTime: number
+}
+
+// Reduce one CPU profile to headline self-time numbers: busy ms/move, the per-bucket share of busy
+// time, and the top self-time functions. Buckets are keyed off the source file/function (kept
+// disjoint so percentages add up). labelMeasure is the geo-label measurement (the batch pre-pass +
+// any per-shape fallback); geometry is the geo shape's geometry recompute; layout is the synchronous
+// reflow the measurement forces; react/signals are render and reactivity. Percentages are of busy
+// (non-idle) time so they don't shrink as idle time varies.
+function summarize(profile: CpuProfile, moves: number) {
+	const byId = new Map(profile.nodes.map((nd) => [nd.id, nd]))
+	const fnKey = (nd: ProfileNode) => {
+		const f = nd.callFrame
+		const name = f.functionName || '(anonymous)'
+		const file = (f.url || '').split('/').pop()?.split('?')[0] || ''
+		return file ? `${name}  (${file}:${f.lineNumber + 1})` : name
+	}
+	const selfUs = new Map<string, number>()
+	let totalUs = 0
+	for (let i = 0; i < profile.samples.length; i++) {
+		const dt = profile.timeDeltas[i] || 0
+		if (dt < 0) continue
+		totalUs += dt
+		const nd = byId.get(profile.samples[i])
+		if (!nd) continue
+		const k = fnKey(nd)
+		selfUs.set(k, (selfUs.get(k) || 0) + dt)
+	}
+	const rows = [...selfUs.entries()].sort((a, b) => b[1] - a[1])
+	const bucket = (re: RegExp) => rows.filter(([k]) => re.test(k)).reduce((s, [, us]) => s + us, 0)
+
+	const idleUs = bucket(/\(idle\)|\(program\)|\(garbage/i)
+	const buckets = {
+		labelMeasure: bucket(
+			/batchMeasureGeoLabels|measureHtmlBatch|getUnscaledLabelSize|measureHtml\b|measureText\b|TextManager\.ts/
+		),
+		geometry: bucket(/GeoShapeUtil\.tsx|getGeometry|Geometry2d|Rectangle2d|Polygon2d/),
+		layout: bucket(/getBoundingClientRect|getClientRects|getComputedStyle|getBBox/),
+		react: bucket(/react-dom_client\.js|react_jsx|ReactElement|jsxDEV/),
+		signals: bucket(/Computed\.ts|Atom\.ts|capture\.ts|EffectScheduler|transactions\.ts/),
+	}
+	const busyUs = totalUs - idleUs
+
+	return {
+		moves,
+		samples: profile.samples.length,
+		wallMs: +(totalUs / 1000).toFixed(1),
+		busyMs: +(busyUs / 1000).toFixed(1),
+		idleMs: +(idleUs / 1000).toFixed(1),
+		busyMsPerMove: +(busyUs / 1000 / moves).toFixed(3),
+		busyPctOfWall: +((100 * busyUs) / totalUs).toFixed(1),
+		buckets: Object.fromEntries(
+			Object.entries(buckets).map(([k, v]) => [k, +((100 * v) / busyUs).toFixed(2)])
+		) as Record<string, number>,
+		top: rows.slice(0, 30).map(([fn, us]) => ({
+			fn,
+			ms: +(us / 1000).toFixed(1),
+			pctOfBusy: +((100 * us) / busyUs).toFixed(2),
+		})),
+	}
 }
 
 test.describe('geo label resize CPU profile', () => {
@@ -132,128 +194,88 @@ test.describe('geo label resize CPU profile', () => {
 			throw new Error(`did not grab a resize handle (editor state: ${path})`)
 		}
 
-		// 3. Profile while we sweep the handle between its start and the selection centre (plus a
+		// 3. Profile PASSES sweeps of the handle between its start and the selection centre (plus a
 		//    wobble). Each step moves the handle then waits for the resulting resize to render, so a
-		//    "move" is one full pointer -> resize -> batch-measure -> re-render cycle.
+		//    "move" is one full pointer -> resize -> batch-measure -> re-render cycle. Holding the
+		//    press across all passes keeps the interaction state; we median the passes below.
 		const client = await page.context().newCDPSession(page)
 		await client.send('Profiler.enable')
 		await client.send('Profiler.setSamplingInterval', { interval: SAMPLE_US })
-		await client.send('Profiler.start')
 
 		const { corner, center, viewport } = info
 		const clamp = (v: number, hi: number) => Math.max(6, Math.min(hi - 6, v))
+
+		const summaries: ReturnType<typeof summarize>[] = []
+		let lastProfile: CpuProfile | undefined
 		let moves = 0
-		for (let m = 0; m < MOVES; m++) {
-			const t = m / 6 // pseudo-seconds, deterministic across runs
-			const u = (Math.sin(t * Math.PI) + 1) / 2 // 0..1 at 0.5 Hz
-			const x = corner.x + (center.x - corner.x) * u * 0.85 + Math.sin(t * 7) * 28
-			const y = corner.y + (center.y - corner.y) * u * 0.85 + Math.cos(t * 6) * 28
-			await page.mouse.move(clamp(x, viewport.w), clamp(y, viewport.h))
-			moves++
-			// Let this resize fully commit before the next step (self-paces to the frame cost).
-			await page.evaluate(
-				() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
-			)
+		for (let p = 0; p < PASSES; p++) {
+			await client.send('Profiler.start')
+			let passMoves = 0
+			for (let m = 0; m < MOVES; m++) {
+				const t = m / 6 // pseudo-seconds, deterministic across runs
+				const u = (Math.sin(t * Math.PI) + 1) / 2 // 0..1 at 0.5 Hz
+				const x = corner.x + (center.x - corner.x) * u * 0.85 + Math.sin(t * 7) * 28
+				const y = corner.y + (center.y - corner.y) * u * 0.85 + Math.cos(t * 6) * 28
+				await page.mouse.move(clamp(x, viewport.w), clamp(y, viewport.h))
+				passMoves++
+				// Let this resize fully commit before the next step (self-paces to the frame cost).
+				await page.evaluate(
+					() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+				)
+			}
+			const { profile } = (await client.send('Profiler.stop')) as { profile: CpuProfile }
+			lastProfile = profile
+			moves = passMoves
+			summaries.push(summarize(profile, passMoves))
 		}
 		await page.mouse.up()
-
-		const { profile } = (await client.send('Profiler.stop')) as { profile: CpuProfile }
 		await client.detach()
 
-		// 4. Attribute each sample's elapsed time to the function it was executing (self time).
-		const byId = new Map(profile.nodes.map((nd) => [nd.id, nd]))
-		const fnKey = (nd: ProfileNode) => {
-			const f = nd.callFrame
-			const name = f.functionName || '(anonymous)'
-			const file = (f.url || '').split('/').pop()?.split('?')[0] || ''
-			return file ? `${name}  (${file}:${f.lineNumber + 1})` : name
-		}
-		const selfUs = new Map<string, number>()
-		let totalUs = 0
-		for (let i = 0; i < profile.samples.length; i++) {
-			const dt = profile.timeDeltas[i] || 0
-			if (dt < 0) continue
-			totalUs += dt
-			const nd = byId.get(profile.samples[i])
-			if (!nd) continue
-			const k = fnKey(nd)
-			selfUs.set(k, (selfUs.get(k) || 0) + dt)
-		}
-		const rows = [...selfUs.entries()].sort((a, b) => b[1] - a[1])
-		const ms = (us: number) => +(us / 1000).toFixed(1)
-		const pct = (us: number) => +((100 * us) / totalUs).toFixed(1)
-		const bucket = (re: RegExp) => rows.filter(([k]) => re.test(k)).reduce((s, [, us]) => s + us, 0)
+		// 4. Median the headline self-time numbers across passes (full precision, no lossy rounding).
+		const busyMsPerMove = +median(summaries.map((s) => s.busyMsPerMove)).toFixed(3)
+		const bucketNames = Object.keys(summaries[0].buckets)
+		const buckets = Object.fromEntries(
+			bucketNames.map((n) => [n, +median(summaries.map((s) => s.buckets[n])).toFixed(2)])
+		) as Record<string, number>
 
-		const idleUs = bucket(/\(idle\)|\(program\)|\(garbage/i)
-		// Buckets are keyed off the source file/function (kept disjoint so percentages add up).
-		// labelMeasure is the geo-label measurement (the batch pre-pass + any per-shape fallback);
-		// geometry is the geo shape's geometry recompute; layout is the synchronous reflow the
-		// measurement forces; react/signals are the render/reactivity cost.
-		const buckets = {
-			labelMeasure: bucket(
-				/batchMeasureGeoLabels|measureHtmlBatch|getUnscaledLabelSize|measureHtml\b|measureText\b|TextManager\.ts/
-			),
-			geometry: bucket(/GeoShapeUtil\.tsx|getGeometry|Geometry2d|Rectangle2d|Polygon2d/),
-			layout: bucket(/getBoundingClientRect|getClientRects|getComputedStyle|getBBox/),
-			react: bucket(/react-dom_client\.js|react_jsx|ReactElement|jsxDEV/),
-			signals: bucket(/Computed\.ts|Atom\.ts|capture\.ts|EffectScheduler|transactions\.ts/),
-		}
-
-		const busyUs = totalUs - idleUs
-		const summary = {
+		// Write the median headline plus each pass, and the last raw profile (loadable in the devtools
+		// "Performance" panel), next to the other test artifacts, so a CI run keeps them without
+		// cluttering the repo or /tmp.
+		const last = summaries[summaries.length - 1]
+		const artifact = {
 			label: LABEL,
 			shapes: N,
+			passes: PASSES,
 			moves,
 			sampleUs: SAMPLE_US,
-			samples: profile.samples.length,
-			wallMs: ms(totalUs),
-			busyMs: ms(busyUs),
-			busyMsPerMove: +(busyUs / 1000 / moves).toFixed(2),
-			idleMs: ms(idleUs),
-			busyPctOfWall: pct(busyUs),
-			bucketsMs: Object.fromEntries(
-				Object.entries(buckets).map(([k, v]) => [
-					k,
-					{ ms: ms(v), pctOfBusy: +((100 * v) / (totalUs - idleUs)).toFixed(1) },
-				])
-			),
-			top: rows.slice(0, 30).map(([fn, us]) => ({
-				fn,
-				ms: ms(us),
-				pctOfBusy: +((100 * us) / (totalUs - idleUs)).toFixed(1),
-			})),
+			busyMsPerMove,
+			buckets,
+			perPass: summaries.map((s) => ({ busyMsPerMove: s.busyMsPerMove, buckets: s.buckets })),
+			top: last.top,
 		}
+		writeFileSync(testInfo.outputPath(`perf-${LABEL}.json`), JSON.stringify(artifact, null, 2))
+		writeFileSync(testInfo.outputPath(`perf-${LABEL}.cpuprofile`), JSON.stringify(lastProfile))
 
-		// Write the summary and the raw profile (loadable in the devtools "Performance" panel) next to
-		// the other test artifacts, so a CI run keeps them without cluttering the repo or /tmp.
-		writeFileSync(testInfo.outputPath(`perf-${LABEL}.json`), JSON.stringify(summary, null, 2))
-		writeFileSync(testInfo.outputPath(`perf-${LABEL}.cpuprofile`), JSON.stringify(profile))
-
-		// Record the headline numbers against a committed baseline so a change's cost/savings show up
-		// in the PR diff. Bucket %s are the stable signal; busyMsPerMove is the rough magnitude.
+		// Record the median headline numbers against a committed baseline so a change's cost/savings
+		// show up in the PR diff. Bucket %s are the stable signal; busyMsPerMove is the rough magnitude.
 		recordPerfBaseline('geo-label-resize-profile', {
-			busyMsPerMove: summary.busyMsPerMove,
-			...Object.fromEntries(
-				Object.entries(summary.bucketsMs).map(([k, v]) => [`${k} %busy`, v.pctOfBusy])
-			),
+			busyMsPerMove,
+			...Object.fromEntries(Object.entries(buckets).map(([k, v]) => [`${k} %busy`, v])),
 		})
 
-		const tbl = summary.top
+		const bkt = Object.entries(buckets)
+			.map(([k, v]) => `  ${k.padEnd(12)} ${String(v).padStart(6)}% of busy (median)`)
+			.join('\n')
+		const tbl = last.top
 			.slice(0, 22)
 			.map((r) => `  ${String(r.ms).padStart(7)}ms ${String(r.pctOfBusy).padStart(5)}%  ${r.fn}`)
-			.join('\n')
-		const bkt = Object.entries(summary.bucketsMs)
-			.map(
-				([k, v]) =>
-					`  ${k.padEnd(12)} ${String(v.ms).padStart(7)}ms ${String(v.pctOfBusy).padStart(5)}% of busy`
-			)
 			.join('\n')
 		// eslint-disable-next-line no-console
 		console.log(
 			`\n=== geo label resize profile [${LABEL}] ===\n` +
-				`shapes=${N} moves=${moves} busy=${summary.busyMs}ms (${summary.busyMsPerMove}ms/move, ${summary.busyPctOfWall}% of wall) idle=${summary.idleMs}ms\n` +
-				`buckets (self time):\n${bkt}\n` +
-				`top functions by self time:\n${tbl}\n`
+				`shapes=${N} passes=${PASSES} moves=${moves}/pass  median busy=${busyMsPerMove}ms/move\n` +
+				`buckets (median % of busy):\n${bkt}\n` +
+				`top functions by self time (last pass):\n${tbl}\n`
 		)
 	})
 })

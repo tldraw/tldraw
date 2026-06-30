@@ -23,10 +23,10 @@ interface Bench {
 }
 
 // The committed number is the median across PASSES passes, so a single slow pass (a GC pause, a
-// noisy CI neighbour) is dropped rather than averaged in. Split so total work — and CI time — stays
-// about the same as one 200-iteration pass.
-const ITERATIONS = 40
-const PASSES = 5
+// noisy CI neighbour) is dropped rather than averaged into one mean. More passes make the median
+// steadier; each pass times ITERATIONS ops so its per-op mean has enough resolution.
+const ITERATIONS = 100
+const PASSES = 9
 
 test.describe('text measurement performance', () => {
 	test.beforeEach(setup)
