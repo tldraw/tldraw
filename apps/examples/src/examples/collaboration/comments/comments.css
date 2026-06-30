@@ -1,0 +1,328 @@
+/* All colors come from tldraw's design tokens so the UI adapts to light/dark. */
+
+.tlcomments-layer {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
+/* Full-canvas catcher: clicking the canvas dismisses the open thread. */
+.tlcomments-backdrop {
+	position: absolute;
+	inset: 0;
+	pointer-events: all;
+}
+
+/* Pin — a teardrop pointing at its anchor (bottom-left corner) */
+.tlcomments-pin {
+	position: absolute;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 2px solid var(--tl-color-panel);
+	border-radius: 50% 50% 50% 2px;
+	background-color: var(--tl-color-selected);
+	cursor: pointer;
+	box-shadow: var(--tl-shadow-2);
+	pointer-events: all;
+	transform: translateY(-100%);
+	transition: transform 0.1s ease;
+}
+.tlcomments-pin:hover,
+.tlcomments-pin--active {
+	transform: translateY(-100%) scale(1.05);
+}
+
+/* Shared panel surface (preview + popover + toast) */
+.tlcomments-panel {
+	position: absolute;
+	background-color: var(--tl-color-panel);
+	color: var(--tl-color-text);
+	border-radius: var(--tl-radius-3);
+	box-shadow: var(--tl-shadow-2);
+	pointer-events: all;
+	font-family: var(--tl-font-sans);
+	font-weight: 400;
+	font-size: 13px;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	animation: tl-fade-in 0.12s ease-out;
+}
+
+/* Hover preview — non-interactive peek */
+.tlcomments-preview {
+	width: 250px;
+	padding: var(--tl-space-3);
+	pointer-events: none;
+}
+
+.tlcomments-popover {
+	width: 288px;
+}
+
+/* Header */
+.tlcomments-header {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-2);
+	padding: var(--tl-space-3) var(--tl-space-4) var(--tl-space-1);
+}
+.tlcomments-title {
+	font-weight: 600;
+	flex: 1;
+}
+
+/* Round icon button */
+.tlcomments-iconbtn {
+	flex-shrink: 0;
+	width: 26px;
+	height: 26px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	border-radius: var(--tl-radius-2);
+	background: transparent;
+	color: var(--tl-color-text-3);
+	cursor: pointer;
+	padding: 0;
+}
+.tlcomments-iconbtn:hover {
+	background-color: var(--tl-color-muted-2);
+	color: var(--tl-color-text);
+}
+.tlcomments-iconbtn svg {
+	width: 17px;
+	height: 17px;
+}
+
+/* Messages */
+.tlcomments-messages {
+	max-height: 280px;
+	overflow-y: auto;
+	padding: var(--tl-space-2) var(--tl-space-4) var(--tl-space-3);
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-4);
+}
+.tlcomments-msg {
+	display: flex;
+	gap: var(--tl-space-3);
+	align-items: flex-start;
+}
+.tlcomments-avatar {
+	flex-shrink: 0;
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--tl-color-selected-contrast);
+}
+.tlcomments-msg-body {
+	min-width: 0;
+	flex: 1;
+}
+.tlcomments-msg-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-height: 26px;
+}
+.tlcomments-author {
+	font-weight: 600;
+	line-height: 1.2;
+}
+.tlcomments-time {
+	color: var(--tl-color-text-3);
+	font-size: 11px;
+	line-height: 1.2;
+}
+.tlcomments-edited {
+	color: var(--tl-color-text-3);
+	font-size: 11px;
+	line-height: 1.2;
+}
+.tlcomments-head-spacer {
+	flex: 1;
+}
+.tlcomments-msg .tlcomments-iconbtn {
+	opacity: 0;
+}
+.tlcomments-msg:hover .tlcomments-iconbtn {
+	opacity: 1;
+}
+.tlcomments-text {
+	font-weight: 400;
+	line-height: 1.35;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+/* Composer — input and send button on one centered row */
+.tlcomments-composer {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-2);
+	min-height: 32px;
+	box-sizing: border-box;
+	padding: var(--tl-space-2) var(--tl-space-3) var(--tl-space-2) var(--tl-space-4);
+}
+.tlcomments-textarea {
+	flex: 1;
+	border: none;
+	outline: none;
+	resize: none;
+	background: transparent;
+	color: var(--tl-color-text);
+	font-family: inherit;
+	font-weight: 400;
+	font-size: 13px;
+	line-height: 1.4;
+	padding: var(--tl-space-1) 0;
+	max-height: 120px;
+}
+.tlcomments-textarea::placeholder {
+	color: var(--tl-color-text-3);
+}
+.tlcomments-composer .tlcomments-btn {
+	flex-shrink: 0;
+}
+
+/* "..." dropdown menu (positioned with fixed coords so it escapes panel clipping) */
+.tlcomments-menu-backdrop {
+	position: fixed;
+	inset: 0;
+	pointer-events: all;
+	z-index: 1;
+}
+.tlcomments-menu {
+	position: fixed;
+	transform: translateX(-100%);
+	min-width: 112px;
+	background-color: var(--tl-color-panel);
+	border-radius: var(--tl-radius-2);
+	box-shadow: var(--tl-shadow-2);
+	padding: var(--tl-space-1);
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	font-family: var(--tl-font-sans);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+.tlcomments-menu-item {
+	text-align: left;
+	border: none;
+	background: transparent;
+	color: var(--tl-color-text);
+	font-family: inherit;
+	font-size: 13px;
+	line-height: 1.2;
+	padding: var(--tl-space-2) var(--tl-space-3);
+	border-radius: var(--tl-radius-1);
+	cursor: pointer;
+}
+.tlcomments-menu-item:hover {
+	background-color: var(--tl-color-muted-2);
+}
+
+/* Inline message editor — minimal: subtle field + text buttons */
+.tlcomments-edit {
+	margin-top: var(--tl-space-1);
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-2);
+}
+.tlcomments-edit-textarea {
+	border: none;
+	outline: none;
+	resize: none;
+	background-color: var(--tl-color-muted-2);
+	color: var(--tl-color-text);
+	font-family: inherit;
+	font-weight: 400;
+	font-size: 13px;
+	line-height: 1.4;
+	padding: var(--tl-space-2) var(--tl-space-3);
+	border-radius: var(--tl-radius-2);
+}
+.tlcomments-edit-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--tl-space-1);
+}
+.tlcomments-btn {
+	border: none;
+	background: transparent;
+	color: var(--tl-color-text-3);
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: 500;
+	padding: 3px 8px;
+	border-radius: var(--tl-radius-2);
+	cursor: pointer;
+}
+.tlcomments-btn:hover {
+	background-color: var(--tl-color-muted-2);
+	color: var(--tl-color-text);
+}
+.tlcomments-btn:disabled {
+	opacity: 0.4;
+	cursor: default;
+	background: transparent;
+}
+.tlcomments-btn--primary {
+	color: var(--tl-color-selected);
+}
+.tlcomments-btn--primary:hover {
+	background-color: var(--tl-color-muted-2);
+	color: var(--tl-color-selected);
+}
+
+/* Toast (custom, so it carries just an Undo action) */
+.tlcomments-toast {
+	position: absolute;
+	left: 50%;
+	bottom: 88px;
+	transform: translateX(-50%);
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-3);
+	padding: var(--tl-space-3) var(--tl-space-4);
+	background-color: var(--tl-color-panel);
+	color: var(--tl-color-text);
+	border-radius: var(--tl-radius-3);
+	box-shadow: var(--tl-shadow-2);
+	font-family: var(--tl-font-sans);
+	font-weight: 400;
+	font-size: 13px;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	pointer-events: all;
+}
+.tlcomments-toast-title {
+	font-weight: 400;
+	line-height: 1.2;
+}
+.tlcomments-toast-undo {
+	border: none;
+	background: transparent;
+	color: var(--tl-color-selected);
+	font-family: inherit;
+	font-weight: 500;
+	font-size: 13px;
+	line-height: 1.2;
+	cursor: pointer;
+	padding: var(--tl-space-1) var(--tl-space-2);
+	border-radius: var(--tl-radius-1);
+}
+.tlcomments-toast-undo:hover {
+	background-color: var(--tl-color-muted-2);
+}
