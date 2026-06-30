@@ -115,7 +115,6 @@ export function Component() {
 						&ldquo;leave it alone&rdquo; verdict the menus and icons pages reached.
 					</div>
 				</section>
-
 			</div>
 		</div>
 	)

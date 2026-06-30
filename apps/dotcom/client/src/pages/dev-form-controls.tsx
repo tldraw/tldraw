@@ -42,135 +42,173 @@ export function Component() {
 			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
 			<IsolationProviders>
-			<div className="page">
-				<DevComponentsNav />
-				<header className="page__header">
-					<h1 className="page__title">Form controls</h1>
-					<p className="page__lede">
-						The settings-panel controls from <code>tla-menu</code> — Switch, Select, Tabs, and the
-						labeled Control row. These live inside the share menu and settings dialogs (the
-						&ldquo;panel&rdquo; half of the <a href="/dev/components/menus">menus</a> story), shown
-						here with their props and states.
-					</p>
-				</header>
+				<div className="page">
+					<DevComponentsNav />
+					<header className="page__header">
+						<h1 className="page__title">Form controls</h1>
+						<p className="page__lede">
+							The settings-panel controls from <code>tla-menu</code> — Switch, Select, Tabs, and the
+							labeled Control row. These live inside the share menu and settings dialogs (the
+							&ldquo;panel&rdquo; half of the <a href="/dev/components/menus">menus</a> story),
+							shown here with their props and states.
+						</p>
+					</header>
 
-				<section className="section">
-					<h2 className="section__title">TlaMenuSwitch — all states (live)</h2>
-					<p className="section__note">
-						Props: <code>id · checked · onChange · disabled</code>. A native{' '}
-						<code>checkbox</code> with <code>role="switch"</code>, styled.
-					</p>
-					<div className="grid">
-						<Specimen label="checked" code={`checked`} meta="role=switch" source="tla-menu.tsx:243">
-							<TlaMenuSwitch id="fc-on" checked onChange={() => {}} />
-						</Specimen>
-						<Specimen label="unchecked" code={`checked={false}`} meta="role=switch" source="tla-menu.tsx:243">
-							<TlaMenuSwitch id="fc-off" checked={false} onChange={() => {}} />
-						</Specimen>
-						<Specimen label="disabled" code={`disabled`} meta="non-interactive" source="tla-menu.tsx:243">
-							<TlaMenuSwitch id="fc-dis" checked disabled onChange={() => {}} />
-						</Specimen>
-					</div>
-				</section>
+					<section className="section">
+						<h2 className="section__title">TlaMenuSwitch — all states (live)</h2>
+						<p className="section__note">
+							Props: <code>id · checked · onChange · disabled</code>. A native <code>checkbox</code>{' '}
+							with <code>role="switch"</code>, styled.
+						</p>
+						<div className="grid">
+							<Specimen
+								label="checked"
+								code={`checked`}
+								meta="role=switch"
+								source="tla-menu.tsx:243"
+							>
+								<TlaMenuSwitch id="fc-on" checked onChange={() => {}} />
+							</Specimen>
+							<Specimen
+								label="unchecked"
+								code={`checked={false}`}
+								meta="role=switch"
+								source="tla-menu.tsx:243"
+							>
+								<TlaMenuSwitch id="fc-off" checked={false} onChange={() => {}} />
+							</Specimen>
+							<Specimen
+								label="disabled"
+								code={`disabled`}
+								meta="non-interactive"
+								source="tla-menu.tsx:243"
+							>
+								<TlaMenuSwitch id="fc-dis" checked disabled onChange={() => {}} />
+							</Specimen>
+						</div>
+					</section>
 
-				<section className="section">
-					<h2 className="section__title">TlaMenuSelect — live</h2>
-					<p className="section__note">
-						A generic <code>TlaMenuSelect&lt;T&gt;</code> over a Radix Select. Notable: an{' '}
-						<code>actions</code> slot for a destructive option below the choices. Rendered live — it
-						needs a container element for its portal, which the page&rsquo;s providers supply.
-					</p>
-					<div className="grid">
-						<Specimen
-							label="TlaMenuSelect"
-							code={`label · value · options[] · onChange`}
-							meta="generic <T> · Radix Select · ×4"
-							source="tla-menu.tsx:119"
-						>
-							<TlaMenuSelect
-								id="fc-select"
-								label="Access"
-								value="editor"
-								onChange={() => {}}
-								options={[
-									{ value: 'editor', label: 'Can edit' },
-									{ value: 'viewer', label: 'Can view' },
-								]}
-							/>
-						</Specimen>
-						<Specimen
-							label="with actions"
-							code={`actions={[{ label: 'Remove', onSelect }]}`}
-							meta="destructive action below options"
-							source="tla-menu.tsx:119"
-						>
-							<TlaMenuSelect
-								id="fc-select-actions"
-								label="Member"
-								value="editor"
-								onChange={() => {}}
-								options={[
-									{ value: 'editor', label: 'Can edit' },
-									{ value: 'viewer', label: 'Can view' },
-								]}
-								actions={[
-									{ id: 'remove', label: 'Remove member', onSelect: () => {}, destructive: true },
-								]}
-							/>
-						</Specimen>
-					</div>
-				</section>
+					<section className="section">
+						<h2 className="section__title">TlaMenuSelect — live</h2>
+						<p className="section__note">
+							A generic <code>TlaMenuSelect&lt;T&gt;</code> over a Radix Select. Notable: an{' '}
+							<code>actions</code> slot for a destructive option below the choices. Rendered live —
+							it needs a container element for its portal, which the page&rsquo;s providers supply.
+						</p>
+						<div className="grid">
+							<Specimen
+								label="TlaMenuSelect"
+								code={`label · value · options[] · onChange`}
+								meta="generic <T> · Radix Select · ×4"
+								source="tla-menu.tsx:119"
+							>
+								<TlaMenuSelect
+									id="fc-select"
+									label="Access"
+									value="editor"
+									onChange={() => {}}
+									options={[
+										{ value: 'editor', label: 'Can edit' },
+										{ value: 'viewer', label: 'Can view' },
+									]}
+								/>
+							</Specimen>
+							<Specimen
+								label="with actions"
+								code={`actions={[{ label: 'Remove', onSelect }]}`}
+								meta="destructive action below options"
+								source="tla-menu.tsx:119"
+							>
+								<TlaMenuSelect
+									id="fc-select-actions"
+									label="Member"
+									value="editor"
+									onChange={() => {}}
+									options={[
+										{ value: 'editor', label: 'Can edit' },
+										{ value: 'viewer', label: 'Can view' },
+									]}
+									actions={[
+										{ id: 'remove', label: 'Remove member', onSelect: () => {}, destructive: true },
+									]}
+								/>
+							</Specimen>
+						</div>
+					</section>
 
-				<section className="section">
-					<h2 className="section__title">TlaMenuTabs — Root / Tabs / Tab / Page (live)</h2>
-					<p className="section__note">
-						ARIA tabs (<code>role=tablist / tab / tabpanel</code>). The share menu&rsquo;s
-						Invite / Export / Publish tabs, rendered with the real components (Invite active).
-					</p>
-					<div className="grid">
-						<Specimen
-							label="TlaMenuTabs"
-							code={`<Root activeTab><Tabs><Tab id>`}
-							meta="role=tablist · Invite active"
-							source="tla-menu.tsx:296"
-						>
-							<TlaMenuTabsRoot activeTab="invite" onTabChange={() => {}}>
-								<TlaMenuTabsTabs>
-									<TlaMenuTabsTab id="invite">Invite</TlaMenuTabsTab>
-									<TlaMenuTabsTab id="export">Export</TlaMenuTabsTab>
-									<TlaMenuTabsTab id="publish">Publish</TlaMenuTabsTab>
-								</TlaMenuTabsTabs>
-							</TlaMenuTabsRoot>
-						</Specimen>
-					</div>
-				</section>
+					<section className="section">
+						<h2 className="section__title">TlaMenuTabs — Root / Tabs / Tab / Page (live)</h2>
+						<p className="section__note">
+							ARIA tabs (<code>role=tablist / tab / tabpanel</code>). The share menu&rsquo;s Invite
+							/ Export / Publish tabs, rendered with the real components (Invite active).
+						</p>
+						<div className="grid">
+							<Specimen
+								label="TlaMenuTabs"
+								code={`<Root activeTab><Tabs><Tab id>`}
+								meta="role=tablist · Invite active"
+								source="tla-menu.tsx:296"
+							>
+								<TlaMenuTabsRoot activeTab="invite" onTabChange={() => {}}>
+									<TlaMenuTabsTabs>
+										<TlaMenuTabsTab id="invite">Invite</TlaMenuTabsTab>
+										<TlaMenuTabsTab id="export">Export</TlaMenuTabsTab>
+										<TlaMenuTabsTab id="publish">Publish</TlaMenuTabsTab>
+									</TlaMenuTabsTabs>
+								</TlaMenuTabsRoot>
+							</Specimen>
+						</div>
+					</section>
 
-				<section className="section">
-					<h2 className="section__title">Control rows — Control / Label / InfoTooltip / Detail</h2>
-					<p className="section__note">
-						The layout pieces that hold a control: a label, an optional info tooltip, and detail
-						text.
-					</p>
-					<div className="grid">
-						<Specimen label="TlaMenuControl" code={`<TlaMenuControl>`} meta="labeled row · ×10" source="tla-menu.tsx:43">
-							<TlaMenuControl className="fcWide">
-								<TlaMenuControlLabel htmlFor="fc-ctrl">Share this file</TlaMenuControlLabel>
-								<TlaMenuSwitch id="fc-ctrl" checked onChange={() => {}} />
-							</TlaMenuControl>
-						</Specimen>
-						<Specimen label="TlaMenuControlLabel" code={`<TlaMenuControlLabel>`} meta="control label · ×10" source="tla-menu.tsx:96">
-							<TlaMenuControlLabel htmlFor="fc-lbl">Label text</TlaMenuControlLabel>
-						</Specimen>
-						<Specimen label="TlaMenuControlInfoTooltip" code={`<TlaMenuControlInfoTooltip>`} meta="info icon · tooltip on hover" source="tla-menu.tsx:60">
-							<TlaMenuControlInfoTooltip>More information about this setting</TlaMenuControlInfoTooltip>
-						</Specimen>
-						<Specimen label="TlaMenuDetail" code={`<TlaMenuDetail>`} meta="detail text · ×1" source="tla-menu.tsx:111">
-							<TlaMenuDetail>Supporting detail copy</TlaMenuDetail>
-						</Specimen>
-					</div>
-				</section>
-
-			</div>
+					<section className="section">
+						<h2 className="section__title">
+							Control rows — Control / Label / InfoTooltip / Detail
+						</h2>
+						<p className="section__note">
+							The layout pieces that hold a control: a label, an optional info tooltip, and detail
+							text.
+						</p>
+						<div className="grid">
+							<Specimen
+								label="TlaMenuControl"
+								code={`<TlaMenuControl>`}
+								meta="labeled row · ×10"
+								source="tla-menu.tsx:43"
+							>
+								<TlaMenuControl className="fcWide">
+									<TlaMenuControlLabel htmlFor="fc-ctrl">Share this file</TlaMenuControlLabel>
+									<TlaMenuSwitch id="fc-ctrl" checked onChange={() => {}} />
+								</TlaMenuControl>
+							</Specimen>
+							<Specimen
+								label="TlaMenuControlLabel"
+								code={`<TlaMenuControlLabel>`}
+								meta="control label · ×10"
+								source="tla-menu.tsx:96"
+							>
+								<TlaMenuControlLabel htmlFor="fc-lbl">Label text</TlaMenuControlLabel>
+							</Specimen>
+							<Specimen
+								label="TlaMenuControlInfoTooltip"
+								code={`<TlaMenuControlInfoTooltip>`}
+								meta="info icon · tooltip on hover"
+								source="tla-menu.tsx:60"
+							>
+								<TlaMenuControlInfoTooltip>
+									More information about this setting
+								</TlaMenuControlInfoTooltip>
+							</Specimen>
+							<Specimen
+								label="TlaMenuDetail"
+								code={`<TlaMenuDetail>`}
+								meta="detail text · ×1"
+								source="tla-menu.tsx:111"
+							>
+								<TlaMenuDetail>Supporting detail copy</TlaMenuDetail>
+							</Specimen>
+						</div>
+					</section>
+				</div>
 			</IsolationProviders>
 		</div>
 	)
