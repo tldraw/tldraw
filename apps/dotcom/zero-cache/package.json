@@ -32,7 +32,7 @@
 	"dependencies": {
 		"@rocicorp/zero": "1.7.0",
 		"kysely": "^0.28.12",
-		"pg": "^8.13.1"
+		"pg": "^8.16.3"
 	},
 	"devDependencies": {
 		"concurrently": "^9.1.2",
