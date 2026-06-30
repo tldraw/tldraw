@@ -15,6 +15,66 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/admin/?$",
   },
   {
+    "reactRouterPattern": "/dev/components/buttons",
+    "vercelRouterPattern": "^/dev/components/buttons/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/dialogs",
+    "vercelRouterPattern": "^/dev/components/dialogs/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/editor",
+    "vercelRouterPattern": "^/dev/components/editor/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/form-controls",
+    "vercelRouterPattern": "^/dev/components/form-controls/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/icons",
+    "vercelRouterPattern": "^/dev/components/icons/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/inputs",
+    "vercelRouterPattern": "^/dev/components/inputs/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/links",
+    "vercelRouterPattern": "^/dev/components/links/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/logo",
+    "vercelRouterPattern": "^/dev/components/logo/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/menus",
+    "vercelRouterPattern": "^/dev/components/menus/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/overlays",
+    "vercelRouterPattern": "^/dev/components/overlays/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/presence",
+    "vercelRouterPattern": "^/dev/components/presence/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/sidebar",
+    "vercelRouterPattern": "^/dev/components/sidebar/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/states",
+    "vercelRouterPattern": "^/dev/components/states/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/components/typography",
+    "vercelRouterPattern": "^/dev/components/typography/?$",
+  },
+  {
+    "reactRouterPattern": "/dev/reset-local-state",
+    "vercelRouterPattern": "^/dev/reset-local-state/?$",
+  },
+  {
     "reactRouterPattern": "/f/:fileSlug",
     "vercelRouterPattern": "^/f/[^/]*/?$",
   },
