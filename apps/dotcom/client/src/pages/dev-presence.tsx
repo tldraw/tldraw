@@ -127,9 +127,9 @@ export function Component() {
 					<h2 className="section__title">Live presence — fake collaborators, real UI</h2>
 					<p className="section__note">
 						No multiplayer session. Each card is a minimal editor with three fake{' '}
-						<code>instance_presence</code> records (<code>lastActivityTimestamp: null</code> = always
-						active); the real SDK presence components then render from that data. Real UI — only the
-						collaborators are fake.
+						<code>instance_presence</code> records (<code>lastActivityTimestamp: null</code> =
+						always active); the real SDK presence components then render from that data. Real UI —
+						only the collaborators are fake.
 					</p>
 					<div className="grid">
 						<Specimen
@@ -157,7 +157,11 @@ export function Component() {
 							source="TldrawUiSharePanel"
 						>
 							<PresenceCard>
-								<DefaultPeopleMenuFacePile userIds={COLLAB_IDS} userName="You" userColor="#6c71c4" />
+								<DefaultPeopleMenuFacePile
+									userIds={COLLAB_IDS}
+									userName="You"
+									userColor="#6c71c4"
+								/>
 							</PresenceCard>
 						</Specimen>
 						<Specimen

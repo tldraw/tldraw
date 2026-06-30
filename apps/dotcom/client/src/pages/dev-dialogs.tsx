@@ -205,16 +205,12 @@ export function Component() {
 						<h2 className="section__title">The dialogs — all {DIALOGS.length}, each live</h2>
 						<p className="section__note">
 							Every dialog, rendered as a real non-modal <code>TldrawUiDialog</code> titled with its
-							component name. <code>maxWidth</code> in the meta. One is bespoke (not a TldrawUiDialog).
+							component name. <code>maxWidth</code> in the meta. One is bespoke (not a
+							TldrawUiDialog).
 						</p>
 						<div className="grid grid--dialogs">
 							{DIALOGS.map((r) => (
-								<Specimen
-									key={r[0]}
-									label={r[0]}
-									code={r[1]}
-									meta={`maxWidth ${r[2]} · ${r[3]}`}
-								>
+								<Specimen key={r[0]} label={r[0]} code={r[1]} meta={`maxWidth ${r[2]} · ${r[3]}`}>
 									<DialogCard name={r[0]} mechanism={r[1]} purpose={r[3]} />
 								</Specimen>
 							))}

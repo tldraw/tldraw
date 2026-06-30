@@ -37,177 +37,176 @@ export function Component() {
 			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
 			<TldrawUiContextProvider forceMobile={false}>
-			<div className="page">
-				<DevComponentsNav />
-				<header className="page__header">
-					<h1 className="page__title">Icon inventory</h1>
-					<p className="page__lede">
-						Three ways to render an icon — competing implementations, the same divergence mode as
-						buttons. <code>TlaIcon</code> and <code>TldrawUiIcon</code> are both CSS-mask icons, yet
-						they can&rsquo;t share icons: different sprite sources, different contexts.
-					</p>
-				</header>
+				<div className="page">
+					<DevComponentsNav />
+					<header className="page__header">
+						<h1 className="page__title">Icon inventory</h1>
+						<p className="page__lede">
+							Three ways to render an icon — competing implementations, the same divergence mode as
+							buttons. <code>TlaIcon</code> and <code>TldrawUiIcon</code> are both CSS-mask icons,
+							yet they can&rsquo;t share icons: different sprite sources, different contexts.
+						</p>
+					</header>
 
-				<section className="section">
-					<h2 className="section__title">Usage</h2>
-					<div className="stats">
-						<Stat n="28" label="TlaIcon (dotcom sprite)" />
-						<Stat n="6" label="TldrawUiIcon (SDK)" />
-						<Stat n="1" label="inline <svg>" />
-					</div>
-				</section>
+					<section className="section">
+						<h2 className="section__title">Usage</h2>
+						<div className="stats">
+							<Stat n="28" label="TlaIcon (dotcom sprite)" />
+							<Stat n="6" label="TldrawUiIcon (SDK)" />
+							<Stat n="1" label="inline <svg>" />
+						</div>
+					</section>
 
-				<section className="section">
-					<h2 className="section__title">
-						Sprite coverage — {USED.size} of {ALL_ICONS.length} used
-					</h2>
-					<p className="section__note">
-						The merged sprite ships all {ALL_ICONS.length} icons; only {USED.size} are referenced.
-						The rest still download (the {`:target`} stack can't tree-shake). Every icon below is
-						rendered live from the sprite; unused ones are dimmed. (Static snapshot — names flowing
-						through data may bump the used count a little.)
-					</p>
-					<div className="stats" style={{ marginBottom: 20 }}>
-						<Stat n={String(ALL_ICONS.length)} label="icons in 0_merged_tla.svg" />
-						<Stat n={String(USED.size)} label="referenced in code" />
-						<Stat n={String(ALL_ICONS.length - USED.size)} label="apparently unused" />
-					</div>
-					<div className="spriteGrid">
-						{ALL_ICONS.map((name) => (
-							<div key={name} className="spriteCell" data-unused={!USED.has(name) || undefined}>
-								<span className="spriteCell__icon">
-									<TlaIcon icon={name} />
-								</span>
-								<span className="spriteCell__name">{name}</span>
-							</div>
-						))}
-					</div>
-				</section>
-
-				<section className="section">
-					<h2 className="section__title">Overview</h2>
-					<p className="section__note">
-						<code>TlaIcon</code> shown live (its sprite is bundled). The SDK icon needs the editor
-						asset context, so it&rsquo;s a mock.
-					</p>
-					<div className="grid">
-						<Specimen
-							label="TlaIcon"
-							code={`<TlaIcon icon="search" />`}
-							meta="15px · currentColor mask · 0_merged_tla.svg"
-							source="tla/components/TlaIcon"
-						>
-							<span className="iconStage">
-								<TlaIcon icon="search" />
-							</span>
-						</Specimen>
-						<Specimen
-							label="TlaIcon"
-							code={`<TlaIcon icon="close" />`}
-							meta="same sprite, by name"
-							source="tla/components/TlaIcon"
-						>
-							<span className="iconStage">
-								<TlaIcon icon="close" />
-							</span>
-						</Specimen>
-						<Specimen
-							label="TlaIcon"
-							code={`<TlaIcon icon="avatar" />`}
-							meta="masked currentColor shape"
-							source="tla/components/TlaIcon"
-						>
-							<span className="iconStage">
-								<TlaIcon icon="avatar" />
-							</span>
-						</Specimen>
-						<Specimen
-							label="TlaIcon invertIcon"
-							code={`<TlaIcon icon="chevron-right" invertIcon />`}
-							meta="transform: scale(-1, 1)"
-							source="tla/components/TlaIcon"
-						>
-							<span className="iconStage">
-								<TlaIcon icon="chevron-right" invertIcon />
-							</span>
-						</Specimen>
-						<Specimen
-							label="TlaIcon icon='none'"
-							code={`<TlaIcon icon="none" />`}
-							meta="empty spacer — keeps the 15px box, paints nothing"
-							source="tla/components/TlaIcon"
-						>
-							<span className="iconStage iconStage--ghost">
-								<TlaIcon icon="none" />
-							</span>
-						</Specimen>
-						<Specimen
-							label="TldrawUiIcon (SDK)"
-							code={`<TldrawUiIcon icon="chevron-right" />`}
-							meta="per-icon asset · resolves via AssetUrlsProvider"
-							source="tldraw (packages/tldraw)"
-						>
-							<span className="iconStage">
-								<TldrawUiIcon icon="chevron-right" label="chevron-right" />
-							</span>
-						</Specimen>
-						<Specimen
-							label="inline <svg>"
-							code={`<svg viewBox="0 0 16 16">…</svg>`}
-							meta="two-colour, can't be a monochrome mask; offline-safe"
-							source="components/ErrorPage"
-						>
-							<svg viewBox="0 0 16 16" width="22" height="22" aria-hidden>
-								<circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.4" />
-								<circle cx="5.5" cy="6.5" r="1" fill="currentColor" />
-								<circle cx="10.5" cy="6.5" r="1" fill="currentColor" />
-								<path d="M5 11 q3 -2 6 0" fill="none" stroke="currentColor" strokeWidth="1.4" />
-							</svg>
-						</Specimen>
-					</div>
-				</section>
-
-				<section className="section">
-					<h2 className="section__title">Three mechanisms, compared</h2>
-					<table className="matrix matrix--wide">
-						<thead>
-							<tr>
-								<th></th>
-								<th>TlaIcon</th>
-								<th>TldrawUiIcon (SDK)</th>
-								<th>inline &lt;svg&gt;</th>
-							</tr>
-						</thead>
-						<tbody>
-							{ROWS.map((r) => (
-								<tr key={r[0]}>
-									<td className="rowhead">{r[0]}</td>
-									<td>{r[1]}</td>
-									<td>{r[2]}</td>
-									<td>{r[3]}</td>
-								</tr>
+					<section className="section">
+						<h2 className="section__title">
+							Sprite coverage — {USED.size} of {ALL_ICONS.length} used
+						</h2>
+						<p className="section__note">
+							The merged sprite ships all {ALL_ICONS.length} icons; only {USED.size} are referenced.
+							The rest still download (the {`:target`} stack can't tree-shake). Every icon below is
+							rendered live from the sprite; unused ones are dimmed. (Static snapshot — names
+							flowing through data may bump the used count a little.)
+						</p>
+						<div className="stats" style={{ marginBottom: 20 }}>
+							<Stat n={String(ALL_ICONS.length)} label="icons in 0_merged_tla.svg" />
+							<Stat n={String(USED.size)} label="referenced in code" />
+							<Stat n={String(ALL_ICONS.length - USED.size)} label="apparently unused" />
+						</div>
+						<div className="spriteGrid">
+							{ALL_ICONS.map((name) => (
+								<div key={name} className="spriteCell" data-unused={!USED.has(name) || undefined}>
+									<span className="spriteCell__icon">
+										<TlaIcon icon={name} />
+									</span>
+									<span className="spriteCell__name">{name}</span>
+								</div>
 							))}
-						</tbody>
-					</table>
-				</section>
+						</div>
+					</section>
 
-				<section className="section">
-					<h2 className="section__title">Why two mask-icon components</h2>
-					<div className="callout">
-						<code>TlaIcon</code> and <code>TldrawUiIcon</code> both paint an icon by{' '}
-						<code>mask</code>-ing a coloured box — but <code>TlaIcon</code> reads one bundled merged
-						sprite (<code>0_merged_tla.svg</code>) with no context, while <code>TldrawUiIcon</code>{' '}
-						resolves <em>per-icon</em> asset URLs through the editor&rsquo;s{' '}
-						<code>AssetUrlsProvider</code>. So the dotcom app, which renders chrome <em>outside</em>{' '}
-						the editor, needs its own icon component and its own sprite —{' '}
-						<strong>partly justified</strong>. But the two can&rsquo;t share an icon set, and a
-						design-system icon would have to bridge both. The lone inline <code>&lt;svg&gt;</code>{' '}
-						(ErrorPage&rsquo;s two-colour face) is a genuine exception: a monochrome mask
-						can&rsquo;t render it, and it must work offline.
-					</div>
-				</section>
+					<section className="section">
+						<h2 className="section__title">Overview</h2>
+						<p className="section__note">
+							<code>TlaIcon</code> shown live (its sprite is bundled). The SDK icon needs the editor
+							asset context, so it&rsquo;s a mock.
+						</p>
+						<div className="grid">
+							<Specimen
+								label="TlaIcon"
+								code={`<TlaIcon icon="search" />`}
+								meta="15px · currentColor mask · 0_merged_tla.svg"
+								source="tla/components/TlaIcon"
+							>
+								<span className="iconStage">
+									<TlaIcon icon="search" />
+								</span>
+							</Specimen>
+							<Specimen
+								label="TlaIcon"
+								code={`<TlaIcon icon="close" />`}
+								meta="same sprite, by name"
+								source="tla/components/TlaIcon"
+							>
+								<span className="iconStage">
+									<TlaIcon icon="close" />
+								</span>
+							</Specimen>
+							<Specimen
+								label="TlaIcon"
+								code={`<TlaIcon icon="avatar" />`}
+								meta="masked currentColor shape"
+								source="tla/components/TlaIcon"
+							>
+								<span className="iconStage">
+									<TlaIcon icon="avatar" />
+								</span>
+							</Specimen>
+							<Specimen
+								label="TlaIcon invertIcon"
+								code={`<TlaIcon icon="chevron-right" invertIcon />`}
+								meta="transform: scale(-1, 1)"
+								source="tla/components/TlaIcon"
+							>
+								<span className="iconStage">
+									<TlaIcon icon="chevron-right" invertIcon />
+								</span>
+							</Specimen>
+							<Specimen
+								label="TlaIcon icon='none'"
+								code={`<TlaIcon icon="none" />`}
+								meta="empty spacer — keeps the 15px box, paints nothing"
+								source="tla/components/TlaIcon"
+							>
+								<span className="iconStage iconStage--ghost">
+									<TlaIcon icon="none" />
+								</span>
+							</Specimen>
+							<Specimen
+								label="TldrawUiIcon (SDK)"
+								code={`<TldrawUiIcon icon="chevron-right" />`}
+								meta="per-icon asset · resolves via AssetUrlsProvider"
+								source="tldraw (packages/tldraw)"
+							>
+								<span className="iconStage">
+									<TldrawUiIcon icon="chevron-right" label="chevron-right" />
+								</span>
+							</Specimen>
+							<Specimen
+								label="inline <svg>"
+								code={`<svg viewBox="0 0 16 16">…</svg>`}
+								meta="two-colour, can't be a monochrome mask; offline-safe"
+								source="components/ErrorPage"
+							>
+								<svg viewBox="0 0 16 16" width="22" height="22" aria-hidden>
+									<circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.4" />
+									<circle cx="5.5" cy="6.5" r="1" fill="currentColor" />
+									<circle cx="10.5" cy="6.5" r="1" fill="currentColor" />
+									<path d="M5 11 q3 -2 6 0" fill="none" stroke="currentColor" strokeWidth="1.4" />
+								</svg>
+							</Specimen>
+						</div>
+					</section>
 
-			</div>
+					<section className="section">
+						<h2 className="section__title">Three mechanisms, compared</h2>
+						<table className="matrix matrix--wide">
+							<thead>
+								<tr>
+									<th></th>
+									<th>TlaIcon</th>
+									<th>TldrawUiIcon (SDK)</th>
+									<th>inline &lt;svg&gt;</th>
+								</tr>
+							</thead>
+							<tbody>
+								{ROWS.map((r) => (
+									<tr key={r[0]}>
+										<td className="rowhead">{r[0]}</td>
+										<td>{r[1]}</td>
+										<td>{r[2]}</td>
+										<td>{r[3]}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</section>
+
+					<section className="section">
+						<h2 className="section__title">Why two mask-icon components</h2>
+						<div className="callout">
+							<code>TlaIcon</code> and <code>TldrawUiIcon</code> both paint an icon by{' '}
+							<code>mask</code>-ing a coloured box — but <code>TlaIcon</code> reads one bundled
+							merged sprite (<code>0_merged_tla.svg</code>) with no context, while{' '}
+							<code>TldrawUiIcon</code> resolves <em>per-icon</em> asset URLs through the
+							editor&rsquo;s <code>AssetUrlsProvider</code>. So the dotcom app, which renders chrome{' '}
+							<em>outside</em> the editor, needs its own icon component and its own sprite —{' '}
+							<strong>partly justified</strong>. But the two can&rsquo;t share an icon set, and a
+							design-system icon would have to bridge both. The lone inline <code>&lt;svg&gt;</code>{' '}
+							(ErrorPage&rsquo;s two-colour face) is a genuine exception: a monochrome mask
+							can&rsquo;t render it, and it must work offline.
+						</div>
+					</section>
+				</div>
 			</TldrawUiContextProvider>
 		</div>
 	)

@@ -96,41 +96,41 @@ export function Component() {
 			</Helmet>
 			<style>{PAGE_CSS + SPECIMEN_CSS}</style>
 
-				<div className="page">
-					<DevComponentsNav />
-					<header className="page__header">
-						<h1 className="page__title">Feedback &amp; overlays</h1>
-						<p className="page__lede">
-							Toasts, tooltips, popovers — transient UI the app <strong>delegates</strong> to the
-							SDK. A new mode: not "own and diverge" (buttons) but "call and render nothing." For
-							toasts the app owns <em>no</em> component at all — it calls <code>addToast()</code>{' '}
-							and the SDK draws it.
-						</p>
-					</header>
+			<div className="page">
+				<DevComponentsNav />
+				<header className="page__header">
+					<h1 className="page__title">Feedback &amp; overlays</h1>
+					<p className="page__lede">
+						Toasts, tooltips, popovers — transient UI the app <strong>delegates</strong> to the SDK.
+						A new mode: not "own and diverge" (buttons) but "call and render nothing." For toasts
+						the app owns <em>no</em> component at all — it calls <code>addToast()</code> and the SDK
+						draws it.
+					</p>
+				</header>
 
-					<section className="section">
-						<h2 className="section__title">Toasts — all {TOASTS.length}, each live</h2>
-						<p className="section__note">
-							Every <code>addToast(&#123; title, severity?, keepOpen? &#125;)</code> call site,
-							rendered as a real toast. Each card has its own <code>TldrawUiToastsProvider</code> and
-							fires its one toast <code>keepOpen</code> on mount — real SDK toast UI, no trigger.
-						</p>
-						<div className="grid grid--toasts">
-							{TOASTS.map((t) => (
-								<Specimen
-									key={t.source}
-									label={t.title}
-									code={`severity: ${t.sev}${t.keepOpen ? ' · keepOpen' : ''}`}
-									meta={t.keepOpen ? 'manual dismiss' : 'auto-dismiss'}
-									source={t.source}
-								>
-									<ToastCard toast={t} />
-								</Specimen>
-							))}
-						</div>
-					</section>
+				<section className="section">
+					<h2 className="section__title">Toasts — all {TOASTS.length}, each live</h2>
+					<p className="section__note">
+						Every <code>addToast(&#123; title, severity?, keepOpen? &#125;)</code> call site,
+						rendered as a real toast. Each card has its own <code>TldrawUiToastsProvider</code> and
+						fires its one toast <code>keepOpen</code> on mount — real SDK toast UI, no trigger.
+					</p>
+					<div className="grid grid--toasts">
+						{TOASTS.map((t) => (
+							<Specimen
+								key={t.source}
+								label={t.title}
+								code={`severity: ${t.sev}${t.keepOpen ? ' · keepOpen' : ''}`}
+								meta={t.keepOpen ? 'manual dismiss' : 'auto-dismiss'}
+								source={t.source}
+							>
+								<ToastCard toast={t} />
+							</Specimen>
+						))}
+					</div>
+				</section>
 
-					<IsolationProviders>
+				<IsolationProviders>
 					<section className="section">
 						<h2 className="section__title">Tooltips — live (forced open)</h2>
 						<p className="section__note">
@@ -164,8 +164,8 @@ export function Component() {
 							</TldrawUiPopover>
 						</div>
 					</section>
-					</IsolationProviders>
-				</div>
+				</IsolationProviders>
+			</div>
 		</div>
 	)
 }

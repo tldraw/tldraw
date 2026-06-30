@@ -40,8 +40,8 @@ export function Component() {
 						The inverse of the <a href="/dev/components/sidebar">sidebar</a>. The editor isn&rsquo;t
 						built by dotcom — it&rsquo;s the SDK <code>&lt;Tldraw&gt;</code> with a handful of slots
 						swapped via its <code>components=&#123;&#125;</code> prop. Canvas, toolbar, style panel,
-						context menu — all SDK defaults, untouched. dotcom overrides three slots and injects some
-						behavior.
+						context menu — all SDK defaults, untouched. dotcom overrides three slots and injects
+						some behavior.
 					</p>
 				</header>
 
@@ -57,8 +57,8 @@ export function Component() {
 				<section className="section">
 					<h2 className="section__title">The override model</h2>
 					<p className="section__note">
-						What dotcom swaps in via <code>&lt;Tldraw components=&#123;…&#125;&gt;</code>. Everything
-						not listed is the SDK default.
+						What dotcom swaps in via <code>&lt;Tldraw components=&#123;…&#125;&gt;</code>.
+						Everything not listed is the SDK default.
 					</p>
 					<table className="cmap">
 						<thead>
@@ -130,7 +130,8 @@ export function Component() {
 				<section className="section">
 					<h2 className="section__title">Editor variants</h2>
 					<p className="section__note">
-						Five <code>&lt;Tldraw&gt;</code> wrappers, each overriding a slightly different slot set.
+						Five <code>&lt;Tldraw&gt;</code> wrappers, each overriding a slightly different slot
+						set.
 					</p>
 					<table className="cmap">
 						<thead>
@@ -172,7 +173,13 @@ export function Component() {
 								<tr key={s.name}>
 									<td className="cmap__name">{s.name}</td>
 									<td>{s.does}</td>
-									<td>{s.ui ? <span className="chip chip--ds">{s.ui}</span> : <span className="chip chip--none">none</span>}</td>
+									<td>
+										{s.ui ? (
+											<span className="chip chip--ds">{s.ui}</span>
+										) : (
+											<span className="chip chip--none">none</span>
+										)}
+									</td>
 								</tr>
 							))}
 						</tbody>
@@ -183,13 +190,13 @@ export function Component() {
 					<h2 className="section__title">vs the sidebar</h2>
 					<div className="callout">
 						The two maps are opposite poles of the ownership axis. The{' '}
-						<a href="/dev/components/sidebar">sidebar</a> <strong>builds its own chrome</strong> — 17
-						components, 9 bespoke button classes. The editor <strong>borrows the SDK&rsquo;s</strong>{' '}
-						— it overrides 3 slots and adds 3 bespoke classes, total. Same app, two strategies: where
-						the SDK offers a slot (the editor), dotcom delegates and diverges little; where it
-						doesn&rsquo;t (the sidebar is pure dotcom), dotcom builds and diverges a lot. The
-						editor&rsquo;s small bespoke surface is the strongest evidence that{' '}
-						<strong>good SDK extension points prevent drift</strong>.
+						<a href="/dev/components/sidebar">sidebar</a> <strong>builds its own chrome</strong> —
+						17 components, 9 bespoke button classes. The editor{' '}
+						<strong>borrows the SDK&rsquo;s</strong> — it overrides 3 slots and adds 3 bespoke
+						classes, total. Same app, two strategies: where the SDK offers a slot (the editor),
+						dotcom delegates and diverges little; where it doesn&rsquo;t (the sidebar is pure
+						dotcom), dotcom builds and diverges a lot. The editor&rsquo;s small bespoke surface is
+						the strongest evidence that <strong>good SDK extension points prevent drift</strong>.
 					</div>
 				</section>
 			</div>
@@ -198,15 +205,30 @@ export function Component() {
 }
 
 const SLOTS: ReadonlyArray<{ slot: string; override: string; note: string }> = [
-	{ slot: 'MenuPanel', override: 'TlaEditorMenuPanel → TlaEditorTopLeftPanel', note: 'file name, main menu, logo' },
+	{
+		slot: 'MenuPanel',
+		override: 'TlaEditorMenuPanel → TlaEditorTopLeftPanel',
+		note: 'file name, main menu, logo',
+	},
 	{ slot: 'TopPanel', override: 'TlaEditorTopPanel', note: 'top-centre strip' },
-	{ slot: 'SharePanel', override: 'TlaEditorSharePanel (+ Legacy / Published) → TlaEditorTopRightPanel', note: 'share / sign-in CTA' },
+	{
+		slot: 'SharePanel',
+		override: 'TlaEditorSharePanel (+ Legacy / Published) → TlaEditorTopRightPanel',
+		note: 'share / sign-in CTA',
+	},
 ]
 
 const PANELS: ReadonlyArray<{ name: string; ds: string[]; bespoke: string[] }> = [
 	{
 		name: 'TlaEditorTopLeftPanel (466)',
-		ds: ['TlaIcon', 'TlaLogo', 'TldrawUiButton', 'TldrawUiInput', 'TldrawUiDropdownMenu', 'ExternalLink'],
+		ds: [
+			'TlaIcon',
+			'TlaLogo',
+			'TldrawUiButton',
+			'TldrawUiInput',
+			'TldrawUiDropdownMenu',
+			'ExternalLink',
+		],
 		bespoke: ['<button>', '.topLeftMainMenuTrigger', '.topLeftPanelButton'],
 	},
 	{
@@ -218,9 +240,21 @@ const PANELS: ReadonlyArray<{ name: string; ds: string[]; bespoke: string[] }> =
 
 const VARIANTS: ReadonlyArray<{ name: string; slots: string; note: string }> = [
 	{ name: 'TlaEditor', slots: 'MenuPanel · TopPanel · SharePanel', note: 'the main editor' },
-	{ name: 'TlaLegacyFileEditor', slots: 'MenuPanel · TopPanel · SharePanel (legacy)', note: 'legacy files' },
-	{ name: 'TlaPublishEditor', slots: 'MenuPanel (anon) · SharePanel (published)', note: 'published read-only view' },
-	{ name: 'TlaHistorySnapshotEditor', slots: '<Tldraw> + TlaCtaButton restore bar', note: 'file history snapshot' },
+	{
+		name: 'TlaLegacyFileEditor',
+		slots: 'MenuPanel · TopPanel · SharePanel (legacy)',
+		note: 'legacy files',
+	},
+	{
+		name: 'TlaPublishEditor',
+		slots: 'MenuPanel (anon) · SharePanel (published)',
+		note: 'published read-only view',
+	},
+	{
+		name: 'TlaHistorySnapshotEditor',
+		slots: '<Tldraw> + TlaCtaButton restore bar',
+		note: 'file history snapshot',
+	},
 	{ name: 'TlaLegacySnapshotEditor', slots: '<Tldraw> (defaults)', note: 'legacy snapshot' },
 ]
 
