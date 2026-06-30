@@ -569,7 +569,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.sideEffects.registerOperationCompleteHandler(() => {
 				// this needs to be cleared here because further effects may delete more shapes
 				// and we want the next invocation of this handler to handle those separately
+				const deletedIds = deletedShapeIds.size ? new Set(deletedShapeIds) : null
 				deletedShapeIds.clear()
+
+				if (deletedIds) {
+					const updates = compact(
+						this.getPageStates().map((pageState) => {
+							return cleanupInstancePageState(pageState, deletedIds)
+						})
+					)
+
+					if (updates.length) {
+						this.store.put(updates)
+					}
+				}
 
 				for (const parentId of invalidParents) {
 					invalidParents.delete(parentId)
@@ -711,17 +724,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						if (deleteBindingIds.length) {
 							this.deleteBindings(deleteBindingIds)
-						}
-
-						const deletedIds = new Set([shape.id])
-						const updates = compact(
-							this.getPageStates().map((pageState) => {
-								return cleanupInstancePageState(pageState, deletedIds)
-							})
-						)
-
-						if (updates.length) {
-							this.store.put(updates)
 						}
 					},
 				},
