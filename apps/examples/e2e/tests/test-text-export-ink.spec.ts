@@ -134,12 +134,12 @@ test.describe('text export ink', () => {
 			})
 			await ed.fonts.loadRequiredFontsForCurrentPage()
 			await ed.getContainerDocument().fonts.ready
-			// Default auto-trim export (no explicit padding): the render padding is cropped back to the
-			// painted glyphs, so the golden is a tight image of the ink — matching the export menu, and
-			// showing the italic j / ff / y fully enclosed with no clipped edges.
+			// Transparent, auto-trimmed export: the render padding is cropped back to the painted glyphs,
+			// so the golden is a tight image of the ink on transparency — showing the italic j / ff / y
+			// fully enclosed with no clipped edges, and no background rect / subpixel seam to reason about.
 			const { url } = await ed.toImageDataUrl(['shape:jiffy'], {
 				format: 'png',
-				background: true,
+				background: false,
 				scale: 2,
 			})
 			return url as string
