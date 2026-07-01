@@ -1,0 +1,175 @@
+.cursor-maze {
+	background-color: var(--color-background);
+}
+
+/* The maze board, drawn in world space inside OnTheCanvas. */
+.cursor-maze__board {
+	position: absolute;
+	left: 0;
+	top: 0;
+	overflow: visible;
+	pointer-events: none;
+}
+.cursor-maze__floor {
+	fill: var(--color-low, #f5f5f7);
+}
+.cursor-maze__walls {
+	fill: var(--color-text, #1d1d1d);
+}
+
+/* The exit marker, in world space. */
+.cursor-maze__goal {
+	position: absolute;
+	transform: translate(-50%, -50%);
+	display: grid;
+	place-items: center;
+	font-size: 30px;
+	line-height: 1;
+	pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+	.cursor-maze__goal {
+		animation: cursor-maze-pulse 1.6s ease-in-out infinite;
+	}
+}
+
+@keyframes cursor-maze-pulse {
+	0%,
+	100% {
+		transform: translate(-50%, -50%) scale(1);
+	}
+	50% {
+		transform: translate(-50%, -50%) scale(1.12);
+	}
+}
+
+/* Start card — a centered title screen shown before you drop in. The card is
+   transparent to the pointer (only the button catches it) so the editor keeps
+   tracking the cursor up to the button. */
+.cursor-maze__startcard {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+	max-width: 360px;
+	padding: 28px 32px;
+	border-radius: 16px;
+	background: var(--color-panel, #fff);
+	box-shadow: var(--shadow-3, 0 8px 28px rgba(0, 0, 0, 0.28));
+	text-align: center;
+	pointer-events: none;
+	z-index: 400;
+}
+.cursor-maze__title {
+	font-family: var(--tl-font-ui, system-ui, sans-serif);
+	font-size: 22px;
+	font-weight: 700;
+	color: var(--color-text, #1d1d1d);
+}
+.cursor-maze__subtitle {
+	font-family: var(--tl-font-ui, system-ui, sans-serif);
+	font-size: 13px;
+	line-height: 1.45;
+	color: var(--color-text, #1d1d1d);
+	opacity: 0.75;
+}
+.cursor-maze__startbtn {
+	pointer-events: auto;
+	cursor: pointer;
+	margin-top: 4px;
+	border: none;
+	border-radius: 9px;
+	background: var(--color-selected, #4263eb);
+	color: var(--color-selected-contrast, #fff);
+	font: inherit;
+	font-size: 15px;
+	font-weight: 600;
+	padding: 10px 30px;
+}
+.cursor-maze__startbtn:hover {
+	filter: brightness(1.06);
+}
+
+/* Live run timer, top-center. */
+.cursor-maze__timer {
+	position: absolute;
+	top: 12px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-family: var(--tl-font-ui, system-ui, sans-serif);
+	font-variant-numeric: tabular-nums;
+	font-size: 20px;
+	font-weight: 700;
+	color: var(--color-text, #1d1d1d);
+	background: var(--color-panel, #fff);
+	padding: 6px 16px;
+	border-radius: 10px;
+	box-shadow: var(--shadow-2, 0 2px 6px rgba(0, 0, 0, 0.2));
+	pointer-events: none;
+	z-index: 300;
+}
+.cursor-maze__timer[data-done='true'] {
+	color: #10a154;
+}
+
+/* Persistent high-score board, read from the synced document's meta. Top-right. */
+.cursor-maze__scoreboard {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	min-width: 180px;
+	font-family: var(--tl-font-ui, system-ui, sans-serif);
+	font-size: 13px;
+	background: var(--color-panel, #fff);
+	color: var(--color-text, #1d1d1d);
+	border-radius: 10px;
+	box-shadow: var(--shadow-2, 0 2px 6px rgba(0, 0, 0, 0.2));
+	padding: 8px 10px;
+	pointer-events: none;
+	z-index: 300;
+}
+.cursor-maze__scoretitle {
+	font-weight: 700;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	opacity: 0.6;
+	padding: 2px 4px 6px;
+}
+.cursor-maze__scorerow {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 3px 4px;
+	border-radius: 6px;
+}
+.cursor-maze__scorerow[data-me='true'] {
+	background: rgba(66, 99, 235, 0.14);
+	font-weight: 600;
+}
+.cursor-maze__rank {
+	width: 14px;
+	text-align: right;
+	opacity: 0.5;
+	font-variant-numeric: tabular-nums;
+}
+.cursor-maze__scoredot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	flex: none;
+}
+.cursor-maze__scorename {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.cursor-maze__scoretime {
+	font-variant-numeric: tabular-nums;
+	opacity: 0.8;
+}
