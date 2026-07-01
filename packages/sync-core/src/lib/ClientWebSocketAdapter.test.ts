@@ -433,6 +433,12 @@ describe('ClientWebSocketAdapter', () => {
 			expect(onStatusChange).toHaveBeenCalledWith({ status: 'offline' })
 			expect(onStatusChange).toHaveBeenCalledWith({ status: 'online' })
 			expect(adapter.connectionStatus).toBe('online')
+
+			// the restarted connection is fully functional: a well-formed message on the new socket
+			// is delivered to listeners as usual
+			connectedServerSocket.send('{ "type": "message", "data": "hello" }')
+			await waitFor(() => onMessage.mock.calls.length === 1)
+			expect(onMessage).toHaveBeenCalledWith({ type: 'message', data: 'hello' })
 		})
 
 		it('[CW7] stops delivering messages after unsubscribe', async () => {
