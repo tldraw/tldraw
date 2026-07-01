@@ -11999,6 +11999,30 @@ __metadata:
     vitest: "npm:^4.1.7"
     vitest-canvas-mock: "npm:^1.1.3"
   dependenciesMeta:
+    "@rocicorp/zero-sqlite3":
+      built: true
+    "@sentry/cli":
+      built: true
+    "@swc/core":
+      built: true
+    "@typescript/native-preview":
+      built: true
+    "@vscode/vsce-sign":
+      built: true
+    better-sqlite3:
+      built: true
+    edgedriver:
+      built: true
+    esbuild:
+      built: true
+    geckodriver:
+      built: true
+    keytar:
+      built: true
+    sharp:
+      built: true
+    sqlite3:
+      built: true
     workerd:
       built: false
   languageName: unknown
