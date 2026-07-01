@@ -104,4 +104,49 @@ test.describe('text export ink', () => {
 		// enclose the same ink (to within anti-aliasing) rather than cutting it at the advance box.
 		expect(autoInkWidth).toBeGreaterThanOrEqual(wideInkWidth - 3)
 	})
+
+	test('png export of italic text is not clipped (visual) (#8802)', async ({ page }, testInfo) => {
+		test.skip(testInfo.project.name !== 'chromium', 'visual export snapshot on desktop chromium')
+
+		const dataUrl: string = await page.evaluate(async () => {
+			const ed = editor as any
+			ed.selectAll().deleteShapes(ed.getSelectedShapeIds())
+			ed.createShape({
+				id: 'shape:jiffy',
+				type: 'text',
+				x: 0,
+				y: 0,
+				props: {
+					richText: {
+						type: 'doc',
+						content: [
+							{
+								type: 'paragraph',
+								content: [{ type: 'text', text: 'jiffy', marks: [{ type: 'italic' }] }],
+							},
+						],
+					},
+					font: 'serif',
+					size: 'xl',
+					autoSize: true,
+					color: 'black',
+				},
+			})
+			await ed.fonts.loadRequiredFontsForCurrentPage()
+			await ed.getContainerDocument().fonts.ready
+			// Explicit padding (so no auto-trim) — the glyphs sit inside a clear margin, so the golden
+			// unambiguously shows the italic ink fully enclosed rather than flush to a trimmed edge.
+			const { url } = await ed.toImageDataUrl(['shape:jiffy'], {
+				format: 'png',
+				background: true,
+				padding: 24,
+				scale: 2,
+			})
+			return url as string
+		})
+
+		// Golden of the exported glyphs: the italic j / ff / y ink must be fully present, not cut off
+		// at the advance box. Before the fix the descenders and slant were clipped at the edge.
+		expect(Buffer.from(dataUrl.split(',')[1], 'base64')).toMatchSnapshot('jiffy-italic-export.png')
+	})
 })
