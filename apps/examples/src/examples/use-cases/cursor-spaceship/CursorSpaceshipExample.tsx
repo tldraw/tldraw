@@ -17,9 +17,13 @@ import './cursor-spaceship.css'
 
 // [1] Tuning, in world units.
 // Fuel drains as you fly; refill by scooping up fuel cells. Run dry and the
-// engines die — steering cuts out and the sun drags you in.
+// engines die — steering cuts out and the sun drags you in. The burn is a base
+// rate plus a term that grows like gravity (1/dist^2), so hovering deep in the
+// well eats fuel fast and the safe belt edge is cheap — but that's where the
+// rocks are.
 const FUEL_MAX = 100
-const FUEL_DRAIN = 0.11
+const FUEL_DRAIN_BASE = 0.06
+const FUEL_DRAIN_GRAV = 7200
 const FUEL_PER_CELL = 34
 const COLLECT_RADIUS = 22
 const FUEL_RESPAWN_MS = 8000
@@ -30,7 +34,19 @@ const OUT_OF_FUEL_PULL = 5
 const TRAIL_FADE_MS = 2500
 const TRAIL_WIDTH = 9
 const TRAIL_ALPHA = 0.8
-const MIN_TRAIL_DIST = 1.5
+// Low-pass the trail's source and sample it coarsely, so your own trail is as
+// smooth and sparse as the throttled ones you see for everyone else — not a jagged
+// point-per-frame record of every twitch.
+const MIN_TRAIL_DIST = 6
+const TRAIL_SMOOTH = 0.4
+// A jump bigger than any real move is a respawn teleport: break the trail and burst
+// a crash there. Every client sees the same teleport, so everyone sees the crash —
+// no extra state synced.
+const TRAIL_BREAK_DIST = 240
+const CRASH_SPARKS = 18
+const CRASH_LIFE_MS = 700
+const CRASH_SPEED = 4
+const CRASH_FLASH_MS = 320
 
 interface Game {
 	/** Seed for the shared asteroid belt and starfield. */
@@ -151,7 +167,14 @@ function GameRunner({ game }: { game: Game }) {
 				// cursor nearing a screen edge.
 				const underCursor = new Vec(screen.x / z - cam.x, screen.y / z - cam.y)
 				next = new Vec(underCursor.x + drift.x, underCursor.y + drift.y)
-				game.fuel.set(Math.max(0, game.fuel.get() - FUEL_DRAIN))
+				game.fuel.set(
+					Math.max(
+						0,
+						game.fuel.get() -
+							FUEL_DRAIN_BASE -
+							FUEL_DRAIN_GRAV / (from.x * from.x + from.y * from.y || 1)
+					)
+				)
 				collectFuel(game, next)
 			}
 
@@ -318,10 +341,13 @@ function SpaceField({ game }: { game: Game }) {
 
 /**
  * A tapering engine-exhaust trail behind every ship, each in that player's own
- * color: your own position plus every collaborator's synced cursor. Nothing about
- * it is synced — it's derived entirely from the cursor positions tldraw already
- * gives us. Each trail is one filled ribbon that narrows to a point at its tail,
- * painted with a single fill so a self-crossing path stays solid.
+ * color: your own position plus every collaborator's synced cursor. Nothing here is
+ * synced — it's derived entirely from the cursor positions tldraw already gives us.
+ * The source is low-passed and sampled coarsely, so a trail is smooth and matches
+ * the throttled resolution everyone else's does, and each trail is one filled ribbon
+ * that narrows to a point at its tail (a single fill, so a self-crossing loop stays
+ * solid). A ship vanishing (a respawn teleport) breaks its trail and bursts a crash
+ * of debris there — and because that teleport is visible to everyone, so is the crash.
  */
 function CursorTrails({ game }: { game: Game }) {
 	const editor = useEditor()
@@ -332,14 +358,27 @@ function CursorTrails({ game }: { game: Game }) {
 		const ctx = canvas?.getContext('2d')
 		if (!canvas || !ctx) return
 
-		// Recent points per player (newest last), in page space, plus their color.
+		// Recent points per player (newest last) in page space, plus the color, a
+		// low-passed source position (sm), and the last raw reading (to spot a
+		// collaborator's respawn teleport).
 		const trails = new Map<
 			string,
-			{ color: string; points: { x: number; y: number; t: number }[] }
+			{
+				color: string
+				points: { x: number; y: number; t: number }[]
+				sm: Vec
+				lastRaw: Vec
+			}
 		>()
+		// Crash debris and flash rings, in world space, spawned wherever a ship
+		// vanishes — so every client renders the same burst with nothing synced.
+		let sparks: { x: number; y: number; vx: number; vy: number; t: number; color: string }[] = []
+		let flashes: { x: number; y: number; t: number; color: string }[] = []
+		let lastDeaths = game.deaths.get()
 
 		const draw = () => {
 			const now = Date.now()
+			const z = editor.getZoomLevel()
 
 			const dpr = window.devicePixelRatio || 1
 			const w = canvas.clientWidth
@@ -352,24 +391,68 @@ function CursorTrails({ game }: { game: Game }) {
 			ctx.clearRect(0, 0, w, h)
 
 			// Every ship: yourself once you've launched, and every collaborator.
+			const localId = editor.user.getExternalId()
 			const samples: { userId: string; point: VecLike; color: string }[] = []
 			if (game.engaged.get()) {
-				samples.push({
-					userId: editor.user.getExternalId(),
-					point: game.ship.get(),
-					color: editor.user.getColor(),
-				})
+				samples.push({ userId: localId, point: game.ship.get(), color: editor.user.getColor() })
 			}
 			for (const c of editor.getCollaborators()) {
 				if (c.cursor) samples.push({ userId: c.userId, point: c.cursor, color: c.color })
 			}
 
+			// Your own death is exact — the death counter ticked; a collaborator's is
+			// inferred from their cursor jumping farther than any real move could.
+			const deaths = game.deaths.get()
+			const localDied = deaths !== lastDeaths
+			lastDeaths = deaths
+
 			for (const { userId, point, color } of samples) {
-				const trail = trails.get(userId) ?? { color, points: [] }
+				const trail = trails.get(userId) ?? {
+					color,
+					points: [],
+					sm: new Vec(point.x, point.y),
+					lastRaw: new Vec(point.x, point.y),
+				}
 				trail.color = color
+
+				const teleported =
+					userId === localId
+						? localDied
+						: Math.hypot(point.x - trail.lastRaw.x, point.y - trail.lastRaw.y) > TRAIL_BREAK_DIST
+				trail.lastRaw = new Vec(point.x, point.y)
+
+				if (teleported) {
+					// Burst a crash where the trail ended, then cut it and re-seat the
+					// smoother at the respawn point so no line bridges the gap.
+					const tail = trail.points[trail.points.length - 1]
+					if (tail) {
+						flashes.push({ x: tail.x, y: tail.y, t: now, color })
+						for (let i = 0; i < CRASH_SPARKS; i++) {
+							const ang = (i / CRASH_SPARKS) * Math.PI * 2 + Math.random() * 0.5
+							const sp = CRASH_SPEED * (0.4 + Math.random())
+							sparks.push({
+								x: tail.x,
+								y: tail.y,
+								vx: Math.cos(ang) * sp,
+								vy: Math.sin(ang) * sp,
+								t: now,
+								color,
+							})
+						}
+					}
+					trail.points = []
+					trail.sm = new Vec(point.x, point.y)
+				}
+
+				// Low-pass the source, then sample it coarsely: a smooth, sparse trail
+				// rather than a jagged point-per-frame one.
+				trail.sm = new Vec(
+					trail.sm.x + (point.x - trail.sm.x) * TRAIL_SMOOTH,
+					trail.sm.y + (point.y - trail.sm.y) * TRAIL_SMOOTH
+				)
 				const last = trail.points[trail.points.length - 1]
-				if (!last || Math.hypot(point.x - last.x, point.y - last.y) > MIN_TRAIL_DIST) {
-					trail.points.push({ x: point.x, y: point.y, t: now })
+				if (!last || Math.hypot(trail.sm.x - last.x, trail.sm.y - last.y) > MIN_TRAIL_DIST) {
+					trail.points.push({ x: trail.sm.x, y: trail.sm.y, t: now })
 				}
 				trails.set(userId, trail)
 			}
@@ -385,21 +468,21 @@ function CursorTrails({ game }: { game: Game }) {
 					const v = editor.pageToViewport(p)
 					return { x: v.x, y: v.y, half: (TRAIL_WIDTH / 2) * (1 - (now - p.t) / TRAIL_FADE_MS) }
 				})
-				const edges = spine.map((s, i) => {
+				const edges = spine.map((sv, i) => {
 					const a = spine[Math.max(0, i - 1)]
 					const b = spine[Math.min(spine.length - 1, i + 1)]
 					let nx = a.y - b.y
 					let ny = b.x - a.x
 					const len = Math.hypot(nx, ny) || 1
-					nx = (nx / len) * s.half
-					ny = (ny / len) * s.half
-					return { lx: s.x + nx, ly: s.y + ny, rx: s.x - nx, ry: s.y - ny }
+					nx = (nx / len) * sv.half
+					ny = (ny / len) * sv.half
+					return { lx: sv.x + nx, ly: sv.y + ny, rx: sv.x - nx, ry: sv.y - ny }
 				})
 				ctx.fillStyle = trail.color
 				ctx.beginPath()
-				for (const s of spine) {
-					ctx.moveTo(s.x + s.half, s.y)
-					ctx.arc(s.x, s.y, s.half, 0, Math.PI * 2, true)
+				for (const sv of spine) {
+					ctx.moveTo(sv.x + sv.half, sv.y)
+					ctx.arc(sv.x, sv.y, sv.half, 0, Math.PI * 2, true)
 				}
 				for (let i = 1; i < edges.length; i++) {
 					const p = edges[i - 1]
@@ -410,6 +493,38 @@ function CursorTrails({ game }: { game: Game }) {
 					ctx.lineTo(p.rx, p.ry)
 					ctx.closePath()
 				}
+				ctx.fill()
+			}
+			ctx.globalAlpha = 1
+
+			// Crash flash: a quick white ring punching outward. Drop the dead ones first, so
+			// a long-delayed frame (a backgrounded tab resuming) never draws a stale ring.
+			flashes = flashes.filter((f) => now - f.t < CRASH_FLASH_MS)
+			for (const f of flashes) {
+				const age = (now - f.t) / CRASH_FLASH_MS
+				const p = editor.pageToViewport(f)
+				ctx.globalAlpha = Math.max(0, 1 - age) * 0.7
+				ctx.strokeStyle = '#ffffff'
+				ctx.lineWidth = 2 * z
+				ctx.beginPath()
+				ctx.arc(p.x, p.y, (6 + 42 * age) * z, 0, Math.PI * 2)
+				ctx.stroke()
+			}
+
+			// Crash debris: colored sparks flung out, slowing and fading. Drop the dead ones
+			// first, so `life` stays positive and the arc radius never goes negative.
+			sparks = sparks.filter((sp) => now - sp.t < CRASH_LIFE_MS)
+			for (const sp of sparks) {
+				sp.x += sp.vx
+				sp.y += sp.vy
+				sp.vx *= 0.9
+				sp.vy *= 0.9
+				const life = 1 - (now - sp.t) / CRASH_LIFE_MS
+				const p = editor.pageToViewport(sp)
+				ctx.globalAlpha = Math.max(0, life)
+				ctx.fillStyle = sp.color
+				ctx.beginPath()
+				ctx.arc(p.x, p.y, (1 + 3 * life) * z, 0, Math.PI * 2)
 				ctx.fill()
 			}
 			ctx.globalAlpha = 1
