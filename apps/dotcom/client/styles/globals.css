@@ -150,7 +150,7 @@ a {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: 30px;
+	gap: 12px;
 }
 
 .error-page__content {
@@ -159,30 +159,32 @@ a {
 	align-items: center;
 	justify-content: center;
 	text-align: center;
-	max-width: 500px;
+	max-width: 400px;
 	text-wrap: balance;
 }
 
-/* text-header mb-sm */
 .error-page__content h1 {
-	font-size: 18px;
-	font-weight: 800;
-	margin-bottom: 0.5rem;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.6;
+	margin: 0 0 12px;
 }
 
-/* text-primary-bold text-grey */
 .error-page__content p {
-	font-size: 14px;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.6;
+	margin: 0;
 	color: var(--text-color-2);
 }
 
-/* text-primary-bold text-grey */
 .error-page__container a,
 .error-page__container button {
-	font-size: 14px;
+	font-size: 12px;
 	font-weight: 500;
-	color: var(--text-color-2);
-	padding: 12px 4px;
+	line-height: 1.6;
+	color: inherit;
+	padding: 0;
 	text-decoration: underline;
 	background: none;
 	border: none;

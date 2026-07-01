@@ -1,7 +1,6 @@
 import { Component, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
-import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
 import { F, IntlProvider } from '../../tla/utils/i18n'
 import { isInIframe } from '../../utils/iFrame'
 
@@ -41,19 +40,16 @@ export const sadFaceIcon = (
 
 export function ErrorPage({
 	messages,
-	icon = sadFaceIcon,
 	cta = <GoBackLink />,
 }: {
-	icon?: ReactNode
 	messages: { header: string; para1: string; para2?: string; cta?: string }
 	cta?: ReactNode
 }) {
 	return (
 		// This sits outside the regular providers, it needs to be able to have the intl object in the app context.
 		<IntlProvider defaultLocale="en" locale="en" messages={translationsEnJson}>
-			<div className="error-page">
+			<div className="error-page" data-testid="tla-error">
 				<div className="error-page__container">
-					{icon}
 					<div className="error-page__content">
 						<h1>{messages.header}</h1>
 						<p>{messages.para1}</p>
@@ -83,9 +79,9 @@ export class RefreshErrorBoundary extends Component<
 				<ErrorPage
 					messages={this.props.messages}
 					cta={
-						<TlaButton variant="primary" onClick={() => window.location.reload()}>
+						<button type="button" onClick={() => window.location.reload()}>
 							{this.props.messages.cta}
-						</TlaButton>
+						</button>
 					}
 				/>
 			)
