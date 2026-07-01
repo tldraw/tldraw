@@ -3,18 +3,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Atom, Editor, TLComponents, Tldraw, Vec, VecLike, atom, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import {
-	BELT_INNER,
 	SPAWN,
 	SUN_KILL_RADIUS,
 	SUN_RADIUS,
 	beltInBounds,
 	driftAt,
+	fuelCellsInBounds,
+	hitsBelt,
 	spaceSeed,
 	starsInBounds,
 } from './space'
 import './cursor-spaceship.css'
 
 // [1] Tuning, in world units.
+// Fuel drains as you fly; refill by scooping up fuel cells. Run dry and the
+// engines die — steering cuts out and the sun drags you in.
+const FUEL_MAX = 100
+const FUEL_DRAIN = 0.11
+const FUEL_PER_CELL = 34
+const COLLECT_RADIUS = 22
+const FUEL_RESPAWN_MS = 8000
+const OUT_OF_FUEL_PULL = 5
+
 // Cursor trail (engine exhaust): a laser-style ribbon behind every ship in its
 // own color. Tapers to nothing at the tail so the fade is geometric.
 const TRAIL_FADE_MS = 2500
@@ -29,8 +39,12 @@ interface Game {
 	ship: Atom<Vec>
 	/** False until the player clicks Launch. */
 	engaged: Atom<boolean>
-	/** How many times this ship has been lost to the sun. */
+	/** How many times this ship has been lost. */
 	deaths: Atom<number>
+	/** Remaining fuel, 0..FUEL_MAX. */
+	fuel: Atom<number>
+	/** Fuel cells collected locally, keyed by cell → the time they respawn. */
+	collected: Map<string, number>
 }
 
 function createGame(roomId: string): Game {
@@ -39,6 +53,8 @@ function createGame(roomId: string): Game {
 		ship: atom('ship', SPAWN.clone()),
 		engaged: atom('engaged', false),
 		deaths: atom('deaths', 0),
+		fuel: atom('fuel', FUEL_MAX),
+		collected: new Map(),
 	}
 }
 
@@ -74,6 +90,7 @@ export default function CursorSpaceshipExample({ roomId }: { roomId: string }) {
 			>
 				<GameRunner game={game} />
 				<CursorTrails game={game} />
+				<FuelGauge game={game} />
 				<LaunchCard game={game} />
 			</Tldraw>
 		</div>
@@ -114,24 +131,33 @@ function GameRunner({ game }: { game: Game }) {
 				return
 			}
 
-			// The ship wants to be at the world point under the cursor, plus the
-			// current + gravity drift this tick. The belt walls you in — you can't push
-			// past its inner edge; instead you slide along it. Then re-pin the ship
-			// under the cursor by moving the world to absorb whatever it actually did,
-			// so the camera scrolls from the orbit, from gravity, and from scraping the
-			// belt, never from the cursor nearing a screen edge.
-			const underCursor = new Vec(screen.x / z - cam.x, screen.y / z - cam.y)
 			const drift = driftAt(from.x, from.y)
-			let next = new Vec(underCursor.x + drift.x, underCursor.y + drift.y)
-			const dist = Math.hypot(next.x, next.y)
-			if (dist > BELT_INNER) {
-				next = new Vec((next.x / dist) * BELT_INNER, (next.y / dist) * BELT_INNER)
+			let next: Vec
+			if (game.fuel.get() <= 0) {
+				// Out of fuel: engines dead. The cursor is still the ship, but steering
+				// does nothing — gravity (plus an extra pull, so the fall is quick)
+				// drags it into the sun, and re-pinning it under the cursor scrolls the
+				// star in to swallow you.
+				const d = Math.hypot(from.x, from.y) || 0.001
+				next = new Vec(
+					from.x + drift.x - (from.x / d) * OUT_OF_FUEL_PULL,
+					from.y + drift.y - (from.y / d) * OUT_OF_FUEL_PULL
+				)
+			} else {
+				// Normal flight: steer to the world point under the cursor, plus the
+				// current + gravity drift. Burn a little fuel and scoop up any cell we
+				// pass. Re-pinning the ship under the cursor makes the camera absorb the
+				// drift, so it scrolls from the orbit and from gravity — never from the
+				// cursor nearing a screen edge.
+				const underCursor = new Vec(screen.x / z - cam.x, screen.y / z - cam.y)
+				next = new Vec(underCursor.x + drift.x, underCursor.y + drift.y)
+				game.fuel.set(Math.max(0, game.fuel.get() - FUEL_DRAIN))
+				collectFuel(game, next)
 			}
 
-			// Fall into the sun and you're gone — respawn out in the ring.
-			if (Math.hypot(next.x, next.y) < SUN_KILL_RADIUS) {
-				game.ship.set(SPAWN.clone())
-				game.deaths.set(game.deaths.get() + 1)
+			// Touch the sun or the belt and you're gone — respawn with a full tank.
+			if (Math.hypot(next.x, next.y) < SUN_KILL_RADIUS || hitsBelt(next.x, next.y, game.seed)) {
+				respawn(game)
 				attached = false
 				return
 			}
@@ -150,6 +176,32 @@ function GameRunner({ game }: { game: Game }) {
 	}, [editor, game])
 
 	return null
+}
+
+/** Refuel if the ship is passing over an uncollected fuel cell. */
+function collectFuel(game: Game, pos: Vec) {
+	const now = Date.now()
+	for (const cell of fuelCellsInBounds(
+		pos.x - COLLECT_RADIUS,
+		pos.y - COLLECT_RADIUS,
+		pos.x + COLLECT_RADIUS,
+		pos.y + COLLECT_RADIUS,
+		game.seed
+	)) {
+		const respawnAt = game.collected.get(cell.key)
+		if (respawnAt && now < respawnAt) continue
+		if (Math.hypot(pos.x - cell.x, pos.y - cell.y) < COLLECT_RADIUS) {
+			game.fuel.set(Math.min(FUEL_MAX, game.fuel.get() + FUEL_PER_CELL))
+			game.collected.set(cell.key, now + FUEL_RESPAWN_MS)
+		}
+	}
+}
+
+/** Reset the ship to the ring with a full tank after a death. */
+function respawn(game: Game) {
+	game.ship.set(SPAWN.clone())
+	game.fuel.set(FUEL_MAX)
+	game.deaths.set(game.deaths.get() + 1)
 }
 
 /**
@@ -193,6 +245,26 @@ function SpaceField({ game }: { game: Game }) {
 				ctx.fill()
 			}
 			ctx.globalAlpha = 1
+
+			// Fuel cells — a glowing pip each, skipping ones just collected.
+			const now = Date.now()
+			for (const cell of fuelCellsInBounds(vp.minX, vp.minY, vp.maxX, vp.maxY, game.seed)) {
+				const respawnAt = game.collected.get(cell.key)
+				if (respawnAt && now < respawnAt) continue
+				const p = editor.pageToViewport(cell)
+				const r = COLLECT_RADIUS * z
+				const glow = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, r)
+				glow.addColorStop(0, 'rgba(120, 240, 190, 0.85)')
+				glow.addColorStop(1, 'rgba(120, 240, 190, 0)')
+				ctx.fillStyle = glow
+				ctx.beginPath()
+				ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
+				ctx.fill()
+				ctx.fillStyle = '#e9fff6'
+				ctx.beginPath()
+				ctx.arc(p.x, p.y, 3 * z, 0, Math.PI * 2)
+				ctx.fill()
+			}
 
 			// Belt asteroids — a shaded circle each.
 			for (const a of beltInBounds(vp.minX, vp.minY, vp.maxX, vp.maxY, game.seed)) {
@@ -352,6 +424,24 @@ function CursorTrails({ game }: { game: Game }) {
 	return <canvas ref={canvasRef} className="cursor-spaceship__trails" />
 }
 
+function FuelGauge({ game }: { game: Game }) {
+	const engaged = useValue('engaged', () => game.engaged.get(), [game])
+	const fuel = useValue('fuel', () => game.fuel.get(), [game])
+	if (!engaged) return null
+	const pct = Math.max(0, Math.min(100, fuel))
+	return (
+		<div className="cursor-spaceship__fuel">
+			<div className="cursor-spaceship__fuel-label">Fuel</div>
+			<div className="cursor-spaceship__fuel-track">
+				<div
+					className="cursor-spaceship__fuel-fill"
+					style={{ width: `${pct}%`, background: pct < 25 ? '#ff5a45' : '#5ce39a' }}
+				/>
+			</div>
+		</div>
+	)
+}
+
 function LaunchCard({ game }: { game: Game }) {
 	const engaged = useValue('engaged', () => game.engaged.get(), [game])
 	if (engaged) return null
@@ -359,9 +449,9 @@ function LaunchCard({ game }: { game: Game }) {
 		<div className="cursor-spaceship__launchcard">
 			<div className="cursor-spaceship__title">Cursor spaceship</div>
 			<div className="cursor-spaceship__subtitle">
-				Your cursor is the ship. A current sweeps you around the sun — steer to hold your orbit in
-				the ring between the star and the asteroid belt. Fall into the sun and you’re gone. Share
-				the link (top right) to fly with others.
+				Your cursor is the ship. A current sweeps you around the sun — steer to hold your ring,
+				grabbing green fuel cells to keep your engines lit. Touch the sun or the asteroid belt and
+				you’re gone; run dry and the sun takes you. Share the link (top right) to fly with others.
 			</div>
 			<button className="cursor-spaceship__launchbtn" onClick={() => game.engaged.set(true)}>
 				Launch

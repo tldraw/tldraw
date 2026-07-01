@@ -14,6 +14,13 @@ export interface Star {
 	size: number
 }
 
+/** A collectible fuel cell in world space; `key` identifies its procedural cell. */
+export interface FuelCell {
+	x: number
+	y: number
+	key: string
+}
+
 // The sun sits at the world origin.
 export const SUN_RADIUS = 46
 /** Drift within this of the sun's center and you're gone. */
@@ -21,10 +28,12 @@ export const SUN_KILL_RADIUS = 42
 /** A fresh ship starts out here, in the safe ring. */
 export const SPAWN = new Vec(0, 380)
 
-// The asteroid belt is a thick ring wall at the outer edge of the arena; the safe
-// ring is everything between the sun and the belt.
+// The asteroid belt is a thick lethal ring at the outer edge of the arena; the
+// safe ring is everything between the sun and the belt.
 export const BELT_INNER = 560
 export const BELT_OUTER = 780
+// The ship's collision radius. Tiny, so the cursor tip reaches right up to a rock.
+const SHIP_RADIUS = 3
 // The orbital current carries every ship tangentially around the sun.
 const CURRENT_SPEED = 2
 // Gravity toward the sun: inverse-square, so it's a gentle nudge out in the ring
@@ -38,9 +47,14 @@ const BELT_R_MAX = 52
 
 const STAR_CELL = 64
 
+// Fuel cells are scattered through the ring, between the sun and the belt.
+const FUEL_CELL = 150
+const FUEL_RING_INNER = 120
+const FUEL_RING_OUTER = 530
+
 /**
  * A numeric seed from the room id (fnv-1a). Everyone in a sync room passes the
- * same room id, so everyone generates the identical belt and starfield.
+ * same room id, so everyone generates the identical belt, starfield, and fuel.
  */
 export function spaceSeed(roomId: string): number {
 	let h = 2166136261 >>> 0
@@ -71,10 +85,8 @@ function hash3(a: number, b: number, c: number): number {
  */
 export function driftAt(x: number, y: number): Vec {
 	const dist = Math.hypot(x, y) || 0.001
-	// Tangential current — perpendicular to the sun direction.
 	const tx = (-y / dist) * CURRENT_SPEED
 	const ty = (x / dist) * CURRENT_SPEED
-	// Inward gravity, inverse-square.
 	const g = GRAVITY / (dist * dist)
 	return new Vec(tx - (x / dist) * g, ty - (y / dist) * g)
 }
@@ -107,6 +119,17 @@ export function beltInBounds(
 	return out
 }
 
+/** True if a ship at this world point is touching the belt (or past its outer edge). */
+export function hitsBelt(x: number, y: number, seed: number): boolean {
+	const dist = Math.hypot(x, y)
+	if (dist > BELT_OUTER) return true
+	if (dist < BELT_INNER - 70) return false
+	for (const a of beltInBounds(x - 80, y - 80, x + 80, y + 80, seed)) {
+		if (Math.hypot(x - a.x, y - a.y) < a.r + SHIP_RADIUS) return true
+	}
+	return false
+}
+
 /** Every background star whose cell overlaps the given world bounds. */
 export function starsInBounds(
 	minX: number,
@@ -128,6 +151,33 @@ export function starsInBounds(
 			const y = (cy + ((h >>> 16) & 0xff) / 255) * STAR_CELL
 			const size = 0.5 + (((h >>> 24) & 0xff) / 255) * 1.4
 			out.push({ x, y, size })
+		}
+	}
+	return out
+}
+
+/** Every fuel cell whose cell overlaps the given world bounds (scattered in the ring). */
+export function fuelCellsInBounds(
+	minX: number,
+	minY: number,
+	maxX: number,
+	maxY: number,
+	seed: number
+): FuelCell[] {
+	const out: FuelCell[] = []
+	const cx0 = Math.floor(minX / FUEL_CELL) - 1
+	const cx1 = Math.floor(maxX / FUEL_CELL) + 1
+	const cy0 = Math.floor(minY / FUEL_CELL) - 1
+	const cy1 = Math.floor(maxY / FUEL_CELL) + 1
+	for (let cx = cx0; cx <= cx1; cx++) {
+		for (let cy = cy0; cy <= cy1; cy++) {
+			const h = hash3(cx, cy, seed ^ 0x27d4eb2f)
+			if ((h & 0xff) > 96) continue // ~38% of cells hold fuel
+			const x = (cx + 0.2 + (((h >>> 8) & 0xff) / 255) * 0.6) * FUEL_CELL
+			const y = (cy + 0.2 + (((h >>> 16) & 0xff) / 255) * 0.6) * FUEL_CELL
+			const dist = Math.hypot(x, y)
+			if (dist < FUEL_RING_INNER || dist > FUEL_RING_OUTER) continue
+			out.push({ x, y, key: `${cx},${cy}` })
 		}
 	}
 	return out

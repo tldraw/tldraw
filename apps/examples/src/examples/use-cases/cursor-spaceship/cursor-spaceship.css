@@ -71,3 +71,35 @@
 .cursor-spaceship__launchbtn:hover {
 	filter: brightness(1.08);
 }
+
+/* Fuel gauge, top-left. */
+.cursor-spaceship__fuel {
+	position: absolute;
+	top: 14px;
+	left: 14px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	pointer-events: none;
+	z-index: 300;
+}
+.cursor-spaceship__fuel-label {
+	font-family: var(--tl-font-ui, system-ui, sans-serif);
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #c9d3f0;
+}
+.cursor-spaceship__fuel-track {
+	width: 160px;
+	height: 10px;
+	border-radius: 5px;
+	background: rgba(200, 215, 255, 0.15);
+	overflow: hidden;
+}
+.cursor-spaceship__fuel-fill {
+	height: 100%;
+	border-radius: 5px;
+	transition: width 80ms linear;
+}
