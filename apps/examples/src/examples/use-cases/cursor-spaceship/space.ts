@@ -14,24 +14,33 @@ export interface Star {
 	size: number
 }
 
-/** The ship's collision radius. Tiny, so the cursor tip reaches right up to a rock. */
-export const SHIP_RADIUS = 3
+// The sun sits at the world origin.
+export const SUN_RADIUS = 46
+/** Drift within this of the sun's center and you're gone. */
+export const SUN_KILL_RADIUS = 42
+/** A fresh ship starts out here, in the safe ring. */
+export const SPAWN = new Vec(0, 380)
 
-// World units per procedural cell. Each cell independently decides whether it
-// holds an asteroid, so the field is infinite in every direction.
-const CELL = 300
-const ASTEROID_CHANCE = 0.5
-const R_MIN = 26
-const R_MAX = 78
-// Keep a clear pocket around the launch point (world origin) so you don't spawn
-// inside a rock.
-const SPAWN_CLEAR = 300
+// The asteroid belt is a thick ring wall at the outer edge of the arena; the safe
+// ring is everything between the sun and the belt.
+export const BELT_INNER = 560
+export const BELT_OUTER = 780
+// The orbital current carries every ship tangentially around the sun.
+const CURRENT_SPEED = 2
+// Gravity toward the sun: inverse-square, so it's a gentle nudge out in the ring
+// and an inescapable yank once you're close.
+const GRAVITY = 60000
+
+const BELT_CELL = 82
+const BELT_CHANCE = 0.85
+const BELT_R_MIN = 20
+const BELT_R_MAX = 52
 
 const STAR_CELL = 64
 
 /**
  * A numeric seed from the room id (fnv-1a). Everyone in a sync room passes the
- * same room id, so everyone generates the identical asteroid field and starfield.
+ * same room id, so everyone generates the identical belt and starfield.
  */
 export function spaceSeed(roomId: string): number {
 	let h = 2166136261 >>> 0
@@ -54,8 +63,24 @@ function hash3(a: number, b: number, c: number): number {
 	return h >>> 0
 }
 
-/** Every asteroid whose cell overlaps the given world bounds. */
-export function asteroidsInBounds(
+/**
+ * The per-tick drift at a world point: the orbital current (tangential, carrying
+ * you around the sun) plus the sun's gravity (inward). Holding the cursor still,
+ * this is what flies you — a slow circle out in the ring, a fatal plunge near the
+ * sun.
+ */
+export function driftAt(x: number, y: number): Vec {
+	const dist = Math.hypot(x, y) || 0.001
+	// Tangential current — perpendicular to the sun direction.
+	const tx = (-y / dist) * CURRENT_SPEED
+	const ty = (x / dist) * CURRENT_SPEED
+	// Inward gravity, inverse-square.
+	const g = GRAVITY / (dist * dist)
+	return new Vec(tx - (x / dist) * g, ty - (y / dist) * g)
+}
+
+/** Belt asteroids overlapping the given world bounds — a dense ring wall. */
+export function beltInBounds(
 	minX: number,
 	minY: number,
 	maxX: number,
@@ -63,19 +88,19 @@ export function asteroidsInBounds(
 	seed: number
 ): Asteroid[] {
 	const out: Asteroid[] = []
-	const cx0 = Math.floor(minX / CELL) - 1
-	const cx1 = Math.floor(maxX / CELL) + 1
-	const cy0 = Math.floor(minY / CELL) - 1
-	const cy1 = Math.floor(maxY / CELL) + 1
+	const cx0 = Math.floor(minX / BELT_CELL) - 1
+	const cx1 = Math.floor(maxX / BELT_CELL) + 1
+	const cy0 = Math.floor(minY / BELT_CELL) - 1
+	const cy1 = Math.floor(maxY / BELT_CELL) + 1
 	for (let cx = cx0; cx <= cx1; cx++) {
 		for (let cy = cy0; cy <= cy1; cy++) {
-			if (hash3(cx, cy, seed) / 0x100000000 > ASTEROID_CHANCE) continue
-			// A second, independent hash places and sizes the rock within its cell.
+			if (hash3(cx, cy, seed) / 0x100000000 > BELT_CHANCE) continue
 			const g = hash3(cx, cy, seed ^ 0x85ebca6b)
-			const x = (cx + 0.2 + ((g & 0xff) / 255) * 0.6) * CELL
-			const y = (cy + 0.2 + (((g >>> 8) & 0xff) / 255) * 0.6) * CELL
-			if (x * x + y * y < SPAWN_CLEAR * SPAWN_CLEAR) continue
-			const r = R_MIN + (((g >>> 16) & 0xff) / 255) * (R_MAX - R_MIN)
+			const x = (cx + 0.15 + ((g & 0xff) / 255) * 0.7) * BELT_CELL
+			const y = (cy + 0.15 + (((g >>> 8) & 0xff) / 255) * 0.7) * BELT_CELL
+			const dist = Math.hypot(x, y)
+			if (dist < BELT_INNER || dist > BELT_OUTER) continue
+			const r = BELT_R_MIN + (((g >>> 16) & 0xff) / 255) * (BELT_R_MAX - BELT_R_MIN)
 			out.push({ x, y, r })
 		}
 	}
@@ -98,7 +123,6 @@ export function starsInBounds(
 	for (let cx = cx0; cx <= cx1; cx++) {
 		for (let cy = cy0; cy <= cy1; cy++) {
 			const h = hash3(cx, cy, seed ^ 0xc2b2ae35)
-			// Only some cells hold a star, so the field isn't a perfect grid.
 			if ((h & 0xff) < 150) continue
 			const x = (cx + ((h >>> 8) & 0xff) / 255) * STAR_CELL
 			const y = (cy + ((h >>> 16) & 0xff) / 255) * STAR_CELL
@@ -107,41 +131,4 @@ export function starsInBounds(
 		}
 	}
 	return out
-}
-
-/**
- * Advance the ship from `from` toward `to`, sliding around asteroids instead of
- * entering them. Substepped so a fast flick can't tunnel through a rock, and each
- * step pushes the ship back out along the surface normal — which keeps the
- * tangential motion, so you skim around a rock rather than sticking to it.
- */
-export function moveShip(from: Vec, to: Vec, asteroids: Asteroid[]): Vec {
-	let px = from.x
-	let py = from.y
-	const dx = to.x - from.x
-	const dy = to.y - from.y
-	const dist = Math.hypot(dx, dy)
-	const steps = Math.max(1, Math.ceil(dist / (SHIP_RADIUS + 6)))
-	const sx = dx / steps
-	const sy = dy / steps
-	for (let i = 0; i < steps; i++) {
-		px += sx
-		py += sy
-		// A couple of relaxation passes settle the ship when two rocks overlap it.
-		for (let iter = 0; iter < 2; iter++) {
-			for (const a of asteroids) {
-				const ox = px - a.x
-				const oy = py - a.y
-				const minD = a.r + SHIP_RADIUS
-				const d2 = ox * ox + oy * oy
-				if (d2 < minD * minD) {
-					const d = Math.sqrt(d2) || 0.001
-					const k = (minD - d) / d
-					px += ox * k
-					py += oy * k
-				}
-			}
-		}
-	}
-	return new Vec(px, py)
 }

@@ -2,38 +2,43 @@ import { useSyncDemo } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Atom, Editor, TLComponents, Tldraw, Vec, VecLike, atom, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { asteroidsInBounds, moveShip, spaceSeed, starsInBounds } from './space'
+import {
+	BELT_INNER,
+	SPAWN,
+	SUN_KILL_RADIUS,
+	SUN_RADIUS,
+	beltInBounds,
+	driftAt,
+	spaceSeed,
+	starsInBounds,
+} from './space'
 import './cursor-spaceship.css'
 
 // [1] Tuning, in world units.
-// The current carries every ship "forward" (upward) a little each tick, on top of
-// however you steer. Hold still and it flies you on; a rock stops you.
-const CURRENT = new Vec(0, -3)
-// Gather asteroids this far beyond the ship's path when resolving collision, so a
-// fast flick of the cursor can't tunnel past one.
-const COLLISION_MARGIN = 110
-
 // Cursor trail (engine exhaust): a laser-style ribbon behind every ship in its
 // own color. Tapers to nothing at the tail so the fade is geometric.
 const TRAIL_FADE_MS = 2500
 const TRAIL_WIDTH = 9
 const TRAIL_ALPHA = 0.8
-const MIN_TRAIL_DIST = 4
+const MIN_TRAIL_DIST = 1.5
 
 interface Game {
-	/** Seed for the shared asteroid field and starfield. */
+	/** Seed for the shared asteroid belt and starfield. */
 	seed: number
 	/** The ship's position in world space — always the world point under the cursor. */
 	ship: Atom<Vec>
 	/** False until the player clicks Launch. */
 	engaged: Atom<boolean>
+	/** How many times this ship has been lost to the sun. */
+	deaths: Atom<number>
 }
 
 function createGame(roomId: string): Game {
 	return {
 		seed: spaceSeed(roomId),
-		ship: atom('ship', new Vec(0, 0)),
+		ship: atom('ship', SPAWN.clone()),
 		engaged: atom('engaged', false),
+		deaths: atom('deaths', 0),
 	}
 }
 
@@ -42,11 +47,12 @@ export default function CursorSpaceshipExample({ roomId }: { roomId: string }) {
 
 	// [2] Connect to a sync room. tldraw syncs every ship's cursor for free, and
 	// because we pin the ship under the cursor, your synced cursor IS your world
-	// position — so as the current carries you, everyone else sees your ship fly.
+	// position — so as the current sweeps you around the sun, everyone else sees
+	// your ship orbiting.
 	const store = useSyncDemo({ roomId })
 
-	// [3] The starfield and asteroids are drawn behind everything on the Background
-	// layer; the ships are the cursors themselves.
+	// [3] The sun, starfield, and belt are drawn behind everything on the
+	// Background layer; the ships are the cursors themselves.
 	const components = useMemo<TLComponents>(
 		() => ({ Background: () => <SpaceField game={game} /> }),
 		[game]
@@ -83,13 +89,12 @@ function GameRunner({ game }: { game: Game }) {
 		let attached = false
 
 		const onTick = () => {
-			// Before launch, frame the spawn in the middle of the viewport (done here,
+			// Before launch, frame the sun in the middle of the viewport (done here,
 			// not in onMount, so the viewport has been measured).
 			if (!game.engaged.get()) {
 				const viewport = editor.getViewportScreenBounds()
-				const spawn = game.ship.get()
 				editor.setCamera(
-					{ x: viewport.w / 2 - spawn.x, y: viewport.h / 2 - spawn.y, z: 1 },
+					{ x: viewport.w / 2, y: viewport.h / 2, z: 1 },
 					{ force: true, immediate: true }
 				)
 				return
@@ -110,20 +115,27 @@ function GameRunner({ game }: { game: Game }) {
 			}
 
 			// The ship wants to be at the world point under the cursor, plus the
-			// current's push this tick. Resolve that against the rocks (sliding), then
-			// re-pin the ship under the cursor by moving the world to absorb whatever
-			// the ship actually did — so the camera scrolls both from the current and
-			// from bumping a rock, never from the cursor nearing a screen edge.
+			// current + gravity drift this tick. The belt walls you in — you can't push
+			// past its inner edge; instead you slide along it. Then re-pin the ship
+			// under the cursor by moving the world to absorb whatever it actually did,
+			// so the camera scrolls from the orbit, from gravity, and from scraping the
+			// belt, never from the cursor nearing a screen edge.
 			const underCursor = new Vec(screen.x / z - cam.x, screen.y / z - cam.y)
-			const target = new Vec(underCursor.x + CURRENT.x, underCursor.y + CURRENT.y)
-			const near = asteroidsInBounds(
-				Math.min(from.x, target.x) - COLLISION_MARGIN,
-				Math.min(from.y, target.y) - COLLISION_MARGIN,
-				Math.max(from.x, target.x) + COLLISION_MARGIN,
-				Math.max(from.y, target.y) + COLLISION_MARGIN,
-				game.seed
-			)
-			const next = moveShip(from, target, near)
+			const drift = driftAt(from.x, from.y)
+			let next = new Vec(underCursor.x + drift.x, underCursor.y + drift.y)
+			const dist = Math.hypot(next.x, next.y)
+			if (dist > BELT_INNER) {
+				next = new Vec((next.x / dist) * BELT_INNER, (next.y / dist) * BELT_INNER)
+			}
+
+			// Fall into the sun and you're gone — respawn out in the ring.
+			if (Math.hypot(next.x, next.y) < SUN_KILL_RADIUS) {
+				game.ship.set(SPAWN.clone())
+				game.deaths.set(game.deaths.get() + 1)
+				attached = false
+				return
+			}
+
 			editor.setCamera(
 				{ x: screen.x / z - next.x, y: screen.y / z - next.y, z },
 				{ force: true, immediate: true }
@@ -141,10 +153,10 @@ function GameRunner({ game }: { game: Game }) {
 }
 
 /**
- * The starfield and asteroid field, drawn behind everything each frame. Both are
- * generated on the fly from the seed for whatever region is on screen, so the
- * field is endless and identical for everyone in the room. Drawing to a canvas in
- * screen space (via pageToViewport) keeps it cheap no matter how far you fly.
+ * The sun, starfield, and asteroid belt, drawn behind everything each frame. The
+ * belt and stars are generated on the fly from the seed for whatever region is on
+ * screen, so they're identical for everyone in the room. Drawing to a canvas in
+ * screen space (via pageToViewport) keeps it cheap no matter where you orbit.
  */
 function SpaceField({ game }: { game: Game }) {
 	const editor = useEditor()
@@ -182,8 +194,8 @@ function SpaceField({ game }: { game: Game }) {
 			}
 			ctx.globalAlpha = 1
 
-			// Asteroids — a shaded circle each.
-			for (const a of asteroidsInBounds(vp.minX, vp.minY, vp.maxX, vp.maxY, game.seed)) {
+			// Belt asteroids — a shaded circle each.
+			for (const a of beltInBounds(vp.minX, vp.minY, vp.maxX, vp.maxY, game.seed)) {
 				const p = editor.pageToViewport(a)
 				const r = a.r * z
 				const grad = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.35, r * 0.1, p.x, p.y, r)
@@ -194,6 +206,32 @@ function SpaceField({ game }: { game: Game }) {
 				ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
 				ctx.fill()
 			}
+
+			// The sun at the world origin: a hot core with a wide glow.
+			const sun = editor.pageToViewport({ x: 0, y: 0 })
+			const sr = SUN_RADIUS * z
+			const glow = ctx.createRadialGradient(sun.x, sun.y, sr * 0.2, sun.x, sun.y, sr * 3.2)
+			glow.addColorStop(0, 'rgba(255, 240, 200, 0.9)')
+			glow.addColorStop(0.28, 'rgba(255, 176, 80, 0.5)')
+			glow.addColorStop(1, 'rgba(255, 140, 40, 0)')
+			ctx.fillStyle = glow
+			ctx.beginPath()
+			ctx.arc(sun.x, sun.y, sr * 3.2, 0, Math.PI * 2)
+			ctx.fill()
+			const core = ctx.createRadialGradient(
+				sun.x - sr * 0.3,
+				sun.y - sr * 0.3,
+				sr * 0.1,
+				sun.x,
+				sun.y,
+				sr
+			)
+			core.addColorStop(0, '#fffdf5')
+			core.addColorStop(1, '#ffb54a')
+			ctx.fillStyle = core
+			ctx.beginPath()
+			ctx.arc(sun.x, sun.y, sr, 0, Math.PI * 2)
+			ctx.fill()
 		}
 
 		editor.on('tick', draw)
@@ -321,9 +359,9 @@ function LaunchCard({ game }: { game: Game }) {
 		<div className="cursor-spaceship__launchcard">
 			<div className="cursor-spaceship__title">Cursor spaceship</div>
 			<div className="cursor-spaceship__subtitle">
-				Your cursor is the ship. A current carries you forward through an endless asteroid field —
-				steer to weave through the rocks; bump one and you slide around it. Share the link (top
-				right) to fly with a friend.
+				Your cursor is the ship. A current sweeps you around the sun — steer to hold your orbit in
+				the ring between the star and the asteroid belt. Fall into the sun and you’re gone. Share
+				the link (top right) to fly with others.
 			</div>
 			<button className="cursor-spaceship__launchbtn" onClick={() => game.engaged.set(true)}>
 				Launch
