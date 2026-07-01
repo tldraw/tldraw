@@ -38,7 +38,7 @@
 	"dependencies": {
 		"@clerk/clerk-react": "^5.53.3",
 		"@clerk/elements": "^0.23.74",
-		"@rocicorp/zero": "1.6.1",
+		"@rocicorp/zero": "1.7.0",
 		"@sentry/integrations": "^7.120.3",
 		"@sentry/react": "^7.120.3",
 		"@tldraw/assets": "workspace:*",
@@ -84,7 +84,7 @@
 		"json5": "^2.2.3",
 		"kysely": "^0.28.12",
 		"lazyrepo": "0.0.0-alpha.27",
-		"pg": "^8.13.1",
+		"pg": "^8.16.3",
 		"regexgen": "^1.3.0",
 		"vite": "^8.0.16",
 		"vitest": "^4.1.7",
