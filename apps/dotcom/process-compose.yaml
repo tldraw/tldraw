@@ -1,0 +1,106 @@
+# Dotcom dev stack, brought up by `yarn dev-app`. Usage notes in apps/dotcom/README.md.
+
+version: '0.5'
+
+# Readiness = TCP connect (a portable node one-liner; wrangler's `/` 404s, so http_get won't do).
+
+processes:
+  # postgres — the one container (wal2json / logical replication)
+  postgres:
+    command: docker compose -f apps/dotcom/zero-cache/docker/docker-compose.yml up
+    shutdown:
+      command: docker compose -f apps/dotcom/zero-cache/docker/docker-compose.yml down
+    readiness_probe:
+      exec:
+        command: node -e "require('net').connect(6543,'127.0.0.1').on('connect',function(){this.end();process.exit(0)}).on('error',()=>process.exit(1))"
+      initial_delay_seconds: 2
+      period_seconds: 2
+      # ~180s budget: the first run pulls the postgres image, which can take minutes.
+      failure_threshold: 90
+
+  # zero needs .schema.js: build it once, then watch for changes
+  bundle-schema:
+    command: yarn workspace @tldraw/zero-cache bundle-schema
+    availability:
+      restart: 'no' # one-shot; completes
+
+  schema-watch:
+    command: yarn workspace @tldraw/zero-cache bundle-schema:watch
+    depends_on:
+      bundle-schema:
+        condition: process_completed_successfully
+
+  # migrations — one-shot; gates zero-cache
+  migrate:
+    command: yarn workspace @tldraw/zero-cache migrate
+    depends_on:
+      postgres:
+        condition: process_healthy
+    availability:
+      restart: 'no'
+
+  # zero-cache — replicates from postgres; restarts on schema change
+  zero-cache:
+    command: yarn workspace @tldraw/zero-cache exec nodemon --watch ./.schema.js --exec zero-cache-dev --signal SIGINT
+    environment:
+      - ZERO_UPSTREAM_DB=postgresql://user:password@127.0.0.1:6543/postgres
+      - ZERO_CVR_DB=postgresql://user:password@127.0.0.1:6543/postgres
+      - ZERO_CHANGE_DB=postgresql://user:password@127.0.0.1:6543/postgres
+      - ZERO_REPLICA_FILE=/tmp/tldraw-dotcom-zero-dev.db
+      - ZERO_NUM_SYNC_WORKERS=1
+      - ZERO_APP_PUBLICATIONS=zero_data
+      - ZERO_MUTATE_URL=http://localhost:8787/app/zero/mutate
+      - ZERO_QUERY_URL=http://localhost:8787/app/zero/query
+      - ZERO_ENABLE_CRUD_MUTATIONS=false
+      - ZERO_LOG_LEVEL=info
+      - ZERO_ENABLE_STARTUP_MESSAGE=0
+      - DO_NOT_TRACK=1
+    depends_on:
+      migrate:
+        condition: process_completed_successfully
+      bundle-schema:
+        condition: process_completed_successfully
+    readiness_probe:
+      exec:
+        command: node -e "require('net').connect(4848,'127.0.0.1').on('connect',function(){this.end();process.exit(0)}).on('error',()=>process.exit(1))"
+      initial_delay_seconds: 3
+      period_seconds: 2
+      failure_threshold: 90
+
+  # workers — wrangler dev / workerd on the host
+  sync-worker:
+    command: yarn workspace @tldraw/dotcom-worker dev
+    depends_on:
+      zero-cache:
+        condition: process_healthy
+    readiness_probe:
+      exec:
+        command: node -e "require('net').connect(8787,'127.0.0.1').on('connect',function(){this.end();process.exit(0)}).on('error',()=>process.exit(1))"
+      initial_delay_seconds: 3
+      period_seconds: 2
+      failure_threshold: 60
+
+  asset-upload-worker:
+    command: yarn workspace dotcom-asset-upload dev
+
+  # image-resize + usercontent bind sync-worker by name, so it must come up first
+  image-resize-worker:
+    command: yarn workspace images.tldraw.com dev
+    depends_on:
+      sync-worker:
+        condition: process_healthy
+
+  tldrawusercontent-worker:
+    command: yarn workspace dotcom-tldrawusercontent dev
+    depends_on:
+      sync-worker:
+        condition: process_healthy
+
+  # --- Client: Vite dev server. No readiness gating to hand-roll — depends_on does it. ---
+  client:
+    command: yarn workspace dotcom dev
+    depends_on:
+      sync-worker:
+        condition: process_healthy
+      zero-cache:
+        condition: process_healthy
