@@ -15,10 +15,10 @@ const COLLISION_RADIUS = 2
 const ZOOM = 1
 const GOAL_RADIUS = CELL * 0.4
 
-// Cursor trail: a fading, tapering laser-style path drawn behind every player's
-// cursor in their own color.
-const TRAIL_FADE_MS = 600
-const TRAIL_WIDTH = 7
+// Cursor trail: a fading, laser-style path drawn behind every player's cursor in
+// their own color.
+const TRAIL_FADE_MS = 2000
+const TRAIL_WIDTH = 8
 const MIN_TRAIL_DIST = 4
 
 /** A finished run. Stored in the synced document's meta, keyed by user id. */
@@ -169,12 +169,19 @@ function GameRunner({ game }: { game: Game }) {
 	return null
 }
 
+/** Turn a `#rrggbb` user/presence color into an `rgba()` string for gradient stops. */
+function withAlpha(color: string, alpha: number) {
+	const n = parseInt(color.slice(1), 16)
+	return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
+}
+
 /**
  * A fading, laser-style trail behind every cursor, each in that player's own
  * color: your own collision-resolved position plus every collaborator's synced
  * cursor. Nothing about the trail is synced — it's derived entirely from the
  * cursor positions tldraw already gives us, so it adds no presence data. Drawn
- * to a plain canvas so the whole thing is one repaint per frame.
+ * to a plain canvas as a single gradient-stroked path per player, one repaint
+ * per frame.
  */
 function CursorTrails({ game }: { game: Game }) {
 	const editor = useEditor()
@@ -232,31 +239,39 @@ function CursorTrails({ game }: { game: Game }) {
 				trails.set(userId, trail)
 			}
 
-			// Age out old points (dropping empty trails), then draw each as a line
-			// that thins and fades toward its tail. pageToViewport maps each world
-			// point through the current camera into container pixels.
+			// Age out old points (dropping empty trails), then draw each trail as one
+			// smooth path stroked with a single gradient — transparent at the tail,
+			// solid at the cursor. Drawing it as one stroke (rather than a segment per
+			// pair of points) avoids the overlapping round-cap dots you'd otherwise
+			// get. pageToViewport maps each world point through the camera into
+			// container pixels.
 			ctx.lineCap = 'round'
 			ctx.lineJoin = 'round'
 			for (const [userId, trail] of trails) {
 				trail.points = trail.points.filter((p) => now - p.t < TRAIL_FADE_MS)
-				if (trail.points.length === 0) {
-					trails.delete(userId)
+				if (trail.points.length < 2) {
+					if (trail.points.length === 0) trails.delete(userId)
 					continue
 				}
-				ctx.strokeStyle = trail.color
-				for (let i = 1; i < trail.points.length; i++) {
-					const life = 1 - (now - trail.points[i].t) / TRAIL_FADE_MS
-					const a = editor.pageToViewport(trail.points[i - 1])
-					const b = editor.pageToViewport(trail.points[i])
-					ctx.globalAlpha = Math.max(0, life)
-					ctx.lineWidth = TRAIL_WIDTH * life
-					ctx.beginPath()
-					ctx.moveTo(a.x, a.y)
-					ctx.lineTo(b.x, b.y)
-					ctx.stroke()
+				const pts = trail.points.map((p) => editor.pageToViewport(p))
+				const tail = pts[0]
+				const head = pts[pts.length - 1]
+				const gradient = ctx.createLinearGradient(tail.x, tail.y, head.x, head.y)
+				gradient.addColorStop(0, withAlpha(trail.color, 0))
+				gradient.addColorStop(1, withAlpha(trail.color, 1))
+				ctx.strokeStyle = gradient
+				ctx.lineWidth = TRAIL_WIDTH
+				ctx.beginPath()
+				ctx.moveTo(tail.x, tail.y)
+				// Curve through the midpoints between samples to smooth the polyline.
+				for (let i = 1; i < pts.length - 1; i++) {
+					const mx = (pts[i].x + pts[i + 1].x) / 2
+					const my = (pts[i].y + pts[i + 1].y) / 2
+					ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my)
 				}
+				ctx.lineTo(head.x, head.y)
+				ctx.stroke()
 			}
-			ctx.globalAlpha = 1
 		}
 
 		editor.on('tick', draw)
