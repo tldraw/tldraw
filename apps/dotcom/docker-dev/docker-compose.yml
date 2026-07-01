@@ -1,0 +1,325 @@
+# ============================================================================
+# SPIKE: full Docker dev stack for tldraw.com (dotcom)
+# ============================================================================
+# This runs the ENTIRE dotcom dev stack in containers, one service per container,
+# each on its conventional default port *inside* the compose network. Services
+# reach each other by service name (e.g. the client's /api proxy targets
+# http://sync-worker:8787). Ports are also published to the host so the browser
+# (which always runs on the host, outside Docker) can reach them.
+#
+# This is an exploratory alternative to PR #9273 (host-native per-worktree port
+# blocks). It deliberately does NOT touch the existing `yarn dev-app` flow.
+#
+# See README.md for the full writeup of trade-offs and the known rough edges
+# (worker->worker service bindings, the overloaded MULTIPLAYER_SERVER var, the
+# node_modules volume tax, macOS bind-mount HMR latency).
+#
+# Quick start:
+#   cp .env.example .env            # then fill in Clerk keys
+#   docker compose --project-name tldraw_dotcom_docker up --build
+#
+# Run from this directory (apps/dotcom/docker-dev). The repo root is bind-mounted
+# from ../../.. so live edits reflect in the containers.
+
+name: tldraw_dotcom_docker
+
+# ---------------------------------------------------------------------------
+# Shared config for every Node-based service. The repo is bind-mounted and
+# dependencies live in named volumes (NOT the bind-mount) so the linux install
+# never collides with the host's macOS node_modules. See the `install` service.
+# ---------------------------------------------------------------------------
+x-node-service: &node-service
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: tldraw-dotcom-dev-node
+  init: true
+  # host.docker.internal lets a container reach the host if ever needed; harmless otherwise.
+  extra_hosts:
+    - 'host.docker.internal:host-gateway'
+  depends_on:
+    install:
+      condition: service_completed_successfully
+
+# The whole repo, bind-mounted for live reload (single entry, reused everywhere).
+x-repo-bind: &repo-bind ../../..:/repo
+
+x-repo-mounts: &repo-mounts
+  # The repo, then shadow every node_modules path the dotcom stack touches with a
+  # named volume so the host's macOS binaries are never visible to linux. (This
+  # enumeration is the node-modules-linker tax — see README. A complete version
+  # would also shadow every packages/* nm.)
+  - *repo-bind
+  - root_node_modules:/repo/node_modules
+  - nm_client:/repo/apps/dotcom/client/node_modules
+  - nm_sync:/repo/apps/dotcom/sync-worker/node_modules
+  - nm_asset:/repo/apps/dotcom/asset-upload-worker/node_modules
+  - nm_image:/repo/apps/dotcom/image-resize-worker/node_modules
+  - nm_usercontent:/repo/apps/dotcom/tldrawusercontent-worker/node_modules
+  - nm_zero:/repo/apps/dotcom/zero-cache/node_modules
+
+services:
+  # -------------------------------------------------------------------------
+  # One-shot: install linux dependencies into the named node_modules volumes.
+  # Every other Node service waits for this to finish. Re-runs are fast (yarn
+  # is incremental); first run is a full cold install (minutes — see README).
+  # -------------------------------------------------------------------------
+  install:
+    <<: *node-service
+    depends_on: []
+    volumes: *repo-mounts
+    # Install linux deps, then run the predev generators the host `yarn dev`
+    # normally runs (refresh-assets + per-package predev, e.g. tldraw.css). The
+    # per-service commands below run vite/wrangler directly and bypass lazyrepo's
+    # predev orchestration, so we have to materialise those artifacts once here.
+    command:
+      - sh
+      - -c
+      - >
+        yarn install --inline-builds &&
+        yarn refresh-assets &&
+        yarn lazy run predev --filter='packages/*' &&
+        yarn lazy run build-i18n --filter='apps/dotcom/client'
+
+  # -------------------------------------------------------------------------
+  # Postgres with logical replication (wal2json) — required by Zero.
+  # Same image + flags as the host stack's docker-compose.yml, but on the
+  # conventional 5432 internally instead of the host stack's 6543.
+  # -------------------------------------------------------------------------
+  postgres:
+    image: simonfuhrer/postgresql:16.1-wal2json
+    shm_size: 1g
+    user: postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U user --dbname=postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: password
+    command: |
+      postgres
+      -c wal_level=logical
+      -c max_wal_senders=10
+      -c max_replication_slots=5
+      -c max_connections=300
+      -c hot_standby=on
+      -c hot_standby_feedback=on
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  # -------------------------------------------------------------------------
+  # pgbouncer — pooled connection front for postgres. Uses the edoburu image's
+  # env-var mode (no mounted .ini) so it is self-contained and points at the
+  # `postgres` service by name.
+  # -------------------------------------------------------------------------
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '6432:6432'
+    environment:
+      DB_HOST: postgres
+      DB_PORT: '5432'
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: postgres
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: '450'
+      DEFAULT_POOL_SIZE: '100'
+      AUTH_TYPE: scram-sha-256
+      LISTEN_PORT: '6432'
+
+  # -------------------------------------------------------------------------
+  # Zero cache (Rocicorp Zero) — replicates from postgres, delegates
+  # mutations/queries back to the sync-worker. Conventional port 4848.
+  # -------------------------------------------------------------------------
+  zero-cache:
+    <<: *node-service
+    depends_on:
+      install:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    entrypoint: ['/repo/apps/dotcom/docker-dev/entrypoint-zero-cache.sh']
+    ports:
+      - '4848:4848'
+      - '7654:7654' # migrations readiness server
+    environment:
+      # Replica lives on a volume, not the bind-mount (sqlite over osxfs is slow + risky).
+      ZERO_REPLICA_FILE: /zero/replica.db
+      ZERO_NUM_SYNC_WORKERS: '1'
+      ZERO_UPSTREAM_DB: postgresql://user:password@postgres:5432/postgres
+      ZERO_CVR_DB: postgresql://user:password@postgres:5432/postgres
+      ZERO_CHANGE_DB: postgresql://user:password@postgres:5432/postgres
+      ZERO_APP_PUBLICATIONS: zero_data
+      # Zero calls back into the sync-worker for custom mutators/queries.
+      ZERO_MUTATE_URL: http://sync-worker:8787/app/zero/mutate
+      ZERO_QUERY_URL: http://sync-worker:8787/app/zero/query
+      ZERO_ENABLE_CRUD_MUTATIONS: 'false'
+      ZERO_LOG_LEVEL: info
+      ZERO_ENABLE_STARTUP_MESSAGE: '0'
+      DO_NOT_TRACK: '1'
+      # migrate.ts reads this; point it at direct postgres (matches host dev).
+      BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: postgresql://user:password@postgres:5432/postgres
+      PGHOST: postgres
+    volumes:
+      - *repo-bind
+      - root_node_modules:/repo/node_modules
+      - nm_zero:/repo/apps/dotcom/zero-cache/node_modules
+      - zero_replica:/zero
+
+  # -------------------------------------------------------------------------
+  # sync-worker — the main multiplayer / API worker (wrangler dev / workerd).
+  # All --var overrides repoint server-to-server URLs at compose service names
+  # WITHOUT editing the committed wrangler.toml.
+  # -------------------------------------------------------------------------
+  sync-worker:
+    <<: *node-service
+    working_dir: /repo/apps/dotcom/sync-worker
+    ports:
+      - '8787:8787'
+      - '9229:9229' # inspector
+    volumes:
+      - *repo-bind
+      - root_node_modules:/repo/node_modules
+      - nm_sync:/repo/apps/dotcom/sync-worker/node_modules
+      - wrangler_sync:/wrangler-state
+    command:
+      - sh
+      - -c
+      - >
+        yarn wrangler dev --env dev --ip 0.0.0.0 --port 8787
+        --inspector-port 9229
+        --persist-to /wrangler-state
+        --var IS_LOCAL:true
+        --var ASSET_UPLOAD_ORIGIN:http://asset-upload-worker:8788
+        --var USER_CONTENT_URL:http://tldrawusercontent-worker:8789
+        --var BOTCOM_POSTGRES_CONNECTION_STRING:postgresql://user:password@postgres:5432/postgres
+        --var BOTCOM_POSTGRES_POOLED_CONNECTION_STRING:postgresql://user:password@pgbouncer:6432/postgres
+        --var MULTIPLAYER_SERVER:http://localhost:3000
+
+  # -------------------------------------------------------------------------
+  # asset-upload-worker — no service bindings, so it works fine standalone.
+  # -------------------------------------------------------------------------
+  asset-upload-worker:
+    <<: *node-service
+    working_dir: /repo/apps/dotcom/asset-upload-worker
+    ports:
+      - '8788:8788'
+    volumes:
+      - *repo-bind
+      - root_node_modules:/repo/node_modules
+      - nm_asset:/repo/apps/dotcom/asset-upload-worker/node_modules
+      - wrangler_asset:/wrangler-state
+    command:
+      - sh
+      - -c
+      - >
+        yarn wrangler dev --env dev --ip 0.0.0.0 --port 8788
+        --persist-to /wrangler-state
+        --var IS_LOCAL:true
+
+  # -------------------------------------------------------------------------
+  # image-resize-worker — binds SYNC_WORKER (service = dev-tldraw-multiplayer).
+  # KNOWN BROKEN in this one-container-per-worker topology: wrangler's dev
+  # service registry does not span containers, so this binding will not resolve.
+  # See README "wrangler dev / workerd in Docker". Runs anyway to demonstrate.
+  # -------------------------------------------------------------------------
+  image-resize-worker:
+    <<: *node-service
+    working_dir: /repo/apps/dotcom/image-resize-worker
+    ports:
+      - '8786:8786'
+    volumes:
+      - *repo-bind
+      - root_node_modules:/repo/node_modules
+      - nm_image:/repo/apps/dotcom/image-resize-worker/node_modules
+      - wrangler_image:/wrangler-state
+    command:
+      - sh
+      - -c
+      - >
+        yarn wrangler dev --env dev --ip 0.0.0.0 --port 8786
+        --persist-to /wrangler-state
+        --var IS_LOCAL:true
+
+  # -------------------------------------------------------------------------
+  # tldrawusercontent-worker — also binds SYNC_WORKER. Same caveat as above.
+  # -------------------------------------------------------------------------
+  tldrawusercontent-worker:
+    <<: *node-service
+    working_dir: /repo/apps/dotcom/tldrawusercontent-worker
+    ports:
+      - '8789:8789'
+    volumes:
+      - *repo-bind
+      - root_node_modules:/repo/node_modules
+      - nm_usercontent:/repo/apps/dotcom/tldrawusercontent-worker/node_modules
+      - wrangler_usercontent:/wrangler-state
+    command:
+      - sh
+      - -c
+      - >
+        yarn wrangler dev --env dev --ip 0.0.0.0 --port 8789
+        --persist-to /wrangler-state
+        --var IS_LOCAL:true
+
+  # -------------------------------------------------------------------------
+  # client — Vite dev server. Browser-facing URLs stay as service names that
+  # the README maps to 127.0.0.1 via /etc/hosts, so the same URL resolves both
+  # from the browser (host) and from the Vite /api proxy (in-container).
+  # -------------------------------------------------------------------------
+  client:
+    <<: *node-service
+    working_dir: /repo/apps/dotcom/client
+    depends_on:
+      install:
+        condition: service_completed_successfully
+      sync-worker:
+        condition: service_started
+      zero-cache:
+        condition: service_started
+    ports:
+      - '3000:3000'
+    environment:
+      # Browser-facing URLs: the browser runs on the host, so it must use localhost:<published port>,
+      # NOT compose service names (which only resolve inside the network). The ports below are all
+      # published to the host by their services.
+      MULTIPLAYER_SERVER: http://localhost:8787
+      ZERO_SERVER: http://localhost:4848
+      USER_CONTENT_URL: http://localhost:8789
+      # Server-side only: the Vite /api proxy runs inside this container, so it reaches the sync-worker
+      # by compose service name (see vite.config.ts MULTIPLAYER_PROXY_TARGET). This split is what lets
+      # the browser ws and the proxied REST both work without /etc/hosts aliases.
+      MULTIPLAYER_PROXY_TARGET: http://sync-worker:8787
+      # Browser auth — Vite inlines VITE_* from the process env. Sourced from .env.
+      VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY:-}
+    volumes:
+      - *repo-bind
+      - root_node_modules:/repo/node_modules
+      - nm_client:/repo/apps/dotcom/client/node_modules
+    command: ['yarn', 'vite', 'dev', '--host', '0.0.0.0', '--port', '3000', '--strictPort']
+
+volumes:
+  pgdata:
+  zero_replica:
+  root_node_modules:
+  nm_client:
+  nm_sync:
+  nm_asset:
+  nm_image:
+  nm_usercontent:
+  nm_zero:
+  wrangler_sync:
+  wrangler_asset:
+  wrangler_image:
+  wrangler_usercontent:

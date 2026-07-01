@@ -53,7 +53,9 @@ jobs:
     name: 'End to end tests (dotcom)'
     needs: check
     if: needs.check.outputs.relevant == 'true'
-    timeout-minutes: 20
+    # The webServer brings up the full Docker dev stack (build images + install a linux node_modules
+    # volume + boot every service), so the first run needs more headroom than the host stack did.
+    timeout-minutes: 30
     runs-on: ubuntu-latest-8-cores-open
     environment: 'e2e-dotcom'
 
@@ -67,10 +69,9 @@ jobs:
       - name: Set up Playwright
         uses: ./.github/actions/setup-playwright
 
-      - name: Build dotcom client
-        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && yarn run -T lazy run build-i18n && cd apps/dotcom/client && yarn build
-        env:
-          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+      # No host build step: the Docker dev stack (started by Playwright's webServer = `yarn dev-app`)
+      # installs deps into a linux node_modules volume and runs refresh-assets / predev / build-i18n
+      # in its `install` service, then serves the client via `vite dev`.
 
       - name: Run Playwright tests
         run: |
