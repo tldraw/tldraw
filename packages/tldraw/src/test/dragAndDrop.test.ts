@@ -158,8 +158,8 @@ describe('canRemoveChildrenOfType for non-frame containers', () => {
 	})
 })
 
-describe('reparenting when a drag starts already over the target', () => {
-	it('reparents immediately, without needing to leave the target and re-enter it', () => {
+describe('dragging starts over a frame', () => {
+	it('reparents the shape', () => {
 		// Grid at (100, 100) covers (100, 100) to (600, 300)
 		editor.createShape({ id: ids.grid, type: GRID_TYPE, x: 100, y: 100 })
 
