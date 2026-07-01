@@ -486,8 +486,9 @@ describe('frame shapes', () => {
 		// box A should still be beneath box B
 		expect(editor.getShape(box1)!.index.localeCompare(editor.getShape(box2)!.index)).toBe(-1)
 
-		// We don't highlight the frame until dragged out and back in
-		expect(editor.getHintingShapeIds()).toHaveLength(0)
+		// The frame is highlighted as a drop target from the first update, even though the shape
+		// started over it (it's still the shape's parent, so nothing is reparented)
+		expect(editor.getHintingShapeIds()).toHaveLength(1)
 
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frame.id)
 
