@@ -1,6 +1,6 @@
 import test, { expect } from '@playwright/test'
 import { Editor } from 'tldraw'
-import { recordPerfBaseline } from '../fixtures/perf-baseline'
+import { median, recordPerfBaseline } from '../fixtures/perf-baseline'
 import { setup } from '../shared-e2e'
 
 declare const editor: Editor
@@ -86,6 +86,10 @@ test.describe('text measurement performance', () => {
 					font: string,
 					italic: boolean
 				): Promise<Bench> {
+					// Measure the advance in the same font the shape uses below, so each labelled row
+					// (draw / serif) reflects that font's measurement path rather than always the default.
+					const fontFamily = `'tldraw_${font}', ${font === 'serif' ? 'serif' : 'sans-serif'}`
+
 					// 1) advance-only measurement (existing hot path).
 					const measureHtml: number[] = []
 					for (let p = 0; p < passes; p++) {
@@ -94,6 +98,7 @@ test.describe('text measurement performance', () => {
 								const html = renderHtml(`${baseText} ${i}`, italic)
 								ed.textMeasure.measureHtml(html, {
 									...opts,
+									fontFamily,
 									fontStyle: italic ? 'italic' : 'normal',
 								})
 							}).toFixed(4)
@@ -175,6 +180,16 @@ test.describe('text measurement performance', () => {
 			runs.push(set)
 		}
 
+		// Loose smoke ceiling — a single text measurement should stay well under a frame budget; guards
+		// against a pathological regression (e.g. an O(n^2) ink scan). Assert BEFORE recording: the
+		// update-snapshots job records with PERF_UPDATE_BASELINE then commits with continue-on-error, so
+		// a failed expect after the write would still land a regressed baseline.
+		for (const key of Object.keys(runs[0])) {
+			if (key.includes('geometry') || key.includes('resizeStep')) {
+				expect(median(runs.map((r) => r[key])), key).toBeLessThan(8)
+			}
+		}
+
 		// Record against the committed baseline so a change's cost shows up in the PR diff. The
 		// geometry recompute is the fix-relevant number — it includes the per-word ink pass.
 		const medianed = recordPerfBaseline('text-measurement', runs)
@@ -193,13 +208,5 @@ test.describe('text measurement performance', () => {
 		test
 			.info()
 			.annotations.push({ type: 'text-measurement-perf', description: JSON.stringify(medianed) })
-
-		// Loose smoke ceiling — a single text measurement should stay well under a frame budget.
-		// This guards against a pathological regression (e.g. an O(n^2) ink scan) without flaking.
-		for (const [key, value] of Object.entries(medianed)) {
-			if (key.includes('geometry') || key.includes('resizeStep')) {
-				expect(value, key).toBeLessThan(8)
-			}
-		}
 	})
 })
