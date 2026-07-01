@@ -102,6 +102,14 @@ const R2_QUEUE_DEPTH_ALERT_THRESHOLD = 100
 // type in metrics.
 type R2OperationType = 'asset_copy' | 'snapshot_upload'
 
+// Transient R2 failures worth retrying — dropped connections and the connection-limit error the
+// shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
+// so retrying only wastes time before the simple-PUT fallback runs.
+function isTransientConnectionError(error: unknown): boolean {
+	const message = error instanceof Error ? error.message : String(error)
+	return /network|connection|closed|reset|timeout/i.test(message)
+}
+
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
 interface DocumentInfo {
@@ -1120,15 +1128,25 @@ export class TLFileDurableObject extends DurableObject {
 	private readonly trackQueuedTask = (() => {
 		const depthByType = new Map<R2OperationType, number>()
 		let alerted = false
-		return <T>(type: R2OperationType, task: () => Promise<T>): (() => Promise<T>) => {
-			const typeDepth = (depthByType.get(type) ?? 0) + 1
-			depthByType.set(type, typeDepth)
+		let emitScheduled = false
+		const totalDepth = () => {
 			let total = 0
 			for (const depth of depthByType.values()) total += depth
-			if (total < R2_QUEUE_DEPTH_METRIC_THRESHOLD) {
-				alerted = false
-			} else {
-				this.writeEvent('r2_queue_depth', { blobs: [type], doubles: [total, typeDepth] })
+			return total
+		}
+		// A single association pass submits all of its copies synchronously, so depth jumps straight
+		// to the batch size. Coalesce that burst into one deferred emit that captures the peak, rather
+		// than writing an analytics point per submitted task (which would flood Analytics Engine).
+		const scheduleEmit = () => {
+			if (emitScheduled) return
+			emitScheduled = true
+			queueMicrotask(() => {
+				emitScheduled = false
+				const total = totalDepth()
+				if (total < R2_QUEUE_DEPTH_METRIC_THRESHOLD) return
+				for (const [type, depth] of depthByType) {
+					this.writeEvent('r2_queue_depth', { blobs: [type], doubles: [total, depth] })
+				}
 				if (total >= R2_QUEUE_DEPTH_ALERT_THRESHOLD && !alerted) {
 					alerted = true
 					this.reportError(
@@ -1137,6 +1155,14 @@ export class TLFileDurableObject extends DurableObject {
 						)
 					)
 				}
+			})
+		}
+		return <T>(type: R2OperationType, task: () => Promise<T>): (() => Promise<T>) => {
+			depthByType.set(type, (depthByType.get(type) ?? 0) + 1)
+			if (totalDepth() < R2_QUEUE_DEPTH_METRIC_THRESHOLD) {
+				alerted = false
+			} else {
+				scheduleEmit()
 			}
 			return async () => {
 				try {
@@ -1149,6 +1175,15 @@ export class TLFileDurableObject extends DurableObject {
 			}
 		}
 	})()
+
+	// Submits an R2 operation to the shared connection budget (see r2Queue). Snapshot uploads run at a
+	// higher priority than asset copies so persistence isn't stuck behind a large association pass's
+	// backlog of copies — durability shouldn't wait on background asset work.
+	private addR2Operation<T>(type: R2OperationType, task: () => Promise<T>) {
+		return this.r2Queue.add(this.trackQueuedTask(type, task), {
+			priority: type === 'snapshot_upload' ? 1 : 0,
+		})
+	}
 
 	// Associates every asset in this (app) file with the file. Needed for cases like duplicating a
 	// file, copy-pasting images between files, and slurping legacy files; also migrates old-format
@@ -1163,9 +1198,16 @@ export class TLFileDurableObject extends DurableObject {
 	private async associateFileAssets() {
 		// Keep going until there's nothing left to associate. Copying takes a while and more assets can
 		// arrive in the meantime, so the running pass keeps draining rather than relying on a later
-		// trigger to pick up the stragglers.
+		// trigger to pick up the stragglers. This runs un-awaited from persist ticks, so a failed pass
+		// is reported and ends the drain rather than surfacing as an unhandled rejection.
 		while (true) {
-			const associated = await this.associatePendingAssets()
+			let associated: number
+			try {
+				associated = await this.associatePendingAssets()
+			} catch (e) {
+				this.reportError(e)
+				return
+			}
 			if (!associated) return
 		}
 	}
@@ -1246,32 +1288,30 @@ export class TLFileDurableObject extends DurableObject {
 		const rows: { objectName: string; fileId: string }[] = []
 		await Promise.allSettled(
 			assetsToReplace.map((asset) =>
-				this.r2Queue.add(
-					this.trackQueuedTask('asset_copy', async () => {
-						try {
-							const currentAsset = await this.env.UPLOADS.get(asset.objectName)
-							if (!currentAsset) return
-							await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {
-								httpMetadata: currentAsset.httpMetadata,
-							})
+				this.addR2Operation('asset_copy', async () => {
+					try {
+						const currentAsset = await this.env.UPLOADS.get(asset.objectName)
+						if (!currentAsset) return
+						await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {
+							httpMetadata: currentAsset.httpMetadata,
+						})
 
-							storage.transaction((txn) => {
-								const assetRecord = txn.get(asset.assetId) as TLAsset | undefined
-								if (!assetRecord) return // extremely unlikely, not sure why this would happen
-								assetRecord.props.src = asset.newSrc
-								assetRecord.meta.fileId = slug
-								txn.set(asset.assetId, assetRecord)
-							})
+						storage.transaction((txn) => {
+							const assetRecord = txn.get(asset.assetId) as TLAsset | undefined
+							if (!assetRecord) return // extremely unlikely, not sure why this would happen
+							assetRecord.props.src = asset.newSrc
+							assetRecord.meta.fileId = slug
+							txn.set(asset.assetId, assetRecord)
+						})
 
-							rows.push({
-								objectName: asset.newObjectName,
-								fileId: slug,
-							})
-						} catch (e) {
-							this.reportError(e)
-						}
-					})
-				)
+						rows.push({
+							objectName: asset.newObjectName,
+							fileId: slug,
+						})
+					} catch (e) {
+						this.reportError(e)
+					}
+				})
 			)
 		)
 
@@ -1395,30 +1435,31 @@ export class TLFileDurableObject extends DurableObject {
 	): Promise<number | null> {
 		// Funnel through the shared connection budget so the upload can't contend with a concurrent
 		// asset-association pass (or the version-cache upload) and exhaust Cloudflare's connections.
-		const result = await this.r2Queue.add(
-			this.trackQueuedTask('snapshot_upload', async () => {
+		const result = await this.addR2Operation('snapshot_upload', async () => {
+			try {
+				// Try multipart upload first, retrying transient connection drops before falling back.
+				// Only connection-type errors are worth retrying; anything else fails fast to the PUT
+				// fallback rather than sleeping between attempts.
+				return await retry(() => this._uploadSnapshotToBucketMultipart(bucket, snapshot, key), {
+					attempts: 3,
+					waitDuration: 500,
+					matchError: isTransientConnectionError,
+				})
+			} catch (multipartError) {
+				// Falling back to a simple PUT is the designed recovery path, so it's a breadcrumb
+				// rather than a captured exception — only a failure of the fallback itself is reported.
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				this.sentry?.addBreadcrumb({
+					message: `Multipart upload failed, falling back to simple PUT: ${multipartError}`,
+				})
 				try {
-					// Try multipart upload first, retrying transient connection drops before falling back.
-					return await retry(() => this._uploadSnapshotToBucketMultipart(bucket, snapshot, key), {
-						attempts: 3,
-						waitDuration: 500,
-					})
-				} catch (multipartError) {
-					// Falling back to a simple PUT is the designed recovery path, so it's a breadcrumb
-					// rather than a captured exception — only a failure of the fallback itself is reported.
-					// eslint-disable-next-line @typescript-eslint/no-deprecated
-					this.sentry?.addBreadcrumb({
-						message: `Multipart upload failed, falling back to simple PUT: ${multipartError}`,
-					})
-					try {
-						return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key)
-					} catch (putError) {
-						this.reportError(putError)
-						throw putError
-					}
+					return await this._uploadSnapshotToBucketSimple(bucket, snapshot, key)
+				} catch (putError) {
+					this.reportError(putError)
+					throw putError
 				}
-			})
-		)
+			}
+		})
 		return result ?? null
 	}
 
