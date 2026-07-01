@@ -41,6 +41,11 @@ export class Idle extends StateNode {
 
 	selectedShapesOnKeyDown: TLShape[] = []
 
+	// Timestamp of when the current arrow-key nudge hold began, used to
+	// accelerate the nudge distance the longer the key is held. Undefined
+	// when no arrow key is being held.
+	private nudgeHoldStartMs: number | undefined = undefined
+
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
@@ -49,6 +54,7 @@ export class Idle extends StateNode {
 			updateHoveredShapeId(this.editor)
 		}
 		this.selectedShapesOnKeyDown = []
+		this.nudgeHoldStartMs = undefined
 	}
 
 	override onExit() {
@@ -651,6 +657,16 @@ export class Idle extends StateNode {
 
 	override onKeyUp(info: TLKeyboardEventInfo) {
 		switch (info.key) {
+			case 'ArrowLeft':
+			case 'ArrowRight':
+			case 'ArrowUp':
+			case 'ArrowDown': {
+				// inputs.keys has already had the released key removed by the
+				// time we get here, so once no arrows remain the hold is over
+				// and the acceleration clock resets to full speed for next time.
+				if (this.getHeldArrowCount() === 0) this.nudgeHoldStartMs = undefined
+				return
+			}
 			case 'Enter': {
 				// Because Enter onKeyDown can happen outside the canvas (but then focus the canvas potentially),
 				// we need to check if the canvas was initially selecting something before continuing.
@@ -755,6 +771,16 @@ export class Idle extends StateNode {
 		startEditingShapeWithRichText(this.editor, id, { info })
 	}
 
+	private getHeldArrowCount() {
+		const { keys } = this.editor.inputs
+		let count = 0
+		if (keys.has('ArrowLeft')) count++
+		if (keys.has('ArrowRight')) count++
+		if (keys.has('ArrowUp')) count++
+		if (keys.has('ArrowDown')) count++
+		return count
+	}
+
 	private nudgeSelectedShapes(ephemeral = false) {
 		const {
 			editor: {
@@ -778,12 +804,20 @@ export class Idle extends StateNode {
 
 		if (!ephemeral) this.editor.markHistoryStoppingPoint('nudge shapes')
 
+		// Start (or restart) the acceleration clock on a fresh press — but not
+		// when a second arrow joins an existing hold (e.g. adding a diagonal),
+		// so the accumulated speed carries across direction changes.
+		if (!ephemeral && (this.nudgeHoldStartMs === undefined || this.getHeldArrowCount() <= 1)) {
+			this.nudgeHoldStartMs = Date.now()
+		}
+
 		// Hide the selection overlay while nudging, same as when changing styles
 		this.editor.updateInstanceState({ isChangingStyle: true })
 
 		const { gridSize } = this.editor.getDocumentSettings()
+		const isGridMode = this.editor.getInstanceState().isGridMode
 
-		const step = this.editor.getInstanceState().isGridMode
+		const step = isGridMode
 			? shiftKey
 				? gridSize * GRID_INCREMENT
 				: gridSize
@@ -791,15 +825,46 @@ export class Idle extends StateNode {
 				? MAJOR_NUDGE_FACTOR
 				: MINOR_NUDGE_FACTOR
 
+		// Acceleration only applies to shift + arrow (the "major" nudge). A
+		// plain arrow hold keeps its constant, precise 1px-per-tick step.
+		const elapsedMs = this.nudgeHoldStartMs === undefined ? 0 : Date.now() - this.nudgeHoldStartMs
+		const acceleration = shiftKey ? getNudgeAcceleration(elapsedMs, isGridMode) : 1
+
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
-		this.editor.nudgeShapes(selectedShapeIds, delta.mul(step))
+		this.editor.nudgeShapes(selectedShapeIds, delta.mul(step * acceleration))
 		kickoutOccludedShapes(this.editor, selectedShapeIds)
 	}
+}
+
+/**
+ * Scale factor applied to the nudge distance based on how long an arrow key has
+ * been held, so a sustained hold travels further per tick — like fast-forward
+ * or holding backspace on a phone. Doubles each second from 1× and caps out.
+ *
+ * In grid mode the factor is floored to a whole number so nudges stay aligned
+ * to the grid.
+ */
+function getNudgeAcceleration(elapsedMs: number, isGridMode: boolean) {
+	const seconds = elapsedMs / 1000
+	const factor = Math.min(
+		Math.max(1, NUDGE_ACCELERATION_BASE ** (seconds - NUDGE_ACCELERATION_DELAY_SECONDS)),
+		NUDGE_ACCELERATION_MAX
+	)
+	return isGridMode ? Math.floor(factor) : factor
 }
 
 export const MAJOR_NUDGE_FACTOR = 10
 export const MINOR_NUDGE_FACTOR = 1
 export const GRID_INCREMENT = 5
+
+// Held-nudge acceleration curve: `factor = base ^ (secondsHeld - delay)`, clamped
+// to [1, max]. `delay` is the grace period before acceleration engages (so a
+// quick hold-to-correct stays precise), `base` is the multiplier per second held
+// (2 = double the distance every extra second: 1×, 2×, 4×, 8×…), and `max` is
+// the ceiling it saturates at. Tune to taste.
+export const NUDGE_ACCELERATION_DELAY_SECONDS = 1
+export const NUDGE_ACCELERATION_BASE = 2
+export const NUDGE_ACCELERATION_MAX = 15
 
 function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
 	const selectionBounds = editor.getSelectionRotatedPageBounds()
