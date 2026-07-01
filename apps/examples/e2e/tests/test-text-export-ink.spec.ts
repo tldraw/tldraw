@@ -149,4 +149,63 @@ test.describe('text export ink', () => {
 		// at the advance box. Before the fix the descenders and slant were clipped at the edge.
 		expect(Buffer.from(dataUrl.split(',')[1], 'base64')).toMatchSnapshot('jiffy-italic-export.png')
 	})
+
+	test('svg export of italic text is not clipped (visual) (#8802)', async ({ page }, testInfo) => {
+		test.skip(testInfo.project.name !== 'chromium', 'visual export snapshot on desktop chromium')
+
+		const dataUrl: string = await page.evaluate(async () => {
+			const ed = editor as any
+			ed.selectAll().deleteShapes(ed.getSelectedShapeIds())
+			ed.createShape({
+				id: 'shape:jiffy',
+				type: 'text',
+				x: 0,
+				y: 0,
+				props: {
+					richText: {
+						type: 'doc',
+						content: [
+							{
+								type: 'paragraph',
+								content: [{ type: 'text', text: 'jiffy', marks: [{ type: 'italic' }] }],
+							},
+						],
+					},
+					font: 'serif',
+					size: 'xl',
+					autoSize: true,
+					color: 'black',
+				},
+			})
+			await ed.fonts.loadRequiredFontsForCurrentPage()
+			await ed.getContainerDocument().fonts.ready
+			// Export as an SVG (auto-trimmed viewBox), then rasterise it the way a browser/viewer does:
+			// loading the SVG into an <img> is where Chrome clips each <foreignObject> to its rect, so this
+			// exercises the exact clipping path the fix targets. The padded foreignObject must render the
+			// full ink within the trimmed viewBox.
+			const { url, width, height } = await ed.toImageDataUrl(['shape:jiffy'], {
+				format: 'svg',
+				background: true,
+			})
+			const img = new Image()
+			await new Promise((res, rej) => {
+				img.onload = res
+				img.onerror = rej
+				img.src = url
+			})
+			const scale = 2
+			const cv = ed.getContainerDocument().createElement('canvas')
+			cv.width = Math.ceil(width * scale)
+			cv.height = Math.ceil(height * scale)
+			const c = cv.getContext('2d')!
+			c.drawImage(img, 0, 0, cv.width, cv.height)
+			return cv.toDataURL('image/png')
+		})
+
+		// Golden of the exported SVG rasterised: the italic j / ff / y ink must be fully present, matching
+		// the PNG export. Before the fix the foreignObject clipped the descenders and slant on rasterisation.
+		expect(Buffer.from(dataUrl.split(',')[1], 'base64')).toMatchSnapshot(
+			'jiffy-italic-svg-export.png'
+		)
+	})
 })
