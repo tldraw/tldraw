@@ -1,7 +1,6 @@
 import { memo, useCallback, useEffect } from 'react'
 import { tlmenus, useMaybeEditor } from 'tldraw'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
-import { useHasFlag } from '../../hooks/useHasFlag'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import {
@@ -15,7 +14,6 @@ import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileBut
 import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
 import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
-import { TlaSidebarRecentFilesNew } from './components/TlaSidebarRecentFilesNew'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
 import { TlaSidebarWorkspaceActions } from './components/TlaSidebarWorkspaceActions'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
@@ -59,7 +57,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
-	const workspacesEnabled = useHasFlag('groups_frontend')
 	const activeWorkspaceId = useActiveWorkspaceId()
 
 	return (
@@ -73,7 +70,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			<div
 				className={styles.sidebar}
 				data-visible={isSidebarOpen}
-				data-workspaces={workspacesEnabled}
 				data-visiblemobile={isSidebarOpenMobile}
 				data-testid="tla-sidebar"
 				onDropCapture={onDrop}
@@ -86,13 +82,13 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarCreateFileButton />
 				</div>
 				{/* The workspace switcher is fixed; only the file list below it scrolls. */}
-				{workspacesEnabled && <TlaSidebarWorkspaceSwitcher />}
-				{workspacesEnabled && <div className={styles.sidebarDivider} />}
-				{workspacesEnabled && <TlaSidebarWorkspaceActions workspaceId={activeWorkspaceId} />}
-				{workspacesEnabled && <div className={styles.sidebarDivider} />}
+				<TlaSidebarWorkspaceSwitcher />
+				<div className={styles.sidebarDivider} />
+				<TlaSidebarWorkspaceActions workspaceId={activeWorkspaceId} />
+				<div className={styles.sidebarDivider} />
 				<div className={styles.sidebarContent} data-sidebar-scroll-container>
 					<div className={styles.sidebarContentInner}>
-						{workspacesEnabled ? <TlaSidebarRecentFilesNew /> : <TlaSidebarRecentFiles />}
+						<TlaSidebarRecentFiles />
 					</div>
 				</div>
 				<div className={styles.sidebarBottomArea}>

@@ -410,23 +410,35 @@ describe('ClientWebSocketAdapter', () => {
 			expect(onMessage).toHaveBeenCalledWith({ type: 'message', data: 'hello' })
 		})
 
-		it('[CW7] drops malformed JSON messages without closing the socket', async () => {
+		it('[CW7] restarts the connection on a malformed JSON message instead of forwarding it', async () => {
 			const warnOnceMock = vi.mocked(warnOnce)
 			const onMessage = vi.fn()
+			const onStatusChange = vi.fn()
 			adapter.onReceiveMessage(onMessage)
+			adapter.onStatusChange(onStatusChange)
 
 			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			const prevWs = adapter._ws
 			warnOnceMock.mockClear()
 
 			connectedServerSocket.send('{ "type": "message",')
-			connectedServerSocket.send('{ "type": "message", "data": "hello" }')
 
+			// the malformed message is never forwarded to listeners, and the connection restarts so
+			// the client re-hydrates from the last known server clock rather than silently desyncing
+			await waitFor(() => adapter._ws !== prevWs && adapter._ws?.readyState === WebSocket.OPEN)
+			expect(onMessage).not.toHaveBeenCalled()
+			expect(warnOnceMock).toHaveBeenCalledWith(
+				'Received malformed WebSocket message. Restarting the connection.'
+			)
+			expect(onStatusChange).toHaveBeenCalledWith({ status: 'offline' })
+			expect(onStatusChange).toHaveBeenCalledWith({ status: 'online' })
+			expect(adapter.connectionStatus).toBe('online')
+
+			// the restarted connection is fully functional: a well-formed message on the new socket
+			// is delivered to listeners as usual
+			connectedServerSocket.send('{ "type": "message", "data": "hello" }')
 			await waitFor(() => onMessage.mock.calls.length === 1)
 			expect(onMessage).toHaveBeenCalledWith({ type: 'message', data: 'hello' })
-			expect(adapter.connectionStatus).toBe('online')
-			expect(warnOnceMock).toHaveBeenCalledWith(
-				'Received malformed WebSocket message. Dropping message.'
-			)
 		})
 
 		it('[CW7] stops delivering messages after unsubscribe', async () => {

@@ -891,7 +891,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.edgeScrollManager = new EdgeScrollManager(this)
 		this.focusManager = new FocusManager(this, autoFocus)
-		this.disposables.add(this.focusManager.dispose.bind(this.focusManager))
+		this.disposables.add(() => this.focusManager.dispose())
 
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
@@ -10983,7 +10983,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
 		}
 
-		if (info.metaKey) {
+		if (info.metaKey && info.name !== 'key_up') {
+			// Unlike the other modifiers, the native metaKey property is still true on keyup.
+			// If we don't have this guard, then the metakey will be left true without the timeout.
 			clearTimeout(this._metaKeyTimeout)
 			this._metaKeyTimeout = -1
 			inputs.setMetaKey(true)
