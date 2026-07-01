@@ -214,7 +214,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		// without being clipped at its edge; the text is inset by the same margin so it renders in the
 		// same place, and the export's trim crops the slack back to content. See TEXT_EXPORT_INK_MARGIN.
 		const inkMargin = Math.ceil(dv.fontSize * TEXT_EXPORT_INK_MARGIN)
-		const exportBounds = new Box(-inkMargin, -inkMargin, width + inkMargin * 2, height + inkMargin * 2)
+		const exportBounds = new Box(
+			-inkMargin,
+			-inkMargin,
+			width + inkMargin * 2,
+			height + inkMargin * 2
+		)
 		return (
 			<RichTextSVG
 				fontSize={dv.fontSize}
