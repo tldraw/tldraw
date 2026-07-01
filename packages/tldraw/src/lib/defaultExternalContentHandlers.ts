@@ -522,18 +522,22 @@ export async function defaultHandleExternalTextContent(
 		maxWidth: null,
 	})
 
-	const minWidth = Math.min(
-		isMultiLine ? editor.getViewportPageBounds().width * 0.9 : 920,
-		Math.max(200, editor.getViewportPageBounds().width * 0.9)
+	// Wrap the text if it's wider than the viewport, but don't let
+	// it wrap narrower than the viewport would be at 100% zoom.
+	const padding = 40
+	const maxWidth = Math.max(
+		editor.getViewportPageBounds().width - (padding * 2) / editor.getZoomLevel(),
+		editor.getViewportScreenBounds().width - padding * 2
 	)
 
-	if (rawSize.w > minWidth) {
+	if (rawSize.w > maxWidth) {
+		// The text is wider than the viewport, so wrap it to fit on screen.
 		const shrunkSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 			...TEXT_PROPS,
 			lineHeight: theme.lineHeight,
 			fontFamily: getFontFamily(theme, defaultProps.font),
 			fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
-			maxWidth: minWidth,
+			maxWidth,
 		})
 		w = shrunkSize.w
 		h = shrunkSize.h
