@@ -788,6 +788,71 @@ describe('frame shapes', () => {
 		expect(editor.getShape(arrow.id)).toBeUndefined()
 	})
 
+	it('does not clip an arrow that is bound to the frame on both ends', () => {
+		editor.setCurrentTool('frame')
+		editor.pointerDown(100, 100).pointerMove(300, 300).pointerUp(300, 300)
+		const frameId = editor.getOnlySelectedShape()!.id
+
+		// arrow with both ends bound to the frame itself
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(150, 150).pointerMove(250, 250).pointerUp(250, 250)
+		const arrowId = editor.getOnlySelectedShape()!.id
+		const bindings = getArrowBindings(editor, editor.getShape<TLArrowShape>(arrowId)!)
+		expect(bindings.start).toMatchObject({ toId: frameId })
+		expect(bindings.end).toMatchObject({ toId: frameId })
+
+		// it lives inside the frame but is NOT clipped by it
+		expect(editor.getShape(arrowId)!.parentId).toBe(frameId)
+		expect(editor.getShapeClipPath(arrowId)).toBeUndefined()
+		expect(editor.getShapeMask(arrowId)).toBeUndefined()
+
+		// a plain box child of the frame is still clipped as usual
+		const boxId = createShapeId()
+		editor.createShape({ id: boxId, type: 'geo', parentId: frameId, x: 150, y: 150 })
+		expect(editor.getShapeClipPath(boxId)).toBeDefined()
+	})
+
+	it('still clips an arrow that is bound only to shapes inside the frame', () => {
+		editor.setCurrentTool('frame')
+		editor.pointerDown(100, 100).pointerMove(400, 400).pointerUp(400, 400)
+		const frameId = editor.getOnlySelectedShape()!.id
+
+		// two boxes inside the frame, and an arrow bound to those boxes (not the frame)
+		const a = createShapeId()
+		const b = createShapeId()
+		const arrowId = createShapeId()
+		editor.createShape({ id: a, type: 'geo', parentId: frameId, x: 150, y: 150 })
+		editor.createShape({ id: b, type: 'geo', parentId: frameId, x: 250, y: 250 })
+		editor.createShape({ id: arrowId, type: 'arrow', parentId: frameId })
+		editor.createBindings([
+			{
+				type: 'arrow',
+				fromId: arrowId,
+				toId: a,
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: true,
+				},
+			},
+			{
+				type: 'arrow',
+				fromId: arrowId,
+				toId: b,
+				props: {
+					terminal: 'end',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: true,
+				},
+			},
+		])
+
+		// bound to children, not the frame → still clipped by the frame
+		expect(editor.getShapeClipPath(arrowId)).toBeDefined()
+	})
+
 	it('lets you grab and move a selected frame-bound arrow where it bows outside the frame', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(300, 300).pointerUp(300, 300)

@@ -6,10 +6,12 @@ import {
 	Rectangle2d,
 	SVGContainer,
 	SvgExportContext,
+	TLArrowBinding,
 	TLClickEventInfo,
 	TLEditStartInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
+	TLShape,
 	TLShapePartial,
 	TLShapeUtilConstructor,
 	clamp,
@@ -230,6 +232,24 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 				}),
 			],
 		})
+	}
+
+	override shouldClipChild(child: TLShape, self?: TLFrameShape): boolean {
+		// A frame should not clip an arrow that is bound to the frame itself on both ends. Such an
+		// arrow is "about" the frame, and its (curved) body is expected to bow outside the frame's
+		// edge, so clipping it would cut the arrow in half. Arrows bound to shapes *inside* the
+		// frame are still clipped like any other child.
+		if (self && child.type === 'arrow') {
+			let boundStart = false
+			let boundEnd = false
+			for (const binding of this.editor.getBindingsFromShape<TLArrowBinding>(child, 'arrow')) {
+				if (binding.toId !== self.id) continue
+				if (binding.props.terminal === 'start') boundStart = true
+				else if (binding.props.terminal === 'end') boundEnd = true
+			}
+			if (boundStart && boundEnd) return false
+		}
+		return true
 	}
 
 	override getText(shape: TLFrameShape): string | undefined {

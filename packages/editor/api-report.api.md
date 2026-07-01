@@ -3103,7 +3103,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     static props?: RecordProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
-    shouldClipChild?(child: TLShape): boolean;
+    shouldClipChild?(child: TLShape, self?: Shape): boolean;
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;

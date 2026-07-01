@@ -422,10 +422,14 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * If not defined, the default behavior is to clip all children.
 	 *
 	 * @param child - The child shape to check
+	 * @param self - This shape (the clipping ancestor being asked). Provided by the editor when
+	 *   computing clip masks. Useful when the decision depends on the relationship between the
+	 *   child and this specific shape, for example an arrow that is bound to this shape and so
+	 *   should not be clipped by it.
 	 * @returns boolean indicating if this child should be clipped
 	 * @public
 	 */
-	shouldClipChild?(child: TLShape): boolean
+	shouldClipChild?(child: TLShape, self?: Shape): boolean
 
 	/**
 	 * Whether a specific shape should hide in the minimap.
