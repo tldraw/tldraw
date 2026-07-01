@@ -1,18 +1,6 @@
 import { useSyncDemo } from '@tldraw/sync'
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
-import {
-	Atom,
-	Editor,
-	TLComponents,
-	TLStore,
-	TLUser,
-	Tldraw,
-	Vec,
-	atom,
-	getDefaultUserPresence,
-	useEditor,
-	useValue,
-} from 'tldraw'
+import { Atom, Editor, TLComponents, Tldraw, Vec, atom, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { Maze, generateMaze, moveAvatar, rngFromString } from './maze'
 import './cursor-maze.css'
@@ -64,18 +52,13 @@ export default function CursorMazeExample({ roomId }: { roomId: string }) {
 	const [game] = useState(() => createGame(roomId))
 
 	// [2] Connect to a sync room. Each player keeps their own camera (camera is
-	// session-local, never synced), but tldraw syncs everyone's cursor — and
-	// because we pin the player under the cursor, your synced cursor IS your
-	// collision-resolved maze position. Don't broadcast that cursor until the
-	// player has spawned, though: returning null from getUserPresence means no
-	// presence record at all, so no one sees this player moving around the maze
-	// until they click Start.
-	const getUserPresence = useCallback(
-		(store: TLStore, user: TLUser) =>
-			game.engaged.get() ? getDefaultUserPresence(store, user) : null,
-		[game]
-	)
-	const store = useSyncDemo({ roomId, getUserPresence })
+	// session-local, never synced), but tldraw syncs everyone's cursor for free —
+	// and because we pin the player under the cursor, your synced cursor IS your
+	// collision-resolved maze position. So other players just show up as their
+	// cursors threading the same maze, with an off-screen edge hint pointing to
+	// anyone outside your view. There's no avatar to draw and no presence to wire
+	// up: the cursor is the player.
+	const store = useSyncDemo({ roomId })
 
 	// [3] Only the maze and the exit are drawn in world space; the players are the
 	// cursors themselves, which tldraw renders and syncs for us.
