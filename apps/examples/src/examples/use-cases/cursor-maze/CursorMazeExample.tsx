@@ -1,6 +1,6 @@
 import { useSyncDemo } from '@tldraw/sync'
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
-import { Atom, Editor, TLComponents, Tldraw, Vec, atom, useEditor, useValue } from 'tldraw'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Atom, Editor, TLComponents, Tldraw, Vec, VecLike, atom, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { Maze, generateMaze, moveAvatar, rngFromString } from './maze'
 import './cursor-maze.css'
@@ -14,6 +14,12 @@ const ROWS = 31
 const COLLISION_RADIUS = 2
 const ZOOM = 1
 const GOAL_RADIUS = CELL * 0.4
+
+// Cursor trail: a fading, tapering laser-style path drawn behind every player's
+// cursor in their own color.
+const TRAIL_FADE_MS = 600
+const TRAIL_WIDTH = 7
+const MIN_TRAIL_DIST = 4
 
 /** A finished run. Stored in the synced document's meta, keyed by user id. */
 interface Score {
@@ -83,6 +89,7 @@ export default function CursorMazeExample({ roomId }: { roomId: string }) {
 				onMount={onMount}
 			>
 				<GameRunner game={game} />
+				<CursorTrails game={game} />
 				<StartCard game={game} />
 				<Timer game={game} />
 				<Scoreboard />
@@ -160,6 +167,105 @@ function GameRunner({ game }: { game: Game }) {
 	}, [editor, game])
 
 	return null
+}
+
+/**
+ * A fading, laser-style trail behind every cursor, each in that player's own
+ * color: your own collision-resolved position plus every collaborator's synced
+ * cursor. Nothing about the trail is synced — it's derived entirely from the
+ * cursor positions tldraw already gives us, so it adds no presence data. Drawn
+ * to a plain canvas so the whole thing is one repaint per frame.
+ */
+function CursorTrails({ game }: { game: Game }) {
+	const editor = useEditor()
+	const canvasRef = useRef<HTMLCanvasElement>(null)
+
+	useEffect(() => {
+		const canvas = canvasRef.current
+		const ctx = canvas?.getContext('2d')
+		if (!canvas || !ctx) return
+
+		// Recent points per player (newest last), in page space, plus their color.
+		// Kept across frames so a trail keeps fading after its cursor stops moving.
+		const trails = new Map<
+			string,
+			{ color: string; points: { x: number; y: number; t: number }[] }
+		>()
+
+		const draw = () => {
+			const now = Date.now()
+
+			// Match the backing store to the container in device pixels.
+			const dpr = window.devicePixelRatio || 1
+			const w = canvas.clientWidth
+			const h = canvas.clientHeight
+			if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+				canvas.width = Math.round(w * dpr)
+				canvas.height = Math.round(h * dpr)
+			}
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+			ctx.clearRect(0, 0, w, h)
+
+			// Everyone whose cursor is a player: yourself once you've spawned, and
+			// every collaborator (their position is their synced cursor).
+			const samples: { userId: string; point: VecLike; color: string }[] = []
+			if (game.engaged.get()) {
+				samples.push({
+					userId: editor.user.getExternalId(),
+					point: game.avatar.get(),
+					color: editor.user.getColor(),
+				})
+			}
+			for (const c of editor.getCollaborators()) {
+				if (c.cursor) samples.push({ userId: c.userId, point: c.cursor, color: c.color })
+			}
+
+			// Extend each trail, but only once its cursor has moved a little, so a
+			// still cursor lets its trail fade away instead of stacking up points.
+			for (const { userId, point, color } of samples) {
+				const trail = trails.get(userId) ?? { color, points: [] }
+				trail.color = color
+				const last = trail.points[trail.points.length - 1]
+				if (!last || Math.hypot(point.x - last.x, point.y - last.y) > MIN_TRAIL_DIST) {
+					trail.points.push({ x: point.x, y: point.y, t: now })
+				}
+				trails.set(userId, trail)
+			}
+
+			// Age out old points (dropping empty trails), then draw each as a line
+			// that thins and fades toward its tail. pageToViewport maps each world
+			// point through the current camera into container pixels.
+			ctx.lineCap = 'round'
+			ctx.lineJoin = 'round'
+			for (const [userId, trail] of trails) {
+				trail.points = trail.points.filter((p) => now - p.t < TRAIL_FADE_MS)
+				if (trail.points.length === 0) {
+					trails.delete(userId)
+					continue
+				}
+				ctx.strokeStyle = trail.color
+				for (let i = 1; i < trail.points.length; i++) {
+					const life = 1 - (now - trail.points[i].t) / TRAIL_FADE_MS
+					const a = editor.pageToViewport(trail.points[i - 1])
+					const b = editor.pageToViewport(trail.points[i])
+					ctx.globalAlpha = Math.max(0, life)
+					ctx.lineWidth = TRAIL_WIDTH * life
+					ctx.beginPath()
+					ctx.moveTo(a.x, a.y)
+					ctx.lineTo(b.x, b.y)
+					ctx.stroke()
+				}
+			}
+			ctx.globalAlpha = 1
+		}
+
+		editor.on('tick', draw)
+		return () => {
+			editor.off('tick', draw)
+		}
+	}, [editor, game])
+
+	return <canvas ref={canvasRef} className="cursor-maze__trails" />
 }
 
 /** Write this run into the synced document's meta if it beats the player's best. */
