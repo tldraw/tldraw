@@ -267,6 +267,15 @@ function CursorTrails({ game }: { game: Game }) {
 				})
 				ctx.fillStyle = trail.color
 				ctx.beginPath()
+				// Round the caps and joins with a disc at each point (radius = that
+				// point's half-width). The arcs go anticlockwise to match the quads'
+				// winding, so the single nonzero fill unions everything cleanly rather
+				// than punching holes where a disc overlaps a quad.
+				for (const s of spine) {
+					ctx.moveTo(s.x + s.half, s.y)
+					ctx.arc(s.x, s.y, s.half, 0, Math.PI * 2, true)
+				}
+				// Fill between consecutive points with edge-sharing quads.
 				for (let i = 1; i < edges.length; i++) {
 					const p = edges[i - 1]
 					const q = edges[i]
