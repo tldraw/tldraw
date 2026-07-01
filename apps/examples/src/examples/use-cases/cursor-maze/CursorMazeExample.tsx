@@ -15,10 +15,12 @@ const COLLISION_RADIUS = 2
 const ZOOM = 1
 const GOAL_RADIUS = CELL * 0.4
 
-// Cursor trail: a fading, laser-style path drawn behind every player's cursor in
-// their own color.
-const TRAIL_FADE_MS = 2000
-const TRAIL_WIDTH = 8
+// Cursor trail: a laser-style ribbon drawn behind every player's cursor in their
+// own color. It tapers to nothing at the tail rather than fading via alpha, so a
+// self-crossing path stays solid instead of stacking into dark spots.
+const TRAIL_FADE_MS = 2500
+const TRAIL_WIDTH = 9
+const TRAIL_ALPHA = 0.8
 const MIN_TRAIL_DIST = 4
 
 /** A finished run. Stored in the synced document's meta, keyed by user id. */
@@ -169,19 +171,13 @@ function GameRunner({ game }: { game: Game }) {
 	return null
 }
 
-/** Turn a `#rrggbb` user/presence color into an `rgba()` string for gradient stops. */
-function withAlpha(color: string, alpha: number) {
-	const n = parseInt(color.slice(1), 16)
-	return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`
-}
-
 /**
- * A fading, laser-style trail behind every cursor, each in that player's own
+ * A tapering, laser-style trail behind every cursor, each in that player's own
  * color: your own collision-resolved position plus every collaborator's synced
  * cursor. Nothing about the trail is synced — it's derived entirely from the
- * cursor positions tldraw already gives us, so it adds no presence data. Drawn
- * to a plain canvas as a single gradient-stroked path per player, one repaint
- * per frame.
+ * cursor positions tldraw already gives us, so it adds no presence data. Each
+ * trail is one filled ribbon that narrows to a point at its tail, painted with a
+ * single fill so a self-crossing path stays solid instead of stacking alpha.
  */
 function CursorTrails({ game }: { game: Game }) {
 	const editor = useEditor()
@@ -239,39 +235,50 @@ function CursorTrails({ game }: { game: Game }) {
 				trails.set(userId, trail)
 			}
 
-			// Age out old points (dropping empty trails), then draw each trail as one
-			// smooth path stroked with a single gradient — transparent at the tail,
-			// solid at the cursor. Drawing it as one stroke (rather than a segment per
-			// pair of points) avoids the overlapping round-cap dots you'd otherwise
-			// get. pageToViewport maps each world point through the camera into
-			// container pixels.
-			ctx.lineCap = 'round'
-			ctx.lineJoin = 'round'
+			// Age out old points (dropping empty trails), then draw each trail as a
+			// single filled ribbon. The spine is the cursor path; each point's
+			// half-width tapers with age so the ribbon narrows to a point at the
+			// tail. Filling quads that share their end edges — in one fill() per
+			// trail — keeps a self-crossing loop solid, with none of the per-segment
+			// alpha stacking (dots) or straight-axis gradient limits of a stroke.
+			// pageToViewport maps each world point through the camera.
+			ctx.globalAlpha = TRAIL_ALPHA
 			for (const [userId, trail] of trails) {
 				trail.points = trail.points.filter((p) => now - p.t < TRAIL_FADE_MS)
 				if (trail.points.length < 2) {
 					if (trail.points.length === 0) trails.delete(userId)
 					continue
 				}
-				const pts = trail.points.map((p) => editor.pageToViewport(p))
-				const tail = pts[0]
-				const head = pts[pts.length - 1]
-				const gradient = ctx.createLinearGradient(tail.x, tail.y, head.x, head.y)
-				gradient.addColorStop(0, withAlpha(trail.color, 0))
-				gradient.addColorStop(1, withAlpha(trail.color, 1))
-				ctx.strokeStyle = gradient
-				ctx.lineWidth = TRAIL_WIDTH
+				// Screen-space spine, each point carrying an age-tapered half-width.
+				const spine = trail.points.map((p) => {
+					const v = editor.pageToViewport(p)
+					return { x: v.x, y: v.y, half: (TRAIL_WIDTH / 2) * (1 - (now - p.t) / TRAIL_FADE_MS) }
+				})
+				// Offset each point along the path normal to get the two ribbon edges.
+				const edges = spine.map((s, i) => {
+					const a = spine[Math.max(0, i - 1)]
+					const b = spine[Math.min(spine.length - 1, i + 1)]
+					let nx = a.y - b.y
+					let ny = b.x - a.x
+					const len = Math.hypot(nx, ny) || 1
+					nx = (nx / len) * s.half
+					ny = (ny / len) * s.half
+					return { lx: s.x + nx, ly: s.y + ny, rx: s.x - nx, ry: s.y - ny }
+				})
+				ctx.fillStyle = trail.color
 				ctx.beginPath()
-				ctx.moveTo(tail.x, tail.y)
-				// Curve through the midpoints between samples to smooth the polyline.
-				for (let i = 1; i < pts.length - 1; i++) {
-					const mx = (pts[i].x + pts[i + 1].x) / 2
-					const my = (pts[i].y + pts[i + 1].y) / 2
-					ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my)
+				for (let i = 1; i < edges.length; i++) {
+					const p = edges[i - 1]
+					const q = edges[i]
+					ctx.moveTo(p.lx, p.ly)
+					ctx.lineTo(q.lx, q.ly)
+					ctx.lineTo(q.rx, q.ry)
+					ctx.lineTo(p.rx, p.ry)
+					ctx.closePath()
 				}
-				ctx.lineTo(head.x, head.y)
-				ctx.stroke()
+				ctx.fill()
 			}
+			ctx.globalAlpha = 1
 		}
 
 		editor.on('tick', draw)
