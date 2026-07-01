@@ -20,12 +20,14 @@ if [ -n "$FILTER_ARGS" ]; then
 	git add packages/*/api-report.api.md
 fi
 
-# Only run build-i18n when dotcom client files change
-CHANGED_DOTCOM_CLIENT=$(git diff --cached --name-only -- apps/dotcom/client)
-if [ -n "$CHANGED_DOTCOM_CLIENT" ]; then
+# Run build-i18n when dotcom client files change, or when the welcome i18n sources in
+# sync-worker change — the welcome snapshot and copy manifest live there but feed the bake.
+CHANGED_I18N_INPUTS=$(git diff --cached --name-only -- apps/dotcom/client apps/dotcom/sync-worker/src/welcome)
+if [ -n "$CHANGED_I18N_INPUTS" ]; then
 	npx lazy run build-i18n --filter=apps/dotcom/client
 	git add apps/dotcom/client/public/tla/locales
 	git add apps/dotcom/client/public/tla/locales-compiled
+	git add apps/dotcom/sync-worker/src/welcome/localizedWelcomeCopy.json
 fi
 
 yarn lint-staged

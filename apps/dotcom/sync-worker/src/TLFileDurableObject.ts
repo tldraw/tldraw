@@ -16,8 +16,8 @@ import {
 	SNAPSHOT_PREFIX,
 	TLCustomServerEvent,
 	TlaFile,
-	WELCOME_CREATE_SOURCE,
 	can,
+	parseWelcomeCreateSource,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -926,10 +926,12 @@ export class TLFileDurableObject extends DurableObject {
 	private async loadCreateSourceData(
 		createSource: string | null | undefined
 	): Promise<RoomSnapshot | string | null | undefined> {
-		// A new workspace's first file: a fixed marker (no prefix/id) the worker resolves to the
-		// welcome template's content, or a committed default — see resolveWelcomeSnapshot.
-		if (createSource === WELCOME_CREATE_SOURCE) {
-			return await resolveWelcomeSnapshot(this.env, (e) => this.reportError(e))
+		// A new workspace's first file: a marker (optionally locale-tagged, e.g. `welcome:fr`) the
+		// worker resolves to the committed default welcome snapshot, localized into the creator's
+		// locale from the build-time variants — see resolveWelcomeSnapshot.
+		const welcome = parseWelcomeCreateSource(createSource)
+		if (welcome) {
+			return resolveWelcomeSnapshot(welcome.locale)
 		}
 
 		const split = createSource?.split('/')

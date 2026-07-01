@@ -644,5 +644,59 @@
   },
   "ffcd73e997": {
     "translation": "Import file…"
+  },
+  "welcome.createWorkspace": {
+    "translation": "Create a new workspace from the workspace menu in the sidebar. Click <mark><strong>New workspace</strong></mark>, give it a name, and it’s ready to go."
+  },
+  "welcome.file.decisionTree": {
+    "translation": "Decision tree"
+  },
+  "welcome.file.packingChecklist": {
+    "translation": "Packing checklist"
+  },
+  "welcome.file.postTripRetrospective": {
+    "translation": "Post-trip retrospective"
+  },
+  "welcome.file.regionalMap": {
+    "translation": "Regional map"
+  },
+  "welcome.inviteTeam": {
+    "translation": "<mark><strong>Invite your team</strong></mark> with an invite link from the workspace menu in the sidebar. Shared it by accident? Revoke it there too."
+  },
+  "welcome.manageMembers": {
+    "translation": "Need to <mark><strong>remove someone</strong></mark>? Owners can change roles or remove people in Manage workspace."
+  },
+  "welcome.moveFiles": {
+    "translation": "You can <mark><strong>move files</strong></mark> into your workspace with a file's 'Move to' menu."
+  },
+  "welcome.pinFiles": {
+    "translation": "Pin files you use most. <mark><strong>Pinned files</strong></mark> stay at the top of the list, so they’re always easy to find."
+  },
+  "welcome.shareLink": {
+    "translation": "Need to share with people outside your workspace? You can <mark><strong>share a link</strong></mark> for a single file so guests can edit it without joining the workspace."
+  },
+  "welcome.signoff": {
+    "translation": "p.s. feel free to edit or delete this board now that you've mastered workspaces"
+  },
+  "welcome.title": {
+    "translation": "Welcome to your workspace"
+  },
+  "welcome.ui.inviteLink": {
+    "translation": "Invite link"
+  },
+  "welcome.ui.lastWeek": {
+    "translation": "Last week"
+  },
+  "welcome.ui.myFiles": {
+    "translation": "my files"
+  },
+  "welcome.ui.yourWorkspace": {
+    "translation": "your workspace"
+  },
+  "welcome.whatIsWorkspace": {
+    "translation": "A workspace is a <mark><strong>shared space</strong></mark> for your team. Everyone in it sees the same list of files and can open and edit them."
+  },
+  "welcome.workspaceMenu": {
+    "translation": "Find everything in the <mark><strong>workspace menu</strong></mark>: create files, search, switch workspaces, and open settings."
   }
 }
