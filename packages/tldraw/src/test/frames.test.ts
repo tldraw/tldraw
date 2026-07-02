@@ -761,7 +761,7 @@ describe('frame shapes', () => {
 		expect(bindings.start).toMatchObject({ toId: boxId })
 		expect(bindings.end).toMatchObject({ toId: frameId })
 
-		expect(arrow.parentId).toBe(editor.getCurrentPageId())
+		expect(arrow.parentId).toBe(frameId)
 	})
 
 	it('can be edited', () => {
