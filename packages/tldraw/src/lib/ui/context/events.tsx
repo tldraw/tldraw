@@ -138,6 +138,7 @@ export interface TLUiEventMap {
 		operation:
 			| 'bold'
 			| 'italic'
+			| 'underline'
 			| 'strike'
 			| 'link'
 			| 'link-edit'

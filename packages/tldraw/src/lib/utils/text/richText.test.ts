@@ -1,5 +1,6 @@
+import { generateHTML } from '@tiptap/core'
 import { TLRichText, toRichText } from '@tldraw/editor'
-import { richTextHasMarkEverywhere, setMarkOnRichText } from './richText'
+import { richTextHasMarkEverywhere, setMarkOnRichText, tipTapDefaultExtensions } from './richText'
 
 function textWithMarks(text: string, marks: string[]): TLRichText {
 	return {
@@ -89,5 +90,45 @@ describe('setMarkOnRichText', () => {
 	it('is a no-op for an empty document', () => {
 		const input: TLRichText = { type: 'doc', content: [] }
 		expect(setMarkOnRichText(input, 'bold', true)).toEqual(input)
+	})
+
+	it('adds a mark with attributes (e.g. a link href)', () => {
+		const result = setMarkOnRichText(toRichText('hello'), 'link', true, {
+			href: 'https://example.com',
+		})
+		const node = (result.content[0] as any).content[0]
+		expect(node.marks).toEqual([{ type: 'link', attrs: { href: 'https://example.com' } }])
+	})
+
+	it('replaces an existing mark so its attributes update', () => {
+		const withLink = setMarkOnRichText(toRichText('hello'), 'link', true, {
+			href: 'https://one.com',
+		})
+		const result = setMarkOnRichText(withLink, 'link', true, { href: 'https://two.com' })
+		const node = (result.content[0] as any).content[0]
+		expect(node.marks).toEqual([{ type: 'link', attrs: { href: 'https://two.com' } }])
+	})
+
+	it('removes a link mark when disabled', () => {
+		const withLink = setMarkOnRichText(toRichText('hello'), 'link', true, {
+			href: 'https://example.com',
+		})
+		const result = setMarkOnRichText(withLink, 'link', false)
+		expect(richTextHasMarkEverywhere(result, 'link')).toBe(false)
+	})
+
+	it('renders an underline mark to a <u> tag', () => {
+		const result = setMarkOnRichText(toRichText('hello'), 'underline', true)
+		const html = generateHTML(result as any, tipTapDefaultExtensions)
+		expect(html).toContain('<u>')
+	})
+
+	it('renders a link mark with only an href to an anchor tag', () => {
+		const result = setMarkOnRichText(toRichText('hello'), 'link', true, {
+			href: 'https://example.com',
+		})
+		const html = generateHTML(result as any, tipTapDefaultExtensions)
+		expect(html).toContain('href="https://example.com"')
+		expect(html).toMatch(/<a\b/)
 	})
 })

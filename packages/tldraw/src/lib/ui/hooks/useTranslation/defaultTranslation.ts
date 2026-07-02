@@ -283,6 +283,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.media-alt-text-confirm': 'Confirm',
 	'tool.rich-text-bold': 'Bold',
 	'tool.rich-text-italic': 'Italic',
+	'tool.rich-text-underline': 'Underline',
 	'tool.rich-text-code': 'Code',
 	'tool.rich-text-highlight': 'Highlight',
 	'tool.rich-text-strikethrough': 'Strikethrough',

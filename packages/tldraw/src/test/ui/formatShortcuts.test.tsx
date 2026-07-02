@@ -1,4 +1,4 @@
-import { act } from '@testing-library/react'
+import { act, fireEvent } from '@testing-library/react'
 import { createShapeId, Editor, TLRichText, toRichText } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
@@ -16,7 +16,7 @@ function ActionsCapturer({ onCapture }: { onCapture(actions: TLUiActionsContextT
 
 async function setup() {
 	let actions: TLUiActionsContextType = {}
-	const { editor } = await renderTldrawComponentWithEditor(
+	const { editor, rendered } = await renderTldrawComponentWithEditor(
 		(onMount) => (
 			<Tldraw onMount={onMount}>
 				<ActionsCapturer onCapture={(a) => (actions = a)} />
@@ -27,7 +27,7 @@ async function setup() {
 	act(() => {
 		editor.updateInstanceState({ isFocused: true })
 	})
-	return { editor, getActions: () => actions }
+	return { editor, rendered, getActions: () => actions }
 }
 
 function createTextShape(editor: Editor, text: string) {
@@ -79,13 +79,28 @@ describe('format shortcuts on selected shapes', () => {
 		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'bold')).toBe(false)
 	})
 
-	it('routes cmd+i (insert-embed) to italic when a text shape is selected', async () => {
+	it('toggles italic on a selected text shape', async () => {
 		const { editor, getActions } = await setup()
 		const id = createTextShape(editor, 'hello')
 		editor.select(id)
 
-		act(() => getActions()['insert-embed'].onSelect('kbd'))
+		act(() => getActions()['format-italic'].onSelect('kbd'))
 		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'italic')).toBe(true)
+
+		act(() => getActions()['format-italic'].onSelect('kbd'))
+		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'italic')).toBe(false)
+	})
+
+	it('toggles underline on a selected text shape', async () => {
+		const { editor, getActions } = await setup()
+		const id = createTextShape(editor, 'hello')
+		editor.select(id)
+
+		act(() => getActions()['format-underline'].onSelect('kbd'))
+		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'underline')).toBe(true)
+
+		act(() => getActions()['format-underline'].onSelect('kbd'))
+		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'underline')).toBe(false)
 	})
 
 	it('does not bold a locked shape', async () => {
@@ -96,5 +111,30 @@ describe('format shortcuts on selected shapes', () => {
 
 		act(() => getActions()['format-bold'].onSelect('kbd'))
 		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'bold')).toBe(false)
+	})
+
+	it('adds a link to selected shapes through the link dialog', async () => {
+		const { editor, getActions, rendered } = await setup()
+		const id = createTextShape(editor, 'hello')
+		editor.select(id)
+
+		act(() => getActions()['format-link'].onSelect('kbd'))
+
+		const input = await rendered.findByTestId('rich-text-link-dialog.input')
+		fireEvent.change(input, { target: { value: 'https://example.com' } })
+		act(() => {
+			fireEvent.click(rendered.getByTestId('rich-text-link-dialog.save'))
+		})
+
+		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'link')).toBe(true)
+	})
+
+	it('does not open the link dialog when no formattable shape is selected', async () => {
+		const { editor, getActions, rendered } = await setup()
+		createTextShape(editor, 'hello')
+		editor.selectNone()
+
+		act(() => getActions()['format-link'].onSelect('kbd'))
+		expect(rendered.queryByTestId('rich-text-link-dialog.input')).toBeNull()
 	})
 })

@@ -9,7 +9,6 @@ import {
 	Result,
 	TLEmbedShape,
 	TLImageShape,
-	TLRichText,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -30,7 +29,7 @@ import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import {
-	isEmptyRichText,
+	getFormattableSelectedShapes,
 	richTextHasMarkEverywhere,
 	setMarkOnRichText,
 } from '../../utils/text/richText'
@@ -38,6 +37,7 @@ import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+import { RichTextLinkDialog } from '../components/RichTextLinkDialog'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -159,25 +159,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		}
 
 		/**
-		 * Toggle a rich text mark (e.g. 'bold', 'italic') on every text-bearing shape in the
-		 * selection, without entering text edit mode. If every selected shape is already fully
+		 * Toggle a rich text mark (e.g. 'bold', 'italic', 'underline') on every text-bearing shape in
+		 * the selection, without entering text edit mode. If every selected shape is already fully
 		 * marked, the mark is removed from all of them; otherwise it is added to all of them.
 		 */
-		function toggleRichTextMarkOnSelection(markName: 'bold' | 'italic', source: TLUiEventSource) {
+		function toggleRichTextMarkOnSelection(
+			markName: 'bold' | 'italic' | 'underline',
+			source: TLUiEventSource
+		) {
 			if (!editor.isIn('select')) return
 
-			// Only act on shapes that actually have text to format. Shapes with a `richText` prop but
-			// no text content (e.g. an empty geo label or arrow) are skipped, so they don't keep the
-			// "is everything marked?" check from ever being true.
-			const shapes = editor
-				.getSelectedShapes()
-				.filter(
-					(shape): shape is TLShape & { props: { richText: TLRichText } } =>
-						'richText' in shape.props &&
-						!editor.isShapeOrAncestorLocked(shape.id) &&
-						!isEmptyRichText(shape.props.richText)
-				)
-
+			const shapes = getFormattableSelectedShapes(editor)
 			if (shapes.length === 0) return
 
 			trackEvent('rich-text', { operation: markName, source })
@@ -231,6 +223,28 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'format-underline',
+				label: 'tool.rich-text-underline',
+				icon: 'underline',
+				kbd: 'cmd+u,ctrl+u',
+				onSelect(source) {
+					toggleRichTextMarkOnSelection('underline', source)
+				},
+			},
+			{
+				id: 'format-link',
+				label: 'tool.rich-text-link',
+				icon: 'link',
+				kbd: 'cmd+shift+k,ctrl+shift+k',
+				onSelect(source) {
+					if (!editor.isIn('select')) return
+					if (getFormattableSelectedShapes(editor).length === 0) return
+
+					trackEvent('rich-text', { operation: 'link', source })
+					helpers.addDialog({ component: RichTextLinkDialog })
+				},
+			},
+			{
 				id: 'insert-embed',
 				label: 'action.insert-embed',
 				kbd: 'cmd+e,ctrl+e',
@@ -253,7 +267,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'insert-media',
 				label: 'action.insert-media',
-				kbd: 'cmd+u,ctrl+u',
+				kbd: 'cmd+shift+u,ctrl+shift+u',
 				onSelect(source) {
 					trackEvent('insert-media', { source })
 					helpers.insertMedia()
