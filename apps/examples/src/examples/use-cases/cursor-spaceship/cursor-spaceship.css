@@ -80,8 +80,8 @@
 	transition: width 80ms linear;
 }
 
-/* Live run timer, top-center. */
-.cursor-spaceship__timer {
+/* Live score, top-center. */
+.cursor-spaceship__score {
 	position: absolute;
 	top: 14px;
 	left: 50%;

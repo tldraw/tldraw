@@ -23,7 +23,7 @@ keywords:
 multiplayer: true
 ---
 
-A multiplayer orbital survival where your cursor is the ship — a current sweeps you around a sun; hold your ring, race others for fuel, ram slower ships, and see whose run lands longest on the room scoreboard.
+A multiplayer orbital survival where your cursor is the ship — a current sweeps you around a sun; hold your ring, scoop fuel, ram slower ships, and top the room scoreboard on points.
 
 ---
 
@@ -35,7 +35,7 @@ Three things end a run. The **sun** is lethal at its core; drift inside and you 
 
 Your **engines burn fuel** too, and the burn is all thrust — how hard you steer beyond the free orbital drift. Coast with the current and the engines barely sip; fight it, chase it, or throw quick turns and they gulp (so holding a tight ring deep in the well, where gravity pulls hardest, is the most expensive place to be). You refill by scooping the fuel cells scattered through the ring. A cell counts as taken the moment _any_ ship reaches it (again read straight off the synced cursors, so nothing new is synced), which means the whole room competes for one shared supply. Run dry and the engines cut out — **steering dies and your ship coasts on its last momentum while the sun's gravity curves it into a decaying fall**. The cursor is still the ship the whole time; it just loses control, and the world scrolls the star in to swallow you. The cursor-is-the-player constraint holds even through death.
 
-How long you last is the score. A live clock times your current life, and each run — however it ends — is written to a **persistent scoreboard** for the room the instant it beats your best. Like everything else here, the scoreboard needs no server of its own: it's just the synced document's `meta`, one small record per player that every client reads reactively, so it survives players coming and going and the whole room shares one high-score table.
+You play for **points** — ten for every fuel crate you scoop, a hundred for every ship you ram — and each one pops a little "+N" that floats up where you earned it. Your total climbs across deaths, and your best is written to a **persistent scoreboard** for the room. Like everything else here, the scoreboard needs no server of its own: it's just the synced document's `meta`, one small record per player that every client reads reactively, so it survives players coming and going and the whole room shares one high-score table.
 
 The belt, star field, and fuel cells are **generated on the fly from the room id** — each cell of space independently decides, via a hash, what it holds — so the arena is identical for everyone in the room with no shape data synced, and only the cells overlapping the viewport are ever generated. The sun, belt, stars, and fuel are painted to a canvas on the `Background` layer (behind the cursors); the ships are tldraw's own cursors, which pan with each viewer's camera automatically.
 

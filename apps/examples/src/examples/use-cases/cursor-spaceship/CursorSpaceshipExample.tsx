@@ -42,6 +42,17 @@ const COLLISION_RADIUS = 24
 const VELOCITY_MARGIN = 6
 const INVULN_MS = 1500
 
+// Score — points for fuel scooped and ships rammed; a kill is worth ten cells, so
+// hunting rivals pays. Each score spawns a "+N" pop that floats up and fades.
+const FUEL_POINTS = 10
+const KILL_POINTS = 100
+const KILL_COOLDOWN_MS = 1500
+const SCORE_SYNC_MS = 1500
+const FLOAT_LIFE_MS = 900
+const FLOAT_RISE = 34
+const FUEL_FLOAT_COLOR = '#8ef0c0'
+const KILL_FLOAT_COLOR = '#ffd24a'
+
 // Cursor trail (engine exhaust): a laser-style ribbon behind every ship in its
 // own color. Tapers to nothing at the tail so the fade is geometric.
 const TRAIL_FADE_MS = 2500
@@ -66,8 +77,17 @@ interface Score {
 	userId: string
 	name: string
 	color: string
-	survivalMs: number
+	score: number
 	at: number
+}
+
+/** A transient "+N" score pop, in screen space, floating up and fading. */
+interface FloatPop {
+	sx: number
+	sy: number
+	text: string
+	color: string
+	t: number
 }
 
 interface Game {
@@ -81,8 +101,10 @@ interface Game {
 	deaths: Atom<number>
 	/** Remaining fuel, 0..FUEL_MAX. */
 	fuel: Atom<number>
-	/** Milliseconds the current life has survived, for the live timer. */
-	liveMs: Atom<number>
+	/** Total score this session (points from fuel + kills); persists across deaths. */
+	score: Atom<number>
+	/** Transient "+N" score pops, spawned on fuel/kills and drained by the renderer. */
+	floats: FloatPop[]
 	/** Fuel cells taken by any ship (observed from the synced cursors) → the time each
 	 * respawns, so the whole room shares one competitive supply. */
 	collected: Map<string, number>
@@ -95,7 +117,8 @@ function createGame(roomId: string): Game {
 		engaged: atom('engaged', false),
 		deaths: atom('deaths', 0),
 		fuel: atom('fuel', FUEL_MAX),
-		liveMs: atom('liveMs', 0),
+		score: atom('score', 0),
+		floats: [],
 		collected: new Map(),
 	}
 }
@@ -133,7 +156,7 @@ export default function CursorSpaceshipExample({ roomId }: { roomId: string }) {
 				<GameRunner game={game} />
 				<CursorTrails game={game} />
 				<FuelGauge game={game} />
-				<RunTimer game={game} />
+				<ScoreHud game={game} />
 				<Scoreboard />
 				<LaunchCard game={game} />
 			</Tldraw>
@@ -148,7 +171,8 @@ function GameRunner({ game }: { game: Game }) {
 		// The first engaged frame only slides the world so the fixed spawn sits under
 		// the cursor, so launching doesn't yank the ship across space.
 		let attached = false
-		let runStart = 0
+		const killCooldown = new Map<string, number>()
+		let lastScoreSync = 0
 		let invulnUntil = 0
 		let fallVel = new Vec(0, 0)
 		const collabTrack = new Map<string, { x: number; y: number; speed: number }>()
@@ -174,16 +198,12 @@ function GameRunner({ game }: { game: Game }) {
 
 			if (!attached) {
 				attached = true
-				runStart = now
 				editor.setCamera(
 					{ x: screen.x / z - from.x, y: screen.y / z - from.y, z },
 					{ force: true, immediate: true }
 				)
 				return
 			}
-
-			// Advance the live run clock (rounded to 100ms for a calm display).
-			game.liveMs.set(Math.floor((now - runStart) / 100) * 100)
 
 			const drift = driftAt(from.x, from.y)
 			let next: Vec
@@ -224,9 +244,9 @@ function GameRunner({ game }: { game: Game }) {
 					fallVel = new Vec((fallVel.x / coastSp) * MAX_COAST, (fallVel.y / coastSp) * MAX_COAST)
 			}
 
-			// Ram physics: your cursor is your ship, so flying into another player's
-			// cursor is a collision. Estimate every other ship's speed from its synced
-			// cursor; whoever is clearly faster wins the joust, the slower ship is lost.
+			// Ram physics: your cursor is your ship, so flying into another player's cursor
+			// is a collision. Whoever is clearly faster wins the joust: ram someone slower
+			// and you score a kill; get caught slower than an incoming ship and you're lost.
 			const mySpeed = Math.hypot(next.x - from.x, next.y - from.y)
 			let rammed = false
 			for (const c of editor.getCollaborators()) {
@@ -235,12 +255,17 @@ function GameRunner({ game }: { game: Game }) {
 				const inst = prev ? Math.hypot(c.cursor.x - prev.x, c.cursor.y - prev.y) : 0
 				const speed = prev ? prev.speed * 0.8 + inst * 0.2 : 0
 				collabTrack.set(c.userId, { x: c.cursor.x, y: c.cursor.y, speed })
-				if (
-					now > invulnUntil &&
-					Math.hypot(next.x - c.cursor.x, next.y - c.cursor.y) < COLLISION_RADIUS &&
-					speed > mySpeed + VELOCITY_MARGIN
-				) {
-					rammed = true
+				if (Math.hypot(next.x - c.cursor.x, next.y - c.cursor.y) >= COLLISION_RADIUS) continue
+				if (speed > mySpeed + VELOCITY_MARGIN) {
+					if (now > invulnUntil) rammed = true
+				} else if (mySpeed > speed + VELOCITY_MARGIN) {
+					// I win the joust — score a kill, but only once per victim per pass.
+					const cd = killCooldown.get(c.userId)
+					if (!cd || now > cd) {
+						killCooldown.set(c.userId, now + KILL_COOLDOWN_MS)
+						game.score.set(game.score.get() + KILL_POINTS)
+						pushFloat(game, editor, next, `+${KILL_POINTS}`, KILL_FLOAT_COLOR)
+					}
 				}
 			}
 
@@ -251,12 +276,17 @@ function GameRunner({ game }: { game: Game }) {
 				Math.hypot(next.x, next.y) < SUN_KILL_RADIUS ||
 				hitsBelt(next.x, next.y, game.seed)
 			) {
-				recordScore(editor, now - runStart)
 				respawn(game)
 				fallVel = new Vec(0, 0)
 				invulnUntil = now + INVULN_MS
 				attached = false
 				return
+			}
+
+			// Push the score to the room scoreboard now and then (throttled).
+			if (game.score.get() > 0 && now - lastScoreSync > SCORE_SYNC_MS) {
+				lastScoreSync = now
+				recordScore(editor, game.score.get())
 			}
 
 			editor.setCamera(
@@ -302,7 +332,11 @@ function collectFuel(game: Game, editor: Editor, ship: Vec) {
 				break
 			}
 		}
-		if (nearest) game.fuel.set(Math.min(FUEL_MAX, game.fuel.get() + FUEL_PER_CELL))
+		if (nearest) {
+			game.fuel.set(Math.min(FUEL_MAX, game.fuel.get() + FUEL_PER_CELL))
+			game.score.set(game.score.get() + FUEL_POINTS)
+			pushFloat(game, editor, cell, `+${FUEL_POINTS}`, FUEL_FLOAT_COLOR)
+		}
 		game.collected.set(cell.key, now + FUEL_RESPAWN_MS)
 	}
 
@@ -334,13 +368,13 @@ function respawn(game: Game) {
 
 /** Record this life on the room scoreboard if it beats the player's best. Scores live
  * in the synced document's meta, so they persist for the room and everyone sees them. */
-function recordScore(editor: Editor, survivalMs: number) {
+function recordScore(editor: Editor, score: number) {
 	const userId = editor.user.getExternalId()
 	const doc = editor.getDocumentSettings()
 	// meta is a loose JsonObject; cast past the Score interface at the boundary.
 	const scores = (doc.meta.scores ?? {}) as unknown as Record<string, Score>
 	const best = scores[userId]
-	if (best && best.survivalMs >= survivalMs) return
+	if (best && best.score >= score) return
 	const nextScores = {
 		...scores,
 		[userId]: {
@@ -348,13 +382,20 @@ function recordScore(editor: Editor, survivalMs: number) {
 			// The people menu is hidden, so give nameless pilots a stable call sign.
 			name: editor.user.getName() || callSign(userId),
 			color: editor.user.getColor(),
-			survivalMs,
+			score,
 			at: Date.now(),
 		},
 	}
 	editor.updateDocumentSettings({
 		meta: { ...doc.meta, scores: nextScores } as unknown as (typeof doc)['meta'],
 	})
+}
+
+/** Spawn a "+N" score pop at a world point — captured in screen space so it floats
+ * straight up regardless of where the camera then scrolls. */
+function pushFloat(game: Game, editor: Editor, at: VecLike, text: string, color: string) {
+	const p = editor.pageToViewport(at)
+	game.floats.push({ sx: p.x, sy: p.y, text, color, t: Date.now() })
 }
 
 const CALLSIGN_ADJECTIVES = ['Cosmic', 'Rogue', 'Solar', 'Astro', 'Lunar', 'Stellar', 'Ion', 'Nova']
@@ -375,14 +416,6 @@ function callSign(userId: string) {
 	for (let i = 0; i < userId.length; i++) h = (h * 31 + userId.charCodeAt(i)) | 0
 	h = Math.abs(h)
 	return `${CALLSIGN_ADJECTIVES[h % CALLSIGN_ADJECTIVES.length]} ${CALLSIGN_NOUNS[(h >> 3) % CALLSIGN_NOUNS.length]}`
-}
-
-/** Format ms as m:ss.s. */
-function formatTime(ms: number) {
-	const totalSeconds = ms / 1000
-	const minutes = Math.floor(totalSeconds / 60)
-	const seconds = (totalSeconds - minutes * 60).toFixed(1)
-	return `${minutes}:${seconds.padStart(4, '0')}`
 }
 
 /**
@@ -724,6 +757,23 @@ function CursorTrails({ game }: { game: Game }) {
 				ctx.fill()
 			}
 			ctx.globalAlpha = 1
+
+			// Score pops: "+N" text floating up and fading where you scored.
+			game.floats = game.floats.filter((f) => now - f.t < FLOAT_LIFE_MS)
+			ctx.textAlign = 'center'
+			ctx.textBaseline = 'middle'
+			ctx.font = `600 ${15 * z}px system-ui, sans-serif`
+			ctx.lineWidth = 3 * z
+			ctx.strokeStyle = 'rgba(6, 10, 22, 0.75)'
+			for (const f of game.floats) {
+				const age = (now - f.t) / FLOAT_LIFE_MS
+				const py = f.sy - age * FLOAT_RISE
+				ctx.globalAlpha = Math.max(0, 1 - age)
+				ctx.strokeText(f.text, f.sx, py)
+				ctx.fillStyle = f.color
+				ctx.fillText(f.text, f.sx, py)
+			}
+			ctx.globalAlpha = 1
 		}
 
 		editor.on('tick', draw)
@@ -753,11 +803,11 @@ function FuelGauge({ game }: { game: Game }) {
 	)
 }
 
-function RunTimer({ game }: { game: Game }) {
+function ScoreHud({ game }: { game: Game }) {
 	const engaged = useValue('engaged', () => game.engaged.get(), [game])
-	const liveMs = useValue('liveMs', () => game.liveMs.get(), [game])
+	const score = useValue('score', () => game.score.get(), [game])
 	if (!engaged) return null
-	return <div className="cursor-spaceship__timer">{formatTime(liveMs)}</div>
+	return <div className="cursor-spaceship__score">{score.toLocaleString()}</div>
 }
 
 /** The room's persistent scoreboard, read reactively from the synced document meta. */
@@ -769,7 +819,7 @@ function Scoreboard() {
 			const s = editor.getDocumentSettings().meta.scores as unknown as
 				| Record<string, Score>
 				| undefined
-			return s ? Object.values(s).sort((a, b) => b.survivalMs - a.survivalMs) : []
+			return s ? Object.values(s).sort((a, b) => b.score - a.score) : []
 		},
 		[editor]
 	)
@@ -777,13 +827,13 @@ function Scoreboard() {
 	if (scores.length === 0) return null
 	return (
 		<div className="cursor-spaceship__scoreboard">
-			<div className="cursor-spaceship__scoretitle">Longest survivals</div>
+			<div className="cursor-spaceship__scoretitle">Top scores</div>
 			{scores.slice(0, 8).map((s, i) => (
 				<div key={s.userId} className="cursor-spaceship__scorerow" data-me={s.userId === myId}>
 					<span className="cursor-spaceship__rank">{i + 1}</span>
 					<span className="cursor-spaceship__scoredot" style={{ background: s.color }} />
 					<span className="cursor-spaceship__scorename">{s.name}</span>
-					<span className="cursor-spaceship__scoretime">{formatTime(s.survivalMs)}</span>
+					<span className="cursor-spaceship__scoretime">{s.score.toLocaleString()}</span>
 				</div>
 			))}
 		</div>
