@@ -101,7 +101,7 @@ interface Game {
 	deaths: Atom<number>
 	/** Remaining fuel, 0..FUEL_MAX. */
 	fuel: Atom<number>
-	/** Total score this session (points from fuel + kills); persists across deaths. */
+	/** Points for the current run (fuel + kills); resets to 0 on death. */
 	score: Atom<number>
 	/** Transient "+N" score pops, spawned on fuel/kills and drained by the renderer. */
 	floats: FloatPop[]
@@ -276,6 +276,8 @@ function GameRunner({ game }: { game: Game }) {
 				Math.hypot(next.x, next.y) < SUN_KILL_RADIUS ||
 				hitsBelt(next.x, next.y, game.seed)
 			) {
+				if (game.score.get() > 0) recordScore(editor, game.score.get())
+				game.score.set(0)
 				respawn(game)
 				fallVel = new Vec(0, 0)
 				invulnUntil = now + INVULN_MS
