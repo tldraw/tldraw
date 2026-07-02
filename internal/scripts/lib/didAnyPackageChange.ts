@@ -62,13 +62,26 @@ type Diff =
 			diff: string
 	  }
 
+// These files are bundled into the `tldraw` package tarball but are generated
+// during publishing from the docs content in `apps/docs/content` (see
+// `generate-tldraw-package-docs.ts`), not from SDK source. A docs-only change
+// therefore alters them, which would otherwise make this diff check report a
+// package change and cut a spurious SDK patch release. Ignore them so that
+// docs-only patches don't trigger a new SDK version.
+const GENERATED_DOCS_FILES = new Set(['DOCS.md', 'RELEASE_NOTES.md'])
+
+function isGeneratedDocsFile(filePath: string) {
+	// Tarball entry paths are prefixed with `package/`, e.g. `package/DOCS.md`.
+	return GENERATED_DOCS_FILES.has(filePath.split('/').pop()!)
+}
+
 function getManifestFirstDiff(
 	packageName: string,
 	a: Record<string, Buffer>,
 	b: Record<string, Buffer>
 ): Diff | null {
-	const aKeys = Object.keys(a)
-	const bKeys = Object.keys(b)
+	const aKeys = Object.keys(a).filter((key) => !isGeneratedDocsFile(key))
+	const bKeys = Object.keys(b).filter((key) => !isGeneratedDocsFile(key))
 	for (const key of aKeys) {
 		if (!bKeys.includes(key)) {
 			return { type: 'removed', packageName, filePath: key }
