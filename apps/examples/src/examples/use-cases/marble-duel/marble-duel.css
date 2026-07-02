@@ -1,0 +1,84 @@
+/* The game overlay canvas fills the InFrontOfTheCanvas layer and never takes
+   the pointer — all input goes to the editor beneath it. */
+.marble-duel__overlay {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+/* HUD elements sit top-center, clear of the default UI panels. */
+.marble-duel__hud {
+	position: absolute;
+	top: 12px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 300;
+	font-family: inherit;
+}
+
+.marble-duel__card {
+	width: 340px;
+	padding: 14px 18px 16px;
+	border-radius: 12px;
+	background: var(--color-panel, #fff);
+	box-shadow: var(--shadow-2, 0 2px 12px rgba(0, 0, 0, 0.15));
+	text-align: center;
+	pointer-events: auto;
+}
+
+.marble-duel__title {
+	font-size: 15px;
+	font-weight: 700;
+	margin-bottom: 4px;
+}
+
+.marble-duel__card p {
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--color-text-1, #333);
+	margin: 0 0 10px;
+}
+
+.marble-duel__deploy {
+	pointer-events: auto;
+	cursor: pointer;
+	border: none;
+	border-radius: 8px;
+	background: #4465e9;
+	color: #fff;
+	font: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	padding: 8px 22px;
+}
+
+.marble-duel__deploy:hover {
+	filter: brightness(1.08);
+}
+
+.marble-duel__chip {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	padding: 6px 12px;
+	border-radius: 99px;
+	background: var(--color-panel, #fff);
+	box-shadow: var(--shadow-2, 0 2px 12px rgba(0, 0, 0, 0.15));
+	pointer-events: none;
+}
+
+.marble-duel__chip-label {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--color-text-1, #333);
+	margin-right: 3px;
+}
+
+.marble-duel__pip {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.12);
+}
