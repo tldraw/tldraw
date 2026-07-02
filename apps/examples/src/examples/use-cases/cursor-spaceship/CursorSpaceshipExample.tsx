@@ -9,6 +9,7 @@ import {
 	beltInBounds,
 	driftAt,
 	fuelCellsInBounds,
+	gravityAt,
 	hitsBelt,
 	spaceSeed,
 	starsInBounds,
@@ -27,7 +28,11 @@ const FUEL_DRAIN_GRAV = 7200
 const FUEL_PER_CELL = 34
 const COLLECT_RADIUS = 22
 const FUEL_RESPAWN_MS = 8000
-const OUT_OF_FUEL_PULL = 5
+// When the engines die the ship coasts on its momentum and gravity reels it in,
+// plus a gentle constant sink so even a far-out stall still decays. MAX_COAST caps
+// the velocity carried into the fall so a flick at zero fuel can't fling the wreck.
+const STALL_SINK = 0.8
+const MAX_COAST = 8
 
 // Ships are cursors, so flying into another player's cursor is a collision: the
 // clearly faster ship wins the joust and the slower one is destroyed. A fresh
@@ -129,6 +134,7 @@ function GameRunner({ game }: { game: Game }) {
 		// the cursor, so launching doesn't yank the ship across space.
 		let attached = false
 		let invulnUntil = 0
+		let fallVel = new Vec(0, 0)
 		const collabTrack = new Map<string, { x: number; y: number; speed: number }>()
 
 		const onTick = () => {
@@ -162,14 +168,16 @@ function GameRunner({ game }: { game: Game }) {
 			const drift = driftAt(from.x, from.y)
 			let next: Vec
 			if (game.fuel.get() <= 0) {
-				// Out of fuel: engines dead. The cursor is still the ship, but steering
-				// does nothing — gravity (plus an extra pull, so the fall is quick)
-				// drags it into the sun, and re-pinning it under the cursor scrolls the
-				// star in to swallow you.
+				// Out of fuel: engines dead and steering does nothing. The ship coasts on the
+				// momentum it had when they cut out while the sun’s gravity accelerates it
+				// inward — a decaying fall, not a dead stop or a straight-in beeline. It stays
+				// pinned under the cursor, so re-pinning scrolls the star in to swallow you.
 				const d = Math.hypot(from.x, from.y) || 0.001
+				const grav = gravityAt(from.x, from.y)
+				fallVel = new Vec(fallVel.x + grav.x, fallVel.y + grav.y)
 				next = new Vec(
-					from.x + drift.x - (from.x / d) * OUT_OF_FUEL_PULL,
-					from.y + drift.y - (from.y / d) * OUT_OF_FUEL_PULL
+					from.x + fallVel.x - (from.x / d) * STALL_SINK,
+					from.y + fallVel.y - (from.y / d) * STALL_SINK
 				)
 			} else {
 				// Normal flight: steer to the world point under the cursor, plus the
@@ -188,6 +196,13 @@ function GameRunner({ game }: { game: Game }) {
 					)
 				)
 				collectFuel(game, editor, next)
+				// Remember the velocity we’re carrying, so if the engines cut out we coast on
+				// it instead of stopping dead; clamp it so a flick at zero fuel stays graceful.
+				const move = new Vec(next.x - from.x, next.y - from.y)
+				fallVel = new Vec(fallVel.x * 0.5 + move.x * 0.5, fallVel.y * 0.5 + move.y * 0.5)
+				const coastSp = Math.hypot(fallVel.x, fallVel.y)
+				if (coastSp > MAX_COAST)
+					fallVel = new Vec((fallVel.x / coastSp) * MAX_COAST, (fallVel.y / coastSp) * MAX_COAST)
 			}
 
 			// Ram physics: your cursor is your ship, so flying into another player's
@@ -218,6 +233,7 @@ function GameRunner({ game }: { game: Game }) {
 				hitsBelt(next.x, next.y, game.seed)
 			) {
 				respawn(game)
+				fallVel = new Vec(0, 0)
 				invulnUntil = now + INVULN_MS
 				attached = false
 				return

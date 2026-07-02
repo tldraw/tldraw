@@ -78,6 +78,16 @@ function hash3(a: number, b: number, c: number): number {
 }
 
 /**
+ * The sun's gravitational pull at a world point — inward, inverse-square. It's the
+ * acceleration a coasting, engine-dead ship feels, and the inward half of the drift.
+ */
+export function gravityAt(x: number, y: number): Vec {
+	const dist = Math.hypot(x, y) || 0.001
+	const g = GRAVITY / (dist * dist)
+	return new Vec((-x / dist) * g, (-y / dist) * g)
+}
+
+/**
  * The per-tick drift at a world point: the orbital current (tangential, carrying
  * you around the sun) plus the sun's gravity (inward). Holding the cursor still,
  * this is what flies you — a slow circle out in the ring, a fatal plunge near the
@@ -85,10 +95,8 @@ function hash3(a: number, b: number, c: number): number {
  */
 export function driftAt(x: number, y: number): Vec {
 	const dist = Math.hypot(x, y) || 0.001
-	const tx = (-y / dist) * CURRENT_SPEED
-	const ty = (x / dist) * CURRENT_SPEED
-	const g = GRAVITY / (dist * dist)
-	return new Vec(tx - (x / dist) * g, ty - (y / dist) * g)
+	const grav = gravityAt(x, y)
+	return new Vec((-y / dist) * CURRENT_SPEED + grav.x, (x / dist) * CURRENT_SPEED + grav.y)
 }
 
 /** Belt asteroids overlapping the given world bounds — a dense ring wall. */
