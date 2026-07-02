@@ -16,9 +16,11 @@ export interface TLCommentAnchor {
 }
 
 /**
- * A comment record. It lives in the tldraw document store and syncs through the room like a
- * document record, but is intended to be persisted in a separate lane from the main document (see
- * the sync server integration). Opt-in: register it with
+ * A comment record. It lives in the tldraw document store and syncs through the room, but is
+ * intended to be served through the room's object-store lane (`objectTypes` on the sync server):
+ * object-lane records are gated by the session's `objectAccess` rather than `isReadonly`, are
+ * excluded from document snapshots/`.tldr` exports server-side, and are persisted in a separate
+ * lane from the main document. Opt-in: register it with
  * `createTLSchema({ records: commentSchemaRecords })` (and the matching `records` option on the
  * client) — it is not part of the default schema.
  *

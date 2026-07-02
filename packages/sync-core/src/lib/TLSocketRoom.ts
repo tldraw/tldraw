@@ -3,7 +3,7 @@ import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tls
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
-import { TLSocketServerSentEvent } from './protocol'
+import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
@@ -72,6 +72,11 @@ export interface TLSyncLog {
 export interface SessionStateSnapshot {
 	serializedSchema: SerializedSchema
 	isReadonly: boolean
+	/**
+	 * Write access for object-store lane record types. Optional so snapshots persisted before
+	 * this field existed resume cleanly (they default to 'write').
+	 */
+	objectAccess?: TLObjectStoreAccess
 	presenceId: string | null
 	presenceRecord: UnknownRecord | null
 	requiresLegacyRejection: boolean
@@ -129,6 +134,13 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	// eslint-disable-next-line tldraw/method-signature-style
 	onCommittedChanges?: (args: { diff: TLSyncForwardDiff<R>; documentClock: number }) => void
+	/**
+	 * Record type names to serve through the object-store lane instead of the document lane.
+	 * Each must be a document-scoped type registered in the schema. Object-lane writes are gated
+	 * per session by `objectAccess` (see {@link TLSocketRoom.handleSocketConnect}) rather than
+	 * `isReadonly`, so e.g. a session can be allowed to comment without being allowed to edit.
+	 */
+	objectTypes?: readonly string[]
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -253,6 +265,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
+			objectTypes: opts.objectTypes,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: opts.log,
 			storage,
@@ -293,6 +306,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *   - sessionId - Unique identifier for the client session (typically from browser tab)
 	 *   - socket - WebSocket-like object for client communication
 	 *   - isReadonly - Whether the client can modify the document (defaults to false)
+	 *   - objectAccess - Write access for object-store lane record types (defaults to 'write').
+	 *     Independent of isReadonly, so a session can be allowed to write objects (e.g. comments)
+	 *     without being allowed to edit the document.
 	 *   - meta - Additional session metadata (required if SessionMeta is not void)
 	 *
 	 * @example
@@ -320,9 +336,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			sessionId: string
 			socket: WebSocketMinimal
 			isReadonly?: boolean
+			objectAccess?: TLObjectStoreAccess
 		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket, isReadonly = false } = opts
+		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data)
 		const handleSocketError = this.handleSocketError.bind(this, sessionId)
@@ -341,6 +358,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		this.room.handleNewSession({
 			sessionId,
 			isReadonly,
+			objectAccess,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -550,6 +568,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		this.room.handleResumedSession({
 			sessionId,
 			isReadonly: snapshot.isReadonly,
+			// snapshots persisted before this field existed resume with the permissive default
+			objectAccess: snapshot.objectAccess ?? 'write',
 			serializedSchema: snapshot.serializedSchema,
 			presenceId: snapshot.presenceId,
 			presenceRecord: snapshot.presenceRecord,
@@ -605,6 +625,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		return {
 			serializedSchema: session.serializedSchema,
 			isReadonly: session.isReadonly,
+			objectAccess: session.objectAccess,
 			presenceId: session.presenceId,
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,
@@ -680,6 +701,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		sessionId: string
 		isConnected: boolean
 		isReadonly: boolean
+		objectAccess: TLObjectStoreAccess
 		meta: SessionMeta
 	}> {
 		return [...this.room.sessions.values()].map((session) => {
@@ -687,6 +709,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				sessionId: session.sessionId,
 				isConnected: session.state === RoomSessionState.Connected,
 				isReadonly: session.isReadonly,
+				objectAccess: session.objectAccess,
 				meta: session.meta,
 			}
 		})

@@ -31,6 +31,7 @@ import { interval } from './interval'
 import {
 	getTlsyncProtocolVersion,
 	TLIncompatibilityReason,
+	TLObjectStoreAccess,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
@@ -251,6 +252,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	readonly serializedSchema: SerializedSchema
 
 	readonly documentTypes: Set<string>
+	/**
+	 * Record types served by the object-store lane. Object records ride the same wire messages
+	 * as document records but are gated by the session's `objectAccess` instead of `isReadonly`,
+	 * and are excluded from `documentTypes` so hosts can persist them in a separate lane.
+	 */
+	readonly objectTypes: Set<string>
 	readonly presenceType: RecordType<R, any> | null
 	private log?: TLSyncLog
 	public readonly schema: StoreSchema<R, any>
@@ -269,6 +276,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * commit. Best-effort — do not throw; do not block.
 		 */
 		onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
+		/**
+		 * Record type names to serve through the object-store lane instead of the document lane.
+		 * Each must be a document-scoped type registered in the schema. Object-lane writes are
+		 * gated per session by `objectAccess` rather than `isReadonly`.
+		 */
+		objectTypes?: readonly string[]
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
@@ -288,9 +301,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// do a json serialization cycle to make sure the schema has no 'undefined' values
 		this.serializedSchema = JSON.parse(JSON.stringify(this.schema.serialize()))
 
+		this.objectTypes = new Set(opts.objectTypes ?? [])
+		for (const typeName of this.objectTypes) {
+			const type = getOwnProperty(this.schema.types, typeName)
+			assert(type, `TLSyncRoom: object type '${typeName}' is not registered in the schema`)
+			assert(
+				type.scope === 'document',
+				`TLSyncRoom: object type '${typeName}' must have scope 'document', got '${type.scope}'`
+			)
+		}
+
+		// object-lane types are partitioned out of the document lane
 		this.documentTypes = new Set(
 			Object.values<RecordType<R, any>>(this.schema.types)
-				.filter((t) => t.scope === 'document')
+				.filter((t) => t.scope === 'document' && !this.objectTypes.has(t.typeName))
 				.map((t) => t.typeName)
 		)
 
@@ -466,6 +490,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			cancellationTime: Date.now(),
 			meta: session.meta,
 			isReadonly: session.isReadonly,
+			objectAccess: session.objectAccess,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
 		})
@@ -576,8 +601,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		socket: TLRoomSocket<R>
 		meta: SessionMeta
 		isReadonly: boolean
+		objectAccess?: TLObjectStoreAccess
 	}) {
-		const { sessionId, socket, meta, isReadonly } = opts
+		const { sessionId, socket, meta, isReadonly, objectAccess } = opts
 		const existing = this.sessions.get(sessionId)
 		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingConnectMessage,
@@ -587,6 +613,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			sessionStartTime: Date.now(),
 			meta,
 			isReadonly: isReadonly ?? false,
+			objectAccess: objectAccess ?? 'write',
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
 			supportsStringAppend: true,
@@ -606,6 +633,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		socket: TLRoomSocket<R>
 		meta: SessionMeta
 		isReadonly: boolean
+		objectAccess?: TLObjectStoreAccess
 		serializedSchema: SerializedSchema
 		presenceId: string | null
 		presenceRecord: UnknownRecord | null
@@ -617,6 +645,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			socket,
 			meta,
 			isReadonly,
+			objectAccess,
 			serializedSchema,
 			presenceId,
 			presenceRecord,
@@ -639,6 +668,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			outstandingDataMessages: [],
 			meta,
 			isReadonly,
+			objectAccess: objectAccess ?? 'write',
 			requiresLegacyRejection,
 			supportsStringAppend,
 		})
@@ -951,6 +981,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				supportsStringAppend: session.supportsStringAppend,
 				meta: session.meta,
 				isReadonly: session.isReadonly,
+				objectAccess: session.objectAccess,
 				requiresLegacyRejection: session.requiresLegacyRejection,
 			})
 			this._unsafe_sendMessage(session.sessionId, msg)
@@ -1001,6 +1032,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				serverClock: txn.getClock(),
 				diff: { ...presenceDiff.value, ...docDiff },
 				isReadonly: session.isReadonly,
+				objectAccess: session.objectAccess,
 			} satisfies Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>
 		}) // no id needed because this only reads, no writes.
 
@@ -1182,14 +1214,29 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						}
 					}
 				}
-				if (message.diff && !session?.isReadonly) {
+				// Per-op write gate: document-lane records are gated by `isReadonly`, object-lane
+				// records by `objectAccess`. Denied ops are skipped (the client is corrected by the
+				// resulting discard/rebase push_result, exactly as whole-diff readonly skips were).
+				// Server-initiated pushes (no session) are always allowed.
+				const canWrite = (typeName: string) =>
+					!session ||
+					(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
+
+				if (message.diff) {
 					// The push request was for the document scope.
 					for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
 						switch (op[0]) {
 							case RecordOpType.Put: {
+								// The write gate is checked before type validation so that a denied
+								// session's ops are skipped without rejection, matching the previous
+								// whole-diff readonly behavior.
+								if (!canWrite(op[1].typeName)) continue
 								// Try to add the document.
 								// If we're putting a record with a type that we don't recognize, fail
-								if (!this.documentTypes.has(op[1].typeName)) {
+								if (
+									!this.documentTypes.has(op[1].typeName) &&
+									!this.objectTypes.has(op[1].typeName)
+								) {
 									throw new TLSyncError(
 										'invalid record',
 										TLSyncErrorCloseEventReason.INVALID_RECORD
@@ -1199,6 +1246,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								break
 							}
 							case RecordOpType.Patch: {
+								const doc = txn.get(id) as R | undefined
+								// if it was already deleted, there's no need to apply the patch
+								if (!doc) continue
+								if (!canWrite(doc.typeName)) continue
 								// Try to patch the document. If it fails, stop here.
 								patchDocument(txn, docChanges, id, op[1])
 								break
@@ -1209,6 +1260,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									// If the doc was already deleted, don't do anything, no need to propagate a delete op
 									continue
 								}
+								if (!canWrite(doc.typeName)) continue
 
 								// Delete the document and propagate the delete op
 								// delete automatically creates tombstones
