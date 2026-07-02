@@ -160,7 +160,9 @@
 		"postcss": "8.5.10",
 		"react-router": "6.30.4",
 		"@remix-run/router": "1.23.2",
-		"@octokit/plugin-paginate-rest@11.3.1": "11.4.1"
+		"@octokit/plugin-paginate-rest@11.3.1": "11.4.1",
+		"undici@7.24.4": "7.28.0",
+		"ip-address@10.1.0": "10.2.0"
 	},
 	"dependencies": {
 		"@sentry/cli": "^2.41.1",
