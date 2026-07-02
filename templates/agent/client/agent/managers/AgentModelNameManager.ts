@@ -1,5 +1,5 @@
 import { Atom, atom } from 'tldraw'
-import { AgentModelName, DEFAULT_MODEL_NAME } from '../../../shared/models'
+import { AgentModelName, DEFAULT_MODEL_NAME, isValidModelName } from '../../../shared/models'
 import type { TldrawAgent } from '../TldrawAgent'
 import { BaseAgentManager } from './BaseAgentManager'
 
@@ -39,7 +39,10 @@ export class AgentModelNameManager extends BaseAgentManager {
 	 * @param modelName - The model name to set.
 	 */
 	setModelName(modelName: AgentModelName): void {
-		this.$modelName.set(modelName)
+		// A persisted selection from an older version may name a model that no
+		// longer exists. Fall back to the default rather than holding an unknown
+		// model name that would later fail when sent to the worker.
+		this.$modelName.set(isValidModelName(modelName) ? modelName : DEFAULT_MODEL_NAME)
 	}
 
 	/**
