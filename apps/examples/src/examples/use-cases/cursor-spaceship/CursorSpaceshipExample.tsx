@@ -819,7 +819,10 @@ function Scoreboard() {
 			const s = editor.getDocumentSettings().meta.scores as unknown as
 				| Record<string, Score>
 				| undefined
-			return s ? Object.values(s).sort((a, b) => b.score - a.score) : []
+			if (!s) return []
+			return Object.values(s)
+				.filter((e) => typeof e.score === 'number')
+				.sort((a, b) => b.score - a.score)
 		},
 		[editor]
 	)
