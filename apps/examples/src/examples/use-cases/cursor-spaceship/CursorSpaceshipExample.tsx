@@ -6,6 +6,7 @@ import {
 	SPAWN,
 	SUN_KILL_RADIUS,
 	SUN_RADIUS,
+	asteroidShape,
 	beltInBounds,
 	driftAt,
 	fuelCellsInBounds,
@@ -354,37 +355,75 @@ function SpaceField({ game }: { game: Game }) {
 			}
 			ctx.globalAlpha = 1
 
-			// Fuel cells — a glowing pip each, skipping ones just collected.
+			// Fuel cells — a green cargo crate each, skipping ones just collected.
 			const now = Date.now()
 			for (const cell of fuelCellsInBounds(vp.minX, vp.minY, vp.maxX, vp.maxY, game.seed)) {
 				const respawnAt = game.collected.get(cell.key)
 				if (respawnAt && now < respawnAt) continue
 				const p = editor.pageToViewport(cell)
-				const r = COLLECT_RADIUS * z
-				const glow = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, r)
-				glow.addColorStop(0, 'rgba(120, 240, 190, 0.85)')
-				glow.addColorStop(1, 'rgba(120, 240, 190, 0)')
+				const s = 10 * z
+				// a faint glow so the crate reads against deep space
+				const glow = ctx.createRadialGradient(p.x, p.y, s, p.x, p.y, s * 2.8)
+				glow.addColorStop(0, 'rgba(90, 230, 160, 0.3)')
+				glow.addColorStop(1, 'rgba(90, 230, 160, 0)')
 				ctx.fillStyle = glow
 				ctx.beginPath()
-				ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
+				ctx.arc(p.x, p.y, s * 2.8, 0, Math.PI * 2)
 				ctx.fill()
-				ctx.fillStyle = '#e9fff6'
+				// the crate itself, given a slight deterministic tumble
+				const spin =
+					((Math.abs(Math.round(cell.x) * 73856093 + Math.round(cell.y) * 19349663) % 1000) / 1000 -
+						0.5) *
+					0.7
+				ctx.save()
+				ctx.translate(p.x, p.y)
+				ctx.rotate(spin)
+				const body = ctx.createLinearGradient(-s, -s, s, s)
+				body.addColorStop(0, '#5fe6a8')
+				body.addColorStop(1, '#1c9463')
+				ctx.fillStyle = body
+				ctx.fillRect(-s, -s, s * 2, s * 2)
+				ctx.lineWidth = Math.max(1, 1.4 * z)
+				ctx.strokeStyle = '#0b3a28'
+				ctx.strokeRect(-s, -s, s * 2, s * 2)
+				// cross-straps + a top highlight to sell the shipping crate
+				ctx.strokeStyle = 'rgba(8, 40, 28, 0.5)'
+				ctx.lineWidth = Math.max(1, z)
 				ctx.beginPath()
-				ctx.arc(p.x, p.y, 3 * z, 0, Math.PI * 2)
-				ctx.fill()
+				ctx.moveTo(-s, 0)
+				ctx.lineTo(s, 0)
+				ctx.moveTo(0, -s)
+				ctx.lineTo(0, s)
+				ctx.stroke()
+				ctx.strokeStyle = 'rgba(225, 255, 240, 0.55)'
+				ctx.beginPath()
+				ctx.moveTo(-s + 1, -s + 1)
+				ctx.lineTo(s - 1, -s + 1)
+				ctx.stroke()
+				ctx.restore()
 			}
 
-			// Belt asteroids — a shaded circle each.
-			for (const a of beltInBounds(vp.minX, vp.minY, vp.maxX, vp.maxY, game.seed)) {
-				const p = editor.pageToViewport(a)
-				const r = a.r * z
-				const grad = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.35, r * 0.1, p.x, p.y, r)
-				grad.addColorStop(0, '#5b6377')
-				grad.addColorStop(1, '#2b3040')
-				ctx.fillStyle = grad
+			// Belt asteroids — a jagged, sharp-edged rock each, dark and menacing.
+			for (const rock of beltInBounds(vp.minX, vp.minY, vp.maxX, vp.maxY, game.seed)) {
+				const p = editor.pageToViewport(rock)
+				const r = rock.r * z
+				const shape = asteroidShape(rock, 9)
 				ctx.beginPath()
-				ctx.arc(p.x, p.y, r, 0, Math.PI * 2)
+				for (let i = 0; i < shape.length; i++) {
+					const vx = p.x + shape[i].x * r
+					const vy = p.y + shape[i].y * r
+					if (i === 0) ctx.moveTo(vx, vy)
+					else ctx.lineTo(vx, vy)
+				}
+				ctx.closePath()
+				const grad = ctx.createRadialGradient(p.x - r * 0.4, p.y - r * 0.4, r * 0.1, p.x, p.y, r)
+				grad.addColorStop(0, '#6b7285')
+				grad.addColorStop(1, '#282d3b')
+				ctx.fillStyle = grad
 				ctx.fill()
+				ctx.lineWidth = Math.max(1, z)
+				ctx.strokeStyle = '#0f121b'
+				ctx.stroke()
 			}
 
 			// The sun at the world origin: a hot core with a wide glow.

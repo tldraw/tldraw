@@ -99,6 +99,26 @@ export function driftAt(x: number, y: number): Vec {
 	return new Vec((-y / dist) * CURRENT_SPEED + grav.x, (x / dist) * CURRENT_SPEED + grav.y)
 }
 
+/**
+ * A jagged rock silhouette for an asteroid — `points` unit offsets from its center
+ * (radius 0.64–1 of the asteroid's, with the spokes angled irregularly so the
+ * corners come out sharp). Deterministic from the asteroid position, so everyone
+ * sees the same rock and it doesn't shimmer frame to frame.
+ */
+export function asteroidShape(a: Asteroid, points: number): Vec[] {
+	const ax = Math.round(a.x)
+	const ay = Math.round(a.y)
+	const out: Vec[] = []
+	for (let i = 0; i < points; i++) {
+		const h = hash3(ax, ay, i)
+		const rad = 0.64 + ((h & 0xff) / 255) * 0.36
+		const jitter = (((h >>> 8) & 0xff) / 255 - 0.5) * ((Math.PI / points) * 1.1)
+		const ang = (i / points) * Math.PI * 2 + jitter
+		out.push(new Vec(Math.cos(ang) * rad, Math.sin(ang) * rad))
+	}
+	return out
+}
+
 /** Belt asteroids overlapping the given world bounds — a dense ring wall. */
 export function beltInBounds(
 	minX: number,
