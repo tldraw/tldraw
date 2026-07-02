@@ -49,34 +49,70 @@ export async function flattenShapesToImages(
 			}
 		})
 
+		// Cluster shapes by connected components: any two shapes whose expanded
+		// bounds intersect end up in the same group. Using union-find here
+		// instead of a greedy first-fit pass means the result is independent of
+		// the order shapes appear in `shapeIds`, and a shape that bridges two
+		// otherwise-disjoint clusters merges them in one pass.
+		const parents = expandedBounds.map((_, i) => i)
+		const find = (i: number): number => {
+			let root = i
+			while (parents[root] !== root) root = parents[root]
+			while (parents[i] !== root) {
+				const next = parents[i]
+				parents[i] = root
+				i = next
+			}
+			return root
+		}
+		const union = (i: number, j: number) => {
+			const ri = find(i)
+			const rj = find(j)
+			if (ri !== rj) parents[ri] = rj
+		}
+
+		// Broad-phase sweep: sort by minX and, for each box, only compare against
+		// later boxes until one starts past the current box's maxX. Boxes that
+		// don't overlap on the x-axis can't intersect, so this skips the bulk of
+		// the pairwise checks for spread-out selections while still finding every
+		// intersecting pair (Box.includes is symmetric, so each pair is tested once).
+		const order = expandedBounds
+			.map((_, i) => i)
+			.sort((a, b) => {
+				return expandedBounds[a].bounds.minX - expandedBounds[b].bounds.minX
+			})
+
+		for (let a = 0; a < order.length; a++) {
+			const i = order[a]
+			const boundsI = expandedBounds[i].bounds
+			for (let b = a + 1; b < order.length; b++) {
+				const j = order[b]
+				// sorted by minX, so once a box starts past i's maxX no later box can overlap i
+				if (expandedBounds[j].bounds.minX > boundsI.maxX) break
+				if (find(i) === find(j)) continue
+				if (boundsI.includes(expandedBounds[j].bounds)) {
+					union(i, j)
+				}
+			}
+		}
+
+		const groupsByRoot = new Map<number, { shapes: TLShape[]; bounds: Box }>()
 		for (let i = 0; i < expandedBounds.length; i++) {
+			const root = find(i)
 			const item = expandedBounds[i]
-			if (i === 0) {
-				groups[0] = {
+			const existing = groupsByRoot.get(root)
+			if (existing) {
+				existing.shapes.push(item.shape)
+				existing.bounds.expand(item.bounds)
+			} else {
+				groupsByRoot.set(root, {
 					shapes: [item.shape],
-					bounds: item.bounds,
-				}
-				continue
-			}
-
-			let didLand = false
-
-			for (const group of groups) {
-				if (group.bounds.includes(item.bounds)) {
-					group.shapes.push(item.shape)
-					group.bounds.expand(item.bounds)
-					didLand = true
-					break
-				}
-			}
-
-			if (!didLand) {
-				groups.push({
-					shapes: [item.shape],
-					bounds: item.bounds,
+					bounds: item.bounds.clone(),
 				})
 			}
 		}
+
+		groups.push(...groupsByRoot.values())
 	} else {
 		const bounds = Box.Common(shapes.map((shape) => editor.getShapeMaskedPageBounds(shape)!))
 		groups.push({
@@ -123,11 +159,8 @@ export async function flattenShapesToImages(
 
 			let index: IndexKey = 'a1' as IndexKey
 			for (const shape of shapes) {
-				if (shape.parentId === commonAncestorId) {
-					if (shape.index > index) {
-						index = shape.index
-					}
-					break
+				if (shape.parentId === commonAncestorId && shape.index > index) {
+					index = shape.index
 				}
 			}
 
