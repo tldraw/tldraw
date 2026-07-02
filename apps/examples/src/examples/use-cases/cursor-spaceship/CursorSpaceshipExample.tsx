@@ -29,6 +29,13 @@ const COLLECT_RADIUS = 22
 const FUEL_RESPAWN_MS = 8000
 const OUT_OF_FUEL_PULL = 5
 
+// Ships are cursors, so flying into another player's cursor is a collision: the
+// clearly faster ship wins the joust and the slower one is destroyed. A fresh
+// spawn gets a brief moment of grace so it can't be instantly re-rammed.
+const COLLISION_RADIUS = 24
+const VELOCITY_MARGIN = 6
+const INVULN_MS = 1500
+
 // Cursor trail (engine exhaust): a laser-style ribbon behind every ship in its
 // own color. Tapers to nothing at the tail so the fade is geometric.
 const TRAIL_FADE_MS = 2500
@@ -59,7 +66,8 @@ interface Game {
 	deaths: Atom<number>
 	/** Remaining fuel, 0..FUEL_MAX. */
 	fuel: Atom<number>
-	/** Fuel cells collected locally, keyed by cell → the time they respawn. */
+	/** Fuel cells taken by any ship (observed from the synced cursors) → the time each
+	 * respawns, so the whole room shares one competitive supply. */
 	collected: Map<string, number>
 }
 
@@ -120,8 +128,12 @@ function GameRunner({ game }: { game: Game }) {
 		// The first engaged frame only slides the world so the fixed spawn sits under
 		// the cursor, so launching doesn't yank the ship across space.
 		let attached = false
+		let invulnUntil = 0
+		const collabTrack = new Map<string, { x: number; y: number; speed: number }>()
 
 		const onTick = () => {
+			const now = Date.now()
+
 			// Before launch, frame the sun in the middle of the viewport (done here,
 			// not in onMount, so the viewport has been measured).
 			if (!game.engaged.get()) {
@@ -175,12 +187,38 @@ function GameRunner({ game }: { game: Game }) {
 							FUEL_DRAIN_GRAV / (from.x * from.x + from.y * from.y || 1)
 					)
 				)
-				collectFuel(game, next)
+				collectFuel(game, editor, next)
 			}
 
-			// Touch the sun or the belt and you're gone — respawn with a full tank.
-			if (Math.hypot(next.x, next.y) < SUN_KILL_RADIUS || hitsBelt(next.x, next.y, game.seed)) {
+			// Ram physics: your cursor is your ship, so flying into another player's
+			// cursor is a collision. Estimate every other ship's speed from its synced
+			// cursor; whoever is clearly faster wins the joust, the slower ship is lost.
+			const mySpeed = Math.hypot(next.x - from.x, next.y - from.y)
+			let rammed = false
+			for (const c of editor.getCollaborators()) {
+				if (!c.cursor) continue
+				const prev = collabTrack.get(c.userId)
+				const inst = prev ? Math.hypot(c.cursor.x - prev.x, c.cursor.y - prev.y) : 0
+				const speed = prev ? prev.speed * 0.8 + inst * 0.2 : 0
+				collabTrack.set(c.userId, { x: c.cursor.x, y: c.cursor.y, speed })
+				if (
+					now > invulnUntil &&
+					Math.hypot(next.x - c.cursor.x, next.y - c.cursor.y) < COLLISION_RADIUS &&
+					speed > mySpeed + VELOCITY_MARGIN
+				) {
+					rammed = true
+				}
+			}
+
+			// Touch the sun or the belt, or lose a joust, and you're gone — respawn with a
+			// full tank and a brief moment of grace.
+			if (
+				rammed ||
+				Math.hypot(next.x, next.y) < SUN_KILL_RADIUS ||
+				hitsBelt(next.x, next.y, game.seed)
+			) {
 				respawn(game)
+				invulnUntil = now + INVULN_MS
 				attached = false
 				return
 			}
@@ -201,21 +239,52 @@ function GameRunner({ game }: { game: Game }) {
 	return null
 }
 
-/** Refuel if the ship is passing over an uncollected fuel cell. */
-function collectFuel(game: Game, pos: Vec) {
+/** Refuel from any fuel cell the ship reaches. Because every ship's cursor is synced,
+ * a cell another ship reaches counts as taken too — so the whole room competes for
+ * the same fuel, and only the ship nearest a cell banks it. */
+function collectFuel(game: Game, editor: Editor, ship: Vec) {
 	const now = Date.now()
+	const collaborators = editor.getCollaborators()
+
+	// A cell my ship is over: bank it if no other ship is closer, then mark it taken
+	// so it's gone for everyone.
 	for (const cell of fuelCellsInBounds(
-		pos.x - COLLECT_RADIUS,
-		pos.y - COLLECT_RADIUS,
-		pos.x + COLLECT_RADIUS,
-		pos.y + COLLECT_RADIUS,
+		ship.x - COLLECT_RADIUS,
+		ship.y - COLLECT_RADIUS,
+		ship.x + COLLECT_RADIUS,
+		ship.y + COLLECT_RADIUS,
 		game.seed
 	)) {
 		const respawnAt = game.collected.get(cell.key)
 		if (respawnAt && now < respawnAt) continue
-		if (Math.hypot(pos.x - cell.x, pos.y - cell.y) < COLLECT_RADIUS) {
-			game.fuel.set(Math.min(FUEL_MAX, game.fuel.get() + FUEL_PER_CELL))
-			game.collected.set(cell.key, now + FUEL_RESPAWN_MS)
+		const myDist = Math.hypot(ship.x - cell.x, ship.y - cell.y)
+		if (myDist >= COLLECT_RADIUS) continue
+		let nearest = true
+		for (const c of collaborators) {
+			if (c.cursor && Math.hypot(c.cursor.x - cell.x, c.cursor.y - cell.y) < myDist) {
+				nearest = false
+				break
+			}
+		}
+		if (nearest) game.fuel.set(Math.min(FUEL_MAX, game.fuel.get() + FUEL_PER_CELL))
+		game.collected.set(cell.key, now + FUEL_RESPAWN_MS)
+	}
+
+	// A cell another ship reaches vanishes for me too — that's the competition.
+	for (const c of collaborators) {
+		if (!c.cursor) continue
+		for (const cell of fuelCellsInBounds(
+			c.cursor.x - COLLECT_RADIUS,
+			c.cursor.y - COLLECT_RADIUS,
+			c.cursor.x + COLLECT_RADIUS,
+			c.cursor.y + COLLECT_RADIUS,
+			game.seed
+		)) {
+			const respawnAt = game.collected.get(cell.key)
+			if (respawnAt && now < respawnAt) continue
+			if (Math.hypot(c.cursor.x - cell.x, c.cursor.y - cell.y) < COLLECT_RADIUS) {
+				game.collected.set(cell.key, now + FUEL_RESPAWN_MS)
+			}
 		}
 	}
 }
@@ -562,12 +631,6 @@ function LaunchCard({ game }: { game: Game }) {
 	if (engaged) return null
 	return (
 		<div className="cursor-spaceship__launchcard">
-			<div className="cursor-spaceship__title">Cursor spaceship</div>
-			<div className="cursor-spaceship__subtitle">
-				Your cursor is the ship. A current sweeps you around the sun — steer to hold your ring,
-				grabbing green fuel cells to keep your engines lit. Touch the sun or the asteroid belt and
-				you’re gone; run dry and the sun takes you. Share the link (top right) to fly with others.
-			</div>
 			<button className="cursor-spaceship__launchbtn" onClick={() => game.engaged.set(true)}>
 				Launch
 			</button>

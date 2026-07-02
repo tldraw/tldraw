@@ -20,40 +20,16 @@
 	z-index: 250;
 }
 
-/* Launch card — a centered title screen shown before you drop in. Transparent to
-   the pointer (only the button catches it) so the editor keeps tracking the cursor
-   up to the button. */
+/* Launch button — a centered button shown before you drop in. The wrapper is
+   transparent to the pointer (only the button catches it) so the editor keeps
+   tracking the cursor right up to the button. */
 .cursor-spaceship__launchcard {
 	position: absolute;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 14px;
-	max-width: 380px;
-	padding: 28px 32px;
-	border-radius: 16px;
-	background: rgba(20, 26, 46, 0.92);
-	border: 1px solid rgba(150, 170, 230, 0.18);
-	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-	text-align: center;
 	pointer-events: none;
 	z-index: 400;
-}
-.cursor-spaceship__title {
-	font-family: var(--tl-font-ui, system-ui, sans-serif);
-	font-size: 22px;
-	font-weight: 700;
-	color: #eef2ff;
-}
-.cursor-spaceship__subtitle {
-	font-family: var(--tl-font-ui, system-ui, sans-serif);
-	font-size: 13px;
-	line-height: 1.45;
-	color: #c9d3f0;
-	opacity: 0.85;
 }
 .cursor-spaceship__launchbtn {
 	pointer-events: auto;
