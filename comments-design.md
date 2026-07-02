@@ -110,12 +110,6 @@ No copy in the document at all. This is the cleanest version for cross-document 
 
 ---
 
-## An approach we considered and set aside
-
-- **A second, parallel tldraw-sync connection just for comments.** It sounds tidy, but a per-document comment connection still can't answer cross-document questions, so you'd pay for a second connection and _still_ need the per-user database from Approach 3. It doesn't earn its keep.
-
----
-
 ## Quick summary: who owns the data × what syncs it
 
 | Setup                                | Comments in the document (Approach 1) | Comments in your own system (Approach 2) | Per-user database (Approach 3)                |
@@ -129,19 +123,6 @@ One thing the table shows: **keeping comments in the document is the only setup 
 
 ---
 
-## How tldraw.com uses comments
-
-tldraw.com combines the first and third approaches:
-
-- **Comments are records in the document**, so they sync between collaborators through tldraw sync with no extra effort.
-- On **tldraw.com's server**, comments are saved to a **separate file next to the document** rather than inside the main document file, so the document file stays clean and comments can have their own lifecycle. When the file is reopened, those comments are loaded back in.
-- The server **also copies comments into the per-user database** as soon as they're added, so a **cross-document comments page** can list all of a person's comments across their files.
-- In a file: select a shape, type a comment, and a pin appears. The comments page lists everything newest-first, and clicking an item opens the file and shows that comment.
-
-A developer **not** using tldraw sync needs none of these tldraw.com-specific server pieces — they get comments as records that ride their own sync (Approach 1), and can add their own backend later for Approach 2 or 3.
-
----
-
 ## Choosing an approach
 
 There's no single right answer — it depends on what a developer has and needs:
@@ -150,14 +131,38 @@ There's no single right answer — it depends on what a developer has and needs:
 - Already have a comments database, or need comments to outlive the document? Store them in your own system (Approach 2).
 - Need cross-document views like an inbox or "all my comments"? Use a per-user database (Approach 3).
 
-These aren't mutually exclusive: keeping comments in the document is the foundation, and the other approaches build on top of it. tldraw.com's own setup — comments in the document, copied into a per-user database — is one point in this space, chosen because tldraw.com already runs a per-user database.
+These aren't mutually exclusive: keeping comments in the document is the foundation, and the other approaches build on top of it.
 
 ---
 
-## Decisions already made
+## Data model and sync considerations
 
-- **Comments are opt-in, not part of tldraw's default data.** Adding a new record type to the defaults is a permanent commitment for every tldraw document ever, so developers turn comments on rather than getting them forced on. (Both the app and its server must turn them on together, the same way a custom shape must be registered on both ends.)
-- **Undo:** adding or editing a comment is _not_ undone by Ctrl+Z (that avoids surprises in multiplayer, like a comment reappearing after someone deleted it). Deleting a shape _can_ bring its comments back, because that happens as part of undoing the shape deletion.
-- **Deleting a shape** removes its comments by default (configurable to keep them instead).
-- **Identity and permissions:** a comment's author is set by the server, not trusted from the browser. A person can be allowed to comment on a document without being allowed to edit it. Anonymous/guest commenting is supported behind a setting.
-- **Notifications** (email, digests, etc.) are left to whoever uses the SDK — we provide the events, not the delivery.
+Whichever approach you pick, a few things about how a comment is modeled and how it syncs are worth understanding.
+
+**A comment is a record with a few fields.** It stores what it's attached to (its _anchor_), who wrote it, the text, and timestamps. The anchor is designed to grow: today a comment attaches to a shape, but the same field can later point at a page, a free-floating spot on the canvas, or a whole document.
+
+**Comments are document data — saved and shared.** Like shapes, they're the kind of record that is both saved and synced to everyone in the document — as opposed to per-person, throwaway things like where someone's cursor is.
+
+**Both sides must know about the comment type.** Sync works by both ends agreeing on what kinds of records exist, so they can validate them and, if versions differ, upgrade them. So the comment type has to be registered in the app _and_ on its server — exactly like adding a custom shape. Register it on only one side and sync will reject the records.
+
+**Comments are turned on, not built in.** Adding a new record type to tldraw's defaults would be a permanent commitment for every tldraw document ever made, and would push the feature onto people who don't want it. So comments are opt-in: a developer switches them on where they use them.
+
+**Being tied to a shape has consequences.** Because a comment points at a shape, deleting that shape has to do something sensible with its comments (by default they're removed; keeping them is an option). Since the comment and the shape live together in the document, that cleanup happens in one step — which also means undoing the shape's deletion can bring the comments back. Separately, adding or editing a comment is deliberately _not_ undone by Ctrl+Z, to avoid multiplayer surprises like a comment reappearing after someone deleted it.
+
+**The server decides who wrote a comment.** Anything the browser sends can be tampered with, so the author is stamped by the server based on who's signed in, not trusted from the client. Permissions work the same way — someone can be allowed to comment on a document without being allowed to edit it — and guest/anonymous commenting can be enabled as a setting.
+
+**Notifications are the app's job.** The SDK surfaces the events ("a comment was added," "someone was mentioned"); how those turn into emails, digests, or an inbox is left to whoever builds on it.
+
+---
+
+## What tldraw.com has today
+
+tldraw.com keeps comments in the document (Approach 1) and adds a per-user copy for the cross-document view (Approach 3a). In more detail:
+
+- **Comments sync through tldraw sync like any record.** Add a comment and collaborators see it; it persists with the file; it works the same as a shape would.
+- **tldraw sync gained two small abilities** to make the separate-storage part possible: it can leave chosen record types _out_ of the saved document, and it can notify the server the moment a change is committed. Both are general-purpose (not comment-specific) and do nothing unless a server opts in.
+- **The per-file server saves comments to a separate file next to the document**, rather than inside the main document file — so the document stays clean and comments have their own lifecycle. When the file is reopened, those comments are loaded back in.
+- **The same commit notification copies each comment into the per-user database** (a Postgres table that Zero replicates to the right people), so a **cross-document comments page** can list everyone's comments across their files without opening each file.
+- **In the app:** select a shape and type a comment, and a pin appears on it; click a pin to read it. A **comments page** lists everything newest-first; clicking an entry opens the file, jumps to the shape, and opens that comment.
+
+A developer **not** using tldraw sync gets none of these server-side pieces and needs none of them — they get comments as records that ride their own sync, and can add their own storage later if they want Approach 2 or 3.
