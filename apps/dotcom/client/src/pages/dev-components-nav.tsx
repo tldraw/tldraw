@@ -57,6 +57,9 @@ export function DevComponentsNav(): ReactNode {
 			<a href="/dev/components/editor" style={link}>
 				editor map
 			</a>
+			<a href="/dev/components/timestamps" style={link}>
+				dates
+			</a>
 		</nav>
 	)
 }
