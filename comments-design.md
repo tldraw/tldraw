@@ -1,340 +1,280 @@
-# Comments for the tldraw SDK — design proposal
+# Comments for the tldraw SDK
 
-## Context
+We want to add commenting to tldraw. tldraw.com will be the first product to use it, but tldraw is also an SDK that other developers build on — so every choice has to make sense both for us (where we control the whole stack) and for an outside developer (who may run things very differently).
 
-We're adding commenting to the tldraw SDK, with tldraw.com (dotcom) as the first consumer. Because tldraw is an SDK other teams build on, the data model has to work across very different setups: teams on tldraw sync, teams on their own sync engine, teams with an existing external comments system, and single-user/offline. This doc is the reaction-ready proposal: it leads with the two usage shapes (their pros/cons and how you wire each), then folds in every design decision we've settled.
+This doc explains, in plain terms: the options for where comments live and how they sync, their pros and cons, the design questions that come up whichever option you pick, and what we've prototyped so far. Nothing here is a final decision. It's meant to be read on its own — no prior tldraw knowledge assumed.
 
 ---
 
 ## Key terms
 
-If you don't live in the tldraw/dotcom internals, here's the vocabulary this doc leans on.
+- **Record** — one piece of data in tldraw (a shape, a page — and now a comment). Think of it as a row in a table.
+- **Store** — tldraw's in-memory database on each person's device. It holds the records for whatever document is open and tells the app whenever anything changes.
+- **Document data** — records that are both **saved and shared**: shapes, pages… and comments. This is "the document."
+- **Presence** — records that are **shared but not saved**: cursors, selections, who's online. They travel over the same connection as the document, but they're per-person and disappear when you leave. Presence is _not_ part of the document.
+- **Sync** — keeping the store in step across people and devices, so one person's change shows up for everyone.
+- **tldraw sync** — the syncing system we provide. A developer can use it or bring their own.
+- **Server** — where a document lives while people collaborate. With tldraw sync it's a small program (a "room") that receives each change and passes it on. On tldraw.com each file has its own server instance.
+- **Zero / a per-user database** — separate from any single document, tldraw.com keeps a database of things that belong to _you_ across all your files (your file list, and your comments). It uses a tool called **Zero**, which can sync just the rows a person is allowed to see.
 
-- **Store** — tldraw's in-memory reactive database on the client. Holds all of a document's data and notifies subscribers whenever anything changes.
-- **Record** — one row in the store (a shape, a page, and — new here — a comment or a thread). Has an `id` and a `typeName`.
-- **Diff** — a bundle of record changes: what was added, updated (with before/after), or removed. Diffs are the unit that syncs between users.
-- **CUD** — Create / Update / Delete: the three ways a record can change in a diff. (It's CRUD minus the "R" — reading a record isn't a change event.)
-- **Scope** (`document` / `session` / `presence`) — a record type's sync/persist behavior. `document` = synced to every collaborator _and_ saved to disk; comments are `document`. (`session` = local only; `presence` = live-but-not-saved, like cursors.)
-- **Side effects** (`editor.sideEffects`) — hooks that run automatically before/after any record is created, changed, or deleted. Used to keep related data consistent (e.g. delete a shape → delete its comments).
-- **Sync room** (`TLSyncRoom` / `TLSocketRoom`) — the server-side object that receives each client's diff, applies it, and broadcasts it to the others. tldraw's multiplayer server core.
-- **`store.listen` / `store.mergeRemoteChanges`** — client APIs to (a) observe store changes and (b) apply changes that came from _outside_ into the store. This is how data flows in and out.
-- **Durable Object (DO)** — Cloudflare's per-object server instance. dotcom runs one per file (`TLFileDurableObject`) that hosts that file's sync room.
-- **Zero** — the sync engine dotcom uses for _per-user_ app data (your file list, and — new — your notifications), separate from the per-file canvas sync. A Zero "synced query" doubles as a per-user access rule: you only receive rows the query matches.
-- **Kysely / Postgres / R2** — Kysely is a TypeScript SQL builder (how the DO writes rows); Postgres is dotcom's database; R2 is Cloudflare object storage, where each document's saved blob lives.
-- **TipTap / Radix / StateNode** — the rich-text editor library tldraw already uses (mentions are a TipTap extension); the headless UI-primitive library (popovers); and tldraw's tool state-machine base class (how a "place a pin" tool is built).
-- **`TLUserStore`** — tldraw's pluggable "resolve this user id to a name/avatar/color" system, already used for authorship attribution.
-- **Source of truth** — the authoritative copy of some data. If copies disagree, this one wins; everything else is derived from it.
-- **Projection** — a derived, read-only, _one-way_ copy of data shaped for a specific job (a search index, a cache, our `comment_notification` table). Computed _from_ the source of truth, never feeds back, and is disposable/rebuildable. If a projection breaks, the source is unaffected.
-- **Materialized view / cache** — a stored, physically-present copy of data whose real source lives elsewhere, kept in sync so reads are local and fast (at the cost of possible slight staleness). In shape 2 the store is a materialized view of the external comment service.
+The document/presence distinction matters later: a comment is _document data_ (saved and shared), but whether _you have read_ a comment is personal — that's presence-like, and must not be saved-and-shared.
 
 ---
 
-## The one-paragraph version
+## A comment is a record — and what the SDK builds either way
 
-Comments are **tldraw store records** (`comment_thread` + `comment`, `document`-scoped), so they get sync, persistence, offline, and referential integrity for free — the same machinery that already moves shapes. The pluggability that SDK consumers need is **not** a swappable storage backend; it's an **abstraction over the sync diff**: a reusable post-commit hook + a client-side event emitter that any backend (notifications, external mirror, moderation) subscribes to. On top of that single substrate, two usage shapes fall out (described below): one where the store is the source of truth and external systems are one-way projections (this is dotcom), and one where the store is a reactive cache of an external system-of-record. Both use the _same_ records, UI, and manager. There is no separate storage adapter, and no headless/bring-your-own-UI data path.
+**A comment is just a record, like a shape.** That's the idea everything follows from: comments can be saved, synced, and undone by the same machinery that already moves shapes, and whatever moves your document will move your comments.
 
----
+No matter which option below you choose, the SDK provides the same building blocks:
 
-## Data model
+- the **comment record** — the data shape (what it's attached to, who wrote it, the text, timestamps),
+- a **manager** — create / reply / resolve / delete, plus reactive lookups ("comments on this shape," "comments in this document"),
+- the **on-canvas UI** — a pin for each comment (placed by combining the comment's _anchor_ with its shape's current position), the thread popover, and the composer,
+- **events** — a comment was added, edited, resolved, someone was mentioned.
 
-Two `document`-scoped records, not one nested blob.
+The one thing that changes between options is **where the comment data lives and how it syncs** — and therefore where the manager and UI read their data from and send their writes to. For the built-in options the SDK reads and writes its own store (the manager is a thin layer over it); if you want to own the data, the SDK reads and writes through a small interface you implement (Option 3).
 
-```ts
-type TLCommentAnchor =
-	| { type: 'shape'; shapeId: TLShapeId; offset: VecModel } // normalized 0..1 of bounds → follows move/resize/rotate
-	| { type: 'page'; pageId: TLPageId; point: VecModel }
-	| { type: 'point'; pageId: TLPageId; point: VecModel } // arbitrary canvas coordinate
-	| { type: 'document' } // sidebar-only, no pin
-// | { type: 'text-range'; shapeId; from; to }                 // v2
-
-interface TLCommentThread {
-	// scope: 'document'
-	anchor: TLCommentAnchor
-	resolved: boolean
-	resolvedBy: string | null
-	resolvedAt: number | null
-	createdAt: number
-	authorId: string
-	meta: JsonObject
-}
-interface TLComment {
-	// scope: 'document'
-	threadId: TLCommentThreadId
-	body: TLRichText // same rich-text type as shapes
-	authorId: string
-	createdAt: number
-	editedAt: number | null
-	mentions: string[] // denormalized userIds
-	meta: JsonObject
-}
-```
-
-**Why two records, not a `replies[]` array:** replies sync/merge independently (a nested array is last-write-wins → lost offline replies), per-reply integrity, indexable queries (`store.query.index('comment', 'threadId')`), and reply order via `createdAt` + id tiebreak. Anchor validated with a discriminated-union validator; `body` as `T.jsonValue`. Registered via `createTLSchema({ records })` with custom migration sequences (`com.tldraw.comment` / `com.tldraw.comment_thread`). No tombstone/`deleted` field is needed given the delete semantics below.
+The SDK draws _default_ pins, popovers, and a composer, but — like everything in tldraw — these are **overridable components**: a developer can restyle them, swap in their own, or hide them entirely through the same mechanism tldraw already uses for its toolbar, menus, and panels (see "Overriding the comment UI" below). So both _who draws the pin_ and _where the comment data comes from_ are things a developer can change.
 
 ---
 
-## The architecture spine: store records + an abstraction over the diff
+## The options
 
-Everything hangs off one idea: **a comment write is just a store diff, and consumers subscribe to that diff** — on the client via an event emitter, on the server via commit hooks.
+### Option 1 — Comments as document data
 
-### Client — a dedicated `CommentManager` emitter
+Comments are ordinary **document records**, in the same category as shapes. They ride whatever syncs the document, so they work with **tldraw sync, your own sync, or no sync at all** — you don't do anything special to move them.
 
-`commentManager.on('comment.created' | 'updated' | 'deleted' | 'thread.resolved' | 'mention', cb)`. This is a thin convenience layer over `store.listen(...)` — tldraw's built-in "tell me when records change" subscription, which already fires for both local edits **and** changes synced in from other users — filtered to comment records and translated from raw record changes (create/update/delete, i.e. **CUD**) into meaningful events like `thread.resolved`.
+This is the option we've prototyped so far (see the end of the doc), though we haven't committed to it.
 
-This follows an **established in-repo pattern**, not a new invention: `PerformanceManager` (`editor.performance.on(...)`) is a manager with its own typed event map kept off the core `TLEventMap`, events derived from editor hooks, lazy subscription. `TLSyncRoom.events` (nanoevents) is a second precedent. The only difference: `editor.performance` can be a built-in property because it lives in the editor package; `CommentManager` lives in the separate comments package, so it's reached via the comments context (`useComments().manager.on(...)`) rather than `editor.comments`. Comment events deliberately do **not** go on core `emit-types.ts` — core must not reference a feature that ships above it.
+Where the server _stores_ them is a sub-choice:
 
-### Server — a write-authorization gate (before) + a post-commit tap (after)
+- **Inside the document file** — simplest; comments save and load as part of the document, no extra server work.
+- **In a separate file next to the document** — comments still ride the document's sync (everything above still holds), but the server keeps them in their own file instead of inside the document. This keeps the document file clean and gives comments their own lifecycle. It needs a little help from the sync server (the ability to leave comments out of the saved document, and to notice when they change). This is the path the prototype takes.
 
-There's no clean "here's the committed diff" hook on `TLSocketRoom`/`TLSyncRoom` today (`storage.onChange` lacks the diff; `onAfterReceiveMessage` is pre-commit/per-message; `onBeforeSendMessage` is per-recipient). We add two:
+Cross-document views ("all my comments across every file") aren't free here — comment data lives per-document, and no single document can answer that. You add it by **copying comments one-way into a per-user database** (the prototype uses Zero for this). That copy is an add-on to this option, not a different option.
 
-1. **`authorizeChange` (before commit, can veto/rewrite) — the write-gate.** Required in v1 because:
-   - **forgery is trivial:** dotcom sometimes exposes `editor` on `window`, so creating a comment/mention is one console line, not a hacked client. And unlike a shape edit, a mention _reaches out and pings a human_.
-   - **comment-only permission IS this hook:** for a `comment`-capability session you must inspect the incoming diff and reject shape edits while letting comment writes through — the same machinery.
+**Who builds what:** the SDK owns the whole flow through the store. A developer keeping comments in the document file builds nothing extra. A product like tldraw.com adds the server pieces (separate storage + the copy).
 
-   The gate: reject writes whose `authorId` ≠ the session's authenticated id (or ≠ the server-stamped guest id); drop/ignore mentions of users without file access; filter the diff to comment records only for comment-only sessions.
+**Pros**
 
-2. **`onAfterApplyChanges(diff)` (post-commit tap).** Fires once after a push commits. Consumers derive notifications, mirror to an external store, etc. The notification step **still re-derives mentions from the authoritative body** (defense in depth — never trust a client-asserted mention list even on an authorized write).
+- Works for _everyone_ — any sync or none — with no backend.
+- Free offline and free undo/redo _for the drawing_ (direct comment actions are deliberately excluded from undo — see below), with comments staying attached to their shapes (deleting a shape can clean up its comments in the same step).
+- Simplest possible thing for a developer.
 
-**Auto-wire vs ship-and-guide:** for tldraw sync (and dotcom) we register both hooks. For **custom-sync** consumers we can't run code on their server, so we ship a pure `createCommentDiffHandler(diff) → { created, updated, deleted }` interpreter + the gate validators, and they call them wherever their commits land. Same functions, two wiring guides.
+**Cons**
 
----
+- Comments live and die with the document.
+- Storing them _inside_ the document file grows it over time (the separate-file sub-choice avoids this, at the cost of server support).
+- Cross-document views need the extra per-user copy.
 
-## The two usage shapes
+### Option 2 — Comments as their own sync category
 
-Both use the same records, UI, and `CommentManager`. They differ only in **who owns the truth and which way data flows.** Shape 2 is literally shape 1 + two consumer-supplied wires.
+Instead of being _document_ records, comments would be their **own kind of record**, sitting alongside document and presence as a third category the sync layer knows about. To the sync system, "comments" would be a first-class thing, separate from the drawing.
 
-### Shape 1 — store is the source of truth (default; dotcom)
+Why you'd consider it: separate storage becomes first-class rather than a server trick, and **comment-specific rules live in the sync layer** — for example "you can comment but not edit" (comment-only), or checking who wrote a comment, could be enforced at the category level instead of bolted on.
 
-Comments live in the canvas doc and sync via whatever moves the doc. External systems subscribe to the post-commit tap **one-way out** as projections (notifications, search, audit, moderation queue). Because those projections are downstream and one-directional, if one breaks (Postgres down, derivation errors) the comments themselves keep working — people can still write/read/resolve, they just won't be notified until it recovers. Notifications are a best-effort side channel, not load-bearing.
+**What we'd build:** a new record category (a new "scope") inside tldraw sync, plus how it's stored and who's allowed to touch it. The record, manager, and UI stay the same as Option 1.
 
-**How you wire it (dotcom):** the file's Durable Object registers `onAfterApplyChanges`. Because the diff already carries the new comment's body, the DO can re-derive mentions and write **derived** rows into Postgres (`comment_notification`, `file_thread_state`) _without ever loading the saved document blob_. Zero replicates those rows to the right recipients (the synced query `where recipientUserId = ctx.userId` is the access rule — you only ever receive your own).
+**Pros**
 
-The notification row also carries a **frozen plaintext preview** of the comment (rendered from the body in the diff) so the inbox list and email have something to show without loading the doc. This is a _derived snapshot for display_, not a second source of truth — the canvas store stays authoritative for the live comment. Freezing is deliberate, not a compromise: an email should show what the comment said _when it fired_, even if the comment is later edited or its whole thread deleted (you can't unsend the email). For compliance-sensitive consumers, the preview can be turned off — metadata-only notifications ("Daisy commented on X", no body).
+- Comments are first-class in sync: natural home for comment-only access and server-side checks.
+- Separate storage and separate rules without special-casing.
 
-| Pros                                                | Cons                                                                                                             |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Simplest, best DX, zero reconciliation.             | Comments coupled to doc lifecycle (delete the doc → comments go, unless you also project content out as backup). |
-| Offline + sync + integrity free from the store.     | Content rides the canvas blob; large/hot docs carry comment history in R2.                                       |
-| External systems optional + decoupled, fail safely. | External systems can only _react_, never _own_.                                                                  |
-| It's dotcom's own path → first thing we build.      | Comment access ≈ doc access (comment-only is a special-cased capability).                                        |
+**Cons**
 
-### Shape 2 — store is a reactive cache; external service owns truth
+- A big change to tldraw sync and a **new concept every developer has to learn** — a heavy price for something Option 1 already mostly delivers.
+- We have not built this; it's the alternative to Option 1, listed for completeness.
 
-Comments are still store records, but the store is a materialized view. The consumer's comment service sits where the tldraw-sync server sits (fills the store, receives writes). Our default UI works unchanged because it just reads store records.
+### Option 3 — Comments in a backend you provide
 
-**When you need it:** an existing comments system-of-record (compliance/retention/legal-hold), comments that must be queryable/outlive the doc, or threads shared across tldraw _and_ non-tldraw surfaces (so tldraw can't be sole truth).
+Instead of tldraw owning the comment data, **you** own it — in your own database, or in a query-sync engine like Zero. tldraw still provides the UI and the interactions; you provide the storage and the syncing.
 
-**How you wire it (two wires on top of shape 1):**
+The way to support this is a small, **comments-shaped interface** the SDK renders against — reads (reactive): "give me the comments for this document / shape"; writes: create, reply, edit, resolve, delete. You implement it against your backend; the SDK draws the pins/popover/composer from the reads and calls the writes on user actions. Take **resolve**: the user clicks resolve → the SDK calls your `resolve(id)` → you write it to your backend → your backend propagates it → the SDK re-renders. All the tldraw-store plumbing (keeping things off the undo stack, avoiding echo loops) lives _inside_ the SDK, behind the interface — you never touch it.
 
-- **write-through:** subscribe to the CUD events / write-through hook → `POST` to their API.
-- **read-back:** their change stream → `store.mergeRemoteChanges(() => store.put(records))` → our UI reacts automatically.
+What sits behind the interface is up to you, and it's the only real variation within this option:
 
-**Sub-fork (consumer's call):** _optimistic_ (write store first, project out, reconcile on ack — snappy, offline-friendly, you own rollback-on-failure) vs _authoritative_ (call their service first, materialize on read-back — consistent, slower, no offline). To make optimistic ergonomic we'll design the write-through hook so a rejected `POST` can auto-rollback the local write (client-side analog of the server gate); ship fire-and-forget events first, add the async-commit variant when a shape-2 consumer needs it.
+- **Your own database (with your own sync).** For an existing comments product, or when comments must outlive the document / be searchable / meet retention rules in a system you control.
+- **A query-sync engine (like Zero).** An engine that syncs "just the rows a person may see" across many documents. This makes **cross-document views native** — an inbox or "all my comments" is just a query, with no separate copy to keep in step. (It's what tldraw.com already runs for other per-user data.)
 
-| Pros                                                                                                                                | Cons                                                                                           |
-| ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| External system authoritative → comments outlive the doc, queryable independently, retention/compliance, shareable across surfaces. | Consumer inherits a real two-way-sync problem (reconciliation, conflicts, rollback).           |
-| Keeps our default UI (unlike headless).                                                                                             | Worse offline story.                                                                           |
-| Reuses public sync API — no new adapter to design.                                                                                  | Referential integrity to shapes is on the consumer (their service doesn't know tldraw shapes). |
-| Existing comments product can adopt our UI without re-platforming data.                                                             | Latency (authoritative) or rollback burden (optimistic); more failure modes.                   |
+One way to think about this variation: it makes comments **app-level** rather than document-level — the app's database is the source of truth, and comments flow _into_ each canvas from there, instead of living in the document and being copied out. If "all my comments in one place" were the primary surface, this would fit it best. Note this is a choice about _where the truth lives_, not a new record category in sync — a document's sync connection only ever covers that one document, so nothing inside the sync layer can span files; only a system that already spans the app can.
 
----
+**What we'd build to support this:** the interface itself, and wiring the UI/manager to read from and write to it instead of only the built-in store. It's a real chunk of SDK surface — worth building when there's genuine demand to own the comment data, not day one.
 
-## Use-case matrix
+**Pros**
 
-Now that the substrate and the two shapes are on the table, here's what's supported and its status.
+- Comments are independent of the document — queryable, retainable, searchable in a system you control.
+- You keep tldraw's comment UI and interactions; you only own the data.
+- With a query-sync engine behind it, cross-document features come for free.
 
-Legend: ✅ v1 · 🕒 later · ⚠️ deferred/partial
+**Cons**
 
-| Use case                                             | Status      | Notes                                                                                                                             |
-| ---------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| tldraw sync (our sync)                               | ✅          | We auto-wire the server hooks; comments ride canvas sync. dotcom is here.                                                         |
-| Own sync engine                                      | ✅          | Comments are store records → sync with whatever moves the doc. We ship the diff-interpreter; consumer wires it into their server. |
-| tldraw-sync doc + external system (projection)       | ✅          | Shape 1: diff hook mirrors comment activity into their system (notifications/search/audit).                                       |
-| External comment system-of-record                    | ✅          | Shape 2: store as cache, their service owns truth. Same records/UI/manager + two wires.                                           |
-| Local / no-sync single user                          | ✅          | Falls out free — records + UI work offline, no server.                                                                            |
-| Read-only doc + can comment (logged-in)              | ✅          | Per-session capability `read \| comment \| write`, independent of login. Enforced at the server write-gate.                       |
-| Anonymous / guest commenting                         | ✅ (config) | `allowAnonymous` toggle (default off). Server stamps a guest id; guests resolve to "Guest / Anonymous X".                         |
-| Bot / agent authors                                  | ✅          | Author is an opaque `userId`; a bot is a user with a `meta` flag.                                                                 |
-| Spam limiting / moderation                           | ⚠️          | Deferred. Add rate limits / moderation later.                                                                                     |
-| Notification _delivery_ strategy (instant vs digest) | ⚠️          | **Undecided and consumer-owned.** SDK just emits events; how they're delivered is the consumer's implementation.                  |
-| Anchors: shape / page / point / whole-document       | ✅          | Discriminated union so new kinds drop in.                                                                                         |
-| Text-range-within-shape anchor                       | 🕒          | v2.                                                                                                                               |
-| Headless (customer owns comment _data_ + own UI)     | ❌          | Out of scope → no storage adapter needed. (UI _overriding_ while keeping our data is still in — see below.)                       |
+- You own the hard part: storage, syncing, conflicts, access rules.
+- Comments and shapes now live in different systems, so "is this pin's shape still there?" becomes a cross-system question.
+- The query-sync path needs an engine you already run (most developers don't; we won't build one for them).
+- We have not built this; it's the path for teams that want to own the comment data.
 
 ---
 
-## Identity, permissions, and anonymous
+## Which option fits which use case
 
-- **Author = opaque `authorId`** resolved through the existing `TLUserStore` attribution system (`currentUser` + `resolve(userId)`), with `getMentionableUsers(query)` supplied by the consumer for @-autocomplete. Bots/agents are users with a `meta` flag.
-- **Server stamps identity.** The authenticated user id (or, for guests, a server-assigned guest id) is the source of truth for authorship — the client can't forge which user (or which guest) it is. The write-gate enforces this.
-- **Permission is a per-session capability `read | comment | write`, independent of login.** "Read-only doc but can still comment" applies to logged-in users too. Enforced at the server write-gate (diff filtered to comment records for `comment` sessions). SDK-side is cheap; the lift is dotcom guest-session plumbing (unauthenticated visitor → comment-allowed session), which lands when needed.
-- **Per-action permissions (resolve / edit / delete) are consumer policy.** dotcom v1 is **permissive: if you can access the document, you can do anything** — resolve/edit/delete _any_ comment, not just your own. Matches its collaborative trust model and is simplest to ship. The SDK exposes a `canPerform(action, comment, user)` hook (default: allow) for consumers who want stricter rules (edit-your-own-only, etc.), enforced at the same write-gate.
-- **Anonymous is a config toggle** (`allowAnonymous`, default off). Guests can't _receive_ notifications (no inbox). Moderation/spam controls deferred.
+| You are…                                                                                           | Fit                                                                           |
+| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| An SDK developer who just wants comments in your app (our sync or your own)                        | **Option 1**, stored in the document                                          |
+| tldraw.com: in-document comments **and** a cross-document inbox, and we run the server             | **Option 1**, stored separately + a per-user copy ← _what the prototype does_ |
+| A single-user / offline app                                                                        | **Option 1**, in the document, no server                                      |
+| Wanting comment-only access and comment-specific rules enforced deep in sync                       | **Option 2** (at the cost of a big sync change)                               |
+| A developer with an existing comments product / retention needs                                    | **Option 3**, backed by your own database                                     |
+| An org already running a query-sync engine (Zero/Convex/…) wanting a cross-document inbox for free | **Option 3**, backed by that engine                                           |
 
----
-
-## Read state, notification recipients & deletion (mostly dotcom)
-
-These are **per-user** concerns — they deliberately don't live in the shared document store, and for non-dotcom consumers they're largely "your call" (the SDK emits events; you set policy). dotcom rides the same diff hook → Postgres → Zero pipeline.
-
-- **Read/unread is per-user, so it is _not_ a `document`-scoped record** — your "seen" state must not sync to every collaborator. It lives outside the doc (for dotcom, in Zero: `file_thread_state`). Two halves: (a) _what comments exist_ is derived from the diff hook (comment added → `onAfterApplyChanges` → Postgres → Zero → client — exactly that flow); (b) _what I've seen_ is **client-written** per-user via a Zero mutator (`markThreadSeen`). Unread = comments newer than my last-seen. The SDK stays out of read-state persistence (per-user, consumer-owned) and just surfaces the timestamps a consumer needs to compute it.
-- **Notification recipients are consumer policy, not an SDK decision.** The SDK emits `mention` + comment lifecycle events; _who_ gets pinged is the consumer's. dotcom notifies **mentioned users + thread participants** (a reply pings everyone already in the thread, no @ required). Other consumers set their own rules — we can't decide that for them.
-- **Deletion propagates through the same hook.** Delete a comment/thread in the canvas store → the delete is in the diff → `onAfterApplyChanges` removes the derived Postgres rows (notifications, thread-state) → Zero drops them from clients. One path, no special-casing.
-- **User deletion (GDPR / admin).** Deleting a user should clear their comments. In shape 1 the comments sit scattered across many doc blobs, so this is a **server/admin batch op**: the Zero projection makes _finding_ a user's comments cheap (query by `authorId`), but _removing_ them means a server-side write into each affected doc's store, after which the hook cleans up the projection. dotcom drives this from its admin panel. Real operational work, not free.
+The through-line: **Option 1 is the only one that works for everyone with nothing extra.** The others are steps you take when you want comments first-class in sync (2) or you want to own the comment data yourself (3).
 
 ---
 
-## Lifecycle & referential integrity
+## Where we're leaning
 
-Registered via `editor.sideEffects` (mirroring shape→binding cleanup), guarded against recursion, running inside the triggering transaction.
+Not a final decision, but a clear lean: **Option 1 with the separate file and the one-way copy — what the prototype does.** The document stays the source of truth; the cross-document view is a read model derived from it.
 
-- **Shape delete → `onShapeDelete: 'detach' | 'delete'`, default `delete`.** Cascade-remove anchored threads + comments. `detach` (config) rewrites the anchor to `{type:'point', point:<last pin pos>}`; a v2 `detachedFrom` could offer re-linking.
-- **Undo interaction (important):** _direct_ comment-UI mutations run `history: 'ignore'` (not undoable). But comment changes that are **side effects of an undoable canvas op** (this cascade) ride that op's transaction — so undoing a shape delete restores its comments too. Fat-finger safe.
-- **Root-comment delete → delete the whole thread** (Figma-style). Deleting a _reply_ just removes that reply. Since this is destructive + not-undoable, the **UI must confirm** ("Delete this thread and N replies?"). (Alternatives considered: promote-next-reply, tombstone — rejected for simplicity.)
-- **Page delete →** delete threads anchored to that page + their comments (nowhere to detach; matches page-delete semantics).
-- **Load-time / remote-merge integrity:** run a `commentIntegrityChecker` inside `store.mergeRemoteChanges` (so cleanup isn't a user edit / undo entry): drop comments with missing `threadId`, drop empty threads, detach/delete shape-anchored threads whose shape is gone per config. A `store.listen({source:'remote'})` handler reconciles the "teammate deleted a shape while I was offline" case.
+The real fork we weighed is where the truth lives. The alternative — comments **app-first**, with the app's database authoritative and the canvas reading from it (Option 3 backed by a query-sync engine) — makes the cross-document inbox native and lets comments outlive files. We're not taking it, for three reasons:
 
-## What travels with the doc
+- **Staleness is invisible in an inbox and glaring on a canvas.** Nobody notices a comment reaching the inbox half a second late; everyone notices a pin lagging behind its shape, or an undone shape deletion that doesn't bring its comments back. App-first pays a permanent consistency cost on the core surface (the canvas) to make the secondary surface (the inbox) native — the wrong direction to spend.
+- **The SDK needs Option 1 anyway.** It's the only default that works for a developer with no backend, so the store-record machinery — atomic shape-delete cleanup, offline, the undo interplay — gets built regardless. If tldraw.com went app-first, the default path every other developer takes would ship without a serious first user.
+- **The anchor lives in the document.** A canvas comment is defined by what it's attached to. Keep comment and shape in one store and "is this pin's shape still there?" is a lookup in one transaction; split them across systems and the single most common question becomes a consistency problem.
 
-Comments are `document`-scoped (they persist and sync), but they're **content-adjacent, not content** — so they're kept out of user-facing outputs:
+The honest weak spot of this lean is **writing from the inbox** — resolving or replying from the cross-document view without the file open means reaching back into the document (a lightweight connection, or a server-side write into it). That's real work, but bounded and deferrable: a read-only inbox is a fine first version. The app-first weaknesses (undo, offline, orphaned pins) are the opposite — day-one and structural.
 
-- **Copy-paste:** comments aren't selectable, so copying shapes never copies their comments. Free.
-- **Image / PDF / SVG export:** pins are DOM overlays (`InFrontOfTheCanvas`), not part of the shape render → naturally absent from exports. (The overlay choice pays off.)
-- **`.tldr` download / `getSnapshot`:** these serialize `document`-scoped records, so comments _would_ be included by default — we **explicitly strip comment records** from user-facing snapshot exports/downloads. The distinction that matters: _internal_ persistence (sync / R2) keeps comments (they must survive reloads); only the _user-facing_ export/download filters them out.
-
-## Undo/redo
-
-Comment mutations are **not undoable** (`history: 'ignore'`) — avoids multiplayer resurrection/overwrite, matches Figma/FigJam, plays nice with shape 2. Keep an `undoable?: boolean` config as a likely future option; ship not-undoable.
-
-## Anchor → pin position
-
-`getThreadPagePoint(editor, thread)`: shape → `getShapePageBounds` + `getShapePageTransform` applied to the normalized offset (`null` when the shape is absent/off-page → pin hidden); point/page → shown only on its page; document → `null`. Screen position via `editor.pageToScreen(point)` inside a `useValue` keyed on the camera.
-
-## Config surface
-
-A `<TldrawComments>` options object: `undoable` (default false), `allowAnonymous` (default false), `onShapeDelete` (default `'delete'`), `getMentionableUsers(query)`, and shape-2 write-through/read-back hooks. Grows as needed.
-
-## UI & extension points
-
-Comment UI extends tldraw's _existing_ override surface — it doesn't invent a parallel one. The default components:
-
-| Component                | Mounts via                                                                  |
-| ------------------------ | --------------------------------------------------------------------------- |
-| `CommentPins`            | `components.InFrontOfTheCanvas` (DOM pins that host the popover)            |
-| `CommentThreadPopover`   | Radix popover anchored to the pin                                           |
-| `CommentsSidebar`        | a panel slot                                                                |
-| `CommentComposer`        | reuse `RichTextArea` + `tipTapDefaultExtensions` + a new `MentionExtension` |
-| `CommentTool` (optional) | `StateNode` "place a pin" mode                                              |
-
-**Customization is a gradient**, all on the same store-backed data + sync:
-
-- **zero-config** — the full default pins / popover / sidebar / composer.
-- **swap a piece** — override a component through the same `components` prop people already use (`TLComponents` / `TLUiComponents`), e.g. `components={{ CommentThreadPopover: MyPopover }}`. Plus CSS tokens for color/spacing.
-- **slots** — render-props inside default components for partial tweaks (custom composer footer, extra thread action) without replacing the whole component.
-- **fully headless UI** — ignore our components entirely; use `manager` + reactive queries + `getThreadPagePoint` to render your own pins/threads while keeping store-backed data, sync, and notifications.
-
-Two independent axes: **who owns the data** (shape 1/2) vs **whose React renders it** (default → swapped → fully custom). This is _not_ the dropped headless-_data_ path — that was the customer owning storage; this is just owning the pixels.
-
-**Rides existing systems (no net-new design):** presence "is typing" (cursor-presence sync), accessibility (the `A11y` component), mobile/responsive, and i18n (the translations pipeline) all reuse what tldraw already has — comments just plug in.
+Option 3 stays on the map as what it is: a future interface for teams that genuinely need to own their comment data, not the architecture we start from.
 
 ---
 
-## Package boundary & integration DX
+## How common features work under each option
 
-**Reopened — leaning toward in-`tldraw`.** Two viable placements; the deciding factor is integration DX, and the delta is large enough to reconsider the earlier "separate package" call.
+Several things swing on which option you pick. Here they are side by side — "store-backed" covers Options 1 & 2 (comments as tldraw records); "your backend" is Option 3 (you own the data behind an interface).
 
-### Option 1 — separate opt-in `packages/comments`
+| Feature                                         | Store-backed (Options 1 & 2)                                                                      | Your backend (Option 3)                                                            |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **In-file sidebar** (the open doc's comments)   | an SDK component reads the store; ships out of the box                                            | the same component, reading through the interface                                  |
+| **Cross-file sidebar** ("all my comments")      | not answerable from the doc — needs a per-user copy to read from                                  | your backend answers it (a native live query with a query-sync engine)             |
+| **Notifications**                               | a server-side hook watches comment changes → you derive who to notify and deliver it              | your backend derives them on write (it owns the write path)                        |
+| **Validation** (author, mentions, comment-only) | needs a before-accept gate on the sync server — _not built yet_                                   | in your backend, where you already authenticate and check access                   |
+| **Undo / redo**                                 | comment actions are deliberately kept off tldraw's undo stack                                     | not in tldraw's undo at all; your backend owns any history                         |
+| **Consistency**                                 | one store at runtime; the per-user copy is strictly one-way (the document is the source of truth) | the SDK reconciles its view with your backend, the source of truth                 |
+| **Offline**                                     | free — the store persists locally and re-syncs                                                    | depends on your backend                                                            |
+| **Delete a shape with comments**                | its comments are cleaned up in the same store transaction (undo restores them)                    | cross-system: your backend must be told, or you tolerate dangling pins until it is |
 
-Precedent: `@tldraw/mermaid` (peer-dep on `tldraw`, opt-in via dynamic import). Clean, fully opt-in, zero bundle cost if unused. But **four integration touch points**, because a package layered _on top_ of `<Tldraw>` can neither inject records into the store `<Tldraw>` creates nor natively provide the React context:
+**Option 2** behaves like Option 1 throughout this table, except it makes the sync-layer concerns — validation and separate storage — first-class rather than bolted on.
 
-1. install `@tldraw/comments`
-2. thread `records: commentSchemas` into store / `useSync` creation
-3. `components={commentUiComponents}`
-4. `<TldrawComments>` wrapper + a `useComments()` context/registry
-
-### Option 2 — in `packages/tldraw`, opt-in via a `comments` prop
-
-Because `<Tldraw>` owns store creation _and_ the tldraw-level contexts, it can do the two things a layered package can't — inject the records and provide the context — collapsing integration to one prop:
-
-```tsx
-;<Tldraw comments={{ getMentionableUsers }} />
-// records auto-injected into the store; UI mounted; tool added; context provided.
-const { manager } = useComments() // works anywhere under <Tldraw>, no wrapper
-```
-
-Comments slot into the existing defaults machinery (`mergeArraysAndReplaceDefaults` for shapes/tools/components, `Tldraw.tsx:200-228`) and the existing override surface (`TLComponents` / `TLUiComponents`). Sync still needs one flag (`useSync({ comments: true })`) since the synced store is created outside `<Tldraw>`, and "enable comments" is an app-level choice (all clients in a room share a schema). Note: **no `editor.comments` property** either way — the manager needs tiptap/UI so it can't live in core `editor`; it's a tldraw-level context like `useToasts`.
-
-### Comparison
-
-|                  | separate `@tldraw/comments`                   | in `packages/tldraw` (prop)                                                                 |
-| ---------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| integration      | ~4 touch points                               | 1 prop (+1 flag for sync)                                                                   |
-| records friction | you thread them                               | auto-injected on enable                                                                     |
-| UI customization | parallel `commentUiComponents` bag            | unified into existing `components` prop                                                     |
-| bundle           | zero if unused                                | ships with tldraw (lazy-import-mitigable; tldraw's already large)                           |
-| release / API    | independent cadence, no tldraw API commitment | fixes bump tldraw, share its API-surface commitment                                         |
-| schema           | opt-in only for users                         | keep records opt-in-injected (not in the default schema) to avoid a permanent migration tax |
-| identity fit     | "an add-on"                                   | matches tldraw = "complete SDK with default UI, shapes, tools"                              |
-
-**Lean: Option 2**, with records injected on-enable (never baked into the default schema). The DX delta is large, comments fit tldraw's batteries-included identity, and bundle is the only real cost — marginal against tldraw's size and mitigable via internal lazy-loading. Option 1 only wins if a meaningful set of embedders want tldraw _and explicitly not_ comments, which seems thin given it's opt-in either way. **Flagged for team sign-off** — this decision fixes the mount API (`<Tldraw comments>` vs `<TldrawComments>`) that other sections reference illustratively.
+Several of these have more behind them than a cell holds — why comments dodge undo, how the one-way copy stays consistent, exactly what validation checks. Those details are in Design considerations, next.
 
 ---
 
-## Build order (each shippable)
+## Design considerations
 
-- **P0 — data model + integrity (no UI):** records, anchor union, validators, migrations, `CommentManager` CRUD + reactive queries, side effects, integrity checker, author resolution, dedicated event emitter. Vitest (schema round-trips, two-store sync, integrity, side effects, migrations).
-- **P1 — server spine:** `authorizeChange` write-gate + `onAfterApplyChanges` tap on `TLSocketRoom`/`TLSyncRoom` + `createCommentDiffHandler`. Two-store test proving the gate rejects forged author / filters comment-only sessions.
-- **P2 — pins + popover:** `getThreadPagePoint`, `CommentPins`, `CommentThreadPopover`, `CommentTool`, active-thread atom.
-- **P3 — sidebar.**
-- **P4 — rich text + @mentions:** `MentionExtension`, mention denormalization + `mention` events, `getMentionableUsers`.
-- **P5 — presence "is typing".**
-- **dotcom (parallel track):** notification derivation (`comment_notification`, `file_thread_state`) → Zero inbox/badges; read-state mutators; comment-only room mode; guest-session plumbing; delivery strategy (TBD).
+These come up whichever option you pick — they're the questions we actually worked through.
+
+### The comment record
+
+A comment stores what it's attached to (its _anchor_), who wrote it, the text, and timestamps. The anchor is built to grow: today it points at a shape, but the same field can later point at a page, a free spot on the canvas, or a whole document. A comment is document data — saved and shared — unlike presence.
+
+### Threads and replies
+
+A comment can start a thread others reply to. The intended model is _single-level_: one opening comment plus a flat list of replies, no replies-to-replies. That keeps the data and UI simple and covers almost every real conversation; replies show in the order written. (The first version ships flat comments, threading layered on afterward.)
+
+### Resolving
+
+A thread can be _resolved_ — marked done — and reopened. Resolved threads are usually hidden or filtered out so settled discussions don't clutter the canvas. Resolved-ness is a property of the thread, so it's shared with everyone. Who may resolve is a permission question (by default anyone with access).
+
+### Read and unread
+
+Whether _you_ have seen a comment is personal — it must not be saved-and-shared the way the comment is. So read state lives per-person, outside the document. The cheap model is a **last-read watermark**: one timestamp per person per thread, and "unread" means "comments newer than my watermark." That avoids a write per comment — you only stamp the watermark when someone opens a thread.
+
+Where the watermark lives is the same per-user split as everything else:
+
+- **Options 1 and 2.** The comment is shared document data, so read state can't ride with it. Two homes: **session scope** — tldraw's local-only, per-device store — which is free and needs no backend but doesn't follow you across devices (read on your laptop, still unread on your phone); or a **per-user store** (tldraw.com's per-user database) for cross-device read state, which is a second data path you add, just like the cross-document view. Either way an "unread" pin joins two sources on the client: the comment (from the document) and your watermark (from wherever you kept it). Option 2 is no different — the comment scope is still shared, so read state still lives outside it.
+- **Option 3.** Read state is just more per-user data in the same backend as the comments, keyed by (user, thread). "My unread" is one query where they already sit together — and with a query-sync engine it's a live one. No second path, no client-side join.
+
+### Who can see a comment
+
+By default a comment is visible to everyone who can open the document. Finer-grained visibility (private threads, or comments only mentioned people can see) is a possible extension, not part of the basic model — it would mean a per-comment visibility setting and filtering on the way in.
+
+### Turning comments on, and keeping both ends in step
+
+Comments are opt-in, not part of tldraw's built-in data — adding a record type to the defaults is a permanent commitment for every tldraw document ever, and forces the feature on people who don't want it. Because sync requires both ends to agree on what records exist (to validate and, across versions, upgrade them), the comment type must be registered in the app _and_ on its server — like a custom shape. Register only one side and sync rejects the records. Registration happens where the store is created: a `comments` switch on `<Tldraw>` if it builds the store for you, or in your own store setup if you build it (for your own sync).
+
+### Side effects (one change triggering another)
+
+Some changes should automatically cause others: delete a shape, and its comments should go with it. tldraw's store has a built-in system for exactly this — you register a handler (`editor.sideEffects.registerAfterDeleteHandler('shape', …)`, with matching hooks for create and change) that runs **inside the same transaction** as the change that set it off. Comments use it: a handler on shape deletion removes the comments anchored to that shape. Because it's one transaction, the cleanup is atomic and rides the shape's undo — undo the deletion and the comments come back. This is the "side effect" the undo, deleting, and consistency notes all lean on.
+
+How this plays out depends on the option:
+
+- **Options 1 and 2 get it for free, and identically.** A comment is a store record either way (Option 2's separate scope is still the same runtime store), so the handler removes anchored comments in the same transaction as the shape — atomic, undoable, and synced like any other change. The multiplayer wrinkle: the handler is told whether the change was **local or remote**, and you run the cascade only for _local_ deletes so other clients don't redo the same work. On tldraw.com the cascaded deletions ride the normal comment path into the per-user copy, so the cross-document view stays in step too. A load-time sweep (see below) is the backstop for anything an offline client missed.
+- **Option 3 can't be atomic.** The shape is in tldraw's store but the comment is in your backend — two systems, so one transaction can't span them. The SDK still detects the shape deletion and finds the anchored comments through your interface's reads, but from there you either have its shape-delete handler call your `delete` (best-effort like the one-way copy, and no longer coupled to tldraw's undo — undoing the shape won't resurrect the comment unless you handle that), or you skip the cascade and let pins whose shape is gone drop out at render time, reconciling later. That's the "cross-system" note in the table's delete row.
+
+### Undo and redo
+
+Subtle in multiplayer. Undo is _local_ (Ctrl+Z reverts _your_ last action), but comments sync to everyone, so a naive approach causes two bugs: **resurrection** (an unrelated Ctrl+Z brings back a comment you deleted, for everyone) and **overwrite** (your Ctrl+Z clobbers a teammate's newer edit). There's also the plain expectation that Ctrl+Z takes back _drawing_, not a discussion. So **adding, editing, or deleting a comment is not on the undo stack** (matching Figma/FigJam). One nuance: when comments are cleaned up as a _side effect_ of an undoable action — deleting a shape that has comments — that cleanup rides the shape's undo, so undoing the shape deletion brings its comments back. Only _direct_ comment actions sit outside undo.
+
+### Deleting shapes, comments, and pages
+
+- **Delete a shape with comments** → its comments are removed by default (keeping them as free-floating pins is an option). Because shape and comments share one store, this is one step — which is why undoing the delete can bring them back.
+- **Delete the opening comment of a thread** → deletes the whole thread; since that's destructive and not undoable, the UI confirms first. (Keeping replies under a "deleted" placeholder, or promoting a reply to opener, were considered and set aside.)
+- **Delete a page** → its comments go with it.
+- **Coming back online** → if a teammate deleted a shape while you were away, a check on load sweeps up comments pointing at shapes that no longer exist.
+
+### Keeping things consistent
+
+**Within the document.** At runtime, comments and shapes live in the _same_ store — even on tldraw.com, where they're saved to different files, the split is only about storage, not runtime. So "delete a shape, remove its comments" runs in one transaction over one store: atomic, and it syncs like any change. A load-time check is the backstop for anything missed (offline merges, a client that didn't run the side effect).
+
+**With a copy (like tldraw.com's per-user database).** We keep it simple by making the copy strictly **one-way**: the document is the source of truth, the copy only follows — nobody edits comments in the copy. Each change is an idempotent upsert/delete keyed by comment id, so retries and reordering are harmless. The copy is best-effort and never blocks the document; if a write fails, the document is still correct and the copy is briefly behind. Because the document holds the authoritative set, the copy can always be rebuilt from it — a reconciliation (periodically, or when a file's server restarts) re-derives and upserts, healing drift. There's one source and one follower, never two equals to reconcile.
+
+### Who can do what
+
+Comments come with permissions. A common case is **comment-only** access — a reviewer who can add comments but not change the drawing. Guest/anonymous commenting can be enabled as a setting. Enforcing all of this (including "post only as yourself") is a server job, next.
+
+### Validating comments
+
+Comments arrive from people's browsers, so the server can't take them at face value — a tampered client could post as someone else or mention people who shouldn't be pinged. The server needs to check comment writes:
+
+- **Post only as yourself** — the author on an incoming comment must match the signed-in user (or a guest id the server itself assigned); a comment claiming a different author is rejected.
+- **Mention only people who can see the file** — the server works out mentions from the comment text (not a browser-supplied list) and only notifies people who actually have file access, so nobody can spam strangers or expose a file by mentioning them.
+- **Enforce comment-only** — the same check is where a comment-only person's shape edits are rejected while their comment writes are allowed.
+
+This needs the sync server to inspect and reject a write _before_ accepting it (tldraw sync would expose a hook; on your own sync you'd do it on your server). **This isn't built yet:** today the author is set by the browser and taken as-is, and there's no mention checking — it's the main missing piece before comments are safe for untrusted, multi-user use.
+
+### Overriding the comment UI
+
+tldraw already lets developers override any part of its interface by handing `<Tldraw>` a replacement component for a named slot (or `null` to hide it). That covers the canvas-level pieces — background, grid, and what's drawn _on_ and _in front of_ the canvas — and the UI-level pieces — toolbar, menus, style panel, share panel, dialogs, toasts, and so on.
+
+The comment pieces — the pin, the thread popover, the composer, a comments sidebar — plug into this same system. So a developer can take our defaults as-is, restyle them, replace any single one with their own, or hide them and build a fully custom comment surface while still using our data and events underneath. The default pins are drawn in front of the canvas and positioned on their shapes; overriding a pin is no different from overriding the toolbar.
+
+### Reacting to comments, and notifications
+
+The SDK surfaces events (added / edited / resolved / mentioned). An app hangs its own behavior off them — email, an inbox, a channel ping. The SDK provides events; delivery is the app's job. A typical order is an **in-app inbox and unread badges first** (events + read state), then **email or digests later** (which also needs per-person preferences and batching, so people aren't emailed on every reply).
+
+### Where the code lives
+
+Open question: comments as a **separate installable package** vs **part of the main tldraw package**.
+
+- **Separate package** — opt-in, no bundle cost if unused, released on its own schedule (there's precedent: the Mermaid integration is a separate package on top of tldraw). Costs the developer more setup: install, register records, add UI, wire it up.
+- **Part of tldraw** — a single `comments` switch on `<Tldraw>` turns it all on in one line, because `<Tldraw>` builds the store. Costs bundle size for everyone and ties comments to tldraw's release cadence; fits tldraw's "batteries included" nature.
+
+Leaning: in-package but opt-in (a switch, off by default). Either way, the comment _record_ is UI-free and belongs in the low-level schema package (so a server with no screen can use it); the on-screen pieces live in the UI package.
+
+### Likely later
+
+Deliberately deferred, none changing the core model: email/digest notifications; formatted text and @mentions in the body; attaching a comment to a _range of text_ inside a shape; and different _kinds_ of comment (a suggestion vs a plain note).
 
 ---
 
-## Verification & testing
+## What we've prototyped so far
 
-Grounded in the repo's existing harnesses (Vitest + `TestEditor`, integration tests in `packages/tldraw/src/test`, e2e in `apps/examples/e2e`).
+To explore **Option 1** — comments as document data — we built a prototype and wired tldraw.com on top of it. This isn't a commitment to ship; it's how we tested the approach end to end:
 
-**Spike first (de-risk the #1 risk).** Before any UI: add `onAfterApplyChanges` + `createCommentDiffHandler` and a two-store `TestEditor` test proving comment create/reply/resolve flows client → server → client. Proves the spine before we build on it.
+- **Comments sync through tldraw sync like any record.** Add one and collaborators see it; it persists with the file; it behaves like a shape.
+- **tldraw sync gained two small, general-purpose abilities** for the separate-storage part: it can leave chosen record types _out_ of the saved document, and it can notify the server the moment a change commits. Neither is comment-specific, and both do nothing unless a server opts in.
+- **The per-file server stores comments in a separate file** next to the document (not inside it), and loads them back when the file opens — so the document file stays clean.
+- **The same commit notification copies each comment one-way into the per-user database** (a Postgres table Zero replicates to the right people), so a **cross-document comments page** lists everyone's comments across their files without opening each one.
+- **In the app:** select a shape and type a comment → a pin appears; click a pin to read it. A **comments page** lists everything newest-first; clicking an entry opens the file, jumps to the shape, and opens that comment.
 
-**SDK unit / integration (Vitest + `TestEditor`):**
+A developer **not** using tldraw sync needs none of the server pieces — they get comments as records that ride their own sync (Option 1 in the document), and can move to Option 3 (own the data) later.
 
-- schema round-trips + migrations for both records
-- `CommentManager` CRUD + reactive queries
-- side effects: shape-delete cascade/detach, page-delete, root-delete → thread-delete, recursion guard
-- integrity checker: dangling comment / empty thread / missing-shape thread, on load _and_ on remote merge
-- two-store sync: create/reply/resolve in A appears in B; offline edits merge cleanly
-- undo: comment ops not undoable; shape-delete cascade rides the shape's undo (undo shape → comments return)
-- events: local + remote fire with correct `source`; mention denormalized, `mention` emitted only for newly-added users
-- anchor → pin: move/resize/rotate updates the point; off-page → `null`
-
-**Server spine:**
-
-- `authorizeChange` rejects forged author; filters a comment-only session's diff (shape edits dropped, comment writes land); ignores mentions of users without access
-- `onAfterApplyChanges` fires once post-commit for local _and_ remote pushes, and _not_ on snapshot load / migrate (no re-notify on reboot)
-- hooks are no-ops (zero overhead) when no consumer registers them
-
-**dotcom integration (local sync-worker + Zero):**
-
-- mention A → `comment_notification` replicates to B's inbox + unread badge; `markThreadSeen` clears it
-- comment delete → projection rows removed via the hook
-- COMMENT_ONLY session: shape writes rejected, comment writes land (server-side gate test)
-- frozen preview: edit a comment after notify → the notification preview is unchanged
-
-**E2E** (`apps/examples/e2e` + an example under `apps/examples/src/examples/comments/`): pins track pan/zoom/shape-move across two tabs; popover read/write/resolve; sidebar; mention autocomplete; typing indicator across tabs.
-
-**Static:** `yarn typecheck`, `yarn api-check` (new public API surface + committed api-report), `yarn lint`.
-
----
-
-## Still open / consumer-owned
-
-- **Sync-core hooks = the #1 technical risk.** `authorizeChange` + `onAfterApplyChanges` are new surface in the _shared, hot_ sync path — they affect all tldraw-sync users, not just comments. Contain blast radius by making them no-ops when unused, and **spike them first** (two-store test) before building on them. Runner-up risk: multiplayer merge/integrity edge cases (offline → shape deleted → comment reconciliation).
-- **Opt-in schema at rest.** A doc saved _with_ comment records, later opened by an app with comments disabled or on an older schema. dotcom can **force a client update** to a matching version; the generic SDK behavior for unknown comment records at load (drop vs preserve vs error) needs verifying against tldraw's schema handling.
-- **Package placement** — separate `@tldraw/comments` vs in `packages/tldraw` (leaning in-package for DX; team sign-off needed). Fixes the mount API (`<Tldraw comments>` vs `<TldrawComments>`).
-- **Notification delivery strategy** (immediate vs daily digest vs …) — undecided, and an SDK-consumer implementation detail, not an SDK decision.
-- **Anonymous moderation / spam limiting** — deferred.
-- **Shape-2 optimistic-vs-authoritative default** — consumer's call; SDK supports both.
-- **`detachedFrom` re-linking** for detached threads — v2.
+**Honest status:** the validation above (posting as yourself, mention checks) is **not built** — today the author comes from the browser. Threads, resolve, read/unread, and rich text aren't built yet either; the current version is flat, plaintext, shape-anchored comments. Those are design decisions captured above, not shipped features.
