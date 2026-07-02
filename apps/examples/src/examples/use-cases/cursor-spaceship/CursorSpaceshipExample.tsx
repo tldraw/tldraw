@@ -18,14 +18,14 @@ import {
 import './cursor-spaceship.css'
 
 // [1] Tuning, in world units.
-// Fuel drains as you fly; refill by scooping up fuel cells. Run dry and the
-// engines die — steering cuts out and the sun drags you in. The burn is a base
-// rate plus a term that grows like gravity (1/dist^2), so hovering deep in the
-// well eats fuel fast and the safe belt edge is cheap — but that's where the
-// rocks are.
+// Fuel drains with thrust — how hard you steer beyond the free orbital drift each
+// tick — plus a small idle burn. Coast with the current and you barely sip fuel;
+// fight it, chase it, or throw quick turns and the engines gulp. Refill by scooping
+// fuel cells; run dry and the engines die, steering cuts out, and the sun takes you.
 const FUEL_MAX = 100
-const FUEL_DRAIN_BASE = 0.06
-const FUEL_DRAIN_GRAV = 7200
+const FUEL_DRAIN_IDLE = 0.04
+const FUEL_DRAIN_THRUST = 0.012
+const THRUST_CAP = 50
 const FUEL_PER_CELL = 34
 const COLLECT_RADIUS = 22
 const FUEL_RESPAWN_MS = 8000
@@ -188,14 +188,13 @@ function GameRunner({ game }: { game: Game }) {
 				// cursor nearing a screen edge.
 				const underCursor = new Vec(screen.x / z - cam.x, screen.y / z - cam.y)
 				next = new Vec(underCursor.x + drift.x, underCursor.y + drift.y)
-				game.fuel.set(
-					Math.max(
-						0,
-						game.fuel.get() -
-							FUEL_DRAIN_BASE -
-							FUEL_DRAIN_GRAV / (from.x * from.x + from.y * from.y || 1)
-					)
+				// Thrust: how far we steered beyond the free drift this tick, capped so a
+				// wild cursor jump can't empty the tank in one frame.
+				const thrust = Math.min(
+					THRUST_CAP,
+					Math.hypot(underCursor.x - from.x, underCursor.y - from.y)
 				)
+				game.fuel.set(Math.max(0, game.fuel.get() - FUEL_DRAIN_IDLE - FUEL_DRAIN_THRUST * thrust))
 				collectFuel(game, editor, next)
 				// Remember the velocity we’re carrying, so if the engines cut out we coast on
 				// it instead of stopping dead; clamp it so a flick at zero fuel stays graceful.
