@@ -1185,6 +1185,53 @@ describe('when selecting behind selection', () => {
 	})
 })
 
+describe('when a selected hollow shape overlaps a filled shape behind it', () => {
+	beforeEach(() => {
+		editor
+			.createShapes([
+				// large filled shape behind
+				{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 300, h: 300, fill: 'solid' } },
+				// smaller hollow shape in front, interior over the filled shape
+				{ id: ids.box2, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100, fill: 'none' } },
+			])
+			.select(ids.box2)
+	})
+
+	it('keeps the hollow shape selected on pointer down inside it (does not fall through to the filled shape)', () => {
+		editor.pointerMove(100, 100) // inside box2's interior, over box1
+		// the hollow interior isn't a hit target, so box1 is what's hovered
+		expect(editor.getHoveredShapeId()).toBe(ids.box1)
+		editor.pointerDown()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+	})
+
+	it('translates the selected hollow shape when dragged from its interior', () => {
+		editor.pointerMove(100, 100) // inside box2's interior, over box1
+		editor.pointerDown()
+		editor.pointerMove(150, 150) // drag
+		editor.expectToBeIn('select.translating')
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+		expect(editor.getShape(ids.box2)).toMatchObject({ x: 100, y: 100 })
+	})
+
+	it('still selects a filled shape stacked in front of the selection', () => {
+		// box3 is filled and created last, so it sits in front of the selected box2
+		editor.createShape({
+			id: ids.box3,
+			type: 'geo',
+			x: 75,
+			y: 75,
+			props: { w: 40, h: 40, fill: 'solid' },
+		})
+		editor.pointerMove(95, 95) // inside box3, also inside box2's interior
+		expect(editor.getHoveredShapeId()).toBe(ids.box3)
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+	})
+})
+
 for (const key of ['Shift', 'Control']) {
 	describe('when additive+selecting', () => {
 		beforeEach(() => {
