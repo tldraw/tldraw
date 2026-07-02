@@ -123,8 +123,14 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 
 	let nextParentId: TLParentId
 	if (startShape && endShape) {
-		// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
-		nextParentId = editor.findCommonAncestor([startShape, endShape]) ?? parentPageId
+		// If both ends are bound to the same frame-like shape, make the arrow a child of that
+		// shape so duplicating or deleting the frame includes the arrow too.
+		if (startShape.id === endShape.id && editor.isShapeFrameLike(startShape)) {
+			nextParentId = startShape.id
+		} else {
+			// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
+			nextParentId = editor.findCommonAncestor([startShape, endShape]) ?? parentPageId
+		}
 	} else if (startShape || endShape) {
 		const bindingParentId = (startShape || endShape)?.parentId
 		// If the arrow and the shape that it is bound to have the same parent, then keep that parent

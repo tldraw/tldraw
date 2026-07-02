@@ -5,7 +5,7 @@ import { BaseBoxShapeUtil, TLBaseBoxShape } from './BaseBoxShapeUtil'
 import { TLDragShapesInInfo, TLDragShapesOutInfo } from './ShapeUtil'
 
 /**
- * A base class for frame-like shapes — containers that clip their children,
+ * A base class for frame-like shapes — containers that clip their children except arrows,
  * require full-brush selection, block erasure from inside, and support
  * drag-and-drop reparenting.
  *
@@ -17,6 +17,7 @@ import { TLDragShapesInInfo, TLDragShapesOutInfo } from './ShapeUtil'
  * - `canReceiveNewChildrenOfType()` returns `true` unless the container is locked
  * - `canRemoveChildrenOfType()` returns `true` unless the container is locked
  * - `getClipPath()` returns the shape geometry's vertices
+ * - `shouldClipChild()` clips all children except arrows
  * - `onDragShapesIn()` reparents shapes into the frame (with index restoration)
  * - `onDragShapesOut()` reparents shapes back to the page
  *
@@ -67,6 +68,11 @@ export abstract class BaseFrameLikeShapeUtil<
 
 	override getClipPath(shape: Shape): Vec[] | undefined {
 		return this.editor.getShapeGeometry(shape.id).vertices
+	}
+
+	override shouldClipChild(child: TLShape): boolean {
+		// Arrows bound to a frame may be parented to that frame, but they should still render outside it.
+		return child.type !== 'arrow'
 	}
 
 	override onDragShapesIn(
