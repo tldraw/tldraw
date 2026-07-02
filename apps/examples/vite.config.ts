@@ -1,6 +1,7 @@
 import path from 'path'
 import react from '@vitejs/plugin-react'
 import { Plugin, PluginOption, defineConfig } from 'vite'
+import { make3dRealPlugin } from './make-3d-real-server'
 
 /**
  * Plugin to enable SPA fallback for vite preview.
@@ -73,7 +74,7 @@ const TLDRAW_BEMO_URL_STRING =
 				: undefined
 
 export default defineConfig(({ mode }) => ({
-	plugins: [spaFallbackPlugin(), react(), exampleReadmePlugin()],
+	plugins: [spaFallbackPlugin(), react(), exampleReadmePlugin(), make3dRealPlugin(__dirname)],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
 	build: {

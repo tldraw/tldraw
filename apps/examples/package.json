@@ -42,8 +42,12 @@
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
+		"@anthropic-ai/sdk": "^0.105.0",
+		"@babel/standalone": "^8.0.2",
 		"@dimforge/rapier2d-compat": "^0.19.3",
 		"@playwright/test": "^1.61.0",
+		"@react-three/drei": "^10.7.7",
+		"@react-three/fiber": "^9.6.1",
 		"@tiptap/core": "^3.12.1",
 		"@tiptap/extension-font-family": "^3.12.1",
 		"@tiptap/extension-text-style": "^3.12.1",
@@ -70,16 +74,19 @@
 		"react-dom": "^19.2.1",
 		"react-helmet-async": "^1.3.0",
 		"react-router-dom": "^6.28.2",
+		"three": "^0.184.0",
 		"tldraw": "workspace:*",
 		"topojson-client": "^3.1.0",
 		"us-atlas": "^3.0.1",
 		"vite": "^8.0.16"
 	},
 	"devDependencies": {
+		"@types/babel__standalone": "^7.1.9",
 		"@types/d3-geo": "^3.1.0",
 		"@types/lodash": "^4.17.14",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
+		"@types/three": "^0.184.1",
 		"@types/topojson-client": "^3.1.5",
 		"@types/topojson-specification": "^1.0.5",
 		"@vitejs/plugin-react": "^6.0.1",
