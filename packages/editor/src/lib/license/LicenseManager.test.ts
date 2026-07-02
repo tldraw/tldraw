@@ -510,6 +510,60 @@ describe('LicenseManager', () => {
 		})
 	})
 
+	describe('Expiry date timezone handling', () => {
+		afterEach(() => {
+			vi.useRealTimers()
+		})
+
+		// The named expiry date is minted as a date-only string and should mean "the license
+		// is fully usable through the end of that day in UTC", giving every user the same
+		// cutoff regardless of their local timezone.
+		async function makeEvaluationLicenseWithExpiry(expiry: string) {
+			const licenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			licenseInfo[PROPERTIES.FLAGS] = FLAGS.EVALUATION_LICENSE
+			licenseInfo[PROPERTIES.EXPIRY_DATE] = expiry
+			return generateLicenseKey(JSON.stringify(licenseInfo), keyPair)
+		}
+
+		it('Keeps the license valid through the end of the named expiry day (UTC)', async () => {
+			const key = await makeEvaluationLicenseWithExpiry('2026-06-26')
+
+			// The final moment of the named day is still valid.
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date('2026-06-26T23:59:59.000Z'))
+			expect(
+				((await licenseManager.getLicenseFromKey(key)) as ValidLicenseKeyResult)
+					.isEvaluationLicenseExpired
+			).toBe(false)
+		})
+
+		it('Expires the license at the start of the day after the named expiry day (UTC)', async () => {
+			const key = await makeEvaluationLicenseWithExpiry('2026-06-26')
+
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date('2026-06-27T00:00:01.000Z'))
+			expect(
+				((await licenseManager.getLicenseFromKey(key)) as ValidLicenseKeyResult)
+					.isEvaluationLicenseExpired
+			).toBe(true)
+		})
+
+		it('Does not expire early for users west of UTC who are still on the named day locally', async () => {
+			const key = await makeEvaluationLicenseWithExpiry('2026-06-26')
+
+			// Under the old logic a user west of UTC parsed the date one calendar day early and
+			// expired at the *start* of that day, losing most of a day. With the uniform UTC
+			// cutoff the license stays valid all through June 26 for everyone, no matter their
+			// local offset. 1pm UTC on June 26 is well before the cutoff, so it is still valid.
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date('2026-06-26T13:00:00.000Z'))
+			expect(
+				((await licenseManager.getLicenseFromKey(key)) as ValidLicenseKeyResult)
+					.isEvaluationLicenseExpired
+			).toBe(false)
+		})
+	})
+
 	describe('License expiry and grace period', () => {
 		it('Fails if the license key has expired beyond grace period', async () => {
 			const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
