@@ -188,6 +188,7 @@ function makeRoom(
 		clientTimeout?: number
 		log?: { warn?: Mock; error?: Mock }
 		onPresenceChange?(): void
+		onCommittedChanges?(args: { diff: any; documentClock: number }): void
 	} = {}
 ) {
 	const storage = new InMemorySyncStorage<TLRecord>({
@@ -199,6 +200,7 @@ function makeRoom(
 		clientTimeout: opts.clientTimeout,
 		log: opts.log,
 		onPresenceChange: opts.onPresenceChange,
+		onCommittedChanges: opts.onCommittedChanges,
 	})
 	disposables.push(() => room.close())
 	return { storage, room }
@@ -632,6 +634,29 @@ describe('22. Room construction (RC)', () => {
 		expect(clientBMessages.length).toBe(1)
 		expect(clientBMessages[0].type).toBe('data')
 		expect(clientBMessages[0].data[0].type).toBe('patch')
+	})
+
+	it('fires onCommittedChanges once with the committed document diff after a push', async () => {
+		const onCommittedChanges = vi.fn()
+		const { room } = makeRoom({ onCommittedChanges })
+		connectSession(room, 'session-a')
+
+		const newPage = makePage('committed_page', 'Committed Page')
+		room.handleMessage('session-a', {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[newPage.id]: ['put', newPage],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		// the tap fires in a microtask, like onPresenceChange
+		await Promise.resolve()
+
+		expect(onCommittedChanges).toHaveBeenCalledTimes(1)
+		const arg = onCommittedChanges.mock.calls[0][0]
+		expect(arg.diff.puts[newPage.id]).toBeTruthy()
+		expect(typeof arg.documentClock).toBe('number')
 	})
 
 	it('[RC4] handles multiple rapid external changes', async () => {

@@ -7,10 +7,11 @@ import { TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
+import { GetSnapshotOptions, RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
+	TLSyncForwardDiff,
 	TLSyncStorage,
 } from './TLSyncStorage'
 
@@ -120,6 +121,14 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	}) => void
 	/** @internal */
 	onPresenceChange?(): void
+	/**
+	 * Called once after a client push commits, with the committed document diff (fires for local
+	 * and remote pushes). Use to react to document changes as soon as they commit — e.g. persist
+	 * certain record types to a separate lane, or project them to an external store. Best-effort:
+	 * do not throw and do not block.
+	 */
+	// eslint-disable-next-line tldraw/method-signature-style
+	onCommittedChanges?: (args: { diff: TLSyncForwardDiff<R>; documentClock: number }) => void
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -243,6 +252,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		}
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			onPresenceChange: opts.onPresenceChange,
+			onCommittedChanges: opts.onCommittedChanges,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: opts.log,
 			storage,
@@ -701,9 +711,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * const newRoom = new TLSocketRoom({ initialSnapshot: savedSnapshot })
 	 * ```
 	 */
-	getCurrentSnapshot() {
+	getCurrentSnapshot(opts?: GetSnapshotOptions) {
 		if (this.storage.getSnapshot) {
-			return this.storage.getSnapshot()
+			return this.storage.getSnapshot(opts)
 		}
 		throw new Error('getCurrentSnapshot is not supported for this storage type')
 	}

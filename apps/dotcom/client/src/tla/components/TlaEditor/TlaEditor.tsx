@@ -12,6 +12,7 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	UserRecordType,
+	commentSchemaRecords,
 	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,
@@ -45,6 +46,7 @@ import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracki
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
+import { CommentsOnCanvas } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
@@ -227,6 +229,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		users,
+		// Register the opt-in `comment` record type so comment records sync through the file room.
+		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
+		records: commentSchemaRecords,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)
 		}, []),
@@ -278,6 +283,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
+			InFrontOfTheCanvas: CommentsOnCanvas,
 		}
 	}, [])
 

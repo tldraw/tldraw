@@ -138,6 +138,7 @@ export class TldrawApp {
 	private readonly workspaceMemberships$: Signal<
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
+	private readonly comments$: Signal<QueryResultType<typeof queries.comments>>
 
 	private readonly useProperZero: boolean
 	private readonly abortController = new AbortController()
@@ -283,6 +284,7 @@ export class TldrawApp {
 			'workspace memberships signal',
 			this.workspaceMembershipsQuery()
 		)
+		this.comments$ = this.signalizeQuery('comments signal', this.commentsQuery())
 	}
 
 	private userQuery() {
@@ -295,6 +297,15 @@ export class TldrawApp {
 
 	private workspaceMembershipsQuery() {
 		return queries.workspaceMemberships()
+	}
+
+	private commentsQuery() {
+		return queries.comments()
+	}
+
+	/** All comments on files the current user can access, for the /comments view. */
+	getComments() {
+		return this.comments$.get()
 	}
 
 	async preload() {

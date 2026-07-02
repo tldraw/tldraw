@@ -134,6 +134,14 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
+export const commentRecordConfig: CustomRecordInfo;
+
+// @public
+export const commentSchemaRecords: {
+    comment: CustomRecordInfo;
+};
+
+// @public
 export function compressLegacySegments(segments: {
     points: VecModel[];
     type: 'free' | 'straight';
@@ -185,6 +193,18 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
 
 // @public
 export function createCachedUserResolve(resolveFn: (userId: string) => null | TLUser): (userId: string) => Signal<null | TLUser>;
+
+// @public
+export function createComment(props: {
+    anchor: TLCommentAnchor;
+    authorId: string;
+    meta?: JsonObject;
+    now?: number;
+    text: string;
+}): TLComment;
+
+// @public (undocumented)
+export function createCommentId(id?: string): TLCommentId;
 
 // @public
 export function createCustomRecordId<T extends string>(typeName: T, id?: string): RecordId<UnknownRecord> & `${T}:${string}`;
@@ -1038,6 +1058,33 @@ export type TLCameraId = RecordId<TLCamera>;
 
 // @public
 export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
+
+// @public
+export interface TLComment extends BaseRecord<'comment', TLCommentId> {
+    // (undocumented)
+    anchor: TLCommentAnchor;
+    // (undocumented)
+    authorId: string;
+    // (undocumented)
+    createdAt: number;
+    // (undocumented)
+    meta: JsonObject;
+    // (undocumented)
+    text: string;
+    // (undocumented)
+    updatedAt: number;
+}
+
+// @public
+export interface TLCommentAnchor {
+    // (undocumented)
+    shapeId: TLShapeId;
+    // (undocumented)
+    type: 'shape';
+}
+
+// @public (undocumented)
+export type TLCommentId = RecordId<TLComment>;
 
 // @public
 export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T ? {
