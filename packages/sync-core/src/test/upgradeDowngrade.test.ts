@@ -568,6 +568,7 @@ describe('when the client is too old', () => {
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 			isReadonly: false,
+			objectAccess: 'write',
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(v1SendMessage).toHaveBeenCalledWith({
@@ -579,6 +580,7 @@ describe('when the client is too old', () => {
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 			isReadonly: false,
+			objectAccess: 'write',
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		v2SendMessage.mockClear()
@@ -1100,6 +1102,7 @@ describe('when the client is the same version', () => {
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 			isReadonly: false,
+			objectAccess: 'write',
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(bSocket.sendMessage).toHaveBeenCalledWith({
@@ -1111,6 +1114,7 @@ describe('when the client is the same version', () => {
 			schema: schemaV2.serialize(),
 			serverClock: 10,
 			isReadonly: false,
+			objectAccess: 'write',
 		} satisfies TLSocketServerSentEvent<RV2>)
 		;(aSocket.sendMessage as Mock).mockClear()
 		;(bSocket.sendMessage as Mock).mockClear()

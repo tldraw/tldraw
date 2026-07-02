@@ -34,6 +34,7 @@ import {
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
+	type TLObjectStoreAccess,
 } from '@tldraw/sync-core'
 import {
 	TLAsset,
@@ -100,6 +101,8 @@ interface SocketAttachment {
 	sessionId: string
 	meta: SessionMeta
 	isReadonly: boolean
+	// optional: attachments serialized before the object-store lane existed lack this field
+	objectAccess?: TLObjectStoreAccess
 	snapshot: SessionStateSnapshot | null
 }
 
@@ -137,6 +140,12 @@ const MB = 1024 * 1024
 // blob (see persistToDatabase / loadFromDatabase). The same records must be registered on the
 // client (see useSync in the dotcom client) or the schemas won't match.
 const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
+
+// Record types served through the room's object-store lane rather than the document lane.
+// Object-lane records sync over the same socket but are gated per session by `objectAccess`
+// (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in a
+// separate R2 lane next to the main document blob.
+const OBJECT_TYPES = ['comment'] as const
 
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
@@ -202,6 +211,7 @@ export class TLFileDurableObject extends DurableObject {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
 					storage,
 					schema: fileSyncSchema,
+					objectTypes: OBJECT_TYPES,
 					clientTimeout: Infinity,
 					onSessionSnapshot: (sessionId, snapshot) => {
 						const ws = this.sessionIdToWs.get(sessionId)
@@ -250,8 +260,8 @@ export class TLFileDurableObject extends DurableObject {
 							messageLength: stringified.length,
 						})
 					},
-					// Push comment changes to Postgres as soon as they commit (not on the throttled R2
-					// persist) so Zero replicates them to the app-level view quickly.
+					// Project object-lane (comment) changes to Postgres as soon as they commit (not on
+					// the throttled R2 persist) so Zero replicates them to the app-level view quickly.
 					onCommittedChanges: ({ diff }) => {
 						this.pushCommentChangesToPostgres(diff)
 					},
@@ -688,10 +698,15 @@ export class TLFileDurableObject extends DurableObject {
 				userId: auth?.userId ? auth.userId : null,
 			}
 			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
+			// Object-store lane (comments) write access. Permissive default for now: the gate is
+			// architecturally separate from isReadonly (so "can comment but not edit" is expressible)
+			// but dotcom doesn't yet have a permission level that restricts it.
+			const objectAccess = 'write' as const
 			const attachment: SocketAttachment = {
 				sessionId,
 				meta,
 				isReadonly,
+				objectAccess,
 				snapshot: null,
 			}
 			serverWebSocket.serializeAttachment(attachment)
@@ -711,6 +726,7 @@ export class TLFileDurableObject extends DurableObject {
 				socket: serverWebSocket,
 				meta,
 				isReadonly,
+				objectAccess,
 			})
 			if (isNewSession) {
 				this.logEvent({
@@ -785,7 +801,8 @@ export class TLFileDurableObject extends DurableObject {
 
 		const storage = await this.getStorage()
 		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
-		const snapshot = storage.getSnapshot()
+		// object-lane records (comments) are not document content and don't belong in .tldr files
+		const snapshot = storage.getSnapshot({ excludeTypes: OBJECT_TYPES })
 		const records = pruneUnusedAssetsForTldr(snapshot.documents.map((d) => d.state) as TLRecord[])
 
 		const assetRows = await this.db
@@ -1001,13 +1018,14 @@ export class TLFileDurableObject extends DurableObject {
 			if (roomFromBucket) {
 				const snapshot = (await roomFromBucket.json()) as RoomSnapshot
 
-				// Comments live in a separate R2 lane (see persistToDatabase). Load them and merge them
-				// back into the snapshot so they seed the room and hydrate to clients on connect.
-				const commentsFromBucket = await this.r2.rooms.get(`${key}/comments`)
-				if (commentsFromBucket) {
-					const commentDocs = (await commentsFromBucket.json()) as RoomSnapshot['documents']
-					snapshot.documents = [...snapshot.documents, ...commentDocs]
-					this._commentLaneWritten = true
+				// Object-lane records (comments) live in a separate R2 lane (see persistToDatabase).
+				// Load them and merge them back into the snapshot so they seed the room and hydrate
+				// to clients on connect.
+				const objectLaneFromBucket = await this.r2.rooms.get(`${key}/comments`)
+				if (objectLaneFromBucket) {
+					const objectDocs = (await objectLaneFromBucket.json()) as RoomSnapshot['documents']
+					snapshot.documents = [...snapshot.documents, ...objectDocs]
+					this._objectLaneWritten = true
 				}
 
 				loadTimer.report('db_load_total')
@@ -1100,14 +1118,15 @@ export class TLFileDurableObject extends DurableObject {
 
 	_lastPersistedClock: number | null = null
 
-	// Whether this room's separate comment R2 lane has ever been written (or existed on load). Used
-	// so we only write the lane once a room actually has comments, but still write an empty lane on
-	// later deletions (rather than leaving a stale object that would resurrect deleted comments).
-	private _commentLaneWritten = false
+	// Whether this room's separate object-lane R2 object has ever been written (or existed on
+	// load). Used so we only write the lane once a room actually has object records, but still
+	// write an empty lane on later deletions (rather than leaving a stale object that would
+	// resurrect deleted records).
+	private _objectLaneWritten = false
 
-	// Serializes comment → Postgres pushes so they land in order. Separate from executionQueue (the
-	// R2/main-persist queue) since comment pushes fire immediately on commit, not on the throttle.
-	private _commentPushQueue = new ExecutionQueue()
+	// Serializes object-lane → Postgres pushes so they land in order. Separate from executionQueue
+	// (the R2/main-persist queue) since these pushes fire immediately on commit, not on the throttle.
+	private _objectPushQueue = new ExecutionQueue()
 
 	executionQueue = new ExecutionQueue()
 
@@ -1269,20 +1288,26 @@ export class TLFileDurableObject extends DurableObject {
 						assert(fullSnapshot.documentClock !== undefined, 'documentClock must be present')
 						this.maybeAssociateFileAssets()
 
-						// Comments are persisted in a separate R2 lane, not the main document blob. Split
-						// them out in a single pass so the main snapshot (and Pierre) never carry comments.
-						const commentDocs: RoomSnapshot['documents'] = []
+						// Object-lane records (comments) are persisted in a separate R2 lane, not the main
+						// document blob. Split them out in a single pass so the main snapshot (and Pierre)
+						// never carry object-lane records.
+						const objectDocs: RoomSnapshot['documents'] = []
 						const mainDocs: RoomSnapshot['documents'] = []
 						for (const doc of fullSnapshot.documents) {
-							;(doc.state.typeName === 'comment' ? commentDocs : mainDocs).push(doc)
+							;((OBJECT_TYPES as readonly string[]).includes(doc.state.typeName)
+								? objectDocs
+								: mainDocs
+							).push(doc)
 						}
 						const snapshot: RoomSnapshot = { ...fullSnapshot, documents: mainDocs }
 
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 						await this._uploadSnapshotToR2(snapshot, key)
-						if (commentDocs.length > 0 || this._commentLaneWritten) {
-							await this.r2.rooms.put(`${key}/comments`, JSON.stringify(commentDocs))
-							this._commentLaneWritten = true
+						if (objectDocs.length > 0 || this._objectLaneWritten) {
+							// the lane keeps its original `/comments` key so existing rooms keep their data;
+							// a real API would want per-lane keys (e.g. `${key}/objects/<lane>`)
+							await this.r2.rooms.put(`${key}/comments`, JSON.stringify(objectDocs))
+							this._objectLaneWritten = true
 						}
 						await this.persistToPierre(storage, snapshot)
 
@@ -1489,7 +1514,7 @@ export class TLFileDurableObject extends DurableObject {
 
 		if (upserts.length === 0 && deletedIds.length === 0) return
 
-		this._commentPushQueue
+		this._objectPushQueue
 			.push(async () => {
 				if (upserts.length > 0) {
 					await this.db

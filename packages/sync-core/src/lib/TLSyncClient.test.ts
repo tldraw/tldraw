@@ -476,13 +476,20 @@ describe('TLSyncClient', () => {
 			client = createClient()
 			socket.mockServerMessage(createConnectMessage({ isReadonly: false }))
 			expect(client.isConnectedToRoom).toBe(true)
-			expect(onAfterConnect).toHaveBeenCalledWith(client, { isReadonly: false })
+			// objectAccess defaults to 'write' when the server doesn't send it
+			expect(onAfterConnect).toHaveBeenCalledWith(client, {
+				isReadonly: false,
+				objectAccess: 'write',
+			})
 
 			// reconnect as readonly
 			socket.mockConnectionStatus('offline')
 			socket.mockConnectionStatus('online')
 			socket.mockServerMessage(createConnectMessage({ isReadonly: true }))
-			expect(onAfterConnect).toHaveBeenLastCalledWith(client, { isReadonly: true })
+			expect(onAfterConnect).toHaveBeenLastCalledWith(client, {
+				isReadonly: true,
+				objectAccess: 'write',
+			})
 		})
 
 		it('[CL7] pushes the current presence state after connecting', () => {
