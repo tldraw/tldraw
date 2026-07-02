@@ -1230,7 +1230,8 @@ export class TLFileDurableObject extends DurableObject {
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return
 
-						const snapshot = storage.getSnapshot()
+						const room = await this._room
+						const snapshot = room.getCurrentSnapshot()
 						assert(snapshot.documentClock !== undefined, 'documentClock must be present')
 						this.maybeAssociateFileAssets()
 
