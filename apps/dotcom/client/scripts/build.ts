@@ -16,6 +16,45 @@ const commonSecurityHeaders = {
 	'Content-Security-Policy': csp,
 }
 
+// Social/link-unfurling crawlers that don't run JavaScript, so they never see the SPA's runtime
+// title updates. We route these to the multiplayer worker, which renders the board name into the
+// social preview metadata. Search-engine crawlers (Googlebot, bingbot) render JavaScript and are
+// intentionally excluded so they still index the real app.
+const SOCIAL_CRAWLER_USER_AGENTS = [
+	'facebookexternalhit',
+	'Facebot',
+	'Twitterbot',
+	'Slackbot',
+	'Slack-ImgProxy',
+	'Discordbot',
+	'LinkedInBot',
+	'WhatsApp',
+	'TelegramBot',
+	'redditbot',
+	'Pinterest',
+	'Embedly',
+	'Iframely',
+	'vkShare',
+	'W3C_Validator',
+	'SkypeUriPreview',
+	'Mastodon',
+	'Bluesky',
+]
+
+// The board routes whose social preview should include the board name, mapped to the URL prefix the
+// worker uses to look the name up. Only the bare board route is matched (not sub-routes like
+// `/f/:slug/history`).
+const SOCIAL_PREVIEW_PREFIXES = ['f', 'p', 's', 'r', 'ro', 'v']
+
+function loadSocialPreviewRoutes(multiplayerServerUrl: string) {
+	const userAgent = SOCIAL_CRAWLER_USER_AGENTS.join('|')
+	return SOCIAL_PREVIEW_PREFIXES.map((prefix) => ({
+		src: `^/${prefix}/([^/]+)/?$`,
+		has: [{ type: 'header' as const, key: 'user-agent', value: userAgent }],
+		dest: `${multiplayerServerUrl}/app/social-preview/${prefix}/$1`,
+	}))
+}
+
 // We load the list of routes that should be forwarded to our SPA's index.html here.
 // It uses a vitest snapshot file because deriving the set of routes from our
 // react-router config works fine in our test environment, but is tricky to get running in this
@@ -115,6 +154,9 @@ async function build() {
 						dest: `${multiplayerServerUrl}$1`,
 						check: true,
 					},
+					// route social/link-unfurling crawlers to the worker so board link previews
+					// include the board name. must come before the SPA routes below.
+					...loadSocialPreviewRoutes(multiplayerServerUrl),
 					{
 						src: '^/assets/(.*)$',
 						// we need `continue: true` here because we also want to apply the headers

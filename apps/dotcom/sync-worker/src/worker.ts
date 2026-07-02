@@ -37,6 +37,7 @@ import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
+import { getSocialPreview } from './routes/getSocialPreview'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
@@ -73,6 +74,9 @@ const router = createRouter<Environment>()
 	.all('*', blockUnknownOrigins)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
+	// Social preview metadata for board links. Vercel routes social crawlers (by user-agent) here so
+	// the unfurled link preview includes the board's name. See apps/dotcom/client/scripts/build.ts.
+	.get('/app/social-preview/:prefix/:slug', getSocialPreview)
 	.get(`/${ROOM_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_WRITE)
 	)
