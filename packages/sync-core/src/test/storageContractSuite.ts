@@ -61,6 +61,23 @@ export function registerStorageContractTests(factory: StorageContractFactory) {
 			expect(snapshot.documents.map((d) => d.lastChangedClock)).toEqual([0, 0])
 		})
 
+		it('getSnapshot with excludeTypes omits those record types from the snapshot (used to persist some types separately) without affecting the clock or schema', () => {
+			const storage = create(makeContractSnapshot(contractRecords, { documentClock: 5 }))
+			const full = storage.getSnapshot!()
+			expect(full.documents.map((d) => d.state.typeName).sort()).toEqual(['document', 'page'])
+
+			const filtered = storage.getSnapshot!({ excludeTypes: ['page'] })
+			expect(filtered.documents.map((d) => d.state.typeName)).toEqual(['document'])
+			// clock + schema are unaffected by the persistence-only filter
+			expect(filtered.documentClock).toBe(full.documentClock)
+			expect(filtered.schema).toEqual(full.schema)
+
+			// empty / omitted excludeTypes includes everything (backwards compatible)
+			expect(storage.getSnapshot!({ excludeTypes: [] }).documents.length).toBe(
+				full.documents.length
+			)
+		})
+
 		describe('transactions', () => {
 			it('[SS2] returns the callback result along with clock metadata', () => {
 				const storage = create(makeContractSnapshot(contractRecords, { documentClock: 7 }))

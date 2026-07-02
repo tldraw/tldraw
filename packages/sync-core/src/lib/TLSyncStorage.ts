@@ -2,7 +2,7 @@ import { StoreSchema, SynchronousStorage, UnknownRecord } from '@tldraw/store'
 import { assert, isEqual, objectMapEntriesIterable, objectMapValues } from '@tldraw/utils'
 import { TLStoreSnapshot } from 'tldraw'
 import { diffRecord, NetworkDiff, RecordOpType } from './diff'
-import { RoomSnapshot } from './TLSyncRoom'
+import { GetSnapshotOptions, RoomSnapshot } from './TLSyncRoom'
 
 /**
  * Transaction interface for storage operations. Provides methods to read and modify
@@ -83,7 +83,7 @@ export interface TLSyncStorage<R extends UnknownRecord> {
 
 	onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void
 
-	getSnapshot?(): RoomSnapshot
+	getSnapshot?(opts?: GetSnapshotOptions): RoomSnapshot
 }
 
 /**

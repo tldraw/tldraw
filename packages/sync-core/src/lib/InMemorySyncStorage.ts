@@ -9,7 +9,7 @@ import {
 } from '@tldraw/tlschema'
 import { assert, IndexKey, objectMapEntries, throttle } from '@tldraw/utils'
 import { MicrotaskNotifier } from './MicrotaskNotifier'
-import { RoomSnapshot } from './TLSyncRoom'
+import { GetSnapshotOptions, RoomSnapshot } from './TLSyncRoom'
 import {
 	TLSyncForwardDiff,
 	TLSyncStorage,
@@ -248,11 +248,16 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		{ leading: false }
 	)
 
-	getSnapshot(): RoomSnapshot {
+	getSnapshot(opts?: GetSnapshotOptions): RoomSnapshot {
+		const excludeTypes = opts?.excludeTypes
+		let documents = Array.from(this.documents.values())
+		if (excludeTypes?.length) {
+			documents = documents.filter((d) => !excludeTypes.includes(d.state.typeName))
+		}
 		return {
 			tombstoneHistoryStartsAtClock: this.tombstoneHistoryStartsAtClock.get(),
 			documentClock: this.documentClock.get(),
-			documents: Array.from(this.documents.values()),
+			documents,
 			tombstones: Object.fromEntries(this.tombstones.entries()),
 			schema: this.schema.get(),
 		}

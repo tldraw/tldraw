@@ -15,6 +15,7 @@ import {
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
 	TLCustomServerEvent,
+	TlaComment,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
@@ -28,6 +29,7 @@ import {
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
+	TLSyncForwardDiff,
 	TLSyncStorage,
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
@@ -36,9 +38,11 @@ import {
 import {
 	TLAsset,
 	TLAssetId,
+	TLComment,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
+	commentSchemaRecords,
 	createTLSchema,
 } from '@tldraw/tlschema'
 import {
@@ -128,6 +132,12 @@ function arrayBufferToBase64(ab: ArrayBuffer): string {
 
 const MB = 1024 * 1024
 
+// The schema for a file room. Includes the opt-in `comment` record type so comment records sync
+// through the room; comments are persisted in a separate R2 lane rather than the main document
+// blob (see persistToDatabase / loadFromDatabase). The same records must be registered on the
+// client (see useSync in the dotcom client) or the schemas won't match.
+const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
+
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
@@ -166,7 +176,7 @@ export class TLFileDurableObject extends DurableObject {
 						this.triggerPersist()
 					})
 					storage.transaction((txn) => {
-						createTLSchema().migrateStorage(txn)
+						fileSyncSchema.migrateStorage(txn)
 					})
 					return storage
 				})
@@ -191,6 +201,7 @@ export class TLFileDurableObject extends DurableObject {
 			this._room = this.getStorage().then(async (storage) => {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
 					storage,
+					schema: fileSyncSchema,
 					clientTimeout: Infinity,
 					onSessionSnapshot: (sessionId, snapshot) => {
 						const ws = this.sessionIdToWs.get(sessionId)
@@ -238,6 +249,11 @@ export class TLFileDurableObject extends DurableObject {
 							messageType: message.type,
 							messageLength: stringified.length,
 						})
+					},
+					// Push comment changes to Postgres as soon as they commit (not on the throttled R2
+					// persist) so Zero replicates them to the app-level view quickly.
+					onCommittedChanges: ({ diff }) => {
+						this.pushCommentChangesToPostgres(diff)
 					},
 				})
 
@@ -517,7 +533,7 @@ export class TLFileDurableObject extends DurableObject {
 			await this.r2.rooms.put(roomKey, dataText)
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {
-				loadSnapshotIntoStorage(txn, createTLSchema(), JSON.parse(dataText))
+				loadSnapshotIntoStorage(txn, fileSyncSchema, JSON.parse(dataText))
 			})
 
 			this.maybeAssociateFileAssets()
@@ -984,6 +1000,16 @@ export class TLFileDurableObject extends DurableObject {
 
 			if (roomFromBucket) {
 				const snapshot = (await roomFromBucket.json()) as RoomSnapshot
+
+				// Comments live in a separate R2 lane (see persistToDatabase). Load them and merge them
+				// back into the snapshot so they seed the room and hydrate to clients on connect.
+				const commentsFromBucket = await this.r2.rooms.get(`${key}/comments`)
+				if (commentsFromBucket) {
+					const commentDocs = (await commentsFromBucket.json()) as RoomSnapshot['documents']
+					snapshot.documents = [...snapshot.documents, ...commentDocs]
+					this._commentLaneWritten = true
+				}
+
 				loadTimer.report('db_load_total')
 
 				return {
@@ -1073,6 +1099,15 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	_lastPersistedClock: number | null = null
+
+	// Whether this room's separate comment R2 lane has ever been written (or existed on load). Used
+	// so we only write the lane once a room actually has comments, but still write an empty lane on
+	// later deletions (rather than leaving a stale object that would resurrect deleted comments).
+	private _commentLaneWritten = false
+
+	// Serializes comment → Postgres pushes so they land in order. Separate from executionQueue (the
+	// R2/main-persist queue) since comment pushes fire immediately on commit, not on the throttle.
+	private _commentPushQueue = new ExecutionQueue()
 
 	executionQueue = new ExecutionQueue()
 
@@ -1230,16 +1265,29 @@ export class TLFileDurableObject extends DurableObject {
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return
 
-						const snapshot = storage.getSnapshot()
-						assert(snapshot.documentClock !== undefined, 'documentClock must be present')
+						const fullSnapshot = storage.getSnapshot()
+						assert(fullSnapshot.documentClock !== undefined, 'documentClock must be present')
 						this.maybeAssociateFileAssets()
+
+						// Comments are persisted in a separate R2 lane, not the main document blob. Split
+						// them out in a single pass so the main snapshot (and Pierre) never carry comments.
+						const commentDocs: RoomSnapshot['documents'] = []
+						const mainDocs: RoomSnapshot['documents'] = []
+						for (const doc of fullSnapshot.documents) {
+							;(doc.state.typeName === 'comment' ? commentDocs : mainDocs).push(doc)
+						}
+						const snapshot: RoomSnapshot = { ...fullSnapshot, documents: mainDocs }
 
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 						await this._uploadSnapshotToR2(snapshot, key)
+						if (commentDocs.length > 0 || this._commentLaneWritten) {
+							await this.r2.rooms.put(`${key}/comments`, JSON.stringify(commentDocs))
+							this._commentLaneWritten = true
+						}
 						await this.persistToPierre(storage, snapshot)
 
 						this.logEvent({ type: 'persist_success', attempts: attempt })
-						this._lastPersistedClock = snapshot.documentClock
+						this._lastPersistedClock = fullSnapshot.documentClock
 						// Store the clock in DO storage so we can compare against SQLite on next load.
 						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
@@ -1419,6 +1467,66 @@ export class TLFileDurableObject extends DurableObject {
 		this.pierreState = {
 			headSha: headCommit.sha,
 			documentClock: meta.documentClock ?? 0,
+		}
+	}
+
+	/**
+	 * Projects comment changes from a committed diff into Postgres so Zero replicates them to the
+	 * app-level view. Fires immediately on commit (see onCommittedChanges), serialized and
+	 * best-effort — it must never block or fail the canvas commit. The authoritative comment content
+	 * still lives in the R2 comment lane; these rows are a derived copy.
+	 */
+	private pushCommentChangesToPostgres(diff: TLSyncForwardDiff<TLRecord>) {
+		const slug = this.documentInfo.slug
+		const upserts: TlaComment[] = []
+		for (const put of Object.values(diff.puts)) {
+			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string }
+			if (record.typeName !== 'comment') continue
+			upserts.push(this.commentRecordToRow(record as unknown as TLComment, slug))
+		}
+		// Deletes are ids only; comment ids are prefixed with `comment:`.
+		const deletedIds = diff.deletes.filter((id) => id.startsWith('comment:'))
+
+		if (upserts.length === 0 && deletedIds.length === 0) return
+
+		this._commentPushQueue
+			.push(async () => {
+				if (upserts.length > 0) {
+					await this.db
+						.insertInto('comment')
+						.values(upserts)
+						.onConflict((oc) =>
+							oc.column('id').doUpdateSet((eb) => ({
+								text: eb.ref('excluded.text'),
+								shapeId: eb.ref('excluded.shapeId'),
+								updatedAt: eb.ref('excluded.updatedAt'),
+							}))
+						)
+						.execute()
+				}
+				if (deletedIds.length > 0) {
+					await this.db.deleteFrom('comment').where('id', 'in', deletedIds).execute()
+				}
+			})
+			.catch((e) => {
+				this.logEvent({
+					type: 'room',
+					roomId: slug,
+					name: 'failed_persist_comments_to_db',
+				})
+				this.reportError(e)
+			})
+	}
+
+	private commentRecordToRow(record: TLComment, fileId: string): TlaComment {
+		return {
+			id: record.id,
+			fileId,
+			authorId: record.authorId,
+			shapeId: record.anchor.type === 'shape' ? record.anchor.shapeId : '',
+			text: record.text,
+			createdAt: record.createdAt,
+			updatedAt: record.updatedAt,
 		}
 	}
 

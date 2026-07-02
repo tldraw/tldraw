@@ -100,6 +100,11 @@ export class DurableObjectSqliteSyncWrapper implements TLSyncSqliteWrapper {
 // @internal
 export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): NetworkDiff<R> | null;
 
+// @public
+export interface GetSnapshotOptions {
+    excludeTypes?: readonly string[];
+}
+
 // @internal
 export function getTlsyncProtocolVersion(): number;
 
@@ -119,7 +124,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
     // (undocumented)
     getClock(): number;
     // (undocumented)
-    getSnapshot(): RoomSnapshot;
+    getSnapshot(opts?: GetSnapshotOptions): RoomSnapshot;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
     // @internal (undocumented)
@@ -330,7 +335,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
     // @internal (undocumented)
     _getSchema(): SerializedSchema;
     // (undocumented)
-    getSnapshot(): RoomSnapshot;
+    getSnapshot(opts?: GetSnapshotOptions): RoomSnapshot;
     // @internal (undocumented)
     _getTombstoneHistoryStartsAtClock(): number;
     static hasBeenInitialized(storage: TLSyncSqliteWrapper): boolean;
@@ -449,7 +454,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     closeSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     getCurrentDocumentClock(): number;
     // @deprecated
-    getCurrentSnapshot(): RoomSnapshot;
+    getCurrentSnapshot(opts?: GetSnapshotOptions): RoomSnapshot;
     getNumActiveSessions(): number;
     // @internal
     getPresenceRecords(): Record<string, UnknownRecord>;
@@ -512,6 +517,10 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
         meta: SessionMeta;
         sessionId: string;
         stringified: string;
+    }) => void;
+    onCommittedChanges?: (args: {
+        diff: TLSyncForwardDiff<R>;
+        documentClock: number;
     }) => void;
     // @deprecated (undocumented)
     onDataChange?(): void;
@@ -653,6 +662,10 @@ export interface TLSyncLog {
 // @internal
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     constructor(opts: {
+        onCommittedChanges?(args: {
+            diff: TLSyncForwardDiff<R>;
+            documentClock: number;
+        }): void;
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;
@@ -736,7 +749,7 @@ export interface TLSyncStorage<R extends UnknownRecord> {
     // (undocumented)
     getClock(): number;
     // (undocumented)
-    getSnapshot?(): RoomSnapshot;
+    getSnapshot?(opts?: GetSnapshotOptions): RoomSnapshot;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
     // (undocumented)

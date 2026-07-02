@@ -121,6 +121,21 @@ export interface RoomSnapshot {
 }
 
 /**
+ * Options for {@link TLSyncStorage.getSnapshot}.
+ *
+ * @public
+ */
+export interface GetSnapshotOptions {
+	/**
+	 * Record type names to exclude from the snapshot's `documents`. Use this to persist
+	 * certain record types in a separate lane (e.g. comments) while keeping them out of
+	 * the main persisted document. Only affects the returned snapshot — records of these
+	 * types are still synced/broadcast to clients and hydrated on connect. Defaults to none.
+	 */
+	excludeTypes?: readonly string[]
+}
+
+/**
  * A collaborative workspace that manages multiple client sessions and synchronizes
  * document changes between them. The room serves as the authoritative source for
  * all document state and handles conflict resolution, schema migrations, and
@@ -240,18 +255,27 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private log?: TLSyncLog
 	public readonly schema: StoreSchema<R, any>
 	private onPresenceChange?(): void
+	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly sessionIdleTimeout: number
 
 	constructor(opts: {
 		log?: TLSyncLog
 		schema: StoreSchema<R, any>
 		onPresenceChange?(): void
+		/**
+		 * Called once after a client push commits, with the committed document diff. Fires for
+		 * local and remote pushes. Use this to react to document changes (e.g. persist certain
+		 * record types to a separate lane, or project them to an external store) as soon as they
+		 * commit. Best-effort — do not throw; do not block.
+		 */
+		onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
 		this.schema = opts.schema
 		this.log = opts.log
 		this.onPresenceChange = opts.onPresenceChange
+		this.onCommittedChanges = opts.onCommittedChanges
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
@@ -1270,6 +1294,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (result.presenceChanges.diffs) {
 			queueMicrotask(() => {
 				this.onPresenceChange?.()
+			})
+		}
+
+		if (result.docChanges.diffs && this.onCommittedChanges) {
+			const diff = result.docChanges.diffs.diff
+			queueMicrotask(() => {
+				try {
+					this.onCommittedChanges?.({ diff, documentClock })
+				} catch (e) {
+					this.log?.error?.('onCommittedChanges threw', e)
+				}
 			})
 		}
 	}

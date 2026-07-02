@@ -7,7 +7,7 @@ import {
 	MAX_TOMBSTONES,
 } from './InMemorySyncStorage'
 import { MicrotaskNotifier } from './MicrotaskNotifier'
-import { RoomSnapshot } from './TLSyncRoom'
+import { GetSnapshotOptions, RoomSnapshot } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	TLSyncForwardDiff,
@@ -469,11 +469,16 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 		{ leading: false }
 	)
 
-	getSnapshot(): RoomSnapshot {
+	getSnapshot(opts?: GetSnapshotOptions): RoomSnapshot {
+		const excludeTypes = opts?.excludeTypes
+		let documents = Array.from(this._iterateDocuments())
+		if (excludeTypes?.length) {
+			documents = documents.filter((d) => !excludeTypes.includes(d.state.typeName))
+		}
 		return {
 			tombstoneHistoryStartsAtClock: this._getTombstoneHistoryStartsAtClock(),
 			documentClock: this.getClock(),
-			documents: Array.from(this._iterateDocuments()),
+			documents,
 			tombstones: Object.fromEntries(this._iterateTombstones()),
 			schema: this._getSchema(),
 		}
