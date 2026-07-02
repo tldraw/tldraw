@@ -1132,6 +1132,54 @@ describe('When double clicking the selection edge', () => {
 		expect(editor.getEditingShapeId()).toBe(null)
 	})
 
+	it('drills through nested groups and edits the leaf consistently at any click cadence', () => {
+		// Regression: at "fast" and "slow" cadences the final click of a
+		// drill-through reaches PointingShape and edits, but at "moderate"
+		// cadences (gaps between multiClickDurationMs and doubleClickDurationMs)
+		// the ClickManager re-parses the final click as a double-click, which
+		// used to be swallowed as a no-op drill. All cadences must end up
+		// editing the leaf.
+		// page -> outerGroup -> { innerGroup -> { childA, childB }, sibling }
+		const setup = () => {
+			const childAId = createShapeId()
+			const childBId = createShapeId()
+			const siblingId = createShapeId()
+			const innerGroupId = createShapeId()
+			const outerGroupId = createShapeId()
+			editor
+				.selectAll()
+				.deleteShapes(editor.getSelectedShapeIds())
+				.selectNone()
+				.createShapes([
+					{ id: childAId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100, fill: 'solid' } },
+					{ id: childBId, type: 'geo', x: 220, y: 100, props: { w: 100, h: 100, fill: 'solid' } },
+					{ id: siblingId, type: 'geo', x: 500, y: 100, props: { w: 100, h: 100, fill: 'solid' } },
+				])
+				.groupShapes([childAId, childBId], { groupId: innerGroupId })
+				.groupShapes([innerGroupId, siblingId], { groupId: outerGroupId })
+				.selectNone()
+			return { childAId, innerGroupId }
+		}
+
+		for (const gap of [0, 250, 300, 500]) {
+			const { childAId, innerGroupId } = setup()
+			const shape = editor.getShape(childAId)!
+			for (let i = 0; i < 4; i++) {
+				editor.pointerDown(150, 150, { target: 'shape', shape })
+				editor.pointerUp(150, 150, { target: 'shape', shape })
+				if (i < 3) vi.advanceTimersByTime(gap)
+			}
+			expect({
+				gap,
+				selected: editor.getOnlySelectedShapeId(),
+				focused: editor.getFocusedGroupId(),
+				editing: editor.getEditingShapeId(),
+			}).toEqual({ gap, selected: childAId, focused: innerGroupId, editing: childAId })
+			// Reset click state between cadences.
+			editor.cancelDoubleClick()
+		}
+	})
+
 	it('Resets the cursor to default when entering editing mode from a resize handle', () => {
 		const id = createShapeId()
 		editor

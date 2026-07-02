@@ -368,9 +368,10 @@ export class Idle extends StateNode {
 						// drilled into yet (it's outside the focused group and
 						// not an ancestor of it). The user's double-click is a
 						// drill action, not an edit action: drill one level and
-						// stop.
-						this.drillIntoGroupOnDoubleClick(hitShape)
-						return
+						// stop. If there was nothing left to drill (already
+						// selected), fall through to the re-dispatch below so the
+						// shape can be edited.
+						if (this.drillIntoGroupOnDoubleClick(hitShape)) return
 					}
 
 					// Either there's no group parent, or the group parent is
@@ -406,9 +407,9 @@ export class Idle extends StateNode {
 				) {
 					// The shape is a child of a group the user hasn't drilled into
 					// yet. Treat the double-click as a drill action — drill one
-					// level — but don't start editing.
-					this.drillIntoGroupOnDoubleClick(onlySelectedShape)
-					break
+					// level — but don't start editing. If there was nothing left
+					// to drill (already selected), fall through to editing.
+					if (this.drillIntoGroupOnDoubleClick(onlySelectedShape)) break
 				}
 
 				const util = this.editor.getShapeUtil(onlySelectedShape)
@@ -486,9 +487,9 @@ export class Idle extends StateNode {
 				) {
 					// The shape is a child of a group the user hasn't drilled into
 					// yet. Treat the double-click as a drill action — drill one
-					// level — but don't start editing.
-					this.drillIntoGroupOnDoubleClick(shape)
-					break
+					// level — but don't start editing. If there was nothing left
+					// to drill (already selected), fall through to editing.
+					if (this.drillIntoGroupOnDoubleClick(shape)) break
 				}
 
 				if (util.onDoubleClick) {
@@ -811,8 +812,9 @@ export class Idle extends StateNode {
 	 * The focused group follows the selection automatically (see the
 	 * selection-change reactor in `Editor`), so we only need to select.
 	 */
-	private drillIntoGroupOnDoubleClick(hitShape: TLShape) {
-		const snapshotFocus = this.focusedGroupIdBeforePointerDown ?? this.editor.getCurrentPageId()
+	private drillIntoGroupOnDoubleClick(hitShape: TLShape): boolean {
+		const pageId = this.editor.getCurrentPageId()
+		const snapshotFocus = this.focusedGroupIdBeforePointerDown ?? pageId
 
 		// The outermost *selectable group* ancestor of `hitShape` below the
 		// captured focus — i.e. what a single click selects. We count levels by
@@ -824,7 +826,7 @@ export class Idle extends StateNode {
 			if (this.editor.isShapeOfType(node, 'group')) outermostGroup = node
 			node = this.editor.getShapeParent(node)
 		}
-		if (!outermostGroup) return
+		if (!outermostGroup) return true
 
 		// One level deeper than the single-click selection: the child of that
 		// group on the path down to `hitShape` (which is `hitShape` itself when
@@ -835,7 +837,27 @@ export class Idle extends StateNode {
 		if (!this.editor.getSelectedShapeIds().includes(target.id)) {
 			this.editor.markHistoryStoppingPoint('drilling into group')
 			this.editor.select(target.id)
+			return true
 		}
+
+		// The drill target is already selected — there's nothing left to drill
+		// at this step. If the double-click has reached the actual clicked shape
+		// *and* the gesture began already drilled into a group, treat it as an
+		// edit: fall through so the caller can start editing. This keeps a
+		// drill-through consistent across click cadences — at "fast"/"slow"
+		// speeds the final click reaches `PointingShape` and edits, but at
+		// "moderate" speeds the ClickManager re-parses it as a double-click,
+		// which would otherwise be swallowed here as a no-op.
+		//
+		// When the gesture began from outside every group (focus was the page),
+		// this is instead a first double-click into the group, which should only
+		// select the shape (see issue #8898), so we keep the no-op.
+		const startedDrilledIntoGroup = snapshotFocus !== pageId
+		if (target.id === hitShape.id && startedDrilledIntoGroup) {
+			return false
+		}
+
+		return true
 	}
 
 	/**
