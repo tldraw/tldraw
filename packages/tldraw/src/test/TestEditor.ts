@@ -216,21 +216,8 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	/**
-	 * If you need to trigger a double click, you can either mock the implementation of one of these
-	 * methods, or call mockRestore() to restore the actual implementation (e.g.
-	 * _transformPointerDownSpy.mockRestore())
-	 */
-	_transformPointerDownSpy = vi
-		.spyOn(this._clickManager, 'handlePointerEvent')
-		.mockImplementation((info) => {
-			return info
-		})
-	_transformPointerUpSpy = vi
-		.spyOn(this._clickManager, 'handlePointerEvent')
-		.mockImplementation((info) => {
-			return info
-		})
+	_transformPointerDownSpy = vi.spyOn(this._clickManager, 'handlePointerEvent')
+	_transformPointerUpSpy = vi.spyOn(this._clickManager, 'handlePointerEvent')
 
 	/* ---- Delegated to Driver ---- */
 
@@ -308,6 +295,12 @@ export class TestEditor extends Editor {
 	}
 	doubleClick(...args: Parameters<Driver['doubleClick']>) {
 		this.controller.doubleClick(...args)
+		// Tests run with fake timers, so the ClickManager's double-click timeout
+		// never fires on its own. A `doubleClick()` is a complete gesture, so
+		// reset the click state afterwards; otherwise a following pointer event
+		// is coalesced into this double-click sequence (e.g. a `pointerDown`
+		// right after `doubleClick()` would be treated as a triple click).
+		this.cancelDoubleClick()
 		return this
 	}
 	keyPress(...args: Parameters<Driver['keyPress']>) {

@@ -1,11 +1,14 @@
 import {
+	ClickManager,
 	Editor,
 	StateNode,
 	TLAdjacentDirection,
 	TLClickEventInfo,
 	TLKeyboardEventInfo,
+	TLPageId,
 	TLPointerEventInfo,
 	TLShape,
+	TLShapeId,
 	Vec,
 	VecLike,
 	createShapeId,
@@ -41,6 +44,15 @@ export class Idle extends StateNode {
 
 	selectedShapesOnKeyDown: TLShape[] = []
 
+	// Snapshot of `getFocusedGroupId()` captured at the first pointer-down of
+	// the current potential multi-click sequence. Used by `onDoubleClick` to
+	// distinguish "user was already drilled into the group" from "user is
+	// drilling in right now". Without this snapshot the two cases look
+	// identical at `onDoubleClick` time, because the second click's
+	// `onPointerUp` drills in and sets the focused group before the synthetic
+	// `double_click` event fires.
+	private focusedGroupIdBeforePointerDown: TLShapeId | TLPageId | null = null
+
 	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
@@ -67,6 +79,21 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
+		// Snapshot the focused group id at the *start* of a potential
+		// multi-click sequence so that `onDoubleClick` can later distinguish
+		// "user was already drilled into the group" from "user is drilling in
+		// right now". The drilling happens in `pointing_shape.onPointerUp`,
+		// after this point, and would otherwise make the two cases
+		// indistinguishable.
+		//
+		// `ClickManager.handlePointerEvent` has already advanced the click
+		// state for this pointer-down before we get here, so `pendingDouble`
+		// means this *is* the first click of a fresh sequence (idle ->
+		// pendingDouble). Subsequent clicks would be pendingTriple or later.
+		if (this.getClickManager().clickState === 'pendingDouble') {
+			this.focusedGroupIdBeforePointerDown = this.editor.getFocusedGroupId()
+		}
+
 		switch (info.target) {
 			case 'canvas': {
 				// Check overlays first — if we hit an overlay, re-dispatch as an overlay event
@@ -310,7 +337,7 @@ export class Idle extends StateNode {
 
 				// todo
 				// double clicking on the middle of a hollow geo shape without a label, or
-				// over the label of a hollwo shape that has a label, should start editing
+				// over the label of a hollow shape that has a label, should start editing
 				// that shape's label. We can't support "double click anywhere inside"
 				// of the shape yet because that also creates text shapes, and can produce
 				// unexpected results when working "inside of" a hollow shape.
@@ -329,27 +356,27 @@ export class Idle extends StateNode {
 						// Probably select the shape
 						selectOnCanvasPointerUp(this.editor, info)
 						return
-					} else {
-						const parent = this.editor.getShape(hitShape.parentId)
-						if (parent && this.editor.isShapeOfType(parent, 'group')) {
-							// The shape is the direct child of a group. If the group is
-							// selected, then we can select the shape.
-							const focusedGroupId = this.editor.getFocusedGroupId()
-							if (focusedGroupId && parent.id === focusedGroupId) {
-								// If the group is the focus layer id, then we can double click into it as usual.
-								// So here's a noop, double click on the shape as normal below
-							} else {
-								// The shape is the child of some group other than our current
-								// focus layer (ie the canvas or some other group). We should probably select the group instead.
-								selectOnCanvasPointerUp(this.editor, info)
-								return
-							}
-						}
 					}
 
-					// double click on the shape. We'll start editing the
-					// shape if it's editable or else do a double click on
-					// the canvas.
+					const parent = this.editor.getShape(hitShape.parentId)
+					if (
+						parent &&
+						this.editor.isShapeOfType(parent, 'group') &&
+						!this.isGroupInPreviousDrillContext(parent.id)
+					) {
+						// The shape is a child of a group that the user hasn't
+						// drilled into yet (it's outside the focused group and
+						// not an ancestor of it). The user's double-click is a
+						// drill action, not an edit action: drill one level and
+						// stop. If there was nothing left to drill (already
+						// selected), fall through to the re-dispatch below so the
+						// shape can be edited.
+						if (this.drillIntoGroupOnDoubleClick(hitShape)) return
+					}
+
+					// Either there's no group parent, or the group parent is
+					// part of the user's drill context. Re-dispatch as 'shape'
+					// so the editing/cropping logic can run.
 					this.onDoubleClick({
 						...info,
 						shape: hitShape,
@@ -368,65 +395,80 @@ export class Idle extends StateNode {
 			case 'selection': {
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 
-				if (onlySelectedShape) {
-					const util = this.editor.getShapeUtil(onlySelectedShape)
-					const isEdge =
-						info.handle === 'right' ||
-						info.handle === 'left' ||
-						info.handle === 'top' ||
-						info.handle === 'bottom'
-					const isCorner =
-						info.handle === 'top_left' ||
-						info.handle === 'top_right' ||
-						info.handle === 'bottom_right' ||
-						info.handle === 'bottom_left'
+				if (!onlySelectedShape) {
+					break
+				}
 
-					if (this.editor.getIsReadonly()) {
-						// includes readonly check
-						if (
-							this.editor.canEditShape(onlySelectedShape, {
-								type: isCorner
-									? 'double-click-corner'
-									: isEdge
-										? 'double-click-edge'
-										: 'double-click',
-							})
-						) {
-							this.startEditingShape(onlySelectedShape, info, true /* select all */)
-						}
-						break
-					}
+				const parent = this.editor.getShapeParent(onlySelectedShape)
+				if (
+					parent &&
+					this.editor.isShapeOfType(parent, 'group') &&
+					!this.isGroupInPreviousDrillContext(parent.id)
+				) {
+					// The shape is a child of a group the user hasn't drilled into
+					// yet. Treat the double-click as a drill action — drill one
+					// level — but don't start editing. If there was nothing left
+					// to drill (already selected), fall through to editing.
+					if (this.drillIntoGroupOnDoubleClick(onlySelectedShape)) break
+				}
 
-					// Test edges for an onDoubleClickEdge handler
-					if (isEdge) {
-						const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
-						if (change) {
-							this.editor.markHistoryStoppingPoint('double click edge')
-							this.editor.updateShapes([change])
-							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
-							return
-						}
-					}
+				const util = this.editor.getShapeUtil(onlySelectedShape)
+				const isEdge =
+					info.handle === 'right' ||
+					info.handle === 'left' ||
+					info.handle === 'top' ||
+					info.handle === 'bottom'
+				const isCorner =
+					info.handle === 'top_left' ||
+					info.handle === 'top_right' ||
+					info.handle === 'bottom_right' ||
+					info.handle === 'bottom_left'
 
-					if (isCorner) {
-						const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
-						if (change) {
-							this.editor.markHistoryStoppingPoint('double click corner')
-							this.editor.updateShapes([change])
-							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
-							return
-						}
-					}
-
-					// For corners OR edges but NOT rotation corners
-					if (this.editor.canCropShape(onlySelectedShape)) {
-						this.parent.transition('crop', info)
-						return
-					}
-
-					if (this.editor.canEditShape(onlySelectedShape)) {
+				if (this.editor.getIsReadonly()) {
+					// includes readonly check
+					if (
+						this.editor.canEditShape(onlySelectedShape, {
+							type: isCorner
+								? 'double-click-corner'
+								: isEdge
+									? 'double-click-edge'
+									: 'double-click',
+						})
+					) {
 						this.startEditingShape(onlySelectedShape, info, true /* select all */)
 					}
+					break
+				}
+
+				// Test edges for an onDoubleClickEdge handler
+				if (isEdge) {
+					const change = util.onDoubleClickEdge?.(onlySelectedShape, info)
+					if (change) {
+						this.editor.markHistoryStoppingPoint('double click edge')
+						this.editor.updateShapes([change])
+						kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
+						return
+					}
+				}
+
+				if (isCorner) {
+					const change = util.onDoubleClickCorner?.(onlySelectedShape, info)
+					if (change) {
+						this.editor.markHistoryStoppingPoint('double click corner')
+						this.editor.updateShapes([change])
+						kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
+						return
+					}
+				}
+
+				// For corners OR edges but NOT rotation corners
+				if (this.editor.canCropShape(onlySelectedShape)) {
+					this.parent.transition('crop', info)
+					return
+				}
+
+				if (this.editor.canEditShape(onlySelectedShape)) {
+					this.startEditingShape(onlySelectedShape, info, true /* select all */)
 				}
 				break
 			}
@@ -436,6 +478,19 @@ export class Idle extends StateNode {
 
 				// Allow playing videos and embeds
 				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
+
+				const parent = this.editor.getShapeParent(shape)
+				if (
+					parent &&
+					this.editor.isShapeOfType(parent, 'group') &&
+					!this.isGroupInPreviousDrillContext(parent.id)
+				) {
+					// The shape is a child of a group the user hasn't drilled into
+					// yet. Treat the double-click as a drill action — drill one
+					// level — but don't start editing. If there was nothing left
+					// to drill (already selected), fall through to editing.
+					if (this.drillIntoGroupOnDoubleClick(shape)) break
+				}
 
 				if (util.onDoubleClick) {
 					// Call the shape's double click handler
@@ -698,6 +753,124 @@ export class Idle extends StateNode {
 				break
 			}
 		}
+	}
+
+	private getClickManager(): ClickManager {
+		// `_clickManager` is a protected property of `Editor`. We need to read
+		// its click state to detect the start of a multi-click sequence; the
+		// `ClickManager` class itself is exported as public API. See the
+		// snapshot logic in `onPointerDown` / `onDoubleClick` for the why.
+		return (this.editor as unknown as { _clickManager: ClickManager })._clickManager
+	}
+
+	/**
+	 * Is `groupId` part of the user's drill context as of the start of this
+	 * click sequence? The drill context is the focused group plus all of
+	 * its group ancestors — every group the user has actually "entered". A
+	 * shape whose parent is in that set responds to a double-click like a
+	 * top-level shape (edit, crop, fire `onDoubleClick*`).
+	 *
+	 * Descendants of the focused group are *not* in the drill context: each
+	 * level of drilling is its own click action, so a double-click on a
+	 * deeper-nested shape drills one level rather than skipping straight to
+	 * editing. That matches how every other interaction in the select tool
+	 * treats drilling.
+	 *
+	 * We compare against `focusedGroupIdBeforePointerDown` rather than the
+	 * current `getFocusedGroupId()` because the focused group changes during
+	 * a drilling click sequence — see the snapshot in `onPointerDown`.
+	 */
+	private isGroupInPreviousDrillContext(groupId: TLShapeId): boolean {
+		const focusedGroupId = this.focusedGroupIdBeforePointerDown
+		if (focusedGroupId === null) return false
+		if (focusedGroupId === groupId) return true
+		// `getShape` returns `undefined` for a `TLPageId`, which means we're
+		// not drilled into any group and the drill context is empty.
+		const focusedGroup = this.editor.getShape(focusedGroupId as TLShapeId)
+		if (!focusedGroup) return false
+		// Sibling-at-current-level case: `groupId` is an ancestor of the
+		// focused group, so a shape whose parent is `groupId` is at the
+		// user's effective level (e.g. siblings of the inner focused group).
+		return this.editor.hasAncestor(focusedGroup, groupId)
+	}
+
+	/**
+	 * Drill exactly one level into a group on double-click: select the shape
+	 * one level deeper than a single click would.
+	 *
+	 * A single click from a given focus selects that focus's child on the path
+	 * down to `hitShape`; a double-click should select one level deeper. We
+	 * compute both **structurally** from the focused group captured at the
+	 * start of the click sequence (`focusedGroupIdBeforePointerDown`) rather
+	 * than from the live focused group. The live focus is unreliable here: the
+	 * first click of the double-click has already drilled and moved the focused
+	 * group, so reading it now (or asking `getOutermostSelectableShape`, which
+	 * reads it internally) drills an inconsistent number of levels — e.g. a
+	 * shape nested two groups below the focused group would jump straight to the
+	 * leaf instead of stepping in one level.
+	 *
+	 * The focused group follows the selection automatically (see the
+	 * selection-change reactor in `Editor`), so we only need to select.
+	 */
+	private drillIntoGroupOnDoubleClick(hitShape: TLShape): boolean {
+		const pageId = this.editor.getCurrentPageId()
+		const snapshotFocus = this.focusedGroupIdBeforePointerDown ?? pageId
+
+		// The outermost *selectable group* ancestor of `hitShape` below the
+		// captured focus — i.e. what a single click selects. We count levels by
+		// group, not raw parent, so non-group parents (e.g. frames) don't act as
+		// a drill level.
+		let outermostGroup: TLShape | null = null
+		let node = this.editor.getShapeParent(hitShape)
+		while (node && node.id !== snapshotFocus) {
+			if (this.editor.isShapeOfType(node, 'group')) outermostGroup = node
+			node = this.editor.getShapeParent(node)
+		}
+		if (!outermostGroup) return true
+
+		// One level deeper than the single-click selection: the child of that
+		// group on the path down to `hitShape` (which is `hitShape` itself when
+		// the group directly contains it, or the next nested group when it
+		// doesn't).
+		const target = this.getChildOnPathToShape(outermostGroup.id, hitShape) ?? hitShape
+
+		if (!this.editor.getSelectedShapeIds().includes(target.id)) {
+			this.editor.markHistoryStoppingPoint('drilling into group')
+			this.editor.select(target.id)
+			return true
+		}
+
+		// The drill target is already selected — there's nothing left to drill
+		// at this step. If the double-click has reached the actual clicked shape
+		// *and* the gesture began already drilled into a group, treat it as an
+		// edit: fall through so the caller can start editing. This keeps a
+		// drill-through consistent across click cadences — at "fast"/"slow"
+		// speeds the final click reaches `PointingShape` and edits, but at
+		// "moderate" speeds the ClickManager re-parses it as a double-click,
+		// which would otherwise be swallowed here as a no-op.
+		//
+		// When the gesture began from outside every group (focus was the page),
+		// this is instead a first double-click into the group, which should only
+		// select the shape (see issue #8898), so we keep the no-op.
+		const startedDrilledIntoGroup = snapshotFocus !== pageId
+		if (target.id === hitShape.id && startedDrilledIntoGroup) {
+			return false
+		}
+
+		return true
+	}
+
+	/**
+	 * Returns the ancestor-or-self of `shape` whose direct parent is
+	 * `ancestorId`, or `null` if `ancestorId` is not an ancestor of `shape`.
+	 */
+	private getChildOnPathToShape(ancestorId: TLShapeId | TLPageId, shape: TLShape): TLShape | null {
+		let node: TLShape | undefined = shape
+		while (node) {
+			if (node.parentId === ancestorId) return node
+			node = this.editor.getShapeParent(node)
+		}
+		return null
 	}
 
 	private startEditingShape(

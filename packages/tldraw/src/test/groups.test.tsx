@@ -955,10 +955,14 @@ describe('the select tool', () => {
 		editor.pointerDown(0, 0, ids.boxA).pointerUp(0, 0)
 		expect(onlySelectedId()).toBe(groupCId)
 		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
+		editor.cancelDoubleClick()
+
 		editor.pointerDown(0, 0, ids.boxA)
 		editor.pointerUp(0, 0, ids.boxA)
 		expect(onlySelectedId()).toBe(groupAId)
 		expect(editor.getFocusedGroupId()).toBe(groupCId)
+		editor.cancelDoubleClick()
+
 		editor.pointerDown(0, 0, ids.boxA).pointerUp(0, 0, ids.boxA)
 		expect(onlySelectedId()).toBe(ids.boxA)
 		expect(editor.getFocusedGroupId()).toBe(groupAId)
