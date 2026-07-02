@@ -27,7 +27,11 @@ import {
 	useColorMode,
 } from '@tldraw/editor'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
-import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
+import {
+	ShapeOptionsWithDisplayValues,
+	getDimensionDisplayValues,
+	getDisplayValues,
+} from '../shared/getDisplayValues'
 import { PathBuilder, PathBuilderGeometry2d } from '../shared/PathBuilder'
 
 const handlesCache = new WeakCache<TLLineShape['props'], TLHandle[]>()
@@ -224,7 +228,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override getIndicatorPath(shape: TLLineShape): Path2D {
-		const strokeWidth = getDisplayValues(this, shape).strokeWidth * shape.props.scale
+		const strokeWidth = getDimensionDisplayValues(this, shape).strokeWidth * shape.props.scale
 		const path = getPathForLineShape(shape)
 		const { dash } = shape.props
 

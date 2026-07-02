@@ -28,7 +28,7 @@ import { getStroke } from '../shared/freehand/getStroke'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
-import { getDisplayValues } from '../shared/getDisplayValues'
+import { getDimensionDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
 
 /** @public */
@@ -102,7 +102,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	getGeometry(shape: TLHighlightShape) {
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		if (getIsDot(shape)) {
 			return new Circle2d({
@@ -164,7 +164,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override getIndicatorPath(shape: TLHighlightShape): Path2D {
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 		const strokeWidth = dv.strokeWidth * shape.props.scale
 		const zoomLevel = this.editor.getEfficientZoomLevel()
 		const forceSolid = strokeWidth / zoomLevel < 1.5

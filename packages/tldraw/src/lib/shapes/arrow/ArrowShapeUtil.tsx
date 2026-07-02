@@ -59,7 +59,7 @@ import {
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getThemeFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
-import { getDisplayValues } from '../shared/getDisplayValues'
+import { getDimensionDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { PathBuilder } from '../shared/PathBuilder'
 import { PatternFill } from '../shared/PatternFill'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
@@ -884,7 +884,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const info = getArrowInfo(this.editor, shape)
 		if (!info) return undefined
 
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, info?.bindings)

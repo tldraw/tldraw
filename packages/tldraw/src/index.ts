@@ -268,6 +268,7 @@ export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
 export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
 export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
 export {
+	getDimensionDisplayValues,
 	getDisplayValues,
 	type ShapeOptionsWithDisplayValues,
 } from './lib/shapes/shared/getDisplayValues'

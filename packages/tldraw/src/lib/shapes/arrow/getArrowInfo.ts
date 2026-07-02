@@ -6,7 +6,7 @@ import {
 } from '@tldraw/editor'
 import { createComputedCache } from '@tldraw/store'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
-import { getDisplayValues } from '../shared/getDisplayValues'
+import { getDimensionDisplayValues } from '../shared/getDisplayValues'
 import { TLArrowInfo } from './arrow-types'
 import { getCurvedArrowInfo } from './curved-arrow'
 import { getElbowArrowInfo } from './elbow/getElbowArrowInfo'
@@ -20,7 +20,7 @@ const arrowInfoCache = createComputedCache<Editor, TLArrowInfo, TLArrowShape>(
 		const util = editor.getShapeUtil(shape)
 		const sw =
 			'getDisplayValues' in util.options
-				? (getDisplayValues(util as any, shape) as { strokeWidth: number }).strokeWidth
+				? (getDimensionDisplayValues(util as any, shape) as { strokeWidth: number }).strokeWidth
 				: editor.getCurrentTheme().strokeWidth * STROKE_SIZES[shape.props.size]
 
 		if (shape.props.kind === 'elbow') {

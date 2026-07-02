@@ -49,7 +49,11 @@ import {
 	getFontFamily,
 } from '../shared/default-shape-constants'
 import { DefaultFontFaces, getThemeFontFaces } from '../shared/defaultFonts'
-import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
+import {
+	ShapeOptionsWithDisplayValues,
+	getDimensionDisplayValues,
+	getDisplayValues,
+} from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
@@ -186,7 +190,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const { labelHeight, labelWidth } = this.getLabelSize(shape)
 		const { scale } = shape.props
 
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 
 		const lh = labelHeight * scale
 		const lw = labelWidth * scale
@@ -227,7 +231,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const zoom = this.editor.getEfficientZoomLevel()
 		if (zoom * scale < 0.25) return []
 
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 		const nh = getNoteHeight(shape, dv.noteHeight)
 		const nw = dv.noteWidth * scale
 		const offset = (CLONE_HANDLE_MARGIN / zoom) * scale
@@ -421,7 +425,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override getIndicatorPath(shape: TLNoteShape): Path2D {
 		const { scale } = shape.props
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 		const path = new Path2D()
 		path.rect(0, 0, dv.noteWidth * scale, getNoteHeight(shape, dv.noteHeight))
 		return path
@@ -562,7 +566,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	 * Get the growY and fontSizeAdjustment for a shape.
 	 */
 	private getNoteSizeAdjustments(shape: TLNoteShape) {
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 		const { labelHeight, fontSizeAdjustment } = this.getLabelSize(shape)
 		// When the label height is more than the height of the shape, we add extra height to it
 		const growY = Math.max(0, labelHeight - dv.noteHeight)
@@ -597,7 +601,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	 * Expensively measure the label size for a note shape.
 	 */
 	private measureNoteLabelSize(shape: TLNoteShape) {
-		const dv = getDisplayValues(this, shape)
+		const dv = getDimensionDisplayValues(this, shape)
 		const { richText } = shape.props
 
 		if (isEmptyRichText(richText)) {
@@ -703,7 +707,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				)
 
 				const noteUtil = editor.getShapeUtil(shape) as NoteShapeUtil
-				const dv = getDisplayValues(noteUtil, shape)
+				const dv = getDimensionDisplayValues(noteUtil, shape)
 
 				const noteOffset = isTab
 					? dv.noteWidth + editor.options.adjacentShapeMargin
