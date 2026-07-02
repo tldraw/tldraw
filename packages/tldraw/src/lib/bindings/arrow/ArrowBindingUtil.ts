@@ -123,14 +123,13 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 
 	let nextParentId: TLParentId
 	if (startShape && endShape) {
-		// If both ends are bound to the same frame-like shape, make the arrow a child of that
-		// shape so duplicating or deleting the frame includes the arrow too.
-		if (startShape.id === endShape.id && editor.isShapeFrameLike(startShape)) {
-			nextParentId = startShape.id
-		} else {
-			// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
-			nextParentId = editor.findCommonAncestor([startShape, endShape]) ?? parentPageId
-		}
+		// If arrow has two bindings, parent it to the closest common ancestor of the
+		// bound shapes. When one bound shape is an ancestor-or-self of the other, use
+		// that container if it accepts arrow children.
+		nextParentId =
+			getCommonBindingContainer(editor, arrow, startShape, endShape) ??
+			editor.findCommonAncestor([startShape, endShape]) ??
+			parentPageId
 	} else if (startShape || endShape) {
 		const bindingParentId = (startShape || endShape)?.parentId
 		// If the arrow and the shape that it is bound to have the same parent, then keep that parent
@@ -204,6 +203,31 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 	if (finalIndex !== reparentedArrow.index) {
 		editor.updateShapes([{ id: arrowId, type: 'arrow', index: finalIndex }])
 	}
+}
+
+function getCommonBindingContainer(
+	editor: Editor,
+	arrow: TLArrowShape,
+	startShape: TLShape,
+	endShape: TLShape
+): TLShapeId | undefined {
+	let container: TLShape | undefined
+	if (startShape.id === endShape.id) {
+		container = startShape
+	} else if (editor.hasAncestor(startShape, endShape.id)) {
+		container = endShape
+	} else if (editor.hasAncestor(endShape, startShape.id)) {
+		container = startShape
+	}
+
+	if (
+		container &&
+		editor.getShapeUtil(container).canReceiveNewChildrenOfType(container, arrow.type)
+	) {
+		return container.id
+	}
+
+	return undefined
 }
 
 function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {

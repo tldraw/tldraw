@@ -6,10 +6,12 @@ import {
 	Rectangle2d,
 	SVGContainer,
 	SvgExportContext,
+	TLArrowBinding,
 	TLClickEventInfo,
 	TLEditStartInfo,
 	TLFrameShape,
 	TLFrameShapeProps,
+	TLShape,
 	TLShapePartial,
 	TLShapeUtilConstructor,
 	clamp,
@@ -230,6 +232,20 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 				}),
 			],
 		})
+	}
+
+	override shouldClipChild(child: TLShape, self?: TLFrameShape): boolean {
+		if (self && child.type === 'arrow') {
+			let boundStart = false
+			let boundEnd = false
+			for (const binding of this.editor.getBindingsFromShape<TLArrowBinding>(child, 'arrow')) {
+				if (binding.toId !== self.id) continue
+				if (binding.props.terminal === 'start') boundStart = true
+				else if (binding.props.terminal === 'end') boundEnd = true
+			}
+			if (boundStart && boundEnd) return false
+		}
+		return true
 	}
 
 	override getText(shape: TLFrameShape): string | undefined {

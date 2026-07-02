@@ -548,6 +548,39 @@ describe("an arrow's parents", () => {
 		})
 	})
 
+	it('still clips an arrow that is bound only to shapes inside the frame', () => {
+		const arrowId = createShapeId('childArrow')
+		editor.createShapes([
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 15,
+				y: 15,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 0, y: 70 },
+				},
+			},
+		])
+		createOrUpdateArrowBinding(editor, arrowId, boxAid, {
+			terminal: 'start',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		})
+		createOrUpdateArrowBinding(editor, arrowId, boxBid, {
+			terminal: 'end',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		})
+
+		expect(arrow(arrowId).parentId).toBe(frameId)
+		expect(editor.getShapeClipPath(arrowId)).toBeDefined()
+	})
+
 	it('duplicates an arrow bound to the same frame on both ends when duplicating the frame', () => {
 		createArrowBoundToFrame()
 
@@ -580,7 +613,7 @@ describe("an arrow's parents", () => {
 		editor.pointerDown(15, 15).pointerMove(50, 50)
 		const arrowId = editor.getOnlySelectedShape()!.id
 
-		expect(arrow(arrowId).parentId).toBe(editor.getCurrentPageId())
+		expect(arrow(arrowId).parentId).toBe(frameId)
 
 		// move arrow to b
 		editor.pointerMove(15, 85)
@@ -592,7 +625,7 @@ describe("an arrow's parents", () => {
 
 		// move back to empty space
 		editor.pointerMove(50, 50)
-		expect(arrow(arrowId).parentId).toBe(editor.getCurrentPageId())
+		expect(arrow(arrowId).parentId).toBe(frameId)
 		expect(bindings(arrowId)).toMatchObject({
 			start: { toId: boxAid },
 			end: { toId: frameId },
