@@ -1,3 +1,4 @@
+import { TLKeyboardEventInfo } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -34,4 +35,19 @@ it('Ctrl Key', () => {
 	expect(editor.inputs.getCtrlKey()).toBe(true)
 	vi.advanceTimersByTime(200)
 	expect(editor.inputs.getCtrlKey()).toBe(false)
+})
+
+it('keyboard events carry currently-held modifiers', () => {
+	const keyboardEvents: TLKeyboardEventInfo[] = []
+	editor.on('event', (info) => {
+		if (info.type === 'keyboard') keyboardEvents.push(info)
+	})
+
+	editor.keyDown('Control')
+	editor.keyDown('Shift') // pressed while Control is still held
+
+	// like a real DOM keyboard event, the Shift keydown reports Control as held
+	const shiftDown = keyboardEvents.find((e) => e.key === 'Shift' && e.name === 'key_down')!
+	expect(shiftDown.shiftKey).toBe(true)
+	expect(shiftDown.ctrlKey).toBe(true)
 })

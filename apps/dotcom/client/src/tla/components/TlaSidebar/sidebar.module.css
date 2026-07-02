@@ -425,6 +425,12 @@
 	margin-bottom: 28px;
 }
 
+/* When a section is the only one rendered (e.g. just "Today" or just "Older"),
+   its header is redundant, so hide it. */
+.sidebarFileSectionWrapper:only-child .sidebarFileSectionTitle {
+	display: none;
+}
+
 .sidebarFileSection {
 	position: relative;
 	background: var(--tla-color-sidebar);

@@ -82,7 +82,11 @@ export class DragAndDropManager {
 			.sort((a, b) => allShapes.indexOf(a) - allShapes.indexOf(b))
 
 		this.initialDraggingOverShape = editor.getDraggingOverShape(point, this.shapesToActuallyMove)
-		this.prevDraggingOverShape = this.initialDraggingOverShape
+
+		// The drag hasn't visited any target yet, so start with no previous target (as if over the
+		// page). This makes the first update fire onDragShapesIn for whatever we're already over,
+		// instead of treating the origin's target as already-entered and skipping it.
+		this.prevDraggingOverShape = undefined
 
 		// run once on first frame
 		this.updateDraggingShapes(point, cb)
