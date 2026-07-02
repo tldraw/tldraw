@@ -245,6 +245,32 @@ jobs:
             https://api.github.com/repos/tldraw/tldraw-desktop/dispatches \
             -d '{"event_type":"tldraw-release","client_payload":{"version":"${{ steps.version.outputs.value }}","tag":"next"}}'
 
+      # Tell tldraw-internal to update its pinned SDK version. Fires for every
+      # real release channel — next prereleases, hotfix patches, and manual/new
+      # releases (workflow_dispatch) — but NOT canary (every push to main) or
+      # internal (PR preview publishes), which would be far too noisy. The
+      # tldraw-internal "Update tldraw" workflow listens for the `tldraw-release`
+      # repository_dispatch and resolves the newest published version itself, so
+      # the payload version is informational.
+      - name: Generate tldraw-internal token
+        if: contains(fromJSON('["next","patch","manual","new"]'), steps.publish_mode.outputs.mode)
+        id: generate_internal_token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.HUPPY_APP_ID }}
+          private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
+          owner: tldraw
+          repositories: tldraw-internal
+
+      - name: Notify tldraw-internal
+        if: contains(fromJSON('["next","patch","manual","new"]'), steps.publish_mode.outputs.mode)
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ steps.generate_internal_token.outputs.token }}" \
+            https://api.github.com/repos/tldraw/tldraw-internal/dispatches \
+            -d '{"event_type":"tldraw-release","client_payload":{"version":"${{ steps.version.outputs.value }}","mode":"${{ steps.publish_mode.outputs.mode }}"}}'
+
       # Earlier steps run before checkout, so re-fetch the local action on failure.
       - name: Check out Discord notify action
         if: failure()
