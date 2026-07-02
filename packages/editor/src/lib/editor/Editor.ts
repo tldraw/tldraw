@@ -910,6 +910,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.on('tick', this._flushEventsForTick)
 
+		this.once('mount', () => {
+			this.isMounted = true
+		})
+
 		this.timers.requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
@@ -1021,6 +1025,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isDisposed = false
+
+	/**
+	 * Whether the editor is mounted.
+	 *
+	 * @public
+	 */
+	isMounted = false
 
 	/**
 	 * A manager for the editor's tick events.
