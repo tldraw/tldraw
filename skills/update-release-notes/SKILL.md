@@ -152,27 +152,45 @@ Check that:
 
 **Note**: When `source` is `"main"`, the entries are preliminary. Some may be pruned later when the production branch is cut and the source switches to `"production"`.
 
-### 9. Push changes
+### 9. Update the draft GitHub release
 
-After editing `next.mdx` (and any archive files), commit and push from the tldraw clone:
+Keep the draft GitHub release for the next minor in sync with `next.mdx`. `publish-new.ts` finds the draft by name (`vX.Y.0`) and publishes its body verbatim at release time, so mirroring `next.mdx` here means the GitHub release and the docs release page always match.
+
+```bash
+<skill-dir>/scripts/update-draft-release.sh /tmp/tldraw
+```
+
+This script:
+
+- Derives the target version from `last_version` in `next.mdx` (bump minor, patch `0` — e.g. `v5.2.0` → `v5.3.0`).
+- Uses the `next.mdx` body (frontmatter stripped) as the release body.
+- Creates the draft if none exists, or edits the existing draft named `vX.Y.0`. It refuses to touch an already-published release, and refuses to write an empty body.
+
+Run this after every `next.mdx` update, including the release-week runs. On the second (post-publish) run the previous minor's draft has already been published, so this creates a fresh draft for the new next minor derived from the reset `last_version`.
+
+### 10. Push changes
+
+After editing `next.mdx` (and any archive files), commit and push from the tldraw clone. Use a single commit whose message ends with `[skip ci]` so merging the change does not trigger a dotcom deploy or other CI workflows (release-notes edits are docs-only):
 
 ```bash
 cd /tmp/tldraw
 BRANCH="update-release-notes-$(date -u +%Y%m%d-%H%M)"
 git checkout -b "$BRANCH"
 git add apps/docs/content/releases/
-git commit -m "docs: update release notes"
+git commit -m "docs(releases): update release notes [skip ci]"
 git push -u origin "$BRANCH"
 ```
 
 Then create the PR using the `../pr/SKILL.md` workflow and the standards in `../write-pr/SKILL.md`:
 
-- **Title**: `docs(releases): update release notes`
+- **Title**: `docs(releases): update release notes [skip ci]` — the `[skip ci]` must be in the PR title because GitHub's squash-merge uses the PR title as the merge commit subject, and that merge commit is what needs to skip CI. **Squash-merge** the PR (do not rebase- or create-a-merge-commit) so exactly one `[skip ci]` commit lands on the base branch.
 - **Change type**: `other`
 - **Test plan**: Remove the numbered list (no manual testing steps). Untick both unit tests and end to end tests.
 - **Release notes**: Omit this section (internal docs work with no user-facing impact)
-- **Description paragraph**: Start with "In order to..." and mention the source (`main` or `production`) and what was updated (new entries added, stale entries pruned, archival performed, etc.)
+- **Description paragraph**: Start with "In order to..." and mention the source (`main` or `production`) and what was updated (new entries added, stale entries pruned, archival performed, draft GitHub release synced, etc.)
 - Include a **Code changes** table with a `Documentation` row
+
+**Why `[skip ci]`**: pushing to `production` (and the `hotfixes` → `production` promotion) triggers `deploy-dotcom.yml`. A merge commit containing `[skip ci]` is skipped by GitHub Actions entirely, so the release-notes change can land on `production` — ready to ride the next SDK release, which pushes the `production` ref to `docs-production` — without deploying tldraw.com.
 
 ## The `last_version` field
 
@@ -182,13 +200,14 @@ The `next.mdx` frontmatter includes a `last_version` field that tracks the most 
 
 During an SDK release, this skill is run **twice** to get the docs site into its post-release state:
 
-1. **First run** — update `next.mdx` with all PRs that will ship in the release (source is `"production"` during freeze week). This ensures the release notes are complete before publishing.
-2. **Publish the release to NPM** — this happens outside of this skill.
+1. **First run** — update `next.mdx` with all PRs that will ship in the release (source is `"production"` during freeze week). This ensures the release notes are complete before publishing. The draft-release step (step 9) syncs the draft `vX.Y.0` GitHub release from this `next.mdx`, so `publish-new.ts` has the finished notes ready to publish.
+2. **Publish the release to NPM** — this happens outside of this skill. `publish-new.ts` publishes the draft release created in step 1.
 3. **Second run** — now that the release is published, the status script will detect `needs_archive: true`. This run:
    - Archives `next.mdx` to a versioned file (e.g., `v4.5.0.mdx`)
    - Adds the new version to the releases index (`releases.mdx`)
    - Resets `next.mdx` with the new `last_version`
    - Finds PRs that landed on `main` during the freeze (since the release tag) and adds them to the fresh `next.mdx`
+   - Syncs a fresh draft for the new next minor (step 9), since the previous draft is now published
 
 After the second run, the docs site reflects the published release and `next.mdx` already has a head start on the next cycle's changes.
 
@@ -196,4 +215,4 @@ After the second run, the docs site reflects the published release and `next.mdx
 
 - **Style guide**: See `shared/release-notes-guide.md` for guidance on what a release notes article should contain and how to format it.
 - **Writing guide**: See `shared/writing-guide.md` for voice and style conventions.
-- **Scripts**: See `scripts/` for automation helpers
+- **Scripts**: See `scripts/` for automation helpers, including `update-draft-release.sh` for syncing the draft GitHub release
