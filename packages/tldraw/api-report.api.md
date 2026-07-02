@@ -2028,8 +2028,6 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
     // (undocumented)
     static props: RecordProps<TLFrameShape>;
     // (undocumented)
-    shouldClipChild(child: TLShape, self?: TLFrameShape): boolean;
-    // (undocumented)
     toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: "frame";

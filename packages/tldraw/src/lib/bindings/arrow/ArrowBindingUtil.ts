@@ -124,10 +124,10 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 	let nextParentId: TLParentId
 	if (startShape && endShape) {
 		// If arrow has two bindings, parent it to the closest common ancestor of the
-		// bound shapes. When one bound shape is an ancestor-or-self of the other, use
-		// that container if it accepts arrow children.
+		// bound shapes. When one bound shape is a frame-like ancestor-or-self of the
+		// other, use that frame-like shape itself instead of its parent.
 		nextParentId =
-			getCommonBindingContainer(editor, arrow, startShape, endShape) ??
+			getCommonFrameLikeBindingAncestor(editor, startShape, endShape) ??
 			editor.findCommonAncestor([startShape, endShape]) ??
 			parentPageId
 	} else if (startShape || endShape) {
@@ -205,29 +205,21 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 	}
 }
 
-function getCommonBindingContainer(
+function getCommonFrameLikeBindingAncestor(
 	editor: Editor,
-	arrow: TLArrowShape,
 	startShape: TLShape,
 	endShape: TLShape
 ): TLShapeId | undefined {
-	let container: TLShape | undefined
+	let ancestor: TLShape | undefined
 	if (startShape.id === endShape.id) {
-		container = startShape
+		ancestor = startShape
 	} else if (editor.hasAncestor(startShape, endShape.id)) {
-		container = endShape
+		ancestor = endShape
 	} else if (editor.hasAncestor(endShape, startShape.id)) {
-		container = startShape
+		ancestor = startShape
 	}
 
-	if (
-		container &&
-		editor.getShapeUtil(container).canReceiveNewChildrenOfType(container, arrow.type)
-	) {
-		return container.id
-	}
-
-	return undefined
+	return ancestor && editor.isShapeFrameLike(ancestor) ? ancestor.id : undefined
 }
 
 function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {

@@ -548,7 +548,51 @@ describe("an arrow's parents", () => {
 		})
 	})
 
-	it('still clips an arrow that is bound only to shapes inside the frame', () => {
+	it('parents an arrow bound to two different frames to the page', () => {
+		const otherFrameId = createShapeId('otherFrame')
+		const arrowId = createShapeId('twoFrameArrow')
+		editor.createShapes([
+			{
+				id: otherFrameId,
+				type: 'frame',
+				x: 150,
+				y: 0,
+				props: { w: 100, h: 100 },
+			},
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 50,
+				y: 50,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 150, y: 0 },
+				},
+			},
+		])
+		createOrUpdateArrowBinding(editor, arrowId, frameId, {
+			terminal: 'start',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		})
+		createOrUpdateArrowBinding(editor, arrowId, otherFrameId, {
+			terminal: 'end',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		})
+
+		expect(arrow(arrowId).parentId).toBe(editor.getCurrentPageId())
+		expect(bindings(arrowId)).toMatchObject({
+			start: { toId: frameId },
+			end: { toId: otherFrameId },
+		})
+	})
+
+	it('does not clip an arrow that is bound only to shapes inside the frame', () => {
 		const arrowId = createShapeId('childArrow')
 		editor.createShapes([
 			{
@@ -578,7 +622,7 @@ describe("an arrow's parents", () => {
 		})
 
 		expect(arrow(arrowId).parentId).toBe(frameId)
-		expect(editor.getShapeClipPath(arrowId)).toBeDefined()
+		expect(editor.getShapeClipPath(arrowId)).toBeUndefined()
 	})
 
 	it('duplicates an arrow bound to the same frame on both ends when duplicating the frame', () => {

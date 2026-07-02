@@ -5505,7 +5505,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const util = this.getShapeUtil(ancestor)
 				const clipPath = util.getClipPath?.(ancestor)
 				if (!clipPath) continue
-				if (util.shouldClipChild?.(shape, ancestor) === false) continue
+				if (util.shouldClipChild?.(shape) === false) continue
 				const pageTransform = this.getShapePageTransform(ancestor.id)
 				clipPaths.push(pageTransform.applyToPoints(clipPath))
 			}
