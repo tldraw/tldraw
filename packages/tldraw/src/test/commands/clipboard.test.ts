@@ -478,6 +478,9 @@ describe('When copying and pasting', () => {
 		const pastedShape = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
 		const pastedPoint = { x: pastedShape.x, y: pastedShape.y }
 
-		expect(pastedPoint).toMatchObject({ x: 150, y: 150 }) // center of group
+		// Selecting a child of the group does not paste back into the group; it
+		// pastes in place at the page level, at the copied shape's page position.
+		expect(pastedShape.parentId).toBe(editor.getCurrentPageId())
+		expect(pastedPoint).toMatchObject({ x: 400, y: 400 })
 	})
 })

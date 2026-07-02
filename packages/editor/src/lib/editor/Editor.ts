@@ -9915,13 +9915,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			for (const shape of selectedShapes) {
-				// Find the nearest container: the shape itself if it can accept,
-				// an accepting ancestor, or fall back to the shape's parent
-				// (handles groups and other non-frame containers)
-				const candidate = canAcceptAll(shape)
-					? shape
-					: (this.findShapeAncestor(shape, canAcceptAll) ??
-						(isShapeId(shape.parentId) ? this.getShape(shape.parentId)! : null))
+				// Only an explicitly selected container counts as a paste target.
+				// A selected leaf shape does not pull in its container ancestor —
+				// that case falls through to a page-level paste, which then
+				// reparents by position if the shape lands inside a frame.
+				const candidate = canAcceptAll(shape) ? shape : null
 
 				if (!candidate) {
 					selectedParent = null
