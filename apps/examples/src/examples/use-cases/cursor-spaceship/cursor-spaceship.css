@@ -79,3 +79,80 @@
 	border-radius: 5px;
 	transition: width 80ms linear;
 }
+
+/* Live run timer, top-center. */
+.cursor-spaceship__timer {
+	position: absolute;
+	top: 14px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-family: var(--tl-font-ui, system-ui, sans-serif);
+	font-variant-numeric: tabular-nums;
+	font-size: 20px;
+	font-weight: 700;
+	color: #eef2ff;
+	background: rgba(20, 26, 46, 0.9);
+	border: 1px solid rgba(150, 170, 230, 0.18);
+	padding: 5px 16px;
+	border-radius: 10px;
+	pointer-events: none;
+	z-index: 300;
+}
+
+/* Persistent scoreboard, read from the synced document's meta. Top-right. */
+.cursor-spaceship__scoreboard {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	min-width: 190px;
+	font-family: var(--tl-font-ui, system-ui, sans-serif);
+	font-size: 13px;
+	background: rgba(20, 26, 46, 0.9);
+	border: 1px solid rgba(150, 170, 230, 0.18);
+	color: #eef2ff;
+	border-radius: 10px;
+	padding: 8px 10px;
+	pointer-events: none;
+	z-index: 300;
+}
+.cursor-spaceship__scoretitle {
+	font-weight: 700;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	opacity: 0.55;
+	padding: 2px 4px 6px;
+}
+.cursor-spaceship__scorerow {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 3px 4px;
+	border-radius: 6px;
+}
+.cursor-spaceship__scorerow[data-me='true'] {
+	background: rgba(90, 227, 154, 0.16);
+	font-weight: 600;
+}
+.cursor-spaceship__rank {
+	width: 14px;
+	text-align: right;
+	opacity: 0.5;
+	font-variant-numeric: tabular-nums;
+}
+.cursor-spaceship__scoredot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	flex: none;
+}
+.cursor-spaceship__scorename {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.cursor-spaceship__scoretime {
+	font-variant-numeric: tabular-nums;
+	opacity: 0.85;
+}

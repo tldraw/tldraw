@@ -61,6 +61,15 @@ const CRASH_LIFE_MS = 700
 const CRASH_SPEED = 4
 const CRASH_FLASH_MS = 320
 
+/** A player's best life, stored in the synced document's meta, keyed by user id. */
+interface Score {
+	userId: string
+	name: string
+	color: string
+	survivalMs: number
+	at: number
+}
+
 interface Game {
 	/** Seed for the shared asteroid belt and starfield. */
 	seed: number
@@ -72,6 +81,8 @@ interface Game {
 	deaths: Atom<number>
 	/** Remaining fuel, 0..FUEL_MAX. */
 	fuel: Atom<number>
+	/** Milliseconds the current life has survived, for the live timer. */
+	liveMs: Atom<number>
 	/** Fuel cells taken by any ship (observed from the synced cursors) → the time each
 	 * respawns, so the whole room shares one competitive supply. */
 	collected: Map<string, number>
@@ -84,6 +95,7 @@ function createGame(roomId: string): Game {
 		engaged: atom('engaged', false),
 		deaths: atom('deaths', 0),
 		fuel: atom('fuel', FUEL_MAX),
+		liveMs: atom('liveMs', 0),
 		collected: new Map(),
 	}
 }
@@ -121,6 +133,8 @@ export default function CursorSpaceshipExample({ roomId }: { roomId: string }) {
 				<GameRunner game={game} />
 				<CursorTrails game={game} />
 				<FuelGauge game={game} />
+				<RunTimer game={game} />
+				<Scoreboard />
 				<LaunchCard game={game} />
 			</Tldraw>
 		</div>
@@ -134,6 +148,7 @@ function GameRunner({ game }: { game: Game }) {
 		// The first engaged frame only slides the world so the fixed spawn sits under
 		// the cursor, so launching doesn't yank the ship across space.
 		let attached = false
+		let runStart = 0
 		let invulnUntil = 0
 		let fallVel = new Vec(0, 0)
 		const collabTrack = new Map<string, { x: number; y: number; speed: number }>()
@@ -159,12 +174,16 @@ function GameRunner({ game }: { game: Game }) {
 
 			if (!attached) {
 				attached = true
+				runStart = now
 				editor.setCamera(
 					{ x: screen.x / z - from.x, y: screen.y / z - from.y, z },
 					{ force: true, immediate: true }
 				)
 				return
 			}
+
+			// Advance the live run clock (rounded to 100ms for a calm display).
+			game.liveMs.set(Math.floor((now - runStart) / 100) * 100)
 
 			const drift = driftAt(from.x, from.y)
 			let next: Vec
@@ -232,6 +251,7 @@ function GameRunner({ game }: { game: Game }) {
 				Math.hypot(next.x, next.y) < SUN_KILL_RADIUS ||
 				hitsBelt(next.x, next.y, game.seed)
 			) {
+				recordScore(editor, now - runStart)
 				respawn(game)
 				fallVel = new Vec(0, 0)
 				invulnUntil = now + INVULN_MS
@@ -310,6 +330,59 @@ function respawn(game: Game) {
 	game.ship.set(SPAWN.clone())
 	game.fuel.set(FUEL_MAX)
 	game.deaths.set(game.deaths.get() + 1)
+}
+
+/** Record this life on the room scoreboard if it beats the player's best. Scores live
+ * in the synced document's meta, so they persist for the room and everyone sees them. */
+function recordScore(editor: Editor, survivalMs: number) {
+	const userId = editor.user.getExternalId()
+	const doc = editor.getDocumentSettings()
+	// meta is a loose JsonObject; cast past the Score interface at the boundary.
+	const scores = (doc.meta.scores ?? {}) as unknown as Record<string, Score>
+	const best = scores[userId]
+	if (best && best.survivalMs >= survivalMs) return
+	const nextScores = {
+		...scores,
+		[userId]: {
+			userId,
+			// The people menu is hidden, so give nameless pilots a stable call sign.
+			name: editor.user.getName() || callSign(userId),
+			color: editor.user.getColor(),
+			survivalMs,
+			at: Date.now(),
+		},
+	}
+	editor.updateDocumentSettings({
+		meta: { ...doc.meta, scores: nextScores } as unknown as (typeof doc)['meta'],
+	})
+}
+
+const CALLSIGN_ADJECTIVES = ['Cosmic', 'Rogue', 'Solar', 'Astro', 'Lunar', 'Stellar', 'Ion', 'Nova']
+const CALLSIGN_NOUNS = [
+	'Comet',
+	'Nomad',
+	'Ranger',
+	'Drifter',
+	'Voyager',
+	'Falcon',
+	'Pilot',
+	'Orbit',
+]
+
+/** A stable "Adjective Noun" call sign derived from a user id. */
+function callSign(userId: string) {
+	let h = 0
+	for (let i = 0; i < userId.length; i++) h = (h * 31 + userId.charCodeAt(i)) | 0
+	h = Math.abs(h)
+	return `${CALLSIGN_ADJECTIVES[h % CALLSIGN_ADJECTIVES.length]} ${CALLSIGN_NOUNS[(h >> 3) % CALLSIGN_NOUNS.length]}`
+}
+
+/** Format ms as m:ss.s. */
+function formatTime(ms: number) {
+	const totalSeconds = ms / 1000
+	const minutes = Math.floor(totalSeconds / 60)
+	const seconds = (totalSeconds - minutes * 60).toFixed(1)
+	return `${minutes}:${seconds.padStart(4, '0')}`
 }
 
 /**
@@ -676,6 +749,43 @@ function FuelGauge({ game }: { game: Game }) {
 					style={{ width: `${pct}%`, background: pct < 25 ? '#ff5a45' : '#5ce39a' }}
 				/>
 			</div>
+		</div>
+	)
+}
+
+function RunTimer({ game }: { game: Game }) {
+	const engaged = useValue('engaged', () => game.engaged.get(), [game])
+	const liveMs = useValue('liveMs', () => game.liveMs.get(), [game])
+	if (!engaged) return null
+	return <div className="cursor-spaceship__timer">{formatTime(liveMs)}</div>
+}
+
+/** The room's persistent scoreboard, read reactively from the synced document meta. */
+function Scoreboard() {
+	const editor = useEditor()
+	const scores = useValue(
+		'scores',
+		() => {
+			const s = editor.getDocumentSettings().meta.scores as unknown as
+				| Record<string, Score>
+				| undefined
+			return s ? Object.values(s).sort((a, b) => b.survivalMs - a.survivalMs) : []
+		},
+		[editor]
+	)
+	const myId = useValue('myId', () => editor.user.getExternalId(), [editor])
+	if (scores.length === 0) return null
+	return (
+		<div className="cursor-spaceship__scoreboard">
+			<div className="cursor-spaceship__scoretitle">Longest survivals</div>
+			{scores.slice(0, 8).map((s, i) => (
+				<div key={s.userId} className="cursor-spaceship__scorerow" data-me={s.userId === myId}>
+					<span className="cursor-spaceship__rank">{i + 1}</span>
+					<span className="cursor-spaceship__scoredot" style={{ background: s.color }} />
+					<span className="cursor-spaceship__scorename">{s.name}</span>
+					<span className="cursor-spaceship__scoretime">{formatTime(s.survivalMs)}</span>
+				</div>
+			))}
 		</div>
 	)
 }
