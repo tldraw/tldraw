@@ -80,23 +80,30 @@
 	transition: width 80ms linear;
 }
 
-/* Live score, top-center. */
+/* Live score, top-left under the fuel gauge. */
 .cursor-spaceship__score {
 	position: absolute;
-	top: 14px;
-	left: 50%;
-	transform: translateX(-50%);
+	top: 38px;
+	left: 14px;
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
 	font-family: var(--tl-font-ui, system-ui, sans-serif);
-	font-variant-numeric: tabular-nums;
-	font-size: 20px;
-	font-weight: 700;
-	color: #eef2ff;
-	background: rgba(20, 26, 46, 0.9);
-	border: 1px solid rgba(150, 170, 230, 0.18);
-	padding: 5px 16px;
-	border-radius: 10px;
 	pointer-events: none;
 	z-index: 300;
+}
+.cursor-spaceship__score-label {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #c9d3f0;
+}
+.cursor-spaceship__score-value {
+	font-size: 18px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	color: #eef2ff;
 }
 
 /* Persistent scoreboard, read from the synced document's meta. Top-right. */

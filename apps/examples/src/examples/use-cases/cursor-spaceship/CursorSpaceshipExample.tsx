@@ -809,7 +809,12 @@ function ScoreHud({ game }: { game: Game }) {
 	const engaged = useValue('engaged', () => game.engaged.get(), [game])
 	const score = useValue('score', () => game.score.get(), [game])
 	if (!engaged) return null
-	return <div className="cursor-spaceship__score">{score.toLocaleString()}</div>
+	return (
+		<div className="cursor-spaceship__score">
+			<span className="cursor-spaceship__score-label">Score</span>
+			<span className="cursor-spaceship__score-value">{score.toLocaleString()}</span>
+		</div>
+	)
 }
 
 /** The room's persistent scoreboard, read reactively from the synced document meta. */
