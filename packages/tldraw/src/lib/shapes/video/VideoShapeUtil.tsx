@@ -13,6 +13,7 @@ import {
 	useEditor,
 	useEditorComponents,
 	useIsEditing,
+	useValue,
 	videoShapeMigrations,
 	videoShapeProps,
 } from '@tldraw/editor'
@@ -157,6 +158,13 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 
 	const [isFullscreen, setIsFullscreen] = useState(false)
 
+	// Used by the `shadow` border treatment so the shadow rotates with the shape.
+	const rotation = useValue(
+		'shape rotation',
+		() => editor.getShapePageTransform(shape.id)?.rotation() ?? 0,
+		[editor, shape.id]
+	)
+
 	useEffect(() => {
 		const doc = rVideo.current?.ownerDocument ?? editor.getContainerDocument()
 		const fullscreenChange = () => setIsFullscreen(doc.fullscreenElement === rVideo.current)
@@ -185,7 +193,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 					color: 'var(--tl-color-text-3)',
 					backgroundColor: asset ? 'transparent' : 'var(--tl-color-low)',
 					border: asset ? 'none' : '1px solid var(--tl-color-low-border)',
-					...getMediaBorderStyle(shape.props.border),
+					...getMediaBorderStyle(shape.props.border, { rotation }),
 				}}
 			>
 				<div className="tl-counter-scaled">
