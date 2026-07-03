@@ -45,7 +45,6 @@ import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracki
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
-import { createZeroCommentStore } from './createZeroCommentStore'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
@@ -282,10 +281,20 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}
 	}, [])
 
-	// Back the SDK's comment UI with a Zero-backed store — the comment data lives in Zero, not the
-	// tldraw document.
-	const commentStore = useMemo(
-		() => (app ? createZeroCommentStore(app, fileId) : undefined),
+	// Comments live in Zero, not the tldraw document. useValue tracks the Zero signal and produces
+	// the controlled `comments` array; writes go through Zero mutators in the handlers below.
+	const comments = useValue(
+		'file comments',
+		() =>
+			app?.getCommentsForFile(fileId).map((c) => ({
+				id: c.id,
+				anchor: { type: 'shape' as const, shapeId: c.shapeId },
+				authorId: c.authorId,
+				author: c.author ? { name: c.author.name, avatarUrl: c.author.avatar } : undefined,
+				text: c.text,
+				createdAt: c.createdAt,
+				updatedAt: c.updatedAt,
+			})) ?? [],
 		[app, fileId]
 	)
 
@@ -301,7 +310,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={instanceComponents}
-				comments={commentStore}
+				comments={app ? comments : undefined}
+				onCreateComment={({ anchor, text }) => app?.createComment(fileId, anchor.shapeId, text)}
+				onDeleteComment={(id) => app?.deleteComment(id)}
 				options={{
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,

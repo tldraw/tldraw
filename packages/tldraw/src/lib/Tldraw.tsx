@@ -20,8 +20,8 @@ import { ComponentType, useMemo } from 'react'
 import { ImageAssetUtil } from './assets/ImageAssetUtil'
 import { VideoAssetUtil } from './assets/VideoAssetUtil'
 import { CommentCanvasLayer } from './comments/CommentCanvasLayer'
-import { CommentStoreProvider } from './comments/CommentStoreContext'
-import { TLCommentStore } from './comments/TLCommentStore'
+import { CommentStoreProvider, useInternalCommentStore } from './comments/CommentStoreContext'
+import { TLComment, TLCommentCreate, TLCommentUpdate } from './comments/TLCommentStore'
 import { defaultAssetUtils } from './defaultAssetUtils'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { TLEmbedDefinition } from './defaultEmbedDefinitions'
@@ -88,14 +88,27 @@ export interface TldrawBaseProps
 	 */
 	components?: TLComponents
 	/**
-	 * A pluggable source of comments. When provided, tldraw renders comment pins and a composer on
-	 * the canvas, reading and writing through the store you pass. Comment data lives behind this
-	 * interface — it never enters the tldraw store, so it does not sync with the document and is
-	 * unaffected by undo/redo. Omit it to disable comments.
+	 * The comments to show on the canvas — a controlled list, like `value` on an input. When
+	 * provided (even as an empty array), tldraw renders comment pins and a composer and reads from
+	 * this array. Comments never enter the tldraw store, so they don't sync with the document and
+	 * aren't affected by undo/redo. Omit it to disable comments.
 	 *
-	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
+	 * Pair it with {@link TldrawBaseProps.onCreateComment} / `onDeleteComment` to handle the user's
+	 * actions: persist them, then reflect the change back into this array.
 	 */
-	comments?: TLCommentStore
+	comments?: TLComment[]
+	/**
+	 * Called when the user submits the composer. Persist the comment, then reflect it back into the
+	 * `comments` array; tldraw doesn't add it for you.
+	 */
+	onCreateComment?(input: TLCommentCreate): void
+	/** Called when the user deletes a comment. Remove it from your data. */
+	onDeleteComment?(id: string): void
+	/**
+	 * Called when a comment is edited. No built-in UI triggers this yet — it's here for apps that add
+	 * their own edit affordance.
+	 */
+	onUpdateComment?(id: string, changes: TLCommentUpdate): void
 	/** Custom definitions for tldraw's embeds.
 	 *
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
@@ -168,6 +181,9 @@ export function Tldraw(props: TldrawProps) {
 		onMount,
 		components = {},
 		comments,
+		onCreateComment,
+		onDeleteComment,
+		onUpdateComment,
 		shapeUtils = [],
 		bindingUtils = [],
 		assetUtils = [],
@@ -186,6 +202,15 @@ export function Tldraw(props: TldrawProps) {
 
 	const _components = useShallowObjectIdentity(components)
 
+	// tldraw owns an internal store; the `comments` array is synced into it. Keyed on whether
+	// comments are enabled (a boolean), not the array, so the layer doesn't remount on every change.
+	const commentsEnabled = comments !== undefined
+	const commentStore = useInternalCommentStore(comments, {
+		onCreate: onCreateComment,
+		onUpdate: onUpdateComment,
+		onDelete: onDeleteComment,
+	})
+
 	const CustomInFrontOfTheCanvas = components?.InFrontOfTheCanvas
 	const InFrontOfTheCanvas = useMemo(() => {
 		// Compose the in-front layer from the UI chrome, any developer-provided component, and (when
@@ -193,7 +218,7 @@ export function Tldraw(props: TldrawProps) {
 		const parts: ComponentType[] = []
 		if (!rest.hideUi) parts.push(TldrawUiInFrontOfTheCanvas)
 		if (CustomInFrontOfTheCanvas) parts.push(CustomInFrontOfTheCanvas)
-		if (comments) parts.push(CommentCanvasLayer)
+		if (commentsEnabled) parts.push(CommentCanvasLayer)
 
 		if (parts.length === 0) return null
 		if (parts.length === 1) return parts[0]
@@ -204,7 +229,7 @@ export function Tldraw(props: TldrawProps) {
 				))}
 			</>
 		)
-	}, [rest.hideUi, CustomInFrontOfTheCanvas, comments])
+	}, [rest.hideUi, CustomInFrontOfTheCanvas, commentsEnabled])
 	const componentsWithDefault = useMemo(
 		() => ({
 			Spinner,
@@ -295,7 +320,7 @@ export function Tldraw(props: TldrawProps) {
 		// We provide an extra higher layer of asset+translations providers here so that
 		// loading UI (which is rendered outside of TldrawUi) may be translated.
 		// Ideally we would refactor to hoist all the UI context providers we can up here. Maybe later.
-		<CommentStoreProvider store={comments ?? null}>
+		<CommentStoreProvider store={commentsEnabled ? commentStore : null}>
 			<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(rest.assetUrls)}>
 				<TldrawUiTranslationProvider
 					overrides={useMergedTranslationOverrides(rest.overrides)}

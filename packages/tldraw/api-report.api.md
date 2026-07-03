@@ -67,7 +67,6 @@ import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
-import { Signal } from '@tldraw/editor';
 import { SnapIndicator } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
@@ -783,15 +782,6 @@ export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollabo
 export function ColorSchemeMenu(): JSX.Element;
 
 // @public
-export function CommentCanvasLayer(): JSX.Element | null;
-
-// @public
-export function CommentStoreProvider({ store, children }: {
-    children: ReactNode;
-    store: null | TLCommentStore;
-}): JSX.Element;
-
-// @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
 // @public (undocumented)
@@ -825,9 +815,6 @@ export function createBookmarkFromUrl(editor: Editor, { url, center }: {
     };
     url: string;
 }): Promise<Result<TLBookmarkShape, string>>;
-
-// @public
-export function createCommentStore(config: TLCommentStoreConfig): TLCommentStore;
 
 // @public (undocumented)
 export function createEmptyBookmarkShape(editor: Editor, url: string, position: VecLike): TLBookmarkShape;
@@ -4097,8 +4084,7 @@ export interface TLComment {
 
 // @public
 export interface TLCommentAnchor {
-    // (undocumented)
-    shapeId: TLShapeId;
+    shapeId: string;
     // (undocumented)
     type: 'shape';
 }
@@ -4112,19 +4098,9 @@ export interface TLCommentCreate {
 }
 
 // @public
-export interface TLCommentStore {
-    create(input: TLCommentCreate): Promise<void>;
-    delete(id: string): Promise<void>;
-    getCommentsForDocument(): Signal<TLComment[]>;
-}
-
-// @public
-export interface TLCommentStoreConfig {
+export interface TLCommentUpdate {
     // (undocumented)
-    create(input: TLCommentCreate): Promise<void> | void;
-    // (undocumented)
-    delete(id: string): Promise<void> | void;
-    getComments(): TLComment[];
+    text: string;
 }
 
 // @public
@@ -4177,11 +4153,14 @@ export const TLDRAW_FILE_EXTENSION: ".tldr";
 // @public (undocumented)
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
     assetUrls?: TLUiAssetUrlOverrides;
-    comments?: TLCommentStore;
+    comments?: TLComment[];
     components?: TLComponents;
     // @deprecated
     embeds?: TLEmbedDefinition[];
     locale?: string;
+    onCreateComment?(input: TLCommentCreate): void;
+    onDeleteComment?(id: string): void;
+    onUpdateComment?(id: string, changes: TLCommentUpdate): void;
     // @deprecated
     textOptions?: TLTextOptions;
 }
@@ -6443,9 +6422,6 @@ export function useCollaborationStatus(): "offline" | "online" | null;
 
 // @public
 export function useComments(): TLComment[];
-
-// @public
-export function useCommentStore(): null | TLCommentStore;
 
 // @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;

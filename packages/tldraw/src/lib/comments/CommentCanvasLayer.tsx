@@ -1,21 +1,20 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { Editor, TLShapeId, useEditor, useValue } from '@tldraw/editor'
 import { useMemo, useState } from 'react'
-import { useCommentStore, useComments } from './CommentStoreContext'
-import { TLComment } from './TLCommentStore'
+import { useCommentStoreContext, useComments } from './CommentStoreContext'
+import { TLComment, getCommentStoreOptions } from './TLCommentStore'
 
 /**
  * The default on-canvas comment UI, mounted in the editor's `InFrontOfTheCanvas` slot when
  * `<Tldraw>` is given a `comments` store. It renders a pin per comment (positioned on the shape the
  * comment is anchored to) and a composer for the single selected shape. Reads and writes go through
- * the provided {@link TLCommentStore}; nothing here touches the editor's store.
+ * the provided comment store; nothing here touches the editor's store.
  *
- * @public
- * @react
+ * @internal
  */
 export function CommentCanvasLayer() {
 	const editor = useEditor()
-	const store = useCommentStore()
+	const store = useCommentStoreContext()
 	const comments = useComments()
 
 	const selectedShapeId = useValue(
@@ -34,6 +33,7 @@ export function CommentCanvasLayer() {
 	)
 
 	if (!store) return null
+	const { onCreate, onDelete } = getCommentStoreOptions(store)
 
 	return (
 		<>
@@ -43,7 +43,7 @@ export function CommentCanvasLayer() {
 					editor={editor}
 					comment={comment}
 					defaultOpen={comment.id === focusedCommentId}
-					onDelete={() => store.delete(comment.id)}
+					onDelete={() => onDelete?.(comment.id)}
 				/>
 			))}
 			{selectedShapeId && (
@@ -51,7 +51,7 @@ export function CommentCanvasLayer() {
 					editor={editor}
 					shapeId={selectedShapeId}
 					onSubmit={(text) =>
-						store.create({ anchor: { type: 'shape', shapeId: selectedShapeId }, text })
+						onCreate?.({ anchor: { type: 'shape', shapeId: selectedShapeId }, text })
 					}
 				/>
 			)}
