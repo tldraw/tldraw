@@ -16,7 +16,6 @@ import {
 	unsafe__withoutCapture,
 } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
-import { drillIntoGroupOnDoubleClick } from '../../selection-logic/drillIntoGroupOnDoubleClick'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredOverlayId } from '../../selection-logic/updateHoveredOverlayId'
 import {
@@ -325,13 +324,8 @@ export class Idle extends StateNode {
 							}))
 
 				if (hitShape) {
-					// If the shape lives inside an unfocused group, a double click
-					// drills one level down instead of editing it.
-					if (drillIntoGroupOnDoubleClick(this.editor, hitShape)) return
-
-					// double click on the shape. We'll start editing the
-					// shape if it's editable or else do a double click on
-					// the canvas.
+					// Re-dispatch as a shape double click. That path drills into
+					// unfocused groups or, once the shape is reachable, edits it.
 					this.onDoubleClick({
 						...info,
 						shape: hitShape,
@@ -415,9 +409,27 @@ export class Idle extends StateNode {
 			case 'shape': {
 				const { shape } = info
 
-				// If the shape lives inside an unfocused group, a double click drills
-				// one level down instead of editing it.
-				if (drillIntoGroupOnDoubleClick(this.editor, shape)) return
+				// A double click acts like two clicks: if the shape is inside a group
+				// that isn't the focused layer, drill one level down (selecting the
+				// outermost selectable ancestor that isn't already selected, the same
+				// step a single click takes) instead of editing it. Only once the shape
+				// is reachable at the focused layer do we edit it below. Groups always
+				// drill; frames and the page aren't focus layers, so their children edit
+				// directly. Selecting a child focuses its group, so the pattern resets
+				// when the focus layer changes.
+				const selectedShapeIds = this.editor.getSelectedShapeIds()
+				const isGroup = this.editor.isShapeOfType(shape, 'group')
+				if (isGroup || this.editor.getOutermostSelectableShape(shape).id !== shape.id) {
+					const shapeToSelect = this.editor.getOutermostSelectableShape(
+						shape,
+						(parent) => !selectedShapeIds.includes(parent.id)
+					)
+					if (!selectedShapeIds.includes(shapeToSelect.id)) {
+						this.editor.markHistoryStoppingPoint('drilling into group on double click')
+						this.editor.select(shapeToSelect.id)
+					}
+					return
+				}
 
 				const util = this.editor.getShapeUtil(shape)
 
