@@ -139,8 +139,11 @@ export interface RoomSnapshot {
  *   `next`/`prev` to allow, `null` to reject.
  *
  * ⚠︎ Runs synchronously inside the commit transaction, on the same path as every document edit — it
- * must be fast and do **no** I/O. For expensive, async checks (e.g. resolving mentions against who
- * can access a file), react after the fact via `onCommittedChanges` instead.
+ * must be fast and do **no** I/O. `next`/`prev` are the incoming client-controlled records, so treat
+ * their contents as untrusted; prefer returning `null` to reject over throwing, though a throw is
+ * caught, logged, and treated as a rejection (fail closed) rather than crashing the push. For
+ * expensive, async checks (e.g. resolving mentions against who can access a file), react after the
+ * fact via `onCommittedChanges`.
  *
  * @public
  */
@@ -307,7 +310,21 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * rather than in every consumer.
 	 */
 	private authorizerFor(typeName: R['typeName']): TLRecordAuthorizer<R, SessionMeta> | undefined {
-		return this.authorizeRecord?.[typeName] as TLRecordAuthorizer<R, SessionMeta> | undefined
+		const authorize = this.authorizeRecord?.[typeName] as
+			| TLRecordAuthorizer<R, SessionMeta>
+			| undefined
+		if (!authorize) return undefined
+		// Fail closed: an authorizer that throws rejects the write (and is logged) rather than
+		// aborting the whole push. Authorizers are security-sensitive, so a bug must never let a
+		// write through.
+		return (args) => {
+			try {
+				return authorize(args)
+			} catch (e) {
+				this.log?.error?.('record authorizer threw; rejecting the write', e)
+				return null
+			}
+		}
 	}
 
 	constructor(opts: {

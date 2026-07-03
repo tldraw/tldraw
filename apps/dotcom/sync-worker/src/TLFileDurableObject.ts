@@ -20,7 +20,6 @@ import {
 	can,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
-import { UnknownRecord } from '@tldraw/store'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	DurableObjectSqliteSyncWrapper,
@@ -35,15 +34,12 @@ import {
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
 	type TLObjectStoreAccess,
-	type TLRecordAuthorizer,
-	type TLRecordAuthorizers,
 } from '@tldraw/sync-core'
 import {
 	TLAsset,
 	TLAssetId,
 	TLDOCUMENT_ID,
 	TLDocument,
-	TLNoteShape,
 	TLRecord,
 	commentSchemaRecords,
 	createTLSchema,
@@ -62,6 +58,7 @@ import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
+import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 import {
 	findEmptiedCommentThreads,
 	isCommentAuthorFkViolation,
@@ -103,11 +100,6 @@ interface DocumentInfo {
 }
 
 export const ROOM_NOT_FOUND = Symbol('room_not_found')
-
-interface SessionMeta {
-	storeId: string
-	userId: string | null
-}
 
 interface SocketAttachment {
 	sessionId: string
@@ -158,62 +150,6 @@ const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
 // (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in Postgres
 // rather than the R2 document blob.
 const OBJECT_TYPES = ['comment-thread', 'comment'] as const
-
-// The room's record union, widened to include the object-lane records so the per-type authorizers
-// below are typed to their record (e.g. `comment`'s `next` is a `TLComment`). Renaming an attribution
-// field on one of these records makes the authorizer that stamps/guards it fail to compile.
-type FileRecord = TLRecord | TLComment | TLCommentThread
-
-/**
- * Build an authorizer for a record whose attribution lives in a single `field`: stamp it from the
- * session's identity on create, keep it immutable on update, and allow deletes. Deletes are allowed
- * because cascade cleanup (deleting a shape removes its comments) is performed by whoever deletes the
- * shape, not the comment's author — restricting deletes to the author would break that.
- *
- * `field` is `keyof Rec`, so a rename of the record's attribution field is a compile error here.
- */
-function authorizeAuthored<Rec extends UnknownRecord>(
-	field: keyof Rec & string
-): TLRecordAuthorizer<Rec, SessionMeta> {
-	return ({ session, type, prev, next }) => {
-		if (type === 'create') {
-			// No authenticated identity → can't attribute → reject; the client self-corrects.
-			if (!session.meta.userId) return null
-			return { ...next!, [field]: session.meta.userId } as Rec
-		}
-		// Attribution is immutable: veto any change to it. (Deletes fall through — allowed.)
-		if (type === 'update') return next![field] === prev![field] ? next : null
-		return prev
-	}
-}
-
-/**
- * Per-type authorizers: force comment/thread authorship and note-shape attribution from the session's
- * authenticated identity, so nobody can post or draw in someone else's name.
- */
-const authorizeFileRecord: TLRecordAuthorizers<FileRecord, SessionMeta> = {
-	comment: authorizeAuthored<TLComment>('authorId'),
-	'comment-thread': authorizeAuthored<TLCommentThread>('createdBy'),
-	// All shapes share typeName 'shape'; we only secure note-shape attribution. tldraw sets
-	// `props.textLastEditedBy` on the client (NoteShapeUtil.onBeforeUpdate) and renders it, so it's
-	// forgeable — here we enforce that it can only ever be null or the session's own user id.
-	shape: ({ session, type, prev, next }) => {
-		if ((next ?? prev)!.type !== 'note') return next ?? prev // not a note → write through
-		if (type === 'delete') return prev // anyone who can edit the doc may delete a shape
-		const userId = session.meta.userId
-		const nextBy = (next as TLNoteShape).props.textLastEditedBy
-		if (type === 'create') {
-			// A fresh note has textLastEditedBy: null; a non-null value is a duplicate or a forge.
-			// Strip anything that isn't the creator so a note can't be created as someone else.
-			if (nextBy == null || nextBy === userId) return next
-			const note = next as TLNoteShape
-			return { ...note, props: { ...note.props, textLastEditedBy: null } }
-		}
-		// update: allow null / unchanged / your own id; veto attributing an edit to anyone else.
-		const prevBy = (prev as TLNoteShape).props.textLastEditedBy
-		return nextBy !== prevBy && nextBy != null && nextBy !== userId ? null : next
-	},
-}
 
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object

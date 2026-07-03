@@ -526,6 +526,18 @@ describe('object store lane', () => {
 			expect(storedIds(storage)).toEqual([note.id])
 		})
 
+		it('rejects the write (fail closed) when the authorizer throws, without crashing the push', () => {
+			const { room, storage } = withNote(() => {
+				throw new Error('boom')
+			})
+			const socket = connectSession(room, 'alice', { meta: { userId: 'u' } })
+			const note = Note.create({ text: 'x' })
+
+			expect(() => push(room, 'alice', { [note.id]: [RecordOpType.Put, note] })).not.toThrow()
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedIds(storage)).toEqual([])
+		})
+
 		it('passes the change type for create, update, and delete', () => {
 			const types: string[] = []
 			const note = Note.create({ text: 'x' })
