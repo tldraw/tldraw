@@ -21,6 +21,7 @@ import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } fro
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { getMediaBorderStyle } from '../shared/mediaBorder'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -73,6 +74,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			autoplay: this.options.autoplay,
 			url: '',
 			altText: '',
+			border: 'none',
 			// Not used, but once upon a time were used to sync video state between users
 			time: 0,
 			playing: true,
@@ -183,6 +185,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 					color: 'var(--tl-color-text-3)',
 					backgroundColor: asset ? 'transparent' : 'var(--tl-color-low)',
 					border: asset ? 'none' : '1px solid var(--tl-color-low-border)',
+					...getMediaBorderStyle(shape.props.border),
 				}}
 			>
 				<div className="tl-counter-scaled">
