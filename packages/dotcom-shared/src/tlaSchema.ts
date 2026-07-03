@@ -2,6 +2,7 @@ import {
 	boolean,
 	createSchema,
 	enumeration,
+	json,
 	number,
 	relationships,
 	Row,
@@ -124,14 +125,15 @@ export const group_file = table('group_file')
 // Object. Zero replicates these per user so the app-level /comments view can query comments across
 // all accessible files. The authoritative comment content lives in the file's R2 comment lane; the
 // in-document view reads from the file room. Clients never mutate this table (server-written only).
-// v1: shape-anchored, plaintext.
+// `body` is the comment's rich text (TLRichText JSON) — the projection preserves the authoritative
+// representation; consumers flatten to plaintext for display where needed.
 export const comment = table('comment')
 	.columns({
 		id: string(),
 		fileId: string(),
 		authorId: string(),
 		shapeId: string(),
-		text: string(),
+		body: json(),
 		createdAt: number(),
 		updatedAt: number(),
 	})

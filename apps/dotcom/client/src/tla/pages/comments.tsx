@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { createDeepLinkString, useValue } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { useMaybeApp } from '../hooks/useAppState'
+import { richTextToPlaintext } from '../utils/richText'
 
 /** Link to a file, deep-linked to the comment's shape, with the comment id so its popover opens. */
 function commentLink(fileId: string, shapeId: string, commentId: string) {
@@ -41,7 +42,10 @@ export function Component() {
 								marginBottom: 8,
 							}}
 						>
-							<div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{c.text}</div>
+							{/* bodies are rich text; flatten for this basic UI (rich rendering forthcoming) */}
+							<div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+								{richTextToPlaintext(c.body)}
+							</div>
 							<div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
 								<span>{c.author?.name ?? c.authorId}</span>
 								<span> · </span>

@@ -5,7 +5,6 @@ import {
 	TLComment,
 	TLCommentAnchor,
 	TLCommentThread,
-	TLRichText,
 	TLShapeId,
 	createComment,
 	createCommentThread,
@@ -14,6 +13,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { richTextToPlaintext } from '../../utils/richText'
 
 /**
  * Minimal v1 comments UI, mounted as `InFrontOfTheCanvas`. Reads comment-thread and comment
@@ -55,20 +55,6 @@ export function CommentsOnCanvas() {
 			)}
 		</>
 	)
-}
-
-/** Plaintext preview of a rich text comment body. */
-function plaintext(body: TLRichText): string {
-	const parts: string[] = []
-	const visit = (node: any) => {
-		if (typeof node?.text === 'string') parts.push(node.text)
-		if (Array.isArray(node?.content)) {
-			for (const child of node.content) visit(child)
-			if (node.type === 'paragraph') parts.push('\n')
-		}
-	}
-	visit(body)
-	return parts.join('').trimEnd()
 }
 
 /** Where a thread's pin sits on the page, for each anchor kind. Null hides the pin. */
@@ -140,7 +126,7 @@ function ThreadPin({
 			<button
 				onPointerDown={(e) => e.stopPropagation()}
 				onClick={() => setOpen((o) => !o)}
-				title={comments[0] ? plaintext(comments[0].body) : ''}
+				title={comments[0] ? richTextToPlaintext(comments[0].body) : ''}
 				style={{
 					transform: 'translate(-4px, -50%)',
 					width: 24,
@@ -176,7 +162,7 @@ function ThreadPin({
 					{comments.map((comment) => (
 						<div key={comment.id} style={{ marginBottom: 6 }}>
 							<div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-								{plaintext(comment.body)}
+								{richTextToPlaintext(comment.body)}
 							</div>
 							<div style={{ marginTop: 2, opacity: 0.6, fontSize: 11 }}>{comment.authorId}</div>
 						</div>

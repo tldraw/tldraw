@@ -44,7 +44,6 @@ import {
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
-	TLRichText,
 	commentSchemaRecords,
 	createTLSchema,
 } from '@tldraw/tlschema'
@@ -148,23 +147,6 @@ const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
 // (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in a
 // separate R2 lane next to the main document blob.
 const OBJECT_TYPES = ['comment-thread', 'comment'] as const
-
-/**
- * Extracts plaintext from a rich text body for the Postgres projection (the `/comments` view
- * shows plaintext). Walks the ProseMirror-style JSON collecting text nodes.
- */
-function richTextToPlaintext(body: TLRichText): string {
-	const parts: string[] = []
-	const visit = (node: any) => {
-		if (typeof node?.text === 'string') parts.push(node.text)
-		if (Array.isArray(node?.content)) {
-			for (const child of node.content) visit(child)
-			if (node.type === 'paragraph') parts.push('\n')
-		}
-	}
-	visit(body)
-	return parts.join('').trimEnd()
-}
 
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
@@ -1558,7 +1540,7 @@ export class TLFileDurableObject extends DurableObject {
 						.values(upserts)
 						.onConflict((oc) =>
 							oc.column('id').doUpdateSet((eb) => ({
-								text: eb.ref('excluded.text'),
+								body: eb.ref('excluded.body'),
 								shapeId: eb.ref('excluded.shapeId'),
 								updatedAt: eb.ref('excluded.updatedAt'),
 							}))
@@ -1589,7 +1571,11 @@ export class TLFileDurableObject extends DurableObject {
 			fileId,
 			authorId: record.authorId,
 			shapeId: thread?.anchor.type === 'shape' ? thread.anchor.shapeId : '',
-			text: richTextToPlaintext(record.body),
+			// rich text stored as-is (JSONB) — the projection preserves the authoritative
+			// representation rather than flattening to plaintext. TLRichText types its content as
+			// unknown[], which doesn't structurally satisfy zero's ReadonlyJSONValue, but the value
+			// is schema-validated JSON.
+			body: record.body as TlaComment['body'],
 			createdAt: record.createdAt,
 			updatedAt: record.editedAt ?? record.createdAt,
 		}
