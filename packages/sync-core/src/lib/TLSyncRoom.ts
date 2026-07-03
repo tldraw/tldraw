@@ -122,6 +122,51 @@ export interface RoomSnapshot {
 }
 
 /**
+ * Authorizes and/or stamps a single record write from a client, using the session's authenticated
+ * identity — for example, forcing a comment's `authorId` to the signed-in user so nobody can post in
+ * someone else's name, or stamping who created a shape.
+ *
+ * Called on **create**, **update**, and **delete** of records whose `typeName` it's registered for
+ * (see {@link TLRecordAuthorizers}), and only for client pushes — never for server-initiated writes.
+ *
+ * Return `null` to reject the write — it's skipped and the client self-corrects, exactly like the
+ * `objectAccess` gate. Otherwise the write is allowed, and:
+ *
+ * - on **create**, the record you return is what gets stored, so stamp identity fields here (e.g.
+ *   set `authorId` from `session.meta`);
+ * - on **update** and **delete**, only allow-vs-reject is used (the returned record's contents are
+ *   ignored), so use them to veto changes to immutable fields or unauthorized deletes — return
+ *   `next`/`prev` to allow, `null` to reject.
+ *
+ * ⚠︎ Runs synchronously inside the commit transaction, on the same path as every document edit — it
+ * must be fast and do **no** I/O. For expensive, async checks (e.g. resolving mentions against who
+ * can access a file), react after the fact via `onCommittedChanges` instead.
+ *
+ * @public
+ */
+export type TLRecordAuthorizer<R extends UnknownRecord, SessionMeta> = (args: {
+	/** The session performing the write, including its host-provided `meta` (e.g. the authenticated user id). */
+	session: { sessionId: string; meta: SessionMeta }
+	/** Whether the write creates, updates (put-over-existing or patch), or deletes the record. */
+	type: 'create' | 'update' | 'delete'
+	/** The existing record with this id, or `null` on `create`. */
+	prev: R | null
+	/** The record the write would produce (`null` on `delete`). */
+	next: R | null
+}) => R | null
+
+/**
+ * A map from record `typeName` to a {@link TLRecordAuthorizer}. Only listed types are authorized;
+ * every other record writes through untouched, so this stays off the hot path for the vast majority
+ * of writes (shape drags etc.).
+ *
+ * @public
+ */
+export interface TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> {
+	[typeName: string]: TLRecordAuthorizer<R, SessionMeta>
+}
+
+/**
  * A collaborative workspace that manages multiple client sessions and synchronizes
  * document changes between them. The room serves as the authoritative source for
  * all document state and handles conflict resolution, schema migrations, and
@@ -248,6 +293,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	public readonly schema: StoreSchema<R, any>
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
+	private readonly authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	private readonly sessionIdleTimeout: number
 
 	constructor(opts: {
@@ -267,6 +313,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * gated per session by `objectAccess` rather than `isReadonly`.
 		 */
 		objectTypes?: readonly string[]
+		/**
+		 * Per-type authorizers that stamp/veto client record writes (create, update, delete) from the
+		 * session's authenticated identity. See {@link TLRecordAuthorizers}.
+		 */
+		authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
@@ -274,6 +325,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.log = opts.log
 		this.onPresenceChange = opts.onPresenceChange
 		this.onCommittedChanges = opts.onCommittedChanges
+		this.authorizeRecord = opts.authorizeRecord
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
@@ -1227,7 +1279,26 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 										TLSyncErrorCloseEventReason.INVALID_RECORD
 									)
 								}
-								addDocument(txn, docChanges, id, op[1])
+								let record = op[1]
+								// Per-type authorizer: lets the host stamp/veto a write from the session's
+								// authenticated identity (e.g. a comment's authorId). Only for registered
+								// types, only for client pushes (session present).
+								const authorizePut = session && this.authorizeRecord?.[record.typeName]
+								if (authorizePut) {
+									const prev = (txn.get(id) as R | undefined) ?? null
+									const result = authorizePut({
+										session: { sessionId: session.sessionId, meta: session.meta },
+										type: prev ? 'update' : 'create',
+										prev,
+										next: record,
+									})
+									// Rejected: skip the op; the client self-corrects via discard/rebase.
+									if (!result) continue
+									// On create the returned (stamped) record is stored; on update it's an
+									// allow/veto only, so the client's record is stored as-is.
+									if (!prev) record = result
+								}
+								addDocument(txn, docChanges, id, record)
 								break
 							}
 							case RecordOpType.Patch: {
@@ -1235,17 +1306,45 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// if it was already deleted, there's no need to apply the patch
 								if (!doc) continue
 								if (!canWrite(doc.typeName)) continue
+								// Per-type authorizer (update): veto edits the session isn't allowed to make,
+								// e.g. changing a comment's authorId. Allow/veto only — the patch applies as-is.
+								const authorizePatch = session && this.authorizeRecord?.[doc.typeName]
+								if (
+									authorizePatch &&
+									!authorizePatch({
+										session: { sessionId: session.sessionId, meta: session.meta },
+										type: 'update',
+										prev: doc,
+										next: applyObjectDiff(doc, op[1]),
+									})
+								) {
+									continue
+								}
 								// Try to patch the document. If it fails, stop here.
 								patchDocument(txn, docChanges, id, op[1])
 								break
 							}
 							case RecordOpType.Remove: {
-								const doc = txn.get(id)
+								const doc = txn.get(id) as R | undefined
 								if (!doc) {
 									// If the doc was already deleted, don't do anything, no need to propagate a delete op
 									continue
 								}
 								if (!canWrite(doc.typeName)) continue
+								// Per-type authorizer (delete): veto deletes the session isn't allowed to make,
+								// e.g. deleting someone else's comment. Allow/veto only.
+								const authorizeRemove = session && this.authorizeRecord?.[doc.typeName]
+								if (
+									authorizeRemove &&
+									!authorizeRemove({
+										session: { sessionId: session.sessionId, meta: session.meta },
+										type: 'delete',
+										prev: doc,
+										next: null,
+									})
+								) {
+									continue
+								}
 
 								// Delete the document and propagate the delete op
 								// delete automatically creates tombstones

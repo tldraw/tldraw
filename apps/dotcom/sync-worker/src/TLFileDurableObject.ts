@@ -155,6 +155,32 @@ const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
 // rather than the R2 document blob.
 const OBJECT_TYPES = ['comment-thread', 'comment'] as const
 
+/**
+ * Authorize a create/update/delete of an "authored" record (comment or thread) from the session's
+ * identity: stamp the attribution field (`authorId`/`createdBy`) on create, keep it immutable on
+ * update, and allow deletes. Deletes are allowed because cascade cleanup (deleting a shape removes
+ * its comments) is performed by whoever deletes the shape, not the comment's author — restricting
+ * deletes to the author would break that.
+ */
+function authorizeAuthoredRecord(
+	field: 'authorId' | 'createdBy',
+	userId: string | null,
+	type: 'create' | 'update' | 'delete',
+	prev: TLRecord | null,
+	next: TLRecord | null
+): TLRecord | null {
+	if (type === 'create') {
+		// No authenticated identity → can't attribute → reject; the client self-corrects.
+		if (!userId) return null
+		return { ...(next as any), [field]: userId }
+	}
+	if (type === 'update') {
+		// Attribution is immutable: veto any change to it.
+		return (next as any)[field] === (prev as any)[field] ? next : null
+	}
+	return prev
+}
+
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
@@ -297,6 +323,29 @@ export class TLFileDurableObject extends DurableObject {
 					// replicates them to the app-level view quickly.
 					onCommittedChanges: ({ diff }) => {
 						this.enqueueCommentChanges(diff)
+					},
+					// Stamp attribution from the session's authenticated identity so a client can't post
+					// (or draw) in someone else's name, and keep that attribution immutable afterwards.
+					authorizeRecord: {
+						comment: ({ session, type, prev, next }) =>
+							authorizeAuthoredRecord('authorId', session.meta.userId, type, prev, next),
+						'comment-thread': ({ session, type, prev, next }) =>
+							authorizeAuthoredRecord('createdBy', session.meta.userId, type, prev, next),
+						// All shapes share typeName 'shape'; we only attribute note shapes (via meta.createdBy).
+						shape: ({ session, type, prev, next }) => {
+							const shape = (next ?? prev) as any
+							if (shape?.type !== 'note') return next ?? prev
+							const userId = session.meta.userId
+							if (type === 'create') {
+								if (!userId) return next // anonymous can still draw, just unattributed
+								return { ...(next as any), meta: { ...(next as any).meta, createdBy: userId } }
+							}
+							if (type === 'update') {
+								// creator attribution is immutable once set
+								return (prev as any).meta?.createdBy === (next as any).meta?.createdBy ? next : null
+							}
+							return prev // delete: anyone who can edit the doc may delete a shape
+						},
 					},
 				})
 

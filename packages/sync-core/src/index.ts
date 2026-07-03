@@ -70,6 +70,8 @@ export {
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,
+	type TLRecordAuthorizer,
+	type TLRecordAuthorizers,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
 export {
