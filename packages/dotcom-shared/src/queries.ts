@@ -36,6 +36,21 @@ export const queries = defineQueries({
 			.related('groupFiles', (gf) => gf.related('file', (file) => file.one()))
 			.related('groupMembers')
 	),
+
+	/**
+	 * Every comment on a file the current user can access (they have a file_state row for it).
+	 * Powers both the in-document pins (filtered to the open file client-side) and the
+	 * cross-document /comments view. Access is enforced here; write-time checks live in the
+	 * comment mutators.
+	 */
+	comments: defineQuery(({ ctx }) =>
+		zql.comment
+			.whereExists('file', (file) =>
+				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
+			)
+			.related('author', (author) => author.one())
+			.related('file', (file) => file.one())
+	),
 })
 
 export type TlaQueries = typeof queries

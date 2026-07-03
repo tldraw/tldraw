@@ -16,9 +16,12 @@ import {
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
 import { TLAnyAssetUtilConstructor } from '@tldraw/editor'
-import { useMemo } from 'react'
+import { ComponentType, useMemo } from 'react'
 import { ImageAssetUtil } from './assets/ImageAssetUtil'
 import { VideoAssetUtil } from './assets/VideoAssetUtil'
+import { CommentCanvasLayer } from './comments/CommentCanvasLayer'
+import { CommentStoreProvider } from './comments/CommentStoreContext'
+import { TLCommentStore } from './comments/TLCommentStore'
 import { defaultAssetUtils } from './defaultAssetUtils'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { TLEmbedDefinition } from './defaultEmbedDefinitions'
@@ -84,6 +87,15 @@ export interface TldrawBaseProps
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
 	 */
 	components?: TLComponents
+	/**
+	 * A pluggable source of comments. When provided, tldraw renders comment pins and a composer on
+	 * the canvas, reading and writing through the store you pass. Comment data lives behind this
+	 * interface — it never enters the tldraw store, so it does not sync with the document and is
+	 * unaffected by undo/redo. Omit it to disable comments.
+	 *
+	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
+	 */
+	comments?: TLCommentStore
 	/** Custom definitions for tldraw's embeds.
 	 *
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
@@ -155,6 +167,7 @@ export function Tldraw(props: TldrawProps) {
 		acceptedVideoMimeTypes,
 		onMount,
 		components = {},
+		comments,
 		shapeUtils = [],
 		bindingUtils = [],
 		assetUtils = [],
@@ -175,16 +188,23 @@ export function Tldraw(props: TldrawProps) {
 
 	const CustomInFrontOfTheCanvas = components?.InFrontOfTheCanvas
 	const InFrontOfTheCanvas = useMemo(() => {
-		if (rest.hideUi) return CustomInFrontOfTheCanvas ?? null
-		if (!CustomInFrontOfTheCanvas) return TldrawUiInFrontOfTheCanvas
+		// Compose the in-front layer from the UI chrome, any developer-provided component, and (when
+		// enabled) the default comment layer — so `comments` doesn't clobber a custom slot.
+		const parts: ComponentType[] = []
+		if (!rest.hideUi) parts.push(TldrawUiInFrontOfTheCanvas)
+		if (CustomInFrontOfTheCanvas) parts.push(CustomInFrontOfTheCanvas)
+		if (comments) parts.push(CommentCanvasLayer)
 
+		if (parts.length === 0) return null
+		if (parts.length === 1) return parts[0]
 		return () => (
 			<>
-				<TldrawUiInFrontOfTheCanvas />
-				<CustomInFrontOfTheCanvas />
+				{parts.map((Part, i) => (
+					<Part key={i} />
+				))}
 			</>
 		)
-	}, [rest.hideUi, CustomInFrontOfTheCanvas])
+	}, [rest.hideUi, CustomInFrontOfTheCanvas, comments])
 	const componentsWithDefault = useMemo(
 		() => ({
 			Spinner,
@@ -275,37 +295,41 @@ export function Tldraw(props: TldrawProps) {
 		// We provide an extra higher layer of asset+translations providers here so that
 		// loading UI (which is rendered outside of TldrawUi) may be translated.
 		// Ideally we would refactor to hoist all the UI context providers we can up here. Maybe later.
-		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(rest.assetUrls)}>
-			<TldrawUiTranslationProvider
-				overrides={useMergedTranslationOverrides(rest.overrides)}
-				// If the locale prop is provided, then use that and assume it to be controlled
-				locale={locale ?? rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
-			>
-				<TldrawEditor
-					initialState="select"
-					{...rest}
-					components={componentsWithDefault}
-					shapeUtils={shapeUtilsWithDefaults}
-					bindingUtils={bindingUtilsWithDefaults}
-					assetUtils={assetUtilsWithDefaults}
-					overlayUtils={overlayUtilsWithDefaults}
-					tools={toolsWithDefaults}
-					options={optionsWithDefaults}
-					assetUrls={assets}
+		<CommentStoreProvider store={comments ?? null}>
+			<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(rest.assetUrls)}>
+				<TldrawUiTranslationProvider
+					overrides={useMergedTranslationOverrides(rest.overrides)}
+					// If the locale prop is provided, then use that and assume it to be controlled
+					locale={
+						locale ?? rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale
+					}
 				>
-					<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
-						<InsideOfEditorAndUiContext
-							maxImageDimension={maxImageDimension}
-							maxAssetSize={maxAssetSize}
-							acceptedImageMimeTypes={_imageMimeTypes}
-							acceptedVideoMimeTypes={_videoMimeTypes}
-							onMount={onMount}
-						/>
-						{children}
-					</TldrawUi>
-				</TldrawEditor>
-			</TldrawUiTranslationProvider>
-		</AssetUrlsProvider>
+					<TldrawEditor
+						initialState="select"
+						{...rest}
+						components={componentsWithDefault}
+						shapeUtils={shapeUtilsWithDefaults}
+						bindingUtils={bindingUtilsWithDefaults}
+						assetUtils={assetUtilsWithDefaults}
+						overlayUtils={overlayUtilsWithDefaults}
+						tools={toolsWithDefaults}
+						options={optionsWithDefaults}
+						assetUrls={assets}
+					>
+						<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
+							<InsideOfEditorAndUiContext
+								maxImageDimension={maxImageDimension}
+								maxAssetSize={maxAssetSize}
+								acceptedImageMimeTypes={_imageMimeTypes}
+								acceptedVideoMimeTypes={_videoMimeTypes}
+								onMount={onMount}
+							/>
+							{children}
+						</TldrawUi>
+					</TldrawEditor>
+				</TldrawUiTranslationProvider>
+			</AssetUrlsProvider>
+		</CommentStoreProvider>
 	)
 }
 

@@ -670,6 +670,51 @@ export function createMutators(userId: string) {
 				index: null,
 			})
 		},
+		createComment: async (
+			tx: Tx,
+			{
+				commentId,
+				fileId,
+				shapeId,
+				text,
+				time,
+			}: { commentId: string; fileId: string; shapeId: string; text: string; time: number }
+		) => {
+			assertValidId(commentId)
+			assert(fileId, ZErrorCode.bad_request)
+			assert(shapeId, ZErrorCode.bad_request)
+			assert(text.trim(), ZErrorCode.bad_request)
+			time = ensureSensibleTimestamp(time)
+
+			// Anyone who can access the file may comment (including via a shared link). The author is
+			// forced to the signed-in user server-side, so nobody can post as someone else.
+			if (tx.location === 'server') {
+				const file = await tx.run(zql.file.where('id', '=', fileId).one())
+				await assertUserCanAccessFile(tx, userId, file!)
+			}
+
+			await tx.mutate.comment.insert({
+				id: commentId,
+				fileId,
+				shapeId,
+				authorId: userId,
+				text: text.trim(),
+				createdAt: time,
+				updatedAt: time,
+			})
+		},
+		deleteComment: async (tx: Tx, { commentId }: { commentId: string }) => {
+			assert(commentId, ZErrorCode.bad_request)
+			const comment = await tx.run(zql.comment.where('id', '=', commentId).one())
+			if (!comment) return
+			// The author can delete their own comment; otherwise you must be able to write to the
+			// file (owner/member) to remove someone else's.
+			if (comment.authorId !== userId && tx.location === 'server') {
+				const file = await tx.run(zql.file.where('id', '=', comment.fileId).one())
+				await assertUserCanUpdateFile(tx, userId, file!)
+			}
+			await tx.mutate.comment.delete({ id: commentId })
+		},
 	} as const satisfies CustomMutatorDefs
 	return mutators
 }

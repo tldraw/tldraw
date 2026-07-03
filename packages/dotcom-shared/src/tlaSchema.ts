@@ -120,6 +120,18 @@ export const group_file = table('group_file')
 	})
 	.primaryKey('fileId', 'groupId')
 
+export const comment = table('comment')
+	.columns({
+		id: string(),
+		fileId: string(),
+		authorId: string(),
+		shapeId: string(),
+		text: string(),
+		createdAt: number(),
+		updatedAt: number(),
+	})
+	.primaryKey('id')
+
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
 		sourceField: ['ownerId'],
@@ -202,6 +214,19 @@ const groupFileRelationships = relationships(group_file, ({ one, many }) => ({
 		sourceField: ['groupId'],
 		destField: ['groupId'],
 		destSchema: group_user,
+	}),
+}))
+
+const commentRelationships = relationships(comment, ({ one }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+	author: one({
+		sourceField: ['authorId'],
+		destField: ['id'],
+		destSchema: user,
 	}),
 }))
 
@@ -289,19 +314,21 @@ export interface DB {
 	group: TlaGroup
 	group_user: TlaGroupUser
 	group_file: TlaGroupFile
+	comment: TlaComment
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 	welcome_template: TlaWelcomeTemplate
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state, group, group_user, group_file],
+	tables: [user, file, file_state, group, group_user, group_file, comment],
 	relationships: [
 		fileRelationships,
 		fileStateRelationships,
 		groupRelationships,
 		groupUserRelationships,
 		groupFileRelationships,
+		commentRelationships,
 	],
 })
 
@@ -312,6 +339,7 @@ export type TlaFileState = Row<typeof schema.tables.file_state>
 export type TlaGroup = Row<typeof schema.tables.group>
 export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>
+export type TlaComment = Row<typeof schema.tables.comment>
 
 // Permissions are now handled via Synced Queries in queries.ts
 

@@ -59,6 +59,7 @@ import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+import { ZeroCommentStore } from './ZeroCommentStore'
 
 /** @internal */
 export const components: TLComponents = {
@@ -281,6 +282,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}
 	}, [])
 
+	// Back the SDK's comment UI with a Zero-backed store — the comment data lives in Zero, not the
+	// tldraw document.
+	const commentStore = useMemo(
+		() => (app ? new ZeroCommentStore(app, fileId) : undefined),
+		[app, fileId]
+	)
+
 	return (
 		<TlaEditorWrapper>
 			<Tldraw
@@ -293,6 +301,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={instanceComponents}
+				comments={commentStore}
 				options={{
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,

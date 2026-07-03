@@ -299,6 +299,18 @@ export {
 } from './lib/shapes/video/VideoShapeUtil'
 export { getColorStyleItems, getFontStyleItems, type StyleValuesForUi } from './lib/styles'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
+export { CommentCanvasLayer } from './lib/comments/CommentCanvasLayer'
+export {
+	CommentStoreProvider,
+	useCommentStore,
+	useComments,
+} from './lib/comments/CommentStoreContext'
+export {
+	type TLComment,
+	type TLCommentAnchor,
+	type TLCommentCreate,
+	type TLCommentStore,
+} from './lib/comments/TLCommentStore'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'
 export { HandTool } from './lib/tools/HandTool/HandTool'

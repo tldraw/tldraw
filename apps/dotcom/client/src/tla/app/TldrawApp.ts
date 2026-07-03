@@ -138,6 +138,7 @@ export class TldrawApp {
 	private readonly workspaceMemberships$: Signal<
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
+	private readonly comments$: Signal<QueryResultType<typeof queries.comments>>
 
 	private readonly useProperZero: boolean
 	private readonly abortController = new AbortController()
@@ -283,6 +284,7 @@ export class TldrawApp {
 			'workspace memberships signal',
 			this.workspaceMembershipsQuery()
 		)
+		this.comments$ = this.signalizeQuery('comments signal', this.commentsQuery())
 	}
 
 	private userQuery() {
@@ -295,6 +297,34 @@ export class TldrawApp {
 
 	private workspaceMembershipsQuery() {
 		return queries.workspaceMemberships()
+	}
+
+	private commentsQuery() {
+		return queries.comments()
+	}
+
+	/** Every comment on a file the current user can access, newest first (for the /comments view). */
+	getComments() {
+		return [...this.comments$.get()].sort((a, b) => b.createdAt - a.createdAt)
+	}
+
+	/** Comments on a single file, newest first — the in-document pins read from this. */
+	getCommentsForFile(fileId: string) {
+		return this.getComments().filter((c) => c.fileId === fileId)
+	}
+
+	async createComment(fileId: string, shapeId: string, text: string) {
+		await this.z.mutate.createComment({
+			commentId: uniqueId(),
+			fileId,
+			shapeId,
+			text,
+			time: Date.now(),
+		}).client
+	}
+
+	async deleteComment(commentId: string) {
+		await this.z.mutate.deleteComment({ commentId }).client
 	}
 
 	async preload() {
