@@ -215,6 +215,9 @@ export class PointingShape extends StateNode {
 			return
 		}
 
+		const hitShape = info.target === 'shape' ? info.shape : this.hitShape
+		if (hitShape.parentId !== this.editor.getFocusedGroupId()) return
+
 		const { shape: _shape, ...canvasInfo } = info as TLClickEventInfo & { target: 'shape' }
 		this.parent.transition('idle')
 		this.parent.getCurrent()?.handleEvent({

@@ -1059,6 +1059,21 @@ describe('Selects inside of groups', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
 	})
 
+	it('selects child when rapidly clicking twice on a grouped shape edge', () => {
+		editor._transformPointerDownSpy.mockRestore()
+		editor._transformPointerUpSpy.mockRestore()
+
+		editor.pointerMove(102, 50)
+		expect(editor.getHoveredShapeId()).toBe(ids.group1)
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+	})
+
 	// it('selects child when pointing inside of a hollow child shape', () => {
 	// 	editor.pointerMove(75, 75)
 	// 	expect(editor.hoveredShapeId).toBe(null)
@@ -1073,20 +1088,22 @@ describe('Selects inside of groups', () => {
 	// 	expect(editor.selectedShapeIds).toEqual([ids.box1])
 	// })
 
-	it('selects a solid shape in a group when double clicking it', () => {
+	it('selects the group when double clicking a solid shape in an unfocused group', () => {
 		editor.pointerMove(250, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.group1)
 		editor.doubleClick()
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
-		expect(editor.getFocusedGroupId()).toBe(ids.group1)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+		expect(editor.getEditingShapeId()).toBe(null)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
+		editor.expectToBeIn('select.idle')
 	})
 
-	it('selects a solid shape in a group when double clicking its margin', () => {
+	it('selects the group when double clicking a solid shape margin in an unfocused group', () => {
 		editor.pointerMove(198, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.group1)
 		editor.doubleClick()
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
-		expect(editor.getFocusedGroupId()).toBe(ids.group1)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 	})
 
 	// it('selects a hollow shape in a group when double clicking it', () => {
@@ -1097,12 +1114,12 @@ describe('Selects inside of groups', () => {
 	// 	expect(editor.focusedGroupId).toBe(ids.group1)
 	// })
 
-	it('selects a hollow shape in a group when double clicking its edge', () => {
+	it('selects the group when double clicking a hollow shape edge in an unfocused group', () => {
 		editor.pointerMove(102, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.group1)
 		editor.doubleClick()
-		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.getFocusedGroupId()).toBe(ids.group1)
+		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
 	})
 
 	// it('double clicks a hollow shape when the focus layer is the shapes parent', () => {

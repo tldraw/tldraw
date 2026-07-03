@@ -17,7 +17,6 @@ import {
 } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredOverlayId } from '../../selection-logic/updateHoveredOverlayId'
 import {
 	cancelUpdateHoveredShapeId,
@@ -325,27 +324,7 @@ export class Idle extends StateNode {
 							}))
 
 				if (hitShape) {
-					if (this.editor.isShapeOfType(hitShape, 'group')) {
-						// Probably select the shape
-						selectOnCanvasPointerUp(this.editor, info)
-						return
-					} else {
-						const parent = this.editor.getShape(hitShape.parentId)
-						if (parent && this.editor.isShapeOfType(parent, 'group')) {
-							// The shape is the direct child of a group. If the group is
-							// selected, then we can select the shape.
-							const focusedGroupId = this.editor.getFocusedGroupId()
-							if (focusedGroupId && parent.id === focusedGroupId) {
-								// If the group is the focus layer id, then we can double click into it as usual.
-								// So here's a noop, double click on the shape as normal below
-							} else {
-								// The shape is the child of some group other than our current
-								// focus layer (ie the canvas or some other group). We should probably select the group instead.
-								selectOnCanvasPointerUp(this.editor, info)
-								return
-							}
-						}
-					}
+					if (hitShape.parentId !== this.editor.getFocusedGroupId()) return
 
 					// double click on the shape. We'll start editing the
 					// shape if it's editable or else do a double click on
