@@ -1,4 +1,4 @@
-import { Signal, TLShapeId } from '@tldraw/editor'
+import { Signal, TLShapeId, computed } from '@tldraw/editor'
 
 /**
  * Where a comment is anchored. Modeled as a discriminated union so new anchor kinds (page, point,
@@ -77,4 +77,57 @@ export interface TLCommentStore {
 	create(input: TLCommentCreate): Promise<void>
 	/** Delete a comment by id. */
 	delete(id: string): Promise<void>
+}
+
+/**
+ * The pieces needed to build a {@link TLCommentStore} — a reactive read plus create/delete. Pass
+ * plain functions; you don't have to manage signals or object identity yourself.
+ *
+ * @public
+ */
+export interface TLCommentStoreConfig {
+	/**
+	 * Return the document's comments. Read your reactive sources (signals, `editor` state, a
+	 * query result) directly inside this function — {@link createCommentStore} wraps it in a
+	 * computed, so the pins re-render whenever those sources change.
+	 */
+	getComments(): TLComment[]
+	create(input: TLCommentCreate): Promise<void> | void
+	delete(id: string): Promise<void> | void
+}
+
+/**
+ * Build a {@link TLCommentStore} from plain functions, so you don't have to implement the interface
+ * (or manage the reactive signal) by hand. Call it once for a given document — e.g. inside a
+ * `useMemo` keyed on whatever your `getComments` reads (the document/file id) — and pass the result
+ * to `<Tldraw comments={...} />`.
+ *
+ * @example
+ * ```tsx
+ * const comments = useMemo(
+ *   () =>
+ *     createCommentStore({
+ *       getComments: () => backend.getComments(fileId),
+ *       create: ({ anchor, text }) => backend.add(fileId, anchor, text),
+ *       delete: (id) => backend.remove(id),
+ *     }),
+ *   [fileId]
+ * )
+ *
+ * <Tldraw comments={comments} />
+ * ```
+ *
+ * @public
+ */
+export function createCommentStore(config: TLCommentStoreConfig): TLCommentStore {
+	const comments$ = computed('document comments', () => config.getComments())
+	return {
+		getCommentsForDocument: () => comments$,
+		create: async (input) => {
+			await config.create(input)
+		},
+		delete: async (id) => {
+			await config.delete(id)
+		},
+	}
 }

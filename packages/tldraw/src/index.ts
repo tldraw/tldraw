@@ -306,10 +306,12 @@ export {
 	useComments,
 } from './lib/comments/CommentStoreContext'
 export {
+	createCommentStore,
 	type TLComment,
 	type TLCommentAnchor,
 	type TLCommentCreate,
 	type TLCommentStore,
+	type TLCommentStoreConfig,
 } from './lib/comments/TLCommentStore'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'

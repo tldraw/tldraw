@@ -45,6 +45,7 @@ import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracki
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
+import { createZeroCommentStore } from './createZeroCommentStore'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
@@ -59,7 +60,6 @@ import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
-import { ZeroCommentStore } from './ZeroCommentStore'
 
 /** @internal */
 export const components: TLComponents = {
@@ -285,7 +285,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	// Back the SDK's comment UI with a Zero-backed store — the comment data lives in Zero, not the
 	// tldraw document.
 	const commentStore = useMemo(
-		() => (app ? new ZeroCommentStore(app, fileId) : undefined),
+		() => (app ? createZeroCommentStore(app, fileId) : undefined),
 		[app, fileId]
 	)
 

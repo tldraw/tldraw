@@ -826,6 +826,9 @@ export function createBookmarkFromUrl(editor: Editor, { url, center }: {
     url: string;
 }): Promise<Result<TLBookmarkShape, string>>;
 
+// @public
+export function createCommentStore(config: TLCommentStoreConfig): TLCommentStore;
+
 // @public (undocumented)
 export function createEmptyBookmarkShape(editor: Editor, url: string, position: VecLike): TLBookmarkShape;
 
@@ -4113,6 +4116,15 @@ export interface TLCommentStore {
     create(input: TLCommentCreate): Promise<void>;
     delete(id: string): Promise<void>;
     getCommentsForDocument(): Signal<TLComment[]>;
+}
+
+// @public
+export interface TLCommentStoreConfig {
+    // (undocumented)
+    create(input: TLCommentCreate): Promise<void> | void;
+    // (undocumented)
+    delete(id: string): Promise<void> | void;
+    getComments(): TLComment[];
 }
 
 // @public
