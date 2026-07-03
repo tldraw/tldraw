@@ -12,7 +12,21 @@ export interface Sketchbook<Props> {
 	title: string
 	/** The component every sketch in this sketchbook stages. */
 	component?: ComponentType<Props>
+	/**
+	 * Optional per-arg control overrides. Keyed by the component's prop names, so a
+	 * typo is a type error. Any arg without an entry falls back to a control inferred
+	 * from its value — the point of declaring one is mainly `select`, whose options
+	 * can't be recovered from a runtime value.
+	 */
+	argTypes?: Partial<Record<keyof Props & string, ArgType>>
 }
+
+/** How the controls panel should edit an arg. */
+export type ArgType =
+	| { control: 'text' }
+	| { control: 'number' }
+	| { control: 'boolean' }
+	| { control: 'select'; options: string[] }
 
 /**
  * A named export of a `*.sketchbook.tsx` file: the staged component in one state.

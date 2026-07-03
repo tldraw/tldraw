@@ -20,6 +20,19 @@ function ActionButton({ action, type }: ActionButtonProps) {
 const sketchbook: Sketchbook<ActionButtonProps> = {
 	title: 'tldraw/Button',
 	component: ActionButton,
+	argTypes: {
+		type: { control: 'select', options: ['normal', 'primary', 'danger', 'low'] },
+		action: {
+			control: 'select',
+			options: [
+				'action.copy',
+				'action.paste',
+				'action.delete',
+				'action.duplicate',
+				'action.select-all',
+			],
+		},
+	},
 }
 export default sketchbook
 

@@ -191,10 +191,12 @@ body {
 }
 
 .controls input[type='text'],
-.controls input[type='number'] {
+.controls input[type='number'],
+.controls select {
 	flex: 1;
 	font: inherit;
 	padding: 0.35rem 0.5rem;
 	border: 1px solid #d0d0d0;
 	border-radius: 6px;
+	background: #fff;
 }
