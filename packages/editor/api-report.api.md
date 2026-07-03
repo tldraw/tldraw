@@ -208,6 +208,8 @@ export abstract class BaseFrameLikeShapeUtil<Shape extends TLBaseBoxShape> exten
     onDragShapesOut(shape: Shape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
     // (undocumented)
     providesBackgroundForChildren(): boolean;
+    // (undocumented)
+    shouldClipChild(child: TLShape): boolean;
 }
 
 // @public (undocumented)
@@ -456,9 +458,6 @@ export class Box {
 
 // @public (undocumented)
 export type BoxLike = Box | BoxModel;
-
-// @internal
-export function cancelShapeCreationOnLongPress(editor: Editor, cancelPendingCreation: () => void): void;
 
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
@@ -1469,6 +1468,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isDisposed: boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
+    isMounted: boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
@@ -3632,6 +3632,8 @@ export interface TLCropInfo<T extends TLShape> {
     handle: SelectionHandle;
     // (undocumented)
     initialShape: T;
+    // (undocumented)
+    isResizingFromCenter?: boolean;
     // (undocumented)
     uncroppedSize: {
         h: number;

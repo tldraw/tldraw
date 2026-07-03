@@ -123,8 +123,13 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 
 	let nextParentId: TLParentId
 	if (startShape && endShape) {
-		// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
-		nextParentId = editor.findCommonAncestor([startShape, endShape]) ?? parentPageId
+		// If arrow has two bindings, parent it to the closest common ancestor of the
+		// bound shapes. When one bound shape is a frame-like ancestor-or-self of the
+		// other, use that frame-like shape itself instead of its parent.
+		nextParentId =
+			getCommonFrameLikeBindingAncestor(editor, startShape, endShape) ??
+			editor.findCommonAncestor([startShape, endShape]) ??
+			parentPageId
 	} else if (startShape || endShape) {
 		const bindingParentId = (startShape || endShape)?.parentId
 		// If the arrow and the shape that it is bound to have the same parent, then keep that parent
@@ -198,6 +203,23 @@ function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 	if (finalIndex !== reparentedArrow.index) {
 		editor.updateShapes([{ id: arrowId, type: 'arrow', index: finalIndex }])
 	}
+}
+
+function getCommonFrameLikeBindingAncestor(
+	editor: Editor,
+	startShape: TLShape,
+	endShape: TLShape
+): TLShapeId | undefined {
+	let ancestor: TLShape | undefined
+	if (startShape.id === endShape.id) {
+		ancestor = startShape
+	} else if (editor.hasAncestor(startShape, endShape.id)) {
+		ancestor = endShape
+	} else if (editor.hasAncestor(endShape, startShape.id)) {
+		ancestor = startShape
+	}
+
+	return ancestor && editor.isShapeFrameLike(ancestor) ? ancestor.id : undefined
 }
 
 function arrowDidUpdate(editor: Editor, arrow: TLArrowShape) {

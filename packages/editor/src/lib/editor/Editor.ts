@@ -563,6 +563,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
 		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
+		const createdShapes = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<TLBinding['type']>()
 
 		this.disposables.add(
@@ -584,8 +585,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 
+				const justCreatedShapeIds = new Set(createdShapes)
+				createdShapes.clear()
+
 				for (const parentId of invalidParents) {
 					invalidParents.delete(parentId)
+					if (justCreatedShapeIds.has(parentId)) continue
 					const parent = this.getShape(parentId)
 					if (!parent) continue
 
@@ -621,6 +626,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(
 			this.sideEffects.register({
 				shape: {
+					afterCreate: (shape) => {
+						createdShapes.add(shape.id)
+						if (shape.parentId && isShapeId(shape.parentId)) {
+							invalidParents.add(shape.parentId)
+						}
+					},
 					afterChange: (shapeBefore, shapeAfter) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
 							invalidBindingTypes.add(binding.type)
@@ -811,6 +822,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 				instance_page_state: {
 					afterChange: (prev, next) => {
+						if (prev?.focusedGroupId !== next?.focusedGroupId) {
+							this.cancelDoubleClick()
+						}
+
 						if (prev?.selectedShapeIds !== next?.selectedShapeIds) {
 							// ensure that descendants and ancestors are not selected at the same time
 							const filtered = next.selectedShapeIds.filter((id) => {
@@ -900,6 +915,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.on('tick', this._flushEventsForTick)
+
+		this.once('mount', () => {
+			this.isMounted = true
+		})
 
 		this.timers.requestAnimationFrame(() => {
 			this._tickManager.start()
@@ -1012,6 +1031,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isDisposed = false
+
+	/**
+	 * Whether the editor is mounted.
+	 *
+	 * @public
+	 */
+	isMounted = false
 
 	/**
 	 * A manager for the editor's tick events.
@@ -5796,10 +5822,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
 		const selectedShapeIds = this.getSelectedShapeIds()
-		return this.getCurrentPageShapesSorted()
-			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
-			.reverse() // find last
-			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
+		const margin = this.options.hitTestMargin / this.getZoomLevel()
+		const sortedShapes = this.getCurrentPageShapesSorted()
+
+		for (let i = sortedShapes.length - 1; i >= 0; i--) {
+			const shape = sortedShapes[i]
+			if (shape.type === 'group') continue
+			if (!selectedShapeIds.includes(shape.id)) continue
+			if (
+				this.getShapeGeometry(shape).hitTestPoint(
+					this.getPointInShapeSpace(shape, point),
+					margin,
+					true
+				)
+			) {
+				return shape
+			}
+		}
+
+		return undefined
 	}
 
 	/**
@@ -10985,7 +11026,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
 		}
 
-		if (info.metaKey) {
+		if (info.metaKey && info.name !== 'key_up') {
+			// Unlike the other modifiers, the native metaKey property is still true on keyup.
+			// If we don't have this guard, then the metakey will be left true without the timeout.
 			clearTimeout(this._metaKeyTimeout)
 			this._metaKeyTimeout = -1
 			inputs.setMetaKey(true)

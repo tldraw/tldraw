@@ -1059,6 +1059,21 @@ describe('Selects inside of groups', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
 	})
 
+	it('selects child when rapidly clicking twice on a grouped shape edge', () => {
+		editor._transformPointerDownSpy.mockRestore()
+		editor._transformPointerUpSpy.mockRestore()
+
+		editor.pointerMove(102, 50)
+		expect(editor.getHoveredShapeId()).toBe(ids.group1)
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+	})
+
 	// it('selects child when pointing inside of a hollow child shape', () => {
 	// 	editor.pointerMove(75, 75)
 	// 	expect(editor.hoveredShapeId).toBe(null)
@@ -1073,19 +1088,24 @@ describe('Selects inside of groups', () => {
 	// 	expect(editor.selectedShapeIds).toEqual([ids.box1])
 	// })
 
-	it('selects a solid shape in a group when double clicking it', () => {
+	it('drills to the child, not editing, when double clicking a solid shape in an unfocused group', () => {
 		editor.pointerMove(250, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.group1)
+		// A double click acts like two clicks: the first selects the group, the
+		// second drills in to select the shape inside it. It does not edit yet.
 		editor.doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getFocusedGroupId()).toBe(ids.group1)
+		editor.expectToBeIn('select.idle')
 	})
 
-	it('selects a solid shape in a group when double clicking its margin', () => {
+	it('drills to the child when double clicking a solid shape margin in an unfocused group', () => {
 		editor.pointerMove(198, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.group1)
 		editor.doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 	})
 
@@ -1097,11 +1117,12 @@ describe('Selects inside of groups', () => {
 	// 	expect(editor.focusedGroupId).toBe(ids.group1)
 	// })
 
-	it('selects a hollow shape in a group when double clicking its edge', () => {
+	it('drills to the child when double clicking a hollow shape edge in an unfocused group', () => {
 		editor.pointerMove(102, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.group1)
 		editor.doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		expect(editor.getEditingShapeId()).toBe(null)
 		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 	})
 
@@ -1118,6 +1139,48 @@ describe('Selects inside of groups', () => {
 		editor.pointerMove(250, 50)
 		expect(editor.getHoveredShapeId()).toBe(ids.group1)
 		editor.doubleClick()
+		editor.doubleClick()
+		expect(editor.getEditingShapeId()).toBe(ids.box2)
+		editor.expectToBeIn('select.editing_shape')
+	})
+
+	// Wrap group1 in an outer group so we have page > group2 > group1 > box2.
+	function nestGroup1() {
+		editor.createShape({ id: ids.box3, type: 'geo', x: 1000, y: 1000, props: { w: 100, h: 100 } })
+		editor.groupShapes([ids.group1, ids.box3], { groupId: ids.group2 })
+		editor.selectNone()
+	}
+
+	it('drills one level at a time through nested groups with single clicks', () => {
+		nestGroup1()
+		editor.pointerMove(250, 50)
+
+		// Each click drills exactly one level deeper into the hierarchy.
+		editor.click()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.group2])
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
+
+		editor.click()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+		expect(editor.getFocusedGroupId()).toBe(ids.group2)
+
+		editor.click()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
+		expect(editor.getFocusedGroupId()).toBe(ids.group1)
+	})
+
+	it('treats a double click as two clicks through nested groups', () => {
+		nestGroup1()
+		editor.pointerMove(250, 50)
+
+		// A double click is two clicks: the first selects the outer group, then
+		// drills to the inner group.
+		editor.doubleClick()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
+		expect(editor.getFocusedGroupId()).toBe(ids.group2)
+		expect(editor.getEditingShapeId()).toBe(null)
+
+		// The next double click drills to the shape and then edits it.
 		editor.doubleClick()
 		expect(editor.getEditingShapeId()).toBe(ids.box2)
 		editor.expectToBeIn('select.editing_shape')

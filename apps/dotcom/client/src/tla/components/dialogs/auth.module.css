@@ -9,11 +9,30 @@
 	padding: 0;
 }
 
+.legalContainer {
+	width: 360px;
+	max-width: calc(100vw - 32px);
+}
+
+.legalDialogHeader {
+	height: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
 .authBody {
 	display: flex;
 	flex-direction: column;
 	padding: 8px 20px 24px 20px;
 	gap: 24px;
+}
+
+.legalBody {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 24px;
+	padding: 32px 28px 28px 28px;
 }
 
 /* Logo */
@@ -46,12 +65,31 @@
 	margin-bottom: 12px;
 }
 
+.legalDescription {
+	max-width: 260px;
+	margin: 0 auto;
+	color: var(--tl-color-text-0);
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.5;
+	text-align: center;
+	text-wrap: balance;
+}
+
+.legalDescription a {
+	color: var(--tl-color-selected);
+}
+
 /* Cta button */
 .authCtaButton {
 	height: 36px;
 	width: 100%;
 	font-size: 12px;
 	font-weight: 500;
+}
+
+.legalCtaButton {
+	margin-left: 0;
 }
 
 /* The google logo in the cta button on the sign in dialog */

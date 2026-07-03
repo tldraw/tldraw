@@ -28,7 +28,10 @@ export interface StylePanelDropdownPickerProps<T extends string> {
 	onValueChange?(style: StyleProp<T>, value: T): void
 	/** Override the test ID prefix. Defaults to uiType. */
 	testIdType?: string
-	/** Distance to push the popover left of the trigger so it lands flush with the style panel. */
+	/**
+	 * Distance to push the popover left of the trigger so it lands flush with the style panel.
+	 * Defaults to the standard popover gap so standalone dropdowns don't sit flush against the panel.
+	 */
 	sideOffset?: number
 }
 
@@ -59,7 +62,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 		value,
 		onValueChange = ctx.onValueChange,
 		testIdType = uiType,
-		sideOffset = 0,
+		sideOffset = 8,
 	} = props
 	const msg = useTranslation()
 	const editor = useEditor()

@@ -178,7 +178,7 @@ test.describe('UI scenarios', () => {
 		await owner.waitForMutationResolution()
 
 		await visitor.page.goto(publishedUrl, { waitUntil: 'load' })
-		await expect(visitor.page.getByTestId('tla-error-icon')).toBeVisible()
+		await expect(visitor.page.getByTestId('tla-error')).toBeVisible()
 	})
 
 	test('missing files show not-found UI to signed-in and signed-out users', async ({
@@ -191,13 +191,13 @@ test.describe('UI scenarios', () => {
 		await expect(async () => {
 			await owner.errorPage.expectNotFoundVisible()
 		}).toPass()
-		await expect(owner.page.getByTestId('tla-error-icon')).toBeVisible()
+		await expect(owner.page.getByTestId('tla-error')).toBeVisible()
 
 		await visitor.page.goto(missingFileUrl, { waitUntil: 'load' })
 		await expect(async () => {
 			await visitor.errorPage.expectNotFoundVisible()
 		}).toPass()
-		await expect(visitor.page.getByTestId('tla-error-icon')).toBeVisible()
+		await expect(visitor.page.getByTestId('tla-error')).toBeVisible()
 	})
 
 	test('anonymous export downloads an image file', async ({ visitor }) => {
