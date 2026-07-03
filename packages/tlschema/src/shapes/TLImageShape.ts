@@ -4,6 +4,7 @@ import { vecModelValidator } from '../misc/geometry-types'
 import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
+import { DefaultBorderStyle, TLDefaultBorderStyle } from '../styles/TLBorderStyle'
 import { TLShapeCrop } from './ShapeWithCrop'
 import { TLBaseShape } from './TLBaseShape'
 
@@ -68,6 +69,8 @@ export interface TLImageShapeProps {
 	flipY: boolean
 	/** Alternative text for accessibility and when image fails to load */
 	altText: string
+	/** Decorative border/shadow treatment applied to the shape */
+	border: TLDefaultBorderStyle
 }
 
 /**
@@ -129,6 +132,7 @@ export const imageShapeProps: RecordProps<TLImageShape> = {
 	flipX: T.boolean,
 	flipY: T.boolean,
 	altText: T.string,
+	border: DefaultBorderStyle,
 }
 
 const Versions = createShapePropsMigrationIds('image', {
@@ -137,6 +141,7 @@ const Versions = createShapePropsMigrationIds('image', {
 	MakeUrlsValid: 3,
 	AddFlipProps: 4,
 	AddAltText: 5,
+	AddBorder: 6,
 })
 
 /**
@@ -201,6 +206,15 @@ export const imageShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.altText
+			},
+		},
+		{
+			id: Versions.AddBorder,
+			up: (props) => {
+				props.border = 'none'
+			},
+			down: (props) => {
+				delete props.border
 			},
 		},
 	],

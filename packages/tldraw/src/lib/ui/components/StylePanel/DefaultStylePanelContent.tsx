@@ -2,6 +2,7 @@ import {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
 	ArrowShapeKindStyle,
+	DefaultBorderStyle,
 	DefaultColorStyle,
 	DefaultDashStyle,
 	DefaultFillStyle,
@@ -47,6 +48,7 @@ export function DefaultStylePanelContent() {
 				<StylePanelFillPicker />
 				<StylePanelDashPicker />
 				<StylePanelSizePicker />
+				<StylePanelBorderPicker />
 			</StylePanelSection>
 			<StylePanelSection>
 				<StylePanelFontPicker />
@@ -177,6 +179,24 @@ export function StylePanelFillPicker() {
 				/>
 			</TldrawUiToolbar>
 		</>
+	)
+}
+
+/** @public @react */
+export function StylePanelBorderPicker() {
+	const { styles } = useStylePanelContext()
+	const msg = useTranslation()
+	const border = styles.get(DefaultBorderStyle)
+	if (border === undefined) return null
+
+	return (
+		<StylePanelButtonPicker
+			title={msg('style-panel.border')}
+			uiType="border"
+			style={DefaultBorderStyle}
+			items={STYLES.border}
+			value={border}
+		/>
 	)
 }
 

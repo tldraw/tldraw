@@ -305,6 +305,7 @@ export {
 	registerColorsFromThemes,
 	type TLDefaultColorStyle,
 } from './styles/TLColorStyle'
+export { DefaultBorderStyle, type TLDefaultBorderStyle } from './styles/TLBorderStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
 export { DefaultFillStyle, type TLDefaultFillStyle } from './styles/TLFillStyle'
 export { type TLFontFace, type TLFontFaceSource } from './styles/TLFontFace'
