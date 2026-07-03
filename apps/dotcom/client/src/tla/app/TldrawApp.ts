@@ -458,16 +458,16 @@ export class TldrawApp {
 		const pinned = groupFiles.filter((f) => f.index !== null)
 		const unpinned = groupFiles.filter((f) => f.index === null)
 
+		const unpinnedFileIds = new Set(unpinned.map((f) => f.fileId))
 		const lastOrdering = this.lastWorkspaceFileOrderings.get(workspaceId)
-		const retainedOrdering =
-			lastOrdering?.filter((f) => unpinned.some((p) => p.fileId === f.fileId)) ?? []
+		const retainedOrdering = lastOrdering?.filter((f) => unpinnedFileIds.has(f.fileId)) ?? []
+		const retainedFileIds = new Set(retainedOrdering.map((f) => f.fileId))
 		const newOrdering: typeof retainedOrdering = []
 
 		pinned.sort(sortByMaybeIndex)
 
 		for (const file of unpinned) {
-			const existing = retainedOrdering?.find((f) => f.fileId === file.fileId)
-			if (existing) continue
+			if (retainedFileIds.has(file.fileId)) continue
 
 			// For new files, use current updatedAt
 			const state = this.getFileState(file.fileId)
@@ -599,7 +599,12 @@ export class TldrawApp {
 	}
 
 	isPinned(fileId: string, workspaceId: string) {
-		return this.getWorkspaceFilesSorted(workspaceId).some((f) => f.fileId === fileId && f.isPinned)
+		if (!workspaceId) return false
+		return (
+			this.getWorkspaceMembership(workspaceId)?.groupFiles.some(
+				(f) => f.fileId === fileId && f.index !== null && !!f.file
+			) ?? false
+		)
 	}
 
 	// A workspace's welcome file is seeded once, when the workspace is created. Its
@@ -795,11 +800,11 @@ export class TldrawApp {
 
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		return (
-			this.getWorkspaceMemberships()
-				.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
-				?.groupFiles.find((gf) => gf.fileId === fileId)?.file ?? null
-		)
+		for (const membership of this.workspaceMemberships$.get()) {
+			const groupFile = membership.groupFiles.find((gf) => gf.fileId === fileId)
+			if (groupFile?.file) return groupFile.file
+		}
+		return null
 	}
 
 	canUpdateFile(fileId: string): boolean {

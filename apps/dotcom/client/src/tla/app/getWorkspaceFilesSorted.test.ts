@@ -59,3 +59,33 @@ describe('getWorkspaceFilesSorted', () => {
 		expect(app.getWorkspaceFilesSorted(homeId)).toEqual([])
 	})
 })
+
+describe('isPinned', () => {
+	it('checks the workspace group_file row directly', () => {
+		const workspaceId = 'group:workspace'
+		const pinnedFile = makeFile({ id: 'file:pinned', owningGroupId: workspaceId })
+		const unpinnedFile = makeFile({ id: 'file:unpinned', owningGroupId: workspaceId })
+		const app = createAppStub([
+			makeMembership(workspaceId, [
+				{ fileId: 'file:pinned', groupId: workspaceId, index: 'a1', file: pinnedFile },
+				{ fileId: 'file:unpinned', groupId: workspaceId, index: null, file: unpinnedFile },
+			]),
+		])
+
+		expect(app.isPinned('file:pinned', workspaceId)).toBe(true)
+		expect(app.isPinned('file:unpinned', workspaceId)).toBe(false)
+	})
+
+	it('ignores missing workspaces and orphaned group_file rows', () => {
+		const workspaceId = 'group:workspace'
+		const app = createAppStub([
+			makeMembership(workspaceId, [
+				{ fileId: 'file:orphan', groupId: workspaceId, index: 'a1', file: undefined },
+			]),
+		])
+
+		expect(app.isPinned('file:orphan', workspaceId)).toBe(false)
+		expect(app.isPinned('file:orphan', '')).toBe(false)
+		expect(app.isPinned('file:orphan', 'group:missing')).toBe(false)
+	})
+})
