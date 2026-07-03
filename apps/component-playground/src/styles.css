@@ -1,0 +1,30 @@
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	color: #1d1d1d;
+	background: #f9f9f9;
+}
+
+.playground {
+	max-width: 40rem;
+	margin: 0 auto;
+	padding: 4rem 2rem;
+}
+
+.playground h1 {
+	font-size: 1.5rem;
+	font-weight: 600;
+}
+
+.playground code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	background: #ececec;
+	padding: 0.1em 0.35em;
+	border-radius: 4px;
+}

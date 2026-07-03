@@ -1,0 +1,29 @@
+{
+	"name": "component-playground",
+	"description": "A playground for developing tldraw UI components in isolation.",
+	"version": "0.0.0",
+	"private": true,
+	"license": "SEE LICENSE IN LICENSE.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"scripts": {
+		"dev": "vite --host",
+		"preview": "vite preview --host",
+		"build": "vite build",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"dependencies": {
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"tldraw": "workspace:*",
+		"vite": "^8.0.16"
+	},
+	"devDependencies": {
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^6.0.1"
+	},
+	"type": "module"
+}

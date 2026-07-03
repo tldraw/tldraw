@@ -17284,6 +17284,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"component-playground@workspace:apps/component-playground":
+  version: 0.0.0-use.local
+  resolution: "component-playground@workspace:apps/component-playground"
+  dependencies:
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    "@vitejs/plugin-react": "npm:^6.0.1"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
+    vite: "npm:^8.0.16"
+  languageName: unknown
+  linkType: soft
+
 "compress-commons@npm:^6.0.2":
   version: 6.0.2
   resolution: "compress-commons@npm:6.0.2"

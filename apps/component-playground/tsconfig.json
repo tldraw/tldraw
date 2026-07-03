@@ -1,0 +1,7 @@
+{
+	"extends": "../../internal/config/tsconfig.base.json",
+	"include": ["src", "./vite.config.ts"],
+	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*"],
+	"compilerOptions": { "outDir": "./.tsbuild" },
+	"references": [{ "path": "../../packages/tldraw" }]
+}
