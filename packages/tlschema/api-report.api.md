@@ -352,6 +352,9 @@ export const defaultBindingSchemas: {
     };
 };
 
+// @public
+export const DefaultBorderStyle: EnumStyleProp<"none" | "shadow-hard" | "shadow" | "solid">;
+
 // @public (undocumented)
 export const DefaultColorStyle: EnumStyleProp<TLDefaultColorStyle>;
 
@@ -1207,6 +1210,9 @@ export type TLDefaultAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public
+export type TLDefaultBorderStyle = T.TypeOf<typeof DefaultBorderStyle>;
+
+// @public
 export interface TLDefaultColor {
     // (undocumented)
     fill: string;
@@ -1450,6 +1456,7 @@ export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
 export interface TLImageShapeProps {
     altText: string;
     assetId: null | TLAssetId;
+    border: TLDefaultBorderStyle;
     crop: null | TLShapeCrop;
     flipX: boolean;
     flipY: boolean;
@@ -1976,6 +1983,7 @@ export interface TLVideoShapeProps {
     assetId: null | TLAssetId;
     // (undocumented)
     autoplay: boolean;
+    border: TLDefaultBorderStyle;
     // (undocumented)
     h: number;
     // (undocumented)

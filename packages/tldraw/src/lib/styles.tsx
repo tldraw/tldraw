@@ -112,6 +112,12 @@ export const STYLES = {
 		{ value: 'dotted', icon: 'dash-dotted' },
 		{ value: 'solid', icon: 'dash-solid' },
 	],
+	border: [
+		{ value: 'none', icon: 'border-none' },
+		{ value: 'solid', icon: 'border-solid' },
+		{ value: 'shadow', icon: 'border-shadow' },
+		{ value: 'shadow-hard', icon: 'border-shadow-hard' },
+	],
 	size: [
 		{ value: 's', icon: 'size-small' },
 		{ value: 'm', icon: 'size-medium' },

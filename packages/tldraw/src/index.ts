@@ -594,6 +594,7 @@ export {
 	DefaultStylePanelContent,
 	StylePanelArrowheadPicker,
 	StylePanelArrowKindPicker,
+	StylePanelBorderPicker,
 	StylePanelColorPicker,
 	StylePanelDashPicker,
 	StylePanelFillPicker,
