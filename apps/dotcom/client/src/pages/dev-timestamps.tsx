@@ -119,12 +119,16 @@ export function Component() {
 							</Specimen>
 							<Specimen
 								label="react-intl FormattedRelativeTime"
-								code={`<FormattedRelativeTime value={secondsSince} numeric="auto" />`}
-								meta="locale-aware · auto-updates every 15s"
+								code={`<FormattedRelativeTime value={s} numeric="auto" updateIntervalInSeconds={15} />`}
+								meta="locale-aware · auto-updates · picks the human unit"
 								source="TlaPublishTab.tsx:122"
 							>
 								<span className="ts">
-									<FormattedRelativeTime value={SECONDS_AGO} numeric="auto" />
+									<FormattedRelativeTime
+										value={SECONDS_AGO}
+										numeric="auto"
+										updateIntervalInSeconds={15}
+									/>
 								</span>
 							</Specimen>
 							<Specimen
