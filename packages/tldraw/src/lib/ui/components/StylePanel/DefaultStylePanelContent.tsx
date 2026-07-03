@@ -185,14 +185,16 @@ export function StylePanelFillPicker() {
 /** @public @react */
 export function StylePanelBorderPicker() {
 	const { styles } = useStylePanelContext()
-	const msg = useTranslation()
 	const border = styles.get(DefaultBorderStyle)
 	if (border === undefined) return null
 
 	return (
-		<StylePanelButtonPicker
-			title={msg('style-panel.border')}
+		<StylePanelDropdownPicker
+			id="border"
+			type="menu"
+			label={'style-panel.border'}
 			uiType="border"
+			stylePanelType="border"
 			style={DefaultBorderStyle}
 			items={STYLES.border}
 			value={border}
