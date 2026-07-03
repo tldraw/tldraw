@@ -88,13 +88,14 @@ body {
 	margin-top: 4rem;
 }
 
-/* sketch view — the frame one sketch is viewed in */
+/* sketch view — the titled frame around one sketch's preview iframe */
 .sketch-view {
 	background: #fff;
 	border: 1px solid #e4e4e4;
 	border-radius: 12px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-	min-width: 24rem;
+	width: 40rem;
+	max-width: 100%;
 	overflow: hidden;
 }
 
@@ -108,25 +109,12 @@ body {
 }
 
 .sketch-view__stage {
-	padding: 2.5rem;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: repeating-conic-gradient(#fbfbfb 0% 25%, #fff 0% 50%) 50% / 16px 16px;
+	padding: 0;
 }
 
-/* throwaway sample */
-.demo-button {
-	font: inherit;
-	padding: 0.5rem 1rem;
-	border-radius: 8px;
-	border: 1px solid #d0d0d0;
-	background: #fff;
-	cursor: pointer;
-}
-
-.demo-button--primary {
-	background: #1b3fd1;
-	border-color: #1b3fd1;
-	color: #fff;
+.sketch-frame {
+	display: block;
+	width: 100%;
+	height: 24rem;
+	border: 0;
 }

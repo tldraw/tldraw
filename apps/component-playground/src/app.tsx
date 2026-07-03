@@ -1,17 +1,6 @@
 import { useState } from 'react'
-import { LoadedSketch, sketchbooks, sketchesById } from './registry'
+import { sketchbooks, sketchesById } from './registry'
 import { SketchView } from './sketch-view'
-
-function renderSketch(loaded: LoadedSketch) {
-	const { sketchbook, sketch } = loaded
-	const args = sketch.args ?? {}
-	if (sketch.render) return sketch.render(args)
-	if (sketchbook.component) {
-		const Component = sketchbook.component
-		return <Component {...args} />
-	}
-	return <em>This sketch has no component or render().</em>
-}
 
 export function App() {
 	const [selectedId, setSelectedId] = useState(sketchbooks[0]?.sketches[0]?.id)
@@ -40,7 +29,11 @@ export function App() {
 			<main className="stage">
 				{selected ? (
 					<SketchView title={`${selected.sketchbook.title} · ${selected.name}`}>
-						{renderSketch(selected)}
+						<iframe
+							className="sketch-frame"
+							title={selected.id}
+							src={`sketch.html?id=${encodeURIComponent(selected.id)}`}
+						/>
 					</SketchView>
 				) : (
 					<p className="stage__empty">No sketches found.</p>

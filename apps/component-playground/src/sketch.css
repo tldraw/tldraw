@@ -1,0 +1,43 @@
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	height: 100%;
+}
+
+body {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 100vh;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	background: repeating-conic-gradient(#fbfbfb 0% 25%, #fff 0% 50%) 50% / 16px 16px;
+}
+
+.preview {
+	padding: 2rem;
+}
+
+.preview__missing {
+	color: #b00020;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* throwaway sample */
+.demo-button {
+	font: inherit;
+	padding: 0.5rem 1rem;
+	border-radius: 8px;
+	border: 1px solid #d0d0d0;
+	background: #fff;
+	cursor: pointer;
+}
+
+.demo-button--primary {
+	background: #1b3fd1;
+	border-color: #1b3fd1;
+	color: #fff;
+}

@@ -8,6 +8,15 @@ import { defineConfig } from 'vite'
 export default defineConfig({
 	plugins: [react()],
 	root: path.join(__dirname, 'src'),
+	build: {
+		rollupOptions: {
+			// Two HTML entries: the studio shell and the sketch preview it iframes.
+			input: {
+				index: path.join(__dirname, 'src/index.html'),
+				sketch: path.join(__dirname, 'src/sketch.html'),
+			},
+		},
+	},
 	server: {
 		port: 5430,
 		allowedHosts: true,
