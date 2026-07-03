@@ -1,8 +1,15 @@
-/** The studio shell posts this into a sketch's preview iframe to set live args. */
-export const SET_ARGS = 'studio:set-args'
+/** The studio shell posts this into a sketch's preview iframe to drive its render. */
+export const SET_STATE = 'studio:set-state'
 
-export interface SetArgsMessage {
-	type: typeof SET_ARGS
+/** Global viewing environment, chosen in the studio toolbar. */
+export interface Env {
+	theme: 'light' | 'dark'
+	locale: string
+}
+
+export interface SetStateMessage {
+	type: typeof SET_STATE
 	id: string
 	args: Record<string, unknown>
+	env: Env
 }

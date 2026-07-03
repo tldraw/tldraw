@@ -9,9 +9,9 @@
 		"url": "https://github.com/tldraw/tldraw"
 	},
 	"scripts": {
-		"dev": "vite --host",
+		"dev": "node ../../packages/tldraw/scripts/copy-css-files.mjs && vite --host",
 		"preview": "vite preview --host",
-		"build": "vite build",
+		"build": "node ../../packages/tldraw/scripts/copy-css-files.mjs && vite build",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {

@@ -74,8 +74,41 @@ body {
 	font-weight: 500;
 }
 
+/* main column — toolbar over stage */
+.main {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.toolbar {
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+	padding: 0.6rem 1rem;
+	border-bottom: 1px solid #e4e4e4;
+	background: #fff;
+}
+
+.toolbar__field {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	font-size: 0.8rem;
+	color: #555;
+}
+
+.toolbar__field select {
+	font: inherit;
+	padding: 0.2rem 0.4rem;
+	border: 1px solid #d0d0d0;
+	border-radius: 6px;
+	background: #fff;
+}
+
 /* stage */
 .stage {
+	flex: 1;
 	overflow: auto;
 	padding: 2rem;
 	display: flex;

@@ -1,11 +1,15 @@
+import 'tldraw/tldraw.css'
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { SET_ARGS } from './channel'
+import { Env, SET_STATE } from './channel'
+import { IsolatedHarness } from './harness'
 import { LoadedSketch, sketchesById } from './registry'
 
+const DEFAULT_ENV: Env = { theme: 'light', locale: 'en' }
+
 // This module is the preview document embedded in the studio's iframe. It renders
-// exactly one sketch, chosen by the `?id=` query the shell puts in the frame's src,
-// and re-renders it from args the shell pushes over postMessage (the controls).
+// exactly one sketch (chosen by the `?id=` query), inside a harness driven by the
+// theme/locale env, and re-renders from the args + env the shell pushes over the channel.
 function render(loaded: LoadedSketch, args: Record<string, unknown>) {
 	const { sketchbook, sketch } = loaded
 	if (sketch.render) return sketch.render(args)
@@ -22,20 +26,22 @@ function Preview() {
 	const [args, setArgs] = useState<Record<string, unknown>>(() => ({
 		...(loaded?.sketch.args ?? {}),
 	}))
+	const [env, setEnv] = useState<Env>(DEFAULT_ENV)
 
 	useEffect(() => {
 		function onMessage(event: MessageEvent) {
 			if (event.origin !== window.location.origin) return
 			const data = event.data
-			if (!data || data.type !== SET_ARGS || data.id !== id) return
+			if (!data || data.type !== SET_STATE || data.id !== id) return
 			setArgs({ ...data.args })
+			setEnv(data.env)
 		}
 		window.addEventListener('message', onMessage)
 		return () => window.removeEventListener('message', onMessage)
 	}, [id])
 
 	if (!loaded) return <p className="preview__missing">Unknown sketch: {id ?? '(none)'}</p>
-	return <div className="preview">{render(loaded, args)}</div>
+	return <IsolatedHarness env={env}>{render(loaded, args)}</IsolatedHarness>
 }
 
 const root = document.getElementById('root')
