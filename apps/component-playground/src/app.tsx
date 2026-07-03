@@ -1,10 +1,32 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { SET_ARGS } from './channel'
+import { Controls } from './controls'
 import { sketchbooks, sketchesById } from './registry'
 import { SketchView } from './sketch-view'
+
+function postArgs(frame: HTMLIFrameElement | null, id: string, args: Record<string, unknown>) {
+	if (frame && frame.contentWindow) {
+		frame.contentWindow.postMessage({ type: SET_ARGS, id, args }, window.location.origin)
+	}
+}
 
 export function App() {
 	const [selectedId, setSelectedId] = useState(sketchbooks[0]?.sketches[0]?.id)
 	const selected = selectedId ? sketchesById.get(selectedId) : undefined
+	const [args, setArgs] = useState<Record<string, unknown>>(() => ({
+		...(selected?.sketch.args ?? {}),
+	}))
+	const frameRef = useRef<HTMLIFrameElement | null>(null)
+
+	// Reset args to the sketch's authored defaults when the selection changes.
+	useEffect(() => {
+		setArgs({ ...(selected?.sketch.args ?? {}) })
+	}, [selectedId, selected])
+
+	// Push args into the preview frame whenever they change.
+	useEffect(() => {
+		if (selected) postArgs(frameRef.current, selected.id, args)
+	}, [selected, args])
 
 	return (
 		<div className="layout">
@@ -28,13 +50,18 @@ export function App() {
 			</nav>
 			<main className="stage">
 				{selected ? (
-					<SketchView title={`${selected.sketchbook.title} · ${selected.name}`}>
-						<iframe
-							className="sketch-frame"
-							title={selected.id}
-							src={`sketch.html?id=${encodeURIComponent(selected.id)}`}
-						/>
-					</SketchView>
+					<div className="workbench">
+						<SketchView title={`${selected.sketchbook.title} · ${selected.name}`}>
+							<iframe
+								ref={frameRef}
+								className="sketch-frame"
+								title={selected.id}
+								src={`sketch.html?id=${encodeURIComponent(selected.id)}`}
+								onLoad={() => postArgs(frameRef.current, selected.id, args)}
+							/>
+						</SketchView>
+						<Controls loaded={selected} args={args} onChange={setArgs} />
+					</div>
 				) : (
 					<p className="stage__empty">No sketches found.</p>
 				)}
