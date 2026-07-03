@@ -43,6 +43,7 @@ import {
 	TLAssetId,
 	TLDOCUMENT_ID,
 	TLDocument,
+	TLNoteShape,
 	TLRecord,
 	commentSchemaRecords,
 	createTLSchema,
@@ -193,20 +194,24 @@ function authorizeAuthored<Rec extends UnknownRecord>(
 const authorizeFileRecord: TLRecordAuthorizers<FileRecord, SessionMeta> = {
 	comment: authorizeAuthored<TLComment>('authorId'),
 	'comment-thread': authorizeAuthored<TLCommentThread>('createdBy'),
-	// All shapes share typeName 'shape'; we only attribute note shapes (via meta.createdBy).
+	// All shapes share typeName 'shape'; we only secure note-shape attribution. tldraw sets
+	// `props.textLastEditedBy` on the client (NoteShapeUtil.onBeforeUpdate) and renders it, so it's
+	// forgeable — here we enforce that it can only ever be null or the session's own user id.
 	shape: ({ session, type, prev, next }) => {
-		const shape = (next ?? prev)!
-		if (shape.type !== 'note') return next ?? prev
+		if ((next ?? prev)!.type !== 'note') return next ?? prev // not a note → write through
+		if (type === 'delete') return prev // anyone who can edit the doc may delete a shape
 		const userId = session.meta.userId
+		const nextBy = (next as TLNoteShape).props.textLastEditedBy
 		if (type === 'create') {
-			if (!userId) return next // anonymous can still draw, just unattributed
-			return { ...next!, meta: { ...next!.meta, createdBy: userId } }
+			// A fresh note has textLastEditedBy: null; a non-null value is a duplicate or a forge.
+			// Strip anything that isn't the creator so a note can't be created as someone else.
+			if (nextBy == null || nextBy === userId) return next
+			const note = next as TLNoteShape
+			return { ...note, props: { ...note.props, textLastEditedBy: null } }
 		}
-		if (type === 'update') {
-			// creator attribution is immutable once set
-			return prev!.meta.createdBy === next!.meta.createdBy ? next : null
-		}
-		return prev // delete: anyone who can edit the doc may delete a shape
+		// update: allow null / unchanged / your own id; veto attributing an edit to anyone else.
+		const prevBy = (prev as TLNoteShape).props.textLastEditedBy
+		return nextBy !== prevBy && nextBy != null && nextBy !== userId ? null : next
 	},
 }
 
