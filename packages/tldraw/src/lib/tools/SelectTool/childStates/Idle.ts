@@ -16,6 +16,7 @@ import {
 	unsafe__withoutCapture,
 } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
+import { drillIntoGroupOnDoubleClick } from '../../selection-logic/drillIntoGroupOnDoubleClick'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredOverlayId } from '../../selection-logic/updateHoveredOverlayId'
 import {
@@ -324,7 +325,9 @@ export class Idle extends StateNode {
 							}))
 
 				if (hitShape) {
-					if (hitShape.parentId !== this.editor.getFocusedGroupId()) return
+					// If the shape lives inside an unfocused group, a double click
+					// drills one level down instead of editing it.
+					if (drillIntoGroupOnDoubleClick(this.editor, hitShape)) return
 
 					// double click on the shape. We'll start editing the
 					// shape if it's editable or else do a double click on
@@ -411,6 +414,11 @@ export class Idle extends StateNode {
 			}
 			case 'shape': {
 				const { shape } = info
+
+				// If the shape lives inside an unfocused group, a double click drills
+				// one level down instead of editing it.
+				if (drillIntoGroupOnDoubleClick(this.editor, shape)) return
+
 				const util = this.editor.getShapeUtil(shape)
 
 				// Allow playing videos and embeds
