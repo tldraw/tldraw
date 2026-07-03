@@ -92,6 +92,8 @@ function makeRoom(
 			documentClock: 0,
 			schema: schema.serialize(),
 		},
+		// keep the storage partition in step with the room's object lane
+		objectTypes: opts.objectTypes,
 	})
 	const room = new TLSyncRoom<R, undefined>({
 		schema,
@@ -149,9 +151,9 @@ function lastPushResult(socket: MockSocket) {
 }
 
 function storedIds(storage: InMemorySyncStorage<R>) {
-	return storage
-		.getSnapshot()
-		.documents.map((d) => d.state.id)
+	// span both partitions: the document snapshot no longer contains object-lane records
+	return [...storage.getSnapshot().documents, ...storage.getObjectsSnapshot()]
+		.map((d) => d.state.id)
 		.sort()
 }
 
@@ -315,6 +317,30 @@ describe('object store lane', () => {
 			connectSession(room, 'commenter', { isReadonly: true, objectAccess: 'write' })
 			push(room, 'commenter', { [note.id]: [RecordOpType.Remove] })
 			expect(storedIds(storage)).toEqual([])
+		})
+	})
+
+	describe('storage partition', () => {
+		it('keeps object records out of the document snapshot but in the objects snapshot', () => {
+			const { room, storage } = makeRoom({ objectTypes: ['note'] })
+			connectSession(room, 'writer')
+
+			const doc = Doc.create({ title: 'canvas' })
+			const note = Note.create({ text: 'annotation' })
+			push(room, 'writer', {
+				[doc.id]: [RecordOpType.Put, doc],
+				[note.id]: [RecordOpType.Put, note],
+			})
+
+			// the document snapshot is pure-document by construction
+			expect(storage.getSnapshot().documents.map((d) => d.state.id)).toEqual([doc.id])
+			// the object lane is persisted separately
+			expect(storage.getObjectsSnapshot().map((d) => d.state.id)).toEqual([note.id])
+
+			// but a fresh connect still hydrates both (shared clock + change feed)
+			const late = connectSession(room, 'late', { clear: false })
+			const connectMsg = late.__messages.find((m: any) => m.type === 'connect') as any
+			expect(Object.keys(connectMsg.diff).sort()).toEqual([doc.id, note.id].sort())
 		})
 	})
 

@@ -158,12 +158,17 @@ export class TLFileDurableObject extends DurableObject {
 
 		// If SQLite has been initialized, use it directly
 		if (SQLiteSyncStorage.hasBeenInitialized(sql)) {
-			return new SQLiteSyncStorage<TLRecord>({ sql })
+			return new SQLiteSyncStorage<TLRecord>({ sql, objectTypes: OBJECT_TYPES })
 		}
 
-		// SQLite not initialized yet, load from R2 and initialize
+		// SQLite not initialized yet, load from R2 and initialize. The loaded snapshot has the
+		// R2 object lane merged in; the storage routes those records into its objects partition.
 		const result = await this.loadFromDatabase(slug)
-		const storage = new SQLiteSyncStorage<TLRecord>({ sql, snapshot: result.snapshot })
+		const storage = new SQLiteSyncStorage<TLRecord>({
+			sql,
+			snapshot: result.snapshot,
+			objectTypes: OBJECT_TYPES,
+		})
 		// We should not await on setRoomStorageUsedPercentage because it calls
 		// getStorage under the hood which will only resolve once this function has returned.
 		this.setRoomStorageUsedPercentage(result.roomSizeMB)
@@ -801,8 +806,8 @@ export class TLFileDurableObject extends DurableObject {
 
 		const storage = await this.getStorage()
 		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
-		// object-lane records (comments) are not document content and don't belong in .tldr files
-		const snapshot = storage.getSnapshot({ excludeTypes: OBJECT_TYPES })
+		// the document snapshot never contains object-lane records (comments), so .tldr is clean
+		const snapshot = storage.getSnapshot()
 		const records = pruneUnusedAssetsForTldr(snapshot.documents.map((d) => d.state) as TLRecord[])
 
 		const assetRows = await this.db
@@ -1284,22 +1289,13 @@ export class TLFileDurableObject extends DurableObject {
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return
 
-						const fullSnapshot = storage.getSnapshot()
-						assert(fullSnapshot.documentClock !== undefined, 'documentClock must be present')
+						// The storage partitions object-lane records (comments) into their own store, so
+						// the document snapshot is pure-document by construction — no splitting needed.
+						const snapshot = storage.getSnapshot()
+						assert(snapshot.documentClock !== undefined, 'documentClock must be present')
 						this.maybeAssociateFileAssets()
 
-						// Object-lane records (comments) are persisted in a separate R2 lane, not the main
-						// document blob. Split them out in a single pass so the main snapshot (and Pierre)
-						// never carry object-lane records.
-						const objectDocs: RoomSnapshot['documents'] = []
-						const mainDocs: RoomSnapshot['documents'] = []
-						for (const doc of fullSnapshot.documents) {
-							;((OBJECT_TYPES as readonly string[]).includes(doc.state.typeName)
-								? objectDocs
-								: mainDocs
-							).push(doc)
-						}
-						const snapshot: RoomSnapshot = { ...fullSnapshot, documents: mainDocs }
+						const objectDocs = storage.getObjectsSnapshot()
 
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 						await this._uploadSnapshotToR2(snapshot, key)
@@ -1312,7 +1308,7 @@ export class TLFileDurableObject extends DurableObject {
 						await this.persistToPierre(storage, snapshot)
 
 						this.logEvent({ type: 'persist_success', attempts: attempt })
-						this._lastPersistedClock = fullSnapshot.documentClock
+						this._lastPersistedClock = snapshot.documentClock
 						// Store the clock in DO storage so we can compare against SQLite on next load.
 						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })

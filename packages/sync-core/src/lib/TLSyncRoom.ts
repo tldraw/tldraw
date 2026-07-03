@@ -122,21 +122,6 @@ export interface RoomSnapshot {
 }
 
 /**
- * Options for {@link TLSyncStorage.getSnapshot}.
- *
- * @public
- */
-export interface GetSnapshotOptions {
-	/**
-	 * Record type names to exclude from the snapshot's `documents`. Use this to persist
-	 * certain record types in a separate lane (e.g. comments) while keeping them out of
-	 * the main persisted document. Only affects the returned snapshot — records of these
-	 * types are still synced/broadcast to clients and hydrated on connect. Defaults to none.
-	 */
-	excludeTypes?: readonly string[]
-}
-
-/**
  * A collaborative workspace that manages multiple client sessions and synchronizes
  * document changes between them. The room serves as the authoritative source for
  * all document state and handles conflict resolution, schema migrations, and

@@ -67,7 +67,6 @@ export {
 } from './lib/TLSyncClient'
 export {
 	TLSyncRoom,
-	type GetSnapshotOptions,
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,

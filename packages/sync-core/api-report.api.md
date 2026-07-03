@@ -100,17 +100,13 @@ export class DurableObjectSqliteSyncWrapper implements TLSyncSqliteWrapper {
 // @internal
 export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): NetworkDiff<R> | null;
 
-// @public
-export interface GetSnapshotOptions {
-    excludeTypes?: readonly string[];
-}
-
 // @internal
 export function getTlsyncProtocolVersion(): number;
 
 // @public
 export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor({ snapshot, onChange }?: {
+    constructor({ snapshot, objectTypes, onChange }?: {
+        objectTypes?: readonly string[];
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot;
     });
@@ -124,7 +120,16 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
     // (undocumented)
     getClock(): number;
     // (undocumented)
-    getSnapshot(opts?: GetSnapshotOptions): RoomSnapshot;
+    getObjectsSnapshot(): RoomSnapshot['documents'];
+    // (undocumented)
+    getSnapshot(): RoomSnapshot;
+    // @internal
+    objects: AtomMap<string, {
+        lastChangedClock: number;
+        state: R;
+    }>;
+    // @internal (undocumented)
+    readonly objectTypes: ReadonlySet<string>;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
     // @internal (undocumented)
@@ -326,7 +331,8 @@ export interface SessionStateSnapshot {
 
 // @public
 export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor({ sql, snapshot, onChange }: {
+    constructor({ sql, snapshot, objectTypes, onChange }: {
+        objectTypes?: readonly string[];
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot | StoreSnapshot<R>;
         sql: TLSyncSqliteWrapper;
@@ -334,13 +340,17 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
     // (undocumented)
     getClock(): number;
     static getDocumentClock(storage: TLSyncSqliteWrapper): null | number;
+    // (undocumented)
+    getObjectsSnapshot(): RoomSnapshot['documents'];
     // @internal (undocumented)
     _getSchema(): SerializedSchema;
     // (undocumented)
-    getSnapshot(opts?: GetSnapshotOptions): RoomSnapshot;
+    getSnapshot(): RoomSnapshot;
     // @internal (undocumented)
     _getTombstoneHistoryStartsAtClock(): number;
     static hasBeenInitialized(storage: TLSyncSqliteWrapper): boolean;
+    // @internal (undocumented)
+    readonly objectTypes: ReadonlySet<string>;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => void): () => void;
     // @internal (undocumented)
@@ -458,8 +468,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     close(): void;
     closeSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     getCurrentDocumentClock(): number;
+    getCurrentObjectsSnapshot(): RoomSnapshot['documents'];
     // @deprecated
-    getCurrentSnapshot(opts?: GetSnapshotOptions): RoomSnapshot;
+    getCurrentSnapshot(): RoomSnapshot;
     getNumActiveSessions(): number;
     // @internal
     getPresenceRecords(): Record<string, UnknownRecord>;
@@ -762,8 +773,8 @@ export interface TLSyncSqliteWrapperConfig {
 export interface TLSyncStorage<R extends UnknownRecord> {
     // (undocumented)
     getClock(): number;
-    // (undocumented)
-    getSnapshot?(opts?: GetSnapshotOptions): RoomSnapshot;
+    getObjectsSnapshot?(): RoomSnapshot['documents'];
+    getSnapshot?(): RoomSnapshot;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
     // (undocumented)

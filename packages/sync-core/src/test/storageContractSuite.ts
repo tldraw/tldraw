@@ -41,6 +41,7 @@ export function makePage(id: string, name = id, index = 'a2') {
 export interface StorageContractFactory {
 	create(opts?: {
 		snapshot?: RoomSnapshot
+		objectTypes?: readonly string[]
 		onChange?(arg: TLSyncStorageOnChangeCallbackProps): void
 	}): TLSyncStorage<TLRecord>
 }
@@ -61,21 +62,82 @@ export function registerStorageContractTests(factory: StorageContractFactory) {
 			expect(snapshot.documents.map((d) => d.lastChangedClock)).toEqual([0, 0])
 		})
 
-		it('getSnapshot with excludeTypes omits those record types from the snapshot (used to persist some types separately) without affecting the clock or schema', () => {
-			const storage = create(makeContractSnapshot(contractRecords, { documentClock: 5 }))
-			const full = storage.getSnapshot!()
-			expect(full.documents.map((d) => d.state.typeName).sort()).toEqual(['document', 'page'])
+		describe('object-store lane partition', () => {
+			// the storage doesn't care about record semantics, so 'page' stands in as a
+			// generic object-lane type here
+			const createPartitioned = (snapshot?: RoomSnapshot) =>
+				factory.create({ snapshot, objectTypes: ['page'] })
 
-			const filtered = storage.getSnapshot!({ excludeTypes: ['page'] })
-			expect(filtered.documents.map((d) => d.state.typeName)).toEqual(['document'])
-			// clock + schema are unaffected by the persistence-only filter
-			expect(filtered.documentClock).toBe(full.documentClock)
-			expect(filtered.schema).toEqual(full.schema)
+			it('partitions object-lane records out of getSnapshot into getObjectsSnapshot', () => {
+				const storage = createPartitioned(
+					makeContractSnapshot(contractRecords, { documentClock: 5 })
+				)
+				const snapshot = storage.getSnapshot!()
+				expect(snapshot.documents.map((d) => d.state.typeName)).toEqual(['document'])
+				// clock + schema are unaffected by the partition
+				expect(snapshot.documentClock).toBe(5)
 
-			// empty / omitted excludeTypes includes everything (backwards compatible)
-			expect(storage.getSnapshot!({ excludeTypes: [] }).documents.length).toBe(
-				full.documents.length
-			)
+				expect(storage.getObjectsSnapshot!().map((d) => d.state.typeName)).toEqual(['page'])
+			})
+
+			it('returns an empty objects snapshot when no objectTypes are configured', () => {
+				const storage = create(makeContractSnapshot(contractRecords))
+				expect(storage.getSnapshot!().documents.length).toBe(2)
+				expect(storage.getObjectsSnapshot!()).toEqual([])
+			})
+
+			it('routes writes by type and shares the clock, tombstones, and change feed', () => {
+				const storage = createPartitioned(makeContractSnapshot(contractRecords))
+				const newPage = makePage('lane')
+				storage.transaction((txn) => txn.set(newPage.id, newPage))
+
+				// the write landed in the object partition, not the document snapshot
+				expect(storage.getSnapshot!().documents.map((d) => d.state.id)).toEqual([TLDOCUMENT_ID])
+				expect(storage.getObjectsSnapshot!().map((d) => d.state.id)).toContain(newPage.id)
+
+				// reads and the change feed span both partitions
+				storage.transaction((txn) => {
+					expect(txn.get(newPage.id)).toEqual(newPage)
+					expect(txn.getChangesSince(0)!.diff.puts[newPage.id]).toEqual(newPage)
+				})
+
+				// deleting an object-lane record writes a shared tombstone
+				const clockBeforeDelete = storage.getClock()
+				storage.transaction((txn) => txn.delete(newPage.id))
+				expect(storage.getObjectsSnapshot!().map((d) => d.state.id)).not.toContain(newPage.id)
+				storage.transaction((txn) => {
+					expect(txn.getChangesSince(clockBeforeDelete)!.diff.deletes).toContain(newPage.id)
+				})
+			})
+
+			it('iterates both partitions so schema migrations cover object-lane records', () => {
+				const storage = createPartitioned(makeContractSnapshot(contractRecords))
+				storage.transaction((txn) => {
+					const ids = Array.from(txn.keys()).sort()
+					expect(ids).toEqual(contractRecords.map((r) => r.id).sort())
+					expect(
+						Array.from(txn.values())
+							.map((r) => r.id)
+							.sort()
+					).toEqual(ids)
+					expect(
+						Array.from(txn.entries())
+							.map(([id]) => id)
+							.sort()
+					).toEqual(ids)
+				})
+			})
+
+			it('round-trips through a merged snapshot (persist lanes separately, re-seed together)', () => {
+				const storage = createPartitioned(makeContractSnapshot(contractRecords))
+				const merged = {
+					...storage.getSnapshot!(),
+					documents: [...storage.getSnapshot!().documents, ...storage.getObjectsSnapshot!()],
+				}
+				const reseeded = createPartitioned(merged)
+				expect(reseeded.getSnapshot!().documents.map((d) => d.state.typeName)).toEqual(['document'])
+				expect(reseeded.getObjectsSnapshot!().map((d) => d.state.typeName)).toEqual(['page'])
+			})
 		})
 
 		describe('transactions', () => {

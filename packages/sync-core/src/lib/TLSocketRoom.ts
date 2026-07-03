@@ -7,7 +7,7 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { GetSnapshotOptions, RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -251,6 +251,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 						// eslint-disable-next-line @typescript-eslint/no-deprecated
 						opts.initialSnapshot ?? DEFAULT_INITIAL_SNAPSHOT
 					),
+					// keep the storage partition in step with the room's object lane
+					objectTypes: opts.objectTypes,
 				})
 
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -734,11 +736,23 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * const newRoom = new TLSocketRoom({ initialSnapshot: savedSnapshot })
 	 * ```
 	 */
-	getCurrentSnapshot(opts?: GetSnapshotOptions) {
+	getCurrentSnapshot() {
 		if (this.storage.getSnapshot) {
-			return this.storage.getSnapshot(opts)
+			return this.storage.getSnapshot()
 		}
 		throw new Error('getCurrentSnapshot is not supported for this storage type')
+	}
+
+	/**
+	 * Returns a snapshot of the object-store lane (see `objectTypes`), for persisting
+	 * object-lane records separately from the document. Same entry shape as
+	 * {@link RoomSnapshot.documents}.
+	 */
+	getCurrentObjectsSnapshot(): RoomSnapshot['documents'] {
+		if (this.storage.getObjectsSnapshot) {
+			return this.storage.getObjectsSnapshot()
+		}
+		throw new Error('getCurrentObjectsSnapshot is not supported for this storage type')
 	}
 
 	/**
