@@ -119,11 +119,16 @@ export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCa
 export {
 	commentRecordConfig,
 	commentSchemaRecords,
+	commentThreadRecordConfig,
 	createComment,
 	createCommentId,
+	createCommentThread,
+	createCommentThreadId,
 	type TLComment,
 	type TLCommentAnchor,
 	type TLCommentId,
+	type TLCommentThread,
+	type TLCommentThreadId,
 } from './records/TLComment'
 export {
 	createCustomRecordId,

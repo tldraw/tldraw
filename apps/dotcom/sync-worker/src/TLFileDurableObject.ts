@@ -40,9 +40,11 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLComment,
+	TLCommentThread,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
+	TLRichText,
 	commentSchemaRecords,
 	createTLSchema,
 } from '@tldraw/tlschema'
@@ -145,7 +147,24 @@ const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
 // Object-lane records sync over the same socket but are gated per session by `objectAccess`
 // (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in a
 // separate R2 lane next to the main document blob.
-const OBJECT_TYPES = ['comment'] as const
+const OBJECT_TYPES = ['comment-thread', 'comment'] as const
+
+/**
+ * Extracts plaintext from a rich text body for the Postgres projection (the `/comments` view
+ * shows plaintext). Walks the ProseMirror-style JSON collecting text nodes.
+ */
+function richTextToPlaintext(body: TLRichText): string {
+	const parts: string[] = []
+	const visit = (node: any) => {
+		if (typeof node?.text === 'string') parts.push(node.text)
+		if (Array.isArray(node?.content)) {
+			for (const child of node.content) visit(child)
+			if (node.type === 'paragraph') parts.push('\n')
+		}
+	}
+	visit(body)
+	return parts.join('').trimEnd()
+}
 
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
@@ -1499,20 +1518,41 @@ export class TLFileDurableObject extends DurableObject {
 	 */
 	private pushCommentChangesToPostgres(diff: TLSyncForwardDiff<TLRecord>) {
 		const slug = this.documentInfo.slug
-		const upserts: TlaComment[] = []
+		const comments: TLComment[] = []
+		const threadsInDiff = new Map<string, TLCommentThread>()
 		for (const put of Object.values(diff.puts)) {
 			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string }
-			if (record.typeName !== 'comment') continue
-			upserts.push(this.commentRecordToRow(record as unknown as TLComment, slug))
+			if (record.typeName === 'comment') {
+				comments.push(record as unknown as TLComment)
+			} else if (record.typeName === 'comment-thread') {
+				threadsInDiff.set(
+					(record as unknown as TLCommentThread).id,
+					record as unknown as TLCommentThread
+				)
+			}
 		}
-		// Deletes are ids only; comment ids are prefixed with `comment:`.
+		// Deletes are ids only; comment ids are prefixed with `comment:`. Thread deletions don't
+		// touch the table directly — the client cascades by deleting the thread's comment records,
+		// which arrive here as `comment:` deletes in the same diff.
 		const deletedIds = diff.deletes.filter((id) => id.startsWith('comment:'))
 
-		if (upserts.length === 0 && deletedIds.length === 0) return
+		if (comments.length === 0 && deletedIds.length === 0) return
 
 		this._objectPushQueue
 			.push(async () => {
-				if (upserts.length > 0) {
+				if (comments.length > 0) {
+					// The Postgres row denormalizes the thread's shape anchor; resolve each comment's
+					// thread from the same diff or from room storage. (A thread anchor changing does
+					// not re-project its existing comments — acceptable for the spike.)
+					const storage = await this.getStorage()
+					const upserts: TlaComment[] = comments.map((comment) => {
+						const thread =
+							threadsInDiff.get(comment.threadId) ??
+							(storage.transaction((txn) => txn.get(comment.threadId)).result as
+								| TLCommentThread
+								| undefined)
+						return this.commentRecordToRow(comment, thread, slug)
+					})
 					await this.db
 						.insertInto('comment')
 						.values(upserts)
@@ -1539,15 +1579,19 @@ export class TLFileDurableObject extends DurableObject {
 			})
 	}
 
-	private commentRecordToRow(record: TLComment, fileId: string): TlaComment {
+	private commentRecordToRow(
+		record: TLComment,
+		thread: TLCommentThread | undefined,
+		fileId: string
+	): TlaComment {
 		return {
 			id: record.id,
 			fileId,
 			authorId: record.authorId,
-			shapeId: record.anchor.type === 'shape' ? record.anchor.shapeId : '',
-			text: record.text,
+			shapeId: thread?.anchor.type === 'shape' ? thread.anchor.shapeId : '',
+			text: richTextToPlaintext(record.body),
 			createdAt: record.createdAt,
-			updatedAt: record.updatedAt,
+			updatedAt: record.editedAt ?? record.createdAt,
 		}
 	}
 
