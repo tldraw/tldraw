@@ -20,6 +20,7 @@ import {
 	can,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
+import { UnknownRecord } from '@tldraw/store'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	DurableObjectSqliteSyncWrapper,
@@ -34,6 +35,8 @@ import {
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
 	type TLObjectStoreAccess,
+	type TLRecordAuthorizer,
+	type TLRecordAuthorizers,
 } from '@tldraw/sync-core'
 import {
 	TLAsset,
@@ -155,30 +158,56 @@ const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
 // rather than the R2 document blob.
 const OBJECT_TYPES = ['comment-thread', 'comment'] as const
 
+// The room's record union, widened to include the object-lane records so the per-type authorizers
+// below are typed to their record (e.g. `comment`'s `next` is a `TLComment`). Renaming an attribution
+// field on one of these records makes the authorizer that stamps/guards it fail to compile.
+type FileRecord = TLRecord | TLComment | TLCommentThread
+
 /**
- * Authorize a create/update/delete of an "authored" record (comment or thread) from the session's
- * identity: stamp the attribution field (`authorId`/`createdBy`) on create, keep it immutable on
- * update, and allow deletes. Deletes are allowed because cascade cleanup (deleting a shape removes
- * its comments) is performed by whoever deletes the shape, not the comment's author — restricting
- * deletes to the author would break that.
+ * Build an authorizer for a record whose attribution lives in a single `field`: stamp it from the
+ * session's identity on create, keep it immutable on update, and allow deletes. Deletes are allowed
+ * because cascade cleanup (deleting a shape removes its comments) is performed by whoever deletes the
+ * shape, not the comment's author — restricting deletes to the author would break that.
+ *
+ * `field` is `keyof Rec`, so a rename of the record's attribution field is a compile error here.
  */
-function authorizeAuthoredRecord(
-	field: 'authorId' | 'createdBy',
-	userId: string | null,
-	type: 'create' | 'update' | 'delete',
-	prev: TLRecord | null,
-	next: TLRecord | null
-): TLRecord | null {
-	if (type === 'create') {
-		// No authenticated identity → can't attribute → reject; the client self-corrects.
-		if (!userId) return null
-		return { ...(next as any), [field]: userId }
+function authorizeAuthored<Rec extends UnknownRecord>(
+	field: keyof Rec & string
+): TLRecordAuthorizer<Rec, SessionMeta> {
+	return ({ session, type, prev, next }) => {
+		if (type === 'create') {
+			// No authenticated identity → can't attribute → reject; the client self-corrects.
+			if (!session.meta.userId) return null
+			return { ...next!, [field]: session.meta.userId } as Rec
+		}
+		// Attribution is immutable: veto any change to it. (Deletes fall through — allowed.)
+		if (type === 'update') return next![field] === prev![field] ? next : null
+		return prev
 	}
-	if (type === 'update') {
-		// Attribution is immutable: veto any change to it.
-		return (next as any)[field] === (prev as any)[field] ? next : null
-	}
-	return prev
+}
+
+/**
+ * Per-type authorizers: force comment/thread authorship and note-shape attribution from the session's
+ * authenticated identity, so nobody can post or draw in someone else's name.
+ */
+const authorizeFileRecord: TLRecordAuthorizers<FileRecord, SessionMeta> = {
+	comment: authorizeAuthored<TLComment>('authorId'),
+	'comment-thread': authorizeAuthored<TLCommentThread>('createdBy'),
+	// All shapes share typeName 'shape'; we only attribute note shapes (via meta.createdBy).
+	shape: ({ session, type, prev, next }) => {
+		const shape = (next ?? prev)!
+		if (shape.type !== 'note') return next ?? prev
+		const userId = session.meta.userId
+		if (type === 'create') {
+			if (!userId) return next // anonymous can still draw, just unattributed
+			return { ...next!, meta: { ...next!.meta, createdBy: userId } }
+		}
+		if (type === 'update') {
+			// creator attribution is immutable once set
+			return prev!.meta.createdBy === next!.meta.createdBy ? next : null
+		}
+		return prev // delete: anyone who can edit the doc may delete a shape
+	},
 }
 
 export class TLFileDurableObject extends DurableObject {
@@ -326,27 +355,7 @@ export class TLFileDurableObject extends DurableObject {
 					},
 					// Stamp attribution from the session's authenticated identity so a client can't post
 					// (or draw) in someone else's name, and keep that attribution immutable afterwards.
-					authorizeRecord: {
-						comment: ({ session, type, prev, next }) =>
-							authorizeAuthoredRecord('authorId', session.meta.userId, type, prev, next),
-						'comment-thread': ({ session, type, prev, next }) =>
-							authorizeAuthoredRecord('createdBy', session.meta.userId, type, prev, next),
-						// All shapes share typeName 'shape'; we only attribute note shapes (via meta.createdBy).
-						shape: ({ session, type, prev, next }) => {
-							const shape = (next ?? prev) as any
-							if (shape?.type !== 'note') return next ?? prev
-							const userId = session.meta.userId
-							if (type === 'create') {
-								if (!userId) return next // anonymous can still draw, just unattributed
-								return { ...(next as any), meta: { ...(next as any).meta, createdBy: userId } }
-							}
-							if (type === 'update') {
-								// creator attribution is immutable once set
-								return (prev as any).meta?.createdBy === (next as any).meta?.createdBy ? next : null
-							}
-							return prev // delete: anyone who can edit the doc may delete a shape
-						},
-					},
+					authorizeRecord: authorizeFileRecord,
 				})
 
 				this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })

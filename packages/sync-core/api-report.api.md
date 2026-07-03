@@ -444,21 +444,22 @@ export interface TLPushRequest<R extends UnknownRecord> {
 }
 
 // @public
-export type TLRecordAuthorizer<R extends UnknownRecord, SessionMeta> = (args: {
-    prev: null | R;
-    next: null | R;
+export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
+    prev: null | Rec;
+    next: null | Rec;
     session: {
         meta: SessionMeta;
         sessionId: string;
     };
     type: 'create' | 'delete' | 'update';
-}) => null | R;
+}) => null | Rec;
 
 // @public
-export interface TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> {
-    // (undocumented)
-    [typeName: string]: TLRecordAuthorizer<R, SessionMeta>;
-}
+export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
+    [K in R['typeName']]?: TLRecordAuthorizer<Extract<R, {
+        typeName: K;
+    }>, SessionMeta>;
+};
 
 // @public
 export class TLRemoteSyncError extends Error {

@@ -144,26 +144,30 @@ export interface RoomSnapshot {
  *
  * @public
  */
-export type TLRecordAuthorizer<R extends UnknownRecord, SessionMeta> = (args: {
+export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
 	/** The session performing the write, including its host-provided `meta` (e.g. the authenticated user id). */
 	session: { sessionId: string; meta: SessionMeta }
 	/** Whether the write creates, updates (put-over-existing or patch), or deletes the record. */
 	type: 'create' | 'update' | 'delete'
 	/** The existing record with this id, or `null` on `create`. */
-	prev: R | null
+	prev: Rec | null
 	/** The record the write would produce (`null` on `delete`). */
-	next: R | null
-}) => R | null
+	next: Rec | null
+}) => Rec | null
 
 /**
- * A map from record `typeName` to a {@link TLRecordAuthorizer}. Only listed types are authorized;
- * every other record writes through untouched, so this stays off the hot path for the vast majority
- * of writes (shape drags etc.).
+ * A map from record `typeName` to a {@link TLRecordAuthorizer} for that record type. Only listed
+ * types are authorized; every other record writes through untouched, so this stays off the hot path
+ * for the vast majority of writes (shape drags etc.).
+ *
+ * Each authorizer is typed to its record — e.g. `next` in the `comment` entry is a `TLComment` — so
+ * renaming a field on the record makes the authorizer that reads it fail to compile, rather than
+ * silently stamp or guard the wrong field.
  *
  * @public
  */
-export interface TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> {
-	[typeName: string]: TLRecordAuthorizer<R, SessionMeta>
+export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
+	[K in R['typeName']]?: TLRecordAuthorizer<Extract<R, { typeName: K }>, SessionMeta>
 }
 
 /**
@@ -295,6 +299,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	private readonly sessionIdleTimeout: number
+
+	/**
+	 * The authorizer registered for a record type, widened to the room's record union. Each entry in
+	 * `authorizeRecord` is typed to its specific record; the cast here is the one place we can't
+	 * statically correlate a runtime `typeName` with its record type, so it lives in the library
+	 * rather than in every consumer.
+	 */
+	private authorizerFor(typeName: R['typeName']): TLRecordAuthorizer<R, SessionMeta> | undefined {
+		return this.authorizeRecord?.[typeName] as TLRecordAuthorizer<R, SessionMeta> | undefined
+	}
 
 	constructor(opts: {
 		log?: TLSyncLog
@@ -1283,7 +1297,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// Per-type authorizer: lets the host stamp/veto a write from the session's
 								// authenticated identity (e.g. a comment's authorId). Only for registered
 								// types, only for client pushes (session present).
-								const authorizePut = session && this.authorizeRecord?.[record.typeName]
+								const authorizePut = session && this.authorizerFor(record.typeName)
 								if (authorizePut) {
 									const prev = (txn.get(id) as R | undefined) ?? null
 									const result = authorizePut({
@@ -1308,7 +1322,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								if (!canWrite(doc.typeName)) continue
 								// Per-type authorizer (update): veto edits the session isn't allowed to make,
 								// e.g. changing a comment's authorId. Allow/veto only — the patch applies as-is.
-								const authorizePatch = session && this.authorizeRecord?.[doc.typeName]
+								const authorizePatch = session && this.authorizerFor(doc.typeName)
 								if (
 									authorizePatch &&
 									!authorizePatch({
@@ -1333,7 +1347,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								if (!canWrite(doc.typeName)) continue
 								// Per-type authorizer (delete): veto deletes the session isn't allowed to make,
 								// e.g. deleting someone else's comment. Allow/veto only.
-								const authorizeRemove = session && this.authorizeRecord?.[doc.typeName]
+								const authorizeRemove = session && this.authorizerFor(doc.typeName)
 								if (
 									authorizeRemove &&
 									!authorizeRemove({
