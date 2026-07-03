@@ -1,13 +1,14 @@
 -- Comments projected from the file room's comment records (see TLComment) by the file Durable
 -- Object. Zero replicates these per user so an app-level, cross-document view can query them. The
 -- authoritative comment content lives in the file's R2 comment lane; these rows are a derived copy.
--- v1: shape-anchored, plaintext.
+-- `body` is the comment's rich text (TLRichText JSON) — the projection preserves the authoritative
+-- representation; consumers flatten to plaintext for display where needed.
 CREATE TABLE comment (
   "id" VARCHAR PRIMARY KEY,
   "fileId" VARCHAR NOT NULL,
   "authorId" VARCHAR NOT NULL,
   "shapeId" VARCHAR NOT NULL,
-  "text" VARCHAR NOT NULL,
+  "body" JSONB NOT NULL,
   "createdAt" BIGINT NOT NULL,
   "updatedAt" BIGINT NOT NULL,
   CONSTRAINT comment_file_id_fkey FOREIGN KEY ("fileId") REFERENCES public."file"("id") ON DELETE CASCADE,
