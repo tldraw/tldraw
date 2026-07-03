@@ -724,6 +724,7 @@ export const defaultTldrawOptions: {
     readonly cameraSlideFriction: 0.09;
     readonly coarseDragDistanceSquared: 36;
     readonly coarseHandleRadius: 20;
+    readonly coarseHitTestMargin: 4;
     readonly coarsePointerWidth: 12;
     readonly collaboratorCheckIntervalMs: 1200;
     readonly collaboratorIdleTimeoutMs: 3000;
@@ -763,7 +764,7 @@ export const defaultTldrawOptions: {
         readonly step: 1;
     }];
     readonly handleRadius: 12;
-    readonly hitTestMargin: 8;
+    readonly hitTestMargin: 3;
     readonly laserDelayMs: 1200;
     readonly laserFadeoutMs: 500;
     readonly longPressDurationMs: 500;
@@ -1334,6 +1335,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): IndexKey;
     getHintingShape(): NonNullable<TLShape | undefined>[];
     getHintingShapeIds(): TLShapeId[];
+    getHitTestMargin(): number;
     getHoveredShape(): TLShape | undefined;
     getHoveredShapeId(): null | TLShapeId;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
@@ -3780,6 +3782,8 @@ export interface TldrawOptions {
     readonly coarseDragDistanceSquared: number;
     // (undocumented)
     readonly coarseHandleRadius: number;
+    // (undocumented)
+    readonly coarseHitTestMargin: number;
     // (undocumented)
     readonly coarsePointerWidth: number;
     // (undocumented)

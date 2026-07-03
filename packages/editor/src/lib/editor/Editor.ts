@@ -5797,6 +5797,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get the hit-test margin in page space—the distance in page units within which a pointer is
+	 * considered to be touching a shape. This resolves to {@link TldrawOptions.hitTestMargin} (or
+	 * {@link TldrawOptions.coarseHitTestMargin} when using a coarse pointer) divided by the current
+	 * (efficient) zoom level, so it stays a constant distance in screen space.
+	 *
+	 * @returns The hit-test margin in page space.
+	 *
+	 * @public
+	 */
+	@computed getHitTestMargin(): number {
+		const { hitTestMargin, coarseHitTestMargin } = this.options
+		const margin = this.getInstanceState().isCoarsePointer ? coarseHitTestMargin : hitTestMargin
+		return margin / this.getEfficientZoomLevel()
+	}
+
+	/**
 	 * Get the top-most selected shape at the given point, ignoring groups.
 	 *
 	 * @param point - The point to check.
@@ -5820,7 +5836,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns The shape at the given point, or undefined if there is no shape at the point.
 	 */
 	getShapeAtPoint(point: VecLike, opts: TLGetShapeAtPointOptions = {}): TLShape | undefined {
-		const zoomLevel = this.getZoomLevel()
 		const viewportPageBounds = this.getViewportPageBounds()
 		const {
 			filter,
@@ -5840,7 +5855,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		// Use larger margin for spatial search to account for edge distance checks
-		const searchMargin = Math.max(innerMargin, outerMargin, this.options.hitTestMargin / zoomLevel)
+		const searchMargin = Math.max(innerMargin, outerMargin, this.getHitTestMargin())
 		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, searchMargin)
 
 		const shapesToCheck = (
@@ -6009,7 +6024,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// For open shapes (e.g. lines or draw shapes) always use the margin.
 				// If the distance is less than the margin, return the shape as the hit.
 				// Use the editor's configurable hit test margin.
-				if (distance < this.options.hitTestMargin / zoomLevel) {
+				if (distance < this.getHitTestMargin()) {
 					return shape
 				}
 			}
