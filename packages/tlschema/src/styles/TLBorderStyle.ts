@@ -7,9 +7,8 @@ import { StyleProp } from './StyleProp'
  *
  * Available values:
  * - `none` - No border, the shape is unchanged (default)
- * - `solid` - A solid stroke around the shape
- * - `shadow` - A blurred, offset drop shadow behind the shape
- * - `shadow-hard` - The same offset drop shadow with no blur
+ * - `lined` - A thin stroke around the shape
+ * - `shadow` - A drop shadow behind the shape
  *
  * @example
  * ```ts
@@ -35,7 +34,7 @@ import { StyleProp } from './StyleProp'
  */
 export const DefaultBorderStyle = StyleProp.defineEnum('tldraw:border', {
 	defaultValue: 'none',
-	values: ['none', 'solid', 'shadow', 'shadow-hard'],
+	values: ['none', 'lined', 'shadow'],
 })
 
 /**
@@ -48,7 +47,7 @@ export const DefaultBorderStyle = StyleProp.defineEnum('tldraw:border', {
  *
  * // Valid border style values
  * const noBorder: TLDefaultBorderStyle = 'none'
- * const solidBorder: TLDefaultBorderStyle = 'solid'
+ * const linedBorder: TLDefaultBorderStyle = 'lined'
  * const shadow: TLDefaultBorderStyle = 'shadow'
  *
  * // Use in a function parameter
