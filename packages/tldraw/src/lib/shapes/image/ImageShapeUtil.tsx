@@ -377,6 +377,13 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 		[editor, shape.id]
 	)
 
+	// Used by the `shadow` border treatment so the shadow rotates with the shape.
+	const rotation = useValue(
+		'shape rotation',
+		() => editor.getShapePageTransform(shape.id)?.rotation() ?? 0,
+		[editor, shape.id]
+	)
+
 	// We only want to reduce motion for mimeTypes that have motion
 	const reduceMotion =
 		prefersReducedMotion && (asset?.props.mimeType?.includes('video') || isAnimated)
@@ -437,7 +444,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 					width: shape.props.w,
 					height: shape.props.h,
 					borderRadius: shape.props.crop?.isCircle ? '50%' : undefined,
-					...getMediaBorderStyle(shape.props.border),
+					...getMediaBorderStyle(shape.props.border, { rotation }),
 				}}
 			>
 				<div className={classNames('tl-image-container')} style={containerStyle}>
