@@ -114,9 +114,8 @@ export const STYLES = {
 	],
 	border: [
 		{ value: 'none', icon: 'border-none' },
-		{ value: 'solid', icon: 'border-solid' },
+		{ value: 'lined', icon: 'border-lined' },
 		{ value: 'shadow', icon: 'border-shadow' },
-		{ value: 'shadow-hard', icon: 'border-shadow-hard' },
 	],
 	size: [
 		{ value: 's', icon: 'size-small' },

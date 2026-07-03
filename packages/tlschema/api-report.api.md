@@ -298,7 +298,7 @@ export const defaultBindingSchemas: {
 };
 
 // @public
-export const DefaultBorderStyle: EnumStyleProp<"none" | "shadow-hard" | "shadow" | "solid">;
+export const DefaultBorderStyle: EnumStyleProp<"lined" | "none" | "shadow">;
 
 // @public (undocumented)
 export const DefaultColorStyle: EnumStyleProp<TLDefaultColorStyle>;
