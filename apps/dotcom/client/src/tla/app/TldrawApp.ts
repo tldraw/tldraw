@@ -120,6 +120,22 @@ export function getFileRecencyDate(
 	return getFileVisitDate(state) ?? file?.createdAt ?? 0
 }
 
+/**
+ * A workspace membership and its group_file rows, as returned by the query — the `file` relation on
+ * each row is a nullable `.one()` join, so it may be absent even when the row exists.
+ */
+type TlaWorkspaceMembership = QueryResultType<typeof queries.workspaceMemberships>[number]
+type TlaWorkspaceGroupFile = TlaWorkspaceMembership['groupFiles'][number]
+
+/**
+ * A group_file row is pinned when it has a manual ordering `index` — and only counts if its `file`
+ * has resolved (a row can outlive or arrive before its file). The single definition of "pinned",
+ * shared by the workspace indexes and getWorkspaceFilesSorted.
+ */
+function isGroupFilePinned(groupFile: TlaWorkspaceGroupFile): boolean {
+	return !!groupFile.file && groupFile.index !== null
+}
+
 export class TldrawApp {
 	config = {
 		maxNumberOfFiles: MAX_NUMBER_OF_FILES,
@@ -425,8 +441,44 @@ export class TldrawApp {
 		return this.workspaceMemberships$.get().slice(0).sort(sortByIndex)
 	}
 
+	/**
+	 * Lookup indexes derived from the workspace memberships, rebuilt only when memberships change.
+	 * Turns the per-call linear scans in getWorkspaceMembership, getFile, and isPinned — each of
+	 * which runs once per file/component across a sidebar render — into O(1) map lookups.
+	 */
+	@computed
+	private getWorkspaceIndexes() {
+		const memberships = this.workspaceMemberships$.get()
+		const membershipByWorkspaceId = new Map<string, TlaWorkspaceMembership>()
+		const fileByFileId = new Map<string, TlaFile>()
+		const pinnedFileIdsByWorkspaceId = new Map<string, Set<string>>()
+
+		for (const membership of memberships) {
+			// Index every membership's files: a file can be reachable through a workspace the user is
+			// a member of even when it's owned elsewhere. First resolved row wins, matching the
+			// previous getFile scan order.
+			for (const groupFile of membership.groupFiles) {
+				if (groupFile.file && !fileByFileId.has(groupFile.fileId)) {
+					fileByFileId.set(groupFile.fileId, groupFile.file)
+				}
+			}
+
+			// First membership row wins for a given workspace id, matching the previous `.find()`.
+			if (membershipByWorkspaceId.has(membership.groupId)) continue
+			membershipByWorkspaceId.set(membership.groupId, membership)
+
+			const pinnedFileIds = new Set<string>()
+			for (const groupFile of membership.groupFiles) {
+				if (isGroupFilePinned(groupFile)) pinnedFileIds.add(groupFile.fileId)
+			}
+			pinnedFileIdsByWorkspaceId.set(membership.groupId, pinnedFileIds)
+		}
+
+		return { membershipByWorkspaceId, fileByFileId, pinnedFileIdsByWorkspaceId }
+	}
+
 	getWorkspaceMembership(workspaceId: string) {
-		return this.workspaceMemberships$.get().find((g) => g.groupId === workspaceId)
+		return this.getWorkspaceIndexes().membershipByWorkspaceId.get(workspaceId)
 	}
 
 	getWorkspaceFilesSorted(workspaceId: string) {
@@ -455,8 +507,8 @@ export class TldrawApp {
 			return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
 		})
 
-		const pinned = groupFiles.filter((f) => f.index !== null)
-		const unpinned = groupFiles.filter((f) => f.index === null)
+		const pinned = groupFiles.filter(isGroupFilePinned)
+		const unpinned = groupFiles.filter((f) => !isGroupFilePinned(f))
 
 		const unpinnedFileIds = new Set(unpinned.map((f) => f.fileId))
 		const lastOrdering = this.lastWorkspaceFileOrderings.get(workspaceId)
@@ -601,9 +653,7 @@ export class TldrawApp {
 	isPinned(fileId: string, workspaceId: string) {
 		if (!workspaceId) return false
 		return (
-			this.getWorkspaceMembership(workspaceId)?.groupFiles.some(
-				(f) => f.fileId === fileId && f.index !== null && !!f.file
-			) ?? false
+			this.getWorkspaceIndexes().pinnedFileIdsByWorkspaceId.get(workspaceId)?.has(fileId) ?? false
 		)
 	}
 
@@ -800,11 +850,7 @@ export class TldrawApp {
 
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		for (const membership of this.workspaceMemberships$.get()) {
-			const groupFile = membership.groupFiles.find((gf) => gf.fileId === fileId)
-			if (groupFile?.file) return groupFile.file
-		}
-		return null
+		return this.getWorkspaceIndexes().fileByFileId.get(fileId) ?? null
 	}
 
 	canUpdateFile(fileId: string): boolean {
