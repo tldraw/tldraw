@@ -20,8 +20,9 @@ function ActionButton({ action, type }: ActionButtonProps) {
 const sketchbook: Sketchbook<ActionButtonProps> = {
 	title: 'tldraw/Button',
 	component: ActionButton,
+	// `type` is auto-derived from its Props union; `action` (typed `string`) is
+	// overridden here to a curated select of action keys.
 	argTypes: {
-		type: { control: 'select', options: ['normal', 'primary', 'danger', 'low'] },
 		action: {
 			control: 'select',
 			options: [

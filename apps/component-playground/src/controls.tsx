@@ -15,7 +15,9 @@ export function Controls({ loaded, args, onChange }: ControlsProps) {
 	const keys = Object.keys(loaded.sketch.args ?? {})
 	if (keys.length === 0) return <p className="controls__empty">No args to control.</p>
 
-	const argTypes = loaded.sketchbook.argTypes ?? {}
+	// Auto-derived controls (from the component's Props type) are the baseline;
+	// hand-authored argTypes override them per prop.
+	const argTypes = { ...loaded.autoArgTypes, ...(loaded.sketchbook.argTypes ?? {}) }
 
 	return (
 		<div className="controls">

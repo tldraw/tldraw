@@ -12,6 +12,7 @@
 		"dev": "node ../../packages/tldraw/scripts/copy-css-files.mjs && vite --host",
 		"preview": "vite preview --host",
 		"build": "node ../../packages/tldraw/scripts/copy-css-files.mjs && vite build",
+		"gen-controls": "node scripts/gen-controls.mjs",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {

@@ -1,4 +1,5 @@
-import { Sketch, Sketchbook } from './sketch'
+import { autoArgTypes } from './auto-argtypes.generated'
+import { ArgType, Sketch, Sketchbook } from './sketch'
 
 // The registry holds sketchbooks for many different components, so their props
 // types differ per file and can't live in one typed collection. `any` erases them
@@ -17,6 +18,8 @@ export interface LoadedSketch {
 	name: string
 	sketchbook: AnySketchbook
 	sketch: AnySketch
+	/** Controls derived from the component's Props type (baseline for the panel). */
+	autoArgTypes: Record<string, ArgType>
 }
 
 /** A sketchbook and its loaded sketches, as grouped for the nav. */
@@ -41,12 +44,13 @@ for (const path in modules) {
 	const sketchbook = mod.default
 	if (!sketchbook || !sketchbook.title) continue
 
+	const auto = autoArgTypes[path.replace(/^\.\//, '')] ?? {}
 	const sketches: LoadedSketch[] = []
 	for (const exportName in mod) {
 		if (exportName === 'default') continue
 		const sketch = mod[exportName] as AnySketch
 		const id = `${sketchbook.title}/${exportName}`
-		const loaded: LoadedSketch = { id, name: exportName, sketchbook, sketch }
+		const loaded: LoadedSketch = { id, name: exportName, sketchbook, sketch, autoArgTypes: auto }
 		sketches.push(loaded)
 		byId.set(id, loaded)
 	}
