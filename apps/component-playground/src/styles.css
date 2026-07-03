@@ -3,28 +3,130 @@
 }
 
 html,
-body {
+body,
+#root {
 	margin: 0;
 	padding: 0;
+	height: 100%;
+}
+
+body {
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 	color: #1d1d1d;
 	background: #f9f9f9;
 }
 
-.playground {
-	max-width: 40rem;
-	margin: 0 auto;
-	padding: 4rem 2rem;
+.layout {
+	display: grid;
+	grid-template-columns: 15rem 1fr;
+	height: 100vh;
 }
 
-.playground h1 {
-	font-size: 1.5rem;
+/* sidebar */
+.sidebar {
+	border-right: 1px solid #e4e4e4;
+	background: #fff;
+	overflow-y: auto;
+	padding: 1rem 0.75rem;
+}
+
+.sidebar__brand {
+	font-size: 1rem;
 	font-weight: 600;
+	margin: 0 0.5rem 1rem;
+	letter-spacing: 0.02em;
 }
 
-.playground code {
+.sidebar__book {
+	margin-bottom: 1rem;
+}
+
+.sidebar__book-title {
+	font-size: 0.7rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #8a8a8a;
+	padding: 0 0.5rem;
+	margin-bottom: 0.25rem;
+}
+
+.sidebar__sketch {
+	display: block;
+	width: 100%;
+	text-align: left;
+	border: 0;
+	background: transparent;
+	font: inherit;
+	color: #333;
+	padding: 0.3rem 0.5rem;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+.sidebar__sketch:hover {
+	background: #f0f0f0;
+}
+
+.sidebar__sketch[aria-current='true'] {
+	background: #eaeefc;
+	color: #1b3fd1;
+	font-weight: 500;
+}
+
+/* stage */
+.stage {
+	overflow: auto;
+	padding: 2rem;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+}
+
+.stage__empty {
+	color: #8a8a8a;
+	margin-top: 4rem;
+}
+
+/* sketch view — the frame one sketch is viewed in */
+.sketch-view {
+	background: #fff;
+	border: 1px solid #e4e4e4;
+	border-radius: 12px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+	min-width: 24rem;
+	overflow: hidden;
+}
+
+.sketch-view__title {
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-	background: #ececec;
-	padding: 0.1em 0.35em;
-	border-radius: 4px;
+	font-size: 0.75rem;
+	font-weight: 500;
+	color: #8a8a8a;
+	padding: 0.6rem 1rem;
+	border-bottom: 1px solid #eee;
+}
+
+.sketch-view__stage {
+	padding: 2.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: repeating-conic-gradient(#fbfbfb 0% 25%, #fff 0% 50%) 50% / 16px 16px;
+}
+
+/* throwaway sample */
+.demo-button {
+	font: inherit;
+	padding: 0.5rem 1rem;
+	border-radius: 8px;
+	border: 1px solid #d0d0d0;
+	background: #fff;
+	cursor: pointer;
+}
+
+.demo-button--primary {
+	background: #1b3fd1;
+	border-color: #1b3fd1;
+	color: #fff;
 }
