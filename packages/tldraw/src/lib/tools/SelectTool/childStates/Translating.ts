@@ -194,6 +194,9 @@ export class Translating extends StateNode {
 			this.editor,
 			this.snapshot.movingShapes.map((s) => s.id)
 		)
+		if (!this.isCreating && this.editor.getSelectedShapeIds().length > 1) {
+			this.editor.updateInstanceState({ isChangingStyle: true })
+		}
 
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {

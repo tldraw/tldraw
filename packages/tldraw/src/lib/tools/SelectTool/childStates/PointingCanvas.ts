@@ -5,7 +5,7 @@ export class PointingCanvas extends StateNode {
 	static override id = 'pointing_canvas'
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
-		const additiveSelectionKey = info.shiftKey || info.accelKey
+		const additiveSelectionKey = info.shiftKey
 
 		if (!additiveSelectionKey) {
 			if (this.editor.getSelectedShapeIds().length > 0) {

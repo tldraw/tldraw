@@ -1490,6 +1490,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.undo()
+		this._clearIsChangingStyleIfPointerIsOutsideSelection()
 		this.performance._notifyUndoRedo('undo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
@@ -1521,6 +1522,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.redo()
+		this._clearIsChangingStyleIfPointerIsOutsideSelection()
 		this.performance._notifyUndoRedo('redo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
@@ -1973,6 +1975,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _isChangingStyleTimeout = -1 as any
 
+	private _clearIsChangingStyleIfPointerIsOutsideSelection() {
+		if (!this.getInstanceState().isChangingStyle) return
+
+		if (!this._isPointInRotatedSelectionBounds(this.inputs.getCurrentPagePoint())) {
+			this.updateInstanceState({ isChangingStyle: false })
+		}
+	}
+
+	private _isPointInRotatedSelectionBounds(point: VecLike) {
+		const selectionBounds = this.getSelectionRotatedPageBounds()
+		if (!selectionBounds) return false
+
+		const selectionRotation = this.getSelectionRotation()
+		if (!selectionRotation) return selectionBounds.containsPoint(point)
+
+		return pointInPolygon(
+			point,
+			selectionBounds.corners.map((c) => Vec.RotWith(c, selectionBounds.point, selectionRotation))
+		)
+	}
+
 	// Menus
 
 	menus = tlmenus.forContext(this.contextId)
@@ -2092,14 +2115,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setSelectedShapes(shapes: TLShapeId[] | TLShape[]): this {
+		const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
+		const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
+		const prevSet = new Set(prevSelectedShapeIds)
+
+		if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return this
+
+		if (this.getInstanceState().isChangingStyle) {
+			this.updateInstanceState({ isChangingStyle: false })
+		}
+
 		return this.run(
 			() => {
-				const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
-				const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
-				const prevSet = new Set(prevSelectedShapeIds)
-
-				if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
-
 				this.store.put([{ ...this.getCurrentPageState(), selectedShapeIds: ids }])
 			},
 			{ history: 'record-preserveRedoStack' }
@@ -2178,6 +2205,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	selectAll(): this {
+		if (this.getInstanceState().isChangingStyle) {
+			this.updateInstanceState({ isChangingStyle: false })
+		}
+
 		let parentToSelectWithinId: TLParentId | null = null
 
 		const selectedShapeIds = this.getSelectedShapeIds()

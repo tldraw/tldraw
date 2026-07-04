@@ -8,15 +8,18 @@ export function getHitShapeOnCanvasPointerDown(
 	const zoomLevel = editor.getZoomLevel()
 	const currentPagePoint = editor.inputs.getCurrentPagePoint()
 
+	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
+		hitInside: false,
+		hitLabels,
+		hitLocked: editor.options.selectLockedShapes,
+		margin: editor.options.hitTestMargin / zoomLevel,
+		renderingOnly: true,
+	})
+
+	if (editor.inputs.getAccelKey()) return hitShape
+
 	return (
-		// hovered shape at point
-		editor.getShapeAtPoint(currentPagePoint, {
-			hitInside: false,
-			hitLabels,
-			hitLocked: editor.options.selectLockedShapes,
-			margin: editor.options.hitTestMargin / zoomLevel,
-			renderingOnly: true,
-		}) ??
+		hitShape ??
 		// selected shape at point
 		editor.getSelectedShapeAtPoint(currentPagePoint)
 	)

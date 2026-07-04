@@ -198,6 +198,22 @@ describe('When translating...', () => {
 			.pointerUp()
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 }, { id: ids.box2, x: 250, y: 250 })
 	})
+
+	it('hides the selection overlay after translating multiple shapes until the pointer leaves the selection bounds', () => {
+		editor
+			.select(ids.box1, ids.box2)
+			.pointerDown(50, 50, ids.box1)
+			.pointerMove(100, 100)
+			.pointerUp()
+
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+
+		editor.pointerMove(100, 100)
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+
+		editor.pointerMove(500, 500)
+		expect(editor.getInstanceState().isChangingStyle).toBe(false)
+	})
 })
 
 describe('When cloning...', () => {

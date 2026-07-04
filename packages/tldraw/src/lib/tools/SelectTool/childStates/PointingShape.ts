@@ -22,7 +22,9 @@ export class PointingShape extends StateNode {
 		this.hitShape = info.shape
 		this.isDoubleClick = false
 		this.didCtrlOnEnter = accelKey
-		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
+		const outermostSelectingShape = accelKey
+			? info.shape
+			: this.editor.getOutermostSelectableShape(info.shape)
 		const selectedAncestor = this.editor.findShapeAncestor(outermostSelectingShape, (parent) =>
 			selectedShapeIds.includes(parent.id)
 		)
@@ -66,7 +68,7 @@ export class PointingShape extends StateNode {
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
-		const additiveSelectionKey = info.shiftKey || info.accelKey
+		const additiveSelectionKey = info.shiftKey
 
 		const hitShape =
 			this.editor.getShapeAtPoint(currentPagePoint, {
@@ -84,7 +86,9 @@ export class PointingShape extends StateNode {
 		}
 
 		const selectingShape = hitShape
-			? this.editor.getOutermostSelectableShape(hitShape)
+			? info.accelKey
+				? hitShape
+				: this.editor.getOutermostSelectableShape(hitShape)
 			: this.hitShapeForPointerUp
 
 		if (selectingShape) {
@@ -116,12 +120,14 @@ export class PointingShape extends StateNode {
 			// if the shape has an ancestor which is a focusable layer and it is not focused but it is selected
 			// then we should focus the layer and select the shape
 
-			const outermostSelectableShape = this.editor.getOutermostSelectableShape(
-				hitShape,
-				// if a group is selected, we want to stop before reaching that group
-				// so we can drill down into the group
-				(parent) => !selectedShapeIds.includes(parent.id)
-			)
+			const outermostSelectableShape = info.accelKey
+				? hitShape
+				: this.editor.getOutermostSelectableShape(
+						hitShape,
+						// if a group is selected, we want to stop before reaching that group
+						// so we can drill down into the group
+						(parent) => !selectedShapeIds.includes(parent.id)
+					)
 
 			// If the outermost shape is selected, then either select or deselect the SELECTING shape
 			if (selectedShapeIds.includes(outermostSelectableShape.id)) {
@@ -137,7 +143,7 @@ export class PointingShape extends StateNode {
 						// handler to do this logic, and prevent the regular pointer up event, so we won't be here in that case.
 
 						// if the shape has a text label, and we're inside of the label, then we want to begin editing the label.
-						if (selectedShapeIds.length === 1) {
+						if (!info.accelKey && selectedShapeIds.length === 1) {
 							const geometry = this.editor.getShapeUtil(selectingShape).getGeometry(selectingShape)
 							const textLabels = getTextLabels(geometry)
 							const textLabel = textLabels.length === 1 ? textLabels[0] : undefined

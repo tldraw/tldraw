@@ -308,7 +308,7 @@ describe('When nudging, the selection overlay is hidden...', () => {
 		editor.keyUp('ArrowUp')
 	})
 
-	it('Clears isChangingStyle when the pointer moves over the canvas', () => {
+	it('Keeps isChangingStyle true when the pointer moves inside the selection bounds', () => {
 		editor.setSelectedShapes([ids.boxA])
 
 		editor.keyDown('ArrowUp')
@@ -316,6 +316,80 @@ describe('When nudging, the selection overlay is hidden...', () => {
 		editor.keyUp('ArrowUp')
 
 		editor.pointerMove(50, 50)
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+	})
+
+	it('Clears isChangingStyle when the pointer moves outside the selection bounds', () => {
+		editor.setSelectedShapes([ids.boxA])
+
+		editor.keyDown('ArrowUp')
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+		editor.keyUp('ArrowUp')
+
+		editor.pointerMove(200, 200)
+		expect(editor.getInstanceState().isChangingStyle).toBe(false)
+	})
+
+	it('Clears isChangingStyle when shift is pressed', () => {
+		editor.setSelectedShapes([ids.boxA])
+
+		editor.keyDown('ArrowUp')
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+		editor.keyUp('ArrowUp')
+
+		editor.keyDown('Shift')
+		expect(editor.getInstanceState().isChangingStyle).toBe(false)
+		editor.keyUp('Shift')
+	})
+
+	it('Clears isChangingStyle when the selection changes', () => {
+		editor.setSelectedShapes([ids.boxA])
+
+		editor.keyDown('ArrowUp')
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+		editor.keyUp('ArrowUp')
+
+		editor.setSelectedShapes([ids.boxA, ids.boxB])
+		expect(editor.getInstanceState().isChangingStyle).toBe(false)
+	})
+
+	it('Clears isChangingStyle when select all is performed, even if the selection does not change', () => {
+		editor.selectAll()
+		expect(editor.getSelectedShapeIds()).toHaveLength(2)
+
+		editor.updateInstanceState({ isChangingStyle: true })
+		editor.selectAll()
+
+		expect(editor.getSelectedShapeIds()).toHaveLength(2)
+		expect(editor.getInstanceState().isChangingStyle).toBe(false)
+	})
+
+	it('Keeps isChangingStyle on undo and redo when the selection remains under the pointer', () => {
+		editor.setSelectedShapes([ids.boxA])
+		editor.pointerMove(50, 50)
+		editor.markHistoryStoppingPoint('move shape')
+		editor.updateShapes([{ id: ids.boxA, type: 'geo', x: 20, y: 20 }])
+		editor.updateInstanceState({ isChangingStyle: true })
+
+		editor.undo()
+		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 10, y: 10 })
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+
+		editor.redo()
+		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 20, y: 20 })
+		expect(editor.getInstanceState().isChangingStyle).toBe(true)
+	})
+
+	it('Clears isChangingStyle on undo when the selection is no longer under the pointer', () => {
+		editor.setSelectedShapes([ids.boxA])
+		editor.updateShapes([{ id: ids.boxA, type: 'geo', x: 200, y: 200 }])
+		editor.pointerMove(50, 50)
+		editor.markHistoryStoppingPoint('move shape')
+		editor.updateShapes([{ id: ids.boxA, type: 'geo', x: 10, y: 10 }])
+		editor.updateInstanceState({ isChangingStyle: true })
+
+		editor.undo()
+		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 200, y: 200 })
 		expect(editor.getInstanceState().isChangingStyle).toBe(false)
 	})
 
