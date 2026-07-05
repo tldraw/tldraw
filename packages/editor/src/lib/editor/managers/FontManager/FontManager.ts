@@ -106,18 +106,25 @@ export class FontManager {
 		if (existingState) return existingState.loadingPromise
 
 		const instance = this.findOrCreateFontFace(font)
+		const updateState = (updater: (state: FontState) => FontState) => {
+			if (this.fontStates.__unsafe__getWithoutCapture(font) !== state) return false
+			this.fontStates.update(font, updater)
+			return true
+		}
 		const state: FontState = {
 			state: 'loading',
 			instance,
 			loadingPromise: instance
 				.load()
 				.then(() => {
+					if (this.fontStates.__unsafe__getWithoutCapture(font) !== state) return
 					this.editor.getContainerDocument().fonts.add(instance)
-					this.fontStates.update(font, (s) => ({ ...s, state: 'ready' }))
+					updateState((s) => ({ ...s, state: 'ready' }))
 				})
 				.catch((err) => {
+					if (this.fontStates.__unsafe__getWithoutCapture(font) !== state) return
 					console.error(err)
-					this.fontStates.update(font, (s) => ({ ...s, state: 'error' }))
+					updateState((s) => ({ ...s, state: 'error' }))
 				}),
 		}
 

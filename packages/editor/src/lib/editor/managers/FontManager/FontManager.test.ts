@@ -142,6 +142,34 @@ describe('FontManager', () => {
 
 			await secondPromise
 		})
+
+		it('ignores font load failures after disposal', async () => {
+			const font = createMockFont()
+			const error = new Error('Font load failed')
+			let rejectLoad: (err: Error) => void = () => {}
+			;(global.FontFace as Mock).mockImplementationOnce(function (family, src, descriptors) {
+				return {
+					family,
+					src,
+					...descriptors,
+					load: vi.fn(
+						() =>
+							new Promise<void>((_, reject) => {
+								rejectLoad = reject
+							})
+					),
+				}
+			})
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+			const promise = fontManager.ensureFontIsLoaded(font)
+			fontManager.dispose()
+			rejectLoad(error)
+
+			await expect(promise).resolves.toBeUndefined()
+			expect(consoleSpy).not.toHaveBeenCalled()
+			consoleSpy.mockRestore()
+		})
 	})
 
 	describe('getShapeFontFaces', () => {
