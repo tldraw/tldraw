@@ -54,7 +54,16 @@ export function getFrameHeadingSize(
 		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
 		const spans = editor.textMeasure.measureTextSpans(frameTitle, opts)
 		const firstSpan = spans[0]
-		const lastSpan = last(spans)!
+		const lastSpan = last(spans)
+
+		if (!firstSpan || !lastSpan) {
+			// measureTextSpans can return no spans when the text can't be laid
+			// out yet — e.g. the measurement element isn't attached/visible
+			// during the initial editor mount, or every grapheme lacks a layout
+			// rect. Fall back to a zero-width heading and don't cache it, so the
+			// heading is remeasured once measurement is possible.
+			return new Box(0, -opts.height, 0, opts.height)
+		}
 
 		width = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
 		measurementWeakmap.set(shape.props, width)

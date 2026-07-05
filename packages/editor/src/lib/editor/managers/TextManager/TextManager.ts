@@ -435,7 +435,8 @@ export class TextManager extends EditorManager {
 			if (opts.overflow === 'truncate-ellipsis' && didTruncate) {
 				// we need to measure the ellipsis to know how much space it takes up
 				elm.textContent = '…'
-				const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(elm).spans[0].box.w)
+				const ellipsisSpan = this.measureElementTextNodeSpans(elm).spans[0]
+				const ellipsisWidth = ellipsisSpan ? Math.ceil(ellipsisSpan.box.w) : 0
 
 				// then, we need to subtract that space from the width we have and measure again:
 				elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
@@ -448,7 +449,12 @@ export class TextManager extends EditorManager {
 				// have to do this after measuring, not before, because adding the
 				// ellipsis changes how whitespace might be getting collapsed by the
 				// browser.
-				const lastSpan = truncatedSpans[truncatedSpans.length - 1]!
+				const lastSpan = truncatedSpans[truncatedSpans.length - 1]
+				// If nothing measurable remained, return the (possibly empty)
+				// spans as-is rather than dereferencing a missing last span.
+				if (!lastSpan) {
+					return truncatedSpans
+				}
 				truncatedSpans.push({
 					text: '…',
 					box: {
