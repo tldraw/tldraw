@@ -603,6 +603,12 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
 			BROWSER_RENDERING_API_TOKEN: env.BROWSER_RENDERING_API_TOKEN,
 			MCP_SCREENSHOT_TOKEN_SECRET: env.MCP_SCREENSHOT_TOKEN_SECRET,
+			// Previews render thumbnails from their own client origin. Staging and production set
+			// MCP_SCREENSHOT_RENDER_ORIGIN in wrangler.toml; previews have no such entry, so inject
+			// it here (Browser Run can't reach an origin that isn't configured for the deployment).
+			...(previewId
+				? { MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com` }
+				: {}),
 		},
 		sentry: {
 			project: 'tldraw-sync',

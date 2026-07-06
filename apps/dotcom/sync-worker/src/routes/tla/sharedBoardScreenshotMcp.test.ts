@@ -155,6 +155,21 @@ describe('resolveSharedBoardUrl', () => {
 			'Only published or shared'
 		)
 	})
+
+	it("accepts board URLs on the deployment's own render-origin host (e.g. a preview)", () => {
+		expect(
+			resolveSharedBoardUrl(
+				'https://pr-9503-preview-deploy.tldraw.com/f/abc',
+				'pr-9503-preview-deploy.tldraw.com'
+			)
+		).toEqual({ kind: 'shared_file', slug: 'abc' })
+	})
+
+	it('rejects a preview host when it is not this deployment’s render origin', () => {
+		expect(() => resolveSharedBoardUrl('https://pr-9503-preview-deploy.tldraw.com/f/abc')).toThrow(
+			'Only tldraw.com board URLs are accepted'
+		)
+	})
 })
 
 describe('getThumbnailCacheKey', () => {

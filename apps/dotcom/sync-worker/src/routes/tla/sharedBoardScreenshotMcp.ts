@@ -136,7 +136,10 @@ export function parseSharedBoardScreenshotInput(input: unknown): SharedBoardScre
 	}
 }
 
-export function resolveSharedBoardUrl(urlString: string): ResolvedBoardUrl {
+export function resolveSharedBoardUrl(
+	urlString: string,
+	extraAllowedHost?: string
+): ResolvedBoardUrl {
 	let url: URL
 	try {
 		url = new URL(urlString)
@@ -144,7 +147,7 @@ export function resolveSharedBoardUrl(urlString: string): ResolvedBoardUrl {
 		throw new Error('Only valid tldraw.com board URLs are accepted')
 	}
 
-	if (!isAllowedTldrawHost(url.hostname)) {
+	if (!isAllowedTldrawHost(url.hostname, extraAllowedHost)) {
 		throw new Error('Only tldraw.com board URLs are accepted')
 	}
 
@@ -189,7 +192,7 @@ async function callSharedBoardScreenshotTool(
 	let boardUrl: ResolvedBoardUrl
 	try {
 		input = parseSharedBoardScreenshotInput(argumentsValue)
-		boardUrl = resolveSharedBoardUrl(input.url)
+		boardUrl = resolveSharedBoardUrl(input.url, getRenderOriginHost(env))
 	} catch (error) {
 		const failureReason = error instanceof Error ? error.message : String(error)
 		writeMcpScreenshotTelemetry(env, {
@@ -515,9 +518,12 @@ function requireFiniteNumber(value: unknown, name: string) {
 	return value
 }
 
-function isAllowedTldrawHost(hostname: string) {
+function isAllowedTldrawHost(hostname: string, extraAllowedHost?: string) {
 	return (
-		hostname === 'tldraw.com' || hostname === 'www.tldraw.com' || hostname === 'staging.tldraw.com'
+		hostname === 'tldraw.com' ||
+		hostname === 'www.tldraw.com' ||
+		hostname === 'staging.tldraw.com' ||
+		(extraAllowedHost !== undefined && hostname === extraAllowedHost)
 	)
 }
 
@@ -530,6 +536,18 @@ function getRenderOrigin(env: Environment) {
 		)
 	}
 	return env.MCP_SCREENSHOT_RENDER_ORIGIN
+}
+
+// The hostname of this deployment's own render origin, so board URLs on it (e.g. a preview's
+// pr-1234-preview-deploy.tldraw.com host, or localhost in dev) are accepted in addition to the
+// canonical tldraw.com hosts. Returns undefined when the render origin is unset or unparseable.
+function getRenderOriginHost(env: Environment): string | undefined {
+	if (!env.MCP_SCREENSHOT_RENDER_ORIGIN) return undefined
+	try {
+		return new URL(env.MCP_SCREENSHOT_RENDER_ORIGIN).hostname
+	} catch {
+		return undefined
+	}
 }
 
 function getExtraHeaders(renderUrl: string) {

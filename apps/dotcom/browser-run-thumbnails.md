@@ -37,7 +37,7 @@ The sync worker needs:
 - `CLOUDFLARE_ACCOUNT_ID` (deploy var) - account that owns Browser Run.
 - `BROWSER_RENDERING_API_TOKEN` (deploy var, GitHub secret) - API token with only the `Browser Rendering - Edit` permission. Do not reuse the deploy token.
 - `MCP_SCREENSHOT_TOKEN_SECRET` (deploy var, GitHub secret) - HMAC secret for render tokens. Local dev uses the placeholder in `[env.dev.vars]`.
-- `MCP_SCREENSHOT_RENDER_ORIGIN` - set in `wrangler.toml` for dev (`http://localhost:3000`), staging, and production. Previews configure it explicitly when they need to exercise this path.
+- `MCP_SCREENSHOT_RENDER_ORIGIN` - set in `wrangler.toml` for dev (`http://localhost:3000`), staging, and production. Preview deploys have no `wrangler.toml` entry, so `deploy-dotcom.ts` injects the preview's own client origin (`https://${previewId}-preview-deploy.tldraw.com`) as a deploy var.
 - `THUMBNAILS` R2 bucket binding - `thumbnails-preview` in dev/preview/staging and `thumbnails` in production.
 
 One-time ops setup before the first deploy of this feature:
@@ -101,7 +101,7 @@ get_shared_board_screenshot({
 })
 ```
 
-The tool accepts public tldraw.com URLs on `tldraw.com`, `www.tldraw.com`, and `staging.tldraw.com`: published boards (`https://www.tldraw.com/p/:slug`) and anonymously-shared files (`https://www.tldraw.com/f/:slug`). A `/f/:slug` file is only rendered when it is currently shared via link; private (unshared) files, deleted files, and test files are refused. It also rejects external hosts, invite URLs, and unsupported route shapes. The result is an MCP image content item with PNG data.
+The tool accepts public tldraw.com URLs on `tldraw.com`, `www.tldraw.com`, and `staging.tldraw.com`, plus the deployment's own render origin (so a preview accepts its own `${previewId}-preview-deploy.tldraw.com` board URLs and local dev accepts `localhost`). It accepts published boards (`https://www.tldraw.com/p/:slug`) and anonymously-shared files (`https://www.tldraw.com/f/:slug`). A `/f/:slug` file is only rendered when it is currently shared via link; private (unshared) files, deleted files, and test files are refused. It also rejects external hosts, invite URLs, and unsupported route shapes. The result is an MCP image content item with PNG data.
 
 The screenshot layer lives in the dotcom sync worker rather than the interactive `apps/mcp-app` canvas worker because it needs real tldraw.com published-file resolution and storage, not a live editor bridge.
 
