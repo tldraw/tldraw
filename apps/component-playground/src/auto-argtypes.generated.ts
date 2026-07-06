@@ -12,6 +12,41 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			options: ['default', 'primary'],
 		},
 	},
+	'sketchbooks/comments/comment-card.sketchbook.tsx': {
+		author: {
+			control: 'text',
+		},
+		body: {
+			control: 'text',
+		},
+		time: {
+			control: 'text',
+		},
+		you: {
+			control: 'boolean',
+		},
+	},
+	'sketchbooks/comments/comment-composer.sketchbook.tsx': {
+		author: {
+			control: 'text',
+		},
+		placeholder: {
+			control: 'text',
+		},
+	},
+	'sketchbooks/comments/comment-pin.sketchbook.tsx': {
+		number: {
+			control: 'number',
+		},
+		resolved: {
+			control: 'boolean',
+		},
+	},
+	'sketchbooks/comments/comment-thread.sketchbook.tsx': {
+		resolved: {
+			control: 'boolean',
+		},
+	},
 	'sketchbooks/editor-probe.sketchbook.tsx': {
 		label: {
 			control: 'text',
