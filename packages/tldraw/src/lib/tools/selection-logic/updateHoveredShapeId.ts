@@ -32,6 +32,10 @@ function getShapeToHover(editor: Editor): TLShapeId | null {
 
 	if (!hitShape) return null
 
+	if (editor.inputs.getAccelKey()) {
+		return hitShape.id
+	}
+
 	let shapeToHover: TLShape | undefined = undefined
 
 	const outermostShape = editor.getOutermostSelectableShape(hitShape)

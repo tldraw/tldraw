@@ -60,7 +60,10 @@ export class Idle extends StateNode {
 		if (!updateHoveredOverlayId(this.editor)) {
 			updateHoveredShapeId(this.editor)
 		}
-		if (unsafe__withoutCapture(() => this.editor.getInstanceState()).isChangingStyle) {
+		if (
+			unsafe__withoutCapture(() => this.editor.getInstanceState()).isChangingStyle &&
+			!isPointInRotatedSelectionBounds(this.editor, this.editor.inputs.getCurrentPagePoint())
+		) {
 			this.editor.updateInstanceState({ isChangingStyle: false })
 		}
 	}
@@ -99,9 +102,12 @@ export class Idle extends StateNode {
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 
 				if (
-					selectedShapeIds.length > 1 ||
-					(onlySelectedShape &&
-						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
+					!info.accelKey &&
+					(selectedShapeIds.length > 1 ||
+						(onlySelectedShape &&
+							!this.editor
+								.getShapeUtil(onlySelectedShape)
+								.hideSelectionBoundsBg(onlySelectedShape)))
 				) {
 					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
 						this.onPointerDown({
@@ -419,7 +425,10 @@ export class Idle extends StateNode {
 				// when the focus layer changes.
 				const selectedShapeIds = this.editor.getSelectedShapeIds()
 				const isGroup = this.editor.isShapeOfType(shape, 'group')
-				if (isGroup || this.editor.getOutermostSelectableShape(shape).id !== shape.id) {
+				if (
+					!info.accelKey &&
+					(isGroup || this.editor.getOutermostSelectableShape(shape).id !== shape.id)
+				) {
 					const shapeToSelect = this.editor.getOutermostSelectableShape(
 						shape,
 						(parent) => !selectedShapeIds.includes(parent.id)
@@ -494,9 +503,12 @@ export class Idle extends StateNode {
 				// Check selection bounds first so that right-clicking inside the
 				// selection preserves it, even when a filled shape sits behind it.
 				if (
-					selectedShapeIds.length > 1 ||
-					(onlySelectedShape &&
-						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
+					!info.accelKey &&
+					(selectedShapeIds.length > 1 ||
+						(onlySelectedShape &&
+							!this.editor
+								.getShapeUtil(onlySelectedShape)
+								.hideSelectionBoundsBg(onlySelectedShape)))
 				) {
 					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
 						this.onRightClick({
@@ -536,10 +548,12 @@ export class Idle extends StateNode {
 				const { selectedShapeIds } = this.editor.getCurrentPageState()
 				const { shape } = info
 
-				const targetShape = this.editor.getOutermostSelectableShape(
-					shape,
-					(parent) => !selectedShapeIds.includes(parent.id)
-				)
+				const targetShape = info.accelKey
+					? shape
+					: this.editor.getOutermostSelectableShape(
+							shape,
+							(parent) => !selectedShapeIds.includes(parent.id)
+						)
 
 				if (
 					!selectedShapeIds.includes(targetShape.id) &&
@@ -569,6 +583,14 @@ export class Idle extends StateNode {
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
 		this.selectedShapesOnKeyDown = this.editor.getSelectedShapes()
+
+		if (info.key === 'Shift' || info.code === 'ShiftLeft') {
+			this.editor.updateInstanceState({ isChangingStyle: false })
+		}
+
+		if (info.accelKey) {
+			updateHoveredShapeId(this.editor)
+		}
 
 		switch (info.code) {
 			case 'ArrowLeft':
@@ -649,6 +671,10 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyUp(info: TLKeyboardEventInfo) {
+		if ((info.key === 'Meta' || info.key === 'Control') && this.editor.inputs.getAccelKey()) {
+			this.editor.timers.setTimeout(() => updateHoveredShapeId(this.editor), 150)
+		}
+
 		switch (info.key) {
 			case 'Enter': {
 				// Because Enter onKeyDown can happen outside the canvas (but then focus the canvas potentially),

@@ -7,7 +7,7 @@ export function selectOnCanvasPointerUp(
 	const selectedShapeIds = editor.getSelectedShapeIds()
 	const currentPagePoint = editor.inputs.getCurrentPagePoint()
 	const { shiftKey, altKey, accelKey } = info
-	const additiveSelectionKey = shiftKey || accelKey
+	const additiveSelectionKey = shiftKey
 
 	const selectLockedShapes = editor.options.selectLockedShapes
 	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
@@ -28,7 +28,9 @@ export function selectOnCanvasPointerUp(
 	// we want to select the outermost selected shape instead of the shape
 
 	if (hitShape) {
-		const outermostSelectableShape = editor.getOutermostSelectableShape(hitShape)
+		const outermostSelectableShape = accelKey
+			? hitShape
+			: editor.getOutermostSelectableShape(hitShape)
 		// If the user is holding shift, they're either adding to or removing from
 		// their selection.
 		if (additiveSelectionKey && !altKey) {
@@ -41,12 +43,16 @@ export function selectOnCanvasPointerUp(
 			} else {
 				// Add it to selected shapes
 				editor.markHistoryStoppingPoint('shift selecting shape')
-				editor.setSelectedShapes([...selectedShapeIds, outermostSelectableShape.id])
+				const ancestors = editor.getShapeAncestors(outermostSelectableShape)
+				editor.setSelectedShapes([
+					...selectedShapeIds.filter((id) => !ancestors.find((ancestor) => ancestor.id === id)),
+					outermostSelectableShape.id,
+				])
 			}
 		} else {
 			let shapeToSelect: TLShape | undefined = undefined
 
-			if (outermostSelectableShape === hitShape) {
+			if (accelKey || outermostSelectableShape === hitShape) {
 				// There's no group around the shape, so we can select it.
 				shapeToSelect = hitShape
 			} else {
