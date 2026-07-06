@@ -178,8 +178,8 @@ a {
 	color: var(--text-color-2);
 }
 
-.error-page__container a,
-.error-page__container button {
+/* Button ctas use TlaButton variant="link"; this styles the remaining plain links. */
+.error-page__container a {
 	font-size: 12px;
 	font-weight: 500;
 	line-height: 1.6;
@@ -236,32 +236,6 @@ a {
 	display: flex;
 	justify-content: center;
 	padding: 16px;
-}
-
-.board-history__load-more-button {
-	font-family: inherit;
-	font-size: inherit;
-	height: 36px;
-	border: 2px solid var(--tl-color-selected);
-	border-radius: 8px;
-	background-color: var(--tl-color-selected);
-	color: var(--tl-color-selected-contrast);
-	text-shadow: none;
-	pointer-events: all;
-	position: relative;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.2s ease;
-}
-
-.board-history__load-more-button:hover:not(:disabled) {
-	background-color: var(--tl-color-selected);
-	opacity: 0.9;
-}
-
-.board-history__load-more-button:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
 }
 
 /* ----------------- Iframe warning ----------------- */

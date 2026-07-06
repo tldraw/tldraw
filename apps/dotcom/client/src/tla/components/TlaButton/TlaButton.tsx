@@ -12,7 +12,7 @@ export const TlaButton = forwardRef<
 		iconRightClassName?: string
 		ghost?: boolean
 		big?: boolean
-		variant?: 'primary' | 'secondary' | 'cta'
+		variant?: 'primary' | 'secondary' | 'cta' | 'link'
 	}
 >(function TlaButton(
 	{
@@ -43,6 +43,7 @@ export const TlaButton = forwardRef<
 					[styles.cta]: variant === 'cta',
 					[styles.primary]: variant === 'primary',
 					[styles.secondary]: variant === 'secondary',
+					[styles.link]: variant === 'link',
 					[styles.ghost]: ghost,
 					[styles.big]: big,
 				},

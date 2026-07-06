@@ -29,22 +29,6 @@
 
 .acceptButton {
 	width: 100%;
-	height: 32px;
-	background-color: var(--tl-color-primary);
-	color: var(--tl-color-selected-contrast);
-	border: none;
-	border-radius: var(--tl-radius-1);
-	font-weight: 500;
-	cursor: pointer;
-}
-
-.acceptButton:hover:not(:disabled) {
-	background-color: var(--tla-color-primary-hover);
-}
-
-.acceptButton:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
 }
 
 .declineButton {

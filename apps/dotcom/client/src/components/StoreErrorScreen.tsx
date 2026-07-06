@@ -1,4 +1,5 @@
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import { TlaButton } from '../tla/components/TlaButton/TlaButton'
 import { ErrorPage } from './ErrorPage/ErrorPage'
 import LoginRedirectPage from './LoginRedirectPage/LoginRedirectPage'
 
@@ -16,9 +17,9 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 							para1: 'You need to update to the latest version of tldraw to continue.',
 						}}
 						cta={
-							<button type="button" onClick={() => window.location.reload()}>
+							<TlaButton variant="link" type="button" onClick={() => window.location.reload()}>
 								Refresh
-							</button>
+							</TlaButton>
 						}
 					/>
 				)

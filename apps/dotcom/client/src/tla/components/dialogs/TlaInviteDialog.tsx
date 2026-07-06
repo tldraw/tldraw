@@ -8,6 +8,7 @@ import {
 } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { F } from '../../utils/i18n'
+import { TlaButton } from '../TlaButton/TlaButton'
 import styles from './TlaInviteDialog.module.css'
 
 export function TlaInviteDialog({
@@ -44,9 +45,10 @@ export function TlaInviteDialog({
 					/>
 				</div>
 
-				<button
+				<TlaButton
 					className={styles.acceptButton}
-					disabled={isAccepting}
+					variant="primary"
+					isLoading={isAccepting}
 					onClick={async () => {
 						if (!app) return
 						setIsAccepting(true)
@@ -57,7 +59,7 @@ export function TlaInviteDialog({
 					}}
 				>
 					<F defaultMessage="Accept invitation" />
-				</button>
+				</TlaButton>
 			</TldrawUiDialogBody>
 		</>
 	)

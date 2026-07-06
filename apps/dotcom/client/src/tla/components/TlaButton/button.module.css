@@ -86,6 +86,12 @@
 	color: var(--tl-color-text-0);
 }
 
+/* Underlined text link, e.g. error page ctas. */
+.link {
+	text-decoration: underline;
+	line-height: 1.6;
+}
+
 .iconRight {
 	position: absolute;
 	right: 8px;

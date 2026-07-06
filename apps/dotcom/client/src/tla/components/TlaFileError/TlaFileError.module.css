@@ -32,15 +32,3 @@
 	margin: 0;
 	color: var(--tl-color-text-1);
 }
-
-.link {
-	font-size: 12px;
-	font-weight: 500;
-	line-height: 1.6;
-	color: var(--tl-color-text-0);
-	text-decoration: underline;
-	background: none;
-	border: none;
-	padding: 0;
-	cursor: pointer;
-}
