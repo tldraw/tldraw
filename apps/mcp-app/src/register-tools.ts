@@ -361,7 +361,7 @@ export function registerTools(
 									...(opts.extraResourceDomains ?? []),
 									'blob:',
 								],
-								connectDomains: opts.extraConnectDomains ?? [],
+								connectDomains: ['https://cdn.tldraw.com', ...(opts.extraConnectDomains ?? [])],
 							},
 							permissions: { clipboardWrite: {} },
 							...(domain ? { domain } : {}),
