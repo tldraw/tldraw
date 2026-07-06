@@ -22,7 +22,7 @@ import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } fro
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { getMediaBorderStyle } from '../shared/mediaBorder'
+import { getMediaBorderStyle, getMediaBorderSvg } from '../shared/mediaBorder'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -128,7 +128,22 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 		if (!src) return null
 
-		return <image href={src} width={props.w} height={props.h} aria-label={shape.props.altText} />
+		const { behind, front } = getMediaBorderSvg({
+			border: shape.props.border,
+			w: props.w,
+			h: props.h,
+			isCircle: false,
+			idBase: shape.id,
+			ctx,
+		})
+
+		return (
+			<>
+				{behind}
+				<image href={src} width={props.w} height={props.h} aria-label={shape.props.altText} />
+				{front}
+			</>
+		)
 	}
 }
 
