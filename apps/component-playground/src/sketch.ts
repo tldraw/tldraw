@@ -37,6 +37,9 @@ export type ArgType =
 	| { control: 'date' }
 	| { control: 'select'; options: string[] }
 
+/** A forced interaction state, so a story can pin hover/active/focus without input. */
+export type PseudoState = 'hover' | 'active' | 'focus-visible'
+
 /**
  * A named export of a `*.sketchbook.tsx` file: the staged component in one state.
  * Give `args` to feed the sketchbook's `component`, or `render` to draw it directly.
@@ -44,4 +47,6 @@ export type ArgType =
 export interface Sketch<Props> {
 	args?: Partial<Props>
 	render?(args: Partial<Props>): ReactNode
+	/** Force a visual interaction state so the story shows hover/active/focus. */
+	parameters?: { pseudo?: PseudoState }
 }

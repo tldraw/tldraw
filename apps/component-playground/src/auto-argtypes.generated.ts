@@ -87,6 +87,9 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 		},
 	},
 	'sketchbooks/comments/send-button.sketchbook.tsx': {
+		disabled: {
+			control: 'boolean',
+		},
 		label: {
 			control: 'text',
 		},

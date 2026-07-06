@@ -69,6 +69,10 @@
 	border-radius: 999px;
 }
 
+.cmt-composer:focus-within {
+	border-color: var(--tl-color-selected);
+}
+
 .cmt-input {
 	flex: 1;
 	min-width: 0;
@@ -90,6 +94,27 @@
 	font-weight: 600;
 	padding: 6px 12px;
 	cursor: pointer;
+}
+
+.cmt-send:hover,
+.pseudo-hover .cmt-send {
+	background: color-mix(in srgb, var(--tl-color-selected) 88%, black);
+}
+
+.cmt-send:active,
+.pseudo-active .cmt-send {
+	background: color-mix(in srgb, var(--tl-color-selected) 78%, black);
+}
+
+.cmt-send:focus-visible,
+.pseudo-focus-visible .cmt-send {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+}
+
+.cmt-send:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
 }
 
 /* pin */
@@ -159,6 +184,11 @@
 	font-size: 12px;
 	color: var(--tl-color-text-1);
 	cursor: pointer;
+}
+
+.cmt-reaction:hover,
+.pseudo-hover .cmt-reaction {
+	border-color: var(--tl-color-selected);
 }
 
 .cmt-reaction--active {

@@ -12,7 +12,7 @@ export function CommentComposer({ author, placeholder }: CommentComposerProps) {
 	return (
 		<div className="cmt-composer">
 			<Avatar name={author} />
-			<input className="cmt-input" placeholder={placeholder} readOnly />
+			<input className="cmt-input" placeholder={placeholder} />
 			<SendButton label="Send" />
 		</div>
 	)
