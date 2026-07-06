@@ -1317,6 +1317,7 @@ export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>;
 
 // @public
 export interface TLEmbedShapeProps {
+    border: TLDefaultBorderStyle;
     h: number;
     url: string;
     w: number;

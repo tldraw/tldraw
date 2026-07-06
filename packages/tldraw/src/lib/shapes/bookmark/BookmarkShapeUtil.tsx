@@ -123,14 +123,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override onBeforeCreate(next: TLBookmarkShape) {
-		// New bookmarks always start with the shadow border. `border` is a shared
-		// style, so without this a new bookmark would inherit the last-used value
-		// from another shape (e.g. `lined` or `none`) rather than its own default.
-		const shape =
-			next.props.border === 'shadow'
-				? next
-				: { ...next, props: { ...next.props, border: 'shadow' as const } }
-		return setBookmarkHeight(this.editor, shape)
+		return setBookmarkHeight(this.editor, next)
 	}
 
 	override onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape) {
@@ -200,7 +193,9 @@ export function BookmarkShapeComponent({
 			<div
 				className={classNames(
 					'tl-bookmark__container',
-					isSafariExport && 'tl-bookmark__container--safariExport'
+					// Safari can't export the `box-shadow` from getMediaBorderStyle, so it
+					// substitutes a plain CSS border — but only when there's a border to show.
+					isSafariExport && border !== 'none' && 'tl-bookmark__container--safariExport'
 				)}
 				style={{
 					...(isSafariExport ? undefined : getMediaBorderStyle(border, { rotation })),
