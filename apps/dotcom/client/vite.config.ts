@@ -105,6 +105,7 @@ export default defineConfig((env) => ({
 		),
 	},
 	server: {
+		allowedHosts: process.env.VITE_ALLOWED_HOSTS?.split(',').filter(Boolean),
 		proxy: {
 			'/api': {
 				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',

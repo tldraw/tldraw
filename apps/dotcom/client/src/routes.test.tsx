@@ -119,7 +119,13 @@ test('the_routes', () => {
 
 test('dev reset route exists only in development routing', () => {
 	expect(devSpaRoutes.map((route) => route.reactRouterPattern)).toContain('/dev/reset-local-state')
+	expect(devSpaRoutes.map((route) => route.reactRouterPattern)).toContain(
+		'/dev/browser-run-thumbnail'
+	)
 	expect(spaRoutes.map((route) => route.reactRouterPattern)).not.toContain('/dev/reset-local-state')
+	expect(spaRoutes.map((route) => route.reactRouterPattern)).not.toContain(
+		'/dev/browser-run-thumbnail'
+	)
 })
 
 test('all React routes match', () => {
