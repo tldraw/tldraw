@@ -33,21 +33,23 @@ describe('TLCommentThread', () => {
 			pageId,
 			anchor,
 			createdAt: 1000,
-			resolvedAt: null,
-			resolvedBy: null,
+			resolved: null,
 			meta: {},
 		})
 	})
 
-	it('validates resolution state (set together)', () => {
+	it('validates resolution state', () => {
 		const thread = createCommentThread({
 			pageId,
 			anchor: { type: 'page' },
 			createdBy: 'user1',
 			now: 1000,
 		})
-		const resolved = { ...thread, resolvedAt: 2000, resolvedBy: 'user2' }
+		const resolved = { ...thread, resolved: { at: 2000, by: 'user2' } }
 		expect(commentThreadRecordConfig.validator.validate(resolved)).toEqual(resolved)
+		expect(() =>
+			commentThreadRecordConfig.validator.validate({ ...thread, resolved: { at: 2000 } })
+		).toThrow()
 	})
 
 	it('rejects unknown anchor kinds and malformed anchors', () => {

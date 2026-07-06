@@ -120,7 +120,7 @@ function ThreadPin({
 				top: point.y,
 				pointerEvents: 'all',
 				zIndex: 300,
-				opacity: thread.resolvedAt != null ? 0.5 : 1,
+				opacity: thread.resolved != null ? 0.5 : 1,
 			}}
 		>
 			<button
@@ -133,7 +133,7 @@ function ThreadPin({
 					height: 24,
 					borderRadius: '50% 50% 50% 2px',
 					border: '2px solid white',
-					background: thread.resolvedAt != null ? '#9aa0a6' : '#4285f4',
+					background: thread.resolved != null ? '#9aa0a6' : '#4285f4',
 					color: 'white',
 					cursor: 'pointer',
 					boxShadow: '0 1px 3px rgba(0,0,0,0.3)',

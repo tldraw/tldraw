@@ -54,12 +54,8 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
 	 */
 	createdBy: string
 	createdAt: number
-	/**
-	 * Resolution state. `resolvedAt`/`resolvedBy` are set together when a thread is resolved and
-	 * cleared together (both null) when it's reopened.
-	 */
-	resolvedAt: number | null
-	resolvedBy: string | null
+	/** Resolution state: when and by whom the thread was resolved, or null while open. */
+	resolved: { at: number; by: string } | null
 	meta: JsonObject
 }
 
@@ -137,8 +133,7 @@ export const commentThreadRecordConfig: CustomRecordInfo = {
 		anchor: commentAnchorValidator,
 		createdBy: T.string,
 		createdAt: T.number,
-		resolvedAt: T.number.nullable(),
-		resolvedBy: T.string.nullable(),
+		resolved: T.object({ at: T.number, by: T.string }).nullable(),
 		meta: T.jsonValue,
 	}),
 }
@@ -205,8 +200,7 @@ export function createCommentThread(props: {
 		anchor: props.anchor,
 		createdBy: props.createdBy,
 		createdAt: props.now ?? Date.now(),
-		resolvedAt: null,
-		resolvedBy: null,
+		resolved: null,
 		meta: props.meta ?? {},
 	}
 }
