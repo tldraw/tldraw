@@ -42,7 +42,9 @@ export class SketchShapeUtil extends ShapeUtil<SketchShape> {
 		)
 	}
 
-	indicator(shape: SketchShape) {
-		return <rect width={shape.props.w} height={shape.props.h} rx={8} />
+	override getIndicatorPath(shape: SketchShape): Path2D {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
