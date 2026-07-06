@@ -25,10 +25,10 @@ export const Shape: Sketch<CommentAnchorProps> = {
 	args: { anchor: { type: 'shape', shapeId: 'shape:box' }, open: true },
 }
 export const Point: Sketch<CommentAnchorProps> = {
-	args: { anchor: { type: 'point', x: 120, y: 90 }, open: true },
+	args: { anchor: { type: 'point', x: 110, y: 110 }, open: true },
 }
 export const Region: Sketch<CommentAnchorProps> = {
-	args: { anchor: { type: 'region', x: 60, y: 60, w: 180, h: 120 }, open: true },
+	args: { anchor: { type: 'region', x: 30, y: 70, w: 120, h: 96 }, open: true },
 }
 export const Page: Sketch<CommentAnchorProps> = {
 	args: { anchor: { type: 'page' }, open: true },
