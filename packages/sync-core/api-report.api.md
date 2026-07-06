@@ -109,6 +109,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot;
     });
+    close(): void;
     // @internal (undocumented)
     documentClock: Atom<number>;
     // @internal (undocumented)
@@ -120,6 +121,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
     getClock(): number;
     // (undocumented)
     getSnapshot(): RoomSnapshot;
+    isClosed(): boolean;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
     // @internal (undocumented)
@@ -324,6 +326,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
         snapshot?: RoomSnapshot | StoreSnapshot<R>;
         sql: TLSyncSqliteWrapper;
     });
+    close(): void;
     // (undocumented)
     getClock(): number;
     static getDocumentClock(storage: TLSyncSqliteWrapper): null | number;
@@ -334,6 +337,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
     // @internal (undocumented)
     _getTombstoneHistoryStartsAtClock(): number;
     static hasBeenInitialized(storage: TLSyncSqliteWrapper): boolean;
+    isClosed(): boolean;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => void): () => void;
     // @internal (undocumented)
@@ -733,10 +737,12 @@ export interface TLSyncSqliteWrapperConfig {
 
 // @public
 export interface TLSyncStorage<R extends UnknownRecord> {
+    close?(): void;
     // (undocumented)
     getClock(): number;
     // (undocumented)
     getSnapshot?(): RoomSnapshot;
+    isClosed?(): boolean;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
     // (undocumented)
