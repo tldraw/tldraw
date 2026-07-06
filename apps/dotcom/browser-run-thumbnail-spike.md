@@ -103,6 +103,11 @@ MCP_SCREENSHOT_RENDER_ORIGIN=https://your-dev-or-preview-origin.example
 
 Then call `/app/mcp` with `tools/call` and `name: "get_shared_board_screenshot"`. Browser Run receives only the fixed `/dev/browser-run-thumbnail` URL built by the worker, not the user-provided board URL.
 
+## Known limitations
+
+- The render page's `data-thumbnail-ready` marker waits for `document.fonts.ready` and two animation frames, but it does not wait for image shapes to finish decoding. A fixture with raster content can be captured before those assets paint. The production render target must gate the ready marker on asset and canvas stability (see below), not just fonts.
+- Board resolution maps a published slug to a fixed fixture rather than loading the real snapshot, so the MCP prototype renders representative content, not the actual board.
+
 ## Proposed production architecture
 
 Use a dedicated tldraw.com thumbnail worker path that accepts only signed render jobs. The app server verifies the user or published-file permission, resolves the file snapshot from existing tldraw storage, signs a short-lived render token containing file id, document version, page id, viewport, theme, dimensions, and expiry, then queues or invokes the render.

@@ -29,7 +29,7 @@ interface Options {
 async function main() {
 	const options = parseArgs(process.argv.slice(2))
 	const renderUrl = buildRenderUrl(options)
-	const mode = chooseMode(options.mode)
+	const mode = chooseMode(options.mode, options.baseUrl)
 
 	writeLine(`Rendering ${renderUrl}`)
 	writeLine(`Mode: ${mode}`)
@@ -120,12 +120,24 @@ function buildRenderUrl(options: Options) {
 	return url.toString()
 }
 
-function chooseMode(mode: Mode) {
+function chooseMode(mode: Mode, baseUrl: string): Mode {
 	if (mode !== 'auto') return mode
+	// Browser Run executes inside Cloudflare and cannot reach a local dev server, so a loopback
+	// base URL always uses the local Playwright path even when Cloudflare credentials are present.
+	if (isLoopbackHost(baseUrl)) return 'local'
 	if (process.env.CLOUDFLARE_ACCOUNT_ID && process.env.CLOUDFLARE_API_TOKEN) {
 		return 'browser-run'
 	}
 	return 'local'
+}
+
+function isLoopbackHost(baseUrl: string) {
+	try {
+		const { hostname } = new URL(baseUrl)
+		return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]'
+	} catch {
+		return false
+	}
 }
 
 async function captureWithBrowserRun(renderUrl: string, options: Options) {

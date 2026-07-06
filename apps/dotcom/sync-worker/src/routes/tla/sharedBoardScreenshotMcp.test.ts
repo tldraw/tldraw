@@ -149,4 +149,39 @@ describe('sharedBoardScreenshotMcp', () => {
 			deviceScaleFactor: 1,
 		})
 	})
+
+	it('returns a JSON-RPC tool error instead of crashing when the render origin is not configured', async () => {
+		const fetch = vi.fn()
+		vi.stubGlobal('fetch', fetch)
+
+		const response = await sharedBoardScreenshotMcp(
+			new Request('https://sync.tldraw.xyz/app/mcp', {
+				method: 'POST',
+				headers: { 'cf-connecting-ip': '203.0.113.2' },
+				body: JSON.stringify({
+					jsonrpc: '2.0',
+					id: 2,
+					method: 'tools/call',
+					params: {
+						name: 'get_shared_board_screenshot',
+						arguments: {
+							url: 'https://www.tldraw.com/p/abc',
+							viewport: { x: 10, y: 20, z: 0.75 },
+						},
+					},
+				}),
+			}) as any,
+			{
+				CLOUDFLARE_ACCOUNT_ID: 'account-id',
+				CLOUDFLARE_API_TOKEN: 'api-token',
+				MEASURE: { writeDataPoint: vi.fn() },
+			} as any
+		)
+
+		expect(response.status).toBe(200)
+		const body = (await response.json()) as any
+		expect(body.result.isError).toBe(true)
+		expect(body.result.content[0].text).toContain('MCP_SCREENSHOT_RENDER_ORIGIN')
+		expect(fetch).not.toHaveBeenCalled()
+	})
 })

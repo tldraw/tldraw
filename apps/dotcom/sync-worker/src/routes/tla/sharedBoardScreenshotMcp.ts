@@ -228,8 +228,8 @@ async function callSharedBoardScreenshotTool(
 		}
 	}
 
-	const renderUrl = buildBrowserRunThumbnailUrl(getRenderOrigin(env), board, input)
 	try {
+		const renderUrl = buildBrowserRunThumbnailUrl(getRenderOrigin(env), board, input)
 		const browserRun = await captureWithBrowserRun(renderUrl, input, env)
 		writeMcpScreenshotTelemetry(env, {
 			boardHash,
@@ -430,7 +430,15 @@ function isAllowedTldrawHost(hostname: string) {
 }
 
 function getRenderOrigin(env: Environment) {
-	return env.MCP_SCREENSHOT_RENDER_ORIGIN ?? env.MULTIPLAYER_SERVER ?? 'https://www.tldraw.com'
+	// The render page lives at /dev/browser-run-thumbnail and is only served when dev routes are
+	// enabled, so this prototype must be pointed at a dev or preview origin explicitly. There is no
+	// safe production default: a live origin would have Browser Run screenshot a route that 404s.
+	if (!env.MCP_SCREENSHOT_RENDER_ORIGIN) {
+		throw new Error(
+			'MCP_SCREENSHOT_RENDER_ORIGIN is not configured. This prototype needs an origin that serves the dev-only /dev/browser-run-thumbnail render page.'
+		)
+	}
+	return env.MCP_SCREENSHOT_RENDER_ORIGIN
 }
 
 function getExtraHeaders(renderUrl: string) {
