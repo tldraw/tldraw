@@ -2212,6 +2212,18 @@ describe('Add border to video shape', () => {
 	})
 })
 
+describe('Add border to bookmark shape', () => {
+	const { up, down } = getTestMigration(bookmarkShapeVersions.AddBorder)
+
+	test('up defaults to shadow to preserve the existing look', () => {
+		expect(up({ props: {} })).toEqual({ props: { border: 'shadow' } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { border: 'shadow' } })).toEqual({ props: {} })
+	})
+})
+
 describe('Make video asset file size optional', () => {
 	const { up, down } = getTestMigration(videoAssetVersions.MakeFileSizeOptional)
 

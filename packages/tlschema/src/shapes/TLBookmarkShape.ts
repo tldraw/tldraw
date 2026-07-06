@@ -3,6 +3,7 @@ import { assetIdValidator } from '../assets/TLBaseAsset'
 import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
+import { DefaultBorderStyle, TLDefaultBorderStyle } from '../styles/TLBorderStyle'
 import { TLBaseShape } from './TLBaseShape'
 
 /**
@@ -19,6 +20,8 @@ export interface TLBookmarkShapeProps {
 	assetId: TLAssetId | null
 	/** The URL that this bookmark points to */
 	url: string
+	/** Decorative border/shadow treatment applied to the card */
+	border: TLDefaultBorderStyle
 }
 
 /**
@@ -66,11 +69,13 @@ export const bookmarkShapeProps: RecordProps<TLBookmarkShape> = {
 	h: T.nonZeroNumber,
 	assetId: assetIdValidator.nullable(),
 	url: T.linkUrl,
+	border: DefaultBorderStyle,
 }
 
 const Versions = createShapePropsMigrationIds('bookmark', {
 	NullAssetId: 1,
 	MakeUrlsValid: 2,
+	AddBorder: 3,
 })
 
 /**
@@ -106,6 +111,16 @@ export const bookmarkShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (_props) => {
 				// noop
+			},
+		},
+		{
+			id: Versions.AddBorder,
+			// Bookmarks have always rendered a shadow, so default existing cards to it.
+			up: (props) => {
+				props.border = 'shadow'
+			},
+			down: (props) => {
+				delete props.border
 			},
 		},
 	],

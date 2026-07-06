@@ -556,6 +556,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         parentId: TLParentId;
         props: {
             assetId: null | TLAssetId;
+            border: "lined" | "none" | "shadow";
             h: number;
             url: string;
             w: number;
@@ -576,6 +577,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         parentId: TLParentId;
         props: {
             assetId: null | TLAssetId;
+            border: "lined" | "none" | "shadow";
             h: number;
             url: string;
             w: number;
