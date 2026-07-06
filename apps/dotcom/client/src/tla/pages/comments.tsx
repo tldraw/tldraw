@@ -5,10 +5,12 @@ import { routes } from '../../routeDefs'
 import { useMaybeApp } from '../hooks/useAppState'
 import { richTextToPlaintext } from '../utils/richText'
 
-/** Link to a file, deep-linked to the comment's shape, with the comment id so its popover opens. */
-function commentLink(fileId: string, shapeId: string, commentId: string) {
+/** Link to a file, deep-linked to the comment's shape (when shape-anchored), with the comment id so its popover opens. */
+function commentLink(fileId: string, shapeId: string | null | undefined, commentId: string) {
+	const base = `${routes.tlaFile(fileId)}?comment=${encodeURIComponent(commentId)}`
+	if (!shapeId) return base
 	const d = createDeepLinkString({ type: 'shapes', shapeIds: [shapeId as any] })
-	return `${routes.tlaFile(fileId)}?d=${d}&comment=${encodeURIComponent(commentId)}`
+	return `${base}&d=${d}`
 }
 
 /**

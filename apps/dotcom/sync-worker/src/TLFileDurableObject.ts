@@ -1587,8 +1587,10 @@ export class TLFileDurableObject extends DurableObject {
 		return {
 			id: record.id,
 			fileId,
+			threadId: record.threadId,
+			pageId: record.pageId,
 			authorId: record.authorId,
-			shapeId: thread?.anchor.type === 'shape' ? thread.anchor.shapeId : '',
+			shapeId: thread?.anchor.type === 'shape' ? thread.anchor.shapeId : null,
 			// rich text stored as-is (JSONB) — the projection preserves the authoritative
 			// representation rather than flattening to plaintext. TLRichText types its content as
 			// unknown[], which doesn't structurally satisfy zero's ReadonlyJSONValue, but the value

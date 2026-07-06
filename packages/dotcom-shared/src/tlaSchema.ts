@@ -131,8 +131,11 @@ export const comment = table('comment')
 	.columns({
 		id: string(),
 		fileId: string(),
+		threadId: string(),
+		pageId: string(),
 		authorId: string(),
-		shapeId: string(),
+		// only set for shape-anchored threads; other anchor kinds have no shape
+		shapeId: string().optional(),
 		body: json(),
 		createdAt: number(),
 		updatedAt: number(),
