@@ -10,6 +10,7 @@ const GAP = 28
 const PAD = 40
 const TITLE_H = 44
 const LABEL_H = 30 // caption strip under each cell (matches sketch-shape.css)
+const FRAME_LABEL_H = 40 // the frame name renders above the frame; reserve room for it
 const COLS = 3 // max sketches per row inside a component frame
 const MAX_ROW = 1500 // frames wrap to a new row past this width
 
@@ -84,7 +85,7 @@ function placeSketches(book: LoadedSketchbook): {
 // Lay sketchbooks out as named frames that shelf-pack left-to-right, wrapping past MAX_ROW.
 function layoutGroup(editor: Editor, books: LoadedSketchbook[]) {
 	let cursorX = PAD
-	let cursorY = PAD
+	let cursorY = PAD + FRAME_LABEL_H
 	let rowHeight = 0
 
 	for (const book of books) {
@@ -92,7 +93,8 @@ function layoutGroup(editor: Editor, books: LoadedSketchbook[]) {
 
 		if (cursorX > PAD && cursorX + frameW > MAX_ROW) {
 			cursorX = PAD
-			cursorY += rowHeight + GAP
+			// clear the next row's frame labels (which render above each frame)
+			cursorY += rowHeight + GAP + FRAME_LABEL_H
 			rowHeight = 0
 		}
 
