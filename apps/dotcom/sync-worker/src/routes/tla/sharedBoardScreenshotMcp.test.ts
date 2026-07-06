@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo } from './getPublishedFile'
+import { getSharedFileInfo } from './getSharedFile'
 import {
 	buildThumbnailRenderUrl,
 	getThumbnailCacheKey,
@@ -12,6 +13,13 @@ import {
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
+}))
+
+// Keep the real isFileAnonymouslyViewable so the route's share gate is exercised for real; only the
+// DB lookup is mocked.
+vi.mock('./getSharedFile', async (importOriginal) => ({
+	...(await importOriginal<typeof import('./getSharedFile')>()),
+	getSharedFileInfo: vi.fn(),
 }))
 
 afterEach(() => {
@@ -30,6 +38,14 @@ function makeFakeThumbnailsBucket() {
 		},
 		async put(key: string, value: ArrayBuffer) {
 			store.set(key, value)
+		},
+	}
+}
+
+function makeFakeRoomsBucket(etag: string | null = 'room-etag-1') {
+	return {
+		async head(_key: string) {
+			return etag === null ? null : { etag }
 		},
 	}
 }
@@ -118,18 +134,25 @@ describe('resolveSharedBoardUrl', () => {
 		})
 	})
 
+	it('accepts shared file tldraw.com URLs', () => {
+		expect(resolveSharedBoardUrl('https://www.tldraw.com/f/abc')).toEqual({
+			kind: 'shared_file',
+			slug: 'abc',
+		})
+	})
+
 	it('rejects arbitrary external URLs', () => {
-		expect(() => resolveSharedBoardUrl('https://example.com/p/abc')).toThrow(
+		expect(() => resolveSharedBoardUrl('https://example.com/f/abc')).toThrow(
 			'Only tldraw.com board URLs are accepted'
 		)
 	})
 
-	it('rejects private and invite-only file URLs', () => {
-		expect(() => resolveSharedBoardUrl('https://www.tldraw.com/f/private-file')).toThrow(
-			'not supported'
-		)
+	it('rejects invite-only URLs and unsupported route shapes', () => {
 		expect(() => resolveSharedBoardUrl('https://www.tldraw.com/invite/token')).toThrow(
-			'not supported'
+			'Invite-only'
+		)
+		expect(() => resolveSharedBoardUrl('https://www.tldraw.com/q/abc')).toThrow(
+			'Only published or shared'
 		)
 	})
 })
@@ -273,6 +296,79 @@ describe('sharedBoardScreenshotMcp', () => {
 		const body = (await response.json()) as any
 		expect(body.result.isError).toBe(true)
 		expect(body.result.content[0].text).toContain('MCP_SCREENSHOT_RENDER_ORIGIN')
+		expect(fetch).not.toHaveBeenCalled()
+	})
+
+	it('captures an anonymously-shared file, keying the cache on the room etag', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'shared-abc',
+			shared: true,
+			isDeleted: false,
+		})
+		const fetch = stubBrowserRunFetch()
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, ROOMS: makeFakeRoomsBucket('room-etag-1') })
+
+		const response = await sharedBoardScreenshotMcp(
+			makeToolCallRequest('203.0.113.50', 'https://www.tldraw.com/f/shared-abc'),
+			env
+		)
+
+		const body = (await response.json()) as any
+		expect(body.result.content[0].type).toBe('image')
+
+		const browserRunRequest = JSON.parse(fetch.mock.calls[0]![1]!.body as string)
+		const renderUrl = new URL(browserRunRequest.url)
+		expect(browserRunRequest.url).not.toContain('www.tldraw.com')
+
+		const job = await verifyThumbnailRenderToken(env, renderUrl.searchParams.get('token')!)
+		expect(job).toMatchObject({
+			kind: 'shared_file',
+			slug: 'shared-abc',
+			fileId: 'shared-abc',
+			version: 'room-etag-1',
+		})
+		// the etag rides the cache key so republished content rotates it
+		expect([...bucket.store.keys()][0]).toContain('mcp/shared_file/shared-abc/room-etag-1/')
+	})
+
+	it('returns a tool error for private (unshared) files without spending Browser Run', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'private-abc',
+			shared: false,
+			isDeleted: false,
+		})
+		const fetch = vi.fn()
+		vi.stubGlobal('fetch', fetch)
+
+		const response = await sharedBoardScreenshotMcp(
+			makeToolCallRequest('203.0.113.51', 'https://www.tldraw.com/f/private-abc'),
+			makeEnv({ ROOMS: makeFakeRoomsBucket() })
+		)
+
+		const body = (await response.json()) as any
+		expect(body.result.isError).toBe(true)
+		expect(body.result.content[0].text).toContain('No shared board')
+		expect(fetch).not.toHaveBeenCalled()
+	})
+
+	it('returns a tool error for a shared file with no saved content yet', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'empty-abc',
+			shared: true,
+			isDeleted: false,
+		})
+		const fetch = vi.fn()
+		vi.stubGlobal('fetch', fetch)
+
+		const response = await sharedBoardScreenshotMcp(
+			makeToolCallRequest('203.0.113.52', 'https://www.tldraw.com/f/empty-abc'),
+			makeEnv({ ROOMS: makeFakeRoomsBucket(null) })
+		)
+
+		const body = (await response.json()) as any
+		expect(body.result.isError).toBe(true)
+		expect(body.result.content[0].text).toContain('no saved content')
 		expect(fetch).not.toHaveBeenCalled()
 	})
 

@@ -1,5 +1,6 @@
 import { THUMBNAIL_RENDER_PATH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
+import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import {
@@ -8,6 +9,7 @@ import {
 	mintThumbnailRenderToken,
 } from '../../utils/renderTokens'
 import { getPublishedFileInfo } from './getPublishedFile'
+import { getSharedFileInfo, isFileAnonymouslyViewable } from './getSharedFile'
 
 const TOOL_NAME = 'get_shared_board_screenshot'
 const MCP_PROTOCOL_VERSION = '2024-11-05'
@@ -51,7 +53,7 @@ export interface SharedBoardScreenshotInput {
 }
 
 interface ResolvedBoardUrl {
-	kind: 'published'
+	kind: 'published' | 'shared_file'
 	slug: string
 }
 
@@ -89,7 +91,7 @@ export async function sharedBoardScreenshotMcp(
 					version: '1.0.0',
 				},
 				instructions:
-					'Image-only MCP server for public tldraw.com shared board screenshots. Accepts published tldraw.com/p/:slug URLs and renders them through a signed, tldraw-owned Browser Run render job.',
+					'Image-only MCP server for public tldraw.com board screenshots. Accepts published tldraw.com/p/:slug URLs and anonymously-shared tldraw.com/f/:slug URLs, and renders them through a signed, tldraw-owned Browser Run render job.',
 			})
 		case 'ping':
 			return jsonRpcResult(rpcRequest.id, {})
@@ -148,18 +150,22 @@ export function resolveSharedBoardUrl(urlString: string): ResolvedBoardUrl {
 
 	const [prefix, slug, extra] = url.pathname.split('/').filter(Boolean)
 	if (!prefix || !slug || extra) {
-		throw new Error('Only published tldraw.com board URLs are supported')
+		throw new Error('Only published or shared tldraw.com board URLs are supported')
 	}
 
 	if (prefix === 'p') {
 		return { kind: 'published', slug }
 	}
 
-	if (prefix === 'f' || prefix === 'invite') {
-		throw new Error('Private, invite-only, and shared-live file URLs are not supported')
+	if (prefix === 'f') {
+		return { kind: 'shared_file', slug }
 	}
 
-	throw new Error('Only published tldraw.com board URLs are supported')
+	if (prefix === 'invite') {
+		throw new Error('Invite-only file URLs are not supported')
+	}
+
+	throw new Error('Only published or shared tldraw.com board URLs are supported')
 }
 
 export function getThumbnailCacheKey(job: Omit<ThumbnailRenderJob, 'v' | 'exp'>) {
@@ -228,20 +234,43 @@ async function callSharedBoardScreenshotTool(
 	}
 
 	try {
-		const file = await getPublishedFileInfo(env, boardUrl.slug)
-		if (!file || !file.published) {
-			telemetry({ cacheStatus: 'miss', failureReason: 'not_published' })
-			return toolError(
-				'No published board was found at this URL. Only published tldraw.com/p/ boards are supported.'
-			)
+		let fileId: string
+		let version: string | number
+		if (boardUrl.kind === 'published') {
+			const file = await getPublishedFileInfo(env, boardUrl.slug)
+			if (!file || !file.published) {
+				telemetry({ cacheStatus: 'miss', failureReason: 'not_published' })
+				return toolError(
+					'No published board was found at this URL. Only published tldraw.com/p/ boards are supported.'
+				)
+			}
+			fileId = file.id
+			version = file.lastPublished
+		} else {
+			const file = await getSharedFileInfo(env, boardUrl.slug)
+			if (!isFileAnonymouslyViewable(file)) {
+				telemetry({ cacheStatus: 'miss', failureReason: 'not_shared' })
+				return toolError(
+					'No shared board was found at this URL, or it is private. Only shared tldraw.com/f/ boards can be screenshotted.'
+				)
+			}
+			// The persisted room's R2 etag rotates when the board content changes, so it keys the
+			// thumbnail cache without a separate content-version field.
+			const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug: boardUrl.slug, isApp: true }))
+			if (!persisted) {
+				telemetry({ cacheStatus: 'miss', failureReason: 'board_empty' })
+				return toolError('This board has no saved content to screenshot yet.')
+			}
+			fileId = file.id
+			version = persisted.etag
 		}
 
 		const job: ThumbnailRenderJob = {
 			v: 1,
 			kind: boardUrl.kind,
 			slug: boardUrl.slug,
-			fileId: file.id,
-			version: file.lastPublished,
+			fileId,
+			version,
 			x: input.viewport.x,
 			y: input.viewport.y,
 			z: input.viewport.z,
@@ -426,7 +455,7 @@ function getSharedBoardScreenshotToolDefinition() {
 		name: TOOL_NAME,
 		title: 'Get shared tldraw board screenshot',
 		description:
-			'Return a PNG screenshot of a public tldraw.com board. Accepts published /p/:slug URLs and renders through a signed tldraw-owned Browser Run render job.',
+			'Return a PNG screenshot of a public tldraw.com board. Accepts published /p/:slug URLs and anonymously-shared /f/:slug URLs, and renders through a signed tldraw-owned Browser Run render job.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -434,7 +463,7 @@ function getSharedBoardScreenshotToolDefinition() {
 				url: {
 					type: 'string',
 					description:
-						'A public tldraw.com published board URL, for example https://www.tldraw.com/p/slug.',
+						'A public tldraw.com board URL: a published board (https://www.tldraw.com/p/slug) or an anonymously-shared file (https://www.tldraw.com/f/slug).',
 				},
 				viewport: {
 					type: 'object',

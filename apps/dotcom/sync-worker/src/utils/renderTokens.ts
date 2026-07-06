@@ -6,13 +6,21 @@ import { Environment } from '../types'
 // parameters ride inside the signed payload so they cannot be tampered with in transit.
 export interface ThumbnailRenderJob {
 	v: 1
-	kind: 'published'
-	/** The published slug, i.e. the `:slug` in tldraw.com/p/:slug */
+	/**
+	 * `published` renders a frozen tldraw.com/p/:slug snapshot; `shared_file` renders the live
+	 * snapshot of an anonymously-shared tldraw.com/f/:slug file.
+	 */
+	kind: 'published' | 'shared_file'
+	/** The board slug: the `:slug` in tldraw.com/p/:slug (published) or /f/:slug (shared file) */
 	slug: string
-	/** The parent file id */
+	/** The file id. Equal to `slug` for shared files; the parent file id for published boards. */
 	fileId: string
-	/** The file's lastPublished timestamp; changes when the file is republished */
-	version: number
+	/**
+	 * A version that rotates when the rendered content changes, so it can key the thumbnail cache.
+	 * Published boards use the file's `lastPublished` timestamp; shared files use the persisted
+	 * room snapshot's R2 etag.
+	 */
+	version: string | number
 	x: number
 	y: number
 	z: number
@@ -79,7 +87,7 @@ export async function verifyThumbnailRenderToken(
 	if (
 		!job ||
 		job.v !== 1 ||
-		job.kind !== 'published' ||
+		(job.kind !== 'published' && job.kind !== 'shared_file') ||
 		typeof job.slug !== 'string' ||
 		typeof job.exp !== 'number'
 	) {

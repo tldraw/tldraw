@@ -5,17 +5,17 @@ Issues:
 - https://github.com/tldraw/tldraw/issues/9502
 - https://github.com/tldraw/tldraw/issues/9497
 
-tldraw.com can capture PNG thumbnails of published boards by pointing Cloudflare Browser Run at a tldraw-owned render page. The first consumer is an image-only MCP tool, `get_shared_board_screenshot`, served by the sync worker at `POST /api/app/mcp`.
+tldraw.com can capture PNG thumbnails of public boards by pointing Cloudflare Browser Run at a tldraw-owned render page. The first consumer is an image-only MCP tool, `get_shared_board_screenshot`, served by the sync worker at `POST /api/app/mcp`.
 
-The screenshot pipeline never hands Browser Run a user-provided URL. The worker resolves the board, verifies it is published, mints a short-lived signed render job, and Browser Run only ever visits the internal render page with that token. The MCP surface is image-only: it exposes no board metadata, document structure, shape listing, arbitrary selectors, arbitrary URLs, or private-file access.
+The screenshot pipeline never hands Browser Run a user-provided URL. The worker resolves the board, verifies it is publicly viewable (a published board, or a file shared via link), mints a short-lived signed render job, and Browser Run only ever visits the internal render page with that token. The MCP surface is image-only: it exposes no board metadata, document structure, shape listing, arbitrary selectors, arbitrary URLs, or access to files that are not publicly shared.
 
 ## Architecture
 
-1. A client calls the MCP tool with a published board URL (`https://www.tldraw.com/p/:slug`), a viewport, and bounded dimensions (200-1600px) and theme.
-2. The sync worker validates the URL shape and host allowlist, then resolves the published slug through `SNAPSHOT_SLUG_TO_PARENT_SLUG` and the `file` row (`getPublishedFileInfo`). Unknown or unpublished boards fail without spending any Browser Run capacity.
-3. The worker builds an R2 cache key from board identity, `lastPublished` version, viewport, dimensions, and theme. Cache hits in the `THUMBNAILS` bucket return immediately. Republishing a file changes `lastPublished`, which rotates the key, so thumbnails track the latest published content.
+1. A client calls the MCP tool with a public board URL — a published board (`https://www.tldraw.com/p/:slug`) or an anonymously-shared file (`https://www.tldraw.com/f/:slug`) — a viewport, and bounded dimensions (200-1600px) and theme.
+2. The sync worker validates the URL shape and host allowlist, then resolves the board by kind. Published boards resolve the slug through `SNAPSHOT_SLUG_TO_PARENT_SLUG` and the `file` row (`getPublishedFileInfo`) and must be published. Shared files resolve the slug directly as the `file.id` (`getSharedFileInfo`) and must pass the same anonymous-view gate the live file room enforces: the file exists, is not deleted, and is `shared` via link (`isFileAnonymouslyViewable`). `sharedLinkType` (`view` vs `edit`) is irrelevant to viewing; test-slug files are refused because they require admin auth the anonymous tool never has. Unknown, unpublished, or private boards fail without spending any Browser Run capacity.
+3. The worker builds an R2 cache key from board identity, a content version, viewport, dimensions, and theme. The version is the file's `lastPublished` for published boards and the persisted room snapshot's R2 etag for shared files, so republishing or editing rotates the key and thumbnails track the latest content. Cache hits in the `THUMBNAILS` bucket return immediately.
 4. On a miss, the worker mints an HMAC-signed render token (`renderTokens.ts`) containing the board identity and render parameters with a 5 minute expiry, and calls Browser Run's `/screenshot` Quick Action against `{MCP_SCREENSHOT_RENDER_ORIGIN}/__thumbnail-render?token=...`.
-5. The render page (`apps/dotcom/client/src/pages/thumbnail-render.tsx`) exchanges the token for snapshot data at `GET /api/app/thumbnail-snapshot`, which verifies the signature and expiry before returning records, schema, and render params. The page renders a hidden-UI, read-only editor and sets `data-thumbnail-ready` once fonts have settled, image assets have loaded, and the editor's `<img>` elements are stable. Browser Run waits on that selector.
+5. The render page (`apps/dotcom/client/src/pages/thumbnail-render.tsx`) exchanges the token for snapshot data at `GET /api/app/thumbnail-snapshot`, which verifies the signature and expiry before returning records, schema, and render params. Published boards read a frozen R2 snapshot; shared files read the live persisted room snapshot from R2 (`env.ROOMS`) and re-check the share gate here, not just when the token was minted, so a board un-shared during the token's 5 minute window stops resolving. The page renders a hidden-UI, read-only editor and sets `data-thumbnail-ready` once fonts have settled, image assets have loaded, and the editor's `<img>` elements are stable. Browser Run waits on that selector.
 6. The PNG is stored in the `THUMBNAILS` bucket and returned as an MCP image content item.
 
 ### Request limits
@@ -101,13 +101,13 @@ get_shared_board_screenshot({
 })
 ```
 
-The tool accepts published tldraw.com URLs shaped like `https://www.tldraw.com/p/:slug` on `tldraw.com`, `www.tldraw.com`, and `staging.tldraw.com`. It rejects external hosts, private `/f/:slug` file URLs, invite URLs, and unsupported route shapes. The result is an MCP image content item with PNG data.
+The tool accepts public tldraw.com URLs on `tldraw.com`, `www.tldraw.com`, and `staging.tldraw.com`: published boards (`https://www.tldraw.com/p/:slug`) and anonymously-shared files (`https://www.tldraw.com/f/:slug`). A `/f/:slug` file is only rendered when it is currently shared via link; private (unshared) files, deleted files, and test files are refused. It also rejects external hosts, invite URLs, and unsupported route shapes. The result is an MCP image content item with PNG data.
 
 The screenshot layer lives in the dotcom sync worker rather than the interactive `apps/mcp-app` canvas worker because it needs real tldraw.com published-file resolution and storage, not a live editor bridge.
 
 ## Remaining follow-up work
 
-- Shared-live file screenshots: extend the resolver to `/f/:slug` URLs whose share link allows anonymous viewing, using an internal snapshot resolver that checks shared-link visibility. The signed render job and token-gated snapshot endpoint already support carrying a different board `kind`.
 - Queue-backed async generation with stale/placeholder responses. This matters for high-traffic OG-image paths (#9502), not for the synchronous MCP tool, which must return the image in-band; the R2 cache bounds repeat cost for MCP.
 - Dashboards and alerts on the `mcp_shared_board_screenshot` telemetry (failure rate, timeout rate, Browser Run spend, cache hit rate).
-- Keep private files, board metadata, document structure, current-viewport screenshots, and selected-shape screenshots out of the MCP scope.
+- Shared files render the last persisted room snapshot from R2, which can lag in-memory edits by the persist debounce. If near-real-time accuracy is ever required, add a `getCurrentSnapshot` RPC on `TLFileDurableObject` (modeled on `onDownloadTldr`) instead of reading R2.
+- Keep private (unshared) files, board metadata, document structure, current-viewport screenshots, and selected-shape screenshots out of the MCP scope.

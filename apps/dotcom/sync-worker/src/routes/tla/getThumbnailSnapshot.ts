@@ -4,6 +4,7 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
+import { getSharedFileRoomSnapshot } from './getSharedFile'
 
 // Serves snapshot data to the thumbnail render page. Only accepts short-lived render tokens
 // minted by this worker, so the render page cannot be pointed at arbitrary boards even though
@@ -19,7 +20,13 @@ export async function getThumbnailSnapshot(request: IRequest, env: Environment):
 		return json({ error: true, message: 'Invalid or expired render token' }, 403)
 	}
 
-	const snapshot = await getPublishedRoomSnapshot(env, job.slug).catch(() => undefined)
+	// Shared files re-check their share status here (not just when the token was minted), so that a
+	// board un-shared during a token's 5 minute window stops resolving.
+	const snapshot = await (
+		job.kind === 'published'
+			? getPublishedRoomSnapshot(env, job.slug)
+			: getSharedFileRoomSnapshot(env, job.slug)
+	).catch(() => undefined)
 	if (!snapshot?.schema) {
 		return json({ error: true, message: 'Board not found' }, 404)
 	}

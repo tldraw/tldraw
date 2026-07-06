@@ -34,6 +34,17 @@ describe('thumbnail render tokens', () => {
 		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
 	})
 
+	it('round-trips a shared-file job with a string version', async () => {
+		const job = makeJob({ kind: 'shared_file', fileId: 'my-board', version: 'etag-abc123' })
+		const token = await mintThumbnailRenderToken(env, job)
+		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
+	})
+
+	it('rejects tokens with an unknown kind', async () => {
+		const token = await mintThumbnailRenderToken(env, makeJob({ kind: 'bogus' as any }))
+		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
+	})
+
 	it('rejects expired tokens', async () => {
 		const job = makeJob({ exp: Date.now() - 1 })
 		const token = await mintThumbnailRenderToken(env, job)

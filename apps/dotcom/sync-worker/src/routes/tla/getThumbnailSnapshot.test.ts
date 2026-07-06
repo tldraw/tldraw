@@ -6,10 +6,15 @@ import {
 	mintThumbnailRenderToken,
 } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
+import { getSharedFileRoomSnapshot } from './getSharedFile'
 import { getThumbnailSnapshot } from './getThumbnailSnapshot'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedRoomSnapshot: vi.fn(),
+}))
+
+vi.mock('./getSharedFile', () => ({
+	getSharedFileRoomSnapshot: vi.fn(),
 }))
 
 afterEach(() => {
@@ -90,6 +95,32 @@ describe('getThumbnailSnapshot', () => {
 	it('returns 404 when the board is no longer published', async () => {
 		vi.mocked(getPublishedRoomSnapshot).mockRejectedValue(new Error('not published'))
 		const response = await getThumbnailSnapshot(makeRequest(await mintToken()), env)
+		expect(response.status).toBe(404)
+	})
+
+	it('resolves shared-file tokens through the shared-file snapshot source', async () => {
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue({
+			documents: [{ state: { id: 'shape:1', typeName: 'shape' }, lastChangedClock: 0 }],
+			schema: { schemaVersion: 2, sequences: {} },
+			clock: 0,
+		} as any)
+
+		const response = await getThumbnailSnapshot(
+			makeRequest(await mintToken({ kind: 'shared_file', slug: 'file-abc', version: 'etag-1' })),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		expect(vi.mocked(getSharedFileRoomSnapshot)).toHaveBeenCalledWith(env, 'file-abc')
+		expect(vi.mocked(getPublishedRoomSnapshot)).not.toHaveBeenCalled()
+	})
+
+	it('returns 404 when a shared file is un-shared during the token window', async () => {
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValue(new Error('not shared'))
+		const response = await getThumbnailSnapshot(
+			makeRequest(await mintToken({ kind: 'shared_file', slug: 'file-abc', version: 'etag-1' })),
+			env
+		)
 		expect(response.status).toBe(404)
 	})
 })
