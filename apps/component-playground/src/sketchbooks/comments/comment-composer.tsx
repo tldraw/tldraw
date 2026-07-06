@@ -1,21 +1,19 @@
+import { Avatar } from './avatar'
 import './comments.css'
+import { SendButton } from './send-button'
 
 export interface CommentComposerProps {
 	author: string
 	placeholder: string
 }
 
-/** The input for writing a new comment: avatar, field, send button. */
+/** The input for writing a new comment, composed from Avatar and SendButton. */
 export function CommentComposer({ author, placeholder }: CommentComposerProps) {
 	return (
 		<div className="cmt-composer">
-			<div className="cmt-avatar" aria-hidden="true">
-				{author.slice(0, 1).toUpperCase()}
-			</div>
+			<Avatar name={author} />
 			<input className="cmt-input" placeholder={placeholder} readOnly />
-			<button className="cmt-send" type="button">
-				Send
-			</button>
+			<SendButton label="Send" />
 		</div>
 	)
 }

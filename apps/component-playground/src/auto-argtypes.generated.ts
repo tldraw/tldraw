@@ -12,6 +12,19 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			options: ['default', 'primary'],
 		},
 	},
+	'sketchbooks/comments/avatar.sketchbook.tsx': {
+		name: {
+			control: 'text',
+		},
+	},
+	'sketchbooks/comments/byline.sketchbook.tsx': {
+		author: {
+			control: 'text',
+		},
+		time: {
+			control: 'text',
+		},
+	},
 	'sketchbooks/comments/comment-card.sketchbook.tsx': {
 		author: {
 			control: 'text',
@@ -42,9 +55,19 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			control: 'boolean',
 		},
 	},
+	'sketchbooks/comments/comment-text.sketchbook.tsx': {
+		text: {
+			control: 'text',
+		},
+	},
 	'sketchbooks/comments/comment-thread.sketchbook.tsx': {
 		resolved: {
 			control: 'boolean',
+		},
+	},
+	'sketchbooks/comments/send-button.sketchbook.tsx': {
+		label: {
+			control: 'text',
 		},
 	},
 	'sketchbooks/editor-probe.sketchbook.tsx': {

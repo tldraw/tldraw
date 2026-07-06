@@ -1,3 +1,6 @@
+import { Avatar } from './avatar'
+import { Byline } from './byline'
+import { CommentText } from './comment-text'
 import './comments.css'
 
 export interface CommentCardProps {
@@ -7,28 +10,14 @@ export interface CommentCardProps {
 	you: boolean
 }
 
-function initials(name: string) {
-	return name
-		.split(' ')
-		.map((word) => word[0] ?? '')
-		.join('')
-		.slice(0, 2)
-		.toUpperCase()
-}
-
-/** A single comment: avatar, author, timestamp, body. */
+/** A single comment, composed from Avatar, Byline, and CommentText. */
 export function CommentCard({ author, body, time, you }: CommentCardProps) {
 	return (
 		<div className={you ? 'cmt-card cmt-card--you' : 'cmt-card'}>
-			<div className="cmt-avatar" aria-hidden="true">
-				{initials(author)}
-			</div>
+			<Avatar name={author} />
 			<div className="cmt-body">
-				<div className="cmt-head">
-					<span className="cmt-author">{author}</span>
-					<span className="cmt-time">{time}</span>
-				</div>
-				<p className="cmt-text">{body}</p>
+				<Byline author={author} time={time} />
+				<CommentText text={body} />
 			</div>
 		</div>
 	)
