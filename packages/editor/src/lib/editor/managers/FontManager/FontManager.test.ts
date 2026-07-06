@@ -160,15 +160,53 @@ describe('FontManager', () => {
 					),
 				}
 			})
-			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {})
 
 			const promise = fontManager.ensureFontIsLoaded(font)
 			fontManager.dispose()
 			rejectLoad(error)
 
 			await expect(promise).resolves.toBeUndefined()
-			expect(consoleSpy).not.toHaveBeenCalled()
-			consoleSpy.mockRestore()
+			expect(errorSpy).not.toHaveBeenCalled()
+			expect(debugSpy).toHaveBeenCalledWith(
+				`Font "${font.family}" load interrupted by editor dispose`,
+				error
+			)
+			errorSpy.mockRestore()
+			debugSpy.mockRestore()
+		})
+
+		it('ignores font loads that finish after disposal', async () => {
+			const font = createMockFont()
+			let resolveLoad: () => void = () => {}
+			;(global.FontFace as Mock).mockImplementationOnce(function (family, src, descriptors) {
+				return {
+					family,
+					src,
+					...descriptors,
+					load: vi.fn(
+						() =>
+							new Promise<void>((resolve) => {
+								resolveLoad = resolve
+							})
+					),
+				}
+			})
+			const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {})
+
+			const promise = fontManager.ensureFontIsLoaded(font)
+			fontManager.dispose()
+			resolveLoad()
+
+			await expect(promise).resolves.toBeUndefined()
+			// only the creation-time add from findOrCreateFontFace, not a second
+			// post-load add after dispose
+			expect(document.fonts.add).toHaveBeenCalledTimes(1)
+			expect(debugSpy).toHaveBeenCalledWith(
+				`Font "${font.family}" load interrupted by editor dispose`
+			)
+			debugSpy.mockRestore()
 		})
 	})
 

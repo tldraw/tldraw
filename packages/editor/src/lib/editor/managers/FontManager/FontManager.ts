@@ -106,25 +106,32 @@ export class FontManager {
 		if (existingState) return existingState.loadingPromise
 
 		const instance = this.findOrCreateFontFace(font)
-		const updateState = (updater: (state: FontState) => FontState) => {
-			if (this.fontStates.__unsafe__getWithoutCapture(font) !== state) return false
-			this.fontStates.update(font, updater)
-			return true
-		}
+		// dispose() clears fontStates while loads may still be in flight, so a late
+		// callback must only touch the exact entry it was created for - not a fresh
+		// entry from a later request. Check identity, not just presence.
+		const isStale = () => this.fontStates.__unsafe__getWithoutCapture(font) !== state
 		const state: FontState = {
 			state: 'loading',
 			instance,
 			loadingPromise: instance
 				.load()
 				.then(() => {
-					if (this.fontStates.__unsafe__getWithoutCapture(font) !== state) return
+					if (isStale()) {
+						// eslint-disable-next-line no-console
+						console.debug(`Font "${font.family}" load interrupted by editor dispose`)
+						return
+					}
 					this.editor.getContainerDocument().fonts.add(instance)
-					updateState((s) => ({ ...s, state: 'ready' }))
+					this.fontStates.update(font, (s) => ({ ...s, state: 'ready' }))
 				})
 				.catch((err) => {
-					if (this.fontStates.__unsafe__getWithoutCapture(font) !== state) return
+					if (isStale()) {
+						// eslint-disable-next-line no-console
+						console.debug(`Font "${font.family}" load interrupted by editor dispose`, err)
+						return
+					}
 					console.error(err)
-					updateState((s) => ({ ...s, state: 'error' }))
+					this.fontStates.update(font, (s) => ({ ...s, state: 'error' }))
 				}),
 		}
 
