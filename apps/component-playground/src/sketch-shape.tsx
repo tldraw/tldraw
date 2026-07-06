@@ -1,7 +1,52 @@
+import { ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { HTMLContainer, Rectangle2d, ShapeUtil, T, TLBaseShape } from 'tldraw'
 import { sketchesById } from './registry'
 import { renderSketch } from './render-sketch'
 import './sketch-shape.css'
+
+const LABEL_H = 30
+const PREVIEW_PAD = 12
+
+/**
+ * Renders a preview, scaled down only if it exceeds the available area, so oversized
+ * specimens fit their cell while everything that already fits stays at 1:1.
+ */
+function ScaledPreview({
+	maxW,
+	maxH,
+	children,
+}: {
+	maxW: number
+	maxH: number
+	children: ReactNode
+}) {
+	const ref = useRef<HTMLDivElement | null>(null)
+	const [scale, setScale] = useState(1)
+
+	useLayoutEffect(() => {
+		const el = ref.current
+		if (!el) return
+		const measure = () => {
+			const s = Math.min(1, maxW / el.scrollWidth, maxH / el.scrollHeight)
+			setScale(Number.isFinite(s) && s > 0 ? s : 1)
+		}
+		measure()
+		const observer = new ResizeObserver(measure)
+		observer.observe(el)
+		return () => observer.disconnect()
+	}, [maxW, maxH])
+
+	return (
+		<div className="sketch-shape__preview">
+			<div
+				ref={ref}
+				style={{ width: 'max-content', transform: `scale(${scale})`, transformOrigin: 'center' }}
+			>
+				{children}
+			</div>
+		</div>
+	)
+}
 
 /** A canvas shape that renders one sketch instance by id, with its own editable args. */
 export type SketchShape = TLBaseShape<
@@ -37,13 +82,16 @@ export class SketchShapeUtil extends ShapeUtil<SketchShape> {
 				className="sketch-shape"
 				style={{ width: shape.props.w, height: shape.props.h }}
 			>
-				<div className="sketch-shape__preview">
+				<ScaledPreview
+					maxW={shape.props.w - PREVIEW_PAD * 2}
+					maxH={shape.props.h - LABEL_H - PREVIEW_PAD * 2}
+				>
 					{loaded ? (
 						renderSketch(loaded, shape.props.args)
 					) : (
 						<span>unknown: {shape.props.sketchId}</span>
 					)}
-				</div>
+				</ScaledPreview>
 				{loaded && <div className="sketch-shape__label">{loaded.name}</div>}
 			</HTMLContainer>
 		)

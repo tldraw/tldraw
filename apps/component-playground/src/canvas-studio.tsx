@@ -3,8 +3,8 @@ import { PropertiesPanel } from './properties-panel'
 import { LoadedSketchbook, sketchbooks } from './registry'
 import { SketchShape, SketchShapeUtil } from './sketch-shape'
 
-const CELL_W = 300
-const CELL_H = 220
+const CELL_W = 320
+const CELL_H = 280
 const GAP = 28
 const PAD = 40
 const TITLE_H = 44
