@@ -1,3 +1,4 @@
+import './demo-button.css'
 import { Sketch, Sketchbook } from '../sketch'
 
 // Throwaway sample: a local component with no SDK dependency, here only to prove

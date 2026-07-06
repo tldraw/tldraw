@@ -55,19 +55,3 @@ body {
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	font-size: 12px;
 }
-
-/* throwaway sample */
-.demo-button {
-	font: inherit;
-	padding: 0.5rem 1rem;
-	border-radius: 8px;
-	border: 1px solid #d0d0d0;
-	background: #fff;
-	cursor: pointer;
-}
-
-.demo-button--primary {
-	background: #1b3fd1;
-	border-color: #1b3fd1;
-	color: #fff;
-}

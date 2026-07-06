@@ -1,0 +1,16 @@
+/* Co-located with the DemoButton so its styles travel to any view that renders it
+   (the iframe preview and the canvas), rather than living in a single view's CSS. */
+.demo-button {
+	font: inherit;
+	padding: 0.5rem 1rem;
+	border-radius: 8px;
+	border: 1px solid #d0d0d0;
+	background: #fff;
+	cursor: pointer;
+}
+
+.demo-button--primary {
+	background: #1b3fd1;
+	border-color: #1b3fd1;
+	color: #fff;
+}
