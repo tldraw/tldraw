@@ -6,19 +6,27 @@ import { trackEvent } from '../../utils/analytics'
 /**
  * Consider a Clerk account "newly created" if it was created within this window.
  * A returning sign-in has a `createdAt` from hours, days, or weeks ago, so it
- * never matches; the window only needs to comfortably span the post-sign-up
- * redirect back to the app and the legal-acceptance step before analytics mounts.
+ * never matches.
+ *
+ * The window must comfortably span the gap between the account being created and
+ * analytics mounting. tldraw.com has an in-app email flow (TlaSignInDialog) where
+ * the user requests a code, leaves to check their email, and returns to enter it,
+ * which can take several minutes. Clerk's verification codes expire after ~10
+ * minutes, which bounds how long a *completable* sign-up can take, so 30 minutes
+ * leaves comfortable margin above that ceiling while still excluding any returning
+ * login.
  */
-export const NEW_ACCOUNT_WINDOW_MS = 10 * 60 * 1000
+export const NEW_ACCOUNT_WINDOW_MS = 30 * 60 * 1000
 
 const SIGNUP_TRACKED_KEY_PREFIX = 'tldraw_signup_tracked_'
 
 /**
  * Whether `user` represents a genuine first-time sign-up rather than a returning
- * login, based on how recently the Clerk account was created. tldraw.com uses
- * Clerk's hosted sign-up flow, which completes on Clerk's pages and redirects
- * back, so there is no in-app sign-up callback to hook into — the freshly created
- * account's `createdAt` is the reliable client-side signal.
+ * login, based on how recently the Clerk account was created. Sign-up completes
+ * either via an OAuth redirect or the in-app email flow, both of which land the
+ * user in the signed-in app shortly after the account is created, so the freshly
+ * created account's `createdAt` is a reliable client-side signal. See
+ * {@link NEW_ACCOUNT_WINDOW_MS} for how the window accommodates the email flow.
  */
 export function isNewSignUp(user: { createdAt: Date | null }, now: number): boolean {
 	const createdAt = user.createdAt?.getTime()

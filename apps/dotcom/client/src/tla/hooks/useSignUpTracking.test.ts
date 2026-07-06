@@ -12,6 +12,13 @@ describe('isNewSignUp', () => {
 		expect(isNewSignUp({ createdAt: new Date(now - NEW_ACCOUNT_WINDOW_MS + 1) }, now)).toBe(true)
 	})
 
+	it('covers a multi-minute email verification delay', () => {
+		// The in-app email flow can leave several minutes between account creation
+		// and analytics mounting while the user fetches their code.
+		const fiveMinutesAgo = now - 5 * 60 * 1000
+		expect(isNewSignUp({ createdAt: new Date(fiveMinutesAgo) }, now)).toBe(true)
+	})
+
 	it('returns false once the account is older than the window (a returning login)', () => {
 		expect(isNewSignUp({ createdAt: new Date(now - NEW_ACCOUNT_WINDOW_MS - 1) }, now)).toBe(false)
 	})
