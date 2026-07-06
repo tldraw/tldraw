@@ -36,6 +36,7 @@ export type ArgType =
 	| { control: 'boolean' }
 	| { control: 'date' }
 	| { control: 'select'; options: string[] }
+	| { control: 'object' }
 
 /** A forced interaction state, so a story can pin hover/active/focus without input. */
 export type PseudoState = 'hover' | 'active' | 'focus-visible'

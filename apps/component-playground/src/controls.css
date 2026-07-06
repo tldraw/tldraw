@@ -48,3 +48,22 @@
 	background: var(--tl-color-panel, #fff);
 	color: var(--tl-color-text-1, #1d1d1d);
 }
+
+.controls__json {
+	flex: 1;
+	min-width: 0;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.78rem;
+	line-height: 1.5;
+	padding: 0.5rem 0.7rem;
+	border: 1px solid var(--tl-color-divider, #d0d0d0);
+	border-radius: 8px;
+	background: var(--tl-color-panel, #fff);
+	color: var(--tl-color-text-1, #1d1d1d);
+	resize: vertical;
+	tab-size: 2;
+}
+
+.controls__json--invalid {
+	border-color: #e5484d;
+}
