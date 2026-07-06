@@ -44,6 +44,7 @@ import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
@@ -175,6 +176,7 @@ const router = createRouter<Environment>()
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
 	.post('/app/mcp', sharedBoardScreenshotMcp)
+	.get('/app/thumbnail-snapshot', getThumbnailSnapshot)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)

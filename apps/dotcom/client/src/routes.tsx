@@ -1,4 +1,5 @@
 import { captureException } from '@sentry/react'
+import { THUMBNAIL_RENDER_PATH } from '@tldraw/dotcom-shared'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
@@ -146,6 +147,8 @@ export function createAppRouter({
 				</Route>
 			</Route>
 			<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
+			{/* Renders a board for Browser Run thumbnail capture from a signed render token */}
+			<Route path={THUMBNAIL_RENDER_PATH} lazy={() => import('./pages/thumbnail-render')} />
 			<Route path="*" lazy={() => import('./pages/not-found')} />
 		</Route>
 	)

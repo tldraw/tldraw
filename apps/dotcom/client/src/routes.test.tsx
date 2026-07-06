@@ -128,6 +128,10 @@ test('dev reset route exists only in development routing', () => {
 	)
 })
 
+test('the thumbnail render route is included in production routing', () => {
+	expect(spaRoutes.map((route) => route.reactRouterPattern)).toContain('/__thumbnail-render')
+})
+
 test('all React routes match', () => {
 	for (const route of spaRoutes) {
 		expect(route.reactRouterPattern).toMatch(new RegExp(route.vercelRouterPattern))

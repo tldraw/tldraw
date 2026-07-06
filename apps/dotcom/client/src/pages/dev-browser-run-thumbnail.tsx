@@ -1,34 +1,31 @@
-import { useEffect } from 'react'
-import {
-	Editor,
-	TLEditorSnapshot,
-	TLStoreSnapshot,
-	Tldraw,
-	defaultShapeUtils,
-	useEditor,
-} from 'tldraw'
+import { TLEditorSnapshot, TLStoreSnapshot, Tldraw, defaultShapeUtils } from 'tldraw'
 import 'tldraw/tldraw.css'
 import snapshotExampleSnapshot from '../../../../examples/src/examples/editor-api/snapshots/snapshot.json'
 import layerPanelSnapshot from '../../../../examples/src/examples/ui/layer-panel/snapshot.json'
-
-const DEFAULT_THUMBNAIL_WIDTH = 1200
-const DEFAULT_THUMBNAIL_HEIGHT = 630
-const MIN_THUMBNAIL_DIMENSION = 200
-const MAX_THUMBNAIL_DIMENSION = 1600
+import {
+	DEFAULT_THUMBNAIL_HEIGHT,
+	DEFAULT_THUMBNAIL_WIDTH,
+	ThumbnailReadySignal,
+	clampThumbnailDimension,
+	useThumbnailPageSize,
+} from './thumbnail-render'
 
 const fixtures = {
 	'snapshot-example': {
-		snapshot: snapshotExampleSnapshot as TLEditorSnapshot,
+		snapshot: snapshotExampleSnapshot as unknown as TLEditorSnapshot,
 		camera: { x: 310, y: 120, z: 0.55 },
 	},
 	'layer-panel': {
-		snapshot: layerPanelSnapshot as TLStoreSnapshot,
+		snapshot: layerPanelSnapshot as unknown as TLStoreSnapshot,
 		camera: { x: 340, y: 120, z: 0.82 },
 	},
 } as const
 
 type FixtureName = keyof typeof fixtures
 
+// Dev-only fixture variant of the production thumbnail render page. It renders allowlisted
+// example snapshots from plain query params so render behavior can be iterated on locally
+// without a sync worker, published file, or signed render token.
 export function Component() {
 	const params = new URLSearchParams(location.search)
 	const fixtureName = getFixtureName(params.get('fixture'))
@@ -37,34 +34,7 @@ export function Component() {
 	const height = getDimensionParam(params, 'height', DEFAULT_THUMBNAIL_HEIGHT)
 	const theme = params.get('theme') === 'dark' ? 'dark' : 'light'
 
-	useEffect(() => {
-		const previousBodyStyle = {
-			margin: document.body.style.margin,
-			overflow: document.body.style.overflow,
-			width: document.body.style.width,
-			height: document.body.style.height,
-		}
-		const previousHtmlStyle = {
-			width: document.documentElement.style.width,
-			height: document.documentElement.style.height,
-		}
-
-		document.body.style.margin = '0'
-		document.body.style.overflow = 'hidden'
-		document.body.style.width = `${width}px`
-		document.body.style.height = `${height}px`
-		document.documentElement.style.width = `${width}px`
-		document.documentElement.style.height = `${height}px`
-
-		return () => {
-			document.body.style.margin = previousBodyStyle.margin
-			document.body.style.overflow = previousBodyStyle.overflow
-			document.body.style.width = previousBodyStyle.width
-			document.body.style.height = previousBodyStyle.height
-			document.documentElement.style.width = previousHtmlStyle.width
-			document.documentElement.style.height = previousHtmlStyle.height
-		}
-	}, [height, width])
+	useThumbnailPageSize(width, height)
 
 	return (
 		<div
@@ -91,41 +61,11 @@ export function Component() {
 	)
 }
 
-function ThumbnailReadySignal() {
-	const editor = useEditor()
-
-	useEffect(() => {
-		const signalReady = () => {
-			;(window as any).__tldrawThumbnailReady = true
-			document.body.dataset.thumbnailReady = 'true'
-			document.documentElement.dataset.thumbnailReady = 'true'
-		}
-
-		// Fonts and image assets can finish after the editor mounts. Wait two frames after fonts settle
-		// so Browser Run's selector wait sees a stable canvas instead of the first paint.
-		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
-				if ('fonts' in document) {
-					document.fonts.ready.then(signalReady, signalReady)
-				} else {
-					signalReady()
-				}
-			})
-		})
-	}, [])
-
-	;(window as any).editor = editor
-	return null
-}
-
 function getFixtureName(value: string | null): FixtureName {
 	return value && value in fixtures ? (value as FixtureName) : 'snapshot-example'
 }
 
-function getCamera(
-	params: URLSearchParams,
-	fallback: ReturnType<Editor['getCamera']>
-): ReturnType<Editor['getCamera']> {
+function getCamera(params: URLSearchParams, fallback: { x: number; y: number; z: number }) {
 	const x = getNumberParam(params, 'x')
 	const y = getNumberParam(params, 'y')
 	const z = getNumberParam(params, 'z')
@@ -146,5 +86,5 @@ function getNumberParam(params: URLSearchParams, key: string) {
 function getDimensionParam(params: URLSearchParams, key: string, fallback: number) {
 	const number = getNumberParam(params, key)
 	if (number === null) return fallback
-	return Math.max(MIN_THUMBNAIL_DIMENSION, Math.min(MAX_THUMBNAIL_DIMENSION, Math.floor(number)))
+	return clampThumbnailDimension(number)
 }

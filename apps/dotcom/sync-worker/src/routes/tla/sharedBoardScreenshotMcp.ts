@@ -1,6 +1,13 @@
+import { THUMBNAIL_RENDER_PATH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
+import {
+	THUMBNAIL_RENDER_TOKEN_TTL_MS,
+	ThumbnailRenderJob,
+	mintThumbnailRenderToken,
+} from '../../utils/renderTokens'
+import { getPublishedFileInfo } from './getPublishedFile'
 
 const TOOL_NAME = 'get_shared_board_screenshot'
 const MCP_PROTOCOL_VERSION = '2024-11-05'
@@ -8,8 +15,15 @@ const DEFAULT_WIDTH = 1200
 const DEFAULT_HEIGHT = 630
 const MIN_DIMENSION = 200
 const MAX_DIMENSION = 1600
-const MCP_SCREENSHOT_RATE_LIMIT = 20
-const MCP_SCREENSHOT_RATE_LIMIT_WINDOW_MS = 60_000
+const BROWSER_RUN_TIMEOUT_MS = 60_000
+
+// Per-IP and per-board limits protect the endpoint and individual boards; the global limit caps
+// total Browser Run spend across all callers. The Cloudflare bindings in wrangler.toml enforce
+// these in deployments; the isolate-local fallback only covers local dev and tests.
+const PER_IP_RATE_LIMIT = 20
+const PER_BOARD_RATE_LIMIT = 20
+const GLOBAL_BROWSER_RUN_RATE_LIMIT = 60
+const RATE_LIMIT_WINDOW_MS = 60_000
 const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
 
 type JsonRpcId = string | number | null
@@ -36,10 +50,9 @@ export interface SharedBoardScreenshotInput {
 	theme: 'light' | 'dark'
 }
 
-interface ResolvedBoard {
+interface ResolvedBoardUrl {
 	kind: 'published'
 	slug: string
-	fixture: 'snapshot-example' | 'layer-panel'
 }
 
 interface BrowserRunResult {
@@ -73,10 +86,10 @@ export async function sharedBoardScreenshotMcp(
 				serverInfo: {
 					name: 'tldraw-shared-board-screenshot',
 					title: 'tldraw shared board screenshots',
-					version: '0.0.0',
+					version: '1.0.0',
 				},
 				instructions:
-					'Image-only MCP server for public tldraw.com shared board screenshots. The prototype currently renders published URLs through a fixed tldraw-owned Browser Run thumbnail target.',
+					'Image-only MCP server for public tldraw.com shared board screenshots. Accepts published tldraw.com/p/:slug URLs and renders them through a signed, tldraw-owned Browser Run render job.',
 			})
 		case 'ping':
 			return jsonRpcResult(rpcRequest.id, {})
@@ -121,7 +134,7 @@ export function parseSharedBoardScreenshotInput(input: unknown): SharedBoardScre
 	}
 }
 
-export function resolveSharedBoardUrl(urlString: string): ResolvedBoard {
+export function resolveSharedBoardUrl(urlString: string): ResolvedBoardUrl {
 	let url: URL
 	try {
 		url = new URL(urlString)
@@ -135,42 +148,27 @@ export function resolveSharedBoardUrl(urlString: string): ResolvedBoard {
 
 	const [prefix, slug, extra] = url.pathname.split('/').filter(Boolean)
 	if (!prefix || !slug || extra) {
-		throw new Error('Only published tldraw.com board URLs are supported in this prototype')
+		throw new Error('Only published tldraw.com board URLs are supported')
 	}
 
 	if (prefix === 'p') {
-		return {
-			kind: 'published',
-			slug,
-			fixture: slug.includes('layer') ? 'layer-panel' : 'snapshot-example',
-		}
+		return { kind: 'published', slug }
 	}
 
 	if (prefix === 'f' || prefix === 'invite') {
-		throw new Error(
-			'Private, invite-only, and shared-live file URLs require the production resolver'
-		)
+		throw new Error('Private, invite-only, and shared-live file URLs are not supported')
 	}
 
-	throw new Error('Only published tldraw.com board URLs are supported in this prototype')
+	throw new Error('Only published tldraw.com board URLs are supported')
 }
 
-export function buildBrowserRunThumbnailUrl(
-	renderOrigin: string,
-	board: ResolvedBoard,
-	input: SharedBoardScreenshotInput
-) {
-	const url = new URL('/dev/browser-run-thumbnail', renderOrigin)
-	url.searchParams.set('fixture', board.fixture)
-	url.searchParams.set('x', String(input.viewport.x))
-	url.searchParams.set('y', String(input.viewport.y))
-	url.searchParams.set('z', String(input.viewport.z))
-	url.searchParams.set('width', String(input.width))
-	url.searchParams.set('height', String(input.height))
-	url.searchParams.set('theme', input.theme)
-	url.searchParams.set('source', 'mcp')
-	url.searchParams.set('boardKind', board.kind)
-	url.searchParams.set('boardSlug', board.slug)
+export function getThumbnailCacheKey(job: Omit<ThumbnailRenderJob, 'v' | 'exp'>) {
+	return `mcp/${job.kind}/${job.slug}/${job.version}/${job.width}x${job.height}/${job.theme}/${job.x}_${job.y}_${job.z}.png`
+}
+
+export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
+	const url = new URL(THUMBNAIL_RENDER_PATH, renderOrigin)
+	url.searchParams.set('token', token)
 	return url.toString()
 }
 
@@ -182,10 +180,10 @@ async function callSharedBoardScreenshotTool(
 	const clientIp = getClientIp(request)
 	const ipHash = clientIp ? await sha256(clientIp) : 'unknown'
 	let input: SharedBoardScreenshotInput
-	let board: ResolvedBoard
+	let boardUrl: ResolvedBoardUrl
 	try {
 		input = parseSharedBoardScreenshotInput(argumentsValue)
-		board = resolveSharedBoardUrl(input.url)
+		boardUrl = resolveSharedBoardUrl(input.url)
 	} catch (error) {
 		const failureReason = error instanceof Error ? error.message : String(error)
 		writeMcpScreenshotTelemetry(env, {
@@ -197,75 +195,133 @@ async function callSharedBoardScreenshotTool(
 			rateLimitAllowed: true,
 			failureReason,
 		})
-		return {
-			content: [{ type: 'text', text: failureReason }],
-			isError: true,
-		}
+		return toolError(failureReason)
 	}
 
-	const boardHash = await sha256(board.slug)
-	const rateLimit = await checkMcpScreenshotRateLimit(env, clientIp ?? 'unknown')
+	const boardHash = await sha256(boardUrl.slug)
+	const telemetry = (data: {
+		cacheStatus: 'hit' | 'miss'
+		browserRunDurationMs?: number
+		browserMsUsed?: number | null
+		failureReason?: string
+		rateLimitAllowed?: boolean
+	}) => {
+		writeMcpScreenshotTelemetry(env, {
+			boardHash,
+			ipHash,
+			width: input.width,
+			height: input.height,
+			rateLimitAllowed: true,
+			...data,
+		})
+	}
 
-	writeMcpScreenshotTelemetry(env, {
-		boardHash,
-		ipHash,
-		cacheStatus: 'miss',
-		width: input.width,
-		height: input.height,
-		rateLimitAllowed: rateLimit.allowed,
-		failureReason: rateLimit.allowed ? undefined : 'rate_limited',
-	})
-
-	if (!rateLimit.allowed) {
-		return {
-			content: [
-				{
-					type: 'text',
-					text: 'Rate limited. Shared board screenshots are limited to about 20 requests per minute per IP.',
-				},
-			],
-			isError: true,
-		}
+	if (
+		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip:${clientIp ?? 'unknown'}`, {
+			fallbackLimit: PER_IP_RATE_LIMIT,
+		})
+	) {
+		telemetry({ cacheStatus: 'miss', rateLimitAllowed: false, failureReason: 'rate_limited_ip' })
+		return toolError(
+			`Rate limited. Shared board screenshots are limited to about ${PER_IP_RATE_LIMIT} requests per minute per IP.`
+		)
 	}
 
 	try {
-		const renderUrl = buildBrowserRunThumbnailUrl(getRenderOrigin(env), board, input)
-		const browserRun = await captureWithBrowserRun(renderUrl, input, env)
-		writeMcpScreenshotTelemetry(env, {
-			boardHash,
-			ipHash,
-			cacheStatus: 'miss',
+		const file = await getPublishedFileInfo(env, boardUrl.slug)
+		if (!file || !file.published) {
+			telemetry({ cacheStatus: 'miss', failureReason: 'not_published' })
+			return toolError(
+				'No published board was found at this URL. Only published tldraw.com/p/ boards are supported.'
+			)
+		}
+
+		const job: ThumbnailRenderJob = {
+			v: 1,
+			kind: boardUrl.kind,
+			slug: boardUrl.slug,
+			fileId: file.id,
+			version: file.lastPublished,
+			x: input.viewport.x,
+			y: input.viewport.y,
+			z: input.viewport.z,
 			width: input.width,
 			height: input.height,
-			browserRunDurationMs: browserRun.durationMs,
-			browserMsUsed: browserRun.browserMsUsed,
-			rateLimitAllowed: true,
+			theme: input.theme,
+			exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
+		}
+
+		const cacheKey = getThumbnailCacheKey(job)
+		const cached = await env.THUMBNAILS?.get(cacheKey)
+		if (cached) {
+			const png = await cached.arrayBuffer()
+			telemetry({ cacheStatus: 'hit' })
+			return toolImage(png)
+		}
+
+		// Only cache misses spend Browser Run capacity, so the per-board and global guards sit here
+		// rather than at the top of the tool call.
+		if (
+			await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `board:${boardUrl.slug}`, {
+				fallbackLimit: PER_BOARD_RATE_LIMIT,
+			})
+		) {
+			telemetry({
+				cacheStatus: 'miss',
+				rateLimitAllowed: false,
+				failureReason: 'rate_limited_board',
+			})
+			return toolError('Rate limited. This board is being screenshotted too frequently.')
+		}
+		if (
+			await isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, 'global', {
+				fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
+			})
+		) {
+			telemetry({
+				cacheStatus: 'miss',
+				rateLimitAllowed: false,
+				failureReason: 'rate_limited_global',
+			})
+			return toolError('Rate limited. Screenshot capacity is busy, try again in a minute.')
+		}
+
+		const token = await mintThumbnailRenderToken(env, job)
+		const renderUrl = buildThumbnailRenderUrl(getRenderOrigin(env), token)
+		const browserRun = await captureWithBrowserRun(renderUrl, input, env)
+		await env.THUMBNAILS?.put(cacheKey, browserRun.png, {
+			httpMetadata: { contentType: 'image/png' },
 		})
 
-		return {
-			content: [
-				{
-					type: 'image',
-					data: arrayBufferToBase64(browserRun.png),
-					mimeType: 'image/png',
-				},
-			],
-		}
+		telemetry({
+			cacheStatus: 'miss',
+			browserRunDurationMs: browserRun.durationMs,
+			browserMsUsed: browserRun.browserMsUsed,
+		})
+		return toolImage(browserRun.png)
 	} catch (error) {
 		const failureReason = error instanceof Error ? error.message : String(error)
-		writeMcpScreenshotTelemetry(env, {
-			boardHash,
-			ipHash,
-			cacheStatus: 'miss',
-			width: input.width,
-			height: input.height,
-			rateLimitAllowed: true,
-			failureReason,
-		})
-		return {
-			content: [{ type: 'text', text: `Screenshot failed: ${failureReason}` }],
-			isError: true,
-		}
+		telemetry({ cacheStatus: 'miss', failureReason })
+		return toolError(`Screenshot failed: ${failureReason}`)
+	}
+}
+
+function toolError(message: string) {
+	return {
+		content: [{ type: 'text', text: message }],
+		isError: true,
+	}
+}
+
+function toolImage(png: ArrayBuffer) {
+	return {
+		content: [
+			{
+				type: 'image',
+				data: arrayBufferToBase64(png),
+				mimeType: 'image/png',
+			},
+		],
 	}
 }
 
@@ -275,10 +331,10 @@ async function captureWithBrowserRun(
 	env: Environment
 ): Promise<BrowserRunResult> {
 	const accountId = env.CLOUDFLARE_ACCOUNT_ID
-	const apiToken = env.CLOUDFLARE_API_TOKEN
+	const apiToken = env.BROWSER_RENDERING_API_TOKEN
 	if (!accountId || !apiToken) {
 		throw new Error(
-			'Browser Run is not configured. Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN.'
+			'Browser Run is not configured. Set CLOUDFLARE_ACCOUNT_ID and BROWSER_RENDERING_API_TOKEN.'
 		)
 	}
 
@@ -292,6 +348,7 @@ async function captureWithBrowserRun(
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify(getBrowserRunRequestBody(renderUrl, input)),
+			signal: AbortSignal.timeout(BROWSER_RUN_TIMEOUT_MS),
 		}
 	)
 	const durationMs = Date.now() - startedAt
@@ -338,24 +395,30 @@ function getBrowserRunRequestBody(renderUrl: string, input: SharedBoardScreensho
 	}
 }
 
-async function checkMcpScreenshotRateLimit(env: Environment, key: string) {
+async function isRateLimited(
+	limiter: RateLimit | undefined,
+	key: string,
+	{ fallbackLimit }: { fallbackLimit: number }
+): Promise<boolean> {
 	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
-	if (env.MCP_SCREENSHOT_RATE_LIMITER) {
-		const { success } = await env.MCP_SCREENSHOT_RATE_LIMITER.limit({ key: rateLimitKey })
-		return { allowed: success }
+	if (limiter) {
+		const { success } = await limiter.limit({ key: rateLimitKey })
+		return !success
 	}
 
+	// Isolate-local fallback for local dev and tests; deployments configure the Cloudflare rate
+	// limit bindings in wrangler.toml.
 	const now = Date.now()
 	const existing = RATE_LIMIT_FALLBACK.get(rateLimitKey)
 	if (!existing || existing.resetAt <= now) {
 		RATE_LIMIT_FALLBACK.set(rateLimitKey, {
 			count: 1,
-			resetAt: now + MCP_SCREENSHOT_RATE_LIMIT_WINDOW_MS,
+			resetAt: now + RATE_LIMIT_WINDOW_MS,
 		})
-		return { allowed: true }
+		return false
 	}
 	existing.count++
-	return { allowed: existing.count <= MCP_SCREENSHOT_RATE_LIMIT }
+	return existing.count > fallbackLimit
 }
 
 function getSharedBoardScreenshotToolDefinition() {
@@ -363,7 +426,7 @@ function getSharedBoardScreenshotToolDefinition() {
 		name: TOOL_NAME,
 		title: 'Get shared tldraw board screenshot',
 		description:
-			'Return a PNG screenshot of a public tldraw.com board. This prototype accepts published /p/:slug URLs and renders through a fixed tldraw-owned Browser Run thumbnail target.',
+			'Return a PNG screenshot of a public tldraw.com board. Accepts published /p/:slug URLs and renders through a signed tldraw-owned Browser Run render job.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -385,12 +448,12 @@ function getSharedBoardScreenshotToolDefinition() {
 				},
 				width: {
 					type: 'number',
-					description: 'Output width. Defaults to 1200 and is clamped to the prototype bounds.',
+					description: `Output width. Defaults to ${DEFAULT_WIDTH} and is clamped to ${MIN_DIMENSION}-${MAX_DIMENSION}.`,
 					default: DEFAULT_WIDTH,
 				},
 				height: {
 					type: 'number',
-					description: 'Output height. Defaults to 630 and is clamped to the prototype bounds.',
+					description: `Output height. Defaults to ${DEFAULT_HEIGHT} and is clamped to ${MIN_DIMENSION}-${MAX_DIMENSION}.`,
 					default: DEFAULT_HEIGHT,
 				},
 				theme: {
@@ -430,12 +493,11 @@ function isAllowedTldrawHost(hostname: string) {
 }
 
 function getRenderOrigin(env: Environment) {
-	// The render page lives at /dev/browser-run-thumbnail and is only served when dev routes are
-	// enabled, so this prototype must be pointed at a dev or preview origin explicitly. There is no
-	// safe production default: a live origin would have Browser Run screenshot a route that 404s.
+	// Staging and production set this in wrangler.toml to their own client origin. Local dev sets it
+	// to the local client; previews configure it explicitly when they need to exercise this path.
 	if (!env.MCP_SCREENSHOT_RENDER_ORIGIN) {
 		throw new Error(
-			'MCP_SCREENSHOT_RENDER_ORIGIN is not configured. This prototype needs an origin that serves the dev-only /dev/browser-run-thumbnail render page.'
+			`MCP_SCREENSHOT_RENDER_ORIGIN is not configured. It must point at an origin that serves the ${THUMBNAIL_RENDER_PATH} render page.`
 		)
 	}
 	return env.MCP_SCREENSHOT_RENDER_ORIGIN

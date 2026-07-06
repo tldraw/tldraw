@@ -51,7 +51,7 @@ function parseArgs(args: string[]): Options {
 		fixture: 'snapshot-example',
 		height: HEIGHT,
 		mode: 'auto',
-		output: 'tmp/browser-run-thumbnail-spike/thumbnail.png',
+		output: 'tmp/browser-run-thumbnail/thumbnail.png',
 		theme: 'light',
 		width: WIDTH,
 	}
@@ -259,13 +259,13 @@ function requireNumber(arg: string, value: string | undefined) {
 
 function printHelp() {
 	writeLine(`Usage:
-  yarn workspace dotcom browser-run-thumbnail-spike [options]
+  yarn workspace dotcom browser-run-thumbnail [options]
 
 Options:
   --base-url <url>      Origin running the dotcom client. Default: http://127.0.0.1:3000
   --fixture <name>      snapshot-example | layer-panel. Default: snapshot-example
   --mode <mode>         auto | browser-run | local. Default: auto
-  --output <path>       PNG output path. Default: tmp/browser-run-thumbnail-spike/thumbnail.png
+  --output <path>       PNG output path. Default: tmp/browser-run-thumbnail/thumbnail.png
   --theme <theme>       light | dark. Default: light
   --width <number>      Output width, 200-1600. Default: 1200
   --height <number>     Output height, 200-1600. Default: 630
@@ -273,8 +273,8 @@ Options:
   --y <number>          Camera y override
   --z <number>          Camera zoom override
 
-The Browser Run path constructs a fixed /dev/browser-run-thumbnail URL and does not accept
-arbitrary screenshot URLs.`)
+Captures the dev-only /dev/browser-run-thumbnail fixture page for local iteration on render
+behavior. It does not accept arbitrary screenshot URLs.`)
 }
 
 function writeLine(message: string) {

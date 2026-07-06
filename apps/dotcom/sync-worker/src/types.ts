@@ -78,15 +78,30 @@ export interface Environment {
 	PIERRE_KEY: string | undefined
 
 	RATE_LIMITER: RateLimit
-	// Optional production binding for the Browser Run-backed MCP screenshot tool. Configure this
-	// at roughly 20 requests/minute per IP; the prototype falls back to an isolate-local guard.
+	// Rate limit bindings for the Browser Run-backed MCP screenshot tool, declared in
+	// wrangler.toml. MCP_SCREENSHOT_RATE_LIMITER guards per-IP and per-board request rates;
+	// MCP_SCREENSHOT_BROWSER_RATE_LIMITER caps total Browser Run invocations across all callers.
+	// The route falls back to an isolate-local guard when the bindings are absent (local dev,
+	// tests).
 	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
+	MCP_SCREENSHOT_BROWSER_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
+	// R2 cache for generated thumbnails, keyed on board identity, published version, viewport,
+	// dimensions, and theme. Optional so tests and unconfigured environments degrade to
+	// cacheless rendering.
+	THUMBNAILS: R2Bucket | undefined
+
+	// Cloudflare account for Browser Run screenshot capture. The API token only needs the
+	// Browser Rendering - Edit permission; do not reuse the deploy token here.
 	CLOUDFLARE_ACCOUNT_ID: string | undefined
-	CLOUDFLARE_API_TOKEN: string | undefined
+	BROWSER_RENDERING_API_TOKEN: string | undefined
+	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
+	// environment in wrangler.toml.
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
+	// HMAC secret for short-lived thumbnail render job tokens.
+	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 }
 
 export function isDebugLogging(env: Environment) {

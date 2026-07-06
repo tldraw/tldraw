@@ -30,3 +30,11 @@ export const RoomOpenModeToPath: Record<RoomOpenMode, string> = {
 
 /** @public */
 export const APP_ASSET_UPLOAD_ENDPOINT = '/api/app/uploads/'
+
+/**
+ * The client route that renders a board for Browser Run thumbnail capture. The sync worker builds
+ * this URL with a signed render token; the page exchanges the token for snapshot data.
+ *
+ * @public
+ */
+export const THUMBNAIL_RENDER_PATH = '/__thumbnail-render'

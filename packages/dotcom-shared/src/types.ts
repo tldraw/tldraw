@@ -115,6 +115,27 @@ export type AcceptInviteResponseBody =
 			message: string
 	  }
 
+export interface ThumbnailRenderParams {
+	x: number
+	y: number
+	z: number
+	width: number
+	height: number
+	theme: 'light' | 'dark'
+}
+
+export type ThumbnailSnapshotResponseBody =
+	| {
+			error: false
+			records: TLRecord[]
+			schema: SerializedSchema
+			renderParams: ThumbnailRenderParams
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
 export interface ZStoreData {
 	file: TlaFile[]
 	file_state: TlaFileState[]

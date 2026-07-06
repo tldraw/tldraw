@@ -12,7 +12,7 @@ ip = "0.0.0.0"
 # IMPORTANT: when adding a new migration here, also add it to the [[env.preview.migrations]] block below
 # env-level migrations fully replace the top-level list, so preview won't inherit new entries.
 [[migrations]]
-tag = "v1"                            # Should be unique for each entry
+tag = "v1" # Should be unique for each entry
 new_classes = ["TLDrawDurableObject"]
 
 [[migrations]]
@@ -101,28 +101,33 @@ BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/p
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
 TLDRAW_ENV = "development"
 MULTIPLAYER_SERVER = "http://localhost:3000"
+MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
+# local-only signing secret; deployments get a real one via deploy vars
+MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
 
 # staging is the same as a preview on main:
 [env.staging]
 name = "main-tldraw-multiplayer"
-workers_dev = true               # todo: remove this once clients are updated
+workers_dev = true # todo: remove this once clients are updated
 
 [env.staging.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
+MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
 
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
-workers_dev = true          # todo: remove this once clients are updated
+workers_dev = true # todo: remove this once clients are updated
 
 [env.production.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
+MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
 
 #################### Routing ####################
 # no custom routes for previews and development
@@ -308,6 +313,28 @@ bucket_name = 'user-do-snapshots-staging'
 binding = "USER_DO_SNAPSHOTS"
 bucket_name = "user-do-snapshots"
 
+#################### Thumbnails R2 bucket ####################
+# cache for Browser Run-generated board thumbnails (MCP screenshots)
+# in dev, we write to the preview bucket and need a `preview_bucket_name`
+[[env.dev.r2_buckets]]
+binding = "THUMBNAILS"
+bucket_name = "thumbnails-preview"
+preview_bucket_name = "thumbnails-preview"
+
+# in preview and staging we write to the preview bucket
+[[env.preview.r2_buckets]]
+binding = "THUMBNAILS"
+bucket_name = "thumbnails-preview"
+
+[[env.staging.r2_buckets]]
+binding = "THUMBNAILS"
+bucket_name = "thumbnails-preview"
+
+# in production, we write to the main bucket
+[[env.production.r2_buckets]]
+binding = "THUMBNAILS"
+bucket_name = "thumbnails"
+
 #################### Room snapshots parent slug KV store ####################
 [[env.dev.kv_namespaces]]
 binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"
@@ -417,6 +444,56 @@ name = "RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1004"
 simple = { limit = 600, period = 60 }
+
+# MCP screenshot per-IP and per-board request guard
+[[env.dev.unsafe.bindings]]
+name = "MCP_SCREENSHOT_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1005"
+simple = { limit = 20, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SCREENSHOT_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1006"
+simple = { limit = 20, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SCREENSHOT_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1007"
+simple = { limit = 20, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SCREENSHOT_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1008"
+simple = { limit = 20, period = 60 }
+
+# global cap on Browser Run invocations from MCP screenshots (keyed on a single shared key)
+[[env.dev.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1009"
+simple = { limit = 60, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1010"
+simple = { limit = 60, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1011"
+simple = { limit = 60, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1012"
+simple = { limit = 60, period = 60 }
 
 #################### Queues ####################
 [[env.dev.queues.producers]]
