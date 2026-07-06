@@ -1,4 +1,4 @@
-import { BaseRecord, RecordId } from '@tldraw/store'
+import { BaseRecord, RecordId, createRecordMigrationSequence } from '@tldraw/store'
 import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
@@ -119,6 +119,27 @@ const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
 })
 
 /**
+ * Guard migrations for the comment record types. Each sequence is retroactive and starts with an
+ * identity migration that has no `down`: a sync server whose schema registers the comment types
+ * cannot down-migrate records for a session whose schema predates them, so such sessions are
+ * rejected with CLIENT_TOO_OLD (prompting a refresh) instead of being sent record types their
+ * store cannot represent.
+ */
+function createCommentGuardMigrations(typeName: 'comment' | 'comment-thread') {
+	return createRecordMigrationSequence({
+		sequenceId: `com.tldraw.${typeName}`,
+		recordType: typeName,
+		retroactive: true,
+		sequence: [
+			{
+				id: `com.tldraw.${typeName}/1`,
+				up: (record) => record,
+			},
+		],
+	})
+}
+
+/**
  * Config for registering the `comment-thread` record type in a tldraw schema. Pass via
  * `commentSchemaRecords`; see `TLCommentThread`.
  *
@@ -126,6 +147,7 @@ const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
  */
 export const commentThreadRecordConfig: CustomRecordInfo = {
 	scope: 'document',
+	migrations: createCommentGuardMigrations('comment-thread'),
 	validator: T.object({
 		id: idValidator<TLCommentThreadId>('comment-thread'),
 		typeName: T.literal('comment-thread'),
@@ -146,6 +168,7 @@ export const commentThreadRecordConfig: CustomRecordInfo = {
  */
 export const commentRecordConfig: CustomRecordInfo = {
 	scope: 'document',
+	migrations: createCommentGuardMigrations('comment'),
 	validator: T.object({
 		id: idValidator<TLCommentId>('comment'),
 		typeName: T.literal('comment'),

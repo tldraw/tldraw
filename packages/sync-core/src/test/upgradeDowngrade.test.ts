@@ -2,6 +2,7 @@ import { computed } from '@tldraw/state'
 import {
 	BaseRecord,
 	RecordId,
+	SerializedSchema,
 	Store,
 	StoreSchema,
 	UnknownRecord,
@@ -10,6 +11,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
+import { commentSchemaRecords, createTLSchema } from '@tldraw/tlschema'
 import { vi, type Mock } from 'vitest'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import { TLSocketServerSentEvent, getTlsyncProtocolVersion } from '../lib/protocol'
@@ -217,6 +219,47 @@ class TestInstance {
 		}
 	}
 }
+
+describe('record types unknown to older clients', () => {
+	// Mirrors a deploy that adds the comment record types: stale tabs still run a schema
+	// without them, while the server registers them and serves rooms that may contain them. The
+	// comment types ship guard migrations (retroactive, no `down`), so the server must reject
+	// stale sessions with CLIENT_TOO_OLD (prompting a refresh) rather than sending them record
+	// types their store cannot represent.
+	const schemaWithComments = createTLSchema({ records: commentSchemaRecords })
+	const schemaWithoutComments = createTLSchema()
+
+	function connectWith(server: TestServer<any>, schema: SerializedSchema) {
+		const id = 'stale-tab'
+		const socket = mockSocket()
+		server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+		server.room.handleMessage(id, {
+			type: 'connect',
+			connectRequestId: 'test',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema,
+		})
+		return socket
+	}
+
+	it('[HS3] rejects sessions whose schema predates the comment types', () => {
+		const server = new TestServer(schemaWithComments as any, undefined, {
+			objectTypes: ['comment', 'comment-thread'],
+		})
+		const socket = connectWith(server, schemaWithoutComments.serialize())
+		expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+	})
+
+	it('[HS3] accepts sessions whose schema registers the comment types', () => {
+		const server = new TestServer(schemaWithComments as any, undefined, {
+			objectTypes: ['comment', 'comment-thread'],
+		})
+		const socket = connectWith(server, schemaWithComments.serialize())
+		expect(socket.close).not.toHaveBeenCalled()
+		expect((socket.sendMessage as Mock).mock.calls[0][0]).toMatchObject({ type: 'connect' })
+	})
+})
 
 it('[MG2] the server can handle receiving v1 stuff from the client', () => {
 	const t = new TestInstance()
