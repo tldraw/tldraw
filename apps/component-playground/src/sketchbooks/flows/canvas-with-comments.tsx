@@ -1,4 +1,5 @@
 import { Tldraw } from 'tldraw'
+import { commentToolComponents, commentToolOverrides, commentTools } from '../../comment-tool'
 import { CommentPin } from '../comments/comment-pin'
 import { CommentsSidebar } from '../comments/comments-sidebar'
 import './canvas-with-comments.css'
@@ -13,7 +14,11 @@ export function CanvasWithComments() {
 		<div className="scene">
 			<div className="scene__main">
 				<div className="scene__canvas">
-					<Tldraw />
+					<Tldraw
+						tools={commentTools}
+						overrides={commentToolOverrides}
+						components={commentToolComponents}
+					/>
 					<div className="scene__pins">
 						<div className="scene__pin" style={{ top: '24%', left: '30%' }}>
 							<CommentPin number={1} resolved={false} />
