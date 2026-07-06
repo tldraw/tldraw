@@ -219,6 +219,12 @@ export class TLFileDurableObject extends DurableObject {
 					schema: fileSyncSchema,
 					objectTypes: OBJECT_TYPES,
 					clientTimeout: Infinity,
+					log: {
+						warn: (...args) => this.log.debug('sync warn', ...args),
+						error: (...args) => {
+							this.reportError(args.find((a) => a instanceof Error) ?? new Error(args.join(' ')))
+						},
+					},
 					onSessionSnapshot: (sessionId, snapshot) => {
 						const ws = this.sessionIdToWs.get(sessionId)
 						if (!ws) return

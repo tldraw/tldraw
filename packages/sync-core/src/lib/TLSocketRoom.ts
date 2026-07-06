@@ -127,10 +127,13 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	/** @internal */
 	onPresenceChange?(): void
 	/**
-	 * Called once after a client push commits, with the committed document diff (fires for local
-	 * and remote pushes). Use to react to document changes as soon as they commit — e.g. persist
-	 * certain record types to a separate lane, or project them to an external store. Best-effort:
-	 * do not throw and do not block.
+	 * Called once after a client push commits, with the committed document diff. Use to react to
+	 * document changes as soon as they commit — e.g. project certain record types to an external
+	 * store. Best-effort: do not throw and do not block.
+	 *
+	 * Only fires for client pushes. Server-initiated changes — `updateStore`, `loadSnapshot`, or
+	 * writing to the storage directly — do not trigger it, so anything mirroring room state through
+	 * this callback must handle those paths itself.
 	 */
 	// eslint-disable-next-line tldraw/method-signature-style
 	onCommittedChanges?: (args: { diff: TLSyncForwardDiff<R>; documentClock: number }) => void
