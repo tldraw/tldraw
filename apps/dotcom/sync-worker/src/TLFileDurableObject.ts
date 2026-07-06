@@ -547,9 +547,21 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			await this.r2.rooms.put(roomKey, dataText)
+
+			// Version snapshots only contain the drawing data, so we have to restore both the
+			// document and the current comments — loadSnapshotIntoStorage deletes anything not
+			// present in the snapshot, and deleting comments here would leave their projected
+			// Postgres rows behind (storage transactions don't fire onCommittedChanges).
+			const snapshot = JSON.parse(dataText) as RoomSnapshot
+			const comments = await this.r2.rooms.get(`${roomKey}/comments`)
+			if (comments) {
+				const commentDocs = (await comments.json()) as RoomSnapshot['documents']
+				snapshot.documents = [...snapshot.documents, ...commentDocs]
+			}
+
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {
-				loadSnapshotIntoStorage(txn, fileSyncSchema, JSON.parse(dataText))
+				loadSnapshotIntoStorage(txn, fileSyncSchema, snapshot)
 			})
 
 			this.maybeAssociateFileAssets()
