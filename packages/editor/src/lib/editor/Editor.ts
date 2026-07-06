@@ -5800,7 +5800,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the hit-test margin in page space—the distance in page units within which a pointer is
 	 * considered to be touching a shape. This resolves to {@link TldrawOptions.hitTestMargin} (or
 	 * {@link TldrawOptions.coarseHitTestMargin} when using a coarse pointer) divided by the current
-	 * (efficient) zoom level, so it stays a constant distance in screen space.
+	 * zoom level, so it stays a constant distance in screen space.
 	 *
 	 * @returns The hit-test margin in page space.
 	 *
@@ -5809,7 +5809,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getHitTestMargin(): number {
 		const { hitTestMargin, coarseHitTestMargin } = this.options
 		const margin = this.getInstanceState().isCoarsePointer ? coarseHitTestMargin : hitTestMargin
-		return margin / this.getEfficientZoomLevel()
+		return margin / this.getZoomLevel()
 	}
 
 	/**
