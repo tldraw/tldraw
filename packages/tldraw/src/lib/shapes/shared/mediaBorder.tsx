@@ -1,5 +1,5 @@
 import { SafeId, SvgExportContext, TLDefaultBorderStyle } from '@tldraw/editor'
-import { CSSProperties, ReactElement } from 'react'
+import { CSSProperties, Fragment, ReactElement } from 'react'
 import { getRotatedBoxShadow, ROTATING_BOX_SHADOWS } from './rotated-box-shadow'
 
 // An outset ring rather than an inset shadow/border, which the media would
@@ -82,13 +82,15 @@ export function getMediaBorderSvg(opts: MediaBorderSvgOptions): {
 				>
 					{ROTATING_BOX_SHADOWS.map((s, i) => {
 						const { color, opacity } = parseHexColor(s.color)
+						// Fragment, not `g`: `filter` only accepts filter primitives as
+						// direct children, so a `g` wrapper would drop the shadow.
 						return (
-							<g key={i}>
+							<Fragment key={i}>
 								<feGaussianBlur in="SourceAlpha" stdDeviation={s.blur / 2} result={`blur${i}`} />
 								<feOffset in={`blur${i}`} dx={s.offsetX} dy={s.offsetY} result={`off${i}`} />
 								<feFlood floodColor={color} floodOpacity={opacity} result={`color${i}`} />
 								<feComposite in={`color${i}`} in2={`off${i}`} operator="in" result={`shadow${i}`} />
-							</g>
+							</Fragment>
 						)
 					})}
 					<feMerge>

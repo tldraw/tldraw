@@ -1,5 +1,5 @@
 import { SvgExportContext } from '@tldraw/editor'
-import { ReactElement } from 'react'
+import { Fragment, ReactElement } from 'react'
 import { vi } from 'vitest'
 import { getMediaBorderSvg } from './mediaBorder'
 
@@ -76,6 +76,34 @@ describe('getMediaBorderSvg', () => {
 			})
 			const filter = addExportDef.mock.calls[0][0].getElement() as ReactElement
 			expect(filter.type).toBe('filter')
+		})
+
+		it('keeps filter primitives as direct children (never wrapped in a `g`)', () => {
+			const { ctx, addExportDef } = makeCtx()
+			getMediaBorderSvg({
+				border: 'shadow',
+				w: 100,
+				h: 80,
+				isCircle: false,
+				idBase: 'shape:abc',
+				ctx,
+			})
+			const filter = addExportDef.mock.calls[0][0].getElement() as ReactElement
+
+			// Flatten fragments to see the primitives `filter` actually treats as
+			// direct children (a `g` wrapper would be ignored).
+			const types: string[] = []
+			const visit = (node: any) => {
+				if (node == null || typeof node !== 'object') return
+				if (Array.isArray(node)) return node.forEach(visit)
+				if (node.type === Fragment) return visit(node.props.children)
+				if (typeof node.type === 'string') types.push(node.type)
+			}
+			visit(props(filter).children)
+
+			expect(types).not.toContain('g')
+			expect(types).toContain('feGaussianBlur')
+			expect(types).toContain('feMerge')
 		})
 	})
 
