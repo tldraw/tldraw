@@ -1,8 +1,16 @@
 import { ReactNode, useLayoutEffect, useRef, useState } from 'react'
-import { HTMLContainer, Rectangle2d, ShapeUtil, T, TLBaseShape } from 'tldraw'
+import { HTMLContainer, Rectangle2d, ShapeUtil, T, TLShape } from 'tldraw'
 import { sketchesById } from './registry'
 import { renderSketch } from './render-sketch'
 import './sketch-shape.css'
+
+// Register the custom shape's props so `'sketch'` is a known shape type (this is what
+// makes createShape/updateShape/`shape.type === 'sketch'` typecheck).
+declare module 'tldraw' {
+	export interface TLGlobalShapePropsMap {
+		sketch: { w: number; h: number; sketchId: string; args: Record<string, unknown> }
+	}
+}
 
 const LABEL_H = 30
 const PREVIEW_PAD = 12
@@ -49,10 +57,7 @@ function ScaledPreview({
 }
 
 /** A canvas shape that renders one sketch instance by id, with its own editable args. */
-export type SketchShape = TLBaseShape<
-	'sketch',
-	{ w: number; h: number; sketchId: string; args: Record<string, unknown> }
->
+export type SketchShape = TLShape<'sketch'>
 
 export class SketchShapeUtil extends ShapeUtil<SketchShape> {
 	static override type = 'sketch' as const
