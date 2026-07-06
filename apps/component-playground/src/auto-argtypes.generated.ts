@@ -104,6 +104,16 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			control: 'text',
 		},
 	},
+	'sketchbooks/flows/canvas-with-comments.sketchbook.tsx': {
+		empty: {
+			control: 'boolean',
+		},
+	},
+	'sketchbooks/flows/canvas-without-comments.sketchbook.tsx': {
+		empty: {
+			control: 'boolean',
+		},
+	},
 	'sketchbooks/tldraw-button.sketchbook.tsx': {
 		action: {
 			control: 'text',
