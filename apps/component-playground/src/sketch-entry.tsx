@@ -2,7 +2,7 @@ import 'tldraw/tldraw.css'
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Env, SET_STATE } from './channel'
-import { IsolatedHarness } from './harness'
+import { EditorHarness, IsolatedHarness } from './harness'
 import { LoadedSketch, sketchesById } from './registry'
 
 const DEFAULT_ENV: Env = { theme: 'light', locale: 'en' }
@@ -41,7 +41,12 @@ function Preview() {
 	}, [id])
 
 	if (!loaded) return <p className="preview__missing">Unknown sketch: {id ?? '(none)'}</p>
-	return <IsolatedHarness env={env}>{render(loaded, args)}</IsolatedHarness>
+
+	const content = render(loaded, args)
+	if ((loaded.sketchbook.harness ?? 'isolated') === 'editor') {
+		return <EditorHarness env={env}>{content}</EditorHarness>
+	}
+	return <IsolatedHarness env={env}>{content}</IsolatedHarness>
 }
 
 const root = document.getElementById('root')

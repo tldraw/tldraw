@@ -1,5 +1,5 @@
-import { ReactNode } from 'react'
-import { TldrawUiContextProvider, TldrawUiTranslationProvider } from 'tldraw'
+import { ReactNode, useEffect, useState } from 'react'
+import { Editor, Tldraw, TldrawUiContextProvider, TldrawUiTranslationProvider } from 'tldraw'
 import { Env } from './channel'
 
 /**
@@ -22,6 +22,30 @@ export function IsolatedHarness({ env, children }: { env: Env; children: ReactNo
 			<TldrawUiContextProvider>
 				<TldrawUiTranslationProvider locale={env.locale}>{children}</TldrawUiTranslationProvider>
 			</TldrawUiContextProvider>
+		</div>
+	)
+}
+
+/**
+ * Wraps a sketch in a live `<Tldraw hideUi>` editor, for canvas-bound components
+ * (comment pins, overlays) that need `useEditor`. The editor supplies its own theme
+ * and i18n context, so the globals are applied through user preferences rather than
+ * CSS classes — `<Tldraw>` drives the container's theme classes off editor state.
+ */
+export function EditorHarness({ env, children }: { env: Env; children: ReactNode }) {
+	const [editor, setEditor] = useState<Editor | null>(null)
+
+	useEffect(() => {
+		if (editor) {
+			editor.user.updateUserPreferences({ colorScheme: env.theme, locale: env.locale })
+		}
+	}, [editor, env.theme, env.locale])
+
+	return (
+		<div className="editor-harness">
+			<Tldraw hideUi onMount={setEditor}>
+				{children}
+			</Tldraw>
 		</div>
 	)
 }

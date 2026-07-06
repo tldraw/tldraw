@@ -7,11 +7,19 @@ import { ComponentType, ReactNode } from 'react'
  * `Props` is deliberately required, not defaulted — parametrizing with the real
  * props type is what makes `args` type-check against the component.
  */
+/** How much runtime a sketchbook's component needs to render. */
+export type HarnessKind = 'isolated' | 'editor'
+
 export interface Sketchbook<Props> {
 	/** Slash-delimited path that builds the nav tree, e.g. `'Comments/Thread'`. */
 	title: string
 	/** The component every sketch in this sketchbook stages. */
 	component?: ComponentType<Props>
+	/**
+	 * Which harness renders the component: `'isolated'` (default — UI context on
+	 * mock providers) or `'editor'` (a live `<Tldraw>`, for canvas-bound components).
+	 */
+	harness?: HarnessKind
 	/**
 	 * Optional per-arg control overrides. Keyed by the component's prop names, so a
 	 * typo is a type error. Any arg without an entry falls back to a control inferred

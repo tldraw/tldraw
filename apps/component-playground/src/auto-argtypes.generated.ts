@@ -12,6 +12,11 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			options: ['default', 'primary'],
 		},
 	},
+	'sketchbooks/editor-probe.sketchbook.tsx': {
+		label: {
+			control: 'text',
+		},
+	},
 	'sketchbooks/tldraw-button.sketchbook.tsx': {
 		action: {
 			control: 'text',
