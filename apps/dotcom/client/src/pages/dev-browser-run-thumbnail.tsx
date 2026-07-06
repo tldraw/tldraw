@@ -11,8 +11,10 @@ import 'tldraw/tldraw.css'
 import snapshotExampleSnapshot from '../../../../examples/src/examples/editor-api/snapshots/snapshot.json'
 import layerPanelSnapshot from '../../../../examples/src/examples/ui/layer-panel/snapshot.json'
 
-const THUMBNAIL_WIDTH = 1200
-const THUMBNAIL_HEIGHT = 630
+const DEFAULT_THUMBNAIL_WIDTH = 1200
+const DEFAULT_THUMBNAIL_HEIGHT = 630
+const MIN_THUMBNAIL_DIMENSION = 200
+const MAX_THUMBNAIL_DIMENSION = 1600
 
 const fixtures = {
 	'snapshot-example': {
@@ -31,6 +33,9 @@ export function Component() {
 	const params = new URLSearchParams(location.search)
 	const fixtureName = getFixtureName(params.get('fixture'))
 	const fixture = fixtures[fixtureName]
+	const width = getDimensionParam(params, 'width', DEFAULT_THUMBNAIL_WIDTH)
+	const height = getDimensionParam(params, 'height', DEFAULT_THUMBNAIL_HEIGHT)
+	const theme = params.get('theme') === 'dark' ? 'dark' : 'light'
 
 	useEffect(() => {
 		const previousBodyStyle = {
@@ -46,10 +51,10 @@ export function Component() {
 
 		document.body.style.margin = '0'
 		document.body.style.overflow = 'hidden'
-		document.body.style.width = `${THUMBNAIL_WIDTH}px`
-		document.body.style.height = `${THUMBNAIL_HEIGHT}px`
-		document.documentElement.style.width = `${THUMBNAIL_WIDTH}px`
-		document.documentElement.style.height = `${THUMBNAIL_HEIGHT}px`
+		document.body.style.width = `${width}px`
+		document.body.style.height = `${height}px`
+		document.documentElement.style.width = `${width}px`
+		document.documentElement.style.height = `${height}px`
 
 		return () => {
 			document.body.style.margin = previousBodyStyle.margin
@@ -59,15 +64,15 @@ export function Component() {
 			document.documentElement.style.width = previousHtmlStyle.width
 			document.documentElement.style.height = previousHtmlStyle.height
 		}
-	}, [])
+	}, [height, width])
 
 	return (
 		<div
 			style={{
-				width: THUMBNAIL_WIDTH,
-				height: THUMBNAIL_HEIGHT,
+				width,
+				height,
 				overflow: 'hidden',
-				background: 'white',
+				background: theme === 'dark' ? '#1d1d1d' : 'white',
 			}}
 		>
 			<Tldraw
@@ -75,6 +80,7 @@ export function Component() {
 				snapshot={fixture.snapshot}
 				shapeUtils={defaultShapeUtils}
 				onMount={(editor) => {
+					editor.user.updateUserPreferences({ colorScheme: theme })
 					editor.updateInstanceState({ isReadonly: true })
 					editor.setCamera(getCamera(params, fixture.camera), { immediate: true })
 				}}
@@ -135,4 +141,10 @@ function getNumberParam(params: URLSearchParams, key: string) {
 	if (value === null) return null
 	const number = Number(value)
 	return Number.isFinite(number) ? number : null
+}
+
+function getDimensionParam(params: URLSearchParams, key: string, fallback: number) {
+	const number = getNumberParam(params, key)
+	if (number === null) return fallback
+	return Math.max(MIN_THUMBNAIL_DIMENSION, Math.min(MAX_THUMBNAIL_DIMENSION, Math.floor(number)))
 }

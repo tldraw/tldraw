@@ -16,8 +16,11 @@ type Mode = 'auto' | 'browser-run' | 'local'
 interface Options {
 	baseUrl: string
 	fixture: FixtureName
+	height: number
 	mode: Mode
 	output: string
+	theme: 'light' | 'dark'
+	width: number
 	x?: number
 	y?: number
 	z?: number
@@ -33,8 +36,8 @@ async function main() {
 
 	const png =
 		mode === 'browser-run'
-			? await captureWithBrowserRun(renderUrl)
-			: await captureWithLocalPlaywright(renderUrl)
+			? await captureWithBrowserRun(renderUrl, options)
+			: await captureWithLocalPlaywright(renderUrl, options)
 
 	const outputPath = path.resolve(options.output)
 	await mkdir(path.dirname(outputPath), { recursive: true })
@@ -46,8 +49,11 @@ function parseArgs(args: string[]): Options {
 	const options: Options = {
 		baseUrl: 'http://127.0.0.1:3000',
 		fixture: 'snapshot-example',
+		height: HEIGHT,
 		mode: 'auto',
 		output: 'tmp/browser-run-thumbnail-spike/thumbnail.png',
+		theme: 'light',
+		width: WIDTH,
 	}
 
 	for (let i = 0; i < args.length; i++) {
@@ -68,6 +74,18 @@ function parseArgs(args: string[]): Options {
 				break
 			case '--output':
 				options.output = requireValue(arg, next)
+				i++
+				break
+			case '--theme':
+				options.theme = requireTheme(requireValue(arg, next))
+				i++
+				break
+			case '--width':
+				options.width = requireDimension(arg, next)
+				i++
+				break
+			case '--height':
+				options.height = requireDimension(arg, next)
 				i++
 				break
 			case '--x':
@@ -95,6 +113,9 @@ function buildRenderUrl(options: Options) {
 	url.searchParams.set('x', String(options.x ?? defaults.x))
 	url.searchParams.set('y', String(options.y ?? defaults.y))
 	url.searchParams.set('z', String(options.z ?? defaults.z))
+	url.searchParams.set('width', String(options.width))
+	url.searchParams.set('height', String(options.height))
+	url.searchParams.set('theme', options.theme)
 
 	return url.toString()
 }
@@ -107,7 +128,7 @@ function chooseMode(mode: Mode) {
 	return 'local'
 }
 
-async function captureWithBrowserRun(renderUrl: string) {
+async function captureWithBrowserRun(renderUrl: string, options: Options) {
 	const accountId = process.env.CLOUDFLARE_ACCOUNT_ID
 	const apiToken = process.env.CLOUDFLARE_API_TOKEN
 	if (!accountId || !apiToken) {
@@ -125,7 +146,7 @@ async function captureWithBrowserRun(renderUrl: string) {
 				Authorization: `Bearer ${apiToken}`,
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify(getBrowserRunRequestBody(renderUrl)),
+			body: JSON.stringify(getBrowserRunRequestBody(renderUrl, options)),
 		}
 	)
 
@@ -141,14 +162,14 @@ async function captureWithBrowserRun(renderUrl: string) {
 	return Buffer.from(await response.arrayBuffer())
 }
 
-function getBrowserRunRequestBody(renderUrl: string) {
+function getBrowserRunRequestBody(renderUrl: string, options: Options) {
 	const headers = getExtraHeaders(renderUrl)
 	return {
 		url: renderUrl,
 		...(headers ? { setExtraHTTPHeaders: headers } : null),
 		viewport: {
-			width: WIDTH,
-			height: HEIGHT,
+			width: options.width,
+			height: options.height,
 			deviceScaleFactor: 1,
 		},
 		gotoOptions: {
@@ -176,12 +197,12 @@ function getExtraHeaders(renderUrl: string) {
 	return null
 }
 
-async function captureWithLocalPlaywright(renderUrl: string) {
+async function captureWithLocalPlaywright(renderUrl: string, options: Options) {
 	const { chromium } = await import('@playwright/test')
 	const browser = await chromium.launch()
 	try {
 		const page = await browser.newPage({
-			viewport: { width: WIDTH, height: HEIGHT },
+			viewport: { width: options.width, height: options.height },
 			deviceScaleFactor: 1,
 		})
 		await page.goto(renderUrl, { waitUntil: 'networkidle', timeout: 45_000 })
@@ -207,6 +228,17 @@ function requireMode(value: string): Mode {
 	throw new Error(`Unknown mode: ${value}`)
 }
 
+function requireTheme(value: string): 'light' | 'dark' {
+	if (value === 'light' || value === 'dark') return value
+	throw new Error(`Unknown theme: ${value}`)
+}
+
+function requireDimension(arg: string, value: string | undefined) {
+	const number = Math.floor(requireNumber(arg, value))
+	if (number < 200 || number > 1600) throw new Error(`${arg} must be between 200 and 1600`)
+	return number
+}
+
 function requireNumber(arg: string, value: string | undefined) {
 	const number = Number(requireValue(arg, value))
 	if (!Number.isFinite(number)) throw new Error(`${arg} must be a finite number`)
@@ -222,6 +254,9 @@ Options:
   --fixture <name>      snapshot-example | layer-panel. Default: snapshot-example
   --mode <mode>         auto | browser-run | local. Default: auto
   --output <path>       PNG output path. Default: tmp/browser-run-thumbnail-spike/thumbnail.png
+  --theme <theme>       light | dark. Default: light
+  --width <number>      Output width, 200-1600. Default: 1200
+  --height <number>     Output height, 200-1600. Default: 630
   --x <number>          Camera x override
   --y <number>          Camera y override
   --z <number>          Camera zoom override

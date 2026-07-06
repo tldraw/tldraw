@@ -78,8 +78,15 @@ export interface Environment {
 	PIERRE_KEY: string | undefined
 
 	RATE_LIMITER: RateLimit
+	// Optional production binding for the Browser Run-backed MCP screenshot tool. Configure this
+	// at roughly 20 requests/minute per IP; the prototype falls back to an isolate-local guard.
+	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
+
+	CLOUDFLARE_ACCOUNT_ID: string | undefined
+	CLOUDFLARE_API_TOKEN: string | undefined
+	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
 }
 
 export function isDebugLogging(env: Environment) {
