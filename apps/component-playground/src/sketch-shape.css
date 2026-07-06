@@ -17,6 +17,17 @@
 	padding: 12px;
 }
 
+/* a viewport scene fills the cell edge-to-edge, no padding or scaling */
+.sketch-shape__preview--fill {
+	padding: 0;
+	overflow: hidden;
+}
+
+.sketch-shape__preview--fill > * {
+	width: 100%;
+	height: 100%;
+}
+
 .sketch-shape__label {
 	flex-shrink: 0;
 	padding: 6px 10px;

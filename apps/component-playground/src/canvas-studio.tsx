@@ -1,14 +1,16 @@
 import { Editor, PageRecordType, TLPageId, Tldraw, createShapeId } from 'tldraw'
 import { PropertiesPanel } from './properties-panel'
-import { LoadedSketchbook, sketchbooks } from './registry'
+import { LoadedSketch, LoadedSketchbook, sketchbooks } from './registry'
 import { SketchShape, SketchShapeUtil } from './sketch-shape'
+import { VIEWPORTS } from './viewports'
 
 const CELL_W = 320
 const CELL_H = 280
 const GAP = 28
 const PAD = 40
 const TITLE_H = 44
-const COLS = 3 // max sketches per row inside a frame
+const LABEL_H = 30 // caption strip under each cell (matches sketch-shape.css)
+const COLS = 3 // max sketches per row inside a component frame
 const MAX_ROW = 1500 // frames wrap to a new row past this width
 
 const namespaceOf = (title: string) => title.split('/')[0]
@@ -19,23 +21,74 @@ function frameName(title: string) {
 	return parts.length > 1 ? parts.slice(1).join('/') : title
 }
 
-function frameSize(count: number) {
-	const cols = Math.min(count, COLS)
-	const rows = Math.ceil(count / COLS)
-	const w = cols * CELL_W + (cols - 1) * GAP + PAD * 2
-	const h = TITLE_H + rows * CELL_H + (rows - 1) * GAP + PAD
-	return { w, h }
+// A scene sketch is sized to its viewport; a component uses the default cell.
+function cellSize(sketch: LoadedSketch) {
+	const viewport = sketch.sketch.parameters?.viewport
+	if (viewport) {
+		const { width, height } = VIEWPORTS[viewport]
+		return { w: width, h: height + LABEL_H }
+	}
+	return { w: CELL_W, h: CELL_H }
 }
 
-// Lay sketchbooks out as named frames: sketches wrap into a grid inside each frame,
-// and frames shelf-pack left-to-right, wrapping to a new row past MAX_ROW.
+interface Placement {
+	sketch: LoadedSketch
+	x: number
+	y: number
+	w: number
+	h: number
+}
+
+// Place a book's sketches: scenes (viewport sizes) flow in a single row at their own
+// sizes; components pack into the uniform COLS grid.
+function placeSketches(book: LoadedSketchbook): {
+	cells: Placement[]
+	frameW: number
+	frameH: number
+} {
+	const isScene = Boolean(book.sketches[0]?.sketch.parameters?.viewport)
+	const cells: Placement[] = []
+
+	if (isScene) {
+		let x = PAD
+		let maxH = 0
+		for (const sketch of book.sketches) {
+			const { w, h } = cellSize(sketch)
+			cells.push({ sketch, x, y: TITLE_H, w, h })
+			x += w + GAP
+			maxH = Math.max(maxH, h)
+		}
+		return { cells, frameW: x - GAP + PAD, frameH: TITLE_H + maxH + PAD }
+	}
+
+	book.sketches.forEach((sketch, i) => {
+		const col = i % COLS
+		const row = Math.floor(i / COLS)
+		cells.push({
+			sketch,
+			x: PAD + col * (CELL_W + GAP),
+			y: TITLE_H + row * (CELL_H + GAP),
+			w: CELL_W,
+			h: CELL_H,
+		})
+	})
+	const cols = Math.min(book.sketches.length, COLS)
+	const rows = Math.ceil(book.sketches.length / COLS)
+	return {
+		cells,
+		frameW: cols * CELL_W + (cols - 1) * GAP + PAD * 2,
+		frameH: TITLE_H + rows * CELL_H + (rows - 1) * GAP + PAD,
+	}
+}
+
+// Lay sketchbooks out as named frames that shelf-pack left-to-right, wrapping past MAX_ROW.
 function layoutGroup(editor: Editor, books: LoadedSketchbook[]) {
 	let cursorX = PAD
 	let cursorY = PAD
 	let rowHeight = 0
 
 	for (const book of books) {
-		const { w: frameW, h: frameH } = frameSize(book.sketches.length)
+		const { cells, frameW, frameH } = placeSketches(book)
 
 		if (cursorX > PAD && cursorX + frameW > MAX_ROW) {
 			cursorX = PAD
@@ -52,17 +105,20 @@ function layoutGroup(editor: Editor, books: LoadedSketchbook[]) {
 			props: { w: frameW, h: frameH, name: frameName(book.title) },
 		})
 
-		book.sketches.forEach((s, i) => {
-			const col = i % COLS
-			const row = Math.floor(i / COLS)
+		for (const cell of cells) {
 			editor.createShape<SketchShape>({
 				type: 'sketch',
 				parentId: frameId,
-				x: PAD + col * (CELL_W + GAP),
-				y: TITLE_H + row * (CELL_H + GAP),
-				props: { w: CELL_W, h: CELL_H, sketchId: s.id, args: { ...(s.sketch.args ?? {}) } },
+				x: cell.x,
+				y: cell.y,
+				props: {
+					w: cell.w,
+					h: cell.h,
+					sketchId: cell.sketch.id,
+					args: { ...(cell.sketch.sketch.args ?? {}) },
+				},
 			})
-		})
+		}
 
 		cursorX += frameW + GAP
 		rowHeight = Math.max(rowHeight, frameH)

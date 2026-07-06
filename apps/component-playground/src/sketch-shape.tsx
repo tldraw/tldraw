@@ -82,21 +82,28 @@ export class SketchShapeUtil extends ShapeUtil<SketchShape> {
 
 	component(shape: SketchShape) {
 		const loaded = sketchesById.get(shape.props.sketchId)
+		const content = loaded ? (
+			renderSketch(loaded, shape.props.args)
+		) : (
+			<span>unknown: {shape.props.sketchId}</span>
+		)
+		// A viewport scene fills its cell at real size; a component scales to fit.
+		const fill = Boolean(loaded?.sketch.parameters?.viewport)
 		return (
 			<HTMLContainer
 				className="sketch-shape"
 				style={{ width: shape.props.w, height: shape.props.h }}
 			>
-				<ScaledPreview
-					maxW={shape.props.w - PREVIEW_PAD * 2}
-					maxH={shape.props.h - LABEL_H - PREVIEW_PAD * 2}
-				>
-					{loaded ? (
-						renderSketch(loaded, shape.props.args)
-					) : (
-						<span>unknown: {shape.props.sketchId}</span>
-					)}
-				</ScaledPreview>
+				{fill ? (
+					<div className="sketch-shape__preview sketch-shape__preview--fill">{content}</div>
+				) : (
+					<ScaledPreview
+						maxW={shape.props.w - PREVIEW_PAD * 2}
+						maxH={shape.props.h - LABEL_H - PREVIEW_PAD * 2}
+					>
+						{content}
+					</ScaledPreview>
+				)}
 				{loaded && <div className="sketch-shape__label">{loaded.name}</div>}
 			</HTMLContainer>
 		)
