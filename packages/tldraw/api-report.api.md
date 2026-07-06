@@ -1878,7 +1878,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 // @public (undocumented)
 export interface EmbedShapeUtilDisplayValues {
-    // (undocumented)
+    // @deprecated (undocumented)
     showShadow: boolean;
 }
 

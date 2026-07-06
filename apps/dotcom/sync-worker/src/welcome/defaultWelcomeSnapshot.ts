@@ -53,7 +53,7 @@ export const defaultWelcomeSnapshotJson = `{
 			"com.tldraw.shape.arrow": 8,
 			"com.tldraw.shape.bookmark": 3,
 			"com.tldraw.shape.draw": 5,
-			"com.tldraw.shape.embed": 4,
+			"com.tldraw.shape.embed": 5,
 			"com.tldraw.shape.frame": 1,
 			"com.tldraw.shape.geo": 12,
 			"com.tldraw.shape.group": 0,
