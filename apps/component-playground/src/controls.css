@@ -49,21 +49,28 @@
 	color: var(--tl-color-text-1, #1d1d1d);
 }
 
-.controls__json {
+.controls__object {
 	flex: 1;
 	min-width: 0;
-	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-	font-size: 0.78rem;
-	line-height: 1.5;
-	padding: 0.5rem 0.7rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	padding: 0.5rem 0.6rem;
 	border: 1px solid var(--tl-color-divider, #d0d0d0);
 	border-radius: 8px;
 	background: var(--tl-color-panel, #fff);
-	color: var(--tl-color-text-1, #1d1d1d);
-	resize: vertical;
-	tab-size: 2;
 }
 
-.controls__json--invalid {
-	border-color: #e5484d;
+.controls__object-row {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.controls__object-key {
+	width: 3rem;
+	flex-shrink: 0;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.72rem;
+	color: var(--tl-color-text-3, #8a8a8a);
 }

@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react'
 import './controls.css'
 import { LoadedSketch } from './registry'
 import { ArgType } from './sketch'
@@ -111,42 +110,31 @@ function isObject(value: unknown): boolean {
 	return typeof value === 'object' && value !== null
 }
 
-/** A JSON editor for object/array args. Parses on every edit; only pushes valid JSON up. */
+/**
+ * A field-wise editor for object/array args: each field gets a control inferred from
+ * its value (numbers become number inputs, nested objects recurse through `Control`).
+ * The control tree mirrors the data tree, so there's no JSON round-trip to fight.
+ */
 function ObjectControl({ value, onValue }: { value: unknown; onValue(value: unknown): void }) {
-	const [text, setText] = useState(() => JSON.stringify(value, null, 2))
-	const [invalid, setInvalid] = useState(false)
-	// Track what we last pushed up, so an external change (new selection) resets the
-	// editor, but our own edits don't clobber the text mid-typing.
-	const lastEmitted = useRef(text)
-
-	useEffect(() => {
-		const incoming = JSON.stringify(value, null, 2)
-		if (incoming !== lastEmitted.current) {
-			setText(incoming)
-			lastEmitted.current = incoming
-			setInvalid(false)
+	const entries = Object.entries(value as Record<string, unknown>)
+	const update = (key: string, next: unknown) => {
+		if (Array.isArray(value)) {
+			const clone = value.slice()
+			clone[Number(key)] = next
+			onValue(clone)
+		} else {
+			onValue({ ...(value as Record<string, unknown>), [key]: next })
 		}
-	}, [value])
-
+	}
 	return (
-		<textarea
-			className={invalid ? 'controls__json controls__json--invalid' : 'controls__json'}
-			value={text}
-			rows={Math.max(3, Math.min(12, text.split('\n').length))}
-			spellCheck={false}
-			onChange={(e) => {
-				const next = e.target.value
-				setText(next)
-				try {
-					const parsed = JSON.parse(next)
-					lastEmitted.current = JSON.stringify(parsed, null, 2)
-					setInvalid(false)
-					onValue(parsed)
-				} catch {
-					setInvalid(true)
-				}
-			}}
-		/>
+		<div className="controls__object">
+			{entries.map(([key, fieldValue]) => (
+				<label key={key} className="controls__object-row">
+					<span className="controls__object-key">{key}</span>
+					<Control argType={undefined} value={fieldValue} onValue={(next) => update(key, next)} />
+				</label>
+			))}
+		</div>
 	)
 }
 
