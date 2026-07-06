@@ -8,6 +8,13 @@ export interface PendingBootstrap {
 	checkpointId: string | null
 }
 
+/** Result of executing code in the widget, as reported via `_exec_callback`. */
+export interface ExecResultPayload {
+	success: boolean
+	result?: unknown
+	error?: string
+}
+
 export interface ServerDeps {
 	saveCheckpoint(id: string, shapes: TLShape[], assets?: unknown[], bindings?: unknown[]): void
 	loadCheckpoint(id: string): { shapes: unknown[]; assets: unknown[]; bindings: unknown[] } | null
@@ -22,6 +29,10 @@ export interface ServerDeps {
 	loadWidgetHtml(): Promise<string>
 	loadEditorApiSpec(): Promise<EditorApiSpec>
 	loadMethodMap(): Promise<MethodMap>
+	/** Hand an exec result to the rendezvous DO. Returns true if a waiter received it. */
+	putExecResult(execKey: string, payload: ExecResultPayload): Promise<boolean>
+	/** Wait on the rendezvous DO for an exec result; null on timeout. */
+	waitExecResult(execKey: string, timeoutMs: number): Promise<ExecResultPayload | null>
 }
 
 export interface RegisterToolsOptions {
@@ -66,6 +77,10 @@ export const MCP_SERVER_WEBSITE_URL = 'https://www.tldraw.com'
 export const MCP_SERVER_INSTRUCTIONS =
 	'Use `search` to query the tldraw Editor API spec (e.g. search for methods by category or name). Use `exec` to run JavaScript on the canvas — your code receives `editor` (the tldraw Editor instance) and helpers like toRichText, createShapeId, createArrowBetweenShapes. The current canvas state is kept in model context as raw TLShape, asset, and binding data.'
 
+// This URI must stay STABLE across deploys: hosts bind the app widget to it at
+// connector registration and cache the widget HTML served here, so a stale
+// widget build can stay in use after a deploy. Keep the widget↔server protocol
+// backward compatible with older widgets (new `_exec_callback` fields optional).
 export const CANVAS_RESOURCE_URI = 'ui://show-canvas/mcp-app.html'
 
 /** Must match `compatibility_date` in wrangler.toml. */

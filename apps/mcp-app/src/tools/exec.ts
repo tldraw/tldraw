@@ -2,17 +2,25 @@ import { registerAppTool } from '@modelcontextprotocol/ext-apps/server'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
+import { computeExecKey } from '../shared/exec-key'
 import type { PendingRequests } from '../shared/pending-requests'
 import { CANVAS_RESOURCE_URI } from '../shared/types'
-import { generateCanvasId, writeToolAnalytics } from '../shared/utils'
+import type { ExecResultPayload, MCP_APP_HOST_NAMES } from '../shared/types'
+import { generateCanvasId, isHostCodeEditor, writeToolAnalytics } from '../shared/utils'
 
-// Short bounded wait for the widget's synchronous `_exec_callback`. The widget
-// runs the code and pushes the resulting canvas state to the model context on
-// its own (independently of this callback), so a missed/slow/misrouted callback
-// must never hang the tool. After this window we return a graceful "still
-// executing" result instead of waiting the old 30s. When the callback arrives
-// promptly (well-behaved hosts) the model still gets the full synchronous result.
+// Bounded wait for the widget's exec result. The widget runs the code and
+// pushes the resulting canvas state to the model context independently of this
+// wait, so a missed, slow, or misrouted result must never hang the tool: after
+// the window we return a graceful "still executing" result. When the result
+// arrives in time the model gets the full synchronous return value.
 const EXEC_CALLBACK_WAIT_MS = 4_000
+// Code-editor hosts (Cursor, VS Code) can deliver the result inline but boot
+// the widget cold on the first call, so give them a longer window.
+const EXEC_CALLBACK_WAIT_LONG_MS = 8_000
+
+function isLongWaitHost(hostName: MCP_APP_HOST_NAMES): boolean {
+	return isHostCodeEditor(hostName)
+}
 
 export function registerExecTool(
 	server: McpServer,
@@ -20,7 +28,9 @@ export function registerExecTool(
 		analytics?: AnalyticsEngineDataset
 		log(...args: unknown[]): void
 		pendingRequests: PendingRequests
-		setCurrentExecCanvasId(id: string): void
+		getMcpSessionId(): string
+		getClientHostName(): MCP_APP_HOST_NAMES | undefined
+		waitExecResult(execKey: string, timeoutMs: number): Promise<ExecResultPayload | null>
 	}
 ) {
 	registerAppTool(
@@ -73,51 +83,68 @@ Examples:
 			writeToolAnalytics(opts.analytics, 'exec', code)
 
 			const canvasId = inputCanvasId || generateCanvasId()
-			opts.setCurrentExecCanvasId(canvasId)
 
-			opts.log(`[tldraw-mcp] exec called: canvasId=${canvasId}, existing=${Boolean(inputCanvasId)}`)
+			const hostName = opts.getClientHostName()
+			const waitMs =
+				hostName && isLongWaitHost(hostName) ? EXEC_CALLBACK_WAIT_LONG_MS : EXEC_CALLBACK_WAIT_MS
 
+			const execKey = await computeExecKey(code)
+			const startedAt = Date.now()
+			opts.log(
+				`[tldraw-mcp] exec start: canvasId=${canvasId}, existing=${Boolean(inputCanvasId)}, host=${hostName ?? 'unknown'}, waitMs=${waitMs}, execKey=${execKey}, mcpSessionId=${opts.getMcpSessionId()}, startedAt=${startedAt}`
+			)
+
+			// The widget's result can come back two ways, raced with one shared window:
+			// - the in-memory pending request, when the host routes `_exec_callback`
+			//   over this same session (Cursor, VS Code)
+			// - the exec:<execKey> rendezvous DO, when the callback lands on a
+			//   different session DO (Claude, ChatGPT) and gets forwarded
+			let localWait: Promise<unknown> | null = null
 			try {
-				const result = (await opts.pendingRequests.create('exec', EXEC_CALLBACK_WAIT_MS)) as {
-					success: boolean
-					result?: unknown
-					error?: string
+				localWait = opts.pendingRequests.create('exec', waitMs)
+			} catch {
+				// Another exec on this session is already waiting; rely on the rendezvous.
+				localWait = null
+			}
+
+			const sources: Array<Promise<ExecResultPayload | null>> = []
+			if (localWait) {
+				sources.push(localWait.then((value) => value as ExecResultPayload).catch(() => null))
+			}
+			sources.push(opts.waitExecResult(execKey, waitMs).catch(() => null))
+
+			const result = await new Promise<ExecResultPayload | null>((resolve) => {
+				let remaining = sources.length
+				let settled = false
+				for (const source of sources) {
+					void source.then((value) => {
+						remaining--
+						if (settled) return
+						if (value) {
+							settled = true
+							resolve(value)
+						} else if (remaining === 0) {
+							settled = true
+							resolve(null)
+						}
+					})
 				}
+			})
 
-				if (!result.success) {
-					opts.log(`[tldraw-mcp] exec failed: ${result.error}`)
-					return {
-						content: [
-							{
-								type: 'text',
-								text: `Runtime error executing code on canvas. The code was NOT applied successfully. Fix the error and try again.\n\nCanvas ID: ${canvasId} — to retry on this canvas, pass this canvasId.\n\nError: ${result.error}`,
-							},
-						],
-						isError: true,
-					}
-				}
+			// Drop whichever waiter didn't win so the channel is free for the next exec.
+			opts.pendingRequests.cancel('exec')
 
-				const resultStr =
-					result.result !== undefined ? JSON.stringify(result.result, null, 2) : undefined
-				const lines = [
-					resultStr
-						? `Code executed successfully on canvas. Return value:\n${resultStr}`
-						: 'Code executed successfully on canvas.',
-					`\nCanvas ID: ${canvasId} — to edit this canvas again, pass this as the canvasId parameter.`,
-				]
-
-				opts.log(`[tldraw-mcp] exec succeeded, canvasId=${canvasId}`)
-				return { content: [{ type: 'text', text: lines.join('\n') }] }
-			} catch (err) {
-				// No synchronous callback arrived within the bounded window — a timeout,
-				// a callback routed to a different DO, or a concurrent exec. This is NOT a
-				// failure: the widget still runs the code and pushes the resulting canvas
-				// state to the model context on its own, so we return a graceful
-				// (non-error) message instead of hanging the tool.
-				const message = err instanceof Error ? err.message : String(err)
+			if (result === null) {
+				// No result arrived within the bounded window. This is NOT a failure:
+				// the widget still runs the code and pushes the resulting canvas state
+				// to the model context on its own, so return a graceful (non-error)
+				// message instead of hanging the tool.
 				opts.log(
-					`[tldraw-mcp] exec callback not received within ${EXEC_CALLBACK_WAIT_MS}ms (graceful): ${message}`
+					`[tldraw-mcp] exec result not received within ${waitMs}ms (graceful): canvasId=${canvasId}, execKey=${execKey}, mcpSessionId=${opts.getMcpSessionId()}, elapsed=${Date.now() - startedAt}ms`
 				)
+				// structuredContent.canvasId reaches the widget via the host's
+				// tool-result event — the reliable channel for teaching the widget its
+				// server-assigned canvasId regardless of host session routing.
 				return {
 					content: [
 						{
@@ -127,7 +154,41 @@ Examples:
 								`Canvas ID: ${canvasId} — pass this canvasId to edit the same canvas again. If the expected shapes don't appear in the next canvas-state update, re-run exec with a corrected script.`,
 						},
 					],
+					structuredContent: { canvasId },
 				}
+			}
+
+			if (!result.success) {
+				opts.log(
+					`[tldraw-mcp] exec failed via callback after ${Date.now() - startedAt}ms: ${result.error}`
+				)
+				return {
+					content: [
+						{
+							type: 'text',
+							text: `Runtime error executing code on canvas. The code was NOT applied successfully. Fix the error and try again.\n\nCanvas ID: ${canvasId} — to retry on this canvas, pass this canvasId.\n\nError: ${result.error}`,
+						},
+					],
+					structuredContent: { canvasId },
+					isError: true,
+				}
+			}
+
+			const resultStr =
+				result.result !== undefined ? JSON.stringify(result.result, null, 2) : undefined
+			const lines = [
+				resultStr
+					? `Code executed successfully on canvas. Return value:\n${resultStr}`
+					: 'Code executed successfully on canvas.',
+				`\nCanvas ID: ${canvasId} — to edit this canvas again, pass this as the canvasId parameter.`,
+			]
+
+			opts.log(
+				`[tldraw-mcp] exec succeeded via callback after ${Date.now() - startedAt}ms, canvasId=${canvasId}`
+			)
+			return {
+				content: [{ type: 'text', text: lines.join('\n') }],
+				structuredContent: { canvasId },
 			}
 		}
 	)

@@ -9,6 +9,7 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { McpAgent } from 'agents/mcp'
+import { CanvasStore } from './canvas-store'
 import { Logger } from './logger'
 import { registerTools } from './register-tools'
 import { loadEditorApiSpecFromAssets, loadMethodMapFromAssets } from './shared/generated-data'
@@ -27,8 +28,11 @@ import { resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 
 // --- Types ---
 
+export { CanvasStore }
+
 interface Env {
 	MCP_OBJECT: DurableObjectNamespace
+	CANVAS_STORE: DurableObjectNamespace<CanvasStore>
 	ASSETS: Fetcher
 	LOADER: WorkerLoader
 	RATE_LIMITER: RateLimit
@@ -145,6 +149,10 @@ export class TldrawMCP extends McpAgent<Env> {
 		let editorApiSpecPromise: ReturnType<typeof loadEditorApiSpecFromAssets> | null = null
 		let methodMapPromise: ReturnType<typeof loadMethodMapFromAssets> | null = null
 
+		// --- Exec rendezvous stubs (host-session-independent result handoff) ---
+		const canvasStoreNs = this.env.CANVAS_STORE
+		const canvasStoreStub = (name: string) => canvasStoreNs.get(canvasStoreNs.idFromName(name))
+
 		// --- Build ServerDeps from SQLite ---
 		const deps: ServerDeps = {
 			saveCheckpoint: (id, shapes, assets = [], bindings = []) =>
@@ -183,6 +191,17 @@ export class TldrawMCP extends McpAgent<Env> {
 			loadMethodMap: async () => {
 				methodMapPromise ??= loadMethodMapFromAssets(this.env.ASSETS)
 				return methodMapPromise
+			},
+			putExecResult: async (execKey, payload) => {
+				const { delivered } = await canvasStoreStub(`exec:${execKey}`).putExecResult(
+					execKey,
+					JSON.stringify(payload)
+				)
+				return delivered
+			},
+			waitExecResult: async (execKey, timeoutMs) => {
+				const payload = await canvasStoreStub(`exec:${execKey}`).waitExecResult(execKey, timeoutMs)
+				return payload ? JSON.parse(payload) : null
 			},
 		}
 
