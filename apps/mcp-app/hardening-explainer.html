@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Why exec timed out — and how the rendezvous fixes it</title>
+		<style>
+			:root {
+				--paper: #f7f8f9;
+				--ink: #16191f;
+				--ink-soft: #4b5563;
+				--line: #d9dde3;
+				--accent: #2f6fed;
+				--accent-soft: #e3ebfd;
+				--bad: #d13f3f;
+				--bad-soft: #fbe9e9;
+				--good: #1e9e5a;
+				--good-soft: #e2f5ea;
+				--term-bg: #14171c;
+				--term-ink: #c6cdd7;
+				--mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+				--sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+			}
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			html {
+				scroll-behavior: smooth;
+			}
+			body {
+				background: var(--paper);
+				color: var(--ink);
+				font-family: var(--sans);
+				font-size: 16px;
+				line-height: 1.6;
+			}
+			.page {
+				max-width: 880px;
+				margin: 0 auto;
+				padding: 48px 24px 96px;
+			}
+			.eyebrow {
+				font-family: var(--mono);
+				font-size: 12px;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				color: var(--accent);
+			}
+			h1 {
+				font-size: clamp(26px, 4.5vw, 38px);
+				line-height: 1.15;
+				letter-spacing: -0.015em;
+				text-wrap: balance;
+				margin: 10px 0 14px;
+			}
+			.lede {
+				color: var(--ink-soft);
+				max-width: 62ch;
+			}
+			h2 {
+				font-size: 20px;
+				letter-spacing: -0.01em;
+				margin: 56px 0 12px;
+				text-wrap: balance;
+			}
+			p {
+				max-width: 68ch;
+				margin-bottom: 12px;
+			}
+			code {
+				font-family: var(--mono);
+				font-size: 0.86em;
+				background: #eceef1;
+				border-radius: 4px;
+				padding: 1px 5px;
+			}
+			.err-line {
+				font-family: var(--mono);
+				font-size: 13px;
+				background: var(--bad-soft);
+				border-left: 3px solid var(--bad);
+				color: #8c2626;
+				padding: 10px 14px;
+				margin: 14px 0;
+				overflow-x: auto;
+				white-space: nowrap;
+			}
+
+			/* ---------- simulator ---------- */
+			.sim {
+				border: 1px solid var(--line);
+				border-radius: 10px;
+				background: #fff;
+				margin-top: 18px;
+				overflow: hidden;
+			}
+			.sim-controls {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				gap: 8px;
+				padding: 14px 16px;
+				border-bottom: 1px solid var(--line);
+			}
+			.scenario-btn {
+				font-family: var(--sans);
+				font-size: 13.5px;
+				font-weight: 600;
+				color: var(--ink-soft);
+				background: #fff;
+				border: 1px solid var(--line);
+				border-radius: 999px;
+				padding: 7px 14px;
+				cursor: pointer;
+			}
+			.scenario-btn:hover {
+				border-color: var(--accent);
+				color: var(--accent);
+			}
+			.scenario-btn[aria-pressed='true'] {
+				background: var(--ink);
+				border-color: var(--ink);
+				color: #fff;
+			}
+			.scenario-btn:focus-visible,
+			.play-btn:focus-visible {
+				outline: 2px solid var(--accent);
+				outline-offset: 2px;
+			}
+			.play-btn {
+				margin-left: auto;
+				font-family: var(--sans);
+				font-size: 13.5px;
+				font-weight: 700;
+				color: #fff;
+				background: var(--accent);
+				border: 1px solid var(--accent);
+				border-radius: 999px;
+				padding: 7px 18px;
+				cursor: pointer;
+			}
+			.play-btn:hover {
+				filter: brightness(1.08);
+			}
+			.sim-clock {
+				font-family: var(--mono);
+				font-size: 13px;
+				color: var(--ink-soft);
+				font-variant-numeric: tabular-nums;
+				min-width: 110px;
+				text-align: right;
+			}
+			.sim-clock strong {
+				color: var(--ink);
+				font-weight: 700;
+			}
+			.sim-caption {
+				padding: 10px 16px;
+				font-size: 13.5px;
+				color: var(--ink-soft);
+				border-bottom: 1px solid var(--line);
+				background: #fbfcfd;
+			}
+			.lanes {
+				position: relative;
+				display: grid;
+				grid-template-columns: repeat(5, 1fr);
+				padding: 14px 0 6px;
+			}
+			.lane-head {
+				text-align: center;
+				font-family: var(--mono);
+				font-size: 11px;
+				letter-spacing: 0.04em;
+				text-transform: uppercase;
+				color: var(--ink-soft);
+				padding: 0 6px 10px;
+			}
+			.lane-head .who {
+				display: inline-block;
+				background: #eef1f4;
+				border: 1px solid var(--line);
+				border-radius: 6px;
+				padding: 3px 8px;
+				white-space: nowrap;
+				max-width: 100%;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.lane-head.active .who {
+				background: var(--accent-soft);
+				border-color: #b9cdf8;
+				color: #1d4fc4;
+			}
+			.lane-head.dim {
+				opacity: 0.35;
+			}
+			.lane-rails {
+				position: absolute;
+				inset: 44px 0 0 0;
+				display: grid;
+				grid-template-columns: repeat(5, 1fr);
+				pointer-events: none;
+			}
+			.lane-rails span {
+				border-left: 1px dashed var(--line);
+				justify-self: center;
+				height: 100%;
+			}
+			.lane-rails span.dim {
+				opacity: 0.3;
+			}
+			.rows {
+				position: relative;
+				grid-column: 1 / -1;
+				min-height: 60px;
+				padding-bottom: 12px;
+			}
+			.step {
+				position: relative;
+				height: 46px;
+				opacity: 0;
+				transform: translateY(4px);
+				transition:
+					opacity 0.35s ease,
+					transform 0.35s ease;
+			}
+			.step.on {
+				opacity: 1;
+				transform: none;
+			}
+			.step .t {
+				position: absolute;
+				left: 10px;
+				top: 50%;
+				transform: translateY(-50%);
+				font-family: var(--mono);
+				font-size: 11px;
+				color: #9aa3ad;
+				font-variant-numeric: tabular-nums;
+			}
+			.arrow {
+				position: absolute;
+				top: 50%;
+				height: 2px;
+				background: var(--ink);
+			}
+			.arrow::after {
+				content: '';
+				position: absolute;
+				top: -4px;
+				border: 5px solid transparent;
+			}
+			.arrow.r::after {
+				right: -2px;
+				border-left-color: var(--ink);
+				border-right: 0;
+			}
+			.arrow.l::after {
+				left: -2px;
+				border-right-color: var(--ink);
+				border-left: 0;
+			}
+			.arrow.accent {
+				background: var(--accent);
+			}
+			.arrow.accent.r::after {
+				border-left-color: var(--accent);
+			}
+			.arrow.accent.l::after {
+				border-right-color: var(--accent);
+			}
+			.arrow.bad {
+				background: var(--bad);
+			}
+			.arrow.bad.r::after {
+				border-left-color: var(--bad);
+			}
+			.arrow.bad.l::after {
+				border-right-color: var(--bad);
+			}
+			.arrow.good {
+				background: var(--good);
+			}
+			.arrow.good.r::after {
+				border-left-color: var(--good);
+			}
+			.arrow.good.l::after {
+				border-right-color: var(--good);
+			}
+			.msg {
+				position: absolute;
+				bottom: 50%;
+				margin-bottom: 6px;
+				transform: translateX(-50%);
+				font-family: var(--mono);
+				font-size: 11.5px;
+				white-space: nowrap;
+				color: var(--ink);
+				background: #fff;
+				padding: 0 4px;
+			}
+			.msg.bad {
+				color: var(--bad);
+				font-weight: 700;
+			}
+			.msg.good {
+				color: var(--good);
+				font-weight: 700;
+			}
+			.msg.accent {
+				color: #1d4fc4;
+			}
+			.node {
+				position: absolute;
+				top: 50%;
+				transform: translate(-50%, -50%);
+				font-family: var(--mono);
+				font-size: 11.5px;
+				white-space: nowrap;
+				border-radius: 6px;
+				border: 1px solid var(--line);
+				background: #f2f4f6;
+				color: var(--ink-soft);
+				padding: 4px 9px;
+			}
+			.node.bad {
+				background: var(--bad-soft);
+				border-color: #eec3c3;
+				color: #8c2626;
+			}
+			.node.good {
+				background: var(--good-soft);
+				border-color: #bfe6cf;
+				color: #146c3d;
+			}
+			.node.accent {
+				background: var(--accent-soft);
+				border-color: #b9cdf8;
+				color: #1d4fc4;
+			}
+			.gap-row {
+				position: relative;
+				height: 34px;
+				opacity: 0;
+				transition: opacity 0.35s ease;
+			}
+			.gap-row.on {
+				opacity: 1;
+			}
+			.gap-row .node {
+				font-style: italic;
+			}
+			.outcome {
+				margin: 4px 16px 16px;
+				border-radius: 8px;
+				padding: 11px 14px;
+				font-size: 14px;
+				font-weight: 600;
+				opacity: 0;
+				transition: opacity 0.4s ease;
+			}
+			.outcome.on {
+				opacity: 1;
+			}
+			.outcome.bad {
+				background: var(--bad-soft);
+				color: #8c2626;
+			}
+			.outcome.good {
+				background: var(--good-soft);
+				color: #146c3d;
+			}
+			.term {
+				background: var(--term-bg);
+				color: var(--term-ink);
+				font-family: var(--mono);
+				font-size: 12px;
+				line-height: 1.7;
+				padding: 12px 16px;
+				min-height: 88px;
+				overflow-x: auto;
+			}
+			.term .tl {
+				white-space: nowrap;
+				opacity: 0;
+				transition: opacity 0.3s ease;
+			}
+			.term .tl.on {
+				opacity: 1;
+			}
+			.term .tl.bad {
+				color: #f09a9a;
+			}
+			.term .tl.good {
+				color: #8fd9ae;
+			}
+
+			/* ---------- tables & lists ---------- */
+			.tbl-wrap {
+				overflow-x: auto;
+				border: 1px solid var(--line);
+				border-radius: 8px;
+				margin: 14px 0;
+			}
+			table {
+				border-collapse: collapse;
+				width: 100%;
+				font-size: 14px;
+				background: #fff;
+			}
+			th,
+			td {
+				text-align: left;
+				padding: 9px 14px;
+				border-bottom: 1px solid var(--line);
+				vertical-align: top;
+			}
+			tr:last-child td {
+				border-bottom: none;
+			}
+			th {
+				font-family: var(--mono);
+				font-size: 11px;
+				letter-spacing: 0.05em;
+				text-transform: uppercase;
+				color: var(--ink-soft);
+				background: #fbfcfd;
+			}
+			td code {
+				white-space: nowrap;
+			}
+			.fixes {
+				list-style: none;
+				margin: 14px 0;
+				display: grid;
+				gap: 10px;
+			}
+			.fixes li {
+				background: #fff;
+				border: 1px solid var(--line);
+				border-radius: 8px;
+				padding: 12px 16px;
+				font-size: 14.5px;
+			}
+			.fixes b {
+				display: block;
+				margin-bottom: 2px;
+			}
+			.foot {
+				margin-top: 56px;
+				padding-top: 16px;
+				border-top: 1px solid var(--line);
+				font-size: 13px;
+				color: var(--ink-soft);
+			}
+			@media (max-width: 640px) {
+				.step .t {
+					display: none;
+				}
+				.msg {
+					font-size: 10px;
+				}
+				.node {
+					font-size: 10px;
+					padding: 3px 6px;
+				}
+			}
+			@media (prefers-reduced-motion: reduce) {
+				html {
+					scroll-behavior: auto;
+				}
+				.step,
+				.gap-row,
+				.outcome,
+				.term .tl {
+					transition: none;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="page">
+			<div class="eyebrow">tldraw MCP app · exec hardening</div>
+			<h1>Why exec timed out for 30 seconds — and how the rendezvous fixes it</h1>
+			<p class="lede">
+				Every <code>exec</code> call runs JavaScript on a tldraw canvas inside the host's widget
+				iframe. The server used to block on an in-memory promise until the widget reported back — a
+				design that silently assumed the host would route that report to the same server instance.
+				Claude doesn't.
+			</p>
+
+			<h2>The symptom</h2>
+			<p>
+				In Claude, the canvas rendered and the code visibly ran, but the tool call still hung for
+				the full timeout and handed the model an error:
+			</p>
+			<div class="err-line">Exec failed: Callback timed out after 30000ms for channel "exec"</div>
+			<p>
+				The model would then apologize, retry, and time out again — even though the drawing was
+				sitting right there, finished.
+			</p>
+
+			<h2>Watch it happen</h2>
+			<p>
+				Each MCP session gets its own Durable Object (DO) on the server. The pending exec promise
+				lives in <em>one</em> DO's memory. Pick a scenario and press play.
+			</p>
+
+			<div class="sim">
+				<div class="sim-controls" role="group" aria-label="Scenario">
+					<button class="scenario-btn" data-s="cursor" aria-pressed="false">
+						Cursor (always worked)
+					</button>
+					<button class="scenario-btn" data-s="before" aria-pressed="true">Claude — before</button>
+					<button class="scenario-btn" data-s="after" aria-pressed="false">Claude — after</button>
+					<div class="sim-clock">t = <strong id="clock">0.0s</strong></div>
+					<button class="play-btn" id="play">Play</button>
+				</div>
+				<div class="sim-caption" id="caption"></div>
+				<div class="lanes">
+					<div class="lane-head" data-lane="0"><span class="who">Model</span></div>
+					<div class="lane-head" data-lane="1"><span class="who">DO A · exec session</span></div>
+					<div class="lane-head" data-lane="2"><span class="who">Rendezvous DO</span></div>
+					<div class="lane-head" data-lane="3"><span class="who">DO B · widget session</span></div>
+					<div class="lane-head" data-lane="4"><span class="who">Widget</span></div>
+					<div class="lane-rails" id="rails">
+						<span></span><span></span><span></span><span></span><span></span>
+					</div>
+					<div class="rows" id="rows"></div>
+				</div>
+				<div class="outcome" id="outcome"></div>
+				<div class="term" id="term" aria-live="polite"></div>
+			</div>
+
+			<h2>Why it happened</h2>
+			<p>
+				Instrumented logs (mcp-session-id on every request) showed each host has a different idea of
+				"the session". The pending promise was keyed by session, so correctness depended entirely on
+				host behavior we don't control:
+			</p>
+			<div class="tbl-wrap">
+				<table>
+					<thead>
+						<tr>
+							<th>Host</th>
+							<th>Model tool calls</th>
+							<th>Widget's callback</th>
+							<th>Result</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><b>Cursor</b></td>
+							<td>One persistent session</td>
+							<td>Same session → same DO</td>
+							<td>Resolved inline. Worked.</td>
+						</tr>
+						<tr>
+							<td><b>Claude</b></td>
+							<td>Fresh session per call</td>
+							<td>A separate long-lived session → <b>always a different DO</b></td>
+							<td>Callback dropped as "no pending request". Guaranteed timeout.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<p>
+				So the callback wasn't slow or lost — it arrived within ~1.6 seconds, every time, at a
+				server instance that had never heard of the exec call waiting elsewhere.
+			</p>
+
+			<h2>The fix</h2>
+			<ul class="fixes">
+				<li>
+					<b>Rendezvous keyed by the code itself</b>
+					The one value both sides share — regardless of session routing — is the exec code string.
+					Server and widget independently derive <code>execKey&nbsp;=&nbsp;sha256(code)</code>,
+					which names a dedicated rendezvous DO. A callback landing on the wrong session DO forwards
+					the result there; the blocked exec races its local promise against the rendezvous and
+					takes whichever answers first. Early arrivals are stashed, so ordering doesn't matter
+					either.
+				</li>
+				<li>
+					<b>A bounded, graceful wait</b>
+					The 30s hang became a 4s window (8s for code editors, whose cold-start callbacks measured
+					~4.3s). If nothing arrives, exec returns a non-error "your code is executing" result — the
+					widget pushes canvas state to the model's context on its own, so a missed handoff degrades
+					instead of failing.
+				</li>
+				<li>
+					<b>The canvasId travels in the tool result</b>
+					New canvases only learned their server-assigned id from the callback response — the exact
+					channel that misroutes. It now rides <code>structuredContent</code> on every exec result,
+					which the host reliably delivers to the widget, keeping multi-turn "edit the same canvas"
+					working.
+				</li>
+				<li>
+					<b>Two widget bugs found along the way</b>
+					Claude's event ordering made every exec run its code <em>twice</em> (a debounced run
+					surviving the run-once guard reset), and models passing arrays to variadic methods like
+					<code>select([...])</code> crashed the proxy. Both fixed.
+				</li>
+			</ul>
+
+			<div class="foot">
+				The moving parts live in <code>apps/mcp-app/src</code>: the rendezvous DO in
+				<code>canvas-store.ts</code>, the shared key derivation in <code>shared/exec-key.ts</code>,
+				the bounded wait and race in <code>tools/exec.ts</code>, and the callback forwarding in
+				<code>register-tools.ts</code>.
+			</div>
+		</div>
+
+		<script>
+			;(function () {
+				// Lane x-centers as % of row width (5 lanes).
+				var LANE_X = [10, 30, 50, 70, 90]
+				var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+				// step kinds: {t, from, to, label, tone} arrow · {t, at, label, tone} node · {gap} pause row
+				var SCENARIOS = {
+					cursor: {
+						caption:
+							'Cursor uses one MCP session for everything, so the callback lands on the same DO that is waiting. The original design worked here.',
+						dimLanes: [2, 3],
+						steps: [
+							{ t: 0.0, from: 0, to: 1, label: 'tools/call exec(code)' },
+							{ t: 0.0, at: 1, label: 'pending promise created', tone: 'accent' },
+							{ t: 0.1, from: 1, to: 4, label: 'render widget + tool input', tone: 'accent' },
+							{ t: 0.6, at: 4, label: 'code runs on canvas ✓', tone: 'good' },
+							{ t: 0.9, from: 4, to: 1, label: '_exec_callback (same session)', tone: 'good' },
+							{ t: 1.0, at: 1, label: 'pending resolved', tone: 'good' },
+							{ t: 1.1, from: 1, to: 0, label: 'result: success + return value', tone: 'good' },
+						],
+						outcome: {
+							tone: 'good',
+							text: 'Model gets the real result in ~1.1s. This is the fast path — and it still works exactly the same after the fix.',
+						},
+						log: [
+							{ text: '[tldraw-mcp] exec start: canvasId=92wxj5op mcpSessionId=a603c8bd…' },
+							{ text: '[tldraw-mcp] _exec_callback received: mcpSessionId=a603c8bd… (same)' },
+							{ text: '[tldraw-mcp] exec succeeded via callback after 1150ms', tone: 'good' },
+						],
+						endT: 1.1,
+					},
+					before: {
+						caption:
+							'Claude gives the model a fresh session per call, and routes ALL widget calls over a separate long-lived session. The callback physically cannot reach the waiting DO.',
+						dimLanes: [2],
+						steps: [
+							{ t: 0.0, from: 0, to: 1, label: 'tools/call exec(code)' },
+							{ t: 0.0, at: 1, label: 'pending promise created · waits 30s', tone: 'accent' },
+							{ t: 0.1, from: 1, to: 4, label: 'render widget + tool input', tone: 'accent' },
+							{ t: 1.0, at: 4, label: 'code runs on canvas ✓', tone: 'good' },
+							{ t: 1.6, from: 4, to: 3, label: '_exec_callback → widget session', tone: 'bad' },
+							{ t: 1.6, at: 3, label: 'no pending request here — dropped {ok:false}', tone: 'bad' },
+							{
+								gap: true,
+								label: '…28 more seconds pass. DO A is still waiting. Nothing is coming…',
+							},
+							{ t: 30.0, at: 1, label: 'timeout', tone: 'bad' },
+							{
+								t: 30.0,
+								from: 1,
+								to: 0,
+								label: 'Exec failed: Callback timed out after 30000ms',
+								tone: 'bad',
+							},
+						],
+						outcome: {
+							tone: 'bad',
+							text: 'The canvas is finished and correct — but the model is told exec failed, 30 seconds later. It retries, and the loop repeats.',
+						},
+						log: [
+							{ text: '[tldraw-mcp] exec start: canvasId=lsq8adni mcpSessionId=dfd1bbdd…' },
+							{
+								text: '[tldraw-mcp] _exec_callback received: mcpSessionId=a48c4876… (different!)',
+								tone: 'bad',
+							},
+							{
+								text: '[tldraw-mcp] Ignoring exec callback for non-pending channel "exec"',
+								tone: 'bad',
+							},
+							{
+								text: 'Exec failed: Callback timed out after 30000ms for channel "exec"',
+								tone: 'bad',
+							},
+						],
+						endT: 30.0,
+					},
+					after: {
+						caption:
+							'Both sides derive execKey = sha256(code) and meet at a rendezvous DO named by that key. Session routing stops mattering.',
+						dimLanes: [],
+						steps: [
+							{ t: 0.0, from: 0, to: 1, label: 'tools/call exec(code)' },
+							{ t: 0.0, at: 1, label: 'execKey = sha256(code)', tone: 'accent' },
+							{ t: 0.0, from: 1, to: 2, label: 'wait on exec:<key> (4s cap)', tone: 'accent' },
+							{ t: 0.1, from: 1, to: 4, label: 'render widget + tool input', tone: 'accent' },
+							{ t: 1.0, at: 4, label: 'code runs · derives same execKey', tone: 'good' },
+							{ t: 1.4, from: 4, to: 3, label: '_exec_callback + execKey', tone: 'good' },
+							{
+								t: 1.5,
+								from: 3,
+								to: 2,
+								label: 'no local pending → forward to exec:<key>',
+								tone: 'good',
+							},
+							{
+								t: 1.5,
+								at: 2,
+								label: 'waiter resolved (or result stashed if early)',
+								tone: 'good',
+							},
+							{ t: 1.6, from: 2, to: 1, label: 'result delivered', tone: 'good' },
+							{ t: 1.6, from: 1, to: 0, label: 'result: success + return value', tone: 'good' },
+						],
+						outcome: {
+							tone: 'good',
+							text: 'Model gets the real result in ~1.6s — return values and runtime errors included. If nothing arrives within 4s, exec returns a graceful non-error instead of hanging.',
+						},
+						log: [
+							{ text: '[tldraw-mcp] exec start: execKey=aed46811… mcpSessionId=46ec183b…' },
+							{
+								text: '[tldraw-mcp] _exec_callback received: execKey=aed46811… mcpSessionId=a48c4876…',
+							},
+							{
+								text: '[tldraw-mcp] forwarded to rendezvous execKey=aed46811… (delivered=true)',
+								tone: 'good',
+							},
+							{ text: '[tldraw-mcp] exec succeeded via callback after ~1600ms', tone: 'good' },
+						],
+						endT: 1.6,
+					},
+				}
+
+				var rowsEl = document.getElementById('rows')
+				var termEl = document.getElementById('term')
+				var outcomeEl = document.getElementById('outcome')
+				var captionEl = document.getElementById('caption')
+				var clockEl = document.getElementById('clock')
+				var railEls = document.getElementById('rails').children
+				var laneHeads = document.querySelectorAll('.lane-head')
+				var playBtn = document.getElementById('play')
+				var scenarioBtns = document.querySelectorAll('.scenario-btn')
+				var current = 'before'
+				var timers = []
+
+				function clearTimers() {
+					timers.forEach(clearTimeout)
+					timers = []
+				}
+
+				function fmtT(t) {
+					return t.toFixed(1) + 's'
+				}
+
+				function buildStep(step) {
+					if (step.gap) {
+						var g = document.createElement('div')
+						g.className = 'gap-row'
+						g.innerHTML = '<div class="node" style="left:50%">' + step.label + '</div>'
+						return g
+					}
+					var row = document.createElement('div')
+					row.className = 'step'
+					var tEl = document.createElement('span')
+					tEl.className = 't'
+					tEl.textContent = 't≈' + fmtT(step.t)
+					row.appendChild(tEl)
+					if (step.from !== undefined) {
+						var x1 = LANE_X[step.from],
+							x2 = LANE_X[step.to]
+						var left = Math.min(x1, x2),
+							width = Math.abs(x2 - x1)
+						var a = document.createElement('div')
+						a.className = 'arrow ' + (x2 > x1 ? 'r' : 'l') + (step.tone ? ' ' + step.tone : '')
+						a.style.left = left + '%'
+						a.style.width = width + '%'
+						row.appendChild(a)
+						var m = document.createElement('div')
+						m.className = 'msg' + (step.tone ? ' ' + step.tone : '')
+						m.style.left = left + width / 2 + '%'
+						m.textContent = step.label
+						row.appendChild(m)
+					} else {
+						var n = document.createElement('div')
+						n.className = 'node' + (step.tone ? ' ' + step.tone : '')
+						n.style.left = LANE_X[step.at] + '%'
+						n.textContent = step.label
+						row.appendChild(n)
+					}
+					return row
+				}
+
+				function setScenario(name) {
+					current = name
+					clearTimers()
+					var s = SCENARIOS[name]
+					scenarioBtns.forEach(function (b) {
+						b.setAttribute('aria-pressed', String(b.dataset.s === name))
+					})
+					captionEl.textContent = s.caption
+					clockEl.textContent = '0.0s'
+					outcomeEl.className = 'outcome'
+					outcomeEl.textContent = ''
+					termEl.innerHTML = ''
+					rowsEl.innerHTML = ''
+					for (var i = 0; i < 5; i++) {
+						var dim = s.dimLanes.indexOf(i) !== -1
+						laneHeads[i].classList.toggle('dim', dim)
+						laneHeads[i].classList.remove('active')
+						railEls[i].classList.toggle('dim', dim)
+					}
+					s.steps.forEach(function (step) {
+						rowsEl.appendChild(buildStep(step))
+					})
+					s.log.forEach(function (line) {
+						var d = document.createElement('div')
+						d.className = 'tl' + (line.tone ? ' ' + line.tone : '')
+						d.textContent = line.text
+						termEl.appendChild(d)
+					})
+					playBtn.textContent = 'Play'
+				}
+
+				function play() {
+					clearTimers()
+					var s = SCENARIOS[current]
+					var stepEls = rowsEl.children
+					var logEls = termEl.children
+					var i
+					for (i = 0; i < stepEls.length; i++) stepEls[i].classList.remove('on')
+					for (i = 0; i < logEls.length; i++) logEls[i].classList.remove('on')
+					outcomeEl.className = 'outcome'
+					clockEl.textContent = '0.0s'
+
+					if (reduced) {
+						for (i = 0; i < stepEls.length; i++) stepEls[i].classList.add('on')
+						for (i = 0; i < logEls.length; i++) logEls[i].classList.add('on')
+						showOutcome(s)
+						clockEl.textContent = fmtT(s.endT)
+						return
+					}
+
+					var pace = 620 // ms of real time per step
+					var logAt = Math.floor(s.steps.length / s.log.length) || 1
+					var shownLogs = 0
+					s.steps.forEach(function (step, idx) {
+						timers.push(
+							setTimeout(
+								function () {
+									stepEls[idx].classList.add('on')
+									if (step.t !== undefined) clockEl.textContent = fmtT(step.t)
+									var want = Math.min(s.log.length, Math.floor((idx + 1) / logAt))
+									while (shownLogs < want) {
+										logEls[shownLogs].classList.add('on')
+										shownLogs++
+									}
+								},
+								(idx + 1) * pace
+							)
+						)
+					})
+					timers.push(
+						setTimeout(
+							function () {
+								while (shownLogs < logEls.length) {
+									logEls[shownLogs].classList.add('on')
+									shownLogs++
+								}
+								clockEl.textContent = fmtT(s.endT)
+								showOutcome(s)
+								playBtn.textContent = 'Replay'
+							},
+							(s.steps.length + 1) * pace
+						)
+					)
+				}
+
+				function showOutcome(s) {
+					outcomeEl.textContent = s.outcome.text
+					outcomeEl.className = 'outcome on ' + s.outcome.tone
+				}
+
+				scenarioBtns.forEach(function (b) {
+					b.addEventListener('click', function () {
+						setScenario(b.dataset.s)
+						play()
+					})
+				})
+				playBtn.addEventListener('click', play)
+
+				setScenario('before')
+			})()
+		</script>
+	</body>
+</html>
