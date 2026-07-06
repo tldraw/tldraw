@@ -24,7 +24,9 @@ import { richTextToPlaintext } from '../../utils/richText'
 export function CommentsOnCanvas() {
 	const editor = useEditor()
 	const app = useMaybeApp()
-	const authorId = app?.userId ?? 'anonymous'
+	// Anonymous sessions get objectAccess 'read' server-side, so only authenticated users can
+	// compose; guests still see existing threads.
+	const authorId = app?.userId ?? null
 
 	const threads = useValue(
 		'comment threads',
@@ -50,7 +52,7 @@ export function CommentsOnCanvas() {
 			{threads.map((thread) => (
 				<ThreadPin key={thread.id} editor={editor} thread={thread} focusedId={focusedId} />
 			))}
-			{selectedShapeId && (
+			{selectedShapeId && authorId && (
 				<ThreadComposer editor={editor} shapeId={selectedShapeId} authorId={authorId} />
 			)}
 		</>

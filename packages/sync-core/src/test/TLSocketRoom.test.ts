@@ -1022,7 +1022,7 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(room2.getSessions()[0].objectAccess).toBe('read')
 		})
 
-		it('[SR13] resumes legacy snapshots without objectAccess as write', () => {
+		it('[SR13] resumes legacy snapshots without objectAccess as read (fail closed)', () => {
 			const room = new TLSocketRoom({})
 			const socket = createMockSocket()
 			connectSession(room, 'test', socket)
@@ -1033,7 +1033,8 @@ describe('28. TLSocketRoom (SR)', () => {
 
 			const room2 = new TLSocketRoom({})
 			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
-			expect(room2.getSessions()[0].objectAccess).toBe('write')
+			// such sessions predate the record types gated by objectAccess, so they have nothing to write anyway
+			expect(room2.getSessions()[0].objectAccess).toBe('read')
 		})
 
 		it('[SR13] includes presence record when present', () => {

@@ -73,8 +73,8 @@ export interface SessionStateSnapshot {
 	serializedSchema: SerializedSchema
 	isReadonly: boolean
 	/**
-	 * Write access for object-store lane record types. Optional so snapshots persisted before
-	 * this field existed resume cleanly (they default to 'write').
+	 * Write access for the record types listed in `objectTypes`. Optional so snapshots persisted
+	 * before this field existed resume cleanly (they fail closed to 'read').
 	 */
 	objectAccess?: TLObjectStoreAccess
 	presenceId: string | null
@@ -573,8 +573,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		this.room.handleResumedSession({
 			sessionId,
 			isReadonly: snapshot.isReadonly,
-			// snapshots persisted before this field existed resume with the permissive default
-			objectAccess: snapshot.objectAccess ?? 'write',
+			// snapshots persisted before this field existed fail closed — those sessions predate
+			// the record types gated by objectAccess, so they have nothing to write anyway
+			objectAccess: snapshot.objectAccess ?? 'read',
 			serializedSchema: snapshot.serializedSchema,
 			presenceId: snapshot.presenceId,
 			presenceRecord: snapshot.presenceRecord,

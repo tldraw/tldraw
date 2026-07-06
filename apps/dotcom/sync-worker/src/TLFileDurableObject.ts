@@ -722,10 +722,10 @@ export class TLFileDurableObject extends DurableObject {
 				userId: auth?.userId ? auth.userId : null,
 			}
 			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
-			// Object-store lane (comments) write access. Permissive default for now: the gate is
-			// architecturally separate from isReadonly (so "can comment but not edit" is expressible)
-			// but dotcom doesn't yet have a permission level that restricts it.
-			const objectAccess = 'write' as const
+			// Only authenticated users can write comments. Comment authors are stored in Postgres
+			// with a foreign key to the user table, so an anonymous author couldn't be represented
+			// there. Guests can still read comments.
+			const objectAccess: TLObjectStoreAccess = auth?.userId ? 'write' : 'read'
 			const attachment: SocketAttachment = {
 				sessionId,
 				meta,
@@ -1553,17 +1553,38 @@ export class TLFileDurableObject extends DurableObject {
 								| undefined)
 						return this.commentRecordToRow(comment, thread, slug)
 					})
-					await this.db
-						.insertInto('comment')
-						.values(upserts)
-						.onConflict((oc) =>
-							oc.column('id').doUpdateSet((eb) => ({
-								body: eb.ref('excluded.body'),
-								shapeId: eb.ref('excluded.shapeId'),
-								updatedAt: eb.ref('excluded.updatedAt'),
-							}))
-						)
-						.execute()
+					const insertRows = (rows: TlaComment[]) =>
+						this.db
+							.insertInto('comment')
+							.values(rows)
+							.onConflict((oc) =>
+								oc.column('id').doUpdateSet((eb) => ({
+									body: eb.ref('excluded.body'),
+									shapeId: eb.ref('excluded.shapeId'),
+									updatedAt: eb.ref('excluded.updatedAt'),
+								}))
+							)
+							.execute()
+					try {
+						await insertRows(upserts)
+					} catch (batchError) {
+						// A single bad row (e.g. an FK violation from a since-deleted user) must not
+						// drop the whole batch from the projection — retry row by row so only the
+						// genuinely bad rows are lost, and report those.
+						this.reportError(batchError)
+						for (const row of upserts) {
+							try {
+								await insertRows([row])
+							} catch (rowError) {
+								this.logEvent({
+									type: 'room',
+									roomId: slug,
+									name: 'failed_persist_comments_to_db',
+								})
+								this.reportError(rowError)
+							}
+						}
+					}
 				}
 				if (deletedIds.length > 0) {
 					await this.db.deleteFrom('comment').where('id', 'in', deletedIds).execute()
