@@ -70,8 +70,13 @@ function Control({
 		)
 	}
 
-	// Objects/arrays (e.g. a discriminated-union anchor) get a JSON editor rather than
-	// stringifying to "[object Object]" through the text input.
+	// A discriminated union: a select over the variants plus the current variant's fields.
+	if (argType?.control === 'union') {
+		return <UnionControl argType={argType} value={value} onValue={onValue} />
+	}
+
+	// Objects/arrays (e.g. an anchor) get a field-wise editor rather than stringifying
+	// to "[object Object]" through the text input.
 	if (argType?.control === 'object' || isObject(value)) {
 		return <ObjectControl value={value} onValue={onValue} />
 	}
@@ -111,12 +116,11 @@ function isObject(value: unknown): boolean {
 }
 
 /**
- * A field-wise editor for object/array args: each field gets a control inferred from
- * its value (numbers become number inputs, nested objects recurse through `Control`).
- * The control tree mirrors the data tree, so there's no JSON round-trip to fight.
+ * Render an object/array's fields as control rows: each field gets a control inferred
+ * from its value (numbers become number inputs, nested objects recurse through `Control`).
+ * `omit` skips a key (e.g. a union discriminant rendered separately).
  */
-function ObjectControl({ value, onValue }: { value: unknown; onValue(value: unknown): void }) {
-	const entries = Object.entries(value as Record<string, unknown>)
+function objectRows(value: unknown, onValue: (value: unknown) => void, omit?: string) {
 	const update = (key: string, next: unknown) => {
 		if (Array.isArray(value)) {
 			const clone = value.slice()
@@ -126,14 +130,45 @@ function ObjectControl({ value, onValue }: { value: unknown; onValue(value: unkn
 			onValue({ ...(value as Record<string, unknown>), [key]: next })
 		}
 	}
+	return Object.entries(value as Record<string, unknown>)
+		.filter(([key]) => key !== omit)
+		.map(([key, fieldValue]) => (
+			<label key={key} className="controls__object-row">
+				<span className="controls__object-key">{key}</span>
+				<Control argType={undefined} value={fieldValue} onValue={(next) => update(key, next)} />
+			</label>
+		))
+}
+
+/** A field-wise editor for object/array args. The control tree mirrors the data tree. */
+function ObjectControl({ value, onValue }: { value: unknown; onValue(value: unknown): void }) {
+	return <div className="controls__object">{objectRows(value, onValue)}</div>
+}
+
+/** A discriminated-union editor: a select over the variants, then the variant's fields. */
+function UnionControl({
+	argType,
+	value,
+	onValue,
+}: {
+	argType: { discriminant: string; variants: Record<string, unknown> }
+	value: unknown
+	onValue(value: unknown): void
+}) {
+	const current = String((value as Record<string, unknown>)[argType.discriminant] ?? '')
 	return (
 		<div className="controls__object">
-			{entries.map(([key, fieldValue]) => (
-				<label key={key} className="controls__object-row">
-					<span className="controls__object-key">{key}</span>
-					<Control argType={undefined} value={fieldValue} onValue={(next) => update(key, next)} />
-				</label>
-			))}
+			<label className="controls__object-row">
+				<span className="controls__object-key">{argType.discriminant}</span>
+				<select value={current} onChange={(e) => onValue(argType.variants[e.target.value])}>
+					{Object.keys(argType.variants).map((key) => (
+						<option key={key} value={key}>
+							{key}
+						</option>
+					))}
+				</select>
+			</label>
+			{objectRows(value, onValue, argType.discriminant)}
 		</div>
 	)
 }

@@ -37,6 +37,9 @@ export type ArgType =
 	| { control: 'date' }
 	| { control: 'select'; options: string[] }
 	| { control: 'object' }
+	/** A discriminated-union editor: a select over `variants` keyed by `discriminant`,
+	 *  swapping the whole value to a variant's default when the discriminant changes. */
+	| { control: 'union'; discriminant: string; variants: Record<string, unknown> }
 
 /** A forced interaction state, so a story can pin hover/active/focus without input. */
 export type PseudoState = 'hover' | 'active' | 'focus-visible'
