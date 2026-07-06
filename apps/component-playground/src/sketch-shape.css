@@ -15,12 +15,18 @@
 	align-items: center;
 	justify-content: center;
 	padding: 12px;
+	/* tldraw sets shape content to pointer-events:none so the canvas handles
+	   pan/select; opt component previews back in (as tldraw's own UI does) so
+	   hover/focus states work on the board. */
+	pointer-events: all;
 }
 
-/* a viewport scene fills the cell edge-to-edge, no padding or scaling */
+/* a viewport scene fills the cell edge-to-edge, no padding or scaling; keep it a
+   static preview on the board (the nested editor doesn't capture pointer events) */
 .sketch-shape__preview--fill {
 	padding: 0;
 	overflow: hidden;
+	pointer-events: none;
 }
 
 .sketch-shape__preview--fill > * {
