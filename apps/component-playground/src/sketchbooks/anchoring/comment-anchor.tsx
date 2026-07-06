@@ -4,6 +4,8 @@ import './comment-anchor.css'
 
 export interface CommentAnchorProps {
 	anchor: TLCommentAnchor
+	/** Whether the thread is open (pin + messages) or closed (just the pin). */
+	open: boolean
 }
 
 /**
@@ -11,13 +13,13 @@ export interface CommentAnchorProps {
  * plus the model-driven thread (pin + messages) anchored at it. The thread is the sample
  * thread with its anchor swapped, so the same conversation is shown attached five ways.
  */
-export function CommentAnchor({ anchor }: CommentAnchorProps) {
+export function CommentAnchor({ anchor, open }: CommentAnchorProps) {
 	const thread: CommentThread = { ...sampleThread, anchor }
 	return (
 		<div className="anchor-canvas">
 			{renderViz(anchor)}
 			<div className="anchor-pin" style={pinPosition(anchor)}>
-				<AnchoredComment thread={thread} comments={sampleComments} open />
+				<AnchoredComment thread={thread} comments={sampleComments} open={open} />
 			</div>
 		</div>
 	)

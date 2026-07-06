@@ -7,6 +7,9 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 		anchor: {
 			control: 'text',
 		},
+		open: {
+			control: 'boolean',
+		},
 	},
 	'sketchbooks/button.sketchbook.tsx': {
 		label: {
@@ -72,6 +75,9 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 	'sketchbooks/comments/comment-pin.sketchbook.tsx': {
 		number: {
 			control: 'number',
+		},
+		open: {
+			control: 'boolean',
 		},
 		resolved: {
 			control: 'boolean',

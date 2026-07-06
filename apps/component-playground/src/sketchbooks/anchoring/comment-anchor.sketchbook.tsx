@@ -22,17 +22,17 @@ const sketchbook: Sketchbook<CommentAnchorProps> = {
 export default sketchbook
 
 export const Shape: Sketch<CommentAnchorProps> = {
-	args: { anchor: { type: 'shape', shapeId: 'shape:box' } },
+	args: { anchor: { type: 'shape', shapeId: 'shape:box' }, open: true },
 }
 export const Point: Sketch<CommentAnchorProps> = {
-	args: { anchor: { type: 'point', x: 120, y: 90 } },
+	args: { anchor: { type: 'point', x: 120, y: 90 }, open: true },
 }
 export const Region: Sketch<CommentAnchorProps> = {
-	args: { anchor: { type: 'region', x: 60, y: 60, w: 180, h: 120 } },
+	args: { anchor: { type: 'region', x: 60, y: 60, w: 180, h: 120 }, open: true },
 }
 export const Page: Sketch<CommentAnchorProps> = {
-	args: { anchor: { type: 'page' } },
+	args: { anchor: { type: 'page' }, open: true },
 }
 export const TextRange: Sketch<CommentAnchorProps> = {
-	args: { anchor: { type: 'text-range', shapeId: 'shape:note', from: 16, to: 30 } },
+	args: { anchor: { type: 'text-range', shapeId: 'shape:note', from: 16, to: 30 }, open: true },
 }

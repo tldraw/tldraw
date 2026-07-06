@@ -7,5 +7,10 @@ const sketchbook: Sketchbook<CommentPinProps> = {
 }
 export default sketchbook
 
-export const Open: Sketch<CommentPinProps> = { args: { number: 3, resolved: false } }
+export const Closed: Sketch<CommentPinProps> = { args: { number: 3, resolved: false } }
+export const Hovered: Sketch<CommentPinProps> = {
+	args: { number: 3, resolved: false },
+	parameters: { pseudo: 'hover' },
+}
+export const Open: Sketch<CommentPinProps> = { args: { number: 3, resolved: false, open: true } }
 export const Resolved: Sketch<CommentPinProps> = { args: { number: 3, resolved: true } }
