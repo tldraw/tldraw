@@ -1,4 +1,5 @@
 import { Editor, Tldraw, createShapeId } from 'tldraw'
+import { PropertiesPanel } from './properties-panel'
 import { sketchbooks } from './registry'
 import { SketchShape, SketchShapeUtil } from './sketch-shape'
 
@@ -36,7 +37,7 @@ function layoutSketches(editor: Editor) {
 				parentId: frameId,
 				x: PAD + i * (CELL_W + GAP),
 				y: TITLE_H,
-				props: { w: CELL_W, h: CELL_H, sketchId: s.id },
+				props: { w: CELL_W, h: CELL_H, sketchId: s.id, args: { ...(s.sketch.args ?? {}) } },
 			})
 		})
 
@@ -50,7 +51,9 @@ function layoutSketches(editor: Editor) {
 export function CanvasStudio() {
 	return (
 		<div className="canvas-root">
-			<Tldraw shapeUtils={[SketchShapeUtil]} onMount={layoutSketches} />
+			<Tldraw shapeUtils={[SketchShapeUtil]} onMount={layoutSketches}>
+				<PropertiesPanel />
+			</Tldraw>
 		</div>
 	)
 }

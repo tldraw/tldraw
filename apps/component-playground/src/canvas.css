@@ -10,7 +10,30 @@ body,
 	height: 100%;
 }
 
+body {
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
 .canvas-root {
 	position: fixed;
 	inset: 0;
+}
+
+/* Figma-like properties panel for the selected instance */
+.properties-panel {
+	position: absolute;
+	top: 60px;
+	right: 12px;
+	width: 20rem;
+	z-index: 400;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.properties-panel__title {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.72rem;
+	color: #555;
+	padding: 0 4px;
 }

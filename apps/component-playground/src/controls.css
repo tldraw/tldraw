@@ -1,0 +1,41 @@
+/* Co-located with the Controls component so it styles wherever Controls renders
+   (the studio shell and the canvas properties panel), not just one view. */
+.controls {
+	background: #fff;
+	border: 1px solid #e4e4e4;
+	border-radius: 12px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+	padding: 1rem 1.25rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+
+.controls__empty {
+	color: #8a8a8a;
+	margin: 0;
+}
+
+.controls__row {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.controls__label {
+	width: 6rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.8rem;
+	color: #555;
+}
+
+.controls input[type='text'],
+.controls input[type='number'],
+.controls select {
+	flex: 1;
+	font: inherit;
+	padding: 0.35rem 0.5rem;
+	border: 1px solid #d0d0d0;
+	border-radius: 6px;
+	background: #fff;
+}

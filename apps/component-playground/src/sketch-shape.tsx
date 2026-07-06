@@ -2,15 +2,23 @@ import { HTMLContainer, Rectangle2d, ShapeUtil, T, TLBaseShape } from 'tldraw'
 import { sketchesById } from './registry'
 import { renderSketch } from './render-sketch'
 
-/** A canvas shape that renders one sketch instance by id. */
-export type SketchShape = TLBaseShape<'sketch', { w: number; h: number; sketchId: string }>
+/** A canvas shape that renders one sketch instance by id, with its own editable args. */
+export type SketchShape = TLBaseShape<
+	'sketch',
+	{ w: number; h: number; sketchId: string; args: Record<string, unknown> }
+>
 
 export class SketchShapeUtil extends ShapeUtil<SketchShape> {
 	static override type = 'sketch' as const
-	static override props = { w: T.number, h: T.number, sketchId: T.string }
+	static override props = {
+		w: T.number,
+		h: T.number,
+		sketchId: T.string,
+		args: T.dict(T.string, T.unknown),
+	}
 
 	getDefaultProps(): SketchShape['props'] {
-		return { w: 260, h: 160, sketchId: '' }
+		return { w: 260, h: 160, sketchId: '', args: {} }
 	}
 
 	getGeometry(shape: SketchShape) {
@@ -37,7 +45,11 @@ export class SketchShapeUtil extends ShapeUtil<SketchShape> {
 					overflow: 'hidden',
 				}}
 			>
-				{loaded ? renderSketch(loaded) : <span>unknown: {shape.props.sketchId}</span>}
+				{loaded ? (
+					renderSketch(loaded, shape.props.args)
+				) : (
+					<span>unknown: {shape.props.sketchId}</span>
+				)}
 			</HTMLContainer>
 		)
 	}

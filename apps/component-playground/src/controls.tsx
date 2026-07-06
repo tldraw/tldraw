@@ -1,3 +1,4 @@
+import './controls.css'
 import { LoadedSketch } from './registry'
 import { ArgType } from './sketch'
 
