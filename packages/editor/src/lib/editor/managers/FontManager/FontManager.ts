@@ -112,11 +112,16 @@ export class FontManager {
 			loadingPromise: instance
 				.load()
 				.then(() => {
+					// dispose() clears fontStates, so a font that finishes loading after
+					// disposal has no entry to update (and AtomMap.update throws on
+					// missing keys).
+					if (!this.fontStates.has(font)) return
 					this.editor.getContainerDocument().fonts.add(instance)
 					this.fontStates.update(font, (s) => ({ ...s, state: 'ready' }))
 				})
 				.catch((err) => {
 					console.error(err)
+					if (!this.fontStates.has(font)) return
 					this.fontStates.update(font, (s) => ({ ...s, state: 'error' }))
 				}),
 		}

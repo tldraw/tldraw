@@ -144,6 +144,49 @@ describe('FontManager', () => {
 		})
 	})
 
+	describe('dispose during font loading', () => {
+		it('does not throw when a font finishes loading after dispose', async () => {
+			const font = createMockFont()
+			let resolveLoad: () => void
+			;(global.FontFace as Mock).mockImplementationOnce(function (family: any) {
+				return {
+					family,
+					load: vi.fn(() => new Promise<void>((resolve) => (resolveLoad = resolve))),
+				}
+			})
+
+			const loadingPromise = fontManager.ensureFontIsLoaded(font)
+			fontManager.dispose()
+			resolveLoad!()
+
+			await expect(loadingPromise).resolves.toBeUndefined()
+			// only the creation-time add from findOrCreateFontFace, not a second
+			// post-load add after dispose
+			expect(document.fonts.add).toHaveBeenCalledTimes(1)
+		})
+
+		it('does not throw when a font fails to load after dispose', async () => {
+			const font = createMockFont()
+			const error = new Error('Font load failed')
+			let rejectLoad: (err: Error) => void
+			;(global.FontFace as Mock).mockImplementationOnce(function (family: any) {
+				return {
+					family,
+					load: vi.fn(() => new Promise<void>((_resolve, reject) => (rejectLoad = reject))),
+				}
+			})
+			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+			const loadingPromise = fontManager.ensureFontIsLoaded(font)
+			fontManager.dispose()
+			rejectLoad!(error)
+
+			await expect(loadingPromise).resolves.toBeUndefined()
+			expect(consoleSpy).toHaveBeenCalledWith(error)
+			consoleSpy.mockRestore()
+		})
+	})
+
 	describe('getShapeFontFaces', () => {
 		it('should return empty array when no fonts found', () => {
 			const shape = createMockShape()
