@@ -44,18 +44,22 @@ function renderViz(anchor: TLCommentAnchor) {
 	}
 }
 
-/** Where the thread's pin sits — kept to the left so the popover has room to the right. */
+/**
+ * Where the thread's pin sits: adjacent to the anchor's target (a shape's corner, a
+ * region's corner, the end of the text range), kept within the top-left quadrant so the
+ * popover (~324×200) always has room to the right and below, and never overflows.
+ */
 function pinPosition(anchor: TLCommentAnchor): { top: string; left: string } {
 	switch (anchor.type) {
 		case 'shape':
-			return { top: '30%', left: '26%' }
+			return { top: '20%', left: '25%' }
 		case 'region':
-			return { top: '24%', left: '26%' }
+			return { top: '18%', left: '28%' }
 		case 'text-range':
-			return { top: '42%', left: '20%' }
+			return { top: '15%', left: '26%' }
 		case 'point':
-			return { top: '28%', left: '22%' }
+			return { top: '22%', left: '22%' }
 		case 'page':
-			return { top: '18px', left: '18px' }
+			return { top: '16px', left: '16px' }
 	}
 }

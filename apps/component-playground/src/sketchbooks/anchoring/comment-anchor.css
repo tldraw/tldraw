@@ -1,7 +1,7 @@
 .anchor-canvas {
 	position: relative;
 	width: 560px;
-	height: 320px;
+	height: 380px;
 	background-color: var(--tl-color-background);
 	background-image: radial-gradient(var(--tl-color-divider) 1px, transparent 1px);
 	background-size: 22px 22px;
@@ -15,34 +15,34 @@
 	position: absolute;
 }
 
-/* shape anchor: a mock shape the pin rides */
+/* shape anchor: a mock shape the pin rides at its corner */
 .anchor-shape {
 	position: absolute;
-	top: 34%;
+	top: 22%;
 	left: 5%;
-	width: 24%;
-	height: 42%;
+	width: 20%;
+	height: 30%;
 	border: 2px solid var(--tl-color-text-1);
 	border-radius: 8px;
 	background: color-mix(in srgb, var(--tl-color-text-1) 6%, transparent);
 }
 
-/* region anchor: a rectangular area of the page */
+/* region anchor: a rectangular area of the page, pin at its corner */
 .anchor-region {
 	position: absolute;
-	top: 28%;
+	top: 20%;
 	left: 4%;
-	width: 28%;
-	height: 46%;
+	width: 24%;
+	height: 32%;
 	border: 2px dashed var(--tl-color-selected);
 	border-radius: 6px;
 	background: color-mix(in srgb, var(--tl-color-selected) 10%, transparent);
 }
 
-/* text-range anchor: a highlighted character range in a shape's text */
+/* text-range anchor: a highlighted character range, pin at the range */
 .anchor-text {
 	position: absolute;
-	top: 20%;
+	top: 9%;
 	left: 4%;
 	width: 30%;
 	margin: 0;
