@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/utils",
 	"description": "tldraw infinite canvas SDK (private utilities).",
-	"version": "5.1.1",
+	"version": "5.2.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -43,7 +43,6 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
-		"jittered-fractional-indexing": "^1.0.0",
 		"lodash.isequal": "^4.5.0",
 		"lodash.isequalwith": "^4.4.0",
 		"lodash.throttle": "^4.1.1",

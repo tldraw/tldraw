@@ -9,17 +9,10 @@
 	transform: translate(0px, 0px);
 	flex-direction: column;
 	flex: 0 0 auto;
-	padding: 3px 12px 0px 12px;
-	background: var(--tla-color-sidebar);
-	border-right: 1px solid transparent;
-	transition: transform 0.16s ease-in-out;
-}
-
-/* The workspaces UI (groups_frontend flag) restyles the sidebar to the new
-   design; the rules below must not leak to users without the flag. */
-.sidebar[data-workspaces='true'] {
 	padding: 0 0 4px 0;
+	background: var(--tla-color-sidebar);
 	border-right: 1px solid var(--tl-color-low, rgba(237, 240, 242, 1));
+	transition: transform 0.16s ease-in-out;
 }
 
 :global(.tl-container[dir='rtl']) .sidebar {
@@ -42,9 +35,6 @@
 }
 
 @media (min-width: 768px) {
-	.sidebar {
-		border-right: 1px solid var(--tl-color-low);
-	}
 	.sidebar[data-visible='true'] {
 		transform: translate(100%, 0px);
 		transition: transform 0.22s ease-out;
@@ -90,8 +80,8 @@
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 auto;
-	margin: 0px -12px;
-	padding: 2px 12px 40px 12px;
+	margin: 0;
+	padding: 0 12px 40px 12px;
 	overflow-y: scroll;
 	overflow-x: visible;
 	-ms-overflow-style: none; /* IE and Edge */
@@ -100,11 +90,6 @@
 
 .sidebarContent::-webkit-scrollbar {
 	display: none;
-}
-
-.sidebar[data-workspaces='true'] .sidebarContent {
-	margin: 0;
-	padding: 0 12px 40px 12px;
 }
 
 /* -------------------- Hoverable ------------------- */
@@ -213,20 +198,17 @@
 
 /* --------------------- Top area -------------------- */
 
+/* Figma: the logo section is 44px tall, the switcher section below it 48px
+   (8px padding + 32px trigger + 8px padding), putting the first divider at
+   92px. */
 .sidebarTopRow {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	flex: 0 0 auto;
-}
-
-/* Figma: the logo section is 44px tall, the switcher section below it 48px
-   (8px padding + 32px trigger + 8px padding), putting the first divider at
-   92px. */
-.sidebar[data-workspaces='true'] .sidebarTopRow {
 	height: 44px;
 	padding: 3px 8px 0px 4px;
-	gap: 8px;
+	gap: var(--tl-space-3);
 }
 
 /* Workspace link */
@@ -240,19 +222,15 @@
 	display: flex;
 	align-items: center;
 	padding-right: 6px;
-	padding-left: 8px;
+	/* The logo is 16px tall, with its mark centered on the same vertical axis as
+	   the action-row icons below. */
+	padding-left: 15.3px;
 	background-color: var(--tla-color-sidebar);
 	overflow: hidden;
 	padding-bottom: 1px;
 }
 
-/* In the workspaces layout the logo is 16px tall, with its mark centered on
-   the same vertical axis as the action-row icons below. */
-.sidebar[data-workspaces='true'] .sidebarWorkspaceButton {
-	padding-left: 15.3px;
-}
-
-.sidebar[data-workspaces='true'] .sidebarWorkspaceButton span[role='img'] {
+.sidebarWorkspaceButton span[role='img'] {
 	width: 64px;
 }
 
@@ -314,19 +292,12 @@
 	flex-direction: column;
 	flex: 0 0 auto;
 	margin-top: 0px;
-}
-
-.sidebar[data-workspaces='true'] .sidebarBottomArea {
 	padding: 0 12px;
 }
 
-/* Dividers are inset 12px from the sidebar edges. The bottom area's own
-   padding already provides the inset. */
-.sidebar[data-workspaces='true'] .sidebarDivider {
-	margin: 0 12px;
-}
-
-.sidebar[data-workspaces='true'] .sidebarBottomArea .sidebarDivider {
+/* The bottom area's own padding already provides the 12px inset, so its
+   dividers sit flush. */
+.sidebarBottomArea .sidebarDivider {
 	margin: 0px 0px 6px 0px;
 }
 
@@ -451,6 +422,13 @@
 
 .sidebarFileSectionWrapper {
 	margin-top: 8px;
+	margin-bottom: 28px;
+}
+
+/* When a section is the only one rendered (e.g. just "Today" or just "Older"),
+   its header is redundant, so hide it. */
+.sidebarFileSectionWrapper:only-child .sidebarFileSectionTitle {
+	display: none;
 }
 
 .sidebarFileSection {
@@ -462,17 +440,20 @@
 	position: relative;
 	width: 100%;
 	height: 36px;
-	padding: 0px 0px 0px 8px;
+	padding: 0px 8px;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	gap: 4px;
+	gap: var(--tl-space-2);
 	color: var(--tl-color-text-3);
+	font-weight: 500;
 }
 
-.sidebar[data-workspaces='true'] .sidebarFileSectionTitle {
-	padding: 0px 8px;
-	font-weight: 500;
+/* In dark mode, text-3 alone is too low-contrast on the darkest theme sidebars
+   (e.g. GitHub, One Dark, Flexoki); blend toward the primary text color to lift
+   the floor. Light themes keep plain text-3, where it reads fine and stays subtle. */
+:global(.tla-theme__dark) .sidebarFileSectionTitle {
+	color: color-mix(in srgb, var(--tl-color-text-3) 60%, var(--tl-color-text));
 }
 
 /* ----------------------------- Shared section ----------------------------- */
@@ -540,18 +521,26 @@
 }
 
 .sidebarWorkspaceSwitcherMenu {
-	min-width: max(260px, calc(var(--tla-sidebar-width) - 4px));
-	max-width: calc(var(--tla-sidebar-width) - 4px);
+	/* Width is enforced on the popper wrapper below. Use --radix-popper-anchor-width (the
+	   trigger width, which Radix sets on the portaled wrapper) — NOT --tla-sidebar-width,
+	   which is declared on the sidebar layout and does NOT reach this menu once it's portaled
+	   out into the editor container. The trigger spans the sidebar minus its 2×12px padding,
+	   so +24px brings it back to the full sidebar width (so the picker hangs ~8px over the
+	   edge). The wrapper is sized below; stretch the panel to fill it (it would otherwise
+	   hug the workspace names). Cap it so long names truncate rather than grow past it. */
+	width: 100%;
+	max-width: max(260px, calc(var(--radix-popper-anchor-width) + 24px));
 	max-height: 70vh;
 	overflow-y: auto;
 	padding: 2px 0px;
 }
 
-.sidebarWorkspaceSwitcherOverlay {
-	position: absolute;
-	inset: 0;
-	z-index: calc(var(--tl-layer-menus) - 1);
-	pointer-events: all;
+/* Like the select dropdown, popper writes `min-width: max-content` inline on the wrapper, so it
+   hugs its content; widen it to the trigger width here. !important is unavoidable: an inline
+   style outranks every selector, so it is the only way to override it. (A DropdownMenu is always
+   popper-positioned, so unlike the select there is no item-aligned alternative to weigh.) */
+:global([data-radix-popper-content-wrapper]):has(> .sidebarWorkspaceSwitcherMenu) {
+	min-width: max(260px, calc(var(--radix-popper-anchor-width) + 24px)) !important;
 }
 
 .sidebarWorkspaceSwitcherRoot {
@@ -782,16 +771,18 @@
 }
 
 .sidebarSearchEmpty {
-	padding: 8px;
+	padding: var(--tl-space-3);
 	color: var(--tl-color-text-3);
 }
 
-/* An 8px-tall block with the 1px line sitting in its middle. */
+/* An 8px-tall block with the 1px line sitting in its middle, inset 12px from
+   the sidebar edges. */
 .sidebarDivider {
 	height: 8px;
 	display: flex;
 	align-items: center;
 	flex: 0 0 auto;
+	margin: 0 12px;
 }
 
 .sidebarDivider::after {
@@ -815,10 +806,6 @@
 	flex-direction: row;
 	align-items: center;
 	height: 36px;
-	padding: 0px 8px 0px 8px;
-}
-
-.sidebar[data-workspaces='true'] .sidebarFileListItem {
 	padding: 0px 4px 0px 8px;
 }
 
@@ -844,7 +831,7 @@
 	flex-direction: row;
 	align-items: center;
 	justify-content: flex-start;
-	gap: 8px;
+	gap: var(--tl-space-3);
 	position: relative;
 	pointer-events: none;
 	z-index: 2;
@@ -858,9 +845,6 @@
 	text-overflow: ellipsis;
 	position: relative;
 	z-index: 1;
-}
-
-.sidebar[data-workspaces='true'] .sidebarFileListItemLabel {
 	color: var(--tl-color-text-0);
 }
 
@@ -881,7 +865,7 @@
 	justify-content: flex-start;
 	padding: 0px 8px 0px calc(8px + var(--tla-sidebar-group-item-padding-left, 0px));
 	outline-offset: -2px;
-	gap: 8px;
+	gap: var(--tl-space-3);
 	position: relative;
 }
 

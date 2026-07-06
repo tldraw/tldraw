@@ -1,5 +1,5 @@
 import { T } from '@tldraw/validate'
-import { b64Vecs } from '../misc/b64Vecs'
+import { DIM_2D, DIM_3D, b64Vecs } from '../misc/b64Vecs'
 import { VecModel } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -22,6 +22,12 @@ export interface TLDrawShapeSegment {
 	 * First point stored as Float32 (12 bytes) for precision, subsequent points as Float16 deltas (6 bytes each).
 	 */
 	path: string
+	/**
+	 * Encoding dimension of `path`. `2` means (x, y) only — the constant 0.5 pressure
+	 * was omitted, for input from devices that don't report pressure. `3` or absent
+	 * (the legacy default) means (x, y, z). Added in the `OmitNonPressureZ` migration.
+	 */
+	dim?: 2 | 3
 }
 
 /**
@@ -32,6 +38,7 @@ export interface TLDrawShapeSegment {
 export const DrawShapeSegment: T.ObjectValidator<TLDrawShapeSegment> = T.object({
 	type: T.literalEnum('free', 'straight'),
 	path: T.string,
+	dim: T.literalEnum(DIM_2D, DIM_3D).optional(),
 })
 
 /**
@@ -138,6 +145,7 @@ const Versions = createShapePropsMigrationIds('draw', {
 	AddScale: 2,
 	Base64: 3,
 	LegacyPointsConversion: 4,
+	OmitNonPressureZ: 5,
 })
 
 /**
@@ -237,6 +245,27 @@ export const drawShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (_props) => {
 				// handled by the previous down migration
+			},
+		},
+		{
+			id: Versions.OmitNonPressureZ,
+			up: (_props) => {
+				// No-op. Pre-existing segments have no `dim` field, which is exactly how
+				// the new schema reads them (3D). The validator now accepts the optional
+				// `dim`, so newer 2D segments validate as well — nothing to rewrite here.
+			},
+			down: (props) => {
+				// Older clients only understand 3D paths and reject the unknown `dim` field.
+				// Strip `dim` from every segment that carries it; a 2D segment is also
+				// re-encoded back to 3D (decode supplies z = 0.5), while a `dim: 3` segment
+				// already has a 3D path so we just drop the field.
+				props.segments = props.segments.map((segment: any) => {
+					if (segment.dim === undefined) return segment
+					const { dim, ...rest } = segment
+					return dim === DIM_2D
+						? { ...rest, path: b64Vecs.encodePoints(b64Vecs.decodePoints(segment.path, DIM_2D)) }
+						: rest
+				})
 			},
 		},
 	],

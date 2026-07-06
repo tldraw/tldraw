@@ -8,13 +8,13 @@ import {
 	TldrawUiTooltip,
 	isEqual,
 	preventDefault,
+	useContainer,
 	useMaybeEditor,
 	useMenuIsOpen,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
-import { useHasFlag } from '../../../hooks/useHasFlag'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../../hooks/useIsFilePinned'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -96,6 +96,7 @@ export function TlaSidebarFileLink({
 	}
 
 	const [_, handleOpenChange] = useMenuIsOpen(`file-context-menu-${fileId}`)
+	const container = useContainer()
 
 	return (
 		<_ContextMenu.Root onOpenChange={handleOpenChange} modal={false}>
@@ -114,19 +115,21 @@ export function TlaSidebarFileLink({
 					className={className}
 				/>
 			</_ContextMenu.Trigger>
-			<_ContextMenu.Content className="tlui-menu tlui-scrollable">
-				{/* Don't show the context menu on mobile */}
-				{!isMobile && (
-					<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
-						<FileItems
-							source="sidebar-context-menu"
-							fileId={fileId}
-							onRenameAction={handleRenameAction}
-							workspaceId={workspaceId}
-						/>
-					</TldrawUiMenuContextProvider>
-				)}
-			</_ContextMenu.Content>
+			<_ContextMenu.Portal container={container}>
+				<_ContextMenu.Content className="tlui-menu tlui-scrollable">
+					{/* Don't show the context menu on mobile */}
+					{!isMobile && (
+						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+							<FileItems
+								source="sidebar-context-menu"
+								fileId={fileId}
+								onRenameAction={handleRenameAction}
+								workspaceId={workspaceId}
+							/>
+						</TldrawUiMenuContextProvider>
+					)}
+				</_ContextMenu.Content>
+			</_ContextMenu.Portal>
 		</_ContextMenu.Root>
 	)
 }
@@ -200,8 +203,7 @@ export function TlaSidebarFileLinkInner({
 	const isCoarsePointer = getIsCoarsePointer()
 
 	const wrapperRef = useRef<HTMLDivElement>(null)
-	const workspacesEnabled = useHasFlag('groups_frontend')
-	const isDragEnabled = workspacesEnabled && !isCoarsePointer
+	const isDragEnabled = !isCoarsePointer
 
 	if (!file) return null
 

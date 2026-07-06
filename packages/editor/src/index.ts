@@ -23,10 +23,6 @@ export {
 	type TLErrorFallbackComponent,
 } from './lib/components/default-components/DefaultErrorFallback'
 export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
-export {
-	DefaultSelectionBackground,
-	type TLSelectionBackgroundProps,
-} from './lib/components/default-components/DefaultSelectionBackground'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
 export {
 	DefaultShapeWrapper,
@@ -106,6 +102,7 @@ export { ClickManager, type TLClickState } from './lib/editor/managers/ClickMana
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager/EdgeScrollManager'
 export { FontManager } from './lib/editor/managers/FontManager/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
+export { EditorManager } from './lib/editor/managers/EditorManager'
 export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
 export {
 	ScribbleManager,
@@ -322,7 +319,6 @@ export {
 	type SafeId,
 } from './lib/hooks/useSafeId'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
-export { useTransform } from './lib/hooks/useTransform'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
 	LicenseManager,
@@ -455,6 +451,7 @@ export {
 	getGlobalDocument,
 	getGlobalWindow,
 	loopToHtmlElement,
+	moveElementInto,
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,

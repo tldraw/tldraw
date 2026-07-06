@@ -40,19 +40,19 @@
 	padding: 24px 32px;
 	display: flex;
 	flex-direction: column;
-	gap: 32px;
+	gap: var(--tl-space-8);
 	overflow: auto;
 }
 
 .adminSection {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: var(--tl-space-5);
 }
 
 .searchContainer {
 	display: flex;
-	gap: 12px;
+	gap: var(--tl-space-4);
 	align-items: center;
 }
 
@@ -100,7 +100,7 @@
 
 .userActions {
 	display: flex;
-	gap: 12px;
+	gap: var(--tl-space-4);
 	align-items: center;
 }
 
@@ -116,7 +116,7 @@
 	background-color: var(--tl-color-low);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
-	padding: 16px;
+	padding: var(--tl-space-5);
 	font-family: 'IBMPlexMono', monospace;
 	font-size: 11px;
 	line-height: 1.4;
@@ -129,14 +129,14 @@
 .fileOperations {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: var(--tl-space-5);
 }
 
 .fileOperation {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
-	padding: 16px;
+	gap: var(--tl-space-4);
+	padding: var(--tl-space-5);
 	background-color: var(--tl-color-panel);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
@@ -144,15 +144,15 @@
 
 .downloadContainer {
 	display: flex;
-	gap: 12px;
+	gap: var(--tl-space-4);
 	align-items: center;
 }
 
 .dangerZone {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
-	padding: 16px;
+	gap: var(--tl-space-4);
+	padding: var(--tl-space-5);
 	background-color: var(--tl-color-panel);
 	border: 1px solid var(--tl-color-danger);
 	border-radius: var(--tl-radius-1);
@@ -160,7 +160,7 @@
 
 .deleteContainer {
 	display: flex;
-	gap: 12px;
+	gap: var(--tl-space-4);
 	align-items: center;
 }
 
@@ -171,7 +171,7 @@
 /* Progress Log */
 .progressLog {
 	margin-top: 16px;
-	padding: 16px;
+	padding: var(--tl-space-5);
 	background-color: var(--tl-color-low);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
@@ -196,7 +196,7 @@
 	background-color: var(--tl-color-selected-contrast);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
-	padding: 8px;
+	padding: var(--tl-space-3);
 }
 
 .logEntry {
@@ -215,7 +215,7 @@
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
+	gap: var(--tl-space-4);
 }
 
 .copyButton {
@@ -227,7 +227,7 @@
 
 /* User Summary */
 .userSummary {
-	padding: 16px;
+	padding: var(--tl-space-5);
 	background-color: var(--tl-color-panel);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-1);
@@ -236,13 +236,13 @@
 .summaryGrid {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	gap: 12px;
+	gap: var(--tl-space-4);
 }
 
 .summaryItem {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: var(--tl-space-2);
 }
 
 .fieldLabel {
@@ -264,8 +264,8 @@
 .migrationSection {
 	display: flex;
 	flex-direction: column;
-	gap: 12px;
-	padding: 16px;
+	gap: var(--tl-space-4);
+	padding: var(--tl-space-5);
 	background-color: var(--tl-color-panel);
 	border: 1px solid var(--tl-color-primary);
 	border-radius: var(--tl-radius-1);
@@ -275,15 +275,15 @@
 /* Stats Display */
 .statsContainer {
 	display: flex;
-	gap: 16px;
-	padding: 12px;
+	gap: var(--tl-space-5);
+	padding: var(--tl-space-4);
 	flex-wrap: wrap;
 }
 
 .statItem {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: var(--tl-space-2);
 }
 
 .statLabel {
@@ -302,7 +302,7 @@
 /* Count Container */
 .countContainer {
 	display: flex;
-	gap: 12px;
+	gap: var(--tl-space-4);
 	align-items: center;
 }
 
@@ -314,7 +314,7 @@
 /* Config Container */
 .configContainer {
 	display: flex;
-	gap: 16px;
+	gap: var(--tl-space-5);
 	flex-wrap: wrap;
 }
 
@@ -330,20 +330,20 @@
 .featureFlagsContainer {
 	display: flex;
 	flex-direction: column;
-	gap: 16px;
+	gap: var(--tl-space-5);
 	margin-top: 16px;
 }
 
 .featureFlagItem {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: var(--tl-space-4);
 }
 
 .featureFlagLabel {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: var(--tl-space-3);
 	cursor: pointer;
 	min-width: 200px;
 }

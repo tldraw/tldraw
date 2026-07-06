@@ -43,7 +43,7 @@
 	},
 	"dependencies": {
 		"@dimforge/rapier2d-compat": "^0.19.3",
-		"@playwright/test": "^1.58.2",
+		"@playwright/test": "^1.61.0",
 		"@tiptap/core": "^3.12.1",
 		"@tiptap/extension-font-family": "^3.12.1",
 		"@tiptap/extension-text-style": "^3.12.1",
@@ -73,7 +73,7 @@
 		"tldraw": "workspace:*",
 		"topojson-client": "^3.1.0",
 		"us-atlas": "^3.0.1",
-		"vite": "^8.0.1"
+		"vite": "^8.0.16"
 	},
 	"devDependencies": {
 		"@types/d3-geo": "^3.1.0",

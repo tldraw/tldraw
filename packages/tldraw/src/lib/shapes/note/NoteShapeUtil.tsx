@@ -178,7 +178,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			fontSizeAdjustment: 1,
 			url: '',
 			scale: 1,
-			textFirstEditedBy: null,
+			textLastEditedBy: null,
 		}
 	}
 
@@ -296,7 +296,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getReferencedUserIds(shape: TLNoteShape) {
-		return shape.props.textFirstEditedBy ? [shape.props.textFirstEditedBy] : []
+		return shape.props.textLastEditedBy ? [shape.props.textLastEditedBy] : []
 	}
 
 	override getFontFaces(shape: TLNoteShape) {
@@ -308,7 +308,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					style: 'normal',
 				})
 
-		if (shape.props.textFirstEditedBy && !isEmptyRichText(shape.props.richText)) {
+		if (shape.props.textLastEditedBy && !isEmptyRichText(shape.props.richText)) {
 			return [...fonts, DefaultFontFaces.tldraw_sans.normal.normal]
 		}
 		const themeFaces = getThemeFontFaces(this.editor.getCurrentTheme(), shape.props.font)
@@ -319,7 +319,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	component(shape: TLNoteShape) {
 		const { id, type, props } = shape
-		const { scale, richText, fontSizeAdjustment, textFirstEditedBy } = props
+		const { scale, richText, fontSizeAdjustment, textLastEditedBy } = props
 
 		const handleKeyDown = useNoteKeydownHandler(id)
 
@@ -346,12 +346,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const attribution = useValue(
 			'attribution',
 			() => {
-				if (!textFirstEditedBy || isEmpty) return null
-				const name = this.editor.getAttributionDisplayName(textFirstEditedBy)
+				if (!textLastEditedBy || isEmpty) return null
+				const name = this.editor.getAttributionDisplayName(textLastEditedBy)
 				if (!name) return null
 				return { short: name.split(' ')[0], full: name }
 			},
-			[textFirstEditedBy, isEmpty, this.editor]
+			[textLastEditedBy, isEmpty, this.editor]
 		)
 
 		return (
@@ -458,10 +458,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			),
 		})
 
-		const { textFirstEditedBy } = shape.props
+		const { textLastEditedBy } = shape.props
 		const attributionName =
-			textFirstEditedBy && !isEmptyRichText(shape.props.richText)
-				? (this.editor.getAttributionDisplayName(textFirstEditedBy)?.split(' ')[0] ?? null)
+			textLastEditedBy && !isEmptyRichText(shape.props.richText)
+				? (this.editor.getAttributionDisplayName(textLastEditedBy)?.split(' ')[0] ?? null)
 				: null
 
 		return (
@@ -534,12 +534,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			if (isEmptyRichText(next.props.richText)) {
 				shape = {
 					...shape,
-					props: { ...shape.props, textFirstEditedBy: null },
+					props: { ...shape.props, textLastEditedBy: null },
 				}
-			} else if (!prev.props.textFirstEditedBy) {
+			} else {
 				shape = {
 					...shape,
-					props: { ...shape.props, textFirstEditedBy: this.editor.getAttributionUserId() },
+					props: { ...shape.props, textLastEditedBy: this.editor.getAttributionUserId() },
 				}
 			}
 		}

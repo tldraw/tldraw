@@ -813,6 +813,7 @@ input,
 .tl-theme__dark .tl-rich-text mark {
 	background-color: var(--tl-color-text-highlight);
 	color: currentColor;
+	text-shadow: none;
 }
 
 @supports (color: color(display-p3 1 1 1)) {
@@ -983,6 +984,15 @@ input,
 	/* content-visibility: auto; */
 	transform-origin: top left;
 	color: var(--tl-color-text-1);
+}
+
+.tl-content-slot {
+	position: absolute;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+	transform-origin: top left;
 }
 
 /* -------------------- Group shape ------------------ */
