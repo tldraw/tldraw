@@ -39,24 +39,6 @@
 	background: color-mix(in srgb, var(--tl-color-selected) 10%, transparent);
 }
 
-/* text-range anchor: a highlighted character range, pin at the range */
-.anchor-text {
-	position: absolute;
-	top: 9%;
-	left: 4%;
-	width: 30%;
-	margin: 0;
-	font-size: 15px;
-	line-height: 1.5;
-}
-
-.anchor-mark {
-	background: color-mix(in srgb, var(--tl-color-selected) 28%, transparent);
-	color: inherit;
-	border-radius: 3px;
-	padding: 1px 2px;
-}
-
 /* page anchor: no spatial target — a page-level chip in the corner */
 .anchor-page {
 	position: absolute;

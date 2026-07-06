@@ -1,0 +1,29 @@
+.tra {
+	position: relative;
+	width: 560px;
+	height: 380px;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+/* the embedded tldraw editor fills the showcase */
+.tra .tl-container {
+	position: absolute;
+	inset: 0;
+}
+
+/* the measured highlight over the character range */
+.tra-highlight {
+	position: absolute;
+	background: color-mix(in srgb, var(--tl-color-selected) 28%, transparent);
+	border-radius: 3px;
+	pointer-events: none;
+	z-index: 100;
+}
+
+/* the pin sits at the end of the range; nudged to straddle it */
+.tra-pin {
+	position: absolute;
+	z-index: 101;
+	transform: translate(-8px, -10px);
+}
