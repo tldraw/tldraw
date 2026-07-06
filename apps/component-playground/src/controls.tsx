@@ -60,6 +60,16 @@ function Control({
 		)
 	}
 
+	if (argType?.control === 'date') {
+		return (
+			<input
+				type="datetime-local"
+				value={toDatetimeLocal(value)}
+				onChange={(e) => onValue(e.target.value ? new Date(e.target.value).toISOString() : '')}
+			/>
+		)
+	}
+
 	const control = argType?.control ?? inferControl(value)
 	if (control === 'boolean') {
 		return (
@@ -88,4 +98,12 @@ function inferControl(value: unknown): 'text' | 'number' | 'boolean' {
 	if (typeof value === 'boolean') return 'boolean'
 	if (typeof value === 'number') return 'number'
 	return 'text'
+}
+
+/** Convert an ISO datetime string to a `datetime-local` input value (local, no tz). */
+function toDatetimeLocal(value: unknown): string {
+	const date = new Date(String(value ?? ''))
+	if (Number.isNaN(date.getTime())) return ''
+	const pad = (n: number) => String(n).padStart(2, '0')
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
 }

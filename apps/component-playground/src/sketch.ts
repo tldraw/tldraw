@@ -34,6 +34,7 @@ export type ArgType =
 	| { control: 'text' }
 	| { control: 'number' }
 	| { control: 'boolean' }
+	| { control: 'date' }
 	| { control: 'select'; options: string[] }
 
 /**

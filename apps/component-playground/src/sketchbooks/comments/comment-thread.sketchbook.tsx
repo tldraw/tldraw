@@ -6,6 +6,10 @@ interface CommentThreadProps {
 	resolved: boolean
 }
 
+const NOW = Date.now()
+const HOUR = 3_600_000
+const ago = (ms: number) => new Date(NOW - ms).toISOString()
+
 // Composes the comment components into a thread — the kind of real composition the
 // playground exists to develop.
 function CommentThread({ resolved }: CommentThreadProps) {
@@ -18,10 +22,10 @@ function CommentThread({ resolved }: CommentThreadProps) {
 			<CommentCard
 				author="Ada Lovelace"
 				body="Should this button be primary?"
-				time="2h"
+				date={ago(2 * HOUR)}
 				you={false}
 			/>
-			<CommentCard author="You" body="Good call — updating it now." time="1h" you={true} />
+			<CommentCard author="You" body="Good call — updating it now." date={ago(HOUR)} you={true} />
 			<CommentComposer author="You" placeholder="Reply…" />
 		</div>
 	)

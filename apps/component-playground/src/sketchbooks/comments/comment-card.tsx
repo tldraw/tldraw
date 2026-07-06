@@ -6,17 +6,18 @@ import './comments.css'
 export interface CommentCardProps {
 	author: string
 	body: string
-	time: string
+	/** ISO datetime; formatted to relative time by the component. */
+	date: string
 	you: boolean
 }
 
 /** A single comment, composed from Avatar, Byline, and CommentText. */
-export function CommentCard({ author, body, time, you }: CommentCardProps) {
+export function CommentCard({ author, body, date, you }: CommentCardProps) {
 	return (
 		<div className={you ? 'cmt-card cmt-card--you' : 'cmt-card'}>
 			<Avatar name={author} />
 			<div className="cmt-body">
-				<Byline author={author} time={time} />
+				<Byline author={author} date={date} />
 				<CommentText text={body} />
 			</div>
 		</div>

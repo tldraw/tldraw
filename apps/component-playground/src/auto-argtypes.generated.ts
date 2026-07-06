@@ -21,7 +21,7 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 		author: {
 			control: 'text',
 		},
-		time: {
+		date: {
 			control: 'text',
 		},
 	},
@@ -32,7 +32,7 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 		body: {
 			control: 'text',
 		},
-		time: {
+		date: {
 			control: 'text',
 		},
 		you: {
