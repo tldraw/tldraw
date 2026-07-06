@@ -29,6 +29,9 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 		date: {
 			control: 'text',
 		},
+		edited: {
+			control: 'boolean',
+		},
 	},
 	'sketchbooks/comments/comment-card.sketchbook.tsx': {
 		author: {
@@ -39,6 +42,9 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 		},
 		date: {
 			control: 'text',
+		},
+		edited: {
+			control: 'boolean',
 		},
 		you: {
 			control: 'boolean',

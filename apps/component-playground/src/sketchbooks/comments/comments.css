@@ -43,6 +43,39 @@
 	color: var(--tl-color-text-1);
 }
 
+.cmt-edited {
+	font-style: italic;
+}
+
+/* rendered markdown inside a comment body */
+.cmt-text .md-p {
+	margin: 0;
+}
+
+.cmt-text .md-p + .md-p,
+.cmt-text .md-p + .md-list,
+.cmt-text .md-list + .md-p {
+	margin-top: 6px;
+}
+
+.cmt-text .md-list {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.cmt-text .md-code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.92em;
+	background: var(--tl-color-muted-2);
+	border-radius: 3px;
+	padding: 0 3px;
+}
+
+.cmt-text a {
+	color: var(--tl-color-selected);
+	text-decoration: underline;
+}
+
 .cmt-avatar {
 	width: 28px;
 	height: 28px;
