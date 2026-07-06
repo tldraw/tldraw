@@ -8,6 +8,7 @@ import {
 	TLBookmarkAsset,
 	TLBookmarkShape,
 	TLBookmarkShapeProps,
+	TLDefaultBorderStyle,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
 	lerp,
@@ -21,7 +22,7 @@ import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
-import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
+import { getMediaBorderStyle } from '../shared/mediaBorder'
 import {
 	BOOKMARK_HEIGHT,
 	BOOKMARK_WIDTH,
@@ -87,6 +88,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 			w: BOOKMARK_WIDTH,
 			h: BOOKMARK_HEIGHT,
 			assetId: null,
+			border: 'shadow',
 		}
 	}
 
@@ -99,11 +101,19 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override component(shape: TLBookmarkShape) {
-		const { assetId, url } = shape.props
+		const { assetId, url, border } = shape.props
 		const h = getBookmarkShapeHeight(this.editor, shape)
 		const rotation = this.editor.getShapePageTransform(shape)!.rotation()
 
-		return <BookmarkShapeComponent assetId={assetId} url={url} h={h} rotation={rotation} />
+		return (
+			<BookmarkShapeComponent
+				assetId={assetId}
+				url={url}
+				h={h}
+				rotation={rotation}
+				border={border}
+			/>
+		)
 	}
 
 	override getIndicatorPath(shape: TLBookmarkShape): Path2D {
@@ -113,7 +123,14 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override onBeforeCreate(next: TLBookmarkShape) {
-		return setBookmarkHeight(this.editor, next)
+		// New bookmarks always start with the shadow border. `border` is a shared
+		// style, so without this a new bookmark would inherit the last-used value
+		// from another shape (e.g. `lined` or `none`) rather than its own default.
+		const shape =
+			next.props.border === 'shadow'
+				? next
+				: { ...next, props: { ...next.props, border: 'shadow' as const } }
+		return setBookmarkHeight(this.editor, shape)
 	}
 
 	override onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape) {
@@ -149,12 +166,14 @@ export function BookmarkShapeComponent({
 	rotation,
 	url,
 	h,
+	border = 'shadow',
 	showImageContainer = true,
 }: {
 	assetId: TLAssetId | null
 	rotation: number
 	h: number
 	url: string
+	border?: TLDefaultBorderStyle
 	showImageContainer?: boolean
 }) {
 	const editor = useEditor()
@@ -184,7 +203,7 @@ export function BookmarkShapeComponent({
 					isSafariExport && 'tl-bookmark__container--safariExport'
 				)}
 				style={{
-					boxShadow: isSafariExport ? undefined : getRotatedBoxShadow(rotation),
+					...(isSafariExport ? undefined : getMediaBorderStyle(border, { rotation })),
 					maxHeight: h,
 				}}
 			>

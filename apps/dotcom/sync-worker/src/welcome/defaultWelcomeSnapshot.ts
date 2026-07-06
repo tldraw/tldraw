@@ -51,7 +51,7 @@ export const defaultWelcomeSnapshotJson = `{
 			"com.tldraw.asset.video": 5,
 			"com.tldraw.asset.bookmark": 2,
 			"com.tldraw.shape.arrow": 8,
-			"com.tldraw.shape.bookmark": 2,
+			"com.tldraw.shape.bookmark": 3,
 			"com.tldraw.shape.draw": 5,
 			"com.tldraw.shape.embed": 4,
 			"com.tldraw.shape.frame": 1,

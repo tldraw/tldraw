@@ -1090,6 +1090,7 @@ export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>;
 // @public
 export interface TLBookmarkShapeProps {
     assetId: null | TLAssetId;
+    border: TLDefaultBorderStyle;
     h: number;
     url: string;
     w: number;
