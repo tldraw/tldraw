@@ -8,6 +8,8 @@ const CELL_H = 280
 const GAP = 28
 const PAD = 40
 const TITLE_H = 44
+const COLS = 3 // max sketches per row inside a frame
+const MAX_ROW = 1500 // frames wrap to a new row past this width
 
 const namespaceOf = (title: string) => title.split('/')[0]
 
@@ -17,35 +19,53 @@ function frameName(title: string) {
 	return parts.length > 1 ? parts.slice(1).join('/') : title
 }
 
-// Lay a group of sketchbooks out as named frames stacked vertically, each holding
-// its sketches as instances in a row.
-function layoutGroup(editor: Editor, books: LoadedSketchbook[]) {
-	let y = PAD
-	for (const book of books) {
-		const n = book.sketches.length
-		const frameW = n * CELL_W + (n - 1) * GAP + PAD * 2
-		const frameH = TITLE_H + CELL_H + PAD
-		const frameId = createShapeId()
+function frameSize(count: number) {
+	const cols = Math.min(count, COLS)
+	const rows = Math.ceil(count / COLS)
+	const w = cols * CELL_W + (cols - 1) * GAP + PAD * 2
+	const h = TITLE_H + rows * CELL_H + (rows - 1) * GAP + PAD
+	return { w, h }
+}
 
+// Lay sketchbooks out as named frames: sketches wrap into a grid inside each frame,
+// and frames shelf-pack left-to-right, wrapping to a new row past MAX_ROW.
+function layoutGroup(editor: Editor, books: LoadedSketchbook[]) {
+	let cursorX = PAD
+	let cursorY = PAD
+	let rowHeight = 0
+
+	for (const book of books) {
+		const { w: frameW, h: frameH } = frameSize(book.sketches.length)
+
+		if (cursorX > PAD && cursorX + frameW > MAX_ROW) {
+			cursorX = PAD
+			cursorY += rowHeight + GAP
+			rowHeight = 0
+		}
+
+		const frameId = createShapeId()
 		editor.createShape({
 			id: frameId,
 			type: 'frame',
-			x: PAD,
-			y,
+			x: cursorX,
+			y: cursorY,
 			props: { w: frameW, h: frameH, name: frameName(book.title) },
 		})
 
 		book.sketches.forEach((s, i) => {
+			const col = i % COLS
+			const row = Math.floor(i / COLS)
 			editor.createShape<SketchShape>({
 				type: 'sketch',
 				parentId: frameId,
-				x: PAD + i * (CELL_W + GAP),
-				y: TITLE_H,
+				x: PAD + col * (CELL_W + GAP),
+				y: TITLE_H + row * (CELL_H + GAP),
 				props: { w: CELL_W, h: CELL_H, sketchId: s.id, args: { ...(s.sketch.args ?? {}) } },
 			})
 		})
 
-		y += frameH + GAP
+		cursorX += frameW + GAP
+		rowHeight = Math.max(rowHeight, frameH)
 	}
 }
 
