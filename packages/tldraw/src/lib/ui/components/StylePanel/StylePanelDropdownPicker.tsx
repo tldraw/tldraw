@@ -33,6 +33,8 @@ export interface StylePanelDropdownPickerProps<T extends string> {
 	 * Defaults to the standard popover gap so standalone dropdowns don't sit flush against the panel.
 	 */
 	sideOffset?: number
+	/** Is the dropdown an overflow of a different radio group? If so, show active when the group's active item is inside of the dropdown.*/
+	isOverflow?: boolean
 }
 
 function StylePanelDropdownPickerInner<T extends string>(props: StylePanelDropdownPickerProps<T>) {
@@ -56,6 +58,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 		label,
 		uiType,
 		stylePanelType,
+		isOverflow,
 		style,
 		items,
 		type,
@@ -102,6 +105,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 					type={type}
 					data-testid={`style.${testIdType}`}
 					data-direction="left"
+					isActive={isOverflow && valueInItems}
 					title={titleStr}
 				>
 					{labelStr && <TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>}
