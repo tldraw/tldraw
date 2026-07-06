@@ -1,6 +1,7 @@
 import { HTMLContainer, Rectangle2d, ShapeUtil, T, TLBaseShape } from 'tldraw'
 import { sketchesById } from './registry'
 import { renderSketch } from './render-sketch'
+import './sketch-shape.css'
 
 /** A canvas shape that renders one sketch instance by id, with its own editable args. */
 export type SketchShape = TLBaseShape<
@@ -33,23 +34,17 @@ export class SketchShapeUtil extends ShapeUtil<SketchShape> {
 		const loaded = sketchesById.get(shape.props.sketchId)
 		return (
 			<HTMLContainer
-				style={{
-					width: shape.props.w,
-					height: shape.props.h,
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'center',
-					background: 'var(--tl-color-panel)',
-					border: '1px solid var(--tl-color-divider)',
-					borderRadius: 8,
-					overflow: 'hidden',
-				}}
+				className="sketch-shape"
+				style={{ width: shape.props.w, height: shape.props.h }}
 			>
-				{loaded ? (
-					renderSketch(loaded, shape.props.args)
-				) : (
-					<span>unknown: {shape.props.sketchId}</span>
-				)}
+				<div className="sketch-shape__preview">
+					{loaded ? (
+						renderSketch(loaded, shape.props.args)
+					) : (
+						<span>unknown: {shape.props.sketchId}</span>
+					)}
+				</div>
+				{loaded && <div className="sketch-shape__label">{loaded.name}</div>}
 			</HTMLContainer>
 		)
 	}

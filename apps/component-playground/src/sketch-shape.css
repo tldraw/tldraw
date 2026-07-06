@@ -1,0 +1,28 @@
+/* The canvas card for one sketch instance: a preview area over a name caption. */
+.sketch-shape {
+	display: flex;
+	flex-direction: column;
+	background: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.sketch-shape__preview {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px;
+}
+
+.sketch-shape__label {
+	flex-shrink: 0;
+	padding: 6px 10px;
+	border-top: 1px solid var(--tl-color-divider);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+	text-align: center;
+}
