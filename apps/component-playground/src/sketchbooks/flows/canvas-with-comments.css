@@ -1,105 +1,64 @@
-/* A responsive editing scene. Responds to its own width via container queries, so the
-   same scene shown at mobile/tablet/desktop sizes adapts in situ. */
+/* A responsive editing scene built on the real tldraw editor. Responds to its own
+   width via container queries, so the same scene at mobile/tablet/desktop adapts in
+   situ (tldraw's own UI is responsive to its container too). */
 .scene {
 	width: 100%;
 	height: 100%;
 	container-type: inline-size;
 	display: flex;
-	flex-direction: column;
 	background: var(--tl-color-background);
 	color: var(--tl-color-text-1);
-	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 	overflow: hidden;
-}
-
-.scene__topbar {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding: 10px 16px;
-	border-bottom: 1px solid var(--tl-color-divider);
-	flex-shrink: 0;
-}
-
-.scene__title {
-	font-weight: 600;
-	font-size: 14px;
-}
-
-.scene__badge {
-	margin-left: auto;
-	font-size: 12px;
-	color: var(--tl-color-text-3);
-	background: var(--tl-color-muted-2);
-	padding: 3px 10px;
-	border-radius: 999px;
 }
 
 .scene__main {
 	flex: 1;
 	display: flex;
+	min-width: 0;
 	min-height: 0;
 }
 
 .scene__canvas {
-	flex: 1;
 	position: relative;
+	flex: 1;
+	min-width: 0;
 	overflow: hidden;
-	background-color: var(--tl-color-background);
-	background-image: radial-gradient(var(--tl-color-divider) 1px, transparent 1px);
-	background-size: 24px 24px;
+}
+
+/* the embedded tldraw editor fills the canvas area */
+.scene__canvas .tl-container {
+	position: absolute;
+	inset: 0;
+}
+
+/* comment pins overlaid on the canvas (non-blocking) */
+.scene__pins {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 100;
 }
 
 .scene__pin {
 	position: absolute;
 }
 
-.scene__toolbar {
-	position: absolute;
-	bottom: 20px;
-	left: 50%;
-	transform: translateX(-50%);
-	display: flex;
-	gap: 4px;
-	padding: 5px;
-	background: var(--tl-color-panel);
-	border: 1px solid var(--tl-color-divider);
-	border-radius: 12px;
-	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
-}
-
-.scene__tool {
-	width: 36px;
-	height: 36px;
-	border: 0;
-	background: transparent;
-	border-radius: 8px;
-	font-size: 16px;
-	cursor: pointer;
-	color: var(--tl-color-text-1);
-}
-
-.scene__tool--active {
-	background: var(--tl-color-selected);
-	color: #fff;
-}
-
-/* the sidebar is hidden by default (narrow / mobile: comments live behind the badge) */
+/* the sidebar is hidden on narrow viewports and docks on wide ones */
 .scene__sidebar {
 	display: none;
 	flex-shrink: 0;
+	width: 300px;
 	border-left: 1px solid var(--tl-color-divider);
 }
 
 .scene__sidebar .cmt-sidebar {
-	width: 300px;
+	width: 100%;
 	height: 100%;
 	border: 0;
 	border-radius: 0;
 	background: var(--tl-color-panel);
 }
 
-/* wide enough (tablet / desktop): dock the sidebar */
 @container (min-width: 720px) {
 	.scene__sidebar {
 		display: block;
