@@ -65,6 +65,27 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			control: 'boolean',
 		},
 	},
+	'sketchbooks/comments/empty-state.sketchbook.tsx': {
+		message: {
+			control: 'text',
+		},
+	},
+	'sketchbooks/comments/mention.sketchbook.tsx': {
+		name: {
+			control: 'text',
+		},
+	},
+	'sketchbooks/comments/reaction.sketchbook.tsx': {
+		active: {
+			control: 'boolean',
+		},
+		count: {
+			control: 'number',
+		},
+		emoji: {
+			control: 'text',
+		},
+	},
 	'sketchbooks/comments/send-button.sketchbook.tsx': {
 		label: {
 			control: 'text',
