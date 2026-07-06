@@ -3,6 +3,11 @@
 import { ArgType } from './sketch'
 
 export const autoArgTypes: Record<string, Record<string, ArgType>> = {
+	'sketchbooks/anchoring/comment-anchor.sketchbook.tsx': {
+		anchor: {
+			control: 'text',
+		},
+	},
 	'sketchbooks/button.sketchbook.tsx': {
 		label: {
 			control: 'text',
