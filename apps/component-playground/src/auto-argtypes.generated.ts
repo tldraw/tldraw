@@ -17,6 +17,17 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			options: ['default', 'primary'],
 		},
 	},
+	'sketchbooks/comments/anchored-comment.sketchbook.tsx': {
+		comments: {
+			control: 'text',
+		},
+		open: {
+			control: 'boolean',
+		},
+		thread: {
+			control: 'text',
+		},
+	},
 	'sketchbooks/comments/avatar.sketchbook.tsx': {
 		name: {
 			control: 'text',
