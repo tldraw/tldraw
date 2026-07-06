@@ -3,22 +3,14 @@ import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Env, SET_STATE } from './channel'
 import { EditorHarness, IsolatedHarness } from './harness'
-import { LoadedSketch, sketchesById } from './registry'
+import { sketchesById } from './registry'
+import { renderSketch } from './render-sketch'
 
 const DEFAULT_ENV: Env = { theme: 'light', locale: 'en' }
 
 // This module is the preview document embedded in the studio's iframe. It renders
 // exactly one sketch (chosen by the `?id=` query), inside a harness driven by the
 // theme/locale env, and re-renders from the args + env the shell pushes over the channel.
-function render(loaded: LoadedSketch, args: Record<string, unknown>) {
-	const { sketchbook, sketch } = loaded
-	if (sketch.render) return sketch.render(args)
-	if (sketchbook.component) {
-		const Component = sketchbook.component
-		return <Component {...args} />
-	}
-	return <em>This sketch has no component or render().</em>
-}
 
 function Preview() {
 	const id = new URLSearchParams(window.location.search).get('id') ?? undefined
@@ -42,7 +34,7 @@ function Preview() {
 
 	if (!loaded) return <p className="preview__missing">Unknown sketch: {id ?? '(none)'}</p>
 
-	const content = render(loaded, args)
+	const content = renderSketch(loaded, args)
 	if ((loaded.sketchbook.harness ?? 'isolated') === 'editor') {
 		return <EditorHarness env={env}>{content}</EditorHarness>
 	}

@@ -10,10 +10,12 @@ export default defineConfig({
 	root: path.join(__dirname, 'src'),
 	build: {
 		rollupOptions: {
-			// Two HTML entries: the studio shell and the sketch preview it iframes.
+			// HTML entries: the studio shell, the sketch preview it iframes, and the
+			// canvas view (all sketches laid out on a tldraw canvas).
 			input: {
 				index: path.join(__dirname, 'src/index.html'),
 				sketch: path.join(__dirname, 'src/sketch.html'),
+				canvas: path.join(__dirname, 'src/canvas.html'),
 			},
 		},
 	},
