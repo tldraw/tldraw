@@ -22,18 +22,18 @@ body {
 /* Figma-like properties panel for the selected instance */
 .properties-panel {
 	position: absolute;
-	top: 60px;
-	right: 12px;
-	width: 20rem;
+	top: 72px;
+	right: 16px;
+	width: 24rem;
 	z-index: 400;
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 10px;
 }
 
 .properties-panel__title {
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-	font-size: 0.72rem;
-	color: #555;
-	padding: 0 4px;
+	font-size: 0.75rem;
+	color: var(--tl-color-text-3, #555);
+	padding: 0 6px;
 }
