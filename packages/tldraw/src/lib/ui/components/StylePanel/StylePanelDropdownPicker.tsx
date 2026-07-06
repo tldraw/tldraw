@@ -122,7 +122,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 										' — ' +
 										msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
 									}
-									isActive={icon === item.icon}
+									isActive={valueInItems && icon === item.icon}
 									onClick={() => {
 										ctx.onHistoryMark('select style dropdown item')
 										onValueChange(style, item.value)
