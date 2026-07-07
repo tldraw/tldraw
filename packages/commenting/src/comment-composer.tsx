@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Avatar } from './avatar'
 import './comments.css'
 import { SendButton } from './send-button'
@@ -27,13 +28,26 @@ export function CommentComposer({
 	disabled,
 	autoFocus,
 }: CommentComposerProps) {
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	// Focus on the next frame rather than via the `autoFocus` attribute: the composer often
+	// mounts from a canvas pointer event whose default focus handling would otherwise steal it
+	// back, so we grab focus after that has run.
+	useEffect(() => {
+		if (!autoFocus) return
+		const el = inputRef.current
+		if (!el) return
+		const raf = requestAnimationFrame(() => el.focus())
+		return () => cancelAnimationFrame(raf)
+	}, [autoFocus])
+
 	return (
 		<div className="cmt-composer">
 			<Avatar name={author} />
 			<input
+				ref={inputRef}
 				className="cmt-input"
 				placeholder={placeholder}
-				autoFocus={autoFocus}
 				value={value}
 				onChange={onChange ? (e) => onChange(e.target.value) : undefined}
 				onKeyDown={

@@ -1,6 +1,6 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { CommentCard, CommentCardProps, CommentComposer, CommentPin } from '@tldraw/commenting'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	Editor,
 	TLComment,
@@ -52,6 +52,33 @@ export function CommentsOnCanvas() {
 		}
 	}, [])
 
+	// Resolve an author id to a display name: the current user from their preferences, other
+	// authors from live presence (each `user:<id>` presence record carries a userName). Falls
+	// back to "Someone" for an author who isn't the current user and isn't currently present.
+	const currentUserName = useValue(
+		'current user name',
+		() => {
+			if (!app) return 'You'
+			return app.tlUser.userPreferences.get().name || 'You'
+		},
+		[app]
+	)
+	const presenceNames = useValue(
+		'presence names',
+		() => {
+			const names = new Map<string, string>()
+			for (const p of editor.store.query.records('instance_presence').get()) {
+				if (p.userName) names.set(p.userId.replace(/^user:/, ''), p.userName)
+			}
+			return names
+		},
+		[editor]
+	)
+	const resolveName = useCallback(
+		(id: string) => (id === authorId ? currentUserName : (presenceNames.get(id) ?? 'Someone')),
+		[authorId, currentUserName, presenceNames]
+	)
+
 	return (
 		<>
 			{threads.map((thread) => (
@@ -61,6 +88,7 @@ export function CommentsOnCanvas() {
 					thread={thread}
 					focusedId={focusedId}
 					currentUserId={authorId}
+					resolveName={resolveName}
 				/>
 			))}
 			{pending && authorId && (
@@ -72,12 +100,15 @@ export function CommentsOnCanvas() {
 
 /**
  * Adapt a synced `TLComment` record to `CommentCard` props — the same "components consume the
- * model" boundary the studio uses. Author names aren't resolved on the canvas yet (the /comments
- * view joins them via Zero); the raw id stands in until that resolver is threaded through.
+ * model" boundary the studio uses. `resolveName` turns the record's author id into a display name.
  */
-function commentToCardProps(comment: TLComment, currentUserId: string | null): CommentCardProps {
+function commentToCardProps(
+	comment: TLComment,
+	resolveName: (id: string) => string,
+	currentUserId: string | null
+): CommentCardProps {
 	return {
-		author: comment.authorId,
+		author: resolveName(comment.authorId),
 		body: richTextToPlaintext(comment.body),
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === currentUserId,
@@ -109,11 +140,13 @@ function ThreadPin({
 	thread,
 	focusedId,
 	currentUserId,
+	resolveName,
 }: {
 	editor: Editor
 	thread: TLCommentThread
 	focusedId: string | null
 	currentUserId: string | null
+	resolveName(id: string): string
 }) {
 	const comments = useValue(
 		'thread comments',
@@ -172,7 +205,10 @@ function ThreadPin({
 					}}
 				>
 					{comments.map((comment) => (
-						<CommentCard key={comment.id} {...commentToCardProps(comment, currentUserId)} />
+						<CommentCard
+							key={comment.id}
+							{...commentToCardProps(comment, resolveName, currentUserId)}
+						/>
 					))}
 				</div>
 			)}
@@ -197,6 +233,21 @@ function ThreadComposer({
 		editor,
 		pending.point,
 	])
+
+	const composerRef = useRef<HTMLDivElement>(null)
+
+	// Dismiss the composer on a click anywhere outside it. Capture-phase so we see the
+	// pointerdown before the wrapper's stopPropagation (and before the editor consumes it).
+	useEffect(() => {
+		const onPointerDown = (e: PointerEvent) => {
+			const el = composerRef.current
+			if (el && !el.contains(e.target as Node)) {
+				pendingComment.set(null)
+			}
+		}
+		document.addEventListener('pointerdown', onPointerDown, true)
+		return () => document.removeEventListener('pointerdown', onPointerDown, true)
+	}, [])
 
 	const submit = () => {
 		const trimmed = text.trim()
@@ -229,6 +280,7 @@ function ThreadComposer({
 
 	return (
 		<div
+			ref={composerRef}
 			onPointerDown={(e) => e.stopPropagation()}
 			onKeyDown={(e) => {
 				if (e.key === 'Escape') pendingComment.set(null)
