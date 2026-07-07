@@ -1,0 +1,10 @@
+/* a fixed stage for positioning pins and a thread popover to reproduce a canvas scenario */
+.scenario {
+	position: relative;
+	width: 440px;
+	height: 320px;
+}
+.scenario__pin,
+.scenario__thread {
+	position: absolute;
+}
