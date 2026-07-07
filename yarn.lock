@@ -17284,9 +17284,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"component-playground@workspace:apps/component-playground":
+"component-studio@workspace:apps/component-studio":
   version: 0.0.0-use.local
-  resolution: "component-playground@workspace:apps/component-playground"
+  resolution: "component-studio@workspace:apps/component-studio"
   dependencies:
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"

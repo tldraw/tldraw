@@ -1,7 +1,7 @@
-# component-playground
+# component-studio
 
-A playground for developing tldraw UI components in isolation — a Storybook-like tool, as
-a separate **private** package that consumes the SDK across a real package boundary.
+A studio for developing tldraw UI components in isolation — a Storybook-like tool, as a
+separate **private** package that consumes the SDK across a real package boundary.
 
 Stories ("sketches") are authored as `*.sketchbook.tsx` files and discovered with zero
 registration. They can be viewed two ways: each isolated in an iframe with live controls
@@ -107,7 +107,7 @@ This runs a native typescript-go extractor over each component's props and write
 `src/auto-argtypes.generated.ts` (committed). Hand-authored `argTypes` override the
 generated baseline. The extractor binary lives outside this repo (default
 `~/src/tsgolint/extract-props`, override with `EXTRACT_PROPS_BIN`); the generated file is
-committed, so the playground runs without it.
+committed, so the studio runs without it.
 
 ## Harnesses and parameters
 

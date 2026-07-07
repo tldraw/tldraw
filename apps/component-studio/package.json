@@ -1,6 +1,6 @@
 {
-	"name": "component-playground",
-	"description": "A playground for developing tldraw UI components in isolation.",
+	"name": "component-studio",
+	"description": "A studio for developing tldraw UI components in isolation.",
 	"version": "0.0.0",
 	"private": true,
 	"license": "SEE LICENSE IN LICENSE.md",
