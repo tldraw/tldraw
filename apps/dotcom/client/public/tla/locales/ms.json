@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Adakah anda pasti mahu memadamkan ruang kerja ini? Tindakan ini tidak boleh dibuat asal."
-  },
   "0095a9fa74": {
     "translation": "Eksport"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Dapatkan bantuan tentang Discord"
   },
+  "454aad3b3c": {
+    "translation": "Adakah anda pasti mahu memadam <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Terima kasih kerana membantu kami meningkatkan tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Pin fail"
-  },
-  "4908687e50": {
-    "translation": "Adakah anda pasti mahu melupakan fail ini?"
   },
   "49ee308734": {
     "translation": "Nama"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Mempunyai pepijat, isu atau idea untuk tldraw? Beritahu kami! Isi borang ini dan kami akan membuat susulan melalui e-mel jika perlu. Anda juga boleh <discord>berbual dengan kami di Discord</discord> atau <github>menyerahkan isu pada GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Adakah anda pasti mahu melupakan <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Ahli"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Namakan semula"
+  },
+  "90646db02d": {
+    "translation": "Adakah anda pasti mahu memadam <strong>{workspaceName}</strong>? Tindakan ini tidak boleh dibuat asal."
   },
   "95aacd4d4a": {
     "translation": "Log masuk dengan Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Ketahui lebih lanjut tentang perkongsian."
-  },
-  "c28aed8348": {
-    "translation": "Benarkan <cookies>analitik</cookies> untuk membantu kami meningkatkan tldraw."
   },
   "c303bd1095": {
     "translation": "Tidak dapat menerbitkan fail."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Adakah anda pasti mahu meninggalkan ruang kerja ini?"
-  },
-  "fd1be3efcf": {
-    "translation": "Adakah anda pasti mahu memadamkan fail ini?"
   },
   "fed5ec05eb": {
     "translation": "pautan disalin"
