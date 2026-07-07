@@ -105,7 +105,8 @@ export function getTlsyncProtocolVersion(): number;
 
 // @public
 export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor({ snapshot, onChange }?: {
+    constructor({ snapshot, objectTypes, onChange }?: {
+        objectTypes?: readonly string[];
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot;
     });
@@ -119,7 +120,16 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
     // (undocumented)
     getClock(): number;
     // (undocumented)
+    getObjectsSnapshot(): RoomSnapshot['documents'];
+    // (undocumented)
     getSnapshot(): RoomSnapshot;
+    // @internal
+    objects: AtomMap<string, {
+        lastChangedClock: number;
+        state: R;
+    }>;
+    // @internal (undocumented)
+    readonly objectTypes: ReadonlySet<string>;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
     // @internal (undocumented)
@@ -263,6 +273,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Met
 export interface RoomSessionBase<R extends UnknownRecord, Meta> {
     isReadonly: boolean;
     meta: Meta;
+    objectAccess: TLObjectStoreAccess;
     presenceId: null | string;
     requiresLegacyRejection: boolean;
     sessionId: string;
@@ -305,6 +316,7 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
 export interface SessionStateSnapshot {
     // (undocumented)
     isReadonly: boolean;
+    objectAccess?: TLObjectStoreAccess;
     // (undocumented)
     presenceId: null | string;
     // (undocumented)
@@ -319,7 +331,8 @@ export interface SessionStateSnapshot {
 
 // @public
 export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor({ sql, snapshot, onChange }: {
+    constructor({ sql, snapshot, objectTypes, onChange }: {
+        objectTypes?: readonly string[];
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot | StoreSnapshot<R>;
         sql: TLSyncSqliteWrapper;
@@ -327,6 +340,8 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
     // (undocumented)
     getClock(): number;
     static getDocumentClock(storage: TLSyncSqliteWrapper): null | number;
+    // (undocumented)
+    getObjectsSnapshot(): RoomSnapshot['documents'];
     // @internal (undocumented)
     _getSchema(): SerializedSchema;
     // (undocumented)
@@ -334,6 +349,8 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
     // @internal (undocumented)
     _getTombstoneHistoryStartsAtClock(): number;
     static hasBeenInitialized(storage: TLSyncSqliteWrapper): boolean;
+    // @internal (undocumented)
+    readonly objectTypes: ReadonlySet<string>;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => void): () => void;
     // @internal (undocumented)
@@ -384,6 +401,9 @@ export const TLIncompatibilityReason: {
 
 // @internal @deprecated
 export type TLIncompatibilityReason = (typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason];
+
+// @public
+export type TLObjectStoreAccess = 'read' | 'write';
 
 // @public
 export interface TLPersistentClientSocket<ClientSentMessage extends object = object, ServerSentMessage extends object = object> {
@@ -448,6 +468,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     close(): void;
     closeSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     getCurrentDocumentClock(): number;
+    getCurrentObjectsSnapshot(): RoomSnapshot['documents'];
     // @deprecated
     getCurrentSnapshot(): RoomSnapshot;
     getNumActiveSessions(): number;
@@ -458,12 +479,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         isConnected: boolean;
         isReadonly: boolean;
         meta: SessionMeta;
+        objectAccess: TLObjectStoreAccess;
         sessionId: string;
     }>;
     getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
     handleSocketClose(sessionId: string): void;
     handleSocketConnect(opts: {
         isReadonly?: boolean;
+        objectAccess?: TLObjectStoreAccess;
         sessionId: string;
         socket: WebSocketMinimal;
     } & (SessionMeta extends void ? object : {
@@ -499,6 +522,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
     // (undocumented)
     log?: TLSyncLog;
+    objectTypes?: readonly string[];
     // (undocumented)
     onAfterReceiveMessage?: (args: {
         message: TLSocketServerSentEvent<R>;
@@ -512,6 +536,10 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
         meta: SessionMeta;
         sessionId: string;
         stringified: string;
+    }) => void;
+    onCommittedChanges?: (args: {
+        diff: TLSyncForwardDiff<R>;
+        documentClock: number;
     }) => void;
     // @deprecated (undocumented)
     onDataChange?(): void;
@@ -546,6 +574,7 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
 
 // @internal
 export type TLSocketServerSentEvent<R extends UnknownRecord> = {
+    objectAccess?: TLObjectStoreAccess;
     connectRequestId: string;
     diff: NetworkDiff<R>;
     hydrationType: 'wipe_all' | 'wipe_presence';
@@ -593,6 +622,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         didCancel?(): boolean;
         onAfterConnect?(self: TLSyncClient<R, S>, details: {
             isReadonly: boolean;
+            objectAccess: TLObjectStoreAccess;
         }): void;
         onCustomMessageReceived?: TLCustomMessageHandler;
         onLoad(self: TLSyncClient<R, S>): void;
@@ -653,6 +683,11 @@ export interface TLSyncLog {
 // @internal
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     constructor(opts: {
+        onCommittedChanges?(args: {
+            diff: TLSyncForwardDiff<R>;
+            documentClock: number;
+        }): void;
+        objectTypes?: readonly string[];
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;
@@ -678,12 +713,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     handleNewSession(opts: {
         isReadonly: boolean;
         meta: SessionMeta;
+        objectAccess?: TLObjectStoreAccess;
         sessionId: string;
         socket: TLRoomSocket<R>;
     }): this;
     handleResumedSession(opts: {
         isReadonly: boolean;
         meta: SessionMeta;
+        objectAccess?: TLObjectStoreAccess;
         presenceId: null | string;
         presenceRecord: null | UnknownRecord;
         requiresLegacyRejection: boolean;
@@ -695,6 +732,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     readonly internalTxnId = "TLSyncRoom.txn";
     isClosed(): boolean;
+    readonly objectTypes: Set<string>;
     // (undocumented)
     readonly presenceStore: PresenceStore<R>;
     // (undocumented)
@@ -735,7 +773,7 @@ export interface TLSyncSqliteWrapperConfig {
 export interface TLSyncStorage<R extends UnknownRecord> {
     // (undocumented)
     getClock(): number;
-    // (undocumented)
+    getObjectsSnapshot?(): RoomSnapshot['documents'];
     getSnapshot?(): RoomSnapshot;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;

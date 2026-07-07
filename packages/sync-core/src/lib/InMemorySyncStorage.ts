@@ -117,6 +117,14 @@ export const DEFAULT_INITIAL_SNAPSHOT = {
 export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
 	/** @internal */
 	documents: AtomMap<string, { state: R; lastChangedClock: number }>
+	/**
+	 * Object-store lane records, partitioned out of `documents` so they never appear in the
+	 * document snapshot. They share the same clock, tombstones, and transactions as documents.
+	 * @internal
+	 */
+	objects: AtomMap<string, { state: R; lastChangedClock: number }>
+	/** @internal */
+	readonly objectTypes: ReadonlySet<string>
 	/** @internal */
 	tombstones: AtomMap<string, number>
 	/** @internal */
@@ -133,22 +141,38 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 
 	constructor({
 		snapshot = DEFAULT_INITIAL_SNAPSHOT,
+		objectTypes,
 		onChange,
 	}: {
 		snapshot?: RoomSnapshot
+		/**
+		 * Record type names stored in the object-store lane. Records of these types are routed to
+		 * a separate partition: excluded from `getSnapshot()`, returned by `getObjectsSnapshot()`.
+		 */
+		objectTypes?: readonly string[]
 		onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown
 	} = {}) {
+		this.objectTypes = new Set(objectTypes ?? [])
 		const maxClockValue = Math.max(
 			0,
 			...Object.values(snapshot.tombstones ?? {}),
 			...Object.values(snapshot.documents.map((d) => d.lastChangedClock))
 		)
+		// route snapshot entries into their partitions (a seed snapshot may carry object-lane
+		// records merged in, e.g. loaded from a separate persistence lane)
+		const toEntry = (
+			d: RoomSnapshot['documents'][number]
+		): [string, { state: R; lastChangedClock: number }] => [
+			d.state.id,
+			{ state: devFreeze(d.state) as R, lastChangedClock: d.lastChangedClock },
+		]
 		this.documents = new AtomMap(
 			'room documents',
-			snapshot.documents.map((d) => [
-				d.state.id,
-				{ state: devFreeze(d.state) as R, lastChangedClock: d.lastChangedClock },
-			])
+			snapshot.documents.filter((d) => !this.objectTypes.has(d.state.typeName)).map(toEntry)
+		)
+		this.objects = new AtomMap(
+			'room objects',
+			snapshot.documents.filter((d) => this.objectTypes.has(d.state.typeName)).map(toEntry)
 		)
 		const documentClock = Math.max(maxClockValue, snapshot.documentClock ?? snapshot.clock ?? 0)
 
@@ -249,6 +273,8 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	)
 
 	getSnapshot(): RoomSnapshot {
+		// object-lane records live in their own partition, so the document snapshot is
+		// pure-document by construction
 		return {
 			tombstoneHistoryStartsAtClock: this.tombstoneHistoryStartsAtClock.get(),
 			documentClock: this.documentClock.get(),
@@ -256,6 +282,10 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 			tombstones: Object.fromEntries(this.tombstones.entries()),
 			schema: this.schema.get(),
 		}
+	}
+
+	getObjectsSnapshot(): RoomSnapshot['documents'] {
+		return Array.from(this.objects.values())
 	}
 }
 
@@ -297,9 +327,16 @@ class InMemorySyncStorageTransaction<
 		return this._clock
 	}
 
+	/** The partition a record with this id currently lives in, if any. */
+	private mapContaining(id: string) {
+		if (this.storage.documents.has(id)) return this.storage.documents
+		if (this.storage.objects.has(id)) return this.storage.objects
+		return undefined
+	}
+
 	get(id: string): R | undefined {
 		this.assertNotClosed()
-		return this.storage.documents.get(id)?.state
+		return (this.storage.documents.get(id) ?? this.storage.objects.get(id))?.state
 	}
 
 	set(id: string, record: R): void {
@@ -310,7 +347,11 @@ class InMemorySyncStorageTransaction<
 		if (this.storage.tombstones.has(id)) {
 			this.storage.tombstones.delete(id)
 		}
-		this.storage.documents.set(id, {
+		// route by type: object-lane records live in their own partition
+		const map = this.storage.objectTypes.has(record.typeName)
+			? this.storage.objects
+			: this.storage.documents
+		map.set(id, {
 			state: devFreeze(record) as R,
 			lastChangedClock: clock,
 		})
@@ -319,34 +360,43 @@ class InMemorySyncStorageTransaction<
 	delete(id: string): void {
 		this.assertNotClosed()
 		// Only create a tombstone if the record actually exists
-		if (!this.storage.documents.has(id)) return
+		const map = this.mapContaining(id)
+		if (!map) return
 		const clock = this.getNextClock()
-		this.storage.documents.delete(id)
+		map.delete(id)
 		this.storage.tombstones.set(id, clock)
 		this.storage.pruneTombstones()
 	}
 
+	// iteration spans both partitions so schema migrations cover object-lane records too
+
 	*entries(): IterableIterator<[string, R]> {
 		this.assertNotClosed()
-		for (const [id, record] of this.storage.documents.entries()) {
-			this.assertNotClosed()
-			yield [id, record.state]
+		for (const map of [this.storage.documents, this.storage.objects]) {
+			for (const [id, record] of map.entries()) {
+				this.assertNotClosed()
+				yield [id, record.state]
+			}
 		}
 	}
 
 	*keys(): IterableIterator<string> {
 		this.assertNotClosed()
-		for (const key of this.storage.documents.keys()) {
-			this.assertNotClosed()
-			yield key
+		for (const map of [this.storage.documents, this.storage.objects]) {
+			for (const key of map.keys()) {
+				this.assertNotClosed()
+				yield key
+			}
 		}
 	}
 
 	*values(): IterableIterator<R> {
 		this.assertNotClosed()
-		for (const record of this.storage.documents.values()) {
-			this.assertNotClosed()
-			yield record.state
+		for (const map of [this.storage.documents, this.storage.objects]) {
+			for (const record of map.values()) {
+				this.assertNotClosed()
+				yield record.state
+			}
 		}
 	}
 
@@ -370,10 +420,13 @@ class InMemorySyncStorageTransaction<
 		}
 		const diff: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
 		const wipeAll = sinceClock < this.storage.tombstoneHistoryStartsAtClock.get()
-		for (const doc of this.storage.documents.values()) {
-			if (wipeAll || doc.lastChangedClock > sinceClock) {
-				// For historical changes, we don't have "from" state, so use added
-				diff.puts[doc.state.id] = doc.state as R
+		// both partitions share the clock and tombstones, so the change feed spans both
+		for (const map of [this.storage.documents, this.storage.objects]) {
+			for (const doc of map.values()) {
+				if (wipeAll || doc.lastChangedClock > sinceClock) {
+					// For historical changes, we don't have "from" state, so use added
+					diff.puts[doc.state.id] = doc.state as R
+				}
 			}
 		}
 		if (!wipeAll) {

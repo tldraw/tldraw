@@ -2,6 +2,7 @@ import {
 	boolean,
 	createSchema,
 	enumeration,
+	json,
 	number,
 	relationships,
 	Row,
@@ -120,6 +121,27 @@ export const group_file = table('group_file')
 	})
 	.primaryKey('fileId', 'groupId')
 
+// Projected from the `comment` document record (see TLComment in tlschema) by the file's Durable
+// Object. Zero replicates these per user so the app-level /comments view can query comments across
+// all accessible files. The authoritative comment content lives in the file's R2 comment lane; the
+// in-document view reads from the file room. Clients never mutate this table (server-written only).
+// `body` is the comment's rich text (TLRichText JSON) — the projection preserves the authoritative
+// representation; consumers flatten to plaintext for display where needed.
+export const comment = table('comment')
+	.columns({
+		id: string(),
+		fileId: string(),
+		threadId: string(),
+		pageId: string(),
+		authorId: string(),
+		// only set for shape-anchored threads; other anchor kinds have no shape
+		shapeId: string().optional(),
+		body: json(),
+		createdAt: number(),
+		updatedAt: number(),
+	})
+	.primaryKey('id')
+
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
 		sourceField: ['ownerId'],
@@ -205,6 +227,19 @@ const groupFileRelationships = relationships(group_file, ({ one, many }) => ({
 	}),
 }))
 
+const commentRelationships = relationships(comment, ({ one }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+	author: one({
+		sourceField: ['authorId'],
+		destField: ['id'],
+		destSchema: user,
+	}),
+}))
+
 export type TlaFilePartial = Partial<TlaFile> & {
 	id: TlaFile['id']
 }
@@ -231,7 +266,18 @@ export type TlaGroupFilePartial = Partial<TlaGroupFile> & {
 	groupId: TlaGroupFile['groupId']
 }
 
-export type TlaRow = TlaFile | TlaFileState | TlaUser | TlaGroup | TlaGroupUser | TlaGroupFile
+export type TlaCommentPartial = Partial<TlaComment> & {
+	id: TlaComment['id']
+}
+
+export type TlaRow =
+	| TlaFile
+	| TlaFileState
+	| TlaUser
+	| TlaGroup
+	| TlaGroupUser
+	| TlaGroupFile
+	| TlaComment
 export type TlaRowPartial =
 	| TlaFilePartial
 	| TlaFileStatePartial
@@ -239,6 +285,7 @@ export type TlaRowPartial =
 	| TlaGroupPartial
 	| TlaGroupUserPartial
 	| TlaGroupFilePartial
+	| TlaCommentPartial
 export interface TlaUserMutationNumber {
 	userId: string
 	mutationNumber: number
@@ -292,16 +339,18 @@ export interface DB {
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 	welcome_template: TlaWelcomeTemplate
+	comment: TlaComment
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state, group, group_user, group_file],
+	tables: [user, file, file_state, group, group_user, group_file, comment],
 	relationships: [
 		fileRelationships,
 		fileStateRelationships,
 		groupRelationships,
 		groupUserRelationships,
 		groupFileRelationships,
+		commentRelationships,
 	],
 })
 
@@ -312,6 +361,7 @@ export type TlaFileState = Row<typeof schema.tables.file_state>
 export type TlaGroup = Row<typeof schema.tables.group>
 export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>
+export type TlaComment = Row<typeof schema.tables.comment>
 
 // Permissions are now handled via Synced Queries in queries.ts
 

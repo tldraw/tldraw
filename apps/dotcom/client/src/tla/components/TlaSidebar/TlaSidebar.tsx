@@ -10,6 +10,7 @@ import {
 	useIsSidebarOpen,
 	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
+import { TlaSidebarCommentsButton } from './components/TlaSidebarCommentsButton'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
 import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
@@ -79,7 +80,10 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			>
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
-					<TlaSidebarCreateFileButton />
+					<div style={{ display: 'flex', alignItems: 'center' }}>
+						<TlaSidebarCommentsButton />
+						<TlaSidebarCreateFileButton />
+					</div>
 				</div>
 				{/* The workspace switcher is fixed; only the file list below it scrolls. */}
 				<TlaSidebarWorkspaceSwitcher />
