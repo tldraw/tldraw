@@ -1,0 +1,66 @@
+/* A responsive editing scene built on the real tldraw editor. Responds to its own
+   width via container queries, so the same scene at mobile/tablet/desktop adapts in
+   situ (tldraw's own UI is responsive to its container too). */
+.scene {
+	width: 100%;
+	height: 100%;
+	container-type: inline-size;
+	display: flex;
+	background: var(--tl-color-background);
+	color: var(--tl-color-text-1);
+	overflow: hidden;
+}
+
+.scene__main {
+	flex: 1;
+	display: flex;
+	min-width: 0;
+	min-height: 0;
+}
+
+.scene__canvas {
+	position: relative;
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+}
+
+/* the embedded tldraw editor fills the canvas area */
+.scene__canvas .tl-container {
+	position: absolute;
+	inset: 0;
+}
+
+/* comment pins overlaid on the canvas (non-blocking) */
+.scene__pins {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 100;
+}
+
+.scene__pin {
+	position: absolute;
+}
+
+/* the sidebar is hidden on narrow viewports and docks on wide ones */
+.scene__sidebar {
+	display: none;
+	flex-shrink: 0;
+	width: 300px;
+	border-left: 1px solid var(--tl-color-divider);
+}
+
+.scene__sidebar .cmt-sidebar {
+	width: 100%;
+	height: 100%;
+	border: 0;
+	border-radius: 0;
+	background: var(--tl-color-panel);
+}
+
+@container (min-width: 720px) {
+	.scene__sidebar {
+		display: block;
+	}
+}

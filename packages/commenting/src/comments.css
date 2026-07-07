@@ -1,0 +1,347 @@
+/* Real comment UI components. Co-located so styles travel to any view (studio,
+   canvas), and themed via tldraw's --tl-color tokens so they follow light/dark. */
+.cmt-card {
+	display: flex;
+	gap: 10px;
+	padding: 12px;
+	width: 260px;
+	background: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 12px;
+}
+
+.cmt-card--you {
+	border-color: var(--tl-color-selected);
+}
+
+.cmt-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.cmt-head {
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+}
+
+.cmt-author {
+	font-weight: 600;
+	font-size: 13px;
+	color: var(--tl-color-text-1);
+}
+
+.cmt-time {
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+}
+
+.cmt-text {
+	margin: 3px 0 0;
+	font-size: 13px;
+	line-height: 1.4;
+	color: var(--tl-color-text-1);
+}
+
+.cmt-edited {
+	font-style: italic;
+}
+
+/* rendered markdown inside a comment body */
+.cmt-text .md-p {
+	margin: 0;
+}
+
+.cmt-text .md-p + .md-p,
+.cmt-text .md-p + .md-list,
+.cmt-text .md-list + .md-p {
+	margin-top: 6px;
+}
+
+.cmt-text .md-list {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.cmt-text .md-code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.92em;
+	background: var(--tl-color-muted-2);
+	border-radius: 3px;
+	padding: 0 3px;
+}
+
+.cmt-text a {
+	color: var(--tl-color-selected);
+	text-decoration: underline;
+}
+
+.cmt-avatar {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: var(--tl-color-selected);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+	font-weight: 600;
+	flex-shrink: 0;
+}
+
+/* composer */
+.cmt-composer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 6px 6px 8px;
+	width: 280px;
+	background: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 999px;
+}
+
+.cmt-composer:focus-within {
+	border-color: var(--tl-color-selected);
+}
+
+.cmt-input {
+	flex: 1;
+	min-width: 0;
+	border: 0;
+	background: transparent;
+	font: inherit;
+	font-size: 13px;
+	color: var(--tl-color-text-1);
+	outline: none;
+}
+
+.cmt-send {
+	border: 0;
+	border-radius: 999px;
+	background: var(--tl-color-selected);
+	color: #fff;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 6px 12px;
+	cursor: pointer;
+}
+
+.cmt-send:hover,
+.pseudo-hover .cmt-send {
+	background: color-mix(in srgb, var(--tl-color-selected) 88%, black);
+}
+
+.cmt-send:active,
+.pseudo-active .cmt-send {
+	background: color-mix(in srgb, var(--tl-color-selected) 78%, black);
+}
+
+.cmt-send:focus-visible,
+.pseudo-focus-visible .cmt-send {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+}
+
+.cmt-send:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+/* pin */
+.cmt-pin {
+	width: 34px;
+	height: 34px;
+	border-radius: 50% 50% 50% 3px;
+	background: var(--tl-color-selected);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	font-weight: 600;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+	cursor: pointer;
+	transition:
+		transform 0.08s ease,
+		box-shadow 0.08s ease;
+}
+
+.cmt-pin:hover,
+.pseudo-hover .cmt-pin {
+	transform: scale(1.08);
+	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
+}
+
+/* open: the thread is showing — a selection ring marks the active pin */
+.cmt-pin--open {
+	box-shadow:
+		0 0 0 3px var(--tl-color-panel),
+		0 0 0 5px var(--tl-color-selected),
+		0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.cmt-pin--resolved {
+	background: var(--tl-color-muted-1);
+}
+
+/* thread */
+.cmt-thread {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 300px;
+}
+
+.cmt-thread__head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tl-color-text-3);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.cmt-badge {
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: none;
+	letter-spacing: 0;
+	color: #fff;
+	background: var(--tl-color-muted-1);
+	padding: 1px 6px;
+	border-radius: 999px;
+}
+
+/* reactions */
+.cmt-reactions {
+	display: flex;
+	gap: 6px;
+}
+
+.cmt-reaction {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 3px 9px;
+	border-radius: 999px;
+	border: 1px solid var(--tl-color-divider);
+	background: var(--tl-color-panel);
+	font: inherit;
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+}
+
+.cmt-reaction:hover,
+.pseudo-hover .cmt-reaction {
+	border-color: var(--tl-color-selected);
+}
+
+.cmt-reaction--active {
+	border-color: var(--tl-color-selected);
+	background: color-mix(in srgb, var(--tl-color-selected) 12%, var(--tl-color-panel));
+}
+
+.cmt-reaction__count {
+	color: var(--tl-color-text-3);
+}
+
+.cmt-reaction--add {
+	color: var(--tl-color-text-3);
+	font-weight: 600;
+}
+
+/* mention */
+.cmt-mention {
+	color: var(--tl-color-selected);
+	font-weight: 600;
+	background: color-mix(in srgb, var(--tl-color-selected) 12%, transparent);
+	padding: 0 4px;
+	border-radius: 4px;
+}
+
+/* empty state */
+.cmt-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 24px;
+	text-align: center;
+	width: 240px;
+}
+
+.cmt-empty__icon {
+	font-size: 28px;
+}
+
+.cmt-empty__message {
+	margin: 0;
+	color: var(--tl-color-text-3);
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+/* sidebar — the full comments panel */
+.cmt-sidebar {
+	display: flex;
+	flex-direction: column;
+	width: 320px;
+	height: 480px;
+	background: var(--tl-color-background);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.cmt-sidebar__header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+.cmt-sidebar__title {
+	font-weight: 600;
+	font-size: 14px;
+	color: var(--tl-color-text-1);
+}
+
+.cmt-sidebar__count {
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+	background: var(--tl-color-muted-2);
+	padding: 1px 7px;
+	border-radius: 999px;
+}
+
+.cmt-sidebar__body {
+	flex: 1;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px;
+}
+
+.cmt-sidebar__body:has(.cmt-empty) {
+	align-items: center;
+	justify-content: center;
+}
+
+.cmt-sidebar__footer {
+	padding: 12px;
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+/* inside the sidebar, the cards and composer fill the panel width */
+.cmt-sidebar .cmt-card,
+.cmt-sidebar .cmt-composer {
+	width: 100%;
+}

@@ -1,0 +1,26 @@
+/* an anchored comment: pin + its thread popover */
+.cmt-anchored {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+}
+
+.cmt-thread-popover {
+	width: 280px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px;
+	background: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 12px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.cmt-resolved-banner {
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+	background: var(--tl-color-muted-2);
+	border-radius: 6px;
+	padding: 4px 8px;
+}
