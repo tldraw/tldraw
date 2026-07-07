@@ -1,3 +1,4 @@
+import { TlButton, TlButtonIcon, TlButtonLabel } from '@tldraw/ui'
 import {
 	DefaultStylePanel,
 	DefaultStylePanelContent,
@@ -7,13 +8,11 @@ import {
 	TLShape,
 	TLUiStylePanelProps,
 	Tldraw,
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	TldrawUiButtonLabel,
 	useEditor,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 
 type ShapeWithRichText = ExtractShapeByProps<{ richText: TLRichText }>
 
@@ -167,18 +166,20 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 
 	return (
 		<DefaultStylePanel {...props}>
-			<div className="tlui-style-panel__section">
-				<TldrawUiButton
-					type="menu"
-					data-isactive={allBold}
-					onClick={handleToggleBold}
-					title="Bold all text in selected shapes"
-					disabled={!hasRichTextSelection}
-				>
-					<TldrawUiButtonIcon icon="bold" />
-					<TldrawUiButtonLabel>Bold All Text</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			</div>
+			<ExampleTlUiProvider>
+				<div className="tlui-style-panel__section">
+					<TlButton
+						type="menu"
+						isActive={allBold}
+						onClick={handleToggleBold}
+						title="Bold all text in selected shapes"
+						disabled={!hasRichTextSelection}
+					>
+						<TlButtonIcon icon="bold" />
+						<TlButtonLabel>Bold All Text</TlButtonLabel>
+					</TlButton>
+				</div>
+			</ExampleTlUiProvider>
 			<DefaultStylePanelContent />
 		</DefaultStylePanel>
 	)

@@ -1,5 +1,7 @@
+import { TlButton } from '@tldraw/ui'
 import { useEffect, useRef, useState } from 'react'
-import { EASINGS, Editor, TLShape, TldrawUiButton, track, useEditor } from 'tldraw'
+import { EASINGS, Editor, TLShape, track, useEditor } from 'tldraw'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 import { showSearch } from './TextSearchExample'
 
 interface SearchResult {
@@ -53,28 +55,30 @@ export const TextSearchPanel = track(() => {
 
 	const results = getShapesWithText(editor, searchText)
 	return (
-		<div
-			className="text-search-panel scroll-light"
-			onPointerDown={editor.markEventAsHandled}
-			onKeyDown={keyDown}
-		>
-			<input
-				className="text-search-input"
-				ref={inputRef}
-				onChange={(e) => setSearchText(e.target.value)}
-			></input>
-			{results.map((result) => {
-				return (
-					<TldrawUiButton
-						key={'text-search-panel-button:' + result.shape.id}
-						type="normal"
-						className="text-search-panel-button"
-						onClick={() => moveToShape(editor, result.shape)}
-					>
-						{result.text}
-					</TldrawUiButton>
-				)
-			})}
-		</div>
+		<ExampleTlUiProvider>
+			<div
+				className="text-search-panel scroll-light"
+				onPointerDown={editor.markEventAsHandled}
+				onKeyDown={keyDown}
+			>
+				<input
+					className="text-search-input"
+					ref={inputRef}
+					onChange={(e) => setSearchText(e.target.value)}
+				></input>
+				{results.map((result) => {
+					return (
+						<TlButton
+							key={'text-search-panel-button:' + result.shape.id}
+							type="normal"
+							className="text-search-panel-button"
+							onClick={() => moveToShape(editor, result.shape)}
+						>
+							{result.text}
+						</TlButton>
+					)
+				})}
+			</div>
+		</ExampleTlUiProvider>
 	)
 })

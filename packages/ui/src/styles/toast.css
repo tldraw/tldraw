@@ -45,8 +45,10 @@
 	}
 }
 
+/* Fixed positioning: the .tl-ui root can be any element, so toasts pin to the
+   viewport rather than the provider's own box. */
 .tl-ui .tl-toast__viewport {
-	position: absolute;
+	position: fixed;
 	inset: 0px;
 	margin: 0px;
 	display: flex;

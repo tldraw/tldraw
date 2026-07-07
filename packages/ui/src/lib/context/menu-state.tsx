@@ -2,12 +2,12 @@ import { atom, Atom } from '@tldraw/state'
 import { useValue } from '@tldraw/state-react'
 import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useState } from 'react'
 
-interface TlMenuStateContextValue {
+interface TlMenuStateProviderContextValue {
 	openMenusAtom: Atom<Set<string>>
 	onMenuOpenChange?(id: string, isOpen: boolean): void
 }
 
-const TlMenuStateContext = createContext<TlMenuStateContextValue | null>(null)
+const TlMenuStateContext = createContext<TlMenuStateProviderContextValue | null>(null)
 
 /** @public */
 export interface TlMenuStateProviderProps {
@@ -77,4 +77,53 @@ export function useTlIsAnyMenuOpen(): boolean {
 		},
 		[ctx]
 	)
+}
+
+/** @public */
+export interface TlMenuStateContextValue {
+	openMenu(id: string): void
+	closeMenu(id: string): void
+	isMenuOpen(id: string): boolean
+}
+
+/** @public */
+export function useTlMenuState(): TlMenuStateContextValue {
+	const ctx = useContext(TlMenuStateContext)
+
+	if (!ctx) {
+		throw new Error('useTlMenuState must be used within a TlMenuStateProvider')
+	}
+
+	const openMenu = useCallback(
+		(id: string) => {
+			ctx.openMenusAtom.update((prev: Set<string>) => {
+				const next = new Set(prev)
+				next.add(id)
+				return next
+			})
+			ctx.onMenuOpenChange?.(id, true)
+		},
+		[ctx]
+	)
+
+	const closeMenu = useCallback(
+		(id: string) => {
+			ctx.openMenusAtom.update((prev: Set<string>) => {
+				const next = new Set(prev)
+				next.delete(id)
+				return next
+			})
+			ctx.onMenuOpenChange?.(id, false)
+		},
+		[ctx]
+	)
+
+	const isMenuOpen = useCallback(
+		(id: string) => {
+			return ctx.openMenusAtom.get().has(id)
+		},
+		[ctx]
+	)
+
+	return { openMenu, closeMenu, isMenuOpen }
 }

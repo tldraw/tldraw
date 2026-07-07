@@ -9,23 +9,19 @@
 	}
 }
 
+/* Fixed positioning: the .tl-ui root can be any element, so dialogs cover the
+   viewport rather than the provider's own box. */
 .tl-ui .tl-dialog__overlay {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
+	position: fixed;
+	inset: 0px;
 	z-index: var(--tl-layer-overlays);
 	background-color: var(--tl-color-overlay);
 	animation: tl-fade-in 0.12s ease-out;
 }
 
 .tl-ui .tl-dialog__positioner {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
+	position: fixed;
+	inset: 0px;
 	z-index: var(--tl-layer-overlays);
 	pointer-events: all;
 	display: grid;

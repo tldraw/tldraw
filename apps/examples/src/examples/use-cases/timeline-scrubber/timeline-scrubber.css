@@ -23,7 +23,7 @@
 	font-variant: tabular-nums;
 }
 
-.timeline-scrubber-controls .tlui-slider__container {
+.timeline-scrubber-controls .tl-slider__container {
 	flex: 1;
 }
 

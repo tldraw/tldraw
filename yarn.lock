@@ -12234,7 +12234,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/ui@workspace:packages/ui":
+"@tldraw/ui@workspace:*, @tldraw/ui@workspace:packages/ui":
   version: 0.0.0-use.local
   resolution: "@tldraw/ui@workspace:packages/ui"
   dependencies:
@@ -19994,6 +19994,7 @@ __metadata:
     "@tldraw/mermaid": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
+    "@tldraw/ui": "workspace:*"
     "@types/d3-geo": "npm:^3.1.0"
     "@types/lodash": "npm:^4.17.14"
     "@types/react": "npm:^19.2.7"

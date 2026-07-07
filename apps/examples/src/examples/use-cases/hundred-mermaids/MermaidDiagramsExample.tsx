@@ -1,15 +1,16 @@
+import { TlButton } from '@tldraw/ui'
 import { useCallback } from 'react'
 import {
 	Editor,
 	TLComponents,
 	TLShapeId,
 	Tldraw,
-	TldrawUiButton,
 	createShapeId,
 	useAtom,
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 import mermaidDefinitions from './mermaids'
 
 const GAP = 100
@@ -165,26 +166,28 @@ function TopPanel() {
 	}, [editor, isGeneratingAtom, countAtom])
 
 	return (
-		<div
-			style={{
-				position: 'fixed',
-				top: 0,
-				left: '50%',
-				transform: 'translateX(-50%)',
-				padding: '8px',
-				background: '#eee',
-				borderRadius: '0 0 8px 8px',
-				display: 'flex',
-				gap: '8px',
-				zIndex: 1000,
-				opacity: isGenerating ? 0 : 1,
-			}}
-		>
-			<TldrawUiButton type="low" onClick={handleClick}>
-				Click to see a thousand mermaids
-				{count > 0 && <>({count} actually…)</>}
-			</TldrawUiButton>
-		</div>
+		<ExampleTlUiProvider>
+			<div
+				style={{
+					position: 'fixed',
+					top: 0,
+					left: '50%',
+					transform: 'translateX(-50%)',
+					padding: '8px',
+					background: '#eee',
+					borderRadius: '0 0 8px 8px',
+					display: 'flex',
+					gap: '8px',
+					zIndex: 1000,
+					opacity: isGenerating ? 0 : 1,
+				}}
+			>
+				<TlButton type="low" onClick={handleClick}>
+					Click to see a thousand mermaids
+					{count > 0 && <>({count} actually…)</>}
+				</TlButton>
+			</div>
+		</ExampleTlUiProvider>
 	)
 }
 

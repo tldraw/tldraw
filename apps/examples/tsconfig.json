@@ -9,6 +9,7 @@
 		{ "path": "../../packages/sync" },
 		{ "path": "../../packages/state" },
 		{ "path": "../../packages/tldraw" },
+		{ "path": "../../packages/ui" },
 		{ "path": "../../packages/dotcom-shared" },
 		{ "path": "../../packages/driver" }
 	]

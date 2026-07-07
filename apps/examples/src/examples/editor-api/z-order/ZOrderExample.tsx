@@ -1,4 +1,6 @@
-import { createShapeId, Tldraw, TldrawUiButton, useEditor } from 'tldraw'
+import { TlButton } from '@tldraw/ui'
+import { createShapeId, Tldraw, useEditor } from 'tldraw'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 import 'tldraw/tldraw.css'
 import './z-order.css'
 
@@ -34,33 +36,35 @@ export default function ZOrderExample() {
 					TopPanel: () => {
 						const editor = useEditor()
 						return (
-							<div className="tlui-menu z-order-controls">
-								{/* [1] */}
-								<TldrawUiButton
-									type="normal"
-									onClick={() => editor.sendToBack(editor.getSelectedShapeIds())}
-								>
-									Send to back
-								</TldrawUiButton>
-								<TldrawUiButton
-									type="normal"
-									onClick={() => editor.sendBackward(editor.getSelectedShapeIds())}
-								>
-									Send backward
-								</TldrawUiButton>
-								<TldrawUiButton
-									type="normal"
-									onClick={() => editor.bringForward(editor.getSelectedShapeIds())}
-								>
-									Bring forward
-								</TldrawUiButton>
-								<TldrawUiButton
-									type="normal"
-									onClick={() => editor.bringToFront(editor.getSelectedShapeIds())}
-								>
-									Bring to front
-								</TldrawUiButton>
-							</div>
+							<ExampleTlUiProvider>
+								<div className="tl-menu z-order-controls">
+									{/* [1] */}
+									<TlButton
+										type="normal"
+										onClick={() => editor.sendToBack(editor.getSelectedShapeIds())}
+									>
+										Send to back
+									</TlButton>
+									<TlButton
+										type="normal"
+										onClick={() => editor.sendBackward(editor.getSelectedShapeIds())}
+									>
+										Send backward
+									</TlButton>
+									<TlButton
+										type="normal"
+										onClick={() => editor.bringForward(editor.getSelectedShapeIds())}
+									>
+										Bring forward
+									</TlButton>
+									<TlButton
+										type="normal"
+										onClick={() => editor.bringToFront(editor.getSelectedShapeIds())}
+									>
+										Bring to front
+									</TlButton>
+								</div>
+							</ExampleTlUiProvider>
 						)
 					},
 				}}

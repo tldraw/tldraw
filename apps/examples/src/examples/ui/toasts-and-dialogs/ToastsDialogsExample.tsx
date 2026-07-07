@@ -1,40 +1,48 @@
+import {
+	TlButton,
+	TlButtonLabel,
+	TlDialogBody,
+	TlDialogCloseButton,
+	TlDialogFooter,
+	TlDialogHeader,
+	TlDialogTitle,
+	useTlContainer,
+	useTlDialogs,
+	useTlToasts,
+} from '@tldraw/ui'
 import { Select as _Select } from 'radix-ui'
 import { useState } from 'react'
-import {
-	TLComponents,
-	Tldraw,
-	TldrawUiButton,
-	TldrawUiButtonLabel,
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
-	useContainer,
-	useDialogs,
-	useToasts,
-} from 'tldraw'
+import { TLComponents, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 
 // There's a guide at the bottom of this file
+
+const dialogFooterActionsStyle = {
+	display: 'flex',
+	alignItems: 'center',
+	justifyContent: 'flex-end',
+} as const
 
 // [1]
 function MyDialog({ onClose }: { onClose(): void }) {
 	return (
 		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>Title</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>Description...</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton type="normal" onClick={onClose}>
-					<TldrawUiButtonLabel>Cancel</TldrawUiButtonLabel>
-				</TldrawUiButton>
-				<TldrawUiButton type="primary" onClick={onClose}>
-					<TldrawUiButtonLabel>Continue</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			</TldrawUiDialogFooter>
+			<TlDialogHeader>
+				<TlDialogTitle>Title</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
+			<TlDialogBody style={{ maxWidth: 350 }}>Description...</TlDialogBody>
+			<TlDialogFooter>
+				<div style={dialogFooterActionsStyle}>
+					<TlButton type="normal" onClick={onClose}>
+						<TlButtonLabel>Cancel</TlButtonLabel>
+					</TlButton>
+					<TlButton type="primary" onClick={onClose}>
+						<TlButtonLabel>Continue</TlButtonLabel>
+					</TlButton>
+				</div>
+			</TlDialogFooter>
 		</>
 	)
 }
@@ -52,15 +60,15 @@ function MySimpleDialog({ onClose }: { onClose(): void }) {
 
 // [3]
 function MyDialogWithSelect({ onClose }: { onClose(): void }) {
-	const container = useContainer()
+	const container = useTlContainer()
 	const [value, setValue] = useState('a')
 	return (
 		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>Dialog with a select</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+			<TlDialogHeader>
+				<TlDialogTitle>Dialog with a select</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
+			<TlDialogBody style={{ maxWidth: 350 }}>
 				<p>A select opened inside a modal is its own dismissable layer.</p>
 				<_Select.Root value={value} onValueChange={setValue}>
 					<_Select.Trigger
@@ -98,12 +106,14 @@ function MyDialogWithSelect({ onClose }: { onClose(): void }) {
 						</_Select.Content>
 					</_Select.Portal>
 				</_Select.Root>
-			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton type="primary" onClick={onClose}>
-					<TldrawUiButtonLabel>Done</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			</TldrawUiDialogFooter>
+			</TlDialogBody>
+			<TlDialogFooter>
+				<div style={dialogFooterActionsStyle}>
+					<TlButton type="primary" onClick={onClose}>
+						<TlButtonLabel>Done</TlButtonLabel>
+					</TlButton>
+				</div>
+			</TlDialogFooter>
 		</>
 	)
 }
@@ -111,7 +121,7 @@ function MyDialogWithSelect({ onClose }: { onClose(): void }) {
 // [4] A dialog that opens a second dialog, so the two stack. Stacked dialogs stay modal,
 // so each one — including the topmost — keeps its own controls interactive (taps included).
 function MyNestedDialog({ onClose }: { onClose(): void }) {
-	const { addDialog } = useDialogs()
+	const { addDialog } = useTlDialogs()
 	return (
 		<div data-testid="dialog-parent" style={{ padding: 16 }}>
 			<h2>Parent dialog</h2>
@@ -139,8 +149,16 @@ function MyConfirmDialog({ onClose }: { onClose(): void }) {
 }
 
 const CustomSharePanel = () => {
-	const { addToast } = useToasts()
-	const { addDialog } = useDialogs()
+	return (
+		<ExampleTlUiProvider>
+			<CustomSharePanelContent />
+		</ExampleTlUiProvider>
+	)
+}
+
+function CustomSharePanelContent() {
+	const { addToast } = useTlToasts()
+	const { addDialog } = useTlDialogs()
 
 	return (
 		<div style={{ padding: 16, gap: 16, display: 'flex', pointerEvents: 'all' }}>
@@ -199,7 +217,15 @@ const CustomSharePanel = () => {
 // Rendered in front of the canvas rather than in the SharePanel, which overflows
 // off-screen on mobile — so the stacked-dialog demo stays reachable on a touchscreen.
 function StackedDialogLauncher() {
-	const { addDialog } = useDialogs()
+	return (
+		<ExampleTlUiProvider>
+			<StackedDialogLauncherContent />
+		</ExampleTlUiProvider>
+	)
+}
+
+function StackedDialogLauncherContent() {
+	const { addDialog } = useTlDialogs()
 	return (
 		<button
 			data-testid="show-nested-dialog"

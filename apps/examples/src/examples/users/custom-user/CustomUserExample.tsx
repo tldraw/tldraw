@@ -1,10 +1,10 @@
+import { TlButton } from '@tldraw/ui'
 import {
 	atom,
 	computed,
 	createCachedUserResolve,
 	createUserId,
 	Tldraw,
-	TldrawUiButton,
 	TLUser,
 	TLUserStore,
 	useEditor,
@@ -12,6 +12,7 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 import './custom-user.css'
 
 // There's a guide at the bottom of this file!
@@ -67,18 +68,20 @@ function UserSwitcher() {
 	const activeUserId = useValue(currentUserIdAtom)
 
 	return (
-		<div className="tlui-menu custom-user-controls">
-			{Object.values(allUsers).map((user) => (
-				<TldrawUiButton
-					key={user.id}
-					type={activeUserId === user.id ? 'primary' : 'normal'}
-					onClick={() => currentUserIdAtom.set(user.id)}
-				>
-					<span className="custom-user-dot" style={{ backgroundColor: user.color }} />
-					{user.name}
-				</TldrawUiButton>
-			))}
-		</div>
+		<ExampleTlUiProvider>
+			<div className="tl-menu custom-user-controls">
+				{Object.values(allUsers).map((user) => (
+					<TlButton
+						key={user.id}
+						type={activeUserId === user.id ? 'primary' : 'normal'}
+						onClick={() => currentUserIdAtom.set(user.id)}
+					>
+						<span className="custom-user-dot" style={{ backgroundColor: user.color }} />
+						{user.name}
+					</TlButton>
+				))}
+			</div>
+		</ExampleTlUiProvider>
 	)
 }
 

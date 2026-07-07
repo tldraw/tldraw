@@ -1,5 +1,7 @@
-import { Tldraw, TldrawUiButton, TldrawUiIcon, tlenv, tlenvReactive, useValue } from 'tldraw'
+import { TlButton, TlIcon } from '@tldraw/ui'
+import { Tldraw, tlenv, tlenvReactive, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 import './environment-detection.css'
 
 // [1]
@@ -13,42 +15,44 @@ function EnvironmentInfo() {
 	const buttonSize = isCoarsePointer ? '48px' : '32px'
 
 	return (
-		<div className="tlui-menu environment-info">
-			{/* [4] Static detection with tlenv */}
-			<div>
-				<strong>Platform (tlenv):</strong> {tlenv.isIos && 'iOS'}
-				{tlenv.isDarwin && !tlenv.isIos && 'macOS'}
-				{tlenv.isAndroid && 'Android'}
-				{!tlenv.isDarwin && !tlenv.isIos && !tlenv.isAndroid && 'Other'}
-			</div>
-			<div>
-				<strong>Browser:</strong> {tlenv.isSafari && 'Safari'}
-				{tlenv.isFirefox && 'Firefox'}
-				{tlenv.isChromeForIos && 'Chrome for iOS'}
-				{!tlenv.isSafari && !tlenv.isFirefox && !tlenv.isChromeForIos && 'Other'}
-			</div>
-			<div>
-				<strong>Modifier key:</strong> {tlenv.isDarwin ? '⌘ Cmd' : 'Ctrl'}
-			</div>
+		<ExampleTlUiProvider>
+			<div className="tl-menu environment-info">
+				{/* [4] Static detection with tlenv */}
+				<div>
+					<strong>Platform (tlenv):</strong> {tlenv.isIos && 'iOS'}
+					{tlenv.isDarwin && !tlenv.isIos && 'macOS'}
+					{tlenv.isAndroid && 'Android'}
+					{!tlenv.isDarwin && !tlenv.isIos && !tlenv.isAndroid && 'Other'}
+				</div>
+				<div>
+					<strong>Browser:</strong> {tlenv.isSafari && 'Safari'}
+					{tlenv.isFirefox && 'Firefox'}
+					{tlenv.isChromeForIos && 'Chrome for iOS'}
+					{!tlenv.isSafari && !tlenv.isFirefox && !tlenv.isChromeForIos && 'Other'}
+				</div>
+				<div>
+					<strong>Modifier key:</strong> {tlenv.isDarwin ? '⌘ Cmd' : 'Ctrl'}
+				</div>
 
-			{/* [5] Reactive detection with tlenvReactive */}
-			<div>
-				<strong>Pointer type (reactive):</strong> {isCoarsePointer ? 'Touch' : 'Mouse'}
-			</div>
+				{/* [5] Reactive detection with tlenvReactive */}
+				<div>
+					<strong>Pointer type (reactive):</strong> {isCoarsePointer ? 'Touch' : 'Mouse'}
+				</div>
 
-			{/* [6] Adaptive button based on pointer type */}
-			<TldrawUiButton
-				type="normal"
-				style={{
-					width: buttonSize,
-					height: buttonSize,
-					border: '1px solid var(--tl-color-text-3)',
-				}}
-				onClick={() => alert(`Button size: ${buttonSize}`)}
-			>
-				<TldrawUiIcon icon="dot" label="Dot" />
-			</TldrawUiButton>
-		</div>
+				{/* [6] Adaptive button based on pointer type */}
+				<TlButton
+					type="normal"
+					style={{
+						width: buttonSize,
+						height: buttonSize,
+						border: '1px solid var(--tl-color-text-3)',
+					}}
+					onClick={() => alert(`Button size: ${buttonSize}`)}
+				>
+					<TlIcon icon="dot" label="Dot" />
+				</TlButton>
+			</div>
+		</ExampleTlUiProvider>
 	)
 }
 

@@ -55,6 +55,7 @@
 		"@tldraw/mermaid": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/sync": "workspace:*",
+		"@tldraw/ui": "workspace:*",
 		"ag-grid-community": "^32.3.3",
 		"ag-grid-react": "^32.3.3",
 		"axe-core": "^4.10.3",

@@ -1,10 +1,10 @@
+import { TlButton } from '@tldraw/ui'
 import {
 	atom,
 	computed,
 	createCachedUserResolve,
 	createUserId,
 	Tldraw,
-	TldrawUiButton,
 	TLNoteShape,
 	TLShape,
 	TLUser,
@@ -14,6 +14,7 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 import './attribution.css'
 
 // There's a guide at the bottom of this file!
@@ -56,32 +57,34 @@ function UserSwitcher() {
 	const activeUser = allUsers[activeUserId]
 
 	return (
-		<div className="tlui-menu attribution-controls">
-			{Object.values(allUsers).map((user) => (
-				<TldrawUiButton
-					key={user.id}
-					type={activeUserId === user.id ? 'primary' : 'normal'}
-					onClick={() => currentUserIdAtom.set(user.id)}
-				>
-					<span className="attribution-dot" style={{ backgroundColor: user.color }} />
-					{user.name}
-				</TldrawUiButton>
-			))}
-			{activeUser && (
-				<input
-					className="attribution-name-input"
-					value={activeUser.name}
-					onChange={(e) => {
-						usersAtom.update((prev) => ({
-							...prev,
-							[activeUserId]: { ...prev[activeUserId], name: e.target.value },
-						}))
-					}}
-					onPointerDown={(e) => e.stopPropagation()}
-					placeholder="Edit name…"
-				/>
-			)}
-		</div>
+		<ExampleTlUiProvider>
+			<div className="tl-menu attribution-controls">
+				{Object.values(allUsers).map((user) => (
+					<TlButton
+						key={user.id}
+						type={activeUserId === user.id ? 'primary' : 'normal'}
+						onClick={() => currentUserIdAtom.set(user.id)}
+					>
+						<span className="attribution-dot" style={{ backgroundColor: user.color }} />
+						{user.name}
+					</TlButton>
+				))}
+				{activeUser && (
+					<input
+						className="attribution-name-input"
+						value={activeUser.name}
+						onChange={(e) => {
+							usersAtom.update((prev) => ({
+								...prev,
+								[activeUserId]: { ...prev[activeUserId], name: e.target.value },
+							}))
+						}}
+						onPointerDown={(e) => e.stopPropagation()}
+						placeholder="Edit name…"
+					/>
+				)}
+			</div>
+		</ExampleTlUiProvider>
 	)
 }
 
