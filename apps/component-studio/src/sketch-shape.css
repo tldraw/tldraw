@@ -34,6 +34,12 @@
 	height: 100%;
 }
 
+/* a scene rendered in its own iframe (isolated editor); non-interactive on the board */
+.sketch-shape__iframe {
+	border: 0;
+	display: block;
+}
+
 .sketch-shape__label {
 	flex-shrink: 0;
 	padding: 6px 10px;

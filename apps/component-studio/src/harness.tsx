@@ -1,6 +1,46 @@
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Editor, Tldraw, TldrawUiContextProvider, TldrawUiTranslationProvider } from 'tldraw'
 import { Env } from './channel'
+
+const PAD = 16
+
+/**
+ * Scales a component down to fit the frame (the iframe's viewport) when it's too big,
+ * and leaves it at 1:1 otherwise — so a specimen fills its cell on the canvas without
+ * distortion. Scenes skip this: they're sized to fill, not to fit.
+ */
+function ScaledPreview({ children }: { children: ReactNode }) {
+	const ref = useRef<HTMLDivElement | null>(null)
+	const [scale, setScale] = useState(1)
+
+	useLayoutEffect(() => {
+		const el = ref.current
+		if (!el) return
+		const measure = () => {
+			const maxW = window.innerWidth - PAD * 2
+			const maxH = window.innerHeight - PAD * 2
+			const s = Math.min(1, maxW / el.scrollWidth, maxH / el.scrollHeight)
+			setScale(Number.isFinite(s) && s > 0 ? s : 1)
+		}
+		measure()
+		const observer = new ResizeObserver(measure)
+		observer.observe(el)
+		window.addEventListener('resize', measure)
+		return () => {
+			observer.disconnect()
+			window.removeEventListener('resize', measure)
+		}
+	}, [])
+
+	return (
+		<div
+			ref={ref}
+			style={{ width: 'max-content', transform: `scale(${scale})`, transformOrigin: 'center' }}
+		>
+			{children}
+		</div>
+	)
+}
 
 /**
  * Wraps a sketch in the SDK UI context so components that use theme, i18n, assets,
@@ -20,7 +60,7 @@ export function IsolatedHarness({
 }: {
 	env: Env
 	children: ReactNode
-	/** Fill the frame instead of centering — for viewport scenes whose root is 100% high. */
+	/** Fill the frame instead of scaling to fit — for viewport scenes whose root is 100% high. */
 	fill?: boolean
 }) {
 	return (
@@ -29,7 +69,9 @@ export function IsolatedHarness({
 			data-color-mode={env.theme}
 		>
 			<TldrawUiContextProvider>
-				<TldrawUiTranslationProvider locale={env.locale}>{children}</TldrawUiTranslationProvider>
+				<TldrawUiTranslationProvider locale={env.locale}>
+					{fill ? children : <ScaledPreview>{children}</ScaledPreview>}
+				</TldrawUiTranslationProvider>
 			</TldrawUiContextProvider>
 		</div>
 	)

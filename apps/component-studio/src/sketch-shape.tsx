@@ -1,7 +1,7 @@
-import { ReactNode, useLayoutEffect, useRef, useState } from 'react'
-import { HTMLContainer, Rectangle2d, ShapeUtil, T, TLShape } from 'tldraw'
+import { useCallback, useEffect, useRef } from 'react'
+import { HTMLContainer, Rectangle2d, ShapeUtil, T, TLShape, useEditor, useValue } from 'tldraw'
+import { SET_STATE } from './channel'
 import { sketchesById } from './registry'
-import { renderSketch } from './render-sketch'
 import './sketch-shape.css'
 
 // Register the custom shape's props so `'sketch'` is a known shape type (this is what
@@ -12,47 +12,40 @@ declare module 'tldraw' {
 	}
 }
 
-const LABEL_H = 30
-const PREVIEW_PAD = 12
-
 /**
- * Renders a preview, scaled down only if it exceeds the available area, so oversized
- * specimens fit their cell while everything that already fits stays at 1:1.
+ * Renders a sketch in the studio's preview iframe (the same one the studio shell uses), so
+ * each sketch is a separate document — isolated from the board and from sibling sketches
+ * (an editor-embedding scene otherwise shares page-global tooltip/event singletons). The
+ * board's args and theme are pushed in over the channel. Non-interactive on the board.
  */
-function ScaledPreview({
-	maxW,
-	maxH,
-	children,
-}: {
-	maxW: number
-	maxH: number
-	children: ReactNode
-}) {
-	const ref = useRef<HTMLDivElement | null>(null)
-	const [scale, setScale] = useState(1)
-
-	useLayoutEffect(() => {
-		const el = ref.current
-		if (!el) return
-		const measure = () => {
-			const s = Math.min(1, maxW / el.scrollWidth, maxH / el.scrollHeight)
-			setScale(Number.isFinite(s) && s > 0 ? s : 1)
+function SketchIframe({ sketchId, args }: { sketchId: string; args: Record<string, unknown> }) {
+	const ref = useRef<HTMLIFrameElement>(null)
+	const editor = useEditor()
+	const theme = useValue<'light' | 'dark'>(
+		'theme',
+		() => (editor.user.getUserPreferences().colorScheme === 'dark' ? 'dark' : 'light'),
+		[editor]
+	)
+	const post = useCallback(() => {
+		const frame = ref.current
+		if (frame && frame.contentWindow) {
+			frame.contentWindow.postMessage(
+				{ type: SET_STATE, id: sketchId, args, env: { theme, locale: 'en' } },
+				window.location.origin
+			)
 		}
-		measure()
-		const observer = new ResizeObserver(measure)
-		observer.observe(el)
-		return () => observer.disconnect()
-	}, [maxW, maxH])
-
+	}, [sketchId, args, theme])
+	useEffect(() => {
+		post()
+	}, [post])
 	return (
-		<div className="sketch-shape__preview">
-			<div
-				ref={ref}
-				style={{ width: 'max-content', transform: `scale(${scale})`, transformOrigin: 'center' }}
-			>
-				{children}
-			</div>
-		</div>
+		<iframe
+			ref={ref}
+			className="sketch-shape__iframe"
+			src={`sketch.html?id=${encodeURIComponent(sketchId)}`}
+			onLoad={post}
+			title={sketchId}
+		/>
 	)
 }
 
@@ -82,28 +75,21 @@ export class SketchShapeUtil extends ShapeUtil<SketchShape> {
 
 	component(shape: SketchShape) {
 		const loaded = sketchesById.get(shape.props.sketchId)
-		const content = loaded ? (
-			renderSketch(loaded, shape.props.args)
-		) : (
-			<span>unknown: {shape.props.sketchId}</span>
-		)
-		// A viewport scene fills its cell at real size; a component scales to fit.
-		const fill = Boolean(loaded?.sketch.parameters?.viewport)
+		// Every sketch renders in the studio's preview iframe, so it's isolated from the
+		// board and from sibling sketches — the iframe (sketch.html) scales components to
+		// fit and fills scenes. Non-interactive on the board (the preview is pointer-none).
 		return (
 			<HTMLContainer
 				className="sketch-shape"
 				style={{ width: shape.props.w, height: shape.props.h }}
 			>
-				{fill ? (
-					<div className="sketch-shape__preview sketch-shape__preview--fill">{content}</div>
-				) : (
-					<ScaledPreview
-						maxW={shape.props.w - PREVIEW_PAD * 2}
-						maxH={shape.props.h - LABEL_H - PREVIEW_PAD * 2}
-					>
-						{content}
-					</ScaledPreview>
-				)}
+				<div className="sketch-shape__preview sketch-shape__preview--fill">
+					{loaded ? (
+						<SketchIframe sketchId={shape.props.sketchId} args={shape.props.args} />
+					) : (
+						<span>unknown: {shape.props.sketchId}</span>
+					)}
+				</div>
 				{loaded && <div className="sketch-shape__label">{loaded.name}</div>}
 			</HTMLContainer>
 		)
