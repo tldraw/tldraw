@@ -21,6 +21,11 @@ export interface ThumbnailRenderJob {
 	 * room snapshot's R2 etag.
 	 */
 	version: string | number
+	/**
+	 * When omitted, the render page uses x/y/z directly. `content` tells the render page to fit the
+	 * board's current page content into the requested output size.
+	 */
+	camera?: 'content'
 	x: number
 	y: number
 	z: number
@@ -89,6 +94,7 @@ export async function verifyThumbnailRenderToken(
 		job.v !== 1 ||
 		(job.kind !== 'published' && job.kind !== 'shared_file') ||
 		typeof job.slug !== 'string' ||
+		(job.camera !== undefined && job.camera !== 'content') ||
 		typeof job.exp !== 'number'
 	) {
 		return null

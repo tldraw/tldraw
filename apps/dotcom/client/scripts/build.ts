@@ -16,6 +16,9 @@ const commonSecurityHeaders = {
 	'Content-Security-Policy': csp,
 }
 
+const ogCrawlerUserAgent =
+	'.*(Twitterbot|Slackbot|Discordbot|facebookexternalhit|Facebot|LinkedInBot|WhatsApp|TelegramBot|Applebot|Googlebot|bingbot|bot|crawler|spider|preview).*'
+
 // We load the list of routes that should be forwarded to our SPA's index.html here.
 // It uses a vitest snapshot file because deriving the set of routes from our
 // react-router config works fine in our test environment, but is tricky to get running in this
@@ -132,6 +135,14 @@ async function build() {
 							'Cache-Control': 'public, max-age=31536000, immutable',
 						},
 					})),
+					// Social crawlers do not run the SPA, so serve a tiny metadata document for public
+					// board URLs. Normal browsers keep using the static index.html route below.
+					{
+						src: '^/([fp])/([^/]+)/?$',
+						dest: `${multiplayerServerUrl}/app/og-html/$1/$2`,
+						methods: ['GET'],
+						has: [{ type: 'header', key: 'user-agent', value: ogCrawlerUserAgent }],
+					},
 					// server up index.html specifically because we want to include
 					// security headers. otherwise, it goes to the handle: 'miss'
 					// part below (and _not_ to the spaRoutes as maybe expected!)

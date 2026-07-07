@@ -116,6 +116,7 @@ export type AcceptInviteResponseBody =
 	  }
 
 export interface ThumbnailRenderParams {
+	camera?: 'content'
 	x: number
 	y: number
 	z: number

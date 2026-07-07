@@ -40,8 +40,19 @@ describe('thumbnail render tokens', () => {
 		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
 	})
 
+	it('round-trips a content-fit camera job', async () => {
+		const job = makeJob({ camera: 'content' })
+		const token = await mintThumbnailRenderToken(env, job)
+		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
+	})
+
 	it('rejects tokens with an unknown kind', async () => {
 		const token = await mintThumbnailRenderToken(env, makeJob({ kind: 'bogus' as any }))
+		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
+	})
+
+	it('rejects tokens with an unknown camera mode', async () => {
+		const token = await mintThumbnailRenderToken(env, makeJob({ camera: 'viewport' as any }))
 		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
 	})
 

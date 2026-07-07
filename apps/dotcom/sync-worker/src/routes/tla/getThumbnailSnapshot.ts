@@ -36,6 +36,7 @@ export async function getThumbnailSnapshot(request: IRequest, env: Environment):
 		records: snapshot.documents.map((d) => d.state) as TLRecord[],
 		schema: snapshot.schema,
 		renderParams: {
+			...(job.camera ? { camera: job.camera } : null),
 			x: job.x,
 			y: job.y,
 			z: job.z,

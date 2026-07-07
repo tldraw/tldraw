@@ -13,8 +13,8 @@ import { getSharedFileInfo, isFileAnonymouslyViewable } from './getSharedFile'
 
 const TOOL_NAME = 'get_shared_board_screenshot'
 const MCP_PROTOCOL_VERSION = '2024-11-05'
-const DEFAULT_WIDTH = 1200
-const DEFAULT_HEIGHT = 630
+export const DEFAULT_THUMBNAIL_WIDTH = 1200
+export const DEFAULT_THUMBNAIL_HEIGHT = 630
 const MIN_DIMENSION = 200
 const MAX_DIMENSION = 1600
 const BROWSER_RUN_TIMEOUT_MS = 60_000
@@ -130,8 +130,8 @@ export function parseSharedBoardScreenshotInput(input: unknown): SharedBoardScre
 			y: requireFiniteNumber(viewport.y, 'viewport.y'),
 			z: requireFiniteNumber(viewport.z, 'viewport.z'),
 		},
-		width: parseDimension(value.width, DEFAULT_WIDTH, 'width'),
-		height: parseDimension(value.height, DEFAULT_HEIGHT, 'height'),
+		width: parseDimension(value.width, DEFAULT_THUMBNAIL_WIDTH, 'width'),
+		height: parseDimension(value.height, DEFAULT_THUMBNAIL_HEIGHT, 'height'),
 		theme: value.theme === 'dark' ? 'dark' : 'light',
 	}
 }
@@ -199,8 +199,8 @@ async function callSharedBoardScreenshotTool(
 			boardHash: 'unresolved',
 			ipHash,
 			cacheStatus: 'miss',
-			width: DEFAULT_WIDTH,
-			height: DEFAULT_HEIGHT,
+			width: DEFAULT_THUMBNAIL_WIDTH,
+			height: DEFAULT_THUMBNAIL_HEIGHT,
 			rateLimitAllowed: true,
 			failureReason,
 		})
@@ -357,9 +357,9 @@ function toolImage(png: ArrayBuffer) {
 	}
 }
 
-async function captureWithBrowserRun(
+export async function captureWithBrowserRun(
 	renderUrl: string,
-	input: SharedBoardScreenshotInput,
+	input: { width: number; height: number },
 	env: Environment
 ): Promise<BrowserRunResult> {
 	const accountId = env.CLOUDFLARE_ACCOUNT_ID
@@ -402,7 +402,7 @@ async function captureWithBrowserRun(
 	}
 }
 
-function getBrowserRunRequestBody(renderUrl: string, input: SharedBoardScreenshotInput) {
+function getBrowserRunRequestBody(renderUrl: string, input: { width: number; height: number }) {
 	const headers = getExtraHeaders(renderUrl)
 	return {
 		url: renderUrl,
@@ -427,7 +427,7 @@ function getBrowserRunRequestBody(renderUrl: string, input: SharedBoardScreensho
 	}
 }
 
-async function isRateLimited(
+export async function isRateLimited(
 	limiter: RateLimit | undefined,
 	key: string,
 	{ fallbackLimit }: { fallbackLimit: number }
@@ -480,13 +480,13 @@ function getSharedBoardScreenshotToolDefinition() {
 				},
 				width: {
 					type: 'number',
-					description: `Output width. Defaults to ${DEFAULT_WIDTH} and is clamped to ${MIN_DIMENSION}-${MAX_DIMENSION}.`,
-					default: DEFAULT_WIDTH,
+					description: `Output width. Defaults to ${DEFAULT_THUMBNAIL_WIDTH} and is clamped to ${MIN_DIMENSION}-${MAX_DIMENSION}.`,
+					default: DEFAULT_THUMBNAIL_WIDTH,
 				},
 				height: {
 					type: 'number',
-					description: `Output height. Defaults to ${DEFAULT_HEIGHT} and is clamped to ${MIN_DIMENSION}-${MAX_DIMENSION}.`,
-					default: DEFAULT_HEIGHT,
+					description: `Output height. Defaults to ${DEFAULT_THUMBNAIL_HEIGHT} and is clamped to ${MIN_DIMENSION}-${MAX_DIMENSION}.`,
+					default: DEFAULT_THUMBNAIL_HEIGHT,
 				},
 				theme: {
 					type: 'string',
@@ -527,7 +527,7 @@ function isAllowedTldrawHost(hostname: string, extraAllowedHost?: string) {
 	)
 }
 
-function getRenderOrigin(env: Environment) {
+export function getRenderOrigin(env: Environment) {
 	// Staging and production set this in wrangler.toml to their own client origin. Local dev sets it
 	// to the local client; previews configure it explicitly when they need to exercise this path.
 	if (!env.MCP_SCREENSHOT_RENDER_ORIGIN) {
@@ -541,7 +541,7 @@ function getRenderOrigin(env: Environment) {
 // The hostname of this deployment's own render origin, so board URLs on it (e.g. a preview's
 // pr-1234-preview-deploy.tldraw.com host, or localhost in dev) are accepted in addition to the
 // canonical tldraw.com hosts. Returns undefined when the render origin is unset or unparseable.
-function getRenderOriginHost(env: Environment): string | undefined {
+export function getRenderOriginHost(env: Environment): string | undefined {
 	if (!env.MCP_SCREENSHOT_RENDER_ORIGIN) return undefined
 	try {
 		return new URL(env.MCP_SCREENSHOT_RENDER_ORIGIN).hostname

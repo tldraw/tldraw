@@ -111,10 +111,23 @@ function ThumbnailRenderPage({
 				onMount={(editor) => {
 					editor.user.updateUserPreferences({ colorScheme: theme })
 					editor.updateInstanceState({ isReadonly: true })
-					editor.setCamera(
-						{ x: renderParams.x, y: renderParams.y, z: renderParams.z },
-						{ immediate: true }
-					)
+					if (renderParams.camera === 'content') {
+						const bounds = editor.getCurrentPageBounds()
+						if (bounds) {
+							editor.zoomToBounds(bounds, {
+								immediate: true,
+								force: true,
+								inset: getRepresentativeContentInset(width, height),
+							})
+						} else {
+							editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
+						}
+					} else {
+						editor.setCamera(
+							{ x: renderParams.x, y: renderParams.y, z: renderParams.z },
+							{ immediate: true }
+						)
+					}
 				}}
 			>
 				<ThumbnailReadySignal />
@@ -170,6 +183,10 @@ export function useThumbnailPageSize(width: number, height: number) {
 export function clampThumbnailDimension(value: number) {
 	if (!Number.isFinite(value)) return DEFAULT_THUMBNAIL_WIDTH
 	return Math.max(MIN_THUMBNAIL_DIMENSION, Math.min(MAX_THUMBNAIL_DIMENSION, Math.floor(value)))
+}
+
+function getRepresentativeContentInset(width: number, height: number) {
+	return Math.max(48, Math.min(160, width * 0.12, height * 0.18))
 }
 
 // Signals capture readiness by setting data-thumbnail-ready once fonts have settled, image assets

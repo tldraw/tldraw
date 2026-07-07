@@ -43,6 +43,7 @@ import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
+import { getOgHtml, getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
@@ -176,6 +177,8 @@ const router = createRouter<Environment>()
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
 	.post('/app/mcp', sharedBoardScreenshotMcp)
+	.get('/app/og-html/:kind/:slug', getOgHtml)
+	.get('/app/og-image/:kind/:slug', getOgImage)
 	.get('/app/thumbnail-snapshot', getThumbnailSnapshot)
 	// end app
 	.all('/ph/*', (req) => {
