@@ -98,6 +98,34 @@ it('pointer down keeps a genuinely held modifier', () => {
 	expect(editor.inputs.getShiftKey()).toBe(true)
 })
 
+it('release race — a modifier released just before pointer up still applies to the gesture', () => {
+	// Observe what shift is when the gesture-completing pointer_up is handled.
+	let shiftAtPointerUp: boolean | undefined
+	editor.on('event', (info) => {
+		if (info.type === 'pointer' && info.name === 'pointer_up') {
+			shiftAtPointerUp = editor.inputs.getShiftKey()
+		}
+	})
+
+	// Shift is held through a pointer interaction.
+	editor.pointerMove(100, 100, { shiftKey: true })
+	editor.pointerDown(100, 100, { shiftKey: true })
+	expect(editor.inputs.getShiftKey()).toBe(true)
+
+	// The user lets go of shift a hair before the mouse button: key_up arrives first.
+	editor.keyUp('Shift')
+	expect(editor.inputs.getShiftKey()).toBe(true) // debounced, still "held"
+
+	// pointer_up arrives during the debounce window, so the finishing gesture still sees
+	// shift as held. Without the debounce this would race to false and drop the modifier.
+	editor.pointerUp(100, 100, { shiftKey: false })
+	expect(shiftAtPointerUp).toBe(true)
+
+	// Once the debounce expires with no further interaction, shift finally clears.
+	vi.advanceTimersByTime(200)
+	expect(editor.inputs.getShiftKey()).toBe(false)
+})
+
 it('keyboard events carry currently-held modifiers', () => {
 	const keyboardEvents: TLKeyboardEventInfo[] = []
 	editor.on('event', (info) => {

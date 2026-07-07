@@ -10905,33 +10905,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 	}
 
+	/** @internal EXPERIMENT: pending-release flags for the timer-free latch model. */
+	private _shiftKeyPendingRelease = false
+	/** @internal */
+	private _altKeyPendingRelease = false
+	/** @internal */
+	private _ctrlKeyPendingRelease = false
+	/** @internal */
+	private _metaKeyPendingRelease = false
+
 	/**
-	 * Flush any modifier still sitting in its 150ms release-debounce window, so a new
-	 * interaction (a pointer down) starts with correct modifier state instead of a
-	 * just-released key still being counted as held. A pending timer is exactly
-	 * "released but still counted as held"; a genuinely-held modifier has no timer
-	 * (-1) and is left alone.
+	 * Resolve any modifier that was latched (kept on) during the previous gesture, so a
+	 * new interaction (a pointer down) starts with correct modifier state instead of a
+	 * just-released key still being counted as held. A genuinely-held modifier is not
+	 * pending, so it is left alone.
 	 * @internal
 	 */
 	private _releaseDebouncedModifiers() {
-		if (this._shiftKeyTimeout !== -1) {
-			clearTimeout(this._shiftKeyTimeout)
-			this._shiftKeyTimeout = -1
+		if (this._shiftKeyPendingRelease) {
+			this._shiftKeyPendingRelease = false
 			this.inputs.setShiftKey(false)
 		}
-		if (this._altKeyTimeout !== -1) {
-			clearTimeout(this._altKeyTimeout)
-			this._altKeyTimeout = -1
+		if (this._altKeyPendingRelease) {
+			this._altKeyPendingRelease = false
 			this.inputs.setAltKey(false)
 		}
-		if (this._ctrlKeyTimeout !== -1) {
-			clearTimeout(this._ctrlKeyTimeout)
-			this._ctrlKeyTimeout = -1
+		if (this._ctrlKeyPendingRelease) {
+			this._ctrlKeyPendingRelease = false
 			this.inputs.setCtrlKey(false)
 		}
-		if (this._metaKeyTimeout !== -1) {
-			clearTimeout(this._metaKeyTimeout)
-			this._metaKeyTimeout = -1
+		if (this._metaKeyPendingRelease) {
+			this._metaKeyPendingRelease = false
 			this.inputs.setMetaKey(false)
 		}
 	}
@@ -11069,38 +11073,62 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return
 		}
 
+		// EXPERIMENT: timer-free "latch during gesture" model.
+		// - flag true -> modifier on immediately.
+		// - flag false while pointing (a gesture is active) -> latch it (keep on, mark
+		//   pending). This runs before the event reaches the state chart, so a modifier
+		//   released a hair before pointer_up still applies to the finishing gesture.
+		// - flag false while idle (between gestures) -> release immediately, so a stale
+		//   modifier can't linger into the next interaction.
+		const isPointing = inputs.getIsPointing()
+
 		if (info.shiftKey) {
-			clearTimeout(this._shiftKeyTimeout)
-			this._shiftKeyTimeout = -1
 			inputs.setShiftKey(true)
-		} else if (!info.shiftKey && inputs.getShiftKey() && this._shiftKeyTimeout === -1) {
-			this._shiftKeyTimeout = this.timers.setTimeout(this._setShiftKeyTimeout, 150)
+			this._shiftKeyPendingRelease = false
+		} else if (inputs.getShiftKey()) {
+			if (isPointing) {
+				this._shiftKeyPendingRelease = true
+			} else {
+				inputs.setShiftKey(false)
+				this._shiftKeyPendingRelease = false
+			}
 		}
 
 		if (info.altKey) {
-			clearTimeout(this._altKeyTimeout)
-			this._altKeyTimeout = -1
 			inputs.setAltKey(true)
-		} else if (!info.altKey && inputs.getAltKey() && this._altKeyTimeout === -1) {
-			this._altKeyTimeout = this.timers.setTimeout(this._setAltKeyTimeout, 150)
+			this._altKeyPendingRelease = false
+		} else if (inputs.getAltKey()) {
+			if (isPointing) {
+				this._altKeyPendingRelease = true
+			} else {
+				inputs.setAltKey(false)
+				this._altKeyPendingRelease = false
+			}
 		}
 
 		if (info.ctrlKey) {
-			clearTimeout(this._ctrlKeyTimeout)
-			this._ctrlKeyTimeout = -1
 			inputs.setCtrlKey(true)
-		} else if (!info.ctrlKey && inputs.getCtrlKey() && this._ctrlKeyTimeout === -1) {
-			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
+			this._ctrlKeyPendingRelease = false
+		} else if (inputs.getCtrlKey()) {
+			if (isPointing) {
+				this._ctrlKeyPendingRelease = true
+			} else {
+				inputs.setCtrlKey(false)
+				this._ctrlKeyPendingRelease = false
+			}
 		}
 
 		if (info.metaKey && info.name !== 'key_up') {
 			// Unlike the other modifiers, the native metaKey property is still true on keyup.
-			// If we don't have this guard, then the metakey will be left true without the timeout.
-			clearTimeout(this._metaKeyTimeout)
-			this._metaKeyTimeout = -1
 			inputs.setMetaKey(true)
-		} else if (!info.metaKey && inputs.getMetaKey() && this._metaKeyTimeout === -1) {
-			this._metaKeyTimeout = this.timers.setTimeout(this._setMetaKeyTimeout, 150)
+			this._metaKeyPendingRelease = false
+		} else if (inputs.getMetaKey()) {
+			if (isPointing) {
+				this._metaKeyPendingRelease = true
+			} else {
+				inputs.setMetaKey(false)
+				this._metaKeyPendingRelease = false
+			}
 		}
 
 		if (!inputs.getIsPointing()) {
