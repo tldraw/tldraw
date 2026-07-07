@@ -1,0 +1,13 @@
+.toolbar-scene {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	background: var(--tl-color-background);
+}
+
+/* the embedded tldraw editor fills the scene */
+.toolbar-scene .tl-container {
+	position: absolute;
+	inset: 0;
+}

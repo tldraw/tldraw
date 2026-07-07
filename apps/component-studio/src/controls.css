@@ -1,0 +1,76 @@
+/* Co-located with the Controls component so it styles wherever Controls renders
+   (the studio shell and the canvas properties panel), not just one view.
+
+   Colors use tldraw's --tl-color tokens with light fallbacks: on the canvas the
+   tokens resolve (so the panel themes with the editor), in the studio shell they're
+   undefined and the fallbacks apply. */
+.controls {
+	background: var(--tl-color-panel, #fff);
+	border: 1px solid var(--tl-color-divider, #e4e4e4);
+	border-radius: 14px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+	padding: 1.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1.1rem;
+	color: var(--tl-color-text-1, #1d1d1d);
+}
+
+.controls__empty {
+	color: var(--tl-color-text-3, #8a8a8a);
+	margin: 0;
+}
+
+.controls__row {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+.controls__label {
+	width: 6rem;
+	flex-shrink: 0;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.8rem;
+	color: var(--tl-color-text-3, #555);
+}
+
+.controls input[type='text'],
+.controls input[type='number'],
+.controls input[type='datetime-local'],
+.controls select {
+	flex: 1;
+	min-width: 0;
+	font: inherit;
+	padding: 0.5rem 0.7rem;
+	border: 1px solid var(--tl-color-divider, #d0d0d0);
+	border-radius: 8px;
+	background: var(--tl-color-panel, #fff);
+	color: var(--tl-color-text-1, #1d1d1d);
+}
+
+.controls__object {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	padding: 0.5rem 0.6rem;
+	border: 1px solid var(--tl-color-divider, #d0d0d0);
+	border-radius: 8px;
+	background: var(--tl-color-panel, #fff);
+}
+
+.controls__object-row {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.controls__object-key {
+	width: 3rem;
+	flex-shrink: 0;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.72rem;
+	color: var(--tl-color-text-3, #8a8a8a);
+}

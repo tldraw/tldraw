@@ -1,0 +1,51 @@
+/* The canvas card for one sketch instance: a preview area over a name caption. */
+.sketch-shape {
+	display: flex;
+	flex-direction: column;
+	background: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.sketch-shape__preview {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px;
+	/* tldraw sets shape content to pointer-events:none so the canvas handles
+	   pan/select; opt component previews back in (as tldraw's own UI does) so
+	   hover/focus states work on the board. */
+	pointer-events: all;
+}
+
+/* a viewport scene fills the cell edge-to-edge, no padding or scaling; keep it a
+   static preview on the board (the nested editor doesn't capture pointer events) */
+.sketch-shape__preview--fill {
+	padding: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.sketch-shape__preview--fill > * {
+	width: 100%;
+	height: 100%;
+}
+
+/* a scene rendered in its own iframe (isolated editor); non-interactive on the board */
+.sketch-shape__iframe {
+	border: 0;
+	display: block;
+}
+
+.sketch-shape__label {
+	flex-shrink: 0;
+	padding: 6px 10px;
+	border-top: 1px solid var(--tl-color-divider);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+	text-align: center;
+}

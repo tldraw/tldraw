@@ -1,0 +1,70 @@
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	height: 100%;
+}
+
+body {
+	min-height: 100vh;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	background: repeating-conic-gradient(#fbfbfb 0% 25%, #fff 0% 50%) 50% / 16px 16px;
+}
+
+/* the isolated harness fills the frame and centers the sketch, on the theme's
+   own background so a themed component is legible (dark component on dark surface) */
+.isolated-harness {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--tl-color-background);
+}
+
+/* viewport scenes fill the frame (their root is 100% high) rather than being centered.
+   The harness also carries tldraw's `.tl-container`, whose `height: 100%` resolves to 0
+   here and wins on load order — so beat it on specificity with the doubled class. */
+.isolated-harness.isolated-harness--fill {
+	display: block;
+	padding: 0;
+	min-height: 0;
+	height: 100vh;
+}
+
+.isolated-harness--fill > * {
+	height: 100%;
+}
+
+.preview__missing {
+	color: #b00020;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	padding: 2rem;
+}
+
+/* the editor harness fills the frame; tldraw needs a sized, positioned container */
+.editor-harness {
+	position: relative;
+	width: 100%;
+	height: 100vh;
+}
+
+/* a canvas overlay, themed via tldraw's tokens */
+.editor-probe {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	z-index: 300;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 8px 12px;
+	border-radius: 8px;
+	background: var(--tl-color-panel);
+	color: var(--tl-color-text);
+	border: 1px solid var(--tl-color-divider);
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 12px;
+}

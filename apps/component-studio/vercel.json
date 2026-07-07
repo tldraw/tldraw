@@ -1,0 +1,16 @@
+{
+	"installCommand": "yarn workspaces focus component-studio @tldraw/monorepo config",
+	"buildCommand": "cd ../../packages/tldraw && yarn prebuild && cd ../../apps/component-studio && yarn build",
+	"outputDirectory": "dist",
+	"headers": [
+		{
+			"source": "/assets/(.*)",
+			"headers": [
+				{
+					"key": "Cache-Control",
+					"value": "public,max-age=31536000,immutable"
+				}
+			]
+		}
+	]
+}
