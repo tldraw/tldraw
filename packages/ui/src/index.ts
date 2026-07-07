@@ -1,3 +1,5 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
+
 // Contexts
 export {
 	PORTRAIT_BREAKPOINTS,
@@ -195,3 +197,9 @@ export {
 // Utils
 export { kbd, kbdStr } from './lib/kbd'
 export { preventDefault, stopEventPropagation } from './lib/utils'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)
