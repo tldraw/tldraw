@@ -10905,6 +10905,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 	}
 
+	/**
+	 * Flush any modifier still sitting in its 150ms release-debounce window, so a new
+	 * interaction (a pointer down) starts with correct modifier state instead of a
+	 * just-released key still being counted as held. A pending timer is exactly
+	 * "released but still counted as held"; a genuinely-held modifier has no timer
+	 * (-1) and is left alone.
+	 * @internal
+	 */
+	private _releaseDebouncedModifiers() {
+		if (this._shiftKeyTimeout !== -1) {
+			clearTimeout(this._shiftKeyTimeout)
+			this._shiftKeyTimeout = -1
+			this.inputs.setShiftKey(false)
+		}
+		if (this._altKeyTimeout !== -1) {
+			clearTimeout(this._altKeyTimeout)
+			this._altKeyTimeout = -1
+			this.inputs.setAltKey(false)
+		}
+		if (this._ctrlKeyTimeout !== -1) {
+			clearTimeout(this._ctrlKeyTimeout)
+			this._ctrlKeyTimeout = -1
+			this.inputs.setCtrlKey(false)
+		}
+		if (this._metaKeyTimeout !== -1) {
+			clearTimeout(this._metaKeyTimeout)
+			this._metaKeyTimeout = -1
+			this.inputs.setMetaKey(false)
+		}
+	}
+
 	/** @internal */
 	private _restoreToolId = 'select'
 
@@ -11276,6 +11307,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					case 'pointer_down': {
 						// If we're in pen mode and the input is not a pen type, then stop here
 						if (isPenMode && !isPen) return
+
+						// A pointer down starts a new interaction, so flush any modifier that's
+						// still lingering in its release-debounce window: treat it as released now.
+						this._releaseDebouncedModifiers()
 
 						if (!this.inputs.getIsPanning()) {
 							// Start a long press timeout
