@@ -1,5 +1,5 @@
+import { CommentCard, CommentCardProps } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
-import { CommentCard, CommentCardProps } from './comment-card'
 
 const NOW = Date.now()
 const HOUR = 3_600_000

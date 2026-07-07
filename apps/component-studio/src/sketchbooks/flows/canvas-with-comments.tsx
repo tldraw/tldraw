@@ -1,7 +1,6 @@
+import { CommentPin, CommentsSidebar } from '@tldraw/commenting'
 import { Tldraw } from 'tldraw'
 import { commentToolComponents, commentToolOverrides, commentTools } from '../../comment-tool'
-import { CommentPin } from '../comments/comment-pin'
-import { CommentsSidebar } from '../comments/comments-sidebar'
 import './canvas-with-comments.css'
 
 export interface CanvasWithCommentsProps {

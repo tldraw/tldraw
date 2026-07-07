@@ -1,5 +1,5 @@
+import { Mention, MentionProps } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
-import { Mention, MentionProps } from './mention'
 
 const sketchbook: Sketchbook<MentionProps> = {
 	title: 'Comments/Mention',

@@ -1,5 +1,5 @@
+import { CommentsSidebar, CommentsSidebarProps } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
-import { CommentsSidebar, CommentsSidebarProps } from './comments-sidebar'
 
 const sketchbook: Sketchbook<CommentsSidebarProps> = {
 	title: 'Comments/Sidebar',

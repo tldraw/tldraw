@@ -1,6 +1,5 @@
+import { CommentCard, CommentComposer } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
-import { CommentCard } from './comment-card'
-import { CommentComposer } from './comment-composer'
 
 interface CommentThreadProps {
 	resolved: boolean

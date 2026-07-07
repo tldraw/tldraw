@@ -1,5 +1,5 @@
+import { CommentText, CommentTextProps } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
-import { CommentText, CommentTextProps } from './comment-text'
 
 const sketchbook: Sketchbook<CommentTextProps> = {
 	title: 'Comments/Text',

@@ -1,5 +1,5 @@
+import { CommentCard } from '@tldraw/commenting'
 import { commentToCardProps, sampleComments } from '../../comment-model'
-import { CommentCard } from './comment-card'
 
 /**
  * Proof that our UI consumes the data model: CommentCards rendered straight from model

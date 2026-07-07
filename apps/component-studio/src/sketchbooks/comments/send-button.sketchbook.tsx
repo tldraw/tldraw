@@ -1,5 +1,5 @@
+import { SendButton, SendButtonProps } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
-import { SendButton, SendButtonProps } from './send-button'
 
 const sketchbook: Sketchbook<SendButtonProps> = {
 	title: 'Comments/Send button',

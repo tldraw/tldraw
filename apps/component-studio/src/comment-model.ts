@@ -1,4 +1,4 @@
-import { CommentCardProps } from './sketchbooks/comments/comment-card'
+import { CommentCardProps } from '@tldraw/commenting'
 
 // A local mirror of the tldraw commenting data model (PR #9471), so our UI components
 // can be exercised against the real record shapes. Ids and rich text are simplified to

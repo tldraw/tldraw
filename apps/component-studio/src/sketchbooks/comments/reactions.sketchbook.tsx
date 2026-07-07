@@ -1,5 +1,5 @@
+import { Reactions } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
-import { Reactions } from './reactions'
 
 const sketchbook: Sketchbook<Record<string, never>> = {
 	title: 'Comments/Reactions',

@@ -1,5 +1,5 @@
+import { EmptyState, EmptyStateProps } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
-import { EmptyState, EmptyStateProps } from './empty-state'
 
 const sketchbook: Sketchbook<EmptyStateProps> = {
 	title: 'Comments/Empty',

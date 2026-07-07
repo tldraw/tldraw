@@ -1,5 +1,5 @@
+import { Byline, BylineProps } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
-import { Byline, BylineProps } from './byline'
 
 const NOW = Date.now()
 const MIN = 60_000

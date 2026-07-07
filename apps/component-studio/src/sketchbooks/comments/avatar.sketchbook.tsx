@@ -1,5 +1,5 @@
+import { Avatar, AvatarProps } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
-import { Avatar, AvatarProps } from './avatar'
 
 const sketchbook: Sketchbook<AvatarProps> = {
 	title: 'Comments/Avatar',

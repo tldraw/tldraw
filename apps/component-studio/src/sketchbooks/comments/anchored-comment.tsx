@@ -1,7 +1,6 @@
+import { CommentCard, CommentPin } from '@tldraw/commenting'
 import { Comment, CommentThread, commentToCardProps, resolvedByName } from '../../comment-model'
-import { CommentCard } from './comment-card'
-import { CommentPin } from './comment-pin'
-import './comments.css'
+import './anchored-comment.css'
 
 export interface AnchoredCommentProps {
 	thread: CommentThread

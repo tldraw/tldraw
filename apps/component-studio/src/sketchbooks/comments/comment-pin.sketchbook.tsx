@@ -1,5 +1,5 @@
+import { CommentPin, CommentPinProps } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
-import { CommentPin, CommentPinProps } from './comment-pin'
 
 const sketchbook: Sketchbook<CommentPinProps> = {
 	title: 'Comments/Pin',
