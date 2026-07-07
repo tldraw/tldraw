@@ -166,6 +166,12 @@ This script:
 - Uses the `next.mdx` body (frontmatter stripped) as the release body.
 - Creates the draft if none exists, or edits the existing draft named `vX.Y.0`. It refuses to touch an already-published release, and refuses to write an empty body.
 
+**Major releases / version overrides:** the minor bump above is the default because nearly every release is a minor. `publish-new.ts` looks up the draft by the version it resolves — for `--bump major` (or an override) that comes from NPM, not a minor bump, so a hardcoded minor would leave the draft misnamed and `getDraftRelease` would fail. When the next release is a major or otherwise not the next minor, pass the target explicitly so the draft name matches:
+
+```bash
+<skill-dir>/scripts/update-draft-release.sh /tmp/tldraw v6.0.0
+```
+
 Run this after every `next.mdx` update, including the release-week runs. On the second (post-publish) run the previous minor's draft has already been published, so this creates a fresh draft for the new next minor derived from the reset `last_version`.
 
 ### 10. Push changes
