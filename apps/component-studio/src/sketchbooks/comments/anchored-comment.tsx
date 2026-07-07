@@ -1,10 +1,11 @@
 import { CommentCard, CommentPin } from '@tldraw/commenting'
-import { Comment, CommentThread, commentToCardProps, resolvedByName } from '../../comment-model'
+import { TLComment, TLCommentThread } from 'tldraw'
+import { commentToCardProps, resolvedByName } from '../../comment-model'
 import './anchored-comment.css'
 
 export interface AnchoredCommentProps {
-	thread: CommentThread
-	comments: Comment[]
+	thread: TLCommentThread
+	comments: TLComment[]
 	/** Whether the thread popover is open (vs just the pin). */
 	open: boolean
 }

@@ -1,8 +1,9 @@
-import { CommentThread, sampleComments, sampleThread } from '../../comment-model'
+import { TLCommentThread } from 'tldraw'
+import { sampleComments, sampleThread } from '../../comment-model'
 import { Sketch, Sketchbook } from '../../sketch'
 import { AnchoredComment, AnchoredCommentProps } from './anchored-comment'
 
-const resolvedThread: CommentThread = {
+const resolvedThread: TLCommentThread = {
 	...sampleThread,
 	resolvedAt: sampleThread.createdAt + 3_600_000,
 	resolvedBy: 'ada',

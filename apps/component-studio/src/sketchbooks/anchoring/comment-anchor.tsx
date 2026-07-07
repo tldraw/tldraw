@@ -1,4 +1,5 @@
-import { CommentThread, sampleComments, sampleThread, TLCommentAnchor } from '../../comment-model'
+import { TLCommentAnchor, TLCommentThread } from 'tldraw'
+import { sampleComments, sampleThread } from '../../comment-model'
 import { AnchorScene } from './anchor-scene'
 
 export interface CommentAnchorProps {
@@ -13,6 +14,6 @@ export interface CommentAnchorProps {
  * is shown attached five ways: shape, point, region, page, text-range.
  */
 export function CommentAnchor({ anchor, open }: CommentAnchorProps) {
-	const thread: CommentThread = { ...sampleThread, anchor }
+	const thread: TLCommentThread = { ...sampleThread, anchor }
 	return <AnchorScene anchor={anchor} thread={thread} comments={sampleComments} open={open} />
 }

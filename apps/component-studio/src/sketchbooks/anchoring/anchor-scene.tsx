@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Editor, TLShapeId, Tldraw, createShapeId, toRichText } from 'tldraw'
-import { Comment, CommentThread, TLCommentAnchor } from '../../comment-model'
+import {
+	Editor,
+	TLComment,
+	TLCommentAnchor,
+	TLCommentThread,
+	TLShapeId,
+	Tldraw,
+	createShapeId,
+	toRichText,
+} from 'tldraw'
 import { AnchoredComment } from '../comments/anchored-comment'
 import './anchor-scene.css'
 
@@ -21,8 +29,8 @@ interface Target {
 
 export interface AnchorSceneProps {
 	anchor: TLCommentAnchor
-	thread: CommentThread
-	comments: Comment[]
+	thread: TLCommentThread
+	comments: TLComment[]
 	open: boolean
 }
 
