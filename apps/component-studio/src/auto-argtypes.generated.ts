@@ -38,23 +38,6 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			control: 'boolean',
 		},
 	},
-	'sketchbooks/comments/comment-card.sketchbook.tsx': {
-		author: {
-			control: 'text',
-		},
-		body: {
-			control: 'text',
-		},
-		date: {
-			control: 'text',
-		},
-		edited: {
-			control: 'boolean',
-		},
-		you: {
-			control: 'boolean',
-		},
-	},
 	'sketchbooks/comments/comment-composer.sketchbook.tsx': {
 		author: {
 			control: 'text',
@@ -94,23 +77,6 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 	},
 	'sketchbooks/comments/comment-text.sketchbook.tsx': {
 		text: {
-			control: 'text',
-		},
-	},
-	'sketchbooks/comments/comment-thread.sketchbook.tsx': {
-		comments: {
-			control: 'text',
-		},
-		composer: {
-			control: 'text',
-		},
-		header: {
-			control: 'text',
-		},
-		renderComment: {
-			control: 'number',
-		},
-		resolvedBy: {
 			control: 'text',
 		},
 	},

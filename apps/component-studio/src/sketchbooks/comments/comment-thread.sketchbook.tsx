@@ -1,4 +1,4 @@
-import { CommentText, CommentThread, CommentThreadProps } from '@tldraw/commenting'
+import { CommentText, CommentThread } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
 
 const NOW = Date.now()
@@ -20,24 +20,22 @@ const comments = [
 	},
 ]
 
-const sketchbook: Sketchbook<CommentThreadProps> = {
+// Rendered bodies inside `comments` aren't serializable, so these use `render`, not args.
+const sketchbook: Sketchbook<Record<string, never>> = {
 	title: 'Comments/Thread',
-	component: CommentThread,
 }
 export default sketchbook
 
-export const Open: Sketch<CommentThreadProps> = {
-	args: {
-		comments,
-		header: 'Thread',
-		composer: { author: 'You', placeholder: 'Reply…' },
-	},
+export const Open: Sketch<Record<string, never>> = {
+	render: () => (
+		<CommentThread
+			comments={comments}
+			header="Thread"
+			composer={{ author: 'You', placeholder: 'Reply…' }}
+		/>
+	),
 }
 
-export const Resolved: Sketch<CommentThreadProps> = {
-	args: {
-		comments,
-		header: 'Thread',
-		resolvedBy: 'You',
-	},
+export const Resolved: Sketch<Record<string, never>> = {
+	render: () => <CommentThread comments={comments} header="Thread" resolvedBy="You" />,
 }
