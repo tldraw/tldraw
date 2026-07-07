@@ -38,7 +38,13 @@ function Preview() {
 	if ((loaded.sketchbook.harness ?? 'isolated') === 'editor') {
 		return <EditorHarness env={env}>{content}</EditorHarness>
 	}
-	return <IsolatedHarness env={env}>{content}</IsolatedHarness>
+	// Viewport scenes (flows, toolbar) fill the frame; components stay centered.
+	const fill = Boolean(loaded.sketch.parameters?.viewport)
+	return (
+		<IsolatedHarness env={env} fill={fill}>
+			{content}
+		</IsolatedHarness>
+	)
 }
 
 const root = document.getElementById('root')

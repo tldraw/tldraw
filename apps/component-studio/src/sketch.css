@@ -25,6 +25,20 @@ body {
 	background: var(--tl-color-background);
 }
 
+/* viewport scenes fill the frame (their root is 100% high) rather than being centered.
+   The harness also carries tldraw's `.tl-container`, whose `height: 100%` resolves to 0
+   here and wins on load order — so beat it on specificity with the doubled class. */
+.isolated-harness.isolated-harness--fill {
+	display: block;
+	padding: 0;
+	min-height: 0;
+	height: 100vh;
+}
+
+.isolated-harness--fill > * {
+	height: 100%;
+}
+
 .preview__missing {
 	color: #b00020;
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;

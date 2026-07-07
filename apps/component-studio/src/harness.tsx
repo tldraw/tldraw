@@ -13,10 +13,19 @@ import { Env } from './channel'
  * translations require, and the inner one overrides the locale — the context provider
  * alone locks to 'en' when there is no editor to read a locale from.
  */
-export function IsolatedHarness({ env, children }: { env: Env; children: ReactNode }) {
+export function IsolatedHarness({
+	env,
+	children,
+	fill,
+}: {
+	env: Env
+	children: ReactNode
+	/** Fill the frame instead of centering — for viewport scenes whose root is 100% high. */
+	fill?: boolean
+}) {
 	return (
 		<div
-			className={`isolated-harness tl-container tl-theme__${env.theme}`}
+			className={`isolated-harness${fill ? ' isolated-harness--fill' : ''} tl-container tl-theme__${env.theme}`}
 			data-color-mode={env.theme}
 		>
 			<TldrawUiContextProvider>
