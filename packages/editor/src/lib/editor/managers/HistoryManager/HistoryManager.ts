@@ -4,12 +4,14 @@ import {
 	isRecordsDiffEmpty,
 	RecordsDiff,
 	reverseRecordsDiff,
+	squashRecordDiffs,
 	squashRecordDiffsMutable,
 	Store,
 	UnknownRecord,
 } from '@tldraw/store'
-import { exhaustiveSwitchError, noop } from '@tldraw/utils'
-import { TLHistoryBatchOptions, TLHistoryEntry } from '../../types/history-types'
+import { exhaustiveSwitchError, isEqual, noop, structuredClone } from '@tldraw/utils'
+import { T } from '@tldraw/validate'
+import { TLHistoryBatchOptions, TLHistoryEntry, TLHistorySnapshot } from '../../types/history-types'
 
 const HistoryRecorderState = {
 	Recording: 'recording',
@@ -313,6 +315,58 @@ export class HistoryManager<R extends UnknownRecord> {
 		this.pendingDiff.clear()
 	}
 
+	/**
+	 * Get a serializable snapshot of the current undo/redo history, including any changes
+	 * that have not yet been committed to the undo stack. Capturing a snapshot does not
+	 * modify the history.
+	 *
+	 * Restore it with {@link HistoryManager.loadSnapshot}.
+	 */
+	getSnapshot(): TLHistorySnapshot<R> {
+		const { undos, redos } = this.stacks.get()
+
+		const undosArray: TLHistoryEntry<R>[] = stackToArray(undos).slice().reverse()
+		if (!this.pendingDiff.isEmpty()) {
+			undosArray.push({ type: 'diff', diff: this.pendingDiff.snapshot() })
+		}
+
+		return {
+			version: CURRENT_HISTORY_SNAPSHOT_VERSION,
+			schema: this.store.schema.serialize(),
+			undos: undosArray,
+			redos: stackToArray(redos).slice().reverse(),
+		}
+	}
+
+	/**
+	 * Load a history snapshot captured with {@link HistoryManager.getSnapshot}, replacing
+	 * the current undo/redo history. Any changes that have not yet been committed to the
+	 * undo stack are discarded.
+	 *
+	 * History entries contain full record values, so a snapshot can only be loaded into a
+	 * store whose schema matches the schema it was captured under. If the schemas differ,
+	 * or the snapshot is invalid, the snapshot is ignored with a warning.
+	 */
+	loadSnapshot(snapshot: TLHistorySnapshot<R>) {
+		const res = migrateAndValidateHistorySnapshot(snapshot)
+		if (!res) return
+
+		if (!isEqual(this.store.schema.serialize(), res.schema)) {
+			console.warn(
+				'History snapshot schema does not match the store schema. Ignoring the snapshot.'
+			)
+			return
+		}
+
+		transact(() => {
+			this.pendingDiff.clear()
+			this.stacks.set({
+				undos: stackFromArray(res.undos as TLHistoryEntry<R>[]),
+				redos: stackFromArray(res.redos as TLHistoryEntry<R>[]),
+			})
+		})
+	}
+
 	/** @internal */
 	getMarkIdMatching(idSubstring: string) {
 		let top = this.stacks.get().undos
@@ -342,6 +396,75 @@ const modeToState = {
 	'record-preserveRedoStack': HistoryRecorderState.RecordingPreserveRedoStack,
 	ignore: HistoryRecorderState.Paused,
 } as const
+
+const Versions = {
+	Initial: 0,
+} as const
+
+const CURRENT_HISTORY_SNAPSHOT_VERSION = Math.max(...Object.values(Versions))
+
+function migrateHistorySnapshot(snapshot: any) {
+	if (snapshot.version < Versions.Initial) {
+		// initial version
+		// noop
+	}
+	// add further migrations down here. see TLUserPreferences.ts for an example.
+
+	// finally
+	snapshot.version = CURRENT_HISTORY_SNAPSHOT_VERSION
+}
+
+const updatedTupleValidator = T.arrayOf(T.unknownObject).check((tuple) => {
+	if (tuple.length !== 2) {
+		throw new T.ValidationError(
+			`Expected a [from, to] tuple, got an array of length ${tuple.length}`
+		)
+	}
+})
+
+// this checks the structure of the snapshot, but not the record values themselves: those
+// are covered by the schema comparison in loadSnapshot, plus the store's usual record
+// validation when a diff is applied by undo/redo.
+const historyEntryValidator = T.union('type', {
+	stop: T.object({ type: T.literal('stop'), id: T.string }),
+	diff: T.object({
+		type: T.literal('diff'),
+		diff: T.object({
+			added: T.dict(T.string, T.unknownObject),
+			updated: T.dict(T.string, updatedTupleValidator),
+			removed: T.dict(T.string, T.unknownObject),
+		}),
+	}),
+})
+
+const historySnapshotValidator = T.object({
+	version: T.number,
+	schema: T.unknownObject,
+	undos: T.arrayOf(historyEntryValidator),
+	redos: T.arrayOf(historyEntryValidator),
+})
+
+function migrateAndValidateHistorySnapshot(snapshot: unknown): TLHistorySnapshot<any> | null {
+	if (!snapshot || typeof snapshot !== 'object') {
+		console.warn('Invalid history snapshot')
+		return null
+	}
+	if (!('version' in snapshot) || typeof snapshot.version !== 'number') {
+		console.warn('No version in history snapshot')
+		return null
+	}
+	if (snapshot.version !== CURRENT_HISTORY_SNAPSHOT_VERSION) {
+		snapshot = structuredClone(snapshot)
+		migrateHistorySnapshot(snapshot)
+	}
+
+	try {
+		return historySnapshotValidator.validate(snapshot) as unknown as TLHistorySnapshot<any>
+	} catch (e) {
+		console.warn(e)
+		return null
+	}
+}
 
 class PendingDiff<R extends UnknownRecord> {
 	private diff = createEmptyRecordsDiff<R>()
@@ -375,6 +498,13 @@ class PendingDiff<R extends UnknownRecord> {
 		} else if (this.isEmptyAtom.__unsafe__getWithoutCapture()) {
 			this.isEmptyAtom.set(!hasAnyKey(diff.updated))
 		}
+	}
+
+	// returns a copy of the current diff that is safe to hold onto: `apply` mutates both
+	// the diff's collections and its updated tuples in place. squashing a single diff gives
+	// fresh collections and tuples while sharing the (never-mutated) record values.
+	snapshot(): RecordsDiff<R> {
+		return squashRecordDiffs([this.diff])
 	}
 
 	debug() {
@@ -429,4 +559,14 @@ function stackToArray<T>(stack: Stack<T>) {
 		stack = stack.tail
 	}
 	return arr
+}
+
+// builds a stack from an array ordered oldest to newest, so the last item in the array
+// becomes the head of the stack
+function stackFromArray<T>(items: T[]): Stack<T> {
+	let result = stack<T>()
+	for (const item of items) {
+		result = result.push(item)
+	}
+	return result
 }
