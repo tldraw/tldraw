@@ -1,0 +1,51 @@
+/* @tldraw/ui input */
+
+.tl-ui .tl-input {
+	background: none;
+	margin: 0px;
+	position: relative;
+	z-index: var(--tl-layer-above);
+	height: 40px;
+	max-height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: inherit;
+	font-size: 12px;
+	font-weight: inherit;
+	color: var(--tl-color-text-1);
+	padding: var(--tl-space-4);
+	padding-left: 0px;
+	border: none;
+	outline: none;
+	text-overflow: ellipsis;
+	width: 100%;
+	user-select: all;
+	text-rendering: optimizeLegibility;
+	-webkit-user-select: auto !important;
+}
+
+.tl-ui .tl-input::placeholder {
+	color: var(--tl-color-text-3);
+}
+
+.tl-ui .tl-input__wrapper {
+	width: 100%;
+	height: 44px;
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-4);
+	color: var(--tl-color-text);
+}
+
+.tl-ui .tl-input__wrapper > .tl-icon {
+	flex-shrink: 0;
+}
+
+/* If mobile use 16px as font size */
+/* On iOS, font size under 16px in an input will make the page zoom into the input */
+@supports (-webkit-touch-callout: none) {
+	.tl-ui .tl-input {
+		font-size: 16px;
+	}
+}

@@ -1,0 +1,114 @@
+/* @tldraw/ui menu */
+
+.tl-ui .tl-menu:empty {
+	display: none;
+}
+
+.tl-ui .tl-menu {
+	z-index: var(--tl-layer-menus);
+	height: fit-content;
+	width: fit-content;
+	border-radius: var(--tl-radius-3);
+	pointer-events: all;
+	touch-action: auto;
+	overflow-y: auto;
+	overscroll-behavior: none;
+	background-color: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-3);
+}
+
+@media (max-height: 600px) {
+	.tl-ui .tl-menu {
+		max-height: 70vh;
+	}
+}
+
+.tl-ui .tl-menu::-webkit-scrollbar {
+	display: none;
+}
+
+.tl-ui .tl-menu__group {
+	width: 100%;
+}
+
+.tl-ui .tl-menu__group:empty {
+	display: none;
+}
+
+.tl-ui .tl-menu__group {
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+.tl-ui .tl-menu__group:nth-last-of-type(1) {
+	border-bottom: none;
+}
+
+.tl-ui .tl-menu__submenu-trigger {
+	--tl-gradient-angle: 90deg;
+}
+
+.tl-ui .tl-menu__submenu-trigger[data-direction='left'] {
+	--tl-gradient-angle: 270deg;
+}
+
+.tl-ui .tl-menu__submenu-trigger[data-state='open']::after {
+	opacity: 1;
+	background: linear-gradient(
+		var(--tl-gradient-angle),
+		rgba(144, 144, 144, 0) 0%,
+		var(--tl-color-muted-2) 100%
+	);
+}
+
+@media (hover: hover) {
+	.tl-ui .tl-menu__submenu-trigger:is(:hover, [data-state='open'])::after {
+		opacity: 1;
+		background: linear-gradient(
+			var(--tl-gradient-angle),
+			rgba(144, 144, 144, 0) 0%,
+			var(--tl-color-muted-2) 100%
+		);
+	}
+}
+
+.tl-ui .tl-menu[data-size='large'] > .tl-menu__group {
+	min-width: initial;
+}
+
+.tl-ui .tl-menu[data-size='medium'] > .tl-menu__group {
+	min-width: 144px;
+}
+
+.tl-ui .tl-menu[data-size='small'] > .tl-menu__group {
+	min-width: 96px;
+}
+
+.tl-ui .tl-menu[data-size='tiny'] > .tl-menu__group {
+	min-width: 0px;
+}
+
+.tl-ui .tl-button--checkbox {
+	padding-left: 8px;
+}
+
+.tl-ui .tl-menu__checkbox-indicator {
+	width: 15px;
+	height: 15px;
+}
+
+.tl-ui .tl-button--menu[data-highlighted]::after,
+.tl-ui .tl-button--checkbox[data-highlighted]::after {
+	opacity: 1;
+}
+
+.tl-ui .tl-button--menu[data-disabled],
+.tl-ui .tl-button--checkbox[data-disabled] {
+	color: var(--tl-color-text-disabled);
+	text-shadow: none;
+	cursor: default;
+}
+
+.tl-ui .tl-button--menu[data-disabled]::after,
+.tl-ui .tl-button--checkbox[data-disabled]::after {
+	opacity: 0;
+}

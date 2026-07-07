@@ -1,0 +1,72 @@
+/* @tldraw/ui base */
+
+.tl-ui {
+	position: relative;
+	font-family: var(--tl-font-ui);
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--tl-color-text);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+.tl-ui *,
+.tl-ui *::before,
+.tl-ui *::after {
+	box-sizing: border-box;
+}
+
+.tl-ui button {
+	font-family: inherit;
+}
+
+.tl-ui .tl-button:focus-visible,
+.tl-ui .tl-button--tool:focus-visible {
+	border-radius: 10px;
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: -5px;
+}
+
+.tl-ui .tl-button--tool:focus-visible {
+	border-radius: 12px;
+}
+
+/* Row layout */
+
+.tl-ui .tl-row {
+	display: flex;
+	flex-direction: row;
+	padding: 0 2px;
+}
+
+.tl-ui .tl-row > * {
+	margin-left: -2px;
+	margin-right: -2px;
+}
+
+/* Column layout */
+
+.tl-ui .tl-column {
+	display: flex;
+	flex-direction: column;
+	padding: 2px 0;
+}
+
+.tl-ui .tl-column > * {
+	margin-top: -2px;
+	margin-bottom: -2px;
+}
+
+/* Grid layout */
+
+.tl-ui .tl-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	grid-auto-flow: row;
+	overflow: hidden;
+	padding: 2px;
+}
+
+.tl-ui .tl-grid > * {
+	margin: -2px;
+}

@@ -1,0 +1,25 @@
+/* @tldraw/ui icon */
+
+.tl-ui .tl-icon {
+	flex-shrink: 0;
+	width: 18px;
+	height: 18px;
+	background-color: currentColor;
+}
+
+.tl-ui .tl-icon--placeholder {
+	flex-shrink: 0;
+	width: 18px;
+	height: 18px;
+	background-color: transparent;
+}
+
+.tl-ui .tl-icon--small {
+	width: 15px;
+	height: 15px;
+}
+
+.tl-ui .tl-icon--tiny {
+	width: 12px;
+	height: 12px;
+}

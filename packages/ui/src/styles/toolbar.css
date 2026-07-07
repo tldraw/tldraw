@@ -1,0 +1,7 @@
+/* @tldraw/ui toolbar */
+
+.tl-ui .tl-toolbar__toggle-item,
+.tl-ui .tl-toolbar__toggle-group .tl-button--icon {
+	width: 40px;
+	padding: 0;
+}

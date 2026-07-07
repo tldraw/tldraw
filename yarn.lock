@@ -12234,6 +12234,30 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/ui@workspace:packages/ui":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/ui@workspace:packages/ui"
+  dependencies:
+    "@testing-library/dom": "npm:^10.0.0"
+    "@testing-library/react": "npm:^16.0.0"
+    "@tldraw/state": "workspace:*"
+    "@tldraw/state-react": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    chokidar-cli: "npm:^3.0.0"
+    classnames: "npm:^2.5.1"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    radix-ui: "npm:^1.4.2"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    vitest: "npm:^4.1.7"
+  peerDependencies:
+    react: ^18.2.0 || ^19.2.1
+    react-dom: ^18.2.0 || ^19.2.1
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/utils@workspace:*, @tldraw/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@tldraw/utils@workspace:packages/utils"

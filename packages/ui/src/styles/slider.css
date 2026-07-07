@@ -1,0 +1,68 @@
+/* @tldraw/ui slider */
+
+.tl-ui .tl-slider__container {
+	width: 100%;
+	padding: 0px var(--tl-space-4);
+}
+
+.tl-ui .tl-slider__container:has(.tl-slider__thumb:focus-visible) {
+	border-radius: 10px;
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: -5px;
+}
+
+.tl-ui .tl-slider {
+	position: relative;
+	display: flex;
+	align-items: center;
+	user-select: none;
+	touch-action: none;
+	width: 100%;
+}
+
+.tl-ui .tl-slider__track {
+	position: relative;
+	flex-grow: 1;
+	height: 44px;
+	cursor: pointer;
+}
+
+.tl-ui .tl-slider__track::after {
+	display: block;
+	position: absolute;
+	top: calc(50% - 2px);
+	content: '';
+	height: 3px;
+	width: 100%;
+	background-color: var(--tl-color-muted-1);
+	border-radius: 14px;
+}
+
+.tl-ui .tl-slider__range {
+	position: absolute;
+	top: calc(50% - 2px);
+	left: 0px;
+	height: 3px;
+	background-color: var(--tl-color-selected);
+	border-radius: 14px;
+}
+
+.tl-ui .tl-slider__thumb {
+	all: unset;
+	cursor: grab;
+	display: block;
+	width: 18px;
+	height: 18px;
+	position: relative;
+	top: -1px;
+	background-color: var(--tl-color-panel);
+	border-radius: 999px;
+	box-shadow: inset 0px 0px 0px 2px var(--tl-color-text-1);
+}
+
+.tl-ui .tl-slider__thumb:active {
+	cursor: grabbing;
+	box-shadow:
+		inset 0px 0px 0px 2px var(--tl-color-text-1),
+		var(--tl-shadow-1);
+}

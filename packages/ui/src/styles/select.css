@@ -1,0 +1,67 @@
+/* @tldraw/ui select */
+
+.tl-ui .tl-select__trigger {
+	justify-content: space-between;
+	gap: var(--tl-space-3);
+}
+
+.tl-ui .tl-select__trigger[data-state='open']::after {
+	opacity: 1;
+}
+
+.tl-ui .tl-select__value {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-2);
+}
+
+.tl-ui .tl-select__chevron {
+	flex-shrink: 0;
+	color: var(--tl-color-text-3);
+}
+
+.tl-ui .tl-select__content {
+	min-width: var(--radix-select-trigger-width);
+	max-height: var(--radix-select-content-available-height);
+}
+
+.tl-ui .tl-select__viewport {
+	padding: 4px 0;
+}
+
+.tl-ui .tl-select__item {
+	justify-content: flex-start;
+}
+
+.tl-ui .tl-select__item-indicator {
+	visibility: hidden;
+}
+
+.tl-ui .tl-select__item[data-state='checked'] .tl-select__item-indicator {
+	visibility: visible;
+}
+
+.tl-ui .tl-select__item--destructive {
+	color: var(--tl-color-danger);
+}
+
+.tl-ui .tl-select__item[data-disabled] {
+	color: var(--tl-color-text-disabled);
+	cursor: default;
+}
+
+.tl-ui .tl-select__item[data-disabled]::after {
+	opacity: 0;
+}
+
+.tl-ui .tl-select__item[data-highlighted]::after {
+	opacity: 1;
+}
+
+.tl-ui .tl-select__trigger[data-disabled] .tl-select__chevron {
+	display: none;
+}
+
+.tl-ui .tl-select__trigger[data-disabled] .tl-button__label {
+	color: var(--tl-color-text-3);
+}
