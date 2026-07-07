@@ -405,6 +405,7 @@ function TlaFileNameEditorInput({
 	return (
 		<>
 			<TldrawUiInput
+				data-testid="tla-file-name-input"
 				value={temporaryFileName}
 				onValueChange={handleValueChange}
 				onCancel={handleCancel}

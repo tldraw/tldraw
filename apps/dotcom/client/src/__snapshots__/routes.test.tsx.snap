@@ -15,6 +15,10 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/admin/?$",
   },
   {
+    "reactRouterPattern": "/comments",
+    "vercelRouterPattern": "^/comments/?$",
+  },
+  {
     "reactRouterPattern": "/f/:fileSlug",
     "vercelRouterPattern": "^/f/[^/]*/?$",
   },

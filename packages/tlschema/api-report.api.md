@@ -1124,9 +1124,10 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
     // (undocumented)
     meta: JsonObject;
     pageId: TLPageId;
-    resolvedAt: null | number;
-    // (undocumented)
-    resolvedBy: null | string;
+    resolved: {
+        at: number;
+        by: string;
+    } | null;
 }
 
 // @public (undocumented)

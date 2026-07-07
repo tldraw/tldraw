@@ -24,6 +24,7 @@ export {
 	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	TLIncompatibilityReason,
 	type TLConnectRequest,
+	type TLObjectStoreAccess,
 	type TLPingRequest,
 	type TLPushRequest,
 	type TLSocketClientSentEvent,

@@ -36,6 +36,21 @@ export const queries = defineQueries({
 			.related('groupFiles', (gf) => gf.related('file', (file) => file.one()))
 			.related('groupMembers')
 	),
+
+	/**
+	 * Comments on files the current user can access, for the app-level /comments view. Access is
+	 * scoped to files the user has a file_state for (i.e. has opened/owns), mirroring the fileStates
+	 * query. The in-document view reads comments from the tldraw file room, not this query. (Group
+	 * files the user hasn't opened are out of scope for now.)
+	 */
+	comments: defineQuery(({ ctx }) =>
+		zql.comment
+			.whereExists('file', (file) =>
+				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
+			)
+			.related('author', (author) => author.one())
+			.related('file', (file) => file.one())
+	),
 })
 
 export type TlaQueries = typeof queries

@@ -15,6 +15,7 @@ import {
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
 	TLCustomServerEvent,
+	TlaComment,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
@@ -28,17 +29,22 @@ import {
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
+	TLSyncForwardDiff,
 	TLSyncStorage,
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
+	type TLObjectStoreAccess,
 } from '@tldraw/sync-core'
 import {
 	TLAsset,
 	TLAssetId,
+	TLComment,
+	TLCommentThread,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
+	commentSchemaRecords,
 	createTLSchema,
 } from '@tldraw/tlschema'
 import {
@@ -96,6 +102,8 @@ interface SocketAttachment {
 	sessionId: string
 	meta: SessionMeta
 	isReadonly: boolean
+	// optional: attachments serialized before the object-store lane existed lack this field
+	objectAccess?: TLObjectStoreAccess
 	snapshot: SessionStateSnapshot | null
 }
 
@@ -128,6 +136,18 @@ function arrayBufferToBase64(ab: ArrayBuffer): string {
 
 const MB = 1024 * 1024
 
+// The schema for a file room. Includes the opt-in `comment` record type so comment records sync
+// through the room; comments are persisted in a separate R2 lane rather than the main document
+// blob (see persistToDatabase / loadFromDatabase). The same records must be registered on the
+// client (see useSync in the dotcom client) or the schemas won't match.
+const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
+
+// Record types served through the room's object-store lane rather than the document lane.
+// Object-lane records sync over the same socket but are gated per session by `objectAccess`
+// (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in a
+// separate R2 lane next to the main document blob.
+const OBJECT_TYPES = ['comment-thread', 'comment'] as const
+
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
@@ -139,12 +159,17 @@ export class TLFileDurableObject extends DurableObject {
 
 		// If SQLite has been initialized, use it directly
 		if (SQLiteSyncStorage.hasBeenInitialized(sql)) {
-			return new SQLiteSyncStorage<TLRecord>({ sql })
+			return new SQLiteSyncStorage<TLRecord>({ sql, objectTypes: OBJECT_TYPES })
 		}
 
-		// SQLite not initialized yet, load from R2 and initialize
+		// SQLite not initialized yet, load from R2 and initialize. The loaded snapshot has the
+		// R2 object lane merged in; the storage routes those records into its objects partition.
 		const result = await this.loadFromDatabase(slug)
-		const storage = new SQLiteSyncStorage<TLRecord>({ sql, snapshot: result.snapshot })
+		const storage = new SQLiteSyncStorage<TLRecord>({
+			sql,
+			snapshot: result.snapshot,
+			objectTypes: OBJECT_TYPES,
+		})
 		// We should not await on setRoomStorageUsedPercentage because it calls
 		// getStorage under the hood which will only resolve once this function has returned.
 		this.setRoomStorageUsedPercentage(result.roomSizeMB)
@@ -166,7 +191,7 @@ export class TLFileDurableObject extends DurableObject {
 						this.triggerPersist()
 					})
 					storage.transaction((txn) => {
-						createTLSchema().migrateStorage(txn)
+						fileSyncSchema.migrateStorage(txn)
 					})
 					return storage
 				})
@@ -191,7 +216,15 @@ export class TLFileDurableObject extends DurableObject {
 			this._room = this.getStorage().then(async (storage) => {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
 					storage,
+					schema: fileSyncSchema,
+					objectTypes: OBJECT_TYPES,
 					clientTimeout: Infinity,
+					log: {
+						warn: (...args) => this.log.debug('sync warn', ...args),
+						error: (...args) => {
+							this.reportError(args.find((a) => a instanceof Error) ?? new Error(args.join(' ')))
+						},
+					},
 					onSessionSnapshot: (sessionId, snapshot) => {
 						const ws = this.sessionIdToWs.get(sessionId)
 						if (!ws) return
@@ -238,6 +271,11 @@ export class TLFileDurableObject extends DurableObject {
 							messageType: message.type,
 							messageLength: stringified.length,
 						})
+					},
+					// Project object-lane (comment) changes to Postgres as soon as they commit (not on
+					// the throttled R2 persist) so Zero replicates them to the app-level view quickly.
+					onCommittedChanges: ({ diff }) => {
+						this.pushCommentChangesToPostgres(diff)
 					},
 				})
 
@@ -515,9 +553,21 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			await this.r2.rooms.put(roomKey, dataText)
+
+			// Version snapshots only contain the drawing data, so we have to restore both the
+			// document and the current comments — loadSnapshotIntoStorage deletes anything not
+			// present in the snapshot, and deleting comments here would leave their projected
+			// Postgres rows behind (storage transactions don't fire onCommittedChanges).
+			const snapshot = JSON.parse(dataText) as RoomSnapshot
+			const comments = await this.r2.rooms.get(`${roomKey}/comments`)
+			if (comments) {
+				const commentDocs = (await comments.json()) as RoomSnapshot['documents']
+				snapshot.documents = [...snapshot.documents, ...commentDocs]
+			}
+
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {
-				loadSnapshotIntoStorage(txn, createTLSchema(), JSON.parse(dataText))
+				loadSnapshotIntoStorage(txn, fileSyncSchema, snapshot)
 			})
 
 			this.maybeAssociateFileAssets()
@@ -672,10 +722,15 @@ export class TLFileDurableObject extends DurableObject {
 				userId: auth?.userId ? auth.userId : null,
 			}
 			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
+			// Only authenticated users can write comments. Comment authors are stored in Postgres
+			// with a foreign key to the user table, so an anonymous author couldn't be represented
+			// there. Guests can still read comments.
+			const objectAccess: TLObjectStoreAccess = auth?.userId ? 'write' : 'read'
 			const attachment: SocketAttachment = {
 				sessionId,
 				meta,
 				isReadonly,
+				objectAccess,
 				snapshot: null,
 			}
 			serverWebSocket.serializeAttachment(attachment)
@@ -695,6 +750,7 @@ export class TLFileDurableObject extends DurableObject {
 				socket: serverWebSocket,
 				meta,
 				isReadonly,
+				objectAccess,
 			})
 			if (isNewSession) {
 				this.logEvent({
@@ -769,6 +825,7 @@ export class TLFileDurableObject extends DurableObject {
 
 		const storage = await this.getStorage()
 		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+		// the document snapshot never contains object-lane records (comments), so .tldr is clean
 		const snapshot = storage.getSnapshot()
 		const records = pruneUnusedAssetsForTldr(snapshot.documents.map((d) => d.state) as TLRecord[])
 
@@ -988,6 +1045,17 @@ export class TLFileDurableObject extends DurableObject {
 
 			if (roomFromBucket) {
 				const snapshot = (await roomFromBucket.json()) as RoomSnapshot
+
+				// Object-lane records (comments) live in a separate R2 lane (see persistToDatabase).
+				// Load them and merge them back into the snapshot so they seed the room and hydrate
+				// to clients on connect.
+				const objectLaneFromBucket = await this.r2.rooms.get(`${key}/comments`)
+				if (objectLaneFromBucket) {
+					const objectDocs = (await objectLaneFromBucket.json()) as RoomSnapshot['documents']
+					snapshot.documents = [...snapshot.documents, ...objectDocs]
+					this._objectLaneWritten = true
+				}
+
 				loadTimer.report('db_load_total')
 
 				return {
@@ -1077,6 +1145,16 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	_lastPersistedClock: number | null = null
+
+	// Whether this room's separate object-lane R2 object has ever been written (or existed on
+	// load). Used so we only write the lane once a room actually has object records, but still
+	// write an empty lane on later deletions (rather than leaving a stale object that would
+	// resurrect deleted records).
+	private _objectLaneWritten = false
+
+	// Serializes object-lane → Postgres pushes so they land in order. Separate from executionQueue
+	// (the R2/main-persist queue) since these pushes fire immediately on commit, not on the throttle.
+	private _objectPushQueue = new ExecutionQueue()
 
 	executionQueue = new ExecutionQueue()
 
@@ -1236,12 +1314,22 @@ export class TLFileDurableObject extends DurableObject {
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return
 
+						// The storage partitions object-lane records (comments) into their own store, so
+						// the document snapshot is pure-document by construction — no splitting needed.
 						const snapshot = storage.getSnapshot()
 						assert(snapshot.documentClock !== undefined, 'documentClock must be present')
 						this.maybeAssociateFileAssets()
 
+						const objectDocs = storage.getObjectsSnapshot()
+
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 						await this._uploadSnapshotToR2(snapshot, key)
+						if (objectDocs.length > 0 || this._objectLaneWritten) {
+							// the lane keeps its original `/comments` key so existing rooms keep their data;
+							// a real API would want per-lane keys (e.g. `${key}/objects/<lane>`)
+							await this.r2.rooms.put(`${key}/comments`, JSON.stringify(objectDocs))
+							this._objectLaneWritten = true
+						}
 						await this.persistToPierre(storage, snapshot)
 
 						this.logEvent({ type: 'persist_success', attempts: attempt })
@@ -1425,6 +1513,118 @@ export class TLFileDurableObject extends DurableObject {
 		this.pierreState = {
 			headSha: headCommit.sha,
 			documentClock: meta.documentClock ?? 0,
+		}
+	}
+
+	/**
+	 * Projects comment changes from a committed diff into Postgres so Zero replicates them to the
+	 * app-level view. Fires immediately on commit (see onCommittedChanges), serialized and
+	 * best-effort — it must never block or fail the canvas commit. The authoritative comment content
+	 * still lives in the R2 comment lane; these rows are a derived copy.
+	 */
+	private pushCommentChangesToPostgres(diff: TLSyncForwardDiff<TLRecord>) {
+		const slug = this.documentInfo.slug
+		const comments: TLComment[] = []
+		const threadsInDiff = new Map<string, TLCommentThread>()
+		for (const put of Object.values(diff.puts)) {
+			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string }
+			if (record.typeName === 'comment') {
+				comments.push(record as unknown as TLComment)
+			} else if (record.typeName === 'comment-thread') {
+				threadsInDiff.set(
+					(record as unknown as TLCommentThread).id,
+					record as unknown as TLCommentThread
+				)
+			}
+		}
+		// Deletes are ids only; comment ids are prefixed with `comment:`. Thread deletions don't
+		// touch the table directly — the client cascades by deleting the thread's comment records,
+		// which arrive here as `comment:` deletes in the same diff.
+		const deletedIds = diff.deletes.filter((id) => id.startsWith('comment:'))
+
+		if (comments.length === 0 && deletedIds.length === 0) return
+
+		this._objectPushQueue
+			.push(async () => {
+				if (comments.length > 0) {
+					// The Postgres row denormalizes the thread's shape anchor; resolve each comment's
+					// thread from the same diff or from room storage. (A thread anchor changing does
+					// not re-project its existing comments — acceptable for the spike.)
+					const storage = await this.getStorage()
+					const upserts: TlaComment[] = comments.map((comment) => {
+						const thread =
+							threadsInDiff.get(comment.threadId) ??
+							(storage.transaction((txn) => txn.get(comment.threadId)).result as
+								| TLCommentThread
+								| undefined)
+						return this.commentRecordToRow(comment, thread, slug)
+					})
+					const insertRows = (rows: TlaComment[]) =>
+						this.db
+							.insertInto('comment')
+							.values(rows)
+							.onConflict((oc) =>
+								oc.column('id').doUpdateSet((eb) => ({
+									body: eb.ref('excluded.body'),
+									shapeId: eb.ref('excluded.shapeId'),
+									updatedAt: eb.ref('excluded.updatedAt'),
+								}))
+							)
+							.execute()
+					try {
+						await insertRows(upserts)
+					} catch (batchError) {
+						// A single bad row (e.g. an FK violation from a since-deleted user) must not
+						// drop the whole batch from the projection — retry row by row so only the
+						// genuinely bad rows are lost, and report those.
+						this.reportError(batchError)
+						for (const row of upserts) {
+							try {
+								await insertRows([row])
+							} catch (rowError) {
+								this.logEvent({
+									type: 'room',
+									roomId: slug,
+									name: 'failed_persist_comments_to_db',
+								})
+								this.reportError(rowError)
+							}
+						}
+					}
+				}
+				if (deletedIds.length > 0) {
+					await this.db.deleteFrom('comment').where('id', 'in', deletedIds).execute()
+				}
+			})
+			.catch((e) => {
+				this.logEvent({
+					type: 'room',
+					roomId: slug,
+					name: 'failed_persist_comments_to_db',
+				})
+				this.reportError(e)
+			})
+	}
+
+	private commentRecordToRow(
+		record: TLComment,
+		thread: TLCommentThread | undefined,
+		fileId: string
+	): TlaComment {
+		return {
+			id: record.id,
+			fileId,
+			threadId: record.threadId,
+			pageId: record.pageId,
+			authorId: record.authorId,
+			shapeId: thread?.anchor.type === 'shape' ? thread.anchor.shapeId : null,
+			// rich text stored as-is (JSONB) — the projection preserves the authoritative
+			// representation rather than flattening to plaintext. TLRichText types its content as
+			// unknown[], which doesn't structurally satisfy zero's ReadonlyJSONValue, but the value
+			// is schema-validated JSON.
+			body: record.body as TlaComment['body'],
+			createdAt: record.createdAt,
+			updatedAt: record.editedAt ?? record.createdAt,
 		}
 	}
 

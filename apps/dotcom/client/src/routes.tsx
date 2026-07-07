@@ -80,6 +80,7 @@ export function createAppRouter({
 				<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
 				<Route element={<NoIndex />}>
 					<Route path={ROUTES.tlaNew} lazy={() => import('./pages/tla-new')} />
+					<Route path={ROUTES.tlaComments} lazy={() => import('./tla/pages/comments')} />
 					<Route path={ROUTES.tlaOptIn} loader={() => redirect(routes.tlaRoot())} />
 					<Route path={ROUTES.tlaLocalFile} lazy={() => import('./tla/pages/local-file')} />
 					<Route
