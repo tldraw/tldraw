@@ -1,7 +1,8 @@
 /* eslint-disable tldraw/jsx-no-literals */
-import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
+	atom,
 	createComment,
 	createCommentThread,
 	Editor,
@@ -22,6 +23,9 @@ import { CommentBody } from './comment-body'
 import { pendingComment, PendingComment } from './comment-tool'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
 import './canvas.css'
+
+/** The id of the one open thread (only one popover is open at a time), or null when all closed. */
+const openThreadId = atom<string | null>('openThreadId', null)
 
 /**
  * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
@@ -83,28 +87,27 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	const threads = useCommentThreads(editor)
 	const pending = usePendingComment()
 
-	// When arriving from a deep link (?comment=<id>), open that thread's popover.
-	const focusedId = useMemo(() => new URLSearchParams(window.location.search).get('comment'), [])
-
-	// Never leave a half-placed comment behind when this unmounts.
+	// On mount, open the thread named by a deep link (?comment=<thread or comment id>). Reset the
+	// transient UI state (open thread, half-placed comment) when this unmounts.
 	useEffect(() => {
+		const id = new URLSearchParams(window.location.search).get('comment')
+		if (id) {
+			const record = editor.store.get(id as any)
+			if (record?.typeName === 'comment') openThreadId.set((record as TLComment).threadId)
+			else if (record?.typeName === 'comment-thread') openThreadId.set(id)
+		}
 		return () => {
+			openThreadId.set(null)
 			pendingComment.set(null)
 		}
-	}, [])
+	}, [editor])
 
 	// Render into the container (above the panels' stacking context) so the pins and popovers
 	// live in the UI layer rather than being clipped by the canvas layer.
 	return createPortal(
 		<div className="cmt-canvas-layer">
 			{threads.map((thread) => (
-				<ThreadPin
-					key={thread.id}
-					editor={editor}
-					thread={thread}
-					focusedId={focusedId}
-					{...props}
-				/>
+				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
 			))}
 			{pending && props.currentUserId && (
 				<PendingComposer editor={editor} pending={pending} {...props} />
@@ -117,14 +120,12 @@ export function CanvasComments(props: CanvasCommentsProps) {
 function ThreadPin({
 	editor,
 	thread,
-	focusedId,
 	...props
-}: CanvasCommentsProps & { editor: Editor; thread: TLCommentThread; focusedId: string | null }) {
+}: CanvasCommentsProps & { editor: Editor; thread: TLCommentThread }) {
 	const { currentUserId, resolveName, renderPinContent, onPostComment } = props
 	const comments = useThreadComments(editor, thread.id)
-	const [open, setOpen] = useState(
-		focusedId != null && (focusedId === thread.id || comments.some((c) => c.id === focusedId))
-	)
+	// Only one thread's popover is open at a time — shared across pins via the atom.
+	const open = useValue('thread open', () => openThreadId.get() === thread.id, [thread.id])
 	const [reply, setReply] = useState('')
 
 	const point = useValue(
@@ -167,7 +168,7 @@ function ThreadPin({
 			<div
 				className="cmt-canvas-pin__marker"
 				onPointerDown={stop}
-				onClick={() => setOpen((o) => !o)}
+				onClick={() => openThreadId.set(openThreadId.get() === thread.id ? null : thread.id)}
 			>
 				<CommentPin resolved={thread.resolved != null} open={open}>
 					{pinContent}
