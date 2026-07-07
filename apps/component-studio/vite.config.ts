@@ -9,6 +9,9 @@ export default defineConfig({
 	plugins: [react()],
 	root: path.join(__dirname, 'src'),
 	build: {
+		// output to the package root (not src/dist), matching the other apps
+		outDir: path.join(__dirname, 'dist'),
+		emptyOutDir: true,
 		rollupOptions: {
 			// HTML entries: the studio shell, the sketch preview it iframes, and the
 			// canvas view (all sketches laid out on a tldraw canvas).
