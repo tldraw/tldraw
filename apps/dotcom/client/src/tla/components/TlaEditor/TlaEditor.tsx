@@ -47,6 +47,7 @@ import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { CommentsOnCanvas } from './CommentsOnCanvas'
+import { commentToolComponents, commentToolOverrides, commentTools } from './CommentTool'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
@@ -282,6 +283,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
+			...commentToolComponents,
 			DebugMenu: () => <CustomDebugMenu />,
 			InFrontOfTheCanvas: CommentsOnCanvas,
 		}
@@ -295,6 +297,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
+				tools={commentTools}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
@@ -303,7 +306,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,
 				}}
-				overrides={[overrides, extraDragIconOverrides]}
+				overrides={[overrides, extraDragIconOverrides, commentToolOverrides]}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />

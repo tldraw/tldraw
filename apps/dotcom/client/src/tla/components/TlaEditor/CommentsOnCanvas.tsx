@@ -1,6 +1,6 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { CommentCard, CommentCardProps, CommentComposer, CommentPin } from '@tldraw/commenting'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
 	Editor,
 	TLComment,
@@ -15,14 +15,16 @@ import {
 } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { richTextToPlaintext } from '../../utils/richText'
+import { PendingComment, pendingComment } from './CommentTool'
 
 /**
  * Comments UI, mounted as `InFrontOfTheCanvas`. Reads comment-thread and comment records straight
- * from the tldraw file store (they sync through the room's object lane), pins a thread at its
- * anchor, and lets an authenticated user start a shape-anchored thread on the single selected
- * shape. The pin, thread cards, and composer are the shared `@tldraw/commenting` components; a
- * small adapter maps each synced `TLComment` onto the card's presentational props. Cross-document
- * comments live at the /comments route (backed by Zero), not here.
+ * from the tldraw file store (they sync through the room's object lane) and pins each thread at its
+ * anchor. New threads are started with the comment tool, which drops a `pendingComment`; this
+ * renders the composer there and creates the records on post. The pin, thread cards, and composer
+ * are the shared `@tldraw/commenting` components, fed by a small adapter that maps each synced
+ * `TLComment` onto the card's presentational props. Cross-document comments live at the /comments
+ * route (backed by Zero), not here.
  */
 export function CommentsOnCanvas() {
 	const editor = useEditor()
@@ -37,18 +39,18 @@ export function CommentsOnCanvas() {
 		[editor]
 	)
 
-	const selectedShapeId = useValue(
-		'single selected shape',
-		() => {
-			const ids = editor.getSelectedShapeIds()
-			return ids.length === 1 ? ids[0] : null
-		},
-		[editor]
-	)
+	const pending = useValue('pending comment', () => pendingComment.get(), [])
 
 	// When arriving from a /comments deep link (?comment=<id>), open that thread's popover. The
 	// link may carry a thread id or one of its comment ids.
 	const focusedId = useMemo(() => new URLSearchParams(window.location.search).get('comment'), [])
+
+	// Never leave a half-placed comment behind when the editor unmounts (e.g. a file switch).
+	useEffect(() => {
+		return () => {
+			pendingComment.set(null)
+		}
+	}, [])
 
 	return (
 		<>
@@ -61,8 +63,8 @@ export function CommentsOnCanvas() {
 					currentUserId={authorId}
 				/>
 			))}
-			{selectedShapeId && authorId && (
-				<ThreadComposer editor={editor} shapeId={selectedShapeId} authorId={authorId} />
+			{pending && authorId && (
+				<ThreadComposer editor={editor} pending={pending} authorId={authorId} />
 			)}
 		</>
 	)
@@ -172,42 +174,29 @@ function ThreadPin({
 					{comments.map((comment) => (
 						<CommentCard key={comment.id} {...commentToCardProps(comment, currentUserId)} />
 					))}
-					{comments.length === 0 && (
-						<CommentCard
-							author=""
-							body="No comments yet"
-							date={new Date().toISOString()}
-							you={false}
-						/>
-					)}
 				</div>
 			)}
 		</div>
 	)
 }
 
+/** The composer for a comment being placed by the comment tool, anchored at the click point. */
 function ThreadComposer({
 	editor,
-	shapeId,
+	pending,
 	authorId,
 }: {
 	editor: Editor
-	shapeId: TLShapeId
+	pending: PendingComment
 	authorId: string
 }) {
 	const [text, setText] = useState('')
 
-	// Anchor the composer just below the selected shape (in viewport coords, tracks camera) so it
-	// doesn't collide with the bottom-center toolbar, which renders above this in-front layer.
-	const point = useValue(
-		'composer point',
-		() => {
-			const bounds = editor.getShapePageBounds(shapeId)
-			if (!bounds) return null
-			return editor.pageToViewport({ x: bounds.minX, y: bounds.maxY })
-		},
-		[editor, shapeId]
-	)
+	// Track the click point through the camera so the composer stays put as you pan/zoom.
+	const point = useValue('composer point', () => editor.pageToViewport(pending.point), [
+		editor,
+		pending.point,
+	])
 
 	const submit = () => {
 		const trimmed = text.trim()
@@ -216,10 +205,10 @@ function ThreadComposer({
 		editor.run(
 			() => {
 				const pageId = editor.getCurrentPageId()
-				// a new thread anchored to the selected shape, with its first comment
+				// a new thread at the placed anchor, with its first comment
 				const thread = createCommentThread({
 					pageId,
-					anchor: { type: 'shape', shapeId },
+					anchor: pending.anchor,
 					createdBy: authorId,
 				})
 				const comment = createComment({
@@ -235,28 +224,32 @@ function ThreadComposer({
 			{ history: 'ignore' }
 		)
 		setText('')
+		pendingComment.set(null)
 	}
-
-	if (!point) return null
 
 	return (
 		<div
 			onPointerDown={(e) => e.stopPropagation()}
+			onKeyDown={(e) => {
+				if (e.key === 'Escape') pendingComment.set(null)
+			}}
 			style={{
 				position: 'absolute',
 				left: point.x,
-				top: point.y + 8,
+				top: point.y,
+				transform: 'translateY(8px)',
 				pointerEvents: 'all',
 				zIndex: 300,
 			}}
 		>
 			<CommentComposer
 				author={authorId}
-				placeholder="Comment on the selected shape…"
+				placeholder="Add a comment…"
 				value={text}
 				onChange={setText}
 				onSubmit={submit}
 				disabled={!text.trim()}
+				autoFocus
 			/>
 		</div>
 	)

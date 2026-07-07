@@ -12,6 +12,7 @@ export interface CommentComposerProps {
 	onSubmit?(): void
 	sendLabel?: string
 	disabled?: boolean
+	autoFocus?: boolean
 }
 
 /** The input for writing a new comment, composed from Avatar and SendButton. Presentational
@@ -24,6 +25,7 @@ export function CommentComposer({
 	onSubmit,
 	sendLabel = 'Send',
 	disabled,
+	autoFocus,
 }: CommentComposerProps) {
 	return (
 		<div className="cmt-composer">
@@ -31,6 +33,7 @@ export function CommentComposer({
 			<input
 				className="cmt-input"
 				placeholder={placeholder}
+				autoFocus={autoFocus}
 				value={value}
 				onChange={onChange ? (e) => onChange(e.target.value) : undefined}
 				onKeyDown={
