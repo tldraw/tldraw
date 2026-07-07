@@ -1,114 +1,81 @@
 import { IRequest } from 'itty-router'
-import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
 import {
-	THUMBNAIL_RENDER_TOKEN_TTL_MS,
-	ThumbnailRenderJob,
-	mintThumbnailRenderToken,
-} from '../../utils/renderTokens'
-import { getPublishedFileInfo } from './getPublishedFile'
-import { getSharedFileInfo, isFileAnonymouslyViewable } from './getSharedFile'
-import {
-	DEFAULT_THUMBNAIL_HEIGHT,
-	DEFAULT_THUMBNAIL_WIDTH,
-	buildThumbnailRenderUrl,
-	captureWithBrowserRun,
-	getRenderOrigin,
-	isRateLimited,
-} from './sharedBoardScreenshotMcp'
+	OG_IMAGE_HEIGHT,
+	OG_IMAGE_WIDTH,
+	OgBoardKind,
+	ResolvedOgBoard,
+	enqueueOgImageRender,
+	getOgImageCacheKey,
+	resolveOgBoardInfo,
+	sha256,
+	writeOgImageTelemetry,
+} from './ogImageQueue'
+import { isRateLimited } from './sharedBoardScreenshotMcp'
 
+// OG images are served entirely from the R2 cache; rendering happens asynchronously through the
+// og-image queue consumer (ogImageQueue.ts). A request never waits on Browser Run: it gets the
+// cached image (fresh or stale, while a refresh job runs in the background) or a redirect to the
+// default tldraw OG image until the first render lands. This is what makes the endpoint safe on
+// high-traffic paths like link unfurls.
+
+// A stale-but-recent image is still served as fresh without enqueueing a refresh, so one board
+// cannot spend Browser Run capacity more than about once an hour no matter how often it changes
+// or is crawled.
 const OG_IMAGE_MIN_REFRESH_AGE_MS = 60 * 60_000
-const OG_IMAGE_BROWSER_RATE_LIMIT = 60
 const OG_IMAGE_BOARD_RATE_LIMIT = 20
 const DEFAULT_OG_IMAGE_PATH = '/social-og.png'
 const DEFAULT_OG_IMAGE_MAX_AGE_SECONDS = 60 * 60
-const OG_IMAGE_MAX_AGE_SECONDS = 60 * 60
-
-type OgBoardKind = 'published' | 'shared_file'
-
-interface ResolvedOgBoard {
-	kind: OgBoardKind
-	slug: string
-	fileId: string
-	version: string | number
-}
+const FRESH_IMAGE_MAX_AGE_SECONDS = 60 * 60
+// Stale images and redirects use short TTLs so scrapers and browsers come back for the fresh
+// render soon after the queued job completes.
+const STALE_IMAGE_MAX_AGE_SECONDS = 5 * 60
+const REDIRECT_MAX_AGE_SECONDS = 60
 
 export async function getOgImage(request: IRequest, env: Environment): Promise<Response> {
 	const board = await resolveOgBoard(request, env).catch(() => null)
 	if (!board) return redirectToDefaultOgImage(request, env)
 
+	const boardHash = await sha256(board.slug)
 	const cacheKey = getOgImageCacheKey(board)
 	const cached = await env.THUMBNAILS?.get(cacheKey)
 	const now = Date.now()
 	if (cached && shouldServeCachedOgImage(cached, board.version, now)) {
+		writeOgImageTelemetry(env, { source: 'og', boardHash, cacheStatus: 'hit' })
 		return imageResponse(await cached.arrayBuffer(), {
 			cacheStatus: 'hit',
+			maxAgeSeconds: FRESH_IMAGE_MAX_AGE_SECONDS,
 			version: cached.customMetadata?.version,
 		})
 	}
 
+	// Stale or never rendered: kick off (at most) one background render, then return the best
+	// response we have right now. The per-board limit guards the queue against being flooded on a
+	// single board's behalf; enqueue failures degrade to the fallback response rather than a 500.
 	if (
-		(await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `og-board:${board.kind}:${board.slug}`, {
+		!(await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `og-board:${board.kind}:${board.slug}`, {
 			fallbackLimit: OG_IMAGE_BOARD_RATE_LIMIT,
-		})) ||
-		(await isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, 'og-global', {
-			fallbackLimit: OG_IMAGE_BROWSER_RATE_LIMIT,
 		}))
 	) {
-		if (cached) {
-			return imageResponse(await cached.arrayBuffer(), {
-				cacheStatus: 'stale',
-				version: cached.customMetadata?.version,
-			})
-		}
-		return redirectToDefaultOgImage(request, env)
+		await enqueueOgImageRender(env, board).catch(() => {})
 	}
 
-	try {
-		const job: ThumbnailRenderJob = {
-			v: 1,
-			kind: board.kind,
-			slug: board.slug,
-			fileId: board.fileId,
-			version: board.version,
-			camera: 'content',
-			x: 0,
-			y: 0,
-			z: 1,
-			width: DEFAULT_THUMBNAIL_WIDTH,
-			height: DEFAULT_THUMBNAIL_HEIGHT,
-			theme: 'light',
-			exp: now + THUMBNAIL_RENDER_TOKEN_TTL_MS,
-		}
-		const token = await mintThumbnailRenderToken(env, job)
-		const renderUrl = buildThumbnailRenderUrl(getRenderOrigin(env), token)
-		const browserRun = await captureWithBrowserRun(
-			renderUrl,
-			{ width: DEFAULT_THUMBNAIL_WIDTH, height: DEFAULT_THUMBNAIL_HEIGHT },
-			env
-		)
-
-		await env.THUMBNAILS?.put(cacheKey, browserRun.png, {
-			httpMetadata: { contentType: 'image/png' },
-			customMetadata: {
-				version: String(board.version),
-				createdAt: String(now),
-			},
+	if (cached) {
+		writeOgImageTelemetry(env, { source: 'og', boardHash, cacheStatus: 'stale' })
+		return imageResponse(await cached.arrayBuffer(), {
+			cacheStatus: 'stale',
+			maxAgeSeconds: STALE_IMAGE_MAX_AGE_SECONDS,
+			version: cached.customMetadata?.version,
 		})
-
-		return imageResponse(browserRun.png, {
-			cacheStatus: 'miss',
-			version: String(board.version),
-		})
-	} catch {
-		if (cached) {
-			return imageResponse(await cached.arrayBuffer(), {
-				cacheStatus: 'stale',
-				version: cached.customMetadata?.version,
-			})
-		}
-		return redirectToDefaultOgImage(request, env)
 	}
+
+	writeOgImageTelemetry(env, {
+		source: 'og',
+		boardHash,
+		cacheStatus: 'miss',
+		failureReason: 'not_rendered_yet',
+	})
+	return redirectToDefaultOgImage(request, env)
 }
 
 export async function getOgHtml(request: IRequest, env: Environment): Promise<Response> {
@@ -142,8 +109,8 @@ export async function getOgHtml(request: IRequest, env: Environment): Promise<Re
 <meta property="og:site_name" content="tldraw">
 <meta property="og:url" content="${escapeHtml(canonicalUrl)}">
 <meta property="og:image" content="${escapeHtml(imageUrl)}">
-<meta property="og:image:width" content="${DEFAULT_THUMBNAIL_WIDTH}">
-<meta property="og:image:height" content="${DEFAULT_THUMBNAIL_HEIGHT}">
+<meta property="og:image:width" content="${OG_IMAGE_WIDTH}">
+<meta property="og:image:height" content="${OG_IMAGE_HEIGHT}">
 <meta property="og:image:alt" content="A collaborative whiteboarding tool interface">
 </head>
 <body><a href="${escapeHtml(canonicalUrl)}">Open in tldraw</a></body>
@@ -155,10 +122,6 @@ export async function getOgHtml(request: IRequest, env: Environment): Promise<Re
 			},
 		}
 	)
-}
-
-export function getOgImageCacheKey(board: Pick<ResolvedOgBoard, 'kind' | 'slug'>) {
-	return `og/${board.kind}/${board.slug}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/light.png`
 }
 
 function shouldServeCachedOgImage(cached: R2ObjectBody, version: string | number, now: number) {
@@ -176,30 +139,7 @@ async function resolveOgBoard(
 	const kind = parseOgKind(request.params.kind)
 	const slug = parseSlug(request.params.slug)
 	if (!kind || !slug) return null
-
-	if (kind === 'published') {
-		const file = await getPublishedFileInfo(env, slug)
-		if (!file?.published) return null
-		return {
-			kind,
-			slug,
-			fileId: file.id,
-			version: file.lastPublished,
-		}
-	}
-
-	const file = await getSharedFileInfo(env, slug)
-	if (!isFileAnonymouslyViewable(file)) return null
-
-	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
-	if (!persisted) return null
-
-	return {
-		kind,
-		slug,
-		fileId: file.id,
-		version: persisted.etag,
-	}
+	return resolveOgBoardInfo(env, kind, slug)
 }
 
 function parseOgKind(value: unknown): OgBoardKind | null {
@@ -216,16 +156,18 @@ function imageResponse(
 	body: ArrayBuffer,
 	{
 		cacheStatus,
+		maxAgeSeconds,
 		version,
 	}: {
-		cacheStatus: 'hit' | 'miss' | 'stale'
+		cacheStatus: 'hit' | 'stale'
+		maxAgeSeconds: number
 		version?: string
 	}
 ) {
 	return new Response(body, {
 		headers: {
 			'content-type': 'image/png',
-			'cache-control': `public, max-age=${OG_IMAGE_MAX_AGE_SECONDS}, stale-while-revalidate=86400`,
+			'cache-control': `public, max-age=${maxAgeSeconds}, stale-while-revalidate=86400`,
 			'x-tldraw-og-cache': cacheStatus,
 			...(version ? { 'x-tldraw-og-version': version } : null),
 		},
@@ -233,7 +175,13 @@ function imageResponse(
 }
 
 function redirectToDefaultOgImage(request: IRequest, env: Environment) {
-	return Response.redirect(`${getPublicOrigin(request, env)}${DEFAULT_OG_IMAGE_PATH}`, 302)
+	return new Response(null, {
+		status: 302,
+		headers: {
+			location: `${getPublicOrigin(request, env)}${DEFAULT_OG_IMAGE_PATH}`,
+			'cache-control': `public, max-age=${REDIRECT_MAX_AGE_SECONDS}`,
+		},
+	})
 }
 
 function getPublicOrigin(request: IRequest, env: Environment) {

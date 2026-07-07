@@ -5,7 +5,10 @@ Issues:
 - https://github.com/tldraw/tldraw/issues/9502
 - https://github.com/tldraw/tldraw/issues/9497
 
-tldraw.com can capture PNG thumbnails of public boards by pointing Cloudflare Browser Run at a tldraw-owned render page. The first consumer is an image-only MCP tool, `get_shared_board_screenshot`, served by the sync worker at `POST /api/app/mcp`.
+tldraw.com can capture PNG thumbnails of public boards by pointing Cloudflare Browser Run at a tldraw-owned render page. There are two consumers, both served by the sync worker:
+
+- an image-only MCP tool, `get_shared_board_screenshot`, at `POST /api/app/mcp`, which captures synchronously because the image must be returned in-band, and
+- a board OG image endpoint, `GET /api/app/og-image/:kind/:slug`, built for high-traffic paths (link unfurls, crawlers): it serves only from the R2 cache and delegates rendering to a queue consumer, so a request never waits on Browser Run.
 
 The screenshot pipeline never hands Browser Run a user-provided URL. The worker resolves the board, verifies it is publicly viewable (a published board, or a file shared via link), mints a short-lived signed render job, and Browser Run only ever visits the internal render page with that token. The MCP surface is image-only: it exposes no board metadata, document structure, shape listing, arbitrary selectors, arbitrary URLs, or access to files that are not publicly shared.
 
@@ -18,6 +21,15 @@ The screenshot pipeline never hands Browser Run a user-provided URL. The worker 
 5. The render page (`apps/dotcom/client/src/pages/thumbnail-render.tsx`) exchanges the token for snapshot data at `GET /api/app/thumbnail-snapshot`, which verifies the signature and expiry before returning records, schema, and render params. Published boards read a frozen R2 snapshot; shared files read the live persisted room snapshot from R2 (`env.ROOMS`) and re-check the share gate here, not just when the token was minted, so a board un-shared during the token's 5 minute window stops resolving. The page renders a hidden-UI, read-only editor and sets `data-thumbnail-ready` once fonts have settled, image assets have loaded, and the editor's `<img>` elements are stable. Browser Run waits on that selector.
 6. The PNG is stored in the `THUMBNAILS` bucket and returned as an MCP image content item.
 
+### OG images (queue-backed async rendering)
+
+`GET /api/app/og-image/:kind/:slug` (`:kind` is `p` for published boards or `f` for shared files) serves a 1200x630 light-theme, content-fit PNG for use in `og:image` tags; `GET /api/app/og-html/:kind/:slug` serves crawler metadata pointing at it. The request path never invokes Browser Run:
+
+1. The board is resolved through the same gates as the MCP tool. Private, deleted, unpublished, or unknown boards redirect (302) to the default tldraw OG image.
+2. If the cached image in R2 matches the board's current content version - or is younger than one hour, which caps one board's Browser Run spend at roughly one render per hour no matter how often it changes or is crawled - it is served as a hit with `max-age=3600`.
+3. Otherwise the worker enqueues an `og-image-render` job on the existing sync-worker queue (guarded by a per-board rate limit and a two-minute pending marker in R2 that dedupes concurrent enqueues) and serves the previous image marked stale with `max-age=300`, or the default-image redirect with `max-age=60` if the board has never been rendered. Scrapers pick up the fresh render on their next visit.
+4. The queue consumer (`ogImageQueue.ts`, dispatched from the worker's `queue()` handler) re-resolves the board at render time: a board un-shared while queued is dropped and its cached OG image deleted, and the version is re-read so bursts of enqueues coalesce into one capture of the newest content. It checks the shared global Browser Run rate limit (requeueing when capacity is busy), mints a render token with `camera: 'content'`, captures through Browser Run, and writes the PNG back to the cache key the route reads. Transient failures retry up to three times with backoff, then drop.
+
 ### Request limits
 
 - Per IP: ~20 tool calls per minute (`MCP_SCREENSHOT_RATE_LIMITER`).
@@ -26,9 +38,33 @@ The screenshot pipeline never hands Browser Run a user-provided URL. The worker 
 
 The Cloudflare rate limit bindings are declared in `wrangler.toml` for every environment. When a binding is absent (local dev, tests) the route falls back to an isolate-local guard with the same limits.
 
-### Telemetry
+### Telemetry and monitoring
 
-`mcp_shared_board_screenshot` events record source `mcp`, hashed IP, hashed board slug, cache hit/miss, Browser Run duration, `X-Browser-Ms-Used`, output dimensions, failure reason (including which rate limit blocked a request), and rate-limit decisions.
+All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record hashed IP, hashed board slug, cache hit/stale/miss, Browser Run duration, `X-Browser-Ms-Used`, output dimensions, failure reason (including which rate limit blocked a request), and rate-limit decisions. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP, `double3` Browser Run duration ms, `double4` browser ms used, `index1` hashed board slug.
+
+`internal/scripts/fetch-screenshot-metrics.ts` queries the Analytics Engine SQL API and reports request volume, failure rate, timeout rate, cache hit rate, rate-limit blocks, and Browser Run spend per source:
+
+```bash
+CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_ANALYTICS_API_TOKEN=... \
+npx tsx internal/scripts/fetch-screenshot-metrics.ts --last 24h --worker main-tldraw-multiplayer
+```
+
+For alerting, run it with `--check` on a schedule (cron CI job or any monitor that can run a command); it exits non-zero when a threshold is breached:
+
+```bash
+npx tsx internal/scripts/fetch-screenshot-metrics.ts --last 1h --check \
+  --max-failure-rate 0.2 --max-timeout-rate 0.1 --max-browser-minutes 60
+```
+
+The API token only needs the "Account Analytics: Read" permission. Ad-hoc dashboard queries can use the same SQL API, e.g. failure breakdown over the last day:
+
+```sql
+SELECT blob3 AS source, blob5 AS failure, SUM(_sample_interval) AS requests
+FROM MEASURE
+WHERE blob1 = 'mcp_shared_board_screenshot' AND timestamp > NOW() - INTERVAL '24' HOUR
+GROUP BY source, failure
+ORDER BY requests DESC
+```
 
 ## Configuration
 
@@ -107,7 +143,6 @@ The screenshot layer lives in the dotcom sync worker rather than the interactive
 
 ## Remaining follow-up work
 
-- Queue-backed async generation with stale/placeholder responses. This matters for high-traffic OG-image paths (#9502), not for the synchronous MCP tool, which must return the image in-band; the R2 cache bounds repeat cost for MCP.
-- Dashboards and alerts on the `mcp_shared_board_screenshot` telemetry (failure rate, timeout rate, Browser Run spend, cache hit rate).
+- Schedule `fetch-screenshot-metrics.ts --check` somewhere (cron CI job or an external monitor) and point a dashboard at the SQL queries above; the script and queries exist, the scheduling is an ops decision.
 - Shared files render the last persisted room snapshot from R2, which can lag in-memory edits by the persist debounce. If near-real-time accuracy is ever required, add a `getCurrentSnapshot` RPC on `TLFileDurableObject` (modeled on `onDownloadTldr`) instead of reading R2.
 - Keep private (unshared) files, board metadata, document structure, current-viewport screenshots, and selected-shape screenshots out of the MCP scope.

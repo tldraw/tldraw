@@ -46,10 +46,11 @@ import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgHtml, getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
+import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
-import { Environment, QueueMessage, isDebugLogging } from './types'
+import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
@@ -322,10 +323,17 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
-		const db = createPostgresConnectionPool(this.env, 'sync-worker-queue')
+		// The pool is only needed for asset-upload messages, so create it lazily: OG image render
+		// batches should not open database connections they never use.
+		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
 		for (const message of batch.messages) {
+			if (message.body.type === 'og-image-render') {
+				await handleOgImageRenderMessage(this.env, message as Message<OgImageRenderQueueMessage>)
+				continue
+			}
 			const { objectName, fileId, userId } = message.body
 			try {
+				db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
 				await db
 					.insertInto('asset')
 					.values({ objectName, fileId, userId })

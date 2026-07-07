@@ -198,9 +198,20 @@ export type TLUserDurableObjectEvent =
 	| { type: 'reboot_duration'; id: string; duration: number }
 	| { type: 'cold_start_time'; id: string; duration: number }
 
-export interface QueueMessage {
+export interface AssetUploadQueueMessage {
 	type: 'asset-upload'
 	objectName: string
 	fileId: string
 	userId: string | null
 }
+
+// Asks the queue consumer to render a board's OG image through Browser Run and refresh the R2
+// cache read by GET /app/og-image. Board state (share gate, content version) is deliberately not
+// carried in the message; the consumer re-resolves it at render time.
+export interface OgImageRenderQueueMessage {
+	type: 'og-image-render'
+	kind: 'published' | 'shared_file'
+	slug: string
+}
+
+export type QueueMessage = AssetUploadQueueMessage | OgImageRenderQueueMessage

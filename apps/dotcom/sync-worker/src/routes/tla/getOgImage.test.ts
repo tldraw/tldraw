@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
-import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
-import { getOgHtml, getOgImage, getOgImageCacheKey } from './getOgImage'
+import { getOgHtml, getOgImage } from './getOgImage'
 import { getPublishedFileInfo } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
+import { getOgImageCacheKey } from './ogImageQueue'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -36,6 +36,11 @@ function makeFakeThumbnailsBucket() {
 				arrayBuffer: async () => value.body,
 			}
 		},
+		async head(key: string) {
+			const value = store.get(key)
+			if (!value) return null
+			return { customMetadata: value.customMetadata, uploaded: value.uploaded }
+		},
 		async put(
 			key: string,
 			body: ArrayBuffer,
@@ -46,6 +51,9 @@ function makeFakeThumbnailsBucket() {
 				customMetadata: options?.customMetadata,
 				uploaded: new Date(Date.now()),
 			})
+		},
+		async delete(key: string) {
+			store.delete(key)
 		},
 	}
 }
@@ -58,6 +66,10 @@ function makeFakeRoomsBucket(etag: string | null = 'room-etag-1') {
 	}
 }
 
+function makeFakeQueue() {
+	return { send: vi.fn(async (_message: unknown) => undefined) }
+}
+
 function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
 		CLOUDFLARE_ACCOUNT_ID: 'account-id',
@@ -65,6 +77,7 @@ function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://www.tldraw.com',
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
+		QUEUE: makeFakeQueue(),
 		...overrides,
 	} as unknown as Environment
 }
@@ -75,120 +88,114 @@ function makeRequest(kind: string, slug: string) {
 	}) as any
 }
 
-function stubBrowserRunFetch(bytes = [1, 2, 3]) {
-	const fetch = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => {
-		return new Response(new Uint8Array(bytes), {
-			headers: {
-				'content-type': 'image/png',
-				'X-Browser-Ms-Used': '123',
-			},
-		})
-	})
-	vi.stubGlobal('fetch', fetch)
-	return fetch
-}
-
 describe('getOgImage', () => {
-	it('captures a published board with a content-fit render token', async () => {
+	it('enqueues a render and redirects to the default OG image on a cold cache', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 1751234567890,
 		})
-		const fetch = stubBrowserRunFetch()
+		const fetch = vi.fn()
+		vi.stubGlobal('fetch', fetch)
 		const bucket = makeFakeThumbnailsBucket()
-		const env = makeEnv({ THUMBNAILS: bucket })
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: queue })
 
 		const response = await getOgImage(makeRequest('p', 'published-board'), env)
 
-		expect(response.status).toBe(200)
-		expect(response.headers.get('content-type')).toBe('image/png')
-		expect(response.headers.get('x-tldraw-og-cache')).toBe('miss')
-		expect(await response.arrayBuffer()).toEqual(new Uint8Array([1, 2, 3]).buffer)
-
-		const browserRunRequest = JSON.parse(fetch.mock.calls[0]![1]!.body as string)
-		const renderUrl = new URL(browserRunRequest.url)
-		const job = await verifyThumbnailRenderToken(env, renderUrl.searchParams.get('token')!)
-		expect(job).toMatchObject({
+		// The request never waits on Browser Run; the render happens in the queue consumer.
+		expect(fetch).not.toHaveBeenCalled()
+		expect(response.status).toBe(302)
+		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
+		expect(queue.send).toHaveBeenCalledExactlyOnceWith({
+			type: 'og-image-render',
 			kind: 'published',
 			slug: 'published-board',
-			fileId: 'file-1',
-			version: 1751234567890,
-			camera: 'content',
-			width: 1200,
-			height: 630,
-		})
-		expect(
-			bucket.store.get('og/published/published-board/1200x630/light.png')?.customMetadata
-		).toEqual({
-			version: '1751234567890',
-			createdAt: expect.any(String),
 		})
 	})
 
-	it('serves cached OG images until the board changed and the minimum age has passed', async () => {
-		vi.useFakeTimers()
-		vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+	it('serves fresh cache hits without enqueueing', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 1,
 		})
-		const fetch = stubBrowserRunFetch([1, 2, 3])
 		const bucket = makeFakeThumbnailsBucket()
-		const env = makeEnv({ THUMBNAILS: bucket })
+		await bucket.put(
+			getOgImageCacheKey({ kind: 'published', slug: 'cached-board' }),
+			new Uint8Array([1, 2, 3]).buffer,
+			{ customMetadata: { version: '1', createdAt: String(Date.now()) } }
+		)
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: queue })
 
-		await getOgImage(makeRequest('p', 'cached-board'), env)
-		expect(fetch).toHaveBeenCalledTimes(1)
+		const response = await getOgImage(makeRequest('p', 'cached-board'), env)
 
+		expect(response.status).toBe(200)
+		expect(response.headers.get('content-type')).toBe('image/png')
+		expect(response.headers.get('x-tldraw-og-cache')).toBe('hit')
+		expect(await response.arrayBuffer()).toEqual(new Uint8Array([1, 2, 3]).buffer)
+		expect(queue.send).not.toHaveBeenCalled()
+	})
+
+	it('keeps serving a stale-but-recent image as a hit so one board cannot burn render capacity', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 2,
 		})
-		vi.setSystemTime(new Date('2026-01-01T00:30:00Z'))
+		const bucket = makeFakeThumbnailsBucket()
+		await bucket.put(
+			getOgImageCacheKey({ kind: 'published', slug: 'cached-board' }),
+			new Uint8Array([1, 2, 3]).buffer,
+			{ customMetadata: { version: '1', createdAt: String(Date.now()) } }
+		)
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: queue })
 
+		vi.setSystemTime(new Date('2026-01-01T00:30:00Z'))
 		const staleButYoung = await getOgImage(makeRequest('p', 'cached-board'), env)
 		expect(staleButYoung.headers.get('x-tldraw-og-cache')).toBe('hit')
-		expect(fetch).toHaveBeenCalledTimes(1)
+		expect(queue.send).not.toHaveBeenCalled()
 
 		vi.setSystemTime(new Date('2026-01-01T01:01:00Z'))
-		await getOgImage(makeRequest('p', 'cached-board'), env)
-		expect(fetch).toHaveBeenCalledTimes(2)
-		expect(
-			bucket.store.get(getOgImageCacheKey({ kind: 'published', slug: 'cached-board' }))
-				?.customMetadata?.version
-		).toBe('2')
+		const stale = await getOgImage(makeRequest('p', 'cached-board'), env)
+		expect(stale.status).toBe(200)
+		expect(stale.headers.get('x-tldraw-og-cache')).toBe('stale')
+		expect(await stale.arrayBuffer()).toEqual(new Uint8Array([1, 2, 3]).buffer)
+		expect(queue.send).toHaveBeenCalledExactlyOnceWith({
+			type: 'og-image-render',
+			kind: 'published',
+			slug: 'cached-board',
+		})
 	})
 
-	it('captures shared files and keys their version on the room etag', async () => {
+	it('enqueues renders for shared files behind the share gate', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'shared-file',
 			shared: true,
 			isDeleted: false,
 		})
-		const fetch = stubBrowserRunFetch()
+		const queue = makeFakeQueue()
 		const env = makeEnv({
 			ROOMS: makeFakeRoomsBucket('etag-1'),
 			THUMBNAILS: makeFakeThumbnailsBucket(),
+			QUEUE: queue,
 		})
 
 		const response = await getOgImage(makeRequest('f', 'shared-file'), env)
 
-		expect(response.status).toBe(200)
-		const browserRunRequest = JSON.parse(fetch.mock.calls[0]![1]!.body as string)
-		const renderUrl = new URL(browserRunRequest.url)
-		const job = await verifyThumbnailRenderToken(env, renderUrl.searchParams.get('token')!)
-		expect(job).toMatchObject({
+		expect(response.status).toBe(302)
+		expect(queue.send).toHaveBeenCalledExactlyOnceWith({
+			type: 'og-image-render',
 			kind: 'shared_file',
 			slug: 'shared-file',
-			fileId: 'shared-file',
-			version: 'etag-1',
-			camera: 'content',
 		})
 	})
 
-	it('redirects private or unknown boards to the default tldraw OG image', async () => {
+	it('redirects private or unknown boards to the default tldraw OG image without enqueueing', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'private-file',
 			shared: false,
@@ -196,15 +203,17 @@ describe('getOgImage', () => {
 		})
 		const fetch = vi.fn()
 		vi.stubGlobal('fetch', fetch)
+		const queue = makeFakeQueue()
 
 		const response = await getOgImage(
 			makeRequest('f', 'private-file'),
-			makeEnv({ ROOMS: makeFakeRoomsBucket() })
+			makeEnv({ ROOMS: makeFakeRoomsBucket(), QUEUE: queue })
 		)
 
 		expect(response.status).toBe(302)
 		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
 		expect(fetch).not.toHaveBeenCalled()
+		expect(queue.send).not.toHaveBeenCalled()
 	})
 })
 
