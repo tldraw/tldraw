@@ -1,65 +1,60 @@
 import {
-	Tldraw,
-	TldrawUiButton,
-	TldrawUiButtonLabel,
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuItem,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
-	useEditor,
-	useMenuIsOpen,
-} from 'tldraw'
+	TlButton,
+	TlButtonLabel,
+	TlDropdownMenuContent,
+	TlDropdownMenuItem,
+	TlDropdownMenuRoot,
+	TlDropdownMenuTrigger,
+	useTlMenuIsOpen,
+	useTlMenuState,
+} from '@tldraw/ui'
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 import './menu-system-hover.css'
 
 // [1]
 function HoverControlledMenu() {
-	const editor = useEditor()
-	const [isOpen] = useMenuIsOpen('hover-menu')
+	const { openMenu, closeMenu } = useTlMenuState()
+	const [isOpen] = useTlMenuIsOpen('hover-menu')
 
 	return (
 		<div className="hover-menu-container">
 			{/* [2] */}
-			<div
-				className="hover-zone hover-zone-open"
-				onMouseEnter={() => editor.menus.addOpenMenu('hover-menu')}
-			>
+			<div className="hover-zone hover-zone-open" onMouseEnter={() => openMenu('hover-menu')}>
 				Hover to open menu
 			</div>
 
 			{/* [3] */}
-			<div
-				className="hover-zone hover-zone-close"
-				onMouseEnter={() => editor.menus.deleteOpenMenu('hover-menu')}
-			>
+			<div className="hover-zone hover-zone-close" onMouseEnter={() => closeMenu('hover-menu')}>
 				Hover to close menu
 			</div>
 
 			{/* [4] */}
-			<TldrawUiDropdownMenuRoot id="hover-menu">
-				<TldrawUiDropdownMenuTrigger>
-					<TldrawUiButton type="normal">
-						<TldrawUiButtonLabel>Menu {isOpen ? '(open)' : '(closed)'}</TldrawUiButtonLabel>
-					</TldrawUiButton>
-				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent>
-					<TldrawUiDropdownMenuItem>
-						<TldrawUiButton type="menu">
-							<TldrawUiButtonLabel>Menu item 1</TldrawUiButtonLabel>
-						</TldrawUiButton>
-					</TldrawUiDropdownMenuItem>
-					<TldrawUiDropdownMenuItem>
-						<TldrawUiButton type="menu">
-							<TldrawUiButtonLabel>Menu item 2</TldrawUiButtonLabel>
-						</TldrawUiButton>
-					</TldrawUiDropdownMenuItem>
-					<TldrawUiDropdownMenuItem>
-						<TldrawUiButton type="menu">
-							<TldrawUiButtonLabel>Menu item 3</TldrawUiButtonLabel>
-						</TldrawUiButton>
-					</TldrawUiDropdownMenuItem>
-				</TldrawUiDropdownMenuContent>
-			</TldrawUiDropdownMenuRoot>
+			<TlDropdownMenuRoot id="hover-menu">
+				<TlDropdownMenuTrigger>
+					<TlButton type="normal">
+						<TlButtonLabel>Menu {isOpen ? '(open)' : '(closed)'}</TlButtonLabel>
+					</TlButton>
+				</TlDropdownMenuTrigger>
+				<TlDropdownMenuContent>
+					<TlDropdownMenuItem>
+						<TlButton type="menu">
+							<TlButtonLabel>Menu item 1</TlButtonLabel>
+						</TlButton>
+					</TlDropdownMenuItem>
+					<TlDropdownMenuItem>
+						<TlButton type="menu">
+							<TlButtonLabel>Menu item 2</TlButtonLabel>
+						</TlButton>
+					</TlDropdownMenuItem>
+					<TlDropdownMenuItem>
+						<TlButton type="menu">
+							<TlButtonLabel>Menu item 3</TlButtonLabel>
+						</TlButton>
+					</TlDropdownMenuItem>
+				</TlDropdownMenuContent>
+			</TlDropdownMenuRoot>
 		</div>
 	)
 }
@@ -68,7 +63,9 @@ export default function MenuSystemHoverExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw>
-				<HoverControlledMenu />
+				<ExampleTlUiProvider>
+					<HoverControlledMenu />
+				</ExampleTlUiProvider>
 			</Tldraw>
 		</div>
 	)

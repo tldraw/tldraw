@@ -4,6 +4,8 @@
 
 ```ts
 
+import { Atom } from '@tldraw/state';
+import { ComponentType } from 'react';
 import { CSSProperties } from 'react';
 import { ForwardRefExoticComponent } from 'react';
 import { HTMLAttributes } from 'react';
@@ -180,6 +182,18 @@ export interface TlCopyButtonProps {
 }
 
 // @public (undocumented)
+export interface TlDialog {
+    // (undocumented)
+    component: ComponentType<TlDialogProps>;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    onClose?(): void;
+    // (undocumented)
+    preventBackgroundClose?: boolean;
+}
+
+// @public (undocumented)
 export function TlDialogBody({ className, children, style }: TlDialogBodyProps): JSX.Element;
 
 // @public (undocumented)
@@ -199,6 +213,9 @@ export function TlDialogCloseButton({ closeLabel }: TlDialogCloseButtonProps): J
 export interface TlDialogCloseButtonProps {
     closeLabel?: string;
 }
+
+// @public (undocumented)
+export type TlDialogEvent = 'close' | 'open';
 
 // @public (undocumented)
 export function TlDialogFooter({ className, children }: TlDialogFooterProps): JSX.Element;
@@ -223,6 +240,12 @@ export interface TlDialogHeaderProps {
 }
 
 // @public (undocumented)
+export interface TlDialogProps {
+    // (undocumented)
+    onClose(): void;
+}
+
+// @public (undocumented)
 export function TlDialogRoot({ children, open, defaultOpen, onOpenChange, preventBackgroundClose }: TlDialogRootProps): JSX.Element;
 
 // @public (undocumented)
@@ -236,6 +259,33 @@ export interface TlDialogRootProps {
     // (undocumented)
     open?: boolean;
     preventBackgroundClose?: boolean;
+}
+
+// @public (undocumented)
+export interface TlDialogsContextValue {
+    // (undocumented)
+    addDialog(dialog: Omit<TlDialog, 'id'> & {
+        id?: string;
+    }): string;
+    // (undocumented)
+    clearDialogs(): void;
+    // (undocumented)
+    dialogs: Atom<TlDialog[]>;
+    // (undocumented)
+    removeDialog(id: string): void;
+}
+
+// @public (undocumented)
+export function TlDialogsProvider({ children, onEvent }: TlDialogsProviderProps): JSX.Element;
+
+// @public (undocumented)
+export interface TlDialogsProviderProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    onEvent?(event: TlDialogEvent, data: {
+        id: string;
+    }): void;
 }
 
 // @public (undocumented)
@@ -621,6 +671,16 @@ export function TlMenuSection({ children }: {
 }): JSX.Element;
 
 // @public (undocumented)
+export interface TlMenuStateContextValue {
+    // (undocumented)
+    closeMenu(id: string): void;
+    // (undocumented)
+    isMenuOpen(id: string): boolean;
+    // (undocumented)
+    openMenu(id: string): void;
+}
+
+// @public (undocumented)
 export function TlMenuStateProvider({ children, onMenuOpenChange }: TlMenuStateProviderProps): JSX.Element;
 
 // @public (undocumented)
@@ -951,6 +1011,26 @@ export interface TlToastAction {
 }
 
 // @public (undocumented)
+export interface TlToastData {
+    // (undocumented)
+    actions?: TlToastAction[];
+    // (undocumented)
+    description?: string;
+    // (undocumented)
+    icon?: string;
+    // (undocumented)
+    iconLabel?: string;
+    // (undocumented)
+    id?: string;
+    // (undocumented)
+    keepOpen?: boolean;
+    // (undocumented)
+    severity?: TlToastSeverity;
+    // (undocumented)
+    title?: string;
+}
+
+// @public (undocumented)
 export interface TlToastProps {
     // (undocumented)
     actions?: TlToastAction[];
@@ -994,7 +1074,25 @@ export interface TlToastProviderProps {
 }
 
 // @public (undocumented)
+export interface TlToastsContextValue {
+    // (undocumented)
+    addToast(toast: TlToastData): string;
+    // (undocumented)
+    clearToasts(): void;
+    // (undocumented)
+    removeToast(id: string): void;
+    // (undocumented)
+    toasts: Atom<TlToastData[]>;
+}
+
+// @public (undocumented)
 export type TlToastSeverity = 'error' | 'info' | 'success' | 'warning';
+
+// @public (undocumented)
+export function TlToastsProvider({ children, ...toastProviderProps }: TlToastsProviderProps): JSX.Element;
+
+// @public (undocumented)
+export type TlToastsProviderProps = TlToastProviderProps;
 
 // @public (undocumented)
 export function TlToastViewport(): JSX.Element;
@@ -1159,6 +1257,12 @@ export interface TlUiProviderProps {
 export function useTlBreakpoint(): number;
 
 // @public (undocumented)
+export function useTlContainer(): HTMLElement | undefined;
+
+// @public (undocumented)
+export function useTlDialogs(): TlDialogsContextValue;
+
+// @public (undocumented)
 export function useTlIconUrl(icon: string): string | undefined;
 
 // @public (undocumented)
@@ -1174,6 +1278,9 @@ export function useTlMenuContext(): {
 export function useTlMenuIsOpen(id: string): [isOpen: boolean, onOpenChange: (isOpen: boolean) => void];
 
 // @public (undocumented)
+export function useTlMenuState(): TlMenuStateContextValue;
+
+// @public (undocumented)
 export function useTlOrientation(): TlOrientationContext;
 
 // @public (undocumented)
@@ -1181,6 +1288,9 @@ export function useTlPlatform(): TlPlatformContextValue;
 
 // @public (undocumented)
 export function useTlPortalContainer(): HTMLElement | undefined;
+
+// @public (undocumented)
+export function useTlToasts(): TlToastsContextValue;
 
 // @public (undocumented)
 export function useTlTranslation(): TlTranslationContextValue;

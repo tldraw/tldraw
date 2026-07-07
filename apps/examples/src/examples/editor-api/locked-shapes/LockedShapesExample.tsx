@@ -1,5 +1,7 @@
+import { TlButton } from '@tldraw/ui'
 import { useState } from 'react'
-import { createShapeId, Tldraw, TldrawUiButton, TLShapeId, toRichText, useEditor } from 'tldraw'
+import { createShapeId, Tldraw, TLShapeId, toRichText, useEditor } from 'tldraw'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 import 'tldraw/tldraw.css'
 
 // [1]
@@ -60,28 +62,30 @@ function ControlPanel() {
 	}
 
 	return (
-		<div className="tlui-menu" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-			<label
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					gap: 6,
-					fontSize: 13,
-					cursor: 'pointer',
-					userSelect: 'none',
-				}}
-				title="When on, left-click and brush selection include locked shapes."
-			>
-				<input type="checkbox" checked={selectLocked} onChange={toggleSelectLocked} />
-				Allow selecting locked shapes
-			</label>
-			<TldrawUiButton type="normal" onClick={handleScatter}>
-				Scatter
-			</TldrawUiButton>
-			<TldrawUiButton type="normal" onClick={handleReset}>
-				Reset
-			</TldrawUiButton>
-		</div>
+		<ExampleTlUiProvider>
+			<div className="tl-menu" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+				<label
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 6,
+						fontSize: 13,
+						cursor: 'pointer',
+						userSelect: 'none',
+					}}
+					title="When on, left-click and brush selection include locked shapes."
+				>
+					<input type="checkbox" checked={selectLocked} onChange={toggleSelectLocked} />
+					Allow selecting locked shapes
+				</label>
+				<TlButton type="normal" onClick={handleScatter}>
+					Scatter
+				</TlButton>
+				<TlButton type="normal" onClick={handleReset}>
+					Reset
+				</TlButton>
+			</div>
+		</ExampleTlUiProvider>
 	)
 }
 

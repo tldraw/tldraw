@@ -1,12 +1,7 @@
-import {
-	TLComponents,
-	TLUiOverrides,
-	Tldraw,
-	TldrawUiButton,
-	useEditor,
-	useTranslation,
-} from 'tldraw'
+import { TlButton } from '@tldraw/ui'
+import { TLComponents, TLUiOverrides, Tldraw, useEditor, useTranslation } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 import './custom-language-translations.css'
 
 // There's a guide at the bottom of this file!
@@ -17,21 +12,20 @@ function CustomToolbar() {
 	const msg = useTranslation()
 
 	return (
-		<div className="tlui-menu custom-language-toolbar">
-			<TldrawUiButton
-				type="normal"
-				onClick={() => editor.duplicateShapes(editor.getSelectedShapeIds())}
-			>
-				{/* [2] */}
-				{msg('action.duplicate')}
-			</TldrawUiButton>
-			<TldrawUiButton
-				type="normal"
-				onClick={() => editor.deleteShapes(editor.getSelectedShapeIds())}
-			>
-				{msg('action.delete')}
-			</TldrawUiButton>
-		</div>
+		<ExampleTlUiProvider>
+			<div className="tl-menu custom-language-toolbar">
+				<TlButton
+					type="normal"
+					onClick={() => editor.duplicateShapes(editor.getSelectedShapeIds())}
+				>
+					{/* [2] */}
+					{msg('action.duplicate')}
+				</TlButton>
+				<TlButton type="normal" onClick={() => editor.deleteShapes(editor.getSelectedShapeIds())}>
+					{msg('action.delete')}
+				</TlButton>
+			</div>
+		</ExampleTlUiProvider>
 	)
 }
 

@@ -19,3 +19,8 @@ export function TlPortalProvider({ container, children }: TlPortalProviderProps)
 export function useTlPortalContainer(): HTMLElement | undefined {
 	return useContext(TlPortalContext)
 }
+
+/** @public */
+export function useTlContainer(): HTMLElement | undefined {
+	return useTlPortalContainer()
+}

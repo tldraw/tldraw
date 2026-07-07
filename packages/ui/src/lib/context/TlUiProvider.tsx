@@ -1,5 +1,7 @@
 import classNames from 'classnames'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
+import { TlDialogsProvider } from '../components/TlDialogs'
+import { TlToastsProvider } from '../components/TlToasts'
 import { TlTooltipProvider } from '../components/TlTooltip'
 import { TlBreakpointProvider } from './breakpoint'
 import { TlIconProvider } from './icons'
@@ -99,7 +101,9 @@ function TlUiRoot({ rootRef, dir, theme, className, children }: TlUiRootProps) {
 					className
 				)}
 			>
-				{children}
+				<TlToastsProvider>
+					<TlDialogsProvider>{children}</TlDialogsProvider>
+				</TlToastsProvider>
 			</div>
 		</TlTooltipProvider>
 	)

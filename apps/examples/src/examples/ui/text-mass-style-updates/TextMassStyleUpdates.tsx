@@ -1,5 +1,6 @@
 import { getSchema, JSONContent } from '@tiptap/core'
 import { Fragment, Node, Schema } from '@tiptap/pm/model'
+import { TlButton, TlButtonIcon, TlButtonLabel } from '@tldraw/ui'
 import {
 	DefaultStylePanel,
 	DefaultStylePanelContent,
@@ -7,9 +8,6 @@ import {
 	tipTapDefaultExtensions,
 	TLComponents,
 	Tldraw,
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	TldrawUiButtonLabel,
 	TLShape,
 	TLShapeId,
 	TLTextShape,
@@ -18,6 +16,7 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
 
 // There's a guide at the bottom of this file!
 
@@ -127,17 +126,19 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 	return (
 		<DefaultStylePanel {...props}>
 			{hasTextShapes && (
-				<div className="tlui-style-panel__section">
-					{STYLES.map(({ style, icon, label }) => (
-						<StyleButton
-							key={style}
-							style={style}
-							icon={icon}
-							label={label}
-							textShapeIds={allTextShapeIds}
-						/>
-					))}
-				</div>
+				<ExampleTlUiProvider>
+					<div className="tlui-style-panel__section">
+						{STYLES.map(({ style, icon, label }) => (
+							<StyleButton
+								key={style}
+								style={style}
+								icon={icon}
+								label={label}
+								textShapeIds={allTextShapeIds}
+							/>
+						))}
+					</div>
+				</ExampleTlUiProvider>
 			)}
 			<DefaultStylePanelContent />
 		</DefaultStylePanel>
@@ -165,9 +166,9 @@ function StyleButton({
 	)
 
 	return (
-		<TldrawUiButton
+		<TlButton
 			type="menu"
-			data-isactive={isActive}
+			isActive={isActive}
 			onClick={() => {
 				const shouldRemove = textShapeIds.every((id) => isUniformlyStyled(editor, id, style))
 				editor.run(() => {
@@ -178,9 +179,9 @@ function StyleButton({
 			}}
 			title={`${label} all text in selected shapes`}
 		>
-			<TldrawUiButtonIcon icon={icon} />
-			<TldrawUiButtonLabel>{label} All</TldrawUiButtonLabel>
-		</TldrawUiButton>
+			<TlButtonIcon icon={icon} />
+			<TlButtonLabel>{label} All</TlButtonLabel>
+		</TlButton>
 	)
 }
 
