@@ -118,11 +118,6 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			control: 'text',
 		},
 	},
-	'sketchbooks/editor-probe.sketchbook.tsx': {
-		label: {
-			control: 'text',
-		},
-	},
 	'sketchbooks/flows/canvas-with-comments.sketchbook.tsx': {
 		empty: {
 			control: 'boolean',
