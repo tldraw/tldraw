@@ -7,6 +7,12 @@ const sketchbook: Sketchbook<CommentComposerProps> = {
 }
 export default sketchbook
 
-export const Default: Sketch<CommentComposerProps> = {
+/** Placing a new thread: the composer that opens at the click point. */
+export const Placement: Sketch<CommentComposerProps> = {
 	args: { author: 'You', placeholder: 'Add a comment…' },
+}
+
+/** Replying inside an open thread. */
+export const Reply: Sketch<CommentComposerProps> = {
+	args: { author: 'You', placeholder: 'Reply…' },
 }

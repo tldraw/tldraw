@@ -93,3 +93,30 @@ export const LongThread: Sketch<Record<string, never>> = {
 export const Resolved: Sketch<Record<string, never>> = {
 	render: () => <CommentThread header="Thread" comments={manyComments} resolvedBy="Ada Lovelace" />,
 }
+
+const longBody = [
+	{
+		author: 'Ada Lovelace',
+		body: (
+			<CommentText text="I've been staring at this for a while and I think the whole hierarchy is off: the primary action competes with the secondary one, the spacing between the label and the control is inconsistent with the rest of the panel, and on smaller viewports the whole thing wraps in a way that pushes the send button below the fold. Can we take a pass at the tokens before we ship?" />
+		),
+		date: ago(2 * HOUR),
+		you: false,
+	},
+]
+
+/** A single, wall-of-text comment — does the panel wrap it cleanly and stay a sensible width? */
+export const LongBody: Sketch<Record<string, never>> = {
+	render: () => (
+		<CommentThread
+			header="Thread"
+			comments={longBody}
+			composer={{ author: 'You', placeholder: 'Reply…' }}
+		/>
+	),
+}
+
+/** A guest / read-only view: existing comments are visible, but there's no reply composer. */
+export const ReadOnly: Sketch<Record<string, never>> = {
+	render: () => <CommentThread header="Thread" comments={manyComments} />,
+}
