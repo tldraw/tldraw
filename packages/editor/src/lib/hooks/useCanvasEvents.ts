@@ -21,6 +21,13 @@ export function useCanvasEvents() {
 			let isSecondaryClickPointerDown = false
 
 			function onPointerDown(e: React.PointerEvent) {
+				// eslint-disable-next-line no-console
+				console.log('[shift-sim] dom pointerdown', {
+					pointerId: e.pointerId,
+					pointerType: e.pointerType,
+					button: e.button,
+					alreadyHandled: editor.wasEventAlreadyHandled(e),
+				})
 				if (editor.wasEventAlreadyHandled(e)) return
 				const button = getPointerEventButton(e)
 				isSecondaryClickPointerDown = button === 2
@@ -89,6 +96,23 @@ export function useCanvasEvents() {
 					e.currentTarget.dispatchEvent(contextMenuEvent)
 				}
 				isSecondaryClickPointerDown = false
+			}
+
+			function onPointerCancel(e: React.PointerEvent) {
+				if (editor.wasEventAlreadyHandled(e)) return
+				// eslint-disable-next-line no-console
+				console.log('[shift-sim] dom pointercancel', {
+					pointerId: e.pointerId,
+					pointerType: e.pointerType,
+				})
+				releasePointerCapture(e.currentTarget, e)
+				editor.dispatch({
+					type: 'pointer',
+					target: 'canvas',
+					name: 'pointer_up',
+					...getPointerInfo(editor, e),
+					button: 0,
+				})
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
@@ -199,6 +223,7 @@ export function useCanvasEvents() {
 			return {
 				onPointerDown,
 				onPointerUp,
+				onPointerCancel,
 				onPointerEnter,
 				onPointerLeave,
 				onDragOver,

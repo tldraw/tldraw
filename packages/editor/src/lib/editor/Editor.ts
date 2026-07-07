@@ -330,6 +330,8 @@ export interface TLRenderingShape {
 
 const RENDERING_SHAPES_SORT_CACHE_THRESHOLD = 100
 
+const SECOND_TOUCH_SHIFT_DELAY_MS = 200
+
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
 	readonly id = uniqueId()
@@ -10795,6 +10797,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@bind
 	_setShiftKeyTimeout() {
+		// eslint-disable-next-line no-console
+		console.log('[shift-sim] shift released (150ms timeout fired)')
 		this.inputs.setShiftKey(false)
 		this.dispatch({
 			type: 'keyboard',
@@ -10893,6 +10897,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	capturedPointerId: number | null = null
+
+	/** @internal */
+	private _pointingPointerId: number | null = null
+
+	/** @internal */
+	private _pointingPointerIsPen = false
+
+	/** @internal */
+	private _simulatedShiftPointerIds = new Set<number>()
+
+	/** @internal */
+	private _downPointerIds = new Set<number>()
+
+	/** @internal */
+	private _pointingPointerDownTime = 0
+
+	/** @internal */
+	_secondTouchShouldSimulateShift(): boolean {
+		if (this._pointingPointerId === null) return false
+		if (!this._downPointerIds.has(this._pointingPointerId)) return false
+		if (!this.inputs.getIsPointing()) return false
+		if (this.inputs.getIsDragging()) return true
+		if (this._pointingPointerIsPen) return true
+		return Date.now() - this._pointingPointerDownTime > SECOND_TOUCH_SHIFT_DELAY_MS
+	}
+
+	/** @internal */
+	_isSecondTouchShiftActive(): boolean {
+		return this._simulatedShiftPointerIds.size > 0
+	}
 
 	/** @internal */
 	private readonly performanceTracker: PerformanceTracker
@@ -11000,6 +11034,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.root.handleEvent(info)
 			this.emit('event', info)
 			return
+		}
+
+		if (this._isSecondTouchShiftActive() && inputs.getIsPointing()) {
+			info.shiftKey = true
 		}
 
 		if (info.shiftKey) {
@@ -11229,8 +11267,81 @@ export class Editor extends EventEmitter<TLEventMap> {
 				break
 			}
 			case 'pointer': {
+				if (info.name === 'pointer_down') {
+					this._downPointerIds.add(info.pointerId)
+					if (this._downPointerIds.size === 1) {
+						this._pointingPointerId = null
+						this._pointingPointerIsPen = false
+						this._simulatedShiftPointerIds.clear()
+					}
+				} else if (info.name === 'pointer_up') {
+					this._downPointerIds.delete(info.pointerId)
+				}
+
 				// Ignore pointer events while we're pinching
-				if (inputs.getIsPinching()) return
+				if (inputs.getIsPinching()) {
+					if (info.name !== 'pointer_move') {
+						// eslint-disable-next-line no-console
+						console.log('[shift-sim] dropped (pinching)', info.name, 'pointerId:', info.pointerId)
+					}
+					return
+				}
+
+				if (this._simulatedShiftPointerIds.has(info.pointerId)) {
+					// eslint-disable-next-line no-console
+					console.log('[shift-sim] swallowed', info.name, 'pointerId:', info.pointerId)
+					if (info.name === 'pointer_up') {
+						this._simulatedShiftPointerIds.delete(info.pointerId)
+						// eslint-disable-next-line no-console
+						console.log(
+							'[shift-sim] shift pointer lifted, remaining:',
+							this._simulatedShiftPointerIds.size
+						)
+					}
+					return
+				}
+
+				if (info.name === 'pointer_down' || info.name === 'pointer_up') {
+					// eslint-disable-next-line no-console
+					console.log('[shift-sim]', info.name, {
+						pointerId: info.pointerId,
+						pointingPointerId: this._pointingPointerId,
+						isPointing: inputs.getIsPointing(),
+						isDragging: inputs.getIsDragging(),
+						pointingPointerIsPen: this._pointingPointerIsPen,
+						isPen: info.isPen,
+						shiftPointers: [...this._simulatedShiftPointerIds],
+						downPointers: [...this._downPointerIds],
+						heldMs:
+							this._pointingPointerId !== null ? Date.now() - this._pointingPointerDownTime : null,
+					})
+				}
+
+				if (
+					info.name === 'pointer_down' &&
+					info.pointerId !== this._pointingPointerId &&
+					!info.isPen &&
+					this._secondTouchShouldSimulateShift()
+				) {
+					const isFirstShiftPointer = this._simulatedShiftPointerIds.size === 0
+					this._simulatedShiftPointerIds.add(info.pointerId)
+					// eslint-disable-next-line no-console
+					console.log('[shift-sim] ENGAGE shift, pointerId:', info.pointerId)
+					if (isFirstShiftPointer) {
+						this.dispatch({
+							type: 'keyboard',
+							name: 'key_down',
+							key: 'Shift',
+							code: 'ShiftLeft',
+							shiftKey: true,
+							ctrlKey: this.inputs.getCtrlKey(),
+							altKey: this.inputs.getAltKey(),
+							metaKey: this.inputs.getMetaKey(),
+							accelKey: this.inputs.getAccelKey(),
+						})
+					}
+					return
+				}
 
 				this.inputs.updateFromEvent(info)
 				const { isPen } = info
@@ -11270,6 +11381,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Firefox bug fix...
 						// If it's a left-mouse-click, we store the pointer id for later user
 						if (info.button === LEFT_MOUSE_BUTTON) this.capturedPointerId = info.pointerId
+
+						this._pointingPointerId = info.pointerId
+						this._pointingPointerIsPen = info.isPen
+						this._pointingPointerDownTime = Date.now()
 
 						// Add the button from the buttons set
 						inputs.buttons.add(info.button)
@@ -11381,6 +11496,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 						clearTimeout(this._longPressTimeout)
 						// Remove the button from the buttons set
 						inputs.buttons.delete(info.button)
+
+						if (info.pointerId === this._pointingPointerId) {
+							this._pointingPointerId = null
+							this._pointingPointerIsPen = false
+						}
 
 						// If we're in pen mode and we're not using a pen, stop here
 						if (instanceState.isPenMode && !isPen) return

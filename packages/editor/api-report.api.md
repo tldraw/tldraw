@@ -1475,6 +1475,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): boolean;
     // @internal
     isReplayingHistory(): boolean;
+    // @internal (undocumented)
+    _isSecondTouchShiftActive(): boolean;
     isShapeFrameLike(shape: TLShape | TLShapeId): boolean;
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
@@ -1559,6 +1561,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     run(fn: () => void, opts?: TLEditorRunOptions): this;
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
+    // @internal (undocumented)
+    _secondTouchShouldSimulateShift(): boolean;
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAdjacentShape(direction: TLAdjacentDirection): void;
     selectAll(): this;

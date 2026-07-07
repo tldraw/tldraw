@@ -210,7 +210,23 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 			activeTouches = Array.from(event.touches)
 
-			if (activeTouches.length === 2) {
+			// eslint-disable-next-line no-console
+			console.log('[shift-sim] touchstart', {
+				touches: activeTouches.length,
+				touchTypes: activeTouches.map((t) => (t as any).touchType ?? 'unknown'),
+				isDragging: editor.inputs.getIsDragging(),
+				isPointing: editor.inputs.getIsPointing(),
+				isPen: editor.inputs.getIsPen(),
+				shiftActive: editor._isSecondTouchShiftActive(),
+			})
+
+			if (
+				activeTouches.length === 2 &&
+				!editor._isSecondTouchShiftActive() &&
+				!editor._secondTouchShouldSimulateShift()
+			) {
+				// eslint-disable-next-line no-console
+				console.log('[shift-sim] pinch_start dispatched')
 				// Two fingers down — start pinch
 				pinchState = 'not sure'
 				const { origin, distance } = getOriginAndDistance(activeTouches[0], activeTouches[1])
@@ -292,6 +308,20 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 			preventDefault(e)
 			e.stopPropagation()
+
+			// eslint-disable-next-line no-console
+			console.log('[shift-sim] gesturestart', {
+				isTouchDevice: tlenv.isTouchDevice,
+				shiftActive: editor._isSecondTouchShiftActive(),
+				shouldSimulate: editor._secondTouchShouldSimulateShift(),
+			})
+
+			if (
+				tlenv.isTouchDevice &&
+				(editor._isSecondTouchShiftActive() || editor._secondTouchShouldSimulateShift())
+			) {
+				return
+			}
 
 			pinchState = 'not sure'
 			safariGestureInitialScale = getScaleFrom()
@@ -384,7 +414,21 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			elm.addEventListener('touchcancel', onTouchEnd)
 		}
 
+		// TEMP diagnostic: attached on every path, log-only, no preventDefault
+		const diagTouch = (event: TouchEvent) => {
+			// eslint-disable-next-line no-console
+			console.log('[shift-sim] diag', event.type, {
+				touches: Array.from(event.touches).map((t) => (t as any).touchType ?? 'unknown'),
+			})
+		}
+		elm.addEventListener('touchstart', diagTouch)
+		elm.addEventListener('touchend', diagTouch)
+		elm.addEventListener('touchcancel', diagTouch)
+
 		return () => {
+			elm.removeEventListener('touchstart', diagTouch)
+			elm.removeEventListener('touchend', diagTouch)
+			elm.removeEventListener('touchcancel', diagTouch)
 			elm.removeEventListener('wheel', onWheel)
 			if (useGestureEvents) {
 				elm.removeEventListener('gesturestart', onGestureStart)
