@@ -10828,9 +10828,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _shiftKeyTimeout = -1 as any
 
-	/** @internal */
+	/**
+	 * Release the shift modifier: clear its debounce timer id, drop the atom, and
+	 * dispatch a synthetic `key_up` so `inputs.keys` and tool `onKeyUp` handlers update.
+	 * Runs both as the 150ms debounce timer callback and when a pointer down flushes it.
+	 * @internal
+	 */
 	@bind
-	_setShiftKeyTimeout() {
+	_releaseShiftKey() {
+		this._shiftKeyTimeout = -1
 		this.inputs.setShiftKey(false)
 		this.dispatch({
 			type: 'keyboard',
@@ -10848,9 +10854,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _altKeyTimeout = -1 as any
 
-	/** @internal */
+	/**
+	 * Release the alt modifier. See {@link Editor._releaseShiftKey}.
+	 * @internal
+	 */
 	@bind
-	_setAltKeyTimeout() {
+	_releaseAltKey() {
+		this._altKeyTimeout = -1
 		this.inputs.setAltKey(false)
 		this.dispatch({
 			type: 'keyboard',
@@ -10868,9 +10878,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _ctrlKeyTimeout = -1 as any
 
-	/** @internal */
+	/**
+	 * Release the ctrl modifier. See {@link Editor._releaseShiftKey}.
+	 * @internal
+	 */
 	@bind
-	_setCtrlKeyTimeout() {
+	_releaseCtrlKey() {
+		this._ctrlKeyTimeout = -1
 		this.inputs.setCtrlKey(false)
 		this.dispatch({
 			type: 'keyboard',
@@ -10888,9 +10902,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _metaKeyTimeout = -1 as any
 
-	/** @internal */
+	/**
+	 * Release the meta modifier. See {@link Editor._releaseShiftKey}.
+	 * @internal
+	 */
 	@bind
-	_setMetaKeyTimeout() {
+	_releaseMetaKey() {
+		this._metaKeyTimeout = -1
 		this.inputs.setMetaKey(false)
 		this.dispatch({
 			type: 'keyboard',
@@ -10903,6 +10921,56 @@ export class Editor extends EventEmitter<TLEventMap> {
 			accelKey: this.inputs.getAccelKey(),
 			code: 'MetaLeft',
 		})
+	}
+
+	/**
+	 * Flush any modifier still sitting in its 150ms release-debounce window, so a new
+	 * interaction (a pointer down) starts with correct modifier state instead of a
+	 * just-released key still being counted as held. A pending timer is exactly
+	 * "released but still counted as held"; a genuinely-held modifier has no timer
+	 * (-1) and is left alone.
+	 *
+	 * Each modifier is released through the same path its timer would have taken
+	 * (`_releaseShiftKey` and friends), which dispatches the synthetic `key_up` so
+	 * stale codes (e.g. `ShiftLeft`) leave `inputs.keys` and tool `onKeyUp` handlers run.
+	 * We clear every pending modifier atom and timer *first*, then dispatch: a synthetic
+	 * `key_up` reports all currently-held modifiers, so releasing them one at a time
+	 * would make each event re-confirm the not-yet-released ones and cancel their flush.
+	 * @internal
+	 */
+	private _releaseDebouncedModifiers() {
+		const releaseShift = this._shiftKeyTimeout !== -1
+		const releaseAlt = this._altKeyTimeout !== -1
+		const releaseCtrl = this._ctrlKeyTimeout !== -1
+		const releaseMeta = this._metaKeyTimeout !== -1
+
+		if (releaseShift) {
+			clearTimeout(this._shiftKeyTimeout)
+			this._shiftKeyTimeout = -1
+			this.inputs.setShiftKey(false)
+		}
+		if (releaseAlt) {
+			clearTimeout(this._altKeyTimeout)
+			this._altKeyTimeout = -1
+			this.inputs.setAltKey(false)
+		}
+		if (releaseCtrl) {
+			clearTimeout(this._ctrlKeyTimeout)
+			this._ctrlKeyTimeout = -1
+			this.inputs.setCtrlKey(false)
+		}
+		if (releaseMeta) {
+			clearTimeout(this._metaKeyTimeout)
+			this._metaKeyTimeout = -1
+			this.inputs.setMetaKey(false)
+		}
+
+		// Dispatch the synthetic key_up for each flushed modifier (same path its 150ms
+		// timer would run): clears stale codes from inputs.keys and fires tool onKeyUp.
+		if (releaseShift) this._releaseShiftKey()
+		if (releaseAlt) this._releaseAltKey()
+		if (releaseCtrl) this._releaseCtrlKey()
+		if (releaseMeta) this._releaseMetaKey()
 	}
 
 	/** @internal */
@@ -11043,7 +11111,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._shiftKeyTimeout = -1
 			inputs.setShiftKey(true)
 		} else if (!info.shiftKey && inputs.getShiftKey() && this._shiftKeyTimeout === -1) {
-			this._shiftKeyTimeout = this.timers.setTimeout(this._setShiftKeyTimeout, 150)
+			this._shiftKeyTimeout = this.timers.setTimeout(this._releaseShiftKey, 150)
 		}
 
 		if (info.altKey) {
@@ -11051,7 +11119,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._altKeyTimeout = -1
 			inputs.setAltKey(true)
 		} else if (!info.altKey && inputs.getAltKey() && this._altKeyTimeout === -1) {
-			this._altKeyTimeout = this.timers.setTimeout(this._setAltKeyTimeout, 150)
+			this._altKeyTimeout = this.timers.setTimeout(this._releaseAltKey, 150)
 		}
 
 		if (info.ctrlKey) {
@@ -11059,7 +11127,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._ctrlKeyTimeout = -1
 			inputs.setCtrlKey(true)
 		} else if (!info.ctrlKey && inputs.getCtrlKey() && this._ctrlKeyTimeout === -1) {
-			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
+			this._ctrlKeyTimeout = this.timers.setTimeout(this._releaseCtrlKey, 150)
 		}
 
 		if (info.metaKey && info.name !== 'key_up') {
@@ -11069,7 +11137,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._metaKeyTimeout = -1
 			inputs.setMetaKey(true)
 		} else if (!info.metaKey && inputs.getMetaKey() && this._metaKeyTimeout === -1) {
-			this._metaKeyTimeout = this.timers.setTimeout(this._setMetaKeyTimeout, 150)
+			this._metaKeyTimeout = this.timers.setTimeout(this._releaseMetaKey, 150)
 		}
 
 		if (!inputs.getIsPointing()) {
@@ -11276,6 +11344,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					case 'pointer_down': {
 						// If we're in pen mode and the input is not a pen type, then stop here
 						if (isPenMode && !isPen) return
+
+						// A pointer down starts a new interaction, so flush any modifier that's
+						// still lingering in its release-debounce window: treat it as released now.
+						this._releaseDebouncedModifiers()
 
 						if (!this.inputs.getIsPanning()) {
 							// Start a long press timeout
