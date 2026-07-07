@@ -30,6 +30,7 @@ Use `../write-pr/SKILL.md` as the standards reference for PR titles, description
    - Does it leave the codebase better than we found it — clearer names, no dead or duplicated code, no drive-by regressions?
    - Any weird abstractions, premature generality, or unnecessary code that a reviewer would flag? Prefer the smaller, more direct version.
    - Fix what's clearly worth fixing so the human review starts from a strong diff. If a finding needs a product or design call, raise it with the user instead of guessing.
+   - Commit and push any fixes from this pass so the remote branch matches before the PR is created, updated, or shared. Never force push.
 5. If no PR exists, create one with `gh pr create`.
 6. If a PR exists, read it with `gh pr view --json title,body,labels,number` and inspect the changed-file summary with `gh pr diff --stat`.
 7. Update the title or body with `gh pr edit` if the existing PR does not match the current diff or the `write-pr` standards.
