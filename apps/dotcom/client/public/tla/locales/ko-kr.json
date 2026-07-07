@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "이 워크스페이스를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-  },
   "0095a9fa74": {
     "translation": "내보내기"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Discord에서 도움 받기"
   },
+  "454aad3b3c": {
+    "translation": "<strong>{fileName}</strong>을 정말로 삭제하시겠습니까?"
+  },
   "46137245cd": {
     "translation": "tldraw 개선에 도움을 주셔서 감사합니다!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "핀 파일"
-  },
-  "4908687e50": {
-    "translation": "이 파일을 무시하시겠습니까?"
   },
   "49ee308734": {
     "translation": "이름"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "tldraw 관련 버그, 문제 또는 아이디어가 있으신가요? 알려주세요! 이 양식을 작성해 주시면 필요 시 이메일로 답변해 드리겠습니다. <discord>Discord에서 채팅</discord>하거나 <github>GitHub에서 문제를 제출</github>하실 수도 있습니다."
   },
+  "81666c6e4a": {
+    "translation": "정말 <strong>{fileName}</strong> 파일을 삭제하시겠습니까?"
+  },
   "858ba4765e": {
     "translation": "회원"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "이름 바꾸기"
+  },
+  "90646db02d": {
+    "translation": "<strong>{workspaceName}</strong>을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
   },
   "95aacd4d4a": {
     "translation": "Google로 로그인"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "공유에 대해 자세히 알아보세요."
-  },
-  "c28aed8348": {
-    "translation": "<cookies>analytics</cookies>를 허용하여 tldraw를 개선하세요."
   },
   "c303bd1095": {
     "translation": "이 파일을 게시할 수 없습니다."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "이 작업 공간을 나가시겠습니까?"
-  },
-  "fd1be3efcf": {
-    "translation": "이 파일을 삭제하시겠습니까?"
   },
   "fed5ec05eb": {
     "translation": "복사된 링크"

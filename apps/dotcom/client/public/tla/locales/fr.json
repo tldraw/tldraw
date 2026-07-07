@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Êtes-vous sûr de vouloir supprimer cet espace de travail ? Cette action est irréversible."
-  },
   "0095a9fa74": {
     "translation": "Exporter"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Obtenir de l'aide sur Discord"
   },
+  "454aad3b3c": {
+    "translation": "Êtes-vous sûr de vouloir supprimer <strong>{fileName}</strong> ?"
+  },
   "46137245cd": {
     "translation": "Merci de nous aider à améliorer tldraw !"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Épingler le fichier"
-  },
-  "4908687e50": {
-    "translation": "Voulez-vous vraiment oublier ce fichier ?"
   },
   "49ee308734": {
     "translation": "Nom"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Vous avez un bug, un problème ou une idée pour tldraw ? N'hésitez pas à nous le faire savoir ! Remplissez ce formulaire et nous vous répondrons par e-mail si nécessaire. Vous pouvez également <discord>discuter avec nous sur Discord</discord> ou <github>soumettre un problème sur GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Êtes-vous sûr de vouloir oublier <strong>{fileName}</strong> ?"
+  },
   "858ba4765e": {
     "translation": "Membre"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Renommer"
+  },
+  "90646db02d": {
+    "translation": "Êtes-vous sûr de vouloir supprimer <strong>{workspaceName}</strong> ? Cette action est irréversible."
   },
   "95aacd4d4a": {
     "translation": "Se connecter avec Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "En savoir plus sur le partage."
-  },
-  "c28aed8348": {
-    "translation": "Autorisez les <cookies>analytics</cookies> pour nous aider à améliorer tldraw."
   },
   "c303bd1095": {
     "translation": "Impossible de publier le fichier."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Êtes-vous sûr de vouloir quitter cet espace de travail ?"
-  },
-  "fd1be3efcf": {
-    "translation": "Voulez-vous vraiment supprimer ce fichier ?"
   },
   "fed5ec05eb": {
     "translation": "Lien copié"

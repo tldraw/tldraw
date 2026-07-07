@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Sei sicuro di voler eliminare quest'area di lavoro? Quest'azione è irreversibile."
-  },
   "0095a9fa74": {
     "translation": "Esporta"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Chiedi aiuto su Discord"
   },
+  "454aad3b3c": {
+    "translation": "Sei sicuro di voler eliminare <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Grazie per averci aiutato a migliorare tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "File Pin"
-  },
-  "4908687e50": {
-    "translation": "Confermi di voler dimenticare questo file?"
   },
   "49ee308734": {
     "translation": "Nome"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Hai un bug, un problema o un'idea per tldraw? Faccelo sapere! Compila questo modulo e ti contatteremo via email se necessario. Puoi anche <discord>chattare con noi su Discord</discord> o <github>segnalare un problema su GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Sei sicuro di voler dimenticare <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Membro"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Rinomina"
+  },
+  "90646db02d": {
+    "translation": "Sei sicuro di voler eliminare <strong>{workspaceName}</strong>? Questa azione non può essere annullata."
   },
   "95aacd4d4a": {
     "translation": "Accedi con Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Maggiori informazioni sulla condivisione."
-  },
-  "c28aed8348": {
-    "translation": "Consenti <cookies>analytics</cookies> per aiutarci a migliorare tldraw."
   },
   "c303bd1095": {
     "translation": "Impossibile pubblicare il file."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Sei sicuro di voler lasciare questo spazio di lavoro?"
-  },
-  "fd1be3efcf": {
-    "translation": "Confermi di voler eliminare questo file?"
   },
   "fed5ec05eb": {
     "translation": "Link copiato"
