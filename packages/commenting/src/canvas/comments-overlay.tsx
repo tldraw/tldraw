@@ -9,6 +9,7 @@ import {
 	TLComment,
 	TLCommentAnchor,
 	TLCommentThread,
+	TldrawUiIcon,
 	TLShapeId,
 	toRichText,
 	useContainer,
@@ -159,12 +160,59 @@ function ThreadPin({
 		setReply('')
 	}
 
+	const toggleResolve = () => {
+		if (!currentUserId) return
+		editor.run(
+			() => {
+				editor.store.put([
+					{
+						...thread,
+						resolved: thread.resolved ? null : { at: Date.now(), by: currentUserId },
+					} as any,
+				])
+			},
+			{ history: 'ignore' }
+		)
+	}
+
+	const deleteThread = () => {
+		openThreadId.set(null)
+		editor.run(() => editor.store.remove([thread.id, ...comments.map((c) => c.id)] as any), {
+			history: 'ignore',
+		})
+	}
+
+	const headerActions = (
+		<>
+			{currentUserId && (
+				<button
+					className="cmt-thread__action"
+					title={thread.resolved ? 'Reopen' : 'Resolve'}
+					onClick={toggleResolve}
+				>
+					<TldrawUiIcon icon="check" label={thread.resolved ? 'Reopen' : 'Resolve'} small />
+				</button>
+			)}
+			{currentUserId && (
+				<button className="cmt-thread__action" title="Delete thread" onClick={deleteThread}>
+					<TldrawUiIcon icon="trash" label="Delete thread" small />
+				</button>
+			)}
+			<button className="cmt-thread__action" title="Dismiss" onClick={() => openThreadId.set(null)}>
+				<TldrawUiIcon icon="cross-2" label="Dismiss" small />
+			</button>
+		</>
+	)
+
 	const pinContent = renderPinContent
 		? renderPinContent(thread, comments)
 		: initialOf(resolveName(thread.createdBy))
 
 	return (
-		<div className="cmt-canvas-pin" style={{ left: point.x, top: point.y }}>
+		<div
+			className={open ? 'cmt-canvas-pin cmt-canvas-pin--open' : 'cmt-canvas-pin'}
+			style={{ left: point.x, top: point.y }}
+		>
 			<div
 				className="cmt-canvas-pin__marker"
 				onPointerDown={stop}
@@ -178,6 +226,7 @@ function ThreadPin({
 				<div className="cmt-canvas-pin__popover" onPointerDown={stop}>
 					<CommentThread
 						header="Thread"
+						headerActions={headerActions}
 						comments={comments.map((c) => toCardProps(c, props))}
 						resolvedBy={thread.resolved ? resolveName(thread.resolved.by) : undefined}
 						composer={

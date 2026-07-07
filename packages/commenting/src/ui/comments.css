@@ -10,10 +10,6 @@
 	border-radius: 12px;
 }
 
-.cmt-card--you {
-	border-color: var(--tl-color-selected);
-}
-
 .cmt-body {
 	flex: 1;
 	min-width: 0;
@@ -359,12 +355,40 @@
 	box-shadow: var(--tl-shadow-2);
 }
 .cmt-thread__header {
-	padding: 2px 4px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 2px 2px 2px 4px;
+}
+.cmt-thread__title {
 	font-size: 11px;
 	font-weight: 600;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
 	color: var(--tl-color-text-3);
+}
+.cmt-thread__actions {
+	display: flex;
+	gap: 2px;
+}
+.cmt-thread__action {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--tl-color-text-3);
+	font-size: 14px;
+	line-height: 1;
+	cursor: pointer;
+}
+.cmt-thread__action:hover {
+	background: var(--tl-color-muted-2);
+	color: var(--tl-color-text-1);
 }
 .cmt-thread__resolved {
 	padding: 6px 10px;

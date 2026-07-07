@@ -15,6 +15,12 @@
 	pointer-events: auto;
 }
 
+/* The open thread (its pin + popover) sits above the other pins, so nearby markers don't
+   overlap its popover — they tuck behind it. */
+.cmt-canvas-pin--open {
+	z-index: 1;
+}
+
 /* Centre the pin marker on its anchor point. */
 .cmt-canvas-pin__marker {
 	width: max-content;
