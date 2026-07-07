@@ -54,6 +54,18 @@ export class PendingRequests {
 	}
 
 	/**
+	 * Drop the pending request for the given channel without settling its
+	 * promise. Used to clean up after the request was resolved another way
+	 * (e.g. via the rendezvous DO).
+	 */
+	cancel(channel: string): void {
+		const entry = this.pending.get(channel)
+		if (!entry) return
+		clearTimeout(entry.timer)
+		this.pending.delete(channel)
+	}
+
+	/**
 	 * Reject the pending request for the given channel.
 	 * Returns false if no request is currently pending.
 	 */
