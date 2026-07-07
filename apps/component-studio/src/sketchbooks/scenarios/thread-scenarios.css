@@ -8,3 +8,7 @@
 .scenario__thread {
 	position: absolute;
 }
+/* the open thread draws above the pins, matching the real overlay */
+.scenario__thread {
+	z-index: 1;
+}
