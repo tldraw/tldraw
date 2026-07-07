@@ -937,6 +937,7 @@ type ArgKind =
 	| 'update-partials'
 type RetKind =
 	| 'this'
+	| 'raw'
 	| 'shape'
 	| 'shape-or-null'
 	| 'shapes'
@@ -1011,7 +1012,10 @@ function generateMethodMap(
 		}
 
 		if (args.length > 0 || ret) {
-			map[name] = { args, ret: ret ?? 'this' }
+			// Unclassified return types pass through unchanged ('raw'). Defaulting to
+			// 'this' here is wrong: it makes the proxy hand back the editor for value
+			// getters like getShapePageBounds, which then corrupts callers.
+			map[name] = { args, ret: ret ?? 'raw' }
 		}
 	}
 

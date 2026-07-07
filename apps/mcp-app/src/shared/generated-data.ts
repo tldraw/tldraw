@@ -10,6 +10,7 @@ type ArgKind =
 
 export type RetKind =
 	| 'this'
+	| 'raw'
 	| 'shape'
 	| 'shape-or-null'
 	| 'shapes'

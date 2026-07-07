@@ -185,6 +185,11 @@ function convertReturnValue(editor: Editor, proxy: Editor, spec: RetKind, result
 			}
 			return out
 		}
+		case 'raw':
+		default:
+			// Value getters (bounds, geometry, transforms, ...) and anything the
+			// extractor couldn't classify pass through untouched.
+			return result
 	}
 }
 
@@ -318,7 +323,14 @@ export function createFocusedEditorProxy(editor: Editor, methodMap: MethodMap): 
 				return value
 			}
 
-			const spec = methodMap[prop]
+			// Own-property lookup only: methodMap is a plain object, so a bare
+			// `methodMap[prop]` also resolves inherited Object.prototype members
+			// ('toString', 'valueOf', 'constructor', ...) to functions with no
+			// `args`. Reading `spec.args` on those throws — e.g. when anything does
+			// `String(proxy)` — so treat inherited props as "not a spec".
+			const spec = Object.prototype.hasOwnProperty.call(methodMap, prop)
+				? methodMap[prop]
+				: undefined
 
 			// --- Special-case: create/update need binding handling ---
 			if (prop === 'createShape') {
