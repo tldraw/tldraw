@@ -219,6 +219,97 @@ describe('MagicWandTool', () => {
 		editor.expectToBeIn('select.idle')
 	})
 
+	it('lassos a natural loop that overshoots and crosses itself', () => {
+		const boxId = createBox(130, 130)
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		// The final leg crosses the top edge (~x=104) and keeps going ~30px.
+		editor.pointerMove(105, 90)
+		editor.pointerMove(108, 70)
+		editor.pointerUp()
+
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('lassos a natural loop that stops short of closing', () => {
+		const boxId = createBox(130, 130)
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		editor.pointerMove(100, 125) // 3.75 sides — a 25px gap left open
+		editor.pointerUp()
+
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('lassos a loop drawn with a lead-in tail, trimming the tail', () => {
+		const boxId = createBox(130, 130)
+		const outside = createBox(40, 30) // near the lead-in, but outside the loop
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(50, 40) // lead-in from outside the loop…
+		editor.pointerMove(100, 100) // …to the loop start
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		editor.pointerMove(102, 105) // back near the loop start
+		editor.pointerUp()
+
+		// Only the encircled box is selected — the lead-in never counts as loop.
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(editor.getShape(outside)).toBeTruthy()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('keeps the stroke as a drawing when it draws far past a closed loop', () => {
+		const boxId = createBox(130, 130)
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		editor.pointerMove(102, 100) // closed here…
+		editor.pointerMove(150, 60) // …but keeps drawing away
+		editor.pointerMove(280, 40)
+		editor.pointerUp()
+
+		// Not a lasso anymore: the stroke stays as a drawing, nothing selected.
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(true)
+		expect(editor.getShape(boxId)).toBeTruthy()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('still lassos an overshot loop when the stroke is split into multiple shapes', () => {
+		;(editor.getShapeUtil('draw') as any).options.maxPointsPerShape = 2
+		const boxId = createBox(130, 130)
+
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		editor.pointerMove(105, 90) // cross the top edge and overshoot
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'draw').length).toBeGreaterThan(1)
+		editor.pointerUp()
+
+		expect(editor.getSelectedShapeIds()).toEqual([boxId])
+		expect(editor.getCurrentPageShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.expectToBeIn('select.idle')
+	})
+
 	it('lasso-selects multiple encircled shapes', () => {
 		const a = createBox(120, 120, 20, 20) // center ~(130,130)
 		const b = createBox(160, 160, 20, 20) // center ~(170,170)
@@ -603,6 +694,33 @@ describe('MagicWandTool hold-to-morph', () => {
 
 		editor.redo()
 		expect(realShapes().filter((s) => s.type === 'geo')).toHaveLength(1)
+	})
+
+	it('morphs a rectangle sketch whose closing stroke overshoots and crosses', () => {
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		const path: Array<[number, number]> = [
+			[200, 100],
+			[200, 200],
+			[100, 200],
+			// The closing leg crosses the top edge (~x=128) and overshoots past it.
+			[130, 94],
+		]
+		let [px, py] = [100, 100]
+		for (const [cx, cy] of path) {
+			for (let j = 1; j <= 6; j++) {
+				editor.pointerMove(px + ((cx - px) * j) / 6, py + ((cy - py) * j) / 6)
+			}
+			;[px, py] = [cx, cy]
+		}
+
+		// Hold: the detected loop (overshoot trimmed) morphs into a geo rectangle.
+		vi.advanceTimersByTime(900)
+		const geos = realShapes().filter((s) => s.type === 'geo')
+		expect(geos).toHaveLength(1)
+		expect((geos[0] as TLGeoShape).props.geo).toBe('rectangle')
+		expect(realShapes().some((s) => s.type === 'draw')).toBe(false)
+		editor.pointerUp()
 	})
 
 	it('does not morph an open (un-closed) stroke', () => {

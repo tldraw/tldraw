@@ -17,6 +17,7 @@ import {
 } from '@tldraw/editor'
 import { getPointsFromDrawSegments } from '../../shapes/draw/getPath'
 import { Drawing } from '../../shapes/draw/toolStates/Drawing'
+import { detectClosedLoop } from './loopClosure'
 import {
 	MAGIC_WAND_DELETE_COLOR,
 	MAGIC_WAND_INKING_CLASS,
@@ -42,11 +43,6 @@ import {
 	recognizedShapeTopLeft,
 	recognizeShape,
 } from './shapeRecognition'
-
-// Screen-space distance between the gesture's start and end for it to count as a
-// closed loop. Only used when the stroke has been split into multiple shapes; a
-// single unsplit stroke uses the draw tool's own (zoom-aware) `isClosed` flag.
-const MAGIC_WAND_CLOSE_DISTANCE = 16
 
 /**
  * Fraction of a shape's outline that must fall inside the lasso for it to be
@@ -459,7 +455,14 @@ export class MagicWandDrawing extends Drawing {
 
 	/** The recognized shape (rectangle, ellipse, …) for the current stroke, or null. */
 	private getMorphShape(): ShapeRecognitionResult | null {
-		const input = buildRecognizerInput(this.getGesturePolygon())
+		// Feed the recognizer the detected loop (tails trimmed, explicitly closed)
+		// when there is one, so sketches with overshoot crossings or small gaps
+		// recognize as cleanly as precise ones. Open strokes pass through raw so
+		// line recognition still sees the whole stroke. The recognizer's own fit
+		// gates are unchanged — an irregular loop lassos but doesn't morph.
+		const rawPolygon = this.getGesturePolygon()
+		const loop = detectClosedLoop(rawPolygon, this.editor.getZoomLevel())
+		const input = buildRecognizerInput(loop ? loop.polygon : rawPolygon)
 		if (!input) return null
 		return recognizeShape(input)
 	}
@@ -648,20 +651,21 @@ export class MagicWandDrawing extends Drawing {
 		const strokeShapes = this.getGestureStrokeShapes()
 		if (strokeShapes.length === 0) return []
 
-		// The lasso polygon across every piece of the gesture (the draw tool may
+		// The gesture's points across every piece of the stroke (the draw tool may
 		// split one stroke into several shapes).
-		const polygon = this.getGesturePolygon()
-		if (polygon.length < 3) return []
+		const rawPolygon = this.getGesturePolygon()
+		if (rawPolygon.length < 3) return []
 
-		// Only treat the stroke as a lasso if it loops back on itself: the overall
-		// endpoints come within the close distance. (We deliberately don't read the
-		// draw tool's own `isClosed` flag here — its threshold is smaller than ours,
-		// so it's redundant, and `keepLassoStrokeClosed` forces it true while the
-		// lasso fill shows, which would otherwise make this always report closed.)
-		const isClosed =
-			Vec.Dist(polygon[0], polygon[polygon.length - 1]) <
-			MAGIC_WAND_CLOSE_DISTANCE / this.editor.getZoomLevel()
-		if (!isClosed) return []
+		// Only treat the stroke as a lasso if it forms a closed loop — including
+		// natural overshoots (the stroke crossing itself) and undershoots (a gap
+		// scaled to the loop's size). The detected loop has any lead-in/overshoot
+		// tails trimmed off, so coverage is measured against the actual loop. (We
+		// deliberately don't read the draw tool's own `isClosed` flag here —
+		// `keepLassoStrokeClosed` forces it true while the lasso fill shows, which
+		// would otherwise make this always report closed.)
+		const loop = detectClosedLoop(rawPolygon, this.editor.getZoomLevel())
+		if (!loop) return []
+		const polygon = loop.polygon
 
 		const currentPageId = this.editor.getCurrentPageId()
 		const polygonBounds = Box.FromPoints(polygon)

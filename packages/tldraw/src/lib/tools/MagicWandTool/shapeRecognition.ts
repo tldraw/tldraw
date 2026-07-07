@@ -456,7 +456,7 @@ function meanOutlineDist(
 }
 
 /** Absolute area of a polygon via the shoelace formula. */
-function polygonArea(points: Vec[]): number {
+export function polygonArea(points: Vec[]): number {
 	let sum = 0
 	for (let i = 0, n = points.length; i < n; i++) {
 		const a = points[i]
