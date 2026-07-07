@@ -1,33 +1,34 @@
 import {
+	atom,
 	DefaultToolbar,
 	DefaultToolbarContent,
 	StateNode,
-	TLComponents,
-	TLCommentAnchor,
-	TLUiOverrides,
 	TldrawUiMenuItem,
-	VecLike,
-	atom,
+	TLCommentAnchor,
+	TLComponents,
+	TLUiOverrides,
 	useIsToolSelected,
 	useTools,
+	VecLike,
 } from 'tldraw'
 
-/** A comment the user is placing but hasn't posted yet: where its composer sits and what it
- *  will anchor to. Shared between the tool (which sets it on click) and CommentsOnCanvas
- *  (which renders the composer). Null when nothing is being placed. */
+/** A comment being placed but not yet posted: where its composer sits and what it will anchor
+ *  to. Shared between the tool (which sets it on click) and the overlay (which renders the
+ *  composer). Null when nothing is being placed. */
 export interface PendingComment {
 	anchor: TLCommentAnchor
 	/** Page point where the composer opens (the click location). */
 	point: VecLike
 }
 
+/** The comment currently being placed, or null. Exposed so a consumer can drive placement
+ *  itself (e.g. from a different gesture) instead of, or alongside, the comment tool. */
 export const pendingComment = atom<PendingComment | null>('pendingComment', null)
 
 /**
- * The comment tool. Activating it lets you click anywhere on the canvas to start a thread: a
- * click on a shape anchors the thread to that shape (so the pin tracks it), a click on empty
- * canvas drops a point-anchored pin. Placement just opens a composer (via `pendingComment`);
- * the records are created when the comment is posted, in CommentsOnCanvas.
+ * The comment tool. Clicking the canvas starts a thread: on a shape it anchors to that shape (so
+ * the pin tracks it), on empty canvas it drops a point anchor. Placement only opens a composer
+ * (via `pendingComment`); the records are created when the comment is posted.
  */
 export class CommentTool extends StateNode {
 	static override id = 'comment'
@@ -51,7 +52,7 @@ export class CommentTool extends StateNode {
 
 export const commentTools = [CommentTool]
 
-/** Register the comment tool in the UI (icon, label, shortcut). */
+/** Registers the comment tool in the UI (icon, label, shortcut). Compose into your overrides. */
 export const commentToolOverrides: TLUiOverrides = {
 	tools(editor, tools) {
 		tools.comment = {
@@ -65,7 +66,8 @@ export const commentToolOverrides: TLUiOverrides = {
 	},
 }
 
-/** Toolbar with the comment tool added ahead of the default tools. */
+/** A Toolbar with the comment tool added ahead of the default tools. Use as-is, or build your
+ *  own toolbar with `tools.comment`. */
 export const commentToolComponents: TLComponents = {
 	Toolbar: (props) => {
 		const tools = useTools()

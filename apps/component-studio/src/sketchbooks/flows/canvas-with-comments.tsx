@@ -26,10 +26,10 @@ export function CanvasWithComments({ empty }: CanvasWithCommentsProps) {
 					{!empty && (
 						<div className="scene__pins">
 							<div className="scene__pin" style={{ top: '24%', left: '30%' }}>
-								<CommentPin number={1} resolved={false} />
+								<CommentPin resolved={false}>1</CommentPin>
 							</div>
 							<div className="scene__pin" style={{ top: '58%', left: '60%' }}>
-								<CommentPin number={2} resolved={false} />
+								<CommentPin resolved={false}>2</CommentPin>
 							</div>
 						</div>
 					)}

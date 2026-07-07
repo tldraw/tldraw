@@ -11771,6 +11771,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1

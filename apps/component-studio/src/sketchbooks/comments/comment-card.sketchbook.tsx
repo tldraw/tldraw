@@ -1,4 +1,4 @@
-import { CommentCard, CommentCardProps } from '@tldraw/commenting'
+import { CommentCard, CommentCardProps, CommentText } from '@tldraw/commenting'
 import { Sketch, Sketchbook } from '../../sketch'
 
 const NOW = Date.now()
@@ -15,12 +15,17 @@ export default sketchbook
 export const FromThem: Sketch<CommentCardProps> = {
 	args: {
 		author: 'Ada Lovelace',
-		body: 'Should this button be primary?',
+		body: <CommentText text="Should this button be primary?" />,
 		date: ago(2 * HOUR),
 		you: false,
 	},
 }
 
 export const FromYou: Sketch<CommentCardProps> = {
-	args: { author: 'You', body: 'Good call — updating it now.', date: ago(HOUR), you: true },
+	args: {
+		author: 'You',
+		body: <CommentText text="Good call — updating it now." />,
+		date: ago(HOUR),
+		you: true,
+	},
 }

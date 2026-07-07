@@ -59,13 +59,31 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 		author: {
 			control: 'text',
 		},
+		autoFocus: {
+			control: 'boolean',
+		},
+		disabled: {
+			control: 'boolean',
+		},
+		onChange: {
+			control: 'text',
+		},
+		onSubmit: {
+			control: 'text',
+		},
 		placeholder: {
+			control: 'text',
+		},
+		sendLabel: {
+			control: 'text',
+		},
+		value: {
 			control: 'text',
 		},
 	},
 	'sketchbooks/comments/comment-pin.sketchbook.tsx': {
-		number: {
-			control: 'number',
+		children: {
+			control: 'text',
 		},
 		open: {
 			control: 'boolean',
@@ -80,8 +98,20 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 		},
 	},
 	'sketchbooks/comments/comment-thread.sketchbook.tsx': {
-		resolved: {
-			control: 'boolean',
+		comments: {
+			control: 'text',
+		},
+		composer: {
+			control: 'text',
+		},
+		header: {
+			control: 'text',
+		},
+		renderComment: {
+			control: 'number',
+		},
+		resolvedBy: {
+			control: 'text',
 		},
 	},
 	'sketchbooks/comments/comments-sidebar.sketchbook.tsx': {
@@ -115,6 +145,9 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			control: 'boolean',
 		},
 		label: {
+			control: 'text',
+		},
+		onClick: {
 			control: 'text',
 		},
 	},

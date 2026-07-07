@@ -1,11 +1,13 @@
+import { ReactNode } from 'react'
 import { Avatar } from './avatar'
 import { Byline } from './byline'
-import { CommentText } from './comment-text'
 import './comments.css'
 
 export interface CommentCardProps {
 	author: string
-	body: string
+	/** The rendered comment body. The card doesn't dictate a format — pass a `<CommentText>`
+	 *  for markdown, a rich-text render, or any node. */
+	body: ReactNode
 	/** ISO datetime; formatted to relative time by the component. */
 	date: string
 	you: boolean
@@ -13,14 +15,14 @@ export interface CommentCardProps {
 	edited?: boolean
 }
 
-/** A single comment, composed from Avatar, Byline, and CommentText. */
+/** A single comment: Avatar, Byline, and a body slot the consumer renders. */
 export function CommentCard({ author, body, date, you, edited }: CommentCardProps) {
 	return (
 		<div className={you ? 'cmt-card cmt-card--you' : 'cmt-card'}>
 			<Avatar name={author} />
 			<div className="cmt-body">
 				<Byline author={author} date={date} edited={edited} />
-				<CommentText text={body} />
+				{body}
 			</div>
 		</div>
 	)
