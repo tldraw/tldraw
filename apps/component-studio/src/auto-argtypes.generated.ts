@@ -11,15 +11,6 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			control: 'boolean',
 		},
 	},
-	'sketchbooks/button.sketchbook.tsx': {
-		label: {
-			control: 'text',
-		},
-		tone: {
-			control: 'select',
-			options: ['default', 'primary'],
-		},
-	},
 	'sketchbooks/comments/anchored-comment.sketchbook.tsx': {
 		comments: {
 			control: 'text',
@@ -140,15 +131,6 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 	'sketchbooks/flows/canvas-without-comments.sketchbook.tsx': {
 		empty: {
 			control: 'boolean',
-		},
-	},
-	'sketchbooks/tldraw-button.sketchbook.tsx': {
-		action: {
-			control: 'text',
-		},
-		type: {
-			control: 'select',
-			options: ['danger', 'low', 'normal', 'primary'],
 		},
 	},
 }
