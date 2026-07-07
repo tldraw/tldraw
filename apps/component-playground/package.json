@@ -13,7 +13,10 @@
 		"preview": "vite preview --host",
 		"build": "node ../../packages/tldraw/scripts/copy-css-files.mjs && vite build",
 		"gen-controls": "node scripts/gen-controls.mjs",
-		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
 	},
 	"dependencies": {
 		"react": "^19.2.1",
