@@ -87,7 +87,8 @@ export function registerTools(
 		pendingRequests: opts.pendingRequests,
 		getMcpSessionId: () => deps.getMcpSessionId(),
 		getClientHostName: () => opts.getClientHostName(),
-		waitExecResult: (execKey, timeoutMs) => deps.waitExecResult(execKey, timeoutMs),
+		waitExecResult: (execKey, timeoutMs, notBefore) =>
+			deps.waitExecResult(execKey, timeoutMs, notBefore),
 	})
 
 	// --- _exec_callback (app-only: widget resolves pending exec via callServerTool) ---

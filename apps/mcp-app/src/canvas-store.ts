@@ -55,14 +55,25 @@ export class CanvasStore extends DurableObject<unknown> {
 		return { delivered: false }
 	}
 
-	/** Wait for a result: consume a stashed one immediately, else block up to timeoutMs. */
-	async waitExecResult(key: string, timeoutMs: number): Promise<string | null> {
+	/**
+	 * Wait for a result: consume a stashed one immediately, else block up to timeoutMs.
+	 *
+	 * `notBefore` is the caller's start time. A stashed result produced before the
+	 * caller started belongs to an earlier invocation that shared this execKey (a
+	 * retry, or a late callback from a run that already timed out), so it is
+	 * discarded rather than returned — otherwise this caller would report another
+	 * run's success, failure, or return value as its own.
+	 */
+	async waitExecResult(key: string, timeoutMs: number, notBefore = 0): Promise<string | null> {
 		const rows = this.ctx.storage.sql
-			.exec(`SELECT payload FROM exec_results WHERE key = ?`, key)
+			.exec(`SELECT payload, created_at FROM exec_results WHERE key = ?`, key)
 			.toArray()
 		if (rows.length > 0) {
+			// Consume the stash either way (single-use); only return it if it's fresh.
 			this.ctx.storage.sql.exec(`DELETE FROM exec_results WHERE key = ?`, key)
-			return rows[0].payload as string
+			if ((rows[0].created_at as number) >= notBefore) {
+				return rows[0].payload as string
+			}
 		}
 
 		// A superseded waiter (e.g. a retried exec) resolves empty so only the

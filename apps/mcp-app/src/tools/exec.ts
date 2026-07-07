@@ -30,7 +30,11 @@ export function registerExecTool(
 		pendingRequests: PendingRequests
 		getMcpSessionId(): string
 		getClientHostName(): MCP_APP_HOST_NAMES | undefined
-		waitExecResult(execKey: string, timeoutMs: number): Promise<ExecResultPayload | null>
+		waitExecResult(
+			execKey: string,
+			timeoutMs: number,
+			notBefore: number
+		): Promise<ExecResultPayload | null>
 	}
 ) {
 	registerAppTool(
@@ -133,7 +137,7 @@ Examples:
 			}
 			sources.push(
 				opts
-					.waitExecResult(execKey, waitMs)
+					.waitExecResult(execKey, waitMs, startedAt)
 					.then(validate)
 					.catch(() => null)
 			)

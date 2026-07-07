@@ -199,8 +199,12 @@ export class TldrawMCP extends McpAgent<Env> {
 				)
 				return delivered
 			},
-			waitExecResult: async (execKey, timeoutMs) => {
-				const payload = await canvasStoreStub(`exec:${execKey}`).waitExecResult(execKey, timeoutMs)
+			waitExecResult: async (execKey, timeoutMs, notBefore) => {
+				const payload = await canvasStoreStub(`exec:${execKey}`).waitExecResult(
+					execKey,
+					timeoutMs,
+					notBefore
+				)
 				return payload ? JSON.parse(payload) : null
 			},
 		}

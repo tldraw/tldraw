@@ -38,8 +38,16 @@ export interface ServerDeps {
 	loadMethodMap(): Promise<MethodMap>
 	/** Hand an exec result to the rendezvous DO. Returns true if a waiter received it. */
 	putExecResult(execKey: string, payload: ExecResultPayload): Promise<boolean>
-	/** Wait on the rendezvous DO for an exec result; null on timeout. */
-	waitExecResult(execKey: string, timeoutMs: number): Promise<ExecResultPayload | null>
+	/**
+	 * Wait on the rendezvous DO for an exec result; null on timeout. `notBefore`
+	 * is the caller's start time — stashed results produced before it (a prior
+	 * invocation sharing this execKey) are discarded rather than returned.
+	 */
+	waitExecResult(
+		execKey: string,
+		timeoutMs: number,
+		notBefore: number
+	): Promise<ExecResultPayload | null>
 }
 
 export interface RegisterToolsOptions {
