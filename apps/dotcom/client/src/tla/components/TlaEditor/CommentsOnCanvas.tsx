@@ -1,4 +1,5 @@
 /* eslint-disable tldraw/jsx-no-literals */
+import { CommentCard, CommentCardProps, CommentComposer, CommentPin } from '@tldraw/commenting'
 import { useMemo, useState } from 'react'
 import {
 	Editor,
@@ -16,10 +17,12 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { richTextToPlaintext } from '../../utils/richText'
 
 /**
- * Minimal v1 comments UI, mounted as `InFrontOfTheCanvas`. Reads comment-thread and comment
- * records straight from the tldraw file store (they sync through the room's object lane), renders
- * a pin per thread at its anchor, and lets you start a shape-anchored thread on the single
- * selected shape. Cross-document comments live at the /comments route (backed by Zero), not here.
+ * Comments UI, mounted as `InFrontOfTheCanvas`. Reads comment-thread and comment records straight
+ * from the tldraw file store (they sync through the room's object lane), pins a thread at its
+ * anchor, and lets an authenticated user start a shape-anchored thread on the single selected
+ * shape. The pin, thread cards, and composer are the shared `@tldraw/commenting` components; a
+ * small adapter maps each synced `TLComment` onto the card's presentational props. Cross-document
+ * comments live at the /comments route (backed by Zero), not here.
  */
 export function CommentsOnCanvas() {
 	const editor = useEditor()
@@ -50,13 +53,34 @@ export function CommentsOnCanvas() {
 	return (
 		<>
 			{threads.map((thread) => (
-				<ThreadPin key={thread.id} editor={editor} thread={thread} focusedId={focusedId} />
+				<ThreadPin
+					key={thread.id}
+					editor={editor}
+					thread={thread}
+					focusedId={focusedId}
+					currentUserId={authorId}
+				/>
 			))}
 			{selectedShapeId && authorId && (
 				<ThreadComposer editor={editor} shapeId={selectedShapeId} authorId={authorId} />
 			)}
 		</>
 	)
+}
+
+/**
+ * Adapt a synced `TLComment` record to `CommentCard` props — the same "components consume the
+ * model" boundary the studio uses. Author names aren't resolved on the canvas yet (the /comments
+ * view joins them via Zero); the raw id stands in until that resolver is threaded through.
+ */
+function commentToCardProps(comment: TLComment, currentUserId: string | null): CommentCardProps {
+	return {
+		author: comment.authorId,
+		body: richTextToPlaintext(comment.body),
+		date: new Date(comment.createdAt).toISOString(),
+		you: comment.authorId === currentUserId,
+		edited: comment.editedAt != null,
+	}
 }
 
 /** Where a thread's pin sits on the page, for each anchor kind. Null hides the pin. */
@@ -82,10 +106,12 @@ function ThreadPin({
 	editor,
 	thread,
 	focusedId,
+	currentUserId,
 }: {
 	editor: Editor
 	thread: TLCommentThread
 	focusedId: string | null
+	currentUserId: string | null
 }) {
 	const comments = useValue(
 		'thread comments',
@@ -122,54 +148,38 @@ function ThreadPin({
 				top: point.y,
 				pointerEvents: 'all',
 				zIndex: 300,
-				opacity: thread.resolved != null ? 0.5 : 1,
 			}}
 		>
-			<button
+			<div
 				onPointerDown={(e) => e.stopPropagation()}
 				onClick={() => setOpen((o) => !o)}
-				title={comments[0] ? richTextToPlaintext(comments[0].body) : ''}
-				style={{
-					transform: 'translate(-4px, -50%)',
-					width: 24,
-					height: 24,
-					borderRadius: '50% 50% 50% 2px',
-					border: '2px solid white',
-					background: thread.resolved != null ? '#9aa0a6' : '#4285f4',
-					color: 'white',
-					cursor: 'pointer',
-					boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-					fontSize: 12,
-				}}
+				style={{ transform: 'translate(-50%, -50%)', width: 'max-content', cursor: 'pointer' }}
 			>
-				💬
-			</button>
+				<CommentPin number={comments.length} resolved={thread.resolved != null} open={open} />
+			</div>
 			{open && (
 				<div
 					onPointerDown={(e) => e.stopPropagation()}
 					style={{
 						position: 'absolute',
-						left: 24,
-						top: -8,
-						minWidth: 180,
-						maxWidth: 260,
-						padding: 8,
-						borderRadius: 8,
-						background: 'white',
-						color: '#111',
-						boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-						fontSize: 13,
+						left: 20,
+						top: 0,
+						display: 'flex',
+						flexDirection: 'column',
+						gap: 8,
 					}}
 				>
 					{comments.map((comment) => (
-						<div key={comment.id} style={{ marginBottom: 6 }}>
-							<div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-								{richTextToPlaintext(comment.body)}
-							</div>
-							<div style={{ marginTop: 2, opacity: 0.6, fontSize: 11 }}>{comment.authorId}</div>
-						</div>
+						<CommentCard key={comment.id} {...commentToCardProps(comment, currentUserId)} />
 					))}
-					{comments.length === 0 && <div style={{ opacity: 0.6 }}>No comments</div>}
+					{comments.length === 0 && (
+						<CommentCard
+							author=""
+							body="No comments yet"
+							date={new Date().toISOString()}
+							you={false}
+						/>
+					)}
 				</div>
 			)}
 		</div>
@@ -237,37 +247,17 @@ function ThreadComposer({
 				left: point.x,
 				top: point.y + 8,
 				pointerEvents: 'all',
-				display: 'flex',
-				gap: 6,
-				padding: 6,
-				borderRadius: 10,
-				background: 'white',
-				boxShadow: '0 2px 12px rgba(0,0,0,0.2)',
 				zIndex: 300,
 			}}
 		>
-			<input
-				value={text}
-				onChange={(e) => setText(e.target.value)}
-				onKeyDown={(e) => {
-					if (e.key === 'Enter') submit()
-				}}
+			<CommentComposer
+				author={authorId}
 				placeholder="Comment on the selected shape…"
-				style={{ width: 240, border: '1px solid #ddd', borderRadius: 6, padding: '6px 8px' }}
+				value={text}
+				onChange={setText}
+				onSubmit={submit}
+				disabled={!text.trim()}
 			/>
-			<button
-				onClick={submit}
-				style={{
-					border: 'none',
-					borderRadius: 6,
-					padding: '6px 12px',
-					background: '#4285f4',
-					color: 'white',
-					cursor: 'pointer',
-				}}
-			>
-				Comment
-			</button>
 		</div>
 	)
 }
