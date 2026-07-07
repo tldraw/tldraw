@@ -11703,6 +11703,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.root.handleEvent(info)
 		this.emit('event', info)
 
+		// A gesture just ended. Now that the finishing pointer_up has been handled with any
+		// mid-gesture-released modifier still applied (so the gesture isn't robbed of it),
+		// release those latched modifiers so they don't linger past the gesture. Genuinely
+		// held modifiers aren't pending, so they're left alone.
+		if (info.type === 'pointer' && info.name === 'pointer_up') {
+			this._releaseDebouncedModifiers()
+		}
+
 		// close open menus at the very end on pointer down! after everything else! συντελείας τοῦ κώδικα!!
 		if (info.type === 'pointer' && info.name === 'pointer_down') {
 			this.menus.clearOpenMenus()
