@@ -88,7 +88,10 @@ Examples:
 			const waitMs =
 				hostName && isLongWaitHost(hostName) ? EXEC_CALLBACK_WAIT_LONG_MS : EXEC_CALLBACK_WAIT_MS
 
-			const execKey = await computeExecKey(code)
+			// Key on the model-supplied canvasId (not the generated fallback): it's
+			// the value the widget also has, and it makes same-code-different-canvas
+			// invocations derive different keys so results can't be swapped.
+			const execKey = await computeExecKey(code, inputCanvasId)
 			const startedAt = Date.now()
 			opts.log(
 				`[tldraw-mcp] exec start: canvasId=${canvasId}, existing=${Boolean(inputCanvasId)}, host=${hostName ?? 'unknown'}, waitMs=${waitMs}, execKey=${execKey}, mcpSessionId=${opts.getMcpSessionId()}, startedAt=${startedAt}`
@@ -107,11 +110,33 @@ Examples:
 				localWait = null
 			}
 
+			// Defense in depth against a rendezvous-key collision (identical `code`
+			// from a different invocation hashing to the same exec:<execKey> DO): if
+			// the delivered payload names a canvasId and it isn't the one this
+			// invocation is editing, it belongs to someone else — drop it to null so
+			// the legitimate result can still win the race (or we degrade gracefully).
+			const validate = (payload: ExecResultPayload | null): ExecResultPayload | null => {
+				if (payload && payload.canvasId && payload.canvasId !== canvasId) {
+					opts.log(
+						`[tldraw-mcp] exec result rejected: canvasId mismatch (expected=${canvasId}, got=${payload.canvasId}, execKey=${execKey})`
+					)
+					return null
+				}
+				return payload
+			}
+
 			const sources: Array<Promise<ExecResultPayload | null>> = []
 			if (localWait) {
-				sources.push(localWait.then((value) => value as ExecResultPayload).catch(() => null))
+				sources.push(
+					localWait.then((value) => validate(value as ExecResultPayload)).catch(() => null)
+				)
 			}
-			sources.push(opts.waitExecResult(execKey, waitMs).catch(() => null))
+			sources.push(
+				opts
+					.waitExecResult(execKey, waitMs)
+					.then(validate)
+					.catch(() => null)
+			)
 
 			const result = await new Promise<ExecResultPayload | null>((resolve) => {
 				let remaining = sources.length

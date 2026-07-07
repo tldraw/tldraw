@@ -523,11 +523,24 @@ function TldrawCanvas({ app }: { app: App }) {
 				// Resolve the waiting exec call. On same-session hosts this settles the
 				// server's in-memory pending request directly; otherwise the server
 				// forwards the result to the exec:<execKey> rendezvous DO, keyed by the
-				// same code hash both sides derive, so it still reaches the waiting exec.
-				const execKey = await computeExecKey(code)
-				const callbackArgs = execResult.success
-					? { channel: 'exec', execKey, result: { success: true, result: execResult.result } }
-					: { channel: 'exec', execKey, result: { success: false, error: execResult.error } }
+				// same (canvasId, code) pair both sides derive, so it still reaches the
+				// waiting exec. `canvasId` here is the model-supplied input (undefined
+				// for a new canvas) — the server keys on that same value, so folding it
+				// in keeps same-code-different-canvas invocations from colliding.
+				//
+				// We also include the canvasId in the payload (when present) as a
+				// belt-and-braces cross-check: the waiting exec rejects a delivered
+				// result whose canvasId isn't the one it's editing. Omitted for new
+				// canvases because the server-generated id isn't known here yet, and
+				// sending a stale learned id would cause false mismatches.
+				const execKey = await computeExecKey(code, canvasId)
+				const resultPayload = execResult.success
+					? { success: true, result: execResult.result }
+					: { success: false, error: execResult.error }
+				if (canvasId) {
+					;(resultPayload as { canvasId?: string }).canvasId = canvasId
+				}
+				const callbackArgs = { channel: 'exec', execKey, result: resultPayload }
 				try {
 					await app.callServerTool({ name: '_exec_callback', arguments: callbackArgs })
 					logIfDevMode('Exec: _exec_callback succeeded')

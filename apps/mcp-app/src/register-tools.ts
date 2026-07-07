@@ -100,6 +100,7 @@ export function registerTools(
 				success: z.boolean(),
 				result: z.unknown().optional(),
 				error: z.string().optional(),
+				canvasId: z.string().optional(),
 			})
 			.optional(),
 		error: z.string().optional(),

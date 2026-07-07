@@ -13,6 +13,13 @@ export interface ExecResultPayload {
 	success: boolean
 	result?: unknown
 	error?: string
+	/**
+	 * The canvasId the widget ran this code against, set only when the model
+	 * supplied a canvasId in the tool args. The waiting exec cross-checks it
+	 * against its own invocation so a rendezvous-key collision (identical code
+	 * from a different invocation) can't hand back another canvas's result.
+	 */
+	canvasId?: string
 }
 
 export interface ServerDeps {
