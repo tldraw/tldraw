@@ -95,13 +95,13 @@ interface CommentsPluginOptions {
 
 For custom UI, `@tldraw/comments` exports headless hooks and functions instead of requiring you to use the default components:
 
-| Export                    | Description                                                      |
-| ------------------------- | ---------------------------------------------------------------- |
-| [`useCommentThreads`](?)  | Reactive list of comment threads, optionally filtered to a page. |
-| [`useThreadComments`](?)  | Reactive, `createdAt`-ordered comments for a thread.             |
-| [`startCommentThread`](?) | Creates a thread with its first comment.                         |
-| [`addComment`](?)         | Appends a comment to an existing thread.                         |
-| [`resolveThread`](?)      | Marks a thread resolved.                                         |
+| Export               | Description                                                      |
+| -------------------- | ---------------------------------------------------------------- |
+| `useCommentThreads`  | Reactive list of comment threads, optionally filtered to a page. |
+| `useThreadComments`  | Reactive, `createdAt`-ordered comments for a thread.             |
+| `startCommentThread` | Creates a thread with its first comment.                         |
+| `addComment`         | Appends a comment to an existing thread.                         |
+| `resolveThread`      | Marks a thread resolved.                                         |
 
 All of these mutate the store directly and are **not undoable** - they run with `{ history: 'ignore' }` so a comment doesn't reappear in someone else's session after an undo, and doesn't get wiped out by someone else's redo in a multiplayer document.
 
@@ -156,7 +156,7 @@ Add an `onChange` callback to `commentsSyncPlugin` to push comment writes into y
 Plugin records are still document records, so ordinary [migration](/docs/persistence#migrations) and schema rules apply, with a few consequences specific to plugins:
 
 - **Guard migrations, not down-migrations.** A plugin's record types ship with a retroactive identity migration and no `down` step. If an older client without the plugin connects to a server whose schema includes it, the server can't safely down-migrate plugin records into a schema that doesn't know the type at all, so the connection fails closed with `CLIENT_TOO_OLD` (prompting the client to refresh) instead of silently corrupting data.
-- **Plugins must match on both ends.** A client that registers a plugin against a server that doesn't (or vice versa) fails to connect. Adding or removing a plugin is a schema change - register it on both the client (`useSync({ plugins })` or `<Tldraw plugins={[...]}>`) and the server (`TLSocketRoom({ plugins })`, and the storage constructor if you build the schema from `plugins` there too).
+- **Plugins must match on both ends.** A client that registers a plugin against a server that doesn't (or vice versa) fails to connect. Adding or removing a plugin is a schema change - register it on both the client (`useSync({ plugins })` or `<Tldraw plugins={[...]}>`) and the server (`TLSocketRoom({ plugins })`). If you pass your own storage to `TLSocketRoom`, also pass `plugins` (or matching `objectTypes`) to your storage constructor so object-lane records are partitioned correctly.
 - **Evolve records by extending the migration sequence.** When a plugin's record shape needs to change, add a new step to that plugin's migration sequence rather than editing the identity guard migration or changing the record type's validator in place.
 - **Deploy the server first.** As with any sync schema change, roll out the updated server before the updated client so there's never a window where clients speak a schema the server doesn't recognize.
 
@@ -193,3 +193,5 @@ function myServerPlugin(): TLSyncPlugin {
 ```
 
 Only set `objectTypes` for record types you want served through the object-store lane, gated by `objectAccess` rather than `isReadonly` and excluded from document snapshots - most custom records should stay on the main document lane and can omit this field entirely.
+
+`useSync` only consumes a plugin's `records` - it doesn't know about a plugin's `shapeUtils`. If your plugin ships custom shapes, pass those `shapeUtils` to `useSync`'s own `shapeUtils` option as well, or the sync schema won't recognize the shape type.
