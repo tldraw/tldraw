@@ -5,7 +5,6 @@
 	"compilerOptions": { "outDir": "./.tsbuild" },
 	"references": [
 		{ "path": "../../packages/tldraw" },
-		{ "path": "../../packages/commenting" },
 		{ "path": "../../packages/comments" }
 	]
 }

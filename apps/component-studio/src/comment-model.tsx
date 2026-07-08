@@ -1,4 +1,4 @@
-import { CommentCardProps, CommentText } from '@tldraw/commenting'
+import { CommentCardProps, CommentText } from '@tldraw/comments'
 import { createComment, createCommentThread, TLComment, TLCommentThread } from '@tldraw/comments'
 import { createShapeId, TLPageId, TLRichText, toRichText } from 'tldraw'
 

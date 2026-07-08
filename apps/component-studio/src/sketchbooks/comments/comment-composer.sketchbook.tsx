@@ -1,4 +1,4 @@
-import { CommentComposer, CommentComposerProps } from '@tldraw/commenting'
+import { CommentComposer, CommentComposerProps } from '@tldraw/comments'
 import { Sketch, Sketchbook } from '../../sketch'
 
 const sketchbook: Sketchbook<CommentComposerProps> = {

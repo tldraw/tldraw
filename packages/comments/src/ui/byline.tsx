@@ -1,6 +1,7 @@
 import './comments.css'
 import { formatRelativeTime } from './format-time'
 
+/** @public */
 export interface BylineProps {
 	author: string
 	/** ISO datetime; formatted to relative time by the component. */
@@ -9,7 +10,11 @@ export interface BylineProps {
 	edited?: boolean
 }
 
-/** A comment's metadata line: author name, relative time, and an edited marker. */
+/**
+ * A comment's metadata line: author name, relative time, and an edited marker.
+ * @public
+ * @react
+ */
 export function Byline({ author, date, edited }: BylineProps) {
 	return (
 		<div className="cmt-head">

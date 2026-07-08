@@ -1,4 +1,4 @@
-import { EmptyState, EmptyStateProps } from '@tldraw/commenting'
+import { EmptyState, EmptyStateProps } from '@tldraw/comments'
 import { Sketch, Sketchbook } from '../../sketch'
 
 const sketchbook: Sketchbook<EmptyStateProps> = {

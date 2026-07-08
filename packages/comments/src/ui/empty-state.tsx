@@ -1,10 +1,15 @@
 import './comments.css'
 
+/** @public */
 export interface EmptyStateProps {
 	message: string
 }
 
-/** The empty state shown when a thread has no comments yet. */
+/**
+ * The empty state shown when a thread has no comments yet.
+ * @public
+ * @react
+ */
 export function EmptyState({ message }: EmptyStateProps) {
 	return (
 		<div className="cmt-empty">

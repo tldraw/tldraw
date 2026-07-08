@@ -352,8 +352,6 @@ const rules = {
 							if (parts.length === 2) return
 							if (importPath.endsWith('.css')) return
 							if (parts[1] === 'assets' && parts.length === 3) return
-							// @tldraw/commenting exposes a `/canvas` entry point (see its exports map)
-							if (parts[1] === 'commenting' && parts[2] === 'canvas' && parts.length === 3) return
 							if (parts[1] === 'comments' && parts[2] === 'server' && parts.length === 3) return
 							break
 						default:

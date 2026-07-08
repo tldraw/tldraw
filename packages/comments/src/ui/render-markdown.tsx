@@ -5,6 +5,7 @@ import { Fragment, ReactNode } from 'react'
  * inline **bold**, *italic*, `code`, and [links](url). Not a full CommonMark parser —
  * just the markdown people actually write in comments. Renders React elements only —
  * never raw HTML — so there's no HTML-injection surface.
+ * @public
  */
 export function renderMarkdown(text: string): ReactNode {
 	return text

@@ -1,28 +1,21 @@
-import { createComment, createCommentThread, TLComment, TLCommentThread } from '@tldraw/comments'
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Editor, TldrawUiIcon, toRichText, useContainer, useEditor, useValue } from 'tldraw'
+import { useCommentThreads, useThreadComments } from '../hooks'
+import { createComment, createCommentThread, TLComment, TLCommentThread } from '../records'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
 import { CommentPin } from '../ui/comment-pin'
 import { CommentThread } from '../ui/comment-thread'
 import { CommentBody } from './comment-body'
 import { pendingComment, PendingComment } from './comment-tool'
-import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
+import { usePendingComment } from './hooks'
 import { richTextToPlaintext } from './rich-text'
 import { anchorPagePoint, openThreadId } from './thread-state'
 import './canvas.css'
 
-/**
- * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
- * thread popover (with a reply composer) on click, and shows a composer where the comment tool
- * placed a new thread. Reads/writes comment records straight from `editor.store`.
- *
- * It's meant as the batteries-included default — every visible piece is a lever (`renderBody`,
- * `renderPinContent`), and the pieces it composes (`CommentPin`, `CommentThread`, `CommentComposer`,
- * the hooks, the tool) are all exported, so a consumer can rebuild this from parts instead.
- */
+/** @public */
 export interface CanvasCommentsProps {
 	/** The signed-in user's id, or null for a read-only viewer. Only a signed-in user composes. */
 	currentUserId: string | null
@@ -50,10 +43,21 @@ function toCardProps(comment: TLComment, props: CanvasCommentsProps): CommentCar
 	}
 }
 
+/**
+ * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
+ * thread popover (with a reply composer) on click, and shows a composer where the comment tool
+ * placed a new thread. Reads/writes comment records straight from `editor.store`.
+ *
+ * It's meant as the batteries-included default — every visible piece is a lever (`renderBody`,
+ * `renderPinContent`), and the pieces it composes (`CommentPin`, `CommentThread`, `CommentComposer`,
+ * the hooks, the tool) are all exported, so a consumer can rebuild this from parts instead.
+ * @public
+ * @react
+ */
 export function CanvasComments(props: CanvasCommentsProps) {
 	const editor = useEditor()
 	const container = useContainer()
-	const threads = useCommentThreads(editor)
+	const threads = useCommentThreads()
 	const pending = usePendingComment()
 
 	// On mount, open the thread named by a deep link (?comment=<thread or comment id>). Reset the
@@ -92,7 +96,7 @@ function ThreadPin({
 	...props
 }: CanvasCommentsProps & { editor: Editor; thread: TLCommentThread }) {
 	const { currentUserId, resolveName, renderPinContent, onPostComment } = props
-	const comments = useThreadComments(editor, thread.id)
+	const comments = useThreadComments(thread.id)
 	// Only one thread's popover is open at a time — shared across pins via the atom.
 	const open = useValue('thread open', () => openThreadId.get() === thread.id, [thread.id])
 	const [reply, setReply] = useState('')

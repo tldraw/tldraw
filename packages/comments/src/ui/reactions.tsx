@@ -1,7 +1,11 @@
 import './comments.css'
 import { Reaction } from './reaction'
 
-/** The row of reactions under a comment, plus an add-reaction button. */
+/**
+ * The row of reactions under a comment, plus an add-reaction button.
+ * @public
+ * @react
+ */
 export function Reactions() {
 	return (
 		<div className="cmt-reactions">

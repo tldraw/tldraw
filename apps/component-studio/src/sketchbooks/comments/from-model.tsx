@@ -1,4 +1,4 @@
-import { CommentCard } from '@tldraw/commenting'
+import { CommentCard } from '@tldraw/comments'
 import { commentToCardProps, sampleComments } from '../../comment-model'
 
 /**

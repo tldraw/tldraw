@@ -33,7 +33,8 @@
 	"files": [],
 	"exports": {
 		".": "./src/index.ts",
-		"./server": "./src/server.ts"
+		"./server": "./src/server.ts",
+		"./*.css": "./src/*.css"
 	},
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",

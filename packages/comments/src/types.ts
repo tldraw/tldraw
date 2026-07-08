@@ -1,17 +1,9 @@
-import { ComponentType } from 'react'
-import { Editor, TLShapeId } from 'tldraw'
-import { TLCommentThread } from './records'
+import { Editor } from 'tldraw'
 
 /** @public */
 export interface CommentsPluginUser {
 	id: string
 	name?: string
-}
-
-/** @public */
-export interface TLCommentsComponents {
-	ThreadPin: ComponentType<{ thread: TLCommentThread }>
-	ThreadComposer: ComponentType<{ shapeId: TLShapeId }>
 }
 
 /** @public */
@@ -25,6 +17,8 @@ export interface CommentsPluginOptions {
 	 * comment writes per session via objectAccess.
 	 */
 	user?(editor: Editor): CommentsPluginUser | null
-	/** Override individual pieces of the default comments UI. */
-	components?: Partial<TLCommentsComponents>
+	/** Maps an author id to a display name. Defaults to the id itself. */
+	resolveName?(userId: string): string
+	/** Whether to render the comments sidebar alongside the canvas overlay. Defaults to true. */
+	sidebar?: boolean
 }

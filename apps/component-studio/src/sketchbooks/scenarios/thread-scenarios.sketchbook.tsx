@@ -4,7 +4,7 @@ import {
 	CommentPin,
 	CommentText,
 	CommentThread,
-} from '@tldraw/commenting'
+} from '@tldraw/comments'
 import { TldrawUiIcon } from 'tldraw'
 import { Sketch, Sketchbook } from '../../sketch'
 import './thread-scenarios.css'

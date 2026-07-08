@@ -3,6 +3,7 @@ import { Avatar } from './avatar'
 import './comments.css'
 import { SendButton } from './send-button'
 
+/** @public */
 export interface CommentComposerProps {
 	author: string
 	placeholder: string
@@ -16,8 +17,12 @@ export interface CommentComposerProps {
 	autoFocus?: boolean
 }
 
-/** The input for writing a new comment, composed from Avatar and SendButton. Presentational
- *  by default; pass value/onChange/onSubmit to drive it as a real form. */
+/**
+ * The input for writing a new comment, composed from Avatar and SendButton. Presentational
+ * by default; pass value/onChange/onSubmit to drive it as a real form.
+ * @public
+ * @react
+ */
 export function CommentComposer({
 	author,
 	placeholder,

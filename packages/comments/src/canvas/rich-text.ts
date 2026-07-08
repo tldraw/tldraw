@@ -4,6 +4,7 @@ import { TLRichText } from 'tldraw'
  * Flatten a rich-text comment body to plaintext: walk the ProseMirror-style JSON collecting text
  * nodes, separating paragraphs with newlines. A convenience for consumers rendering bodies as
  * plain or markdown text; richer rendering can read the `TLRichText` directly.
+ * @public
  */
 export function richTextToPlaintext(body: TLRichText): string {
 	const parts: string[] = []

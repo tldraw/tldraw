@@ -1,4 +1,4 @@
-import { Reaction, ReactionProps } from '@tldraw/commenting'
+import { Reaction, ReactionProps } from '@tldraw/comments'
 import { Sketch, Sketchbook } from '../../sketch'
 
 const sketchbook: Sketchbook<ReactionProps> = {

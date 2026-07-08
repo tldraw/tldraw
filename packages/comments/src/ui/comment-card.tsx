@@ -3,6 +3,7 @@ import { Avatar } from './avatar'
 import { Byline } from './byline'
 import './comments.css'
 
+/** @public */
 export interface CommentCardProps {
 	author: string
 	/** The rendered comment body. The card doesn't dictate a format — pass a `<CommentText>`
@@ -17,7 +18,11 @@ export interface CommentCardProps {
 	actions?: ReactNode
 }
 
-/** A single comment: Avatar, Byline, and a body slot the consumer renders. */
+/**
+ * A single comment: Avatar, Byline, and a body slot the consumer renders.
+ * @public
+ * @react
+ */
 export function CommentCard({ author, body, date, you, edited, actions }: CommentCardProps) {
 	return (
 		<div className={you ? 'cmt-card cmt-card--you' : 'cmt-card'}>

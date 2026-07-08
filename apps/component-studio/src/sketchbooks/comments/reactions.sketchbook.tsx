@@ -1,4 +1,4 @@
-import { Reactions } from '@tldraw/commenting'
+import { Reactions } from '@tldraw/comments'
 import { Sketch, Sketchbook } from '../../sketch'
 
 const sketchbook: Sketchbook<Record<string, never>> = {

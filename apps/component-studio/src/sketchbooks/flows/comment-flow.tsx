@@ -1,10 +1,10 @@
 import {
 	CanvasComments,
+	commentSchemaRecords,
 	commentToolComponents,
 	commentToolOverrides,
 	commentTools,
-} from '@tldraw/commenting/canvas'
-import { commentSchemaRecords } from '@tldraw/comments'
+} from '@tldraw/comments'
 import { useMemo } from 'react'
 import { createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
 import './comment-flow.css'
@@ -17,7 +17,7 @@ const resolveName = (id: string): string => NAMES[id] ?? id
  * The whole commenting flow on a live editor: the comment tool in the toolbar, click-to-place a
  * thread, compose and post, pins, and thread popovers with replies. It runs on an in-memory store
  * (the comment record types registered via the schema) — no sync server — so the exact
- * `@tldraw/commenting/canvas` flow dotcom ships can be exercised in isolation.
+ * `@tldraw/comments` flow dotcom ships can be exercised in isolation.
  */
 export function CommentFlow() {
 	const store = useMemo(

@@ -1,5 +1,6 @@
 import './comments.css'
 
+/** @public */
 export interface AvatarProps {
 	name: string
 }
@@ -13,7 +14,11 @@ function initials(name: string) {
 		.toUpperCase()
 }
 
-/** An initials avatar for a commenter. */
+/**
+ * An initials avatar for a commenter.
+ * @public
+ * @react
+ */
 export function Avatar({ name }: AvatarProps) {
 	return (
 		<div className="cmt-avatar" aria-hidden="true">

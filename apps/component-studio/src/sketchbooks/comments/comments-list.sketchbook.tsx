@@ -1,4 +1,4 @@
-import { CommentListItemProps, CommentsList } from '@tldraw/commenting'
+import { CommentListItemProps, CommentsList } from '@tldraw/comments'
 import { CSSProperties } from 'react'
 import { Sketch, Sketchbook } from '../../sketch'
 

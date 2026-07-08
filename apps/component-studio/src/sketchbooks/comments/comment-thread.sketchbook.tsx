@@ -1,4 +1,4 @@
-import { CommentText, CommentThread } from '@tldraw/commenting'
+import { CommentText, CommentThread } from '@tldraw/comments'
 import { Sketch, Sketchbook } from '../../sketch'
 
 const NOW = Date.now()

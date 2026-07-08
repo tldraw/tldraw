@@ -3,6 +3,7 @@ import { CommentCard, CommentCardProps } from './comment-card'
 import { CommentComposer, CommentComposerProps } from './comment-composer'
 import './comments.css'
 
+/** @public */
 export interface CommentThreadProps {
 	/** The thread's comments, already adapted to card props (oldest first). */
 	comments: CommentCardProps[]
@@ -22,6 +23,8 @@ export interface CommentThreadProps {
  * A comment thread: an optional header, an optional resolved banner, the comments, and an
  * optional reply composer. Presentational — you supply the comments (as card props) and the
  * composer's handlers; how each comment renders is overridable via `renderComment`.
+ * @public
+ * @react
  */
 export function CommentThread({
 	comments,

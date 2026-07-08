@@ -1,10 +1,16 @@
-import { TLCommentAnchor, TLCommentThread } from '@tldraw/comments'
 import { atom, Editor, TLShapeId } from 'tldraw'
+import { TLCommentAnchor, TLCommentThread } from '../records'
 
-/** The id of the one open thread (only one popover is open at a time), or null when all closed. */
+/**
+ * The id of the one open thread (only one popover is open at a time), or null when all closed.
+ * @public
+ */
 export const openThreadId = atom<string | null>('openThreadId', null)
 
-/** Where a thread's pin sits on the page, for each anchor kind. Null hides the pin. */
+/**
+ * Where a thread's pin sits on the page, for each anchor kind. Null hides the pin.
+ * @public
+ */
 export function anchorPagePoint(
 	editor: Editor,
 	anchor: TLCommentAnchor
@@ -25,7 +31,10 @@ export function anchorPagePoint(
 	}
 }
 
-/** Open a thread and bring it into view — switch to its page if needed, then center its pin. */
+/**
+ * Open a thread and bring it into view — switch to its page if needed, then center its pin.
+ * @public
+ */
 export function focusThread(editor: Editor, thread: TLCommentThread): void {
 	if (thread.pageId !== editor.getCurrentPageId()) {
 		editor.setCurrentPage(thread.pageId as any)

@@ -1,4 +1,4 @@
-import { Mention, MentionProps } from '@tldraw/commenting'
+import { Mention, MentionProps } from '@tldraw/comments'
 import { Sketch, Sketchbook } from '../../sketch'
 
 const sketchbook: Sketchbook<MentionProps> = {

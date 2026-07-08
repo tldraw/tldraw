@@ -4,18 +4,25 @@
 
 ```ts
 
+import { Atom } from 'tldraw';
 import { BaseRecord } from '@tldraw/store';
-import { ComponentType } from 'react';
 import { CustomRecordInfo } from '@tldraw/tlschema';
 import { Editor } from 'tldraw';
 import { JsonObject } from '@tldraw/utils';
+import { JSX } from 'react/jsx-runtime';
+import { ReactNode } from 'react';
+import { ReactPortal } from 'react';
 import { RecordId } from '@tldraw/store';
+import { StateNode } from 'tldraw';
+import { TLComponents } from 'tldraw';
 import { TldrawPlugin } from 'tldraw';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLPageId as TLPageId_2 } from 'tldraw';
-import { TLRichText } from '@tldraw/tlschema';
+import { TLRichText } from 'tldraw';
+import { TLRichText as TLRichText_2 } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
-import { TLShapeId as TLShapeId_2 } from 'tldraw';
+import { TLUiOverrides } from 'tldraw';
+import { VecLike } from 'tldraw';
 
 // @public
 export function addComment(editor: Editor, opts: {
@@ -23,6 +30,126 @@ export function addComment(editor: Editor, opts: {
     threadId: TLCommentThreadId;
     user: CommentsPluginUser;
 }): TLComment;
+
+// @public
+export function anchorPagePoint(editor: Editor, anchor: TLCommentAnchor): {
+    x: number;
+    y: number;
+} | null;
+
+// @public
+export function Avatar({ name }: AvatarProps): JSX.Element;
+
+// @public (undocumented)
+export interface AvatarProps {
+    // (undocumented)
+    name: string;
+}
+
+// @public
+export function Byline({ author, date, edited }: BylineProps): JSX.Element;
+
+// @public (undocumented)
+export interface BylineProps {
+    // (undocumented)
+    author: string;
+    date: string;
+    edited?: boolean;
+}
+
+// @public
+export function CanvasComments(props: CanvasCommentsProps): ReactPortal;
+
+// @public (undocumented)
+export interface CanvasCommentsProps {
+    currentUserId: null | string;
+    onPostComment?(comment: TLComment): void;
+    renderBody?(comment: TLComment): ReactNode;
+    renderPinContent?(thread: TLCommentThread, comments: TLComment[]): ReactNode;
+    resolveName(id: string): string;
+}
+
+// @public
+export function CanvasCommentsSidebar({ resolveName, renderPreview, tools, header, empty }: CanvasCommentsSidebarProps): ReactPortal | null;
+
+// @public (undocumented)
+export interface CanvasCommentsSidebarProps {
+    empty?: ReactNode;
+    header?: ReactNode;
+    renderPreview?(comment: TLComment): ReactNode;
+    resolveName(id: string): string;
+    tools?: string[];
+}
+
+// @public
+export function CommentBody({ richText }: CommentBodyProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommentBodyProps {
+    // (undocumented)
+    richText: TLRichText;
+}
+
+// @public
+export function CommentCard({ author, body, date, you, edited, actions }: CommentCardProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommentCardProps {
+    actions?: ReactNode;
+    // (undocumented)
+    author: string;
+    body: ReactNode;
+    date: string;
+    edited?: boolean;
+    // (undocumented)
+    you: boolean;
+}
+
+// @public
+export function CommentComposer({ author, placeholder, value, onChange, onSubmit, sendLabel, disabled, autoFocus }: CommentComposerProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommentComposerProps {
+    // (undocumented)
+    author: string;
+    // (undocumented)
+    autoFocus?: boolean;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    onChange?(value: string): void;
+    onSubmit?(): void;
+    // (undocumented)
+    placeholder: string;
+    // (undocumented)
+    sendLabel?: string;
+    value?: string;
+}
+
+// @public (undocumented)
+export interface CommentListItemProps {
+    // (undocumented)
+    author: string;
+    count?: number;
+    date: string;
+    // (undocumented)
+    id: string;
+    preview: ReactNode;
+    // (undocumented)
+    resolved?: boolean;
+    selected?: boolean;
+}
+
+// @public
+export function CommentPin({ children, resolved, open }: CommentPinProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommentPinProps {
+    children?: ReactNode;
+    open?: boolean;
+    // (undocumented)
+    resolved?: boolean;
+}
 
 // @public
 export const commentRecordConfig: CustomRecordInfo;
@@ -34,11 +161,16 @@ export const commentSchemaRecords: {
 };
 
 // @public
-export interface CommentsContextValue {
+export function CommentsList({ items, onSelect, header, empty, renderItem }: CommentsListProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommentsListProps {
+    empty?: ReactNode;
+    header?: ReactNode;
     // (undocumented)
-    components: Partial<TLCommentsComponents>;
-    // (undocumented)
-    user: CommentsPluginUser | null;
+    items: CommentListItemProps[];
+    onSelect?(id: string): void;
+    renderItem?(item: CommentListItemProps): ReactNode;
 }
 
 // @public
@@ -46,7 +178,8 @@ export function commentsPlugin(options?: CommentsPluginOptions): TldrawPlugin;
 
 // @public (undocumented)
 export interface CommentsPluginOptions {
-    components?: Partial<TLCommentsComponents>;
+    resolveName?(userId: string): string;
+    sidebar?: boolean;
     user?(editor: Editor): CommentsPluginUser | null;
 }
 
@@ -59,12 +192,52 @@ export interface CommentsPluginUser {
 }
 
 // @public
+export function CommentText({ text }: CommentTextProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommentTextProps {
+    text: string;
+}
+
+// @public
+export function CommentThread({ comments, header, headerActions, resolvedBy, composer, renderComment }: CommentThreadProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommentThreadProps {
+    comments: CommentCardProps[];
+    composer?: CommentComposerProps;
+    header?: ReactNode;
+    headerActions?: ReactNode;
+    renderComment?(comment: CommentCardProps, index: number): ReactNode;
+    resolvedBy?: string;
+}
+
+// @public
 export const commentThreadRecordConfig: CustomRecordInfo;
+
+// @public
+export class CommentTool extends StateNode {
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    onEnter(): void;
+    // (undocumented)
+    onPointerDown(): void;
+}
+
+// @public
+export const commentToolComponents: TLComponents;
+
+// @public
+export const commentToolOverrides: TLUiOverrides;
+
+// @public (undocumented)
+export const commentTools: typeof CommentTool[];
 
 // @public
 export function createComment(props: {
     authorId: string;
-    body: TLRichText;
+    body: TLRichText_2;
     meta?: JsonObject;
     now?: number;
     pageId: TLPageId;
@@ -87,10 +260,79 @@ export function createCommentThread(props: {
 export function createCommentThreadId(id?: string): TLCommentThreadId;
 
 // @public
+export function EmptyState({ message }: EmptyStateProps): JSX.Element;
+
+// @public (undocumented)
+export interface EmptyStateProps {
+    // (undocumented)
+    message: string;
+}
+
+// @public
+export function focusThread(editor: Editor, thread: TLCommentThread): void;
+
+// @public
+export function formatRelativeTime(iso: string, locale?: string): string;
+
+// @public
+export function Mention({ name }: MentionProps): JSX.Element;
+
+// @public (undocumented)
+export interface MentionProps {
+    // (undocumented)
+    name: string;
+}
+
+// @public
+export const openThreadId: Atom<null | string, unknown>;
+
+// @public
+export interface PendingComment {
+    // (undocumented)
+    anchor: TLCommentAnchor;
+    point: VecLike;
+}
+
+// @public
+export const pendingComment: Atom<null | PendingComment, unknown>;
+
+// @public
+export function Reaction({ emoji, count, active }: ReactionProps): JSX.Element;
+
+// @public (undocumented)
+export interface ReactionProps {
+    // (undocumented)
+    active: boolean;
+    // (undocumented)
+    count: number;
+    // (undocumented)
+    emoji: string;
+}
+
+// @public
+export function Reactions(): JSX.Element;
+
+// @public
+export function renderMarkdown(text: string): ReactNode;
+
+// @public
 export function resolveThread(editor: Editor, threadId: TLCommentThreadId, user: CommentsPluginUser): void;
 
 // @public
 export function richTextToPlaintext(body: TLRichText): string;
+
+// @public
+export function SendButton({ label, disabled, onClick }: SendButtonProps): JSX.Element;
+
+// @public (undocumented)
+export interface SendButtonProps {
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    label: string;
+    // (undocumented)
+    onClick?(): void;
+}
 
 // @public
 export function startCommentThread(editor: Editor, opts: {
@@ -106,7 +348,7 @@ export function startCommentThread(editor: Editor, opts: {
 // @public
 export interface TLComment extends BaseRecord<'comment', TLCommentId> {
     authorId: string;
-    body: TLRichText;
+    body: TLRichText_2;
     // (undocumented)
     createdAt: number;
     editedAt: null | number;
@@ -142,18 +384,6 @@ export type TLCommentAnchor = {
 // @public (undocumented)
 export type TLCommentId = RecordId<TLComment>;
 
-// @public (undocumented)
-export interface TLCommentsComponents {
-    // (undocumented)
-    ThreadComposer: ComponentType<{
-        shapeId: TLShapeId_2;
-    }>;
-    // (undocumented)
-    ThreadPin: ComponentType<{
-        thread: TLCommentThread;
-    }>;
-}
-
 // @public
 export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentThreadId> {
     anchor: TLCommentAnchor;
@@ -171,9 +401,6 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
 
 // @public (undocumented)
 export type TLCommentThreadId = RecordId<TLCommentThread>;
-
-// @public (undocumented)
-export function useComments(): CommentsContextValue;
 
 // @public
 export function useCommentThreads(pageId?: TLPageId_2): TLCommentThread[];

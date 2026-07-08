@@ -1,4 +1,4 @@
-import { Byline, BylineProps } from '@tldraw/commenting'
+import { Byline, BylineProps } from '@tldraw/comments'
 import { Sketch, Sketchbook } from '../../sketch'
 
 const NOW = Date.now()

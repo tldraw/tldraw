@@ -11763,22 +11763,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/commenting@workspace:*, @tldraw/commenting@workspace:packages/commenting":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/commenting@workspace:packages/commenting"
-  dependencies:
-    "@tldraw/comments": "workspace:*"
-    "@types/react": "npm:^19.2.7"
-    "@types/react-dom": "npm:^19.2.3"
-    react: "npm:^19.2.1"
-    react-dom: "npm:^19.2.1"
-    tldraw: "workspace:*"
-  peerDependencies:
-    react: ^18.2.0 || ^19.2.1
-    react-dom: ^18.2.0 || ^19.2.1
-  languageName: unknown
-  linkType: soft
-
 "@tldraw/comments@workspace:*, @tldraw/comments@workspace:packages/comments":
   version: 0.0.0-use.local
   resolution: "@tldraw/comments@workspace:packages/comments"
@@ -17327,7 +17311,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "component-studio@workspace:apps/component-studio"
   dependencies:
-    "@tldraw/commenting": "workspace:*"
     "@tldraw/comments": "workspace:*"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
@@ -18689,7 +18672,6 @@ __metadata:
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
     "@tldraw/assets": "workspace:*"
-    "@tldraw/commenting": "workspace:*"
     "@tldraw/comments": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/mermaid": "workspace:*"

@@ -11,6 +11,7 @@ const DIVISIONS = [
 /**
  * Format an ISO datetime as relative time ("2 hours ago", "yesterday", "last week").
  * Locale-aware via Intl.RelativeTimeFormat.
+ * @public
  */
 export function formatRelativeTime(iso: string, locale = 'en'): string {
 	const then = new Date(iso).getTime()

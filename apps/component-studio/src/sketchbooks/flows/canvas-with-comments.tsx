@@ -1,4 +1,4 @@
-import { CommentListItemProps, CommentPin, CommentsList } from '@tldraw/commenting'
+import { CommentListItemProps, CommentPin, CommentsList } from '@tldraw/comments'
 import { Tldraw } from 'tldraw'
 import { commentToolComponents, commentToolOverrides, commentTools } from '../../comment-tool'
 import './canvas-with-comments.css'
