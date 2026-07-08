@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Tem certeza de que deseja excluir este espaço de trabalho? Esta ação não pode ser desfeita."
-  },
   "0095a9fa74": {
     "translation": "Exportar"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Obter ajuda no Discord"
   },
+  "454aad3b3c": {
+    "translation": "Tem certeza de que deseja excluir <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Obrigado por nos ajudar a melhorar o tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Arquivo PIN"
-  },
-  "4908687e50": {
-    "translation": "Tem a certeza de que quer esquecer este ficheiro?"
   },
   "49ee308734": {
     "translation": "Nome"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Tem algum bug, problema ou ideia para o tldraw? Conte para a gente! Preencha este formulário e entraremos em contato por e-mail, se necessário. Você também pode <discord>conversar conosco no Discord</discord> ou <github>enviar um problema no GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Tem certeza de que deseja esquecer <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Membro"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Mudar o nome"
+  },
+  "90646db02d": {
+    "translation": "Tem certeza de que deseja excluir <strong>{workspaceName}</strong>? Esta ação não pode ser desfeita."
   },
   "95aacd4d4a": {
     "translation": "Iniciar sessão com o Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Saiba mais sobre partilha."
-  },
-  "c28aed8348": {
-    "translation": "Permitir <cookies>análises</cookies> para nos ajudar a melhorar o tldraw."
   },
   "c303bd1095": {
     "translation": "Não foi possível publicar o ficheiro."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Tem certeza de que deseja sair deste espaço de trabalho?"
-  },
-  "fd1be3efcf": {
-    "translation": "Tem a certeza de que quer eliminar este ficheiro?"
   },
   "fed5ec05eb": {
     "translation": "Link copiado"

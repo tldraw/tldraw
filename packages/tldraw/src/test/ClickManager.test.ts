@@ -262,3 +262,34 @@ it('Cancels when click moves', () => {
 	editor.pointerUp(0, 86)
 	expect(event.name).toBe('pointer_up')
 })
+
+it('Resets when the focus layer changes', () => {
+	const boxId = editor.testShapeID('box')
+	const otherBoxId = editor.testShapeID('otherBox')
+
+	editor.setCurrentTool('select')
+	editor
+		.createShapes([
+			{ id: boxId, type: 'geo', x: 0, y: 0 },
+			{ id: otherBoxId, type: 'geo', x: 200, y: 0 },
+		])
+		.select(boxId, otherBoxId)
+		.groupShapes(editor.getSelectedShapeIds())
+		.selectNone()
+
+	const groupId = editor.getCurrentPageShapes().find((shape) => shape.type === 'group')!.id
+
+	const events: any[] = []
+	editor.addListener('event', (info) => events.push(info))
+
+	editor.pointerDown(1000, 1000).pointerUp(1000, 1000)
+
+	editor.setFocusedGroup(groupId)
+	expect(editor.getFocusedGroupId()).toBe(groupId)
+
+	events.length = 0
+	editor.pointerDown(1000, 1000)
+
+	expect(events).toMatchObject([{ name: 'pointer_down' }])
+	expect(events).toHaveLength(1)
+})
