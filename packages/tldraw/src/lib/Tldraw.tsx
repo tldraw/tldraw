@@ -7,18 +7,21 @@ import {
 	TldrawEditor,
 	TldrawEditorBaseProps,
 	TldrawEditorStoreProps,
+	LicenseProvider,
 	assertUniquePluginIds,
 	defaultUserPreferences,
 	mergeArraysAndReplaceDefaults,
 	mergeSchemaPluginRecords,
 	useEditor,
 	useEditorComponents,
+	useLicenseContext,
 	useOnMount,
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
+	useValue,
 } from '@tldraw/editor'
 import { TLAnyAssetUtilConstructor } from '@tldraw/editor'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { ImageAssetUtil } from './assets/ImageAssetUtil'
 import { VideoAssetUtil } from './assets/VideoAssetUtil'
 import { defaultAssetUtils } from './defaultAssetUtils'
@@ -35,7 +38,12 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
-import { TldrawPlugin, createPluginOnMount, mergePluginComponents } from './TldrawPlugin'
+import {
+	TldrawPlugin,
+	createLicenseGatedOnMount,
+	createPluginOnMount,
+	mergePluginComponents,
+} from './TldrawPlugin'
 import { TLUiAssetUrlOverrides, useDefaultUiAssetUrlsWithOverrides } from './ui/assetUrls'
 import { LoadingScreen } from './ui/components/LoadingScreen'
 import { Spinner } from './ui/components/Spinner'
@@ -161,6 +169,14 @@ function configureDefaultAssetUtils(
 
 /** @public @react */
 export function Tldraw(props: TldrawProps) {
+	return (
+		<LicenseProvider licenseKey={props.licenseKey}>
+			<TldrawInner {...props} />
+		</LicenseProvider>
+	)
+}
+
+function TldrawInner(props: TldrawProps) {
 	const {
 		children,
 		maxImageDimension,
@@ -189,10 +205,45 @@ export function Tldraw(props: TldrawProps) {
 	const _plugins = useShallowArrayIdentity(plugins)
 	useMemo(() => assertUniquePluginIds(_plugins), [_plugins])
 
+	const licenseManager = useLicenseContext()
+	const licensedPluginIds = useValue(
+		'licensed plugin ids',
+		() =>
+			new Set(
+				_plugins
+					.filter(
+						(plugin) =>
+							plugin.requiredLicenseFlags === undefined ||
+							licenseManager.isFeatureEnabled(plugin.requiredLicenseFlags)
+					)
+					.map((plugin) => plugin.id)
+			),
+		[_plugins, licenseManager]
+	)
+	const uiPlugins = useMemo(
+		() => _plugins.filter((plugin) => licensedPluginIds.has(plugin.id)),
+		[_plugins, licensedPluginIds]
+	)
+
+	const licenseState = useValue('license state', () => licenseManager.state.get(), [licenseManager])
+	const warnedPluginIds = useRef(new Set<string>())
+	useEffect(() => {
+		if (licenseState === 'pending') return
+		for (const plugin of _plugins) {
+			if (plugin.requiredLicenseFlags === undefined) continue
+			if (licensedPluginIds.has(plugin.id)) continue
+			if (warnedPluginIds.current.has(plugin.id)) continue
+			warnedPluginIds.current.add(plugin.id)
+			console.warn(
+				`tldraw: The "${plugin.id}" plugin is not included in your tldraw license, so it has been disabled. Contact sales@tldraw.com to add it to your license.`
+			)
+		}
+	}, [licenseState, _plugins, licensedPluginIds])
+
 	const _components = useShallowObjectIdentity(components)
 	const pluginComponents = useMemo(
-		() => mergePluginComponents(_plugins, _components),
-		[_plugins, _components]
+		() => mergePluginComponents(uiPlugins, _components),
+		[uiPlugins, _components]
 	)
 
 	const CustomInFrontOfTheCanvas = pluginComponents.InFrontOfTheCanvas
@@ -258,8 +309,8 @@ export function Tldraw(props: TldrawProps) {
 	)
 
 	const _pluginOverrides = useMemo(
-		() => _plugins.map((p) => p.overrides).filter((o): o is NonNullable<typeof o> => o != null),
-		[_plugins]
+		() => uiPlugins.map((p) => p.overrides).filter((o): o is NonNullable<typeof o> => o != null),
+		[uiPlugins]
 	)
 	const _userOverrides = useShallowArrayIdentity(
 		rest.overrides == null ? [] : Array.isArray(rest.overrides) ? rest.overrides : [rest.overrides]
@@ -275,9 +326,18 @@ export function Tldraw(props: TldrawProps) {
 		[_plugins, _userRecords]
 	)
 
+	const pluginsForOnMount = useMemo(
+		() =>
+			_plugins.map((plugin) =>
+				plugin.requiredLicenseFlags === undefined || !plugin.onMount
+					? plugin
+					: { ...plugin, onMount: createLicenseGatedOnMount(plugin, licenseManager) }
+			),
+		[_plugins, licenseManager]
+	)
 	const onMountWithPlugins = useMemo(
-		() => createPluginOnMount(_plugins, onMount),
-		[_plugins, onMount]
+		() => createPluginOnMount(pluginsForOnMount, onMount),
+		[pluginsForOnMount, onMount]
 	)
 
 	const _imageMimeTypes = useShallowArrayIdentity(

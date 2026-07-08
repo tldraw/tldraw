@@ -1,9 +1,11 @@
 import {
 	Editor,
+	LicenseManager,
 	TLAnyShapeUtilConstructor,
 	TLOnMountHandler,
 	TLSchemaPlugin,
 	TLStateNodeConstructor,
+	react,
 } from '@tldraw/editor'
 import { TLComponents } from './Tldraw'
 import { TLUiOverrides } from './ui/overrides'
@@ -23,6 +25,14 @@ export interface TldrawPlugin extends TLSchemaPlugin {
 	components?: TLComponents
 	/** UI overrides contributed by the plugin. */
 	overrides?: TLUiOverrides
+	/**
+	 * License feature flags (bits from {@link @tldraw/editor#FLAGS}) that must be present in the
+	 * tldraw license key for this plugin to activate. When the license does not include the
+	 * flags, the plugin's `components`, `overrides`, and `onMount` are disabled, but its
+	 * `records`, `shapeUtils`, and `tools` are still registered so that existing documents keep
+	 * working. When undefined, the plugin is not license-gated.
+	 */
+	requiredLicenseFlags?: number
 	/** Called when the editor mounts. May return a cleanup function. */
 	onMount?(editor: Editor): void | (() => void)
 }
@@ -111,6 +121,35 @@ export function createPluginOnMount(
 		if (typeof userCleanup === 'function') cleanups.push(userCleanup)
 		return () => {
 			for (const cleanup of cleanups) cleanup()
+		}
+	}
+}
+
+/**
+ * Wraps a gated plugin's `onMount` so it only runs once the license confirms the plugin's
+ * required flags. License validation is async and the editor's mount handler only fires once,
+ * so we watch the license manager's `features` atom and run the plugin's `onMount` when (and
+ * if) entitlement arrives. `features` only ever transitions from 0 to the license's flags, so
+ * the handler runs at most once.
+ *
+ * @internal
+ */
+export function createLicenseGatedOnMount(
+	plugin: TldrawPlugin,
+	licenseManager: LicenseManager
+): (editor: Editor) => () => void {
+	return (editor) => {
+		let pluginCleanup: void | (() => void)
+		let hasRun = false
+		const stopReacting = react(`plugin ${plugin.id} license gate`, () => {
+			if (hasRun) return
+			if (!licenseManager.isFeatureEnabled(plugin.requiredLicenseFlags!)) return
+			hasRun = true
+			pluginCleanup = plugin.onMount!(editor)
+		})
+		return () => {
+			stopReacting()
+			if (typeof pluginCleanup === 'function') pluginCleanup()
 		}
 	}
 }

@@ -4181,6 +4181,7 @@ export interface TldrawPlugin extends TLSchemaPlugin {
     components?: TLComponents;
     onMount?(editor: Editor): (() => void) | void;
     overrides?: TLUiOverrides;
+    requiredLicenseFlags?: number;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
 }
