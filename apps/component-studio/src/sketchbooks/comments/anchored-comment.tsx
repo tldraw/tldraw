@@ -17,7 +17,7 @@ export interface AnchoredCommentProps {
  * not hand-fed booleans.
  */
 export function AnchoredComment({ thread, comments, open }: AnchoredCommentProps) {
-	const resolved = thread.resolvedAt !== null
+	const resolved = thread.resolved !== null
 	const resolver = resolvedByName(thread)
 	return (
 		<div className="cmt-anchored">

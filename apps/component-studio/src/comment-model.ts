@@ -50,7 +50,7 @@ export function commentToCardProps(comment: TLComment): CommentCardProps {
 
 /** A thread's resolver as a display name, or undefined if unresolved. */
 export function resolvedByName(thread: TLCommentThread): string | undefined {
-	return thread.resolvedBy ? resolveUser(thread.resolvedBy).name : undefined
+	return thread.resolved ? resolveUser(thread.resolved.by).name : undefined
 }
 
 const NOW = Date.now()
