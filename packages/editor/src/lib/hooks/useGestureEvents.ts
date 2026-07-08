@@ -1,3 +1,4 @@
+import { react } from '@tldraw/state'
 import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
 import { tlenv } from '../globals/environment'
@@ -302,6 +303,16 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 		let safariGestureInitialScale = 1
 
+		// megan look here
+		// decided ONCE at gesturestart and honored by gesturechange/gestureend.
+		// when a gesture is skipped for shift simulation, its change/end events
+		// must not dispatch pinch events either: pinch events run
+		// inputs.updateFromEvent, which sets the isPen atom to false (they aren't
+		// pointer events), which flickered the probe's arm reaction off and on --
+		// resetting probeIndex to 0, recentering mid-rub, and swallowing scroll
+		// events. that loop was the "2 scroll cap"
+		let skipGestureForShift = false
+
 		function onGestureStart(event: Event) {
 			const e = event as GestureEvent
 			if (!(e.target === elm || elm?.contains(e.target as Node))) return
@@ -320,8 +331,10 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 				tlenv.isTouchDevice &&
 				(editor._isSecondTouchShiftActive() || editor._secondTouchShouldSimulateShift())
 			) {
+				skipGestureForShift = true
 				return
 			}
+			skipGestureForShift = false
 
 			pinchState = 'not sure'
 			safariGestureInitialScale = getScaleFrom()
@@ -351,6 +364,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 			preventDefault(e)
 			e.stopPropagation()
 
+			if (skipGestureForShift) return
+
 			const dx = e.clientX - prevPointBetweenFingers.x
 			const dy = e.clientY - prevPointBetweenFingers.y
 
@@ -378,6 +393,11 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 
 			preventDefault(e)
 			e.stopPropagation()
+
+			if (skipGestureForShift) {
+				skipGestureForShift = false
+				return
+			}
 
 			const scale = scaleOffset ** editor.getCameraOptions().zoomSpeed
 			pinchState = 'not sure'
@@ -425,7 +445,184 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement | null>) {
 		elm.addEventListener('touchend', diagTouch)
 		elm.addEventListener('touchcancel', diagTouch)
 
+		// megan look here — TEMP PROBE, pool edition (stateless). remove before PR
+		// iPadOS mutes finger DOM events during pencil contact but routes the
+		// finger to native scrolling. megan's field data: the refusal after a
+		// gesture is per native SCROLL VIEW per pencil contact, not global --
+		// separate divs are separate native scroll views (the pool era got
+		// multiple rubs), while rebuilding one div in place reuses the same view
+		// (never helped). so: a pool of unpainted scrollers; when a gesture goes
+		// quiet its scroller is retired and a fresh one is armed for the next
+		// contact. retired scrollers KEEP their listeners, so a finger that never
+		// lifted keeps working on its original scroller. direction protocol is
+		// stateless: finger moving down -> shift on, up -> shift off. probes must
+		// stay UNPAINTED (painted 100000px scrollers thrash the compositor)
+		const PROBE_POOL_SIZE = 8
+		// each px of finger travel counts this much toward the scrub meter
+		const PROBE_SCRUB_DAMPING = 0.05
+		// the meter decays exponentially with this half-life: active scrubbing
+		// outruns the decay and climbs; the instant real input stops (rest, lift,
+		// momentum coast) the meter collapses to ~0 within a few half-lives
+		const PROBE_SCRUB_DECAY_HALF_LIFE_MS = 100
+		// |a| must exceed this (px/ms^2) for the sign-latch to trigger
+		const PROBE_MIN_ACCELERATION = 0.01
+
+		const probeStopTouch = (e: TouchEvent) => e.stopPropagation()
+
+		const probes: HTMLDivElement[] = []
+		const probeLastTops = new Map<HTMLDivElement, number>()
+		for (let i = 0; i < PROBE_POOL_SIZE; i++) {
+			const probe = elm.ownerDocument.createElement('div')
+			probe.style.cssText =
+				'position:absolute;inset:0;overflow:scroll;z-index:999;pointer-events:none;background:transparent;touch-action:pan-x pan-y;'
+			const spacer = elm.ownerDocument.createElement('div')
+			spacer.style.cssText = 'width:100000px;height:100000px;touch-action:pan-x pan-y;'
+			probe.appendChild(spacer)
+			elm.appendChild(probe)
+			// the canvas's own touchstart handler calls preventDefault, which would
+			// kill native scrolling -- stop the event from bubbling up to it
+			probe.addEventListener('touchstart', probeStopTouch)
+			probes.push(probe)
+		}
+
+		let probeArmed = false
+		let probeIndex = 0
+		// ignore events caused by our own recentering (programmatic scrollTo fires
+		// scroll events too)
+		let probeRecenteredAt = 0
+		// a real finger gesture happened on the current scroller since it was armed
+		let probeSawRealScroll = false
+		let probeAdvanceTimeout: any
+		// signed, damped, time-decaying scrub meter (positive = down)
+		let probeRunLen = 0
+		let probeRunUpdatedAt = 0
+		// per-event velocity (px/ms) and acceleration (px/ms^2); v and a drive
+		// the sign-latch below
+		let probeLastVelocity = 0
+		let probeLastAcceleration = 0
+
+		const probeHud = elm.ownerDocument.createElement('div')
+		probeHud.style.cssText =
+			'position:absolute;top:50%;left:8px;transform:translateY(-50%);z-index:1000;pointer-events:none;font:600 14px/1.4 monospace;white-space:pre;color:#3c82ff;background:rgba(255,255,255,0.75);padding:4px 8px;border-radius:4px;display:none;'
+		elm.appendChild(probeHud)
+		// fixed-width number: explicit sign + fixed decimals + space padding, so
+		// columns never shift as signs and magnitudes change (needs white-space:pre)
+		const fmtHudNum = (n: number, width: number, decimals: number) =>
+			((n >= 0 ? '+' : '') + n.toFixed(decimals)).padStart(width)
+		const updateProbeHud = () => {
+			if (!probeArmed) {
+				probeHud.style.display = 'none'
+				return
+			}
+			probeHud.style.display = 'block'
+			probeHud.textContent = `#${probeIndex}  scrub:${fmtHudNum(probeRunLen, 6, 1)}  v:${fmtHudNum(probeLastVelocity, 6, 2)}  a:${fmtHudNum(probeLastAcceleration, 7, 3)}  shift:${editor._isSecondTouchShiftActive() ? 'ON ' : 'off'}`
+		}
+
+		const recenterProbe = (probe: HTMLDivElement) => {
+			probeRecenteredAt = performance.now()
+			probe.scrollTo(50000 - probe.clientWidth / 2, 50000 - probe.clientHeight / 2)
+			probeLastTops.set(probe, probe.scrollTop)
+		}
+
+		const armFreshProbe = (index: number) => {
+			probeIndex = index
+			probeSawRealScroll = false
+			probeRunLen = 0
+			probeRunUpdatedAt = performance.now()
+			probeLastVelocity = 0
+			probeLastAcceleration = 0
+			const probe = probes[index]
+			recenterProbe(probe)
+			probe.style.pointerEvents = 'auto'
+		}
+
+		// retire the current scroller and arm a fresh native scroll view for the
+		// NEXT finger contact. the retired scroller's listener stays live, so an
+		// unlifted finger keeps its working scroller. shift state is untouched
+		const advanceProbe = () => {
+			if (!probeArmed || !probeSawRealScroll) return
+			probes[probeIndex].style.pointerEvents = 'none'
+			armFreshProbe((probeIndex + 1) % PROBE_POOL_SIZE)
+			// eslint-disable-next-line no-console
+			console.log('[shift-sim] PROBE advance -> fresh scroller #', probeIndex)
+			updateProbeHud()
+		}
+
+		const onProbeScroll = (e: Event) => {
+			const probe = e.currentTarget as HTMLDivElement
+			if (performance.now() - probeRecenteredAt < 100) {
+				probeLastTops.set(probe, probe.scrollTop)
+				return
+			}
+			// finger moving down pulls scrollTop DOWN, so finger delta = -scroll delta
+			const last = probeLastTops.get(probe) ?? probe.scrollTop
+			const fingerDy = last - probe.scrollTop
+			probeLastTops.set(probe, probe.scrollTop)
+			if (fingerDy === 0) return
+			if (probe === probes[probeIndex]) {
+				probeSawRealScroll = true
+				clearTimeout(probeAdvanceTimeout)
+				probeAdvanceTimeout = editor.timers.setTimeout(advanceProbe, 400)
+			}
+			// decay the meter for the time elapsed since the last event, then add
+			// the damped delta. reversal still resets outright
+			const now = performance.now()
+			const dtMs = now - probeRunUpdatedAt
+			probeRunUpdatedAt = now
+			probeRunLen *= Math.pow(0.5, dtMs / PROBE_SCRUB_DECAY_HALF_LIFE_MS)
+			const velocity = fingerDy / Math.max(dtMs, 1)
+			probeLastAcceleration = (velocity - probeLastVelocity) / Math.max(dtMs, 1)
+			probeLastVelocity = velocity
+			const scrubDy = fingerDy * PROBE_SCRUB_DAMPING
+			probeRunLen = Math.sign(scrubDy) === Math.sign(probeRunLen) ? probeRunLen + scrubDy : scrubDy
+			// acceleration sign-latch: an accelerating up-scrub (v<0, a<0) latches
+			// shift on, an accelerating down-scrub (v>0, a>0) latches it off.
+			// momentum coasts decelerate, so their v and a signs disagree and they
+			// can never trigger either transition
+			if (
+				velocity < 0 &&
+				probeLastAcceleration < -PROBE_MIN_ACCELERATION &&
+				!editor._isSecondTouchShiftActive()
+			) {
+				editor._setExternalShiftHeld(true)
+			} else if (
+				velocity > 0 &&
+				probeLastAcceleration > PROBE_MIN_ACCELERATION &&
+				editor._isSecondTouchShiftActive()
+			) {
+				editor._setExternalShiftHeld(false)
+			}
+			updateProbeHud()
+		}
+		for (const probe of probes) {
+			probe.addEventListener('scroll', onProbeScroll, { passive: true })
+		}
+
+		// arm while a pen stroke is in progress; disarm (and release any held
+		// probe-shift) the moment the pen lifts
+		const stopProbeReaction = react('shift scroll probe', () => {
+			const active = editor.inputs.getIsPen() && editor.inputs.getIsPointing()
+			probeArmed = active
+			clearTimeout(probeAdvanceTimeout)
+			if (active) {
+				for (const probe of probes) probe.style.pointerEvents = 'none'
+				armFreshProbe(0)
+			} else {
+				for (const probe of probes) probe.style.pointerEvents = 'none'
+				editor._setExternalShiftHeld(false)
+			}
+			updateProbeHud()
+		})
+
 		return () => {
+			stopProbeReaction()
+			clearTimeout(probeAdvanceTimeout)
+			probeHud.remove()
+			for (const probe of probes) {
+				probe.removeEventListener('touchstart', probeStopTouch)
+				probe.removeEventListener('scroll', onProbeScroll)
+				probe.remove()
+			}
 			elm.removeEventListener('touchstart', diagTouch)
 			elm.removeEventListener('touchend', diagTouch)
 			elm.removeEventListener('touchcancel', diagTouch)

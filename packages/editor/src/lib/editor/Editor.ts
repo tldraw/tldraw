@@ -330,6 +330,9 @@ export interface TLRenderingShape {
 
 const RENDERING_SHAPES_SORT_CACHE_THRESHOLD = 100
 
+// megan look here
+// how long the first pointer must have been held before a second touch counts as
+// a shift key rather than the start of a pinch (only matters when not yet dragging)
 const SECOND_TOUCH_SHIFT_DELAY_MS = 200
 
 /** @public */
@@ -10797,6 +10800,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@bind
 	_setShiftKeyTimeout() {
+		// megan look here — debug log only, remove before PR. fires whenever the
+		// sticky-modifier timeout releases shift (both physical and simulated)
 		// eslint-disable-next-line no-console
 		console.log('[shift-sim] shift released (150ms timeout fired)')
 		this.inputs.setShiftKey(false)
@@ -10898,21 +10903,48 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	capturedPointerId: number | null = null
 
+	// megan look here
+	// the id of the pointer that started the current interaction (the first pointer
+	// down). null when no interaction pointer is down
 	/** @internal */
 	private _pointingPointerId: number | null = null
 
+	// megan look here
+	// whether that interaction-owning pointer is a pen. stored at pointer_down so a
+	// later event from a different device can't change the answer mid-interaction
 	/** @internal */
 	private _pointingPointerIsPen = false
 
+	// megan look here
+	// the ids of extra pointers currently held down as simulated shift keys. never
+	// contains the interaction pointer itself. a Set so a 3rd/4th finger can't
+	// corrupt state
 	/** @internal */
 	private _simulatedShiftPointerIds = new Set<number>()
 
+	// megan look here
+	// ground truth: every pointer id the editor has seen go down and not yet come
+	// up. the other fields above are verified against this so stale state can't
+	// cause false shift engagement
 	/** @internal */
 	private _downPointerIds = new Set<number>()
 
+	// megan look here
+	// timestamp (Date.now()) of the interaction pointer's pointer_down, used for
+	// the held-longer-than-N-ms rule below
 	/** @internal */
 	private _pointingPointerDownTime = 0
 
+	// megan look here
+	// THE decision: would a second touch arriving right now act as a shift key?
+	// consulted by the engage check in _flushEventForTick AND by the pinch guards
+	// in useGestureEvents, so the two layers can never disagree.
+	// line by line: no interaction pointer -> no. interaction pointer not verifiably
+	// still down (missed pointer_up) -> no. interaction not active -> no. already
+	// dragging -> yes (a pinch always starts before dragging, so this is safe).
+	// interaction pointer is a pen -> yes (pen+finger is never a pinch). otherwise
+	// yes only if the first pointer has been held longer than the delay (quick
+	// two-finger landings = pinch, press-then-tap = shift)
 	/** @internal */
 	_secondTouchShouldSimulateShift(): boolean {
 		if (this._pointingPointerId === null) return false
@@ -10923,9 +10955,78 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return Date.now() - this._pointingPointerDownTime > SECOND_TOUCH_SHIFT_DELAY_MS
 	}
 
+	// megan look here — TEMP PROBE support
+	// a pointer-less shift channel: some input signals (the scroll probe) have no
+	// pointerId to track in the set, so they hold shift via this boolean instead.
+	// feeds into _isSecondTouchShiftActive below, so the keep-alive and pinch
+	// guards treat it identically to a tracked shift finger
+	/** @internal */
+	private _externalShiftHeld = false
+
+	// megan look here — TEMP PROBE support
+	// turns the pointer-less shift channel on/off. engaging dispatches the same
+	// synthetic Shift key_down as a tracked shift finger (only if shift isn't
+	// already engaged some other way). releasing does nothing active: the
+	// keep-alive stops stamping events, and the existing 150ms sticky-modifier
+	// timeout releases shift exactly like a physical key release
+	/** @internal */
+	_setExternalShiftHeld(held: boolean) {
+		if (held === this._externalShiftHeld) return
+		this._externalShiftHeld = held
+		if (this._simulatedShiftPointerIds.size > 0) return
+		if (held) {
+			this.dispatch({
+				type: 'keyboard',
+				name: 'key_down',
+				key: 'Shift',
+				code: 'ShiftLeft',
+				shiftKey: true,
+				ctrlKey: this.inputs.getCtrlKey(),
+				altKey: this.inputs.getAltKey(),
+				metaKey: this.inputs.getMetaKey(),
+				accelKey: this.inputs.getAccelKey(),
+			})
+		} else {
+			clearTimeout(this._shiftKeyTimeout)
+			this._shiftKeyTimeout = -1
+			this._setShiftKeyTimeout()
+		}
+	}
+
+	// megan look here
+	// the outcome: is at least one finger currently engaged as a shift key? used by
+	// the keep-alive below and by the touch-layer pinch guard (which runs after the
+	// second finger's pointerdown, so it can check the decision already made)
 	/** @internal */
 	_isSecondTouchShiftActive(): boolean {
-		return this._simulatedShiftPointerIds.size > 0
+		return this._simulatedShiftPointerIds.size > 0 || this._externalShiftHeld
+	}
+
+	// megan look here
+	// claims a pointer as a shift finger: adds it to the set (so the swallow branch
+	// owns its events from now on) and, only when taking the set from empty to
+	// non-empty, dispatches the synthetic Shift key_down so active tool states run
+	// their onKeyDown handlers immediately. used by both engage paths: second
+	// finger during a drag, and finger-already-held when a pen stroke starts
+	/** @internal */
+	private _startSimulatedShift(pointerId: number) {
+		const isFirstShiftPointer = this._simulatedShiftPointerIds.size === 0
+		this._simulatedShiftPointerIds.add(pointerId)
+		// eslint-disable-next-line no-console
+		console.log('[shift-sim] ENGAGE shift, pointerId:', pointerId)
+		if (isFirstShiftPointer) {
+			this.dispatch({
+				type: 'keyboard',
+				name: 'key_down',
+				key: 'Shift',
+				code: 'ShiftLeft',
+				shiftKey: true,
+				ctrlKey: this.inputs.getCtrlKey(),
+				altKey: this.inputs.getAltKey(),
+				metaKey: this.inputs.getMetaKey(),
+				accelKey: this.inputs.getAccelKey(),
+			})
+		}
 	}
 
 	/** @internal */
@@ -11036,6 +11137,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return
 		}
 
+		// megan look here
+		// the keep-alive. while a shift finger is held (and the interaction is still
+		// active), stamp shiftKey:true onto every event BEFORE the modifier
+		// reconciliation below, so the editor treats it exactly like a held hardware
+		// shift key. without this, the next pointer_move (shiftKey:false from the
+		// real event) would start the 150ms timer below and turn shift off.
+		// release needs no code: once the finger lifts, events stop being stamped,
+		// the timer runs, and _setShiftKeyTimeout fires the same synthetic key_up a
+		// physical shift release gets
 		if (this._isSecondTouchShiftActive() && inputs.getIsPointing()) {
 			info.shiftKey = true
 		}
@@ -11267,6 +11377,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				break
 			}
 			case 'pointer': {
+				// megan look here
+				// ground-truth bookkeeping. sits ABOVE the pinch gate on purpose: no
+				// delivered pointer event can ever be invisible to it. on pointer_down,
+				// record the pointer as physically down; if it's the ONLY pointer on
+				// screen, this must be a fresh interaction, so any leftover owner/shift
+				// state is stale from a missed pointer_up -- wipe it (the self-heal:
+				// one lost event costs one interaction, not the whole session). on
+				// pointer_up, the pointer is no longer physically down
 				if (info.name === 'pointer_down') {
 					this._downPointerIds.add(info.pointerId)
 					if (this._downPointerIds.size === 1) {
@@ -11280,6 +11398,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// Ignore pointer events while we're pinching
 				if (inputs.getIsPinching()) {
+					// megan look here — debug log only, remove before PR (the gate above
+					// it is pre-existing behavior, only the logging is new)
 					if (info.name !== 'pointer_move') {
 						// eslint-disable-next-line no-console
 						console.log('[shift-sim] dropped (pinching)', info.name, 'pointerId:', info.pointerId)
@@ -11287,6 +11407,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return
 				}
 
+				// megan look here
+				// the swallow branch. any event from a pointer currently acting as a
+				// shift key is dropped here, before updateFromEvent and before the
+				// state chart -- so a shift finger can never move currentPagePoint,
+				// reset the drag origin, clear isDragging, feed the click manager, or
+				// reach the tool (whose onPointerUp would complete() the drag). its
+				// pointer_up also retires it from the shift set
 				if (this._simulatedShiftPointerIds.has(info.pointerId)) {
 					// eslint-disable-next-line no-console
 					console.log('[shift-sim] swallowed', info.name, 'pointerId:', info.pointerId)
@@ -11301,6 +11428,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return
 				}
 
+				// megan look here — debug log only, remove before PR. prints every input
+				// to the engage decision so a failed engage is diagnosable from console
 				if (info.name === 'pointer_down' || info.name === 'pointer_up') {
 					// eslint-disable-next-line no-console
 					console.log('[shift-sim]', info.name, {
@@ -11317,29 +11446,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 					})
 				}
 
+				// megan look here
+				// the engage branch. a NEW pointer going down (not the interaction
+				// owner, not a pen -- a pen arriving mid-drag must fall through so the
+				// existing pen-mode auto-enable still wins) while the decision method
+				// says yes -> claim it as a shift finger. only the finger that takes
+				// the set from empty to non-empty dispatches the synthetic Shift
+				// key_down; that dispatch re-enters the flush synchronously (safe --
+				// same pattern as the eraser-button complete()) and makes the state
+				// chart run its onKeyDown handlers immediately, so shapes snap to
+				// axis/aspect/angle without waiting for the next pointer move. the
+				// final return swallows this pointer_down itself
 				if (
 					info.name === 'pointer_down' &&
 					info.pointerId !== this._pointingPointerId &&
 					!info.isPen &&
 					this._secondTouchShouldSimulateShift()
 				) {
-					const isFirstShiftPointer = this._simulatedShiftPointerIds.size === 0
-					this._simulatedShiftPointerIds.add(info.pointerId)
-					// eslint-disable-next-line no-console
-					console.log('[shift-sim] ENGAGE shift, pointerId:', info.pointerId)
-					if (isFirstShiftPointer) {
-						this.dispatch({
-							type: 'keyboard',
-							name: 'key_down',
-							key: 'Shift',
-							code: 'ShiftLeft',
-							shiftKey: true,
-							ctrlKey: this.inputs.getCtrlKey(),
-							altKey: this.inputs.getAltKey(),
-							metaKey: this.inputs.getMetaKey(),
-							accelKey: this.inputs.getAccelKey(),
-						})
-					}
+					this._startSimulatedShift(info.pointerId)
 					return
 				}
 
@@ -11385,6 +11509,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 						this._pointingPointerId = info.pointerId
 						this._pointingPointerIsPen = info.isPen
 						this._pointingPointerDownTime = Date.now()
+
+						// megan look here
+						// finger-first: a pen stroke is starting while other pointers are
+						// already physically down (a finger held in the other hand). claim
+						// each of them as shift fingers NOW -- we don't rely on receiving
+						// any further events from them, since iPadOS mutes finger input
+						// during pencil contact. because the synthetic key_down dispatches
+						// synchronously here, shift is engaged BEFORE this pen pointer_down
+						// reaches the tool: true shift-before-stroke (e.g. draw's straight
+						// mode from the first point). release happens when the interaction
+						// ends (keep-alive requires isPointing) or on the finger's own
+						// pointer_up if the OS does deliver it
+						if (info.isPen) {
+							for (const id of this._downPointerIds) {
+								if (id === info.pointerId) continue
+								if (this._simulatedShiftPointerIds.has(id)) continue
+								this._startSimulatedShift(id)
+							}
+						}
 
 						// Add the button from the buttons set
 						inputs.buttons.add(info.button)
