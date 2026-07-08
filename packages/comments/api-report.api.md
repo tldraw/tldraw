@@ -5,12 +5,24 @@
 ```ts
 
 import { BaseRecord } from '@tldraw/store';
+import { ComponentType } from 'react';
 import { CustomRecordInfo } from '@tldraw/tlschema';
+import { Editor } from 'tldraw';
 import { JsonObject } from '@tldraw/utils';
 import { RecordId } from '@tldraw/store';
+import { TldrawPlugin } from 'tldraw';
 import { TLPageId } from '@tldraw/tlschema';
+import { TLPageId as TLPageId_2 } from 'tldraw';
 import { TLRichText } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
+import { TLShapeId as TLShapeId_2 } from 'tldraw';
+
+// @public
+export function addComment(editor: Editor, opts: {
+    body: string;
+    threadId: TLCommentThreadId;
+    user: CommentsPluginUser;
+}): TLComment;
 
 // @public
 export const commentRecordConfig: CustomRecordInfo;
@@ -20,6 +32,23 @@ export const commentSchemaRecords: {
     'comment-thread': CustomRecordInfo;
     comment: CustomRecordInfo;
 };
+
+// @public
+export function commentsPlugin(options?: CommentsPluginOptions): TldrawPlugin;
+
+// @public (undocumented)
+export interface CommentsPluginOptions {
+    components?: Partial<TLCommentsComponents>;
+    user?(editor: Editor): CommentsPluginUser | null;
+}
+
+// @public (undocumented)
+export interface CommentsPluginUser {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    name?: string;
+}
 
 // @public
 export const commentThreadRecordConfig: CustomRecordInfo;
@@ -48,6 +77,23 @@ export function createCommentThread(props: {
 
 // @public (undocumented)
 export function createCommentThreadId(id?: string): TLCommentThreadId;
+
+// @public
+export function resolveThread(editor: Editor, threadId: TLCommentThreadId, user: CommentsPluginUser): void;
+
+// @public
+export function richTextToPlaintext(body: TLRichText): string;
+
+// @public
+export function startCommentThread(editor: Editor, opts: {
+    anchor: TLCommentAnchor;
+    body: string;
+    pageId?: TLPageId_2;
+    user: CommentsPluginUser;
+}): {
+    comment: TLComment;
+    thread: TLCommentThread;
+};
 
 // @public
 export interface TLComment extends BaseRecord<'comment', TLCommentId> {
@@ -88,6 +134,18 @@ export type TLCommentAnchor = {
 // @public (undocumented)
 export type TLCommentId = RecordId<TLComment>;
 
+// @public (undocumented)
+export interface TLCommentsComponents {
+    // (undocumented)
+    ThreadComposer: ComponentType<{
+        shapeId: TLShapeId_2;
+    }>;
+    // (undocumented)
+    ThreadPin: ComponentType<{
+        thread: TLCommentThread;
+    }>;
+}
+
 // @public
 export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentThreadId> {
     anchor: TLCommentAnchor;
@@ -105,6 +163,12 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
 
 // @public (undocumented)
 export type TLCommentThreadId = RecordId<TLCommentThread>;
+
+// @public
+export function useCommentThreads(pageId?: TLPageId_2): TLCommentThread[];
+
+// @public
+export function useThreadComments(threadId: TLCommentThreadId): TLComment[];
 
 // (No @packageDocumentation comment for this package)
 
