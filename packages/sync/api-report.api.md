@@ -8,6 +8,7 @@ import { Editor } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
+import { TLSchemaPlugin } from 'tldraw';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
@@ -56,6 +57,7 @@ export interface UseSyncOptionsBase {
     onCustomMessageReceived?(data: any): void;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
+    plugins?: readonly TLSchemaPlugin[];
     // @internal
     roomId?: string;
     themes?: Partial<TLThemes>;

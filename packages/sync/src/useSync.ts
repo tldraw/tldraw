@@ -10,13 +10,14 @@ import {
 	TLSyncClient,
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
 	Editor,
 	TAB_ID,
 	TLAssetStore,
 	TLPresenceStateInfo,
 	TLRecord,
+	TLSchemaPlugin,
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
@@ -36,6 +37,7 @@ import {
 	defaultUserStore,
 	getDefaultUserPresence,
 	getUserPreferences,
+	mergeSchemaPluginRecords,
 	uniqueId,
 	useEvent,
 	useReactiveEvent,
@@ -182,6 +184,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
 		themes,
+		plugins,
 		...schemaOpts
 	} = opts
 
@@ -193,7 +196,30 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const resolvedThemes = resolveThemes(themes)
 	registerColorsFromThemes(resolvedThemes)
 	registerFontsFromThemes(resolvedThemes)
-	const schema = useTLSchemaFromUtils(schemaOpts)
+	const schemaOptsWithPlugins = useMemo((): TLStoreSchemaOptions => {
+		if (!plugins?.length) return schemaOpts
+		if ('schema' in schemaOpts && schemaOpts.schema) {
+			// A prebuilt schema was passed in: it must already contain the plugin records.
+			for (const plugin of plugins) {
+				for (const typeName of Object.keys(plugin.records ?? {})) {
+					if (!(typeName in schemaOpts.schema.types)) {
+						throw new Error(
+							`useSync: schema is missing record type '${typeName}' from plugin '${plugin.id}'`
+						)
+					}
+				}
+			}
+			return schemaOpts
+		}
+		return {
+			...schemaOpts,
+			records: mergeSchemaPluginRecords(
+				plugins,
+				'records' in schemaOpts ? schemaOpts.records : undefined
+			),
+		}
+	}, [plugins, schemaOpts])
+	const schema = useTLSchemaFromUtils(schemaOptsWithPlugins)
 
 	const getUserPresence = useReactiveEvent(
 		(_getUserPresence ?? getDefaultUserPresence) as typeof getDefaultUserPresence
@@ -449,6 +475,15 @@ export interface UseSyncOptionsBase {
 	 * colors passes validation on load.
 	 */
 	themes?: Partial<TLThemes>
+
+	/**
+	 * Schema plugins that register additional custom record types.
+	 *
+	 * Plugin records are merged into the store's schema before it is created. If a prebuilt
+	 * `schema` option is also provided, that schema must already include every record type
+	 * declared by these plugins.
+	 */
+	plugins?: readonly TLSchemaPlugin[]
 
 	/**
 	 * Asset store implementation for handling file uploads and storage.
