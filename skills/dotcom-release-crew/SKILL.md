@@ -7,7 +7,7 @@ description: Post to the #development Discord channel naming the people whose cr
 
 Identify who contributed **critical fixes or significant features** to this week's dotcom release (the commits on `main` that are not yet on `production`) and post a short summary to the `#development` Discord channel.
 
-The goal is a tight list of people to involve in the release — not a changelog and not the whole engineering team.
+The goal is a very tight list of people to involve in the release — **2–3 people at most**, not a changelog and not the whole engineering team. Only exceed 3 in extraordinary weeks where more than three people each own a genuinely critical, release-risky change.
 
 ## Inputs
 
@@ -48,7 +48,9 @@ Read the subject lines and keep only commits that a release manager would want a
 - Trivial `fix`es (typos, comments, lint, flaky-test pins, snapshot updates).
 - Reverts that cancel out another commit in the same range.
 
-When unsure whether a change is "critical", lean toward **excluding** it — the point is a short, high-signal list. It is fine for a busy week to surface only 3–6 people.
+Then **rank the authors by how critical and release-risky their change is, and keep only the top 2–3**. When unsure whether a change is "critical", lean toward **excluding** it — the point is a very short, high-signal list. It is completely fine to surface just 1–2 people, and normal to have some kept-but-not-listed commits.
+
+Only go above 3 people in extraordinary weeks — for example a large migration plus an unrelated sync fix plus an auth change all landing together, where each genuinely needs its own owner on hand. If you do, briefly justify the extra names to yourself before including them.
 
 ### 3. Compose the message
 
