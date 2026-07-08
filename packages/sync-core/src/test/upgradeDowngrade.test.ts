@@ -11,7 +11,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
-import { commentSchemaRecords, createTLSchema } from '@tldraw/tlschema'
+import { CustomRecordInfo, createTLSchema } from '@tldraw/tlschema'
 import { vi, type Mock } from 'vitest'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import { TLSocketServerSentEvent, getTlsyncProtocolVersion } from '../lib/protocol'
@@ -221,13 +221,24 @@ class TestInstance {
 }
 
 describe('record types unknown to older clients', () => {
-	// Mirrors a deploy that adds the comment record types: stale tabs still run a schema
-	// without them, while the server registers them and serves rooms that may contain them. The
-	// comment types ship guard migrations (retroactive, no `down`), so the server must reject
-	// stale sessions with CLIENT_TOO_OLD (prompting a refresh) rather than sending them record
-	// types their store cannot represent.
-	const schemaWithComments = createTLSchema({ records: commentSchemaRecords })
-	const schemaWithoutComments = createTLSchema()
+	// Mirrors a deploy that adds an opt-in custom record type (e.g. tldraw's comment types):
+	// stale tabs still run a schema without it, while the server registers it and serves rooms
+	// that may contain it. Such types ship guard migrations (retroactive, no `down`), so the
+	// server must reject stale sessions with CLIENT_TOO_OLD (prompting a refresh) rather than
+	// sending them record types their store cannot represent.
+	const widgetRecordConfig: CustomRecordInfo = {
+		scope: 'document',
+		migrations: createRecordMigrationSequence({
+			sequenceId: 'com.tldraw.widget',
+			recordType: 'widget',
+			retroactive: true,
+			sequence: [{ id: 'com.tldraw.widget/1', up: (record) => record }],
+		}),
+		validator: { validate: (value) => value as any },
+	}
+	const customRecords = { widget: widgetRecordConfig }
+	const schemaWithWidgets = createTLSchema({ records: customRecords })
+	const schemaWithoutWidgets = createTLSchema()
 
 	function connectWith(server: TestServer<any>, schema: SerializedSchema) {
 		const id = 'stale-tab'
@@ -243,19 +254,19 @@ describe('record types unknown to older clients', () => {
 		return socket
 	}
 
-	it('[HS3] rejects sessions whose schema predates the comment types', () => {
-		const server = new TestServer(schemaWithComments as any, undefined, {
-			objectTypes: ['comment', 'comment-thread'],
+	it('[HS3] rejects sessions whose schema predates the widget type', () => {
+		const server = new TestServer(schemaWithWidgets as any, undefined, {
+			objectTypes: ['widget'],
 		})
-		const socket = connectWith(server, schemaWithoutComments.serialize())
+		const socket = connectWith(server, schemaWithoutWidgets.serialize())
 		expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 	})
 
-	it('[HS3] accepts sessions whose schema registers the comment types', () => {
-		const server = new TestServer(schemaWithComments as any, undefined, {
-			objectTypes: ['comment', 'comment-thread'],
+	it('[HS3] accepts sessions whose schema registers the widget type', () => {
+		const server = new TestServer(schemaWithWidgets as any, undefined, {
+			objectTypes: ['widget'],
 		})
-		const socket = connectWith(server, schemaWithComments.serialize())
+		const socket = connectWith(server, schemaWithWidgets.serialize())
 		expect(socket.close).not.toHaveBeenCalled()
 		expect((socket.sendMessage as Mock).mock.calls[0][0]).toMatchObject({ type: 'connect' })
 	})
