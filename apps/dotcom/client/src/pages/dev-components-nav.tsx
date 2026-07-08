@@ -63,6 +63,9 @@ export function DevComponentsNav(): ReactNode {
 			<a href="/dev/components/identity" style={link}>
 				identity
 			</a>
+			<a href="/dev/components/z-index" style={link}>
+				z-index
+			</a>
 		</nav>
 	)
 }
