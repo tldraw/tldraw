@@ -70,9 +70,10 @@ export const components: TLComponents = {
 	TopPanel: TlaEditorTopPanel,
 	SharePanel: TlaEditorSharePanel,
 	// The comments plugin doesn't add a toolbar button itself; compose it in first so it stays
-	// out of the toolbar's overflow menu.
+	// out of the toolbar's overflow menu. Allow one extra visible item (9 at ~510px instead of
+	// 8 at 470px) so the comment button doesn't push a default tool into the overflow.
 	Toolbar: (props) => (
-		<DefaultToolbar {...props}>
+		<DefaultToolbar {...props} maxItems={9} maxSizePx={510}>
 			<CommentToolbarItem />
 			<DefaultToolbarContent />
 		</DefaultToolbar>
