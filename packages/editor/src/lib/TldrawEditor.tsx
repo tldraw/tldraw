@@ -1,5 +1,6 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import {
+	CustomRecordInfo,
 	TLShape,
 	TLStore,
 	TLStoreSnapshot,
@@ -86,6 +87,12 @@ export interface TldrawEditorWithoutStoreProps extends TLStoreBaseOptions {
 	 * Additional migrations to use in the store
 	 */
 	migrations?: readonly MigrationSequence[]
+
+	/**
+	 * Custom record type configurations to register in the store schema. Only used when tldraw
+	 * creates the store for you (ignored when a `store` is passed).
+	 */
+	records?: Record<string, CustomRecordInfo>
 
 	/**
 	 * A starting snapshot of data to pre-populate the store. Do not supply both this and
@@ -393,6 +400,7 @@ function TldrawEditorWithOwnStore(
 		assets,
 		users,
 		migrations,
+		records,
 		themes,
 	} = props
 
@@ -408,6 +416,7 @@ function TldrawEditorWithOwnStore(
 		assets,
 		users,
 		migrations,
+		records,
 		themes,
 	})
 

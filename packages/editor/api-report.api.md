@@ -3753,6 +3753,7 @@ export type TldrawEditorStoreProps = TldrawEditorWithoutStoreProps | TldrawEdito
 export interface TldrawEditorWithoutStoreProps extends TLStoreBaseOptions {
     migrations?: readonly MigrationSequence[];
     persistenceKey?: string;
+    records?: Record<string, CustomRecordInfo>;
     // (undocumented)
     sessionId?: string;
     snapshot?: TLEditorSnapshot | TLStoreSnapshot;

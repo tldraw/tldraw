@@ -129,6 +129,7 @@ import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
 import { TLNoteShapeProps } from '@tldraw/editor';
+import { TLOnMountHandler } from '@tldraw/editor';
 import { TLOverlay } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/tlschema';
@@ -137,6 +138,7 @@ import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLResizeInfo } from '@tldraw/editor';
 import { TLRichText } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
+import { TLSchemaPlugin } from '@tldraw/editor';
 import { TLScribble } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
@@ -818,6 +820,9 @@ export function createBookmarkFromUrl(editor: Editor, { url, center }: {
 
 // @public (undocumented)
 export function createEmptyBookmarkShape(editor: Editor, url: string, position: VecLike): TLBookmarkShape;
+
+// @public
+export function createPluginOnMount(plugins: readonly TldrawPlugin[], userOnMount?: TLOnMountHandler): TLOnMountHandler;
 
 // @public
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
@@ -2781,6 +2786,9 @@ export interface LineToPathBuilderCommand extends PathBuilderCommandBase {
 // @public (undocumented)
 export function LockGroup(): JSX.Element;
 
+// @public
+export function mergePluginComponents(plugins: readonly TldrawPlugin[], userComponents?: TLComponents): TLComponents;
+
 // @public (undocumented)
 export function MiscMenuGroup(): JSX.Element;
 
@@ -4118,6 +4126,7 @@ export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, T
     // @deprecated
     embeds?: TLEmbedDefinition[];
     locale?: string;
+    plugins?: readonly TldrawPlugin[];
     // @deprecated
     textOptions?: TLTextOptions;
 }
@@ -4165,6 +4174,15 @@ export interface TldrawImageProps extends TLImageExportOptions {
     snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
     // @deprecated
     textOptions?: TLTextOptions;
+}
+
+// @public
+export interface TldrawPlugin extends TLSchemaPlugin {
+    components?: TLComponents;
+    onMount?(editor: Editor): (() => void) | void;
+    overrides?: TLUiOverrides;
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    tools?: readonly TLStateNodeConstructor[];
 }
 
 // @public (undocumented)

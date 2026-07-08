@@ -7,8 +7,10 @@ import {
 	TldrawEditor,
 	TldrawEditorBaseProps,
 	TldrawEditorStoreProps,
+	assertUniquePluginIds,
 	defaultUserPreferences,
 	mergeArraysAndReplaceDefaults,
+	mergeSchemaPluginRecords,
 	useEditor,
 	useEditorComponents,
 	useOnMount,
@@ -33,6 +35,7 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
+import { TldrawPlugin, createPluginOnMount, mergePluginComponents } from './TldrawPlugin'
 import { TLUiAssetUrlOverrides, useDefaultUiAssetUrlsWithOverrides } from './ui/assetUrls'
 import { LoadingScreen } from './ui/components/LoadingScreen'
 import { Spinner } from './ui/components/Spinner'
@@ -110,6 +113,13 @@ export interface TldrawBaseProps
 	 * ```
 	 */
 	locale?: string
+	/**
+	 * Plugins to extend the editor with custom shapes, tools, UI components, overrides, and
+	 * store setup logic.
+	 *
+	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
+	 */
+	plugins?: readonly TldrawPlugin[]
 }
 
 /** @public */
@@ -168,12 +178,20 @@ export function Tldraw(props: TldrawProps) {
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
+		plugins = [],
 		...rest
 	} = props
 
-	const _components = useShallowObjectIdentity(components)
+	const _plugins = useShallowArrayIdentity(plugins)
+	useMemo(() => assertUniquePluginIds(_plugins), [_plugins])
 
-	const CustomInFrontOfTheCanvas = components?.InFrontOfTheCanvas
+	const _components = useShallowObjectIdentity(components)
+	const pluginComponents = useMemo(
+		() => mergePluginComponents(_plugins, _components),
+		[_plugins, _components]
+	)
+
+	const CustomInFrontOfTheCanvas = pluginComponents.InFrontOfTheCanvas
 	const InFrontOfTheCanvas = useMemo(() => {
 		if (rest.hideUi) return CustomInFrontOfTheCanvas ?? null
 		if (!CustomInFrontOfTheCanvas) return TldrawUiInFrontOfTheCanvas
@@ -189,16 +207,21 @@ export function Tldraw(props: TldrawProps) {
 		() => ({
 			Spinner,
 			LoadingScreen,
-			..._components,
+			...pluginComponents,
 			InFrontOfTheCanvas,
 		}),
-		[_components, InFrontOfTheCanvas]
+		[pluginComponents, InFrontOfTheCanvas]
 	)
 
+	const _pluginShapeUtils = useMemo(() => _plugins.flatMap((p) => p.shapeUtils ?? []), [_plugins])
 	const _shapeUtils = useShallowArrayIdentity(shapeUtils)
 	const shapeUtilsWithDefaults = useMemo(
-		() => mergeArraysAndReplaceDefaults('type', _shapeUtils, defaultShapeUtils),
-		[_shapeUtils]
+		() =>
+			mergeArraysAndReplaceDefaults('type', _shapeUtils, [
+				..._pluginShapeUtils,
+				...defaultShapeUtils,
+			]),
+		[_shapeUtils, _pluginShapeUtils]
 	)
 
 	const _bindingUtils = useShallowArrayIdentity(bindingUtils)
@@ -223,10 +246,30 @@ export function Tldraw(props: TldrawProps) {
 		[_overlayUtils]
 	)
 
+	const _pluginTools = useMemo(() => _plugins.flatMap((p) => p.tools ?? []), [_plugins])
 	const _tools = useShallowArrayIdentity(tools)
 	const toolsWithDefaults = useMemo(
-		() => mergeArraysAndReplaceDefaults('id', _tools, allDefaultTools),
-		[_tools]
+		() => mergeArraysAndReplaceDefaults('id', _tools, [..._pluginTools, ...allDefaultTools]),
+		[_tools, _pluginTools]
+	)
+
+	const _pluginOverrides = useMemo(
+		() => _plugins.map((p) => p.overrides).filter((o): o is NonNullable<typeof o> => o != null),
+		[_plugins]
+	)
+	const _userOverrides = useShallowArrayIdentity(
+		rest.overrides == null ? [] : Array.isArray(rest.overrides) ? rest.overrides : [rest.overrides]
+	)
+	const overridesWithPlugins = useMemo(
+		() => [..._pluginOverrides, ..._userOverrides],
+		[_pluginOverrides, _userOverrides]
+	)
+
+	const pluginRecords = useMemo(() => mergeSchemaPluginRecords(_plugins), [_plugins])
+
+	const onMountWithPlugins = useMemo(
+		() => createPluginOnMount(_plugins, onMount),
+		[_plugins, onMount]
 	)
 
 	const _imageMimeTypes = useShallowArrayIdentity(
@@ -277,13 +320,14 @@ export function Tldraw(props: TldrawProps) {
 		// Ideally we would refactor to hoist all the UI context providers we can up here. Maybe later.
 		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(rest.assetUrls)}>
 			<TldrawUiTranslationProvider
-				overrides={useMergedTranslationOverrides(rest.overrides)}
+				overrides={useMergedTranslationOverrides(overridesWithPlugins)}
 				// If the locale prop is provided, then use that and assume it to be controlled
 				locale={locale ?? rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
 			>
 				<TldrawEditor
 					initialState="select"
 					{...rest}
+					{...(rest.store ? null : { records: pluginRecords })}
 					components={componentsWithDefault}
 					shapeUtils={shapeUtilsWithDefaults}
 					bindingUtils={bindingUtilsWithDefaults}
@@ -293,13 +337,18 @@ export function Tldraw(props: TldrawProps) {
 					options={optionsWithDefaults}
 					assetUrls={assets}
 				>
-					<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
+					<TldrawUi
+						{...rest}
+						overrides={overridesWithPlugins}
+						components={componentsWithDefault}
+						mediaMimeTypes={mediaMimeTypes}
+					>
 						<InsideOfEditorAndUiContext
 							maxImageDimension={maxImageDimension}
 							maxAssetSize={maxAssetSize}
 							acceptedImageMimeTypes={_imageMimeTypes}
 							acceptedVideoMimeTypes={_videoMimeTypes}
-							onMount={onMount}
+							onMount={onMountWithPlugins}
 						/>
 						{children}
 					</TldrawUi>
