@@ -13,14 +13,14 @@ keywords:
   - getAttributionUser
   - getReferencedUserIds
   - createCachedUserResolve
-  - textFirstEditedBy
+  - textLastEditedBy
   - UserRecordType
   - createUserId
 status: published
 date: 3/30/2026
 ---
 
-The attribution system lets you track which users create or edit shapes. Connect tldraw to your auth system through a `TLUserStore` to resolve display names, render attribution labels, and persist user records alongside your document data. The built-in note shape uses attribution to show who first edited a note's text, and you can add similar tracking to custom shapes.
+The attribution system lets you track which users create or edit shapes. Connect tldraw to your auth system through a `TLUserStore` to resolve display names, render attribution labels, and persist user records alongside your document data. The built-in note shape uses attribution to show who last edited a note's text, and you can add similar tracking to custom shapes.
 
 ## User store
 
@@ -89,25 +89,27 @@ Attribution is opt-in per shape type. Each shape util decides what to track and 
 
 ### Note shape attribution
 
-The built-in note shape tracks who first added text. When a user types in an empty note, `NoteShapeUtil` sets the `textFirstEditedBy` prop to the current user's ID via `editor.getAttributionUserId()`. Subsequent edits by other users don't change this value. Clearing the text resets it to `null`. The note renders the first editor's name as a small label in the corner.
+The built-in note shape tracks who last edited its text. Whenever a user types in a note, `NoteShapeUtil` sets the `textLastEditedBy` prop to the current user's ID via `editor.getAttributionUserId()`. Clearing the text resets it to `null`. The note renders that editor's name as a small label in the corner.
 
-The label is rendered by the `NoteShapeAttribution` component, which you can override or hide through the `components` prop. This applies on the canvas and in image exports:
+The label is rendered by the note shape util's `AttributionComponent` option, which you can override or hide with `NoteShapeUtil.configure`, passed through the `shapeUtils` prop. This applies on the canvas and in image exports:
 
 ```tsx
-import { Tldraw } from 'tldraw'
+import { NoteShapeUtil, Tldraw } from 'tldraw'
 
 // Hide the attribution badge
-;<Tldraw components={{ NoteShapeAttribution: null }} />
+;<Tldraw shapeUtils={[NoteShapeUtil.configure({ AttributionComponent: null })]} />
 
 // Or render your own
 ;<Tldraw
-	components={{
-		NoteShapeAttribution: ({ firstName, color }) => (
-			<div className="tl-note__attribution" style={{ color }}>
-				✍️ {firstName}
-			</div>
-		),
-	}}
+	shapeUtils={[
+		NoteShapeUtil.configure({
+			AttributionComponent: ({ firstName, color }) => (
+				<div className="tl-note__attribution" style={{ color }}>
+					✍️ {firstName}
+				</div>
+			),
+		}),
+	]}
 />
 ```
 

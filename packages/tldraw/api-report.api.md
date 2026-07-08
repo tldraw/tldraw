@@ -2811,6 +2811,7 @@ export interface NonePathBuilderOpts extends BasePathBuilderOpts {
 
 // @public (undocumented)
 export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
+    AttributionComponent: TLNoteShapeAttributionComponent;
     resizeMode: 'none' | 'scale';
 }
 
@@ -4692,8 +4693,6 @@ export interface TLUiComponents {
     Minimap?: ComponentType | null;
     // (undocumented)
     NavigationPanel?: ComponentType | null;
-    // (undocumented)
-    NoteShapeAttribution?: ComponentType<TLNoteShapeAttributionProps> | null;
     // (undocumented)
     PageMenu?: ComponentType | null;
     // (undocumented)

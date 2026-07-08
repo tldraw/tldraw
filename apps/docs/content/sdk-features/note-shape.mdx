@@ -102,15 +102,16 @@ The note's text color is determined by its `labelColor` property. When set to `'
 | `growY`              | `number`                        | Additional height beyond the base 200px (set automatically)                      |
 | `url`                | `string`                        | Optional hyperlink URL                                                           |
 | `scale`              | `number`                        | Scale factor applied to the shape                                                |
-| `textFirstEditedBy`  | `string \| null`                | ID of the user who first edited the note's text                                  |
+| `textLastEditedBy`   | `string \| null`                | ID of the user who last edited the note's text                                   |
 
 ## Configuration
 
 Notes support the following configuration options:
 
-| Option       | Type                  | Default  | Description                                                       |
-| ------------ | --------------------- | -------- | ----------------------------------------------------------------- |
-| `resizeMode` | `'none'` \| `'scale'` | `'none'` | How the note resizes. Set to `'scale'` for manual resize handles. |
+| Option                 | Type                                                   | Default                       | Description                                                                                       |
+| ---------------------- | ------------------------------------------------------ | ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| `resizeMode`           | `'none'` \| `'scale'`                                  | `'none'`                      | How the note resizes. Set to `'scale'` for manual resize handles.                                 |
+| `AttributionComponent` | `ComponentType<TLNoteShapeAttributionProps>` \| `null` | `DefaultNoteShapeAttribution` | Component for the attribution badge. Set to `null` to hide it, or provide your own to replace it. |
 
 By default, notes can't be manually resized—they only grow based on text content. To allow user resizing with locked aspect ratio:
 
@@ -135,7 +136,7 @@ See the [note resizing example](https://github.com/tldraw/tldraw/tree/main/apps/
 
 ### Attribution badge
 
-Notes show the name of the user who first edited their text as a small badge in the corner. This badge is rendered by the `NoteShapeAttribution` component, which you can override or hide through the `components` prop—it applies on the canvas and in image exports. See [attribution](/sdk-features/attribution) for details.
+Notes show the name of the user who last edited their text as a small badge in the corner. This badge is rendered by the `AttributionComponent` option above, which you can override or hide with `NoteShapeUtil.configure`—it applies on the canvas and in image exports. See [attribution](/sdk-features/attribution) for details.
 
 ## Dynamic resize mode
 
@@ -149,7 +150,7 @@ const scale = editor.getResizeScaleFactor()
 
 ## Related articles
 
-- [Attribution](/sdk-features/attribution) — How notes display "first edited by" labels in multiplayer sessions
+- [Attribution](/sdk-features/attribution) — How notes display "last edited by" labels in multiplayer sessions
 - [Default shapes](/sdk-features/default-shapes) — Overview of all built-in shapes
 - [Rich text](/sdk-features/rich-text) — Working with formatted text content
 - [Styles](/sdk-features/styles) — Working with shape styles like color and size

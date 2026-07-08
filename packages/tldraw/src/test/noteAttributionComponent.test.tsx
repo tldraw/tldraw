@@ -9,8 +9,12 @@ import {
 	createUserId,
 	toRichText,
 } from '@tldraw/editor'
-import { TLNoteShapeAttributionProps } from '../lib/shapes/note/DefaultNoteShapeAttribution'
-import { TLComponents, Tldraw } from '../lib/Tldraw'
+import {
+	TLNoteShapeAttributionComponent,
+	TLNoteShapeAttributionProps,
+} from '../lib/shapes/note/DefaultNoteShapeAttribution'
+import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
+import { Tldraw } from '../lib/Tldraw'
 import { renderTldrawComponentWithEditor } from './testutils/renderTldrawComponent'
 
 const noteId = createShapeId('note1')
@@ -35,9 +39,12 @@ function createAttributedNote(editor: Editor) {
 	})
 }
 
-async function setup(components?: TLComponents) {
+// Pass `attribution` to configure the note shape util's `AttributionComponent` option; omit it to use
+// the default badge.
+async function setup(attribution?: { AttributionComponent: TLNoteShapeAttributionComponent }) {
+	const shapeUtils = attribution ? [NoteShapeUtil.configure(attribution)] : undefined
 	const { editor, rendered } = await renderTldrawComponentWithEditor(
-		(onMount) => <Tldraw onMount={onMount} users={users} components={components} />,
+		(onMount) => <Tldraw onMount={onMount} users={users} shapeUtils={shapeUtils} />,
 		{ waitForPatterns: false }
 	)
 	return { editor, rendered }
@@ -47,7 +54,7 @@ describe('NoteShapeAttribution component', () => {
 	it('renders the default attribution badge', async () => {
 		const { editor, rendered } = await setup()
 		createAttributedNote(editor)
-		// the user store should resolve a display name for the first editor
+		// the user store should resolve a display name for the last editor
 		expect(editor.getAttributionDisplayName(editor.getAttributionUserId())).toBe('Alice Mertnet')
 
 		await waitFor(() => {
@@ -62,7 +69,7 @@ describe('NoteShapeAttribution component', () => {
 			return <div data-testid="custom-attribution">custom: {firstName}</div>
 		}
 
-		const { editor, rendered } = await setup({ NoteShapeAttribution: CustomAttribution })
+		const { editor, rendered } = await setup({ AttributionComponent: CustomAttribution })
 		createAttributedNote(editor)
 
 		const badge = await rendered.findByTestId('custom-attribution')
@@ -71,8 +78,8 @@ describe('NoteShapeAttribution component', () => {
 		expect(rendered.container.querySelector('.tl-note__attribution')).toBeNull()
 	})
 
-	it('hides the attribution badge when NoteShapeAttribution is null', async () => {
-		const { editor, rendered } = await setup({ NoteShapeAttribution: null })
+	it('hides the attribution badge when AttributionComponent is null', async () => {
+		const { editor, rendered } = await setup({ AttributionComponent: null })
 		createAttributedNote(editor)
 
 		// the note itself should render...

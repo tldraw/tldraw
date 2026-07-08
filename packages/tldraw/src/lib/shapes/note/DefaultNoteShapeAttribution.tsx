@@ -1,4 +1,4 @@
-import { Editor, TLNoteShape } from '@tldraw/editor'
+import { TLNoteShape } from '@tldraw/editor'
 import { ComponentType } from 'react'
 import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 
@@ -10,7 +10,7 @@ import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 export interface TLNoteShapeAttributionProps {
 	/** The note shape the attribution belongs to. */
 	shape: TLNoteShape
-	/** The full display name of the user who first edited the note's text. */
+	/** The full display name of the user who last edited the note's text. */
 	name: string
 	/** The first name (the part shown in the badge). */
 	firstName: string
@@ -27,16 +27,16 @@ export interface TLNoteShapeAttributionProps {
 
 /**
  * The default attribution badge shown in the corner of a note shape — the display name of the user
- * who first edited the note's text.
+ * who last edited the note's text.
  *
- * Override it (or hide it) with the `NoteShapeAttribution` component:
+ * Override it (or hide it) with the note shape util's `AttributionComponent` option:
  *
  * ```tsx
  * // hide the attribution badge
- * <Tldraw components={{ NoteShapeAttribution: null }} />
+ * <Tldraw shapeUtils={[NoteShapeUtil.configure({ AttributionComponent: null })]} />
  *
  * // render your own
- * <Tldraw components={{ NoteShapeAttribution: (props) => <MyBadge {...props} /> }} />
+ * <Tldraw shapeUtils={[NoteShapeUtil.configure({ AttributionComponent: (props) => <MyBadge {...props} /> })]} />
  * ```
  *
  * @public @react
@@ -86,25 +86,3 @@ export function DefaultNoteShapeAttribution({
  * @public
  */
 export type TLNoteShapeAttributionComponent = ComponentType<TLNoteShapeAttributionProps> | null
-
-// The note shape's `toSvg` export runs outside of React, in a separate `createRoot`, so it can't read
-// the `NoteShapeAttribution` component override from React context. We mirror the resolved override onto
-// a per-editor map (updated from inside the editor + ui context) so the export can resolve it the same
-// way it already resolves theme/colors imperatively from the editor.
-const noteAttributionComponentsByEditor = new WeakMap<Editor, TLNoteShapeAttributionComponent>()
-
-/** @internal */
-export function setNoteShapeAttributionComponent(
-	editor: Editor,
-	component: TLNoteShapeAttributionComponent
-) {
-	noteAttributionComponentsByEditor.set(editor, component)
-}
-
-/** @internal */
-export function getNoteShapeAttributionComponent(editor: Editor): TLNoteShapeAttributionComponent {
-	if (noteAttributionComponentsByEditor.has(editor)) {
-		return noteAttributionComponentsByEditor.get(editor) ?? null
-	}
-	return DefaultNoteShapeAttribution
-}

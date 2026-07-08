@@ -16,7 +16,7 @@ import {
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
 import { TLAnyAssetUtilConstructor } from '@tldraw/editor'
-import { useLayoutEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { ImageAssetUtil } from './assets/ImageAssetUtil'
 import { VideoAssetUtil } from './assets/VideoAssetUtil'
 import { defaultAssetUtils } from './defaultAssetUtils'
@@ -32,7 +32,6 @@ import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
-import { setNoteShapeAttributionComponent } from './shapes/note/DefaultNoteShapeAttribution'
 import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
 import { TLUiAssetUrlOverrides, useDefaultUiAssetUrlsWithOverrides } from './ui/assetUrls'
 import { LoadingScreen } from './ui/components/LoadingScreen'
@@ -371,13 +370,7 @@ function InsideOfEditorAndUiContext({
 	})
 
 	const { Canvas } = useEditorComponents()
-	const { ContextMenu, NoteShapeAttribution } = useTldrawUiComponents()
-
-	// Mirror the resolved NoteShapeAttribution override onto the editor so the note shape's `toSvg`
-	// export (which renders in a separate React root, without access to this context) can resolve it.
-	useLayoutEffect(() => {
-		setNoteShapeAttributionComponent(editor, NoteShapeAttribution ?? null)
-	}, [editor, NoteShapeAttribution])
+	const { ContextMenu } = useTldrawUiComponents()
 
 	if (ContextMenu) {
 		// should wrap canvas

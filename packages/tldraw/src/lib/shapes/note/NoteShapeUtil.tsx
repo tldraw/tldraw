@@ -33,7 +33,6 @@ import {
 } from '@tldraw/editor'
 import { useCallback, useContext } from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
-import { useTldrawUiComponents } from '../../ui/context/components'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEditingRichTextList,
@@ -54,7 +53,10 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 import { useIsReadyForEditing } from '../shared/useEditablePlainText'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
-import { getNoteShapeAttributionComponent } from './DefaultNoteShapeAttribution'
+import {
+	DefaultNoteShapeAttribution,
+	TLNoteShapeAttributionComponent,
+} from './DefaultNoteShapeAttribution'
 import { CLONE_HANDLE_MARGIN, getNoteShapeForAdjacentPosition } from './noteHelpers'
 
 const NOTE_SHAPE_HORIZONTAL_ALIGNS = Object.freeze({
@@ -101,6 +103,22 @@ export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<
 	 * but you can set it to be user-resizable using scale.
 	 */
 	resizeMode: 'none' | 'scale'
+	/**
+	 * The component used to render the note's "last edited by" attribution badge, both on the canvas
+	 * and in image exports. Defaults to {@link DefaultNoteShapeAttribution}. Set it to `null` to hide
+	 * the badge, or provide your own component (receiving {@link TLNoteShapeAttributionProps}) to
+	 * replace it.
+	 *
+	 * @example
+	 * ```tsx
+	 * // hide the badge
+	 * NoteShapeUtil.configure({ AttributionComponent: null })
+	 *
+	 * // render your own
+	 * NoteShapeUtil.configure({ AttributionComponent: (props) => <MyBadge {...props} /> })
+	 * ```
+	 */
+	AttributionComponent: TLNoteShapeAttributionComponent
 }
 
 /** @public */
@@ -111,6 +129,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override options: NoteShapeOptions = {
 		resizeMode: 'none',
+		AttributionComponent: DefaultNoteShapeAttribution,
 		getDefaultDisplayValues(_editor, shape, theme, colorMode): NoteShapeUtilDisplayValues {
 			const { color, labelColor, font, size, align, verticalAlign } = shape.props
 			const colors = theme.colors[colorMode]
@@ -344,7 +363,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const isReadyForEditing = useIsReadyForEditing(this.editor, shape.id)
 		const isEmpty = isEmptyRichText(richText)
 
-		const { NoteShapeAttribution } = useTldrawUiComponents()
+		const NoteShapeAttribution = this.options.AttributionComponent
 		const attribution = useValue(
 			'attribution',
 			() => {
@@ -461,7 +480,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				? (this.editor.getAttributionDisplayName(textLastEditedBy) ?? null)
 				: null
 		const attributionFirstName = attributionFullName?.split(' ')[0] ?? null
-		const NoteShapeAttribution = getNoteShapeAttributionComponent(this.editor)
+		const NoteShapeAttribution = this.options.AttributionComponent
 
 		return (
 			<>

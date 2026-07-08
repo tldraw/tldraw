@@ -34,7 +34,6 @@ const components: Required<TLUiComponents> = {
 	PeopleMenuItem: null,
 	PeopleMenuFacePile: null,
 	UserPresenceEditor: null,
-	NoteShapeAttribution: null,
 }
 
 export default function UiComponentsHiddenExample() {
