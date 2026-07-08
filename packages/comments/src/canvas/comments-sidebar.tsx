@@ -8,7 +8,6 @@ import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { useAllComments } from './hooks'
 import { richTextToPlaintext } from './rich-text'
 import { focusThread, openThreadId } from './thread-state'
-import './canvas.css'
 
 /** @public */
 export interface CanvasCommentsSidebarProps {

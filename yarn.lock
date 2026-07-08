@@ -11774,6 +11774,7 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
+    chokidar-cli: "npm:^3.0.0"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"

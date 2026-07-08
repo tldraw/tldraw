@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import { Avatar } from './avatar'
-import './comments.css'
 import { SendButton } from './send-button'
 
 /** @public */

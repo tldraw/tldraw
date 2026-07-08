@@ -1,4 +1,3 @@
-import './comments.css'
 import { formatRelativeTime } from './format-time'
 
 /** @public */

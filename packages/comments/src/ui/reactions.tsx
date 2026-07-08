@@ -1,4 +1,3 @@
-import './comments.css'
 import { Reaction } from './reaction'
 
 /**

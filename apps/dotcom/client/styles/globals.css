@@ -1,4 +1,5 @@
 @import url('tldraw/tldraw.css');
+@import url('@tldraw/comments/comments.css');
 
 /* Dark mode early initialization styles
  * These work with theme-init.js to prevent flash of white background

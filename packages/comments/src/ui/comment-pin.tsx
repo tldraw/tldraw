@@ -1,5 +1,4 @@
 import { ReactNode } from 'react'
-import './comments.css'
 
 /** @public */
 export interface CommentPinProps {

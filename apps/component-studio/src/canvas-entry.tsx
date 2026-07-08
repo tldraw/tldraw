@@ -1,3 +1,4 @@
+import '@tldraw/comments/comments.css'
 import 'tldraw/tldraw.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'

@@ -70,6 +70,8 @@ Plugin overlays in `InFrontOfTheCanvas` and `OnTheCanvas` render even when the e
 ```tsx
 import { commentsPlugin } from '@tldraw/comments'
 import { Tldraw } from 'tldraw'
+import '@tldraw/comments/comments.css'
+import 'tldraw/tldraw.css'
 
 const plugins = [commentsPlugin()]
 
@@ -77,6 +79,8 @@ export default function App() {
 	return <Tldraw plugins={plugins} />
 }
 ```
+
+`@tldraw/comments` ships its own stylesheet, so import `@tldraw/comments/comments.css` alongside `tldraw/tldraw.css`.
 
 This registers the `comment` and `comment-thread` record types, the comment tool, and renders the default UI (pins, popover, composer, sidebar) through the `InFrontOfTheCanvas` slot. `commentsPlugin` takes three optional options:
 

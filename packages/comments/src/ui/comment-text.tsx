@@ -1,4 +1,3 @@
-import './comments.css'
 import { renderMarkdown } from './render-markdown'
 
 /** @public */

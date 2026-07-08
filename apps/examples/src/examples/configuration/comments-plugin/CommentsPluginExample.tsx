@@ -1,5 +1,6 @@
 import { commentsPlugin } from '@tldraw/comments'
 import { Tldraw } from 'tldraw'
+import '@tldraw/comments/comments.css'
 import 'tldraw/tldraw.css'
 
 const plugins = [commentsPlugin()]

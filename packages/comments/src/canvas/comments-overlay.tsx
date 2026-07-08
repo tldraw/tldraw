@@ -13,7 +13,6 @@ import { pendingComment, PendingComment } from './comment-tool'
 import { usePendingComment } from './hooks'
 import { richTextToPlaintext } from './rich-text'
 import { anchorPagePoint, openThreadId } from './thread-state'
-import './canvas.css'
 
 /** @public */
 export interface CanvasCommentsProps {

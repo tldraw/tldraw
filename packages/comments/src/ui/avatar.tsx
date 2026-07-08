@@ -1,5 +1,3 @@
-import './comments.css'
-
 /** @public */
 export interface AvatarProps {
 	name: string

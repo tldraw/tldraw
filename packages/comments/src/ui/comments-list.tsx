@@ -1,7 +1,6 @@
 import { ReactNode } from 'react'
 import { Avatar } from './avatar'
 import { Byline } from './byline'
-import './comments.css'
 
 /** @public */
 export interface CommentListItemProps {

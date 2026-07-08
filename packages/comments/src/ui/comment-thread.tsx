@@ -1,7 +1,6 @@
 import { ReactNode } from 'react'
 import { CommentCard, CommentCardProps } from './comment-card'
 import { CommentComposer, CommentComposerProps } from './comment-composer'
-import './comments.css'
 
 /** @public */
 export interface CommentThreadProps {

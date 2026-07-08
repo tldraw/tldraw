@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { renderHtmlFromRichText, TLRichText, useEditor } from 'tldraw'
-import '../ui/comments.css'
 
 /** @public */
 export interface CommentBodyProps {

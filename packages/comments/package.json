@@ -29,17 +29,22 @@
 	"types": "./.tsbuild/index.d.ts",
 	"type": "module",
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
-	"files": [],
+	"files": [
+		"comments.css"
+	],
 	"exports": {
 		".": "./src/index.ts",
 		"./server": "./src/server.ts",
-		"./*.css": "./src/*.css"
+		"./*.css": "./*.css"
 	},
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"predev": "node ./scripts/copy-css-files.mjs",
+		"dev": "chokidar './src/{ui/comments,canvas/canvas}.css' -c 'node ./scripts/copy-css-files.mjs'",
+		"prebuild": "node ./scripts/copy-css-files.mjs",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
@@ -49,6 +54,7 @@
 	"devDependencies": {
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
+		"chokidar-cli": "^3.0.0",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"typescript": "^5.8.3",
