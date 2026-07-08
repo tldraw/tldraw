@@ -2,15 +2,12 @@
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-	atom,
 	createComment,
 	createCommentThread,
 	Editor,
 	TLComment,
-	TLCommentAnchor,
 	TLCommentThread,
 	TldrawUiIcon,
-	TLShapeId,
 	toRichText,
 	useContainer,
 	useEditor,
@@ -24,10 +21,8 @@ import { CommentBody } from './comment-body'
 import { pendingComment, PendingComment } from './comment-tool'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
 import { richTextToPlaintext } from './rich-text'
+import { anchorPagePoint, openThreadId } from './thread-state'
 import './canvas.css'
-
-/** The id of the one open thread (only one popover is open at a time), or null when all closed. */
-const openThreadId = atom<string | null>('openThreadId', null)
 
 /**
  * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
@@ -54,24 +49,6 @@ export interface CanvasCommentsProps {
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 const initialOf = (name: string): string => (name.trim()[0] ?? '?').toUpperCase()
-
-/** Where a thread's pin sits on the page, for each anchor kind. Null hides the pin. */
-function anchorPagePoint(editor: Editor, anchor: TLCommentAnchor): { x: number; y: number } | null {
-	switch (anchor.type) {
-		case 'shape':
-		case 'text-range': {
-			const bounds = editor.getShapePageBounds(anchor.shapeId as TLShapeId)
-			if (!bounds) return null
-			return { x: bounds.maxX, y: bounds.minY }
-		}
-		case 'point':
-			return { x: anchor.x, y: anchor.y }
-		case 'region':
-			return { x: anchor.x + anchor.w, y: anchor.y }
-		case 'page':
-			return null
-	}
-}
 
 function toCardProps(comment: TLComment, props: CanvasCommentsProps): CommentCardProps {
 	return {

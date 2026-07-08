@@ -194,8 +194,15 @@
 		0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
+/* resolved: a solid, muted grey (the default --tl-color-muted-1 is 10% black, so it goes
+   translucent over the canvas). Dark mode gets its own grey — the token's dark value is near-black. */
 .cmt-pin--resolved {
-	background: var(--tl-color-muted-1);
+	background: #dfe0e1;
+	color: hsl(214, 8%, 42%);
+}
+.tl-theme__dark .cmt-pin--resolved {
+	background: hsl(240, 5%, 30%);
+	color: hsl(0, 0%, 72%);
 }
 
 /* thread */
@@ -427,4 +434,73 @@
 	width: 100%;
 	background: var(--tl-color-muted-2);
 	border-color: transparent;
+}
+
+/* comments list — thread summaries, one per row (used by the canvas sidebar) */
+.cmt-list {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	min-height: 0;
+}
+.cmt-list__header {
+	flex-shrink: 0;
+	padding: 12px 14px;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--tl-color-text-3);
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+.cmt-list__items {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+}
+.cmt-list__empty {
+	padding: 20px 14px;
+	color: var(--tl-color-text-3);
+	font-size: 13px;
+}
+.cmt-list__item {
+	display: flex;
+	gap: 10px;
+	width: 100%;
+	padding: 12px 14px;
+	border: none;
+	border-bottom: 1px solid var(--tl-color-divider);
+	background: transparent;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+.cmt-list__item:hover {
+	background: var(--tl-color-muted-2);
+}
+.cmt-list__item--selected {
+	background: var(--tl-color-muted-1);
+}
+.cmt-list__item[data-resolved] {
+	opacity: 0.55;
+}
+.cmt-list__item-body {
+	flex: 1;
+	min-width: 0;
+}
+.cmt-list__item-preview {
+	margin-top: 2px;
+	font-size: 13px;
+	color: var(--tl-color-text-1);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+}
+.cmt-list__item-count {
+	flex-shrink: 0;
+	align-self: center;
+	font-size: 12px;
+	color: var(--tl-color-text-3);
 }

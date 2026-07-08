@@ -5,6 +5,7 @@ export { CommentComposer, type CommentComposerProps } from './ui/comment-compose
 export { CommentPin, type CommentPinProps } from './ui/comment-pin'
 export { CommentText, type CommentTextProps } from './ui/comment-text'
 export { CommentThread, type CommentThreadProps } from './ui/comment-thread'
+export { CommentsList, type CommentListItemProps, type CommentsListProps } from './ui/comments-list'
 export { CommentsSidebar, type CommentsSidebarProps } from './ui/comments-sidebar'
 export { EmptyState, type EmptyStateProps } from './ui/empty-state'
 export { formatRelativeTime } from './ui/format-time'

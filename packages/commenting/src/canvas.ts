@@ -12,5 +12,12 @@ export {
 	type PendingComment,
 } from './canvas/comment-tool'
 export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-overlay'
-export { useCommentThreads, usePendingComment, useThreadComments } from './canvas/hooks'
+export { CanvasCommentsSidebar, type CanvasCommentsSidebarProps } from './canvas/comments-sidebar'
+export {
+	useComments,
+	useCommentThreads,
+	usePendingComment,
+	useThreadComments,
+} from './canvas/hooks'
 export { richTextToPlaintext } from './canvas/rich-text'
+export { anchorPagePoint, focusThread, openThreadId } from './canvas/thread-state'

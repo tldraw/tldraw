@@ -1,4 +1,4 @@
-import { CanvasComments } from '@tldraw/commenting/canvas'
+import { CanvasComments, CanvasCommentsSidebar } from '@tldraw/commenting/canvas'
 import { useCallback } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -38,5 +38,10 @@ export function CommentsOnCanvas() {
 		[currentUserId, currentUserName, presenceNames]
 	)
 
-	return <CanvasComments currentUserId={currentUserId} resolveName={resolveName} />
+	return (
+		<>
+			<CanvasComments currentUserId={currentUserId} resolveName={resolveName} />
+			<CanvasCommentsSidebar resolveName={resolveName} />
+		</>
+	)
 }

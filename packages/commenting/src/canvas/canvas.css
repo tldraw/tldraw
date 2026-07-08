@@ -40,3 +40,20 @@
 .cmt-canvas-composer {
 	transform: translateY(8px);
 }
+
+/* The comments list panel — a right-side surface shown while the comment tool is active. Below
+   the popover layer, so an open thread still draws over it. */
+.cmt-canvas-sidebar {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	bottom: 8px;
+	width: 280px;
+	z-index: var(--tl-layer-panels);
+	pointer-events: auto;
+	display: flex;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-4);
+	box-shadow: var(--tl-shadow-2);
+	overflow: hidden;
+}
