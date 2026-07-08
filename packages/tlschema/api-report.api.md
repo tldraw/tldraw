@@ -63,6 +63,9 @@ export const arrowShapeVersions: {
     readonly ExtractBindings: "com.tldraw.shape.arrow/4";
 };
 
+// @public (undocumented)
+export function assertUniquePluginIds(plugins: readonly TLSchemaPlugin[]): void;
+
 // @public
 export const assetIdValidator: T.Validator<TLAssetId>;
 
@@ -745,6 +748,9 @@ export const lineShapeProps: RecordProps<TLLineShape>;
 
 // @public
 export const LineShapeSplineStyle: EnumStyleProp<"cubic" | "line">;
+
+// @public
+export function mergeSchemaPluginRecords(plugins: readonly TLSchemaPlugin[] | undefined, existing?: Record<string, CustomRecordInfo>): Record<string, CustomRecordInfo> | undefined;
 
 // @public
 export const noteShapeMigrations: TLPropsMigrations;
@@ -1692,6 +1698,12 @@ export type TLRichText = T.TypeOf<typeof richTextValidator>;
 
 // @public
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
+
+// @public
+export interface TLSchemaPlugin {
+    id: string;
+    records?: Record<string, CustomRecordInfo>;
+}
 
 // @public
 export interface TLScribble {

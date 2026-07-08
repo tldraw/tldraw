@@ -139,6 +139,11 @@ export {
 	type CustomRecordInfo,
 } from './records/TLCustomRecord'
 export {
+	assertUniquePluginIds,
+	mergeSchemaPluginRecords,
+	type TLSchemaPlugin,
+} from './TLSchemaPlugin'
+export {
 	DocumentRecordType,
 	isDocument,
 	TLDOCUMENT_ID,
