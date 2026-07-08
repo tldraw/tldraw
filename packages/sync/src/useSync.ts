@@ -42,6 +42,8 @@ import {
 	useEvent,
 	useReactiveEvent,
 	useRefState,
+	useShallowArrayIdentity,
+	useShallowObjectIdentity,
 	useTLSchemaFromUtils,
 	useValue,
 } from 'tldraw'
@@ -196,29 +198,31 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const resolvedThemes = resolveThemes(themes)
 	registerColorsFromThemes(resolvedThemes)
 	registerFontsFromThemes(resolvedThemes)
+	const stablePlugins = useShallowArrayIdentity(plugins)
+	const stableSchemaOpts = useShallowObjectIdentity(schemaOpts)
 	const schemaOptsWithPlugins = useMemo((): TLStoreSchemaOptions => {
-		if (!plugins?.length) return schemaOpts
-		if ('schema' in schemaOpts && schemaOpts.schema) {
+		if (!stablePlugins?.length) return stableSchemaOpts
+		if ('schema' in stableSchemaOpts && stableSchemaOpts.schema) {
 			// A prebuilt schema was passed in: it must already contain the plugin records.
-			for (const plugin of plugins) {
+			for (const plugin of stablePlugins) {
 				for (const typeName of Object.keys(plugin.records ?? {})) {
-					if (!(typeName in schemaOpts.schema.types)) {
+					if (!(typeName in stableSchemaOpts.schema.types)) {
 						throw new Error(
 							`useSync: schema is missing record type '${typeName}' from plugin '${plugin.id}'`
 						)
 					}
 				}
 			}
-			return schemaOpts
+			return stableSchemaOpts
 		}
 		return {
-			...schemaOpts,
+			...stableSchemaOpts,
 			records: mergeSchemaPluginRecords(
-				plugins,
-				'records' in schemaOpts ? schemaOpts.records : undefined
+				stablePlugins,
+				'records' in stableSchemaOpts ? stableSchemaOpts.records : undefined
 			),
 		}
-	}, [plugins, schemaOpts])
+	}, [stablePlugins, stableSchemaOpts])
 	const schema = useTLSchemaFromUtils(schemaOptsWithPlugins)
 
 	const getUserPresence = useReactiveEvent(
