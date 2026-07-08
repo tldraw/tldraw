@@ -169,6 +169,16 @@ Plugin records are still document records, so ordinary [migration](/docs/persist
 - **Evolve records by extending the migration sequence.** When a plugin's record shape needs to change, add a new step to that plugin's migration sequence rather than editing the identity guard migration or changing the record type's validator in place.
 - **Deploy the server first.** As with any sync schema change, roll out the updated server before the updated client so there's never a window where clients speak a schema the server doesn't recognize.
 
+## Licensing
+
+Some first-party plugins, including comments, require a tldraw license that has the plugin enabled. Pass your license key to the `Tldraw` component via the `licenseKey` prop as usual - there's no separate plugin key.
+
+Without the entitlement, the plugin's UI and behavior are disabled everywhere, including local development, and a console warning explains why. Evaluation licenses that include the plugin work until they expire.
+
+The plugin's record types stay registered even when the plugin is disabled, so documents containing plugin data - synced comments, for example - load safely.
+
+Contact sales@tldraw.com to add a plugin to your license or to get an evaluation key.
+
 ## Writing your own plugin
 
 A plugin for your own record types follows the same shape as `commentsPlugin`. On the client, bundle your `records`, any `shapeUtils` or `tools` that operate on them, and the components that render them:

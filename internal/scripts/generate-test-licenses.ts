@@ -108,6 +108,15 @@ async function main() {
 			),
 		},
 		{
+			name: 'Valid Annual License with comments plugin',
+			info: createLicenseInfo(
+				'test-annual-comments',
+				['localhost'],
+				FLAGS.ANNUAL_LICENSE | FLAGS.COMMENTS_PLUGIN,
+				getDateOffset(60) // 2 months future
+			),
+		},
+		{
 			name: 'Valid Perpetual License',
 			info: createLicenseInfo(
 				'test-perpetual-valid',
