@@ -117,6 +117,10 @@ export interface TldrawBaseProps
 	 * Plugins to extend the editor with custom shapes, tools, UI components, overrides, and
 	 * store setup logic.
 	 *
+	 * A plugin's component contributions (e.g. an `InFrontOfTheCanvas` overlay) render even when
+	 * `hideUi` is true, the same as a user-provided `InFrontOfTheCanvas`. `hideUi` only hides
+	 * tldraw's own default UI, not host-installed content like plugin overlays.
+	 *
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
 	 */
 	plugins?: readonly TldrawPlugin[]
