@@ -1,3 +1,4 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 // eslint-disable-next-line tldraw/no-export-star
 export * from './records'
 export {
@@ -40,3 +41,9 @@ export { Reaction, type ReactionProps } from './ui/reaction'
 export { Reactions } from './ui/reactions'
 export { renderMarkdown } from './ui/render-markdown'
 export { SendButton, type SendButtonProps } from './ui/send-button'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

@@ -299,7 +299,7 @@ async function checkLibraryContents({
 				'registerTldrawLibraryVersion(',
 				'(globalThis as any).TLDRAW_LIBRARY_NAME,',
 				'(globalThis as any).TLDRAW_LIBRARY_VERSION,',
-				'(globalThis as any).TLDRAW_LIBRARY_NAME',
+				'(globalThis as any).TLDRAW_LIBRARY_MODULES',
 				')',
 			].join('\n')
 

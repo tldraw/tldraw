@@ -1,15 +1,45 @@
 {
 	"extends": "../../internal/config/tsconfig.base.json",
-	"include": ["src", "e2e", "./vite.config.ts", "**/*.json"],
-	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*", "./scripts/legacy-translations"],
-	"compilerOptions": { "outDir": "./.tsbuild" },
+	"include": [
+		"src",
+		"e2e",
+		"./vite.config.ts",
+		"**/*.json"
+	],
+	"exclude": [
+		"node_modules",
+		"dist",
+		"**/*.css",
+		".tsbuild*",
+		"./scripts/legacy-translations"
+	],
+	"compilerOptions": {
+		"outDir": "./.tsbuild"
+	},
 	"references": [
-		{ "path": "../../packages/assets" },
-		{ "path": "../../packages/mermaid" },
-		{ "path": "../../packages/sync" },
-		{ "path": "../../packages/state" },
-		{ "path": "../../packages/tldraw" },
-		{ "path": "../../packages/dotcom-shared" },
-		{ "path": "../../packages/driver" }
+		{
+			"path": "../../packages/assets"
+		},
+		{
+			"path": "../../packages/comments"
+		},
+		{
+			"path": "../../packages/dotcom-shared"
+		},
+		{
+			"path": "../../packages/driver"
+		},
+		{
+			"path": "../../packages/mermaid"
+		},
+		{
+			"path": "../../packages/state"
+		},
+		{
+			"path": "../../packages/sync"
+		},
+		{
+			"path": "../../packages/tldraw"
+		}
 	]
 }
