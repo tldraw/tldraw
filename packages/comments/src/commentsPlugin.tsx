@@ -1,4 +1,4 @@
-import { Editor, TldrawPlugin, useEditor } from 'tldraw'
+import { Editor, FLAGS, TldrawPlugin, useEditor } from 'tldraw'
 import { commentToolComponents, commentToolOverrides, commentTools } from './canvas/comment-tool'
 import { CanvasComments } from './canvas/comments-overlay'
 import { CanvasCommentsSidebar } from './canvas/comments-sidebar'
@@ -29,6 +29,7 @@ export function commentsPlugin(options: CommentsPluginOptions = {}): TldrawPlugi
 	return {
 		id: 'tldraw.comments',
 		records: commentSchemaRecords,
+		requiredLicenseFlags: FLAGS.COMMENTS_PLUGIN,
 		tools: commentTools,
 		overrides: commentToolOverrides,
 		components: {
