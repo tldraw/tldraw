@@ -110,6 +110,50 @@ test.describe('when dragging a tool from the toolbar', () => {
 		})
 	})
 
+	test('long press on the toolbar re-bases the drag origin', async ({
+		page,
+		toolbar,
+		isMobile,
+	}) => {
+		if (isMobile) return
+
+		const { rectangle } = toolbar.tools
+
+		await rectangle.hover()
+		const box = await rectangle.boundingBox()
+		if (!box) throw new Error('no bounding box for rectangle tool')
+		const center = { x: box.x + box.width / 2, y: box.y + box.height / 2 }
+
+		await test.step('slow drift during a long press does not create a shape', async () => {
+			// Press and hold, then drift by small steps that each stay under the drag
+			// threshold, pausing longer than the long-press duration between them so the
+			// drag origin re-bases. The total drift is well past the threshold, but because
+			// it's slow it must not accumulate into a drag-to-create.
+			await page.mouse.move(center.x, center.y)
+			await page.mouse.down()
+			for (const step of [3, 6, 9, 12]) {
+				await page.waitForTimeout(700)
+				await page.mouse.move(center.x + step, center.y)
+			}
+			await page.mouse.up()
+
+			expect(await getAllShapeTypes(page)).toHaveLength(0)
+		})
+
+		await test.step('a deliberate drag after pausing still creates a shape', async () => {
+			// Second thoughts: press, hold past the long-press duration, then commit to a
+			// real drag. The deliberate motion must still create a shape.
+			await page.mouse.move(center.x, center.y)
+			await page.mouse.down()
+			await page.waitForTimeout(700)
+			await page.mouse.move(center.x, center.y - 100)
+			await page.mouse.move(center.x + 100, center.y - 200)
+			await page.mouse.up()
+
+			await expect.poll(async () => await getAllShapeTypes(page)).toEqual(['geo'])
+		})
+	})
+
 	test('dragging from overflow toolbar creates shapes', async ({ page, toolbar }) => {
 		// Open the overflow menu
 		await toolbar.moreToolsButton.click()

@@ -8,7 +8,7 @@ import {
 	VecModel,
 } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
@@ -296,6 +296,8 @@ function useDraggableEvents(
 	onSelect: TLUiToolItem['onSelect']
 ) {
 	const editor = useEditor()
+	const longPressTimeoutRef = useRef<number | undefined>(undefined)
+
 	const events = useMemo(() => {
 		let state = { name: 'idle' } as
 			| {
@@ -304,6 +306,7 @@ function useDraggableEvents(
 			| {
 					name: 'pointing'
 					screenSpaceStart: VecModel
+					currentScreenPoint: VecModel
 			  }
 			| {
 					name: 'dragging'
@@ -313,26 +316,57 @@ function useDraggableEvents(
 					name: 'dragged'
 			  }
 
+		function clearLongPressTimeout() {
+			if (longPressTimeoutRef.current !== undefined) {
+				clearTimeout(longPressTimeoutRef.current)
+				longPressTimeoutRef.current = undefined
+			}
+		}
+
+		// While the pointer is held down without dragging, periodically re-base the drag
+		// origin to the pointer's current position. This way the slow drift of a resting
+		// finger or stylus during a long press never accumulates into the drag distance, so
+		// it can't spawn a shape by accident. A deliberate drag still works: it covers the
+		// threshold within a single interval, before the origin is re-based.
+		function scheduleLongPressRebase() {
+			clearLongPressTimeout()
+			longPressTimeoutRef.current = editor.timers.setTimeout(() => {
+				if (state.name !== 'pointing') return
+				state = {
+					name: 'pointing',
+					screenSpaceStart: state.currentScreenPoint,
+					currentScreenPoint: state.currentScreenPoint,
+				}
+				scheduleLongPressRebase()
+			}, editor.options.longPressDurationMs)
+		}
+
 		function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+			const point = { x: e.clientX, y: e.clientY }
 			state = {
 				name: 'pointing',
-				screenSpaceStart: { x: e.clientX, y: e.clientY },
+				screenSpaceStart: point,
+				currentScreenPoint: point,
 			}
 
 			e.currentTarget.setPointerCapture(e.pointerId)
+			scheduleLongPressRebase()
 		}
 
 		function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
 			if ((e as any).isSpecialRedispatchedEvent) return
 
 			if (state.name === 'pointing') {
+				state.currentScreenPoint = { x: e.clientX, y: e.clientY }
 				const distanceSq = Vec.Dist2(state.screenSpaceStart, { x: e.clientX, y: e.clientY })
+				const isCoarsePointer = e.pointerType !== 'mouse'
 				if (
 					distanceSq >
-					(editor.getInstanceState().isCoarsePointer
+					(isCoarsePointer
 						? editor.options.uiCoarseDragDistanceSquared
 						: editor.options.uiDragDistanceSquared)
 				) {
+					clearLongPressTimeout()
 					const screenSpaceStart = state.screenSpaceStart
 					state = {
 						name: 'dragging',
@@ -373,6 +407,7 @@ function useDraggableEvents(
 		function handlePointerUp(e: React.PointerEvent<HTMLButtonElement>) {
 			if ((e as any).isSpecialRedispatchedEvent) return
 
+			clearLongPressTimeout()
 			e.currentTarget.releasePointerCapture(e.pointerId)
 
 			editor.dispatch({
@@ -384,6 +419,7 @@ function useDraggableEvents(
 		}
 
 		function handleClick() {
+			clearLongPressTimeout()
 			if (state.name === 'dragging' || state.name === 'dragged') {
 				state = { name: 'idle' }
 				return true
@@ -401,6 +437,14 @@ function useDraggableEvents(
 			onClick: handleClick,
 		}
 	}, [onDragStart, editor, onSelect])
+
+	useEffect(() => {
+		return () => {
+			if (longPressTimeoutRef.current !== undefined) {
+				clearTimeout(longPressTimeoutRef.current)
+			}
+		}
+	}, [])
 
 	return events
 }
