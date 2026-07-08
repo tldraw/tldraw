@@ -66,7 +66,7 @@ export const commentToolOverrides: TLUiOverrides = {
 	},
 }
 
-/** A Toolbar with the comment tool added ahead of the default tools. Use as-is, or build your
+/** A Toolbar with the comment tool added after the default tools. Use as-is, or build your
  *  own toolbar with `tools.comment`. */
 export const commentToolComponents: TLComponents = {
 	Toolbar: (props) => {
@@ -74,8 +74,8 @@ export const commentToolComponents: TLComponents = {
 		const isSelected = useIsToolSelected(tools.comment)
 		return (
 			<DefaultToolbar {...props}>
-				<TldrawUiMenuItem {...tools.comment} isSelected={isSelected} />
 				<DefaultToolbarContent />
+				<TldrawUiMenuItem {...tools.comment} isSelected={isSelected} />
 			</DefaultToolbar>
 		)
 	},
