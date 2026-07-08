@@ -1,7 +1,28 @@
-import { CommentPin, CommentsSidebar } from '@tldraw/commenting'
+import { CommentListItemProps, CommentPin, CommentsList } from '@tldraw/commenting'
 import { Tldraw } from 'tldraw'
 import { commentToolComponents, commentToolOverrides, commentTools } from '../../comment-tool'
 import './canvas-with-comments.css'
+
+const NOW = Date.now()
+const HOUR = 3_600_000
+const ago = (ms: number) => new Date(NOW - ms).toISOString()
+
+const items: CommentListItemProps[] = [
+	{
+		id: '1',
+		author: 'Ada Lovelace',
+		preview: 'Should this button be primary?',
+		date: ago(2 * HOUR),
+		count: 2,
+		selected: true,
+	},
+	{
+		id: '2',
+		author: 'Grace Hopper',
+		preview: 'Spacing looks off on mobile.',
+		date: ago(HOUR),
+	},
+]
 
 export interface CanvasWithCommentsProps {
 	/** When true: no comment pins, and the sidebar shows its empty state. */
@@ -10,8 +31,8 @@ export interface CanvasWithCommentsProps {
 
 /**
  * An editing context with comments: the real tldraw editor with comment pins overlaid
- * and the comments sidebar. Responsive via container queries — the sidebar docks on
- * wide viewports and collapses on narrow ones. `empty` shows the no-comments state.
+ * and the comments list. Responsive via container queries — the list docks on wide
+ * viewports and collapses on narrow ones. `empty` shows the no-comments state.
  */
 export function CanvasWithComments({ empty }: CanvasWithCommentsProps) {
 	return (
@@ -35,7 +56,11 @@ export function CanvasWithComments({ empty }: CanvasWithCommentsProps) {
 					)}
 				</div>
 				<div className="scene__sidebar">
-					<CommentsSidebar empty={empty} />
+					<CommentsList
+						items={empty ? [] : items}
+						header="Comments"
+						empty="No comments yet. Start the conversation."
+					/>
 				</div>
 			</div>
 		</div>

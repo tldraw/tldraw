@@ -80,11 +80,6 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			control: 'text',
 		},
 	},
-	'sketchbooks/comments/comments-sidebar.sketchbook.tsx': {
-		empty: {
-			control: 'boolean',
-		},
-	},
 	'sketchbooks/comments/empty-state.sketchbook.tsx': {
 		message: {
 			control: 'text',

@@ -305,65 +305,6 @@
 	line-height: 1.4;
 }
 
-/* sidebar — the full comments panel */
-.cmt-sidebar {
-	display: flex;
-	flex-direction: column;
-	width: 320px;
-	height: 480px;
-	background: var(--tl-color-background);
-	border: 1px solid var(--tl-color-divider);
-	border-radius: 12px;
-	overflow: hidden;
-}
-
-.cmt-sidebar__header {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 12px 16px;
-	border-bottom: 1px solid var(--tl-color-divider);
-}
-
-.cmt-sidebar__title {
-	font-weight: 600;
-	font-size: 14px;
-	color: var(--tl-color-text-1);
-}
-
-.cmt-sidebar__count {
-	font-size: 11px;
-	color: var(--tl-color-text-3);
-	background: var(--tl-color-muted-2);
-	padding: 1px 7px;
-	border-radius: 999px;
-}
-
-.cmt-sidebar__body {
-	flex: 1;
-	overflow-y: auto;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	padding: 12px;
-}
-
-.cmt-sidebar__body:has(.cmt-empty) {
-	align-items: center;
-	justify-content: center;
-}
-
-.cmt-sidebar__footer {
-	padding: 12px;
-	border-top: 1px solid var(--tl-color-divider);
-}
-
-/* inside the sidebar, the cards and composer fill the panel width */
-.cmt-sidebar .cmt-card,
-.cmt-sidebar .cmt-composer {
-	width: 100%;
-}
-
 /* a comment thread: an elevated panel — the same surface treatment as the toolbar — holding a
    header, an optional resolved banner, the comments, and a reply composer */
 .cmt-thread {

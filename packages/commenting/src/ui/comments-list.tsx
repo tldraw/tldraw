@@ -32,7 +32,7 @@ export interface CommentsListProps {
 /**
  * A scrollable list of comment threads — each an avatar, byline, and a one-line preview.
  * Presentational: you supply the items (already summarised) and an `onSelect` handler; the canvas
- * `CommentsSidebar` wires it to the store, but a consumer can build their own list from this.
+ * `CanvasCommentsSidebar` wires it to the store, but a consumer can build their own list from this.
  */
 export function CommentsList({ items, onSelect, header, empty, renderItem }: CommentsListProps) {
 	return (
