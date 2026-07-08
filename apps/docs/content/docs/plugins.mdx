@@ -89,7 +89,7 @@ interface CommentsPluginOptions {
 
 `user` resolves the identity used to author new comments. By default it falls back to the editor's user preferences identity, which always exists - including a locally generated, anonymous id for a solo session. **This default is not auth-gated.** If you want to restrict who can compose comments in your app, pass your own `user` function and return `null` to disable the composer for a given editor state. If you're using tldraw sync, the server additionally gates comment writes per session (see below), so client-side gating is about UX, not security.
 
-`components` lets you override the pin, thread, or composer components while keeping the rest of the default UI.
+`components` lets you override the pin or composer components while keeping the rest of the default UI. The thread popover is rendered by the pin component, so overriding the pin also replaces the popover.
 
 ### Reading and writing comments
 
