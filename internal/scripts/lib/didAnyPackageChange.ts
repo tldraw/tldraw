@@ -69,13 +69,17 @@ type Diff =
 // patch release. Ignore them for the `tldraw` package so that docs-only patches
 // don't trigger a new SDK version. Other packages ship a hand-authored DOCS.md
 // as real source, so we only skip these for `tldraw`.
-const GENERATED_DOCS_FILES = new Set(['DOCS.md', 'RELEASE_NOTES.md'])
+//
+// `generate-tldraw-package-docs.ts` writes these files to the package root, so
+// in the tarball they live at exactly `package/<name>` (tarball entry paths are
+// prefixed with `package/`). Match the full path rather than the basename so a
+// same-named file in some other folder still counts as a real change.
+const GENERATED_DOCS_FILES = new Set(['package/DOCS.md', 'package/RELEASE_NOTES.md'])
 const GENERATED_DOCS_PACKAGE = 'tldraw'
 
 function isGeneratedDocsFile(packageName: string, filePath: string) {
 	if (packageName !== GENERATED_DOCS_PACKAGE) return false
-	// Tarball entry paths are prefixed with `package/`, e.g. `package/DOCS.md`.
-	return GENERATED_DOCS_FILES.has(filePath.split('/').pop()!)
+	return GENERATED_DOCS_FILES.has(filePath)
 }
 
 function getManifestFirstDiff(
