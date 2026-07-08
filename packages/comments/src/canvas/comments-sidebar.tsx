@@ -45,6 +45,13 @@ export function CanvasCommentsSidebar({
 	const currentPageId = useValue('page id', () => editor.getCurrentPageId(), [editor])
 	const activeTool = useValue('tool id', () => editor.getCurrentToolId(), [editor])
 	const openId = useValue('open thread', () => openThreadId.get(), [])
+	// `resolveName` may read reactive state (e.g. live presence); wrap it in `useValue` so a signal
+	// read inside it is tracked and a stale name doesn't linger until an unrelated re-render.
+	const authorNames = useValue(
+		'thread author names',
+		() => new Map(threads.map((thread) => [thread.id, resolveName(thread.createdBy)])),
+		[resolveName, threads]
+	)
 
 	if (!tools.includes(activeTool)) return null
 
@@ -65,7 +72,7 @@ export function CanvasCommentsSidebar({
 			if (first) preview = renderPreview ? renderPreview(first) : richTextToPlaintext(first.body)
 			return {
 				id: thread.id,
-				author: resolveName(thread.createdBy),
+				author: authorNames.get(thread.id) ?? '',
 				preview,
 				date: new Date((first ?? thread).createdAt).toISOString(),
 				resolved: thread.resolved != null,

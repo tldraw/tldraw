@@ -33,9 +33,13 @@ const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 const initialOf = (name: string): string => (name.trim()[0] ?? '?').toUpperCase()
 
-function toCardProps(comment: TLComment, props: CanvasCommentsProps): CommentCardProps {
+function toCardProps(
+	comment: TLComment,
+	author: string,
+	props: CanvasCommentsProps
+): CommentCardProps {
 	return {
-		author: props.resolveName(comment.authorId),
+		author,
 		body: props.renderBody ? props.renderBody(comment) : <CommentBody richText={comment.body} />,
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === props.currentUserId,
@@ -111,6 +115,28 @@ function ThreadPin({
 			return pagePoint ? editor.pageToViewport(pagePoint) : null
 		},
 		[editor, thread.anchor, thread.pageId]
+	)
+
+	// `resolveName` may read reactive state (e.g. live presence); wrap every call in `useValue` so a
+	// signal read inside it is tracked and a stale name doesn't linger until an unrelated re-render.
+	const creatorName = useValue('thread creator name', () => resolveName(thread.createdBy), [
+		resolveName,
+		thread.createdBy,
+	])
+	const resolvedByName = useValue(
+		'thread resolved-by name',
+		() => (thread.resolved ? resolveName(thread.resolved.by) : undefined),
+		[resolveName, thread.resolved?.by]
+	)
+	const currentUserName = useValue(
+		'current user name',
+		() => (currentUserId ? resolveName(currentUserId) : ''),
+		[resolveName, currentUserId]
+	)
+	const commentAuthorNames = useValue(
+		'comment author names',
+		() => comments.map((c) => resolveName(c.authorId)),
+		[resolveName, comments]
 	)
 
 	if (!point) return null
@@ -234,9 +260,7 @@ function ThreadPin({
 		</>
 	)
 
-	const pinContent = renderPinContent
-		? renderPinContent(thread, comments)
-		: initialOf(resolveName(thread.createdBy))
+	const pinContent = renderPinContent ? renderPinContent(thread, comments) : initialOf(creatorName)
 
 	return (
 		<div
@@ -258,12 +282,12 @@ function ThreadPin({
 						header="Thread"
 						headerActions={headerActions}
 						renderComment={renderComment}
-						comments={comments.map((c) => toCardProps(c, props))}
-						resolvedBy={thread.resolved ? resolveName(thread.resolved.by) : undefined}
+						comments={comments.map((c, i) => toCardProps(c, commentAuthorNames[i], props))}
+						resolvedBy={resolvedByName}
 						composer={
 							currentUserId && !thread.resolved
 								? {
-										author: resolveName(currentUserId),
+										author: currentUserName,
 										placeholder: 'Reply…',
 										value: reply,
 										onChange: setReply,
@@ -293,6 +317,13 @@ function PendingComposer({
 		editor,
 		pending.point,
 	])
+	// `resolveName` may read reactive state (e.g. live presence); wrap it in `useValue` so a signal
+	// read inside it is tracked and a stale name doesn't linger until an unrelated re-render.
+	const currentUserName = useValue(
+		'pending composer author name',
+		() => (currentUserId ? resolveName(currentUserId) : ''),
+		[resolveName, currentUserId]
+	)
 
 	// Dismiss on a click anywhere outside the composer (capture-phase, ahead of stopPropagation).
 	useEffect(() => {
@@ -341,7 +372,7 @@ function PendingComposer({
 			}}
 		>
 			<CommentComposer
-				author={currentUserId ? resolveName(currentUserId) : ''}
+				author={currentUserName}
 				placeholder="Add a comment…"
 				value={text}
 				onChange={setText}
