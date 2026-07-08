@@ -166,10 +166,13 @@ Roughly **5–7 person-weeks** for one person familiar with the codebase:
 
 The dead-code cleanup and the probe app are independently shippable this week.
 
+## Decided
+
+- **Same-turn exec chains**: acceptable — render multiple canvases for now, as today. If it ever needs collapsing, `widgetSessionId = lineageId` does it host-side once hosts ship it; policy, not architecture.
+- **User edits on older versions**: acceptable that the model discovers them only when forking from that canvas (or via a best-effort context note). The case that matters — the user edits the *most recent* canvas — is covered twice: best-effort awareness via the newest widget's `updateModelContext` slot (per-host reliability measured by the probe), and guaranteed correctness via server-side base resolution — the next exec forks from the canvas DO's latest state, user edits included, whether or not the model ever saw the note.
+
 ## Open questions
 
-- **Same-turn exec chains**: a model building iteratively in 3 exec calls produces 3 versions and 3 views in one turn (as today). Acceptable as history? If not, `widgetSessionId = lineageId` collapses chains host-side when hosts ship it — policy, not architecture. Tool instructions should meanwhile encourage one well-formed script per user request.
-- **Surfacing user edits on older versions**: the advisory context note names the edited canvasId, but if the host drops it, the model only discovers edits when it forks from that canvas. Is that acceptable, or should `get_canvas` responses include "versions with unseen user edits" hints from the lineage?
 - Which hosts allow direct iframe fetch to `workerOrigin` (transport rung 1), and what real widget boot latency looks like per host (probe questions 1 and 3).
 - Share pages: bearer canvasId read/write at launch (unlisted-doc posture)? Signed read-only links before promoting sharing? Is the lineage-following page worth shipping in v1 for the TUI story?
 - Storage: at what lineage depth (if any) do full snapshot copies justify switching to parent-pointer + diff behind the same read API?
