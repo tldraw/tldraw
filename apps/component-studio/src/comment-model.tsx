@@ -1,4 +1,4 @@
-import { CommentCardProps } from '@tldraw/commenting'
+import { CommentCardProps, CommentText } from '@tldraw/commenting'
 import {
 	createComment,
 	createCommentThread,
@@ -41,7 +41,7 @@ function richTextToString(rich: TLRichText): string {
 export function commentToCardProps(comment: TLComment): CommentCardProps {
 	return {
 		author: resolveUser(comment.authorId).name,
-		body: richTextToString(comment.body),
+		body: <CommentText text={richTextToString(comment.body)} />,
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === 'me',
 		edited: comment.editedAt !== null,

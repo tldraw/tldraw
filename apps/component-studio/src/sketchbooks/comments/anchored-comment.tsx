@@ -21,7 +21,9 @@ export function AnchoredComment({ thread, comments, open }: AnchoredCommentProps
 	const resolver = resolvedByName(thread)
 	return (
 		<div className="cmt-anchored">
-			<CommentPin number={comments.length} resolved={resolved} open={open} />
+			<CommentPin resolved={resolved} open={open}>
+				{comments.length}
+			</CommentPin>
 			{open && (
 				<div className="cmt-thread-popover">
 					{resolved && (

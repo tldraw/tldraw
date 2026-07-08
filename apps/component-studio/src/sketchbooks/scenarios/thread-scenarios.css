@@ -1,0 +1,14 @@
+/* a fixed stage for positioning pins and a thread popover to reproduce a canvas scenario */
+.scenario {
+	position: relative;
+	width: 440px;
+	height: 320px;
+}
+.scenario__pin,
+.scenario__thread {
+	position: absolute;
+}
+/* the open thread draws above the pins, matching the real overlay */
+.scenario__thread {
+	z-index: 1;
+}

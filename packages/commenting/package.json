@@ -18,6 +18,16 @@
 	},
 	"main": "./src/index.ts",
 	"types": "./src/index.ts",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"default": "./src/index.ts"
+		},
+		"./canvas": {
+			"types": "./src/canvas.ts",
+			"default": "./src/canvas.ts"
+		}
+	},
 	"type": "module",
 	"files": [],
 	"scripts": {
@@ -38,5 +48,8 @@
 	},
 	"engines": {
 		"node": ">=22.12.0"
+	},
+	"dependencies": {
+		"tldraw": "workspace:*"
 	}
 }

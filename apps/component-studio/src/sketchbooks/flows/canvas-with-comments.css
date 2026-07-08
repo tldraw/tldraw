@@ -49,14 +49,11 @@
 	flex-shrink: 0;
 	width: 300px;
 	border-left: 1px solid var(--tl-color-divider);
+	background: var(--tl-color-panel);
 }
 
-.scene__sidebar .cmt-sidebar {
-	width: 100%;
+.scene__sidebar .cmt-list {
 	height: 100%;
-	border: 0;
-	border-radius: 0;
-	background: var(--tl-color-panel);
 }
 
 @container (min-width: 720px) {
