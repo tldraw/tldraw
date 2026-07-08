@@ -269,7 +269,11 @@ export function Tldraw(props: TldrawProps) {
 		[_pluginOverrides, _userOverrides]
 	)
 
-	const pluginRecords = useMemo(() => mergeSchemaPluginRecords(_plugins), [_plugins])
+	const _userRecords = useShallowObjectIdentity('records' in rest ? rest.records : undefined)
+	const pluginRecords = useMemo(
+		() => mergeSchemaPluginRecords(_plugins, _userRecords),
+		[_plugins, _userRecords]
+	)
 
 	const onMountWithPlugins = useMemo(
 		() => createPluginOnMount(_plugins, onMount),

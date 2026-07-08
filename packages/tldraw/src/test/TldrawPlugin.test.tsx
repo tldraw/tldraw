@@ -1,8 +1,13 @@
 import { render } from '@testing-library/react'
+import { CustomRecordInfo } from '@tldraw/tlschema'
+import { T } from '@tldraw/validate'
 import { describe, expect, it, vi } from 'vitest'
 import { Tldraw } from '../lib/Tldraw'
 import { createPluginOnMount, mergePluginComponents, TldrawPlugin } from '../lib/TldrawPlugin'
-import { renderTldrawComponent } from './testutils/renderTldrawComponent'
+import {
+	renderTldrawComponent,
+	renderTldrawComponentWithEditor,
+} from './testutils/renderTldrawComponent'
 
 const A = () => <div data-testid="a" />
 const B = () => <div data-testid="b" />
@@ -93,5 +98,39 @@ describe('<Tldraw plugins />', () => {
 		const plugins: TldrawPlugin[] = [{ id: 'dup' }, { id: 'dup' }]
 
 		expect(() => render(<Tldraw plugins={plugins} />)).toThrow(/duplicate plugin id/i)
+	})
+})
+
+describe('<Tldraw records />', () => {
+	const userRecordConfig: CustomRecordInfo = { scope: 'document', validator: T.any }
+	const pluginRecordConfig: CustomRecordInfo = { scope: 'document', validator: T.any }
+
+	it('keeps user records alongside plugin records', async () => {
+		const plugin: TldrawPlugin = {
+			id: 'records-plugin',
+			records: { pluginRecord: pluginRecordConfig },
+		}
+
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<Tldraw records={{ userRecord: userRecordConfig }} plugins={[plugin]} onMount={onMount} />
+			),
+			{ waitForPatterns: false }
+		)
+
+		// custom record types aren't part of the default TLRecord union, so index untyped
+		const types = editor.store.schema.types as Record<string, { scope: string } | undefined>
+		expect(types.userRecord).toBeTruthy()
+		expect(types.pluginRecord).toBeTruthy()
+	})
+
+	it('keeps user records when there are no plugins', async () => {
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw records={{ userRecord: userRecordConfig }} onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+
+		const types = editor.store.schema.types as Record<string, { scope: string } | undefined>
+		expect(types.userRecord).toBeTruthy()
 	})
 })
