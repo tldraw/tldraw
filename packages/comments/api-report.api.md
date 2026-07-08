@@ -34,6 +34,14 @@ export const commentSchemaRecords: {
 };
 
 // @public
+export interface CommentsContextValue {
+    // (undocumented)
+    components: Partial<TLCommentsComponents>;
+    // (undocumented)
+    user: CommentsPluginUser | null;
+}
+
+// @public
 export function commentsPlugin(options?: CommentsPluginOptions): TldrawPlugin;
 
 // @public (undocumented)
@@ -163,6 +171,9 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
 
 // @public (undocumented)
 export type TLCommentThreadId = RecordId<TLCommentThread>;
+
+// @public (undocumented)
+export function useComments(): CommentsContextValue;
 
 // @public
 export function useCommentThreads(pageId?: TLPageId_2): TLCommentThread[];

@@ -6,6 +6,7 @@ export {
 	type CommentsPluginUser,
 	type TLCommentsComponents,
 } from './commentsPlugin'
+export { useComments, type CommentsContextValue } from './CommentsContext'
 export {
 	addComment,
 	resolveThread,

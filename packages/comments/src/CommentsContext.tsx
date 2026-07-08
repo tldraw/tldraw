@@ -2,7 +2,13 @@ import { createContext, ReactNode, useContext, useMemo } from 'react'
 import { Editor, useEditor } from 'tldraw'
 import { CommentsPluginOptions, CommentsPluginUser, TLCommentsComponents } from './types'
 
-interface CommentsContextValue {
+/**
+ * The resolved comments context value: the current user for authoring comments, and any
+ * component overrides passed to `commentsPlugin`.
+ *
+ * @public
+ */
+export interface CommentsContextValue {
 	user: CommentsPluginUser | null
 	components: Partial<TLCommentsComponents>
 }
@@ -14,7 +20,7 @@ function defaultUser(editor: Editor): CommentsPluginUser | null {
 	return id ? { id, name: editor.user.getName() } : null
 }
 
-/** @public @react */
+/** @internal @react */
 export function CommentsProvider({
 	options,
 	children,
