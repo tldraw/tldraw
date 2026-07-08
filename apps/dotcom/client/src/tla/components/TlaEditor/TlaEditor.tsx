@@ -223,16 +223,17 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	// avoiding a remount of the comments overlay) while still reading the latest app state: the
 	// current user's name from preferences, everyone else's from live presence (via the global
 	// editor ref, since `resolveName` has no editor of its own to query).
-	const commentsUser = useEvent((editor: Editor): CommentsPluginUser | null => {
-		const id = app?.userId ?? editor.user.getExternalId()
-		return id ? { id } : null
+	const commentsUser = useEvent((_editor: Editor): CommentsPluginUser | null => {
+		return app?.userId ? { id: app.userId } : null
 	})
 	const commentsResolveName = useEvent((id: string): string => {
 		if (id === app?.userId) return app.tlUser.userPreferences.get().name || 'You'
 		const currentEditor = globalEditor.get()
 		if (currentEditor) {
 			for (const presence of currentEditor.store.query.records('instance_presence').get()) {
-				if (presence.userId.replace(/^user:/, '') === id) return presence.userName || 'Someone'
+				if (presence.userId.replace(/^user:/, '') === id && presence.userName) {
+					return presence.userName
+				}
 			}
 		}
 		return 'Someone'
