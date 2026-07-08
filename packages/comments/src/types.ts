@@ -18,7 +18,11 @@ export interface TLCommentsComponents {
 export interface CommentsPluginOptions {
 	/**
 	 * Resolves the current user for authoring comments. Return null to disable composing
-	 * (existing comments stay visible). Defaults to the editor's user preferences identity.
+	 * (existing comments stay visible). Defaults to the editor's user preferences identity, which
+	 * always exists—including for anonymous local sessions (a locally generated stable id). The
+	 * default is therefore not auth-gated; pass your own user resolver returning null to hide the
+	 * composer for unauthenticated users. When using tldraw sync, the server additionally gates
+	 * comment writes per session via objectAccess.
 	 */
 	user?(editor: Editor): CommentsPluginUser | null
 	/** Override individual pieces of the default comments UI. */
