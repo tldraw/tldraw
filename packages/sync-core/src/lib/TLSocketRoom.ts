@@ -1,5 +1,11 @@
 import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
-import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
+import {
+	assertUniquePluginIds,
+	createTLSchema,
+	mergeSchemaPluginRecords,
+	TLInstancePresence,
+	TLStoreSnapshot,
+} from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
@@ -7,6 +13,11 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
+import {
+	assertSchemaIncludesPluginRecords,
+	getPluginObjectTypes,
+	TLSyncPlugin,
+} from './TLSyncPlugin'
 import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
@@ -152,6 +163,11 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	// eslint-disable-next-line tldraw/method-signature-style
 	onSessionSnapshot?: (sessionId: string, snapshot: SessionStateSnapshot) => void
+	/**
+	 * Server-side plugins. Contributes records to the derived schema, objectTypes to the object
+	 * lane, and onCommittedChanges callbacks. See {@link TLSyncPlugin}.
+	 */
+	plugins?: readonly TLSyncPlugin<R>[]
 }
 
 /**
@@ -247,6 +263,30 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		if (opts.storage && opts.initialSnapshot) {
 			throw new Error('Cannot provide both storage and initialSnapshot options')
 		}
+		const plugins = opts.plugins ?? []
+		if (plugins.length > 0) assertUniquePluginIds(plugins)
+		const objectTypes = getPluginObjectTypes(plugins, opts.objectTypes)
+		let schema: StoreSchema<R, any> = opts.schema as any
+		if (schema) {
+			assertSchemaIncludesPluginRecords(schema, plugins)
+		} else {
+			schema = createTLSchema({ records: mergeSchemaPluginRecords(plugins) }) as any
+		}
+		const pluginCallbacks = plugins.filter((p) => p.onCommittedChanges)
+		const onCommittedChanges =
+			pluginCallbacks.length > 0 || opts.onCommittedChanges
+				? (args: { diff: TLSyncForwardDiff<R>; documentClock: number }) => {
+						for (const plugin of pluginCallbacks) {
+							try {
+								plugin.onCommittedChanges!(args)
+							} catch (error) {
+								this.log?.error?.(`plugin '${plugin.id}' onCommittedChanges threw`, error)
+							}
+						}
+						opts.onCommittedChanges?.(args)
+					}
+				: undefined
+
 		const storage = opts.storage
 			? opts.storage
 			: new InMemorySyncStorage<R>({
@@ -255,7 +295,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 						opts.initialSnapshot ?? DEFAULT_INITIAL_SNAPSHOT
 					),
 					// keep the storage partition in step with the room's object lane
-					objectTypes: opts.objectTypes,
+					objectTypes,
 				})
 
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -269,9 +309,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		}
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			onPresenceChange: opts.onPresenceChange,
-			onCommittedChanges: opts.onCommittedChanges,
-			objectTypes: opts.objectTypes,
-			schema: opts.schema ?? (createTLSchema() as any),
+			onCommittedChanges,
+			objectTypes,
+			schema,
 			log: opts.log,
 			storage,
 			clientTimeout: opts.clientTimeout,
@@ -749,8 +789,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 	/**
 	 * Returns a snapshot of the object-store lane (see `objectTypes`), for persisting
-	 * object-lane records separately from the document. Same entry shape as
-	 * {@link RoomSnapshot.documents}.
+	 * object-lane records separately from the document. Same entry shape as the `documents`
+	 * field of {@link RoomSnapshot}.
 	 */
 	getCurrentObjectsSnapshot(): RoomSnapshot['documents'] {
 		if (this.storage.getObjectsSnapshot) {

@@ -9,6 +9,7 @@ import {
 } from '@tldraw/tlschema'
 import { assert, IndexKey, objectMapEntries, throttle } from '@tldraw/utils'
 import { MicrotaskNotifier } from './MicrotaskNotifier'
+import { getPluginObjectTypes, TLSyncPlugin } from './TLSyncPlugin'
 import { RoomSnapshot } from './TLSyncRoom'
 import {
 	TLSyncForwardDiff,
@@ -142,6 +143,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	constructor({
 		snapshot = DEFAULT_INITIAL_SNAPSHOT,
 		objectTypes,
+		plugins,
 		onChange,
 	}: {
 		snapshot?: RoomSnapshot
@@ -150,9 +152,11 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		 * a separate partition: excluded from `getSnapshot()`, returned by `getObjectsSnapshot()`.
 		 */
 		objectTypes?: readonly string[]
+		/** Server-side plugins contributing additional objectTypes. See {@link TLSyncPlugin}. */
+		plugins?: readonly TLSyncPlugin<any>[]
 		onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown
 	} = {}) {
-		this.objectTypes = new Set(objectTypes ?? [])
+		this.objectTypes = new Set(getPluginObjectTypes(plugins, objectTypes))
 		const maxClockValue = Math.max(
 			0,
 			...Object.values(snapshot.tombstones ?? {}),

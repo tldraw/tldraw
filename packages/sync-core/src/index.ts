@@ -54,6 +54,11 @@ export {
 	type TLSyncLog,
 } from './lib/TLSocketRoom'
 export {
+	assertSchemaIncludesPluginRecords,
+	getPluginObjectTypes,
+	type TLSyncPlugin,
+} from './lib/TLSyncPlugin'
+export {
 	TLSyncClient,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,

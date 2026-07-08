@@ -7,6 +7,7 @@ import {
 	MAX_TOMBSTONES,
 } from './InMemorySyncStorage'
 import { MicrotaskNotifier } from './MicrotaskNotifier'
+import { getPluginObjectTypes, TLSyncPlugin } from './TLSyncPlugin'
 import { RoomSnapshot } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
@@ -279,6 +280,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 		sql,
 		snapshot,
 		objectTypes,
+		plugins,
 		onChange,
 	}: {
 		sql: TLSyncSqliteWrapper
@@ -289,10 +291,12 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 		 * They share the documents' clock, tombstones, and transactions.
 		 */
 		objectTypes?: readonly string[]
+		/** Server-side plugins contributing additional objectTypes. See {@link TLSyncPlugin}. */
+		plugins?: readonly TLSyncPlugin<any>[]
 		onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown
 	}) {
 		this.sql = sql
-		this.objectTypes = new Set(objectTypes ?? [])
+		this.objectTypes = new Set(getPluginObjectTypes(plugins, objectTypes))
 		const prefix = sql.config?.tablePrefix ?? ''
 		const documentsTable = `${prefix}documents`
 		const objectsTable = `${prefix}objects`

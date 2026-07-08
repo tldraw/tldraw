@@ -21,6 +21,7 @@ import { SynchronousStorage } from '@tldraw/store';
 import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
+import { TLSchemaPlugin } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLStoreSnapshot as TLStoreSnapshot_2 } from 'tldraw';
 import { UnknownRecord } from '@tldraw/store';
@@ -30,6 +31,9 @@ export type AppendOp = [type: typeof ValueOpType.Append, value: string | unknown
 
 // @internal
 export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectDiff): T;
+
+// @internal
+export function assertSchemaIncludesPluginRecords(schema: StoreSchema<any, any>, plugins: readonly TLSyncPlugin<any>[]): void;
 
 // @internal
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
@@ -100,13 +104,17 @@ export class DurableObjectSqliteSyncWrapper implements TLSyncSqliteWrapper {
 // @internal
 export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): NetworkDiff<R> | null;
 
+// @public
+export function getPluginObjectTypes(plugins: readonly TLSyncPlugin<any>[] | undefined, extra?: readonly string[]): string[];
+
 // @internal
 export function getTlsyncProtocolVersion(): number;
 
 // @public
 export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor({ snapshot, objectTypes, onChange }?: {
+    constructor({ snapshot, objectTypes, plugins, onChange }?: {
         objectTypes?: readonly string[];
+        plugins?: readonly TLSyncPlugin<any>[];
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot;
     });
@@ -331,8 +339,9 @@ export interface SessionStateSnapshot {
 
 // @public
 export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor({ sql, snapshot, objectTypes, onChange }: {
+    constructor({ sql, snapshot, objectTypes, plugins, onChange }: {
         objectTypes?: readonly string[];
+        plugins?: readonly TLSyncPlugin<any>[];
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot | StoreSnapshot<R>;
         sql: TLSyncSqliteWrapper;
@@ -552,6 +561,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
         sessionId: string;
     }) => void;
     onSessionSnapshot?: (sessionId: string, snapshot: SessionStateSnapshot) => void;
+    plugins?: readonly TLSyncPlugin<R>[];
     // (undocumented)
     schema?: StoreSchema<R, any>;
     // (undocumented)
@@ -678,6 +688,15 @@ export interface TLSyncForwardDiff<R extends UnknownRecord> {
 export interface TLSyncLog {
     error?(...args: any[]): void;
     warn?(...args: any[]): void;
+}
+
+// @public
+export interface TLSyncPlugin<R extends UnknownRecord = UnknownRecord> extends TLSchemaPlugin {
+    objectTypes?: readonly string[];
+    onCommittedChanges?(args: {
+        diff: TLSyncForwardDiff<R>;
+        documentClock: number;
+    }): void;
 }
 
 // @internal
