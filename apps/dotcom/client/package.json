@@ -43,6 +43,7 @@
 		"@sentry/react": "^7.120.3",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/commenting": "workspace:*",
+		"@tldraw/comments": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/mermaid": "workspace:*",
 		"@tldraw/sync": "workspace:*",

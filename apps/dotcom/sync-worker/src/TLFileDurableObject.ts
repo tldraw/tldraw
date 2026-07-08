@@ -4,6 +4,14 @@
 import { ApiError, RefUpdateError, type Repo } from '@pierre/storage'
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
+	COMMENT_OBJECT_TYPES,
+	CommentChanges,
+	TLComment,
+	TLCommentThread,
+	commentSchemaRecords,
+	commentsSyncPlugin,
+} from '@tldraw/comments/server'
+import {
 	DB,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
@@ -29,7 +37,6 @@ import {
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
-	TLSyncForwardDiff,
 	TLSyncStorage,
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
@@ -39,12 +46,9 @@ import {
 import {
 	TLAsset,
 	TLAssetId,
-	TLComment,
-	TLCommentThread,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
-	commentSchemaRecords,
 	createTLSchema,
 } from '@tldraw/tlschema'
 import {
@@ -136,17 +140,11 @@ function arrayBufferToBase64(ab: ArrayBuffer): string {
 
 const MB = 1024 * 1024
 
-// The schema for a file room. Includes the opt-in `comment` record type so comment records sync
-// through the room; comments are persisted in a separate R2 lane rather than the main document
-// blob (see persistToDatabase / loadFromDatabase). The same records must be registered on the
-// client (see useSync in the dotcom client) or the schemas won't match.
+// The schema for a file room. Includes the opt-in comment record types (from the comments plugin
+// package) so comment records sync through the room; comments are persisted in a separate R2 lane
+// rather than the main document blob (see persistToDatabase / loadFromDatabase). The same records
+// must be registered on the client (see useSync in the dotcom client) or the schemas won't match.
 const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
-
-// Record types served through the room's object-store lane rather than the document lane.
-// Object-lane records sync over the same socket but are gated per session by `objectAccess`
-// (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in a
-// separate R2 lane next to the main document blob.
-const OBJECT_TYPES = ['comment-thread', 'comment'] as const
 
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
@@ -159,7 +157,7 @@ export class TLFileDurableObject extends DurableObject {
 
 		// If SQLite has been initialized, use it directly
 		if (SQLiteSyncStorage.hasBeenInitialized(sql)) {
-			return new SQLiteSyncStorage<TLRecord>({ sql, objectTypes: OBJECT_TYPES })
+			return new SQLiteSyncStorage<TLRecord>({ sql, objectTypes: COMMENT_OBJECT_TYPES })
 		}
 
 		// SQLite not initialized yet, load from R2 and initialize. The loaded snapshot has the
@@ -168,7 +166,7 @@ export class TLFileDurableObject extends DurableObject {
 		const storage = new SQLiteSyncStorage<TLRecord>({
 			sql,
 			snapshot: result.snapshot,
-			objectTypes: OBJECT_TYPES,
+			objectTypes: COMMENT_OBJECT_TYPES,
 		})
 		// We should not await on setRoomStorageUsedPercentage because it calls
 		// getStorage under the hood which will only resolve once this function has returned.
@@ -217,7 +215,11 @@ export class TLFileDurableObject extends DurableObject {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
 					storage,
 					schema: fileSyncSchema,
-					objectTypes: OBJECT_TYPES,
+					plugins: [
+						commentsSyncPlugin({
+							onChange: (changes) => this.pushCommentChangesToPostgres(changes),
+						}),
+					],
 					clientTimeout: Infinity,
 					log: {
 						warn: (...args) => this.log.debug('sync warn', ...args),
@@ -271,11 +273,6 @@ export class TLFileDurableObject extends DurableObject {
 							messageType: message.type,
 							messageLength: stringified.length,
 						})
-					},
-					// Project object-lane (comment) changes to Postgres as soon as they commit (not on
-					// the throttled R2 persist) so Zero replicates them to the app-level view quickly.
-					onCommittedChanges: ({ diff }) => {
-						this.pushCommentChangesToPostgres(diff)
 					},
 				})
 
@@ -1517,30 +1514,26 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	/**
-	 * Projects comment changes from a committed diff into Postgres so Zero replicates them to the
-	 * app-level view. Fires immediately on commit (see onCommittedChanges), serialized and
-	 * best-effort — it must never block or fail the canvas commit. The authoritative comment content
-	 * still lives in the R2 comment lane; these rows are a derived copy.
+	 * Projects comment changes into Postgres so Zero replicates them to the app-level view. Fires
+	 * immediately on commit (see commentsSyncPlugin's onChange), serialized and best-effort — it
+	 * must never block or fail the canvas commit. The authoritative comment content still lives in
+	 * the R2 comment lane; these rows are a derived copy.
 	 */
-	private pushCommentChangesToPostgres(diff: TLSyncForwardDiff<TLRecord>) {
+	private pushCommentChangesToPostgres(changes: CommentChanges) {
 		const slug = this.documentInfo.slug
 		const comments: TLComment[] = []
-		const threadsInDiff = new Map<string, TLCommentThread>()
-		for (const put of Object.values(diff.puts)) {
-			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string }
+		const threadsInChanges = new Map<string, TLCommentThread>()
+		for (const record of changes.puts) {
 			if (record.typeName === 'comment') {
-				comments.push(record as unknown as TLComment)
+				comments.push(record)
 			} else if (record.typeName === 'comment-thread') {
-				threadsInDiff.set(
-					(record as unknown as TLCommentThread).id,
-					record as unknown as TLCommentThread
-				)
+				threadsInChanges.set(record.id, record)
 			}
 		}
-		// Deletes are ids only; comment ids are prefixed with `comment:`. Thread deletions don't
-		// touch the table directly — the client cascades by deleting the thread's comment records,
-		// which arrive here as `comment:` deletes in the same diff.
-		const deletedIds = diff.deletes.filter((id) => id.startsWith('comment:'))
+		// Deletes cover both comment and comment-thread ids; only comment ids are rows in the
+		// table. Thread deletions don't touch the table directly — the client cascades by deleting
+		// the thread's comment records, which arrive here as `comment:` deletes.
+		const deletedIds = changes.deletes.filter((id) => id.startsWith('comment:'))
 
 		if (comments.length === 0 && deletedIds.length === 0) return
 
@@ -1548,12 +1541,12 @@ export class TLFileDurableObject extends DurableObject {
 			.push(async () => {
 				if (comments.length > 0) {
 					// The Postgres row denormalizes the thread's shape anchor; resolve each comment's
-					// thread from the same diff or from room storage. (A thread anchor changing does
-					// not re-project its existing comments — acceptable for the spike.)
+					// thread from the same batch of changes or from room storage. (A thread anchor
+					// changing does not re-project its existing comments — acceptable for the spike.)
 					const storage = await this.getStorage()
 					const upserts: TlaComment[] = comments.map((comment) => {
 						const thread =
-							threadsInDiff.get(comment.threadId) ??
+							threadsInChanges.get(comment.threadId) ??
 							(storage.transaction((txn) => txn.get(comment.threadId)).result as
 								| TLCommentThread
 								| undefined)

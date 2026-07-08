@@ -7,6 +7,8 @@ import {
 	TLCommentThreadId,
 } from './records'
 
+export { commentSchemaRecords, type TLComment, type TLCommentThread } from './records'
+
 /** The record types the comments plugin serves through the object-store lane. @public */
 export const COMMENT_OBJECT_TYPES = ['comment-thread', 'comment'] as const
 

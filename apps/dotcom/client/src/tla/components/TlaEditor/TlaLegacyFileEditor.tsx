@@ -1,3 +1,4 @@
+import { commentsPlugin } from '@tldraw/comments'
 import {
 	getLicenseKey,
 	ROOM_OPEN_MODE,
@@ -6,7 +7,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useMemo } from 'react'
-import { commentSchemaRecords, Editor, TLComponents, Tldraw } from 'tldraw'
+import { Editor, TLComponents, Tldraw } from 'tldraw'
 import { StoreErrorScreen } from '../../../components/StoreErrorScreen'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
@@ -74,16 +75,17 @@ function TlaEditorInner({
 
 	const handleUiEvent = useHandleUiEvents()
 	const assets = useMemo(() => multiplayerAssetStore(), [])
+	// Registers the comment record types so the schema matches the server's (see fileSyncSchema
+	// in TLFileDurableObject) — without them the server rejects the session as too old. Legacy
+	// rooms don't render a comments UI (the plugin isn't passed to <Tldraw>, only to useSync).
+	const plugins = useMemo(() => [commentsPlugin()], [])
 
 	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${fileSlug}`,
 		roomId: fileSlug,
 		assets,
 		trackAnalyticsEvent: trackEvent,
-		// Register the comment record types so the schema matches the server's (see
-		// fileSyncSchema in TLFileDurableObject) — without them the server rejects the
-		// session as too old. Legacy rooms don't render a comments UI.
-		records: commentSchemaRecords,
+		plugins,
 	})
 
 	const fileSystemUiOverrides = useFileEditorOverrides({})

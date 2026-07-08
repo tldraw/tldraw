@@ -1,9 +1,9 @@
 /* eslint-disable tldraw/jsx-no-literals */
+import { richTextToPlaintext } from '@tldraw/comments'
 import { Link } from 'react-router-dom'
 import { createDeepLinkString, useValue } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { useMaybeApp } from '../hooks/useAppState'
-import { richTextToPlaintext } from '../utils/richText'
 
 /** Link to a file, deep-linked to the comment's shape (when shape-anchored), with the comment id so its popover opens. */
 function commentLink(fileId: string, shapeId: string | null | undefined, commentId: string) {
