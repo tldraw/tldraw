@@ -60,6 +60,9 @@ export function DevComponentsNav(): ReactNode {
 			<a href="/dev/components/timestamps" style={link}>
 				dates
 			</a>
+			<a href="/dev/components/identity" style={link}>
+				identity
+			</a>
 		</nav>
 	)
 }

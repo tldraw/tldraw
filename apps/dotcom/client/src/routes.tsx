@@ -100,6 +100,7 @@ export function createAppRouter({
 					<Route path="/dev/components/sidebar" lazy={() => import('./pages/dev-sidebar')} />
 					<Route path="/dev/components/editor" lazy={() => import('./pages/dev-editor')} />
 					<Route path="/dev/components/timestamps" lazy={() => import('./pages/dev-timestamps')} />
+					<Route path="/dev/components/identity" lazy={() => import('./pages/dev-identity')} />
 				</>
 			)}
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
