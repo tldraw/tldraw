@@ -10,6 +10,7 @@ import { Awaitable } from '@tldraw/utils';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
+import { Context } from 'react';
 import { CustomRecordInfo } from '@tldraw/tlschema';
 import { Dispatch } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
@@ -1795,6 +1796,17 @@ export function extractSessionStateFromLegacySnapshot(store: Record<string, Unkn
 // @internal (undocumented)
 export const featureFlags: Record<string, DebugFlag<boolean>>;
 
+// @internal (undocumented)
+export const FLAGS: {
+    ANNUAL_LICENSE: number;
+    COMMENTS_PLUGIN: number;
+    EVALUATION_LICENSE: number;
+    INTERNAL_LICENSE: number;
+    NATIVE_LICENSE: number;
+    PERPETUAL_LICENSE: number;
+    WITH_WATERMARK: number;
+};
+
 // @public (undocumented)
 export class FontManager {
     constructor(editor: Editor, assetUrls?: {
@@ -2398,6 +2410,9 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opt
 export const LICENSE_TIMEOUT = 5000;
 
 // @internal (undocumented)
+export const LicenseContext: Context<LicenseManager>;
+
+// @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
 
 // @internal (undocumented)
@@ -2417,12 +2432,14 @@ export class LicenseManager {
     constructor(licenseKey: string | undefined, testPublicKey?: string);
     // (undocumented)
     static className: string;
+    features: Atom<number, unknown>;
     // (undocumented)
     getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult>;
     // (undocumented)
     isCryptoAvailable: boolean;
     // (undocumented)
     isDevelopment: boolean;
+    isFeatureEnabled(flag: number): boolean;
     // (undocumented)
     isTest: boolean;
     // (undocumented)
@@ -2430,6 +2447,12 @@ export class LicenseManager {
     // (undocumented)
     verbose: boolean;
 }
+
+// @internal (undocumented)
+export function LicenseProvider({ licenseKey, children }: {
+    children: ReactNode;
+    licenseKey?: string;
+}): JSX.Element;
 
 // @internal (undocumented)
 export type LicenseState = 'expired' | 'licensed-with-watermark' | 'licensed' | 'pending' | 'unlicensed-production' | 'unlicensed';
@@ -5041,6 +5064,9 @@ export function useIsCropping(shapeId: TLShapeId): boolean;
 
 // @public (undocumented)
 export function useIsEditing(shapeId: TLShapeId): boolean;
+
+// @internal (undocumented)
+export function useLicenseContext(): LicenseManager;
 
 // @internal (undocumented)
 export function useLocalStore(options: {

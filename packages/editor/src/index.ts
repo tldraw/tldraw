@@ -321,6 +321,7 @@ export {
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
+	FLAGS,
 	LicenseManager,
 	type InvalidLicenseKeyResult,
 	type InvalidLicenseReason,
@@ -329,7 +330,12 @@ export {
 	type LicenseState,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
-export { LICENSE_TIMEOUT } from './lib/license/LicenseProvider'
+export {
+	LICENSE_TIMEOUT,
+	LicenseContext,
+	LicenseProvider,
+	useLicenseContext,
+} from './lib/license/LicenseProvider'
 export {
 	defaultTldrawOptions,
 	type TLClipboardPasteRawInfo,

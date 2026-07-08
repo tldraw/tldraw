@@ -629,6 +629,96 @@ describe('LicenseManager', () => {
 			expect(result.daysSinceExpiry).toBe(0)
 		})
 	})
+
+	describe('License features', () => {
+		async function getManagerForLicense(info: string) {
+			process.env.NODE_ENV = 'production'
+			const licenseKey = await generateLicenseKey(info, keyPair)
+			const manager = new LicenseManager(licenseKey, keyPair.publicKey)
+			await vi.waitFor(() => expect(manager.state.get()).not.toBe('pending'))
+			process.env.NODE_ENV = 'test'
+			return manager
+		}
+
+		it('starts with no features while pending', () => {
+			const manager = new LicenseManager('', keyPair.publicKey)
+			expect(manager.features.get()).toBe(0)
+			expect(manager.isFeatureEnabled(FLAGS.COMMENTS_PLUGIN)).toBe(false)
+		})
+
+		it('exposes the license flags once a valid license resolves', async () => {
+			const manager = await getManagerForLicense(
+				JSON.stringify([
+					'id',
+					['www.example.com'],
+					FLAGS.ANNUAL_LICENSE | FLAGS.COMMENTS_PLUGIN,
+					expiryDate,
+				])
+			)
+			expect(manager.state.get()).toBe('licensed')
+			expect(manager.isFeatureEnabled(FLAGS.COMMENTS_PLUGIN)).toBe(true)
+		})
+
+		it('does not report features the license does not have', async () => {
+			const manager = await getManagerForLicense(STANDARD_LICENSE_INFO)
+			expect(manager.state.get()).toBe('licensed')
+			expect(manager.isFeatureEnabled(FLAGS.COMMENTS_PLUGIN)).toBe(false)
+		})
+
+		it('keeps features for licensed-with-watermark licenses', async () => {
+			const manager = await getManagerForLicense(
+				JSON.stringify([
+					'id',
+					['www.example.com'],
+					FLAGS.ANNUAL_LICENSE | FLAGS.WITH_WATERMARK | FLAGS.COMMENTS_PLUGIN,
+					expiryDate,
+				])
+			)
+			expect(manager.state.get()).toBe('licensed-with-watermark')
+			expect(manager.isFeatureEnabled(FLAGS.COMMENTS_PLUGIN)).toBe(true)
+		})
+
+		it('exposes no features for an expired license', async () => {
+			const expiredDate = new Date(
+				now.getFullYear() - 1,
+				now.getMonth(),
+				now.getDate()
+			).toISOString()
+			const manager = await getManagerForLicense(
+				JSON.stringify([
+					'id',
+					['www.example.com'],
+					FLAGS.ANNUAL_LICENSE | FLAGS.COMMENTS_PLUGIN,
+					expiredDate,
+				])
+			)
+			expect(manager.state.get()).toBe('expired')
+			expect(manager.isFeatureEnabled(FLAGS.COMMENTS_PLUGIN)).toBe(false)
+		})
+
+		it('exposes no features for an invalid domain in production', async () => {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://www.other-domain.com')
+			const manager = await getManagerForLicense(
+				JSON.stringify([
+					'id',
+					['www.example.com'],
+					FLAGS.ANNUAL_LICENSE | FLAGS.COMMENTS_PLUGIN,
+					expiryDate,
+				])
+			)
+			expect(manager.state.get()).toBe('unlicensed-production')
+			expect(manager.isFeatureEnabled(FLAGS.COMMENTS_PLUGIN)).toBe(false)
+		})
+
+		it('exposes no features when no key is provided', async () => {
+			const manager = new LicenseManager(undefined, keyPair.publicKey)
+			await vi.waitFor(() => expect(manager.state.get()).not.toBe('pending'))
+			expect(manager.isFeatureEnabled(FLAGS.COMMENTS_PLUGIN)).toBe(false)
+		})
+	})
 })
 
 async function generateLicenseKey(

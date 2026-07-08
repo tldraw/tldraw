@@ -5,6 +5,7 @@ import { importPublicKey, str2ab } from '../utils/licensing'
 
 const GRACE_PERIOD_DAYS = 30
 
+/** @internal */
 export const FLAGS = {
 	// -- MUTUALLY EXCLUSIVE FLAGS
 	// Annual means the license expires after a time period, usually 1 year.
@@ -22,6 +23,8 @@ export const FLAGS = {
 	// Native means the license is for native apps which switches
 	// on special-case logic.
 	NATIVE_LICENSE: 1 << 5,
+	// Comments plugin: unlocks the @tldraw/comments plugin.
+	COMMENTS_PLUGIN: 1 << 6,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -98,6 +101,11 @@ export class LicenseManager {
 	public isTest: boolean
 	public isCryptoAvailable: boolean
 	state = atom<LicenseState>('license state', 'pending')
+	/**
+	 * Bitwise feature flags from the validated license key. Zero while validation is pending
+	 * and whenever the license is not in a good state (invalid, wrong domain, expired).
+	 */
+	features = atom<number>('license features', 0)
 	public verbose = true
 
 	constructor(licenseKey: string | undefined, testPublicKey?: string) {
@@ -117,6 +125,13 @@ export class LicenseManager {
 				this.maybeTrack(result, licenseState)
 
 				this.state.set(licenseState)
+
+				if (
+					result.isLicenseParseable &&
+					(licenseState === 'licensed' || licenseState === 'licensed-with-watermark')
+				) {
+					this.features.set(result.license.flags)
+				}
 			})
 			.catch((error) => {
 				console.error('License validation failed:', error)
@@ -415,6 +430,11 @@ export class LicenseManager {
 
 	private isFlagEnabled(flags: number, flag: number) {
 		return (flags & flag) === flag
+	}
+
+	/** Reactively check whether the validated license includes the given feature flag. */
+	isFeatureEnabled(flag: number): boolean {
+		return (this.features.get() & flag) === flag
 	}
 
 	private outputNoLicenseKeyProvided() {
