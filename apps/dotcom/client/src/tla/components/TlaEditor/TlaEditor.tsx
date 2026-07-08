@@ -1,9 +1,4 @@
-import {
-	commentToolComponents,
-	commentToolOverrides,
-	commentTools,
-} from '@tldraw/commenting/canvas'
-import { commentSchemaRecords } from '@tldraw/comments'
+import { commentsPlugin, CommentsPluginUser } from '@tldraw/comments'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
@@ -51,7 +46,6 @@ import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracki
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
-import { CommentsOnCanvas } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
@@ -224,6 +218,30 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}
 	}, [app?.tlUser.userPreferences])
 
+	// The comments plugin's user/resolveName options are called outside React, so we wrap them in
+	// `useEvent` for a stable identity (keeping the plugin object itself stable across renders,
+	// avoiding a remount of the comments overlay) while still reading the latest app state: the
+	// current user's name from preferences, everyone else's from live presence (via the global
+	// editor ref, since `resolveName` has no editor of its own to query).
+	const commentsUser = useEvent((editor: Editor): CommentsPluginUser | null => {
+		const id = app?.userId ?? editor.user.getExternalId()
+		return id ? { id } : null
+	})
+	const commentsResolveName = useEvent((id: string): string => {
+		if (id === app?.userId) return app.tlUser.userPreferences.get().name || 'You'
+		const currentEditor = globalEditor.get()
+		if (currentEditor) {
+			for (const presence of currentEditor.store.query.records('instance_presence').get()) {
+				if (presence.userId.replace(/^user:/, '') === id) return presence.userName || 'Someone'
+			}
+		}
+		return 'Someone'
+	})
+	const comments = useMemo(
+		() => [commentsPlugin({ user: commentsUser, resolveName: commentsResolveName })],
+		[commentsUser, commentsResolveName]
+	)
+
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
@@ -234,9 +252,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		users,
-		// Register the opt-in `comment` record type so comment records sync through the file room.
-		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
-		records: commentSchemaRecords,
+		plugins: comments,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)
 		}, []),
@@ -287,9 +303,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
-			...commentToolComponents,
 			DebugMenu: () => <CustomDebugMenu />,
-			InFrontOfTheCanvas: CommentsOnCanvas,
 		}
 	}, [])
 
@@ -301,7 +315,6 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
-				tools={commentTools}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
@@ -310,7 +323,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,
 				}}
-				overrides={[overrides, extraDragIconOverrides, commentToolOverrides]}
+				overrides={[overrides, extraDragIconOverrides]}
+				plugins={comments}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />

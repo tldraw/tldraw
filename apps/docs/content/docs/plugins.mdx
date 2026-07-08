@@ -63,7 +63,7 @@ Plugin overlays in `InFrontOfTheCanvas` and `OnTheCanvas` render even when the e
 
 ## The comments package
 
-`@tldraw/comments` adds comment threads to the canvas: pins anchored to shapes, points, regions, or pages, with a popover for reading and a composer for writing.
+`@tldraw/comments` adds comment threads to the canvas: pins anchored to shapes, points, regions, or pages, with a popover for reading and a composer for writing, plus a comment tool in the toolbar and an optional sidebar listing the current page's threads.
 
 ### Client setup
 
@@ -78,18 +78,23 @@ export default function App() {
 }
 ```
 
-This registers the `comment` and `comment-thread` record types and renders the default UI (pins, popover, composer) through the `InFrontOfTheCanvas` slot. `commentsPlugin` takes two optional options:
+This registers the `comment` and `comment-thread` record types, the comment tool, and renders the default UI (pins, popover, composer, sidebar) through the `InFrontOfTheCanvas` slot. `commentsPlugin` takes three optional options:
 
 ```tsx
 interface CommentsPluginOptions {
 	user?(editor: Editor): CommentsPluginUser | null
-	components?: Partial<TLCommentsComponents>
+	resolveName?(userId: string): string
+	sidebar?: boolean
 }
 ```
 
 `user` resolves the identity used to author new comments. By default it falls back to the editor's user preferences identity, which always exists - including a locally generated, anonymous id for a solo session. **This default is not auth-gated.** If you want to restrict who can compose comments in your app, pass your own `user` function and return `null` to disable the composer for a given editor state. If you're using tldraw sync, the server additionally gates comment writes per session (see below), so client-side gating is about UX, not security.
 
-`components` lets you override the pin or composer components while keeping the rest of the default UI. The thread popover is rendered by the pin component, so overriding the pin also replaces the popover.
+`resolveName` maps an author id to a display name, used in pins, popovers, and the sidebar. It defaults to returning the id itself - pass your own resolver to show real names (for example, from your app's user directory or live presence).
+
+`sidebar` controls whether the comments sidebar renders alongside the canvas overlay. It defaults to `true`; pass `false` if you only want the pins, popover, and composer.
+
+For full control over the UI, `@tldraw/comments` also exports the pieces `commentsPlugin` composes - `CanvasComments`, `CanvasCommentsSidebar`, `commentTools`, `commentToolOverrides`, `commentToolComponents`, and the presentational primitives (`CommentCard`, `CommentThread`, `CommentComposer`, `CommentPin`, and others) - so you can assemble your own comments UI instead of using the plugin's defaults.
 
 ### Reading and writing comments
 
