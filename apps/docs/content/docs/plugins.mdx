@@ -203,4 +203,4 @@ function myServerPlugin(): TLSyncPlugin {
 
 Only set `objectTypes` for record types you want served through the object-store lane, gated by `objectAccess` rather than `isReadonly` and excluded from document snapshots - most custom records should stay on the main document lane and can omit this field entirely.
 
-`useSync` only consumes a plugin's `records` - it doesn't know about a plugin's `shapeUtils`. If your plugin ships custom shapes, pass those `shapeUtils` to `useSync`'s own `shapeUtils` option as well, or the sync schema won't recognize the shape type.
+`useSync` consumes both a plugin's `records` and its `shapeUtils` - the same plugin object you pass to `<Tldraw plugins>` can be passed to `useSync({ plugins })`, and the synced store's schema will recognize the plugin's custom shapes. If the same shape `type` is registered by both a plugin and `useSync`'s own `shapeUtils` option, the `shapeUtils` option wins. `bindingUtils` still isn't part of the plugin type - if your plugin's shapes use custom bindings, pass those to `useSync`'s `bindingUtils` option separately.

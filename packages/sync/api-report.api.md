@@ -5,6 +5,7 @@
 ```ts
 
 import { Editor } from 'tldraw';
+import { TLAnyShapeUtilConstructor } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
@@ -22,6 +23,11 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
 } | {
     status: 'synced-local';
 }>;
+
+// @public
+export interface TLSyncSchemaPlugin extends TLSchemaPlugin {
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+}
 
 // @public
 export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
@@ -57,7 +63,7 @@ export interface UseSyncOptionsBase {
     onCustomMessageReceived?(data: any): void;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
-    plugins?: readonly TLSchemaPlugin[];
+    plugins?: readonly TLSyncSchemaPlugin[];
     // @internal
     roomId?: string;
     themes?: Partial<TLThemes>;

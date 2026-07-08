@@ -1,0 +1,62 @@
+import { TLAnyShapeUtilConstructor, TldrawPlugin } from 'tldraw'
+import { describe, expect, it } from 'vitest'
+import { TLSyncSchemaPlugin, mergePluginShapeUtils } from './useSync'
+
+// Minimal shape-util stand-ins: only `.type` matters for the merge logic under test.
+function fakeShapeUtil(type: string): TLAnyShapeUtilConstructor {
+	return { type } as unknown as TLAnyShapeUtilConstructor
+}
+
+describe('mergePluginShapeUtils', () => {
+	it('returns the user shapeUtils unchanged when there are no plugins', () => {
+		const user = [fakeShapeUtil('sticky')]
+		expect(mergePluginShapeUtils(undefined, user)).toBe(user)
+		expect(mergePluginShapeUtils([], user)).toBe(user)
+	})
+
+	it('returns undefined when neither plugins nor user provide shapeUtils', () => {
+		expect(mergePluginShapeUtils(undefined, undefined)).toBeUndefined()
+		expect(mergePluginShapeUtils([], undefined)).toBeUndefined()
+	})
+
+	it('collects shapeUtils from all plugins, in plugin order, when the user has none', () => {
+		const commentPin = fakeShapeUtil('comment-pin')
+		const annotation = fakeShapeUtil('annotation')
+		const plugins: TLSyncSchemaPlugin[] = [
+			{ id: 'comments', shapeUtils: [commentPin] },
+			{ id: 'annotations', shapeUtils: [annotation] },
+		]
+		expect(mergePluginShapeUtils(plugins, undefined)).toEqual([commentPin, annotation])
+	})
+
+	it('appends user shapeUtils after plugin shapeUtils', () => {
+		const commentPin = fakeShapeUtil('comment-pin')
+		const userSticky = fakeShapeUtil('sticky')
+		const plugins: TLSyncSchemaPlugin[] = [{ id: 'comments', shapeUtils: [commentPin] }]
+		expect(mergePluginShapeUtils(plugins, [userSticky])).toEqual([commentPin, userSticky])
+	})
+
+	it("lets the user's shapeUtils win over a plugin's on a `type` collision", () => {
+		const pluginPin = fakeShapeUtil('comment-pin')
+		const userPin = fakeShapeUtil('comment-pin')
+		const plugins: TLSyncSchemaPlugin[] = [{ id: 'comments', shapeUtils: [pluginPin] }]
+		const result = mergePluginShapeUtils(plugins, [userPin])
+		expect(result).toEqual([userPin])
+		expect(result?.[0]).toBe(userPin)
+	})
+
+	it('ignores plugins with no shapeUtils', () => {
+		const userSticky = fakeShapeUtil('sticky')
+		const user = [userSticky]
+		const plugins: TLSyncSchemaPlugin[] = [{ id: 'records-only' }]
+		expect(mergePluginShapeUtils(plugins, user)).toBe(user)
+	})
+})
+
+// Type-level assertion: `TldrawPlugin` (as passed to `<Tldraw plugins>`) must be assignable to
+// the widened `TLSyncSchemaPlugin` option type, so the same plugin object can be passed to both
+// `<Tldraw plugins>` and `useSync({ plugins })`.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _assertTldrawPluginIsSyncSchemaPlugin(plugin: TldrawPlugin): TLSyncSchemaPlugin {
+	return plugin
+}
