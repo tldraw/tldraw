@@ -55,7 +55,7 @@ export const defaultWelcomeSnapshotJson = `{
 			"com.tldraw.shape.draw": 5,
 			"com.tldraw.shape.embed": 4,
 			"com.tldraw.shape.frame": 1,
-			"com.tldraw.shape.geo": 11,
+			"com.tldraw.shape.geo": 12,
 			"com.tldraw.shape.group": 0,
 			"com.tldraw.shape.highlight": 4,
 			"com.tldraw.shape.image": 5,
@@ -195,7 +195,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"index": "b0Ek35xlk5l",
 				"typeName": "shape"
@@ -299,7 +301,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "shape:UY73tKpPQTAsRRoNV48I-",
 				"index": "a3FwHZWr",
@@ -648,7 +652,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "a2xn1u4V",
@@ -811,7 +817,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "b0TXguSBV",
@@ -851,7 +859,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "b0KpTaXBV",
@@ -945,7 +955,9 @@ export const defaultWelcomeSnapshotJson = `{
 								]
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "aFnGdSQV",
@@ -1161,7 +1173,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "a6LoYDUl",
@@ -1317,7 +1331,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "shape:yHgOIUpXOB5gz0YmXcFpf",
 				"index": "a3yfVZgO",
@@ -1408,7 +1424,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "b0EjhL2FOp",
@@ -1513,7 +1531,9 @@ export const defaultWelcomeSnapshotJson = `{
 								]
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "aczhfxnl",
@@ -1598,7 +1618,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "shape:JcQ824JW6ZnGGqjecw9ze",
 				"index": "a1",
@@ -1638,7 +1660,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "aZD9E2wV",
@@ -1847,7 +1871,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "b0JQkS5hV",
@@ -2008,7 +2034,9 @@ export const defaultWelcomeSnapshotJson = `{
 								]
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "adOTdU3G",
@@ -2090,7 +2118,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "aVfnxqLV",
@@ -2150,7 +2180,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "b0FKPUn9l",
@@ -2330,7 +2362,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "a3COhs9V",
@@ -2370,7 +2404,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "b0fciBeEV",
@@ -2452,7 +2488,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "b0EjYo3WQX",
@@ -2648,7 +2686,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"index": "a89asGcV",
 				"typeName": "shape"
@@ -3005,7 +3045,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "shape:ji1ypskcArcUIhudTDxla",
 				"index": "a1",
@@ -3134,7 +3176,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "abl8vUPl",
@@ -3279,7 +3323,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "a468kMpV",
@@ -3415,7 +3461,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "a5z5Jpsl",
@@ -3472,7 +3520,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "aE8XXIjV",
@@ -4110,7 +4160,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "b0eCp2nXV",
@@ -4150,7 +4202,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "aDercZlV",
@@ -4190,7 +4244,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "shape:dgcWyk44ZTHFxW5gXZgFW",
 				"index": "a3KiH2wV",
@@ -4264,7 +4320,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "aaNcHysV",
@@ -4483,7 +4541,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "b0IrzbnDl",
@@ -4550,7 +4610,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "b0QVkAaVV",
@@ -4718,7 +4780,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "aGSfnj2V",
@@ -4893,7 +4957,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"index": "aQttzJpl",
 				"typeName": "shape"
@@ -5121,7 +5187,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "shape:zsO14CPjCHyna_7IRxlbp",
 				"index": "a1",
@@ -5222,7 +5290,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "aYI1An4V",
@@ -5397,7 +5467,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"content": []
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "shape:dgcWyk44ZTHFxW5gXZgFW",
 				"index": "a4ibZOxV",
@@ -5567,7 +5639,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "shape:01N_iGBb4QuzLoUKH5_68",
 				"index": "a1",
@@ -5634,7 +5708,9 @@ export const defaultWelcomeSnapshotJson = `{
 								"type": "paragraph"
 							}
 						]
-					}
+					},
+					"flipX": false,
+					"flipY": false
 				},
 				"parentId": "page:page",
 				"index": "aUiXHuiV",
