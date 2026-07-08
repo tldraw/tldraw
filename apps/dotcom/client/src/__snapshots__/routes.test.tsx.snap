@@ -79,6 +79,10 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/dev/components/typography/?$",
   },
   {
+    "reactRouterPattern": "/dev/components/z-index",
+    "vercelRouterPattern": "^/dev/components/z-index/?$",
+  },
+  {
     "reactRouterPattern": "/dev/reset-local-state",
     "vercelRouterPattern": "^/dev/reset-local-state/?$",
   },
