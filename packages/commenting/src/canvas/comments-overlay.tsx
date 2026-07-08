@@ -1,5 +1,11 @@
 /* eslint-disable tldraw/jsx-no-literals */
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import {
+	type PointerEvent as ReactPointerEvent,
+	ReactNode,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { createPortal } from 'react-dom'
 import {
 	createComment,
@@ -21,7 +27,7 @@ import { CommentBody } from './comment-body'
 import { pendingComment, PendingComment } from './comment-tool'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
 import { richTextToPlaintext } from './rich-text'
-import { anchorPagePoint, openThreadId } from './thread-state'
+import { anchorPagePoint, openThreadId, shapeAnchorAt } from './thread-state'
 import './canvas.css'
 
 /**
@@ -44,11 +50,34 @@ export interface CanvasCommentsProps {
 	renderPinContent?(thread: TLCommentThread, comments: TLComment[]): ReactNode
 	/** Called after any comment (a new thread's first comment, or a reply) is posted. */
 	onPostComment?(comment: TLComment): void
+	/** Where imprecise shape pins sit — a normalized (0–1) spot within the shape. Default top-right. */
+	impreciseShapeAnchor?: { x: number; y: number }
 }
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 const initialOf = (name: string): string => (name.trim()[0] ?? '?').toUpperCase()
+
+/** The leading element for the placement composer — the comment pin's shape, but a pencil
+ *  instead of an initial, marking an unsent draft. */
+const draftAvatar = (
+	<CommentPin>
+		<svg
+			viewBox="0 0 24 24"
+			width="15"
+			height="15"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			aria-hidden="true"
+		>
+			<path d="M12 20h9" />
+			<path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+		</svg>
+	</CommentPin>
+)
 
 function toCardProps(comment: TLComment, props: CanvasCommentsProps): CommentCardProps {
 	return {
@@ -81,6 +110,22 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		}
 	}, [editor])
 
+	// Escape collapses the open thread. Capture-phase + stopPropagation so it runs ahead of the
+	// editor (which would otherwise cancel the current tool or clear the selection). If a comment is
+	// being edited, let its own Escape handler exit edit mode first, keeping the thread open.
+	useEffect(() => {
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key !== 'Escape' || openThreadId.get() === null) return
+			const target = e.target as HTMLElement | null
+			if (target && target.closest('.cmt-editing')) return
+			openThreadId.set(null)
+			e.preventDefault()
+			e.stopPropagation()
+		}
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => document.removeEventListener('keydown', onKeyDown, true)
+	}, [])
+
 	// Render into the container (above the panels' stacking context) so the pins and popovers
 	// live in the UI layer rather than being clipped by the canvas layer.
 	return createPortal(
@@ -101,22 +146,27 @@ function ThreadPin({
 	thread,
 	...props
 }: CanvasCommentsProps & { editor: Editor; thread: TLCommentThread }) {
-	const { currentUserId, resolveName, renderPinContent, onPostComment } = props
+	const { currentUserId, resolveName, renderPinContent, onPostComment, impreciseShapeAnchor } =
+		props
+	const container = useContainer()
 	const comments = useThreadComments(editor, thread.id)
 	// Only one thread's popover is open at a time — shared across pins via the atom.
 	const open = useValue('thread open', () => openThreadId.get() === thread.id, [thread.id])
 	const [reply, setReply] = useState('')
 	const [editingId, setEditingId] = useState<string | null>(null)
 	const [editText, setEditText] = useState('')
+	// While dragging the marker, its page point overrides the anchor's; committed on drop.
+	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
+	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
 
 	const point = useValue(
 		'pin point',
 		() => {
 			if (thread.pageId !== editor.getCurrentPageId()) return null
-			const pagePoint = anchorPagePoint(editor, thread.anchor)
+			const pagePoint = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
 			return pagePoint ? editor.pageToViewport(pagePoint) : null
 		},
-		[editor, thread.anchor, thread.pageId]
+		[editor, thread.anchor, thread.pageId, impreciseShapeAnchor]
 	)
 
 	if (!point) return null
@@ -187,8 +237,12 @@ function ThreadPin({
 		if (editingId === comment.id) {
 			return (
 				<div
+					className="cmt-editing"
 					onKeyDown={(e) => {
-						if (e.key === 'Escape') setEditingId(null)
+						if (e.key === 'Escape') {
+							setEditingId(null)
+							e.stopPropagation()
+						}
 					}}
 				>
 					<CommentComposer
@@ -244,43 +298,89 @@ function ThreadPin({
 		? renderPinContent(thread, comments)
 		: initialOf(resolveName(thread.createdBy))
 
+	// Drag the marker to move the thread: its position is overridden locally while dragging, then
+	// re-anchored on drop (to a shape if dropped on one, else a point). A pointer that barely moves
+	// is a click — toggle the popover.
+	const startDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+		e.stopPropagation()
+		dragRef.current = { startX: e.clientX, startY: e.clientY, moved: false }
+		e.currentTarget.setPointerCapture(e.pointerId)
+	}
+	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+		const drag = dragRef.current
+		if (!drag) return
+		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
+		drag.moved = true
+		setDragPagePoint(editor.screenToPage({ x: e.clientX, y: e.clientY }))
+	}
+	const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+		const drag = dragRef.current
+		dragRef.current = null
+		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+			e.currentTarget.releasePointerCapture(e.pointerId)
+		}
+		if (!drag) return
+		if (!drag.moved) {
+			openThreadId.set(openThreadId.get() === thread.id ? null : thread.id)
+			return
+		}
+		const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		setDragPagePoint(null)
+		const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+		const anchor = hit
+			? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
+			: { type: 'point', x: pagePoint.x, y: pagePoint.y }
+		editor.run(() => editor.store.put([{ ...thread, anchor } as any]), { history: 'ignore' })
+	}
+
+	const renderPoint = dragPagePoint ? editor.pageToViewport(dragPagePoint) : point
+
 	return (
 		<div
 			className={open ? 'cmt-canvas-pin cmt-canvas-pin--open' : 'cmt-canvas-pin'}
-			style={{ left: point.x, top: point.y }}
+			style={{ left: renderPoint.x, top: renderPoint.y }}
 		>
 			<div
 				className="cmt-canvas-pin__marker"
-				onPointerDown={stop}
-				onClick={() => openThreadId.set(openThreadId.get() === thread.id ? null : thread.id)}
+				onPointerDown={startDrag}
+				onPointerMove={onDrag}
+				onPointerUp={endDrag}
 			>
 				<CommentPin resolved={thread.resolved != null} open={open}>
 					{pinContent}
 				</CommentPin>
 			</div>
-			{open && (
-				<div className="cmt-canvas-pin__popover" onPointerDown={stop}>
-					<CommentThread
-						header="Thread"
-						headerActions={headerActions}
-						renderComment={renderComment}
-						comments={comments.map((c) => toCardProps(c, props))}
-						resolvedBy={thread.resolved ? resolveName(thread.resolved.by) : undefined}
-						composer={
-							currentUserId && !thread.resolved
-								? {
-										author: resolveName(currentUserId),
-										placeholder: 'Reply…',
-										value: reply,
-										onChange: setReply,
-										onSubmit: postReply,
-										disabled: !reply.trim(),
-									}
-								: undefined
-						}
-					/>
-				</div>
-			)}
+			{/* The popover portals up to the menus layer (above the UI panels) so it isn't clipped;
+			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
+			{open &&
+				createPortal(
+					<div
+						className="cmt-canvas-popover"
+						style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
+						onPointerDown={stop}
+					>
+						<CommentThread
+							header="Comment"
+							headerActions={headerActions}
+							renderComment={renderComment}
+							comments={comments.map((c) => toCardProps(c, props))}
+							resolvedBy={thread.resolved ? resolveName(thread.resolved.by) : undefined}
+							composer={
+								currentUserId && !thread.resolved
+									? {
+											author: resolveName(currentUserId),
+											placeholder: 'Reply…',
+											value: reply,
+											onChange: setReply,
+											onSubmit: postReply,
+											disabled: !reply.trim(),
+										}
+									: undefined
+							}
+						/>
+					</div>,
+					container
+				)}
 		</div>
 	)
 }
@@ -294,6 +394,7 @@ function PendingComposer({
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
 	const [text, setText] = useState('')
 	const ref = useRef<HTMLDivElement>(null)
+	const container = useContainer()
 
 	const point = useValue('composer point', () => editor.pageToViewport(pending.point), [
 		editor,
@@ -336,7 +437,7 @@ function PendingComposer({
 		pendingComment.set(null)
 	}
 
-	return (
+	return createPortal(
 		<div
 			ref={ref}
 			className="cmt-canvas-composer"
@@ -354,7 +455,9 @@ function PendingComposer({
 				onSubmit={submit}
 				disabled={!text.trim()}
 				autoFocus
+				leading={draftAvatar}
 			/>
-		</div>
+		</div>,
+		container
 	)
 }

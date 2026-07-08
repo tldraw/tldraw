@@ -154,7 +154,13 @@ function measureAnchor(
 			const b = editor.getShapePageBounds(shapeId)
 			if (!b) return null
 			const f = pageBoxToFrac(editor, c, b.x, b.y, b.w, b.h)
-			return { pin: { left: f.left + f.width, top: f.top }, textHighlights: [], region: null }
+			// precise pins sit at the stored normalized x/y; imprecise ones at the top-right badge
+			const { x, y } = anchor.isPrecise ? anchor : { x: 1, y: 0 }
+			return {
+				pin: { left: f.left + x * f.width, top: f.top + y * f.height },
+				textHighlights: [],
+				region: null,
+			}
 		}
 		case 'point': {
 			const f = pageBoxToFrac(editor, c, anchor.x, anchor.y, 0, 0)

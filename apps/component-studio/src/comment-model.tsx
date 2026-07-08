@@ -60,7 +60,7 @@ const PAGE_ID = 'page:studio' as TLPageId
 /** A sample thread, anchored to a shape. */
 export const sampleThread: TLCommentThread = createCommentThread({
 	pageId: PAGE_ID,
-	anchor: { type: 'shape', shapeId: createShapeId('box') },
+	anchor: { type: 'shape', shapeId: createShapeId('box'), x: 1, y: 0, isPrecise: false },
 	createdBy: 'ada',
 	now: NOW - 2 * HOUR,
 })

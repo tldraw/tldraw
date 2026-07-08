@@ -101,19 +101,28 @@
 	flex-shrink: 0;
 }
 
-/* composer */
+/* composer — an avatar beside a rounded-rect field (input + send). The avatar matches the comment
+   row's, so the two line up; the field is squarer than a pill, like tldraw's own buttons. */
 .cmt-composer {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 6px 6px 6px 8px;
-	width: 280px;
-	background: var(--tl-color-panel);
-	border: 1px solid var(--tl-color-divider);
-	border-radius: 999px;
+	gap: 10px;
+	padding: 4px 0 8px 4px;
 }
 
-.cmt-composer:focus-within {
+.cmt-composer__field {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 3px 3px 12px;
+	background: var(--tl-color-muted-2);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+}
+
+.cmt-composer__field:focus-within {
 	border-color: var(--tl-color-selected);
 }
 
@@ -130,7 +139,7 @@
 
 .cmt-send {
 	border: 0;
-	border-radius: 999px;
+	border-radius: var(--tl-radius-2);
 	background: var(--tl-color-selected);
 	color: #fff;
 	font: inherit;
@@ -324,11 +333,9 @@
 	padding: 2px 2px 2px 4px;
 }
 .cmt-thread__title {
-	font-size: 11px;
+	font-size: 12px;
 	font-weight: 600;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-1);
 }
 .cmt-thread__actions {
 	display: flex;
@@ -365,16 +372,13 @@
 	flex-direction: column;
 	gap: 6px;
 }
-/* inside the panel, comments are plain content — no surrounding box; the composer reads as a field */
+/* inside the panel, comments are plain content — no surrounding box; the composer's field carries
+   its own surface. */
 .cmt-thread .cmt-card {
 	width: 100%;
+	padding: 6px 0 6px 4px;
 	background: transparent;
 	border: none;
-}
-.cmt-thread .cmt-composer {
-	width: 100%;
-	background: var(--tl-color-muted-2);
-	border-color: transparent;
 }
 
 /* comments list — thread summaries, one per row (used by the canvas sidebar) */
