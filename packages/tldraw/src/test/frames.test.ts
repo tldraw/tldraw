@@ -486,8 +486,9 @@ describe('frame shapes', () => {
 		// box A should still be beneath box B
 		expect(editor.getShape(box1)!.index.localeCompare(editor.getShape(box2)!.index)).toBe(-1)
 
-		// We don't highlight the frame until dragged out and back in
-		expect(editor.getHintingShapeIds()).toHaveLength(0)
+		// The frame is highlighted as a drop target from the first update, even though the shape
+		// started over it (it's still the shape's parent, so nothing is reparented)
+		expect(editor.getHintingShapeIds()).toHaveLength(1)
 
 		expect(editor.getOnlySelectedShape()!.parentId).toBe(frame.id)
 
@@ -760,7 +761,7 @@ describe('frame shapes', () => {
 		expect(bindings.start).toMatchObject({ toId: boxId })
 		expect(bindings.end).toMatchObject({ toId: frameId })
 
-		expect(arrow.parentId).toBe(editor.getCurrentPageId())
+		expect(arrow.parentId).toBe(frameId)
 	})
 
 	it('can be edited', () => {
@@ -1290,8 +1291,8 @@ describe('When dragging a shape', () => {
 		const rectId: TLShapeId = createRect({ pos: [70, 10], size: [20, 20] })
 		// create frame next to shape
 		const frameId = dragCreateFrame({ down: [0, 0], move: [60, 100], up: [60, 100] })
-		// drag shape into frame
-		editor.pointerDown(80, 15)
+		// drag shape into frame (grab near the rect's edge so it hits with a tight hit-test margin)
+		editor.pointerDown(80, 12)
 		editor.pointerMove(30, 50)
 		editor.pointerUp(30, 50)
 		const parent = editor.getShape(rectId)?.parentId

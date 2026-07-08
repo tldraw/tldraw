@@ -1,4 +1,4 @@
-import { AcceptInviteResponseBody, userHasFlag } from '@tldraw/dotcom-shared'
+import { AcceptInviteResponseBody } from '@tldraw/dotcom-shared'
 import { getIndexBelow, IndexKey } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { sql } from 'kysely'
@@ -68,27 +68,6 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					{ status: 404 }
 				)
 			}
-			if (!userHasFlag(user.flags, 'groups_backend')) {
-				return Response.json(
-					{
-						error: true,
-						message: 'User is not migrated to the groups model',
-					} satisfies AcceptInviteResponseBody,
-					{ status: 400 }
-				)
-			}
-
-			// Ensure user has groups_frontend flag when accepting invite
-			if (!userHasFlag(user.flags, 'groups_frontend')) {
-				const currentFlags = user.flags ? user.flags.split(/[,\s]+/).filter(Boolean) : []
-				const newFlags = [...currentFlags, 'groups_frontend'].join(',')
-				await tx
-					.updateTable('user')
-					.set({ flags: newFlags })
-					.where('id', '=', auth.userId)
-					.execute()
-			}
-
 			// Get the lowest index to place new group at the top
 			const lowestIndexGroup = await sql<{
 				index: string

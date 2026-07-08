@@ -22,7 +22,7 @@ const users: TLUserStore = {
 	resolve: (userId) => computed('resolve', () => (userId === 'alice' ? currentUser : null)),
 }
 
-// Create a note and type into it so that `textFirstEditedBy` gets stamped with the current user,
+// Create a note and type into it so that `textLastEditedBy` gets stamped with the current user,
 // which is what makes the attribution badge render.
 function createAttributedNote(editor: Editor) {
 	act(() => {

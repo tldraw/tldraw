@@ -64,9 +64,25 @@ Use this template:
 
 Start with: "In order to X, this PR does Y."
 
+- X is the **concrete situation that made this work necessary** — the real thing someone was trying to do — not a restatement of what Y does. "In order to let apps carry undo history across editor rebuilds, this adds an API to carry undo history across editor rebuilds" is circular: X just renames Y. Push X up a level to the actual goal, e.g. "so desktop can reload the editor without losing the user's place, the way HMR preserves component state across a code edit."
+- Name the real driving case, not a hypothetical. If you're inventing example scenarios to illustrate the why ("e.g. if someone toggled a plugin…"), you're reverse-engineering a justification from the finished code — you haven't written down the case that actually prompted it. Work forward from that case instead.
+- Beware abstract mechanism as a stand-in for motivation. A true technical fact about the SDK ("editor config is fixed at construction time") explains a constraint, not why anyone cares. Keep going until a reader can picture the specific thing that stopped working or became possible.
 - Keep it specific - avoid vague phrases like "improve user experience"
 - Link related issues in the first paragraph
 - Don't expect readers to also read the linked issue
+
+### Write for the reviewer
+
+Write the description for a reviewer who knows the codebase architecture but has **not** read your code or most of the diff. Their time is the scarce resource: the description's job is to get them to understand the important bits and to give them what they need to push back on a decision. Assume they'll read your description, skim a few key files, and trust the rest.
+
+Cover, in whatever depth the change warrants:
+
+- **The higher-level change.** What actually changes, described at the level of behavior and structure, not a line-by-line restatement of the diff. Reviewers can read code; they can't read your intent.
+- **Motivation.** Why this change, and why now. What was wrong or missing before.
+- **Trade-offs and decisions.** The choices you made that a reviewer might have made differently — the approach you picked, what you ruled out and why, anything you're unsure about. Name these explicitly so the reviewer can steer if a call is the wrong one. A decision you don't surface is a decision the reviewer can't catch.
+- **Short example snippets.** For anything touching an API, data shape, or usage pattern, a few lines of before/after or a small "here's how it's used now" snippet explains more than a paragraph. Keep them minimal and illustrative, not exhaustive.
+
+Match the depth to the change: a one-line fix needs a sentence, a new system needs the fuller treatment below. Don't pad a small PR with ceremony, and don't under-describe a large one. When in doubt about what a reviewer needs, err toward explaining the *why* and the *trade-offs* — those are the parts they can't reconstruct from the diff.
 
 ### Change type
 

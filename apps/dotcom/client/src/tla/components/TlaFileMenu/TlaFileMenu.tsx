@@ -22,7 +22,6 @@ import {
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
-import { useHasFlag } from '../../hooks/useHasFlag'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -120,7 +119,6 @@ export function FileItems({
 	const copiedMsg = useMsg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
-	const workspacesEnabled = useHasFlag('groups_frontend')
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
@@ -250,7 +248,7 @@ export function FileItems({
 				)}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
-				{workspacesEnabled && hasAdminRights && (
+				{hasAdminRights && (
 					<TldrawUiMenuSubmenu id="move-to-workspace" label={'Move to'} size="small">
 						<TldrawUiMenuGroup id="workspaces">
 							<TldrawUiMenuCheckboxItem

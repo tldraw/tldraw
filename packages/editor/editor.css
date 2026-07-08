@@ -986,6 +986,15 @@ input,
 	color: var(--tl-color-text-1);
 }
 
+.tl-content-slot {
+	position: absolute;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+	transform-origin: top left;
+}
+
 /* -------------------- Group shape ------------------ */
 
 .tl-group {

@@ -6,6 +6,7 @@ import ReactGA from 'react-ga4'
 import { useLocation } from 'react-router-dom'
 import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
+import { useSignUpTracking } from '../tla/hooks/useSignUpTracking'
 import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/FeatureFlagPoller'
 
 // Local storage key for cookie consent
@@ -311,6 +312,13 @@ export function trackEvent(name: string, data?: { [key: string]: any }) {
 		getGA4()?.event('page_view', data)
 	}
 
+	// Track new-account sign-ups in GA4 as well as PostHog. This is the conversion
+	// used to measure paid traffic (e.g. Google Ads) landing on tldraw.com. It is
+	// fired once per new account by useSignUpTracking, not on every login.
+	if (name === 'sign_up') {
+		getGA4()?.event('sign_up', data)
+	}
+
 	// Track watermark clicks in GA4
 	if (name === 'click-watermark' && data?.url) {
 		if (getGA4()) {
@@ -396,6 +404,7 @@ export function SignedInAnalytics() {
 	}, [user.allowAnalyticsCookie, user.email, user.id, user.name, app, storedConsent])
 
 	useTrackPageViews()
+	useSignUpTracking()
 
 	return null
 }
