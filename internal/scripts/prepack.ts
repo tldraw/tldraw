@@ -51,6 +51,29 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 		extraFiles.add('RELEASE_NOTES.md')
 	}
 
+	// Preserve any additional (non-'.') subpath exports the source package.json declares, e.g.
+	// `"./server": "./src/server.ts"`. Each is rewritten to point at the same dist shape as '.',
+	// using the entry's own basename rather than 'index'.
+	const sourceExports = manifest.exports ?? {}
+	const additionalExports = Object.fromEntries(
+		Object.entries(sourceExports)
+			.filter(([key]) => key !== '.')
+			.map(([key, value]) => {
+				if (typeof value !== 'string' || !value.startsWith('./src/') || !value.endsWith('.ts')) {
+					// not a source-file subpath (e.g. a `./*.css` passthrough) — leave it as-is
+					return [key, value]
+				}
+				const relPath = value.slice('./src/'.length).replace(/\.tsx?$/, '')
+				return [
+					key,
+					{
+						import: { types: `./dist-esm/${relPath}.d.mts`, default: `./dist-esm/${relPath}.mjs` },
+						require: { types: `./dist-cjs/${relPath}.d.ts`, default: `./dist-cjs/${relPath}.js` },
+					},
+				]
+			})
+	)
+
 	// construct the final package.json
 	// eslint-disable-next-line no-restricted-globals
 	const newManifest = structuredClone({
@@ -66,6 +89,7 @@ export async function preparePackage({ sourcePackageDir }: { sourcePackageDir: s
 				import: './dist-esm/index.mjs',
 				require: './dist-cjs/index.js',
 			},
+			...additionalExports,
 			...Object.fromEntries(
 				cssFiles.map((file) => [`./${path.basename(file)}`, `./${path.basename(file)}`])
 			),

@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync } from 'fs'
+import { copyFileSync, existsSync, readFileSync } from 'fs'
 import path from 'path'
 import { pathToFileURL } from 'url'
 import { build } from 'esbuild'
@@ -75,6 +75,56 @@ async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) 
 		path.join(sourcePackageDir, `api/public.d.ts`),
 		path.join(sourcePackageDir, 'dist-esm/index.d.mts')
 	)
+
+	// api-extractor only rolls up what's transitively exported from `src/index.ts`. Packages with
+	// additional `exports` subpaths (e.g. `./server`) need their own `.d.ts` files, which we take
+	// from the plain `tsc --build` output in `.tsbuild` (already produced by the `build-types`
+	// task that runs before this one) rather than trying to roll each subpath up separately.
+	const exportsMap = packageJson.exports
+	if (exportsMap && typeof exportsMap === 'object') {
+		for (const key of Object.keys(exportsMap)) {
+			if (key === '.') continue
+			const entry = exportsMap[key]
+			if (typeof entry !== 'string' || !entry.startsWith('./src/') || !entry.endsWith('.ts')) {
+				// not a source-file subpath (e.g. a `./*.css` passthrough) — nothing to build
+				continue
+			}
+			const relPath = entry.slice('./src/'.length).replace(/\.tsx?$/, '')
+			copySubpathDeclaration(sourcePackageDir, relPath, key)
+		}
+	}
+}
+
+/**
+ * Copies a subpath's `.tsbuild/<relPath>.d.ts` output into `dist-cjs`/`dist-esm`, then follows its
+ * relative imports/re-exports to copy any local `.d.ts` files it depends on, so the declaration
+ * resolves correctly once shipped (relative imports in `.d.ts` files aren't rewritten the way
+ * `addJsExtensions` rewrites runtime imports).
+ */
+function copySubpathDeclaration(
+	sourcePackageDir: string,
+	relPath: string,
+	exportsKey: string,
+	seen = new Set<string>()
+) {
+	if (seen.has(relPath)) return
+	seen.add(relPath)
+
+	const tsbuildDts = path.join(sourcePackageDir, '.tsbuild', `${relPath}.d.ts`)
+	if (!existsSync(tsbuildDts)) {
+		throw new Error(
+			`No .tsbuild output found for exports entry '${exportsKey}' (expected ${tsbuildDts}). Make sure build-types has run first.`
+		)
+	}
+	copyFileSync(tsbuildDts, path.join(sourcePackageDir, 'dist-cjs', `${relPath}.d.ts`))
+	copyFileSync(tsbuildDts, path.join(sourcePackageDir, 'dist-esm', `${relPath}.d.mts`))
+
+	const content = readFileSync(tsbuildDts, 'utf8')
+	const importRegex = /from\s+['"](\.[^'"]*)['"]/g
+	for (const match of content.matchAll(importRegex)) {
+		const importedRelPath = path.join(path.dirname(relPath), match[1])
+		copySubpathDeclaration(sourcePackageDir, importedRelPath, exportsKey, seen)
+	}
 }
 
 /** This uses esbuild to build the esm version of the package */
