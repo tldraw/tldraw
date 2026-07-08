@@ -64,6 +64,9 @@ Use this template:
 
 Start with: "In order to X, this PR does Y."
 
+- X is the **concrete situation that made this work necessary** — the real thing someone was trying to do — not a restatement of what Y does. "In order to let apps carry undo history across editor rebuilds, this adds an API to carry undo history across editor rebuilds" is circular: X just renames Y. Push X up a level to the actual goal, e.g. "so desktop can reload the editor without losing the user's place, the way HMR preserves component state across a code edit."
+- Name the real driving case, not a hypothetical. If you're inventing example scenarios to illustrate the why ("e.g. if someone toggled a plugin…"), you're reverse-engineering a justification from the finished code — you haven't written down the case that actually prompted it. Work forward from that case instead.
+- Beware abstract mechanism as a stand-in for motivation. A true technical fact about the SDK ("editor config is fixed at construction time") explains a constraint, not why anyone cares. Keep going until a reader can picture the specific thing that stopped working or became possible.
 - Keep it specific - avoid vague phrases like "improve user experience"
 - Link related issues in the first paragraph
 - Don't expect readers to also read the linked issue
