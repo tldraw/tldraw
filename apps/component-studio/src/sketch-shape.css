@@ -40,6 +40,13 @@
 	display: block;
 }
 
+/* shown until the cell scrolls into view and its iframe is lazily mounted */
+.sketch-shape__frame-placeholder {
+	width: 100%;
+	height: 100%;
+	background: var(--tl-color-muted-1);
+}
+
 .sketch-shape__label {
 	flex-shrink: 0;
 	padding: 6px 10px;

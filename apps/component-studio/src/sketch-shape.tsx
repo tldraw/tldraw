@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { HTMLContainer, Rectangle2d, ShapeUtil, T, TLShape, useEditor, useValue } from 'tldraw'
 import { SET_STATE } from './channel'
 import { sketchesById } from './registry'
@@ -18,14 +18,40 @@ declare module 'tldraw' {
  * (an editor-embedding scene otherwise shares page-global tooltip/event singletons). The
  * board's args and theme are pushed in over the channel. Non-interactive on the board.
  */
-function SketchIframe({ sketchId, args }: { sketchId: string; args: Record<string, unknown> }) {
+function SketchIframe({ shape, args }: { shape: SketchShape; args: Record<string, unknown> }) {
 	const ref = useRef<HTMLIFrameElement>(null)
 	const editor = useEditor()
+	const sketchId = shape.props.sketchId
+	const [loaded, setLoaded] = useState(false)
 	const theme = useValue<'light' | 'dark'>(
 		'theme',
 		() => (editor.user.getUserPreferences().colorScheme === 'dark' ? 'dark' : 'light'),
 		[editor]
 	)
+
+	// Lazy-load: don't boot a document until the cell is on-screen and rendered big enough to be
+	// worth it. A zoomed-out board of thumbnails then loads nothing until you zoom or pan in,
+	// rather than booting dozens of iframes at once. Latches on — once loaded, it stays loaded.
+	const shouldLoad = useValue(
+		'sketch iframe in view',
+		() => {
+			const bounds = editor.getShapePageBounds(shape.id)
+			if (!bounds) return false
+			if (bounds.w * editor.getZoomLevel() < 80) return false
+			const vp = editor.getViewportPageBounds()
+			return (
+				bounds.maxX > vp.minX &&
+				bounds.minX < vp.maxX &&
+				bounds.maxY > vp.minY &&
+				bounds.minY < vp.maxY
+			)
+		},
+		[editor, shape.id]
+	)
+	useEffect(() => {
+		if (shouldLoad) setLoaded(true)
+	}, [shouldLoad])
+
 	const post = useCallback(() => {
 		const frame = ref.current
 		if (frame && frame.contentWindow) {
@@ -36,8 +62,12 @@ function SketchIframe({ sketchId, args }: { sketchId: string; args: Record<strin
 		}
 	}, [sketchId, args, theme])
 	useEffect(() => {
-		post()
-	}, [post])
+		if (loaded) post()
+	}, [loaded, post])
+
+	if (!loaded) {
+		return <div className="sketch-shape__frame-placeholder" />
+	}
 	return (
 		<iframe
 			ref={ref}
@@ -85,7 +115,7 @@ export class SketchShapeUtil extends ShapeUtil<SketchShape> {
 			>
 				<div className="sketch-shape__preview sketch-shape__preview--fill">
 					{loaded ? (
-						<SketchIframe sketchId={shape.props.sketchId} args={shape.props.args} />
+						<SketchIframe shape={shape} args={shape.props.args} />
 					) : (
 						<span>unknown: {shape.props.sketchId}</span>
 					)}

@@ -11771,6 +11771,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
@@ -18663,6 +18664,7 @@ __metadata:
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
     "@tldraw/assets": "workspace:*"
+    "@tldraw/commenting": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/mermaid": "workspace:*"
     "@tldraw/sync": "workspace:*"

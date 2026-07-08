@@ -38,34 +38,35 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			control: 'boolean',
 		},
 	},
-	'sketchbooks/comments/comment-card.sketchbook.tsx': {
-		author: {
-			control: 'text',
-		},
-		body: {
-			control: 'text',
-		},
-		date: {
-			control: 'text',
-		},
-		edited: {
-			control: 'boolean',
-		},
-		you: {
-			control: 'boolean',
-		},
-	},
 	'sketchbooks/comments/comment-composer.sketchbook.tsx': {
 		author: {
+			control: 'text',
+		},
+		autoFocus: {
+			control: 'boolean',
+		},
+		disabled: {
+			control: 'boolean',
+		},
+		onChange: {
+			control: 'text',
+		},
+		onSubmit: {
 			control: 'text',
 		},
 		placeholder: {
 			control: 'text',
 		},
+		sendLabel: {
+			control: 'text',
+		},
+		value: {
+			control: 'text',
+		},
 	},
 	'sketchbooks/comments/comment-pin.sketchbook.tsx': {
-		number: {
-			control: 'number',
+		children: {
+			control: 'text',
 		},
 		open: {
 			control: 'boolean',
@@ -77,16 +78,6 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 	'sketchbooks/comments/comment-text.sketchbook.tsx': {
 		text: {
 			control: 'text',
-		},
-	},
-	'sketchbooks/comments/comment-thread.sketchbook.tsx': {
-		resolved: {
-			control: 'boolean',
-		},
-	},
-	'sketchbooks/comments/comments-sidebar.sketchbook.tsx': {
-		empty: {
-			control: 'boolean',
 		},
 	},
 	'sketchbooks/comments/empty-state.sketchbook.tsx': {
@@ -115,6 +106,9 @@ export const autoArgTypes: Record<string, Record<string, ArgType>> = {
 			control: 'boolean',
 		},
 		label: {
+			control: 'text',
+		},
+		onClick: {
 			control: 'text',
 		},
 	},

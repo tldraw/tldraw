@@ -1,0 +1,59 @@
+/* The comments layer is portaled into the editor container as a sibling of the UI panels.
+   It sits above their stacking context (`.tlui-layout` is z-index 300) so pins and popovers
+   read as UI chrome rather than being clipped by the canvas. It's click-through except on its
+   own children, so the canvas and panels underneath stay reachable. */
+.cmt-canvas-layer {
+	position: absolute;
+	inset: 0;
+	/* popover-like, above the panels — the same layer menus/popovers use */
+	z-index: var(--tl-layer-menus);
+	pointer-events: none;
+}
+
+.cmt-canvas-pin,
+.cmt-canvas-composer {
+	position: absolute;
+	pointer-events: auto;
+}
+
+/* The open thread (its pin + popover) sits above the other pins, so nearby markers don't
+   overlap its popover — they tuck behind it. */
+.cmt-canvas-pin--open {
+	z-index: 1;
+}
+
+/* Centre the pin marker on its anchor point. */
+.cmt-canvas-pin__marker {
+	width: max-content;
+	transform: translate(-50%, -50%);
+	cursor: pointer;
+}
+
+/* The thread popover opens just to the right of the pin. */
+.cmt-canvas-pin__popover {
+	position: absolute;
+	top: 0;
+	left: 20px;
+}
+
+/* The placement composer sits just below the click point. */
+.cmt-canvas-composer {
+	transform: translateY(8px);
+}
+
+/* The comments list panel — a right-side surface shown while the comment tool is active. Below
+   the popover layer, so an open thread still draws over it. */
+.cmt-canvas-sidebar {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	bottom: 8px;
+	width: 280px;
+	z-index: var(--tl-layer-panels);
+	pointer-events: auto;
+	display: flex;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-4);
+	box-shadow: var(--tl-shadow-2);
+	overflow: hidden;
+}

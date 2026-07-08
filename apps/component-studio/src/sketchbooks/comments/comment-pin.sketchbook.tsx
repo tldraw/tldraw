@@ -7,10 +7,17 @@ const sketchbook: Sketchbook<CommentPinProps> = {
 }
 export default sketchbook
 
-export const Closed: Sketch<CommentPinProps> = { args: { number: 3, resolved: false } }
+export const Closed: Sketch<CommentPinProps> = { render: () => <CommentPin>3</CommentPin> }
 export const Hovered: Sketch<CommentPinProps> = {
-	args: { number: 3, resolved: false },
+	render: () => <CommentPin>3</CommentPin>,
 	parameters: { pseudo: 'hover' },
 }
-export const Open: Sketch<CommentPinProps> = { args: { number: 3, resolved: false, open: true } }
-export const Resolved: Sketch<CommentPinProps> = { args: { number: 3, resolved: true } }
+export const Open: Sketch<CommentPinProps> = { render: () => <CommentPin open>3</CommentPin> }
+export const Resolved: Sketch<CommentPinProps> = {
+	render: () => <CommentPin resolved>3</CommentPin>,
+}
+
+// The pin's content is a lever: a comment count vs the thread author's initial. dotcom shows the
+// initial; the count is the alternative — captured side by side so the choice is explicit.
+export const Count: Sketch<CommentPinProps> = { render: () => <CommentPin>3</CommentPin> }
+export const AuthorInitial: Sketch<CommentPinProps> = { render: () => <CommentPin>J</CommentPin> }
