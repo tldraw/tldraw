@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Bạn có chắc chắn muốn xóa không gian làm việc này không? Thao tác này không thể hoàn tác."
-  },
   "0095a9fa74": {
     "translation": "Xuất"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Nhận trợ giúp trên Discord"
   },
+  "454aad3b3c": {
+    "translation": "Bạn có chắc chắn muốn xóa <strong>{fileName}</strong> không?"
+  },
   "46137245cd": {
     "translation": "Cảm ơn bạn đã giúp chúng tôi cải thiện tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Tệp ghim"
-  },
-  "4908687e50": {
-    "translation": "Bạn có chắc chắn muốn quên tệp này không?"
   },
   "49ee308734": {
     "translation": "Tên"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Bạn có lỗi, vấn đề hoặc ý tưởng cho tldraw? Hãy cho chúng tôi biết! Hãy điền vào biểu mẫu này và chúng tôi sẽ liên hệ qua email nếu cần. Bạn cũng có thể <discord>trò chuyện với chúng tôi trên Discord</discord> hoặc <github>gửi vấn đề trên GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Bạn có chắc chắn muốn quên <strong>{fileName}</strong> không?"
+  },
   "858ba4765e": {
     "translation": "Thành viên"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Đổi tên"
+  },
+  "90646db02d": {
+    "translation": "Bạn có chắc chắn muốn xóa <strong>{workspaceName}</strong> không? Hành động này không thể hoàn tác."
   },
   "95aacd4d4a": {
     "translation": "Đăng nhập bằng Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Tìm hiểu thêm về chia sẻ."
-  },
-  "c28aed8348": {
-    "translation": "Cho phép <cookies>analytics</cookies> giúp chúng tôi cải thiện tldraw."
   },
   "c303bd1095": {
     "translation": "Không thể xuất bản tệp này."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Bạn có chắc chắn muốn rời khỏi không gian làm việc này không?"
-  },
-  "fd1be3efcf": {
-    "translation": "Bạn có chắc muốn xóa tệp này?"
   },
   "fed5ec05eb": {
     "translation": "Đã sao chép liên kết"

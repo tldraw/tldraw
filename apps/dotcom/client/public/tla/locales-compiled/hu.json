@@ -123,12 +123,6 @@
       "value": "Exportálás másként"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Biztosan törölni szeretné ezt a munkaterületet? Ez a művelet nem vonható vissza."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Kérjen segítséget a Discordhoz"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Biztosan törölni szeretnéd a(z) "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " fájlt?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Fájl rögzítése"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Biztosan elfelejti ezt a fájlt?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Biztosan el szeretnéd felejteni a(z) "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " fájlt?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -789,6 +817,26 @@
     {
       "type": 0,
       "value": "Átnevezés"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Biztosan törölni szeretné a(z) "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " munkaterületet? Ez a művelet nem vonható vissza."
     }
   ],
   "95aacd4d4a": [
@@ -1113,26 +1161,6 @@
       "value": "További információ a megosztásról."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Engedélyezd az "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " használatát a tldraw fejlesztéséhez."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1443,12 +1471,6 @@
     {
       "type": 0,
       "value": "Biztosan el szeretné hagyni ezt a munkaterületet?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Biztosan törli ezt a fájlt?"
     }
   ],
   "fed5ec05eb": [

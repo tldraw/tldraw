@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/clerk-react'
 import { fileOpen } from 'browser-fs-access'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TLDRAW_FILE_EXTENSION,
@@ -20,11 +20,12 @@ import {
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
 import { signoutAnalytics } from '../../../utils/analytics'
+import { isDevelopmentEnv } from '../../../utils/env'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { UI_THEMES } from '../../themes/ui-themes'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { defineMessages, useMsg } from '../../utils/i18n'
+import { defineMessages, isInternalLocale, useMsg } from '../../utils/i18n'
 import {
 	getLocalSessionState,
 	resetLocalSessionStateButKeepTheme,
@@ -371,7 +372,9 @@ export function DebugMenuGroup() {
 	const isDebugMode = useValue('debug', () => maybeEditor?.getInstanceState().isDebugMode, [
 		maybeEditor,
 	])
-	if (!isDebugMode) return null
+	// These are internal developer tools, so only surface them in local development —
+	// not on staging/preview deploys or to production users who enable debug mode.
+	if (!isDevelopmentEnv || !isDebugMode) return null
 
 	return <DebugSubmenu />
 }
@@ -388,6 +391,14 @@ export function DebugSubmenu() {
 		{ name: useMsg(messages.langLongString), locale: 'xx-LS' },
 		{ name: useMsg(messages.langHighlightMissing), locale: 'xx-MS' },
 	]
+
+	// Remember the user's real locale so an internal debug locale can be toggled back off.
+	// Falls back to 'en' if we load already stuck in a debug locale.
+	const previousLocale = useRef('en')
+	const currentLocale = editor?.user.getLocale() ?? 'en'
+	if (!isInternalLocale(currentLocale)) {
+		previousLocale.current = currentLocale
+	}
 
 	useEffect(() => {
 		document.body.classList.toggle('tla-lang-highlight-missing', shouldHighlightMissing)
@@ -413,7 +424,11 @@ export function DebugSubmenu() {
 							if (flag.locale === 'xx-MS') {
 								setShouldHighlightMissing(!shouldHighlightMissing)
 							} else {
-								editor?.user.updateUserPreferences({ locale: flag.locale })
+								// Selecting the active locale again restores the user's real language.
+								const isActive = editor?.user.getLocale() === flag.locale
+								editor?.user.updateUserPreferences({
+									locale: isActive ? previousLocale.current : flag.locale,
+								})
 							}
 						}}
 					/>

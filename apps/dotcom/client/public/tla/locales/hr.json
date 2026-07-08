@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Jeste li sigurni da želite izbrisati ovaj radni prostor? Ovu radnju nije moguće poništiti."
-  },
   "0095a9fa74": {
     "translation": "Izvoz"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Zatražite pomoć na Discordu"
   },
+  "454aad3b3c": {
+    "translation": "Jeste li sigurni da želite izbrisati <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Hvala što nam pomažete poboljšati tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Prikvači datoteku"
-  },
-  "4908687e50": {
-    "translation": "Jeste li sigurni da želite zaboraviti ovu datoteku?"
   },
   "49ee308734": {
     "translation": "Ime"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Imate li grešku, problem ili ideju za tldraw? Javite nam! Ispunite ovaj obrazac i po potrebi ćemo vam se javiti putem e-pošte. Također možete <discord>razgovarati s nama na Discordu</discord> ili <github>postaviti problem na GitHubu</github>."
   },
+  "81666c6e4a": {
+    "translation": "Jeste li sigurni da želite zaboraviti <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Član"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Preimenovati"
+  },
+  "90646db02d": {
+    "translation": "Jeste li sigurni da želite izbrisati <strong>{workspaceName}</strong>? Ovu radnju nije moguće poništiti."
   },
   "95aacd4d4a": {
     "translation": "Prijava putem Googlea"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Saznajte više o dijeljenju."
-  },
-  "c28aed8348": {
-    "translation": "Dopustite <cookies>analytics</cookies> kako biste nam pomogli poboljšati tldraw."
   },
   "c303bd1095": {
     "translation": "Nije moguće objaviti datoteku."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Jeste li sigurni da želite napustiti ovaj radni prostor?"
-  },
-  "fd1be3efcf": {
-    "translation": "Jeste li sigurni da želite izbrisati ovu datoteku?"
   },
   "fed5ec05eb": {
     "translation": "Kopirana veza"

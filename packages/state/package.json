@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/state",
 	"description": "tldraw infinite canvas SDK (state).",
-	"version": "5.1.1",
+	"version": "5.2.3",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"

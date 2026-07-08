@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Sigurado ka bang gusto mong burahin ang workspace na ito? Hindi na maaaring bawiin ang aksyon na ito."
-  },
   "0095a9fa74": {
     "translation": "I-export"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Humingi ng tulong sa Discord"
   },
+  "454aad3b3c": {
+    "translation": "Sigurado ka bang gusto mong burahin ang <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Salamat sa pagtulong sa amin na mapabuti ang tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Pin file"
-  },
-  "4908687e50": {
-    "translation": "Sigurado ka bang gusto mong kalimutan ang file na ito?"
   },
   "49ee308734": {
     "translation": "Pangalan"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "May bug, isyu, o ideya para sa tldraw? Ipaalam sa amin! Punan ang form na ito at susubaybayan namin ang email kung kinakailangan. Maaari ka ring <discord>makipag-chat sa amin sa Discord</discord> o <github>magsumite ng isyu sa GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Sigurado ka bang gusto mong kalimutan ang <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Miyembro"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Palitan ang pangalan"
+  },
+  "90646db02d": {
+    "translation": "Sigurado ka bang gusto mong tanggalin ang <strong>{workspaceName}</strong>? Hindi na maaaring bawiin ang aksyon na ito."
   },
   "95aacd4d4a": {
     "translation": "Mag-sign in gamit ang Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Matuto pa tungkol sa pagbabahagi."
-  },
-  "c28aed8348": {
-    "translation": "Payagan ang <cookies>analytics</cookies> na tulungan kaming pagbutihin ang tldraw."
   },
   "c303bd1095": {
     "translation": "Hindi ma-publish ang file."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Sigurado ka bang gusto mong umalis sa workspace na ito?"
-  },
-  "fd1be3efcf": {
-    "translation": "Sigurado ka bang gusto mong tanggalin ang file na ito?"
   },
   "fed5ec05eb": {
     "translation": "Kinopya ang link"

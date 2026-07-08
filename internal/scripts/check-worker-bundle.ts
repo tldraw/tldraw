@@ -40,6 +40,8 @@ const EXTERNAL_DEPS = [
 	'perf_hooks',
 	'path',
 	'dns',
+	'util',
+	'util/types',
 	'node:child_process',
 	'node:events',
 	'node:path',

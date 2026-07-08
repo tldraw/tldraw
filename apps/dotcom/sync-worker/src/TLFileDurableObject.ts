@@ -49,7 +49,7 @@ import {
 	retry,
 	uniqueId,
 } from '@tldraw/utils'
-import { createSentry } from '@tldraw/worker-shared'
+import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
@@ -841,7 +841,11 @@ export class TLFileDurableObject extends DurableObject {
 							!assetSrc.startsWith('data:')
 						) {
 							const objectName = new URL(assetSrc).pathname.split('/').pop()
-							if (objectName && assetObjectNames.has(objectName)) {
+							if (
+								objectName &&
+								assetObjectNames.has(objectName) &&
+								isValidR2ObjectName(objectName)
+							) {
 								const blob = await env.UPLOADS.get(objectName)
 								if (blob) {
 									const ab = await blob.arrayBuffer()
@@ -1290,6 +1294,8 @@ export class TLFileDurableObject extends DurableObject {
 			assetsToReplace.map((asset) =>
 				this.addR2Operation('asset_copy', async () => {
 					try {
+						if (!isValidR2ObjectName(asset.objectName)) return
+
 						const currentAsset = await this.env.UPLOADS.get(asset.objectName)
 						if (!currentAsset) return
 						await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {

@@ -1584,7 +1584,8 @@ describe('erasing', () => {
 		expect(editor.getCurrentPageState().erasingShapeIds.length).toBe(1)
 		expect(editor.getCurrentPageState().erasingShapeIds[0]).toBe(ids.boxE)
 
-		// move to group B
+		// move across box B (inside the focus layer) and into group B (outside it)
+		editor.pointerMove(25, 5)
 		editor.pointerMove(65, 5)
 
 		expect(editor.getErasingShapeIds().length).toBe(3)

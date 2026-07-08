@@ -102,6 +102,7 @@ export { ClickManager, type TLClickState } from './lib/editor/managers/ClickMana
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager/EdgeScrollManager'
 export { FontManager } from './lib/editor/managers/FontManager/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
+export { EditorManager } from './lib/editor/managers/EditorManager'
 export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
 export {
 	ScribbleManager,
@@ -191,7 +192,6 @@ export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/res
 export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { maybeSnapToGrid } from './lib/editor/tools/BaseBoxShapeTool/children/Pointing'
-export { cancelShapeCreationOnLongPress } from './lib/editor/tools/cancelShapeCreationOnLongPress'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
 export { type TLContent } from './lib/editor/types/clipboard-types'
 export { type TLEventMap, type TLEventMapHandler } from './lib/editor/types/emit-types'

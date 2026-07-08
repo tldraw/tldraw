@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Opravdu chcete tento pracovní prostor smazat? Tuto akci nelze vrátit zpět."
-  },
   "0095a9fa74": {
     "translation": "Vývozní"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Získejte pomoc na Discordu"
   },
+  "454aad3b3c": {
+    "translation": "Opravdu chcete smazat soubor <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Děkujeme, že nám pomáháte zlepšovat tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Připnout soubor"
-  },
-  "4908687e50": {
-    "translation": "Opravdu chcete tento soubor zapomenout?"
   },
   "49ee308734": {
     "translation": "Jméno"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Máte chybu, problém nebo nápad ohledně tldraw? Dejte nám vědět! Vyplňte tento formulář a v případě potřeby se vám ozveme e-mailem. Můžete si také <discord>chatovat s námi na Discordu</discord> nebo <github>nahlásit problém na GitHubu</github>."
   },
+  "81666c6e4a": {
+    "translation": "Opravdu chcete zapomenout soubor <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Člen"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Přejmenovat"
+  },
+  "90646db02d": {
+    "translation": "Opravdu chcete smazat <strong>{workspaceName}</strong>? Tuto akci nelze vrátit zpět."
   },
   "95aacd4d4a": {
     "translation": "Přihlásit se pomocí Googlu"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Další informace o sdílení."
-  },
-  "c28aed8348": {
-    "translation": "Povolte <cookies>analytics</cookies>, které nám pomohou vylepšit tldraw."
   },
   "c303bd1095": {
     "translation": "Soubor nelze publikovat."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Jste si jisti, že chcete opustit tento pracovní prostor?"
-  },
-  "fd1be3efcf": {
-    "translation": "Opravdu chcete tento soubor smazat?"
   },
   "fed5ec05eb": {
     "translation": "Zkopírován odkaz"
