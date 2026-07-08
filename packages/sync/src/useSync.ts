@@ -25,6 +25,7 @@ import {
 	TLUser,
 	TLUserStore,
 	UserRecordType,
+	assertUniquePluginIds,
 	computed,
 	createCachedUserResolve,
 	createPresenceStateDerivation,
@@ -204,6 +205,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		if (!stablePlugins?.length) return stableSchemaOpts
 		if ('schema' in stableSchemaOpts && stableSchemaOpts.schema) {
 			// A prebuilt schema was passed in: it must already contain the plugin records.
+			assertUniquePluginIds(stablePlugins)
 			for (const plugin of stablePlugins) {
 				for (const typeName of Object.keys(plugin.records ?? {})) {
 					if (!(typeName in stableSchemaOpts.schema.types)) {
