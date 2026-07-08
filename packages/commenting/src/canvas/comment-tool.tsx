@@ -1,10 +1,10 @@
+import { TLCommentAnchor } from '@tldraw/comments'
 import {
 	atom,
 	DefaultToolbar,
 	DefaultToolbarContent,
 	StateNode,
 	TldrawUiMenuItem,
-	TLCommentAnchor,
 	TLComponents,
 	TLUiOverrides,
 	useIsToolSelected,

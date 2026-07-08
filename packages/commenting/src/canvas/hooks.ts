@@ -1,4 +1,5 @@
-import { Editor, TLComment, TLCommentThread, TLCommentThreadId, useValue } from 'tldraw'
+import { TLComment, TLCommentThread, TLCommentThreadId } from '@tldraw/comments'
+import { Editor, useValue } from 'tldraw'
 import { PendingComment, pendingComment } from './comment-tool'
 
 /** All comment threads in the store, reactively. (Comment records are opt-in, hence the casts.) */

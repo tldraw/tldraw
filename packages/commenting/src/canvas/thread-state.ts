@@ -1,4 +1,5 @@
-import { atom, Editor, TLCommentAnchor, TLCommentThread, TLShapeId } from 'tldraw'
+import { TLCommentAnchor, TLCommentThread } from '@tldraw/comments'
+import { atom, Editor, TLShapeId } from 'tldraw'
 
 /** The id of the one open thread (only one popover is open at a time), or null when all closed. */
 export const openThreadId = atom<string | null>('openThreadId', null)

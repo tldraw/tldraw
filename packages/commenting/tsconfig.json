@@ -3,5 +3,5 @@
 	"include": ["src"],
 	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*"],
 	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
-	"references": [{ "path": "../tldraw" }]
+	"references": [{ "path": "../comments" }, { "path": "../tldraw" }]
 }

@@ -22,6 +22,7 @@
 	"exclude": ["node_modules", "_archive"],
 	"references": [
 		{ "path": "../../../packages/assets" },
+		{ "path": "../../../packages/comments" },
 		{ "path": "../../../packages/commenting" },
 		{ "path": "../../../packages/dotcom-shared" },
 		{ "path": "../../../packages/mermaid" },

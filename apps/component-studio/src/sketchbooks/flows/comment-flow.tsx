@@ -4,8 +4,9 @@ import {
 	commentToolOverrides,
 	commentTools,
 } from '@tldraw/commenting/canvas'
+import { commentSchemaRecords } from '@tldraw/comments'
 import { useMemo } from 'react'
-import { commentSchemaRecords, createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
+import { createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
 import './comment-flow.css'
 
 // A tiny local user directory so the flow shows names instead of ids.

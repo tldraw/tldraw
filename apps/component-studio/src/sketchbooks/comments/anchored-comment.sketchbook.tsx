@@ -1,4 +1,4 @@
-import { TLCommentThread } from 'tldraw'
+import { TLCommentThread } from '@tldraw/comments'
 import { sampleComments, sampleThread } from '../../comment-model'
 import { Sketch, Sketchbook } from '../../sketch'
 import { AnchoredComment, AnchoredCommentProps } from './anchored-comment'

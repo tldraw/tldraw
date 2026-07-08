@@ -1,7 +1,8 @@
+import { TLComment } from '@tldraw/comments'
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { TLComment, useContainer, useEditor, useValue } from 'tldraw'
+import { useContainer, useEditor, useValue } from 'tldraw'
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { useComments, useCommentThreads } from './hooks'
 import { richTextToPlaintext } from './rich-text'

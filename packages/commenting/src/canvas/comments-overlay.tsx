@@ -1,18 +1,8 @@
+import { createComment, createCommentThread, TLComment, TLCommentThread } from '@tldraw/comments'
 /* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import {
-	createComment,
-	createCommentThread,
-	Editor,
-	TLComment,
-	TLCommentThread,
-	TldrawUiIcon,
-	toRichText,
-	useContainer,
-	useEditor,
-	useValue,
-} from 'tldraw'
+import { Editor, TldrawUiIcon, toRichText, useContainer, useEditor, useValue } from 'tldraw'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
 import { CommentPin } from '../ui/comment-pin'

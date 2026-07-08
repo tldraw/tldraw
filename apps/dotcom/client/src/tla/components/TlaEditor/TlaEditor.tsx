@@ -3,6 +3,7 @@ import {
 	commentToolOverrides,
 	commentTools,
 } from '@tldraw/commenting/canvas'
+import { commentSchemaRecords } from '@tldraw/comments'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
@@ -17,7 +18,6 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	UserRecordType,
-	commentSchemaRecords,
 	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,

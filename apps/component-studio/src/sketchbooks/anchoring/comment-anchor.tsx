@@ -1,4 +1,4 @@
-import { TLCommentAnchor, TLCommentThread } from 'tldraw'
+import { TLCommentAnchor, TLCommentThread } from '@tldraw/comments'
 import { sampleComments, sampleThread } from '../../comment-model'
 import { AnchorScene } from './anchor-scene'
 

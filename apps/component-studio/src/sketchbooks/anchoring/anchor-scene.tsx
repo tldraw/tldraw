@@ -1,14 +1,6 @@
+import { TLComment, TLCommentAnchor, TLCommentThread } from '@tldraw/comments'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-	Editor,
-	TLComment,
-	TLCommentAnchor,
-	TLCommentThread,
-	TLShapeId,
-	Tldraw,
-	createShapeId,
-	toRichText,
-} from 'tldraw'
+import { createShapeId, Editor, Tldraw, TLShapeId, toRichText } from 'tldraw'
 import { AnchoredComment } from '../comments/anchored-comment'
 import './anchor-scene.css'
 

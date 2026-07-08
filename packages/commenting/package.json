@@ -50,6 +50,7 @@
 		"node": ">=22.12.0"
 	},
 	"dependencies": {
+		"@tldraw/comments": "workspace:*",
 		"tldraw": "workspace:*"
 	}
 }

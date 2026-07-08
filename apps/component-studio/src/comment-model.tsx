@@ -1,14 +1,6 @@
 import { CommentCardProps, CommentText } from '@tldraw/commenting'
-import {
-	createComment,
-	createCommentThread,
-	createShapeId,
-	TLComment,
-	TLCommentThread,
-	TLPageId,
-	TLRichText,
-	toRichText,
-} from 'tldraw'
+import { createComment, createCommentThread, TLComment, TLCommentThread } from '@tldraw/comments'
+import { createShapeId, TLPageId, TLRichText, toRichText } from 'tldraw'
 
 // The studio builds real @tldraw/tlschema records (TLComment / TLCommentThread) and maps
 // them onto the presentational commenting components through an adapter — the same boundary

@@ -11767,6 +11767,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/commenting@workspace:packages/commenting"
   dependencies:
+    "@tldraw/comments": "workspace:*"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     react: "npm:^19.2.1"
@@ -17327,6 +17328,7 @@ __metadata:
   resolution: "component-studio@workspace:apps/component-studio"
   dependencies:
     "@tldraw/commenting": "workspace:*"
+    "@tldraw/comments": "workspace:*"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react": "npm:^6.0.1"
