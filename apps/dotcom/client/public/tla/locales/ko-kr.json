@@ -330,7 +330,7 @@
     "translation": "tldraw 관련 버그, 문제 또는 아이디어가 있으신가요? 알려주세요! 이 양식을 작성해 주시면 필요 시 이메일로 답변해 드리겠습니다. <discord>Discord에서 채팅</discord>하거나 <github>GitHub에서 문제를 제출</github>하실 수도 있습니다."
   },
   "81666c6e4a": {
-    "translation": "정말 <strong>{fileName}</strong> 파일을 삭제하시겠습니까?"
+    "translation": "정말 <strong>{fileName}</strong> 파일을 무시하시겠습니까?"
   },
   "858ba4765e": {
     "translation": "회원"

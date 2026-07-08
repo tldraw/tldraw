@@ -330,7 +330,7 @@
     "translation": "tldraw に関するバグ、問題、またはアイデアがありましたら、ぜひお知らせください。こちらのフォームにご記入いただければ、必要に応じてメールでご連絡いたします。また、<discord>Discord でチャット</discord>、<github>GitHub で問題を提出</github>することも可能です。"
   },
   "81666c6e4a": {
-    "translation": "<strong>{fileName}</strong> を削除してもよろしいですか？"
+    "translation": "<strong>{fileName}</strong> を無視してもよろしいですか？"
   },
   "858ba4765e": {
     "translation": "メンバー"
