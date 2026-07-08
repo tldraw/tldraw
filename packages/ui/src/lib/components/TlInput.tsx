@@ -15,6 +15,9 @@ export interface TlInputProps {
 	icon?: string
 	iconLeft?: string
 	iconLabel?: string
+	wrapperClassName?: string
+	iconClassName?: string
+	iconLeftClassName?: string
 	autoFocus?: boolean
 	autoSelect?: boolean
 	children?: React.ReactNode
@@ -50,6 +53,9 @@ export const TlInput = React.forwardRef<HTMLInputElement, TlInputProps>(function
 		icon,
 		iconLeft,
 		iconLabel,
+		wrapperClassName,
+		iconClassName,
+		iconLeftClassName,
 		autoSelect = false,
 		autoFocus = false,
 		defaultValue,
@@ -166,11 +172,16 @@ export const TlInput = React.forwardRef<HTMLInputElement, TlInputProps>(function
 	const resolvedIconLabel = iconLabel ? msg(iconLabel, iconLabel) : ''
 
 	return (
-		<div draggable={false} className="tl-input__wrapper">
+		<div draggable={false} className={classNames('tl-input__wrapper', wrapperClassName)}>
 			{children}
 			{label && <label>{msg(label, label)}</label>}
 			{iconLeft && (
-				<TlIcon label={resolvedIconLabel} icon={iconLeft} className="tl-input__icon-left" small />
+				<TlIcon
+					label={resolvedIconLabel}
+					icon={iconLeft}
+					className={classNames('tl-input__icon-left', iconLeftClassName, iconClassName)}
+					small
+				/>
 			)}
 			<input
 				ref={rInputRef}
@@ -190,7 +201,9 @@ export const TlInput = React.forwardRef<HTMLInputElement, TlInputProps>(function
 				data-testid={dataTestId}
 				disabled={disabled}
 			/>
-			{icon && <TlIcon label={resolvedIconLabel} icon={icon} small={!!label} />}
+			{icon && (
+				<TlIcon label={resolvedIconLabel} icon={icon} className={iconClassName} small={!!label} />
+			)}
 		</div>
 	)
 })

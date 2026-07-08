@@ -1,9 +1,9 @@
 import {
-	TldrawUiPopover,
-	TldrawUiPopoverContent,
-	TldrawUiPopoverTrigger,
-	TldrawUiToolbar,
-	TldrawUiToolbarButton,
+	TlPopover,
+	TlPopoverContent,
+	TlPopoverTrigger,
+	TlToolbar,
+	TlToolbarButton,
 	tlmenus,
 	ToolbarItem,
 	useEditor,
@@ -23,15 +23,15 @@ export function MathematicalToolbarItem() {
 	])
 
 	return (
-		<TldrawUiPopover
+		<TlPopover
 			id={MATH_MENU_ID}
 			open={isOpen}
 			onOpenChange={() => {
 				tlmenus.addOpenMenu(MATH_MENU_ID, editor.contextId)
 			}}
 		>
-			<TldrawUiPopoverTrigger>
-				<TldrawUiToolbarButton
+			<TlPopoverTrigger>
+				<TlToolbarButton
 					aria-label={labelStr}
 					data-testid={`tools.${id}`}
 					data-value={id}
@@ -39,16 +39,16 @@ export function MathematicalToolbarItem() {
 					type="tool"
 				>
 					<MathematicalIcon />
-				</TldrawUiToolbarButton>
-			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent side="right" align="center">
-				<TldrawUiToolbar label={labelStr} id={`${id}_math`}>
+				</TlToolbarButton>
+			</TlPopoverTrigger>
+			<TlPopoverContent side="right" align="center">
+				<TlToolbar label={labelStr} id={`${id}_math`}>
 					<ToolbarItem tool="node-add" />
 					<ToolbarItem tool="node-subtract" />
 					<ToolbarItem tool="node-multiply" />
 					<ToolbarItem tool="node-divide" />
-				</TldrawUiToolbar>
-			</TldrawUiPopoverContent>
-		</TldrawUiPopover>
+				</TlToolbar>
+			</TlPopoverContent>
+		</TlPopover>
 	)
 }

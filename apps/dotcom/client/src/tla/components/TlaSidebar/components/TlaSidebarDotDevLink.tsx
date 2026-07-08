@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { TldrawUiIcon } from 'tldraw'
+import { TlIcon } from 'tldraw'
 import { defineMessages, useMsg } from '../../../utils/i18n'
 import { ExternalLink } from '../../ExternalLink/ExternalLink'
 import styles from '../sidebar.module.css'
@@ -17,7 +17,7 @@ export function TlaSidebarDotDevLink() {
 			data-testid="tla-sidebar-dotdev-link"
 			eventName="sidebar-dotdev-link-clicked"
 		>
-			<TldrawUiIcon icon="code" label={lbl} small />
+			<TlIcon icon="code" label={lbl} small />
 			<span className={styles.sidebarLinkButtonLabel}>{lbl}</span>
 		</ExternalLink>
 	)

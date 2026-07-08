@@ -1,4 +1,4 @@
-import { T, TldrawUiSlider, useEditor } from 'tldraw'
+import { T, TlSlider, useEditor } from 'tldraw'
 import { SliderIcon } from '../../components/icons/SliderIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
@@ -69,7 +69,7 @@ export function SliderNodeComponent({ shape, node }: NodeComponentProps<SliderNo
 	const editor = useEditor()
 	return (
 		<NodeRow className="SliderNode" onPointerDown={editor.markEventAsHandled}>
-			<TldrawUiSlider
+			<TlSlider
 				steps={100}
 				value={node.value}
 				label="Slider"

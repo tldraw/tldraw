@@ -3,7 +3,7 @@ import { ContextMenu as _ContextMenu, DropdownMenu as _DropdownMenu } from 'radi
 import { createContext, ReactNode, useContext } from 'react'
 import { useTlMenuIsOpen } from '../context/menu-state'
 import { useTlPlatform } from '../context/platform'
-import { useTlPortalContainer } from '../context/portal'
+import { TlPortalScope, useTlPortalContainer } from '../context/portal'
 import { useTlTranslation } from '../context/translation'
 import { kbdStr } from '../kbd'
 import { preventDefault } from '../utils'
@@ -340,16 +340,18 @@ export function TlMenuSubmenu({
 						</TlButton>
 					</_ContextMenu.SubTrigger>
 					<_ContextMenu.Portal container={container}>
-						<_ContextMenu.SubContent
-							data-testid={`${sourceId}-sub.${id}-content`}
-							className="tl-menu"
-							alignOffset={-1}
-							sideOffset={-4}
-							collisionPadding={4}
-							data-size={size}
-						>
-							{children}
-						</_ContextMenu.SubContent>
+						<TlPortalScope>
+							<_ContextMenu.SubContent
+								data-testid={`${sourceId}-sub.${id}-content`}
+								className="tl-menu"
+								alignOffset={-1}
+								sideOffset={-4}
+								collisionPadding={4}
+								data-size={size}
+							>
+								{children}
+							</_ContextMenu.SubContent>
+						</TlPortalScope>
 					</_ContextMenu.Portal>
 				</TlContextMenuSubWithMenu>
 			)

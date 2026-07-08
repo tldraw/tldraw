@@ -6,8 +6,8 @@ import {
 	TLComponents,
 	Tldraw,
 	TldrawOptions,
-	TldrawUiButton,
-	TldrawUiRow,
+	TlButton,
+	TlRow,
 	TLEditorSnapshot,
 	useEditor,
 	useToasts,
@@ -95,14 +95,14 @@ export function WhiteboardModal({
 			// and cancel buttons:
 			SharePanel: () => {
 				return (
-					<TldrawUiRow className="whiteboard-actions">
-						<TldrawUiButton type="normal" onClick={onCancel}>
+					<TlRow className="whiteboard-actions">
+						<TlButton type="normal" onClick={onCancel}>
 							Cancel
-						</TldrawUiButton>
-						<TldrawUiButton type="primary" onClick={handleSave}>
+						</TlButton>
+						<TlButton type="primary" onClick={handleSave}>
 							{imageId ? 'Save' : 'Add'}
-						</TldrawUiButton>
-					</TldrawUiRow>
+						</TlButton>
+					</TlRow>
 				)
 			},
 		}),

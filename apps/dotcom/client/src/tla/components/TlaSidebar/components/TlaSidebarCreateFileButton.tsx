@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TldrawUiButton, tltime } from 'tldraw'
+import { TlButton, tltime } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
@@ -50,7 +50,7 @@ export function TlaSidebarCreateFileButton() {
 	const handleSidebarCreate = useHandleSidebarCreateFile()
 
 	return (
-		<TldrawUiButton
+		<TlButton
 			type="icon"
 			className={styles.sidebarCreateFileButton}
 			onClick={handleSidebarCreate}
@@ -59,6 +59,6 @@ export function TlaSidebarCreateFileButton() {
 			title={createTitle}
 		>
 			<TlaIcon icon="edit-strong" style={{ left: 1 }} />
-		</TldrawUiButton>
+		</TlButton>
 	)
 }

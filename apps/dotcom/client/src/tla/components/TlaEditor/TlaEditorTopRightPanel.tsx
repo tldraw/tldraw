@@ -10,7 +10,7 @@ import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
 	PeopleMenu,
-	TldrawUiButton,
+	TlButton,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
@@ -168,7 +168,7 @@ export function SignedOutShareButton({
 
 	return (
 		<TlaFileShareMenu fileId={fileId} context={context} source="anon">
-			<TldrawUiButton
+			<TlButton
 				type="icon"
 				data-testid="tla-share-button"
 				tooltip={shareLbl}
@@ -177,7 +177,7 @@ export function SignedOutShareButton({
 				onClick={() => trackEvent('open-share-menu', { source: 'anon-top-bar' })}
 			>
 				<TlaIcon icon="share" />
-			</TldrawUiButton>
+			</TlButton>
 		</TlaFileShareMenu>
 	)
 }

@@ -6,10 +6,10 @@ import classNames from 'classnames'
 import { ChangeEvent, ReactNode, useCallback, useEffect, useState, type FormEvent } from 'react'
 import {
 	exhaustiveSwitchError,
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
+	TlDialogBody,
+	TlDialogCloseButton,
+	TlDialogHeader,
+	TlDialogTitle,
 } from 'tldraw'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { setRedirectOnSignIn } from '../../utils/redirect'
@@ -76,18 +76,18 @@ export function TlaSignInDialog({
 
 	return (
 		<div className={styles.authContainer}>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
+			<TlDialogHeader>
+				<TlDialogTitle>
 					<span />
-				</TldrawUiDialogTitle>
-				{onClose && <TldrawUiDialogCloseButton />}
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.authDialogBody}>
+				</TlDialogTitle>
+				{onClose && <TlDialogCloseButton />}
+			</TlDialogHeader>
+			<TlDialogBody className={styles.authDialogBody}>
 				<div className={styles.authBody}>{innerContent}</div>
 
 				{/* Clerk's CAPTCHA widget */}
 				<div id="clerk-captcha" className={styles.clerkCaptcha} />
-			</TldrawUiDialogBody>
+			</TlDialogBody>
 		</div>
 	)
 }

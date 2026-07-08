@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TLDRAW_FILE_EXTENSION,
-	TldrawUiIcon,
+	TlIcon,
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
@@ -158,7 +158,7 @@ function UIThemeMenuCheckboxItem({
 				e.preventDefault()
 			}}
 		>
-			<TldrawUiIcon
+			<TlIcon
 				small
 				label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
 				icon={checked ? 'check' : 'none'}

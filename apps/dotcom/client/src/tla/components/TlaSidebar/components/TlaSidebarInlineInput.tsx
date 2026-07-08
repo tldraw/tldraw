@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
-import { TldrawUiInput } from 'tldraw'
+import { TlInput } from 'tldraw'
 import styles from '../sidebar.module.css'
 
 interface TlaSidebarInlineInputProps {
@@ -50,7 +50,7 @@ export function TlaSidebarInlineInput({
 
 	return (
 		<div className={classNames(styles.sidebarFileListItemRenameInputWrapper, wrapperClassName)}>
-			<TldrawUiInput
+			<TlInput
 				ref={ref}
 				data-testid={dataTestId}
 				className={classNames(

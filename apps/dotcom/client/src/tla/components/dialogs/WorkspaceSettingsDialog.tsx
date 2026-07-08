@@ -3,12 +3,12 @@ import { Tooltip as _Tooltip } from 'radix-ui'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
-	TldrawUiInput,
-	TldrawUiTooltip,
+	TlDialogBody,
+	TlDialogCloseButton,
+	TlDialogHeader,
+	TlDialogTitle,
+	TlInput,
+	TlTooltip,
 	useDialogs,
 	useValue,
 } from 'tldraw'
@@ -326,20 +326,20 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 		<_Tooltip.Provider>
 			{/* Marker used to find the dialog content element and anchor its position (see above). */}
 			<div ref={anchorRef} hidden />
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
+			<TlDialogHeader>
+				<TlDialogTitle>
 					<F defaultMessage="Manage workspace" />
-				</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.workspaceSettingsBody}>
+				</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
+			<TlDialogBody className={styles.workspaceSettingsBody}>
 				{/* Shared header: name + invite link, shown above both tabs. */}
 				<div className={styles.section}>
 					<div className={styles.sectionLabel}>
 						<F defaultMessage="Name" />
 					</div>
 					{/* Renaming requires the manageWorkspace capability (enforced by the mutator). */}
-					<TldrawUiInput
+					<TlInput
 						className={styles.dialogInput}
 						defaultValue={workspace.name}
 						disabled={!canManageWorkspace}
@@ -531,11 +531,11 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 												<F {...messages.leaveWorkspace} />
 											</button>
 										) : (
-											<TldrawUiTooltip content={<F {...messages.mustKeepOwner} />}>
+											<TlTooltip content={<F {...messages.mustKeepOwner} />}>
 												<button type="button" className={styles.inlineButton} disabled>
 													<F {...messages.leaveWorkspace} />
 												</button>
-											</TldrawUiTooltip>
+											</TlTooltip>
 										)}
 										{canManageWorkspace && (
 											<button
@@ -552,7 +552,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						</TlaMenuTabsRoot>
 					</>
 				)}
-			</TldrawUiDialogBody>
+			</TlDialogBody>
 		</_Tooltip.Provider>
 	)
 }

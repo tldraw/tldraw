@@ -10,11 +10,11 @@ import {
 	useReactor,
 	useValue,
 } from '@tldraw/editor'
+import { TlButton } from '@tldraw/ui'
 import { memo, MouseEvent, useCallback, useEffect, useRef } from 'react'
 import { useA11y } from '../context/a11y'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { suppressBackToContent } from './HelperButtons/BackToContent'
-import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 
 export function SkipToMainContent() {
 	const editor = useEditor()
@@ -44,7 +44,7 @@ export function SkipToMainContent() {
 	)
 
 	return (
-		<TldrawUiButton
+		<TlButton
 			ref={button}
 			type="low"
 			tabIndex={0}
@@ -52,7 +52,7 @@ export function SkipToMainContent() {
 			onClick={handleNavigateToFirstShape}
 		>
 			{msg('a11y.skip-to-main-content')}
-		</TldrawUiButton>
+		</TlButton>
 	)
 }
 

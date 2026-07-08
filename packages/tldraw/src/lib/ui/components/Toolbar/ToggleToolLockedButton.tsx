@@ -1,13 +1,13 @@
 import { useEditor, useValue } from '@tldraw/editor'
+import { TlButton } from '@tldraw/ui'
+import { TlButtonIcon } from '@tldraw/ui'
+import { TlTooltip } from '@tldraw/ui'
 import classNames from 'classnames'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../kbd-utils'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiTooltip } from '../primitives/TldrawUiTooltip'
 
 /** @public */
 export interface ToggleToolLockedButtonProps {
@@ -34,8 +34,8 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 		: msg('action.toggle-tool-lock')
 
 	return (
-		<TldrawUiTooltip content={tooltipContent}>
-			<TldrawUiButton
+		<TlTooltip content={tooltipContent}>
+			<TlButton
 				type="normal"
 				data-testid="tool-lock"
 				className={classNames('tlui-main-toolbar__lock-button', {
@@ -43,8 +43,8 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 				})}
 				onClick={() => editor.updateInstanceState({ isToolLocked: !isToolLocked })}
 			>
-				<TldrawUiButtonIcon icon={isToolLocked ? 'lock' : 'unlock'} small />
-			</TldrawUiButton>
-		</TldrawUiTooltip>
+				<TlButtonIcon icon={isToolLocked ? 'lock' : 'unlock'} small />
+			</TlButton>
+		</TlTooltip>
 	)
 }

@@ -5,7 +5,7 @@ import { KeyboardEvent, MouseEvent, ReactNode, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
 	TldrawUiMenuContextProvider,
-	TldrawUiTooltip,
+	TlTooltip,
 	isEqual,
 	preventDefault,
 	useContainer,
@@ -346,7 +346,7 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 
 	return (
 		<div className={styles.sidebarFileListItemGuestBadge} data-testid={testId}>
-			<TldrawUiTooltip
+			<TlTooltip
 				content={
 					<>
 						{ownerName ? (
@@ -365,7 +365,7 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 				>
 					<TlaIcon icon="group" className="tlui-guest-icon" />
 				</div>
-			</TldrawUiTooltip>
+			</TlTooltip>
 		</div>
 	)
 }

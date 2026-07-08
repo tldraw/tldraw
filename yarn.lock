@@ -31772,6 +31772,7 @@ __metadata:
     "@tldraw/driver": "workspace:*"
     "@tldraw/editor": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/ui": "workspace:*"
     "@types/classnames": "npm:^2.3.4"
     "@types/lz-string": "npm:^1.5.0"
     "@types/react": "npm:^19.2.7"

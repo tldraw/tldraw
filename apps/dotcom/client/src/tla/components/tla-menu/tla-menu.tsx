@@ -8,7 +8,7 @@ import {
 	useCallback,
 	useContext,
 } from 'react'
-import { TldrawUiButton, TldrawUiIcon, TldrawUiTooltip, useContainer } from 'tldraw'
+import { TlButton, TlIcon, TlTooltip, useContainer } from 'tldraw'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './menu.module.css'
@@ -72,7 +72,7 @@ export function TlaMenuControlInfoTooltip({
 
 	return (
 		<div className={styles.menuInfoTriggerContainer}>
-			<TldrawUiTooltip content={children} showOnMobile={showOnMobile} delayDuration={0}>
+			<TlTooltip content={children} showOnMobile={showOnMobile} delayDuration={0}>
 				{href ? (
 					<a
 						onClick={onClick}
@@ -80,14 +80,14 @@ export function TlaMenuControlInfoTooltip({
 						target="_blank nofollow noreferrer"
 						className={styles.menuInfoTrigger}
 					>
-						<TldrawUiIcon label={helpMsg} icon="help-circle" small />
+						<TlIcon label={helpMsg} icon="help-circle" small />
 					</a>
 				) : (
-					<TldrawUiButton type="icon" className={styles.menuInfoTrigger}>
-						<TldrawUiIcon label={helpMsg} icon="help-circle" small />
-					</TldrawUiButton>
+					<TlButton type="icon" className={styles.menuInfoTrigger}>
+						<TlIcon label={helpMsg} icon="help-circle" small />
+					</TlButton>
 				)}
-			</TldrawUiTooltip>
+			</TlTooltip>
 		</div>
 	)
 }
@@ -216,9 +216,9 @@ export function TlaMenuSelect<T extends string>({
 										)
 										if (!action.tooltip) return item
 										return (
-											<TldrawUiTooltip key={action.id} content={action.tooltip}>
+											<TlTooltip key={action.id} content={action.tooltip}>
 												{item}
-											</TldrawUiTooltip>
+											</TlTooltip>
 										)
 									})}
 								</>

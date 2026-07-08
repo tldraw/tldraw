@@ -1,9 +1,22 @@
 import { RecursivePartial, defaultUserPreferences, track, useMaybeEditor } from '@tldraw/editor'
-import { ReactNode } from 'react'
+import {
+	TlBreakpointProvider,
+	TlIconProvider,
+	TlMenuStateProvider,
+	TlPlatformProvider,
+	TlPortalProvider,
+	TlTooltipProvider,
+	TlTranslationProvider,
+} from '@tldraw/ui'
+import { ReactNode, useCallback } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
-import { TldrawUiTooltipProvider } from '../components/primitives/TldrawUiTooltip'
+import { useMenuIsOpen } from '../hooks/useMenuIsOpen'
 import { ToolsProvider } from '../hooks/useTools'
-import { TldrawUiTranslationProvider } from '../hooks/useTranslation/useTranslation'
+import {
+	TldrawUiTranslationProvider,
+	useDirection,
+	useTranslation,
+} from '../hooks/useTranslation/useTranslation'
 import {
 	MimeTypeContext,
 	TLUiOverrides,
@@ -12,8 +25,9 @@ import {
 } from '../overrides'
 import { TldrawUiA11yProvider } from './a11y'
 import { ActionsProvider } from './actions'
-import { AssetUrlsProvider } from './asset-urls'
+import { AssetUrlsProvider, useAssetUrls } from './asset-urls'
 import { BreakPointProvider } from './breakpoints'
+import { useBreakpoint } from './breakpoints'
 import { TLUiComponents, TldrawUiComponentsProvider } from './components'
 import { TldrawUiDialogsProvider } from './dialogs'
 import { TLUiEventHandler, TldrawUiEventsProvider } from './events'
@@ -78,26 +92,60 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 					overrides={useMergedTranslationOverrides(overrides)}
 					locale={editor?.user.getLocale() ?? defaultUserPreferences.locale}
 				>
-					<TldrawUiTooltipProvider>
-						<TldrawUiEventsProvider onEvent={onUiEvent}>
-							<TldrawUiToastsProvider>
-								<TldrawUiDialogsProvider context={'tla'}>
-									<TldrawUiA11yProvider>
-										<BreakPointProvider forceMobile={forceMobile}>
+					<TldrawUiEventsProvider onEvent={onUiEvent}>
+						<TldrawUiToastsProvider>
+							<TldrawUiDialogsProvider context={'tla'}>
+								<TldrawUiA11yProvider>
+									<BreakPointProvider forceMobile={forceMobile}>
+										<TldrawUiSharedProvider>
 											<TldrawUiComponentsProvider overrides={components}>
 												<InternalProviders overrides={overrides}>{children}</InternalProviders>
 											</TldrawUiComponentsProvider>
-										</BreakPointProvider>
-									</TldrawUiA11yProvider>
-								</TldrawUiDialogsProvider>
-							</TldrawUiToastsProvider>
-						</TldrawUiEventsProvider>
-					</TldrawUiTooltipProvider>
+										</TldrawUiSharedProvider>
+									</BreakPointProvider>
+								</TldrawUiA11yProvider>
+							</TldrawUiDialogsProvider>
+						</TldrawUiToastsProvider>
+					</TldrawUiEventsProvider>
 				</TldrawUiTranslationProvider>
 			</AssetUrlsProvider>
 		</MimeTypeContext.Provider>
 	)
 })
+
+function TldrawUiSharedProvider({ children }: { children: ReactNode }) {
+	const editor = useMaybeEditor()
+	const assetUrls = useAssetUrls()
+	const breakpoint = useBreakpoint()
+	const dir = useDirection()
+	const tldrawMsg = useTranslation()
+
+	const msg = useCallback(
+		(key: string) => {
+			const value = tldrawMsg(key)
+			return value === key ? undefined : value
+		},
+		[tldrawMsg]
+	)
+
+	const isMoving = useCallback(() => editor?.getCameraState() === 'moving', [editor])
+
+	return (
+		<TlTranslationProvider dir={dir} msg={msg}>
+			<TlPlatformProvider>
+				<TlPortalProvider container={editor?.getContainer() ?? null}>
+					<TlIconProvider assetUrls={assetUrls.icons}>
+						<TlMenuStateProvider useMenuIsOpen={useMenuIsOpen}>
+							<TlBreakpointProvider breakpoint={breakpoint}>
+								<TlTooltipProvider isMoving={isMoving}>{children}</TlTooltipProvider>
+							</TlBreakpointProvider>
+						</TlMenuStateProvider>
+					</TlIconProvider>
+				</TlPortalProvider>
+			</TlPlatformProvider>
+		</TlTranslationProvider>
+	)
+}
 
 function InternalProviders({
 	overrides,

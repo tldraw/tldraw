@@ -11,6 +11,8 @@ export interface TlIconProps extends React.HTMLAttributes<HTMLDivElement> {
 	label?: string
 	small?: boolean
 	tiny?: boolean
+	color?: string
+	invertIcon?: boolean
 	crossOrigin?: 'anonymous' | 'use-credentials'
 }
 
@@ -20,7 +22,10 @@ export const TlIcon = memo(function TlIcon({
 	small,
 	icon,
 	tiny,
+	color,
+	invertIcon,
 	className,
+	style,
 	crossOrigin,
 	...props
 }: TlIconProps) {
@@ -33,6 +38,12 @@ export const TlIcon = memo(function TlIcon({
 				icon.props.className
 			),
 			'aria-label': label,
+			style: {
+				color,
+				transform: invertIcon ? 'scale(-1, 1)' : undefined,
+				...style,
+				...icon.props.style,
+			},
 		})
 	}
 
@@ -42,7 +53,10 @@ export const TlIcon = memo(function TlIcon({
 			small={small}
 			tiny={tiny}
 			icon={icon}
+			color={color}
+			invertIcon={invertIcon}
 			className={className}
+			style={style}
 			crossOrigin={crossOrigin}
 			{...props}
 		/>
@@ -54,7 +68,10 @@ function TlIconInner({
 	small,
 	tiny,
 	icon,
+	color,
+	invertIcon,
 	className,
+	style,
 	crossOrigin: _crossOrigin,
 	...props
 }: TlIconProps & { icon: string }) {
@@ -80,6 +97,11 @@ function TlIconInner({
 					{ 'tl-icon--small': small, 'tl-icon--tiny': tiny },
 					className
 				)}
+				style={{
+					color,
+					transform: invertIcon ? 'scale(-1, 1)' : undefined,
+					...style,
+				}}
 				{...props}
 			/>
 		)
@@ -97,7 +119,10 @@ function TlIconInner({
 				className
 			)}
 			style={{
+				color,
 				mask: `url(${asset}) center 100% / 100% no-repeat`,
+				transform: invertIcon ? 'scale(-1, 1)' : undefined,
+				...style,
 			}}
 		/>
 	)

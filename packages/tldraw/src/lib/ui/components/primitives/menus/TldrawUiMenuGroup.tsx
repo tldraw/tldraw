@@ -1,10 +1,10 @@
+import { TlColumn, TlGrid, TlRow, useTlOrientation } from '@tldraw/ui'
+import { TlDropdownMenuGroup } from '@tldraw/ui'
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow, useTldrawUiOrientation } from '../layout'
-import { TldrawUiDropdownMenuGroup } from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -21,7 +21,7 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 /** @public @react */
 export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps) {
 	const menu = useTldrawUiMenuContext()
-	const { orientation } = useTldrawUiOrientation()
+	const { orientation } = useTlOrientation()
 	const msg = useTranslation()
 	const dir = useDirection()
 	const labelToUse = unwrapLabel(label, menu.type)
@@ -30,12 +30,9 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 	switch (menu.type) {
 		case 'menu': {
 			return (
-				<TldrawUiDropdownMenuGroup
-					className={className}
-					data-testid={`${menu.sourceId}-group.${id}`}
-				>
+				<TlDropdownMenuGroup className={className} data-testid={`${menu.sourceId}-group.${id}`}>
 					{children}
-				</TldrawUiDropdownMenuGroup>
+				</TlDropdownMenuGroup>
 			)
 		}
 		case 'context-menu': {
@@ -59,7 +56,7 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 			)
 		}
 		case 'toolbar': {
-			const Layout = orientation === 'horizontal' ? TldrawUiRow : TldrawUiColumn
+			const Layout = orientation === 'horizontal' ? TlRow : TlColumn
 			return (
 				<Layout className="tlui-main-toolbar__group" data-testid={`${menu.sourceId}-group.${id}`}>
 					{children}
@@ -68,12 +65,9 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 		}
 		case 'toolbar-overflow': {
 			return (
-				<TldrawUiGrid
-					className="tlui-main-toolbar__group"
-					data-testid={`${menu.sourceId}-group.${id}`}
-				>
+				<TlGrid className="tlui-main-toolbar__group" data-testid={`${menu.sourceId}-group.${id}`}>
 					{children}
-				</TldrawUiGrid>
+				</TlGrid>
 			)
 		}
 		default: {

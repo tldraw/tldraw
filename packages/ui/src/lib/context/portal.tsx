@@ -24,3 +24,7 @@ export function useTlPortalContainer(): HTMLElement | undefined {
 export function useTlContainer(): HTMLElement | undefined {
 	return useTlPortalContainer()
 }
+
+export function TlPortalScope({ children }: { children: ReactNode }) {
+	return <div className="tl-ui">{children}</div>
+}

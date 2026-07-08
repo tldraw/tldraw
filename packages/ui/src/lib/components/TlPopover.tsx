@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { Popover as _Popover } from 'radix-ui'
 import React from 'react'
 import { useTlMenuIsOpen } from '../context/menu-state'
-import { useTlPortalContainer } from '../context/portal'
+import { TlPortalScope, useTlPortalContainer } from '../context/portal'
 import { useTlTranslation } from '../context/translation'
 
 /** @public */
@@ -58,6 +58,7 @@ export interface TlPopoverContentProps {
 	align?: 'start' | 'center' | 'end'
 	alignOffset?: number
 	sideOffset?: number
+	className?: string
 	/**
 	 * Minimum distance to keep between the popover and the viewport edge before it
 	 * shifts to stay in view. Defaults to Radix's `0`.
@@ -74,6 +75,7 @@ export function TlPopoverContent({
 	align = 'center',
 	sideOffset = 8,
 	alignOffset = 0,
+	className,
 	collisionPadding,
 	disableEscapeKeyDown = false,
 	autoFocusFirstButton = true,
@@ -94,20 +96,22 @@ export function TlPopoverContent({
 
 	return (
 		<_Popover.Portal container={container}>
-			<_Popover.Content
-				className="tl-popover__content"
-				side={side}
-				sideOffset={sideOffset}
-				align={align}
-				alignOffset={alignOffset}
-				collisionPadding={collisionPadding}
-				dir={dir}
-				ref={ref}
-				onOpenAutoFocus={handleOpenAutoFocus}
-				onEscapeKeyDown={(e) => disableEscapeKeyDown && e.preventDefault()}
-			>
-				{children}
-			</_Popover.Content>
+			<TlPortalScope>
+				<_Popover.Content
+					className={classNames('tl-popover__content', className)}
+					side={side}
+					sideOffset={sideOffset}
+					align={align}
+					alignOffset={alignOffset}
+					collisionPadding={collisionPadding}
+					dir={dir}
+					ref={ref}
+					onOpenAutoFocus={handleOpenAutoFocus}
+					onEscapeKeyDown={(e) => disableEscapeKeyDown && e.preventDefault()}
+				>
+					{children}
+				</_Popover.Content>
+			</TlPortalScope>
 		</_Popover.Portal>
 	)
 }

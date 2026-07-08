@@ -12,7 +12,7 @@ import React, {
 	useState,
 } from 'react'
 import { useTlPlatform } from '../context/platform'
-import { useTlPortalContainer } from '../context/portal'
+import { TlPortalScope, useTlPortalContainer } from '../context/portal'
 import { useTlTranslation } from '../context/translation'
 import { useTlOrientation } from './layout'
 
@@ -323,17 +323,19 @@ function TooltipSingleton() {
 				<div ref={triggerRef} />
 			</_Tooltip.Trigger>
 			<_Tooltip.Portal container={portalContainer}>
-				<_Tooltip.Content
-					className="tl-tooltip"
-					side={filteredTooltip.side}
-					sideOffset={filteredTooltip.sideOffset}
-					avoidCollisions
-					collisionPadding={8}
-					dir={dir}
-				>
-					{filteredTooltip.content}
-					<_Tooltip.Arrow className="tl-tooltip__arrow" />
-				</_Tooltip.Content>
+				<TlPortalScope>
+					<_Tooltip.Content
+						className="tl-tooltip"
+						side={filteredTooltip.side}
+						sideOffset={filteredTooltip.sideOffset}
+						avoidCollisions
+						collisionPadding={8}
+						dir={dir}
+					>
+						{filteredTooltip.content}
+						<_Tooltip.Arrow className="tl-tooltip__arrow" />
+					</_Tooltip.Content>
+				</TlPortalScope>
 			</_Tooltip.Portal>
 		</_Tooltip.Root>
 	)
@@ -386,17 +388,19 @@ export const TlTooltip = forwardRef<HTMLButtonElement, TlTooltipProps>(
 						{children}
 					</_Tooltip.Trigger>
 					<_Tooltip.Portal container={portalContainer}>
-						<_Tooltip.Content
-							className="tl-tooltip"
-							side={sideToUse}
-							sideOffset={sideOffset}
-							avoidCollisions
-							collisionPadding={8}
-							dir={dir}
-						>
-							{content}
-							<_Tooltip.Arrow className="tl-tooltip__arrow" />
-						</_Tooltip.Content>
+						<TlPortalScope>
+							<_Tooltip.Content
+								className="tl-tooltip"
+								side={sideToUse}
+								sideOffset={sideOffset}
+								avoidCollisions
+								collisionPadding={8}
+								dir={dir}
+							>
+								{content}
+								<_Tooltip.Arrow className="tl-tooltip__arrow" />
+							</_Tooltip.Content>
+						</TlPortalScope>
 					</_Tooltip.Portal>
 				</_Tooltip.Root>
 			)

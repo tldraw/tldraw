@@ -2,9 +2,9 @@ import { useCallback } from 'react'
 import {
 	Box,
 	Tldraw,
-	TldrawUiButtonIcon,
+	TlButtonIcon,
 	TldrawUiContextualToolbar,
-	TldrawUiToolbarButton,
+	TlToolbarButton,
 	TLEditorComponents,
 	track,
 	useEditor,
@@ -34,7 +34,7 @@ const ShapeToolbar = track(() => {
 
 	return (
 		<TldrawUiContextualToolbar getSelectionBounds={getSelectionBounds} label="Shape actions">
-			<TldrawUiToolbarButton
+			<TlToolbarButton
 				type="icon"
 				title="Duplicate"
 				onClick={() => {
@@ -42,9 +42,9 @@ const ShapeToolbar = track(() => {
 					handleReturn()
 				}}
 			>
-				<TldrawUiButtonIcon small icon="duplicate" />
-			</TldrawUiToolbarButton>
-			<TldrawUiToolbarButton
+				<TlButtonIcon small icon="duplicate" />
+			</TlToolbarButton>
+			<TlToolbarButton
 				type="icon"
 				title="Delete"
 				onClick={() => {
@@ -52,8 +52,8 @@ const ShapeToolbar = track(() => {
 					handleReturn()
 				}}
 			>
-				<TldrawUiButtonIcon small icon="trash" />
-			</TldrawUiToolbarButton>
+				<TlButtonIcon small icon="trash" />
+			</TlToolbarButton>
 		</TldrawUiContextualToolbar>
 	)
 })

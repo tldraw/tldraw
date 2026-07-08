@@ -1,9 +1,9 @@
 import { Dialog, VisuallyHidden } from 'radix-ui'
 import { useCallback, useMemo, useState } from 'react'
 import {
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	TldrawUiButtonLabel,
+	TlButton,
+	TlButtonIcon,
+	TlButtonLabel,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TLShapeId,
@@ -146,7 +146,7 @@ function OnCanvasComponentPickerItem<T extends NodeType>({
 	const editor = useEditor()
 
 	return (
-		<TldrawUiButton
+		<TlButton
 			key={definition.type}
 			type="menu"
 			className="OnCanvasComponentPicker-button"
@@ -179,8 +179,8 @@ function OnCanvasComponentPickerItem<T extends NodeType>({
 				onClose()
 			}}
 		>
-			<TldrawUiButtonIcon icon={definition.icon} />
-			<TldrawUiButtonLabel>{definition.title}</TldrawUiButtonLabel>
-		</TldrawUiButton>
+			<TlButtonIcon icon={definition.icon} />
+			<TlButtonLabel>{definition.title}</TlButtonLabel>
+		</TlButton>
 	)
 }

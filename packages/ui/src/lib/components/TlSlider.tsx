@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { Slider as _Slider } from 'radix-ui'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTlTranslation } from '../context/translation'
@@ -15,6 +16,13 @@ export interface TlSliderProps {
 	onHistoryMark?(id: string): void
 	'data-testid'?: string
 	ariaValueModifier?: number
+	classNames?: {
+		container?: string
+		root?: string
+		track?: string
+		range?: string
+		thumb?: string
+	}
 }
 
 /** @public @react */
@@ -29,6 +37,7 @@ export const TlSlider = React.forwardRef<HTMLDivElement, TlSliderProps>(function
 		onValueChange,
 		['data-testid']: testId,
 		ariaValueModifier = 1,
+		classNames: classNamesProp,
 	}: TlSliderProps,
 	ref
 ) {
@@ -66,11 +75,11 @@ export const TlSlider = React.forwardRef<HTMLDivElement, TlSliderProps>(function
 	}, [])
 
 	return (
-		<div className="tl-slider__container">
+		<div className={classNames('tl-slider__container', classNamesProp?.container)}>
 			<TlTooltip content={titleAndLabel}>
 				<_Slider.Root
 					data-testid={testId}
-					className="tl-slider"
+					className={classNames('tl-slider', classNamesProp?.root)}
 					dir={dir}
 					min={min ?? 0}
 					max={steps}
@@ -81,8 +90,16 @@ export const TlSlider = React.forwardRef<HTMLDivElement, TlSliderProps>(function
 					onKeyDownCapture={handleKeyEvent}
 					onKeyUpCapture={handleKeyEvent}
 				>
-					<_Slider.Track className="tl-slider__track" dir={dir}>
-						{value !== null && <_Slider.Range className="tl-slider__range" dir={dir} />}
+					<_Slider.Track
+						className={classNames('tl-slider__track', classNamesProp?.track)}
+						dir={dir}
+					>
+						{value !== null && (
+							<_Slider.Range
+								className={classNames('tl-slider__range', classNamesProp?.range)}
+								dir={dir}
+							/>
+						)}
 					</_Slider.Track>
 					{value !== null && (
 						<_Slider.Thumb
@@ -90,7 +107,7 @@ export const TlSlider = React.forwardRef<HTMLDivElement, TlSliderProps>(function
 							aria-valuenow={value * ariaValueModifier}
 							aria-valuemax={steps * ariaValueModifier}
 							aria-label={titleAndLabel}
-							className="tl-slider__thumb"
+							className={classNames('tl-slider__thumb', classNamesProp?.thumb)}
 							dir={dir}
 							ref={ref}
 							tabIndex={tabIndex}

@@ -2,9 +2,9 @@ import {
 	Box,
 	DefaultSizeStyle,
 	Tldraw,
-	TldrawUiButtonIcon,
+	TlButtonIcon,
 	TldrawUiContextualToolbar,
-	TldrawUiToolbarButton,
+	TlToolbarButton,
 	TLEditorComponents,
 	TLEditorSnapshot,
 	track,
@@ -45,15 +45,15 @@ const ContextualToolbarComponent = track(() => {
 		<TldrawUiContextualToolbar getSelectionBounds={getSelectionBounds} label="Sizes">
 			{SIZES.map(({ value, icon }) => {
 				return (
-					<TldrawUiToolbarButton
+					<TlToolbarButton
 						key={value}
 						title={value.toUpperCase()}
 						type="icon"
 						isActive={value === currentSize}
 						onClick={() => editor.setStyleForSelectedShapes(DefaultSizeStyle, value)}
 					>
-						<TldrawUiButtonIcon small icon={icon} />
-					</TldrawUiToolbarButton>
+						<TlButtonIcon small icon={icon} />
+					</TlToolbarButton>
 				)
 			})}
 		</TldrawUiContextualToolbar>

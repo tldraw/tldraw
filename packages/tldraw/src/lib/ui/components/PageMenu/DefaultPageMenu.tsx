@@ -6,6 +6,10 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { TlButton } from '@tldraw/ui'
+import { TlButtonIcon } from '@tldraw/ui'
+import { TlButtonLabel } from '@tldraw/ui'
+import { TlPopover, TlPopoverContent, TlPopoverTrigger } from '@tldraw/ui'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -13,14 +17,6 @@ import { useUiEvents } from '../../context/events'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
-import {
-	TldrawUiPopover,
-	TldrawUiPopoverContent,
-	TldrawUiPopoverTrigger,
-} from '../primitives/TldrawUiPopover'
 import { onMovePage } from './edit-pages-shared'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
@@ -514,20 +510,20 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	)
 
 	return (
-		<TldrawUiPopover id="pages" onOpenChange={onOpenChange} open={isOpen}>
-			<TldrawUiPopoverTrigger data-testid="main.page-menu">
-				<TldrawUiButton
+		<TlPopover id="pages" onOpenChange={onOpenChange} open={isOpen}>
+			<TlPopoverTrigger data-testid="main.page-menu">
+				<TlButton
 					type="menu"
 					tooltip={currentPage.name}
 					title={currentPage.name}
 					data-testid="page-menu.button"
 					className="tlui-page-menu__trigger"
 				>
-					<TldrawUiButtonLabel>{currentPage.name}</TldrawUiButtonLabel>
-					<TldrawUiButtonIcon icon="chevron-down" small />
-				</TldrawUiButton>
-			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent
+					<TlButtonLabel>{currentPage.name}</TlButtonLabel>
+					<TlButtonIcon icon="chevron-down" small />
+				</TlButton>
+			</TlPopoverTrigger>
+			<TlPopoverContent
 				side="bottom"
 				align="start"
 				sideOffset={0}
@@ -600,7 +596,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 										) : (
 											<>
 												{shouldUseDragHandle && (
-													<TldrawUiButton
+													<TlButton
 														type="icon"
 														className="tlui-page-menu__item__drag-handle"
 														data-testid="page-menu.item-drag-handle"
@@ -615,10 +611,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 														tooltip={msg('context-menu.reorder')}
 														title={msg('context-menu.reorder')}
 													>
-														<TldrawUiButtonIcon icon="drag-handle-dots" small />
-													</TldrawUiButton>
+														<TlButtonIcon icon="drag-handle-dots" small />
+													</TlButton>
 												)}
-												<TldrawUiButton
+												<TlButton
 													type="normal"
 													className="tlui-page-menu__item__button"
 													onClick={() => {
@@ -656,8 +652,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 														}
 													}}
 												>
-													<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
-												</TldrawUiButton>
+													<TlButtonLabel>{page.name}</TlButtonLabel>
+												</TlButton>
 											</>
 										)}
 										{!isReadonlyMode && !isRenamingThisPage && (
@@ -684,7 +680,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						aria-orientation="horizontal"
 						aria-label={msg('page-menu.resize')}
 					/>
-					<TldrawUiButton
+					<TlButton
 						type="menu"
 						className="tlui-page-menu__create-button"
 						data-testid="page-menu.create"
@@ -693,11 +689,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						disabled={isReadonlyMode || hasReachedMaxPages}
 						onClick={handleCreatePageClick}
 					>
-						<TldrawUiButtonLabel>{createPageButtonLabel}</TldrawUiButtonLabel>
-						{!hasReachedMaxPages && <TldrawUiButtonIcon icon="plus" small />}
-					</TldrawUiButton>
+						<TlButtonLabel>{createPageButtonLabel}</TlButtonLabel>
+						{!hasReachedMaxPages && <TlButtonIcon icon="plus" small />}
+					</TlButton>
 				</div>
-			</TldrawUiPopoverContent>
-		</TldrawUiPopover>
+			</TlPopoverContent>
+		</TlPopover>
 	)
 })

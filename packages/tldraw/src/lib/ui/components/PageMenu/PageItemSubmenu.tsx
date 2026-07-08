@@ -1,17 +1,13 @@
 import { PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
+import { TlButton } from '@tldraw/ui'
+import { TlButtonIcon } from '@tldraw/ui'
+import { TlDropdownMenuContent, TlDropdownMenuRoot, TlDropdownMenuTrigger } from '@tldraw/ui'
 import { useCallback } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
-import {
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
-} from '../primitives/TldrawUiDropdownMenu'
 import { onMovePage } from './edit-pages-shared'
 /** @public */
 export interface PageItemSubmenuProps {
@@ -53,18 +49,18 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	}, [editor, item, trackEvent])
 
 	return (
-		<TldrawUiDropdownMenuRoot id={`page item submenu ${index}`}>
-			<TldrawUiDropdownMenuTrigger>
-				<TldrawUiButton
+		<TlDropdownMenuRoot id={`page item submenu ${index}`}>
+			<TlDropdownMenuTrigger>
+				<TlButton
 					type="icon"
 					tooltip={msg('page-menu.submenu.title')}
 					title={msg('page-menu.submenu.title')}
 					data-testid="page-menu.item-submenu"
 				>
-					<TldrawUiButtonIcon icon="dots-vertical" small />
-				</TldrawUiButton>
-			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+					<TlButtonIcon icon="dots-vertical" small />
+				</TlButton>
+			</TlDropdownMenuTrigger>
+			<TlDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
 					<TldrawUiMenuGroup id="modify">
 						{onRename && (
@@ -97,7 +93,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 						</TldrawUiMenuGroup>
 					)}
 				</TldrawUiMenuContextProvider>
-			</TldrawUiDropdownMenuContent>
-		</TldrawUiDropdownMenuRoot>
+			</TlDropdownMenuContent>
+		</TlDropdownMenuRoot>
 	)
 })

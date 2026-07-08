@@ -1,4 +1,14 @@
 import { track, useEditor } from '@tldraw/editor'
+import { TlButton } from '@tldraw/ui'
+import { TlButtonLabel } from '@tldraw/ui'
+import {
+	TlDialogBody,
+	TlDialogCloseButton,
+	TlDialogFooter,
+	TlDialogHeader,
+	TlDialogTitle,
+} from '@tldraw/ui'
+import { TlInput } from '@tldraw/ui'
 import { useRef, useState } from 'react'
 import {
 	TLEmbedDefinition,
@@ -11,16 +21,6 @@ import { TLUiDialogProps } from '../context/dialogs'
 import { useGetEmbedDefinition } from '../hooks/useGetEmbedDefinition'
 import { useGetEmbedDefinitions } from '../hooks/useGetEmbedDefinitions'
 import { untranslated, useTranslation } from '../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
-import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
-import {
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
-} from './primitives/TldrawUiDialog'
-import { TldrawUiInput } from './primitives/TldrawUiInput'
 
 export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogProps) {
 	const editor = useEditor()
@@ -45,18 +45,18 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 
 	return (
 		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
+			<TlDialogHeader>
+				<TlDialogTitle>
 					{embedDefinition
 						? `${msg('embed-dialog.title')} — ${embedDefinition.title}`
 						: msg('embed-dialog.title')}
-				</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
+				</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
 			{embedDefinition ? (
 				<>
-					<TldrawUiDialogBody className="tlui-embed-dialog__enter">
-						<TldrawUiInput
+					<TlDialogBody className="tlui-embed-dialog__enter">
+						<TlInput
 							className="tlui-embed-dialog__input"
 							label="embed-dialog.url"
 							placeholder="https://example.com"
@@ -107,9 +107,9 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								{showError ? msg('embed-dialog.invalid-url') : '\xa0'}
 							</div>
 						)}
-					</TldrawUiDialogBody>
-					<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-						<TldrawUiButton
+					</TlDialogBody>
+					<TlDialogFooter className="tlui-dialog__footer__actions">
+						<TlButton
 							type="normal"
 							onClick={() => {
 								setEmbedDefinition(null)
@@ -117,13 +117,13 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								setUrl('')
 							}}
 						>
-							<TldrawUiButtonLabel>{msg('embed-dialog.back')}</TldrawUiButtonLabel>
-						</TldrawUiButton>
+							<TlButtonLabel>{msg('embed-dialog.back')}</TlButtonLabel>
+						</TlButton>
 						<div className="tlui-embed__spacer" />
-						<TldrawUiButton type="normal" onClick={onClose}>
-							<TldrawUiButtonLabel>{msg('embed-dialog.cancel')}</TldrawUiButtonLabel>
-						</TldrawUiButton>
-						<TldrawUiButton
+						<TlButton type="normal" onClick={onClose}>
+							<TlButtonLabel>{msg('embed-dialog.cancel')}</TlButtonLabel>
+						</TlButton>
+						<TlButton
 							type="primary"
 							disabled={!embedInfoForUrl}
 							onClick={() => {
@@ -139,13 +139,13 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								onClose()
 							}}
 						>
-							<TldrawUiButtonLabel>{msg('embed-dialog.create')}</TldrawUiButtonLabel>
-						</TldrawUiButton>
-					</TldrawUiDialogFooter>
+							<TlButtonLabel>{msg('embed-dialog.create')}</TlButtonLabel>
+						</TlButton>
+					</TlDialogFooter>
 				</>
 			) : (
 				<>
-					<TldrawUiDialogBody className="tlui-embed-dialog__list">
+					<TlDialogBody className="tlui-embed-dialog__list">
 						{definitions.map((def) => {
 							const url = isDefaultEmbedDefinitionType(def.type)
 								? assetUrls.embedIcons[def.type]
@@ -153,18 +153,18 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 									? def.icon
 									: undefined
 							return (
-								<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
-									<TldrawUiButtonLabel>{untranslated(def.title)}</TldrawUiButtonLabel>
+								<TlButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
+									<TlButtonLabel>{untranslated(def.title)}</TlButtonLabel>
 									{url && (
 										<div
 											className="tlui-embed-dialog__item__image"
 											style={{ backgroundImage: `url(${url})` }}
 										/>
 									)}
-								</TldrawUiButton>
+								</TlButton>
 							)
 						})}
-					</TldrawUiDialogBody>
+					</TlDialogBody>
 				</>
 			)}
 		</>

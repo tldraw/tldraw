@@ -1,7 +1,7 @@
 import { TLPageId, useEditor } from '@tldraw/editor'
+import { TlInput } from '@tldraw/ui'
 import { useCallback, useRef } from 'react'
 import { useUiEvents } from '../../context/events'
-import { TldrawUiInput } from '../primitives/TldrawUiInput'
 
 /** @public */
 export interface PageItemInputProps {
@@ -56,7 +56,7 @@ export const PageItemInput = function PageItemInput({
 	}, [onComplete])
 
 	return (
-		<TldrawUiInput
+		<TlInput
 			className="tlui-page-menu__item__input"
 			defaultValue={name}
 			onValueChange={handleChange}

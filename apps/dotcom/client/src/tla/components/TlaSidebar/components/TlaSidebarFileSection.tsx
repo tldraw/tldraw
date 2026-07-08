@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { ReactElement, ReactNode } from 'react'
-import { TldrawUiButton, useUniqueSafeId } from 'tldraw'
+import { TlButton, useUniqueSafeId } from 'tldraw'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
@@ -40,7 +40,7 @@ export function TlaSidebarFileSection({
 					{title}
 				</span>
 				{iconButton && (
-					<TldrawUiButton
+					<TlButton
 						type="icon"
 						className={styles.sidebarCreateFileButton}
 						onClick={iconButton.onClick}
@@ -48,7 +48,7 @@ export function TlaSidebarFileSection({
 						title={iconButton.title}
 					>
 						<TlaIcon icon={iconButton.icon} />
-					</TldrawUiButton>
+					</TlButton>
 				)}
 			</div>
 			<div className={styles.sidebarFileSection} role="list" aria-labelledby={id}>

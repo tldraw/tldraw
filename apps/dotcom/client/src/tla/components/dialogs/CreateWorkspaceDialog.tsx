@@ -1,13 +1,13 @@
 import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { useEffect, useRef, useState } from 'react'
 import {
-	TldrawUiButton,
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
-	TldrawUiInput,
+	TlButton,
+	TlDialogBody,
+	TlDialogCloseButton,
+	TlDialogFooter,
+	TlDialogHeader,
+	TlDialogTitle,
+	TlInput,
 } from 'tldraw'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import styles from './dialogs.module.css'
@@ -49,20 +49,20 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 
 	return (
 		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
+			<TlDialogHeader>
+				<TlDialogTitle>
 					<F defaultMessage="Create a workspace" />
-				</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350, paddingTop: 0 }}>
+				</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
+			<TlDialogBody style={{ maxWidth: 350, paddingTop: 0 }}>
 				<div>
 					<div className={styles.dialogFieldLabelRow}>
 						<label style={{ display: 'block' }}>
 							<F defaultMessage="Name" />
 						</label>
 					</div>
-					<TldrawUiInput
+					<TlInput
 						ref={inputRef}
 						className={styles.dialogInput}
 						value={workspaceName}
@@ -74,15 +74,15 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 						autoFocus
 					/>
 				</div>
-			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton type="normal" onClick={onClose}>
+			</TlDialogBody>
+			<TlDialogFooter className="tlui-dialog__footer__actions">
+				<TlButton type="normal" onClick={onClose}>
 					<F defaultMessage="Cancel" />
-				</TldrawUiButton>
-				<TldrawUiButton type="primary" onClick={handleCreate}>
+				</TlButton>
+				<TlButton type="primary" onClick={handleCreate}>
 					<F defaultMessage="Create workspace" />
-				</TldrawUiButton>
-			</TldrawUiDialogFooter>
+				</TlButton>
+			</TlDialogFooter>
 		</>
 	)
 }

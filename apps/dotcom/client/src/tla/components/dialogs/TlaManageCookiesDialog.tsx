@@ -1,10 +1,5 @@
 import { Tooltip as _Tooltip } from 'radix-ui'
-import {
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
-} from 'tldraw'
+import { TlDialogBody, TlDialogCloseButton, TlDialogHeader, TlDialogTitle } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
@@ -25,13 +20,13 @@ export function TlaManageCookiesDialog() {
 	return (
 		<_Tooltip.Provider>
 			<div className={styles.dialogContainer}>
-				<TldrawUiDialogHeader>
-					<TldrawUiDialogTitle>
+				<TlDialogHeader>
+					<TlDialogTitle>
 						<F defaultMessage="Manage cookies" />
-					</TldrawUiDialogTitle>
-					<TldrawUiDialogCloseButton />
-				</TldrawUiDialogHeader>
-				<TldrawUiDialogBody className={styles.dialogBody}>
+					</TlDialogTitle>
+					<TlDialogCloseButton />
+				</TlDialogHeader>
+				<TlDialogBody className={styles.dialogBody}>
 					<p>
 						<F
 							defaultMessage="We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
@@ -72,7 +67,7 @@ export function TlaManageCookiesDialog() {
 							}}
 						/>
 					</p>
-				</TldrawUiDialogBody>
+				</TlDialogBody>
 			</div>
 		</_Tooltip.Provider>
 	)

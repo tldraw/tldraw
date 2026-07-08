@@ -302,7 +302,7 @@ export interface TlDialogTitleProps {
 }
 
 // @public (undocumented)
-export function TlDropdownMenuCheckboxItem({ children, onSelect, ...rest }: TlDropdownMenuCheckboxItemProps): JSX.Element;
+export function TlDropdownMenuCheckboxItem({ children, onSelect, className, indicatorClassName, ...rest }: TlDropdownMenuCheckboxItemProps): JSX.Element;
 
 // @public (undocumented)
 export interface TlDropdownMenuCheckboxItemProps {
@@ -311,7 +311,11 @@ export interface TlDropdownMenuCheckboxItemProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
+    className?: string;
+    // (undocumented)
     disabled?: boolean;
+    // (undocumented)
+    indicatorClassName?: string;
     // (undocumented)
     onSelect?(e: Event): void;
     // (undocumented)
@@ -387,7 +391,7 @@ export interface TlDropdownMenuRootProps {
 export function TlDropdownMenuSub({ id, children }: TlDropdownMenuSubProps): JSX.Element;
 
 // @public (undocumented)
-export function TlDropdownMenuSubContent({ id, alignOffset, sideOffset, size, children }: TlDropdownMenuSubContentProps): JSX.Element;
+export function TlDropdownMenuSubContent({ id, alignOffset, sideOffset, size, className, children }: TlDropdownMenuSubContentProps): JSX.Element;
 
 // @public (undocumented)
 export interface TlDropdownMenuSubContentProps {
@@ -395,6 +399,8 @@ export interface TlDropdownMenuSubContentProps {
     alignOffset?: number;
     // (undocumented)
     children: ReactNode;
+    // (undocumented)
+    className?: string;
     // (undocumented)
     id?: string;
     // (undocumented)
@@ -412,10 +418,12 @@ export interface TlDropdownMenuSubProps {
 }
 
 // @public (undocumented)
-export function TlDropdownMenuSubTrigger({ id, label, title, disabled }: TlDropdownMenuSubTriggerProps): JSX.Element;
+export function TlDropdownMenuSubTrigger({ id, label, title, disabled, className }: TlDropdownMenuSubTriggerProps): JSX.Element;
 
 // @public (undocumented)
 export interface TlDropdownMenuSubTriggerProps {
+    // (undocumented)
+    className?: string;
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
@@ -447,9 +455,13 @@ export type TlIconJsx = ReactElement<React.HTMLAttributes<HTMLDivElement>>;
 // @public (undocumented)
 export interface TlIconProps extends React.HTMLAttributes<HTMLDivElement> {
     // (undocumented)
+    color?: string;
+    // (undocumented)
     crossOrigin?: 'anonymous' | 'use-credentials';
     // (undocumented)
     icon: string | TlIconJsx;
+    // (undocumented)
+    invertIcon?: boolean;
     // (undocumented)
     label?: string;
     // (undocumented)
@@ -493,9 +505,13 @@ export interface TlInputProps {
     // (undocumented)
     icon?: string;
     // (undocumented)
+    iconClassName?: string;
+    // (undocumented)
     iconLabel?: string;
     // (undocumented)
     iconLeft?: string;
+    // (undocumented)
+    iconLeftClassName?: string;
     // (undocumented)
     label?: string;
     maxLength?: number;
@@ -514,15 +530,19 @@ export interface TlInputProps {
     shouldManuallyMaintainScrollPositionWhenFocused?: boolean;
     // (undocumented)
     value?: string;
+    // (undocumented)
+    wrapperClassName?: string;
 }
 
 // @public (undocumented)
-export function TlKbd({ children, visibleOnMobileLayout }: TlKbdProps): JSX.Element | null;
+export function TlKbd({ children, visibleOnMobileLayout, className }: TlKbdProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface TlKbdProps {
     // (undocumented)
     children: string;
+    // (undocumented)
+    className?: string;
     // (undocumented)
     visibleOnMobileLayout?: boolean;
 }
@@ -681,7 +701,7 @@ export interface TlMenuStateContextValue {
 }
 
 // @public (undocumented)
-export function TlMenuStateProvider({ children, onMenuOpenChange }: TlMenuStateProviderProps): JSX.Element;
+export function TlMenuStateProvider({ children, onMenuOpenChange, useMenuIsOpen }: TlMenuStateProviderProps): JSX.Element;
 
 // @public (undocumented)
 export interface TlMenuStateProviderProps {
@@ -689,6 +709,8 @@ export interface TlMenuStateProviderProps {
     children: ReactNode;
     // (undocumented)
     onMenuOpenChange?(id: string, isOpen: boolean): void;
+    // (undocumented)
+    useMenuIsOpen?(id: string): readonly [isOpen: boolean, onOpenChange: (isOpen: boolean) => void];
 }
 
 // @public (undocumented)
@@ -758,7 +780,7 @@ export interface TlPlatformProviderProps {
 export function TlPopover({ id, children, onOpenChange, open, className }: TlPopoverProps): JSX.Element;
 
 // @public (undocumented)
-export function TlPopoverContent({ side, children, align, sideOffset, alignOffset, collisionPadding, disableEscapeKeyDown, autoFocusFirstButton }: TlPopoverContentProps): JSX.Element;
+export function TlPopoverContent({ side, children, align, sideOffset, alignOffset, className, collisionPadding, disableEscapeKeyDown, autoFocusFirstButton }: TlPopoverContentProps): JSX.Element;
 
 // @public (undocumented)
 export interface TlPopoverContentProps {
@@ -770,6 +792,8 @@ export interface TlPopoverContentProps {
     autoFocusFirstButton?: boolean;
     // (undocumented)
     children: React_3.ReactNode;
+    // (undocumented)
+    className?: string;
     collisionPadding?: number;
     // (undocumented)
     disableEscapeKeyDown?: boolean;
@@ -908,6 +932,14 @@ export interface TlSliderProps {
     'data-testid'?: string;
     // (undocumented)
     ariaValueModifier?: number;
+    // (undocumented)
+    classNames?: {
+        container?: string;
+        range?: string;
+        root?: string;
+        thumb?: string;
+        track?: string;
+    };
     label: string;
     // (undocumented)
     min?: number;
@@ -1275,7 +1307,7 @@ export function useTlMenuContext(): {
 };
 
 // @public (undocumented)
-export function useTlMenuIsOpen(id: string): [isOpen: boolean, onOpenChange: (isOpen: boolean) => void];
+export function useTlMenuIsOpen(id: string): readonly [isOpen: boolean, onOpenChange: (isOpen: boolean) => void];
 
 // @public (undocumented)
 export function useTlMenuState(): TlMenuStateContextValue;

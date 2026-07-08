@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
-import { useTlPortalContainer } from '../context/portal'
+import { TlPortalScope, useTlPortalContainer } from '../context/portal'
 import { useTlTranslation } from '../context/translation'
 
 /** @public */
@@ -64,15 +64,17 @@ export function TlContextMenuContent({
 
 	return (
 		<_ContextMenu.Portal container={container}>
-			<_ContextMenu.Content
-				className={classNames('tl-menu', className)}
-				alignOffset={alignOffset}
-				collisionPadding={collisionPadding}
-				aria-label={ariaLabel}
-				data-testid={dataTestId}
-			>
-				{children}
-			</_ContextMenu.Content>
+			<TlPortalScope>
+				<_ContextMenu.Content
+					className={classNames('tl-menu', className)}
+					alignOffset={alignOffset}
+					collisionPadding={collisionPadding}
+					aria-label={ariaLabel}
+					data-testid={dataTestId}
+				>
+					{children}
+				</_ContextMenu.Content>
+			</TlPortalScope>
 		</_ContextMenu.Portal>
 	)
 }

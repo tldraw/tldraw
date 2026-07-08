@@ -1,10 +1,10 @@
 import { TLVideoShape, track, useEditor, useValue } from '@tldraw/editor'
+import { TlButtonIcon } from '@tldraw/ui'
+import { TlToolbarButton } from '@tldraw/ui'
 import { useCallback } from 'react'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 /** @public */
 export interface DefaultVideoToolbarContentProps {
@@ -44,25 +44,25 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 	return (
 		<>
 			{!isReadonly && (
-				<TldrawUiToolbarButton
+				<TlToolbarButton
 					type="icon"
 					title={msg('tool.replace-media')}
 					onClick={handleVideoReplace}
 					data-testid="tool.video-replace"
 				>
-					<TldrawUiButtonIcon small icon="tool-media" />
-				</TldrawUiToolbarButton>
+					<TlButtonIcon small icon="tool-media" />
+				</TlToolbarButton>
 			)}
-			<TldrawUiToolbarButton
+			<TlToolbarButton
 				type="icon"
 				title={msg('action.download-original')}
 				onClick={handleVideoDownload}
 				data-testid="tool.video-download"
 			>
-				<TldrawUiButtonIcon small icon="download" />
-			</TldrawUiToolbarButton>
+				<TlButtonIcon small icon="download" />
+			</TlToolbarButton>
 			{(altText || !isReadonly) && (
-				<TldrawUiToolbarButton
+				<TlToolbarButton
 					type="icon"
 					isActive={!!altText}
 					title={msg('tool.media-alt-text')}
@@ -72,8 +72,8 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 						onEditAltTextStart()
 					}}
 				>
-					<TldrawUiButtonIcon small icon="alt" />
-				</TldrawUiToolbarButton>
+					<TlButtonIcon small icon="alt" />
+				</TlToolbarButton>
 			)}
 		</>
 	)

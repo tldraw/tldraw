@@ -10,24 +10,24 @@ import {
 	uniqueId,
 	useEditor,
 } from '@tldraw/editor'
+import { TlButton } from '@tldraw/ui'
+import { TlButtonCheck } from '@tldraw/ui'
+import { TlButtonLabel } from '@tldraw/ui'
+import {
+	TlDialogBody,
+	TlDialogCloseButton,
+	TlDialogFooter,
+	TlDialogHeader,
+	TlDialogTitle,
+} from '@tldraw/ui'
 import React from 'react'
 import { useDialogs } from '../../context/dialogs'
 import { useToasts } from '../../context/toasts'
 import { untranslated } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
-import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
 import { TldrawUiMenuCheckboxItem } from '../primitives/menus/TldrawUiMenuCheckboxItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
-import {
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
-} from '../primitives/TldrawUiDialog'
 
 /** @public */
 export interface CustomDebugFlags {
@@ -243,29 +243,29 @@ export function ExampleDialog({
 
 	return (
 		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth }}>{body}</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+			<TlDialogHeader>
+				<TlDialogTitle>{title}</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
+			<TlDialogBody style={{ maxWidth }}>{body}</TlDialogBody>
+			<TlDialogFooter className="tlui-dialog__footer__actions">
 				{displayDontShowAgain && (
-					<TldrawUiButton
+					<TlButton
 						type="normal"
 						onClick={() => setDontShowAgain(!dontShowAgain)}
 						style={{ marginRight: 'auto' }}
 					>
-						<TldrawUiButtonCheck checked={dontShowAgain} />
-						<TldrawUiButtonLabel>Don’t show again</TldrawUiButtonLabel>
-					</TldrawUiButton>
+						<TlButtonCheck checked={dontShowAgain} />
+						<TlButtonLabel>Don’t show again</TlButtonLabel>
+					</TlButton>
 				)}
-				<TldrawUiButton type="normal" onClick={onCancel}>
-					<TldrawUiButtonLabel>{cancel}</TldrawUiButtonLabel>
-				</TldrawUiButton>
-				<TldrawUiButton type="primary" onClick={async () => onContinue()}>
-					<TldrawUiButtonLabel>{confirm}</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			</TldrawUiDialogFooter>
+				<TlButton type="normal" onClick={onCancel}>
+					<TlButtonLabel>{cancel}</TlButtonLabel>
+				</TlButton>
+				<TlButton type="primary" onClick={async () => onContinue()}>
+					<TlButtonLabel>{confirm}</TlButtonLabel>
+				</TlButton>
+			</TlDialogFooter>
 		</>
 	)
 }

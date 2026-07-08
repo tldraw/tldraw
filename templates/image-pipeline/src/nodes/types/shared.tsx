@@ -3,10 +3,10 @@ import { PointerEvent, SyntheticEvent, useCallback, useRef, useState } from 'rea
 import {
 	Editor,
 	T,
-	TldrawUiButton,
-	TldrawUiButtonIcon,
+	TlButton,
+	TlButtonIcon,
 	TLShapeId,
-	TLUiIconJsx,
+	TlIconJsx,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -78,7 +78,7 @@ export abstract class NodeDefinition<Node extends { type: string }> {
 	readonly validator: T.Validator<Node>
 	abstract readonly title: string
 	abstract readonly heading?: string
-	abstract readonly icon: TLUiIconJsx
+	abstract readonly icon: TlIconJsx
 	/** A short category label for grouping in the toolbar. */
 	abstract readonly category: string
 	readonly resultKeys?: readonly string[]
@@ -238,22 +238,22 @@ export function NodeInputRow({
 				/>
 			)}
 			<div className="NodeInputRow-buttons">
-				<TldrawUiButton
+				<TlButton
 					title="decrement"
 					type="icon"
 					onPointerDown={onPointerDown}
 					onClick={() => onSpinner(-1)}
 				>
-					<TldrawUiButtonIcon icon={<SubtractIcon />} />
-				</TldrawUiButton>
-				<TldrawUiButton
+					<TlButtonIcon icon={<SubtractIcon />} />
+				</TlButton>
+				<TlButton
 					title="increment"
 					type="icon"
 					onPointerDown={onPointerDown}
 					onClick={() => onSpinner(1)}
 				>
-					<TldrawUiButtonIcon icon={<AddIcon />} />
-				</TldrawUiButton>
+					<TlButtonIcon icon={<AddIcon />} />
+				</TlButton>
 			</div>
 		</NodeRow>
 	)

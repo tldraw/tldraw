@@ -1,11 +1,11 @@
 import {
-	TldrawUiButton,
-	TldrawUiButtonLabel,
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
+	TlButton,
+	TlButtonLabel,
+	TlDialogBody,
+	TlDialogCloseButton,
+	TlDialogFooter,
+	TlDialogHeader,
+	TlDialogTitle,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { F } from '../../utils/i18n'
@@ -22,15 +22,15 @@ export function SlurpFailure({
 }) {
 	return (
 		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
+			<TlDialogHeader>
+				<TlDialogTitle>
 					<strong style={{ fontSize: 14 }}>
 						<F defaultMessage="Upload failed" />
 					</strong>
-				</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody
+				</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
+			<TlDialogBody
 				style={{
 					maxWidth: 350,
 					display: 'flex',
@@ -69,19 +69,19 @@ export function SlurpFailure({
 						}}
 					/>
 				</p>
-			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton type="normal" onClick={() => onTryAgain()}>
-					<TldrawUiButtonLabel>
+			</TlDialogBody>
+			<TlDialogFooter className="tlui-dialog__footer__actions">
+				<TlButton type="normal" onClick={() => onTryAgain()}>
+					<TlButtonLabel>
 						<F defaultMessage="Try Again" />
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
-				<TldrawUiButton type="primary" onClick={() => onClose()}>
-					<TldrawUiButtonLabel>
+					</TlButtonLabel>
+				</TlButton>
+				<TlButton type="primary" onClick={() => onClose()}>
+					<TlButtonLabel>
 						<F defaultMessage="Close" />
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			</TldrawUiDialogFooter>
+					</TlButtonLabel>
+				</TlButton>
+			</TlDialogFooter>
 		</>
 	)
 }

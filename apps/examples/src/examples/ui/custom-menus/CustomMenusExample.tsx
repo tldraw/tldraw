@@ -23,8 +23,8 @@ import {
 	DefaultZoomMenuContent,
 	TLComponents,
 	Tldraw,
-	TldrawUiButton,
-	TldrawUiButtonLabel,
+	TlButton,
+	TlButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TLUiContextMenuProps,
@@ -194,24 +194,24 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 	return (
 		<DefaultStylePanel {...props}>
 			<div style={{ backgroundColor: 'thistle' }}>
-				<TldrawUiButton
+				<TlButton
 					type="menu"
 					onClick={() => {
 						editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
 					}}
 				>
-					<TldrawUiButtonLabel>Red</TldrawUiButtonLabel>
-				</TldrawUiButton>
+					<TlButtonLabel>Red</TlButtonLabel>
+				</TlButton>
 			</div>
 			<div style={{ backgroundColor: 'thistle' }}>
-				<TldrawUiButton
+				<TlButton
 					type="menu"
 					onClick={() => {
 						editor.setStyleForSelectedShapes(DefaultColorStyle, 'green')
 					}}
 				>
-					<TldrawUiButtonLabel>Green</TldrawUiButtonLabel>
-				</TldrawUiButton>
+					<TlButtonLabel>Green</TlButtonLabel>
+				</TlButton>
 			</div>
 			<DefaultStylePanelContent />
 		</DefaultStylePanel>
@@ -228,7 +228,7 @@ function CustomToolbar() {
 				<TldrawUiMenuItem {...tools['rhombus-2']} isSelected={isScreenshotSelected} />
 
 				<DefaultToolbarContent />
-				<TldrawUiButton
+				<TlButton
 					type="icon"
 					onClick={() => {
 						editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
@@ -236,7 +236,7 @@ function CustomToolbar() {
 					title="delete all"
 				>
 					🧨
-				</TldrawUiButton>
+				</TlButton>
 			</DefaultToolbar>
 		</div>
 	)

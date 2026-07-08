@@ -1,12 +1,12 @@
 import { useValue } from '@tldraw/editor'
+import { TlButton } from '@tldraw/ui'
+import { TlButtonLabel } from '@tldraw/ui'
+import { TlIcon } from '@tldraw/ui'
 import { Toast as _Toast } from 'radix-ui'
 import { memo } from 'react'
 import { AlertSeverity, TLUiToast, useToasts } from '../context/toasts'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
-import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
-import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
-import { TldrawUiIcon } from './primitives/TldrawUiIcon'
 
 const DEFAULT_TOAST_DURATION = 4000
 
@@ -42,7 +42,7 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 		>
 			{icon && (
 				<div className="tlui-toast__icon">
-					<TldrawUiIcon label={iconLabel} icon={icon} />
+					<TlIcon label={iconLabel} icon={icon} />
 				</div>
 			)}
 			<div
@@ -63,28 +63,24 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 					<div className="tlui-toast__actions">
 						{toast.actions.map((action, i) => (
 							<_Toast.Action key={i} altText={action.label} asChild onClick={action.onClick}>
-								<TldrawUiButton type={action.type}>
-									<TldrawUiButtonLabel>{action.label}</TldrawUiButtonLabel>
-								</TldrawUiButton>
+								<TlButton type={action.type}>
+									<TlButtonLabel>{action.label}</TlButtonLabel>
+								</TlButton>
 							</_Toast.Action>
 						))}
 						<_Toast.Close asChild>
-							<TldrawUiButton
-								type="normal"
-								className="tlui-toast__close"
-								style={{ marginLeft: 'auto' }}
-							>
-								<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
-							</TldrawUiButton>
+							<TlButton type="normal" className="tlui-toast__close" style={{ marginLeft: 'auto' }}>
+								<TlButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TlButtonLabel>
+							</TlButton>
 						</_Toast.Close>
 					</div>
 				)}
 			</div>
 			{!hasActions && (
 				<_Toast.Close asChild>
-					<TldrawUiButton type="normal" className="tlui-toast__close">
-						<TldrawUiButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TldrawUiButtonLabel>
-					</TldrawUiButton>
+					<TlButton type="normal" className="tlui-toast__close">
+						<TlButtonLabel>{toast.closeLabel ?? msg('toast.close')}</TlButtonLabel>
+					</TlButton>
 				</_Toast.Close>
 			)}
 		</_Toast.Root>

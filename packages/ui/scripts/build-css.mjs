@@ -29,4 +29,4 @@ let combinedContent = ordered.reduce(
 )
 
 const destination = join(packageDir, 'ui.css')
-writeFileSync(destination, combinedContent)
+writeFileSync(destination, combinedContent.trimEnd() + '\n')

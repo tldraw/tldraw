@@ -3,13 +3,13 @@ import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
-	TldrawUiButton,
-	TldrawUiButtonLabel,
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
+	TlButton,
+	TlButtonLabel,
+	TlDialogBody,
+	TlDialogCloseButton,
+	TlDialogFooter,
+	TlDialogHeader,
+	TlDialogTitle,
 	useDialogs,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
@@ -41,13 +41,13 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 
 	return (
 		<div className={styles.dialog}>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
+			<TlDialogHeader>
+				<TlDialogTitle>
 					<F defaultMessage="This file is now read-only" />
-				</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody>
+				</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
+			<TlDialogBody>
 				<p>
 					{isSignedIn ? (
 						<F defaultMessage="To continue editing please copy the file to your files." />
@@ -55,21 +55,21 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 						<F defaultMessage="This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files." />
 					)}
 				</p>
-			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className={styles.footer}>
+			</TlDialogBody>
+			<TlDialogFooter className={styles.footer}>
 				{isSignedIn && (
-					<TldrawUiButton type="primary" onClick={handleCopy}>
-						<TldrawUiButtonLabel>
+					<TlButton type="primary" onClick={handleCopy}>
+						<TlButtonLabel>
 							<F defaultMessage="Copy to personal workspace" />
-						</TldrawUiButtonLabel>
-					</TldrawUiButton>
+						</TlButtonLabel>
+					</TlButton>
 				)}
-				<TldrawUiButton type="normal" onClick={onClose} onTouchEnd={onClose}>
-					<TldrawUiButtonLabel>
+				<TlButton type="normal" onClick={onClose} onTouchEnd={onClose}>
+					<TlButtonLabel>
 						<F defaultMessage="Close" />
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			</TldrawUiDialogFooter>
+					</TlButtonLabel>
+				</TlButton>
+			</TlDialogFooter>
 		</div>
 	)
 }

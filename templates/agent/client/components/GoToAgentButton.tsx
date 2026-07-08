@@ -1,13 +1,5 @@
 import { useCallback } from 'react'
-import {
-	Box,
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	TldrawUiButtonLabel,
-	useEditor,
-	useValue,
-	Vec,
-} from 'tldraw'
+import { Box, TlButton, TlButtonIcon, TlButtonLabel, useEditor, useValue, Vec } from 'tldraw'
 import { TldrawAgent } from '../agent/TldrawAgent'
 import { useAgents } from '../agent/TldrawAgentAppProvider'
 
@@ -77,9 +69,9 @@ export function GoToAgentButton({ agent }: { agent: TldrawAgent }) {
 	if (!agentIsOffscreen) return null
 
 	return (
-		<TldrawUiButton type="low" onClick={handleClick}>
+		<TlButton type="low" onClick={handleClick}>
 			<div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-				<TldrawUiButtonIcon
+				<TlButtonIcon
 					icon={
 						<svg
 							width="16"
@@ -101,8 +93,8 @@ export function GoToAgentButton({ agent }: { agent: TldrawAgent }) {
 						</svg>
 					}
 				/>
-				<TldrawUiButtonLabel>Go to {agent.id}</TldrawUiButtonLabel>
+				<TlButtonLabel>Go to {agent.id}</TlButtonLabel>
 			</div>
-		</TldrawUiButton>
+		</TlButton>
 	)
 }

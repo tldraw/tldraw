@@ -82,14 +82,14 @@ indicating whether the menu is open.
 [2]
 The first hover zone calls editor.menus.addOpenMenu('hover-menu') on mouse enter.
 This registers the menu as open in the global menu tracking system. The
-TldrawUiDropdownMenuRoot will automatically respond to this state change.
+TlDropdownMenuRoot will automatically respond to this state change.
 
 [3]
 The second hover zone calls editor.menus.deleteOpenMenu('hover-menu') on mouse
 enter, which closes the menu.
 
 [4]
-The TldrawUiDropdownMenuRoot is linked to our menu ID ('hover-menu'). It
+The TlDropdownMenuRoot is linked to our menu ID ('hover-menu'). It
 automatically syncs with the menu tracking system, so when we call addOpenMenu
 or deleteOpenMenu, the dropdown responds accordingly. You can also click the
 trigger button to toggle the menu normally.

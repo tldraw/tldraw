@@ -1,5 +1,5 @@
 import { ReactNode, useCallback } from 'react'
-import { TldrawUiPopover, TldrawUiPopoverContent, TldrawUiPopoverTrigger, useValue } from 'tldraw'
+import { TlPopover, TlPopoverContent, TlPopoverTrigger, useValue } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -78,10 +78,10 @@ export function TlaFileShareMenu({
 	// todo: replace disabled tabs for signed out users with "sign in to do X" content
 
 	return (
-		<TldrawUiPopover id={`share-${fileId}-${source}`}>
-			<TldrawUiPopoverTrigger>{children}</TldrawUiPopoverTrigger>
+		<TlPopover id={`share-${fileId}-${source}`}>
+			<TlPopoverTrigger>{children}</TlPopoverTrigger>
 
-			<TldrawUiPopoverContent
+			<TlPopoverContent
 				side="bottom"
 				align="end"
 				{...TLA_MENU_POSITION}
@@ -134,7 +134,7 @@ export function TlaFileShareMenu({
 						)}
 					</TlaMenuTabsRoot>
 				</div>
-			</TldrawUiPopoverContent>
-		</TldrawUiPopover>
+			</TlPopoverContent>
+		</TlPopover>
 	)
 }

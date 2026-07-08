@@ -1,15 +1,11 @@
-import { useContainer, useValue } from '@tldraw/editor'
-import { Dialog as _Dialog } from 'radix-ui'
+import { useValue } from '@tldraw/editor'
+import { TlDialogRoot } from '@tldraw/ui'
 import { memo, useCallback } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
-import { useDirection } from '../hooks/useTranslation/useTranslation'
 
 /** @internal */
 const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }: TLUiDialog) => {
 	const { removeDialog } = useDialogs()
-
-	const container = useContainer()
-	const dir = useDirection()
 
 	const handleOpenChange = useCallback(
 		(isOpen: boolean) => {
@@ -21,34 +17,13 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 	)
 
 	return (
-		<_Dialog.Root onOpenChange={handleOpenChange} defaultOpen>
-			<_Dialog.Portal container={container}>
-				{/* Radix renders the scrim and content as siblings. The positioner sits on
-				    top of the scrim and centers the content, scrolling and padding it when
-				    it's taller than the viewport. */}
-				<_Dialog.Overlay dir={dir} className="tlui-dialog__overlay" />
-				<div dir={dir} className="tlui-dialog__positioner">
-					<_Dialog.Content
-						dir={dir}
-						className="tlui-dialog__content"
-						aria-describedby={undefined}
-						onInteractOutside={(e) => {
-							// Radix's dismissable layers are layer-aware: an interaction outside the
-							// topmost layer dismisses only that layer — an open select, or a dialog
-							// stacked on top — leaving lower layers open. onInteractOutside fires for
-							// both a pointer press and a focus shift outside the dialog; opt out of both
-							// when the dialog asks to stay open on background interactions (escape still
-							// closes it).
-							if (preventBackgroundClose) {
-								e.preventDefault()
-							}
-						}}
-					>
-						<ModalContent onClose={() => handleOpenChange(false)} />
-					</_Dialog.Content>
-				</div>
-			</_Dialog.Portal>
-		</_Dialog.Root>
+		<TlDialogRoot
+			defaultOpen
+			onOpenChange={handleOpenChange}
+			preventBackgroundClose={preventBackgroundClose}
+		>
+			<ModalContent onClose={() => handleOpenChange(false)} />
+		</TlDialogRoot>
 	)
 }
 

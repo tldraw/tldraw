@@ -1,11 +1,11 @@
 import { TLUserId, track, useEditor, usePresence } from '@tldraw/editor'
+import { TlButton } from '@tldraw/ui'
+import { TlButtonIcon } from '@tldraw/ui'
+import { TlRow } from '@tldraw/ui'
+import { TlIcon } from '@tldraw/ui'
 import { useCallback } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiRow } from '../primitives/layout'
-import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 
 /** @public */
 export interface TLUiPeopleMenuItemProps {
@@ -38,22 +38,22 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 	if (!presence) return null
 
 	return (
-		<TldrawUiRow
+		<TlRow
 			className="tlui-people-menu__item"
 			data-follow={youAreFollowingThem || theyAreFollowingYou}
 		>
-			<TldrawUiButton
+			<TlButton
 				type="menu"
 				className="tlui-people-menu__item__button"
 				onClick={() => editor.zoomToUser(userId)}
 				onDoubleClick={handleFollowClick}
 			>
-				<TldrawUiIcon label={msg('people-menu.avatar-color')} icon="color" color={presence.color} />
+				<TlIcon label={msg('people-menu.avatar-color')} icon="color" color={presence.color} />
 				<div className="tlui-people-menu__name">
 					{presence.userName?.trim() || msg('people-menu.anonymous-user')}
 				</div>
-			</TldrawUiButton>
-			<TldrawUiButton
+			</TlButton>
+			<TlButton
 				type="icon"
 				className="tlui-people-menu__item__follow"
 				title={
@@ -66,10 +66,10 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 				onClick={handleFollowClick}
 				disabled={theyAreFollowingYou}
 			>
-				<TldrawUiButtonIcon
+				<TlButtonIcon
 					icon={theyAreFollowingYou ? 'leading' : youAreFollowingThem ? 'following' : 'follow'}
 				/>
-			</TldrawUiButton>
-		</TldrawUiRow>
+			</TlButton>
+		</TlRow>
 	)
 })

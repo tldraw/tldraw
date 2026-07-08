@@ -1,8 +1,8 @@
 import { useAuth } from '@clerk/clerk-react'
 import {
 	PORTRAIT_BREAKPOINT,
-	TldrawUiButton,
-	TldrawUiIcon,
+	TlButton,
+	TlIcon,
 	useBreakpoint,
 	useEditor,
 	useLocalStorageState,
@@ -40,9 +40,9 @@ export function TlaAnonDotDevLink() {
 					eventName="anon-dotdev-link-clicked"
 				>
 					<F defaultMessage="Build with the tldraw SDK" />
-					<TldrawUiIcon icon="arrow-left" label="Build with the tldraw SDK" small />
+					<TlIcon icon="arrow-left" label="Build with the tldraw SDK" small />
 				</ExternalLink>
-				<TldrawUiButton
+				<TlButton
 					type="icon"
 					title={dismissLbl}
 					aria-label={dismissLbl}
@@ -53,8 +53,8 @@ export function TlaAnonDotDevLink() {
 						setIsDismissed(true)
 					}}
 				>
-					<TldrawUiIcon icon="cross-2" label={dismissLbl} small />
-				</TldrawUiButton>
+					<TlIcon icon="cross-2" label={dismissLbl} small />
+				</TlButton>
 			</div>
 		</div>
 	)

@@ -1,11 +1,6 @@
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
-import {
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
-} from 'tldraw'
+import { TlDialogBody, TlDialogCloseButton, TlDialogHeader, TlDialogTitle } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { F } from '../../utils/i18n'
 import styles from './TlaInviteDialog.module.css'
@@ -22,13 +17,13 @@ export function TlaInviteDialog({
 
 	return (
 		<>
-			<TldrawUiDialogHeader className={styles.dialogHeader}>
-				<TldrawUiDialogTitle>
+			<TlDialogHeader className={styles.dialogHeader}>
+				<TlDialogTitle>
 					<span />
-				</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.dialogBody}>
+				</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
+			<TlDialogBody className={styles.dialogBody}>
 				<div className={styles.message}>
 					<F
 						defaultMessage="You have been invited to join <strong>{workspaceName}</strong>."
@@ -58,7 +53,7 @@ export function TlaInviteDialog({
 				>
 					<F defaultMessage="Accept invitation" />
 				</button>
-			</TldrawUiDialogBody>
+			</TlDialogBody>
 		</>
 	)
 }

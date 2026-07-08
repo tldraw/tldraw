@@ -1,18 +1,14 @@
 import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
+import { TlButtonIcon } from '@tldraw/ui'
+import { useTlOrientation } from '@tldraw/ui'
+import { TlPopover, TlPopoverContent, TlPopoverTrigger } from '@tldraw/ui'
+import { TlToolbar, TlToolbarButton } from '@tldraw/ui'
 import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { useTldrawUiOrientation } from '../primitives/layout'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
-import {
-	TldrawUiPopover,
-	TldrawUiPopoverContent,
-	TldrawUiPopoverTrigger,
-} from '../primitives/TldrawUiPopover'
-import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
 /** @public */
@@ -27,7 +23,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
-	const { orientation } = useTldrawUiOrientation()
+	const { orientation } = useTlOrientation()
 
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -47,20 +43,20 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	if (isReadonlyMode && !isInAcceptableReadonlyState) return
 
 	return (
-		<TldrawUiPopover id="actions-menu">
-			<TldrawUiPopoverTrigger>
-				<TldrawUiToolbarButton
+		<TlPopover id="actions-menu">
+			<TlPopoverTrigger>
+				<TlToolbarButton
 					type="icon"
 					data-testid="actions-menu.button"
 					title={msg('actions-menu.title')}
 				>
-					<TldrawUiButtonIcon
+					<TlButtonIcon
 						icon={orientation === 'horizontal' ? 'dots-vertical' : 'dots-horizontal'}
 						small
 					/>
-				</TldrawUiToolbarButton>
-			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent
+				</TlToolbarButton>
+			</TlPopoverTrigger>
+			<TlPopoverContent
 				side={
 					orientation === 'horizontal'
 						? breakpoint >= PORTRAIT_BREAKPOINT.TABLET
@@ -70,7 +66,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				}
 				sideOffset={6}
 			>
-				<TldrawUiToolbar
+				<TlToolbar
 					ref={ref}
 					label={msg('actions-menu.title')}
 					className="tlui-actions-menu"
@@ -80,8 +76,8 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
-				</TldrawUiToolbar>
-			</TldrawUiPopoverContent>
-		</TldrawUiPopover>
+				</TlToolbar>
+			</TlPopoverContent>
+		</TlPopover>
 	)
 })

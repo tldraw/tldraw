@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { Select as _Select } from 'radix-ui'
 import * as React from 'react'
 import { useTlMenuIsOpen } from '../context/menu-state'
-import { useTlPortalContainer } from '../context/portal'
+import { TlPortalScope, useTlPortalContainer } from '../context/portal'
 import { useTlTranslation } from '../context/translation'
 import { TlIcon, TlIconJsx } from './TlIcon'
 
@@ -162,16 +162,18 @@ export function TlSelectContent({
 
 	return (
 		<_Select.Portal container={container}>
-			<_Select.Content
-				className={classNames('tl-menu tl-select__content', className)}
-				position="popper"
-				side={side}
-				align={align}
-				sideOffset={4}
-				collisionPadding={4}
-			>
-				<_Select.Viewport className="tl-select__viewport">{children}</_Select.Viewport>
-			</_Select.Content>
+			<TlPortalScope>
+				<_Select.Content
+					className={classNames('tl-menu tl-select__content', className)}
+					position="popper"
+					side={side}
+					align={align}
+					sideOffset={4}
+					collisionPadding={4}
+				>
+					<_Select.Viewport className="tl-select__viewport">{children}</_Select.Viewport>
+				</_Select.Content>
+			</TlPortalScope>
 		</_Select.Portal>
 	)
 }

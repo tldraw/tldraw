@@ -1,10 +1,10 @@
 import { useEditor, useValue } from '@tldraw/editor'
+import { TlButton } from '@tldraw/ui'
+import { TlButtonIcon } from '@tldraw/ui'
+import { TlInput } from '@tldraw/ui'
 import { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiInput } from '../primitives/TldrawUiInput'
 import { UserPresenceColorPicker } from './UserPresenceColorPicker'
 
 /** @public @react */
@@ -47,7 +47,7 @@ export function DefaultUserPresenceEditor() {
 		<div className="tlui-people-menu__user">
 			<UserPresenceColorPicker />
 			{isEditingName ? (
-				<TldrawUiInput
+				<TlInput
 					className="tlui-people-menu__user__input"
 					defaultValue={userName}
 					onValueChange={handleValueChange}
@@ -73,15 +73,15 @@ export function DefaultUserPresenceEditor() {
 					) : null}
 				</>
 			)}
-			<TldrawUiButton
+			<TlButton
 				type="icon"
 				className="tlui-people-menu__user__edit"
 				data-testid="people-menu.change-name"
 				title={msg('people-menu.change-name')}
 				onClick={toggleEditingName}
 			>
-				<TldrawUiButtonIcon icon={isEditingName ? 'check' : 'edit'} />
-			</TldrawUiButton>
+				<TlButtonIcon icon={isEditingName ? 'check' : 'edit'} />
+			</TlButton>
 		</div>
 	)
 }

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	TldrawUiButtonLabel,
-	TldrawUiPopover,
-	TldrawUiPopoverContent,
-	TldrawUiPopoverTrigger,
+	TlButton,
+	TlButtonIcon,
+	TlButtonLabel,
+	TlPopover,
+	TlPopoverContent,
+	TlPopoverTrigger,
 	useEditor,
 } from 'tldraw'
 import { saveSelectionAsTemplate, stampTemplate } from '../templates/templateActions'
@@ -56,13 +56,13 @@ export function TemplatePicker() {
 	)
 
 	return (
-		<TldrawUiPopover id="template-picker" open={isOpen} onOpenChange={setIsOpen}>
-			<TldrawUiPopoverTrigger>
-				<TldrawUiButton type="icon" title="Templates">
-					<TldrawUiButtonIcon icon={<TemplateIcon />} />
-				</TldrawUiButton>
-			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent side="bottom" align="start" sideOffset={8}>
+		<TlPopover id="template-picker" open={isOpen} onOpenChange={setIsOpen}>
+			<TlPopoverTrigger>
+				<TlButton type="icon" title="Templates">
+					<TlButtonIcon icon={<TemplateIcon />} />
+				</TlButton>
+			</TlPopoverTrigger>
+			<TlPopoverContent side="bottom" align="start" sideOffset={8}>
 				<div className="TemplatePicker-popover">
 					<div className="TemplatePicker-header">Templates</div>
 					<div className="TemplatePicker-save">
@@ -75,9 +75,9 @@ export function TemplatePicker() {
 								if (e.key === 'Enter') onSave()
 							}}
 						/>
-						<TldrawUiButton type="normal" onClick={onSave}>
-							<TldrawUiButtonLabel>Save</TldrawUiButtonLabel>
-						</TldrawUiButton>
+						<TlButton type="normal" onClick={onSave}>
+							<TlButtonLabel>Save</TlButtonLabel>
+						</TlButton>
 					</div>
 					<div className="TemplatePicker-list">
 						{templates.length === 0 ? (
@@ -85,29 +85,25 @@ export function TemplatePicker() {
 						) : (
 							templates.map((t) => (
 								<div key={t.id} className="TemplatePicker-item">
-									<TldrawUiButton
+									<TlButton
 										type="menu"
 										className="TemplatePicker-item-button"
 										onClick={() => onStamp(t)}
 									>
-										<TldrawUiButtonIcon icon={<TemplateIcon />} />
-										<TldrawUiButtonLabel>
+										<TlButtonIcon icon={<TemplateIcon />} />
+										<TlButtonLabel>
 											{t.name} ({t.nodes.length} nodes)
-										</TldrawUiButtonLabel>
-									</TldrawUiButton>
-									<TldrawUiButton
-										type="icon"
-										title="Delete template"
-										onClick={() => onDelete(t.id)}
-									>
-										<TldrawUiButtonLabel>×</TldrawUiButtonLabel>
-									</TldrawUiButton>
+										</TlButtonLabel>
+									</TlButton>
+									<TlButton type="icon" title="Delete template" onClick={() => onDelete(t.id)}>
+										<TlButtonLabel>×</TlButtonLabel>
+									</TlButton>
 								</div>
 							))
 						)}
 					</div>
 				</div>
-			</TldrawUiPopoverContent>
-		</TldrawUiPopover>
+			</TlPopoverContent>
+		</TlPopover>
 	)
 }

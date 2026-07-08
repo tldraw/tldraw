@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { DefaultStylePanel, Tldraw, TldrawUiButton, useLocalStorageState } from 'tldraw'
+import { DefaultStylePanel, Tldraw, TlButton, useLocalStorageState } from 'tldraw'
 import { FluidConfigPanel } from './fluid/FluidConfigPanel'
 import { FluidRenderer } from './fluid/FluidRenderer'
 import { MinimalConfigPanel } from './minimal/MinimalConfigPanel'
@@ -45,14 +45,14 @@ function App() {
 								{ConfigComponent && <ConfigComponent />}
 								<div className="tlui-menu shader-app__example-menu">
 									{options.map((option) => (
-										<TldrawUiButton
+										<TlButton
 											type="menu"
 											key={option.value}
 											onClick={() => setSelected(option.value)}
 											data-isactive={selected === option.value}
 										>
 											{option.label}
-										</TldrawUiButton>
+										</TlButton>
 									))}
 								</div>
 								<DefaultStylePanel />

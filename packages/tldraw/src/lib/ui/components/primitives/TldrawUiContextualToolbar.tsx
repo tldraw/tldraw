@@ -11,10 +11,10 @@ import {
 	useValue,
 	Vec,
 } from '@tldraw/editor'
+import { TlToolbar } from '@tldraw/ui'
 import classNames from 'classnames'
 import React, { RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { TldrawUiToolbar } from './TldrawUiToolbar'
 
 const MOVE_TIMEOUT = 150
 const HIDE_VISIBILITY_TIMEOUT = 16
@@ -173,14 +173,9 @@ export function TldrawUiContextualToolbar({
 			className={classNames('tlui-contextual-toolbar', className)}
 			onPointerDown={editor.markEventAsHandled}
 		>
-			<TldrawUiToolbar
-				orientation="horizontal"
-				className="tlui-menu"
-				label={label}
-				tooltipSide="top"
-			>
+			<TlToolbar orientation="horizontal" className="tlui-menu" label={label} tooltipSide="top">
 				{children}
-			</TldrawUiToolbar>
+			</TlToolbar>
 		</div>
 	)
 }

@@ -5,6 +5,7 @@ import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, use
 interface TlMenuStateProviderContextValue {
 	openMenusAtom: Atom<Set<string>>
 	onMenuOpenChange?(id: string, isOpen: boolean): void
+	useMenuIsOpen?(id: string): readonly [isOpen: boolean, onOpenChange: (isOpen: boolean) => void]
 }
 
 const TlMenuStateContext = createContext<TlMenuStateProviderContextValue | null>(null)
@@ -13,17 +14,23 @@ const TlMenuStateContext = createContext<TlMenuStateProviderContextValue | null>
 export interface TlMenuStateProviderProps {
 	children: ReactNode
 	onMenuOpenChange?(id: string, isOpen: boolean): void
+	useMenuIsOpen?(id: string): readonly [isOpen: boolean, onOpenChange: (isOpen: boolean) => void]
 }
 
 /** @public @react */
-export function TlMenuStateProvider({ children, onMenuOpenChange }: TlMenuStateProviderProps) {
+export function TlMenuStateProvider({
+	children,
+	onMenuOpenChange,
+	useMenuIsOpen,
+}: TlMenuStateProviderProps) {
 	const openMenusRef = useRef(atom<Set<string>>('tl-open-menus', new Set()))
 	const value = useMemo(
 		() => ({
 			openMenusAtom: openMenusRef.current,
 			onMenuOpenChange,
+			useMenuIsOpen,
 		}),
-		[onMenuOpenChange]
+		[onMenuOpenChange, useMenuIsOpen]
 	)
 
 	return <TlMenuStateContext.Provider value={value}>{children}</TlMenuStateContext.Provider>
@@ -32,9 +39,11 @@ export function TlMenuStateProvider({ children, onMenuOpenChange }: TlMenuStateP
 /** @public */
 export function useTlMenuIsOpen(
 	id: string
-): [isOpen: boolean, onOpenChange: (isOpen: boolean) => void] {
+): readonly [isOpen: boolean, onOpenChange: (isOpen: boolean) => void] {
 	const ctx = useContext(TlMenuStateContext)
 	const [localOpen, setLocalOpen] = useState(false)
+
+	const externalMenuState = ctx?.useMenuIsOpen?.(id)
 
 	const isOpen = useValue(
 		`menu-${id}-open`,
@@ -61,6 +70,10 @@ export function useTlMenuIsOpen(
 		},
 		[ctx, id]
 	)
+
+	if (externalMenuState) {
+		return externalMenuState
+	}
 
 	return [isOpen, onOpenChange]
 }

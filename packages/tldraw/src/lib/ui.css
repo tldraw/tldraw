@@ -276,7 +276,17 @@
 	width: 43px;
 }
 
+.tlui-layout__mobile .tlui-main-toolbar--horizontal .tl-button--tool {
+	height: 48px;
+	width: 43px;
+}
+
 .tlui-layout__mobile .tlui-main-toolbar--horizontal .tlui-button__tool > .tlui-icon {
+	height: 16px;
+	width: 16px;
+}
+
+.tlui-layout__mobile .tlui-main-toolbar--horizontal .tl-button--tool > .tl-icon {
 	height: 16px;
 	width: 16px;
 }
@@ -308,10 +318,18 @@
 /* Grid layout */
 
 .tlui-grid {
+	position: static;
+	inset: auto;
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
 	grid-auto-flow: row;
+	width: auto;
+	height: auto;
 	overflow: hidden;
+	touch-action: auto;
+	pointer-events: auto;
+	z-index: auto;
+	contain: none;
 	padding: 2px;
 }
 .tlui-grid > * {

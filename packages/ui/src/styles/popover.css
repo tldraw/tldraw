@@ -6,6 +6,10 @@
 	align-content: stretch;
 }
 
+.tl-ui [data-radix-popper-content-wrapper]:has(.tl-popover__content) {
+	z-index: var(--tl-layer-menus) !important;
+}
+
 .tl-ui .tl-popover__content {
 	position: relative;
 	max-height: calc(var(--radix-popover-content-available-height) - 8px);

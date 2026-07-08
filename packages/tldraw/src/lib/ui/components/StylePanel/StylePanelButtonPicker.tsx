@@ -8,19 +8,15 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { TlButtonIcon } from '@tldraw/ui'
+import { TlGrid, TlRow } from '@tldraw/ui'
+import { TlToolbar, TlToolbarToggleGroup, TlToolbarToggleItem } from '@tldraw/ui'
 import { memo, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
-import {
-	TldrawUiToolbar,
-	TldrawUiToolbarToggleGroup,
-	TldrawUiToolbarToggleItem,
-} from '../primitives/TldrawUiToolbar'
 import { useStylePanelContext } from './StylePanelContext'
 import { StylePanelSubheading } from './StylePanelSubheading'
 
@@ -40,9 +36,9 @@ function StylePanelButtonPickerInner<T extends string>(props: StylePanelButtonPi
 	return (
 		<>
 			{enhancedA11yMode && <StylePanelSubheading>{props.title}</StylePanelSubheading>}
-			<TldrawUiToolbar label={props.title}>
+			<TlToolbar label={props.title}>
 				<StylePanelButtonPickerInline {...props} />
-			</TldrawUiToolbar>
+			</TlToolbar>
 		</>
 	)
 }
@@ -142,10 +138,10 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		}
 	}, [editor, breakpoint, value, onHistoryMark, onValueChange, style])
 
-	const Layout = items.length > 4 ? TldrawUiGrid : TldrawUiRow
+	const Layout = items.length > 4 ? TlGrid : TlRow
 
 	return (
-		<TldrawUiToolbarToggleGroup
+		<TlToolbarToggleGroup
 			data-testid={`style.${uiType}`}
 			type="single"
 			value={value.type === 'shared' ? value.value : null}
@@ -156,7 +152,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 					const isActive = value.type === 'shared' && value.value === item.value
 					const label = title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
 					return (
-						<TldrawUiToolbarToggleItem
+						<TlToolbarToggleItem
 							type="icon"
 							key={item.value}
 							data-id={item.value}
@@ -182,12 +178,12 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 							onPointerUp={handleButtonPointerUp}
 							onClick={handleButtonClick}
 						>
-							<TldrawUiButtonIcon icon={item.icon} />
-						</TldrawUiToolbarToggleItem>
+							<TlButtonIcon icon={item.icon} />
+						</TlToolbarToggleItem>
 					)
 				})}
 			</Layout>
-		</TldrawUiToolbarToggleGroup>
+		</TlToolbarToggleGroup>
 	)
 }
 

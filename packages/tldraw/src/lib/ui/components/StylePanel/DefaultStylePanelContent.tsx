@@ -18,14 +18,14 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { TlButtonIcon } from '@tldraw/ui'
+import { TlSlider } from '@tldraw/ui'
+import { TlToolbar, TlToolbarButton } from '@tldraw/ui'
 import React from 'react'
 import { GeoShapeUtil } from '../../../shapes/geo/GeoShapeUtil'
 import { defaultGeoTypeDefinitions, GeoTypeDefinition } from '../../../shapes/geo/getGeoShapePath'
 import { getColorStyleItems, getFontStyleItems, STYLES } from '../../../styles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
-import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { StylePanelButtonPicker, StylePanelButtonPickerInline } from './StylePanelButtonPicker'
 import { useStylePanelContext } from './StylePanelContext'
 import { StylePanelDoubleDropdownPicker } from './StylePanelDoubleDropdownPicker'
@@ -129,7 +129,7 @@ export function StylePanelOpacityPicker() {
 			{enhancedA11yMode && (
 				<StylePanelSubheading>{msg('style-panel.opacity')}</StylePanelSubheading>
 			)}
-			<TldrawUiSlider
+			<TlSlider
 				data-testid="style.opacity"
 				value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
 				label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`}
@@ -155,7 +155,7 @@ export function StylePanelFillPicker() {
 	return (
 		<>
 			{enhancedA11yMode && <StylePanelSubheading>{title}</StylePanelSubheading>}
-			<TldrawUiToolbar orientation="horizontal" label={title}>
+			<TlToolbar orientation="horizontal" label={title}>
 				<StylePanelButtonPickerInline
 					title={title}
 					uiType="fill"
@@ -175,7 +175,7 @@ export function StylePanelFillPicker() {
 					sideOffset={116}
 					isOverflow
 				/>
-			</TldrawUiToolbar>
+			</TlToolbar>
 		</>
 	)
 }
@@ -259,7 +259,7 @@ export function StylePanelTextAlignPicker() {
 	return (
 		<>
 			{enhancedA11yMode && <StylePanelSubheading>{title}</StylePanelSubheading>}
-			<TldrawUiToolbar orientation="horizontal" label={title}>
+			<TlToolbar orientation="horizontal" label={title}>
 				<StylePanelButtonPickerInline
 					title={title}
 					uiType="align"
@@ -267,15 +267,15 @@ export function StylePanelTextAlignPicker() {
 					items={STYLES.textAlign}
 					value={textAlign}
 				/>
-				<TldrawUiToolbarButton
+				<TlToolbarButton
 					type="icon"
 					title={msg('style-panel.vertical-align')}
 					data-testid="vertical-align"
 					disabled
 				>
-					<TldrawUiButtonIcon icon="vertical-align-middle" />
-				</TldrawUiToolbarButton>
-			</TldrawUiToolbar>
+					<TlButtonIcon icon="vertical-align-middle" />
+				</TlToolbarButton>
+			</TlToolbar>
 		</>
 	)
 }
@@ -292,7 +292,7 @@ export function StylePanelLabelAlignPicker() {
 	return (
 		<>
 			{enhancedA11yMode && <StylePanelSubheading>{title}</StylePanelSubheading>}
-			<TldrawUiToolbar orientation="horizontal" label={title}>
+			<TlToolbar orientation="horizontal" label={title}>
 				<StylePanelButtonPickerInline
 					title={title}
 					uiType="align"
@@ -301,14 +301,14 @@ export function StylePanelLabelAlignPicker() {
 					value={labelAlign}
 				/>
 				{verticalLabelAlign === undefined ? (
-					<TldrawUiToolbarButton
+					<TlToolbarButton
 						type="icon"
 						title={msg('style-panel.vertical-align')}
 						data-testid="vertical-align"
 						disabled
 					>
-						<TldrawUiButtonIcon icon="vertical-align-middle" />
-					</TldrawUiToolbarButton>
+						<TlButtonIcon icon="vertical-align-middle" />
+					</TlToolbarButton>
 				) : (
 					<StylePanelDropdownPickerInline
 						type="icon"
@@ -321,7 +321,7 @@ export function StylePanelLabelAlignPicker() {
 						sideOffset={116}
 					/>
 				)}
-			</TldrawUiToolbar>
+			</TlToolbar>
 		</>
 	)
 }

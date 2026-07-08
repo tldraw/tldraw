@@ -5,13 +5,13 @@ import {
 	StateNode,
 	TLComponents,
 	Tldraw,
-	TldrawUiButtonIcon,
+	TlButtonIcon,
 	TldrawUiMenuItem,
-	TldrawUiPopover,
-	TldrawUiPopoverContent,
-	TldrawUiPopoverTrigger,
-	TldrawUiToolbar,
-	TldrawUiToolbarButton,
+	TlPopover,
+	TlPopoverContent,
+	TlPopoverTrigger,
+	TlToolbar,
+	TlToolbarButton,
 	TLKeyboardEventInfo,
 	tlmenus,
 	TLPointerEventInfo,
@@ -113,33 +113,33 @@ const GlobToolWithPopover = track(() => {
 
 	return (
 		<>
-			<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
-				<TldrawUiPopoverTrigger>
-					<TldrawUiToolbarButton title="Glob" type="tool">
-						<TldrawUiButtonIcon icon="glob-icon" />
-					</TldrawUiToolbarButton>
-				</TldrawUiPopoverTrigger>
-				<TldrawUiPopoverContent side="top" align="center">
-					<TldrawUiToolbar label="Glob">
-						<TldrawUiToolbarButton
+			<TlPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
+				<TlPopoverTrigger>
+					<TlToolbarButton title="Glob" type="tool">
+						<TlButtonIcon icon="glob-icon" />
+					</TlToolbarButton>
+				</TlPopoverTrigger>
+				<TlPopoverContent side="top" align="center">
+					<TlToolbar label="Glob">
+						<TlToolbarButton
 							title="Add Node"
 							type="tool"
 							onClick={() => handleToolSelect('glob.node')}
 						>
-							<TldrawUiButtonIcon icon="node-icon" />
-						</TldrawUiToolbarButton>
-						<TldrawUiToolbarButton
+							<TlButtonIcon icon="node-icon" />
+						</TlToolbarButton>
+						<TlToolbarButton
 							title="Connect Nodes"
 							type="tool"
 							onClick={() => handleToolSelect('glob.connect')}
 							disabled={!hasNodesSelected}
 						>
-							<TldrawUiButtonIcon icon="connect-node-icon" />
-						</TldrawUiToolbarButton>
-					</TldrawUiToolbar>
-				</TldrawUiPopoverContent>
+							<TlButtonIcon icon="connect-node-icon" />
+						</TlToolbarButton>
+					</TlToolbar>
+				</TlPopoverContent>
 				<TldrawUiMenuItem {...tools[currentGlobTool]} isSelected={isSelected} />
-			</TldrawUiPopover>
+			</TlPopover>
 		</>
 	)
 })

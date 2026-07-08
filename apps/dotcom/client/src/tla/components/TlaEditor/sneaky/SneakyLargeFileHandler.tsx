@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import {
-	TldrawUiButton,
-	TldrawUiButtonLabel,
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
+	TlButton,
+	TlButtonLabel,
+	TlDialogBody,
+	TlDialogCloseButton,
+	TlDialogFooter,
+	TlDialogHeader,
+	TlDialogTitle,
 	useDialogs,
 	useEditor,
 	useValue,
@@ -17,22 +17,22 @@ import { F } from '../../../utils/i18n'
 function RoomSizeWarningDialog({ onClose }: { onClose(): void }) {
 	return (
 		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
+			<TlDialogHeader>
+				<TlDialogTitle>
 					<F defaultMessage="File is getting large" />
-				</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+				</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
+			<TlDialogBody style={{ maxWidth: 350 }}>
 				<F defaultMessage="This file is approaching its size limit. Consider removing some content or starting a new file." />
-			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton type="primary" onClick={onClose}>
-					<TldrawUiButtonLabel>
+			</TlDialogBody>
+			<TlDialogFooter className="tlui-dialog__footer__actions">
+				<TlButton type="primary" onClick={onClose}>
+					<TlButtonLabel>
 						<F defaultMessage="Got it" />
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			</TldrawUiDialogFooter>
+					</TlButtonLabel>
+				</TlButton>
+			</TlDialogFooter>
 		</>
 	)
 }
@@ -40,22 +40,22 @@ function RoomSizeWarningDialog({ onClose }: { onClose(): void }) {
 function RoomSizeLimitDialog({ onClose }: { onClose(): void }) {
 	return (
 		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
+			<TlDialogHeader>
+				<TlDialogTitle>
 					<F defaultMessage="File is full" />
-				</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+				</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
+			<TlDialogBody style={{ maxWidth: 350 }}>
 				<F defaultMessage="This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file." />
-			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton type="primary" onClick={onClose}>
-					<TldrawUiButtonLabel>
+			</TlDialogBody>
+			<TlDialogFooter className="tlui-dialog__footer__actions">
+				<TlButton type="primary" onClick={onClose}>
+					<TlButtonLabel>
 						<F defaultMessage="Got it" />
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			</TldrawUiDialogFooter>
+					</TlButtonLabel>
+				</TlButton>
+			</TlDialogFooter>
 		</>
 	)
 }

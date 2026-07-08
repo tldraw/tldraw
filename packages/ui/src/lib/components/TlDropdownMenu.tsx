@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useTlMenuIsOpen } from '../context/menu-state'
-import { useTlPortalContainer } from '../context/portal'
+import { TlPortalScope, useTlPortalContainer } from '../context/portal'
 import { useTlTranslation } from '../context/translation'
 import { preventDefault } from '../utils'
 import { TlButton, TlButtonIcon, TlButtonLabel } from './TlButton'
@@ -80,16 +80,18 @@ export function TlDropdownMenuContent({
 
 	return (
 		<_DropdownMenu.Portal container={container}>
-			<_DropdownMenu.Content
-				className={classNames('tl-menu', className)}
-				side={side}
-				sideOffset={sideOffset}
-				align={align}
-				alignOffset={alignOffset}
-				collisionPadding={collisionPadding}
-			>
-				{children}
-			</_DropdownMenu.Content>
+			<TlPortalScope>
+				<_DropdownMenu.Content
+					className={classNames('tl-menu', className)}
+					side={side}
+					sideOffset={sideOffset}
+					align={align}
+					alignOffset={alignOffset}
+					collisionPadding={collisionPadding}
+				>
+					{children}
+				</_DropdownMenu.Content>
+			</TlPortalScope>
 		</_DropdownMenu.Portal>
 	)
 }
@@ -117,6 +119,7 @@ export interface TlDropdownMenuSubTriggerProps {
 	id?: string
 	title?: string
 	disabled?: boolean
+	className?: string
 }
 
 /** @public @react */
@@ -125,6 +128,7 @@ export function TlDropdownMenuSubTrigger({
 	label,
 	title,
 	disabled,
+	className,
 }: TlDropdownMenuSubTriggerProps) {
 	const { dir } = useTlTranslation()
 
@@ -133,7 +137,7 @@ export function TlDropdownMenuSubTrigger({
 			<TlButton
 				data-testid={id}
 				type="menu"
-				className="tl-menu__submenu-trigger"
+				className={classNames('tl-menu__submenu-trigger', className)}
 				disabled={disabled}
 				title={title}
 			>
@@ -150,6 +154,7 @@ export interface TlDropdownMenuSubContentProps {
 	alignOffset?: number
 	sideOffset?: number
 	size?: 'tiny' | 'small' | 'medium' | 'wide'
+	className?: string
 	children: ReactNode
 }
 
@@ -159,22 +164,25 @@ export function TlDropdownMenuSubContent({
 	alignOffset = -1,
 	sideOffset = -6,
 	size = 'small',
+	className,
 	children,
 }: TlDropdownMenuSubContentProps) {
 	const container = useTlPortalContainer()
 
 	return (
 		<_DropdownMenu.Portal container={container}>
-			<_DropdownMenu.SubContent
-				data-testid={id}
-				className="tl-menu"
-				alignOffset={alignOffset}
-				sideOffset={sideOffset}
-				collisionPadding={4}
-				data-size={size}
-			>
-				{children}
-			</_DropdownMenu.SubContent>
+			<TlPortalScope>
+				<_DropdownMenu.SubContent
+					data-testid={id}
+					className={classNames('tl-menu', className)}
+					alignOffset={alignOffset}
+					sideOffset={sideOffset}
+					collisionPadding={4}
+					data-size={size}
+				>
+					{children}
+				</_DropdownMenu.SubContent>
+			</TlPortalScope>
 		</_DropdownMenu.Portal>
 	)
 }
@@ -235,6 +243,8 @@ export interface TlDropdownMenuCheckboxItemProps {
 	onSelect?(e: Event): void
 	disabled?: boolean
 	title: string
+	className?: string
+	indicatorClassName?: string
 	children: ReactNode
 }
 
@@ -242,6 +252,8 @@ export interface TlDropdownMenuCheckboxItemProps {
 export function TlDropdownMenuCheckboxItem({
 	children,
 	onSelect,
+	className,
+	indicatorClassName,
 	...rest
 }: TlDropdownMenuCheckboxItemProps) {
 	const { dir, msg } = useTlTranslation()
@@ -249,14 +261,14 @@ export function TlDropdownMenuCheckboxItem({
 	return (
 		<_DropdownMenu.CheckboxItem
 			dir={dir}
-			className="tl-button tl-button--menu tl-button--checkbox"
+			className={classNames('tl-button tl-button--menu tl-button--checkbox', className)}
 			onSelect={(e) => {
 				onSelect?.(e)
 				preventDefault(e)
 			}}
 			{...rest}
 		>
-			<div className="tl-menu__checkbox-indicator">
+			<div className={classNames('tl-menu__checkbox-indicator', indicatorClassName)}>
 				<_DropdownMenu.ItemIndicator dir={dir}>
 					<TlIcon label={msg('ui.checked', 'Checked')} icon="check" small />
 				</_DropdownMenu.ItemIndicator>

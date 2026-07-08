@@ -1,13 +1,9 @@
 import { useEditor } from '@tldraw/editor'
+import { TlButton } from '@tldraw/ui'
+import { TlButtonIcon } from '@tldraw/ui'
+import { TlDropdownMenuContent, TlDropdownMenuRoot, TlDropdownMenuTrigger } from '@tldraw/ui'
 import { ReactNode, useEffect } from 'react'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
-import {
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
-} from '../primitives/TldrawUiDropdownMenu'
 import { DefaultDebugMenuContent } from './DefaultDebugMenuContent'
 
 /** @public */
@@ -34,17 +30,17 @@ export function DefaultDebugMenu({ children }: TLUiDebugMenuProps) {
 	}, [editor])
 
 	return (
-		<TldrawUiDropdownMenuRoot id="debug">
-			<TldrawUiDropdownMenuTrigger>
-				<TldrawUiButton type="icon" title="Debug menu">
-					<TldrawUiButtonIcon icon="dots-horizontal" />
-				</TldrawUiButton>
-			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent side="top" align="end" alignOffset={0}>
+		<TlDropdownMenuRoot id="debug">
+			<TlDropdownMenuTrigger>
+				<TlButton type="icon" title="Debug menu">
+					<TlButtonIcon icon="dots-horizontal" />
+				</TlButton>
+			</TlDropdownMenuTrigger>
+			<TlDropdownMenuContent side="top" align="end" alignOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="debug-panel">
 					{content}
 				</TldrawUiMenuContextProvider>
-			</TldrawUiDropdownMenuContent>
-		</TldrawUiDropdownMenuRoot>
+			</TlDropdownMenuContent>
+		</TlDropdownMenuRoot>
 	)
 }

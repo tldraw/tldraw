@@ -3,10 +3,10 @@ import { PointerEvent, useCallback, useRef, useState } from 'react'
 import {
 	Editor,
 	T,
-	TldrawUiButton,
-	TldrawUiButtonIcon,
+	TlButton,
+	TlButtonIcon,
 	TLShapeId,
-	TLUiIconJsx,
+	TlIconJsx,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -54,7 +54,7 @@ export abstract class NodeDefinition<Node extends { type: string }> {
 	readonly validator: T.Validator<Node>
 	abstract readonly title: string
 	abstract readonly heading?: string
-	abstract readonly icon: TLUiIconJsx
+	abstract readonly icon: TlIconJsx
 
 	abstract getDefault(): Node
 	abstract getBodyHeightPx(shape: NodeShape, node: Node): number
@@ -186,22 +186,22 @@ export function NodeInputRow({
 				/>
 			)}
 			<div className="NodeInputRow-buttons">
-				<TldrawUiButton
+				<TlButton
 					title="decrement"
 					type="icon"
 					onPointerDown={onPointerDown}
 					onClick={() => onSpinner(-1)}
 				>
-					<TldrawUiButtonIcon icon={<SubtractIcon />} />
-				</TldrawUiButton>
-				<TldrawUiButton
+					<TlButtonIcon icon={<SubtractIcon />} />
+				</TlButton>
+				<TlButton
 					title="increment"
 					type="icon"
 					onPointerDown={onPointerDown}
 					onClick={() => onSpinner(1)}
 				>
-					<TldrawUiButtonIcon icon={<AddIcon />} />
-				</TldrawUiButton>
+					<TlButtonIcon icon={<AddIcon />} />
+				</TlButton>
 			</div>
 		</NodeRow>
 	)

@@ -1,13 +1,13 @@
 import { useAuth } from '@clerk/clerk-react'
 import { useNavigate } from 'react-router-dom'
 import {
-	TldrawUiButton,
-	TldrawUiButtonLabel,
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
+	TlButton,
+	TlButtonLabel,
+	TlDialogBody,
+	TlDialogCloseButton,
+	TlDialogFooter,
+	TlDialogHeader,
+	TlDialogTitle,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
@@ -58,13 +58,13 @@ export function TlaDeleteFileDialog({
 
 	return (
 		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>
+			<TlDialogHeader>
+				<TlDialogTitle>
 					{isOwner ? <F defaultMessage="Delete file" /> : <F defaultMessage="Forget file" />}
-				</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+				</TlDialogTitle>
+				<TlDialogCloseButton />
+			</TlDialogHeader>
+			<TlDialogBody style={{ maxWidth: 350 }}>
 				<>
 					{isOwner ? (
 						<F
@@ -78,19 +78,19 @@ export function TlaDeleteFileDialog({
 						/>
 					)}
 				</>
-			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton type="normal" onClick={onClose}>
-					<TldrawUiButtonLabel>
+			</TlDialogBody>
+			<TlDialogFooter className="tlui-dialog__footer__actions">
+				<TlButton type="normal" onClick={onClose}>
+					<TlButtonLabel>
 						<F defaultMessage="Cancel" />
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
-				<TldrawUiButton type="danger" onClick={handleDelete}>
-					<TldrawUiButtonLabel>
+					</TlButtonLabel>
+				</TlButton>
+				<TlButton type="danger" onClick={handleDelete}>
+					<TlButtonLabel>
 						{isOwner ? <F defaultMessage="Delete" /> : <F defaultMessage="Forget" />}
-					</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			</TldrawUiDialogFooter>
+					</TlButtonLabel>
+				</TlButton>
+			</TlDialogFooter>
 		</>
 	)
 }

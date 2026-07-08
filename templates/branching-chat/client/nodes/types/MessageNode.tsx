@@ -1,6 +1,6 @@
 import { ModelMessage } from 'ai'
 import { useCallback } from 'react'
-import { T, TldrawUiButton, TldrawUiButtonIcon, TldrawUiInput, useEditor } from 'tldraw'
+import { T, TlButton, TlButtonIcon, TlInput, useEditor } from 'tldraw'
 import { HandleIcon } from '../../components/icons/HandleIcon'
 import { SendIcon } from '../../components/icons/SendIcon'
 import { NODE_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
@@ -174,14 +174,14 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 							cursor: 'grab',
 						}}
 					>
-						<TldrawUiButtonIcon icon={<HandleIcon />} />
+						<TlButtonIcon icon={<HandleIcon />} />
 					</div>
 					<div
 						style={{ padding: '4px 0px 0px 4px', flexGrow: 2 }}
 						onPointerDown={editor.markEventAsHandled}
 					>
 						<div style={{ padding: '0px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}>
-							<TldrawUiInput
+							<TlInput
 								value={node.userMessage}
 								onValueChange={handleMessageChange}
 								onComplete={handleSend}
@@ -189,13 +189,9 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 						</div>
 					</div>
 					<div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0px 0px' }}>
-						<TldrawUiButton
-							type="primary"
-							onClick={handleSend}
-							onPointerDown={editor.markEventAsHandled}
-						>
-							<TldrawUiButtonIcon icon={<SendIcon />} />
-						</TldrawUiButton>
+						<TlButton type="primary" onClick={handleSend} onPointerDown={editor.markEventAsHandled}>
+							<TlButtonIcon icon={<SendIcon />} />
+						</TlButton>
 					</div>
 				</div>
 				{node.assistantMessage && (

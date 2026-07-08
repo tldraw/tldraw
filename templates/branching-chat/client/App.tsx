@@ -5,7 +5,7 @@ import {
 	TLComponents,
 	Tldraw,
 	TldrawOptions,
-	TldrawUiToolbar,
+	TlToolbar,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -31,10 +31,10 @@ const components: TLComponents = {
 		<>
 			<WorkflowToolbar />
 			<div className="tlui-main-toolbar tlui-main-toolbar--horizontal">
-				<TldrawUiToolbar className="tlui-main-toolbar__tools" label="Actions">
+				<TlToolbar className="tlui-main-toolbar__tools" label="Actions">
 					<DefaultQuickActions />
 					<DefaultActionsMenu />
-				</TldrawUiToolbar>
+				</TlToolbar>
 			</div>
 		</>
 	),

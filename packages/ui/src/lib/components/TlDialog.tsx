@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { Dialog as _Dialog } from 'radix-ui'
 import { CSSProperties, ReactNode } from 'react'
-import { useTlPortalContainer } from '../context/portal'
+import { TlPortalScope, useTlPortalContainer } from '../context/portal'
 import { useTlTranslation } from '../context/translation'
 import { TlButton, TlButtonIcon } from './TlButton'
 
@@ -117,21 +117,23 @@ export function TlDialogRoot({
 	return (
 		<_Dialog.Root open={open} defaultOpen={defaultOpen} onOpenChange={onOpenChange}>
 			<_Dialog.Portal container={container}>
-				<_Dialog.Overlay dir={dir} className="tl-dialog__overlay" />
-				<div dir={dir} className="tl-dialog__positioner">
-					<_Dialog.Content
-						dir={dir}
-						className="tl-dialog tl-dialog__content"
-						aria-describedby={undefined}
-						onInteractOutside={(e) => {
-							if (preventBackgroundClose) {
-								e.preventDefault()
-							}
-						}}
-					>
-						{children}
-					</_Dialog.Content>
-				</div>
+				<TlPortalScope>
+					<_Dialog.Overlay dir={dir} className="tl-dialog__overlay" />
+					<div dir={dir} className="tl-dialog__positioner">
+						<_Dialog.Content
+							dir={dir}
+							className="tl-dialog tl-dialog__content"
+							aria-describedby={undefined}
+							onInteractOutside={(e) => {
+								if (preventBackgroundClose) {
+									e.preventDefault()
+								}
+							}}
+						>
+							{children}
+						</_Dialog.Content>
+					</div>
+				</TlPortalScope>
 			</_Dialog.Portal>
 		</_Dialog.Root>
 	)

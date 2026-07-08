@@ -18,15 +18,15 @@ import {
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	TogglePasteAtCursorItem,
-	TldrawUiButton,
-	TldrawUiButtonLabel,
+	TlButton,
+	TlButtonLabel,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleWrapModeItem,
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
-	TldrawUiInput,
+	TlDropdownMenuContent,
+	TlDropdownMenuRoot,
+	TlDropdownMenuTrigger,
+	TlInput,
 	TldrawUiMenuActionItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
@@ -137,10 +137,10 @@ export function TlaEditorTopLeftPanelAnonymous() {
 					<DefaultPageMenu />
 				</>
 			)}
-			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
+			<TlDropdownMenuRoot id={`file-menu-anon`}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-					<TldrawUiDropdownMenuTrigger>
-						<TldrawUiButton
+					<TlDropdownMenuTrigger>
+						<TlButton
 							type="icon"
 							className={styles.topLeftMainMenuTrigger}
 							tooltip={pageMenuLbl}
@@ -148,9 +148,9 @@ export function TlaEditorTopLeftPanelAnonymous() {
 							data-testid="tla-main-menu"
 						>
 							<TlaIcon icon="dots-vertical-strong" />
-						</TldrawUiButton>
-					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+						</TlButton>
+					</TlDropdownMenuTrigger>
+					<TlDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 						<TldrawUiMenuGroup id="basic">
 							<EditSubmenu />
 							<ViewSubmenu />
@@ -171,9 +171,9 @@ export function TlaEditorTopLeftPanelAnonymous() {
 								<SignInMenuItem />
 							</TldrawUiMenuGroup>
 						)}
-					</TldrawUiDropdownMenuContent>
+					</TlDropdownMenuContent>
 				</TldrawUiMenuContextProvider>
-			</TldrawUiDropdownMenuRoot>
+			</TlDropdownMenuRoot>
 		</>
 	)
 }
@@ -256,7 +256,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
-					<TldrawUiButton
+					<TlButton
 						type="icon"
 						className={styles.topLeftMainMenuTrigger}
 						tooltip={pageMenuLbl}
@@ -264,7 +264,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 						data-testid="tla-main-menu"
 					>
 						<TlaIcon icon="dots-vertical-strong" />
-					</TldrawUiButton>
+					</TlButton>
 				}
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
@@ -404,7 +404,7 @@ function TlaFileNameEditorInput({
 
 	return (
 		<>
-			<TldrawUiInput
+			<TlInput
 				value={temporaryFileName}
 				onValueChange={handleValueChange}
 				onCancel={handleCancel}
@@ -424,16 +424,16 @@ function SignInMenuItem() {
 	const { addDialog } = useDialogs()
 
 	return (
-		<TldrawUiButton
+		<TlButton
 			type="menu"
 			data-testid="tla-sign-in-menu-button"
 			onClick={() => {
 				addDialog({ component: TlaSignInDialog })
 			}}
 		>
-			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
+			<TlButtonLabel>{msg}</TlButtonLabel>
 			<TlaIcon icon="sign-in" />
-		</TldrawUiButton>
+		</TlButton>
 	)
 }
 

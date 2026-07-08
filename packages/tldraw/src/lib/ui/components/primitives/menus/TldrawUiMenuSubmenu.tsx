@@ -1,17 +1,13 @@
 import { useContainer } from '@tldraw/editor'
+import { TlButton } from '@tldraw/ui'
+import { TlButtonIcon } from '@tldraw/ui'
+import { TlButtonLabel } from '@tldraw/ui'
+import { TlDropdownMenuSub, TlDropdownMenuSubContent, TlDropdownMenuSubTrigger } from '@tldraw/ui'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
-import { TldrawUiButtonLabel } from '../Button/TldrawUiButtonLabel'
-import {
-	TldrawUiDropdownMenuSub,
-	TldrawUiDropdownMenuSubContent,
-	TldrawUiDropdownMenuSubTrigger,
-} from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -45,16 +41,16 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<TldrawUiDropdownMenuSub id={`${sourceId}-sub.${id}`}>
-					<TldrawUiDropdownMenuSubTrigger
+				<TlDropdownMenuSub id={`${sourceId}-sub.${id}`}>
+					<TlDropdownMenuSubTrigger
 						id={`${sourceId}-sub.${id}-button`}
 						disabled={disabled}
 						label={labelStr!}
 					/>
-					<TldrawUiDropdownMenuSubContent id={`${sourceId}-sub.${id}-content`} size={size}>
+					<TlDropdownMenuSubContent id={`${sourceId}-sub.${id}-content`} size={size}>
 						{children}
-					</TldrawUiDropdownMenuSubContent>
-				</TldrawUiDropdownMenuSub>
+					</TlDropdownMenuSubContent>
+				</TlDropdownMenuSub>
 			)
 		}
 		case 'context-menu': {
@@ -63,14 +59,14 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 			return (
 				<ContextMenuSubWithMenu id={`${sourceId}-sub.${id}`}>
 					<_ContextMenu.ContextMenuSubTrigger dir={dir} disabled={disabled} asChild>
-						<TldrawUiButton
+						<TlButton
 							data-testid={`${sourceId}-sub.${id}-button`}
 							type="menu"
 							className="tlui-menu__submenu__trigger"
 						>
-							<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
-							<TldrawUiButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
-						</TldrawUiButton>
+							<TlButtonLabel>{labelStr}</TlButtonLabel>
+							<TlButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
+						</TlButton>
 					</_ContextMenu.ContextMenuSubTrigger>
 					<_ContextMenu.ContextMenuPortal container={container}>
 						<_ContextMenu.ContextMenuSubContent
