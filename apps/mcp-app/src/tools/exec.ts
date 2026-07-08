@@ -44,11 +44,14 @@ export function registerExecTool(
 			title: 'Execute Code',
 			description: `Execute JavaScript code on a tldraw canvas. The code runs in the widget with access to the live \`editor\` instance, helper functions, and normal js. Use the \`search\` tool first to discover available Editor methods and shape types.
 
+Helpers like \`createShapeId\`, \`createBindingId\`, \`toRichText\`, \`createArrowBetweenShapes\`, and \`boxShapes\` are top-level functions in scope. Call them directly (\`createShapeId()\`), NOT as methods on \`editor\` (\`editor.createShapeId()\` will throw).
+
 Each canvas has a unique \`canvasId\`. Omit \`canvasId\` to create a new blank canvas. To edit an existing canvas, pass the \`canvasId\` that was returned by a previous exec call.
 
 Shapes and text grow depending on the amount of text they have. Use clever scripting to ensure there are no unintended overlaps.
 
 Examples:
+- Use a generated id: const id = createShapeId(); editor.createShape({ _type: 'rectangle', shapeId: id, x: 200, y: 120, w: 320, h: 180, text: 'Hello' })
 - Create a rectangle: editor.createShape({ _type: 'rectangle', shapeId: 'box1', x: 200, y: 120, w: 320, h: 180, text: 'Hello' })
 - Connect shapes with an arrow: editor.createShape({ _type: 'arrow', shapeId: 'a1', fromId: 'box1', toId: 'box2', x1: 0, y1: 0, x2: 100, y2: 0 })
 - Select and zoom: editor.select('box1'); editor.zoomToSelection()
@@ -60,7 +63,7 @@ Examples:
 				code: z
 					.string()
 					.describe(
-						'JavaScript code to execute. Has access to `editor` (tldraw Editor instance) and helper functions.'
+						'JavaScript code to execute. Has access to `editor` (tldraw Editor instance) and top-level helper functions such as `createShapeId()` — call helpers directly, not as `editor.<helper>()`.'
 					),
 				canvasId: z
 					.string()

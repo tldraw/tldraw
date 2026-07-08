@@ -90,7 +90,7 @@ export const MCP_SERVER_DESCRIPTION =
 	'An interactive tldraw canvas with tools for diagramming, drawing, and more.'
 export const MCP_SERVER_WEBSITE_URL = 'https://www.tldraw.com'
 export const MCP_SERVER_INSTRUCTIONS =
-	'Use `search` to query the tldraw Editor API spec (e.g. search for methods by category or name). Use `exec` to run JavaScript on the canvas — your code receives `editor` (the tldraw Editor instance) and helpers like toRichText, createShapeId, createArrowBetweenShapes. The current canvas state is kept in model context as raw TLShape, asset, and binding data.'
+	'Use `search` to query the tldraw Editor API spec (e.g. search for methods by category or name). Use `exec` to run JavaScript on the canvas — your code receives `editor` (the tldraw Editor instance) plus top-level helper functions (toRichText, createShapeId, createArrowBetweenShapes, etc.) that are called directly, not as methods on `editor`. The current canvas state is kept in model context as raw TLShape, asset, and binding data.'
 
 // This URI must stay STABLE across deploys: hosts bind the app widget to it at
 // connector registration and cache the widget HTML served here, so a stale

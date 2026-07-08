@@ -125,10 +125,27 @@ function boxShapesFn(editor: Editor) {
 	}
 }
 
+export const EXEC_HELPER_NAMES = [
+	'createShapeId',
+	'createBindingId',
+	'toRichText',
+	'Box',
+	'Vec',
+	'Mat',
+	'clamp',
+	'degreesToRadians',
+	'radiansToDegrees',
+	'getArrowBindings',
+	'fitFrameToContent',
+	'createArrowBetweenShapes',
+	'boxShapes',
+] as const
+
 export function createExecHelpers(editor: Editor) {
 	const helpers = {
 		createShapeId,
 		createBindingId,
+		toRichText,
 		Box,
 		Vec,
 		Mat,
@@ -196,6 +213,7 @@ async function loadExecModule(code: string) {
 	const {
 		createShapeId,
 		createBindingId,
+		toRichText,
 		Box,
 		Vec,
 		Mat,

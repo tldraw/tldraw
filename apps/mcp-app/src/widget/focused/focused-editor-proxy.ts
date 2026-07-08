@@ -15,10 +15,13 @@ import {
 	TLShapePartial,
 } from 'tldraw'
 import type { MethodMap, RetKind } from '../../shared/generated-data'
+import { EXEC_HELPER_NAMES } from '../exec-helpers'
 import { getDefaultShape } from './defaults'
 import { convertSimpleIdToTldrawId, convertTldrawIdToSimpleId, type FocusedShape } from './format'
 import { convertTldrawShapeToFocusedShape } from './to-focused'
 import { convertFocusedShapeToTldrawShape } from './to-tldraw'
+
+const EXEC_HELPER_NAME_SET = new Set<string>(EXEC_HELPER_NAMES)
 
 // ---------------------------------------------------------------------------
 // Input conversion helpers
@@ -312,6 +315,14 @@ export function createFocusedEditorProxy(editor: Editor, methodMap: MethodMap): 
 	const proxy: Editor = new Proxy(editor, {
 		get(target, prop, receiver) {
 			const value = Reflect.get(target, prop, receiver)
+
+			if (typeof prop === 'string' && value === undefined && EXEC_HELPER_NAME_SET.has(prop)) {
+				return () => {
+					throw new Error(
+						`\`${prop}\` is a top-level helper, not a method on editor. Call \`${prop}(...)\` directly instead of \`editor.${prop}(...)\`.`
+					)
+				}
+			}
 
 			// Only intercept function calls on string-named properties
 			if (typeof prop !== 'string' || typeof value !== 'function') {
