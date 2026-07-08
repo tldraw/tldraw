@@ -59,6 +59,34 @@ describe('mergePluginComponents', () => {
 		})
 		expect(merged2.Toolbar).toBe(U)
 	})
+
+	it('throws when two plugins set the same non-stackable slot', () => {
+		expect(() =>
+			mergePluginComponents([
+				{ id: 'p1', components: { Toolbar: A } },
+				{ id: 'p2', components: { Toolbar: B } },
+			])
+		).toThrow(/p1.*p2|p2.*p1/)
+	})
+
+	it('allows two plugins to set different non-stackable slots', () => {
+		const merged = mergePluginComponents([
+			{ id: 'p1', components: { Toolbar: A } },
+			{ id: 'p2', components: { PageMenu: B } },
+		])
+		expect(merged.Toolbar).toBe(A)
+		expect(merged.PageMenu).toBe(B)
+	})
+
+	it('user override wins over a plugin non-stackable slot without throwing', () => {
+		expect(() =>
+			mergePluginComponents([{ id: 'p1', components: { Toolbar: A } }], { Toolbar: U })
+		).not.toThrow()
+		const merged = mergePluginComponents([{ id: 'p1', components: { Toolbar: A } }], {
+			Toolbar: U,
+		})
+		expect(merged.Toolbar).toBe(U)
+	})
 })
 
 describe('createPluginOnMount', () => {

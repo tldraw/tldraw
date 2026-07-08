@@ -19,7 +19,12 @@ export interface TldrawPlugin extends TLSchemaPlugin {
 	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
 	/** Tools to register with the editor's state chart. */
 	tools?: readonly TLStateNodeConstructor[]
-	/** Component overrides contributed by the plugin. */
+	/**
+	 * Component overrides contributed by the plugin. Non-stackable slots (every slot except
+	 * `InFrontOfTheCanvas` and `OnTheCanvas`) may only be set by one plugin - two plugins setting
+	 * the same non-stackable slot throws. The user's `components` always wins over any plugin,
+	 * silently.
+	 */
 	components?: TLComponents
 	/** UI overrides contributed by the plugin. */
 	overrides?: TLUiOverrides
@@ -32,8 +37,9 @@ const STACKED_SLOTS = ['InFrontOfTheCanvas', 'OnTheCanvas'] as const
 /**
  * Merges plugin components with the user's components.
  *
- * Most slots are "non-stackable": the first plugin that sets a slot wins among the plugins, but
- * the user's value (if set) always wins overall, including explicit `null` to hide a slot.
+ * Most slots are "non-stackable": only one plugin may set a slot. If two different plugins
+ * contribute the same non-stackable slot, this throws. The user's value (if set) always wins
+ * overall, silently, including explicit `null` to hide a slot.
  *
  * A few slots (`InFrontOfTheCanvas`, `OnTheCanvas`) are "stackable": every plugin's contribution
  * renders, in plugin order, followed by the user's contribution (if any). Setting a stackable
@@ -48,11 +54,19 @@ export function mergePluginComponents(
 ): TLComponents {
 	const result: TLComponents = {}
 
-	// non-stackable slots: first plugin that sets one wins among plugins…
+	// non-stackable slots: only one plugin may set a given slot
+	const slotOwners = new Map<string, string>()
 	for (const plugin of plugins) {
 		for (const [key, value] of Object.entries(plugin.components ?? {})) {
 			if ((STACKED_SLOTS as readonly string[]).includes(key)) continue
-			if (!(key in result)) (result as any)[key] = value
+			const owner = slotOwners.get(key)
+			if (owner !== undefined) {
+				throw new Error(
+					`Plugin components conflict: both '${owner}' and '${plugin.id}' set the '${key}' component slot. Only the stackable slots (InFrontOfTheCanvas, OnTheCanvas) accept contributions from multiple plugins.`
+				)
+			}
+			slotOwners.set(key, plugin.id)
+			;(result as any)[key] = value
 		}
 	}
 	// …and the user always wins overall

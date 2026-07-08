@@ -55,7 +55,7 @@ Pass a stable array (module-level, `useMemo`, or `useState`) rather than an inli
 
 ### Component slots: stacking vs. overriding
 
-Most [component slots](/docs/user-interface) are non-stackable: the first plugin that sets a slot wins among the plugins, but your own `components` prop always wins overall - including passing `null` to hide a slot a plugin set.
+Most [component slots](/docs/user-interface) are non-stackable: only one plugin may set a given slot, and two plugins setting the same non-stackable slot throws an error. Your own `components` prop always wins overall - including passing `null` to hide a slot a plugin set.
 
 Two slots are stackable: `InFrontOfTheCanvas` and `OnTheCanvas`. Every plugin's contribution to these slots renders, in plugin order, followed by yours if you provide one. This is how the comments plugin can render its pins and popovers without stepping on a custom `InFrontOfTheCanvas` component you supply - both render together. Passing `null` for a stackable slot in your own `components` hides it entirely, including every plugin's contribution.
 
