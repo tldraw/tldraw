@@ -102,6 +102,7 @@ export function createAppRouter({
 					<Route path="/dev/components/timestamps" lazy={() => import('./pages/dev-timestamps')} />
 					<Route path="/dev/components/identity" lazy={() => import('./pages/dev-identity')} />
 					<Route path="/dev/components/z-index" lazy={() => import('./pages/dev-zindex')} />
+					<Route path="/dev/components/shadows" lazy={() => import('./pages/dev-shadows')} />
 				</>
 			)}
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>

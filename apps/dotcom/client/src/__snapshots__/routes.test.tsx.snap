@@ -63,6 +63,10 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/dev/components/presence/?$",
   },
   {
+    "reactRouterPattern": "/dev/components/shadows",
+    "vercelRouterPattern": "^/dev/components/shadows/?$",
+  },
+  {
     "reactRouterPattern": "/dev/components/sidebar",
     "vercelRouterPattern": "^/dev/components/sidebar/?$",
   },
