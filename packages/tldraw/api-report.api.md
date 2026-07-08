@@ -2787,6 +2787,9 @@ export interface LineToPathBuilderCommand extends PathBuilderCommandBase {
 export function LockGroup(): JSX.Element;
 
 // @public
+export function mergePluginAssetUrls(plugins: readonly TldrawPlugin[], userAssetUrls?: TLUiAssetUrlOverrides): TLUiAssetUrlOverrides | undefined;
+
+// @public
 export function mergePluginComponents(plugins: readonly TldrawPlugin[], userComponents?: TLComponents): TLComponents;
 
 // @public (undocumented)
@@ -4178,7 +4181,10 @@ export interface TldrawImageProps extends TLImageExportOptions {
 
 // @public
 export interface TldrawPlugin extends TLSchemaPlugin {
+    assetUrls?: TLUiAssetUrlOverrides;
+    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     components?: TLComponents;
+    migrations?: readonly MigrationSequence[];
     onMount?(editor: Editor): (() => void) | void;
     overrides?: TLUiOverrides;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];

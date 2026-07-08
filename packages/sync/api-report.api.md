@@ -5,6 +5,8 @@
 ```ts
 
 import { Editor } from 'tldraw';
+import { MigrationSequence } from 'tldraw';
+import { TLAnyBindingUtilConstructor } from 'tldraw';
 import { TLAnyShapeUtilConstructor } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
@@ -26,6 +28,8 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
 
 // @public
 export interface TLSyncSchemaPlugin extends TLSchemaPlugin {
+    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
+    migrations?: readonly MigrationSequence[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 }
 

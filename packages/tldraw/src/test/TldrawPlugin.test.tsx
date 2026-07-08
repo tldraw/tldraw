@@ -1,9 +1,15 @@
 import { render } from '@testing-library/react'
+import { BindingUtil } from '@tldraw/editor'
 import { CustomRecordInfo } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 import { describe, expect, it, vi } from 'vitest'
 import { Tldraw } from '../lib/Tldraw'
-import { createPluginOnMount, mergePluginComponents, TldrawPlugin } from '../lib/TldrawPlugin'
+import {
+	createPluginOnMount,
+	mergePluginAssetUrls,
+	mergePluginComponents,
+	TldrawPlugin,
+} from '../lib/TldrawPlugin'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
@@ -89,6 +95,47 @@ describe('mergePluginComponents', () => {
 	})
 })
 
+describe('mergePluginAssetUrls', () => {
+	it('returns undefined when neither plugins nor user provide assetUrls', () => {
+		expect(mergePluginAssetUrls([], undefined)).toBeUndefined()
+		expect(mergePluginAssetUrls([{ id: 'p1' }], undefined)).toBeUndefined()
+	})
+
+	it('returns the single contribution unchanged', () => {
+		const user = { icons: { 'my-icon': 'user.svg' } }
+		expect(mergePluginAssetUrls([], user)).toBe(user)
+		const plugin = { icons: { 'plugin-icon': 'plugin.svg' } }
+		expect(mergePluginAssetUrls([{ id: 'p1', assetUrls: plugin }], undefined)).toBe(plugin)
+	})
+
+	it('merges categories key by key, later plugins and then the user winning', () => {
+		const merged = mergePluginAssetUrls(
+			[
+				{ id: 'p1', assetUrls: { icons: { shared: 'p1.svg', 'p1-only': 'p1-only.svg' } } },
+				{
+					id: 'p2',
+					assetUrls: { icons: { shared: 'p2.svg' }, fonts: { tldraw_mono: 'p2.woff2' } },
+				},
+			],
+			{ icons: { shared: 'user.svg' } }
+		)
+		expect(merged).toEqual({
+			icons: { shared: 'user.svg', 'p1-only': 'p1-only.svg' },
+			fonts: { tldraw_mono: 'p2.woff2' },
+		})
+	})
+
+	it('keeps plugin keys the user does not override', () => {
+		const merged = mergePluginAssetUrls([{ id: 'p1', assetUrls: { icons: { pin: 'pin.svg' } } }], {
+			translations: { en: 'en.json' },
+		})
+		expect(merged).toEqual({
+			icons: { pin: 'pin.svg' },
+			translations: { en: 'en.json' },
+		})
+	})
+})
+
 describe('createPluginOnMount', () => {
 	it('runs plugin onMounts before the user onMount and chains cleanups', () => {
 		const order: string[] = []
@@ -160,5 +207,53 @@ describe('<Tldraw records />', () => {
 
 		const types = editor.store.schema.types as Record<string, { scope: string } | undefined>
 		expect(types.userRecord).toBeTruthy()
+	})
+})
+
+describe('<Tldraw plugins /> schema contributions', () => {
+	class TestBindingUtil extends BindingUtil {
+		static override type = 'test-plugin-binding' as const
+		static override props = {}
+		override getDefaultProps() {
+			return {}
+		}
+	}
+
+	it('registers plugin bindingUtils alongside the defaults', async () => {
+		const plugin: TldrawPlugin = {
+			id: 'bindings-plugin',
+			bindingUtils: [TestBindingUtil],
+		}
+
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw plugins={[plugin]} onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+
+		expect(editor.bindingUtils['test-plugin-binding']).toBeInstanceOf(TestBindingUtil)
+		// the default binding utils are still registered
+		expect(editor.bindingUtils['arrow']).toBeTruthy()
+	})
+
+	it('merges plugin migrations into the store schema alongside user migrations', async () => {
+		const plugin: TldrawPlugin = {
+			id: 'migrations-plugin',
+			migrations: [{ sequenceId: 'test.plugin-sequence', retroactive: false, sequence: [] }],
+		}
+
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<Tldraw
+					plugins={[plugin]}
+					migrations={[{ sequenceId: 'test.user-sequence', retroactive: false, sequence: [] }]}
+					onMount={onMount}
+				/>
+			),
+			{ waitForPatterns: false }
+		)
+
+		const sequences = editor.store.schema.serialize().sequences
+		expect(sequences['test.plugin-sequence']).toBeDefined()
+		expect(sequences['test.user-sequence']).toBeDefined()
 	})
 })

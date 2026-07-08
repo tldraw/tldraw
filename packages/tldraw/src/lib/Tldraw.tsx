@@ -35,7 +35,12 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
-import { TldrawPlugin, createPluginOnMount, mergePluginComponents } from './TldrawPlugin'
+import {
+	TldrawPlugin,
+	createPluginOnMount,
+	mergePluginAssetUrls,
+	mergePluginComponents,
+} from './TldrawPlugin'
 import { TLUiAssetUrlOverrides, useDefaultUiAssetUrlsWithOverrides } from './ui/assetUrls'
 import { LoadingScreen } from './ui/components/LoadingScreen'
 import { Spinner } from './ui/components/Spinner'
@@ -228,10 +233,18 @@ export function Tldraw(props: TldrawProps) {
 		[_shapeUtils, _pluginShapeUtils]
 	)
 
+	const _pluginBindingUtils = useMemo(
+		() => _plugins.flatMap((p) => p.bindingUtils ?? []),
+		[_plugins]
+	)
 	const _bindingUtils = useShallowArrayIdentity(bindingUtils)
 	const bindingUtilsWithDefaults = useMemo(
-		() => mergeArraysAndReplaceDefaults('type', _bindingUtils, defaultBindingUtils),
-		[_bindingUtils]
+		() =>
+			mergeArraysAndReplaceDefaults('type', _bindingUtils, [
+				..._pluginBindingUtils,
+				...defaultBindingUtils,
+			]),
+		[_bindingUtils, _pluginBindingUtils]
 	)
 
 	const _assetUtils = useShallowArrayIdentity(assetUtils)
@@ -275,6 +288,20 @@ export function Tldraw(props: TldrawProps) {
 		[_plugins, _userRecords]
 	)
 
+	const _userMigrations = useShallowArrayIdentity(
+		'migrations' in rest ? rest.migrations : undefined
+	)
+	const pluginMigrations = useMemo(() => {
+		const fromPlugins = _plugins.flatMap((p) => p.migrations ?? [])
+		if (fromPlugins.length === 0) return _userMigrations
+		return [...fromPlugins, ...(_userMigrations ?? [])]
+	}, [_plugins, _userMigrations])
+
+	const assetUrlsWithPlugins = useMemo(
+		() => mergePluginAssetUrls(_plugins, rest.assetUrls),
+		[_plugins, rest.assetUrls]
+	)
+
 	const onMountWithPlugins = useMemo(
 		() => createPluginOnMount(_plugins, onMount),
 		[_plugins, onMount]
@@ -314,7 +341,7 @@ export function Tldraw(props: TldrawProps) {
 		[_imageMimeTypes, _videoMimeTypes]
 	)
 
-	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
+	const assets = useDefaultEditorAssetsWithOverrides(assetUrlsWithPlugins)
 
 	const embedShapeUtil = shapeUtilsWithDefaults.find((util) => util.type === 'embed')
 	if (embedShapeUtil && embeds) {
@@ -326,7 +353,7 @@ export function Tldraw(props: TldrawProps) {
 		// We provide an extra higher layer of asset+translations providers here so that
 		// loading UI (which is rendered outside of TldrawUi) may be translated.
 		// Ideally we would refactor to hoist all the UI context providers we can up here. Maybe later.
-		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(rest.assetUrls)}>
+		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrlsWithPlugins)}>
 			<TldrawUiTranslationProvider
 				overrides={useMergedTranslationOverrides(overridesWithPlugins)}
 				// If the locale prop is provided, then use that and assume it to be controlled
@@ -335,7 +362,7 @@ export function Tldraw(props: TldrawProps) {
 				<TldrawEditor
 					initialState="select"
 					{...rest}
-					{...(rest.store ? null : { records: pluginRecords })}
+					{...(rest.store ? null : { records: pluginRecords, migrations: pluginMigrations })}
 					components={componentsWithDefault}
 					shapeUtils={shapeUtilsWithDefaults}
 					bindingUtils={bindingUtilsWithDefaults}
@@ -347,6 +374,7 @@ export function Tldraw(props: TldrawProps) {
 				>
 					<TldrawUi
 						{...rest}
+						assetUrls={assetUrlsWithPlugins}
 						overrides={overridesWithPlugins}
 						components={componentsWithDefault}
 						mediaMimeTypes={mediaMimeTypes}

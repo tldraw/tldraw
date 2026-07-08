@@ -14,7 +14,9 @@ import { mergeArraysAndReplaceDefaults } from '@tldraw/utils'
 import { useEffect, useMemo } from 'react'
 import {
 	Editor,
+	MigrationSequence,
 	TAB_ID,
+	TLAnyBindingUtilConstructor,
 	TLAnyShapeUtilConstructor,
 	TLAssetStore,
 	TLPresenceStateInfo,
@@ -56,8 +58,8 @@ const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
 const defaultCustomMessageHandler: TLCustomMessageHandler = () => {}
 
 /**
- * A {@link @tldraw/tlschema#TLSchemaPlugin} that may also carry shape utils, e.g. a
- * {@link @tldraw/tldraw#TldrawPlugin}. `useSync` merges both `records` and `shapeUtils` from
+ * A {@link @tldraw/tlschema#TLSchemaPlugin} that may also carry shape utils, binding utils, and
+ * migrations, e.g. a {@link @tldraw/tldraw#TldrawPlugin}. `useSync` merges all of these from
  * plugins of this shape into the synced store's schema.
  *
  * @public
@@ -65,6 +67,10 @@ const defaultCustomMessageHandler: TLCustomMessageHandler = () => {}
 export interface TLSyncSchemaPlugin extends TLSchemaPlugin {
 	/** Shape utils this plugin registers. Merged into the synced store's schema alongside `records`. */
 	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+	/** Binding utils this plugin registers. Merged into the synced store's schema alongside `records`. */
+	bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+	/** Migrations this plugin registers. Merged into the synced store's schema alongside `records`. */
+	migrations?: readonly MigrationSequence[]
 }
 
 /**
@@ -83,6 +89,42 @@ export function mergePluginShapeUtils(
 	const pluginShapeUtils = plugins?.flatMap((plugin) => plugin.shapeUtils ?? []) ?? []
 	if (pluginShapeUtils.length === 0) return userShapeUtils
 	return mergeArraysAndReplaceDefaults('type', userShapeUtils ?? [], pluginShapeUtils)
+}
+
+/**
+ * Merges plugin `bindingUtils` with the user's own `bindingUtils` option, in the same precedence
+ * order `<Tldraw plugins>` uses: the user's `bindingUtils` win over a plugin's on a `type`
+ * collision, and plugins are applied in registration order.
+ *
+ * Exported for unit testing; not part of the public API.
+ *
+ * @internal
+ */
+export function mergePluginBindingUtils(
+	plugins: readonly TLSyncSchemaPlugin[] | undefined,
+	userBindingUtils: readonly TLAnyBindingUtilConstructor[] | undefined
+): readonly TLAnyBindingUtilConstructor[] | undefined {
+	const pluginBindingUtils = plugins?.flatMap((plugin) => plugin.bindingUtils ?? []) ?? []
+	if (pluginBindingUtils.length === 0) return userBindingUtils
+	return mergeArraysAndReplaceDefaults('type', userBindingUtils ?? [], pluginBindingUtils)
+}
+
+/**
+ * Merges plugin `migrations` with the user's own `migrations` option. Plugin migrations apply
+ * first, in registration order, followed by the user's. Duplicate sequence ids throw when the
+ * schema is created.
+ *
+ * Exported for unit testing; not part of the public API.
+ *
+ * @internal
+ */
+export function mergePluginMigrations(
+	plugins: readonly TLSyncSchemaPlugin[] | undefined,
+	userMigrations: readonly MigrationSequence[] | undefined
+): readonly MigrationSequence[] | undefined {
+	const pluginMigrations = plugins?.flatMap((plugin) => plugin.migrations ?? []) ?? []
+	if (pluginMigrations.length === 0) return userMigrations
+	return [...pluginMigrations, ...(userMigrations ?? [])]
 }
 
 /**
@@ -237,9 +279,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		if (!stablePlugins?.length) return stableSchemaOpts
 		if ('schema' in stableSchemaOpts && stableSchemaOpts.schema) {
 			// A prebuilt schema was passed in: it must already contain the plugin records. We can't
-			// inject plugin shapeUtils into a prebuilt schema (a StoreSchema doesn't expose shape
-			// subtypes to introspect), so it's the caller's responsibility to make sure the prebuilt
-			// schema's shape types already match what these plugins' shapeUtils render.
+			// inject plugin shapeUtils, bindingUtils, or migrations into a prebuilt schema (a
+			// StoreSchema doesn't expose its subtypes to introspect), so it's the caller's
+			// responsibility to make sure the prebuilt schema already matches what these plugins
+			// declare.
 			assertUniquePluginIds(stablePlugins)
 			for (const plugin of stablePlugins) {
 				for (const typeName of Object.keys(plugin.records ?? {})) {
@@ -261,6 +304,14 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			shapeUtils: mergePluginShapeUtils(
 				stablePlugins,
 				'shapeUtils' in stableSchemaOpts ? stableSchemaOpts.shapeUtils : undefined
+			),
+			bindingUtils: mergePluginBindingUtils(
+				stablePlugins,
+				'bindingUtils' in stableSchemaOpts ? stableSchemaOpts.bindingUtils : undefined
+			),
+			migrations: mergePluginMigrations(
+				stablePlugins,
+				'migrations' in stableSchemaOpts ? stableSchemaOpts.migrations : undefined
 			),
 		}
 	}, [stablePlugins, stableSchemaOpts])
@@ -522,17 +573,19 @@ export interface UseSyncOptionsBase {
 	themes?: Partial<TLThemes>
 
 	/**
-	 * Schema plugins that register additional custom record types and, optionally, shape utils
-	 * (e.g. a {@link @tldraw/tldraw#TldrawPlugin} passed to `<Tldraw plugins>`).
+	 * Schema plugins that register additional custom record types and, optionally, shape utils,
+	 * binding utils, and migrations (e.g. a {@link @tldraw/tldraw#TldrawPlugin} passed to
+	 * `<Tldraw plugins>`).
 	 *
-	 * Plugin `records` and `shapeUtils` are merged into the store's schema before it is created.
-	 * When both a plugin and the `shapeUtils` option declare a shape with the same `type`, the
-	 * `shapeUtils` option wins - the same precedence `<Tldraw plugins>` uses.
+	 * Plugin `records`, `shapeUtils`, `bindingUtils`, and `migrations` are merged into the
+	 * store's schema before it is created. When both a plugin and the corresponding option
+	 * declare a shape or binding with the same `type`, the option wins - the same precedence
+	 * `<Tldraw plugins>` uses.
 	 *
 	 * If a prebuilt `schema` option is also provided, that schema must already include every
-	 * record type declared by these plugins' `records`. Plugin `shapeUtils` can't be injected into
-	 * a prebuilt schema - it's the caller's responsibility to make sure the prebuilt schema's
-	 * shape types already match what the plugins render.
+	 * record type declared by these plugins' `records`. Plugin `shapeUtils`, `bindingUtils`, and
+	 * `migrations` can't be injected into a prebuilt schema - it's the caller's responsibility to
+	 * make sure the prebuilt schema already matches what the plugins declare.
 	 */
 	plugins?: readonly TLSyncSchemaPlugin[]
 

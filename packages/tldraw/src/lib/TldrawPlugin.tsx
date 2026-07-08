@@ -1,11 +1,14 @@
 import {
 	Editor,
+	TLAnyBindingUtilConstructor,
 	TLAnyShapeUtilConstructor,
 	TLOnMountHandler,
 	TLSchemaPlugin,
 	TLStateNodeConstructor,
 } from '@tldraw/editor'
+import { MigrationSequence } from '@tldraw/store'
 import { TLComponents } from './Tldraw'
+import { TLUiAssetUrlOverrides } from './ui/assetUrls'
 import { TLUiOverrides } from './ui/overrides'
 
 /**
@@ -17,8 +20,18 @@ import { TLUiOverrides } from './ui/overrides'
 export interface TldrawPlugin extends TLSchemaPlugin {
 	/** Shape utils to register with the editor. */
 	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+	/** Binding utils to register with the editor. */
+	bindingUtils?: readonly TLAnyBindingUtilConstructor[]
 	/** Tools to register with the editor's state chart. */
 	tools?: readonly TLStateNodeConstructor[]
+	/** Migrations to register with the store's schema. */
+	migrations?: readonly MigrationSequence[]
+	/**
+	 * Asset url overrides contributed by the plugin, e.g. icons for the plugin's tools. Later
+	 * plugins win over earlier ones on a key collision, and the user's `assetUrls` prop wins over
+	 * any plugin, silently.
+	 */
+	assetUrls?: TLUiAssetUrlOverrides
 	/**
 	 * Component overrides contributed by the plugin. Non-stackable slots (every slot except
 	 * `InFrontOfTheCanvas` and `OnTheCanvas`) may only be set by one plugin - two plugins setting
@@ -102,6 +115,33 @@ export function mergePluginComponents(
 	}
 
 	return result
+}
+
+/**
+ * Merges plugin `assetUrls` with the user's `assetUrls`, one category (`icons`, `fonts`,
+ * `translations`, `embedIcons`) at a time. Plugins apply in order, so later plugins win over
+ * earlier ones on a key collision, and the user's value always wins overall, silently.
+ *
+ * @public
+ */
+export function mergePluginAssetUrls(
+	plugins: readonly TldrawPlugin[],
+	userAssetUrls?: TLUiAssetUrlOverrides
+): TLUiAssetUrlOverrides | undefined {
+	const allOverrides = [...plugins.map((plugin) => plugin.assetUrls), userAssetUrls].filter(
+		(overrides): overrides is TLUiAssetUrlOverrides => overrides != null
+	)
+	if (allOverrides.length === 0) return undefined
+	if (allOverrides.length === 1) return allOverrides[0]
+
+	const result: { [key: string]: { [key: string]: unknown } } = {}
+	for (const overrides of allOverrides) {
+		for (const [category, urls] of Object.entries(overrides)) {
+			if (urls == null) continue
+			result[category] = { ...result[category], ...urls }
+		}
+	}
+	return result as TLUiAssetUrlOverrides
 }
 
 /**

@@ -1,10 +1,28 @@
-import { TLAnyShapeUtilConstructor, TldrawPlugin } from 'tldraw'
+import {
+	MigrationSequence,
+	TLAnyBindingUtilConstructor,
+	TLAnyShapeUtilConstructor,
+	TldrawPlugin,
+} from 'tldraw'
 import { describe, expect, it } from 'vitest'
-import { TLSyncSchemaPlugin, mergePluginShapeUtils } from './useSync'
+import {
+	TLSyncSchemaPlugin,
+	mergePluginBindingUtils,
+	mergePluginMigrations,
+	mergePluginShapeUtils,
+} from './useSync'
 
 // Minimal shape-util stand-ins: only `.type` matters for the merge logic under test.
 function fakeShapeUtil(type: string): TLAnyShapeUtilConstructor {
 	return { type } as unknown as TLAnyShapeUtilConstructor
+}
+
+function fakeBindingUtil(type: string): TLAnyBindingUtilConstructor {
+	return { type } as unknown as TLAnyBindingUtilConstructor
+}
+
+function fakeMigrations(sequenceId: string): MigrationSequence {
+	return { sequenceId, retroactive: false, sequence: [] }
 }
 
 describe('mergePluginShapeUtils', () => {
@@ -50,6 +68,67 @@ describe('mergePluginShapeUtils', () => {
 		const user = [userSticky]
 		const plugins: TLSyncSchemaPlugin[] = [{ id: 'records-only' }]
 		expect(mergePluginShapeUtils(plugins, user)).toBe(user)
+	})
+})
+
+describe('mergePluginBindingUtils', () => {
+	it('returns the user bindingUtils unchanged when there are no plugins', () => {
+		const user = [fakeBindingUtil('sticky-tape')]
+		expect(mergePluginBindingUtils(undefined, user)).toBe(user)
+		expect(mergePluginBindingUtils([], user)).toBe(user)
+	})
+
+	it('returns undefined when neither plugins nor user provide bindingUtils', () => {
+		expect(mergePluginBindingUtils(undefined, undefined)).toBeUndefined()
+		expect(mergePluginBindingUtils([{ id: 'records-only' }], undefined)).toBeUndefined()
+	})
+
+	it('appends user bindingUtils after plugin bindingUtils, in plugin order', () => {
+		const commentAnchor = fakeBindingUtil('comment-anchor')
+		const annotationLink = fakeBindingUtil('annotation-link')
+		const userTape = fakeBindingUtil('sticky-tape')
+		const plugins: TLSyncSchemaPlugin[] = [
+			{ id: 'comments', bindingUtils: [commentAnchor] },
+			{ id: 'annotations', bindingUtils: [annotationLink] },
+		]
+		expect(mergePluginBindingUtils(plugins, [userTape])).toEqual([
+			commentAnchor,
+			annotationLink,
+			userTape,
+		])
+	})
+
+	it("lets the user's bindingUtils win over a plugin's on a `type` collision", () => {
+		const pluginAnchor = fakeBindingUtil('comment-anchor')
+		const userAnchor = fakeBindingUtil('comment-anchor')
+		const plugins: TLSyncSchemaPlugin[] = [{ id: 'comments', bindingUtils: [pluginAnchor] }]
+		const result = mergePluginBindingUtils(plugins, [userAnchor])
+		expect(result).toEqual([userAnchor])
+		expect(result?.[0]).toBe(userAnchor)
+	})
+})
+
+describe('mergePluginMigrations', () => {
+	it('returns the user migrations unchanged when there are no plugins', () => {
+		const user = [fakeMigrations('app.custom')]
+		expect(mergePluginMigrations(undefined, user)).toBe(user)
+		expect(mergePluginMigrations([], user)).toBe(user)
+	})
+
+	it('returns undefined when neither plugins nor user provide migrations', () => {
+		expect(mergePluginMigrations(undefined, undefined)).toBeUndefined()
+		expect(mergePluginMigrations([{ id: 'records-only' }], undefined)).toBeUndefined()
+	})
+
+	it('puts plugin migrations first, in plugin order, followed by the user migrations', () => {
+		const comments = fakeMigrations('tldraw.comments')
+		const annotations = fakeMigrations('app.annotations')
+		const user = fakeMigrations('app.custom')
+		const plugins: TLSyncSchemaPlugin[] = [
+			{ id: 'comments', migrations: [comments] },
+			{ id: 'annotations', migrations: [annotations] },
+		]
+		expect(mergePluginMigrations(plugins, [user])).toEqual([comments, annotations, user])
 	})
 })
 
