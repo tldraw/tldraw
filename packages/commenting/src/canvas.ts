@@ -20,4 +20,10 @@ export {
 	useThreadComments,
 } from './canvas/hooks'
 export { richTextToPlaintext } from './canvas/rich-text'
-export { anchorPagePoint, focusThread, openThreadId } from './canvas/thread-state'
+export {
+	anchorPagePoint,
+	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
+	focusThread,
+	openThreadId,
+	shapeAnchorAt,
+} from './canvas/thread-state'

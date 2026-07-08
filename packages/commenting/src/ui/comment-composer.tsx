@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { ReactNode, useEffect, useRef } from 'react'
 import { Avatar } from './avatar'
 import './comments.css'
 import { SendButton } from './send-button'
@@ -14,6 +14,8 @@ export interface CommentComposerProps {
 	sendLabel?: string
 	disabled?: boolean
 	autoFocus?: boolean
+	/** The leading element before the field. Defaults to the author's avatar. */
+	leading?: ReactNode
 }
 
 /** The input for writing a new comment, composed from Avatar and SendButton. Presentational
@@ -27,6 +29,7 @@ export function CommentComposer({
 	sendLabel = 'Send',
 	disabled,
 	autoFocus,
+	leading,
 }: CommentComposerProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -43,22 +46,24 @@ export function CommentComposer({
 
 	return (
 		<div className="cmt-composer">
-			<Avatar name={author} />
-			<input
-				ref={inputRef}
-				className="cmt-input"
-				placeholder={placeholder}
-				value={value}
-				onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-				onKeyDown={
-					onSubmit
-						? (e) => {
-								if (e.key === 'Enter') onSubmit()
-							}
-						: undefined
-				}
-			/>
-			<SendButton label={sendLabel} onClick={onSubmit} disabled={disabled} />
+			{leading ?? <Avatar name={author} />}
+			<div className="cmt-composer__field">
+				<input
+					ref={inputRef}
+					className="cmt-input"
+					placeholder={placeholder}
+					value={value}
+					onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+					onKeyDown={
+						onSubmit
+							? (e) => {
+									if (e.key === 'Enter') onSubmit()
+								}
+							: undefined
+					}
+				/>
+				<SendButton label={sendLabel} onClick={onSubmit} disabled={disabled} />
+			</div>
 		</div>
 	)
 }

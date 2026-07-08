@@ -6,7 +6,7 @@ export interface SendButtonProps {
 	onClick?(): void
 }
 
-/** The pill button that posts a comment. */
+/** The button that posts a comment. */
 export function SendButton({ label, disabled, onClick }: SendButtonProps) {
 	return (
 		<button className="cmt-send" type="button" disabled={disabled} onClick={onClick}>

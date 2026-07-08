@@ -11,7 +11,10 @@ import { TLShapeId } from './TLShape'
  * Where a comment thread is anchored on the canvas. Modeled as a discriminated union so new
  * anchor kinds can be added without breaking existing threads:
  *
- * - `shape` — pinned to a shape; follows the shape as it moves, removed (or orphaned) with it
+ * - `shape` — pinned to a shape. `x`/`y` are normalized (0–1) within the shape's page bounds, so
+ *   the pin keeps its spot as the shape moves and resizes. `isPrecise` mirrors arrow bindings: when
+ *   true the pin sits at exactly `x`/`y`; when false (the default) it sits at a consumer-defined
+ *   spot (top-right out of the box), and `x`/`y` are the remembered precise position
  * - `point` — pinned to a fixed point on the page, in page coordinates
  * - `region` — pinned to a rectangular area of the page, in page coordinates
  * - `page` — a page-level thread with no spatial anchor
@@ -20,7 +23,7 @@ import { TLShapeId } from './TLShape'
  * @public
  */
 export type TLCommentAnchor =
-	| { type: 'shape'; shapeId: TLShapeId }
+	| { type: 'shape'; shapeId: TLShapeId; x: number; y: number; isPrecise: boolean }
 	| { type: 'point'; x: number; y: number }
 	| { type: 'region'; x: number; y: number; w: number; h: number }
 	| { type: 'page' }
@@ -94,6 +97,9 @@ const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
 	shape: T.object({
 		type: T.literal('shape'),
 		shapeId: idValidator<TLShapeId>('shape'),
+		x: T.number,
+		y: T.number,
+		isPrecise: T.boolean,
 	}),
 	point: T.object({
 		type: T.literal('point'),
@@ -125,7 +131,10 @@ const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
  * rejected with CLIENT_TOO_OLD (prompting a refresh) instead of being sent record types their
  * store cannot represent.
  */
-function createCommentGuardMigrations(typeName: 'comment' | 'comment-thread') {
+function createCommentGuardMigrations(
+	typeName: 'comment' | 'comment-thread',
+	extra: Parameters<typeof createRecordMigrationSequence>[0]['sequence'] = []
+) {
 	return createRecordMigrationSequence({
 		sequenceId: `com.tldraw.${typeName}`,
 		recordType: typeName,
@@ -135,6 +144,7 @@ function createCommentGuardMigrations(typeName: 'comment' | 'comment-thread') {
 				id: `com.tldraw.${typeName}/1`,
 				up: (record) => record,
 			},
+			...extra,
 		],
 	})
 }
@@ -147,7 +157,26 @@ function createCommentGuardMigrations(typeName: 'comment' | 'comment-thread') {
  */
 export const commentThreadRecordConfig: CustomRecordInfo = {
 	scope: 'document',
-	migrations: createCommentGuardMigrations('comment-thread'),
+	migrations: createCommentGuardMigrations('comment-thread', [
+		{
+			// Shape anchors gained normalized x/y + isPrecise; existing ones were imprecise (top-right).
+			id: 'com.tldraw.comment-thread/2',
+			up: (record) => {
+				const anchor = (record as any).anchor
+				if (anchor?.type === 'shape' && anchor.x === undefined) {
+					;(record as any).anchor = { ...anchor, x: 1, y: 0, isPrecise: false }
+				}
+				return record
+			},
+			down: (record) => {
+				const anchor = (record as any).anchor
+				if (anchor?.type === 'shape') {
+					;(record as any).anchor = { type: 'shape', shapeId: anchor.shapeId }
+				}
+				return record
+			},
+		},
+	]),
 	validator: T.object({
 		id: idValidator<TLCommentThreadId>('comment-thread'),
 		typeName: T.literal('comment-thread'),

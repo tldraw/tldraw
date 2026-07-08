@@ -4,20 +4,15 @@ export interface AvatarProps {
 	name: string
 }
 
-function initials(name: string) {
-	return name
-		.split(' ')
-		.map((word) => word[0] ?? '')
-		.join('')
-		.slice(0, 2)
-		.toUpperCase()
+function initial(name: string) {
+	return (name.trim()[0] ?? '?').toUpperCase()
 }
 
-/** An initials avatar for a commenter. */
+/** A single-initial avatar for a commenter. */
 export function Avatar({ name }: AvatarProps) {
 	return (
 		<div className="cmt-avatar" aria-hidden="true">
-			{initials(name)}
+			{initial(name)}
 		</div>
 	)
 }

@@ -1102,8 +1102,11 @@ export type TLCommentAnchor = {
     x: number;
     y: number;
 } | {
+    isPrecise: boolean;
     shapeId: TLShapeId;
     type: 'shape';
+    x: number;
+    y: number;
 } | {
     type: 'page';
 } | {
