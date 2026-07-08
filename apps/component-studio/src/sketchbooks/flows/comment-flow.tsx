@@ -1,12 +1,19 @@
 import {
 	CanvasComments,
 	commentSchemaRecords,
-	commentToolComponents,
+	CommentToolbarItem,
 	commentToolOverrides,
 	commentTools,
 } from '@tldraw/comments'
 import { useMemo } from 'react'
-import { createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
+import {
+	createTLSchema,
+	createTLStore,
+	DefaultToolbar,
+	DefaultToolbarContent,
+	TLComponents,
+	Tldraw,
+} from 'tldraw'
 import './comment-flow.css'
 
 // A tiny local user directory so the flow shows names instead of ids.
@@ -26,7 +33,12 @@ export function CommentFlow() {
 	)
 	const components: TLComponents = useMemo(
 		() => ({
-			...commentToolComponents,
+			Toolbar: (props) => (
+				<DefaultToolbar {...props}>
+					<CommentToolbarItem />
+					<DefaultToolbarContent />
+				</DefaultToolbar>
+			),
 			InFrontOfTheCanvas: () => <CanvasComments currentUserId="me" resolveName={resolveName} />,
 		}),
 		[]

@@ -1,10 +1,7 @@
 import {
 	atom,
-	DefaultToolbar,
-	DefaultToolbarContent,
 	StateNode,
 	TldrawUiMenuItem,
-	TLComponents,
 	TLUiOverrides,
 	useIsToolSelected,
 	useTools,
@@ -78,20 +75,28 @@ export const commentToolOverrides: TLUiOverrides = {
 }
 
 /**
- * A Toolbar with the comment tool added before the default tools, so it stays visible instead
- * of falling into the toolbar's overflow menu. Use as-is, or build your own toolbar with
- * `tools.comment`.
+ * The comment tool's toolbar item. The plugin doesn't touch the toolbar itself - compose this
+ * into your own `Toolbar` component override wherever you want the button:
+ *
+ * ```tsx
+ * const components: TLComponents = {
+ * 	Toolbar: (props) => (
+ * 		<DefaultToolbar {...props}>
+ * 			<CommentToolbarItem />
+ * 			<DefaultToolbarContent />
+ * 		</DefaultToolbar>
+ * 	),
+ * }
+ * ```
+ *
+ * Built on `TldrawUiMenuItem`, so it also works in the keyboard shortcuts dialog and other menu
+ * surfaces. Renders nothing when the comments plugin isn't installed.
  * @public
+ * @react
  */
-export const commentToolComponents: TLComponents = {
-	Toolbar: (props) => {
-		const tools = useTools()
-		const isSelected = useIsToolSelected(tools.comment)
-		return (
-			<DefaultToolbar {...props}>
-				<TldrawUiMenuItem {...tools.comment} isSelected={isSelected} />
-				<DefaultToolbarContent />
-			</DefaultToolbar>
-		)
-	},
+export function CommentToolbarItem() {
+	const tools = useTools()
+	const isSelected = useIsToolSelected(tools.comment)
+	if (!tools.comment) return null
+	return <TldrawUiMenuItem {...tools.comment} isSelected={isSelected} />
 }

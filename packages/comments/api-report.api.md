@@ -14,7 +14,6 @@ import { ReactNode } from 'react';
 import { ReactPortal } from 'react';
 import { RecordId } from '@tldraw/store';
 import { StateNode } from 'tldraw';
-import { TLComponents } from 'tldraw';
 import { TldrawPlugin } from 'tldraw';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLPageId as TLPageId_2 } from 'tldraw';
@@ -226,7 +225,7 @@ export class CommentTool extends StateNode {
 }
 
 // @public
-export const commentToolComponents: TLComponents;
+export function CommentToolbarItem(): JSX.Element | null;
 
 // @public
 export const commentToolOverrides: TLUiOverrides;

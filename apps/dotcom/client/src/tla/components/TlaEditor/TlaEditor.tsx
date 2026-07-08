@@ -1,10 +1,12 @@
-import { commentsPlugin, CommentsPluginUser } from '@tldraw/comments'
+import { commentsPlugin, CommentsPluginUser, CommentToolbarItem } from '@tldraw/comments'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
+	DefaultToolbar,
+	DefaultToolbarContent,
 	Editor,
 	TLComponents,
 	TLSessionStateSnapshot,
@@ -67,6 +69,14 @@ export const components: TLComponents = {
 	MenuPanel: TlaEditorMenuPanel,
 	TopPanel: TlaEditorTopPanel,
 	SharePanel: TlaEditorSharePanel,
+	// The comments plugin doesn't add a toolbar button itself; compose it in first so it stays
+	// out of the toolbar's overflow menu.
+	Toolbar: (props) => (
+		<DefaultToolbar {...props}>
+			<CommentToolbarItem />
+			<DefaultToolbarContent />
+		</DefaultToolbar>
+	),
 	Dialogs: null,
 	Toasts: null,
 	// No loading screen on tla editors: the editor only mounts once it's ready,

@@ -1,5 +1,5 @@
 import { Editor, TldrawPlugin, useEditor } from 'tldraw'
-import { commentToolComponents, commentToolOverrides, commentTools } from './canvas/comment-tool'
+import { commentToolOverrides, commentTools } from './canvas/comment-tool'
 import { CanvasComments } from './canvas/comments-overlay'
 import { CanvasCommentsSidebar } from './canvas/comments-sidebar'
 import { commentSchemaRecords } from './records'
@@ -20,6 +20,10 @@ function defaultResolveName(userId: string): string {
  * Comments for the tldraw SDK. Pass to `<Tldraw plugins={[commentsPlugin()]}>` and, when using
  * sync, to `useSync({ plugins })` on the client and `commentsSyncPlugin()` on the server.
  *
+ * The plugin registers the comment tool (keyboard shortcut `c`) but doesn't add a toolbar
+ * button - compose {@link CommentToolbarItem} into your own `Toolbar` component override to
+ * show one.
+ *
  * @public
  */
 export function commentsPlugin(options: CommentsPluginOptions = {}): TldrawPlugin {
@@ -32,7 +36,6 @@ export function commentsPlugin(options: CommentsPluginOptions = {}): TldrawPlugi
 		tools: commentTools,
 		overrides: commentToolOverrides,
 		components: {
-			...commentToolComponents,
 			InFrontOfTheCanvas: function CommentsPluginOverlay() {
 				return (
 					<CommentsPluginOverlayInner

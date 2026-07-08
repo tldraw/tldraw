@@ -68,7 +68,7 @@ Plugin overlays in `InFrontOfTheCanvas` and `OnTheCanvas` render even when the e
 
 ## The comments package
 
-`@tldraw/comments` adds comment threads to the canvas: pins anchored to shapes, points, regions, or pages, with a popover for reading and a composer for writing, plus a comment tool in the toolbar and an optional sidebar listing the current page's threads.
+`@tldraw/comments` adds comment threads to the canvas: pins anchored to shapes, points, regions, or pages, with a popover for reading and a composer for writing, plus a comment tool (keyboard shortcut `c`) and an optional sidebar listing the current page's threads.
 
 ### Client setup
 
@@ -103,7 +103,27 @@ interface CommentsPluginOptions {
 
 `sidebar` controls whether the comments sidebar renders alongside the canvas overlay. It defaults to `true`; pass `false` if you only want the pins, popover, and composer.
 
-For full control over the UI, `@tldraw/comments` also exports the pieces `commentsPlugin` composes - `CanvasComments`, `CanvasCommentsSidebar`, `commentTools`, `commentToolOverrides`, `commentToolComponents`, and the presentational primitives (`CommentCard`, `CommentThread`, `CommentComposer`, `CommentPin`, and others) - so you can assemble your own comments UI instead of using the plugin's defaults.
+### Adding the comment tool to the toolbar
+
+The plugin registers the comment tool but doesn't add a toolbar button, so it never conflicts with another plugin or with your own toolbar. To show one, compose the exported `CommentToolbarItem` into your own `Toolbar` component override - placing it first keeps it out of the toolbar's overflow menu:
+
+```tsx
+import { CommentToolbarItem } from '@tldraw/comments'
+import { DefaultToolbar, DefaultToolbarContent, TLComponents } from 'tldraw'
+
+const components: TLComponents = {
+	Toolbar: (props) => (
+		<DefaultToolbar {...props}>
+			<CommentToolbarItem />
+			<DefaultToolbarContent />
+		</DefaultToolbar>
+	),
+}
+```
+
+`CommentToolbarItem` is built on `TldrawUiMenuItem`, so the same component also works in other menu surfaces like the keyboard shortcuts dialog.
+
+For full control over the UI, `@tldraw/comments` also exports the pieces `commentsPlugin` composes - `CanvasComments`, `CanvasCommentsSidebar`, `commentTools`, `commentToolOverrides`, `CommentToolbarItem`, and the presentational primitives (`CommentCard`, `CommentThread`, `CommentComposer`, `CommentPin`, and others) - so you can assemble your own comments UI instead of using the plugin's defaults.
 
 ### Reading and writing comments
 

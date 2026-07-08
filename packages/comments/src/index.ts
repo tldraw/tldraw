@@ -2,7 +2,7 @@
 export * from './records'
 export {
 	CommentTool,
-	commentToolComponents,
+	CommentToolbarItem,
 	commentToolOverrides,
 	commentTools,
 	pendingComment,

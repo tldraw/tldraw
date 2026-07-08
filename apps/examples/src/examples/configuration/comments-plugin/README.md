@@ -14,3 +14,7 @@ The `@tldraw/comments` package adds comment threads to the canvas as a plugin. S
 start a thread. Comments are stored as custom records in the document, so with local persistence
 they survive reloads; with tldraw sync they sync to other clients when the client passes the
 plugin to `useSync` and the server registers the matching `commentsSyncPlugin`.
+
+The plugin doesn't add a toolbar button itself - compose the exported `CommentToolbarItem` into
+your own `Toolbar` component override, the same way the "Tool in the toolbar" example adds a
+custom tool.
