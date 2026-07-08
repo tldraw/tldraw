@@ -63,14 +63,13 @@ export class PointingShape extends StateNode {
 	override onPointerUp(info: TLPointerEventInfo) {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
-		const zoomLevel = this.editor.getZoomLevel()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 		const additiveSelectionKey = info.shiftKey || info.accelKey
 
 		const hitShape =
 			this.editor.getShapeAtPoint(currentPagePoint, {
-				margin: this.editor.options.hitTestMargin / zoomLevel,
+				margin: this.editor.getHitTestMargin(),
 				hitInside: true,
 				renderingOnly: true,
 			}) ?? this.hitShape

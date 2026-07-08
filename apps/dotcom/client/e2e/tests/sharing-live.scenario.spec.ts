@@ -130,11 +130,11 @@ test.describe('live sharing scenarios', () => {
 
 		await visitor.goto(sharedUrl)
 		await expect(visitor.shareMenu.shareButton).toBeVisible()
-		await expect(visitor.page.getByTestId('tla-error-icon')).not.toBeVisible()
+		await expect(visitor.page.getByTestId('tla-error')).not.toBeVisible()
 
 		await scenario.setSharedLinkType(owner, 'no-access')
 		await expect(visitor.shareMenu.shareButton).not.toBeVisible({ timeout: 10000 })
-		await expect(visitor.page.getByTestId('tla-error-icon')).toBeVisible({ timeout: 10000 })
+		await expect(visitor.page.getByTestId('tla-error')).toBeVisible({ timeout: 10000 })
 	})
 
 	test('published snapshots update only after publishing changes', async ({

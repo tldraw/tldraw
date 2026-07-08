@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tlschema",
 	"description": "tldraw infinite canvas SDK (schema).",
-	"version": "5.2.0",
+	"version": "5.2.3",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"

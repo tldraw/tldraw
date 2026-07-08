@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/mermaid",
 	"description": "Mermaid diagram to tldraw shape conversion.",
-	"version": "5.2.0",
+	"version": "5.2.3",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"

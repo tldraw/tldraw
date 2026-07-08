@@ -123,12 +123,6 @@
       "value": "Exportieren als"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Sind Sie sicher, dass Sie diesen Arbeitsbereich löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Holen Sie sich Hilfe auf Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Möchten Sie wirklich "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " löschen?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Pin-Datei"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Möchten Sie diese Datei wirklich vergessen?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Sind Sie sicher, dass Sie "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " vergessen möchten?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -789,6 +817,26 @@
     {
       "type": 0,
       "value": "Umbenennen"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Möchten Sie "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
     }
   ],
   "95aacd4d4a": [
@@ -1121,26 +1169,6 @@
       "value": "Erfahren Sie mehr über das Teilen."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Erlauben Sie uns, mithilfe von "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " tldraw zu verbessern."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1451,12 +1479,6 @@
     {
       "type": 0,
       "value": "Möchten Sie diesen Arbeitsbereich wirklich verlassen?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Möchten Sie diese Datei wirklich löschen?"
     }
   ],
   "fed5ec05eb": [
