@@ -19,6 +19,22 @@ export const LICENSE_TIMEOUT = 5000
 
 /** @internal */
 export function LicenseProvider({
+	licenseKey,
+	children,
+}: {
+	licenseKey?: string
+	children: ReactNode
+}) {
+	const existing = useContext(LicenseContext)
+	if (existing instanceof LicenseManager) {
+		// An ancestor already provides a license manager (e.g. Tldraw wrapping TldrawEditor).
+		// Reuse it instead of validating and tracking the key a second time.
+		return <>{children}</>
+	}
+	return <StandaloneLicenseProvider licenseKey={licenseKey}>{children}</StandaloneLicenseProvider>
+}
+
+function StandaloneLicenseProvider({
 	licenseKey = getLicenseKeyFromEnv() ?? undefined,
 	children,
 }: {
