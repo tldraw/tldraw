@@ -17,7 +17,7 @@ const pageId = 'page:page1' as TLPageId
 const shapeId = 'shape:box1' as TLShapeId
 
 const anchors: TLCommentAnchor[] = [
-	{ type: 'shape', shapeId },
+	{ type: 'shape', shapeId, x: 1, y: 0, isPrecise: false },
 	{ type: 'point', x: 100, y: 200 },
 	{ type: 'region', x: 0, y: 0, w: 300, h: 150 },
 	{ type: 'page' },
@@ -55,7 +55,7 @@ describe('TLCommentThread', () => {
 	it('rejects unknown anchor kinds and malformed anchors', () => {
 		const thread = createCommentThread({
 			pageId,
-			anchor: { type: 'shape', shapeId },
+			anchor: { type: 'shape', shapeId, x: 1, y: 0, isPrecise: false },
 			createdBy: 'user1',
 			now: 1000,
 		})
@@ -69,7 +69,7 @@ describe('TLCommentThread', () => {
 			commentThreadRecordConfig.validator.validate({
 				...thread,
 				// shape anchors must reference a shape id
-				anchor: { type: 'shape', shapeId: 'page:nope' },
+				anchor: { type: 'shape', shapeId: 'page:nope', x: 1, y: 0, isPrecise: false },
 			})
 		).toThrow()
 	})
@@ -129,5 +129,35 @@ describe('schema registration', () => {
 		const types = schema.types as Record<string, { scope: string } | undefined>
 		expect(types['comment-thread']?.scope).toBe('document')
 		expect(types['comment']?.scope).toBe('document')
+	})
+})
+
+describe('comment-thread migrations', () => {
+	const migration = (commentThreadRecordConfig.migrations as any).sequence.find(
+		(m: any) => m.id === 'com.tldraw.comment-thread/2'
+	) as { up(r: any): any; down(r: any): any }
+
+	it('stamps existing shape anchors with the top-right position (x:1, y:0)', () => {
+		expect(migration.up({ anchor: { type: 'shape', shapeId } })).toEqual({
+			anchor: { type: 'shape', shapeId, x: 1, y: 0, isPrecise: false },
+		})
+	})
+
+	it('leaves shape anchors that already have x/y unchanged', () => {
+		const anchor = { type: 'shape', shapeId, x: 0.25, y: 0.75, isPrecise: true }
+		expect(migration.up({ anchor })).toEqual({ anchor })
+	})
+
+	it('leaves non-shape anchors untouched', () => {
+		const anchor = { type: 'point', x: 5, y: 6 }
+		expect(migration.up({ anchor })).toEqual({ anchor })
+	})
+
+	it('down-migrates by dropping x/y', () => {
+		expect(
+			migration.down({ anchor: { type: 'shape', shapeId, x: 0.3, y: 0.4, isPrecise: true } })
+		).toEqual({
+			anchor: { type: 'shape', shapeId },
+		})
 	})
 })
