@@ -188,3 +188,48 @@ describe('storage plugins option', () => {
 		).toEqual([])
 	})
 })
+
+describe('TLSocketRoom provided-storage objectTypes assertion', () => {
+	function makeSnapshotForStorage() {
+		const schema = createTLSchema({ records: { widget: widgetConfig } })
+		return {
+			documents: [],
+			clock: 0,
+			documentClock: 0,
+			schema: schema.serialize(),
+		}
+	}
+
+	it('throws when a provided storage does not partition the room plugin object types', () => {
+		const plugin = makeWidgetPlugin() // objectTypes: ['widget']
+		// storage constructed with no plugins/objectTypes of its own, so `widget` lands in the
+		// documents lane instead of the object lane.
+		const storage = new InMemorySyncStorage<UnknownRecord>({ snapshot: makeSnapshotForStorage() })
+
+		expect(() => new TLSocketRoom({ storage, plugins: [plugin] })).toThrow(/widget/)
+	})
+
+	it('constructs fine when the provided storage objectTypes match the room plugin object types', () => {
+		const plugin = makeWidgetPlugin() // objectTypes: ['widget']
+		const storage = new InMemorySyncStorage<UnknownRecord>({
+			snapshot: makeSnapshotForStorage(),
+			plugins: [plugin],
+		})
+
+		expect(() => new TLSocketRoom({ storage, plugins: [plugin] })).not.toThrow()
+	})
+
+	it('skips the assertion for storages that do not expose an objectTypes set', () => {
+		const plugin = makeWidgetPlugin() // objectTypes: ['widget']
+		const snapshot = makeSnapshotForStorage()
+		// A minimal duck-typed storage with no `objectTypes` field at all.
+		const storage = {
+			transaction: vi.fn(() => ({ documentClock: 0, didChange: false, result: undefined })),
+			getClock: () => 0,
+			onChange: () => () => {},
+			getSnapshot: () => snapshot,
+		}
+
+		expect(() => new TLSocketRoom({ storage: storage as any, plugins: [plugin] })).not.toThrow()
+	})
+})

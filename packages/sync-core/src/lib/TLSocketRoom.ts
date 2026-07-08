@@ -43,6 +43,42 @@ function stripPresenceForSnapshot(record: UnknownRecord): UnknownRecord {
 }
 
 /**
+ * Duck-types a caller-provided storage to check whether it exposes an `objectTypes` set. Storages
+ * aren't required to expose this (it's not part of the `TLSyncStorage` interface), so storages
+ * that don't are skipped rather than asserted against.
+ */
+function getStorageObjectTypes(storage: unknown): ReadonlySet<string> | undefined {
+	if (
+		storage &&
+		typeof storage === 'object' &&
+		'objectTypes' in storage &&
+		storage.objectTypes instanceof Set
+	) {
+		return storage.objectTypes
+	}
+	return undefined
+}
+
+/**
+ * When a caller provides their own storage, its `objectTypes` partition must match the room's
+ * plugin-derived object types, or plugin object-lane records will land in the storage's documents
+ * lane instead — leaking into snapshots and exports that are meant to exclude the object lane.
+ */
+function assertStorageObjectTypesMatch(storage: unknown, objectTypes: readonly string[]) {
+	const storageObjectTypes = getStorageObjectTypes(storage)
+	if (!storageObjectTypes) return
+
+	const missing = objectTypes.filter((t) => !storageObjectTypes.has(t))
+	if (missing.length > 0) {
+		throw new Error(
+			`The provided storage does not partition the following plugin object types: ${missing.join(', ')}. ` +
+				`Pass \`plugins\` (or matching \`objectTypes\`) to your storage constructor as well, so ` +
+				`object-lane records are partitioned consistently between the room and its storage.`
+		)
+	}
+}
+
+/**
  * Logging interface for TLSocketRoom operations. Provides optional methods
  * for warning and error logging during synchronization operations.
  *
@@ -298,6 +334,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 					objectTypes,
 				})
 
+		if (opts.storage) {
+			assertStorageObjectTypesMatch(opts.storage, objectTypes)
+		}
+
+		this.log = 'log' in opts ? opts.log : { error: console.error }
+
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		if ('onDataChange' in opts && opts.onDataChange) {
 			this.disposables.add(
@@ -328,7 +370,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				})
 			}
 		})
-		this.log = 'log' in opts ? opts.log : { error: console.error }
 	}
 
 	/**
