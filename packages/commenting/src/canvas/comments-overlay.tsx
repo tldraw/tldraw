@@ -16,13 +16,14 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
-import { CommentCardProps } from '../ui/comment-card'
+import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
 import { CommentPin } from '../ui/comment-pin'
 import { CommentThread } from '../ui/comment-thread'
 import { CommentBody } from './comment-body'
 import { pendingComment, PendingComment } from './comment-tool'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
+import { richTextToPlaintext } from './rich-text'
 import './canvas.css'
 
 /** The id of the one open thread (only one popover is open at a time), or null when all closed. */
@@ -128,6 +129,8 @@ function ThreadPin({
 	// Only one thread's popover is open at a time — shared across pins via the atom.
 	const open = useValue('thread open', () => openThreadId.get() === thread.id, [thread.id])
 	const [reply, setReply] = useState('')
+	const [editingId, setEditingId] = useState<string | null>(null)
+	const [editText, setEditText] = useState('')
 
 	const point = useValue(
 		'pin point',
@@ -182,6 +185,62 @@ function ThreadPin({
 		})
 	}
 
+	const startEdit = (comment: TLComment) => {
+		setEditingId(comment.id)
+		setEditText(richTextToPlaintext(comment.body))
+	}
+
+	const saveEdit = () => {
+		const comment = comments.find((c) => c.id === editingId)
+		const trimmed = editText.trim()
+		if (!comment || !trimmed) return
+		editor.run(
+			() => {
+				editor.store.put([{ ...comment, body: toRichText(trimmed), editedAt: Date.now() } as any])
+			},
+			{ history: 'ignore' }
+		)
+		setEditingId(null)
+	}
+
+	// Swap a comment for a pre-filled composer while it's being edited; otherwise show the card,
+	// with an edit affordance on your own comments.
+	const renderComment = (card: CommentCardProps, index: number): ReactNode => {
+		const comment = comments[index]
+		if (editingId === comment.id) {
+			return (
+				<div
+					onKeyDown={(e) => {
+						if (e.key === 'Escape') setEditingId(null)
+					}}
+				>
+					<CommentComposer
+						author={card.author}
+						placeholder="Edit comment…"
+						value={editText}
+						onChange={setEditText}
+						onSubmit={saveEdit}
+						sendLabel="Save"
+						disabled={!editText.trim()}
+						autoFocus
+					/>
+				</div>
+			)
+		}
+		return (
+			<CommentCard
+				{...card}
+				actions={
+					comment.authorId === currentUserId ? (
+						<button className="cmt-thread__action" title="Edit" onClick={() => startEdit(comment)}>
+							<TldrawUiIcon icon="dots-horizontal" label="Edit" small />
+						</button>
+					) : undefined
+				}
+			/>
+		)
+	}
+
 	const headerActions = (
 		<>
 			{currentUserId && (
@@ -227,10 +286,11 @@ function ThreadPin({
 					<CommentThread
 						header="Thread"
 						headerActions={headerActions}
+						renderComment={renderComment}
 						comments={comments.map((c) => toCardProps(c, props))}
 						resolvedBy={thread.resolved ? resolveName(thread.resolved.by) : undefined}
 						composer={
-							currentUserId
+							currentUserId && !thread.resolved
 								? {
 										author: resolveName(currentUserId),
 										placeholder: 'Reply…',

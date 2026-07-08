@@ -1,6 +1,7 @@
 /* Real comment UI components. Co-located so styles travel to any view (studio,
    canvas), and themed via tldraw's --tl-color tokens so they follow light/dark. */
 .cmt-card {
+	position: relative;
 	display: flex;
 	gap: 10px;
 	padding: 12px;
@@ -8,6 +9,20 @@
 	background: var(--tl-color-panel);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: 12px;
+}
+
+/* hover-revealed controls (edit…) at the card's top-right */
+.cmt-card__actions {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	display: flex;
+	gap: 2px;
+	opacity: 0;
+}
+.cmt-card:hover .cmt-card__actions,
+.cmt-card:focus-within .cmt-card__actions {
+	opacity: 1;
 }
 
 .cmt-body {

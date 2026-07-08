@@ -1,4 +1,10 @@
-import { CommentPin, CommentText, CommentThread } from '@tldraw/commenting'
+import {
+	CommentCard,
+	CommentComposer,
+	CommentPin,
+	CommentText,
+	CommentThread,
+} from '@tldraw/commenting'
 import { TldrawUiIcon } from 'tldraw'
 import { Sketch, Sketchbook } from '../../sketch'
 import './thread-scenarios.css'
@@ -190,5 +196,30 @@ export const LongBody: Sketch<Record<string, never>> = {
 export const ReadOnly: Sketch<Record<string, never>> = {
 	render: () => (
 		<CommentThread header="Thread" headerActions={dismissOnly} comments={manyComments} />
+	),
+}
+
+/** Editing a comment: the comment is swapped for a composer pre-filled with its body, saved with
+ *  "Save". */
+export const Editing: Sketch<Record<string, never>> = {
+	render: () => (
+		<CommentThread
+			header="Thread"
+			headerActions={threadActions}
+			comments={manyComments}
+			renderComment={(card, i) =>
+				i === 1 ? (
+					<CommentComposer
+						author={card.author}
+						placeholder="Edit comment…"
+						value="Good call — updating it now."
+						onChange={() => {}}
+						sendLabel="Save"
+					/>
+				) : (
+					<CommentCard {...card} />
+				)
+			}
+		/>
 	),
 }

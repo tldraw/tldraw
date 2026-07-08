@@ -5,7 +5,8 @@
 .cmt-canvas-layer {
 	position: absolute;
 	inset: 0;
-	z-index: 400;
+	/* popover-like, above the panels — the same layer menus/popovers use */
+	z-index: var(--tl-layer-menus);
 	pointer-events: none;
 }
 
