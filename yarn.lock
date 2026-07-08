@@ -11778,6 +11778,28 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/comments@workspace:packages/comments":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/comments@workspace:packages/comments"
+  dependencies:
+    "@tldraw/store": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.8.3"
+    vitest: "npm:^4.1.7"
+  peerDependencies:
+    react: ^18.2.0 || ^19.2.1
+    react-dom: ^18.2.0 || ^19.2.1
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/docs@workspace:apps/docs":
   version: 0.0.0-use.local
   resolution: "@tldraw/docs@workspace:apps/docs"
