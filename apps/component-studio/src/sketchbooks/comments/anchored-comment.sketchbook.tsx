@@ -5,8 +5,7 @@ import { AnchoredComment, AnchoredCommentProps } from './anchored-comment'
 
 const resolvedThread: TLCommentThread = {
 	...sampleThread,
-	resolvedAt: sampleThread.createdAt + 3_600_000,
-	resolvedBy: 'ada',
+	resolved: { at: sampleThread.createdAt + 3_600_000, by: 'ada' },
 }
 
 const sketchbook: Sketchbook<AnchoredCommentProps> = {
