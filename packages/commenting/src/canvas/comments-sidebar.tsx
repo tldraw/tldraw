@@ -19,6 +19,8 @@ export interface CanvasCommentsSidebarProps {
 	header?: ReactNode
 	/** Shown when the page has no threads. */
 	empty?: ReactNode
+	/** Where imprecise shape pins sit, so navigation centres on the same spot. Default top-right. */
+	impreciseShapeAnchor?: { x: number; y: number }
 }
 
 /**
@@ -32,6 +34,7 @@ export function CanvasCommentsSidebar({
 	tools = ['comment'],
 	header = 'Comments',
 	empty = 'No comments on this page yet.',
+	impreciseShapeAnchor,
 }: CanvasCommentsSidebarProps) {
 	const editor = useEditor()
 	const container = useContainer()
@@ -76,7 +79,7 @@ export function CanvasCommentsSidebar({
 
 	const focus = (id: string) => {
 		const thread = threads.find((t) => t.id === id)
-		if (thread) focusThread(editor, thread)
+		if (thread) focusThread(editor, thread, impreciseShapeAnchor)
 	}
 
 	return createPortal(

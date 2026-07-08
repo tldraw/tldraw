@@ -11,6 +11,7 @@ import {
 	useTools,
 	VecLike,
 } from 'tldraw'
+import { shapeAnchorAt } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
  *  to. Shared between the tool (which sets it on click) and the overlay (which renders the
@@ -37,12 +38,17 @@ export class CommentTool extends StateNode {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
+	// Escape leaves the tool, like the built-in tools (the editor dispatches `cancel` on Escape).
+	override onCancel() {
+		this.editor.setCurrentTool('select')
+	}
+
 	override onPointerDown() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
 		const hit = editor.getShapeAtPoint(point, { hitInside: true })
 		const anchor: TLCommentAnchor = hit
-			? { type: 'shape', shapeId: hit.id }
+			? shapeAnchorAt(editor, hit.id, point, editor.inputs.getAltKey())
 			: { type: 'point', x: point.x, y: point.y }
 		pendingComment.set({ anchor, point: { x: point.x, y: point.y } })
 		// Hand back to select; the open composer is now the focus.

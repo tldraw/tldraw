@@ -1,12 +1,11 @@
-/* The comments layer is portaled into the editor container as a sibling of the UI panels.
-   It sits above their stacking context (`.tlui-layout` is z-index 300) so pins and popovers
-   read as UI chrome rather than being clipped by the canvas. It's click-through except on its
-   own children, so the canvas and panels underneath stay reachable. */
+/* The comments layer is portaled into the editor container. Pins live in the canvas-in-front layer
+   (beneath the UI panels at z-index 300), so the toolbar and style panel draw over them; the open
+   thread's popover portals up to the menus layer separately (`.cmt-canvas-popover`) so it isn't
+   clipped. Click-through except on its own children. */
 .cmt-canvas-layer {
 	position: absolute;
 	inset: 0;
-	/* popover-like, above the panels — the same layer menus/popovers use */
-	z-index: var(--tl-layer-menus);
+	z-index: var(--tl-layer-canvas-in-front);
 	pointer-events: none;
 }
 
@@ -26,19 +25,34 @@
 .cmt-canvas-pin__marker {
 	width: max-content;
 	transform: translate(-50%, -50%);
-	cursor: pointer;
+	cursor: grab;
+	touch-action: none;
+}
+.cmt-canvas-pin__marker:active {
+	cursor: grabbing;
 }
 
-/* The thread popover opens just to the right of the pin. */
-.cmt-canvas-pin__popover {
+/* The open thread's popover — portaled to the menus layer (above the UI), positioned at the pin. */
+.cmt-canvas-popover {
 	position: absolute;
-	top: 0;
-	left: 20px;
+	z-index: var(--tl-layer-menus);
+	pointer-events: auto;
 }
 
-/* The placement composer sits just below the click point. */
+/* The placement composer — a distinct floating view (portaled to the menus layer, below the click
+   point): a pencil "draft" avatar beside a pill field that is itself the surface (no wrapping
+   panel). Scoped here so the in-thread reply composer keeps its own squarer look. */
 .cmt-canvas-composer {
+	position: absolute;
+	z-index: var(--tl-layer-menus);
+	pointer-events: auto;
 	transform: translateY(8px);
+}
+.cmt-canvas-composer .cmt-composer__field {
+	background: var(--tl-color-panel);
+	border-color: transparent;
+	border-radius: var(--tl-radius-4);
+	box-shadow: var(--tl-shadow-2);
 }
 
 /* The comments list panel — a right-side surface shown while the comment tool is active. Below
