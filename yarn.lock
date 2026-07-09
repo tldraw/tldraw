@@ -31618,6 +31618,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"tldraw-sketch-to-image@workspace:templates/sketch-to-image":
+  version: 0.0.0-use.local
+  resolution: "tldraw-sketch-to-image@workspace:templates/sketch-to-image"
+  dependencies:
+    "@cloudflare/vite-plugin": "npm:^1.29.1"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    "@vitejs/plugin-react": "npm:^6.0.1"
+    itty-router: "npm:^5.0.18"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.8.3"
+    vite: "npm:^8.0.16"
+    wrangler: "npm:^4.75.0"
+  languageName: unknown
+  linkType: soft
+
 "tldraw-sync-cloudflare@workspace:templates/sync-cloudflare":
   version: 0.0.0-use.local
   resolution: "tldraw-sync-cloudflare@workspace:templates/sync-cloudflare"

@@ -1,0 +1,8 @@
+/*/node_modules
+node_modules
+.yarn/
+.wrangler/
+dist/
+
+# Local secrets — never commit your fal.ai API key.
+.dev.vars

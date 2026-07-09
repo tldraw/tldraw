@@ -1,0 +1,45 @@
+{
+	"name": "tldraw-sketch-to-image",
+	"private": true,
+	"version": "0.0.0",
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "MIT",
+	"type": "module",
+	"tldraw_template": {
+		"repo": "tldraw/sketch-to-image-template",
+		"cli": {
+			"name": "Sketch to image",
+			"description": "Draw on the canvas and generate images in realtime with fal.ai.",
+			"shortDescription": "Realtime sketch-to-image generator.",
+			"order": 7
+		},
+		"scripts": {
+			"lint": null
+		}
+	},
+	"scripts": {
+		"dev": "vite --host",
+		"build": "tsc && vite build",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"itty-router": "^5.0.18",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"tldraw": "workspace:*"
+	},
+	"devDependencies": {
+		"@cloudflare/vite-plugin": "^1.29.1",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^6.0.1",
+		"typescript": "^5.8.3",
+		"vite": "^8.0.16",
+		"wrangler": "^4.75.0"
+	}
+}

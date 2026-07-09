@@ -1,0 +1,26 @@
+
+name = "sketch-to-image-template"
+main = "worker/worker.ts"
+compatibility_date = "2025-05-08"
+compatibility_flags = ["nodejs_compat"]
+upload_source_maps = true
+preview_urls = true
+
+[[routes]]
+pattern = "sketch-to-image.templates.tldraw.dev"
+custom_domain = true
+
+[observability]
+enabled = true
+
+[assets]
+not_found_handling = "single-page-application"
+directory = "./dist/client"
+
+# fal.ai API key. This is used to authenticate realtime and REST requests to
+# fal.ai. The key never reaches the browser — the worker proxies requests and
+# injects it.
+#
+# Set for deployment with: wrangler secret put FAL_KEY
+# For local development, create a .dev.vars file in this directory:
+#   FAL_KEY=...
