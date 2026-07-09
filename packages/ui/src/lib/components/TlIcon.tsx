@@ -1,12 +1,12 @@
 import classNames from 'classnames'
-import { cloneElement, memo, ReactElement, useEffect, useRef } from 'react'
+import { cloneElement, memo, ReactElement, useEffect, useRef, type HTMLAttributes } from 'react'
 import { useTlIconUrl } from '../context/icons'
 
 /** @public */
-export type TlIconJsx = ReactElement<React.HTMLAttributes<HTMLDivElement>>
+export type TlIconJsx = ReactElement<HTMLAttributes<HTMLDivElement>>
 
 /** @public */
-export interface TlIconProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface TlIconProps extends HTMLAttributes<HTMLDivElement> {
 	icon: string | TlIconJsx
 	label?: string
 	small?: boolean

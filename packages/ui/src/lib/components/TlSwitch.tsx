@@ -1,8 +1,8 @@
 import classNames from 'classnames'
-import { ChangeEvent, useCallback, useId } from 'react'
+import { ChangeEvent, HTMLAttributes, useCallback, useId } from 'react'
 
 /** @public */
-export interface TlSwitchProps {
+export interface TlSwitchProps extends HTMLAttributes<HTMLDivElement> {
 	checked: boolean
 	onCheckedChange?(checked: boolean): void
 	disabled?: boolean
@@ -11,7 +11,15 @@ export interface TlSwitchProps {
 }
 
 /** @public @react */
-export function TlSwitch({ checked, onCheckedChange, disabled, label, id }: TlSwitchProps) {
+export function TlSwitch({
+	checked,
+	onCheckedChange,
+	disabled,
+	label,
+	id,
+	className,
+	...props
+}: TlSwitchProps) {
 	const generatedId = useId()
 	const inputId = id ?? generatedId
 
@@ -23,7 +31,10 @@ export function TlSwitch({ checked, onCheckedChange, disabled, label, id }: TlSw
 	)
 
 	return (
-		<div className={classNames('tl-switch', disabled && 'tl-switch--disabled')}>
+		<div
+			{...props}
+			className={classNames('tl-switch', disabled && 'tl-switch--disabled', className)}
+		>
 			<div className="tl-switch__thumb" data-checked={checked} />
 			<input
 				id={inputId}

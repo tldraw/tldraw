@@ -1,7 +1,6 @@
 import { useAuth } from '@clerk/clerk-react'
 import { addBreadcrumb, withScope } from '@sentry/react'
 import { SubmitFeedbackRequestBody } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	TlButton,
 	TlButtonCheck,
@@ -11,6 +10,9 @@ import {
 	TlDialogFooter,
 	TlDialogHeader,
 	TlDialogTitle,
+} from '@tldraw/ui'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
 	deleteFromLocalStorage,
 	fetch,
 	getFromLocalStorage,

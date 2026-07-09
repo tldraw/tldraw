@@ -1,5 +1,5 @@
+import { TlDialogBody, TlDialogCloseButton, TlDialogHeader, TlDialogTitle } from '@tldraw/ui'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { TlDialogBody, TlDialogCloseButton, TlDialogHeader, TlDialogTitle } from 'tldraw'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'

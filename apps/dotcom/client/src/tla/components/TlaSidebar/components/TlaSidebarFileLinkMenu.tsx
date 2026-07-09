@@ -1,4 +1,4 @@
-import { TlButton } from 'tldraw'
+import { TlButton } from '@tldraw/ui'
 import { useMsg } from '../../../utils/i18n'
 import { TlaFileMenu } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'

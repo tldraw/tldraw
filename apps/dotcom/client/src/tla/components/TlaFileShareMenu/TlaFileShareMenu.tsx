@@ -1,5 +1,6 @@
+import { TlPopover, TlPopoverContent, TlPopoverTrigger } from '@tldraw/ui'
 import { ReactNode, useCallback } from 'react'
-import { TlPopover, TlPopoverContent, TlPopoverTrigger, useValue } from 'tldraw'
+import { useValue } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'

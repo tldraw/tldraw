@@ -1,6 +1,6 @@
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
+import { TlDialogBody, TlDialogCloseButton, TlDialogHeader, TlDialogTitle } from '@tldraw/ui'
 import { useState } from 'react'
-import { TlDialogBody, TlDialogCloseButton, TlDialogHeader, TlDialogTitle } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { F } from '../../utils/i18n'
 import styles from './TlaInviteDialog.module.css'

@@ -31,6 +31,7 @@ import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
+import { TLA_ICON_ASSET_URLS } from '../components/TlaIcon/TlaIcon'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { useUITheme } from '../hooks/useUITheme'
@@ -45,7 +46,15 @@ import {
 	updateLocalSessionState,
 } from '../utils/local-session-state'
 
-const assetUrls = getAssetUrlsByImport()
+const defaultAssetUrls = getAssetUrlsByImport()
+
+const assetUrls = {
+	...defaultAssetUrls,
+	icons: {
+		...defaultAssetUrls.icons,
+		...TLA_ICON_ASSET_URLS,
+	},
+}
 
 function getTextDirection(locale: string): 'ltr' | 'rtl' {
 	const [language] = locale.toLowerCase().split('-')
@@ -135,9 +144,9 @@ export function Component() {
 		<div
 			ref={setContainer}
 			dir={dir}
-			className={classNames(`tla tl-container tla-theme-container`, {
-				'tla-theme__light tl-theme__light': theme === 'light',
-				'tla-theme__dark tl-theme__dark': theme !== 'light',
+			className={classNames(`tla tl-container tla-theme-container tl-ui`, {
+				'tla-theme__light tl-theme__light tl-ui--light': theme === 'light',
+				'tla-theme__dark tl-theme__dark tl-ui--dark': theme !== 'light',
 				'tla-focus-mode': isFocusMode,
 			})}
 		>

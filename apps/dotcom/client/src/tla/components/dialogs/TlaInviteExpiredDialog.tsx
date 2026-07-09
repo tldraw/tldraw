@@ -1,4 +1,4 @@
-import { TlDialogBody, TlDialogCloseButton, TlDialogHeader, TlDialogTitle } from 'tldraw'
+import { TlDialogBody, TlDialogCloseButton, TlDialogHeader, TlDialogTitle } from '@tldraw/ui'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
 import { F } from '../../utils/i18n'
 import { TlaButton } from '../TlaButton/TlaButton'

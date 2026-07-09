@@ -1,5 +1,4 @@
 import { useAuth } from '@clerk/clerk-react'
-import { useNavigate } from 'react-router-dom'
 import {
 	TlButton,
 	TlButtonLabel,
@@ -8,8 +7,9 @@ import {
 	TlDialogFooter,
 	TlDialogHeader,
 	TlDialogTitle,
-	useValue,
-} from 'tldraw'
+} from '@tldraw/ui'
+import { useNavigate } from 'react-router-dom'
+import { useValue } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'

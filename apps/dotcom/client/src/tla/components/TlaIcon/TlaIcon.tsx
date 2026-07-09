@@ -1,11 +1,41 @@
+import { TlIcon } from '@tldraw/ui'
 import classNames from 'classnames'
-import { CSSProperties, useLayoutEffect, useRef } from 'react'
+import { CSSProperties } from 'react'
 import mergedSpriteUrl from '../../../assets/0_merged_tla.svg'
 import styles from './icon.module.css'
 
-function getMaskStyle(icon: string): string {
-	return `url(${mergedSpriteUrl}#icon-${icon}) center 100% / 100% no-repeat`
-}
+const TLA_ICON_NAMES = [
+	'avatar',
+	'check',
+	'chevron-down',
+	'chevron-up-down',
+	'close',
+	'comment',
+	'copy',
+	'dots-vertical-strong',
+	'edit',
+	'edit-strong',
+	'export',
+	'external',
+	'feedback',
+	'group',
+	'help-circle',
+	'manual',
+	'none',
+	'pin',
+	'plus',
+	'search',
+	'settings',
+	'share',
+	'sidebar-strong',
+	'sign-in',
+	'spinner',
+	'update',
+] as const
+
+export const TLA_ICON_ASSET_URLS = Object.fromEntries(
+	TLA_ICON_NAMES.map((icon) => [icon, `${mergedSpriteUrl}#icon-${icon}`])
+)
 
 export function TlaIcon({
 	icon,
@@ -22,39 +52,21 @@ export function TlaIcon({
 	ariaLabel?: string
 	style?: CSSProperties
 }) {
-	const ref = useRef<HTMLDivElement>(null)
-
-	useLayoutEffect(() => {
-		if (!ref.current) return
-		// HACK: Fix for <https://linear.app/tldraw/issue/TLD-1700/dragging-around-with-the-handtool-makes-lots-of-requests-for-icons>
-		// It seems that passing `WebkitMask` to react will cause a render on each call, no idea why... but this appears to be the fix.
-		// @ts-ignore
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		ref.current.style.webkitMask = getMaskStyle(icon)
-	}, [ref, icon])
-
 	const _className = classNames({
 		[styles.icon]: true,
 		[styles.inline]: inline,
 		[className]: true,
 	})
 
-	if (icon === 'none') {
-		// An empty spacer: keep the icon's layout box but no painted mark.
-		// Without this the .icon background-color would fill as a solid rectangle.
-		return <span className={_className} style={{ backgroundColor: 'transparent' }} />
-	}
-
 	return (
-		<span
-			ref={ref}
+		<TlIcon
 			className={_className}
-			aria-hidden="true"
-			role="img"
-			aria-label={ariaLabel}
+			aria-hidden={ariaLabel ? undefined : true}
+			label={ariaLabel}
+			icon={icon}
+			invertIcon={invertIcon}
+			small
 			style={{
-				mask: getMaskStyle(icon),
-				transform: invertIcon ? 'scale(-1, 1)' : undefined,
 				...style,
 			}}
 		/>

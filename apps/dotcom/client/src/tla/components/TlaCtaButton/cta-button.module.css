@@ -1,89 +1,61 @@
-.ctaButton {
-	flex: 0 0 auto;
+:global(.tl-ui) .ctaButton {
 	position: relative;
-	box-sizing: border-box;
-	background-color: transparent;
-	pointer-events: all;
-	gap: 8px;
-	height: 36px;
 	margin-left: 2px;
 	margin-right: 0px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 0px 16px;
-	font-size: 12px;
-	font-weight: 600;
-	color: var(--tl-color-selected-contrast);
-	border: none;
-	cursor: pointer;
+	background-color: transparent;
 }
 
-.ctaButton:focus-visible {
-	outline-offset: 2px;
-	border-radius: 6px;
-}
-
-.ctaButton > span {
+:global(.tl-ui) .ctaButton > * {
 	position: relative;
-	color: inherit;
-	text-align: center;
-	font-family: inherit;
-	font-size: inherit;
-	font-weight: inherit;
 	z-index: 3;
 }
 
-.ctaButton::before {
+:global(.tl-ui) .ctaButton::before {
 	display: block;
 	content: '';
 	position: absolute;
 	inset: 0px;
+	z-index: 2;
 	color: var(--tl-color-selected-contrast);
 	background-color: var(--tl-color-primary);
 	border-radius: 6px;
-	z-index: 2;
 }
 
-.ctaButtonCanvas::before {
+:global(.tl-ui) .ctaButtonCanvas::before {
 	inset: 2px;
 }
 
-.ctaButtonCanvas::after {
+:global(.tl-ui) .ctaButtonCanvas::after {
 	display: block;
 	content: '';
 	position: absolute;
 	inset: 0px;
-	background-color: var(--tl-color-background);
-	border-radius: 8px;
 	z-index: 1;
+	border-radius: 8px;
+	background-color: var(--tl-color-background);
+	opacity: 1;
 }
 
-.ctaButtonSecondary {
+:global(.tl-ui) .ctaButtonSecondary {
 	color: var(--tl-color-text-0);
 }
 
-.ctaButtonSecondary::after {
+:global(.tl-ui) .ctaButtonSecondary::after {
 	inset: 0px;
 	border-radius: 8px;
 }
 
-.ctaButtonSecondary::before {
+:global(.tl-ui) .ctaButtonSecondary::before {
 	background-color: var(--tl-color-muted-2);
 	border: 1px solid var(--tl-color-muted-1);
 }
 
-.ctaButton:disabled {
-	opacity: 0.5;
-	pointer-events: none;
-}
-
 @media (hover: hover) {
-	.ctaButton:not(:disabled):hover::before {
-		background-color: var(--tla-color-primary-hover);
+	:global(.tl-ui) .ctaButton:not(:disabled):hover::before {
+		background-color: var(--tl-color-primary-hover);
 	}
 
-	.ctaButtonSecondary:not(:disabled):hover::before {
+	:global(.tl-ui) .ctaButtonSecondary:not(:disabled):hover::before {
 		background-color: var(--tl-color-muted-1);
 	}
 }

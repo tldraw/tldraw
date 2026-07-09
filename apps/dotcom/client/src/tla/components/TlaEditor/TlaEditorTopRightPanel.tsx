@@ -5,12 +5,12 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
+import { TlButton } from '@tldraw/ui'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
 	PeopleMenu,
-	TlButton,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,

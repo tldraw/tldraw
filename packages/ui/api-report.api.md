@@ -450,10 +450,10 @@ export const TlGrid: ForwardRefExoticComponent<TlLayoutProps & RefAttributes<HTM
 export const TlIcon: NamedExoticComponent<TlIconProps>;
 
 // @public (undocumented)
-export type TlIconJsx = ReactElement<React.HTMLAttributes<HTMLDivElement>>;
+export type TlIconJsx = ReactElement<HTMLAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export interface TlIconProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface TlIconProps extends HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     color?: string;
     // (undocumented)
@@ -872,7 +872,7 @@ export interface TlSelectItemProps {
     // (undocumented)
     icon?: string | TlIconJsx;
     // (undocumented)
-    label: string;
+    label: React_2.ReactNode;
     // (undocumented)
     value: string;
 }
@@ -903,7 +903,7 @@ export interface TlSelectProps {
 export const TlSelectTrigger: React_2.ForwardRefExoticComponent<TlSelectTriggerProps & React_2.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
-export interface TlSelectTriggerProps {
+export interface TlSelectTriggerProps extends React_2.ButtonHTMLAttributes<HTMLButtonElement> {
     // (undocumented)
     children: React_2.ReactNode;
     // (undocumented)
@@ -965,10 +965,10 @@ export interface TlSpinnerProps extends React.SVGProps<SVGSVGElement> {
 }
 
 // @public (undocumented)
-export function TlSwitch({ checked, onCheckedChange, disabled, label, id }: TlSwitchProps): JSX.Element;
+export function TlSwitch({ checked, onCheckedChange, disabled, label, id, className, ...props }: TlSwitchProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlSwitchProps {
+export interface TlSwitchProps extends HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     checked: boolean;
     // (undocumented)

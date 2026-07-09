@@ -1,11 +1,11 @@
 import { useAuth } from '@clerk/clerk-react'
+import { TlIcon } from '@tldraw/ui'
 import { fileOpen } from 'browser-fs-access'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	TLDRAW_FILE_EXTENSION,
-	TlIcon,
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,

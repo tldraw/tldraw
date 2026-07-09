@@ -1,7 +1,5 @@
 import { useAuth } from '@clerk/clerk-react'
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
-import { useEffect } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
 	TlButton,
 	TlButtonLabel,
@@ -10,8 +8,10 @@ import {
 	TlDialogFooter,
 	TlDialogHeader,
 	TlDialogTitle,
-	useDialogs,
-} from 'tldraw'
+} from '@tldraw/ui'
+import { useEffect } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useDialogs } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { trackEvent } from '../../../../utils/analytics'
 import { useMaybeApp } from '../../../hooks/useAppState'

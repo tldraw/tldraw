@@ -86,7 +86,7 @@ export function TlSelect({
 /* --------------------- Trigger --------------------- */
 
 /** @public */
-export interface TlSelectTriggerProps {
+export interface TlSelectTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	children: React.ReactNode
 	className?: string
 }
@@ -98,9 +98,13 @@ export interface TlSelectTriggerProps {
  * @react
  */
 export const TlSelectTrigger = React.forwardRef<HTMLButtonElement, TlSelectTriggerProps>(
-	function TlSelectTrigger({ children, className }, ref) {
+	function TlSelectTrigger({ children, className, ...props }, ref) {
 		return (
-			<_Select.Trigger ref={ref} className={classNames('tl-button tl-select__trigger', className)}>
+			<_Select.Trigger
+				ref={ref}
+				className={classNames('tl-button tl-select__trigger', className)}
+				{...props}
+			>
 				{children}
 				<_Select.Icon className="tl-select__chevron">
 					<TlIcon icon="chevron-down" label="" small />
@@ -183,7 +187,7 @@ export function TlSelectContent({
 /** @public */
 export interface TlSelectItemProps {
 	value: string
-	label: string
+	label: React.ReactNode
 	icon?: string | TlIconJsx
 	disabled?: boolean
 	destructive?: boolean

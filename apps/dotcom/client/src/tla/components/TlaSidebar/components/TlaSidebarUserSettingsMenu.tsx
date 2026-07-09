@@ -1,11 +1,13 @@
-import classNames from 'classnames'
 import {
-	LanguageMenu,
-	preventDefault,
 	TlButton,
 	TlDropdownMenuContent,
 	TlDropdownMenuRoot,
 	TlDropdownMenuTrigger,
+} from '@tldraw/ui'
+import classNames from 'classnames'
+import {
+	LanguageMenu,
+	preventDefault,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	useMenuIsOpen,

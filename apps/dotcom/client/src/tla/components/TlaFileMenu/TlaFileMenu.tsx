@@ -1,12 +1,10 @@
 /* ---------------------- Menu ---------------------- */
 
 import { FILE_PREFIX, TlaFile, ZErrorCode } from '@tldraw/dotcom-shared'
+import { TlDropdownMenuContent, TlDropdownMenuRoot, TlDropdownMenuTrigger } from '@tldraw/ui'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-	TlDropdownMenuContent,
-	TlDropdownMenuRoot,
-	TlDropdownMenuTrigger,
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,

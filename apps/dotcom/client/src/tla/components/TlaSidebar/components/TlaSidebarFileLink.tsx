@@ -1,11 +1,11 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
+import { TlTooltip } from '@tldraw/ui'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { KeyboardEvent, MouseEvent, ReactNode, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
 	TldrawUiMenuContextProvider,
-	TlTooltip,
 	isEqual,
 	preventDefault,
 	useContainer,

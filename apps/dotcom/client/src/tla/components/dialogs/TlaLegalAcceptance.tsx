@@ -1,7 +1,7 @@
 import { useUser } from '@clerk/clerk-react'
+import { TlDialogBody, TlDialogHeader, TlDialogTitle } from '@tldraw/ui'
 import classNames from 'classnames'
 import { useCallback, useState } from 'react'
-import { TlDialogBody, TlDialogHeader, TlDialogTitle } from 'tldraw'
 import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'

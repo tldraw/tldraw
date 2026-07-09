@@ -1,5 +1,4 @@
 import {
-	TLUiDialogsContextType,
 	TlButton,
 	TlButtonLabel,
 	TlDialogBody,
@@ -7,8 +6,8 @@ import {
 	TlDialogFooter,
 	TlDialogHeader,
 	TlDialogTitle,
-	useTranslation,
-} from 'tldraw'
+} from '@tldraw/ui'
+import { TLUiDialogsContextType, useTranslation } from 'tldraw'
 
 /** @public */
 export async function shouldOverrideDocument(addDialog: TLUiDialogsContextType['addDialog']) {

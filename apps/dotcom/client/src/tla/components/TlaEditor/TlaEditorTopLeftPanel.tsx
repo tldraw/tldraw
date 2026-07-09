@@ -1,3 +1,11 @@
+import {
+	TlButton,
+	TlButtonLabel,
+	TlDropdownMenuContent,
+	TlDropdownMenuRoot,
+	TlDropdownMenuTrigger,
+	TlInput,
+} from '@tldraw/ui'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -18,15 +26,9 @@ import {
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	TogglePasteAtCursorItem,
-	TlButton,
-	TlButtonLabel,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleWrapModeItem,
-	TlDropdownMenuContent,
-	TlDropdownMenuRoot,
-	TlDropdownMenuTrigger,
-	TlInput,
 	TldrawUiMenuActionItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,

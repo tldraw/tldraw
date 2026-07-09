@@ -1,6 +1,7 @@
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import { TlButton } from '@tldraw/ui'
 import { ReactElement, useEffect } from 'react'
-import { TlButton, useDialogs } from 'tldraw'
+import { useDialogs } from 'tldraw'
 import { useSetIsReady } from '../../hooks/useIsReady'
 import { F } from '../../utils/i18n'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'

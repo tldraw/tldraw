@@ -2,15 +2,10 @@ import { useClerk, useSignIn } from '@clerk/clerk-react'
 import * as Clerk from '@clerk/elements/common'
 import * as SignIn from '@clerk/elements/sign-in'
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
+import { TlDialogBody, TlDialogCloseButton, TlDialogHeader, TlDialogTitle } from '@tldraw/ui'
 import classNames from 'classnames'
 import { ChangeEvent, ReactNode, useCallback, useEffect, useState, type FormEvent } from 'react'
-import {
-	exhaustiveSwitchError,
-	TlDialogBody,
-	TlDialogCloseButton,
-	TlDialogHeader,
-	TlDialogTitle,
-} from 'tldraw'
+import { exhaustiveSwitchError } from 'tldraw'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { setRedirectOnSignIn } from '../../utils/redirect'
 import { ExternalLink } from '../ExternalLink/ExternalLink'

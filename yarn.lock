@@ -18663,6 +18663,7 @@ __metadata:
     "@tldraw/mermaid": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
+    "@tldraw/ui": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/md5": "npm:^2.3.5"
