@@ -31,7 +31,7 @@ function authorizeAuthored<Rec extends UnknownRecord>(
 		if (type === 'create') {
 			// No authenticated identity → can't attribute → reject; the client self-corrects.
 			if (!session.meta.userId) return null
-			return { ...next!, [field]: session.meta.userId } as Rec
+			return { ...next, [field]: session.meta.userId } as Rec
 		}
 		if (type === 'update') {
 			if (next[field] !== prev[field]) return null // attribution is immutable
@@ -42,13 +42,30 @@ function authorizeAuthored<Rec extends UnknownRecord>(
 	}
 }
 
+const authorizeThreadBase = authorizeAuthored<TLCommentThread>('createdBy')
+
+/**
+ * Threads stay editable by anyone with access so they can be resolved and reopened, but resolution
+ * is itself an attribution — `resolved.by` renders as "Resolved by X". When an update changes the
+ * resolution, it must be a reopen (`null`) or a resolve attributed to the session's own user.
+ */
+const authorizeThread: TLRecordAuthorizer<TLCommentThread, SessionMeta> = (args) => {
+	const result = authorizeThreadBase(args)
+	if (!result) return null
+	if (args.type === 'update') {
+		const { session, prev, next } = args
+		const changed =
+			prev.resolved?.at !== next.resolved?.at || prev.resolved?.by !== next.resolved?.by
+		if (changed && next.resolved && next.resolved.by !== session.meta.userId) return null
+	}
+	return result
+}
+
 /**
  * Force comment and thread authorship from the session's authenticated identity, so nobody can post
  * in — or edit a comment into — someone else's name.
  */
 export const authorizeFileRecord: TLRecordAuthorizers<FileRecord, SessionMeta> = {
 	comment: authorizeAuthored<TLComment>('authorId', { ownerOnlyUpdate: true }),
-	// Threads stay editable by anyone with access so they can be resolved/reopened; only `createdBy`
-	// is pinned.
-	'comment-thread': authorizeAuthored<TLCommentThread>('createdBy'),
+	'comment-thread': authorizeThread,
 }

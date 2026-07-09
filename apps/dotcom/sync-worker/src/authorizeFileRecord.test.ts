@@ -89,9 +89,28 @@ describe('authorizeFileRecord', () => {
 			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
-		it('lets a non-creator update the thread (e.g. resolve it)', () => {
+		it('lets a non-creator resolve the thread as themselves', () => {
 			const prev = makeThread('real-bob')
-			const next = { ...prev, resolvedBy: 'real-mallory', resolvedAt: 1 }
+			const next = { ...prev, resolved: { at: 1, by: 'real-mallory' } }
+			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(next)
+		})
+
+		it('lets a non-creator reopen a resolved thread', () => {
+			const prev = { ...makeThread('real-bob'), resolved: { at: 1, by: 'real-alice' } }
+			const next = { ...prev, resolved: null }
+			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(next)
+		})
+
+		it('vetoes a resolution attributed to someone else', () => {
+			const prev = makeThread('real-bob')
+			const next = { ...prev, resolved: { at: 1, by: 'real-alice' } }
+			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
+		})
+
+		it('allows an update that leaves an existing resolution untouched', () => {
+			const prev = { ...makeThread('real-bob'), resolved: { at: 1, by: 'real-alice' } }
+			// new object reference, same value — must not be treated as a change
+			const next = { ...prev, resolved: { ...prev.resolved } }
 			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(next)
 		})
 	})
