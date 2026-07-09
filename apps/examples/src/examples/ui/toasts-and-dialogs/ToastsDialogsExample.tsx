@@ -26,7 +26,17 @@ function MyDialog({ onClose }: { onClose(): void }) {
 				<TldrawUiDialogTitle>Title</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>Description...</TldrawUiDialogBody>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+				<p>
+					This dialog body holds a few sentences of text so you can see how longer content behaves.
+					Regular prose wraps onto multiple lines within the dialog width.
+				</p>
+				<p>
+					Long unbroken strings, like
+					https://example.com/a/really/long/url/that/cannot/wrap/onto/the/next/line, also break
+					instead of overflowing or being clipped.
+				</p>
+			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={onClose}>
 					<TldrawUiButtonLabel>Cancel</TldrawUiButtonLabel>

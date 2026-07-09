@@ -1760,6 +1760,7 @@ tldraw? probably.
 	color: var(--tl-color-text-1);
 	user-select: all;
 	-webkit-user-select: text;
+	overflow-wrap: anywhere;
 }
 .tlui-dialog__body a {
 	color: var(--tl-color-selected);
