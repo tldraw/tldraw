@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Editor, TLComponents, Tldraw, TldrawOptions } from 'tldraw'
 import { ThreeBackground } from './background/ThreeBackground'
+import { CenterPanel } from './components/CenterPanel'
 import { GenerationPanel } from './components/GenerationPanel'
 import { SketchToolbar } from './components/SketchToolbar'
 import { useRealtimeGeneration } from './realtime/useRealtimeGeneration'
@@ -8,6 +9,7 @@ import { useRealtimeGeneration } from './realtime/useRealtimeGeneration'
 const components: TLComponents = {
 	Background: ThreeBackground,
 	Toolbar: SketchToolbar,
+	SharePanel: CenterPanel,
 }
 
 const options: Partial<TldrawOptions> = {
