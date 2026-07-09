@@ -5,7 +5,7 @@ import {
 	CommentText,
 	CommentThread,
 } from '@tldraw/commenting'
-import { TldrawUiIcon } from 'tldraw'
+import { TldrawUiIcon, toRichText } from 'tldraw'
 import { Sketch, Sketchbook } from '../../sketch'
 import './thread-scenarios.css'
 
@@ -212,7 +212,7 @@ export const Editing: Sketch<Record<string, never>> = {
 					<CommentComposer
 						author={card.author}
 						placeholder="Edit comment…"
-						value="Good call — updating it now."
+						value={toRichText('Good call — updating it now.')}
 						onChange={() => {}}
 						sendLabel="Save"
 					/>

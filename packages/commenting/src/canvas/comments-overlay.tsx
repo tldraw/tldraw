@@ -1,5 +1,6 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import {
+	type CSSProperties,
 	type PointerEvent as ReactPointerEvent,
 	ReactNode,
 	useEffect,
@@ -14,10 +15,12 @@ import {
 	Editor,
 	TLComment,
 	TLCommentThread,
+	TLRichText,
 	TldrawUiIcon,
-	toRichText,
 	useContainer,
 	useEditor,
+	usePassThroughMouseOverEvents,
+	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
 import { computeClusterTable } from '../clustering/computeClusterTable'
@@ -25,6 +28,7 @@ import { createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
+import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentPin } from '../ui/comment-pin'
 import { CommentThread } from '../ui/comment-thread'
 import { CountBadge } from '../ui/count-badge'
@@ -32,7 +36,6 @@ import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import { pendingComment, PendingComment } from './comment-tool'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
-import { richTextToPlaintext } from './rich-text'
 import { anchorPagePoint, openThreadId, shapeAnchorAt } from './thread-state'
 import './canvas.css'
 
@@ -99,6 +102,11 @@ function toCardProps(comment: TLComment, props: CanvasCommentsProps): CommentCar
 export function CanvasComments(props: CanvasCommentsProps) {
 	const editor = useEditor()
 	const container = useContainer()
+	const layerRef = useRef<HTMLDivElement>(null)
+	// Over the pins and cluster badges, wheel and hover pass through to the canvas beneath (these
+	// events bubble up from the pointer-interactive markers to this layer root).
+	usePassThroughWheelEvents(layerRef)
+	usePassThroughMouseOverEvents(layerRef)
 	const deepLinkHandled = useRef(false)
 	const threads = useCommentThreads(editor)
 	const pending = usePendingComment()
@@ -190,7 +198,7 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	// Render into the container (above the panels' stacking context) so the pins and popovers
 	// live in the UI layer rather than being clipped by the canvas layer.
 	return createPortal(
-		<div className="cmt-canvas-layer">
+		<div ref={layerRef} className="cmt-canvas-layer">
 			{visibleNodes.map((node) => {
 				if (node.count === 1) {
 					const thread = threadsById.get(node.id)
@@ -298,6 +306,28 @@ function isInInflatedViewport(editor: Editor, point: { x: number; y: number }): 
 	)
 }
 
+/** The open thread's popover, portaled above the UI panels. Over it, wheel and hover events pass
+ *  through to the canvas (unless the popover is scrolling its own content), like tldraw's panels. */
+function ThreadPopover({
+	container,
+	style,
+	children,
+}: {
+	container: HTMLElement
+	style: CSSProperties
+	children: ReactNode
+}) {
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
+	usePassThroughMouseOverEvents(ref)
+	return createPortal(
+		<div ref={ref} className="cmt-canvas-popover" style={style} onPointerDown={stop}>
+			{children}
+		</div>,
+		container
+	)
+}
+
 function ThreadPin({
 	editor,
 	thread,
@@ -309,9 +339,9 @@ function ThreadPin({
 	const comments = useThreadComments(editor, thread.id)
 	// Only one thread's popover is open at a time — shared across pins via the atom.
 	const open = useValue('thread open', () => openThreadId.get() === thread.id, [thread.id])
-	const [reply, setReply] = useState('')
+	const [reply, setReply] = useState<TLRichText>(EMPTY_COMMENT)
 	const [editingId, setEditingId] = useState<string | null>(null)
-	const [editText, setEditText] = useState('')
+	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
 	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
@@ -329,22 +359,21 @@ function ThreadPin({
 	if (!point) return null
 
 	const postReply = () => {
-		const trimmed = reply.trim()
-		if (!trimmed || !currentUserId) return
+		if (isCommentEmpty(reply) || !currentUserId) return
 		editor.run(
 			() => {
 				const comment = createComment({
 					threadId: thread.id,
 					pageId: thread.pageId,
 					authorId: currentUserId,
-					body: toRichText(trimmed),
+					body: reply,
 				})
 				editor.store.put([comment as any])
 				if (onPostComment) onPostComment(comment)
 			},
 			{ history: 'ignore' }
 		)
-		setReply('')
+		setReply(EMPTY_COMMENT)
 	}
 
 	const toggleResolve = () => {
@@ -371,16 +400,15 @@ function ThreadPin({
 
 	const startEdit = (comment: TLComment) => {
 		setEditingId(comment.id)
-		setEditText(richTextToPlaintext(comment.body))
+		setEditText(comment.body)
 	}
 
 	const saveEdit = () => {
 		const comment = comments.find((c) => c.id === editingId)
-		const trimmed = editText.trim()
-		if (!comment || !trimmed) return
+		if (!comment || isCommentEmpty(editText)) return
 		editor.run(
 			() => {
-				editor.store.put([{ ...comment, body: toRichText(trimmed), editedAt: Date.now() } as any])
+				editor.store.put([{ ...comment, body: editText, editedAt: Date.now() } as any])
 			},
 			{ history: 'ignore' }
 		)
@@ -409,7 +437,7 @@ function ThreadPin({
 						onChange={setEditText}
 						onSubmit={saveEdit}
 						sendLabel="Save"
-						disabled={!editText.trim()}
+						disabled={isCommentEmpty(editText)}
 						autoFocus
 					/>
 				</div>
@@ -509,35 +537,32 @@ function ThreadPin({
 			</div>
 			{/* The popover portals up to the menus layer (above the UI panels) so it isn't clipped;
 			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
-			{open &&
-				createPortal(
-					<div
-						className="cmt-canvas-popover"
-						style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
-						onPointerDown={stop}
-					>
-						<CommentThread
-							header="Comment"
-							headerActions={headerActions}
-							renderComment={renderComment}
-							comments={comments.map((c) => toCardProps(c, props))}
-							resolvedBy={thread.resolved ? resolveName(thread.resolved.by) : undefined}
-							composer={
-								currentUserId && !thread.resolved
-									? {
-											author: resolveName(currentUserId),
-											placeholder: 'Reply…',
-											value: reply,
-											onChange: setReply,
-											onSubmit: postReply,
-											disabled: !reply.trim(),
-										}
-									: undefined
-							}
-						/>
-					</div>,
-					container
-				)}
+			{open && (
+				<ThreadPopover
+					container={container}
+					style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
+				>
+					<CommentThread
+						header="Comment"
+						headerActions={headerActions}
+						renderComment={renderComment}
+						comments={comments.map((c) => toCardProps(c, props))}
+						resolvedBy={thread.resolved ? resolveName(thread.resolved.by) : undefined}
+						composer={
+							currentUserId && !thread.resolved
+								? {
+										author: resolveName(currentUserId),
+										placeholder: 'Reply…',
+										value: reply,
+										onChange: setReply,
+										onSubmit: postReply,
+										disabled: isCommentEmpty(reply),
+									}
+								: undefined
+						}
+					/>
+				</ThreadPopover>
+			)}
 		</div>
 	)
 }
@@ -549,9 +574,12 @@ function PendingComposer({
 	resolveName,
 	onPostComment,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
-	const [text, setText] = useState('')
+	const [text, setText] = useState<TLRichText>(EMPTY_COMMENT)
 	const ref = useRef<HTMLDivElement>(null)
 	const container = useContainer()
+	// Over this floating panel, scroll and hover reach the canvas (except where it scrolls itself).
+	usePassThroughWheelEvents(ref)
+	usePassThroughMouseOverEvents(ref)
 
 	const point = useValue('composer point', () => editor.pageToViewport(pending.point), [
 		editor,
@@ -569,8 +597,7 @@ function PendingComposer({
 	}, [])
 
 	const submit = () => {
-		const trimmed = text.trim()
-		if (!trimmed || !currentUserId) return
+		if (isCommentEmpty(text) || !currentUserId) return
 		editor.run(
 			() => {
 				const pageId = editor.getCurrentPageId()
@@ -583,14 +610,14 @@ function PendingComposer({
 					threadId: thread.id,
 					pageId,
 					authorId: currentUserId,
-					body: toRichText(trimmed),
+					body: text,
 				})
 				editor.store.put([thread as any, comment as any])
 				if (onPostComment) onPostComment(comment)
 			},
 			{ history: 'ignore' }
 		)
-		setText('')
+		setText(EMPTY_COMMENT)
 		pendingComment.set(null)
 	}
 
@@ -610,7 +637,7 @@ function PendingComposer({
 				value={text}
 				onChange={setText}
 				onSubmit={submit}
-				disabled={!text.trim()}
+				disabled={isCommentEmpty(text)}
 				autoFocus
 				leading={draftAvatar}
 			/>
