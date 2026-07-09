@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from 'tldraw'
-import { DEBOUNCE_MS, DEFAULTS } from '../constants'
+import { DEBOUNCE_MS, DEFAULTS, SAFE_NEGATIVE_PROMPT } from '../constants'
 import { captureSketch } from './captureSketch'
 import { describeSketch } from './describeSketch'
 import { createRealtimeConnection, RealtimeConnection } from './falConnection'
@@ -158,6 +158,9 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 			connectionRef.current.send({
 				image_url: imageDataUrl,
 				prompt,
+				// Steer away from unsafe output so the safety filter doesn't blank the
+				// frame; paired with the "fully clothed" auto-prompt in describe.ts.
+				negative_prompt: SAFE_NEGATIVE_PROMPT,
 				strength: c.strength,
 				num_inference_steps: c.steps,
 				guidance_scale: c.guidanceScale,

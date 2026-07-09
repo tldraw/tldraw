@@ -36,6 +36,10 @@ const ART_SYSTEM_PROMPT = [
 	'Look at the drawing and write a single short prompt (one line, under 20 words)',
 	'describing what the finished image should be: the subject, plus a fitting art',
 	'style, lighting, or medium. Interpret loose strokes generously.',
+	// Keep output safe-for-work: any person is fully clothed and the scene is
+	// wholesome. A bare-figure sketch otherwise renders as a nude and trips the
+	// generator's safety filter, which returns a blank image.
+	'Any people must be fully clothed; keep the scene wholesome and safe for work.',
 	'Reply with only the prompt text — no quotes, no preamble, no explanation.',
 ].join(' ')
 
@@ -53,6 +57,10 @@ const POSE_SYSTEM_PROMPT = [
 	'pose: match the limbs, stance, and gesture you see. Always specify a full-body',
 	'shot, the whole body visible head to feet, plain neutral background, natural',
 	'lighting, sharp focus, photograph — never illustration, painting, or cartoon.',
+	// The person must be clothed: a bare stick figure otherwise renders as a nude
+	// and trips the generator's safety filter, which returns a blank image (and a
+	// clothed body is just as good a pose reference).
+	'The person is fully clothed in ordinary everyday clothing; keep it safe for work.',
 	'Reply with only the prompt text — no quotes, no preamble, no explanation.',
 ].join(' ')
 

@@ -23,6 +23,17 @@ export const POSE_URL = '/api/pose'
 export const CAPTURE_SIZE = 512
 
 /**
+ * Sent as the model's negative prompt on every frame to steer generation away
+ * from unsafe content. A bare-figure sketch tends to render as a nude, which
+ * trips fal's safety filter and comes back as a blank image; pushing the model
+ * toward clothed, safe-for-work output keeps a real image coming back. This is
+ * the generation-side guard that complements the "fully clothed" instruction in
+ * the auto-prompt (see worker/routes/describe.ts).
+ */
+export const SAFE_NEGATIVE_PROMPT =
+	'nsfw, nude, nudity, naked, explicit, sexual content, suggestive, gore, disturbing'
+
+/**
  * How long to wait after the last edit before generating. We deliberately wait
  * for the stroke to settle (roughly a beat after the pen lifts) rather than
  * updating mid-stroke: each settled frame both auto-generates a prompt and

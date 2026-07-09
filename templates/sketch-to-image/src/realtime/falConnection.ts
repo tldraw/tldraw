@@ -5,6 +5,8 @@ export interface RealtimeInput {
 	/** The sketch, as a base64-encoded PNG data URL. */
 	image_url: string
 	prompt: string
+	/** Steers the model away from unwanted (here, unsafe) content. */
+	negative_prompt: string
 	/** 0–1: how far the result may deviate from the sketch. */
 	strength: number
 	num_inference_steps: number
