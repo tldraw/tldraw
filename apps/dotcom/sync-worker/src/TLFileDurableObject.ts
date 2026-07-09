@@ -60,6 +60,7 @@ import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import {
 	commentRecordToRow,
+	isCommentAuthorFkViolation,
 	mergeCommentDocumentsIntoSnapshot,
 	rowsToSnapshotDocuments,
 	threadRecordToRow,
@@ -1563,9 +1564,11 @@ export class TLFileDurableObject extends DurableObject {
 	 * the DO output gate flushes them together), and the drain pushes the records' current state
 	 * to Postgres. Delivery is at-least-once: an entry's outbox row is only removed once its push
 	 * to Postgres has actually succeeded, so a row that fails (including its row-by-row retry) stays
-	 * queued and is retried on the next commit, persist, or DO wake. A row that keeps failing (e.g.
-	 * a genuine FK violation from a since-deleted user) stays queued indefinitely and keeps reporting
-	 * via reportError on every drain — that's the visibility mechanism for a stuck row.
+	 * queued and is retried on the next commit, persist, or DO wake. A row that keeps failing stays
+	 * queued indefinitely and keeps reporting via reportError on every drain — that's the visibility
+	 * mechanism for a stuck row. The one exception is a comment whose author's account was deleted
+	 * (authorId FK violation): Postgres already cascaded the row away, so the drain prunes the
+	 * record from the room instead of retrying (see drainCommentOutbox).
 	 */
 	private ensureCommentOutbox() {
 		this.ctx.storage.sql.exec(
@@ -1683,25 +1686,36 @@ export class TLFileDurableObject extends DurableObject {
 
 				// Threads before comments (comment.threadId FK); comment deletes before thread
 				// deletes is not required (thread deletes cascade), but keep the batch → row-by-row
-				// fallback so one bad row (e.g. an FK violation from a since-deleted user) doesn't
-				// drop the whole batch. Rows that fail both the batch insert and their individual
-				// retry are reported back (by record id) so the caller can keep their outbox entries
-				// queued instead of deleting them.
+				// fallback so one bad row doesn't drop the whole batch. Rows that fail both the
+				// batch insert and their individual retry are reported back (by record id) so the
+				// caller can keep their outbox entries queued instead of deleting them. Rows whose
+				// error matches `shouldPrune` are returned separately instead: they are not
+				// reported as failures and their outbox entries clear normally.
 				const runBatchWithFallback = async <R extends { id: string }>(
 					rows: R[],
-					insert: (rows: R[]) => Promise<unknown>
-				): Promise<string[]> => {
-					if (rows.length === 0) return []
+					insert: (rows: R[]) => Promise<unknown>,
+					shouldPrune?: (error: unknown) => boolean
+				): Promise<{ failedIds: string[]; prunedIds: string[] }> => {
+					const failedIds: string[] = []
+					const prunedIds: string[] = []
+					if (rows.length === 0) return { failedIds, prunedIds }
 					try {
 						await insert(rows)
-						return []
+						return { failedIds, prunedIds }
 					} catch (batchError) {
-						this.reportError(batchError)
-						const failedIds: string[] = []
+						// A prunable batch error isn't a generic failure — the row-by-row pass below
+						// attributes it to the specific rows.
+						if (!shouldPrune?.(batchError)) {
+							this.reportError(batchError)
+						}
 						for (const row of rows) {
 							try {
 								await insert([row])
 							} catch (rowError) {
+								if (shouldPrune?.(rowError)) {
+									prunedIds.push(row.id)
+									continue
+								}
 								failedIds.push(row.id)
 								this.logEvent({
 									type: 'room',
@@ -1711,14 +1725,26 @@ export class TLFileDurableObject extends DurableObject {
 								this.reportError(rowError)
 							}
 						}
-						return failedIds
+						return { failedIds, prunedIds }
 					}
 				}
 				const failedIds = new Set<string>()
-				for (const id of await runBatchWithFallback(threadUpserts, insertThreadRows)) {
+				const threadResult = await runBatchWithFallback(threadUpserts, insertThreadRows)
+				for (const id of threadResult.failedIds) {
 					failedIds.add(id)
 				}
-				for (const id of await runBatchWithFallback(commentUpserts, insertCommentRows)) {
+				// A comment upsert failing the authorId FK means the author's user account was
+				// deleted: Postgres cascaded their comment rows away (ON DELETE CASCADE) while this
+				// warm room still holds the records. Retrying can never succeed, so mirror the
+				// cascade into the room instead: prune the records below and let their outbox
+				// entries clear normally (the Postgres row being absent is already the desired end
+				// state). Threads are untouched — comment_thread has no user FK by design.
+				const commentResult = await runBatchWithFallback(
+					commentUpserts,
+					insertCommentRows,
+					isCommentAuthorFkViolation
+				)
+				for (const id of commentResult.failedIds) {
 					failedIds.add(id)
 				}
 				if (commentDeletes.length > 0) {
@@ -1726,6 +1752,28 @@ export class TLFileDurableObject extends DurableObject {
 				}
 				if (threadDeletes.length > 0) {
 					await this.db.deleteFrom('comment_thread').where('id', 'in', threadDeletes).execute()
+				}
+
+				if (commentResult.prunedIds.length > 0) {
+					this.logEvent({ type: 'room', roomId: fileId, name: 'comment_author_deleted_prune' })
+					// Remove the pruned records from the live room so connected clients see them
+					// disappear. Deleting through the shared storage handle is the sanctioned
+					// server-side mutation path: the room subscribes to storage.onChange and
+					// broadcasts external transactions to its sessions. It does not re-enqueue
+					// outbox entries (onCommittedChanges only fires for client pushes), so this
+					// can't loop; a crash between here and the outbox clear below just replays the
+					// prune on the next drain (the ids are then lane-absent, taking the no-op
+					// Postgres delete path). If the room isn't open there's nothing to mirror into:
+					// the next cold load rehydrates comments from Postgres, where the rows are
+					// already gone.
+					const room = this._room ? await this._room.catch(() => null) : null
+					if (room && !room.isClosed()) {
+						storage.transaction((txn) => {
+							for (const id of commentResult.prunedIds) {
+								txn.delete(id as TLRecord['id'])
+							}
+						})
+					}
 				}
 
 				// Keep entries queued for any record that failed to push (they'll be retried on the

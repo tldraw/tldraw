@@ -12,6 +12,23 @@ import { JsonObject } from '@tldraw/utils'
  * from pg's bigint parsing as strings, so reads coerce with Number().
  */
 
+/**
+ * True when `error` is Postgres rejecting a comment upsert because its author's user row no
+ * longer exists: foreign key violation (code 23503) on `comment_author_id_fkey`. Deleting a user
+ * cascades their comment rows away in Postgres (`ON DELETE CASCADE`), so hitting this means a
+ * warm room still holds comment records for a since-deleted author. The caller mirrors the
+ * cascade into the room by pruning those records instead of retrying the upsert forever.
+ *
+ * The error shape (`code`/`constraint`) is what node-postgres surfaces on `DatabaseError` and
+ * kysely rethrows unchanged; both fields must match so unrelated FK failures keep the normal
+ * at-least-once retry behavior.
+ */
+export function isCommentAuthorFkViolation(error: unknown): boolean {
+	if (typeof error !== 'object' || error === null) return false
+	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
+	return code === '23503' && constraint === 'comment_author_id_fkey'
+}
+
 export function threadRecordToRow(
 	record: TLCommentThread,
 	fileId: string,

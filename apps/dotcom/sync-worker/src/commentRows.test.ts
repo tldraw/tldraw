@@ -9,6 +9,7 @@ import {
 import { describe, expect, it } from 'vitest'
 import {
 	commentRecordToRow,
+	isCommentAuthorFkViolation,
 	mergeCommentDocumentsIntoSnapshot,
 	rowsToSnapshotDocuments,
 	rowToCommentRecord,
@@ -94,6 +95,38 @@ describe('commentRecordToRow', () => {
 		const row = commentRecordToRow(comment, 'file1', 44)
 		expect(row.editedAt).toBe(1600)
 		expect(row.updatedAt).toBe(1600)
+	})
+})
+
+describe('isCommentAuthorFkViolation', () => {
+	it('matches a pg foreign key violation on comment_author_id_fkey', () => {
+		// shape of node-postgres's DatabaseError for `insert ... violates foreign key constraint`
+		const error = Object.assign(new Error('violates foreign key constraint'), {
+			code: '23503',
+			constraint: 'comment_author_id_fkey',
+		})
+		expect(isCommentAuthorFkViolation(error)).toBe(true)
+	})
+
+	it('requires both the code and the constraint to match', () => {
+		expect(
+			isCommentAuthorFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_thread_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentAuthorFkViolation(
+				Object.assign(new Error(), { code: '23505', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentAuthorFkViolation(Object.assign(new Error(), { code: '23503' }))).toBe(false)
+	})
+
+	it('rejects non-object and empty errors', () => {
+		expect(isCommentAuthorFkViolation(null)).toBe(false)
+		expect(isCommentAuthorFkViolation(undefined)).toBe(false)
+		expect(isCommentAuthorFkViolation('23503')).toBe(false)
+		expect(isCommentAuthorFkViolation(new Error('connection refused'))).toBe(false)
 	})
 })
 
